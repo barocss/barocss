@@ -1,0 +1,28 @@
+{
+  "gate": "types-repaired",
+  "argv": [
+    "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+    "/Users/user/.barocss-ai/v3/integration/node_modules/typescript/bin/tsc",
+    "-p",
+    "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/examples/physics-rigid-full-pair-position-world/tsconfig.json"
+  ],
+  "beforeHead": "bf5322dd70d42d4caed58648d38fd579b80327c4",
+  "measuredSource": "610e2581f1e0f597dedd2fdbb8a7586ecbd9dade",
+  "elapsedSeconds": 0.5308990000048652,
+  "exitCode": 0,
+  "artifacts": [
+    {
+      "path": "types-repaired.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "types-repaired.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "sourceFreezeSha256": "8f8bb1780af6540e3673f2619bc34c15a971de6085f425f024741c784838acb8",
+  "firstFailurePreserved": true,
+  "newNumericalCalls": 0
+}

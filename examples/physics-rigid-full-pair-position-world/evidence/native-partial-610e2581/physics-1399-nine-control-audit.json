@@ -1,0 +1,688 @@
+{
+  "scope": "COMPLETED source controls and authentic nine-start only",
+  "dataOnly": true,
+  "modelReferenceSolverWorldImportsOrCalls": false,
+  "ongoingMainTraceRead": false,
+  "worldGOClaimed": false,
+  "sourceFreeze": {
+    "path": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/examples/physics-rigid-full-pair-position-world/source-freeze.json",
+    "bytes": 138947,
+    "sha256": "8f8bb1780af6540e3673f2619bc34c15a971de6085f425f024741c784838acb8"
+  },
+  "sourcePinsVerifiedCurrentAndImmutableGit": 726,
+  "measuredSource": "610e2581f1e0f597dedd2fdbb8a7586ecbd9dade",
+  "currentConsumerHead": "bf5322dd70d42d4caed58648d38fd579b80327c4",
+  "emittedLedger": {
+    "path": "/tmp/physics-1399-first-native/emitted-pre-consumer.json",
+    "bytes": 182411,
+    "sha256": "af132c319b00c2612c30f20acb964961c0ac6f79499fb1c351f78e44e838f541"
+  },
+  "actualEmittedBytesVerified": 542,
+  "gateReceipts": {
+    "build": {
+      "metadata": {
+        "gate": "build",
+        "argv": [
+          "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+          "examples/physics-rigid-engine-reference/build-local.mjs"
+        ],
+        "beforeHead": "dea22d310baa3203a4864344a6c0e8b18dd29b4d",
+        "measuredSource": "3d7aca4468568f299edb216aed046508d2457af3",
+        "elapsedSeconds": 7.685276417003479,
+        "exitCode": 0,
+        "artifacts": [
+          {
+            "path": "build.stdout.log",
+            "bytes": 455,
+            "sha256": "fd18c78de396894e437a4e046477bec85f7f2d4603ad0280af5e5bda20da1a04"
+          },
+          {
+            "path": "build.stderr.log",
+            "bytes": 43,
+            "sha256": "92c17c669f9faa5b67a63d30bf09d70a0c18299759568e7686957e83d94ce962"
+          }
+        ],
+        "sourceFreezeSha256": "06cb587957ce6fb8d6dd232b3d800ce5236c3eacb143e516d3f5e4a29d07222a"
+      },
+      "artifact": {
+        "path": "/tmp/physics-1399-first-native/build.receipt.json",
+        "bytes": 749,
+        "sha256": "c1241eb485df62b28bc3a393f357f907125d711a269ff0391855aa185e0a040d"
+      }
+    },
+    "types": {
+      "metadata": {
+        "gate": "types",
+        "argv": [
+          "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+          "/Users/user/.barocss-ai/v3/integration/node_modules/typescript/bin/tsc",
+          "-p",
+          "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/examples/physics-rigid-full-pair-position-world/tsconfig.json"
+        ],
+        "beforeHead": "dea22d310baa3203a4864344a6c0e8b18dd29b4d",
+        "measuredSource": "3d7aca4468568f299edb216aed046508d2457af3",
+        "elapsedSeconds": 0.8111982079863083,
+        "exitCode": 2,
+        "artifacts": [
+          {
+            "path": "types.stdout.log",
+            "bytes": 408,
+            "sha256": "9790b2f8c771e93f7a73e51b87e5fd11b8f70dfc6a6b89c4bc1939ed2fb84ab4"
+          },
+          {
+            "path": "types.stderr.log",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ],
+        "sourceFreezeSha256": "06cb587957ce6fb8d6dd232b3d800ce5236c3eacb143e516d3f5e4a29d07222a"
+      },
+      "artifact": {
+        "path": "/tmp/physics-1399-first-native/types.receipt.json",
+        "bytes": 914,
+        "sha256": "351a664dbb147941941e38785ed680b61aeb1946c5bd48910df6a36c5d4fac24"
+      }
+    },
+    "types-repaired": {
+      "metadata": {
+        "gate": "types-repaired",
+        "argv": [
+          "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+          "/Users/user/.barocss-ai/v3/integration/node_modules/typescript/bin/tsc",
+          "-p",
+          "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/examples/physics-rigid-full-pair-position-world/tsconfig.json"
+        ],
+        "beforeHead": "bf5322dd70d42d4caed58648d38fd579b80327c4",
+        "measuredSource": "610e2581f1e0f597dedd2fdbb8a7586ecbd9dade",
+        "elapsedSeconds": 0.5308990000048652,
+        "exitCode": 0,
+        "artifacts": [
+          {
+            "path": "types-repaired.stdout.log",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "types-repaired.stderr.log",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ],
+        "sourceFreezeSha256": "8f8bb1780af6540e3673f2619bc34c15a971de6085f425f024741c784838acb8",
+        "firstFailurePreserved": true,
+        "newNumericalCalls": 0
+      },
+      "artifact": {
+        "path": "/tmp/physics-1399-first-native/types-repaired.receipt.json",
+        "bytes": 998,
+        "sha256": "82b08d23fe11b03080735d6574dd718e8bd4f88e15f7b0b98a1c50a444e6cf8d"
+      }
+    }
+  },
+  "completedArtifacts": {
+    "nine": {
+      "artifact": {
+        "path": "/tmp/physics-1399-first-native/source-nine-start.json.gz",
+        "bytes": 12535,
+        "sha256": "a0f4a55778e6a8b7c8c8df869e3059b27f70ec9886b10fb20254f1c52f7b032d"
+      },
+      "decodedBytes": 35762,
+      "decodedSha256": "d6bb003fd04cfc98bd805a419903ca3d4be12d21fe586373185c3885fbc1cb52"
+    },
+    "nineInput": {
+      "artifact": {
+        "path": "/tmp/physics-1399-first-native/source-nine-start-input.json.gz",
+        "bytes": 3212,
+        "sha256": "d03b1da24b37c77099d35401e4af58f76ba721c0cc5e4ff1a65063a85f5e3c60"
+      },
+      "decodedBytes": 10243,
+      "decodedSha256": "0575f112eeac3b457b717433de2ae1c85066eee91d7933177e8b07dd34e9dd1d"
+    },
+    "nineResult": {
+      "artifact": {
+        "path": "/tmp/physics-1399-first-native/source-nine-start-result.json.gz",
+        "bytes": 3652,
+        "sha256": "ef105cb95471523fd5441f0aa9c69d875b2d4f5ef362b7ed892d416872393049"
+      },
+      "decodedBytes": 13027,
+      "decodedSha256": "4aa8c24106b468c6eef9b7ee3b09b861665659845e7358fdce057d17115268b3"
+    },
+    "controls": {
+      "artifact": {
+        "path": "/tmp/physics-1399-first-native/source-controls.json.gz",
+        "bytes": 22458,
+        "sha256": "97b83bfbfecd0650405d8e710c155742ec9d9053203520205df1ad240797589c"
+      },
+      "decodedBytes": 401524,
+      "decodedSha256": "fb34c1d3ea5938204a186e07bb1e7246712383a5f7a9927a5bbf0f696f0a1218"
+    },
+    "graph": {
+      "path": "/tmp/physics-1399-first-native/source-graph.json",
+      "bytes": 60802,
+      "sha256": "9c3b5cf8f30bab462ff291184415f548fdc60d3e9443c87038612df78d1ad5d6"
+    }
+  },
+  "sourceGraph": {
+    "actualInputsVerified": 58,
+    "originalSourceCount": 39,
+    "originalDistCount": 0,
+    "bundleSha256": "767aa27845a63f267581814cc588806828ac3ab1e16120a01373f723775d3dbb"
+  },
+  "authenticNine": {
+    "disposition": "DETACHED_NINE_ROW_GO",
+    "fullPairWorldGO": false,
+    "parentNative": "a7bf69e2d7b6e75b99df7207aa91874ed71e032e",
+    "parentAdoption": "4ae895123bd37238599f1ad4f6b7db2a2b8e76ba",
+    "preRawSha256": "5d30caf70efc657b94a7ccca9e98441d76baf3163f3723f731d773e52daabd3a",
+    "preRawBytes": 936,
+    "raw13FieldsVerified": 117,
+    "negativeZeroFields": 0,
+    "parentRawOffsetBytes": 1680120,
+    "originalEightAndOnlyFreshNinthVerified": true,
+    "nativeStatus": "SOLVED",
+    "nativeBasisRows": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "nativeBasisRank": 8,
+    "dynamicDof": 24,
+    "nativeObjectiveKgM2": 0.0019100222972072169,
+    "nativeCounters": {
+      "iterations": 10,
+      "activeChanges": 10,
+      "rankChecks": 10,
+      "linearSolves": 9,
+      "constraintTests": 157,
+      "factorizations": 9,
+      "blockRightHandSides": 40,
+      "exactIntegerOperations": 0,
+      "exactPeakBits": 0
+    },
+    "nativeCertificateByUnit": {
+      "primalViolationM": 2.7755575615628914e-17,
+      "negativeMultiplierKgM": 0,
+      "complementarityKgM2": 3.719247200890639e-18,
+      "stationarityKgM": 0
+    },
+    "independentMetrics": {
+      "translationDifferenceM": 2.7755575615628914e-17,
+      "objectiveDifferenceKgM2": 2.904997802690733e-18,
+      "certificateReportedDifference": 8.081865957126676e-18,
+      "marginReportedDifferenceM": 4.1667153332219075e-18,
+      "objectiveReportedDifferenceKgM2": 7.11540716617225e-20,
+      "primalViolationM": 2.7755575615628914e-17,
+      "negativeMultiplierKgM": 0,
+      "complementarityKgM2": 3.719247200890639e-18,
+      "stationarityKgM": 8.081865957126676e-18,
+      "solutionReached": true,
+      "actualCertificateExact": {
+        "primalViolationM": "1/36028797018963968",
+        "negativeMultiplierKgM": "0/1",
+        "complementarityKgM2": "4827858889324729/1298074214633706907132624082305024",
+        "stationarityKgM": "5245430902536051/649037107316853453566312041152512"
+      }
+    },
+    "expectedExactCertificate": {
+      "primalViolationM": "0/1",
+      "negativeMultiplierKgM": "0/1",
+      "complementarityKgM2": "0/1",
+      "stationarityKgM": "0/1"
+    },
+    "coldIndependentCounters": {
+      "lpPivots": 7,
+      "qpTransitions": 7,
+      "rankTests": 9,
+      "factorizations": 7,
+      "primalRowTests": 117,
+      "peakRationalBits": 1860
+    },
+    "separate512MaskCrosscheck": {
+      "enumeratedMasks": 512,
+      "singularMasks": 0,
+      "rejectedMasks": 511,
+      "qualifiedMasks": 1,
+      "counters": {
+        "lpPivots": 0,
+        "qpTransitions": 0,
+        "rankTests": 512,
+        "factorizations": 511,
+        "primalRowTests": 2151,
+        "peakRationalBits": 1693
+      }
+    },
+    "samePREGeometry": {
+      "frameSha256": "5d30caf70efc657b94a7ccca9e98441d76baf3163f3723f731d773e52daabd3a",
+      "preRawVerified": true,
+      "eightRowsVerified": true,
+      "coefficientDifferenceM": 0,
+      "pair": {
+        "pairKey": "b6\u0000b7",
+        "rawDepthM": 0,
+        "normalizedDepthM": 0,
+        "rawMarginM": -1.4965050398190442e-06,
+        "normalizedMarginM": -1.4965050398175252e-06,
+        "precisionMaxDifferenceM": 1.0703427753471137e-79,
+        "rawNormalizedDepthDifferenceM": 0,
+        "rawNormalizedMarginDifferenceM": 1.5190833135437497e-18,
+        "selection": {
+          "normal": [
+            -0.06743617994631125,
+            0.9956875350329243,
+            -0.06370788188527267
+          ],
+          "boundM": -1.4965050398885182e-06,
+          "candidateIndex": 4,
+          "pointM": [
+            -0.04283438716158998,
+            3.0240819252523696,
+            -0.020218566103799337
+          ],
+          "rawAxisLength": 1,
+          "label": "B.face.1",
+          "feature": {
+            "kind": "face-b",
+            "axisB": 1
+          }
+        },
+        "ties": {
+          "exactMinimumCandidateIndices": [
+            4
+          ],
+          "withinDiagnosticTieToleranceCandidateIndices": [
+            4
+          ],
+          "skippedCandidateIndices": [],
+          "diagnosticTieToleranceM": 1e-12,
+          "uniquePhysicalFeatureClaimed": false
+        }
+      }
+    }
+  },
+  "controls": {
+    "policyReceipts": 51,
+    "pureSolverAPICalls": 22,
+    "purePhaseCalls": 2,
+    "directApplyCalls": 3,
+    "directGeometryBuilderCalls": 2,
+    "directGuardValidationCalls": 43,
+    "validationCountsExcludeCoreAndPhaseInternalInvocations": true,
+    "shortWorldReceipts": 39,
+    "shortCreatedWorlds": 35,
+    "shortWorldStepCalls": 49,
+    "shortWorldAccepted": 25,
+    "shortWorldRefused": 24,
+    "originalConstructorGuardsSeparate": 3,
+    "independentReferenceReceipts": 81,
+    "independentKernelControls": 16,
+    "positiveLedgerControls": 17,
+    "protocolControls": 39,
+    "budgetSpoofs": 9,
+    "independentNativeSolverCalls": 0,
+    "controlLongWorldCalls": 0,
+    "nativeKernelCases": [
+      {
+        "id": "L01-zero",
+        "nativeStatus": "SOLVED",
+        "nativeReason": null,
+        "referenceStatus": "SOLVED",
+        "counters": {
+          "iterations": 0,
+          "activeChanges": 0,
+          "rankChecks": 0,
+          "linearSolves": 0,
+          "constraintTests": 0,
+          "factorizations": 0,
+          "blockRightHandSides": 0,
+          "exactIntegerOperations": 0,
+          "exactPeakBits": 0
+        }
+      },
+      {
+        "id": "L02-eight",
+        "nativeStatus": "SOLVED",
+        "nativeReason": null,
+        "referenceStatus": "SOLVED",
+        "counters": {
+          "iterations": 0,
+          "activeChanges": 0,
+          "rankChecks": 0,
+          "linearSolves": 0,
+          "constraintTests": 24,
+          "factorizations": 0,
+          "blockRightHandSides": 0,
+          "exactIntegerOperations": 0,
+          "exactPeakBits": 0
+        }
+      },
+      {
+        "id": "L04-thirty-six",
+        "nativeStatus": "SOLVED",
+        "nativeReason": null,
+        "referenceStatus": "SOLVED",
+        "counters": {
+          "iterations": 0,
+          "activeChanges": 0,
+          "rankChecks": 0,
+          "linearSolves": 0,
+          "constraintTests": 108,
+          "factorizations": 0,
+          "blockRightHandSides": 0,
+          "exactIntegerOperations": 0,
+          "exactPeakBits": 0
+        }
+      },
+      {
+        "id": "L05-thirty-six-inconsistent",
+        "nativeStatus": "INFEASIBLE",
+        "nativeReason": null,
+        "referenceStatus": "INFEASIBLE",
+        "counters": {
+          "iterations": 3,
+          "activeChanges": 2,
+          "rankChecks": 4,
+          "linearSolves": 3,
+          "constraintTests": 149,
+          "factorizations": 3,
+          "blockRightHandSides": 6,
+          "exactIntegerOperations": 708,
+          "exactPeakBits": 53
+        }
+      },
+      {
+        "id": "L06-dependent-coherent",
+        "nativeStatus": "SOLVED",
+        "nativeReason": null,
+        "referenceStatus": "SOLVED",
+        "counters": {
+          "iterations": 2,
+          "activeChanges": 2,
+          "rankChecks": 2,
+          "linearSolves": 1,
+          "constraintTests": 20,
+          "factorizations": 1,
+          "blockRightHandSides": 2,
+          "exactIntegerOperations": 0,
+          "exactPeakBits": 0
+        }
+      },
+      {
+        "id": "L07-08-static-0",
+        "nativeStatus": "SOLVED",
+        "nativeReason": null,
+        "referenceStatus": "SOLVED",
+        "counters": {
+          "iterations": 0,
+          "activeChanges": 0,
+          "rankChecks": 0,
+          "linearSolves": 0,
+          "constraintTests": 3,
+          "factorizations": 0,
+          "blockRightHandSides": 0,
+          "exactIntegerOperations": 0,
+          "exactPeakBits": 0
+        }
+      },
+      {
+        "id": "L07-08-static--1",
+        "nativeStatus": "SOLVED",
+        "nativeReason": null,
+        "referenceStatus": "SOLVED",
+        "counters": {
+          "iterations": 0,
+          "activeChanges": 0,
+          "rankChecks": 0,
+          "linearSolves": 0,
+          "constraintTests": 3,
+          "factorizations": 0,
+          "blockRightHandSides": 0,
+          "exactIntegerOperations": 0,
+          "exactPeakBits": 0
+        }
+      },
+      {
+        "id": "L07-08-static-1",
+        "nativeStatus": "INFEASIBLE",
+        "nativeReason": null,
+        "referenceStatus": "INFEASIBLE",
+        "counters": {
+          "iterations": 0,
+          "activeChanges": 0,
+          "rankChecks": 0,
+          "linearSolves": 0,
+          "constraintTests": 1,
+          "factorizations": 0,
+          "blockRightHandSides": 0,
+          "exactIntegerOperations": 15,
+          "exactPeakBits": 53
+        }
+      },
+      {
+        "id": "L09-near-zero-feasible",
+        "nativeStatus": "SOLVED",
+        "nativeReason": null,
+        "referenceStatus": "SOLVED",
+        "counters": {
+          "iterations": 0,
+          "activeChanges": 0,
+          "rankChecks": 0,
+          "linearSolves": 0,
+          "constraintTests": 9,
+          "factorizations": 0,
+          "blockRightHandSides": 0,
+          "exactIntegerOperations": 0,
+          "exactPeakBits": 0
+        }
+      },
+      {
+        "id": "L09-near-independent-unsafe",
+        "nativeStatus": "NUMERIC_UNSAFE",
+        "nativeReason": "near-dependent-independent",
+        "referenceStatus": "SOLVED",
+        "counters": {
+          "iterations": 2,
+          "activeChanges": 1,
+          "rankChecks": 3,
+          "linearSolves": 2,
+          "constraintTests": 8,
+          "factorizations": 2,
+          "blockRightHandSides": 3,
+          "exactIntegerOperations": 202,
+          "exactPeakBits": 80
+        }
+      },
+      {
+        "id": "L10-mass-endpoints",
+        "nativeStatus": "SOLVED",
+        "nativeReason": null,
+        "referenceStatus": "SOLVED",
+        "counters": {
+          "iterations": 1,
+          "activeChanges": 1,
+          "rankChecks": 1,
+          "linearSolves": 0,
+          "constraintTests": 6,
+          "factorizations": 0,
+          "blockRightHandSides": 0,
+          "exactIntegerOperations": 0,
+          "exactPeakBits": 0
+        }
+      },
+      {
+        "id": "L11-unclamped-0",
+        "nativeStatus": "SOLVED",
+        "nativeReason": null,
+        "referenceStatus": "SOLVED",
+        "counters": {
+          "iterations": 0,
+          "activeChanges": 0,
+          "rankChecks": 0,
+          "linearSolves": 0,
+          "constraintTests": 24,
+          "factorizations": 0,
+          "blockRightHandSides": 0,
+          "exactIntegerOperations": 0,
+          "exactPeakBits": 0
+        }
+      },
+      {
+        "id": "L11-unclamped-1",
+        "nativeStatus": "SOLVED",
+        "nativeReason": null,
+        "referenceStatus": "SOLVED",
+        "counters": {
+          "iterations": 0,
+          "activeChanges": 0,
+          "rankChecks": 0,
+          "linearSolves": 0,
+          "constraintTests": 24,
+          "factorizations": 0,
+          "blockRightHandSides": 0,
+          "exactIntegerOperations": 0,
+          "exactPeakBits": 0
+        }
+      },
+      {
+        "id": "L11-unclamped-2",
+        "nativeStatus": "SOLVED",
+        "nativeReason": null,
+        "referenceStatus": "SOLVED",
+        "counters": {
+          "iterations": 0,
+          "activeChanges": 0,
+          "rankChecks": 0,
+          "linearSolves": 0,
+          "constraintTests": 24,
+          "factorizations": 0,
+          "blockRightHandSides": 0,
+          "exactIntegerOperations": 0,
+          "exactPeakBits": 0
+        }
+      },
+      {
+        "id": "L12-range-endpoint--10",
+        "nativeStatus": "SOLVED",
+        "nativeReason": null,
+        "referenceStatus": "SOLVED",
+        "counters": {
+          "iterations": 0,
+          "activeChanges": 0,
+          "rankChecks": 0,
+          "linearSolves": 0,
+          "constraintTests": 3,
+          "factorizations": 0,
+          "blockRightHandSides": 0,
+          "exactIntegerOperations": 0,
+          "exactPeakBits": 0
+        }
+      },
+      {
+        "id": "L12-range-endpoint-10",
+        "nativeStatus": "SOLVED",
+        "nativeReason": null,
+        "referenceStatus": "SOLVED",
+        "counters": {
+          "iterations": 1,
+          "activeChanges": 1,
+          "rankChecks": 1,
+          "linearSolves": 0,
+          "constraintTests": 6,
+          "factorizations": 0,
+          "blockRightHandSides": 0,
+          "exactIntegerOperations": 0,
+          "exactPeakBits": 0
+        }
+      },
+      {
+        "id": "L15-core-budget0",
+        "nativeStatus": "WORK_LIMIT",
+        "nativeReason": "budget:iterations",
+        "referenceStatus": "SOLVED",
+        "counters": {
+          "iterations": 0,
+          "activeChanges": 0,
+          "rankChecks": 0,
+          "linearSolves": 0,
+          "constraintTests": 2,
+          "factorizations": 0,
+          "blockRightHandSides": 0,
+          "exactIntegerOperations": 0,
+          "exactPeakBits": 0
+        }
+      }
+    ],
+    "pureFull36Phase": {
+      "stats": {
+        "tests": 36,
+        "hits": 36,
+        "rows": 36,
+        "signedPreQueries": 36,
+        "solverCalls": 1,
+        "postPairTests": 36,
+        "maxTranslationM": 4.000000000000001,
+        "workingApplicationCount": 1,
+        "solverCounters": {
+          "iterations": 70,
+          "activeChanges": 70,
+          "rankChecks": 83,
+          "linearSolves": 82,
+          "constraintTests": 1980,
+          "factorizations": 82,
+          "blockRightHandSides": 485,
+          "exactIntegerOperations": 18341,
+          "exactPeakBits": 54
+        },
+        "certificate": {
+          "primalViolationM": 8.881784197001252e-16,
+          "negativeMultiplierKgM": 0,
+          "complementarityKgM2": 1.8651746813702636e-14,
+          "stationarityKgM": 0
+        }
+      },
+      "metrics": {
+        "translationDifferenceM": 1.7763568394002505e-15,
+        "objectiveDifferenceKgM2": 1.4210854715202004e-14,
+        "certificateReportedDifference": 0,
+        "marginReportedDifferenceM": 0,
+        "objectiveReportedDifferenceKgM2": 2.2204460492503107e-15,
+        "primalViolationM": 8.881784197001252e-16,
+        "negativeMultiplierKgM": 0,
+        "complementarityKgM2": 1.8651746813702636e-14,
+        "stationarityKgM": 0,
+        "solutionReached": true,
+        "actualCertificateExact": {
+          "primalViolationM": "1/1125899906842624",
+          "negativeMultiplierKgM": "0/1",
+          "complementarityKgM2": "2955487255461889/158456325028528675187087900672",
+          "stationarityKgM": "0/1"
+        },
+        "maxPreAxisDifferenceM": 0,
+        "maxHypDepthRawM": 8.881784197001252e-16,
+        "maxHypDepthNormalizedM": 8.881784197001252e-16,
+        "heldBitsMatch": true,
+        "roundedFinalMatches": true,
+        "staticBitsMatch": true,
+        "maxRoundedFinalDifferenceM": 0,
+        "precisionMaxDifferenceM": 0,
+        "rawNormalizedDepthDifferenceM": 0,
+        "stageReached": true
+      },
+      "notWorld": true
+    },
+    "staticSignedZeroEvidence": "Three completed source-pinned Object.is apply assertions/receipts; JSON alone is not a new signed-zero binary proof."
+  },
+  "proofAuditAuthority": "Parsed canonical saved certificates and normalized weights, checked saved independent proof-valid flags/exact expected zero/unit gates. No new matrix/optimizer/Farkas construction or reference execution.",
+  "auditToolStorageFailurePreserved": {
+    "firstAttempt": "zsh heredoc temporary-file creation: no space left on device",
+    "noProductOrCanonicalFilesChanged": true,
+    "readOnlyDfAvailableAfterFailure": "149MiB",
+    "continuedDataOnlyViaPythonCommandArgument": true
+  },
+  "mismatches": [],
+  "acceptanceOfCompletedData": true
+}

@@ -1,0 +1,5780 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+... Skipped lines
+
+  {
+    policy: {
+      allInputsAuthoredBeforeExecution: true,
+      directApplyCalls: 3,
+      directGeometryBuilderCalls: 2,
+...
+                bId: 'b',
++               boundM: -0,
+-               boundM: 0,
+                normal: [
+                  1,
+                  0,
+                  0
+                ]
+...
+                    -1,
++                   -0,
++                   -0
+-                   0,
+-                   0
+                  ],
+                  pointM: [
+                    -6.5,
+                    0,
+                    0
+...
+                    -1,
++                   -0,
++                   -0
+-                   0,
+-                   0
+                  ]
+                }
+              ]
+            },
+            result: null,
+...
+                    -1,
++                   -0,
++                   -0
+-                   0,
+-                   0
+                  ],
+                  pointM: [
+                    -6.5,
+                    0,
+                    0
+...
+                  orientation: [
++                   -0,
++                   -0,
++                   -0,
+-                   0,
+-                   0,
+-                   0,
+                    -1
+                  ],
+                  positionM: [
+                    0,
+                    0,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  penetration: 0.0006812784321690302,
+                  pointM: [
+                    0.12500000059471236,
+                    -0.0003406392160845151,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.12500000059471236,
+                    -0.0003406392160845151,
+                    -0.12499999664925063
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.15000007334706286,
+                    0.24965931889198778,
+                    -0.12500000974772116
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ]
+                },
+                {
+                  aId: 'b1',
+                  bId: 'floor',
+                  boundM: -0.49931863778397556,
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ]
+                }
+              ]
+            },
+            result: null,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.12500000059471236,
+                    -0.0003406392160845151,
+                    -0.12499999664925063
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.15000007334706286,
+                    0.24965931889198778,
+                    -0.12500000974772116
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:0',
+                  pointM: [
+                    -0.2499999988105736,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:1',
+                  pointM: [
+                    -0.24999999234585557,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:2',
+                  pointM: [
+                    0.25000000118942467,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:3',
+                  pointM: [
+                    0.25000000765414276,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  penetration: 0.0006812784321690302,
+                  pointM: [
+                    0.12500000059471236,
+                    -0.0003406392160845151,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.12500000059471236,
+                    -0.0003406392160845151,
+                    -0.12499999664925063
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.15000007334706286,
+                    0.24965931889198778,
+                    -0.12500000974772116
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ]
+                },
+                {
+                  aId: 'b1',
+                  bId: 'floor',
+                  boundM: -0.49931863778397556,
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ]
+                }
+              ]
+            },
+            result: null,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.12500000059471236,
+                    -0.0003406392160845151,
+                    -0.12499999664925063
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.15000007334706286,
+                    0.24965931889198778,
+                    -0.12500000974772116
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:0',
+                  pointM: [
+                    -0.2499999988105736,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:1',
+                  pointM: [
+                    -0.24999999234585557,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:2',
+                  pointM: [
+                    0.25000000118942467,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:3',
+                  pointM: [
+                    0.25000000765414276,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  penetration: 0.0006812784321690302,
+                  pointM: [
+                    0.12500000059471236,
+                    -0.0003406392160845151,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.12500000059471236,
+                    -0.0003406392160845151,
+                    -0.12499999664925063
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.15000007334706286,
+                    0.24965931889198778,
+                    -0.12500000974772116
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ]
+                },
+                {
+                  aId: 'b1',
+                  bId: 'floor',
+                  boundM: -0.49931863778397556,
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ]
+                }
+              ]
+            },
+            result: null,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.12500000059471236,
+                    -0.0003406392160845151,
+                    -0.12499999664925063
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.15000007334706286,
+                    0.24965931889198778,
+                    -0.12500000974772116
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:0',
+                  pointM: [
+                    -0.2499999988105736,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:1',
+                  pointM: [
+                    -0.24999999234585557,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:2',
+                  pointM: [
+                    0.25000000118942467,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:3',
+                  pointM: [
+                    0.25000000765414276,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  penetration: 0.0006812784321690302,
+                  pointM: [
+                    0.12500000059471236,
+                    -0.0003406392160845151,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.12500000059471236,
+                    -0.0003406392160845151,
+                    -0.12499999664925063
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.15000007334706286,
+                    0.24965931889198778,
+                    -0.12500000974772116
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ]
+                },
+                {
+                  aId: 'b1',
+                  bId: 'floor',
+                  boundM: -0.49931863778397556,
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ]
+                }
+              ]
+            },
+            result: {
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.12500000059471236,
+                    -0.0003406392160845151,
+                    -0.12499999664925063
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.15000007334706286,
+                    0.24965931889198778,
+                    -0.12500000974772116
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:0',
+                  pointM: [
+                    -0.2499999988105736,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:1',
+                  pointM: [
+                    -0.24999999234585557,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:2',
+                  pointM: [
+                    0.25000000118942467,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:3',
+                  pointM: [
+                    0.25000000765414276,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  penetration: 0.0006812784321690302,
+                  pointM: [
+                    0.12500000059471236,
+                    -0.0003406392160845151,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.12500000059471236,
+                    -0.0003406392160845151,
+                    -0.12499999664925063
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.15000007334706286,
+                    0.24965931889198778,
+                    -0.12500000974772116
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ]
+                },
+                {
+                  aId: 'b1',
+                  bId: 'floor',
+                  boundM: -0.49931863778397556,
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ]
+                }
+              ]
+            },
+            result: {
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.12500000059471236,
+                    -0.0003406392160845151,
+                    -0.12499999664925063
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.15000007334706286,
+                    0.24965931889198778,
+                    -0.12500000974772116
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:0',
+                  pointM: [
+                    -0.2499999988105736,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:1',
+                  pointM: [
+                    -0.24999999234585557,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:2',
+                  pointM: [
+                    0.25000000118942467,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:3',
+                  pointM: [
+                    0.25000000765414276,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  penetration: 0.0006812784321690302,
+                  pointM: [
+                    0.12500000059471236,
+                    -0.0003406392160845151,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.12500000059471236,
+                    -0.0003406392160845151,
+                    -0.12499999664925063
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.15000007334706286,
+                    0.24965931889198778,
+                    -0.12500000974772116
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ]
+                },
+                {
+                  aId: 'b1',
+                  bId: 'floor',
+                  boundM: -0.49931863778397556,
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ]
+                }
+              ]
+            },
+            result: null,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.12500000059471236,
+                    -0.0003406392160845151,
+                    -0.12499999664925063
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.15000007334706286,
+                    0.24965931889198778,
+                    -0.12500000974772116
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:0',
+                  pointM: [
+                    -0.2499999988105736,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:1',
+                  pointM: [
+                    -0.24999999234585557,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:2',
+                  pointM: [
+                    0.25000000118942467,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:3',
+                  pointM: [
+                    0.25000000765414276,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  penetration: 0.0006812784321690302,
+                  pointM: [
+                    0.12500000059471236,
+                    -0.0003406392160845151,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.12500000059471236,
+                    -0.0003406392160845151,
+                    -0.12499999664925063
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.15000007334706286,
+                    0.24965931889198778,
+                    -0.12500000974772116
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ]
+                },
+                {
+                  aId: 'b1',
+                  bId: 'floor',
+                  boundM: -0.49931863778397556,
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ]
+                }
+              ]
+            },
+            result: null,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.12500000059471236,
+                    -0.0003406392160845151,
+                    -0.12499999664925063
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pointM: [
+                    0.15000007334706286,
+                    0.24965931889198778,
+                    -0.12500000974772116
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:0',
+                  pointM: [
+                    -0.2499999988105736,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:1',
+                  pointM: [
+                    -0.24999999234585557,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:2',
+                  pointM: [
+                    0.25000000118942467,
+...
+                  normal: [
++                   -0,
+-                   0,
+                    -1,
++                   -0
+-                   0
+                  ],
+                  pairKey: 'b0\x00floor',
+                  pointId: 'face:floor:1:1:b0:1:-1:3',
+                  pointM: [
+                    0.25000000765414276,
+...
+                    -1,
++                   -0,
++                   -0
+-                   0,
+-                   0
+                  ],
+                  pointM: [
+                    10,
+                    0.25,
+                    0
+...
+                    -1,
++                   -0,
++                   -0
+-                   0,
+-                   0
+                  ],
+                  pointM: [
+                    6,
+                    0.075,
+                    0
+...
+                    -1,
++                   -0,
++                   -0
+-                   0,
+-                   0
+                  ],
+                  penetration: 0.25,
+                  pointM: [
+                    9.875,
+                    0.25,
+...
+                    -1,
++                   -0,
++                   -0
+-                   0,
+-                   0
+                  ],
+                  pointM: [
+                    9.875,
+                    0.25,
+                    0
+...
+                    -1,
++                   -0,
++                   -0
+-                   0,
+-                   0
+                  ],
+                  pointM: [
+                    5.875,
+                    0.075,
+                    0
+...
+                    -1,
++                   -0,
++                   -0
+-                   0,
+-                   0
+                  ]
+                },
+                {
+                  aId: 'a',
+                  bId: 'z-floor',
+...
+                    -1,
++                   -0,
++                   -0
+-                   0,
+-                   0
+                  ]
+                }
+              ]
+            },
+            result: {
+...
+                    -1,
++                   -0,
++                   -0
+-                   0,
+-                   0
+                  ],
+                  pointM: [
+                    9.875,
+                    0.25,
+                    0
+...
+                    -1,
++                   -0,
++                   -0
+-                   0,
+-                   0
+                  ],
+                  pointM: [
+                    5.875,
+                    0.075,
+                    0
+...
+                    -1,
++                   -0,
++                   -0
+-                   0,
+-                   0
+                  ],
+                  pairKey: 'a\x00wall',
+                  pointId: 'face:a:0:-1:wall:0:1:0',
+                  pointM: [
+                    9.875,
+...
+                    -1,
++                   -0,
++                   -0
+-                   0,
+-                   0
+                  ],
+                  pairKey: 'a\x00wall',
+                  pointId: 'face:a:0:-1:wall:0:1:1',
+                  pointM: [
+                    9.875,
+...
+                    -1,
++                   -0,
++                   -0
+-                   0,
+-                   0
+                  ],
+                  pairKey: 'a\x00wall',
+                  pointId: 'face:a:0:-1:wall:0:1:2',
+                  pointM: [
+                    9.875,
+...
+                    -1,
++                   -0,
++                   -0
+-                   0,
+-                   0
+                  ],
+                  pairKey: 'a\x00wall',
+                  pointId: 'face:a:0:-1:wall:0:1:3',
+                  pointM: [
+                    9.875,
+
+    at file:///Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/examples/physics-rigid-full-pair-position-world/continuation-runner.mjs:39:309 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: {
+    policy: {
+      receipts: [
+        {
+          id: 'L01-zero',
+          problem: { bodies: [Array], rows: [] },
+          result: {
+            ok: true,
+            status: 'SOLVED',
+            basisRows: [],
+            basisRank: 0,
+            dynamicDof: 3,
+            counters: [Object],
+            trace: [],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: [Array],
+            lambdaKgM: [],
+            primalMarginsM: [],
+            objectiveKgM2: 0,
+            certificate: [Object],
+            infeasibilityCertificate: null,
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L02-eight',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: true,
+            status: 'SOLVED',
+            basisRows: [],
+            basisRank: 0,
+            dynamicDof: 24,
+            counters: [Object],
+            trace: [],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: [Array],
+            lambdaKgM: [Array],
+            primalMarginsM: [Array],
+            objectiveKgM2: 0,
+            certificate: [Object],
+            infeasibilityCertificate: null,
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L04-thirty-six',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: true,
+            status: 'SOLVED',
+            basisRows: [],
+            basisRank: 0,
+            dynamicDof: 24,
+            counters: [Object],
+            trace: [],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: [Array],
+            lambdaKgM: [Array],
+            primalMarginsM: [Array],
+            objectiveKgM2: 0,
+            certificate: [Object],
+            infeasibilityCertificate: null,
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L05-thirty-six-inconsistent',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: false,
+            status: 'INFEASIBLE',
+            basisRows: [Array],
+            basisRank: 2,
+            dynamicDof: 24,
+            counters: [Object],
+            trace: [Array],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: null,
+            lambdaKgM: null,
+            primalMarginsM: null,
+            objectiveKgM2: null,
+            certificate: null,
+            infeasibilityCertificate: [Object],
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'INFEASIBLE',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L06-dependent-coherent',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: true,
+            status: 'SOLVED',
+            basisRows: [Array],
+            basisRank: 2,
+            dynamicDof: 9,
+            counters: [Object],
+            trace: [Array],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: [Array],
+            lambdaKgM: [Array],
+            primalMarginsM: [Array],
+            objectiveKgM2: 1,
+            certificate: [Object],
+            infeasibilityCertificate: null,
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L07-08-static-0',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: true,
+            status: 'SOLVED',
+            basisRows: [],
+            basisRank: 0,
+            dynamicDof: 0,
+            counters: [Object],
+            trace: [],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: [Array],
+            lambdaKgM: [Array],
+            primalMarginsM: [Array],
+            objectiveKgM2: 0,
+            certificate: [Object],
+            infeasibilityCertificate: null,
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L07-08-static--1',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: true,
+            status: 'SOLVED',
+            basisRows: [],
+            basisRank: 0,
+            dynamicDof: 0,
+            counters: [Object],
+            trace: [],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: [Array],
+            lambdaKgM: [Array],
+            primalMarginsM: [Array],
+            objectiveKgM2: 0,
+            certificate: [Object],
+            infeasibilityCertificate: null,
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L07-08-static-1',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: false,
+            status: 'INFEASIBLE',
+            basisRows: [],
+            basisRank: 0,
+            dynamicDof: 0,
+            counters: [Object],
+            trace: [Array],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: null,
+            lambdaKgM: null,
+            primalMarginsM: null,
+            objectiveKgM2: null,
+            certificate: null,
+            infeasibilityCertificate: [Object],
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'INFEASIBLE',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L09-near-zero-feasible',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: true,
+            status: 'SOLVED',
+            basisRows: [],
+            basisRank: 0,
+            dynamicDof: 9,
+            counters: [Object],
+            trace: [],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: [Array],
+            lambdaKgM: [Array],
+            primalMarginsM: [Array],
+            objectiveKgM2: 0,
+            certificate: [Object],
+            infeasibilityCertificate: null,
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L09-near-independent-unsafe',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: false,
+            status: 'NUMERIC_UNSAFE',
+            basisRows: [Array],
+            basisRank: 1,
+            dynamicDof: 6,
+            counters: [Object],
+            trace: [Array],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: null,
+            lambdaKgM: null,
+            primalMarginsM: null,
+            objectiveKgM2: null,
+            certificate: null,
+            infeasibilityCertificate: null,
+            reason: 'near-dependent-independent'
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L10-mass-endpoints',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: true,
+            status: 'SOLVED',
+            basisRows: [Array],
+            basisRank: 1,
+            dynamicDof: 6,
+            counters: [Object],
+            trace: [Array],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: [Array],
+            lambdaKgM: [Array],
+            primalMarginsM: [Array],
+            objectiveKgM2: 4.999999999995e-7,
+            certificate: [Object],
+            infeasibilityCertificate: null,
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L11-unclamped-0',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: true,
+            status: 'SOLVED',
+            basisRows: [],
+            basisRank: 0,
+            dynamicDof: 24,
+            counters: [Object],
+            trace: [],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: [Array],
+            lambdaKgM: [Array],
+            primalMarginsM: [Array],
+            objectiveKgM2: 0,
+            certificate: [Object],
+            infeasibilityCertificate: null,
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L11-unclamped-1',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: true,
+            status: 'SOLVED',
+            basisRows: [],
+            basisRank: 0,
+            dynamicDof: 24,
+            counters: [Object],
+            trace: [],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: [Array],
+            lambdaKgM: [Array],
+            primalMarginsM: [Array],
+            objectiveKgM2: 0,
+            certificate: [Object],
+            infeasibilityCertificate: null,
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L11-unclamped-2',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: true,
+            status: 'SOLVED',
+            basisRows: [],
+            basisRank: 0,
+            dynamicDof: 24,
+            counters: [Object],
+            trace: [],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: [Array],
+            lambdaKgM: [Array],
+            primalMarginsM: [Array],
+            objectiveKgM2: 0,
+            certificate: [Object],
+            infeasibilityCertificate: null,
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L12-range-endpoint--10',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: true,
+            status: 'SOLVED',
+            basisRows: [],
+            basisRank: 0,
+            dynamicDof: 3,
+            counters: [Object],
+            trace: [],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: [Array],
+            lambdaKgM: [Array],
+            primalMarginsM: [Array],
+            objectiveKgM2: 0,
+            certificate: [Object],
+            infeasibilityCertificate: null,
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L12-range-endpoint-10',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: true,
+            status: 'SOLVED',
+            basisRows: [Array],
+            basisRank: 1,
+            dynamicDof: 3,
+            counters: [Object],
+            trace: [Array],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: [Array],
+            lambdaKgM: [Array],
+            primalMarginsM: [Array],
+            objectiveKgM2: 50,
+            certificate: [Object],
+            infeasibilityCertificate: null,
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L15-core-budget0',
+          problem: { bodies: [Array], rows: [Array] },
+          limits: {
+            iterations: 0,
+            activeChanges: 1024,
+            rankChecks: 2048,
+            linearSolves: 2048,
+            constraintTests: 262144,
+            exactIntegerOperations: 1000000,
+            reducedRationalBits: 8192,
+            intermediateIntegerBits: 16385
+          },
+          result: {
+            ok: false,
+            status: 'WORK_LIMIT',
+            basisRows: [],
+            basisRank: 0,
+            dynamicDof: 6,
+            counters: [Object],
+            trace: [Array],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: null,
+            lambdaKgM: null,
+            primalMarginsM: null,
+            objectiveKgM2: null,
+            certificate: null,
+            infeasibilityCertificate: null,
+            reason: 'budget:iterations'
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          guardOnly: true
+        },
+        {
+          id: '37-rows',
+          code: 'PROFILE_LIMIT',
+          message: 'full-pair position reference admits at most nine bodies and thirty-six rows',
+          admissionOnly: true
+        },
+        {
+          id: '10-bodies',
+          code: 'PROFILE_LIMIT',
+          message: 'full-pair position reference admits at most nine bodies and thirty-six rows',
+          admissionOnly: true
+        },
+        {
+          id: 'empty',
+          code: 'INVALID_INPUT',
+          message: 'full-pair position reference requires at least one body',
+          admissionOnly: true
+        },
+        {
+          id: 'normal',
+          code: 'INVALID_INPUT',
+          message: 'full-pair position reference normal must be finite and unit length',
+          admissionOnly: true
+        },
+        {
+          id: 'sparse',
+          code: 'INVALID_INPUT',
+          message: 'full-pair position reference input is invalid',
+          admissionOnly: true
+        },
+        {
+          id: 'extra',
+          code: 'INVALID_INPUT',
+          message: 'full-pair position reference input is invalid',
+          admissionOnly: true
+        },
+        {
+          id: 'bad-endpoint',
+          code: 'INVALID_INPUT',
+          message: 'full-pair position reference row endpoints are invalid',
+          admissionOnly: true
+        },
+        {
+          id: 'duplicate-id',
+          code: 'INVALID_INPUT',
+          message: 'full-pair position reference body IDs must be nonempty and unique',
+          admissionOnly: true
+        },
+        {
+          id: 'mass--1',
+          code: 'INVALID_INPUT',
+          message: 'full-pair position reference inverse mass is invalid',
+          admissionOnly: true
+        },
+        {
+          id: 'mass-5e-7',
+          code: 'INVALID_INPUT',
+          message: 'full-pair position reference inverse mass is invalid',
+          admissionOnly: true
+        },
+        {
+          id: 'mass-2000000',
+          code: 'INVALID_INPUT',
+          message: 'full-pair position reference inverse mass is invalid',
+          admissionOnly: true
+        },
+        {
+          id: 'mass-5e-324',
+          code: 'INVALID_INPUT',
+          message: 'full-pair position reference inverse mass is invalid',
+          admissionOnly: true
+        },
+        {
+          id: 'bound--10.0001',
+          code: 'INVALID_INPUT',
+          message: 'full-pair position reference bound must be finite and between minus ten and ten metres',
+          admissionOnly: true
+        },
+        {
+          id: 'bound-10.0001',
+          code: 'INVALID_INPUT',
+          message: 'full-pair position reference bound must be finite and between minus ten and ten metres',
+          admissionOnly: true
+        },
+        { id: 'accessor-inverseMass', reads: 0 },
+        { id: 'accessor-normal', reads: 0 },
+        { id: 'accessor-boundM', reads: 0 },
+        { id: 'unknown-proxy', identity: true },
+        { id: 'translations-null', malformedResultOnly: true },
+        { id: 'u-null', malformedResultOnly: true },
+        { id: 'lambda-hole', malformedResultOnly: true },
+        { id: 'margin-null', malformedResultOnly: true },
+        { id: 'objective-nonfinite', malformedResultOnly: true },
+        { id: 'certificate-null', malformedResultOnly: true },
+        { id: 'margin-missing', malformedResultOnly: true },
+        { id: 'wrong-id', malformedResultOnly: true },
+        { id: 'false-infeasible', malformedResultOnly: true },
+        { id: 'L13-static-copy-1', staticNegativeZeroHeld: true },
+        { id: 'L13-static-copy-2', staticNegativeZeroHeld: true },
+        { id: 'L13-static-copy-9', staticNegativeZeroHeld: true },
+        {
+          id: 'genuine-full36-phase',
+          stats: {
+            tests: 36,
+            hits: 36,
+            rows: 36,
+            signedPreQueries: 36,
+            solverCalls: 1,
+            postPairTests: 36,
+            maxTranslationM: 4.000000000000001,
+            workingApplicationCount: 1,
+            solverCounters: [Object],
+            certificate: [Object]
+          },
+          attempt: {
+            preBodies: [Array],
+            pairs: [Array],
+            initialDetections: [Array],
+            pairObservations: [Array],
+            problem: [Object],
+            rowSources: [Array],
+            result: [Object],
+            hypotheticalBodies: [Array],
+            rounding: [Array],
+            finalPairObservations: [Array],
+            failurePair: null,
+            workingApplicationCount: 1,
+            error: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          notWorld: true
+        },
+        {
+          id: 'L12-far-full-scan',
+          solverCalls: 0,
+          attempt: {
+            preBodies: [Array],
+            pairs: [Array],
+            initialDetections: [Array],
+            pairObservations: [Array],
+            problem: [Object],
+            rowSources: [Array],
+            result: null,
+            hypotheticalBodies: null,
+            rounding: null,
+            finalPairObservations: [],
+            failurePair: 'a\x00b',
+            workingApplicationCount: 0,
+            error: [Object]
+          }
+        },
+        {
+          id: 'L11-fresh-unclamped-2',
+          build: {
+            problem: [Object],
+            rowSources: [Array],
+            initialDetections: [Array],
+            pairObservations: [Array],
+            tests: 1,
+            hits: 1,
+            signedPreQueries: 1
+          }
+        },
+        {
+          id: 'L11-fresh-unclamped-2.0000000000001',
+          build: {
+            problem: [Object],
+            rowSources: [Array],
+            initialDetections: [Array],
+            pairObservations: [Array],
+            tests: 1,
+            hits: 1,
+            signedPreQueries: 1
+          }
+        }
+      ],
+      pureSolverCalls: 22,
+      purePhaseCalls: 2,
+      directApplyCalls: 3,
+      directGeometryBuilderCalls: 2,
+      directGuardValidationCalls: 43,
+      validationAccounting: {
+        directGuardCountOnly: true,
+        includesPhaseAndCoreInternalInvocations: false,
+        coreWorkCountersExcludeSeparateValidators: true
+      },
+      longWorldCalls: 0,
+      allInputsAuthoredBeforeExecution: true
+    },
+    world: {
+      receipts: [
+        {
+          id: 'original-ALIGNED',
+          result: {
+            scene: 'ALIGNED',
+            originalRefusal: true,
+            candidateNineBodies: true,
+            inputCopy: true,
+            snapshotCopy: true,
+            badTimeRetained: true,
+            tenBodyRefused: true,
+            doubleDisposed: true,
+            untouchedFixture: [Object]
+          }
+        },
+        {
+          id: 'original-OFFSET',
+          result: {
+            scene: 'OFFSET',
+            originalRefusal: true,
+            candidateNineBodies: true,
+            inputCopy: true,
+            snapshotCopy: true,
+            badTimeRetained: true,
+            tenBodyRefused: true,
+            doubleDisposed: true,
+            untouchedFixture: [Object]
+          }
+        },
+        {
+          id: 'original-YAW',
+          result: {
+            scene: 'YAW',
+            originalRefusal: true,
+            candidateNineBodies: true,
+            inputCopy: true,
+            snapshotCopy: true,
+            badTimeRetained: true,
+            tenBodyRefused: true,
+            doubleDisposed: true,
+            untouchedFixture: [Object]
+          }
+        },
+        { id: 'basic', refused: true },
+        { id: 'joints', refused: true },
+        { id: 'broadPhase', refused: true },
+        { id: 'large', refused: true },
+        { id: 'sphere', refused: true },
+        { id: 'kinematic', refused: true },
+        { id: 'sensor', refused: true },
+        { id: 'ccd', refused: true },
+        { id: 'filter', refused: true },
+        { id: 'sleeping', refused: true },
+        { id: 'restitution', refused: true },
+        { id: 'INVALID_STEP', retained: true },
+        { id: 'INVALID_COMMAND', retained: true },
+        { id: 'NUMERIC_LIMIT', retained: true },
+        {
+          id: 'profile',
+          message: 'private full-pair position profile is unsupported',
+          retained: true,
+          failedAttempt: {
+            preBodies: [Array],
+            pairs: [Array],
+            initialDetections: [Array],
+            pairObservations: [Array],
+            problem: [Object],
+            rowSources: [Array],
+            result: null,
+            hypotheticalBodies: null,
+            rounding: null,
+            finalPairObservations: [],
+            failurePair: null,
+            workingApplicationCount: 0,
+            error: [Object]
+          },
+          partialStep: { stage: 'velocity-ready', ledger: [Object] },
+          syntheticSolverFault: true
+        },
+        {
+          id: 'input',
+          message: 'private full-pair position input is invalid',
+          retained: true,
+          failedAttempt: {
+            preBodies: [Array],
+            pairs: [Array],
+            initialDetections: [Array],
+            pairObservations: [Array],
+            problem: [Object],
+            rowSources: [Array],
+            result: null,
+            hypotheticalBodies: null,
+            rounding: null,
+            finalPairObservations: [],
+            failurePair: null,
+            workingApplicationCount: 0,
+            error: [Object]
+          },
+          partialStep: { stage: 'velocity-ready', ledger: [Object] },
+          syntheticSolverFault: true
+        },
+        {
+          id: 'uncertified-infeasible',
+          message: 'private full-pair position result is invalid',
+          retained: true,
+          failedAttempt: {
+            preBodies: [Array],
+            pairs: [Array],
+            initialDetections: [Array],
+            pairObservations: [Array],
+            problem: [Object],
+            rowSources: [Array],
+            result: null,
+            hypotheticalBodies: null,
+            rounding: null,
+            finalPairObservations: [],
+            failurePair: null,
+            workingApplicationCount: 0,
+            error: [Object]
+          },
+          partialStep: { stage: 'velocity-ready', ledger: [Object] },
+          syntheticSolverFault: true
+        },
+        {
+          id: 'unsafe-status',
+          message: 'private full-pair position solve is numerically unsafe',
+          retained: true,
+          failedAttempt: {
+            preBodies: [Array],
+            pairs: [Array],
+            initialDetections: [Array],
+            pairObservations: [Array],
+            problem: [Object],
+            rowSources: [Array],
+            result: [Object],
+            hypotheticalBodies: null,
+            rounding: null,
+            finalPairObservations: [],
+            failurePair: null,
+            workingApplicationCount: 0,
+            error: [Object]
+          },
+          partialStep: { stage: 'velocity-ready', ledger: [Object] },
+          syntheticSolverFault: true
+        },
+        {
+          id: 'work-status',
+          message: 'private full-pair position solve exceeded its work limit',
+          retained: true,
+          failedAttempt: {
+            preBodies: [Array],
+            pairs: [Array],
+            initialDetections: [Array],
+            pairObservations: [Array],
+            problem: [Object],
+            rowSources: [Array],
+            result: [Object],
+            hypotheticalBodies: null,
+            rounding: null,
+            finalPairObservations: [],
+            failurePair: null,
+            workingApplicationCount: 0,
+            error: [Object]
+          },
+          partialStep: { stage: 'velocity-ready', ledger: [Object] },
+          syntheticSolverFault: true
+        },
+        {
+          id: 'null-margin',
+          message: 'private full-pair position result is invalid',
+          retained: true,
+          failedAttempt: {
+            preBodies: [Array],
+            pairs: [Array],
+            initialDetections: [Array],
+            pairObservations: [Array],
+            problem: [Object],
+            rowSources: [Array],
+            result: null,
+            hypotheticalBodies: null,
+            rounding: null,
+            finalPairObservations: [],
+            failurePair: null,
+            workingApplicationCount: 0,
+            error: [Object]
+          },
+          partialStep: { stage: 'velocity-ready', ledger: [Object] },
+          syntheticSolverFault: true
+        },
+        {
+          id: 'nonfinite',
+          message: 'private full-pair position result is invalid',
+          retained: true,
+          failedAttempt: {
+            preBodies: [Array],
+            pairs: [Array],
+            initialDetections: [Array],
+            pairObservations: [Array],
+            problem: [Object],
+            rowSources: [Array],
+            result: null,
+            hypotheticalBodies: null,
+            rounding: null,
+            finalPairObservations: [],
+            failurePair: null,
+            workingApplicationCount: 0,
+            error: [Object]
+          },
+          partialStep: { stage: 'velocity-ready', ledger: [Object] },
+          syntheticSolverFault: true
+        },
+        {
+          id: 'unknown-solve',
+          error: { name: 'Error', message: 'Unexpected solve' },
+          identity: true,
+          retained: true
+        },
+        {
+          id: 'unknown-solve',
+          error: {
+            name: 'ThrownValue',
+            message: 'Unexpected non-Error exception'
+          },
+          identity: true,
+          retained: true
+        },
+        {
+          id: 'unknown-solve',
+          error: {
+            name: 'ThrownValue',
+            message: 'Unexpected non-Error exception'
+          },
+          identity: true,
+          retained: true
+        },
+        {
+          id: 'unknown-solve',
+          error: {
+            name: 'FullPairPositionReferenceError',
+            message: 'unrecognized message',
+            code: 'PROFILE_LIMIT'
+          },
+          identity: true,
+          retained: true
+        },
+        {
+          id: 'unknown-observeAttempt',
+          error: { name: 'Error', message: 'Unexpected observeAttempt' },
+          identity: true,
+          retained: true
+        },
+        {
+          id: 'unknown-observeAttempt',
+          error: {
+            name: 'ThrownValue',
+            message: 'Unexpected non-Error exception'
+          },
+          identity: true,
+          retained: true
+        },
+        {
+          id: 'unknown-observeAttempt',
+          error: {
+            name: 'ThrownValue',
+            message: 'Unexpected non-Error exception'
+          },
+          identity: true,
+          retained: true
+        },
+        {
+          id: 'unknown-observeAttempt',
+          error: {
+            name: 'FullPairPositionReferenceError',
+            message: 'unrecognized message',
+            code: 'PROFILE_LIMIT'
+          },
+          identity: true,
+          retained: true
+        },
+        {
+          id: 'unknown-observeStepAttempt',
+          error: { name: 'Error', message: 'Unexpected observeStepAttempt' },
+          identity: true,
+          retained: true
+        },
+        {
+          id: 'unknown-observeStepAttempt',
+          error: {
+            name: 'ThrownValue',
+            message: 'Unexpected non-Error exception'
+          },
+          identity: true,
+          retained: true
+        },
+        {
+          id: 'unknown-observeStepAttempt',
+          error: {
+            name: 'ThrownValue',
+            message: 'Unexpected non-Error exception'
+          },
+          identity: true,
+          retained: true
+        },
+        {
+          id: 'unknown-observeStepAttempt',
+          error: {
+            name: 'FullPairPositionReferenceError',
+            message: 'unrecognized message',
+            code: 'PROFILE_LIMIT'
+          },
+          identity: true,
+          retained: true
+        },
+        {
+          id: 'late-combined-after-accepted',
+          retained: true,
+          partialStep: { stage: 'closure-ready', ledger: [Object] },
+          attempt: {
+            preBodies: [Array],
+            pairs: [Array],
+            initialDetections: [Array],
+            pairObservations: [Array],
+            problem: [Object],
+            rowSources: [Array],
+            result: [Object],
+            hypotheticalBodies: [Array],
+            rounding: [Array],
+            finalPairObservations: [Array],
+            failurePair: null,
+            workingApplicationCount: 0,
+            error: null
+          }
+        },
+        { id: 'observer-copies-detached', acceptedSteps: 2 },
+        { id: 'original-state0-combined-bound', retained: true }
+      ],
+      createdWorlds: 35,
+      stepCalls: 49,
+      acceptedSteps: 25,
+      refusedSteps: 24,
+      originalConstructorGuards: 3,
+      longWorldCalls: 0
+    },
+    reference: {
+      receipts: [
+        {
+          id: 'L01-zero',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L02-eight',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L04-thirty-six',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L05-thirty-six-inconsistent',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'INFEASIBLE',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L06-dependent-coherent',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L07-08-static-0',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L07-08-static--1',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L07-08-static-1',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'INFEASIBLE',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L09-near-zero-feasible',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L09-near-independent-unsafe',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L10-mass-endpoints',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L11-unclamped-0',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L11-unclamped-1',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L11-unclamped-2',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L12-range-endpoint--10',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L12-range-endpoint-10',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'zero-ledger',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'gravity',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'nonzero-P-gravity',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'force-plus-impulse',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'angular-command',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'orientation-only-isotropic',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'orientation-only-anisotropic',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'internal-point',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'internal-point-torque',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'external-floor-point',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'warm-plus-deltas-net-final',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'floor-offcentre-torque',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'tangent-point',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'mixed-point',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'position-orbital-artifact',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'static-negative-zero',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'qsign-equivalent',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'unknown-op',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'extra-request-key',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'missing-problem',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'null-problem',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'null-result-member',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'null-mass',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'boolean-mass',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'mass-below',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'mass-above',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'mass-negative',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'mass-subnormal',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'empty-bodies',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'duplicate-ID',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'wrong-endpoint',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'null-normal',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'boolean-normal',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'wrong-normal-length',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'null-bound',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'boolean-bound',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'bound-outside',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'too-many-bodies',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'too-many-rows',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'unknown-scope',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'null-ledger',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'extra-ledger-key',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'null-dt',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'boolean-dt',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'null-vector',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'boolean-vector',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'wrong-ID',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'truncated-raw',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'raw-JSON-mismatch',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'wrong-point-index',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'wrong-pair-key',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'null-final-accumulator',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'malformed-action',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'duplicate-action-ID',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'unknown-action-key',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'bad-outcome',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'final-minus-warm-spoof',
+          kind: 'known-budget-spoof',
+          reply: {
+            ok: false,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [Array],
+            referenceStatus: 'LEDGER'
+          },
+          notPhysicalWorldEvidence: true
+        },
+        {
+          id: 'wrong-endpoint-sign',
+          kind: 'known-budget-spoof',
+          reply: {
+            ok: false,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [Array],
+            referenceStatus: 'LEDGER'
+          },
+          notPhysicalWorldEvidence: true
+        },
+        {
+          id: 'mean-point-torque-spoof',
+          kind: 'known-budget-spoof',
+          reply: {
+            ok: false,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [Array],
+            referenceStatus: 'LEDGER'
+          },
+          notPhysicalWorldEvidence: true
+        },
+        {
+          id: 'free-v-spoof',
+          kind: 'known-budget-spoof',
+          reply: {
+            ok: false,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [Array],
+            referenceStatus: 'LEDGER'
+          },
+          notPhysicalWorldEvidence: true
+        },
+        {
+          id: 'free-omega-spoof',
+          kind: 'known-budget-spoof',
+          reply: {
+            ok: false,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [Array],
+            referenceStatus: 'LEDGER'
+          },
+          notPhysicalWorldEvidence: true
+        },
+        {
+          id: 'free-p-spoof',
+          kind: 'known-budget-spoof',
+          reply: {
+            ok: false,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [Array],
+            referenceStatus: 'LEDGER'
+          },
+          notPhysicalWorldEvidence: true
+        },
+        {
+          id: 'position-velocity-compensation',
+          kind: 'known-budget-spoof',
+          reply: {
+            ok: false,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [Array],
+            referenceStatus: 'LEDGER'
+          },
+          notPhysicalWorldEvidence: true
+        },
+        {
+          id: 'velocity-phase-position-change',
+          kind: 'known-budget-spoof',
+          reply: {
+            ok: false,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [Array],
+            referenceStatus: 'LEDGER'
+          },
+          notPhysicalWorldEvidence: true
+        },
+        {
+          id: 'position-q-change',
+          kind: 'known-budget-spoof',
+          reply: {
+            ok: false,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [Array],
+            referenceStatus: 'LEDGER'
+          },
+          notPhysicalWorldEvidence: true
+        }
+      ],
+      copyIsolation: true,
+      worldCreated: false,
+      worldStepped: false,
+      producerCalls: 0,
+      solverCalls: 0,
+      independentKernelControls: 16,
+      positiveLedgerControls: 17,
+      protocolControls: 39,
+      budgetSpoofControls: 9
+    }
+  },
+  expected: {
+    policy: {
+      receipts: [
+        {
+          id: 'L01-zero',
+          problem: { bodies: [Array], rows: [] },
+          result: {
+            ok: true,
+            status: 'SOLVED',
+            basisRows: [],
+            basisRank: 0,
+            dynamicDof: 3,
+            counters: [Object],
+            trace: [],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: [Array],
+            lambdaKgM: [],
+            primalMarginsM: [],
+            objectiveKgM2: 0,
+            certificate: [Object],
+            infeasibilityCertificate: null,
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L02-eight',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: true,
+            status: 'SOLVED',
+            basisRows: [],
+            basisRank: 0,
+            dynamicDof: 24,
+            counters: [Object],
+            trace: [],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: [Array],
+            lambdaKgM: [Array],
+            primalMarginsM: [Array],
+            objectiveKgM2: 0,
+            certificate: [Object],
+            infeasibilityCertificate: null,
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L04-thirty-six',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: true,
+            status: 'SOLVED',
+            basisRows: [],
+            basisRank: 0,
+            dynamicDof: 24,
+            counters: [Object],
+            trace: [],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: [Array],
+            lambdaKgM: [Array],
+            primalMarginsM: [Array],
+            objectiveKgM2: 0,
+            certificate: [Object],
+            infeasibilityCertificate: null,
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L05-thirty-six-inconsistent',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: false,
+            status: 'INFEASIBLE',
+            basisRows: [Array],
+            basisRank: 2,
+            dynamicDof: 24,
+            counters: [Object],
+            trace: [Array],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: null,
+            lambdaKgM: null,
+            primalMarginsM: null,
+            objectiveKgM2: null,
+            certificate: null,
+            infeasibilityCertificate: [Object],
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'INFEASIBLE',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L06-dependent-coherent',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: true,
+            status: 'SOLVED',
+            basisRows: [Array],
+            basisRank: 2,
+            dynamicDof: 9,
+            counters: [Object],
+            trace: [Array],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: [Array],
+            lambdaKgM: [Array],
+            primalMarginsM: [Array],
+            objectiveKgM2: 1,
+            certificate: [Object],
+            infeasibilityCertificate: null,
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L07-08-static-0',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: true,
+            status: 'SOLVED',
+            basisRows: [],
+            basisRank: 0,
+            dynamicDof: 0,
+            counters: [Object],
+            trace: [],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: [Array],
+            lambdaKgM: [Array],
+            primalMarginsM: [Array],
+            objectiveKgM2: 0,
+            certificate: [Object],
+            infeasibilityCertificate: null,
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L07-08-static--1',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: true,
+            status: 'SOLVED',
+            basisRows: [],
+            basisRank: 0,
+            dynamicDof: 0,
+            counters: [Object],
+            trace: [],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: [Array],
+            lambdaKgM: [Array],
+            primalMarginsM: [Array],
+            objectiveKgM2: 0,
+            certificate: [Object],
+            infeasibilityCertificate: null,
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L07-08-static-1',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: false,
+            status: 'INFEASIBLE',
+            basisRows: [],
+            basisRank: 0,
+            dynamicDof: 0,
+            counters: [Object],
+            trace: [Array],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: null,
+            lambdaKgM: null,
+            primalMarginsM: null,
+            objectiveKgM2: null,
+            certificate: null,
+            infeasibilityCertificate: [Object],
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'INFEASIBLE',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L09-near-zero-feasible',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: true,
+            status: 'SOLVED',
+            basisRows: [],
+            basisRank: 0,
+            dynamicDof: 9,
+            counters: [Object],
+            trace: [],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: [Array],
+            lambdaKgM: [Array],
+            primalMarginsM: [Array],
+            objectiveKgM2: 0,
+            certificate: [Object],
+            infeasibilityCertificate: null,
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L09-near-independent-unsafe',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: false,
+            status: 'NUMERIC_UNSAFE',
+            basisRows: [Array],
+            basisRank: 1,
+            dynamicDof: 6,
+            counters: [Object],
+            trace: [Array],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: null,
+            lambdaKgM: null,
+            primalMarginsM: null,
+            objectiveKgM2: null,
+            certificate: null,
+            infeasibilityCertificate: null,
+            reason: 'near-dependent-independent'
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L10-mass-endpoints',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: true,
+            status: 'SOLVED',
+            basisRows: [Array],
+            basisRank: 1,
+            dynamicDof: 6,
+            counters: [Object],
+            trace: [Array],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: [Array],
+            lambdaKgM: [Array],
+            primalMarginsM: [Array],
+            objectiveKgM2: 4.999999999995e-7,
+            certificate: [Object],
+            infeasibilityCertificate: null,
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L11-unclamped-0',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: true,
+            status: 'SOLVED',
+            basisRows: [],
+            basisRank: 0,
+            dynamicDof: 24,
+            counters: [Object],
+            trace: [],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: [Array],
+            lambdaKgM: [Array],
+            primalMarginsM: [Array],
+            objectiveKgM2: 0,
+            certificate: [Object],
+            infeasibilityCertificate: null,
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L11-unclamped-1',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: true,
+            status: 'SOLVED',
+            basisRows: [],
+            basisRank: 0,
+            dynamicDof: 24,
+            counters: [Object],
+            trace: [],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: [Array],
+            lambdaKgM: [Array],
+            primalMarginsM: [Array],
+            objectiveKgM2: 0,
+            certificate: [Object],
+            infeasibilityCertificate: null,
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L11-unclamped-2',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: true,
+            status: 'SOLVED',
+            basisRows: [],
+            basisRank: 0,
+            dynamicDof: 24,
+            counters: [Object],
+            trace: [],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: [Array],
+            lambdaKgM: [Array],
+            primalMarginsM: [Array],
+            objectiveKgM2: 0,
+            certificate: [Object],
+            infeasibilityCertificate: null,
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L12-range-endpoint--10',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: true,
+            status: 'SOLVED',
+            basisRows: [],
+            basisRank: 0,
+            dynamicDof: 3,
+            counters: [Object],
+            trace: [],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: [Array],
+            lambdaKgM: [Array],
+            primalMarginsM: [Array],
+            objectiveKgM2: 0,
+            certificate: [Object],
+            infeasibilityCertificate: null,
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L12-range-endpoint-10',
+          problem: { bodies: [Array], rows: [Array] },
+          result: {
+            ok: true,
+            status: 'SOLVED',
+            basisRows: [Array],
+            basisRank: 1,
+            dynamicDof: 3,
+            counters: [Object],
+            trace: [Array],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: [Array],
+            lambdaKgM: [Array],
+            primalMarginsM: [Array],
+            objectiveKgM2: 50,
+            certificate: [Object],
+            infeasibilityCertificate: null,
+            reason: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          inputRetained: true
+        },
+        {
+          id: 'L15-core-budget0',
+          problem: { bodies: [Array], rows: [Array] },
+          limits: {
+            iterations: 0,
+            activeChanges: 1024,
+            rankChecks: 2048,
+            linearSolves: 2048,
+            constraintTests: 262144,
+            exactIntegerOperations: 1000000,
+            reducedRationalBits: 8192,
+            intermediateIntegerBits: 16385
+          },
+          result: {
+            ok: false,
+            status: 'WORK_LIMIT',
+            basisRows: [],
+            basisRank: 0,
+            dynamicDof: 6,
+            counters: [Object],
+            trace: [Array],
+            lastSafeIterate: [Object],
+            worldStepped: false,
+            translations: null,
+            lambdaKgM: null,
+            primalMarginsM: null,
+            objectiveKgM2: null,
+            certificate: null,
+            infeasibilityCertificate: null,
+            reason: 'budget:iterations'
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          guardOnly: true
+        },
+        {
+          id: '37-rows',
+          code: 'PROFILE_LIMIT',
+          message: 'full-pair position reference admits at most nine bodies and thirty-six rows',
+          admissionOnly: true
+        },
+        {
+          id: '10-bodies',
+          code: 'PROFILE_LIMIT',
+          message: 'full-pair position reference admits at most nine bodies and thirty-six rows',
+          admissionOnly: true
+        },
+        {
+          id: 'empty',
+          code: 'INVALID_INPUT',
+          message: 'full-pair position reference requires at least one body',
+          admissionOnly: true
+        },
+        {
+          id: 'normal',
+          code: 'INVALID_INPUT',
+          message: 'full-pair position reference normal must be finite and unit length',
+          admissionOnly: true
+        },
+        {
+          id: 'sparse',
+          code: 'INVALID_INPUT',
+          message: 'full-pair position reference input is invalid',
+          admissionOnly: true
+        },
+        {
+          id: 'extra',
+          code: 'INVALID_INPUT',
+          message: 'full-pair position reference input is invalid',
+          admissionOnly: true
+        },
+        {
+          id: 'bad-endpoint',
+          code: 'INVALID_INPUT',
+          message: 'full-pair position reference row endpoints are invalid',
+          admissionOnly: true
+        },
+        {
+          id: 'duplicate-id',
+          code: 'INVALID_INPUT',
+          message: 'full-pair position reference body IDs must be nonempty and unique',
+          admissionOnly: true
+        },
+        {
+          id: 'mass--1',
+          code: 'INVALID_INPUT',
+          message: 'full-pair position reference inverse mass is invalid',
+          admissionOnly: true
+        },
+        {
+          id: 'mass-5e-7',
+          code: 'INVALID_INPUT',
+          message: 'full-pair position reference inverse mass is invalid',
+          admissionOnly: true
+        },
+        {
+          id: 'mass-2000000',
+          code: 'INVALID_INPUT',
+          message: 'full-pair position reference inverse mass is invalid',
+          admissionOnly: true
+        },
+        {
+          id: 'mass-5e-324',
+          code: 'INVALID_INPUT',
+          message: 'full-pair position reference inverse mass is invalid',
+          admissionOnly: true
+        },
+        {
+          id: 'bound--10.0001',
+          code: 'INVALID_INPUT',
+          message: 'full-pair position reference bound must be finite and between minus ten and ten metres',
+          admissionOnly: true
+        },
+        {
+          id: 'bound-10.0001',
+          code: 'INVALID_INPUT',
+          message: 'full-pair position reference bound must be finite and between minus ten and ten metres',
+          admissionOnly: true
+        },
+        { id: 'accessor-inverseMass', reads: 0 },
+        { id: 'accessor-normal', reads: 0 },
+        { id: 'accessor-boundM', reads: 0 },
+        { id: 'unknown-proxy', identity: true },
+        { id: 'translations-null', malformedResultOnly: true },
+        { id: 'u-null', malformedResultOnly: true },
+        { id: 'lambda-hole', malformedResultOnly: true },
+        { id: 'margin-null', malformedResultOnly: true },
+        { id: 'objective-nonfinite', malformedResultOnly: true },
+        { id: 'certificate-null', malformedResultOnly: true },
+        { id: 'margin-missing', malformedResultOnly: true },
+        { id: 'wrong-id', malformedResultOnly: true },
+        { id: 'false-infeasible', malformedResultOnly: true },
+        { id: 'L13-static-copy-1', staticNegativeZeroHeld: true },
+        { id: 'L13-static-copy-2', staticNegativeZeroHeld: true },
+        { id: 'L13-static-copy-9', staticNegativeZeroHeld: true },
+        {
+          id: 'genuine-full36-phase',
+          stats: {
+            tests: 36,
+            hits: 36,
+            rows: 36,
+            signedPreQueries: 36,
+            solverCalls: 1,
+            postPairTests: 36,
+            maxTranslationM: 4.000000000000001,
+            workingApplicationCount: 1,
+            solverCounters: [Object],
+            certificate: [Object]
+          },
+          attempt: {
+            preBodies: [Array],
+            pairs: [Array],
+            initialDetections: [Array],
+            pairObservations: [Array],
+            problem: [Object],
+            rowSources: [Array],
+            result: [Object],
+            hypotheticalBodies: [Array],
+            rounding: [Array],
+            finalPairObservations: [Array],
+            failurePair: null,
+            workingApplicationCount: 1,
+            error: null
+          },
+          reference: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: [Object],
+            reference: [Object],
+            violations: []
+          },
+          notWorld: true
+        },
+        {
+          id: 'L12-far-full-scan',
+          solverCalls: 0,
+          attempt: {
+            preBodies: [Array],
+            pairs: [Array],
+            initialDetections: [Array],
+            pairObservations: [Array],
+            problem: [Object],
+            rowSources: [Array],
+            result: null,
+            hypotheticalBodies: null,
+            rounding: null,
+            finalPairObservations: [],
+            failurePair: 'a\x00b',
+            workingApplicationCount: 0,
+            error: [Object]
+          }
+        },
+        {
+          id: 'L11-fresh-unclamped-2',
+          build: {
+            problem: [Object],
+            rowSources: [Array],
+            initialDetections: [Array],
+            pairObservations: [Array],
+            tests: 1,
+            hits: 1,
+            signedPreQueries: 1
+          }
+        },
+        {
+          id: 'L11-fresh-unclamped-2.0000000000001',
+          build: {
+            problem: [Object],
+            rowSources: [Array],
+            initialDetections: [Array],
+            pairObservations: [Array],
+            tests: 1,
+            hits: 1,
+            signedPreQueries: 1
+          }
+        }
+      ],
+      pureSolverCalls: 22,
+      purePhaseCalls: 2,
+      directApplyCalls: 3,
+      directGeometryBuilderCalls: 2,
+      directGuardValidationCalls: 43,
+      validationAccounting: {
+        directGuardCountOnly: true,
+        includesPhaseAndCoreInternalInvocations: false,
+        coreWorkCountersExcludeSeparateValidators: true
+      },
+      longWorldCalls: 0,
+      allInputsAuthoredBeforeExecution: true
+    },
+    world: {
+      receipts: [
+        {
+          id: 'original-ALIGNED',
+          result: {
+            scene: 'ALIGNED',
+            originalRefusal: true,
+            candidateNineBodies: true,
+            inputCopy: true,
+            snapshotCopy: true,
+            badTimeRetained: true,
+            tenBodyRefused: true,
+            doubleDisposed: true,
+            untouchedFixture: [Object]
+          }
+        },
+        {
+          id: 'original-OFFSET',
+          result: {
+            scene: 'OFFSET',
+            originalRefusal: true,
+            candidateNineBodies: true,
+            inputCopy: true,
+            snapshotCopy: true,
+            badTimeRetained: true,
+            tenBodyRefused: true,
+            doubleDisposed: true,
+            untouchedFixture: [Object]
+          }
+        },
+        {
+          id: 'original-YAW',
+          result: {
+            scene: 'YAW',
+            originalRefusal: true,
+            candidateNineBodies: true,
+            inputCopy: true,
+            snapshotCopy: true,
+            badTimeRetained: true,
+            tenBodyRefused: true,
+            doubleDisposed: true,
+            untouchedFixture: [Object]
+          }
+        },
+        { id: 'basic', refused: true },
+        { id: 'joints', refused: true },
+        { id: 'broadPhase', refused: true },
+        { id: 'large', refused: true },
+        { id: 'sphere', refused: true },
+        { id: 'kinematic', refused: true },
+        { id: 'sensor', refused: true },
+        { id: 'ccd', refused: true },
+        { id: 'filter', refused: true },
+        { id: 'sleeping', refused: true },
+        { id: 'restitution', refused: true },
+        { id: 'INVALID_STEP', retained: true },
+        { id: 'INVALID_COMMAND', retained: true },
+        { id: 'NUMERIC_LIMIT', retained: true },
+        {
+          id: 'profile',
+          message: 'private full-pair position profile is unsupported',
+          retained: true,
+          failedAttempt: {
+            preBodies: [Array],
+            pairs: [Array],
+            initialDetections: [Array],
+            pairObservations: [Array],
+            problem: [Object],
+            rowSources: [Array],
+            result: null,
+            hypotheticalBodies: null,
+            rounding: null,
+            finalPairObservations: [],
+            failurePair: null,
+            workingApplicationCount: 0,
+            error: [Object]
+          },
+          partialStep: { stage: 'velocity-ready', ledger: [Object] },
+          syntheticSolverFault: true
+        },
+        {
+          id: 'input',
+          message: 'private full-pair position input is invalid',
+          retained: true,
+          failedAttempt: {
+            preBodies: [Array],
+            pairs: [Array],
+            initialDetections: [Array],
+            pairObservations: [Array],
+            problem: [Object],
+            rowSources: [Array],
+            result: null,
+            hypotheticalBodies: null,
+            rounding: null,
+            finalPairObservations: [],
+            failurePair: null,
+            workingApplicationCount: 0,
+            error: [Object]
+          },
+          partialStep: { stage: 'velocity-ready', ledger: [Object] },
+          syntheticSolverFault: true
+        },
+        {
+          id: 'uncertified-infeasible',
+          message: 'private full-pair position result is invalid',
+          retained: true,
+          failedAttempt: {
+            preBodies: [Array],
+            pairs: [Array],
+            initialDetections: [Array],
+            pairObservations: [Array],
+            problem: [Object],
+            rowSources: [Array],
+            result: null,
+            hypotheticalBodies: null,
+            rounding: null,
+            finalPairObservations: [],
+            failurePair: null,
+            workingApplicationCount: 0,
+            error: [Object]
+          },
+          partialStep: { stage: 'velocity-ready', ledger: [Object] },
+          syntheticSolverFault: true
+        },
+        {
+          id: 'unsafe-status',
+          message: 'private full-pair position solve is numerically unsafe',
+          retained: true,
+          failedAttempt: {
+            preBodies: [Array],
+            pairs: [Array],
+            initialDetections: [Array],
+            pairObservations: [Array],
+            problem: [Object],
+            rowSources: [Array],
+            result: [Object],
+            hypotheticalBodies: null,
+            rounding: null,
+            finalPairObservations: [],
+            failurePair: null,
+            workingApplicationCount: 0,
+            error: [Object]
+          },
+          partialStep: { stage: 'velocity-ready', ledger: [Object] },
+          syntheticSolverFault: true
+        },
+        {
+          id: 'work-status',
+          message: 'private full-pair position solve exceeded its work limit',
+          retained: true,
+          failedAttempt: {
+            preBodies: [Array],
+            pairs: [Array],
+            initialDetections: [Array],
+            pairObservations: [Array],
+            problem: [Object],
+            rowSources: [Array],
+            result: [Object],
+            hypotheticalBodies: null,
+            rounding: null,
+            finalPairObservations: [],
+            failurePair: null,
+            workingApplicationCount: 0,
+            error: [Object]
+          },
+          partialStep: { stage: 'velocity-ready', ledger: [Object] },
+          syntheticSolverFault: true
+        },
+        {
+          id: 'null-margin',
+          message: 'private full-pair position result is invalid',
+          retained: true,
+          failedAttempt: {
+            preBodies: [Array],
+            pairs: [Array],
+            initialDetections: [Array],
+            pairObservations: [Array],
+            problem: [Object],
+            rowSources: [Array],
+            result: null,
+            hypotheticalBodies: null,
+            rounding: null,
+            finalPairObservations: [],
+            failurePair: null,
+            workingApplicationCount: 0,
+            error: [Object]
+          },
+          partialStep: { stage: 'velocity-ready', ledger: [Object] },
+          syntheticSolverFault: true
+        },
+        {
+          id: 'nonfinite',
+          message: 'private full-pair position result is invalid',
+          retained: true,
+          failedAttempt: {
+            preBodies: [Array],
+            pairs: [Array],
+            initialDetections: [Array],
+            pairObservations: [Array],
+            problem: [Object],
+            rowSources: [Array],
+            result: null,
+            hypotheticalBodies: null,
+            rounding: null,
+            finalPairObservations: [],
+            failurePair: null,
+            workingApplicationCount: 0,
+            error: [Object]
+          },
+          partialStep: { stage: 'velocity-ready', ledger: [Object] },
+          syntheticSolverFault: true
+        },
+        {
+          id: 'unknown-solve',
+          error: { name: 'Error', message: 'Unexpected solve' },
+          identity: true,
+          retained: true
+        },
+        {
+          id: 'unknown-solve',
+          error: {
+            name: 'ThrownValue',
+            message: 'Unexpected non-Error exception'
+          },
+          identity: true,
+          retained: true
+        },
+        {
+          id: 'unknown-solve',
+          error: {
+            name: 'ThrownValue',
+            message: 'Unexpected non-Error exception'
+          },
+          identity: true,
+          retained: true
+        },
+        {
+          id: 'unknown-solve',
+          error: {
+            name: 'FullPairPositionReferenceError',
+            message: 'unrecognized message',
+            code: 'PROFILE_LIMIT'
+          },
+          identity: true,
+          retained: true
+        },
+        {
+          id: 'unknown-observeAttempt',
+          error: { name: 'Error', message: 'Unexpected observeAttempt' },
+          identity: true,
+          retained: true
+        },
+        {
+          id: 'unknown-observeAttempt',
+          error: {
+            name: 'ThrownValue',
+            message: 'Unexpected non-Error exception'
+          },
+          identity: true,
+          retained: true
+        },
+        {
+          id: 'unknown-observeAttempt',
+          error: {
+            name: 'ThrownValue',
+            message: 'Unexpected non-Error exception'
+          },
+          identity: true,
+          retained: true
+        },
+        {
+          id: 'unknown-observeAttempt',
+          error: {
+            name: 'FullPairPositionReferenceError',
+            message: 'unrecognized message',
+            code: 'PROFILE_LIMIT'
+          },
+          identity: true,
+          retained: true
+        },
+        {
+          id: 'unknown-observeStepAttempt',
+          error: { name: 'Error', message: 'Unexpected observeStepAttempt' },
+          identity: true,
+          retained: true
+        },
+        {
+          id: 'unknown-observeStepAttempt',
+          error: {
+            name: 'ThrownValue',
+            message: 'Unexpected non-Error exception'
+          },
+          identity: true,
+          retained: true
+        },
+        {
+          id: 'unknown-observeStepAttempt',
+          error: {
+            name: 'ThrownValue',
+            message: 'Unexpected non-Error exception'
+          },
+          identity: true,
+          retained: true
+        },
+        {
+          id: 'unknown-observeStepAttempt',
+          error: {
+            name: 'FullPairPositionReferenceError',
+            message: 'unrecognized message',
+            code: 'PROFILE_LIMIT'
+          },
+          identity: true,
+          retained: true
+        },
+        {
+          id: 'late-combined-after-accepted',
+          retained: true,
+          partialStep: { stage: 'closure-ready', ledger: [Object] },
+          attempt: {
+            preBodies: [Array],
+            pairs: [Array],
+            initialDetections: [Array],
+            pairObservations: [Array],
+            problem: [Object],
+            rowSources: [Array],
+            result: [Object],
+            hypotheticalBodies: [Array],
+            rounding: [Array],
+            finalPairObservations: [Array],
+            failurePair: null,
+            workingApplicationCount: 0,
+            error: null
+          }
+        },
+        { id: 'observer-copies-detached', acceptedSteps: 2 },
+        { id: 'original-state0-combined-bound', retained: true }
+      ],
+      createdWorlds: 35,
+      stepCalls: 49,
+      acceptedSteps: 25,
+      refusedSteps: 24,
+      originalConstructorGuards: 3,
+      longWorldCalls: 0
+    },
+    reference: {
+      receipts: [
+        {
+          id: 'L01-zero',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L02-eight',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L04-thirty-six',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L05-thirty-six-inconsistent',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'INFEASIBLE',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L06-dependent-coherent',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L07-08-static-0',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L07-08-static--1',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L07-08-static-1',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'INFEASIBLE',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L09-near-zero-feasible',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L09-near-independent-unsafe',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L10-mass-endpoints',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L11-unclamped-0',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L11-unclamped-1',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L11-unclamped-2',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L12-range-endpoint--10',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'L12-range-endpoint-10',
+          kind: 'independent-input-only-optimum',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            referenceStatus: 'SOLVED',
+            metrics: null,
+            reference: [Object],
+            violations: []
+          },
+          nativeSolverCalled: false,
+          worldCreated: false
+        },
+        {
+          id: 'zero-ledger',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'gravity',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'nonzero-P-gravity',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'force-plus-impulse',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'angular-command',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'orientation-only-isotropic',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'orientation-only-anisotropic',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'internal-point',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'internal-point-torque',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'external-floor-point',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'warm-plus-deltas-net-final',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'floor-offcentre-torque',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'tangent-point',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'mixed-point',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'position-orbital-artifact',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'static-negative-zero',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'qsign-equivalent',
+          kind: 'adopted-ledger-literal',
+          reply: {
+            ok: true,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [],
+            referenceStatus: 'LEDGER'
+          },
+          worldCreated: false,
+          solverCalled: false
+        },
+        {
+          id: 'unknown-op',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'extra-request-key',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'missing-problem',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'null-problem',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'null-result-member',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'null-mass',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'boolean-mass',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'mass-below',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'mass-above',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'mass-negative',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'mass-subnormal',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'empty-bodies',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'duplicate-ID',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'wrong-endpoint',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'null-normal',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'boolean-normal',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'wrong-normal-length',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'null-bound',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'boolean-bound',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'bound-outside',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'too-many-bodies',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'too-many-rows',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'unknown-scope',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'null-ledger',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'extra-ledger-key',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'null-dt',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'boolean-dt',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'null-vector',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'boolean-vector',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'wrong-ID',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'truncated-raw',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'raw-JSON-mismatch',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'wrong-point-index',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'wrong-pair-key',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'null-final-accumulator',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'malformed-action',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'duplicate-action-ID',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'unknown-action-key',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'bad-outcome',
+          kind: 'strict-protocol-refusal',
+          reply: {
+            ok: false,
+            resolved: false,
+            executionFailure: true,
+            referenceStatus: 'REFERENCE_INPUT',
+            metrics: null,
+            reference: null,
+            code: 'REFERENCE_INPUT',
+            message: 'full-pair world reference request is invalid',
+            violations: []
+          }
+        },
+        {
+          id: 'final-minus-warm-spoof',
+          kind: 'known-budget-spoof',
+          reply: {
+            ok: false,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [Array],
+            referenceStatus: 'LEDGER'
+          },
+          notPhysicalWorldEvidence: true
+        },
+        {
+          id: 'wrong-endpoint-sign',
+          kind: 'known-budget-spoof',
+          reply: {
+            ok: false,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [Array],
+            referenceStatus: 'LEDGER'
+          },
+          notPhysicalWorldEvidence: true
+        },
+        {
+          id: 'mean-point-torque-spoof',
+          kind: 'known-budget-spoof',
+          reply: {
+            ok: false,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [Array],
+            referenceStatus: 'LEDGER'
+          },
+          notPhysicalWorldEvidence: true
+        },
+        {
+          id: 'free-v-spoof',
+          kind: 'known-budget-spoof',
+          reply: {
+            ok: false,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [Array],
+            referenceStatus: 'LEDGER'
+          },
+          notPhysicalWorldEvidence: true
+        },
+        {
+          id: 'free-omega-spoof',
+          kind: 'known-budget-spoof',
+          reply: {
+            ok: false,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [Array],
+            referenceStatus: 'LEDGER'
+          },
+          notPhysicalWorldEvidence: true
+        },
+        {
+          id: 'free-p-spoof',
+          kind: 'known-budget-spoof',
+          reply: {
+            ok: false,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [Array],
+            referenceStatus: 'LEDGER'
+          },
+          notPhysicalWorldEvidence: true
+        },
+        {
+          id: 'position-velocity-compensation',
+          kind: 'known-budget-spoof',
+          reply: {
+            ok: false,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [Array],
+            referenceStatus: 'LEDGER'
+          },
+          notPhysicalWorldEvidence: true
+        },
+        {
+          id: 'velocity-phase-position-change',
+          kind: 'known-budget-spoof',
+          reply: {
+            ok: false,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [Array],
+            referenceStatus: 'LEDGER'
+          },
+          notPhysicalWorldEvidence: true
+        },
+        {
+          id: 'position-q-change',
+          kind: 'known-budget-spoof',
+          reply: {
+            ok: false,
+            resolved: true,
+            executionFailure: false,
+            metrics: [Object],
+            reference: [Object],
+            violations: [Array],
+            referenceStatus: 'LEDGER'
+          },
+          notPhysicalWorldEvidence: true
+        }
+      ],
+      copyIsolation: true,
+      worldCreated: false,
+      worldStepped: false,
+      producerCalls: 0,
+      solverCalls: 0,
+      independentKernelControls: 16,
+      positiveLedgerControls: 17,
+      protocolControls: 39,
+      budgetSpoofControls: 9
+    }
+  },
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.0

@@ -1,0 +1,38 @@
+[
+  {
+    "name": "consumer.mjs",
+    "exitCode": 0,
+    "elapsedSeconds": 0.027361542015569285,
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "continuation-archive.mjs",
+    "exitCode": 0,
+    "elapsedSeconds": 0.024230999988503754,
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "continuation-runner.mjs",
+    "exitCode": 0,
+    "elapsedSeconds": 0.023443917016265914,
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "continuation-data-controls.mjs",
+    "exitCode": 0,
+    "elapsedSeconds": 0.02241170802153647,
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "data-only-storage-controls",
+    "modelCalls": 0,
+    "exitCode": 0,
+    "elapsedSeconds": 0.048362874978920445,
+    "stdoutSha256": "e6e9c14cccdcc7bacf8d8a32f6e1ac4ec93a8ec3d5d774c32559f38af5379aff",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

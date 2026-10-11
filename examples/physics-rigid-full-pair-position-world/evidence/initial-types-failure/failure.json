@@ -1,0 +1,79 @@
+{
+  "classification": "FIRST_TYPES_FAILURE_TS2345",
+  "source": "3d7aca4468568f299edb216aed046508d2457af3",
+  "freezeHead": "dea22d310baa3203a4864344a6c0e8b18dd29b4d",
+  "buildPassed": true,
+  "typesExitCode": 2,
+  "newModelCalls": 0,
+  "newSolverCalls": 0,
+  "newReferenceCalls": 0,
+  "newWorldCalls": 0,
+  "repair": "erased readonly string[] cast at includes argument; no runtime condition/message change; provenance separates original build from new type/consumer source",
+  "artifacts": [
+    {
+      "path": "CONTRACT.md",
+      "bytes": 72221,
+      "sha256": "2daf9bbd465454b4ad8b97ef1944bdab2715d4ff72993eea98793d0cb1776b60"
+    },
+    {
+      "path": "build.receipt.json",
+      "bytes": 749,
+      "sha256": "c1241eb485df62b28bc3a393f357f907125d711a269ff0391855aa185e0a040d"
+    },
+    {
+      "path": "build.stderr.log",
+      "bytes": 43,
+      "sha256": "92c17c669f9faa5b67a63d30bf09d70a0c18299759568e7686957e83d94ce962"
+    },
+    {
+      "path": "build.stdout.log",
+      "bytes": 455,
+      "sha256": "fd18c78de396894e437a4e046477bec85f7f2d4603ad0280af5e5bda20da1a04"
+    },
+    {
+      "path": "full-pair-rows.ts",
+      "bytes": 8262,
+      "sha256": "2861157305cfab69dfcdc43558947334589748fae39e9e86c17273b471c9d1a3"
+    },
+    {
+      "path": "publish-emitted.mjs",
+      "bytes": 1199,
+      "sha256": "26a500c3113c1d31f61c700532dd8e05647d970196eaa96a93bff6c6c61b1365"
+    },
+    {
+      "path": "run-native-gates.py",
+      "bytes": 3375,
+      "sha256": "00aaf6f0a068c6f67daf5574acbf7e6fca035f0b0c44fb362127de39d0b98336"
+    },
+    {
+      "path": "runner.mjs",
+      "bytes": 5996,
+      "sha256": "41dc0fce40a6d79b14033fb90d20cffeae2184090cac0084282152b67e94dd2b"
+    },
+    {
+      "path": "source-freeze.json",
+      "bytes": 138481,
+      "sha256": "06cb587957ce6fb8d6dd232b3d800ce5236c3eacb143e516d3f5e4a29d07222a"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 222,
+      "sha256": "6f47b3b8684b858026cd578894af90760b7d658a51422c75110e088d92eb0615"
+    },
+    {
+      "path": "types.receipt.json",
+      "bytes": 914,
+      "sha256": "351a664dbb147941941e38785ed680b61aeb1946c5bd48910df6a36c5d4fac24"
+    },
+    {
+      "path": "types.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "types.stdout.log",
+      "bytes": 408,
+      "sha256": "9790b2f8c771e93f7a73e51b87e5fd11b8f70dfc6a6b89c4bc1939ed2fb84ab4"
+    }
+  ]
+}

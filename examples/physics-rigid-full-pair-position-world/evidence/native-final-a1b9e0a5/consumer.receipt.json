@@ -1,0 +1,20 @@
+{
+  "startedAtUTC": "2026-10-11T00:21:24.860297+00:00",
+  "pid": 69061,
+  "controllerPid": 69032,
+  "beforeHead": "a1b9e0a500857abb30708cb7d29b6bf427bfa18c",
+  "command": [
+    "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+    "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/examples/physics-rigid-full-pair-position-world/parity-runner.mjs",
+    "/tmp/physics-1399-parity-completion"
+  ],
+  "controllerSha256": "a1fc8cbf80dc8021090d24f2340332220fa2e8c0e3ad0031af51970b6a10dfc5",
+  "sourceFreezeSha256": "1ff2eee714833940b61fdb35571e7e06c68c0f0bee89f05ebdb1609d3cb4c3a0",
+  "exitCode": 0,
+  "completedAtUTC": "2026-10-11T00:33:56.366632+00:00",
+  "elapsedSeconds": 751.4979686249862,
+  "stdoutBytes": 4868,
+  "stdoutSha256": "23c1ed85e1008dacf7a85aec2374631bdf646e5065c0020129dc1d8eef475413",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

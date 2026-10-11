@@ -1,0 +1,14 @@
+{
+  "base": "527a4407207e32a801365f1b59c071469948aa19",
+  "native": "a7bf69e2d7b6e75b99df7207aa91874ed71e032e",
+  "adoption": "4ae895123bd37238599f1ad4f6b7db2a2b8e76ba",
+  "adoptionParent": "d71c50f46b45c12d023df870228e7bf55b14df85",
+  "head": "4ae895123bd37238599f1ad4f6b7db2a2b8e76ba",
+  "newPaths": 98,
+  "allExact": true,
+  "manifestSha256": "983e9b95dc8f8a8e8b5d24cf46dd94625f4c0c2fd2762d3a863544e70a859938",
+  "artifactHashesVerified": 67,
+  "decodedGzipHashesVerified": 32,
+  "runtimeReplayed": false,
+  "status": "merged; integration validation pending"
+}

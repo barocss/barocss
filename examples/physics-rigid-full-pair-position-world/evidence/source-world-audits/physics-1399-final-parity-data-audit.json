@@ -1,0 +1,741 @@
+{
+  "issue": 1399,
+  "state": "FINAL_PARITY_DATA_VERIFIED_NUMERICAL_NO_GO_WORLD",
+  "dataOnly": true,
+  "newModelReferenceSolverWorldCalls": 0,
+  "outputAndSourceUnchanged": true,
+  "consumerReceipt": {
+    "startedAtUTC": "2026-10-11T00:21:24.860297+00:00",
+    "pid": 69061,
+    "controllerPid": 69032,
+    "beforeHead": "a1b9e0a500857abb30708cb7d29b6bf427bfa18c",
+    "command": [
+      "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+      "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/examples/physics-rigid-full-pair-position-world/parity-runner.mjs",
+      "/tmp/physics-1399-parity-completion"
+    ],
+    "controllerSha256": "a1fc8cbf80dc8021090d24f2340332220fa2e8c0e3ad0031af51970b6a10dfc5",
+    "sourceFreezeSha256": "1ff2eee714833940b61fdb35571e7e06c68c0f0bee89f05ebdb1609d3cb4c3a0",
+    "exitCode": 0,
+    "completedAtUTC": "2026-10-11T00:33:56.366632+00:00",
+    "elapsedSeconds": 751.4979686249862,
+    "stdoutBytes": 4868,
+    "stdoutSha256": "23c1ed85e1008dacf7a85aec2374631bdf646e5065c0020129dc1d8eef475413",
+    "stderrBytes": 0,
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "consumerLogHashesVerified": true,
+  "summary": {
+    "path": "/tmp/physics-1399-parity-completion/summary.json.gz",
+    "sha256": "5616e9936b32ab55bd6da1678fad5d9b4d757c0583f0ee5de8f3307144494e5c",
+    "allNineStartGO": true,
+    "sourceRepeatCompiledParity": true,
+    "baseNumericalGO": false,
+    "physicalDisposition": "NUMERICAL_NO_GO_WORLD",
+    "viewerExecuted": false,
+    "publicEngineQualified": false,
+    "releaseQualified": false
+  },
+  "priorSourceAudit": {
+    "path": "/tmp/physics-1399-source-world-data-audit.json",
+    "sha256": "5683526d62d93ffecfe906790ebecf82dce689b3bdf98048de616d280d1616e4",
+    "sourceCompressedHashesUnchanged": true,
+    "sourceSemanticsNotReevaluated": true
+  },
+  "sourcePhysicalFailures": [
+    {
+      "scene": "ALIGNED",
+      "step": 960,
+      "quality": {
+        "step": 960,
+        "metrics": {
+          "maxPairPenetrationM": 0,
+          "maxFloorPenetrationM": 5.804605811896959e-17,
+          "maxHalfspaceIntrusionM": 5.804605811896959e-17,
+          "maxQuaternionNormError": 1.3498226133730194e-16,
+          "maxHorizontalDriftM": 1.2024224930149647,
+          "maxVerticalDriftM": 0,
+          "maxLinearSpeedMps": 8.300322618284009e-13,
+          "maxAngularSpeedRadps": 1.3585313431519858e-12,
+          "footprintContained": true,
+          "escapedBelowFloor": false,
+          "nearParallelAxisCount": 0,
+          "overlapWithoutContactCount": 0,
+          "maxTiltRad": 1.5714045640760788,
+          "referencePrecisionResolved": true
+        },
+        "violations": [
+          "maxHorizontalDriftM exceeds 0.01 m",
+          "upright tilt exceeds one degree"
+        ]
+      }
+    },
+    {
+      "scene": "OFFSET",
+      "step": 315,
+      "quality": {
+        "step": 315,
+        "metrics": {
+          "maxPairPenetrationM": 0,
+          "maxFloorPenetrationM": 5.298729092749634e-17,
+          "maxHalfspaceIntrusionM": 5.298729092749634e-17,
+          "maxQuaternionNormError": 1.0191920782371656e-16,
+          "maxHorizontalDriftM": 1.7016973861968008,
+          "maxVerticalDriftM": null,
+          "maxLinearSpeedMps": 1.1728172087143902,
+          "maxAngularSpeedRadps": 3.282596940116389,
+          "footprintContained": false,
+          "escapedBelowFloor": false,
+          "nearParallelAxisCount": 0,
+          "overlapWithoutContactCount": 0,
+          "maxTiltRad": 1.747336413455328,
+          "referencePrecisionResolved": true
+        },
+        "violations": [
+          "cube footprint is outside the finite floor"
+        ]
+      }
+    },
+    {
+      "scene": "YAW",
+      "step": 243,
+      "quality": {
+        "step": 243,
+        "metrics": {
+          "maxPairPenetrationM": 4.775740155155885e-17,
+          "maxFloorPenetrationM": 1.1707121534492693e-17,
+          "maxHalfspaceIntrusionM": 1.1707121534492693e-17,
+          "maxQuaternionNormError": 1.5150245765409222e-16,
+          "maxHorizontalDriftM": 2.079861964184823,
+          "maxVerticalDriftM": null,
+          "maxLinearSpeedMps": 2.821070575347647,
+          "maxAngularSpeedRadps": 7.223377628411315,
+          "footprintContained": false,
+          "escapedBelowFloor": false,
+          "nearParallelAxisCount": 0,
+          "overlapWithoutContactCount": 0,
+          "maxTiltRad": 2.2856195246385838,
+          "referencePrecisionResolved": true
+        },
+        "violations": [
+          "cube footprint is outside the finite floor"
+        ]
+      }
+    }
+  ],
+  "aliases": {
+    "streams": 6,
+    "receiptRecords": 3042,
+    "fullHardlinkStreams": 12,
+    "fullCanonicalAndReceiptEOFVerified": true,
+    "audit": [
+      {
+        "graph": "source-repeat",
+        "scene": "ALIGNED",
+        "records": 961,
+        "rawBytes": 8986536,
+        "receiptBytes": 241361,
+        "receiptSha256": "bfccb7950d792278c6601ed9afeb0dde15098f3edc66eb45d4b64b482d58ecef",
+        "canonicalAndAliasEOFVerified": true,
+        "everyRecordDigestIndexAndRawMatches": true,
+        "hardlinks": [
+          {
+            "path": "/tmp/physics-1399-parity-completion/source-repeat-ALIGNED.jsonl.gz",
+            "canonical": "/tmp/physics-1399-parity-completion/source-ALIGNED.jsonl.gz",
+            "device": 16777232,
+            "inode": 560772654,
+            "nlink": 8,
+            "bytes": 54063016,
+            "sha256": "daea697b1a04c1e3bb00189e76db69ebadfbedbec9bc5dad4590a42a0bb80959"
+          },
+          {
+            "path": "/tmp/physics-1399-parity-completion/source-repeat-ALIGNED.f64le.gz",
+            "canonical": "/tmp/physics-1399-parity-completion/source-ALIGNED.f64le.gz",
+            "device": 16777232,
+            "inode": 560772655,
+            "nlink": 8,
+            "bytes": 1581367,
+            "sha256": "8434ef44711481fddedf0583af23f4cf48257dcc9c37824365b080d259dfd15b"
+          }
+        ],
+        "summary": {
+          "graph": "source-repeat",
+          "scene": "ALIGNED",
+          "attemptedSteps": 960,
+          "acceptedSteps": 960,
+          "solverCalls": 960,
+          "failure": {
+            "kind": "independent-quality",
+            "step": 960,
+            "reply": {
+              "ok": true,
+              "metrics": {
+                "maxPairPenetrationM": 0,
+                "maxFloorPenetrationM": 5.804605811896959e-17,
+                "maxHalfspaceIntrusionM": 5.804605811896959e-17,
+                "maxQuaternionNormError": 1.3498226133730194e-16,
+                "maxHorizontalDriftM": 1.2024224930149647,
+                "maxVerticalDriftM": 0,
+                "maxLinearSpeedMps": 8.300322618284009e-13,
+                "maxAngularSpeedRadps": 1.3585313431519858e-12,
+                "footprintContained": true,
+                "escapedBelowFloor": false,
+                "nearParallelAxisCount": 0,
+                "overlapWithoutContactCount": 0,
+                "maxTiltRad": 1.5714045640760788,
+                "referencePrecisionResolved": true
+              },
+              "violations": [
+                "maxHorizontalDriftM exceeds 0.01 m",
+                "upright tilt exceeds one degree"
+              ]
+            }
+          },
+          "baseNumericalGO": false,
+          "evidence": {
+            "records": 961,
+            "rawBytes": 8986536,
+            "decodedRecordSha256": "a4e96c868909477d498eb66194b5ff350437b3e484c36c8d64b0b2882f7b526b",
+            "rawSha256": "3749440ec8567ffe4384443d83e58927721eacb1f858c4ec5d1aef4d44cbec49",
+            "compressedBytes": 241361,
+            "storageMode": "exact-source-alias",
+            "canonicalJsonPath": "source-ALIGNED.jsonl.gz",
+            "canonicalRawPath": "source-ALIGNED.f64le.gz",
+            "aliasReceiptPath": "source-repeat-ALIGNED-aliases.jsonl.gz",
+            "newStoredBytes": 241361,
+            "logicalAliasBytes": 55644383,
+            "exactRecordAndRawBytesCompared": true
+          },
+          "viewerExecuted": false
+        }
+      },
+      {
+        "graph": "compiled-dependencies",
+        "scene": "ALIGNED",
+        "records": 961,
+        "rawBytes": 8986536,
+        "receiptBytes": 241361,
+        "receiptSha256": "bfccb7950d792278c6601ed9afeb0dde15098f3edc66eb45d4b64b482d58ecef",
+        "canonicalAndAliasEOFVerified": true,
+        "everyRecordDigestIndexAndRawMatches": true,
+        "hardlinks": [
+          {
+            "path": "/tmp/physics-1399-parity-completion/compiled-dependencies-ALIGNED.jsonl.gz",
+            "canonical": "/tmp/physics-1399-parity-completion/source-ALIGNED.jsonl.gz",
+            "device": 16777232,
+            "inode": 560772654,
+            "nlink": 8,
+            "bytes": 54063016,
+            "sha256": "daea697b1a04c1e3bb00189e76db69ebadfbedbec9bc5dad4590a42a0bb80959"
+          },
+          {
+            "path": "/tmp/physics-1399-parity-completion/compiled-dependencies-ALIGNED.f64le.gz",
+            "canonical": "/tmp/physics-1399-parity-completion/source-ALIGNED.f64le.gz",
+            "device": 16777232,
+            "inode": 560772655,
+            "nlink": 8,
+            "bytes": 1581367,
+            "sha256": "8434ef44711481fddedf0583af23f4cf48257dcc9c37824365b080d259dfd15b"
+          }
+        ],
+        "summary": {
+          "graph": "compiled-dependencies",
+          "scene": "ALIGNED",
+          "attemptedSteps": 960,
+          "acceptedSteps": 960,
+          "solverCalls": 960,
+          "failure": {
+            "kind": "independent-quality",
+            "step": 960,
+            "reply": {
+              "ok": true,
+              "metrics": {
+                "maxPairPenetrationM": 0,
+                "maxFloorPenetrationM": 5.804605811896959e-17,
+                "maxHalfspaceIntrusionM": 5.804605811896959e-17,
+                "maxQuaternionNormError": 1.3498226133730194e-16,
+                "maxHorizontalDriftM": 1.2024224930149647,
+                "maxVerticalDriftM": 0,
+                "maxLinearSpeedMps": 8.300322618284009e-13,
+                "maxAngularSpeedRadps": 1.3585313431519858e-12,
+                "footprintContained": true,
+                "escapedBelowFloor": false,
+                "nearParallelAxisCount": 0,
+                "overlapWithoutContactCount": 0,
+                "maxTiltRad": 1.5714045640760788,
+                "referencePrecisionResolved": true
+              },
+              "violations": [
+                "maxHorizontalDriftM exceeds 0.01 m",
+                "upright tilt exceeds one degree"
+              ]
+            }
+          },
+          "baseNumericalGO": false,
+          "evidence": {
+            "records": 961,
+            "rawBytes": 8986536,
+            "decodedRecordSha256": "a4e96c868909477d498eb66194b5ff350437b3e484c36c8d64b0b2882f7b526b",
+            "rawSha256": "3749440ec8567ffe4384443d83e58927721eacb1f858c4ec5d1aef4d44cbec49",
+            "compressedBytes": 241361,
+            "storageMode": "exact-source-alias",
+            "canonicalJsonPath": "source-ALIGNED.jsonl.gz",
+            "canonicalRawPath": "source-ALIGNED.f64le.gz",
+            "aliasReceiptPath": "compiled-dependencies-ALIGNED-aliases.jsonl.gz",
+            "newStoredBytes": 241361,
+            "logicalAliasBytes": 55644383,
+            "exactRecordAndRawBytesCompared": true
+          },
+          "viewerExecuted": false
+        }
+      },
+      {
+        "graph": "source-repeat",
+        "scene": "OFFSET",
+        "records": 316,
+        "rawBytes": 2949336,
+        "receiptBytes": 78810,
+        "receiptSha256": "8d34763ed6605affe8ec736ebd4398ef524bd530e18cdb3ecbc441a532c81d81",
+        "canonicalAndAliasEOFVerified": true,
+        "everyRecordDigestIndexAndRawMatches": true,
+        "hardlinks": [
+          {
+            "path": "/tmp/physics-1399-parity-completion/source-repeat-OFFSET.jsonl.gz",
+            "canonical": "/tmp/physics-1399-parity-completion/source-OFFSET.jsonl.gz",
+            "device": 16777232,
+            "inode": 560776608,
+            "nlink": 8,
+            "bytes": 19502260,
+            "sha256": "b86ebd4731a7e33ad8fb17ae61b55aa1a534fe18fa2b1c76769a43603dc6708d"
+          },
+          {
+            "path": "/tmp/physics-1399-parity-completion/source-repeat-OFFSET.f64le.gz",
+            "canonical": "/tmp/physics-1399-parity-completion/source-OFFSET.f64le.gz",
+            "device": 16777232,
+            "inode": 560776609,
+            "nlink": 8,
+            "bytes": 612483,
+            "sha256": "0d33a16977ecbfa259ed3b6aa520867f3dbebe9fc106a14baae0db676a11abc7"
+          }
+        ],
+        "summary": {
+          "graph": "source-repeat",
+          "scene": "OFFSET",
+          "attemptedSteps": 315,
+          "acceptedSteps": 315,
+          "solverCalls": 315,
+          "failure": {
+            "kind": "independent-quality",
+            "step": 315,
+            "reply": {
+              "ok": true,
+              "metrics": {
+                "maxPairPenetrationM": 0,
+                "maxFloorPenetrationM": 5.298729092749634e-17,
+                "maxHalfspaceIntrusionM": 5.298729092749634e-17,
+                "maxQuaternionNormError": 1.0191920782371656e-16,
+                "maxHorizontalDriftM": 1.7016973861968008,
+                "maxVerticalDriftM": null,
+                "maxLinearSpeedMps": 1.1728172087143902,
+                "maxAngularSpeedRadps": 3.282596940116389,
+                "footprintContained": false,
+                "escapedBelowFloor": false,
+                "nearParallelAxisCount": 0,
+                "overlapWithoutContactCount": 0,
+                "maxTiltRad": 1.747336413455328,
+                "referencePrecisionResolved": true
+              },
+              "violations": [
+                "cube footprint is outside the finite floor"
+              ]
+            }
+          },
+          "baseNumericalGO": false,
+          "evidence": {
+            "records": 316,
+            "rawBytes": 2949336,
+            "decodedRecordSha256": "55516b5cd63b05b73e380dfa484a67377a6270cf836e00bef2c81a816a1becc4",
+            "rawSha256": "64eae5e63cc4ff69e1612a87d505e83c6dfe9a10967eb51e1e4af9b734544fd0",
+            "compressedBytes": 78810,
+            "storageMode": "exact-source-alias",
+            "canonicalJsonPath": "source-OFFSET.jsonl.gz",
+            "canonicalRawPath": "source-OFFSET.f64le.gz",
+            "aliasReceiptPath": "source-repeat-OFFSET-aliases.jsonl.gz",
+            "newStoredBytes": 78810,
+            "logicalAliasBytes": 20114743,
+            "exactRecordAndRawBytesCompared": true
+          },
+          "viewerExecuted": false
+        }
+      },
+      {
+        "graph": "compiled-dependencies",
+        "scene": "OFFSET",
+        "records": 316,
+        "rawBytes": 2949336,
+        "receiptBytes": 78810,
+        "receiptSha256": "8d34763ed6605affe8ec736ebd4398ef524bd530e18cdb3ecbc441a532c81d81",
+        "canonicalAndAliasEOFVerified": true,
+        "everyRecordDigestIndexAndRawMatches": true,
+        "hardlinks": [
+          {
+            "path": "/tmp/physics-1399-parity-completion/compiled-dependencies-OFFSET.jsonl.gz",
+            "canonical": "/tmp/physics-1399-parity-completion/source-OFFSET.jsonl.gz",
+            "device": 16777232,
+            "inode": 560776608,
+            "nlink": 8,
+            "bytes": 19502260,
+            "sha256": "b86ebd4731a7e33ad8fb17ae61b55aa1a534fe18fa2b1c76769a43603dc6708d"
+          },
+          {
+            "path": "/tmp/physics-1399-parity-completion/compiled-dependencies-OFFSET.f64le.gz",
+            "canonical": "/tmp/physics-1399-parity-completion/source-OFFSET.f64le.gz",
+            "device": 16777232,
+            "inode": 560776609,
+            "nlink": 8,
+            "bytes": 612483,
+            "sha256": "0d33a16977ecbfa259ed3b6aa520867f3dbebe9fc106a14baae0db676a11abc7"
+          }
+        ],
+        "summary": {
+          "graph": "compiled-dependencies",
+          "scene": "OFFSET",
+          "attemptedSteps": 315,
+          "acceptedSteps": 315,
+          "solverCalls": 315,
+          "failure": {
+            "kind": "independent-quality",
+            "step": 315,
+            "reply": {
+              "ok": true,
+              "metrics": {
+                "maxPairPenetrationM": 0,
+                "maxFloorPenetrationM": 5.298729092749634e-17,
+                "maxHalfspaceIntrusionM": 5.298729092749634e-17,
+                "maxQuaternionNormError": 1.0191920782371656e-16,
+                "maxHorizontalDriftM": 1.7016973861968008,
+                "maxVerticalDriftM": null,
+                "maxLinearSpeedMps": 1.1728172087143902,
+                "maxAngularSpeedRadps": 3.282596940116389,
+                "footprintContained": false,
+                "escapedBelowFloor": false,
+                "nearParallelAxisCount": 0,
+                "overlapWithoutContactCount": 0,
+                "maxTiltRad": 1.747336413455328,
+                "referencePrecisionResolved": true
+              },
+              "violations": [
+                "cube footprint is outside the finite floor"
+              ]
+            }
+          },
+          "baseNumericalGO": false,
+          "evidence": {
+            "records": 316,
+            "rawBytes": 2949336,
+            "decodedRecordSha256": "55516b5cd63b05b73e380dfa484a67377a6270cf836e00bef2c81a816a1becc4",
+            "rawSha256": "64eae5e63cc4ff69e1612a87d505e83c6dfe9a10967eb51e1e4af9b734544fd0",
+            "compressedBytes": 78810,
+            "storageMode": "exact-source-alias",
+            "canonicalJsonPath": "source-OFFSET.jsonl.gz",
+            "canonicalRawPath": "source-OFFSET.f64le.gz",
+            "aliasReceiptPath": "compiled-dependencies-OFFSET-aliases.jsonl.gz",
+            "newStoredBytes": 78810,
+            "logicalAliasBytes": 20114743,
+            "exactRecordAndRawBytesCompared": true
+          },
+          "viewerExecuted": false
+        }
+      },
+      {
+        "graph": "source-repeat",
+        "scene": "YAW",
+        "records": 244,
+        "rawBytes": 2275416,
+        "receiptBytes": 60243,
+        "receiptSha256": "bf72ff56b30297491a13dcf09211fc1f1c8ef6f98a3de4b97ebeaccc94b0e5c8",
+        "canonicalAndAliasEOFVerified": true,
+        "everyRecordDigestIndexAndRawMatches": true,
+        "hardlinks": [
+          {
+            "path": "/tmp/physics-1399-parity-completion/source-repeat-YAW.jsonl.gz",
+            "canonical": "/tmp/physics-1399-parity-completion/source-YAW.jsonl.gz",
+            "device": 16777232,
+            "inode": 560777320,
+            "nlink": 8,
+            "bytes": 15468391,
+            "sha256": "d658267978fb7ccc30e7baf1cff5517570199972ed4e635dfd8fde80bd5e181e"
+          },
+          {
+            "path": "/tmp/physics-1399-parity-completion/source-repeat-YAW.f64le.gz",
+            "canonical": "/tmp/physics-1399-parity-completion/source-YAW.f64le.gz",
+            "device": 16777232,
+            "inode": 560777321,
+            "nlink": 8,
+            "bytes": 480101,
+            "sha256": "ec29fff65155a97523a2d8c2a80732c17555c8569b160f1a55a8cd14d154c857"
+          }
+        ],
+        "summary": {
+          "graph": "source-repeat",
+          "scene": "YAW",
+          "attemptedSteps": 243,
+          "acceptedSteps": 243,
+          "solverCalls": 243,
+          "failure": {
+            "kind": "independent-quality",
+            "step": 243,
+            "reply": {
+              "ok": true,
+              "metrics": {
+                "maxPairPenetrationM": 4.775740155155885e-17,
+                "maxFloorPenetrationM": 1.1707121534492693e-17,
+                "maxHalfspaceIntrusionM": 1.1707121534492693e-17,
+                "maxQuaternionNormError": 1.5150245765409222e-16,
+                "maxHorizontalDriftM": 2.079861964184823,
+                "maxVerticalDriftM": null,
+                "maxLinearSpeedMps": 2.821070575347647,
+                "maxAngularSpeedRadps": 7.223377628411315,
+                "footprintContained": false,
+                "escapedBelowFloor": false,
+                "nearParallelAxisCount": 0,
+                "overlapWithoutContactCount": 0,
+                "maxTiltRad": 2.2856195246385838,
+                "referencePrecisionResolved": true
+              },
+              "violations": [
+                "cube footprint is outside the finite floor"
+              ]
+            }
+          },
+          "baseNumericalGO": false,
+          "evidence": {
+            "records": 244,
+            "rawBytes": 2275416,
+            "decodedRecordSha256": "ff8bef43b5ce8a3b10929c945e694f206637bc24b68655b65e361c4a3152d9b3",
+            "rawSha256": "2821d6a54facd46eda306ae618cce0f163cc8f7b79ac59739eaa50263fb651cc",
+            "compressedBytes": 60243,
+            "storageMode": "exact-source-alias",
+            "canonicalJsonPath": "source-YAW.jsonl.gz",
+            "canonicalRawPath": "source-YAW.f64le.gz",
+            "aliasReceiptPath": "source-repeat-YAW-aliases.jsonl.gz",
+            "newStoredBytes": 60243,
+            "logicalAliasBytes": 15948492,
+            "exactRecordAndRawBytesCompared": true
+          },
+          "viewerExecuted": false
+        }
+      },
+      {
+        "graph": "compiled-dependencies",
+        "scene": "YAW",
+        "records": 244,
+        "rawBytes": 2275416,
+        "receiptBytes": 60243,
+        "receiptSha256": "bf72ff56b30297491a13dcf09211fc1f1c8ef6f98a3de4b97ebeaccc94b0e5c8",
+        "canonicalAndAliasEOFVerified": true,
+        "everyRecordDigestIndexAndRawMatches": true,
+        "hardlinks": [
+          {
+            "path": "/tmp/physics-1399-parity-completion/compiled-dependencies-YAW.jsonl.gz",
+            "canonical": "/tmp/physics-1399-parity-completion/source-YAW.jsonl.gz",
+            "device": 16777232,
+            "inode": 560777320,
+            "nlink": 8,
+            "bytes": 15468391,
+            "sha256": "d658267978fb7ccc30e7baf1cff5517570199972ed4e635dfd8fde80bd5e181e"
+          },
+          {
+            "path": "/tmp/physics-1399-parity-completion/compiled-dependencies-YAW.f64le.gz",
+            "canonical": "/tmp/physics-1399-parity-completion/source-YAW.f64le.gz",
+            "device": 16777232,
+            "inode": 560777321,
+            "nlink": 8,
+            "bytes": 480101,
+            "sha256": "ec29fff65155a97523a2d8c2a80732c17555c8569b160f1a55a8cd14d154c857"
+          }
+        ],
+        "summary": {
+          "graph": "compiled-dependencies",
+          "scene": "YAW",
+          "attemptedSteps": 243,
+          "acceptedSteps": 243,
+          "solverCalls": 243,
+          "failure": {
+            "kind": "independent-quality",
+            "step": 243,
+            "reply": {
+              "ok": true,
+              "metrics": {
+                "maxPairPenetrationM": 4.775740155155885e-17,
+                "maxFloorPenetrationM": 1.1707121534492693e-17,
+                "maxHalfspaceIntrusionM": 1.1707121534492693e-17,
+                "maxQuaternionNormError": 1.5150245765409222e-16,
+                "maxHorizontalDriftM": 2.079861964184823,
+                "maxVerticalDriftM": null,
+                "maxLinearSpeedMps": 2.821070575347647,
+                "maxAngularSpeedRadps": 7.223377628411315,
+                "footprintContained": false,
+                "escapedBelowFloor": false,
+                "nearParallelAxisCount": 0,
+                "overlapWithoutContactCount": 0,
+                "maxTiltRad": 2.2856195246385838,
+                "referencePrecisionResolved": true
+              },
+              "violations": [
+                "cube footprint is outside the finite floor"
+              ]
+            }
+          },
+          "baseNumericalGO": false,
+          "evidence": {
+            "records": 244,
+            "rawBytes": 2275416,
+            "decodedRecordSha256": "ff8bef43b5ce8a3b10929c945e694f206637bc24b68655b65e361c4a3152d9b3",
+            "rawSha256": "2821d6a54facd46eda306ae618cce0f163cc8f7b79ac59739eaa50263fb651cc",
+            "compressedBytes": 60243,
+            "storageMode": "exact-source-alias",
+            "canonicalJsonPath": "source-YAW.jsonl.gz",
+            "canonicalRawPath": "source-YAW.f64le.gz",
+            "aliasReceiptPath": "compiled-dependencies-YAW-aliases.jsonl.gz",
+            "newStoredBytes": 60243,
+            "logicalAliasBytes": 15948492,
+            "exactRecordAndRawBytesCompared": true
+          },
+          "viewerExecuted": false
+        }
+      }
+    ]
+  },
+  "controls": [
+    {
+      "graph": "source",
+      "sha256": "97b83bfbfecd0650405d8e710c155742ec9d9053203520205df1ad240797589c",
+      "policyReceipts": 51,
+      "referenceReceipts": 81,
+      "shortWorldStepCalls": 49,
+      "guardWorlds": 35,
+      "acceptedGuardSteps": 25,
+      "refusedGuardSteps": 24,
+      "serializedObjectsEqual": true,
+      "previousReceiptsReused": true
+    },
+    {
+      "graph": "source-repeat",
+      "sha256": "97b83bfbfecd0650405d8e710c155742ec9d9053203520205df1ad240797589c",
+      "policyReceipts": 51,
+      "referenceReceipts": 81,
+      "shortWorldStepCalls": 49,
+      "guardWorlds": 35,
+      "acceptedGuardSteps": 25,
+      "refusedGuardSteps": 24,
+      "serializedObjectsEqual": true,
+      "previousReceiptsReused": true
+    },
+    {
+      "graph": "compiled-dependencies",
+      "sha256": "97b83bfbfecd0650405d8e710c155742ec9d9053203520205df1ad240797589c",
+      "policyReceipts": 51,
+      "referenceReceipts": 81,
+      "shortWorldStepCalls": 49,
+      "guardWorlds": 35,
+      "acceptedGuardSteps": 25,
+      "refusedGuardSteps": 24,
+      "serializedObjectsEqual": true,
+      "previousReceiptsReused": false
+    }
+  ],
+  "starts": [
+    {
+      "graph": "source",
+      "sha256": "a0f4a55778e6a8b7c8c8df869e3059b27f70ec9886b10fb20254f1c52f7b032d",
+      "kernelGO": true,
+      "referenceStatus": "SOLVED",
+      "previousReceiptReused": true
+    },
+    {
+      "graph": "source-repeat",
+      "sha256": "a0f4a55778e6a8b7c8c8df869e3059b27f70ec9886b10fb20254f1c52f7b032d",
+      "kernelGO": true,
+      "referenceStatus": "SOLVED",
+      "previousReceiptReused": false
+    },
+    {
+      "graph": "compiled-dependencies",
+      "sha256": "a0f4a55778e6a8b7c8c8df869e3059b27f70ec9886b10fb20254f1c52f7b032d",
+      "kernelGO": true,
+      "referenceStatus": "SOLVED",
+      "previousReceiptReused": false
+    }
+  ],
+  "graphAudits": [
+    {
+      "graph": "source",
+      "bundlePath": "/tmp/physics-1399-world-continuation/source.mjs",
+      "bundleSha256": "767aa27845a63f267581814cc588806828ac3ab1e16120a01373f723775d3dbb",
+      "graphSha256": "5e7cce6fceb2091d033c054ffc196946285083cdb395266f0eb36351a13885a6",
+      "originalSourceCount": 39,
+      "originalDistCount": 0,
+      "allInputHashesVerified": true,
+      "actualDistLedgerMatch": false
+    },
+    {
+      "graph": "source-repeat",
+      "bundlePath": "/tmp/physics-1399-parity-completion/source-repeat.mjs",
+      "bundleSha256": "767aa27845a63f267581814cc588806828ac3ab1e16120a01373f723775d3dbb",
+      "graphSha256": "98cd223e0d1009e49d651e8653cd80fb856a3660fb3031520683b61bb58b6808",
+      "originalSourceCount": 39,
+      "originalDistCount": 0,
+      "allInputHashesVerified": true,
+      "actualDistLedgerMatch": false
+    },
+    {
+      "graph": "compiled-dependencies",
+      "bundlePath": "/tmp/physics-1399-parity-completion/compiled-dependencies.mjs",
+      "bundleSha256": "12ea2e8b392e9e84d99d1925a58458254f091cd7508eb7b3a1ad975d9837f2f4",
+      "graphSha256": "72cbd3ab7a68c7d559d80d7cdf37d8940cefdaf9c15933357386374f8fe8a970",
+      "originalSourceCount": 0,
+      "originalDistCount": 19,
+      "allInputHashesVerified": true,
+      "actualDistLedgerMatch": true
+    }
+  ],
+  "emitted": {
+    "files": 542,
+    "sha256": "1d223c226258ccbbeb1045f42688716a82673591b0b1fb2234c2b1584d7b995e",
+    "allActualBytesShaVerified": true,
+    "actualBuildHead": "dea22d310baa3203a4864344a6c0e8b18dd29b4d",
+    "actualTypesHead": "bf5322dd70d42d4caed58648d38fd579b80327c4",
+    "measuredSource": "2461f26342f8e48b944d881f10b5430df8c62c0a"
+  },
+  "callAccounting": {
+    "qualifiedMainWorldSteps": 4554,
+    "newMissingStageMainSteps": 3036,
+    "priorCompletedSourceMainSteps": 1518,
+    "historicalInterruptedMainSteps": 851,
+    "chronologicalMainStepsIncludingInterruptedPrefix": 5405,
+    "shortGuardStepsPerGraph": 49,
+    "shortGuardStepsAcrossQualifiedGraphs": 147,
+    "newMissingStageShortGuardSteps": 49,
+    "sourceAndSourceRepeatShortControlsReused": true,
+    "guardWorldsPerGraph": 35,
+    "mainAndGuardCountsSeparate": true
+  },
+  "storage": {
+    "canonicalSourceCompressedBytes": 91707618,
+    "aliasReceiptStoredBytes": 760828,
+    "originalPartialTraceBytes": 49740490,
+    "uniqueMainStoredBytes": 142208936,
+    "logicalAliasBytes": 183415236,
+    "mainBudgetBytes": 293601280,
+    "hardlinkFileDataCountedOnce": true
+  },
+  "limits": [
+    "Every thin receipt is checked against canonical record/raw hashes and indices with complete EOF; actual-byte-equality flags are saved evidence of the frozen writer, not a new physical replay.",
+    "Encoded control equality does not reconstruct all native signed-zero bits; original raw/copy guards remain explicit.",
+    "Known physical SOURCE failures remainNO-GO despite parity consumer exit0.",
+    "Source bundle remains at original continuation source.mjs; no new SOURCE bundle or SOURCE World execution was required.",
+    "Original interrupted unknown exit and later representation AssertionError remain preserved historical EXECUTION_FAILUREs, not first-pass success."
+  ],
+  "issues": []
+}

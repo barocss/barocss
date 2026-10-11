@@ -1,0 +1,381 @@
+{
+  "issue": 1399,
+  "scope": "READ_ONLY_FINAL_NATIVE_PROVENANCE_SOURCE_AUDIT",
+  "disposition": "PROVENANCE_PASS",
+  "checks": {
+    "source732PinsExact": true,
+    "emitted542Exact": true,
+    "originalEmittedEntriesExact": true,
+    "freezeReceiptBindings": true,
+    "summaryEmittedHashExact": true,
+    "originalGateReceiptsExact": true,
+    "physicalInputReferenceGate25FilesUnchanged": true,
+    "consumerOnlyThreeApprovedStorageEdits": true,
+    "graphInputsBundlesExact": true,
+    "genuineCompiledHelpers": true,
+    "controlEncodedBytesParity": true,
+    "nineEncodedBytesParity": true,
+    "allNineGO": true,
+    "onlyOwnedAdded125Paths": true,
+    "parentAdoptionsExact": true,
+    "consumerLogsExact": true,
+    "priorFailuresPreserved": true
+  },
+  "base": "1614fdf964806f2ab76f018145b33323bfdaf73c",
+  "executedConsumerHead": "a1b9e0a500857abb30708cb7d29b6bf427bfa18c",
+  "measuredSource": "2461f26342f8e48b944d881f10b5430df8c62c0a",
+  "originalModelSource": "610e2581f1e0f597dedd2fdbb8a7586ecbd9dade",
+  "freezeSha256": "1ff2eee714833940b61fdb35571e7e06c68c0f0bee89f05ebdb1609d3cb4c3a0",
+  "sourcePins": 732,
+  "sourceHashErrors": [],
+  "emittedSha256": "1d223c226258ccbbeb1045f42688716a82673591b0b1fb2234c2b1584d7b995e",
+  "originalEmittedSha256": "af132c319b00c2612c30f20acb964961c0ac6f79499fb1c351f78e44e838f541",
+  "emittedFiles": 542,
+  "emittedHashErrors": [],
+  "gateReceipts": [
+    {
+      "gate": "build",
+      "sha256": "c1241eb485df62b28bc3a393f357f907125d711a269ff0391855aa185e0a040d",
+      "originalBytesEqual": true,
+      "ledgerHashMatches": true,
+      "exitCode": 0,
+      "beforeHead": "dea22d310baa3203a4864344a6c0e8b18dd29b4d",
+      "measuredSource": "3d7aca4468568f299edb216aed046508d2457af3",
+      "argv": [
+        "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+        "examples/physics-rigid-engine-reference/build-local.mjs"
+      ]
+    },
+    {
+      "gate": "types",
+      "sha256": "82b08d23fe11b03080735d6574dd718e8bd4f88e15f7b0b98a1c50a444e6cf8d",
+      "originalBytesEqual": true,
+      "ledgerHashMatches": true,
+      "exitCode": 0,
+      "beforeHead": "bf5322dd70d42d4caed58648d38fd579b80327c4",
+      "measuredSource": "610e2581f1e0f597dedd2fdbb8a7586ecbd9dade",
+      "argv": [
+        "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+        "/Users/user/.barocss-ai/v3/integration/node_modules/typescript/bin/tsc",
+        "-p",
+        "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/examples/physics-rigid-full-pair-position-world/tsconfig.json"
+      ]
+    }
+  ],
+  "consumerReceipt": {
+    "sha256": "db89628de229af273980a920060c05ad562fb76af4d1a4da0d192d2719c018e6",
+    "exitCode": 0,
+    "elapsedSeconds": 751.4979686249862,
+    "node": "v22.22.0",
+    "beforeHead": "a1b9e0a500857abb30708cb7d29b6bf427bfa18c",
+    "logs": [
+      {
+        "stream": "stdout",
+        "bytes": 4868,
+        "sha256": "23c1ed85e1008dacf7a85aec2374631bdf646e5065c0020129dc1d8eef475413",
+        "receiptExact": true
+      },
+      {
+        "stream": "stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "receiptExact": true
+      }
+    ]
+  },
+  "graphs": [
+    {
+      "graph": "source",
+      "inputCount": 58,
+      "sourceOriginalCount": 39,
+      "distOriginalCount": 0,
+      "private1399Count": 11,
+      "inputHashErrors": [],
+      "bundleSha256": "767aa27845a63f267581814cc588806828ac3ab1e16120a01373f723775d3dbb",
+      "expectedBundleSha256": "767aa27845a63f267581814cc588806828ac3ab1e16120a01373f723775d3dbb",
+      "actualBundlePath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/examples/physics-rigid-full-pair-position-world/evidence/continuation-9ca19dd4/source.mjs",
+      "legacyPositionAbsent": true,
+      "retrospectiveRowsAbsent": true
+    },
+    {
+      "graph": "source-repeat",
+      "inputCount": 58,
+      "sourceOriginalCount": 39,
+      "distOriginalCount": 0,
+      "private1399Count": 11,
+      "inputHashErrors": [],
+      "bundleSha256": "767aa27845a63f267581814cc588806828ac3ab1e16120a01373f723775d3dbb",
+      "expectedBundleSha256": "767aa27845a63f267581814cc588806828ac3ab1e16120a01373f723775d3dbb",
+      "actualBundlePath": "/tmp/physics-1399-parity-completion/source-repeat.mjs",
+      "legacyPositionAbsent": true,
+      "retrospectiveRowsAbsent": true
+    },
+    {
+      "graph": "compiled-dependencies",
+      "inputCount": 38,
+      "sourceOriginalCount": 0,
+      "distOriginalCount": 19,
+      "private1399Count": 11,
+      "inputHashErrors": [],
+      "bundleSha256": "12ea2e8b392e9e84d99d1925a58458254f091cd7508eb7b3a1ad975d9837f2f4",
+      "expectedBundleSha256": "12ea2e8b392e9e84d99d1925a58458254f091cd7508eb7b3a1ad975d9837f2f4",
+      "actualBundlePath": "/tmp/physics-1399-parity-completion/compiled-dependencies.mjs",
+      "legacyPositionAbsent": true,
+      "retrospectiveRowsAbsent": true
+    }
+  ],
+  "controls": [
+    {
+      "graph": "source",
+      "decodedBytes": 401524,
+      "decodedSha256": "fb34c1d3ea5938204a186e07bb1e7246712383a5f7a9927a5bbf0f696f0a1218",
+      "policyReceipts": 51,
+      "worldReceipts": 39,
+      "worldStepCalls": 49,
+      "referenceReceipts": 81
+    },
+    {
+      "graph": "source-repeat",
+      "decodedBytes": 401524,
+      "decodedSha256": "fb34c1d3ea5938204a186e07bb1e7246712383a5f7a9927a5bbf0f696f0a1218",
+      "policyReceipts": 51,
+      "worldReceipts": 39,
+      "worldStepCalls": 49,
+      "referenceReceipts": 81
+    },
+    {
+      "graph": "compiled-dependencies",
+      "decodedBytes": 401524,
+      "decodedSha256": "fb34c1d3ea5938204a186e07bb1e7246712383a5f7a9927a5bbf0f696f0a1218",
+      "policyReceipts": 51,
+      "worldReceipts": 39,
+      "worldStepCalls": 49,
+      "referenceReceipts": 81
+    }
+  ],
+  "nineStarts": [
+    {
+      "graph": "source",
+      "decodedSha256": "d6bb003fd04cfc98bd805a419903ca3d4be12d21fe586373185c3885fbc1cb52",
+      "kernelGO": true,
+      "nativeStatus": "SOLVED",
+      "referenceStatus": "SOLVED",
+      "resolved": true,
+      "violations": []
+    },
+    {
+      "graph": "source-repeat",
+      "decodedSha256": "d6bb003fd04cfc98bd805a419903ca3d4be12d21fe586373185c3885fbc1cb52",
+      "kernelGO": true,
+      "nativeStatus": "SOLVED",
+      "referenceStatus": "SOLVED",
+      "resolved": true,
+      "violations": []
+    },
+    {
+      "graph": "compiled-dependencies",
+      "decodedSha256": "d6bb003fd04cfc98bd805a419903ca3d4be12d21fe586373185c3885fbc1cb52",
+      "kernelGO": true,
+      "nativeStatus": "SOLVED",
+      "referenceStatus": "SOLVED",
+      "resolved": true,
+      "violations": []
+    }
+  ],
+  "physicalSourcePins": [
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/reference-world.ts",
+      "sha256": "671da74d216905c94592e4b7ecae488ea35d4db926108779c38a8c26d3b1d33e",
+      "equalOriginalModelSource": true
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/global-island.ts",
+      "sha256": "670f5226576cb0a2c1963705b99704be71d4ebd3ad38c312adf9c16d43781d8d",
+      "equalOriginalModelSource": true
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/world-types.ts",
+      "sha256": "531ea5f8c36fcc76b43bd834abab1961063fe43438baa46f6433b47005165d48",
+      "equalOriginalModelSource": true
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/full-pair-rows.ts",
+      "sha256": "110b81520702f8bffb95c15c2ce85b94a88880d9d8d0590b41b8940f4040b937",
+      "equalOriginalModelSource": true
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/full-pair-apply.ts",
+      "sha256": "72d770ac19454bf9d627e7d2bc0a2f808b15110f60a7cb7714292a98a1e69b68",
+      "equalOriginalModelSource": true
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/full-pair-phase.ts",
+      "sha256": "ef27019cd19a1efbd613e683daca7360e06fe53dc90596c2169e63af49bf2cd6",
+      "equalOriginalModelSource": true
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/full-pair-types.ts",
+      "sha256": "b97bc9c33b27319fd51b5d9dc5e1e4cf33f9fb0f7003d76b60b3d2fa01478709",
+      "equalOriginalModelSource": true
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/full-pair-input.mjs",
+      "sha256": "294a5ace022a05ca93cf269c2c9f3faa7f22f9715bc8f59a2956b2cb04078027",
+      "equalOriginalModelSource": true
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/full-pair-linear.mjs",
+      "sha256": "f12c0243c18178a138b79faaac29b14e61714a42376c6c88c2b8757eef82b280",
+      "equalOriginalModelSource": true
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/full-pair-exact.mjs",
+      "sha256": "258732a572bd6b2d1606db97cd2b637bfd252ce5fb59ee31cb30b0e9d298cd32",
+      "equalOriginalModelSource": true
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/full-pair-core.mjs",
+      "sha256": "75941f67d5359c3734a68c93dd571313bdcab030a170205dee6e22d592119a46",
+      "equalOriginalModelSource": true
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/full-pair-solver.mjs",
+      "sha256": "84e32cae07dbdd295e46af04691f0bf37815d77e73e2b5edfb75b0739e104432",
+      "equalOriginalModelSource": true
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/reference.py",
+      "sha256": "89caf6850b49a77713c7776df9fedd200ecbe1f426ec3cdae6165cc9bf48b58c",
+      "equalOriginalModelSource": true
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/full-pair-reference.py",
+      "sha256": "e8ca75e85b77eff3bce8be411ad108115d150406af087a5bf650be9034b3c46b",
+      "equalOriginalModelSource": true
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/nine-row-reference.py",
+      "sha256": "9497027e8abc11c82955d06c35f0f9d9c5392c1b97b8cef0e6ccee86aa3bcbdf",
+      "equalOriginalModelSource": true
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/reference-controls.mjs",
+      "sha256": "cbe639986f96f7b3c62900ae1f9465e64550e00d15208be93e50ce23d7392f21",
+      "equalOriginalModelSource": true
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/literal-cases.mjs",
+      "sha256": "f1c96bafcd576f824c7eb860cfd342c09ad40c9e575458ee7044527f16215102",
+      "equalOriginalModelSource": true
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/policy-controls.mjs",
+      "sha256": "fe1825d0b339241d1ab4801c0d4ca3de22f29a96f9aa71a21f85aca2c4fb0f1e",
+      "equalOriginalModelSource": true
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/world-controls.mjs",
+      "sha256": "04f962b5df93bfc2e230a0d57bd7a65ca51bc6c300054e5e1972ebb3a8a66793",
+      "equalOriginalModelSource": true
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/kernel-consumer.mjs",
+      "sha256": "cfc851d331d39345a7dc34a5b827e45faa5fc35d557dee71f2333bf7c8fca87d",
+      "equalOriginalModelSource": true
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/entry.mjs",
+      "sha256": "26f1cc206ccfd0d5d9b987b61581085805961532d62fa631e9bf2622fc8b3d0f",
+      "equalOriginalModelSource": true
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/archive.mjs",
+      "sha256": "79591e398cf859b7f9348990d39a048392453ac36ea8d805bf5091985ffba40c",
+      "equalOriginalModelSource": true
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/bundle.mjs",
+      "sha256": "67852204be7f9ce6d937efc2fa1f2fe9eda0506a6fa3bb695bd098b35866992d",
+      "equalOriginalModelSource": true
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/start-input-recipe.json",
+      "sha256": "68fe22cd23a68117c35602456c3d0e7acd9dfa2d7d799486a6b7222abbf03d8e",
+      "equalOriginalModelSource": true
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/tsconfig.json",
+      "sha256": "6f47b3b8684b858026cd578894af90760b7d658a51422c75110e088d92eb0615",
+      "equalOriginalModelSource": true
+    }
+  ],
+  "scopeDelta": {
+    "executedCheckpointAddedPaths": 125,
+    "allOwned": true,
+    "currentGitStatus": "A  examples/physics-rigid-full-pair-position-world/RESULT.md\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/build.receipt.json\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/compiled-dependencies-ALIGNED-aliases.jsonl.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/compiled-dependencies-ALIGNED-summary.json.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/compiled-dependencies-ALIGNED.f64le.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/compiled-dependencies-ALIGNED.jsonl.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/compiled-dependencies-OFFSET-aliases.jsonl.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/compiled-dependencies-OFFSET-summary.json.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/compiled-dependencies-OFFSET.f64le.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/compiled-dependencies-OFFSET.jsonl.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/compiled-dependencies-YAW-aliases.jsonl.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/compiled-dependencies-YAW-summary.json.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/compiled-dependencies-YAW.f64le.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/compiled-dependencies-YAW.jsonl.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/compiled-dependencies-controls.json.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/compiled-dependencies-graph.json\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/compiled-dependencies-nine-start-input.json.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/compiled-dependencies-nine-start-result.json.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/compiled-dependencies-nine-start.json.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/compiled-dependencies.mjs\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/consumer.receipt.json\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/consumer.started.json\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/consumer.stderr.log\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/consumer.stdout.log\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/emitted-pre-consumer.json\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/frozen-parity-runner.mjs\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/frozen-source-freeze.json\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/manifest.json\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/physics-1399-parity-controller.py\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-ALIGNED-summary.json.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-ALIGNED.f64le.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-ALIGNED.jsonl.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-OFFSET-summary.json.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-OFFSET.f64le.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-OFFSET.jsonl.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-YAW-summary.json.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-YAW.f64le.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-YAW.jsonl.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-controls.json.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-graph.json\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-nine-start.json.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-repeat-ALIGNED-aliases.jsonl.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-repeat-ALIGNED-summary.json.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-repeat-ALIGNED.f64le.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-repeat-ALIGNED.jsonl.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-repeat-OFFSET-aliases.jsonl.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-repeat-OFFSET-summary.json.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-repeat-OFFSET.f64le.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-repeat-OFFSET.jsonl.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-repeat-YAW-aliases.jsonl.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-repeat-YAW-summary.json.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-repeat-YAW.f64le.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-repeat-YAW.jsonl.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-repeat-controls.json.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-repeat-graph.json\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-repeat-nine-start-input.json.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-repeat-nine-start-result.json.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-repeat-nine-start.json.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-repeat.mjs\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/summary.json.gz\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/syntax.receipt.json\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/syntax.stderr.log\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/syntax.stdout.log\nA  examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/types-repaired.receipt.json\n",
+    "untrackedFinalProofDirectoryOwnedByRoot": true
+  },
+  "parentAdoptionPrerequisites": [
+    {
+      "issue": 1384,
+      "native": "a7bf69e2d7b6e75b99df7207aa91874ed71e032e",
+      "adoption": "4ae895123bd37238599f1ad4f6b7db2a2b8e76ba",
+      "paths": 98,
+      "modesBlobsExact": true,
+      "ancestor": true
+    },
+    {
+      "issue": 1344,
+      "native": "2ef09ad2ac481bbe5c84ff7850c54115a69fc655",
+      "adoption": "1a4278a8fc4a1e84cbf73591027f55e591678571",
+      "paths": 90,
+      "modesBlobsExact": true,
+      "ancestor": true
+    },
+    {
+      "issue": 1349,
+      "native": "0e296d1e75c837e767329634f6a2ac6f5832e54f",
+      "adoption": "527a4407207e32a801365f1b59c071469948aa19",
+      "paths": 71,
+      "modesBlobsExact": true,
+      "ancestor": true
+    }
+  ],
+  "beforeCode": {
+    "commit": "3537a684f4a7259cdc856b9031347ec979303edf",
+    "contractSha256": "2daf9bbd465454b4ad8b97ef1944bdab2715d4ff72993eea98793d0cb1776b60"
+  },
+  "failureHistory": {
+    "firstTypesExit": 2,
+    "originalStorageSubprocessExitKnown": false,
+    "originalStorageSubprocessExit": null,
+    "reportingContinuationExit": 1
+  },
+  "summaryDisposition": {
+    "allNineStartGO": true,
+    "sourceRepeatCompiledParity": true,
+    "baseNumericalGO": false,
+    "physicalDisposition": "NUMERICAL_NO_GO_WORLD",
+    "viewerExecuted": false,
+    "publicEngineQualified": false,
+    "releaseQualified": false
+  },
+  "limitations": [
+    "Full World data/raw/point-ledger audit belongs to the independent data reviewer and was not repeated.",
+    "Control/start comparisons here prove encoded JSON bytes; JSON cannot preserve every scalar negative-zero bit.",
+    "Parent adoption prerequisites are checked. Final1399 packaging/commit and exact Integration adoption remain root-owned subsequent steps."
+  ],
+  "operations": {
+    "readOnlySourceAndSavedData": true,
+    "sourceEdited": false,
+    "moduleImported": false,
+    "parserOrASTExecuted": false,
+    "modelExecuted": false,
+    "referenceExecuted": false,
+    "solverExecuted": false,
+    "worldExecuted": false,
+    "controlsExecuted": false,
+    "buildOrTypesExecuted": false,
+    "replayed": false
+  }
+}

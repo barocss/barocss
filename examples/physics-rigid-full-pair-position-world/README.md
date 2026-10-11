@@ -1,0 +1,5 @@
+# Private full-pair CPU World experiment (#1399)
+
+Selected before-code contract is CONTRACT.md at3537a684. Source authoring and static source review are complete; first own package build passed; first private TS failed TS2345 with zero numerical calls, preserved in evidence/initial-types-failure. Numerical flow remains UNRUN. No build, parser, model, solver, reference or World execution is allowed until root commits the complete actual source/input/error/reference freeze. Owned modules split World/phase, floating dual solver, exact dependency/Farkas guard, independent LP/primal reference and root harness. Original1384 ROW_CAP NO-GO/archive is immutable.
+
+The eventual one native driver first builds actual owned CAD/Physics dependencies and checks strict private TypeScript (MJS checkJs=false explicitly), then records actual emitted hashes. Root publishes the ledger before separately starting ONE source/repeat/genuinecompiled consumer. First genuine nine-row512 cross-check must pass before original3World1200 steps. Numerical refusal can be a completed NO-GO trial; it is never a public World/Viewer/engine or release GO.

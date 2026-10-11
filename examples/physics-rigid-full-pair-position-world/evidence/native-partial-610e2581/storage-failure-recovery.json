@@ -1,0 +1,47 @@
+{
+  "issue": 1399,
+  "classification": "EXECUTION_FAILURE_ENVIRONMENT_STORAGE",
+  "originalConsumerWrapperExitCode": 1,
+  "consumerSubprocessExitCode": null,
+  "consumerSubprocessExitCodeKnown": false,
+  "consumerReceiptWriteFailed": "OSError ENOSPC /tmp/physics-1399-first-native/consumer.receipt.json",
+  "firstPrivateTypesFailurePreserved": true,
+  "activeSource": "610e2581f1e0f597dedd2fdbb8a7586ecbd9dade",
+  "activeConsumerHead": "bf5322dd70d42d4caed58648d38fd579b80327c4",
+  "sourceFreezeSha256": "8f8bb1780af6540e3673f2619bc34c15a971de6085f425f024741c784838acb8",
+  "nineStartGO": true,
+  "fullWorldGO": false,
+  "completeJsonRecords": 852,
+  "lastCompleteStep": 851,
+  "lastCompleteRecordedFailure": null,
+  "completeCompressedPrefixBytes": 48319583,
+  "incompleteCompressedTailBytes": 0,
+  "decompressionError": null,
+  "completeDecodedPrefixSha256": "27db5ad124cfe6479f9a446cf37bf2bead0db9ffa033511c09dd5d1d49f85643",
+  "artifacts": [
+    {
+      "path": "source-ALIGNED.jsonl.gz",
+      "bytes": 48319583,
+      "sha256": "6e7aed1e4069746b2858b4172c93b2eb5cd05053b4a0ba2a60007525f85aaf8f"
+    },
+    {
+      "path": "source-ALIGNED.f64le.gz",
+      "bytes": 1420907,
+      "sha256": "17aaf8f35fc2e183a000d9303a131469316bd18a34fb89a48e5fe1cf3a33f173"
+    },
+    {
+      "path": "consumer.stdout.log",
+      "bytes": 96,
+      "sha256": "ba33d2d7a43f60dfd7a636b95630a84a8e59a4fac14b88d42809e964523f2d76"
+    },
+    {
+      "path": "consumer.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "newModelsReplayed": false,
+  "lawInputsThresholdsBudgetsChanged": false,
+  "diskCleanupPerformed": false,
+  "sourceRepeatCompiledMainWorldUnrun": true
+}

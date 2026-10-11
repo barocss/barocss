@@ -1,0 +1,12 @@
+{
+  "pid": 59161,
+  "controllerPid": 59149,
+  "beforeHead": "9ca19dd43afe88b01f887787fad44745ef7d9f40",
+  "command": [
+    "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+    "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/examples/physics-rigid-full-pair-position-world/continuation-runner.mjs",
+    "/tmp/physics-1399-world-continuation"
+  ],
+  "controllerSha256": "6a56fd95a420255cfb2df5847687d1ab3fc43770dbd043a667a5ce10eac75962",
+  "sourceFreezeSha256": "9511165e488301c0e7de87a71c1d53c6842b27e7672ea3e29618cd1126472be8"
+}

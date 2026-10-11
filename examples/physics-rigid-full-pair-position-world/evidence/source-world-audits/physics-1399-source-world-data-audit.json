@@ -1,0 +1,546 @@
+{
+  "issue": 1399,
+  "state": "SOURCE_WORLD_DATA_VERIFIED_PHYSICAL_NO_GO_WITH_LATER_HARNESS_FAILURE",
+  "dataOnly": true,
+  "newModelCalls": 0,
+  "newReferenceCalls": 0,
+  "newGeometryOrOptimization": false,
+  "frozenContinuationHead": "9ca19dd43afe88b01f887787fad44745ef7d9f40",
+  "actualConsumerReceipt": {
+    "pid": 59161,
+    "controllerPid": 59149,
+    "beforeHead": "9ca19dd43afe88b01f887787fad44745ef7d9f40",
+    "command": [
+      "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+      "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/examples/physics-rigid-full-pair-position-world/continuation-runner.mjs",
+      "/tmp/physics-1399-world-continuation"
+    ],
+    "controllerSha256": "6a56fd95a420255cfb2df5847687d1ab3fc43770dbd043a667a5ce10eac75962",
+    "sourceFreezeSha256": "9511165e488301c0e7de87a71c1d53c6842b27e7672ea3e29618cd1126472be8",
+    "exitCode": 1,
+    "elapsedSeconds": 385.08475595898926,
+    "stdoutBytes": 2390,
+    "stdoutSha256": "daffef17869906106131a4fd53c6ee4eafa856bf2e52cf018971158561c7d8d5",
+    "stderrBytes": 166360,
+    "stderrSha256": "5d13c043aae8b12bafff489b475f8b6b75c03c2beec4bd35ea8b1617292862a2"
+  },
+  "consumerLogHashesVerified": true,
+  "completeSourceWorldScenes": 3,
+  "sourceSteps": 1518,
+  "sourceRecords": 1521,
+  "sourceFrames": 15183,
+  "sourceRawBytes": 14211288,
+  "sourceReports": [
+    {
+      "scene": "ALIGNED",
+      "steps": 960,
+      "records": 961,
+      "frames": 9601,
+      "frameShapeCounts": {
+        "1": 1,
+        "10": 960
+      },
+      "rawBytes": 8986536,
+      "rawSha256": "3749440ec8567ffe4384443d83e58927721eacb1f858c4ec5d1aef4d44cbec49",
+      "decodedRecordBytes": 420695755,
+      "decodedRecordSha256": "a4e96c868909477d498eb66194b5ff350437b3e484c36c8d64b0b2882f7b526b",
+      "jsonGzipBytes": 54063016,
+      "jsonGzipSha256": "daea697b1a04c1e3bb00189e76db69ebadfbedbec9bc5dad4590a42a0bb80959",
+      "rawGzipBytes": 1581367,
+      "rawGzipSha256": "8434ef44711481fddedf0583af23f4cf48257dcc9c37824365b080d259dfd15b",
+      "summaryGzipSha256": "987eeedfebe1a6c50b39518390eb64c4bd89799b9345e19ba4b77945474e8874",
+      "evidenceMatchesActualStreams": true,
+      "originalPrefixByteComparedRecords": 852,
+      "rawJsonNumericValuesAndFrameOrderVerified": true,
+      "rawNegativeZeros": 0,
+      "firstRecord": {
+        "decodedRecordSha256": "971baa544bb8a97c2db64afd72a0b545a11c407c0d3bc791385d6c04317c723e",
+        "rawSha256": "c7265f691c07a48a58ae1240eafe567590110ac87dfdfd2a8b1be6460ef063b6"
+      },
+      "lastRecord": {
+        "step": 960,
+        "decodedRecordSha256": "6929079b7cefd07de9141b704e5c249650d57b70563e4eee2d8a8b8d426cee36",
+        "rawSha256": "0b6d27ec0c1afc295f28a61a5491833ca3a6d068836847c5357c77c908ee2e6f",
+        "rawOffsetBytes": 8977176,
+        "rawBytes": 9360,
+        "frameRoles": [
+          "before.state.bodies",
+          "free-ready.freeBodies",
+          "velocity-ready.freeBodies",
+          "velocity-ready.velocityBodies",
+          "closure-ready.freeBodies",
+          "closure-ready.velocityBodies",
+          "closure-ready.finalBodies",
+          "attempt.preBodies",
+          "attempt.hypotheticalBodies",
+          "after.state.bodies"
+        ],
+        "recordedFailure": {
+          "kind": "independent-quality",
+          "step": 960,
+          "reply": {
+            "ok": true,
+            "metrics": {
+              "maxPairPenetrationM": 0,
+              "maxFloorPenetrationM": 5.804605811896959e-17,
+              "maxHalfspaceIntrusionM": 5.804605811896959e-17,
+              "maxQuaternionNormError": 1.3498226133730194e-16,
+              "maxHorizontalDriftM": 1.2024224930149647,
+              "maxVerticalDriftM": 0,
+              "maxLinearSpeedMps": 8.300322618284009e-13,
+              "maxAngularSpeedRadps": 1.3585313431519858e-12,
+              "footprintContained": true,
+              "escapedBelowFloor": false,
+              "nearParallelAxisCount": 0,
+              "overlapWithoutContactCount": 0,
+              "maxTiltRad": 1.5714045640760788,
+              "referencePrecisionResolved": true
+            },
+            "violations": [
+              "maxHorizontalDriftM exceeds 0.01 m",
+              "upright tilt exceeds one degree"
+            ]
+          }
+        }
+      },
+      "firstQualityFailure": {
+        "step": 960,
+        "metrics": {
+          "maxPairPenetrationM": 0,
+          "maxFloorPenetrationM": 5.804605811896959e-17,
+          "maxHalfspaceIntrusionM": 5.804605811896959e-17,
+          "maxQuaternionNormError": 1.3498226133730194e-16,
+          "maxHorizontalDriftM": 1.2024224930149647,
+          "maxVerticalDriftM": 0,
+          "maxLinearSpeedMps": 8.300322618284009e-13,
+          "maxAngularSpeedRadps": 1.3585313431519858e-12,
+          "footprintContained": true,
+          "escapedBelowFloor": false,
+          "nearParallelAxisCount": 0,
+          "overlapWithoutContactCount": 0,
+          "maxTiltRad": 1.5714045640760788,
+          "referencePrecisionResolved": true
+        },
+        "violations": [
+          "maxHorizontalDriftM exceeds 0.01 m",
+          "upright tilt exceeds one degree"
+        ]
+      },
+      "nativeAndIndependentSolveOutcomes": {
+        "SOLVED": 960
+      },
+      "savedIndependentMetricMaxima": {
+        "translationDifferenceM": 1.8937802877618882e-16,
+        "objectiveDifferenceKgM2": 3.250701337113793e-17,
+        "primalViolationM": 1.1321841211353742e-16,
+        "negativeMultiplierKgM": 0,
+        "complementarityKgM2": 4.1998206935163223e-17,
+        "stationarityKgM": 2.5678821515458608e-17,
+        "maxHypDepthRawM": 5.252674991547423e-16,
+        "maxHypDepthNormalizedM": 5.206497423946145e-16,
+        "precisionMaxDifferenceM": 1.6177284301561792e-75
+      },
+      "summary": {
+        "graph": "source",
+        "scene": "ALIGNED",
+        "attemptedSteps": 960,
+        "acceptedSteps": 960,
+        "solverCalls": 960,
+        "failure": {
+          "kind": "independent-quality",
+          "step": 960,
+          "reply": {
+            "ok": true,
+            "metrics": {
+              "maxPairPenetrationM": 0,
+              "maxFloorPenetrationM": 5.804605811896959e-17,
+              "maxHalfspaceIntrusionM": 5.804605811896959e-17,
+              "maxQuaternionNormError": 1.3498226133730194e-16,
+              "maxHorizontalDriftM": 1.2024224930149647,
+              "maxVerticalDriftM": 0,
+              "maxLinearSpeedMps": 8.300322618284009e-13,
+              "maxAngularSpeedRadps": 1.3585313431519858e-12,
+              "footprintContained": true,
+              "escapedBelowFloor": false,
+              "nearParallelAxisCount": 0,
+              "overlapWithoutContactCount": 0,
+              "maxTiltRad": 1.5714045640760788,
+              "referencePrecisionResolved": true
+            },
+            "violations": [
+              "maxHorizontalDriftM exceeds 0.01 m",
+              "upright tilt exceeds one degree"
+            ]
+          }
+        },
+        "baseNumericalGO": false,
+        "evidence": {
+          "records": 961,
+          "compressedBytes": 55644383,
+          "decodedRecordSha256": "a4e96c868909477d498eb66194b5ff350437b3e484c36c8d64b0b2882f7b526b",
+          "rawBytes": 8986536,
+          "rawSha256": "3749440ec8567ffe4384443d83e58927721eacb1f858c4ec5d1aef4d44cbec49",
+          "storageMode": "full-source",
+          "originalPrefixRecordsVerified": 852,
+          "newStoredBytes": 55644383,
+          "logicalAliasBytes": 0
+        },
+        "viewerExecuted": false
+      }
+    },
+    {
+      "scene": "OFFSET",
+      "steps": 315,
+      "records": 316,
+      "frames": 3151,
+      "frameShapeCounts": {
+        "1": 1,
+        "10": 315
+      },
+      "rawBytes": 2949336,
+      "rawSha256": "64eae5e63cc4ff69e1612a87d505e83c6dfe9a10967eb51e1e4af9b734544fd0",
+      "decodedRecordBytes": 131568741,
+      "decodedRecordSha256": "55516b5cd63b05b73e380dfa484a67377a6270cf836e00bef2c81a816a1becc4",
+      "jsonGzipBytes": 19502260,
+      "jsonGzipSha256": "b86ebd4731a7e33ad8fb17ae61b55aa1a534fe18fa2b1c76769a43603dc6708d",
+      "rawGzipBytes": 612483,
+      "rawGzipSha256": "0d33a16977ecbfa259ed3b6aa520867f3dbebe9fc106a14baae0db676a11abc7",
+      "summaryGzipSha256": "672c8d06b589b80df5e724f637367b318131d36d27e9250d1a811f26efd7495b",
+      "evidenceMatchesActualStreams": true,
+      "originalPrefixByteComparedRecords": 0,
+      "rawJsonNumericValuesAndFrameOrderVerified": true,
+      "rawNegativeZeros": 0,
+      "firstRecord": {
+        "decodedRecordSha256": "5ba723144b621d313ec1a9e1b1817072bd220454ffce801d01ee2dc9fecc6011",
+        "rawSha256": "878fd09039dd7e3dcf703f876d39f0cf9b71278bd5986bff0393e9b1a9d117d6"
+      },
+      "lastRecord": {
+        "step": 315,
+        "decodedRecordSha256": "5c0f2003d73773c4fed77083c51b35b4e646e23d3a205973547863d9d1d720a9",
+        "rawSha256": "56b7ef940b0bd29f12482748d6ca62a0580b3f50684aab279bcf6605c8069407",
+        "rawOffsetBytes": 2939976,
+        "rawBytes": 9360,
+        "frameRoles": [
+          "before.state.bodies",
+          "free-ready.freeBodies",
+          "velocity-ready.freeBodies",
+          "velocity-ready.velocityBodies",
+          "closure-ready.freeBodies",
+          "closure-ready.velocityBodies",
+          "closure-ready.finalBodies",
+          "attempt.preBodies",
+          "attempt.hypotheticalBodies",
+          "after.state.bodies"
+        ],
+        "recordedFailure": {
+          "kind": "independent-quality",
+          "step": 315,
+          "reply": {
+            "ok": true,
+            "metrics": {
+              "maxPairPenetrationM": 0,
+              "maxFloorPenetrationM": 5.298729092749634e-17,
+              "maxHalfspaceIntrusionM": 5.298729092749634e-17,
+              "maxQuaternionNormError": 1.0191920782371656e-16,
+              "maxHorizontalDriftM": 1.7016973861968008,
+              "maxVerticalDriftM": null,
+              "maxLinearSpeedMps": 1.1728172087143902,
+              "maxAngularSpeedRadps": 3.282596940116389,
+              "footprintContained": false,
+              "escapedBelowFloor": false,
+              "nearParallelAxisCount": 0,
+              "overlapWithoutContactCount": 0,
+              "maxTiltRad": 1.747336413455328,
+              "referencePrecisionResolved": true
+            },
+            "violations": [
+              "cube footprint is outside the finite floor"
+            ]
+          }
+        }
+      },
+      "firstQualityFailure": {
+        "step": 315,
+        "metrics": {
+          "maxPairPenetrationM": 0,
+          "maxFloorPenetrationM": 5.298729092749634e-17,
+          "maxHalfspaceIntrusionM": 5.298729092749634e-17,
+          "maxQuaternionNormError": 1.0191920782371656e-16,
+          "maxHorizontalDriftM": 1.7016973861968008,
+          "maxVerticalDriftM": null,
+          "maxLinearSpeedMps": 1.1728172087143902,
+          "maxAngularSpeedRadps": 3.282596940116389,
+          "footprintContained": false,
+          "escapedBelowFloor": false,
+          "nearParallelAxisCount": 0,
+          "overlapWithoutContactCount": 0,
+          "maxTiltRad": 1.747336413455328,
+          "referencePrecisionResolved": true
+        },
+        "violations": [
+          "cube footprint is outside the finite floor"
+        ]
+      },
+      "nativeAndIndependentSolveOutcomes": {
+        "SOLVED": 315
+      },
+      "savedIndependentMetricMaxima": {
+        "translationDifferenceM": 1.2417990815439552e-16,
+        "objectiveDifferenceKgM2": 1.825117443591471e-17,
+        "primalViolationM": 1.6706145719580669e-16,
+        "negativeMultiplierKgM": 0,
+        "complementarityKgM2": 4.589792352443285e-17,
+        "stationarityKgM": 6.880469636236214e-17,
+        "maxHypDepthRawM": 4.7873639242000085e-16,
+        "maxHypDepthNormalizedM": 4.777371169541604e-16,
+        "precisionMaxDifferenceM": 6.891872635629002e-76
+      },
+      "summary": {
+        "graph": "source",
+        "scene": "OFFSET",
+        "attemptedSteps": 315,
+        "acceptedSteps": 315,
+        "solverCalls": 315,
+        "failure": {
+          "kind": "independent-quality",
+          "step": 315,
+          "reply": {
+            "ok": true,
+            "metrics": {
+              "maxPairPenetrationM": 0,
+              "maxFloorPenetrationM": 5.298729092749634e-17,
+              "maxHalfspaceIntrusionM": 5.298729092749634e-17,
+              "maxQuaternionNormError": 1.0191920782371656e-16,
+              "maxHorizontalDriftM": 1.7016973861968008,
+              "maxVerticalDriftM": null,
+              "maxLinearSpeedMps": 1.1728172087143902,
+              "maxAngularSpeedRadps": 3.282596940116389,
+              "footprintContained": false,
+              "escapedBelowFloor": false,
+              "nearParallelAxisCount": 0,
+              "overlapWithoutContactCount": 0,
+              "maxTiltRad": 1.747336413455328,
+              "referencePrecisionResolved": true
+            },
+            "violations": [
+              "cube footprint is outside the finite floor"
+            ]
+          }
+        },
+        "baseNumericalGO": false,
+        "evidence": {
+          "records": 316,
+          "compressedBytes": 20114743,
+          "decodedRecordSha256": "55516b5cd63b05b73e380dfa484a67377a6270cf836e00bef2c81a816a1becc4",
+          "rawBytes": 2949336,
+          "rawSha256": "64eae5e63cc4ff69e1612a87d505e83c6dfe9a10967eb51e1e4af9b734544fd0",
+          "storageMode": "full-source",
+          "originalPrefixRecordsVerified": 0,
+          "newStoredBytes": 20114743,
+          "logicalAliasBytes": 0
+        },
+        "viewerExecuted": false
+      }
+    },
+    {
+      "scene": "YAW",
+      "steps": 243,
+      "records": 244,
+      "frames": 2431,
+      "frameShapeCounts": {
+        "1": 1,
+        "10": 243
+      },
+      "rawBytes": 2275416,
+      "rawSha256": "2821d6a54facd46eda306ae618cce0f163cc8f7b79ac59739eaa50263fb651cc",
+      "decodedRecordBytes": 101991474,
+      "decodedRecordSha256": "ff8bef43b5ce8a3b10929c945e694f206637bc24b68655b65e361c4a3152d9b3",
+      "jsonGzipBytes": 15468391,
+      "jsonGzipSha256": "d658267978fb7ccc30e7baf1cff5517570199972ed4e635dfd8fde80bd5e181e",
+      "rawGzipBytes": 480101,
+      "rawGzipSha256": "ec29fff65155a97523a2d8c2a80732c17555c8569b160f1a55a8cd14d154c857",
+      "summaryGzipSha256": "c3b4b54f1d23964a2d8ad5944758993b51c43cadfd528ae6c3ce7dca8c95cea8",
+      "evidenceMatchesActualStreams": true,
+      "originalPrefixByteComparedRecords": 0,
+      "rawJsonNumericValuesAndFrameOrderVerified": true,
+      "rawNegativeZeros": 0,
+      "firstRecord": {
+        "decodedRecordSha256": "f67dc3d8f1be39ed971b03ba490d288c1793279c73eef145164a682318401ba5",
+        "rawSha256": "a2580eeb7c5c0ec637002c4dd7e76ad0dc696758b64b0d0a578fcea1382781b6"
+      },
+      "lastRecord": {
+        "step": 243,
+        "decodedRecordSha256": "2d0b8b7386377283e50567873b87d3b46936eb9f404265b55471fbd03107c526",
+        "rawSha256": "97ab9f9df07fde953a6e6f130a69fcdd310634b3ec49fe67691cb9d919bbfcbe",
+        "rawOffsetBytes": 2266056,
+        "rawBytes": 9360,
+        "frameRoles": [
+          "before.state.bodies",
+          "free-ready.freeBodies",
+          "velocity-ready.freeBodies",
+          "velocity-ready.velocityBodies",
+          "closure-ready.freeBodies",
+          "closure-ready.velocityBodies",
+          "closure-ready.finalBodies",
+          "attempt.preBodies",
+          "attempt.hypotheticalBodies",
+          "after.state.bodies"
+        ],
+        "recordedFailure": {
+          "kind": "independent-quality",
+          "step": 243,
+          "reply": {
+            "ok": true,
+            "metrics": {
+              "maxPairPenetrationM": 4.775740155155885e-17,
+              "maxFloorPenetrationM": 1.1707121534492693e-17,
+              "maxHalfspaceIntrusionM": 1.1707121534492693e-17,
+              "maxQuaternionNormError": 1.5150245765409222e-16,
+              "maxHorizontalDriftM": 2.079861964184823,
+              "maxVerticalDriftM": null,
+              "maxLinearSpeedMps": 2.821070575347647,
+              "maxAngularSpeedRadps": 7.223377628411315,
+              "footprintContained": false,
+              "escapedBelowFloor": false,
+              "nearParallelAxisCount": 0,
+              "overlapWithoutContactCount": 0,
+              "maxTiltRad": 2.2856195246385838,
+              "referencePrecisionResolved": true
+            },
+            "violations": [
+              "cube footprint is outside the finite floor"
+            ]
+          }
+        }
+      },
+      "firstQualityFailure": {
+        "step": 243,
+        "metrics": {
+          "maxPairPenetrationM": 4.775740155155885e-17,
+          "maxFloorPenetrationM": 1.1707121534492693e-17,
+          "maxHalfspaceIntrusionM": 1.1707121534492693e-17,
+          "maxQuaternionNormError": 1.5150245765409222e-16,
+          "maxHorizontalDriftM": 2.079861964184823,
+          "maxVerticalDriftM": null,
+          "maxLinearSpeedMps": 2.821070575347647,
+          "maxAngularSpeedRadps": 7.223377628411315,
+          "footprintContained": false,
+          "escapedBelowFloor": false,
+          "nearParallelAxisCount": 0,
+          "overlapWithoutContactCount": 0,
+          "maxTiltRad": 2.2856195246385838,
+          "referencePrecisionResolved": true
+        },
+        "violations": [
+          "cube footprint is outside the finite floor"
+        ]
+      },
+      "nativeAndIndependentSolveOutcomes": {
+        "SOLVED": 243
+      },
+      "savedIndependentMetricMaxima": {
+        "translationDifferenceM": 1.129865313450963e-16,
+        "objectiveDifferenceKgM2": 1.1492139524871632e-17,
+        "primalViolationM": 8.603874703235692e-17,
+        "negativeMultiplierKgM": 0,
+        "complementarityKgM2": 2.286532689798708e-17,
+        "stationarityKgM": 2.226311068478444e-17,
+        "maxHypDepthRawM": 4.792180097305409e-16,
+        "maxHypDepthNormalizedM": 4.847191677802591e-16,
+        "precisionMaxDifferenceM": 7.061795544716335e-75
+      },
+      "summary": {
+        "graph": "source",
+        "scene": "YAW",
+        "attemptedSteps": 243,
+        "acceptedSteps": 243,
+        "solverCalls": 243,
+        "failure": {
+          "kind": "independent-quality",
+          "step": 243,
+          "reply": {
+            "ok": true,
+            "metrics": {
+              "maxPairPenetrationM": 4.775740155155885e-17,
+              "maxFloorPenetrationM": 1.1707121534492693e-17,
+              "maxHalfspaceIntrusionM": 1.1707121534492693e-17,
+              "maxQuaternionNormError": 1.5150245765409222e-16,
+              "maxHorizontalDriftM": 2.079861964184823,
+              "maxVerticalDriftM": null,
+              "maxLinearSpeedMps": 2.821070575347647,
+              "maxAngularSpeedRadps": 7.223377628411315,
+              "footprintContained": false,
+              "escapedBelowFloor": false,
+              "nearParallelAxisCount": 0,
+              "overlapWithoutContactCount": 0,
+              "maxTiltRad": 2.2856195246385838,
+              "referencePrecisionResolved": true
+            },
+            "violations": [
+              "cube footprint is outside the finite floor"
+            ]
+          }
+        },
+        "baseNumericalGO": false,
+        "evidence": {
+          "records": 244,
+          "compressedBytes": 15948492,
+          "decodedRecordSha256": "ff8bef43b5ce8a3b10929c945e694f206637bc24b68655b65e361c4a3152d9b3",
+          "rawBytes": 2275416,
+          "rawSha256": "2821d6a54facd46eda306ae618cce0f163cc8f7b79ac59739eaa50263fb651cc",
+          "storageMode": "full-source",
+          "originalPrefixRecordsVerified": 0,
+          "newStoredBytes": 15948492,
+          "logicalAliasBytes": 0
+        },
+        "viewerExecuted": false
+      }
+    }
+  ],
+  "sourceOriginal852Prefix": {
+    "exactJsonRecordBytesCompared": 852,
+    "exactRawRecordBytesCompared": 852,
+    "retainedOriginalFirstNativeUnchanged": true,
+    "originalJsonGzipSha256": "6e7aed1e4069746b2858b4172c93b2eb5cd05053b4a0ba2a60007525f85aaf8f",
+    "originalRawGzipSha256": "17aaf8f35fc2e183a000d9303a131469316bd18a34fb89a48e5fe1cf3a33f173",
+    "priorBaselineCompressedHashesMatch": true,
+    "priorBaselineAuditSha256": "316b74c7967ee12049f603bbf9a8adabfbbcb840eae6eca133f38714735b8f06"
+  },
+  "sourceBundleSha256": "767aa27845a63f267581814cc588806828ac3ab1e16120a01373f723775d3dbb",
+  "sourceRepeatBundleSha256": "767aa27845a63f267581814cc588806828ac3ab1e16120a01373f723775d3dbb",
+  "sourceControls": {
+    "oldSourceReusedExactBytes": true,
+    "sourceGzipSha256": "97b83bfbfecd0650405d8e710c155742ec9d9053203520205df1ad240797589c",
+    "sourceRepeatGzipSha256": "97b83bfbfecd0650405d8e710c155742ec9d9053203520205df1ad240797589c",
+    "savedDecodedObjectsEqual": true,
+    "referenceReceipts": 81,
+    "policyReceipts": 51
+  },
+  "laterExecutionFailure": {
+    "classification": "EXECUTION_FAILURE",
+    "name": "AssertionError",
+    "code": "ERR_ASSERTION",
+    "messagePrefix": "Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  {\n    policy: {\n      allInputsAuthoredBeforeExecution: true,\n      directApplyCalls: 3,\n      d",
+    "failureArtifactSha256": "5a4f9ec7523709ed46bae5a9180c9b7bf1e5e64bc7ba6d72822ff427fb87b130",
+    "sourceRepeatControlsWritten": true,
+    "sourceRepeatNineRun": false,
+    "sourceRepeatWorldRun": false,
+    "compiledWorldRun": false,
+    "causeAsReported": "in-memory -0 compared with parsed historical JSON0; saved JSON controls agree but do not preserve zero signs"
+  },
+  "disposition": {
+    "sourcePhysicalGO": false,
+    "threeGraphQualificationComplete": false,
+    "finalConsumerExitCode": 1,
+    "knownElapsedSeconds": 385.08475595898926,
+    "viewerQualified": false,
+    "publicEngineQualified": false
+  },
+  "limits": [
+    "SOURCE quality failures are retained independently from the subsequent source-repeat guard AssertionError.",
+    "OFFSET/YAW saved gate is footprint outside finite floor; escapedBelowFloor remains false.",
+    "JSON controls equality alone does not certify signed-zero parity; the actual in-memory mismatch is preserved as EXECUTION_FAILURE.",
+    "No physics/reference/ledger/optimizer calculation or replay occurred in this audit."
+  ],
+  "issues": []
+}

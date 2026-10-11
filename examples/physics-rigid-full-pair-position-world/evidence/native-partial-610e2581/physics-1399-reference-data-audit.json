@@ -1,0 +1,477 @@
+{
+  "issue": 1399,
+  "state": "SAVED_SOURCE_REFERENCE_RECEIPTS_VERIFIED",
+  "dataOnly": true,
+  "newModelCalls": 0,
+  "newReferenceCalls": 0,
+  "newSolverCalls": 0,
+  "worldGO": null,
+  "scope": "immutable source-nine-start and source-controls only; World main is still running; no independent arithmetic re-evaluation",
+  "sourceFreeze": {
+    "measuredHead": "610e2581f1e0f597dedd2fdbb8a7586ecbd9dade",
+    "pinCount": 726,
+    "ownReferencePinsVerified": [
+      {
+        "path": "examples/physics-rigid-full-pair-position-world/reference.py",
+        "bytes": 23351,
+        "sha256": "89caf6850b49a77713c7776df9fedd200ecbe1f426ec3cdae6165cc9bf48b58c"
+      },
+      {
+        "path": "examples/physics-rigid-full-pair-position-world/full-pair-reference.py",
+        "bytes": 17313,
+        "sha256": "e8ca75e85b77eff3bce8be411ad108115d150406af087a5bf650be9034b3c46b"
+      },
+      {
+        "path": "examples/physics-rigid-full-pair-position-world/nine-row-reference.py",
+        "bytes": 2239,
+        "sha256": "9497027e8abc11c82955d06c35f0f9d9c5392c1b97b8cef0e6ccee86aa3bcbdf"
+      },
+      {
+        "path": "examples/physics-rigid-full-pair-position-world/reference-controls.mjs",
+        "bytes": 15115,
+        "sha256": "cbe639986f96f7b3c62900ae1f9465e64550e00d15208be93e50ce23d7392f21"
+      }
+    ]
+  },
+  "savedFiles": [
+    {
+      "path": "/tmp/physics-1399-first-native/source-nine-start.json.gz",
+      "compressedBytes": 12535,
+      "compressedSha256": "a0f4a55778e6a8b7c8c8df869e3059b27f70ec9886b10fb20254f1c52f7b032d",
+      "decodedBytes": 35762,
+      "decodedSha256": "d6bb003fd04cfc98bd805a419903ca3d4be12d21fe586373185c3885fbc1cb52"
+    },
+    {
+      "path": "/tmp/physics-1399-first-native/source-controls.json.gz",
+      "compressedBytes": 22458,
+      "compressedSha256": "97b83bfbfecd0650405d8e710c155742ec9d9053203520205df1ad240797589c",
+      "decodedBytes": 401524,
+      "decodedSha256": "fb34c1d3ea5938204a186e07bb1e7246712383a5f7a9927a5bbf0f696f0a1218"
+    },
+    {
+      "path": "/tmp/physics-1399-first-native/source-nine-start-input.json.gz",
+      "compressedBytes": 3212,
+      "compressedSha256": "d03b1da24b37c77099d35401e4af58f76ba721c0cc5e4ff1a65063a85f5e3c60",
+      "decodedBytes": 10243,
+      "decodedSha256": "0575f112eeac3b457b717433de2ae1c85066eee91d7933177e8b07dd34e9dd1d"
+    },
+    {
+      "path": "/tmp/physics-1399-first-native/source-nine-start-result.json.gz",
+      "compressedBytes": 3652,
+      "compressedSha256": "ef105cb95471523fd5441f0aa9c69d875b2d4f5ef362b7ed892d416872393049",
+      "decodedBytes": 13027,
+      "decodedSha256": "4aa8c24106b468c6eef9b7ee3b09b861665659845e7358fdce057d17115268b3"
+    }
+  ],
+  "nineStart": {
+    "kernelGO": true,
+    "status": "SOLVED",
+    "originalFrame": {
+      "graph": "source",
+      "scene": "ALIGNED",
+      "record": 153,
+      "step": 153,
+      "role": "attempt.preBodies",
+      "offsetBytes": 1680120,
+      "lengthBytes": 936,
+      "bodyCount": 9,
+      "sha256": "5d30caf70efc657b94a7ccca9e98441d76baf3163f3723f731d773e52daabd3a",
+      "negativeZeroFields": 0
+    },
+    "rawBytes": 936,
+    "rawSha256": "5d30caf70efc657b94a7ccca9e98441d76baf3163f3723f731d773e52daabd3a",
+    "recipeSha256": "68fe22cd23a68117c35602456c3d0e7acd9dfa2d7d799486a6b7222abbf03d8e",
+    "eightRowsAndBodyOrderExact": true,
+    "savedInputResultMatch": true,
+    "decimalGeometry": {
+      "frameSha256": "5d30caf70efc657b94a7ccca9e98441d76baf3163f3723f731d773e52daabd3a",
+      "preRawVerified": true,
+      "eightRowsVerified": true,
+      "coefficientDifferenceM": 0,
+      "pair": {
+        "pairKey": "b6\u0000b7",
+        "rawDepthM": 0,
+        "normalizedDepthM": 0,
+        "rawMarginM": -1.4965050398190442e-06,
+        "normalizedMarginM": -1.4965050398175252e-06,
+        "precisionMaxDifferenceM": 1.0703427753471137e-79,
+        "rawNormalizedDepthDifferenceM": 0,
+        "rawNormalizedMarginDifferenceM": 1.5190833135437497e-18,
+        "selection": {
+          "normal": [
+            -0.06743617994631125,
+            0.9956875350329243,
+            -0.06370788188527267
+          ],
+          "boundM": -1.4965050398885182e-06,
+          "candidateIndex": 4,
+          "pointM": [
+            -0.04283438716158998,
+            3.0240819252523696,
+            -0.020218566103799337
+          ],
+          "rawAxisLength": 1,
+          "label": "B.face.1",
+          "feature": {
+            "kind": "face-b",
+            "axisB": 1
+          }
+        },
+        "ties": {
+          "exactMinimumCandidateIndices": [
+            4
+          ],
+          "withinDiagnosticTieToleranceCandidateIndices": [
+            4
+          ],
+          "skippedCandidateIndices": [],
+          "diagnosticTieToleranceM": 1e-12,
+          "uniquePhysicalFeatureClaimed": false
+        }
+      }
+    },
+    "metrics": {
+      "translationDifferenceM": 2.7755575615628914e-17,
+      "objectiveDifferenceKgM2": 2.904997802690733e-18,
+      "certificateReportedDifference": 8.081865957126676e-18,
+      "marginReportedDifferenceM": 4.1667153332219075e-18,
+      "objectiveReportedDifferenceKgM2": 7.11540716617225e-20,
+      "primalViolationM": 2.7755575615628914e-17,
+      "negativeMultiplierKgM": 0,
+      "complementarityKgM2": 3.719247200890639e-18,
+      "stationarityKgM": 8.081865957126676e-18,
+      "solutionReached": true,
+      "actualCertificateExact": {
+        "primalViolationM": "1/36028797018963968",
+        "negativeMultiplierKgM": "0/1",
+        "complementarityKgM2": "4827858889324729/1298074214633706907132624082305024",
+        "stationarityKgM": "5245430902536051/649037107316853453566312041152512"
+      }
+    },
+    "coldReferenceCounters": {
+      "lpPivots": 7,
+      "qpTransitions": 7,
+      "rankTests": 9,
+      "factorizations": 7,
+      "primalRowTests": 117,
+      "peakRationalBits": 1860
+    },
+    "maskCrosscheck": {
+      "enumeratedMasks": 512,
+      "singularMasks": 0,
+      "rejectedMasks": 511,
+      "qualifiedMasks": 1,
+      "counters": {
+        "lpPivots": 0,
+        "qpTransitions": 0,
+        "rankTests": 512,
+        "factorizations": 511,
+        "primalRowTests": 2151,
+        "peakRationalBits": 1693
+      }
+    },
+    "expectedExactCertificate": {
+      "primalViolationM": "0/1",
+      "negativeMultiplierKgM": "0/1",
+      "complementarityKgM2": "0/1",
+      "stationarityKgM": "0/1"
+    },
+    "expectedObjectiveKgM2": 0.0019100222972072197,
+    "expectedObjectiveExactKgM2": "19597171436176022046247793454006290636270066302928305489479702301805228136486291607964292041146176210567794319278312218583625458176099370044950859515665752619596067011405984564271627307918441968962325475396073211158621719704389484862794149158621824579778467039776723447/10260179404622892623671503718367836487629489680143405341036583420931055958960227354059079035136087921136209465015302990055259303857605418776226110944069559496262518349875052263454239441359412894526092927412389035450225874151226720285352608185909591693469868568934027886592",
+    "nativeObjectiveKgM2": 0.0019100222972072169
+  },
+  "controls": {
+    "policyReceipts": 51,
+    "referenceReceipts": 81,
+    "referenceGroups": {
+      "independent-input-only-optimum": 16,
+      "adopted-ledger-literal": 17,
+      "strict-protocol-refusal": 39,
+      "known-budget-spoof": 9
+    },
+    "referenceCopyIsolation": true,
+    "worldGuardCounts": {
+      "createdWorlds": 35,
+      "stepCalls": 49,
+      "acceptedSteps": 25,
+      "refusedSteps": 24,
+      "originalConstructorGuards": 3,
+      "longWorldCalls": 0
+    },
+    "infeasibilityProofReceipts": [
+      {
+        "id": "L05-thirty-six-inconsistent",
+        "rowCount": 36,
+        "dynamicDof": 24,
+        "nativeWitness": {
+          "weights": [
+            "1/3",
+            "1/3",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "1/3",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1"
+          ],
+          "sumWeights": "1/1",
+          "dynamicDot": [
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1"
+          ],
+          "boundDotM": "1/1"
+        },
+        "independentWitness": {
+          "weights": [
+            "1/3",
+            "1/3",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "1/3",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1"
+          ],
+          "sumWeights": "1/1",
+          "dynamicDot": [
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1",
+            "0/1"
+          ],
+          "boundDotM": "1/1"
+        }
+      },
+      {
+        "id": "L07-08-static-1",
+        "rowCount": 1,
+        "dynamicDof": 0,
+        "nativeWitness": {
+          "weights": [
+            "1/1"
+          ],
+          "sumWeights": "1/1",
+          "dynamicDot": [],
+          "boundDotM": "1/1"
+        },
+        "independentWitness": {
+          "weights": [
+            "1/1"
+          ],
+          "sumWeights": "1/1",
+          "dynamicDot": [],
+          "boundDotM": "1/1"
+        }
+      }
+    ],
+    "safeRefusals": [
+      {
+        "id": "L09-near-independent-unsafe",
+        "status": "NUMERIC_UNSAFE",
+        "reason": "near-dependent-independent",
+        "counters": {
+          "iterations": 2,
+          "activeChanges": 1,
+          "rankChecks": 3,
+          "linearSolves": 2,
+          "constraintTests": 8,
+          "factorizations": 2,
+          "blockRightHandSides": 3,
+          "exactIntegerOperations": 202,
+          "exactPeakBits": 80
+        },
+        "expectedStatus": "SOLVED"
+      },
+      {
+        "id": "L15-core-budget0",
+        "status": "WORK_LIMIT",
+        "reason": "budget:iterations",
+        "counters": {
+          "iterations": 0,
+          "activeChanges": 0,
+          "rankChecks": 0,
+          "linearSolves": 0,
+          "constraintTests": 2,
+          "factorizations": 0,
+          "blockRightHandSides": 0,
+          "exactIntegerOperations": 0,
+          "exactPeakBits": 0
+        },
+        "expectedStatus": "SOLVED"
+      }
+    ],
+    "genuine36Metrics": {
+      "translationDifferenceM": 1.7763568394002505e-15,
+      "objectiveDifferenceKgM2": 1.4210854715202004e-14,
+      "certificateReportedDifference": 0,
+      "marginReportedDifferenceM": 0,
+      "objectiveReportedDifferenceKgM2": 2.2204460492503107e-15,
+      "primalViolationM": 8.881784197001252e-16,
+      "negativeMultiplierKgM": 0,
+      "complementarityKgM2": 1.8651746813702636e-14,
+      "stationarityKgM": 0,
+      "solutionReached": true,
+      "actualCertificateExact": {
+        "primalViolationM": "1/1125899906842624",
+        "negativeMultiplierKgM": "0/1",
+        "complementarityKgM2": "2955487255461889/158456325028528675187087900672",
+        "stationarityKgM": "0/1"
+      },
+      "maxPreAxisDifferenceM": 0,
+      "maxHypDepthRawM": 8.881784197001252e-16,
+      "maxHypDepthNormalizedM": 8.881784197001252e-16,
+      "heldBitsMatch": true,
+      "roundedFinalMatches": true,
+      "staticBitsMatch": true,
+      "maxRoundedFinalDifferenceM": 0,
+      "precisionMaxDifferenceM": 0,
+      "rawNormalizedDepthDifferenceM": 0,
+      "stageReached": true
+    },
+    "genuine36Stats": {
+      "tests": 36,
+      "hits": 36,
+      "rows": 36,
+      "signedPreQueries": 36,
+      "solverCalls": 1,
+      "postPairTests": 36,
+      "maxTranslationM": 4.000000000000001,
+      "workingApplicationCount": 1,
+      "solverCounters": {
+        "iterations": 70,
+        "activeChanges": 70,
+        "rankChecks": 83,
+        "linearSolves": 82,
+        "constraintTests": 1980,
+        "factorizations": 82,
+        "blockRightHandSides": 485,
+        "exactIntegerOperations": 18341,
+        "exactPeakBits": 54
+      },
+      "certificate": {
+        "primalViolationM": 8.881784197001252e-16,
+        "negativeMultiplierKgM": 0,
+        "complementarityKgM2": 1.8651746813702636e-14,
+        "stationarityKgM": 0
+      }
+    },
+    "staticCopyReceipts": [
+      {
+        "id": "L13-static-copy-1",
+        "staticNegativeZeroHeld": true
+      },
+      {
+        "id": "L13-static-copy-2",
+        "staticNegativeZeroHeld": true
+      },
+      {
+        "id": "L13-static-copy-9",
+        "staticNegativeZeroHeld": true
+      }
+    ]
+  },
+  "limits": [
+    "No new exact optimization, Farkas evaluation, Decimal geometry, SAT or ledger evaluation was run.",
+    "512 individual mask optima are not dumped; the saved crosscheck records512 masks and1 qualifying optimum; the frozen wrapper enforces agreement before publishing.",
+    "This source-only nine-row/kernel/guard GO is not full live-World GO, public-engine qualification, performance or release evidence."
+  ],
+  "issues": []
+}

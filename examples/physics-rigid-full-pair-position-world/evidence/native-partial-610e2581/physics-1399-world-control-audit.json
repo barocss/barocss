@@ -1,0 +1,186 @@
+{
+  "issue": 1399,
+  "scope": "READ_ONLY_SAVED_SOURCE_CONTROL_RECEIPT_AUDIT",
+  "artifact": "/tmp/physics-1399-first-native/source-controls.json.gz",
+  "compressedBytes": 22458,
+  "compressedSha256": "97b83bfbfecd0650405d8e710c155742ec9d9053203520205df1ad240797589c",
+  "decodedBytes": 401524,
+  "decodedSha256": "fb34c1d3ea5938204a186e07bb1e7246712383a5f7a9927a5bbf0f696f0a1218",
+  "disposition": "RECEIPT_CONSISTENCY_PASS",
+  "checks": {
+    "trackedStepCountsConsistent": true,
+    "sourceControlOnly": true,
+    "syntheticFaultsSeparate": true,
+    "unknownIdentityReported": true,
+    "lateClosureFrameReached": true,
+    "lateAttemptMatchesLedgerFrames": true,
+    "lateSuccessfulTentativePhase": true,
+    "lateRetentionReported": true,
+    "full36DetachedGuard": true,
+    "rangeAllReachedPairsNoSolve": true,
+    "nearUnsafeNotInfeasible": true,
+    "reducedWorkGuardNotPhysical": true,
+    "validationCountExplicitScope": true,
+    "referenceControlsNoProducerWorld": true,
+    "copiedHookReceiptReported": true,
+    "signedZeroRuntimeReceiptsReported": true
+  },
+  "counts": {
+    "policyReceipts": 51,
+    "worldReceipts": 39,
+    "referenceReceipts": 81,
+    "reportedCreatedWorlds": 35,
+    "trackedStepCalls": 49,
+    "trackedAcceptedSteps": 25,
+    "trackedRefusedSteps": 24,
+    "originalConstructorGuardGroups": 3,
+    "syntheticSolverFaultReceipts": 7,
+    "unknownIdentityReceipts": 12,
+    "pureSolverCalls": 22,
+    "purePhaseCalls": 2,
+    "directApplyCalls": 3,
+    "directGeometryBuilderCalls": 2,
+    "directGuardValidationCalls": 43,
+    "referenceIndependentKernelControls": 16,
+    "referencePositiveLedgerControls": 17,
+    "referenceProtocolControls": 39,
+    "referenceBudgetSpoofControls": 9
+  },
+  "lateClosure": {
+    "bodyIds": [
+      "a",
+      "wall",
+      "z-floor"
+    ],
+    "acceptedBeforePositionM": [
+      0,
+      0.25,
+      0
+    ],
+    "freePositionM": [
+      10,
+      0.25,
+      0
+    ],
+    "velocityPositionM": [
+      10,
+      0.25,
+      0
+    ],
+    "attemptedFinalPositionM": [
+      10.25,
+      0.25,
+      0
+    ],
+    "stage": "closure-ready",
+    "savedObserverApplicationCount": 0,
+    "applicationCountMeaning": "Copied phase attempt is emitted before the working application; this zero is not a claim that closure-ready ran without an application.",
+    "actualPointCount": 4,
+    "retainedReported": true
+  },
+  "syntheticFaults": [
+    {
+      "id": "profile",
+      "message": "private full-pair position profile is unsupported",
+      "recordedError": {
+        "kind": "typed-refusal",
+        "name": "PhysicsError",
+        "code": "NUMERIC_LIMIT",
+        "message": "private full-pair position profile is unsupported"
+      },
+      "validatedResultStatus": null,
+      "stage": "velocity-ready"
+    },
+    {
+      "id": "input",
+      "message": "private full-pair position input is invalid",
+      "recordedError": {
+        "kind": "typed-refusal",
+        "name": "PhysicsError",
+        "code": "NUMERIC_LIMIT",
+        "message": "private full-pair position input is invalid"
+      },
+      "validatedResultStatus": null,
+      "stage": "velocity-ready"
+    },
+    {
+      "id": "uncertified-infeasible",
+      "message": "private full-pair position result is invalid",
+      "recordedError": {
+        "kind": "typed-refusal",
+        "name": "PhysicsError",
+        "code": "NUMERIC_LIMIT",
+        "message": "private full-pair position result is invalid"
+      },
+      "validatedResultStatus": null,
+      "stage": "velocity-ready"
+    },
+    {
+      "id": "unsafe-status",
+      "message": "private full-pair position solve is numerically unsafe",
+      "recordedError": {
+        "kind": "typed-refusal",
+        "name": "PhysicsError",
+        "code": "NUMERIC_LIMIT",
+        "message": "private full-pair position solve is numerically unsafe"
+      },
+      "validatedResultStatus": "NUMERIC_UNSAFE",
+      "stage": "velocity-ready"
+    },
+    {
+      "id": "work-status",
+      "message": "private full-pair position solve exceeded its work limit",
+      "recordedError": {
+        "kind": "typed-refusal",
+        "name": "PhysicsError",
+        "code": "NUMERIC_LIMIT",
+        "message": "private full-pair position solve exceeded its work limit"
+      },
+      "validatedResultStatus": "WORK_LIMIT",
+      "stage": "velocity-ready"
+    },
+    {
+      "id": "null-margin",
+      "message": "private full-pair position result is invalid",
+      "recordedError": {
+        "kind": "typed-refusal",
+        "name": "PhysicsError",
+        "code": "NUMERIC_LIMIT",
+        "message": "private full-pair position result is invalid"
+      },
+      "validatedResultStatus": null,
+      "stage": "velocity-ready"
+    },
+    {
+      "id": "nonfinite",
+      "message": "private full-pair position result is invalid",
+      "recordedError": {
+        "kind": "typed-refusal",
+        "name": "PhysicsError",
+        "code": "NUMERIC_LIMIT",
+        "message": "private full-pair position result is invalid"
+      },
+      "validatedResultStatus": null,
+      "stage": "velocity-ready"
+    }
+  ],
+  "limitations": [
+    "World refusal receipts assert retained=true but do not embed complete before/after accepted snapshots, prior cache, prior accepted StepLedger, cursor/time or paired raw bytes. Those runtime equality assertions are reported; this saved file alone cannot independently recompute their equality.",
+    "Signed-zero copy guards store pass flags rather than the original/returned Float64 byte streams. JSON does not preserve signed-zero bits. No new raw-bit reconstruction or claim was made.",
+    "Observer/getter isolation and unknown-thrown identity are runtime assertion receipts. An Error/object/null identity cannot be independently reconstructed from serialized JSON.",
+    "reportedCreatedWorlds is the harness constructor-call counter, not proof of 35 successfully constructed worlds; original constructor guard groups are recorded separately.",
+    "No main World trace or source-repeat/compiled receipts were audited here. This audit makes no 1200-step, ten-second, settling, fullWorldGO or release claim.",
+    "Late-combined receipt stores the reached phase and retained flag, but not the outer thrown class/code/message. Its exact RESULT mapping is an executed harness assertion, not an independently inspectable error payload in this file."
+  ],
+  "operations": {
+    "savedDataParsedAndHashed": true,
+    "sourceImported": false,
+    "modelExecuted": false,
+    "solverExecuted": false,
+    "referenceExecuted": false,
+    "controlExecuted": false,
+    "worldExecuted": false,
+    "replayed": false,
+    "sourceEdited": false
+  }
+}

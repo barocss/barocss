@@ -1,0 +1,98 @@
+{
+  "issue": 1399,
+  "scope": "READ_ONLY_SAVED_CONTROL_SERIALIZATION_AUDIT",
+  "disposition": "ENCODED_CONTROL_PARITY_CONFIRMED_RECORDED_MISMATCH_ONLY_SIGNED_ZERO",
+  "artifacts": [
+    {
+      "path": "/tmp/physics-1399-world-continuation/source-controls.json.gz",
+      "compressedBytes": 22458,
+      "compressedSha256": "97b83bfbfecd0650405d8e710c155742ec9d9053203520205df1ad240797589c",
+      "decodedBytes": 401524,
+      "decodedSha256": "fb34c1d3ea5938204a186e07bb1e7246712383a5f7a9927a5bbf0f696f0a1218"
+    },
+    {
+      "path": "/tmp/physics-1399-world-continuation/source-repeat-controls.json.gz",
+      "compressedBytes": 22458,
+      "compressedSha256": "97b83bfbfecd0650405d8e710c155742ec9d9053203520205df1ad240797589c",
+      "decodedBytes": 401524,
+      "decodedSha256": "fb34c1d3ea5938204a186e07bb1e7246712383a5f7a9927a5bbf0f696f0a1218"
+    }
+  ],
+  "checks": {
+    "compressedBytesExactlyEqual": true,
+    "decodedJsonBytesExactlyEqual": true,
+    "decodedJsonObjectsEqual": true,
+    "allRecordedValueDifferencesAreSignedZero": true,
+    "allRecordedActualValuesNegativeZero": true,
+    "allRecordedExpectedValuesPositiveZero": true
+  },
+  "recordedAssertion": {
+    "classification": "EXECUTION_FAILURE",
+    "name": "AssertionError",
+    "code": "ERR_ASSERTION",
+    "runnerPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/examples/physics-rigid-full-pair-position-world/continuation-runner.mjs",
+    "runnerSourceSha256": "b9fe3a1c4b350c7175821095148d447d1d56de88df431a55ce272141257ddaca",
+    "line": 39,
+    "comparison": "assert.deepEqual(guard,oldControls) under node:assert/strict",
+    "left": "fresh runtime guard",
+    "right": "immutable source receipt decoded through JSON.parse",
+    "changedValueLines": 380,
+    "actualNegativeZeroLines": 190,
+    "expectedPositiveZeroLines": 190,
+    "otherRecordedValueDifferenceLines": [],
+    "failureArtifactPath": "/tmp/physics-1399-world-continuation/execution-failure.json.gz",
+    "failureArtifactSha256": "5a4f9ec7523709ed46bae5a9180c9b7bf1e5e64bc7ba6d72822ff427fb87b130",
+    "stderrBytes": 166360,
+    "stderrSha256": "5d13c043aae8b12bafff489b475f8b6b75c03c2beec4bd35ea8b1617292862a2",
+    "fullStderrNotPrinted": true
+  },
+  "counts": {
+    "policyReceipts": 51,
+    "worldReceipts": 39,
+    "referenceReceipts": 81,
+    "sourceRepeatTrackedControlStepCalls": 49,
+    "sourceRepeatAcceptedControlSteps": 25,
+    "sourceRepeatRefusedControlSteps": 24
+  },
+  "completedSourceReports": [
+    {
+      "graph": "source",
+      "scene": "ALIGNED",
+      "attemptedSteps": 960,
+      "acceptedSteps": 960,
+      "failureKind": "independent-quality"
+    },
+    {
+      "graph": "source",
+      "scene": "OFFSET",
+      "attemptedSteps": 315,
+      "acceptedSteps": 315,
+      "failureKind": "independent-quality"
+    },
+    {
+      "graph": "source",
+      "scene": "YAW",
+      "attemptedSteps": 243,
+      "acceptedSteps": 243,
+      "failureKind": "independent-quality"
+    }
+  ],
+  "conclusion": "The saved control payloads have exact byte parity. The recorded live-vs-JSON assertion shows only -0/+0 differences. JSON serialization replaces numeric -0 with 0, while node:assert/strict deep comparison distinguishes their signs. This is a control-receipt representation comparison failure, separate from the preserved physical source World quality failures.",
+  "limits": [
+    "The fresh live JavaScript object is not independently recoverable from JSON. The byte equality is proved directly; the sole signed-zero runtime mismatch conclusion is supported by the recorded assertion diff, not by reconstructing lost sign bits.",
+    "No control, nine-row, source World, reference or build was rerun for this audit.",
+    "This audit does not authorize numeric canonicalization, input/result repair, gate widening or a source World replay. Future missing-flow reporting comparison is root-owned."
+  ],
+  "operations": {
+    "savedDataParsedAndHashed": true,
+    "sourceReadOnly": true,
+    "sourceEdited": false,
+    "modelExecuted": false,
+    "solverExecuted": false,
+    "referenceExecuted": false,
+    "controlsExecuted": false,
+    "worldExecuted": false,
+    "buildOrTypeExecuted": false,
+    "replayed": false
+  }
+}
