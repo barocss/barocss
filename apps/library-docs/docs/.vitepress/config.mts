@@ -10,6 +10,7 @@ const packages = ['kit', 'browser', 'server', 'render', 'gpu', 'cad', 'cad-inter
 const names = { 'cad-interop': 'CAD Interop (Loader)', 'cad-editor': 'CAD Editor', 'render-editor': 'Render Editor', canvas2d: 'Canvas2D', gpu: 'GPU', cad: 'CAD' }
 const common = [
   { text: 'Use the examples', link: '/concepts/run-examples' },
+  { text: 'Example catalog', link: '/examples/' },
   { text: 'Run visual examples', link: '/playground' },
   { text: 'Library catalog', link: '/packages/' },
   { text: 'Coordinates and units', link: '/concepts/coordinates' },
@@ -32,8 +33,8 @@ export default defineConfig({
   lastUpdated: false,
   themeConfig: {
     siteTitle: 'BaroCSS Libraries',
-    nav: [ { text: 'Run examples', link: '/playground' }, { text: 'Libraries', link: '/packages/' }, { text: 'Concepts', link: '/concepts/coordinates' }, { text: 'Package', items: catalog.items }, { text: 'CSS docs', link: 'https://barocss.com/guide/' } ],
-    sidebar: { ...sidebar, '/packages/': [catalog, { text: 'Shared concepts', items: common }], '/concepts/': [{ text: 'Shared concepts', items: common }, catalog] },
+    nav: [ { text: 'Examples', link: '/examples/' }, { text: 'Libraries', link: '/packages/' }, { text: 'Concepts', link: '/concepts/coordinates' }, { text: 'Package', items: catalog.items }, { text: 'CSS docs', link: 'https://barocss.com/guide/' } ],
+    sidebar: { ...sidebar, '/packages/': [catalog, { text: 'Shared concepts', items: common }], '/concepts/': [{ text: 'Shared concepts', items: common }, catalog], '/examples/': [{ text: 'Examples', items: [{ text: 'Catalog', link: '/examples/' }, { text: 'By library', link: '/examples/library' }, { text: 'Language practice', link: '/examples/language' }, { text: 'Integrated workflows', link: '/examples/integration' }, { text: 'Original playground', link: '/playground' }] }, catalog] },
     search: { provider: 'local' },
     outline: { level: [2, 3] },
     socialLinks: [{ icon: 'github', link: 'https://github.com/barocss/barocss' }],

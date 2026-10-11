@@ -7,40 +7,22 @@ import VisualExamples from './.vitepress/components/VisualExamples.vue'
 </script>
 <div class="vp-doc" style="max-width:1200px;margin:32px auto;padding:0 24px">
 
-# Run a visual example
+# Run any interactive example
 
-Choose an input. Read its actual result. Edit the source and select **Run input**. Use **Reset example** to restore the original input. These examples run the fixed local source APIs in your browser. WebGL2 is required for the GPU views.
+Choose a sample, read its complete input and inspect its actual result. Edit one value and select **Run input**. **Reset example** restores that sample's starting state. Each sample keeps its stated source profile and host requirements.
 
-For input selection, units and result interpretation, read [Use the interactive examples](/concepts/run-examples).
-
-[Open the procedural UV shader](/playground#advanced-shader) or read the [full shader and its layers](/packages/gpu/advanced-shader). The example uses a separate material API version and a small WebGL2 host.
-
-[Open interference caustics](/playground#caustics-shader) for a second layered shader. Read its [full source and control recipes](/packages/gpu/caustics-shader).
-
-[Open the Unicode label](/playground#unicode-label) to prepare a local-font label and preserve its semantic text and copied pixels. Read [Unicode labels](./packages/canvas2d/unicode-labels) for the public API and saved-data behavior.
-
-[Open the diagram label](/playground#diagram-label) to shorten its display while keeping full semantic text and a separate outline. Read [Diagram labels](./packages/canvas2d/diagram-labels) for pixel units, hits and document files.
-
-[Open the path control editor](/playground#path-edit) to drag authored quadratic and cubic controls. Read [Edit path controls](./packages/canvas2d/path-editing) for coordinate mapping, paint preservation and document files.
+[Browse the example catalog](/examples/) to choose [a library](/examples/library), [language practice](/examples/language) or [an integrated workflow](/examples/integration). This all-examples view remains available for existing playground deep links.
 
 <VisualExamples />
 
-## Follow the language and the data
+## Follow the selected task
 
-- [CAD language practice](/packages/cad/language-examples): weighted parameters, a curved extrusion and original nonunit Curve domains.
-- [GPU compositions](/packages/gpu/composition-examples): style precedence, local rotations and a material transition window.
-- [CAD language](/packages/cad/language): native millimetre geometry, parameters, original domains and source versions.
-- [GPU scene language](/packages/gpu/language): SDF objects, styles, units, rotation and version selection.
-- [GPU material language](/packages/gpu/material-language): bounded expressions, scalar uniforms, color output and host updates.
-- [Material function examples](/packages/gpu/function-examples): eleven independent editable inputs and actual result images.
-- [CAD examples](/packages/cad/examples) and [GPU examples](/packages/gpu/examples): input, steps, saved actual screenshots and interpretation.
+- [CAD language practice](/packages/cad/language-examples): weights, typed parameters, extrusion and original Curve domains.
+- [GPU compositions](/packages/gpu/composition-examples) and [material functions](/packages/gpu/function-examples): complete scene and expression inputs.
+- [Neon plasma](/packages/gpu/advanced-shader) and [caustics](/packages/gpu/caustics-shader): layered UV fields with explicit host phase controls.
+- [Unicode labels](/packages/canvas2d/unicode-labels), [diagram labels](/packages/canvas2d/diagram-labels) and [path controls](/packages/canvas2d/path-editing): public Canvas2D operations, semantic data and persistence.
+- [Viewer examples](/packages/viewer/examples) and [Physics examples](/packages/physics/examples): direct API lifecycle and explicit actions.
 
-The CAD curve uses real CAD evaluation followed by a small host Canvas2D drawing. It does not execute the BaroCSS Canvas2D package. The CAD surface and GPU material use the admitted MeshRenderer. The GPU scene uses SceneRenderer. The mesh is a sampled view of native geometry; it does not establish a closed Solid.
-
-The added CAD extrusion and parameter examples explicitly compile source1 and source2. They fit sampled bounds to the view; inspect native values for size changes. The six-shape scene compares the source1 primitive kinds. Each material function has a separate complete program and the same host-controlled amount slider. All examples retain their explicit input language and source pin.
-
-Canvas2D uses its own public renderer/display tree and logical hit testing. Viewer instantiates its native-source view and owns its camera controls. Physics exposes explicit manual steps and projects actual CPU metre state with host Canvas2D. These presets provide action buttons and lifecycle/refusal data; they run no shared clock or automatic simulation loop.
-
-The source-language and API versions are stated on each package page. Use the selected example’s input format before editing its declarations.
+Read [Use the interactive examples](/concepts/run-examples) for units, input selection and accepted-state behavior. A browser host does not automatically create a multi-library workflow. The integrated view specifically follows native CAD geometry, a sampled packet and GPU display; language exercises can use display fixtures while retaining their own learning purpose.
 
 </div>

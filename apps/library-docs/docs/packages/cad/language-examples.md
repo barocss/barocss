@@ -6,7 +6,7 @@ Open an example, edit the complete source and press **Run input**. The selected 
 
 ## Change a rational Surface weight
 
-[Open the weighted Parameter example](/playground#cad-weighted-parameters).
+[Open the weighted Parameter example](/examples/language#cad-weighted-parameters).
 
 ![Weighted source2 Surface with a lifted corner](/examples/cad-weighted-parameters.png)
 
@@ -46,7 +46,7 @@ Weight changes influence the shape between poles. They do not multiply the lifte
 
 ## Extrude a curved, parameter-driven profile
 
-[Open the curved Extrude example](/playground#cad-curved-extrude).
+[Open the curved Extrude example](/examples/language#cad-curved-extrude).
 
 ![Curved source2 profile extruded into an open Surface](/examples/cad-curved-extrude.png)
 
@@ -80,7 +80,7 @@ Changing bow moves the profile's interior without changing its endpoints or extr
 
 ## Preserve a nonunit Curve domain
 
-[Open the nonunit Curve example](/playground#cad-nonunit-curve).
+[Open the nonunit Curve example](/examples/language#cad-nonunit-curve).
 
 ![Rational Curve and control polygon in the original parameter domain](/examples/cad-nonunit-curve.png)
 
