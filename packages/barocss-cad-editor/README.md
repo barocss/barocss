@@ -881,3 +881,18 @@ Undo removes the added inventory. Redo restores the same logical IDs with fresh 
 The current native provider supports both degrees1–3, axis2–16/total256 poles, XYZ within10000mm, positive bounded weights and increasing bounds inside the original closed domains. Up to four actual parameter splits and128 local observations are permitted; intermediate refinement can refuse at its own capacity. Native errors are not hidden by sorting, clamping or parameter normalization. Existing assets4/bodies16/display4/source/file/history limits remain separate.
 
 The bounded author flow is `apps/cad-editor/flows/surface-region-flow.mjs`, using the unchanged full16/72000-byte weighted Surface fixture. Actual drag, whole native proof/Viewer admission, structural history, original Source preservation and genuine Download/Open/new-Surface Canvas reedit are recorded separately from native CPU readiness, integration and release. Guides and extracted geometry do not certify Face trimming, topology, Solid, G1/G2, global error or manufacturing.
+
+
+### Split an original Curve from Canvas
+
+Select a Curve in document view and enter Split Curve. Drag the cut grip along the original Curve, or type an exact parameter. The grip uses 65 actual native D0 positions and the existing document camera. A held drag changes only the pending cut and guide. Release prepares one candidate for whole-document Viewer approval. Projected station ambiguity requires the exact field.
+
+`stageCurveSplitField(rawText)` stores one shared `pending.curveSplit` field. It captures the qualified original Curve, full Source, domain, logical body, tool, view and both generations. Foreign drafts must be resolved first. Empty text clears that field; the cut must remain strictly inside the original domain. Values are never clamped or normalized. Native or display refusal retains the original accepted Source, frame, history and corrective input.
+
+The actual `splitCurveAtParameter` constructor checks the complete pair Source, Model, coefficient mappings and shared cut bits. No separate exported split-result validator exists. Native whole-document construction and validation remain admission authority. Both generated Curves enter one new asset and two new bodies. Every original full asset, Source, revision, sibling and binding remains. The selected original point or absent point is preserved without selecting point zero.
+
+Acceptance creates one history entry. Undo removes both bodies and their asset together. Redo restores the same logical IDs with fresh references and the asset revision highwater. The children can be edited independently after Open. They share one complete Source asset, so editing either child advances both asset references while preserving the other geometry. Save persists native geometry and body bindings; it does not persist a parent recipe, proof, history or selection.
+
+The existing native profile supports degree1–3, original and refined curves up to16 poles, XYZ within10000mm, positive bounded weights, distinct ASCII IDs of at most48 characters, and a finite interior parameter. Temporary refinement can refuse. The constructor's at most64 local observations do not certify global error, topology, G1/G2, manufacturing tolerance or a Solid. Existing document assets4/bodies16, displayed bodies4, Source, file and history limits remain separate; split never removes old bodies to fit. Showing two new children requires space for both in the displayed set.
+
+The bounded author flow is `apps/cad-editor/flows/curve-split-flow.mjs`. It reuses the unchanged two complete72000-byte/16-object Join parent assets. Native CPU readiness, actual source/public-compiled Canvas and file qualification, integration and release are recorded separately.
