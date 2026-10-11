@@ -1,5 +1,7 @@
 # CAD
 
+[Adaptive Curve display](./adaptive-curve-sampling) — Use a complete weighted degree-five Curve request to change display tolerance while keeping the native coefficients and full source intact.
+
 [Run and edit an actual example](/playground#cad-surface). Read the [language reference](./language). Compare the input with [captured result images](./examples).
 
 `@barocss/cad` provides an original bounded model compiler, rational B-spline evaluation, native construction/query operations and an ASCII IGES writer. Its manifest version is `0.0.0-experimental`.

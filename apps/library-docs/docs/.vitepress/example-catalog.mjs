@@ -8,6 +8,10 @@ const materialSource = { language: 'GPU mesh material', libraries: Object.freeze
 // Category describes the reader's task. A shared display host is not an
 // integration task; libraries lists public packages used by that sample.
 export const exampleCatalog = Object.freeze({
+  'viewer-display-pose': item('Viewer display pose', 'viewer-display-pose', 'viewer', 'api', '/packages/viewer/display-pose',
+    'Measure native millimetre coordinates, move only the displayed pose, then project and select the same surface.'),
+  'cad-adaptive-sampling': item('CAD adaptive sampling', 'cad-adaptive-sampling', 'cad', 'api', '/packages/cad/adaptive-curve-sampling',
+    'Change a weighted degree-five Curve display tolerance while retaining its complete source and native coefficients.'),
   'svg-arc-import': item('SVG arc import', 'svg-arc-import', 'canvas2d', 'api', '/packages/canvas2d/svg-arc-import',
     'Import an SVG endpoint arc, edit cubic controls and reopen the saved complete scene JSON.'),
   'discrete-material': item('Discrete threshold palette', 'discrete-material', 'gpu', 'language', '/packages/gpu/discrete-material',

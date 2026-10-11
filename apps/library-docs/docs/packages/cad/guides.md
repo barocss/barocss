@@ -1,5 +1,7 @@
 # CAD guides
 
+[Adaptive Curve display](./adaptive-curve-sampling) — Use a complete weighted degree-five Curve request to change display tolerance while keeping the native coefficients and full source intact.
+
 ## Construct an XY profile
 
 Choose a builder when you have typed geometric intent:

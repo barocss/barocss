@@ -1,5 +1,7 @@
 # Load, measure and manage Viewer lifetime
 
+[Native points and display pose](./display-pose) — Measure original native points, apply a separate display pose and select a projected point in the actual 3D view.
+
 ## Choose the load profile
 
 Use `loadNative` for bounded Source0 preview. Use `loadDocument(result,options)` for a qualified canonical CAD document, and `loadModelSet(result)` for the loader's qualified model-set result. These modes have different admission profiles. URL loads remain caller-owned network operations; cancel obsolete requests yourself.
