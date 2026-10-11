@@ -179,3 +179,6 @@ export type { NativeDirectionalLightV0, NativeDirectionalLightsV0, NativeDirecti
 
 export { compileFiniteRepeatAffineSceneSource } from './scene-finite-repeat-source.js';
 export type { SceneRepeatDeclaration, SceneGenerationRecord, FiniteRepeatAffineSceneAst, CompiledFiniteRepeatAffineSceneSource } from './scene-finite-repeat-source.js';
+
+export { prepareNativeDirectionalLightShaderSource, DirectionalLightShaderSourceError } from './native-directional-light-shader-source.js';
+export type { DirectionalLightShaderSourceCode, DirectionalLightShaderSlot, DirectionalLightShaderExecutionLight, DirectionalLightShaderExecution, DirectionalLightShaderABI, PreparedDirectionalLightShaderSource } from './native-directional-light-shader-source.js';
