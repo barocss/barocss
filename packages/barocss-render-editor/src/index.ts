@@ -17,7 +17,7 @@ export {inspectRenderMixedSphereSource, editRenderMixedSphereSource} from './mix
 export type {RenderMixedSphereProperties, RenderMixedSpherePatch} from './mixed-sphere-source.js';
 export {inspectRenderSceneObjects, editRenderSceneObjectSource, addRenderSceneObjectSource, duplicateRenderSceneObjectSource, removeRenderSceneObjectSource} from './scene-object-source.js';
 export type {RenderSceneObjectKind, RenderSceneObjectProperties, RenderSceneObjectPatch} from './scene-object-source.js';
-export {prepareRenderSceneGizmo, deriveRenderSceneGizmoPatch} from './scene-gizmo-projection.js';
+export {prepareRenderSceneGizmo, deriveRenderSceneGizmoPatch, hitTestRenderSceneGizmo} from './scene-gizmo-projection.js';
 export type {RenderSceneGizmoMode, RenderSceneGizmoAxis, RenderSceneGizmoKey, RenderSceneGizmoViewport, RenderSceneGizmoHandle, RenderSceneGizmoPreparation} from './scene-gizmo-projection.js';
 
 export {validateRenderSceneAnimationClip, sampleRenderSceneAnimationSource} from './source-animation.js';
@@ -45,3 +45,5 @@ export * from './native-scene-appearance.js';
 export {commitRenderNativeSceneAppearanceCandidate} from './native-scene-appearance-commit.js';
 export * from './parametric-scene-document-v3.js';
 export * from './parametric-scene-session-v3.js';
+export {prepareRenderNativeSceneGizmo, deriveRenderNativeSceneGizmoPose} from './native-scene-gizmo.js';
+export type {RenderNativeSceneGizmoSpace} from './native-scene-gizmo.js';

@@ -20,6 +20,8 @@ export {createSceneViewportPresenter} from './scene-viewport.js';
 export * from './mixed-react.js';
 export {MaterialEditor} from './material-editor.js';
 export type {MaterialEditorProps} from './material-editor.js';
+export {GizmoSurface} from './gizmo-surface.js';
+export type {GizmoSurfaceProps, GizmoSurfaceAdapter, GizmoSurfaceActionResult} from './gizmo-surface.js';
 
 export interface RenderEditorPanelProps {controller: RenderEditorController; onError?: (error: RenderEditorError) => void; onCameraHelp?: () => void; onObjectSelection?:(objectId:string)=>void; navigationDisabled?: boolean; onGizmoHelp?: () => void; onTransformGesture?: (active:boolean) => void; onPlaybackChange?: (active:boolean) => void; onAnimationHelp?: () => void; gizmoMode?:RenderSceneGizmoMode; onGizmoModeChange?:(mode:RenderSceneGizmoMode)=>void; showGizmoModeButtons?:boolean; onFrameCommandChange?:(command:((scope:'all'|'selected')=>void)|null)=>void}
 export interface RenderEditorProps extends RenderEditorPanelProps {

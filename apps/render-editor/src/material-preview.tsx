@@ -7,12 +7,14 @@ import {RenderEditorError, normalizeRenderEditorError} from '@barocss/render-edi
 import type {RenderMaterialController, RenderMaterialPreparation, RenderNativeSceneAppearancePreparation} from '@barocss/render-editor';
 import {assertNativeScenePreviewContext} from './native-scene-host';
 import type {NativeSceneHost} from './native-scene-host';
+import {NativeSceneGizmo} from './native-scene-gizmo';
 
 export interface MaterialPreviewBridge {
   readonly source: string;
   readonly context: {mmToSceneUnit: number; background: readonly [number, number, number]};
   getState(): ViewerState;
   getEpoch(): number;
+  getAppearanceToken(): object;
   present(prepared: RenderNativeSceneAppearancePreparation): void;
   beginTransition(): void;
   endTransition(): void;
@@ -29,11 +31,13 @@ export function MaterialPreview({controller, nativeHost = null, disabled, onErro
   const current = useRef({controller, nativeHost, disabled, onError, onBridgeChange});
   current.current = {controller, nativeHost, disabled, onError, onBridgeChange};
   const [state, setState] = useState<ViewerState | null>(null), [message, setMessage] = useState('Loading reference Surface…');
+  const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(null);
   const presentation = useSyncExternalStore(controller.subscribe, controller.getSnapshot, controller.getSnapshot);
   useEffect(() => {
     const element = canvas.current; if (!element) return;
+    setCanvasElement(element);
     let live = true, viewer: Viewer | null = null, controls: {dispose(): void} | null = null;
-    let epoch = 0, transitions = 0, legacy = true;
+    let epoch = 0, transitions = 0, legacy = true, appearanceToken: object = Object.freeze({});
     const abort = new AbortController();
     const refresh = () => {if (live && viewer) setState(viewer.getState());};
     const stopControls = () => {controls?.dispose(); controls = null;};
@@ -41,7 +45,7 @@ export function MaterialPreview({controller, nativeHost = null, disabled, onErro
       if (!live || !viewer) return;
       refresh();
       const host = current.current.nativeHost;
-      if (host && !host.getSnapshot().disposed) {
+      if (host && !host.getSnapshot().disposed && !host.getSnapshot().poseGestureActive && !host.getSnapshot().posePreview) {
         try {host.observeView(viewer.getState().camera);} catch (cause) {current.current.onError(cause);}
       }
     });
@@ -61,7 +65,7 @@ export function MaterialPreview({controller, nativeHost = null, disabled, onErro
     const syncControls = () => {
       const host = current.current.nativeHost;
       const draft = host?.getSnapshot();
-      if (!live || !viewer || transitions || current.current.disabled || viewer.getState().status !== 'ready' || draft && (draft.nativeDirty || draft.materialDirty || draft.invalidLighting)) {stopControls(); return;}
+      if (!live || !viewer || transitions || current.current.disabled || viewer.getState().status !== 'ready' || draft && (draft.nativeDirty || draft.materialDirty || draft.invalidLighting || draft.poseGestureActive || draft.posePreview)) {stopControls(); return;}
       if (!controls) controls = viewer.attachPointerControls({onError: failure});
     };
     const resize = () => {
@@ -75,7 +79,7 @@ export function MaterialPreview({controller, nativeHost = null, disabled, onErro
     };
     const observer = new ResizeObserver(resize); observer.observe(element);
     const lost = () => {
-      stopControls(); epoch++;
+      stopControls(); epoch++; appearanceToken = Object.freeze({});
       // Viewer installs its own context-loss handler first. Defer session changes past any commit lock.
       queueMicrotask(() => {if (live) failure(new RenderEditorError('PRESENTATION_REFUSED', 'Graphics context lost. Reload the preview to recover.'));});
     };
@@ -112,6 +116,7 @@ export function MaterialPreview({controller, nativeHost = null, disabled, onErro
         const bridge: MaterialPreviewBridge = {
           source, context,
           getState: () => requireViewer().getState(), getEpoch: () => epoch,
+          getAppearanceToken: () => {requireViewer(); return appearanceToken;},
           beginTransition: () => {requireViewer(); transitions++; stopControls();},
           endTransition: () => {if (transitions > 0) transitions--; syncControls();},
           retireLegacy: () => {
@@ -126,6 +131,7 @@ export function MaterialPreview({controller, nativeHost = null, disabled, onErro
               assertNativeScenePreviewContext(prepared.context, active.getState().mmToSceneUnit, context.background);
               if (token !== epoch || !live || handle.current?.viewer !== active) throw new RenderEditorError('PRESENTATION_REFUSED', 'The preview changed during preparation.');
               active.replaceNativeSceneAppearance(prepared.request);
+              appearanceToken = Object.freeze({});
               refresh(); setMessage('Rendered scene');
             } catch (cause) {failure(cause); throw cause;}
             finally {queueMicrotask(() => {if (live) syncControls();});}
@@ -138,7 +144,7 @@ export function MaterialPreview({controller, nativeHost = null, disabled, onErro
       } catch (cause) {if (live && !abort.signal.aborted) failure(cause);}
     })();
     return () => {
-      live = false; epoch++; abort.abort(); observer.disconnect(); stopControls();
+      live = false; epoch++; appearanceToken = Object.freeze({}); abort.abort(); observer.disconnect(); stopControls();
       element.removeEventListener('webglcontextlost', lost); element.removeEventListener('pointermove', observe); element.removeEventListener('pointerup', observe); element.removeEventListener('wheel', observe);
       handle.current = null; current.current.onBridgeChange?.(null);
       if (!current.current.controller.getSnapshot().disposed) current.current.controller.setPresenter(null);
@@ -162,7 +168,7 @@ export function MaterialPreview({controller, nativeHost = null, disabled, onErro
     } catch (cause) {active.refresh(); current.current.onError(cause);}
   };
   const fit = () => {
-    const active = handle.current, draft = nativeHost?.getSnapshot(); if (!active || disabled || draft && (draft.nativeDirty || draft.materialDirty || draft.invalidLighting)) return;
+    const active = handle.current, draft = nativeHost?.getSnapshot(); if (!active || disabled || draft && (draft.nativeDirty || draft.materialDirty || draft.invalidLighting || draft.poseGestureActive || draft.posePreview)) return;
     try {active.viewer.fit(); active.refresh(); if (nativeHost) nativeHost.observeView(active.viewer.getState().camera);} catch (cause) {current.current.onError(cause);}
   };
   const bindings = state?.surfaceMaterials ?? [], original = state?.modelSet?.entries[0]?.result;
@@ -171,11 +177,12 @@ export function MaterialPreview({controller, nativeHost = null, disabled, onErro
     surfaces: state.surfaces, visibleGeometry: state.visibleGeometry, selected: state.selected,
     materials: bindings.map(binding => ({ref: binding.ref, source: binding.binding.material.source, shaderId: binding.binding.material.shaderId, uniforms: binding.binding.uniforms})),
     geometryMotion: state.geometryMotion, lighting: state.lighting, camera: state.camera, displayedRevision: nativeHost?.getSnapshot().accepted.revision ?? presentation.displayed?.revision ?? null,
-    nativeScene: nativeHost && {accepted: nativeHost.getSnapshot().accepted, selectedBodyId: nativeHost.getSnapshot().selectedBodyId, dirty: nativeHost.getSnapshot().dirty, viewDirty: nativeHost.getSnapshot().viewDirty, available: nativeHost.getSnapshot().available, canUndo: nativeHost.getSnapshot().canUndo, canRedo: nativeHost.getSnapshot().canRedo, savedRevision: nativeHost.getSnapshot().savedRevision}};
+    nativeScene: nativeHost && {accepted: nativeHost.getSnapshot().accepted, selectedBodyId: nativeHost.getSnapshot().selectedBodyId, dirty: nativeHost.getSnapshot().dirty, viewDirty: nativeHost.getSnapshot().viewDirty, poseGestureActive: nativeHost.getSnapshot().poseGestureActive, posePreview: nativeHost.getSnapshot().posePreview, available: nativeHost.getSnapshot().available, canUndo: nativeHost.getSnapshot().canUndo, canRedo: nativeHost.getSnapshot().canRedo, savedRevision: nativeHost.getSnapshot().savedRevision}};
   return <div className="material-native-preview">
-    <div className="re-material-heading"><h2>{nativeHost ? 'Scene' : 'Surface preview'}</h2><span data-testid="material-preview-status">{state?.status ?? 'loading'}</span>{!nativeHost && <button type="button" data-testid="material-preview-visible" disabled={disabled || !ready} onClick={visibility}>{visible ? 'Hide' : 'Show'}</button>}<button type="button" disabled={disabled || !ready || !visible || !!nativeHost && (nativeHost.getSnapshot().nativeDirty || nativeHost.getSnapshot().materialDirty || nativeHost.getSnapshot().invalidLighting)} onClick={fit}>Frame</button></div>
-    <div className="material-native-canvas">
+    <div className="re-material-heading"><h2>{nativeHost ? 'Scene' : 'Surface preview'}</h2><span data-testid="material-preview-status">{state?.status ?? 'loading'}</span>{!nativeHost && <button type="button" data-testid="material-preview-visible" disabled={disabled || !ready} onClick={visibility}>{visible ? 'Hide' : 'Show'}</button>}<button type="button" disabled={disabled || !ready || !visible || !!nativeHost && (nativeHost.getSnapshot().nativeDirty || nativeHost.getSnapshot().materialDirty || nativeHost.getSnapshot().invalidLighting || nativeHost.getSnapshot().poseGestureActive || !!nativeHost.getSnapshot().posePreview)} onClick={fit}>Frame</button></div>
+    <div className="material-native-canvas re-editor--workbench">
       <canvas ref={canvas} data-testid="material-preview-canvas" data-mount-id={mountId.current} aria-label="Rendered native Surface"/>
+      {nativeHost && <NativeSceneGizmo host={nativeHost} canvas={canvasElement} disabled={disabled || !ready || !visible} onError={onError}/>}
       {(disabled || !ready || !visible) && <div className="material-native-overlay">{disabled ? 'Finish the current dialog to use the preview.' : visible ? message : state ? 'Surface hidden · Show to resume' : message}</div>}
       <span className="material-native-navigation">Drag: orbit · Shift + drag: pan · Wheel: zoom</span>
     </div>

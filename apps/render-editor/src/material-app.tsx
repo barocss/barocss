@@ -40,11 +40,12 @@ export function MaterialApp() {
   useEffect(() => () => {native?.dispose();}, [native]);
   const report = (cause: unknown) => {setError(normalizeRenderEditorError(cause)); setNotice('Correct the draft, then try again.');};
   const dirty = nativeSnapshot?.dirty ?? snapshot.dirty, viewDirty = nativeSnapshot?.viewDirty ?? false;
+  const poseBusy = !!nativeSnapshot && (nativeSnapshot.poseGestureActive || !!nativeSnapshot.posePreview);
   const accepted = nativeSnapshot?.accepted ?? snapshot.accepted, canUndo = nativeSnapshot?.canUndo ?? snapshot.canUndo, canRedo = nativeSnapshot?.canRedo ?? snapshot.canRedo;
   const savedRevision = nativeSnapshot?.savedRevision ?? (native ? null : snapshot.savedRevision);
   useEffect(() => {if (!dirty && !viewDirty && error) {setError(null); setNotice(native ? 'Scene ready.' : 'Material ready.');}}, [accepted, dirty, viewDirty]);
   const stopHeld = () => {const live = bridge.current; if (live) {live.beginTransition(); live.endTransition();}};
-  const blocked = () => busyRef.current || pendingRef.current !== null || helpRef.current;
+  const blocked = () => {const host = current.current.native?.getSnapshot(); return busyRef.current || pendingRef.current !== null || helpRef.current || !!host && (host.poseGestureActive || !!host.posePreview);};
   const guard = (action: FileAction) => {
     if (blocked()) return;
     const host = current.current.native;
@@ -76,7 +77,7 @@ export function MaterialApp() {
       const state = live.getState();
       if (!state.camera || !state.lighting) throw new RenderEditorError('PRESENTATION_REFUSED', 'The preview camera or lighting is unavailable.');
       const base = createNativeSceneBase(live.source, current.current.session.getSnapshot().accepted, state.camera, state.lighting, {documentId: 'native-' + crypto.randomUUID(), title: 'Native Surface scene'});
-      next = createNativeSceneHost(base); next.setPresenter(prepared => live.present(prepared)); next.setAvailable(true);
+      next = createNativeSceneHost(base); next.setPresenter(prepared => live.present(prepared), () => live.getAppearanceToken()); next.setAvailable(true);
       next.stageSceneDocument(createNativeSceneSeed(base)); next.commitPrepared(next.prepareDraft());
       live.retireLegacy(); epoch.current++; setNative(next); setFilename(null); setError(null); setNotice('Native scene created.'); next = null;
     } catch (cause) {next?.dispose(); report(cause);} finally {live.endTransition();}
@@ -140,7 +141,7 @@ export function MaterialApp() {
       setError(null); setNotice(direction === 'undo' ? 'Change undone.' : 'Change restored.');
     } catch (cause) {report(cause);}
   };
-  const showHelp = () => {if (busyRef.current || pendingRef.current) return; stopHeld(); returnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : helpButton.current; setHelpOpen(true);};
+  const showHelp = () => {if (blocked()) return; stopHeld(); returnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : helpButton.current; setHelpOpen(true);};
   useEffect(() => {
     const key = (event: KeyboardEvent) => {
       if (event.isComposing || event.altKey || !(event.metaKey || event.ctrlKey)) return;
@@ -150,7 +151,7 @@ export function MaterialApp() {
     };
     window.addEventListener('keydown', key); return () => window.removeEventListener('keydown', key);
   });
-  const disabled = busy || pending !== null || helpOpen;
+  const disabled = busy || pending !== null || helpOpen || poseBusy;
   const editingDisabled = disabled || viewDirty || !!nativeSnapshot && !nativeSnapshot.available;
   const cancelPending = () => {pendingRef.current = null; setPending(null);};
   return <main className="app-shell app-shell--scene re-material-host" data-testid="material-editor-app" data-mode={native ? 'native' : 'material'}>
@@ -164,13 +165,13 @@ export function MaterialApp() {
         <MenubarItem disabled={disabled || dirty || viewDirty || !canRedo} onSelect={() => history('redo')}><Redo2/>Redo<MenubarShortcut>⇧⌘Z</MenubarShortcut></MenubarItem>
         <MenubarSeparator/><MenubarItem disabled={disabled || !dirty || viewDirty} onSelect={discard}>Discard draft</MenubarItem>
       </MenubarContent></MenubarMenu></Menubar>
-      <div className="app-topbar-spacer"/>{!native && <Button size="sm" disabled={disabled || !bridgeReady} data-testid="native-create-scene" onClick={createScene}>Create Scene</Button>}<Button variant="ghost" size="sm" onClick={showHelp} ref={helpButton} data-testid="material-help">Help</Button>
+      <div className="app-topbar-spacer"/>{!native && <Button size="sm" disabled={disabled || !bridgeReady} data-testid="native-create-scene" onClick={createScene}>Create Scene</Button>}<Button variant="ghost" size="sm" disabled={disabled} onClick={showHelp} ref={helpButton} data-testid="material-help">Help</Button>
       <Button variant="ghost" size="sm" disabled={disabled || viewDirty} onClick={open} data-testid="material-open"><FolderOpen/>Open</Button><Button size="sm" disabled={disabled || viewDirty} onClick={save} data-testid="material-save"><Save/>Save</Button>
     </header>
     <div className="app-document-bar"><strong data-testid="material-title">{accepted.title}</strong>{filename && <span data-testid="material-filename">{filename}</span>}<span className="app-status-spacer"/><span>{viewDirty ? 'View preview' : dirty ? 'Draft changes' : savedRevision === accepted.revision ? 'File loaded / download requested' : 'Unsaved ' + (native ? 'scene' : 'material')}</span>
       <Button variant="ghost" size="icon-xs" aria-label="Undo change" data-testid="material-undo" disabled={disabled || dirty || viewDirty || !canUndo} onClick={() => history('undo')}><Undo2/></Button><Button variant="ghost" size="icon-xs" aria-label="Redo change" data-testid="material-redo" disabled={disabled || dirty || viewDirty || !canRedo} onClick={() => history('redo')}><Redo2/></Button>
     </div>
-    <MaterialEditor session={session} disabled={editingDisabled} onError={report} preview={<MaterialPreview controller={controller} nativeHost={native} onBridgeChange={onBridgeChange} disabled={disabled} onError={report}/>}/>
+    <MaterialEditor session={session} disabled={editingDisabled} onError={report} preview={<MaterialPreview controller={controller} nativeHost={native} onBridgeChange={onBridgeChange} disabled={busy || pending !== null || helpOpen} onError={report}/>}/>
     {native && <NativeSceneControls host={native} disabled={disabled} onTarget={target} onError={report}/>}
     <footer className="app-status"><span role="status" data-testid="material-app-status">{error ? error.code + ': ' + error.message : notice}</span><span className="app-status-spacer"/><span data-testid="material-accepted-revision" data-revision={accepted.revision}>Applied {accepted.revision}</span><span>CPU · linear RGB</span></footer>
     <input ref={fileInput} type="file" accept={native ? '.native-scene.json,application/json' : '.material.json,application/json'} hidden data-testid="material-file-input" onChange={event => {const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; void readFile(file);}}/>

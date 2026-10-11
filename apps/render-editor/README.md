@@ -62,6 +62,10 @@ The fixtures cover sphere, box, cylinder, torus, and capsule in two different sc
 
 ## Native-flow selectors
 
+The native Surface app at `/material.html` also offers Move, Rotate and Scale on the existing Canvas. Choose the active Surface in Material target, then drag its colored handle directly. Move uses world axes; Rotate and Scale use the captured local axes. XYZ scale changes one display scale component; S changes all three. The pivot is the original source origin. These controls change the native display pose, while the original CAD source and body pins remain intact. A successful release creates one complete scene history entry. Escape restores the applied appearance. A refused restore keeps a pending transform and offers Cancel transform. File, history, target, material, light and camera edits are blocked while a transform is held or pending.
+
+The whole native file stores mm translation, XYZW quaternion and positive nonuniform scale together with the camera, materials and existing global lighting. This body editing context does not add Viewer selection highlighting, exact Canvas body picking, independent Light objects, mesh topology editing or animation tracks.
+
 The host exposes stable `data-testid` selectors: `open-file`, `save-file`, `scene-file-input`, `draft-dialog`, `draft-apply`, `draft-discard`, `draft-cancel`, `app-error`, `app-error-details`, `accepted-revision`, `presented-revision`, and `project-forms` / `project-assembly`. `app-error` contains task copy; open its Details control to read `app-error-details`. The revision data attributes keep the actual accepted and presented revisions. Selectors refer to real controls and status text. There is no application debug global.
 
 
