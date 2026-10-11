@@ -936,3 +936,12 @@ Native limits remain degree 1–3, at most 64 poles and 70 knots, coordinates wi
 The Inspector groups the existing Focus and Curve/Surface operation entries in a compact wrapping row. Idle entries share spacing instead of repeating a separated panel for each button. An active operation uses the full Inspector width and retains its existing fields, Help, keyboard controls, draft handling and Native approval path.
 
 This layout reduces vertical space and scrolling. It does not change the Canvas width, supported geometry, Source data, operation limits or public API. The same controllers and callbacks still own each operation.
+
+
+### Independent Surface axis-reversed copies
+
+`session.prepareSurfaceReversal('u' | 'v')` prepares an independent copy through the Native `reverseSurfaceAxis` constructor and validator. Only the generated singleton Source enters one new asset/body. The original complete Source, revisions, siblings, bindings and selected UV or body-only selection remain intact. Whole-document validation and the current whole-Viewport approval precede one atomic history entry. Undo removes the copy; Redo restores its IDs with current references and revision highwater.
+
+The Canvas offers discrete U/V copy commands and display-only parameter guides from actual original Surface D0 points and the current camera. A short projected chord indicates each parameter direction. Clipped or degenerate guides are omitted. The guides do not select a point or certify a Face normal or global winding.
+
+Native degree, control-net, coordinate, Source and document/display limits still apply. Local mapped D0/D1 observations do not certify global orientation, topology, Solid geometry or a double-reversal result. This is an independent generated copy; it does not reverse the original Source in place.

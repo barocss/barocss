@@ -24,6 +24,7 @@ import { CurveSplitHandles } from './curve-split-handles.js';
 import { useSurfaceSplit } from './surface-split.js';
 import { SurfaceSplitHandles } from './surface-split-handles.js';
 import { CurveReversalControls } from './curve-reversal.js';
+import { SurfaceReversalControls } from './surface-reversal.js';
 import { useSurfaceKnot, surfaceKnotSurface } from './surface-knot.js';
 import { SurfaceKnotHandles } from './surface-knot-handles.js';
 import { useCurveKnot, curveKnotCurve } from './curve-knot.js';
@@ -1028,6 +1029,9 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     {snapshot.view.kind === 'document' && !interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active
       && <SurfaceDegreeElevationControls session={session} canvas={canvasRef.current} receipt={ready ? documentReceipt : null}
         isCurrentSurface={isCurrentDegreeSurface} busy={viewBusy} onError={cause => report(cause, 'Raising Surface degree failed')} />}
+    {snapshot.view.kind === 'document' && !interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active
+      && <SurfaceReversalControls session={session} canvas={canvasRef.current} receipt={ready ? documentReceipt : null}
+        isCurrentSurface={isCurrentDegreeSurface} busy={viewBusy} onError={cause => report(cause, 'Making a reversed Surface copy failed')} />}
     {snapshot.view.kind === 'document' && !interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active
       && <CurveReversalControls session={session} canvas={canvasRef.current} receipt={ready ? documentReceipt : null}
         isCurrentCurve={isCurrentReversalCurve} busy={viewBusy} onError={cause => report(cause, 'Making a reversed Curve copy failed')} />}

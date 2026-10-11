@@ -24,9 +24,10 @@ import { appendSurfaceRegionSource } from './surface-region.js';
 import { appendSplitCurveSource } from './curve-split.js';
 import { appendSplitSurfaceSource } from './surface-split.js';
 import { appendReversedCurveSource } from './curve-reversal.js';
+import { appendReversedSurfaceSource } from './surface-reversal.js';
 import type {
   CadEditorCandidate, CadEditorDiagnosticCode, CadEditorPoleField, CadEditorSelectedPole, CadEditorSelectedCurvePole, CadEditorView,
-  CadEditorEditTarget, CadEditorBodyTranslationField, CadEditorRotationAxis, CadEditorScaleAxis, CadEditorSurfaceIsoCurveAxis, CadEditorSurfaceIsoCurveCreation, CadEditorCurveJoinCreation, CadEditorSurfaceRegionField, CadEditorSurfaceRegionCreation, CadEditorCurveSplitCreation, CadEditorSurfaceSplitAxis, CadEditorSurfaceSplitCreation, CadEditorCurveReversalCreation,
+  CadEditorEditTarget, CadEditorBodyTranslationField, CadEditorRotationAxis, CadEditorScaleAxis, CadEditorSurfaceIsoCurveAxis, CadEditorSurfaceIsoCurveCreation, CadEditorCurveJoinCreation, CadEditorSurfaceRegionField, CadEditorSurfaceRegionCreation, CadEditorCurveSplitCreation, CadEditorSurfaceSplitAxis, CadEditorSurfaceSplitCreation, CadEditorCurveReversalCreation, CadEditorSurfaceReversalCreation,
   CadEditorSelectionTarget, CadEditorSelectionTransition, CadEditorSession, CadEditorSessionOptions, CadEditorSnapshot, CadEditorSurfaceSelection,
 } from './types.js';
 
@@ -208,6 +209,7 @@ interface SurfaceRegionBoundary { before: Presentation; after: Presentation }
 interface CurveSplitBoundary { before: Presentation; after: Presentation }
 interface SurfaceSplitBoundary { before: Presentation; after: Presentation }
 interface CurveReversalBoundary { before: Presentation; after: Presentation }
+interface SurfaceReversalBoundary { before: Presentation; after: Presentation }
 interface SurfaceSplitBinding {
   bodyId: string; reference: CadGeometryReferenceV0; source: string; surface: Surface;
   domains: { u: [number, number]; v: [number, number] }; axis: CadEditorSurfaceSplitAxis;
@@ -264,15 +266,15 @@ interface SurfaceDegreeElevationPreparation {
   boundary?: SurfaceDegreeElevationBoundary;
   clearPoleBodyId?: string;
 }
-interface HistoryState { document: CadDocumentV1; bytes: number; nativeNames?: string[]; duplicateBoundary?: DuplicateBoundary; surfaceIsoCurveBoundary?: SurfaceIsoCurveBoundary; curveJoinBoundary?: CurveJoinBoundary; surfaceRegionBoundary?: SurfaceRegionBoundary; curveSplitBoundary?: CurveSplitBoundary; surfaceSplitBoundary?: SurfaceSplitBoundary; curveReversalBoundary?: CurveReversalBoundary;
+interface HistoryState { document: CadDocumentV1; bytes: number; nativeNames?: string[]; duplicateBoundary?: DuplicateBoundary; surfaceIsoCurveBoundary?: SurfaceIsoCurveBoundary; curveJoinBoundary?: CurveJoinBoundary; surfaceRegionBoundary?: SurfaceRegionBoundary; curveSplitBoundary?: CurveSplitBoundary; surfaceSplitBoundary?: SurfaceSplitBoundary; curveReversalBoundary?: CurveReversalBoundary; surfaceReversalBoundary?: SurfaceReversalBoundary;
   intervalBoundary?: IntervalBoundary; surfaceKnotBoundary?: SurfaceKnotBoundary; curveKnotBoundary?: CurveKnotBoundary;
   surfaceDegreeElevationBoundary?: SurfaceDegreeElevationBoundary }
 interface Prepared {
   candidate: CadEditorCandidate; historyIndex?: number;
   selectionTarget?: CadEditorSelectionTarget | null; transitionToken?: string;
   structuralPresentation?: Presentation; duplicateBoundary?: DuplicateBoundary;
-  surfaceIsoCurveBoundary?: SurfaceIsoCurveBoundary; curveJoinBoundary?: CurveJoinBoundary; surfaceRegionBoundary?: SurfaceRegionBoundary; curveSplitBoundary?: CurveSplitBoundary; surfaceSplitBoundary?: SurfaceSplitBoundary; curveReversalBoundary?: CurveReversalBoundary; structuralBodyOnly?: boolean;
-  structuralContextField?: 'surface-isocurve' | 'curve-join' | 'surface-region' | 'curve-split' | 'surface-split' | 'curve-reversal';
+  surfaceIsoCurveBoundary?: SurfaceIsoCurveBoundary; curveJoinBoundary?: CurveJoinBoundary; surfaceRegionBoundary?: SurfaceRegionBoundary; curveSplitBoundary?: CurveSplitBoundary; surfaceSplitBoundary?: SurfaceSplitBoundary; curveReversalBoundary?: CurveReversalBoundary; surfaceReversalBoundary?: SurfaceReversalBoundary; structuralBodyOnly?: boolean;
+  structuralContextField?: 'surface-isocurve' | 'curve-join' | 'surface-region' | 'curve-split' | 'surface-split' | 'curve-reversal' | 'surface-reversal';
   nativeNames?: string[];
   intervalBoundary?: IntervalBoundary; clearCurvePoleBodyId?: string;
   surfaceKnotBoundary?: SurfaceKnotBoundary; clearSurfacePoleBodyId?: string;
@@ -328,6 +330,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
   let lastCurveSplit: CadEditorSnapshot['lastCurveSplit'] = null;
   let lastSurfaceSplit: CadEditorSnapshot['lastSurfaceSplit'] = null;
   let lastCurveReversal: CadEditorSnapshot['lastCurveReversal'] = null;
+  let lastSurfaceReversal: CadEditorSnapshot['lastSurfaceReversal'] = null;
   let lastCurveJoin: CadEditorSnapshot['lastCurveJoin'] = null;
   let lastSurfaceDegreeElevation: CadEditorSnapshot['lastSurfaceDegreeElevation'] = null;
   const listeners = new Set<() => void>();
@@ -348,7 +351,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     accepted, generation, displayGeneration, displayBodyIds, view, editTarget, rotationAxis, scaleAxis, bodyCapabilities,
     selectedBodyId, selection, curveSelection, selectionTransition, pending, candidate: prepared?.candidate ?? null,
     history: { index: historyIndex, count: history.length, bytes: historyBytes(), canUndo: historyIndex > 0, canRedo: historyIndex < history.length - 1 },
-    dirty, downloadStatus, disposed, lastProvenance, lastCurveProvenance, lastBodyTranslation, lastBodyRotation, lastBodyScale, lastCurveInterval, lastSurfaceKnot, lastCurveKnot, lastSurfaceIsoCurve, lastSurfaceRegion, lastCurveSplit, lastSurfaceSplit, lastCurveReversal, lastCurveJoin, lastSurfaceDegreeElevation,
+    dirty, downloadStatus, disposed, lastProvenance, lastCurveProvenance, lastBodyTranslation, lastBodyRotation, lastBodyScale, lastCurveInterval, lastSurfaceKnot, lastCurveKnot, lastSurfaceIsoCurve, lastSurfaceRegion, lastCurveSplit, lastSurfaceSplit, lastCurveReversal, lastSurfaceReversal, lastCurveJoin, lastSurfaceDegreeElevation,
   });
   const select = (input: CadEditorSurfaceSelection, document = accepted): CadEditorSelectedPole => {
     const context = { documentId: document.document.documentId, bodyId: input?.bodyId, field: 'selection-transition' };
@@ -764,8 +767,8 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     structural?: { presentation: Presentation; duplicateBoundary?: DuplicateBoundary;
       surfaceIsoCurveBoundary?: SurfaceIsoCurveBoundary; surfaceIsoCurve?: CadEditorSurfaceIsoCurveCreation;
       curveJoinBoundary?: CurveJoinBoundary; curveJoin?: CadEditorCurveJoinCreation;
-      surfaceRegionBoundary?: SurfaceRegionBoundary; curveSplitBoundary?: CurveSplitBoundary; surfaceSplitBoundary?: SurfaceSplitBoundary; curveReversalBoundary?: CurveReversalBoundary; surfaceRegion?: CadEditorSurfaceRegionCreation; curveSplit?: CadEditorCurveSplitCreation; surfaceSplit?: CadEditorSurfaceSplitCreation; curveReversal?: CadEditorCurveReversalCreation; nativeNames?: string[]; preserveBodyOnly?: true;
-      contextField?: 'surface-isocurve' | 'curve-join' | 'surface-region' | 'curve-split' | 'surface-split' | 'curve-reversal' },
+      surfaceRegionBoundary?: SurfaceRegionBoundary; curveSplitBoundary?: CurveSplitBoundary; surfaceSplitBoundary?: SurfaceSplitBoundary; curveReversalBoundary?: CurveReversalBoundary; surfaceReversalBoundary?: SurfaceReversalBoundary; surfaceRegion?: CadEditorSurfaceRegionCreation; curveSplit?: CadEditorCurveSplitCreation; surfaceSplit?: CadEditorSurfaceSplitCreation; curveReversal?: CadEditorCurveReversalCreation; surfaceReversal?: CadEditorSurfaceReversalCreation; nativeNames?: string[]; preserveBodyOnly?: true;
+      contextField?: 'surface-isocurve' | 'curve-join' | 'surface-region' | 'curve-split' | 'surface-split' | 'curve-reversal' | 'surface-reversal' },
     interval?: IntervalPreparation, surfaceKnot?: SurfaceKnotPreparation, curveKnot?: CurveKnotPreparation,
     surfaceDegreeElevation?: SurfaceDegreeElevationPreparation): CadEditorCandidate => {
     if (interval?.clearPoleBodyId !== undefined) {
@@ -824,6 +827,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       ...(structural?.curveSplit === undefined ? {} : { curveSplit: structural.curveSplit }),
       ...(structural?.surfaceSplit === undefined ? {} : { surfaceSplit: structural.surfaceSplit }),
       ...(structural?.curveReversal === undefined ? {} : { curveReversal: structural.curveReversal }),
+      ...(structural?.surfaceReversal === undefined ? {} : { surfaceReversal: structural.surfaceReversal }),
       ...(interval?.extraction === undefined ? {} : { curveInterval: interval.extraction }),
       ...(curveKnot?.insertion === undefined ? {} : { curveKnot: curveKnot.insertion }),
       ...(surfaceKnot?.insertion === undefined ? {} : { surfaceKnot: surfaceKnot.insertion }),
@@ -844,7 +848,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       surfaceIsoCurveBoundary: copy(structural?.surfaceIsoCurveBoundary), curveJoinBoundary: copy(structural?.curveJoinBoundary),
       surfaceRegionBoundary: copy(structural?.surfaceRegionBoundary), curveSplitBoundary: copy(structural?.curveSplitBoundary),
       surfaceSplitBoundary: copy(structural?.surfaceSplitBoundary), curveReversalBoundary: copy(structural?.curveReversalBoundary),
-      nativeNames: copy(structural?.nativeNames),
+      surfaceReversalBoundary: copy(structural?.surfaceReversalBoundary), nativeNames: copy(structural?.nativeNames),
       structuralBodyOnly, structuralContextField: structural?.contextField,
       intervalBoundary: copy(interval?.boundary), clearCurvePoleBodyId: curveKnot?.clearPoleBodyId ?? interval?.clearPoleBodyId,
       curveKnotBoundary: copy(curveKnot?.boundary),
@@ -869,9 +873,11 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     const splitBoundary = direction < 0 ? history[historyIndex].curveSplitBoundary : history[targetIndex].curveSplitBoundary;
     const surfaceSplitBoundary = direction < 0 ? history[historyIndex].surfaceSplitBoundary : history[targetIndex].surfaceSplitBoundary;
     const reversalBoundary = direction < 0 ? history[historyIndex].curveReversalBoundary : history[targetIndex].curveReversalBoundary;
-    const boundary = duplicateBoundary ?? isoBoundary ?? joinBoundary ?? regionBoundary ?? splitBoundary ?? surfaceSplitBoundary ?? reversalBoundary;
+    const surfaceReversalBoundary = direction < 0 ? history[historyIndex].surfaceReversalBoundary : history[targetIndex].surfaceReversalBoundary;
+    const boundary = duplicateBoundary ?? isoBoundary ?? joinBoundary ?? regionBoundary ?? splitBoundary ?? surfaceSplitBoundary ?? reversalBoundary ?? surfaceReversalBoundary;
     if (boundary !== undefined) {
-      const field = reversalBoundary !== undefined ? 'curve-reversal' : surfaceSplitBoundary !== undefined ? 'surface-split'
+      const field = surfaceReversalBoundary !== undefined ? 'surface-reversal'
+        : reversalBoundary !== undefined ? 'curve-reversal' : surfaceSplitBoundary !== undefined ? 'surface-split'
         : splitBoundary !== undefined ? 'curve-split' : regionBoundary !== undefined ? 'surface-region'
         : joinBoundary !== undefined ? 'curve-join' : isoBoundary !== undefined ? 'surface-isocurve' : 'body-duplicate';
       const context = { documentId: accepted.document.documentId, field };
@@ -900,7 +906,8 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       const presentation = copy(direction < 0 ? boundary.before : boundary.after);
       return prepare(direction < 0 ? 'undo' : 'redo', result, [], targetIndex, undefined,
         presentation.displayBodyIds, presentation.view, [], null, null, null,
-        { presentation, ...(reversalBoundary !== undefined ? { preserveBodyOnly: true as const, contextField: 'curve-reversal' as const }
+        { presentation, ...(surfaceReversalBoundary !== undefined ? { preserveBodyOnly: true as const, contextField: 'surface-reversal' as const }
+          : reversalBoundary !== undefined ? { preserveBodyOnly: true as const, contextField: 'curve-reversal' as const }
           : surfaceSplitBoundary !== undefined ? { preserveBodyOnly: true as const, contextField: 'surface-split' as const }
           : splitBoundary !== undefined ? { preserveBodyOnly: true as const, contextField: 'curve-split' as const }
           : regionBoundary !== undefined ? { preserveBodyOnly: true as const, contextField: 'surface-region' as const }
@@ -1782,6 +1789,49 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       return prepare('surface-degree-elevation', result, [], undefined, undefined, displayBodyIds, view, [], null, null, null,
         undefined, undefined, undefined, undefined, { elevation, boundary: { bodyId }, clearPoleBodyId: bodyId });
     },
+    prepareSurfaceReversal(axis) {
+      live();
+      const context = { documentId: accepted.document.documentId, bodyId: selectedBodyId ?? undefined, field: 'surface-reversal' };
+      requireEditor(axis === 'u' || axis === 'v', 'INPUT', 'Choose the original U or V axis.', context);
+      requireEditor(Object.keys(pending).length === 0 && prepared === null && selectionTransition === null, 'INPUT',
+        'Resolve the draft, candidate or selection decision before making a reversed Surface copy.', context);
+      requireEditor(selectedBodyId !== null && view.kind === 'document', 'DISPLAY',
+        'Select an original Surface in document view before making a reversed copy.', context);
+      requireEditor(displayBodyIds.length <= 3, 'BUDGET', 'Hide a body before making a reversed Surface copy.', context);
+      const reversal = <T>(action: () => T, message: string): T => {
+        try { return action(); } catch (cause) {
+          if (cause instanceof CadEditorError) throw cause;
+          const code = cause instanceof CadReferenceError && cause.code === CadReferenceDiagnosticCode.STALE ? 'STALE'
+            : cause instanceof CadDocumentError && cause.code === 'BUDGET' ? 'BUDGET' : 'NATIVE';
+          throw new CadEditorError(code, message, context, cause);
+        }
+      };
+      const bodyId = selectedBodyId;
+      const reference = reversal(() => createCadGeometryReference(accepted, { bodyId }),
+        'Native Surface reversal source reference creation failed.').reference;
+      const resolved = reversal(() => resolveCadGeometryReference(accepted, reference),
+        'Native Surface reversal source resolution failed.');
+      const surface = resolved.geometry;
+      requireEditor(surface.kind === 'surface', 'UNSUPPORTED', 'Reversed-copy construction requires an original Surface.', context);
+      const before = currentPresentation(), document = copy(accepted.document);
+      document.revision = nextRevision(document.revision, context);
+      const reserved = new Set(history.flatMap(state => [
+        ...(state.nativeNames ?? []), ...state.document.assets.map(asset => asset.id),
+        ...state.document.bodies.flatMap(body => [body.id, body.geometryId]),
+      ]));
+      for (const asset of accepted.compiledAssets) {
+        reserved.add(asset.model.name);
+        for (const geometry of asset.model.objects) reserved.add(geometry.id);
+      }
+      const appended = reversal(() => appendReversedSurfaceSource(document, surface, copy(reference), axis, [...reserved]),
+        'Native Surface axis reversal construction failed.');
+      const result = reversal(() => admit(createCadDocument(appended.document), context),
+        'Native reversed Surface document admission failed.');
+      const after: Presentation = { ...copy(before), displayBodyIds: [...displayBodyIds, appended.creation.bodyId] };
+      return prepare('surface-reversal', result, [], undefined, undefined, after.displayBodyIds, after.view,
+        [], null, null, null, { presentation: after, surfaceReversalBoundary: { before, after },
+          surfaceReversal: appended.creation, nativeNames: appended.nativeNames, preserveBodyOnly: true, contextField: 'surface-reversal' });
+    },
     prepareCurveReversal() {
       live();
       const context = { documentId: accepted.document.documentId, bodyId: selectedBodyId ?? undefined, field: 'curve-reversal' };
@@ -1918,6 +1968,10 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       if (current.candidate.kind === 'duplicate') state.duplicateBoundary = copy(current.duplicateBoundary);
       if (current.candidate.kind === 'surface-isocurve') state.surfaceIsoCurveBoundary = copy(current.surfaceIsoCurveBoundary);
       if (current.candidate.kind === 'curve-join') state.curveJoinBoundary = copy(current.curveJoinBoundary);
+      if (current.candidate.kind === 'surface-reversal') {
+        state.surfaceReversalBoundary = copy(current.surfaceReversalBoundary);
+        state.nativeNames = [...new Set([...(state.nativeNames ?? []), ...(current.nativeNames ?? [])])];
+      }
       if (current.candidate.kind === 'curve-reversal') {
         state.curveReversalBoundary = copy(current.curveReversalBoundary);
         state.nativeNames = [...new Set([...(state.nativeNames ?? []), ...(current.nativeNames ?? [])])];
@@ -1941,7 +1995,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       if (current.candidate.kind === 'open') { history = [state]; historyIndex = 0; }
       else if (current.candidate.kind === 'apply' || current.candidate.kind === 'rename' || current.candidate.kind === 'duplicate'
         || current.candidate.kind === 'curve-interval' || current.candidate.kind === 'surface-knot' || current.candidate.kind === 'curve-knot'
-        || current.candidate.kind === 'surface-isocurve' || current.candidate.kind === 'curve-join' || current.candidate.kind === 'surface-region' || current.candidate.kind === 'curve-split' || current.candidate.kind === 'surface-split' || current.candidate.kind === 'curve-reversal'
+        || current.candidate.kind === 'surface-isocurve' || current.candidate.kind === 'curve-join' || current.candidate.kind === 'surface-region' || current.candidate.kind === 'curve-split' || current.candidate.kind === 'surface-split' || current.candidate.kind === 'curve-reversal' || current.candidate.kind === 'surface-reversal'
         || current.candidate.kind === 'surface-degree-elevation') {
         history = [...history.slice(0, historyIndex + 1), state];
         while (history.length > HISTORY_LIMIT || historyBytes() > HISTORY_BYTES) history.shift();
@@ -1981,6 +2035,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       lastCurveSplit = copy(current.candidate.curveSplit ?? null);
       lastSurfaceSplit = copy(current.candidate.surfaceSplit ?? null);
       lastCurveReversal = copy(current.candidate.curveReversal ?? null);
+      lastSurfaceReversal = copy(current.candidate.surfaceReversal ?? null);
       lastCurveJoin = copy(current.candidate.curveJoin ?? null);
       lastSurfaceDegreeElevation = copy(current.candidate.surfaceDegreeElevation ?? null);
       dirty = current.candidate.kind !== 'open'; downloadStatus = 'Not downloaded'; download = null;
