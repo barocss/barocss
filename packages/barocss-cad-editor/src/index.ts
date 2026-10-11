@@ -44,3 +44,5 @@ export type { CadEditorCurveSplitCreation } from './types.js';
 export type { CadEditorSurfaceSplitAxis, CadEditorSurfaceSplitCreation } from './types.js';
 
 export type { CadEditorCurveReversalCreation } from './types.js';
+
+export type { CadEditorSurfaceReversalCreation } from './types.js';

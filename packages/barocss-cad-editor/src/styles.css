@@ -456,3 +456,16 @@ text.assembly-translation-guide[data-axis="z"] { fill:#8babcf; stroke:none; }
 .cad-editor-context-tools > .cad-editor-curve-view-actions[data-active="false"] { margin:0; gap:4px; }
 .cad-editor:not(.cad-editor-feature) .cad-editor-object-context { padding-bottom:4px; margin-bottom:4px; }
 .cad-editor:not(.cad-editor-feature) .cad-editor-inspector > .cad-editor-field { margin-block:4px; }
+
+/* Independent Surface parameter-axis reversal commands and display-only guides. */
+.surface-reversal-tools { position:absolute; top:132px; left:8px; z-index:4; display:flex; flex-wrap:wrap; align-items:center; gap:4px; max-width:calc(100% - 16px); padding:4px; border:1px solid #414a50; border-radius:4px; background:#22292de8; pointer-events:auto; }
+.surface-reversal-tools [data-slot="button"] { width:auto; min-height:25px; height:25px; padding:3px 7px; font-size:10px; }
+.surface-reversal-create { background:#b8d59c; color:#1b2517; }
+.surface-reversal-overlay { position:absolute; inset:0; z-index:2; pointer-events:none; }
+.surface-reversal-svg { width:100%; height:100%; overflow:hidden; pointer-events:none; }
+.surface-reversal-point { fill:#b8d59c; stroke:#edf4e7; stroke-width:1.5; pointer-events:none; }
+.surface-reversal-point[data-axis="v"] { fill:#8babcf; }
+.surface-reversal-label { fill:#edf4e7; font-size:10px; paint-order:stroke; stroke:#101418; stroke-width:3px; pointer-events:none; }
+.surface-reversal-direction { fill:none; stroke:#dce7d2; stroke-width:1.5; pointer-events:none; }
+.surface-reversal-arrow { fill:#dce7d2; stroke:none; pointer-events:none; }
+.surface-reversal-error { max-width:240px; color:#ffd2ce; font-size:10px; line-height:1.4; overflow-wrap:anywhere; }
