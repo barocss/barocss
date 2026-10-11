@@ -5,12 +5,13 @@ import * as runtime from '../generated/visual.js'
 import * as advanced from '../generated/advanced-shader.js'
 import * as reusableShader from '../generated/reusable-shader.js'
 import * as cadQuantityFunctions from '../generated/cad-quantity-functions.js'
+import * as discreteMaterial from '../generated/discrete-material.js'
 import * as unicode from '../generated/unicode-label.js'
 import * as diagram from '../generated/diagram-label.js'
 import * as pathEdit from '../generated/path-edit.js'
 import * as svgExport from '../generated/svg-export.js'
 import * as radialSvgExport from '../generated/radial-svg-export.js'
-const presets={...runtime.presets,...advanced.presets,...unicode.presets,...diagram.presets,...pathEdit.presets,...svgExport.presets,...radialSvgExport.presets,...reusableShader.presets,...cadQuantityFunctions.presets}
+const presets={...runtime.presets,...advanced.presets,...unicode.presets,...diagram.presets,...pathEdit.presets,...svgExport.presets,...radialSvgExport.presets,...reusableShader.presets,...cadQuantityFunctions.presets,...discreteMaterial.presets}
 const props=defineProps({category:{type:String,default:'all'}})
 const categoryNames={library:'Library examples',language:'Language examples',integration:'Integrated workflows'}
 const purposeNames={api:'Library API',language:'Language',integration:'Integrated workflow'}
@@ -87,10 +88,10 @@ function play(){
 }
 const anchors=Object.fromEntries(Object.entries(presets).map(([key,preset])=>[key,preset.anchor]))
 const titles=Object.fromEntries(Object.entries(presets).map(([key,preset])=>[key,preset.label]))
-const isMaterial=()=>presets[selected.value].kind==='material'
+const isMaterial=()=>presets[selected.value].kind==='material'||presets[selected.value].kind==='discrete-material'
 const control=()=>presets[selected.value].control || {name:'amount',min:0,max:1,step:.05,default:0}
 let acceptedAmount=0
-const describeError=e=>(typeof e?.code==='string' ? e.code+': ' : '')+(e?.message || String(e))+(isAdvanced() && typeof e?.cause?.code==='string' ? ' ('+e.cause.code+': '+e.cause.message+')' : '')+((isSVG()||presets[selected.value].kind==='cad-quantity-functions')&&Array.isArray(e?.diagnostics) ? ' '+JSON.stringify(e.diagnostics) : '')
+const describeError=e=>(typeof e?.code==='string' ? e.code+': ' : '')+(e?.message || String(e))+(isAdvanced() && typeof e?.cause?.code==='string' ? ' ('+e.cause.code+': '+e.cause.message+')' : '')+((isSVG()||['cad-quantity-functions','discrete-material'].includes(presets[selected.value].kind))&&Array.isArray(e?.diagnostics) ? ' '+JSON.stringify(e.diagnostics) : '')
 async function select(kind){
   stopAnimation();advancedControls.value=[];advancedValues.value={};pathHistory.value={canUndo:false,canRedo:false};
   controller?.dispose(); controller=undefined; actionBusy.value=false; selected.value=kind; epoch.value++; error.value=''; output.value=''; amount.value=presets[kind].control?.default || 0; acceptedAmount=amount.value;
@@ -101,7 +102,7 @@ async function select(kind){
     if(isUnicode()||isDiagram())await document.fonts?.ready;
     if(selectionEpoch!==epoch.value)return;
     if(isOwnedCanvas()){const next=newOwnedElement();let pathCandidate;const candidate=isPath()?(pathCandidate=pathEdit.createPathEditExample(next,source.value,pathCallbacks(selectionEpoch,()=>pathCandidate))):isSVG()?await svgModule().createSvgExportExample(next,source.value):diagram.createDiagramLabelExample(next,source.value);if(selectionEpoch!==epoch.value){candidate.dispose();return}controller=candidate;ownedSlot.value.replaceChildren(next)}
-    else controller=isAdvanced()?advancedModule().createAdvancedShaderExample(canvas.value,source.value):isUnicode()?unicode.createUnicodeTextExample(canvas.value,source.value):presets[kind].kind==='cad-quantity-functions'?cadQuantityFunctions.createExample(canvas.value,kind,source.value):runtime.createExample(canvas.value,kind,source.value);
+    else controller=isAdvanced()?advancedModule().createAdvancedShaderExample(canvas.value,source.value):isUnicode()?unicode.createUnicodeTextExample(canvas.value,source.value):presets[kind].kind==='cad-quantity-functions'?cadQuantityFunctions.createExample(canvas.value,kind,source.value):presets[kind].kind==='discrete-material'?discreteMaterial.createExample(canvas.value,kind,source.value):runtime.createExample(canvas.value,kind,source.value);
     const data=controller.report();if(isAdvanced())syncAdvanced(data);if(isPath())syncPath(data);output.value=JSON.stringify(data,null,2)
   }catch(e){if(selectionEpoch===epoch.value)error.value=describeError(e)}
 }
@@ -132,8 +133,8 @@ onBeforeUnmount(()=>{epoch.value++;window.removeEventListener('hashchange',onLoc
   <p class="example-purpose">{{libraryNames[exampleCatalog[selected].library]}} · {{purposeNames[exampleCatalog[selected].category]}} · <a :href="exampleCatalog[selected].guide">Read this example's guide</a></p>
   <h2>{{presets[selected].title || 'Loading examples'}}</h2>
   <p class="explain">{{presets[selected].description || (selected==='curve' ? 'The cyan line is evaluated geometry. Orange points define the control polygon. Coordinates are millimetres.' : selected==='scene' ? 'Each accepted source edit compiles and draws one SDF frame. Change a size, angle or color, then select Run input.' : selected==='surface' ? 'CAD evaluates the rational patch. A 17 × 17 grid becomes a GPU triangle mesh. Pale lines show its sampled U/V grid. This display does not certify a Solid.' : 'The same sampled CAD patch uses an opaque fragment material. The host supplies amount; compilation creates no timer.')}}</p>
-  <div class="example-grid"><div><label for="visual-source">Editable input · {{presets[selected].language}}</label><textarea id="visual-source" v-model="source" spellcheck="false" aria-label="Example source"/><div class="example-actions"><button :disabled="!controller || actionBusy" @click="apply">Run input</button><button :disabled="!ready" @click="select(selected)">Reset example</button></div></div><figure><div v-if="isOwnedCanvas()" :key="epoch" ref="ownedSlot"/><canvas v-else :key="epoch" ref="canvas" width="640" height="420" aria-label="Actual example output"/><figcaption>{{isSVG() ? 'Canvas2D preview and actual exported SVG image from the accepted scene.' : isAdvanced() ? 'Actual WebGL2 output from this example host and public material lowering.' : isPath() ? 'Drag a control point to edit its curve.' : isDiagram() ? 'Ellipsized label and separate bitmap outline from public Canvas2D APIs.' : isUnicode() ? 'Browser-prepared RGBA label displayed by the public Canvas2D GlyphRun renderer.' : 'Actual output from the selected public API.'}}</figcaption></figure></div>
-  <label v-if="isMaterial()" class="uniform-control">{{control().name}} = {{amount}}<input v-model="amount" aria-label="Material amount" type="range" :min="control().min" :max="control().max" :step="control().step" @input="adjust"/></label>
+  <div class="example-grid"><div><label for="visual-source">Editable input · {{presets[selected].language}}</label><textarea id="visual-source" v-model="source" spellcheck="false" aria-label="Example source"/><div class="example-actions"><button :disabled="!controller || actionBusy" @click="apply">Run input</button><button :disabled="!ready" @click="select(selected)">Reset example</button></div></div><figure><div v-if="isOwnedCanvas()" :key="epoch" ref="ownedSlot"/><canvas v-else :key="epoch" ref="canvas" width="640" height="420" aria-label="Actual example output"/><figcaption>{{isSVG() ? 'Canvas2D preview and actual exported SVG image from the accepted scene.' : presets[selected].kind==='discrete-material' ? 'Public CPU Material colours displayed by this application through Canvas2D. The lowered shader text is not executed.' : isAdvanced() ? 'Actual WebGL2 output from this example host and public material lowering.' : isPath() ? 'Drag a control point to edit its curve.' : isDiagram() ? 'Ellipsized label and separate bitmap outline from public Canvas2D APIs.' : isUnicode() ? 'Browser-prepared RGBA label displayed by the public Canvas2D GlyphRun renderer.' : 'Actual output from the selected public API.'}}</figcaption></figure></div>
+  <label v-if="isMaterial()" class="uniform-control">{{control().name}} = {{amount}}<input v-model="amount" :aria-label="presets[selected].kind==='discrete-material' ? 'Material level' : 'Material amount'" type="range" :min="control().min" :max="control().max" :step="control().step" @input="adjust"/></label>
   <div v-if="isAdvanced()" class="advanced-controls">
     <label v-for="item in advancedControls" :key="item.name" class="uniform-control">{{item.name}} = {{Number(advancedValues[item.name]).toFixed(2)}}<input :value="advancedValues[item.name]" :aria-label="'Shader '+item.name" type="range" :min="item.min" :max="item.max" :step="presets[selected].controls.find(c=>c.name===item.name)?.step || .05" @input="stopAnimation();adjustAdvanced(item.name,$event.target.value)"/></label>
     <div class="example-actions"><button :disabled="!controller || playing" @click="play">Play shader</button><button :disabled="!playing" @click="stopAnimation">Pause shader</button><span>{{playing ? 'Host animation running' : 'Paused · phase is explicit'}}</span></div>

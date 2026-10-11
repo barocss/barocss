@@ -60,6 +60,8 @@ console.log(d1.point, d1.derivative);
 
 To refine Curve coefficients without sculpting their shape, read [source-qualified knot insertion](./curve-knot-insertion). It retains the original parameter domain and complete mixed source, changes the control polygon, and separates bounded native observations from a CPU illustration. Its public API uses its own matching source profile.
 
+[Refine a Surface along U](./surface-knot-insertion) to compare complete control nets with evaluated U/V grids. The source-qualified operation keeps both original parameter domains and nonselected knots while inserting one coefficient row; its CPU projection adds no renderer or topology claim.
+
 ## Sample a Surface for display
 
 Use [the quadratic rational Surface](./rational-surface) to compare a fixed nine-pole definition with evaluated center/off-center points. Its two typed Parameters change the interior while retaining the boundary curves. The guide separates coefficient poles, sampled U/V lines and GPU display.

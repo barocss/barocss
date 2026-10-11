@@ -10,6 +10,8 @@ Use [CAD language practice](./language-examples) for weighted parameters, curved
 
 [Shape a quadratic rational Surface](./rational-surface) with nine poles, a typed rise and a central weight. [Open the rational dome](/examples/language#cad-rational-dome) to compare its fixed boundary curves with the changed interior and evaluated grid.
 
+[Insert one original U knot into a Surface](./surface-knot-insertion) without sculpting the sheet. Compare 3×2 and 4×2 control nets with actual 17×9 native evaluations, using a common XYZ projection and separate provider/application query counts.
+
 [Compute dimensions with Source3 quantity functions](./quantity-functions) in the [named-call example](/examples/language#cad-quantity-functions). Its separate matching provider keeps native Model0, complete mixed geometry and explicit raw-source fresh compilation. Defaults change dimensions; the sampled open Surface is not a closed Body or editor Save/Open flow.
 
 ## Build a width Face and a closed abstract Shell
