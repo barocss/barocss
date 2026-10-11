@@ -103,3 +103,9 @@ The bounded native #1526 regression passed one width11 edit, Undo, three indepen
 Direct selection returns false while a drag or creation placement is pending. It keeps the selected control, coordinate fields and active gesture target unchanged. Finish or cancel the gesture before calling select. The Path and Control dropdowns retain their existing cancellation behavior.
 
 The bounded pending-selection flow is in evidence/pending-selection. It checks direct selection during a first creation placement and a held START preview, Escape cancellation, normal C2 selection, full scene/frame retention and resource cleanup. Its document snapshot is API serialization, not a downloaded document. Current integration and release acceptance remain separate.
+
+Raise selected path and Lower selected path move a created curve one step among the created paths in Parent. Later paths appear in front where equal-layer paths overlap. Marker and Sprite keep their positions. The operation keeps all geometry, style, IDs, assets, selected control and raw input drafts, and creates one history entry. Undo and Redo restore the saved order.
+
+The respective button is disabled at its boundary. Both are disabled during a pending gesture, without a selection and after Dispose. A direct pending or boundary move returns false before changing the scene or history.
+
+The bounded path-order flow is in evidence/path-order. It checks actual Raise, overlap pixels and hitTest, full-scene/frame Undo and Redo, boundary Lower retention, invalid direction refusal and resource cleanup. Successful Lower and other mixed cases remain outside that native flow. The document snapshot is API serialization, not a downloaded document.
