@@ -109,3 +109,5 @@ Raise selected path and Lower selected path move a created curve one step among 
 The respective button is disabled at its boundary. Both are disabled during a pending gesture, without a selection and after Dispose. A direct pending or boundary move returns false before changing the scene or history.
 
 The bounded path-order flow is in evidence/path-order. It checks actual Raise, overlap pixels and hitTest, full-scene/frame Undo and Redo, boundary Lower retention, invalid direction refusal and resource cleanup. Successful Lower and other mixed cases remain outside that native flow. The document snapshot is API serialization, not a downloaded document.
+
+Duplicate selected path uses the existing subtree API to copy the complete selected Q/C with a new reserved ID and the same origin, commands and paint. It inserts after the source and creates one history entry. The new path is selected; other artwork, assets and view stay. The eight-path and existing reservation/history/byte limits remain.
