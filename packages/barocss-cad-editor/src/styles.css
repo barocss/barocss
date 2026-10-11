@@ -479,6 +479,6 @@ text.assembly-translation-guide[data-axis="z"] { fill:#8babcf; stroke:none; }
 .cad-editor-command-group :is(.cad-editor-native-tools,.cad-editor-visibility-tools,.curve-reversal-tools,.surface-reversal-tools) button { min-width:36px; width:auto; height:36px; min-height:36px; padding:4px 8px; font-size:11px; white-space:nowrap; pointer-events:auto; }
 .cad-editor-command-group .cad-editor-native-tools button[data-testid^="native-tool-"] { width:36px; padding:4px; }
 .cad-editor-command-group button:focus-visible { outline:2px solid #b8d599; outline-offset:1px; }
-.cad-editor-command-tool-name { padding:0 4px; color:#dce7d2; font-size:11px; line-height:1.4; white-space:nowrap; }
+.cad-editor-command-group button > svg { width:16px; height:16px; flex-shrink:0; pointer-events:none; }
 .cad-editor-command-group [role="alert"] { flex-basis:100%; }
 @media(max-width:799px) { .cad-editor-canvas-command-rail { top:92px; right:8px; } .cad-editor-canvas-command-rail[data-view-kind="curve-focus"] { top:92px; } }

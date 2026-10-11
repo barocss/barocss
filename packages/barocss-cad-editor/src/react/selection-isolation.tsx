@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { Focus, Undo2 } from 'lucide-react';
 import { CadEditorError } from '../types.js';
 import type { CadEditorSession, CadEditorSnapshot } from '../types.js';
 import type { CadEditorDisplayReceipt } from './types.js';
@@ -182,7 +183,7 @@ export function SelectionIsolation(props: Props) {
         }
       }}
       onClick={event => { if (!event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) submit(kind); }}>
-      {kind === 'isolate' ? 'Isolate' : 'Restore'}
+      {kind === 'isolate' ? <Focus size={16} aria-hidden="true" /> : <Undo2 size={16} aria-hidden="true" />}
     </button>)}
   </div>;
   return props.toolbarContainer === undefined ? toolbar : props.toolbarContainer === null ? null : createPortal(toolbar, props.toolbarContainer);

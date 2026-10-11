@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { ArrowLeftRight, CircleHelp } from 'lucide-react';
 import { createCadGeometryReference, surfaceDomain, evaluateSurface } from '@barocss/cad';
 import { CadEditorError, type CadEditorSession } from '../types.js';
 import type { CadEditorDisplayReceipt } from './types.js';
@@ -131,11 +132,12 @@ export function SurfaceReversalControls(props: Props) {
     } catch { /* Native D0 or projection refusal omits this axis guide, not the discrete command. */ }
   }
   const toolbar = <div className="surface-reversal-tools" role="toolbar" aria-label="Surface parameter direction">
-      {(['u', 'v'] as const).map(axis => <Button key={axis} type="button" variant="ghost" size="sm" className="surface-reversal-create" data-testid={`surface-reversal-${axis}`} disabled={busy} onClick={() => create(axis)}
+      {(['u', 'v'] as const).map(axis => <Button key={axis} type="button" variant="ghost" size="sm" className="surface-reversal-create" data-testid={`surface-reversal-${axis}`} aria-label={`Reverse ${axis.toUpperCase()} copy`} title={`Reverse ${axis.toUpperCase()} copy`} disabled={busy} onClick={() => create(axis)}
         onKeyDown={event => { if ((event.key === 'Enter' || event.key === ' ') && (event.nativeEvent.isComposing || event.keyCode === 229
-          || event.repeat || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)) { event.preventDefault(); event.stopPropagation(); } }}>Reverse {axis.toUpperCase()} copy</Button>)}
+          || event.repeat || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)) { event.preventDefault(); event.stopPropagation(); } }}>{props.toolbarContainer === undefined ? <>Reverse {axis.toUpperCase()} copy</>
+            : <><ArrowLeftRight size={16} aria-hidden="true" /><span aria-hidden="true">{axis.toUpperCase()}</span></>}</Button>)}
       <Dialog open={helpOpen} onOpenChange={value => { if (value && (busy || !props.receipt || !available(props.receipt))) return; help.current = value; setHelpOpen(value); }}>
-        <DialogTrigger asChild><Button ref={helpTrigger} type="button" variant="ghost" size="sm" data-testid="surface-reversal-help" disabled={props.busy}>Help</Button></DialogTrigger>
+        <DialogTrigger asChild><Button ref={helpTrigger} type="button" variant="ghost" size="sm" data-testid="surface-reversal-help" aria-label="Surface direction help" title="Surface direction help" disabled={props.busy}>{props.toolbarContainer === undefined ? 'Help' : <CircleHelp size={16} aria-hidden="true" />}</Button></DialogTrigger>
         <DialogContent className="cad-editor-help-dialog" data-testid="surface-reversal-help-dialog" onCloseAutoFocus={event => {
           event.preventDefault(); if (visible() && helpTrigger.current?.isConnected && !helpTrigger.current.disabled) helpTrigger.current.focus({ preventScroll: true }); }}>
           <DialogHeader><DialogTitle>Reversed Surface copy</DialogTitle><DialogDescription>Reverse one parameter direction in a copy. Keep the original.</DialogDescription></DialogHeader>

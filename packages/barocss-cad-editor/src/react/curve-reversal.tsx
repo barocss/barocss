@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { ArrowLeftRight, CircleHelp } from 'lucide-react';
 import { createCadGeometryReference, curveDomain, evaluateCurve } from '@barocss/cad';
 import { CadEditorError, type CadEditorSession } from '../types.js';
 import type { CadEditorDisplayReceipt } from './types.js';
@@ -125,11 +126,11 @@ export function CurveReversalControls(props: Props) {
     markers = { start, end, direction };
   } catch { /* Native D0 or projection refusal leaves the discrete command available. */ }
   const toolbar = <div className="curve-reversal-tools" role="toolbar" aria-label="Curve direction">
-      <Button type="button" variant="ghost" size="sm" className="curve-reversal-create" data-testid="curve-reversal-create" disabled={busy} onClick={create}
+      <Button type="button" variant="ghost" size="sm" className="curve-reversal-create" data-testid="curve-reversal-create" aria-label="Make reversed copy" title="Make reversed copy" disabled={busy} onClick={create}
         onKeyDown={event => { if ((event.key === 'Enter' || event.key === ' ') && (event.nativeEvent.isComposing || event.keyCode === 229
-          || event.repeat || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)) { event.preventDefault(); event.stopPropagation(); } }}>Make reversed copy</Button>
+          || event.repeat || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)) { event.preventDefault(); event.stopPropagation(); } }}>{props.toolbarContainer === undefined ? 'Make reversed copy' : <ArrowLeftRight size={16} aria-hidden="true" />}</Button>
       <Dialog open={helpOpen} onOpenChange={value => { if (value && (busy || !props.receipt || !available(props.receipt))) return; help.current = value; setHelpOpen(value); }}>
-        <DialogTrigger asChild><Button ref={helpTrigger} type="button" variant="ghost" size="sm" data-testid="curve-reversal-help" disabled={props.busy}>Help</Button></DialogTrigger>
+        <DialogTrigger asChild><Button ref={helpTrigger} type="button" variant="ghost" size="sm" data-testid="curve-reversal-help" aria-label="Curve direction help" title="Curve direction help" disabled={props.busy}>{props.toolbarContainer === undefined ? 'Help' : <CircleHelp size={16} aria-hidden="true" />}</Button></DialogTrigger>
         <DialogContent className="cad-editor-help-dialog" data-testid="curve-reversal-help-dialog" onCloseAutoFocus={event => {
           event.preventDefault(); if (visible() && helpTrigger.current?.isConnected && !helpTrigger.current.disabled) helpTrigger.current.focus({ preventScroll: true }); }}>
           <DialogHeader><DialogTitle>Reversed Curve copy</DialogTitle><DialogDescription>Swap the copy’s start and end. Keep the original.</DialogDescription></DialogHeader>

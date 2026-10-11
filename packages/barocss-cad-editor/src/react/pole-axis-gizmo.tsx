@@ -398,7 +398,6 @@ export function PoleAxisGizmo(props:Props) {
   if (!control || !canvas || !rect || rect.width <= 0 || rect.height <= 0 || control.receipt.width <= 0 || control.receipt.height <= 0) return null;
   const visible = projections.filter(Boolean).length;
   const toolbar = <div className={'cad-editor-native-tools'+(snapshot.view.kind==='curve-focus'?' focused':'')} role="toolbar" aria-label="Modeling tools">
-      {props.toolbarContainer !== undefined && <span className="cad-editor-command-tool-name">{tools.find(tool=>tool.target===snapshot.editTarget)?.name}</span>}
       {tools.map(tool=><Button key={tool.target} type="button" variant="ghost" size="icon-sm" data-testid={'native-tool-'+tool.target}
         aria-label={tool.name+' ('+tool.key.toUpperCase()+')'} title={tool.name+' ('+tool.key.toUpperCase()+')'}
         aria-keyshortcuts={tool.key.toUpperCase()} aria-pressed={snapshot.editTarget===tool.target}
