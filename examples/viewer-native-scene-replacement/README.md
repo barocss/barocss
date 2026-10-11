@@ -1,3 +1,72 @@
+## Open a local IGES geometry file
+
+Choose an **IGES geometry file** and confirm **Authored XYZ matches Viewer Y-up**.
+Then select **Open IGES geometry**. IGES does not define the authored up axis.
+The host does not rotate coordinates or convert units. **Discard IGES choice**
+removes the draft and keeps the accepted scene and import provenance.
+
+The supported input is the existing CAD writer profile: open, nonperiodic,
+untransformed126 Curves and128 Surfaces, millimetres and scale1, printable
+ASCII80-column LF records with a final LF. File names and extensions are hints.
+The host reads a genuine same-realm File of1..1048576 bytes, preserves its exact
+UTF8 bytes and SHA256, and refuses BOM/CRLF/invalid UTF8 instead of normalizing it.
+The importer also applies its separate1MiB request-JSON budget.
+
+The host retains all six fields of the imported result: original request,
+generated Source0, complete Model, metadata, entity mappings and report.
+Directory labels can repeat or truncate. Display identity uses the actual
+pointer-derived generated IDs. Original full author IDs, source spelling,
+feature history and pre-export zero signs are not recovered. Technical JSON is
+an inspection disclosure, not an exchange codec or a history certificate.
+
+Complete display requires1..4 objects and generated Source0 within65536 UTF8
+bytes and code units. Every original imported object remains in the complete
+candidate. Adaptive-v1 Curves retain their degree1..3,2..64-pole/70-knot profile;
+Surface preview retains its existing degree1..5 profile. A valid imported
+Curve5 or five-object file can refuse display. The host does not drop objects,
+reduce degrees or substitute the separate selected uniform Curve operation.
+Existing weights, spans, sampler, scene bounds and device limits still apply.
+
+Each Open calls ONE public `replaceNativeScene`: native version0, Surface5×5,
+adaptive chord tolerance0.02mm/512 segments/depth16, no motion, all original refs
+visible and fitted camera. The constructor scale remains0.13scene units/mm once.
+Select a current visible generated Surface or Curve with its `Select <ID>`
+button. Original Curve inspection uses the imported native numeric domain.
+Imported coefficients and full original file provenance remain separate from
+prepared GPU buffers and display coordinates.
+
+New Stage/Open/Discard attempts cancel older reads, including competing native
+Source0 File reads. Checkbox changes cancel a pending IGES Open. Source actions,
+Clear and Dispose also cancel it. Failed import/profile/recoverable presentation
+keeps the old accepted scene, inspection and provenance. A stale completion
+returns null. Accepted metadata commits only after successful presentation;
+post-commit callback failures do not imply presentation rollback.
+
+The local ticket range is1..1000000. Exhaustion cancels pending work and refuses
+new Stage/Open without reuse. Discard, invalidation and Dispose remain safe.
+The copied controller snapshot keeps version, intent, staged, accepted, pending,
+disposed and bounded error fields. Its whole import plus metadata has a checked
+4MiB+8192 UTF8/code-unit budget before presentation. `readIGESFile(file,ticket)`
+is a CPU read/import/candidate preparation API, not a trusted presentation token.
+
+The source download action offers **generated imported Source0** with its own
+filename and SHA256. It does not offer the original raw IGES bytes under their
+original File name. No raw IGES download, project SaveAs or saved-result reader
+is introduced here.
+
+After loss or unavailable presentation, matching CPU import provenance remains
+readable and Stage/Discard remain available. Open and Select stay blocked.
+Caller restoration does not resume the GPU backend. Retained original Curve
+inspection is a CPU query. Dispose clears this local controller before the
+native download/File controllers and Viewer. No framebuffer rollback or actual
+lost-hardware deletion-zero guarantee is made.
+
+The four example paths are tracked in Issue1421. The separate existing CAD1403
+runtime alignment is already adopted upstream and is not part of this feature
+handoff. Source and all-published browser acceptance, native implementation,
+exact Integration adoption and release are separate records. This geometry-only
+route does not execute the denied complete-material first mount in Issue1375.
+
 # Original native source and initial display scene
 
 This bounded host consumes the unchanged canonical

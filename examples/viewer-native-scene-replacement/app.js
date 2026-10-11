@@ -4,10 +4,11 @@ import {parseBaroCadSource} from '@barocss/cad-interop/native';
 import {loadBaroCadModelSet} from '@barocss/cad-interop/model-set';
 import {parseBaroCadAssembly,loadBaroCadAssembly} from '@barocss/cad-interop/assembly';
 import {compileCadModel,evaluateCurve,evaluateSurface,curveDomain,parseBooleanExtrusionFeatureGraph,
-  createCadGeometryReference,queryCadDocumentPoint} from '@barocss/cad';
+  createCadGeometryReference,queryCadDocumentPoint,importIGES,validateIGESImport} from '@barocss/cad';
 import {prepareUniformCurvePreview,PrimitiveSceneRendererV2,PrimitiveViewport,BooleanShellSceneRenderer,PrimitiveSceneRecoveryError,preparePrimitiveSceneFrame,compileMeshMaterial,validateMeshMaterialIR} from '@barocss/gpu';
 import {createClothWorld} from '@barocss/physics/cloth';
 import {readNativeFile,createNativeFileOpen} from './native-file-open.js';
+import {readIGESFile,createIGESFileOpen} from './iges-file-open.js';
 import {prepareNativeSourceDownload,createNativeSourceDownload} from './native-source-download.js';
 import {buildMountedAppearanceInput,MOUNTED_APPEARANCE_SHADER_SOURCES,MOUNTED_APPEARANCE_LIGHT_PRESETS} from './mounted-appearance.js';
 
@@ -20,6 +21,9 @@ const sha=async bytes=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',b
 const canvas=document.querySelector('canvas'),status=document.querySelector('#status'),inspection=document.querySelector('#inspection'),list=document.querySelector('#bodies');
 const nativeFileChoice=document.querySelector('#native-file-choice'),openNativeFileButton=document.querySelector('#open-native-file'),discardNativeFileButton=document.querySelector('#discard-native-file');
 const stagedNativeFile=document.querySelector('#staged-native-file'),acceptedNativeFile=document.querySelector('#accepted-native-file');
+const igesFileChoice=document.querySelector('#iges-file-choice'),igesYUpConfirmed=document.querySelector('#iges-yup-confirmed');
+const openIGESFileButton=document.querySelector('#open-iges-file'),discardIGESFileButton=document.querySelector('#discard-iges-file');
+const stagedIGESFile=document.querySelector('#staged-iges-file'),acceptedIGESFile=document.querySelector('#accepted-iges-file'),igesImportDetails=document.querySelector('#iges-import-details');
 const downloadNativeSourceButton=document.querySelector('#download-native-source'),nativeSourceDownloadOutput=document.querySelector('#native-source-download-output');
 const mountedAppearanceTime=document.querySelector('#mounted-appearance-time'),mountedAppearanceAmount=document.querySelector('#mounted-appearance-amount'),mountedAppearanceLight=document.querySelector('#mounted-appearance-light');
 const replaceMountedAppearanceButton=document.querySelector('#replace-mounted-appearance'),mountedAppearanceOutput=document.querySelector('#mounted-appearance-output'),mountedAppearanceDetails=document.querySelector('#mounted-appearance-details');
@@ -47,7 +51,8 @@ const nativeOptions={sourceVersion:0,countU:5,countV:5,curveDisplay:{version:1,c
 const bodyIds=['body_0_curve','body_0_surface','body_1_curve','body_1_surface'];
 const documentOptions={native:{...clone(nativeOptions),unitsPerMillimeter:1},basis:'authored-xyz-matches-rhyup',bodyIds};
 const mmToSceneUnit=.13,fixedCamera={eye:[4,3,7],target:[.35,.2,.3],up:[0,1,0],fovYDegrees:45,near:.01,far:30};
-let documentResult=null,originalBytes=null,originalText='',projection=[],manifest=[],viewer=null,running=false,disposed=false,result=null,nativeFileOpen=null,nativeSourceDownload=null;
+let documentResult=null,originalBytes=null,originalText='',projection=[],manifest=[],viewer=null,running=false,disposed=false,result=null,nativeFileOpen=null,nativeSourceDownload=null,igesFileOpen=null;
+let igesStatus='empty',hasIGESProvenance=false;
 const sources={};
 const resourceCounts=()=>Object.fromEntries(Object.entries(resources).map(([key,live])=>[key,live.size]));
 const glErrors=()=>[...contexts].map(gl=>gl.getError());
@@ -80,21 +85,50 @@ function renderNativeFileControls(snapshot=nativeFileOpen?.snapshot()){const con
   if(value.error)stagedNativeFile.textContent+=' · '+value.error.message;
   acceptedNativeFile.textContent=value.accepted?'Opened: '+value.accepted.name+' · '+value.accepted.bytes+' bytes · Model '+value.accepted.modelId
     +' · '+value.accepted.refs.length+' original objects · SHA-256 '+value.accepted.sha256:'No local file is accepted.';}
-function stageNativeFile(file){check(nativeFileOpen&&!disposed&&!running,'File choice needs a live host.');try{nativeFileOpen.stage(file);display('Original source file staged. Select Open to apply it.');}finally{nativeFileChoice.value='';}return nativeFileSnapshot();}
-async function openNativeFile(){check(nativeFileOpen&&!disposed&&!running,'File opening needs a live host.');return await nativeFileOpen.open();}
-function discardNativeFile(){check(nativeFileOpen&&!disposed&&!running,'File choice needs a live host.');nativeFileOpen.discard();nativeFileChoice.value='';display('File choice discarded. Accepted original geometry is unchanged.');return nativeFileSnapshot();}
+function stageNativeFile(file){check(nativeFileOpen&&!disposed&&!running,'File choice needs a live host.');igesFileOpen?.invalidate();try{nativeFileOpen.stage(file);display('Original source file staged. Select Open to apply it.');}finally{nativeFileChoice.value='';}return nativeFileSnapshot();}
+async function openNativeFile(){check(nativeFileOpen&&!disposed&&!running,'File opening needs a live host.');igesFileOpen?.invalidate();return await nativeFileOpen.open();}
+function discardNativeFile(){check(nativeFileOpen&&!disposed&&!running,'File choice needs a live host.');igesFileOpen?.invalidate();nativeFileOpen.discard();nativeFileChoice.value='';display('File choice discarded. Accepted original geometry is unchanged.');return nativeFileSnapshot();}
 function invalidateNativeFile(){if(!disposed)nativeFileOpen?.invalidate();return nativeFileSnapshot();}
-function sourceAction(callback){invalidateNativeFile();try{const value=callback();nativeFileOpen?.clearAccepted();inspection.textContent='';render();return value;}catch(error){render();throw error;}}
+function igesControlFlags(snapshot,statusValue){const live=!!viewer&&!disposed&&!snapshot.disposed&&!running;
+  return{choiceEnabled:live,openEnabled:live&&!!snapshot.staged&&igesYUpConfirmed.checked&&['ready','empty'].includes(statusValue),
+    discardEnabled:live&&(!!snapshot.staged||snapshot.pending),yUpConfirmed:igesYUpConfirmed.checked};}
+function igesFileSnapshot(){const snapshot=igesFileOpen?.snapshot()??{version:0,intent:0,staged:null,accepted:null,pending:false,disposed,error:null};
+  const state=viewer&&!disposed&&!snapshot.disposed?viewer.getState():null;
+  return{...clone(snapshot),...igesControlFlags(snapshot,state?.status??'disposed')};}
+function renderIGESFileControls(snapshot=igesFileOpen?.snapshot(),statusValue=igesStatus){
+  const value=snapshot??{version:0,intent:0,staged:null,accepted:null,pending:false,disposed,error:null},flags=igesControlFlags(value,statusValue);
+  igesFileChoice.disabled=!flags.choiceEnabled;igesYUpConfirmed.disabled=!flags.choiceEnabled;
+  openIGESFileButton.disabled=!flags.openEnabled;discardIGESFileButton.disabled=!flags.discardEnabled;
+  stagedIGESFile.textContent=value.staged?'IGES choice: '+value.staged.name+' · '+value.staged.bytes+' bytes'+(value.pending?' · Opening…':''):'No IGES file choice.';
+  if(value.error)stagedIGESFile.textContent+=' · '+value.error.message;
+  hasIGESProvenance=!!value.accepted;
+  const accepted=value.accepted;
+  acceptedIGESFile.textContent=accepted?'Opened IGES: '+accepted.name+' · '+accepted.bytes+' original bytes · SHA-256 '+accepted.sha256
+    +' · '+accepted.imported.report.profile+' · generated Model '+accepted.imported.model.name+' · '+accepted.refs.length+' objects · '
+    +'Generated IDs: '+accepted.refs.map(ref=>ref.kind==='surface'?ref.surfaceId:ref.curveId).join(', '):'No IGES file is accepted.';
+  igesImportDetails.textContent=accepted?JSON.stringify(accepted.imported,null,2):'';}
+function stageIGESFile(file){check(igesFileOpen&&!disposed&&!running,'IGES file choice needs a live host.');nativeFileOpen?.invalidate();
+  try{igesFileOpen.stage(file);display('IGES file staged. Confirm authored XYZ matches Viewer Y-up, then select Open.');}
+  finally{igesFileChoice.value='';}return igesFileSnapshot();}
+async function openIGESFile(){check(igesFileOpen&&!disposed&&!running,'IGES file opening needs a live host.');nativeFileOpen?.invalidate();
+  if(arguments.length>1){igesFileOpen.invalidate();throw Error('IGES Open accepts only one confirmation argument.');}
+  return await igesFileOpen.open(arguments.length===0?igesYUpConfirmed.checked:arguments[0]);}
+function discardIGESFile(){check(igesFileOpen&&!disposed&&!running,'IGES file choice needs a live host.');nativeFileOpen?.invalidate();
+  igesFileOpen.discard();igesFileChoice.value='';display('IGES choice discarded. Accepted geometry and provenance are unchanged.');return igesFileSnapshot();}
+function invalidateIGESFile(){if(!disposed)igesFileOpen?.invalidate();return igesFileSnapshot();}
+function invalidateFileIntents(){invalidateNativeFile();invalidateIGESFile();}
+function sourceAction(callback){invalidateFileIntents();try{const value=callback();nativeFileOpen?.clearAccepted();igesFileOpen?.clearAccepted();inspection.textContent='';render();return value;}catch(error){render();throw error;}}
 function commitReplacement(candidate){uploads.length=0;draws.length=0;viewer.replaceNativeScene(candidate);return viewer.getState();}
 function replace(candidate){return sourceAction(()=>commitReplacement(candidate===undefined?buildCandidate():candidate));}
 function nativeSourceDownloadSnapshot(){return nativeSourceDownload?clone(nativeSourceDownload.snapshot()):{version:0,pending:false,disposed,enabled:false,report:null,error:null,activeUrls:0,activeAnchors:0,activeTimers:0};}
 function renderNativeSourceDownloadControls(snapshot=nativeSourceDownloadSnapshot()){downloadNativeSourceButton.disabled=disposed||running||!snapshot.enabled;
-  nativeSourceDownloadOutput.textContent=snapshot.report?'Original source offered: '+snapshot.report.name+' · '+snapshot.report.bytes+' bytes · SHA-256 '+snapshot.report.sha256
+  downloadNativeSourceButton.textContent=hasIGESProvenance?'Download generated imported Source0':'Download original source';
+  nativeSourceDownloadOutput.textContent=snapshot.report?(hasIGESProvenance?'Generated imported Source0 offered: ':'Original source offered: ')+snapshot.report.name+' · '+snapshot.report.bytes+' bytes · SHA-256 '+snapshot.report.sha256
     +(snapshot.report.filenameOrigin==='generated'?' · generated filename':' · opened-file filename'):'';
   if(snapshot.pending)nativeSourceDownloadOutput.textContent+=(nativeSourceDownloadOutput.textContent?' · ':'')+'Preparing original source…';
   if(snapshot.error)nativeSourceDownloadOutput.textContent+=(nativeSourceDownloadOutput.textContent?' · ':'')+snapshot.error.message;}
 async function downloadNativeSource(){check(nativeSourceDownload&&!disposed&&!running,'Source download needs a live host.');const report=await nativeSourceDownload.download();
-  if(report&&!disposed)display('Original source download offered: '+report.name+'.');return report;}
+  if(report&&!disposed)display((hasIGESProvenance?'Generated imported Source0 download offered: ':'Original source download offered: ')+report.name+'.');return report;}
 function mountedAppearanceAccepted(state){return state.document?clone({documentId:state.document.document.documentId,
   revision:state.document.document.revision,documentBodies:state.documentBodies,visibleGeometry:state.visibleGeometry,
   geometryMotion:state.geometryMotion,camera:state.camera,lighting:state.lighting,surfaceMaterials:state.surfaceMaterials}):null;}
@@ -116,17 +150,35 @@ function replaceMountedAppearance(input){check(!disposed&&!running,'Mounted appe
   display('Document scene and appearance replaced.');return clone(accepted);}
 function inventory(){const state=viewer.getState();return state.documentBodies.length?state.documentBodies.map(body=>({ref:body.ref,label:body.binding.bodyId,pin:body.binding}))
   :[...state.surfaces.map(ref=>({ref:{kind:'surface',...ref},label:ref.surfaceId})),...state.curves.map(ref=>({ref:{kind:'curve',...ref},label:ref.curveId}))];}
+function matchingIGES(state,accepted){
+  if(!accepted||!state.native||state.document||state.modelSet||state.assembly||state.shell||state.mixedDepth
+    ||state.qualifiedFaceScene||state.uniformCurve||state.selectedUniformCurve)return false;
+  const refs=[...state.surfaces.map(ref=>({kind:'surface',...ref})),...state.curves.map(ref=>({kind:'curve',...ref}))];
+  return state.native.source===accepted.imported.source&&same(state.native.model,accepted.imported.model)
+    &&refs.length===accepted.refs.length&&refs.every((ref,index)=>refs.findIndex(value=>sameRef(value,ref))===index
+      &&accepted.refs.some(value=>sameRef(value,ref)));}
 function render(){const state=viewer.getState(),live=!disposed&&state.status!=='context-lost',ready=live&&state.status==='ready';
+  const acceptedIGES=igesFileOpen?.snapshot().accepted,importCurrent=matchingIGES(state,acceptedIGES);
   for(const[id,button]of Object.entries(buttons))button.disabled=id==='dispose'?disposed:!live||running;
-  buttons.fit.disabled=!ready||running||!state.visibleGeometry.length;buttons.query.disabled=!live||running||!state.curves.length;
+  buttons.fit.disabled=!ready||running||!state.visibleGeometry.length;buttons.query.disabled=disposed||running||!state.curves.length||(!live&&!importCurrent);
   list.replaceChildren(...inventory().map(body=>{const item=document.createElement('li'),label=document.createElement('label'),checkbox=document.createElement('input');
     checkbox.type='checkbox';checkbox.checked=state.visibleGeometry.some(ref=>sameRef(ref,body.ref));checkbox.disabled=!ready||running;
     checkbox.setAttribute('aria-label','Show '+body.label);label.append(checkbox,' '+body.label+' · '+body.ref.kind);
     const identity=document.createElement('small');identity.textContent=JSON.stringify(body.pin??body.ref);
     checkbox.addEventListener('change',()=>action(()=>{if(!item.isConnected)throw Error('This body list is stale.');
       const accepted=viewer.getState(),refs=inventory().map(body=>body.ref).filter(ref=>sameRef(ref,body.ref)?checkbox.checked:accepted.visibleGeometry.some(value=>sameRef(value,ref)));
-      viewer.setVisibleGeometry(refs);}));item.append(label,identity);return item;}));
-  nativeFileOpen?.sync();renderNativeFileControls();nativeSourceDownload?.sync();renderNativeSourceDownloadControls();renderMountedAppearanceControls(state);
+      viewer.setVisibleGeometry(refs);}));item.append(label,identity);
+    if(importCurrent){const select=document.createElement('button');select.textContent='Select '+body.label;
+      select.disabled=!ready||running||!state.visibleGeometry.some(ref=>sameRef(ref,body.ref));
+      select.setAttribute('aria-pressed',String(!!state.selectedGeometry&&sameRef(state.selectedGeometry,body.ref)));
+      const ownedRef=clone(body.ref),pin=clone(acceptedIGES);
+      select.addEventListener('click',()=>action(()=>{check(item.isConnected&&item.parentElement===list,'This imported object row is stale.');
+        const current=viewer.getState(),accepted=igesFileOpen?.snapshot().accepted;
+        check(!running&&current.status==='ready'&&same(accepted,pin)&&matchingIGES(current,accepted)
+          &&current.visibleGeometry.some(ref=>sameRef(ref,ownedRef)),'This imported object is not current and visible.');
+        viewer.selectGeometry(clone(ownedRef));display('Selected imported '+body.label+'.');}));item.append(select);}
+    return item;}));
+  nativeFileOpen?.sync();renderNativeFileControls();igesStatus=state.status;igesFileOpen?.sync();renderIGESFileControls(undefined,state.status);nativeSourceDownload?.sync();renderNativeSourceDownloadControls();renderMountedAppearanceControls(state);
 }
 function action(callback){if(disposed)return;try{callback();render();}catch(error){display(error.message);}}
 function transformedPoint(point,pose){if(!pose)return point.map(n=>n*mmToSceneUnit);const[x,y,z,w]=pose.rotation,
@@ -170,7 +222,7 @@ function capture(label){const state=viewer.getState(),row={label,status:state.st
   check(row.glErrors.every(n=>n===0),label+' GL error');result.cases.push(row);return row;}
 function failAllocation(type='Texture',at=1){faultType=type;faultAt=at;faultAttempts=0;faultConsumed=false;}
 function clearAllocationFault(){const value={type:faultType,attempts:faultAttempts,consumed:faultConsumed};faultType=null;return value;}
-async function runProof(){invalidateNativeFile();if(running||disposed||viewer.getState().status==='context-lost')throw Error('Proof needs a live Viewer');running=true;render();
+async function runProof(){invalidateFileIntents();if(running||disposed||viewer.getState().status==='context-lost')throw Error('Proof needs a live Viewer');running=true;render();
   result={ok:false,schema:'barocss-viewer-native-replacement-1061-basic',cases:[],refusals:[],failures:[],scope:'One native/document provider candidate; independent root script adds complete old-mode/race/loss acceptance'};window.__viewerReplacementResult=result;
   try{result.fixture=manifest[0];result.inputAudit=await(await fetch('/input-audit.json')).json();
     const candidate=buildCandidate();replace(candidate);result.uploads=uploadWitness(candidate);const accepted=viewer.getState();
@@ -215,19 +267,23 @@ async function runProof(){invalidateNativeFile();if(running||disposed||viewer.ge
     documentBytes:manifest[0]?.bytes,contextCount:contexts.size,resources:resourceCounts(),limits:result.scope});
     try{await fetch('/result',{method:'POST',body:JSON.stringify(result)});}catch(error){result.recordingError=error.message;}}
   return result;}
-function dispose(){if(disposed)return;nativeSourceDownload?.dispose();nativeFileOpen?.dispose();viewer.dispose();viewer.dispose();disposed=true;render();const receipt={status:viewer.getState().status,resources:resourceCounts(),glErrors:glErrors(),
+function dispose(){if(disposed)return;igesFileOpen?.dispose();nativeSourceDownload?.dispose();nativeFileOpen?.dispose();viewer.dispose();viewer.dispose();disposed=true;render();const receipt={status:viewer.getState().status,resources:resourceCounts(),glErrors:glErrors(),
   contextCount:contexts.size,errors:[...errors],warnings:[...warnings]};if(result)result.disposal=receipt;display(receipt);return receipt;}
 try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=await(await fetch('/document.cad-document.json')).arrayBuffer();
   check(bytes.byteLength===manifest[0].bytes&&await sha(bytes)===manifest[0].sha256,'Unchanged original document bytes/hash differ');originalBytes=new Uint8Array(bytes);originalText=new TextDecoder().decode(bytes);
   documentResult=await loadBaroCadDocument(new URL('/document.cad-document.json',location.href).href);
   projection=prepareBaroCadDocumentPrimitiveNativeRefsV2(documentResult,documentOptions);for(const asset of documentResult.document.assets)sources[asset.id]=asset.source;
   viewer=createViewer(canvas,{mmToSceneUnit,background:[.035,.065,.105]});nativeFileOpen=createNativeFileOpen(viewer,{
-    onChange:snapshot=>renderNativeFileControls(snapshot),onAccepted:accepted=>{inspection.textContent='';render();display('Opened original source '+accepted.name+'.');},
+    onChange:snapshot=>renderNativeFileControls(snapshot),onAccepted:accepted=>{igesFileOpen?.clearAccepted();inspection.textContent='';render();display('Opened original source '+accepted.name+'.');},
+    onError:error=>{render();display(error instanceof Error?error.message:String(error));}});
+  igesFileOpen=createIGESFileOpen(viewer,{onChange:snapshot=>renderIGESFileControls(snapshot),
+    onAccepted:accepted=>{nativeFileOpen?.clearAccepted();inspection.textContent='';render();display('Opened IGES geometry '+accepted.name+'.');},
     onError:error=>{render();display(error instanceof Error?error.message:String(error));}});
   nativeSourceDownload=createNativeSourceDownload(viewer,canvas,{getAcceptedFile:()=>nativeFileSnapshot().accepted,
     onChange:snapshot=>renderNativeSourceDownloadControls(snapshot),onError:error=>display(error instanceof Error?error.message:String(error))});
   replace();lossExtension=[...contexts][0].getExtension('WEBGL_lose_context');
   window.__viewerReplacementProof={viewer,createViewer,prepareViewerNativeSceneAppearance,preparePrimitiveSceneFrame,compileMeshMaterial,validateMeshMaterialIR,PrimitiveSceneRecoveryError,
+    readIGESFile,createIGESFileOpen,importIGES,validateIGESImport,stageIGESFile,openIGESFile,discardIGESFile,invalidateIGESFile,igesFileSnapshot,
     buildMountedAppearanceInput,buildMountedAppearanceCandidate,replaceMountedAppearance,mountedAppearanceSnapshot,MOUNTED_APPEARANCE_SHADER_SOURCES,MOUNTED_APPEARANCE_LIGHT_PRESETS,prepareNativeSourceDownload,createNativeSourceDownload,downloadNativeSource,nativeSourceDownloadSnapshot,readNativeFile,createNativeFileOpen,stageNativeFile,openNativeFile,discardNativeFile,invalidateNativeFile,nativeFileSnapshot,documentResult,originalBytes,originalText,manifest,sources,projection,bodyIds,nativeOptions,documentOptions,fixedCamera,mmToSceneUnit,canvas,
     buildCandidate,makeCandidate:buildCandidate,buildNativeCandidate,initialDisplay,refFor,refs:projection.map(refFor),refsFor:()=>projection.map(refFor),replace,nativeEntries,candidatePoints,transformedPoint,expectedFit,uploadWitness,query,inventory,render,
     loadBaroCadDocument,parseBaroCadDocument,prepareBaroCadDocumentPrimitiveNativeRefsV2,parseBaroCadSource,compileCadModel,evaluateCurve,evaluateSurface,curveDomain,
@@ -239,6 +295,10 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=awa
   display('Ready: revision5 original two-asset document, four posed bodies, three visible, exact saved camera.');
 }catch(error){display({ok:false,stage:'startup',error:error.stack||error.message});}
 replaceMountedAppearanceButton.addEventListener('click',()=>action(()=>replaceMountedAppearance()));
+igesFileChoice.addEventListener('change',()=>{const file=igesFileChoice.files?.[0];if(file)try{stageIGESFile(file);}catch{}});
+openIGESFileButton.addEventListener('click',()=>{openIGESFile().catch(()=>{});});
+discardIGESFileButton.addEventListener('click',()=>{if(disposed)return;try{discardIGESFile();}catch(error){display(error.message);}});
+igesYUpConfirmed.addEventListener('change',()=>{if(disposed)return;invalidateIGESFile();display(igesYUpConfirmed.checked?'Authored XYZ to Viewer Y-up assertion confirmed.':'Y-up assertion withdrawn; pending IGES Open cancelled.');});
 downloadNativeSourceButton.addEventListener('click',()=>{downloadNativeSource().catch(()=>{});});
 nativeFileChoice.addEventListener('change',()=>{const file=nativeFileChoice.files?.[0];if(file)try{stageNativeFile(file);}catch{}});
 openNativeFileButton.addEventListener('click',()=>{openNativeFile().catch(()=>{});});discardNativeFileButton.addEventListener('click',()=>{if(disposed)return;try{discardNativeFile();}catch(error){display(error.message);}});
