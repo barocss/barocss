@@ -12,6 +12,8 @@ node apps/library-docs/scripts/check-docs.mjs
 node apps/library-docs/scripts/run-snippet.mjs
 ```
 
+During continuous edits, use the `dev` command. Production `preview` records the built file list and headers when it starts. If you rebuild while preview remains running, the page can display static HTML while its new JavaScript files are unavailable. Example controls and Search then do not start. Stop the preview process before a build, and start a fresh preview after the build finishes. Verify that the selected example reports `data-ready="true"` before checking its buttons or links. A successful HTML navigation alone does not prove that the interactive page started.
+
 The native checkpoint reuses actual `/Users/user/.barocss-ai/v3/integration/node_modules/vitepress`1.6.4 through an ignored app-local node_modules link. No dependency installation or root lock edit is part of this delta. Root workspace already covers apps/*. Integration alone adds the importer for `vitepress:^1.6.4`, using its existing1.6.4 resolution; root scripts need no change. Root esbuild^0.25.9 supplies the selected API probe (actual reused0.25.12).
 
 The source material probe creates ignored app-local GPU/CAD dependency links and uses esbuild's ordinary node-module search path for the transitive CAD dependency. It compiles, validates and lowers a real material and checks unsupported syntax refusal. It does not draw pixels or verify all exports. Documentation build, source API execution, compiled package acceptance, local integration and registry/site publication are separate stages.
