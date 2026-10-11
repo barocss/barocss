@@ -5,6 +5,9 @@ const canvas = document.querySelector('#view');
 const moveHandle = document.querySelector('#move-handle');
 const yawHandle = document.querySelector('#yaw-handle');
 const selectionFilter = document.querySelector('#selection-filter');
+const fitSetButton = document.querySelector('#fit-set');
+const clearFitSetButton = document.querySelector('#clear-fit-set');
+const fitSetCount = document.querySelector('#fit-set-count');
 const list = document.querySelector('#bodies');
 const properties = document.querySelector('#properties');
 const status = document.querySelector('#status');
@@ -49,6 +52,7 @@ let previewReport = null;
 let activeYaw = null, yawPreviewReport = null;
 let sampleCamera = null, sampleCoordinates = [];
 let refusalReport = null, nonYReport = null, nonuniformReport = null;
+let fitMembers = [];
 const sameRef = (a, b) => a?.kind === b?.kind && a?.modelId === b?.modelId
   && (a?.kind === 'surface' ? a.surfaceId === b.surfaceId : a?.curveId === b?.curveId);
 const shown = (state, ref) => state.visibleGeometry.some(value => sameRef(value, ref));
@@ -113,8 +117,37 @@ function current(ref, bodyId, revision, epoch) {
 }
 function run(label, action) {
   if (disposed) return;
-  try { action(); render(); say(label); }
+  try { action(); const notice = render(); say(label + (notice ? ' ' + notice : '')); }
   catch (error) { render(); say(label + ': ' + error.message, true); }
+}
+function fitMember(body, revision, epoch) {
+  return { ref: { ...body.ref }, binding: structuredClone(body.binding), revision, epoch };
+}
+function currentFitMember(state, member) {
+  return !disposed && state.status === 'ready' && member.epoch === sceneEpoch
+    && state.document?.document.revision === member.revision && shown(state, member.ref)
+    && state.documentBodies.some(body => sameRef(body.ref, member.ref)
+      && JSON.stringify(body.binding) === JSON.stringify(member.binding));
+}
+function fitSetEligible(state) {
+  return fitMembers.length >= 2 && fitMembers.length <= 4
+    && fitMembers.every((member, index) => currentFitMember(state, member)
+      && fitMembers.findIndex(value => sameRef(value.ref, member.ref)) === index);
+}
+function reconcileFitSet(state) {
+  const before = fitMembers.length;
+  fitMembers = fitMembers.filter(member => currentFitMember(state, member));
+  return before === fitMembers.length ? ''
+    : 'Removed ' + (before - fitMembers.length) + ' unavailable fit-set member(s).';
+}
+function changeFitSet(label, action) {
+  if (disposed) return;
+  const discarded = dirtyPoseDraft();
+  try {
+    action();
+    const notice = render();
+    say(label + (discarded ? ' Numeric draft discarded.' : '') + (notice ? ' ' + notice : ''));
+  } catch (error) { say('Fit set refused: ' + error.message, true); }
 }
 function property(name, value) {
   const dt = document.createElement('dt'), dd = document.createElement('dd');
@@ -306,8 +339,13 @@ function publishProof(state) {
       kind: body.ref.kind, modelId: body.ref.modelId, bodyId: body.binding.bodyId,
       assetId: body.binding.assetId, geometryId: body.binding.geometryId,
       selectionEligible: eligible(body.ref), selectEnabled: state.status === 'ready'
-        && shown(state, body.ref) && eligible(body.ref) })),
+        && shown(state, body.ref) && eligible(body.ref),
+      fitIncluded: fitMembers.some(member => sameRef(member.ref, body.ref)),
+      fitEligible: state.status === 'ready' && !disposed && shown(state, body.ref) })),
     selectionFilter: selectionFilter.value,
+    fitSet: fitMembers.map(member => ({ ...member, ref: { ...member.ref },
+      binding: structuredClone(member.binding) })),
+    fitSetCount: fitMembers.length, fitSetEligible: fitSetEligible(state),
     visible: state.visibleGeometry, selected: state.selectedGeometry, camera: state.camera,
     geometryMotion: state.geometryMotion,
     draft: [...properties.querySelectorAll('.translation-editor input')].map(input => input.value),
@@ -329,6 +367,7 @@ function render() {
   if (activeDrag) cancelDrag();
   if (activeYaw) cancelYaw();
   const state = viewer.getState();
+  const fitNotice = reconcileFitSet(state);
   const ready = state.status === 'ready' && state.document !== null;
   const revision = state.document?.document.revision, epoch = sceneEpoch;
   const rows = [];
@@ -371,7 +410,23 @@ function render() {
         throw new Error('This body is hidden.');
       viewer.fitGeometry(body.ref);
     }), { signal: listener.signal });
-    actions.append(checkbox, select, fit); item.append(name, ids, actions); rows.push(item);
+    const includeLabel = document.createElement('label'), include = document.createElement('input');
+    const member = fitMember(body, revision, epoch);
+    include.type = 'checkbox'; include.disabled = !visible;
+    include.checked = fitMembers.some(value => sameRef(value.ref, body.ref));
+    include.setAttribute('aria-label', 'Include ' + body.binding.bodyId + ' in fit set');
+    includeLabel.append(include, document.createTextNode('Include in fit set'));
+    include.addEventListener('change', () => changeFitSet('Fit set updated.', () => {
+      if (!item.isConnected) throw new Error('This fit-set row is detached.');
+      const accepted = current(member.ref, member.binding.bodyId, member.revision, member.epoch);
+      if (!currentFitMember(accepted, member))
+        throw new Error('This fit-set body is hidden or its original binding changed.');
+      const others = fitMembers.filter(value => !sameRef(value.ref, member.ref));
+      if (include.checked) others.push(member);
+      fitMembers = accepted.documentBodies.flatMap(value =>
+        others.filter(token => sameRef(value.ref, token.ref)));
+    }), { signal: listener.signal });
+    actions.append(checkbox, select, fit); item.append(name, ids, actions, includeLabel); rows.push(item);
   }
   list.replaceChildren(...rows);
   const title = document.createElement('h2');
@@ -402,6 +457,9 @@ function render() {
   buttons.reload.disabled = disposed;
   buttons.clear.disabled = disposed || state.status === 'empty';
   selectionFilter.disabled = disposed || !ready;
+  fitSetButton.disabled = !fitSetEligible(state);
+  clearFitSetButton.disabled = disposed || !ready || fitMembers.length === 0;
+  fitSetCount.textContent = 'Fit set: ' + fitMembers.length + ' bodies';
   if (proof) {
     document.querySelector('#check-refusals').disabled = !ready;
     document.querySelector('#check-non-y').disabled = !ready || !selected;
@@ -411,14 +469,15 @@ function render() {
   renderHandle(state);
   renderYawHandle(state);
   publishProof(state);
+  return fitNotice;
 }
 function cancelDrag() {
   const drag = activeDrag;
-  activeDrag = null;
-  moveHandle.dataset.dragging = 'false';
   if (drag && moveHandle.hasPointerCapture(drag.pointerId)) {
     try { moveHandle.releasePointerCapture(drag.pointerId); } catch { /* Capture was already lost. */ }
   }
+  activeDrag = null;
+  moveHandle.dataset.dragging = 'false';
 }
 function cross(a, b) {
   return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2],
@@ -540,12 +599,26 @@ for (const type of ['pointercancel', 'lostpointercapture']) {
 }
 function cancelYaw() {
   const drag = activeYaw;
-  activeYaw = null;
-  yawHandle.dataset.dragging = 'false';
   if (drag && yawHandle.hasPointerCapture(drag.pointerId)) {
     try { yawHandle.releasePointerCapture(drag.pointerId); } catch { /* Capture was already lost. */ }
   }
+  activeYaw = null;
+  yawHandle.dataset.dragging = 'false';
 }
+window.addEventListener('keydown', event => {
+  if (disposed || (!activeDrag && !activeYaw) || event.key !== 'Escape'
+      || event.repeat || event.isComposing || event.ctrlKey || event.metaKey
+      || event.altKey || event.shiftKey) return;
+  const target = event.target;
+  if (target instanceof Element && (target.closest('input, textarea, select')
+      || target.closest('[contenteditable]')?.isContentEditable)) return;
+  const gestures = [activeDrag && 'Move', activeYaw && 'Y yaw'].filter(Boolean);
+  cancelDrag(); cancelYaw();
+  const state = viewer.getState();
+  renderHandle(state); renderYawHandle(state); publishProof(state);
+  say(gestures.join(' and ') + ' cancelled: Escape.');
+  event.preventDefault(); event.stopPropagation();
+}, { capture: true, signal: listener.signal });
 function dirtyPoseDraft() {
   return [...properties.querySelectorAll('.translation-editor input')]
     .some(input => input.value !== input.dataset.accepted);
@@ -660,7 +733,8 @@ for (const type of ['pointercancel', 'lostpointercapture']) {
   }, { signal: listener.signal });
 }
 canvas.addEventListener('webglcontextlost', () => {
-  cancelDrag(); cancelYaw(); render(); say('Display handles unavailable: WebGL2 context lost.', true);
+  cancelDrag(); cancelYaw(); const notice = render();
+  say('Display handles unavailable: WebGL2 context lost.' + (notice ? ' ' + notice : ''), true);
 }, { signal: listener.signal });
 async function reload() {
   if (activeDrag) { cancelDrag(); renderHandle(viewer.getState()); }
@@ -681,13 +755,14 @@ async function reload() {
     refs.map((ref, index) => ({ contextId: 'object-tree', targetId: 'body-' + index, ref })),
     { basis: 'part-xyz-matches-rhyup' });
     viewer.fit();
-    render();
-    say('Loaded document revision ' + viewer.getState().document.document.revision + '.');
+    const notice = render();
+    say('Loaded document revision ' + viewer.getState().document.document.revision + '.'
+      + (notice ? ' ' + notice : ''));
   } catch (error) {
     if (!disposed && request === requestEpoch) {
-      if (accepted) render();
+      const notice = accepted ? render() : '';
       say((accepted ? 'Document accepted; view update refused: ' : 'Load refused: ')
-        + error.message, true);
+        + error.message + (notice ? ' ' + notice : ''), true);
     }
   }
 }
@@ -699,6 +774,21 @@ buttons['hide-all'].addEventListener('click', () => run('Hide all', () =>
 buttons.reload.addEventListener('click', reload, { signal: listener.signal });
 buttons.clear.addEventListener('click', () => run('Cleared', () => {
   requestEpoch++; viewer.clear(); sceneEpoch++;
+}), { signal: listener.signal });
+fitSetButton.addEventListener('click', () => {
+  if (disposed) return;
+  try {
+    if (dirtyPoseDraft()) throw new Error('Apply or discard the numeric draft before fitting the set.');
+    const state = viewer.getState();
+    if (!fitSetEligible(state)) throw new Error('Fit set needs 2..4 unique current visible bodies.');
+    const refs = state.documentBodies.filter(body =>
+      fitMembers.some(member => sameRef(member.ref, body.ref))).map(body => ({ ...body.ref }));
+    viewer.fitNativeDocumentBodies({ refs, documentRevision: state.document.document.revision });
+    render(); say('Fit set applied to ' + refs.length + ' original document bodies.');
+  } catch (error) { say('Fit set refused: ' + error.message, true); }
+}, { signal: listener.signal });
+clearFitSetButton.addEventListener('click', () => changeFitSet('Fit set cleared.', () => {
+  fitMembers = [];
 }), { signal: listener.signal });
 selectionFilter.addEventListener('change', () => {
   if (disposed) return;
@@ -726,7 +816,8 @@ function dispose() {
   if (disposed) return;
   cancelDrag();
   cancelYaw();
-  disposed = true; requestEpoch++; listener.abort(); viewer.dispose(); render(); say('Viewer disposed.');
+  disposed = true; requestEpoch++; listener.abort(); viewer.dispose(); const notice = render();
+  say('Viewer disposed.' + (notice ? ' ' + notice : ''));
 }
 if (proof) {
   document.querySelector('#lose-context-proof').addEventListener('click', () => {

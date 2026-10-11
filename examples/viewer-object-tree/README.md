@@ -32,6 +32,15 @@ The display scale is 0.11 scene units per mm, so a translation can meet the
 input limit yet exceed the Viewer's GPU scene bound. That refusal also keeps
 the accepted pose and draft separate.
 
+Use each row's `Include … in fit set` checkbox to choose 2 through 4 visible
+bodies, then click Fit set. This frames their conservative original native
+control-hull bounds with their current display poses. It keeps the primary
+selection, source and poses. The pick filter does not change fit membership.
+Hiding a member removes it; showing it does not re-add it. Reload, Clear,
+context loss and Dispose clear membership. Membership changes discard pending
+pose drafts with a status notice. Apply or Discard a numeric draft before
+Fit set. Clear fit set removes only the host membership.
+
 For a selected visible body, enter display X/Y/Z translations in mm and use
 Apply. The accepted complete four-body pose frame is updated through public
 `applyGeometryMotionFrame`; other bodies keep their poses. Typing alone does
@@ -78,6 +87,13 @@ selected body's new pure Y quaternion and updates the numeric yaw field.
 Moving more than 24 CSS pixels vertically, exceeding ±180 degrees or leaving
 a numeric draft pending refuses the gesture. Translation, scale, other body
 poses and the original CAD source remain unchanged.
+
+Press unmodified Escape during an active Move or Y-yaw preview to cancel it.
+The handle returns to its accepted position and releases pointer capture.
+Releasing the old pointer does not apply a pose. The numeric draft, focus,
+primary selection and fit set remain. Modified, repeated or composing Escape
+and events from editable controls are ignored. Without an active preview,
+the host leaves Escape to the existing controls. Dispose removes this listener.
 
 The optional `?proof` route exposes `window.viewerObjectTreeProbe` and tracks
 Viewer-created WebGL resources for an actual browser lifecycle check. Its Lose
