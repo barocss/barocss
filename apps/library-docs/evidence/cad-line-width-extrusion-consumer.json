@@ -1,0 +1,792 @@
+{
+  "status": "passed",
+  "nodeVersion": "v22.22.0",
+  "originalSource": "/* 설계: retain the complete original Model and unselected geometry. */\r\n@model width_surface { version: 0; length-unit: mm;\r\n  @curve #untouched_curve { type: nurbs; degree: 2;\r\n    knots: [-2.000,-2,-2,3,3,3]; control-points: [[-0,2,1],[3,4,2],[6,2,1]]; weights: [1,2,1]; }\r\n  @curve #original_line { type: nurbs; degree: 1;\r\n    knots: [0,0,1,1]; control-points: [[0,-0,0],[100,0,0]]; weights: [1,1]; }\r\n  @surface #untouched_surface { type: nurbs; degree-u: 1; degree-v: 1;\r\n    knots-u: [0.000,0,1,1.00]; knots-v: [-1,-1,2,2];\r\n    control-points: [[[2,3,-0],[2,5,1]],[[4,3,2],[4,5,4]]]; weights: [[1,2],[3,4]]; }\r\n}\r\n",
+  "originalSourceSHA256": "50ff4d0a9f002e655bface5c3412fc4448c6ab06c89686f1454d89ec88b6d86c",
+  "widthRequest": {
+    "source": "/* 설계: retain the complete original Model and unselected geometry. */\r\n@model width_surface { version: 0; length-unit: mm;\r\n  @curve #untouched_curve { type: nurbs; degree: 2;\r\n    knots: [-2.000,-2,-2,3,3,3]; control-points: [[-0,2,1],[3,4,2],[6,2,1]]; weights: [1,2,1]; }\r\n  @curve #original_line { type: nurbs; degree: 1;\r\n    knots: [0,0,1,1]; control-points: [[0,-0,0],[100,0,0]]; weights: [1,1]; }\r\n  @surface #untouched_surface { type: nurbs; degree-u: 1; degree-v: 1;\r\n    knots-u: [0.000,0,1,1.00]; knots-v: [-1,-1,2,2];\r\n    control-points: [[[2,3,-0],[2,5,1]],[[4,3,2],[4,5,4]]]; weights: [[1,2],[3,4]]; }\r\n}\r\n",
+    "sourceVersion": 0,
+    "curveId": "original_line",
+    "widthMM": 5,
+    "options": {
+      "lowerCurveId": "width_lower",
+      "upperCurveId": "width_upper",
+      "surfaceId": "width_surface",
+      "loopId": "width_loop",
+      "boundaryCurveIds": [
+        "width_b0",
+        "width_b1",
+        "width_b2",
+        "width_b3"
+      ],
+      "face": {
+        "faceId": "width_face",
+        "evaluationId": "width_evaluation",
+        "resultIdPrefix": "width_result",
+        "orientation": "forward"
+      }
+    }
+  },
+  "extrusionOptions": {
+    "evaluationId": "direct_prism_shell",
+    "resultIdPrefix": "dpx",
+    "distanceMM": 10,
+    "direction": "positive-z"
+  },
+  "changedOptions": {
+    "evaluationId": "direct_prism_shell",
+    "resultIdPrefix": "dpx",
+    "distanceMM": 12,
+    "direction": "positive-z"
+  },
+  "widthReport": {
+    "schema": "barocss-source-line-width-face-report",
+    "version": 0,
+    "sourceVersion": 0,
+    "lengthUnit": "mm",
+    "profile": "unit-line-positive-x-centered-y0-z0",
+    "curveId": "original_line",
+    "selectedObjectIndex": 1,
+    "originalModelName": "width_surface",
+    "originalObjectCount": 3,
+    "widthIntent": {
+      "placement": "centered-y",
+      "centerYMM": 0,
+      "centerZMM": 0,
+      "requestedWidthMM": 5,
+      "halfWidthMM": 2.5,
+      "lowerYMM": -2.5,
+      "upperYMM": 2.5,
+      "representedWidthMM": 5,
+      "representedWidthEqualsRequest": true
+    },
+    "originalBasis": {
+      "degree": 1,
+      "poleCount": 2,
+      "knots": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "weights": [
+        1,
+        1
+      ],
+      "domain": [
+        0,
+        1
+      ]
+    },
+    "diagnostics": {
+      "representedLengthMM": 100,
+      "representedAreaMM2": 500,
+      "authority": "axis-product-diagnostics-not-solid-or-global-error-certificate"
+    },
+    "generatedRoleIds": [
+      "width_lower",
+      "width_upper",
+      "width_surface",
+      "width_loop",
+      "width_face",
+      "width_evaluation",
+      "width_b0",
+      "width_b1",
+      "width_b2",
+      "width_b3",
+      "width_result_v_0",
+      "width_result_e_0",
+      "width_result_use_0",
+      "width_result_uv_0",
+      "width_result_v_1",
+      "width_result_e_1",
+      "width_result_use_1",
+      "width_result_uv_1",
+      "width_result_v_2",
+      "width_result_e_2",
+      "width_result_use_2",
+      "width_result_uv_2",
+      "width_result_v_3",
+      "width_result_e_3",
+      "width_result_use_3",
+      "width_result_uv_3"
+    ],
+    "directCounts": {
+      "originalSourceCompileCount": 1,
+      "ruledBuildCallCount": 1,
+      "boundaryExtractionCallCount": 4,
+      "convexFaceBuildCallCount": 1,
+      "producerDelegationCount": 7,
+      "curveD0Count": 0,
+      "curveD1AttemptCount": 0,
+      "surfaceD0Count": 0,
+      "surfaceD1AttemptCount": 0,
+      "rationalOperationCount": 0,
+      "sourceWriterCallCount": 0,
+      "parentValidationCallCount": 0
+    },
+    "childReceiptCounts": {
+      "ruledObservationCount": 9,
+      "faceBindingCount": 12,
+      "boundaryCurveCount": 4,
+      "facePcurveCount": 4,
+      "ruledModelObjectCount": 3,
+      "faceModelObjectCount": 5
+    },
+    "sourceSizes": {
+      "original": {
+        "utf16": 621,
+        "utf8": 625
+      },
+      "ruled": {
+        "utf16": 483,
+        "utf8": 483
+      },
+      "face": {
+        "utf16": 712,
+        "utf8": 712
+      }
+    },
+    "fileSizes": {
+      "request": {
+        "utf16": 1017,
+        "utf8": 1021
+      },
+      "result": {
+        "utf16": 23644,
+        "utf8": 23648
+      }
+    },
+    "preservation": {
+      "completeOriginalSource": true,
+      "completeOriginalModel": true,
+      "originalSelectedCurveBits": true,
+      "originalUnselectedObjectBits": true,
+      "completeRuledReceipt": true,
+      "completeConvexFaceReceipt": true,
+      "selectedXZBasisWeightCopies": true,
+      "supportBitsAcrossDerivedContexts": true,
+      "naturalBoundaryDirections": true,
+      "sourceQualification": "retained-source-field-path-and-actual-model-name"
+    },
+    "quality": {
+      "nativeFaceConstructed": true,
+      "incidenceValid": true,
+      "geometricValidity": "not-certified",
+      "topologyCertified": false,
+      "solid": false,
+      "originalSourceEdited": false,
+      "faceTopologyEncodedInNativeSource": false,
+      "ownedRebuild": true,
+      "generalCurveOffset": false,
+      "arbitraryDirection": false,
+      "globalShapeErrorCertified": false,
+      "globalBinary64ErrorCertified": false,
+      "g1g2Certified": false,
+      "manufacturingToleranceCertified": false,
+      "editorDisplayCertified": false,
+      "persistentTopologyBindingCertified": false,
+      "publication": false,
+      "ownership": "independent-copied-cpu-data-gc"
+    },
+    "limits": {
+      "maximumOriginalModelObjects": 16,
+      "sourceUTF16": 262144,
+      "sourceUTF8": 262144,
+      "selectedDegree": 1,
+      "selectedPoles": 2,
+      "selectedKnots": 4,
+      "selectedCoordinateAbsMM": 10000,
+      "minimumLengthMM": 0.000001,
+      "minimumWidthMM": 0.000001,
+      "maximumWidthMM": 10000,
+      "maximumSectionCurves": 2,
+      "boundaryCurveCount": 4,
+      "maximumProducerDelegations": 7,
+      "maximumRoleIds": 26,
+      "identityCharacters": 48,
+      "facePrefixCharacters": 20,
+      "maximumRequestUTF16": 1048576,
+      "maximumRequestUTF8": 1048576,
+      "maximumResultUTF16": 2097152,
+      "maximumResultUTF8": 2097152,
+      "ownValues": 1048576,
+      "ownDepth": 64,
+      "arrayElements": 8192,
+      "recordFields": 64,
+      "keyCharacters": 128,
+      "stringCharacters": 262144
+    },
+    "workScope": "direct-wrapper-delegations-child-native-work-retained-in-full-receipts",
+    "budgetFailure": "atomic-no-partial-width-face-or-source"
+  },
+  "at10": {
+    "options": {
+      "evaluationId": "direct_prism_shell",
+      "resultIdPrefix": "dpx",
+      "distanceMM": 10,
+      "direction": "positive-z"
+    },
+    "boundsMM": {
+      "min": [
+        0,
+        -2.5,
+        0
+      ],
+      "max": [
+        100,
+        2.5,
+        10
+      ]
+    },
+    "axisProductDiagnosticMM3": 5000,
+    "shell": {
+      "schema": "barocss-closed-exact-patch-shell",
+      "version": 0,
+      "shellId": "direct_prism_shell",
+      "lengthUnit": "mm",
+      "sourceFrame": "authored-xyz-no-axis-conversion",
+      "faceCount": 6,
+      "edgeCount": 12,
+      "vertexClassCount": 8,
+      "vertexLinkCount": 8,
+      "cornerArcCount": 24,
+      "eulerCharacteristic": 2,
+      "globalFreeBoundaryCount": 0,
+      "connectedFaceGraph": true,
+      "orientedClosedIncidence": true,
+      "abstractIncidenceManifold": true,
+      "closed": true,
+      "solid": false,
+      "geometricValidity": "not-certified",
+      "embeddedManifoldCertified": false,
+      "selfIntersectionCertified": false,
+      "insideOutsideCertified": false,
+      "childPairEvaluationCount": 12,
+      "childDirectCounts": {
+        "sourceCompilationCount": 24,
+        "faceValidationCount": 24,
+        "boundaryExtractionCount": 24,
+        "curveReversalCount": 12,
+        "observationPairCount": 36,
+        "curvePointEvaluationCount": 72,
+        "curveDerivativeEvaluationCount": 72
+      },
+      "numericPolicy": {
+        "correspondence": "unchanged1013-two-assets-one-pair-whole-native-proof",
+        "vertexUnion": "only-actual-child-paired-endpoint-members-object-is-points",
+        "vertexRepresentative": "minimum-original-inventory-index",
+        "vertexLink": "incident-global-edges-with-qualified-face-corner-arcs",
+        "degree": "arc-multiplicity-included-one-incoming-one-outgoing",
+        "parallelCycle": "two-node-two-opposite-parallel-arcs-allowed",
+        "euler": "diagnostic-only-no-sphere-or-genus-claim",
+        "workCounts": "direct-root-child-calls-and-sum-of-actual-child-direct-counters-not-hidden-descendant-work"
+      },
+      "quality": {
+        "originalDataBitsPreserved": true,
+        "childClosedFalseScopePreserved": true,
+        "childLocalFreeBoundariesPreserved": true,
+        "weldingPerformed": false,
+        "sourceModelsMerged": false,
+        "supportRegularityCertified": false,
+        "continuityCertified": false,
+        "manufacturingToleranceCertified": false,
+        "globalBinary64ErrorCertified": false,
+        "persistentNamesCertified": false,
+        "ownership": "independent-copied-cpu-data-gc"
+      },
+      "budgetFailure": "complete-global-coverage-connectivity-budget-and-id-preflight-atomic-no-partial-shell",
+      "limits": {
+        "maximumAssets": 6,
+        "maximumPairs": 12,
+        "maximumPairEvaluations": 12,
+        "maximumObservationPairs": 36,
+        "maximumOriginalVertices": 24,
+        "ownValues": 1048576,
+        "ownDepth": 64,
+        "arrayElements": 8192,
+        "recordFields": 64,
+        "sourceStringCharacters": 262144,
+        "rootPrefixCharacters": 5,
+        "childPrefixCharacters": 8
+      }
+    },
+    "directCounts": {
+      "parentValidationCallCount": 1,
+      "ruledBuildCallCount": 4,
+      "parametricFaceBuildCallCount": 6,
+      "sourceAdoptionCallCount": 6,
+      "closedShellBuildCallCount": 1,
+      "constructionDelegationCount": 17,
+      "totalDelegationCount": 18,
+      "curveD0Count": 0,
+      "curveD1AttemptCount": 0,
+      "surfaceD0Count": 0,
+      "surfaceD1AttemptCount": 0,
+      "rationalOperationCount": 0,
+      "booleanCallCount": 0,
+      "affineTransformCallCount": 0,
+      "extrudeCurveCallCount": 0
+    },
+    "fileSizes": {
+      "request": {
+        "utf16": 12129,
+        "utf8": 12129
+      },
+      "result": {
+        "utf16": 332685,
+        "utf8": 332685
+      }
+    }
+  },
+  "at12": {
+    "options": {
+      "evaluationId": "direct_prism_shell",
+      "resultIdPrefix": "dpx",
+      "distanceMM": 12,
+      "direction": "positive-z"
+    },
+    "boundsMM": {
+      "min": [
+        0,
+        -2.5,
+        0
+      ],
+      "max": [
+        100,
+        2.5,
+        12
+      ]
+    },
+    "axisProductDiagnosticMM3": 6000,
+    "shell": {
+      "schema": "barocss-closed-exact-patch-shell",
+      "version": 0,
+      "shellId": "direct_prism_shell",
+      "lengthUnit": "mm",
+      "sourceFrame": "authored-xyz-no-axis-conversion",
+      "faceCount": 6,
+      "edgeCount": 12,
+      "vertexClassCount": 8,
+      "vertexLinkCount": 8,
+      "cornerArcCount": 24,
+      "eulerCharacteristic": 2,
+      "globalFreeBoundaryCount": 0,
+      "connectedFaceGraph": true,
+      "orientedClosedIncidence": true,
+      "abstractIncidenceManifold": true,
+      "closed": true,
+      "solid": false,
+      "geometricValidity": "not-certified",
+      "embeddedManifoldCertified": false,
+      "selfIntersectionCertified": false,
+      "insideOutsideCertified": false,
+      "childPairEvaluationCount": 12,
+      "childDirectCounts": {
+        "sourceCompilationCount": 24,
+        "faceValidationCount": 24,
+        "boundaryExtractionCount": 24,
+        "curveReversalCount": 12,
+        "observationPairCount": 36,
+        "curvePointEvaluationCount": 72,
+        "curveDerivativeEvaluationCount": 72
+      },
+      "numericPolicy": {
+        "correspondence": "unchanged1013-two-assets-one-pair-whole-native-proof",
+        "vertexUnion": "only-actual-child-paired-endpoint-members-object-is-points",
+        "vertexRepresentative": "minimum-original-inventory-index",
+        "vertexLink": "incident-global-edges-with-qualified-face-corner-arcs",
+        "degree": "arc-multiplicity-included-one-incoming-one-outgoing",
+        "parallelCycle": "two-node-two-opposite-parallel-arcs-allowed",
+        "euler": "diagnostic-only-no-sphere-or-genus-claim",
+        "workCounts": "direct-root-child-calls-and-sum-of-actual-child-direct-counters-not-hidden-descendant-work"
+      },
+      "quality": {
+        "originalDataBitsPreserved": true,
+        "childClosedFalseScopePreserved": true,
+        "childLocalFreeBoundariesPreserved": true,
+        "weldingPerformed": false,
+        "sourceModelsMerged": false,
+        "supportRegularityCertified": false,
+        "continuityCertified": false,
+        "manufacturingToleranceCertified": false,
+        "globalBinary64ErrorCertified": false,
+        "persistentNamesCertified": false,
+        "ownership": "independent-copied-cpu-data-gc"
+      },
+      "budgetFailure": "complete-global-coverage-connectivity-budget-and-id-preflight-atomic-no-partial-shell",
+      "limits": {
+        "maximumAssets": 6,
+        "maximumPairs": 12,
+        "maximumPairEvaluations": 12,
+        "maximumObservationPairs": 36,
+        "maximumOriginalVertices": 24,
+        "ownValues": 1048576,
+        "ownDepth": 64,
+        "arrayElements": 8192,
+        "recordFields": 64,
+        "sourceStringCharacters": 262144,
+        "rootPrefixCharacters": 5,
+        "childPrefixCharacters": 8
+      }
+    },
+    "directCounts": {
+      "parentValidationCallCount": 1,
+      "ruledBuildCallCount": 4,
+      "parametricFaceBuildCallCount": 6,
+      "sourceAdoptionCallCount": 6,
+      "closedShellBuildCallCount": 1,
+      "constructionDelegationCount": 17,
+      "totalDelegationCount": 18,
+      "curveD0Count": 0,
+      "curveD1AttemptCount": 0,
+      "surfaceD0Count": 0,
+      "surfaceD1AttemptCount": 0,
+      "rationalOperationCount": 0,
+      "booleanCallCount": 0,
+      "affineTransformCallCount": 0,
+      "extrudeCurveCallCount": 0
+    },
+    "fileSizes": {
+      "request": {
+        "utf16": 12129,
+        "utf8": 12129
+      },
+      "result": {
+        "utf16": 332621,
+        "utf8": 332621
+      }
+    }
+  },
+  "coldSources": [
+    {
+      "index": 0,
+      "sourceId": "dpx_src_0",
+      "modelName": "parametric_face",
+      "objectIds": [
+        "dpx_s_b",
+        "dpx_c_0_0",
+        "dpx_c_0_1",
+        "dpx_c_0_2",
+        "dpx_c_0_3"
+      ],
+      "sourceBytes": 709
+    },
+    {
+      "index": 1,
+      "sourceId": "dpx_src_1",
+      "modelName": "parametric_face",
+      "objectIds": [
+        "dpx_s_t",
+        "dpx_c_1_0",
+        "dpx_c_1_1",
+        "dpx_c_1_2",
+        "dpx_c_1_3"
+      ],
+      "sourceBytes": 721
+    },
+    {
+      "index": 2,
+      "sourceId": "dpx_src_2",
+      "modelName": "parametric_face",
+      "objectIds": [
+        "dpx_s_w_0",
+        "dpx_c_2_0",
+        "dpx_c_2_1",
+        "dpx_c_2_2",
+        "dpx_c_2_3"
+      ],
+      "sourceBytes": 723
+    },
+    {
+      "index": 3,
+      "sourceId": "dpx_src_3",
+      "modelName": "parametric_face",
+      "objectIds": [
+        "dpx_s_w_1",
+        "dpx_c_3_0",
+        "dpx_c_3_1",
+        "dpx_c_3_2",
+        "dpx_c_3_3"
+      ],
+      "sourceBytes": 729
+    },
+    {
+      "index": 4,
+      "sourceId": "dpx_src_4",
+      "modelName": "parametric_face",
+      "objectIds": [
+        "dpx_s_w_2",
+        "dpx_c_4_0",
+        "dpx_c_4_1",
+        "dpx_c_4_2",
+        "dpx_c_4_3"
+      ],
+      "sourceBytes": 711
+    },
+    {
+      "index": 5,
+      "sourceId": "dpx_src_5",
+      "modelName": "parametric_face",
+      "objectIds": [
+        "dpx_s_w_3",
+        "dpx_c_5_0",
+        "dpx_c_5_1",
+        "dpx_c_5_2",
+        "dpx_c_5_3"
+      ],
+      "sourceBytes": 705
+    }
+  ],
+  "finalOwnedValidation": {
+    "schema": "barocss-direct-convex-planar-face-extrusion-report",
+    "version": 0,
+    "lengthUnit": "mm",
+    "profile": "forward-natural-xy-rectangle-positive-z",
+    "evaluationId": "direct_prism_shell",
+    "parentFaceId": "width_face",
+    "parentModelName": "width_evaluation",
+    "direction": "positive-z",
+    "distanceMM": 12,
+    "normal": [
+      0,
+      0,
+      1
+    ],
+    "translationMM": [
+      0,
+      0,
+      12
+    ],
+    "boundsMM": {
+      "min": [
+        0,
+        -2.5,
+        0
+      ],
+      "max": [
+        100,
+        2.5,
+        12
+      ]
+    },
+    "diagnostics": {
+      "spanXMM": 100,
+      "spanYMM": 5,
+      "spanZMM": 12,
+      "volumeMM3": 6000,
+      "authority": "axis-range-product-diagnostic-not-volume-certificate"
+    },
+    "directCounts": {
+      "parentValidationCallCount": 1,
+      "ruledBuildCallCount": 4,
+      "parametricFaceBuildCallCount": 6,
+      "sourceAdoptionCallCount": 6,
+      "closedShellBuildCallCount": 1,
+      "constructionDelegationCount": 17,
+      "totalDelegationCount": 18,
+      "curveD0Count": 0,
+      "curveD1AttemptCount": 0,
+      "surfaceD0Count": 0,
+      "surfaceD1AttemptCount": 0,
+      "rationalOperationCount": 0,
+      "booleanCallCount": 0,
+      "affineTransformCallCount": 0,
+      "extrudeCurveCallCount": 0
+    },
+    "childReceiptCounts": {
+      "wallReceiptCount": 4,
+      "assetCount": 6,
+      "pairCount": 12,
+      "pairProofCount": 12,
+      "acceptedVertexClassCount": 8,
+      "acceptedEdgeCount": 12,
+      "acceptedFaceCount": 6,
+      "vertexLinkCount": 8,
+      "cornerArcCount": 24,
+      "globalFreeBoundaryCount": 0,
+      "reservedOriginalInventorySlots": 24
+    },
+    "shellChildDirectCounts": {
+      "sourceCompilationCount": 24,
+      "faceValidationCount": 24,
+      "boundaryExtractionCount": 24,
+      "curveReversalCount": 12,
+      "observationPairCount": 36,
+      "curvePointEvaluationCount": 72,
+      "curveDerivativeEvaluationCount": 72
+    },
+    "sourceSizes": {
+      "parent": {
+        "utf16": 712,
+        "utf8": 712
+      },
+      "assets": [
+        {
+          "assetIndex": 0,
+          "sourceId": "dpx_src_0",
+          "size": {
+            "utf16": 709,
+            "utf8": 709
+          }
+        },
+        {
+          "assetIndex": 1,
+          "sourceId": "dpx_src_1",
+          "size": {
+            "utf16": 721,
+            "utf8": 721
+          }
+        },
+        {
+          "assetIndex": 2,
+          "sourceId": "dpx_src_2",
+          "size": {
+            "utf16": 723,
+            "utf8": 723
+          }
+        },
+        {
+          "assetIndex": 3,
+          "sourceId": "dpx_src_3",
+          "size": {
+            "utf16": 729,
+            "utf8": 729
+          }
+        },
+        {
+          "assetIndex": 4,
+          "sourceId": "dpx_src_4",
+          "size": {
+            "utf16": 711,
+            "utf8": 711
+          }
+        },
+        {
+          "assetIndex": 5,
+          "sourceId": "dpx_src_5",
+          "size": {
+            "utf16": 705,
+            "utf8": 705
+          }
+        }
+      ],
+      "walls": [
+        {
+          "utf16": 478,
+          "utf8": 478
+        },
+        {
+          "utf16": 482,
+          "utf8": 482
+        },
+        {
+          "utf16": 470,
+          "utf8": 470
+        },
+        {
+          "utf16": 466,
+          "utf8": 466
+        }
+      ]
+    },
+    "fileSizes": {
+      "request": {
+        "utf16": 12129,
+        "utf8": 12129
+      },
+      "result": {
+        "utf16": 332621,
+        "utf8": 332621
+      }
+    },
+    "preservation": {
+      "completeOriginalConvexInput": true,
+      "completeWallReceipts": true,
+      "completeShellAssetsAndPairProofs": true,
+      "sourceModelsNotMerged": true,
+      "originalXYAndBasisWeightBits": true,
+      "bottomUVPermutation": true,
+      "noOriginalCurveRenaming": true,
+      "noBooleanProvenanceFabricated": true,
+      "noEndpointWelding": true
+    },
+    "quality": {
+      "closed": true,
+      "orientedClosedIncidence": true,
+      "abstractIncidenceManifold": true,
+      "geometricValidity": "not-certified",
+      "solid": false,
+      "embeddedManifoldCertified": false,
+      "selfIntersectionCertified": false,
+      "insideOutsideCertified": false,
+      "supportRegularityCertified": false,
+      "continuityCertified": false,
+      "volumeCertified": false,
+      "globalBinary64ErrorCertified": false,
+      "manufacturingToleranceCertified": false,
+      "editorDisplayCertified": false,
+      "publication": false,
+      "ownedRebuild": true,
+      "ownership": "independent-copied-cpu-data-gc"
+    },
+    "limits": {
+      "minimumDistanceMM": 0.000001,
+      "maximumDistanceMM": 10000,
+      "coordinateAbsMM": 10000,
+      "maximumWalls": 4,
+      "maximumAssets": 6,
+      "maximumPairs": 12,
+      "maximumPairEvaluations": 12,
+      "maximumObservationPairs": 36,
+      "maximumModelObjects": 16,
+      "sourceUTF16": 262144,
+      "sourceUTF8": 262144,
+      "identityCharacters": 48,
+      "rootPrefixCharacters": 5,
+      "childPrefixCharacters": 8,
+      "maximumRequestUTF16": 2097152,
+      "maximumRequestUTF8": 2097152,
+      "maximumResultUTF16": 4194304,
+      "maximumResultUTF8": 4194304,
+      "ownValues": 1048576,
+      "ownDepth": 64,
+      "arrayElements": 8192,
+      "recordFields": 64,
+      "keyCharacters": 128,
+      "stringCharacters": 262144
+    },
+    "workScope": "parent-validation-and-new-construction-delegations-child-work-retained-separately",
+    "budgetFailure": "atomic-no-partial-direct-face-extrusion-or-shell"
+  },
+  "refusal": {
+    "name": "ConvexPlanarFaceExtrusionError",
+    "code": "DISTANCE",
+    "message": "Direct Convex Face extrusion: Positive distance must be finite and in1e-6..10000mm"
+  },
+  "download": {
+    "path": "/examples/cad-line-width-shell.json",
+    "format": "barocss-docs-line-width-extrusion-context",
+    "bytes": 374346,
+    "sha256": "f91644774c356d2f814574d42b4a211b9374eb67101c6b362a9a4fe655e78fbb",
+    "negativeZeroCount": 196
+  },
+  "originalSourceAndUnselectedModelRetained": true,
+  "fullWidthAndParentRetained": true,
+  "acceptedReferenceAndValueRetained": true,
+  "callerInputsUnchanged": true,
+  "actualGL": false,
+  "scope": "One public Line-width-Face/direct-Face-extrusion composition, height10→12, six source cold compiles, zero-distance refusal and one final reopened owned validation. No Solid, certified volume, geometric embedding, renderer or publication claim.",
+  "sourceProfile": {
+    "sourcePin": "fd0def8e1a2c55ecfa66daf5116347c37185ba4b",
+    "verifiedBlobs": 198,
+    "ownSourceInputs": 196,
+    "ownDistInputs": 0,
+    "packageVersions": {
+      "cad": "0.0.0-experimental"
+    },
+    "publicImports": [
+      "@barocss/cad"
+    ]
+  }
+}

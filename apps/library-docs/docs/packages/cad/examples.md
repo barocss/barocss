@@ -10,6 +10,10 @@ Use [CAD language practice](./language-examples) for weighted parameters, curved
 
 [Shape a quadratic rational Surface](./rational-surface) with nine poles, a typed rise and a central weight. [Open the rational dome](/examples/language#cad-rational-dome) to compare its fixed boundary curves with the changed interior and evaluated grid.
 
+## Build a width Face and a closed abstract Shell
+
+Use [the original Line-width extrusion example](./line-width-extrusion) to create a 5 mm centered Face from a selected Line in a complete mixed model, then change its +Z distance from 10 to 12 mm. Read the six native Faces and twelve qualified pairs without treating the closed abstract Shell as a certified Solid.
+
 ## Edit sections and rebuild a Loft
 
 Use the [complete NURBS Loft graph example](./nurbs-loft-graph) to change a middle section pole and weight, preserve unrelated original geometry, and inspect affected versus reused results. The guide uses a separate newer API version and explains authored Save/Open versus complete evaluated result ingestion.

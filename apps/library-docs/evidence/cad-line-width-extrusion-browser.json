@@ -1,0 +1,66 @@
+{
+  "production": {
+    "receiptKind": "cad-line-width-extrusion-production",
+    "guideUrl": "http://127.0.0.1:52948/packages/cad/line-width-extrusion#interpret-the-result",
+    "codeBlocks": 1,
+    "originalSource": "/* \uc124\uacc4: retain the complete original Model and unselected geometry. */\r\n@model width_surface { version: 0; length-unit: mm;\r\n  @curve #untouched_curve { type: nurbs; degree: 2;\r\n    knots: [-2.000,-2,-2,3,3,3]; control-points: [[-0,2,1],[3,4,2],[6,2,1]]; weights: [1,2,1]; }\r\n  @curve #original_line { type: nurbs; degree: 1;\r\n    knots: [0,0,1,1]; control-points: [[0,-0,0],[100,0,0]]; weights: [1,1]; }\r\n  @surface #untouched_surface { type: nurbs; degree-u: 1; degree-v: 1;\r\n    knots-u: [0.000,0,1,1.00]; knots-v: [-1,-1,2,2];\r\n    control-points: [[[2,3,-0],[2,5,1]],[[4,3,2],[4,5,4]]]; weights: [[1,2],[3,4]]; }\r\n}\r\n",
+    "fullFaceArgument": true,
+    "width5": true,
+    "height12": true,
+    "solidFalse": true,
+    "volumeNotCertified": true,
+    "downloadHref": "/examples/cad-line-width-shell.json",
+    "mobile": {
+      "scrollWidth": 390,
+      "width": 390
+    },
+    "downloadClickFailure": "Timed out after 10000ms waiting for download.",
+    "documentedLinkDownloadFile": "/Users/user/Downloads/cad-line-width-shell.json",
+    "logs": []
+  },
+  "fullGuideSourceMatchesExecutedConsumer": true,
+  "physicalDownload": {
+    "physicalPath": "/Users/user/Downloads/cad-line-width-shell.json",
+    "bytes": 374346,
+    "sha256": "f91644774c356d2f814574d42b4a211b9374eb67101c6b362a9a4fe655e78fbb",
+    "sourceAndBuiltAndDownloadedBytesEqual": true,
+    "format": "barocss-docs-line-width-extrusion-context",
+    "negativeZeroCount": 196,
+    "originalObjectIds": [
+      "untouched_curve",
+      "original_line",
+      "untouched_surface"
+    ],
+    "distanceMM": 12,
+    "assetSources": 6,
+    "pairs": 12,
+    "solid": false,
+    "qualification": "Native anchor click timed out and no physical file was observed. Documented browser downloadMedia on the observed link then saved this file. No native-click success or new package/file-UI certification claimed."
+  },
+  "build": {
+    "seconds": 25.22,
+    "pages": 96,
+    "internalLinks": 5333,
+    "imageAssets": 43,
+    "downloads": 2,
+    "manifestHashes": "matched",
+    "presets": 34,
+    "categories": {
+      "api": 7,
+      "language": 26,
+      "integration": 1
+    },
+    "generatedModules": 6
+  },
+  "screenshot": {
+    "path": "/tmp/cad-line-width-extrusion-guide.jpg",
+    "bytes": 97160,
+    "sha256": "1b62d965f47f20a8c18f7cdeb957caf8c721441da1cb72ed952ef8a238ce8ee8",
+    "uneditedNativeBytes": true
+  },
+  "limits": [
+    "Public CPU consumer independently executed once; browser flow reads the actual guide, not package runtime.",
+    "Native anchor click timed out with no file observed. Browser documented link download saved matching bytes.",
+    "No rendered Solid, graphics adapter, general document parser, integrated Root or publication claim."
+  ]
+}
