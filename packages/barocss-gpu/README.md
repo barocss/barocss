@@ -4062,3 +4062,104 @@ flow. CPU/source results do not establish WGSL device/interpolation/pixels,
 physical picking, lifecycle, consumer TEN/schema/history/current-Root acceptance,
 Integration adoption or publication. The original browser denial and deferred
 rendering acceptance remain unchanged.
+
+### Required-WebGPU native Surface UV01 viewport (#1574)
+
+`await mountNativeSurfaceUV01WebGPUViewport(canvas, rawRequest, { width, height })`
+adds an explicit, required-WebGPU route for the complete raw request described in
+#1569 above. Supply a fresh current-realm `HTMLCanvasElement`; route-local canvas
+claims prevent duplicate mounts through this route, not mounts by other backends.
+Options contain exactly own enumerable plain-data `width` and `height`: finite
+integers 1–1024, at most 1048576 backing pixels, with no defaults. Accessors,
+hidden/extra/symbol fields and reflection failures are refused without invoking
+getters. No fallback, backend default, legacy admission or public device injection
+is added. The host must explicitly remount after device loss.
+
+The viewport exposes `canvas`, `originals`, `selected`, `status`,
+`updateFrame(input)`, `resize(width, height)`, `readPixels()`, `pick(x, y)`,
+`select(ref | null)` and `dispose()`. Mount rejects with
+`NativeSurfaceUV01WebGPUError`; updates/resizes return `Promise<UpdateResult>`,
+selection returns `UpdateResult`, and failed reads/picks reject. Diagnostic codes
+are exactly `INPUT`, `FRAME`, `BUDGET`, `UNSUPPORTED`, `INIT`, `DEVICE_LOST`,
+`RENDER`, `STATE`, `BUSY`, with messages at most 1024 characters. A provider
+refusal is `FRAME` with the exact `NativeSurfaceUV01FrameError` cause, including
+nested diagnostics/spans. Local refusals do not invent causes; reflection failures
+preserve their exact own cause, even `undefined`.
+
+Every admitted mount/update/resize synchronously invokes the real #1569 frame
+provider once before any device await. Resize recompiles retained raw originals,
+not prepared observations or the common legacy frame. Each `originals` read is a
+fresh independent recursively frozen ordinary copy of the complete raw request,
+including source text and signed Numbers. Upload buffers never become public
+viewport observations. Caller-owned source/body/asset/TEN/current-display
+correspondence is still required; aliases and equal-sized arrays do not prove it.
+The provider's 1–4 native-bound Surface profile and all its budgets remain intact.
+
+Each draw consumes its trusted complete program and declared entry points. Slots
+0/1/2 upload positions/normals/UV01 verbatim as Float32x3/Float32x3/Float32x2 with
+strides 12/12/8; the fourth geometry buffer is padded U16 indices with the provider's
+unchanged index count. Group 0 bindings 0/1/2 are the unchanged 160/64/16-byte
+frame/material/draw blocks, with explicit minimum binding sizes and stage visibility.
+This is seven buffers, one bind group and one pipeline per draw, plus shared
+`rgba8unorm`, `r32uint`, `depth24plus` attachments. Rendering is triangle-list,
+cull-none, opaque/no-blend, depth-write/less and single-sample. Identity clears to
+zero and each draw uploads its provider token `i + 1`. There is no second pose,
+normal, millimetre, UV or color transform. Presentation copies offscreen RGBA8 to
+a fixed opaque RGBA8 canvas configuration.
+
+`status` is an independent immutable observation with backend `webgpu`, profile
+`source0-native-surface-uv01-webgpu-v0`, state `ready | lost | failed | disposed`,
+generation, dimensions, actual snapshotted limits and the existing eleven-field
+logical resource ledger. Generation starts at one only after accepted presentation.
+The actual limits include texture dimension and max buffer size, uniform binding
+size ≥160, color attachments ≥2 and render-target bytes/sample ≥12, vertex buffers/attributes ≥3,
+bind groups ≥1, vertex stride ≥12, uniform buffers/shader stage ≥3 and bindings/group
+≥3. Render-target cost is 8 for RGBA8 plus 4 for R32uint; the logical packed
+color/identity storage ledger remains 8 bytes per pixel. Candidate dimensions,
+every upload, full padded readback and 256-byte pick
+staging must fit before allocation. Provider candidate charge remains ≤32 MiB;
+accepted + candidate + maximum readback logical charge must be ≤64 MiB. Logical
+depth bytes/counts are not driver measurements, and no sampled texture/sampler
+support is inferred. Resources report zero after owned resources are released.
+
+One asynchronous operation may run at a time; a `BUSY` refusal does not release
+the active operation's lock. Host backing-size changes outside `resize` are
+refused. Candidates compile/upload/render offscreen, present successfully, then
+commit raw originals/generation/selection and release old resources. Recoverable
+candidate failures preserve accepted metadata/resources. A failed presentation
+restores backing dimensions and re-presents the accepted scene; failed recovery
+or cleanup is terminal. Ten-second bounded waits, epoch invalidation, late-device
+destruction and late-map unmapping prevent pending work from reviving a disposed
+viewport. Actual device loss (including rejection of its loss promise) is terminal;
+no automatic backend switch occurs. Disposal is idempotent, cancels waits, releases
+route claims/context/device/resources and preserves primary plus cleanup failures.
+
+`readPixels()` returns an independent tightly packed, top-left RGBA byte array,
+removing WebGPU's 256-byte row padding. `pick(x, y)` accepts bounded integer
+backing pixels in that same orientation and returns `{ generation, ref }`, where
+`ref` is the complete model/geometry pair or `null` for background; invalid identity
+tokens are `RENDER` refusals. Selection is metadata only, survives reordering by
+full pair and clears when the selected pair disappears; there is no highlight shader.
+
+After the affected GPU type-check and library build, run:
+
+```sh
+node --test packages/barocss-gpu/tests/native-surface-uv01-webgpu-viewport.test.mjs
+node examples/gpu-scene/native-surface-uv01-webgpu-runtime-flow.mjs --output ABS_FRESH
+```
+
+These are **DETERMINISTIC SOFTWARE EVIDENCE**. The private fake browser boundary
+exercises actual source-derived admission and runtime control flow, not a graphics
+device. The source/emitted/public-API/original-file/cold flow saves complete raw
+requests, native sources and material sources and reopens/recompiles them in a fresh
+process; prepared output is never cold authority. The defensive 32/64 MiB runtime
+caps are not claimed as exercised real-data branches when earlier provider limits
+make them unreachable. The existing #1569 no-mock qualifier is unchanged.
+
+Real-device WGSL compilation, upload/interpolation/shared-depth pixels with an
+independent declared tolerance, physical identity picking, update/refusal pixel
+retention, file remount and driver/loss/lifetime acceptance remain UNRUN. A permitted
+genuine cloud-browser acceptance is the next dependency, followed by named-consumer
+original-source/TEN/current-display integration. This software implementation does
+not establish #1512 milestone-4 completion, default readiness, consumer acceptance,
+publication or release; the original Mac graphics denial is not bypassed.

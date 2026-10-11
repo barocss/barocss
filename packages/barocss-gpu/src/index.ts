@@ -236,3 +236,7 @@ export type { LoweredNativeSurfaceUV01ProgramWGSL } from './native-surface-uv01-
 // Source-derived native UV01 frame admission and checked CPU upload bytes; no GPU allocation.
 export { prepareNativeSurfaceUV01Frame, NativeSurfaceUV01FrameError, NativeSurfaceUV01FrameDiagnosticCode } from './native-surface-uv01-frame.js';
 export type { NativeSurfaceUV01FrameRequest, NativeSurfaceUV01FrameEntry, NativeSurfaceUV01FrameOptions, NativeSurfaceUV01FrameDraw, NativeSurfaceUV01FrameResources, PreparedNativeSurfaceUV01Frame } from './native-surface-uv01-frame.js';
+
+// Explicit required-WebGPU viewport for source-derived native Surface UV01 requests.
+export { mountNativeSurfaceUV01WebGPUViewport, NativeSurfaceUV01WebGPUError, NativeSurfaceUV01WebGPUDiagnosticCode } from './native-surface-uv01-webgpu-viewport.js';
+export type { NativeSurfaceUV01WebGPUViewport, NativeSurfaceUV01WebGPUOptions, NativeSurfaceUV01WebGPUStatus, NativeSurfaceUV01WebGPULimits, NativeSurfaceUV01WebGPUPick } from './native-surface-uv01-webgpu-viewport.js';
