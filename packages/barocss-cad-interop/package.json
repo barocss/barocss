@@ -186,6 +186,10 @@
       "./source-knot-aligned-loft": {
         "types": "./dist/source-knot-aligned-loft.d.ts",
         "import": "./dist/source-knot-aligned-loft.js"
+      },
+      "./source-curve-interval-extraction": {
+        "types": "./dist/source-curve-interval-extraction.d.ts",
+        "import": "./dist/source-curve-interval-extraction.js"
       }
     }
   },
@@ -374,6 +378,10 @@
     "./source-knot-aligned-loft": {
       "types": "./src/source-knot-aligned-loft.ts",
       "import": "./src/source-knot-aligned-loft.ts"
+    },
+    "./source-curve-interval-extraction": {
+      "types": "./src/source-curve-interval-extraction.ts",
+      "import": "./src/source-curve-interval-extraction.ts"
     }
   },
   "files": [

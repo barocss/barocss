@@ -3738,3 +3738,13 @@ The exact four-field result contains `native`, `validationReport`, `profile`, an
 This family uses a dedicated 16 MiB UTF-8/UTF-16 and 4,194,304-value-per-pass codec. Its limits, error codes, and messages are fixed. Native refusal is reported as `NATIVE` with the original CAD error as its cause. The module provides CPU data; it does not render or edit a Loft.
 
 The runnable `examples/source-knot-aligned-loft-native-verify.mjs` checks public source or emitted code with `--mode source|emitted --output ABS_FRESH`. It retains three authentic complete results and reopens their saved native files in a separate process. The paired requests and editor receipts are provenance data.
+
+### Complete source Curve interval extraction result
+
+Import `@barocss/cad-interop/source-curve-interval-extraction` to read a saved complete native interval extraction result. `parseBaroCadSourceCurveIntervalExtraction(text)` accepts strict JSON text. `readBaroCadSourceCurveIntervalExtraction(value)` accepts owned data. Both return exactly `native`, `validationReport`, `profile` and `sourceText`.
+
+The reader retains the supplied request, original and extracted Source0, both Models, both Curves, complete provenance and report. Native data and the actual returned validation report are independent mutable copies. The profile is deeply frozen. `sourceText` retains the admitted JSON text or is `null` for owned reads. Original parameter bits, native endpoint adoption and numeric `-0` remain unchanged.
+
+Each eligible read calls the whole CAD validator once. Raw and canonical JSON have a 2MiB UTF8/UTF16 limit and a separate 1M-value budget per copy pass. Dedicated codec errors remain direct; native refusal keeps its original CAD error as the `NATIVE` cause. This module exposes CPU data. Engine objects and Source editing use their respective APIs.
+
+The `source-curve-interval-extraction-native-verify.mjs` example runs the source or published-file flow, saved-file reads and a separate process that opens all four saved results. It also checks the selected published types in emitted mode. See Issue #1397 for executed checks and their scope.
