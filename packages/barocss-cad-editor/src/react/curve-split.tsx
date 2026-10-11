@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { ScissorsLineDashed } from 'lucide-react';
 import { createCadGeometryReference, curveDomain } from '@barocss/cad';
 import { CadEditorError, type CadEditorSession } from '../types.js';
 import type { CadEditorDisplayReceipt } from './types.js';
@@ -158,8 +159,8 @@ export function CurveSplitControls({ session }: { session: CadEditorSession }) {
       run();
     } catch (cause) { mode!.report(cause); }
   }
-  return <div className="curve-split-panel">{!mode.active ? <Button type="button" variant="outline" size="sm" data-testid="curve-split-open" disabled={busy || foreign}
-    onClick={() => action(mode.open, false, true)}>Split Curve</Button> : <div className="curve-split-mode" data-testid="curve-split-mode">
+  return <div className="curve-split-panel">{!mode.active ? <Button type="button" variant="outline" size="sm" data-testid="curve-split-open" className="cad-editor-operation-icon" aria-label="Split Curve" title="Split Curve" disabled={busy || foreign}
+    onClick={() => action(mode.open, false, true)}><ScissorsLineDashed size={16} aria-hidden="true" /></Button> : <div className="curve-split-mode" data-testid="curve-split-mode">
       <div className="cad-editor-inspector-title"><h3 className="cad-editor-heading">Split Curve</h3><Dialog open={helpOpen} onOpenChange={setHelpOpen}>
         <DialogTrigger asChild><Button type="button" variant="ghost" size="xs" data-testid="curve-split-help" disabled={mode.gesture.current}>Help</Button></DialogTrigger>
         <DialogContent className="cad-editor-help-dialog" data-testid="curve-split-help-dialog"><DialogHeader><DialogTitle>Curve split</DialogTitle><DialogDescription>Make two new Curves. Keep the original.</DialogDescription></DialogHeader>

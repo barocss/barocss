@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { Scissors } from 'lucide-react';
 import { createCadGeometryReference, surfaceDomain } from '@barocss/cad';
 import { CadEditorError, type CadEditorSession, type CadEditorSurfaceSplitAxis } from '../types.js';
 import type { CadEditorDisplayReceipt } from './types.js';
@@ -167,8 +168,8 @@ export function SurfaceSplitControls({ session }: { session: CadEditorSession })
       run();
     } catch (cause) { mode!.report(cause); }
   }
-  return <div className="surface-split-panel">{!mode.active ? <Button type="button" variant="outline" size="sm" data-testid="surface-split-open" disabled={busy || foreign}
-    onClick={() => action(mode.open, false, true)}>Split Surface</Button> : <div className="surface-split-mode" data-testid="surface-split-mode">
+  return <div className="surface-split-panel">{!mode.active ? <Button type="button" variant="outline" size="sm" data-testid="surface-split-open" className="cad-editor-operation-icon" aria-label="Split Surface" title="Split Surface" disabled={busy || foreign}
+    onClick={() => action(mode.open, false, true)}><Scissors size={16} aria-hidden="true" /></Button> : <div className="surface-split-mode" data-testid="surface-split-mode">
       <div className="cad-editor-inspector-title"><h3 className="cad-editor-heading">Split Surface</h3><Dialog open={helpOpen} onOpenChange={setHelpOpen}>
         <DialogTrigger asChild><Button type="button" variant="ghost" size="xs" data-testid="surface-split-help" disabled={mode.gesture.current}>Help</Button></DialogTrigger>
         <DialogContent className="cad-editor-help-dialog" data-testid="surface-split-help-dialog"><DialogHeader><DialogTitle>Surface split</DialogTitle><DialogDescription>Make two new Surfaces. Keep the original.</DialogDescription></DialogHeader>

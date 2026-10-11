@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import { Focus, PanelsTopLeft, CircleHelp } from 'lucide-react';
 import { CadEditorError } from '../types.js';
 import type { CadEditorPoleField } from '../types.js';
 import { cn } from '../lib/utils.js';
@@ -134,8 +135,8 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
     <div className="cad-editor-inspector-title">
       <h2 className="cad-editor-heading">{scaleMode ? 'Scale object' : rotationMode ? 'Rotate object' : objectMode ? 'Move object' : curveSelection ? 'Curve point' : selection ? 'Control point' : 'Object'}</h2>
       <Dialog>
-        <DialogTrigger asChild><Button type="button" variant="ghost" size="xs" data-testid="cad-editor-help"
-          aria-label="Control point editing help">Help</Button></DialogTrigger>
+        <DialogTrigger asChild><Button type="button" variant="ghost" size="xs" className="cad-editor-operation-icon" data-testid="cad-editor-help"
+          aria-label="Control point editing help" title="Control point editing help"><CircleHelp size={16} aria-hidden="true" /></Button></DialogTrigger>
         <DialogContent className="cad-editor-help-dialog">
           <DialogHeader><DialogTitle>Control point editing help</DialogTitle>
             <DialogDescription>Current native requirements and document details.</DialogDescription></DialogHeader>
@@ -309,10 +310,10 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
     {selectedKind==='curve'&&!interval?.active&&!knot?.active&&!curveKnot?.active&&!isoCurve?.active&&!region?.active&&!split?.active&&!surfaceSplit?.active&&<CurveJoinControls session={session} onError={onError} />}
     <div className="cad-editor-context-tools" role="group" aria-label="Object operations" data-active={contextActive}>
     <div className="cad-editor-curve-view-actions cad-editor-context-entry" data-active={false}>
-      {curveSelection && <Button type="button" variant="outline" size="sm" data-testid="curve-focus" disabled={busy || transition !== null}
-        onClick={() => action(() => { session.prepareCurveFocus(curveSelection.bodyId, 65); })}>Focus Curve</Button>}
-      {snapshot.view.kind === 'curve-focus' && <Button type="button" variant="outline" size="sm" data-testid="curve-return-document" disabled={busy || transition !== null}
-        onClick={() => action(() => { session.prepareDocumentView(); })}>Return to document view</Button>}
+      {curveSelection && <Button type="button" variant="outline" size="sm" className="cad-editor-operation-icon" aria-label="Focus Curve" title="Focus Curve" data-testid="curve-focus" disabled={busy || transition !== null}
+        onClick={() => action(() => { session.prepareCurveFocus(curveSelection.bodyId, 65); })}><Focus size={16} aria-hidden="true" /></Button>}
+      {snapshot.view.kind === 'curve-focus' && <Button type="button" variant="outline" size="sm" className="cad-editor-operation-icon" aria-label="Return to document view" title="Return to document view" data-testid="curve-return-document" disabled={busy || transition !== null}
+        onClick={() => action(() => { session.prepareDocumentView(); })}><PanelsTopLeft size={16} aria-hidden="true" /></Button>}
     </div>
     {selectedKind === 'curve' && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active && <div className="cad-editor-context-entry" data-active={interval?.active === true}><CurveIntervalControls session={session} /></div>}
     {selectedKind === 'curve' && !interval?.active && !knot?.active && !isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active && <div className="cad-editor-context-entry" data-active={curveKnot?.active === true}><CurveKnotControls session={session} /></div>}

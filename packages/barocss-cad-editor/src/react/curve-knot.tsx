@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { SplinePointer } from 'lucide-react';
 import { createCadGeometryReference, curveDomain } from '@barocss/cad';
 import { CadEditorError, type CadEditorSession } from '../types.js';
 import type { CadEditorDisplayReceipt, CadEditorCurvePresentationReceipt } from './types.js';
@@ -158,8 +159,8 @@ export function CurveKnotControls({ session }: { session: CadEditorSession }) {
       run(); } catch (cause) { mode!.report(cause); }
   }
   return <div className="curve-knot-panel">
-    {!mode.active ? <Button type="button" variant="outline" size="sm" data-testid="curve-knot-open" disabled={busy || foreign}
-      onClick={() => action(mode.open, false, true)}>Insert knot</Button> : <div data-testid="curve-knot-mode">
+    {!mode.active ? <Button type="button" variant="outline" size="sm" data-testid="curve-knot-open" className="cad-editor-operation-icon" aria-label="Insert knot" title="Insert knot" disabled={busy || foreign}
+      onClick={() => action(mode.open, false, true)}><SplinePointer size={16} aria-hidden="true" /></Button> : <div data-testid="curve-knot-mode">
       <div className="cad-editor-inspector-title"><h3 className="cad-editor-heading">Insert knot</h3><Dialog open={helpOpen} onOpenChange={setHelpOpen}>
         <DialogTrigger asChild><Button type="button" variant="ghost" size="xs" data-testid="curve-knot-help" disabled={mode.gesture.current}>Help</Button></DialogTrigger>
         <DialogContent className="cad-editor-help-dialog" data-testid="curve-knot-help-dialog"><DialogHeader><DialogTitle>Original Curve knot</DialogTitle>

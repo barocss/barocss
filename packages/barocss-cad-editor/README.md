@@ -965,3 +965,7 @@ Native ID-mode preflight may make up to four calls. It retries only the exact ty
 The Editing rail settings icon opens the existing movement, rotation or scale settings. The panel starts closed. Closing it only hides its DOM; snap values, input text and axis choices remain mounted. An active validation error exposes the relevant settings for correction. The icon provides an accessible name, expansion state and keyboard activation.
 
 Curve, Surface, rotation and scale overlays show short status text during a gesture or pending edit. Idle instructions are hidden. A genuine unavailable-projection message remains available. Settings visibility does not change Native Source, candidate approval, history or Canvas size. Gesture Escape keeps its existing cancellation behavior.
+
+### Inspector operation icons
+
+Idle object operations use 36px icon buttons. Their previous command names remain available through title and aria-label. The existing controllers, visibility rules, guards and active form inputs remain in place. Rename, Join, Focus, Return, interval, knot, iso-Curve, region and split entries use installed SVG icons. Field labels, values, validation messages and active Apply/Create/Discard/Cancel decisions remain readable.
