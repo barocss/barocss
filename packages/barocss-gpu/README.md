@@ -2877,3 +2877,27 @@ This stage proves authored catalog/file reconstruction and derived CPU direction
 New native frames, shader/uniform consumption, linked programs, pixels, Viewer
 accepted state, recovery/disposal and Render history/versioned files remain
 separate stages under #1445. Point/Spot lights and attachment remain future work.
+
+
+### Bounded authored Scene repeats
+
+`compileFiniteRepeatAffineSceneSource(source)` is a separate opt-in Source2 compiler. For example:
+
+```css
+@scene row {
+  version: 2;
+  @param extent: length(1scene);
+  @repeat studs:sphere(3);
+}
+sphere { radius: $extent; }
+#studs_0 { translate: -3 0 0; }
+#studs_2 { translate: 3 0 0; }
+```
+
+The repeat has one ASCII prefix (1..32 characters), one existing shape and a canonical positive decimal count (1..32). Up to eight repeats share the existing 32-object scene limit. Each creates stable `prefix_0` through `prefix_(count-1)` IDs, in declaration/index order. Explicit objects can interleave; collisions refuse without renumbering. Existing type and ID selectors, typed parameters and flat arithmetic supply coefficients. Parameters must precede objects/repeats. No body, index variable, zero count, condition, nesting or runtime loop is supported.
+
+The distinct version0 result/profile `source2-typed-finite-repeat-coefficients-v0` retains original source and authored AST. Each repeat retains nine actual tokens/ranges; generated objects occur only in canonical Scene2, with separate `generation` records (`nodeId`, `prefix`, `index`, `declaration`). Private derived ID tokens use original prefix origin ranges and are never presented as authored ID tokens. Ranges count UTF16 units and LF lines. Scene units, original Number coefficients, existing native AffineScene2 and shader contracts stay the same.
+
+Original source is limited to 64KiB UTF16/UTF8, parameters16, references1536, rules128, fields512 and cumulative work4096. Each repeat adds10 work units and each generated object adds4 before expansion; existing parameter/expression charges also apply. Shaders remain64KiB each; the complete signed result remains2MiB before fresh copying/freezing. Rejections use `SceneParameterSourceError`. Older literal, product and arithmetic compilers retain their schemas and reject repeats.
+
+Rerun the bounded complete-source/file/cold qualifier with `node examples/gpu-scene/scene-finite-repeat-flow.mjs --output ABS_FRESH`. This proves CPU source authoring and lowering. Rendering, consumer document upgrades and publication require separate acceptance.

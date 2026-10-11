@@ -19,6 +19,13 @@ export class SceneParameterSourceError extends Error {
     this.diagnostics = freezeGpuData(owned);
   }
 }
+/** Authored repeat tokens retain actual source spans; generated IDs are separate provenance. */
+export interface SceneRepeatDeclaration {
+  kind: 'repeat'; prefix: SceneToken; type: SceneToken; count: SceneToken; tokens: SceneToken[]; range: SourceRange;
+}
+export interface SceneGenerationRecord {
+  nodeId: string; prefix: string; index: number; declaration: SourceRange;
+}
 type Quantity = 'scalar' | 'length' | 'angle';
 export interface SceneParameterDeclaration {
   kind: 'parameter'; name: SceneToken; quantity: SceneToken; literal: SceneToken; range: SourceRange;
@@ -100,7 +107,7 @@ function literalValue(quantity: Quantity, literal: SceneToken): number {
   if (!Number.isFinite(value) || Math.abs(value) > maximum) fail('RANGE', `Parameter ${quantity} must be finite within ${maximum}`, literal.range);
   return value === 0 ? 0 : value;
 }
-function definitions(source: string, tokens: SceneToken[], range: (start: number, end: number) => SourceRange): Definition[] {
+function definitions(source: string, tokens: SceneToken[], range: (start: number, end: number) => SourceRange, repeats?: SceneRepeatDeclaration[]): Definition[] {
   const eof: SceneToken = { text: '', range: range(source.length, source.length) };
   let cursor = 0, phase: 'headers' | 'parameters' | 'objects' = 'headers';
   const peek = () => tokens[cursor] ?? eof;
@@ -124,6 +131,21 @@ function definitions(source: string, tokens: SceneToken[], range: (start: number
     }
     if (token.text === '@') {
       const start = take();
+      if (repeats && peek().text === 'repeat') {
+        if (repeats.length === 8) fail('BUDGET', 'Scene exceeds8 repeat declarations', start.range);
+        const tokenStart = cursor - 1;
+        phase = 'objects'; take(); const prefix = take();
+        if (!NAME.test(prefix.text)) fail('SYNTAX', 'Repeat prefix requires ASCII1..32', prefix.range);
+        if (repeats.some(repeat => repeat.prefix.text === prefix.text)) fail('TYPE', 'Duplicate repeat prefix', prefix.range);
+        expect(':'); const type = take();
+        if (!SHAPES.includes(type.text)) fail('TYPE', 'Repeat requires an existing Scene shape', type.range);
+        expect('('); const count = take();
+        if (!/^[1-9][0-9]*$/.test(count.text)) fail('SYNTAX', 'Repeat count requires canonical positive decimal digits', count.range);
+        if (Number(count.text) > 32) fail('RANGE', 'Repeat count must be within1..32', count.range);
+        expect(')'); const end = expect(';');
+        repeats.push({ kind: 'repeat', prefix, type, count, tokens: tokens.slice(tokenStart, cursor), range: range(start.range.start, end.range.end) });
+        continue;
+      }
       if (peek().text !== 'param') fail('SYNTAX', 'Only @param declarations are supported inside this scene profile', peek().range);
       if (phase === 'objects') fail('SYNTAX', 'Parameters must precede object declarations', start.range);
       phase = 'parameters'; take(); const name = take();
@@ -193,23 +215,49 @@ export function finishSceneParameterSource<T>(owned: T, range: SourceRange): T {
   return freezeGpuData(copyGpuData(owned));
 }
 /** INTERNAL trusted sibling mode; the public literal entry never enables products. */
-export function compileSceneParameterData(input: unknown, productMode: boolean | 'arithmetic' = false): {
+type SceneParameterData = {
   source: string; ast: ParameterizedAffineSceneAst; parameters: SceneParameter[]; scene: AffineScene2; shaders: SceneShaders;
-} {
+};
+type FiniteRepeatSceneData = SceneParameterData & { repeatDeclarations: SceneRepeatDeclaration[]; generation: SceneGenerationRecord[] };
+export function compileSceneParameterData(input: unknown, productMode: boolean | 'arithmetic', repeatMode: true): FiniteRepeatSceneData;
+export function compileSceneParameterData(input: unknown, productMode?: boolean | 'arithmetic'): SceneParameterData;
+export function compileSceneParameterData(input: unknown, productMode: boolean | 'arithmetic' = false, repeatMode = false): SceneParameterData | FiniteRepeatSceneData {
   if (typeof input !== 'string') fail('INPUT', 'Complete parameterized scene source must be text', { start: 0, end: 0, line: 1, column: 1 });
   const source = input;
   if (source.length > 65536 || new TextEncoder().encode(source).length > 65536)
     fail('BUDGET', 'Parameterized scene source exceeds64KiB UTF16/UTF8', { start: 0, end: source.length, line: 1, column: 1 });
   const arithmeticMode = productMode === 'arithmetic';
-  const range = sourceRanges(source), tokens = scan(source, range, productMode !== false), declared = definitions(source, tokens, range);
+  const range = sourceRanges(source), tokens = scan(source, range, productMode !== false);
+  const repeats = repeatMode ? [] as SceneRepeatDeclaration[] : undefined;
+  const declared = definitions(source, tokens, range, repeats);
   // Indexed UTF16 units are essential: code-point iteration would shift every
   // original range after a surrogate pair in a comment preceding parameters.
   const masked = source.split('');
-  for (const definition of declared) for (let i = definition.declaration.range.start; i < definition.declaration.range.end; i++)
-    if (!/[\r\n\u2028\u2029]/.test(masked[i])) masked[i] = ' ';
+  const mask = (span: SourceRange) => { for (let i = span.start; i < span.end; i++)
+    if (!/[\r\n\u2028\u2029]/.test(masked[i])) masked[i] = ' '; };
+  for (const definition of declared) mask(definition.declaration.range);
+  if (repeats) for (const repeat of repeats) mask(repeat.range);
   const base = delegated(() => parseAffineSceneAst(masked.join('')), range(0, 0));
-  let work = baseWork(base) + 4 * declared.length, uses = 0;
+  const authoredDeclarations = base.declarations;
+  const generatedCount = repeats?.reduce((sum, repeat) => sum + Number(repeat.count.text), 0) ?? 0;
+  const explicitCount = authoredDeclarations.reduce((sum, declaration) => sum + (declaration.kind === 'object' ? 1 : 0), 0);
+  if (repeatMode && explicitCount + generatedCount > 32) fail('BUDGET', 'Expanded scene exceeds32 objects', base.range);
+  let work = baseWork(base) + 4 * declared.length + 10 * (repeats?.length ?? 0) + 4 * generatedCount, uses = 0;
   if (work > 4096) fail('BUDGET', 'Parameterized scene exceeds4096 cumulative AST work nodes', base.range);
+  // All expanded count/work is admitted before creating generated object or provenance arrays.
+  const generation: SceneGenerationRecord[] = [];
+  if (repeats) {
+    const ids = new Set(authoredDeclarations.filter(declaration => declaration.kind === 'object').map(declaration => declaration.id.text.slice(1)));
+    const expanded: AffineSceneAst['declarations'] = [...authoredDeclarations];
+    for (const repeat of repeats) for (let index = 0; index < Number(repeat.count.text); index++) {
+      const nodeId = repeat.prefix.text + '_' + index;
+      if (ids.has(nodeId)) fail('TYPE', 'Generated object ID collides with an existing object', repeat.prefix.range);
+      ids.add(nodeId);
+      expanded.push({ kind: 'object', type: repeat.type, id: { text: '#' + nodeId, range: repeat.prefix.range }, range: repeat.range });
+      generation.push({ nodeId, prefix: repeat.prefix.text, index, declaration: repeat.range });
+    }
+    base.declarations = expanded.sort((a, b) => a.range.start - b.range.start);
+  }
   const byName = new Map(declared.map(definition => [definition.declaration.name.text, definition]));
   const scanByStart = productMode ? new Map(tokens.map((token, index) => [token.range.start, index])) : null;
   const chargedUse = (definition: Definition, token: SceneToken) => {
@@ -305,10 +353,11 @@ export function compileSceneParameterData(input: unknown, productMode: boolean |
     fail('BUDGET', 'Complete parameterized scene shader exceeds64KiB', base.range);
   const ast: ParameterizedAffineSceneAst = { schema: 'barocss-gpu-parameterized-affine-scene-ast', schemaVersion: 0, sourceVersion: 2, source,
     header: base.header, name: base.name, range: base.range,
-    declarations: [...base.declarations, ...declared.map(definition => definition.declaration)].sort((a, b) => a.range.start - b.range.start),
+    declarations: [...authoredDeclarations, ...declared.map(definition => definition.declaration)].sort((a, b) => a.range.start - b.range.start),
     rules: productMode ? base.rules.map(rule => ({ ...rule, declarations: rule.declarations.map(field => ({ ...field, literals: authoredLiterals.get(field)! })) })) : base.rules };
   const parameters: SceneParameter[] = declared.map(definition => ({ name: definition.declaration.name.text, quantity: definition.quantity,
     unit: definition.quantity === 'length' ? 'scene' : definition.quantity === 'angle' ? 'deg' : 'dimensionless', value: definition.value,
     definition: definition.declaration.range, uses: definition.uses }));
-  return { source, ast, parameters, scene: lowered.scene, shaders: lowered.shaders };
+  const data = { source, ast, parameters, scene: lowered.scene, shaders: lowered.shaders };
+  return repeats ? { ...data, repeatDeclarations: repeats, generation } : data;
 }
