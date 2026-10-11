@@ -56,5 +56,17 @@ File choice remains separate. This source action cancels an older local Open int
 <button id="hide-all" disabled>Hide all bodies</button><button id="fit" disabled>Fit visible</button><button id="saved-view" disabled>Saved view</button>
 <button id="query" disabled>Inspect original Curve</button><button id="clear" disabled>Clear viewer</button>
 <button id="run-proof" disabled>Run proof</button><button id="lose-context" disabled>Lose context</button><button id="dispose" disabled>Dispose viewer</button>
+<fieldset id="selected-native-point-pane"><legend>Selected native parameter point</legend>
+<p id="selected-native-point-target">Select a visible native Surface or Curve.</p>
+<label hidden>Selected native U <input id="selected-native-point-u" aria-label="Selected native U" type="text" inputmode="decimal" maxlength="128" disabled></label>
+<label hidden>Selected native V <input id="selected-native-point-v" aria-label="Selected native V" type="text" inputmode="decimal" maxlength="128" disabled></label>
+<label hidden>Selected native t <input id="selected-native-point-t" aria-label="Selected native t" type="text" inputmode="decimal" maxlength="128" disabled></label>
+<button id="inspect-selected-native-point" disabled>Inspect selected native point</button><button id="reset-selected-native-point" disabled>Reset point report</button>
+<p id="selected-native-point-output" role="status" aria-live="polite"></p>
+<details><summary>Native point report</summary><pre id="selected-native-point-details"></pre></details>
+<details id="selected-native-point-help"><summary>About selected native points</summary><p>Enter the original native Curve t or Surface U and V within the displayed closed domain. These are original parameters, not normalized 0-to-1 coordinates or screen picks.
+The point is authored XYZ in millimetres before display pose and scale. Inspection changes only this report. It preserves source, import provenance, view, selection, measurements and File choices.
+A new selection starts at the original domain midpoint. Invalid active drafts keep the last completed report; inactive parameters are ignored. Reset clears only the report, keeping the drafts.
+Hiding the selected object clears selection and this report. Retained selected CPU geometry can still be inspected after presentation loss. No global precision or topology certificate is implied.</p></details></fieldset>
 <pre id="inspection" aria-label="Original native point">Load original source to inspect.</pre></div><aside><h2>Accepted original bodies</h2><ul id="bodies"></ul></aside></div>
 <pre id="status" role="status" aria-live="polite">Loading unchanged canonical document…</pre><script type="module" src="/bundle.js"></script></body></html>
