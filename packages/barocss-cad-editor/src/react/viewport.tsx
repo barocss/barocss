@@ -23,6 +23,7 @@ import { useCurveSplit, curveSplitCurve } from './curve-split.js';
 import { CurveSplitHandles } from './curve-split-handles.js';
 import { useSurfaceSplit } from './surface-split.js';
 import { SurfaceSplitHandles } from './surface-split-handles.js';
+import { CurveReversalControls } from './curve-reversal.js';
 import { useSurfaceKnot, surfaceKnotSurface } from './surface-knot.js';
 import { SurfaceKnotHandles } from './surface-knot-handles.js';
 import { useCurveKnot, curveKnotCurve } from './curve-knot.js';
@@ -914,6 +915,24 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
         && body.binding.assetRevision === selected.reference.assetRevision;
     } catch { return false; }
   }
+  function isCurrentReversalCurve(receipt: CadEditorDisplayReceipt, ownCandidateToken?: string) {
+    try {
+      const current = session.getSnapshot(), mounted = mountedRef.current, canvas = canvasRef.current;
+      if (!isCurrentDocument() || !mounted || !canvas || axisGestureRef.current || hasViewportCapture()
+        || interval?.isActive() || knot?.active || curveKnot?.isActive() || isoCurve?.isActive() || region?.isActive() || split?.isActive() || surfaceSplit?.isActive()
+        || current.selectionTransition || Object.keys(current.pending).length
+        || (ownCandidateToken === undefined ? current.candidate !== null : current.candidate?.token !== ownCandidateToken)
+        || current.selectedBodyId === null || !sameOptions(mounted.viewer.getState(), receipt.state)
+        || canvas.width !== receipt.width || canvas.height !== receipt.height) return false;
+      const selected = createCadGeometryReference(current.accepted, { bodyId: current.selectedBodyId });
+      if (selected.geometry.kind !== 'curve') return false;
+      const state = mounted.viewer.getState(), body = state.documentBodies.find(value => value.binding.bodyId === selected.reference.bodyId);
+      return !!body && body.ref.kind === 'curve' && body.ref.curveId === selected.geometry.id && sameOptions(state.document, current.accepted)
+        && sameOptions(state.selectedGeometry, body.ref) && body.binding.assetId === selected.reference.assetId && body.binding.geometryKind === 'curve'
+        && body.binding.geometryId === selected.reference.geometryId && body.binding.documentRevision === selected.reference.documentRevision
+        && body.binding.assetRevision === selected.reference.assetRevision;
+    } catch { return false; }
+  }
   function isCurrentBodyMovePresentation(presentation: BodyMovePresentation, ownCandidateToken?: string) {
     try {
       const mounted=mountedRef.current,canvas=canvasRef.current,current=session.getSnapshot();
@@ -1009,6 +1028,9 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     {snapshot.view.kind === 'document' && !interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active
       && <SurfaceDegreeElevationControls session={session} canvas={canvasRef.current} receipt={ready ? documentReceipt : null}
         isCurrentSurface={isCurrentDegreeSurface} busy={viewBusy} onError={cause => report(cause, 'Raising Surface degree failed')} />}
+    {snapshot.view.kind === 'document' && !interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active
+      && <CurveReversalControls session={session} canvas={canvasRef.current} receipt={ready ? documentReceipt : null}
+        isCurrentCurve={isCurrentReversalCurve} busy={viewBusy} onError={cause => report(cause, 'Making a reversed Curve copy failed')} />}
     {!interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active && <SurfacePoleHandles session={session} receipt={ready?documentReceipt:null} canvas={canvasRef.current} onError={error=>report(error,'Surface point gesture failed')} />}
     {!interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active && <PoleAxisGizmo session={session} documentReceipt={ready?documentReceipt:null} curveReceipt={ready?focusedReceipt:null} canvas={canvasRef.current}
       isCurrentCurvePresentation={isCurrentCurvePresentation}
