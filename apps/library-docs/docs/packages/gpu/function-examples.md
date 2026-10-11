@@ -6,6 +6,8 @@ The examples use public `compileMeshMaterial`, `validateMeshMaterialIR` and `low
 
 These eleven original samples cover built-ins at that snapshot. For authored reusable functions, read [the separate `@fn` easing and palette guide](./reusable-shader) and [open its language example](/examples/language#reusable-shader). Its newer profile allows one bounded float parameter with a float or color result; it does not alter the complete programs below.
 
+For a discontinuous decision, use [the separate `select()` palette example](./discrete-material) and [open its CPU language sample](/examples/language#discrete-material). It covers color and scalar branches, equality and retained uniform refusals without upgrading the eleven programs below.
+
 ## Run and interpret a sample
 
 Use the Open sample links below to run a program in the browser. See [Use the interactive examples](/concepts/run-examples) for input selection, browser requirements and result interpretation. Each standalone program declares `amount:float(0,1,0)`. The shared host control has step .05 and initial value 0. Choose .5 and 1 to compare the midpoint and endpoint. Changes are explicit input adoption; there is no timer or per-frame performance promise.

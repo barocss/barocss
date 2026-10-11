@@ -20,6 +20,10 @@ Use [GPU compositions](./composition-examples) for style precedence, local rotat
 
 Use the [public CPU evaluation example](./cpu-material-evaluation) to inspect linear RGB from a compiled shader, explicit uniforms and UV. It explains defaults, copied immutable results, zero handling and genuine range errors. Its numeric result is separate from a GPU frame.
 
+### Discrete threshold palette
+
+[Select a color at an exact threshold](./discrete-material) in the [CPU language example](/examples/language#discrete-material). The separate discrete material profile chooses dark or light colors across .5. Canvas2D displays three public CPU reference values and the current color; lowered GLSL remains unexecuted text.
+
 ## Run the portal
 
 Open the [playground](/playground) and select a sample. Edit its complete source, then select **Run input**. Use **Reset example** to restore the original input. See [Use the interactive examples](/concepts/run-examples) for input selection, browser requirements and result interpretation.

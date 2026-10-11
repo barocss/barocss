@@ -8,6 +8,8 @@ Read [CPU material evaluation](./cpu-material-evaluation) to inspect a compiled 
 
 For authored `@fn` expressions, use [the reusable easing and palette guide](./reusable-shader) with its separate `363f583c` source profile. It adds bounded float/color-return declarations before locals; this page's older grammar, complete programs and public mesh contract retain their stated source snapshot.
 
+Read [Discrete threshold selection](./discrete-material) for the separate newer `select()` profile. Its strict `<` comparison, equality branch and public CPU RGB evaluation use a Canvas2D display; the older mesh renderer contract on this page does not accept that IR.
+
 ## Procedural UV plasma
 
 The [advanced shader example](./advanced-shader) combines UV wrapping, domain distortion, interference waves and diagonal highlights. Edit the full shader, adjust four uniforms, or use its host Play/Pause controls. Its separate API version and example WebGL2 host are stated in the guide.

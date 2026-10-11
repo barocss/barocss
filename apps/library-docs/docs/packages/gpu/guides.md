@@ -58,6 +58,10 @@ Compile the material before mounting its mesh. If the first `setMaterial` call f
 
 The [material setup recipe](./material-language#complete-blend-material) includes a named slider listener and cleanup. The [caller-time recipe](./material-language#supply-caller-time-on-demand) maps elapsed seconds into the declared0..2 range and samples only on a button click. Both remove caller-owned listeners before renderer disposal. These source-backed host recipes are separate from the recorded playground browser checks.
 
+## Evaluate a discrete palette
+
+Use [Discrete threshold selection](./discrete-material) for `select(value, literalThreshold, below, otherwise)`. Strict `<` chooses the first branch; equality chooses the second. Compile and validate the whole material before public CPU evaluation, then adopt the new result only on success. Its separate profile has no UV, public mesh binding or GPU execution in this example. Keep a current explicit uniform override after source edits; a narrowed range can refuse it instead of silently adopting a new default.
+
 ## Select a larger preview profile
 
 Use `mountMeshScene` for its bounded mesh scene; use `mountPrimitiveSceneV2` for its qualified native references and explicit versioned input. Read the exact public types in [API](./api) before constructing these records. They are separate from source0 SDF, general Engine Scene data and a native CAD document. A frame version does not change the native model version.

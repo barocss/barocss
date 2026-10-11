@@ -4,9 +4,9 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { exampleCatalog, exampleHref } from '../docs/.vitepress/example-catalog.mjs';
 
 const defaultApp = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const modules = ['visual', 'advanced-shader', 'unicode-label', 'diagram-label', 'path-edit', 'svg-export', 'radial-svg-export', 'reusable-shader', 'cad-quantity-functions'];
+const modules = ['visual', 'advanced-shader', 'unicode-label', 'diagram-label', 'path-edit', 'svg-export', 'radial-svg-export', 'reusable-shader', 'cad-quantity-functions', 'discrete-material'];
 const galleryFiles = ['cad', 'scene', 'materials', 'viewer', 'canvas2d', 'physics', 'cad-language', 'gpu-compositions'];
-const standaloneFiles = ['advanced-shader', 'caustics-shader', 'weave-shader', 'contour-shader', 'halftone-shader', 'unicode-label', 'diagram-label', 'path-edit', 'svg-export', 'radial-svg-export', 'reusable-shader', 'cad-quantity-functions'];
+const standaloneFiles = ['advanced-shader', 'caustics-shader', 'weave-shader', 'contour-shader', 'halftone-shader', 'unicode-label', 'diagram-label', 'path-edit', 'svg-export', 'radial-svg-export', 'reusable-shader', 'cad-quantity-functions', 'discrete-material'];
 const libraries = new Set(['cad', 'gpu', 'canvas2d', 'viewer', 'physics']);
 const categories = new Set(['api', 'language', 'integration']);
 const fields = new Set(['label', 'anchor', 'library', 'category', 'guide', 'summary', 'libraries', 'language']);
@@ -26,7 +26,7 @@ export async function checkExampleCatalog(app = defaultApp, { built = true } = {
     }
   }
   const keys = Object.keys(exampleCatalog), runtimeKeys = Object.keys(runtime);
-  require(keys.length === 40 && runtimeKeys.length === 40, 'expected the 40 current presets');
+  require(keys.length === 41 && runtimeKeys.length === 41, 'expected the 41 current presets');
   require(keys.every(key => Object.hasOwn(runtime, key)) && runtimeKeys.every(key => Object.hasOwn(exampleCatalog, key)), 'runtime/catalog coverage differs');
 
   const authored = {};
@@ -52,7 +52,7 @@ export async function checkExampleCatalog(app = defaultApp, { built = true } = {
     builtinKeys.push(key);
   }
   require(builtinKeys.length === 4, 'expected four original visual source literals');
-  require(Object.keys(authored).length + builtinKeys.length === 40, 'authored source coverage differs');
+  require(Object.keys(authored).length + builtinKeys.length === 41, 'authored source coverage differs');
   for (const [key, preset] of Object.entries(authored)) {
     require(Object.hasOwn(runtime, key), `authored preset missing at runtime: ${key}`);
     require(runtime[key].source === preset.source, `generated source differs: ${key}`);
@@ -107,7 +107,7 @@ export async function checkExampleCatalog(app = defaultApp, { built = true } = {
     await builtAnchor('/playground', entry.anchor);
     counts[entry.category]++;
   }
-  return { presets: keys.length, uniqueAnchors: anchors.size, authoredSources: 40, categories: counts,
+  return { presets: keys.length, uniqueAnchors: anchors.size, authoredSources: 41, categories: counts,
     generatedModules: modules.length, builtAnchorsChecked: built, execution: 'Preset metadata and links only; no public API calls or gallery execution' };
 }
 

@@ -1,0 +1,17 @@
+{
+  "kind": "discrete-material",
+  "title": "Discrete threshold palette",
+  "label": "Discrete threshold palette",
+  "anchor": "discrete-material",
+  "language": "Discrete mesh material profile0 \u00b7 public CPU evaluation",
+  "sourceProfile": "23321ac563f7ec5335d755239534d0a17da303d2",
+  "source": "@shader #threshold_palette {\n  @uniform level: float(0,1,.5);\n  @fn palette(t: float(0,1)): color(select(t,.5,#203040,#FFEEDD));\n  @let strength: float(select(level,.5,.25,.75));\n  @fragment { color: mix(#000000,palette(level),strength); }\n}\n",
+  "control": {
+    "name": "level",
+    "min": 0,
+    "max": 1,
+    "step": 0.01,
+    "default": 0.5
+  },
+  "description": "Strict threshold selection: below .5 chooses dark color at .25 strength; equality and above choose light color at .75 strength. Canvas2D displays CPU RGB, not GPU shader execution."
+}
