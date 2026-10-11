@@ -281,3 +281,7 @@ export type { QuinticHermiteEndpoint, QuinticHermiteOptions, QuinticHermiteRepor
 
 export { inspectCurveEndpointContinuity, validateCurveEndpointContinuity, CurveEndpointContinuityError, CurveEndpointContinuityDiagnosticCode } from './curve-endpoint-continuity.js';
 export type { CurveEndpointContinuityInput, CurveEndpointContinuityOptions, CurveEndpointContinuityReport, CurveEndpointContinuityResult } from './curve-endpoint-continuity.js';
+
+
+export { importIGES, validateIGESImport, IGESImportError, IGESImportDiagnosticCode } from './iges-import.js';
+export type { IGESImportOptions, IGESImportEntity, IGESImportReport, IGESImportResult } from './iges-import.js';
