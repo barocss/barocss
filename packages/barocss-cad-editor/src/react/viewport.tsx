@@ -159,6 +159,9 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
   const split = useCurveSplit();
   const surfaceSplit = useSurfaceSplit();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [editingContainer, setEditingContainer] = useState<HTMLDivElement | null>(null);
+  const [visibilityContainer, setVisibilityContainer] = useState<HTMLDivElement | null>(null);
+  const [constructionContainer, setConstructionContainer] = useState<HTMLDivElement | null>(null);
   const mountedRef = useRef<MountedViewer | null>(null);
   const propsRef = useRef(props);
   propsRef.current = props;
@@ -1022,21 +1025,26 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
         catch (cause) { report(cause, 'Reading the displayed frame failed'); }
       }}
       data-testid="cad-editor-canvas" aria-label="CAD viewport. Drag to orbit. Shift drag to pan. Scroll to zoom. Press F to fit." />
+    <div className="cad-editor-canvas-command-rail" role="group" aria-label="Canvas modeling commands" data-view-kind={snapshot.view.kind}>
+      <div ref={setEditingContainer} className="cad-editor-command-group" data-command-group="editing" role="group" aria-label="Editing" />
+      <div ref={setVisibilityContainer} className="cad-editor-command-group" data-command-group="visibility" role="group" aria-label="Visibility" />
+      <div ref={setConstructionContainer} className="cad-editor-command-group" data-command-group="construct" role="group" aria-label="Construct" />
+    </div>
     <CadEditorViewNavigator camera={ready ? camera : null} disabled={viewBusy} onChoose={changeView} />
-    {snapshot.view.kind === 'document' && <SelectionIsolation session={session} canvas={canvasRef.current}
+    {snapshot.view.kind === 'document' && <SelectionIsolation session={session} canvas={canvasRef.current} toolbarContainer={visibilityContainer}
       receipt={ready ? documentReceipt : null} isCurrentDocument={isCurrentDocument} busy={viewBusy}
       onError={error => report(error, 'Changing document visibility failed')} />}
     {snapshot.view.kind === 'document' && !interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active
-      && <SurfaceDegreeElevationControls session={session} canvas={canvasRef.current} receipt={ready ? documentReceipt : null}
+      && <SurfaceDegreeElevationControls session={session} canvas={canvasRef.current} toolbarContainer={constructionContainer} receipt={ready ? documentReceipt : null}
         isCurrentSurface={isCurrentDegreeSurface} busy={viewBusy} onError={cause => report(cause, 'Raising Surface degree failed')} />}
     {snapshot.view.kind === 'document' && !interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active
-      && <SurfaceReversalControls session={session} canvas={canvasRef.current} receipt={ready ? documentReceipt : null}
+      && <SurfaceReversalControls session={session} canvas={canvasRef.current} toolbarContainer={constructionContainer} receipt={ready ? documentReceipt : null}
         isCurrentSurface={isCurrentDegreeSurface} busy={viewBusy} onError={cause => report(cause, 'Making a reversed Surface copy failed')} />}
     {snapshot.view.kind === 'document' && !interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active
-      && <CurveReversalControls session={session} canvas={canvasRef.current} receipt={ready ? documentReceipt : null}
+      && <CurveReversalControls session={session} canvas={canvasRef.current} toolbarContainer={constructionContainer} receipt={ready ? documentReceipt : null}
         isCurrentCurve={isCurrentReversalCurve} busy={viewBusy} onError={cause => report(cause, 'Making a reversed Curve copy failed')} />}
     {!interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active && <SurfacePoleHandles session={session} receipt={ready?documentReceipt:null} canvas={canvasRef.current} onError={error=>report(error,'Surface point gesture failed')} />}
-    {!interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active && <PoleAxisGizmo session={session} documentReceipt={ready?documentReceipt:null} curveReceipt={ready?focusedReceipt:null} canvas={canvasRef.current}
+    {!interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active && <PoleAxisGizmo session={session} toolbarContainer={editingContainer} documentReceipt={ready?documentReceipt:null} curveReceipt={ready?focusedReceipt:null} canvas={canvasRef.current}
       isCurrentCurvePresentation={isCurrentCurvePresentation}
       isCurrentBodyMovePresentation={isCurrentBodyMovePresentation}
       onGestureChange={active=>{axisGestureRef.current=active;setAxisGestureActive(active);}}

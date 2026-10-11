@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { createCadGeometryReference, curveDomain, evaluateCurve } from '@barocss/cad';
 import { CadEditorError, type CadEditorSession } from '../types.js';
 import type { CadEditorDisplayReceipt } from './types.js';
@@ -9,6 +10,7 @@ import { Button } from './ui/button.js';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog.js';
 
 interface Props {
+  toolbarContainer?: HTMLElement | null;
   session: CadEditorSession; canvas: HTMLCanvasElement | null; receipt: CadEditorDisplayReceipt | null;
   isCurrentCurve: (receipt: CadEditorDisplayReceipt, ownCandidateToken?: string) => boolean;
   busy: boolean; onError: (error: CadEditorError) => void;
@@ -122,16 +124,7 @@ export function CurveReversalControls(props: Props) {
     }
     markers = { start, end, direction };
   } catch { /* Native D0 or projection refusal leaves the discrete command available. */ }
-  return <>
-    {markers && rect && <div className="curve-reversal-overlay"><svg className="curve-reversal-svg" width={rect.width} height={rect.height} viewBox={`0 0 ${rect.width} ${rect.height}`} aria-hidden="true">
-      {markers.direction && <g><line className="curve-reversal-direction" data-testid="curve-reversal-direction" x1={markers.direction.x} y1={markers.direction.y} x2={markers.direction.tipX} y2={markers.direction.tipY} />
-        <polygon className="curve-reversal-arrow" points={markers.direction.arrow} /></g>}
-      {(['start', 'end'] as const).map(endpoint => { const point = markers![endpoint]; return point && <g key={endpoint}>
-        <circle className="curve-reversal-point" data-endpoint={endpoint} data-testid={'curve-reversal-' + endpoint} cx={point.xCss} cy={point.yCss} r={4} />
-        <text className="curve-reversal-label" x={point.xCss + 8} y={point.yCss + (endpoint === 'start' ? -8 : 14)}>{endpoint === 'start' ? 'Start' : 'End'}</text>
-      </g>; })}
-    </svg></div>}
-    <div className="curve-reversal-tools" role="toolbar" aria-label="Curve direction">
+  const toolbar = <div className="curve-reversal-tools" role="toolbar" aria-label="Curve direction">
       <Button type="button" variant="ghost" size="sm" className="curve-reversal-create" data-testid="curve-reversal-create" disabled={busy} onClick={create}
         onKeyDown={event => { if ((event.key === 'Enter' || event.key === ' ') && (event.nativeEvent.isComposing || event.keyCode === 229
           || event.repeat || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)) { event.preventDefault(); event.stopPropagation(); } }}>Make reversed copy</Button>
@@ -150,6 +143,17 @@ export function CurveReversalControls(props: Props) {
         </DialogContent>
       </Dialog>
       {error && <span className="curve-reversal-error" role="alert" data-testid="curve-reversal-error">Cannot make this copy. Open Help.</span>}
-    </div>
+    </div>;
+  return <>
+    {markers && rect && <div className="curve-reversal-overlay"><svg className="curve-reversal-svg" width={rect.width} height={rect.height} viewBox={`0 0 ${rect.width} ${rect.height}`} aria-hidden="true">
+      {markers.direction && <g><line className="curve-reversal-direction" data-testid="curve-reversal-direction" x1={markers.direction.x} y1={markers.direction.y} x2={markers.direction.tipX} y2={markers.direction.tipY} />
+        <polygon className="curve-reversal-arrow" points={markers.direction.arrow} /></g>}
+      {(['start', 'end'] as const).map(endpoint => { const point = markers![endpoint]; return point && <g key={endpoint}>
+        <circle className="curve-reversal-point" data-endpoint={endpoint} data-testid={'curve-reversal-' + endpoint} cx={point.xCss} cy={point.yCss} r={4} />
+        <text className="curve-reversal-label" x={point.xCss + 8} y={point.yCss + (endpoint === 'start' ? -8 : 14)}>{endpoint === 'start' ? 'Start' : 'End'}</text>
+      </g>; })}
+    </svg></div>}
+    {props.toolbarContainer === undefined ? toolbar
+      : props.toolbarContainer === null ? null : createPortal(toolbar, props.toolbarContainer)}
   </>;
 }

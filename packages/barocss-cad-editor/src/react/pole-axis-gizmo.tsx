@@ -1,4 +1,5 @@
 import {useEffect, useId, useRef, useState, type PointerEvent as ReactPointerEvent, type KeyboardEvent as ReactKeyboardEvent} from 'react';
+import {createPortal} from 'react-dom';
 import {Spline,Move,RotateCw,Scaling} from 'lucide-react';
 import {resolveCadGeometryReference, type CadGeometryReferenceV0} from '@barocss/cad';
 import {CadEditorError, type CadEditorSession, type CadEditorSnapshot, type CadEditorPoleField, type CadEditorEditTarget, type CadEditorDraftField, type CadEditorRotationAxis, type CadEditorScaleAxis} from '../types.js';
@@ -20,6 +21,7 @@ interface Props {
   documentReceipt: CadEditorDisplayReceipt | null;
   curveReceipt: CadEditorCurvePresentationReceipt | null;
   canvas: HTMLCanvasElement | null;
+  toolbarContainer?: HTMLElement | null;
   onError: (error: CadEditorError) => void;
   onGestureChange: (active: boolean) => void;
   isCurrentCurvePresentation: (presentation: CurveControlPresentation) => boolean;
@@ -395,15 +397,17 @@ export function PoleAxisGizmo(props:Props) {
   }
   if (!control || !canvas || !rect || rect.width <= 0 || rect.height <= 0 || control.receipt.width <= 0 || control.receipt.height <= 0) return null;
   const visible = projections.filter(Boolean).length;
-  return <div className="cad-editor-axis-controls" data-testid="pole-axis-overlay">
-    <div className={'cad-editor-native-tools'+(snapshot.view.kind==='curve-focus'?' focused':'')} role="toolbar" aria-label="Modeling tools">
+  const toolbar = <div className={'cad-editor-native-tools'+(snapshot.view.kind==='curve-focus'?' focused':'')} role="toolbar" aria-label="Modeling tools">
+      {props.toolbarContainer !== undefined && <span className="cad-editor-command-tool-name">{tools.find(tool=>tool.target===snapshot.editTarget)?.name}</span>}
       {tools.map(tool=><Button key={tool.target} type="button" variant="ghost" size="icon-sm" data-testid={'native-tool-'+tool.target}
         aria-label={tool.name+' ('+tool.key.toUpperCase()+')'} title={tool.name+' ('+tool.key.toUpperCase()+')'}
         aria-keyshortcuts={tool.key.toUpperCase()} aria-pressed={snapshot.editTarget===tool.target}
         disabled={busy||!available(snapshot,tool.target)} onClick={()=>chooseTool(tool.target)}>
         <tool.icon size={16} aria-hidden="true"/><kbd aria-hidden="true">{tool.key.toUpperCase()}</kbd>
       </Button>)}
-    </div>
+    </div>;
+  return <div className="cad-editor-axis-controls" data-testid="pole-axis-overlay">
+    {props.toolbarContainer === undefined ? toolbar : props.toolbarContainer === null ? null : createPortal(toolbar, props.toolbarContainer)}
     <svg className="cad-editor-axis-svg" width={rect.width} height={rect.height} viewBox={`0 0 ${rect.width} ${rect.height}`} aria-label="Selected control point axes">
       {(!control.bodyMovePresentation||objectMode)&&projections.map((p,axisIndex) => {
         if (!p) return null;
