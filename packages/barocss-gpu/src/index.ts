@@ -219,3 +219,7 @@ export { mountEngineUVTextureWebGPUViewport } from './engine-uv-webgpu-viewport.
 export type { EngineUVTextureWebGPUViewport } from './engine-uv-webgpu-viewport.js';
 export { EngineUVWebGPUError, EngineUVWebGPUDiagnosticCode } from './engine-uv-webgpu-frame.js';
 export type { EngineUVWebGPUOptions, EngineUVWebGPUOriginals, EngineUVWebGPURef, EngineUVWebGPUStatus, EngineUVWebGPUResources } from './engine-uv-webgpu-frame.js';
+
+// Trusted WGSL expression for original native Surface normalized UV01.
+export { lowerNativeSurfaceUV01MaterialWGSL } from './native-surface-uv01-material-wgsl.js';
+export type { LoweredNativeSurfaceUV01MaterialWGSL } from './native-surface-uv01-material-wgsl.js';

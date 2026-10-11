@@ -3867,3 +3867,31 @@ pipelines, quarter-texel pixels, physical picking, updates/refusal retention,
 device loss, browser/screen/live console, consumer and publication require
 separate real acceptance. Existing denied-target restrictions and protected
 servers/tabs remain; no alternate-origin/tool/port proof is proposed.
+
+
+## Native Surface UV01 material WGSL source
+
+`lowerNativeSurfaceUV01MaterialWGSL(originalIR)` revalidates the complete native
+Surface source and lowers its typed UV01 tree to a trusted WGSL color expression.
+It returns the copied original IR, a fixed 64-byte material uniform layout and
+`native_surface_uv01` input metadata. The future program caller supplies that
+`vec2<f32>` from original native Surface normalized parameters and implements
+the trusted `material_mix` helper. Native UV01 is distinct from generic mesh UV
+and image sampling. Legacy IR, GLSL and WebGPU profiles remain unchanged.
+
+This source API does not mount a viewport, produce a whole shader program, bind
+native files/TEN, upload uniforms, sample textures or qualify device/pixel output.
+Original source and Number coefficients stay separate from derived Float32 text.
+Unsafe Float32 coefficients refuse with `MeshMaterialError` RANGE; existing
+source/IR diagnostics and raw causes are retained. Tree/text/result work is
+bounded and returned data is independently owned and deeply frozen.
+
+After the affected library build, run the scoped source/API/original-file flow
+with Node22 from the repository root:
+
+```sh
+node examples/gpu-scene/native-surface-uv01-wgsl-flow.mjs --output /absolute/fresh/output
+```
+
+Actual native UV01 WebGPU program/frame/render/pixels, consumer display and
+publication require separate receipts.
