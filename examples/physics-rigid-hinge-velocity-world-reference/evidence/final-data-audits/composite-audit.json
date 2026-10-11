@@ -1,0 +1,2145 @@
+{
+  "scope": "DATA_ONLY_ALL_THREE_TERMINAL_COMPOSITE_PROVENANCE",
+  "disposition": "PASS",
+  "sourceResult": "/tmp/physics-1179-world-continuation-a341f222/source-proof/result.json",
+  "sourceResultBytes": 7930,
+  "sourceResultSha256": "d06e0e5248bd23c28f772b038362153fa01ebf8be88d3080c26102b24810c6ca",
+  "checksPassed": 10872,
+  "checksTotal": 10872,
+  "failedChecks": [],
+  "compositeStreams": {
+    "reference.stdin.raw": {
+      "manifestBytes": 725,
+      "manifestSha256": "938937f6ed6b7bd33b4a715ec3849d843eba361c1a8e8dd75d1a034d007493aa",
+      "logicalBytes": 131766270,
+      "logicalSha256": "9ca7129a067d0c06d34beb160044a55405589757cbf2d6a6e51b65c46333c616",
+      "logicalLines": 1243,
+      "trailingBytes": 0,
+      "segments": [
+        {
+          "declared": {
+            "path": "completed-initial.stdin.raw",
+            "offset": 0,
+            "bytes": 3536,
+            "sha256": "4f0a978500157b8ec7922f597a580d07f9dbdc3e485d7a941cc32c0672518f86",
+            "completeLines": 1,
+            "trailingBytes": 0,
+            "completeEOF": true
+          },
+          "actual": {
+            "bytes": 3536,
+            "sha256": "4f0a978500157b8ec7922f597a580d07f9dbdc3e485d7a941cc32c0672518f86",
+            "completeLines": 1,
+            "trailingBytes": 0,
+            "physicalEOF": true
+          }
+        },
+        {
+          "declared": {
+            "path": "reference.stdin.raw",
+            "offset": 0,
+            "bytes": 131762734,
+            "sha256": "722957a4d20735710e210f517bd29d51777a923e003c5cdc2ca8f8583c9161d9",
+            "completeLines": 1242,
+            "trailingBytes": 0,
+            "completeEOF": true
+          },
+          "actual": {
+            "bytes": 131762734,
+            "sha256": "722957a4d20735710e210f517bd29d51777a923e003c5cdc2ca8f8583c9161d9",
+            "completeLines": 1242,
+            "trailingBytes": 0,
+            "physicalEOF": true
+          }
+        }
+      ]
+    },
+    "reference.stdout.raw": {
+      "manifestBytes": 728,
+      "manifestSha256": "ce4209db6c45b978d0866254b190a3e796231e1099e19522ec44981704992bde",
+      "logicalBytes": 118876677,
+      "logicalSha256": "69ad2a37886c9b011af83363e79b1ead9025e0f9a231f751c19bbea4e9fead49",
+      "logicalLines": 1243,
+      "trailingBytes": 0,
+      "segments": [
+        {
+          "declared": {
+            "path": "completed-initial.stdout.raw",
+            "offset": 0,
+            "bytes": 11286,
+            "sha256": "a61debde83d4b92a5946ad75f178daacc699813f3b7056a565548032cdc9c524",
+            "completeLines": 1,
+            "trailingBytes": 0,
+            "completeEOF": true
+          },
+          "actual": {
+            "bytes": 11286,
+            "sha256": "a61debde83d4b92a5946ad75f178daacc699813f3b7056a565548032cdc9c524",
+            "completeLines": 1,
+            "trailingBytes": 0,
+            "physicalEOF": true
+          }
+        },
+        {
+          "declared": {
+            "path": "reference.stdout.raw",
+            "offset": 0,
+            "bytes": 118865391,
+            "sha256": "60f9e35dbed8dda3f6f3ebbff09ddd94fb55b9702e0f21cc2746daa76f79ee02",
+            "completeLines": 1242,
+            "trailingBytes": 0,
+            "completeEOF": true
+          },
+          "actual": {
+            "bytes": 118865391,
+            "sha256": "60f9e35dbed8dda3f6f3ebbff09ddd94fb55b9702e0f21cc2746daa76f79ee02",
+            "completeLines": 1242,
+            "trailingBytes": 0,
+            "physicalEOF": true
+          }
+        }
+      ]
+    }
+  },
+  "physicalStreams": {
+    "controls.records.jsonl": {
+      "bytes": 3474835,
+      "sha256": "97fedbf66971e99811500ebaae49afdb7f94ae6ac971497bd8aff0a7653e62c2",
+      "completeLines": 115,
+      "trailingBytes": 0,
+      "physicalEOF": true
+    },
+    "controls.bodies.raw": {
+      "bytes": 61984,
+      "sha256": "0f5cbc09ed349ac93f3c720b96d8cef9c7ccf772a34b55b40947fd13a4228616",
+      "completeLines": 12,
+      "trailingBytes": 13207,
+      "physicalEOF": true
+    },
+    "completed-initial.stdin.raw": {
+      "bytes": 3536,
+      "sha256": "4f0a978500157b8ec7922f597a580d07f9dbdc3e485d7a941cc32c0672518f86",
+      "completeLines": 1,
+      "trailingBytes": 0,
+      "physicalEOF": true
+    },
+    "completed-initial.stdout.raw": {
+      "bytes": 11286,
+      "sha256": "a61debde83d4b92a5946ad75f178daacc699813f3b7056a565548032cdc9c524",
+      "completeLines": 1,
+      "trailingBytes": 0,
+      "physicalEOF": true
+    },
+    "reference.stdin.raw": {
+      "bytes": 131762734,
+      "sha256": "722957a4d20735710e210f517bd29d51777a923e003c5cdc2ca8f8583c9161d9",
+      "completeLines": 1242,
+      "trailingBytes": 0,
+      "physicalEOF": true
+    },
+    "reference.stdout.raw": {
+      "bytes": 118865391,
+      "sha256": "60f9e35dbed8dda3f6f3ebbff09ddd94fb55b9702e0f21cc2746daa76f79ee02",
+      "completeLines": 1242,
+      "trailingBytes": 0,
+      "physicalEOF": true
+    },
+    "main.bodies.raw": {
+      "bytes": 2995616,
+      "sha256": "d22e40616ede583bdd9526ce4e3d4f308658adfeea394e5b2845daa40d10d9f3",
+      "completeLines": 476,
+      "trailingBytes": 2512252,
+      "physicalEOF": true
+    },
+    "main.records.jsonl": {
+      "bytes": 1971604,
+      "sha256": "40f7904c33d06f26090a41eb4c35322e1bdc6d49ea0bb4d4332414a9908edbe8",
+      "completeLines": 1201,
+      "trailingBytes": 0,
+      "physicalEOF": true
+    },
+    "main.native.jsonl": {
+      "bytes": 230570027,
+      "sha256": "29aa9e9ce5bd38bf658a3e94b396566a30e0904cd2d9020909d43714b46fed72",
+      "completeLines": 1200,
+      "trailingBytes": 0,
+      "physicalEOF": true
+    },
+    "reference.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "completeLines": 0,
+      "trailingBytes": 0,
+      "physicalEOF": true
+    }
+  },
+  "historicalManifest": {
+    "path": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/first-world-039f4852/manifest.json",
+    "sha256": "8a1c5f7fd1b3e16fd311c456a87f5fcc9300fb447a515c75f2c76a1df721420f",
+    "filesVerified": 13,
+    "sourceHead": "039f48521d90e74dc2bf23324c9f069e998cf062",
+    "originalResult": "EXECUTION_FAILURE_INITIAL_REFERENCE_INPUT",
+    "worldSteps": 0,
+    "nativeProjections": 0
+  },
+  "retainedPrefix": {
+    "recordBytes": 30590,
+    "recordLines": 20,
+    "rawBytes": 416,
+    "exact": true,
+    "oldFailedInitialStillRetained": true,
+    "completedInitialReceipt": {
+      "command": [
+        "python3",
+        "-u",
+        "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/reference.py"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.0803011670068372,
+      "sourceHead": "04ffb17ab02c2cc632f711b9869dcb542fea62aa",
+      "sourceFreezeSha256": "e55ffb84c930ebccbf49e433be0a356f02d89f899e83ad4fc994a3790d1f6e5f",
+      "savedInitialRequests": 1,
+      "nativeWorldSteps": 0,
+      "nativeProjectionCalls": 0,
+      "stdinSha256": "4f0a978500157b8ec7922f597a580d07f9dbdc3e485d7a941cc32c0672518f86",
+      "stdoutSha256": "a61debde83d4b92a5946ad75f178daacc699813f3b7056a565548032cdc9c524",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "unchangedProducerInputs": 64,
+  "counts": {
+    "mainConstructors": 1,
+    "mainSteps": 1200,
+    "acceptedSteps": 1200,
+    "qualifiedSteps": 1200,
+    "mainReferenceRequests": 1200,
+    "nativeControls": {
+      "logical": {
+        "publicConstructors": 1,
+        "privateConstructors": 29,
+        "stepAttempts": 28,
+        "calculationAttemptsObserved": 19,
+        "acceptedSteps": 13,
+        "observerCallbacks": 19,
+        "queryCalls": 9,
+        "disposeCalls": 2,
+        "referenceRequests": 17,
+        "observedCalls": {
+          "angularUpdates": 76,
+          "freeIntegrations": 76,
+          "motorCalls": 38,
+          "projectionCalls": 36,
+          "reportCalls": 36
+        }
+      },
+      "actual": {
+        "publicConstructors": 0,
+        "privateConstructors": 12,
+        "stepAttempts": 28,
+        "calculationAttemptsObserved": 19,
+        "acceptedSteps": 13,
+        "observerCallbacks": 19,
+        "queryCalls": 9,
+        "disposeCalls": 2,
+        "referenceRequests": 16,
+        "observedCalls": {
+          "angularUpdates": 76,
+          "freeIntegrations": 76,
+          "motorCalls": 38,
+          "projectionCalls": 36,
+          "reportCalls": 36
+        }
+      },
+      "historical": {
+        "publicConstructors": 1,
+        "privateConstructors": 18,
+        "failedInitialRequests": 1,
+        "completedInitialRequests": 1,
+        "worldSteps": 0,
+        "projectionCalls": 0
+      },
+      "recovery": {
+        "publicConstructors": 0,
+        "privateConstructors": 1,
+        "referenceRequests": 0
+      },
+      "combinedActual": {
+        "publicConstructors": 1,
+        "privateConstructors": 30,
+        "stepAttempts": 28,
+        "calculationAttemptsObserved": 19,
+        "acceptedSteps": 13,
+        "observerCallbacks": 19,
+        "queryCalls": 9,
+        "disposeCalls": 2,
+        "referenceRequests": 18,
+        "observedCalls": {
+          "angularUpdates": 76,
+          "freeIntegrations": 76,
+          "motorCalls": 38,
+          "projectionCalls": 36,
+          "reportCalls": 36
+        }
+      }
+    },
+    "protocolControls": {
+      "reached": 26,
+      "planned": 26,
+      "complete": true
+    }
+  },
+  "retainedHistoricalPrefix": {
+    "manifestSha256": "8a1c5f7fd1b3e16fd311c456a87f5fcc9300fb447a515c75f2c76a1df721420f",
+    "historicalCounts": {
+      "publicConstructors": 1,
+      "privateConstructors": 18,
+      "failedInitialRequests": 1,
+      "completedInitialRequests": 1,
+      "worldSteps": 0,
+      "projectionCalls": 0
+    },
+    "independentlyCompletedInitialRepliesReused": 1,
+    "currentChildReceiptExcludesPriorProcess": true
+  },
+  "controls": {
+    "records": 115,
+    "types": {
+      "native-control": 89,
+      "reference-control": 26
+    },
+    "failedPassedFlags": [],
+    "replyLocatorsChecked": 17,
+    "firstReplyLocator": {
+      "name": "W0-initial",
+      "logicalRequestIndex": 1,
+      "logicalReplyOffset": 0,
+      "bytes": 11286,
+      "sha256": "a61debde83d4b92a5946ad75f178daacc699813f3b7056a565548032cdc9c524"
+    }
+  },
+  "main": {
+    "records": 1200,
+    "firstLogicalLocator": {
+      "step": 1,
+      "requestOffset": 3299642,
+      "replyOffset": 1906887,
+      "logicalRequestIndex": 44
+    },
+    "lastLogicalLocator": {
+      "step": 1200,
+      "requestOffset": 131661098,
+      "replyOffset": 118779347,
+      "logicalRequestIndex": 1243
+    },
+    "allStoredDispositionFlagsQualifiedReturn": true,
+    "physicalMetricsRecomputed": false
+  },
+  "storage": {
+    "actualProofDirectoryBytes": 489726396,
+    "chargedMainFixedEmergencyBytes": 489717013,
+    "unaccountedMetadataBytes": 9383,
+    "metadataFiles": {
+      "result.json": 7930,
+      "reference.stdout.raw.composite.json": 728,
+      "reference.stdin.raw.composite.json": 725
+    },
+    "selectedBucketsWithinLimits": true
+  },
+  "completedAliasSnapshot": [
+    {
+      "graph": "source-repeat",
+      "name": "controls.bodies.raw",
+      "bytes": 549,
+      "sha256": "2df5a32d79bce17f634fa9d96d43770a2b4aa4a07718457dcb43081c586921d1",
+      "matchesAuditedSource": true
+    },
+    {
+      "graph": "source-repeat",
+      "name": "controls.records.jsonl",
+      "bytes": 553,
+      "sha256": "04d7abba0875892436627df1402481d93dbf6151c48d750437df16e4708fdb72",
+      "matchesAuditedSource": true
+    },
+    {
+      "graph": "source-repeat",
+      "name": "main.bodies.raw",
+      "bytes": 552,
+      "sha256": "d073177a7e5fbd063178d351befe589fa380aafa9f7a8c2c6ed8c0df8baf397d",
+      "matchesAuditedSource": true
+    },
+    {
+      "graph": "source-repeat",
+      "name": "main.native.jsonl",
+      "bytes": 553,
+      "sha256": "63cba2ac1c07ec0169c9d6e1f01cada10b2f39fe92b871e094edda39b663c3d5",
+      "matchesAuditedSource": true
+    },
+    {
+      "graph": "source-repeat",
+      "name": "main.records.jsonl",
+      "bytes": 550,
+      "sha256": "6e00b9ee35048e695d1d17b7d47a537e53167834fa79e1ccd984f2071f6dc8be",
+      "matchesAuditedSource": true
+    },
+    {
+      "graph": "source-repeat",
+      "name": "reference.stderr.raw",
+      "bytes": 537,
+      "sha256": "d919eb0202436cb1f7c87b6ba69840a87baee0daf208354f135d70338220d93c",
+      "matchesAuditedSource": true
+    },
+    {
+      "graph": "source-repeat",
+      "name": "reference.stdin.raw",
+      "bytes": 1211,
+      "sha256": "924974d01170ed2e9ce89e2189d966e3594f415effb4938fe3c2758948362182",
+      "matchesAuditedSource": true
+    },
+    {
+      "graph": "source-repeat",
+      "name": "reference.stdout.raw",
+      "bytes": 1216,
+      "sha256": "9d135a2f6b2c27452282c14ab55487849ac1f2706d6a0b9f6a1e49f8a1e7137c",
+      "matchesAuditedSource": true
+    }
+  ],
+  "otherGraphStatusAtAudit": {
+    "source-repeat": {
+      "terminalResultPresent": true
+    },
+    "compiled-dependencies": {
+      "terminalResultPresent": true
+    }
+  },
+  "noThreeGraphGOClaim": false,
+  "executionBoundary": {
+    "savedDataReadOnly": true,
+    "physicsRecomputed": false,
+    "modelsOrWorldExecuted": false,
+    "executingFilesMutated": false
+  },
+  "repeatTerminalAudit": {
+    "resultSha256": "cef2c9c17940a2f393ae7ff70a0d7a18bdaea80f413a42156f5ba44a4fc3b538",
+    "disposition": "HINGE2_WORLD_GO",
+    "mainSteps": 1200,
+    "counts": {
+      "mainConstructors": 1,
+      "mainSteps": 1200,
+      "acceptedSteps": 1200,
+      "qualifiedSteps": 1200,
+      "mainReferenceRequests": 1200,
+      "nativeControls": {
+        "logical": {
+          "publicConstructors": 1,
+          "privateConstructors": 29,
+          "stepAttempts": 28,
+          "calculationAttemptsObserved": 19,
+          "acceptedSteps": 13,
+          "observerCallbacks": 19,
+          "queryCalls": 9,
+          "disposeCalls": 2,
+          "referenceRequests": 17,
+          "observedCalls": {
+            "angularUpdates": 76,
+            "freeIntegrations": 76,
+            "motorCalls": 38,
+            "projectionCalls": 36,
+            "reportCalls": 36
+          }
+        },
+        "actual": {
+          "publicConstructors": 1,
+          "privateConstructors": 29,
+          "stepAttempts": 28,
+          "calculationAttemptsObserved": 19,
+          "acceptedSteps": 13,
+          "observerCallbacks": 19,
+          "queryCalls": 9,
+          "disposeCalls": 2,
+          "referenceRequests": 17,
+          "observedCalls": {
+            "angularUpdates": 76,
+            "freeIntegrations": 76,
+            "motorCalls": 38,
+            "projectionCalls": 36,
+            "reportCalls": 36
+          }
+        },
+        "historical": null,
+        "recovery": {
+          "publicConstructors": 0,
+          "privateConstructors": 0,
+          "referenceRequests": 0
+        },
+        "combinedActual": {
+          "publicConstructors": 1,
+          "privateConstructors": 29,
+          "stepAttempts": 28,
+          "calculationAttemptsObserved": 19,
+          "acceptedSteps": 13,
+          "observerCallbacks": 19,
+          "queryCalls": 9,
+          "disposeCalls": 2,
+          "referenceRequests": 17,
+          "observedCalls": {
+            "angularUpdates": 76,
+            "freeIntegrations": 76,
+            "motorCalls": 38,
+            "projectionCalls": 36,
+            "reportCalls": 36
+          }
+        }
+      },
+      "protocolControls": {
+        "reached": 26,
+        "planned": 26,
+        "complete": true
+      }
+    },
+    "completedReplies": 1243,
+    "compositeInputBytes": 131766270,
+    "compositeOutputBytes": 118876677,
+    "allReceiptsMatchIndependentlyHashedSource": true,
+    "aliasReceiptsAudited": 8
+  },
+  "sourceArchiveAudit": {
+    "manifest": "/tmp/physics-1179-world-terminal-archive-a341f222/source-archive.json",
+    "manifestSha256": "b733fb9c57ce1b39c9ba6697a29e08da9d4a63fbc96ca58c3beb334d4fa5d1fa",
+    "sourceBytes": 489726396,
+    "archiveBytes": 19885211,
+    "fileCount": 13,
+    "allCompressedAndDecodedHashesMatch": true,
+    "files": [
+      {
+        "source": "completed-initial.stdin.raw",
+        "archive": "completed-initial.stdin.raw",
+        "archiveBytes": 3536,
+        "archiveSha256": "4f0a978500157b8ec7922f597a580d07f9dbdc3e485d7a941cc32c0672518f86",
+        "decoded": {
+          "bytes": 3536,
+          "sha256": "4f0a978500157b8ec7922f597a580d07f9dbdc3e485d7a941cc32c0672518f86"
+        }
+      },
+      {
+        "source": "completed-initial.stdout.raw",
+        "archive": "completed-initial.stdout.raw",
+        "archiveBytes": 11286,
+        "archiveSha256": "a61debde83d4b92a5946ad75f178daacc699813f3b7056a565548032cdc9c524",
+        "decoded": {
+          "bytes": 11286,
+          "sha256": "a61debde83d4b92a5946ad75f178daacc699813f3b7056a565548032cdc9c524"
+        }
+      },
+      {
+        "source": "controls.bodies.raw",
+        "archive": "controls.bodies.raw",
+        "archiveBytes": 61984,
+        "archiveSha256": "0f5cbc09ed349ac93f3c720b96d8cef9c7ccf772a34b55b40947fd13a4228616",
+        "decoded": {
+          "bytes": 61984,
+          "sha256": "0f5cbc09ed349ac93f3c720b96d8cef9c7ccf772a34b55b40947fd13a4228616"
+        }
+      },
+      {
+        "source": "controls.records.jsonl",
+        "archive": "controls.records.jsonl.gz",
+        "archiveBytes": 178534,
+        "archiveSha256": "b719837548550c7488d122a1fffb14c5923823a5a2b25ed620489f1fd92d4dce",
+        "decoded": {
+          "bytes": 3474835,
+          "sha256": "97fedbf66971e99811500ebaae49afdb7f94ae6ac971497bd8aff0a7653e62c2"
+        }
+      },
+      {
+        "source": "main.bodies.raw",
+        "archive": "main.bodies.raw.gz",
+        "archiveBytes": 42485,
+        "archiveSha256": "311c6bbf1dc3f07a7c4bfb6c4c0b56e405374415d3275b6959bec1e7e950641b",
+        "decoded": {
+          "bytes": 2995616,
+          "sha256": "d22e40616ede583bdd9526ce4e3d4f308658adfeea394e5b2845daa40d10d9f3"
+        }
+      },
+      {
+        "source": "main.native.jsonl",
+        "archive": "main.native.jsonl.gz",
+        "archiveBytes": 7738142,
+        "archiveSha256": "0b5a67fe530235eebcf1b7aa6074e1eedd3c1d2dcea8ee0584089ef4bf1d253c",
+        "decoded": {
+          "bytes": 230570027,
+          "sha256": "29aa9e9ce5bd38bf658a3e94b396566a30e0904cd2d9020909d43714b46fed72"
+        }
+      },
+      {
+        "source": "main.records.jsonl",
+        "archive": "main.records.jsonl.gz",
+        "archiveBytes": 217386,
+        "archiveSha256": "c8aeb21c1ab0ae38485009be4e252967b5f5c2f4f86275763c2118e24197f009",
+        "decoded": {
+          "bytes": 1971604,
+          "sha256": "40f7904c33d06f26090a41eb4c35322e1bdc6d49ea0bb4d4332414a9908edbe8"
+        }
+      },
+      {
+        "source": "reference.stderr.raw",
+        "archive": "reference.stderr.raw",
+        "archiveBytes": 0,
+        "archiveSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "decoded": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "source": "reference.stdin.raw",
+        "archive": "reference.stdin.raw.gz",
+        "archiveBytes": 5011784,
+        "archiveSha256": "f03b2906a7dad1b922eef9dd20dff9c396e8b0ef1ec53c9cf95f42adbdc1b6c9",
+        "decoded": {
+          "bytes": 131762734,
+          "sha256": "722957a4d20735710e210f517bd29d51777a923e003c5cdc2ca8f8583c9161d9"
+        }
+      },
+      {
+        "source": "reference.stdin.raw.composite.json",
+        "archive": "reference.stdin.raw.composite.json",
+        "archiveBytes": 725,
+        "archiveSha256": "938937f6ed6b7bd33b4a715ec3849d843eba361c1a8e8dd75d1a034d007493aa",
+        "decoded": {
+          "bytes": 725,
+          "sha256": "938937f6ed6b7bd33b4a715ec3849d843eba361c1a8e8dd75d1a034d007493aa"
+        }
+      },
+      {
+        "source": "reference.stdout.raw",
+        "archive": "reference.stdout.raw.gz",
+        "archiveBytes": 6610691,
+        "archiveSha256": "ceb4f1e88e4fbcb8b7f83d54945b32b8d44653e91de23d95675714391fe412f2",
+        "decoded": {
+          "bytes": 118865391,
+          "sha256": "60f9e35dbed8dda3f6f3ebbff09ddd94fb55b9702e0f21cc2746daa76f79ee02"
+        }
+      },
+      {
+        "source": "reference.stdout.raw.composite.json",
+        "archive": "reference.stdout.raw.composite.json",
+        "archiveBytes": 728,
+        "archiveSha256": "ce4209db6c45b978d0866254b190a3e796231e1099e19522ec44981704992bde",
+        "decoded": {
+          "bytes": 728,
+          "sha256": "ce4209db6c45b978d0866254b190a3e796231e1099e19522ec44981704992bde"
+        }
+      },
+      {
+        "source": "result.json",
+        "archive": "result.json",
+        "archiveBytes": 7930,
+        "archiveSha256": "d06e0e5248bd23c28f772b038362153fa01ebf8be88d3080c26102b24810c6ca",
+        "decoded": {
+          "bytes": 7930,
+          "sha256": "d06e0e5248bd23c28f772b038362153fa01ebf8be88d3080c26102b24810c6ca"
+        }
+      }
+    ]
+  },
+  "additionalAuditIssues": [],
+  "auditOnlyPathLookupCorrection": "Initial archive lookup omitted the source-proof subdirectory; corrected before any audit output write. No producer/reference/model ran.",
+  "allGraphAliasAudit": {
+    "issues": [],
+    "aliases": [
+      {
+        "graph": "source-repeat",
+        "stream": "controls.bodies.raw",
+        "aliasBytes": 549,
+        "aliasSha256": "2df5a32d79bce17f634fa9d96d43770a2b4aa4a07718457dcb43081c586921d1",
+        "matchesIndependentlyAuditedSource": true
+      },
+      {
+        "graph": "source-repeat",
+        "stream": "controls.records.jsonl",
+        "aliasBytes": 553,
+        "aliasSha256": "04d7abba0875892436627df1402481d93dbf6151c48d750437df16e4708fdb72",
+        "matchesIndependentlyAuditedSource": true
+      },
+      {
+        "graph": "source-repeat",
+        "stream": "main.bodies.raw",
+        "aliasBytes": 552,
+        "aliasSha256": "d073177a7e5fbd063178d351befe589fa380aafa9f7a8c2c6ed8c0df8baf397d",
+        "matchesIndependentlyAuditedSource": true
+      },
+      {
+        "graph": "source-repeat",
+        "stream": "main.native.jsonl",
+        "aliasBytes": 553,
+        "aliasSha256": "63cba2ac1c07ec0169c9d6e1f01cada10b2f39fe92b871e094edda39b663c3d5",
+        "matchesIndependentlyAuditedSource": true
+      },
+      {
+        "graph": "source-repeat",
+        "stream": "main.records.jsonl",
+        "aliasBytes": 550,
+        "aliasSha256": "6e00b9ee35048e695d1d17b7d47a537e53167834fa79e1ccd984f2071f6dc8be",
+        "matchesIndependentlyAuditedSource": true
+      },
+      {
+        "graph": "source-repeat",
+        "stream": "reference.stderr.raw",
+        "aliasBytes": 537,
+        "aliasSha256": "d919eb0202436cb1f7c87b6ba69840a87baee0daf208354f135d70338220d93c",
+        "matchesIndependentlyAuditedSource": true
+      },
+      {
+        "graph": "source-repeat",
+        "stream": "reference.stdin.raw",
+        "aliasBytes": 1211,
+        "aliasSha256": "924974d01170ed2e9ce89e2189d966e3594f415effb4938fe3c2758948362182",
+        "matchesIndependentlyAuditedSource": true
+      },
+      {
+        "graph": "source-repeat",
+        "stream": "reference.stdout.raw",
+        "aliasBytes": 1216,
+        "aliasSha256": "9d135a2f6b2c27452282c14ab55487849ac1f2706d6a0b9f6a1e49f8a1e7137c",
+        "matchesIndependentlyAuditedSource": true
+      },
+      {
+        "graph": "compiled-dependencies",
+        "stream": "controls.bodies.raw",
+        "aliasBytes": 557,
+        "aliasSha256": "3c3ed834f9da24c62d099c4b3185cc5e3fc23ac119b8867fc71dd40fef886f39",
+        "matchesIndependentlyAuditedSource": true
+      },
+      {
+        "graph": "compiled-dependencies",
+        "stream": "controls.records.jsonl",
+        "aliasBytes": 561,
+        "aliasSha256": "cb10535f1f14e535255e050ff60c1d9a2fd42ca3c695a940ea1c978dd731a0ed",
+        "matchesIndependentlyAuditedSource": true
+      },
+      {
+        "graph": "compiled-dependencies",
+        "stream": "main.bodies.raw",
+        "aliasBytes": 560,
+        "aliasSha256": "269159305bcb62d5001a54800a09336ca03068a2508f4b934c17a9e7d00fae59",
+        "matchesIndependentlyAuditedSource": true
+      },
+      {
+        "graph": "compiled-dependencies",
+        "stream": "main.native.jsonl",
+        "aliasBytes": 561,
+        "aliasSha256": "2f3b7c0d4454e46cee8a1b85904007bc68f21e137816982e72bdffc31e3a9367",
+        "matchesIndependentlyAuditedSource": true
+      },
+      {
+        "graph": "compiled-dependencies",
+        "stream": "main.records.jsonl",
+        "aliasBytes": 558,
+        "aliasSha256": "1a293c7b734426278e660a8cf4263b6be9b8a8a0bc007ec4272857a0ad7aec71",
+        "matchesIndependentlyAuditedSource": true
+      },
+      {
+        "graph": "compiled-dependencies",
+        "stream": "reference.stderr.raw",
+        "aliasBytes": 545,
+        "aliasSha256": "81bca574d968d28b23287112a749041de906a4b345519d613e49a5f55032b35c",
+        "matchesIndependentlyAuditedSource": true
+      },
+      {
+        "graph": "compiled-dependencies",
+        "stream": "reference.stdin.raw",
+        "aliasBytes": 1219,
+        "aliasSha256": "8272ea83257057e8e6207955c6828ade07e6c2248dc8199bdf5851a935e44988",
+        "matchesIndependentlyAuditedSource": true
+      },
+      {
+        "graph": "compiled-dependencies",
+        "stream": "reference.stdout.raw",
+        "aliasBytes": 1224,
+        "aliasSha256": "015715330dd16900678ce7018a770fb767193502cd8f9a8474c1042962dcf708",
+        "matchesIndependentlyAuditedSource": true
+      }
+    ],
+    "graphs": {
+      "source-repeat": {
+        "resultSha256": "cef2c9c17940a2f393ae7ff70a0d7a18bdaea80f413a42156f5ba44a4fc3b538",
+        "disposition": "HINGE2_WORLD_GO",
+        "counts": {
+          "mainConstructors": 1,
+          "mainSteps": 1200,
+          "acceptedSteps": 1200,
+          "qualifiedSteps": 1200,
+          "mainReferenceRequests": 1200,
+          "nativeControls": {
+            "logical": {
+              "publicConstructors": 1,
+              "privateConstructors": 29,
+              "stepAttempts": 28,
+              "calculationAttemptsObserved": 19,
+              "acceptedSteps": 13,
+              "observerCallbacks": 19,
+              "queryCalls": 9,
+              "disposeCalls": 2,
+              "referenceRequests": 17,
+              "observedCalls": {
+                "angularUpdates": 76,
+                "freeIntegrations": 76,
+                "motorCalls": 38,
+                "projectionCalls": 36,
+                "reportCalls": 36
+              }
+            },
+            "actual": {
+              "publicConstructors": 1,
+              "privateConstructors": 29,
+              "stepAttempts": 28,
+              "calculationAttemptsObserved": 19,
+              "acceptedSteps": 13,
+              "observerCallbacks": 19,
+              "queryCalls": 9,
+              "disposeCalls": 2,
+              "referenceRequests": 17,
+              "observedCalls": {
+                "angularUpdates": 76,
+                "freeIntegrations": 76,
+                "motorCalls": 38,
+                "projectionCalls": 36,
+                "reportCalls": 36
+              }
+            },
+            "historical": null,
+            "recovery": {
+              "publicConstructors": 0,
+              "privateConstructors": 0,
+              "referenceRequests": 0
+            },
+            "combinedActual": {
+              "publicConstructors": 1,
+              "privateConstructors": 29,
+              "stepAttempts": 28,
+              "calculationAttemptsObserved": 19,
+              "acceptedSteps": 13,
+              "observerCallbacks": 19,
+              "queryCalls": 9,
+              "disposeCalls": 2,
+              "referenceRequests": 17,
+              "observedCalls": {
+                "angularUpdates": 76,
+                "freeIntegrations": 76,
+                "motorCalls": 38,
+                "projectionCalls": 36,
+                "reportCalls": 36
+              }
+            }
+          },
+          "protocolControls": {
+            "reached": 26,
+            "planned": 26,
+            "complete": true
+          }
+        },
+        "child": {
+          "pid": 19621,
+          "exitCode": 0,
+          "signal": null,
+          "stdin": {
+            "path": "/tmp/physics-1179-world-continuation-a341f222/source-repeat-proof/reference.stdin.raw.alias.json",
+            "bytes": 131766270,
+            "sha256": "9ca7129a067d0c06d34beb160044a55405589757cbf2d6a6e51b65c46333c616",
+            "completeLines": 1243,
+            "trailingBytes": 0,
+            "completeEOF": true
+          },
+          "stdout": {
+            "path": "/tmp/physics-1179-world-continuation-a341f222/source-repeat-proof/reference.stdout.raw.alias.json",
+            "bytes": 118876677,
+            "sha256": "69ad2a37886c9b011af83363e79b1ead9025e0f9a231f751c19bbea4e9fead49",
+            "completeLines": 1243,
+            "trailingBytes": 0,
+            "completeEOF": true
+          },
+          "stderr": {
+            "path": "/tmp/physics-1179-world-continuation-a341f222/source-proof/reference.stderr.raw",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "completeLines": 0,
+            "trailingBytes": 0,
+            "completeEOF": true
+          },
+          "completedReplies": 1243,
+          "pendingRequestIndex": null,
+          "firstFailure": null,
+          "secondaryFailures": []
+        },
+        "aliasCount": 8,
+        "storedDirectoryBytes": 12374,
+        "chargedBytes": 5721,
+        "metadataDifferenceBytes": 6653,
+        "differenceIsResultFile": true
+      },
+      "compiled-dependencies": {
+        "resultSha256": "b2ab5d7ed56c49807fe6ae64ec3d27df44c7478cf31c0749668b8f645e393d7d",
+        "disposition": "HINGE2_WORLD_GO",
+        "counts": {
+          "mainConstructors": 1,
+          "mainSteps": 1200,
+          "acceptedSteps": 1200,
+          "qualifiedSteps": 1200,
+          "mainReferenceRequests": 1200,
+          "nativeControls": {
+            "logical": {
+              "publicConstructors": 1,
+              "privateConstructors": 29,
+              "stepAttempts": 28,
+              "calculationAttemptsObserved": 19,
+              "acceptedSteps": 13,
+              "observerCallbacks": 19,
+              "queryCalls": 9,
+              "disposeCalls": 2,
+              "referenceRequests": 17,
+              "observedCalls": {
+                "angularUpdates": 76,
+                "freeIntegrations": 76,
+                "motorCalls": 38,
+                "projectionCalls": 36,
+                "reportCalls": 36
+              }
+            },
+            "actual": {
+              "publicConstructors": 1,
+              "privateConstructors": 29,
+              "stepAttempts": 28,
+              "calculationAttemptsObserved": 19,
+              "acceptedSteps": 13,
+              "observerCallbacks": 19,
+              "queryCalls": 9,
+              "disposeCalls": 2,
+              "referenceRequests": 17,
+              "observedCalls": {
+                "angularUpdates": 76,
+                "freeIntegrations": 76,
+                "motorCalls": 38,
+                "projectionCalls": 36,
+                "reportCalls": 36
+              }
+            },
+            "historical": null,
+            "recovery": {
+              "publicConstructors": 0,
+              "privateConstructors": 0,
+              "referenceRequests": 0
+            },
+            "combinedActual": {
+              "publicConstructors": 1,
+              "privateConstructors": 29,
+              "stepAttempts": 28,
+              "calculationAttemptsObserved": 19,
+              "acceptedSteps": 13,
+              "observerCallbacks": 19,
+              "queryCalls": 9,
+              "disposeCalls": 2,
+              "referenceRequests": 17,
+              "observedCalls": {
+                "angularUpdates": 76,
+                "freeIntegrations": 76,
+                "motorCalls": 38,
+                "projectionCalls": 36,
+                "reportCalls": 36
+              }
+            }
+          },
+          "protocolControls": {
+            "reached": 26,
+            "planned": 26,
+            "complete": true
+          }
+        },
+        "child": {
+          "pid": 41321,
+          "exitCode": 0,
+          "signal": null,
+          "stdin": {
+            "path": "/tmp/physics-1179-world-continuation-a341f222/compiled-dependencies-proof/reference.stdin.raw.alias.json",
+            "bytes": 131766270,
+            "sha256": "9ca7129a067d0c06d34beb160044a55405589757cbf2d6a6e51b65c46333c616",
+            "completeLines": 1243,
+            "trailingBytes": 0,
+            "completeEOF": true
+          },
+          "stdout": {
+            "path": "/tmp/physics-1179-world-continuation-a341f222/compiled-dependencies-proof/reference.stdout.raw.alias.json",
+            "bytes": 118876677,
+            "sha256": "69ad2a37886c9b011af83363e79b1ead9025e0f9a231f751c19bbea4e9fead49",
+            "completeLines": 1243,
+            "trailingBytes": 0,
+            "completeEOF": true
+          },
+          "stderr": {
+            "path": "/tmp/physics-1179-world-continuation-a341f222/source-proof/reference.stderr.raw",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "completeLines": 0,
+            "trailingBytes": 0,
+            "completeEOF": true
+          },
+          "completedReplies": 1243,
+          "pendingRequestIndex": null,
+          "firstFailure": null,
+          "secondaryFailures": []
+        },
+        "aliasCount": 8,
+        "storedDirectoryBytes": 12478,
+        "chargedBytes": 5785,
+        "metadataDifferenceBytes": 6693,
+        "differenceIsResultFile": true
+      }
+    },
+    "summarySha256": "b30fed3d20770223493297d0e126ffb14214de597282787a8979db939a32bb48",
+    "summary": {
+      "complete": true,
+      "physicalGO": true,
+      "disposition": "HINGE2_WORLD_GO",
+      "graphs": [
+        {
+          "graph": "source",
+          "disposition": "HINGE2_WORLD_GO",
+          "counts": {
+            "mainConstructors": 1,
+            "mainSteps": 1200,
+            "acceptedSteps": 1200,
+            "qualifiedSteps": 1200,
+            "mainReferenceRequests": 1200,
+            "nativeControls": {
+              "logical": {
+                "publicConstructors": 1,
+                "privateConstructors": 29,
+                "stepAttempts": 28,
+                "calculationAttemptsObserved": 19,
+                "acceptedSteps": 13,
+                "observerCallbacks": 19,
+                "queryCalls": 9,
+                "disposeCalls": 2,
+                "referenceRequests": 17,
+                "observedCalls": {
+                  "angularUpdates": 76,
+                  "freeIntegrations": 76,
+                  "motorCalls": 38,
+                  "projectionCalls": 36,
+                  "reportCalls": 36
+                }
+              },
+              "actual": {
+                "publicConstructors": 0,
+                "privateConstructors": 12,
+                "stepAttempts": 28,
+                "calculationAttemptsObserved": 19,
+                "acceptedSteps": 13,
+                "observerCallbacks": 19,
+                "queryCalls": 9,
+                "disposeCalls": 2,
+                "referenceRequests": 16,
+                "observedCalls": {
+                  "angularUpdates": 76,
+                  "freeIntegrations": 76,
+                  "motorCalls": 38,
+                  "projectionCalls": 36,
+                  "reportCalls": 36
+                }
+              },
+              "historical": {
+                "publicConstructors": 1,
+                "privateConstructors": 18,
+                "failedInitialRequests": 1,
+                "completedInitialRequests": 1,
+                "worldSteps": 0,
+                "projectionCalls": 0
+              },
+              "recovery": {
+                "publicConstructors": 0,
+                "privateConstructors": 1,
+                "referenceRequests": 0
+              },
+              "combinedActual": {
+                "publicConstructors": 1,
+                "privateConstructors": 30,
+                "stepAttempts": 28,
+                "calculationAttemptsObserved": 19,
+                "acceptedSteps": 13,
+                "observerCallbacks": 19,
+                "queryCalls": 9,
+                "disposeCalls": 2,
+                "referenceRequests": 18,
+                "observedCalls": {
+                  "angularUpdates": 76,
+                  "freeIntegrations": 76,
+                  "motorCalls": 38,
+                  "projectionCalls": 36,
+                  "reportCalls": 36
+                }
+              }
+            },
+            "protocolControls": {
+              "reached": 26,
+              "planned": 26,
+              "complete": true
+            }
+          },
+          "extrema": {
+            "maximumComDriftM": 0,
+            "maximumPlaneDriftM": 0,
+            "maximumAnchorGapM": 0,
+            "maximumAxisErrorRad": 0
+          },
+          "firstFailure": null
+        },
+        {
+          "graph": "source-repeat",
+          "disposition": "HINGE2_WORLD_GO",
+          "counts": {
+            "mainConstructors": 1,
+            "mainSteps": 1200,
+            "acceptedSteps": 1200,
+            "qualifiedSteps": 1200,
+            "mainReferenceRequests": 1200,
+            "nativeControls": {
+              "logical": {
+                "publicConstructors": 1,
+                "privateConstructors": 29,
+                "stepAttempts": 28,
+                "calculationAttemptsObserved": 19,
+                "acceptedSteps": 13,
+                "observerCallbacks": 19,
+                "queryCalls": 9,
+                "disposeCalls": 2,
+                "referenceRequests": 17,
+                "observedCalls": {
+                  "angularUpdates": 76,
+                  "freeIntegrations": 76,
+                  "motorCalls": 38,
+                  "projectionCalls": 36,
+                  "reportCalls": 36
+                }
+              },
+              "actual": {
+                "publicConstructors": 1,
+                "privateConstructors": 29,
+                "stepAttempts": 28,
+                "calculationAttemptsObserved": 19,
+                "acceptedSteps": 13,
+                "observerCallbacks": 19,
+                "queryCalls": 9,
+                "disposeCalls": 2,
+                "referenceRequests": 17,
+                "observedCalls": {
+                  "angularUpdates": 76,
+                  "freeIntegrations": 76,
+                  "motorCalls": 38,
+                  "projectionCalls": 36,
+                  "reportCalls": 36
+                }
+              },
+              "historical": null,
+              "recovery": {
+                "publicConstructors": 0,
+                "privateConstructors": 0,
+                "referenceRequests": 0
+              },
+              "combinedActual": {
+                "publicConstructors": 1,
+                "privateConstructors": 29,
+                "stepAttempts": 28,
+                "calculationAttemptsObserved": 19,
+                "acceptedSteps": 13,
+                "observerCallbacks": 19,
+                "queryCalls": 9,
+                "disposeCalls": 2,
+                "referenceRequests": 17,
+                "observedCalls": {
+                  "angularUpdates": 76,
+                  "freeIntegrations": 76,
+                  "motorCalls": 38,
+                  "projectionCalls": 36,
+                  "reportCalls": 36
+                }
+              }
+            },
+            "protocolControls": {
+              "reached": 26,
+              "planned": 26,
+              "complete": true
+            }
+          },
+          "extrema": {
+            "maximumComDriftM": 0,
+            "maximumPlaneDriftM": 0,
+            "maximumAnchorGapM": 0,
+            "maximumAxisErrorRad": 0
+          },
+          "firstFailure": null
+        },
+        {
+          "graph": "compiled-dependencies",
+          "disposition": "HINGE2_WORLD_GO",
+          "counts": {
+            "mainConstructors": 1,
+            "mainSteps": 1200,
+            "acceptedSteps": 1200,
+            "qualifiedSteps": 1200,
+            "mainReferenceRequests": 1200,
+            "nativeControls": {
+              "logical": {
+                "publicConstructors": 1,
+                "privateConstructors": 29,
+                "stepAttempts": 28,
+                "calculationAttemptsObserved": 19,
+                "acceptedSteps": 13,
+                "observerCallbacks": 19,
+                "queryCalls": 9,
+                "disposeCalls": 2,
+                "referenceRequests": 17,
+                "observedCalls": {
+                  "angularUpdates": 76,
+                  "freeIntegrations": 76,
+                  "motorCalls": 38,
+                  "projectionCalls": 36,
+                  "reportCalls": 36
+                }
+              },
+              "actual": {
+                "publicConstructors": 1,
+                "privateConstructors": 29,
+                "stepAttempts": 28,
+                "calculationAttemptsObserved": 19,
+                "acceptedSteps": 13,
+                "observerCallbacks": 19,
+                "queryCalls": 9,
+                "disposeCalls": 2,
+                "referenceRequests": 17,
+                "observedCalls": {
+                  "angularUpdates": 76,
+                  "freeIntegrations": 76,
+                  "motorCalls": 38,
+                  "projectionCalls": 36,
+                  "reportCalls": 36
+                }
+              },
+              "historical": null,
+              "recovery": {
+                "publicConstructors": 0,
+                "privateConstructors": 0,
+                "referenceRequests": 0
+              },
+              "combinedActual": {
+                "publicConstructors": 1,
+                "privateConstructors": 29,
+                "stepAttempts": 28,
+                "calculationAttemptsObserved": 19,
+                "acceptedSteps": 13,
+                "observerCallbacks": 19,
+                "queryCalls": 9,
+                "disposeCalls": 2,
+                "referenceRequests": 17,
+                "observedCalls": {
+                  "angularUpdates": 76,
+                  "freeIntegrations": 76,
+                  "motorCalls": 38,
+                  "projectionCalls": 36,
+                  "reportCalls": 36
+                }
+              }
+            },
+            "protocolControls": {
+              "reached": 26,
+              "planned": 26,
+              "complete": true
+            }
+          },
+          "extrema": {
+            "maximumComDriftM": 0,
+            "maximumPlaneDriftM": 0,
+            "maximumAnchorGapM": 0,
+            "maximumAxisErrorRad": 0
+          },
+          "firstFailure": null
+        }
+      ],
+      "origins": [
+        {
+          "graph": "source",
+          "originalSourceCount": 39,
+          "originalDistCount": 0,
+          "privateWorldSource": true,
+          "adoptedProjectionSource": true,
+          "inputs": [
+            {
+              "path": "packages/barocss-physics/src/limits.ts",
+              "bytes": 417,
+              "sha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3"
+            },
+            {
+              "path": "packages/barocss-physics/src/types.ts",
+              "bytes": 5118,
+              "sha256": "e8befc80c94e1b109f5024581f056639acff2c19ed445f2875e20eaf2d3bf240"
+            },
+            {
+              "path": "packages/barocss-physics/src/validation.ts",
+              "bytes": 14147,
+              "sha256": "5b0a3016c32ef19076984e6b7f529253af581c29eb9dd1adb19cc8dba185479f"
+            },
+            {
+              "path": "packages/barocss-physics/src/math.ts",
+              "bytes": 2412,
+              "sha256": "6605633830fa7fdf39f9531fbf988b52e306a6835655a318c961eb44c6b05ff8"
+            },
+            {
+              "path": "packages/barocss-physics/src/dynamic-anchor-pair.ts",
+              "bytes": 3063,
+              "sha256": "66db021e35e76fa8a785e4468b7ccde59cd330f15bcc322ec6bd945de7efe046"
+            },
+            {
+              "path": "packages/barocss-physics/src/dynamic-hinge-joint.ts",
+              "bytes": 4826,
+              "sha256": "f41e935efcc92d931277c3d7ccc42921cc98049f2febcf5eee26cc7ba82aa171"
+            },
+            {
+              "path": "packages/barocss-physics/src/capsule-contact.ts",
+              "bytes": 5606,
+              "sha256": "a9df21430e4e2a37b1055143a5954a6a3f997b758c46432daebc11998630f3cd"
+            },
+            {
+              "path": "packages/barocss-physics/src/collision.ts",
+              "bytes": 13433,
+              "sha256": "2ba769697e5f9c5174f30a7a9ae8dceb61c1ba03c6fb507c24b6b6f7d4240388"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-motor-reference/copy.ts",
+              "bytes": 2412,
+              "sha256": "9422c976771232c85ac1ec070e37fee8c6a36280994ab2373e9f4c1e93dbf4a0"
+            },
+            {
+              "path": "packages/barocss-physics/src/dynamic-fixed-joint.ts",
+              "bytes": 2042,
+              "sha256": "5e7c857c8b53536879c38ceb8728aaf43f2d840a9a1ceff8d5eb0d28690b021b"
+            },
+            {
+              "path": "packages/barocss-physics/src/joints.ts",
+              "bytes": 7222,
+              "sha256": "733db740db6cdfb079faab141ac876909cf57bdb372c8c018b6336d07b48528c"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-limit-diagnostic/adapter.ts",
+              "bytes": 6977,
+              "sha256": "8919ab174525316f2b7697cfb003c7e3e4103a999ef67408ddbe99ca7b19da22"
+            },
+            {
+              "path": "examples/physics-rigid-coupled-hinge-reference/profile.ts",
+              "bytes": 2501,
+              "sha256": "3d7fc873d3e5ff9d6f68482e184568eca73fcb7c57f87a1e1e17b3090af79dcd"
+            },
+            {
+              "path": "examples/physics-rigid-coupled-hinge-reference/admission.ts",
+              "bytes": 4014,
+              "sha256": "cafa33eb8438f182b27bbfd2ba4ab91e34470ac76b4b0e2520214f9dc4c5204f"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-reference/profile.ts",
+              "bytes": 4576,
+              "sha256": "9911fb4cf26384f248d5c83144491cae099a8703a621bd653c33bb72d9f2cc0d"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-motor-reference/errors.ts",
+              "bytes": 2152,
+              "sha256": "725871eb0c1ae32a181cf169379daf3ae9052ac1d6b1c82eb8db25a3985d7312"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-motor-reference/report.ts",
+              "bytes": 3688,
+              "sha256": "b687dadc56d3bd12dabe7938bfba141344f3899a0415e6cd93f5f43a9bcd2b01"
+            },
+            {
+              "path": "packages/barocss-physics/src/ccd-slab.ts",
+              "bytes": 1116,
+              "sha256": "b82c219f0b4fd15bdc0f701a7b8b3b0779df7a128b4a57b152412f8bd7087cc9"
+            },
+            {
+              "path": "packages/barocss-physics/src/ccd-box.ts",
+              "bytes": 1969,
+              "sha256": "b53a44c39fe127cd1e9b1962e2f51847709b40ecafb9a21b74a153af7513a46d"
+            },
+            {
+              "path": "packages/barocss-physics/src/ccd.ts",
+              "bytes": 3211,
+              "sha256": "f989fa7d68a86eb3a311e402a1992822bcd4f51cb5efc8d2c5766b0f40256eaa"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/copy.ts",
+              "bytes": 1056,
+              "sha256": "4bc62d44802a96d6d81f51764b7a4af967a5fe82cfa2ff62caf9820c037e5319"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/errors.ts",
+              "bytes": 2526,
+              "sha256": "bf952c0164bb5fd26057fad8f72032bb78c0089ccd580cca40bdfd238dfe6bb0"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/profile.ts",
+              "bytes": 9083,
+              "sha256": "0e57c3f1c7c923c08af18a11be9769e3a6cb28f1b6fffa5e68e68ecc74766ebc"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/options.ts",
+              "bytes": 727,
+              "sha256": "a5165db9738f8a3fc0f82725f4ba691b2d4bd8f64cfac22f65dadeebfdbde7f9"
+            },
+            {
+              "path": "packages/barocss-physics/src/joint-motor.ts",
+              "bytes": 1714,
+              "sha256": "392b23cf5aab021b5af32fd56e3615e78bc64f8484f98f1281f0e709b99add2a"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-motor-reference/motor-stages.ts",
+              "bytes": 4096,
+              "sha256": "2f1e557cc32a8ffb3559f50238b17ecbd0bc8212724839c8f736c0eec426f796"
+            },
+            {
+              "path": "examples/physics-rigid-coupled-hinge-reference/candidate.ts",
+              "bytes": 5503,
+              "sha256": "ea9c7bf81d281053a4576a66fe0944d1fe3a329485b41c02cc987e0333796532"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-reference/diagnostics.ts",
+              "bytes": 2644,
+              "sha256": "c432f6f2eb4e48dbac260490489badf6be25d0711fdf866f4b096b4baee68257"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-reference/rows.ts",
+              "bytes": 3722,
+              "sha256": "3b9d0401497d6f32bc701aa887e8020171ccd0d4747ee7faa9a04940ecfb73ae"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-reference/linear-solver.ts",
+              "bytes": 10603,
+              "sha256": "27a9ff150621e6a648648441e0d862fccc9814e649fb1cccd4086d35bee79663"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-reference/candidate.ts",
+              "bytes": 3909,
+              "sha256": "6580bb3dd049c70076e3d32225749c2b7b3e811e65a83fe43f0cf4393086105c"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/diagnostics.ts",
+              "bytes": 12440,
+              "sha256": "9bd36b3605e90e7470823c32864f2400dc3eb390362b725725f0a4f5bd28512b"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/postcontact-pair.ts",
+              "bytes": 4273,
+              "sha256": "0c127a3fff5f0d0900681e50814706d6ab5a9fe48b3f30d9666c64cd9006929e"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/stages.ts",
+              "bytes": 7851,
+              "sha256": "88a0e41466bb3cd7c675b9644bec2c1d9755f20316c57a83615578a5709eba70"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/world-store.ts",
+              "bytes": 3196,
+              "sha256": "4ce68b2c434571c39f9458310832636aef59f259c6c283b1bf7b33a080d3f451"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/world-query.ts",
+              "bytes": 1914,
+              "sha256": "205f3d6cd1a88c857a4a7ebdc1779b6d2a09ac90411cfcc9c2b96fe5cc26cd03"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/world.ts",
+              "bytes": 6723,
+              "sha256": "be31afc632af047da68f96f812ca0e98ad6f7280e0222ba81f81ea416c35826c"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/candidate.ts",
+              "bytes": 184,
+              "sha256": "dfac9bd4f9ef1e90fc31cc044bcbf067f90447aa9bd43578668f49c804ed21e0"
+            },
+            {
+              "path": "packages/barocss-physics/src/contact-manifold.ts",
+              "bytes": 4423,
+              "sha256": "4fc473bba47d820b040324d6cf6d0837001796ab34b63be444214030b8f504c4"
+            },
+            {
+              "path": "packages/barocss-physics/src/persistent-box-contact.ts",
+              "bytes": 3397,
+              "sha256": "4a176334c5cef1590505b53f81c8beed1658b0c00255e471ba88c438746a9c48"
+            },
+            {
+              "path": "packages/barocss-physics/src/ccd-pair.ts",
+              "bytes": 2101,
+              "sha256": "b193e9e6d18130989550566e0d478e510e2ca8f0fb48b303e2bb351bf20cece9"
+            },
+            {
+              "path": "packages/barocss-physics/src/broadphase.ts",
+              "bytes": 1362,
+              "sha256": "b0cf2d8f2095a47707ac5dd5ac556b69db9084f774f9a97e41bb28180aac4cba"
+            },
+            {
+              "path": "packages/barocss-physics/src/scene-profile.ts",
+              "bytes": 1193,
+              "sha256": "6db4a7e3a5e4485d2b4b1d2b8870ebbdb425a0c336f2d8ce1286352d539de39f"
+            },
+            {
+              "path": "packages/barocss-physics/src/sleep.ts",
+              "bytes": 4402,
+              "sha256": "bea9308d3f8dcff5d9bebf20ea3de47251bd9c86c7e245430e5919356534b104"
+            },
+            {
+              "path": "packages/barocss-physics/src/world.ts",
+              "bytes": 19416,
+              "sha256": "f34f79ee743dff7302b5c87c56407767b7dabb61c2715c90a60826c07637dc69"
+            },
+            {
+              "path": "packages/barocss-physics/src/capsule-query-error.ts",
+              "bytes": 137,
+              "sha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f"
+            },
+            {
+              "path": "packages/barocss-physics/src/capsule-query/profile.ts",
+              "bytes": 303,
+              "sha256": "e74faf4a8d0d0e14765e97270619acebb4c2bff531d57bc42a0e3abf65d647ff"
+            },
+            {
+              "path": "packages/barocss-physics/src/capsule-query/admission.ts",
+              "bytes": 5247,
+              "sha256": "da3c6953478cd18761fe6f1280d5a4991353234be3a18c10fa714a50a9cd2ee1"
+            },
+            {
+              "path": "packages/barocss-physics/src/capsule-query/geometry.ts",
+              "bytes": 2561,
+              "sha256": "52bfbc3b836178d59b24db026d3ecc9adc0031793f2edc5775bb74c6e2a17b59"
+            },
+            {
+              "path": "packages/barocss-physics/src/capsule-query/sweep.ts",
+              "bytes": 1852,
+              "sha256": "6c01e0ae4518394183c95ed0d1827e727ac6a1250c3cfa08354b757cc470ba81"
+            },
+            {
+              "path": "packages/barocss-physics/src/capsule-query/snapshot.ts",
+              "bytes": 2537,
+              "sha256": "6a0994b1b55c962fe7ffc4e5fb55fd90404e1051568b16edf3adda8dc9adb7bd"
+            },
+            {
+              "path": "packages/barocss-physics/src/capsule-query.ts",
+              "bytes": 222,
+              "sha256": "ff66d04550032e0328793f52516edf1ad47fc427f954b031b5836defa14367d1"
+            },
+            {
+              "path": "packages/barocss-physics/src/character/profile.ts",
+              "bytes": 334,
+              "sha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82"
+            },
+            {
+              "path": "packages/barocss-physics/src/character/admission.ts",
+              "bytes": 4479,
+              "sha256": "c6d9a992c47241b8463971c60dec6187eac9be77c031be76a6f6bf9c045f4323"
+            },
+            {
+              "path": "packages/barocss-physics/src/character/math.ts",
+              "bytes": 850,
+              "sha256": "abbface9737fa8f0a0e74698929f85f3a01370a623be0fb3782825959d264a94"
+            },
+            {
+              "path": "packages/barocss-physics/src/character/state.ts",
+              "bytes": 2172,
+              "sha256": "f84d71c7593e95e06e906393fee1a30f3bda1ec0691b80d465dfc1c21bdc2c66"
+            },
+            {
+              "path": "packages/barocss-physics/src/character/query.ts",
+              "bytes": 2724,
+              "sha256": "09ef82614b04bfe1b364c93f8852ecdec14181b7e50c171fc1f26f2e1e02e402"
+            },
+            {
+              "path": "packages/barocss-physics/src/character/step-assist.ts",
+              "bytes": 3120,
+              "sha256": "8356f580e2d4aa201fabb058fd440b789c253e69f47e50fa1fbacc76d30ccc41"
+            },
+            {
+              "path": "packages/barocss-physics/src/character/slide.ts",
+              "bytes": 2546,
+              "sha256": "6a3a937a87f083edbdf031da013a473645224ef01e506be73c1cdafab52505f6"
+            },
+            {
+              "path": "packages/barocss-physics/src/character/ground.ts",
+              "bytes": 1233,
+              "sha256": "b06c43d6f8663e5eb204e9b80135745c36ad8788ebafc7bcfd8c22d8f71c5975"
+            },
+            {
+              "path": "packages/barocss-physics/src/character/core.ts",
+              "bytes": 4048,
+              "sha256": "394794ce99ae466fd24377cf915ff2b9e9d430136dcaf25ca398b0aa6e110f47"
+            },
+            {
+              "path": "packages/barocss-physics/src/character-controller.ts",
+              "bytes": 1363,
+              "sha256": "3895d5bcd44b99d7f036f0a8a9d95e4ced268c837a6aa293c5e09dfa791d3927"
+            },
+            {
+              "path": "packages/barocss-physics/src/index.ts",
+              "bytes": 1032,
+              "sha256": "4192fb161e8eea23d2b962b315be780e841241735ffb8282c0a63db4cb02a7c4"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/harness-entry.mjs",
+              "bytes": 160,
+              "sha256": "1a7bdaa0be79b7a3801f8fbbc1feb8bd0a8f4861347c15d96d36dea57683fc49"
+            }
+          ],
+          "bundleSha256": "8ed469d095be466bcfb566f01e4b5f3830daec66379a4113bd7feae92c912812",
+          "consumerHead": "a341f2224ac4bd0b1167f4a9059ab32ab331aac2"
+        },
+        {
+          "graph": "source-repeat",
+          "originalSourceCount": 39,
+          "originalDistCount": 0,
+          "privateWorldSource": true,
+          "adoptedProjectionSource": true,
+          "inputs": [
+            {
+              "path": "packages/barocss-physics/src/limits.ts",
+              "bytes": 417,
+              "sha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3"
+            },
+            {
+              "path": "packages/barocss-physics/src/types.ts",
+              "bytes": 5118,
+              "sha256": "e8befc80c94e1b109f5024581f056639acff2c19ed445f2875e20eaf2d3bf240"
+            },
+            {
+              "path": "packages/barocss-physics/src/validation.ts",
+              "bytes": 14147,
+              "sha256": "5b0a3016c32ef19076984e6b7f529253af581c29eb9dd1adb19cc8dba185479f"
+            },
+            {
+              "path": "packages/barocss-physics/src/math.ts",
+              "bytes": 2412,
+              "sha256": "6605633830fa7fdf39f9531fbf988b52e306a6835655a318c961eb44c6b05ff8"
+            },
+            {
+              "path": "packages/barocss-physics/src/dynamic-anchor-pair.ts",
+              "bytes": 3063,
+              "sha256": "66db021e35e76fa8a785e4468b7ccde59cd330f15bcc322ec6bd945de7efe046"
+            },
+            {
+              "path": "packages/barocss-physics/src/dynamic-hinge-joint.ts",
+              "bytes": 4826,
+              "sha256": "f41e935efcc92d931277c3d7ccc42921cc98049f2febcf5eee26cc7ba82aa171"
+            },
+            {
+              "path": "packages/barocss-physics/src/capsule-contact.ts",
+              "bytes": 5606,
+              "sha256": "a9df21430e4e2a37b1055143a5954a6a3f997b758c46432daebc11998630f3cd"
+            },
+            {
+              "path": "packages/barocss-physics/src/collision.ts",
+              "bytes": 13433,
+              "sha256": "2ba769697e5f9c5174f30a7a9ae8dceb61c1ba03c6fb507c24b6b6f7d4240388"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-motor-reference/copy.ts",
+              "bytes": 2412,
+              "sha256": "9422c976771232c85ac1ec070e37fee8c6a36280994ab2373e9f4c1e93dbf4a0"
+            },
+            {
+              "path": "packages/barocss-physics/src/dynamic-fixed-joint.ts",
+              "bytes": 2042,
+              "sha256": "5e7c857c8b53536879c38ceb8728aaf43f2d840a9a1ceff8d5eb0d28690b021b"
+            },
+            {
+              "path": "packages/barocss-physics/src/joints.ts",
+              "bytes": 7222,
+              "sha256": "733db740db6cdfb079faab141ac876909cf57bdb372c8c018b6336d07b48528c"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-limit-diagnostic/adapter.ts",
+              "bytes": 6977,
+              "sha256": "8919ab174525316f2b7697cfb003c7e3e4103a999ef67408ddbe99ca7b19da22"
+            },
+            {
+              "path": "examples/physics-rigid-coupled-hinge-reference/profile.ts",
+              "bytes": 2501,
+              "sha256": "3d7fc873d3e5ff9d6f68482e184568eca73fcb7c57f87a1e1e17b3090af79dcd"
+            },
+            {
+              "path": "examples/physics-rigid-coupled-hinge-reference/admission.ts",
+              "bytes": 4014,
+              "sha256": "cafa33eb8438f182b27bbfd2ba4ab91e34470ac76b4b0e2520214f9dc4c5204f"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-reference/profile.ts",
+              "bytes": 4576,
+              "sha256": "9911fb4cf26384f248d5c83144491cae099a8703a621bd653c33bb72d9f2cc0d"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-motor-reference/errors.ts",
+              "bytes": 2152,
+              "sha256": "725871eb0c1ae32a181cf169379daf3ae9052ac1d6b1c82eb8db25a3985d7312"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-motor-reference/report.ts",
+              "bytes": 3688,
+              "sha256": "b687dadc56d3bd12dabe7938bfba141344f3899a0415e6cd93f5f43a9bcd2b01"
+            },
+            {
+              "path": "packages/barocss-physics/src/ccd-slab.ts",
+              "bytes": 1116,
+              "sha256": "b82c219f0b4fd15bdc0f701a7b8b3b0779df7a128b4a57b152412f8bd7087cc9"
+            },
+            {
+              "path": "packages/barocss-physics/src/ccd-box.ts",
+              "bytes": 1969,
+              "sha256": "b53a44c39fe127cd1e9b1962e2f51847709b40ecafb9a21b74a153af7513a46d"
+            },
+            {
+              "path": "packages/barocss-physics/src/ccd.ts",
+              "bytes": 3211,
+              "sha256": "f989fa7d68a86eb3a311e402a1992822bcd4f51cb5efc8d2c5766b0f40256eaa"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/copy.ts",
+              "bytes": 1056,
+              "sha256": "4bc62d44802a96d6d81f51764b7a4af967a5fe82cfa2ff62caf9820c037e5319"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/errors.ts",
+              "bytes": 2526,
+              "sha256": "bf952c0164bb5fd26057fad8f72032bb78c0089ccd580cca40bdfd238dfe6bb0"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/profile.ts",
+              "bytes": 9083,
+              "sha256": "0e57c3f1c7c923c08af18a11be9769e3a6cb28f1b6fffa5e68e68ecc74766ebc"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/options.ts",
+              "bytes": 727,
+              "sha256": "a5165db9738f8a3fc0f82725f4ba691b2d4bd8f64cfac22f65dadeebfdbde7f9"
+            },
+            {
+              "path": "packages/barocss-physics/src/joint-motor.ts",
+              "bytes": 1714,
+              "sha256": "392b23cf5aab021b5af32fd56e3615e78bc64f8484f98f1281f0e709b99add2a"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-motor-reference/motor-stages.ts",
+              "bytes": 4096,
+              "sha256": "2f1e557cc32a8ffb3559f50238b17ecbd0bc8212724839c8f736c0eec426f796"
+            },
+            {
+              "path": "examples/physics-rigid-coupled-hinge-reference/candidate.ts",
+              "bytes": 5503,
+              "sha256": "ea9c7bf81d281053a4576a66fe0944d1fe3a329485b41c02cc987e0333796532"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-reference/diagnostics.ts",
+              "bytes": 2644,
+              "sha256": "c432f6f2eb4e48dbac260490489badf6be25d0711fdf866f4b096b4baee68257"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-reference/rows.ts",
+              "bytes": 3722,
+              "sha256": "3b9d0401497d6f32bc701aa887e8020171ccd0d4747ee7faa9a04940ecfb73ae"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-reference/linear-solver.ts",
+              "bytes": 10603,
+              "sha256": "27a9ff150621e6a648648441e0d862fccc9814e649fb1cccd4086d35bee79663"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-reference/candidate.ts",
+              "bytes": 3909,
+              "sha256": "6580bb3dd049c70076e3d32225749c2b7b3e811e65a83fe43f0cf4393086105c"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/diagnostics.ts",
+              "bytes": 12440,
+              "sha256": "9bd36b3605e90e7470823c32864f2400dc3eb390362b725725f0a4f5bd28512b"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/postcontact-pair.ts",
+              "bytes": 4273,
+              "sha256": "0c127a3fff5f0d0900681e50814706d6ab5a9fe48b3f30d9666c64cd9006929e"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/stages.ts",
+              "bytes": 7851,
+              "sha256": "88a0e41466bb3cd7c675b9644bec2c1d9755f20316c57a83615578a5709eba70"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/world-store.ts",
+              "bytes": 3196,
+              "sha256": "4ce68b2c434571c39f9458310832636aef59f259c6c283b1bf7b33a080d3f451"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/world-query.ts",
+              "bytes": 1914,
+              "sha256": "205f3d6cd1a88c857a4a7ebdc1779b6d2a09ac90411cfcc9c2b96fe5cc26cd03"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/world.ts",
+              "bytes": 6723,
+              "sha256": "be31afc632af047da68f96f812ca0e98ad6f7280e0222ba81f81ea416c35826c"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/candidate.ts",
+              "bytes": 184,
+              "sha256": "dfac9bd4f9ef1e90fc31cc044bcbf067f90447aa9bd43578668f49c804ed21e0"
+            },
+            {
+              "path": "packages/barocss-physics/src/contact-manifold.ts",
+              "bytes": 4423,
+              "sha256": "4fc473bba47d820b040324d6cf6d0837001796ab34b63be444214030b8f504c4"
+            },
+            {
+              "path": "packages/barocss-physics/src/persistent-box-contact.ts",
+              "bytes": 3397,
+              "sha256": "4a176334c5cef1590505b53f81c8beed1658b0c00255e471ba88c438746a9c48"
+            },
+            {
+              "path": "packages/barocss-physics/src/ccd-pair.ts",
+              "bytes": 2101,
+              "sha256": "b193e9e6d18130989550566e0d478e510e2ca8f0fb48b303e2bb351bf20cece9"
+            },
+            {
+              "path": "packages/barocss-physics/src/broadphase.ts",
+              "bytes": 1362,
+              "sha256": "b0cf2d8f2095a47707ac5dd5ac556b69db9084f774f9a97e41bb28180aac4cba"
+            },
+            {
+              "path": "packages/barocss-physics/src/scene-profile.ts",
+              "bytes": 1193,
+              "sha256": "6db4a7e3a5e4485d2b4b1d2b8870ebbdb425a0c336f2d8ce1286352d539de39f"
+            },
+            {
+              "path": "packages/barocss-physics/src/sleep.ts",
+              "bytes": 4402,
+              "sha256": "bea9308d3f8dcff5d9bebf20ea3de47251bd9c86c7e245430e5919356534b104"
+            },
+            {
+              "path": "packages/barocss-physics/src/world.ts",
+              "bytes": 19416,
+              "sha256": "f34f79ee743dff7302b5c87c56407767b7dabb61c2715c90a60826c07637dc69"
+            },
+            {
+              "path": "packages/barocss-physics/src/capsule-query-error.ts",
+              "bytes": 137,
+              "sha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f"
+            },
+            {
+              "path": "packages/barocss-physics/src/capsule-query/profile.ts",
+              "bytes": 303,
+              "sha256": "e74faf4a8d0d0e14765e97270619acebb4c2bff531d57bc42a0e3abf65d647ff"
+            },
+            {
+              "path": "packages/barocss-physics/src/capsule-query/admission.ts",
+              "bytes": 5247,
+              "sha256": "da3c6953478cd18761fe6f1280d5a4991353234be3a18c10fa714a50a9cd2ee1"
+            },
+            {
+              "path": "packages/barocss-physics/src/capsule-query/geometry.ts",
+              "bytes": 2561,
+              "sha256": "52bfbc3b836178d59b24db026d3ecc9adc0031793f2edc5775bb74c6e2a17b59"
+            },
+            {
+              "path": "packages/barocss-physics/src/capsule-query/sweep.ts",
+              "bytes": 1852,
+              "sha256": "6c01e0ae4518394183c95ed0d1827e727ac6a1250c3cfa08354b757cc470ba81"
+            },
+            {
+              "path": "packages/barocss-physics/src/capsule-query/snapshot.ts",
+              "bytes": 2537,
+              "sha256": "6a0994b1b55c962fe7ffc4e5fb55fd90404e1051568b16edf3adda8dc9adb7bd"
+            },
+            {
+              "path": "packages/barocss-physics/src/capsule-query.ts",
+              "bytes": 222,
+              "sha256": "ff66d04550032e0328793f52516edf1ad47fc427f954b031b5836defa14367d1"
+            },
+            {
+              "path": "packages/barocss-physics/src/character/profile.ts",
+              "bytes": 334,
+              "sha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82"
+            },
+            {
+              "path": "packages/barocss-physics/src/character/admission.ts",
+              "bytes": 4479,
+              "sha256": "c6d9a992c47241b8463971c60dec6187eac9be77c031be76a6f6bf9c045f4323"
+            },
+            {
+              "path": "packages/barocss-physics/src/character/math.ts",
+              "bytes": 850,
+              "sha256": "abbface9737fa8f0a0e74698929f85f3a01370a623be0fb3782825959d264a94"
+            },
+            {
+              "path": "packages/barocss-physics/src/character/state.ts",
+              "bytes": 2172,
+              "sha256": "f84d71c7593e95e06e906393fee1a30f3bda1ec0691b80d465dfc1c21bdc2c66"
+            },
+            {
+              "path": "packages/barocss-physics/src/character/query.ts",
+              "bytes": 2724,
+              "sha256": "09ef82614b04bfe1b364c93f8852ecdec14181b7e50c171fc1f26f2e1e02e402"
+            },
+            {
+              "path": "packages/barocss-physics/src/character/step-assist.ts",
+              "bytes": 3120,
+              "sha256": "8356f580e2d4aa201fabb058fd440b789c253e69f47e50fa1fbacc76d30ccc41"
+            },
+            {
+              "path": "packages/barocss-physics/src/character/slide.ts",
+              "bytes": 2546,
+              "sha256": "6a3a937a87f083edbdf031da013a473645224ef01e506be73c1cdafab52505f6"
+            },
+            {
+              "path": "packages/barocss-physics/src/character/ground.ts",
+              "bytes": 1233,
+              "sha256": "b06c43d6f8663e5eb204e9b80135745c36ad8788ebafc7bcfd8c22d8f71c5975"
+            },
+            {
+              "path": "packages/barocss-physics/src/character/core.ts",
+              "bytes": 4048,
+              "sha256": "394794ce99ae466fd24377cf915ff2b9e9d430136dcaf25ca398b0aa6e110f47"
+            },
+            {
+              "path": "packages/barocss-physics/src/character-controller.ts",
+              "bytes": 1363,
+              "sha256": "3895d5bcd44b99d7f036f0a8a9d95e4ced268c837a6aa293c5e09dfa791d3927"
+            },
+            {
+              "path": "packages/barocss-physics/src/index.ts",
+              "bytes": 1032,
+              "sha256": "4192fb161e8eea23d2b962b315be780e841241735ffb8282c0a63db4cb02a7c4"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/harness-entry.mjs",
+              "bytes": 160,
+              "sha256": "1a7bdaa0be79b7a3801f8fbbc1feb8bd0a8f4861347c15d96d36dea57683fc49"
+            }
+          ],
+          "bundleSha256": "8ed469d095be466bcfb566f01e4b5f3830daec66379a4113bd7feae92c912812",
+          "consumerHead": "a341f2224ac4bd0b1167f4a9059ab32ab331aac2"
+        },
+        {
+          "graph": "compiled-dependencies",
+          "originalSourceCount": 0,
+          "originalDistCount": 15,
+          "privateWorldSource": true,
+          "adoptedProjectionSource": true,
+          "inputs": [
+            {
+              "path": "packages/barocss-physics/dist/limits.js",
+              "bytes": 416,
+              "sha256": "15e4c3baf2645fa8aa040fcd4de7c5d14685e7a6ce1b6c45cffda01c47e08219"
+            },
+            {
+              "path": "packages/barocss-physics/dist/types.js",
+              "bytes": 179,
+              "sha256": "932dad524c2e342e7335203e1e47aafb4025b3da32339385d79847c51283be1e"
+            },
+            {
+              "path": "packages/barocss-physics/dist/validation.js",
+              "bytes": 13787,
+              "sha256": "d7bb0ca0e1ac7f0485b60e46d72d4a49a2856473276cf28e56967895f06fe919"
+            },
+            {
+              "path": "packages/barocss-physics/dist/math.js",
+              "bytes": 2114,
+              "sha256": "d82024b2458cf6ffdacef3ce57e0e1b802888bc39168ee032202536d4bdaa028"
+            },
+            {
+              "path": "packages/barocss-physics/dist/dynamic-anchor-pair.js",
+              "bytes": 3099,
+              "sha256": "8e20e96a9a3c803f65d78dfa21aaf530744b2c37e4f3507fd87e828190c800be"
+            },
+            {
+              "path": "packages/barocss-physics/dist/dynamic-hinge-joint.js",
+              "bytes": 4671,
+              "sha256": "8780a6887f0c7cbec6ec2f059b2ada64d0e28d0224279d7ada42e4b79e84baac"
+            },
+            {
+              "path": "packages/barocss-physics/dist/capsule-contact.js",
+              "bytes": 5708,
+              "sha256": "7519483aec208b282ae23bb6985868af199b19d00d3d00564b3a5438d2113ad1"
+            },
+            {
+              "path": "packages/barocss-physics/dist/collision.js",
+              "bytes": 13712,
+              "sha256": "404bbb24c4552828f8bd943481a15b11af7d93333c5651c4c8f8cae88e3dd28a"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-motor-reference/copy.ts",
+              "bytes": 2412,
+              "sha256": "9422c976771232c85ac1ec070e37fee8c6a36280994ab2373e9f4c1e93dbf4a0"
+            },
+            {
+              "path": "packages/barocss-physics/dist/dynamic-fixed-joint.js",
+              "bytes": 1935,
+              "sha256": "c637c4b13cdf432103202f895e50fae7e05c88920cf0889a67f2c16e565bfb5a"
+            },
+            {
+              "path": "packages/barocss-physics/dist/joints.js",
+              "bytes": 7382,
+              "sha256": "f2893b2f8684f338a8d4832b9fa91c356fd360bf70ebf423062e21911d433ce0"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-limit-diagnostic/adapter.ts",
+              "bytes": 6977,
+              "sha256": "8919ab174525316f2b7697cfb003c7e3e4103a999ef67408ddbe99ca7b19da22"
+            },
+            {
+              "path": "examples/physics-rigid-coupled-hinge-reference/profile.ts",
+              "bytes": 2501,
+              "sha256": "3d7fc873d3e5ff9d6f68482e184568eca73fcb7c57f87a1e1e17b3090af79dcd"
+            },
+            {
+              "path": "examples/physics-rigid-coupled-hinge-reference/admission.ts",
+              "bytes": 4014,
+              "sha256": "cafa33eb8438f182b27bbfd2ba4ab91e34470ac76b4b0e2520214f9dc4c5204f"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-reference/profile.ts",
+              "bytes": 4576,
+              "sha256": "9911fb4cf26384f248d5c83144491cae099a8703a621bd653c33bb72d9f2cc0d"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-motor-reference/errors.ts",
+              "bytes": 2152,
+              "sha256": "725871eb0c1ae32a181cf169379daf3ae9052ac1d6b1c82eb8db25a3985d7312"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-motor-reference/report.ts",
+              "bytes": 3688,
+              "sha256": "b687dadc56d3bd12dabe7938bfba141344f3899a0415e6cd93f5f43a9bcd2b01"
+            },
+            {
+              "path": "packages/barocss-physics/dist/ccd-slab.js",
+              "bytes": 1088,
+              "sha256": "cf85c1dce1ebaa899cc2fc9eead7b0c25f7096caeb3a652476beb93c5f02843f"
+            },
+            {
+              "path": "packages/barocss-physics/dist/ccd-box.js",
+              "bytes": 1825,
+              "sha256": "28dc449fe8f07f1d95245017299e64d3fc350fd7982819c93565999130290595"
+            },
+            {
+              "path": "packages/barocss-physics/dist/ccd.js",
+              "bytes": 2966,
+              "sha256": "c2c54c3dedf0df98c8888107457dbd87041eb7f52b8f689484b18abdfbc5b54a"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/copy.ts",
+              "bytes": 1056,
+              "sha256": "4bc62d44802a96d6d81f51764b7a4af967a5fe82cfa2ff62caf9820c037e5319"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/errors.ts",
+              "bytes": 2526,
+              "sha256": "bf952c0164bb5fd26057fad8f72032bb78c0089ccd580cca40bdfd238dfe6bb0"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/profile.ts",
+              "bytes": 9083,
+              "sha256": "0e57c3f1c7c923c08af18a11be9769e3a6cb28f1b6fffa5e68e68ecc74766ebc"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/options.ts",
+              "bytes": 727,
+              "sha256": "a5165db9738f8a3fc0f82725f4ba691b2d4bd8f64cfac22f65dadeebfdbde7f9"
+            },
+            {
+              "path": "packages/barocss-physics/dist/joint-motor.js",
+              "bytes": 1651,
+              "sha256": "43010c0e319717622727666e1e23f7288fdf500f1731f6fd52a443f36055c724"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-motor-reference/motor-stages.ts",
+              "bytes": 4096,
+              "sha256": "2f1e557cc32a8ffb3559f50238b17ecbd0bc8212724839c8f736c0eec426f796"
+            },
+            {
+              "path": "examples/physics-rigid-coupled-hinge-reference/candidate.ts",
+              "bytes": 5503,
+              "sha256": "ea9c7bf81d281053a4576a66fe0944d1fe3a329485b41c02cc987e0333796532"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-reference/diagnostics.ts",
+              "bytes": 2644,
+              "sha256": "c432f6f2eb4e48dbac260490489badf6be25d0711fdf866f4b096b4baee68257"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-reference/rows.ts",
+              "bytes": 3722,
+              "sha256": "3b9d0401497d6f32bc701aa887e8020171ccd0d4747ee7faa9a04940ecfb73ae"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-reference/linear-solver.ts",
+              "bytes": 10603,
+              "sha256": "27a9ff150621e6a648648441e0d862fccc9814e649fb1cccd4086d35bee79663"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-reference/candidate.ts",
+              "bytes": 3909,
+              "sha256": "6580bb3dd049c70076e3d32225749c2b7b3e811e65a83fe43f0cf4393086105c"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/diagnostics.ts",
+              "bytes": 12440,
+              "sha256": "9bd36b3605e90e7470823c32864f2400dc3eb390362b725725f0a4f5bd28512b"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/postcontact-pair.ts",
+              "bytes": 4273,
+              "sha256": "0c127a3fff5f0d0900681e50814706d6ab5a9fe48b3f30d9666c64cd9006929e"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/stages.ts",
+              "bytes": 7851,
+              "sha256": "88a0e41466bb3cd7c675b9644bec2c1d9755f20316c57a83615578a5709eba70"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/world-store.ts",
+              "bytes": 3196,
+              "sha256": "4ce68b2c434571c39f9458310832636aef59f259c6c283b1bf7b33a080d3f451"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/world-query.ts",
+              "bytes": 1914,
+              "sha256": "205f3d6cd1a88c857a4a7ebdc1779b6d2a09ac90411cfcc9c2b96fe5cc26cd03"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/world.ts",
+              "bytes": 6723,
+              "sha256": "be31afc632af047da68f96f812ca0e98ad6f7280e0222ba81f81ea416c35826c"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/candidate.ts",
+              "bytes": 184,
+              "sha256": "dfac9bd4f9ef1e90fc31cc044bcbf067f90447aa9bd43578668f49c804ed21e0"
+            },
+            {
+              "path": "packages/barocss-physics/dist/index.js",
+              "bytes": 115857,
+              "sha256": "8060be4ee85311bce15af37961394abff15bffa26e4e52dbe01091d2b66d7d4b"
+            },
+            {
+              "path": "examples/physics-rigid-hinge-velocity-world-reference/harness-entry.mjs",
+              "bytes": 160,
+              "sha256": "1a7bdaa0be79b7a3801f8fbbc1feb8bd0a8f4861347c15d96d36dea57683fc49"
+            }
+          ],
+          "bundleSha256": "fae777ee274569725ae18ba08b5da81983b081df7d1451d2d961f56416ee9419",
+          "consumerHead": "a341f2224ac4bd0b1167f4a9059ab32ab331aac2"
+        }
+      ]
+    },
+    "allThreeTerminal": true,
+    "actualAliasByteParityReceiptsMatchAuditedSource": true
+  }
+}

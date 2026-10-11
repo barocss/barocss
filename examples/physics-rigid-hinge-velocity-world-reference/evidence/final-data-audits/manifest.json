@@ -1,0 +1,30 @@
+{
+  "readOnlySavedData": true,
+  "physicsReplay": false,
+  "files": [
+    {
+      "path": "composite-audit.md",
+      "bytes": 4708,
+      "sha256": "836a23a00f03c455607d300ba183eaa48274c0d81d96357ef549136715764ce0",
+      "source": "/tmp/physics-1179-world-final-composite-audit.md"
+    },
+    {
+      "path": "composite-audit.json",
+      "bytes": 82397,
+      "sha256": "4f83c5aacf7a384ee2954d25cb84009b7d570ad079c98fe388a74231edde0a1d",
+      "source": "/tmp/physics-1179-world-final-composite-audit.json"
+    },
+    {
+      "path": "provenance-audit.md",
+      "bytes": 8511,
+      "sha256": "185645e3323958fcc3f9cf66d37de2a04638daca72c9d2a934dc09f0142aed2f",
+      "source": "/tmp/physics-1179-world-final-provenance-audit.md"
+    },
+    {
+      "path": "numeric-audit.md",
+      "bytes": 12520,
+      "sha256": "9237498670ca5e02f4d9a34ca8d0274ca0c6d8735e77c4b9f93b1d0c7a231589",
+      "source": "/tmp/physics-1179-world-final-numeric-audit.md"
+    }
+  ]
+}
