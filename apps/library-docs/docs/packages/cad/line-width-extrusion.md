@@ -4,6 +4,8 @@ Build a centered rectangular Face from one selected Line in a complete source0 m
 
 This guide uses public `@barocss/cad` APIs at the separate experimental source profile `fd0def8e1a2c55ecfa66daf5116347c37185ba4b`, version `0.0.0-experimental`. These operations are not part of the older `5f5ad866205a21510ac69552e704cc162fa253b5` examples. A TypeScript-capable consumer must resolve the matching public source entry. Package configuration does not establish registry publication.
 
+For a dependent width/height recipe with suppression and authored Save/Open, follow [the separate Line-width extrusion graph guide](./line-width-extrusion-graph). Its newer graph provider composes these complete producers; this direct example's original source and API calls remain unchanged.
+
 ## Follow the two construction steps
 
 `buildSourceLineWidthFace(request)` accepts complete original source0 text, a selected Curve ID, a width in mm and explicit generated IDs. It compiles the whole source, retains the whole original Model and creates two centered section Curves. Their compatible ruled Surface supplies the four natural boundary Curves for a native convex planar Face.
