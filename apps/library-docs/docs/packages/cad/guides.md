@@ -40,6 +40,8 @@ After editing source parameters, compile again and reconstruct/revalidate the ac
 
 To retain an original Line while giving it a centered width, follow [Line → width Face → direct extrusion](./line-width-extrusion). It uses a separate newer API profile and retains every complete source/Model context. Its six-Face closed abstract Shell has a different certification scope from the rectangle Solid builder above.
 
+For dependent parameter edits, suppression and authored Save/Open, use [the two-node Line-width extrusion graph](./line-width-extrusion-graph). Its separate matching graph provider retains the complete source0 asset and literal-mm recipes; selective update counts remain distinct from prior cold validation.
+
 ## Query original parameters and derivatives
 
 Use `curveDomain` or `surfaceDomain` before querying. Do not assume every domain is `[0,1]`:
