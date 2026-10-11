@@ -1,3 +1,31 @@
+## Navigate the original native view
+
+Open a supported original Source0 or IGES file. Enable **Navigate native view**.
+Drag with the primary pointer to turn the view. Hold Shift before the drag to
+move the view. Use the wheel to zoom. Navigation starts off. It is available
+for an idle, ready original native scene, including a scene with all objects
+hidden. Other source modes keep this control disabled.
+
+Camera changes keep the original source, Model, selected geometry, display
+poses, visibility, native point, chord and derivative reports, SDK measurement
+caches, parameter drafts and File intentions. Native coordinates and derivatives
+keep their original units. Camera movement changes the displayed pixels.
+
+A change to source, selection, visibility, pose, canvas backing size or CSS
+rectangle cancels an active drag. Start a new drag in the current view. A known
+successful source reload also cancels it when the content matches. A failed
+source candidate keeps the accepted view. This controller cannot detect an
+unobserved identical external reload as a new source generation.
+
+Disable navigation to remove its pointer controls. Presentation loss or failure,
+Clear, unsupported mode and disposal detach them. Caller context restoration
+does not resume a lost Viewer. The earlier CPU inspection rules still apply.
+The controller restores the prior inline touch-action value and priority.
+It uses the existing public Viewer pointer adapter and adds no camera solver,
+selection action, native hit, geometry edit, animation timer or export action.
+If a host callback fails after an accepted camera change, the camera is already
+committed. No camera or framebuffer rollback is promised for that callback.
+
 ## Capture two original points for a chord
 
 Select an original Surface or Curve and enter its native U/V or t in the

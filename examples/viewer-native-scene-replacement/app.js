@@ -11,6 +11,7 @@ import {readNativeFile,createNativeFileOpen} from './native-file-open.js';
 import {readIGESFile,createIGESFileOpen} from './iges-file-open.js';
 import {readNativePointScope,querySelectedNativePoint} from './selected-native-point.js';
 import {querySelectedNativeDerivatives} from './selected-native-derivatives.js';
+import {createNativePointerNavigation} from './pointer-navigation.js';
 import {measureCapturedNativeChord,isCapturedNativeChordPointCurrent} from './captured-native-chord.js';
 import {prepareNativeSourceDownload,createNativeSourceDownload} from './native-source-download.js';
 import {buildMountedAppearanceInput,MOUNTED_APPEARANCE_SHADER_SOURCES,MOUNTED_APPEARANCE_LIGHT_PRESETS} from './mounted-appearance.js';
@@ -22,6 +23,7 @@ const near=(a,b,tolerance=1e-7)=>a.length===b.length&&a.every((n,i)=>Math.abs(n-
 const hash=bytes=>bytes.reduce((n,byte)=>Math.imul(n^byte,16777619)>>>0,2166136261);
 const sha=async bytes=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(n=>n.toString(16).padStart(2,'0')).join('');
 const canvas=document.querySelector('canvas'),status=document.querySelector('#status'),inspection=document.querySelector('#inspection'),list=document.querySelector('#bodies');
+const navigateNativeView=document.querySelector('#navigate-native-view');
 const nativeFileChoice=document.querySelector('#native-file-choice'),openNativeFileButton=document.querySelector('#open-native-file'),discardNativeFileButton=document.querySelector('#discard-native-file');
 const stagedNativeFile=document.querySelector('#staged-native-file'),acceptedNativeFile=document.querySelector('#accepted-native-file');
 const igesFileChoice=document.querySelector('#iges-file-choice'),igesYUpConfirmed=document.querySelector('#iges-yup-confirmed');
@@ -65,6 +67,7 @@ const documentOptions={native:{...clone(nativeOptions),unitsPerMillimeter:1},bas
 const mmToSceneUnit=.13,fixedCamera={eye:[4,3,7],target:[.35,.2,.3],up:[0,1,0],fovYDegrees:45,near:.01,far:30};
 let documentResult=null,originalBytes=null,originalText='',projection=[],manifest=[],viewer=null,running=false,disposed=false,result=null,nativeFileOpen=null,nativeSourceDownload=null,igesFileOpen=null;
 let igesStatus='empty',hasIGESProvenance=false;
+let nativeNavigation=null,nativeNavigationDisposed=false;
 let selectedPointScope=null,selectedPointReport=null,selectedPointEpoch=0,selectedPointDisposed=false;
 let nativeChordFirst=null,nativeChordReport=null,nativeChordEpoch=0,nativeChordDisposed=false;
 let selectedDerivativesScope=null,selectedDerivativesReport=null,selectedDerivativesEpoch=0,selectedDerivativesDisposed=false;
@@ -132,7 +135,7 @@ function discardIGESFile(){check(igesFileOpen&&!disposed&&!running,'IGES file ch
   igesFileOpen.discard();igesFileChoice.value='';display('IGES choice discarded. Accepted geometry and provenance are unchanged.');return igesFileSnapshot();}
 function invalidateIGESFile(){if(!disposed)igesFileOpen?.invalidate();return igesFileSnapshot();}
 function invalidateFileIntents(){invalidateNativeFile();invalidateIGESFile();}
-function sourceAction(callback){invalidateFileIntents();try{const value=callback();nativeFileOpen?.clearAccepted();igesFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();inspection.textContent='';render();return value;}catch(error){render();throw error;}}
+function sourceAction(callback){invalidateFileIntents();try{const value=callback();invalidateNativeNavigation();nativeFileOpen?.clearAccepted();igesFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();inspection.textContent='';render();return value;}catch(error){render();throw error;}}
 function commitReplacement(candidate){uploads.length=0;draws.length=0;viewer.replaceNativeScene(candidate);return viewer.getState();}
 function replace(candidate){return sourceAction(()=>commitReplacement(candidate===undefined?buildCandidate():candidate));}
 function nativeSourceDownloadSnapshot(){return nativeSourceDownload?clone(nativeSourceDownload.snapshot()):{version:0,pending:false,disposed,enabled:false,report:null,error:null,activeUrls:0,activeAnchors:0,activeTimers:0};}
@@ -329,10 +332,47 @@ function resetNativeChord(){
   check(arguments.length===0,'Reset chord points takes no arguments.');
   clearNativeChord();renderNativeChord();display('Chord points reset. Drafts, point report and latest SDK measurement remain.');return nativeChordSnapshot();
 }
+function nativeNavigationSnapshot(){
+  check(arguments.length===0,'Navigation snapshot takes no arguments.');
+  return clone(nativeNavigation?.snapshot()??{enabled:false,attached:false,disposed:nativeNavigationDisposed,status:'empty'});
+}
+function nativeNavigationEligible(state){return!running&&!disposed&&!nativeNavigationDisposed&&state.status==='ready'
+  &&!!state.native&&!!state.native.model&&!state.document&&!state.modelSet&&!state.assembly&&!state.shell
+  &&!state.qualifiedFaceScene&&!state.uniformCurve&&!state.selectedUniformCurve&&!state.mixedDepth;}
+function renderNativeNavigationControls(snapshot){
+  navigateNativeView.checked=snapshot.enabled;
+  navigateNativeView.disabled=nativeNavigationDisposed||disposed||snapshot.disposed||!nativeNavigation
+    ||!nativeNavigationEligible(viewer.getState());
+}
+function syncNativeNavigation(){
+  check(arguments.length===0,'Navigation sync takes no arguments.');
+  const snapshot=nativeNavigation?.sync()??nativeNavigationSnapshot();renderNativeNavigationControls(snapshot);return clone(snapshot);
+}
+function invalidateNativeNavigation(){
+  check(arguments.length===0,'Navigation invalidation takes no arguments.');
+  const snapshot=nativeNavigation?.invalidate()??nativeNavigationSnapshot();renderNativeNavigationControls(snapshot);return clone(snapshot);
+}
+function setNativeNavigationEnabled(value){
+  check(arguments.length===1&&typeof value==='boolean','Navigation preference requires one explicit boolean.');
+  check(!nativeNavigationDisposed&&!disposed&&nativeNavigation,'Navigation host is disposed or unavailable.');
+  try{if(value)check(nativeNavigationEligible(viewer.getState()),'Native navigation needs an idle ready original Source0 scene.');
+    nativeNavigation.setEnabled(value);const snapshot=syncNativeNavigation();
+    display(value?'Native view navigation enabled. Drag to turn, Shift-drag to pan, or use the wheel to zoom.':'Native view navigation disabled.');return snapshot;
+  }catch(error){syncNativeNavigation();throw error;}
+}
+function refreshNativeNavigationView(){
+  if(nativeNavigationDisposed||disposed||running)return;
+  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();syncNativeNavigation();display('Native view moved.');
+}
+function reportNativeNavigationError(error){
+  if(nativeNavigationDisposed||disposed)return;
+  if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();}
+  syncNativeNavigation();display(error instanceof Error?error.message:String(error));
+}
 function render(){const state=viewer.getState(),live=!disposed&&state.status!=='context-lost',ready=live&&state.status==='ready';
   const acceptedIGES=igesFileOpen?.snapshot().accepted,importCurrent=matchingIGES(state,acceptedIGES);
   let nativePointScope=null;if(!selectedPointDisposed&&!disposed)try{nativePointScope=readNativePointScope(viewer);}catch{}
-  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();
+  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();syncNativeNavigation();
   for(const[id,button]of Object.entries(buttons))button.disabled=id==='dispose'?disposed:!live||running;
   buttons.fit.disabled=!ready||running||!state.visibleGeometry.length;buttons.query.disabled=disposed||running||!state.curves.length||(!live&&!importCurrent);
   list.replaceChildren(...inventory().map(body=>{const item=document.createElement('li'),label=document.createElement('label'),checkbox=document.createElement('input');
@@ -444,22 +484,24 @@ async function runProof(){invalidateFileIntents();if(running||disposed||viewer.g
     documentBytes:manifest[0]?.bytes,contextCount:contexts.size,resources:resourceCounts(),limits:result.scope});
     try{await fetch('/result',{method:'POST',body:JSON.stringify(result)});}catch(error){result.recordingError=error.message;}}
   return result;}
-function dispose(){if(disposed)return;selectedDerivativesDisposed=true;clearSelectedDerivativesContext();nativeChordDisposed=true;clearNativeChord();selectedPointDisposed=true;clearSelectedPointContext();igesFileOpen?.dispose();nativeSourceDownload?.dispose();nativeFileOpen?.dispose();viewer.dispose();viewer.dispose();disposed=true;render();const receipt={status:viewer.getState().status,resources:resourceCounts(),glErrors:glErrors(),
+function dispose(){if(disposed)return;nativeNavigationDisposed=true;nativeNavigation?.dispose();selectedDerivativesDisposed=true;clearSelectedDerivativesContext();nativeChordDisposed=true;clearNativeChord();selectedPointDisposed=true;clearSelectedPointContext();igesFileOpen?.dispose();nativeSourceDownload?.dispose();nativeFileOpen?.dispose();viewer.dispose();viewer.dispose();disposed=true;render();const receipt={status:viewer.getState().status,resources:resourceCounts(),glErrors:glErrors(),
   contextCount:contexts.size,errors:[...errors],warnings:[...warnings]};if(result)result.disposal=receipt;display(receipt);return receipt;}
 try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=await(await fetch('/document.cad-document.json')).arrayBuffer();
   check(bytes.byteLength===manifest[0].bytes&&await sha(bytes)===manifest[0].sha256,'Unchanged original document bytes/hash differ');originalBytes=new Uint8Array(bytes);originalText=new TextDecoder().decode(bytes);
   documentResult=await loadBaroCadDocument(new URL('/document.cad-document.json',location.href).href);
   projection=prepareBaroCadDocumentPrimitiveNativeRefsV2(documentResult,documentOptions);for(const asset of documentResult.document.assets)sources[asset.id]=asset.source;
   viewer=createViewer(canvas,{mmToSceneUnit,background:[.035,.065,.105]});nativeFileOpen=createNativeFileOpen(viewer,{
-    onChange:snapshot=>renderNativeFileControls(snapshot),onAccepted:accepted=>{igesFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();inspection.textContent='';render();display('Opened original source '+accepted.name+'.');},
+    onChange:snapshot=>renderNativeFileControls(snapshot),onAccepted:accepted=>{invalidateNativeNavigation();igesFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();inspection.textContent='';render();display('Opened original source '+accepted.name+'.');},
     onError:error=>{render();display(error instanceof Error?error.message:String(error));}});
   igesFileOpen=createIGESFileOpen(viewer,{onChange:snapshot=>renderIGESFileControls(snapshot),
-    onAccepted:accepted=>{nativeFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();inspection.textContent='';render();display('Opened IGES geometry '+accepted.name+'.');},
+    onAccepted:accepted=>{invalidateNativeNavigation();nativeFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();inspection.textContent='';render();display('Opened IGES geometry '+accepted.name+'.');},
     onError:error=>{render();display(error instanceof Error?error.message:String(error));}});
   nativeSourceDownload=createNativeSourceDownload(viewer,canvas,{getAcceptedFile:()=>nativeFileSnapshot().accepted,
     onChange:snapshot=>renderNativeSourceDownloadControls(snapshot),onError:error=>display(error instanceof Error?error.message:String(error))});
+  nativeNavigation=createNativePointerNavigation(viewer,canvas,{isIdle:()=>!running&&!disposed,onViewChange:refreshNativeNavigationView,onError:reportNativeNavigationError});
   replace();lossExtension=[...contexts][0].getExtension('WEBGL_lose_context');
   window.__viewerReplacementProof={viewer,createViewer,prepareViewerNativeSceneAppearance,preparePrimitiveSceneFrame,compileMeshMaterial,validateMeshMaterialIR,PrimitiveSceneRecoveryError,
+    createNativePointerNavigation,setNativeNavigationEnabled,syncNativeNavigation,nativeNavigationSnapshot,invalidateNativeNavigation,
     querySelectedNativeDerivatives,inspectSelectedNativeDerivatives,resetSelectedNativeDerivatives,selectedNativeDerivativesSnapshot,evaluateCurveD1,evaluateSurfaceD1,
     measureCapturedNativeChord,isCapturedNativeChordPointCurrent,captureNativeChordPoint,resetNativeChord,nativeChordSnapshot,
     readNativePointScope,querySelectedNativePoint,inspectSelectedNativePoint,resetSelectedNativePoint,selectedNativePointSnapshot,surfaceDomain,
@@ -474,6 +516,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=awa
   window.__viewerReplacementProof.nativeSourcePanel=await(await fetch('/original-panel.barocad')).text();
   display('Ready: revision5 original two-asset document, four posed bodies, three visible, exact saved camera.');
 }catch(error){display({ok:false,stage:'startup',error:error.stack||error.message});}
+navigateNativeView.addEventListener('change',()=>action(()=>setNativeNavigationEnabled(navigateNativeView.checked)));
 replaceMountedAppearanceButton.addEventListener('click',()=>action(()=>replaceMountedAppearance()));
 igesFileChoice.addEventListener('change',()=>{const file=igesFileChoice.files?.[0];if(file)try{stageIGESFile(file);}catch{}});
 openIGESFileButton.addEventListener('click',()=>{openIGESFile().catch(()=>{});});
