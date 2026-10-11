@@ -20,6 +20,17 @@ import { RecoveryDialog } from './recovery-dialog';
 import { buildRecoveryRecord, readRecoverySlot, writeRecoveryCopy, deleteRecoveryCopy, RECOVERY_CHANGE_CHANNEL, type RecoveryRecord, type RecoverySlot } from './recovery-storage';
 import { captureReplacementAnchor, assertReplacementCurrent, copyReplacementTarget, type ReplacementAnchor, type ReplacementTarget } from './document-replacement';
 
+function bodyPresentationLabels(bodies: readonly { id: string; name: string }[]) {
+  const totals = new Map<string, number>(), ordinals = new Map<string, number>(), labels = new Map<string, string>();
+  for (const body of bodies) totals.set(body.name, (totals.get(body.name) ?? 0) + 1);
+  for (const body of bodies) {
+    const ordinal = (ordinals.get(body.name) ?? 0) + 1;
+    ordinals.set(body.name, ordinal);
+    labels.set(body.id, totals.get(body.name)! > 1 ? `${body.name} ${ordinal}` : body.name);
+  }
+  return labels;
+}
+
 function nativeCauses(error: Error): {message:string;code:string|null}[] {
   const causes: {message:string;code:string|null}[]=[];
   let current=error.cause;
@@ -284,6 +295,9 @@ function DirectApp() {
   const hasDraft = Object.keys(snapshot.pending).length > 0 || snapshot.selectionTransition !== null;
   const projectView = route === '#/projects';
   const selectedBody = snapshot.accepted.document.bodies.find(body => body.id === snapshot.selectedBodyId);
+  const bodyLabels = bodyPresentationLabels(snapshot.accepted.document.bodies);
+  const openBodyLabels = bodyPresentationLabels(openChoice?.bodies ?? []);
+  const selectedBodyLabel = selectedBody ? bodyLabels.get(selectedBody.id) : undefined;
   const selectedKind = snapshot.accepted.bodyBindings.find(binding => binding.bodyId === snapshot.selectedBodyId)?.geometryKind;
   const duplicatePointers=useRef(new Set<number>());
   const duplicateJob=useRef<number|null>(null);
@@ -455,7 +469,7 @@ function DirectApp() {
     </header>
     <div className="app-toolbar modeling-toolbar">
       <div className="workspace-context"><span className="workspace-mode"><MousePointer2 size={13}/>Modeling<span>{snapshot.view.kind==='curve-focus'?'Curve focus':'Document view'}</span></span>
-        <span className="workspace-selection" title={selectedBody?.name}>{selectedBody?.name ?? 'Select an object'}{selectedKind && <small>{selectedKind === 'surface' ? 'Surface' : 'Curve'}</small>}</span>
+        <span className="workspace-selection" title={selectedBodyLabel}>{selectedBodyLabel ?? 'Select an object'}{selectedKind && <small>{selectedKind === 'surface' ? 'Surface' : 'Curve'}</small>}</span>
       </div>
       <div className="toolbar-actions">
       <div className="command-group" role="group" aria-label="History commands"><span className="command-group-label">History</span><div className="command-group-actions">
@@ -486,10 +500,10 @@ function DirectApp() {
           const shown = snapshot.displayBodyIds.includes(body.id);
           return <div key={body.id} className={'tree-body-row' + (selected ? ' selected' : '')}>
             <button className={'tree-body' + (selected ? ' selected' : '')} data-testid={'body-select-' + body.id}
-              onClick={() => run(() => session.requestSelection(binding.geometryKind === 'surface' ? { bodyId: body.id, uIndex: 1, vIndex: 1 } : { bodyId: body.id }))} aria-pressed={selected} aria-label={body.name+' '+(binding.geometryKind==='surface'?'Surface':'Curve')}>
-              <span className={'body-symbol ' + binding.geometryKind}>{binding.geometryKind === 'surface' ? <Layers3 size={16}/> : <Spline size={16}/>}</span><span className="tree-body-name" title={body.name}>{body.name}</span>
+              onClick={() => run(() => session.requestSelection(binding.geometryKind === 'surface' ? { bodyId: body.id, uIndex: 1, vIndex: 1 } : { bodyId: body.id }))} aria-pressed={selected} aria-label={bodyLabels.get(body.id)+' '+(binding.geometryKind==='surface'?'Surface':'Curve')}>
+              <span className={'body-symbol ' + binding.geometryKind}>{binding.geometryKind === 'surface' ? <Layers3 size={16}/> : <Spline size={16}/>}</span><span className="tree-body-name" title={bodyLabels.get(body.id)}>{bodyLabels.get(body.id)}</span>
             </button>
-            <input type="checkbox" data-testid={'body-visible-' + body.id} aria-label={(shown?'Hide ':'Show ')+body.name+(snapshot.view.kind==='curve-focus'?' in document view':'')}
+            <input type="checkbox" data-testid={'body-visible-' + body.id} aria-label={(shown?'Hide ':'Show ')+bodyLabels.get(body.id)+(snapshot.view.kind==='curve-focus'?' in document view':'')}
               checked={shown} disabled={modelBusy} onChange={() => run(() => session.prepareDisplayBodies(shown ? snapshot.displayBodyIds.filter(id => id !== body.id) : [...snapshot.displayBodyIds, body.id]))} />
           </div>;
         })}
@@ -512,12 +526,12 @@ function DirectApp() {
         <DialogHeader><DialogTitle>Choose visible objects</DialogTitle><DialogDescription>Choose one to four objects for document view. You can open one Curve in focus view. The complete original document is retained.</DialogDescription></DialogHeader>
         {openChoice&&openChoice.curveBodies.length>0&&<div className="open-view-fields">
           <label>Open view<select data-testid="open-view-mode" value={openChoice.view.kind} onChange={event=>setOpenChoice(current=>current&&{...current,view:event.target.value==='curve-focus'?{kind:'curve-focus',bodyId:current.curveBodies[0].id,count:65}:{kind:'document'}})}><option value="document">Document view</option><option value="curve-focus">Curve focus</option></select></label>
-          {openChoice.view.kind==='curve-focus'&&<label>Curve<select data-testid="open-focus-curve" value={openChoice.view.bodyId} onChange={event=>setOpenChoice(current=>current&&{...current,view:{kind:'curve-focus',bodyId:event.target.value,count:65}})}>{openChoice.curveBodies.map(body=><option key={body.id} value={body.id}>{body.name}</option>)}</select></label>}
+          {openChoice.view.kind==='curve-focus'&&<label>Curve<select data-testid="open-focus-curve" value={openChoice.view.bodyId} onChange={event=>setOpenChoice(current=>current&&{...current,view:{kind:'curve-focus',bodyId:event.target.value,count:65}})}>{openChoice.curveBodies.map(body=><option key={body.id} value={body.id}>{openBodyLabels.get(body.id)}</option>)}</select></label>}
           <p>Curve focus shows one Curve. The checkboxes retain your document-view choice.</p>
         </div>}
         <div className="open-body-list">{openChoice?.bodies.map(body => <label key={body.id}>
           <input type="checkbox" data-testid={'open-body-' + body.id} checked={openChoice.selected.includes(body.id)}
-            onChange={event => setOpenChoice(current => current && {...current,selected:event.target.checked ? [...current.selected,body.id] : current.selected.filter(id => id !== body.id)})} />{body.name}
+            onChange={event => setOpenChoice(current => current && {...current,selected:event.target.checked ? [...current.selected,body.id] : current.selected.filter(id => id !== body.id)})} />{openBodyLabels.get(body.id)}
         </label>)}</div>
         <p>{openChoice?.selected.length ?? 0} selected</p>
         <div className="cad-editor-transition-actions"><Button variant="outline" onClick={clearReplacement}>Cancel</Button>

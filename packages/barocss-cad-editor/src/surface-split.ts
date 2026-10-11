@@ -32,8 +32,8 @@ export function appendSplitSurfaceSource(document: CadDocumentV1, original: Surf
       assets: [...document.assets, { id: assetId, revision: 0, role: 'authored-native-source', sourceVersion: 0,
         sourceFrame: document.nativeFrame, source: result.source }],
       bodies: [...document.bodies,
-        { id: lowerBodyId, name: 'Lower Surface', kind: 'direct-geometry-object', assetId, geometryId: result.lower.id },
-        { id: upperBodyId, name: 'Upper Surface', kind: 'direct-geometry-object', assetId, geometryId: result.upper.id }],
+        { id: lowerBodyId, name: `${axis.toUpperCase()} lower Surface`, kind: 'direct-geometry-object', assetId, geometryId: result.lower.id },
+        { id: upperBodyId, name: `${axis.toUpperCase()} upper Surface`, kind: 'direct-geometry-object', assetId, geometryId: result.upper.id }],
     },
     creation: { sourceReference, assetId, lowerBodyId, upperBodyId, result }, nativeNames,
   };

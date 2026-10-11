@@ -911,3 +911,11 @@ One approved pair adds one history entry. Undo removes both children and their a
 The native profile supports both degrees1–3, at most16 poles per axis and256 per net, XYZ within10000mm, positive bounded weights, distinct ASCII IDs of at most48 characters, and a finite strict-interior cut. Intermediate refinement capacity can refuse. At most128 local observations do not certify global error, trimming, topology, G1/G2, manufacturing tolerance or a Solid. Native and display refusals retain accepted Source/frame/history/corrective input and genuine causes. Existing document assets4/bodies16, display4, Source, file and history budgets remain; no object is evicted. Displaying both new children requires space for both.
 
 The bounded author flow is `apps/cad-editor/flows/surface-split-flow.mjs`, using the unchanged complete16-object/72000-byte weighted Surface fixture. It covers an actual U drag, a separate original V split, pair history and genuine files with one-child Canvas reedit and sibling preservation. CPU readiness, source/public-compiled UI qualification, local adoption and release are separate records.
+
+### Compact Objects labels
+
+New Surface split bodies include their U or V split axis in their default names, for example `U lower Surface` and `V upper Surface`. Existing files keep their authored names.
+
+In the example editor, bodies with the same name show a stable ordinal in the Objects list. The ordinal uses the complete accepted document order, including hidden bodies. Showing or hiding a body does not renumber it. Unique names remain unchanged. Row text, titles and accessible control labels use the same display label; existing geometry icons and row spacing remain.
+
+These ordinal labels are presentation only. They do not rename a body or change its ID, native Source, asset revision, history or saved name. Old files with repeated names remain valid. The native body name limit remains 128 UTF-8 bytes; no schema or name normalization is added.
