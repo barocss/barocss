@@ -23,3 +23,10 @@ Select a created Q/C path, enter exactly #RRGGBB, and apply its fill RGB. The ex
 The new RGB control follows selection, history, Open and deletion selection changes. It is disabled without a supported solid fill, during a pending gesture and after Dispose. Existing coordinate controls and error behavior remain. The example now permits byte-normalized fill RGB while its immutable authoring validator still checks every other style/shape restriction on a validation copy; the actual scene retains its original colors and its64KiB bound.
 
 The bounded opaque Q/C color flow and native lifetime proof are recorded separately under evidence/fill-rgb/. Earlier creation, deletion, capture-loss and incomplete receipts remain under their original paths/native commits.
+
+
+## Selected stroke width (#1486)
+
+Select a created Q/C path with a stroke, enter an integer width from1 to16 logical pixels, and apply it. The fill, stroke color, opacity, cap, join, dash, commands and pose remain. Undo/Redo restore complete scenes and the width field. Save/Open preserve the accepted numeric width and original image bytes. Invalid width text remains for correction and leaves accepted data intact.
+
+The width control is disabled without a supported selection, during a pending gesture and after Dispose. Only the new width field follows selection/history/Open/deletion selection changes. The validation copy maps accepted widths to legacy2 for immutable authoring checks, while actual data retains the chosen width and the real64KiB bound. Earlier color/deletion/creation evidence stays at its original paths/native commits; bounded width proof lives in evidence/stroke-width/.
