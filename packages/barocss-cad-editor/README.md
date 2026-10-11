@@ -977,3 +977,7 @@ Curve, Surface, rotation and scale overlays show short status text during a gest
 ### Inspector operation icons
 
 Idle object operations use 36px icon buttons. Their previous command names remain available through title and aria-label. The existing controllers, visibility rules, guards and active form inputs remain in place. Rename, Join, Focus, Return, interval, knot, iso-Curve, region and split entries use installed SVG icons. Field labels, values, validation messages and active Apply/Create/Discard/Cancel decisions remain readable.
+
+### Driving Sketch command icons
+
+The Driving Sketch Inspector uses 16px icons in 36px buttons for Help, Add, Remove and fixed-point Drag point. Each command keeps its previous accessible name and title. Existing constraint IDs, guards, handlers, point selection and pressed state remain in place. Constraint definitions, DOF/rank, values, field labels, errors and active Apply/Discard/Add/Cancel decisions retain their text. Help keeps the operation explanation available on demand.
