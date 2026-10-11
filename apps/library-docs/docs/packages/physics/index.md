@@ -6,6 +6,6 @@ Physics advances admitted rigid bodies, visual water or visual cloth. It has no 
 
 Lengths use metres, mass uses kilograms and time uses seconds. CAD uses millimetres. A CAD proxy is a separately admitted sphere or box simulation shape; it is not the original Surface or its sampled display mesh.
 
-[Quickstart](./quickstart) · [Guides](./guides) · [API](./api) · [Examples](./examples) · [Limits and errors](./limits)
+[Capability and example map](./capabilities) · [Quickstart](./quickstart) · [Guides](./guides) · [API](./api) · [Examples](./examples) · [Limits and errors](./limits)
 
 `packages/barocss-physics/package.json` (Manifest and version; local source) · `packages/barocss-physics/README.md` (Package task notes; local source)

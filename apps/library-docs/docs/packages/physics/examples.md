@@ -1,5 +1,7 @@
 # Physics: fixed time steps and copied simulation state
 
+See the [capability and example map](./capabilities) for bounded rigid, water, cloth and controlled-capsule entries, their evidence/adoption and the planned HINGE2 blocker. This page's runnable Manual examples retain their original `5f5ad866205a` source profile.
+
 Open [the manually stepped sphere](/playground#physics-step). Use Advance 1, Advance 20 and Reset to compare accepted states without a hidden clock.
 
 ![A manually stepped sphere state projected by the host](/examples/physics-step.png)
