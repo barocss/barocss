@@ -55,10 +55,37 @@ export function encodeQualifiedStripBinaryStlTrusted(
   check(byteLength<=28884,'BUDGET','Complete binary STL must fit28884 bytes');
   const vertexLosses:QualifiedStlVertexLoss[]=[],facets:QualifiedStlFacet[]=[],exactPoints:ExactPoint[]=[];
   const zero=q.integer(0);
-  // Exact zero identities avoid unnecessary rational work without converting to floats.
-  const add=(a:SectionRational,b:SectionRational):SectionRational=>a.n===0n?b:b.n===0n?a:q.add(a,b);
-  const sub=(a:SectionRational,b:SectionRational):SectionRational=>b.n===0n?a:a.n===0n?q.neg(b):q.sub(a,b);
-  const mul=(a:SectionRational,b:SectionRational):SectionRational=>a.n===0n||b.n===0n?zero:q.mul(a,b);
+  // Request-local reuse of already-metered exact values, never a second context.
+  // Signed zero remains in the source/Float32 points; both represent exact zero.
+  const represented=new Map<number,SectionRational>([[0,zero]]);
+  const from=(value:number):SectionRational=>{
+    const cached=represented.get(value);if(cached!==undefined)return cached;
+    const result=q.from(value);represented.set(value,result);return result;
+  };
+  const negatives=new WeakMap<SectionRational,SectionRational>();
+  const neg=(value:SectionRational):SectionRational=>{
+    if(value.n===0n)return zero;
+    const cached=negatives.get(value);if(cached!==undefined)return cached;
+    const result=q.neg(value);negatives.set(value,result);negatives.set(result,value);return result;
+  };
+  // At most the frozen vertex/triangle schedule can introduce cache entries.
+  // Every cache miss still performs all arithmetic through the metered q.
+  const memo=(operation:(a:SectionRational,b:SectionRational)=>SectionRational)=>{
+    const cache=new WeakMap<SectionRational,WeakMap<SectionRational,SectionRational>>();
+    return (a:SectionRational,b:SectionRational):SectionRational=>{
+      let row=cache.get(a);const cached=row?.get(b);if(cached!==undefined)return cached;
+      const result=operation(a,b);if(row===undefined){row=new WeakMap();cache.set(a,row)}row.set(b,result);return result;
+    };
+  };
+  const exactAdd=memo((a,b)=>q.add(a,b)),exactSub=memo((a,b)=>q.sub(a,b)),exactMul=memo((a,b)=>q.mul(a,b));
+  const add=(a:SectionRational,b:SectionRational):SectionRational=>a.n===0n?b:b.n===0n?a:exactAdd(a,b);
+  const sub=(a:SectionRational,b:SectionRational):SectionRational=>a.n===b.n&&a.d===b.d?zero:b.n===0n?a:a.n===0n?neg(b):exactSub(a,b);
+  const mul=(a:SectionRational,b:SectionRational):SectionRational=>{
+    if(a.n===0n||b.n===0n)return zero;
+    if(a.n===1n&&a.d===1n)return b;if(b.n===1n&&b.d===1n)return a;
+    if(a.n===-1n&&a.d===1n)return neg(b);if(b.n===-1n&&b.d===1n)return neg(a);
+    return exactMul(a,b);
+  };
   let maximumSquared=zero,maximumMeasuredDisplacementMM=0;
   for(let index=0;index<vertexCount;index++){
     callbacks.beginVertex(index);counts.vertexCount++;
@@ -73,8 +100,8 @@ export function encodeQualifiedStripBinaryStlTrusted(
       counts.coordinateFloat32RoundCount++;
       const rounded=finite(Math.fround(source));float32PointMM[axis]=rounded;
       componentLossMM[axis]=finite(source-rounded);
-      exactPoint[axis]=q.from(rounded);
-      const loss=sub(q.from(source),exactPoint[axis]);squared=add(squared,mul(loss,loss));
+      exactPoint[axis]=from(rounded);
+      const loss=sub(from(source),exactPoint[axis]);squared=add(squared,mul(loss,loss));
     }
     const measuredDisplacementMM=finite(Math.hypot(...componentLossMM));
     if(q.compare(squared,maximumSquared)>0)maximumSquared=squared;
@@ -104,7 +131,7 @@ export function encodeQualifiedStripBinaryStlTrusted(
     const unitResidual=finite(Math.abs(finite(Math.hypot(...normal),'NORMAL')-1),'NORMAL');
     check(unitResidual<=1e-5,'NORMAL','Encoded Float32 normal must be unit within1e-5');
     counts.normalAlignmentCount++;
-    const alignment=add(add(mul(cross[0],q.from(normal[0])),mul(cross[1],q.from(normal[1]))),mul(cross[2],q.from(normal[2])));
+    const alignment=add(add(mul(cross[0],from(normal[0])),mul(cross[1],from(normal[1]))),mul(cross[2],from(normal[2])));
     check(alignment.n>0n,'NORMAL','Encoded approximate normal must have a strictly positive exact dot with the quantized cross');
     facets.push({triangleIndex:index,faceId:triangle.faceId,vertexIndices,byteOffset:84+50*index,normal,unitResidual,exactCross:cross.map(value=>q.text(value)) as QualifiedStlFacet['exactCross'],exactNormalDotCross:q.text(alignment),attributeByteCount:0});
   }
