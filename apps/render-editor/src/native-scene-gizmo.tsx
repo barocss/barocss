@@ -8,10 +8,10 @@ import type {NativeSceneHost} from './native-scene-host';
 
 type Point = readonly [number, number];
 type Capture = {camera: MeshCamera; token: object; document: RenderNativeSceneDocument; bodyId: string; viewport: RenderSceneGizmoViewport; from: Point; mode: RenderSceneGizmoMode; space: 'world' | 'local'; key: RenderSceneGizmoKey};
-interface Props {host: NativeSceneHost; canvas: HTMLCanvasElement | null; disabled: boolean; onError(cause: unknown): void}
+interface Props {host: NativeSceneHost; canvas: HTMLCanvasElement | null; disabled: boolean; onError(cause: unknown): void; onFrame(): void}
 
 /** A genuine Native pose adapter over the shared Source gizmo surface. */
-export function NativeSceneGizmo({host, canvas, disabled, onError}: Props) {
+export function NativeSceneGizmo({host, canvas, disabled, onError, onFrame}: Props) {
   const state = useSyncExternalStore(host.subscribe, host.getSnapshot, host.getSnapshot);
   const [mode, setMode] = useState<RenderSceneGizmoMode>('translate');
   const captured = useRef<Capture | null>(null);
@@ -59,8 +59,9 @@ export function NativeSceneGizmo({host, canvas, disabled, onError}: Props) {
     const capture = captured.current; return capture ? adapter.cancel(capture) : {ok: true};
   };
   return <GizmoSurface canvas={canvas} adapter={adapter} mode={mode} onModeChange={setMode}
+    viewportShortcuts onFrame={onFrame}
     disabled={disabled || !state.available} pending={state.poseGestureActive || !!state.posePreview}
     onCancelPending={cancel} onError={onError} scaleLabel="Scale"
     profileNotice="Native origin · Move world axes · Rotate and Scale local axes"
-    helpText="Drag a Move arrow, Rotate arc, or Scale square. XYZ scale changes one local component. S scales all three. Move uses scene distance converted once to mm. Rotation uses the captured local quaternion axes. Release applies one change. Escape restores the applied body pose. Click a body or its Outliner row to edit it. The pivot is its original source origin."/>;
+    helpText="Click the Canvas, then use W for Move, E for Rotate, R for Scale and F to Frame. Drag a Move arrow, Rotate arc, or Scale square. XYZ scale changes one local component. S scales all three. Move uses scene distance converted once to mm. Rotation uses the captured local quaternion axes. Release applies one change. Escape restores the applied body pose. Click a body or its Outliner row to edit it. The pivot is its original source origin."/>;
 }

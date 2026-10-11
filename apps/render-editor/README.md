@@ -210,3 +210,6 @@ Object → Add Surface and the top Add Surface button import one actual Surface 
 
 
 Native Scene opens with the Canvas as the main workspace. The right Outliner sits above Transform, Lighting and Material properties. View → Show Material Source or the top Source button reveals the advanced shader editor. Source stays mounted when hidden; raw text, invalid values, session and file guards remain active. Layout is local to this tab and excluded from saved files. Apply, history and Open keep the local panel state. The redundant material toolbar and CPU sample are hidden in Native Scene; the real scene Apply/Discard and Diagnostics stay available. The 256px inspector keeps the current desktop Canvas within the existing rotation backing-size budget. Material-only mode retains its existing layout.
+
+
+Native Canvas keyboard commands: click the Canvas, then W for Move, E for Rotate, R for Scale or F to Frame. Mode and framing commands affect only the local workbench. Text fields, menus and dialogs retain their keys. Active or refused pose previews and transform Help block these commands. Existing handle Arrow/Enter/Space/Escape and Ctrl/Cmd Save/Open/history remain available.

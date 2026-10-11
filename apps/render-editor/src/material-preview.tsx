@@ -210,12 +210,12 @@ export function MaterialPreview({controller, nativeHost = null, disabled, onErro
         {nativeHost && <><span className="native-camera-badge" data-testid="native-camera-view-state">{nativeHost.getSnapshot().viewDirty ? 'User view' : 'Scene view'}</span>
           <button type="button" data-testid="native-scene-camera" disabled={disabled || !ready || !nativeHost.getSnapshot().available} onClick={() => {try {nativeHost.resetViewportCamera();} catch (cause) {onError(cause);}}}>Scene camera</button>
           <button type="button" data-testid="native-set-scene-camera" disabled={disabled || !ready || !nativeHost.getSnapshot().available || nativeHost.getSnapshot().dirty || !nativeHost.getSnapshot().viewDirty} onClick={() => {try {nativeHost.applyCamera();} catch (cause) {onError(cause);}}}>Set scene camera</button></>}
-        <button type="button" data-testid="native-frame" disabled={disabled || !ready || !visible || !!nativeHost && !nativeHost.getSnapshot().available} onClick={fit}>Frame</button>
+        <button type="button" data-testid="native-frame" aria-keyshortcuts={nativeHost ? 'F' : undefined} disabled={disabled || !ready || !visible || !!nativeHost && !nativeHost.getSnapshot().available} onClick={fit}>Frame</button>
       </div>
     </div>
     <div className="material-native-canvas re-editor--workbench">
-      <canvas ref={canvas} data-testid="material-preview-canvas" data-mount-id={mountId.current} aria-label="Rendered native Surface"/>
-      {nativeHost && <NativeSceneGizmo host={nativeHost} canvas={canvasElement} disabled={disabled || !ready || !visible} onError={onError}/>}
+      <canvas ref={canvas} data-testid="material-preview-canvas" data-mount-id={mountId.current} aria-label="Rendered native Surface" tabIndex={nativeHost ? 0 : undefined} onPointerDown={nativeHost ? event => {if (!disabled && event.target === event.currentTarget) event.currentTarget.focus({preventScroll: true});} : undefined}/>
+      {nativeHost && <NativeSceneGizmo host={nativeHost} canvas={canvasElement} disabled={disabled || !ready || !visible} onError={onError} onFrame={fit}/>}
       {nativeHost && selectionMessage && selectionMessage.document === nativeHost.getSnapshot().accepted && selectionMessage.bodyId === nativeHost.getSnapshot().selectedBodyId && <p className="native-selection-status" role="status" data-testid="native-selection-status">{selectionMessage.text}</p>}
       {(disabled || !ready || !visible) && <div className="material-native-overlay">{disabled ? 'Finish the current dialog to use the preview.' : visible ? message : state ? 'Surface hidden · Show to resume' : message}</div>}
       <span className="material-native-navigation">Drag: orbit · Shift + drag: pan · Wheel: zoom</span>
