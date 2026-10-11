@@ -1,0 +1,12 @@
+{
+  "browserClosed": true,
+  "pagesClosed": [
+    "source",
+    "compiled"
+  ],
+  "serversClosed": [
+    "source",
+    "compiled"
+  ],
+  "secondaryFailures": []
+}
