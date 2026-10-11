@@ -2624,3 +2624,18 @@ new companion/frame profile and a separately verified renderer operation.
 
 One joint source/emitted/file/cold CPU flow:
 `node examples/gpu-scene/native-surface-uv01-binding-flow.mjs --output /absolute/fresh-directory`.
+
+### Native caller reflection errors
+
+Native Surface UV01 material validation/lowering and source geometry preparation
+wrap exceptions from own-data reflection as fresh INPUT errors with zero source
+offsets and the exact caller exception as cause. A caller-created public Error
+class does not authenticate a source, uniform or work failure. Local shape/work
+refusals and actual source/compiler/native diagnostic chains keep their existing
+codes and offsets. Material descriptor ordering, geometry cardinality ordering,
+copy/work budgets, original signed data and all public declarations are unchanged.
+This correction is native-only; legacy MeshMaterial and generic/repeating EngineUV
+reflection behavior remains compatible.
+
+One bounded source/emitted/file/cold flow:
+`node examples/gpu-scene/native-reflection-cause-flow.mjs --output /absolute/fresh-directory`.

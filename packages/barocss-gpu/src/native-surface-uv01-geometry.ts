@@ -31,20 +31,18 @@ function freeze<T>(value: T): T {
 }
 function request(input: unknown): NativeSurfaceUV01GeometryRequest {
  const names = ['format', 'version', 'sourceVersion', 'source', 'surfaceId', 'countU', 'countV', 'revision'];
- let descriptors: Record<string, PropertyDescriptor>;
- try {
-  if (!input || typeof input !== 'object' || Array.isArray(input) || Object.getPrototypeOf(input) !== Object.prototype)
-   reject('INPUT', 'Native Surface UV01 request requires an own plain record');
-  const keys = Reflect.ownKeys(input);
-  if (keys.length !== names.length || keys.some(key => typeof key !== 'string' || !names.includes(key)))
-   reject('INPUT', 'Native Surface UV01 request requires exactly eight fields');
-  descriptors = Object.fromEntries(names.map(name => [name, Object.getOwnPropertyDescriptor(input, name)!]));
-  if (names.some(name => !descriptors[name] || !descriptors[name].enumerable || !('value' in descriptors[name])))
-   reject('INPUT', 'Native Surface UV01 request refuses accessors or hidden data');
- } catch (cause) {
-  if (cause instanceof NativeSurfaceUV01GeometryError) throw cause;
-  throw new NativeSurfaceUV01GeometryError('INPUT', 'Native Surface UV01 request reflection refused', 0, 0, cause);
- }
+ if (!input || typeof input !== 'object') reject('INPUT', 'Native Surface UV01 request requires an own plain record');
+ let array: boolean, prototype: object | null, keys: (string | symbol)[], descriptors: Record<string, PropertyDescriptor>;
+ const reflected = (cause: unknown): never => { throw new NativeSurfaceUV01GeometryError('INPUT', 'Native Surface UV01 request reflection refused', 0, 0, cause); };
+ try { array = Array.isArray(input); prototype = Object.getPrototypeOf(input); } catch (cause) { return reflected(cause); }
+ if (array || prototype !== Object.prototype) reject('INPUT', 'Native Surface UV01 request requires an own plain record');
+ try { keys = Reflect.ownKeys(input); } catch (cause) { return reflected(cause); }
+ if (keys.length !== names.length || keys.some(key => typeof key !== 'string' || !names.includes(key)))
+  reject('INPUT', 'Native Surface UV01 request requires exactly eight fields');
+ try { descriptors = Object.fromEntries(names.map(name => [name, Object.getOwnPropertyDescriptor(input, name)!])); }
+ catch (cause) { return reflected(cause); }
+ if (names.some(name => !descriptors[name] || !descriptors[name].enumerable || !('value' in descriptors[name])))
+  reject('INPUT', 'Native Surface UV01 request refuses accessors or hidden data');
  const data = Object.fromEntries(names.map(name => [name, descriptors[name].value]));
  if (data.format !== 'barocss-gpu-native-surface-uv01-request' || data.version !== 0 || data.sourceVersion !== 0)
   reject('INPUT', 'Native Surface UV01 request requires format/version/sourceVersion0');
