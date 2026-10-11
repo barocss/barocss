@@ -1,0 +1,48 @@
+import type { Body, Joint, Vec3 } from '../../packages/barocss-physics/src/types.js';
+import { parseJoints } from '../../packages/barocss-physics/src/joints.js';
+import { admitDynamicHingeScene } from '../../packages/barocss-physics/src/dynamic-hinge-joint.js';
+import { copyBody, error } from '../../packages/barocss-physics/src/validation.js';
+export const PROFILE_MESSAGE = 'private multi-hinge reference requires literal HINGE2 fixture';
+const equal = (a: readonly number[], b: readonly number[]) => a.length === b.length && a.every((v,i) => v === b[i]);
+export function admitPrivateConfiguration(input: Record<string, unknown>, bodies: Body[], gravity: Vec3, dt: number): void {
+  if (dt !== 1/120 || !equal(gravity,[0,0,0]) || bodies.length !== 4 ||
+    ['broadPhase','sceneMode','contactMode'].some(key => Object.hasOwn(input,key))) error('INVALID_CONFIG',PROFILE_MESSAGE);
+  for (const body of bodies) {
+    const match = /^pair([AB])([01])$/.exec(body.id);
+    if (!match || body.kind !== 'dynamic' || body.shape.kind !== 'sphere' || body.shape.radiusM !== .1 ||
+      body.inverseMass !== 1 || body.restitution !== 0 || body.sensor || body.ccd || body.collisionFilter ||
+      body.frictionStatic !== 1 || body.frictionDynamic !== .7 || !equal(body.velocityMps,[0,0,0]) ||
+      !equal(body.angularVelocityRadps,[0,0,0]) || !equal(body.orientation,[0,0,0,1]) ||
+      !equal(body.positionM,[match[1] === 'A' ? -.1 : .1,0,Number(match[2])]) ||
+      body.inertiaKgM2 !== 0.4 * .1 ** 2) error('INVALID_CONFIG',PROFILE_MESSAGE);
+  }
+}
+/** Reuse original one-pair parsing; global indices are the only changed Joint fields. */
+export function parsePrivateGroups(value: unknown, bodies: Body[]): Joint[] {
+  if (!Array.isArray(value) || value.length !== 2 || Reflect.ownKeys(value).length !== 3 ||
+    ![0,1].every(i => Object.hasOwn(value,i))) error('INVALID_CONFIG',PROFILE_MESSAGE);
+  const byId = new Map(bodies.map((body,index) => [body.id,{body,index}]));
+  const seen = new Set<string>();
+  return value.map((raw): Joint => {
+    if (!raw || typeof raw !== 'object') error('INVALID_CONFIG',PROFILE_MESSAGE);
+    const input = raw as Record<string,unknown>;
+    const match = typeof input.id === 'string' ? /^hinge([01])$/.exec(input.id) : null;
+    if (!match || input.kind !== 'hinge' || input.aId !== `pairA${match[1]}` || input.bId !== `pairB${match[1]}` ||
+      seen.has(String(input.aId)) || seen.has(String(input.bId))) error('INVALID_CONFIG',PROFILE_MESSAGE);
+    const a = byId.get(String(input.aId)), b = byId.get(String(input.bId));
+    if (!a || !b) error('INVALID_CONFIG',PROFILE_MESSAGE);
+    const local = parseJoints([raw],[a.body,b.body])[0];
+    if (!equal(local.anchorALocalM,[.1,0,0]) || !equal(local.anchorBLocalM,[-.1,0,0]) ||
+      !equal(local.axisWorld!,[0,0,1]) || !equal(local.limitRad!,[-.8,.8]) ||
+      local.motor?.targetSpeedRadps !== .5 || local.motor.maxImpulseNms !== .0001 || local.motor.maxReactionNms !== .01)
+      error('INVALID_CONFIG',PROFILE_MESSAGE);
+    seen.add(a.body.id); seen.add(b.body.id);
+    return {...local,aIndex:a.index,bIndex:b.index};
+  });
+}
+/** Admission coordinate inspection only; the actual world remains at literal Z=0/1. */
+export function admitPrivateHingeScene(joint: Joint,bodies: Body[],gravity: Vec3): void {
+  const inspected = bodies.map(copyBody), z = bodies[joint.aIndex].positionM[2];
+  for (const index of [joint.aIndex,joint.bIndex]) inspected[index].positionM[2] -= z;
+  admitDynamicHingeScene(joint,inspected,gravity);
+}
