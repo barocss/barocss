@@ -201,3 +201,6 @@ The compact mixed layout uses 4–6px panel/field spacing, 32px menu, 30px docum
 
 
 In Native Scene, Object → Duplicate body or the top Duplicate button copies the selected visible Surface. It copies its entire original source asset and material with independent IDs, preserves its quaternion and nonuniform pose, and applies one complete scene change before selecting the copy. The copy initially overlaps the original; drag its Move handle or change Position to separate it. Apply or Discard drafts before duplicating. At four source assets or four displayed bodies, Duplicate is disabled. Undo/Redo and complete native files reconstruct the real inventory. Camera navigation remains local; duplication keeps the displayed camera. Open resets retained identity context only after success.
+
+
+Object → Remove body and the top Remove button remove the selected Native Surface through one whole scene change. Its material and pose are removed, and its full source asset is removed only when no other native body references it. The last editable Surface is protected. Apply or Discard drafts first. Undo/Redo reconstruct the real inventory and qualified references; camera navigation stays local. Whole native Save/Open preserves the remaining original source and independently editable bodies.

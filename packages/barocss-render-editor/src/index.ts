@@ -50,3 +50,5 @@ export type {RenderNativeSceneGizmoSpace} from './native-scene-gizmo.js';
 
 export {deriveRenderNativeSceneBodyDuplicate} from './native-body-duplicate.js';
 export type {RenderNativeSceneBodyDuplicateOptions, RenderNativeSceneBodyDuplicate} from './native-body-duplicate.js';
+
+export {deriveRenderNativeSceneBodyRemoval} from './native-body-remove.js';

@@ -1,6 +1,6 @@
 import {createRenderNativeSceneSession, createRenderMaterialSession, prepareRenderMaterialDocument,
   validateRenderNativeSceneDocument, serializeRenderNativeSceneDocument, prepareRenderNativeSceneAppearance,
-  commitRenderNativeSceneAppearanceCandidate, deriveRenderNativeSceneBodyDuplicate, RenderEditorError, normalizeRenderEditorError} from '@barocss/render-editor';
+  commitRenderNativeSceneAppearanceCandidate, deriveRenderNativeSceneBodyDuplicate, deriveRenderNativeSceneBodyRemoval, RenderEditorError, normalizeRenderEditorError} from '@barocss/render-editor';
 import type {RenderNativeSceneDocument, RenderNativeScenePreparation, RenderNativeScenePreparedCandidate,
   RenderNativeSceneAppearancePreparation, RenderMaterialSession, RenderMaterialSessionSnapshot,
   RenderMaterialPreparedCandidate, RenderNativeScenePose} from '@barocss/render-editor';
@@ -40,6 +40,7 @@ export interface NativeSceneHost {
   setAvailable(available: boolean): void;
   stageSceneDocument(document: RenderNativeSceneDocument): void;
   duplicateSelectedBody(): RenderNativeSceneAppearancePreparation;
+  removeSelectedBody(): RenderNativeSceneAppearancePreparation;
   stageBodyPose(bodyId: string, patch: {readonly translationMM: readonly [number, number, number]; readonly scale: readonly [number, number, number]}): void;
   setBodyPoseInputInvalid(bodyId: string): void;
   stageLighting(lighting: MeshLighting): void;
@@ -345,7 +346,7 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
     try {
       const result = commitRenderNativeSceneAppearanceCandidate(native, candidate, prepared => {
         const selected = selectedMaterial(prepared.authored, preferredBodyId ?? selectedBodyId);
-        check(preferredBodyId === undefined || selected.target.bodyId === preferredBodyId, 'The duplicated body has no qualified Surface material.');
+        check(preferredBodyId === undefined || selected.target.bodyId === preferredBodyId, 'The preferred body has no qualified Surface material.');
         nextBody = selected.target.bodyId;
         nextStore.local = createRenderMaterialSession(selected.preparation.document);
         if (beforeCommit) synchronous(beforeCommit, prepared, camera);
@@ -430,6 +431,18 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
       if (reentered) throw new RenderEditorError('STALE_CANDIDATE', 'Native body duplication reentry was refused.');
       stage(derived.document); changed();
       return commit(prepareDraft(), undefined, undefined, derived.bodyId);
+    });},
+    removeSelectedBody() {return run(() => {
+      noView(); clean(); check(available && presenter && nativePresented, 'The applied native preview is unavailable.');
+      check(owner() === acceptedOwner, 'The applied preview belongs to another scene. Restore the current scene before removing a body.');
+      if (reentered) throw new RenderEditorError('STALE_CANDIDATE', 'Native scene ownership reentry was refused.');
+      const document = deriveRenderNativeSceneBodyRemoval(native.getSnapshot().accepted, selectedBodyId);
+      const preferredBodyId = document.surfaceMaterials[0]?.target.bodyId;
+      check(preferredBodyId, 'Removal requires a surviving qualified Surface material.');
+      retainedPlan(document);
+      if (reentered) throw new RenderEditorError('STALE_CANDIDATE', 'Native body removal reentry was refused.');
+      stage(document); changed();
+      return commit(prepareDraft(), undefined, undefined, preferredBodyId);
     });},
     stageBodyPose(bodyId, patch) {run(() => {
       noView(); check(available, 'The native preview is unavailable.');
