@@ -444,3 +444,7 @@ export type { CadCallArgument, CadCallExpression } from './expression-parser.js'
 export type { CadFormalArgument, CadFunctionAst } from './source-ast.js';
 export type { CadModelIR3 } from './semantic-model.js';
 export type { CadFunctionQuantity, CadResolvedFunction, CadFunctionCallReceipt, CadFunctionWork } from './function-quantity-semantics.js';
+
+
+export { sampleSourceCurveAdaptive, validateSourceCurveAdaptive, SourceCurveAdaptiveSamplingError, SourceCurveAdaptiveSamplingDiagnosticCode } from './source-curve-adaptive-sampling.js';
+export type { SourceCurveAdaptiveSamplingRequest, SourceCurveAdaptiveSamplingOptions, SourceCurveAdaptiveSamplingReport, SourceCurveAdaptiveSamplingResult } from './source-curve-adaptive-sampling.js';

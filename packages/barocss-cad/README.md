@@ -9447,3 +9447,16 @@ Functions use immutable local formals. Defaults contain closed arithmetic consta
 The profile admits at most8 functions,4 arguments,8 active call frames,256 call entries and65536 runtime expression visits. Existing source, expression, parameter and Model limits remain. The complete Source3 success has16MiB UTF16/UTF8 and4M owned-value limits. Each retained occurrence counts; legal source limits do not guarantee that every output fits.
 
 Run `node examples/cad-nurbs/pure-quantity-functions-demo.mjs --source <output-directory>`. Save the original raw source with explicit dialect/hash metadata and compile it again after fresh reading. The demo edits one length literal twice and compares full AST, IR and native outputs. Issue1453 tracks this compiler scope. Editor admission, project codecs, geometry-return functions, conditions and loops require separate work.
+
+
+## Sample one higher-degree Curve in a complete source document
+
+`sampleSourceCurveAdaptive({ source, sourceVersion: 0, curveId, options })` compiles the complete original Source0 and selects one actual Curve. Its profile supports clamped positive rational degree1..5, up to64 original poles and70 knots. The result retains the full Model16, original source, selected coefficients and unrelated Curve/Surface siblings. The existing cubic public sampler and public knot/split limits remain unchanged.
+
+Options specify `chordToleranceMM`, `maxSegments`, `maxDepth` and `resultIdPrefix`. The sampler retains full existing span-extraction receipts. A private local-Bezier splitter uses the existing coefficient-insertion helper and indexed children, with actual two-Curve Source0/Model2 contexts. It introduces no insertion kernel or point fitting. Complete identity capacity is reserved against every original object before extraction; unused reserved roles are distinguished from actual work.
+
+Each accepted interval uses a finite control-hull estimate plus arithmetic margin. Actual display points always come from the original native Curve evaluator. Original/local point and derivative observations remain separate; original C0 derivative refusals retain their native state. This is sampled display data. Global binary64 error, manufacturing tolerance, topology and Solid certification remain false.
+
+`validateSourceCurveAdaptive(result)` snapshots plain data, rebuilds once from its full request and compares every retained field and bit. It returns a copied complete report. Full request/result limits are1MiB/16MiB in UTF16 and UTF8, with4M owned values and32768 array elements. All original and derived receipts count. Individual legal source/work limits do not guarantee aggregate output fit.
+
+Run `node examples/cad-nurbs/source-curve-adaptive-sampling-demo.mjs --source <output-directory>`. The flow uses a weighted quintic beside a Surface and fourteen Curve siblings, with complete source larger than64KiB. It saves source/dialect/hash and replays the full request after fresh reading. Viewer and Editor display, editing, history and project files remain separate in Issue1440 and its parent goals.
