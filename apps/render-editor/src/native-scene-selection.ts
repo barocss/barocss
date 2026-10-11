@@ -1,5 +1,5 @@
 import {RenderEditorError, normalizeRenderEditorError} from '@barocss/render-editor';
-import type {ViewerState, ViewerGeometryPick, ViewerGeometryPoint} from '@barocss/viewer';
+import type {ViewerState, ViewerGeometryPick, ViewerGeometryPoint, ViewerNativeDocumentFitInput} from '@barocss/viewer';
 import type {NativeSceneHost, NativeSceneHostSnapshot} from './native-scene-host';
 
 export interface NativeSceneSelectionBridge {
@@ -259,4 +259,52 @@ export function createNativeSceneSelectionInput(canvas: HTMLCanvasElement, host:
     canvas.removeEventListener('wheel', reset, true); canvas.removeEventListener('blur', reset); canvas.removeEventListener('webglcontextlost', reset);
     view.removeEventListener('blur', reset); view.removeEventListener('resize', reset); view.removeEventListener('keydown', key, true);
   }};
+}
+
+/** Frame accepted geometry while retaining ordinary corrective authoring drafts. No pick is synthesized. */
+export function resolveNativeSelectedFrame(snapshot: NativeSceneHostSnapshot, state: ViewerState): ViewerNativeDocumentFitInput {
+  try {
+    const current = record(snapshot, 'Native host snapshot'), viewer = record(state, 'Viewer state');
+    check(current.disposed === false && current.available === true && current.poseGestureActive === false
+      && current.posePreview === null && viewer.status === 'ready', 'Finish the current operation before framing a body.');
+    const bodyId = text(current.selectedBodyId, 'Selected original body ID');
+    const accepted = record(current.accepted, 'Accepted native scene', 10), preparation = record(current.preparation, 'Native preparation');
+    check(preparation.document === current.accepted, 'The native preparation is not the accepted scene.');
+    const native = record(accepted.nativeDocument, 'Accepted CAD document'), displayedDocument = record(viewer.document, 'Displayed native document');
+    check(equal(cadCopy(displayedDocument.document), cadCopy(accepted.nativeDocument)), 'The displayed original CAD document does not match the current scene.');
+    const matching = list(preparation.entries, 4, 'Qualified native entries').map(value => record(value, 'Qualified native entry'))
+      .filter(entry => entry.kind === 'surface' && pins(entry.binding).bodyId === bodyId);
+    check(matching.length === 1, 'The selected body has no unique qualified Surface entry.');
+    const entry = matching[0]!, binding = pins(entry.binding), qualified = record(entry.ref, 'Qualified Surface ref', 2);
+    const modelId = text(qualified.modelId, 'Display model ID'), surfaceId = text(qualified.geometryId, 'Original Surface ID');
+    const documentRevision = native.revision;
+    check(typeof documentRevision === 'number' && Number.isInteger(documentRevision) && documentRevision >= 0 && documentRevision <= 2147483647
+      && Object.is(binding.documentRevision, documentRevision) && binding.documentId === native.documentId && binding.geometryId === surfaceId, 'The selected body does not match the accepted CAD identity and revision.');
+    const displayed = list(viewer.documentBodies, 4, 'Displayed native body bindings').map(value => record(value, 'Displayed native body')).filter(body => {
+      const ref = record(body.ref, 'Displayed geometry ref', 3);
+      return ref.kind === 'surface' && ref.modelId === modelId && ref.surfaceId === surfaceId;
+    });
+    check(displayed.length === 1 && samePins(binding, pins(displayed[0]!.binding)), 'The displayed body does not match all ten original pins.');
+    const display = record(accepted.display, 'Native display');
+    check(list(display.visibleBodyIds, 4, 'Visible original bodies').includes(bodyId) && list(viewer.visibleGeometry, 4, 'Displayed visible geometry').some(value => {
+      const ref = record(value, 'Visible geometry ref', 3);
+      return ref.kind === 'surface' && ref.modelId === modelId && ref.surfaceId === surfaceId;
+    }), 'The selected original body is not visible.');
+    const materials = list(preparation.materials, 4, 'Qualified Surface materials').map(value => record(value, 'Qualified Surface material'));
+    const bound = materials.filter(material => {
+      const target = record(material.target, 'Original Surface material target', 7), ref = record(material.ref, 'Material display ref', 2);
+      return target.bodyId === bodyId && ref.modelId === modelId && ref.surfaceId === surfaceId
+        && ['documentId', 'documentRevision', 'bodyId', 'assetId', 'assetRevision', 'modelId', 'geometryId'].every(key => Object.is(target[key], binding[key]));
+    });
+    const shownMaterials = list(viewer.surfaceMaterials, 4, 'Displayed Surface materials').map(value => record(value, 'Displayed Surface material')).filter(material => {
+      const ref = record(material.ref, 'Displayed material ref', 2);
+      return ref.modelId === modelId && ref.surfaceId === surfaceId;
+    });
+    check(bound.length === 1 && shownMaterials.length === 1, 'The selected body has no unique current Surface material association.');
+    return Object.freeze({ref: Object.freeze({kind: 'surface' as const, modelId, surfaceId}), documentRevision});
+  } catch (cause) {
+    const error = normalizeRenderEditorError(cause);
+    if (error !== cause) Object.defineProperty(error, 'cause', {value: cause, configurable: true});
+    throw error;
+  }
 }

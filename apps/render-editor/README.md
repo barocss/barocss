@@ -213,3 +213,6 @@ Native Scene opens with the Canvas as the main workspace. The right Outliner sit
 
 
 Native Canvas keyboard commands: click the Canvas, then W for Move, E for Rotate, R for Scale or F to Frame. Mode and framing commands affect only the local workbench. Text fields, menus and dialogs retain their keys. Active or refused pose previews and transform Help block these commands. Existing handle Arrow/Enter/Space/Escape and Ctrl/Cmd Save/Open/history remain available.
+
+
+Native Frame selected and focused F use the current selected original body and its posed native bounds. Frame all and Shift+F fit every visible body. Both change only the local camera and keep authored data, raw drafts and history. The uniform Scale handle is labelled All; it multiplies all three scale components by one factor. Pivot: Object origin names the shared Move/Rotate/Scale reference, not the Surface center. Tight geometry framing can leave an offset origin or handles outside the view; Frame all, zoom and numeric fields remain available. Framing never moves the body or its pivot.
