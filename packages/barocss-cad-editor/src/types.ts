@@ -4,7 +4,7 @@ import type {
   CadDocumentResult, CadDocumentV1, CadGeometryReferenceV0, SurfacePoleEditProvenance,
   CadCurveArcLengthOptions, CadCurveArcLengthResult,
   CurveCurvatureResult, CurveD2Result, CurvePoleEditProvenance, SurfaceCurvatureResult, SurfaceD2Result,
-  AffineGeometryTransformReport, SourceCurveIntervalExtractionResult, SourceSurfaceKnotInsertionResult, SourceCurveKnotInsertionResult, SurfaceIsoCurveResult, JoinedCurveResult, SourceSurfaceDegreeElevationResult, ExtractedSurfaceRegionResult, CurveParameterSplitResult, SurfaceParameterSplitResult, WideReversedCurveResult, ReversedSurfaceAxisResult, SectionKnotAlignmentResult,
+  AffineGeometryTransformReport, SourceCurveIntervalExtractionResult, SourceSurfaceKnotInsertionResult, SourceCurveKnotInsertionResult, SurfaceIsoCurveResult, JoinedCurveResult, SourceSurfaceDegreeElevationResult, ExtractedSurfaceRegionResult, CurveParameterSplitResult, SurfaceParameterSplitResult, WideReversedCurveResult, ReversedSurfaceAxisResult, SectionKnotAlignmentResult, TranslationalSweepResult,
 } from '@barocss/cad';
 
 export type CadEditorExportCapability = CadDocumentExportCapability;
@@ -48,6 +48,13 @@ export type CadEditorBodyTranslationField = Exclude<CadEditorPoleField, 'weight'
 export type CadEditorCurveIntervalField = 'min' | 'max';
 export type CadEditorSurfaceIsoCurveAxis = 'u' | 'v';
 export type CadEditorSurfaceDegreeElevationAxis = 'u' | 'v';
+export interface CadEditorTranslationalSweepCreation {
+  profileReference: CadGeometryReferenceV0;
+  railReference: CadGeometryReferenceV0;
+  assetId: string;
+  bodyId: string;
+  result: TranslationalSweepResult;
+}
 export interface CadEditorRuledSurfaceCreation {
   firstReference: CadGeometryReferenceV0;
   secondReference: CadGeometryReferenceV0;
@@ -153,7 +160,7 @@ export interface CadEditorSelectedPole extends CadEditorSurfaceSelection {
 }
 export interface CadEditorCandidate {
   token: string; baseGeneration: number; baseDisplayGeneration: number;
-  kind: 'apply' | 'open' | 'undo' | 'redo' | 'display' | 'rename' | 'duplicate' | 'curve-interval' | 'surface-knot' | 'curve-knot' | 'surface-isocurve' | 'curve-join' | 'surface-degree-elevation' | 'surface-region' | 'curve-split' | 'surface-split' | 'curve-reversal' | 'surface-reversal' | 'ruled-surface';
+  kind: 'apply' | 'open' | 'undo' | 'redo' | 'display' | 'rename' | 'duplicate' | 'curve-interval' | 'surface-knot' | 'curve-knot' | 'surface-isocurve' | 'curve-join' | 'surface-degree-elevation' | 'surface-region' | 'curve-split' | 'surface-split' | 'curve-reversal' | 'surface-reversal' | 'ruled-surface' | 'surface-sweep';
   selectionTarget?: CadEditorSelectionTarget | null;
   presentation?: 'structural';
   curveInterval?: SourceCurveIntervalExtractionResult;
@@ -166,6 +173,7 @@ export interface CadEditorCandidate {
   curveReversal?: CadEditorCurveReversalCreation;
   surfaceReversal?: CadEditorSurfaceReversalCreation;
   ruledSurface?: CadEditorRuledSurfaceCreation;
+  translationalSweep?: CadEditorTranslationalSweepCreation;
   curveJoin?: CadEditorCurveJoinCreation;
   surfaceKnot?: SourceSurfaceKnotInsertionResult;
   surfaceDegreeElevation?: SourceSurfaceDegreeElevationResult;
@@ -218,6 +226,7 @@ export interface CadEditorSnapshot {
   lastCurveReversal: CadEditorCurveReversalCreation | null;
   lastSurfaceReversal: CadEditorSurfaceReversalCreation | null;
   lastRuledSurface: CadEditorRuledSurfaceCreation | null;
+  lastTranslationalSweep: CadEditorTranslationalSweepCreation | null;
   lastCurveJoin: CadEditorCurveJoinCreation | null;
   lastSurfaceDegreeElevation: SourceSurfaceDegreeElevationResult | null;
 }
@@ -264,6 +273,7 @@ export interface CadEditorSession {
   prepareCurveReversal(): CadEditorCandidate;
   prepareSurfaceReversal(axis: 'u' | 'v'): CadEditorCandidate;
   prepareRuledSurface(secondBodyId: string): CadEditorCandidate;
+  prepareTranslationalSweep(railBodyId: string): CadEditorCandidate;
   prepareSurfaceDegreeElevation(axis: CadEditorSurfaceDegreeElevationAxis): CadEditorCandidate;
   prepareUndo(): CadEditorCandidate;
   prepareRedo(): CadEditorCandidate;

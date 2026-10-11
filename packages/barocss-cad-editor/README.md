@@ -960,6 +960,14 @@ The Construct rail icon opens a concise section chooser. Hidden second Curves re
 
 Native ID-mode preflight may make up to four calls. It retries only the exact typed untouched/refined ID-policy refusal before construction. Other Native failures propagate. This does not remap domains, reverse sections, produce a Solid, certify G1/G2 continuity or preserve a live construction recipe in saved geometry.
 
+### Surface along an original Curve path
+
+`session.prepareTranslationalSweep(railBodyId)` uses the selected original Curve as the profile and another original Curve as the rail. The Native constructor and whole validator create a Surface with fixed profile orientation: `S(u,v) = P(u) + R(v) - R(vMin)`. The two original parameter domains remain independent. The complete generated Model3 Source, including both construction Curves, enters one new asset and Surface body. Original complete Sources, revisions, siblings, bindings and selection remain intact.
+
+The Construct rail icon opens a concise Profile/Rail chooser. Hidden rail Curves remain available. Native refusal keeps the choice available for correction. Whole-document and current Viewport approval precede one history entry. Undo and Redo preserve structural IDs with current references and revision highwater. The generated Surface uses the existing Canvas pole editing tools.
+
+Optional Help describes the fixed orientation. This operation does not transport the profile frame, create caps or a Solid, or retain a live construction recipe. Native and document/display limits still apply.
+
 ### On-demand Canvas settings
 
 The Editing rail settings icon opens the existing movement, rotation or scale settings. The panel starts closed. Closing it only hides its DOM; snap values, input text and axis choices remain mounted. An active validation error exposes the relevant settings for correction. The icon provides an accessible name, expansion state and keyboard activation.

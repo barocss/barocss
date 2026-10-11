@@ -48,3 +48,5 @@ export type { CadEditorCurveReversalCreation } from './types.js';
 export type { CadEditorSurfaceReversalCreation } from './types.js';
 
 export type { CadEditorRuledSurfaceCreation } from './types.js';
+
+export type { CadEditorTranslationalSweepCreation } from './types.js';
