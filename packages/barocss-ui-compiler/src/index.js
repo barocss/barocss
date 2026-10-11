@@ -43,6 +43,8 @@ function checkSource(source) {
 /** Compile one complete authored JSX module into a browser bundle and fixed BaroCSS CSS. */
 export async function compileUi(source, options) {
   const moduleId = options?.moduleId;
+  const artifactVersion = options?.artifactVersion ?? 1;
+  if (artifactVersion !== 1 && artifactVersion !== 2) throw new Error('Invalid artifact version');
   if (typeof source !== 'string' || Buffer.byteLength(source, 'utf8') > 32 * 1024
     || typeof moduleId !== 'string' || !/^[a-z][a-z0-9-]{0,31}$/.test(moduleId))
     throw new Error('Invalid bounded JSX source');
@@ -89,6 +91,9 @@ export async function compileUi(source, options) {
     throw new Error('Compiled bundle limit');
   const bundle = new Uint8Array(result.outputFiles[0].contents);
   const css = new ServerRuntime().generateCss(classes.join(' '));
-  return { version: 1, moduleId, sourceDigest: sha(Buffer.from(source, 'utf8')),
+  const artifact = { version: 1, moduleId, sourceDigest: sha(Buffer.from(source, 'utf8')),
     bundleDigest: sha(bundle), bundle, css, versions: { ...versions } };
+  return artifactVersion === 2
+    ? { ...artifact, version: 2, cssDigest: sha(Buffer.from(css, 'utf8')) }
+    : artifact;
 }

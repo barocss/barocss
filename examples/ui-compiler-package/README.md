@@ -17,6 +17,8 @@ node examples/ui-compiler-package/cwd-repro.mjs
 
 The package has local public configuration and emitted declarations. Integration owns workspace and lockfile adoption. This native flow does not prove integrated runtime behavior, publication, hostile JavaScript safety or CPU isolation.
 
+The browser flow also checks the exact v1 artifact shape and the opt-in v2 CSS digest against the returned CSS bytes. It confirms that opting into v2 does not change the JS bundle or CSS bytes for the same source and dependency lease.
+
 `cwd-repro.mjs` checks that the same emitted package and a relocated copy produce identical bundle bytes from different process working directories. It uses only the staged dependencies.
 
 `layout-repro.mjs` compares the staged emitted package with an independently installed emitted package. Set `INSTALLED_COMPILER_ENTRY` to the absolute path of that installed package's `dist/index.js`. It requires byte-identical bundles and CSS from the same authored source and module ID. The installed package and its dependencies must be prepared separately; this script does not install or download them.

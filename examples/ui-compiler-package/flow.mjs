@@ -16,9 +16,18 @@ for (const invalid of [
 const app = await createFixtureServer();
 const artifact = app.artifact;
 assert.equal(artifact.version, 1);
+assert.equal(Object.hasOwn(artifact, 'cssDigest'), false);
 assert.equal(artifact.sourceDigest, createHash('sha256').update(source).digest('hex'));
 assert.equal(artifact.bundleDigest, createHash('sha256').update(artifact.bundle).digest('hex'));
 assert(artifact.css.includes('display: grid'));
+const v2 = await compileUi(source, { moduleId: 'counter', artifactVersion: 2 });
+assert.equal(v2.version, 2);
+assert.equal(v2.cssDigest, createHash('sha256').update(v2.css, 'utf8').digest('hex'));
+assert.equal(v2.sourceDigest, artifact.sourceDigest);
+assert.equal(v2.bundleDigest, artifact.bundleDigest);
+assert.deepEqual(v2.bundle, artifact.bundle);
+assert.equal(v2.css, artifact.css);
+await assert.rejects(compileUi(source, { moduleId: 'counter', artifactVersion: 3 }), /Invalid artifact version/);
 let browser;
 const pageErrors = [];
 try {
@@ -41,7 +50,7 @@ try {
   assert.deepEqual(pageErrors, []);
   console.log(JSON.stringify({ status: 'passed', moduleId: artifact.moduleId,
     sourceDigest: artifact.sourceDigest, bundleDigest: artifact.bundleDigest,
-    bundleBytes: artifact.bundle.length, cssBytes: Buffer.byteLength(artifact.css),
+    bundleBytes: artifact.bundle.length, cssBytes: Buffer.byteLength(artifact.css), cssDigest: v2.cssDigest,
     versions: artifact.versions, state: seen.selectedState, pageErrors }));
 } finally {
   await browser?.close();
