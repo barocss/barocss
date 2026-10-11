@@ -55,7 +55,7 @@ export function MaterialPreview({controller, nativeHost = null, disabled, onErro
       if (!live || !viewer) return;
       refresh();
       const host = current.current.nativeHost;
-      if (host && !host.getSnapshot().disposed && !host.getSnapshot().poseGestureActive && !host.getSnapshot().posePreview) {
+      if (host && !host.getSnapshot().disposed && !host.getSnapshot().poseGestureActive && !host.getSnapshot().surfacePoleGestureActive && !host.getSnapshot().posePreview) {
         try {host.observeView(viewer.getState().camera);} catch (cause) {current.current.onError(cause);}
       }
     });
@@ -75,7 +75,7 @@ export function MaterialPreview({controller, nativeHost = null, disabled, onErro
     const syncControls = () => {
       const host = current.current.nativeHost;
       const draft = host?.getSnapshot();
-      if (!live || !viewer || transitions || current.current.disabled || viewer.getState().status !== 'ready' || draft && (!draft.available || draft.disposed || draft.poseGestureActive || draft.posePreview)) {stopControls(); return;}
+      if (!live || !viewer || transitions || current.current.disabled || viewer.getState().status !== 'ready' || draft && (!draft.available || draft.disposed || draft.poseGestureActive || draft.surfacePoleGestureActive || draft.posePreview)) {stopControls(); return;}
       if (!controls) controls = viewer.attachPointerControls({onError: failure});
     };
     const resize = () => {
@@ -209,7 +209,7 @@ export function MaterialPreview({controller, nativeHost = null, disabled, onErro
     const active = handle.current, host = current.current.nativeHost, element = canvas.current;
     if (!active || !host || !element || current.current.disabled) return;
     const initial = host.getSnapshot();
-    if (!initial.available || initial.disposed || initial.poseGestureActive || initial.posePreview || active.bridge.getState().status !== 'ready') return;
+    if (!initial.available || initial.disposed || initial.poseGestureActive || initial.surfacePoleGestureActive || initial.posePreview || active.bridge.getState().status !== 'ready') return;
     let transition = false;
     try {
       active.bridge.beginTransition(); transition = true;
@@ -226,7 +226,7 @@ export function MaterialPreview({controller, nativeHost = null, disabled, onErro
         const snapshot = host.getSnapshot();
         return handle.current === active && canvas.current === element && current.current.nativeHost === host && !current.current.disabled
           && snapshot === before && snapshot.accepted === before.accepted && snapshot.preparation === before.preparation && snapshot.selectedBodyId === before.selectedBodyId
-          && snapshot.available && !snapshot.disposed && !snapshot.poseGestureActive && snapshot.posePreview === null
+          && snapshot.available && !snapshot.disposed && !snapshot.poseGestureActive && !snapshot.surfacePoleGestureActive && snapshot.posePreview === null
           && active.bridge.getEpoch() === epoch && active.bridge.getAppearanceToken() === owner
           && measure().every((value, index) => Object.is(value, box[index]));
       };
@@ -250,7 +250,7 @@ export function MaterialPreview({controller, nativeHost = null, disabled, onErro
     surfaces: state.surfaces, visibleGeometry: state.visibleGeometry, selected: state.selected,
     materials: bindings.map(binding => ({ref: binding.ref, source: binding.binding.material.source, shaderId: binding.binding.material.shaderId, uniforms: binding.binding.uniforms})),
     geometryMotion: state.geometryMotion, lighting: state.lighting, camera: state.camera, displayedRevision: nativeHost?.getSnapshot().accepted.revision ?? presentation.displayed?.revision ?? null,
-    nativeScene: nativeHost && {accepted: nativeHost.getSnapshot().accepted, draftDocument: nativeHost.getSnapshot().draftDocument, nativeDirty: nativeHost.getSnapshot().nativeDirty, materialDirty: nativeHost.getSnapshot().materialDirty, invalidLighting: nativeHost.getSnapshot().invalidLighting, invalidBodyPose: nativeHost.getSnapshot().invalidBodyPose, invalidBodyPoseBodyId: nativeHost.getSnapshot().invalidBodyPoseBodyId, bodyPoseInputResetEpoch: nativeHost.getSnapshot().bodyPoseInputResetEpoch, invalidSurfacePole: nativeHost.getSnapshot().invalidSurfacePole, surfacePoleBodyId: nativeHost.getSnapshot().surfacePoleBodyId, surfacePoleDraftActive: nativeHost.getSnapshot().surfacePoleDraftActive, surfacePoleInputResetEpoch: nativeHost.getSnapshot().surfacePoleInputResetEpoch, selectedBodyId: nativeHost.getSnapshot().selectedBodyId, dirty: nativeHost.getSnapshot().dirty, viewDirty: nativeHost.getSnapshot().viewDirty, poseGestureActive: nativeHost.getSnapshot().poseGestureActive, posePreview: nativeHost.getSnapshot().posePreview, available: nativeHost.getSnapshot().available, canUndo: nativeHost.getSnapshot().canUndo, canRedo: nativeHost.getSnapshot().canRedo, savedRevision: nativeHost.getSnapshot().savedRevision}};
+    nativeScene: nativeHost && {accepted: nativeHost.getSnapshot().accepted, draftDocument: nativeHost.getSnapshot().draftDocument, nativeDirty: nativeHost.getSnapshot().nativeDirty, materialDirty: nativeHost.getSnapshot().materialDirty, invalidLighting: nativeHost.getSnapshot().invalidLighting, invalidBodyPose: nativeHost.getSnapshot().invalidBodyPose, invalidBodyPoseBodyId: nativeHost.getSnapshot().invalidBodyPoseBodyId, bodyPoseInputResetEpoch: nativeHost.getSnapshot().bodyPoseInputResetEpoch, invalidSurfacePole: nativeHost.getSnapshot().invalidSurfacePole, surfacePoleBodyId: nativeHost.getSnapshot().surfacePoleBodyId, surfacePoleDraftActive: nativeHost.getSnapshot().surfacePoleDraftActive, surfacePoleInputResetEpoch: nativeHost.getSnapshot().surfacePoleInputResetEpoch, selectedSurfacePole: nativeHost.getSnapshot().selectedSurfacePole, surfacePoleGestureActive: nativeHost.getSnapshot().surfacePoleGestureActive, surfacePoleDraftPatch: nativeHost.getSnapshot().surfacePoleDraftPatch, selectedBodyId: nativeHost.getSnapshot().selectedBodyId, dirty: nativeHost.getSnapshot().dirty, viewDirty: nativeHost.getSnapshot().viewDirty, poseGestureActive: nativeHost.getSnapshot().poseGestureActive, posePreview: nativeHost.getSnapshot().posePreview, available: nativeHost.getSnapshot().available, canUndo: nativeHost.getSnapshot().canUndo, canRedo: nativeHost.getSnapshot().canRedo, savedRevision: nativeHost.getSnapshot().savedRevision}};
   return <div className="material-native-preview">
     <div className="re-material-heading"><h2 data-testid="native-canvas-body-title">{nativeHost ? nativeHost.getSnapshot().targets.find(target => target.bodyId === nativeHost.getSnapshot().selectedBodyId)?.title ?? 'Scene' : 'Surface preview'}</h2><span data-testid="material-preview-status">{state?.status ?? 'loading'}</span>
       {!nativeHost && <button type="button" data-testid="material-preview-visible" disabled={disabled || !ready} onClick={visibility}>{visible ? 'Hide' : 'Show'}</button>}
@@ -258,8 +258,8 @@ export function MaterialPreview({controller, nativeHost = null, disabled, onErro
         {nativeHost && <><span className="native-camera-badge" data-testid="native-camera-view-state">{nativeHost.getSnapshot().viewDirty ? 'User view' : 'Scene view'}</span>
           <button type="button" data-testid="native-scene-camera" disabled={disabled || !ready || !nativeHost.getSnapshot().available} onClick={() => {try {nativeHost.resetViewportCamera();} catch (cause) {onError(cause);}}}>Scene camera</button>
           <button type="button" data-testid="native-set-scene-camera" disabled={disabled || !ready || !nativeHost.getSnapshot().available || nativeHost.getSnapshot().dirty || !nativeHost.getSnapshot().viewDirty} onClick={() => {try {nativeHost.applyCamera();} catch (cause) {onError(cause);}}}>Set scene camera</button></>}
-        {nativeHost && <button type="button" data-testid="native-frame-selected" aria-keyshortcuts="F" disabled={disabled || !ready || !visible || !nativeHost.getSnapshot().available || nativeHost.getSnapshot().poseGestureActive || !!nativeHost.getSnapshot().posePreview} onClick={fitSelected}>Frame selected</button>}
-        <button type="button" data-testid="native-frame" aria-keyshortcuts={nativeHost ? 'Shift+F' : undefined} disabled={disabled || !ready || !visible || !!nativeHost && (!nativeHost.getSnapshot().available || nativeHost.getSnapshot().poseGestureActive || !!nativeHost.getSnapshot().posePreview)} onClick={fit}>{nativeHost ? 'Frame all' : 'Frame'}</button>
+        {nativeHost && <button type="button" data-testid="native-frame-selected" aria-keyshortcuts="F" disabled={disabled || !ready || !visible || !nativeHost.getSnapshot().available || nativeHost.getSnapshot().poseGestureActive || nativeHost.getSnapshot().surfacePoleGestureActive || !!nativeHost.getSnapshot().posePreview} onClick={fitSelected}>Frame selected</button>}
+        <button type="button" data-testid="native-frame" aria-keyshortcuts={nativeHost ? 'Shift+F' : undefined} disabled={disabled || !ready || !visible || !!nativeHost && (!nativeHost.getSnapshot().available || nativeHost.getSnapshot().poseGestureActive || nativeHost.getSnapshot().surfacePoleGestureActive || !!nativeHost.getSnapshot().posePreview)} onClick={fit}>{nativeHost ? 'Frame all' : 'Frame'}</button>
       </div>
     </div>
     <div className="material-native-canvas re-editor--workbench">

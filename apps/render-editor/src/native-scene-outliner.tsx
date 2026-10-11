@@ -17,7 +17,7 @@ export function NativeSceneOutliner({host, disabled, onTarget}: Props) {
     inspector.insertBefore(slot, controls ?? inspector.firstChild); setPortal(slot);
     return () => {slot.remove();};
   }, []);
-  const locked = disabled || snapshot.nativeDirty || snapshot.materialDirty || snapshot.invalidLighting || snapshot.invalidBodyPose || snapshot.invalidSurfacePole || snapshot.poseGestureActive || !!snapshot.posePreview || !snapshot.available || snapshot.disposed;
+  const locked = disabled || snapshot.nativeDirty || snapshot.materialDirty || snapshot.invalidLighting || snapshot.invalidBodyPose || snapshot.invalidSurfacePole || snapshot.poseGestureActive || !!snapshot.posePreview || snapshot.surfacePoleGestureActive || !snapshot.available || snapshot.disposed;
   if (!portal) return null;
   return createPortal(<section className="re-native-outliner" aria-label="Scene bodies" data-testid="native-body-outliner" data-active-body-id={snapshot.selectedBodyId}>
     <div className="re-material-heading"><h2>Outliner</h2><span>{snapshot.preparation.entries.length} {snapshot.preparation.entries.length === 1 ? 'body' : 'bodies'}</span></div>

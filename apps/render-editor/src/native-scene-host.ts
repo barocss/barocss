@@ -25,6 +25,9 @@ export interface NativeSceneHostSnapshot {
   readonly surfacePoleBodyId: string | null;
   readonly surfacePoleDraftActive: boolean;
   readonly surfacePoleInputResetEpoch: number;
+  readonly selectedSurfacePole: Readonly<{bodyId: string; uIndex: number; vIndex: number}>;
+  readonly surfacePoleGestureActive: boolean;
+  readonly surfacePoleDraftPatch: RenderNativeSceneSurfacePolePatch | null;
   readonly viewCamera: MeshCamera | null;
   readonly viewDirty: boolean;
   readonly poseGestureActive: boolean;
@@ -50,6 +53,10 @@ export interface NativeSceneHost {
   setBodyPoseInputInvalid(bodyId: string): void;
   stageSurfacePoleEdit(bodyId: string, patch: RenderNativeSceneSurfacePolePatch): void;
   setSurfacePoleInputInvalid(bodyId: string, uIndex: number, vIndex: number): void;
+  selectSurfacePole(uIndex: number, vIndex: number): void;
+  beginSurfacePoleDrag(bodyId: string, uIndex: number, vIndex: number): object;
+  finishSurfacePoleDrag(token: object, patch: RenderNativeSceneSurfacePolePatch): void;
+  cancelSurfacePoleDrag(token: object): void;
   stageLighting(lighting: MeshLighting): void;
   setLightingInputInvalid(invalid: boolean): void;
   prepareDraft(): RenderNativeScenePreparedCandidate;
@@ -158,6 +165,15 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
   let invalidBodyPoseBodyId: string | null = null, bodyPoseInputResetEpoch = 0;
   let invalidSurfacePole = false, surfacePoleInputResetEpoch = 0;
   let surfacePole: {bodyId: string; uIndex: number; vIndex: number} | null = null;
+  let selectedPole = {bodyId: selectedBodyId, uIndex: 0, vIndex: 0};
+  let surfacePoleDraftPatch: RenderNativeSceneSurfacePolePatch | null = null;
+  interface PoleDrag {
+    token: object; native: ReturnType<typeof native.getSnapshot>; material: RenderMaterialSessionSnapshot;
+    selection: typeof selectedPole; camera: MeshCamera; owner: object; generation: number; used: boolean;
+    presenter: NativeScenePresenter; reader: (() => object) | undefined; cameraReader: (() => MeshCamera) | undefined;
+  }
+  let poleDrag: PoleDrag | null = null;
+  const poleDragTokens = new WeakMap<object, PoleDrag>();
   let viewCamera: MeshCamera | null = null, presenter: NativeScenePresenter | null = null, available = false;
   let disposed = false, locked = false, reentered = false, generation = 0;
   let ownershipReader: (() => object) | undefined, fallbackOwner: object = Object.freeze({});
@@ -193,12 +209,12 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
     if (locked) {reentered = true; throw new RenderEditorError('STALE_CANDIDATE', 'Native scene host is busy.');}
   };
   const noView = () => {
-    if (bodyPose) throw new RenderEditorError('STALE_CANDIDATE', 'Finish or cancel the body transform before editing the scene.');
+    if (bodyPose || poleDrag) throw new RenderEditorError('STALE_CANDIDATE', 'Finish or cancel the Canvas transform before editing the scene.');
   };
   const readSnapshots = () => {
     const state = native.getSnapshot(), raw = local.getSnapshot();
     const selected = selectedMaterial(state.preparation, selectedBodyId);
-    const dirty = state.dirty || raw.dirty || invalidLighting || invalidBodyPoseBodyId !== null || invalidSurfacePole || bodyPose !== null;
+    const dirty = state.dirty || raw.dirty || invalidLighting || invalidBodyPoseBodyId !== null || invalidSurfacePole || bodyPose !== null || poleDrag !== null;
     materialSnapshot = Object.freeze({...raw, accepted: selected.preparation.document, sample: selected.preparation.sample,
       dirty, canUndo: state.canUndo, canRedo: state.canRedo, disposed,
       savedRevision: state.savedRevision === state.accepted.revision ? selected.preparation.document.revision : null});
@@ -209,6 +225,7 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
       dirty, nativeDirty: state.dirty, materialDirty: raw.dirty, invalidLighting, viewCamera, viewDirty: viewCamera !== null,
       invalidBodyPose: invalidBodyPoseBodyId !== null, invalidBodyPoseBodyId, bodyPoseInputResetEpoch,
       invalidSurfacePole, surfacePoleBodyId: surfacePole?.bodyId ?? null, surfacePoleDraftActive: surfacePole !== null, surfacePoleInputResetEpoch,
+      selectedSurfacePole: Object.freeze({...selectedPole}), surfacePoleGestureActive: poleDrag !== null, surfacePoleDraftPatch,
       poseGestureActive: bodyPose?.gestureActive ?? false, posePreview: bodyPose?.preview ?? null,
       available, canUndo: state.canUndo, canRedo: state.canRedo, savedRevision: state.savedRevision, disposed});
   };
@@ -334,6 +351,59 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
     return left.length === right.length && left.every(key => Object.hasOwn(b, key)
       && sameNative((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key]));
   };
+  const poleAt = (bodyId: string, uIndex: number, vIndex: number) => {
+    const selection = poleSelection(bodyId, uIndex, vIndex), accepted = native.getSnapshot().accepted;
+    const body = accepted.nativeDocument.bodies.find(item => item.id === bodyId)!;
+    const asset = snapshot.preparation.native.compiledAssets.find(item => item.assetId === body.assetId);
+    const surface = asset?.model.objects.find(item => item.id === body.geometryId);
+    check(surface?.kind === 'surface' && !!surface.controlPoints[uIndex]?.[vIndex], 'Choose an original Surface control point.');
+    return {selection, body};
+  };
+  const closePoleDrag = (state: PoleDrag) => {state.used = true; if (poleDrag === state) poleDrag = null;};
+  const invalidatePoleDrag = () => {if (poleDrag) closePoleDrag(poleDrag);};
+  const currentPoleDrag = (token: object): PoleDrag => {
+    const state = token !== null && typeof token === 'object' ? poleDragTokens.get(token) : undefined;
+    if (!state || state.used || poleDrag !== state) throw new RenderEditorError('STALE_CANDIDATE', 'The control-point drag token is stale, foreign, or already used.');
+    try {
+      const fresh = !disposed && available && presenter === state.presenter && ownershipReader === state.reader
+        && actualCameraReader === state.cameraReader && native.getSnapshot() === state.native && local.getSnapshot() === state.material
+        && selectedBodyId === state.selection.bodyId && selectedPole.bodyId === state.selection.bodyId
+        && selectedPole.uIndex === state.selection.uIndex && selectedPole.vIndex === state.selection.vIndex
+        && generation === state.generation && sameCamera(displayCamera(), state.camera) && owner() === state.owner;
+      if (!fresh || reentered) throw new RenderEditorError('STALE_CANDIDATE', 'The control point, scene, camera, or display owner changed. Start a new drag.');
+      return state;
+    } catch (cause) {closePoleDrag(state); changed(); throw cause;}
+  };
+  const polePatchCopy = (input: RenderNativeSceneSurfacePolePatch): RenderNativeSceneSurfacePolePatch => {
+      check(input !== null && typeof input === 'object' && Object.getPrototypeOf(input) === Object.prototype, 'Control-point fields require plain own data.');
+      const keys = ['uIndex', 'vIndex', 'xMM', 'yMM', 'zMM', 'weight'] as const;
+      const actual = Reflect.ownKeys(input);
+      check(actual.length === keys.length && actual.every(key => typeof key === 'string' && keys.includes(key as typeof keys[number])), 'Control-point fields require the exact six values.');
+      const values = Object.fromEntries(keys.map(key => {
+        const field = Object.getOwnPropertyDescriptor(input, key);
+        check(field && 'value' in field && field.enumerable && typeof field.value === 'number' && Number.isFinite(field.value), 'Control-point fields require finite own numbers.');
+        return [key, field.value];
+      })) as unknown as RenderNativeSceneSurfacePolePatch;
+      return Object.freeze(values);
+  };
+  const stagePole = (bodyId: string, patch: RenderNativeSceneSurfacePolePatch) => {
+      const values = polePatchCopy(patch);
+      if (reentered) throw new RenderEditorError('STALE_CANDIDATE', 'Control-point input reflection reentry was refused.');
+      const selection = poleSelection(bodyId, values.uIndex, values.vIndex);
+      const accepted = native.getSnapshot().accepted;
+      check(surfacePole !== null || sameNative(draftDocument.nativeDocument, accepted.nativeDocument), 'Finish the other native source draft before editing a control point.');
+      surfacePoleDraftPatch = Object.freeze({...values});
+      try {
+        const originalTargets = new Map(accepted.surfaceMaterials.map(item => [item.target.bodyId, item.target]));
+        const baseline = {...draftDocument, nativeDocument: accepted.nativeDocument, surfaceMaterials: draftDocument.surfaceMaterials.map(item => {
+          const target = originalTargets.get(item.target.bodyId); check(target, 'The original material target is absent.'); return {...item, target};
+        })};
+        const document = deriveRenderNativeSceneSurfacePoleEdit(baseline, bodyId, values);
+        stage(document); invalidSurfacePole = false;
+        surfacePole = sameNative(document.nativeDocument, accepted.nativeDocument) ? null : selection;
+        changed();
+      } catch (cause) {surfacePole = selection; invalidSurfacePole = true; changed(); throw cause;}
+  };
   const withMaterial = (document: RenderMaterialSessionSnapshot['accepted']) => {
     check(draftDocument.surfaceMaterials.some(item => item.target.bodyId === selectedBodyId), 'The selected Surface is absent from the staged scene.');
     return {...draftDocument, surfaceMaterials: draftDocument.surfaceMaterials.map(item => item.target.bodyId === selectedBodyId
@@ -394,6 +464,12 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
       acceptedOwner = nextStore.owner!;
       local.dispose(); local = nextStore.local!; nextStore.local = null;
       selectedBodyId = nextBody; draftDocument = native.getSnapshot().accepted;
+      const body = draftDocument.nativeDocument.bodies.find(item => item.id === selectedBodyId);
+      const asset = native.getSnapshot().preparation.native.compiledAssets.find(item => item.assetId === body?.assetId);
+      const geometry = asset?.model.objects.find(item => item.id === body?.geometryId);
+      if (candidate.purpose === 'open' || selectedPole.bodyId !== selectedBodyId || geometry?.kind !== 'surface'
+        || !geometry.controlPoints[selectedPole.uIndex]?.[selectedPole.vIndex]) selectedPole = {bodyId: selectedBodyId, uIndex: 0, vIndex: 0};
+      surfacePoleDraftPatch = null;
       invalidLighting = false; invalidBodyPoseBodyId = null; bodyPoseInputResetEpoch++; invalidSurfacePole = false; surfacePole = null; surfacePoleInputResetEpoch++; nativePresented = true; localView(camera); changed(); return result;
     } finally {nextStore.local?.dispose();}
   };
@@ -432,18 +508,18 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
   const host: NativeSceneHost = {
     materialSession, getSnapshot: () => snapshot, subscribe,
     selectTarget(bodyId) {run(() => {
-      check(!bodyPose && available, 'Finish the body transform or restore the preview before changing the active body.');
+      noView(); check(available, 'Finish the body transform or restore the preview before changing the active body.');
       check(!native.getSnapshot().dirty && !local.getSnapshot().dirty && !invalidLighting && invalidBodyPoseBodyId === null && !invalidSurfacePole, 'Apply or Discard authored drafts before changing the active body.');
       check(typeof bodyId === 'string' && snapshot.targets.some(item => item.bodyId === bodyId), 'Choose an authored visible Surface material.');
       if (bodyId === selectedBodyId) return;
       const selected = selectedMaterial(native.getSnapshot().preparation, bodyId);
-      const next = createRenderMaterialSession(selected.preparation.document); local.dispose(); local = next; selectedBodyId = bodyId; surfacePole = null; invalidSurfacePole = false; surfacePoleInputResetEpoch++; changed();});},
+      const next = createRenderMaterialSession(selected.preparation.document); local.dispose(); local = next; selectedBodyId = bodyId; selectedPole = {bodyId, uIndex: 0, vIndex: 0}; surfacePoleDraftPatch = null; surfacePole = null; invalidSurfacePole = false; surfacePoleInputResetEpoch++; changed();});},
     setPresenter(next, reader, cameraReader) {run(() => {check(next === null || typeof next === 'function', 'Native presenter must be a function or null.'); check(reader === undefined || typeof reader === 'function', 'Preview ownership reader must be a function.'); check(cameraReader === undefined || typeof cameraReader === 'function', 'Display camera reader must be a function.');
-      if (next !== null && bodyPose) noView(); else if (next === null) invalidatePose();
+      if (next !== null) noView(); else {invalidatePose(); invalidatePoleDrag();}
       const nextFallback = Object.freeze({}), nextOwner = next === null ? nextFallback : readOwner(reader, nextFallback);
       if (reentered) throw new RenderEditorError('STALE_CANDIDATE', 'Preview ownership reentry was refused.');
       presenter = next; ownershipReader = reader; actualCameraReader = cameraReader; fallbackOwner = nextFallback; acceptedOwner = nextOwner; available = next !== null; changed();});},
-    setAvailable(value) {run(() => {check(typeof value === 'boolean', 'Native availability must be a boolean.'); if (!value) invalidatePose(); if (available !== value) {available = value; changed();}});},
+    setAvailable(value) {run(() => {check(typeof value === 'boolean', 'Native availability must be a boolean.'); if (!value) {invalidatePose(); invalidatePoleDrag();} if (available !== value) {available = value; changed();}});},
     stageSceneDocument(document) {run(() => {noView(); clean(); stage(document); changed();});},
     addSurface(source, surfaceId) {return run(() => {
       noView(); clean(); check(available && presenter && nativePresented, 'The applied native preview is unavailable.');
@@ -522,30 +598,36 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
       check(invalidBodyPoseBodyId === null || invalidBodyPoseBodyId === bodyId, 'Correct the body with incomplete Position or Scale values.');
       if (invalidBodyPoseBodyId !== bodyId) {invalidBodyPoseBodyId = bodyId; changed();}
     });},
-    stageSurfacePoleEdit(bodyId, patch) {run(() => {
-      check(patch !== null && typeof patch === 'object' && Object.getPrototypeOf(patch) === Object.prototype, 'Control-point fields require plain own data.');
-      const keys = ['uIndex', 'vIndex', 'xMM', 'yMM', 'zMM', 'weight'] as const;
-      const actual = Reflect.ownKeys(patch);
-      check(actual.length === keys.length && actual.every(key => typeof key === 'string' && keys.includes(key as typeof keys[number])), 'Control-point fields require the exact six values.');
-      const values = Object.fromEntries(keys.map(key => {
-        const field = Object.getOwnPropertyDescriptor(patch, key);
-        check(field && 'value' in field && field.enumerable && typeof field.value === 'number' && Number.isFinite(field.value), 'Control-point fields require finite own numbers.');
-        return [key, field.value];
-      })) as unknown as RenderNativeSceneSurfacePolePatch;
-      const selection = poleSelection(bodyId, values.uIndex, values.vIndex);
-      const accepted = native.getSnapshot().accepted;
-      check(surfacePole !== null || sameNative(draftDocument.nativeDocument, accepted.nativeDocument), 'Finish the other native source draft before editing a control point.');
-      try {
-        const originalTargets = new Map(accepted.surfaceMaterials.map(item => [item.target.bodyId, item.target]));
-        const baseline = {...draftDocument, nativeDocument: accepted.nativeDocument, surfaceMaterials: draftDocument.surfaceMaterials.map(item => {
-          const target = originalTargets.get(item.target.bodyId); check(target, 'The original material target is absent.'); return {...item, target};
-        })};
-        const document = deriveRenderNativeSceneSurfacePoleEdit(baseline, bodyId, values);
-        stage(document); invalidSurfacePole = false;
-        surfacePole = sameNative(document.nativeDocument, accepted.nativeDocument) ? null : selection;
-        changed();
-      } catch (cause) {surfacePole = selection; invalidSurfacePole = true; changed(); throw cause;}
+    stageSurfacePoleEdit(bodyId, patch) {run(() => stagePole(bodyId, patch));},
+    selectSurfacePole(uIndex, vIndex) {run(() => {
+      noView(); clean(); const {selection} = poleAt(selectedBodyId, uIndex, vIndex);
+      check(available && presenter && owner() === acceptedOwner, 'The applied preview belongs to another scene. Restore it before choosing a control point.');
+      if (reentered) throw new RenderEditorError('STALE_CANDIDATE', 'Control-point selection reader reentry was refused.');
+      if (selectedPole.bodyId === selection.bodyId && selectedPole.uIndex === uIndex && selectedPole.vIndex === vIndex) return;
+      selectedPole = selection; surfacePoleInputResetEpoch++; changed();
     });},
+    beginSurfacePoleDrag(bodyId, uIndex, vIndex) {return run(() => {
+      noView(); clean(); check(available && presenter, 'The original Surface preview is unavailable.');
+      const {selection, body} = poleAt(bodyId, uIndex, vIndex);
+      check(selectedPole.bodyId === bodyId && selectedPole.uIndex === uIndex && selectedPole.vIndex === vIndex, 'Drag the selected original control point.');
+      check(!native.getSnapshot().accepted.nativeDocument.bodies.some(other => other.id !== bodyId && other.assetId === body.assetId), 'Duplicate the shared Surface asset before editing control points.');
+      const camera = displayCamera(), currentOwner = owner();
+      check(currentOwner === acceptedOwner, 'The preview belongs to another scene. Restore the current scene.');
+      if (reentered) throw new RenderEditorError('STALE_CANDIDATE', 'Control-point capture reader reentry was refused.');
+      const token = Object.freeze({});
+      const state: PoleDrag = {token, selection, native: native.getSnapshot(), material: local.getSnapshot(), camera,
+        owner: currentOwner, presenter, reader: ownershipReader, cameraReader: actualCameraReader, generation, used: false};
+      poleDrag = state; poleDragTokens.set(token, state); changed(); state.generation = generation; return token;
+    });},
+    finishSurfacePoleDrag(token, patch) {run(() => {
+      const state = currentPoleDrag(token);
+      const owned = polePatchCopy(patch);
+      check(owned.uIndex === state.selection.uIndex && owned.vIndex === state.selection.vIndex, 'Release the captured original point only.');
+      currentPoleDrag(token);
+      closePoleDrag(state); surfacePoleInputResetEpoch++;
+      try {stagePole(state.selection.bodyId, owned);} finally {changed();}
+    });},
+    cancelSurfacePoleDrag(token) {run(() => {const state = currentPoleDrag(token); closePoleDrag(state); changed();});},
     setSurfacePoleInputInvalid(bodyId, uIndex, vIndex) {run(() => {
       const selection = poleSelection(bodyId, uIndex, vIndex);
       check(surfacePole !== null || sameNative(draftDocument.nativeDocument, native.getSnapshot().accepted.nativeDocument), 'Finish the other native source draft before correcting a control point.');
@@ -558,9 +640,13 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
     prepareUndo: () => run(() => {noView(); clean(); return issue(native.prepareUndo());}),
     prepareRedo: () => run(() => {noView(); clean(); return issue(native.prepareRedo());}),
     commitPrepared: (candidate, beforeCommit) => run(() => {noView(); return commit(candidate, beforeCommit);}),
-    discardDraft() {run(() => {if (bodyPose) noView(); native.discardDraft(); local.discardDraft(); draftDocument = native.getSnapshot().accepted; invalidLighting = false; invalidBodyPoseBodyId = null; bodyPoseInputResetEpoch++; invalidSurfacePole = false; surfacePole = null; surfacePoleInputResetEpoch++; changed();});},
+    discardDraft() {run(() => {noView(); native.discardDraft(); local.discardDraft(); draftDocument = native.getSnapshot().accepted; invalidLighting = false; invalidBodyPoseBodyId = null; bodyPoseInputResetEpoch++; invalidSurfacePole = false; surfacePole = null; surfacePoleDraftPatch = null; surfacePoleInputResetEpoch++; changed();});},
     markSaved(revision) {run(() => {noView(); native.markSaved(revision); changed();});},
     observeView(camera) {run(() => {const next = cameraCopy(camera), accepted = native.getSnapshot().accepted.display.camera;
+      if (poleDrag) {
+        if (!sameCamera(next, poleDrag.camera)) {invalidatePoleDrag(); localView(next); changed(); throw new RenderEditorError('STALE_CANDIDATE', 'The camera changed during control-point drag. Start a new drag.');}
+        return;
+      }
       if (bodyPose) {if (!sameCamera(next, bodyPose.camera)) {if (bodyPose.preview) available = false; invalidatePose(); localView(next); changed(); throw new RenderEditorError('STALE_CANDIDATE', 'The camera changed during the body transform. Reload or reopen the scene.');} return;}
       const pending = sameCamera(next, accepted) ? null : next;
       if (pending === null ? viewCamera !== null : viewCamera === null || !sameCamera(pending, viewCamera)) {viewCamera = pending; changed();}});},
@@ -580,7 +666,7 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
       const camera = displayCamera(); check(!sameCamera(camera, native.getSnapshot().accepted.display.camera), 'The scene camera already matches this view.');
       stage({...draftDocument, display: {...draftDocument.display, camera}}); changed(); return commit(prepareDraft(), undefined, camera);
     });},
-    restoreAccepted() {return run(() => {if (bodyPose) {const result = cancelPose(bodyPose.token); if (result) return result;} const result = restore(); changed(); return result;});},
+    restoreAccepted() {return run(() => {if (poleDrag) {invalidatePoleDrag(); changed();} if (bodyPose) {const result = cancelPose(bodyPose.token); if (result) return result;} const result = restore(); changed(); return result;});},
     beginBodyPosePreview(bodyId) {return run(() => {
       noView(); clean(); check(available && presenter, 'The native preview is unavailable.');
       const camera = displayCamera();
@@ -626,7 +712,7 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
       catch (cause) {changed(); throw cause;}
     });},
     cancelBodyPosePreview: input => run(() => cancelPose(input)),
-    dispose() {if (disposed) return; run(() => {invalidatePose(); native.dispose(); local.dispose(); presenter = null; ownershipReader = undefined; actualCameraReader = undefined; available = false; disposed = true; viewCamera = null; changed(); listeners.clear();});},
+    dispose() {if (disposed) return; run(() => {invalidatePose(); invalidatePoleDrag(); native.dispose(); local.dispose(); presenter = null; ownershipReader = undefined; actualCameraReader = undefined; available = false; disposed = true; viewCamera = null; changed(); listeners.clear();});},
   };
   readSnapshots(); return Object.freeze(host);
 }
