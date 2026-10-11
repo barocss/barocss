@@ -929,3 +929,10 @@ The session calls `reverseCurveWide` and `validateWideReversedCurveResult`, then
 The Canvas checks the current qualified Source, Curve, selection, view, epochs, frame, camera, size, options and capture state before and after preparation. Foreign drafts and candidates remain owned by their producer. Start/end markers are parameter observations; clipped or degenerate direction glyphs are omitted. Help explains the independent copy. The copy can be chosen in Join, which still requires its actual endpoint and domain conditions.
 
 Native limits remain degree 1–3, at most 64 poles and 70 knots, coordinates within ±10000 mm, positive bounded weights and clamped nonperiodic knots. The existing document, display, Source, file and history capacity rules remain. This does not provide an in-place whole-Source reversal writer, automatic Join/reparameterization, degree 4/5, Solid or a global shape certificate.
+
+
+### Compact Inspector operation entries
+
+The Inspector groups the existing Focus and Curve/Surface operation entries in a compact wrapping row. Idle entries share spacing instead of repeating a separated panel for each button. An active operation uses the full Inspector width and retains its existing fields, Help, keyboard controls, draft handling and Native approval path.
+
+This layout reduces vertical space and scrolling. It does not change the Canvas width, supported geometry, Source data, operation limits or public API. The same controllers and callbacks still own each operation.
