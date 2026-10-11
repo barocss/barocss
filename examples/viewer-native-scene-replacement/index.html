@@ -89,6 +89,14 @@ Hiding the selected object clears selection and this report. Retained selected C
 <details id="selected-native-derivatives-help"><summary>About selected native derivatives</summary><p>Use the selected native point's original U/V or t fields above. This report shows the original authored XYZ point in millimetres and raw dP/dU, dP/dV or dP/dt vectors in millimetres per original dimensionless parameter.
 The vectors are not normalized. They do not include display pose or scale and are not outward normals. Zero vectors are valid. Endpoints use the interior span; an exact C0 interior knot cannot supply a first derivative.
 Invalid active drafts keep the last completed report. Reset clears only this derivative report and keeps drafts, point, chord, measurements and File choices. Selection or source changes clear the report; view changes keep it. A retained selected CPU object remains available after presentation loss. No continuity, global accuracy or topology certificate is implied.</p></details></fieldset>
+<fieldset id="selected-native-curve-length-pane"><legend>Selected native Curve length</legend>
+<p id="selected-native-curve-length-target">Select an original native Curve.</p>
+<button id="inspect-selected-native-curve-length" disabled>Inspect selected Curve length</button><button id="reset-selected-native-curve-length" disabled>Reset Curve length report</button>
+<p id="selected-native-curve-length-output" role="status" aria-live="polite"></p>
+<details><summary>Native Curve length report</summary><pre id="selected-native-curve-length-details"></pre></details>
+<details id="selected-native-curve-length-help"><summary>About selected Curve length</summary><p>Inspect the whole original Curve within its closed native domain. The length and heuristic error are estimates in authored millimetres, before display poses or scale. They are not certified global or manufacturing error bounds.
+The captured chord below is a separate straight distance. Point and derivative parameter drafts do not set a length interval. Inspection and Reset preserve those reports, drafts, SDK measurements and File choices.
+A different selection or accepted source clears this report. Views and display changes keep it. Retained selected CPU geometry can be inspected after presentation loss. This adds no midpoint label, topology or saved document.</p></details></fieldset>
 <fieldset id="native-chord-pane"><legend>Captured native chord</legend>
 <button id="capture-native-chord-point" disabled>Capture chord point</button><button id="reset-native-chord" disabled>Reset chord points</button>
 <p id="native-chord-output" role="status" aria-live="polite"></p>

@@ -4,13 +4,14 @@ import {parseBaroCadSource} from '@barocss/cad-interop/native';
 import {loadBaroCadModelSet} from '@barocss/cad-interop/model-set';
 import {parseBaroCadAssembly,loadBaroCadAssembly} from '@barocss/cad-interop/assembly';
 import {compileCadModel,evaluateCurve,evaluateSurface,evaluateCurveD1,evaluateSurfaceD1,curveDomain,surfaceDomain,parseBooleanExtrusionFeatureGraph,
-  createCadGeometryReference,queryCadDocumentPoint,importIGES,validateIGESImport} from '@barocss/cad';
+  createCadDocument,createCadGeometryReference,queryCadDocumentCurveArcLength,validateCadDocumentCurveArcLength,queryCadDocumentPoint,importIGES,validateIGESImport} from '@barocss/cad';
 import {prepareUniformCurvePreview,PrimitiveSceneRendererV2,PrimitiveViewport,BooleanShellSceneRenderer,PrimitiveSceneRecoveryError,preparePrimitiveSceneFrame,compileMeshMaterial,validateMeshMaterialIR} from '@barocss/gpu';
 import {createClothWorld} from '@barocss/physics/cloth';
 import {readNativeFile,createNativeFileOpen} from './native-file-open.js';
 import {readIGESFile,createIGESFileOpen} from './iges-file-open.js';
 import {readNativePointScope,querySelectedNativePoint} from './selected-native-point.js';
 import {querySelectedNativeDerivatives} from './selected-native-derivatives.js';
+import {querySelectedNativeCurveLength,NATIVE_CURVE_LENGTH_OPTIONS} from './selected-native-length.js';
 import {createNativePointerNavigation} from './pointer-navigation.js';
 import {measureCapturedNativeChord,isCapturedNativeChordPointCurrent} from './captured-native-chord.js';
 import {prepareNativeSourceDownload,createNativeSourceDownload} from './native-source-download.js';
@@ -41,6 +42,9 @@ const selectedPointOutput=document.querySelector('#selected-native-point-output'
 const selectedDerivativesPane=document.querySelector('#selected-native-derivatives-pane');
 const inspectSelectedDerivativesButton=document.querySelector('#inspect-selected-native-derivatives'),resetSelectedDerivativesButton=document.querySelector('#reset-selected-native-derivatives');
 const selectedDerivativesOutput=document.querySelector('#selected-native-derivatives-output'),selectedDerivativesDetails=document.querySelector('#selected-native-derivatives-details');
+const selectedCurveLengthPane=document.querySelector('#selected-native-curve-length-pane'),selectedCurveLengthTarget=document.querySelector('#selected-native-curve-length-target');
+const inspectSelectedCurveLengthButton=document.querySelector('#inspect-selected-native-curve-length'),resetSelectedCurveLengthButton=document.querySelector('#reset-selected-native-curve-length');
+const selectedCurveLengthOutput=document.querySelector('#selected-native-curve-length-output'),selectedCurveLengthDetails=document.querySelector('#selected-native-curve-length-details');
 const nativeChordPane=document.querySelector('#native-chord-pane'),nativeChordOutput=document.querySelector('#native-chord-output'),nativeChordDetails=document.querySelector('#native-chord-details');
 const captureChordButton=document.querySelector('#capture-native-chord-point'),resetChordButton=document.querySelector('#reset-native-chord');
 const buttons=Object.fromEntries(['replacement','fit-replacement','document','native','native-replacement','show-all','hide-all','fit','saved-view','query','clear','run-proof','lose-context','dispose']
@@ -76,6 +80,7 @@ let nativeObjectTap=null,nativeObjectSourceEpoch=0,nativeObjectFeedbackFrame=nul
 let nativeSelectedFitEligible=false,nativeSelectedFitDisposed=false,nativeSelectedFitStatus='empty',nativeSelectedFitPin=null,nativeSelectedFitLastError=null,nativeSelectedFitErrorCount=0;
 let selectedPointScope=null,selectedPointReport=null,selectedPointEpoch=0,selectedPointDisposed=false;
 let nativeChordFirst=null,nativeChordReport=null,nativeChordEpoch=0,nativeChordDisposed=false;
+let selectedCurveLengthScope=null,selectedCurveLengthReport=null,selectedCurveLengthEpoch=0,selectedCurveLengthDisposed=false;
 let selectedDerivativesScope=null,selectedDerivativesReport=null,selectedDerivativesEpoch=0,selectedDerivativesDisposed=false;
 const sources={};
 const resourceCounts=()=>Object.fromEntries(Object.entries(resources).map(([key,live])=>[key,live.size]));
@@ -141,7 +146,7 @@ function discardIGESFile(){check(igesFileOpen&&!disposed&&!running,'IGES file ch
   igesFileOpen.discard();igesFileChoice.value='';display('IGES choice discarded. Accepted geometry and provenance are unchanged.');return igesFileSnapshot();}
 function invalidateIGESFile(){if(!disposed)igesFileOpen?.invalidate();return igesFileSnapshot();}
 function invalidateFileIntents(){invalidateNativeFile();invalidateIGESFile();}
-function sourceAction(callback){invalidateFileIntents();try{const value=callback();invalidateNativeObjectSelection();invalidateNativeNavigation();nativeFileOpen?.clearAccepted();igesFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();inspection.textContent='';render();return value;}catch(error){render();throw error;}}
+function sourceAction(callback){invalidateFileIntents();try{const value=callback();invalidateNativeObjectSelection();invalidateNativeNavigation();nativeFileOpen?.clearAccepted();igesFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();clearSelectedCurveLengthContext();inspection.textContent='';render();return value;}catch(error){render();throw error;}}
 function commitReplacement(candidate){uploads.length=0;draws.length=0;viewer.replaceNativeScene(candidate);return viewer.getState();}
 function replace(candidate){return sourceAction(()=>commitReplacement(candidate===undefined?buildCandidate():candidate));}
 function nativeSourceDownloadSnapshot(){return nativeSourceDownload?clone(nativeSourceDownload.snapshot()):{version:0,pending:false,disposed,enabled:false,report:null,error:null,activeUrls:0,activeAnchors:0,activeTimers:0};}
@@ -288,6 +293,72 @@ function resetSelectedNativeDerivatives(){
   selectedDerivativesReport=null;selectedDerivativesOutput.textContent='';selectedDerivativesDetails.textContent='';
   display('Derivative report reset. Drafts, point, chord and SDK measurements remain.');return selectedNativeDerivativesSnapshot();
 }
+function selectedNativeCurveLengthSnapshot(){
+  check(arguments.length===0,'Curve length snapshot takes no arguments.');
+  return clone({version:0,scope:selectedCurveLengthScope,report:selectedCurveLengthReport,
+    enabled:!inspectSelectedCurveLengthButton.disabled,disposed:selectedCurveLengthDisposed,output:selectedCurveLengthOutput.textContent});
+}
+function clearSelectedCurveLengthContext(){
+  selectedCurveLengthEpoch++;selectedCurveLengthScope=null;selectedCurveLengthReport=null;
+  selectedCurveLengthOutput.textContent='';selectedCurveLengthDetails.textContent='';
+}
+function refreshSelectedNativeCurveLength(){
+  if(selectedCurveLengthDisposed||disposed){inspectSelectedCurveLengthButton.disabled=true;resetSelectedCurveLengthButton.disabled=true;return;}
+  const next=!selectedCurveLengthDisposed&&!disposed&&selectedPointScope?.ref.kind==='curve'?selectedPointScope:null;
+  if(!same(next,selectedCurveLengthScope)){clearSelectedCurveLengthContext();selectedCurveLengthScope=clone(next);}
+  const enabled=!!selectedCurveLengthScope&&!selectedCurveLengthDisposed&&!disposed&&!running;
+  inspectSelectedCurveLengthButton.disabled=!enabled;resetSelectedCurveLengthButton.disabled=!enabled;
+  selectedCurveLengthTarget.textContent=selectedCurveLengthScope?'Current Curve '+selectedCurveLengthScope.ref.curveId
+    +' · Model '+selectedCurveLengthScope.ref.modelId+' · original closed domain '+JSON.stringify(selectedPointDomain(selectedCurveLengthScope))
+    :'Select an original native Curve.';
+  const pin=clone(selectedCurveLengthScope),selectionEpoch=selectedPointEpoch,epoch=selectedCurveLengthEpoch;
+  const guard=event=>{check(!selectedCurveLengthDisposed&&!disposed,'Curve length host is disposed.');
+    check(event.currentTarget?.isConnected&&selectedCurveLengthPane.contains(event.currentTarget),'This Curve length control is detached.');
+    check(selectionEpoch===selectedPointEpoch&&epoch===selectedCurveLengthEpoch&&same(pin,selectedPointScope)
+      &&same(pin,selectedCurveLengthScope),'This Curve length control is stale.');};
+  inspectSelectedCurveLengthButton.onclick=event=>{try{guard(event);inspectSelectedNativeCurveLength();}catch(error){display(error instanceof Error?error.message:String(error));}};
+  resetSelectedCurveLengthButton.onclick=event=>{try{guard(event);resetSelectedNativeCurveLength();}catch(error){display(error instanceof Error?error.message:String(error));}};
+}
+function inspectSelectedNativeCurveLength(){
+  check(arguments.length<=1,'Curve length inspection accepts one explicit options record.');
+  check(!selectedCurveLengthDisposed&&!disposed&&!running,'Curve length inspection needs an idle live host.');
+  check(selectedCurveLengthScope?.ref.kind==='curve'&&same(selectedCurveLengthScope,selectedPointScope),'A current original native Curve must be selected.');
+  const expected=clone(selectedCurveLengthScope),selectionEpoch=selectedPointEpoch,epoch=selectedCurveLengthEpoch;
+  const options=arguments.length?arguments[0]:clone(NATIVE_CURVE_LENGTH_OPTIONS);
+  const candidate=querySelectedNativeCurveLength(viewer,expected,options);
+  check(!selectedCurveLengthDisposed&&!disposed&&!running&&selectionEpoch===selectedPointEpoch&&epoch===selectedCurveLengthEpoch
+    &&same(expected,selectedCurveLengthScope)&&same(expected,selectedPointScope),'Current Curve length scope changed before report adoption.');
+  const current=pointExpected(readNativePointScope(viewer));
+  check(!selectedCurveLengthDisposed&&!disposed&&!running&&selectionEpoch===selectedPointEpoch&&epoch===selectedCurveLengthEpoch
+    &&same(current,expected)&&same(expected,selectedCurveLengthScope)&&same(expected,selectedPointScope),
+    'Current Curve length selection changed before report adoption.');
+  const owned=clone(candidate),returned=clone(candidate),technical=JSON.stringify(owned,null,2),length=owned.length;
+  const formatted=value=>Object.is(value,-0)?'-0':String(Number(value.toPrecision(12)));
+  const output='Original Curve length estimate: '+formatted(length.estimatedLengthMM)+' mm · heuristic error estimate: '
+    +formatted(length.errorEstimateMM)+' mm';
+  selectedCurveLengthReport=owned;selectedCurveLengthOutput.textContent=output;selectedCurveLengthDetails.textContent=technical;
+  display('Original Curve length ready for '+expected.ref.curveId+'.');return returned;
+}
+function resetSelectedNativeCurveLength(){
+  check(arguments.length===0,'Reset Curve length report takes no arguments.');
+  check(!selectedCurveLengthDisposed&&!disposed&&!running,'Curve length host is disposed or busy.');
+  check(selectedCurveLengthScope?.ref.kind==='curve'&&same(selectedCurveLengthScope,selectedPointScope),'A current original native Curve must be selected.');
+  const expected=clone(selectedCurveLengthScope),selectionEpoch=selectedPointEpoch,epoch=selectedCurveLengthEpoch;
+  const current=pointExpected(readNativePointScope(viewer));
+  check(!selectedCurveLengthDisposed&&!disposed&&!running&&selectionEpoch===selectedPointEpoch&&epoch===selectedCurveLengthEpoch
+    &&same(current,expected)&&same(expected,selectedCurveLengthScope)&&same(expected,selectedPointScope),'Current Curve length scope is stale.');
+  selectedCurveLengthReport=null;selectedCurveLengthOutput.textContent='';selectedCurveLengthDetails.textContent='';
+  display('Curve length report reset. Point, derivatives, captured chord, drafts, SDK measurements and File choices remain.');
+  return selectedNativeCurveLengthSnapshot();
+}
+function disposeSelectedNativeCurveLength(){
+  check(arguments.length===0,'Curve length disposal takes no arguments.');
+  if(selectedCurveLengthDisposed)return selectedNativeCurveLengthSnapshot();
+  selectedCurveLengthDisposed=true;clearSelectedCurveLengthContext();
+  inspectSelectedCurveLengthButton.onclick=null;resetSelectedCurveLengthButton.onclick=null;
+  inspectSelectedCurveLengthButton.disabled=true;resetSelectedCurveLengthButton.disabled=true;selectedCurveLengthTarget.textContent='';
+  return selectedNativeCurveLengthSnapshot();
+}
 function nativeChordSnapshot(){return clone({version:0,phase:nativeChordReport?'complete':nativeChordFirst?'first':'empty',
   first:nativeChordFirst,report:nativeChordReport,enabled:!captureChordButton.disabled,disposed:nativeChordDisposed,output:nativeChordOutput.textContent});}
 function clearNativeChord(){nativeChordEpoch++;nativeChordFirst=null;nativeChordReport=null;nativeChordOutput.textContent='';nativeChordDetails.textContent='';}
@@ -368,11 +439,11 @@ function setNativeNavigationEnabled(value){
 }
 function refreshNativeNavigationView(){
   if(nativeNavigationDisposed||disposed||running)return;
-  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();syncNativeNavigation();syncNativeObjectSelection();syncNativeSelectedFit();display('Native view moved.');
+  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();renderNativeChord();syncNativeNavigation();syncNativeObjectSelection();syncNativeSelectedFit();display('Native view moved.');
 }
 function reportNativeNavigationError(error){
   if(nativeNavigationDisposed||disposed)return;
-  if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();}
+  if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();renderNativeChord();}
   syncNativeNavigation();syncNativeObjectSelection();syncNativeSelectedFit();display(error instanceof Error?error.message:String(error));
 }
 function nativeKeyboardSnapshot(){
@@ -419,7 +490,7 @@ function nativeKeyboardGuard(event){
 function reportNativeKeyboardError(error){
   if(nativeKeyboardPending)nativeKeyboardPending.failed=true;
   if(nativeKeyboardDisposed||disposed)return;
-  if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();}
+  if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();renderNativeChord();}
   syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();display(error instanceof Error?error.message:String(error));
 }
 function nativeKeyboardObserver(event){
@@ -427,7 +498,7 @@ function nativeKeyboardObserver(event){
   if(nativeKeyboardDisposed||disposed||pending.failed||!event.defaultPrevented)return;
   try{
     if(event.key==='Escape'){
-      refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();syncNativeNavigation();
+      refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();renderNativeChord();syncNativeNavigation();
       for(const button of list.querySelectorAll('button[aria-pressed]'))button.setAttribute('aria-pressed','false');
       syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();display('Native selection cleared. Captured chord and SDK measurements remain.');
     }else{refreshNativeNavigationView();syncNativeKeyboard();display('Visible native display geometry fitted.');}
@@ -463,7 +534,7 @@ function syncNativeSelectedFit(){
 }
 function refreshNativeSelectedFitControls(){
   if(nativeSelectedFitDisposed||disposed)return;
-  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();
+  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();
 }
 function reportNativeSelectedFitError(error){
   nativeSelectedFitLastError=error;nativeSelectedFitErrorCount++;
@@ -577,7 +648,7 @@ function nativeObjectLostCapture(event){if(nativeObjectTap?.phase==='pressed'&&n
 function reportNativeObjectSelectionError(error){
   if(nativeObjectSelectionDisposed||disposed)return;
   nativeObjectSelectionLastError=error;nativeObjectSelectionErrorCount++;
-  if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();}
+  if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();renderNativeChord();}
   syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();display(error instanceof Error?error.message:String(error));
 }
 function nativeObjectSelectionClick(event){
@@ -601,7 +672,7 @@ function nativeObjectSelectionClick(event){
     const acceptedFrame=readNativeObjectSelectionFrame();
     check(tap.epoch===nativeObjectSourceEpoch&&same(expected,acceptedFrame),
       'POSTCOMMIT: Native source or view changed after selection; accepted selection is not rolled back.');
-    refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();
+    refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();
     const selected=viewer.getState().selectedGeometry;
     for(const row of list.children){const button=row.querySelector('button[aria-pressed]'),identity=row.querySelector('small');
       if(button&&identity){const value=JSON.parse(identity.textContent);button.setAttribute('aria-pressed',String(!!selected&&same(selected,value)));}}
@@ -622,7 +693,7 @@ function disposeNativeObjectSelection(){
 function render(){const state=viewer.getState(),live=!disposed&&state.status!=='context-lost',ready=live&&state.status==='ready';
   const acceptedIGES=igesFileOpen?.snapshot().accepted,importCurrent=matchingIGES(state,acceptedIGES);
   let nativePointScope=null;if(!selectedPointDisposed&&!disposed)try{nativePointScope=readNativePointScope(viewer);}catch{}
-  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();
+  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();
   for(const[id,button]of Object.entries(buttons))button.disabled=id==='dispose'?disposed:!live||running;
   buttons.fit.disabled=!ready||running||!state.visibleGeometry.length;buttons.query.disabled=disposed||running||!state.curves.length||(!live&&!importCurrent);
   list.replaceChildren(...inventory().map(body=>{const item=document.createElement('li'),label=document.createElement('label'),checkbox=document.createElement('input');
@@ -734,17 +805,17 @@ async function runProof(){invalidateFileIntents();if(running||disposed||viewer.g
     documentBytes:manifest[0]?.bytes,contextCount:contexts.size,resources:resourceCounts(),limits:result.scope});
     try{await fetch('/result',{method:'POST',body:JSON.stringify(result)});}catch(error){result.recordingError=error.message;}}
   return result;}
-function dispose(){if(disposed)return;disposeNativeSelectedFit();disposeNativeObjectSelection();disposeNativeKeyboard();nativeNavigationDisposed=true;nativeNavigation?.dispose();selectedDerivativesDisposed=true;clearSelectedDerivativesContext();nativeChordDisposed=true;clearNativeChord();selectedPointDisposed=true;clearSelectedPointContext();igesFileOpen?.dispose();nativeSourceDownload?.dispose();nativeFileOpen?.dispose();viewer.dispose();viewer.dispose();disposed=true;render();const receipt={status:viewer.getState().status,resources:resourceCounts(),glErrors:glErrors(),
+function dispose(){if(disposed)return;disposeSelectedNativeCurveLength();disposeNativeSelectedFit();disposeNativeObjectSelection();disposeNativeKeyboard();nativeNavigationDisposed=true;nativeNavigation?.dispose();selectedDerivativesDisposed=true;clearSelectedDerivativesContext();nativeChordDisposed=true;clearNativeChord();selectedPointDisposed=true;clearSelectedPointContext();igesFileOpen?.dispose();nativeSourceDownload?.dispose();nativeFileOpen?.dispose();viewer.dispose();viewer.dispose();disposed=true;render();const receipt={status:viewer.getState().status,resources:resourceCounts(),glErrors:glErrors(),
   contextCount:contexts.size,errors:[...errors],warnings:[...warnings]};if(result)result.disposal=receipt;display(receipt);return receipt;}
 try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=await(await fetch('/document.cad-document.json')).arrayBuffer();
   check(bytes.byteLength===manifest[0].bytes&&await sha(bytes)===manifest[0].sha256,'Unchanged original document bytes/hash differ');originalBytes=new Uint8Array(bytes);originalText=new TextDecoder().decode(bytes);
   documentResult=await loadBaroCadDocument(new URL('/document.cad-document.json',location.href).href);
   projection=prepareBaroCadDocumentPrimitiveNativeRefsV2(documentResult,documentOptions);for(const asset of documentResult.document.assets)sources[asset.id]=asset.source;
   viewer=createViewer(canvas,{mmToSceneUnit,background:[.035,.065,.105]});nativeFileOpen=createNativeFileOpen(viewer,{
-    onChange:snapshot=>renderNativeFileControls(snapshot),onAccepted:accepted=>{invalidateNativeObjectSelection();invalidateNativeNavigation();igesFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();inspection.textContent='';render();display('Opened original source '+accepted.name+'.');},
+    onChange:snapshot=>renderNativeFileControls(snapshot),onAccepted:accepted=>{invalidateNativeObjectSelection();invalidateNativeNavigation();igesFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();clearSelectedCurveLengthContext();inspection.textContent='';render();display('Opened original source '+accepted.name+'.');},
     onError:error=>{render();display(error instanceof Error?error.message:String(error));}});
   igesFileOpen=createIGESFileOpen(viewer,{onChange:snapshot=>renderIGESFileControls(snapshot),
-    onAccepted:accepted=>{invalidateNativeObjectSelection();invalidateNativeNavigation();nativeFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();inspection.textContent='';render();display('Opened IGES geometry '+accepted.name+'.');},
+    onAccepted:accepted=>{invalidateNativeObjectSelection();invalidateNativeNavigation();nativeFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();clearSelectedCurveLengthContext();inspection.textContent='';render();display('Opened IGES geometry '+accepted.name+'.');},
     onError:error=>{render();display(error instanceof Error?error.message:String(error));}});
   nativeSourceDownload=createNativeSourceDownload(viewer,canvas,{getAcceptedFile:()=>nativeFileSnapshot().accepted,
     onChange:snapshot=>renderNativeSourceDownloadControls(snapshot),onError:error=>display(error instanceof Error?error.message:String(error))});
@@ -757,6 +828,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=awa
     setNativeObjectSelectionEnabled,nativeObjectSelectionSnapshot,syncNativeObjectSelection,invalidateNativeObjectSelection,disposeNativeObjectSelection,
     nativeKeyboardSnapshot,syncNativeKeyboard,disposeNativeKeyboard,
     createNativePointerNavigation,setNativeNavigationEnabled,syncNativeNavigation,nativeNavigationSnapshot,invalidateNativeNavigation,
+    querySelectedNativeCurveLength,NATIVE_CURVE_LENGTH_OPTIONS,inspectSelectedNativeCurveLength,resetSelectedNativeCurveLength,selectedNativeCurveLengthSnapshot,disposeSelectedNativeCurveLength,
     querySelectedNativeDerivatives,inspectSelectedNativeDerivatives,resetSelectedNativeDerivatives,selectedNativeDerivativesSnapshot,evaluateCurveD1,evaluateSurfaceD1,
     measureCapturedNativeChord,isCapturedNativeChordPointCurrent,captureNativeChordPoint,resetNativeChord,nativeChordSnapshot,
     readNativePointScope,querySelectedNativePoint,inspectSelectedNativePoint,resetSelectedNativePoint,selectedNativePointSnapshot,surfaceDomain,
@@ -764,7 +836,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=awa
     buildMountedAppearanceInput,buildMountedAppearanceCandidate,replaceMountedAppearance,mountedAppearanceSnapshot,MOUNTED_APPEARANCE_SHADER_SOURCES,MOUNTED_APPEARANCE_LIGHT_PRESETS,prepareNativeSourceDownload,createNativeSourceDownload,downloadNativeSource,nativeSourceDownloadSnapshot,readNativeFile,createNativeFileOpen,stageNativeFile,openNativeFile,discardNativeFile,invalidateNativeFile,nativeFileSnapshot,documentResult,originalBytes,originalText,manifest,sources,projection,bodyIds,nativeOptions,documentOptions,fixedCamera,mmToSceneUnit,canvas,
     buildCandidate,makeCandidate:buildCandidate,buildNativeCandidate,initialDisplay,refFor,refs:projection.map(refFor),refsFor:()=>projection.map(refFor),replace,nativeEntries,candidatePoints,transformedPoint,expectedFit,uploadWitness,query,inventory,render,
     loadBaroCadDocument,parseBaroCadDocument,prepareBaroCadDocumentPrimitiveNativeRefsV2,parseBaroCadSource,compileCadModel,evaluateCurve,evaluateSurface,curveDomain,
-    createCadGeometryReference,queryCadDocumentPoint,parseBooleanExtrusionFeatureGraph,prepareUniformCurvePreview,parseBaroCadAssembly,loadBaroCadAssembly,loadBaroCadModelSet,
+    createCadDocument,createCadGeometryReference,queryCadDocumentCurveArcLength,validateCadDocumentCurveArcLength,queryCadDocumentPoint,parseBooleanExtrusionFeatureGraph,prepareUniformCurvePreview,parseBaroCadAssembly,loadBaroCadAssembly,loadBaroCadModelSet,
     createClothWorld,createPhysicsClothWorld:createClothWorld,PrimitiveSceneRendererV2,PrimitiveViewport,BooleanShellSceneRenderer,resourceCounts,glErrors,pixelInfo,uploads,draws,errors,warnings,
     retained,capture,runProof,dispose,lossExtension,failAllocation,failNextBuffer(at=1){failAllocation('Buffer',at);},clearAllocationFault,
     get nativeSelectedFitLastError(){return nativeSelectedFitLastError;},get nativeSelectedFitErrorCount(){return nativeSelectedFitErrorCount;},

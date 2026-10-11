@@ -561,3 +561,50 @@ action read no Viewer state after local disposal. Cached status is last known.
 The test-only `nativeSelectedFitLastError` and `nativeSelectedFitErrorCount`
 getters expose local diagnostics, separate from source authority. No new SDK,
 helper module, provider, renderer, keyboard shortcut or release is added.
+
+## Inspect the selected original Curve length (#1530)
+
+Select an original native Curve, then use **Inspect selected Curve length**.
+The action measures its whole original closed parameter domain. It ignores
+the point inspector's U/V/t drafts and shows an original length estimate and
+heuristic error estimate in millimetres. The captured straight chord remains
+a separate measurement. Display samples, poses and scale do not define this
+native length. The estimate is not a certified error bound or exact length.
+
+The example helper uses the existing public CAD document length query and
+validator. It builds a real temporary inspection document with one selected
+Curve body and the unchanged complete Source0 asset. Every original Model
+object is compiled and checked against current retained geometry. The document
+ID and revision are inspection context, without persisted editing history.
+The validator runs the calculation again; one inspection is not one total CAD
+or derivative call. No solver, Viewer SDK method or GPU query is added.
+
+Source, full Model and selected Curve pins are checked before and after work.
+The complete public report is copied into the technical disclosure. The helper
+`querySelectedNativeCurveLength(viewer,expected,options)` takes exactly three
+arguments. Both expected `{source,model,ref}` and the complete six-field options
+must be own data. Missing, undefined or null options refuse. Descriptor checks
+avoid caller getters; the original graph copy check refuses nested Proxies.
+Finite provider settings keep their native range, domain and budget errors.
+Defaults use the full domain, 1e-6 mm absolute tolerance, 1e-8 relative tolerance,
+16,384 evaluations, 128 subdivisions and depth 12. These are estimation controls.
+
+Output copies allow 1,048,576 values, depth 40, arrays of 4,096 and safe JSON up
+to 8 MiB. An overflow refuses the whole result. The complete report is never
+truncated. This wrapper limit does not certify every maximum native workload.
+Numeric copies preserve signed zero; JSON text does not show its bit identity.
+
+Reset clears only this report. Point and derivative reports, parameter drafts,
+captured chord, all four SDK caches and File/import provenance remain. View,
+pose, backing and CSS changes keep current native length. Selection or source
+changes clear it. Known successful source acceptance clears it after success,
+including identical content; a failed candidate keeps the current report.
+Retained selected CPU geometry remains inspectable after presentation loss or
+unavailability. New GPU selection follows its existing availability rules.
+
+The zero-argument physical action supplies copied defaults. The proof action
+`inspectSelectedNativeCurveLength(options?)` forwards an explicit argument
+without coercion. Snapshot, Reset and local Dispose take no arguments; copied
+snapshots have `{version,scope,report,enabled,disposed,output}`. Local disposal
+precedes other controllers and Viewer. New hooks read no Viewer after local
+disposal. No arc midpoint, topology, global accuracy or release is implied.
