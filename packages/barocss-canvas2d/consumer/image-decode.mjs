@@ -18,7 +18,15 @@ let canvas = /** @type {HTMLCanvasElement} */ (document.querySelector('#scene'))
 let renderer = createCanvas2D(canvas, options);
 /** @type {import('@barocss/canvas2d').Scene} */ let accepted = background;
 renderer.updateScene(accepted); renderer.render();
-let generation = 1;
+let generation = 1, requestEpoch = 0, disposed = false;
+const counts = { loadsStarted: 0, decoded: 0, ignored: 0, loadAdmissions: 0, stageStarts: 0, opens: 0, disposals: 0 };
+/** @typedef {{epoch:number,renderer:import('@barocss/canvas2d').Canvas2DRenderer}} Request */
+/** @returns {Request} */
+function beginRequest() { return { epoch: ++requestEpoch, renderer }; }
+/** @param {Request} request */
+function current(request) { return !disposed && request.epoch === requestEpoch && request.renderer === renderer; }
+/** @type {ReturnType<typeof readObservation>|null} */ let terminal = null;
+/** @type {Array<()=>void>} */ const removeControls = [];
 const status = /** @type {HTMLElement} */ (document.querySelector('#status'));
 const output = /** @type {HTMLElement} */ (document.querySelector('#observation'));
 const fileInput = /** @type {HTMLInputElement} */ (document.querySelector('#file'));
@@ -35,33 +43,54 @@ function pixel(x, y) {
     1, 1, gl.RGBA, gl.UNSIGNED_BYTE, bytes);
   return [...bytes];
 }
-function observe() {
-  return { generation, scene: stringifySceneJSON(accepted),
-    assetBytes: [...(renderer.getImageAsset('RGBA2')?.pixels ?? [])],
+function readObservation() {
+  const asset = renderer.getImageAsset('RGBA2');
+  return { generation, assetSize: asset ? { width: asset.width, height: asset.height } : null, scene: stringifySceneJSON(accepted),
+    assetBytes: [...(asset?.pixels ?? [])],
     samples: samples.map(([x, y]) => ({ x, y, rgba: pixel(x, y),
       hit: renderer.hitTest({ x, y })?.id ?? null })) };
 }
+function observe() {
+  const state = disposed ? structuredClone(terminal) : readObservation();
+  return { ...state, disposed, requestEpoch, counts: { ...counts } };
+}
 /** @param {string} message */
 function show(message) { status.textContent = message; output.textContent = JSON.stringify(observe(), null, 2); }
-/** @param {Blob} blob */
+/** @param {Blob} blob @param {Request} request */
+async function loadAt(blob, request) {
+  try {
+    counts.loadsStarted++;
+    const asset = await decodeImageBlob(blob);
+    counts.decoded++;
+    if (!current(request)) { counts.ignored++; return; }
+    request.renderer.setImageAsset('RGBA2', asset);
+    request.renderer.updateScene(withImage); accepted = withImage; request.renderer.render();
+    counts.loadAdmissions++;
+    show(`Decoded ${asset.width}×${asset.height} raster image`);
+  } catch (error) {
+    if (!current(request)) { counts.ignored++; return; }
+    throw error;
+  }
+}
+/** @param {Blob} blob @returns {Promise<void>} */
 async function loadBlob(blob) {
-  const asset = await decodeImageBlob(blob);
-  renderer.setImageAsset('RGBA2', asset);
-  renderer.updateScene(withImage); accepted = withImage; renderer.render();
-  show(`Decoded ${asset.width}×${asset.height} raster image`);
+  if (disposed) return;
+  return loadAt(blob, beginRequest());
 }
 /** @param {Blob} blob */
 async function tryBlob(blob) {
+  if (disposed) return { code: 'DISPOSED', retained: true };
   const before = JSON.stringify(observe());
-  try { await decodeImageBlob(blob); return { code: 'ACCEPTED', retained: JSON.stringify(observe()) === before }; }
+  try { await decodeImageBlob(blob); if (disposed) return { code: 'DISPOSED', retained: true }; return { code: 'ACCEPTED', retained: JSON.stringify(observe()) === before }; }
   catch (error) {
+    if (disposed) return { code: 'DISPOSED', retained: true };
     const code = /** @type {import('@barocss/canvas2d').Canvas2DError} */ (error).code ?? 'ERROR';
     const retained = JSON.stringify(observe()) === before;
     show(`Rejected Blob: ${code}; retained ${retained}`);
     return { code, retained };
   }
 }
-/** @param {number} width @param {number} height */
+/** @param {number} width @param {number} height @returns {Promise<Blob>} */
 async function makePng(width = 2, height = 2) {
   const source = document.createElement('canvas'); source.width = width; source.height = height;
   const context = source.getContext('2d'); if (!context) throw new Error('2D canvas missing');
@@ -74,43 +103,92 @@ async function makePng(width = 2, height = 2) {
   return await new Promise((resolve, reject) => source.toBlob(blob => blob ? resolve(blob) : reject(new Error('PNG encode failed')), 'image/png'));
 }
 async function downloadSample() {
+  if (disposed) return;
   const blob = await makePng();
+  if (disposed) return;
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a'); link.href = url; link.download = 'rgba2.png'; link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   show(`Downloaded ${blob.size}-byte PNG`);
 }
 async function save() {
+  if (disposed) return;
   const text = await serializeCanvasDocument(accepted, id => renderer.getImageAsset(id));
+  if (disposed) return;
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
   const link = document.createElement('a'); link.href = url; link.download = 'decoded-document.json'; link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   show(`Saved ${new TextEncoder().encode(text).length} bytes`);
 }
-/** @param {string} text */
-async function openText(text) {
-  const fresh = document.createElement('canvas'); fresh.id = 'scene';
-  const staged = await stageCanvasDocument(text, fresh, options);
-  if (stringifySceneJSON(staged.scene) !== stringifySceneJSON(withImage)) {
-    staged.renderer.dispose(); throw new Error('Document scene does not match consumer');
+/** @param {string} text @param {Request} request */
+async function openAt(text, request) {
+  if (!current(request)) { counts.ignored++; return; }
+  /** @type {import('@barocss/canvas2d/document').StagedCanvasDocument|undefined} */ let staged;
+  let adopted = false;
+  try {
+    const fresh = document.createElement('canvas'); fresh.id = 'scene';
+    counts.stageStarts++;
+    staged = await stageCanvasDocument(text, fresh, options);
+    if (!current(request)) { const stale = staged; staged = undefined; stale.renderer.dispose(); counts.ignored++; return; }
+    if (stringifySceneJSON(staged.scene) !== stringifySceneJSON(withImage)) {
+      throw new Error('Document scene does not match consumer');
+    }
+    const oldRenderer = renderer;
+    canvas.replaceWith(fresh); canvas = fresh; renderer = staged.renderer;
+    accepted = staged.scene; adopted = true; request.renderer = renderer;
+    generation++; counts.opens++; oldRenderer.dispose(); show('Opened decoded image document');
+  } catch (error) {
+    if (staged && !adopted) staged.renderer.dispose();
+    if (!current(request)) { counts.ignored++; return; }
+    throw error;
   }
-  const oldRenderer = renderer;
-  canvas.replaceWith(fresh); canvas = fresh; renderer = staged.renderer;
-  accepted = /** @type {import('@barocss/canvas2d').Scene} */ (staged.scene);
-  generation++; oldRenderer.dispose(); show('Opened decoded image document');
 }
-document.querySelector('#sample')?.addEventListener('click', () => { void downloadSample(); });
-fileInput.addEventListener('change', () => {
-  const file = fileInput.files?.[0]; if (!file) return;
-  void loadBlob(file).catch(error => show(`Rejected image: ${/** @type {import('@barocss/canvas2d').Canvas2DError} */ (error).code ?? 'ERROR'}`));
+/** @param {string} text @returns {Promise<void>} */
+async function openText(text) {
+  if (disposed) return;
+  return openAt(text, beginRequest());
+}
+function dispose() {
+  if (disposed) return;
+  terminal = readObservation(); disposed = true; requestEpoch++;
+  for (const remove of removeControls.splice(0)) remove();
+  document.querySelectorAll('button,input').forEach(element => { /** @type {HTMLButtonElement|HTMLInputElement} */(element).disabled = true; });
+  renderer.dispose(); counts.disposals++;
+  show('Disposed image consumer');
+}
+/** @param {EventTarget|null} target @param {string} type @param {EventListener} callback */
+function bindControl(target, type, callback) {
+  target?.addEventListener(type, callback);
+  removeControls.push(() => target?.removeEventListener(type, callback));
+}
+function onRasterSelection() {
+  const file = fileInput.files?.[0]; if (!file || disposed) return;
+  const request = beginRequest();
+  void loadAt(file, request).catch(error => {
+    if (current(request)) show(`Rejected image: ${/** @type {import('@barocss/canvas2d').Canvas2DError} */ (error).code ?? 'ERROR'}`);
+  });
   fileInput.value = '';
-});
-document.querySelector('#save')?.addEventListener('click', () => { void save(); });
-openInput.addEventListener('change', () => {
-  const file = openInput.files?.[0]; if (!file) return;
-  void file.text().then(openText).catch(error => show(`Rejected Open: ${/** @type {import('@barocss/canvas2d').Canvas2DError} */ (error).code ?? 'ERROR'}`));
+}
+function onOpenSelection() {
+  const file = openInput.files?.[0]; if (!file || disposed) return;
+  const request = beginRequest();
+  void file.text().then(text => {
+    if (!current(request)) { counts.ignored++; return; }
+    return openAt(text, request);
+  }).catch(error => {
+    if (current(request)) show(`Rejected Open: ${/** @type {import('@barocss/canvas2d').Canvas2DError} */ (error).code ?? 'ERROR'}`);
+  });
   openInput.value = '';
-});
-Object.assign(window, { __decodeConsumer: { observe, loadBlob, tryBlob, makePng, save, openText,
+}
+/** @param {unknown} error */
+function suppressTerminalFailure(error) { if (!disposed) throw error; }
+function onSample() { void downloadSample().catch(suppressTerminalFailure); }
+function onSave() { void save().catch(suppressTerminalFailure); }
+bindControl(document.querySelector('#sample'), 'click', onSample);
+bindControl(fileInput, 'change', onRasterSelection);
+bindControl(document.querySelector('#save'), 'click', onSave);
+bindControl(openInput, 'change', onOpenSelection);
+bindControl(document.querySelector('#dispose'), 'click', dispose);
+Object.assign(window, { __decodeConsumer: { observe, loadBlob, tryBlob, makePng, save, openText, dispose,
   get renderer() { return renderer; }, get canvas() { return canvas; } } });
 show('Ready: choose a raster Blob');

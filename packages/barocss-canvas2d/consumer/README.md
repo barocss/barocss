@@ -366,3 +366,10 @@ Open `current-v29-svg.html?linear=1` for copied Scene29 linear-path SVG export. 
 `exportSceneGradientSVG(scene, logicalSize)` exports the bounded Scene29 group/Path profile with solid, linear and concentric radial fills. Gradient stops must be opaque and use the existing eight-bit RGB grid. Local gradient coordinates, inherited leaf alpha and visibility remain explicit. Unsupported fields return diagnostics without an SVG. The old solid and linear export profiles keep their behavior.
 
 Open `consumer/current-v29-svg.html?gradient=1` to display the exported file with the browser's native SVG reader. The original Scene remains editable. Native gradient SVG display does not extend our solid-only SVG importer. See `consumer/evidence/svg-gradient/` for actual file/interior-pixel/lifetime proof and limits; no device-edge parity or release claim follows.
+
+
+### Local Blob request ownership
+
+The `consumer/image-decode.html` host gives each image selection or document Open a request token. A late decoder result or error cannot overwrite a newer Open. The token is captured before a native `File.text()` read; stale staged renderers are disposed. A newer refused request retains the accepted document and does not revive older work.
+
+The host's Dispose control invalidates pending work, removes its owned controls and releases the current renderer. Late completions and repeated Dispose retain readable terminal state. The public decoder, Blob limits and Scene6 document profile remain unchanged. See `consumer/evidence/blob-open-generation/` for the focused controlled-hold/native-file proof, separate from earlier decoder receipts and current-root acceptance.
