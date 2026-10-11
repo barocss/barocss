@@ -426,3 +426,7 @@ export type { SourceLineWidthFaceRequest, SourceLineWidthFaceOptions, SourceLine
 
 export { extrudeConvexPlanarFace, validateConvexPlanarFaceExtrusion, ConvexPlanarFaceExtrusionError, ConvexPlanarFaceExtrusionDiagnosticCode } from './convex-planar-face-extrusion.js';
 export type { ConvexPlanarFaceExtrusionRequest, ConvexPlanarFaceExtrusionOptions, ConvexPlanarFaceExtrusionReport, ConvexPlanarFaceExtrusionResult } from './convex-planar-face-extrusion.js';
+
+
+export { tracePairedSurfaceIntersectionBranch, validatePairedSurfaceIntersectionBranch, PairedSurfaceIntersectionBranchError, PairedSurfaceIntersectionBranchDiagnosticCode } from './paired-surface-intersection-branch.js';
+export type { PairedSurfaceIntersectionBranchRequest, PairedSurfaceIntersectionBranchOptions, PairedSurfaceIntersectionBranchReport, PairedSurfaceIntersectionBranchResult } from './paired-surface-intersection-branch.js';
