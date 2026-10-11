@@ -30,3 +30,10 @@ The bounded opaque Q/C color flow and native lifetime proof are recorded separat
 Select a created Q/C path with a stroke, enter an integer width from1 to16 logical pixels, and apply it. The fill, stroke color, opacity, cap, join, dash, commands and pose remain. Undo/Redo restore complete scenes and the width field. Save/Open preserve the accepted numeric width and original image bytes. Invalid width text remains for correction and leaves accepted data intact.
 
 The width control is disabled without a supported selection, during a pending gesture and after Dispose. Only the new width field follows selection/history/Open/deletion selection changes. The validation copy maps accepted widths to legacy2 for immutable authoring checks, while actual data retains the chosen width and the real64KiB bound. Earlier color/deletion/creation evidence stays at its original paths/native commits; bounded width proof lives in evidence/stroke-width/.
+
+
+## Selected independent stroke RGB (#1492)
+
+Select a created Q/C path with a stroke, enter exactly #RRGGBB, and apply its outline RGB. Its fill and current stroke width stay the same. Stroke alpha, cap, join, dash, commands and pose remain. Undo/Redo restore complete scenes and the new field. Save/Open keep the numeric color and stable image bytes. Invalid text stays available for correction and preserves accepted state.
+
+The control is disabled without a supported selection, during a pending gesture and after Dispose. The existing MAIN validation copy checks the actual64KiB bound and exact byte-normalized strokeRGB, then maps only copied strokeRGB3 to original defaults for immutable profile checks. Actual accepted data retains its independent outline color. Earlier source/evidence stays at its native paths; bounded outline proof lives in evidence/stroke-rgb/.
