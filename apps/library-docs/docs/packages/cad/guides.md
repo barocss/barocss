@@ -68,6 +68,8 @@ Follow [the complete plane example](./examples#sample-a-plane-and-prepare-gpu-bu
 
 ## Persist intent rather than pixels
 
+For reusable length/scalar calculations in authored geometry, use [Source3 quantity functions](./quantity-functions). Its separate newer compiler profile retains typed named/default call receipts and compiles raw source again with explicit sourceVersion 3. Keep that raw source for its function intent; this example adds no project codec or native editor Save/Open admission.
+
 Use the exported serializer/parser pair for the specific native document family you use. The public API includes rectangle features, polygon prisms, circle feature graphs, driven sketches, assemblies and additional bounded families. Each has its own version, ID/reference rules and error domain. Read [the exact export inventory](./api#public-root-inventory) to choose the operation.
 
 Do not use a display GLB as an editable-document format. Do not serialize an IR or operation report as a universal CAD file merely because it is JSON data. Preserve source, native document, owning IDs and reports separately. Failed edits must leave the previously accepted host document available.
