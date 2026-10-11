@@ -3894,3 +3894,21 @@ The dedicated outer codec bounds UTF8 and UTF16 input and canonical JSON plus on
 The reader adds no split, Body builder, general Boolean, renderer, URL loader, editor, or public serializer. Save native-only data with a sign-preserving JSON writer when exact negative-zero preservation is needed. Ordinary JSON.stringify turns negative zero into zero.
 
 `examples/translated-strip-plane-split-result-verify.mjs` uses eight original files: two full results and six request/edit/authored comparison records. It verifies Source and emitted entries, full mutable copies, native and codec refusals, exact saved-file bytes, a new Node process, and physical published declarations. Original failure records and bounded adoption evidence remain in Issue #1450. Current integrated UI, Save/Open, recovery, and release acceptance are separate.
+
+
+## Exact Surface band inspection in Three
+
+The example displays the complete untrimmed Support Surface and its four original World boundary Curves. It retains the saved Face orientation, Uses, exact proof, complete original Source0/Models and an independently returned validation report. The Surface display is not a filled trim or a Solid certificate.
+
+The example uses the existing Surface17×9 and selected uniform129 Curve loaders. All five parsers receive the same complete original Source. Geometry and material resources belong to the admitted result; the caller Scene, camera, marker and renderer remain caller-owned. A candidate is fully validated and staged before replacement. Each owned resource is disposed once.
+
+From the repository root with Node22, prepare a fresh source bundle using the example verifier, then start its raw server on port15443:
+
+```sh
+node packages/barocss-cad-interop/examples/exact-surface-band-three-verify.mjs --mode source --output /absolute/fresh/output
+node packages/barocss-cad-interop/examples/exact-surface-band-three.config.mjs --mode source --output /absolute/fresh/output --port 15443
+```
+
+Open the printed URL and use **Run once**. The example shows MAIN, reversed Uses, edited geometry, a fresh edited file load and cleanup. Complete native data and separate reports, literal file pins, actual target arrays, resource events and saved frames remain in the chosen output. Run once preserves the first failure.
+
+The emitted mode uses actual package build outputs and published manifest entries. It requires the CAD and CAD interop libraries to have been built first. Use a separate fresh output and port15444. Native completion, local integration, browser checks and npm publication are separate states.
