@@ -2,6 +2,8 @@ import {useEffect, useRef, useState, useSyncExternalStore} from 'react';
 import {createViewer} from '@barocss/viewer';
 import type {Viewer, ViewerState, ViewerRef, ViewerGeometryPoint, ViewerGeometryPick} from '@barocss/viewer';
 import {loadBaroCadModelSet} from '@barocss/cad-interop/model-set';
+import type {MeshCamera} from '@barocss/gpu';
+import {prepareNativeViewportAppearance} from './native-viewport-presentation';
 import {compileMeshMaterial} from '@barocss/gpu';
 import {RenderEditorError, normalizeRenderEditorError} from '@barocss/render-editor';
 import type {RenderMaterialController, RenderMaterialPreparation, RenderNativeSceneAppearancePreparation} from '@barocss/render-editor';
@@ -17,7 +19,7 @@ export interface MaterialPreviewBridge {
   getEpoch(): number;
   getAppearanceToken(): object;
   pickNativeSurface(point: ViewerGeometryPoint): ViewerGeometryPick | null;
-  present(prepared: RenderNativeSceneAppearancePreparation): void;
+  present(prepared: RenderNativeSceneAppearancePreparation, cameraOverride?: MeshCamera): void;
   beginTransition(): void;
   endTransition(): void;
   retireLegacy(): void;
@@ -68,7 +70,7 @@ export function MaterialPreview({controller, nativeHost = null, disabled, onErro
     const syncControls = () => {
       const host = current.current.nativeHost;
       const draft = host?.getSnapshot();
-      if (!live || !viewer || transitions || current.current.disabled || viewer.getState().status !== 'ready' || draft && (draft.nativeDirty || draft.materialDirty || draft.invalidLighting || draft.invalidBodyPose || draft.poseGestureActive || draft.posePreview)) {stopControls(); return;}
+      if (!live || !viewer || transitions || current.current.disabled || viewer.getState().status !== 'ready' || draft && (!draft.available || draft.disposed || draft.poseGestureActive || draft.posePreview)) {stopControls(); return;}
       if (!controls) controls = viewer.attachPointerControls({onError: failure});
     };
     const resize = () => {
@@ -134,13 +136,15 @@ export function MaterialPreview({controller, nativeHost = null, disabled, onErro
             const old = current.current.controller;
             if (!old.getSnapshot().disposed) old.setPresenter(null);
           },
-          present: prepared => {
+          present: (prepared, cameraOverride) => {
             const active = requireViewer(), token = epoch;
             stopControls();
             try {
               assertNativeScenePreviewContext(prepared.context, active.getState().mmToSceneUnit, context.background);
               if (token !== epoch || !live || handle.current?.viewer !== active) throw new RenderEditorError('PRESENTATION_REFUSED', 'The preview changed during preparation.');
-              active.replaceNativeSceneAppearance(prepared.request);
+              const request = prepareNativeViewportAppearance(prepared, cameraOverride);
+              if (token !== epoch || !live || handle.current?.viewer !== active) throw new RenderEditorError('PRESENTATION_REFUSED', 'The preview changed during preparation.');
+              active.replaceNativeSceneAppearance(request);
               appearanceToken = Object.freeze({});
               refresh(); setMessage('Rendered scene');
             } catch (cause) {failure(cause); throw cause;}
@@ -189,7 +193,7 @@ export function MaterialPreview({controller, nativeHost = null, disabled, onErro
     } catch (cause) {active.refresh(); current.current.onError(cause);}
   };
   const fit = () => {
-    const active = handle.current, draft = nativeHost?.getSnapshot(); if (!active || disabled || draft && (draft.nativeDirty || draft.materialDirty || draft.invalidLighting || draft.invalidBodyPose || draft.poseGestureActive || draft.posePreview)) return;
+    const active = handle.current, draft = nativeHost?.getSnapshot(); if (!active || disabled || draft && (!draft.available || draft.disposed || draft.poseGestureActive || draft.posePreview)) return;
     try {active.viewer.fit(); active.refresh(); if (nativeHost) nativeHost.observeView(active.viewer.getState().camera);} catch (cause) {current.current.onError(cause);}
   };
   const bindings = state?.surfaceMaterials ?? [], original = state?.modelSet?.entries[0]?.result;
@@ -200,7 +204,15 @@ export function MaterialPreview({controller, nativeHost = null, disabled, onErro
     geometryMotion: state.geometryMotion, lighting: state.lighting, camera: state.camera, displayedRevision: nativeHost?.getSnapshot().accepted.revision ?? presentation.displayed?.revision ?? null,
     nativeScene: nativeHost && {accepted: nativeHost.getSnapshot().accepted, draftDocument: nativeHost.getSnapshot().draftDocument, nativeDirty: nativeHost.getSnapshot().nativeDirty, materialDirty: nativeHost.getSnapshot().materialDirty, invalidLighting: nativeHost.getSnapshot().invalidLighting, invalidBodyPose: nativeHost.getSnapshot().invalidBodyPose, invalidBodyPoseBodyId: nativeHost.getSnapshot().invalidBodyPoseBodyId, bodyPoseInputResetEpoch: nativeHost.getSnapshot().bodyPoseInputResetEpoch, selectedBodyId: nativeHost.getSnapshot().selectedBodyId, dirty: nativeHost.getSnapshot().dirty, viewDirty: nativeHost.getSnapshot().viewDirty, poseGestureActive: nativeHost.getSnapshot().poseGestureActive, posePreview: nativeHost.getSnapshot().posePreview, available: nativeHost.getSnapshot().available, canUndo: nativeHost.getSnapshot().canUndo, canRedo: nativeHost.getSnapshot().canRedo, savedRevision: nativeHost.getSnapshot().savedRevision}};
   return <div className="material-native-preview">
-    <div className="re-material-heading"><h2 data-testid="native-canvas-body-title">{nativeHost ? nativeHost.getSnapshot().targets.find(target => target.bodyId === nativeHost.getSnapshot().selectedBodyId)?.title ?? 'Scene' : 'Surface preview'}</h2><span data-testid="material-preview-status">{state?.status ?? 'loading'}</span>{!nativeHost && <button type="button" data-testid="material-preview-visible" disabled={disabled || !ready} onClick={visibility}>{visible ? 'Hide' : 'Show'}</button>}<button type="button" disabled={disabled || !ready || !visible || !!nativeHost && (nativeHost.getSnapshot().nativeDirty || nativeHost.getSnapshot().materialDirty || nativeHost.getSnapshot().invalidLighting || nativeHost.getSnapshot().invalidBodyPose || nativeHost.getSnapshot().poseGestureActive || !!nativeHost.getSnapshot().posePreview)} onClick={fit}>Frame</button></div>
+    <div className="re-material-heading"><h2 data-testid="native-canvas-body-title">{nativeHost ? nativeHost.getSnapshot().targets.find(target => target.bodyId === nativeHost.getSnapshot().selectedBodyId)?.title ?? 'Scene' : 'Surface preview'}</h2><span data-testid="material-preview-status">{state?.status ?? 'loading'}</span>
+      {!nativeHost && <button type="button" data-testid="material-preview-visible" disabled={disabled || !ready} onClick={visibility}>{visible ? 'Hide' : 'Show'}</button>}
+      <div className="native-camera-toolbar">
+        {nativeHost && <><span className="native-camera-badge" data-testid="native-camera-view-state">{nativeHost.getSnapshot().viewDirty ? 'User view' : 'Scene view'}</span>
+          <button type="button" data-testid="native-scene-camera" disabled={disabled || !ready || !nativeHost.getSnapshot().available} onClick={() => {try {nativeHost.resetViewportCamera();} catch (cause) {onError(cause);}}}>Scene camera</button>
+          <button type="button" data-testid="native-set-scene-camera" disabled={disabled || !ready || !nativeHost.getSnapshot().available || nativeHost.getSnapshot().dirty || !nativeHost.getSnapshot().viewDirty} onClick={() => {try {nativeHost.applyCamera();} catch (cause) {onError(cause);}}}>Set scene camera</button></>}
+        <button type="button" data-testid="native-frame" disabled={disabled || !ready || !visible || !!nativeHost && !nativeHost.getSnapshot().available} onClick={fit}>Frame</button>
+      </div>
+    </div>
     <div className="material-native-canvas re-editor--workbench">
       <canvas ref={canvas} data-testid="material-preview-canvas" data-mount-id={mountId.current} aria-label="Rendered native Surface"/>
       {nativeHost && <NativeSceneGizmo host={nativeHost} canvas={canvasElement} disabled={disabled || !ready || !visible} onError={onError}/>}

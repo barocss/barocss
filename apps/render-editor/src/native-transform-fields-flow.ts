@@ -4,6 +4,7 @@ import type {RenderNativeSceneDocument, RenderNativeScenePose} from '@barocss/re
 import type {MeshCamera} from '@barocss/gpu';
 import {createNativeSceneHost} from './native-scene-host';
 import {createNativeSceneBase, createNativeSceneSeed} from './native-scene-seed';
+import {prepareNativeViewportAppearance} from './native-viewport-presentation';
 
 /** A private launcher owns fresh source/emitted graphs, failures, actual file writes and cold processes. */
 export interface NativeTransformFieldsFlowResult {
@@ -74,12 +75,13 @@ function authority(document: RenderNativeSceneDocument, original: RenderNativeSc
   check(serializeRenderNativeSceneDocument(document).includes('-0'), 'Original signed zero lost.');
 }
 function harness(document: RenderNativeSceneDocument) {
-  const host = createNativeSceneHost(document), model = {calls: 0, owner: {} as object, shown: host.getSnapshot().accepted, failure: null as Error | null};
-  host.setPresenter(prepared => {
-    model.calls++; prepareRenderNativeSceneAppearance(prepared.authored.document);
+  const host = createNativeSceneHost(document), model = {calls: 0, owner: {} as object, shown: host.getSnapshot().accepted,
+    camera: clone(document.display.camera), failure: null as Error | null};
+  host.setPresenter((prepared, cameraOverride) => {
+    model.calls++; const request = prepareNativeViewportAppearance(prepared, cameraOverride);
     if (model.failure) {const error = model.failure; model.failure = null; throw error;}
-    model.shown = prepared.authored.document; model.owner = {};
-  }, () => model.owner);
+    model.shown = prepared.authored.document; model.camera = clone(request.display.camera); model.owner = {};
+  }, () => model.owner, () => model.camera);
   host.selectTarget(B); return {host, model};
 }
 function compose(host: ReturnType<typeof createNativeSceneHost>, numeric: Patch, amount: number, light: typeof firstLight): void {
@@ -131,8 +133,10 @@ export function runNativeTransformFieldsFlow(referenceSource: string): NativeTra
     for (const operation of [() => host.prepareDraft(), () => host.materialSession.prepareDraft(), () => host.selectTarget(A), () => host.beginBodyPosePreview(B),
       () => host.applyCamera(), () => host.prepareUndo(), () => host.prepareOpen(serializeRenderNativeSceneDocument(original))]) refuses(operation);
     check(host.getSnapshot() === guardedSnapshot && host.materialSession.getSnapshot() === guardedMaterial && model.calls === blockedCalls, 'Invalid-body guard mutated local prepare or presented.');
-    refuses(() => host.observeView({...clone(original.display.camera), eye: [.1, 2.6, 4]}));
-    host.observeView(clone(original.display.camera)); refuses(() => host.applyCamera()); check(host.getSnapshot().invalidBodyPose, 'Use view cleared invalid body flag.');
+    // #1477 permits local navigation during raw authoring; it never clears that raw guard.
+    model.camera = {...clone(original.display.camera), eye: [.1, 2.6, 4]}; host.observeView(model.camera);
+    check(host.getSnapshot().invalidBodyPose, 'Local navigation cleared invalid body flag.');
+    model.camera = clone(original.display.camera); host.observeView(model.camera); refuses(() => host.applyCamera()); check(host.getSnapshot().invalidBodyPose, 'Set scene camera cleared invalid body flag.');
     host.restoreAccepted(); check(host.getSnapshot().invalidBodyPose, 'Restore view cleared invalid body flag.');
     host.setAvailable(false); check(host.getSnapshot().invalidBodyPose, 'Loss cleared raw body flag.'); host.setAvailable(true);
     raw.set(0, '900'); raw.set(3, '1');

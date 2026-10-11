@@ -24,7 +24,7 @@ export function NativeTransformInspector({host, disabled, onError}: Props) {
   const changed = stored.accepted !== snapshot.accepted || stored.bodyId !== snapshot.selectedBodyId || stored.resetEpoch !== snapshot.bodyPoseInputResetEpoch;
   const current = changed ? readBinding(snapshot) : stored;
   if (changed) {binding.current = current; setStored(current); setError(null);}
-  const locked = disabled || snapshot.viewDirty || snapshot.poseGestureActive || !!snapshot.posePreview || !snapshot.available || snapshot.disposed;
+  const locked = disabled || snapshot.poseGestureActive || !!snapshot.posePreview || !snapshot.available || snapshot.disposed;
   const update = (index: number, value: string) => {
     if (locked || value.length > 256) return;
     const before = binding.current, values = [...before.values]; values[index] = value;

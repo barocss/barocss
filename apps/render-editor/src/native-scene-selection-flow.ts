@@ -7,6 +7,7 @@ import {createNativeSceneHost} from './native-scene-host';
 import {createNativeSceneBase, createNativeSceneSeed} from './native-scene-seed';
 import {resolveNativeSceneBodyPick, createNativeSceneSelectionInput} from './native-scene-selection';
 import type {NativeSceneSelectionBridge} from './native-scene-selection';
+import {prepareNativeViewportAppearance} from './native-viewport-presentation';
 
 /** A private launcher owns five-package maps, first failures, actual files and fresh emitted processes. */
 export interface NativeSceneSelectionFlowResult {
@@ -50,13 +51,14 @@ function seed(source: string, identity?: {documentId: string; title: string}): R
   check(source.length === 322 && source.includes('cloth_reference_981') && source.includes('reference_panel'), 'Supply genuine unchanged 322-byte CAD reference; launcher verifies original SHA.');
   return createNativeSceneSeed(createNativeSceneBase(source, clone(material), clone(camera), clone(lighting), identity));
 }
-function viewerModel(preparation: RenderNativeSceneAppearancePreparation): ViewerState {
+function viewerModel(preparation: RenderNativeSceneAppearancePreparation, cameraOverride?: MeshCamera): ViewerState {
   const actual = preparation.authored, display = preparation.viewer.display;
+  const request = prepareNativeViewportAppearance(preparation, cameraOverride);
   const entries = actual.entries;
   check(entries.length === 2 && entries.every(entry => entry.kind === 'surface'), 'Real seed must retain two Surface bodies.');
   return {
     status: 'ready', frame: 'right-handed-y-up', sourceUnit: 'mm', mmToSceneUnit: actual.document.display.mmToSceneUnit,
-    camera: clone(display.camera), lighting: clone(actual.document.display.lighting),
+    camera: clone(request.display.camera), lighting: clone(actual.document.display.lighting),
     surfaces: entries.map(entry => ({modelId: entry.ref.modelId, surfaceId: entry.ref.geometryId})), curves: [],
     visibleGeometry: clone(display.visibleGeometry), curveSampleVersion: null,
     uniformCurve: null, selectedUniformCurve: null, mixedDepth: null, qualifiedFaceScene: null,
@@ -134,7 +136,7 @@ function harness(document: RenderNativeSceneDocument) {
     hasPointerCapture: (id: number) => model.capture.has(id), setPointerCapture: (id: number) => {model.capture.add(id); model.events.push('capture');},
     releasePointerCapture: (id: number) => {if (model.capture.delete(id)) {model.events.push('release'); dispatch('lostpointercapture', {pointerId: id});}}});
   const fakeCanvas = canvas as unknown as HTMLCanvasElement;
-  host.setPresenter(prepared => {model.presented++; model.state = viewerModel(prepared); model.owner = {};}, () => model.owner);
+  host.setPresenter((prepared, cameraOverride) => {model.presented++; model.state = viewerModel(prepared, cameraOverride); model.owner = {};}, () => model.owner, () => model.state.camera);
   let downX: number | null = null;
   const navigate = (amount: number) => {const next = clone(model.state.camera); next.eye[0] += amount; model.state.camera = next; host.observeView(next);};
   canvas.addEventListener('pointerdown', ((input: PointerEvent) => {
@@ -215,7 +217,7 @@ export function runNativeSceneSelectionFlow(referenceSource: string): NativeScen
     const pending = clone(primary.model.state.camera); pending.eye[0] += .1; primary.model.state.camera = pending; primary.host.observeView(pending); const local = retained(primary.host, false);
     primary.model.result = hit(primary.model.state, B); primary.click(); check(primary.host.getSnapshot().selectedBodyId === B, 'Pending view must allow local target.');
     equal(retained(primary.host, false), local, 'selection preserves pending camera/authority'); check(primary.model.presented === presented, 'Selection adopted/presented camera.');
-    primary.host.restoreAccepted();
+    primary.host.resetViewportCamera();
     const raw = primary.host.materialSession; raw.setDraftUniforms({amount: NaN}); const rawBefore = retained(primary.host), rawCalls = primary.model.calls;
     primary.model.result = hit(primary.model.state, A); primary.click(); check(primary.model.calls === rawCalls, 'Dirty material queried Native pick.');
     refuses(() => primary.host.selectTarget(A)); equal(retained(primary.host), rawBefore); check(Number.isNaN(raw.getSnapshot().draftUniforms.amount), 'Raw NaN was discarded.'); primary.host.discardDraft();

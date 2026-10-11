@@ -27,7 +27,7 @@ export function NativeSceneControls({host, disabled, onError}: Props) {
     if (previous.current.accepted !== snapshot.accepted || previous.current.dirty && !snapshot.dirty) setRaw(values(snapshot.draftDocument.display.lighting));
     previous.current = {accepted: snapshot.accepted, dirty: snapshot.dirty};
   }, [snapshot.accepted, snapshot.dirty, snapshot.draftDocument]);
-  const locked = disabled || snapshot.viewDirty || snapshot.poseGestureActive || !!snapshot.posePreview || !snapshot.available || snapshot.disposed;
+  const locked = disabled || snapshot.poseGestureActive || !!snapshot.posePreview || !snapshot.available || snapshot.disposed;
   const bodyTitle = snapshot.accepted.nativeDocument.bodies.find(body => body.id === snapshot.selectedBodyId)?.name ?? snapshot.selectedBodyId;
   const change = (index: number, value: string) => {
     if (locked || value.length > 256) return;
@@ -42,7 +42,6 @@ export function NativeSceneControls({host, disabled, onError}: Props) {
   };
   const apply = () => {try {host.commitPrepared(host.prepareDraft());} catch (cause) {onError(cause);}};
   const discard = () => {try {host.discardDraft(); setRaw(values(host.getSnapshot().draftDocument.display.lighting));} catch (cause) {onError(cause);}};
-  const view = (use: boolean) => {try {if (use) host.applyCamera(); else host.restoreAccepted();} catch (cause) {onError(cause);}};
   const field = (index: number) => <div className="re-material-uniform" key={index}><label htmlFor={'native-light-' + index}>{index < 2 ? fields[index] : ['X', 'Y', 'Z'][index - 2]}</label><input id={'native-light-' + index} data-testid={'native-light-' + index} aria-label={fields[index]} type="text" inputMode="decimal" maxLength={256} disabled={locked} value={raw[index]} aria-invalid={snapshot.invalidLighting} onChange={event => change(index, event.target.value)}/></div>;
   if (!portal) return null;
   return createPortal(<section className="re-native-controls" aria-label="Native scene controls">
@@ -51,6 +50,5 @@ export function NativeSceneControls({host, disabled, onError}: Props) {
     <div className="re-material-heading"><h2>Lighting</h2><span>{snapshot.invalidLighting ? 'Correct fields' : 'Scene draft'}</span></div>
     {field(0)}{field(1)}<div className="re-native-direction" style={{display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))'}}>{[2, 3, 4].map(field)}</div>
     <div className="re-material-heading"><Button size="sm" disabled={locked || !snapshot.dirty} data-testid="native-scene-apply" onClick={apply}>Apply scene</Button><Button variant="ghost" size="sm" disabled={locked || !snapshot.dirty} data-testid="native-scene-discard" onClick={discard}>Discard</Button></div>
-    {snapshot.viewDirty && <div className="re-material-caption"><p>View changed. Use or Restore it before editing.</p><Button size="sm" disabled={disabled || !snapshot.available} data-testid="native-use-view" onClick={() => view(true)}>Use view</Button><Button size="sm" variant="ghost" disabled={disabled || !snapshot.available} data-testid="native-restore-view" onClick={() => view(false)}>Restore view</Button></div>}
   </section>, portal);
 }

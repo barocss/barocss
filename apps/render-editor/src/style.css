@@ -219,3 +219,8 @@ body:has(:is(.app-shell--mixed,.app-shell--scene)) [data-slot="dialog-content"] 
 .re-material-host .re-native-transform-error { margin: 4px 6px; color: #e6b19f; font-size: 10px; overflow-wrap: anywhere; }
 .re-material-host .re-native-transform-error p { margin: 3px 0; }
 .re-material-host .re-native-transform-error summary { cursor: pointer; }
+
+/* Local view actions share the existing Canvas header. */
+.re-material-host .native-camera-toolbar { display: flex; align-items: center; gap: 4px; min-width: 0; margin-left: auto; }
+.re-material-host .native-camera-badge { margin: 0; padding: 0 3px; color: #aab8ca; font-size: 10px; white-space: nowrap; }
+.re-material-host .native-camera-toolbar button { min-height: 22px; height: 22px; padding: 2px 5px; font-size: 11px; white-space: nowrap; }
