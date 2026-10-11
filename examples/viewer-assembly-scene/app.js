@@ -17,6 +17,8 @@ const sha = async bytes => [...new Uint8Array(await crypto.subtle.digest('SHA-25
 const canvas = document.querySelector('#view'), status = document.querySelector('#status');
 const list = document.querySelector('#instances'), inspection = document.querySelector('#inspection');
 const filter = document.querySelector('#filter');
+const choiceList=document.querySelector('#assembly-choice'),choiceCount=document.querySelector('#assembly-choice-count');
+const applyChoiceButton=document.querySelector('#apply-assembly-choice'),discardChoiceButton=document.querySelector('#discard-assembly-choice');
 const buttons = Object.fromEntries(['revision0','revision1','fit','run-proof','lose-context','dispose']
   .map(id => [id,document.querySelector('#'+id)]));
 const contexts = new Set(), resources = {}, uploads = [], errors = [], warnings = [];
@@ -51,6 +53,8 @@ const defaultIDs=['child','surface_grandchild','shared_root','asset_b_instance']
 const options={native:{sourceVersion:0,countU:3,countV:3,
   curveDisplay:{version:1,chordToleranceMM:.01,maxSegments:64,maxDepth:8}},
   basis:'authored-xyz-matches-rhyup',instanceIds:[...defaultIDs]};
+// Own the admission options before the external proof hook can expose its separate copy.
+const choiceOptions=clone(options);
 const mmToSceneUnit=.05;
 const camera={eye:[.375,.25,2],target:[.375,.25,0],up:[0,1,0],fovYDegrees:45,near:.01,far:10};
 const resourceCounts=()=>Object.fromEntries(Object.entries(resources).map(([key,live])=>[key,live.size]));
@@ -58,6 +62,8 @@ const glErrors=()=>[...contexts].map(gl=>gl.getError());
 const sameRef=(a,b)=>a?.kind===b?.kind && a?.modelId===b?.modelId
   && (a?.kind==='surface'?a.surfaceId===b.surfaceId:a?.curveId===b?.curveId);
 let viewer=null,assemblies=[],clothWorld=null,nativeSet=null,result=null,running=false,disposed=false;
+let choiceAssembly=null,choiceIDs=[],acceptedChoiceIDs=[],choiceEpoch=0,choiceRowsEpoch=-1;
+const choiceRows=new Map();
 const display=value=>status.textContent=typeof value==='string'?value:JSON.stringify(value,null,2);
 const pixels=()=>hash(viewer.readPixels());
 function queryFor(binding) { return {assemblyId:binding.assemblyId,assemblyRevision:binding.assemblyRevision,
@@ -67,8 +73,133 @@ const showPoint=binding=>{ const point=viewer.queryAssemblyInstancePoint(queryFo
   inspection.textContent=JSON.stringify({instance:point.instanceId,revision:point.assemblyRevision,
     originalLocalPointMM:point.originalLocalPointMM,assemblyPointMM:point.assemblyPointMM,
     fullReference:point.reference,ancestors:point.ancestors,quality:point.report.quality},null,2); return point; };
+function assemblyChoiceSnapshot() {
+  return clone({version:0,assemblyId:choiceAssembly?.assembly.assemblyId??null,
+    assemblyRevision:choiceAssembly?.assembly.revision??null,instanceIds:choiceIDs,
+    acceptedInstanceIds:acceptedChoiceIDs,disposed});
+}
+function canonicalChoice(assembly,ids) {
+  return assembly.assembly.instances.map(row=>row.id).filter(id=>ids.includes(id));
+}
+function syncAssemblyChoice(state,reset=false) {
+  const assembly=!disposed?state.assembly:null;
+  if(reset || !same(assembly,choiceAssembly)) {
+    choiceEpoch++;choiceAssembly=assembly?clone(assembly):null;
+    acceptedChoiceIDs=assembly?canonicalChoice(assembly,state.assemblyInstances.map(row=>row.instanceId)):[];
+    choiceIDs=[...acceptedChoiceIDs];
+  } else if(assembly) acceptedChoiceIDs=canonicalChoice(assembly,state.assemblyInstances.map(row=>row.instanceId));
+}
+function currentChoiceRow(item,epoch,assembly,id) {
+  check(!disposed&&!running,'Instance choice needs an idle live host.');
+  check(item.isConnected&&item.parentElement===choiceList,'This instance choice row is detached.');
+  const state=viewer.getState();
+  check(epoch===choiceEpoch&&same(assembly,choiceAssembly)&&same(state.assembly,assembly),
+    'This original assembly choice is stale. Refresh the assembly.');
+  check(assembly.instances.some(row=>row.instanceId===id),'This original instance is no longer current.');
+  return state;
+}
+function renderAssemblyChoice(state) {
+  syncAssemblyChoice(state);
+  const available=!disposed&&!running&&!!choiceAssembly;
+  if(choiceRowsEpoch!==choiceEpoch) {
+    choiceRows.clear();choiceList.replaceChildren();choiceRowsEpoch=choiceEpoch;
+    if(choiceAssembly) {
+      const assembly=choiceAssembly,epoch=choiceEpoch;
+      for(const authored of assembly.assembly.instances) {
+        const original=assembly.instances.find(row=>row.instanceId===authored.id);
+        const item=document.createElement('li'),label=document.createElement('label'),toggle=document.createElement('input');
+        const title=document.createElement('strong'),lineage=document.createElement('small'),identity=document.createElement('small'),admission=document.createElement('small');
+        item.dataset.instanceId=original.instanceId;item.dataset.kind=original.reference.geometryKind;
+        toggle.type='checkbox';toggle.setAttribute('aria-label','Admit '+original.instanceId);
+        title.textContent=original.instanceId+' · '+original.reference.geometryKind;
+        lineage.textContent='Parent: '+(original.parentId??'root')+' · Ancestors: '+(original.ancestors.join(' → ')||'none');
+        identity.textContent=JSON.stringify(original.reference);label.append(toggle,' Admit');
+        toggle.addEventListener('change',()=>{
+          try {currentChoiceRow(item,epoch,assembly,original.instanceId);
+            const ids=choiceIDs.filter(id=>id!==original.instanceId);if(toggle.checked)ids.push(original.instanceId);
+            stageAssemblyChoice(ids);display('Instance choice staged. Apply accepts 1–4 original instances.');
+          } catch(error) {if(!disposed)renderAssemblyChoice(viewer.getState());display(error.message);}
+        });
+        item.append(title,lineage,identity,admission,label);choiceList.append(item);
+        choiceRows.set(original.instanceId,{item,toggle,admission});
+      }
+    }
+  }
+  for(const[id,row]of choiceRows) {
+    row.toggle.checked=choiceIDs.includes(id);row.toggle.disabled=!available;
+    const admitted=acceptedChoiceIDs.includes(id);row.item.dataset.admitted=String(admitted);
+    row.admission.textContent=admitted?'Accepted instance':'Metadata only · not admitted to the view';
+  }
+  choiceCount.textContent=choiceAssembly?'Choice: '+choiceIDs.length+' of '+choiceRows.size+' original instances; Apply accepts 1–4.':'No current original assembly.';
+  applyChoiceButton.disabled=!available||state.status!=='ready'||choiceIDs.length<1||choiceIDs.length>4;
+  discardChoiceButton.disabled=!available;
+}
+function choiceInput(input) {
+  check(Array.isArray(input)&&Object.getPrototypeOf(input)===Array.prototype,'Instance choice must be an ordinary dense array.');
+  const size=Object.getOwnPropertyDescriptor(input,'length');
+  check(size&&'value' in size&&Number.isInteger(size.value)&&size.value>=0&&size.value<=32,'Instance choice allows 0–32 original IDs.');
+  check(Reflect.ownKeys(input).length===size.value+1,'Instance choice has extra fields.');
+  const ids=[];
+  for(let index=0;index<size.value;index++) {
+    const field=Object.getOwnPropertyDescriptor(input,String(index));
+    check(field&&field.enumerable&&'value' in field&&typeof field.value==='string'
+      &&/^[A-Za-z_][A-Za-z0-9_-]{0,47}$/.test(field.value),'Instance choice requires own ASCII IDs.');
+    ids.push(field.value);
+  }
+  check(new Set(ids).size===ids.length,'Instance choice has duplicate IDs.');
+  structuredClone(input); // Clone the ORIGINAL input so a Proxy is not laundered into an ordinary array.
+  return ids;
+}
+function stageAssemblyChoice(input) {
+  check(!disposed&&!running,'Instance choice needs an idle live host.');
+  const ids=choiceInput(input); // Admit raw input before any Viewer read.
+  const state=viewer.getState();
+  check(choiceAssembly&&same(state.assembly,choiceAssembly),'The original assembly choice is stale. Refresh the assembly.');
+  syncAssemblyChoice(state);
+  check(ids.every(id=>choiceAssembly.instances.some(row=>row.instanceId===id)),'Instance choice contains an unrecognized original ID.');
+  choiceIDs=canonicalChoice(choiceAssembly,ids);renderAssemblyChoice(state);return assemblyChoiceSnapshot();
+}
+function applyAssemblyChoice() {
+  check(arguments.length===0,'Apply instance choice takes no arguments.');
+  check(!disposed&&!running,'Instance choice needs an idle live host.');
+  const state=viewer.getState();
+  check(choiceAssembly&&same(state.assembly,choiceAssembly),'The original assembly choice is stale. Refresh the assembly.');
+  syncAssemblyChoice(state);
+  check(state.status==='ready','Apply needs a ready original assembly.');
+  check(choiceIDs.length>=1&&choiceIDs.length<=4,'Apply accepts 1–4 original instances.');
+  const epoch=choiceEpoch,assembly=clone(choiceAssembly),ids=canonicalChoice(assembly,choiceIDs);
+  check(ids.length===choiceIDs.length&&new Set(ids).size===ids.length,'Instance choice is no longer current.');
+  const current=viewer.getState();
+  check(current.status==='ready'&&epoch===choiceEpoch&&same(current.assembly,assembly),
+    'The original assembly changed before Apply.');
+  try {viewer.loadAssembly(assembly,{...clone(choiceOptions),instanceIds:[...ids]});}
+  catch(error) {renderAssemblyChoice(viewer.getState());throw error;}
+  const accepted=viewer.getState();syncAssemblyChoice(accepted,true);inspection.textContent='';render();
+  display('Applied '+acceptedChoiceIDs.length+' original assembly instance'+(acceptedChoiceIDs.length===1?'':'s')+'.');
+  return assemblyChoiceSnapshot();
+}
+function discardAssemblyChoice() {
+  check(arguments.length===0,'Discard instance choice takes no arguments.');
+  check(!disposed&&!running,'Instance choice needs an idle live host.');
+  const state=viewer.getState();
+  check(choiceAssembly&&same(state.assembly,choiceAssembly),'The original assembly choice is stale. Refresh the assembly.');
+  syncAssemblyChoice(state);
+  choiceIDs=[...acceptedChoiceIDs];renderAssemblyChoice(state);display('Instance choice discarded. Accepted scene is unchanged.');
+  return assemblyChoiceSnapshot();
+}
+function currentAcceptedRow(item,binding,epoch,assembly,gpu=false) {
+  check(!disposed&&!running,'Instance action needs an idle live host.');
+  check(item.isConnected&&item.parentElement===list,'This accepted instance row is detached.');
+  const state=viewer.getState();
+  check(epoch===choiceEpoch&&same(state.assembly,assembly)
+    &&state.assemblyInstances.some(row=>same(row,binding)),'This accepted instance binding is stale.');
+  if(gpu)check(state.status==='ready','Instance action needs a ready Viewer.');
+  return state;
+}
 function render() {
   const state=viewer.getState(),ready=state.status==='ready' && !disposed;
+  renderAssemblyChoice(state);
+  const epoch=choiceEpoch,assembly=choiceAssembly;
   for(const [id,button] of Object.entries(buttons)) button.disabled=id==='dispose'?disposed:!ready||running;
   filter.disabled=!ready||running;
   list.replaceChildren(...state.assemblyInstances.map(binding=>{
@@ -82,21 +213,22 @@ function render() {
     const label=document.createElement('label'),toggle=document.createElement('input');
     toggle.type='checkbox';toggle.checked=visible;toggle.disabled=!ready;
     toggle.setAttribute('aria-label','Show '+binding.instanceId);label.append(toggle,' Show');
-    toggle.addEventListener('change',()=>action(()=>{const current=viewer.getState();
+    toggle.addEventListener('change',()=>action(()=>{const current=currentAcceptedRow(item,binding,epoch,assembly,true);
       viewer.setVisibleGeometry(current.assemblyInstances.map(row=>row.ref).filter(ref=>
         sameRef(ref,binding.ref)?toggle.checked:current.visibleGeometry.some(value=>sameRef(value,ref))));}));
     const select=document.createElement('button'),inspect=document.createElement('button');
     select.textContent='Select';select.setAttribute('aria-label','Select '+binding.instanceId);
     select.disabled=!ready||!visible||(filter.value!=='all'&&filter.value!==binding.ref.kind);
-    select.addEventListener('click',()=>action(()=>{viewer.selectGeometry(binding.ref);showPoint(binding);}));
+    select.addEventListener('click',()=>action(()=>{currentAcceptedRow(item,binding,epoch,assembly,true);viewer.selectGeometry(binding.ref);showPoint(binding);}));
     inspect.textContent='Inspect original point';inspect.setAttribute('aria-label','Inspect '+binding.instanceId);
-    inspect.disabled=disposed;inspect.addEventListener('click',()=>action(()=>showPoint(binding)));
+    inspect.disabled=disposed||running;inspect.addEventListener('click',()=>action(()=>{currentAcceptedRow(item,binding,epoch,assembly);return showPoint(binding);}));
     item.append(title,lineage,identity,label,select,inspect);return item;
   }));
 }
 function action(callback) { if(disposed)return;try{callback();render();}catch(error){display(error.message);} }
 function loadAssembly(revision=0,ids=defaultIDs) {
   uploads.length=0;viewer.loadAssembly(assemblies[revision],{...clone(options),instanceIds:[...ids]});
+  const accepted=viewer.getState();syncAssemblyChoice(accepted,true);inspection.textContent='';renderAssemblyChoice(accepted);
   viewer.setView(camera);render();return viewer.getState();
 }
 function multiply(a,b) {return Array.from({length:16},(_,i)=>{
@@ -263,7 +395,8 @@ async function runProof() {
   return result;
 }
 function dispose() {
-  if(disposed)return;viewer.dispose();viewer.dispose();clothWorld?.dispose();disposed=true;render();
+  if(disposed)return;disposed=true;choiceEpoch++;choiceAssembly=null;choiceIDs=[];acceptedChoiceIDs=[];
+  viewer.dispose();viewer.dispose();clothWorld?.dispose();render();
   const receipt={status:viewer.getState().status,resources:resourceCounts(),contextCount:contexts.size,glErrors:glErrors(),errors,warnings};
   if(result)result.disposal=receipt;display(receipt);return receipt;
 }
@@ -271,12 +404,15 @@ try {
   assemblies=await Promise.all([0,1].map(revision=>loadBaroCadAssembly(new URL('/assembly-revision'+revision+'.json',location.href).href)));
   viewer=createViewer(canvas,{mmToSceneUnit,background:[.035,.065,.105]});loadAssembly(0);
   window.viewerAssemblyProbe={viewer,assemblies,options,defaultIDs,camera,mmToSceneUnit,canvas,loadAssembly,queryFor,
+    stageAssemblyChoice,applyAssemblyChoice,discardAssemblyChoice,render,get assemblyChoice(){return assemblyChoiceSnapshot();},
     showPoint,runProof,startClothScene,pixels,resourceCounts,glErrors,uploads,errors,warnings,retained,dispose,
     authoredWorld,worldPoint,project,hitSamples,witness,updateCadAssembly,resolveCadGeometryReference,
     loadBaroCadAssembly,loadBaroCadModelSet,PrimitiveSceneRendererV2,PrimitiveViewport,
     fixtures:['/assembly-revision0.json','/assembly-revision1.json'],get result(){return result;}};
   display('Ready: four selected instances from six original native instances, revision0.');
 }catch(error){display({ok:false,stage:'startup',error:error.stack||error.message});}
+applyChoiceButton.addEventListener('click',()=>action(()=>applyAssemblyChoice()));
+discardChoiceButton.addEventListener('click',()=>action(()=>discardAssemblyChoice()));
 for(const revision of [0,1])buttons['revision'+revision].addEventListener('click',()=>action(()=>loadAssembly(revision)));
 buttons.fit.addEventListener('click',()=>action(()=>viewer.fit()));buttons['run-proof'].addEventListener('click',runProof);
 buttons.dispose.addEventListener('click',dispose);
