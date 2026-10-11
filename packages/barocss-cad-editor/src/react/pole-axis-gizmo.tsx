@@ -1,6 +1,6 @@
 import {useEffect, useId, useRef, useState, type PointerEvent as ReactPointerEvent, type KeyboardEvent as ReactKeyboardEvent} from 'react';
 import {createPortal} from 'react-dom';
-import {Spline,Move,RotateCw,Scaling} from 'lucide-react';
+import {Spline,Move,RotateCw,Scaling,SlidersHorizontal} from 'lucide-react';
 import {resolveCadGeometryReference, type CadGeometryReferenceV0} from '@barocss/cad';
 import {CadEditorError, type CadEditorSession, type CadEditorSnapshot, type CadEditorPoleField, type CadEditorEditTarget, type CadEditorDraftField, type CadEditorRotationAxis, type CadEditorScaleAxis} from '../types.js';
 import type {CadEditorDisplayReceipt, CadEditorCurvePresentationReceipt} from './types.js';
@@ -99,6 +99,9 @@ export function PoleAxisGizmo(props:Props) {
   const {session} = props;
   const snapshot = useCadEditorSnapshot(session);
   const snapErrorId = useId();
+  const settingsId=useId(),settingsNoticeId=useId();
+  const settingsTrigger=useRef<HTMLButtonElement|null>(null);
+  const [settingsOpen,setSettingsOpen]=useState(false);
   const angularErrorId=useId(),scaleErrorId=useId();
   const latest = useRef(props); latest.current = props;
   const gesture = useRef<Gesture|null>(null);
@@ -128,6 +131,8 @@ export function PoleAxisGizmo(props:Props) {
     try {step = parseMovementSnapStep(stepRaw);}
     catch {stepError = 'Enter a snap distance from 0.000001 to 1000000 mm.';}
   }
+  const activeSettingsError=scaleMode?scaleError:rotationMode?angularError:stepError;
+  useEffect(()=>{if(activeSettingsError!==null)setSettingsOpen(true);},[activeSettingsError,snapshot.editTarget]);
   let control:Control|null = null;
   try {control = currentControl(snapshot,props.documentReceipt,props.curveReceipt,props.isCurrentCurvePresentation,props.isCurrentBodyMovePresentation);} catch { /* Unavailable bindings have no handles. */ }
   // Retain captured DOM until the plane gesture can reject a stale anchor.
@@ -180,6 +185,19 @@ export function PoleAxisGizmo(props:Props) {
       &&state.candidate===null&&state.selectionTransition===null&&Object.keys(state.pending).length===0
       &&now.canvas?.isConnected===true&&now.canvas.closest('.cad-editor-viewport')?.getAttribute('data-viewer-ready')==='true'
       &&(()=>{const control=currentControl(state,now.documentReceipt,now.curveReceipt,now.isCurrentCurvePresentation,now.isCurrentBodyMovePresentation);return control!==null&&moveContext(control);})();
+  }
+  function toggleSettings(){
+    const mode=scaleMode?'scale':rotationMode?'rotation':'movement';
+    if(!settingsAllowed(mode)||otherCurveCapture()
+      ||latest.current.canvas?.closest('[data-direct-host-busy="true"],[data-panel-resizing="true"]')
+      ||document.querySelector('[role="dialog"][data-state="open"],[role="menu"]'))return;
+    setSettingsOpen(value=>!value);
+  }
+  function settingsKey(event:ReactKeyboardEvent){
+    if(event.key!=='Escape'||event.nativeEvent.isComposing||event.keyCode===229||gesture.current||transformGesture.current
+      ||viewportHasCapture()||otherCurveCapture())return;
+    event.preventDefault();event.stopPropagation();setSettingsOpen(false);
+    if(settingsTrigger.current?.isConnected)settingsTrigger.current.focus({preventScroll:true});
   }
   function chooseAxis(mode:'rotation'|'scale',axis:CadEditorRotationAxis|CadEditorScaleAxis){
     try{if(!settingsAllowed(mode))return;if(mode==='rotation')session.setRotationAxis(axis as CadEditorRotationAxis);else session.setScaleAxis(axis);}
@@ -397,6 +415,8 @@ export function PoleAxisGizmo(props:Props) {
   }
   if (!control || !canvas || !rect || rect.width <= 0 || rect.height <= 0 || control.receipt.width <= 0 || control.receipt.height <= 0) return null;
   const visible = projections.filter(Boolean).length;
+  const movementStatus=!rotationMode&&!scaleMode&&(movingAxis!==null||planeMoving||pending||visible===0)
+    ?movingAxis!==null||planeMoving?'Release to apply · Escape cancels':pending?'Values pending':'Fit the selected point or use its fields.':null;
   const toolbar = <div className={'cad-editor-native-tools'+(snapshot.view.kind==='curve-focus'?' focused':'')} role="toolbar" aria-label="Modeling tools">
       {tools.map(tool=><Button key={tool.target} type="button" variant="ghost" size="icon-sm" data-testid={'native-tool-'+tool.target}
         aria-label={tool.name+' ('+tool.key.toUpperCase()+')'} title={tool.name+' ('+tool.key.toUpperCase()+')'}
@@ -404,6 +424,15 @@ export function PoleAxisGizmo(props:Props) {
         disabled={busy||!available(snapshot,tool.target)} onClick={()=>chooseTool(tool.target)}>
         <tool.icon size={16} aria-hidden="true"/><kbd aria-hidden="true">{tool.key.toUpperCase()}</kbd>
       </Button>)}
+      {(!control.bodyMovePresentation||objectMode)&&<Button ref={settingsTrigger} type="button" variant="ghost" size="icon-sm"
+        data-testid="native-tool-settings" aria-label={scaleMode?'Scale settings':rotationMode?'Rotation settings':'Movement settings'}
+        title={scaleMode?'Scale settings':rotationMode?'Rotation settings':'Movement settings'} aria-controls={settingsId}
+        aria-expanded={settingsOpen} aria-invalid={activeSettingsError!==null} aria-describedby={activeSettingsError&&!settingsOpen?settingsNoticeId:undefined}
+        disabled={busy} onClick={toggleSettings} onKeyDown={event=>{
+          if((event.key==='Enter'||event.key===' ')&&(event.repeat||event.nativeEvent.isComposing||event.keyCode===229
+            ||event.altKey||event.ctrlKey||event.metaKey||event.shiftKey)){event.preventDefault();event.stopPropagation();return;}
+          settingsKey(event);
+        }}><SlidersHorizontal size={16} aria-hidden="true"/></Button>}
     </div>;
   return <div className="cad-editor-axis-controls" data-testid="pole-axis-overlay">
     {props.toolbarContainer === undefined ? toolbar : props.toolbarContainer === null ? null : createPortal(toolbar, props.toolbarContainer)}
@@ -436,7 +465,7 @@ export function PoleAxisGizmo(props:Props) {
     {scaleMode&&!control.bodyMovePresentation&&<ObjectScaleGizmo session={session} control={control} canvas={canvas} snapStep={scaleSnap?scaleStep:null}
       disabled={(busy&&!scaleMoving)||scaleError!==null} onError={failure}
       onGestureChange={active=>{transformGesture.current=active;setScaleMoving(active);latest.current.onGestureChange(active);}}/>}
-    {(!control.bodyMovePresentation||objectMode)&&<div className="cad-editor-axis-palette" aria-label={scaleMode?'Scale settings':rotationMode?'Rotation settings':'Movement settings'}>
+    {(!control.bodyMovePresentation||objectMode)&&<div id={settingsId} data-testid="pole-axis-settings" hidden={!settingsOpen} onKeyDown={settingsKey} className="cad-editor-axis-palette" aria-label={scaleMode?'Scale settings':rotationMode?'Rotation settings':'Movement settings'}>
       <div className="pole-move-title">{scaleMode?'Scale object':rotationMode?'Rotate object':objectMode?'Move object':'Move control point'} <span>{scaleMode?'XYZ · ×':rotationMode?'XYZ · deg':'XYZ · mm'}</span></div>
       <div className="context-mode-controls" hidden={!scaleMode}>
         <div className="context-axis-row"><span>Axes</span><div className="context-axis-buttons" role="group" aria-label="Scale axes" data-testid="scale-axis">
@@ -449,7 +478,6 @@ export function PoleAxisGizmo(props:Props) {
         <label className="pole-snap-distance" hidden={!scaleSnap}>Step (×)<input type="text" inputMode="decimal" maxLength={128} data-testid="scale-snap-step" value={scaleStepRaw} disabled={!scaleSnap||busy||!scaleMode}
           aria-invalid={scaleError!==null} aria-describedby={scaleError?scaleErrorId:undefined} onChange={event=>changeStep('scale',event.target.value)}/></label>
         {scaleError&&<p id={scaleErrorId} data-testid="scale-snap-error" role="alert">{scaleError}</p>}
-        {(scaleMoving||pending)&&<p role="status">{scaleMoving?'Release to apply · Escape cancels':'Factor pending'}</p>}
       </div>
       <div className="context-mode-controls" hidden={!rotationMode}>
         <div className="context-axis-row"><span>Axis</span><div className="context-axis-buttons" role="group" aria-label="Rotation axis" data-testid="rotation-axis">
@@ -462,7 +490,6 @@ export function PoleAxisGizmo(props:Props) {
         <label className="pole-snap-distance" hidden={!angularSnap}>Step (deg)<input type="text" inputMode="decimal" maxLength={128} data-testid="rotation-snap-step" value={angularStepRaw} disabled={!angularSnap||busy||!rotationMode}
           aria-invalid={angularError!==null} aria-describedby={angularError?angularErrorId:undefined} onChange={event=>changeStep('rotation',event.target.value)}/></label>
         {angularError&&<p id={angularErrorId} data-testid="rotation-snap-error" role="alert">{angularError}</p>}
-        {(rotationMoving||pending)&&<p role="status">{rotationMoving?'Release to apply · Escape cancels':'Angle pending'}</p>}
       </div>
       <div className="context-mode-controls" hidden={rotationMode||scaleMode}>
         <label className="pole-snap-toggle"><input type="checkbox" data-testid="pole-snap-enabled" checked={snapEnabled} disabled={busy||rotationMode||scaleMode}
@@ -471,9 +498,12 @@ export function PoleAxisGizmo(props:Props) {
           data-testid="pole-snap-step" disabled={!snapEnabled||busy||rotationMode||scaleMode} aria-invalid={stepError!==null} aria-describedby={stepError?snapErrorId:undefined}
           onChange={event=>changeStep('movement',event.target.value)}/></label>
         {stepError&&<p id={snapErrorId} data-testid="pole-snap-error" role="alert">{stepError}</p>}
-        {(movingAxis!==null||pending||visible<3)&&<p role="status" data-testid="pole-axis-status">{movingAxis!==null?'Release to apply · Escape cancels'
-          :pending?'Values pending':visible===0?'Fit the selected point or use its fields.':'Use Isometric to reach other axes.'}</p>}
       </div>
+      {settingsOpen&&movementStatus&&<p role="status" data-testid="pole-axis-status">{movementStatus}</p>}
+    </div>}
+    {!settingsOpen&&(activeSettingsError||movementStatus)&&<div className="pole-axis-feedback">
+      {activeSettingsError&&<p id={settingsNoticeId} role="alert" data-testid="pole-axis-settings-error">Invalid snap step. Open settings.</p>}
+      {movementStatus&&<p role="status" data-testid="pole-axis-status">{movementStatus}</p>}
     </div>}
   </div>;
 }
