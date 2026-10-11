@@ -10,6 +10,7 @@ import { useCadEditorSnapshot } from './use-session.js';
 import type { CadEditorInspectorProps } from './types.js';
 import { CadEditorGeometryAnalysis } from './geometry-analysis.js';
 import { CurveIntervalControls, useCurveInterval } from './curve-interval.js';
+import { SurfaceKnotControls, useSurfaceKnot } from './surface-knot.js';
 import { CadEditorBodyRename } from './body-rename.js';
 
 const FIELDS: { field: CadEditorPoleField; label: string }[] = [
@@ -57,6 +58,7 @@ function actionableMessage(error: CadEditorError): string {
 export function CadEditorInspector({ session, onError, onAnalysis, onLength, className }: CadEditorInspectorProps) {
   const snapshot = useCadEditorSnapshot(session);
   const interval = useCurveInterval();
+  const knot = useSurfaceKnot();
   const id = useId();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [lastError, setLastError] = useState<CadEditorError | null>(null);
@@ -68,7 +70,7 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
   const { selection, curveSelection, accepted, pending, candidate } = snapshot;
   const pole = selection ?? curveSelection;
   const transition = snapshot.selectionTransition;
-  const busy = candidate !== null || snapshot.disposed || interval?.active === true;
+  const busy = candidate !== null || snapshot.disposed || interval?.active === true || knot?.active === true;
   const capability = snapshot.bodyCapabilities.find(body => body.bodyId === snapshot.selectedBodyId);
   const selectedBody = accepted.document.bodies.find(body => body.id === snapshot.selectedBodyId);
   const selectedKind = accepted.bodyBindings.find(body => body.bodyId === snapshot.selectedBodyId)?.geometryKind;
@@ -293,10 +295,14 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
         onClick={() => action(() => { session.prepareDocumentView(); })}>Return to document view</Button>}
     </div>
     {selectedKind === 'curve' && <CurveIntervalControls session={session} />}
+    {selectedKind === 'surface' && <SurfaceKnotControls session={session} />}
     {!interval?.active && selectedKind === 'curve' && curveSelection === null && snapshot.selectedBodyId && <Button type="button" variant="outline" size="sm"
       data-testid="cad-editor-curve-select-point" disabled={candidate !== null || snapshot.disposed || Object.keys(pending).length > 0}
       onClick={() => action(() => session.selectCurvePole({ bodyId: snapshot.selectedBodyId!, index: 0 }))}>Select a point</Button>}
-    {!interval?.active && pole ? <>
+    {!knot?.active && selectedKind === 'surface' && selection === null && snapshot.selectedBodyId && <Button type="button" variant="outline" size="sm"
+      data-testid="surface-select-point" disabled={candidate !== null || snapshot.disposed || transition !== null || Object.keys(pending).length > 0}
+      onClick={() => action(() => session.selectSurfacePole({ bodyId: snapshot.selectedBodyId!, uIndex: 0, vIndex: 0 }))}>Select a point</Button>}
+    {!interval?.active && !knot?.active && pole ? <>
       {selection && capability?.canEditSurfacePole === false && <p className="cad-editor-readonly" role="status" data-testid="cad-editor-readonly-surface">
         Cannot edit these points. Open Help for details, or choose another Surface.
       </p>}
@@ -385,7 +391,8 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
           data-testid="cad-editor-discard" onClick={() => action(() => session.discardPending())}>Discard</Button>
       </div>}
     </> : <p role="status" data-testid={snapshot.selectedBodyId === null ? undefined : 'cad-editor-readonly-curve'}>{snapshot.selectedBodyId === null
-      ? 'Select a Surface or Curve to inspect its control points.' : interval?.active ? 'Use Done to inspect control points.' : 'Control point inspection is unavailable for this object.'}</p>}
+      ? 'Select a Surface or Curve to inspect its control points.' : interval?.active || knot?.active ? 'Use Done to inspect control points.'
+        : selectedKind === 'surface' ? 'Select a point from the current control net.' : 'Control point inspection is unavailable for this object.'}</p>}
     {errorMessage && <p className="cad-editor-error" role="alert">{errorMessage}</p>}
     <details className="cad-editor-secondary-analysis cad-editor-source" data-testid="inspector-analysis-disclosure">
       <summary className="cad-editor-source-title" data-testid="inspector-analysis-toggle">Analysis</summary>

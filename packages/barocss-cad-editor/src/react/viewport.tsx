@@ -16,6 +16,8 @@ import { SurfacePoleHandles } from './surface-pole-handles.js';
 import { PoleAxisGizmo } from './pole-axis-gizmo.js';
 import { CadEditorViewNavigator, VIEW_SIDES, type NativeViewSide } from './view-navigator.js';
 import { SelectionIsolation } from './selection-isolation.js';
+import { useSurfaceKnot, surfaceKnotSurface } from './surface-knot.js';
+import { SurfaceKnotHandles } from './surface-knot-handles.js';
 
 interface MountedViewer {
   session: CadEditorSession;
@@ -135,6 +137,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
   const { session, className } = props;
   const snapshot = useCadEditorSnapshot(session);
   const interval = useCurveInterval();
+  const knot = useSurfaceKnot();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mountedRef = useRef<MountedViewer | null>(null);
   const propsRef = useRef(props);
@@ -207,6 +210,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
           ? error.message
         : 'Cannot display this change. The current view is retained.');
     if (interval?.active) interval.noteError(error);
+    if (knot?.active) knot.noteError(error);
     try { propsRef.current.onError?.(error); } catch { /* Host callbacks do not change admission. */ }
   }
 
@@ -782,6 +786,21 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
         && state.documentBodies.every(body => state.visibleGeometry.some(ref => sameOptions(ref, body.ref)));
     } catch { return false; }
   }
+  function isCurrentSurface() {
+    try {
+      if (!isCurrentDocument()) return false;
+      const selected = surfaceKnotSurface(session), mounted = mountedRef.current;
+      if (!selected || !mounted) return false;
+      const state = mounted.viewer.getState(), binding = state.document?.bodyBindings.find(body => body.bodyId === selected.reference.bodyId);
+      if (!binding || binding.geometryKind !== 'surface' || binding.geometryId !== selected.reference.geometryId
+        || binding.assetId !== selected.reference.assetId || !sameOptions(state.document, selected.snapshot.accepted)) return false;
+      const displayed = state.documentBodies.find(body => body.binding.bodyId === selected.reference.bodyId);
+      return sameOptions(state.selectedGeometry, displayed?.ref ?? null)
+        && (!displayed || displayed.binding.documentRevision === selected.reference.documentRevision
+          && displayed.binding.assetRevision === selected.reference.assetRevision);
+    } catch { return false; }
+  }
+  if (knot?.session === session) knot.viewport.current = { canvas: canvasRef.current, receipt: documentReceipt, isCurrentSurface };
   if (interval?.session === session) interval.viewport.current = { canvas: canvasRef.current, presentation: focusedReceipt, isCurrent: currentPresentation };
   const camera = focusedReceipt?.state.camera ?? documentReceipt?.state.camera;
   const viewBusy=!ready||viewportCaptured||axisGestureActive||snapshot.disposed||snapshot.candidate!==null||snapshot.selectionTransition!==null||Object.keys(snapshot.pending).length>0;
@@ -810,12 +829,14 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     {snapshot.view.kind === 'document' && <SelectionIsolation session={session} canvas={canvasRef.current}
       receipt={ready ? documentReceipt : null} isCurrentDocument={isCurrentDocument} busy={viewBusy}
       onError={error => report(error, 'Changing document visibility failed')} />}
-    {!interval?.active && <SurfacePoleHandles session={session} receipt={ready?documentReceipt:null} canvas={canvasRef.current} onError={error=>report(error,'Surface point gesture failed')} />}
-    {!interval?.active && <PoleAxisGizmo session={session} documentReceipt={ready?documentReceipt:null} curveReceipt={ready?focusedReceipt:null} canvas={canvasRef.current}
+    {!interval?.active && !knot?.active && <SurfacePoleHandles session={session} receipt={ready?documentReceipt:null} canvas={canvasRef.current} onError={error=>report(error,'Surface point gesture failed')} />}
+    {!interval?.active && !knot?.active && <PoleAxisGizmo session={session} documentReceipt={ready?documentReceipt:null} curveReceipt={ready?focusedReceipt:null} canvas={canvasRef.current}
       onGestureChange={active=>{axisGestureRef.current=active;setAxisGestureActive(active);}}
       onError={error=>report(error,'Axis point gesture failed')}/>}
     {focusedReceipt&&<p className="cad-editor-curve-view-label" data-testid="curve-view-label">Curve focus · {focusedReceipt.bodyName}<span>Other objects remain in document view.</span></p>}
-    {!interval?.active && <CurvePoleHandles session={session} receipt={focusedReceipt} canvas={canvasRef.current} onError={error => report(error, 'Curve point gesture failed')} />}
+    {!interval?.active && !knot?.active && <CurvePoleHandles session={session} receipt={focusedReceipt} canvas={canvasRef.current} onError={error => report(error, 'Curve point gesture failed')} />}
+    <SurfaceKnotHandles session={session} receipt={ready ? documentReceipt : null} canvas={canvasRef.current} isCurrentSurface={isCurrentSurface}
+      onError={error => report(error, 'Surface knot gesture failed')} onGestureChange={active => { axisGestureRef.current = active; setAxisGestureActive(active); }} />
     <CurveIntervalHandles session={session} presentation={ready ? focusedReceipt : null} canvas={canvasRef.current} isCurrentPresentation={currentPresentation}
       onError={error => report(error, 'Curve interval gesture failed')} onGestureChange={active => { axisGestureRef.current = active; setAxisGestureActive(active); }} />
     {errorMessage && <p className="cad-editor-error" role="alert">{errorMessage}</p>}
