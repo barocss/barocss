@@ -1,0 +1,298 @@
+{
+  "format": "barocss-render-editor-parametric-scene",
+  "version": 3,
+  "profile": "primitive-unlit-engine-v3",
+  "documentId": "rounded-capsule-parameter-study",
+  "title": "Original rounded and capsule study",
+  "revision": 0,
+  "sceneId": "rounded_capsule_scene",
+  "coordinateSystem": "right-handed-y-up",
+  "positionUnit": "scene",
+  "geometrySources": [
+    {
+      "format": "barocss-gpu-capsule-geometry",
+      "version": 0,
+      "id": "capsule_authored",
+      "coordinateSystem": "right-handed-y-up",
+      "positionUnit": "scene",
+      "radius": 0.65,
+      "halfLength": 0.9,
+      "radialSegments": 12,
+      "bodySegments": 3,
+      "capSegments": 4
+    },
+    {
+      "format": "barocss-gpu-rounded-box-geometry",
+      "version": 0,
+      "id": "rounded_box_authored",
+      "coordinateSystem": "right-handed-y-up",
+      "positionUnit": "scene",
+      "sizeXYZ": [
+        1.6,
+        2.2,
+        1.1
+      ],
+      "cornerRadius": 0.15,
+      "segments": 3
+    },
+    {
+      "format": "barocss-gpu-box-geometry",
+      "version": 0,
+      "id": "box_authored",
+      "coordinateSystem": "right-handed-y-up",
+      "positionUnit": "scene",
+      "sizeXYZ": [
+        0.4,
+        0.6,
+        0.8
+      ]
+    }
+  ],
+  "camera": {
+    "eye": [
+      7,
+      6,
+      8
+    ],
+    "target": [
+      0,
+      0,
+      0
+    ],
+    "up": [
+      0,
+      1,
+      0
+    ],
+    "fovYDegrees": 45,
+    "near": 0.01,
+    "far": 100
+  },
+  "background": [
+    0.025,
+    0.04,
+    0.06
+  ],
+  "materials": [
+    {
+      "id": "capsule_material",
+      "type": "unlit",
+      "colorSpace": "linear",
+      "color": [
+        0.22,
+        0.48,
+        0.78
+      ]
+    },
+    {
+      "id": "rounded_box_material",
+      "type": "unlit",
+      "colorSpace": "linear",
+      "color": [
+        0.8,
+        0.35,
+        0.18
+      ]
+    },
+    {
+      "id": "box_material",
+      "type": "unlit",
+      "colorSpace": "linear",
+      "color": [
+        0.28,
+        0.62,
+        0.4
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "primary_group",
+      "type": "group",
+      "parentId": null,
+      "translation": [
+        -0.0,
+        0.1,
+        -0.2
+      ],
+      "rotationXYZW": [
+        0,
+        0.14943813247359922,
+        0,
+        0.9887710779360422
+      ],
+      "scale": [
+        1.1,
+        0.9,
+        1.2
+      ],
+      "visible": true
+    },
+    {
+      "id": "capsule_primary",
+      "type": "mesh",
+      "parentId": "primary_group",
+      "geometryId": "capsule_authored",
+      "materialId": "capsule_material",
+      "translation": [
+        -1.9,
+        -0.0,
+        0.15
+      ],
+      "rotationXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "visible": true
+    },
+    {
+      "id": "rounded_primary",
+      "type": "mesh",
+      "parentId": "primary_group",
+      "geometryId": "rounded_box_authored",
+      "materialId": "rounded_box_material",
+      "translation": [
+        0.9,
+        -0.0,
+        -0.2
+      ],
+      "rotationXYZW": [
+        0,
+        0,
+        0.19866933079506122,
+        0.9800665778412416
+      ],
+      "scale": [
+        1,
+        0.9,
+        1.1
+      ],
+      "visible": true
+    },
+    {
+      "id": "box_primary",
+      "type": "mesh",
+      "parentId": "primary_group",
+      "geometryId": "box_authored",
+      "materialId": "box_material",
+      "translation": [
+        0,
+        -1.4,
+        0.6
+      ],
+      "rotationXYZW": [
+        -0.0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "visible": true
+    },
+    {
+      "id": "instance_group",
+      "type": "group",
+      "parentId": "primary_group",
+      "translation": [
+        0.5,
+        0.8,
+        -1.5
+      ],
+      "rotationXYZW": [
+        0.09983341664682815,
+        -0.0,
+        0,
+        0.9950041652780258
+      ],
+      "scale": [
+        0.8,
+        1.2,
+        0.9
+      ],
+      "visible": true
+    },
+    {
+      "id": "capsule_shared",
+      "type": "mesh",
+      "parentId": "instance_group",
+      "geometryId": "capsule_authored",
+      "materialId": "capsule_material",
+      "translation": [
+        -1.8,
+        -0.0,
+        0.1
+      ],
+      "rotationXYZW": [
+        0,
+        0,
+        0.11971220728891936,
+        0.9928086358538663
+      ],
+      "scale": [
+        1,
+        0.8,
+        1.1
+      ],
+      "visible": true
+    },
+    {
+      "id": "rounded_shared",
+      "type": "mesh",
+      "parentId": "instance_group",
+      "geometryId": "rounded_box_authored",
+      "materialId": "rounded_box_material",
+      "translation": [
+        1,
+        0.1,
+        0.2
+      ],
+      "rotationXYZW": [
+        0,
+        0.19866933079506122,
+        0,
+        0.9800665778412416
+      ],
+      "scale": [
+        1.2,
+        0.8,
+        0.9
+      ],
+      "visible": true
+    },
+    {
+      "id": "box_shared",
+      "type": "mesh",
+      "parentId": "instance_group",
+      "geometryId": "box_authored",
+      "materialId": "box_material",
+      "translation": [
+        0,
+        -1.3,
+        0.6
+      ],
+      "rotationXYZW": [
+        -0.0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ],
+      "visible": true
+    }
+  ]
+}
