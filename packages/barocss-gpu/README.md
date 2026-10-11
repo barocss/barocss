@@ -2520,3 +2520,37 @@ reconstruction. Source1/SDF, native CAD Fillet/Solid, Physics/collision, actual
 graphics/lifetime/global error/parity/current-root acceptance and publication
 remain separate. Render parameter documents require their own explicit profile
 and dispatch adoption of this factory.
+
+## Native Surface normalized coordinate material grammar (CPU stage)
+
+`compileNativeSurfaceUV01Material(source)` reserves `surface_u01` and
+`surface_v01` as readonly float inputs bounded within `[0,1]` in a distinct
+`barocss-gpu-native-surface-uv01-material` v0 IR with profile
+`native-surface-opaque-uv01-fragment-v0`:
+
+```css
+@shader #native_gradient {
+  @fragment { color: mix(#000, #FFF, surface_u01); }
+}
+```
+
+`validateNativeSurfaceUV01MaterialIR(unknown)` copies own data and reconstructs
+source once, rejects mismatched fields, then returns fresh frozen canonical IR.
+`lowerNativeSurfaceUV01Material(unknown)` validates once and returns a frozen
+expression, uniform declarations/layout and `in vec2 v_native_surface_uv01;`.
+U lowers to `.x`; V lowers to `.y`. Constant sources keep that declaration.
+Uniform/local declarations that shadow these two names are refused. Source
+spelling and diagnostic UTF16 offsets are preserved; source/token/node/depth,
+range, copy and uniform budgets remain those of the existing material compiler.
+
+These dimensionless inputs require normalization of the original native Surface
+domain in Number before a future Float32 display conversion. The producer must
+retain original U/V, domain, frame, units and source-qualified identities.
+Interpolated shader values do not become exact native queries. This stage does
+not supply a producer, binding, attribute buffer, evaluator or graphics program.
+Legacy MeshMaterial and generic/repeating EngineUV formats remain distinct and
+reject this IR. Legacy declared uniforms named `surface_u01` or `surface_v01`
+retain their original meaning. No native render or pixel support is implied.
+
+One CPU source/compiled/file/cold flow:
+`node examples/gpu-scene/native-surface-uv01-material-flow.mjs --output /absolute/fresh-directory`.

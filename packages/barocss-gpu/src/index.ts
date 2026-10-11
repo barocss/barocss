@@ -152,3 +152,6 @@ export type { CapsuleGeometrySourceV0, PreparedCapsuleGeometry } from './capsule
 
 export { prepareRoundedBoxGeometry } from './rounded-box-geometry.js';
 export type { RoundedBoxGeometrySourceV0, PreparedRoundedBoxGeometry } from './rounded-box-geometry.js';
+
+export {compileNativeSurfaceUV01Material,validateNativeSurfaceUV01MaterialIR,lowerNativeSurfaceUV01Material} from './mesh-material.js';
+export type {NativeSurfaceUV01MaterialExpression,NativeSurfaceUV01MaterialIR,LoweredNativeSurfaceUV01Material} from './mesh-material.js';
