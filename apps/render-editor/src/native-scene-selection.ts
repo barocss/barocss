@@ -92,7 +92,7 @@ function equal(a: unknown, b: unknown): boolean {
 }
 function selectable(snapshot: NativeSceneHostSnapshot): boolean {
   return !snapshot.disposed && snapshot.available && !snapshot.nativeDirty && !snapshot.materialDirty
-    && !snapshot.invalidLighting && !snapshot.invalidBodyPose && !snapshot.invalidSurfacePole && !snapshot.poseGestureActive && !snapshot.surfacePoleGestureActive && snapshot.surfacePolePreview === null && snapshot.posePreview === null;
+    && !snapshot.invalidLighting && !snapshot.invalidBodyPose && !snapshot.invalidSurfacePole && !snapshot.poseGestureActive && !snapshot.surfacePoleGestureActive && snapshot.surfacePolePreview === null && snapshot.posePreview === null && snapshot.materialPreview === null;
 }
 
 /** Resolve a qualified display ref to one current original body without highlighting or authoring. */
@@ -116,7 +116,7 @@ export function resolveNativeSceneBodyPick(snapshot: NativeSceneHostSnapshot, st
     const current = record(snapshot, 'Native host snapshot'), viewer = record(state, 'Viewer state');
     check(current.disposed === false && current.available === true && current.nativeDirty === false
       && current.materialDirty === false && current.invalidLighting === false && current.invalidBodyPose === false && current.invalidSurfacePole === false && current.poseGestureActive === false && current.surfacePoleGestureActive === false && current.surfacePolePreview === null
-      && current.posePreview === null && viewer.status === 'ready', 'Resolve authored drafts or the current operation before selecting a body.');
+      && current.posePreview === null && current.materialPreview === null && viewer.status === 'ready', 'Resolve authored drafts or the current operation before selecting a body.');
     const accepted = record(current.accepted, 'Accepted native scene', 10), preparation = record(current.preparation, 'Native preparation');
     check(preparation.document === current.accepted, 'The native preparation is not the accepted scene.');
     const document = record(viewer.document, 'Displayed native document');
@@ -266,7 +266,7 @@ export function resolveNativeSelectedFrame(snapshot: NativeSceneHostSnapshot, st
   try {
     const current = record(snapshot, 'Native host snapshot'), viewer = record(state, 'Viewer state');
     check(current.disposed === false && current.available === true && current.poseGestureActive === false && current.surfacePoleGestureActive === false && current.surfacePolePreview === null
-      && current.posePreview === null && viewer.status === 'ready', 'Finish the current operation before framing a body.');
+      && current.posePreview === null && current.materialPreview === null && viewer.status === 'ready', 'Finish the current operation before framing a body.');
     const bodyId = text(current.selectedBodyId, 'Selected original body ID');
     const accepted = record(current.accepted, 'Accepted native scene', 10), preparation = record(current.preparation, 'Native preparation');
     check(preparation.document === current.accepted, 'The native preparation is not the accepted scene.');

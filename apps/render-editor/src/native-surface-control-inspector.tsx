@@ -48,13 +48,13 @@ export function NativeSurfaceControlInspector({host, disabled, onError}: Props) 
   const current = changed ? readBinding(snapshot) : stored;
   if (changed) {binding.current = current; setStored(current); setError(null);}
   const selected = selectedSurface(snapshot);
-  const locked = disabled || snapshot.poseGestureActive || !!snapshot.posePreview || snapshot.surfacePoleGestureActive || !!snapshot.surfacePolePreview || !snapshot.available || snapshot.disposed;
+  const locked = disabled || snapshot.poseGestureActive || !!snapshot.posePreview || snapshot.surfacePoleGestureActive || !!snapshot.surfacePolePreview || !!snapshot.materialPreview || !snapshot.available || snapshot.disposed;
   const refused = snapshot.invalidSurfacePole && snapshot.surfacePoleBodyId === current.bodyId;
   const parsed = current.values.map(numeric), invalid = parsed.length === 4 && !parsed.every(inRange);
   const report = (cause: unknown) => {setError(normalizeRenderEditorError(cause)); onError(cause);};
   const choose = (axis: 'u' | 'v', index: number) => {
     const live = host.getSnapshot(), surface = selectedSurface(live);
-    if (disabled || live.dirty || live.poseGestureActive || live.posePreview || live.surfacePoleGestureActive || live.surfacePolePreview || !live.available || live.disposed || !surface) return;
+    if (disabled || live.dirty || live.poseGestureActive || live.posePreview || live.surfacePoleGestureActive || live.surfacePolePreview || live.materialPreview || !live.available || live.disposed || !surface) return;
     const before = binding.current;
     if (live.accepted !== before.accepted || live.selectedBodyId !== before.bodyId || live.surfacePoleInputResetEpoch !== before.resetEpoch) return;
     const uIndex = axis === 'u' ? index : before.uIndex, vIndex = axis === 'v' ? index : before.vIndex;
@@ -64,7 +64,7 @@ export function NativeSurfaceControlInspector({host, disabled, onError}: Props) 
   };
   const update = (index: number, value: string) => {
     const live = host.getSnapshot(), surface = selectedSurface(live), before = binding.current;
-    if (disabled || value.length > 256 || live.poseGestureActive || live.posePreview || live.surfacePoleGestureActive || live.surfacePolePreview || !live.available || live.disposed
+    if (disabled || value.length > 256 || live.poseGestureActive || live.posePreview || live.surfacePoleGestureActive || live.surfacePolePreview || live.materialPreview || !live.available || live.disposed
       || !surface || surface.shared || live.accepted !== before.accepted || live.selectedBodyId !== before.bodyId
       || live.surfacePoleInputResetEpoch !== before.resetEpoch) return;
     const values = [...before.values]; values[index] = value;

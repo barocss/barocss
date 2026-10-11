@@ -264,3 +264,13 @@ body:has(:is(.app-shell--mixed,.app-shell--scene)) [data-slot="dialog-content"] 
 .re-material-host .re-native-pole-status details { max-width: 360px; overflow-wrap: anywhere; }
 .re-material-host .re-native-pole-status summary { cursor: pointer; }
 .re-material-host .re-native-pole-status p { margin: 3px 0; }
+
+/* Explicit draft preview lives inside Uniforms without replacing its lexical inputs. */
+.re-material-host .re-native-material-preview-controls { padding: 3px 0; border-top: 1px solid var(--re-material-line); }
+.re-material-host .re-native-material-preview-actions { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 6px; }
+.re-material-host .re-native-material-preview-actions button { min-height: 24px; height: auto; padding: 3px 6px; font-size: 11px; }
+.re-material-host .re-native-material-preview-controls[data-active="true"] { background: #2c3542; }
+.re-material-host .re-native-material-preview-error { margin: 4px 6px; color: #e6b19f; font-size: 10px; overflow-wrap: anywhere; }
+.re-material-host .re-native-material-preview-error p { margin: 3px 0; }
+.re-material-host .re-native-material-preview-error summary { cursor: pointer; }
+.re-material-host .native-material-preview-badge { margin: 0; padding: 2px 4px; background: #354862; color: #d9eaff; border-radius: 3px; font-size: 10px; white-space: nowrap; }

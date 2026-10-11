@@ -33,6 +33,7 @@ export interface NativeSceneHostSnapshot {
   readonly viewDirty: boolean;
   readonly poseGestureActive: boolean;
   readonly posePreview: Readonly<{bodyId: string; pose: RenderNativeScenePose}> | null;
+  readonly materialPreview: Readonly<{bodyId: string; materialDocumentId: string}> | null;
   readonly available: boolean;
   readonly canUndo: boolean;
   readonly canRedo: boolean;
@@ -77,6 +78,9 @@ export interface NativeSceneHost {
   previewBodyPose(token: object, pose: RenderNativeScenePose): void;
   applyBodyPosePreview(token: object): RenderNativeSceneAppearancePreparation | null;
   cancelBodyPosePreview(token: object): RenderNativeSceneAppearancePreparation | null;
+  beginMaterialPreview(): object;
+  cancelMaterialPreview(token: object): void;
+  applyMaterialPreview(token: object): RenderNativeSceneAppearancePreparation;
   dispose(): void;
 }
 
@@ -204,6 +208,14 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
   }
   const poseTokens = new WeakMap<object, BodyPoseState>();
   let bodyPose: BodyPoseState | null = null;
+  interface MaterialPreviewState {
+    token: object; native: ReturnType<typeof native.getSnapshot>; material: RenderMaterialSessionSnapshot;
+    draft: RenderNativeSceneDocument; document: RenderNativeSceneDocument; bodyId: string; materialDocumentId: string;
+    camera: MeshCamera; localCamera: MeshCamera | null; owner: object; generation: number; used: boolean; presented: boolean;
+    presenter: NativeScenePresenter; reader: (() => object) | undefined; cameraReader: (() => MeshCamera) | undefined;
+  }
+  let materialPreview: MaterialPreviewState | null = null;
+  const materialPreviewTokens = new WeakMap<object, MaterialPreviewState>();
   const listeners = new Set<() => void>();
   const candidates = new WeakMap<object, {generation: number; used: boolean}>();
   const materialCandidates = new WeakMap<object, {candidate: RenderNativeScenePreparedCandidate; generation: number; used: boolean}>();
@@ -213,12 +225,12 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
     if (locked) {reentered = true; throw new RenderEditorError('STALE_CANDIDATE', 'Native scene host is busy.');}
   };
   const noView = () => {
-    if (bodyPose || poleDrag) throw new RenderEditorError('STALE_CANDIDATE', 'Finish or cancel the Canvas transform before editing the scene.');
+    if (bodyPose || poleDrag || materialPreview) throw new RenderEditorError('STALE_CANDIDATE', 'Finish or cancel the Canvas transform before editing the scene.');
   };
   const readSnapshots = () => {
     const state = native.getSnapshot(), raw = local.getSnapshot();
     const selected = selectedMaterial(state.preparation, selectedBodyId);
-    const dirty = state.dirty || raw.dirty || invalidLighting || invalidBodyPoseBodyId !== null || invalidSurfacePole || bodyPose !== null || poleDrag !== null;
+    const dirty = state.dirty || raw.dirty || invalidLighting || invalidBodyPoseBodyId !== null || invalidSurfacePole || bodyPose !== null || poleDrag !== null || materialPreview !== null;
     materialSnapshot = Object.freeze({...raw, accepted: selected.preparation.document, sample: selected.preparation.sample,
       dirty, canUndo: state.canUndo, canRedo: state.canRedo, disposed,
       savedRevision: state.savedRevision === state.accepted.revision ? selected.preparation.document.revision : null});
@@ -232,6 +244,7 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
       selectedSurfacePole: Object.freeze({...selectedPole}), surfacePoleGestureActive: poleDrag?.gestureActive ?? false,
       surfacePolePreview: poleDrag?.document && poleDrag.patch ? Object.freeze({bodyId: poleDrag.selection.bodyId, patch: poleDrag.patch}) : null, surfacePoleDraftPatch,
       poseGestureActive: bodyPose?.gestureActive ?? false, posePreview: bodyPose?.preview ?? null,
+      materialPreview: materialPreview?.presented ? Object.freeze({bodyId: materialPreview.bodyId, materialDocumentId: materialPreview.materialDocumentId}) : null,
       available, canUndo: state.canUndo, canRedo: state.canRedo, savedRevision: state.savedRevision, disposed});
   };
   const changed = (ownPose?: {generation: number}) => {
@@ -355,6 +368,63 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
     const left = Object.keys(a), right = Object.keys(b);
     return left.length === right.length && left.every(key => Object.hasOwn(b, key)
       && sameNative((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key]));
+  };
+  const closeMaterialPreview = (state: MaterialPreviewState) => {
+    state.used = true; if (materialPreview === state) materialPreview = null;
+  };
+  const invalidateMaterialPreview = () => {if (materialPreview) closeMaterialPreview(materialPreview);};
+  const currentMaterialPreview = (token: object): MaterialPreviewState => {
+    const state = token !== null && typeof token === 'object' ? materialPreviewTokens.get(token) : undefined;
+    if (!state || state.used || materialPreview !== state) throw new RenderEditorError('STALE_CANDIDATE', 'The material preview token is stale, foreign, or already used.');
+    try {
+      check(!disposed && available && presenter === state.presenter && ownershipReader === state.reader
+        && actualCameraReader === state.cameraReader && native.getSnapshot() === state.native
+        && local.getSnapshot() === state.material && draftDocument === state.draft && viewCamera === state.localCamera
+        && selectedBodyId === state.bodyId && generation === state.generation
+        && sameCamera(displayCamera(), state.camera) && owner() === state.owner && !reentered,
+      'The material draft, scene, camera, or displayed owner changed. Reopen the scene before previewing.');
+      return state;
+    } catch (cause) {if (state.presented) available = false; closeMaterialPreview(state); changed(); throw cause;}
+  };
+  const presentMaterialPreview = (state: MaterialPreviewState, prepared: RenderNativeSceneAppearancePreparation, preview: boolean) => {
+    let returned = false;
+    try {
+      const prototype = Object.getPrototypeOf(state.presenter), source = Function.prototype.toString.call(state.presenter);
+      check(prototype !== ASYNC_FUNCTION && prototype !== ASYNC_GENERATOR && !/^async(?:\s|\(|\/)/.test(source), 'Material presenter must be synchronous.');
+      synchronous(() => {
+        const result = state.presenter(prepared, state.camera);
+        returned = true; state.presented = preview;
+        return result;
+      });
+      fallbackOwner = Object.freeze({});
+    } catch (cause) {
+      let uncertain = returned || reentered;
+      if (!uncertain) {
+        try {uncertain = owner() !== state.owner || !sameCamera(displayCamera(), state.camera);}
+        catch {uncertain = true;}
+      }
+      if (uncertain) {available = false; closeMaterialPreview(state); changed();}
+      throw cause;
+    }
+  };
+  const restoreMaterialPreview = (state: MaterialPreviewState) => {
+    currentMaterialPreview(state.token);
+    const prepared = prepareRenderNativeSceneAppearance(state.native.accepted);
+    currentMaterialPreview(state.token);
+    // An atomic presenter refusal leaves the original token and preview available for Cancel retry.
+    presentMaterialPreview(state, prepared, false);
+    try {
+      state.owner = owner();
+      check(sameCamera(displayCamera(), state.camera) && !reentered, 'Material restoration ownership or camera reentry was refused.');
+    } catch (cause) {available = false; closeMaterialPreview(state); changed(); throw cause;}
+    acceptedOwner = state.owner;
+    nativePresented = true;
+    return prepared;
+  };
+  const cancelMaterialPreview = (token: object) => {
+    const state = currentMaterialPreview(token);
+    try {restoreMaterialPreview(state); closeMaterialPreview(state); changed();}
+    catch (cause) {if (materialPreview === state) changed(state); throw cause;}
   };
   const poleAt = (bodyId: string, uIndex: number, vIndex: number) => {
     const selection = poleSelection(bodyId, uIndex, vIndex), accepted = native.getSnapshot().accepted;
@@ -482,7 +552,7 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
     const result = Object.freeze({document: selected.preparation.document, sample: selected.preparation.sample, purpose: candidate.purpose});
     materialCandidates.set(result, {candidate, generation, used: false}); return result;
   };
-  const commit = (candidate: RenderNativeScenePreparedCandidate, beforeCommit?: NativeScenePresenter, explicitCamera?: MeshCamera, preferredBodyId?: string) => {
+  const commit = (candidate: RenderNativeScenePreparedCandidate, beforeCommit?: NativeScenePresenter, explicitCamera?: MeshCamera, preferredBodyId?: string, materialState?: MaterialPreviewState) => {
     const token = candidate !== null && typeof candidate === 'object' ? candidates.get(candidate) : undefined;
     if (!token || token.used || token.generation !== generation) throw new RenderEditorError('STALE_CANDIDATE', 'The scene candidate is stale, foreign, forged, or already used.');
     check(available && presenter, 'The native preview is unavailable.');
@@ -504,7 +574,8 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
         check(sameCamera(displayCamera(), previousCamera), 'The displayed camera changed during scene preparation.');
         check(owner() === previousOwner, 'The displayed scene owner changed during scene preparation.');
         if (reentered) throw new RenderEditorError('STALE_CANDIDATE', 'Native scene reader reentry was refused.');
-        presented(active, prepared, camera);
+        if (materialState) presentMaterialPreview(materialState, prepared, false);
+        else presented(active, prepared, camera);
         nextStore.owner = owner();
         if (reentered) throw new RenderEditorError('STALE_CANDIDATE', 'Native scene presenter reentry was refused.');
       });
@@ -564,11 +635,11 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
       const selected = selectedMaterial(native.getSnapshot().preparation, bodyId);
       const next = createRenderMaterialSession(selected.preparation.document); local.dispose(); local = next; selectedBodyId = bodyId; selectedPole = {bodyId, uIndex: 0, vIndex: 0}; surfacePoleDraftPatch = null; surfacePole = null; invalidSurfacePole = false; surfacePoleInputResetEpoch++; changed();});},
     setPresenter(next, reader, cameraReader) {run(() => {check(next === null || typeof next === 'function', 'Native presenter must be a function or null.'); check(reader === undefined || typeof reader === 'function', 'Preview ownership reader must be a function.'); check(cameraReader === undefined || typeof cameraReader === 'function', 'Display camera reader must be a function.');
-      if (next !== null) noView(); else {invalidatePose(); invalidatePoleDrag();}
+      if (next !== null) noView(); else {invalidatePose(); invalidatePoleDrag(); invalidateMaterialPreview();}
       const nextFallback = Object.freeze({}), nextOwner = next === null ? nextFallback : readOwner(reader, nextFallback);
       if (reentered) throw new RenderEditorError('STALE_CANDIDATE', 'Preview ownership reentry was refused.');
       presenter = next; ownershipReader = reader; actualCameraReader = cameraReader; fallbackOwner = nextFallback; acceptedOwner = nextOwner; available = next !== null; changed();});},
-    setAvailable(value) {run(() => {check(typeof value === 'boolean', 'Native availability must be a boolean.'); if (!value) {invalidatePose(); invalidatePoleDrag();} if (available !== value) {available = value; changed();}});},
+    setAvailable(value) {run(() => {check(typeof value === 'boolean', 'Native availability must be a boolean.'); if (!value) {invalidatePose(); invalidatePoleDrag(); invalidateMaterialPreview();} if (available !== value) {available = value; changed();}});},
     stageSceneDocument(document) {run(() => {noView(); clean(); stage(document); changed();});},
     addSurface(source, surfaceId) {return run(() => {
       noView(); clean(); check(available && presenter && nativePresented, 'The applied native preview is unavailable.');
@@ -712,6 +783,10 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
     discardDraft() {run(() => {noView(); native.discardDraft(); local.discardDraft(); draftDocument = native.getSnapshot().accepted; invalidLighting = false; invalidBodyPoseBodyId = null; bodyPoseInputResetEpoch++; invalidSurfacePole = false; surfacePole = null; surfacePoleDraftPatch = null; surfacePoleInputResetEpoch++; changed();});},
     markSaved(revision) {run(() => {noView(); native.markSaved(revision); changed();});},
     observeView(camera) {run(() => {const next = cameraCopy(camera), accepted = native.getSnapshot().accepted.display.camera;
+      if (materialPreview) {
+        if (!sameCamera(next, materialPreview.camera)) {available = false; invalidateMaterialPreview(); localView(next); changed(); throw new RenderEditorError('STALE_CANDIDATE', 'The camera changed during material preview. Reopen the scene.');}
+        return;
+      }
       if (poleDrag) {
         if (!sameCamera(next, poleDrag.camera)) {if (poleDrag.document) available = false; invalidatePoleDrag(); localView(next); changed(); throw new RenderEditorError('STALE_CANDIDATE', 'The camera changed during control-point drag. Start a new drag.');}
         return;
@@ -735,7 +810,61 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
       const camera = displayCamera(); check(!sameCamera(camera, native.getSnapshot().accepted.display.camera), 'The scene camera already matches this view.');
       stage({...draftDocument, display: {...draftDocument.display, camera}}); changed(); return commit(prepareDraft(), undefined, camera);
     });},
-    restoreAccepted() {return run(() => {if (poleDrag) {cancelPole(poleDrag.token); return prepareRenderNativeSceneAppearance(native.getSnapshot().accepted);} if (bodyPose) {const result = cancelPose(bodyPose.token); if (result) return result;} const result = restore(); changed(); return result;});},
+    restoreAccepted() {return run(() => {if (materialPreview) {cancelMaterialPreview(materialPreview.token); return prepareRenderNativeSceneAppearance(native.getSnapshot().accepted);} if (poleDrag) {cancelPole(poleDrag.token); return prepareRenderNativeSceneAppearance(native.getSnapshot().accepted);} if (bodyPose) {const result = cancelPose(bodyPose.token); if (result) return result;} const result = restore(); changed(); return result;});},
+    beginMaterialPreview() {return run(() => {
+      noView(); check(available && presenter && nativePresented, 'The applied native preview is unavailable.');
+      check(!invalidLighting && invalidBodyPoseBodyId === null && !invalidSurfacePole && surfacePole === null,
+        'Finish the geometry or lighting draft before material preview.');
+      const baseline = native.getSnapshot(), raw = local.getSnapshot(), accepted = baseline.accepted;
+      const binding = accepted.surfaceMaterials.find(item => item.target.bodyId === selectedBodyId);
+      check(binding && baseline.preparation.materials.some(item => item.target.bodyId === selectedBodyId)
+        && baseline.preparation.entries.some(item => item.kind === 'surface' && item.binding.bodyId === selectedBodyId)
+        && accepted.display.visibleBodyIds.includes(selectedBodyId), 'Preview the selected visible original Surface material.');
+      check(raw.dirty && raw.diagnostics.length === 0, 'Enter a valid changed material draft before Preview.');
+      const preparedMaterial = local.prepareDraft().document;
+      // stageValidMaterial mirrors raw into the native draft. Admit ONLY those fields, never a second scene edit.
+      const normalized = {...draftDocument, surfaceMaterials: draftDocument.surfaceMaterials.map(item => {
+        if (item.target.bodyId !== selectedBodyId) return item;
+        check(item.material.revision === binding.material.revision || item.material.revision === preparedMaterial.revision,
+          'The staged material revision is not the accepted or prepared revision.');
+        return {...item, material: {...item.material, shaderSource: binding.material.shaderSource,
+          uniforms: binding.material.uniforms, revision: binding.material.revision}};
+      })};
+      check(sameNative(normalized, accepted), 'Preview requires a material-only draft; finish other scene edits first.');
+      const document = {...accepted, surfaceMaterials: accepted.surfaceMaterials.map(item => item === binding ? {...item, material: preparedMaterial} : item)};
+      const prepared = prepareRenderNativeSceneAppearance(document), camera = displayCamera(), currentOwner = owner();
+      check(currentOwner === acceptedOwner && !reentered, 'The applied preview belongs to another scene or capture reentered.');
+      const token = Object.freeze({});
+      const state: MaterialPreviewState = {token, native: baseline, material: raw, draft: draftDocument,
+        document: prepared.authored.document, bodyId: selectedBodyId, materialDocumentId: preparedMaterial.documentId,
+        camera, localCamera: viewCamera, owner: currentOwner, generation, used: false, presented: false,
+        presenter, reader: ownershipReader, cameraReader: actualCameraReader};
+      materialPreview = state; materialPreviewTokens.set(token, state);
+      try {
+        currentMaterialPreview(token);
+        // Record successful presentation before callback-result/owner/camera verification can fail.
+        presentMaterialPreview(state, prepared, true);
+        try {
+          state.owner = owner();
+          check(sameCamera(displayCamera(), camera) && !reentered, 'Material preview ownership or camera reentry was refused.');
+        } catch (cause) {available = false; closeMaterialPreview(state); changed(); throw cause;}
+        changed(state); return token;
+      } catch (cause) {if (materialPreview === state) {closeMaterialPreview(state); changed();} throw cause;}
+    });},
+    cancelMaterialPreview: token => run(() => cancelMaterialPreview(token)),
+    applyMaterialPreview(token) {return run(() => {
+      const state = currentMaterialPreview(token);
+      try {restoreMaterialPreview(state);} catch (cause) {if (materialPreview === state) changed(state); throw cause;}
+      closeMaterialPreview(state);
+      // Exactly the captured prepared material, one full scene candidate, and no local material commit.
+      try {stage(state.document); changed(); return commit(issue(native.prepareDraft())!, undefined, undefined, undefined, state);}
+      catch (cause) {
+        // Whole-commit callback uncertainty must never leave an apparently usable unowned display.
+        try {if (owner() !== acceptedOwner || !sameCamera(displayCamera(), state.camera) || reentered) available = false;}
+        catch {available = false;}
+        changed(); throw cause;
+      }
+    });},
     beginBodyPosePreview(bodyId) {return run(() => {
       noView(); clean(); check(available && presenter, 'The native preview is unavailable.');
       const camera = displayCamera();
@@ -781,7 +910,7 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
       catch (cause) {changed(); throw cause;}
     });},
     cancelBodyPosePreview: input => run(() => cancelPose(input)),
-    dispose() {if (disposed) return; run(() => {invalidatePose(); invalidatePoleDrag(); native.dispose(); local.dispose(); presenter = null; ownershipReader = undefined; actualCameraReader = undefined; available = false; disposed = true; viewCamera = null; changed(); listeners.clear();});},
+    dispose() {if (disposed) return; run(() => {invalidatePose(); invalidatePoleDrag(); invalidateMaterialPreview(); native.dispose(); local.dispose(); presenter = null; ownershipReader = undefined; actualCameraReader = undefined; available = false; disposed = true; viewCamera = null; changed(); listeners.clear();});},
   };
   readSnapshots(); return Object.freeze(host);
 }
