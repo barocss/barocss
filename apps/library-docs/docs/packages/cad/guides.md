@@ -36,6 +36,10 @@ This builder requires integer-mm origin, width, height and positive distance wit
 
 After editing source parameters, compile again and reconstruct/revalidate the actual new faces and shell. The old solid report cannot certify new geometry. An IGES export of the Curve and six Surfaces remains geometry entities, not a serialized closed Solid.
 
+## Give an original Line width and height
+
+To retain an original Line while giving it a centered width, follow [Line → width Face → direct extrusion](./line-width-extrusion). It uses a separate newer API profile and retains every complete source/Model context. Its six-Face closed abstract Shell has a different certification scope from the rectangle Solid builder above.
+
 ## Query original parameters and derivatives
 
 Use `curveDomain` or `surfaceDomain` before querying. Do not assume every domain is `[0,1]`:
