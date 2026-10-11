@@ -32,3 +32,5 @@ export type { CadEditorSplitSessionOptions, CadEditorSplitPresentation, CadEdito
   CadEditorSplitCandidate, CadEditorSplitSnapshot, CadEditorSplitDownload, CadEditorSplitSession } from './split-types.js';
 
 export type { CadEditorSurfaceIsoCurveAxis, CadEditorSurfaceIsoCurveCreation } from './types.js';
+
+export type { CadEditorCurveJoinCreation } from './types.js';

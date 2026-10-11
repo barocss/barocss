@@ -14,6 +14,7 @@ import { SurfaceKnotControls, useSurfaceKnot } from './surface-knot.js';
 import { CurveKnotControls, useCurveKnot } from './curve-knot.js';
 import { CadEditorBodyRename } from './body-rename.js';
 import { SurfaceIsoCurveControls, useSurfaceIsoCurve } from './surface-isocurve.js';
+import { CurveJoinControls } from './curve-join.js';
 
 const FIELDS: { field: CadEditorPoleField; label: string }[] = [
   { field: 'xMM', label: 'X (mm)' }, { field: 'yMM', label: 'Y (mm)' },
@@ -297,6 +298,7 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
       </select>
     </div>
     {!isoCurve?.active && <CadEditorBodyRename session={session} onError={onError} />}
+    {selectedKind==='curve'&&!interval?.active&&!knot?.active&&!curveKnot?.active&&!isoCurve?.active&&<CurveJoinControls session={session} onError={onError} />}
     <div className="cad-editor-curve-view-actions">
       {curveSelection && <Button type="button" variant="outline" size="sm" data-testid="curve-focus" disabled={busy || transition !== null}
         onClick={() => action(() => { session.prepareCurveFocus(curveSelection.bodyId, 65); })}>Focus Curve</Button>}

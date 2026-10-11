@@ -821,3 +821,35 @@ Open restores the existing selection policy; a new coefficient boundary can clea
 the pole before another body-only Move. The host command palette keeps its existing
 selection eligibility; this entry point is the viewport Move control. This feature
 does not provide general Solid movement or change the Rotate/Scale pivot policy.
+
+
+### Join two original Curves
+
+Select an original Curve in document view and open Join Curves. The selected Curve
+is First Curve; choose Next Curve from the existing document bodies. The operation
+connects the end of First Curve to the start of Next Curve in that order. The
+shared endpoints must already coincide numerically. There is no automatic reversal,
+snapping, gap bridge or sewing. Both parents must have the same degree within the
+existing native degree1–3, sixteen-poles-per-parent and bounded-coordinate profile.
+
+The session captures two actual ordered qualified references and complete Sources.
+It calls the existing native join and whole-result validator, then stores only the
+generated result Source in a new independent asset and Curve body. Both original
+assets, full Sources, Models, siblings, revisions and body identities remain intact.
+Native parentSources are regenerated single-object proof files, not replacement
+authority for the original whole assets. The joined body becomes visible only after
+the complete current Viewer admits the candidate. The operation adds one history
+entry and preserves the selected First Curve and its existing point or absent point.
+
+Undo removes the new inventory. Redo restores its logical IDs with fresh document
+and asset references. Display, document, Source and history limits remain unchanged;
+a full displayed set requires hiding a body before Join. Save includes current native
+Sources and body bindings. It excludes the join proof, dialog choice and runtime
+history. The new Curve is independently editable after Open; it is a snapshot and
+does not regenerate when either parent changes.
+
+The result is a native C0 Curve. Parameter mapping and rational-weight rescaling use
+the existing provider. Its local D0/D1 observations and genuine derivative refusal
+are retained; they do not certify global error, G1/G2 continuity, wire topology,
+manufacturing tolerance or a Solid. A refused operation retains the original accepted
+document and the dialog's corrective Next Curve choice.
