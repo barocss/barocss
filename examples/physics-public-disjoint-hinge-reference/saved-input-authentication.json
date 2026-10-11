@@ -1,0 +1,774 @@
+{
+  "kind": "selected snapshot byte/data provenance only",
+  "nativeHead": "f40123da0eedb19245688557f865e1beb09d47ef",
+  "consumerHead": "a341f2224ac4bd0b1167f4a9059ab32ab331aac2",
+  "bankManifest": {
+    "path": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/manifest.json",
+    "sha256": "60e389dbce2640f7f28378927f54cd6d2d8af203bcf374d54177a957b91d2191",
+    "matchesKnownManifest": true
+  },
+  "existingFullAuditManifest": {
+    "path": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/final-data-audits/manifest.json",
+    "sha256": "8a8d37f21079bc5d59f418074a804f3aa9805c49e4c012ca3b4d921e8093d580"
+  },
+  "reusedFullAudits": [
+    {
+      "path": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/final-data-audits/composite-audit.json",
+      "bytes": 82397,
+      "sha256": "4f83c5aacf7a384ee2954d25cb84009b7d570ad079c98fe388a74231edde0a1d",
+      "matchesPriorManifest": true
+    },
+    {
+      "path": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/final-data-audits/composite-audit.md",
+      "bytes": 4708,
+      "sha256": "836a23a00f03c455607d300ba183eaa48274c0d81d96357ef549136715764ce0",
+      "matchesPriorManifest": true
+    },
+    {
+      "path": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/final-data-audits/numeric-audit.md",
+      "bytes": 14484,
+      "sha256": "64d098e71a9236e5f6391a4eabefaf25a38db1862af7781d7420991ec485fd5a",
+      "matchesPriorManifest": true
+    },
+    {
+      "path": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/final-data-audits/numeric-audit.py",
+      "bytes": 9703,
+      "sha256": "5aa2c37d85b4eff3991896702199a912d97170a8db6dc72f2ce72b9df7605ea7",
+      "matchesPriorManifest": true
+    },
+    {
+      "path": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/final-data-audits/provenance-audit.md",
+      "bytes": 8511,
+      "sha256": "185645e3323958fcc3f9cf66d37de2a04638daca72c9d2a934dc09f0142aed2f",
+      "matchesPriorManifest": true
+    }
+  ],
+  "streams": {
+    "controls.records.jsonl": {
+      "archivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/controls.records.jsonl.gz",
+      "archiveBytes": 178534,
+      "archiveSha256": "b719837548550c7488d122a1fffb14c5923823a5a2b25ed620489f1fd92d4dce",
+      "compressedMatchesManifest": true,
+      "decodedBytes": 3474835,
+      "decodedSha256": "97fedbf66971e99811500ebaae49afdb7f94ae6ac971497bd8aff0a7653e62c2",
+      "fullDecodedAuthentication": "reused final-data-audits; not repeated"
+    },
+    "controls.bodies.raw": {
+      "archivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/controls.bodies.raw",
+      "archiveBytes": 61984,
+      "archiveSha256": "0f5cbc09ed349ac93f3c720b96d8cef9c7ccf772a34b55b40947fd13a4228616",
+      "compressedMatchesManifest": true,
+      "decodedBytes": 61984,
+      "decodedSha256": "0f5cbc09ed349ac93f3c720b96d8cef9c7ccf772a34b55b40947fd13a4228616",
+      "fullDecodedAuthentication": "reused final-data-audits; not repeated"
+    },
+    "main.native.jsonl": {
+      "archivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/main.native.jsonl.gz",
+      "archiveBytes": 7738142,
+      "archiveSha256": "0b5a67fe530235eebcf1b7aa6074e1eedd3c1d2dcea8ee0584089ef4bf1d253c",
+      "compressedMatchesManifest": true,
+      "decodedBytes": 230570027,
+      "decodedSha256": "29aa9e9ce5bd38bf658a3e94b396566a30e0904cd2d9020909d43714b46fed72",
+      "fullDecodedAuthentication": "reused final-data-audits; not repeated"
+    },
+    "main.records.jsonl": {
+      "archivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/main.records.jsonl.gz",
+      "archiveBytes": 217386,
+      "archiveSha256": "c8aeb21c1ab0ae38485009be4e252967b5f5c2f4f86275763c2118e24197f009",
+      "compressedMatchesManifest": true,
+      "decodedBytes": 1971604,
+      "decodedSha256": "40f7904c33d06f26090a41eb4c35322e1bdc6d49ea0bb4d4332414a9908edbe8",
+      "fullDecodedAuthentication": "reused final-data-audits; not repeated"
+    },
+    "main.bodies.raw": {
+      "archivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/main.bodies.raw.gz",
+      "archiveBytes": 42485,
+      "archiveSha256": "311c6bbf1dc3f07a7c4bfb6c4c0b56e405374415d3275b6959bec1e7e950641b",
+      "compressedMatchesManifest": true,
+      "decodedBytes": 2995616,
+      "decodedSha256": "d22e40616ede583bdd9526ce4e3d4f308658adfeea394e5b2845daa40d10d9f3",
+      "fullDecodedAuthentication": "reused final-data-audits; not repeated"
+    },
+    "reference.stdin.raw": {
+      "archivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/reference.stdin.raw.gz",
+      "archiveBytes": 5011784,
+      "archiveSha256": "f03b2906a7dad1b922eef9dd20dff9c396e8b0ef1ec53c9cf95f42adbdc1b6c9",
+      "compressedMatchesManifest": true,
+      "decodedBytes": 131762734,
+      "decodedSha256": "722957a4d20735710e210f517bd29d51777a923e003c5cdc2ca8f8583c9161d9",
+      "fullDecodedAuthentication": "reused final-data-audits; not repeated"
+    },
+    "reference.stdout.raw": {
+      "archivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/reference.stdout.raw.gz",
+      "archiveBytes": 6610691,
+      "archiveSha256": "ceb4f1e88e4fbcb8b7f83d54945b32b8d44653e91de23d95675714391fe412f2",
+      "compressedMatchesManifest": true,
+      "decodedBytes": 118865391,
+      "decodedSha256": "60f9e35dbed8dda3f6f3ebbff09ddd94fb55b9702e0f21cc2746daa76f79ee02",
+      "fullDecodedAuthentication": "reused final-data-audits; not repeated"
+    }
+  },
+  "snapshots": [
+    {
+      "name": "FIRST",
+      "scope": "archived actual private outcome; not new public execution",
+      "step": 1,
+      "nativeRecord": {
+        "archivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/controls.records.jsonl.gz",
+        "decodedStream": "controls.records.jsonl",
+        "decodedByteOffset": 587174,
+        "bytes": 164094,
+        "lineNumber": 47,
+        "sha256": "39f84c33ad227c7dfe4d97a34dde6598b89676113a2387d674fe4f3573d73afa"
+      },
+      "successfulOutcomeRecord": {
+        "archivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/controls.records.jsonl.gz",
+        "decodedStream": "controls.records.jsonl",
+        "decodedByteOffset": 751268,
+        "bytes": 310,
+        "lineNumber": 48,
+        "sha256": "1caca97b832db9100741ab8652bf78e584ce48709f14952ef95c6557458958f8"
+      },
+      "referenceRequest": {
+        "logicalCompositeOffset": 114226,
+        "physicalArchivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/reference.stdin.raw.gz",
+        "physicalDecodedOffset": 110690,
+        "bytes": 115881,
+        "sha256": "ea89f5f91cca5f3d7332880815d40d18f5ef8b71825811e74a872f616bc35e51",
+        "requestIndex": 3,
+        "prefixBytes": 3536
+      },
+      "nativeRequestMatchesActualIPCJson": true,
+      "referenceReply": {
+        "logicalCompositeOffset": 105600,
+        "physicalArchivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/reference.stdout.raw.gz",
+        "physicalDecodedOffset": 94314,
+        "bytes": 100038,
+        "sha256": "1b3b1c8d0977546d7a9436058c9aad33a0d6f07d3f0bc27d739d80817b89847c",
+        "requestIndex": 3,
+        "prefixBytes": 11286,
+        "sourceSegment": "actual continuation stdout"
+      },
+      "outcome": "returned",
+      "replyStatus": "RETURN",
+      "replyOk": true,
+      "replyResolved": true,
+      "replyExecutionFailure": false,
+      "replyViolations": [],
+      "commands": [
+        {
+          "kind": "angularImpulse",
+          "bodyId": "pairA0",
+          "angularImpulseNms": [
+            0,
+            0,
+            0.001
+          ]
+        }
+      ],
+      "sourceCursor": 0,
+      "sourceTimeSeconds": 0,
+      "attemptCursor": 1,
+      "acceptedCursor": 1,
+      "beforeStoreCursor": 0,
+      "afterStoreCursor": 1,
+      "inputPointer": "/request/sourceState",
+      "postContactInputPointer": "/request/attempt/frames/postContactBodies",
+      "outputPointer": "/request/output/state",
+      "beforeStorePointer": "/before",
+      "afterStorePointer": "/after",
+      "acceptedReportAnglesBefore": [
+        0,
+        0
+      ],
+      "motorInputAngles": [
+        0,
+        0
+      ],
+      "reportedAnglesAfter": [
+        -0.0016666666666666661,
+        0.0004166666666666666
+      ],
+      "motorJ": [
+        0.0001,
+        0.0001
+      ],
+      "bodyIds": [
+        "pairA0",
+        "pairB0",
+        "pairA1",
+        "pairB1"
+      ],
+      "jointIds": [
+        "hinge0",
+        "hinge1"
+      ],
+      "sourceRawSha256": "336909b78c32a1bd17ece87634ed11767de4eaf9fc952aa5d9077ff91a0ad5e0",
+      "postContactRawSha256": "903442a25c4a8f99c74fa89f8266b6411202a9a8db201bba51256e8aa65feaf7",
+      "projectedRawSha256": "2b400834cf5016b187790c2b7255d27525b98d7209e79ee8efa97e0872471fda",
+      "requestNegativeZeroPathsPointer": "/request/negativeZeroPaths",
+      "rawValidation": {
+        "stream": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/controls.bodies.raw",
+        "sequenceOffset": 7904,
+        "sequenceBytes": 3328,
+        "uniqueExact8FrameSequence": true,
+        "phases": [
+          {
+            "phase": "accepted-before",
+            "offset": 7904,
+            "bytes": 416,
+            "sha256": "336909b78c32a1bd17ece87634ed11767de4eaf9fc952aa5d9077ff91a0ad5e0"
+          },
+          {
+            "phase": "source",
+            "offset": 8320,
+            "bytes": 416,
+            "sha256": "336909b78c32a1bd17ece87634ed11767de4eaf9fc952aa5d9077ff91a0ad5e0"
+          },
+          {
+            "phase": "angular",
+            "offset": 8736,
+            "bytes": 416,
+            "sha256": "92c6ecaadbeedc5b005b5839f748b754702ec7e9129f4169dc01b4938c5fd425"
+          },
+          {
+            "phase": "motor",
+            "offset": 9152,
+            "bytes": 416,
+            "sha256": "c21a5ac5051c0c9ce62f20ccebd21188607c8c2fabc60bdaeecd32fb51415084"
+          },
+          {
+            "phase": "free",
+            "offset": 9568,
+            "bytes": 416,
+            "sha256": "903442a25c4a8f99c74fa89f8266b6411202a9a8db201bba51256e8aa65feaf7"
+          },
+          {
+            "phase": "postContact",
+            "offset": 9984,
+            "bytes": 416,
+            "sha256": "903442a25c4a8f99c74fa89f8266b6411202a9a8db201bba51256e8aa65feaf7"
+          },
+          {
+            "phase": "projected",
+            "offset": 10400,
+            "bytes": 416,
+            "sha256": "2b400834cf5016b187790c2b7255d27525b98d7209e79ee8efa97e0872471fda"
+          },
+          {
+            "phase": "accepted-after",
+            "offset": 10816,
+            "bytes": 416,
+            "sha256": "2b400834cf5016b187790c2b7255d27525b98d7209e79ee8efa97e0872471fda"
+          }
+        ],
+        "allSavedHexCorrespond": true
+      },
+      "parents": [
+        {
+          "pairIndex": 0,
+          "pointer": "/reference/pairReplies/0",
+          "replyKeys": [
+            "ok",
+            "resolved",
+            "executionFailure",
+            "metrics",
+            "violations",
+            "reference",
+            "certificate",
+            "transcendentals",
+            "zeroAuthority"
+          ],
+          "ok": true,
+          "resolved": true,
+          "executionFailure": false,
+          "violations": [],
+          "certificatePointer": "/reference/pairReplies/0/certificate",
+          "certificateKeys": [
+            "expected",
+            "actualFrame",
+            "actualOutput"
+          ],
+          "certificateCanonicalJsonBytes": 7304,
+          "certificateCanonicalJsonSha256": "c48e43a06dd57e9ec2d42202a599e71c6526ab55a0dc1033c9f4218500b8c73d",
+          "parentCanonicalJsonSha256": "ee7126e64e0730d777d8415f0ca79a71687c16a42fd2061f533cda9aeaf7ac5c",
+          "canonicalEncoding": "Python JSON sorted keys compact separators; content locator only, not original byte encoding"
+        },
+        {
+          "pairIndex": 1,
+          "pointer": "/reference/pairReplies/1",
+          "replyKeys": [
+            "ok",
+            "resolved",
+            "executionFailure",
+            "metrics",
+            "violations",
+            "reference",
+            "certificate",
+            "transcendentals",
+            "zeroAuthority"
+          ],
+          "ok": true,
+          "resolved": true,
+          "executionFailure": false,
+          "violations": [],
+          "certificatePointer": "/reference/pairReplies/1/certificate",
+          "certificateKeys": [
+            "expected",
+            "actualFrame",
+            "actualOutput"
+          ],
+          "certificateCanonicalJsonBytes": 3229,
+          "certificateCanonicalJsonSha256": "83109c86e1abf2247d4ef90a06b6918d5fd20f915157e5715ea82e41706263c1",
+          "parentCanonicalJsonSha256": "3d3673b6fac4c52987cb534abc99387e7b67136a66c1dcb763f5b8a5c3831f65",
+          "canonicalEncoding": "Python JSON sorted keys compact separators; content locator only, not original byte encoding"
+        }
+      ]
+    },
+    {
+      "name": "LIMIT",
+      "scope": "archived actual private outcome; not new public execution",
+      "step": 197,
+      "nativeRecord": {
+        "archivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/main.native.jsonl.gz",
+        "decodedStream": "main.native.jsonl",
+        "decodedByteOffset": 40904361,
+        "bytes": 216955,
+        "lineNumber": 197,
+        "sha256": "86fbe06fd28ca5788a51c0716ede122bb03f324ae4ad7a6be5d6d0e9324d3094"
+      },
+      "successfulOutcomeRecord": {
+        "archivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/main.records.jsonl.gz",
+        "decodedStream": "main.records.jsonl",
+        "decodedByteOffset": 320423,
+        "bytes": 1638,
+        "lineNumber": 198,
+        "sha256": "060bb66099d59eb605d16f9256c1675d271e054ad919af6f24e17b9074a51e7e"
+      },
+      "referenceRequest": {
+        "stream": "reference.stdin.raw",
+        "offset": 26176543,
+        "bytes": 122903,
+        "sha256": "523e4f9f49d18aacca0b06b5c59293f78c826372930fb86b8f2d70e492fff4e2",
+        "physicalArchivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/reference.stdin.raw.gz",
+        "physicalDecodedOffset": 26173007,
+        "prefixBytes": 3536,
+        "selectedRangeSha256": "523e4f9f49d18aacca0b06b5c59293f78c826372930fb86b8f2d70e492fff4e2"
+      },
+      "nativeRequestMatchesActualIPCJson": true,
+      "referenceReply": {
+        "logicalCompositeOffset": 21156566,
+        "physicalArchivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/reference.stdout.raw.gz",
+        "physicalDecodedOffset": 21145280,
+        "bytes": 95227,
+        "sha256": "bd6baade445c9c4e902fdfd5561750ceb32bcac3db556fa52377d4c91a87a276",
+        "requestIndex": 240,
+        "prefixBytes": 11286,
+        "sourceSegment": "actual continuation stdout"
+      },
+      "outcome": "returned",
+      "replyStatus": "RETURN",
+      "replyOk": true,
+      "replyResolved": true,
+      "replyExecutionFailure": false,
+      "replyViolations": [],
+      "commands": [],
+      "sourceCursor": 196,
+      "sourceTimeSeconds": 1.6333333333333333,
+      "attemptCursor": 197,
+      "acceptedCursor": 197,
+      "beforeStoreCursor": 196,
+      "afterStoreCursor": 197,
+      "inputPointer": "/request/sourceState",
+      "postContactInputPointer": "/request/attempt/frames/postContactBodies",
+      "outputPointer": "/request/output/state",
+      "beforeStorePointer": "/acceptedStoreBefore",
+      "afterStorePointer": "/acceptedStoreAfter",
+      "acceptedReportAnglesBefore": [
+        0.7979154628905215,
+        0.7979154628905215
+      ],
+      "motorInputAngles": [
+        0.7979154628905215,
+        0.7979154628905215
+      ],
+      "reportedAnglesAfter": [
+        0.8,
+        0.8
+      ],
+      "motorJ": [
+        1.8588426697647712e-06,
+        1.8588426697647712e-06
+      ],
+      "bodyIds": [
+        "pairA0",
+        "pairB0",
+        "pairA1",
+        "pairB1"
+      ],
+      "jointIds": [
+        "hinge0",
+        "hinge1"
+      ],
+      "sourceRawSha256": "db789e785eb6c3cb34cc32e318a88818759e847b6b7be0afab075c9b599a7b96",
+      "postContactRawSha256": "23b7035bbdde6210b8759df0e35b2aad7d411729e783ed0e9e177412c021247a",
+      "projectedRawSha256": "5e49921ebc7cc07307ac5da89ac44cf8b544ec5d0699df83e979499374c87867",
+      "requestNegativeZeroPathsPointer": "/request/negativeZeroPaths",
+      "rawValidation": {
+        "phases": [
+          {
+            "phase": "source",
+            "stream": "main.bodies.raw",
+            "offset": 489632,
+            "bytes": 416,
+            "sha256": "db789e785eb6c3cb34cc32e318a88818759e847b6b7be0afab075c9b599a7b96",
+            "archivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/main.bodies.raw.gz",
+            "selectedBytesSha256": "db789e785eb6c3cb34cc32e318a88818759e847b6b7be0afab075c9b599a7b96",
+            "matchesLocatorAndSavedHex": true
+          },
+          {
+            "phase": "angular",
+            "stream": "main.bodies.raw",
+            "offset": 490048,
+            "bytes": 416,
+            "sha256": "db789e785eb6c3cb34cc32e318a88818759e847b6b7be0afab075c9b599a7b96",
+            "archivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/main.bodies.raw.gz",
+            "selectedBytesSha256": "db789e785eb6c3cb34cc32e318a88818759e847b6b7be0afab075c9b599a7b96",
+            "matchesLocatorAndSavedHex": true
+          },
+          {
+            "phase": "motor",
+            "stream": "main.bodies.raw",
+            "offset": 490464,
+            "bytes": 416,
+            "sha256": "9d4e3a04777b631f261970fab1573f6ac381db6399190e3c2bcaa81a9fce9ea2",
+            "archivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/main.bodies.raw.gz",
+            "selectedBytesSha256": "9d4e3a04777b631f261970fab1573f6ac381db6399190e3c2bcaa81a9fce9ea2",
+            "matchesLocatorAndSavedHex": true
+          },
+          {
+            "phase": "free",
+            "stream": "main.bodies.raw",
+            "offset": 490880,
+            "bytes": 416,
+            "sha256": "23b7035bbdde6210b8759df0e35b2aad7d411729e783ed0e9e177412c021247a",
+            "archivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/main.bodies.raw.gz",
+            "selectedBytesSha256": "23b7035bbdde6210b8759df0e35b2aad7d411729e783ed0e9e177412c021247a",
+            "matchesLocatorAndSavedHex": true
+          },
+          {
+            "phase": "postContact",
+            "stream": "main.bodies.raw",
+            "offset": 491296,
+            "bytes": 416,
+            "sha256": "23b7035bbdde6210b8759df0e35b2aad7d411729e783ed0e9e177412c021247a",
+            "archivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/main.bodies.raw.gz",
+            "selectedBytesSha256": "23b7035bbdde6210b8759df0e35b2aad7d411729e783ed0e9e177412c021247a",
+            "matchesLocatorAndSavedHex": true
+          },
+          {
+            "phase": "projected",
+            "stream": "main.bodies.raw",
+            "offset": 491712,
+            "bytes": 416,
+            "sha256": "5e49921ebc7cc07307ac5da89ac44cf8b544ec5d0699df83e979499374c87867",
+            "archivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/main.bodies.raw.gz",
+            "selectedBytesSha256": "5e49921ebc7cc07307ac5da89ac44cf8b544ec5d0699df83e979499374c87867",
+            "matchesLocatorAndSavedHex": true
+          }
+        ],
+        "allSavedHexCorrespond": true
+      },
+      "parents": [
+        {
+          "pairIndex": 0,
+          "pointer": "/reference/pairReplies/0",
+          "replyKeys": [
+            "ok",
+            "resolved",
+            "executionFailure",
+            "metrics",
+            "violations",
+            "reference",
+            "certificate",
+            "transcendentals",
+            "zeroAuthority"
+          ],
+          "ok": true,
+          "resolved": true,
+          "executionFailure": false,
+          "violations": [],
+          "certificatePointer": "/reference/pairReplies/0/certificate",
+          "certificateKeys": [
+            "expected",
+            "actualFrame",
+            "actualOutput"
+          ],
+          "certificateCanonicalJsonBytes": 2307,
+          "certificateCanonicalJsonSha256": "dd36ea7e7e88b88f347baca74dcfbbecbc103e4545d230444f0a94cfaab684b7",
+          "parentCanonicalJsonSha256": "132cc8ac0037b6790321851839a080bd3eef6c5920b4ee0f7ae819dc97c6e550",
+          "canonicalEncoding": "Python JSON sorted keys compact separators; content locator only, not original byte encoding"
+        },
+        {
+          "pairIndex": 1,
+          "pointer": "/reference/pairReplies/1",
+          "replyKeys": [
+            "ok",
+            "resolved",
+            "executionFailure",
+            "metrics",
+            "violations",
+            "reference",
+            "certificate",
+            "transcendentals",
+            "zeroAuthority"
+          ],
+          "ok": true,
+          "resolved": true,
+          "executionFailure": false,
+          "violations": [],
+          "certificatePointer": "/reference/pairReplies/1/certificate",
+          "certificateKeys": [
+            "expected",
+            "actualFrame",
+            "actualOutput"
+          ],
+          "certificateCanonicalJsonBytes": 2307,
+          "certificateCanonicalJsonSha256": "dd36ea7e7e88b88f347baca74dcfbbecbc103e4545d230444f0a94cfaab684b7",
+          "parentCanonicalJsonSha256": "5d9508b3b68a285a9af468f95c5c6c8f4a74ea6c3f36fa0281d444f71fc21c86",
+          "canonicalEncoding": "Python JSON sorted keys compact separators; content locator only, not original byte encoding"
+        }
+      ]
+    },
+    {
+      "name": "FINAL",
+      "scope": "archived actual private outcome; not new public execution",
+      "step": 1200,
+      "nativeRecord": {
+        "archivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/main.native.jsonl.gz",
+        "decodedStream": "main.native.jsonl",
+        "decodedByteOffset": 230381108,
+        "bytes": 188919,
+        "lineNumber": 1200,
+        "sha256": "a2b72c77bd2a8485f0dbdb6fa3e0ed81dbb6154c0de864fc03b6e706bbd438b8"
+      },
+      "successfulOutcomeRecord": {
+        "archivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/main.records.jsonl.gz",
+        "decodedStream": "main.records.jsonl",
+        "decodedByteOffset": 1969954,
+        "bytes": 1650,
+        "lineNumber": 1201,
+        "sha256": "28336659e11913e03c190fd6c6c1c936c2c95e0d9a360253d60006aec2e6f7b7"
+      },
+      "referenceRequest": {
+        "stream": "reference.stdin.raw",
+        "offset": 131661098,
+        "bytes": 105172,
+        "sha256": "1e22ffbf62b7df4332ee628cb52e36043e5bac9d0327cab526aa78b7d0acf5a5",
+        "physicalArchivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/reference.stdin.raw.gz",
+        "physicalDecodedOffset": 131657562,
+        "prefixBytes": 3536,
+        "selectedRangeSha256": "1e22ffbf62b7df4332ee628cb52e36043e5bac9d0327cab526aa78b7d0acf5a5"
+      },
+      "nativeRequestMatchesActualIPCJson": true,
+      "referenceReply": {
+        "logicalCompositeOffset": 118779347,
+        "physicalArchivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/reference.stdout.raw.gz",
+        "physicalDecodedOffset": 118768061,
+        "bytes": 97330,
+        "sha256": "10f6eb727fe9221636be83dbee2e734f10bdaaff8d4b57c923e2d417d52cb880",
+        "requestIndex": 1243,
+        "prefixBytes": 11286,
+        "sourceSegment": "actual continuation stdout"
+      },
+      "outcome": "returned",
+      "replyStatus": "RETURN",
+      "replyOk": true,
+      "replyResolved": true,
+      "replyExecutionFailure": false,
+      "replyViolations": [],
+      "commands": [],
+      "sourceCursor": 1199,
+      "sourceTimeSeconds": 9.991666666666667,
+      "attemptCursor": 1200,
+      "acceptedCursor": 1200,
+      "beforeStoreCursor": 1199,
+      "afterStoreCursor": 1200,
+      "inputPointer": "/request/sourceState",
+      "postContactInputPointer": "/request/attempt/frames/postContactBodies",
+      "outputPointer": "/request/output/state",
+      "beforeStorePointer": "/acceptedStoreBefore",
+      "afterStorePointer": "/acceptedStoreAfter",
+      "acceptedReportAnglesBefore": [
+        0.8,
+        0.8
+      ],
+      "motorInputAngles": [
+        0.8,
+        0.8
+      ],
+      "reportedAnglesAfter": [
+        0.8,
+        0.8
+      ],
+      "motorJ": [
+        0,
+        0
+      ],
+      "bodyIds": [
+        "pairA0",
+        "pairB0",
+        "pairA1",
+        "pairB1"
+      ],
+      "jointIds": [
+        "hinge0",
+        "hinge1"
+      ],
+      "sourceRawSha256": "fde19c2551b09b544b3f1576c569b12aae43a064d9e0581fa07db7e293a19d15",
+      "postContactRawSha256": "fde19c2551b09b544b3f1576c569b12aae43a064d9e0581fa07db7e293a19d15",
+      "projectedRawSha256": "fde19c2551b09b544b3f1576c569b12aae43a064d9e0581fa07db7e293a19d15",
+      "requestNegativeZeroPathsPointer": "/request/negativeZeroPaths",
+      "rawValidation": {
+        "phases": [
+          {
+            "phase": "source",
+            "stream": "main.bodies.raw",
+            "offset": 2993120,
+            "bytes": 416,
+            "sha256": "fde19c2551b09b544b3f1576c569b12aae43a064d9e0581fa07db7e293a19d15",
+            "archivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/main.bodies.raw.gz",
+            "selectedBytesSha256": "fde19c2551b09b544b3f1576c569b12aae43a064d9e0581fa07db7e293a19d15",
+            "matchesLocatorAndSavedHex": true
+          },
+          {
+            "phase": "angular",
+            "stream": "main.bodies.raw",
+            "offset": 2993536,
+            "bytes": 416,
+            "sha256": "fde19c2551b09b544b3f1576c569b12aae43a064d9e0581fa07db7e293a19d15",
+            "archivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/main.bodies.raw.gz",
+            "selectedBytesSha256": "fde19c2551b09b544b3f1576c569b12aae43a064d9e0581fa07db7e293a19d15",
+            "matchesLocatorAndSavedHex": true
+          },
+          {
+            "phase": "motor",
+            "stream": "main.bodies.raw",
+            "offset": 2993952,
+            "bytes": 416,
+            "sha256": "fde19c2551b09b544b3f1576c569b12aae43a064d9e0581fa07db7e293a19d15",
+            "archivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/main.bodies.raw.gz",
+            "selectedBytesSha256": "fde19c2551b09b544b3f1576c569b12aae43a064d9e0581fa07db7e293a19d15",
+            "matchesLocatorAndSavedHex": true
+          },
+          {
+            "phase": "free",
+            "stream": "main.bodies.raw",
+            "offset": 2994368,
+            "bytes": 416,
+            "sha256": "fde19c2551b09b544b3f1576c569b12aae43a064d9e0581fa07db7e293a19d15",
+            "archivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/main.bodies.raw.gz",
+            "selectedBytesSha256": "fde19c2551b09b544b3f1576c569b12aae43a064d9e0581fa07db7e293a19d15",
+            "matchesLocatorAndSavedHex": true
+          },
+          {
+            "phase": "postContact",
+            "stream": "main.bodies.raw",
+            "offset": 2994784,
+            "bytes": 416,
+            "sha256": "fde19c2551b09b544b3f1576c569b12aae43a064d9e0581fa07db7e293a19d15",
+            "archivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/main.bodies.raw.gz",
+            "selectedBytesSha256": "fde19c2551b09b544b3f1576c569b12aae43a064d9e0581fa07db7e293a19d15",
+            "matchesLocatorAndSavedHex": true
+          },
+          {
+            "phase": "projected",
+            "stream": "main.bodies.raw",
+            "offset": 2995200,
+            "bytes": 416,
+            "sha256": "fde19c2551b09b544b3f1576c569b12aae43a064d9e0581fa07db7e293a19d15",
+            "archivePath": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/evidence/completed-world-a341f222/source-proof/main.bodies.raw.gz",
+            "selectedBytesSha256": "fde19c2551b09b544b3f1576c569b12aae43a064d9e0581fa07db7e293a19d15",
+            "matchesLocatorAndSavedHex": true
+          }
+        ],
+        "allSavedHexCorrespond": true
+      },
+      "parents": [
+        {
+          "pairIndex": 0,
+          "pointer": "/reference/pairReplies/0",
+          "replyKeys": [
+            "ok",
+            "resolved",
+            "executionFailure",
+            "metrics",
+            "violations",
+            "reference",
+            "certificate",
+            "transcendentals",
+            "zeroAuthority"
+          ],
+          "ok": true,
+          "resolved": true,
+          "executionFailure": false,
+          "violations": [],
+          "certificatePointer": "/reference/pairReplies/0/certificate",
+          "certificateKeys": [
+            "expected",
+            "actualFrame",
+            "actualOutput"
+          ],
+          "certificateCanonicalJsonBytes": 3249,
+          "certificateCanonicalJsonSha256": "f2f0c2e7c5b7bc448d756128a471529ac3824206e07800dc238eeba35f6f746b",
+          "parentCanonicalJsonSha256": "3ee5000b0020bcdef36a15e2667c5ee86acdd6e04e19655093444b3d32dbf1ec",
+          "canonicalEncoding": "Python JSON sorted keys compact separators; content locator only, not original byte encoding"
+        },
+        {
+          "pairIndex": 1,
+          "pointer": "/reference/pairReplies/1",
+          "replyKeys": [
+            "ok",
+            "resolved",
+            "executionFailure",
+            "metrics",
+            "violations",
+            "reference",
+            "certificate",
+            "transcendentals",
+            "zeroAuthority"
+          ],
+          "ok": true,
+          "resolved": true,
+          "executionFailure": false,
+          "violations": [],
+          "certificatePointer": "/reference/pairReplies/1/certificate",
+          "certificateKeys": [
+            "expected",
+            "actualFrame",
+            "actualOutput"
+          ],
+          "certificateCanonicalJsonBytes": 3249,
+          "certificateCanonicalJsonSha256": "f2f0c2e7c5b7bc448d756128a471529ac3824206e07800dc238eeba35f6f746b",
+          "parentCanonicalJsonSha256": "ec003bf829983879d2f3b706817fa129faab0ff5d50f686bf34eafc1a531efbc",
+          "canonicalEncoding": "Python JSON sorted keys compact separators; content locator only, not original byte encoding"
+        }
+      ]
+    }
+  ],
+  "modelsRun": 0,
+  "worldsRun": 0,
+  "referencesRun": 0,
+  "projectionsRun": 0,
+  "buildsRun": 0,
+  "full43FileAuditRepeated": false,
+  "full7201FrameAuditRepeated": false,
+  "remainingGaps": [
+    "No new rename/permutation/public execution is certified here.",
+    "Consumer must resolve logical IPC locators through saved-initial plus continuation segments; direct offsets into current raw are wrong.",
+    "acceptedStore JSON has no complete independent negative-zero authority; use body raw and request negativeZeroPaths, as original audit states.",
+    "Reuse requires BEFORE input/report-memory/raw correspondence, not just matching AFTER output.",
+    "Fresh identity wrapper/canonical group traversal and error priority remain new source/numeric qualification."
+  ],
+  "selectedAuthenticationPassed": true
+}

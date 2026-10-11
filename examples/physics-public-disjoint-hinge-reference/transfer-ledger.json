@@ -1,0 +1,383 @@
+{
+  "kind": "BEFORE_CODE_TRANSFER_LEDGER",
+  "base": "0daa834559886213ffee9922381f9d90f00a501d",
+  "worktree": "/workspace/scratch/1591b2fb2f62/barocss-1489-saved-phase",
+  "physicsPackageMatchesF401": true,
+  "files": [
+    {
+      "path": "examples/physics-rigid-coupled-hinge-reference/candidate.ts",
+      "bytes": 5503,
+      "sha256": "ea9c7bf81d281053a4576a66fe0944d1fe3a329485b41c02cc987e0333796532",
+      "matchesF401": true
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/profile.ts",
+      "bytes": 4576,
+      "sha256": "9911fb4cf26384f248d5c83144491cae099a8703a621bd653c33bb72d9f2cc0d",
+      "matchesF401": true
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/candidate.ts",
+      "bytes": 3909,
+      "sha256": "6580bb3dd049c70076e3d32225749c2b7b3e811e65a83fe43f0cf4393086105c",
+      "matchesF401": true
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/diagnostics.ts",
+      "bytes": 2644,
+      "sha256": "c432f6f2eb4e48dbac260490489badf6be25d0711fdf866f4b096b4baee68257",
+      "matchesF401": true
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/rows.ts",
+      "bytes": 3722,
+      "sha256": "3b9d0401497d6f32bc701aa887e8020171ccd0d4747ee7faa9a04940ecfb73ae",
+      "matchesF401": true
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/linear-solver.ts",
+      "bytes": 10603,
+      "sha256": "27a9ff150621e6a648648441e0d862fccc9814e649fb1cccd4086d35bee79663",
+      "matchesF401": true
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/report.ts",
+      "bytes": 3688,
+      "sha256": "b687dadc56d3bd12dabe7938bfba141344f3899a0415e6cd93f5f43a9bcd2b01",
+      "matchesF401": true
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/copy.ts",
+      "bytes": 2412,
+      "sha256": "9422c976771232c85ac1ec070e37fee8c6a36280994ab2373e9f4c1e93dbf4a0",
+      "matchesF401": true
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/errors.ts",
+      "bytes": 2152,
+      "sha256": "725871eb0c1ae32a181cf169379daf3ae9052ac1d6b1c82eb8db25a3985d7312",
+      "matchesF401": true
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/postcontact-pair.ts",
+      "bytes": 4273,
+      "sha256": "0c127a3fff5f0d0900681e50814706d6ab5a9fe48b3f30d9666c64cd9006929e",
+      "matchesF401": true
+    }
+  ],
+  "calls": {
+    "model": 0,
+    "reference": 0,
+    "projection": 0,
+    "report": 0,
+    "build": 0
+  },
+  "status": "SOURCE_MAPPING_FROZEN_NOT_EXECUTED",
+  "allowedDifferences": [
+    "package-relative imports",
+    "private admission and catch/relabel bridge removed",
+    "parsed directed local pair DTO and explicit immutable rest origin",
+    "selected five numerical guard messages",
+    "detached caller-order output and canonical component traversal",
+    "internal copy/shape guards retained without observer whitelist"
+  ],
+  "targetFiles": [
+    "types.ts",
+    "errors.ts",
+    "measure.ts",
+    "pose.ts",
+    "rows.ts",
+    "linear-solver.ts",
+    "projection.ts",
+    "report.ts",
+    "postcontact.ts"
+  ],
+  "immutableTransferProviderClosure": [
+    {
+      "path": "examples/physics-rigid-coupled-hinge-reference/admission.ts",
+      "bytes": 4014,
+      "sha256": "cafa33eb8438f182b27bbfd2ba4ab91e34470ac76b4b0e2520214f9dc4c5204f"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-hinge-reference/candidate.ts",
+      "bytes": 5503,
+      "sha256": "ea9c7bf81d281053a4576a66fe0944d1fe3a329485b41c02cc987e0333796532"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-hinge-reference/profile.ts",
+      "bytes": 2501,
+      "sha256": "3d7fc873d3e5ff9d6f68482e184568eca73fcb7c57f87a1e1e17b3090af79dcd"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-limit-diagnostic/adapter.ts",
+      "bytes": 6977,
+      "sha256": "8919ab174525316f2b7697cfb003c7e3e4103a999ef67408ddbe99ca7b19da22"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/copy.ts",
+      "bytes": 2412,
+      "sha256": "9422c976771232c85ac1ec070e37fee8c6a36280994ab2373e9f4c1e93dbf4a0"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/errors.ts",
+      "bytes": 2152,
+      "sha256": "725871eb0c1ae32a181cf169379daf3ae9052ac1d6b1c82eb8db25a3985d7312"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/report.ts",
+      "bytes": 3688,
+      "sha256": "b687dadc56d3bd12dabe7938bfba141344f3899a0415e6cd93f5f43a9bcd2b01"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/types.ts",
+      "bytes": 3652,
+      "sha256": "f82591f5e66f0dd5148a5c0f81fb4fc97eeaad1a4c1314d5dbc5ed0e16aaee21"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/candidate.ts",
+      "bytes": 3909,
+      "sha256": "6580bb3dd049c70076e3d32225749c2b7b3e811e65a83fe43f0cf4393086105c"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/diagnostics.ts",
+      "bytes": 2644,
+      "sha256": "c432f6f2eb4e48dbac260490489badf6be25d0711fdf866f4b096b4baee68257"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/linear-solver.ts",
+      "bytes": 10603,
+      "sha256": "27a9ff150621e6a648648441e0d862fccc9814e649fb1cccd4086d35bee79663"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/profile.ts",
+      "bytes": 4576,
+      "sha256": "9911fb4cf26384f248d5c83144491cae099a8703a621bd653c33bb72d9f2cc0d"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/rows.ts",
+      "bytes": 3722,
+      "sha256": "3b9d0401497d6f32bc701aa887e8020171ccd0d4747ee7faa9a04940ecfb73ae"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/copy.ts",
+      "bytes": 1056,
+      "sha256": "4bc62d44802a96d6d81f51764b7a4af967a5fe82cfa2ff62caf9820c037e5319"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/diagnostics.ts",
+      "bytes": 12440,
+      "sha256": "9bd36b3605e90e7470823c32864f2400dc3eb390362b725725f0a4f5bd28512b"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/errors.ts",
+      "bytes": 2526,
+      "sha256": "bf952c0164bb5fd26057fad8f72032bb78c0089ccd580cca40bdfd238dfe6bb0"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/postcontact-pair.ts",
+      "bytes": 4273,
+      "sha256": "0c127a3fff5f0d0900681e50814706d6ab5a9fe48b3f30d9666c64cd9006929e"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/types.ts",
+      "bytes": 5515,
+      "sha256": "e81de15f61808408ec6980eca46b7a81352d4bb5f248f2a8047ed38af0a978fc"
+    },
+    {
+      "path": "packages/barocss-physics/src/capsule-contact.ts",
+      "bytes": 5606,
+      "sha256": "a9df21430e4e2a37b1055143a5954a6a3f997b758c46432daebc11998630f3cd"
+    },
+    {
+      "path": "packages/barocss-physics/src/collision.ts",
+      "bytes": 13433,
+      "sha256": "2ba769697e5f9c5174f30a7a9ae8dceb61c1ba03c6fb507c24b6b6f7d4240388"
+    },
+    {
+      "path": "packages/barocss-physics/src/dynamic-anchor-pair.ts",
+      "bytes": 3063,
+      "sha256": "66db021e35e76fa8a785e4468b7ccde59cd330f15bcc322ec6bd945de7efe046"
+    },
+    {
+      "path": "packages/barocss-physics/src/dynamic-fixed-joint.ts",
+      "bytes": 2042,
+      "sha256": "5e7c857c8b53536879c38ceb8728aaf43f2d840a9a1ceff8d5eb0d28690b021b"
+    },
+    {
+      "path": "packages/barocss-physics/src/dynamic-hinge-joint.ts",
+      "bytes": 4826,
+      "sha256": "f41e935efcc92d931277c3d7ccc42921cc98049f2febcf5eee26cc7ba82aa171"
+    },
+    {
+      "path": "packages/barocss-physics/src/joints.ts",
+      "bytes": 7222,
+      "sha256": "733db740db6cdfb079faab141ac876909cf57bdb372c8c018b6336d07b48528c"
+    },
+    {
+      "path": "packages/barocss-physics/src/limits.ts",
+      "bytes": 417,
+      "sha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3"
+    },
+    {
+      "path": "packages/barocss-physics/src/math.ts",
+      "bytes": 2412,
+      "sha256": "6605633830fa7fdf39f9531fbf988b52e306a6835655a318c961eb44c6b05ff8"
+    },
+    {
+      "path": "packages/barocss-physics/src/persistent-box-contact.ts",
+      "bytes": 3397,
+      "sha256": "4a176334c5cef1590505b53f81c8beed1658b0c00255e471ba88c438746a9c48"
+    },
+    {
+      "path": "packages/barocss-physics/src/types.ts",
+      "bytes": 5118,
+      "sha256": "e8befc80c94e1b109f5024581f056639acff2c19ed445f2875e20eaf2d3bf240"
+    },
+    {
+      "path": "packages/barocss-physics/src/validation.ts",
+      "bytes": 14147,
+      "sha256": "5b0a3016c32ef19076984e6b7f529253af581c29eb9dd1adb19cc8dba185479f"
+    }
+  ],
+  "sourceToTarget": [
+    {
+      "target": "packages/barocss-physics/src/disjoint-hinge/types.ts",
+      "sourceRanges": [
+        {
+          "path": "examples/physics-rigid-hinge-velocity-reference/profile.ts",
+          "startLine": 18,
+          "endLineInclusive": 22
+        },
+        {
+          "path": "examples/physics-rigid-hinge-motor-reference/types.ts",
+          "startLine": 11,
+          "endLineInclusive": 14
+        },
+        {
+          "path": "examples/physics-rigid-hinge-motor-reference/types.ts",
+          "startLine": 28,
+          "endLineInclusive": 29
+        }
+      ],
+      "allowedDifference": "NEW ParsedPair/PairInput and local tuple; original numerical type declarations retained"
+    },
+    {
+      "target": "packages/barocss-physics/src/disjoint-hinge/errors.ts",
+      "sourceRanges": [
+        {
+          "path": "examples/physics-rigid-hinge-velocity-reference/profile.ts",
+          "startLine": 23,
+          "endLineInclusive": 41
+        },
+        {
+          "path": "examples/physics-rigid-hinge-velocity-reference/profile.ts",
+          "startLine": 56,
+          "endLineInclusive": 61
+        }
+      ],
+      "allowedDifference": "selected five direct messages/GATE; no private admission or catch/relabel bridge"
+    },
+    {
+      "target": "packages/barocss-physics/src/disjoint-hinge/measure.ts",
+      "sourceRanges": [
+        {
+          "path": "examples/physics-rigid-hinge-velocity-reference/diagnostics.ts",
+          "startLine": 4,
+          "endLineInclusive": 25
+        },
+        {
+          "path": "examples/physics-rigid-coupled-hinge-reference/candidate.ts",
+          "startLine": 7,
+          "endLineInclusive": 22
+        }
+      ],
+      "allowedDifference": "import paths; pose measure renamed measurePose/exported only internally"
+    },
+    {
+      "target": "packages/barocss-physics/src/disjoint-hinge/pose.ts",
+      "sourceRanges": [
+        {
+          "path": "examples/physics-rigid-coupled-hinge-reference/candidate.ts",
+          "startLine": 23,
+          "endLineInclusive": 45
+        }
+      ],
+      "allowedDifference": "private admit removed; explicit parsed input/rest origin/cursor; direct selected result message; arithmetic and original finiteData preserved"
+    },
+    {
+      "target": "packages/barocss-physics/src/disjoint-hinge/rows.ts",
+      "sourceRanges": [
+        {
+          "path": "examples/physics-rigid-hinge-velocity-reference/rows.ts",
+          "startLine": 6,
+          "endLineInclusive": 42
+        }
+      ],
+      "allowedDifference": "imports only"
+    },
+    {
+      "target": "packages/barocss-physics/src/disjoint-hinge/linear-solver.ts",
+      "sourceRanges": [
+        {
+          "path": "examples/physics-rigid-hinge-velocity-reference/linear-solver.ts",
+          "startLine": 3,
+          "endLineInclusive": 119
+        }
+      ],
+      "allowedDifference": "imports only"
+    },
+    {
+      "target": "packages/barocss-physics/src/disjoint-hinge/projection.ts",
+      "sourceRanges": [
+        {
+          "path": "examples/physics-rigid-hinge-velocity-reference/candidate.ts",
+          "startLine": 11,
+          "endLineInclusive": 42
+        }
+      ],
+      "allowedDifference": "private prepareInput/bridge removed; direct parsed input/rest origin/cursor and one pose call; no arithmetic changes"
+    },
+    {
+      "target": "packages/barocss-physics/src/disjoint-hinge/report.ts",
+      "sourceRanges": [
+        {
+          "path": "examples/physics-rigid-hinge-motor-reference/report.ts",
+          "startLine": 7,
+          "endLineInclusive": 54
+        },
+        {
+          "path": "examples/physics-rigid-hinge-motor-reference/copy.ts",
+          "startLine": 5,
+          "endLineInclusive": 16
+        },
+        {
+          "path": "examples/physics-rigid-hinge-motor-reference/copy.ts",
+          "startLine": 21,
+          "endLineInclusive": 48
+        },
+        {
+          "path": "examples/physics-rigid-hinge-motor-reference/errors.ts",
+          "startLine": 12,
+          "endLineInclusive": 12
+        }
+      ],
+      "allowedDifference": "import paths and local retained helper placement only"
+    },
+    {
+      "target": "packages/barocss-physics/src/disjoint-hinge/postcontact.ts",
+      "sourceRanges": [
+        {
+          "path": "examples/physics-rigid-hinge-velocity-world-reference/postcontact-pair.ts",
+          "startLine": 25,
+          "endLineInclusive": 38
+        },
+        {
+          "path": "examples/physics-rigid-hinge-velocity-world-reference/postcontact-pair.ts",
+          "startLine": 39,
+          "endLineInclusive": 67
+        }
+      ],
+      "allowedDifference": "NEW detached dispatcher preserving projection/report sequence; local/global indexes explicit; no diagnostic/observer stages; actual raw4 instead of pair raw; caller-joint cap checks before returning"
+    }
+  ]
+}
