@@ -2639,3 +2639,38 @@ reflection behavior remains compatible.
 
 One bounded source/emitted/file/cold flow:
 `node examples/gpu-scene/native-reflection-cause-flow.mjs --output /absolute/fresh-directory`.
+
+## Trusted native Surface UV01 shader source (CPU)
+
+`prepareNativeSurfaceUV01ShaderSource(unknown)` accepts four own fields:
+`format: 'barocss-gpu-native-surface-uv01-shader-request'`, `version: 0`, a raw
+native UV01 `binding` request, and explicit `lighting` (null for the existing
+fixed-light template, or the existing three-field MeshLighting configuration).
+It admits lighting first, reconstructs the actual binding once, then reuses the
+own mesh shader templates and trusted lowered expression. Binding work remains
+two material snapshots/compiles plus one geometry producer, with existing bounds.
+
+The six-field v0 result has profile `source0-native-opaque-uv01-shader-source-v0`,
+`request`, `binding`, and `shaders: {vertex, fragment}`. Its request is effective
+canonical intent with all uniform defaults resolved, rather than unresolved
+editor history. Ordinary data is fresh/frozen; the binding's independent Float32
+UV01 view remains mutable. Original geometry/material source strings and native
+control, knots, domain, raw U/V, signs and IDs remain separate from derived data.
+
+GLSL300es/highp source retains position0/normal1, the existing camera branch and
+lighting/gamma/opaque output. Location2 is `vec2 native_surface_uv01`, assigned to
+matching `v_native_surface_uv01` varying. Trusted native material declarations and
+linear expression replace only the previous inner color decode. Each insertion
+anchor must occur once; each complete vertex/fragment is bounded to 65536 UTF16
+units and UTF8 bytes. Caller GLSL or prepared bindings are not inputs.
+
+`NativeSurfaceUV01ShaderSourceError` reports INPUT/LIGHTING/BINDING/SHADER, bounded
+messages and actual cause/source-offset chains. Position and normal attributes
+must already be prepared in the existing display/world convention; this source
+builder applies no scene scale, pose or axis conversion. It creates no upload,
+linked program, frame, pixel, device or lifetime receipt. A matching renderer and
+qualified context still need their own contract and actual graphics acceptance.
+It retains the existing single global lighting model; light entities remain #1445.
+
+One source/emitted/DTS/file/cold flow:
+`node examples/gpu-scene/native-surface-uv01-shader-source-flow.mjs --output /absolute/fresh-directory`.

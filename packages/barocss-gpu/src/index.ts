@@ -161,3 +161,6 @@ export type {NativeSurfaceUV01GeometryRequest,PreparedNativeSurfaceUV01Geometry,
 
 export {prepareNativeSurfaceUV01MaterialBinding,NativeSurfaceUV01BindingError} from './native-surface-uv01-binding.js';
 export type {NativeSurfaceUV01BindingRequest,PreparedNativeSurfaceUV01Binding,NativeSurfaceUV01BindingCode} from './native-surface-uv01-binding.js';
+
+export {prepareNativeSurfaceUV01ShaderSource,NativeSurfaceUV01ShaderSourceError} from './native-surface-uv01-shader-source.js';
+export type {NativeSurfaceUV01ShaderSourceRequest,PreparedNativeSurfaceUV01ShaderSource,NativeSurfaceUV01ShaderSourceCode} from './native-surface-uv01-shader-source.js';
