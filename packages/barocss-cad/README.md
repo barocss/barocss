@@ -9548,3 +9548,15 @@ One shared rational context proves the six entire boundary images against an inj
 `validatePairedSurfaceMaterialBody(result)` rebuilds once, compares all owned data and returns a copied report. Request/result caps are8/16MiB with4M own values and bounded fixed-point sizing. These are refusal envelopes, not a guarantee that any separately accepted parent pair fits. Root rational Float conversion, CurveD1, SurfaceD0/D1 and direct compiler calls are zero.
 
 Run `node examples/cad-nurbs/paired-surface-material-body-demo.mjs --source <output-directory>`. Issue1528 tracks this bounded occupied Body. General curved Solid properties, generic Boolean, manufacturing, global binary64 error, Viewer and publication remain separate. Save complete raw sources, construction requests and UV/topology records to reconstruct the Body; no new codec is added.
+
+### Exact WorldXYZ membership on the paired Surface material Body
+
+`classifyPairedSurfaceMaterialBodyWorldPoints(body, queries, options)` validates the complete restricted occupied Body once. Queries are `{ queryId, pointMM: [x, y, z] }` in its original World millimetre frame. Options are `{ evaluationId, maximumQueries: 16 }`. Batches contain0..16 unique finite points with coordinate magnitudes at most10000. Original signed-zero bits and the complete parent are retained.
+
+Exact checks run in X, Y, Z order. The Y roof uses original B-U=X+offset; the Z roof uses the actual A polynomial at(X,Y), including the edited Y dependence. A failed stage returns outside with unevaluated witnesses null. If all bounds hold, exact equality returns every incident actual Face. Edges and corners may return multiple Faces. References retain their Body-relative fields and use a request.body anchor.
+
+One bounded rational context evaluates the source polynomials without native samplers, compilation, projection, root finding or Float conversion. The report records actual query, roof evaluation and comparison counts. The delegated Body validator's real construction, native and arithmetic work remains separate.
+
+`validatePairedSurfaceMaterialBodyWorldPointClassification(result)` rebuilds once, compares every owned field and returns a copied report. Full request/result caps are8/16MiB with4M own values and fixed-point file sizing; these are refusal envelopes, not a guarantee every accepted parent fits. Run `node examples/cad-nurbs/paired-surface-material-body-world-points-demo.mjs --source <output-directory>`. Issue1537 tracks the native API.
+
+This certifies membership in the supplied restricted Body. It does not add a new Body, general Solid Boolean, arbitrary mesh queries, raycasting, renderer picking or manufacturing guarantees. Full sources, construction requests, UV/topology and parent proof records remain required for cold reconstruction; no new codec is added.

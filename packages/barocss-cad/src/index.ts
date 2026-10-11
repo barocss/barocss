@@ -476,3 +476,7 @@ export type { PairedSurfaceUVFaceQuery, PairedSurfaceUVFaceOptions, PairedSurfac
 // Restricted occupied material Body from original paired curved Faces.
 export { buildPairedSurfaceMaterialBody, validatePairedSurfaceMaterialBody, PairedSurfaceMaterialBodyError, PairedSurfaceMaterialBodyDiagnosticCode } from './paired-surface-material-body.js';
 export type { PairedSurfaceMaterialBodyRequest, PairedSurfaceMaterialBodyOptions, PairedSurfaceMaterialBodyReport, PairedSurfaceMaterialBodyResult } from './paired-surface-material-body.js';
+
+// Exact WorldXYZ membership on a restricted paired Surface material Body.
+export { classifyPairedSurfaceMaterialBodyWorldPoints, validatePairedSurfaceMaterialBodyWorldPointClassification, PairedSurfaceMaterialBodyWorldPointError, PairedSurfaceMaterialBodyWorldPointDiagnosticCode } from './paired-surface-material-body-world-points.js';
+export type { PairedSurfaceMaterialBodyWorldPointQuery, PairedSurfaceMaterialBodyWorldPointOptions, PairedSurfaceMaterialBodyWorldPointReport, PairedSurfaceMaterialBodyWorldPointResult } from './paired-surface-material-body-world-points.js';
