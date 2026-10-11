@@ -456,3 +456,7 @@ export type { RectangularFaceExtrusionBodyRequest, RectangularFaceExtrusionBodyO
 
 export { evaluateSourceLineWidthMaterialBodyGraph, updateSourceLineWidthMaterialBodyGraph, validateSourceLineWidthMaterialBodyGraph, validateSourceLineWidthMaterialBodyGraphUpdate, serializeSourceLineWidthMaterialBodyGraph, parseSourceLineWidthMaterialBodyGraph, SourceLineWidthMaterialBodyGraphError, SourceLineWidthMaterialBodyGraphDiagnosticCode } from './source-line-width-material-body-graph.js';
 export type { SourceLineWidthMaterialBodyGraphV0, SourceLineWidthMaterialBodyGraphOptions, SourceLineWidthMaterialBodyGraphEdits, SourceLineWidthMaterialBodyGraphResult, SourceLineWidthMaterialBodyGraphReport, SourceLineWidthMaterialBodyGraphTransaction, SourceLineWidthMaterialBodyGraphTransactionReport, SourceLineWidthMaterialBodyGraphUpdateResult } from './source-line-width-material-body-graph.js';
+
+
+export { buildExactPairedVLinearSurfaceIntersection, validateExactPairedVLinearSurfaceIntersection, ExactPairedVLinearSurfaceIntersectionError, ExactPairedVLinearSurfaceIntersectionDiagnosticCode } from './exact-paired-vlinear-surface-intersection.js';
+export type { ExactPairedVLinearSurfaceIntersectionRequest, ExactPairedVLinearSurfaceIntersectionOptions, ExactPairedVLinearSurfaceIntersectionReport, ExactPairedVLinearSurfaceIntersectionResult } from './exact-paired-vlinear-surface-intersection.js';

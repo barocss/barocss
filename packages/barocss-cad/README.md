@@ -9486,3 +9486,16 @@ The public serializer saves canonical authored source, literal parameters, refer
 Height is limited to5000mm even while suppressed. Existing raw weight, source, geometry and material conditions can refuse otherwise valid inputs. Whole authored/request, current and update envelopes are2MiB,16MiB and32MiB in UTF16 and UTF8; own-value limits are4M and8M. Full repeated ancestors count. These bounds do not guarantee that every valid child fits.
 
 Run `node examples/cad-nurbs/source-line-width-material-body-graph-demo.mjs --source <output-directory>`. Issue1485 tracks the native saved lifecycle. General feature graphs, source expressions, Viewer, Editor, manufacturing and release remain separate.
+
+
+## Exact intersection of paired V-linear graph Surfaces
+
+`buildExactPairedVLinearSurfaceIntersection(request)` accepts two complete source-backed single-Bezier Surfaces in a restricted axis profile. Surface A has affine X(U), affine Y(V) and polynomial Z(U,V). Surface B has affine X(U), polynomial Y(U) and affine Z(V). U degree is1..2 and V degree1, with uniform positive weights. The original sources, selected objects, siblings and both native parameter domains remain unchanged.
+
+Exact stored coefficient composition constructs one common degree4 World Curve and both original UV Curves over the declared original-A U interval. A nonzero affine chart and complete coefficient equality prove the unique branch inside that admitted interval. Exact native scalar representation and whole UV control hulls must pass; inputs are refused instead of rounded or clipped.
+
+The World Curve has one real millimetre Source0/Model1. UV Curves retain dimensionless original UV coordinates, with XY embedded at Z0, in complete owned data. They are bound to their respective original source and Surface. They are not emitted into a World Model. Five native point/derivative observations and their measured gaps are separate from the whole coefficient proof.
+
+`validateExactPairedVLinearSurfaceIntersection(result)` reconstructs once from the complete request, compares every retained field and bit, and returns a copied report. Request/result envelopes are2MiB/4MiB in UTF16 and UTF8 with1M own values. One shared bounded rational context enforces exact conversion; all sources, models, proof and observations count toward the limits.
+
+Run `node examples/cad-nurbs/exact-paired-vlinear-surface-intersection-demo.mjs --source <output-directory>`. Issue1499 tracks native exact paired curves. Original-UV trimmed Faces, topology, general Surface intersections, Body/Solid, manufacturing, Viewer and Editor remain separate.
