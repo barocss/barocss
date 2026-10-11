@@ -472,3 +472,7 @@ export type { PairedSurfaceBUVSplitFacesRequest, PairedSurfaceBUVSplitFacesOptio
 // Exact original-UV membership on certified paired complementary Faces.
 export { classifyPairedSurfaceUVFaces, validatePairedSurfaceUVFaceClassification, PairedSurfaceUVFaceClassificationError, PairedSurfaceUVFaceClassificationDiagnosticCode } from './paired-surface-uv-face-classification.js';
 export type { PairedSurfaceUVFaceQuery, PairedSurfaceUVFaceOptions, PairedSurfaceUVFaceReport, PairedSurfaceUVFaceResult } from './paired-surface-uv-face-classification.js';
+
+// Restricted occupied material Body from original paired curved Faces.
+export { buildPairedSurfaceMaterialBody, validatePairedSurfaceMaterialBody, PairedSurfaceMaterialBodyError, PairedSurfaceMaterialBodyDiagnosticCode } from './paired-surface-material-body.js';
+export type { PairedSurfaceMaterialBodyRequest, PairedSurfaceMaterialBodyOptions, PairedSurfaceMaterialBodyReport, PairedSurfaceMaterialBodyResult } from './paired-surface-material-body.js';

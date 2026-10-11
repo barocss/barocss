@@ -9536,3 +9536,15 @@ One bounded rational context inverts B's positive affine U map and evaluates the
 `validatePairedSurfaceUVFaceClassification(result)` rebuilds once and compares all owned data. Full request/result caps are8/16MiB with4M own values and fixed-point file sizing. These are refusal envelopes; they do not guarantee every independently accepted parent pair fits. Run `node examples/cad-nurbs/paired-surface-uv-face-classification-demo.mjs --source <output-directory>`. Issue1522 tracks this native API.
 
 This result certifies original-UV Face membership only. World point projection, occupied3D material, sewing, Body/Solid, Boolean and manufacturing remain separate. Preserve full source-backed requests and parent UV records for reconstruction.
+
+### Restricted occupied material Body from paired curved Faces
+
+`buildPairedSurfaceMaterialBody(a, b, options)` accepts complete A-forward and B-reverse complementary Face results with the same exact paired section. It selects their lower regions and constructs four real Ruled closures. The first profile requires A.X=UA, A.Y=VA, B.X=UB-offset, B.Z=VB and positive unit axes. All original sources, Models, UV curves, native domains and unused parent Faces remain retained.
+
+Four CompatibleRuled results and four source-adopted natural Face Model5 records close the selected original A/B Model8 regions. The result has eight global vertices, twelve edges, six Faces and twenty-four Uses. Each edge has two opposite effective Uses with an exact affine map between its actual native Curve domains. Eight connected vertex links and complete source bindings establish the closed oriented boundary. Geometry remains in qualified source contexts; no Model18 is emitted.
+
+One shared rational context proves the six entire boundary images against an injective occupied-region map. Strict positive Bernstein heights and Jacobian bounds certify the restricted material region. Volume is an exact Fraction in mm3. Root observation work consists of twenty-four endpoint slots and seventy-two Curve D0 attempts; descendant native/compiler work stays in its full receipts. Observations are diagnostics, separate from the whole coefficient proof.
+
+`validatePairedSurfaceMaterialBody(result)` rebuilds once, compares all owned data and returns a copied report. Request/result caps are8/16MiB with4M own values and bounded fixed-point sizing. These are refusal envelopes, not a guarantee that any separately accepted parent pair fits. Root rational Float conversion, CurveD1, SurfaceD0/D1 and direct compiler calls are zero.
+
+Run `node examples/cad-nurbs/paired-surface-material-body-demo.mjs --source <output-directory>`. Issue1528 tracks this bounded occupied Body. General curved Solid properties, generic Boolean, manufacturing, global binary64 error, Viewer and publication remain separate. Save complete raw sources, construction requests and UV/topology records to reconstruct the Body; no new codec is added.
