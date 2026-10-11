@@ -3748,3 +3748,13 @@ The reader retains the supplied request, original and extracted Source0, both Mo
 Each eligible read calls the whole CAD validator once. Raw and canonical JSON have a 2MiB UTF8/UTF16 limit and a separate 1M-value budget per copy pass. Dedicated codec errors remain direct; native refusal keeps its original CAD error as the `NATIVE` cause. This module exposes CPU data. Engine objects and Source editing use their respective APIs.
 
 The `source-curve-interval-extraction-native-verify.mjs` example runs the source or published-file flow, saved-file reads and a separate process that opens all four saved results. It also checks the selected published types in emitted mode. See Issue #1397 for executed checks and their scope.
+
+### Complete source Curve degree elevation results
+
+Import `@barocss/cad-interop/source-curve-degree-elevation` to read a saved complete native degree elevation result. `parseBaroCadSourceCurveDegreeElevation(text)` accepts strict JSON text. `readBaroCadSourceCurveDegreeElevation(value)` accepts owned data. Both return exactly `native`, `validationReport`, `profile` and `sourceText`.
+
+The reader retains the supplied request, original and elevated Source0, both Models, both Curves, complete coefficient receipts, four AST patches and report. Native data and the actual returned validation report are independent mutable copies. The profile is deeply frozen. `sourceText` retains the admitted JSON text or is `null` for owned reads. Original parameter units, endpoint and join bits, numeric `-0` and native C0 derivative refusals remain unchanged.
+
+Each eligible read calls the whole CAD validator once. Raw and canonical JSON have a 2MiB UTF8/UTF16 limit and a separate 1M-value budget per copy pass. Dedicated codec errors remain direct. Native refusal keeps its original CAD error as the `NATIVE` cause. This CPU reader adds no degree operation, degree lowering, source editing, smoothing or rendering API. Stored ideal and rounded coefficient evidence remains distinct.
+
+The `source-curve-degree-elevation-native-verify.mjs` example runs source or published code with `--mode source|emitted --output ABS_FRESH`, retains four complete results, and opens the four saved native files in a separate process. Coefficient oracle and editor files are DATA only. The emitted flow also checks selected published types. See Issue #1398 for executed checks and their scope.

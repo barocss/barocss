@@ -190,6 +190,10 @@
       "./source-curve-interval-extraction": {
         "types": "./dist/source-curve-interval-extraction.d.ts",
         "import": "./dist/source-curve-interval-extraction.js"
+      },
+      "./source-curve-degree-elevation": {
+        "types": "./dist/source-curve-degree-elevation.d.ts",
+        "import": "./dist/source-curve-degree-elevation.js"
       }
     }
   },
@@ -382,6 +386,10 @@
     "./source-curve-interval-extraction": {
       "types": "./src/source-curve-interval-extraction.ts",
       "import": "./src/source-curve-interval-extraction.ts"
+    },
+    "./source-curve-degree-elevation": {
+      "types": "./src/source-curve-degree-elevation.ts",
+      "import": "./src/source-curve-degree-elevation.ts"
     }
   },
   "files": [
