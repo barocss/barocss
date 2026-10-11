@@ -468,3 +468,7 @@ export type { PairedSurfaceUVSplitFacesRequest, PairedSurfaceUVSplitFacesOptions
 // Original-B XZ Faces from a full exact paired section (private CPU data).
 export { buildPairedSurfaceBUVSplitFaces, validatePairedSurfaceBUVSplitFaces, PairedSurfaceBUVSplitFacesError, PairedSurfaceBUVSplitFacesDiagnosticCode } from './paired-surface-b-uv-split-faces.js';
 export type { PairedSurfaceBUVSplitFacesRequest, PairedSurfaceBUVSplitFacesOptions, PairedSurfaceBUVSplitFacesReport, PairedSurfaceBUVSplitFacesResult } from './paired-surface-b-uv-split-faces.js';
+
+// Exact original-UV membership on certified paired complementary Faces.
+export { classifyPairedSurfaceUVFaces, validatePairedSurfaceUVFaceClassification, PairedSurfaceUVFaceClassificationError, PairedSurfaceUVFaceClassificationDiagnosticCode } from './paired-surface-uv-face-classification.js';
+export type { PairedSurfaceUVFaceQuery, PairedSurfaceUVFaceOptions, PairedSurfaceUVFaceReport, PairedSurfaceUVFaceResult } from './paired-surface-uv-face-classification.js';

@@ -9524,3 +9524,15 @@ Whole coefficient proofs bind all seven edges to original B. Strict cut gaps, op
 `validatePairedSurfaceBUVSplitFaces(result)` rebuilds once and compares all owned data. Run `node examples/cad-nurbs/paired-surface-b-uv-split-faces-demo.mjs --source <output-directory>`. Issue1519 tracks this native result. Outside-window splits, sewn manifolds, Bodies, Solids, material Boolean and manufacturing certificates remain outside this API.
 
 Request/result caps are 4/16 MiB, with bounded ownership and the existing rational context. Failure returns no partial Faces. Full World source cold compilation restores geometry; a complete request and result are required to restore UV topology.
+
+### Exact original-UV membership on paired complementary Faces
+
+`classifyPairedSurfaceUVFaces(a, b, queries, options)` accepts the complete A and B complementary Face results. It validates each parent once and requires the same complete exact paired section. Each query is `{ queryId, assetIndex: 0 | 1, u, v }` in that Surface's original dimensionless UV chart. Options are `{ evaluationId, maximumQueries: 16 }`; batches contain up to 16 queries.
+
+The classifier returns inside, boundary or outside for both closed regions. A point outside the selected UV rectangle is outside both Faces. Exact cut equality is a boundary on both. Natural V boundaries belong to their respective region; a U side is a boundary of the selected region. Reverse orientation preserves membership and retains its orientation metadata.
+
+One bounded rational context inverts B's positive affine U map and evaluates the stored degree4 cut with exact de Casteljau. Outside and natural V boundary paths skip cut evaluation. The report records actual query, inversion, evaluation and comparison counts. Root native, compiler and Float conversion counts are zero; the actual parent rebuild work remains separate.
+
+`validatePairedSurfaceUVFaceClassification(result)` rebuilds once and compares all owned data. Full request/result caps are8/16MiB with4M own values and fixed-point file sizing. These are refusal envelopes; they do not guarantee every independently accepted parent pair fits. Run `node examples/cad-nurbs/paired-surface-uv-face-classification-demo.mjs --source <output-directory>`. Issue1522 tracks this native API.
+
+This result certifies original-UV Face membership only. World point projection, occupied3D material, sewing, Body/Solid, Boolean and manufacturing remain separate. Preserve full source-backed requests and parent UV records for reconstruction.
