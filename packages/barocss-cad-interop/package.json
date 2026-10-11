@@ -210,6 +210,10 @@
       "./translated-strip-plane-split-result": {
         "types": "./dist/translated-strip-plane-split-result.d.ts",
         "import": "./dist/translated-strip-plane-split-result.js"
+      },
+      "./exact-paired-vlinear-surface-intersection-result": {
+        "types": "./dist/exact-paired-vlinear-surface-intersection-result.d.ts",
+        "import": "./dist/exact-paired-vlinear-surface-intersection-result.js"
       }
     }
   },
@@ -422,6 +426,10 @@
     "./translated-strip-plane-split-result": {
       "types": "./src/translated-strip-plane-split-result.ts",
       "import": "./src/translated-strip-plane-split-result.ts"
+    },
+    "./exact-paired-vlinear-surface-intersection-result": {
+      "types": "./src/exact-paired-vlinear-surface-intersection-result.ts",
+      "import": "./src/exact-paired-vlinear-surface-intersection-result.ts"
     }
   },
   "files": [

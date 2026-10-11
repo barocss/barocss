@@ -3912,3 +3912,35 @@ node packages/barocss-cad-interop/examples/exact-surface-band-three.config.mjs -
 Open the printed URL and use **Run once**. The example shows MAIN, reversed Uses, edited geometry, a fresh edited file load and cleanup. Complete native data and separate reports, literal file pins, actual target arrays, resource events and saved frames remain in the chosen output. Run once preserves the first failure.
 
 The emitted mode uses actual package build outputs and published manifest entries. It requires the CAD and CAD interop libraries to have been built first. Use a separate fresh output and port15444. Native completion, local integration, browser checks and npm publication are separate states.
+
+## Complete exact paired V-linear Surface intersection results
+
+The optional `@barocss/cad-interop/exact-paired-vlinear-surface-intersection-result`
+entry reads the complete saved CAD result. Use
+`parseBaroCadExactPairedVLinearSurfaceIntersectionResult(text)` for JSON or
+`readBaroCadExactPairedVLinearSurfaceIntersectionResult(ownData)` for a record.
+The returned `{native, validationReport, profile, sourceText}` keeps the supplied
+whole result and actual whole-validation report in separate mutable copies.
+Only metadata is frozen; JSON source text is unchanged, and own-data reads use
+`sourceText: null`. Errors expose INPUT/JSON/OWNED/BUDGET/SCHEMA/NATIVE; native
+refusals retain their original cause and structured context.
+
+Both complete original Source/Models, World Source/Curve/Model, both original
+UV Curves, proof, direct D1 observations and report are retained. World is mm;
+UV is dimensionless. Repeated Model/Surface names stay qualified by source ID,
+asset index and original object index. Matching validation reconstructs the
+unchanged request once; its compilation, rational and native observation work
+is real. A result is not a generic intersection, filled trim, Body or Solid.
+
+The dedicated strict decoder/copy has 4MiB byte/code-unit and 1,048,576 value
+limits per pass. It preserves numeric negative zero and rejects decoded duplicate
+keys, invalid Unicode, nonfinite numbers, getters, symbols and ancestor cycles.
+The native request, Source and rational limits remain unchanged.
+
+From the repository root with Node 22, run the example before own package builds:
+`node packages/barocss-cad-interop/examples/exact-paired-vlinear-surface-intersection-result-verify.mjs --source --output /ABS/FRESH`.
+After CAD and Interop builds, replace `--source` with `--emitted` to consume the
+actual published JS and physical strict DTS. Each run preserves two signed files
+and loads them in a distinct process. Four original data files total 54,416 bytes;
+the two standalone requests are comparison data. No renderer, URL, serializer,
+edit, dispose, publication or release API is added.
