@@ -446,3 +446,13 @@ text.assembly-translation-guide[data-axis="z"] { fill:#8babcf; stroke:none; }
 .curve-reversal-direction { fill:none; stroke:#dce7d2; stroke-width:1.5; pointer-events:none; }
 .curve-reversal-arrow { fill:#dce7d2; stroke:none; pointer-events:none; }
 .curve-reversal-error { max-width:240px; color:#ffd2ce; font-size:10px; line-height:1.4; overflow-wrap:anywhere; }
+
+/* Idle operation entries share one naturally wrapping Inspector group. */
+.cad-editor-context-tools { display:flex; flex-wrap:wrap; align-items:center; gap:4px; min-width:0; margin-block:4px; }
+.cad-editor-context-entry { flex:0 1 auto; min-width:0; max-width:100%; }
+.cad-editor-context-entry:empty { display:none; }
+.cad-editor-context-entry[data-active="true"] { flex-basis:100%; width:100%; }
+.cad-editor-context-entry[data-active="false"] > :is(.curve-interval-panel,.curve-knot-panel,.surface-knot-panel,.surface-isocurve-panel,.surface-region-panel,.curve-split-panel,.surface-split-panel) { display:inline-flex; min-width:0; max-width:100%; margin:0; padding:0; border-top:0; }
+.cad-editor-context-tools > .cad-editor-curve-view-actions[data-active="false"] { margin:0; gap:4px; }
+.cad-editor:not(.cad-editor-feature) .cad-editor-object-context { padding-bottom:4px; margin-bottom:4px; }
+.cad-editor:not(.cad-editor-feature) .cad-editor-inspector > .cad-editor-field { margin-block:4px; }
