@@ -19,7 +19,18 @@ export type EngineUVMaterialExpression=MaterialExpression<UVInput>;
 export type EngineUVRepeatingMaterialExpression=MaterialExpression<UVInput,'fract'>;
 type NativeSurfaceUV01Input={kind:'input';type:'float';name:'surface_u01'|'surface_v01'};
 export type NativeSurfaceUV01MaterialExpression=MaterialExpression<NativeSurfaceUV01Input>;
-type ParsedMaterialExpression=MaterialExpression<UVInput|NativeSurfaceUV01Input,'fract'>;
+/** Opt-in recursive family. Existing profile unions remain unchanged. */
+type DiscreteExpression<Input, ExtraCall extends string=never>=
+ |Extract<MeshMaterialExpression,{kind:'float'|'color'|'uniform'}>
+ |{kind:'unary';type:'float';operator:'+'|'-';value:DiscreteExpression<Input,ExtraCall>}
+ |{kind:'binary';type:'float';operator:'+'|'-'|'*';left:DiscreteExpression<Input,ExtraCall>;right:DiscreteExpression<Input,ExtraCall>}
+ |{kind:'call';type:'float'|'color';name:'sin'|'cos'|'mix'|'clamp'|ExtraCall;args:DiscreteExpression<Input,ExtraCall>[]}
+ |{kind:'select';type:'float'|'color';value:DiscreteExpression<Input,ExtraCall>;threshold:Extract<MeshMaterialExpression,{kind:'float'}>;below:DiscreteExpression<Input,ExtraCall>;otherwise:DiscreteExpression<Input,ExtraCall>}
+ |Input;
+export type DiscreteMeshMaterialExpression=DiscreteExpression<never>;
+export interface DiscreteMeshMaterialIR {format:'barocss-gpu-discrete-mesh-material';version:0;profile:'mesh-opaque-discrete-fragment-v0';source:string;shaderId:string;uniforms:MeshMaterialUniform[];expression:DiscreteMeshMaterialExpression}
+export interface LoweredDiscreteMeshMaterial extends LoweredMeshMaterial {}
+type ParsedMaterialExpression=DiscreteExpression<UVInput|NativeSurfaceUV01Input,'fract'>;
 export interface MeshMaterialIR {format:'barocss-gpu-mesh-material';version:0;profile:'mesh-opaque-fragment-v0';source:string;shaderId:string;uniforms:MeshMaterialUniform[];expression:MeshMaterialExpression}
 export interface MeshMaterialBinding {material:MeshMaterialIR;uniforms:Record<string,number>}
 export interface LoweredMeshMaterial {expression:string;uniformDeclarations:string;uniformLayout:(MeshMaterialUniform&{glslName:string})[]}
@@ -59,7 +70,7 @@ class Parser {
  private locals=new Map<string,Term>();
  private functions=new Map<string,MaterialFunctionDefinition>();
  private functionScope:MaterialFunctionScope|null=null;
- constructor(private readonly source:string,private readonly list:Token[],private readonly uvInputs=false,private readonly repeatingUV=false,private readonly nativeSurfaceUV01=false){}
+ constructor(private readonly source:string,private readonly list:Token[],private readonly uvInputs=false,private readonly repeatingUV=false,private readonly nativeSurfaceUV01=false,private readonly discrete=false){}
  private inputName(name:string):name is UVInput['name']|NativeSurfaceUV01Input['name']{return this.nativeSurfaceUV01?(name==='surface_u01'||name==='surface_v01'):this.uvInputs&&(name==='uv_u'||name==='uv_v');}
  private current(){return this.list[this.i];}
  private take(text:string){const t=this.current();if(t.text!==text)fail('SYNTAX','Expected '+text,t);this.i++;return t;}
@@ -67,7 +78,7 @@ class Parser {
  private term(expression:ParsedMaterialExpression,type:'float'|'color',range:[number,number],children:Term[],token:Token):Term{if(++this.nodes>256)fail('BUDGET','Material exceeds256 expression nodes',token);const depth=1+Math.max(0,...children.map(c=>c.depth));if(depth>16)fail('BUDGET','Material expression exceeds depth16',token);if(!range.every(n=>Number.isFinite(n)&&Math.abs(n)<=1e6))fail('RANGE','Intermediate bound exceeds±1e6',token);return{expression,type,range,depth,size:1+children.reduce((sum,child)=>sum+child.size,0)};}
  private float(term:Term,token:Token){if(term.type!=='float')fail('TYPE','Float expression required',token);}
  private color(hex:string,token:Token):Term{const linear=[1,3,5].map(i=>Math.pow(parseInt(hex.slice(i,i+2),16)/255,2.2)) as [number,number,number];return this.term({kind:'color',type:'color',hex,linear},'color',[0,1],[],token);}
- private functionReserved(name:string):boolean{return this.inputName(name)||this.uniforms.some(uniform=>uniform.name===name)||this.functions.has(name)||['rgb','pow','sin','cos','mix','clamp','abs','min','max','smoothstep','radians','fract','float','color'].includes(name);}
+ private functionReserved(name:string):boolean{return this.discrete&&name==='select'||this.inputName(name)||this.uniforms.some(uniform=>uniform.name===name)||this.functions.has(name)||['rgb','pow','sin','cos','mix','clamp','abs','min','max','smoothstep','radians','fract','float','color'].includes(name);}
  private copyExpression(expression:ParsedMaterialExpression):ParsedMaterialExpression{
   switch(expression.kind){
    case'float':case'uniform':case'input':return{...expression};
@@ -75,6 +86,7 @@ class Parser {
    case'unary':return{...expression,value:this.copyExpression(expression.value)};
    case'binary':return{...expression,left:this.copyExpression(expression.left),right:this.copyExpression(expression.right)};
    case'call':return{...expression,args:expression.args.map(argument=>this.copyExpression(argument))};
+   case'select':return{...expression,value:this.copyExpression(expression.value),threshold:{...expression.threshold},below:this.copyExpression(expression.below),otherwise:this.copyExpression(expression.otherwise)};
   }
  }
  private substituteParameter(value:Term,token:Token):Term{
@@ -134,6 +146,16 @@ class Parser {
  const authored=this.functions.get(name);
  if(this.functionScope&&(authored||name===this.functionScope.name))fail('SYNTAX','Authored functions cannot call authored functions in a body',token);
  if(authored)return this.callFunction(authored,token,nesting);
+ if(name==='select'&&this.discrete){
+  this.take('(');const value=this.expression(0,nesting+1);this.take(',');
+  const literal=this.current(),number=this.signedNumber();
+  const thresholdExpression:Extract<MeshMaterialExpression,{kind:'float'}>={kind:'float',type:'float',value:number};
+  const threshold=this.term(thresholdExpression,'float',[number,number],[],literal);
+  this.take(',');const below=this.expression(0,nesting+1);this.take(',');const otherwise=this.expression(0,nesting+1);this.take(')');
+  this.float(value,token);if(below.type!==otherwise.type)fail('TYPE','select branches require matching float or color types',token);
+  const range:[number,number]=below.type==='color'?[0,1]:[Math.min(below.range[0],otherwise.range[0]),Math.max(below.range[1],otherwise.range[1])];
+  return this.term({kind:'select',type:below.type,value:value.expression,threshold:thresholdExpression,below:below.expression,otherwise:otherwise.expression},below.type,range,[value,threshold,below,otherwise],token);
+ }
  if(name==='rgb'){
   this.take('(');const channels:number[]=[];
   for(let channel=0;channel<3;channel++){
@@ -239,7 +261,7 @@ class Parser {
  if(this.functionScope){if(token.text===this.functionScope.parameter)return this.substituteParameter(this.functionScope.value,token);fail('TYPE','Pure function body cannot capture '+token.text,token);}
  if(this.functions.has(token.text))fail('TYPE','Authored function requires an argument call',token);
  if(this.inputName(token.text))return this.term({kind:'input',type:'float',name:token.text},'float',this.nativeSurfaceUV01?[0,1]:[-1000,1000],[],token);
- const local=this.locals.get(token.text);if(local){if(this.nodes+local.size>256)fail('BUDGET','Material exceeds256 definition and expanded expression nodes',token);this.nodes+=local.size;return local;}
+ const local=this.locals.get(token.text);if(local){if(this.nodes+local.size>256)fail('BUDGET','Material exceeds256 definition and expanded expression nodes',token);this.nodes+=local.size;return this.discrete?{...local,range:[...local.range],expression:this.copyExpression(local.expression)}:local;}
  const uniform=this.uniforms.find(u=>u.name===token.text);if(!uniform)fail('TYPE','Undeclared material uniform '+token.text,token);return this.term({kind:'uniform',type:'float',name:token.text},'float',[uniform.min,uniform.max],[],token);
  }
  fail('SYNTAX','Material expression required',token);
@@ -260,11 +282,11 @@ class Parser {
  parse():ParsedMaterial{
  this.take('@');this.take('shader');const id=this.current();if(!/^#[A-Za-z_][A-Za-z0-9_-]{0,63}$/.test(id.text))fail('SYNTAX','Shader ID requires ASCII1..64',id);this.i++;this.take('{');
  while(this.current().text==='@'&&this.list[this.i+1]?.text==='uniform'){
- this.take('@');this.take('uniform');const name=this.current();if(!/^[A-Za-z_][A-Za-z0-9_]{0,31}$/.test(name.text))fail('SYNTAX','Uniform name requires ASCII1..32',name);if(this.inputName(name.text))fail('TYPE',this.nativeSurfaceUV01?'Uniform name shadows reserved native Surface UV01 input':'Uniform name shadows reserved UV input',name);if(this.uniforms.some(u=>u.name===name.text))fail('TYPE','Duplicate uniform name',name);this.i++;this.take(':');this.take('float');this.take('(');const min=this.signedNumber();this.take(',');const max=this.signedNumber();this.take(',');const value=this.signedNumber();this.take(')');this.take(';');if(min>max||value<min||value>max)fail('RANGE','Uniform min/default/max are not ordered',name);this.uniforms.push({name:name.text,type:'float',min,max,default:value});if(this.uniforms.length>16)fail('BUDGET','Material exceeds16 uniforms',name);
+ this.take('@');this.take('uniform');const name=this.current();if(!/^[A-Za-z_][A-Za-z0-9_]{0,31}$/.test(name.text))fail('SYNTAX','Uniform name requires ASCII1..32',name);if(this.discrete&&name.text==='select')fail('TYPE','Uniform name shadows reserved select',name);if(this.inputName(name.text))fail('TYPE',this.nativeSurfaceUV01?'Uniform name shadows reserved native Surface UV01 input':'Uniform name shadows reserved UV input',name);if(this.uniforms.some(u=>u.name===name.text))fail('TYPE','Duplicate uniform name',name);this.i++;this.take(':');this.take('float');this.take('(');const min=this.signedNumber();this.take(',');const max=this.signedNumber();this.take(',');const value=this.signedNumber();this.take(')');this.take(';');if(min>max||value<min||value>max)fail('RANGE','Uniform min/default/max are not ordered',name);this.uniforms.push({name:name.text,type:'float',min,max,default:value});if(this.uniforms.length>16)fail('BUDGET','Material exceeds16 uniforms',name);
  }
  while(this.current().text==='@'&&this.list[this.i+1]?.text==='fn')this.parseFunction();
  while(this.current().text==='@'&&this.list[this.i+1]?.text==='let'){
- this.take('@');this.take('let');const name=this.current();if(!/^[A-Za-z_][A-Za-z0-9_]{0,31}$/.test(name.text))fail('SYNTAX','Local name requires ASCII1..32',name);if(this.inputName(name.text))fail('TYPE',this.nativeSurfaceUV01?'Local name shadows reserved native Surface UV01 input':'Local name shadows reserved UV input',name);if(this.locals.has(name.text)||this.uniforms.some(u=>u.name===name.text)||this.functions.has(name.text)||['sin','cos','mix','clamp','float','color'].includes(name.text)||this.repeatingUV&&name.text==='fract')fail('TYPE','Local name collides with an existing or reserved name',name);if(this.locals.size>=16)fail('BUDGET','Material exceeds16 local declarations',name);this.i++;this.take(':');const type=this.current();if(type.text!=='float'&&type.text!=='color')fail('SYNTAX','Local type requires float or color',type);this.i++;this.take('(');const value=this.expression();this.take(')');this.take(';');if(value.type!==type.text)fail('TYPE','Local expression does not match its declared type',type);this.locals.set(name.text,value);
+ this.take('@');this.take('let');const name=this.current();if(!/^[A-Za-z_][A-Za-z0-9_]{0,31}$/.test(name.text))fail('SYNTAX','Local name requires ASCII1..32',name);if(this.discrete&&name.text==='select')fail('TYPE','Local name shadows reserved select',name);if(this.inputName(name.text))fail('TYPE',this.nativeSurfaceUV01?'Local name shadows reserved native Surface UV01 input':'Local name shadows reserved UV input',name);if(this.locals.has(name.text)||this.uniforms.some(u=>u.name===name.text)||this.functions.has(name.text)||['sin','cos','mix','clamp','float','color'].includes(name.text)||this.repeatingUV&&name.text==='fract')fail('TYPE','Local name collides with an existing or reserved name',name);if(this.locals.size>=16)fail('BUDGET','Material exceeds16 local declarations',name);this.i++;this.take(':');const type=this.current();if(type.text!=='float'&&type.text!=='color')fail('SYNTAX','Local type requires float or color',type);this.i++;this.take('(');const value=this.expression();this.take(')');this.take(';');if(value.type!==type.text)fail('TYPE','Local expression does not match its declared type',type);this.locals.set(name.text,value);
  }
  this.take('@');this.take('fragment');this.take('{');this.take('color');this.take(':');const expression=this.expression();if(expression.type!=='color')fail('TYPE','Opaque material output requires color',this.current());this.take(';');this.take('}');this.take('}');this.take('<eof>');
  return{source:this.source,shaderId:id.text.slice(1),uniforms:this.uniforms,expression:expression.expression};
@@ -272,33 +294,81 @@ class Parser {
 }
 export function compileMeshMaterial(source:string):{ok:true;material:MeshMaterialIR}|{ok:false;diagnostics:MeshMaterialDiagnostic[]}{
  // Default parser mode cannot resolve input leaves; the legacy public type stays unchanged.
- try{const parsed=parseMaterialSource(source);return{ok:true,material:freeze({format:'barocss-gpu-mesh-material',version:0,profile:'mesh-opaque-fragment-v0',...parsed,expression:parsed.expression as MeshMaterialExpression})};}
+ try{const parsed=parseMaterialSource(source);return{ok:true,material:freeze({format:'barocss-gpu-mesh-material',version:0,profile:'mesh-opaque-fragment-v0',...parsed,expression:trustedMaterialExpression<MeshMaterialExpression>(parsed.expression,'mesh')})};}
  catch(error){const e=error instanceof MeshMaterialError?error:new MeshMaterialError('SYNTAX',error instanceof Error?error.message:'Material compile failed');return{ok:false,diagnostics:[{code:e.code,message:e.message,start:e.start,end:e.end}]};}
 }
-function parseMaterialSource(source:string,uvInputs=false,repeatingUV=false,nativeSurfaceUV01=false):ParsedMaterial{
+function parseMaterialSource(source:string,uvInputs=false,repeatingUV=false,nativeSurfaceUV01=false,discrete=false):ParsedMaterial{
  if(typeof source!=='string')fail('INPUT','Material source must be text');
  if(new TextEncoder().encode(source).length>65536)fail('BUDGET','Material source exceeds64KiB');
- return new Parser(source,tokens(source),uvInputs,repeatingUV,nativeSurfaceUV01).parse();
+ return new Parser(source,tokens(source),uvInputs,repeatingUV,nativeSurfaceUV01,discrete).parse();
 }
 export function compileEngineUVMaterial(source:string):{ok:true;material:EngineUVMaterialIR}|{ok:false;diagnostics:MeshMaterialDiagnostic[]}{
- try{const parsed=parseMaterialSource(source,true);return{ok:true,material:freeze({format:'barocss-gpu-engine-uv-material',version:0,profile:'engine-opaque-uv-fragment-v0',...parsed,expression:parsed.expression as EngineUVMaterialExpression})};}
+ try{const parsed=parseMaterialSource(source,true);return{ok:true,material:freeze({format:'barocss-gpu-engine-uv-material',version:0,profile:'engine-opaque-uv-fragment-v0',...parsed,expression:trustedMaterialExpression<EngineUVMaterialExpression>(parsed.expression,'uv')})};}
  catch(error){const e=error instanceof MeshMaterialError?error:new MeshMaterialError('SYNTAX',error instanceof Error?error.message:'Material compile failed');return{ok:false,diagnostics:[{code:e.code,message:e.message.slice(0,1024),start:e.start,end:e.end}]};}
 }
 export function compileEngineUVRepeatingMaterial(source:string):{ok:true;material:EngineUVRepeatingMaterialIR}|{ok:false;diagnostics:MeshMaterialDiagnostic[]}{
- try{const parsed=parseMaterialSource(source,true,true);return{ok:true,material:freeze({format:'barocss-gpu-engine-uv-repeating-material',version:0,profile:'engine-opaque-uv-repeating-fragment-v0',...parsed,expression:parsed.expression as EngineUVRepeatingMaterialExpression})};}
+ try{const parsed=parseMaterialSource(source,true,true);return{ok:true,material:freeze({format:'barocss-gpu-engine-uv-repeating-material',version:0,profile:'engine-opaque-uv-repeating-fragment-v0',...parsed,expression:trustedMaterialExpression<EngineUVRepeatingMaterialExpression>(parsed.expression,'repeating')})};}
  catch(error){const e=error instanceof MeshMaterialError?error:new MeshMaterialError('SYNTAX',error instanceof Error?error.message:'Material compile failed');return{ok:false,diagnostics:[{code:e.code,message:e.message.slice(0,1024),start:e.start,end:e.end}]};}
 }
 /** CPU grammar stage only. A future native producer must supply normalized original-domain inputs. */
 export function compileNativeSurfaceUV01Material(source:string):{ok:true;material:NativeSurfaceUV01MaterialIR}|{ok:false;diagnostics:MeshMaterialDiagnostic[]}{
- try{const parsed=parseMaterialSource(source,false,false,true);return{ok:true,material:freeze({format:'barocss-gpu-native-surface-uv01-material',version:0,profile:'native-surface-opaque-uv01-fragment-v0',...parsed,expression:parsed.expression as NativeSurfaceUV01MaterialExpression})};}
+ try{const parsed=parseMaterialSource(source,false,false,true);return{ok:true,material:freeze({format:'barocss-gpu-native-surface-uv01-material',version:0,profile:'native-surface-opaque-uv01-fragment-v0',...parsed,expression:trustedMaterialExpression<NativeSurfaceUV01MaterialExpression>(parsed.expression,'native')})};}
  catch(error){const e=error instanceof MeshMaterialError?error:new MeshMaterialError('SYNTAX',error instanceof Error?error.message:'Material compile failed');return{ok:false,diagnostics:[{code:e.code,message:e.message.slice(0,1024),start:e.start,end:e.end}]};}
 }
-/** Native-only provenance boundary. Local shape/work errors stay outside this reflective catch. */
-function reflectMaterialData(value:object,nativeReflection:boolean):{array:boolean;proto:object|null;d:PropertyDescriptorMap;keys:(string|symbol)[]}{
- try{const array=Array.isArray(value),proto=Object.getPrototypeOf(value),d=Object.getOwnPropertyDescriptors(value),keys=Reflect.ownKeys(value);return{array,proto,d,keys};}
- catch(cause){if(!nativeReflection)throw cause;throw uvError('INPUT','Native Surface material own-data reflection refused',0,0,cause);}
+/** Only private parser-produced trees reach this bounded domain proof. */
+function trustedMaterialExpression<E extends ParsedMaterialExpression>(expression:ParsedMaterialExpression,mode:'mesh'|'uv'|'repeating'|'native'|'discrete'):E{
+ let remaining=256;
+ const visit=(e:ParsedMaterialExpression,depth:number):void=>{
+  if(--remaining<0||depth>16)fail('BUDGET','Trusted material tree exceeds its admitted limit');
+  switch(e.kind){
+   case'float':case'color':case'uniform':return;
+   case'input':if(mode==='native'?(e.name!=='surface_u01'&&e.name!=='surface_v01'):mode==='uv'||mode==='repeating'?(e.name!=='uv_u'&&e.name!=='uv_v'):true)fail('IR','Trusted material input domain mismatch');return;
+   case'unary':visit(e.value,depth+1);return;
+   case'binary':visit(e.left,depth+1);visit(e.right,depth+1);return;
+   case'call':if(e.name==='fract'&&mode!=='repeating')fail('IR','Trusted material call domain mismatch');e.args.forEach(child=>visit(child,depth+1));return;
+   case'select':if(mode!=='discrete')fail('IR','Trusted material selection domain mismatch');visit(e.value,depth+1);visit(e.threshold,depth+1);visit(e.below,depth+1);visit(e.otherwise,depth+1);return;
+  }
+ };
+ visit(expression,1);
+ // Narrow only after checking every recursive child of this trusted parser tree.
+ return expression as E;
 }
-function ownSnapshot(input:unknown,nativeReflection=false):unknown{let budget=8192;const active=new WeakSet<object>();const copy=(v:unknown,depth:number):unknown=>{if(--budget<0||depth>24)fail('BUDGET','Material own-data value/depth limit');if(typeof v==='number'){if(!Number.isFinite(v))fail('INPUT','Material data must be finite');return zero(v);}if(typeof v==='string'){if(v.length>65536)fail('BUDGET','Material string limit');return v;}if(typeof v==='boolean'||v===null)return v;if(!v||typeof v!=='object'||active.has(v))fail('INPUT','Material requires acyclic plain data');const{array,proto,d,keys}=reflectMaterialData(v,nativeReflection);if(array?proto!==Array.prototype:proto!==Object.prototype)fail('INPUT','Material foreign prototype');if(keys.length>(array?257:16)||keys.some(k=>typeof k!=='string'||!('value'in d[k])||(!array||k!=='length')&&!d[k].enumerable))fail('INPUT','Material getter/hidden/symbol/excess fields');active.add(v);let out:unknown;if(array){const n=d.length.value;if(!Number.isInteger(n)||n<0||n>256||keys.length!==n+1||Array.from({length:n},(_,i)=>!Object.hasOwn(d,String(i))).some(Boolean))fail('INPUT','Material requires dense bounded arrays');out=Array.from({length:n},(_,i)=>copy(d[String(i)].value,depth+1));}else out=Object.fromEntries((keys as string[]).map(k=>[k,copy(d[k].value,depth+1)]));active.delete(v);return out;};return copy(input,0);}
+function discreteSize(value:unknown,maximum:number,message:string):void{
+ const text=typeof value==='string'?value:JSON.stringify(value);
+ if(text.length>maximum||new TextEncoder().encode(text).length>maximum)fail('BUDGET',message);
+}
+/** Source/text stage only. No evaluator, material binding or GL execution. */
+export function compileDiscreteMeshMaterial(source:string):{ok:true;material:DiscreteMeshMaterialIR}|{ok:false;diagnostics:MeshMaterialDiagnostic[]}{
+ try{
+  const parsed=parseMaterialSource(source,false,false,false,true);
+  const expression=trustedMaterialExpression<DiscreteMeshMaterialExpression>(parsed.expression,'discrete');
+  const material:DiscreteMeshMaterialIR={format:'barocss-gpu-discrete-mesh-material',version:0,profile:'mesh-opaque-discrete-fragment-v0',...parsed,expression};
+  discreteSize(material,2097152,'Discrete material IR exceeds2MiB');
+  return{ok:true,material:freeze(ownSnapshot(material) as DiscreteMeshMaterialIR)};
+ }catch(error){const e=error instanceof MeshMaterialError?error:new MeshMaterialError('SYNTAX','Discrete material compile failed');return{ok:false,diagnostics:freeze([{code:e.code,message:e.message.slice(0,1024),start:e.start,end:e.end}])};}
+}
+export function validateDiscreteMeshMaterialIR(input:unknown):DiscreteMeshMaterialIR{
+ const data=ownSnapshot(input,'discrete') as Partial<DiscreteMeshMaterialIR>;
+ if(!data||typeof data!=='object'||typeof data.source!=='string')fail('IR','Discrete material IR source required');
+ discreteSize(data,2097152,'Discrete material IR exceeds2MiB');
+ const compiled=compileDiscreteMeshMaterial(data.source);
+ if(!compiled.ok){const diagnostic=compiled.diagnostics[0];throw uvError('IR',diagnostic.message,diagnostic.start,diagnostic.end,diagnostic);}
+ if(JSON.stringify(canonical(data))!==JSON.stringify(canonical(compiled.material)))fail('IR','Discrete material IR does not match its reconstructed source');
+ return compiled.material;
+}
+export function lowerDiscreteMeshMaterial(input:unknown):LoweredDiscreteMeshMaterial{
+ const result=lowerMaterial(validateDiscreteMeshMaterialIR(input));
+ discreteSize(result.expression,65536,'Discrete material expression exceeds64KiB');
+ discreteSize(result.uniformDeclarations,65536,'Discrete material declarations exceed64KiB');
+ discreteSize(result,131072,'Discrete lowered material exceeds128KiB');
+ return freeze(result);
+}
+/** Profile-specific reflection only. Local shape/work errors stay outside this catch. */
+function reflectMaterialData(value:object,nativeReflection:boolean|'discrete'):{array:boolean;proto:object|null;d:PropertyDescriptorMap;keys:(string|symbol)[]}{
+ try{const array=Array.isArray(value),proto=Object.getPrototypeOf(value),d=Object.getOwnPropertyDescriptors(value),keys=Reflect.ownKeys(value);return{array,proto,d,keys};}
+ catch(cause){if(!nativeReflection)throw cause;if(nativeReflection==='discrete'){const error=uvError('INPUT','Discrete material own-data reflection refused');Object.defineProperty(error,'cause',{value:cause,writable:true,configurable:true});throw error;}throw uvError('INPUT','Native Surface material own-data reflection refused',0,0,cause);}
+}
+function ownSnapshot(input:unknown,nativeReflection:boolean|'discrete'=false):unknown{let budget=8192;const active=new WeakSet<object>();const copy=(v:unknown,depth:number):unknown=>{if(--budget<0||depth>24)fail('BUDGET','Material own-data value/depth limit');if(typeof v==='number'){if(!Number.isFinite(v))fail('INPUT','Material data must be finite');return zero(v);}if(typeof v==='string'){if(v.length>65536)fail('BUDGET','Material string limit');return v;}if(typeof v==='boolean'||v===null)return v;if(!v||typeof v!=='object'||active.has(v))fail('INPUT','Material requires acyclic plain data');const{array,proto,d,keys}=reflectMaterialData(v,nativeReflection);if(array?proto!==Array.prototype:proto!==Object.prototype)fail('INPUT','Material foreign prototype');if(keys.length>(array?257:16)||keys.some(k=>typeof k!=='string'||!('value'in d[k])||(!array||k!=='length')&&!d[k].enumerable))fail('INPUT','Material getter/hidden/symbol/excess fields');active.add(v);let out:unknown;if(array){const n=d.length.value;if(!Number.isInteger(n)||n<0||n>256||keys.length!==n+1||Array.from({length:n},(_,i)=>!Object.hasOwn(d,String(i))).some(Boolean))fail('INPUT','Material requires dense bounded arrays');out=Array.from({length:n},(_,i)=>copy(d[String(i)].value,depth+1));}else out=Object.fromEntries((keys as string[]).map(k=>[k,copy(d[k].value,depth+1)]));active.delete(v);return out;};return copy(input,0);}
 const canonical=(value:unknown):unknown=>Array.isArray(value)?value.map(canonical):value&&typeof value==='object'?Object.fromEntries(Object.entries(value).sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>[k,canonical(v)])):value;
 export function validateMeshMaterialIR(input:unknown):MeshMaterialIR{const data=ownSnapshot(input) as Partial<MeshMaterialIR>;if(!data||typeof data!=='object'||typeof data.source!=='string')fail('IR','Material IR source required');const compiled=compileMeshMaterial(data.source);if(!compiled.ok)throw new MeshMaterialError('IR',compiled.diagnostics[0].message);if(JSON.stringify(canonical(data))!==JSON.stringify(canonical(compiled.material)))fail('IR','Material IR does not match its reconstructed source');return compiled.material;}
 function uvError(code:MeshMaterialCode,message:string,start=0,end=0,cause?:unknown):MeshMaterialError{
@@ -320,7 +390,7 @@ function validateUVSource<M extends EngineUVMaterialIR|EngineUVRepeatingMaterial
  return compiled.material;
 }
 const glFloat=(n:number)=>n.toPrecision(17);
-function lowerMaterial(material:ParsedMaterial):LoweredMeshMaterial{const uniformLayout=material.uniforms.map((u,i)=>({...u,glslName:'mat_u_'+i}));const expression=(e:ParsedMaterialExpression):string=>{switch(e.kind){case'float':return glFloat(e.value);case'color':return'vec3('+e.linear.map(glFloat).join(',')+')';case'uniform':return uniformLayout.find(u=>u.name===e.name)!.glslName;case'input':{switch(e.name){case'uv_u':return'v_engine_uv.x';case'uv_v':return'v_engine_uv.y';case'surface_u01':return'v_native_surface_uv01.x';case'surface_v01':return'v_native_surface_uv01.y';}}case'unary':return'('+e.operator+expression(e.value)+')';case'binary':return'('+expression(e.left)+e.operator+expression(e.right)+')';case'call':{const args=e.args.map(expression);if(e.name==='mix')args[2]='clamp('+args[2]+',0.0,1.0)';return e.name+'('+args.join(',')+')';}}};return{expression:'clamp('+expression(material.expression)+',vec3(0.0),vec3(1.0))',uniformDeclarations:uniformLayout.map(u=>'uniform float '+u.glslName+';').join('\n'),uniformLayout};}
+function lowerMaterial(material:ParsedMaterial):LoweredMeshMaterial{const uniformLayout=material.uniforms.map((u,i)=>({...u,glslName:'mat_u_'+i}));const expression=(e:ParsedMaterialExpression):string=>{switch(e.kind){case'float':return glFloat(e.value);case'color':return'vec3('+e.linear.map(glFloat).join(',')+')';case'uniform':return uniformLayout.find(u=>u.name===e.name)!.glslName;case'input':{switch(e.name){case'uv_u':return'v_engine_uv.x';case'uv_v':return'v_engine_uv.y';case'surface_u01':return'v_native_surface_uv01.x';case'surface_v01':return'v_native_surface_uv01.y';}}case'select':return'('+expression(e.value)+'<'+expression(e.threshold)+'?'+expression(e.below)+':'+expression(e.otherwise)+')';case'unary':return'('+e.operator+expression(e.value)+')';case'binary':return'('+expression(e.left)+e.operator+expression(e.right)+')';case'call':{const args=e.args.map(expression);if(e.name==='mix')args[2]='clamp('+args[2]+',0.0,1.0)';return e.name+'('+args.join(',')+')';}}};return{expression:'clamp('+expression(material.expression)+',vec3(0.0),vec3(1.0))',uniformDeclarations:uniformLayout.map(u=>'uniform float '+u.glslName+';').join('\n'),uniformLayout};}
 export function lowerMeshMaterial(input:unknown):LoweredMeshMaterial{return lowerMaterial(validateMeshMaterialIR(input));}
 export function lowerEngineUVMaterial(input:unknown):LoweredEngineUVMaterial{
  const result:LoweredEngineUVMaterial={...lowerMaterial(validateEngineUVMaterialIR(input)),inputDeclarations:'in vec2 v_engine_uv;'};

@@ -191,3 +191,6 @@ export type { GeneratedAffineSceneAst, CompiledGeneratedAffineSceneSource } from
 
 export { compileOptionalRepeatedAffineSceneSource } from './scene-optional-repeat-source.js';
 export type { OptionalRepeatedAffineSceneAst, CompiledOptionalRepeatedAffineSceneSource } from './scene-optional-repeat-source.js';
+
+export { compileDiscreteMeshMaterial, validateDiscreteMeshMaterialIR, lowerDiscreteMeshMaterial } from './mesh-material.js';
+export type { DiscreteMeshMaterialExpression, DiscreteMeshMaterialIR, LoweredDiscreteMeshMaterial } from './mesh-material.js';

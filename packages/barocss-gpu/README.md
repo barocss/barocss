@@ -3017,3 +3017,75 @@ entries retain positive-count semantics and reject zero. Conditions, bodies,
 index variables, nesting, computed counts and runtime generation are excluded.
 CPU source/API/file support does not qualify empty graphics, GPU frames,
 consumer dispatch, native documents, editor history or publication.
+
+## Discrete Mesh material source selection (CPU compiler stage)
+
+`compileDiscreteMeshMaterial(source)` compiles complete primitive source text
+into a distinct material profile. It returns `{ok: true, material}` or
+`{ok: false, diagnostics}`. `validateDiscreteMeshMaterialIR(input)` reconstructs
+the full original source and compares the complete own-data IR.
+`lowerDiscreteMeshMaterial(input)` validates once and returns trusted GLSL text
+and a uniform layout:
+
+```ts
+const compiled = compileDiscreteMeshMaterial(`
+@shader #discrete_palette {
+  @uniform level: float(0, 1, .5);
+  @fragment { color: select(level, .5, #203040, #FFEEDD); }
+}`);
+if (compiled.ok) {
+  const lowered = lowerDiscreteMeshMaterial(compiled.material);
+  // Trusted expression text and uniform declarations; no shader execution.
+  lowered.expression;
+  lowered.uniformDeclarations;
+  lowered.uniformLayout;
+}
+```
+
+`select(value, threshold, below, otherwise)` requires a float value and exactly
+one signed numeric literal threshold within ±1000. Both branches must have the
+same float or color type. Strict `value < threshold` selects `below`; equality
+selects `otherwise`. All branches are parsed, type/range checked and charged,
+including unreachable branches. The canonical six-field selection node retains
+a literal float threshold and both complete branch trees. Scalar bounds join
+both branch intervals. Lowering emits a parenthesized ternary, stable `mat_u_N`
+uniform names, precision17 numeric text and the final linear RGB clamp.
+
+The exact seven-field IR uses format `barocss-gpu-discrete-mesh-material`,
+version `0`, profile `mesh-opaque-discrete-fragment-v0`, original `source`,
+`shaderId`, ordered `uniforms` and `expression`. Lowered output has exactly
+`expression`, `uniformDeclarations` and `uniformLayout`. Original source spelling
+and UTF16 offsets remain separate from canonical Number coefficients; numeric
+zeros become positive zero. Results are fresh independent recursively frozen
+ordinary data. Validation does not mutate or freeze caller data, invoke getters
+or accept supplied IR as authority.
+
+Limits are source 64KiB UTF8, tokens 4096, definition/expanded expression work 256,
+depth 16, uniforms 16, locals 16, functions 8, literals ±1000 and intermediate
+bounds ±1e6. Own-data admission is bounded to 8192 values/depth 24, current-realm
+plain records with at most 16 keys and dense arrays with at most 256 entries. Getters,
+hidden/symbol fields, cycles, foreign prototypes and nonfinite numbers refuse.
+The new profile caps complete JSON IR at 2MiB UTF16/UTF8, each lowered expression
+and declaration string at 64KiB, and the whole lowered result at 128KiB.
+
+Compilation returns bounded four-field `MeshMaterialDiagnostic` records with
+original half-open UTF16 spans. Validation/lowering use `MeshMaterialError`.
+Reconstruction failures use `IR` and retain the original frozen diagnostic as
+cause; whole-IR mismatches use local `IR`. Raw reflection failures use fresh
+`INPUT` with the exact cause; local shape/range/work errors have no fabricated
+cause. Oversize results use `BUDGET`.
+
+Only this profile reserves `select` in declarations. Old authored `@fn select`
+and `@fn step`, old public recursive types and old Material profiles remain
+unchanged; `step` remains available here. Existing pure-function capture,
+recursion and body-call restrictions still apply. Old validators, binders,
+`evaluateAuthoredMaterial` and shader preparers do not accept this new profile.
+No evaluator, UV/input/fract, texture, lighting, material binding, shader link,
+pixel, frame, consumer or publication support is added. GLSL text is not run.
+
+After the affected GPU build, run the one source/emitted/IR/GLSL/original-file/cold
+flow:
+
+```sh
+node examples/gpu-scene/material-discrete-selection-flow.mjs --output /absolute/fresh-directory
+```
