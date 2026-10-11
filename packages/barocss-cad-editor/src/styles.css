@@ -448,8 +448,8 @@ text.assembly-translation-guide[data-axis="z"] { fill:#8babcf; stroke:none; }
 .curve-reversal-error { max-width:240px; color:#ffd2ce; font-size:10px; line-height:1.4; overflow-wrap:anywhere; }
 
 /* Idle operation entries share one naturally wrapping Inspector group. */
-.cad-editor-inspector [data-slot="button"].cad-editor-operation-icon { width:36px; height:36px; min-width:36px; min-height:36px; padding:0; flex:0 0 auto; }
-.cad-editor-inspector .cad-editor-operation-icon svg { width:16px; height:16px; flex:none; }
+.cad-editor .cad-editor-inspector button.cad-editor-operation-icon { width:36px; height:36px; min-width:36px; min-height:36px; padding:0; flex:0 0 auto; }
+.cad-editor .cad-editor-inspector button.cad-editor-operation-icon svg { width:16px; height:16px; flex:none; }
 .cad-editor-context-tools { display:flex; flex-wrap:wrap; align-items:center; gap:4px; min-width:0; margin-block:4px; }
 .cad-editor-context-entry { flex:0 1 auto; min-width:0; max-width:100%; }
 .cad-editor-context-entry:empty { display:none; }
