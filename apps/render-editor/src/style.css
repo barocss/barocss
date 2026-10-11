@@ -191,7 +191,7 @@ body:has(:is(.app-shell--mixed,.app-shell--scene)) [data-slot="dialog-content"] 
 .re-native-controls .re-native-direction .re-material-uniform { padding: 4px; }
 .re-native-controls .re-native-direction input { padding: 3px; }
 
-/* Native inventory shares the existing Source column; no authored editor node is remounted. */
+/* Native inventory uses a stable host slot; no authored editor node is remounted. */
 .re-material-host .re-native-outliner-slot { flex: 0 0 auto; min-width: 0; }
 .re-material-host .re-native-outliner { border-bottom: 1px solid var(--re-material-line); background: #25282d; }
 .re-material-host .re-native-outliner-list { max-height: 128px; overflow: auto; padding: 2px 0; }
@@ -224,3 +224,18 @@ body:has(:is(.app-shell--mixed,.app-shell--scene)) [data-slot="dialog-content"] 
 .re-material-host .native-camera-toolbar { display: flex; align-items: center; gap: 4px; min-width: 0; margin-left: auto; }
 .re-material-host .native-camera-badge { margin: 0; padding: 0 3px; color: #aab8ca; font-size: 10px; white-space: nowrap; }
 .re-material-host .native-camera-toolbar button { min-height: 22px; height: 22px; padding: 2px 5px; font-size: 11px; white-space: nowrap; }
+
+/* Native viewport-first layout. Source and inspection values stay mounted. */
+.re-material-host[data-mode="native"] .re-material-editor--preview .re-material-workspace {
+  grid-template-columns: 0 minmax(0, 1fr) 256px;
+  grid-template-rows: minmax(0, 1fr);
+}
+.re-material-host[data-mode="native"][data-native-source-open="true"] .re-material-editor--preview .re-material-workspace {
+  grid-template-columns: 260px minmax(0, 1fr) 256px;
+}
+.re-material-host[data-mode="native"] .re-material-source { grid-column: 1; grid-row: 1; display: none; }
+.re-material-host[data-mode="native"][data-native-source-open="true"] .re-material-source { display: flex; }
+.re-material-host[data-mode="native"] .re-material-preview { grid-column: 2; grid-row: 1; }
+.re-material-host[data-mode="native"] .re-material-inspector { grid-column: 3; grid-row: 1; min-width: 0; min-height: 0; }
+.re-material-host[data-mode="native"] .re-material-toolbar,
+.re-material-host[data-mode="native"] .re-material-sample { display: none; }

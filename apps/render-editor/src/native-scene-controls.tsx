@@ -20,7 +20,9 @@ export function NativeSceneControls({host, disabled, onError}: Props) {
   useLayoutEffect(() => {
     const inspector = document.querySelector('.re-material-host .re-material-inspector');
     if (!inspector) return;
-    const slot = document.createElement('div'); inspector.prepend(slot); setPortal(slot);
+    const slot = document.createElement('div'); slot.className = 'native-controls-slot';
+    const outliner = Array.from(inspector.children).find(child => child.classList.contains('native-outliner-slot'));
+    inspector.insertBefore(slot, outliner ? outliner.nextSibling : inspector.firstChild); setPortal(slot);
     return () => {slot.remove();};
   }, []);
   useLayoutEffect(() => {

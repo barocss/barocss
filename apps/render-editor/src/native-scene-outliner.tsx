@@ -10,9 +10,11 @@ export function NativeSceneOutliner({host, disabled, onTarget}: Props) {
   const snapshot = useSyncExternalStore(host.subscribe, host.getSnapshot, host.getSnapshot);
   const [portal, setPortal] = useState<HTMLElement | null>(null);
   useLayoutEffect(() => {
-    const source = document.querySelector('.re-material-host .re-material-source');
-    if (!source) return;
-    const slot = document.createElement('div'); slot.className = 're-native-outliner-slot'; source.prepend(slot); setPortal(slot);
+    const inspector = document.querySelector('.re-material-host .re-material-inspector');
+    if (!inspector) return;
+    const slot = document.createElement('div'); slot.className = 're-native-outliner-slot native-outliner-slot';
+    const controls = Array.from(inspector.children).find(child => child.classList.contains('native-controls-slot'));
+    inspector.insertBefore(slot, controls ?? inspector.firstChild); setPortal(slot);
     return () => {slot.remove();};
   }, []);
   const locked = disabled || snapshot.nativeDirty || snapshot.materialDirty || snapshot.invalidLighting || snapshot.invalidBodyPose || snapshot.poseGestureActive || !!snapshot.posePreview || !snapshot.available || snapshot.disposed;
