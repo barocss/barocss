@@ -2970,3 +2970,50 @@ apply. Existing literal/product/arithmetic/repeat/conditional entries keep their
 own grammar and result types. No body, nesting, index variable, computed count,
 else, runtime condition, native CAD unit conversion, renderer admission, editor
 document format or publication is implied.
+
+### Optional finite Scene repeats (#1494)
+
+`compileOptionalRepeatedAffineSceneSource(source)` is a separate Source2 entry
+for finite rows whose count can be zero:
+
+```css
+@scene optional_row {
+  version: 2;
+  @param radius: length(.5scene);
+  @repeat row:sphere(0);
+}
+sphere { radius: $radius; }
+```
+
+Edit the canonical literal count `2` → `0` → `3` in the original source. Counts
+are exactly `0..32`; at most eight repeat declarations and 32 explicit plus
+expanded objects are admitted. Zero retains its authored declaration and costs
+repeat work. It emits no objects, IDs or generation records. Positive generated
+IDs remain `PREFIX_index`, interleaved with explicit declarations in source
+order. Duplicate prefixes still refuse. An explicit `#row_0` is independent of
+a zero repeat, while a stale `#row_0` style without a real object refuses.
+
+The exact nine-field result uses format
+`barocss-gpu-optional-repeat-affine-scene-source`, version `0`, profile
+`source2-typed-optional-repeat-coefficients-v0`, original `source`, authored
+`ast`, `parameters`, actual `generation`, selected `scene` and trusted `shaders`.
+The AST uses schema `barocss-gpu-optional-repeat-affine-scene-ast`, schemaVersion
+`0`, sourceVersion `2`. Original tokens and UTF16 ranges stay separate from
+private expanded identities. Results are fresh independent copied/frozen data.
+
+Every declared shape and every global style field/reference/arity/range/scale
+is validated, including unmatched type rules. Cross-field capsule, torus and
+rounded-box relationships apply only to actual instances. A zero repeat creates
+no phantom object for template validation. Individually valid torus radii may
+therefore coexist in an empty source even if their relationship would refuse
+for an instantiated torus. No zero-related selector is silently removed.
+
+The new entry retains typed arithmetic, existing units, 4096 cumulative work,
+1536 references, source/shader 64KiB and signed result 2MiB limits. All coefficient
+work is admitted before generated object/provenance copies. It calls the
+unchanged affine lowerer once. It accepts primitive original text only and
+reuses `SceneParameterSourceError`. Old finite-repeat and mixed-generation
+entries retain positive-count semantics and reject zero. Conditions, bodies,
+index variables, nesting, computed counts and runtime generation are excluded.
+CPU source/API/file support does not qualify empty graphics, GPU frames,
+consumer dispatch, native documents, editor history or publication.

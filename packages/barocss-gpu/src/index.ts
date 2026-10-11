@@ -188,3 +188,6 @@ export type { SceneConditionalDeclaration, SceneConditionalDecision, Conditional
 
 export { compileGeneratedAffineSceneSource } from './scene-generated-source.js';
 export type { GeneratedAffineSceneAst, CompiledGeneratedAffineSceneSource } from './scene-generated-source.js';
+
+export { compileOptionalRepeatedAffineSceneSource } from './scene-optional-repeat-source.js';
+export type { OptionalRepeatedAffineSceneAst, CompiledOptionalRepeatedAffineSceneSource } from './scene-optional-repeat-source.js';

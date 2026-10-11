@@ -115,7 +115,7 @@ function literalValue(quantity: Quantity, literal: SceneToken): number {
   if (!Number.isFinite(value) || Math.abs(value) > maximum) fail('RANGE', `Parameter ${quantity} must be finite within ${maximum}`, literal.range);
   return value === 0 ? 0 : value;
 }
-function definitions(source: string, tokens: SceneToken[], range: (start: number, end: number) => SourceRange, repeats?: SceneRepeatDeclaration[], conditions?: SceneConditionalDeclaration[], mixedMode = false): Definition[] {
+function definitions(source: string, tokens: SceneToken[], range: (start: number, end: number) => SourceRange, repeats?: SceneRepeatDeclaration[], conditions?: SceneConditionalDeclaration[], mixedMode = false, optionalRepeatMode = false): Definition[] {
   const eof: SceneToken = { text: '', range: range(source.length, source.length) };
   let cursor = 0, phase: 'headers' | 'parameters' | 'objects' = 'headers';
   const peek = () => tokens[cursor] ?? eof;
@@ -151,8 +151,9 @@ function definitions(source: string, tokens: SceneToken[], range: (start: number
         expect(':'); const type = take();
         if (!SHAPES.includes(type.text)) fail('TYPE', 'Repeat requires an existing Scene shape', type.range);
         expect('('); const count = take();
-        if (!/^[1-9][0-9]*$/.test(count.text)) fail('SYNTAX', 'Repeat count requires canonical positive decimal digits', count.range);
-        if (Number(count.text) > 32) fail('RANGE', 'Repeat count must be within1..32', count.range);
+        const countPattern = optionalRepeatMode ? /^(?:0|[1-9][0-9]*)$/ : /^[1-9][0-9]*$/;
+        if (!countPattern.test(count.text)) fail('SYNTAX', optionalRepeatMode ? 'Repeat count requires canonical nonnegative decimal digits' : 'Repeat count requires canonical positive decimal digits', count.range);
+        if (Number(count.text) > 32) fail('RANGE', optionalRepeatMode ? 'Repeat count must be within0..32' : 'Repeat count must be within1..32', count.range);
         expect(')'); const end = expect(';');
         repeats.push({ kind: 'repeat', prefix, type, count, tokens: tokens.slice(tokenStart, cursor), range: range(start.range.start, end.range.end) });
         continue;
@@ -203,7 +204,7 @@ function definitions(source: string, tokens: SceneToken[], range: (start: number
       fail('SYNTAX', 'Parameters must be declared before scene objects and styles', tokens[cursor].range);
     if (conditions && tokens[cursor].text === '@' && tokens[cursor + 1]?.text === 'when')
       fail('SYNTAX', 'Conditions must be declared inside the scene object phase', tokens[cursor].range);
-    if (mixedMode && tokens[cursor].text === '@' && tokens[cursor + 1]?.text === 'repeat')
+    if ((mixedMode || optionalRepeatMode) && tokens[cursor].text === '@' && tokens[cursor + 1]?.text === 'repeat')
       fail('SYNTAX', 'Repeats must be declared inside the scene object phase', tokens[cursor].range);
   }
   return result;
@@ -261,18 +262,20 @@ type GeneratedSceneData = FiniteRepeatSceneData & ConditionalSceneData;
 export function compileSceneParameterData(input: unknown, productMode: boolean | 'arithmetic', repeatMode: true): FiniteRepeatSceneData;
 export function compileSceneParameterData(input: unknown, productMode: boolean | 'arithmetic', repeatMode: 'conditional'): ConditionalSceneData;
 export function compileSceneParameterData(input: unknown, productMode: boolean | 'arithmetic', repeatMode: 'mixed'): GeneratedSceneData;
+export function compileSceneParameterData(input: unknown, productMode: boolean | 'arithmetic', repeatMode: 'optional-repeat'): FiniteRepeatSceneData;
 export function compileSceneParameterData(input: unknown, productMode?: boolean | 'arithmetic'): SceneParameterData;
-export function compileSceneParameterData(input: unknown, productMode: boolean | 'arithmetic' = false, repeatMode: boolean | 'conditional' | 'mixed' = false): SceneParameterData | FiniteRepeatSceneData | ConditionalSceneData | GeneratedSceneData {
+export function compileSceneParameterData(input: unknown, productMode: boolean | 'arithmetic' = false, repeatMode: boolean | 'conditional' | 'mixed' | 'optional-repeat' = false): SceneParameterData | FiniteRepeatSceneData | ConditionalSceneData | GeneratedSceneData {
   if (typeof input !== 'string') fail('INPUT', 'Complete parameterized scene source must be text', { start: 0, end: 0, line: 1, column: 1 });
   const source = input;
   if (source.length > 65536 || new TextEncoder().encode(source).length > 65536)
     fail('BUDGET', 'Parameterized scene source exceeds64KiB UTF16/UTF8', { start: 0, end: source.length, line: 1, column: 1 });
   const arithmeticMode = productMode === 'arithmetic';
   const mixedMode = repeatMode === 'mixed';
+  const optionalRepeatMode = repeatMode === 'optional-repeat';
   const range = sourceRanges(source), tokens = scan(source, range, productMode !== false, repeatMode === 'conditional' || mixedMode);
-  const repeats = repeatMode === true || mixedMode ? [] as SceneRepeatDeclaration[] : undefined;
+  const repeats = repeatMode === true || mixedMode || optionalRepeatMode ? [] as SceneRepeatDeclaration[] : undefined;
   const conditions = repeatMode === 'conditional' || mixedMode ? [] as SceneConditionalDeclaration[] : undefined;
-  const declared = definitions(source, tokens, range, repeats, conditions, mixedMode);
+  const declared = definitions(source, tokens, range, repeats, conditions, mixedMode, optionalRepeatMode);
   // Indexed UTF16 units are essential: code-point iteration would shift every
   // original range after a surrogate pair in a comment preceding parameters.
   const masked = source.split('');
@@ -306,7 +309,7 @@ export function compileSceneParameterData(input: unknown, productMode: boolean |
   // All expanded count/work is admitted before creating generated object or provenance arrays.
   const generation: SceneGenerationRecord[] = [];
   const decisions: SceneConditionalDecision[] = [];
-  const mixedGenerators = mixedMode ? [...repeats!, ...conditions!].sort((a, b) => a.range.start - b.range.start) : [];
+  const plannedGenerators = mixedMode ? [...repeats!, ...conditions!].sort((a, b) => a.range.start - b.range.start) : optionalRepeatMode ? repeats! : [];
   if (conditions) {
     // Charge and type every predicate before private candidate expansion.
     for (const condition of conditions) {
@@ -317,11 +320,11 @@ export function compileSceneParameterData(input: unknown, productMode: boolean |
         included: left.value < right.value, declaration: condition.range });
     }
   }
-  if (mixedMode) {
+  if (mixedMode || optionalRepeatMode) {
     // Reserve every potential identity, including false objects, without copying
     // generated objects until style and active-view work have also been admitted.
     const ids = new Set(authoredDeclarations.filter(declaration => declaration.kind === 'object').map(declaration => declaration.id.text.slice(1)));
-    for (const generator of mixedGenerators) {
+    for (const generator of plannedGenerators) {
       const count = generator.kind === 'repeat' ? Number(generator.count.text) : 1;
       for (let index = 0; index < count; index++) {
         const nodeId = generator.prefix.text + '_' + index;
@@ -341,7 +344,7 @@ export function compileSceneParameterData(input: unknown, productMode: boolean |
       id: { text: '#' + condition.prefix.text + '_0', range: condition.prefix.range }, range: condition.range });
     base.declarations = expanded.sort((a, b) => a.range.start - b.range.start);
   }
-  if (repeats && !mixedMode) {
+  if (repeats && !mixedMode && !optionalRepeatMode) {
     const ids = new Set(authoredDeclarations.filter(declaration => declaration.kind === 'object').map(declaration => declaration.id.text.slice(1)));
     const expanded: AffineSceneAst['declarations'] = [...authoredDeclarations];
     for (const repeat of repeats) for (let index = 0; index < Number(repeat.count.text); index++) {
@@ -444,9 +447,9 @@ export function compileSceneParameterData(input: unknown, productMode: boolean |
     if (work + activeWork > 4096) fail('BUDGET', 'Conditional scene exceeds4096 cumulative AST work nodes', base.range);
     work += activeWork;
   }
-  if (mixedMode) {
+  if (mixedMode || optionalRepeatMode) {
     const expanded: AffineSceneAst['declarations'] = [...authoredDeclarations];
-    for (const generator of mixedGenerators) {
+    for (const generator of plannedGenerators) {
       const count = generator.kind === 'repeat' ? Number(generator.count.text) : 1;
       for (let index = 0; index < count; index++) {
         const nodeId = generator.prefix.text + '_' + index;
