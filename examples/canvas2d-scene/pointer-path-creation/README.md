@@ -5,3 +5,12 @@ Consumer of unchanged Canvas2D public builders/tree/conversions/document and exi
 Node22 preparation: `node examples/canvas2d-scene/pointer-path-creation/flow.mjs --source /tmp/c2d1447-source`; strict actual source host/types: `tsc -p examples/canvas2d-scene/pointer-path-creation/tsconfig.json --noEmit`. The history TYPEONLY alias points to public-types.ts for strict owned-controller checking; runtime esbuild uses exact unchanged ../scene-history.mjs. Source bundle is the actual native profile; emitted public API/types are separate focused proof. The second Download has a different filename and is not opened again. Native execution is pending source/probe/driver review.
 
 There is no extra endpoint distance minimum. Unchanged public geometry admission can refuse a zero-area contour. Selection validates the requested control before publication; slot changes cancel current drafts or drags. The repaired native driver compares admitted commands with independently captured trusted input at1e-8, reports requested input quantization separately, proves the distinct builder refusal and compares the complete second file with the first file plus only the restored Q control delta. These native checks remain UNRUN until root hash GO.
+
+
+## Selected path deletion (#1469)
+
+Delete selected path removes only a created Q/C direct child from a copied Parent through public removeChild. The accepted candidate becomes one existing history entry; Undo restores the complete scene, and Redo restores the deletion. Save keeps surviving path data and the stable image bytes. Opening that document starts a fresh history. Deleting the last created path leaves Marker and Sprite.
+
+Delete is disabled during a pending gesture, without a selection and after Dispose. A direct pending/no-selection call returns false without changing accepted state. This is an example operation; no new library API or general object deletion profile is added.
+
+Native acceptance and exact adoption are recorded separately in evidence/path-deletion/. Original pointer creation/capture-loss receipts and incomplete driver records remain under their original evidence paths and native commits.
