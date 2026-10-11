@@ -30,7 +30,7 @@ export function NativeSceneControls({host, disabled, onError}: Props) {
     if (previous.current.accepted !== snapshot.accepted || previous.current.dirty && !snapshot.dirty) setRaw(values(snapshot.draftDocument.display.lighting));
     previous.current = {accepted: snapshot.accepted, dirty: snapshot.dirty};
   }, [snapshot.accepted, snapshot.dirty, snapshot.draftDocument]);
-  const locked = disabled || snapshot.poseGestureActive || !!snapshot.posePreview || snapshot.surfacePoleGestureActive || !snapshot.available || snapshot.disposed;
+  const locked = disabled || snapshot.poseGestureActive || !!snapshot.posePreview || snapshot.surfacePoleGestureActive || !!snapshot.surfacePolePreview || !snapshot.available || snapshot.disposed;
   const bodyTitle = snapshot.accepted.nativeDocument.bodies.find(body => body.id === snapshot.selectedBodyId)?.name ?? snapshot.selectedBodyId;
   const change = (index: number, value: string) => {
     if (locked || value.length > 256) return;
