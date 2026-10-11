@@ -407,8 +407,9 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
   const intervalBodyReference = () => {
     const context = intervalContext();
     requireEditor(editTarget === 'pole', 'INPUT', 'Select Control point before restricting an interval.', context);
-    requireEditor(selectedBodyId !== null && view.kind === 'curve-focus' && view.bodyId === selectedBodyId,
-      'DISPLAY', 'Select and focus the original Curve before restricting its interval.', context);
+    requireEditor(selectedBodyId !== null && (view.kind === 'document'
+      || view.kind === 'curve-focus' && view.bodyId === selectedBodyId),
+      'DISPLAY', 'Select an original Curve in document view or its matching focused view.', context);
     const reference = intervalNative(() => createCadGeometryReference(accepted, { bodyId: selectedBodyId! }),
       'Native interval body reference creation failed.').reference;
     const resolved = intervalNative(() => resolveCadGeometryReference(accepted, reference), 'Native interval body resolution failed.');
@@ -425,9 +426,10 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     const context = intervalContext();
     requireEditor(editTarget === 'pole' && selectedBodyId === binding.bodyId
       && binding.baseGeneration === generation && binding.baseDisplayGeneration === displayGeneration
-      && view.kind === 'curve-focus' && binding.view.kind === 'curve-focus'
-      && view.bodyId === binding.view.bodyId && view.count === binding.view.count,
-    'STALE', 'The interval body or focused view changed. Review the pending parameters.', context);
+      && (view.kind === 'document' && binding.view.kind === 'document'
+        || view.kind === 'curve-focus' && binding.view.kind === 'curve-focus'
+          && view.bodyId === binding.bodyId && view.bodyId === binding.view.bodyId && view.count === binding.view.count),
+    'STALE', 'The interval body or view changed. Review the pending parameters.', context);
     const resolved = intervalNative(() => resolveCadGeometryReference(accepted, binding.reference), 'Native bound interval reference resolution failed.');
     requireEditor(resolved.source === binding.source && resolved.geometry.kind === 'curve', 'STALE',
       'The interval must remain bound to the original complete source.', context);

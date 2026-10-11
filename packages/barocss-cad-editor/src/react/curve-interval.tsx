@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { createCadGeometryReference, curveDomain, type Curve } from '@barocss/cad';
 import { CadEditorError, type CadEditorSession } from '../types.js';
-import type { CadEditorCurvePresentationReceipt } from './types.js';
+import type { CadEditorCurvePresentationReceipt, CadEditorDisplayReceipt } from './types.js';
 import { useCadEditorSnapshot } from './use-session.js';
 import { Button } from './ui/button.js';
 import { Input } from './ui/input.js';
@@ -23,8 +23,10 @@ export function intervalValue(raw: string | undefined, fallback: number): number
 interface Controller {
   session: CadEditorSession; bodyId: string | null; active: boolean; gesturing: boolean;
   gesture: { current: boolean }; error: string | null;
-  viewport: { current: { canvas: HTMLCanvasElement | null; presentation: CadEditorCurvePresentationReceipt | null; isCurrent: (receipt: CadEditorCurvePresentationReceipt) => boolean } | null };
-  allowed: () => boolean;
+  viewport: { current: { canvas: HTMLCanvasElement | null; documentReceipt: CadEditorDisplayReceipt | null;
+    focusReceipt: CadEditorCurvePresentationReceipt | null; isCurrentCurve: (receipt?: CadEditorDisplayReceipt | CadEditorCurvePresentationReceipt) => boolean } | null };
+  isActive: () => boolean;
+  allowed: (allowFieldComposition?: boolean) => boolean;
   open: () => void; done: () => void; clearError: () => void; noteError: (error: CadEditorError) => void; setGesture: (active: boolean) => void; report: (cause: unknown) => void;
 }
 const IntervalContext = createContext<Controller | null>(null);
@@ -39,7 +41,7 @@ function message(error: CadEditorError) {
 export function intervalCurve(session: CadEditorSession, bodyId: string | null) {
   const snapshot = session.getSnapshot();
   if (!bodyId || snapshot.selectedBodyId !== bodyId || snapshot.disposed || snapshot.editTarget !== 'pole'
-    || snapshot.view.kind !== 'curve-focus' || snapshot.view.bodyId !== bodyId) return null;
+    || (snapshot.view.kind !== 'document' && snapshot.view.bodyId !== bodyId)) return null;
   const resolved = createCadGeometryReference(snapshot.accepted, { bodyId });
   if (resolved.geometry.kind !== 'curve') return null;
   return { snapshot, reference: resolved.reference, curve: resolved.geometry as Curve, source: resolved.source, domain: curveDomain(resolved.geometry) };
@@ -47,13 +49,18 @@ export function intervalCurve(session: CadEditorSession, bodyId: string | null) 
 /** The mode is UI intent only. All interval text belongs to the shared Root pending record. */
 export function CurveIntervalProvider({ session, onError, children }: { session: CadEditorSession; onError?: (error: CadEditorError) => void; children: ReactNode }) {
   const snapshot = useCadEditorSnapshot(session), [bodyId, setBodyId] = useState<string | null>(null), [gesturing, setGesturing] = useState(false), [error, setError] = useState<string | null>(null);
-  const gesture = useRef(false), viewport = useRef<Controller['viewport']['current']>(null), pointers = useRef(new Set<number>()), current = useRef({ session, onError }); current.current = { session, onError };
+  const gesture = useRef(false), activeBody = useRef<string | null>(null), viewport = useRef<Controller['viewport']['current']>(null), pointers = useRef(new Set<number>()), current = useRef({ session, onError }); current.current = { session, onError };
+  const composition = useRef<EventTarget | null>(null);
   function report(cause: unknown) { const fault = cause instanceof CadEditorError ? cause : new CadEditorError('INPUT', cause instanceof Error ? cause.message : 'The interval action was refused.', { field: 'curve-interval' }, cause);
     setError(message(fault)); try { current.current.onError?.(fault); } catch {} }
   function captured(id: number) { return [document.documentElement, ...document.querySelectorAll('*')].some(element => element.hasPointerCapture(id)); }
-  function allowed() {
+  function allowed(allowFieldComposition = false) {
     const frame = viewport.current, canvas = frame?.canvas, rect = canvas?.getBoundingClientRect();
-    return !gesture.current && current.current.session === session && !!frame?.presentation && frame.isCurrent(frame.presentation)
+    const receipt = session.getSnapshot().view.kind === 'document' ? frame?.documentReceipt : frame?.focusReceipt;
+    const composingField = composition.current instanceof Element && composition.current.closest('[data-testid="curve-interval-start"],[data-testid="curve-interval-end"]') !== null
+      && composition.current.closest('.cad-editor') === canvas?.closest('.cad-editor');
+    return !gesture.current && (!composition.current || allowFieldComposition && composingField)
+      && current.current.session === session && !!frame && !!receipt && frame.isCurrentCurve(receipt)
       && canvas?.isConnected === true && canvas.getClientRects().length > 0 && !!rect && rect.width > 0 && rect.height > 0
       && !['hidden', 'collapse'].includes(getComputedStyle(canvas).visibility)
       && !canvas.closest('[data-direct-host-busy="true"],[data-panel-resizing="true"]')
@@ -62,30 +69,34 @@ export function CurveIntervalProvider({ session, onError, children }: { session:
   useEffect(() => {
     let live = true;
     const down = (event: PointerEvent) => { pointers.current.add(event.pointerId); };
+    const startComposition = (event: CompositionEvent) => { composition.current = event.target; }, endComposition = () => { composition.current = null; };
     const release = (event: PointerEvent) => { if (!captured(event.pointerId)) pointers.current.delete(event.pointerId);
       setTimeout(() => { if (live && !captured(event.pointerId)) pointers.current.delete(event.pointerId); }, 0); };
     window.addEventListener('pointerdown', down, true); window.addEventListener('pointerup', release, true); window.addEventListener('pointercancel', release, true); window.addEventListener('lostpointercapture', release, true);
+    window.addEventListener('compositionstart', startComposition, true); window.addEventListener('compositionend', endComposition, true);
     return () => { live = false; pointers.current.clear(); window.removeEventListener('pointerdown', down, true); window.removeEventListener('pointerup', release, true);
-      window.removeEventListener('pointercancel', release, true); window.removeEventListener('lostpointercapture', release, true); };
+      window.removeEventListener('pointercancel', release, true); window.removeEventListener('lostpointercapture', release, true);
+      window.removeEventListener('compositionstart', startComposition, true); window.removeEventListener('compositionend', endComposition, true); composition.current = null; };
   }, [session]);
   function open() {
     const now = session.getSnapshot();
-    if (!allowed() || now.disposed || now.candidate || now.selectionTransition || gesture.current
+    if (activeBody.current !== null || !allowed() || now.disposed || now.candidate || now.selectionTransition || gesture.current
       || Object.keys(now.pending).some(key => key !== 'intervalMin' && key !== 'intervalMax')) return;
     try {
       const selected = intervalCurve(session, now.selectedBodyId); if (!selected) return;
       if (now.view.kind === 'curve-focus' && now.view.count !== 65) session.prepareCurveFocus(selected.reference.bodyId, 65);
-      setBodyId(selected.reference.bodyId); setError(null);
+      activeBody.current = selected.reference.bodyId; setBodyId(selected.reference.bodyId); setError(null);
     } catch (cause) { report(cause); }
   }
-  function done() { const now = session.getSnapshot(); if (!allowed() || now.candidate || gesture.current || Object.keys(now.pending).length) return; setBodyId(null); setError(null); }
+  function isActive() { return current.current.session === session && activeBody.current !== null && intervalCurve(session, activeBody.current) !== null; }
+  function done() { const now = session.getSnapshot(); if (!isActive() || !allowed() || now.candidate || gesture.current || Object.keys(now.pending).length) return; activeBody.current = null; setBodyId(null); setError(null); }
   useEffect(() => {
-    if (bodyId && (snapshot.disposed || snapshot.selectedBodyId !== bodyId || snapshot.view.kind !== 'curve-focus'
-      || snapshot.view.bodyId !== bodyId || snapshot.editTarget !== 'pole')) { setBodyId(null); setError(null); }
+    if (bodyId && (snapshot.disposed || snapshot.selectedBodyId !== bodyId
+      || (snapshot.view.kind !== 'document' && snapshot.view.bodyId !== bodyId) || snapshot.editTarget !== 'pole')) { activeBody.current = null; setBodyId(null); setError(null); }
   }, [session, snapshot.selectedBodyId, snapshot.view, snapshot.editTarget, snapshot.disposed, bodyId]);
   useEffect(() => { setError(null); }, [snapshot.generation]);
-  useEffect(() => { setBodyId(null); gesture.current = false; setGesturing(false); setError(null); }, [session]);
-  return <IntervalContext.Provider value={{ session, bodyId, active: bodyId !== null, gesturing, gesture, viewport, allowed, error, open, done, clearError: () => setError(null), noteError: error => setError(message(error)),
+  useEffect(() => { activeBody.current = null; setBodyId(null); gesture.current = false; setGesturing(false); setError(null); }, [session]);
+  return <IntervalContext.Provider value={{ session, bodyId, active: bodyId !== null, isActive, gesturing, gesture, viewport, allowed, error, open, done, clearError: () => setError(null), noteError: error => setError(message(error)),
     setGesture: active => { gesture.current = active; setGesturing(active); }, report }}>{children}</IntervalContext.Provider>;
 }
 export function CurveIntervalControls({ session }: { session: CadEditorSession }) {
@@ -98,20 +109,24 @@ export function CurveIntervalControls({ session }: { session: CadEditorSession }
   const disabled = snapshot.disposed || !!snapshot.candidate || !!snapshot.selectionTransition || controller.gesturing;
   const foreign = Object.keys(snapshot.pending).some(key => key !== 'intervalMin' && key !== 'intervalMax');
   function fail(cause: unknown) { const fault = cause instanceof CadEditorError ? cause : new CadEditorError('INPUT', 'The interval action was refused.', { field: 'curve-interval' }, cause); setDiagnostic(fault); controller!.report(fault); }
-  function assertCurrent() {
+  function assertCurrent(allowInactive = false, expectedPending = snapshot.pending, candidateToken?: string, allowComposition = false) {
     const current = intervalCurve(session, controller!.active ? controller!.bodyId : snapshot.selectedBodyId);
-    if (!controller!.allowed() || !selected || !current || snapshot.generation !== current.snapshot.generation
+    if ((allowInactive ? controller!.isActive() : !controller!.isActive()) || !controller!.allowed(allowComposition) || !selected || !current || snapshot.generation !== current.snapshot.generation
       || snapshot.displayGeneration !== current.snapshot.displayGeneration || !sameIntervalData(selected.reference, current.reference)
-      || selected.source !== current.source || !sameIntervalData(selected.domain, current.domain))
+      || selected.source !== current.source || !sameIntervalData(selected.domain, current.domain)
+      || !sameIntervalData(snapshot.view, current.snapshot.view) || !sameIntervalData(snapshot.selection, current.snapshot.selection)
+      || !sameIntervalData(snapshot.curveSelection, current.snapshot.curveSelection)
+      || !sameIntervalData(current.snapshot.pending, expectedPending) || current.snapshot.selectionTransition
+      || (candidateToken === undefined ? current.snapshot.candidate !== null : current.snapshot.candidate?.token !== candidateToken))
       throw new CadEditorError('STALE', 'The Curve or current presentation changed. Review the interval.', { field: 'curve-interval' });
     return current;
   }
   function stage(field: 'min' | 'max', raw: string) {
-    try { const before = assertCurrent(), key = field === 'min' ? 'intervalMin' : 'intervalMax', expected = { ...before.snapshot.pending };
+    try { const before = assertCurrent(false, snapshot.pending, undefined, true), key = field === 'min' ? 'intervalMin' : 'intervalMax', expected = { ...before.snapshot.pending };
       if (Object.is(intervalValue(raw, before.domain[field === 'min' ? 0 : 1]), before.domain[field === 'min' ? 0 : 1])) delete expected[key]; else expected[key] = raw;
       session.stageCurveIntervalField(field, raw);
-      const after = intervalCurve(session, controller!.bodyId);
-      if (!after || !controller!.allowed() || !sameIntervalData(after.reference, before.reference)
+      const after = assertCurrent(false, expected, undefined, true);
+      if (!after || !controller!.allowed(true) || !sameIntervalData(after.reference, before.reference)
         || after.snapshot.generation !== before.snapshot.generation || after.snapshot.displayGeneration !== before.snapshot.displayGeneration
         || !sameIntervalData(after.snapshot.pending, expected))
         throw new CadEditorError('STALE', 'The interval changed during staging. Review the values.', { field: 'curve-interval' });
@@ -120,12 +135,15 @@ export function CurveIntervalControls({ session }: { session: CadEditorSession }
   }
   function apply() {
     const now = session.getSnapshot(); if (controller!.gesture.current || now.candidate || now.selectionTransition || now.disposed || foreign) return;
-    try { assertCurrent(); const candidate = session.prepareApply(); lastAttempt.current = candidate?.token ?? null; setDiagnostic(null); controller!.clearError(); }
+    try { assertCurrent(); const candidate = session.prepareApply();
+      try { assertCurrent(false, snapshot.pending, candidate?.token); }
+      catch (cause) { if (candidate && session.getSnapshot().candidate?.token === candidate.token) session.cancelCandidate(candidate.token); throw cause; }
+      lastAttempt.current = candidate?.token ?? null; setDiagnostic(null); controller!.clearError(); }
     catch (cause) { fail(cause); }
   }
   return <div className="curve-interval-panel">
     {!controller.active ? <Button type="button" variant="outline" size="sm" data-testid="curve-interval-open" disabled={disabled || foreign || !selected}
-      onClick={() => { try { assertCurrent(); controller.open(); setDiagnostic(null); } catch (cause) { fail(cause); } }}>Restrict interval</Button>
+      onClick={() => { try { assertCurrent(true); controller.open(); setDiagnostic(null); } catch (cause) { fail(cause); } }}>Restrict interval</Button>
       : <div data-testid="curve-interval-mode" className="curve-interval-toolbar">
         <div className="cad-editor-inspector-title"><h3 className="cad-editor-heading">Curve interval</h3><Dialog>
           <DialogTrigger asChild><Button type="button" variant="ghost" size="xs" data-testid="curve-interval-help" disabled={controller.gesturing}>Help</Button></DialogTrigger>
@@ -133,7 +151,7 @@ export function CurveIntervalControls({ session }: { session: CadEditorSession }
             <div className="cad-editor-help-body"><p>Drag among 65 sampled original parameters, or type exact values. Screen-nearest choices are approximate; overlapping or hidden samples need the fields. Samples are native D0 observations, not control coefficients or an adaptive accuracy certificate.</p>
               <p>Use increasing values inside the current native domain. At least one endpoint must be restricted. Full-domain requests are refused by the native operation. An unchanged empty editor draft sends no command.</p>
               <p>Only pending endpoint guides change while held. Release prepares one actual interval change. Escape or pointer cancellation restores only its owned endpoint text and preserves the other interval field and unrelated drafts.</p>
-              <p>The native operation retains complete Source0, IDs, Models and siblings. Its temporary insertion and output limits can refuse a request even if the final interval is small. Native degree 1–5, 64 poles, 70 knots, selected coordinates within ±10000 mm and native source bounds are independent of the narrower focused display.</p>
+              <p>The native operation retains complete Source0, IDs, Models and siblings. Its temporary insertion and output limits can refuse a request even if the final interval is small. Native degree 1–5, 64 poles, 70 knots, selected coordinates within ±10000 mm and native source bounds are independent of display. Document Curve sampling currently supports degrees 1–3; optional focus admits a complete Model of up to four objects and 64 KiB source. Hidden document Curves use the fields; Canvas handles require a displayed binding.</p>
               <p>Undo restores the old extent while live history exists. Pole selections are cleared across interval history because coefficients and counts change. Save contains the current restricted canonical source; fresh Open does not restore discarded extent or a parametric trim recipe. This is not a trimmed Face or Solid operation.</p>
               <details className="cad-editor-source"><summary className="cad-editor-source-title">Native and source details</summary><pre>{JSON.stringify({ reference: selected?.reference, domain: selected?.domain, pending: snapshot.pending,
                 extraction: snapshot.lastCurveInterval, history: snapshot.history, error: diagnostic?.message }, null, 2)}</pre></details>
@@ -157,7 +175,7 @@ export function CurveIntervalControls({ session }: { session: CadEditorSession }
         <div className="cad-editor-actions"><Button type="button" data-testid="curve-interval-confirm" disabled={disabled || foreign || Object.keys(snapshot.pending).length === 0} onClick={apply}>Apply</Button>
           <Button type="button" variant="outline" data-testid="curve-interval-discard" disabled={disabled || foreign || !Object.keys(snapshot.pending).length}
             onClick={() => { try { const before = assertCurrent(); if (Object.keys(before.snapshot.pending).some(key => key !== 'intervalMin' && key !== 'intervalMax')) return;
-              session.discardPending(); const after = assertCurrent();
+              session.discardPending(); const after = assertCurrent(false, {});
               if (Object.keys(after.snapshot.pending).length) throw new CadEditorError('STALE', 'The draft changed during Discard. Review the values.', { field: 'curve-interval' });
               setDiagnostic(null); controller!.clearError(); } catch (cause) { fail(cause); } }}>Discard</Button>
           <Button type="button" variant="ghost" data-testid="curve-interval-done" disabled={disabled || Object.keys(snapshot.pending).length > 0}
