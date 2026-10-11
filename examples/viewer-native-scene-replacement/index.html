@@ -68,6 +68,13 @@ File choice remains separate. This source action cancels an older local Open int
 The point is authored XYZ in millimetres before display pose and scale. Inspection changes only this report. It preserves source, import provenance, view, selection, measurements and File choices.
 A new selection starts at the original domain midpoint. Invalid active drafts keep the last completed report; inactive parameters are ignored. Reset clears only the report, keeping the drafts.
 Hiding the selected object clears selection and this report. Retained selected CPU geometry can still be inspected after presentation loss. No global precision or topology certificate is implied.</p></details></fieldset>
+<fieldset id="selected-native-derivatives-pane"><legend>Selected native derivatives</legend>
+<button id="inspect-selected-native-derivatives" disabled>Inspect selected native derivatives</button><button id="reset-selected-native-derivatives" disabled>Reset derivative report</button>
+<p id="selected-native-derivatives-output" role="status" aria-live="polite"></p>
+<details><summary>Native derivative report</summary><pre id="selected-native-derivatives-details"></pre></details>
+<details id="selected-native-derivatives-help"><summary>About selected native derivatives</summary><p>Use the selected native point's original U/V or t fields above. This report shows the original authored XYZ point in millimetres and raw dP/dU, dP/dV or dP/dt vectors in millimetres per original dimensionless parameter.
+The vectors are not normalized. They do not include display pose or scale and are not outward normals. Zero vectors are valid. Endpoints use the interior span; an exact C0 interior knot cannot supply a first derivative.
+Invalid active drafts keep the last completed report. Reset clears only this derivative report and keeps drafts, point, chord, measurements and File choices. Selection or source changes clear the report; view changes keep it. A retained selected CPU object remains available after presentation loss. No continuity, global accuracy or topology certificate is implied.</p></details></fieldset>
 <fieldset id="native-chord-pane"><legend>Captured native chord</legend>
 <button id="capture-native-chord-point" disabled>Capture chord point</button><button id="reset-native-chord" disabled>Reset chord points</button>
 <p id="native-chord-output" role="status" aria-live="polite"></p>

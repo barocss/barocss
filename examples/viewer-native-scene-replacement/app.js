@@ -3,13 +3,14 @@ import {loadBaroCadDocument,parseBaroCadDocument,prepareBaroCadDocumentPrimitive
 import {parseBaroCadSource} from '@barocss/cad-interop/native';
 import {loadBaroCadModelSet} from '@barocss/cad-interop/model-set';
 import {parseBaroCadAssembly,loadBaroCadAssembly} from '@barocss/cad-interop/assembly';
-import {compileCadModel,evaluateCurve,evaluateSurface,curveDomain,surfaceDomain,parseBooleanExtrusionFeatureGraph,
+import {compileCadModel,evaluateCurve,evaluateSurface,evaluateCurveD1,evaluateSurfaceD1,curveDomain,surfaceDomain,parseBooleanExtrusionFeatureGraph,
   createCadGeometryReference,queryCadDocumentPoint,importIGES,validateIGESImport} from '@barocss/cad';
 import {prepareUniformCurvePreview,PrimitiveSceneRendererV2,PrimitiveViewport,BooleanShellSceneRenderer,PrimitiveSceneRecoveryError,preparePrimitiveSceneFrame,compileMeshMaterial,validateMeshMaterialIR} from '@barocss/gpu';
 import {createClothWorld} from '@barocss/physics/cloth';
 import {readNativeFile,createNativeFileOpen} from './native-file-open.js';
 import {readIGESFile,createIGESFileOpen} from './iges-file-open.js';
 import {readNativePointScope,querySelectedNativePoint} from './selected-native-point.js';
+import {querySelectedNativeDerivatives} from './selected-native-derivatives.js';
 import {measureCapturedNativeChord,isCapturedNativeChordPointCurrent} from './captured-native-chord.js';
 import {prepareNativeSourceDownload,createNativeSourceDownload} from './native-source-download.js';
 import {buildMountedAppearanceInput,MOUNTED_APPEARANCE_SHADER_SOURCES,MOUNTED_APPEARANCE_LIGHT_PRESETS} from './mounted-appearance.js';
@@ -33,6 +34,9 @@ const selectedPointPane=document.querySelector('#selected-native-point-pane'),se
 const selectedPointInputs=Object.fromEntries(['u','v','t'].map(key=>[key,document.querySelector('#selected-native-point-'+key)]));
 const inspectSelectedPointButton=document.querySelector('#inspect-selected-native-point'),resetSelectedPointButton=document.querySelector('#reset-selected-native-point');
 const selectedPointOutput=document.querySelector('#selected-native-point-output'),selectedPointDetails=document.querySelector('#selected-native-point-details');
+const selectedDerivativesPane=document.querySelector('#selected-native-derivatives-pane');
+const inspectSelectedDerivativesButton=document.querySelector('#inspect-selected-native-derivatives'),resetSelectedDerivativesButton=document.querySelector('#reset-selected-native-derivatives');
+const selectedDerivativesOutput=document.querySelector('#selected-native-derivatives-output'),selectedDerivativesDetails=document.querySelector('#selected-native-derivatives-details');
 const nativeChordPane=document.querySelector('#native-chord-pane'),nativeChordOutput=document.querySelector('#native-chord-output'),nativeChordDetails=document.querySelector('#native-chord-details');
 const captureChordButton=document.querySelector('#capture-native-chord-point'),resetChordButton=document.querySelector('#reset-native-chord');
 const buttons=Object.fromEntries(['replacement','fit-replacement','document','native','native-replacement','show-all','hide-all','fit','saved-view','query','clear','run-proof','lose-context','dispose']
@@ -63,6 +67,7 @@ let documentResult=null,originalBytes=null,originalText='',projection=[],manifes
 let igesStatus='empty',hasIGESProvenance=false;
 let selectedPointScope=null,selectedPointReport=null,selectedPointEpoch=0,selectedPointDisposed=false;
 let nativeChordFirst=null,nativeChordReport=null,nativeChordEpoch=0,nativeChordDisposed=false;
+let selectedDerivativesScope=null,selectedDerivativesReport=null,selectedDerivativesEpoch=0,selectedDerivativesDisposed=false;
 const sources={};
 const resourceCounts=()=>Object.fromEntries(Object.entries(resources).map(([key,live])=>[key,live.size]));
 const glErrors=()=>[...contexts].map(gl=>gl.getError());
@@ -127,7 +132,7 @@ function discardIGESFile(){check(igesFileOpen&&!disposed&&!running,'IGES file ch
   igesFileOpen.discard();igesFileChoice.value='';display('IGES choice discarded. Accepted geometry and provenance are unchanged.');return igesFileSnapshot();}
 function invalidateIGESFile(){if(!disposed)igesFileOpen?.invalidate();return igesFileSnapshot();}
 function invalidateFileIntents(){invalidateNativeFile();invalidateIGESFile();}
-function sourceAction(callback){invalidateFileIntents();try{const value=callback();nativeFileOpen?.clearAccepted();igesFileOpen?.clearAccepted();clearNativeChord();inspection.textContent='';render();return value;}catch(error){render();throw error;}}
+function sourceAction(callback){invalidateFileIntents();try{const value=callback();nativeFileOpen?.clearAccepted();igesFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();inspection.textContent='';render();return value;}catch(error){render();throw error;}}
 function commitReplacement(candidate){uploads.length=0;draws.length=0;viewer.replaceNativeScene(candidate);return viewer.getState();}
 function replace(candidate){return sourceAction(()=>commitReplacement(candidate===undefined?buildCandidate():candidate));}
 function nativeSourceDownloadSnapshot(){return nativeSourceDownload?clone(nativeSourceDownload.snapshot()):{version:0,pending:false,disposed,enabled:false,report:null,error:null,activeUrls:0,activeAnchors:0,activeTimers:0};}
@@ -231,6 +236,49 @@ function resetSelectedNativePoint(){
   selectedPointReport=null;selectedPointOutput.textContent='';selectedPointDetails.textContent='';
   display('Point report reset. Parameter drafts and accepted scene are unchanged.');return selectedNativePointSnapshot();
 }
+function selectedNativeDerivativesSnapshot(){return clone({version:0,scope:selectedDerivativesScope,report:selectedDerivativesReport,
+  enabled:!inspectSelectedDerivativesButton.disabled,disposed:selectedDerivativesDisposed,output:selectedDerivativesOutput.textContent});}
+function clearSelectedDerivativesContext(){selectedDerivativesEpoch++;selectedDerivativesScope=null;selectedDerivativesReport=null;
+  selectedDerivativesOutput.textContent='';selectedDerivativesDetails.textContent='';}
+function refreshSelectedNativeDerivatives(){
+  const next=selectedDerivativesDisposed||disposed?null:selectedPointScope;
+  if(!same(next,selectedDerivativesScope)){clearSelectedDerivativesContext();selectedDerivativesScope=clone(next);}
+  const enabled=!!selectedDerivativesScope&&!selectedDerivativesDisposed&&!disposed&&!running;
+  inspectSelectedDerivativesButton.disabled=!enabled;resetSelectedDerivativesButton.disabled=!enabled;
+  const pin=clone(selectedDerivativesScope),selectionEpoch=selectedPointEpoch,epoch=selectedDerivativesEpoch;
+  const guard=event=>{check(!selectedDerivativesDisposed&&!disposed,'Derivative inspection host is disposed.');
+    check(event.currentTarget?.isConnected&&selectedDerivativesPane.contains(event.currentTarget),'This derivative control is detached.');
+    check(selectionEpoch===selectedPointEpoch&&epoch===selectedDerivativesEpoch&&same(pin,selectedPointScope)
+      &&same(pin,selectedDerivativesScope),'This derivative control is stale.');};
+  inspectSelectedDerivativesButton.onclick=event=>action(()=>{guard(event);return inspectSelectedNativeDerivatives();});
+  resetSelectedDerivativesButton.onclick=event=>action(()=>{guard(event);return resetSelectedNativeDerivatives();});
+}
+function inspectSelectedNativeDerivatives(){
+  check(!selectedDerivativesDisposed&&!disposed&&!running,'Derivative inspection needs an idle live host.');
+  check(arguments.length<=1,'Derivative inspection accepts one explicit parameter record.');
+  check(selectedPointScope&&same(selectedPointScope,selectedDerivativesScope),'A current native geometry must be selected.');
+  const expected=clone(selectedPointScope),selectionEpoch=selectedPointEpoch,epoch=selectedDerivativesEpoch;
+  const input=arguments.length?arguments[0]:expected.ref.kind==='surface'
+    ?{u:pointDraft(selectedPointInputs.u,'U'),v:pointDraft(selectedPointInputs.v,'V')}:{t:pointDraft(selectedPointInputs.t,'t')};
+  const candidate=querySelectedNativeDerivatives(viewer,expected,input),current=pointExpected(readNativePointScope(viewer));
+  check(!selectedDerivativesDisposed&&!disposed&&selectionEpoch===selectedPointEpoch&&epoch===selectedDerivativesEpoch
+    &&same(expected,selectedPointScope)&&same(expected,selectedDerivativesScope)&&same(current,expected),
+    'Current native derivative scope changed before report adoption.');
+  selectedDerivativesReport=clone(candidate);
+  const vector=values=>values.map(value=>Object.is(value,-0)?'-0':Number(value.toPrecision(12))).join(', '),d=candidate.derivatives;
+  selectedDerivativesOutput.textContent='Original authored XYZ: '+vector(d.point)+' mm · '+(expected.ref.kind==='surface'
+    ?'dP/dU: '+vector(d.du)+'; dP/dV: '+vector(d.dv):'dP/dt: '+vector(d.derivative))+' mm per original dimensionless parameter';
+  selectedDerivativesDetails.textContent=JSON.stringify(candidate,null,2);
+  display('Native derivatives ready for '+(expected.ref.kind==='surface'?expected.ref.surfaceId:expected.ref.curveId)+'.');return clone(candidate);
+}
+function resetSelectedNativeDerivatives(){
+  check(!selectedDerivativesDisposed&&!disposed&&!running,'Derivative inspection needs an idle live host.');
+  check(arguments.length===0,'Reset derivative report takes no arguments.');
+  check(selectedDerivativesScope&&same(selectedDerivativesScope,selectedPointScope)
+    &&same(pointExpected(readNativePointScope(viewer)),selectedDerivativesScope),'Current native derivative scope is stale.');
+  selectedDerivativesReport=null;selectedDerivativesOutput.textContent='';selectedDerivativesDetails.textContent='';
+  display('Derivative report reset. Drafts, point, chord and SDK measurements remain.');return selectedNativeDerivativesSnapshot();
+}
 function nativeChordSnapshot(){return clone({version:0,phase:nativeChordReport?'complete':nativeChordFirst?'first':'empty',
   first:nativeChordFirst,report:nativeChordReport,enabled:!captureChordButton.disabled,disposed:nativeChordDisposed,output:nativeChordOutput.textContent});}
 function clearNativeChord(){nativeChordEpoch++;nativeChordFirst=null;nativeChordReport=null;nativeChordOutput.textContent='';nativeChordDetails.textContent='';}
@@ -284,7 +332,7 @@ function resetNativeChord(){
 function render(){const state=viewer.getState(),live=!disposed&&state.status!=='context-lost',ready=live&&state.status==='ready';
   const acceptedIGES=igesFileOpen?.snapshot().accepted,importCurrent=matchingIGES(state,acceptedIGES);
   let nativePointScope=null;if(!selectedPointDisposed&&!disposed)try{nativePointScope=readNativePointScope(viewer);}catch{}
-  refreshSelectedNativePoint();renderNativeChord();
+  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();
   for(const[id,button]of Object.entries(buttons))button.disabled=id==='dispose'?disposed:!live||running;
   buttons.fit.disabled=!ready||running||!state.visibleGeometry.length;buttons.query.disabled=disposed||running||!state.curves.length||(!live&&!importCurrent);
   list.replaceChildren(...inventory().map(body=>{const item=document.createElement('li'),label=document.createElement('label'),checkbox=document.createElement('input');
@@ -396,22 +444,23 @@ async function runProof(){invalidateFileIntents();if(running||disposed||viewer.g
     documentBytes:manifest[0]?.bytes,contextCount:contexts.size,resources:resourceCounts(),limits:result.scope});
     try{await fetch('/result',{method:'POST',body:JSON.stringify(result)});}catch(error){result.recordingError=error.message;}}
   return result;}
-function dispose(){if(disposed)return;nativeChordDisposed=true;clearNativeChord();selectedPointDisposed=true;clearSelectedPointContext();igesFileOpen?.dispose();nativeSourceDownload?.dispose();nativeFileOpen?.dispose();viewer.dispose();viewer.dispose();disposed=true;render();const receipt={status:viewer.getState().status,resources:resourceCounts(),glErrors:glErrors(),
+function dispose(){if(disposed)return;selectedDerivativesDisposed=true;clearSelectedDerivativesContext();nativeChordDisposed=true;clearNativeChord();selectedPointDisposed=true;clearSelectedPointContext();igesFileOpen?.dispose();nativeSourceDownload?.dispose();nativeFileOpen?.dispose();viewer.dispose();viewer.dispose();disposed=true;render();const receipt={status:viewer.getState().status,resources:resourceCounts(),glErrors:glErrors(),
   contextCount:contexts.size,errors:[...errors],warnings:[...warnings]};if(result)result.disposal=receipt;display(receipt);return receipt;}
 try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=await(await fetch('/document.cad-document.json')).arrayBuffer();
   check(bytes.byteLength===manifest[0].bytes&&await sha(bytes)===manifest[0].sha256,'Unchanged original document bytes/hash differ');originalBytes=new Uint8Array(bytes);originalText=new TextDecoder().decode(bytes);
   documentResult=await loadBaroCadDocument(new URL('/document.cad-document.json',location.href).href);
   projection=prepareBaroCadDocumentPrimitiveNativeRefsV2(documentResult,documentOptions);for(const asset of documentResult.document.assets)sources[asset.id]=asset.source;
   viewer=createViewer(canvas,{mmToSceneUnit,background:[.035,.065,.105]});nativeFileOpen=createNativeFileOpen(viewer,{
-    onChange:snapshot=>renderNativeFileControls(snapshot),onAccepted:accepted=>{igesFileOpen?.clearAccepted();clearNativeChord();inspection.textContent='';render();display('Opened original source '+accepted.name+'.');},
+    onChange:snapshot=>renderNativeFileControls(snapshot),onAccepted:accepted=>{igesFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();inspection.textContent='';render();display('Opened original source '+accepted.name+'.');},
     onError:error=>{render();display(error instanceof Error?error.message:String(error));}});
   igesFileOpen=createIGESFileOpen(viewer,{onChange:snapshot=>renderIGESFileControls(snapshot),
-    onAccepted:accepted=>{nativeFileOpen?.clearAccepted();clearNativeChord();inspection.textContent='';render();display('Opened IGES geometry '+accepted.name+'.');},
+    onAccepted:accepted=>{nativeFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();inspection.textContent='';render();display('Opened IGES geometry '+accepted.name+'.');},
     onError:error=>{render();display(error instanceof Error?error.message:String(error));}});
   nativeSourceDownload=createNativeSourceDownload(viewer,canvas,{getAcceptedFile:()=>nativeFileSnapshot().accepted,
     onChange:snapshot=>renderNativeSourceDownloadControls(snapshot),onError:error=>display(error instanceof Error?error.message:String(error))});
   replace();lossExtension=[...contexts][0].getExtension('WEBGL_lose_context');
   window.__viewerReplacementProof={viewer,createViewer,prepareViewerNativeSceneAppearance,preparePrimitiveSceneFrame,compileMeshMaterial,validateMeshMaterialIR,PrimitiveSceneRecoveryError,
+    querySelectedNativeDerivatives,inspectSelectedNativeDerivatives,resetSelectedNativeDerivatives,selectedNativeDerivativesSnapshot,evaluateCurveD1,evaluateSurfaceD1,
     measureCapturedNativeChord,isCapturedNativeChordPointCurrent,captureNativeChordPoint,resetNativeChord,nativeChordSnapshot,
     readNativePointScope,querySelectedNativePoint,inspectSelectedNativePoint,resetSelectedNativePoint,selectedNativePointSnapshot,surfaceDomain,
     readIGESFile,createIGESFileOpen,importIGES,validateIGESImport,stageIGESFile,openIGESFile,discardIGESFile,invalidateIGESFile,igesFileSnapshot,
