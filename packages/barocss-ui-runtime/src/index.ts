@@ -91,6 +91,7 @@ type Ticket = {
   cancelled: Promise<false>;
   resolveCancelled: () => void;
   iterator: AsyncIterator<unknown>;
+  closed: boolean;
 };
 
 const digestPattern = /^[a-f0-9]{64}$/;
@@ -165,13 +166,19 @@ export function createUiRuntime(options: UiRuntimeOptions): UiRuntime {
     phase = nextPhase;
     if (active) sendInit(active);
   };
+  const closeIterator = (current: Ticket) => {
+    if (current.closed) return;
+    current.closed = true;
+    try { void Promise.resolve(current.iterator.return?.()).catch(() => {}); }
+    catch { /* Source cleanup cannot change a frame transition. */ }
+  };
   const stopTicket = () => {
     const current = ticket;
     ticket = null;
     if (current) {
       current.abort.abort();
       current.resolveCancelled();
-      void current.iterator.return?.().catch(() => {});
+      closeIterator(current);
     }
   };
   const handleMessage = (event: MessageEvent) => {
@@ -248,7 +255,7 @@ export function createUiRuntime(options: UiRuntimeOptions): UiRuntime {
     const abort = new AbortController();
     let resolveCancelled!: () => void;
     const cancelled = new Promise<false>((resolve) => { resolveCancelled = () => resolve(false); });
-    const current: Ticket = { abort, cancelled, resolveCancelled, iterator };
+    const current: Ticket = { abort, cancelled, resolveCancelled, iterator, closed: false };
     ticket = current;
     const next = () => Promise.race([iterator.next(), cancelled]);
     try {
@@ -296,7 +303,7 @@ export function createUiRuntime(options: UiRuntimeOptions): UiRuntime {
     } finally {
       if (ticket === current) ticket = null;
       abort.abort();
-      void iterator.return?.().catch(() => {});
+      closeIterator(current);
     }
   };
   return {
