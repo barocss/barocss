@@ -3,12 +3,13 @@ import {loadBaroCadDocument,parseBaroCadDocument,prepareBaroCadDocumentPrimitive
 import {parseBaroCadSource} from '@barocss/cad-interop/native';
 import {loadBaroCadModelSet} from '@barocss/cad-interop/model-set';
 import {parseBaroCadAssembly,loadBaroCadAssembly} from '@barocss/cad-interop/assembly';
-import {compileCadModel,evaluateCurve,evaluateSurface,curveDomain,parseBooleanExtrusionFeatureGraph,
+import {compileCadModel,evaluateCurve,evaluateSurface,curveDomain,surfaceDomain,parseBooleanExtrusionFeatureGraph,
   createCadGeometryReference,queryCadDocumentPoint,importIGES,validateIGESImport} from '@barocss/cad';
 import {prepareUniformCurvePreview,PrimitiveSceneRendererV2,PrimitiveViewport,BooleanShellSceneRenderer,PrimitiveSceneRecoveryError,preparePrimitiveSceneFrame,compileMeshMaterial,validateMeshMaterialIR} from '@barocss/gpu';
 import {createClothWorld} from '@barocss/physics/cloth';
 import {readNativeFile,createNativeFileOpen} from './native-file-open.js';
 import {readIGESFile,createIGESFileOpen} from './iges-file-open.js';
+import {readNativePointScope,querySelectedNativePoint} from './selected-native-point.js';
 import {prepareNativeSourceDownload,createNativeSourceDownload} from './native-source-download.js';
 import {buildMountedAppearanceInput,MOUNTED_APPEARANCE_SHADER_SOURCES,MOUNTED_APPEARANCE_LIGHT_PRESETS} from './mounted-appearance.js';
 
@@ -27,6 +28,10 @@ const stagedIGESFile=document.querySelector('#staged-iges-file'),acceptedIGESFil
 const downloadNativeSourceButton=document.querySelector('#download-native-source'),nativeSourceDownloadOutput=document.querySelector('#native-source-download-output');
 const mountedAppearanceTime=document.querySelector('#mounted-appearance-time'),mountedAppearanceAmount=document.querySelector('#mounted-appearance-amount'),mountedAppearanceLight=document.querySelector('#mounted-appearance-light');
 const replaceMountedAppearanceButton=document.querySelector('#replace-mounted-appearance'),mountedAppearanceOutput=document.querySelector('#mounted-appearance-output'),mountedAppearanceDetails=document.querySelector('#mounted-appearance-details');
+const selectedPointPane=document.querySelector('#selected-native-point-pane'),selectedPointTarget=document.querySelector('#selected-native-point-target');
+const selectedPointInputs=Object.fromEntries(['u','v','t'].map(key=>[key,document.querySelector('#selected-native-point-'+key)]));
+const inspectSelectedPointButton=document.querySelector('#inspect-selected-native-point'),resetSelectedPointButton=document.querySelector('#reset-selected-native-point');
+const selectedPointOutput=document.querySelector('#selected-native-point-output'),selectedPointDetails=document.querySelector('#selected-native-point-details');
 const buttons=Object.fromEntries(['replacement','fit-replacement','document','native','native-replacement','show-all','hide-all','fit','saved-view','query','clear','run-proof','lose-context','dispose']
   .map(id=>[id,document.querySelector('button#'+id)]));
 const contexts=new Set(),resources={},peaks={},uploads=[],draws=[],errors=[],warnings=[];
@@ -53,6 +58,7 @@ const documentOptions={native:{...clone(nativeOptions),unitsPerMillimeter:1},bas
 const mmToSceneUnit=.13,fixedCamera={eye:[4,3,7],target:[.35,.2,.3],up:[0,1,0],fovYDegrees:45,near:.01,far:30};
 let documentResult=null,originalBytes=null,originalText='',projection=[],manifest=[],viewer=null,running=false,disposed=false,result=null,nativeFileOpen=null,nativeSourceDownload=null,igesFileOpen=null;
 let igesStatus='empty',hasIGESProvenance=false;
+let selectedPointScope=null,selectedPointReport=null,selectedPointEpoch=0,selectedPointDisposed=false;
 const sources={};
 const resourceCounts=()=>Object.fromEntries(Object.entries(resources).map(([key,live])=>[key,live.size]));
 const glErrors=()=>[...contexts].map(gl=>gl.getError());
@@ -157,8 +163,74 @@ function matchingIGES(state,accepted){
   return state.native.source===accepted.imported.source&&same(state.native.model,accepted.imported.model)
     &&refs.length===accepted.refs.length&&refs.every((ref,index)=>refs.findIndex(value=>sameRef(value,ref))===index
       &&accepted.refs.some(value=>sameRef(value,ref)));}
+function selectedNativePointSnapshot(){return clone({version:0,scope:selectedPointScope,report:selectedPointReport,
+  drafts:Object.fromEntries(Object.entries(selectedPointInputs).map(([key,input])=>[key,input.value])),
+  enabled:!inspectSelectedPointButton.disabled,disposed:selectedPointDisposed,output:selectedPointOutput.textContent});}
+function pointExpected(scope){return scope?.selectedRef?{source:scope.source,model:scope.model,ref:scope.selectedRef}:null;}
+function sameNativePointSource(a,b){return!!a&&!!b&&a.source===b.source&&same(a.model,b.model)&&same(a.refs,b.refs);}
+function selectedPointDomain(expected){const id=expected.ref.kind==='surface'?expected.ref.surfaceId:expected.ref.curveId;
+  const geometry=expected.model.objects.find(value=>value.kind===expected.ref.kind&&value.id===id);
+  check(geometry,'Current selected original geometry is missing.');
+  return geometry.kind==='surface'?surfaceDomain(geometry):curveDomain(geometry);}
+function pointMidpoint(pair){const value=pair[0]/2+pair[1]/2;check(Number.isFinite(value)&&value>=pair[0]&&value<=pair[1],'Original domain midpoint is not finite.');return value;}
+function clearSelectedPointContext(){selectedPointEpoch++;selectedPointScope=null;selectedPointReport=null;
+  for(const input of Object.values(selectedPointInputs))input.value='';selectedPointOutput.textContent='';selectedPointDetails.textContent='';}
+function refreshSelectedNativePoint(){
+  let native=null,error=null;
+  if(!selectedPointDisposed&&!disposed)try{native=readNativePointScope(viewer);}catch(value){error=value;}
+  const next=pointExpected(native);
+  if(!same(next,selectedPointScope)){
+    clearSelectedPointContext();
+    if(next){const domain=selectedPointDomain(next);selectedPointScope=clone(next);
+      if(next.ref.kind==='surface'){selectedPointInputs.u.value=String(pointMidpoint(domain.u));selectedPointInputs.v.value=String(pointMidpoint(domain.v));}
+      else selectedPointInputs.t.value=String(pointMidpoint(domain));}
+  }
+  const enabled=!!selectedPointScope&&!selectedPointDisposed&&!disposed&&!running;
+  for(const[key,input]of Object.entries(selectedPointInputs)){
+    const active=!!selectedPointScope&&(selectedPointScope.ref.kind==='surface'?key!=='t':key==='t');
+    input.closest('label').hidden=!active;input.disabled=!enabled||!active;
+  }
+  inspectSelectedPointButton.disabled=!enabled;resetSelectedPointButton.disabled=!enabled;
+  selectedPointTarget.textContent=selectedPointScope?(selectedPointScope.ref.kind==='surface'?selectedPointScope.ref.surfaceId:selectedPointScope.ref.curveId)
+    +' · '+selectedPointScope.ref.kind+' · Model '+selectedPointScope.model.name+' · original domain '+JSON.stringify(selectedPointDomain(selectedPointScope))
+    :error?'Ordinary native Source0 selection is required.':'Select a visible native Surface or Curve.';
+  const pin=clone(selectedPointScope),epoch=selectedPointEpoch;
+  const eventGuard=event=>{check(!selectedPointDisposed&&!disposed,'Point inspection host is disposed.');
+    check(event.currentTarget?.isConnected&&selectedPointPane.contains(event.currentTarget),'This point control is detached.');
+    check(epoch===selectedPointEpoch&&same(pin,selectedPointScope),'This point control is stale.');};
+  inspectSelectedPointButton.onclick=event=>action(()=>{eventGuard(event);return inspectSelectedNativePoint();});
+  resetSelectedPointButton.onclick=event=>action(()=>{eventGuard(event);return resetSelectedNativePoint();});
+}
+function pointDraft(input,label){const text=input.value.trim();check(input.value.length<=128
+  &&/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text),'Native '+label+' needs a complete finite decimal.');
+  const value=Number(text);check(Number.isFinite(value),'Native '+label+' must be finite.');return value;}
+function inspectSelectedNativePoint(){
+  check(!selectedPointDisposed&&!disposed&&!running,'Point inspection needs an idle live host.');
+  check(arguments.length<=1,'Point inspection accepts one explicit parameter record.');
+  check(selectedPointScope,'A current native geometry must be selected.');
+  const expected=clone(selectedPointScope),epoch=selectedPointEpoch;
+  const input=arguments.length?arguments[0]:expected.ref.kind==='surface'
+    ?{u:pointDraft(selectedPointInputs.u,'U'),v:pointDraft(selectedPointInputs.v,'V')}:{t:pointDraft(selectedPointInputs.t,'t')};
+  const candidate=querySelectedNativePoint(viewer,expected,input),current=pointExpected(readNativePointScope(viewer));
+  check(!selectedPointDisposed&&!disposed&&epoch===selectedPointEpoch&&same(expected,selectedPointScope)&&same(current,expected),
+    'Current native point scope changed before report adoption.');
+  selectedPointReport=clone(candidate);
+  const point=candidate.pointMM.map(value=>Object.is(value,-0)?'-0':Number(value.toPrecision(12)));
+  selectedPointOutput.textContent='Original authored point · X '+point[0]+' mm · Y '+point[1]+' mm · Z '+point[2]+' mm';
+  selectedPointDetails.textContent=JSON.stringify(candidate,null,2);display('Native point ready for '+(expected.ref.kind==='surface'?expected.ref.surfaceId:expected.ref.curveId)+'.');
+  return clone(candidate);
+}
+function resetSelectedNativePoint(){
+  check(!selectedPointDisposed&&!disposed&&!running,'Point inspection needs an idle live host.');
+  check(arguments.length===0,'Reset point report takes no arguments.');
+  check(selectedPointScope&&same(pointExpected(readNativePointScope(viewer)),selectedPointScope),'Current native point scope is stale.');
+  selectedPointReport=null;selectedPointOutput.textContent='';selectedPointDetails.textContent='';
+  display('Point report reset. Parameter drafts and accepted scene are unchanged.');return selectedNativePointSnapshot();
+}
 function render(){const state=viewer.getState(),live=!disposed&&state.status!=='context-lost',ready=live&&state.status==='ready';
   const acceptedIGES=igesFileOpen?.snapshot().accepted,importCurrent=matchingIGES(state,acceptedIGES);
+  let nativePointScope=null;if(!selectedPointDisposed&&!disposed)try{nativePointScope=readNativePointScope(viewer);}catch{}
+  refreshSelectedNativePoint();
   for(const[id,button]of Object.entries(buttons))button.disabled=id==='dispose'?disposed:!live||running;
   buttons.fit.disabled=!ready||running||!state.visibleGeometry.length;buttons.query.disabled=disposed||running||!state.curves.length||(!live&&!importCurrent);
   list.replaceChildren(...inventory().map(body=>{const item=document.createElement('li'),label=document.createElement('label'),checkbox=document.createElement('input');
@@ -168,15 +240,18 @@ function render(){const state=viewer.getState(),live=!disposed&&state.status!=='
     checkbox.addEventListener('change',()=>action(()=>{if(!item.isConnected)throw Error('This body list is stale.');
       const accepted=viewer.getState(),refs=inventory().map(body=>body.ref).filter(ref=>sameRef(ref,body.ref)?checkbox.checked:accepted.visibleGeometry.some(value=>sameRef(value,ref)));
       viewer.setVisibleGeometry(refs);}));item.append(label,identity);
-    if(importCurrent){const select=document.createElement('button');select.textContent='Select '+body.label;
+    if(importCurrent||nativePointScope){const select=document.createElement('button');select.textContent='Select '+body.label;
       select.disabled=!ready||running||!state.visibleGeometry.some(ref=>sameRef(ref,body.ref));
       select.setAttribute('aria-pressed',String(!!state.selectedGeometry&&sameRef(state.selectedGeometry,body.ref)));
-      const ownedRef=clone(body.ref),pin=clone(acceptedIGES);
+      const ownedRef=clone(body.ref),pin=clone(acceptedIGES),nativePin=clone(nativePointScope);
       select.addEventListener('click',()=>action(()=>{check(item.isConnected&&item.parentElement===list,'This imported object row is stale.');
         const current=viewer.getState(),accepted=igesFileOpen?.snapshot().accepted;
-        check(!running&&current.status==='ready'&&same(accepted,pin)&&matchingIGES(current,accepted)
-          &&current.visibleGeometry.some(ref=>sameRef(ref,ownedRef)),'This imported object is not current and visible.');
-        viewer.selectGeometry(clone(ownedRef));display('Selected imported '+body.label+'.');}));item.append(select);}
+        check(!running&&current.status==='ready'&&current.visibleGeometry.some(ref=>sameRef(ref,ownedRef)),'This native object is not ready and visible.');
+        if(importCurrent)check(same(accepted,pin)&&matchingIGES(current,accepted),'This imported object scope is stale.');
+        else{const fresh=readNativePointScope(viewer);check(sameNativePointSource(nativePin,fresh)
+          &&fresh.refs.some(ref=>sameRef(ref,ownedRef)),'This original native object scope is stale.');
+          check(sameNativePointSource(nativePin,readNativePointScope(viewer)),'Native source changed before selection.');}
+        viewer.selectGeometry(clone(ownedRef));display((importCurrent?'Selected imported ':'Selected native ')+body.label+'.');}));item.append(select);}
     return item;}));
   nativeFileOpen?.sync();renderNativeFileControls();igesStatus=state.status;igesFileOpen?.sync();renderIGESFileControls(undefined,state.status);nativeSourceDownload?.sync();renderNativeSourceDownloadControls();renderMountedAppearanceControls(state);
 }
@@ -267,7 +342,7 @@ async function runProof(){invalidateFileIntents();if(running||disposed||viewer.g
     documentBytes:manifest[0]?.bytes,contextCount:contexts.size,resources:resourceCounts(),limits:result.scope});
     try{await fetch('/result',{method:'POST',body:JSON.stringify(result)});}catch(error){result.recordingError=error.message;}}
   return result;}
-function dispose(){if(disposed)return;igesFileOpen?.dispose();nativeSourceDownload?.dispose();nativeFileOpen?.dispose();viewer.dispose();viewer.dispose();disposed=true;render();const receipt={status:viewer.getState().status,resources:resourceCounts(),glErrors:glErrors(),
+function dispose(){if(disposed)return;selectedPointDisposed=true;clearSelectedPointContext();igesFileOpen?.dispose();nativeSourceDownload?.dispose();nativeFileOpen?.dispose();viewer.dispose();viewer.dispose();disposed=true;render();const receipt={status:viewer.getState().status,resources:resourceCounts(),glErrors:glErrors(),
   contextCount:contexts.size,errors:[...errors],warnings:[...warnings]};if(result)result.disposal=receipt;display(receipt);return receipt;}
 try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=await(await fetch('/document.cad-document.json')).arrayBuffer();
   check(bytes.byteLength===manifest[0].bytes&&await sha(bytes)===manifest[0].sha256,'Unchanged original document bytes/hash differ');originalBytes=new Uint8Array(bytes);originalText=new TextDecoder().decode(bytes);
@@ -283,6 +358,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=awa
     onChange:snapshot=>renderNativeSourceDownloadControls(snapshot),onError:error=>display(error instanceof Error?error.message:String(error))});
   replace();lossExtension=[...contexts][0].getExtension('WEBGL_lose_context');
   window.__viewerReplacementProof={viewer,createViewer,prepareViewerNativeSceneAppearance,preparePrimitiveSceneFrame,compileMeshMaterial,validateMeshMaterialIR,PrimitiveSceneRecoveryError,
+    readNativePointScope,querySelectedNativePoint,inspectSelectedNativePoint,resetSelectedNativePoint,selectedNativePointSnapshot,surfaceDomain,
     readIGESFile,createIGESFileOpen,importIGES,validateIGESImport,stageIGESFile,openIGESFile,discardIGESFile,invalidateIGESFile,igesFileSnapshot,
     buildMountedAppearanceInput,buildMountedAppearanceCandidate,replaceMountedAppearance,mountedAppearanceSnapshot,MOUNTED_APPEARANCE_SHADER_SOURCES,MOUNTED_APPEARANCE_LIGHT_PRESETS,prepareNativeSourceDownload,createNativeSourceDownload,downloadNativeSource,nativeSourceDownloadSnapshot,readNativeFile,createNativeFileOpen,stageNativeFile,openNativeFile,discardNativeFile,invalidateNativeFile,nativeFileSnapshot,documentResult,originalBytes,originalText,manifest,sources,projection,bodyIds,nativeOptions,documentOptions,fixedCamera,mmToSceneUnit,canvas,
     buildCandidate,makeCandidate:buildCandidate,buildNativeCandidate,initialDisplay,refFor,refs:projection.map(refFor),refsFor:()=>projection.map(refFor),replace,nativeEntries,candidatePoints,transformedPoint,expectedFit,uploadWitness,query,inventory,render,

@@ -1,3 +1,41 @@
+## Inspect the selected original geometry
+
+Open a supported original Source0 or IGES file. Select a visible original
+Surface or Curve. The new **Selected native parameter point** pane shows its native
+parameter domain. Enter U and V for a Surface, or t for a Curve, then select
+**Inspect selected native point**. **Reset point report** clears this host report.
+The separate original Curve inspection button keeps its existing behavior.
+
+The parameters are dimensionless values in the original numeric domain. They
+are not normalized screen coordinates. New selections start at the original
+domain midpoint. Only the active parameter fields are read. Invalid input
+keeps the current report. The result shows original authored XYZ in millimetres.
+Display poses, camera and the0.13scene scale do not modify this result. It is
+not a native screen hit, certified precision result or editing-history record.
+
+The helper recompiles the whole current Source0 and compares every Model value
+with the accepted original Model. The selected tagged reference must belong
+to the complete current inventory. It then calls the existing public CAD D0
+evaluator. It changes no Viewer measurement, selection, File intent, import
+provenance or graphics state. Complete technical JSON retains the source,
+whole Model, reference, exact parameters, domain and original point.
+
+A different selection, changed source/Model, cleared selection or unsupported
+mode clears this report. Hiding the selected object clears SDK selection and
+also clears this report. View and display-pose changes keep a current report.
+A failed source candidate keeps a current report. If presentation becomes
+unavailable, the retained selected CPU geometry can still be inspected.
+New selection needs available presentation. Disposal clears and disables the
+new controls before they can read Viewer state.
+
+The scope is ordinary native Source0 with1..4 complete original objects,
+including generated Source0 from accepted IGES. Document, Face, assembly,
+Shell and uniform Curve modes have their separate inspection operations.
+Sources require1..65536 UTF8 bytes and code units. Owned JSON snapshots are
+bounded to depth16,8192 values,512 array entries and64 record keys. These
+bounds are guards, not a maximum-workload or numerical-accuracy certificate.
+No object is stripped or retagged to make this operation available.
+
 ## Open a local IGES geometry file
 
 Choose an **IGES geometry file** and confirm **Authored XYZ matches Viewer Y-up**.
