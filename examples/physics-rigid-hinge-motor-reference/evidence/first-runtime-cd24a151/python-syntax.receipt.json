@@ -1,0 +1,26 @@
+{
+  "gate": "python-syntax",
+  "argv": [
+    "python3",
+    "-m",
+    "py_compile",
+    "/Users/user/.codex/worktrees/physics-hinge-motor-1179/barocss/examples/physics-rigid-hinge-motor-reference/reference.py"
+  ],
+  "beforeHead": "cd24a151b834f3362d78449fa1f667a3d03fd9b3",
+  "measuredSource": "ccbda92dce610d31bd7961c0f39edbefc237b7f9",
+  "elapsedSeconds": 0.05571299997973256,
+  "exitCode": 0,
+  "artifacts": [
+    {
+      "path": "python-syntax.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "python-syntax.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "sourceFreezeSha256": "b2d67db8852420780e99c7add4a2e16c0c65aba7de246375117df428b388311b"
+}

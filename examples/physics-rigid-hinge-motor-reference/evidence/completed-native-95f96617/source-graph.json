@@ -1,0 +1,867 @@
+{
+  "audit": {
+    "graph": "source",
+    "originalSourceCount": 11,
+    "originalDistCount": 0,
+    "newPrivateSource": true,
+    "providerPrivateSource": true,
+    "inputs": [
+      {
+        "path": "packages/barocss-physics/src/types.ts",
+        "sha256": "e8befc80c94e1b109f5024581f056639acff2c19ed445f2875e20eaf2d3bf240"
+      },
+      {
+        "path": "packages/barocss-physics/src/limits.ts",
+        "sha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3"
+      },
+      {
+        "path": "packages/barocss-physics/src/validation.ts",
+        "sha256": "5b0a3016c32ef19076984e6b7f529253af581c29eb9dd1adb19cc8dba185479f"
+      },
+      {
+        "path": "packages/barocss-physics/src/math.ts",
+        "sha256": "6605633830fa7fdf39f9531fbf988b52e306a6835655a318c961eb44c6b05ff8"
+      },
+      {
+        "path": "packages/barocss-physics/src/dynamic-anchor-pair.ts",
+        "sha256": "66db021e35e76fa8a785e4468b7ccde59cd330f15bcc322ec6bd945de7efe046"
+      },
+      {
+        "path": "packages/barocss-physics/src/dynamic-hinge-joint.ts",
+        "sha256": "f41e935efcc92d931277c3d7ccc42921cc98049f2febcf5eee26cc7ba82aa171"
+      },
+      {
+        "path": "packages/barocss-physics/src/dynamic-fixed-joint.ts",
+        "sha256": "5e7c857c8b53536879c38ceb8728aaf43f2d840a9a1ceff8d5eb0d28690b021b"
+      },
+      {
+        "path": "packages/barocss-physics/src/joints.ts",
+        "sha256": "733db740db6cdfb079faab141ac876909cf57bdb372c8c018b6336d07b48528c"
+      },
+      {
+        "path": "examples/physics-rigid-hinge-limit-diagnostic/adapter.ts",
+        "sha256": "8919ab174525316f2b7697cfb003c7e3e4103a999ef67408ddbe99ca7b19da22"
+      },
+      {
+        "path": "examples/physics-rigid-coupled-hinge-reference/profile.ts",
+        "sha256": "3d7fc873d3e5ff9d6f68482e184568eca73fcb7c57f87a1e1e17b3090af79dcd"
+      },
+      {
+        "path": "examples/physics-rigid-coupled-hinge-reference/admission.ts",
+        "sha256": "cafa33eb8438f182b27bbfd2ba4ab91e34470ac76b4b0e2520214f9dc4c5204f"
+      },
+      {
+        "path": "examples/physics-rigid-hinge-velocity-reference/profile.ts",
+        "sha256": "9911fb4cf26384f248d5c83144491cae099a8703a621bd653c33bb72d9f2cc0d"
+      },
+      {
+        "path": "packages/barocss-physics/src/capsule-contact.ts",
+        "sha256": "a9df21430e4e2a37b1055143a5954a6a3f997b758c46432daebc11998630f3cd"
+      },
+      {
+        "path": "packages/barocss-physics/src/collision.ts",
+        "sha256": "2ba769697e5f9c5174f30a7a9ae8dceb61c1ba03c6fb507c24b6b6f7d4240388"
+      },
+      {
+        "path": "examples/physics-rigid-coupled-hinge-reference/candidate.ts",
+        "sha256": "ea9c7bf81d281053a4576a66fe0944d1fe3a329485b41c02cc987e0333796532"
+      },
+      {
+        "path": "examples/physics-rigid-hinge-velocity-reference/diagnostics.ts",
+        "sha256": "c432f6f2eb4e48dbac260490489badf6be25d0711fdf866f4b096b4baee68257"
+      },
+      {
+        "path": "examples/physics-rigid-hinge-velocity-reference/rows.ts",
+        "sha256": "3b9d0401497d6f32bc701aa887e8020171ccd0d4747ee7faa9a04940ecfb73ae"
+      },
+      {
+        "path": "examples/physics-rigid-hinge-velocity-reference/linear-solver.ts",
+        "sha256": "27a9ff150621e6a648648441e0d862fccc9814e649fb1cccd4086d35bee79663"
+      },
+      {
+        "path": "examples/physics-rigid-hinge-velocity-reference/candidate.ts",
+        "sha256": "6580bb3dd049c70076e3d32225749c2b7b3e811e65a83fe43f0cf4393086105c"
+      },
+      {
+        "path": "examples/physics-rigid-hinge-motor-reference/copy.ts",
+        "sha256": "9422c976771232c85ac1ec070e37fee8c6a36280994ab2373e9f4c1e93dbf4a0"
+      },
+      {
+        "path": "examples/physics-rigid-hinge-motor-reference/errors.ts",
+        "sha256": "725871eb0c1ae32a181cf169379daf3ae9052ac1d6b1c82eb8db25a3985d7312"
+      },
+      {
+        "path": "examples/physics-rigid-hinge-motor-reference/options.ts",
+        "sha256": "cd8b2da8324043012bc8d8326bb4c8eb88ee66de46ddd6a72d39bad32b46dedc"
+      },
+      {
+        "path": "packages/barocss-physics/src/joint-motor.ts",
+        "sha256": "392b23cf5aab021b5af32fd56e3615e78bc64f8484f98f1281f0e709b99add2a"
+      },
+      {
+        "path": "examples/physics-rigid-hinge-motor-reference/motor-stages.ts",
+        "sha256": "2f1e557cc32a8ffb3559f50238b17ecbd0bc8212724839c8f736c0eec426f796"
+      },
+      {
+        "path": "examples/physics-rigid-hinge-motor-reference/report.ts",
+        "sha256": "b687dadc56d3bd12dabe7938bfba141344f3899a0415e6cd93f5f43a9bcd2b01"
+      },
+      {
+        "path": "examples/physics-rigid-hinge-motor-reference/diagnostics.ts",
+        "sha256": "f83359dde6f7d7066957d38fed479d37c48cca7771504332c1aa4ed3ba846f21"
+      },
+      {
+        "path": "examples/physics-rigid-hinge-motor-reference/candidate.ts",
+        "sha256": "27b99ca3857944d91dd73e3e1b2f69859af155bd2ea7e3a95b72d045c6845430"
+      },
+      {
+        "path": "examples/physics-rigid-hinge-motor-reference/entry.ts",
+        "sha256": "ac5882f0d68ceb8ed6667c557d2a9fb90c45145ada3f35b58352ff9759806b80"
+      },
+      {
+        "path": "examples/physics-rigid-hinge-motor-reference/harness-entry.mjs",
+        "sha256": "db559c0376a52f3c0e4828bb013970f393b4d081ab53f4f6b10a5cf3e21c24d6"
+      }
+    ],
+    "bundleSha256": "0e579ce247f39545f4d9d88a130fa1e3e7d234224e5b6d9cc4b4fdf7975d0bed",
+    "consumerHead": "95f966179dc1a3f3e6f83c45d8be534f6db90cca"
+  },
+  "metafile": {
+    "inputs": {
+      "packages/barocss-physics/src/types.ts": {
+        "bytes": 5118,
+        "imports": [],
+        "format": "esm"
+      },
+      "packages/barocss-physics/src/limits.ts": {
+        "bytes": 417,
+        "imports": [],
+        "format": "esm"
+      },
+      "packages/barocss-physics/src/validation.ts": {
+        "bytes": 14147,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/types.ts",
+            "kind": "import-statement",
+            "original": "./types.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/limits.ts",
+            "kind": "import-statement",
+            "original": "./limits.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "packages/barocss-physics/src/math.ts": {
+        "bytes": 2412,
+        "imports": [],
+        "format": "esm"
+      },
+      "packages/barocss-physics/src/dynamic-anchor-pair.ts": {
+        "bytes": 3063,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/limits.ts",
+            "kind": "import-statement",
+            "original": "./limits.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/validation.ts",
+            "kind": "import-statement",
+            "original": "./validation.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "packages/barocss-physics/src/dynamic-hinge-joint.ts": {
+        "bytes": 4826,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/validation.ts",
+            "kind": "import-statement",
+            "original": "./validation.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/dynamic-anchor-pair.ts",
+            "kind": "import-statement",
+            "original": "./dynamic-anchor-pair.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "packages/barocss-physics/src/dynamic-fixed-joint.ts": {
+        "bytes": 2042,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/validation.ts",
+            "kind": "import-statement",
+            "original": "./validation.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/dynamic-anchor-pair.ts",
+            "kind": "import-statement",
+            "original": "./dynamic-anchor-pair.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "packages/barocss-physics/src/joints.ts": {
+        "bytes": 7222,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/limits.ts",
+            "kind": "import-statement",
+            "original": "./limits.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/validation.ts",
+            "kind": "import-statement",
+            "original": "./validation.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/dynamic-fixed-joint.ts",
+            "kind": "import-statement",
+            "original": "./dynamic-fixed-joint.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/dynamic-hinge-joint.ts",
+            "kind": "import-statement",
+            "original": "./dynamic-hinge-joint.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-hinge-limit-diagnostic/adapter.ts": {
+        "bytes": 6977,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/types.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/types.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/validation.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/validation.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/joints.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/joints.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/dynamic-hinge-joint.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/dynamic-hinge-joint.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/math.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/math.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-coupled-hinge-reference/profile.ts": {
+        "bytes": 2501,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/validation.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/validation.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-coupled-hinge-reference/admission.ts": {
+        "bytes": 4014,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/types.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/types.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/validation.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/validation.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/limits.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/limits.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/joints.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/joints.js"
+          },
+          {
+            "path": "examples/physics-rigid-hinge-limit-diagnostic/adapter.ts",
+            "kind": "import-statement",
+            "original": "../physics-rigid-hinge-limit-diagnostic/adapter.js"
+          },
+          {
+            "path": "examples/physics-rigid-coupled-hinge-reference/profile.ts",
+            "kind": "import-statement",
+            "original": "./profile.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-hinge-velocity-reference/profile.ts": {
+        "bytes": 4576,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/types.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/types.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/validation.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/validation.js"
+          },
+          {
+            "path": "examples/physics-rigid-coupled-hinge-reference/admission.ts",
+            "kind": "import-statement",
+            "original": "../physics-rigid-coupled-hinge-reference/admission.js"
+          },
+          {
+            "path": "examples/physics-rigid-coupled-hinge-reference/profile.ts",
+            "kind": "import-statement",
+            "original": "../physics-rigid-coupled-hinge-reference/profile.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "packages/barocss-physics/src/capsule-contact.ts": {
+        "bytes": 5606,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "packages/barocss-physics/src/collision.ts": {
+        "bytes": 13433,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/validation.ts",
+            "kind": "import-statement",
+            "original": "./validation.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/capsule-contact.ts",
+            "kind": "import-statement",
+            "original": "./capsule-contact.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-coupled-hinge-reference/candidate.ts": {
+        "bytes": 5503,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/validation.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/validation.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/collision.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/collision.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/math.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/math.js"
+          },
+          {
+            "path": "examples/physics-rigid-coupled-hinge-reference/admission.ts",
+            "kind": "import-statement",
+            "original": "./admission.js"
+          },
+          {
+            "path": "examples/physics-rigid-coupled-hinge-reference/profile.ts",
+            "kind": "import-statement",
+            "original": "./profile.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-hinge-velocity-reference/diagnostics.ts": {
+        "bytes": 2644,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/math.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/math.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-hinge-velocity-reference/rows.ts": {
+        "bytes": 3722,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/math.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/math.js"
+          },
+          {
+            "path": "examples/physics-rigid-hinge-velocity-reference/profile.ts",
+            "kind": "import-statement",
+            "original": "./profile.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-hinge-velocity-reference/linear-solver.ts": {
+        "bytes": 10603,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-hinge-velocity-reference/profile.ts",
+            "kind": "import-statement",
+            "original": "./profile.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-hinge-velocity-reference/candidate.ts": {
+        "bytes": 3909,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/validation.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/validation.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/collision.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/collision.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/math.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/math.js"
+          },
+          {
+            "path": "examples/physics-rigid-coupled-hinge-reference/candidate.ts",
+            "kind": "import-statement",
+            "original": "../physics-rigid-coupled-hinge-reference/candidate.js"
+          },
+          {
+            "path": "examples/physics-rigid-hinge-velocity-reference/profile.ts",
+            "kind": "import-statement",
+            "original": "./profile.js"
+          },
+          {
+            "path": "examples/physics-rigid-hinge-velocity-reference/diagnostics.ts",
+            "kind": "import-statement",
+            "original": "./diagnostics.js"
+          },
+          {
+            "path": "examples/physics-rigid-hinge-velocity-reference/rows.ts",
+            "kind": "import-statement",
+            "original": "./rows.js"
+          },
+          {
+            "path": "examples/physics-rigid-hinge-velocity-reference/linear-solver.ts",
+            "kind": "import-statement",
+            "original": "./linear-solver.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-hinge-motor-reference/copy.ts": {
+        "bytes": 2412,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/validation.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/validation.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-hinge-motor-reference/errors.ts": {
+        "bytes": 2152,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/types.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/types.js"
+          },
+          {
+            "path": "examples/physics-rigid-hinge-velocity-reference/profile.ts",
+            "kind": "import-statement",
+            "original": "../physics-rigid-hinge-velocity-reference/profile.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-hinge-motor-reference/options.ts": {
+        "bytes": 893,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/types.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/types.js"
+          },
+          {
+            "path": "examples/physics-rigid-hinge-motor-reference/copy.ts",
+            "kind": "import-statement",
+            "original": "./copy.js"
+          },
+          {
+            "path": "examples/physics-rigid-hinge-motor-reference/errors.ts",
+            "kind": "import-statement",
+            "original": "./errors.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "packages/barocss-physics/src/joint-motor.ts": {
+        "bytes": 1714,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-hinge-motor-reference/motor-stages.ts": {
+        "bytes": 4096,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/validation.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/validation.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/math.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/math.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/joint-motor.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/joint-motor.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/limits.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/limits.js"
+          },
+          {
+            "path": "examples/physics-rigid-hinge-motor-reference/copy.ts",
+            "kind": "import-statement",
+            "original": "./copy.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-hinge-motor-reference/report.ts": {
+        "bytes": 3688,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/types.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/types.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/math.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/math.js"
+          },
+          {
+            "path": "examples/physics-rigid-hinge-motor-reference/copy.ts",
+            "kind": "import-statement",
+            "original": "./copy.js"
+          },
+          {
+            "path": "examples/physics-rigid-hinge-motor-reference/errors.ts",
+            "kind": "import-statement",
+            "original": "./errors.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-hinge-motor-reference/diagnostics.ts": {
+        "bytes": 7304,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/math.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/math.js"
+          },
+          {
+            "path": "examples/physics-rigid-hinge-velocity-reference/diagnostics.ts",
+            "kind": "import-statement",
+            "original": "../physics-rigid-hinge-velocity-reference/diagnostics.js"
+          },
+          {
+            "path": "examples/physics-rigid-hinge-motor-reference/copy.ts",
+            "kind": "import-statement",
+            "original": "./copy.js"
+          },
+          {
+            "path": "examples/physics-rigid-hinge-motor-reference/errors.ts",
+            "kind": "import-statement",
+            "original": "./errors.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-hinge-motor-reference/candidate.ts": {
+        "bytes": 5157,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/validation.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/validation.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/math.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/math.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/dynamic-hinge-joint.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/dynamic-hinge-joint.js"
+          },
+          {
+            "path": "examples/physics-rigid-hinge-velocity-reference/profile.ts",
+            "kind": "import-statement",
+            "original": "../physics-rigid-hinge-velocity-reference/profile.js"
+          },
+          {
+            "path": "examples/physics-rigid-hinge-velocity-reference/candidate.ts",
+            "kind": "import-statement",
+            "original": "../physics-rigid-hinge-velocity-reference/candidate.js"
+          },
+          {
+            "path": "examples/physics-rigid-hinge-motor-reference/copy.ts",
+            "kind": "import-statement",
+            "original": "./copy.js"
+          },
+          {
+            "path": "examples/physics-rigid-hinge-motor-reference/options.ts",
+            "kind": "import-statement",
+            "original": "./options.js"
+          },
+          {
+            "path": "examples/physics-rigid-hinge-motor-reference/errors.ts",
+            "kind": "import-statement",
+            "original": "./errors.js"
+          },
+          {
+            "path": "examples/physics-rigid-hinge-motor-reference/motor-stages.ts",
+            "kind": "import-statement",
+            "original": "./motor-stages.js"
+          },
+          {
+            "path": "examples/physics-rigid-hinge-motor-reference/report.ts",
+            "kind": "import-statement",
+            "original": "./report.js"
+          },
+          {
+            "path": "examples/physics-rigid-hinge-motor-reference/diagnostics.ts",
+            "kind": "import-statement",
+            "original": "./diagnostics.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-hinge-motor-reference/entry.ts": {
+        "bytes": 299,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-hinge-motor-reference/candidate.ts",
+            "kind": "import-statement",
+            "original": "./candidate.js"
+          },
+          {
+            "path": "examples/physics-rigid-hinge-motor-reference/report.ts",
+            "kind": "import-statement",
+            "original": "./report.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/types.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/types.js"
+          },
+          {
+            "path": "examples/physics-rigid-hinge-motor-reference/errors.ts",
+            "kind": "import-statement",
+            "original": "./errors.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-hinge-motor-reference/harness-entry.mjs": {
+        "bytes": 460,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-hinge-motor-reference/entry.ts",
+            "kind": "import-statement",
+            "original": "./entry.ts"
+          },
+          {
+            "path": "examples/physics-rigid-hinge-velocity-reference/profile.ts",
+            "kind": "import-statement",
+            "original": "../physics-rigid-hinge-velocity-reference/profile.ts"
+          },
+          {
+            "path": "packages/barocss-physics/src/validation.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/validation.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/dynamic-hinge-joint.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/dynamic-hinge-joint.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/joint-motor.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/joint-motor.js"
+          }
+        ],
+        "format": "esm"
+      }
+    },
+    "outputs": {
+      "../../../../../../tmp/physics-1179-hinge-motor-continuation/source.mjs": {
+        "imports": [],
+        "exports": [
+          "ERRORS",
+          "PhysicsError",
+          "admitDynamicHingeCommands",
+          "advanceDrivenHingePairReference",
+          "driveDynamicHingeMotor",
+          "enforceHingeMotorReactionCap",
+          "parseCommands",
+          "prepareInput",
+          "validateHingeMotorReport"
+        ],
+        "entryPoint": "examples/physics-rigid-hinge-motor-reference/harness-entry.mjs",
+        "inputs": {
+          "packages/barocss-physics/src/types.ts": {
+            "bytesInOutput": 153
+          },
+          "packages/barocss-physics/src/limits.ts": {
+            "bytesInOutput": 258
+          },
+          "packages/barocss-physics/src/validation.ts": {
+            "bytesInOutput": 11068
+          },
+          "packages/barocss-physics/src/math.ts": {
+            "bytesInOutput": 1683
+          },
+          "packages/barocss-physics/src/dynamic-hinge-joint.ts": {
+            "bytesInOutput": 604
+          },
+          "packages/barocss-physics/src/joints.ts": {
+            "bytesInOutput": 4264
+          },
+          "examples/physics-rigid-hinge-limit-diagnostic/adapter.ts": {
+            "bytesInOutput": 4026
+          },
+          "examples/physics-rigid-coupled-hinge-reference/profile.ts": {
+            "bytesInOutput": 2102
+          },
+          "examples/physics-rigid-coupled-hinge-reference/admission.ts": {
+            "bytesInOutput": 3236
+          },
+          "examples/physics-rigid-hinge-velocity-reference/profile.ts": {
+            "bytesInOutput": 3435
+          },
+          "packages/barocss-physics/src/collision.ts": {
+            "bytesInOutput": 976
+          },
+          "examples/physics-rigid-coupled-hinge-reference/candidate.ts": {
+            "bytesInOutput": 5089
+          },
+          "examples/physics-rigid-hinge-velocity-reference/diagnostics.ts": {
+            "bytesInOutput": 2612
+          },
+          "examples/physics-rigid-hinge-velocity-reference/rows.ts": {
+            "bytesInOutput": 3854
+          },
+          "examples/physics-rigid-hinge-velocity-reference/linear-solver.ts": {
+            "bytesInOutput": 11172
+          },
+          "examples/physics-rigid-hinge-velocity-reference/candidate.ts": {
+            "bytesInOutput": 3426
+          },
+          "examples/physics-rigid-hinge-motor-reference/copy.ts": {
+            "bytesInOutput": 1791
+          },
+          "examples/physics-rigid-hinge-motor-reference/errors.ts": {
+            "bytesInOutput": 1731
+          },
+          "examples/physics-rigid-hinge-motor-reference/options.ts": {
+            "bytesInOutput": 515
+          },
+          "packages/barocss-physics/src/joint-motor.ts": {
+            "bytesInOutput": 834
+          },
+          "examples/physics-rigid-hinge-motor-reference/motor-stages.ts": {
+            "bytesInOutput": 2828
+          },
+          "examples/physics-rigid-hinge-motor-reference/report.ts": {
+            "bytesInOutput": 2730
+          },
+          "examples/physics-rigid-hinge-motor-reference/diagnostics.ts": {
+            "bytesInOutput": 6133
+          },
+          "examples/physics-rigid-hinge-motor-reference/candidate.ts": {
+            "bytesInOutput": 3836
+          },
+          "examples/physics-rigid-hinge-motor-reference/entry.ts": {
+            "bytesInOutput": 0
+          },
+          "examples/physics-rigid-hinge-motor-reference/harness-entry.mjs": {
+            "bytesInOutput": 0
+          }
+        },
+        "bytes": 79953
+      }
+    }
+  }
+}

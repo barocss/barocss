@@ -1,0 +1,54 @@
+import { PhysicsError, type Joint, type Vec3 } from '../../packages/barocss-physics/src/types.js';
+import { sub, scale } from '../../packages/barocss-physics/src/math.js';
+import { ownData, denseNumbers, copyData } from './copy.js';
+import { reactionError } from './errors.js';
+import type { BodyCorrection, HingeMotorJointReport, PairBodies, ReportCap } from './types.js';
+
+const REPORT_KEYS = ['id', 'kind', 'aId', 'bId', 'angleRad', 'linearImpulseNs', 'angularImpulseNms', 'motorImpulseNms'];
+const nonempty = (value: unknown): value is string => typeof value === 'string' && value.length > 0;
+const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
+
+/** DATA helper used by the physical flow. Finite report validation does not enforce the cap. */
+export function validateHingeMotorReport(value: unknown, identity: { id: string; aId: string; bId: string }): HingeMotorJointReport {
+  const ids = ownData(identity, ['id', 'aId', 'bId']);
+  const report = ownData(value, REPORT_KEYS);
+  if (!ids || !nonempty(ids.id) || !nonempty(ids.aId) || !nonempty(ids.bId) || !report ||
+    report.id !== ids.id || report.aId !== ids.aId || report.bId !== ids.bId || report.kind !== 'hinge' ||
+    !finite(report.angleRad) || !finite(report.motorImpulseNms)) reactionError();
+  const linear = denseNumbers(report.linearImpulseNs, 3), angular = denseNumbers(report.angularImpulseNms, 3);
+  if (!linear || !angular) reactionError();
+  return { id: ids.id, kind: 'hinge', aId: ids.aId, bId: ids.bId, angleRad: report.angleRad,
+    linearImpulseNs: linear as Vec3, angularImpulseNms: angular as Vec3, motorImpulseNms: report.motorImpulseNms };
+}
+
+/** The only reaction cap is the original fixed .01 N*m*s, with strict greater-than. */
+export function enforceHingeMotorReactionCap(jointId: string, angularImpulseNms: Vec3): void {
+  const vector = denseNumbers(angularImpulseNms, 3);
+  if (!nonempty(jointId) || !vector) reactionError();
+  const norm = Math.hypot(...vector);
+  if (!Number.isFinite(norm)) reactionError();
+  if (norm > .01) throw new PhysicsError('NUMERIC_LIMIT', `${jointId} exceeded motor reaction limit`);
+}
+
+export function bodyCorrections(free: PairBodies, projected: PairBodies): [BodyCorrection, BodyCorrection] {
+  return projected.map((body, i) => ({ bodyId: body.id,
+    linearImpulseNs: scale(sub(body.velocityMps, free[i].velocityMps), 1 / free[i].inverseMass),
+    angularImpulseNms: scale(sub(body.angularVelocityRadps, free[i].angularVelocityRadps), free[i].inertiaKgM2!),
+  })) as [BodyCorrection, BodyCorrection];
+}
+
+export function makeReport(joint: Joint, free: PairBodies, projected: PairBodies,
+  targetAngleRad: number, motorImpulseNms: number): {
+    jointReport: HingeMotorJointReport; bodyCorrections: [BodyCorrection, BodyCorrection]; reportCap: ReportCap;
+  } {
+  const corrections = bodyCorrections(free, projected);
+  for (const c of corrections) if (!denseNumbers(c.linearImpulseNs, 3) || !denseNumbers(c.angularImpulseNms, 3)) reactionError();
+  const identity = { id: joint.id, aId: free[joint.aIndex].id, bId: free[joint.bIndex].id };
+  const b = corrections[joint.bIndex];
+  const jointReport = validateHingeMotorReport({ ...identity, kind: 'hinge', angleRad: targetAngleRad,
+    linearImpulseNs: [...b.linearImpulseNs], angularImpulseNms: [...b.angularImpulseNms], motorImpulseNms }, identity);
+  const angularReactionNormNms = Math.hypot(...b.angularImpulseNms);
+  if (!Number.isFinite(angularReactionNormNms)) reactionError();
+  return { jointReport, bodyCorrections: copyData(corrections),
+    reportCap: { angularReactionNormNms, maxReactionNms: .01, exceedsCap: angularReactionNormNms > .01 } };
+}

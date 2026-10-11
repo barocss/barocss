@@ -1,0 +1,95 @@
+{
+  "consumerHead": "ca8f6bd993bcad85b18a09a922c6dbe3634c523f",
+  "controllerExitCode": 1,
+  "childStarted": false,
+  "nativeCalls": 0,
+  "referenceCalls": 0,
+  "failureType": "FileExistsError",
+  "failurePath": "/tmp/physics-1179-hinge-motor-continuation/consumer.stdout.log",
+  "reason": "changed consumer syntax stdout file collides with consumer launch stdout filename",
+  "originalRuntimeStderrFileCreated": false,
+  "toolReportedTraceback": true,
+  "actualRawWrapperStderrHashUnavailable": true,
+  "artifacts": [
+    {
+      "path": "changed-python-syntax.receipt.json",
+      "bytes": 788,
+      "sha256": "91ec17e8c4c6565739562d05db032ebd49412249093e2d123383645723c1961d"
+    },
+    {
+      "path": "changed-python-syntax.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "changed-python-syntax.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "consumer.receipt.json",
+      "bytes": 661,
+      "sha256": "8ba2e917ba56abb5389c33f8931e7095733845a369d58ceaf5f5f4e98cee3d78"
+    },
+    {
+      "path": "consumer.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "consumer.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "continuation-runner.receipt.json",
+      "bytes": 684,
+      "sha256": "1561d8e26eb9f0d5cc68f0b220b0cc639c9d7c8324cbc87dae1ef3874379e273"
+    },
+    {
+      "path": "continuation-runner.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "continuation-runner.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "emitted-pre-consumer.json",
+      "bytes": 179691,
+      "sha256": "99c453bfae739051f77ffa4bca4ba67895c70790d10891cece71266dd9320df7"
+    },
+    {
+      "path": "observer.receipt.json",
+      "bytes": 662,
+      "sha256": "0cae826996864fd4b80674e1df52e5dc41276094a257e9d45964b8940865fae9"
+    },
+    {
+      "path": "observer.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "observer.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "saved-prefix.receipt.json",
+      "bytes": 670,
+      "sha256": "ad7528a974bfcd600cd504f960b31994d893e99d0c7fa42c8fcce87a6e21d70b"
+    },
+    {
+      "path": "saved-prefix.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "saved-prefix.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

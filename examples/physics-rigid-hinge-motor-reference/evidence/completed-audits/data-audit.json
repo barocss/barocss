@@ -1,0 +1,1431 @@
+{
+  "issue": 1179,
+  "scope": "DATA_ONLY_COMPLETED_CANONICAL_RAW_FLOW_AUDIT",
+  "disposition": "COMPLETED_DATA_PASS_WITH_EXPLICIT_REQUEST_SERIALIZATION_DIFFERENCE",
+  "checks": {
+    "sourceFullFlowHashEOF": true,
+    "sourceAll14Qualified": true,
+    "sourceExpectedDispositions": true,
+    "sourceGuardProtocolCounts": true,
+    "source-repeatFullFlowHashEOF": true,
+    "source-repeatAll14Qualified": true,
+    "source-repeatExpectedDispositions": true,
+    "source-repeatGuardProtocolCounts": true,
+    "compiled-dependenciesFullFlowHashEOF": true,
+    "compiled-dependenciesAll14Qualified": true,
+    "compiled-dependenciesExpectedDispositions": true,
+    "compiled-dependenciesGuardProtocolCounts": true,
+    "AllThreeDecodedAndRawBytesExact": true,
+    "source-repeatAliasReceiptsEOF": true,
+    "source-repeatCanonicalHardlinks": true,
+    "compiled-dependenciesAliasReceiptsEOF": true,
+    "compiled-dependenciesCanonicalHardlinks": true,
+    "GenuineCanonicalRecordReusedExactly": true,
+    "RESTNativeComparisonDataUnchanged": true,
+    "RESTCompletedDerivativeNotHistoryRewrite": true,
+    "FailedRESTRequestParsedAndBinaryNumbersEqual": true,
+    "sourceReferenceExitAndReplyCounts": true,
+    "source-repeatReferenceExitAndReplyCounts": true,
+    "compiled-dependenciesReferenceExitAndReplyCounts": true,
+    "NewSourceCountsSeparateHistorical": true,
+    "NoFullWorldClaims": true
+  },
+  "consumerReceipt": {
+    "startedAtUTC": "2026-10-11T01:51:51.865339+00:00",
+    "pid": 19901,
+    "controllerPid": 19890,
+    "beforeHead": "95f966179dc1a3f3e6f83c45d8be534f6db90cca",
+    "argv": [
+      "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+      "/Users/user/.codex/worktrees/physics-hinge-motor-1179/barocss/examples/physics-rigid-hinge-motor-reference/continuation-runner.mjs",
+      "/tmp/physics-1179-hinge-motor-continuation"
+    ],
+    "controllerSha256": "dc2ac4840d748b0c1820663adc2dff8f8230f04dea4ba8bd935ce551d6ee697c",
+    "sourceFreezeSha256": "37d3bc4b29b275b1527f6638e1023b6868ad671a8be0cb58ae5fd55487e40fc4",
+    "exitCode": 0,
+    "elapsedSeconds": 4.388922082987847,
+    "completedAtUTC": "2026-10-11T01:51:56.253152+00:00",
+    "stdoutBytes": 952,
+    "stdoutSha256": "6524c11ab3678156bf9dd0f575258dfeac8cd0581507fd760754e53d6ae99a37",
+    "stderrBytes": 0,
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "canonicalGraphs": [
+    {
+      "graph": "source",
+      "gzipJSONSha256": "c445d16f4612a33ce1da356771cd0ba706db58d722ea80bf0cd96bbe8e6603f3",
+      "decodedJSONBytes": 1274823,
+      "decodedJSONSha256": "bbfa1e8263de0aa3ecac0d7531d3e7b481ad6e0ad7755d60ec39e2977d0b0483",
+      "gzipRawSha256": "ee74be3356ccda90e0562e9cfe6e634130b240bb2de6bf243c109479b8bf1426",
+      "rawBytes": 14680,
+      "rawSha256": "d05b4bc049e607525ac4f106efc55256e3a3348f35b79a9c69916b8c2d8bcdda",
+      "recordKinds": {
+        "hinge-case": 14,
+        "native-control": 106,
+        "reference-control": 30,
+        "reference-control-raw": 1
+      },
+      "cases": [
+        {
+          "index": 0,
+          "name": "genuine-orbital",
+          "expectedDisposition": "CAP_REFUSAL",
+          "actualReferenceStatus": "CAP_REFUSAL",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 0,
+          "reportCap": {
+            "angularReactionNormNms": 0.032042209723911974,
+            "maxReactionNms": 0.01,
+            "exceedsCap": true
+          }
+        },
+        {
+          "index": 1,
+          "name": "rest",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 2.4999999999999994e-06,
+          "reportCap": {
+            "angularReactionNormNms": 1.0850693094033307e-11,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 2,
+          "name": "rest-signed-zero",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 2.4999999999999994e-06,
+          "reportCap": {
+            "angularReactionNormNms": 1.0850693094033307e-11,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 3,
+          "name": "remembered-upper-endpoint",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 0,
+          "reportCap": {
+            "angularReactionNormNms": 0,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 4,
+          "name": "remembered-lower-endpoint",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 2.4999999999999994e-06,
+          "reportCap": {
+            "angularReactionNormNms": 2.747017013619916e-05,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 5,
+          "name": "upper-outward",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 0,
+          "reportCap": {
+            "angularReactionNormNms": 0.004000000000000001,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 6,
+          "name": "upper-inward",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 0,
+          "reportCap": {
+            "angularReactionNormNms": 0.0010680792339495284,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 7,
+          "name": "lower-outward",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": -0.00019750000000000003,
+          "reportCap": {
+            "angularReactionNormNms": 0.0039000000000000007,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 8,
+          "name": "lower-inward",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": -0.00019750000000000003,
+          "reportCap": {
+            "angularReactionNormNms": 0.001042147283890621,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 9,
+          "name": "angular-impulse-A",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": -2.2499999999999995e-05,
+          "reportCap": {
+            "angularReactionNormNms": 0.00035714209183808235,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 10,
+          "name": "angular-impulse-B",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 2.749999999999999e-05,
+          "reportCap": {
+            "angularReactionNormNms": 0.00035714504144361065,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 11,
+          "name": "torque-plus-angular-impulse-B",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 2.7708333333333324e-05,
+          "reportCap": {
+            "angularReactionNormNms": 0.00036012127751813605,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 12,
+          "name": "translated-Z1",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 2.4999999999999994e-06,
+          "reportCap": {
+            "angularReactionNormNms": 1.0850693094033307e-11,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 13,
+          "name": "angular-overload-B",
+          "expectedDisposition": "CAP_REFUSAL",
+          "actualReferenceStatus": "CAP_REFUSAL",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": -0.0024974999999999997,
+          "reportCap": {
+            "angularReactionNormNms": 0.03691170006908266,
+            "maxReactionNms": 0.01,
+            "exceedsCap": true
+          }
+        }
+      ],
+      "namedCounts": {
+        "declaredCases": 14,
+        "candidateCalls": 14,
+        "attemptedCases": 14,
+        "returnedOutputs": 12,
+        "matchedReturns": 12,
+        "matchedCaps": 2,
+        "earlierKnownRefusals": 0,
+        "motorCalls": 14,
+        "projectionCalls": 14,
+        "observerCalls": 14,
+        "callCountsComplete": true
+      },
+      "nativeGuardCounts": {
+        "candidateCalls": 88,
+        "motorCalls": 13,
+        "projectionCalls": 11,
+        "parentPreparationCalls": 4,
+        "commandParserCalls": 2,
+        "angularAdmissionCalls": 2,
+        "helperMotorCalls": 2,
+        "reportValidationCalls": 8,
+        "capGuardCalls": 5,
+        "observerCalls": 12,
+        "acceptedOutputs": 2,
+        "knownCandidateRefusals": 62,
+        "unknownIdentityChecks": 24
+      },
+      "protocolCounts": {
+        "referenceRequests": 31,
+        "predictionRequests": 2,
+        "protocolRequests": 29,
+        "rawJsonRequests": 1,
+        "nativeCandidateCalls": 0,
+        "nativeMotorCalls": 0,
+        "nativeProjectionCalls": 0,
+        "worldCalls": 0,
+        "parent93Replayed": false,
+        "inputCopyIsolation": true,
+        "outputCopyIsolation": true,
+        "actualProducerOutputsFabricated": false
+      },
+      "evidence": {
+        "records": 151,
+        "compressedBytes": 179763,
+        "decodedRecordSha256": "bbfa1e8263de0aa3ecac0d7531d3e7b481ad6e0ad7755d60ec39e2977d0b0483",
+        "rawBytes": 14680,
+        "rawSha256": "d05b4bc049e607525ac4f106efc55256e3a3348f35b79a9c69916b8c2d8bcdda",
+        "storageMode": "full-source",
+        "originalPrefixRecordsVerified": 0,
+        "newStoredBytes": 179763,
+        "logicalAliasBytes": 0
+      }
+    },
+    {
+      "graph": "source-repeat",
+      "gzipJSONSha256": "c445d16f4612a33ce1da356771cd0ba706db58d722ea80bf0cd96bbe8e6603f3",
+      "decodedJSONBytes": 1274823,
+      "decodedJSONSha256": "bbfa1e8263de0aa3ecac0d7531d3e7b481ad6e0ad7755d60ec39e2977d0b0483",
+      "gzipRawSha256": "ee74be3356ccda90e0562e9cfe6e634130b240bb2de6bf243c109479b8bf1426",
+      "rawBytes": 14680,
+      "rawSha256": "d05b4bc049e607525ac4f106efc55256e3a3348f35b79a9c69916b8c2d8bcdda",
+      "recordKinds": {
+        "hinge-case": 14,
+        "native-control": 106,
+        "reference-control": 30,
+        "reference-control-raw": 1
+      },
+      "cases": [
+        {
+          "index": 0,
+          "name": "genuine-orbital",
+          "expectedDisposition": "CAP_REFUSAL",
+          "actualReferenceStatus": "CAP_REFUSAL",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 0,
+          "reportCap": {
+            "angularReactionNormNms": 0.032042209723911974,
+            "maxReactionNms": 0.01,
+            "exceedsCap": true
+          }
+        },
+        {
+          "index": 1,
+          "name": "rest",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 2.4999999999999994e-06,
+          "reportCap": {
+            "angularReactionNormNms": 1.0850693094033307e-11,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 2,
+          "name": "rest-signed-zero",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 2.4999999999999994e-06,
+          "reportCap": {
+            "angularReactionNormNms": 1.0850693094033307e-11,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 3,
+          "name": "remembered-upper-endpoint",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 0,
+          "reportCap": {
+            "angularReactionNormNms": 0,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 4,
+          "name": "remembered-lower-endpoint",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 2.4999999999999994e-06,
+          "reportCap": {
+            "angularReactionNormNms": 2.747017013619916e-05,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 5,
+          "name": "upper-outward",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 0,
+          "reportCap": {
+            "angularReactionNormNms": 0.004000000000000001,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 6,
+          "name": "upper-inward",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 0,
+          "reportCap": {
+            "angularReactionNormNms": 0.0010680792339495284,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 7,
+          "name": "lower-outward",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": -0.00019750000000000003,
+          "reportCap": {
+            "angularReactionNormNms": 0.0039000000000000007,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 8,
+          "name": "lower-inward",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": -0.00019750000000000003,
+          "reportCap": {
+            "angularReactionNormNms": 0.001042147283890621,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 9,
+          "name": "angular-impulse-A",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": -2.2499999999999995e-05,
+          "reportCap": {
+            "angularReactionNormNms": 0.00035714209183808235,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 10,
+          "name": "angular-impulse-B",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 2.749999999999999e-05,
+          "reportCap": {
+            "angularReactionNormNms": 0.00035714504144361065,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 11,
+          "name": "torque-plus-angular-impulse-B",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 2.7708333333333324e-05,
+          "reportCap": {
+            "angularReactionNormNms": 0.00036012127751813605,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 12,
+          "name": "translated-Z1",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 2.4999999999999994e-06,
+          "reportCap": {
+            "angularReactionNormNms": 1.0850693094033307e-11,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 13,
+          "name": "angular-overload-B",
+          "expectedDisposition": "CAP_REFUSAL",
+          "actualReferenceStatus": "CAP_REFUSAL",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": -0.0024974999999999997,
+          "reportCap": {
+            "angularReactionNormNms": 0.03691170006908266,
+            "maxReactionNms": 0.01,
+            "exceedsCap": true
+          }
+        }
+      ],
+      "namedCounts": {
+        "declaredCases": 14,
+        "candidateCalls": 14,
+        "attemptedCases": 14,
+        "returnedOutputs": 12,
+        "matchedReturns": 12,
+        "matchedCaps": 2,
+        "earlierKnownRefusals": 0,
+        "motorCalls": 14,
+        "projectionCalls": 14,
+        "observerCalls": 14,
+        "callCountsComplete": true
+      },
+      "nativeGuardCounts": {
+        "candidateCalls": 88,
+        "motorCalls": 13,
+        "projectionCalls": 11,
+        "parentPreparationCalls": 4,
+        "commandParserCalls": 2,
+        "angularAdmissionCalls": 2,
+        "helperMotorCalls": 2,
+        "reportValidationCalls": 8,
+        "capGuardCalls": 5,
+        "observerCalls": 12,
+        "acceptedOutputs": 2,
+        "knownCandidateRefusals": 62,
+        "unknownIdentityChecks": 24
+      },
+      "protocolCounts": {
+        "referenceRequests": 31,
+        "predictionRequests": 2,
+        "protocolRequests": 29,
+        "rawJsonRequests": 1,
+        "nativeCandidateCalls": 0,
+        "nativeMotorCalls": 0,
+        "nativeProjectionCalls": 0,
+        "worldCalls": 0,
+        "parent93Replayed": false,
+        "inputCopyIsolation": true,
+        "outputCopyIsolation": true,
+        "actualProducerOutputsFabricated": false
+      },
+      "evidence": {
+        "records": 151,
+        "rawBytes": 14680,
+        "decodedRecordSha256": "bbfa1e8263de0aa3ecac0d7531d3e7b481ad6e0ad7755d60ec39e2977d0b0483",
+        "rawSha256": "d05b4bc049e607525ac4f106efc55256e3a3348f35b79a9c69916b8c2d8bcdda",
+        "compressedBytes": 36612,
+        "storageMode": "exact-source-alias",
+        "canonicalJsonPath": "source-flow.jsonl.gz",
+        "canonicalRawPath": "source-flow.f64le.gz",
+        "aliasReceiptPath": "source-repeat-flow-aliases.jsonl.gz",
+        "newStoredBytes": 36612,
+        "logicalAliasBytes": 179763,
+        "exactRecordAndRawBytesCompared": true
+      }
+    },
+    {
+      "graph": "compiled-dependencies",
+      "gzipJSONSha256": "c445d16f4612a33ce1da356771cd0ba706db58d722ea80bf0cd96bbe8e6603f3",
+      "decodedJSONBytes": 1274823,
+      "decodedJSONSha256": "bbfa1e8263de0aa3ecac0d7531d3e7b481ad6e0ad7755d60ec39e2977d0b0483",
+      "gzipRawSha256": "ee74be3356ccda90e0562e9cfe6e634130b240bb2de6bf243c109479b8bf1426",
+      "rawBytes": 14680,
+      "rawSha256": "d05b4bc049e607525ac4f106efc55256e3a3348f35b79a9c69916b8c2d8bcdda",
+      "recordKinds": {
+        "hinge-case": 14,
+        "native-control": 106,
+        "reference-control": 30,
+        "reference-control-raw": 1
+      },
+      "cases": [
+        {
+          "index": 0,
+          "name": "genuine-orbital",
+          "expectedDisposition": "CAP_REFUSAL",
+          "actualReferenceStatus": "CAP_REFUSAL",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 0,
+          "reportCap": {
+            "angularReactionNormNms": 0.032042209723911974,
+            "maxReactionNms": 0.01,
+            "exceedsCap": true
+          }
+        },
+        {
+          "index": 1,
+          "name": "rest",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 2.4999999999999994e-06,
+          "reportCap": {
+            "angularReactionNormNms": 1.0850693094033307e-11,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 2,
+          "name": "rest-signed-zero",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 2.4999999999999994e-06,
+          "reportCap": {
+            "angularReactionNormNms": 1.0850693094033307e-11,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 3,
+          "name": "remembered-upper-endpoint",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 0,
+          "reportCap": {
+            "angularReactionNormNms": 0,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 4,
+          "name": "remembered-lower-endpoint",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 2.4999999999999994e-06,
+          "reportCap": {
+            "angularReactionNormNms": 2.747017013619916e-05,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 5,
+          "name": "upper-outward",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 0,
+          "reportCap": {
+            "angularReactionNormNms": 0.004000000000000001,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 6,
+          "name": "upper-inward",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 0,
+          "reportCap": {
+            "angularReactionNormNms": 0.0010680792339495284,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 7,
+          "name": "lower-outward",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": -0.00019750000000000003,
+          "reportCap": {
+            "angularReactionNormNms": 0.0039000000000000007,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 8,
+          "name": "lower-inward",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": -0.00019750000000000003,
+          "reportCap": {
+            "angularReactionNormNms": 0.001042147283890621,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 9,
+          "name": "angular-impulse-A",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": -2.2499999999999995e-05,
+          "reportCap": {
+            "angularReactionNormNms": 0.00035714209183808235,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 10,
+          "name": "angular-impulse-B",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 2.749999999999999e-05,
+          "reportCap": {
+            "angularReactionNormNms": 0.00035714504144361065,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 11,
+          "name": "torque-plus-angular-impulse-B",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 2.7708333333333324e-05,
+          "reportCap": {
+            "angularReactionNormNms": 0.00036012127751813605,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 12,
+          "name": "translated-Z1",
+          "expectedDisposition": "RETURN",
+          "actualReferenceStatus": "RETURN",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": 2.4999999999999994e-06,
+          "reportCap": {
+            "angularReactionNormNms": 1.0850693094033307e-11,
+            "maxReactionNms": 0.01,
+            "exceedsCap": false
+          }
+        },
+        {
+          "index": 13,
+          "name": "angular-overload-B",
+          "expectedDisposition": "CAP_REFUSAL",
+          "actualReferenceStatus": "CAP_REFUSAL",
+          "passed": true,
+          "classification": "PASS",
+          "callbackCount": 1,
+          "calls": {
+            "motorCalls": 1,
+            "projectionCalls": 1
+          },
+          "inputRetained": true,
+          "allRawFieldsAuthenticated": true,
+          "referenceQualified": true,
+          "motorMidpointJ": -0.0024974999999999997,
+          "reportCap": {
+            "angularReactionNormNms": 0.03691170006908266,
+            "maxReactionNms": 0.01,
+            "exceedsCap": true
+          }
+        }
+      ],
+      "namedCounts": {
+        "declaredCases": 14,
+        "candidateCalls": 14,
+        "attemptedCases": 14,
+        "returnedOutputs": 12,
+        "matchedReturns": 12,
+        "matchedCaps": 2,
+        "earlierKnownRefusals": 0,
+        "motorCalls": 14,
+        "projectionCalls": 14,
+        "observerCalls": 14,
+        "callCountsComplete": true
+      },
+      "nativeGuardCounts": {
+        "candidateCalls": 88,
+        "motorCalls": 13,
+        "projectionCalls": 11,
+        "parentPreparationCalls": 4,
+        "commandParserCalls": 2,
+        "angularAdmissionCalls": 2,
+        "helperMotorCalls": 2,
+        "reportValidationCalls": 8,
+        "capGuardCalls": 5,
+        "observerCalls": 12,
+        "acceptedOutputs": 2,
+        "knownCandidateRefusals": 62,
+        "unknownIdentityChecks": 24
+      },
+      "protocolCounts": {
+        "referenceRequests": 31,
+        "predictionRequests": 2,
+        "protocolRequests": 29,
+        "rawJsonRequests": 1,
+        "nativeCandidateCalls": 0,
+        "nativeMotorCalls": 0,
+        "nativeProjectionCalls": 0,
+        "worldCalls": 0,
+        "parent93Replayed": false,
+        "inputCopyIsolation": true,
+        "outputCopyIsolation": true,
+        "actualProducerOutputsFabricated": false
+      },
+      "evidence": {
+        "records": 151,
+        "rawBytes": 14680,
+        "decodedRecordSha256": "bbfa1e8263de0aa3ecac0d7531d3e7b481ad6e0ad7755d60ec39e2977d0b0483",
+        "rawSha256": "d05b4bc049e607525ac4f106efc55256e3a3348f35b79a9c69916b8c2d8bcdda",
+        "compressedBytes": 36612,
+        "storageMode": "exact-source-alias",
+        "canonicalJsonPath": "source-flow.jsonl.gz",
+        "canonicalRawPath": "source-flow.f64le.gz",
+        "aliasReceiptPath": "compiled-dependencies-flow-aliases.jsonl.gz",
+        "newStoredBytes": 36612,
+        "logicalAliasBytes": 179763,
+        "exactRecordAndRawBytesCompared": true
+      }
+    }
+  ],
+  "aliasReceipts": [
+    {
+      "graph": "source-repeat",
+      "receipts": 151,
+      "sha256": "504d4fc213bd144322ab6291d7e7e45733bb027259d538d5b3b9bc749c6e529a",
+      "allRecordAndRawChunkDigestsExact": true,
+      "rawCursorAtEOF": 14680,
+      "JSONAndRawSameInode": true
+    },
+    {
+      "graph": "compiled-dependencies",
+      "receipts": 151,
+      "sha256": "504d4fc213bd144322ab6291d7e7e45733bb027259d538d5b3b9bc749c6e529a",
+      "allRecordAndRawChunkDigestsExact": true,
+      "rawCursorAtEOF": 14680,
+      "JSONAndRawSameInode": true
+    }
+  ],
+  "requestEquality": {
+    "oldPath": "/tmp/physics-1179-failed-rest-reference-request.json",
+    "oldBytes": 34884,
+    "oldSha256": "a56734a8a6d25a3fd57111ee9d6957ddca51096f749779ff8c452fed29ad391c",
+    "newFirstLineBytes": 34901,
+    "newFirstLineSha256": "2cb450d3300930b2f71c5ddb390753c93973d5e4b4d816f905234e0f797c72e8",
+    "exactWireBytesEqual": false,
+    "parsedObjectsEqual": true,
+    "JSONStructureStringsAndBinary64NumberTokensEqual": true,
+    "numberLexicalDifferences": 119,
+    "reason": "Supplied old request uses Python JSON exponent/number notation; the new actual stdin uses Node JSON.stringify. Values, strings, structure, numeric binary64 tokens, raw frame and command hex are equal. Do not claim byte equality."
+  },
+  "referenceRawLogs": [
+    {
+      "graph": "source",
+      "requests": 44,
+      "replies": 44,
+      "replyStatuses": {
+        "RETURN": 14,
+        "CAP_REFUSAL": 1,
+        "UNRESOLVED": 29
+      },
+      "exitRecord": {
+        "pid": 20052,
+        "exitCode": 0,
+        "stdinBytes": 509487,
+        "stdinPath": "/tmp/physics-1179-hinge-motor-continuation/source-reference.requests.jsonl",
+        "stdoutBytes": 394432,
+        "stdoutPath": "/tmp/physics-1179-hinge-motor-continuation/source-reference.stdout.log",
+        "stderrBytes": 0,
+        "stderrPath": "/tmp/physics-1179-hinge-motor-continuation/source-reference.stderr.log"
+      },
+      "requestsBytes": 509487,
+      "requestsSha256": "3793ec8e4475d12be5094c5f9e57dc5a68ae61e7fbb5220fabc5c733d26450b9",
+      "stdoutBytes": 394432,
+      "stdoutSha256": "a3ec29db385bc1ff6ec7c32e0ea1a54a55925352c4ccf10426376f352133bad2",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "graph": "source-repeat",
+      "requests": 45,
+      "replies": 45,
+      "replyStatuses": {
+        "CAP_REFUSAL": 2,
+        "RETURN": 14,
+        "UNRESOLVED": 29
+      },
+      "exitRecord": {
+        "pid": 20065,
+        "exitCode": 0,
+        "stdinBytes": 526802,
+        "stdinPath": "/tmp/physics-1179-hinge-motor-continuation/source-repeat-reference.requests.jsonl",
+        "stdoutBytes": 418571,
+        "stdoutPath": "/tmp/physics-1179-hinge-motor-continuation/source-repeat-reference.stdout.log",
+        "stderrBytes": 0,
+        "stderrPath": "/tmp/physics-1179-hinge-motor-continuation/source-repeat-reference.stderr.log"
+      },
+      "requestsBytes": 526802,
+      "requestsSha256": "ca4a376f6612a869b036e6a6f177a7dfdab8af2e5f783a3491cbca4039370cea",
+      "stdoutBytes": 418571,
+      "stdoutSha256": "0a0fa902077f8d7380eacbbbdd2439742e98aed098d1ca325c74e2513f62c1f8",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "requests": 45,
+      "replies": 45,
+      "replyStatuses": {
+        "CAP_REFUSAL": 2,
+        "RETURN": 14,
+        "UNRESOLVED": 29
+      },
+      "exitRecord": {
+        "pid": 20073,
+        "exitCode": 0,
+        "stdinBytes": 526802,
+        "stdinPath": "/tmp/physics-1179-hinge-motor-continuation/compiled-dependencies-reference.requests.jsonl",
+        "stdoutBytes": 418571,
+        "stdoutPath": "/tmp/physics-1179-hinge-motor-continuation/compiled-dependencies-reference.stdout.log",
+        "stderrBytes": 0,
+        "stderrPath": "/tmp/physics-1179-hinge-motor-continuation/compiled-dependencies-reference.stderr.log"
+      },
+      "requestsBytes": 526802,
+      "requestsSha256": "ca4a376f6612a869b036e6a6f177a7dfdab8af2e5f783a3491cbca4039370cea",
+      "stdoutBytes": 418571,
+      "stdoutSha256": "0a0fa902077f8d7380eacbbbdd2439742e98aed098d1ca325c74e2513f62c1f8",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "sourceCallOrigins": {
+    "historicalNativeCalls": 2,
+    "historicalSuccessfulReferences": 1,
+    "historicalFailedReferenceAttempts": 1,
+    "newNativeCaseCounts": {
+      "declaredCases": 14,
+      "candidateCalls": 12,
+      "attemptedCases": 12,
+      "returnedOutputs": 11,
+      "matchedReturns": 11,
+      "matchedCaps": 1,
+      "earlierKnownRefusals": 0,
+      "motorCalls": 12,
+      "projectionCalls": 12,
+      "observerCalls": 12,
+      "callCountsComplete": true
+    },
+    "newSavedRestReferenceCalls": 1,
+    "reusedSuccessfulGenuineNativeCalls": 1,
+    "reusedSuccessfulGenuineReferenceCalls": 1,
+    "reusedPendingRestNativeCalls": 1,
+    "logicalCounts": {
+      "declaredCases": 14,
+      "candidateCalls": 14,
+      "attemptedCases": 14,
+      "returnedOutputs": 12,
+      "matchedReturns": 12,
+      "matchedCaps": 2,
+      "earlierKnownRefusals": 0,
+      "motorCalls": 14,
+      "projectionCalls": 14,
+      "observerCalls": 14,
+      "callCountsComplete": true
+    },
+    "logicalCountsIncludeHistoricalCalls": true,
+    "originalFailureRetained": true
+  },
+  "savedPrefixOrigin": {
+    "proofHead": "c94dc51abe43225e2c76a9ed13eea9305e4ac400",
+    "manifestPath": "examples/physics-rigid-hinge-motor-reference/evidence/first-runtime-cd24a151/manifest.json",
+    "manifestSha256": "344532b1167fd89fdefa62a63fc50f5bbb2ebf0b5a1a38ef14d932a064acf25d",
+    "sourceHead": "ccbda92dce610d31bd7961c0f39edbefc237b7f9",
+    "consumerHead": "cd24a151b834f3362d78449fa1f667a3d03fd9b3",
+    "artifacts": 60,
+    "decodedHashes": [
+      {
+        "path": "evidence/first-runtime-cd24a151/execution-failure.json.gz",
+        "bytes": 4496,
+        "sha256": "bffc919903f9e2a9ba728893053988b8b0fbad74d82cbbd5637347aabbaecd85"
+      },
+      {
+        "path": "evidence/first-runtime-cd24a151/source-flow-emergency.json.gz",
+        "bytes": 41134,
+        "sha256": "5d77126fe1a7221b424b99fadde4df3411869d3448e4d8ec68353bbe7aba413d"
+      },
+      {
+        "path": "evidence/first-runtime-cd24a151/source-flow.f64le.gz",
+        "bytes": 2080,
+        "sha256": "bb9b356932b26d44947cc38b82b677db91c7d7a5faa4cee6e847a94196e413bc"
+      },
+      {
+        "path": "evidence/first-runtime-cd24a151/source-flow.jsonl.gz",
+        "bytes": 86836,
+        "sha256": "68214f0fc5ebf190b876cd2e5f461dc5fd861462e47aafc19368f845373efb20"
+      },
+      {
+        "path": "evidence/first-runtime-cd24a151/source-reference-close-failure.json.gz",
+        "bytes": 132,
+        "sha256": "28686f574565e5666a081e42ad7a324e08830ec20f4a32f45c68f07fdfa2db0d"
+      }
+    ],
+    "flowDecodedSha256": "68214f0fc5ebf190b876cd2e5f461dc5fd861462e47aafc19368f845373efb20",
+    "rawDecodedSha256": "bb9b356932b26d44947cc38b82b677db91c7d7a5faa4cee6e847a94196e413bc",
+    "rawBytes": 2080,
+    "genuineRecordSha256": "097dc298fa3ee274f0f585a0f0cf8986152287024653dcfa058701715636ec57",
+    "restOriginalRecordSha256": "e22fbd3c6680f3bed7afe67c3082f584394030772c19ffd172514974590495cd",
+    "inputAfterSignsRestoredFromAuthenticatedRetainedInput": true,
+    "historicalNativeCalls": 2,
+    "historicalCompletedNamedReferenceReplies": 1,
+    "historicalFailedNamedReferenceRequests": 1,
+    "newNativeCalls": 0,
+    "newReferenceCalls": 0,
+    "originalFailureRetained": true
+  },
+  "historicalReuseChecks": {
+    "GenuineCanonicalRecordReusedExactly": true,
+    "RESTNativeComparisonDataUnchanged": true,
+    "RESTCompletedDerivativeNotHistoryRewrite": true
+  },
+  "namedCallAccounting": {
+    "actualNamedNativeCallsIncludingHistorical": 42,
+    "historicalSourceNativeCalls": 2,
+    "newSourceNativeCalls": 12,
+    "freshRepeatNativeCalls": 14,
+    "freshCompiledNativeCalls": 14,
+    "newNamedReferenceEvaluations": 41,
+    "historicalSuccessfulGenuineReference": 1,
+    "qualifiedNamedEvaluationsTotal": 42,
+    "historicalFailedRESTReferenceAttempt": 1,
+    "actualNamedReferenceAttemptsTotal": 43,
+    "newReferenceRequestsIncludingProtocols": 134
+  },
+  "qualification": {
+    "allThreeGraphs14NamedSemanticsGO": true,
+    "canonicalRawParity": true,
+    "matchedCapsAreAcceptedWorldSteps": false,
+    "fullWorldGO": false,
+    "publicEngineGO": false,
+    "releaseGO": false
+  },
+  "limits": [
+    "No geometry, work, motor law, reference expected answer or optimization was recomputed. This is saved-byte/data auditing only.",
+    "Control identity/copy mutation checks are successful native receipts; JSON does not independently reconstruct JavaScript object identity.",
+    "The preserved supplied failed REST request is data-equivalent but not byte-identical to the new actual stdin; both hashes and the representation difference are retained.",
+    "Full staged report/cap semantics do not qualify a World, 1200-step stability, Viewer, performance or public release."
+  ],
+  "operations": {
+    "savedFilesReadOnly": true,
+    "sourceEdited": false,
+    "moduleImported": false,
+    "modelExecuted": false,
+    "referenceExecuted": false,
+    "solverExecuted": false,
+    "worldExecuted": false,
+    "replayed": false
+  }
+}

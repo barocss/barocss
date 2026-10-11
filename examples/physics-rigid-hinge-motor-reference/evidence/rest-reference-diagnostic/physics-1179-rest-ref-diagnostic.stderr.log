@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "/Users/user/.codex/worktrees/physics-hinge-motor-1179/barocss/examples/physics-rigid-hinge-motor-reference/reference.py", line 806, in <module>
+    main()
+    ~~~~^^
+  File "/Users/user/.codex/worktrees/physics-hinge-motor-1179/barocss/examples/physics-rigid-hinge-motor-reference/reference.py", line 797, in main
+    reply = evaluate(request)
+  File "/Users/user/.codex/worktrees/physics-hinge-motor-1179/barocss/examples/physics-rigid-hinge-motor-reference/reference.py", line 783, in evaluate
+    metrics,violations,status = comparison(request,high,high_parent,high_obs,precision)
+                                ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/user/.codex/worktrees/physics-hinge-motor-1179/barocss/examples/physics-rigid-hinge-motor-reference/reference.py", line 638, in comparison
+    data,actual,output = actual_payload(request,ids,joint_id);violations = []
+                         ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/user/.codex/worktrees/physics-hinge-motor-1179/barocss/examples/physics-rigid-hinge-motor-reference/reference.py", line 588, in actual_payload
+    payload_shape(output["diagnostics"],False,ids,joint_id)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/user/.codex/worktrees/physics-hinge-motor-1179/barocss/examples/physics-rigid-hinge-motor-reference/reference.py", line 540, in payload_shape
+    if value[field] is not None:
+       ~~~~~^^^^^^^
+KeyError: 'jointReport'

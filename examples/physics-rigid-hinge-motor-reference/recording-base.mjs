@@ -1,0 +1,8 @@
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {appendFile,writeFile} from 'node:fs/promises';
+import {gzipSync} from 'node:zlib';
+export const sha=b=>createHash('sha256').update(b).digest('hex');
+/** Called only after writer reserves fresh paths with wx. */
+export async function recorder(out,name,budget){const recordsHash=createHash('sha256'),rawHash=createHash('sha256');let records=0,rawBytes=0,compressedBytes=0;return {async write(record,raw=[]){const line=Buffer.from(JSON.stringify(record)+'\n'),binary=Buffer.concat(raw),jsonGzip=gzipSync(line),rawGzip=binary.length?gzipSync(binary):Buffer.alloc(0);assert.ok(budget.bytes+jsonGzip.length+rawGzip.length<=64*1024*1024,'hinge motor main evidence budget exceeded');await appendFile(out+'/'+name+'.jsonl.gz',jsonGzip);if(rawGzip.length)await appendFile(out+'/'+name+'.f64le.gz',rawGzip);const stored=jsonGzip.length+rawGzip.length;budget.bytes+=stored;compressedBytes+=stored;recordsHash.update(line);rawHash.update(binary);rawBytes+=binary.length;records++;},async emergency(record){const data=Buffer.from(JSON.stringify(record)+'\n');assert.ok(data.length<=2*1024*1024,'hinge motor emergency evidence budget exceeded');await writeFile(out+'/'+name+'-emergency.json.gz',gzipSync(data),{flag:'wx'});},finish(){return {records,compressedBytes,decodedRecordSha256:recordsHash.digest('hex'),rawBytes,rawSha256:rawHash.digest('hex')};}};}
+export function describeThrown(value){let name='ThrownValue',message='Unknown thrown value';try{if(value instanceof Error){const d=Object.getOwnPropertyDescriptors(value);if(typeof d.name?.value==='string')name=d.name.value;else name='Error';if(typeof d.message?.value==='string')message=d.message.value;}}catch{}return {name,message};}

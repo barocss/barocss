@@ -1,0 +1,10 @@
+file:///Users/user/.codex/worktrees/physics-hinge-motor-1179/barocss/examples/physics-rigid-hinge-motor-reference/observer.mjs:9
+ child.on('error',fail);child.stdin.on('error',fail);child.on('exit',code=>{closed=true;exitCode=code;if(pending)fail(new Error('hinge reference exited '+code));else if(code!==0)failure=new Error('hinge reference exited '+code);});
+                                                                                                                      ^
+
+Error: hinge reference exited 1
+    at ChildProcess.<anonymous> (file:///Users/user/.codex/worktrees/physics-hinge-motor-1179/barocss/examples/physics-rigid-hinge-motor-reference/observer.mjs:9:119)
+    at ChildProcess.emit (node:events:519:28)
+    at ChildProcess._handle.onexit (node:internal/child_process:293:12)
+
+Node.js v22.22.0

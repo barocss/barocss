@@ -1,0 +1,13 @@
+{
+  "startedAtUTC": "2026-10-11T01:31:55.211273+00:00",
+  "pid": 81718,
+  "controllerPid": 81704,
+  "beforeHead": "cd24a151b834f3362d78449fa1f667a3d03fd9b3",
+  "argv": [
+    "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+    "/Users/user/.codex/worktrees/physics-hinge-motor-1179/barocss/examples/physics-rigid-hinge-motor-reference/runner.mjs",
+    "/tmp/physics-1179-hinge-motor-first-native"
+  ],
+  "controllerSha256": "7f2aa8ff6f4da050776c5477ff492623559257d17ba4f530b70c42864880673a",
+  "sourceFreezeSha256": "b2d67db8852420780e99c7add4a2e16c0c65aba7de246375117df428b388311b"
+}

@@ -1,0 +1,11 @@
+{
+  "providerNative": "0e296d1e75c837e767329634f6a2ac6f5832e54f",
+  "path": "examples/physics-rigid-hinge-velocity-reference/evidence/native-49cd64c2/source-before.f64le",
+  "fullBytes": 6448,
+  "fullSha256": "efce08bd62ca1033d058f0e42fd8b1c090c5dc7dd85999d32b062ebcc827fcb9",
+  "firstRecordOffset": 0,
+  "firstRecordBytes": 208,
+  "firstRecordSha256": "4ba656b4b99e8989dd16ca6d4d7789899f3fd9c86b82f691c2759d1a750f9b10",
+  "gitBlobBytesEqual": true,
+  "newModelCalls": 0
+}

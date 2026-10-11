@@ -1,0 +1,31 @@
+{
+  "classification": "AUTHORIZED_ONE_SAME_FAILED_REST_REFERENCE_DIAGNOSTIC",
+  "diagnosticOnly": true,
+  "originalMissingReferenceStderrReconstructed": false,
+  "originalReferenceStderrAvailable": false,
+  "referenceEvaluations": 1,
+  "nativeCandidateCalls": 0,
+  "nativeWorldCalls": 0,
+  "completedGenuineReplayed": false,
+  "referencePath": "/Users/user/.codex/worktrees/physics-hinge-motor-1179/barocss/examples/physics-rigid-hinge-motor-reference/reference.py",
+  "referenceSha256": "1ad4b1acb452f4bf8c175e7e5f2dd2307848b6551562dfae78f97ea5928e81b8",
+  "requestPath": "/tmp/physics-1179-failed-rest-reference-request.json",
+  "requestSha256": "a56734a8a6d25a3fd57111ee9d6957ddca51096f749779ff8c452fed29ad391c",
+  "submittedJsonLineSha256": "a56734a8a6d25a3fd57111ee9d6957ddca51096f749779ff8c452fed29ad391c",
+  "argv": [
+    "/opt/homebrew/opt/python@3.13/bin/python3.13",
+    "/Users/user/.codex/worktrees/physics-hinge-motor-1179/barocss/examples/physics-rigid-hinge-motor-reference/reference.py"
+  ],
+  "exitCode": 1,
+  "elapsedSeconds": 0.10627954101073556,
+  "stdout": {
+    "path": "/tmp/physics-1179-rest-ref-diagnostic.stdout.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "stderr": {
+    "path": "/tmp/physics-1179-rest-ref-diagnostic.stderr.log",
+    "bytes": 1521,
+    "sha256": "45e88a78f5a25225c4a326753e3adc72ad8628e4b2bdcd8360864ff3e10e9a20"
+  }
+}

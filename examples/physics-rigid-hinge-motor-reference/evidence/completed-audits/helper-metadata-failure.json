@@ -1,0 +1,14 @@
+{
+  "scope": "read-only provenance utility only",
+  "error": "KeyError",
+  "missingKey": "originalReferenceStderrReconstructed",
+  "actualReceiptKey": "originalMissingReferenceStderrReconstructed",
+  "site": "Python -c line112 diagnostic dictionary comprehension",
+  "attemptedScriptOnlyInToolArgument": true,
+  "auditJSONWrittenByHelper": false,
+  "helperRawLogCaptured": false,
+  "rootCompletedOnlyRemainingMetadata": true,
+  "modelCalls": 0,
+  "referenceCalls": 0,
+  "consumerReplayed": false
+}

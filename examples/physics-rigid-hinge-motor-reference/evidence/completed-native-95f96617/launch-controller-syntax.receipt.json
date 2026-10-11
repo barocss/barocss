@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "python3",
+    "-m",
+    "py_compile",
+    "/Users/user/.codex/worktrees/physics-hinge-motor-1179/barocss/examples/physics-rigid-hinge-motor-reference/continuation-controller.py"
+  ],
+  "beforeHead": "95f966179dc1a3f3e6f83c45d8be534f6db90cca",
+  "sourceFreezeSha256": "37d3bc4b29b275b1527f6638e1023b6868ad671a8be0cb58ae5fd55487e40fc4",
+  "exitCode": 0,
+  "elapsedSeconds": 0.04187062499113381,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

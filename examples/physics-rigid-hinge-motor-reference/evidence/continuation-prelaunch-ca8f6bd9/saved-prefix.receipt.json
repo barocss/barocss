@@ -1,0 +1,16 @@
+{
+  "gate": "saved-prefix",
+  "argv": [
+    "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+    "--check",
+    "/Users/user/.codex/worktrees/physics-hinge-motor-1179/barocss/examples/physics-rigid-hinge-motor-reference/saved-prefix.mjs"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 0.024357249989407137,
+  "beforeHead": "ca8f6bd993bcad85b18a09a922c6dbe3634c523f",
+  "sourceFreezeSha256": "da13bbe7d9a31897f524d2b704f204081cb33dc1ffa147df7519d17638e5a5c9",
+  "stdoutBytes": 0,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

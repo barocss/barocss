@@ -1,0 +1,11 @@
+{
+  "issue": 1179,
+  "base": "c8bb228130069d0597cd575d551862de460af9b5",
+  "native1349": "0e296d1e75c837e767329634f6a2ac6f5832e54f",
+  "measured1349": "49cd64c24059d51b562854427ce3b4c24562507a",
+  "adoption1349": "527a4407207e32a801365f1b59c071469948aa19",
+  "paths": 71,
+  "treeSha256": "6e0baad925112a303898fe1828b8b4df4e4c6c3b1334285997ebb5ffeff0a9b7",
+  "nativeAdoptedBaseModesBlobsEqual": true,
+  "newNumericalCalls": 0
+}

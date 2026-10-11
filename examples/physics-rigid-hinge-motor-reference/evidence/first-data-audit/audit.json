@@ -1,0 +1,500 @@
+{
+  "issue": 1179,
+  "scope": "DATA_ONLY_FIRST_RUNTIME_PARTIAL_AUDIT",
+  "disposition": "GENUINE_CAP_REFERENCE_PASS_REST_NATIVE_RETURN_REFERENCE_UNQUALIFIED",
+  "checks": {
+    "twoActualRecordsPreserved": true,
+    "allRawFrames208AndExact": true,
+    "rawStreamConsumedExactly": true,
+    "genuineParentBeforeAuthenticated": true,
+    "genuineExpectedCapMatched": true,
+    "genuineIndependentCapQualified": true,
+    "genuineEveryActualApplicableCheckPassed": true,
+    "genuineReportUsesSavedBImpulse": true,
+    "genuineExactOutgoingTarget": true,
+    "genuineMotorBlockedReturnedZero": true,
+    "genuineInputRetainedSaved": true,
+    "restNativeReturnComplete": true,
+    "restNativeCallsOnce": true,
+    "restInputRetainedSaved": true,
+    "restReferenceUnqualified": true,
+    "noWorldOrOld93ReplayReported": true,
+    "buildTypePassed548Recorded": true,
+    "firstConsumerFailurePreserved": true
+  },
+  "artifact": {
+    "flowPath": "/tmp/physics-1179-hinge-motor-first-native/source-flow.jsonl.gz",
+    "compressedBytes": 9551,
+    "compressedSha256": "a01fda01b7e238dabad323ecd3021708da7b776fb8a527802292c7ab5d78414a",
+    "decodedBytes": 86836,
+    "decodedSha256": "68214f0fc5ebf190b876cd2e5f461dc5fd861462e47aafc19368f845373efb20",
+    "rawPath": "/tmp/physics-1179-hinge-motor-first-native/source-flow.f64le.gz",
+    "rawCompressedBytes": 252,
+    "rawCompressedSha256": "5c5ec43e886176b660b41b9e1a478cd033eeaafbc9ae2080ab850be90fedf2d0",
+    "rawDecodedBytes": 2080,
+    "rawDecodedSha256": "bb9b356932b26d44947cc38b82b677db91c7d7a5faa4cee6e847a94196e413bc"
+  },
+  "consumerReceipt": {
+    "beforeHead": "cd24a151b834f3362d78449fa1f667a3d03fd9b3",
+    "sourceFreezeSha256": "b2d67db8852420780e99c7add4a2e16c0c65aba7de246375117df428b388311b",
+    "exitCode": 1,
+    "elapsedSeconds": 0.6830073749879375,
+    "stderrBytes": 817,
+    "stderrSha256": "9aac0473917d0550afcd871ee57eddfe345dd6a224310795c546a52703d25750"
+  },
+  "genuine": {
+    "index": 0,
+    "name": "genuine-orbital",
+    "classification": "PASS",
+    "expectedDisposition": "CAP_REFUSAL",
+    "nativeOutputPresent": false,
+    "nativeError": {
+      "name": "PhysicsError",
+      "code": "NUMERIC_LIMIT",
+      "message": "hinge0 exceeded motor reaction limit"
+    },
+    "callbackCount": 1,
+    "calls": {
+      "motorCalls": 1,
+      "projectionCalls": 1
+    },
+    "motor": {
+      "inputAngleRad": 0.8,
+      "targetSpeedRadps": 0.5,
+      "limitRad": [
+        -0.8,
+        0.8
+      ],
+      "maxImpulseNms": 0.0001,
+      "blocked": true,
+      "impulseNms": 0,
+      "relativeSpeedBeforeRadps": 0,
+      "relativeSpeedAfterRadps": 0
+    },
+    "jointReport": {
+      "id": "hinge0",
+      "kind": "hinge",
+      "aId": "pairA0",
+      "bId": "pairB0",
+      "angleRad": 0.7999999999999999,
+      "linearImpulseNs": [
+        0,
+        -0.26217926154111826,
+        0
+      ],
+      "angularImpulseNms": [
+        0,
+        0,
+        0.032042209723911974
+      ],
+      "motorImpulseNms": 0
+    },
+    "bodyCorrections": [
+      {
+        "bodyId": "pairA0",
+        "linearImpulseNs": [
+          0,
+          0.26217926154111826,
+          0
+        ],
+        "angularImpulseNms": [
+          0,
+          0,
+          0.032042209723911974
+        ]
+      },
+      {
+        "bodyId": "pairB0",
+        "linearImpulseNs": [
+          0,
+          -0.26217926154111826,
+          0
+        ],
+        "angularImpulseNms": [
+          0,
+          0,
+          0.032042209723911974
+        ]
+      }
+    ],
+    "energyByPhase": {
+      "sourceJ": 1,
+      "angularJ": 1,
+      "motorJ": 1,
+      "freeJ": 1,
+      "projectedJ": 0.8010552430977992
+    },
+    "signedWork": {
+      "externalAngularByBodyJ": [
+        0,
+        0
+      ],
+      "externalAngularTotalJ": 0,
+      "motorMidpointJ": 0,
+      "motorSpinMidpointJ": 0,
+      "motorResidualJ": 0,
+      "freeDeltaKJ": 0,
+      "projectionDeltaKJ": -0.19894475690220081,
+      "projectionObjectiveJ": 0.3254137661800358
+    },
+    "reportCap": {
+      "angularReactionNormNms": 0.032042209723911974,
+      "maxReactionNms": 0.01,
+      "exceedsCap": true
+    },
+    "inputCursor": {
+      "stepIndex": 0,
+      "timeSeconds": 0
+    },
+    "independentReply": {
+      "referenceStatus": "CAP_REFUSAL",
+      "ok": true,
+      "resolved": true,
+      "executionFailure": false,
+      "violations": [],
+      "checks": {
+        "sourceRawMatchesInput": true,
+        "commandsRawMatchesInput": true,
+        "parsedActionsMatch": true,
+        "sourceCursorRetained": true,
+        "acceptedReportAuthorityMatch": true,
+        "heldFrameBitsMatch": true,
+        "namedZeroSignsMatch": true,
+        "outputAttemptCorrespondence": null,
+        "callsMatch": true,
+        "jointReportIdentityMatch": true,
+        "targetAngleAuthorityMatch": true,
+        "capDecisionMatch": true,
+        "finiteSignedWork": true,
+        "nonnegativeEnergiesAndObjective": true,
+        "parentPredictionQualified": true,
+        "parentActualQualified": true,
+        "actualErrorMatch": true,
+        "actualOutcomeMatch": true
+      },
+      "frameErrors": {
+        "source": {
+          "positionM": 0,
+          "quaternion": 0,
+          "velocityMps": 0,
+          "angularVelocityRadps": 0,
+          "metadataMatch": true
+        },
+        "angular": {
+          "positionM": 0,
+          "quaternion": 0,
+          "velocityMps": 0,
+          "angularVelocityRadps": 0,
+          "metadataMatch": true
+        },
+        "motor": {
+          "positionM": 0,
+          "quaternion": 0,
+          "velocityMps": 0,
+          "angularVelocityRadps": 0,
+          "metadataMatch": true
+        },
+        "free": {
+          "positionM": 0,
+          "quaternion": 0,
+          "velocityMps": 0,
+          "angularVelocityRadps": 0,
+          "metadataMatch": true
+        },
+        "projected": {
+          "positionM": 0,
+          "quaternion": 0,
+          "velocityMps": 0,
+          "angularVelocityRadps": 0,
+          "metadataMatch": true
+        }
+      },
+      "motorError": {
+        "inputAngleMatch": true,
+        "blockedMatch": true,
+        "impulseNms": 0,
+        "relativeSpeedBeforeRadps": 0,
+        "relativeSpeedAfterRadps": 0
+      },
+      "reportError": {
+        "angleRad": 0,
+        "linearImpulseNs": 0,
+        "angularImpulseNms": 0,
+        "motorImpulseNms": 0,
+        "bodyLinearImpulseNs": 0,
+        "bodyAngularImpulseNms": 0,
+        "angularReactionNormNms": 0
+      },
+      "workError": {
+        "externalAngularByBodyJ": 0,
+        "externalAngularTotalJ": 0,
+        "motorMidpointJ": 0,
+        "motorSpinMidpointJ": 0,
+        "motorResidualJ": 0,
+        "freeDeltaKJ": 0,
+        "projectionDeltaKJ": 0,
+        "projectionObjectiveJ": 0,
+        "energyByPhaseJ": 0,
+        "motorBalanceResidualJ": 0
+      },
+      "precision": {
+        "algebraMaxDifferenceByUnit": {
+          "positionM": 2.159695614618966e-81,
+          "quaternion": 2.415036956952758e-81,
+          "velocityMps": 1.732123636776012e-80,
+          "angularVelocityRadps": 0,
+          "linearMomentumKgMps": 0,
+          "angularMomentumKgM2ps": 4.1569252553839938e-81,
+          "energyJ": 1.766341861496776e-80,
+          "impulseNs": 0,
+          "angularImpulseNms": 0
+        },
+        "scalarRepeatMaxDifferenceRad": 0,
+        "algebraResolved": true,
+        "scalarResolved": true
+      }
+    },
+    "parentRawArtifact": "/Users/user/.codex/worktrees/physics-hinge-motor-1179/barocss/examples/physics-rigid-hinge-velocity-reference/evidence/native-49cd64c2/source-before.f64le",
+    "parentFirst208Sha256": "4ba656b4b99e8989dd16ca6d4d7789899f3fd9c86b82f691c2759d1a750f9b10"
+  },
+  "rest": {
+    "index": 1,
+    "name": "rest",
+    "classification": "EXECUTION_FAILURE",
+    "nativeReturned": true,
+    "independentQualified": false,
+    "referenceReply": null,
+    "callbackCount": 1,
+    "calls": {
+      "motorCalls": 1,
+      "projectionCalls": 1
+    },
+    "stage": "report-ready",
+    "attemptError": null,
+    "nativeError": null,
+    "nativeOutputAttemptDataCorrespondence": true,
+    "motor": {
+      "inputAngleRad": 0,
+      "targetSpeedRadps": 0.5,
+      "limitRad": [
+        -0.8,
+        0.8
+      ],
+      "maxImpulseNms": 0.0001,
+      "blocked": false,
+      "impulseNms": 0.0001,
+      "relativeSpeedBeforeRadps": 0,
+      "relativeSpeedAfterRadps": 0.04999999999999999
+    },
+    "jointReport": {
+      "id": "hinge0",
+      "kind": "hinge",
+      "aId": "pairA0",
+      "bId": "pairB0",
+      "angleRad": 0.0004166666666666666,
+      "linearImpulseNs": [
+        -5.208332730517046e-07,
+        0,
+        0
+      ],
+      "angularImpulseNms": [
+        0,
+        0,
+        -1.0850693094033307e-11
+      ],
+      "motorImpulseNms": 0.0001
+    },
+    "energyByPhase": {
+      "sourceJ": 0,
+      "angularJ": 0,
+      "motorJ": 2.4999999999999994e-06,
+      "freeJ": 2.4999999999999994e-06,
+      "projectedJ": 2.4999997287326726e-06
+    },
+    "signedWork": {
+      "externalAngularByBodyJ": [
+        0,
+        0
+      ],
+      "externalAngularTotalJ": 0,
+      "motorMidpointJ": 2.4999999999999994e-06,
+      "motorSpinMidpointJ": 2.4999999999999994e-06,
+      "motorResidualJ": 0,
+      "freeDeltaKJ": 0,
+      "projectionDeltaKJ": -2.7126732680466574e-13,
+      "projectionObjectiveJ": 2.7126732775213666e-13
+    },
+    "reportCap": {
+      "angularReactionNormNms": 1.0850693094033307e-11,
+      "maxReactionNms": 0.01,
+      "exceedsCap": false
+    },
+    "inputCursor": {
+      "stepIndex": 0,
+      "timeSeconds": 0
+    },
+    "executionFailureMarker": {
+      "phase": "validation-or-reference",
+      "unknownPayloadStored": false
+    },
+    "nativeInertiaByBody": [
+      0.004000000000000001,
+      0.004000000000000001
+    ]
+  },
+  "rawFrameAudit": [
+    {
+      "index": 0,
+      "name": "genuine-orbital",
+      "frames": [
+        {
+          "label": "source",
+          "offset": 0,
+          "bytes": 208,
+          "sha256": "4ba656b4b99e8989dd16ca6d4d7789899f3fd9c86b82f691c2759d1a750f9b10",
+          "shaMatches": true,
+          "streamBytesEqual": true,
+          "jsonNumericFieldsMatch": true,
+          "zeroWitnessMatches": true
+        },
+        {
+          "label": "angular",
+          "offset": 208,
+          "bytes": 208,
+          "sha256": "4ba656b4b99e8989dd16ca6d4d7789899f3fd9c86b82f691c2759d1a750f9b10",
+          "shaMatches": true,
+          "streamBytesEqual": true,
+          "jsonNumericFieldsMatch": true,
+          "zeroWitnessMatches": true
+        },
+        {
+          "label": "motor",
+          "offset": 416,
+          "bytes": 208,
+          "sha256": "4ba656b4b99e8989dd16ca6d4d7789899f3fd9c86b82f691c2759d1a750f9b10",
+          "shaMatches": true,
+          "streamBytesEqual": true,
+          "jsonNumericFieldsMatch": true,
+          "zeroWitnessMatches": true
+        },
+        {
+          "label": "free",
+          "offset": 624,
+          "bytes": 208,
+          "sha256": "dcf78165ba158dc4db0601abd595509db29034eee927e5b0816db9f3e986b10c",
+          "shaMatches": true,
+          "streamBytesEqual": true,
+          "jsonNumericFieldsMatch": true,
+          "zeroWitnessMatches": true
+        },
+        {
+          "label": "projected",
+          "offset": 832,
+          "bytes": 208,
+          "sha256": "3b292a7b99d80c9d05d1056901219266af34342ee36204d2a0a965d0a5ddec70",
+          "shaMatches": true,
+          "streamBytesEqual": true,
+          "jsonNumericFieldsMatch": true,
+          "zeroWitnessMatches": true
+        }
+      ],
+      "commands": {
+        "offset": 1040,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "streamBytesEqual": true,
+        "shaMatches": true
+      }
+    },
+    {
+      "index": 1,
+      "name": "rest",
+      "frames": [
+        {
+          "label": "source",
+          "offset": 1040,
+          "bytes": 208,
+          "sha256": "66a3472744ed9b0ff0802c32781faae1bff3d99c4729a528a70d63727959b011",
+          "shaMatches": true,
+          "streamBytesEqual": true,
+          "jsonNumericFieldsMatch": true,
+          "zeroWitnessMatches": true
+        },
+        {
+          "label": "angular",
+          "offset": 1248,
+          "bytes": 208,
+          "sha256": "66a3472744ed9b0ff0802c32781faae1bff3d99c4729a528a70d63727959b011",
+          "shaMatches": true,
+          "streamBytesEqual": true,
+          "jsonNumericFieldsMatch": true,
+          "zeroWitnessMatches": true
+        },
+        {
+          "label": "motor",
+          "offset": 1456,
+          "bytes": 208,
+          "sha256": "6f22656e3eb3d6084ad35b70f7f0a73887c34492d78a5a03a5fea94bfb6f38fe",
+          "shaMatches": true,
+          "streamBytesEqual": true,
+          "jsonNumericFieldsMatch": true,
+          "zeroWitnessMatches": true
+        },
+        {
+          "label": "free",
+          "offset": 1664,
+          "bytes": 208,
+          "sha256": "1863c26fa413d0f5aceca490b29d8de04d2464ac82fe451a02b731d5217db041",
+          "shaMatches": true,
+          "streamBytesEqual": true,
+          "jsonNumericFieldsMatch": true,
+          "zeroWitnessMatches": true
+        },
+        {
+          "label": "projected",
+          "offset": 1872,
+          "bytes": 208,
+          "sha256": "bfd3544398236b080de2dfabc20a9dd875d04f8d417d575ee8c4ee39ef9f7e68",
+          "shaMatches": true,
+          "streamBytesEqual": true,
+          "jsonNumericFieldsMatch": true,
+          "zeroWitnessMatches": true
+        }
+      ],
+      "commands": {
+        "offset": 2080,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "streamBytesEqual": true,
+        "shaMatches": true
+      }
+    }
+  ],
+  "qualification": {
+    "matchedCapCases": 1,
+    "nativeReturnedButUnqualifiedCases": 1,
+    "all14Qualified": false,
+    "sourceRepeatCompiledQualified": false,
+    "stagedFullGO": false,
+    "worldGO": false,
+    "publicGO": false,
+    "releaseGO": false
+  },
+  "limitations": [
+    "Recorded raw13 bytes, saved input equality and native output/attempt data correspondence were checked only; no geometry, inertia, momentum, work or optimization was recomputed.",
+    "Saved-data correspondence does not independently prove JavaScript object alias identity. The dedicated mutation/copy controls have not completed in this first partial run.",
+    "REST has no independent reply; native return/cap norm/certificate data cannot substitute for its missing independent qualification.",
+    "No further named case, reference request, native model or old93 cases were replayed for this audit."
+  ],
+  "operations": {
+    "savedDataReadOnly": true,
+    "sourceEdited": false,
+    "modelExecuted": false,
+    "referenceExecuted": false,
+    "solverExecuted": false,
+    "geometryRecomputed": false,
+    "workRecomputed": false,
+    "worldExecuted": false,
+    "replayed": false
+  }
+}
