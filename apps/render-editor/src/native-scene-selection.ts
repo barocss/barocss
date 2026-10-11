@@ -92,7 +92,7 @@ function equal(a: unknown, b: unknown): boolean {
 }
 function selectable(snapshot: NativeSceneHostSnapshot): boolean {
   return !snapshot.disposed && snapshot.available && !snapshot.nativeDirty && !snapshot.materialDirty
-    && !snapshot.invalidLighting && !snapshot.invalidBodyPose && !snapshot.poseGestureActive && snapshot.posePreview === null;
+    && !snapshot.invalidLighting && !snapshot.invalidBodyPose && !snapshot.invalidSurfacePole && !snapshot.poseGestureActive && snapshot.posePreview === null;
 }
 
 /** Resolve a qualified display ref to one current original body without highlighting or authoring. */
@@ -115,7 +115,7 @@ export function resolveNativeSceneBodyPick(snapshot: NativeSceneHostSnapshot, st
     const modelId = text(ref.modelId, 'Display model ID'), surfaceId = text(ref.surfaceId, 'Original Surface ID');
     const current = record(snapshot, 'Native host snapshot'), viewer = record(state, 'Viewer state');
     check(current.disposed === false && current.available === true && current.nativeDirty === false
-      && current.materialDirty === false && current.invalidLighting === false && current.invalidBodyPose === false && current.poseGestureActive === false
+      && current.materialDirty === false && current.invalidLighting === false && current.invalidBodyPose === false && current.invalidSurfacePole === false && current.poseGestureActive === false
       && current.posePreview === null && viewer.status === 'ready', 'Resolve authored drafts or the current operation before selecting a body.');
     const accepted = record(current.accepted, 'Accepted native scene', 10), preparation = record(current.preparation, 'Native preparation');
     check(preparation.document === current.accepted, 'The native preparation is not the accepted scene.');

@@ -55,3 +55,6 @@ export {deriveRenderNativeSceneBodyRemoval} from './native-body-remove.js';
 
 export {deriveRenderNativeSceneSurfaceAddition} from './native-surface-add.js';
 export type {RenderNativeSceneSurfaceAdditionOptions, RenderNativeSceneSurfaceAddition} from './native-surface-add.js';
+
+export {deriveRenderNativeSceneSurfacePoleEdit} from './native-surface-pole-edit.js';
+export type {RenderNativeSceneSurfacePolePatch} from './native-surface-pole-edit.js';

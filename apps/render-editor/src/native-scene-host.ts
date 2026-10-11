@@ -1,9 +1,9 @@
 import {createRenderNativeSceneSession, createRenderMaterialSession, prepareRenderMaterialDocument,
   validateRenderNativeSceneDocument, serializeRenderNativeSceneDocument, prepareRenderNativeSceneAppearance,
-  commitRenderNativeSceneAppearanceCandidate, deriveRenderNativeSceneBodyDuplicate, deriveRenderNativeSceneBodyRemoval, deriveRenderNativeSceneSurfaceAddition, RenderEditorError, normalizeRenderEditorError} from '@barocss/render-editor';
+  commitRenderNativeSceneAppearanceCandidate, deriveRenderNativeSceneBodyDuplicate, deriveRenderNativeSceneBodyRemoval, deriveRenderNativeSceneSurfaceAddition, deriveRenderNativeSceneSurfacePoleEdit, RenderEditorError, normalizeRenderEditorError} from '@barocss/render-editor';
 import type {RenderNativeSceneDocument, RenderNativeScenePreparation, RenderNativeScenePreparedCandidate,
   RenderNativeSceneAppearancePreparation, RenderMaterialSession, RenderMaterialSessionSnapshot,
-  RenderMaterialPreparedCandidate, RenderNativeScenePose} from '@barocss/render-editor';
+  RenderMaterialPreparedCandidate, RenderNativeScenePose, RenderNativeSceneSurfacePolePatch} from '@barocss/render-editor';
 import {validateMeshCamera} from '@barocss/gpu';
 import type {MeshCamera, MeshLighting} from '@barocss/gpu';
 
@@ -21,6 +21,10 @@ export interface NativeSceneHostSnapshot {
   readonly invalidBodyPose: boolean;
   readonly invalidBodyPoseBodyId: string | null;
   readonly bodyPoseInputResetEpoch: number;
+  readonly invalidSurfacePole: boolean;
+  readonly surfacePoleBodyId: string | null;
+  readonly surfacePoleDraftActive: boolean;
+  readonly surfacePoleInputResetEpoch: number;
   readonly viewCamera: MeshCamera | null;
   readonly viewDirty: boolean;
   readonly poseGestureActive: boolean;
@@ -44,6 +48,8 @@ export interface NativeSceneHost {
   removeSelectedBody(): RenderNativeSceneAppearancePreparation;
   stageBodyPose(bodyId: string, patch: {readonly translationMM: readonly [number, number, number]; readonly scale: readonly [number, number, number]}): void;
   setBodyPoseInputInvalid(bodyId: string): void;
+  stageSurfacePoleEdit(bodyId: string, patch: RenderNativeSceneSurfacePolePatch): void;
+  setSurfacePoleInputInvalid(bodyId: string, uIndex: number, vIndex: number): void;
   stageLighting(lighting: MeshLighting): void;
   setLightingInputInvalid(invalid: boolean): void;
   prepareDraft(): RenderNativeScenePreparedCandidate;
@@ -150,6 +156,8 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
   let local = createRenderMaterialSession(selectedMaterial(native.getSnapshot().preparation, selectedBodyId).preparation.document);
   let draftDocument = native.getSnapshot().accepted, invalidLighting = false;
   let invalidBodyPoseBodyId: string | null = null, bodyPoseInputResetEpoch = 0;
+  let invalidSurfacePole = false, surfacePoleInputResetEpoch = 0;
+  let surfacePole: {bodyId: string; uIndex: number; vIndex: number} | null = null;
   let viewCamera: MeshCamera | null = null, presenter: NativeScenePresenter | null = null, available = false;
   let disposed = false, locked = false, reentered = false, generation = 0;
   let ownershipReader: (() => object) | undefined, fallbackOwner: object = Object.freeze({});
@@ -190,7 +198,7 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
   const readSnapshots = () => {
     const state = native.getSnapshot(), raw = local.getSnapshot();
     const selected = selectedMaterial(state.preparation, selectedBodyId);
-    const dirty = state.dirty || raw.dirty || invalidLighting || invalidBodyPoseBodyId !== null || bodyPose !== null;
+    const dirty = state.dirty || raw.dirty || invalidLighting || invalidBodyPoseBodyId !== null || invalidSurfacePole || bodyPose !== null;
     materialSnapshot = Object.freeze({...raw, accepted: selected.preparation.document, sample: selected.preparation.sample,
       dirty, canUndo: state.canUndo, canRedo: state.canRedo, disposed,
       savedRevision: state.savedRevision === state.accepted.revision ? selected.preparation.document.revision : null});
@@ -200,6 +208,7 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
         title: state.accepted.nativeDocument.bodies.find(body => body.id === item.target.bodyId)?.name ?? item.preparation.document.title}))),
       dirty, nativeDirty: state.dirty, materialDirty: raw.dirty, invalidLighting, viewCamera, viewDirty: viewCamera !== null,
       invalidBodyPose: invalidBodyPoseBodyId !== null, invalidBodyPoseBodyId, bodyPoseInputResetEpoch,
+      invalidSurfacePole, surfacePoleBodyId: surfacePole?.bodyId ?? null, surfacePoleDraftActive: surfacePole !== null, surfacePoleInputResetEpoch,
       poseGestureActive: bodyPose?.gestureActive ?? false, posePreview: bodyPose?.preview ?? null,
       available, canUndo: state.canUndo, canRedo: state.canRedo, savedRevision: state.savedRevision, disposed});
   };
@@ -305,6 +314,26 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
     const text = serializeRenderNativeSceneDocument(document);
     native.setDraftText(text); draftDocument = document;
   };
+  const poleSelection = (bodyId: string, uIndex: number, vIndex: number) => {
+    noView(); check(available && !disposed, 'The original Surface preview is unavailable.');
+    check(typeof bodyId === 'string' && bodyId === selectedBodyId
+      && snapshot.preparation.materials.some(value => value.target.bodyId === bodyId)
+      && snapshot.preparation.entries.some(value => value.kind === 'surface' && value.binding.bodyId === bodyId)
+      && draftDocument.display.visibleBodyIds.includes(bodyId), 'Edit the selected visible original Surface.');
+    check(Number.isInteger(uIndex) && !Object.is(uIndex, -0) && uIndex >= 0 && uIndex < 16
+      && Number.isInteger(vIndex) && !Object.is(vIndex, -0) && vIndex >= 0 && vIndex < 16, 'Choose bounded original control-point indices.');
+    check(surfacePole === null || surfacePole.bodyId === bodyId && surfacePole.uIndex === uIndex && surfacePole.vIndex === vIndex,
+      'Apply or Discard the current control-point draft before changing points.');
+    return {bodyId, uIndex, vIndex};
+  };
+  // These are already validated owned document snapshots, not arbitrary caller objects.
+  const sameNative = (a: unknown, b: unknown): boolean => {
+    if (Object.is(a, b)) return true;
+    if (!a || !b || typeof a !== 'object' || typeof b !== 'object' || Array.isArray(a) !== Array.isArray(b)) return false;
+    const left = Object.keys(a), right = Object.keys(b);
+    return left.length === right.length && left.every(key => Object.hasOwn(b, key)
+      && sameNative((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key]));
+  };
   const withMaterial = (document: RenderMaterialSessionSnapshot['accepted']) => {
     check(draftDocument.surfaceMaterials.some(item => item.target.bodyId === selectedBodyId), 'The selected Surface is absent from the staged scene.');
     return {...draftDocument, surfaceMaterials: draftDocument.surfaceMaterials.map(item => item.target.bodyId === selectedBodyId
@@ -321,6 +350,7 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
     return candidate;
   };
   const prepareDraft = () => {
+    check(!invalidSurfacePole, 'Correct the original Surface control-point values before Apply.');
     check(invalidBodyPoseBodyId === null, 'Correct the body Position and Scale values before Apply.');
     check(!invalidLighting, 'Correct the lighting values before Apply.');
     const raw = local.getSnapshot();
@@ -364,7 +394,7 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
       acceptedOwner = nextStore.owner!;
       local.dispose(); local = nextStore.local!; nextStore.local = null;
       selectedBodyId = nextBody; draftDocument = native.getSnapshot().accepted;
-      invalidLighting = false; invalidBodyPoseBodyId = null; bodyPoseInputResetEpoch++; nativePresented = true; localView(camera); changed(); return result;
+      invalidLighting = false; invalidBodyPoseBodyId = null; bodyPoseInputResetEpoch++; invalidSurfacePole = false; surfacePole = null; surfacePoleInputResetEpoch++; nativePresented = true; localView(camera); changed(); return result;
     } finally {nextStore.local?.dispose();}
   };
   const restore = () => {
@@ -403,11 +433,11 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
     materialSession, getSnapshot: () => snapshot, subscribe,
     selectTarget(bodyId) {run(() => {
       check(!bodyPose && available, 'Finish the body transform or restore the preview before changing the active body.');
-      check(!native.getSnapshot().dirty && !local.getSnapshot().dirty && !invalidLighting && invalidBodyPoseBodyId === null, 'Apply or Discard authored drafts before changing the active body.');
+      check(!native.getSnapshot().dirty && !local.getSnapshot().dirty && !invalidLighting && invalidBodyPoseBodyId === null && !invalidSurfacePole, 'Apply or Discard authored drafts before changing the active body.');
       check(typeof bodyId === 'string' && snapshot.targets.some(item => item.bodyId === bodyId), 'Choose an authored visible Surface material.');
       if (bodyId === selectedBodyId) return;
       const selected = selectedMaterial(native.getSnapshot().preparation, bodyId);
-      const next = createRenderMaterialSession(selected.preparation.document); local.dispose(); local = next; selectedBodyId = bodyId; changed();});},
+      const next = createRenderMaterialSession(selected.preparation.document); local.dispose(); local = next; selectedBodyId = bodyId; surfacePole = null; invalidSurfacePole = false; surfacePoleInputResetEpoch++; changed();});},
     setPresenter(next, reader, cameraReader) {run(() => {check(next === null || typeof next === 'function', 'Native presenter must be a function or null.'); check(reader === undefined || typeof reader === 'function', 'Preview ownership reader must be a function.'); check(cameraReader === undefined || typeof cameraReader === 'function', 'Display camera reader must be a function.');
       if (next !== null && bodyPose) noView(); else if (next === null) invalidatePose();
       const nextFallback = Object.freeze({}), nextOwner = next === null ? nextFallback : readOwner(reader, nextFallback);
@@ -492,6 +522,35 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
       check(invalidBodyPoseBodyId === null || invalidBodyPoseBodyId === bodyId, 'Correct the body with incomplete Position or Scale values.');
       if (invalidBodyPoseBodyId !== bodyId) {invalidBodyPoseBodyId = bodyId; changed();}
     });},
+    stageSurfacePoleEdit(bodyId, patch) {run(() => {
+      check(patch !== null && typeof patch === 'object' && Object.getPrototypeOf(patch) === Object.prototype, 'Control-point fields require plain own data.');
+      const keys = ['uIndex', 'vIndex', 'xMM', 'yMM', 'zMM', 'weight'] as const;
+      const actual = Reflect.ownKeys(patch);
+      check(actual.length === keys.length && actual.every(key => typeof key === 'string' && keys.includes(key as typeof keys[number])), 'Control-point fields require the exact six values.');
+      const values = Object.fromEntries(keys.map(key => {
+        const field = Object.getOwnPropertyDescriptor(patch, key);
+        check(field && 'value' in field && field.enumerable && typeof field.value === 'number' && Number.isFinite(field.value), 'Control-point fields require finite own numbers.');
+        return [key, field.value];
+      })) as unknown as RenderNativeSceneSurfacePolePatch;
+      const selection = poleSelection(bodyId, values.uIndex, values.vIndex);
+      const accepted = native.getSnapshot().accepted;
+      check(surfacePole !== null || sameNative(draftDocument.nativeDocument, accepted.nativeDocument), 'Finish the other native source draft before editing a control point.');
+      try {
+        const originalTargets = new Map(accepted.surfaceMaterials.map(item => [item.target.bodyId, item.target]));
+        const baseline = {...draftDocument, nativeDocument: accepted.nativeDocument, surfaceMaterials: draftDocument.surfaceMaterials.map(item => {
+          const target = originalTargets.get(item.target.bodyId); check(target, 'The original material target is absent.'); return {...item, target};
+        })};
+        const document = deriveRenderNativeSceneSurfacePoleEdit(baseline, bodyId, values);
+        stage(document); invalidSurfacePole = false;
+        surfacePole = sameNative(document.nativeDocument, accepted.nativeDocument) ? null : selection;
+        changed();
+      } catch (cause) {surfacePole = selection; invalidSurfacePole = true; changed(); throw cause;}
+    });},
+    setSurfacePoleInputInvalid(bodyId, uIndex, vIndex) {run(() => {
+      const selection = poleSelection(bodyId, uIndex, vIndex);
+      check(surfacePole !== null || sameNative(draftDocument.nativeDocument, native.getSnapshot().accepted.nativeDocument), 'Finish the other native source draft before correcting a control point.');
+      surfacePole = selection; invalidSurfacePole = true; changed();
+    });},
     stageLighting(lighting) {run(() => {noView(); stage({...draftDocument, display: {...draftDocument.display, lighting}}); invalidLighting = false; changed();});},
     setLightingInputInvalid(value) {run(() => {noView(); check(typeof value === 'boolean', 'Lighting validity requires a boolean.'); if (invalidLighting !== value) {invalidLighting = value; changed();}});},
     prepareDraft: () => run(() => {noView(); return prepareDraft();}),
@@ -499,7 +558,7 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
     prepareUndo: () => run(() => {noView(); clean(); return issue(native.prepareUndo());}),
     prepareRedo: () => run(() => {noView(); clean(); return issue(native.prepareRedo());}),
     commitPrepared: (candidate, beforeCommit) => run(() => {noView(); return commit(candidate, beforeCommit);}),
-    discardDraft() {run(() => {if (bodyPose) noView(); native.discardDraft(); local.discardDraft(); draftDocument = native.getSnapshot().accepted; invalidLighting = false; invalidBodyPoseBodyId = null; bodyPoseInputResetEpoch++; changed();});},
+    discardDraft() {run(() => {if (bodyPose) noView(); native.discardDraft(); local.discardDraft(); draftDocument = native.getSnapshot().accepted; invalidLighting = false; invalidBodyPoseBodyId = null; bodyPoseInputResetEpoch++; invalidSurfacePole = false; surfacePole = null; surfacePoleInputResetEpoch++; changed();});},
     markSaved(revision) {run(() => {noView(); native.markSaved(revision); changed();});},
     observeView(camera) {run(() => {const next = cameraCopy(camera), accepted = native.getSnapshot().accepted.display.camera;
       if (bodyPose) {if (!sameCamera(next, bodyPose.camera)) {if (bodyPose.preview) available = false; invalidatePose(); localView(next); changed(); throw new RenderEditorError('STALE_CANDIDATE', 'The camera changed during the body transform. Reload or reopen the scene.');} return;}

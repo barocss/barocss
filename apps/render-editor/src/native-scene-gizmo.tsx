@@ -26,7 +26,7 @@ export function NativeSceneGizmo({host, canvas, disabled, onError, onFrame, onFr
       hitTest: hitTestRenderSceneGizmo,
       prepare(viewport) {
         const value = host.getSnapshot();
-        if (!value.available || value.disposed || value.nativeDirty || value.materialDirty || value.invalidLighting || value.invalidBodyPose) return {pivot: [0, 0], handles: [], unavailable: 'Correct or Discard drafts to use handles.'};
+        if (!value.available || value.disposed || value.nativeDirty || value.materialDirty || value.invalidLighting || value.invalidBodyPose || value.invalidSurfacePole) return {pivot: [0, 0], handles: [], unavailable: 'Correct or Discard drafts to use handles.'};
         const original = captured.current;
         const document = original?.document ?? value.accepted;
         const pose = value.posePreview?.pose;
