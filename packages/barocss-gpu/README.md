@@ -3727,3 +3727,143 @@ Save complete originals rather than generated code. The qualifier pins all
 unchanged package source inputs and local CAD dependency resolution, then one
 fresh Node.js22 child reconstructs source before regenerating the program. Source qualification
 does not complete #1184's real graphics gate.
+
+## Authored unlit EngineUV WebGPU viewport (#1184)
+
+`mountEngineUVTextureWebGPUViewport(canvas, sceneInput, textureInput,
+materialInput, optionsInput)` uses complete original scene0 and both original
+texture/Material companions. It requires WebGPU; no generic fallback is
+available. Options have exactly `{width, height}`, integers1..1024 and at most
+1048576 pixels:
+
+```ts
+const viewport = await mountEngineUVTextureWebGPUViewport(
+  canvas, originalScene, originalTextures, originalMaterials,
+  { width: 256, height: 256 },
+);
+viewport.status;
+viewport.originals;
+await viewport.updateFrame(editedScene, editedTextures, editedMaterials);
+const rgba = await viewport.readPixels();
+const hit = await viewport.pick(128, 128);
+viewport.select(hit.ref);
+viewport.select(null);
+viewport.dispose();
+```
+
+This is staging/runtime implementation. The native source/API/file flow does
+not prove actual modules, devices, programs or graphics. Actual generic GPU
+screen/pixel/lifecycle qualification remains UNRUN; no mock GPU or declaration
+of a graphics pass follows from source verification. The preserved #1512 native
+Surface profile and its manual evidence do not qualify this generic profile.
+
+Options are admitted first, then one complete original authored join runs
+synchronously before the first await. All hidden/unused source data is admitted;
+every visible draw requires an authored Material binding or `REFERENCE` refusal.
+An empty visible set is valid. Each authored entry then uses the actual complete
+program lowerer once: the join's two source reconstructions plus one program
+reconstruction, at most24 across eight entries. Caller WGSL, prepared shortcuts,
+injected devices/platforms, shaderId caches and partial frames are unsupported.
+
+The `originals` getter returns exactly `scene`, `textureBindings`,
+`materialBindings`, as fresh deep-frozen ordinary copies including original
+signed zeros. `selected` returns a copied frozen `{sceneId, nodeId, geometryId}`
+or null. IDs retain their respective source namespaces; sampler/shader/material
+IDs are not pick identity. No packed arrays or GPU handles escape.
+
+Status has exactly `backend`, `profile`, `state`, `generation`, `width`, `height`,
+`limits`, `resources`. Backend is `webgpu`, profile
+`engine-opaque-unlit-uv-texture-program-wgsl-v0`; states are `ready`, `lost`,
+`failed`, `disposed`. Limits and logical resource records are copied/frozen.
+Mount generation is1; successful update/resize advances once. Reads, picks and
+selection do not advance it.
+
+`updateFrame(scene, textures, materials)` and `resize(width, height)` return
+promises of the existing `UpdateResult`; `select(ref|null)` returns it directly.
+Refusals retain actual errors. Mount/read/pick reject `EngineUVWebGPUError`.
+Pixels are fresh tight RGBA in top-left order. `pick(x,y)` takes bounded integer
+backing pixels and reads the real depth-matched uint identity attachment, returning
+exactly `{generation, ref}`. Token0 is background; nonzero tokens map current
+draw order to actual scene/node/geometry references. Unknown tokens use `RENDER`.
+The host converts CSS coordinates; no pointer listener or bounds-hit proxy is
+added. Selection requires an accepted visible reference; null clears, and exact
+references remain selected only while visible after commit.
+
+Only one asynchronous operation may be pending; overlapping mutation/read/pick/
+selection refuses `BUSY`. External canvas backing changes use `STATE`;
+lost/failed/disposed operations also use `STATE`. Original candidate snapshots
+precede awaits. Upload and render happen offscreen, then same-format presentation
+and queue/error-scope completion precede atomic originals/resources/map/size/
+generation commit. Early failure releases its candidate and retains accepted
+state. Presentation failure restores old size/color when healthy; failed recovery
+is terminal and retains actual causes. Ten-second wait timeouts invalidate the
+operation epoch and clean late results. Device loss is terminal `lost`; disposal
+is idempotent, invalidates pending work and cleans owned resources/context/device.
+There is no automatic fallback or loss-time backend switch.
+
+Programs reuse position slot0/stride12 and UV slot1/stride8, frame128, material64,
+draw80 and three bind groups. Original scene-unit world/camera Float32 matrices
+are packed explicitly little-endian, with uint draw identity and three zero
+padding lanes. There is no normal, tint, light, native mm or UV/V remap; the
+program performs the one GL clip-depth conversion. Image rows are copied unchanged
+to rgba8unorm, nearest/clamp/level0, with the one explicit standard sampled sRGB
+decode. Authored linear color and original linear background use standard
+piecewise sRGB output encoding once, alpha1. No legacy display gamma2.2 is added.
+Canvas/offscreen color use rgba8unorm; RGBA-to-BGRA raw copies are not used.
+
+All admitted unique geometries, textures and authored materials are allocated,
+including unused ones; only visible draws get draw buffers. A candidate shares
+its source geometry/texture IDs internally, without cross-generation caching.
+Fixed sampler/layout ownership is device-scoped; pipelines/modules/groups are
+released as references and buffers/textures destroyed. Existing scene/catalog/
+source limits remain, including16 geometries/32 materials/64 nodes/32 meshes,
+524288 vertex work, 11534336 CPU geometry bytes, eight textures/4194304 byte
+channels, eight authored entries/128 uniforms and source64KiB. Each shader is
+capped at64KiB and aggregate shaders at512KiB UTF16/UTF8.
+
+Resource ledger has exactly `geometryBytes`, `textureBytes`, `uniformBytes`,
+`colorIdentityBytes`, `depthTexels`, `depthBudgetBytes`, `chargedBytes`,
+`readbackBytes`, `buffers`, `textures`, `bindGroups`, `pipelines`.
+`colorIdentityBytes` is8WH; `depthTexels` isWH; `depthBudgetBytes` is4WH, a
+conservative accounting charge, **not physical depth24plus storage**.
+`chargedBytes` sums geometry/texture/uniform/color-identity bytes plus that
+depth charge and is at most33554432. Accepted plus candidate plus the larger
+padded readback is at most67108864 before device mutation. Readback uses
+256-byte row pitch and at most4194304 bytes; pick uses256 scratch bytes.
+Buffers are at most89, textures11, bind groups48 and pipelines8 per candidate.
+Driver overhead, browser swap resources and physical memory remain unmeasured.
+
+Thirteen actual positive integer limits are checked and rechecked for each
+candidate: `maxTextureDimension2D`, `maxBufferSize`,
+`maxUniformBufferBindingSize`, `maxColorAttachments`,
+`maxColorAttachmentBytesPerSample`, `maxVertexBuffers`, `maxVertexAttributes`,
+`maxBindGroups`, `maxVertexBufferArrayStride`, `maxSampledTexturesPerShaderStage`,
+`maxSamplersPerShaderStage`, `maxUniformBuffersPerShaderStage`,
+`maxBindingsPerBindGroup`. They must admit the actual candidate dimensions/
+largest buffers/readback, 128-byte uniforms, two attachments/eight sample bytes,
+two vertex buffers/attributes, three groups/stride12, one texture/sampler,
+two uniforms per stage and two bindings per group. No dynamic-offset alignment
+is assumed.
+
+`EngineUVWebGPUError` uses `INPUT`, `VERSION`, `BUDGET`, `REFERENCE`, `UNIFORM`,
+`MATERIAL`, `TEXTURE`, `SCENE`, `CAMERA`, `REPRESENTATION`, `UNSUPPORTED`, `INIT`,
+`DEVICE_LOST`, `RENDER`, `STATE`, `BUSY`. Messages are bounded to1024 characters;
+raw reflection preserves an own exact cause even when undefined, while local
+guards have none. Actual join errors/codes remain causes. Program `RANGE` maps
+to `REPRESENTATION`, `BUDGET` to `BUDGET`, other program errors to `MATERIAL`;
+camera failures use `CAMERA`. Private preparation/packing helpers are not public
+exports. All earlier public exports/providers remain unchanged.
+
+Use Node.js22 and the preceding scoped `tsc`/browser ESM `esbuild` recipe with
+explicit local CAD alias before the one new source/private-preflight/direct-
+emitted/refusal/original-file/fresh-child qualifier:
+
+```sh
+node examples/gpu-scene/engine-uv-webgpu-runtime-flow.mjs --output /absolute/fresh-directory
+```
+
+That source gate supplies implementation/evidence only. Actual device modules,
+pipelines, quarter-texel pixels, physical picking, updates/refusal retention,
+device loss, browser/screen/live console, consumer and publication require
+separate real acceptance. Existing denied-target restrictions and protected
+servers/tabs remain; no alternate-origin/tool/port proof is proposed.

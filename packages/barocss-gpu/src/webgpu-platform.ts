@@ -23,6 +23,7 @@ export interface GPURenderPassHandle {
 }
 export interface GPUQueueHandle {
   writeBuffer(buffer: GPUBufferHandle, offset: number, data: ArrayBufferView): void;
+  writeTexture(destination: object, data: ArrayBufferView, layout: object, size: object): void;
   submit(commands: object[]): void;
   onSubmittedWorkDone(): Promise<void>;
 }
@@ -32,6 +33,7 @@ export interface GPUDeviceHandle {
   readonly lost: Promise<{ reason: string; message: string }>;
   createBuffer(descriptor: object): GPUBufferHandle;
   createTexture(descriptor: object): GPUTextureHandle;
+  createSampler(descriptor: object): object;
   createShaderModule(descriptor: object): { getCompilationInfo(): Promise<{ messages: { type: string; message: string }[] }> };
   createRenderPipelineAsync(descriptor: object): Promise<GPUPipelineHandle>;
   createBindGroupLayout(descriptor: object): object;

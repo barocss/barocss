@@ -214,3 +214,8 @@ export type { LoweredEngineUVTextureMaterialWGSL } from './engine-uv-texture-mat
 
 export { lowerEngineUVTextureProgramWGSL } from './engine-uv-texture-program-wgsl.js';
 export type { LoweredEngineUVTextureProgramWGSL } from './engine-uv-texture-program-wgsl.js';
+
+export { mountEngineUVTextureWebGPUViewport } from './engine-uv-webgpu-viewport.js';
+export type { EngineUVTextureWebGPUViewport } from './engine-uv-webgpu-viewport.js';
+export { EngineUVWebGPUError, EngineUVWebGPUDiagnosticCode } from './engine-uv-webgpu-frame.js';
+export type { EngineUVWebGPUOptions, EngineUVWebGPUOriginals, EngineUVWebGPURef, EngineUVWebGPUStatus, EngineUVWebGPUResources } from './engine-uv-webgpu-frame.js';
