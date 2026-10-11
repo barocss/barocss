@@ -1,3 +1,5 @@
+import { engineUVTextureSamplingHelpers } from './material-texture-shader-body.js';
+
 /** Bounded CPU material compiler. No DOM, WebGL, eval or caller GLSL. */
 export type MeshMaterialCode='SYNTAX'|'TYPE'|'RANGE'|'BUDGET'|'INPUT'|'IR'|'UNIFORM';
 export interface MeshMaterialDiagnostic {code:MeshMaterialCode;message:string;start:number;end:number}
@@ -30,7 +32,27 @@ type DiscreteExpression<Input, ExtraCall extends string=never>=
 export type DiscreteMeshMaterialExpression=DiscreteExpression<never>;
 export interface DiscreteMeshMaterialIR {format:'barocss-gpu-discrete-mesh-material';version:0;profile:'mesh-opaque-discrete-fragment-v0';source:string;shaderId:string;uniforms:MeshMaterialUniform[];expression:DiscreteMeshMaterialExpression}
 export interface LoweredDiscreteMeshMaterial extends LoweredMeshMaterial {}
-type ParsedMaterialExpression=DiscreteExpression<UVInput|NativeSurfaceUV01Input,'fract'>;
+/** Separate recursive family; existing public expression unions stay intact. */
+type TextureExpression<Input,ExtraCall extends string=never,Extra=never>=
+ |Extract<MeshMaterialExpression,{kind:'float'|'color'|'uniform'}>
+ |{kind:'unary';type:'float';operator:'+'|'-';value:TextureExpression<Input,ExtraCall,Extra>}
+ |{kind:'binary';type:'float';operator:'+'|'-'|'*';left:TextureExpression<Input,ExtraCall,Extra>;right:TextureExpression<Input,ExtraCall,Extra>}
+ |{kind:'call';type:'float'|'color';name:'sin'|'cos'|'mix'|'clamp'|ExtraCall;args:TextureExpression<Input,ExtraCall,Extra>[]}
+ |{kind:'sample';type:'color';sampler:string;u:TextureExpression<Input,ExtraCall,Extra>;v:TextureExpression<Input,ExtraCall,Extra>}
+ |Input|Extra;
+export interface EngineMaterialSampler {name:string;type:'sampler2d'}
+export type EngineUVTextureMaterialExpression=TextureExpression<UVInput>;
+export interface EngineUVTextureMaterialIR {
+ format:'barocss-gpu-engine-uv-texture-material';version:0;profile:'engine-opaque-uv-texture-fragment-v0';
+ source:string;shaderId:string;uniforms:MeshMaterialUniform[];samplers:EngineMaterialSampler[];expression:EngineUVTextureMaterialExpression;
+}
+export interface LoweredEngineUVTextureMaterial extends LoweredEngineUVMaterial {
+ samplerDeclarations:string;
+ samplerLayout:(EngineMaterialSampler&{glslName:'mat_s_0';colorSpace:'srgb';rowOrigin:'bottom-left';filter:'nearest';wrapS:'clamp-to-edge';wrapT:'clamp-to-edge'})[];
+ samplingHelpers:string;
+}
+type ParsedSelection={kind:'select';type:'float'|'color';value:ParsedMaterialExpression;threshold:Extract<MeshMaterialExpression,{kind:'float'}>;below:ParsedMaterialExpression;otherwise:ParsedMaterialExpression};
+type ParsedMaterialExpression=TextureExpression<UVInput|NativeSurfaceUV01Input,'fract',ParsedSelection>;
 export interface MeshMaterialIR {format:'barocss-gpu-mesh-material';version:0;profile:'mesh-opaque-fragment-v0';source:string;shaderId:string;uniforms:MeshMaterialUniform[];expression:MeshMaterialExpression}
 export interface MeshMaterialBinding {material:MeshMaterialIR;uniforms:Record<string,number>}
 export interface LoweredMeshMaterial {expression:string;uniformDeclarations:string;uniformLayout:(MeshMaterialUniform&{glslName:string})[]}
@@ -42,7 +64,7 @@ export interface LoweredEngineUVMaterial extends LoweredMeshMaterial {inputDecla
 export interface NativeSurfaceUV01MaterialIR {format:'barocss-gpu-native-surface-uv01-material';version:0;profile:'native-surface-opaque-uv01-fragment-v0';source:string;shaderId:string;uniforms:MeshMaterialUniform[];expression:NativeSurfaceUV01MaterialExpression}
 export interface LoweredNativeSurfaceUV01Material extends LoweredMeshMaterial {inputDeclarations:'in vec2 v_native_surface_uv01;'}
 type Token={text:string;start:number;end:number};
-type ParsedMaterial={source:string;shaderId:string;uniforms:MeshMaterialUniform[];expression:ParsedMaterialExpression};
+type ParsedMaterial={source:string;shaderId:string;uniforms:MeshMaterialUniform[];expression:ParsedMaterialExpression;samplers?:EngineMaterialSampler[]};
 type Term={expression:ParsedMaterialExpression;type:'float'|'color';range:[number,number];depth:number;size:number};
 type MaterialFunctionDefinition={parameter:string;min:number;max:number;bodyStart:number;bodyEnd:number};
 type MaterialFunctionScope={name:string;parameter:string;value:Term};
@@ -67,10 +89,11 @@ function tokens(source:string):Token[]{
 }
 class Parser {
  private i=0;private nodes=0;private uniforms:MeshMaterialUniform[]=[];
+ private samplers:EngineMaterialSampler[]=[];
  private locals=new Map<string,Term>();
  private functions=new Map<string,MaterialFunctionDefinition>();
  private functionScope:MaterialFunctionScope|null=null;
- constructor(private readonly source:string,private readonly list:Token[],private readonly uvInputs=false,private readonly repeatingUV=false,private readonly nativeSurfaceUV01=false,private readonly discrete=false){}
+ constructor(private readonly source:string,private readonly list:Token[],private readonly uvInputs=false,private readonly repeatingUV=false,private readonly nativeSurfaceUV01=false,private readonly discrete=false,private readonly texture=false){}
  private inputName(name:string):name is UVInput['name']|NativeSurfaceUV01Input['name']{return this.nativeSurfaceUV01?(name==='surface_u01'||name==='surface_v01'):this.uvInputs&&(name==='uv_u'||name==='uv_v');}
  private current(){return this.list[this.i];}
  private take(text:string){const t=this.current();if(t.text!==text)fail('SYNTAX','Expected '+text,t);this.i++;return t;}
@@ -78,7 +101,7 @@ class Parser {
  private term(expression:ParsedMaterialExpression,type:'float'|'color',range:[number,number],children:Term[],token:Token):Term{if(++this.nodes>256)fail('BUDGET','Material exceeds256 expression nodes',token);const depth=1+Math.max(0,...children.map(c=>c.depth));if(depth>16)fail('BUDGET','Material expression exceeds depth16',token);if(!range.every(n=>Number.isFinite(n)&&Math.abs(n)<=1e6))fail('RANGE','Intermediate bound exceeds±1e6',token);return{expression,type,range,depth,size:1+children.reduce((sum,child)=>sum+child.size,0)};}
  private float(term:Term,token:Token){if(term.type!=='float')fail('TYPE','Float expression required',token);}
  private color(hex:string,token:Token):Term{const linear=[1,3,5].map(i=>Math.pow(parseInt(hex.slice(i,i+2),16)/255,2.2)) as [number,number,number];return this.term({kind:'color',type:'color',hex,linear},'color',[0,1],[],token);}
- private functionReserved(name:string):boolean{return this.discrete&&name==='select'||this.inputName(name)||this.uniforms.some(uniform=>uniform.name===name)||this.functions.has(name)||['rgb','pow','sin','cos','mix','clamp','abs','min','max','smoothstep','radians','fract','float','color'].includes(name);}
+ private functionReserved(name:string):boolean{return this.texture&&(name==='sample'||name==='sampler2d'||this.samplers.some(sampler=>sampler.name===name))||this.discrete&&name==='select'||this.inputName(name)||this.uniforms.some(uniform=>uniform.name===name)||this.functions.has(name)||['rgb','pow','sin','cos','mix','clamp','abs','min','max','smoothstep','radians','fract','float','color'].includes(name);}
  private copyExpression(expression:ParsedMaterialExpression):ParsedMaterialExpression{
   switch(expression.kind){
    case'float':case'uniform':case'input':return{...expression};
@@ -86,6 +109,7 @@ class Parser {
    case'unary':return{...expression,value:this.copyExpression(expression.value)};
    case'binary':return{...expression,left:this.copyExpression(expression.left),right:this.copyExpression(expression.right)};
    case'call':return{...expression,args:expression.args.map(argument=>this.copyExpression(argument))};
+   case'sample':return{...expression,u:this.copyExpression(expression.u),v:this.copyExpression(expression.v)};
    case'select':return{...expression,value:this.copyExpression(expression.value),threshold:{...expression.threshold},below:this.copyExpression(expression.below),otherwise:this.copyExpression(expression.otherwise)};
   }
  }
@@ -146,6 +170,15 @@ class Parser {
  const authored=this.functions.get(name);
  if(this.functionScope&&(authored||name===this.functionScope.name))fail('SYNTAX','Authored functions cannot call authored functions in a body',token);
  if(authored)return this.callFunction(authored,token,nesting);
+ if(name==='sample'&&this.texture){
+  if(this.functionScope)fail('TYPE','Pure function body cannot sample a resource',token);
+  this.take('(');const alias=this.current();
+  if(!/^[A-Za-z_][A-Za-z0-9_]{0,31}$/.test(alias.text)||!this.samplers.some(sampler=>sampler.name===alias.text))fail('TYPE','sample requires the declared sampler alias',alias);
+  this.i++;this.take(',');const u=this.expression(0,nesting+1);this.take(',');const v=this.expression(0,nesting+1);this.take(')');
+  this.float(u,token);this.float(v,token);
+  if([...u.range,...v.range].some(n=>Math.abs(n)>1000))fail('RANGE','sample coordinates exceed±1000',token);
+  return this.term({kind:'sample',type:'color',sampler:alias.text,u:u.expression,v:v.expression},'color',[0,1],[u,v],token);
+ }
  if(name==='select'&&this.discrete){
   this.take('(');const value=this.expression(0,nesting+1);this.take(',');
   const literal=this.current(),number=this.signedNumber();
@@ -261,7 +294,7 @@ class Parser {
  if(this.functionScope){if(token.text===this.functionScope.parameter)return this.substituteParameter(this.functionScope.value,token);fail('TYPE','Pure function body cannot capture '+token.text,token);}
  if(this.functions.has(token.text))fail('TYPE','Authored function requires an argument call',token);
  if(this.inputName(token.text))return this.term({kind:'input',type:'float',name:token.text},'float',this.nativeSurfaceUV01?[0,1]:[-1000,1000],[],token);
- const local=this.locals.get(token.text);if(local){if(this.nodes+local.size>256)fail('BUDGET','Material exceeds256 definition and expanded expression nodes',token);this.nodes+=local.size;return this.discrete?{...local,range:[...local.range],expression:this.copyExpression(local.expression)}:local;}
+ const local=this.locals.get(token.text);if(local){if(this.nodes+local.size>256)fail('BUDGET','Material exceeds256 definition and expanded expression nodes',token);this.nodes+=local.size;return this.discrete||this.texture?{...local,range:[...local.range],expression:this.copyExpression(local.expression)}:local;}
  const uniform=this.uniforms.find(u=>u.name===token.text);if(!uniform)fail('TYPE','Undeclared material uniform '+token.text,token);return this.term({kind:'uniform',type:'float',name:token.text},'float',[uniform.min,uniform.max],[],token);
  }
  fail('SYNTAX','Material expression required',token);
@@ -282,14 +315,24 @@ class Parser {
  parse():ParsedMaterial{
  this.take('@');this.take('shader');const id=this.current();if(!/^#[A-Za-z_][A-Za-z0-9_-]{0,63}$/.test(id.text))fail('SYNTAX','Shader ID requires ASCII1..64',id);this.i++;this.take('{');
  while(this.current().text==='@'&&this.list[this.i+1]?.text==='uniform'){
- this.take('@');this.take('uniform');const name=this.current();if(!/^[A-Za-z_][A-Za-z0-9_]{0,31}$/.test(name.text))fail('SYNTAX','Uniform name requires ASCII1..32',name);if(this.discrete&&name.text==='select')fail('TYPE','Uniform name shadows reserved select',name);if(this.inputName(name.text))fail('TYPE',this.nativeSurfaceUV01?'Uniform name shadows reserved native Surface UV01 input':'Uniform name shadows reserved UV input',name);if(this.uniforms.some(u=>u.name===name.text))fail('TYPE','Duplicate uniform name',name);this.i++;this.take(':');this.take('float');this.take('(');const min=this.signedNumber();this.take(',');const max=this.signedNumber();this.take(',');const value=this.signedNumber();this.take(')');this.take(';');if(min>max||value<min||value>max)fail('RANGE','Uniform min/default/max are not ordered',name);this.uniforms.push({name:name.text,type:'float',min,max,default:value});if(this.uniforms.length>16)fail('BUDGET','Material exceeds16 uniforms',name);
+ this.take('@');this.take('uniform');const name=this.current();if(!/^[A-Za-z_][A-Za-z0-9_]{0,31}$/.test(name.text))fail('SYNTAX','Uniform name requires ASCII1..32',name);if(this.discrete&&name.text==='select')fail('TYPE','Uniform name shadows reserved select',name);if(this.texture&&(name.text==='sample'||name.text==='sampler2d'))fail('TYPE','Uniform name shadows a reserved texture name',name);if(this.inputName(name.text))fail('TYPE',this.nativeSurfaceUV01?'Uniform name shadows reserved native Surface UV01 input':'Uniform name shadows reserved UV input',name);if(this.uniforms.some(u=>u.name===name.text))fail('TYPE','Duplicate uniform name',name);this.i++;this.take(':');this.take('float');this.take('(');const min=this.signedNumber();this.take(',');const max=this.signedNumber();this.take(',');const value=this.signedNumber();this.take(')');this.take(';');if(min>max||value<min||value>max)fail('RANGE','Uniform min/default/max are not ordered',name);this.uniforms.push({name:name.text,type:'float',min,max,default:value});if(this.uniforms.length>16)fail('BUDGET','Material exceeds16 uniforms',name);
+ }
+ if(this.texture){
+  this.take('@');this.take('sampler');const name=this.current();
+  if(!/^[A-Za-z_][A-Za-z0-9_]{0,31}$/.test(name.text))fail('SYNTAX','Sampler name requires ASCII1..32',name);
+  if(this.functionReserved(name.text))fail('TYPE','Sampler name collides with an existing or reserved name',name);
+  this.i++;this.take(':');this.take('sampler2d');this.take(';');
+  if(++this.nodes>256)fail('BUDGET','Material exceeds256 expression nodes',name);
+  this.samplers.push({name:name.text,type:'sampler2d'});
+  if(this.current().text==='@'&&this.list[this.i+1]?.text==='sampler')fail('BUDGET','Material exceeds1 sampler declaration',this.list[this.i+1]);
  }
  while(this.current().text==='@'&&this.list[this.i+1]?.text==='fn')this.parseFunction();
  while(this.current().text==='@'&&this.list[this.i+1]?.text==='let'){
- this.take('@');this.take('let');const name=this.current();if(!/^[A-Za-z_][A-Za-z0-9_]{0,31}$/.test(name.text))fail('SYNTAX','Local name requires ASCII1..32',name);if(this.discrete&&name.text==='select')fail('TYPE','Local name shadows reserved select',name);if(this.inputName(name.text))fail('TYPE',this.nativeSurfaceUV01?'Local name shadows reserved native Surface UV01 input':'Local name shadows reserved UV input',name);if(this.locals.has(name.text)||this.uniforms.some(u=>u.name===name.text)||this.functions.has(name.text)||['sin','cos','mix','clamp','float','color'].includes(name.text)||this.repeatingUV&&name.text==='fract')fail('TYPE','Local name collides with an existing or reserved name',name);if(this.locals.size>=16)fail('BUDGET','Material exceeds16 local declarations',name);this.i++;this.take(':');const type=this.current();if(type.text!=='float'&&type.text!=='color')fail('SYNTAX','Local type requires float or color',type);this.i++;this.take('(');const value=this.expression();this.take(')');this.take(';');if(value.type!==type.text)fail('TYPE','Local expression does not match its declared type',type);this.locals.set(name.text,value);
+ this.take('@');this.take('let');const name=this.current();if(!/^[A-Za-z_][A-Za-z0-9_]{0,31}$/.test(name.text))fail('SYNTAX','Local name requires ASCII1..32',name);if(this.discrete&&name.text==='select')fail('TYPE','Local name shadows reserved select',name);if(this.texture&&(name.text==='sample'||name.text==='sampler2d'||this.samplers.some(sampler=>sampler.name===name.text)))fail('TYPE','Local name shadows a reserved texture name',name);if(this.inputName(name.text))fail('TYPE',this.nativeSurfaceUV01?'Local name shadows reserved native Surface UV01 input':'Local name shadows reserved UV input',name);if(this.locals.has(name.text)||this.uniforms.some(u=>u.name===name.text)||this.functions.has(name.text)||['sin','cos','mix','clamp','float','color'].includes(name.text)||this.repeatingUV&&name.text==='fract')fail('TYPE','Local name collides with an existing or reserved name',name);if(this.locals.size>=16)fail('BUDGET','Material exceeds16 local declarations',name);this.i++;this.take(':');const type=this.current();if(type.text!=='float'&&type.text!=='color')fail('SYNTAX','Local type requires float or color',type);this.i++;this.take('(');const value=this.expression();this.take(')');this.take(';');if(value.type!==type.text)fail('TYPE','Local expression does not match its declared type',type);this.locals.set(name.text,value);
  }
  this.take('@');this.take('fragment');this.take('{');this.take('color');this.take(':');const expression=this.expression();if(expression.type!=='color')fail('TYPE','Opaque material output requires color',this.current());this.take(';');this.take('}');this.take('}');this.take('<eof>');
- return{source:this.source,shaderId:id.text.slice(1),uniforms:this.uniforms,expression:expression.expression};
+ const result={source:this.source,shaderId:id.text.slice(1),uniforms:this.uniforms,expression:expression.expression};
+ return this.texture?{...result,samplers:this.samplers}:result;
  }
 }
 export function compileMeshMaterial(source:string):{ok:true;material:MeshMaterialIR}|{ok:false;diagnostics:MeshMaterialDiagnostic[]}{
@@ -297,10 +340,10 @@ export function compileMeshMaterial(source:string):{ok:true;material:MeshMateria
  try{const parsed=parseMaterialSource(source);return{ok:true,material:freeze({format:'barocss-gpu-mesh-material',version:0,profile:'mesh-opaque-fragment-v0',...parsed,expression:trustedMaterialExpression<MeshMaterialExpression>(parsed.expression,'mesh')})};}
  catch(error){const e=error instanceof MeshMaterialError?error:new MeshMaterialError('SYNTAX',error instanceof Error?error.message:'Material compile failed');return{ok:false,diagnostics:[{code:e.code,message:e.message,start:e.start,end:e.end}]};}
 }
-function parseMaterialSource(source:string,uvInputs=false,repeatingUV=false,nativeSurfaceUV01=false,discrete=false):ParsedMaterial{
+function parseMaterialSource(source:string,uvInputs=false,repeatingUV=false,nativeSurfaceUV01=false,discrete=false,texture=false):ParsedMaterial{
  if(typeof source!=='string')fail('INPUT','Material source must be text');
  if(new TextEncoder().encode(source).length>65536)fail('BUDGET','Material source exceeds64KiB');
- return new Parser(source,tokens(source),uvInputs,repeatingUV,nativeSurfaceUV01,discrete).parse();
+ return new Parser(source,tokens(source),uvInputs,repeatingUV,nativeSurfaceUV01,discrete,texture).parse();
 }
 export function compileEngineUVMaterial(source:string):{ok:true;material:EngineUVMaterialIR}|{ok:false;diagnostics:MeshMaterialDiagnostic[]}{
  try{const parsed=parseMaterialSource(source,true);return{ok:true,material:freeze({format:'barocss-gpu-engine-uv-material',version:0,profile:'engine-opaque-uv-fragment-v0',...parsed,expression:trustedMaterialExpression<EngineUVMaterialExpression>(parsed.expression,'uv')})};}
@@ -316,16 +359,17 @@ export function compileNativeSurfaceUV01Material(source:string):{ok:true;materia
  catch(error){const e=error instanceof MeshMaterialError?error:new MeshMaterialError('SYNTAX',error instanceof Error?error.message:'Material compile failed');return{ok:false,diagnostics:[{code:e.code,message:e.message.slice(0,1024),start:e.start,end:e.end}]};}
 }
 /** Only private parser-produced trees reach this bounded domain proof. */
-function trustedMaterialExpression<E extends ParsedMaterialExpression>(expression:ParsedMaterialExpression,mode:'mesh'|'uv'|'repeating'|'native'|'discrete'):E{
+function trustedMaterialExpression<E extends ParsedMaterialExpression>(expression:ParsedMaterialExpression,mode:'mesh'|'uv'|'repeating'|'native'|'discrete'|'texture'):E{
  let remaining=256;
  const visit=(e:ParsedMaterialExpression,depth:number):void=>{
   if(--remaining<0||depth>16)fail('BUDGET','Trusted material tree exceeds its admitted limit');
   switch(e.kind){
    case'float':case'color':case'uniform':return;
-   case'input':if(mode==='native'?(e.name!=='surface_u01'&&e.name!=='surface_v01'):mode==='uv'||mode==='repeating'?(e.name!=='uv_u'&&e.name!=='uv_v'):true)fail('IR','Trusted material input domain mismatch');return;
+   case'input':if(mode==='native'?(e.name!=='surface_u01'&&e.name!=='surface_v01'):mode==='uv'||mode==='repeating'||mode==='texture'?(e.name!=='uv_u'&&e.name!=='uv_v'):true)fail('IR','Trusted material input domain mismatch');return;
    case'unary':visit(e.value,depth+1);return;
    case'binary':visit(e.left,depth+1);visit(e.right,depth+1);return;
    case'call':if(e.name==='fract'&&mode!=='repeating')fail('IR','Trusted material call domain mismatch');e.args.forEach(child=>visit(child,depth+1));return;
+   case'sample':if(mode!=='texture')fail('IR','Trusted material sampling domain mismatch');visit(e.u,depth+1);visit(e.v,depth+1);return;
    case'select':if(mode!=='discrete')fail('IR','Trusted material selection domain mismatch');visit(e.value,depth+1);visit(e.threshold,depth+1);visit(e.below,depth+1);visit(e.otherwise,depth+1);return;
   }
  };
@@ -364,11 +408,11 @@ export function lowerDiscreteMeshMaterial(input:unknown):LoweredDiscreteMeshMate
  return freeze(result);
 }
 /** Profile-specific reflection only. Local shape/work errors stay outside this catch. */
-function reflectMaterialData(value:object,nativeReflection:boolean|'discrete'):{array:boolean;proto:object|null;d:PropertyDescriptorMap;keys:(string|symbol)[]}{
+function reflectMaterialData(value:object,nativeReflection:boolean|'discrete'|'texture'):{array:boolean;proto:object|null;d:PropertyDescriptorMap;keys:(string|symbol)[]}{
  try{const array=Array.isArray(value),proto=Object.getPrototypeOf(value),d=Object.getOwnPropertyDescriptors(value),keys=Reflect.ownKeys(value);return{array,proto,d,keys};}
- catch(cause){if(!nativeReflection)throw cause;if(nativeReflection==='discrete'){const error=uvError('INPUT','Discrete material own-data reflection refused');Object.defineProperty(error,'cause',{value:cause,writable:true,configurable:true});throw error;}throw uvError('INPUT','Native Surface material own-data reflection refused',0,0,cause);}
+ catch(cause){if(!nativeReflection)throw cause;if(nativeReflection==='discrete'||nativeReflection==='texture'){const error=uvError('INPUT',nativeReflection==='discrete'?'Discrete material own-data reflection refused':'Texture material own-data reflection refused');Object.defineProperty(error,'cause',{value:cause,writable:true,configurable:true});throw error;}throw uvError('INPUT','Native Surface material own-data reflection refused',0,0,cause);}
 }
-function ownSnapshot(input:unknown,nativeReflection:boolean|'discrete'=false):unknown{let budget=8192;const active=new WeakSet<object>();const copy=(v:unknown,depth:number):unknown=>{if(--budget<0||depth>24)fail('BUDGET','Material own-data value/depth limit');if(typeof v==='number'){if(!Number.isFinite(v))fail('INPUT','Material data must be finite');return zero(v);}if(typeof v==='string'){if(v.length>65536)fail('BUDGET','Material string limit');return v;}if(typeof v==='boolean'||v===null)return v;if(!v||typeof v!=='object'||active.has(v))fail('INPUT','Material requires acyclic plain data');const{array,proto,d,keys}=reflectMaterialData(v,nativeReflection);if(array?proto!==Array.prototype:proto!==Object.prototype)fail('INPUT','Material foreign prototype');if(keys.length>(array?257:16)||keys.some(k=>typeof k!=='string'||!('value'in d[k])||(!array||k!=='length')&&!d[k].enumerable))fail('INPUT','Material getter/hidden/symbol/excess fields');active.add(v);let out:unknown;if(array){const n=d.length.value;if(!Number.isInteger(n)||n<0||n>256||keys.length!==n+1||Array.from({length:n},(_,i)=>!Object.hasOwn(d,String(i))).some(Boolean))fail('INPUT','Material requires dense bounded arrays');out=Array.from({length:n},(_,i)=>copy(d[String(i)].value,depth+1));}else out=Object.fromEntries((keys as string[]).map(k=>[k,copy(d[k].value,depth+1)]));active.delete(v);return out;};return copy(input,0);}
+function ownSnapshot(input:unknown,nativeReflection:boolean|'discrete'|'texture'=false):unknown{let budget=8192;const active=new WeakSet<object>();const copy=(v:unknown,depth:number):unknown=>{if(--budget<0||depth>24)fail('BUDGET','Material own-data value/depth limit');if(typeof v==='number'){if(!Number.isFinite(v))fail('INPUT','Material data must be finite');return zero(v);}if(typeof v==='string'){if(v.length>65536)fail('BUDGET','Material string limit');return v;}if(typeof v==='boolean'||v===null)return v;if(!v||typeof v!=='object'||active.has(v))fail('INPUT','Material requires acyclic plain data');const{array,proto,d,keys}=reflectMaterialData(v,nativeReflection);if(array?proto!==Array.prototype:proto!==Object.prototype)fail('INPUT','Material foreign prototype');if(keys.length>(array?257:16)||keys.some(k=>typeof k!=='string'||nativeReflection==='texture'&&!Object.hasOwn(d,k)||!('value'in d[k])||(!array||k!=='length')&&!d[k].enumerable))fail('INPUT','Material getter/hidden/symbol/excess fields');active.add(v);let out:unknown;if(array){const n=d.length.value;if(!Number.isInteger(n)||n<0||n>256||keys.length!==n+1||Array.from({length:n},(_,i)=>!Object.hasOwn(d,String(i))).some(Boolean))fail('INPUT','Material requires dense bounded arrays');out=Array.from({length:n},(_,i)=>copy(d[String(i)].value,depth+1));}else out=Object.fromEntries((keys as string[]).map(k=>[k,copy(d[k].value,depth+1)]));active.delete(v);return out;};return copy(input,0);}
 const canonical=(value:unknown):unknown=>Array.isArray(value)?value.map(canonical):value&&typeof value==='object'?Object.fromEntries(Object.entries(value).sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>[k,canonical(v)])):value;
 export function validateMeshMaterialIR(input:unknown):MeshMaterialIR{const data=ownSnapshot(input) as Partial<MeshMaterialIR>;if(!data||typeof data!=='object'||typeof data.source!=='string')fail('IR','Material IR source required');const compiled=compileMeshMaterial(data.source);if(!compiled.ok)throw new MeshMaterialError('IR',compiled.diagnostics[0].message);if(JSON.stringify(canonical(data))!==JSON.stringify(canonical(compiled.material)))fail('IR','Material IR does not match its reconstructed source');return compiled.material;}
 function uvError(code:MeshMaterialCode,message:string,start=0,end=0,cause?:unknown):MeshMaterialError{
@@ -390,7 +434,7 @@ function validateUVSource<M extends EngineUVMaterialIR|EngineUVRepeatingMaterial
  return compiled.material;
 }
 const glFloat=(n:number)=>n.toPrecision(17);
-function lowerMaterial(material:ParsedMaterial):LoweredMeshMaterial{const uniformLayout=material.uniforms.map((u,i)=>({...u,glslName:'mat_u_'+i}));const expression=(e:ParsedMaterialExpression):string=>{switch(e.kind){case'float':return glFloat(e.value);case'color':return'vec3('+e.linear.map(glFloat).join(',')+')';case'uniform':return uniformLayout.find(u=>u.name===e.name)!.glslName;case'input':{switch(e.name){case'uv_u':return'v_engine_uv.x';case'uv_v':return'v_engine_uv.y';case'surface_u01':return'v_native_surface_uv01.x';case'surface_v01':return'v_native_surface_uv01.y';}}case'select':return'('+expression(e.value)+'<'+expression(e.threshold)+'?'+expression(e.below)+':'+expression(e.otherwise)+')';case'unary':return'('+e.operator+expression(e.value)+')';case'binary':return'('+expression(e.left)+e.operator+expression(e.right)+')';case'call':{const args=e.args.map(expression);if(e.name==='mix')args[2]='clamp('+args[2]+',0.0,1.0)';return e.name+'('+args.join(',')+')';}}};return{expression:'clamp('+expression(material.expression)+',vec3(0.0),vec3(1.0))',uniformDeclarations:uniformLayout.map(u=>'uniform float '+u.glslName+';').join('\n'),uniformLayout};}
+function lowerMaterial(material:ParsedMaterial):LoweredMeshMaterial{const uniformLayout=material.uniforms.map((u,i)=>({...u,glslName:'mat_u_'+i}));const expression=(e:ParsedMaterialExpression):string=>{switch(e.kind){case'float':return glFloat(e.value);case'color':return'vec3('+e.linear.map(glFloat).join(',')+')';case'uniform':return uniformLayout.find(u=>u.name===e.name)!.glslName;case'input':{switch(e.name){case'uv_u':return'v_engine_uv.x';case'uv_v':return'v_engine_uv.y';case'surface_u01':return'v_native_surface_uv01.x';case'surface_v01':return'v_native_surface_uv01.y';}}case'sample':if(!material.samplers?.some(sampler=>sampler.name===e.sampler))fail('IR','Trusted sampler alias missing');return'decodeSRGB(texture(mat_s_0,clamp(vec2('+expression(e.u)+','+expression(e.v)+'),vec2(0.0),vec2(1.0))).rgb)';case'select':return'('+expression(e.value)+'<'+expression(e.threshold)+'?'+expression(e.below)+':'+expression(e.otherwise)+')';case'unary':return'('+e.operator+expression(e.value)+')';case'binary':return'('+expression(e.left)+e.operator+expression(e.right)+')';case'call':{const args=e.args.map(expression);if(e.name==='mix')args[2]='clamp('+args[2]+',0.0,1.0)';return e.name+'('+args.join(',')+')';}}};return{expression:'clamp('+expression(material.expression)+',vec3(0.0),vec3(1.0))',uniformDeclarations:uniformLayout.map(u=>'uniform float '+u.glslName+';').join('\n'),uniformLayout};}
 export function lowerMeshMaterial(input:unknown):LoweredMeshMaterial{return lowerMaterial(validateMeshMaterialIR(input));}
 export function lowerEngineUVMaterial(input:unknown):LoweredEngineUVMaterial{
  const result:LoweredEngineUVMaterial={...lowerMaterial(validateEngineUVMaterialIR(input)),inputDeclarations:'in vec2 v_engine_uv;'};
@@ -425,4 +469,35 @@ function bindUVMaterial<M extends EngineUVMaterialIR|EngineUVRepeatingMaterialIR
 }
 export function validateMeshMaterialBinding(input:unknown):MeshMaterialBinding{
  const data=ownSnapshot(input) as Record<string,unknown>;if(!data||typeof data!=='object'||Array.isArray(data)||Object.keys(data).length!==2||!Object.hasOwn(data,'material')||!Object.hasOwn(data,'uniforms'))fail('INPUT','Material binding requires material/uniforms');const material=validateMeshMaterialIR(data.material),values=data.uniforms;if(!values||typeof values!=='object'||Array.isArray(values))fail('UNIFORM','Uniform values require own record');const entries=Object.entries(values);if(entries.length>16||entries.some(([name])=>!material.uniforms.some(u=>u.name===name)))fail('UNIFORM','Unknown/excess uniform value');const uniforms:Record<string,number>={};for(const u of material.uniforms){const n=Object.hasOwn(values,u.name)?(values as Record<string,unknown>)[u.name]:u.default;if(typeof n!=='number'||!Number.isFinite(n)||n<u.min||n>u.max)fail('UNIFORM','Uniform '+u.name+' outside its finite declared range');uniforms[u.name]=zero(n);}return freeze({material,uniforms});
+}
+
+/** Original-source compiler only; resource joining and actual sampling are separate. */
+export function compileEngineUVTextureMaterial(source:string):{ok:true;material:EngineUVTextureMaterialIR}|{ok:false;diagnostics:MeshMaterialDiagnostic[]}{
+ try{
+  const parsed=parseMaterialSource(source,true,false,false,false,true);
+  const material:EngineUVTextureMaterialIR={format:'barocss-gpu-engine-uv-texture-material',version:0,profile:'engine-opaque-uv-texture-fragment-v0',
+   source:parsed.source,shaderId:parsed.shaderId,uniforms:parsed.uniforms,samplers:parsed.samplers!,
+   expression:trustedMaterialExpression<EngineUVTextureMaterialExpression>(parsed.expression,'texture')};
+  discreteSize(material,2097152,'Texture material IR exceeds2MiB');
+  return{ok:true,material:freeze(ownSnapshot(material,'texture') as EngineUVTextureMaterialIR)};
+ }catch(error){const e=error instanceof MeshMaterialError?error:new MeshMaterialError('SYNTAX','Texture material compile failed');return{ok:false,diagnostics:freeze([{code:e.code,message:e.message.slice(0,1024),start:e.start,end:e.end}])};}
+}
+export function validateEngineUVTextureMaterialIR(input:unknown):EngineUVTextureMaterialIR{
+ const data=ownSnapshot(input,'texture') as Partial<EngineUVTextureMaterialIR>;
+ if(!data||typeof data!=='object'||typeof data.source!=='string')fail('IR','Texture material IR source required');
+ discreteSize(data,2097152,'Texture material IR exceeds2MiB');
+ const compiled=compileEngineUVTextureMaterial(data.source);
+ if(!compiled.ok){const diagnostic=compiled.diagnostics[0];throw uvError('IR',diagnostic.message,diagnostic.start,diagnostic.end,diagnostic);}
+ if(JSON.stringify(canonical(data))!==JSON.stringify(canonical(compiled.material)))fail('IR','Texture material IR does not match its reconstructed source');
+ return compiled.material;
+}
+export function lowerEngineUVTextureMaterial(input:unknown):LoweredEngineUVTextureMaterial{
+ const material=validateEngineUVTextureMaterialIR(input);
+ const result:LoweredEngineUVTextureMaterial={...lowerMaterial(material),inputDeclarations:'in vec2 v_engine_uv;',
+  samplerDeclarations:'uniform highp sampler2D mat_s_0;',
+  samplerLayout:material.samplers.map(sampler=>({...sampler,glslName:'mat_s_0',colorSpace:'srgb',rowOrigin:'bottom-left',filter:'nearest',wrapS:'clamp-to-edge',wrapT:'clamp-to-edge'})),
+  samplingHelpers:engineUVTextureSamplingHelpers};
+ for(const field of [result.expression,result.uniformDeclarations,result.samplerDeclarations,result.samplingHelpers])discreteSize(field,65536,'Texture material text field exceeds64KiB');
+ discreteSize(result,131072,'Texture lowered material exceeds128KiB');
+ return freeze(result);
 }

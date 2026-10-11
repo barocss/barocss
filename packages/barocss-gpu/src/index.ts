@@ -197,3 +197,6 @@ export type { DiscreteMeshMaterialExpression, DiscreteMeshMaterialIR, LoweredDis
 
 export { evaluateDiscreteAuthoredMaterial } from './material-evaluation.js';
 export type { DiscreteAuthoredMaterialRequest, DiscreteAuthoredMaterialSample } from './material-evaluation.js';
+
+export { compileEngineUVTextureMaterial, validateEngineUVTextureMaterialIR, lowerEngineUVTextureMaterial } from './mesh-material.js';
+export type { EngineMaterialSampler, EngineUVTextureMaterialExpression, EngineUVTextureMaterialIR, LoweredEngineUVTextureMaterial } from './mesh-material.js';

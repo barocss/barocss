@@ -3157,3 +3157,102 @@ After the affected GPU build, run the one source/emitted/original-file/cold flow
 ```sh
 node examples/gpu-scene/material-discrete-evaluation-flow.mjs --output /absolute/fresh-directory
 ```
+
+## Authored EngineUV texture expressions (CPU source stage)
+
+`compileEngineUVTextureMaterial(source)` accepts complete primitive source text
+and returns `{ok: true, material}` or `{ok: false, diagnostics}` in a distinct
+profile. Declare exactly one sampler after all numeric uniforms and before
+functions, locals and the fragment:
+
+```ts
+const compiled = compileEngineUVTextureMaterial(`
+@shader #image_palette {
+  @uniform amount: float(0, 1, .25);
+  @sampler image: sampler2d;
+  @let sampled: color(sample(image, uv_u, uv_v));
+  @fragment { color: mix(sampled, #203040, amount); }
+}`);
+if (compiled.ok) {
+  const lowered = lowerEngineUVTextureMaterial(compiled.material);
+  lowered.expression;
+  lowered.samplerDeclarations;
+  lowered.samplerLayout;
+  lowered.samplingHelpers;
+}
+```
+
+`sample(ALIAS, U, V)` requires the declared alias as one identifier token and
+two float expressions whose complete intervals stay within ±1000. UV values
+are dimensionless; trusted text clamps `vec2(U,V)` to 0..1 without rewriting
+original UV expressions. The canonical five-field node is
+`{kind: 'sample', type: 'color', sampler, u, v}`. It returns linear color bounded
+to 0..1. Samples may occur in locals and fragment expressions; pure function
+bodies cannot sample or capture the alias, even in unused definitions. Existing
+pure float functions can calculate sample coordinates within their declared
+bounds.
+
+The sampler alias uses ASCII 1..32 characters and cannot collide with uniforms,
+UV inputs or reserved builtins. Functions, parameters and locals cannot shadow
+the alias. `sample` and `sampler2d` are reserved only in this new profile; old
+authored function names remain unchanged. A missing sampler refuses `SYNTAX`;
+a second declaration refuses `BUDGET` before its alias is parsed. Unknown alias
+uses `TYPE`, malformed arity `SYNTAX`, color coordinates `TYPE` and excessive
+coordinate bounds `RANGE`, with original half-open UTF16 source spans.
+
+IR has exactly eight fields: `format`, `version`, `profile`, `source`, `shaderId`,
+`uniforms`, `samplers`, `expression`. Format is
+`barocss-gpu-engine-uv-texture-material`, version `0`, profile
+`engine-opaque-uv-texture-fragment-v0`. `samplers` contains exactly one
+`{name, type: 'sampler2d'}` record. Alias identity is source authorship; it does
+not implicitly identify an image, URL, catalog entry, device unit or handle.
+
+`validateEngineUVTextureMaterialIR(input)` snapshots complete own data,
+reconstructs original source and compares the whole canonical IR.
+`lowerEngineUVTextureMaterial(input)` validates once and returns exactly seven
+fields: `expression`, `uniformDeclarations`, `uniformLayout`, `inputDeclarations`,
+`samplerDeclarations`, `samplerLayout`, `samplingHelpers`. Input declaration is
+`in vec2 v_engine_uv;`. Numeric uniforms retain source order and `mat_u_N` names.
+The sampler declaration is `uniform highp sampler2D mat_s_0;`; its layout retains
+the declared alias even if unused. Each layout record has exactly `name`, `type`,
+`glslName`, `colorSpace`, `rowOrigin`, `filter`, `wrapS`, `wrapT`, with values
+`sampler2d`, `mat_s_0`, `srgb`, `bottom-left`, `nearest` and two `clamp-to-edge`
+values respectively.
+
+Trusted GLSL ES3.00 text uses the exact existing #1184 `decodeSRGB` function:
+one piecewise sRGB decode follows `texture(...).rgb`. Original literal colors
+retain historical power2.2 coefficients; existing whole-material final RGB clamp
+is preserved. This text yields linear color and performs no output encoding.
+Future output transfer, lighting, resource joins and frame policy require their
+own contracts. No pixel bytes or image resource are admitted by this compiler.
+
+Limits remain source 64KiB UTF8, tokens 4096, definition/expanded work 256,
+depth/nesting 16, uniforms 16, locals 16, functions 8, literals ±1000 and
+intermediate bounds ±1e6. A sampler declaration charges one work unit; every
+sample charges one node and both coordinate trees, including expanded copies.
+Own snapshots use 8192 values/depth 24, current-realm ordinary records with at
+most 16 keys and dense arrays of at most 256 elements. Accessors, hidden/symbol
+fields, cycles, foreign prototypes, nonfinite data and inconsistent descriptors
+refuse without getter invocation or caller mutation/freezing. Results are fresh
+independent recursively frozen ordinary graphs; numeric zeros canonicalize to
+positive zero while original source spelling is retained.
+
+Whole JSON IR is capped at 2MiB UTF16/UTF8. Lowered expression, numeric
+declarations, sampler declarations and helpers are each capped at 64KiB; whole
+lowered JSON is capped at 128KiB before freezing. Errors reuse `MeshMaterialError`
+and bounded four-field diagnostics. Reconstruction failure uses `IR` with the
+real frozen diagnostic/cause and spans; whole-IR mismatch is local `IR`. Raw
+reflection uses fresh `INPUT` with the exact cause; local shape/work errors have
+no fabricated cause. Oversize results use `BUDGET`.
+
+Old public types, grammars and profiles stay unchanged. This profile excludes
+discrete selection and repeating `fract`. Old validators, bindings and samplers
+do not gain texture expressions. No external alias-to-texture join, evaluator,
+upload, shader link, pixels, texture-unit allocation, renderer, native Surface
+UV pairing, frame, lifetime, consumer or publication support is added.
+
+After the affected GPU build, run the one source/emitted/IR/text/file/cold flow:
+
+```sh
+node examples/gpu-scene/engine-uv-texture-material-flow.mjs --output /absolute/fresh-directory
+```
