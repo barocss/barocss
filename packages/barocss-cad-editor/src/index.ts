@@ -40,3 +40,5 @@ export type { CadEditorSurfaceDegreeElevationAxis } from './types.js';
 export type { CadEditorSurfaceRegionField, CadEditorSurfaceRegionCreation } from './types.js';
 
 export type { CadEditorCurveSplitCreation } from './types.js';
+
+export type { CadEditorSurfaceSplitAxis, CadEditorSurfaceSplitCreation } from './types.js';

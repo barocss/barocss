@@ -16,6 +16,7 @@ import { CadEditorBodyRename } from './body-rename.js';
 import { SurfaceIsoCurveControls, useSurfaceIsoCurve } from './surface-isocurve.js';
 import { SurfaceRegionControls, useSurfaceRegion } from './surface-region.js';
 import { CurveSplitControls, useCurveSplit } from './curve-split.js';
+import { SurfaceSplitControls, useSurfaceSplit } from './surface-split.js';
 import { CurveJoinControls } from './curve-join.js';
 
 const FIELDS: { field: CadEditorPoleField; label: string }[] = [
@@ -68,6 +69,7 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
   const isoCurve = useSurfaceIsoCurve();
   const region = useSurfaceRegion();
   const split = useCurveSplit();
+  const surfaceSplit = useSurfaceSplit();
   const id = useId();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [lastError, setLastError] = useState<CadEditorError | null>(null);
@@ -79,8 +81,8 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
   const { selection, curveSelection, accepted, pending, candidate } = snapshot;
   const pole = selection ?? curveSelection;
   const transition = snapshot.selectionTransition;
-  const busy = candidate !== null || snapshot.disposed || interval?.active === true || knot?.active === true || curveKnot?.active === true || isoCurve?.active === true || region?.active === true || split?.active === true;
-  const transitionBusy = split?.active ? candidate !== null || snapshot.disposed || split.gesture.current : region?.active ? candidate !== null || snapshot.disposed || region.gesture.current : isoCurve?.active ? candidate !== null || snapshot.disposed || isoCurve.gesture.current : busy;
+  const busy = candidate !== null || snapshot.disposed || interval?.active === true || knot?.active === true || curveKnot?.active === true || isoCurve?.active === true || region?.active === true || split?.active === true || surfaceSplit?.active === true;
+  const transitionBusy = surfaceSplit?.active ? candidate !== null || snapshot.disposed || surfaceSplit.gesture.current : split?.active ? candidate !== null || snapshot.disposed || split.gesture.current : region?.active ? candidate !== null || snapshot.disposed || region.gesture.current : isoCurve?.active ? candidate !== null || snapshot.disposed || isoCurve.gesture.current : busy;
   const capability = snapshot.bodyCapabilities.find(body => body.bodyId === snapshot.selectedBodyId);
   const selectedBody = accepted.document.bodies.find(body => body.id === snapshot.selectedBodyId);
   const selectedKind = accepted.bodyBindings.find(body => body.bodyId === snapshot.selectedBodyId)?.geometryKind;
@@ -301,27 +303,28 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
         </option>)}
       </select>
     </div>
-    {!isoCurve?.active && !region?.active && !split?.active && <CadEditorBodyRename session={session} onError={onError} />}
-    {selectedKind==='curve'&&!interval?.active&&!knot?.active&&!curveKnot?.active&&!isoCurve?.active&&!region?.active&&!split?.active&&<CurveJoinControls session={session} onError={onError} />}
+    {!isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active && <CadEditorBodyRename session={session} onError={onError} />}
+    {selectedKind==='curve'&&!interval?.active&&!knot?.active&&!curveKnot?.active&&!isoCurve?.active&&!region?.active&&!split?.active&&!surfaceSplit?.active&&<CurveJoinControls session={session} onError={onError} />}
     <div className="cad-editor-curve-view-actions">
       {curveSelection && <Button type="button" variant="outline" size="sm" data-testid="curve-focus" disabled={busy || transition !== null}
         onClick={() => action(() => { session.prepareCurveFocus(curveSelection.bodyId, 65); })}>Focus Curve</Button>}
       {snapshot.view.kind === 'curve-focus' && <Button type="button" variant="outline" size="sm" data-testid="curve-return-document" disabled={busy || transition !== null}
         onClick={() => action(() => { session.prepareDocumentView(); })}>Return to document view</Button>}
     </div>
-    {selectedKind === 'curve' && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && <CurveIntervalControls session={session} />}
-    {selectedKind === 'curve' && !interval?.active && !knot?.active && !isoCurve?.active && !region?.active && !split?.active && <CurveKnotControls session={session} />}
-    {selectedKind === 'surface' && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && <SurfaceKnotControls session={session} />}
-    {selectedKind === 'surface' && !interval?.active && !knot?.active && !curveKnot?.active && !region?.active && !split?.active && <SurfaceIsoCurveControls session={session} />}
-    {selectedKind === 'surface' && !interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !split?.active && <SurfaceRegionControls session={session} />}
-    {selectedKind === 'curve' && !interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && <CurveSplitControls session={session} />}
-    {!interval?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && selectedKind === 'curve' && curveSelection === null && snapshot.selectedBodyId && <Button type="button" variant="outline" size="sm"
+    {selectedKind === 'curve' && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active && <CurveIntervalControls session={session} />}
+    {selectedKind === 'curve' && !interval?.active && !knot?.active && !isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active && <CurveKnotControls session={session} />}
+    {selectedKind === 'surface' && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active && <SurfaceKnotControls session={session} />}
+    {selectedKind === 'surface' && !interval?.active && !knot?.active && !curveKnot?.active && !region?.active && !split?.active && !surfaceSplit?.active && <SurfaceIsoCurveControls session={session} />}
+    {selectedKind === 'surface' && !interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !split?.active && !surfaceSplit?.active && <SurfaceRegionControls session={session} />}
+    {selectedKind === 'curve' && !interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !surfaceSplit?.active && <CurveSplitControls session={session} />}
+    {selectedKind === 'surface' && !interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && <SurfaceSplitControls session={session} />}
+    {!interval?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active && selectedKind === 'curve' && curveSelection === null && snapshot.selectedBodyId && <Button type="button" variant="outline" size="sm"
       data-testid="cad-editor-curve-select-point" disabled={candidate !== null || snapshot.disposed || Object.keys(pending).length > 0}
       onClick={() => action(() => session.selectCurvePole({ bodyId: snapshot.selectedBodyId!, index: 0 }))}>Select a point</Button>}
-    {!knot?.active && !isoCurve?.active && !region?.active && !split?.active && selectedKind === 'surface' && selection === null && snapshot.selectedBodyId && <Button type="button" variant="outline" size="sm"
+    {!knot?.active && !isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active && selectedKind === 'surface' && selection === null && snapshot.selectedBodyId && <Button type="button" variant="outline" size="sm"
       data-testid="surface-select-point" disabled={candidate !== null || snapshot.disposed || transition !== null || Object.keys(pending).length > 0}
       onClick={() => action(() => session.selectSurfacePole({ bodyId: snapshot.selectedBodyId!, uIndex: 0, vIndex: 0 }))}>Select a point</Button>}
-    {!interval?.active&&!knot?.active&&!curveKnot?.active&&!isoCurve?.active&&!region?.active&&!split?.active&&bodyOnly&&!objectMode
+    {!interval?.active&&!knot?.active&&!curveKnot?.active&&!isoCurve?.active&&!region?.active&&!split?.active&&!surfaceSplit?.active&&bodyOnly&&!objectMode
       &&snapshot.view.kind==='document'&&!snapshot.displayBodyIds.includes(snapshot.selectedBodyId!)&&<Button type="button" variant="outline" size="sm"
         data-testid="inspector-move-body" disabled={busy||!canMoveBody||transition!==null||Object.keys(pending).length>0}
         onClick={()=>action(()=>{const current=session.getSnapshot();
@@ -330,7 +333,7 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
             ||document.querySelector('[role="dialog"][data-state="open"],[role="menu"]')||document.activeElement?.closest('[data-direct-host-busy="true"],[data-panel-resizing="true"]'))
             throw new CadEditorError('STALE','The selected body changed. Review the object.',{field:'body-translation'});
           session.setEditTarget('object');})}>Move object</Button>}
-    {!interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && (pole || objectMode && bodyOnly) ? <>
+    {!interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active && (pole || objectMode && bodyOnly) ? <>
       {selection && capability?.canEditSurfacePole === false && <p className="cad-editor-readonly" role="status" data-testid="cad-editor-readonly-surface">
         Cannot edit these points. Open Help for details, or choose another Surface.
       </p>}
@@ -418,10 +421,10 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
           data-testid="cad-editor-discard" onClick={() => action(() => session.discardPending())}>Discard</Button>
       </div>}
     </> : <p role="status" data-testid={snapshot.selectedBodyId === null ? undefined : 'cad-editor-readonly-curve'}>{snapshot.selectedBodyId === null
-      ? 'Select a Surface or Curve to inspect its control points.' : interval?.active || knot?.active || curveKnot?.active || isoCurve?.active || region?.active || split?.active ? 'Use Done to inspect control points.'
+      ? 'Select a Surface or Curve to inspect its control points.' : interval?.active || knot?.active || curveKnot?.active || isoCurve?.active || region?.active || split?.active || surfaceSplit?.active ? 'Use Done to inspect control points.'
         : selectedKind === 'surface' || selectedKind === 'curve' ? 'Select a point from the current control net.' : 'Control point inspection is unavailable for this object.'}</p>}
     {errorMessage && <p className="cad-editor-error" role="alert">{errorMessage}</p>}
-    {!isoCurve?.active && !region?.active && !split?.active && <details className="cad-editor-secondary-analysis cad-editor-source" data-testid="inspector-analysis-disclosure">
+    {!isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active && <details className="cad-editor-secondary-analysis cad-editor-source" data-testid="inspector-analysis-disclosure">
       <summary className="cad-editor-source-title" data-testid="inspector-analysis-toggle">Analysis</summary>
       <CadEditorGeometryAnalysis session={session} onAnalysis={onAnalysis} onLength={onLength} onError={onError} />
     </details>}
