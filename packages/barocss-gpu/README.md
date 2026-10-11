@@ -2699,7 +2699,8 @@ Bodies can use their parameter, literals and the profile's existing builtins.
 They cannot capture uniforms, locals or coordinates, call authored functions,
 recurse or change state. Calls in locals/fragment can nest within existing work
 and depth limits. There are no defaults, named arguments, multiple parameters,
-color/vector returns, unit declarations, blocks or imported code in this stage.
+vector returns, unit declarations, blocks or imported code. The extension below
+adds color results.
 
 Original source and UTF16 ranges are retained. Definitions and calls expand into
 the existing canonical expression IR; no parameter uniform, runtime function,
@@ -2716,3 +2717,37 @@ pixels, file/editor adoption and publication require their separate receipts.
 
 One source/emitted/file/cold flow:
 `node examples/gpu-scene/material-pure-float-function-flow.mjs --output /absolute/fresh-directory`.
+
+
+## Pure color-return material expressions
+
+The same bounded function grammar also admits an existing color expression:
+
+```css
+@shader #two_axis_palette {
+  @fn tint(t:float(0,1)):color(mix(#203040,#FFEEDD,t));
+  @let u:color(tint(surface_u01));
+  @fragment { color:mix(u,tint(surface_v01),.5); }
+}
+```
+
+This source uses the native Surface UV01 compiler; the other three existing
+profiles keep their own coordinate permissions. The parameter is still one
+dimensionless float with declared bounds. The result must match float or color
+as declared. Color is the existing linear RGB expression type, with existing
+hex/rgb decode and mix semantics; it is not a general vector or layer type.
+
+Float and color functions share the eight-declaration ceiling, full256-node
+expanded work and depth16. Bodies still cannot capture uniforms, coordinates or
+locals, or call authored functions. An existing float function may be used in
+a caller argument, such as tint(fade(surface_u01)). Color arguments, vector
+returns, extra parameters, resource captures and implicit clamps remain absent.
+
+Only original token replay and existing expression IR are used. Public types,
+exports, profiles, versions, uniform layout, trusted lowerer and supported CPU
+evaluator modes are unchanged. Return mismatch errors use the original result
+type span; existing float body checks remain compatible. Native shader source
+preparation is separate from linking, attribute uploads, frames and pixels.
+
+One new palette source/emitted/file/cold flow:
+`node examples/gpu-scene/material-color-return-function-flow.mjs --output /absolute/fresh-directory`.

@@ -33,8 +33,8 @@ export interface LoweredNativeSurfaceUV01Material extends LoweredMeshMaterial {i
 type Token={text:string;start:number;end:number};
 type ParsedMaterial={source:string;shaderId:string;uniforms:MeshMaterialUniform[];expression:ParsedMaterialExpression};
 type Term={expression:ParsedMaterialExpression;type:'float'|'color';range:[number,number];depth:number;size:number};
-type FloatFunctionDefinition={parameter:string;min:number;max:number;bodyStart:number;bodyEnd:number};
-type FloatFunctionScope={name:string;parameter:string;value:Term};
+type MaterialFunctionDefinition={parameter:string;min:number;max:number;bodyStart:number;bodyEnd:number};
+type MaterialFunctionScope={name:string;parameter:string;value:Term};
 function fail(code:MeshMaterialCode,message:string,token?:Token):never{throw new MeshMaterialError(code,message,token?.start??0,token?.end??0);}
 const zero=(n:number)=>n===0?0:n;
 function freeze<T>(value:T):T{if(value&&typeof value==='object'&&!Object.isFrozen(value)){Object.values(value).forEach(freeze);Object.freeze(value);}return value;}
@@ -57,8 +57,8 @@ function tokens(source:string):Token[]{
 class Parser {
  private i=0;private nodes=0;private uniforms:MeshMaterialUniform[]=[];
  private locals=new Map<string,Term>();
- private functions=new Map<string,FloatFunctionDefinition>();
- private functionScope:FloatFunctionScope|null=null;
+ private functions=new Map<string,MaterialFunctionDefinition>();
+ private functionScope:MaterialFunctionScope|null=null;
  constructor(private readonly source:string,private readonly list:Token[],private readonly uvInputs=false,private readonly repeatingUV=false,private readonly nativeSurfaceUV01=false){}
  private inputName(name:string):name is UVInput['name']|NativeSurfaceUV01Input['name']{return this.nativeSurfaceUV01?(name==='surface_u01'||name==='surface_v01'):this.uvInputs&&(name==='uv_u'||name==='uv_v');}
  private current(){return this.list[this.i];}
@@ -97,18 +97,18 @@ class Parser {
   this.i++;this.take('(');const min=this.signedNumber();this.take(',');const max=this.signedNumber();
   if(min>max)fail('RANGE','Function min/max are not ordered',name);
   this.take(')');this.take(')');this.take(':');const resultType=this.current();
-  if(resultType.text!=='float')fail('TYPE','Function result requires float',resultType);
+  if(resultType.text!=='float'&&resultType.text!=='color')fail('TYPE','Function result requires float or color',resultType);
   this.i++;this.take('(');const bodyStart=this.i,previousScope=this.functionScope;
   // This private placeholder only checks definition intervals/work. Its tree is
   // discarded; definitions retain original token indices, never placeholder IR.
   const placeholder:Term={expression:{kind:'uniform',type:'float',name:parameter.text},type:'float',range:[min,max],depth:1,size:1};
   let bodyEnd:number;
   this.functionScope={name:name.text,parameter:parameter.text,value:placeholder};
-  try{const body=this.expression();this.float(body,resultType);bodyEnd=this.i;this.take(')');this.take(';');}
+  try{const body=this.expression();if(resultType.text==='float')this.float(body,resultType);else if(body.type!=='color')fail('TYPE','Color expression required',resultType);bodyEnd=this.i;this.take(')');this.take(';');}
   finally{this.functionScope=previousScope;}
   this.functions.set(name.text,{parameter:parameter.text,min,max,bodyStart,bodyEnd});
  }
- private callFunction(definition:FloatFunctionDefinition,name:Token,nesting:number):Term{
+ private callFunction(definition:MaterialFunctionDefinition,name:Token,nesting:number):Term{
   this.take('(');
   if(this.current().text===')')fail('TYPE','Authored function requires one float argument',name);
   const argument=this.expression(0,nesting+1);
