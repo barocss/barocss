@@ -15,6 +15,10 @@ Use the SDF path for a small scene of spheres, boxes and the explicit source1 pr
 | Find a runnable repository host | [Examples](./examples) |
 | Diagnose refusal or context loss | [Limits and errors](./limits) |
 
+## Typed generated source
+
+Use [Generated scene](./generated-scene) to compile the separate Source2 typed-parameter, finite-repeat and conditional-object profile. Its live example shows transformed diagnostic boxes from selected coefficients. The existing Source0/1 SDF renderers and original examples retain their stated source snapshot; this newer compiler does not add a Source2 mount or general Engine graphics runtime.
+
 ## Source, mesh and image
 
 A native CAD model retains authored geometry. A packet contains an approximate sampled mesh. A pose changes display placement. A rendered image contains pixels. Keep these records separate. A visible mesh does not certify a native Solid, and pixels cannot recover editable source.

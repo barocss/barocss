@@ -1,0 +1,645 @@
+{
+  "status": "qualified-first-CPU, selected-dev and selected-production-presentation/navigation",
+  "scopeURL": "https://github.com/barocss/barocss/issues/1247#issuecomment-6109002474",
+  "sourcePin": "4dcb0ebb67ac25f94a9f9e0b84d921f54ab468e8",
+  "reconstruction": {
+    "rootSession": "/Users/user/.codex/sessions/2026/10/10/rollout-2026-10-10T19-35-29-01a12561-ce8c-7ce0-9284-535e6ceb4daa.jsonl",
+    "rootSessionId": "01a12561-ce8c-7ce0-9284-535e6ceb4daa",
+    "sessionLines": [
+      18224,
+      18262
+    ],
+    "readOnlyExtraction": true,
+    "CPUOrBrowserOrAPIReplay": false,
+    "productionSessionLines": [
+      18383,
+      18402
+    ]
+  },
+  "browser": {
+    "backend": "Codex in-app browser",
+    "tabId": "50",
+    "devPort": 52949,
+    "route": "/examples/language#generated-scene",
+    "receipts": [
+      {
+        "sessionLine": 18227,
+        "timestamp": "2026-10-11T12:37:59.533Z",
+        "receipt": {
+          "receiptKind": "generated-dev-initial",
+          "ready": "true",
+          "ids": [
+            "plate",
+            "studs_0",
+            "studs_1",
+            "marker_0"
+          ],
+          "parameters": [
+            [
+              "used",
+              "length",
+              "scene",
+              2
+            ],
+            [
+              "limit",
+              "length",
+              "scene",
+              3
+            ],
+            [
+              "gain",
+              "scalar",
+              "dimensionless",
+              0.15
+            ]
+          ],
+          "generation": [
+            [
+              "studs_0",
+              0
+            ],
+            [
+              "studs_1",
+              1
+            ]
+          ],
+          "decisions": [
+            [
+              "marker_0",
+              true
+            ]
+          ],
+          "radius": 0.44999999999999996,
+          "frame": {
+            "rgbaBytes": 1075200,
+            "fnv1a32": "8b1476fb",
+            "scope": "Staged application bitmap adopted on this canvas"
+          },
+          "logicalSize": {
+            "width": 320,
+            "height": 210
+          },
+          "clipped": [],
+          "actualGL": false,
+          "boundsCalls": 0
+        }
+      },
+      {
+        "sessionLine": 18227,
+        "timestamp": "2026-10-11T12:37:59.533Z",
+        "receipt": {
+          "receiptKind": "generated-dev-equality",
+          "ids": [
+            "plate",
+            "studs_0",
+            "studs_1"
+          ],
+          "decisions": [
+            [
+              "marker_0",
+              false
+            ]
+          ],
+          "used": 3,
+          "originalMarkerRuleRetained": false,
+          "sourceExactlyExpected": true,
+          "frame": {
+            "rgbaBytes": 1075200,
+            "fnv1a32": "ba9513b6",
+            "scope": "Staged application bitmap adopted on this canvas"
+          },
+          "editorAlignedLF": true
+        }
+      },
+      {
+        "sessionLine": 18234,
+        "timestamp": "2026-10-11T12:38:14.134Z",
+        "receipt": {
+          "receiptKind": "generated-dev-authored-rule-inspector-correction",
+          "selectors": [
+            "box",
+            "sphere",
+            "#studs_0",
+            "#studs_1",
+            "#marker_0"
+          ],
+          "originalMarkerRuleRetained": true,
+          "firstInspectorAssumption": "Checked bare marker_0; public selector token includes #. No compilation or action repeated."
+        }
+      },
+      {
+        "sessionLine": 18234,
+        "timestamp": "2026-10-11T12:38:14.134Z",
+        "receipt": {
+          "receiptKind": "generated-dev-include",
+          "ids": [
+            "plate",
+            "studs_0",
+            "studs_1",
+            "marker_0"
+          ],
+          "decisions": [
+            [
+              "marker_0",
+              true
+            ]
+          ],
+          "fullSourceRestored": true,
+          "frame": {
+            "rgbaBytes": 1075200,
+            "fnv1a32": "8b1476fb",
+            "scope": "Staged application bitmap adopted on this canvas"
+          }
+        }
+      },
+      {
+        "sessionLine": 18234,
+        "timestamp": "2026-10-11T12:38:14.134Z",
+        "receipt": {
+          "receiptKind": "generated-dev-repeat-three",
+          "ids": [
+            "plate",
+            "studs_0",
+            "studs_1",
+            "studs_2",
+            "marker_0"
+          ],
+          "generation": [
+            [
+              "studs_0",
+              0
+            ],
+            [
+              "studs_1",
+              1
+            ],
+            [
+              "studs_2",
+              2
+            ]
+          ],
+          "thirdTranslate": [
+            0,
+            0,
+            0
+          ],
+          "sourceExactlyExpected": true,
+          "frame": {
+            "rgbaBytes": 1075200,
+            "fnv1a32": "f95a1423",
+            "scope": "Staged application bitmap adopted on this canvas"
+          },
+          "clipped": [],
+          "editorAlignedLF": true
+        }
+      },
+      {
+        "sessionLine": 18241,
+        "timestamp": "2026-10-11T12:38:35.504Z",
+        "receipt": {
+          "receiptKind": "generated-dev-type-refusal",
+          "alert": "Input refused: TYPE: 10:29: Comparison requires the same quantity [{\"code\":\"TYPE\",\"message\":\"Comparison requires the same quantity\",\"start\":275,\"end\":276,\"line\":10,\"column\":29}]. The last accepted output stays visible while the sample remains live.",
+          "completeReportRetained": true
+        }
+      },
+      {
+        "sessionLine": 18241,
+        "timestamp": "2026-10-11T12:38:35.504Z",
+        "receipt": {
+          "receiptKind": "generated-dev-range-refusal",
+          "alert": "Input refused: RANGE: 9:24: Repeat count must be within1..32 [{\"code\":\"RANGE\",\"message\":\"Repeat count must be within1..32\",\"start\":248,\"end\":250,\"line\":9,\"column\":24}]. The last accepted output stays visible while the sample remains live.",
+          "completeReportRetained": true
+        }
+      },
+      {
+        "sessionLine": 18246,
+        "timestamp": "2026-10-11T12:38:44.958Z",
+        "receipt": {
+          "receiptKind": "generated-dev-false-shape-refusal",
+          "alert": "Input refused: SCENE: 25:10: Dimension must be positive and at most 1000 [{\"code\":\"SCENE\",\"message\":\"Dimension must be positive and at most 1000\",\"start\":516,\"end\":518,\"line\":25,\"column\":10}]. The last accepted output stays visible while the sample remains live.",
+          "completeReportRetained": true,
+          "logs": []
+        }
+      },
+      {
+        "sessionLine": 18253,
+        "timestamp": "2026-10-11T12:38:55.309Z",
+        "receipt": {
+          "receiptKind": "generated-dev-native-image",
+          "clip": {
+            "height": 303.1875,
+            "width": 462,
+            "x": 765,
+            "y": 848.3984375
+          },
+          "selectedIds": [
+            "plate",
+            "studs_0",
+            "studs_1",
+            "studs_2",
+            "marker_0"
+          ],
+          "frame": {
+            "rgbaBytes": 1075200,
+            "fnv1a32": "f95a1423",
+            "scope": "Staged application bitmap adopted on this canvas"
+          },
+          "representation": "Application diagnostic local boxes, shader not executed"
+        }
+      },
+      {
+        "sessionLine": 18262,
+        "timestamp": "2026-10-11T12:39:29.008Z",
+        "receipt": {
+          "receiptKind": "generated-dev-application-shape-refusal",
+          "alert": "Input refused: This application draws diagnostic boxes only for box and sphere; received torus. The public compiler may support this shape.. The last accepted output stays visible while the sample remains live.",
+          "completeReportRetained": true,
+          "publicCompilerCodeClaim": false
+        }
+      },
+      {
+        "sessionLine": 18262,
+        "timestamp": "2026-10-11T12:39:29.008Z",
+        "receipt": {
+          "receiptKind": "generated-dev-reset",
+          "ready": "true",
+          "ids": [
+            "plate",
+            "studs_0",
+            "studs_1",
+            "marker_0"
+          ],
+          "fullSourceRestored": true,
+          "frame": {
+            "rgbaBytes": 1075200,
+            "fnv1a32": "8b1476fb",
+            "scope": "Staged application bitmap adopted on this canvas"
+          },
+          "alerts": 0,
+          "logs": []
+        }
+      }
+    ],
+    "publicRefusals": [
+      {
+        "receiptKind": "generated-dev-type-refusal",
+        "publicCode": "TYPE",
+        "diagnostics": [
+          {
+            "code": "TYPE",
+            "message": "Comparison requires the same quantity",
+            "start": 275,
+            "end": 276,
+            "line": 10,
+            "column": 29
+          }
+        ],
+        "completeRawReportRetained": true,
+        "pixelByteEqualityMeasured": false
+      },
+      {
+        "receiptKind": "generated-dev-range-refusal",
+        "publicCode": "RANGE",
+        "diagnostics": [
+          {
+            "code": "RANGE",
+            "message": "Repeat count must be within1..32",
+            "start": 248,
+            "end": 250,
+            "line": 9,
+            "column": 24
+          }
+        ],
+        "completeRawReportRetained": true,
+        "pixelByteEqualityMeasured": false
+      },
+      {
+        "receiptKind": "generated-dev-false-shape-refusal",
+        "publicCode": "SCENE",
+        "diagnostics": [
+          {
+            "code": "SCENE",
+            "message": "Dimension must be positive and at most 1000",
+            "start": 516,
+            "end": 518,
+            "line": 25,
+            "column": 10
+          }
+        ],
+        "completeRawReportRetained": true,
+        "pixelByteEqualityMeasured": false
+      }
+    ]
+  },
+  "inspectorFirstFailure": {
+    "firstReceipt": "generated-dev-equality",
+    "wrongSelectorChecked": "marker_0",
+    "observedWrongResult": false,
+    "correctSelector": "#marker_0",
+    "correctionReceipt": "generated-dev-authored-rule-inspector-correction",
+    "correctObservedResult": true,
+    "actionsOrCompilerReplayedForCorrection": false,
+    "qualification": "The inspector omitted the selector # token. Original public AST retained the marker rule; no provider or host repair."
+  },
+  "sourceAndEditor": {
+    "acceptedSourceAndOriginalAST": "Complete caller source and original public token ranges retained. Authored -0 strings are not native numeric signed-zero authority; Scene2 zeros can canonicalize.",
+    "equalitySourceExactlyExpected": true,
+    "includeCompleteSourceRestored": true,
+    "repeatSourceExactlyExpected": true,
+    "textareaLFAlignmentObserved": true,
+    "qualification": "Textarea value normalizes line breaks to LF. Accepted action source remains the complete CRLF string; LF display alignment does not erase the accepted source/AST."
+  },
+  "applicationShapeRefusal": {
+    "receipt": {
+      "receiptKind": "generated-dev-application-shape-refusal",
+      "alert": "Input refused: This application draws diagnostic boxes only for box and sphere; received torus. The public compiler may support this shape.. The last accepted output stays visible while the sample remains live.",
+      "completeReportRetained": true,
+      "publicCompilerCodeClaim": false
+    },
+    "shape": "torus",
+    "publicCompilerSupportsShape": true,
+    "publicErrorCodeInvented": false,
+    "qualification": "Torus is outside this app diagnostic drawing profile. This is an application Error, not a public compiler refusal."
+  },
+  "frames": {
+    "scope": "Staged application Canvas2D bitmap adopted on caller canvas",
+    "rgbaBytes": 1075200,
+    "backingSize": [
+      640,
+      420
+    ],
+    "logicalSize": {
+      "width": 320,
+      "height": 210
+    },
+    "initialFNV": "8b1476fb",
+    "equalityFNV": "ba9513b6",
+    "threeStudFNV": "f95a1423",
+    "resetFNV": "8b1476fb",
+    "publicGLReadPixelsMeasured": false,
+    "allCanvasByteEqualityMeasured": false,
+    "qualification": "These frame checksums identify app stage bitmaps; raw report retention and equal checksums do not prove all visible canvas bytes equal."
+  },
+  "image": {
+    "receiptLine": 18253,
+    "mime": "image/jpeg",
+    "size": [
+      462,
+      303
+    ],
+    "bytes": 19678,
+    "sha256": "8dafa80b0eb1af6216a0c15fa33a53bad2f66ab5eed87ff7b3496ceb2a95e5f4",
+    "nativeToolBytesUnmodified": true,
+    "savedAsset": "docs/public/examples/generated-scene.jpg",
+    "savedAssetMatchesNativeToolBytes": true,
+    "selectedIds": [
+      "plate",
+      "studs_0",
+      "studs_1",
+      "studs_2",
+      "marker_0"
+    ],
+    "actualGL": false,
+    "representation": "Five transformed local diagnostic boxes from actual selected Scene2 coefficients; no sphere rendering, mesh renderer or shader execution."
+  },
+  "CPU": {
+    "status": "passed",
+    "provenance": {
+      "sourcePin": "4dcb0ebb67ac25f94a9f9e0b84d921f54ab468e8",
+      "verifiedBlobs": 294,
+      "ownSourceInputs": 291,
+      "ownDistInputs": 0,
+      "host": "Public generated Scene2 compiler consumer; no GL",
+      "oldVisualPinUnchanged": "5f5ad866205a21510ac69552e704cc162fa253b5"
+    },
+    "actualPublicCallLedger": {
+      "generatedCompilerCalls": 8,
+      "plainAffineControlCalls": 1,
+      "scope": "Explicit consumer public entry invocations only",
+      "privateLowererCalls": "uninstrumented; no native work counter claim"
+    },
+    "independentCompletePlainSource2Control": true,
+    "ownership": {
+      "completeDeepFreeze": true,
+      "freshIndependentCompiles": true,
+      "callerCloneMutationIsolated": true,
+      "authoredMinusZeroTextRetained": true,
+      "semanticZerosCanonicalized": true
+    },
+    "refusalCodes": [
+      "TYPE",
+      "RANGE",
+      "SCENE"
+    ],
+    "falseRadiusCause": {
+      "name": "SceneError",
+      "message": "27:10: Dimension must be positive and at most 1000",
+      "diagnostics": [
+        {
+          "message": "Dimension must be positive and at most 1000",
+          "start": 580,
+          "end": 582,
+          "line": 27,
+          "column": 10
+        }
+      ]
+    },
+    "acceptedWholeResultRetained": true,
+    "failedCandidates": [],
+    "artifact": {
+      "path": "evidence/generated-scene-consumer.json",
+      "bytes": 95933,
+      "sha256": "aae036315dad1feaf3730be3cdfaaaaad2556ed399d59df08c141b840a6871d1",
+      "physicalWriteReadEqual": true,
+      "nativeCodec": false
+    },
+    "rawRootStdout": "{\"status\":\"passed\",\"provenance\":{\"sourcePin\":\"4dcb0ebb67ac25f94a9f9e0b84d921f54ab468e8\",\"verifiedBlobs\":294,\"ownSourceInputs\":291,\"ownDistInputs\":0,\"host\":\"Public generated Scene2 compiler consumer; no GL\",\"oldVisualPinUnchanged\":\"5f5ad866205a21510ac69552e704cc162fa253b5\"},\"ids\":[\"plate\",\"studs_0\",\"studs_1\",\"studs_2\",\"marker_0\"],\"radius\":0.44999999999999996,\"publicCallLedger\":{\"generatedCompilerCalls\":8,\"plainAffineControlCalls\":1,\"scope\":\"Explicit consumer public entry invocations only\",\"privateLowererCalls\":\"uninstrumented; no native work counter claim\"},\"refusals\":[\"TYPE\",\"RANGE\",\"SCENE\"],\"evidenceArtifact\":{\"bytes\":95933,\"sha256\":\"aae036315dad1feaf3730be3cdfaaaaad2556ed399d59df08c141b840a6871d1\",\"physicalWriteReadEqual\":true,\"nativeCodec\":false},\"actualGL\":false}\n",
+    "qualification": "One Root CPU execution. Explicit public calls only; internal lowerer calls/work uninstrumented. Physical evidence JSON is an artifact, not a package/native codec."
+  },
+  "rendererAndBounds": {
+    "publicRendererAdmitsGeneratedScene2": false,
+    "publicBoundsBridgeAdmitted": false,
+    "prepareSourceSceneBoundsCalls": 0,
+    "actualGL": false,
+    "qualification": "Public renderer parses Source0/1 only. Bounds API accepts original source text and calls plain compileAffineSceneSource; it cannot directly admit the generated result/mixed source. App computes transformed local box corners using selected coefficients."
+  },
+  "pending": {
+    "sourceBuiltImageHashMatch": {
+      "status": "passed",
+      "reportedBy": "Root actual static byte/hash and rendered HTML comparison",
+      "sourceAndBuiltBytes": 19678,
+      "sourceAndBuiltSHA256": "8dafa80b0eb1af6216a0c15fa33a53bad2f66ab5eed87ff7b3496ceb2a95e5f4",
+      "bytesAndHashesEqual": true,
+      "renderedHTMLIncludesImage": true,
+      "renderedHTMLIncludesFixedBackingScaleClarification": true
+    },
+    "rawGPUResourceOrTerminalProof": "not measured",
+    "productionRefusalAndWholeFlowReplay": "not performed; first-dev observations retained separately",
+    "currentRootGlobalIntegrationRuntime": "unrun",
+    "releasePublication": "not claimed"
+  },
+  "production": {
+    "status": "observed-selected-positive-flow",
+    "backend": "Codex in-app browser",
+    "tabId": "51",
+    "previewPort": 52948,
+    "receipts": [
+      {
+        "sessionLine": 18383,
+        "timestamp": "2026-10-11T12:45:07.805Z",
+        "receipt": {
+          "receiptKind": "generated-production-equality",
+          "ready": "true",
+          "initialIds": [
+            "plate",
+            "studs_0",
+            "studs_1",
+            "marker_0"
+          ],
+          "excludedIds": [
+            "plate",
+            "studs_0",
+            "studs_1"
+          ],
+          "decision": [
+            [
+              "marker_0",
+              false
+            ]
+          ],
+          "authoredMarkerRuleRetained": true,
+          "sourceExact": true,
+          "frame": {
+            "rgbaBytes": 1075200,
+            "fnv1a32": "ba9513b6",
+            "scope": "Staged application bitmap adopted on this canvas"
+          },
+          "logs": []
+        }
+      },
+      {
+        "sessionLine": 18383,
+        "timestamp": "2026-10-11T12:45:07.805Z",
+        "receipt": {
+          "receiptKind": "generated-production-guide",
+          "url": "http://127.0.0.1:52948/packages/gpu/generated-scene",
+          "heading": "Generate a scene with typed inputs\n​",
+          "image": {
+            "complete": true,
+            "height": 303,
+            "width": 462
+          }
+        }
+      },
+      {
+        "sessionLine": 18395,
+        "timestamp": "2026-10-11T12:45:23.895Z",
+        "receipt": {
+          "receiptKind": "generated-production-mobile-guide",
+          "image": {
+            "complete": true,
+            "width": 341.9921875
+          },
+          "body": {
+            "scrollWidth": 390,
+            "width": 390
+          },
+          "viewport": 390
+        }
+      },
+      {
+        "sessionLine": 18395,
+        "timestamp": "2026-10-11T12:45:23.895Z",
+        "receipt": {
+          "receiptKind": "generated-production-mobile-live",
+          "url": "http://127.0.0.1:52948/examples/language#generated-scene",
+          "ready": "true",
+          "canvas": {
+            "height": 207.375,
+            "width": 316
+          },
+          "body": {
+            "scrollWidth": 390,
+            "width": 390
+          }
+        }
+      },
+      {
+        "sessionLine": 18402,
+        "timestamp": "2026-10-11T12:45:59.986Z",
+        "receipt": {
+          "receiptKind": "generated-production-catalog",
+          "count": "1 of 45 runnable examples",
+          "href": "/examples/language#generated-scene"
+        }
+      },
+      {
+        "sessionLine": 18402,
+        "timestamp": "2026-10-11T12:45:59.986Z",
+        "receipt": {
+          "receiptKind": "generated-production-catalog-return",
+          "url": "http://127.0.0.1:52948/examples/language#generated-scene",
+          "ready": "true"
+        }
+      }
+    ],
+    "CPUReplay": false,
+    "publicRefusalsRepeated": false,
+    "wholeDevFlowReplayed": false,
+    "newProductionScreenshotCaptured": false,
+    "qualification": "Actual equality action, guide/image, 390px guide/live layout, catalog search and ready return. First CPU/dev refusal/reset qualification and its actual five-object JPEG remain separate."
+  },
+  "buildAndDocs": {
+    "build": {
+      "status": "passed",
+      "seconds": 11.54,
+      "sessionLine": 18332,
+      "rawLog": "- rendering pages...\n\u001b[32m✓\u001b[0m rendering pages...\nbuild complete in 11.54s.\n",
+      "existingChunkWarningRetained": true,
+      "warning": "Some chunks are larger than 500 kB after minification; existing warning, not changed or suppressed"
+    },
+    "docsCheck": {
+      "status": "passed",
+      "sessionLine": 18358,
+      "result": {
+        "exampleCatalog": {
+          "presets": 45,
+          "uniqueAnchors": 45,
+          "authoredSources": 45,
+          "categories": {
+            "api": 11,
+            "language": 33,
+            "integration": 1
+          },
+          "generatedModules": 14,
+          "builtAnchorsChecked": true,
+          "execution": "Preset metadata and links only; no public API calls or gallery execution"
+        },
+        "pages": 110,
+        "packages": 12,
+        "checkedInternalLinks": 696,
+        "checkedImageAssets": 57,
+        "checkedDownloadAssets": 3,
+        "manifestHashes": "matched",
+        "sourceCommit": "5f5ad866205a21510ac69552e704cc162fa253b5"
+      }
+    },
+    "guideBackingScaleClarification": {
+      "beforeFinalBuild": true,
+      "fixedApplicationBackingScale": 2,
+      "observedDeviceDPRClaimed": false,
+      "qualification": "640×420 backing for320×210logical size is a fixed app setting, not an observed device DPR."
+    },
+    "serverOwnership": {
+      "oldPreviewSession33589StoppedBeforeBuild": true,
+      "devSession35089Stopped": true,
+      "finalProtectedPreviewSession": 12933,
+      "port": 52948,
+      "authorWorktree": "/Users/user/.codex/worktrees/library-docs-continue/barocss",
+      "devTab50Closed": true,
+      "productionTab51Deliverable": true,
+      "viewportResetByRoot": true
+    }
+  }
+}
