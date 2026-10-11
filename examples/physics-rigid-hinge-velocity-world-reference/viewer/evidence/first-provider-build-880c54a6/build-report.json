@@ -1,0 +1,40 @@
+{
+  "head": "880c54a6579f6a14175e6936e592a929ed48abfa",
+  "node": "v22.22.0",
+  "sourceLedgerSha256": "21e5ba5bcff59d1962d95f2d99d872b33d1ddf729ffb6eea837e6423cb86928e",
+  "tooling": {
+    "typescript": "5.9.3",
+    "esbuild": "0.25.12",
+    "compilerSha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419",
+    "bundlerSha256": "0d1241812c443111d39475dfc66836003e9ef8b87e54d990dd67df29d20010e1"
+  },
+  "gates": [
+    {
+      "name": "cad",
+      "cmd": "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+      "args": [
+        "scripts/tool.mjs",
+        "build"
+      ],
+      "package": "barocss-cad",
+      "elapsedMs": 4563.886791999999,
+      "exitCode": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "name": "cad-interop",
+      "cmd": "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+      "args": [
+        "/Users/user/.codex/worktrees/physics-hinge-recorded-viewer/barocss/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.json"
+      ],
+      "package": "barocss-cad-interop",
+      "elapsedMs": 5225.075084,
+      "exitCode": 2,
+      "signal": null,
+      "error": null
+    }
+  ]
+}

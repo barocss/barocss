@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HINGE2 기록 재생</title><link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<main>
+  <header><div><p class="eyebrow">기록된 HINGE2 · 10초</p><h1>두 힌지의 자세와 모터 기록</h1></div><span class="tag">물리 재계산 없음</span></header>
+  <div class="controls" aria-label="기록 재생 제어">
+    <button id="play" disabled>재생</button><button id="pause" disabled>일시 정지</button>
+    <button id="one-step" disabled>한 프레임</button><button id="reset" disabled>처음</button>
+    <div class="counter"><strong id="step">—</strong><span> / 1200</span><span id="time">—</span></div>
+    <p id="status" role="status">검증된 기록을 읽는 중</p>
+  </div>
+  <div class="stage">
+    <section class="view-panel" aria-label="네 구체의 기록된 자세">
+      <canvas id="view" width="900" height="400" aria-label="HINGE2 근사 구체와 +Y 자세 표시"></canvas>
+      <label class="scrub">기록 위치 <input id="cursor" type="range" min="0" max="1200" step="1" value="0" disabled></label>
+      <p id="limit">관절 한계: 아직 도달 전</p><p id="error" role="alert"></p>
+      <p class="caption">근사 구체와 로컬 +Y 자세 표시입니다. 관절 한계 도달(197)과 재생 끝(1200)은 다릅니다.</p>
+    </section>
+    <aside id="joints" aria-label="기록된 관절 진단"></aside>
+  </div>
+  <section class="body-panel"><h2>몸체 기록 · 원래 ID와 SI 단위</h2>
+    <table><thead><tr><th>몸체</th><th>위치 (m)</th><th>속도 (m/s)</th><th>각속도 (rad/s)</th></tr></thead><tbody id="bodies"></tbody></table>
+  </section>
+  <footer>공개 PhysicsWorld는 이 네 몸체·두 힌지 구성을 거절합니다. 이 화면은 비공개 수치 실험의 저장된 결과를 재생합니다. 현재 통합 화면의 검증은 별도입니다. 보정 임펄스는 알고리즘 보고이며 보정된 물리 하중을 뜻하지 않습니다.</footer>
+</main>
+<script type="module" src="./bundle.js"></script>
+</body>
+</html>
