@@ -232,3 +232,7 @@ export type { MultiSurfaceWebGPUOptions, MultiSurfaceWebGPUStatus, MultiSurfaceW
 // Complete trusted WebGPU program for original native Surface normalized UV01.
 export { lowerNativeSurfaceUV01ProgramWGSL } from './native-surface-uv01-program-wgsl.js';
 export type { LoweredNativeSurfaceUV01ProgramWGSL } from './native-surface-uv01-program-wgsl.js';
+
+// Source-derived native UV01 frame admission and checked CPU upload bytes; no GPU allocation.
+export { prepareNativeSurfaceUV01Frame, NativeSurfaceUV01FrameError, NativeSurfaceUV01FrameDiagnosticCode } from './native-surface-uv01-frame.js';
+export type { NativeSurfaceUV01FrameRequest, NativeSurfaceUV01FrameEntry, NativeSurfaceUV01FrameOptions, NativeSurfaceUV01FrameDraw, NativeSurfaceUV01FrameResources, PreparedNativeSurfaceUV01Frame } from './native-surface-uv01-frame.js';

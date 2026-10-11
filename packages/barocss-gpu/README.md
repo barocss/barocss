@@ -3992,3 +3992,73 @@ node examples/gpu-scene/native-surface-uv01-program-flow.mjs --output /absolute/
 This API generates source. Actual device compilation, native frame/TEN joining,
 binding uploads, interpolation, pixels, physical picking, viewport lifecycle,
 consumer adoption and publication need their own receipts.
+
+### Source-derived native Surface UV01 CPU frame (#1569)
+
+`prepareNativeSurfaceUV01Frame(input, width, height)` admits a complete original-source
+request with format `barocss-gpu-native-surface-uv01-frame-request`, version `0`,
+`entries` (1–4) and explicit `options`. Each entry contains exactly `ref`
+(`modelId`, `geometryId`), the original `NativeSurfaceUV01GeometryRequest`, original
+`NativeSurfaceUV01MaterialIR`, own numeric `uniforms` overrides, and `transform`
+(an original `MeshSceneTransform` or `null`). Options contain exactly
+`mmToSceneUnit`, `translate`, `background`, `camera` and `lighting`. Integer viewport
+dimensions are 1–1024. No external packet, prepared token, legacy material, defaults,
+Curve, texture, particle or authored-light entity is accepted.
+
+Full `(modelId, geometryId)` pairs are unique; the geometry ID must match the
+original selector and rebuilt Surface packet. The model ID is a caller asset
+alias, not native `Model.name` or a provenance certificate. Viewer/Render callers
+must verify source/count/revision/document/body/asset/TEN/display context before
+calling. Equal IDs or array sizes alone never establish correspondence.
+
+The function calls the existing native binding and complete WGSL program provider
+once per entry, then the existing qualified common frame preflight once across all
+entries. This performs three material reconstructions and one geometry producer
+per entry. Options/poses are validated early and revalidated by common admission.
+The common frame applies native millimetres, pose and world-normal transformation;
+the shader receives those already prepared values and dimensionless original
+Surface UV01 in corresponding native vertex order.
+
+The result retains the copied raw request (including signed overrides), actual
+bindings, common frame, viewport, prospective resource ledger and ordered draws.
+Each draw has a copied full reference, identity token `index + 1` (background `0`),
+complete program, actual index count, four independent little-endian byte arrays
+for positions/normals/U16 indices/UV01, and independent 160/64/16-byte
+frame/material/draw uniform blocks. U16 storage is padded to four bytes without
+changing the index count; all reserved bytes are zero. Ordinary results are
+recursively frozen, while typed views remain mutable and never share their buffers
+with caller data, other entries/calls or the other result views. Results are
+observations, never trusted future mount inputs.
+
+Raw request and complete `{request, bindings, frame, programs}` accounting each
+charge every repeated path, signed number, source/code string and typed observation
+(as numeric-array text): at most 2 MiB in UTF16 and UTF8, 262144 visits and depth 48.
+Raw strings are at most 64 KiB in both encodings, records 16 fields and arrays 24576
+elements; root entry counts are admitted before descendants. Existing provider
+source/tree/F32/result caps still apply. Some maximal native packets can exceed
+aggregate limits. Packed draw allocation follows aggregate and prospective resource
+admission; nonzero numeric upload values must stay nonzero finite F32.
+
+The exact resource fields are `geometryBytes`, `uniformBytes` (240 per draw),
+`colorIdentityBytes` (8WH), `depthTexels` (WH), `depthBudgetBytes` (logical 4WH),
+`chargedBytes` (geometry + uniforms + 12WH), `readbackBytes`
+(`ceil(4W/256)*256*H`), `buffers` (7 per draw), `textures` (3), `bindGroups` and
+`pipelines` (one per draw). Candidate charge is capped at 32 MiB before upload-byte
+allocation. These are prospective logical charges, not measured allocations.
+No device objects, accepted candidate or readback exist in this CPU API; future
+64 MiB accepted+candidate+readback and device limits remain runtime work.
+
+`NativeSurfaceUV01FrameError` has bounded messages and exactly the diagnostic codes
+`INPUT`, `BUDGET`, `REFERENCE`, `OPTIONS`, `BINDING`, `PROGRAM`, `FRAME`, and
+`REPRESENTATION`. Reflection/provider exceptions retain their exact own cause,
+including an explicitly thrown `undefined`; local guards have no fabricated cause
+or spans. Failure returns no result and does not modify prior caller files/state.
+
+Run the single source/emitted/original-file/cold reconstruction flow with
+`node examples/gpu-scene/native-surface-uv01-frame-flow.mjs --output ABS_FRESH` after the affected GPU
+build. Its cloud parent is `69b70d24793a6ccc0b73f7543a7385e81c99ca64`; the implementation
+owns only the two new frame source files, additive public index/README, and this
+flow. CPU/source results do not establish WGSL device/interpolation/pixels,
+physical picking, lifecycle, consumer TEN/schema/history/current-Root acceptance,
+Integration adoption or publication. The original browser denial and deferred
+rendering acceptance remain unchanged.
