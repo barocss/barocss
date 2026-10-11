@@ -448,3 +448,7 @@ export type { CadFunctionQuantity, CadResolvedFunction, CadFunctionCallReceipt, 
 
 export { sampleSourceCurveAdaptive, validateSourceCurveAdaptive, SourceCurveAdaptiveSamplingError, SourceCurveAdaptiveSamplingDiagnosticCode } from './source-curve-adaptive-sampling.js';
 export type { SourceCurveAdaptiveSamplingRequest, SourceCurveAdaptiveSamplingOptions, SourceCurveAdaptiveSamplingReport, SourceCurveAdaptiveSamplingResult } from './source-curve-adaptive-sampling.js';
+
+
+export { qualifyRectangularFaceExtrusionBody, validateRectangularFaceExtrusionBody, RectangularFaceExtrusionBodyError, RectangularFaceExtrusionBodyDiagnosticCode } from './rectangular-face-extrusion-body.js';
+export type { RectangularFaceExtrusionBodyRequest, RectangularFaceExtrusionBodyOptions, RectangularFaceExtrusionBodyReport, RectangularFaceExtrusionBodyResult } from './rectangular-face-extrusion-body.js';

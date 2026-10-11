@@ -9460,3 +9460,16 @@ Each accepted interval uses a finite control-hull estimate plus arithmetic margi
 `validateSourceCurveAdaptive(result)` snapshots plain data, rebuilds once from its full request and compares every retained field and bit. It returns a copied complete report. Full request/result limits are1MiB/16MiB in UTF16 and UTF8, with4M owned values and32768 array elements. All original and derived receipts count. Individual legal source/work limits do not guarantee aggregate output fit.
 
 Run `node examples/cad-nurbs/source-curve-adaptive-sampling-demo.mjs --source <output-directory>`. The flow uses a weighted quintic beside a Surface and fourteen Curve siblings, with complete source larger than64KiB. It saves source/dialect/hash and replays the full request after fresh reading. Viewer and Editor display, editing, history and project files remain separate in Issue1440 and its parent goals.
+
+
+## Qualify a rectangular Face extrusion as a fresh material Body
+
+`qualifyRectangularFaceExtrusionBody({ extrusion, options })` accepts a complete native Face-extrusion result in the forward, unit-chart XY rectangle profile. It validates that parent once and preserves its complete source and false Solid/embedding flags. The new Body obtains its material authority from the existing qualified translated-strip providers.
+
+Two fresh canonical ruled supports extend from Z0 to twice the actual extrusion distance. The unchanged original top Plane then cuts them strictly inside their V domains. Eleven existing section, binding, wall, cap, base, end, volume and Body factories construct the full material result. Explicit options carry all native IDs and recipes. Parent validation, thirteen new factory calls and inherited work are recorded separately.
+
+Exact correspondence binds six whole chart images, twelve shared edge images and eight corners to the retained extrusion. Uniform weights and complete polynomial coefficients are checked, including degree-elevated Body supports. The proof retains actual parameter reversals, restrictions, source references, incidence and exact volume. It changes no native source or graph. The old Shell is not promoted into a Solid; only the fresh qualified Body carries its restricted material certificate.
+
+The canonical extension requires distance at most5000mm, with twice that distance within existing coordinate limits. Raw derived section weights and mandatory zero-residual conditions can refuse other valid extrusion parents. Original Plane/weights are not normalized to force admission. Complete request/result limits are4MiB/8MiB in UTF16 and UTF8 with4M owned values. All retained parent and child occurrences count.
+
+`validateRectangularFaceExtrusionBody(result)` reconstructs once from the full request and compares every field and bit, then returns a copied complete report. Run `node examples/cad-nurbs/rectangular-face-extrusion-body-demo.mjs --source <output-directory>`. Issue1474 tracks native qualification; Viewer, Editor, project codecs, general Face extrusion, arbitrary curved solids, Boolean and manufacturing acceptance remain separate.
