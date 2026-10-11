@@ -4,7 +4,7 @@ import type {
   CadDocumentResult, CadDocumentV1, CadGeometryReferenceV0, SurfacePoleEditProvenance,
   CadCurveArcLengthOptions, CadCurveArcLengthResult,
   CurveCurvatureResult, CurveD2Result, CurvePoleEditProvenance, SurfaceCurvatureResult, SurfaceD2Result,
-  AffineGeometryTransformReport, SourceCurveIntervalExtractionResult, SourceSurfaceKnotInsertionResult, SourceCurveKnotInsertionResult, SurfaceIsoCurveResult, JoinedCurveResult, SourceSurfaceDegreeElevationResult, ExtractedSurfaceRegionResult, CurveParameterSplitResult, SurfaceParameterSplitResult, WideReversedCurveResult, ReversedSurfaceAxisResult,
+  AffineGeometryTransformReport, SourceCurveIntervalExtractionResult, SourceSurfaceKnotInsertionResult, SourceCurveKnotInsertionResult, SurfaceIsoCurveResult, JoinedCurveResult, SourceSurfaceDegreeElevationResult, ExtractedSurfaceRegionResult, CurveParameterSplitResult, SurfaceParameterSplitResult, WideReversedCurveResult, ReversedSurfaceAxisResult, SectionKnotAlignmentResult,
 } from '@barocss/cad';
 
 export type CadEditorExportCapability = CadDocumentExportCapability;
@@ -48,6 +48,13 @@ export type CadEditorBodyTranslationField = Exclude<CadEditorPoleField, 'weight'
 export type CadEditorCurveIntervalField = 'min' | 'max';
 export type CadEditorSurfaceIsoCurveAxis = 'u' | 'v';
 export type CadEditorSurfaceDegreeElevationAxis = 'u' | 'v';
+export interface CadEditorRuledSurfaceCreation {
+  firstReference: CadGeometryReferenceV0;
+  secondReference: CadGeometryReferenceV0;
+  assetId: string;
+  bodyId: string;
+  result: SectionKnotAlignmentResult;
+}
 export interface CadEditorSurfaceReversalCreation {
   sourceReference: CadGeometryReferenceV0;
   axis: 'u' | 'v';
@@ -146,7 +153,7 @@ export interface CadEditorSelectedPole extends CadEditorSurfaceSelection {
 }
 export interface CadEditorCandidate {
   token: string; baseGeneration: number; baseDisplayGeneration: number;
-  kind: 'apply' | 'open' | 'undo' | 'redo' | 'display' | 'rename' | 'duplicate' | 'curve-interval' | 'surface-knot' | 'curve-knot' | 'surface-isocurve' | 'curve-join' | 'surface-degree-elevation' | 'surface-region' | 'curve-split' | 'surface-split' | 'curve-reversal' | 'surface-reversal';
+  kind: 'apply' | 'open' | 'undo' | 'redo' | 'display' | 'rename' | 'duplicate' | 'curve-interval' | 'surface-knot' | 'curve-knot' | 'surface-isocurve' | 'curve-join' | 'surface-degree-elevation' | 'surface-region' | 'curve-split' | 'surface-split' | 'curve-reversal' | 'surface-reversal' | 'ruled-surface';
   selectionTarget?: CadEditorSelectionTarget | null;
   presentation?: 'structural';
   curveInterval?: SourceCurveIntervalExtractionResult;
@@ -158,6 +165,7 @@ export interface CadEditorCandidate {
   surfaceSplit?: CadEditorSurfaceSplitCreation;
   curveReversal?: CadEditorCurveReversalCreation;
   surfaceReversal?: CadEditorSurfaceReversalCreation;
+  ruledSurface?: CadEditorRuledSurfaceCreation;
   curveJoin?: CadEditorCurveJoinCreation;
   surfaceKnot?: SourceSurfaceKnotInsertionResult;
   surfaceDegreeElevation?: SourceSurfaceDegreeElevationResult;
@@ -209,6 +217,7 @@ export interface CadEditorSnapshot {
   lastSurfaceSplit: CadEditorSurfaceSplitCreation | null;
   lastCurveReversal: CadEditorCurveReversalCreation | null;
   lastSurfaceReversal: CadEditorSurfaceReversalCreation | null;
+  lastRuledSurface: CadEditorRuledSurfaceCreation | null;
   lastCurveJoin: CadEditorCurveJoinCreation | null;
   lastSurfaceDegreeElevation: SourceSurfaceDegreeElevationResult | null;
 }
@@ -254,6 +263,7 @@ export interface CadEditorSession {
   prepareCurveJoin(rightBodyId: string): CadEditorCandidate;
   prepareCurveReversal(): CadEditorCandidate;
   prepareSurfaceReversal(axis: 'u' | 'v'): CadEditorCandidate;
+  prepareRuledSurface(secondBodyId: string): CadEditorCandidate;
   prepareSurfaceDegreeElevation(axis: CadEditorSurfaceDegreeElevationAxis): CadEditorCandidate;
   prepareUndo(): CadEditorCandidate;
   prepareRedo(): CadEditorCandidate;
