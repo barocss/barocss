@@ -64,6 +64,10 @@ File choice remains separate. This source action cancels an older local Open int
 <button id="document" disabled>Load original document</button><button id="native" disabled>Load original native asset</button>
 <button id="native-replacement" disabled>Replace native with display poses</button><button id="show-all" disabled>Show all bodies</button>
 <button id="hide-all" disabled>Hide all bodies</button><button id="fit" disabled>Fit visible</button><button id="saved-view" disabled>Saved view</button>
+<button id="frame-selected-native" disabled>Frame selected</button>
+<p id="selected-native-fit-target" role="status" aria-live="polite">Select a visible original native Surface or Curve to frame.</p>
+<details id="selected-native-fit-help"><summary>About selected native framing</summary><p>Frame the current selected visible original Surface or Curve. Other objects remain in the scene and can move outside the view. Bounds use sampled display geometry and accepted display poses, not original extrema or a control hull.
+Framing keeps native parameters, reports, measurements and File choices. It changes the camera without selecting or inspecting an object. Fit visible and F still frame all visible geometry. Framing needs an idle ready native scene and is unavailable after presentation loss.</p></details>
 <button id="query" disabled>Inspect original Curve</button><button id="clear" disabled>Clear viewer</button>
 <button id="run-proof" disabled>Run proof</button><button id="lose-context" disabled>Lose context</button><button id="dispose" disabled>Dispose viewer</button>
 <fieldset id="selected-native-point-pane"><legend>Selected native parameter point</legend>

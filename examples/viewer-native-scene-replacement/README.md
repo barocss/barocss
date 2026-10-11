@@ -519,3 +519,45 @@ The test-only `nativeObjectSelectionLastError` and
 `nativeObjectSelectionErrorCount` getters expose local error diagnostics for
 identity checks; they are separate from the copied snapshot and source authority.
 No new SDK API, helper module, provider, renderer or release is introduced.
+
+## Frame the selected original native object (#1518)
+
+Select a visible original Surface or Curve, then use **Frame selected**.
+This uses the existing public `fitGeometry` once for the current selected ref.
+It is separate from **Fit visible** and canvas F, which frame all visible objects.
+The action works only in an idle ready ordinary Source0 scene, including Source0
+generated from accepted IGES. No selection, hidden selection, other modes,
+presentation loss, unavailability and disposal disable this action.
+
+Framing uses sampled display vertices or Curve samples, current display poses
+and the canvas backing aspect. It does not compute original control-hull or
+exact native extrema bounds. Other original objects remain visible and drawn;
+they may move offscreen. Original shape, native parameters and selection remain.
+
+Point and derivative reports, U/V/t drafts, captured chord, four SDK measurement
+caches and whole File/import provenance remain. The accepted-camera refresh
+keeps existing body DOM nodes and focus. It does not reload source, change File
+intent, select geometry, inspect a new point or write measurement caches.
+Existing pure pin/chord checks can compile or evaluate D0; this is not a promise
+of zero CAD calls. Changed camera clears approximate screen-selection feedback
+and an old tap under its existing view scope. Pointer and keyboard controls
+keep their own current-state rules.
+
+The current complete source/Model/inventory/selected-visible display pin is
+checked against the last control sync before the public call. A stale control
+must refuse before it replaces that pin. Explicit sync can adopt current state.
+Known source acceptance uses the existing epoch; unseen identical external
+reloads do not have a certified history token. A source/selection change after
+public framing succeeds is a postcommit host refusal, without rollback promises.
+Original errors are reported once. Recoverable failure retains accepted camera,
+CPU state and pixels under public policy; fatal recovery reports unavailability
+without a framebuffer rollback promise.
+
+The zero-argument proof action `frameSelectedNative` uses the current target.
+`nativeSelectedFitSnapshot`, `syncNativeSelectedFit` and
+`disposeNativeSelectedFit` return copied local `{eligible,disposed,status}`.
+Local disposal occurs before other controls and Viewer; these hooks and the
+action read no Viewer state after local disposal. Cached status is last known.
+The test-only `nativeSelectedFitLastError` and `nativeSelectedFitErrorCount`
+getters expose local diagnostics, separate from source authority. No new SDK,
+helper module, provider, renderer, keyboard shortcut or release is added.

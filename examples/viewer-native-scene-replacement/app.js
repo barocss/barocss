@@ -25,6 +25,7 @@ const sha=async bytes=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',b
 const canvas=document.querySelector('canvas'),status=document.querySelector('#status'),inspection=document.querySelector('#inspection'),list=document.querySelector('#bodies');
 const navigateNativeView=document.querySelector('#navigate-native-view');
 const selectNativeObjects=document.querySelector('#select-native-objects'),nativeObjectSelectionOutput=document.querySelector('#native-object-selection-output');
+const frameSelectedNativeButton=document.querySelector('#frame-selected-native'),selectedNativeFitTarget=document.querySelector('#selected-native-fit-target');
 const nativeFileChoice=document.querySelector('#native-file-choice'),openNativeFileButton=document.querySelector('#open-native-file'),discardNativeFileButton=document.querySelector('#discard-native-file');
 const stagedNativeFile=document.querySelector('#staged-native-file'),acceptedNativeFile=document.querySelector('#accepted-native-file');
 const igesFileChoice=document.querySelector('#iges-file-choice'),igesYUpConfirmed=document.querySelector('#iges-yup-confirmed');
@@ -72,6 +73,7 @@ let nativeNavigation=null,nativeNavigationDisposed=false;
 let nativeKeyboardAdapter=null,nativeKeyboardDisposed=false,nativeKeyboardStatus='empty',nativeKeyboardPending=null;
 let nativeObjectSelectionEnabled=false,nativeObjectSelectionEligible=false,nativeObjectSelectionDisposed=false,nativeObjectSelectionStatus='empty';
 let nativeObjectTap=null,nativeObjectSourceEpoch=0,nativeObjectFeedbackFrame=null,nativeObjectSelectionLastError=null,nativeObjectSelectionErrorCount=0;
+let nativeSelectedFitEligible=false,nativeSelectedFitDisposed=false,nativeSelectedFitStatus='empty',nativeSelectedFitPin=null,nativeSelectedFitLastError=null,nativeSelectedFitErrorCount=0;
 let selectedPointScope=null,selectedPointReport=null,selectedPointEpoch=0,selectedPointDisposed=false;
 let nativeChordFirst=null,nativeChordReport=null,nativeChordEpoch=0,nativeChordDisposed=false;
 let selectedDerivativesScope=null,selectedDerivativesReport=null,selectedDerivativesEpoch=0,selectedDerivativesDisposed=false;
@@ -366,12 +368,12 @@ function setNativeNavigationEnabled(value){
 }
 function refreshNativeNavigationView(){
   if(nativeNavigationDisposed||disposed||running)return;
-  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();syncNativeNavigation();syncNativeObjectSelection();display('Native view moved.');
+  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();syncNativeNavigation();syncNativeObjectSelection();syncNativeSelectedFit();display('Native view moved.');
 }
 function reportNativeNavigationError(error){
   if(nativeNavigationDisposed||disposed)return;
   if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();}
-  syncNativeNavigation();syncNativeObjectSelection();display(error instanceof Error?error.message:String(error));
+  syncNativeNavigation();syncNativeObjectSelection();syncNativeSelectedFit();display(error instanceof Error?error.message:String(error));
 }
 function nativeKeyboardSnapshot(){
   check(arguments.length===0,'Keyboard snapshot takes no arguments.');
@@ -418,7 +420,7 @@ function reportNativeKeyboardError(error){
   if(nativeKeyboardPending)nativeKeyboardPending.failed=true;
   if(nativeKeyboardDisposed||disposed)return;
   if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();}
-  syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();display(error instanceof Error?error.message:String(error));
+  syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();display(error instanceof Error?error.message:String(error));
 }
 function nativeKeyboardObserver(event){
   const pending=nativeKeyboardPending;if(!pending||pending.event!==event)return;nativeKeyboardPending=null;
@@ -427,9 +429,74 @@ function nativeKeyboardObserver(event){
     if(event.key==='Escape'){
       refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();syncNativeNavigation();
       for(const button of list.querySelectorAll('button[aria-pressed]'))button.setAttribute('aria-pressed','false');
-      syncNativeKeyboard();syncNativeObjectSelection();display('Native selection cleared. Captured chord and SDK measurements remain.');
+      syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();display('Native selection cleared. Captured chord and SDK measurements remain.');
     }else{refreshNativeNavigationView();syncNativeKeyboard();display('Visible native display geometry fitted.');}
   }catch(error){reportNativeKeyboardError(error);}
+}
+function nativeSelectedFitSnapshot(){
+  check(arguments.length===0,'Selected framing snapshot takes no arguments.');
+  return clone({eligible:nativeSelectedFitEligible,disposed:nativeSelectedFitDisposed,status:nativeSelectedFitStatus});
+}
+function readNativeSelectedFitPin(){
+  check(!nativeSelectedFitDisposed&&!disposed&&!running,'Selected framing needs an idle live host.');
+  const state=viewer.getState();nativeSelectedFitStatus=state.status;
+  check(state.status==='ready'&&nativeObjectSelectionMode(state),'Selected framing needs a ready original Source0 scene.');
+  const scope=readNativePointScope(viewer),refs=[...state.surfaces.map(ref=>({kind:'surface',...ref})),...state.curves.map(ref=>({kind:'curve',...ref}))];
+  check(state.native.source===scope.source&&same(state.native.model,scope.model)&&same(refs,scope.refs)
+    &&scope.selectedRef&&same(state.selectedGeometry,scope.selectedRef)
+    &&scope.refs.some(ref=>same(ref,scope.selectedRef))&&state.visibleGeometry.some(ref=>same(ref,scope.selectedRef)),
+    'Select one current visible original Surface or Curve to frame.');
+  return clone({epoch:nativeObjectSourceEpoch,scope,native:state.native,packets:state.packets,visibleGeometry:state.visibleGeometry,selected:state.selected,
+    motion:state.motion,geometryMotion:state.geometryMotion,surfaceMaterials:state.surfaceMaterials,lighting:state.lighting,
+    fluidFrame:state.fluidFrame,clothFrame:state.clothFrame,frame:state.frame,sourceUnit:state.sourceUnit,mmToSceneUnit:state.mmToSceneUnit,
+    curveSampleVersion:state.curveSampleVersion,width:canvas.width,height:canvas.height});
+}
+function syncNativeSelectedFit(){
+  check(arguments.length===0,'Selected framing sync takes no arguments.');
+  if(nativeSelectedFitDisposed||disposed)return nativeSelectedFitSnapshot();
+  nativeSelectedFitPin=null;nativeSelectedFitEligible=false;
+  if(!running){nativeSelectedFitStatus=viewer.getState().status;try{nativeSelectedFitPin=readNativeSelectedFitPin();nativeSelectedFitEligible=true;}catch{}}
+  frameSelectedNativeButton.disabled=!nativeSelectedFitEligible;
+  selectedNativeFitTarget.textContent=nativeSelectedFitPin?'Current target: '+nativeSelectedFitPin.scope.selectedRef.kind+' '
+    +(nativeSelectedFitPin.scope.selectedRef.surfaceId??nativeSelectedFitPin.scope.selectedRef.curveId)+'.':'Select a visible original native Surface or Curve to frame.';
+  return nativeSelectedFitSnapshot();
+}
+function refreshNativeSelectedFitControls(){
+  if(nativeSelectedFitDisposed||disposed)return;
+  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();
+}
+function reportNativeSelectedFitError(error){
+  nativeSelectedFitLastError=error;nativeSelectedFitErrorCount++;
+  if(nativeSelectedFitDisposed||disposed)return;
+  try{refreshNativeSelectedFitControls();}catch{nativeSelectedFitEligible=false;frameSelectedNativeButton.disabled=true;}
+  display(error instanceof Error?error.message:String(error));
+}
+function frameSelectedNative(){
+  check(arguments.length===0,'Selected framing takes no arguments.');
+  check(!nativeSelectedFitDisposed&&!disposed,'Selected framing host is disposed.');
+  try{
+    check(!running&&nativeSelectedFitPin,'Select a current original native object to frame.');
+    const expected=clone(nativeSelectedFitPin),current=readNativeSelectedFitPin();
+    check(same(expected,current),'Selected framing control is stale; refresh the current target first.');
+    viewer.fitGeometry(clone(current.scope.selectedRef));
+    check(!nativeSelectedFitDisposed&&!disposed&&!running,'POSTCOMMIT: Selected framing host changed after presentation; the accepted camera is not rolled back.');
+    const accepted=readNativeSelectedFitPin();
+    check(same(current,accepted),'POSTCOMMIT: Native source or selected target changed after framing; the accepted state is not rolled back.');
+    refreshNativeSelectedFitControls();display('Selected native '+current.scope.selectedRef.kind+' '
+      +(current.scope.selectedRef.surfaceId??current.scope.selectedRef.curveId)+' framed from sampled display bounds.');
+  }catch(error){reportNativeSelectedFitError(error);throw error;}
+}
+function selectedNativeFitClick(event){
+  if(nativeSelectedFitDisposed||disposed)return;
+  try{check(event.currentTarget===frameSelectedNativeButton&&frameSelectedNativeButton.isConnected,'Selected framing control is detached.');frameSelectedNative();}
+  catch(error){if(error!==nativeSelectedFitLastError)display(error instanceof Error?error.message:String(error));}
+}
+function disposeNativeSelectedFit(){
+  check(arguments.length===0,'Selected framing disposal takes no arguments.');
+  if(nativeSelectedFitDisposed)return nativeSelectedFitSnapshot();
+  nativeSelectedFitDisposed=true;nativeSelectedFitEligible=false;nativeSelectedFitPin=null;
+  frameSelectedNativeButton.removeEventListener('click',selectedNativeFitClick);frameSelectedNativeButton.disabled=true;selectedNativeFitTarget.textContent='';
+  return nativeSelectedFitSnapshot();
 }
 function nativeObjectSelectionSnapshot(){
   check(arguments.length===0,'Selection snapshot takes no arguments.');
@@ -511,7 +578,7 @@ function reportNativeObjectSelectionError(error){
   if(nativeObjectSelectionDisposed||disposed)return;
   nativeObjectSelectionLastError=error;nativeObjectSelectionErrorCount++;
   if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();}
-  syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();display(error instanceof Error?error.message:String(error));
+  syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();display(error instanceof Error?error.message:String(error));
 }
 function nativeObjectSelectionClick(event){
   const tap=nativeObjectTap;nativeObjectTap=null;
@@ -534,7 +601,7 @@ function nativeObjectSelectionClick(event){
     const acceptedFrame=readNativeObjectSelectionFrame();
     check(tap.epoch===nativeObjectSourceEpoch&&same(expected,acceptedFrame),
       'POSTCOMMIT: Native source or view changed after selection; accepted selection is not rolled back.');
-    refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();
+    refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();
     const selected=viewer.getState().selectedGeometry;
     for(const row of list.children){const button=row.querySelector('button[aria-pressed]'),identity=row.querySelector('small');
       if(button&&identity){const value=JSON.parse(identity.textContent);button.setAttribute('aria-pressed',String(!!selected&&same(selected,value)));}}
@@ -555,7 +622,7 @@ function disposeNativeObjectSelection(){
 function render(){const state=viewer.getState(),live=!disposed&&state.status!=='context-lost',ready=live&&state.status==='ready';
   const acceptedIGES=igesFileOpen?.snapshot().accepted,importCurrent=matchingIGES(state,acceptedIGES);
   let nativePointScope=null;if(!selectedPointDisposed&&!disposed)try{nativePointScope=readNativePointScope(viewer);}catch{}
-  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();
+  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();
   for(const[id,button]of Object.entries(buttons))button.disabled=id==='dispose'?disposed:!live||running;
   buttons.fit.disabled=!ready||running||!state.visibleGeometry.length;buttons.query.disabled=disposed||running||!state.curves.length||(!live&&!importCurrent);
   list.replaceChildren(...inventory().map(body=>{const item=document.createElement('li'),label=document.createElement('label'),checkbox=document.createElement('input');
@@ -667,7 +734,7 @@ async function runProof(){invalidateFileIntents();if(running||disposed||viewer.g
     documentBytes:manifest[0]?.bytes,contextCount:contexts.size,resources:resourceCounts(),limits:result.scope});
     try{await fetch('/result',{method:'POST',body:JSON.stringify(result)});}catch(error){result.recordingError=error.message;}}
   return result;}
-function dispose(){if(disposed)return;disposeNativeObjectSelection();disposeNativeKeyboard();nativeNavigationDisposed=true;nativeNavigation?.dispose();selectedDerivativesDisposed=true;clearSelectedDerivativesContext();nativeChordDisposed=true;clearNativeChord();selectedPointDisposed=true;clearSelectedPointContext();igesFileOpen?.dispose();nativeSourceDownload?.dispose();nativeFileOpen?.dispose();viewer.dispose();viewer.dispose();disposed=true;render();const receipt={status:viewer.getState().status,resources:resourceCounts(),glErrors:glErrors(),
+function dispose(){if(disposed)return;disposeNativeSelectedFit();disposeNativeObjectSelection();disposeNativeKeyboard();nativeNavigationDisposed=true;nativeNavigation?.dispose();selectedDerivativesDisposed=true;clearSelectedDerivativesContext();nativeChordDisposed=true;clearNativeChord();selectedPointDisposed=true;clearSelectedPointContext();igesFileOpen?.dispose();nativeSourceDownload?.dispose();nativeFileOpen?.dispose();viewer.dispose();viewer.dispose();disposed=true;render();const receipt={status:viewer.getState().status,resources:resourceCounts(),glErrors:glErrors(),
   contextCount:contexts.size,errors:[...errors],warnings:[...warnings]};if(result)result.disposal=receipt;display(receipt);return receipt;}
 try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=await(await fetch('/document.cad-document.json')).arrayBuffer();
   check(bytes.byteLength===manifest[0].bytes&&await sha(bytes)===manifest[0].sha256,'Unchanged original document bytes/hash differ');originalBytes=new Uint8Array(bytes);originalText=new TextDecoder().decode(bytes);
@@ -686,7 +753,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=awa
   canvas.addEventListener('keydown',nativeKeyboardGuard,true);
   nativeNavigation=createNativePointerNavigation(viewer,canvas,{isIdle:()=>!running&&!disposed,onViewChange:refreshNativeNavigationView,onError:reportNativeNavigationError});
   replace();lossExtension=[...contexts][0].getExtension('WEBGL_lose_context');
-  window.__viewerReplacementProof={viewer,createViewer,prepareViewerNativeSceneAppearance,preparePrimitiveSceneFrame,compileMeshMaterial,validateMeshMaterialIR,PrimitiveSceneRecoveryError,
+  window.__viewerReplacementProof={viewer,frameSelectedNative,nativeSelectedFitSnapshot,syncNativeSelectedFit,disposeNativeSelectedFit,createViewer,prepareViewerNativeSceneAppearance,preparePrimitiveSceneFrame,compileMeshMaterial,validateMeshMaterialIR,PrimitiveSceneRecoveryError,
     setNativeObjectSelectionEnabled,nativeObjectSelectionSnapshot,syncNativeObjectSelection,invalidateNativeObjectSelection,disposeNativeObjectSelection,
     nativeKeyboardSnapshot,syncNativeKeyboard,disposeNativeKeyboard,
     createNativePointerNavigation,setNativeNavigationEnabled,syncNativeNavigation,nativeNavigationSnapshot,invalidateNativeNavigation,
@@ -700,11 +767,13 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=awa
     createCadGeometryReference,queryCadDocumentPoint,parseBooleanExtrusionFeatureGraph,prepareUniformCurvePreview,parseBaroCadAssembly,loadBaroCadAssembly,loadBaroCadModelSet,
     createClothWorld,createPhysicsClothWorld:createClothWorld,PrimitiveSceneRendererV2,PrimitiveViewport,BooleanShellSceneRenderer,resourceCounts,glErrors,pixelInfo,uploads,draws,errors,warnings,
     retained,capture,runProof,dispose,lossExtension,failAllocation,failNextBuffer(at=1){failAllocation('Buffer',at);},clearAllocationFault,
+    get nativeSelectedFitLastError(){return nativeSelectedFitLastError;},get nativeSelectedFitErrorCount(){return nativeSelectedFitErrorCount;},
     get nativeObjectSelectionLastError(){return nativeObjectSelectionLastError;},get nativeObjectSelectionErrorCount(){return nativeObjectSelectionErrorCount;},
     get gl(){return[...contexts][0];},get state(){return viewer.getState();},get result(){return result;}};
   window.__viewerReplacementProof.nativeSourcePanel=await(await fetch('/original-panel.barocad')).text();
   display('Ready: revision5 original two-asset document, four posed bodies, three visible, exact saved camera.');
 }catch(error){display({ok:false,stage:'startup',error:error.stack||error.message});}
+frameSelectedNativeButton.addEventListener('click',selectedNativeFitClick);
 selectNativeObjects.addEventListener('change',nativeObjectSelectionPreferenceChange);
 navigateNativeView.addEventListener('change',()=>action(()=>setNativeNavigationEnabled(navigateNativeView.checked)));
 replaceMountedAppearanceButton.addEventListener('click',()=>action(()=>replaceMountedAppearance()));
