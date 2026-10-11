@@ -6,6 +6,8 @@ This page describes `mesh-opaque-fragment-v0` for local experimental `@barocss/g
 
 Read [CPU material evaluation](./cpu-material-evaluation) to inspect a compiled program with explicit uniform values and, for UV profiles, dimensionless coordinates. That guide states the newer API version and its three supported material families.
 
+For authored `@fn` expressions, use [the reusable easing and palette guide](./reusable-shader) with its separate `363f583c` source profile. It adds bounded float/color-return declarations before locals; this page's older grammar, complete programs and public mesh contract retain their stated source snapshot.
+
 ## Procedural UV plasma
 
 The [advanced shader example](./advanced-shader) combines UV wrapping, domain distortion, interference waves and diagonal highlights. Edit the full shader, adjust four uniforms, or use its host Play/Pause controls. Its separate API version and example WebGL2 host are stated in the guide.

@@ -1,0 +1,684 @@
+{
+  "status": "passed",
+  "nodeVersion": "v22.22.0",
+  "sourceSHA256": "cffe6447db2f1113d85d2d2ab48ec019b9fe121d7c07400c51ee711cd1e31fb4",
+  "provenance": {
+    "sourcePin": "363f583cfb3d2fde6ebf70330ccd6e786e098713",
+    "verifiedBlobs": 279,
+    "ownSourceInputs": 276,
+    "ownDistInputs": 0,
+    "host": "CPU public compile/binding/evaluation consumer; no GL",
+    "oldVisualPinUnchanged": "5f5ad866205a21510ac69552e704cc162fa253b5"
+  },
+  "failedCandidates": [],
+  "source": "@shader #function_palette {\n  @uniform frequency: float(1,8,3);\n  @uniform tilt: float(0,1,.5);\n  @uniform phase: float(0,6.283185307179586,0);\n  @uniform strength: float(0,1,.85);\n  @fn ease(t: float(0,1)): float(pow(t,2));\n  @fn palette(t: float(0,1)): color(mix(#122A4A,#F6C453,t));\n  @let wave: float(sin((fract(uv_u)+fract(uv_v)*tilt)*frequency*6.283185307179586+phase)*.5+.5);\n  @fragment { color: palette(ease(wave)*strength); }\n}",
+  "materialProfile": "engine-opaque-uv-repeating-fragment-v0",
+  "shaderId": "function_palette",
+  "declaredUniforms": [
+    {
+      "name": "frequency",
+      "type": "float",
+      "min": 1,
+      "max": 8,
+      "default": 3
+    },
+    {
+      "name": "tilt",
+      "type": "float",
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "phase",
+      "type": "float",
+      "min": 0,
+      "max": 6.283185307179586,
+      "default": 0
+    },
+    {
+      "name": "strength",
+      "type": "float",
+      "min": 0,
+      "max": 1,
+      "default": 0.85
+    }
+  ],
+  "canonicalExpression": {
+    "nodes": 42,
+    "depth": 13,
+    "scope": "Public final expanded IR; compiler also charges definitions/reuse"
+  },
+  "lowered": {
+    "expression": "clamp(mix(vec3(0.0029323183239383628,0.018912983423721504,0.065753880260330091),vec3(0.92399333525187322,0.56049915220432822,0.084641510725429456),clamp(((((sin(((((fract(v_engine_uv.x)+(fract(v_engine_uv.y)*mat_u_1))*mat_u_0)*6.2831853071795862)+mat_u_2))*0.50000000000000000)+0.50000000000000000)*((sin(((((fract(v_engine_uv.x)+(fract(v_engine_uv.y)*mat_u_1))*mat_u_0)*6.2831853071795862)+mat_u_2))*0.50000000000000000)+0.50000000000000000))*mat_u_3),0.0,1.0)),vec3(0.0),vec3(1.0))",
+    "uniformDeclarations": "uniform float mat_u_0;\nuniform float mat_u_1;\nuniform float mat_u_2;\nuniform float mat_u_3;",
+    "uniformLayout": [
+      {
+        "name": "frequency",
+        "type": "float",
+        "min": 1,
+        "max": 8,
+        "default": 3,
+        "glslName": "mat_u_0"
+      },
+      {
+        "name": "tilt",
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 0.5,
+        "glslName": "mat_u_1"
+      },
+      {
+        "name": "phase",
+        "type": "float",
+        "min": 0,
+        "max": 6.283185307179586,
+        "default": 0,
+        "glslName": "mat_u_2"
+      },
+      {
+        "name": "strength",
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 0.85,
+        "glslName": "mat_u_3"
+      }
+    ],
+    "inputDeclarations": "in vec2 v_engine_uv;"
+  },
+  "completeScene": {
+    "format": "barocss-gpu-engine-scene",
+    "version": 0,
+    "id": "advanced_uv_scene",
+    "coordinateSystem": "right-handed-y-up",
+    "positionUnit": "scene",
+    "background": [
+      0,
+      0,
+      0
+    ],
+    "camera": {
+      "eye": [
+        0,
+        0,
+        3
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        1,
+        0
+      ],
+      "fovYDegrees": 45,
+      "near": 0.1,
+      "far": 10
+    },
+    "geometries": [
+      {
+        "format": "barocss-gpu-triangle-geometry",
+        "version": 0,
+        "id": "advanced_uv_quad",
+        "coordinateSystem": "right-handed-y-up",
+        "positionUnit": "scene",
+        "winding": "ccw",
+        "positions": [
+          -1,
+          -1,
+          0,
+          1,
+          -1,
+          0,
+          1,
+          1,
+          0,
+          -1,
+          1,
+          0
+        ],
+        "normals": [
+          0,
+          0,
+          1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1
+        ],
+        "uvs": [
+          0,
+          0,
+          1,
+          0,
+          1,
+          1,
+          0,
+          1
+        ],
+        "indices": [
+          0,
+          1,
+          2,
+          0,
+          2,
+          3
+        ]
+      }
+    ],
+    "materials": [
+      {
+        "id": "advanced_uv_material",
+        "type": "unlit",
+        "colorSpace": "linear",
+        "color": [
+          1,
+          1,
+          1
+        ]
+      }
+    ],
+    "nodes": [
+      {
+        "id": "advanced_uv_node",
+        "type": "mesh",
+        "parentId": null,
+        "translation": [
+          0,
+          0,
+          0
+        ],
+        "rotationXYZW": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "visible": true,
+        "geometryId": "advanced_uv_quad",
+        "materialId": "advanced_uv_material"
+      }
+    ]
+  },
+  "completeCompanion": {
+    "format": "barocss-gpu-engine-uv-repeating-material-bindings",
+    "version": 0,
+    "sceneId": "advanced_uv_scene",
+    "bindings": [
+      {
+        "materialId": "advanced_uv_material",
+        "material": {
+          "format": "barocss-gpu-engine-uv-repeating-material",
+          "version": 0,
+          "profile": "engine-opaque-uv-repeating-fragment-v0",
+          "source": "@shader #function_palette {\n  @uniform frequency: float(1,8,3);\n  @uniform tilt: float(0,1,.5);\n  @uniform phase: float(0,6.283185307179586,0);\n  @uniform strength: float(0,1,.85);\n  @fn ease(t: float(0,1)): float(pow(t,2));\n  @fn palette(t: float(0,1)): color(mix(#122A4A,#F6C453,t));\n  @let wave: float(sin((fract(uv_u)+fract(uv_v)*tilt)*frequency*6.283185307179586+phase)*.5+.5);\n  @fragment { color: palette(ease(wave)*strength); }\n}",
+          "shaderId": "function_palette",
+          "uniforms": [
+            {
+              "name": "frequency",
+              "type": "float",
+              "min": 1,
+              "max": 8,
+              "default": 3
+            },
+            {
+              "name": "tilt",
+              "type": "float",
+              "min": 0,
+              "max": 1,
+              "default": 0.5
+            },
+            {
+              "name": "phase",
+              "type": "float",
+              "min": 0,
+              "max": 6.283185307179586,
+              "default": 0
+            },
+            {
+              "name": "strength",
+              "type": "float",
+              "min": 0,
+              "max": 1,
+              "default": 0.85
+            }
+          ],
+          "expression": {
+            "kind": "call",
+            "type": "color",
+            "name": "mix",
+            "args": [
+              {
+                "kind": "color",
+                "type": "color",
+                "hex": "#122A4A",
+                "linear": [
+                  0.002932318323938363,
+                  0.018912983423721504,
+                  0.06575388026033009
+                ]
+              },
+              {
+                "kind": "color",
+                "type": "color",
+                "hex": "#F6C453",
+                "linear": [
+                  0.9239933352518732,
+                  0.5604991522043282,
+                  0.08464151072542946
+                ]
+              },
+              {
+                "kind": "binary",
+                "type": "float",
+                "operator": "*",
+                "left": {
+                  "kind": "binary",
+                  "type": "float",
+                  "operator": "*",
+                  "left": {
+                    "kind": "binary",
+                    "type": "float",
+                    "operator": "+",
+                    "left": {
+                      "kind": "binary",
+                      "type": "float",
+                      "operator": "*",
+                      "left": {
+                        "kind": "call",
+                        "type": "float",
+                        "name": "sin",
+                        "args": [
+                          {
+                            "kind": "binary",
+                            "type": "float",
+                            "operator": "+",
+                            "left": {
+                              "kind": "binary",
+                              "type": "float",
+                              "operator": "*",
+                              "left": {
+                                "kind": "binary",
+                                "type": "float",
+                                "operator": "*",
+                                "left": {
+                                  "kind": "binary",
+                                  "type": "float",
+                                  "operator": "+",
+                                  "left": {
+                                    "kind": "call",
+                                    "type": "float",
+                                    "name": "fract",
+                                    "args": [
+                                      {
+                                        "kind": "input",
+                                        "type": "float",
+                                        "name": "uv_u"
+                                      }
+                                    ]
+                                  },
+                                  "right": {
+                                    "kind": "binary",
+                                    "type": "float",
+                                    "operator": "*",
+                                    "left": {
+                                      "kind": "call",
+                                      "type": "float",
+                                      "name": "fract",
+                                      "args": [
+                                        {
+                                          "kind": "input",
+                                          "type": "float",
+                                          "name": "uv_v"
+                                        }
+                                      ]
+                                    },
+                                    "right": {
+                                      "kind": "uniform",
+                                      "type": "float",
+                                      "name": "tilt"
+                                    }
+                                  }
+                                },
+                                "right": {
+                                  "kind": "uniform",
+                                  "type": "float",
+                                  "name": "frequency"
+                                }
+                              },
+                              "right": {
+                                "kind": "float",
+                                "type": "float",
+                                "value": 6.283185307179586
+                              }
+                            },
+                            "right": {
+                              "kind": "uniform",
+                              "type": "float",
+                              "name": "phase"
+                            }
+                          }
+                        ]
+                      },
+                      "right": {
+                        "kind": "float",
+                        "type": "float",
+                        "value": 0.5
+                      }
+                    },
+                    "right": {
+                      "kind": "float",
+                      "type": "float",
+                      "value": 0.5
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "type": "float",
+                    "operator": "+",
+                    "left": {
+                      "kind": "binary",
+                      "type": "float",
+                      "operator": "*",
+                      "left": {
+                        "kind": "call",
+                        "type": "float",
+                        "name": "sin",
+                        "args": [
+                          {
+                            "kind": "binary",
+                            "type": "float",
+                            "operator": "+",
+                            "left": {
+                              "kind": "binary",
+                              "type": "float",
+                              "operator": "*",
+                              "left": {
+                                "kind": "binary",
+                                "type": "float",
+                                "operator": "*",
+                                "left": {
+                                  "kind": "binary",
+                                  "type": "float",
+                                  "operator": "+",
+                                  "left": {
+                                    "kind": "call",
+                                    "type": "float",
+                                    "name": "fract",
+                                    "args": [
+                                      {
+                                        "kind": "input",
+                                        "type": "float",
+                                        "name": "uv_u"
+                                      }
+                                    ]
+                                  },
+                                  "right": {
+                                    "kind": "binary",
+                                    "type": "float",
+                                    "operator": "*",
+                                    "left": {
+                                      "kind": "call",
+                                      "type": "float",
+                                      "name": "fract",
+                                      "args": [
+                                        {
+                                          "kind": "input",
+                                          "type": "float",
+                                          "name": "uv_v"
+                                        }
+                                      ]
+                                    },
+                                    "right": {
+                                      "kind": "uniform",
+                                      "type": "float",
+                                      "name": "tilt"
+                                    }
+                                  }
+                                },
+                                "right": {
+                                  "kind": "uniform",
+                                  "type": "float",
+                                  "name": "frequency"
+                                }
+                              },
+                              "right": {
+                                "kind": "float",
+                                "type": "float",
+                                "value": 6.283185307179586
+                              }
+                            },
+                            "right": {
+                              "kind": "uniform",
+                              "type": "float",
+                              "name": "phase"
+                            }
+                          }
+                        ]
+                      },
+                      "right": {
+                        "kind": "float",
+                        "type": "float",
+                        "value": 0.5
+                      }
+                    },
+                    "right": {
+                      "kind": "float",
+                      "type": "float",
+                      "value": 0.5
+                    }
+                  }
+                },
+                "right": {
+                  "kind": "uniform",
+                  "type": "float",
+                  "name": "strength"
+                }
+              }
+            ]
+          }
+        },
+        "uniforms": {}
+      }
+    ]
+  },
+  "admittedQuad": {
+    "vertices": 4,
+    "triangles": 2,
+    "draws": 1,
+    "originalUVs": [
+      0,
+      0,
+      1,
+      0,
+      1,
+      1,
+      0,
+      1
+    ]
+  },
+  "resolvedUniforms": {
+    "frequency": 3,
+    "tilt": 0.5,
+    "phase": 0,
+    "strength": 0.85
+  },
+  "samples": [
+    {
+      "name": "origin_defaults",
+      "uv": [
+        0,
+        0
+      ],
+      "uniforms": {},
+      "reference": {
+        "wave": 0.5,
+        "eased": 0.25,
+        "ratio": 0.2125,
+        "linearRGB": [
+          0.1986577844211245,
+          0.13400004428960044,
+          0.0697675017341637
+        ]
+      },
+      "sample": {
+        "format": "barocss-gpu-authored-material-sample",
+        "version": 0,
+        "profile": "binary64-linear-rgb-v0",
+        "colorSpace": "linear-rgb",
+        "uvUnit": "dimensionless",
+        "uniforms": {
+          "frequency": 3,
+          "tilt": 0.5,
+          "phase": 0,
+          "strength": 0.85
+        },
+        "uv": [
+          0,
+          0
+        ],
+        "linearRGB": [
+          0.1986577844211245,
+          0.13400004428960044,
+          0.0697675017341637
+        ]
+      }
+    },
+    {
+      "name": "gold_peak",
+      "uv": [
+        0.08333333333333333,
+        0
+      ],
+      "uniforms": {},
+      "reference": {
+        "wave": 1,
+        "eased": 1,
+        "ratio": 0.85,
+        "linearRGB": [
+          0.7858341827126829,
+          0.4792612268872372,
+          0.08180836615566456
+        ]
+      },
+      "sample": {
+        "format": "barocss-gpu-authored-material-sample",
+        "version": 0,
+        "profile": "binary64-linear-rgb-v0",
+        "colorSpace": "linear-rgb",
+        "uvUnit": "dimensionless",
+        "uniforms": {
+          "frequency": 3,
+          "tilt": 0.5,
+          "phase": 0,
+          "strength": 0.85
+        },
+        "uv": [
+          0.08333333333333333,
+          0
+        ],
+        "linearRGB": [
+          0.7858341827126829,
+          0.4792612268872372,
+          0.08180836615566456
+        ]
+      }
+    },
+    {
+      "name": "navy_phase",
+      "uv": [
+        0,
+        0
+      ],
+      "uniforms": {
+        "phase": 4.71238898038469
+      },
+      "reference": {
+        "wave": 0,
+        "eased": 0,
+        "ratio": 0,
+        "linearRGB": [
+          0.002932318323938363,
+          0.018912983423721504,
+          0.06575388026033009
+        ]
+      },
+      "sample": {
+        "format": "barocss-gpu-authored-material-sample",
+        "version": 0,
+        "profile": "binary64-linear-rgb-v0",
+        "colorSpace": "linear-rgb",
+        "uvUnit": "dimensionless",
+        "uniforms": {
+          "frequency": 3,
+          "tilt": 0.5,
+          "phase": 4.71238898038469,
+          "strength": 0.85
+        },
+        "uv": [
+          0,
+          0
+        ],
+        "linearRGB": [
+          0.002932318323938363,
+          0.018912983423721504,
+          0.06575388026033009
+        ]
+      }
+    }
+  ],
+  "refusals": [
+    {
+      "stage": "compile",
+      "candidate": "palette(2)",
+      "source": "@shader #function_palette {\n  @uniform frequency: float(1,8,3);\n  @uniform tilt: float(0,1,.5);\n  @uniform phase: float(0,6.283185307179586,0);\n  @uniform strength: float(0,1,.85);\n  @fn ease(t: float(0,1)): float(pow(t,2));\n  @fn palette(t: float(0,1)): color(mix(#122A4A,#F6C453,t));\n  @let wave: float(sin((fract(uv_u)+fract(uv_v)*tilt)*frequency*6.283185307179586+phase)*.5+.5);\n  @fragment { color: palette(2); }\n}",
+      "diagnostic": {
+        "code": "RANGE",
+        "message": "Function argument is outside its declared float bounds",
+        "start": 404,
+        "end": 411
+      }
+    },
+    {
+      "stage": "compile",
+      "candidate": "function captures phase",
+      "source": "@shader #function_palette {\n  @uniform frequency: float(1,8,3);\n  @uniform tilt: float(0,1,.5);\n  @uniform phase: float(0,6.283185307179586,0);\n  @uniform strength: float(0,1,.85);\n  @fn ease(t: float(0,1)): float(pow(t+phase,2));\n  @fn palette(t: float(0,1)): color(mix(#122A4A,#F6C453,t));\n  @let wave: float(sin((fract(uv_u)+fract(uv_v)*tilt)*frequency*6.283185307179586+phase)*.5+.5);\n  @fragment { color: palette(ease(wave)*strength); }\n}",
+      "diagnostic": {
+        "code": "TYPE",
+        "message": "Pure function body cannot capture phase",
+        "start": 220,
+        "end": 225
+      }
+    },
+    {
+      "stage": "evaluate",
+      "uniforms": {
+        "strength": 2
+      },
+      "code": "UNIFORM",
+      "causeName": "MeshMaterialError",
+      "causeCode": "UNIFORM",
+      "message": "Uniform strength outside its finite declared range"
+    }
+  ],
+  "acceptedImmutableReferenceAndValueRetained": true,
+  "callerInputsUnchanged": true,
+  "freshFrozenPublicCopies": true,
+  "actualGL": false,
+  "pixelParity": "not checked",
+  "scope": "One selected public compile/reconstruction/lowering/full-quad binding/three analytic binary64 RGB evaluations and genuine argument-range/pure-body-capture/uniform refusals; no renderer or provider suite"
+}
