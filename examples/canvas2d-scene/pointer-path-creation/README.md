@@ -111,3 +111,10 @@ The respective button is disabled at its boundary. Both are disabled during a pe
 The bounded path-order flow is in evidence/path-order. It checks actual Raise, overlap pixels and hitTest, full-scene/frame Undo and Redo, boundary Lower retention, invalid direction refusal and resource cleanup. Successful Lower and other mixed cases remain outside that native flow. The document snapshot is API serialization, not a downloaded document.
 
 Duplicate selected path uses the existing subtree API to copy the complete selected Q/C with a new reserved ID and the same origin, commands and paint. It inserts after the source and creates one history entry. The new path is selected; other artwork, assets and view stay. The eight-path and existing reservation/history/byte limits remain.
+
+
+## Select a covered path
+
+In Edit control mode, Alt-click the canvas at a point shared by authored paths to select the next covered path. Repeat Alt-click to cycle through the eligible paths at that point. Ordinary click selects the top path. Marker and Sprite hits keep their existing behavior. A single current path leaves its selected control and unfinished coordinate draft intact.
+
+This uses the existing public hitTestAll result. Selection changes neither artwork nor history. The #1557 native flow uses the previous duplicate document as an API serialization seed; it does not repeat Duplicate or claim another genuine Save. Affected source build and scoped types passed. The actual Chrome source flow passed: trusted ordinary Q3 pick, Alt Q1 and Alt wrap Q3 retained the complete Scene, history, view, assets and2457600 frame bytes; three manual native handle proofs agreed. Single current C2 retained its slot and unapplied draft; protected Marker was ignored. Two tracked GL populations and30 product callbacks retired, with capture0 and scene commits0. Outside and pending cases remain source-reviewed/runtimeUNRUN. Exact Integration adoption is pending.
