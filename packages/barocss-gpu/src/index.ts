@@ -228,3 +228,7 @@ export { mountMultiSurfaceWebGPUViewport } from './multi-surface-webgpu-viewport
 export type { MultiSurfaceWebGPUViewport } from './multi-surface-webgpu-viewport.js';
 export { MultiSurfaceWebGPUError, MultiSurfaceWebGPUDiagnosticCode } from './multi-surface-webgpu-frame.js';
 export type { MultiSurfaceWebGPUOptions, MultiSurfaceWebGPUStatus, MultiSurfaceWebGPUResources, MultiSurfaceWebGPULimits, MultiSurfaceWebGPUPick } from './multi-surface-webgpu-frame.js';
+
+// Complete trusted WebGPU program for original native Surface normalized UV01.
+export { lowerNativeSurfaceUV01ProgramWGSL } from './native-surface-uv01-program-wgsl.js';
+export type { LoweredNativeSurfaceUV01ProgramWGSL } from './native-surface-uv01-program-wgsl.js';

@@ -3948,3 +3948,47 @@ trusted source/program/packing/identity/resource contracts and public emitted ex
 It uses no fake GPU. Actual shader compilation/device/pixels/shared-depth picking,
 update retention/file remount/loss/driver cleanup and consumer adoption require
 separate genuine browser receipts. Native code is not publication or release.
+
+## Complete native Surface UV01 WebGPU program source
+
+`lowerNativeSurfaceUV01ProgramWGSL(originalIR)` calls the native UV01 material
+lowerer once and emits a complete trusted WGSL vertex and fragment program.
+Only original `NativeSurfaceUV01MaterialIR` is accepted. Its separate profile is
+`native-surface-opaque-uv01-program-wgsl-v0`; existing runtime profiles are unchanged.
+The result has nine fields: `format`, `version`, `profile`, `lowered`, `code`,
+`entryPoints`, `vertexLayout`, `abi`, and `targets`. Every call owns fresh deeply
+frozen ordinary data, including the copied original material source and coefficients.
+
+Vertex slots 0/1/2 are Float32 position/normal/native UV01 with strides 12/12/8.
+Positions and normals are already prepared in world scene units. The program
+applies view/projection and converts OpenGL clip Z to WebGPU Z once. Normal and
+original native normalized UV01 use explicit perspective, center interpolation.
+UV01 is not flipped, clamped, or redefined as texture UV. The future frame caller
+must reconstruct original Surface requests and match full identity, revision,
+vertex order, TEN and display context before joining separately derived arrays.
+Equal array lengths do not establish that authority.
+
+Group 0 uses frame binding 0 (160 bytes: view/projection/light/style), material
+binding 1 (64 bytes), and draw binding 2 (16 bytes: identity at offset 0).
+Target 0 is `rgba8unorm`; target 1 is `r32uint`. Future frame validation reserves
+identity 0 for background and maps positive draw identities to full model/geometry
+references. Source generation does not validate future buffers or topology.
+Color uses the native material expression, inherited Lambert lighting and gamma
+power 1/2.2 with opaque alpha. Style XYZ is reserved; there is no additional tint,
+texture sampling, or new light entity. The exact returned ABI describes all offsets.
+
+Complete code is limited to 64 KiB in UTF16 and UTF8. The complete signed finite
+ordinary result is counted incrementally against 2 MiB in both encodings before
+its final copy and freeze. Existing source, tree, Float32 and diagnostic guards
+remain active; direct lowerer errors and raw reflection causes pass through.
+Local budget errors use `MeshMaterialError` BUDGET with span 0/0 and no cause.
+
+After the affected library build, run the ONE source/API/original-file/cold flow:
+
+```sh
+node examples/gpu-scene/native-surface-uv01-program-flow.mjs --output /absolute/fresh/output
+```
+
+This API generates source. Actual device compilation, native frame/TEN joining,
+binding uploads, interpolation, pixels, physical picking, viewport lifecycle,
+consumer adoption and publication need their own receipts.
