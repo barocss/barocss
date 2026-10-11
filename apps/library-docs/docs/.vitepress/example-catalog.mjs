@@ -8,6 +8,12 @@ const materialSource = { language: 'GPU mesh material', libraries: Object.freeze
 // Category describes the reader's task. A shared display host is not an
 // integration task; libraries lists public packages used by that sample.
 export const exampleCatalog = Object.freeze({
+  'weave-shader': item('Woven grid shader', 'weave-shader', 'gpu', 'language', '/packages/gpu/weave-shader',
+    'Build crossing UV threads and compare their bounded blend with explicit weave controls.', { language: 'GPU repeating UV material' }),
+  'contour-shader': item('Contour bands shader', 'contour-shader', 'gpu', 'language', '/packages/gpu/contour-shader',
+    'Map a sinusoidal UV field into repeated contour bands with caller-controlled phase.', { language: 'GPU repeating UV material' }),
+  'halftone-shader': item('Halftone dots shader', 'halftone-shader', 'gpu', 'language', '/packages/gpu/halftone-shader',
+    'Shape repeated UV dots with a bounded coverage mask and explicit ink controls.', { language: 'GPU repeating UV material' }),
   'cad-rational-dome': item('CAD rational dome', 'cad-rational-dome', 'cad', 'language', '/packages/cad/rational-surface',
     'Compare a nine-pole rational dome with its evaluated surface by editing a typed rise and central weight.', cadDisplay('CAD source2')),
   'svg-export': item('SVG export', 'svg-export', 'canvas2d', 'api', '/packages/canvas2d/svg-export',

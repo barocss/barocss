@@ -1,0 +1,2575 @@
+{
+  "status": "passed",
+  "nodeVersion": "v22.22.0",
+  "sourceSHA256": "332588b46191f5992417c79a0a6f7bf6848eaba3f0de762b08fac3cdfafaf14e",
+  "provenance": {
+    "sourcePin": "7e96b959746a3fee957644fd1b5ccaf79c992c6c",
+    "verifiedBlobs": 242,
+    "ownSourceInputs": 239,
+    "ownDistInputs": 0,
+    "host": "CPU public compile/binding/evaluation consumer; no GL",
+    "oldVisualPinUnchanged": "5f5ad866205a21510ac69552e704cc162fa253b5"
+  },
+  "failedCandidates": [
+    {
+      "source": "@shader #halftone_dots {\n  @uniform density: float(2,12,6);\n  @uniform size: float(.01,.15,.05);\n  @uniform phase: float(0,6.283185307179586,0);\n  @uniform ink: float(0,1,.9);\n  @let x: float(fract(fract(uv_u)*density+phase*.15915494309189535)-.5);\n  @let y: float(fract(fract(uv_v)*density)-.5);\n  @let distance2: float(pow(abs(x),2)+pow(abs(y),2));\n  @let dot: float(1-smoothstep(.01,.015,distance2-size));\n  @fragment { color: mix(#F3EAD7,#182F43,dot*ink); }\n}",
+      "firstFailure": {
+        "name": "AssertionError",
+        "message": "[{\"code\":\"BUDGET\",\"message\":\"Material exceeds256 definition and expanded expression nodes\",\"start\":371,\"end\":381}]\n\nfalse !== true\n",
+        "stack": "AssertionError [ERR_ASSERTION]: [{\"code\":\"BUDGET\",\"message\":\"Material exceeds256 definition and expanded expression nodes\",\"start\":371,\"end\":381}]\n\nfalse !== true\n\n    at [bundled consumer]\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async file:///Users/user/.codex/worktrees/library-docs/barocss/apps/library-docs/scripts/check-halftone-shader.mjs:99:19"
+      }
+    },
+    {
+      "source": "@shader #halftone_dots {\n  @uniform density: float(2,12,6);\n  @uniform size: float(.01,.15,.05);\n  @uniform phase: float(0,6.283185307179586,0);\n  @uniform ink: float(0,1,.9);\n  @let dot: float(1-smoothstep(.01,.015,pow(abs(fract(fract(uv_u)*density+phase*.15915494309189535)-.5),2)+pow(abs(fract(fract(uv_v)*density)-.5),2)-size));\n  @fragment { color: mix(#F3EAD7,#182F43,dot*ink); }\n}",
+      "firstFailure": {
+        "name": "AssertionError",
+        "message": "[{\"code\":\"BUDGET\",\"message\":\"Material exceeds256 definition and expanded expression nodes\",\"start\":196,\"end\":206}]\n\nfalse !== true\n",
+        "stack": "AssertionError [ERR_ASSERTION]: [{\"code\":\"BUDGET\",\"message\":\"Material exceeds256 definition and expanded expression nodes\",\"start\":196,\"end\":206}]\n\nfalse !== true\n\n    at [bundled consumer]\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async file:///Users/user/.codex/worktrees/library-docs/barocss/apps/library-docs/scripts/check-halftone-shader.mjs:99:19"
+      }
+    },
+    {
+      "source": "@shader #halftone_dots {\n  @uniform density: float(2,12,6);\n  @uniform size: float(0,.2,.1);\n  @uniform phase: float(0,6.283185307179586,0);\n  @uniform ink: float(0,1,.9);\n  @fragment { color: mix(#F3EAD7,#182F43,smoothstep(.8,.9,(cos(fract(uv_u)*density*6.283185307179586-phase)+cos(fract(uv_v)*density*6.283185307179586))*.25+.5+size)*ink); }\n}",
+      "firstFailure": {
+        "name": "AssertionError",
+        "message": "[{\"code\":\"BUDGET\",\"message\":\"Material expression exceeds depth16\",\"start\":213,\"end\":223}]\n\nfalse !== true\n",
+        "stack": "AssertionError [ERR_ASSERTION]: [{\"code\":\"BUDGET\",\"message\":\"Material expression exceeds depth16\",\"start\":213,\"end\":223}]\n\nfalse !== true\n\n    at [bundled consumer]\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async file:///Users/user/.codex/worktrees/library-docs/barocss/apps/library-docs/scripts/check-halftone-shader.mjs:99:19"
+      }
+    },
+    {
+      "source": "@shader #halftone_dots {\n  @uniform density: float(2,12,6);\n  @uniform size: float(0,.2,.1);\n  @uniform phase: float(0,6.283185307179586,0);\n  @uniform ink: float(0,1,.9);\n  @fragment { color: mix(#F3EAD7,#182F43,smoothstep(.3,.4,(cos(fract(uv_u)*(density*6.283185307179586)-phase)+cos(fract(uv_v)*(density*6.283185307179586)))*.25+size)*ink); }\n}",
+      "firstFailure": {
+        "name": "AssertionError",
+        "message": "[{\"code\":\"BUDGET\",\"message\":\"Material expression exceeds depth16\",\"start\":193,\"end\":196}]\n\nfalse !== true\n",
+        "stack": "AssertionError [ERR_ASSERTION]: [{\"code\":\"BUDGET\",\"message\":\"Material expression exceeds depth16\",\"start\":193,\"end\":196}]\n\nfalse !== true\n\n    at [bundled consumer]\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async file:///Users/user/.codex/worktrees/library-docs/barocss/apps/library-docs/scripts/check-halftone-shader.mjs:99:19"
+      }
+    }
+  ],
+  "source": "@shader #halftone_dots {\n  @uniform density: float(2,12,6);\n  @uniform size: float(0,.8,.4);\n  @uniform phase: float(0,6.283185307179586,0);\n  @uniform ink: float(0,1,.9);\n  @fragment { color: mix(#F3EAD7,#182F43,smoothstep(1.2,1.6,(cos(fract(uv_u)*(density*6.283185307179586)-phase)+cos(fract(uv_v)*(density*6.283185307179586)))+size)*ink); }\n}",
+  "sourceUTF8Bytes": 345,
+  "materialProfile": "engine-opaque-uv-repeating-fragment-v0",
+  "canonicalExpression": {
+    "nodes": 92,
+    "depth": 16,
+    "scope": "Public final expanded IR occurrences, not private definition budget usage"
+  },
+  "declaredUniforms": [
+    {
+      "name": "density",
+      "type": "float",
+      "min": 2,
+      "max": 12,
+      "default": 6
+    },
+    {
+      "name": "size",
+      "type": "float",
+      "min": 0,
+      "max": 0.8,
+      "default": 0.4
+    },
+    {
+      "name": "phase",
+      "type": "float",
+      "min": 0,
+      "max": 6.283185307179586,
+      "default": 0
+    },
+    {
+      "name": "ink",
+      "type": "float",
+      "min": 0,
+      "max": 1,
+      "default": 0.9
+    }
+  ],
+  "lowered": {
+    "expression": "clamp(mix(vec3(0.89938451304652944,0.82772579445503358,0.68703081215462491),vec3(0.0055217448502396585,0.024222942067534239,0.052841625522879035),clamp((clamp(((clamp(((((cos(((fract(v_engine_uv.x)*(mat_u_0*6.2831853071795862))-mat_u_2))+cos((fract(v_engine_uv.y)*(mat_u_0*6.2831853071795862))))+mat_u_1)-1.2000000000000000)*2.4999999999999991),0.0000000000000000,1.0000000000000000)*clamp(((((cos(((fract(v_engine_uv.x)*(mat_u_0*6.2831853071795862))-mat_u_2))+cos((fract(v_engine_uv.y)*(mat_u_0*6.2831853071795862))))+mat_u_1)-1.2000000000000000)*2.4999999999999991),0.0000000000000000,1.0000000000000000))*(3.0000000000000000-(2.0000000000000000*clamp(((((cos(((fract(v_engine_uv.x)*(mat_u_0*6.2831853071795862))-mat_u_2))+cos((fract(v_engine_uv.y)*(mat_u_0*6.2831853071795862))))+mat_u_1)-1.2000000000000000)*2.4999999999999991),0.0000000000000000,1.0000000000000000)))),0.0000000000000000,1.0000000000000000)*mat_u_3),0.0,1.0)),vec3(0.0),vec3(1.0))",
+    "uniformDeclarations": "uniform float mat_u_0;\nuniform float mat_u_1;\nuniform float mat_u_2;\nuniform float mat_u_3;",
+    "uniformLayout": [
+      {
+        "name": "density",
+        "type": "float",
+        "min": 2,
+        "max": 12,
+        "default": 6,
+        "glslName": "mat_u_0"
+      },
+      {
+        "name": "size",
+        "type": "float",
+        "min": 0,
+        "max": 0.8,
+        "default": 0.4,
+        "glslName": "mat_u_1"
+      },
+      {
+        "name": "phase",
+        "type": "float",
+        "min": 0,
+        "max": 6.283185307179586,
+        "default": 0,
+        "glslName": "mat_u_2"
+      },
+      {
+        "name": "ink",
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 0.9,
+        "glslName": "mat_u_3"
+      }
+    ],
+    "inputDeclarations": "in vec2 v_engine_uv;"
+  },
+  "completeScene": {
+    "format": "barocss-gpu-engine-scene",
+    "version": 0,
+    "id": "advanced_uv_scene",
+    "coordinateSystem": "right-handed-y-up",
+    "positionUnit": "scene",
+    "background": [
+      0,
+      0,
+      0
+    ],
+    "camera": {
+      "eye": [
+        0,
+        0,
+        3
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        1,
+        0
+      ],
+      "fovYDegrees": 45,
+      "near": 0.1,
+      "far": 10
+    },
+    "geometries": [
+      {
+        "format": "barocss-gpu-triangle-geometry",
+        "version": 0,
+        "id": "advanced_uv_quad",
+        "coordinateSystem": "right-handed-y-up",
+        "positionUnit": "scene",
+        "winding": "ccw",
+        "positions": [
+          -1,
+          -1,
+          0,
+          1,
+          -1,
+          0,
+          1,
+          1,
+          0,
+          -1,
+          1,
+          0
+        ],
+        "normals": [
+          0,
+          0,
+          1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1
+        ],
+        "uvs": [
+          0,
+          0,
+          1,
+          0,
+          1,
+          1,
+          0,
+          1
+        ],
+        "indices": [
+          0,
+          1,
+          2,
+          0,
+          2,
+          3
+        ]
+      }
+    ],
+    "materials": [
+      {
+        "id": "advanced_uv_material",
+        "type": "unlit",
+        "colorSpace": "linear",
+        "color": [
+          1,
+          1,
+          1
+        ]
+      }
+    ],
+    "nodes": [
+      {
+        "id": "advanced_uv_node",
+        "type": "mesh",
+        "parentId": null,
+        "translation": [
+          0,
+          0,
+          0
+        ],
+        "rotationXYZW": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "visible": true,
+        "geometryId": "advanced_uv_quad",
+        "materialId": "advanced_uv_material"
+      }
+    ]
+  },
+  "completeCompanion": {
+    "format": "barocss-gpu-engine-uv-repeating-material-bindings",
+    "version": 0,
+    "sceneId": "advanced_uv_scene",
+    "bindings": [
+      {
+        "materialId": "advanced_uv_material",
+        "material": {
+          "format": "barocss-gpu-engine-uv-repeating-material",
+          "version": 0,
+          "profile": "engine-opaque-uv-repeating-fragment-v0",
+          "source": "@shader #halftone_dots {\n  @uniform density: float(2,12,6);\n  @uniform size: float(0,.8,.4);\n  @uniform phase: float(0,6.283185307179586,0);\n  @uniform ink: float(0,1,.9);\n  @fragment { color: mix(#F3EAD7,#182F43,smoothstep(1.2,1.6,(cos(fract(uv_u)*(density*6.283185307179586)-phase)+cos(fract(uv_v)*(density*6.283185307179586)))+size)*ink); }\n}",
+          "shaderId": "halftone_dots",
+          "uniforms": [
+            {
+              "name": "density",
+              "type": "float",
+              "min": 2,
+              "max": 12,
+              "default": 6
+            },
+            {
+              "name": "size",
+              "type": "float",
+              "min": 0,
+              "max": 0.8,
+              "default": 0.4
+            },
+            {
+              "name": "phase",
+              "type": "float",
+              "min": 0,
+              "max": 6.283185307179586,
+              "default": 0
+            },
+            {
+              "name": "ink",
+              "type": "float",
+              "min": 0,
+              "max": 1,
+              "default": 0.9
+            }
+          ],
+          "expression": {
+            "kind": "call",
+            "type": "color",
+            "name": "mix",
+            "args": [
+              {
+                "kind": "color",
+                "type": "color",
+                "hex": "#F3EAD7",
+                "linear": [
+                  0.8993845130465294,
+                  0.8277257944550336,
+                  0.6870308121546249
+                ]
+              },
+              {
+                "kind": "color",
+                "type": "color",
+                "hex": "#182F43",
+                "linear": [
+                  0.0055217448502396585,
+                  0.02422294206753424,
+                  0.052841625522879035
+                ]
+              },
+              {
+                "kind": "binary",
+                "type": "float",
+                "operator": "*",
+                "left": {
+                  "kind": "call",
+                  "type": "float",
+                  "name": "clamp",
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "type": "float",
+                      "operator": "*",
+                      "left": {
+                        "kind": "binary",
+                        "type": "float",
+                        "operator": "*",
+                        "left": {
+                          "kind": "call",
+                          "type": "float",
+                          "name": "clamp",
+                          "args": [
+                            {
+                              "kind": "binary",
+                              "type": "float",
+                              "operator": "*",
+                              "left": {
+                                "kind": "binary",
+                                "type": "float",
+                                "operator": "-",
+                                "left": {
+                                  "kind": "binary",
+                                  "type": "float",
+                                  "operator": "+",
+                                  "left": {
+                                    "kind": "binary",
+                                    "type": "float",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "call",
+                                      "type": "float",
+                                      "name": "cos",
+                                      "args": [
+                                        {
+                                          "kind": "binary",
+                                          "type": "float",
+                                          "operator": "-",
+                                          "left": {
+                                            "kind": "binary",
+                                            "type": "float",
+                                            "operator": "*",
+                                            "left": {
+                                              "kind": "call",
+                                              "type": "float",
+                                              "name": "fract",
+                                              "args": [
+                                                {
+                                                  "kind": "input",
+                                                  "type": "float",
+                                                  "name": "uv_u"
+                                                }
+                                              ]
+                                            },
+                                            "right": {
+                                              "kind": "binary",
+                                              "type": "float",
+                                              "operator": "*",
+                                              "left": {
+                                                "kind": "uniform",
+                                                "type": "float",
+                                                "name": "density"
+                                              },
+                                              "right": {
+                                                "kind": "float",
+                                                "type": "float",
+                                                "value": 6.283185307179586
+                                              }
+                                            }
+                                          },
+                                          "right": {
+                                            "kind": "uniform",
+                                            "type": "float",
+                                            "name": "phase"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    "right": {
+                                      "kind": "call",
+                                      "type": "float",
+                                      "name": "cos",
+                                      "args": [
+                                        {
+                                          "kind": "binary",
+                                          "type": "float",
+                                          "operator": "*",
+                                          "left": {
+                                            "kind": "call",
+                                            "type": "float",
+                                            "name": "fract",
+                                            "args": [
+                                              {
+                                                "kind": "input",
+                                                "type": "float",
+                                                "name": "uv_v"
+                                              }
+                                            ]
+                                          },
+                                          "right": {
+                                            "kind": "binary",
+                                            "type": "float",
+                                            "operator": "*",
+                                            "left": {
+                                              "kind": "uniform",
+                                              "type": "float",
+                                              "name": "density"
+                                            },
+                                            "right": {
+                                              "kind": "float",
+                                              "type": "float",
+                                              "value": 6.283185307179586
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "uniform",
+                                    "type": "float",
+                                    "name": "size"
+                                  }
+                                },
+                                "right": {
+                                  "kind": "float",
+                                  "type": "float",
+                                  "value": 1.2
+                                }
+                              },
+                              "right": {
+                                "kind": "float",
+                                "type": "float",
+                                "value": 2.499999999999999
+                              }
+                            },
+                            {
+                              "kind": "float",
+                              "type": "float",
+                              "value": 0
+                            },
+                            {
+                              "kind": "float",
+                              "type": "float",
+                              "value": 1
+                            }
+                          ]
+                        },
+                        "right": {
+                          "kind": "call",
+                          "type": "float",
+                          "name": "clamp",
+                          "args": [
+                            {
+                              "kind": "binary",
+                              "type": "float",
+                              "operator": "*",
+                              "left": {
+                                "kind": "binary",
+                                "type": "float",
+                                "operator": "-",
+                                "left": {
+                                  "kind": "binary",
+                                  "type": "float",
+                                  "operator": "+",
+                                  "left": {
+                                    "kind": "binary",
+                                    "type": "float",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "call",
+                                      "type": "float",
+                                      "name": "cos",
+                                      "args": [
+                                        {
+                                          "kind": "binary",
+                                          "type": "float",
+                                          "operator": "-",
+                                          "left": {
+                                            "kind": "binary",
+                                            "type": "float",
+                                            "operator": "*",
+                                            "left": {
+                                              "kind": "call",
+                                              "type": "float",
+                                              "name": "fract",
+                                              "args": [
+                                                {
+                                                  "kind": "input",
+                                                  "type": "float",
+                                                  "name": "uv_u"
+                                                }
+                                              ]
+                                            },
+                                            "right": {
+                                              "kind": "binary",
+                                              "type": "float",
+                                              "operator": "*",
+                                              "left": {
+                                                "kind": "uniform",
+                                                "type": "float",
+                                                "name": "density"
+                                              },
+                                              "right": {
+                                                "kind": "float",
+                                                "type": "float",
+                                                "value": 6.283185307179586
+                                              }
+                                            }
+                                          },
+                                          "right": {
+                                            "kind": "uniform",
+                                            "type": "float",
+                                            "name": "phase"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    "right": {
+                                      "kind": "call",
+                                      "type": "float",
+                                      "name": "cos",
+                                      "args": [
+                                        {
+                                          "kind": "binary",
+                                          "type": "float",
+                                          "operator": "*",
+                                          "left": {
+                                            "kind": "call",
+                                            "type": "float",
+                                            "name": "fract",
+                                            "args": [
+                                              {
+                                                "kind": "input",
+                                                "type": "float",
+                                                "name": "uv_v"
+                                              }
+                                            ]
+                                          },
+                                          "right": {
+                                            "kind": "binary",
+                                            "type": "float",
+                                            "operator": "*",
+                                            "left": {
+                                              "kind": "uniform",
+                                              "type": "float",
+                                              "name": "density"
+                                            },
+                                            "right": {
+                                              "kind": "float",
+                                              "type": "float",
+                                              "value": 6.283185307179586
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "uniform",
+                                    "type": "float",
+                                    "name": "size"
+                                  }
+                                },
+                                "right": {
+                                  "kind": "float",
+                                  "type": "float",
+                                  "value": 1.2
+                                }
+                              },
+                              "right": {
+                                "kind": "float",
+                                "type": "float",
+                                "value": 2.499999999999999
+                              }
+                            },
+                            {
+                              "kind": "float",
+                              "type": "float",
+                              "value": 0
+                            },
+                            {
+                              "kind": "float",
+                              "type": "float",
+                              "value": 1
+                            }
+                          ]
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "type": "float",
+                        "operator": "-",
+                        "left": {
+                          "kind": "float",
+                          "type": "float",
+                          "value": 3
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "type": "float",
+                          "operator": "*",
+                          "left": {
+                            "kind": "float",
+                            "type": "float",
+                            "value": 2
+                          },
+                          "right": {
+                            "kind": "call",
+                            "type": "float",
+                            "name": "clamp",
+                            "args": [
+                              {
+                                "kind": "binary",
+                                "type": "float",
+                                "operator": "*",
+                                "left": {
+                                  "kind": "binary",
+                                  "type": "float",
+                                  "operator": "-",
+                                  "left": {
+                                    "kind": "binary",
+                                    "type": "float",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "binary",
+                                      "type": "float",
+                                      "operator": "+",
+                                      "left": {
+                                        "kind": "call",
+                                        "type": "float",
+                                        "name": "cos",
+                                        "args": [
+                                          {
+                                            "kind": "binary",
+                                            "type": "float",
+                                            "operator": "-",
+                                            "left": {
+                                              "kind": "binary",
+                                              "type": "float",
+                                              "operator": "*",
+                                              "left": {
+                                                "kind": "call",
+                                                "type": "float",
+                                                "name": "fract",
+                                                "args": [
+                                                  {
+                                                    "kind": "input",
+                                                    "type": "float",
+                                                    "name": "uv_u"
+                                                  }
+                                                ]
+                                              },
+                                              "right": {
+                                                "kind": "binary",
+                                                "type": "float",
+                                                "operator": "*",
+                                                "left": {
+                                                  "kind": "uniform",
+                                                  "type": "float",
+                                                  "name": "density"
+                                                },
+                                                "right": {
+                                                  "kind": "float",
+                                                  "type": "float",
+                                                  "value": 6.283185307179586
+                                                }
+                                              }
+                                            },
+                                            "right": {
+                                              "kind": "uniform",
+                                              "type": "float",
+                                              "name": "phase"
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      "right": {
+                                        "kind": "call",
+                                        "type": "float",
+                                        "name": "cos",
+                                        "args": [
+                                          {
+                                            "kind": "binary",
+                                            "type": "float",
+                                            "operator": "*",
+                                            "left": {
+                                              "kind": "call",
+                                              "type": "float",
+                                              "name": "fract",
+                                              "args": [
+                                                {
+                                                  "kind": "input",
+                                                  "type": "float",
+                                                  "name": "uv_v"
+                                                }
+                                              ]
+                                            },
+                                            "right": {
+                                              "kind": "binary",
+                                              "type": "float",
+                                              "operator": "*",
+                                              "left": {
+                                                "kind": "uniform",
+                                                "type": "float",
+                                                "name": "density"
+                                              },
+                                              "right": {
+                                                "kind": "float",
+                                                "type": "float",
+                                                "value": 6.283185307179586
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    "right": {
+                                      "kind": "uniform",
+                                      "type": "float",
+                                      "name": "size"
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "float",
+                                    "type": "float",
+                                    "value": 1.2
+                                  }
+                                },
+                                "right": {
+                                  "kind": "float",
+                                  "type": "float",
+                                  "value": 2.499999999999999
+                                }
+                              },
+                              {
+                                "kind": "float",
+                                "type": "float",
+                                "value": 0
+                              },
+                              {
+                                "kind": "float",
+                                "type": "float",
+                                "value": 1
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "kind": "float",
+                      "type": "float",
+                      "value": 0
+                    },
+                    {
+                      "kind": "float",
+                      "type": "float",
+                      "value": 1
+                    }
+                  ]
+                },
+                "right": {
+                  "kind": "uniform",
+                  "type": "float",
+                  "name": "ink"
+                }
+              }
+            ]
+          }
+        },
+        "uniforms": {}
+      }
+    ]
+  },
+  "admittedQuad": {
+    "vertices": 4,
+    "triangles": 2,
+    "draws": 1
+  },
+  "samples": [
+    {
+      "label": "spot_center",
+      "uv": [
+        0,
+        0
+      ],
+      "uniforms": {},
+      "cosineSum": 2,
+      "field": 2.4,
+      "dotMask": 1,
+      "ratio": 0.9,
+      "expectedLinearRGB": [
+        0.09490802166986863,
+        0.10457322730628416,
+        0.11626054418605361
+      ],
+      "sample": {
+        "format": "barocss-gpu-authored-material-sample",
+        "version": 0,
+        "profile": "binary64-linear-rgb-v0",
+        "colorSpace": "linear-rgb",
+        "uvUnit": "dimensionless",
+        "source": "@shader #halftone_dots {\n  @uniform density: float(2,12,6);\n  @uniform size: float(0,.8,.4);\n  @uniform phase: float(0,6.283185307179586,0);\n  @uniform ink: float(0,1,.9);\n  @fragment { color: mix(#F3EAD7,#182F43,smoothstep(1.2,1.6,(cos(fract(uv_u)*(density*6.283185307179586)-phase)+cos(fract(uv_v)*(density*6.283185307179586)))+size)*ink); }\n}",
+        "material": {
+          "format": "barocss-gpu-engine-uv-repeating-material",
+          "version": 0,
+          "profile": "engine-opaque-uv-repeating-fragment-v0",
+          "source": "@shader #halftone_dots {\n  @uniform density: float(2,12,6);\n  @uniform size: float(0,.8,.4);\n  @uniform phase: float(0,6.283185307179586,0);\n  @uniform ink: float(0,1,.9);\n  @fragment { color: mix(#F3EAD7,#182F43,smoothstep(1.2,1.6,(cos(fract(uv_u)*(density*6.283185307179586)-phase)+cos(fract(uv_v)*(density*6.283185307179586)))+size)*ink); }\n}",
+          "shaderId": "halftone_dots",
+          "uniforms": [
+            {
+              "name": "density",
+              "type": "float",
+              "min": 2,
+              "max": 12,
+              "default": 6
+            },
+            {
+              "name": "size",
+              "type": "float",
+              "min": 0,
+              "max": 0.8,
+              "default": 0.4
+            },
+            {
+              "name": "phase",
+              "type": "float",
+              "min": 0,
+              "max": 6.283185307179586,
+              "default": 0
+            },
+            {
+              "name": "ink",
+              "type": "float",
+              "min": 0,
+              "max": 1,
+              "default": 0.9
+            }
+          ],
+          "expression": {
+            "kind": "call",
+            "type": "color",
+            "name": "mix",
+            "args": [
+              {
+                "kind": "color",
+                "type": "color",
+                "hex": "#F3EAD7",
+                "linear": [
+                  0.8993845130465294,
+                  0.8277257944550336,
+                  0.6870308121546249
+                ]
+              },
+              {
+                "kind": "color",
+                "type": "color",
+                "hex": "#182F43",
+                "linear": [
+                  0.0055217448502396585,
+                  0.02422294206753424,
+                  0.052841625522879035
+                ]
+              },
+              {
+                "kind": "binary",
+                "type": "float",
+                "operator": "*",
+                "left": {
+                  "kind": "call",
+                  "type": "float",
+                  "name": "clamp",
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "type": "float",
+                      "operator": "*",
+                      "left": {
+                        "kind": "binary",
+                        "type": "float",
+                        "operator": "*",
+                        "left": {
+                          "kind": "call",
+                          "type": "float",
+                          "name": "clamp",
+                          "args": [
+                            {
+                              "kind": "binary",
+                              "type": "float",
+                              "operator": "*",
+                              "left": {
+                                "kind": "binary",
+                                "type": "float",
+                                "operator": "-",
+                                "left": {
+                                  "kind": "binary",
+                                  "type": "float",
+                                  "operator": "+",
+                                  "left": {
+                                    "kind": "binary",
+                                    "type": "float",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "call",
+                                      "type": "float",
+                                      "name": "cos",
+                                      "args": [
+                                        {
+                                          "kind": "binary",
+                                          "type": "float",
+                                          "operator": "-",
+                                          "left": {
+                                            "kind": "binary",
+                                            "type": "float",
+                                            "operator": "*",
+                                            "left": {
+                                              "kind": "call",
+                                              "type": "float",
+                                              "name": "fract",
+                                              "args": [
+                                                {
+                                                  "kind": "input",
+                                                  "type": "float",
+                                                  "name": "uv_u"
+                                                }
+                                              ]
+                                            },
+                                            "right": {
+                                              "kind": "binary",
+                                              "type": "float",
+                                              "operator": "*",
+                                              "left": {
+                                                "kind": "uniform",
+                                                "type": "float",
+                                                "name": "density"
+                                              },
+                                              "right": {
+                                                "kind": "float",
+                                                "type": "float",
+                                                "value": 6.283185307179586
+                                              }
+                                            }
+                                          },
+                                          "right": {
+                                            "kind": "uniform",
+                                            "type": "float",
+                                            "name": "phase"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    "right": {
+                                      "kind": "call",
+                                      "type": "float",
+                                      "name": "cos",
+                                      "args": [
+                                        {
+                                          "kind": "binary",
+                                          "type": "float",
+                                          "operator": "*",
+                                          "left": {
+                                            "kind": "call",
+                                            "type": "float",
+                                            "name": "fract",
+                                            "args": [
+                                              {
+                                                "kind": "input",
+                                                "type": "float",
+                                                "name": "uv_v"
+                                              }
+                                            ]
+                                          },
+                                          "right": {
+                                            "kind": "binary",
+                                            "type": "float",
+                                            "operator": "*",
+                                            "left": {
+                                              "kind": "uniform",
+                                              "type": "float",
+                                              "name": "density"
+                                            },
+                                            "right": {
+                                              "kind": "float",
+                                              "type": "float",
+                                              "value": 6.283185307179586
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "uniform",
+                                    "type": "float",
+                                    "name": "size"
+                                  }
+                                },
+                                "right": {
+                                  "kind": "float",
+                                  "type": "float",
+                                  "value": 1.2
+                                }
+                              },
+                              "right": {
+                                "kind": "float",
+                                "type": "float",
+                                "value": 2.499999999999999
+                              }
+                            },
+                            {
+                              "kind": "float",
+                              "type": "float",
+                              "value": 0
+                            },
+                            {
+                              "kind": "float",
+                              "type": "float",
+                              "value": 1
+                            }
+                          ]
+                        },
+                        "right": {
+                          "kind": "call",
+                          "type": "float",
+                          "name": "clamp",
+                          "args": [
+                            {
+                              "kind": "binary",
+                              "type": "float",
+                              "operator": "*",
+                              "left": {
+                                "kind": "binary",
+                                "type": "float",
+                                "operator": "-",
+                                "left": {
+                                  "kind": "binary",
+                                  "type": "float",
+                                  "operator": "+",
+                                  "left": {
+                                    "kind": "binary",
+                                    "type": "float",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "call",
+                                      "type": "float",
+                                      "name": "cos",
+                                      "args": [
+                                        {
+                                          "kind": "binary",
+                                          "type": "float",
+                                          "operator": "-",
+                                          "left": {
+                                            "kind": "binary",
+                                            "type": "float",
+                                            "operator": "*",
+                                            "left": {
+                                              "kind": "call",
+                                              "type": "float",
+                                              "name": "fract",
+                                              "args": [
+                                                {
+                                                  "kind": "input",
+                                                  "type": "float",
+                                                  "name": "uv_u"
+                                                }
+                                              ]
+                                            },
+                                            "right": {
+                                              "kind": "binary",
+                                              "type": "float",
+                                              "operator": "*",
+                                              "left": {
+                                                "kind": "uniform",
+                                                "type": "float",
+                                                "name": "density"
+                                              },
+                                              "right": {
+                                                "kind": "float",
+                                                "type": "float",
+                                                "value": 6.283185307179586
+                                              }
+                                            }
+                                          },
+                                          "right": {
+                                            "kind": "uniform",
+                                            "type": "float",
+                                            "name": "phase"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    "right": {
+                                      "kind": "call",
+                                      "type": "float",
+                                      "name": "cos",
+                                      "args": [
+                                        {
+                                          "kind": "binary",
+                                          "type": "float",
+                                          "operator": "*",
+                                          "left": {
+                                            "kind": "call",
+                                            "type": "float",
+                                            "name": "fract",
+                                            "args": [
+                                              {
+                                                "kind": "input",
+                                                "type": "float",
+                                                "name": "uv_v"
+                                              }
+                                            ]
+                                          },
+                                          "right": {
+                                            "kind": "binary",
+                                            "type": "float",
+                                            "operator": "*",
+                                            "left": {
+                                              "kind": "uniform",
+                                              "type": "float",
+                                              "name": "density"
+                                            },
+                                            "right": {
+                                              "kind": "float",
+                                              "type": "float",
+                                              "value": 6.283185307179586
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "uniform",
+                                    "type": "float",
+                                    "name": "size"
+                                  }
+                                },
+                                "right": {
+                                  "kind": "float",
+                                  "type": "float",
+                                  "value": 1.2
+                                }
+                              },
+                              "right": {
+                                "kind": "float",
+                                "type": "float",
+                                "value": 2.499999999999999
+                              }
+                            },
+                            {
+                              "kind": "float",
+                              "type": "float",
+                              "value": 0
+                            },
+                            {
+                              "kind": "float",
+                              "type": "float",
+                              "value": 1
+                            }
+                          ]
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "type": "float",
+                        "operator": "-",
+                        "left": {
+                          "kind": "float",
+                          "type": "float",
+                          "value": 3
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "type": "float",
+                          "operator": "*",
+                          "left": {
+                            "kind": "float",
+                            "type": "float",
+                            "value": 2
+                          },
+                          "right": {
+                            "kind": "call",
+                            "type": "float",
+                            "name": "clamp",
+                            "args": [
+                              {
+                                "kind": "binary",
+                                "type": "float",
+                                "operator": "*",
+                                "left": {
+                                  "kind": "binary",
+                                  "type": "float",
+                                  "operator": "-",
+                                  "left": {
+                                    "kind": "binary",
+                                    "type": "float",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "binary",
+                                      "type": "float",
+                                      "operator": "+",
+                                      "left": {
+                                        "kind": "call",
+                                        "type": "float",
+                                        "name": "cos",
+                                        "args": [
+                                          {
+                                            "kind": "binary",
+                                            "type": "float",
+                                            "operator": "-",
+                                            "left": {
+                                              "kind": "binary",
+                                              "type": "float",
+                                              "operator": "*",
+                                              "left": {
+                                                "kind": "call",
+                                                "type": "float",
+                                                "name": "fract",
+                                                "args": [
+                                                  {
+                                                    "kind": "input",
+                                                    "type": "float",
+                                                    "name": "uv_u"
+                                                  }
+                                                ]
+                                              },
+                                              "right": {
+                                                "kind": "binary",
+                                                "type": "float",
+                                                "operator": "*",
+                                                "left": {
+                                                  "kind": "uniform",
+                                                  "type": "float",
+                                                  "name": "density"
+                                                },
+                                                "right": {
+                                                  "kind": "float",
+                                                  "type": "float",
+                                                  "value": 6.283185307179586
+                                                }
+                                              }
+                                            },
+                                            "right": {
+                                              "kind": "uniform",
+                                              "type": "float",
+                                              "name": "phase"
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      "right": {
+                                        "kind": "call",
+                                        "type": "float",
+                                        "name": "cos",
+                                        "args": [
+                                          {
+                                            "kind": "binary",
+                                            "type": "float",
+                                            "operator": "*",
+                                            "left": {
+                                              "kind": "call",
+                                              "type": "float",
+                                              "name": "fract",
+                                              "args": [
+                                                {
+                                                  "kind": "input",
+                                                  "type": "float",
+                                                  "name": "uv_v"
+                                                }
+                                              ]
+                                            },
+                                            "right": {
+                                              "kind": "binary",
+                                              "type": "float",
+                                              "operator": "*",
+                                              "left": {
+                                                "kind": "uniform",
+                                                "type": "float",
+                                                "name": "density"
+                                              },
+                                              "right": {
+                                                "kind": "float",
+                                                "type": "float",
+                                                "value": 6.283185307179586
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    "right": {
+                                      "kind": "uniform",
+                                      "type": "float",
+                                      "name": "size"
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "float",
+                                    "type": "float",
+                                    "value": 1.2
+                                  }
+                                },
+                                "right": {
+                                  "kind": "float",
+                                  "type": "float",
+                                  "value": 2.499999999999999
+                                }
+                              },
+                              {
+                                "kind": "float",
+                                "type": "float",
+                                "value": 0
+                              },
+                              {
+                                "kind": "float",
+                                "type": "float",
+                                "value": 1
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "kind": "float",
+                      "type": "float",
+                      "value": 0
+                    },
+                    {
+                      "kind": "float",
+                      "type": "float",
+                      "value": 1
+                    }
+                  ]
+                },
+                "right": {
+                  "kind": "uniform",
+                  "type": "float",
+                  "name": "ink"
+                }
+              }
+            ]
+          }
+        },
+        "uniforms": {
+          "density": 6,
+          "size": 0.4,
+          "phase": 0,
+          "ink": 0.9
+        },
+        "uv": [
+          0,
+          0
+        ],
+        "linearRGB": [
+          0.09490802166986863,
+          0.10457322730628416,
+          0.11626054418605361
+        ]
+      }
+    },
+    {
+      "label": "between_spots",
+      "uv": [
+        0.08333333333333333,
+        0.08333333333333333
+      ],
+      "uniforms": {},
+      "cosineSum": -2,
+      "field": -1.6,
+      "dotMask": 0,
+      "ratio": 0,
+      "expectedLinearRGB": [
+        0.8993845130465294,
+        0.8277257944550336,
+        0.6870308121546249
+      ],
+      "sample": {
+        "format": "barocss-gpu-authored-material-sample",
+        "version": 0,
+        "profile": "binary64-linear-rgb-v0",
+        "colorSpace": "linear-rgb",
+        "uvUnit": "dimensionless",
+        "source": "@shader #halftone_dots {\n  @uniform density: float(2,12,6);\n  @uniform size: float(0,.8,.4);\n  @uniform phase: float(0,6.283185307179586,0);\n  @uniform ink: float(0,1,.9);\n  @fragment { color: mix(#F3EAD7,#182F43,smoothstep(1.2,1.6,(cos(fract(uv_u)*(density*6.283185307179586)-phase)+cos(fract(uv_v)*(density*6.283185307179586)))+size)*ink); }\n}",
+        "material": {
+          "format": "barocss-gpu-engine-uv-repeating-material",
+          "version": 0,
+          "profile": "engine-opaque-uv-repeating-fragment-v0",
+          "source": "@shader #halftone_dots {\n  @uniform density: float(2,12,6);\n  @uniform size: float(0,.8,.4);\n  @uniform phase: float(0,6.283185307179586,0);\n  @uniform ink: float(0,1,.9);\n  @fragment { color: mix(#F3EAD7,#182F43,smoothstep(1.2,1.6,(cos(fract(uv_u)*(density*6.283185307179586)-phase)+cos(fract(uv_v)*(density*6.283185307179586)))+size)*ink); }\n}",
+          "shaderId": "halftone_dots",
+          "uniforms": [
+            {
+              "name": "density",
+              "type": "float",
+              "min": 2,
+              "max": 12,
+              "default": 6
+            },
+            {
+              "name": "size",
+              "type": "float",
+              "min": 0,
+              "max": 0.8,
+              "default": 0.4
+            },
+            {
+              "name": "phase",
+              "type": "float",
+              "min": 0,
+              "max": 6.283185307179586,
+              "default": 0
+            },
+            {
+              "name": "ink",
+              "type": "float",
+              "min": 0,
+              "max": 1,
+              "default": 0.9
+            }
+          ],
+          "expression": {
+            "kind": "call",
+            "type": "color",
+            "name": "mix",
+            "args": [
+              {
+                "kind": "color",
+                "type": "color",
+                "hex": "#F3EAD7",
+                "linear": [
+                  0.8993845130465294,
+                  0.8277257944550336,
+                  0.6870308121546249
+                ]
+              },
+              {
+                "kind": "color",
+                "type": "color",
+                "hex": "#182F43",
+                "linear": [
+                  0.0055217448502396585,
+                  0.02422294206753424,
+                  0.052841625522879035
+                ]
+              },
+              {
+                "kind": "binary",
+                "type": "float",
+                "operator": "*",
+                "left": {
+                  "kind": "call",
+                  "type": "float",
+                  "name": "clamp",
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "type": "float",
+                      "operator": "*",
+                      "left": {
+                        "kind": "binary",
+                        "type": "float",
+                        "operator": "*",
+                        "left": {
+                          "kind": "call",
+                          "type": "float",
+                          "name": "clamp",
+                          "args": [
+                            {
+                              "kind": "binary",
+                              "type": "float",
+                              "operator": "*",
+                              "left": {
+                                "kind": "binary",
+                                "type": "float",
+                                "operator": "-",
+                                "left": {
+                                  "kind": "binary",
+                                  "type": "float",
+                                  "operator": "+",
+                                  "left": {
+                                    "kind": "binary",
+                                    "type": "float",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "call",
+                                      "type": "float",
+                                      "name": "cos",
+                                      "args": [
+                                        {
+                                          "kind": "binary",
+                                          "type": "float",
+                                          "operator": "-",
+                                          "left": {
+                                            "kind": "binary",
+                                            "type": "float",
+                                            "operator": "*",
+                                            "left": {
+                                              "kind": "call",
+                                              "type": "float",
+                                              "name": "fract",
+                                              "args": [
+                                                {
+                                                  "kind": "input",
+                                                  "type": "float",
+                                                  "name": "uv_u"
+                                                }
+                                              ]
+                                            },
+                                            "right": {
+                                              "kind": "binary",
+                                              "type": "float",
+                                              "operator": "*",
+                                              "left": {
+                                                "kind": "uniform",
+                                                "type": "float",
+                                                "name": "density"
+                                              },
+                                              "right": {
+                                                "kind": "float",
+                                                "type": "float",
+                                                "value": 6.283185307179586
+                                              }
+                                            }
+                                          },
+                                          "right": {
+                                            "kind": "uniform",
+                                            "type": "float",
+                                            "name": "phase"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    "right": {
+                                      "kind": "call",
+                                      "type": "float",
+                                      "name": "cos",
+                                      "args": [
+                                        {
+                                          "kind": "binary",
+                                          "type": "float",
+                                          "operator": "*",
+                                          "left": {
+                                            "kind": "call",
+                                            "type": "float",
+                                            "name": "fract",
+                                            "args": [
+                                              {
+                                                "kind": "input",
+                                                "type": "float",
+                                                "name": "uv_v"
+                                              }
+                                            ]
+                                          },
+                                          "right": {
+                                            "kind": "binary",
+                                            "type": "float",
+                                            "operator": "*",
+                                            "left": {
+                                              "kind": "uniform",
+                                              "type": "float",
+                                              "name": "density"
+                                            },
+                                            "right": {
+                                              "kind": "float",
+                                              "type": "float",
+                                              "value": 6.283185307179586
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "uniform",
+                                    "type": "float",
+                                    "name": "size"
+                                  }
+                                },
+                                "right": {
+                                  "kind": "float",
+                                  "type": "float",
+                                  "value": 1.2
+                                }
+                              },
+                              "right": {
+                                "kind": "float",
+                                "type": "float",
+                                "value": 2.499999999999999
+                              }
+                            },
+                            {
+                              "kind": "float",
+                              "type": "float",
+                              "value": 0
+                            },
+                            {
+                              "kind": "float",
+                              "type": "float",
+                              "value": 1
+                            }
+                          ]
+                        },
+                        "right": {
+                          "kind": "call",
+                          "type": "float",
+                          "name": "clamp",
+                          "args": [
+                            {
+                              "kind": "binary",
+                              "type": "float",
+                              "operator": "*",
+                              "left": {
+                                "kind": "binary",
+                                "type": "float",
+                                "operator": "-",
+                                "left": {
+                                  "kind": "binary",
+                                  "type": "float",
+                                  "operator": "+",
+                                  "left": {
+                                    "kind": "binary",
+                                    "type": "float",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "call",
+                                      "type": "float",
+                                      "name": "cos",
+                                      "args": [
+                                        {
+                                          "kind": "binary",
+                                          "type": "float",
+                                          "operator": "-",
+                                          "left": {
+                                            "kind": "binary",
+                                            "type": "float",
+                                            "operator": "*",
+                                            "left": {
+                                              "kind": "call",
+                                              "type": "float",
+                                              "name": "fract",
+                                              "args": [
+                                                {
+                                                  "kind": "input",
+                                                  "type": "float",
+                                                  "name": "uv_u"
+                                                }
+                                              ]
+                                            },
+                                            "right": {
+                                              "kind": "binary",
+                                              "type": "float",
+                                              "operator": "*",
+                                              "left": {
+                                                "kind": "uniform",
+                                                "type": "float",
+                                                "name": "density"
+                                              },
+                                              "right": {
+                                                "kind": "float",
+                                                "type": "float",
+                                                "value": 6.283185307179586
+                                              }
+                                            }
+                                          },
+                                          "right": {
+                                            "kind": "uniform",
+                                            "type": "float",
+                                            "name": "phase"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    "right": {
+                                      "kind": "call",
+                                      "type": "float",
+                                      "name": "cos",
+                                      "args": [
+                                        {
+                                          "kind": "binary",
+                                          "type": "float",
+                                          "operator": "*",
+                                          "left": {
+                                            "kind": "call",
+                                            "type": "float",
+                                            "name": "fract",
+                                            "args": [
+                                              {
+                                                "kind": "input",
+                                                "type": "float",
+                                                "name": "uv_v"
+                                              }
+                                            ]
+                                          },
+                                          "right": {
+                                            "kind": "binary",
+                                            "type": "float",
+                                            "operator": "*",
+                                            "left": {
+                                              "kind": "uniform",
+                                              "type": "float",
+                                              "name": "density"
+                                            },
+                                            "right": {
+                                              "kind": "float",
+                                              "type": "float",
+                                              "value": 6.283185307179586
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "uniform",
+                                    "type": "float",
+                                    "name": "size"
+                                  }
+                                },
+                                "right": {
+                                  "kind": "float",
+                                  "type": "float",
+                                  "value": 1.2
+                                }
+                              },
+                              "right": {
+                                "kind": "float",
+                                "type": "float",
+                                "value": 2.499999999999999
+                              }
+                            },
+                            {
+                              "kind": "float",
+                              "type": "float",
+                              "value": 0
+                            },
+                            {
+                              "kind": "float",
+                              "type": "float",
+                              "value": 1
+                            }
+                          ]
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "type": "float",
+                        "operator": "-",
+                        "left": {
+                          "kind": "float",
+                          "type": "float",
+                          "value": 3
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "type": "float",
+                          "operator": "*",
+                          "left": {
+                            "kind": "float",
+                            "type": "float",
+                            "value": 2
+                          },
+                          "right": {
+                            "kind": "call",
+                            "type": "float",
+                            "name": "clamp",
+                            "args": [
+                              {
+                                "kind": "binary",
+                                "type": "float",
+                                "operator": "*",
+                                "left": {
+                                  "kind": "binary",
+                                  "type": "float",
+                                  "operator": "-",
+                                  "left": {
+                                    "kind": "binary",
+                                    "type": "float",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "binary",
+                                      "type": "float",
+                                      "operator": "+",
+                                      "left": {
+                                        "kind": "call",
+                                        "type": "float",
+                                        "name": "cos",
+                                        "args": [
+                                          {
+                                            "kind": "binary",
+                                            "type": "float",
+                                            "operator": "-",
+                                            "left": {
+                                              "kind": "binary",
+                                              "type": "float",
+                                              "operator": "*",
+                                              "left": {
+                                                "kind": "call",
+                                                "type": "float",
+                                                "name": "fract",
+                                                "args": [
+                                                  {
+                                                    "kind": "input",
+                                                    "type": "float",
+                                                    "name": "uv_u"
+                                                  }
+                                                ]
+                                              },
+                                              "right": {
+                                                "kind": "binary",
+                                                "type": "float",
+                                                "operator": "*",
+                                                "left": {
+                                                  "kind": "uniform",
+                                                  "type": "float",
+                                                  "name": "density"
+                                                },
+                                                "right": {
+                                                  "kind": "float",
+                                                  "type": "float",
+                                                  "value": 6.283185307179586
+                                                }
+                                              }
+                                            },
+                                            "right": {
+                                              "kind": "uniform",
+                                              "type": "float",
+                                              "name": "phase"
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      "right": {
+                                        "kind": "call",
+                                        "type": "float",
+                                        "name": "cos",
+                                        "args": [
+                                          {
+                                            "kind": "binary",
+                                            "type": "float",
+                                            "operator": "*",
+                                            "left": {
+                                              "kind": "call",
+                                              "type": "float",
+                                              "name": "fract",
+                                              "args": [
+                                                {
+                                                  "kind": "input",
+                                                  "type": "float",
+                                                  "name": "uv_v"
+                                                }
+                                              ]
+                                            },
+                                            "right": {
+                                              "kind": "binary",
+                                              "type": "float",
+                                              "operator": "*",
+                                              "left": {
+                                                "kind": "uniform",
+                                                "type": "float",
+                                                "name": "density"
+                                              },
+                                              "right": {
+                                                "kind": "float",
+                                                "type": "float",
+                                                "value": 6.283185307179586
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    "right": {
+                                      "kind": "uniform",
+                                      "type": "float",
+                                      "name": "size"
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "float",
+                                    "type": "float",
+                                    "value": 1.2
+                                  }
+                                },
+                                "right": {
+                                  "kind": "float",
+                                  "type": "float",
+                                  "value": 2.499999999999999
+                                }
+                              },
+                              {
+                                "kind": "float",
+                                "type": "float",
+                                "value": 0
+                              },
+                              {
+                                "kind": "float",
+                                "type": "float",
+                                "value": 1
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "kind": "float",
+                      "type": "float",
+                      "value": 0
+                    },
+                    {
+                      "kind": "float",
+                      "type": "float",
+                      "value": 1
+                    }
+                  ]
+                },
+                "right": {
+                  "kind": "uniform",
+                  "type": "float",
+                  "name": "ink"
+                }
+              }
+            ]
+          }
+        },
+        "uniforms": {
+          "density": 6,
+          "size": 0.4,
+          "phase": 0,
+          "ink": 0.9
+        },
+        "uv": [
+          0.08333333333333333,
+          0.08333333333333333
+        ],
+        "linearRGB": [
+          0.8993845130465294,
+          0.8277257944550336,
+          0.6870308121546249
+        ]
+      }
+    },
+    {
+      "label": "phase_shifted_soft_edge",
+      "uv": [
+        0,
+        0
+      ],
+      "uniforms": {
+        "phase": 1.5707963267948966
+      },
+      "cosineSum": 1,
+      "field": 1.4,
+      "dotMask": 0.5,
+      "ratio": 0.45,
+      "expectedLinearRGB": [
+        0.4971462673581991,
+        0.4661495108806589,
+        0.4016456781703393
+      ],
+      "sample": {
+        "format": "barocss-gpu-authored-material-sample",
+        "version": 0,
+        "profile": "binary64-linear-rgb-v0",
+        "colorSpace": "linear-rgb",
+        "uvUnit": "dimensionless",
+        "source": "@shader #halftone_dots {\n  @uniform density: float(2,12,6);\n  @uniform size: float(0,.8,.4);\n  @uniform phase: float(0,6.283185307179586,0);\n  @uniform ink: float(0,1,.9);\n  @fragment { color: mix(#F3EAD7,#182F43,smoothstep(1.2,1.6,(cos(fract(uv_u)*(density*6.283185307179586)-phase)+cos(fract(uv_v)*(density*6.283185307179586)))+size)*ink); }\n}",
+        "material": {
+          "format": "barocss-gpu-engine-uv-repeating-material",
+          "version": 0,
+          "profile": "engine-opaque-uv-repeating-fragment-v0",
+          "source": "@shader #halftone_dots {\n  @uniform density: float(2,12,6);\n  @uniform size: float(0,.8,.4);\n  @uniform phase: float(0,6.283185307179586,0);\n  @uniform ink: float(0,1,.9);\n  @fragment { color: mix(#F3EAD7,#182F43,smoothstep(1.2,1.6,(cos(fract(uv_u)*(density*6.283185307179586)-phase)+cos(fract(uv_v)*(density*6.283185307179586)))+size)*ink); }\n}",
+          "shaderId": "halftone_dots",
+          "uniforms": [
+            {
+              "name": "density",
+              "type": "float",
+              "min": 2,
+              "max": 12,
+              "default": 6
+            },
+            {
+              "name": "size",
+              "type": "float",
+              "min": 0,
+              "max": 0.8,
+              "default": 0.4
+            },
+            {
+              "name": "phase",
+              "type": "float",
+              "min": 0,
+              "max": 6.283185307179586,
+              "default": 0
+            },
+            {
+              "name": "ink",
+              "type": "float",
+              "min": 0,
+              "max": 1,
+              "default": 0.9
+            }
+          ],
+          "expression": {
+            "kind": "call",
+            "type": "color",
+            "name": "mix",
+            "args": [
+              {
+                "kind": "color",
+                "type": "color",
+                "hex": "#F3EAD7",
+                "linear": [
+                  0.8993845130465294,
+                  0.8277257944550336,
+                  0.6870308121546249
+                ]
+              },
+              {
+                "kind": "color",
+                "type": "color",
+                "hex": "#182F43",
+                "linear": [
+                  0.0055217448502396585,
+                  0.02422294206753424,
+                  0.052841625522879035
+                ]
+              },
+              {
+                "kind": "binary",
+                "type": "float",
+                "operator": "*",
+                "left": {
+                  "kind": "call",
+                  "type": "float",
+                  "name": "clamp",
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "type": "float",
+                      "operator": "*",
+                      "left": {
+                        "kind": "binary",
+                        "type": "float",
+                        "operator": "*",
+                        "left": {
+                          "kind": "call",
+                          "type": "float",
+                          "name": "clamp",
+                          "args": [
+                            {
+                              "kind": "binary",
+                              "type": "float",
+                              "operator": "*",
+                              "left": {
+                                "kind": "binary",
+                                "type": "float",
+                                "operator": "-",
+                                "left": {
+                                  "kind": "binary",
+                                  "type": "float",
+                                  "operator": "+",
+                                  "left": {
+                                    "kind": "binary",
+                                    "type": "float",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "call",
+                                      "type": "float",
+                                      "name": "cos",
+                                      "args": [
+                                        {
+                                          "kind": "binary",
+                                          "type": "float",
+                                          "operator": "-",
+                                          "left": {
+                                            "kind": "binary",
+                                            "type": "float",
+                                            "operator": "*",
+                                            "left": {
+                                              "kind": "call",
+                                              "type": "float",
+                                              "name": "fract",
+                                              "args": [
+                                                {
+                                                  "kind": "input",
+                                                  "type": "float",
+                                                  "name": "uv_u"
+                                                }
+                                              ]
+                                            },
+                                            "right": {
+                                              "kind": "binary",
+                                              "type": "float",
+                                              "operator": "*",
+                                              "left": {
+                                                "kind": "uniform",
+                                                "type": "float",
+                                                "name": "density"
+                                              },
+                                              "right": {
+                                                "kind": "float",
+                                                "type": "float",
+                                                "value": 6.283185307179586
+                                              }
+                                            }
+                                          },
+                                          "right": {
+                                            "kind": "uniform",
+                                            "type": "float",
+                                            "name": "phase"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    "right": {
+                                      "kind": "call",
+                                      "type": "float",
+                                      "name": "cos",
+                                      "args": [
+                                        {
+                                          "kind": "binary",
+                                          "type": "float",
+                                          "operator": "*",
+                                          "left": {
+                                            "kind": "call",
+                                            "type": "float",
+                                            "name": "fract",
+                                            "args": [
+                                              {
+                                                "kind": "input",
+                                                "type": "float",
+                                                "name": "uv_v"
+                                              }
+                                            ]
+                                          },
+                                          "right": {
+                                            "kind": "binary",
+                                            "type": "float",
+                                            "operator": "*",
+                                            "left": {
+                                              "kind": "uniform",
+                                              "type": "float",
+                                              "name": "density"
+                                            },
+                                            "right": {
+                                              "kind": "float",
+                                              "type": "float",
+                                              "value": 6.283185307179586
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "uniform",
+                                    "type": "float",
+                                    "name": "size"
+                                  }
+                                },
+                                "right": {
+                                  "kind": "float",
+                                  "type": "float",
+                                  "value": 1.2
+                                }
+                              },
+                              "right": {
+                                "kind": "float",
+                                "type": "float",
+                                "value": 2.499999999999999
+                              }
+                            },
+                            {
+                              "kind": "float",
+                              "type": "float",
+                              "value": 0
+                            },
+                            {
+                              "kind": "float",
+                              "type": "float",
+                              "value": 1
+                            }
+                          ]
+                        },
+                        "right": {
+                          "kind": "call",
+                          "type": "float",
+                          "name": "clamp",
+                          "args": [
+                            {
+                              "kind": "binary",
+                              "type": "float",
+                              "operator": "*",
+                              "left": {
+                                "kind": "binary",
+                                "type": "float",
+                                "operator": "-",
+                                "left": {
+                                  "kind": "binary",
+                                  "type": "float",
+                                  "operator": "+",
+                                  "left": {
+                                    "kind": "binary",
+                                    "type": "float",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "call",
+                                      "type": "float",
+                                      "name": "cos",
+                                      "args": [
+                                        {
+                                          "kind": "binary",
+                                          "type": "float",
+                                          "operator": "-",
+                                          "left": {
+                                            "kind": "binary",
+                                            "type": "float",
+                                            "operator": "*",
+                                            "left": {
+                                              "kind": "call",
+                                              "type": "float",
+                                              "name": "fract",
+                                              "args": [
+                                                {
+                                                  "kind": "input",
+                                                  "type": "float",
+                                                  "name": "uv_u"
+                                                }
+                                              ]
+                                            },
+                                            "right": {
+                                              "kind": "binary",
+                                              "type": "float",
+                                              "operator": "*",
+                                              "left": {
+                                                "kind": "uniform",
+                                                "type": "float",
+                                                "name": "density"
+                                              },
+                                              "right": {
+                                                "kind": "float",
+                                                "type": "float",
+                                                "value": 6.283185307179586
+                                              }
+                                            }
+                                          },
+                                          "right": {
+                                            "kind": "uniform",
+                                            "type": "float",
+                                            "name": "phase"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    "right": {
+                                      "kind": "call",
+                                      "type": "float",
+                                      "name": "cos",
+                                      "args": [
+                                        {
+                                          "kind": "binary",
+                                          "type": "float",
+                                          "operator": "*",
+                                          "left": {
+                                            "kind": "call",
+                                            "type": "float",
+                                            "name": "fract",
+                                            "args": [
+                                              {
+                                                "kind": "input",
+                                                "type": "float",
+                                                "name": "uv_v"
+                                              }
+                                            ]
+                                          },
+                                          "right": {
+                                            "kind": "binary",
+                                            "type": "float",
+                                            "operator": "*",
+                                            "left": {
+                                              "kind": "uniform",
+                                              "type": "float",
+                                              "name": "density"
+                                            },
+                                            "right": {
+                                              "kind": "float",
+                                              "type": "float",
+                                              "value": 6.283185307179586
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "uniform",
+                                    "type": "float",
+                                    "name": "size"
+                                  }
+                                },
+                                "right": {
+                                  "kind": "float",
+                                  "type": "float",
+                                  "value": 1.2
+                                }
+                              },
+                              "right": {
+                                "kind": "float",
+                                "type": "float",
+                                "value": 2.499999999999999
+                              }
+                            },
+                            {
+                              "kind": "float",
+                              "type": "float",
+                              "value": 0
+                            },
+                            {
+                              "kind": "float",
+                              "type": "float",
+                              "value": 1
+                            }
+                          ]
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "type": "float",
+                        "operator": "-",
+                        "left": {
+                          "kind": "float",
+                          "type": "float",
+                          "value": 3
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "type": "float",
+                          "operator": "*",
+                          "left": {
+                            "kind": "float",
+                            "type": "float",
+                            "value": 2
+                          },
+                          "right": {
+                            "kind": "call",
+                            "type": "float",
+                            "name": "clamp",
+                            "args": [
+                              {
+                                "kind": "binary",
+                                "type": "float",
+                                "operator": "*",
+                                "left": {
+                                  "kind": "binary",
+                                  "type": "float",
+                                  "operator": "-",
+                                  "left": {
+                                    "kind": "binary",
+                                    "type": "float",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "binary",
+                                      "type": "float",
+                                      "operator": "+",
+                                      "left": {
+                                        "kind": "call",
+                                        "type": "float",
+                                        "name": "cos",
+                                        "args": [
+                                          {
+                                            "kind": "binary",
+                                            "type": "float",
+                                            "operator": "-",
+                                            "left": {
+                                              "kind": "binary",
+                                              "type": "float",
+                                              "operator": "*",
+                                              "left": {
+                                                "kind": "call",
+                                                "type": "float",
+                                                "name": "fract",
+                                                "args": [
+                                                  {
+                                                    "kind": "input",
+                                                    "type": "float",
+                                                    "name": "uv_u"
+                                                  }
+                                                ]
+                                              },
+                                              "right": {
+                                                "kind": "binary",
+                                                "type": "float",
+                                                "operator": "*",
+                                                "left": {
+                                                  "kind": "uniform",
+                                                  "type": "float",
+                                                  "name": "density"
+                                                },
+                                                "right": {
+                                                  "kind": "float",
+                                                  "type": "float",
+                                                  "value": 6.283185307179586
+                                                }
+                                              }
+                                            },
+                                            "right": {
+                                              "kind": "uniform",
+                                              "type": "float",
+                                              "name": "phase"
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      "right": {
+                                        "kind": "call",
+                                        "type": "float",
+                                        "name": "cos",
+                                        "args": [
+                                          {
+                                            "kind": "binary",
+                                            "type": "float",
+                                            "operator": "*",
+                                            "left": {
+                                              "kind": "call",
+                                              "type": "float",
+                                              "name": "fract",
+                                              "args": [
+                                                {
+                                                  "kind": "input",
+                                                  "type": "float",
+                                                  "name": "uv_v"
+                                                }
+                                              ]
+                                            },
+                                            "right": {
+                                              "kind": "binary",
+                                              "type": "float",
+                                              "operator": "*",
+                                              "left": {
+                                                "kind": "uniform",
+                                                "type": "float",
+                                                "name": "density"
+                                              },
+                                              "right": {
+                                                "kind": "float",
+                                                "type": "float",
+                                                "value": 6.283185307179586
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    "right": {
+                                      "kind": "uniform",
+                                      "type": "float",
+                                      "name": "size"
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "float",
+                                    "type": "float",
+                                    "value": 1.2
+                                  }
+                                },
+                                "right": {
+                                  "kind": "float",
+                                  "type": "float",
+                                  "value": 2.499999999999999
+                                }
+                              },
+                              {
+                                "kind": "float",
+                                "type": "float",
+                                "value": 0
+                              },
+                              {
+                                "kind": "float",
+                                "type": "float",
+                                "value": 1
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "kind": "float",
+                      "type": "float",
+                      "value": 0
+                    },
+                    {
+                      "kind": "float",
+                      "type": "float",
+                      "value": 1
+                    }
+                  ]
+                },
+                "right": {
+                  "kind": "uniform",
+                  "type": "float",
+                  "name": "ink"
+                }
+              }
+            ]
+          }
+        },
+        "uniforms": {
+          "density": 6,
+          "size": 0.4,
+          "phase": 1.5707963267948966,
+          "ink": 0.9
+        },
+        "uv": [
+          0,
+          0
+        ],
+        "linearRGB": [
+          0.4971462673581994,
+          0.4661495108806592,
+          0.40164567817033947
+        ]
+      }
+    }
+  ],
+  "refusals": [
+    {
+      "stage": "compile",
+      "diagnostic": {
+        "code": "SYNTAX",
+        "message": "Unsupported material function",
+        "start": 213,
+        "end": 220
+      }
+    },
+    {
+      "stage": "evaluate",
+      "code": "UNIFORM",
+      "causeCode": "UNIFORM"
+    }
+  ],
+  "acceptedCPUReferenceAndValueRetained": true,
+  "sourceIndependentPublicCopies": true,
+  "callerInputsUnchanged": true,
+  "actualGL": false,
+  "pixelParity": "not checked"
+}

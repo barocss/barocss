@@ -6,7 +6,8 @@ import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const defaultApp = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-export async function bundleAdvancedShader(app = defaultApp, platform = 'browser', consumerText) {
+export async function bundleAdvancedShader(app = defaultApp, platform = 'browser', consumerText, consumerName = 'advanced-shader') {
+  if (!/^[a-z][a-z0-9-]{0,47}$/.test(consumerName)) throw Error('Invalid shader consumer name');
   const root = resolve(app, '../..');
   const profile = JSON.parse(await readFile(resolve(app, 'scripts/profiles/cpu-material-v0.json'), 'utf8'));
   const snapshot = resolve(app, 'docs/.vitepress/cache/advanced-shader', profile.sourcePin);
@@ -42,13 +43,13 @@ export async function bundleAdvancedShader(app = defaultApp, platform = 'browser
       if (error.code !== 'EEXIST' || resolve(namespace, await readlink(link)) !== target) throw error;
     }
   }
-  const presets = Object.fromEntries(await Promise.all(['advanced-shader', 'caustics-shader'].map(async name =>
-    [name, JSON.parse(await readFile(resolve(app, `scripts/snippets/${name}.json`), 'utf8'))])));
+  const presets = consumerText === undefined ? Object.fromEntries(await Promise.all(['advanced-shader', 'caustics-shader', 'weave-shader', 'contour-shader', 'halftone-shader'].map(async name =>
+    [name, JSON.parse(await readFile(resolve(app, `scripts/snippets/${name}.json`), 'utf8'))]))) : {};
   const host = consumerText === undefined ? await readFile(resolve(app, 'scripts/snippets/advanced-shader-host.mjs'), 'utf8') : '';
   const text = consumerText ?? `${host}\nexport const presets = ${JSON.stringify(presets)};\n`;
   const consumers = resolve(snapshot, 'consumers');
   await mkdir(consumers, { recursive: true });
-  const entry = resolve(consumers, platform === 'browser' ? 'advanced-shader-entry.mjs' : 'advanced-shader-check.mjs');
+  const entry = resolve(consumers, platform === 'browser' ? 'advanced-shader-entry.mjs' : `${consumerName}-check.mjs`);
   await writeFile(entry, text);
   const result = await build({ absWorkingDir: snapshot, entryPoints: [entry], bundle: true,
     platform, format: 'esm', target: platform === 'node' ? 'node22' : 'es2022', write: false, metafile: true });
@@ -61,7 +62,7 @@ export async function bundleAdvancedShader(app = defaultApp, platform = 'browser
   const provenance = { sourcePin: profile.sourcePin, verifiedBlobs: Object.keys(profile.files).length,
     ownSourceInputs: ownInputs.length, ownDistInputs: 0, host: platform === 'browser' ? 'App WebGL2 quad consuming public trusted lowering' : 'CPU public compile/binding/evaluation consumer; no GL',
     oldVisualPinUnchanged: '5f5ad866205a21510ac69552e704cc162fa253b5' };
-  await writeFile(resolve(consumers, `${platform}-metafile.json`), JSON.stringify(result.metafile, null, 2) + '\n');
+  await writeFile(resolve(consumers, platform === 'browser' ? 'browser-metafile.json' : `${consumerName}-node-metafile.json`), JSON.stringify(result.metafile, null, 2) + '\n');
   return { result, provenance };
 }
 export async function buildAdvancedShader(app = defaultApp) {

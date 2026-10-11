@@ -1,0 +1,41 @@
+{
+  "kind": "advanced",
+  "title": "GPU repeating material · paper and ink dots",
+  "label": "Halftone dots shader",
+  "anchor": "halftone-shader",
+  "guide": "/packages/gpu/halftone-shader",
+  "language": "GPU repeating UV material · engine-opaque-uv-repeating-fragment-v0",
+  "sourceProfile": "7e96b959746a3fee957644fd1b5ccaf79c992c6c",
+  "source": "@shader #halftone_dots {\n  @uniform density: float(2,12,6);\n  @uniform size: float(0,.8,.4);\n  @uniform phase: float(0,6.283185307179586,0);\n  @uniform ink: float(0,1,.9);\n  @fragment { color: mix(#F3EAD7,#182F43,smoothstep(1.2,1.6,(cos(fract(uv_u)*(density*6.283185307179586)-phase)+cos(fract(uv_v)*(density*6.283185307179586)))+size)*ink); }\n}",
+  "controls": [
+    {
+      "name": "density",
+      "min": 2,
+      "max": 12,
+      "step": 0.25,
+      "default": 6
+    },
+    {
+      "name": "size",
+      "min": 0,
+      "max": 0.8,
+      "step": 0.04,
+      "default": 0.4
+    },
+    {
+      "name": "phase",
+      "min": 0,
+      "max": 6.283185307179586,
+      "step": 0.05,
+      "default": 0
+    },
+    {
+      "name": "ink",
+      "min": 0,
+      "max": 1,
+      "step": 0.05,
+      "default": 0.9
+    }
+  ],
+  "description": "Repeat soft-edged dark spots on a warm paper color. Crossed cosine fields form the dots; density sets frequency, size expands the thresholded spots, phase slides them horizontally, and ink changes the linear color blend."
+}
