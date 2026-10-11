@@ -452,3 +452,7 @@ export type { SourceCurveAdaptiveSamplingRequest, SourceCurveAdaptiveSamplingOpt
 
 export { qualifyRectangularFaceExtrusionBody, validateRectangularFaceExtrusionBody, RectangularFaceExtrusionBodyError, RectangularFaceExtrusionBodyDiagnosticCode } from './rectangular-face-extrusion-body.js';
 export type { RectangularFaceExtrusionBodyRequest, RectangularFaceExtrusionBodyOptions, RectangularFaceExtrusionBodyReport, RectangularFaceExtrusionBodyResult } from './rectangular-face-extrusion-body.js';
+
+
+export { evaluateSourceLineWidthMaterialBodyGraph, updateSourceLineWidthMaterialBodyGraph, validateSourceLineWidthMaterialBodyGraph, validateSourceLineWidthMaterialBodyGraphUpdate, serializeSourceLineWidthMaterialBodyGraph, parseSourceLineWidthMaterialBodyGraph, SourceLineWidthMaterialBodyGraphError, SourceLineWidthMaterialBodyGraphDiagnosticCode } from './source-line-width-material-body-graph.js';
+export type { SourceLineWidthMaterialBodyGraphV0, SourceLineWidthMaterialBodyGraphOptions, SourceLineWidthMaterialBodyGraphEdits, SourceLineWidthMaterialBodyGraphResult, SourceLineWidthMaterialBodyGraphReport, SourceLineWidthMaterialBodyGraphTransaction, SourceLineWidthMaterialBodyGraphTransactionReport, SourceLineWidthMaterialBodyGraphUpdateResult } from './source-line-width-material-body-graph.js';

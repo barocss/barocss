@@ -9473,3 +9473,16 @@ Exact correspondence binds six whole chart images, twelve shared edge images and
 The canonical extension requires distance at most5000mm, with twice that distance within existing coordinate limits. Raw derived section weights and mandatory zero-residual conditions can refuse other valid extrusion parents. Original Plane/weights are not normalized to force admission. Complete request/result limits are4MiB/8MiB in UTF16 and UTF8 with4M owned values. All retained parent and child occurrences count.
 
 `validateRectangularFaceExtrusionBody(result)` reconstructs once from the full request and compares every field and bit, then returns a copied complete report. Run `node examples/cad-nurbs/rectangular-face-extrusion-body-demo.mjs --source <output-directory>`. Issue1474 tracks native qualification; Viewer, Editor, project codecs, general Face extrusion, arbitrary curved solids, Boolean and manufacturing acceptance remain separate.
+
+
+## Persist a Line-width, extrusion and material Body graph
+
+`evaluateSourceLineWidthMaterialBodyGraph(document, options)` evaluates a new fixed three-node authored format. It builds the width Face, its positive-Z extrusion and a fresh restricted material Body through the existing providers. Full original Source0, siblings, native receipts and qualified references remain in the result. The existing two-node extrusion graph format is unchanged.
+
+`updateSourceLineWidthMaterialBodyGraph(previous, edits)` reconstructs and compares the prior state once, then compares complete provider requests to rebuild affected results. Width changes can rebuild all three nodes; height changes retain the width receipt. Suppression removes both downstream results. Equal-value edits advance the revision while retaining native receipts. Prior validation and selective call counts are reported separately.
+
+The public serializer saves canonical authored source, literal parameters, references and native recipes. The public parser rebuilds the full current Body from that data. Both owned validators compare complete data and return copied reports. Old abstract Shell flags stay unchanged; material claims require the actual fresh Body certificate.
+
+Height is limited to5000mm even while suppressed. Existing raw weight, source, geometry and material conditions can refuse otherwise valid inputs. Whole authored/request, current and update envelopes are2MiB,16MiB and32MiB in UTF16 and UTF8; own-value limits are4M and8M. Full repeated ancestors count. These bounds do not guarantee that every valid child fits.
+
+Run `node examples/cad-nurbs/source-line-width-material-body-graph-demo.mjs --source <output-directory>`. Issue1485 tracks the native saved lifecycle. General feature graphs, source expressions, Viewer, Editor, manufacturing and release remain separate.
