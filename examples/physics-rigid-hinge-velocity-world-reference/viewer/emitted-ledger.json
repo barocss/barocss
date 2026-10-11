@@ -1,0 +1,3631 @@
+{
+  "head": "880c54a6579f6a14175e6936e592a929ed48abfa",
+  "prebuildSourceClosureSha256": "7f17fb366082e0be912e226b892884e9cfcb19824c38b837dd6091db99612144",
+  "providerClosureSha256": "89fb649276e7131876becd0152b70732efe538f6afa57c90ad667dd71ef5d0f5",
+  "node": "v22.22.0",
+  "tooling": {
+    "typescript": "5.9.3",
+    "esbuild": "0.25.12",
+    "compilerSha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419",
+    "bundlerSha256": "0d1241812c443111d39475dfc66836003e9ef8b87e54d990dd67df29d20010e1"
+  },
+  "gates": [
+    {
+      "name": "cad",
+      "cmd": "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+      "args": [
+        "scripts/tool.mjs",
+        "build"
+      ],
+      "package": "barocss-cad",
+      "elapsedMs": 4563.886791999999,
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "reusedActualReceipt": "/tmp/physics-1179-recorded-viewer-build-880c54a6/build-report.json",
+      "originalBuildHead": "880c54a6579f6a14175e6936e592a929ed48abfa"
+    },
+    {
+      "name": "cad-interop",
+      "cmd": "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+      "args": [
+        "/Users/user/.codex/worktrees/physics-hinge-recorded-viewer/barocss/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.json"
+      ],
+      "package": "barocss-cad-interop",
+      "elapsedMs": 4920.608042,
+      "exitCode": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "name": "gpu-types",
+      "cmd": "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+      "args": [
+        "/Users/user/.codex/worktrees/physics-hinge-recorded-viewer/barocss/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.json"
+      ],
+      "package": "barocss-gpu",
+      "elapsedMs": 4006.3362499999994,
+      "exitCode": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "name": "gpu-bundle",
+      "cmd": "/Users/user/.codex/worktrees/physics-hinge-recorded-viewer/barocss/node_modules/esbuild/bin/esbuild",
+      "args": [
+        "src/index.ts",
+        "--bundle",
+        "--format=esm",
+        "--platform=browser",
+        "--target=es2022",
+        "--outfile=dist/index.js"
+      ],
+      "package": "barocss-gpu",
+      "elapsedMs": 638.4596249999995,
+      "exitCode": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "name": "viewer",
+      "cmd": "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+      "args": [
+        "/Users/user/.codex/worktrees/physics-hinge-recorded-viewer/barocss/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.json"
+      ],
+      "package": "barocss-viewer",
+      "elapsedMs": 4295.387541,
+      "exitCode": 0,
+      "signal": null,
+      "error": null
+    }
+  ],
+  "entries": [
+    {
+      "path": "packages/barocss-cad/dist/adjacency.d.ts",
+      "bytes": 1631,
+      "sha256": "b5fe9d08aaea1447ac8233bfff7f63e3744b9364524faaa6766b8173730eefdd"
+    },
+    {
+      "path": "packages/barocss-cad/dist/adjacency.js",
+      "bytes": 10296,
+      "sha256": "6b67d2215fe9e6236ddd0a6871da03191d8f082821705997c2a2acd5c43ffb70"
+    },
+    {
+      "path": "packages/barocss-cad/dist/affine-geometry-transform.d.ts",
+      "bytes": 7517,
+      "sha256": "a46fe64c97dcf9fe371786f11662a81e0c812504cd83f8b35abd99173c6c51e6"
+    },
+    {
+      "path": "packages/barocss-cad/dist/affine-geometry-transform.js",
+      "bytes": 24796,
+      "sha256": "3b7568816fa01faf9b88b27406191212a97b873651bd481cdc32d0273f035a86"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-box-boolean.d.ts",
+      "bytes": 8732,
+      "sha256": "8d79e95290bac8f54e544877f93245e183a29bfaa4614058c27e28aa31b55f08"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-box-boolean.js",
+      "bytes": 37551,
+      "sha256": "5be369eeb98dad83cb110e39bcc2d0eddee05e2999453942a2f49a365cc84fba"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-box-mass-frame.d.ts",
+      "bytes": 6273,
+      "sha256": "35df52e4f59f94b6ba3d731c478510037e4866580ad6abba9e0e3be0ecbcdd54"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-box-mass-frame.js",
+      "bytes": 16536,
+      "sha256": "4616a57238758c2171daadb3e109c350149f7dac60f04e28a0c8102be289e00b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-box-point-classification.d.ts",
+      "bytes": 5434,
+      "sha256": "02b090c5aa496fe33c6768be025992c61af11139209b3a3da70bbce8723177af"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-box-point-classification.js",
+      "bytes": 15972,
+      "sha256": "a082c93f3767fa149de3c4f0d94ce7902f783fc8ee0d86c66cd471b0ced261ce"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-box-principal-inertia.d.ts",
+      "bytes": 6303,
+      "sha256": "32e6b18a068eca6dfdbc7f0e68375ccab47706cdc9dc92a72e7ef6d924ac37f6"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-box-principal-inertia.js",
+      "bytes": 20152,
+      "sha256": "a3738c414bab1a7b25969d1f3fbb372c60bee1f3f0e68b2ba861174b54347cbc"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-box-solid-feature-document.d.ts",
+      "bytes": 5811,
+      "sha256": "045884e4d36e3c13963aa4cf8d413a488cb715e4837a1846bbb3842b6a6fcdbc"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-box-solid-feature-document.js",
+      "bytes": 22179,
+      "sha256": "6d4981d920de26b31fa32301174ad201294fe0b29729a1af512ce90a09b28973"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-box-solid-mass.d.ts",
+      "bytes": 6500,
+      "sha256": "b74021fcf733c93ce3c2d768ae62728baa5461e92537724fa732cc77107fcec5"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-box-solid-mass.js",
+      "bytes": 17027,
+      "sha256": "a48bc35d107f3961d339ed068b224bb6bf30de46d79d8fd11ef90eeb5854f32f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-rectangle-extrusion.d.ts",
+      "bytes": 1552,
+      "sha256": "713c2bbf099d6fd78d3443f05b7d8d95c46731803d19f7890f2578f73855d875"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-rectangle-extrusion.js",
+      "bytes": 9440,
+      "sha256": "381a54e3667cd836b41b1811727b29c016c4b6cf30b5680ca758122011c8f736"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-rectangle-feature-document.d.ts",
+      "bytes": 2114,
+      "sha256": "74961967963ee9ab3311907431f6339975639ad621666282db07c9a51ad2b352"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-rectangle-feature-document.js",
+      "bytes": 12399,
+      "sha256": "de2ffe9e4a0749ba3194f75716482fa14072a278ef91eba22e4ba361ab59ad92"
+    },
+    {
+      "path": "packages/barocss-cad/dist/bezier-curve-degree-elevation.d.ts",
+      "bytes": 3340,
+      "sha256": "9fb7a07486c2dc56c511b5336d38831ec9bfb577b41123000f9e2c3aad9db23e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/bezier-curve-degree-elevation.js",
+      "bytes": 11470,
+      "sha256": "030e0a0551287ef8a5fb6dc5b2f131c4503b17fdf2674aed5153c6169e49f1d4"
+    },
+    {
+      "path": "packages/barocss-cad/dist/boolean-extrusion-feature-graph-serde.d.ts",
+      "bytes": 693,
+      "sha256": "76191ceed78458542cffa92b4e35d73aca964a69146b7b71e77a7673cbdf4318"
+    },
+    {
+      "path": "packages/barocss-cad/dist/boolean-extrusion-feature-graph-serde.js",
+      "bytes": 2655,
+      "sha256": "d00b71061813a3ad85707fd7288b2949423db33cb13752a85be609bddb86a312"
+    },
+    {
+      "path": "packages/barocss-cad/dist/boolean-extrusion-feature-graph.d.ts",
+      "bytes": 9057,
+      "sha256": "c566319e4293108c5f2f1ea81563572ac15f84cb138b20c66de33610d5bd0add"
+    },
+    {
+      "path": "packages/barocss-cad/dist/boolean-extrusion-feature-graph.js",
+      "bytes": 38776,
+      "sha256": "7b9ab4dfc210480267879674944c588c1b92dc4880629a8448446c8d943ee0f8"
+    },
+    {
+      "path": "packages/barocss-cad/dist/boolean-extrusion-feature-lifecycle.d.ts",
+      "bytes": 808,
+      "sha256": "62b69c4593f44179f4e22073c6dbbd0401c6bb15e77c16ecad80cd268174e145"
+    },
+    {
+      "path": "packages/barocss-cad/dist/boolean-extrusion-feature-lifecycle.js",
+      "bytes": 14771,
+      "sha256": "ff0f79a2b4561691723fb815d7d6d5cb93bd7937212c802d1317e3de244280e6"
+    },
+    {
+      "path": "packages/barocss-cad/dist/boolean-extrusion-parameter-lifecycle.d.ts",
+      "bytes": 940,
+      "sha256": "0ee3c0819482b195f86e41ccaf1e7029ee838a401967fa6e9a8e650feb5cbb81"
+    },
+    {
+      "path": "packages/barocss-cad/dist/boolean-extrusion-parameter-lifecycle.js",
+      "bytes": 12405,
+      "sha256": "558e7b9c22590dc44975f9bdad118401a1036e801481aaaa16d8ade8f1744f3e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/boundary.d.ts",
+      "bytes": 394,
+      "sha256": "3610e87b9584881d8d46ccdad9b9800f78b1185b82c48efcb157092b8d1d512e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/boundary.js",
+      "bytes": 3503,
+      "sha256": "728147260e9d5c5d9e76d11511191525a2aabb5afca00f71d2c3e46b90b923ce"
+    },
+    {
+      "path": "packages/barocss-cad/dist/box-shell.d.ts",
+      "bytes": 1421,
+      "sha256": "a233684c49589ceea0d55deeb37beb5b06df4adfeef823bc6cadc6d345d92200"
+    },
+    {
+      "path": "packages/barocss-cad/dist/box-shell.js",
+      "bytes": 11791,
+      "sha256": "9247edcf3cc4644ae7e5e028972b43b7e23d7a26d2b59b6535f2697d847df2f3"
+    },
+    {
+      "path": "packages/barocss-cad/dist/box-solid.d.ts",
+      "bytes": 480,
+      "sha256": "bff8f03a34cbf90cb4d739df4a200efc0feecdc15ff16d1d09b4c36be67b9369"
+    },
+    {
+      "path": "packages/barocss-cad/dist/box-solid.js",
+      "bytes": 3417,
+      "sha256": "a9986410281c09c04979e6bdc00b9617887ab5a28fe935731248eba62f5b8cbe"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-assembly-instance-point.d.ts",
+      "bytes": 3308,
+      "sha256": "d0f908377dfa6e48457ff36684953b5846746690b2a28630aa5685b6ee3a3324"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-assembly-instance-point.js",
+      "bytes": 6726,
+      "sha256": "cc15acaf5cfd77ee287fdbc1e76aba849683d12b9ad059e02284a3bf1ce175aa"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-assembly-members.d.ts",
+      "bytes": 3647,
+      "sha256": "537d352d22dde03bc500271d7804db857a502d35636b3e87fe53e149d6fe5e2f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-assembly-members.js",
+      "bytes": 10451,
+      "sha256": "5e7771adca029a746219c0c21b32e5efe510cb733c9b4df1e1e4908a225df421"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-assembly-part-replacement.d.ts",
+      "bytes": 4690,
+      "sha256": "33728901640e54e09a1627645b69e3701d7f3ad07c5a2ef5918abf90031eeeaa"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-assembly-part-replacement.js",
+      "bytes": 17420,
+      "sha256": "67749c461c32415292a4b36fe36c49620bf0ee0960b158e653bd5d2db411cbd0"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-assembly.d.ts",
+      "bytes": 6939,
+      "sha256": "3f23e544d7b60bb9c83eb59496a70799ab697ed9daa28c56fefb8f6f348e474f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-assembly.js",
+      "bytes": 22926,
+      "sha256": "181753ac066b6a2c44a0237583861b8eca7673b0cf83d4a4f3657067bd6101ba"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-curve-arc-length.d.ts",
+      "bytes": 5876,
+      "sha256": "8514dff15986e3e97d1b186f28f23f7c253ce02cd363d6d30abb302390f4fe1b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-curve-arc-length.js",
+      "bytes": 20496,
+      "sha256": "9652e98f9b81ebc187a7aa7eda29ebabf23e4ec1a078e12eb275092ae86730c4"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-document-bounds.d.ts",
+      "bytes": 3299,
+      "sha256": "c387d67c7ec39728166fc5506b73c352eb87ab763b7f9b20c2234452fc25f4ee"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-document-bounds.js",
+      "bytes": 8080,
+      "sha256": "20e5e852b288cc1861609ec264c2739b53ef300e093aa8b363bda725ec67094d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-document-compatibility.d.ts",
+      "bytes": 5285,
+      "sha256": "f9d7a56df3c28dcc75e4fdc0ebfea60758a18b4d338f0e8a7ea1662554080634"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-document-compatibility.js",
+      "bytes": 15615,
+      "sha256": "b736e7afaaf904561c5d64e1c67725ac43702f2a6b7c7635e076ec08abfe1754"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-document-export.d.ts",
+      "bytes": 6342,
+      "sha256": "15df2d5e78fbefab9ad7dd19e6ac91280cf22721bc8bb1691ce82d2c2da0f678"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-document-export.js",
+      "bytes": 17456,
+      "sha256": "6f7e0f0c808fe8658c667121972f5b7f17059274e858a40070dd1cf97baf1e4f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-document-reference.d.ts",
+      "bytes": 6796,
+      "sha256": "69c931c241e303ab54207aed647b48a7d479307e57fa99836190a108f4b08456"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-document-reference.js",
+      "bytes": 18370,
+      "sha256": "b8290700d538a5296c1924d1f7a6091f78e2f2b3b237efe03d17e9c307341926"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-document.d.ts",
+      "bytes": 5134,
+      "sha256": "aca6be869facc0e9f97241f9a57b4a1d29db082ef90afd2e71579a4362d1edbf"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-document.js",
+      "bytes": 20415,
+      "sha256": "7a35b2786264f21176f03a07f973f43ca8964e558f48afcc517f21df9e34b1a1"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-surface-area.d.ts",
+      "bytes": 6870,
+      "sha256": "e4f2a044891ec5d440569f949cf6510d5d93a76485b527e6909b915f11cd42e4"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-surface-area.js",
+      "bytes": 25208,
+      "sha256": "c131cdaa39bcd5eec5e1728a486b62a0e96f9be853961e502e503c0007edff9f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/circle-graph-internal.d.ts",
+      "bytes": 1880,
+      "sha256": "7851d74f425a72947d14ea1e2a61e9c22992af2cffe223f3a038a0a07af0a420"
+    },
+    {
+      "path": "packages/barocss-cad/dist/circle-graph-internal.js",
+      "bytes": 15168,
+      "sha256": "c9dec829f694da0c7cdb23105259b7c7e0b475188f0c6eb1601b8168e9bf1b58"
+    },
+    {
+      "path": "packages/barocss-cad/dist/circular-geometry-pattern.d.ts",
+      "bytes": 7664,
+      "sha256": "4a11572c4e08b9f1dbdaa16aff897e714a486195c73b014845ef0e1ed880374a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/circular-geometry-pattern.js",
+      "bytes": 25978,
+      "sha256": "db14b9bba9a5f85cb33c1f6fec2ddb432423e986938968d49a3cec0c44bd7184"
+    },
+    {
+      "path": "packages/barocss-cad/dist/closed-exact-patch-shell.d.ts",
+      "bytes": 5867,
+      "sha256": "67f07556de844cc6f17a3b86a30b4d5bedac64016777d1d533401e204eb5eaa8"
+    },
+    {
+      "path": "packages/barocss-cad/dist/closed-exact-patch-shell.js",
+      "bytes": 27894,
+      "sha256": "9e434912c325b4d8ae120d2419658f99fae11728e0dfbdddea08c00b58694346"
+    },
+    {
+      "path": "packages/barocss-cad/dist/compatible-ruled-surface.d.ts",
+      "bytes": 2537,
+      "sha256": "f61c480994ab98f5af143c3ab8dee150cccefac858823d0644c56848fd33afa9"
+    },
+    {
+      "path": "packages/barocss-cad/dist/compatible-ruled-surface.js",
+      "bytes": 10409,
+      "sha256": "69d2494c97a472e595adb8681958771bd6e5da9361247feddc5dabb768735b1c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/construction-types.d.ts",
+      "bytes": 331,
+      "sha256": "a1a69ae06ffc35e686bb681f9c6b9e34015481b89ea0eb4d79794ec9b27951e3"
+    },
+    {
+      "path": "packages/barocss-cad/dist/construction-types.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "packages/barocss-cad/dist/convex-planar-face-extrusion.d.ts",
+      "bytes": 8526,
+      "sha256": "cbcb2fa1cde3bc3a05111cda519a37763207071c6c980f98b1bb3408900b4e1c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/convex-planar-face-extrusion.js",
+      "bytes": 29347,
+      "sha256": "99de8cd5846e9bd79cd76902e27fde61aad4f6e8b76176840cc5c374546651cf"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-arrangement.d.ts",
+      "bytes": 2268,
+      "sha256": "ef0c7a7962486c122106be91992cf0b6dceba0bb21bead227d3347fc07b74502"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-arrangement.js",
+      "bytes": 21208,
+      "sha256": "3ee3a7dba5dc671065de2065f9646ca1a73cf44ffb5b7b9ea62d0bbe1d81270c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-extrusion-geometry.d.ts",
+      "bytes": 1518,
+      "sha256": "c692120fe23f73e355e4f6412389f5a454603201803661dfcd0e27d13447d57d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-extrusion-geometry.js",
+      "bytes": 6320,
+      "sha256": "449224f239cf4a7df49d4121a83a9ba880498e4cf240f8d58c00a43407c1d32a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-extrusion-mass.d.ts",
+      "bytes": 6655,
+      "sha256": "bf7ac6c4dd7f2d5e1184a14ab265ab5488ee79dceaf3e0a7a087d9b07a819cff"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-extrusion-mass.js",
+      "bytes": 24084,
+      "sha256": "9f3b1a5c69644c6d812ef1c80508a4478604e2eea39e2ed5e6aecd7b15e13e59"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-extrusion-mesh.d.ts",
+      "bytes": 9833,
+      "sha256": "d7d6641769375cfead098996bd204c6a8300d3fd36a18d2c7996ecdbfe818d70"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-extrusion-mesh.js",
+      "bytes": 32400,
+      "sha256": "502f0871c64d5c563398432bbf43b54f0fc08fe3d1d0707c3249d0b68c72a108"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-extrusion-properties.d.ts",
+      "bytes": 5373,
+      "sha256": "b802b52e41a3bc09c0b50cb3da440474312090568de19748d86ced4425554330"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-extrusion-properties.js",
+      "bytes": 16503,
+      "sha256": "906f76c37509cb709a2145cb324ec9b2279462e9ba1b13ce7e27f0ec8723fe98"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-extrusion.d.ts",
+      "bytes": 9620,
+      "sha256": "92c712fc0bc86ddb40ab5f8cb2d697363fceaa0e9f508d2e8b4923af58a53e09"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-extrusion.js",
+      "bytes": 31730,
+      "sha256": "bb4ecf04538c2e93c096e29b85718dd95f2e63c073e7e74d5997631478288685"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-mesh-triangulation.d.ts",
+      "bytes": 1146,
+      "sha256": "5df9630812cb8cc08777a69cfeec3750be6247d5b5fef2ea8bcd8825a70cd247"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-mesh-triangulation.js",
+      "bytes": 15540,
+      "sha256": "a0ecc1f6d4bb7b5151df94b3e339c7bd5fea3c0e9f3313dfc0b3c251660fb999"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-mesh.d.ts",
+      "bytes": 9482,
+      "sha256": "c9e30a9c8c46cf8af34ff06514269e3752f820999ab26f1c72b01d7c9cc28d15"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-mesh.js",
+      "bytes": 23518,
+      "sha256": "4bd2dd5210d7ea9e9ce5968f2ab419da16a8ff5fdd18ea67e7c154e0811df2d6"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean.d.ts",
+      "bytes": 9205,
+      "sha256": "8dc65a6ddd9a7e30d7ef362db39244608b004fdb14d422623097e6455d9da336"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean.js",
+      "bytes": 22451,
+      "sha256": "c3ed3755ec32936575ae4414469e520c0604396f4e0a667c3f11d1d7b8ad8a9a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-adaptive-sampling.d.ts",
+      "bytes": 4956,
+      "sha256": "feb1455eca6ab9b4dfee9fcb5f32e40e9b740db6c4174c7cff75de17073200ba"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-adaptive-sampling.js",
+      "bytes": 18135,
+      "sha256": "905e898f133d95aff9881dd1a776610e2de52f14c205fe367aa78832a03d544f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-bezier-spans.d.ts",
+      "bytes": 5439,
+      "sha256": "822ab60a30c8356f73a3b109f36a2d62e1f766dfec79607647a555625191e93e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-bezier-spans.js",
+      "bytes": 18191,
+      "sha256": "212b779117f88c7aad28e3486fafa6c06a26e8a00a872a50edb52997670c7e37"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-c0-degree-elevation-internal.d.ts",
+      "bytes": 1690,
+      "sha256": "f66d60f6cdb8d9f49f2fe78da39381a238c848c82f6a356d15b00b3081ac3662"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-c0-degree-elevation-internal.js",
+      "bytes": 4413,
+      "sha256": "afac7bb8869fcea8d5ebf0044cfb928d9199e45ac0d87bd53cedab3b3a63ac0b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-control-polygon.d.ts",
+      "bytes": 2853,
+      "sha256": "986801d0046fd625e78faa194a5db6ccb2c67c8220e1a492299a2815c01d357e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-control-polygon.js",
+      "bytes": 11909,
+      "sha256": "1ac6a0b7b158139f3b4151b64bef4fb39840524cf25100780ba298ca9accec1f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-endpoint-continuity.d.ts",
+      "bytes": 5112,
+      "sha256": "8c3f5f862773b658ff34ffbd23204a29c4cee8f3f0b25a1e476e7adc37c82190"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-endpoint-continuity.js",
+      "bytes": 14703,
+      "sha256": "e23ab1ed7d3f03c62c9e6ced18281d7ef4a14a660852b96ff6e6385c871315b3"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-interpolation-kernel-internal.d.ts",
+      "bytes": 793,
+      "sha256": "9960b425c4f97c0dde79831b2e85e02130a2d561ea688c1429c11ab0a3e6b5e8"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-interpolation-kernel-internal.js",
+      "bytes": 19241,
+      "sha256": "59f0b9aa2cf3ad4235c0aecc681947661f05af40fdb9aeef18a2afc394e67648"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-interpolation.d.ts",
+      "bytes": 5637,
+      "sha256": "f4847bf1fab329c0ccf2ed9e78c3e987bfe41684b8c0206c0c7a79ae68258576"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-interpolation.js",
+      "bytes": 1900,
+      "sha256": "f624eb0f28d168d9a25c1397e128437a4a973c1d3e6c21d1d4fdd577b3e922fd"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-interval-extraction.d.ts",
+      "bytes": 5224,
+      "sha256": "998a8e2baee3c15971dcc8efbb97eae403517926d08e1ae3d15ad255ddef688c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-interval-extraction.js",
+      "bytes": 19282,
+      "sha256": "629501d9e69c8b3322c7f6d1af9ab2ea072bec674b6021b2cc55e2bb99156675"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-join.d.ts",
+      "bytes": 5005,
+      "sha256": "f681fc3c9f0b003a78467a0aecb9dc718278ffec5df598b7dbba5468ab52fbad"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-join.js",
+      "bytes": 17971,
+      "sha256": "ea83de33e81d89dfdae5ca83d0086b02242b083a6607269cd5e4ed62500991a3"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-knot-insertion.d.ts",
+      "bytes": 3388,
+      "sha256": "1b10f4d7d17851f169292c293bfa5da24b2590a99641165d22afa14046260f85"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-knot-insertion.js",
+      "bytes": 12913,
+      "sha256": "32684911ba7124e5c6ba18d192b1d8de6bb882886f5783655e196112fa4ec418"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-parameter-split.d.ts",
+      "bytes": 4125,
+      "sha256": "6b559f9e01fd6714c0747d06fea032f38f04088c6f8a5289d39d29928c46df72"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-parameter-split.js",
+      "bytes": 15088,
+      "sha256": "5cdbf518b0906f286905b301e4eb9c2cafc72a27059773972185cd42a80d1186"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-parameterization.d.ts",
+      "bytes": 4552,
+      "sha256": "5322ca64dcf6e3ddcd1b7d23bdc45dd204bbd20646eec845ff008d76c5ea805c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-parameterization.js",
+      "bytes": 14413,
+      "sha256": "50b1448a0055aa03d6ba0be40fea370947dcdc5205394b385bb9fec43251f5b0"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-planar-face-material.d.ts",
+      "bytes": 6065,
+      "sha256": "dbecb02d0d9a9ed89e901ac9ddc23dedd61fbc1ce8160e7510f7aaf6eee78612"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-planar-face-material.js",
+      "bytes": 24818,
+      "sha256": "6a7c2a418416d141a159f4abe70a019e9cdc5ea715bdad0282ad44a55f0d2052"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-reversal.d.ts",
+      "bytes": 5674,
+      "sha256": "591ca3c3660a63918e7fec3edd8a920374c93cbe9b2fac6b49bf296610480e9a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-reversal.js",
+      "bytes": 20024,
+      "sha256": "a4646d5f1d3dd63a3577b28bbe9ce780f1ea1ac282affa5b871e342c6f782e7e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-source.d.ts",
+      "bytes": 704,
+      "sha256": "608b53f6ddc6d26f396be0f7b4964f6131faa142ae537e0f69bb8db3e757a126"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-source.js",
+      "bytes": 5473,
+      "sha256": "bec580f1d5176cd0892e5e628fd885d93a5e7d04d6c595d6155ecf369804008e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-wide-adaptive-sampling.d.ts",
+      "bytes": 8195,
+      "sha256": "fc517589ce96dcf151dc25808718ad0401f4a51a415a4b7485965f53542eb58f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-wide-adaptive-sampling.js",
+      "bytes": 31025,
+      "sha256": "ef8ec5f38d4bbf4793af05ba8573a134b302c2f1f2e2da9ee32e54f8bcbb757a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-wide-control-polygon.d.ts",
+      "bytes": 4738,
+      "sha256": "c6ba8b8319be5e9b16f19c6ff94c123558b4cb907101a8e33be3edcfe232efac"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-wide-control-polygon.js",
+      "bytes": 15484,
+      "sha256": "0acabcd78122c3666c65ef3d35a866d95375e90bac74488791e38509ebdb57e4"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-wide-cubic-plane-intersection.d.ts",
+      "bytes": 6150,
+      "sha256": "1be8a2577b4a4b713e78dc456715c64133cf478c2a61df261ec1a01a25b089a0"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-wide-cubic-plane-intersection.js",
+      "bytes": 16548,
+      "sha256": "dd2a1ae8f4c4b3b341c85ce8f0a23a141212ed0b103925cea265a7b20cafb477"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-wide-plane-intersection.d.ts",
+      "bytes": 5046,
+      "sha256": "4a19fa5c0ef35f50f82b9a9bfc2804567a1cc07ca53f441bcd67422d998f4326"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-wide-plane-intersection.js",
+      "bytes": 14909,
+      "sha256": "5c3f929a61307d30ccece3291819aaa009e4c6f54a28cbf9bdb6d7edbc78df0f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-wide-refinement.d.ts",
+      "bytes": 5516,
+      "sha256": "ed4fd603488a956b9183bc384aba77847c594ac3144fc106395fb77411954614"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-wide-refinement.js",
+      "bytes": 22551,
+      "sha256": "c64584b266b2bee83bce58b15335d7e70d236d6b2cb8dce22d67d9f93ae3db18"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-wide-reversal.d.ts",
+      "bytes": 4075,
+      "sha256": "7930d5a2ea410275d40ef34e98da3bda363f010599ad62f4140d2b3d9b890901"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-wide-reversal.js",
+      "bytes": 10365,
+      "sha256": "f89f2d210be96a78aef943ab5c8b7ea8300172f897d0c337973d16609740fa0b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/data-copy.d.ts",
+      "bytes": 132,
+      "sha256": "3109c0d462f93956b957ba9c58bdeff06898c75c1dca046fdde11c256fa9dbb8"
+    },
+    {
+      "path": "packages/barocss-cad/dist/data-copy.js",
+      "bytes": 377,
+      "sha256": "33a46d35f16486d23f2304ae473a35bf463b16ebb0816433fd1d2392944035f7"
+    },
+    {
+      "path": "packages/barocss-cad/dist/degree-matched-bezier-ruled.d.ts",
+      "bytes": 4058,
+      "sha256": "a70d703925e40d3bcdabd40f93799c591ce8ea0811e070c05bd5325625ce2e6a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/degree-matched-bezier-ruled.js",
+      "bytes": 12733,
+      "sha256": "8dc07aa07d018d067b120b8bc4d4858d623293cb0e880a04e6bd03c04b717585"
+    },
+    {
+      "path": "packages/barocss-cad/dist/derivatives.d.ts",
+      "bytes": 578,
+      "sha256": "6de6904883da744d1b49b5f0bae1047e549f72fe6f90d794bf6ebb15291820da"
+    },
+    {
+      "path": "packages/barocss-cad/dist/derivatives.js",
+      "bytes": 6748,
+      "sha256": "86fdb439cb6194add50ec0d4f742cf6b361063d63a5dd160422e171607c3690d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/driven-mixed-sketch-lines.d.ts",
+      "bytes": 6346,
+      "sha256": "f6fdd0331679689f606042c50fb15b3b30ba65ecabb0e353844425b01422f5a1"
+    },
+    {
+      "path": "packages/barocss-cad/dist/driven-mixed-sketch-lines.js",
+      "bytes": 25027,
+      "sha256": "5e0fb52af0d1a5a91c8cef458eaf65dfbd77b8941c52c12c3a5b86b08692c451"
+    },
+    {
+      "path": "packages/barocss-cad/dist/driven-sketch-circle-feature-graph.d.ts",
+      "bytes": 5721,
+      "sha256": "172a24750d10d792eaad97a56331d297e38eccf4dbbcdd62f8e030e20a12b884"
+    },
+    {
+      "path": "packages/barocss-cad/dist/driven-sketch-circle-feature-graph.js",
+      "bytes": 23691,
+      "sha256": "7a9dd81f562ab7e53a83b2c0c2e3901a3ff5078710095aa818d1203d6eca4c38"
+    },
+    {
+      "path": "packages/barocss-cad/dist/exact-boundary-face-adjacency.d.ts",
+      "bytes": 6962,
+      "sha256": "fc95d0b45c6925f6a9c70ee3f4880b6d89bc0a94b94b886def0684b9e019763d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/exact-boundary-face-adjacency.js",
+      "bytes": 24315,
+      "sha256": "6b1daca7c41ea0302e9273b541c68282f7c7b212801de14accba26b7e04585ce"
+    },
+    {
+      "path": "packages/barocss-cad/dist/exact-surface-band-trim.d.ts",
+      "bytes": 11029,
+      "sha256": "df42fe9340d8c643ed9c0bcb475f4c4cee08e6b8cb2d24a30a8e95de23279bd9"
+    },
+    {
+      "path": "packages/barocss-cad/dist/exact-surface-band-trim.js",
+      "bytes": 32187,
+      "sha256": "332b49f2653ca4ea2d6fca5eaf8cc49282cfefc129a15bf9f8b8407dff257408"
+    },
+    {
+      "path": "packages/barocss-cad/dist/exact-surface-lower-trim.d.ts",
+      "bytes": 9424,
+      "sha256": "a1d1a2ba3e9e12a63e8dee60616476763ba3e04311d4fc0093eb071833650442"
+    },
+    {
+      "path": "packages/barocss-cad/dist/exact-surface-lower-trim.js",
+      "bytes": 25670,
+      "sha256": "c517dade1e5221ef8e85d98ebcf935a70e025fa1e9dd3e46e9969473b02dfd5f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/expression-parser.d.ts",
+      "bytes": 1401,
+      "sha256": "5100c021c5cff5e43ebe844fdada45248bcec988b40f497585eaab9d5bc8adc9"
+    },
+    {
+      "path": "packages/barocss-cad/dist/expression-parser.js",
+      "bytes": 5292,
+      "sha256": "b9a2339ad980ee6a1df79242f31de97161a8367be068b5742d56c45ab8f6ee60"
+    },
+    {
+      "path": "packages/barocss-cad/dist/extrusion-principal-inertia.d.ts",
+      "bytes": 5188,
+      "sha256": "b7b547bbd5985fb9a16e3adfa4fc8af040f8b0f18ebd1b685014a09a4872e1e2"
+    },
+    {
+      "path": "packages/barocss-cad/dist/extrusion-principal-inertia.js",
+      "bytes": 18587,
+      "sha256": "30304e082e94240af1164cf54bbf68220300e1cfe92c6f9c172bc827a76b8e9d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/extrusion-validation.d.ts",
+      "bytes": 195,
+      "sha256": "6b38d4ce4d85f037ec3d093853d011e3b4df66f31f18cdc4f95467c18fae3ac2"
+    },
+    {
+      "path": "packages/barocss-cad/dist/extrusion-validation.js",
+      "bytes": 3497,
+      "sha256": "72e2477f455c63ba446b6cd7228f6fbf5a9b1a548877a8e4b5ea836ccf3a8fac"
+    },
+    {
+      "path": "packages/barocss-cad/dist/extrusion.d.ts",
+      "bytes": 457,
+      "sha256": "b8d117e0d3052b9581fc0ab2ecec46b5953ff6699f58b053bbb1ac78dda53e66"
+    },
+    {
+      "path": "packages/barocss-cad/dist/extrusion.js",
+      "bytes": 817,
+      "sha256": "b20585fc8b63e7a0f8cb916fa3e855c1cc2635e45541e831e1658d5257a926a2"
+    },
+    {
+      "path": "packages/barocss-cad/dist/face.d.ts",
+      "bytes": 1552,
+      "sha256": "dacb2d385d35d7db13d8cc7dfeb051da219e35a80c2f14706092f418df4d6d7c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/face.js",
+      "bytes": 10538,
+      "sha256": "4bc5df71bca1c53200d278639a921a3829c63be16f9bb65aaa34eb1b605679d0"
+    },
+    {
+      "path": "packages/barocss-cad/dist/iges-import.d.ts",
+      "bytes": 8150,
+      "sha256": "76d56d12e33657cc67fe826279bccb1e0f4824e903ec6e2a37e6c2b4354959d9"
+    },
+    {
+      "path": "packages/barocss-cad/dist/iges-import.js",
+      "bytes": 36535,
+      "sha256": "cf5718dd4b6395a0c889bc46b0b887a2120fd925f42fd222e68dc26010811e46"
+    },
+    {
+      "path": "packages/barocss-cad/dist/iges.d.ts",
+      "bytes": 903,
+      "sha256": "32e854679979362e6aa6829c7f53c8ba7aa2e154fcf4019c5c8d844fdcfba90a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/iges.js",
+      "bytes": 7845,
+      "sha256": "e730986e4b319b2fb4b5dafacee079ae08d7c51704ea2937a41cc9105c9d42ab"
+    },
+    {
+      "path": "packages/barocss-cad/dist/index.d.ts",
+      "bytes": 64043,
+      "sha256": "1c1c4c750b6e4e9b0f5cd39d3d09ac97355e082817ff928cd8f3bdc9c8ad5df0"
+    },
+    {
+      "path": "packages/barocss-cad/dist/index.js",
+      "bytes": 26891,
+      "sha256": "6ff36773bec91b036154d0424bb69e844f8f215f4ce49f95a6fa11892581a027"
+    },
+    {
+      "path": "packages/barocss-cad/dist/linear-geometry-pattern.d.ts",
+      "bytes": 6075,
+      "sha256": "4385d586bd49ccabc393ad429a1b44386d9fd6edf123b8a3b7b8048467745f86"
+    },
+    {
+      "path": "packages/barocss-cad/dist/linear-geometry-pattern.js",
+      "bytes": 19579,
+      "sha256": "cd0f4f45f774b246ff5cdd60d30fd0bde5a726189cf640ed91c9c1de3545f4ec"
+    },
+    {
+      "path": "packages/barocss-cad/dist/local-curvature.d.ts",
+      "bytes": 1863,
+      "sha256": "47c1387ed3ef11b789bc32126349a100dc70107d23a041032fcdd84c9e09dd85"
+    },
+    {
+      "path": "packages/barocss-cad/dist/local-curvature.js",
+      "bytes": 6717,
+      "sha256": "1557e9829def32a84f99e63324c288a955154f5a21ad9add15c64f4391d2bed8"
+    },
+    {
+      "path": "packages/barocss-cad/dist/lower-model.d.ts",
+      "bytes": 356,
+      "sha256": "f2e12efa1f2b31dc5f139ed16a1718ca20e03207dabac7c803abe0ee2f104a69"
+    },
+    {
+      "path": "packages/barocss-cad/dist/lower-model.js",
+      "bytes": 1018,
+      "sha256": "271059dcfce35392a7554c78e69d722e5e7b2152f929b569e3d3267685eb2e50"
+    },
+    {
+      "path": "packages/barocss-cad/dist/math.d.ts",
+      "bytes": 1233,
+      "sha256": "b73bfab66daa3166ccd9b47ca1d609b7ddc30f548eb70499c673e466f4d8715b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/math.js",
+      "bytes": 11568,
+      "sha256": "0ae19f651ac0335ee10980264932cce3f24e6959eecab6463e1a486121c91d3e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/mixed-workplane-sketch-document.d.ts",
+      "bytes": 7801,
+      "sha256": "c1d98acff6abb771ed0f63ec1f293fdc9c1b2952f9a209441031107a405f3aa0"
+    },
+    {
+      "path": "packages/barocss-cad/dist/mixed-workplane-sketch-document.js",
+      "bytes": 28492,
+      "sha256": "db8088344d735ac6e810af87218b49b1f6666e54f9ccc02dcbd030fb041f6bf0"
+    },
+    {
+      "path": "packages/barocss-cad/dist/model-compiler.d.ts",
+      "bytes": 1427,
+      "sha256": "f232524a09dc715ea90d9ec6c6f243fcf5e6b21dc78d9d385cc50a316bc5abf5"
+    },
+    {
+      "path": "packages/barocss-cad/dist/model-compiler.js",
+      "bytes": 2394,
+      "sha256": "14fb6320ef5ba85d48ae663206bf31035466e2c5c5348db3486e769d694c3560"
+    },
+    {
+      "path": "packages/barocss-cad/dist/multi-section-loft.d.ts",
+      "bytes": 7759,
+      "sha256": "9494319f4d8dafd72f9a81b9ede6df5e6817b5fb959d62312656b47c8798fcfe"
+    },
+    {
+      "path": "packages/barocss-cad/dist/multi-section-loft.js",
+      "bytes": 24736,
+      "sha256": "e53f50879eb136af009236782eda4ef80060ae52baaea6ecc7b47dc9b3ed45c1"
+    },
+    {
+      "path": "packages/barocss-cad/dist/multispan-vlinear-plane-section.d.ts",
+      "bytes": 9886,
+      "sha256": "b2c6d8ab22f02926eb630ff66aced68bb5304515f5fd589a990aec61953a3e7b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/multispan-vlinear-plane-section.js",
+      "bytes": 34560,
+      "sha256": "c853af3494d59e37193eb8e13aaae69fd638065754f29d106173856e1322a876"
+    },
+    {
+      "path": "packages/barocss-cad/dist/multispan-vlinear-plane-trim-classification.d.ts",
+      "bytes": 7454,
+      "sha256": "99da94e6b11f2ccfcc2f1093f66a8d040b74d7adb88418a332861f3fa10ab0c4"
+    },
+    {
+      "path": "packages/barocss-cad/dist/multispan-vlinear-plane-trim-classification.js",
+      "bytes": 20477,
+      "sha256": "a8f7efbf01d4db94f8a9911c7d748c92301026b3f6aa9f71a44a8b84266c553d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/multispan-vlinear-plane-trim.d.ts",
+      "bytes": 9409,
+      "sha256": "bf801c7c3a84ca275a56c62eef51fcaf145315ea7bd8824fbd15da7f6bd7348a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/multispan-vlinear-plane-trim.js",
+      "bytes": 33137,
+      "sha256": "b29ab25328030672ca07b2fe4eb2f4408977c7b6599cd0e0a63820f6191c6fd3"
+    },
+    {
+      "path": "packages/barocss-cad/dist/nurbs-source-loft-feature-graph.d.ts",
+      "bytes": 10233,
+      "sha256": "777fb70b7fa67b8fa58c8774773a0d177dd604cc87ca8ab2a949b34064827b6f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/nurbs-source-loft-feature-graph.js",
+      "bytes": 34721,
+      "sha256": "6b0d9e99ea090980ffb0bc9b859b7d759e2986e6e5454746b21a38c77e139c1c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/orthogonal-adjacency.d.ts",
+      "bytes": 901,
+      "sha256": "edbc47004bd3e6d26f4477e135f093d1885a8013b8e200492fc6c67b874ba83c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/orthogonal-adjacency.js",
+      "bytes": 10397,
+      "sha256": "ed6090db341bce5678bb22a8bcafec07191ad869bc207fe1efd2aba0559adcd2"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-affine-plane-loop-internal.d.ts",
+      "bytes": 1105,
+      "sha256": "88b250a3ecd54e86ad5e60b44592499f61c1fa9a26886fe8f063d3ac56c3ddc7"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-affine-plane-loop-internal.js",
+      "bytes": 7257,
+      "sha256": "ad2a6b60ee5a28f3e8e0452af679a79a9ec7a6e23cbd318b19e652c61c7cf20d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-coincident-plane-clip.d.ts",
+      "bytes": 5900,
+      "sha256": "df05955e99432bfb4a308b61e4d08a8847acc3bc52f58d050bf5a2435b24f62c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-coincident-plane-clip.js",
+      "bytes": 23322,
+      "sha256": "b4de9abf185300bcefe8ab43eea4110464a0886b83cedeeee1b5b4cd4a627539"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-loop-clip.d.ts",
+      "bytes": 5837,
+      "sha256": "3f6c2604d71f2d74c9726c93f2b9c37dd583ff4802d65c96ceb343c5548eadbf"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-loop-clip.js",
+      "bytes": 26083,
+      "sha256": "eac09e766c4c1b5aea102a4da25abf03d8762d8dcfa8e2768b615a6af33808d7"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-planar-face-holes-intersection.d.ts",
+      "bytes": 7163,
+      "sha256": "ce180b5f3d475cc0d382eef9cf795f318b40a0b672f9476f115dd90a5ccf32d2"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-planar-face-holes-intersection.js",
+      "bytes": 37716,
+      "sha256": "010fe7a81651740fb9cb3c104b0940c01f65e4a1ed749683de2a8b74a04dbb97"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-planar-face-holes-preview.d.ts",
+      "bytes": 5156,
+      "sha256": "5b403b190c926368dce090324d28d804320faf3b226443bf3c9535800e4cd2e7"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-planar-face-holes-preview.js",
+      "bytes": 22826,
+      "sha256": "1637a87c57caf041f35a6707ee40d5c946b2dc5d2be17b5899c2b23e3e16b8b4"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-planar-face-holes-ray.d.ts",
+      "bytes": 4358,
+      "sha256": "9d4a5dacfed40bac284d758ed5377400a004b26973ff98b8d3ecaaa910a89f5e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-planar-face-holes-ray.js",
+      "bytes": 11944,
+      "sha256": "a1a695442924e157db5e2ab82bfa04e0e19f2534c2a46b22b425fb6cfe406e4b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-planar-face-holes.d.ts",
+      "bytes": 5565,
+      "sha256": "7f2ad033368586a09f3313a4aa5c3f9687c37424443802ac3af50801445f7b42"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-planar-face-holes.js",
+      "bytes": 23605,
+      "sha256": "9dfbadbf68ac1c5fc4bb73e5231cca4bf53e5905477032da4ac8f47730cfafcf"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-planar-face-intersection.d.ts",
+      "bytes": 5096,
+      "sha256": "4948fdabb23601e780935c2b63c26249cedca0be9d998aa8f110055537f309ab"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-planar-face-intersection.js",
+      "bytes": 24284,
+      "sha256": "f30ca92a2284186df6eacc7bd14d93746c48d8f275bf05006c36bbaf12d41166"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-planar-face.d.ts",
+      "bytes": 4502,
+      "sha256": "a4ecb5dbcb53a0799d9b453dd796a0a837761b719a03a657365d112431150f35"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-planar-face.js",
+      "bytes": 16822,
+      "sha256": "050060748aec7f18cff653cd0eb9fc7d493919920c61b7a9804d1808851fbcb3"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-cubic-bernstein-roots.d.ts",
+      "bytes": 2364,
+      "sha256": "c0e8667568b867a0950d6ab34263a3a05b1dbf53dd52553f15d77996b4fa6488"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-cubic-bernstein-roots.js",
+      "bytes": 11718,
+      "sha256": "da94c51b8de5694d32e498fdaeee90d11b48b65ad7c9a6f5b1be43c904bda62c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-cubic-curve-plane-intersection.d.ts",
+      "bytes": 5398,
+      "sha256": "2f7dc13d7d95278ebc638d45c81da693c3158490b99643c4764a2f1d4c20a8f0"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-cubic-curve-plane-intersection.js",
+      "bytes": 13152,
+      "sha256": "5cc1f8a4676a4f5b16263fa4e07b49ee5d28e05c0f66aedbf43d9adf1ab7ce44"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-curve-line-intersection.d.ts",
+      "bytes": 6772,
+      "sha256": "261f141f99f0e5bfebba4bf12241d8766152a117c98f2381e08d9a083ce0808d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-curve-line-intersection.js",
+      "bytes": 30295,
+      "sha256": "dfa438062ec9e5d79f68442138076a8a163aa77d267fbf1d74c78ec3ec855bc4"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-curve-plane-intersection.d.ts",
+      "bytes": 4893,
+      "sha256": "eaa8217af84ab129e192ca8f43c52a1cf47fd69413026ef524c5c8452a7e8a35"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-curve-plane-intersection.js",
+      "bytes": 15416,
+      "sha256": "2b102edae6ab6243320d3604c1ec5039b309ba53b8bacb4293fbc33afd32f6de"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-homogeneous-bernstein-roots.d.ts",
+      "bytes": 986,
+      "sha256": "bd2718fb75f73cf00894acbb2f38deb7f2455a51cd124c730c8db2d84fcf427d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-homogeneous-bernstein-roots.js",
+      "bytes": 5564,
+      "sha256": "2c5a034d1da06e45df13373be684d9c147fc562fefebd3b41f066a36a81c26c1"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-multispan-curve-plane.d.ts",
+      "bytes": 5661,
+      "sha256": "c3485d343ef80e59f3153acfc2ff7f595ceb9e70aa6d80954d3c3fae2fe16ba1"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-multispan-curve-plane.js",
+      "bytes": 18481,
+      "sha256": "64317e524527006404eab5bb3a85e1886d3b56026664055dc748d6e53ea2fd2d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-plane-cylinder-clipped.d.ts",
+      "bytes": 5131,
+      "sha256": "758f6f1d114a72e29bc77da646169ee672ff7d897be66f25a34eb11c283c3ee5"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-plane-cylinder-clipped.js",
+      "bytes": 16801,
+      "sha256": "47bcb08e9677e7b80159cade098bb5c6c41d5ab309ddf0758a5a25f472012383"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-plane-cylinder-intersection-internal.d.ts",
+      "bytes": 1639,
+      "sha256": "f0f2b826b50fde3c4c0ae4505c10764689ce5465438039f363b83a0a905507ec"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-plane-cylinder-intersection-internal.js",
+      "bytes": 12880,
+      "sha256": "f465a5b9a489245209a528bcf8c9fa824a1b334b61ea114c2d31ca06429d8b16"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-plane-cylinder-intersection.d.ts",
+      "bytes": 4552,
+      "sha256": "711103f40ffe40ad80691cefed41c7dc11c42e29655d59e8c1857bc023e7aa3b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-plane-cylinder-intersection.js",
+      "bytes": 3650,
+      "sha256": "e45a7780f41aefa977d5f68dc0c45060aaff3737a5d6d2b58030ccb95611418a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-plate-circular-hole-preview.d.ts",
+      "bytes": 3095,
+      "sha256": "8247ea1da3f3d6d00ab91d7070678b365f0bbd8d12bfe8c78d9e45406b9861f7"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-plate-circular-hole-preview.js",
+      "bytes": 18323,
+      "sha256": "a24729f21aa65ba6bfd69f03a76b72adad30d69f7c3b08a9a996cb22aeb3fdbb"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-plate-circular-hole.d.ts",
+      "bytes": 3464,
+      "sha256": "7d057de4e00111bb43b011910696b9427320472b976bb83ba0ec45fd77ca921f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-plate-circular-hole.js",
+      "bytes": 16132,
+      "sha256": "4b8ade95bbb3c3eeb12cae493fdb2e5cced0a1cb39e7f8c578c245d5ec5417e8"
+    },
+    {
+      "path": "packages/barocss-cad/dist/packet.d.ts",
+      "bytes": 804,
+      "sha256": "e1e73fe1a8694ddfa5991c3cc15cf5ed34a8361ae6741019b708e6a620dd1e22"
+    },
+    {
+      "path": "packages/barocss-cad/dist/packet.js",
+      "bytes": 7872,
+      "sha256": "2fd8211506d0d5a5a4c49a09a5a10c35bd4e59e0500fb9b59edf4212ca55775f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/paired-section-plane-cap.d.ts",
+      "bytes": 9980,
+      "sha256": "9097c5f5805d111caf31c2c4ea273650ede305ef99f0c368aa98cd42fd657928"
+    },
+    {
+      "path": "packages/barocss-cad/dist/paired-section-plane-cap.js",
+      "bytes": 28738,
+      "sha256": "338a43af29c8082efb5174e5c988d6471d64eaffbd73735c35dcba93946e5885"
+    },
+    {
+      "path": "packages/barocss-cad/dist/paired-surface-intersection-branch.d.ts",
+      "bytes": 11802,
+      "sha256": "8d11575c49bd36e08d95dc5bd1c28a1366e00cd8c68d4cb71b57fed8c3153944"
+    },
+    {
+      "path": "packages/barocss-cad/dist/paired-surface-intersection-branch.js",
+      "bytes": 41740,
+      "sha256": "e3b9496afb23975cae9b669a7a37ea44ef73eb0b699620c45b4c31cf1d88928e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/parameter-semantics.d.ts",
+      "bytes": 982,
+      "sha256": "35398ee1f6ded6643211103599c9186c4917987630c3dfbc2853a10c0c1e65cd"
+    },
+    {
+      "path": "packages/barocss-cad/dist/parameter-semantics.js",
+      "bytes": 11009,
+      "sha256": "1103fe63e599f88b2a555888a1b42c6836802f0a40dbcb014fa79f5a4d15716c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/piecewise-rational-loft.d.ts",
+      "bytes": 7037,
+      "sha256": "43f6c60c680df2d3eeb8e837bebe386be13252d15d23871e0ff2d49544ffaa43"
+    },
+    {
+      "path": "packages/barocss-cad/dist/piecewise-rational-loft.js",
+      "bytes": 20771,
+      "sha256": "3750c5c25f4d7d2646b9f6056a5367b0675e327ab64744ca7afd08ae50539421"
+    },
+    {
+      "path": "packages/barocss-cad/dist/preview.d.ts",
+      "bytes": 836,
+      "sha256": "3d16ac409b46ace0a35718e7e1bf1dfc7ee51e9b03677a2100097a6c8d5227a7"
+    },
+    {
+      "path": "packages/barocss-cad/dist/preview.js",
+      "bytes": 7312,
+      "sha256": "571acc416e7a05830f47711a3bc91f650146d9d2f5635508647f196d826c117c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/qualified-translated-strip-body-mesh-domain-internal.d.ts",
+      "bytes": 1909,
+      "sha256": "b67e8b3ef2ef1c57e88ee362c22e23898917bb6744caec974d28ae30e44cd95c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/qualified-translated-strip-body-mesh-domain-internal.js",
+      "bytes": 9815,
+      "sha256": "91e7787a4ee1e0fa04dcbe1b39935b1d43cd6858c4d5d957f59c188543eb8e9b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/qualified-translated-strip-body-mesh.d.ts",
+      "bytes": 10392,
+      "sha256": "41d13e8567347fe213281e61318c1704661bdcca53cd8002cd8989276e06b937"
+    },
+    {
+      "path": "packages/barocss-cad/dist/qualified-translated-strip-body-mesh.js",
+      "bytes": 40479,
+      "sha256": "d6ef40c86869d6f31cc476bc41e134f1bce6e97ce9ffa375e6d32176d49c3535"
+    },
+    {
+      "path": "packages/barocss-cad/dist/qualified-translated-strip-body.d.ts",
+      "bytes": 10242,
+      "sha256": "6a770c1df7e6546743e77a60d11b073e6324d2d73ba6b87fcef3e71e95aaf6ed"
+    },
+    {
+      "path": "packages/barocss-cad/dist/qualified-translated-strip-body.js",
+      "bytes": 36850,
+      "sha256": "4b7c6af1cfa214d835b8174167681d2c0af14bcbd9c97352c2a2eb58d598388e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/qualified-translated-strip-material-internal.d.ts",
+      "bytes": 8233,
+      "sha256": "758e23b69efcda94e466d274ae2a82d37361f076a18dddc3f717511e756d05fb"
+    },
+    {
+      "path": "packages/barocss-cad/dist/qualified-translated-strip-material-internal.js",
+      "bytes": 29358,
+      "sha256": "e25815530e6ffda2da6b9339ebbdee3bab6592341cbe094d077c85c11adb2ed7"
+    },
+    {
+      "path": "packages/barocss-cad/dist/quintic-hermite-curve.d.ts",
+      "bytes": 4980,
+      "sha256": "a87955fbbc564f855de455522deb904d960ef839d1727e6b16043fc4b2fce52d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/quintic-hermite-curve.js",
+      "bytes": 15414,
+      "sha256": "9731714d7aad41a4e9dfa46d551272625a7e69e673d63b33236f07c0e4c1b72e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/rational-ruled-surface.d.ts",
+      "bytes": 4288,
+      "sha256": "e341414eee2f500dd07bbeaa722936997e9e7995cf2845f355d225e2dccd8940"
+    },
+    {
+      "path": "packages/barocss-cad/dist/rational-ruled-surface.js",
+      "bytes": 14418,
+      "sha256": "808469a5e4d9cae805187d96e0005d55de6be39ae51683ad7d3e07f96f56015f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/second-derivatives.d.ts",
+      "bytes": 1250,
+      "sha256": "b570f42e9b1bb8aa470c62caff62cfbad89b72b97d0cd82f0af4353b5f1b2592"
+    },
+    {
+      "path": "packages/barocss-cad/dist/second-derivatives.js",
+      "bytes": 14445,
+      "sha256": "4ff0505501f88c194f1491afbdc1274b0080338a109661893b54b6d357994eee"
+    },
+    {
+      "path": "packages/barocss-cad/dist/section-exact-surface-binding.d.ts",
+      "bytes": 6800,
+      "sha256": "9b8d6dc14a63422233711ca1cdb36242572650ac891a6089ebd890a6ca44c6c4"
+    },
+    {
+      "path": "packages/barocss-cad/dist/section-exact-surface-binding.js",
+      "bytes": 19320,
+      "sha256": "33897022fc5bad1e73746c268b3022b925bf51859596dc23f9fa11607eeef788"
+    },
+    {
+      "path": "packages/barocss-cad/dist/section-knot-alignment.d.ts",
+      "bytes": 5784,
+      "sha256": "fc5751f633b8f5b412c58ed448b326da3d723fd09dc1e32ba146107d6e6b8395"
+    },
+    {
+      "path": "packages/barocss-cad/dist/section-knot-alignment.js",
+      "bytes": 20465,
+      "sha256": "c16123b9e7dddc1810ad877d5f16199b418b8fab614809c335ba100a70a0e01a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/section-rational-internal.d.ts",
+      "bytes": 1954,
+      "sha256": "04d219736def2fff9150974948cbadfe4fc98c8a270a751b044f9de23d4d24f2"
+    },
+    {
+      "path": "packages/barocss-cad/dist/section-rational-internal.js",
+      "bytes": 7531,
+      "sha256": "0cc904f223058aecc7e9e53e268b339161bce78e8edb12bba15752a8c538cb76"
+    },
+    {
+      "path": "packages/barocss-cad/dist/semantic-model.d.ts",
+      "bytes": 1783,
+      "sha256": "ef232a6bb211cb3166f4b5252d54e96521c0bc3db99c089fb705ad3e871db7bd"
+    },
+    {
+      "path": "packages/barocss-cad/dist/semantic-model.js",
+      "bytes": 7696,
+      "sha256": "60048a6eeae71e873a63e3d72b0eff5dd016da49479bd01893ed84809d05e71f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/sketch-circle-feature-graph.d.ts",
+      "bytes": 5626,
+      "sha256": "3e8bd353ce14c91da25f5f7336e504ebe5b02c19e9d506e2e4fa6132073ca3e9"
+    },
+    {
+      "path": "packages/barocss-cad/dist/sketch-circle-feature-graph.js",
+      "bytes": 18368,
+      "sha256": "f0481cdb925db3465002c84c9c309723c179ded1a7829430faff7a66ea118db8"
+    },
+    {
+      "path": "packages/barocss-cad/dist/sketch-rectangle-feature-graph.d.ts",
+      "bytes": 5397,
+      "sha256": "62d291dd79e4db2bb4816d2b38dcf36cb728a1ee09bc264cbe67225e5c08ce3b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/sketch-rectangle-feature-graph.js",
+      "bytes": 29934,
+      "sha256": "9716b08c4bfce0fb4256a1f1924ee8642d2841b928274786ffbacbf76b6de741"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-ast.d.ts",
+      "bytes": 2270,
+      "sha256": "96922babb029f2a316651ad28f2097949031a0b68ec393bae310685ae6ac6e7b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-ast.js",
+      "bytes": 13017,
+      "sha256": "1877582a393df88e2e80b7eb594882d20a501421fcef5fd2ff97189822177167"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-curve-control-polygon.d.ts",
+      "bytes": 5037,
+      "sha256": "30c48c440499c4e7619fbaa1eadfecfd6df03843784a067983707495d608e329"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-curve-control-polygon.js",
+      "bytes": 20020,
+      "sha256": "d889469c32e5f3154d8339656c45beb2206dade1534d3918356d50b03840f5d7"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-curve-degree-elevation.d.ts",
+      "bytes": 6855,
+      "sha256": "3044426282497d1aff3b73116697f53818e5f6a556eb04045b0830744aeda4da"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-curve-degree-elevation.js",
+      "bytes": 30330,
+      "sha256": "f34723eb84ed6cf3634c29ce9d0a3f10b86b2c58faab66f633e28febdeab58f3"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-curve-interval-extraction.d.ts",
+      "bytes": 9445,
+      "sha256": "76609cb8941e672866b191d09b123f501fad140b23956fa5dee213c7c59ecabe"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-curve-interval-extraction.js",
+      "bytes": 43191,
+      "sha256": "cb514930b6c54b24083a5e6a596fc792a3d19c904646f86db520477b8d939cb8"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-curve-knot-insertion.d.ts",
+      "bytes": 6454,
+      "sha256": "d5a5e78ce188cd43467ac0144958e15fe7488b066ef0f0ae2bc6fc69d7830812"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-curve-knot-insertion.js",
+      "bytes": 27076,
+      "sha256": "1db68fcf9f4ffee47a2718d161e33b59192240d63e1e11ed375879805fca426f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-knot-aligned-loft.d.ts",
+      "bytes": 7402,
+      "sha256": "58d4a52aebc82ccd06d550b756179ad3ba1a651ee03560a3210ce9c86c074092"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-knot-aligned-loft.js",
+      "bytes": 29276,
+      "sha256": "4f782225215ac3167cb81101449cd02f6dbde831475b17fb7f02749da0465962"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-knot-recipe-loft-graph.d.ts",
+      "bytes": 11122,
+      "sha256": "e3e436574fb400d10991e9bc8aa1d4c6ca151666f5531ba88f1dc9347fc70103"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-knot-recipe-loft-graph.js",
+      "bytes": 43535,
+      "sha256": "1bd2e6e19e631f08757ab2c645632d98eb08025f248754eae0db7a40c180c7d7"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-line-width-face.d.ts",
+      "bytes": 7728,
+      "sha256": "0367aca837100a06bb8ff78b1ca45435285714b809230befeb276ec9d8aafee3"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-line-width-face.js",
+      "bytes": 25764,
+      "sha256": "306ddd57c1338f33f981003ed7177291aa0cee42721d7ca82187df6567b447ca"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-surface-control-net-wide.d.ts",
+      "bytes": 5691,
+      "sha256": "e1f3f9d311696e4dc866c5f205afd9115416442e59e8e24be276167822ddaed7"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-surface-control-net-wide.js",
+      "bytes": 21260,
+      "sha256": "1dc58fcc356afd252b914af4cc28a80497e95f38fe2c6c6d8886f7b60cd5e715"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-surface-control-net.d.ts",
+      "bytes": 3838,
+      "sha256": "01936038bec061f7f44361f51ef6a3f072bcd6b015f566a7ff1ed03a063d5bdf"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-surface-control-net.js",
+      "bytes": 16268,
+      "sha256": "905b690de2e08602f6e8bf80b9199ca71c0767d34b4b999fbba8dacea95f2d6a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-surface-degree-elevation.d.ts",
+      "bytes": 8170,
+      "sha256": "d1a0afd8d0a8282a895995de1630f60ce416a750b97f4f4075a1f1b386418435"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-surface-degree-elevation.js",
+      "bytes": 38541,
+      "sha256": "5a4ea12aaa1477ecf5e2ca3b1df3d344db5c20753657bd5a06efbfc99f428675"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-surface-knot-insertion.d.ts",
+      "bytes": 7437,
+      "sha256": "11ad8c30154353f6564112915120cc4aa1b47b048b6ec5965bb107cb04ed786a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-surface-knot-insertion.js",
+      "bytes": 32460,
+      "sha256": "3280ea2e5444534c9c883d5baa97956e9953a860e3cbe8fb7a3cd20546bcdc01"
+    },
+    {
+      "path": "packages/barocss-cad/dist/stored-plate-hole-point-classification.d.ts",
+      "bytes": 4728,
+      "sha256": "e1c184a7d0a0be78136c1c47d30f0fdc6e75aaffc41991d62bb7a3c5afdc65c3"
+    },
+    {
+      "path": "packages/barocss-cad/dist/stored-plate-hole-point-classification.js",
+      "bytes": 17765,
+      "sha256": "6807d189ffc11ad64548a20900e3cde5cfc08cb92158ef0874578c5e6b120fb4"
+    },
+    {
+      "path": "packages/barocss-cad/dist/stored-plate-hole-solid.d.ts",
+      "bytes": 3483,
+      "sha256": "c399af246c844ab668c2ac1273753c4708c9cb1a28b56eb2ab2aeecf11f9fcc3"
+    },
+    {
+      "path": "packages/barocss-cad/dist/stored-plate-hole-solid.js",
+      "bytes": 23442,
+      "sha256": "96ca0f349e02c5e1cadf106c3b865b52fd1045d279faf54b27401396754cf165"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-axis-reversal.d.ts",
+      "bytes": 5796,
+      "sha256": "5cec5a451dae9f242450dcd6b4468c1f77cc6cbf41b22f7abcd751dcdac17373"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-axis-reversal.js",
+      "bytes": 21793,
+      "sha256": "22381919d0cb055ab9be677b2bc9070f2e51874fd6e8d9f95a22aea16d572784"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-bezier-axis-degree-elevation.d.ts",
+      "bytes": 4191,
+      "sha256": "b8cd4af5c8ee85e9356fcc5650a154bc7d0e2ed541017d47af12dbaf2da2dd4d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-bezier-axis-degree-elevation.js",
+      "bytes": 14948,
+      "sha256": "8eeb04e7498c8aecf5ee5428c2349f9f9b34e5f37f30131d5767690e72ac189a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-control-net.d.ts",
+      "bytes": 2243,
+      "sha256": "924a9b061217006c6bc0c9bc41313d6951b20781437ca9224eec3770743ad724"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-control-net.js",
+      "bytes": 10719,
+      "sha256": "b66688766d13d729e2085d69825831dbcf04733739abc40fd6f2e8ca17836296"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-interpolation.d.ts",
+      "bytes": 5693,
+      "sha256": "5f48b3fc54e784ef45ccfccdb718b3a6e0de0edc7f7e58d6828e1cfcad670fda"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-interpolation.js",
+      "bytes": 17822,
+      "sha256": "76eb2de0d0a4b25b3c7150d3de1a6a1d8aabee4fcff9c5c4a784d4b9ab9c31f2"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-isocurve.d.ts",
+      "bytes": 2989,
+      "sha256": "b7b2bef9a4ab67fd93dfbd95b59d57b7c6c59828e0a7bfd95eb40a32580158bd"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-isocurve.js",
+      "bytes": 12228,
+      "sha256": "c472bac27e40632d06cbb2414e45a7b3e7f562a733535699cf9d50c376ae8d73"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-knot-insertion.d.ts",
+      "bytes": 2868,
+      "sha256": "4660f6e93ac85b3f887115becdd51dc64282bb9f1febef5c04b92372c7cf6797"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-knot-insertion.js",
+      "bytes": 13929,
+      "sha256": "9fa7b94d90168dfd195343a91ba4d6d7effc4ea31a06464617df74b13c03a30e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-parameter-split.d.ts",
+      "bytes": 4470,
+      "sha256": "83fc0a7be5ca6458503373c5ebeea3a2784739e10e75e668b436877e191af063"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-parameter-split.js",
+      "bytes": 16703,
+      "sha256": "2d90437a43b1d138e98de48d58df288cd3973af092d925583da0c9f6be35fd70"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-region.d.ts",
+      "bytes": 5829,
+      "sha256": "f5aa4346a5daf98f1a2af5226678fd7b5e17156edbb76a2afd3943d5fc3af89c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-region.js",
+      "bytes": 22341,
+      "sha256": "db4e777525dd366ce287c0a2567170af96828a5466112a3411c9fb6e613e7593"
+    },
+    {
+      "path": "packages/barocss-cad/dist/three-section-loft.d.ts",
+      "bytes": 6711,
+      "sha256": "f66f5fbeb3914a7a711d6476ca16549e84211a43200d44d9ee77cd203b8a4cc6"
+    },
+    {
+      "path": "packages/barocss-cad/dist/three-section-loft.js",
+      "bytes": 20029,
+      "sha256": "1f698fd721039ad576d27828ca960f9aa63d6d37f6da2cf3c8cb18c157cf1a40"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translated-strip-interval-boolean-construction-internal.d.ts",
+      "bytes": 2041,
+      "sha256": "f3da0ece6eb2c52e639c249ffbe7fca4c49e0f6b556d887c29cb4ee284f2ab63"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translated-strip-interval-boolean-construction-internal.js",
+      "bytes": 3552,
+      "sha256": "5e1cfe941640d59dedc8434121838f2380399fd905941d7cab15f11241322fa9"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translated-strip-interval-boolean.d.ts",
+      "bytes": 11626,
+      "sha256": "26727ed965f9fbbf5a6e8bf57733048cbbcff72e0847e73a89e4dc0b6852e7ac"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translated-strip-interval-boolean.js",
+      "bytes": 38401,
+      "sha256": "9c5241a0f92a1b02425a54dd8f0544729dc53c4226db6da4011b7b4cae8d56fb"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translated-strip-plane-split.d.ts",
+      "bytes": 15142,
+      "sha256": "2c04e4ea58ae1d323694fcc9ea846f7680106ef424c1fe3bfc2565e3f0527e6f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translated-strip-plane-split.js",
+      "bytes": 56198,
+      "sha256": "14b5892da95a1deeddc610b5c6cef2490e7a608c8ef6d61dd73327c976792366"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translated-surface-base-face.d.ts",
+      "bytes": 10676,
+      "sha256": "96fee8a050fef2ea0af9f808a91a40a9178d97d7790ea2b9616937dee36767a6"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translated-surface-base-face.js",
+      "bytes": 29112,
+      "sha256": "2973b47d440332733839eb7ca9e901525bac6a5915f1c06a8af46bd2aff04ea0"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translated-surface-end-faces.d.ts",
+      "bytes": 10344,
+      "sha256": "0829aa95f878f4c8f331cfbad3fbd91da6d0592b53523ba56dc25cbfe5efc1a4"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translated-surface-end-faces.js",
+      "bytes": 30000,
+      "sha256": "f73d8e8c8a3cad81b8aa36a234b5d615b91fe1b3659cefffa38df41d3df01282"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translated-surface-strip-volume.d.ts",
+      "bytes": 9010,
+      "sha256": "5a25b9219f0b1970cad381e7a86868a9757a6912b712e4efddd00580e90c5488"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translated-surface-strip-volume.js",
+      "bytes": 22913,
+      "sha256": "c78ec98069bbede86856a2469423d1383df5dc4e6c982a618d721539bac5c40a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translated-surface-strip-world-points.d.ts",
+      "bytes": 10534,
+      "sha256": "da868ba4a9b1838cb135574dbb0396b644432ce61f9a962d3c18f46a55664eab"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translated-surface-strip-world-points.js",
+      "bytes": 31147,
+      "sha256": "c2d764efd366be91be6a8981a0d6e7b557f86afbe2a13107a3f3934818102f86"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translational-sweep-surface.d.ts",
+      "bytes": 6862,
+      "sha256": "417650b84a98fd1965f6bccae8bc4a949970e8c6e86347ddb8032057dc5abccc"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translational-sweep-surface.js",
+      "bytes": 20099,
+      "sha256": "955c7cc0a40f483b637a9d395ab966434dc68c197830cb39a962cddaeba42820"
+    },
+    {
+      "path": "packages/barocss-cad/dist/types.d.ts",
+      "bytes": 825,
+      "sha256": "ff9813afdf92d31bc72379e93228ebd381aa90d5950691302b52d20b70804ba9"
+    },
+    {
+      "path": "packages/barocss-cad/dist/types.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "packages/barocss-cad/dist/vlinear-plane-section.d.ts",
+      "bytes": 8469,
+      "sha256": "9a5869baf4f1ae3b4a02e4c841b6a10db0a5afe7706ef8ffbd88da2dd43a5a16"
+    },
+    {
+      "path": "packages/barocss-cad/dist/vlinear-plane-section.js",
+      "bytes": 28051,
+      "sha256": "555e1b334398a846c4ae0cbbb7dae798b93ba919be570a22353b6cdc198398c8"
+    },
+    {
+      "path": "packages/barocss-cad/dist/vlinear-plane-trim-classification.d.ts",
+      "bytes": 6483,
+      "sha256": "04265e26c99da1df484ab1d274c30ab7128e34f70088b24686b89c3ee02e6365"
+    },
+    {
+      "path": "packages/barocss-cad/dist/vlinear-plane-trim-classification.js",
+      "bytes": 18037,
+      "sha256": "a588822f2f22d21fe6c6695c065c050c4fd303cef28d0b64345f3f02dbc2c911"
+    },
+    {
+      "path": "packages/barocss-cad/dist/vlinear-plane-trim.d.ts",
+      "bytes": 8389,
+      "sha256": "465f0346e58dc74a074b2ac9df7854ba2fc392b7759f95a34ec528fcde505fdc"
+    },
+    {
+      "path": "packages/barocss-cad/dist/vlinear-plane-trim.js",
+      "bytes": 28616,
+      "sha256": "ee1564b91b2043d6dd54da9d77954ca53d679f7e8b276cb1ddd34e9b98b82954"
+    },
+    {
+      "path": "packages/barocss-cad/dist/weighted-curve-interpolation.d.ts",
+      "bytes": 2515,
+      "sha256": "13fe3ae6026468004dc502c535c8bdd3a690eba853ac0c7ad9ab8632aaf0e78b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/weighted-curve-interpolation.js",
+      "bytes": 4755,
+      "sha256": "f11a2f51ebc77bc2e6d8dd7523fd73b38640de24fdacf9b833bc46b4f8a563aa"
+    },
+    {
+      "path": "packages/barocss-cad/dist/workplane-sketch-document.d.ts",
+      "bytes": 5902,
+      "sha256": "d794f205edf53330bfe08a0d5b7d32778f25be5c8fa1648aba8cf5ae93e1be01"
+    },
+    {
+      "path": "packages/barocss-cad/dist/workplane-sketch-document.js",
+      "bytes": 20277,
+      "sha256": "5c44163f6208ec4719c0b3cb29665911426f31fb89cce8224f4f9afc287a8bd7"
+    },
+    {
+      "path": "packages/barocss-cad/dist/workplane-sketch-frame-internal.d.ts",
+      "bytes": 996,
+      "sha256": "5dca9887697c21b77db3defbce11d6de0b19439375c4e4efa5ca435f85b4667c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/workplane-sketch-frame-internal.js",
+      "bytes": 2588,
+      "sha256": "fd731301aa5f44d3a651473e6c187d344975293ff6c85205dc9b57d65b722f58"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-angle-arc-artifact.d.ts",
+      "bytes": 3165,
+      "sha256": "249a842224467b25413b5ad7195bad28f85b0ac6e35aefee904cf81820f2b569"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-angle-arc-artifact.js",
+      "bytes": 18180,
+      "sha256": "c50e7a17f1961e31eb500da64e5ce6fca9f0be213807157c16a5d3c2786f1fa5"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-angle-arc.d.ts",
+      "bytes": 4261,
+      "sha256": "db8c4a8dd907693cf9e7fd80551046cc6145dd77217189446051a051ae92ee42"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-angle-arc.js",
+      "bytes": 16551,
+      "sha256": "6a79efc4cc9bc5b6d99c35806b91ee9d0040bec515da05623a6b4c09e256843d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-arc-sketch-document.d.ts",
+      "bytes": 2892,
+      "sha256": "5619a11fc0333c4f83c0aa49832089f60012bdef34af320b7b9c76d0eddd3160"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-arc-sketch-document.js",
+      "bytes": 16372,
+      "sha256": "397d796c75a82e49c175767bf6443faa2372805c116a0f54f2156989a97a3724"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-arc.d.ts",
+      "bytes": 1019,
+      "sha256": "be70c357c06e1fd1dc6b2561c1a977a0d1a3ea141b9e6d554aea24393e06e616"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-arc.js",
+      "bytes": 3386,
+      "sha256": "66a7b08fe35bf6e48d85f06ac79fb488d357d137697e223fd8ab61b034425b0e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-circle-planar-face-preview.d.ts",
+      "bytes": 2584,
+      "sha256": "038abd98d969d2804f8c7d2e45f025a83a0ff62765be9108b1bb48c29271dd62"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-circle-planar-face-preview.js",
+      "bytes": 10638,
+      "sha256": "c6f0fe703df8dfd210c518d1039eba1ee5a7e9c09b65ef076bf0a8c65ee2065e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-circle-planar-face.d.ts",
+      "bytes": 3323,
+      "sha256": "65a366c01979645737d7446a9a3d0b024e2bfe2c9522f70b357f8be157837808"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-circle-planar-face.js",
+      "bytes": 12257,
+      "sha256": "f5a0503fc27308eb579f9aff5d209674e182fb52f218db3236fda94817899320"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-circle-prism-document.d.ts",
+      "bytes": 2582,
+      "sha256": "db39bf4a4daf14ab899834de32a369839c1c3897d07b80449ec4da73718bc909"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-circle-prism-document.js",
+      "bytes": 15760,
+      "sha256": "3df8d04d8a510064bffabd63105f4f5ba40a74afdb6f2632b26411d416f58217"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-circle-prism-shell-preview.d.ts",
+      "bytes": 4063,
+      "sha256": "6eb0872fdc9809a70cb59d945bd0ea1eab2a31d089bcd96620614218fad62a78"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-circle-prism-shell-preview.js",
+      "bytes": 16063,
+      "sha256": "b3ffaabb29599e6f781a43dce3d08d144f0481f6ed69b443197318e66e1a78e6"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-circle-prism-shell.d.ts",
+      "bytes": 4077,
+      "sha256": "08d2a1e5f5d2e2f3d1c25b9fbefa1f52a14c972f9253f66cf4929e5076a36988"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-circle-prism-shell.js",
+      "bytes": 15779,
+      "sha256": "a2d804457638a9935d039d5034cdb04beadf556cb3d053886d902cb96d317e52"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-linear-sketch.d.ts",
+      "bytes": 2923,
+      "sha256": "e0c61f0e19d385075f96c8bf6159ba9960c3cf073617e47ec665a62702f18df9"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-linear-sketch.js",
+      "bytes": 24391,
+      "sha256": "66a6a2261feebae7ca9efe77b7b4bfbd759b14456bfc6365e6d223b4c81effe4"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-planar-face-hole-preview.d.ts",
+      "bytes": 3235,
+      "sha256": "8c201534447a22a62f5664ba0eb24eccc3ab1b8c8ba29aa2c075e7178d0e93c5"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-planar-face-hole-preview.js",
+      "bytes": 16191,
+      "sha256": "20ca4c7a1cf24b31e1181614c5879864ac3559b61c17d959360d54e7509bae58"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-planar-face-hole.d.ts",
+      "bytes": 3555,
+      "sha256": "109f47b4699b0673b1c95f27fbc5ed33b420706db380a965d87eb5f678a29eb9"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-planar-face-hole.js",
+      "bytes": 15607,
+      "sha256": "1ea11b6493f9751b6f61249ec11caee42df6d2fca5e31ae7e078f4b2f7baa6cf"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-planar-face.d.ts",
+      "bytes": 2354,
+      "sha256": "57c47a1ee090393404a24a8a8eab6a695de1aa4d32549c08bbdc849e6d5ecb26"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-planar-face.js",
+      "bytes": 11256,
+      "sha256": "4fef7eb38164810e6962cd7916d12b9d44420cbc4052d319350d1e9a002821ff"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-preview.d.ts",
+      "bytes": 1259,
+      "sha256": "be17763eea6a65c503736fadc9556ed0c42df2b5ae94901cd44571de200bc737"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-preview.js",
+      "bytes": 7105,
+      "sha256": "2d7b5125b1f70c46602beeb57967a46e7cf9f70c387e8c05e29bff042f346c9f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-document.d.ts",
+      "bytes": 2002,
+      "sha256": "2d43d8d6c603b78a550ef9d2cb742bf5e2fdf0b50048ac3509e0e1a7adf5da66"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-document.js",
+      "bytes": 12645,
+      "sha256": "2f33c7db67cc683c0b9b2060335db9c56b5cc9824c43ac39417811de6bf9037a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-hole-document.d.ts",
+      "bytes": 3300,
+      "sha256": "70f62c99e681994240a669eddd4e79400ae94370d35242df36201788bf239a71"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-hole-document.js",
+      "bytes": 15079,
+      "sha256": "091f8660c3d6b3b76bde6ea39fedfc6f50981097c57149bc4cc7129e6a0b4f75"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-preview.d.ts",
+      "bytes": 2074,
+      "sha256": "98d2f16481e21b0c3b77e605f21faf4d6617378772eceb7719bb068fa076c1ac"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-preview.js",
+      "bytes": 8562,
+      "sha256": "b2600dee266fe199a93669deac37190341584f9b53d83d62f6f605c913db1f35"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-ray-query.d.ts",
+      "bytes": 2100,
+      "sha256": "c52f1808b1340880066e42d6d262b8463a10c6d16307c40a7dc00a8581add38b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-ray-query.js",
+      "bytes": 11488,
+      "sha256": "73edd1db9480e8f2b95d5534534956c51cc228a71d64340e32e4dd388ae6f02f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-shell-hole-preview.d.ts",
+      "bytes": 3712,
+      "sha256": "b9a6ca49bcd6ee38cdfba58d46d8da6cde5faa329afa8333e2b67bb9521f3c91"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-shell-hole-preview.js",
+      "bytes": 15470,
+      "sha256": "741c213bf2d93e911857d180a52c7160d70336213345a50fa3a5c8a34be3bd60"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-shell-hole-ray-query.d.ts",
+      "bytes": 2867,
+      "sha256": "fd9d7da6e4930e3f13c047421ed4377d7f99b9ef1d5deefb226a70acff375d0e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-shell-hole-ray-query.js",
+      "bytes": 12604,
+      "sha256": "84e5e98dc8de58329783632c0c47e64d6320c27d5264d8259c5bb49fa7e86700"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-shell-hole.d.ts",
+      "bytes": 4562,
+      "sha256": "85d1f48634139a3726cc72fbe5d5c59b6f72b76f2a31354b47423101f047adf4"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-shell-hole.js",
+      "bytes": 21505,
+      "sha256": "82ac5c05de5e4aa5cb7e3222482c147634d136c811992e01e7a09397f4bed8ec"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-shell-preview.d.ts",
+      "bytes": 2727,
+      "sha256": "b5b9bc445ec64fce6a1e7e34147c97b33003b990fd81b9e2444a153e8fd73158"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-shell-preview.js",
+      "bytes": 11146,
+      "sha256": "8f75e0b5957d02c55aef6292004bec77f81e23a63c865b684f53fe5d1e201cb0"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-shell.d.ts",
+      "bytes": 3126,
+      "sha256": "0b7583fcda3e7ab0651ad2ee800fc76366436f986ba92df5e671b9938b1aa126"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-shell.js",
+      "bytes": 13823,
+      "sha256": "b2617930dd3c7a91129d23638001d86769f54669d9a570fc62d3c6913554780d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-region.d.ts",
+      "bytes": 1351,
+      "sha256": "b356ef6023b78a902fe15d816a2152bb281547a964ef78321632cd2000b0cee3"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-region.js",
+      "bytes": 10293,
+      "sha256": "960d68e5c93ae9084864f18486f1f5c3d1bde77a4b3136fa95ffef29c06060f9"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-profile.d.ts",
+      "bytes": 984,
+      "sha256": "a6b580248ee8f544af95e4051645954900fd71fbba756e3748a27c80fb4aef8a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-profile.js",
+      "bytes": 3214,
+      "sha256": "4374b47dc3a6a1ddb86508f3f859fc67f79e269fd5798ee05789689f82c17f19"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-sketch-document.d.ts",
+      "bytes": 2395,
+      "sha256": "f1dcd31deb1bb1565f7635a6e00dd85917df30b83aa44f7b469de5264153bdb1"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-sketch-document.js",
+      "bytes": 16141,
+      "sha256": "2d2e4db5774161734a184389a70bc6a13a2cae35ff4d6eff100db9cf18f65555"
+    },
+    {
+      "path": "packages/barocss-cad/dist/z-axis-revolve-document.d.ts",
+      "bytes": 2302,
+      "sha256": "94e1e1f64c75c91969e8aefbdb67337c7d1d9cfe0f0d417930fbbcc095019fe0"
+    },
+    {
+      "path": "packages/barocss-cad/dist/z-axis-revolve-document.js",
+      "bytes": 13446,
+      "sha256": "d96da72422c2591755dc25f119ee1455a812e89a0dba56a4125b8bdc536c526b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/z-axis-revolve-preview.d.ts",
+      "bytes": 3180,
+      "sha256": "b21bd265a2a33fcfdfa8249c8b19ac40b32bfd0e0ca0936638828dc75a3d567d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/z-axis-revolve-preview.js",
+      "bytes": 11255,
+      "sha256": "cb53f633a6302637e8b77ada9a5c20f2bd7118f0b5199f5c593a780e1e00f4ba"
+    },
+    {
+      "path": "packages/barocss-cad/dist/z-axis-revolved-surface.d.ts",
+      "bytes": 2386,
+      "sha256": "8767fec28fafa6a215b25a4f37a580b827ffe3598da17e53e5d749ea78972dbf"
+    },
+    {
+      "path": "packages/barocss-cad/dist/z-axis-revolved-surface.js",
+      "bytes": 11026,
+      "sha256": "2a05d520ede941fa022487e393aa519199c424f67887531b90f0f3e09aba4517"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/assembly.d.ts",
+      "bytes": 627,
+      "sha256": "386c6d6290867cfe0a4b1e2a6e19fb5c0162f5fd1a19cf07481768c25663c8ae"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/assembly.js",
+      "bytes": 1076,
+      "sha256": "6d40180375b35417f7539881ce3805ac2b7fbccc6d8ea59a47ba76b0d2199d85"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/babylon-assembly.d.ts",
+      "bytes": 1698,
+      "sha256": "b5226a507c001c486720ed5ffcba51179558e2fbb46c499a935490a868853599"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/babylon-assembly.js",
+      "bytes": 5400,
+      "sha256": "934b5f27d74599352ca01d5644546ff86cd65bbfec4b5247c0d54d6a625f9808"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/babylon-boolean-extrusion-mesh.d.ts",
+      "bytes": 2422,
+      "sha256": "290373ff5c7883d774edd4b678f627951286a653e38a486bcfced2828103dd09"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/babylon-boolean-extrusion-mesh.js",
+      "bytes": 8393,
+      "sha256": "5cbe00df40e43c8ecb5cfa1b3e90b8ae33df1b6afeefc65d6b7600ee55cb55ba"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/babylon-boolean-mesh.d.ts",
+      "bytes": 2117,
+      "sha256": "35d179be4b17a405499cde0cdc1293a006355db5c85960e4b4299e3ce5c90b1f"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/babylon-boolean-mesh.js",
+      "bytes": 6692,
+      "sha256": "b5015f5b4260db90fd6fd264ca61533132bfbe64df9e4176113b9b6221fb7e80"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/babylon-document.d.ts",
+      "bytes": 1306,
+      "sha256": "a3f5d35eb7c52367d0c301b4968c491382599b8cb4b54cf6385aae0c855204bb"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/babylon-document.js",
+      "bytes": 4308,
+      "sha256": "bc54f40c85cf1caf430459ecb85d1812e0d10fd8eb711e1c14afa7acdf727cac"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/babylon-selected-uniform-curve.d.ts",
+      "bytes": 1570,
+      "sha256": "acef40de823a440b373feb4648935fd1bead5e081dc4e0fff5d734f41103ae4f"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/babylon-selected-uniform-curve.js",
+      "bytes": 6261,
+      "sha256": "038cbad7ed5b72ca8ce734ddd6d06a3c448edcdf170c431c91f1da49b5b37044"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/babylon-uniform-curve.d.ts",
+      "bytes": 1469,
+      "sha256": "4f8ec953ac3d178284c7d6ba62df3c2c8074bfc21088d23e940437ebeb7dfdef"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/babylon-uniform-curve.js",
+      "bytes": 6008,
+      "sha256": "fdabbcd900bf1e27d212f24f333bdb870752cb76f13eee0f9d9ac5e2d2ff04f8"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/babylon.d.ts",
+      "bytes": 1549,
+      "sha256": "fe58742fec16cfe28c551e770400365fbd904e0e89b975e8abea818a237692c9"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/babylon.js",
+      "bytes": 11227,
+      "sha256": "d0806753f1a0fd629e78d705bac08a2796c5b8d0ee5b41f071bde609a5d4a1d1"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/boolean-extrusion-feature-graph.d.ts",
+      "bytes": 974,
+      "sha256": "8829f8bb77388e2b3b07e2af994f4d762c092c9f6de8ece2aabee95ca7a28e15"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/boolean-extrusion-feature-graph.js",
+      "bytes": 1328,
+      "sha256": "82a41a968ef2dfd07b48a8a08d6b03f805d08919b4dd8c885d8a024377087971"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/boolean-extrusion-feature-mesh.d.ts",
+      "bytes": 928,
+      "sha256": "443ba922b50c963e69819cfddbef21613bd824e40c23482d3fe0d55f108fc971"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/boolean-extrusion-feature-mesh.js",
+      "bytes": 687,
+      "sha256": "d09cf1265b70ff822dbda995810c427e8b0496c8c41c3d9436bc31df6371d8ce"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/boolean-extrusion-feature-properties.d.ts",
+      "bytes": 881,
+      "sha256": "066e398284d0c7286140d8b4af984c1518030c71eeea601c1b444809be31c729"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/boolean-extrusion-feature-properties.js",
+      "bytes": 707,
+      "sha256": "801dc2f5b9eb43085f12f26e95df6f5cc300fa6e6259a420277229448f138455"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/boolean-extrusion-feature-selection.d.ts",
+      "bytes": 737,
+      "sha256": "4ad97b076996769f35a16c1063495ee44ea9a5f3cdcbbfd69449d6db79b4f820"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/boolean-extrusion-feature-selection.js",
+      "bytes": 2368,
+      "sha256": "3f2c0c93c56ecf756305370c96d21e6845c78dc4291b69ecac0f72739d62cb30"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/boolean-extrusion-glb.d.ts",
+      "bytes": 2545,
+      "sha256": "a417297840a0b1eaf5ce9fca94397ad1ec0d99ec9fe14ccc02951ab246d251bf"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/boolean-extrusion-glb.js",
+      "bytes": 10190,
+      "sha256": "7fe0f58a32b6c21bd3c25cc815bf9569d8a30d9b6a9d7fcc2eaf4b86c17a52af"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/boolean-mesh-glb.d.ts",
+      "bytes": 2397,
+      "sha256": "e925ec74c3fca7f5e993807ea1c1d712e79945dcc1754d11dac6ea5e73d3340d"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/boolean-mesh-glb.js",
+      "bytes": 8879,
+      "sha256": "462cb39fc3461bff222ca6a88396261d4baf9b183d4c5d3a04d0b08f55319d89"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/curve-pick.d.ts",
+      "bytes": 1736,
+      "sha256": "4b42ab4527a75e6f2c100b904850e832a2cd91a7d28ccbcebc41453a73647890"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/curve-pick.js",
+      "bytes": 5374,
+      "sha256": "abe7ab1ca0baa03fcec2d736e5f6ee3a79ad01fa5777db5f01a0cef2a1fd2287"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/document-glb.d.ts",
+      "bytes": 2195,
+      "sha256": "de759b41f899ac27b453145509209d7e5cfc0c15e2e2d66c50cc843e2d84fc9a"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/document-glb.js",
+      "bytes": 7704,
+      "sha256": "5df9b6bb484337020782b71786fad0a446fc2183dd8193951816f05daeaddd1e"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/document.d.ts",
+      "bytes": 2860,
+      "sha256": "271204b5dcf6f511e866fdce217749539068ef0c6f9f1edea11be60355e33f32"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/document.js",
+      "bytes": 8020,
+      "sha256": "00dc88b233989013a27b4c6e94b435ead8fb244c487c6ddead8f10c9a22548fe"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/glb.d.ts",
+      "bytes": 1070,
+      "sha256": "877805583d2261bf5d21867781acd6e5f0976a199fc593b8707978b65fb1c052"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/glb.js",
+      "bytes": 9346,
+      "sha256": "e64a32356891ca75b4821af92b6a05e002c81b1e7084809660633c133cfb5063"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/index.d.ts",
+      "bytes": 392,
+      "sha256": "5f4fa60be68c40b7c1b649a8ac6244c7dfdc6c9ad1a64d45dbf6f9d320b46811"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/index.js",
+      "bytes": 239,
+      "sha256": "0778e20412da9d165c170c0a654eadc63daeeefd993e47ca802a37242ff4b772"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/model-set.d.ts",
+      "bytes": 4690,
+      "sha256": "2f440cba52ae3e68787474cf4aa043c6531a849cc9578e616bdb2942df084152"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/model-set.js",
+      "bytes": 20088,
+      "sha256": "e4d7c5e115b3b1ce1793e45c8ec46a1805e13f4b7e0f4aea0d2c8fe876d3bc42"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/native-face.d.ts",
+      "bytes": 805,
+      "sha256": "866de4eaaac092536d6f8bc2cc921159fb9c97a363d0e5a54fbf1775b8fcebb0"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/native-face.js",
+      "bytes": 4941,
+      "sha256": "3959f9b97035b09489ce32ef79da3c78e449adc9c40095976d8c4ec5643cf0de"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/native-selected-uniform-curve.d.ts",
+      "bytes": 1646,
+      "sha256": "8c63ded9d9ac9c18fa054eddd555545b0de02fa0065d63f618b7ba19e22b3de0"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/native-selected-uniform-curve.js",
+      "bytes": 7880,
+      "sha256": "7b27d843e71477eeab04a867aeb447fa8672b5d8cac507520eca1c2826287cd3"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/native-uniform-curve.d.ts",
+      "bytes": 1897,
+      "sha256": "25a3b643547788f0f42e32f9c5e28499ea84aa6d742fc8d4f9c9ec4d75a5fbf3"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/native-uniform-curve.js",
+      "bytes": 7458,
+      "sha256": "65678b9eb0b44b01b504124d4cc9c515ee42902a9225d436325ac9bbee0d7d88"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/native.d.ts",
+      "bytes": 3269,
+      "sha256": "77a5665eedb22c2d016e08f4473ef981afb6befaafb8ed0ba376c93d6ae8b745"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/native.js",
+      "bytes": 15322,
+      "sha256": "76c9ce3531356b3e0b58635c50a433eb24d13202971fbeb93b8f33478f526680"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/nurbs-source-loft-feature-graph.d.ts",
+      "bytes": 4790,
+      "sha256": "b3444d5c30c692d95e23f798e1d9d7fa02f0f4c7173738a35faeb8f565edd352"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/nurbs-source-loft-feature-graph.js",
+      "bytes": 5849,
+      "sha256": "0f5a1bc4b29a5b483dd3d99ba3422c0df3ce6da7b06f240c5530366b7536b85d"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/packet.d.ts",
+      "bytes": 1329,
+      "sha256": "0edd0629cda1645f12815db29971d5171ce99d7fb4f30815662974707a4810ef"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/packet.js",
+      "bytes": 6999,
+      "sha256": "144af6095ca1fbc37d7fece5f4070aa5de3016a11a1255ed72bdc4d67c58688a"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/pixi3d-assembly.d.ts",
+      "bytes": 1541,
+      "sha256": "a648999265fdc0a2c0b5d6ff57ab835e63aa805e9c594ed010088251b999ae52"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/pixi3d-assembly.js",
+      "bytes": 4790,
+      "sha256": "f5265738b857f414e4757ce5e14cc09ab1a1c44d614b4aaaa0149d438c9decbf"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/pixi3d-boolean-extrusion-mesh.d.ts",
+      "bytes": 2379,
+      "sha256": "ef9917b95b919d4417edbcd17ec35ec39901d0e913bae4caece360bd600b99a9"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/pixi3d-boolean-extrusion-mesh.js",
+      "bytes": 10167,
+      "sha256": "e44e4918b6ebf67e81989155380468554d4d4fdf4c93347bfce6bfcb4c40e890"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/pixi3d-boolean-mesh.d.ts",
+      "bytes": 2083,
+      "sha256": "63fd6e018754d58c81ace6b3a7df7ce664db86d182bf8d54a9ca4b3520305535"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/pixi3d-boolean-mesh.js",
+      "bytes": 7440,
+      "sha256": "064003f3526a13b6d8b9f6f1cb8e7ad7e393f9863612d55c80ed0fabf6b4ffb9"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/pixi3d-document.d.ts",
+      "bytes": 1167,
+      "sha256": "6455431e0d55df8cc4ff3bbd639ac7bffcfd53da990472308cc296dd26b06d79"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/pixi3d-document.js",
+      "bytes": 5047,
+      "sha256": "6bd867a6e6cda9bc0abcc56a7e96bb0941cf4db70a1535988678259930b8bf88"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/pixi3d-selected-uniform-curve.d.ts",
+      "bytes": 2006,
+      "sha256": "6d57f59319d7b9d4d452e967826728c62d272ed6def1b1fa8524e25c9459688a"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/pixi3d-selected-uniform-curve.js",
+      "bytes": 5570,
+      "sha256": "5487e5e142b9b911c534f0ba3bfd7a9358103a30fcecd8fca5601d914403f87f"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/pixi3d-uniform-curve.d.ts",
+      "bytes": 1290,
+      "sha256": "0a57d367d290238558ac447899c72c999371c135733126550c65289b507f7eee"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/pixi3d-uniform-curve.js",
+      "bytes": 4896,
+      "sha256": "8ac0d3c83acf5b4ce26077c4108f36e4527c716e34240c3cfaadc3576cce9389"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/pixi3d.d.ts",
+      "bytes": 1407,
+      "sha256": "1dc81d5de95aa8b73aa2ff00672016a87e1ac958ad8e580f71189d907ae170a9"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/pixi3d.js",
+      "bytes": 7088,
+      "sha256": "49acc5617d0a6c9fbf5ff84b6cd52260a2cfafa1c96a27ab9323e08c50efe081"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/qualified-body-boundary-mesh-babylon.d.ts",
+      "bytes": 1947,
+      "sha256": "3439fb52321d426734d691c6219eac4717255fcf91c5320c1bda32cbd94127f9"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/qualified-body-boundary-mesh-babylon.js",
+      "bytes": 6266,
+      "sha256": "d1651bc7af0ed6bf119b26ec7016f50b2bb23e9bf9d66962266f11d47fc0f23c"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/qualified-body-boundary-mesh-json.d.ts",
+      "bytes": 2555,
+      "sha256": "39c117314a40ec7ce9748d1577371c540e6d76d8a485e46357e84f644d38febc"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/qualified-body-boundary-mesh-json.js",
+      "bytes": 13145,
+      "sha256": "f35c368cf5b5a77bb4ee9c4c081c9f5a38e45bbdd419da3d5e22cc7dfd740944"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/qualified-body-boundary-mesh-three.d.ts",
+      "bytes": 1949,
+      "sha256": "cf9ca497ade16ff732d2fc20dd64383b94e6d74e5cbac0910c724b1a29133f79"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/qualified-body-boundary-mesh-three.js",
+      "bytes": 4576,
+      "sha256": "d62e4d0e3fcb5b3bf6002caa991e5617fc1468d96d1ee35a3be7c9162fe469fe"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/qualified-body-boundary-mesh.d.ts",
+      "bytes": 5609,
+      "sha256": "f471166d0eda6ba521f7346c3ba8374442e7db8b8cf6e2b835fe4b38cadef1c9"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/qualified-body-boundary-mesh.js",
+      "bytes": 21247,
+      "sha256": "f639d8448dee61da55e5aaffe86483f9a32eeb5acd8492a98be220cc5ceb5e90"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/qualified-body-json.d.ts",
+      "bytes": 2325,
+      "sha256": "a428ccd2d3f6683fb7aa56fae279269a85aefa6860c43b428d810cc1986159fc"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/qualified-body-json.js",
+      "bytes": 12769,
+      "sha256": "d5675bac73470d55952d276e0192a20be76ea387f31a1e928654d55640126086"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/qualified-body.d.ts",
+      "bytes": 2247,
+      "sha256": "3b0cf4119fc3d1afcdaa1c01683c0a4bc1024aed9c2f608ee644e9483e0df77b"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/qualified-body.js",
+      "bytes": 3323,
+      "sha256": "db088fdd6461fe8ed417572fe83b634cdecb85af0f60c213fdbd1e25cf5d7522"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/source-curve-degree-elevation-json.d.ts",
+      "bytes": 2594,
+      "sha256": "1017b54e1e6229f79f9725637641d53fb96a69da8becca412bdc43c90b411689"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/source-curve-degree-elevation-json.js",
+      "bytes": 13293,
+      "sha256": "ed6aa368bf69473ffecd66d569b9ea5919c2a167d0764770ad815e30b0444d07"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/source-curve-degree-elevation.d.ts",
+      "bytes": 2710,
+      "sha256": "41e879538a475d3468481884b557dcb2b7ad0c1e91f294e3bf23a9d2d90f1fda"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/source-curve-degree-elevation.js",
+      "bytes": 3962,
+      "sha256": "edded069add4b717abe98a27c0cb58c6580645b2cf34067844b5c3faac5edc8a"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/source-curve-interval-extraction-json.d.ts",
+      "bytes": 2533,
+      "sha256": "78088ed34d960c26cfb6e43a53c99b633d50c4399236fc88732ac02a946fc113"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/source-curve-interval-extraction-json.js",
+      "bytes": 13106,
+      "sha256": "43ed6ee939a050265a6dd1d893dee24f14fba406058436525f3b8f55ebc0e3d8"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/source-curve-interval-extraction.d.ts",
+      "bytes": 2740,
+      "sha256": "816d2ea75c1d589e1967dda96cea85668905f7321ea729623f7d61e067467e9e"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/source-curve-interval-extraction.js",
+      "bytes": 3962,
+      "sha256": "5b44ce4170e24cda1560b5d299f9f05f89299f1c83e0b9b25af3670a46801c0a"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/source-curve-knot-insertion.d.ts",
+      "bytes": 3110,
+      "sha256": "db19480f979b8a1f9c9196e96968a560f05cf04f58ce208a3b4a318942af1f9b"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/source-curve-knot-insertion.js",
+      "bytes": 4297,
+      "sha256": "8a07da7d08da21b11651890f07dd4f1ee3748b92d8a7e1a2f65ead9947e7f16f"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/source-knot-aligned-loft-json.d.ts",
+      "bytes": 2496,
+      "sha256": "eb4475a5a66df3d7d7f157599a27a38acfea66b65716a230008d52471cef99b3"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/source-knot-aligned-loft-json.js",
+      "bytes": 13125,
+      "sha256": "8285125dcb00cea9316a1f9abbdf5cb39f6463beeb2e08542524344604211611"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/source-knot-aligned-loft.d.ts",
+      "bytes": 2649,
+      "sha256": "5e10e9dfcce0e79f5864ecde585397f48f0f4fa7d8c91733de0286a9de3f956e"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/source-knot-aligned-loft.js",
+      "bytes": 3833,
+      "sha256": "ba1dde989f7851a0c08ae3ff85486585fe77c101f074a48dec6192b96318155f"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/source-line-width-face-json.d.ts",
+      "bytes": 2454,
+      "sha256": "ca7d07fba528bb729d711bb22fa1046b95e7e421287880e4a59c3198b6e68e29"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/source-line-width-face-json.js",
+      "bytes": 13055,
+      "sha256": "1590d2d5cfe73bc7ca376549263cc4cf084bba3d1f082da9b9918928a3bff244"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/source-line-width-face.d.ts",
+      "bytes": 2737,
+      "sha256": "887c01c07c719d42f1a4f1c20e009a0f50bef79554b3f417ec4a3f78879c47a6"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/source-line-width-face.js",
+      "bytes": 3869,
+      "sha256": "dceb4867e53849dd7f450682c9b715d42539bfe7408bb61dbb513f8c74b4b1f1"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/source-surface-knot-insertion-json.d.ts",
+      "bytes": 2485,
+      "sha256": "25e24c9e97422ad1653527d06df84ce95906e3f4a1b12b356d2fbedf5a39acbb"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/source-surface-knot-insertion-json.js",
+      "bytes": 13031,
+      "sha256": "2d57125c84bb6fcc0760abc87ca6ebe99fc42ef02482f5061e5ff4a33f66af2d"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/source-surface-knot-insertion.d.ts",
+      "bytes": 2590,
+      "sha256": "5abadc86cd4f0d2b0b39c40f4d1171cce954c20f2855b07d09b2af2c23242bbf"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/source-surface-knot-insertion.js",
+      "bytes": 3808,
+      "sha256": "29acde9ac9d9e875ffa4db20ef5cda086be0b2b3572aff3aa581e6645edbd5d5"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/three-assembly.d.ts",
+      "bytes": 1460,
+      "sha256": "3b48ba26c533ddb4c19c39feee9bed441152b5765e9f3ff9d7de1d8015649ab9"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/three-assembly.js",
+      "bytes": 4627,
+      "sha256": "c48d31ac7de83337721a57f0c7f249072925e8b4b7ab9e3cb0353299432b6b84"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/three-boolean-contours.d.ts",
+      "bytes": 1908,
+      "sha256": "080624b871426a0b0a6cdafdf9c06872ca259225d266ab84a5ef35755e2f6ace"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/three-boolean-contours.js",
+      "bytes": 6167,
+      "sha256": "515e16e3811ee718555ec74db6836c2ddabd6e08de5111ce373d8c086c434c58"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/three-boolean-extrusion-mesh.d.ts",
+      "bytes": 2338,
+      "sha256": "e557e07cb005fe73608db834b3dd174bc732e271a74d951a716651e764bb0fb7"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/three-boolean-extrusion-mesh.js",
+      "bytes": 7463,
+      "sha256": "827732c2360182a2b880434d68c82ef34bc16ceb1111a2b7d33890b400838654"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/three-boolean-mesh.d.ts",
+      "bytes": 2185,
+      "sha256": "56b9c7871ff22ffa42cee910f3346f8b9744cf229eaa96add62ab84a4f2f70e3"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/three-boolean-mesh.js",
+      "bytes": 6390,
+      "sha256": "fac712878353788b6e5f7670191aa1e5badcd36e31f90d849b7a0e26c0401a79"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/three-document.d.ts",
+      "bytes": 1455,
+      "sha256": "a8fcba377a594815d558a142d29c231d6c6c0f293bc141ed839f8d94b57f2464"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/three-document.js",
+      "bytes": 4517,
+      "sha256": "83ca85b0228d141ccf5b2ff663caa3d10091edbddd8c1c86b37cf2f7aba016b4"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/three-selected-uniform-curve.d.ts",
+      "bytes": 1259,
+      "sha256": "331ad735ed069d3917674203b5c92843c6ee1480a6a73b673b655c2377e330a9"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/three-selected-uniform-curve.js",
+      "bytes": 3362,
+      "sha256": "384d0b0b22ca35a8c542d9884fbe1be4f5b13872d215bec94ab391e701b1c0c4"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/three-uniform-curve.d.ts",
+      "bytes": 1335,
+      "sha256": "753a5fc8329cac26686def404a118e1830e6ecf0f442c82bfda61ba7f5706870"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/three-uniform-curve.js",
+      "bytes": 3157,
+      "sha256": "796e373ae4155ec3a4dd596f4df929d67ba555e4ee5fcd31b1e88c38739d8769"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/three.d.ts",
+      "bytes": 1530,
+      "sha256": "5850d19222b238dd13ff820ecc83829626429a68c7f38865a48889ca5743d36d"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/three.js",
+      "bytes": 8290,
+      "sha256": "d8aab2fd77127d933fb3ebaabc7ff002e365cab3974a287ac91c0434db7b9ea7"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/translated-strip-interval-boolean-json.d.ts",
+      "bytes": 2652,
+      "sha256": "731432a8a49824b2a19b7f52546894b71b8016f5a38efda1df7a2340214afefd"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/translated-strip-interval-boolean-json.js",
+      "bytes": 13287,
+      "sha256": "fda9868350581b03056c054212adec45757f393686b415b1e976744a747dfcd7"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/translated-strip-interval-boolean.d.ts",
+      "bytes": 2522,
+      "sha256": "b4f2c70505a73c892aaee2f11af328522f0b9811d93ac92aa824dab8b194cad5"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/translated-strip-interval-boolean.js",
+      "bytes": 3946,
+      "sha256": "b5f795fcd1100d9054fdcf1ebd158d08f4dd8b36278edb56a70385d66a9c99f8"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/translated-strip-world-points.d.ts",
+      "bytes": 2888,
+      "sha256": "26d216b58d7f8ed6bf48ee6a47ceddd7a1b81c07d59682a19b8c09d3aab53633"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/translated-strip-world-points.js",
+      "bytes": 5193,
+      "sha256": "269f46edf7f242e51dcc84bd2feda8105a641efe7f5f97c1effaa438a8000c96"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/transport.d.ts",
+      "bytes": 1272,
+      "sha256": "2925548ff50d93521bde0d2953d824283438b96af80ef356f83e67528df312d4"
+    },
+    {
+      "path": "packages/barocss-cad-interop/dist/transport.js",
+      "bytes": 5586,
+      "sha256": "e8eedef3148f96b8d7049a110d6a1c6656a542768abdeafe82aaf4663d148171"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/affine-scene-source.d.ts",
+      "bytes": 982,
+      "sha256": "3984466f57a654600f8a993ac50f09cabba98af48863681e9a142c45b452a7ec"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/affine-scene-source.js",
+      "bytes": 4527,
+      "sha256": "a16bb6b6d28f887296c1b52e58174eaaa39b8e44a9bd81fb092f424bded0cf09"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/axis-box-boolean-buffers.d.ts",
+      "bytes": 2148,
+      "sha256": "e6ddc52097a25cec9ec97611392d33e0fa893a0f9685ce813fee6c63301f36c4"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/axis-box-boolean-buffers.js",
+      "bytes": 8614,
+      "sha256": "1706943034f964ef5a8148b29d5ee6c028085acbd615830ba47bba5f95389558"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/boolean-shell-buffers.d.ts",
+      "bytes": 1049,
+      "sha256": "6f68c1c322a074f06f896b8ea1fa96995e0e7035ddde7d139aec8e12b71d7501"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/boolean-shell-buffers.js",
+      "bytes": 2080,
+      "sha256": "b49345af12fcc3ea5a436c5f8b949d7f1864133975fcc1fa4741f3d750a70322"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/boolean-shell-renderer.d.ts",
+      "bytes": 2042,
+      "sha256": "bb4b65a31c87f43671af11db464531b4a52bc84d22317cf882bcb535b8d21a68"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/boolean-shell-renderer.js",
+      "bytes": 17774,
+      "sha256": "18425e4c5519690ac80d7bdb385ff909355b65fb8a4ca5995510cfb63cf0836d"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/boolean-shell-scene-input.d.ts",
+      "bytes": 1787,
+      "sha256": "897fb5539fdd4aa1d85005592f527d13f7aa13552af19b5c16bcb29204e4c6d8"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/boolean-shell-scene-input.js",
+      "bytes": 4675,
+      "sha256": "ab4bd8a9f6906c1d633f24235e53385b75a1c97799716e9a4c42836b8084e760"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/boolean-shell-scene-renderer.d.ts",
+      "bytes": 1569,
+      "sha256": "e55c8fe48eed2d00296033843dae2e67ebda5ae4bfccba68ce1c3e3518d264a3"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/boolean-shell-scene-renderer.js",
+      "bytes": 16907,
+      "sha256": "58bdbc6d7f62bd3a52585c79845adb5ba7a3c7f600e2f9b1bbf3245079927e61"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/box-geometry-build-internal.d.ts",
+      "bytes": 271,
+      "sha256": "e70fc2ad84601ead3866ec5819a36113baba6fd61c3b1e5f78c6fb7bc8fb2ce0"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/box-geometry-build-internal.js",
+      "bytes": 1113,
+      "sha256": "6a86705898701b2d2cc31b5edf85991ca33fd43f445c7de56d37c5f6a10bff24"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/box-geometry.d.ts",
+      "bytes": 770,
+      "sha256": "f41152d02d5f4c6275d60d13e37764c8254831ecbb927cbaf92845168fc7cd7e"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/box-geometry.js",
+      "bytes": 3538,
+      "sha256": "4257f4bae72de34dd961ad1c19e2bf6c048080592d7b1ca7efc073196e63a54f"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/camera.d.ts",
+      "bytes": 677,
+      "sha256": "f384e078aa2ebadcad50aaaa551b2f15becdda6b0b6079b3d65ab536ba7c6926"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/camera.js",
+      "bytes": 6429,
+      "sha256": "b0cbda5940f7d0cbadaa3f8df9a2269841579b7b27318cab65c64cfcaeb7aef9"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/capsule-geometry-build-internal.d.ts",
+      "bytes": 324,
+      "sha256": "4b589e394f9e4817d0906b8c0d0b82a0f909ed0b75ec60b0b8a50e731a3694a3"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/capsule-geometry-build-internal.js",
+      "bytes": 3034,
+      "sha256": "b5e52acfabe5ba881208f86d8ffffaedb4fa5122525d7060521bdd8be7cd79fd"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/capsule-geometry.d.ts",
+      "bytes": 783,
+      "sha256": "d179aa3502634035dd97be63e6da1524a003bd755083868b7813c84537a30ed3"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/capsule-geometry.js",
+      "bytes": 3886,
+      "sha256": "6dd0f0962e11bde667cc93054da6171b5652c5da6e18c505c11276f355eb5810"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/capsule.d.ts",
+      "bytes": 207,
+      "sha256": "afb0c6f75a10b61af033fca8399f36e48fb6390f6cdb566639d8f7b3cb70dd52"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/capsule.js",
+      "bytes": 515,
+      "sha256": "c37373856cca3a1859d6e78c4deb2c2ecf226c8110831ddf01db2adc6660d500"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/cloth-layer.d.ts",
+      "bytes": 946,
+      "sha256": "609a07472cdba7ac26786b37f430322941cf9e4cabce646877b519eb783842b1"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/cloth-layer.js",
+      "bytes": 7059,
+      "sha256": "ffd5b96a942c72945d7b907d15ec583e7916d406c7c443d66ace1fd8212c31b4"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/compiler.d.ts",
+      "bytes": 869,
+      "sha256": "c797d7f5b539ba6e0d88c1ec85f75618d5ad6a5bd1f3bd241ac63ce05dc02d36"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/compiler.js",
+      "bytes": 7352,
+      "sha256": "032a47dc069d09a866b6a5fae6cf8347e8f20062941ee3ce531c225c60159272"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/cone-geometry-build-internal.d.ts",
+      "bytes": 303,
+      "sha256": "80cabbfa51effbfd05b03eafce4cacef5450afb1c86021458c98c6c789c48521"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/cone-geometry-build-internal.js",
+      "bytes": 2688,
+      "sha256": "a167fd3a00d650507efd1b4d15d13a60c0feb739a72f14ab48edf331feb9454f"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/cone-geometry.d.ts",
+      "bytes": 757,
+      "sha256": "e41992df580537580ad04ad576ca3efbdc339e61b49d05b030704e8207bbf7fe"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/cone-geometry.js",
+      "bytes": 3084,
+      "sha256": "bdc1c24b5c343d64d4ea16a01bf4afea3cc7be238335f5611a72fb4aa3b24d6b"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/coplanar-boolean-buffers.d.ts",
+      "bytes": 1032,
+      "sha256": "45edb515b991bbf3cfef893373949466012f3586ccc98127c10f27d5b33f4c23"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/coplanar-boolean-buffers.js",
+      "bytes": 1679,
+      "sha256": "d0dd65bda139f3bae3d45d1c57f8709456091da214591e0d4c24b2562533428f"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/cylinder-geometry-build-internal.d.ts",
+      "bytes": 311,
+      "sha256": "13a9da9d32c3d41048b5ddd6eafcddb078cc9fafa4575ff8827365f74a304c92"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/cylinder-geometry-build-internal.js",
+      "bytes": 2319,
+      "sha256": "3ea9e85ac476c938b78b0e4bc89fcc80539266d28050331410a7ab323567b525"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/cylinder-geometry.d.ts",
+      "bytes": 768,
+      "sha256": "9ce474f2a5cf1ed2f1de43055928d99b95a4ab37c7a2ea48b190eeabfc042cf9"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/cylinder-geometry.js",
+      "bytes": 2911,
+      "sha256": "c6eeeb313e70928579ecc13fe3e73d6a8b16e7f6689c4daebc62bebf3e63d0b1"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/edge-overlay.d.ts",
+      "bytes": 819,
+      "sha256": "cc10e616bad5e6ff0ec20e415825bce4f9a0a069088c5130aa60ee3cb0f8c706"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/edge-overlay.js",
+      "bytes": 5050,
+      "sha256": "2c5063172d2ac48d3535b5a6513df56b60bb3cae93fe3231f43884e7776289b8"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/engine-camera-ray.d.ts",
+      "bytes": 1449,
+      "sha256": "860639289a6a05967f983fbc2a825fc7817238f1fc42e7c60f36012012b691ef"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/engine-camera-ray.js",
+      "bytes": 4899,
+      "sha256": "67a863105f0ec3fbde2d053bbcad9a9b0060ed68cbcea8049b6a74be8f8c3b26"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/engine-lighting-bindings.d.ts",
+      "bytes": 1582,
+      "sha256": "c87610abb3c942fff7f3cf765687ec08d688e6fd32d363b626122cea195878a2"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/engine-lighting-bindings.js",
+      "bytes": 6213,
+      "sha256": "3aeb6bb9001972f4e97bee7481bf2adf2606b9f6b3df94cc761590bb8285ef16"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/engine-material-bindings.d.ts",
+      "bytes": 3783,
+      "sha256": "05f81bcb6d74b0510deb7fe30b1c8547b2dac643f5393ff349f4f91c759dc122"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/engine-material-bindings.js",
+      "bytes": 10880,
+      "sha256": "27c097f1746beb9638d8a21e2f9528a60df7dcd3cf240fe19dac34d1338aaf63"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/engine-opacity-bindings.d.ts",
+      "bytes": 1473,
+      "sha256": "ce7021e640b5fa5e6574fd2fad39a9c13644f381e7a696ac6cdfe44abeef3e4e"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/engine-opacity-bindings.js",
+      "bytes": 7075,
+      "sha256": "4b88b4e41f9231a0719548021869a2315321e952349f20e80d1cd7dfb56df3b7"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/engine-raycast.d.ts",
+      "bytes": 1583,
+      "sha256": "509af257a914a69866bb346c4fe9d12d30260b313e84ef85564cc2ecb6b3144b"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/engine-raycast.js",
+      "bytes": 9589,
+      "sha256": "6d48e9d236521d323952b059ff806d4e8581dd94c31f70545897e5e3c6ff9a01"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/engine-rotation-clip.d.ts",
+      "bytes": 1940,
+      "sha256": "5a7d05cd93800bb13957153c28a1bfb4ae6530f36b762bc20d52982b3e027662"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/engine-rotation-clip.js",
+      "bytes": 8994,
+      "sha256": "083ad4aee6dce63c2c84115a89111aa47a3aac04121593f97cfcb395beb4b199"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/engine-scale-clip.d.ts",
+      "bytes": 1822,
+      "sha256": "3af932b501dd2a7ab225ad76f95eb479c49a27c130b46958c0ae5dc36baa822a"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/engine-scale-clip.js",
+      "bytes": 7714,
+      "sha256": "ef61af9b0c15bcfe0dd37961737325725b94d644648ac94dc246ab4c44692d1d"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/engine-scene-frustum.d.ts",
+      "bytes": 1539,
+      "sha256": "e2f99a6e7fef49a8b10ced4cf687c8e2aa82dced4e800fd3f274eb69000a6fc8"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/engine-scene-frustum.js",
+      "bytes": 6316,
+      "sha256": "d714a05471a7337b4f9df23289616c6014e63f34f405f8b9c68276eb88ba8caf"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/engine-scene.d.ts",
+      "bytes": 3146,
+      "sha256": "493fb345489399d52bd313e2fd311b315e22562a752a4b683dc5821a68695f0e"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/engine-scene.js",
+      "bytes": 20301,
+      "sha256": "32f9efe94736af60d271f9387b02bab1c765862577f00dd43418ef4e5cf6c93d"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/engine-texture-bindings.d.ts",
+      "bytes": 1973,
+      "sha256": "48f75c3f10abc6f78a654fb172118981f9e150551cf1e3a287f5186205853e2d"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/engine-texture-bindings.js",
+      "bytes": 7571,
+      "sha256": "0e9af2ebcb3632cce874de10a38a5dd58c8699269d5f45dddadbeff2e85d50fb"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/engine-transform-clip.d.ts",
+      "bytes": 2109,
+      "sha256": "f1088b9f0cc0206b82956b5335659945c4fee565377eb1fe461ea8a0df581a35"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/engine-transform-clip.js",
+      "bytes": 10191,
+      "sha256": "84ec35d15f1475bf388408ceb2ec57ed47f7971d1c5d0378f9e005b19777e95d"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/engine-translation-clip.d.ts",
+      "bytes": 1948,
+      "sha256": "be7524de48710ac69491639f99ed0168105c9072fcd1cd7e804ac51703020b74"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/engine-translation-clip.js",
+      "bytes": 7904,
+      "sha256": "0b8232fd7891f8b010abbbf1e3aa39d3bdc39869b29e803eba927117440088d4"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/face-highlight.d.ts",
+      "bytes": 416,
+      "sha256": "5201ff5508c3ba62335ff7c71ddd7d85f4aa8b7ee2c7fbfc7defef6172f23c2b"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/face-highlight.js",
+      "bytes": 1859,
+      "sha256": "3df928a9f8923d598250ca349d9367f7264d8d95d9918f28aaea7e50b1e23ea4"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/gpu-compiler.d.ts",
+      "bytes": 2915,
+      "sha256": "f4f025f7b7cc6939707a8a84ee9e5504f6f8fa97993caf34f5123245157d2265"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/gpu-compiler.js",
+      "bytes": 6767,
+      "sha256": "06cf7c03a513a2101404a0bc00a1ed0146195b33eb95290b38ee3c499c83ed61"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/gpu-data.d.ts",
+      "bytes": 551,
+      "sha256": "85911aec7643a0a2b65afe66cd9da808d4714ed77b423f07dbbdea8867e86962"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/gpu-data.js",
+      "bytes": 6749,
+      "sha256": "647d0c0b91a31ce344c33dbce52ebaef2006655dc0d0b0bf75a9e0ea0b2e7a54"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/index.d.ts",
+      "bytes": 13221,
+      "sha256": "1949368bbae4da396643c0292d8560a1cc1f42f2b2798603c10e07fafef4a8eb"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/index.js",
+      "bytes": 955327,
+      "sha256": "7c3a81f466a63c4c957bdfd630f5568184bc640facd2e5dd7183ba3ab76c15eb"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/kernel-face-preview.d.ts",
+      "bytes": 1458,
+      "sha256": "8140628b4c65bea728fb973b1611d09aad1a9d0863abe59952c907522423771d"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/kernel-face-preview.js",
+      "bytes": 8375,
+      "sha256": "08bf20e557a813437597a9338c4a2368a953717d06688309930da22389505365"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/material-evaluation.d.ts",
+      "bytes": 1964,
+      "sha256": "d8b8a8a4c5072683856ee9cdd66bf93c897a79e72776e3c9a20d6ea0d6077251"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/material-evaluation.js",
+      "bytes": 9607,
+      "sha256": "463921ac4f97739a1ae7cdf04f58d2ea56360f46c891c5bb6196df99bbe529ea"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/mesh-lighting.d.ts",
+      "bytes": 316,
+      "sha256": "f2a9d94e21afd93ed404fb65cd794aec56f5b2cfe2b7a7e147f7c6e09dd24a83"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/mesh-lighting.js",
+      "bytes": 1910,
+      "sha256": "bc802248f972325f904d37771e985dfcd6b4ab27dcf12f97f4ed95eda3630bd6"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/mesh-material.d.ts",
+      "bytes": 5885,
+      "sha256": "b10d863cd14da226cc16cad6496e95f346ac1683ec26ce0ccb8407f2b972b3bc"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/mesh-material.js",
+      "bytes": 45191,
+      "sha256": "a13d072288dab594bcb57431173568d38a54fabc3e2779dd63c410d41d67eb85"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/mesh-packet.d.ts",
+      "bytes": 2089,
+      "sha256": "0027e9c2b25eebe2f1043538d525d55f771d8fe67b2111317f0d8575b9250708"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/mesh-packet.js",
+      "bytes": 9229,
+      "sha256": "ab3f24e8757fa48f53bc7dc3fcbb1de09ea28d603ab5fac67cdd10680634d831"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/mesh-renderer.d.ts",
+      "bytes": 2723,
+      "sha256": "47a8c4fb13eb2850f70fab84eff6de7909b047c3cae6a945000479a4e20eab91"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/mesh-renderer.js",
+      "bytes": 24633,
+      "sha256": "a033634ddea7afa7998bdcdef7272b42487ec7581cfd000a8e0ebb1c69b1e60f"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/mesh-scene-renderer.d.ts",
+      "bytes": 1458,
+      "sha256": "36a309f61d0c57e6b9fdb52497eb48641350a560752785eb8d61f1a06b150553"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/mesh-scene-renderer.js",
+      "bytes": 15563,
+      "sha256": "6a707deac8418be97aaffbaf94e91946f964c84c268fe07f8a5e337d12aaeb4e"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/mesh-scene-transform.d.ts",
+      "bytes": 1013,
+      "sha256": "edc839380b9f52c05be418424d1a170850d4b32b19b91e3d61fb5f47fa6a193f"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/mesh-scene-transform.js",
+      "bytes": 5516,
+      "sha256": "aa0833bc9cb7962e085d67bf137b6b8ee6d937151a29aa597ce7c147217940ff"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/mesh-shaders.d.ts",
+      "bytes": 1023,
+      "sha256": "69ba7aa2aa0111b9b625a6df3e3f6c6de8ea09ad74e3a4c9195efe64fd897071"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/mesh-shaders.js",
+      "bytes": 3082,
+      "sha256": "e38c7160f6d8ec6760bda5444d10e11faa19613f0d6a52126400698f15ff0f8b"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/mesh-viewport.d.ts",
+      "bytes": 1953,
+      "sha256": "745a5224ab8303763716a2e2b1a7ae03044f765e5d0674fb57e28300276f7dc6"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/mesh-viewport.js",
+      "bytes": 2544,
+      "sha256": "2049ad39ee391bd0477edd7fe5111259da3c4d951761f61298a8ca6556f25fb4"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/mixed-depth-frame.d.ts",
+      "bytes": 1680,
+      "sha256": "0aea0698fc587d8ab15ed9abea7ba7f1ff284ec64a662a55bbbb0489e80fa766"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/mixed-depth-frame.js",
+      "bytes": 7862,
+      "sha256": "0aa0cfc0e2f1ae04656ff3e94438bc87c570a751847fae1b49539df7f8bd7264"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/mixed-depth-renderer.d.ts",
+      "bytes": 1162,
+      "sha256": "96eeeb6eb94196c9c9e92a0857ddd301d5869b97b38965214d477d57d1b75c00"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/mixed-depth-renderer.js",
+      "bytes": 18102,
+      "sha256": "efddcea591b799917613fa925b117034fded29d4130f3137631e9a72c5840368"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/native-mesh-buffers.d.ts",
+      "bytes": 1188,
+      "sha256": "d36791de86d6f67bbe9f5cbb99f38365bea59718fd9f8350bd7704f933c697a4"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/native-mesh-buffers.js",
+      "bytes": 5071,
+      "sha256": "299b3741b44cf4cdab72452ab02e8d55d9a6018d5c6974a8f0a00db19267171c"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/native-surface-uv01-binding.d.ts",
+      "bytes": 1447,
+      "sha256": "601200b77b9cd15153bfd80f53b265e97adc1bc08f51039ba8c400c16672e293"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/native-surface-uv01-binding.js",
+      "bytes": 4886,
+      "sha256": "7bc7fe383b475f42f5e095a8d8eb5ba6e1193ccfd59784873441730f2b79aa1c"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/native-surface-uv01-geometry.d.ts",
+      "bytes": 1471,
+      "sha256": "0032a6b2681c29e583ab5229f3f99f589f0992a2d4b1a8d6236d73a7d33c42bd"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/native-surface-uv01-geometry.js",
+      "bytes": 7319,
+      "sha256": "7192ef127655570df53170379eb3d177d95788be89e0fe4370239cad96a48d74"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/native-surface-uv01-shader-source.d.ts",
+      "bytes": 1390,
+      "sha256": "6aa38d904be4fd29f59f1986cf838a3f6c4ec6631f412c2861877e8934bb7d39"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/native-surface-uv01-shader-source.js",
+      "bytes": 5238,
+      "sha256": "67bd425d29491f1729e4805796afe8373159b0bfe66be93ff25f2e1318fd2845"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/object-highlight.d.ts",
+      "bytes": 442,
+      "sha256": "1659c8df663a0ba831debb2072e65f7fbf570c002bd34a160de9e96c4f1d18ec"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/object-highlight.js",
+      "bytes": 725,
+      "sha256": "aec12ea8f8a14634df7f8de16430d9b7fdcdf7db172422139c5ef6a392553aaa"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/particle-layer.d.ts",
+      "bytes": 646,
+      "sha256": "3eb7f66cd591b51734a254d9f1676131d2d6d7bfb4269e2d175564e7d1587318"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/particle-layer.js",
+      "bytes": 3284,
+      "sha256": "361209188e5b9d0916b0ee706535f41df01f809ee2b1196a53985f9fbafce7d2"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/plane-geometry-build-internal.d.ts",
+      "bytes": 305,
+      "sha256": "5d7bf542500fbde9599f0f0a680ab0a35a43f15ae3c264b493c30cb6e2a6ee9d"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/plane-geometry-build-internal.js",
+      "bytes": 942,
+      "sha256": "058c634a7c2145cd67b5a1e4bb2214cb32b6c4358ff0623b24df95381dd2d076"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/plane-geometry.d.ts",
+      "bytes": 729,
+      "sha256": "2341075f328ce062cface29a7cc2dcff85100faa41210e01a04513d5e1381013"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/plane-geometry.js",
+      "bytes": 3860,
+      "sha256": "a4bf92f2f238ab48111d0cadbb7969bd0da9f86140ad8d0d6cdcef116c2a3b2a"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/primitive-frame-preflight.d.ts",
+      "bytes": 1475,
+      "sha256": "bf43474d7192f246b3c7c71584bc7b80938b2deaff91c029fe7925a90be77eeb"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/primitive-frame-preflight.js",
+      "bytes": 5078,
+      "sha256": "a73500c992241b6f27f9964d0f977fe00d7c3079ef2dfa934926a694cb81fcdf"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/primitive-scene-renderer.d.ts",
+      "bytes": 9516,
+      "sha256": "cf5442398c58055621ef3fdd7f5e70636afcc4c5def9c1872bd826c0b823affe"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/primitive-scene-renderer.js",
+      "bytes": 43709,
+      "sha256": "b16e4ed9b69bce4a413964cfb72e823dbee7628dadb6292c24fc38e3890bf583"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/qualified-face-scene-renderer.d.ts",
+      "bytes": 1137,
+      "sha256": "6c988e0d1d2be6ff78e0078197eae50d1ebad50eb426f2815da9f21abe119e49"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/qualified-face-scene-renderer.js",
+      "bytes": 15611,
+      "sha256": "cd69ed03099bc276e1201289c3b5670add4b4b18df2d244ad5d9cd89b082ba80"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/qualified-face-scene.d.ts",
+      "bytes": 1403,
+      "sha256": "f9ff79a964c925d1f8384ca5a886fae534f431b8d7bd22b15a590ad27b72fefc"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/qualified-face-scene.js",
+      "bytes": 8360,
+      "sha256": "e06ab5da10440b158833514bb2c3cd7eb98a4996949dedf9720116227a172086"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/renderer.d.ts",
+      "bytes": 1626,
+      "sha256": "1388a4c470bed49e5d5beab20dd9289201638936ccd108dd5155a1eeca7d6bc9"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/renderer.js",
+      "bytes": 10063,
+      "sha256": "1d31f94c48a649bff6f3f3e1eebd114797711e1c979948f1cccd313e24ca72b1"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/rotation.d.ts",
+      "bytes": 197,
+      "sha256": "db46688715c7d284873e494dc67ed3067e23cfec3aba40a93378c13fc2de060d"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/rotation.js",
+      "bytes": 676,
+      "sha256": "c4f942042dd5a9430e82bdcc44699d2f10413bb3509e722cd25de8026e09d44d"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/rounded-box-geometry-build-internal.d.ts",
+      "bytes": 380,
+      "sha256": "826a45f3235f13a224061b42a925bdb9905591772cab1c00da2272852fc588bc"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/rounded-box-geometry-build-internal.js",
+      "bytes": 5973,
+      "sha256": "5863b229dfb795472738b88a3a3081dc5f94756f6f46ac794d4ed4053706f944"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/rounded-box-geometry.d.ts",
+      "bytes": 856,
+      "sha256": "360f5f34313099047834b91dc6f52fa663534db72fd957253033fb95a6abb255"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/rounded-box-geometry.js",
+      "bytes": 5055,
+      "sha256": "61499c30637e34159f614d4759b30664d0d730258ea85c914f9c7a6d722910df"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/rounded-box.d.ts",
+      "bytes": 203,
+      "sha256": "1eaac7548330c5caeec728259ea3c6145773c7cfd968b86163b598788e8b5f28"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/rounded-box.js",
+      "bytes": 714,
+      "sha256": "a8b19cbe4d42d113d5a20aaa28f5643ef536d69f95328f5823a93011a2cac19e"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/scene-front.d.ts",
+      "bytes": 1778,
+      "sha256": "324044a9e63656dbc9c4f0b07fd74b3f8612bded091418388d68983a96ee6e21"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/scene-front.js",
+      "bytes": 16794,
+      "sha256": "7684c68a13a3ba01ff3b33208351970ebbc2581411f0c49671c798967d0c9d5e"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/scene-types.d.ts",
+      "bytes": 1896,
+      "sha256": "183a9885beb01017fd97b8a5fe0b010ab540720a6c1827695caa240bfc418d56"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/scene-types.js",
+      "bytes": 271,
+      "sha256": "177ff67d051d6b66b4e60498f09baa3b4020456f6e934caf27e524a0da94cdcb"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/scene-view.d.ts",
+      "bytes": 474,
+      "sha256": "2e79a629fc64404c7a2f9f46feecb8baffcbc480312ac042d669275316df01c6"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/scene-view.js",
+      "bytes": 1242,
+      "sha256": "943aa616dd63b9e2f66e72df91676452b3709bfec5bb510bb7713fb8669782b5"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/scene.d.ts",
+      "bytes": 408,
+      "sha256": "45bbc981a8219a9251c8a7ce8cf91c88bbb4a568b3a4a445867e5e29e38ebdfd"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/scene.js",
+      "bytes": 541,
+      "sha256": "52e6c6c681e2ee79bd45398645144bee2b3516fed4aee98cc9ba6b372de6e079"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/source-scene-bounds.d.ts",
+      "bytes": 1928,
+      "sha256": "71017ad2b1eee139f959694acc46aea15c28c78f3c5164651b8323f86daef04c"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/source-scene-bounds.js",
+      "bytes": 8321,
+      "sha256": "0da2df50fc0874a2dce06da677a1f81e88bd37651f2b24a42ba02fab59047ffa"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/sphere-geometry-build-internal.d.ts",
+      "bytes": 300,
+      "sha256": "a78253ba620d4ae5892eb401b0fa2b1464cc900decfc0461cb9d6fda78f309ad"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/sphere-geometry-build-internal.js",
+      "bytes": 2098,
+      "sha256": "1f1c5be99acc44579e6d8f4711e41aff995eb934c3bb16e0fc26e95cd5b797ed"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/sphere-geometry.d.ts",
+      "bytes": 733,
+      "sha256": "428fe49e9371384e22c27df8690dd04de706ff669fdca808fe1fd67aabdc2d08"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/sphere-geometry.js",
+      "bytes": 2780,
+      "sha256": "7fe9b911caf4b54bf52497bfea57eb8ef9e18fc90ab751fff5e2e762422f4302"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/torus-geometry-build-internal.d.ts",
+      "bytes": 317,
+      "sha256": "8733b1a512c6f88c5a8fc288ccfc0c5586b273e9d8dedd50dc0d3cb2b2b09f19"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/torus-geometry-build-internal.js",
+      "bytes": 1914,
+      "sha256": "04a9421103e47edc0abebcc46ea1353a1ab0d543e490a4b75b595ff4a073ae0e"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/torus-geometry.d.ts",
+      "bytes": 754,
+      "sha256": "c6fde1aaca2a9d56b15fce012d4eb2f6e8afa5104fe36b80c70c996b498783df"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/torus-geometry.js",
+      "bytes": 2940,
+      "sha256": "bbafb40771260150737bcda03412386c8598c7ef4c04f6b62ec02855e6989b34"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/torus.d.ts",
+      "bytes": 171,
+      "sha256": "d43682971ddfb2bf2f645409160b7fb87b63a6b8998448e3d95011270ac0fd80"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/torus.js",
+      "bytes": 743,
+      "sha256": "a78bc47cbe9aaea6654f51f991756f2967a32d864b347f8bb6daecd065cee365"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/triangle-geometry.d.ts",
+      "bytes": 1756,
+      "sha256": "29fa940aa310a2efa7cde53769dadc4fb13c526ea6c425cecb7101ba3b11f22d"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/triangle-geometry.js",
+      "bytes": 8341,
+      "sha256": "0ac9ba5e404bdb64938dcabc4a738e6a7ddc28c990f9b5f8ab48277bd8cc85cf"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/triangle-normal-generation.d.ts",
+      "bytes": 961,
+      "sha256": "2f0a4804ce2349f277d93b064be81be3170d8ce692d47a2b2c3819aa006f7549"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/triangle-normal-generation.js",
+      "bytes": 7127,
+      "sha256": "5c1099fe4da3b2040a75ccae2143c60af3eaa66c1cad7cc3cb99fd10b0239900"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/uniform-curve-preview.d.ts",
+      "bytes": 2126,
+      "sha256": "9f7388c4c36dcb8bae179f6fe87cea85d059d5110fd226eb1a5cef265ec4e499"
+    },
+    {
+      "path": "packages/barocss-gpu/dist/uniform-curve-preview.js",
+      "bytes": 10617,
+      "sha256": "8ad5ae281d06109504210e80f473bc99f42259a82564167ed56a53eed283da25"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/assembly.d.ts",
+      "bytes": 1641,
+      "sha256": "5ff8142ff10bf3ff9f2992db16b7037377d48cfacda06f4cbd7653ede180c341"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/assembly.js",
+      "bytes": 8627,
+      "sha256": "cdb3387f49f6aeaf741a32252c32bdd854f55efe6f4d649cca0f3afcc1f722b7"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/cloth-frame.d.ts",
+      "bytes": 694,
+      "sha256": "221d2044d96159acbe722305e332e44b739f01da865532904f8df08989afa1c6"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/cloth-frame.js",
+      "bytes": 5693,
+      "sha256": "6369fe8f6b900fc33c6ea039864097dd73b422cdf538947565f74e3a7eac9cca"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/index.d.ts",
+      "bytes": 17990,
+      "sha256": "01f57b136b26e91e48433ad1a0e644394ed4a1012904b62ee3bf18c465c627e0"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/index.js",
+      "bytes": 143767,
+      "sha256": "5e0e88a73929c54772ba72be91a05cc9c9932342f05dd331820d213451e9c851"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/mixed-depth.d.ts",
+      "bytes": 869,
+      "sha256": "4e71aeeefec762313ef3f829ac5748872f2106f8b6a46a726034c6530046721b"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/mixed-depth.js",
+      "bytes": 4145,
+      "sha256": "5d18685c19733530f1322718864f6b815d0b4b112868dd6c470cacd162639e23"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/mounted-native-scene-appearance.d.ts",
+      "bytes": 1098,
+      "sha256": "b0d40bedff4b97ab1bd4b19371a0a5c54354df5969a2291fec9c6d36a73ce174"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/mounted-native-scene-appearance.js",
+      "bytes": 3624,
+      "sha256": "ce97748465fba79cc9d86e12cdb8c72af442360eae9a2ee532b6a76a39d0f4b7"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/native-scene-appearance.d.ts",
+      "bytes": 1739,
+      "sha256": "01e411f6ff0665a358b840e2329db8db298b2ad96f971e907a08cb396fcfe53e"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/native-scene-appearance.js",
+      "bytes": 18906,
+      "sha256": "0d59719a5ce231eeac9dc2e8354ee91b139f721f938704ea391e0838dc1e0fee"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/qualified-face-fit.d.ts",
+      "bytes": 710,
+      "sha256": "64000303ea9b56445985c734b1999d6f1875c11ba2cad2561ab41c41d66640b5"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/qualified-face-fit.js",
+      "bytes": 3662,
+      "sha256": "815aed14d68867eb4e888073acd232fae39348c8b2971c3661bee3d22569d211"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/qualified-face-measurement.d.ts",
+      "bytes": 1320,
+      "sha256": "1a56629dcd94ef7189e79f12a25156d3c68f75600f9574d5ee0f414e230dbc21"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/qualified-face-measurement.js",
+      "bytes": 5819,
+      "sha256": "e6d17e5eb67972cfddecd4251bf6e7ac48b8bfc0cef6b9849121bc5d9e919df7"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/qualified-face-native-sample.d.ts",
+      "bytes": 893,
+      "sha256": "89341b4be69e7458620b1c6923ace4f5c7cff40a2cb44fd82cf55c0a8599e02f"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/qualified-face-native-sample.js",
+      "bytes": 2208,
+      "sha256": "d872a806c48ffda908e27d320eb3d377c96e4f6935686a9d9b1e65fbc75abd2b"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/qualified-face-pick.d.ts",
+      "bytes": 1265,
+      "sha256": "f5396f43ff14cf77ebe4918a71b44836e1efd4bd902ee11c431c5da280254a45"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/qualified-face-pick.js",
+      "bytes": 5219,
+      "sha256": "36078a81df455ad4560c4cf8a19c9351161e95b9683a96538a9388b2715d4c0a"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/qualified-face-projection.d.ts",
+      "bytes": 735,
+      "sha256": "f73a26ddc7ae06ed66400693b5380a62bee92924705b03a00182e70bc63f411d"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/qualified-face-projection.js",
+      "bytes": 3481,
+      "sha256": "d866fcc4fd4607e69fa04d757154ab2cebf7f6013207c1705a4682f7ec3b4f0e"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/qualified-faces.d.ts",
+      "bytes": 605,
+      "sha256": "de0d0050073297be9bb5545884259a6abd42316620fcd4549401a5766e25ea5c"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/qualified-faces.js",
+      "bytes": 1628,
+      "sha256": "0a2317ed8fc7eb42d78e24f7e597f5fe353e9b54df0ae03c6113bc9b6ae191e8"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/screen-triangle.d.ts",
+      "bytes": 783,
+      "sha256": "b7dc6cf085075bc9047549cc9f3978e35f60f3d6ccdb9ba1440b4c8403ae15cb"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/screen-triangle.js",
+      "bytes": 6304,
+      "sha256": "19623f23e3c4fda78d262158a75879456e685662613b8bbae7bce21686a4325e"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/shell-graph.d.ts",
+      "bytes": 1003,
+      "sha256": "9200d6f5dd07681933fa7f35a1d91c5c15033fbf11b141bd65d0e1b091209deb"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/shell-graph.js",
+      "bytes": 5119,
+      "sha256": "057a98e9aa9161da6bb276dc94b126b50ba8a02c0c2208a552b3d61931e7bb97"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/shell-pick.d.ts",
+      "bytes": 700,
+      "sha256": "bdcb71cb5389ac7be8a9afed28e271fe177030e001c3f0a85f638aebaffc9b45"
+    },
+    {
+      "path": "packages/barocss-viewer/dist/shell-pick.js",
+      "bytes": 3783,
+      "sha256": "a5790fe7f926c3013ae4975cafc3e23a5870f06d43daf6dbeeae1bc42ed66a17"
+    }
+  ],
+  "emittedClosureSha256": "13f784f2a989bef485d5154a4f76ca89581eb36366b48ee224764ecf2ce74938"
+}
