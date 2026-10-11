@@ -139,7 +139,10 @@ them. A successful assembly load supersedes older pending Viewer source URL
 loads. Later successful native/model-set/document/packet loads or clear drop
 assembly metadata. Context loss retains copied assembly data for CPU queries
 while GPU operations refuse; disposal clears assembly/bindings/authored poses
-and rejects later queries. Native 32-instance capacity is separate from the
+and rejects later queries. Assembly context loss retires the owned renderer
+while the context is lost, before caller restoration. Restoration keeps the
+copied CPU assembly but does not resume GPU operations; use a fresh Viewer.
+Native 32-instance capacity is separate from the
 four-instance display limit. Editing, mates, exploded poses, multi-highlight,
 Shell composition and physical certification are separate scopes.
 `examples/viewer-assembly-scene` demonstrates selected hierarchy and read-only

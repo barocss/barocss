@@ -652,7 +652,7 @@ export class Viewer {
     this.contextLost = true;
     if (this.renderer instanceof BooleanShellSceneRenderer || this.renderer instanceof MixedDepthRenderer
       || this.renderer instanceof QualifiedFaceSceneRenderer
-      || this.uniformCurve || this.selectedUniformCurve || this.nativeReplacement) {
+      || this.uniformCurve || this.selectedUniformCurve || this.nativeReplacement || this.assembly) {
       event.preventDefault();
       // CPU provenance is Viewer-owned; retire old GL handles before caller restoration.
       this.renderer?.dispose();
