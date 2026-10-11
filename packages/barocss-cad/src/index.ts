@@ -480,3 +480,7 @@ export type { PairedSurfaceMaterialBodyRequest, PairedSurfaceMaterialBodyOptions
 // Exact WorldXYZ membership on a restricted paired Surface material Body.
 export { classifyPairedSurfaceMaterialBodyWorldPoints, validatePairedSurfaceMaterialBodyWorldPointClassification, PairedSurfaceMaterialBodyWorldPointError, PairedSurfaceMaterialBodyWorldPointDiagnosticCode } from './paired-surface-material-body-world-points.js';
 export type { PairedSurfaceMaterialBodyWorldPointQuery, PairedSurfaceMaterialBodyWorldPointOptions, PairedSurfaceMaterialBodyWorldPointReport, PairedSurfaceMaterialBodyWorldPointResult } from './paired-surface-material-body-world-points.js';
+
+// Actual strictly positive paired-roof occupied difference Body.
+export { buildPairedRoofDifferenceBody, validatePairedRoofDifferenceBody, PairedRoofDifferenceBodyError, PairedRoofDifferenceBodyDiagnosticCode } from './paired-roof-difference-body.js';
+export type { PairedRoofDifferenceBodyRequest, PairedRoofDifferenceBodyOptions, PairedRoofDifferenceBodyReport, PairedRoofDifferenceBodyResult } from './paired-roof-difference-body.js';

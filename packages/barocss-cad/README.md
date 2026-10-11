@@ -9560,3 +9560,15 @@ One bounded rational context evaluates the source polynomials without native sam
 `validatePairedSurfaceMaterialBodyWorldPointClassification(result)` rebuilds once, compares every owned field and returns a copied report. Full request/result caps are8/16MiB with4M own values and fixed-point file sizing; these are refusal envelopes, not a guarantee every accepted parent fits. Run `node examples/cad-nurbs/paired-surface-material-body-world-points-demo.mjs --source <output-directory>`. Issue1537 tracks the native API.
 
 This certifies membership in the supplied restricted Body. It does not add a new Body, general Solid Boolean, arbitrary mesh queries, raycasting, renderer picking or manufacturing guarantees. Full sources, construction requests, UV/topology and parent proof records remain required for cold reconstruction; no new codec is added.
+
+### Strictly positive paired-roof difference Body
+
+`buildPairedRoofDifferenceBody(lower, upper, options)` constructs the occupied layer between two complete paired material Bodies. Both operands must share their original B support, footprint, unit axes and lower bounds. The whole upper-minus-lower roof gap must have strictly positive Bernstein coefficients. Crossing or zero-height profiles are refused.
+
+The output uses the unchanged upper A roof, the lower A floor with one explicit import reversal, a real original-B Face between two borrowed cuts, and three real Ruled closures. Original Curve IDs, native domains, UV records, sources and operand flags remain retained. Fresh recipes must give distinct borrowed Curve IDs; no archived geometry is retagged.
+
+A new eight-Vertex, twelve-Edge, six-Face graph has twenty-four Uses, twelve exact native parameter correspondences and eight connected vertex links. Whole source images, outward orientations, an injective variable-floor map and positive Jacobian certify the restricted occupied difference. Exact volume is checked against upper-minus-lower operand volumes. Root observation work has24 endpoint slots/72 Curve D0 attempts; inherited construction work remains separate.
+
+`validatePairedRoofDifferenceBody(result)` rebuilds once and compares the complete owned result. Request/result caps are8/16MiB with4M own values and fixed-point sizing. These are refusal envelopes, not a guarantee that every accepted operand pair fits. The existing request-local rational limits remain unchanged and root Float conversions are zero.
+
+Run `node examples/cad-nurbs/paired-roof-difference-body-demo.mjs --source <output-directory>`. Issue1544 tracks this constructive difference profile. General Boolean, pinched wedges, crossings, arbitrary difference membership, manufacturing and renderer acceptance remain separate. Complete source/UV/topology requests and cold reconstruction are required; no new codec is added.
