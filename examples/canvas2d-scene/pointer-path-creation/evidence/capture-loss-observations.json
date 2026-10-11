@@ -1,0 +1,1019 @@
+{
+  "status": "PASS_BOUNDED_ACTIVE_CAPTURE_LOSS",
+  "actualBrowser": true,
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+  "proof": {
+    "activated": {
+      "type": "gotpointercapture",
+      "phase": "capture",
+      "timeStamp": 8183.0999999940395,
+      "pointerId": 1,
+      "trusted": true,
+      "target": "stage",
+      "bubbles": true,
+      "nativeHasCapture": true,
+      "observation": {
+        "disposed": false,
+        "generation": 1,
+        "mode": "Q",
+        "state": "DRAGGING",
+        "selected": null,
+        "creation": {
+          "id": "CreatedQ1",
+          "kind": "Q",
+          "points": [
+            {
+              "x": 19.99999877019857,
+              "y": 89.99999366662226
+            },
+            {
+              "x": 109.9999971530677,
+              "y": 90.00000151755756
+            }
+          ]
+        },
+        "drag": {
+          "pointerId": 1,
+          "preview": false,
+          "last": null
+        },
+        "scene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"PointerPathCreation\",\"nodes\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":-10,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":480,\"height\":320,\"fill\":[0.10196078431372549,0.12156862745098039,0.1607843137254902,1]},{\"kind\":\"group\",\"id\":\"Parent\",\"layer\":0,\"transform\":{\"x\":40,\"y\":32,\"scaleX\":1.2,\"scaleY\":1.1,\"rotation\":0.2617993877991494},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"rect\",\"id\":\"Marker\",\"layer\":10,\"transform\":{\"x\":260,\"y\":60,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":16,\"height\":16,\"fill\":[0.25098039215686274,1,0.25098039215686274,1]},{\"kind\":\"image\",\"id\":\"StableSprite\",\"layer\":10,\"transform\":{\"x\":260,\"y\":95,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"StableCyan\",\"width\":24,\"height\":24,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\"}]}]}",
+        "history": {
+          "position": 0,
+          "length": 1,
+          "canUndo": false,
+          "canRedo": false
+        },
+        "counts": {
+          "renderers": 1,
+          "disposedRenderers": 0,
+          "previews": 0,
+          "commits": 0,
+          "cancels": 0,
+          "moves": 0,
+          "captures": 1,
+          "releases": 0,
+          "ignoredPointers": 0
+        },
+        "captureActive": true,
+        "observerConnected": true,
+        "activeURLs": 0,
+        "opens": 0,
+        "saves": 0,
+        "lastError": null,
+        "received": [
+          {
+            "role": "placement",
+            "kind": "Q",
+            "point": {
+              "x": 19.99999877019857,
+              "y": 89.99999366662226
+            },
+            "event": {
+              "type": "pointerdown",
+              "timeStamp": 8158.4000000059605,
+              "clientX": 138.31504821777344,
+              "clientY": 394.8158874511719,
+              "pointerId": 1,
+              "trusted": true,
+              "rect": {
+                "left": 85,
+                "top": 239.59375,
+                "width": 480,
+                "height": 320
+              }
+            }
+          },
+          {
+            "role": "placement",
+            "kind": "Q",
+            "point": {
+              "x": 109.9999971530677,
+              "y": 90.00000151755756
+            },
+            "event": {
+              "type": "pointerdown",
+              "timeStamp": 8164.200000017881,
+              "clientX": 253.06703186035156,
+              "clientY": 425.5635986328125,
+              "pointerId": 1,
+              "trusted": true,
+              "rect": {
+                "left": 85,
+                "top": 239.59375,
+                "width": 480,
+                "height": 320
+              }
+            }
+          },
+          {
+            "role": "first-control",
+            "kind": "Q",
+            "point": {
+              "x": 65.00000053628209,
+              "y": 34.99999670939287
+            },
+            "event": {
+              "type": "pointerdown",
+              "timeStamp": 8181.0999999940395,
+              "clientX": 212.9154510498047,
+              "clientY": 345.9073791503906,
+              "pointerId": 1,
+              "trusted": true,
+              "rect": {
+                "left": 85,
+                "top": 239.59375,
+                "width": 480,
+                "height": 320
+              }
+            }
+          }
+        ],
+        "completed": []
+      }
+    },
+    "lostBefore": {
+      "type": "lostpointercapture",
+      "phase": "capture",
+      "timeStamp": 8201.90000000596,
+      "pointerId": 1,
+      "trusted": true,
+      "target": "stage",
+      "bubbles": true,
+      "nativeHasCapture": false,
+      "observation": {
+        "disposed": false,
+        "generation": 1,
+        "mode": "Q",
+        "state": "DRAGGING",
+        "selected": null,
+        "creation": {
+          "id": "CreatedQ1",
+          "kind": "Q",
+          "points": [
+            {
+              "x": 19.99999877019857,
+              "y": 89.99999366662226
+            },
+            {
+              "x": 109.9999971530677,
+              "y": 90.00000151755756
+            }
+          ]
+        },
+        "drag": {
+          "pointerId": 1,
+          "preview": false,
+          "last": null
+        },
+        "scene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"PointerPathCreation\",\"nodes\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":-10,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":480,\"height\":320,\"fill\":[0.10196078431372549,0.12156862745098039,0.1607843137254902,1]},{\"kind\":\"group\",\"id\":\"Parent\",\"layer\":0,\"transform\":{\"x\":40,\"y\":32,\"scaleX\":1.2,\"scaleY\":1.1,\"rotation\":0.2617993877991494},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"rect\",\"id\":\"Marker\",\"layer\":10,\"transform\":{\"x\":260,\"y\":60,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":16,\"height\":16,\"fill\":[0.25098039215686274,1,0.25098039215686274,1]},{\"kind\":\"image\",\"id\":\"StableSprite\",\"layer\":10,\"transform\":{\"x\":260,\"y\":95,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"StableCyan\",\"width\":24,\"height\":24,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\"}]}]}",
+        "history": {
+          "position": 0,
+          "length": 1,
+          "canUndo": false,
+          "canRedo": false
+        },
+        "counts": {
+          "renderers": 1,
+          "disposedRenderers": 0,
+          "previews": 0,
+          "commits": 0,
+          "cancels": 0,
+          "moves": 0,
+          "captures": 1,
+          "releases": 0,
+          "ignoredPointers": 0
+        },
+        "captureActive": true,
+        "observerConnected": true,
+        "activeURLs": 0,
+        "opens": 0,
+        "saves": 0,
+        "lastError": null,
+        "received": [
+          {
+            "role": "placement",
+            "kind": "Q",
+            "point": {
+              "x": 19.99999877019857,
+              "y": 89.99999366662226
+            },
+            "event": {
+              "type": "pointerdown",
+              "timeStamp": 8158.4000000059605,
+              "clientX": 138.31504821777344,
+              "clientY": 394.8158874511719,
+              "pointerId": 1,
+              "trusted": true,
+              "rect": {
+                "left": 85,
+                "top": 239.59375,
+                "width": 480,
+                "height": 320
+              }
+            }
+          },
+          {
+            "role": "placement",
+            "kind": "Q",
+            "point": {
+              "x": 109.9999971530677,
+              "y": 90.00000151755756
+            },
+            "event": {
+              "type": "pointerdown",
+              "timeStamp": 8164.200000017881,
+              "clientX": 253.06703186035156,
+              "clientY": 425.5635986328125,
+              "pointerId": 1,
+              "trusted": true,
+              "rect": {
+                "left": 85,
+                "top": 239.59375,
+                "width": 480,
+                "height": 320
+              }
+            }
+          },
+          {
+            "role": "first-control",
+            "kind": "Q",
+            "point": {
+              "x": 65.00000053628209,
+              "y": 34.99999670939287
+            },
+            "event": {
+              "type": "pointerdown",
+              "timeStamp": 8181.0999999940395,
+              "clientX": 212.9154510498047,
+              "clientY": 345.9073791503906,
+              "pointerId": 1,
+              "trusted": true,
+              "rect": {
+                "left": 85,
+                "top": 239.59375,
+                "width": 480,
+                "height": 320
+              }
+            }
+          }
+        ],
+        "completed": []
+      }
+    },
+    "lostAfter": {
+      "type": "lostpointercapture",
+      "phase": "bubble",
+      "timeStamp": 8201.90000000596,
+      "pointerId": 1,
+      "trusted": true,
+      "target": "stage",
+      "bubbles": true,
+      "nativeHasCapture": false,
+      "observation": {
+        "disposed": false,
+        "generation": 1,
+        "mode": "Q",
+        "state": "CANCELLED",
+        "selected": null,
+        "creation": null,
+        "drag": null,
+        "scene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"PointerPathCreation\",\"nodes\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":-10,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":480,\"height\":320,\"fill\":[0.10196078431372549,0.12156862745098039,0.1607843137254902,1]},{\"kind\":\"group\",\"id\":\"Parent\",\"layer\":0,\"transform\":{\"x\":40,\"y\":32,\"scaleX\":1.2,\"scaleY\":1.1,\"rotation\":0.2617993877991494},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"rect\",\"id\":\"Marker\",\"layer\":10,\"transform\":{\"x\":260,\"y\":60,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":16,\"height\":16,\"fill\":[0.25098039215686274,1,0.25098039215686274,1]},{\"kind\":\"image\",\"id\":\"StableSprite\",\"layer\":10,\"transform\":{\"x\":260,\"y\":95,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"StableCyan\",\"width\":24,\"height\":24,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\"}]}]}",
+        "history": {
+          "position": 0,
+          "length": 1,
+          "canUndo": false,
+          "canRedo": false
+        },
+        "counts": {
+          "renderers": 1,
+          "disposedRenderers": 0,
+          "previews": 0,
+          "commits": 0,
+          "cancels": 1,
+          "moves": 0,
+          "captures": 1,
+          "releases": 1,
+          "ignoredPointers": 0
+        },
+        "captureActive": false,
+        "observerConnected": true,
+        "activeURLs": 0,
+        "opens": 0,
+        "saves": 0,
+        "lastError": null,
+        "received": [
+          {
+            "role": "placement",
+            "kind": "Q",
+            "point": {
+              "x": 19.99999877019857,
+              "y": 89.99999366662226
+            },
+            "event": {
+              "type": "pointerdown",
+              "timeStamp": 8158.4000000059605,
+              "clientX": 138.31504821777344,
+              "clientY": 394.8158874511719,
+              "pointerId": 1,
+              "trusted": true,
+              "rect": {
+                "left": 85,
+                "top": 239.59375,
+                "width": 480,
+                "height": 320
+              }
+            }
+          },
+          {
+            "role": "placement",
+            "kind": "Q",
+            "point": {
+              "x": 109.9999971530677,
+              "y": 90.00000151755756
+            },
+            "event": {
+              "type": "pointerdown",
+              "timeStamp": 8164.200000017881,
+              "clientX": 253.06703186035156,
+              "clientY": 425.5635986328125,
+              "pointerId": 1,
+              "trusted": true,
+              "rect": {
+                "left": 85,
+                "top": 239.59375,
+                "width": 480,
+                "height": 320
+              }
+            }
+          },
+          {
+            "role": "first-control",
+            "kind": "Q",
+            "point": {
+              "x": 65.00000053628209,
+              "y": 34.99999670939287
+            },
+            "event": {
+              "type": "pointerdown",
+              "timeStamp": 8181.0999999940395,
+              "clientX": 212.9154510498047,
+              "clientY": 345.9073791503906,
+              "pointerId": 1,
+              "trusted": true,
+              "rect": {
+                "left": 85,
+                "top": 239.59375,
+                "width": 480,
+                "height": 320
+              }
+            }
+          }
+        ],
+        "completed": []
+      }
+    },
+    "fullScene": true,
+    "fullHistory": true,
+    "fullAsset4": true,
+    "wholeFrameBytes": 2457600,
+    "wholeFrameExact": true,
+    "syntheticEvents": 0,
+    "productCancelCalls": 0,
+    "completedCreationEditFileReplay": 0
+  },
+  "logical": [
+    480,
+    320
+  ],
+  "DPR": 2,
+  "backing": [
+    960,
+    640
+  ],
+  "allProductCallbacks": 18,
+  "externalAuditCallbacks": [
+    {
+      "type": "gotpointercapture",
+      "capture": true,
+      "adds": 1,
+      "removes": 1
+    },
+    {
+      "type": "lostpointercapture",
+      "capture": true,
+      "adds": 1,
+      "removes": 1
+    },
+    {
+      "type": "lostpointercapture",
+      "capture": false,
+      "adds": 1,
+      "removes": 1
+    }
+  ],
+  "facilities": {
+    "contexts": [
+      {
+        "id": 1,
+        "canvasId": "scene",
+        "lost": false,
+        "error": 0,
+        "calls": {
+          "draw": 3,
+          "read": 4
+        },
+        "resources": {
+          "shader": {
+            "created": 4,
+            "deleted": 4,
+            "live": 0
+          },
+          "program": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "buffer": {
+            "created": 3,
+            "deleted": 3,
+            "live": 0
+          },
+          "vao": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "texture": {
+            "created": 1,
+            "deleted": 1,
+            "live": 0
+          },
+          "fbo": {
+            "created": 0,
+            "deleted": 0,
+            "live": 0
+          }
+        }
+      }
+    ],
+    "canvasesCreated": 1,
+    "twoD": [],
+    "pointerAdded": 18,
+    "pointerRemoved": 18,
+    "pointerActive": 0,
+    "listeners": [
+      {
+        "id": 1,
+        "targetInstance": 1,
+        "canvasId": "scene",
+        "type": "webglcontextlost",
+        "capture": false,
+        "active": false,
+        "adds": 1,
+        "removes": 1
+      },
+      {
+        "id": 2,
+        "targetInstance": 1,
+        "canvasId": "scene",
+        "type": "webglcontextrestored",
+        "capture": false,
+        "active": false,
+        "adds": 1,
+        "removes": 1
+      },
+      {
+        "id": 3,
+        "targetInstance": 2,
+        "canvasId": "stage",
+        "type": "pointerdown",
+        "capture": false,
+        "active": false,
+        "adds": 1,
+        "removes": 1
+      },
+      {
+        "id": 4,
+        "targetInstance": 2,
+        "canvasId": "stage",
+        "type": "pointermove",
+        "capture": false,
+        "active": false,
+        "adds": 1,
+        "removes": 1
+      },
+      {
+        "id": 5,
+        "targetInstance": 2,
+        "canvasId": "stage",
+        "type": "pointerup",
+        "capture": false,
+        "active": false,
+        "adds": 1,
+        "removes": 1
+      },
+      {
+        "id": 6,
+        "targetInstance": 2,
+        "canvasId": "stage",
+        "type": "pointercancel",
+        "capture": false,
+        "active": false,
+        "adds": 1,
+        "removes": 1
+      },
+      {
+        "id": 7,
+        "targetInstance": 2,
+        "canvasId": "stage",
+        "type": "lostpointercapture",
+        "capture": false,
+        "active": false,
+        "adds": 1,
+        "removes": 1
+      },
+      {
+        "id": 8,
+        "targetInstance": 3,
+        "type": "blur",
+        "capture": false,
+        "active": false,
+        "adds": 1,
+        "removes": 1
+      },
+      {
+        "id": 9,
+        "targetInstance": 3,
+        "type": "keydown",
+        "capture": false,
+        "active": false,
+        "adds": 1,
+        "removes": 1
+      },
+      {
+        "id": 10,
+        "targetInstance": 4,
+        "canvasId": "mode",
+        "type": "change",
+        "capture": false,
+        "active": false,
+        "adds": 1,
+        "removes": 1
+      },
+      {
+        "id": 11,
+        "targetInstance": 5,
+        "canvasId": "path",
+        "type": "change",
+        "capture": false,
+        "active": false,
+        "adds": 1,
+        "removes": 1
+      },
+      {
+        "id": 12,
+        "targetInstance": 6,
+        "canvasId": "slot",
+        "type": "change",
+        "capture": false,
+        "active": false,
+        "adds": 1,
+        "removes": 1
+      },
+      {
+        "id": 13,
+        "targetInstance": 7,
+        "canvasId": "apply",
+        "type": "click",
+        "capture": false,
+        "active": false,
+        "adds": 1,
+        "removes": 1
+      },
+      {
+        "id": 14,
+        "targetInstance": 8,
+        "canvasId": "undo",
+        "type": "click",
+        "capture": false,
+        "active": false,
+        "adds": 1,
+        "removes": 1
+      },
+      {
+        "id": 15,
+        "targetInstance": 9,
+        "canvasId": "redo",
+        "type": "click",
+        "capture": false,
+        "active": false,
+        "adds": 1,
+        "removes": 1
+      },
+      {
+        "id": 16,
+        "targetInstance": 10,
+        "canvasId": "save",
+        "type": "click",
+        "capture": false,
+        "active": false,
+        "adds": 1,
+        "removes": 1
+      },
+      {
+        "id": 17,
+        "targetInstance": 11,
+        "canvasId": "dispose",
+        "type": "click",
+        "capture": false,
+        "active": false,
+        "adds": 1,
+        "removes": 1
+      },
+      {
+        "id": 18,
+        "targetInstance": 12,
+        "canvasId": "open",
+        "type": "change",
+        "capture": false,
+        "active": false,
+        "adds": 1,
+        "removes": 1
+      }
+    ],
+    "fileTexts": 0,
+    "inputChanges": 0,
+    "inputFiles": [],
+    "downloads": [],
+    "hashes": [],
+    "bitmaps": [],
+    "observers": [
+      {
+        "targets": [],
+        "disconnects": 1
+      }
+    ],
+    "captureCalls": [
+      {
+        "kind": "set",
+        "pointerId": 1,
+        "target": "stage"
+      },
+      {
+        "kind": "release",
+        "pointerId": 1,
+        "target": "stage"
+      }
+    ],
+    "receivedPointers": [
+      {
+        "type": "pointermove",
+        "timeStamp": 8158.300000011921,
+        "pointerId": 1,
+        "clientX": 138.31504821777344,
+        "clientY": 394.8158874511719,
+        "trusted": true,
+        "rect": {
+          "left": 85,
+          "top": 239.59375,
+          "width": 480,
+          "height": 320
+        },
+        "canvasId": "scene"
+      },
+      {
+        "type": "pointerdown",
+        "timeStamp": 8158.4000000059605,
+        "pointerId": 1,
+        "clientX": 138.31504821777344,
+        "clientY": 394.8158874511719,
+        "trusted": true,
+        "rect": {
+          "left": 85,
+          "top": 239.59375,
+          "width": 480,
+          "height": 320
+        },
+        "canvasId": "scene"
+      },
+      {
+        "type": "pointerup",
+        "timeStamp": 8158.4000000059605,
+        "pointerId": 1,
+        "clientX": 138.31504821777344,
+        "clientY": 394.8158874511719,
+        "trusted": true,
+        "rect": {
+          "left": 85,
+          "top": 239.59375,
+          "width": 480,
+          "height": 320
+        },
+        "canvasId": "scene"
+      },
+      {
+        "type": "pointermove",
+        "timeStamp": 8164.200000017881,
+        "pointerId": 1,
+        "clientX": 253.06703186035156,
+        "clientY": 425.5635986328125,
+        "trusted": true,
+        "rect": {
+          "left": 85,
+          "top": 239.59375,
+          "width": 480,
+          "height": 320
+        },
+        "canvasId": "scene"
+      },
+      {
+        "type": "pointerdown",
+        "timeStamp": 8164.200000017881,
+        "pointerId": 1,
+        "clientX": 253.06703186035156,
+        "clientY": 425.5635986328125,
+        "trusted": true,
+        "rect": {
+          "left": 85,
+          "top": 239.59375,
+          "width": 480,
+          "height": 320
+        },
+        "canvasId": "scene"
+      },
+      {
+        "type": "pointerup",
+        "timeStamp": 8164.300000011921,
+        "pointerId": 1,
+        "clientX": 253.06703186035156,
+        "clientY": 425.5635986328125,
+        "trusted": true,
+        "rect": {
+          "left": 85,
+          "top": 239.59375,
+          "width": 480,
+          "height": 320
+        },
+        "canvasId": "scene"
+      },
+      {
+        "type": "pointermove",
+        "timeStamp": 8170.4000000059605,
+        "pointerId": 1,
+        "clientX": 212.9154510498047,
+        "clientY": 345.9073791503906,
+        "trusted": true,
+        "rect": {
+          "left": 85,
+          "top": 239.59375,
+          "width": 480,
+          "height": 320
+        },
+        "canvasId": "scene"
+      },
+      {
+        "type": "pointerdown",
+        "timeStamp": 8181.0999999940395,
+        "pointerId": 1,
+        "clientX": 212.9154510498047,
+        "clientY": 345.9073791503906,
+        "trusted": true,
+        "rect": {
+          "left": 85,
+          "top": 239.59375,
+          "width": 480,
+          "height": 320
+        },
+        "canvasId": "scene"
+      },
+      {
+        "type": "pointermove",
+        "timeStamp": 8183.0999999940395,
+        "pointerId": 1,
+        "clientX": 213.01544189453125,
+        "clientY": 345.9073791503906,
+        "trusted": true,
+        "rect": {
+          "left": 85,
+          "top": 239.59375,
+          "width": 480,
+          "height": 320
+        },
+        "canvasId": "stage"
+      },
+      {
+        "type": "pointermove",
+        "timeStamp": 8201.90000000596,
+        "pointerId": 1,
+        "clientX": 213.11544799804688,
+        "clientY": 345.9073791503906,
+        "trusted": true,
+        "rect": {
+          "left": 85,
+          "top": 239.59375,
+          "width": 480,
+          "height": 320
+        },
+        "canvasId": "scene"
+      },
+      {
+        "type": "pointerup",
+        "timeStamp": 8217,
+        "pointerId": 1,
+        "clientX": 213.11544799804688,
+        "clientY": 345.9073791503906,
+        "trusted": true,
+        "rect": {
+          "left": 85,
+          "top": 239.59375,
+          "width": 480,
+          "height": 320
+        },
+        "canvasId": "scene"
+      },
+      {
+        "type": "pointermove",
+        "timeStamp": 31716.5,
+        "pointerId": 1,
+        "clientX": 105,
+        "clientY": 259.59375,
+        "trusted": true,
+        "rect": {
+          "left": 85,
+          "top": 239.59375,
+          "width": 480,
+          "height": 320
+        },
+        "canvasId": "scene"
+      },
+      {
+        "type": "pointerdown",
+        "timeStamp": 31716.5,
+        "pointerId": 1,
+        "clientX": 105,
+        "clientY": 259.59375,
+        "trusted": true,
+        "rect": {
+          "left": 85,
+          "top": 239.59375,
+          "width": 480,
+          "height": 320
+        },
+        "canvasId": "scene"
+      },
+      {
+        "type": "pointerup",
+        "timeStamp": 31716.5,
+        "pointerId": 1,
+        "clientX": 105,
+        "clientY": 259.59375,
+        "trusted": true,
+        "rect": {
+          "left": 85,
+          "top": 239.59375,
+          "width": 480,
+          "height": 320
+        },
+        "canvasId": "scene"
+      }
+    ],
+    "fonts": [],
+    "measures": [],
+    "draws": [],
+    "urls": [],
+    "nativeErrors": []
+  },
+  "final": {
+    "disposed": true,
+    "generation": 1,
+    "mode": "Q",
+    "state": "DISPOSED",
+    "selected": null,
+    "creation": null,
+    "drag": null,
+    "scene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"PointerPathCreation\",\"nodes\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":-10,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":480,\"height\":320,\"fill\":[0.10196078431372549,0.12156862745098039,0.1607843137254902,1]},{\"kind\":\"group\",\"id\":\"Parent\",\"layer\":0,\"transform\":{\"x\":40,\"y\":32,\"scaleX\":1.2,\"scaleY\":1.1,\"rotation\":0.2617993877991494},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"rect\",\"id\":\"Marker\",\"layer\":10,\"transform\":{\"x\":260,\"y\":60,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":16,\"height\":16,\"fill\":[0.25098039215686274,1,0.25098039215686274,1]},{\"kind\":\"image\",\"id\":\"StableSprite\",\"layer\":10,\"transform\":{\"x\":260,\"y\":95,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"StableCyan\",\"width\":24,\"height\":24,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\"}]}]}",
+    "history": {
+      "position": 0,
+      "length": 1,
+      "canUndo": false,
+      "canRedo": false
+    },
+    "counts": {
+      "renderers": 1,
+      "disposedRenderers": 1,
+      "previews": 0,
+      "commits": 0,
+      "cancels": 1,
+      "moves": 0,
+      "captures": 1,
+      "releases": 1,
+      "ignoredPointers": 0
+    },
+    "captureActive": false,
+    "observerConnected": false,
+    "activeURLs": 0,
+    "opens": 0,
+    "saves": 0,
+    "lastError": null,
+    "received": [
+      {
+        "role": "placement",
+        "kind": "Q",
+        "point": {
+          "x": 19.99999877019857,
+          "y": 89.99999366662226
+        },
+        "event": {
+          "type": "pointerdown",
+          "timeStamp": 8158.4000000059605,
+          "clientX": 138.31504821777344,
+          "clientY": 394.8158874511719,
+          "pointerId": 1,
+          "trusted": true,
+          "rect": {
+            "left": 85,
+            "top": 239.59375,
+            "width": 480,
+            "height": 320
+          }
+        }
+      },
+      {
+        "role": "placement",
+        "kind": "Q",
+        "point": {
+          "x": 109.9999971530677,
+          "y": 90.00000151755756
+        },
+        "event": {
+          "type": "pointerdown",
+          "timeStamp": 8164.200000017881,
+          "clientX": 253.06703186035156,
+          "clientY": 425.5635986328125,
+          "pointerId": 1,
+          "trusted": true,
+          "rect": {
+            "left": 85,
+            "top": 239.59375,
+            "width": 480,
+            "height": 320
+          }
+        }
+      },
+      {
+        "role": "first-control",
+        "kind": "Q",
+        "point": {
+          "x": 65.00000053628209,
+          "y": 34.99999670939287
+        },
+        "event": {
+          "type": "pointerdown",
+          "timeStamp": 8181.0999999940395,
+          "clientX": 212.9154510498047,
+          "clientY": 345.9073791503906,
+          "pointerId": 1,
+          "trusted": true,
+          "rect": {
+            "left": 85,
+            "top": 239.59375,
+            "width": 480,
+            "height": 320
+          }
+        }
+      }
+    ],
+    "completed": []
+  },
+  "original1447": "INCOMPLETE_ORIGINAL_DRIVER retained",
+  "original1461": "INCOMPLETE_NATIVE_LOSS_CAUSAL_CASE retained",
+  "priorPendingCaptureExplanation": "inference only; this new case first observed active gotpointercapture",
+  "broader1254And674": "UNRUN",
+  "beforePageClosure": true,
+  "requests": [
+    "http://127.0.0.1:31447/index.html",
+    "http://127.0.0.1:31447/style.css",
+    "http://127.0.0.1:31447/main.js"
+  ],
+  "source331AndAll22OriginalPathsUnchanged": true,
+  "driverSHA256": "52ead04b630f040f1c5919c49ab74f211de08a3d0a5f477fec9ba2392fe6a129",
+  "rootScreenshotViewedBeforeTerminal": true,
+  "runtimeClosed": {
+    "browser": "c2d1461-loss closed successfully",
+    "serverPID": 55660,
+    "server": "SIGINT clean exit0",
+    "port31447Absent": true
+  },
+  "console": {
+    "errors": 0,
+    "warnings": 4,
+    "meaning": "retained native GPU readback stall diagnostics"
+  },
+  "rawLogs": [
+    "/tmp/c2d1461-loss-phase0.log",
+    "/tmp/c2d1461-loss-phase1.log",
+    "/tmp/c2d1461-loss-phase2.log",
+    "/tmp/c2d1461-loss-console.log"
+  ]
+}
