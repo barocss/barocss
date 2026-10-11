@@ -4014,3 +4014,44 @@ node packages/barocss-cad-interop/examples/paired-surface-b-uv-split-faces-resul
 
 Retained Face data does not grant a new construction, renderer, A split, sewn manifold,
 Body/Solid, physical area, global error, manufacturing or publication capability.
+
+
+## Complete paired original-UV Face membership result reader
+
+Optional entry `@barocss/cad-interop/paired-surface-uv-face-classification-result` exports
+`parseBaroCadPairedSurfaceUVFaceClassificationResult(text)` and
+`readBaroCadPairedSurfaceUVFaceClassificationResult(owned)`, the Read type, and
+the reader Error/diagnostic codes. Read has `native`, `validationReport`, frozen
+`profile`, and exact `sourceText` (or null for owned input). Whole native and
+actual independent matching Report remain mutable, safely copied CPU data.
+
+This reads saved native `barocss-paired-surface-uv-face-classification` version0
+results. Keep full request A/B complementary Face parents, both original Sources
+and Models/siblings, original UV windows, ordered queries and classifications,
+exact rational predicate proof, source-qualified refs, orientations, nullable
+branches, inherited reports, and negative zeros. Matching validates the complete
+request once and returns a separate Report. New predicate zero sampler/compiler
+counts remain separate from real inherited two-parent reconstruction work.
+
+Input queries use dimensionless original A/B UV, not World XYZ. Outside-window
+priority, exact window/shared-cut boundary equality and edited B membership
+remain native authority. This reader adds no Face/Body/Solid construction,
+World-point membership, renderer, URL/byte input, serializer, disposal, source
+editing, manufacturing tolerance, global error or publication certificate.
+Only metadata is frozen; the retained result preserves its own native flags.
+
+Strict whole JSON/own copying caps raw UTF8/UTF16 and signed canonical JSON at
+16MiB, with4M values per traversal; depth64, record64, array8192, string262144 and
+key128 stay bounded. Native request8MiB/query16/rational200000/8192-bit and
+inherited Source caps stay unchanged. Actual aggregate and maximum-work cap
+edges remain untested.
+
+Verification example:
+`examples/paired-surface-uv-face-classification-result-verify.mjs` reads four
+unchanged MAIN/EDITED producer files (1057804B, ten numeric negative zeros each).
+The two whole results are admissions; two request files are comparison DATA.
+The verifier retains full values/signs/refs and raw errors before expectations,
+signed saves and genuine fresh Node22 saved-file reads. Source and published JS
+are separate executions; strict physical declaration compilation checks actual
+published types without source fallback. Neutral CPU ingestion does not imply
+integrated UI/SaveOpen/recovery/context/lifetime or release acceptance.

@@ -222,6 +222,10 @@
       "./paired-surface-b-uv-split-faces-result": {
         "types": "./dist/paired-surface-b-uv-split-faces-result.d.ts",
         "import": "./dist/paired-surface-b-uv-split-faces-result.js"
+      },
+      "./paired-surface-uv-face-classification-result": {
+        "types": "./dist/paired-surface-uv-face-classification-result.d.ts",
+        "import": "./dist/paired-surface-uv-face-classification-result.js"
       }
     }
   },
@@ -446,6 +450,10 @@
     "./paired-surface-b-uv-split-faces-result": {
       "types": "./src/paired-surface-b-uv-split-faces-result.ts",
       "import": "./src/paired-surface-b-uv-split-faces-result.ts"
+    },
+    "./paired-surface-uv-face-classification-result": {
+      "types": "./src/paired-surface-uv-face-classification-result.ts",
+      "import": "./src/paired-surface-uv-face-classification-result.ts"
     }
   },
   "files": [
