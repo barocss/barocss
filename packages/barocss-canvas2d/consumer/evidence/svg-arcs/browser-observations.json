@@ -1,0 +1,1361 @@
+{
+  "status": "PARTIAL_SESSION_LOST",
+  "observedUTC": "2026-10-11T04:17:59.344279+00:00",
+  "owner": "01a1292a-5584-7cd1-bf07-ef57110f2cbd",
+  "previousOwner": "01a1197c-270b-7532-9b0a-7fab95e20fe0",
+  "parent": "c8a914debde531fcb78c225e4f1e637bf5d78894",
+  "acceptedPhase1": {
+    "phase": 1,
+    "complete": true,
+    "phase1Running": false,
+    "phase1Completed": true,
+    "savedText": "{\"format\":\"barocss-canvas-document\",\"version\":1,\"scene\":\"{\\\"version\\\":29,\\\"unit\\\":\\\"logical-px\\\",\\\"contextId\\\":\\\"SVGArcBoard\\\",\\\"nodes\\\":[{\\\"kind\\\":\\\"frame\\\",\\\"id\\\":\\\"SvgViewport1\\\",\\\"layer\\\":0,\\\"transform\\\":{\\\"x\\\":0,\\\"y\\\":0,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"width\\\":600,\\\"height\\\":300,\\\"fill\\\":[0,0,0,0],\\\"clip\\\":true,\\\"children\\\":[{\\\"kind\\\":\\\"group\\\",\\\"id\\\":\\\"SvgViewBox1\\\",\\\"layer\\\":0,\\\"transform\\\":{\\\"x\\\":0,\\\"y\\\":0,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"children\\\":[{\\\"kind\\\":\\\"path\\\",\\\"id\\\":\\\"SourceBackgroundPath\\\",\\\"layer\\\":0,\\\"transform\\\":{\\\"x\\\":0,\\\"y\\\":0,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"commands\\\":[{\\\"kind\\\":\\\"M\\\",\\\"x\\\":0,\\\"y\\\":0},{\\\"kind\\\":\\\"L\\\",\\\"x\\\":600,\\\"y\\\":0},{\\\"kind\\\":\\\"L\\\",\\\"x\\\":600,\\\"y\\\":300},{\\\"kind\\\":\\\"L\\\",\\\"x\\\":0,\\\"y\\\":300},{\\\"kind\\\":\\\"Z\\\"}],\\\"fill\\\":{\\\"color\\\":[0.12549019607843137,0.1568627450980392,0.2196078431372549,1],\\\"rule\\\":\\\"nonzero\\\"}},{\\\"kind\\\":\\\"group\\\",\\\"id\\\":\\\"SourceGroup\\\",\\\"layer\\\":1,\\\"transform\\\":{\\\"x\\\":90,\\\"y\\\":15,\\\"scaleX\\\":2,\\\"scaleY\\\":2,\\\"rotation\\\":0.08726646259971647},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"children\\\":[{\\\"kind\\\":\\\"path\\\",\\\"id\\\":\\\"ArcPath\\\",\\\"layer\\\":0,\\\"transform\\\":{\\\"x\\\":0,\\\"y\\\":0,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"commands\\\":[{\\\"kind\\\":\\\"M\\\",\\\"x\\\":60,\\\"y\\\":120},{\\\"kind\\\":\\\"L\\\",\\\"x\\\":140,\\\"y\\\":120},{\\\"kind\\\":\\\"C\\\",\\\"c1x\\\":129.39134040641824,\\\"c1y\\\":108,\\\"c2x\\\":119.21718389045948,\\\"c2y\\\":117.89286319269165,\\\"x\\\":111.7157287525381,\\\"y\\\":114.14213562373095},{\\\"kind\\\":\\\"C\\\",\\\"c1x\\\":104.21427361461672,\\\"c1y\\\":110.39140805477025,\\\"c2x\\\":100,\\\"c2y\\\":105.30432979679088,\\\"x\\\":100,\\\"y\\\":100},{\\\"kind\\\":\\\"L\\\",\\\"x\\\":60,\\\"y\\\":100},{\\\"kind\\\":\\\"Z\\\"}],\\\"fill\\\":{\\\"color\\\":[0.13333333333333333,0.4,0.8,1],\\\"rule\\\":\\\"nonzero\\\"},\\\"stroke\\\":{\\\"color\\\":[0.9333333333333333,0.9490196078431372,1,1],\\\"width\\\":4,\\\"cap\\\":\\\"butt\\\",\\\"join\\\":\\\"bevel\\\",\\\"dash\\\":{\\\"lengths\\\":[],\\\"offset\\\":0},\\\"miterLimit\\\":4}}]}]}]}]}\",\"assets\":[]}",
+    "savedFrameSHA256": "f08907d570a3b1752b8b739da84002d25ddb98f6d3df8ba64724dd9bbd91f9c9",
+    "stage": {
+      "label": "OneV1SaveFullyReturnedBeforeJSONChooser",
+      "observation": {
+        "generation": 3,
+        "scene": {
+          "version": 29,
+          "unit": "logical-px",
+          "contextId": "SVGArcBoard",
+          "nodes": [
+            {
+              "kind": "frame",
+              "id": "SvgViewport1",
+              "layer": 0,
+              "transform": {
+                "x": 0,
+                "y": 0,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0
+              },
+              "visible": true,
+              "alpha": 1,
+              "hitMode": "auto",
+              "width": 600,
+              "height": 300,
+              "fill": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "clip": true,
+              "children": [
+                {
+                  "kind": "group",
+                  "id": "SvgViewBox1",
+                  "layer": 0,
+                  "transform": {
+                    "x": 0,
+                    "y": 0,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "rotation": 0
+                  },
+                  "visible": true,
+                  "alpha": 1,
+                  "hitMode": "auto",
+                  "children": [
+                    {
+                      "kind": "path",
+                      "id": "SourceBackgroundPath",
+                      "layer": 0,
+                      "transform": {
+                        "x": 0,
+                        "y": 0,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0
+                      },
+                      "visible": true,
+                      "alpha": 1,
+                      "hitMode": "auto",
+                      "commands": [
+                        {
+                          "kind": "M",
+                          "x": 0,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 600,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 600,
+                          "y": 300
+                        },
+                        {
+                          "kind": "L",
+                          "x": 0,
+                          "y": 300
+                        },
+                        {
+                          "kind": "Z"
+                        }
+                      ],
+                      "fill": {
+                        "color": [
+                          0.12549019607843137,
+                          0.1568627450980392,
+                          0.2196078431372549,
+                          1
+                        ],
+                        "rule": "nonzero"
+                      }
+                    },
+                    {
+                      "kind": "group",
+                      "id": "SourceGroup",
+                      "layer": 1,
+                      "transform": {
+                        "x": 90,
+                        "y": 15,
+                        "scaleX": 2,
+                        "scaleY": 2,
+                        "rotation": 0.08726646259971647
+                      },
+                      "visible": true,
+                      "alpha": 1,
+                      "hitMode": "auto",
+                      "children": [
+                        {
+                          "kind": "path",
+                          "id": "ArcPath",
+                          "layer": 0,
+                          "transform": {
+                            "x": 0,
+                            "y": 0,
+                            "scaleX": 1,
+                            "scaleY": 1,
+                            "rotation": 0
+                          },
+                          "visible": true,
+                          "alpha": 1,
+                          "hitMode": "auto",
+                          "commands": [
+                            {
+                              "kind": "M",
+                              "x": 60,
+                              "y": 120
+                            },
+                            {
+                              "kind": "L",
+                              "x": 140,
+                              "y": 120
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 129.39134040641824,
+                              "c1y": 108,
+                              "c2x": 119.21718389045948,
+                              "c2y": 117.89286319269165,
+                              "x": 111.7157287525381,
+                              "y": 114.14213562373095
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 104.21427361461672,
+                              "c1y": 110.39140805477025,
+                              "c2x": 100,
+                              "c2y": 105.30432979679088,
+                              "x": 100,
+                              "y": 100
+                            },
+                            {
+                              "kind": "L",
+                              "x": 60,
+                              "y": 100
+                            },
+                            {
+                              "kind": "Z"
+                            }
+                          ],
+                          "fill": {
+                            "color": [
+                              0.13333333333333333,
+                              0.4,
+                              0.8,
+                              1
+                            ],
+                            "rule": "nonzero"
+                          },
+                          "stroke": {
+                            "color": [
+                              0.9333333333333333,
+                              0.9490196078431372,
+                              1,
+                              1
+                            ],
+                            "width": 4,
+                            "cap": "butt",
+                            "join": "bevel",
+                            "dash": {
+                              "lengths": [],
+                              "offset": 0
+                            },
+                            "miterLimit": 4
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "canonical": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SVGArcBoard\",\"nodes\":[{\"kind\":\"frame\",\"id\":\"SvgViewport1\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":600,\"height\":300,\"fill\":[0,0,0,0],\"clip\":true,\"children\":[{\"kind\":\"group\",\"id\":\"SvgViewBox1\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"path\",\"id\":\"SourceBackgroundPath\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"commands\":[{\"kind\":\"M\",\"x\":0,\"y\":0},{\"kind\":\"L\",\"x\":600,\"y\":0},{\"kind\":\"L\",\"x\":600,\"y\":300},{\"kind\":\"L\",\"x\":0,\"y\":300},{\"kind\":\"Z\"}],\"fill\":{\"color\":[0.12549019607843137,0.1568627450980392,0.2196078431372549,1],\"rule\":\"nonzero\"}},{\"kind\":\"group\",\"id\":\"SourceGroup\",\"layer\":1,\"transform\":{\"x\":90,\"y\":15,\"scaleX\":2,\"scaleY\":2,\"rotation\":0.08726646259971647},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"path\",\"id\":\"ArcPath\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"commands\":[{\"kind\":\"M\",\"x\":60,\"y\":120},{\"kind\":\"L\",\"x\":140,\"y\":120},{\"kind\":\"C\",\"c1x\":129.39134040641824,\"c1y\":108,\"c2x\":119.21718389045948,\"c2y\":117.89286319269165,\"x\":111.7157287525381,\"y\":114.14213562373095},{\"kind\":\"C\",\"c1x\":104.21427361461672,\"c1y\":110.39140805477025,\"c2x\":100,\"c2y\":105.30432979679088,\"x\":100,\"y\":100},{\"kind\":\"L\",\"x\":60,\"y\":100},{\"kind\":\"Z\"}],\"fill\":{\"color\":[0.13333333333333333,0.4,0.8,1],\"rule\":\"nonzero\"},\"stroke\":{\"color\":[0.9333333333333333,0.9490196078431372,1,1],\"width\":4,\"cap\":\"butt\",\"join\":\"bevel\",\"dash\":{\"lengths\":[],\"offset\":0},\"miterLimit\":4}}]}]}]}]}",
+        "source5": {
+          "version": 5,
+          "unit": "logical-px",
+          "contextId": "SVGArcBoard",
+          "nodes": [
+            {
+              "kind": "frame",
+              "id": "SvgViewport1",
+              "layer": 0,
+              "transform": {
+                "x": 0,
+                "y": 0,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0
+              },
+              "width": 600,
+              "height": 300,
+              "fill": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "clip": true,
+              "children": [
+                {
+                  "kind": "group",
+                  "id": "SvgViewBox1",
+                  "layer": 0,
+                  "transform": {
+                    "x": 0,
+                    "y": 0,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "rotation": 0
+                  },
+                  "children": [
+                    {
+                      "kind": "path",
+                      "id": "SourceBackgroundPath",
+                      "layer": 0,
+                      "transform": {
+                        "x": 0,
+                        "y": 0,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0
+                      },
+                      "commands": [
+                        {
+                          "kind": "M",
+                          "x": 0,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 600,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 600,
+                          "y": 300
+                        },
+                        {
+                          "kind": "L",
+                          "x": 0,
+                          "y": 300
+                        },
+                        {
+                          "kind": "Z"
+                        }
+                      ],
+                      "fill": {
+                        "color": [
+                          0.12549019607843137,
+                          0.1568627450980392,
+                          0.2196078431372549,
+                          1
+                        ],
+                        "rule": "nonzero"
+                      }
+                    },
+                    {
+                      "kind": "group",
+                      "id": "SourceGroup",
+                      "layer": 1,
+                      "transform": {
+                        "x": 90,
+                        "y": 15,
+                        "scaleX": 2,
+                        "scaleY": 2,
+                        "rotation": 0.08726646259971647
+                      },
+                      "children": [
+                        {
+                          "kind": "path",
+                          "id": "ArcPath",
+                          "layer": 0,
+                          "transform": {
+                            "x": 0,
+                            "y": 0,
+                            "scaleX": 1,
+                            "scaleY": 1,
+                            "rotation": 0
+                          },
+                          "commands": [
+                            {
+                              "kind": "M",
+                              "x": 60,
+                              "y": 120
+                            },
+                            {
+                              "kind": "L",
+                              "x": 140,
+                              "y": 120
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 129.39134040641824,
+                              "c1y": 120,
+                              "c2x": 119.21718389045948,
+                              "c2y": 117.89286319269165,
+                              "x": 111.7157287525381,
+                              "y": 114.14213562373095
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 104.21427361461672,
+                              "c1y": 110.39140805477025,
+                              "c2x": 100,
+                              "c2y": 105.30432979679088,
+                              "x": 100,
+                              "y": 100
+                            },
+                            {
+                              "kind": "L",
+                              "x": 60,
+                              "y": 100
+                            },
+                            {
+                              "kind": "Z"
+                            }
+                          ],
+                          "fill": {
+                            "color": [
+                              0.13333333333333333,
+                              0.4,
+                              0.8,
+                              1
+                            ],
+                            "rule": "nonzero"
+                          },
+                          "stroke": {
+                            "color": [
+                              0.9333333333333333,
+                              0.9490196078431372,
+                              1,
+                              1
+                            ],
+                            "width": 4
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "diagnostics": {
+          "viewport": {
+            "width": 600,
+            "height": 300
+          },
+          "viewBox": {
+            "x": 0,
+            "y": 0,
+            "width": 600,
+            "height": 300
+          },
+          "generatedIds": [
+            "SvgViewBox1",
+            "SvgViewport1"
+          ],
+          "pathIds": [
+            "SourceBackgroundPath",
+            "ArcPath"
+          ],
+          "groupIds": [
+            "SourceGroup"
+          ]
+        },
+        "sourceText": "<svg xmlns=\"http://www.w3.org/2000/svg\" id=\"SVGArcBoard\" width=\"600\" height=\"300\" viewBox=\"0 0 600 300\">\n  <path id=\"SourceBackgroundPath\" fill=\"#202838\" d=\"M 0 0 L 600 0 L 600 300 L 0 300 Z\"/>\n  <g id=\"SourceGroup\" transform=\"translate(90 15) rotate(5) scale(2)\">\n    <path id=\"ArcPath\" fill=\"#2266cc\" fill-rule=\"nonzero\" stroke=\"#eef2ff\" stroke-width=\"4\" stroke-linejoin=\"bevel\" stroke-linecap=\"butt\" d=\"M 60 120 L 140 120 A 20 40 90 0 1 100 100 L 60 100 Z\"/>\n  </g>\n</svg>\n",
+        "ids": [
+          "SvgViewport1",
+          "SvgViewBox1",
+          "SourceBackgroundPath",
+          "SourceGroup",
+          "ArcPath"
+        ],
+        "pointers": [
+          {
+            "point": {
+              "x": 230.21689380126142,
+              "y": 248.1077585788752
+            },
+            "hit": "ArcPath",
+            "trusted": true
+          }
+        ],
+        "routes": [
+          "stage:ArcPath"
+        ],
+        "disposed": false,
+        "busy": false,
+        "counts": {
+          "imports": 4,
+          "svgUploads": 1,
+          "jsonUploads": 0,
+          "edits": 1,
+          "saves": 1,
+          "opens": 0,
+          "candidates": 3,
+          "accepted": 3,
+          "disposes": 2,
+          "binds": 3,
+          "unbinds": 2,
+          "subscriptions": 3,
+          "subscriptionsRemoved": 2
+        },
+        "failure": null,
+        "refusals": [
+          {
+            "kind": "flag",
+            "text": "<svg xmlns=\"http://www.w3.org/2000/svg\" id=\"SVGArcBoard\" width=\"600\" height=\"300\" viewBox=\"0 0 600 300\">\n  <path id=\"SourceBackgroundPath\" fill=\"#202838\" d=\"M 0 0 L 600 0 L 600 300 L 0 300 Z\"/>\n  <g id=\"SourceGroup\" transform=\"translate(90 15) rotate(5) scale(2)\">\n    <path id=\"ArcPath\" fill=\"#2266cc\" fill-rule=\"nonzero\" stroke=\"#eef2ff\" stroke-width=\"4\" stroke-linejoin=\"bevel\" stroke-linecap=\"butt\" d=\"M 60 120 L 140 120 A 20 40 90 2 1 100 100 L 60 100 Z\"/>\n  </g>\n</svg>\n",
+            "code": "INVALID_SCENE",
+            "message": "Canvas2DError: <path#ArcPath>: arc flags need lexical 0 or 1",
+            "canonicalRetained": true,
+            "frameBytes": 2880000,
+            "frameExact": true,
+            "identitiesRetained": true,
+            "candidateCountUnchanged": true
+          },
+          {
+            "kind": "smallRadius",
+            "text": "<svg xmlns=\"http://www.w3.org/2000/svg\" id=\"SVGArcBoard\" width=\"600\" height=\"300\" viewBox=\"0 0 600 300\">\n  <path id=\"SourceBackgroundPath\" fill=\"#202838\" d=\"M 0 0 L 600 0 L 600 300 L 0 300 Z\"/>\n  <g id=\"SourceGroup\" transform=\"translate(90 15) rotate(5) scale(2)\">\n    <path id=\"ArcPath\" fill=\"#2266cc\" fill-rule=\"nonzero\" stroke=\"#eef2ff\" stroke-width=\"4\" stroke-linejoin=\"bevel\" stroke-linecap=\"butt\" d=\"M 60 120 L 140 120 A .0001 40 90 0 1 100 100 L 60 100 Z\"/>\n  </g>\n</svg>\n",
+            "code": "INVALID_SCENE",
+            "message": "Canvas2DError: <path#ArcPath>: arc radius or rotation is outside profile",
+            "canonicalRetained": true,
+            "frameBytes": 2880000,
+            "frameExact": true,
+            "identitiesRetained": true,
+            "candidateCountUnchanged": true
+          },
+          {
+            "kind": "normalizedBudget",
+            "text": "<svg xmlns=\"http://www.w3.org/2000/svg\" id=\"SVGArcBoard\" width=\"600\" height=\"300\" viewBox=\"0 0 600 300\">\n  <path id=\"SourceBackgroundPath\" fill=\"#202838\" d=\"M 0 0 L 600 0 L 600 300 L 0 300 Z\"/>\n  <g id=\"SourceGroup\" transform=\"translate(90 15) rotate(5) scale(2)\">\n    <path id=\"ArcPath\" fill=\"#2266cc\" fill-rule=\"nonzero\" stroke=\"#eef2ff\" stroke-width=\"4\" stroke-linejoin=\"bevel\" stroke-linecap=\"butt\" d=\"M 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120 A 20 40 90 0 1 100 100 A 20 40 90 0 0 140 120\"/>\n  </g>\n</svg>\n",
+            "code": "SCENE_LIMIT",
+            "message": "Canvas2DError: SVG arc path exceeds 256 normalized commands",
+            "canonicalRetained": true,
+            "frameBytes": 2880000,
+            "frameExact": true,
+            "identitiesRetained": true,
+            "candidateCountUnchanged": true
+          }
+        ],
+        "PNG": 0
+      },
+      "facilities": {
+        "contexts": [
+          {
+            "id": 1,
+            "canvasId": "live",
+            "lost": false,
+            "error": 0,
+            "calls": {
+              "draw": 2,
+              "read": 0
+            },
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 0
+              },
+              "program": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 3,
+                "live": 0
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "texture": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "renderbuffer": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          },
+          {
+            "id": 2,
+            "canvasId": "live",
+            "lost": false,
+            "error": 0,
+            "calls": {
+              "draw": 5,
+              "read": 10
+            },
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 0
+              },
+              "program": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 3,
+                "live": 0
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "texture": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "renderbuffer": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          },
+          {
+            "id": 3,
+            "canvasId": "live",
+            "lost": false,
+            "error": 0,
+            "calls": {
+              "draw": 5,
+              "read": 7
+            },
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 4
+              },
+              "program": {
+                "created": 2,
+                "deleted": 0,
+                "live": 2
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 0,
+                "live": 3
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 0,
+                "live": 2
+              },
+              "texture": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "renderbuffer": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          }
+        ],
+        "canvasesCreated": 4,
+        "twoD": [
+          {
+            "width": 0,
+            "height": 0
+          }
+        ],
+        "pointerAdded": 17,
+        "pointerRemoved": 6,
+        "pointerActive": 11,
+        "listeners": [
+          {
+            "id": 1,
+            "targetId": "open-svg",
+            "type": "change",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 2,
+            "targetId": "arc-edit",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 3,
+            "targetId": "arc-refuse",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 4,
+            "targetId": "arc-save",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 5,
+            "targetId": "arc-open-button",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 6,
+            "targetId": "arc-open",
+            "type": "change",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 7,
+            "targetId": "arc-dispose",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 8,
+            "targetId": "window",
+            "type": "pagehide",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 9,
+            "targetId": "live",
+            "type": "webglcontextlost",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 10,
+            "targetId": "live",
+            "type": "webglcontextrestored",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 11,
+            "targetId": "live",
+            "type": "pointerdown",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 12,
+            "targetId": "live",
+            "type": "webglcontextlost",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 13,
+            "targetId": "live",
+            "type": "webglcontextrestored",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 14,
+            "targetId": "live",
+            "type": "pointerdown",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 15,
+            "targetId": "live",
+            "type": "webglcontextlost",
+            "category": "canvas",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 16,
+            "targetId": "live",
+            "type": "webglcontextrestored",
+            "category": "canvas",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 17,
+            "targetId": "live",
+            "type": "pointerdown",
+            "category": "canvas",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          }
+        ],
+        "fileTexts": 1,
+        "inputChanges": 1,
+        "inputFiles": [
+          [
+            {
+              "name": "source.svg",
+              "size": 476,
+              "type": "image/svg+xml"
+            }
+          ]
+        ],
+        "downloads": [
+          "svg-arcs-document.json"
+        ],
+        "hashes": [],
+        "bitmaps": [],
+        "urls": [
+          {
+            "url": "blob:http://127.0.0.1:31451/33847583-11a3-4be4-8166-565d85d07123",
+            "revoked": 1
+          },
+          {
+            "url": "blob:http://127.0.0.1:31451/359f5292-41a3-4ea8-a5e4-9925bbd07f83",
+            "revoked": 1
+          }
+        ],
+        "decodeCalls": 1,
+        "images": [
+          {
+            "src": null,
+            "naturalWidth": 0,
+            "naturalHeight": 0
+          }
+        ],
+        "nativeErrors": []
+      }
+    },
+    "nativeOracle": {
+      "tolerance": 2,
+      "maximumDifference": 0,
+      "independentLiteralAffine": true,
+      "rows": [
+        {
+          "name": "band",
+          "world": {
+            "x": 230.21688829019448,
+            "y": 248.10775241980932
+          },
+          "pixel": [
+            460,
+            496
+          ],
+          "local": [
+            80.02269170162928,
+            110.06941020477029
+          ],
+          "expected": [
+            34,
+            102,
+            204,
+            255
+          ],
+          "actual": [
+            34,
+            102,
+            204,
+            255
+          ]
+        },
+        {
+          "name": "arcInterior",
+          "world": {
+            "x": 288.768389777232,
+            "y": 267.28382275795326
+          },
+          "pixel": [
+            577,
+            534
+          ],
+          "local": [
+            109.98936617691561,
+            116.98395436127288
+          ],
+          "expected": [
+            34,
+            102,
+            204,
+            255
+          ],
+          "actual": [
+            34,
+            102,
+            204,
+            255
+          ]
+        },
+        {
+          "name": "arcExterior",
+          "world": {
+            "x": 310.26108710852475,
+            "y": 251.095433047255
+          },
+          "pixel": [
+            620,
+            502
+          ],
+          "local": [
+            120.00121323942061,
+            108.07747254200159
+          ],
+          "expected": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "actual": [
+            32,
+            40,
+            56,
+            255
+          ]
+        },
+        {
+          "name": "lowerStroke",
+          "world": {
+            "x": 228.299461949746,
+            "y": 270.02403577782775
+          },
+          "pixel": [
+            456,
+            540
+          ],
+          "local": [
+            79.98521017376179,
+            121.11470762652716
+          ],
+          "expected": [
+            238,
+            242,
+            255,
+            255
+          ],
+          "actual": [
+            238,
+            242,
+            255,
+            255
+          ]
+        },
+        {
+          "name": "upperStroke",
+          "world": {
+            "x": 232.13431463064296,
+            "y": 226.1914690617909
+          },
+          "pixel": [
+            464,
+            452
+          ],
+          "local": [
+            80.0601732294968,
+            99.02411278301344
+          ],
+          "expected": [
+            238,
+            242,
+            255,
+            255
+          ],
+          "actual": [
+            238,
+            242,
+            255,
+            255
+          ]
+        },
+        {
+          "name": "leftOutside",
+          "world": {
+            "x": 170.44520640468977,
+            "y": 242.87840785494984
+          },
+          "pixel": [
+            340,
+            485
+          ],
+          "local": [
+            49.89717246632087,
+            109.94454706744774
+          ],
+          "expected": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "actual": [
+            32,
+            40,
+            56,
+            255
+          ]
+        },
+        {
+          "name": "rightOutside",
+          "world": {
+            "x": 369.68414602303886,
+            "y": 260.30955640448144
+          },
+          "pixel": [
+            739,
+            520
+          ],
+          "local": [
+            150.03020635001448,
+            109.96746533667161
+          ],
+          "expected": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "actual": [
+            32,
+            40,
+            56,
+            255
+          ]
+        },
+        {
+          "name": "rootBackground",
+          "world": {
+            "x": 20,
+            "y": 20
+          },
+          "pixel": [
+            40,
+            40
+          ],
+          "local": [
+            -34.51350627123703,
+            5.654567610815411
+          ],
+          "expected": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "actual": [
+            32,
+            40,
+            56,
+            255
+          ]
+        }
+      ]
+    },
+    "ownOracle": {
+      "tolerance": 2,
+      "maximumDifference": 0,
+      "independentLiteralAffine": true,
+      "rows": [
+        {
+          "name": "band",
+          "world": {
+            "x": 230.21688829019448,
+            "y": 248.10775241980932
+          },
+          "pixel": [
+            460,
+            496
+          ],
+          "local": [
+            80.02269170162928,
+            110.06941020477029
+          ],
+          "expected": [
+            34,
+            102,
+            204,
+            255
+          ],
+          "actual": [
+            34,
+            102,
+            204,
+            255
+          ]
+        },
+        {
+          "name": "arcInterior",
+          "world": {
+            "x": 288.768389777232,
+            "y": 267.28382275795326
+          },
+          "pixel": [
+            577,
+            534
+          ],
+          "local": [
+            109.98936617691561,
+            116.98395436127288
+          ],
+          "expected": [
+            34,
+            102,
+            204,
+            255
+          ],
+          "actual": [
+            34,
+            102,
+            204,
+            255
+          ]
+        },
+        {
+          "name": "arcExterior",
+          "world": {
+            "x": 310.26108710852475,
+            "y": 251.095433047255
+          },
+          "pixel": [
+            620,
+            502
+          ],
+          "local": [
+            120.00121323942061,
+            108.07747254200159
+          ],
+          "expected": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "actual": [
+            32,
+            40,
+            56,
+            255
+          ]
+        },
+        {
+          "name": "lowerStroke",
+          "world": {
+            "x": 228.299461949746,
+            "y": 270.02403577782775
+          },
+          "pixel": [
+            456,
+            540
+          ],
+          "local": [
+            79.98521017376179,
+            121.11470762652716
+          ],
+          "expected": [
+            238,
+            242,
+            255,
+            255
+          ],
+          "actual": [
+            238,
+            242,
+            255,
+            255
+          ]
+        },
+        {
+          "name": "upperStroke",
+          "world": {
+            "x": 232.13431463064296,
+            "y": 226.1914690617909
+          },
+          "pixel": [
+            464,
+            452
+          ],
+          "local": [
+            80.0601732294968,
+            99.02411278301344
+          ],
+          "expected": [
+            238,
+            242,
+            255,
+            255
+          ],
+          "actual": [
+            238,
+            242,
+            255,
+            255
+          ]
+        },
+        {
+          "name": "leftOutside",
+          "world": {
+            "x": 170.44520640468977,
+            "y": 242.87840785494984
+          },
+          "pixel": [
+            340,
+            485
+          ],
+          "local": [
+            49.89717246632087,
+            109.94454706744774
+          ],
+          "expected": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "actual": [
+            32,
+            40,
+            56,
+            255
+          ]
+        },
+        {
+          "name": "rightOutside",
+          "world": {
+            "x": 369.68414602303886,
+            "y": 260.30955640448144
+          },
+          "pixel": [
+            739,
+            520
+          ],
+          "local": [
+            150.03020635001448,
+            109.96746533667161
+          ],
+          "expected": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "actual": [
+            32,
+            40,
+            56,
+            255
+          ]
+        },
+        {
+          "name": "rootBackground",
+          "world": {
+            "x": 20,
+            "y": 20
+          },
+          "pixel": [
+            40,
+            40
+          ],
+          "local": [
+            -34.51350627123703,
+            5.654567610815411
+          ],
+          "expected": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "actual": [
+            32,
+            40,
+            56,
+            255
+          ]
+        }
+      ]
+    }
+  },
+  "rootSaveReview": {
+    "rootIndependentNativeJSONReview": "PASS",
+    "bytes": 2130,
+    "SHA256": "fd9a964d3d01a4ac62058b021593afb0ddaf5336cd8067e9196c77d4ca6c5b3f",
+    "mtimeNS": 1791685295020393526,
+    "canonicalALLCurrent29": true,
+    "zeroAssets": true,
+    "authoredSource5Independent": true,
+    "allIDs": [
+      "SvgViewport1",
+      "SvgViewBox1",
+      "SourceBackgroundPath",
+      "SourceGroup",
+      "ArcPath"
+    ],
+    "all6NormalizedCommands": true,
+    "nativeAndOwn8InteriorsMax": 0,
+    "fullyReturnedBeforeJSONChooser": true,
+    "sourcePhysicalInputCount": 1,
+    "rootRuntimeAdded": false,
+    "firstCheckerFailures": "metadata path key mismatch and guessed parsedfilename absent, retained; actualschemas adapted read-only"
+  },
+  "saveArtifact": {
+    "nativePath": "/tmp/.playwright-cli/svg-arcs-document.json",
+    "evidencePath": "/Users/user/.barocss-ai/v3/wt/canvas2d-svg-arcs-native/packages/barocss-canvas2d/consumer/evidence/svg-arcs/saved-scene.json",
+    "byteLength": 2130,
+    "SHA256": "fd9a964d3d01a4ac62058b021593afb0ddaf5336cd8067e9196c77d4ca6c5b3f",
+    "mtimeNs": 1791685295020393526,
+    "mtimeUTC": "2026-10-11T02:21:35.020394+00:00",
+    "canonicalExact": true,
+    "phase1Running": false,
+    "phase1Completed": true,
+    "nativeFresh": true,
+    "rawLog": "/tmp/c2d1451-phase1.log"
+  },
+  "retainedSourceCount": 326,
+  "sourceHashesUnchanged": true,
+  "driverSHA256": "6115d0c0f617410773a1840616fd04c13ebdc3d7e2132bb2588e13b86209ad20",
+  "driverUnchanged": true,
+  "resumeObservation": {
+    "originalSession": "c2d1451",
+    "originalBrowserDaemonPID": 42321,
+    "daemonPresent": false,
+    "sessionListed": false,
+    "serverPID": 36023,
+    "serverPort": 31451,
+    "serverCwd": "/Users/user/.barocss-ai/v3/wt/canvas2d-svg-arcs-native",
+    "serverRetained": true,
+    "browserOriginChanged": false,
+    "browserReplacement": false,
+    "acceptedFlowReplay": false
+  },
+  "remaining": {
+    "physicalJSONOpen": "UNRUN",
+    "restoredEdit": "UNRUN",
+    "screenshotReview": "UNRUN",
+    "terminalGLAndListenerCleanup": "UNPROVED",
+    "nativeCompletion": "UNCLAIMED",
+    "integrated1254And674": "UNRUN",
+    "publicationAndRelease": "UNRUN"
+  },
+  "retainedFirstFailures": [
+    "Two numerical quarter-segment expectations failed before eventual paired1182 success; raw focused-probe logs retained.",
+    "Initial root JSON checker guessed metadata path/schema incorrectly; root-save-review-first-failure.txt retained.",
+    "Native favicon404 and four GL diagnostic GPU-stall warnings retained."
+  ],
+  "newRuntimeActions": 0
+}

@@ -104,3 +104,5 @@ export type { SceneSubtreeDuplicateOptions, SceneSubtreeDuplicateResult } from '
 
 export { applyImageColorKey } from "./image-color-key.js";
 export type { ImageRGBKey } from "./image-color-key.js";
+
+export { importSVGArcElement } from "./svg.js";

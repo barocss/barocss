@@ -115,7 +115,153 @@ function opacity(value: string | null, location: string): number {
   return parsed[0];
 }
 
+
+function limit(message: string): never { throw new Canvas2DError('SCENE_LIMIT', message); }
+
+// New profile only: bound native collections before the legacy collector and token arrays.
+function admitArcDOM(root: Element): void {
+  const stack: { node: Node; depth: number }[] = [{ node: root, depth: 1 }];
+  let visits = 0, elements = 0, paths = 0, bytes = 0;
+  const encoder = new TextEncoder();
+  while (stack.length) {
+    const { node, depth } = stack.pop()!;
+    if (++visits > 1024 || depth > 16) limit('SVG arc DOM exceeds node/depth budget');
+    if (node.nodeType === 1) {
+      const element = node as Element;
+      if (++elements > 255) limit('SVG arc DOM exceeds 255 elements');
+      if (element.localName === 'path' && ++paths > 32) limit('SVG arc DOM exceeds 32 paths');
+      if (element.attributes.length > 16) limit('SVG arc element exceeds 16 attributes');
+      for (let i = 0; i < element.attributes.length; i++) {
+        const field = element.attributes[i];
+        for (const value of [field.name, field.value]) {
+          if (value.length > 1048576) limit('SVG arc attribute exceeds string budget');
+          bytes += encoder.encode(value).byteLength;
+          if (bytes > 1048576) limit('SVG arc attributes exceed 1 MiB');
+        }
+      }
+    }
+    const count = node.childNodes.length;
+    if (count > 1024) limit('SVG arc child collection exceeds 1024 nodes');
+    if (visits + stack.length + count > 1024) limit('SVG arc DOM exceeds 1024 nodes');
+    for (let i = count - 1; i >= 0; i--) {
+      if (depth + 1 > 16) limit('SVG arc DOM exceeds depth 16');
+      stack.push({ node: node.childNodes[i], depth: depth + 1 });
+    }
+  }
+}
+
+function derived(value: number, location: string): number {
+  if (!Number.isFinite(value) || Math.abs(value) > 1e6) invalid(location, 'arc derived coordinate is unrepresentable');
+  return value === 0 ? 0 : value;
+}
+
+function endpointArc(start: { x: number; y: number }, n: number[], location: string): PathCommand[] {
+  let [rx, ry, degrees, large, sweep, x, y] = n;
+  if (rx < 0 || ry < 0 || (rx > 0 && rx < .001) || (ry > 0 && ry < .001) || Math.abs(degrees) > 360) {
+    invalid(location, 'arc radius or rotation is outside profile');
+  }
+  if (start.x === x && start.y === y) return [];
+  if (rx === 0 || ry === 0) return [{ kind: 'L', x, y }];
+  const phi = degrees * Math.PI / 180;
+  let cos = Math.cos(phi), sin = Math.sin(phi);
+  // Literal cardinal rotations have exact unit axes; avoid trig residue at segment boundaries.
+  if (degrees % 90 === 0) {
+    const axis = ((degrees / 90) % 4 + 4) % 4;
+    cos = [1, 0, -1, 0][axis]; sin = [0, 1, 0, -1][axis];
+  }
+  const dx = (start.x - x) / 2, dy = (start.y - y) / 2;
+  const xp = cos * dx + sin * dy, yp = -sin * dx + cos * dy;
+  const u = xp / rx, v = yp / ry, h = Math.hypot(u, v);
+  if (!Number.isFinite(h) || h === 0) invalid(location, 'arc endpoint ratios are unrepresentable');
+  let cxp = 0, cyp = 0;
+  if (h > 1) {
+    rx = derived(rx * h, location); ry = derived(ry * h, location);
+  } else {
+    const distance = Math.sqrt((1 - h) * (1 + h)), sign = large === sweep ? -1 : 1;
+    cxp = sign * rx * distance * (v / h); cyp = -sign * ry * distance * (u / h);
+  }
+  const cx = derived(cos * cxp - sin * cyp + (start.x + x) / 2, location);
+  const cy = derived(sin * cxp + cos * cyp + (start.y + y) / 2, location);
+  // Angles and controls use the same checked world center after binary64 rounding.
+  const sx = start.x - cx, sy = start.y - cy, ex = x - cx, ey = y - cy;
+  const a = { x: (cos * sx + sin * sy) / rx, y: (-sin * sx + cos * sy) / ry };
+  const b = { x: (cos * ex + sin * ey) / rx, y: (-sin * ex + cos * ey) / ry };
+  const theta = Math.atan2(a.y, a.x);
+  let delta = Math.atan2(a.x * b.y - a.y * b.x, a.x * b.x + a.y * b.y);
+  if (!sweep && delta > 0) delta -= 2 * Math.PI;
+  if (sweep && delta < 0) delta += 2 * Math.PI;
+  if (!Number.isFinite(theta) || !Number.isFinite(delta) || delta === 0) invalid(location, 'arc sweep is unrepresentable');
+  const segments = Math.ceil(Math.abs(delta) / (Math.PI / 4));
+  if (segments < 1 || segments > 8) invalid(location, 'arc segment count is unrepresentable');
+  const step = delta / segments, k = 4 / 3 * Math.tan(step / 4);
+  const position = (angle: number) => ({ x: cx + rx * Math.cos(angle) * cos - ry * Math.sin(angle) * sin,
+    y: cy + rx * Math.cos(angle) * sin + ry * Math.sin(angle) * cos });
+  const tangent = (angle: number) => ({ x: -rx * Math.sin(angle) * cos - ry * Math.cos(angle) * sin,
+    y: -rx * Math.sin(angle) * sin + ry * Math.cos(angle) * cos });
+  const result: PathCommand[] = [];
+  let current = start, drawable = false;
+  for (let i = 0; i < segments; i++) {
+    const t0 = theta + i * step, t1 = theta + (i + 1) * step;
+    const end = i === segments - 1 ? { x, y } : position(t1), d0 = tangent(t0), d1 = tangent(t1);
+    const next = { kind: 'C' as const, c1x: derived(current.x + k * d0.x, location),
+      c1y: derived(current.y + k * d0.y, location), c2x: derived(end.x - k * d1.x, location),
+      c2y: derived(end.y - k * d1.y, location), x: derived(end.x, location), y: derived(end.y, location) };
+    drawable ||= current.x !== next.x || current.y !== next.y || current.x !== next.c1x ||
+      current.y !== next.c1y || current.x !== next.c2x || current.y !== next.c2y;
+    result.push(next); current = next;
+  }
+  if (!drawable) invalid(location, 'arc has no representable drawable geometry');
+  return result;
+}
+
+function arcCommands(source: string, location: string): PathCommand[] {
+  const pattern = /[MLQCZA]|[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?/g;
+  const values: string[] = [];
+  let prior = 0, explicit = 0, match: RegExpExecArray | null;
+  while ((match = pattern.exec(source))) {
+    if (!/^[\s,]*$/.test(source.slice(prior, match.index))) unsupported(location, 'syntax');
+    if (/^[MLQCZA]$/.test(match[0]) && ++explicit > 256) limit('SVG arc path exceeds 256 explicit commands');
+    if (values.length >= 2048) limit('SVG arc token budget exceeded');
+    values.push(match[0]); prior = pattern.lastIndex;
+  }
+  if (!/^[\s,]*$/.test(source.slice(prior))) unsupported(location, 'syntax');
+  const count = { M: 2, L: 2, Q: 4, C: 6, Z: 0, A: 7 }, result: PathCommand[] = [];
+  let current: { x: number; y: number } | null = null;
+  let start: { x: number; y: number } | null = null, open = false;
+  const append = (next: PathCommand[]) => {
+    if (result.length + next.length > 256) limit('SVG arc path exceeds 256 normalized commands');
+    result.push(...next);
+  };
+  for (let i = 0; i < values.length;) {
+    const kind = values[i++] as keyof typeof count;
+    if (!(kind in count)) unsupported(location, `path command ${kind}`);
+    const args = values.slice(i, i + count[kind]); i += count[kind];
+    if (args.length !== count[kind] || args.some(arg => /^[MLQCZA]$/.test(arg))) unsupported(location, `path command ${kind} arguments`);
+    if (kind === 'A' && (!/^[01]$/.test(args[3]) || !/^[01]$/.test(args[4]))) invalid(location, 'arc flags need lexical 0 or 1');
+    const n = numbers(args.join(' '), location);
+    if (kind === 'M') { current = { x: n[0], y: n[1] }; start = current; open = true; append([{ kind, ...current }]); }
+    else if (kind === 'Z') { append([{ kind }]); current = start; open = false; }
+    else if (kind === 'A') {
+      if (!current || !open) invalid(location, 'arc needs a preceding open M');
+      append(endpointArc(current, n, location)); current = { x: n[5], y: n[6] };
+    } else if (kind === 'L') { current = { x: n[0], y: n[1] }; append([{ kind, ...current }]); }
+    else if (kind === 'Q') { current = { x: n[2], y: n[3] }; append([{ kind, cx: n[0], cy: n[1], ...current }]); }
+    else { current = { x: n[4], y: n[5] }; append([{ kind, c1x: n[0], c1y: n[1], c2x: n[2], c2y: n[3], ...current }]); }
+  }
+  if (result.length < 2) invalid(location, 'normalized arc path has no drawable geometry');
+  return result;
+}
+
 export function importSVGElement(root: Element): { scene: SceneV5; diagnostics: SVGImportDiagnostics } {
+  return importSVGProfile(root, false);
+}
+export function importSVGArcElement(root: Element): { scene: SceneV5; diagnostics: SVGImportDiagnostics } {
+  if (!root || root.namespaceURI !== SVG_NS || root.localName !== 'svg') unsupported('root', 'non-SVG root');
+  admitArcDOM(root);
+  return importSVGProfile(root, true);
+}
+
+function importSVGProfile(root: Element, arcs: boolean): { scene: SceneV5; diagnostics: SVGImportDiagnostics } {
   if (!root || root.namespaceURI !== SVG_NS || root.localName !== 'svg') {
     unsupported('root', 'non-SVG root');
   }
@@ -197,7 +343,7 @@ export function importSVGElement(root: Element): { scene: SceneV5; diagnostics: 
     const d = element.getAttribute('d');
     if (d === null) invalid(location, 'path d is required');
     return { kind: 'path', id, layer, transform: pose(element.getAttribute('transform'), location),
-      commands: commands(d, location),
+      commands: arcs ? arcCommands(d, location) : commands(d, location),
       ...(fillColor ? { fill: { color: [...fillColor.slice(0, 3),
         fillColor[3] * opacity(element.getAttribute('fill-opacity'), location)] as Color, rule: fillRule } } : {}),
       ...(strokeColor ? { stroke: { color: [...strokeColor.slice(0, 3),

@@ -384,3 +384,7 @@ A host snapshots original pixels through `getImageAsset`, registers independent 
 ## Copied encoded RGB color key
 
 `applyImageColorKey(asset, key, tolerance)` copies a bounded RGBA8 image. It sets alpha to zero when all three encoded RGB channels are within the inclusive integer tolerance of the byte key. Every RGB byte and every nonmatched alpha byte stays exact. This synchronous preparation uses at most two1MiB typed arrays and does not register pixels or change a Scene effect. `consumer/sprite-blend.html?key=1` retains an original Follower and adopts the copied keyed Main Sprite before Save/Open/edit/PNG. The document stores pixels, not a recovered key recipe. See Issue #1452 and `consumer/evidence/image-color-key` for actual author acceptance and limits.
+
+## Bounded SVG endpoint arc import
+
+`importSVGArcElement` is a separate solid SVG profile. It converts explicit absolute endpoint `A` commands into bounded approximate cubic controls and returns SceneV5 with the existing diagnostics shape. The legacy importer keeps its original arc refusal. The example `examples/canvas2d-scene/svg-v5.html?arcs=1` explicitly constructs an editable current tree through public Frame/Group/Path APIs, then saves and reopens a current v1 document. Source SVG parameters are not recovered from normalized controls. See Issue #1451 and the `consumer/evidence/svg-arcs` author receipt for measured scope and first failures.

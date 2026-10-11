@@ -19,6 +19,9 @@
 <script type="module">
   import { Canvas2DError, createCanvas2D, importSVGElement, parseSceneJSON,
     stringifySceneJSON } from '../../packages/barocss-canvas2d/dist/index.js';
+  if(new URL(location.href).searchParams.get('arcs')==='1') {
+    await import('../../packages/barocss-canvas2d/consumer/svg-arcs.mjs');
+  } else {
   const options = { logicalSize: { width: 600, height: 300 }, dpr: 2 };
   let canvas = document.querySelector('#live');
   let renderer = createCanvas2D(canvas, options);
@@ -79,5 +82,6 @@
       return [...rgba];
     },
   };
+  }
 </script>
 </html>
