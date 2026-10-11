@@ -36,3 +36,5 @@ export type { CadEditorSurfaceIsoCurveAxis, CadEditorSurfaceIsoCurveCreation } f
 export type { CadEditorCurveJoinCreation } from './types.js';
 
 export type { CadEditorSurfaceDegreeElevationAxis } from './types.js';
+
+export type { CadEditorSurfaceRegionField, CadEditorSurfaceRegionCreation } from './types.js';

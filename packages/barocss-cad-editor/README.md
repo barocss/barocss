@@ -866,3 +866,18 @@ Degree is discrete. Each Canvas command raises its selected axis exactly once. T
 Elevation changes the coefficient basis. Actual acceptance and Undo/Redo across that boundary clear old U/V pole selection and retain the logical body and view. A same-number index is never treated as the original coefficient; select a new pole explicitly before point editing. Native or display refusal keeps the accepted Source, frame, history and prior pole. Save/Open persists the elevated native document, with no live degree recipe, history or selection.
 
 The bounded author flow is `apps/cad-editor/flows/surface-degree-elevation-flow.mjs`, using the unchanged complete16-object/72000-byte weighted Surface fixture. Source/public-compiled actual Canvas, history and file qualification is recorded separately from native CPU readiness, integration and release. This feature does not qualify general topology, Solid, G1/G2 or manufacturing.
+
+
+### Extract a Surface region from Canvas
+
+Select an original Surface in document view and enter Extract region. Four exact bounds use the original U and V parameters. Four Canvas grips choose among65 actual native D0 stations across the original domain. These positions are discrete; type exact bounds when projected stations overlap or leave the view. While dragging, only an owned pending bound and its guides change. Release submits one native region construction through the existing whole-document Viewer approval.
+
+`stageSurfaceRegionField('uMin' | 'uMax' | 'vMin' | 'vMax', rawText)` uses shared `surfaceRegionUMin/UMax/VMin/VMax` pending fields and one qualified original Surface/Source binding. Other drafts must be resolved first. Missing bounds use the original domain; empty text clears only that editor field. Equal endpoint text remains a construction request. A complete-domain copy creates a new independent Surface and is not a native no-op.
+
+Only the actual `extractSurfaceRegion` result Source is stored in a new asset/body. Its whole validator and native complete-document admission run before one history entry. The original complete Source, asset revision, siblings, Model and geometry IDs, domains and selected UV or body-only state remain unchanged. The provider's regenerated `originalSource` is proof data and never replaces the original asset. No parent recipe or live binding is serialized.
+
+Undo removes the added inventory. Redo restores the same logical IDs with fresh native references and the reintroduced asset revision highwater. The original Surface selection remains current; no automatic pole0 is selected. Escape, pointer cancellation and stale context restore only still-owned raw. Foreign bounds and candidates remain available. Native or display refusal retains the accepted Source/frame/history and corrective bounds.
+
+The current native provider supports both degrees1–3, axis2–16/total256 poles, XYZ within10000mm, positive bounded weights and increasing bounds inside the original closed domains. Up to four actual parameter splits and128 local observations are permitted; intermediate refinement can refuse at its own capacity. Native errors are not hidden by sorting, clamping or parameter normalization. Existing assets4/bodies16/display4/source/file/history limits remain separate.
+
+The bounded author flow is `apps/cad-editor/flows/surface-region-flow.mjs`, using the unchanged full16/72000-byte weighted Surface fixture. Actual drag, whole native proof/Viewer admission, structural history, original Source preservation and genuine Download/Open/new-Surface Canvas reedit are recorded separately from native CPU readiness, integration and release. Guides and extracted geometry do not certify Face trimming, topology, Solid, G1/G2, global error or manufacturing.
