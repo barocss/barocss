@@ -44,3 +44,10 @@ The control is disabled without a supported selection, during a pending gesture 
 Pan X/Pan Y move the canvas view; Zoom changes its scale. Pan uses canonical integer text from-64 to64. Zoom offers0.75,1,1.1,1.25. Apply view admits a complete renderer before replacement. Reset view restores the original12,8,1.1 view while retaining artwork, selection and history. Pending gestures disable these controls. An unchanged view is a no-op. Invalid view text stays available for correction and does not replace accepted state.
 
 Camera state belongs to this host and stays outside the Scene/history/document. Existing fresh renderers use the accepted host view and existing public point conversions. The actual new view/reset pixel and hit proof is under evidence/view-controls/. Its document-snapshot.json is public API serialization evidence, not a native UI download. Mixed editing/Open/history flows after a camera change remain separate unrun acceptance. Earlier limits, styles, assets and native files stay preserved.
+
+
+## Canvas path selection (#1509)
+
+In Edit control mode, click a created curve to select it. The existing coordinate and paint fields follow that path. Clicking the same path keeps its current control slot and drafts. Marker and Sprite clicks retain selection. Blank background clears selection; the Path dropdown also offers None. Clearing hides the control handle and disables selected paint/deletion controls. Selection changes retain the Scene, history, camera, image bytes and renderer. They do not capture a pointer or allocate a renderer.
+
+The host passes CSS/backing/DPR input as logical viewport coordinates to existing hitTest; it does not apply a second camera inverse. Legacy handle drags and creation gestures remain separate; pending direct selection/clear calls return false. evidence/canvas-selection/ records the bounded actual click/clear proof. Its document-snapshot.json is API serialization only, not a native UI download. Mixed selection/edit/history/Open after camera remains separate unrun acceptance.
