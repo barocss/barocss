@@ -608,3 +608,45 @@ without coercion. Snapshot, Reset and local Dispose take no arguments; copied
 snapshots have `{version,scope,report,enabled,disposed,output}`. Local disposal
 precedes other controllers and Viewer. New hooks read no Viewer after local
 disposal. No arc midpoint, topology, global accuracy or release is implied.
+
+
+## Inspect the selected original Surface area
+
+Open an original Source0 or IGES file. Select its original Surface. Choose
+**Inspect selected Surface area**. The report shows the original parametric
+Surface area estimate and heuristic error estimate in mm². The target shows
+the original closed U/V domains. This action measures the whole domain.
+The selected-point U/V drafts do not change the area region.
+
+The calculation uses the unchanged complete Source0 and Model. A real temporary
+CAD document and reference identify the current original Surface. The existing
+public area query produces the full result. Its public validator calculates
+it again. The technical report keeps every public cell, option and guard.
+This operation changes no Viewer selection, measurement cache, File intent,
+import provenance, display pose or graphics state. It adds no solver or SDK API.
+
+The area counts mapped parameter regions with multiplicity. It is not trimmed
+Face, BRep, Solid or union area. It is not the area of display triangles.
+Original authored coordinates determine the mm² value before display scale
+and poses. The error estimate is a numerical heuristic, not a certified bound.
+The numerical API supports degree1..3 in each axis. A displayed degree4 or5
+Surface can therefore refuse the area query. The original geometry stays intact.
+
+Defaults use the full region, absolute tolerance0.01mm², relative tolerance
+0.000001,16384 evaluations,128 subdivisions and depth8. The explicit helper
+requires all six options. Budget exhaustion refuses the query without a partial
+report. Complete copied output has a2,097,152-value/depth40/8192-array-entry
+and16MiB JSON limit. These limits do not certify all maximum-sized workloads.
+
+**Reset Surface area report** clears only this area report. Same current Surface,
+view, poses, canvas size and File draft changes keep it. A changed selection,
+source or whole Model, cleared/hidden selection, mode change, Clear or Dispose
+clears it. Successful source acceptance also clears it when the bytes match.
+A failed source or area query keeps a report whose authority remains current.
+Retained selected CPU geometry can still calculate area after graphics loss
+or unavailable presentation. New selection still needs available graphics.
+Local disposal removes the new controls before Viewer disposal.
+
+The exact four example paths belong to Issue1534. Native implementation,
+independent source adoption, integrated runtime acceptance and release have
+separate records. This feature does not establish those later stages.
