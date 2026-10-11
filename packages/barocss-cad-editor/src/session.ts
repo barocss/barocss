@@ -1,6 +1,6 @@
 import {
   CadReferenceDiagnosticCode, CadReferenceError, CadCurveArcLengthError, CadDocumentError,
-  SourceCurveIntervalExtractionError, SourceSurfaceKnotInsertionError, curveDomain, surfaceDomain,
+  SourceCurveIntervalExtractionError, SourceSurfaceKnotInsertionError, SourceCurveKnotInsertionError, curveDomain, surfaceDomain,
   createCadDocument, createCadGeometryReference, editSourceSurfaceControlNetWide, editSourceCurveControlPolygon,
   evaluateCurveD2, evaluateSurfaceD2, evaluateCurveCurvature, evaluateSurfaceCurvature,
   exportCadDocument, getCadDocumentExportCapabilities, inspectCadDocumentExport,
@@ -8,7 +8,7 @@ import {
   validateCadDocumentResult, validateSourceSurfaceControlNetWideEdit, validateSourceCurveControlPolygonEdit,
 } from '@barocss/cad';
 import type { CadDocumentResult, CadDocumentV1, CadGeometryReferenceV0, Curve, CurvePoleEdit, SurfacePoleEdit,
-  SourceCurveIntervalExtractionResult, SourceSurfaceKnotInsertionResult, Surface } from '@barocss/cad';
+  SourceCurveIntervalExtractionResult, SourceSurfaceKnotInsertionResult, SourceCurveKnotInsertionResult, Surface } from '@barocss/cad';
 import { CadEditorError } from './types.js';
 import { translateBodySource, withinTranslationProfile } from './body-translation.js';
 import { rotateBodySource } from './body-rotation.js';
@@ -16,6 +16,7 @@ import { scaleBodySource } from './body-scale.js';
 import { duplicateBodySourceDocument } from './body-duplicate.js';
 import { extractCurveIntervalSource } from './curve-interval.js';
 import { insertSurfaceKnotSource } from './surface-knot.js';
+import { insertCurveKnotSource } from './curve-knot.js';
 import type {
   CadEditorCandidate, CadEditorDiagnosticCode, CadEditorPoleField, CadEditorSelectedPole, CadEditorSelectedCurvePole, CadEditorView,
   CadEditorEditTarget, CadEditorBodyTranslationField, CadEditorRotationAxis, CadEditorScaleAxis,
@@ -203,6 +204,16 @@ interface IntervalPreparation {
   boundary?: IntervalBoundary;
   clearPoleBodyId?: string;
 }
+interface CurveKnotBoundary { bodyId: string }
+interface CurveKnotBinding {
+  bodyId: string; reference: CadGeometryReferenceV0; source: string; curve: Curve; domain: [number, number];
+  baseGeneration: number; baseDisplayGeneration: number; view: CadEditorView;
+}
+interface CurveKnotPreparation {
+  insertion?: SourceCurveKnotInsertionResult;
+  boundary?: CurveKnotBoundary;
+  clearPoleBodyId?: string;
+}
 interface SurfaceKnotBoundary { bodyId: string }
 interface SurfaceKnotBinding {
   bodyId: string; reference: CadGeometryReferenceV0; source: string; surface: Surface;
@@ -215,13 +226,14 @@ interface SurfaceKnotPreparation {
   clearPoleBodyId?: string;
 }
 interface HistoryState { document: CadDocumentV1; bytes: number; duplicateBoundary?: DuplicateBoundary;
-  intervalBoundary?: IntervalBoundary; surfaceKnotBoundary?: SurfaceKnotBoundary }
+  intervalBoundary?: IntervalBoundary; surfaceKnotBoundary?: SurfaceKnotBoundary; curveKnotBoundary?: CurveKnotBoundary }
 interface Prepared {
   candidate: CadEditorCandidate; historyIndex?: number;
   selectionTarget?: CadEditorSelectionTarget | null; transitionToken?: string;
   structuralPresentation?: Presentation; duplicateBoundary?: DuplicateBoundary;
   intervalBoundary?: IntervalBoundary; clearCurvePoleBodyId?: string;
   surfaceKnotBoundary?: SurfaceKnotBoundary; clearSurfacePoleBodyId?: string;
+  curveKnotBoundary?: CurveKnotBoundary;
 }
 
 /** Create an owned source-authoritative editor. No renderer or browser resources are created. */
@@ -246,6 +258,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
   let pending: CadEditorSnapshot['pending'] = {};
   let intervalBinding: IntervalBinding | null = null;
   let surfaceKnotBinding: SurfaceKnotBinding | null = null;
+  let curveKnotBinding: CurveKnotBinding | null = null;
   let prepared: Prepared | null = null;
   let history: HistoryState[] = [{ document: copy(accepted.document), bytes: fileBudget(serialize(accepted)) }];
   let historyIndex = 0;
@@ -260,6 +273,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
   let lastBodyScale: CadEditorSnapshot['lastBodyScale'] = null;
   let lastCurveInterval: CadEditorSnapshot['lastCurveInterval'] = null;
   let lastSurfaceKnot: CadEditorSnapshot['lastSurfaceKnot'] = null;
+  let lastCurveKnot: CadEditorSnapshot['lastCurveKnot'] = null;
   const listeners = new Set<() => void>();
 
   const live = () => requireEditor(!disposed, 'LIFECYCLE', 'The editor session is disposed.');
@@ -278,7 +292,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     accepted, generation, displayGeneration, displayBodyIds, view, editTarget, rotationAxis, scaleAxis, bodyCapabilities,
     selectedBodyId, selection, curveSelection, selectionTransition, pending, candidate: prepared?.candidate ?? null,
     history: { index: historyIndex, count: history.length, bytes: historyBytes(), canUndo: historyIndex > 0, canRedo: historyIndex < history.length - 1 },
-    dirty, downloadStatus, disposed, lastProvenance, lastCurveProvenance, lastBodyTranslation, lastBodyRotation, lastBodyScale, lastCurveInterval, lastSurfaceKnot,
+    dirty, downloadStatus, disposed, lastProvenance, lastCurveProvenance, lastBodyTranslation, lastBodyRotation, lastBodyScale, lastCurveInterval, lastSurfaceKnot, lastCurveKnot,
   });
   const select = (input: CadEditorSurfaceSelection, document = accepted): CadEditorSelectedPole => {
     const context = { documentId: document.document.documentId, bodyId: input?.bodyId, field: 'selection-transition' };
@@ -352,6 +366,8 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       { documentId: accepted.document.documentId, bodyId: selectedBodyId ?? undefined, field: 'curve-interval' });
     requireEditor(!(hasSurfaceKnotRaw() && resolved.target.bodyId === selectedBodyId), 'INPUT',
       'Apply or discard the knot before selecting another original pole on this Surface.', surfaceKnotContext());
+    requireEditor(!(hasCurveKnotRaw() && resolved.target.bodyId === selectedBodyId), 'INPUT',
+      'Apply or discard the knot before selecting another original point on this Curve.', curveKnotContext());
     prepared = null;
     if (Object.keys(pending).length > 0) {
       selectionTransition = { token: newToken(), baseGeneration: generation, target: copy(resolved.target) };
@@ -369,11 +385,16 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
   const surfaceKnotContext = (): CadEditorError['context'] => ({ documentId: accepted.document.documentId,
     bodyId: selectedBodyId ?? undefined, field: 'surface-knot' });
   const hasSurfaceKnotRaw = () => Object.hasOwn(pending, 'surfaceKnotU') || Object.hasOwn(pending, 'surfaceKnotV');
+  const curveKnotContext = (): CadEditorError['context'] => ({ documentId: accepted.document.documentId,
+    bodyId: selectedBodyId ?? undefined, field: 'curve-knot' });
+  const hasCurveKnotRaw = () => Object.hasOwn(pending, 'curveKnot');
   const requireNoIntervalDraft = () => {
     requireEditor(!hasIntervalRaw(), 'INPUT',
       'Apply or discard the interval before entering other object or pole fields.', intervalContext());
     requireEditor(!hasSurfaceKnotRaw(), 'INPUT',
       'Apply or discard the knot before entering other object or pole fields.', surfaceKnotContext());
+    requireEditor(!hasCurveKnotRaw(), 'INPUT',
+      'Apply or discard the knot before entering other object or pole fields.', curveKnotContext());
   };
   const intervalNative = <T>(action: () => T, message: string): T => {
     try { return action(); } catch (cause) {
@@ -446,6 +467,45 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     requireEditor(resolved.source === binding.source && resolved.geometry.kind === 'surface', 'STALE',
       'The knot must remain bound to the original complete Surface source.', context);
   };
+  const curveKnotNative = <T>(action: () => T, message: string): T => {
+    try { return action(); } catch (cause) {
+      if (cause instanceof CadEditorError) throw cause;
+      const code = cause instanceof CadReferenceError && cause.code === CadReferenceDiagnosticCode.STALE ? 'STALE'
+        : (cause instanceof SourceCurveKnotInsertionError || cause instanceof CadDocumentError) && cause.code === 'BUDGET' ? 'BUDGET'
+          : cause instanceof SourceCurveKnotInsertionError && cause.code === 'FILE' ? 'FILE' : 'NATIVE';
+      throw new CadEditorError(code, message, curveKnotContext(), cause);
+    }
+  };
+  const captureCurveKnot = (): CurveKnotBinding => {
+    const context = curveKnotContext();
+    requireEditor(editTarget === 'pole', 'INPUT', 'Select Control point before inserting a knot.', context);
+    requireEditor(selectedBodyId !== null && (view.kind === 'document'
+      || view.kind === 'curve-focus' && view.bodyId === selectedBodyId), 'DISPLAY',
+      'Select an original Curve in document view or its matching focused view.', context);
+    const reference = curveKnotNative(() => createCadGeometryReference(accepted, { bodyId: selectedBodyId! }),
+      'Native knot body reference creation failed.').reference;
+    const resolved = curveKnotNative(() => resolveCadGeometryReference(accepted, reference),
+      'Native knot body resolution failed.');
+    const curve = resolved.geometry;
+    requireEditor(curve.kind === 'curve', 'UNSUPPORTED', 'Knot insertion requires an original Curve.', context);
+    return { bodyId: resolved.reference.bodyId, reference: copy(resolved.reference), source: resolved.source,
+      curve: copy(curve), domain: curveKnotNative(() => curveDomain(curve),
+        'Native original Curve domain query failed.'),
+      baseGeneration: generation, baseDisplayGeneration: displayGeneration, view: copy(view) };
+  };
+  const currentCurveKnot = (binding: CurveKnotBinding) => {
+    const context = curveKnotContext();
+    requireEditor(editTarget === 'pole' && selectedBodyId === binding.bodyId
+      && binding.baseGeneration === generation && binding.baseDisplayGeneration === displayGeneration
+      && (view.kind === 'document' && binding.view.kind === 'document'
+        || view.kind === 'curve-focus' && binding.view.kind === 'curve-focus'
+          && view.bodyId === binding.bodyId && view.bodyId === binding.view.bodyId && view.count === binding.view.count),
+    'STALE', 'The knot body or view changed. Review the pending parameter.', context);
+    const resolved = curveKnotNative(() => resolveCadGeometryReference(accepted, binding.reference),
+      'Native bound knot reference resolution failed.');
+    requireEditor(resolved.source === binding.source && resolved.geometry.kind === 'curve', 'STALE',
+      'The knot must remain bound to the original complete Curve source.', context);
+  };
   const requireEditable = () => {
     const context = { documentId: accepted.document.documentId, bodyId: selectedBodyId ?? undefined, field: 'edit-capability' };
     requireEditor(selectedBodyId !== null, 'INPUT', 'Select an editable Surface body first.', context);
@@ -476,7 +536,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     bodyRotation: CadEditorCandidate['bodyRotation'] = null,
     bodyScale: CadEditorCandidate['bodyScale'] = null,
     structural?: { presentation: Presentation; duplicateBoundary?: DuplicateBoundary },
-    interval?: IntervalPreparation, surfaceKnot?: SurfaceKnotPreparation): CadEditorCandidate => {
+    interval?: IntervalPreparation, surfaceKnot?: SurfaceKnotPreparation, curveKnot?: CurveKnotPreparation): CadEditorCandidate => {
     if (interval?.clearPoleBodyId !== undefined) {
       const reference = native(() => createCadGeometryReference(result, { bodyId: interval.clearPoleBodyId! }),
         'Native interval presentation reference creation failed.', result.document.documentId, { field: 'curve-interval' }).reference;
@@ -493,6 +553,14 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
         'Native knot presentation body resolution failed.', result.document.documentId, context);
       requireEditor(resolved.geometry.kind === 'surface', 'STALE', 'The knot must retain its original Surface body.', context);
     }
+    if (curveKnot?.clearPoleBodyId !== undefined) {
+      const context = { documentId: result.document.documentId, bodyId: curveKnot.clearPoleBodyId, field: 'curve-knot' };
+      const reference = native(() => createCadGeometryReference(result, { bodyId: curveKnot.clearPoleBodyId! }),
+        'Native knot presentation reference creation failed.', result.document.documentId, context).reference;
+      const resolved = native(() => resolveCadGeometryReference(result, reference),
+        'Native knot presentation body resolution failed.', result.document.documentId, context);
+      requireEditor(resolved.geometry.kind === 'curve', 'STALE', 'The knot must retain its original Curve body.', context);
+    }
     const proposed = structural === undefined ? undefined : {
       ...copy(structural.presentation),
       displayBodyIds: displayIds(result, structural.presentation.displayBodyIds),
@@ -504,17 +572,21 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       baseDisplayGeneration: displayGeneration, displayBodyIds: copy(proposed?.displayBodyIds ?? candidateDisplayIds), view: copy(proposed?.view ?? candidateView),
       ...(proposed === undefined ? {} : { selectionTarget: copy(proposed.selectionTarget), presentation: 'structural' as const }),
       ...(interval?.extraction === undefined ? {} : { curveInterval: interval.extraction }),
+      ...(curveKnot?.insertion === undefined ? {} : { curveKnot: curveKnot.insertion }),
       ...(surfaceKnot?.insertion === undefined ? {} : { surfaceKnot: surfaceKnot.insertion }),
       ...(surfaceKnot?.clearPoleBodyId === undefined ? {} : { selectionTarget: { bodyId: surfaceKnot.clearPoleBodyId }, clearSurfacePoleSelection: true as const }),
       ...(interval?.clearPoleBodyId === undefined ? {} : { selectionTarget: { bodyId: interval.clearPoleBodyId }, clearCurvePoleSelection: true as const }),
+      ...(curveKnot?.clearPoleBodyId === undefined ? {} : { selectionTarget: { bodyId: curveKnot.clearPoleBodyId }, clearCurvePoleSelection: true as const }),
     }, historyIndex: targetIndex,
       selectionTarget: surfaceKnot?.clearPoleBodyId !== undefined ? { bodyId: surfaceKnot.clearPoleBodyId }
+        : curveKnot?.clearPoleBodyId !== undefined ? { bodyId: curveKnot.clearPoleBodyId }
         : interval?.clearPoleBodyId !== undefined ? { bodyId: interval.clearPoleBodyId }
         : proposed !== undefined ? copy(proposed.selectionTarget) : postSelection === undefined ? undefined : {
         bodyId: postSelection.target.bodyId, uIndex: postSelection.target.uIndex, vIndex: postSelection.target.vIndex, index: postSelection.target.index,
       }, transitionToken: postSelection?.token,
       structuralPresentation: proposed, duplicateBoundary: copy(structural?.duplicateBoundary),
-      intervalBoundary: copy(interval?.boundary), clearCurvePoleBodyId: interval?.clearPoleBodyId,
+      intervalBoundary: copy(interval?.boundary), clearCurvePoleBodyId: curveKnot?.clearPoleBodyId ?? interval?.clearPoleBodyId,
+      curveKnotBoundary: copy(curveKnot?.boundary),
       surfaceKnotBoundary: copy(surfaceKnot?.boundary), clearSurfacePoleBodyId: surfaceKnot?.clearPoleBodyId };
     const returned = copy(prepared.candidate);
     emit();
@@ -575,11 +647,14 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     const result = admit(native(() => createCadDocument(document), 'Native history reconstruction failed.', document.documentId));
     const intervalBoundary = direction < 0 ? history[historyIndex].intervalBoundary : history[targetIndex].intervalBoundary;
     const surfaceKnotBoundary = direction < 0 ? history[historyIndex].surfaceKnotBoundary : history[targetIndex].surfaceKnotBoundary;
+    const curveKnotBoundary = direction < 0 ? history[historyIndex].curveKnotBoundary : history[targetIndex].curveKnotBoundary;
     return prepare(direction < 0 ? 'undo' : 'redo', result, [], targetIndex, undefined, displayBodyIds, view, [], null, null, null,
       undefined, intervalBoundary !== undefined && selectedBodyId === intervalBoundary.bodyId
         ? { clearPoleBodyId: intervalBoundary.bodyId } : undefined,
       surfaceKnotBoundary !== undefined && selectedBodyId === surfaceKnotBoundary.bodyId
-        ? { clearPoleBodyId: surfaceKnotBoundary.bodyId } : undefined);
+        ? { clearPoleBodyId: surfaceKnotBoundary.bodyId } : undefined,
+      curveKnotBoundary !== undefined && selectedBodyId === curveKnotBoundary.bodyId
+        ? { boundary: curveKnotBoundary, clearPoleBodyId: curveKnotBoundary.bodyId } : undefined);
   };
   const pendingValues = (bodyId: string, curve = false, translation = false): Partial<Record<CadEditorPoleField, number>> => {
     const values: Partial<Record<CadEditorPoleField, number>> = {};
@@ -602,6 +677,38 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       if (body.geometry.kind === 'surface' && view.kind === 'document'
         || body.geometry.kind === 'curve' && (view.kind === 'document'
           || view.kind === 'curve-focus' && view.bodyId === selectedBodyId)) return null;
+    }
+    if (hasCurveKnotRaw()) {
+      const context = curveKnotContext();
+      requireEditor(prepared === null, 'INPUT', 'Resolve the current candidate before inserting a knot.', context);
+      requireEditor(curveKnotBinding !== null, 'STALE', 'The original knot binding is missing.', context);
+      const binding = curveKnotBinding;
+      requireEditor(Object.keys(pending).length === 1, 'INPUT',
+        'Curve knot insertion cannot be mixed with other draft fields.', context);
+      currentCurveKnot(binding);
+      const text = pending.curveKnot!.trim();
+      requireEditor(/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text), 'INPUT',
+        'Knot parameters must be decimal or exponent numbers.', context);
+      const knot = Number(text);
+      requireEditor(Number.isFinite(knot), 'INPUT', 'Knot parameters must be finite.', context);
+      const insertion = curveKnotNative(() => insertCurveKnotSource(binding.source, binding.curve, knot),
+        'Native complete-source Curve knot insertion failed.');
+      const document = copy(accepted.document);
+      document.revision = nextRevision(document.revision, context);
+      document.assets = document.assets.map(asset => asset.id === binding.reference.assetId
+        ? { ...asset, source: insertion.source, revision: nextRevision(asset.revision, context) } : asset);
+      const result = curveKnotNative(() => {
+        const result = createCadDocument(document);
+        validateCadDocumentResult(result);
+        fileBudget(serializeCadDocument(result.document), context);
+        return result;
+      }, 'Native refined Curve document admission failed.');
+      const transition = selectionTransition;
+      if (transition !== null && transition.target.bodyId === binding.bodyId && transition.target.index !== undefined)
+        requireEditor(false, 'INPUT', 'Finish the knot before choosing another point on this Curve.', context);
+      return prepare('curve-knot', result, [], undefined, transition ?? undefined, displayBodyIds, view, [], null, null, null,
+        undefined, undefined, undefined, { insertion, boundary: { bodyId: binding.bodyId },
+          ...(transition === null || transition.target.bodyId === binding.bodyId ? { clearPoleBodyId: binding.bodyId } : {}) });
     }
     if (hasSurfaceKnotRaw()) {
       const context = surfaceKnotContext();
@@ -931,6 +1038,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
         pending = {};
         intervalBinding = null;
         surfaceKnotBinding = null;
+        curveKnotBinding = null;
       }
       selectionTransition = null; prepared = null; emit(); return null;
     },
@@ -1053,7 +1161,22 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       pending = fields; surfaceKnotBinding = Object.hasOwn(fields, key) ? binding : null;
       prepared = null; selectionTransition = null; emit();
     },
-    discardPending() { live(); pending = {}; intervalBinding = null; surfaceKnotBinding = null; prepared = null; selectionTransition = null; emit(); },
+    stageCurveKnotField(rawText) {
+      live();
+      const context = curveKnotContext();
+      requireEditor(typeof rawText === 'string' && rawText.length <= 128, 'BUDGET',
+        'Knot input must have at most 128 characters.', context);
+      requireEditor(Object.keys(pending).every(field => field === 'curveKnot'), 'INPUT',
+        'Apply or discard other draft fields before inserting a Curve knot.', context);
+      const binding = curveKnotBinding ?? captureCurveKnot();
+      currentCurveKnot(binding);
+      const fields = { ...pending };
+      if (rawText === '') delete fields.curveKnot;
+      else fields.curveKnot = rawText;
+      pending = fields; curveKnotBinding = Object.hasOwn(fields, 'curveKnot') ? binding : null;
+      prepared = null; selectionTransition = null; emit();
+    },
+    discardPending() { live(); pending = {}; intervalBinding = null; surfaceKnotBinding = null; curveKnotBinding = null; prepared = null; selectionTransition = null; emit(); },
     prepareApply,
     prepareOpen(text, options) {
       live(); fileBudget(text);
@@ -1164,7 +1287,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
           : current.clearCurvePoleBodyId !== undefined ? 'curve'
             : accepted.bodyBindings.find(binding => binding.bodyId === clearBodyId)?.geometryKind;
         const context = { documentId: result.document.documentId, bodyId: clearBodyId,
-          field: expectedKind === 'surface' ? 'surface-knot' : 'curve-interval' };
+          field: expectedKind === 'surface' ? 'surface-knot' : current.curveKnotBoundary !== undefined ? 'curve-knot' : 'curve-interval' };
         const reference = native(() => createCadGeometryReference(result, { bodyId: clearBodyId! }),
           'Native body-only reference creation failed.', result.document.documentId, context).reference;
         const resolved = native(() => resolveCadGeometryReference(result, reference),
@@ -1177,9 +1300,10 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       if (current.candidate.kind === 'duplicate') state.duplicateBoundary = copy(current.duplicateBoundary);
       if (current.candidate.kind === 'curve-interval') state.intervalBoundary = copy(current.intervalBoundary);
       if (current.candidate.kind === 'surface-knot') state.surfaceKnotBoundary = copy(current.surfaceKnotBoundary);
+      if (current.candidate.kind === 'curve-knot') state.curveKnotBoundary = copy(current.curveKnotBoundary);
       if (current.candidate.kind === 'open') { history = [state]; historyIndex = 0; }
       else if (current.candidate.kind === 'apply' || current.candidate.kind === 'rename' || current.candidate.kind === 'duplicate'
-        || current.candidate.kind === 'curve-interval' || current.candidate.kind === 'surface-knot') {
+        || current.candidate.kind === 'curve-interval' || current.candidate.kind === 'surface-knot' || current.candidate.kind === 'curve-knot') {
         history = [...history.slice(0, historyIndex + 1), state];
         while (history.length > HISTORY_LIMIT || historyBytes() > HISTORY_BYTES) history.shift();
         historyIndex = history.length - 1;
@@ -1204,7 +1328,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
         assetRevisionHighWater.set(asset.id, Math.max(assetRevisionHighWater.get(asset.id) ?? 0, asset.revision));
       const retainedAssetIds = new Set(history.flatMap(state => state.document.assets.map(asset => asset.id)));
       for (const id of assetRevisionHighWater.keys()) if (!retainedAssetIds.has(id)) assetRevisionHighWater.delete(id);
-      generation++; pending = {}; intervalBinding = null; surfaceKnotBinding = null; prepared = null; selectionTransition = null;
+      generation++; pending = {}; intervalBinding = null; surfaceKnotBinding = null; curveKnotBinding = null; prepared = null; selectionTransition = null;
       lastProvenance = copy(current.candidate.provenance);
       lastCurveProvenance = copy(current.candidate.curveProvenance);
       lastBodyTranslation = copy(current.candidate.bodyTranslation);
@@ -1212,6 +1336,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       lastBodyScale = copy(current.candidate.bodyScale);
       lastCurveInterval = copy(current.candidate.curveInterval ?? null);
       lastSurfaceKnot = copy(current.candidate.surfaceKnot ?? null);
+      lastCurveKnot = copy(current.candidate.curveKnot ?? null);
       dirty = current.candidate.kind !== 'open'; downloadStatus = 'Not downloaded'; download = null;
       const returned = snapshot(); emit(); return returned;
     },
@@ -1231,7 +1356,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     },
     dispose() {
       if (disposed) return;
-      disposed = true; prepared = null; intervalBinding = null; surfaceKnotBinding = null; selectionTransition = null; download = null; pending = {}; emit(); listeners.clear();
+      disposed = true; prepared = null; intervalBinding = null; surfaceKnotBinding = null; curveKnotBinding = null; selectionTransition = null; download = null; pending = {}; emit(); listeners.clear();
     },
   };
 }

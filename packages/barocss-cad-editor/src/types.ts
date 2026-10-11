@@ -4,7 +4,7 @@ import type {
   CadDocumentResult, CadDocumentV1, CadGeometryReferenceV0, SurfacePoleEditProvenance,
   CadCurveArcLengthOptions, CadCurveArcLengthResult,
   CurveCurvatureResult, CurveD2Result, CurvePoleEditProvenance, SurfaceCurvatureResult, SurfaceD2Result,
-  AffineGeometryTransformReport, SourceCurveIntervalExtractionResult, SourceSurfaceKnotInsertionResult,
+  AffineGeometryTransformReport, SourceCurveIntervalExtractionResult, SourceSurfaceKnotInsertionResult, SourceCurveKnotInsertionResult,
 } from '@barocss/cad';
 
 export type CadEditorExportCapability = CadDocumentExportCapability;
@@ -46,7 +46,7 @@ export class CadEditorError extends Error {
 export type CadEditorPoleField = 'xMM' | 'yMM' | 'zMM' | 'weight';
 export type CadEditorBodyTranslationField = Exclude<CadEditorPoleField, 'weight'>;
 export type CadEditorCurveIntervalField = 'min' | 'max';
-export type CadEditorDraftField = CadEditorPoleField | 'angleDegrees' | 'scaleFactor' | 'intervalMin' | 'intervalMax' | 'surfaceKnotU' | 'surfaceKnotV';
+export type CadEditorDraftField = CadEditorPoleField | 'angleDegrees' | 'scaleFactor' | 'intervalMin' | 'intervalMax' | 'surfaceKnotU' | 'surfaceKnotV' | 'curveKnot';
 export type CadEditorEditTarget = 'pole' | 'object' | 'rotation' | 'scale';
 export type CadEditorRotationAxis = 'x' | 'y' | 'z';
 export type CadEditorScaleAxis = 'uniform' | 'x' | 'y' | 'z';
@@ -95,10 +95,11 @@ export interface CadEditorSelectedPole extends CadEditorSurfaceSelection {
 }
 export interface CadEditorCandidate {
   token: string; baseGeneration: number; baseDisplayGeneration: number;
-  kind: 'apply' | 'open' | 'undo' | 'redo' | 'display' | 'rename' | 'duplicate' | 'curve-interval' | 'surface-knot';
+  kind: 'apply' | 'open' | 'undo' | 'redo' | 'display' | 'rename' | 'duplicate' | 'curve-interval' | 'surface-knot' | 'curve-knot';
   selectionTarget?: CadEditorSelectionTarget | null;
   presentation?: 'structural';
   curveInterval?: SourceCurveIntervalExtractionResult;
+  curveKnot?: SourceCurveKnotInsertionResult;
   clearCurvePoleSelection?: true;
   surfaceKnot?: SourceSurfaceKnotInsertionResult;
   clearSurfacePoleSelection?: true;
@@ -142,6 +143,7 @@ export interface CadEditorSnapshot {
   lastBodyScale: CadEditorBodyScale | null;
   lastCurveInterval: SourceCurveIntervalExtractionResult | null;
   lastSurfaceKnot: SourceSurfaceKnotInsertionResult | null;
+  lastCurveKnot: SourceCurveKnotInsertionResult | null;
 }
 export interface CadEditorDownload { token: string; text: string; suggestedFilename: string }
 export interface CadEditorSession {
@@ -169,6 +171,7 @@ export interface CadEditorSession {
   stageCurvePoleField(field: CadEditorPoleField, rawText: string): void;
   stageCurveIntervalField(field: CadEditorCurveIntervalField, rawText: string): void;
   stageSurfaceKnotField(axis: 'u' | 'v', rawText: string): void;
+  stageCurveKnotField(rawText: string): void;
   discardPending(): void;
   prepareApply(): CadEditorCandidate | null;
   prepareOpen(text: string, options?: CadEditorSessionOptions): CadEditorCandidate;

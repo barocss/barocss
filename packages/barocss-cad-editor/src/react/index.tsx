@@ -7,6 +7,7 @@ import { CadEditorInspector } from './inspector.js';
 import type { CadEditorProps } from './types.js';
 import { CurveIntervalProvider } from './curve-interval.js';
 import { SurfaceKnotProvider } from './surface-knot.js';
+import { CurveKnotProvider } from './curve-knot.js';
 import { useCadEditorSnapshot } from './use-session.js';
 
 export function CadEditor({ className, ...props }: CadEditorProps) {
@@ -14,6 +15,7 @@ export function CadEditor({ className, ...props }: CadEditorProps) {
   const [keyboardError, setKeyboardError] = useState<string | null>(null);
   const composingRef = useRef(false);
   const knotGestureRef = useRef(false);
+  const curveKnotGestureRef = useRef(false);
   const snapshot = useCadEditorSnapshot(props.session);
   useEffect(() => {
     if (Object.keys(snapshot.pending).length === 0 && !snapshot.selectionTransition && !snapshot.candidate) {
@@ -40,7 +42,7 @@ export function CadEditor({ className, ...props }: CadEditorProps) {
     event.preventDefault();
     event.stopPropagation();
     const current = props.session.getSnapshot();
-    if (knotGestureRef.current || Object.keys(current.pending).length > 0 || current.selectionTransition || current.candidate) {
+    if (knotGestureRef.current || curveKnotGestureRef.current || Object.keys(current.pending).length > 0 || current.selectionTransition || current.candidate) {
       setKeyboardError('Apply or discard your draft before using history.');
       onError(new CadEditorError('INPUT', 'History shortcuts require no pending draft, selection decision or candidate.', { field: 'history' }));
       return;
@@ -65,8 +67,10 @@ export function CadEditor({ className, ...props }: CadEditorProps) {
     onCompositionEndCapture={() => { composingRef.current = false; }}>
     <CurveIntervalProvider session={props.session} onError={onError}>
     <SurfaceKnotProvider session={props.session} onError={onError} onGestureChange={active => { knotGestureRef.current = active; }}>
+    <CurveKnotProvider session={props.session} onError={onError} onGestureChange={active => { curveKnotGestureRef.current = active; }}>
     <CadEditorViewport {...props} onError={onError} readRequest={props.curvePresentationPolicy === 'native-state' && snapshot.view.kind === 'curve-focus' ? undefined : displayReadRequest + (props.readRequest ?? 0)} />
     <CadEditorInspector session={props.session} onError={onError} onAnalysis={props.onAnalysis} onLength={props.onLength} />
+    </CurveKnotProvider>
     </SurfaceKnotProvider>
     </CurveIntervalProvider>
     {keyboardError && <p className="cad-editor-history-error" role="alert">{keyboardError}</p>}

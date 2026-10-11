@@ -340,3 +340,16 @@ text.assembly-translation-guide[data-axis="z"] { fill:#8babcf; stroke:none; }
 .surface-knot-handle:focus-visible { outline:none; stroke:#fff; stroke-width:3; }
 .surface-knot-handle[aria-disabled="true"] { opacity:.45; cursor:default; }
 .surface-knot-overlay>.surface-knot-status { position:absolute; left:8px; bottom:8px; max-width:calc(100% - 16px); padding:4px 6px; margin:0; border:1px solid #39444a; border-radius:3px; background:#22272be8; color:#b9c7cf; font-size:10px; line-height:1.4; pointer-events:none; }
+
+
+.curve-knot-panel { padding-block: 8px; border-top: 1px solid var(--border); }
+.curve-knot-panel .cad-editor-field { margin-block: 6px; }
+.curve-knot-panel .cad-editor-actions { gap: 6px; }
+.curve-knot-overlay { position: absolute; inset: 0; pointer-events: none; }
+.curve-knot-svg { display: block; overflow: hidden; pointer-events: none; }
+.curve-knot-ghost { stroke: #e6be73; stroke-width: 1; stroke-dasharray: 4 3; opacity: .85; }
+.curve-knot-handle { fill: #bad598; stroke: #f1f5eb; stroke-width: 1.5; cursor: grab; pointer-events: all; outline: none; }
+.curve-knot-handle:active { cursor: grabbing; }
+.curve-knot-handle:focus-visible { stroke: #ffffff; stroke-width: 3; }
+.curve-knot-label { fill: #e3edda; font-size: 10px; pointer-events: none; }
+.curve-knot-status { position: absolute; bottom: 8px; left: 8px; max-width: calc(100% - 16px); margin: 0; padding: 3px 6px; border: 1px solid var(--border); border-radius: 3px; background: var(--background); color: var(--muted-foreground); font-size: 10px; pointer-events: none; }
