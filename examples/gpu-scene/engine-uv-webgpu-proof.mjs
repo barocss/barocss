@@ -1,5 +1,5 @@
 /** #1184 offline preparation only.
- * node examples/gpu-scene/engine-uv-webgpu-proof.mjs --output ABS_FRESH --build-only
+ * node examples/gpu-scene/engine-uv-webgpu-proof.mjs --output ABS_FRESH --build-only [--source-parent LOWERCASE40SHA]
  * This runner never serves, probes a port, opens a browser or accesses a GPU.
  */
 import assert from 'node:assert/strict';
@@ -13,12 +13,20 @@ import { createEngineUVProofFixture, serializeEngineUVProofOriginals } from './e
 
 assert.equal(Number(process.versions.node.split('.')[0]), 22, 'Node22 is required');
 assert.deepEqual(process.argv.slice(2, 3), ['--output']);
-assert.equal(process.argv.length, 5, 'Use exactly --output ABS_FRESH --build-only');
+assert.ok(process.argv.length === 5 || process.argv.length === 7,
+  'Use exactly --output ABS_FRESH --build-only, optionally followed by --source-parent LOWERCASE40SHA');
 assert.equal(process.argv[4], '--build-only', 'Only offline build-only mode is supported');
 assert.ok(isAbsolute(process.argv[3]), 'Output must be an absolute fresh directory');
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const output = resolve(process.argv[3]);
-const parent = 'b803640306acf130aeb6274df8ae12d6cda6f8d8';
+const defaultParent = 'b803640306acf130aeb6274df8ae12d6cda6f8d8';
+if (process.argv.length === 7) assert.equal(process.argv[5], '--source-parent');
+const parent = process.argv.length === 7 ? process.argv[6] : defaultParent;
+assert.match(parent, /^[0-9a-f]{40}$/, 'Source parent must be an exact lowercase40 hexadecimal commit');
+const selectedCommit = execFileSync('git', ['rev-parse', '--verify', parent + '^{commit}'],
+  { cwd: repo, encoding: 'utf8' }).trim();
+assert.equal(selectedCommit, parent, 'Source parent must resolve locally to that exact commit');
+execFileSync('git', ['merge-base', '--is-ancestor', parent, 'HEAD'], { cwd: repo });
 const prefix = 'examples/gpu-scene/engine-uv-webgpu-proof';
 const examples = [prefix + '-fixture.mjs', prefix + '-client.mjs', prefix + '.mjs', prefix + '.md'];
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -42,6 +50,7 @@ const bundled = await build({
   absWorkingDir: repo,
   entryPoints: [resolve(repo, prefix + '-client.mjs')],
   alias: { '@barocss/gpu': gpuAlias, '@barocss/cad': cadAlias },
+  define: { __ENGINEUV_PROOF_SOURCE_PARENT__: JSON.stringify(parent) },
   bundle: true, platform: 'browser', format: 'esm', target: 'es2022',
   outfile: resolve(output, 'client.mjs'), metafile: true, logLevel: 'silent',
 });

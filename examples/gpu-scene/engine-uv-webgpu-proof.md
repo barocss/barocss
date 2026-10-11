@@ -14,10 +14,33 @@ node examples/gpu-scene/engine-uv-webgpu-proof.mjs --output /absolute/fresh/outp
 ```
 
 The output directory must not exist. The command bundles the new browser client
-from actual ordinary GPU/CAD source, pins every package input against b8036403,
+from actual ordinary GPU/CAD source, pins every package input against its selected commit,
 and saves complete signed originals, two CSS files, the independent oracle and
-asset hashes. It does not start a server, probe a port, navigate a browser or
+asset hashes. By default the selected commit remains b8036403. It does not start a server, probe a port, navigate a browser or
 access a device. The manifest says `PREPARED_ONLY` and `actualGPU:false`.
+
+## Select an exact source commit
+
+To prepare a later accepted source graph, explicitly name its full lowercase
+40-character local commit after `--build-only`:
+
+```sh
+node examples/gpu-scene/engine-uv-webgpu-proof.mjs --output /absolute/fresh/output --build-only --source-parent da57c8c0504079d360ba0fa0a2dffc49c33ed6a2
+```
+
+The commit must exist locally and be an ancestor of this checkout's HEAD. Branch
+names, tags, abbreviated SHAs and unknown commits refuse before output creation.
+Every actual bundled package input must match the selected committed bytes.
+Changed sources still refuse; a failed partial output is preserved. There is no
+implicit current-HEAD selection, network lookup or provider fallback.
+
+The builder fixes the same selected SHA in the manifest and client bundle.
+The client compares the manifest with that compile-time anchor. A fetched
+manifest, URL parameter or host global cannot select a different source graph.
+The original nine files, signed originals and receipt formats remain unchanged.
+A successful selected-source preparation qualifies that source bundle and files
+only. Later Root commits, actual browser/device execution and global integrated
+acceptance require separate evidence. The default b803 pin is preserved.
 
 ## Run the actual flow when the target is available
 

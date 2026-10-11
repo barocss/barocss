@@ -2,7 +2,10 @@
 import { compileEngineUVTextureMaterial, mountEngineUVTextureWebGPUViewport, EngineUVWebGPUError } from '../../packages/barocss-gpu/src/index.ts';
 import { createEngineUVProofFixture, serializeEngineUVProofOriginals } from './engine-uv-webgpu-proof-fixture.mjs';
 
-const PARENT = 'b803640306acf130aeb6274df8ae12d6cda6f8d8';
+const PARENT = typeof __ENGINEUV_PROOF_SOURCE_PARENT__ === 'undefined'
+  ? 'b803640306acf130aeb6274df8ae12d6cda6f8d8' : __ENGINEUV_PROOF_SOURCE_PARENT__;
+if (typeof PARENT !== 'string' || !/^[a-f0-9]{40}$/.test(PARENT))
+  throw new Error('Compiled proof source parent requires a lowercase40SHA');
 const LOG_LIMIT = 128, ORIGINAL_LIMIT = 262144, RECEIPT_LIMIT = 4194304;
 const clone = value => structuredClone(value), signed = serializeEngineUVProofOriginals;
 const root = document.getElementById('proof-root');
