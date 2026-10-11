@@ -3089,3 +3089,71 @@ flow:
 ```sh
 node examples/gpu-scene/material-discrete-selection-flow.mjs --output /absolute/fresh-directory
 ```
+
+## Discrete authored Material color sampling (CPU)
+
+`evaluateDiscreteAuthoredMaterial({material, uniforms})` reconstructs one complete
+discrete Mesh material and samples its authored linear RGB with binary64 Number
+operations. The required uniform record may be empty to use declared defaults:
+
+```ts
+const compiled = compileDiscreteMeshMaterial(`
+@shader #palette {
+  @uniform level: float(0, 1, .5);
+  @fragment { color: select(level, .5, #203040, #FFEEDD); }
+}`);
+if (compiled.ok) {
+  const defaults = evaluateDiscreteAuthoredMaterial({
+    material: compiled.material, uniforms: {},
+  });
+  const below = evaluateDiscreteAuthoredMaterial({
+    material: compiled.material, uniforms: { level: .4999 },
+  });
+  defaults.linearRGB; // Equality selects the second palette color.
+  below.linearRGB;    // Strictly below selects the first palette color.
+}
+```
+
+The exact request has only `material` and `uniforms`, as current-realm ordinary
+records with enumerable data fields. Complete material source is validated once
+through `validateDiscreteMeshMaterialIR`. Uniform overrides have at most 16 own
+ASCII names of 1..32 characters and finite Number values. Unknown names or values
+outside declared bounds refuse; omitted names use defaults. `__proto__` is refused
+in overrides and declarations, including omitted declarations. Other own names
+such as `constructor` remain safe.
+
+Source reconstruction admits and charges both selection branches. Runtime
+selection evaluates the float selector and literal threshold once and executes
+only the selected branch: strict `<` chooses `below`; equality chooses
+`otherwise`. Existing arithmetic, trigonometry, clamp and color-mix operation
+order is preserved. Runtime traversal remains at most 256 visits/depth 16, with
+finite intermediates within ±1e6 and final RGB clamped to 0..1. Uniform and final
+RGB zeros are positive zero; complete original source spelling is retained.
+
+The fresh frozen result has exactly eight fields: `format`, `version`, `profile`,
+`colorSpace`, `source`, `material`, `uniforms`, `linearRGB`. Format is
+`barocss-gpu-discrete-authored-material-sample`, version `0`, profile
+`binary64-discrete-linear-rgb-v0`, color space `linear-rgb`. Canonical material
+includes both branches; `uniforms` contains resolved declarations in source
+order. The complete JSON result is capped at 2MiB UTF16/UTF8 before final freeze.
+Results are independent across calls and input, without caller mutation,
+freezing, getters or caches.
+
+`AuthoredMaterialEvaluationError` and existing diagnostic codes are reused.
+Local root/header errors use `INPUT`; unsupported headers use `PROFILE`; uniform
+shape/name/value errors use `UNIFORM`. Actual raw reflection failures use fresh
+`INPUT` with the exact cause. Material reconstruction uses `MATERIAL`, or `BUDGET`
+for an actual provider budget failure, preserving its real cause chain.
+Numerical guards use `NUMERICAL`; traversal/result limits use `BUDGET`. Local
+errors have no fabricated cause, and messages are bounded to 1024 characters.
+
+Existing `evaluateAuthoredMaterial` requests, samples and dispatch remain
+unchanged. This entry samples only authored coordinate-free color. It adds no
+UV, material binding, texture, lighting, gamma, shader execution, rendered pixels,
+frame, GPU precision parity, consumer or publication support.
+
+After the affected GPU build, run the one source/emitted/original-file/cold flow:
+
+```sh
+node examples/gpu-scene/material-discrete-evaluation-flow.mjs --output /absolute/fresh-directory
+```

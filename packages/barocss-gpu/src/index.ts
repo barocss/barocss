@@ -194,3 +194,6 @@ export type { OptionalRepeatedAffineSceneAst, CompiledOptionalRepeatedAffineScen
 
 export { compileDiscreteMeshMaterial, validateDiscreteMeshMaterialIR, lowerDiscreteMeshMaterial } from './mesh-material.js';
 export type { DiscreteMeshMaterialExpression, DiscreteMeshMaterialIR, LoweredDiscreteMeshMaterial } from './mesh-material.js';
+
+export { evaluateDiscreteAuthoredMaterial } from './material-evaluation.js';
+export type { DiscreteAuthoredMaterialRequest, DiscreteAuthoredMaterialSample } from './material-evaluation.js';

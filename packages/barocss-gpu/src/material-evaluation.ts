@@ -1,10 +1,10 @@
 import {
   MeshMaterialError, validateMeshMaterialBinding,
-  validateEngineUVMaterialBinding, validateEngineUVRepeatingMaterialBinding,
+  validateEngineUVMaterialBinding, validateEngineUVRepeatingMaterialBinding, validateDiscreteMeshMaterialIR,
 } from './mesh-material.js';
 import type {
   MeshMaterialIR, EngineUVMaterialIR, EngineUVRepeatingMaterialIR,
-  EngineUVRepeatingMaterialExpression,
+  EngineUVRepeatingMaterialExpression, DiscreteMeshMaterialExpression, DiscreteMeshMaterialIR,
 } from './mesh-material.js';
 
 export const AuthoredMaterialEvaluationDiagnosticCode = Object.freeze({
@@ -93,6 +93,7 @@ function inspectUV(input: unknown): [number, number] {
     }) as [number, number];
   });
 }
+type EvaluationExpression = EngineUVRepeatingMaterialExpression | DiscreteMeshMaterialExpression;
 type Value = number | [number, number, number];
 function finite(value: number): number {
   check(Number.isFinite(value) && Math.abs(value) <= 1e6, CODE.NUMERICAL, 'Material intermediate exceeds its finite range');
@@ -106,9 +107,9 @@ function color(value: Value): [number, number, number] {
   check(Array.isArray(value) && value.length === 3, CODE.NUMERICAL, 'Canonical color expression required');
   return value.map(finite) as [number, number, number];
 }
-function evaluate(expression: EngineUVRepeatingMaterialExpression, uniforms: Record<string, number>, uv: [number, number] | null): [number, number, number] {
+function evaluate(expression: EvaluationExpression, uniforms: Record<string, number>, uv: [number, number] | null): [number, number, number] {
   let visits = 0;
-  function visit(node: EngineUVRepeatingMaterialExpression, depth: number): Value {
+  function visit(node: EvaluationExpression, depth: number): Value {
     check(++visits <= 256 && depth <= 16, CODE.BUDGET, 'Canonical expression traversal exceeds limits');
     switch (node.kind) {
       case 'float': return finite(node.value);
@@ -119,6 +120,13 @@ function evaluate(expression: EngineUVRepeatingMaterialExpression, uniforms: Rec
       case 'input':
         check(uv !== null, CODE.UV, 'Canonical UV input requires explicit UV');
         return finite(uv[node.name === 'uv_u' ? 0 : 1]);
+      case 'select': {
+        const value = scalar(visit(node.value, depth + 1));
+        const threshold = scalar(visit(node.threshold, depth + 1));
+        // Both branches were admitted during source reconstruction. Only the
+        // chosen branch executes, preserving its original Number coefficients.
+        return visit(value < threshold ? node.below : node.otherwise, depth + 1);
+      }
       case 'unary': {
         const value = scalar(visit(node.value, depth + 1));
         return finite(node.operator === '-' ? -value : +value);
@@ -183,4 +191,77 @@ export function evaluateAuthoredMaterial(input: unknown): AuthoredMaterialSample
   return freeze({ format: 'barocss-gpu-authored-material-sample' as const, version: 0 as const,
     profile: 'binary64-linear-rgb-v0' as const, colorSpace: 'linear-rgb' as const, uvUnit: 'dimensionless' as const,
     source: binding.material.source, material: binding.material, uniforms: binding.uniforms, uv, linearRGB }) as AuthoredMaterialSample;
+}
+
+
+export interface DiscreteAuthoredMaterialRequest {
+  material: DiscreteMeshMaterialIR;
+  uniforms: Record<string, number>;
+}
+export interface DiscreteAuthoredMaterialSample {
+  readonly format: 'barocss-gpu-discrete-authored-material-sample';
+  readonly version: 0;
+  readonly profile: 'binary64-discrete-linear-rgb-v0';
+  readonly colorSpace: 'linear-rgb';
+  readonly source: string;
+  readonly material: Frozen<DiscreteMeshMaterialIR>;
+  readonly uniforms: Readonly<Record<string, number>>;
+  readonly linearRGB: readonly [number, number, number];
+}
+/** Only actual reflection belongs in this catch; local checks stay outside. */
+function discreteReflection<T>(read: () => T): T {
+  try { return read(); }
+  catch (cause) { throw new AuthoredMaterialEvaluationError(CODE.INPUT, 'Discrete material own-data reflection refused', cause); }
+}
+function discreteRecord(input: unknown, code: AuthoredMaterialEvaluationDiagnosticCode, maximum: number): Record<string, unknown> {
+  check(input !== null && typeof input === 'object', code, 'Discrete material requires ordinary own data');
+  const data = discreteReflection(() => ({
+    array: Array.isArray(input), proto: Object.getPrototypeOf(input),
+    keys: Reflect.ownKeys(input), descriptors: Object.getOwnPropertyDescriptors(input),
+  }));
+  check(!data.array && data.proto === Object.prototype, code, 'Discrete material requires current-realm ordinary records');
+  check(data.keys.length <= maximum, code, 'Discrete material record exceeds its field limit');
+  check(data.keys.every(key => typeof key === 'string' && Object.hasOwn(data.descriptors, key) && 'value' in data.descriptors[key] && data.descriptors[key].enumerable), code, 'Discrete material refuses accessors, hidden or symbol fields');
+  return Object.fromEntries((data.keys as string[]).map(key => [key, data.descriptors[key].value]));
+}
+function discreteHeader(input: unknown): void {
+  check(input !== null && typeof input === 'object', CODE.INPUT, 'Discrete material requires an ordinary header');
+  const header = discreteReflection(() => ({
+    array: Array.isArray(input), proto: Object.getPrototypeOf(input),
+    descriptors: ['format', 'version', 'profile'].map(key => Object.getOwnPropertyDescriptor(input, key)),
+  }));
+  check(!header.array && header.proto === Object.prototype, CODE.INPUT, 'Discrete material requires a current-realm ordinary header');
+  check(header.descriptors.every(descriptor => descriptor && 'value' in descriptor && descriptor.enumerable), CODE.INPUT, 'Discrete material header requires own enumerable data');
+  const values = header.descriptors.map(descriptor => descriptor!.value);
+  check(values[0] === 'barocss-gpu-discrete-mesh-material' && values[1] === 0 && values[2] === 'mesh-opaque-discrete-fragment-v0', CODE.PROFILE, 'Unsupported discrete material format/version/profile');
+}
+/** CPU binary64 palette sampling only; no binding, lighting, UV or GPU pixels. */
+export function evaluateDiscreteAuthoredMaterial(input: unknown): DiscreteAuthoredMaterialSample {
+  const data = discreteRecord(input, CODE.INPUT, 2);
+  check(Object.keys(data).length === 2 && Object.hasOwn(data, 'material') && Object.hasOwn(data, 'uniforms'), CODE.INPUT, 'Discrete request requires exactly material/uniforms');
+  discreteHeader(data.material);
+  const overrides = discreteRecord(data.uniforms, CODE.UNIFORM, 16);
+  for (const [name, value] of Object.entries(overrides)) {
+    check(/^[A-Za-z_][A-Za-z0-9_]{0,31}$/.test(name) && name !== '__proto__', CODE.UNIFORM, 'Discrete uniform name is invalid or unsafe');
+    check(typeof value === 'number' && Number.isFinite(value), CODE.UNIFORM, 'Discrete uniform override requires a finite Number');
+  }
+  let material: DiscreteMeshMaterialIR;
+  try { material = validateDiscreteMeshMaterialIR(data.material); }
+  catch (cause) {
+    const code = cause instanceof MeshMaterialError && cause.code === 'BUDGET' ? CODE.BUDGET : CODE.MATERIAL;
+    throw new AuthoredMaterialEvaluationError(code, cause instanceof MeshMaterialError ? cause.message : 'Discrete material reconstruction refused', cause);
+  }
+  check(Object.keys(overrides).every(name => material.uniforms.some(uniform => uniform.name === name)), CODE.UNIFORM, 'Unknown discrete uniform override');
+  const uniforms = Object.fromEntries(material.uniforms.map(uniform => {
+    check(uniform.name !== '__proto__', CODE.UNIFORM, 'Unsafe declared discrete uniform name');
+    const value = Object.hasOwn(overrides, uniform.name) ? overrides[uniform.name] : uniform.default;
+    check(typeof value === 'number' && Number.isFinite(value) && value >= uniform.min && value <= uniform.max, CODE.UNIFORM, 'Discrete uniform is outside its declared finite range');
+    return [uniform.name, value === 0 ? 0 : value];
+  }));
+  const linearRGB = evaluate(material.expression, uniforms, null);
+  const result: DiscreteAuthoredMaterialSample = { format: 'barocss-gpu-discrete-authored-material-sample', version: 0,
+    profile: 'binary64-discrete-linear-rgb-v0', colorSpace: 'linear-rgb', source: material.source, material, uniforms, linearRGB };
+  const text = JSON.stringify(result);
+  check(text.length <= 2097152 && new TextEncoder().encode(text).length <= 2097152, CODE.BUDGET, 'Discrete material sample exceeds 2MiB');
+  return freeze(result);
 }
