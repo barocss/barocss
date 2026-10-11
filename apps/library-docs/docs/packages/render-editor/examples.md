@@ -86,5 +86,3 @@ Temporary camera previews also remain separate from authoring. Use view stages t
 The [GPU Scene example](/playground#gpu-scene) renders original Source1 input through the GPU package. This image shows the render path the editor orchestrates; it is not an editor Save/Open or recovery result.
 
 A version 1 mixed document is a separate profile with one original Sphere scene and one selected native CAD Surface. Sphere fields rewrite scene source; Surface placement transforms display geometry after the explicit mm-to-scene conversion. Complete original native source/weights/knots/IDs remain separate. A native Surface point query uses original U/V and returns mm, not a screen pick. See the [mixed editing guide](./guides#prepare-a-mixed-document) for the complete boundary.
-
-[API](./api) · [Public signatures](./reference) · [Limits and errors](./limits)

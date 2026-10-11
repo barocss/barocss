@@ -95,5 +95,3 @@ The host serves complete Source0 text at its URL and owns selection, cancellatio
 ![Original CAD Surface displayed through a derived GPU mesh](/examples/cad-surface.png)
 
 The [CAD Surface example](/playground#cad-surface) shows original source beside a derived GPU mesh. This picture illustrates model/mesh/image roles; it uses a different Surface and render path from the Three example above. It is not a Three, Babylon, Pixi3D or exported-file result.
-
-[API](./api) · [Public signatures](./reference) · [Limits and errors](./limits)

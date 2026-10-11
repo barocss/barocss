@@ -12,6 +12,4 @@ The host owns React components, form state, named callbacks, JSON transport, val
 
 [Quickstart](./quickstart) · [Guides](./guides) · [API](./api) · [Examples](./examples) · [Limits and errors](./limits)
 
-[Public declarations](/packages/render/reference#declarations-0e64152d61f2)
-
 `packages/barocss-render/package.json` (Manifest and version; local source) · `packages/barocss-render/README.md` (Package task notes; local source)

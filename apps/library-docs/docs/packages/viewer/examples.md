@@ -93,5 +93,3 @@ if (hit) viewer.select(hit.ref);
 Original U/V has no length unit and follows the native knot domain. A native query evaluates the original Surface at explicit parameters. A screen pick selects a sampled triangle and approximate parameters; it is not a certified native ray intersection. Keep native XYZ, displayed pose and rendered image separate. Use model-qualified references because a local Surface ID can occur in different Models.
 
 The Viewer sample above uses genuine WebGL2 presentation. The [CAD Surface image in the playground](/playground#cad-surface) uses a separate direct GPU mesh path. Each display API retains its own supported mode, limits and lifecycle.
-
-[API](./api) · [Public signatures](./reference) · [Limits and errors](./limits)

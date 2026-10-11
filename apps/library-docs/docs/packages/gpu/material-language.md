@@ -367,4 +367,4 @@ Function expansion and local reuse consume these same node/depth budgets. A shor
 
 This profile changes opaque fragment color. It has no arbitrary GLSL, texture sampling, UVs, alpha, discard, lighting-language blocks or vertex displacement. It does not apply to `mountScene` SDF objects. The CPU Engine material/texture binding types are a separate API and do not establish a general Engine renderer in this source snapshot.
 
-Read the [public material signatures](./reference#declarations-0b26a7625574), [scene language](./language) and [examples](./examples) for this API profile.
+Read the [material binding guide](./guides#bind-a-material-and-retain-accepted-state), [scene language](./language) and [examples](./examples) for this API profile.

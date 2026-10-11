@@ -12,6 +12,4 @@ Caller ownership includes canvas/DOM, input focus, transport/cancellation, sourc
 
 [Quickstart](./quickstart) · [Guides](./guides) · [API](./api) · [Examples](./examples) · [Limits and errors](./limits)
 
-[Public Viewer and types](/packages/viewer/reference#declarations-7b22356f8dac)
-
 `packages/barocss-viewer/package.json` (Manifest and version; local source) · `packages/barocss-viewer/README.md` (Package task notes; local source)

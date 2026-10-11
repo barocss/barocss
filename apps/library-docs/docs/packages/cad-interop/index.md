@@ -11,7 +11,7 @@ The root entry is renderer-neutral. Optional entries use the selected peer engin
 | One original Curve / one selected Curve | `*-uniform-curve`, `*-selected-uniform-curve` | [Curve guide](./guides#choose-a-curve-sampling-profile) |
 | Native CAD document | `/document`, named `*-document` adapters | [Document guide](./guides#load-documents-and-assemblies-as-their-own-formats) |
 | Native assembly / model-set manifest | `/assembly`, named `*-assembly`, `/model-set` | [Composition guide](./guides#load-documents-and-assemblies-as-their-own-formats) |
-| Authored Boolean extrusion graph | Graph, mesh, properties and named display entries | [API entry inventory](./api#public-entry-inventory) |
+| Authored Boolean extrusion graph | Graph, mesh, properties and named display entries | [Format choices](./guides#load-documents-and-assemblies-as-their-own-formats) |
 
 ## Preserve the native record
 
@@ -25,6 +25,6 @@ Use [limits/errors](./limits) before enabling complete-source capacity or combin
 
 ---
 
-Source snapshot: local Git `5f5ad866205a21510ac69552e704cc162fa253b5`. `packages/barocss-cad-interop/package.json` (Manifest; local source), [public root](/packages/cad-interop/reference#declarations-9cb9edb1215a), `packages/barocss-cad-interop/README.md` (package README; local source). Source references identify that fixed snapshot. This native source commit is local-only; public declaration references open in this portal. Local source is the authority for this manual.
+Source snapshot: local Git `5f5ad866205a21510ac69552e704cc162fa253b5`. `packages/barocss-cad-interop/package.json` (Manifest; local source), `packages/barocss-cad-interop/src/index.ts`, `packages/barocss-cad-interop/README.md` (package README; local source). Source references identify that fixed snapshot. This native source commit is local-only. Local source is the authority for this manual.
 
 [Overview](./) · [Quickstart](./quickstart) · [Guides](./guides) · [API](./api) · [Examples](./examples) · [Limits](./limits)

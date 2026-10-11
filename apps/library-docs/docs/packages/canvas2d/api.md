@@ -1,6 +1,6 @@
 # Canvas2D public entries
 
-Read the [complete public signature reference](./reference) for exact exported functions, types and public class members. This task page explains their support, ownership, errors and lifecycle.
+Use the task contracts below to check inputs, ownership, errors and lifecycle. Follow [Examples](./examples) for complete application inputs.
 
 
 | Entry | Workspace | Release configuration |
@@ -10,7 +10,7 @@ Read the [complete public signature reference](./reference) for exact exported f
 
 ## Renderer and editable scene
 
-| Signature | Result and ownership | Error boundary |
+| Method | Result and ownership | Error boundary |
 | --- | --- | --- |
 | `createCanvas2D(canvas, options): Canvas2DRenderer` | Own GL resources; host owns canvas. Options include `logicalSize`, `dpr`, optional `maxDeviationDevicePx` and `backgroundColor`. | Invalid size/options or unavailable WebGL2 refuse. |
 | `renderer.updateScene(value: unknown): void` | Admit copied scene; no implicit paint. | Scene/assets/budget refusal retains accepted renderer data. |
@@ -28,16 +28,16 @@ Renderer also exposes asset set/get/remove, background set/get, view set, resize
 
 The root exports `decodeImageBlob`, `loadImageURL`, `createImageAssetCache`, `blurImageAsset`, `shadowImageAsset`, `createSpriteAtlas`, `packSpriteAtlas`, `createSpriteAnimation`, `createTicker`, `rasterizeBrowserText`, `rasterizeBrowserMultilineText`, `rasterizeBrowserWrappedText`, `importSVGElement`, `exportSceneSVG`, `booleanOrthogonalPolygons`, `parseSceneJSON`, `stringifySceneJSON` and `Canvas2DError`. Each is bounded; an image/text helper is not an unrestricted design-tool pipeline.
 
-[Exact exported runtime symbols and public types](/packages/canvas2d/reference#declarations-d01fa4b173ed) · [Renderer method signatures](/packages/canvas2d/reference#declarations-ef07061cdae4) · [DisplayTree and handle contracts](/packages/canvas2d/reference#declarations-e8552442c5bb)
+See [retained scene edits](./guides#submit-a-tree-edit), [path construction](./guides#build-a-path) and [complete examples](./examples) for application use.
 
 ## Document entry
 
 `serializeCanvasDocument(acceptedScene, getAsset): Promise<string>` copies referenced assets and canonical scene data. `parseCanvasDocument(text): Promise<ParsedCanvasDocument>` verifies and returns copied scene/assets. `stageCanvasDocument(text,freshCanvas,options): Promise<StagedCanvasDocument>` adds a rendered candidate. `exportCanvasDocumentPNG(text,options,createCanvas): Promise<CanvasPNGExport>` renders an owned candidate, returns a Blob and size metadata, and disposes its renderer.
 
-[Exact document types and functions](/packages/canvas2d/reference#declarations-197efc20a356)
+Follow [Save and reopen owned assets](./guides#save-and-reopen-owned-assets) for a complete document lifecycle.
 
 ## Versioned public data
 
-The root exports Scene/Node profile types through SceneV29, paint/transform/color/view types, image asset types, display handles/events, path observations, ticker/atlas/animation/text types and image preparation options. Scene versions are independent of package and document versions. Read the linked declarations for exact required fields; do not combine fields from different Scene versions.
+The root exports Scene/Node profile types through SceneV29, paint/transform/color/view types, image asset types, display handles/events, path observations, ticker/atlas/animation/text types and image preparation options. Scene versions are independent of package and document versions. Use the [complete retained-scene example](./examples#create-and-submit-a-retained-object) for matching fields; do not combine fields from different Scene versions.
 
 `packages/barocss-canvas2d/package.json` (Manifest and version; local source) · `packages/barocss-canvas2d/README.md` (Package task notes; local source)

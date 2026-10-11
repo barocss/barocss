@@ -1,8 +1,5 @@
 # Render Editor public entry contracts
 
-Read the [complete public signature reference](./reference) for exact exported functions, types and public class members. This task page explains their support, ownership, errors and lifecycle.
-
-
 | Entry | Workspace / release configuration |
 | --- | --- |
 | Root | `src/index.ts` / `dist/index.js` and declarations |
@@ -11,7 +8,7 @@ Read the [complete public signature reference](./reference) for exact exported f
 
 ## Source document and session
 
-| Signature | Input / return | Ownership and errors |
+| Method | Input / return | Ownership and errors |
 | --- | --- | --- |
 | `validateRenderEditorDocument(input:unknown): RenderSceneDocumentV0` | Exact version0 document, original Source1 source and camera. | Frozen owned result; schema/bytes/compiler/camera errors. |
 | `parseRenderEditorDocument(text): RenderSceneDocumentV0` | JSON text → validated document. | Original source preserved; file limits apply. |
@@ -25,8 +22,6 @@ Session methods: `getSnapshot`, `subscribe`, `setDraftSource`, `setDraftObjectSo
 
 Controller methods: `getSnapshot`, `subscribe`, `attachPresenter`, `detachPresenter`, `apply`, `open`, `undo`, `redo`, `recover`, `previewCamera`, `applyCameraPreview`, `cancelCameraPreview`, `presentationUnavailable`, `dispose`.
 
-[Session signatures/types](/packages/render-editor/reference#declarations-0c75caeb5a00) · [Controller/presenter contracts](/packages/render-editor/reference#declarations-cf976af88b6c)
-
 ## Mixed public families
 
 `RENDER_MIXED_DOCUMENT_LIMITS`, `RenderMixedDocumentError`, `copyRenderMixedDocument`, `parseRenderMixedDocument`, `serializeRenderMixedDocument`, `prepareRenderMixedDocument` and their document/preparation types describe the separate mixed format.
@@ -39,13 +34,9 @@ Controller methods: `getSnapshot`, `subscribe`, `attachPresenter`, `detachPresen
 
 `inspectRenderMixedSphereSource`, `editRenderMixedSphereSource`, `inspectRenderSceneObjects`, `editRenderSceneObjectSource`, `addRenderSceneObjectSource`, `removeRenderSceneObjectSource` expose source-authoritative compiler/AST edits. Their patch/property types are re-exported; implementation helpers are not root APIs.
 
-[Exact root export graph](/packages/render-editor/reference#declarations-7ff934513450) · [Mixed session signatures](/packages/render-editor/reference#declarations-6e602b9cef07) · [Mixed document types](/packages/render-editor/reference#declarations-8867ea2c9777)
-
 ## React exports
 
 `RenderEditor`, `SourcePanel`, `ObjectPanel`, `CameraPanel`, `DiagnosticsPanel`, `SceneViewport`, `createSceneViewportPresenter` and the mixed React family are available from `/react`. `RenderMixedEditor`, `MixedSceneViewport` and `createMixedViewportPresenter` connect the whole mixed frame path. Props/slots remain host composition; `onAction` requests file actions and performs no I/O.
-
-[React root and props](/packages/render-editor/reference#declarations-ff49b1eb9943) · [Mixed React exports](/packages/render-editor/reference#declarations-ac9669117634)
 
 ## Disposal
 

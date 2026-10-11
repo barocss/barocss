@@ -287,6 +287,6 @@ The scene renderer chooses the nearest primitive distance. It is not a CAD Boole
 
 ## API profile
 
-This page describes source0 and source1 for local experimental `@barocss/gpu` version0.0.0 at the source snapshot stated above. Read the [public scene declarations](./reference#declarations-21b9b53efbc1) and [compiler declarations](./reference#declarations-26111c43dbbc) for exact signatures. A browser host needs WebGL2 and a TypeScript-capable bundler for the local source package.
+This page describes source0 and source1 for local experimental `@barocss/gpu` version0.0.0 at the source snapshot stated above. Read the [scene input rules](./language#choose-the-correct-language) and [scene compiler contracts](./api#scene-compiler-and-live-renderer) before constructing compiler inputs. A browser host needs WebGL2 and a TypeScript-capable bundler for the local source package.
 
 [Examples](./examples) · [Material language](./material-language) · [API](./api) · [Limits](./limits)

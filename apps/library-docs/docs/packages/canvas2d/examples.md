@@ -114,4 +114,4 @@ The current tree snapshot uses Scene version 29. Reopening creates new handles w
 
 Dispose owned renderers and remove host listeners on document close. The canvas belongs to the host. WebGL2 availability, context state and admitted scene limits still apply.
 
-[API](./api) · [Public signatures](./reference) · [Limits and errors](./limits)
+[API](./api) · [Limits and errors](./limits)

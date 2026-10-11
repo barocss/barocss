@@ -2,7 +2,7 @@
 
 Compile original geometry, query it, then prepare a separate display mesh. These examples use actual `@barocss/cad` public exports at version `0.0.0-experimental`. Use [the language reference](./language) to edit source0/1/2 correctly.
 
-[Open the CAD playground](/playground#cad-surface) · [Compiler signature](./reference#compilecadmodel) · [Surface sampling signature](./reference#tessellatesurface)
+[Open the CAD playground](/playground#cad-surface) · [Compiler API](./api#core-signatures) · [Surface sampling guide](./guides#sample-a-surface-for-display)
 
 ## More editable language examples
 

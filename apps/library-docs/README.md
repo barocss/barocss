@@ -18,22 +18,22 @@ The source material probe creates ignored app-local GPU/CAD dependency links and
 
 `evidence/package-inventory.json` freezes all12 actual manifest versions/maps/hashes. The checker refuses manifest drift; review changes before refreshing a snapshot. Native build/browser/snippet receipts record actual results and first failures. No deployment or Pages configuration is included.
 
-## Public API reference and maintenance
+## API guidance and internal evidence maintenance
 
-Each of the nine newer sections has a complete public signature reference resolved through actual manifest entries. Root TypeScript^5.9.2 supplies extraction (actual reused5.9.3); no new dependency is required. Render uses its tracked src/index.d.ts as declaration provenance for a dist-default runtime, not a fabricated source entry.
+The manual uses task API guides, language guides and runnable examples. Public names and declarations resolved through actual manifest entries remain internal drift evidence in `evidence/public-api.json`. Existing `/packages/<slug>/reference` URLs provide onward navigation and are excluded from search. Root TypeScript^5.9.2 supplies extraction (actual reused5.9.3); no new dependency is required. Render uses its tracked src/index.d.ts as declaration provenance for a dist-default runtime, not a fabricated source entry.
 
 ```sh
 node apps/library-docs/scripts/public-api.mjs --check
 node apps/library-docs/scripts/public-api.mjs --self-test
-# After review of actual source contracts, regenerate the baseline and pages:
+# After review of actual source contracts, regenerate only the evidence baseline:
 node apps/library-docs/scripts/public-api.mjs --write
 ```
 
-Extraction follows actual re-exports with ignored app-local workspace links and ordinary TypeScript dependency search. It refuses undeclared/missing symbol provenance and any own package resolution outside this native root. Public names/signatures/version/complete export maps are compared; added/removed/changed groups fail. Private/protected members and bodies are excluded. Public constructor parameter properties are included. This is declaration documentation, not emitted artifact equivalence, runtime/type-check acceptance or semantic drift proof. Behavior/error/ownership changes can require manual page review even when signatures stay identical. No schedule/automation is installed.
+Extraction follows actual re-exports with ignored app-local workspace links and ordinary TypeScript dependency search. It refuses undeclared/missing symbol provenance and any own package resolution outside this native root. Public names/signatures/version/complete export maps are compared; added/removed/changed groups fail. Private/protected members and bodies are excluded. Public constructor parameter properties are included. This is internal declaration evidence, not emitted artifact equivalence, runtime/type-check acceptance or semantic drift proof. Behavior/error/ownership changes can require manual page review even when signatures stay identical. No schedule/automation is installed.
 
 Before `--write`, the extractor verifies the nine tracked package trees against the explicit source pin and requires declaration paths to exist at that pin. A later source snapshot needs deliberate inventory/pin and semantic review; the writer does not silently retag new source. Module README drift is separately tracked in [#1260](https://github.com/barocss/barocss/issues/1260).
 
-The source-link receipt confirms the fixed commit is local-only (actual GitHub422). Handwritten API source groups link to generated site-local public declaration anchors. Other local repository paths are provenance text. `node apps/library-docs/scripts/source-links.mjs --check` rejects unavailable fixed-SHA GitHub links; `--write` repairs known public groups after regeneration. Never substitute moving main/develop or push product code to make a provenance URL work. Recheck the exact remote commit before marking its availability receipt true.
+The source-link receipt confirms the fixed commit is local-only (actual GitHub422). Local repository paths are provenance text; reader-facing declaration dumps are not generated. `node apps/library-docs/scripts/source-links.mjs --check` rejects unavailable fixed-SHA GitHub links; `--write` converts unavailable exact source links to local provenance text. Never substitute moving main/develop or push product code to make a provenance URL work. Recheck the exact remote commit before marking its availability receipt true.
 
 ## Runnable visual examples and languages
 
