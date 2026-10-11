@@ -14,3 +14,12 @@ Delete selected path removes only a created Q/C direct child from a copied Paren
 Delete is disabled during a pending gesture, without a selection and after Dispose. A direct pending/no-selection call returns false without changing accepted state. This is an example operation; no new library API or general object deletion profile is added.
 
 Native acceptance and exact adoption are recorded separately in evidence/path-deletion/. Original pointer creation/capture-loss receipts and incomplete driver records remain under their original evidence paths and native commits.
+
+
+## Selected solid fill RGB (#1478)
+
+Select a created Q/C path, enter exactly #RRGGBB, and apply its fill RGB. The existing opaque alpha, fill rule, stroke and all commands stay the same. Undo and Redo restore complete scenes. Save and Open keep the accepted color and original image bytes. Invalid RGB text stays available for correction and does not replace the accepted scene.
+
+The new RGB control follows selection, history, Open and deletion selection changes. It is disabled without a supported solid fill, during a pending gesture and after Dispose. Existing coordinate controls and error behavior remain. The example now permits byte-normalized fill RGB while its immutable authoring validator still checks every other style/shape restriction on a validation copy; the actual scene retains its original colors and its64KiB bound.
+
+The bounded opaque Q/C color flow and native lifetime proof are recorded separately under evidence/fill-rgb/. Earlier creation, deletion, capture-loss and incomplete receipts remain under their original paths/native commits.
