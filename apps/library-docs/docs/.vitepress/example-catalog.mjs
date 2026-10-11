@@ -8,6 +8,8 @@ const materialSource = { language: 'GPU mesh material', libraries: Object.freeze
 // Category describes the reader's task. A shared display host is not an
 // integration task; libraries lists public packages used by that sample.
 export const exampleCatalog = Object.freeze({
+  'svg-export': item('SVG export', 'svg-export', 'canvas2d', 'api', '/packages/canvas2d/svg-export',
+    'Edit a two-stop path gradient, download its SVG image and reopen the separate editable scene JSON.'),
   scene: item('GPU scene', 'gpu-scene', 'gpu', 'language', '/packages/gpu/examples#rotated-box-and-sphere',
     'Edit source1 shapes, placement, rotation and color in a complete scene.', { language: 'GPU scene source1' }),
   curve: item('CAD curve', 'cad-curve', 'cad', 'language', '/packages/cad/examples#read-a-rational-quarter-circle-result',

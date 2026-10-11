@@ -40,6 +40,10 @@ const open = (text: string, freshCanvas: HTMLCanvasElement, options: Canvas2DOpt
 
 Use a fresh canvas for Open. Stage verifies referenced RGBA8 bytes/digests, registers assets, admits and renders. Swap the visible canvas and dispose the old renderer only after success. Failure disposes the candidate and keeps your live canvas. Reconstruct a new editable tree with `createDisplayTreeFromScene(staged.scene)`; old handles are not rebound. Supply background options again: background is host configuration and is absent from the document.
 
+## Export SVG for display
+
+Use [linear SVG export](./svg-export) when a supported Scene29 group/path scene needs a browser-display SVG. Save a separate editable JSON document for fresh Open and re-editing; the SVG importer keeps its solid-only contract. This named exporter uses its own newer source profile.
+
 ## Own a render loop
 
 `createCanvas2DApplication` owns one renderer, tree and ticker. It starts stopped unless `autoStart:true`. Register `onUpdate`, mutate handles, and let the application submit one automatic frame after updates. `stop()` cancels its frame loop. `dispose()` stops owned scheduling, clears subscriptions and disposes its renderer. The host still owns canvas/DOM/file state.

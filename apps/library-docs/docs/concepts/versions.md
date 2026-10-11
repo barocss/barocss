@@ -4,6 +4,8 @@ The [catalog](/packages/), generated public signatures and original examples use
 
 Newer task guides state their own execution profile. For example, [Unicode labels](/packages/canvas2d/unicode-labels), [diagram labels](/packages/canvas2d/diagram-labels) and [path control editing](/packages/canvas2d/path-editing) use separate fixed source profiles. Read the selected guide's profile before using its APIs. Unless another profile is stated, the version and export-map statements on this page describe the catalog baseline.
 
+[Linear SVG export](/packages/canvas2d/svg-export) uses `@barocss/canvas2d` version `0.0.0-experimental` at fixed source `572ca35de6581b634c11919de9a1881bf5a72d28`. Its public root entry adds `exportSceneLinearSVG`; the source-default root and `@barocss/canvas2d/document` entries remain the matching execution paths. This separate profile does not update baseline signatures or earlier examples. The legacy SVG exporter and solid-only importer keep their own contracts; gradient display export does not establish gradient import, parity or publication.
+
 ## Choose an execution path
 
 Most workspace development entries point to TypeScript source. Use the repository's supported Node 22+ tools and a TypeScript-transforming bundler or runner. Ordinary package-name imports select these source entries. No custom source condition is required.
