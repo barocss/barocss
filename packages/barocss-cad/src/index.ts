@@ -418,3 +418,7 @@ export type { SourceSurfaceDegreeElevationRequest, SourceSurfaceDegreeElevationP
 
 export { importIGES, validateIGESImport, IGESImportError, IGESImportDiagnosticCode } from './iges-import.js';
 export type { IGESImportOptions, IGESImportEntity, IGESImportReport, IGESImportResult } from './iges-import.js';
+
+
+export { buildSourceLineWidthFace, validateSourceLineWidthFace, SourceLineWidthFaceError, SourceLineWidthFaceDiagnosticCode } from './source-line-width-face.js';
+export type { SourceLineWidthFaceRequest, SourceLineWidthFaceOptions, SourceLineWidthFaceReport, SourceLineWidthFaceResult } from './source-line-width-face.js';
