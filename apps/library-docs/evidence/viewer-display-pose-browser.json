@@ -1,0 +1,934 @@
+{
+  "status": "qualified-first-dev, later-readout and selected-production-presentation/navigation",
+  "scopeURL": "https://github.com/barocss/barocss/issues/1247#issuecomment-6108343444",
+  "sourcePin": "5f5ad866205a21510ac69552e704cc162fa253b5",
+  "reconstruction": {
+    "rootSession": "/Users/user/.codex/sessions/2026/10/10/rollout-2026-10-10T19-35-29-01a12561-ce8c-7ce0-9284-535e6ceb4daa.jsonl",
+    "rootSessionId": "01a12561-ce8c-7ce0-9284-535e6ceb4daa",
+    "firstDevLines": [
+      16733,
+      16849
+    ],
+    "laterPresentationLines": [
+      17190,
+      17230
+    ],
+    "browserAPIOrBuildReplay": false,
+    "extractionFirstFailure": "Expected11 receipts assertion failed before writing files; actual10 receipts retained unchanged on repair.",
+    "productionLines": [
+      17628,
+      17725
+    ]
+  },
+  "browser": {
+    "backend": "Codex in-app browser",
+    "browserId": "2",
+    "firstTabId": "44",
+    "laterTabId": "47",
+    "devURL": "http://127.0.0.1:52949/examples/library#viewer-display-pose",
+    "browserVersion": "not recorded in selected receipts"
+  },
+  "firstDev": {
+    "receipts": [
+      {
+        "sessionLine": 16743,
+        "timestamp": "2026-10-11T11:21:34.633Z",
+        "receipt": {
+          "receiptKind": "pose-dev-initial",
+          "status": "ready",
+          "sourceProfile": "5f5ad866205a21510ac69552e704cc162fa253b5",
+          "measurement": {
+            "first": {
+              "ref": {
+                "modelId": "pose_panel",
+                "surfaceId": "panel"
+              },
+              "u": 0,
+              "v": 0.5,
+              "pointMM": [
+                0,
+                0,
+                20
+              ]
+            },
+            "second": {
+              "ref": {
+                "modelId": "pose_panel",
+                "surfaceId": "panel"
+              },
+              "u": 1,
+              "v": 0.5,
+              "pointMM": [
+                100,
+                0,
+                20
+              ]
+            },
+            "distanceMM": 100,
+            "space": "native-authored",
+            "certification": "not-certified"
+          },
+          "projection": {
+            "point": {
+              "kind": "surface",
+              "ref": {
+                "modelId": "pose_panel",
+                "surfaceId": "panel"
+              },
+              "u": 0.35,
+              "v": 0.4,
+              "pointMM": [
+                35,
+                0,
+                16
+              ]
+            },
+            "displayPositionScene": [
+              0.035,
+              0,
+              0.016
+            ],
+            "xCss": 221.91441036961302,
+            "yCss": 176.97517979190894,
+            "depthScene": 0.3980218650482433,
+            "approximate": true,
+            "occlusion": "not-tested",
+            "documentBody": null
+          },
+          "midpointProjection": {
+            "point": {
+              "kind": "surface",
+              "ref": {
+                "modelId": "pose_panel",
+                "surfaceId": "panel"
+              },
+              "u": 0.5,
+              "v": 0.5,
+              "pointMM": [
+                50,
+                0,
+                20
+              ]
+            },
+            "displayPositionScene": [
+              0.05,
+              0,
+              0.02
+            ],
+            "xCss": 230.99999999999997,
+            "yCss": 182.09608103700862,
+            "depthScene": 0.386988019778436,
+            "approximate": true,
+            "occlusion": "not-tested",
+            "documentBody": null
+          },
+          "frame": {
+            "width": 640,
+            "height": 420,
+            "byteCount": 1075200,
+            "rgbaChecksum": "fnv1a32:527fe8e1"
+          },
+          "ledger": {
+            "created": 1,
+            "disposeCalls": 0,
+            "pending": 0,
+            "listenersAttached": 1,
+            "listenersRemoved": 0,
+            "lastDisposedLedger": null,
+            "scope": "Application create/dispose/listener calls; not raw GPU deletion"
+          },
+          "logs": []
+        }
+      },
+      {
+        "sessionLine": 16757,
+        "timestamp": "2026-10-11T11:22:09.961Z",
+        "receipt": {
+          "receiptKind": "pose-dev-apply",
+          "measurementRetained": true,
+          "projection": {
+            "point": {
+              "kind": "surface",
+              "ref": {
+                "modelId": "pose_panel",
+                "surfaceId": "panel"
+              },
+              "u": 0.35,
+              "v": 0.4,
+              "pointMM": [
+                35,
+                0,
+                16
+              ]
+            },
+            "displayPositionScene": [
+              0.029999999999999992,
+              0.045000000000000005,
+              0.016
+            ],
+            "xCss": 217.67803662279698,
+            "yCss": 137.27506480232253,
+            "depthScene": 0.383225264292009,
+            "approximate": true,
+            "occlusion": "not-tested",
+            "documentBody": null
+          },
+          "midpointProjection": {
+            "point": {
+              "kind": "surface",
+              "ref": {
+                "modelId": "pose_panel",
+                "surfaceId": "panel"
+              },
+              "u": 0.5,
+              "v": 0.5,
+              "pointMM": [
+                50,
+                0,
+                20
+              ]
+            },
+            "displayPositionScene": [
+              0.029999999999999992,
+              0.06000000000000001,
+              0.02
+            ],
+            "xCss": 215.0913871647281,
+            "yCss": 124.66121573400322,
+            "depthScene": 0.3744008661939471,
+            "approximate": true,
+            "occlusion": "not-tested",
+            "documentBody": null
+          },
+          "frame": {
+            "width": 640,
+            "height": 420,
+            "byteCount": 1075200,
+            "rgbaChecksum": "fnv1a32:fc221ace"
+          },
+          "recipe": {
+            "nativeSource": "@model pose_panel {\n  version: 0; length-unit: mm;\n  @surface #panel {\n    type: nurbs; degree-u: 1; degree-v: 1;\n    knots-u: [0,0,1,1]; knots-v: [0,0,1,1];\n    control-points: [[[0,0,0],[0,0,40]],[[100,0,0],[100,0,40]]];\n    weights: [[1,1],[1,1]];\n  }\n}",
+            "pose": {
+              "contextId": "pose-panel-session",
+              "timeSeconds": 0,
+              "poses": [
+                {
+                  "targetId": "panel-pose",
+                  "translation": [
+                    30,
+                    10,
+                    0
+                  ],
+                  "rotation": [
+                    0,
+                    0,
+                    0.7071067811865476,
+                    0.7071067811865476
+                  ],
+                  "scale": [
+                    1,
+                    1,
+                    1
+                  ]
+                }
+              ]
+            },
+            "probeUV": [
+              0.35,
+              0.4
+            ]
+          },
+          "sourceSame": true,
+          "cameraSame": true
+        }
+      },
+      {
+        "sessionLine": 16757,
+        "timestamp": "2026-10-11T11:22:09.961Z",
+        "receipt": {
+          "receiptKind": "pose-dev-native-measure",
+          "measurement": {
+            "first": {
+              "ref": {
+                "modelId": "pose_panel",
+                "surfaceId": "panel"
+              },
+              "u": 0,
+              "v": 0.5,
+              "pointMM": [
+                0,
+                0,
+                20
+              ]
+            },
+            "second": {
+              "ref": {
+                "modelId": "pose_panel",
+                "surfaceId": "panel"
+              },
+              "u": 1,
+              "v": 0.5,
+              "pointMM": [
+                100,
+                0,
+                20
+              ]
+            },
+            "distanceMM": 100,
+            "space": "native-authored",
+            "certification": "not-certified"
+          },
+          "nativeSourceSame": true
+        }
+      },
+      {
+        "sessionLine": 16757,
+        "timestamp": "2026-10-11T11:22:09.961Z",
+        "receipt": {
+          "receiptKind": "pose-dev-select",
+          "selected": {
+            "modelId": "pose_panel",
+            "surfaceId": "panel"
+          },
+          "pick": {
+            "ref": {
+              "modelId": "pose_panel",
+              "surfaceId": "panel"
+            },
+            "triangleIndex": 1,
+            "distanceScene": 0.38377206776939876,
+            "positionScene": [
+              0.02999999999999997,
+              0.04500000000000001,
+              0.01599999999999996
+            ],
+            "parameterUV": [
+              0.3500000000000001,
+              0.40000000000000047
+            ],
+            "approximate": true,
+            "ambiguous": false
+          },
+          "pickedUnderPose": {
+            "basis": "part-xyz-matches-rhyup",
+            "frame": {
+              "contextId": "pose-panel-session",
+              "timeSeconds": 0,
+              "poses": [
+                {
+                  "targetId": "panel-pose",
+                  "translation": [
+                    30,
+                    10,
+                    0
+                  ],
+                  "rotation": [
+                    0,
+                    0,
+                    0.7071067811865476,
+                    0.7071067811865476
+                  ],
+                  "scale": [
+                    1,
+                    1,
+                    1
+                  ]
+                }
+              ]
+            },
+            "bindings": [
+              {
+                "contextId": "pose-panel-session",
+                "targetId": "panel-pose",
+                "ref": {
+                  "modelId": "pose_panel",
+                  "surfaceId": "panel"
+                }
+              }
+            ],
+            "displayPoses": [
+              {
+                "ref": {
+                  "modelId": "pose_panel",
+                  "surfaceId": "panel"
+                },
+                "translationMm": [
+                  30,
+                  10,
+                  0
+                ],
+                "rotationXYZW": [
+                  0,
+                  0,
+                  0.7071067811865476,
+                  0.7071067811865476
+                ],
+                "scale": [
+                  1,
+                  1,
+                  1
+                ]
+              }
+            ]
+          },
+          "frame": {
+            "width": 640,
+            "height": 420,
+            "byteCount": 1075200,
+            "rgbaChecksum": "fnv1a32:26cbdf39"
+          },
+          "projection": {
+            "point": {
+              "kind": "surface",
+              "ref": {
+                "modelId": "pose_panel",
+                "surfaceId": "panel"
+              },
+              "u": 0.35,
+              "v": 0.4,
+              "pointMM": [
+                35,
+                0,
+                16
+              ]
+            },
+            "displayPositionScene": [
+              0.029999999999999992,
+              0.045000000000000005,
+              0.016
+            ],
+            "xCss": 217.67803662279698,
+            "yCss": 137.27506480232253,
+            "depthScene": 0.383225264292009,
+            "approximate": true,
+            "occlusion": "not-tested",
+            "documentBody": null
+          }
+        }
+      },
+      {
+        "sessionLine": 16766,
+        "timestamp": "2026-10-11T11:23:09.641Z",
+        "receipt": {
+          "receiptKind": "pose-dev-native-image",
+          "clip": {
+            "height": 303.1875,
+            "width": 462,
+            "x": 765,
+            "y": 916.3984375
+          },
+          "state": "Display pose applied, native100mm measured, projected probe selected"
+        }
+      },
+      {
+        "sessionLine": 16766,
+        "timestamp": "2026-10-11T11:23:09.641Z",
+        "receipt": {
+          "receiptKind": "pose-dev-invalid-quaternion",
+          "alert": "Input refused: RangeError: Motion rotation must be finite in -1..1 {\"scope\":\"Application observation of this live accepted Viewer\",\"checked\":true,\"snapshotEqual\":true,\"pixelBytesEqual\":true,\"comparedPixelBytes\":1075200,\"comparison\":\"Recursive Object.is values and every actual readPixels byte; checksum not used\"}. The last accepted output stays visible while the sample remains live.",
+          "rawReportRetained": true
+        }
+      },
+      {
+        "sessionLine": 16766,
+        "timestamp": "2026-10-11T11:23:09.641Z",
+        "receipt": {
+          "receiptKind": "pose-dev-invalid-domain",
+          "alert": "Input refused: RangeError: Native U/V parameters must be inside the original Surface domain {\"scope\":\"Application observation of this live accepted Viewer\",\"checked\":true,\"snapshotEqual\":true,\"pixelBytesEqual\":true,\"comparedPixelBytes\":1075200,\"comparison\":\"Recursive Object.is values and every actual readPixels byte; checksum not used\"}. The last accepted output stays visible while the sample remains live.",
+          "rawReportRetained": true,
+          "logs": []
+        }
+      },
+      {
+        "sessionLine": 16790,
+        "timestamp": "2026-10-11T11:25:41.944Z",
+        "receipt": {
+          "receiptKind": "pose-dev-image-scroll-correction",
+          "metrics": {
+            "height": 303.1875,
+            "scrollY": 627,
+            "viewportTop": 289.3984375,
+            "width": 462,
+            "x": 765,
+            "y": 916.3984375
+          },
+          "qualification": "Initial capture crossed the current fixed navigation because the canvas began above the viewport. Scroll outside canvas keeps its camera unchanged."
+        }
+      },
+      {
+        "sessionLine": 16819,
+        "timestamp": "2026-10-11T11:28:34.555Z",
+        "receipt": {
+          "receiptKind": "pose-dev-reset-display",
+          "motion": null,
+          "measurementRetained": true,
+          "selectionRetained": true,
+          "cameraRetained": true,
+          "midpointProjection": {
+            "point": {
+              "kind": "surface",
+              "ref": {
+                "modelId": "pose_panel",
+                "surfaceId": "panel"
+              },
+              "u": 0.5,
+              "v": 0.5,
+              "pointMM": [
+                50,
+                0,
+                20
+              ]
+            },
+            "displayPositionScene": [
+              0.05,
+              0,
+              0.02
+            ],
+            "xCss": 230.99999999999997,
+            "yCss": 182.09608103700862,
+            "depthScene": 0.386988019778436,
+            "approximate": true,
+            "occlusion": "not-tested",
+            "documentBody": null
+          },
+          "lastPickHistorical": "Last successful public pick; historical after a later pose or camera change",
+          "frame": {
+            "width": 640,
+            "height": 420,
+            "byteCount": 1075200,
+            "rgbaChecksum": "fnv1a32:f704a9ad"
+          },
+          "ledger": {
+            "created": 3,
+            "disposeCalls": 2,
+            "pending": 0,
+            "listenersAttached": 3,
+            "listenersRemoved": 2,
+            "lastDisposedLedger": null,
+            "scope": "Application create/dispose/listener calls; not raw GPU deletion"
+          },
+          "logs": []
+        }
+      },
+      {
+        "sessionLine": 16849,
+        "timestamp": "2026-10-11T11:31:40.709Z",
+        "receipt": {
+          "receiptKind": "pose-dev-final-first-flow",
+          "logs": [],
+          "ledger": {
+            "created": 3,
+            "disposeCalls": 2,
+            "pending": 0,
+            "listenersAttached": 3,
+            "listenersRemoved": 2,
+            "lastDisposedLedger": null,
+            "scope": "Application create/dispose/listener calls; not raw GPU deletion"
+          },
+          "qualification": "Two rejected candidate Viewer instances disposed; one accepted Viewer still live here. Final native GPU deletion not measured."
+        }
+      }
+    ],
+    "refusals": [
+      {
+        "receiptKind": "pose-dev-invalid-quaternion",
+        "sessionLine": 16766,
+        "changedRecipeFields": {
+          "pose.poses[0].rotation": [
+            0,
+            0,
+            0,
+            2
+          ]
+        },
+        "errorName": "RangeError",
+        "message": "Motion rotation must be finite in -1..1",
+        "retention": {
+          "scope": "Application observation of this live accepted Viewer",
+          "checked": true,
+          "snapshotEqual": true,
+          "pixelBytesEqual": true,
+          "comparedPixelBytes": 1075200,
+          "comparison": "Recursive Object.is values and every actual readPixels byte; checksum not used"
+        },
+        "rawDisplayedReportRetained": true,
+        "rawPixelArraysSavedHere": false,
+        "qualification": "The running host compared complete public getState copies recursively with Object.is and all actual readPixels bytes. Session retains comparison results, not the buffers."
+      },
+      {
+        "receiptKind": "pose-dev-invalid-domain",
+        "sessionLine": 16766,
+        "changedRecipeFields": {
+          "probeUV": [
+            2,
+            0.4
+          ]
+        },
+        "errorName": "RangeError",
+        "message": "Native U/V parameters must be inside the original Surface domain",
+        "retention": {
+          "scope": "Application observation of this live accepted Viewer",
+          "checked": true,
+          "snapshotEqual": true,
+          "pixelBytesEqual": true,
+          "comparedPixelBytes": 1075200,
+          "comparison": "Recursive Object.is values and every actual readPixels byte; checksum not used"
+        },
+        "rawDisplayedReportRetained": true,
+        "rawPixelArraysSavedHere": false,
+        "qualification": "The running host compared complete public getState copies recursively with Object.is and all actual readPixels bytes. Session retains comparison results, not the buffers."
+      }
+    ],
+    "frameDimensions": [
+      640,
+      420
+    ],
+    "frameBytes": 1075200,
+    "appLedgerAtLastObservedLiveState": {
+      "created": 3,
+      "disposeCalls": 2,
+      "pending": 0,
+      "listenersAttached": 3,
+      "listenersRemoved": 2,
+      "lastDisposedLedger": null,
+      "scope": "Application create/dispose/listener calls; not raw GPU deletion"
+    },
+    "acceptedViewerStillLiveAtFinalReceipt": true,
+    "postTabCloseTerminalLedger": "not recorded",
+    "nativeGPUDeletionMeasured": false
+  },
+  "firstFailures": [
+    {
+      "kind": "capture-composition",
+      "sessionLine": 16766,
+      "image": {
+        "stage": "first-clipped-capture",
+        "sessionLine": 16766,
+        "timestamp": "2026-10-11T11:23:09.641Z",
+        "mime": "image/jpeg",
+        "size": [
+          462,
+          303
+        ],
+        "bytes": 6110,
+        "sha256": "4ed8fbff863e4ebf0e65ce4d60819e5d34f38e4907532f14f5902c525b1b93b0",
+        "nativeToolBytesUnmodified": true
+      },
+      "initialViewport": {
+        "sessionLine": 16781,
+        "width": 1280,
+        "height": 720,
+        "scrollY": 1059
+      },
+      "repairReceipt": {
+        "sessionLine": 16790,
+        "timestamp": "2026-10-11T11:25:41.944Z",
+        "receipt": {
+          "receiptKind": "pose-dev-image-scroll-correction",
+          "metrics": {
+            "height": 303.1875,
+            "scrollY": 627,
+            "viewportTop": 289.3984375,
+            "width": 462,
+            "x": 765,
+            "y": 916.3984375
+          },
+          "qualification": "Initial capture crossed the current fixed navigation because the canvas began above the viewport. Scroll outside canvas keeps its camera unchanged."
+        }
+      },
+      "qualification": "Fixed navigation crossed initial clip. Scroll outside canvas corrected composition without camera/source/pose changes or native flow replay."
+    },
+    {
+      "kind": "summary-locator",
+      "sessionLine": 16819,
+      "rawToolError": "Error: Playwright selector deadline exceeded\nwaiting on click for selector internal:role=button[name=\"Actual result data\"s]\nLocator diagnostics: {\"kind\":\"no_matches\",\"action\":\"click\",\"locator\":\"internal:role=button[name=\\\"Actual result data\\\"s]\",\"matchCount\":0,\"matches\":[],\"visibleCount\":0,\"truncated\":false}",
+      "qualification": "Successful Reset receipt was emitted before the later button lookup failed. Reset observation remains; a successful summary toggle was not observed."
+    },
+    {
+      "kind": "later-image-extraction-script",
+      "sessionLine": 17214,
+      "exitCode": 1,
+      "rawError": "Traceback (most recent call last):\n  File \"<stdin>\", line 16, in <module>\nAttributeError: 'NoneType' object has no attribute 'items'\n",
+      "qualification": "Extractor matched its own command record, not a McpToolCall result. Root corrected the filter and reused the same successful native capture; no new capture."
+    },
+    {
+      "kind": "first-docs-check-catalog-label",
+      "sessionLine": 17563,
+      "rawError": "file:///Users/user/.codex/worktrees/library-docs-continue/barocss/apps/library-docs/scripts/check-example-catalog.mjs:13\nconst require = (condition, message) => { if (!condition) throw new Error(`Example catalog: ${message}`); };\n                                                                ^\n\nError: Example catalog: runtime label/anchor differs: viewer-display-pose\n    at require (file:///Users/user/.codex/worktrees/library-docs-continue/barocss/apps/library-docs/scripts/check-example-catalog.mjs:13:65)\n    at checkExampleCatalog (file:///Users/user/.codex/worktrees/library-docs-continue/barocss/apps/library-docs/scripts/check-example-catalog.mjs:89:5)\n    at async file:///Users/user/.codex/worktrees/library-docs-continue/barocss/apps/library-docs/scripts/check-docs.mjs:77:24\n\nNode.js v22.22.0\n\u001b[32m✓\u001b[0m rendering pages...\nbuild complete in 13.94s.\n",
+      "qualification": "The first 13.94 s build passed; metadata check failed. Root corrected only the two labels and rebuilt 13.78 s. No checker condition/provider/API/CPU change."
+    },
+    {
+      "kind": "production-guide-heading-locator",
+      "sessionLine": 17636,
+      "rawToolError": "Playwright selector deadline exceeded",
+      "qualification": "The guide navigation had completed. Exact role/name lookup missed the rendered permalink label. Root read h1 and the already-loaded image without repeating navigation or Viewer actions; later return was observed."
+    },
+    {
+      "kind": "production-catalog-link-locator",
+      "sessionLine": 17711,
+      "rawToolError": "Error: Browser Use encountered an error interacting with this webpage: Error: strict mode violation: getByRole('link', { name: 'Browse the catalog', exact: true }) resolved to 2 elements:\n    1) <a href=\"/examples/\" data-v-b3aed362=\"\">Browse the catalog</a> aka getByLabel('Runnable visual examples').getByRole('link', { name: 'Browse the catalog' })\n    2) <a href=\"./\">Browse the catalog</a> aka getByRole('link', { name: 'Browse the catalog' }).nth(1)\n\nwaiting on click for selector internal:role=link[name=\"Browse the catalog\"s]\nLocator diagnostics: {\"kind\":\"multiple_matches\",\"action\":\"click\",\"locator\":\"internal:role=link[name=\\\"Browse the catalog\\\"s]\",\"matchCount\":2,\"matches\":[{\"ariaLabel\":null,\"disabled\":false,\"role\":null,\"tag\":\"a\",\"text\":\"Browse the catalog\",\"type\":null,\"visible\":true},{\"ariaLabel\":null,\"disabled\":false,\"role\":null,\"tag\":\"a\",\"text\":\"Browse the catalog\",\"type\":null,\"visible\":true}],\"visibleCount\":2,\"truncated\":false}",
+      "qualification": "Unscoped Browse the catalog matched two links and did not navigate. Root scoped the existing link inside .visual-examples, then performed genuine catalog search and return."
+    }
+  ],
+  "numericComparison": {
+    "cpuReceipt": "evidence/viewer-display-pose-consumer.json",
+    "cpuStatus": "passed",
+    "cpuProvenance": {
+      "sourcePin": "5f5ad866205a21510ac69552e704cc162fa253b5",
+      "verifiedBlobs": 281,
+      "ownSourceInputs": 170,
+      "ownDistInputs": 0,
+      "appInputHashes": {
+        "consumer": "b9e31db994dd6c485e85d9d58a57c636d00ab2d55508068b2022f6b4fb349258",
+        "preset": "4735e89f0482894bf48f2831a3e28e9fa97dbc4fde191b35b317fe5e91ab8620"
+      },
+      "host": "Public CAD CPU consumer and app pose math only; no Viewer or browser execution",
+      "oldVisualPinUnchanged": "5f5ad866205a21510ac69552e704cc162fa253b5"
+    },
+    "nativeMidpointMM": [
+      50,
+      0,
+      20
+    ],
+    "nativeProbeMM": [
+      35,
+      0,
+      16
+    ],
+    "distanceMM": 100,
+    "cpuArithmeticMidpointScene": [
+      0.02999999999999999,
+      0.06000000000000002,
+      0.02
+    ],
+    "actualViewerMidpointScene": [
+      0.029999999999999992,
+      0.06000000000000001,
+      0.02
+    ],
+    "actualViewerProbeScene": [
+      0.029999999999999992,
+      0.045000000000000005,
+      0.016
+    ],
+    "cpuIsViewerOracle": false,
+    "bitEqualityClaimed": false,
+    "qualification": "Independent app quaternion/TRS arithmetic differs from actual Viewer in final binary64 rounding. Both describe approximately [.03,.06,.02]; no CPU/GPU pixel parity."
+  },
+  "images": [
+    {
+      "stage": "first-clipped-capture",
+      "sessionLine": 16766,
+      "timestamp": "2026-10-11T11:23:09.641Z",
+      "mime": "image/jpeg",
+      "size": [
+        462,
+        303
+      ],
+      "bytes": 6110,
+      "sha256": "4ed8fbff863e4ebf0e65ce4d60819e5d34f38e4907532f14f5902c525b1b93b0",
+      "nativeToolBytesUnmodified": true
+    },
+    {
+      "stage": "corrected-native-only-capture",
+      "sessionLine": 16790,
+      "timestamp": "2026-10-11T11:25:41.944Z",
+      "mime": "image/jpeg",
+      "size": [
+        462,
+        303
+      ],
+      "bytes": 1826,
+      "sha256": "b3bd4bc8c4ea5c56726d4fb1bd143e7a9130d2378b5b9af662a2cbdd5a68ebb2",
+      "nativeToolBytesUnmodified": true
+    },
+    {
+      "stage": "later-readout-capture",
+      "sessionLine": 17205,
+      "timestamp": "2026-10-11T12:00:35.304Z",
+      "mime": "image/jpeg",
+      "size": [
+        462,
+        522
+      ],
+      "bytes": 15228,
+      "sha256": "f0b2e82f02fc50da19379734617465d9e7c4804e7e8166c4cff46f1f80eaaf28",
+      "nativeToolBytesUnmodified": true
+    }
+  ],
+  "laterPresentation": {
+    "status": "observed-readout-dev-only",
+    "sessionLine": 17193,
+    "timestamp": "2026-10-11T12:00:24.343Z",
+    "ready": true,
+    "exactDOMReadout": "Application readout · rounded to 3 decimals. Native width: 100.000 mm. Native midpoint: [50.000, 0.000, 20.000] mm. Displayed midpoint: [0.030, 0.060, 0.020] scene units.",
+    "readoutRole": "Application text rounded to 3 decimals, not a Viewer annotation",
+    "actions": [
+      "Apply 90° display pose",
+      "Select projected probe"
+    ],
+    "imageReceiptLine": 17205,
+    "savedAsset": "docs/public/examples/viewer-display-pose.jpg",
+    "savedBytesMatchNativeToolImage": true,
+    "replacesEarlierNativeOnlyImage": true,
+    "firstFullFlowReplayed": false,
+    "qualification": "New dev mount and two presentation actions only. The first refusal/reset receipts remain separate; CPU not replayed."
+  },
+  "pending": {
+    "terminalDisposalLedger": "not measured",
+    "fullRawGPUDeletionProof": "not claimed",
+    "productionRefusalAndResetReplay": "not performed; first-dev receipts remain separate",
+    "currentRootGlobalIntegrationRuntime": "unrun",
+    "releasePublicationAndAllDeviceRecovery": "not claimed"
+  },
+  "boundaries": [
+    "CAD/TRS CPU check, first real dev Viewer flow and later readout are separate.",
+    "Ledger counts application create/dispose and host listener calls; not all GPU resources.",
+    "Checksums identify frames; refusal comparisons used every actual byte.",
+    "Projection approximate/occlusion not tested; picking selects sampled triangles.",
+    "No global Viewer/device/recovery/release/publication acceptance."
+  ],
+  "production": {
+    "status": "selected-positive-presentation-and-navigation-observed",
+    "tabId": "49",
+    "backend": "Codex in-app browser",
+    "previewPort": 52948,
+    "receipts": [
+      {
+        "sessionLine": 17631,
+        "timestamp": "2026-10-11T12:08:54.124Z",
+        "receipt": {
+          "receiptKind": "pose-production-initial",
+          "ready": "true",
+          "selected": "viewer-display-pose",
+          "readout": "Application readout · rounded to 3 decimals. Native width: 100.000 mm. Native midpoint: [50.000, 0.000, 20.000] mm. Displayed midpoint: [0.050, 0.000, 0.020] scene units.",
+          "openDocumentControls": 0
+        }
+      },
+      {
+        "sessionLine": 17631,
+        "timestamp": "2026-10-11T12:08:54.124Z",
+        "receipt": {
+          "receiptKind": "pose-production-apply",
+          "readout": "Application readout · rounded to 3 decimals. Native width: 100.000 mm. Native midpoint: [50.000, 0.000, 20.000] mm. Displayed midpoint: [0.030, 0.060, 0.020] scene units."
+        }
+      },
+      {
+        "sessionLine": 17650,
+        "timestamp": "2026-10-11T12:09:18.258Z",
+        "receipt": {
+          "receiptKind": "pose-production-guide",
+          "url": "http://127.0.0.1:52948/packages/viewer/display-pose",
+          "image": {
+            "complete": true,
+            "naturalHeight": 522,
+            "naturalWidth": 462
+          },
+          "heading": "Move the display while retaining native coordinates\n​",
+          "firstInspectorFailure": "Exact heading role omitted its rendered permalink label; navigation had completed."
+        }
+      },
+      {
+        "sessionLine": 17657,
+        "timestamp": "2026-10-11T12:09:28.647Z",
+        "receipt": {
+          "receiptKind": "pose-production-guide-return",
+          "url": "http://127.0.0.1:52948/examples/library#viewer-display-pose",
+          "ready": "true"
+        }
+      },
+      {
+        "sessionLine": 17725,
+        "timestamp": "2026-10-11T12:11:22.765Z",
+        "receipt": {
+          "receiptKind": "paired-production-catalog",
+          "url": "http://127.0.0.1:52948/examples/",
+          "count": "1 of 44 runnable examples",
+          "exampleLink": "/examples/library#viewer-display-pose"
+        }
+      },
+      {
+        "sessionLine": 17725,
+        "timestamp": "2026-10-11T12:11:22.765Z",
+        "receipt": {
+          "receiptKind": "pose-production-catalog-return",
+          "url": "http://127.0.0.1:52948/examples/library#viewer-display-pose",
+          "ready": "true"
+        }
+      }
+    ],
+    "viewerRefusalsRepeated": false,
+    "resetRetentionRepeated": false,
+    "newProductionScreenshotCaptured": false,
+    "guideImage": "The guide decoded the saved dev readout JPEG at 462 × 522; no new production screenshot is claimed.",
+    "qualification": "Actual initial readiness, Apply pose readout, guide route/image, ready return, catalog search/link and ready catalog return. The first-dev rejection/reset checks are not relabeled as production checks."
+  },
+  "buildAndDocs": {
+    "firstBuild": {
+      "status": "passed",
+      "seconds": 13.94,
+      "sessionLine": 17549,
+      "rawLog": "- building client + server bundles...\n\n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n\u001b[32m✓\u001b[0m building client + server bundles...\n- rendering pages...\n\u001b[32m✓\u001b[0m rendering pages...\nbuild complete in 13.94s.\n"
+    },
+    "firstDocsCheck": {
+      "status": "failed",
+      "sessionLine": 17563,
+      "rawLog": "file:///Users/user/.codex/worktrees/library-docs-continue/barocss/apps/library-docs/scripts/check-example-catalog.mjs:13\nconst require = (condition, message) => { if (!condition) throw new Error(`Example catalog: ${message}`); };\n                                                                ^\n\nError: Example catalog: runtime label/anchor differs: viewer-display-pose\n    at require (file:///Users/user/.codex/worktrees/library-docs-continue/barocss/apps/library-docs/scripts/check-example-catalog.mjs:13:65)\n    at checkExampleCatalog (file:///Users/user/.codex/worktrees/library-docs-continue/barocss/apps/library-docs/scripts/check-example-catalog.mjs:89:5)\n    at async file:///Users/user/.codex/worktrees/library-docs-continue/barocss/apps/library-docs/scripts/check-docs.mjs:77:24\n\nNode.js v22.22.0\n\u001b[32m✓\u001b[0m rendering pages...\nbuild complete in 13.94s.\n",
+      "viewerCatalogLabel": "Native points and display pose",
+      "viewerPresetLabel": "Viewer display pose"
+    },
+    "repair": {
+      "onlyTwoCatalogLabelsChanged": true,
+      "viewerLabelChangedTo": "Viewer display pose",
+      "cadLabelChangedTo": "CAD adaptive sampling",
+      "providerOrCPUReplay": false,
+      "transientPreviewStoppedBeforeRebuild": 73846
+    },
+    "secondBuild": {
+      "status": "passed",
+      "seconds": 13.78,
+      "sessionLine": 17603,
+      "rawLog": "- rendering pages...\n\u001b[32m✓\u001b[0m rendering pages...\nbuild complete in 13.78s.\n"
+    },
+    "secondDocsCheck": {
+      "status": "passed",
+      "sessionLine": 17613,
+      "actualResult": {
+        "exampleCatalog": {
+          "presets": 44,
+          "uniqueAnchors": 44,
+          "authoredSources": 44,
+          "categories": {
+            "api": 11,
+            "language": 32,
+            "integration": 1
+          },
+          "generatedModules": 13,
+          "builtAnchorsChecked": true,
+          "execution": "Preset metadata and links only; no public API calls or gallery execution"
+        },
+        "pages": 109,
+        "packages": 12,
+        "checkedInternalLinks": 684,
+        "checkedImageAssets": 56,
+        "checkedDownloadAssets": 3,
+        "manifestHashes": "matched",
+        "sourceCommit": "5f5ad866205a21510ac69552e704cc162fa253b5"
+      }
+    },
+    "viewerBuiltSourceImage": {
+      "bytes": 15228,
+      "sha256": "f0b2e82f02fc50da19379734617465d9e7c4804e7e8166c4cff46f1f80eaaf28",
+      "sourceAndBuildMatched": true,
+      "embeddedInBuiltGuide": true,
+      "sessionLine": 17613
+    },
+    "serverOwnership": {
+      "finalProtectedPreviewSession": 33589,
+      "port": 52948,
+      "olderPreviewSession9266StoppedBeforeBuild": true,
+      "devSession85217StoppedBeforeBuild": true,
+      "transientSession73846StoppedBeforeSecondBuild": true
+    }
+  }
+}

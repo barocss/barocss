@@ -1,0 +1,865 @@
+{
+  "status": "affected-worker-development-and-production-flows-passed; first-synchronous-and-catalog-failures-preserved",
+  "sourcePin": "733428030029a65797c26e3daadcae94c4762b09",
+  "oldVisualPinUnchanged": "5f5ad866205a21510ac69552e704cc162fa253b5",
+  "route": "http://127.0.0.1:52949/examples/library#cad-adaptive-sampling",
+  "evidenceOrigin": {
+    "kind": "extracted-existing-root-session; no replay",
+    "sessionLog": "/Users/user/.codex/sessions/2026/10/10/rollout-2026-10-10T19-35-29-01a12561-ce8c-7ce0-9284-535e6ceb4daa.jsonl",
+    "sessionId": "01a12561-ce8c-7ce0-9284-535e6ceb4daa",
+    "synchronousTabs": [
+      45,
+      46
+    ]
+  },
+  "firstFailures": [
+    {
+      "logLine": 16893,
+      "timestampUTC": "2026-10-11T11:34:37.709Z",
+      "error": "Error: Timed out after 3000ms waiting for selector section[data-ready=\"true\"][data-selected=\"cad-adaptive-sampling\"]: Timed out running CDP command \"Runtime.evaluate\" for tab 45\nlocator.waitFor(visible) timed out for selector section[data-ready=\"true\"][data-selected=\"cad-adaptive-sampling\"]",
+      "scope": "browser control deadline; later completion recorded separately"
+    },
+    {
+      "logLine": 16988,
+      "timestampUTC": "2026-10-11T11:40:55.364Z",
+      "error": "Error: Timed out after 3000ms waiting for selector section[data-ready=\"true\"][data-selected=\"cad-adaptive-sampling\"]: Timed out running CDP command \"Runtime.evaluate\" for tab 46\nlocator.waitFor(visible) timed out for selector section[data-ready=\"true\"][data-selected=\"cad-adaptive-sampling\"]",
+      "scope": "browser control deadline; later completion recorded separately"
+    },
+    {
+      "logLine": 17024,
+      "timestampUTC": "2026-10-11T11:45:03.026Z",
+      "error": "Error: Timed out running CDP command \"Input.dispatchMouseEvent\" for tab 46\nwaiting on click for selector internal:role=button[name=\"Reset example\"s]",
+      "scope": "browser control deadline; later completion recorded separately"
+    }
+  ],
+  "synchronousReceipts": [
+    {
+      "logLine": 16957,
+      "timestampUTC": "2026-10-11T11:39:16.863Z",
+      "receiptKind": "adaptive-dev-first-load-observed-after-deadline",
+      "data": {
+        "characters": 1231507,
+        "depth": 5,
+        "directCounts": {
+          "acceptedLeafCount": 27,
+          "coefficientHelperInvocationCount": 24,
+          "curveD0AttemptCount": 292,
+          "curveD1AttemptCount": 162,
+          "curveD1EvaluatedCount": 162,
+          "curveD1NativeRefusedCount": 0,
+          "extractionInvocationCount": 3,
+          "originalSourceCompileCount": 1,
+          "outputPointCount": 28,
+          "splitAttemptCount": 24,
+          "subdivisionSourceCompileCount": 24,
+          "visitedIntervalCount": 51
+        },
+        "negativeZero": {
+          "keepLineFirstX": true,
+          "keepPlaneFirstZ": true
+        },
+        "points": 28,
+        "quality": {
+          "criterion": "finite-segment-control-hull-estimate-plus-arithmetic-margin",
+          "derivativeSemantics": "original-native-c0-refusals-and-local-one-sided-d1",
+          "extraction": "existing-local-cox-de-boor-to-bernstein",
+          "geometricValidity": "not-certified",
+          "geometryAuthority": "original-native-evaluateCurve",
+          "globalBinary64ErrorCertified": false,
+          "globalErrorCertified": false,
+          "localObservationsOnly": true,
+          "manufacturingToleranceCertified": false,
+          "ownership": "copied-cpu-data-gc-no-renderer-resources",
+          "representation": "sampled-display-points-not-native-edges-or-fit",
+          "solid": false,
+          "subdivision": "existing-homogeneous-knot-insertion-and-indexed-children",
+          "topologyCertified": false
+        },
+        "ready": "true",
+        "segments": 27,
+        "sourceProfile": "733428030029a65797c26e3daadcae94c4762b09",
+        "tolerance": 0.05
+      },
+      "qualification": "First readiness command hit underlying3s Runtime.evaluate deadline; this later DOM read observes the completed initial computation, not a rerun."
+    },
+    {
+      "logLine": 17001,
+      "timestampUTC": "2026-10-11T11:42:48.692Z",
+      "receiptKind": "adaptive-dev-summary-load-after-deadline",
+      "characters": 52604,
+      "points": 28,
+      "ready": "true",
+      "segments": 27,
+      "tolerance": 0.05,
+      "view": "application-view-not-complete-public-result",
+      "witness": {
+        "keepLineFirstX": true,
+        "keepPlaneFirstZ": true
+      },
+      "qualification": "Underlying3s DOM-control bootstrap deadline also occurred with smaller UI report. Payload reduction is reader-facing; it is not proof of the sole startup cause."
+    },
+    {
+      "logLine": 17008,
+      "timestampUTC": "2026-10-11T11:43:34.425Z",
+      "receiptKind": "adaptive-dev-coarsen",
+      "tolerance": 0.2,
+      "segments": 14,
+      "points": 15,
+      "depth": 4,
+      "nativeModelRetained": true,
+      "negativeZero": {
+        "keepLineFirstX": true,
+        "keepPlaneFirstZ": true
+      },
+      "curveEqual": true,
+      "sourceEqual": true,
+      "projectionSame": true,
+      "counts": {
+        "originalSourceCompileCount": 1,
+        "extractionInvocationCount": 3,
+        "coefficientHelperInvocationCount": 11,
+        "subdivisionSourceCompileCount": 11,
+        "curveD0AttemptCount": 149,
+        "curveD1AttemptCount": 84,
+        "curveD1EvaluatedCount": 84,
+        "curveD1NativeRefusedCount": 0,
+        "visitedIntervalCount": 25,
+        "splitAttemptCount": 11,
+        "acceptedLeafCount": 14,
+        "outputPointCount": 15
+      },
+      "sourceEditorAligned": true,
+      "viewKind": "application-view-not-complete-public-result",
+      "globalCertified": false
+    },
+    {
+      "logLine": 17008,
+      "timestampUTC": "2026-10-11T11:43:34.425Z",
+      "receiptKind": "adaptive-dev-input-refusal",
+      "alert": "Input refused: INPUT: Source Curve adaptive sampling: Chord tolerance1e-7..1000 required. The last accepted output stays visible while the sample remains live.",
+      "rawReportRetained": true
+    },
+    {
+      "logLine": 17008,
+      "timestampUTC": "2026-10-11T11:43:34.425Z",
+      "receiptKind": "adaptive-dev-budget-refusal",
+      "alert": "Input refused: BUDGET: Source Curve adaptive sampling: Leaf budget below original span count. The last accepted output stays visible while the sample remains live.",
+      "rawReportRetained": true,
+      "logs": []
+    },
+    {
+      "logLine": 17024,
+      "timestampUTC": "2026-10-11T11:45:03.026Z",
+      "receiptKind": "adaptive-dev-native-image",
+      "clip": {
+        "height": 303.1875,
+        "scrollY": 631,
+        "viewportTop": 313.3984375,
+        "width": 462,
+        "x": 765,
+        "y": 944.3984375
+      },
+      "state": "Coarser .2mm display14segments15points; originaldegree5coefficients unchanged"
+    },
+    {
+      "logLine": 17055,
+      "timestampUTC": "2026-10-11T11:50:51.969Z",
+      "receiptKind": "adaptive-dev-reset-after-input-deadline",
+      "alerts": 0,
+      "points": 28,
+      "ready": "true",
+      "segments": 27,
+      "tolerance": 0.05,
+      "witness": {
+        "keepLineFirstX": true,
+        "keepPlaneFirstZ": true
+      },
+      "qualification": "Reset click was dispatched once then underlying Input.dispatchMouseEvent timed out. This later read observes .05/27/28 restored, no repeated Reset."
+    }
+  ],
+  "rawRecordedOutputs": [
+    {
+      "logLine": 16893,
+      "timestampUTC": "2026-10-11T11:34:37.709Z",
+      "callId": "call_0a364f6e37624bb98db70a15134aadd1",
+      "texts": [
+        "Wall time: 5.8816 seconds\nOutput:",
+        "Error: Timed out after 3000ms waiting for selector section[data-ready=\"true\"][data-selected=\"cad-adaptive-sampling\"]: Timed out running CDP command \"Runtime.evaluate\" for tab 45\nlocator.waitFor(visible) timed out for selector section[data-ready=\"true\"][data-selected=\"cad-adaptive-sampling\"]"
+      ]
+    },
+    {
+      "logLine": 16909,
+      "timestampUTC": "2026-10-11T11:35:47.867Z",
+      "callId": "call_9484139ea72441ddac11a8965e7c8bab",
+      "texts": [
+        "Wall time: 0.0470 seconds\nOutput:",
+        "{\n  ready: 'true',\n  reportCharacters: 1231507,\n  selected: 'cad-adaptive-sampling'\n}"
+      ]
+    },
+    {
+      "logLine": 16957,
+      "timestampUTC": "2026-10-11T11:39:16.863Z",
+      "callId": "call_23ae3fa9ec9a40438f789388438a238e",
+      "texts": [
+        "Wall time: 0.0710 seconds\nOutput:",
+        "{\"receiptKind\":\"adaptive-dev-first-load-observed-after-deadline\",\"data\":{\"characters\":1231507,\"depth\":5,\"directCounts\":{\"acceptedLeafCount\":27,\"coefficientHelperInvocationCount\":24,\"curveD0AttemptCount\":292,\"curveD1AttemptCount\":162,\"curveD1EvaluatedCount\":162,\"curveD1NativeRefusedCount\":0,\"extractionInvocationCount\":3,\"originalSourceCompileCount\":1,\"outputPointCount\":28,\"splitAttemptCount\":24,\"subdivisionSourceCompileCount\":24,\"visitedIntervalCount\":51},\"negativeZero\":{\"keepLineFirstX\":true,\"keepPlaneFirstZ\":true},\"points\":28,\"quality\":{\"criterion\":\"finite-segment-control-hull-estimate-plus-arithmetic-margin\",\"derivativeSemantics\":\"original-native-c0-refusals-and-local-one-sided-d1\",\"extraction\":\"existing-local-cox-de-boor-to-bernstein\",\"geometricValidity\":\"not-certified\",\"geometryAuthority\":\"original-native-evaluateCurve\",\"globalBinary64ErrorCertified\":false,\"globalErrorCertified\":false,\"localObservationsOnly\":true,\"manufacturingToleranceCertified\":false,\"ownership\":\"copied-cpu-data-gc-no-renderer-resources\",\"representation\":\"sampled-display-points-not-native-edges-or-fit\",\"solid\":false,\"subdivision\":\"existing-homogeneous-knot-insertion-and-indexed-children\",\"topologyCertified\":false},\"ready\":\"true\",\"segments\":27,\"sourceProfile\":\"733428030029a65797c26e3daadcae94c4762b09\",\"tolerance\":0.05},\"qualification\":\"First readiness command hit underlying3s Runtime.evaluate deadline; this later DOM read observes the completed initial computation, not a rerun.\"}"
+      ]
+    },
+    {
+      "logLine": 16988,
+      "timestampUTC": "2026-10-11T11:40:55.364Z",
+      "callId": "call_6b2cd28b31e34e43b435abe281cab341",
+      "texts": [
+        "Wall time: 5.7741 seconds\nOutput:",
+        "Error: Timed out after 3000ms waiting for selector section[data-ready=\"true\"][data-selected=\"cad-adaptive-sampling\"]: Timed out running CDP command \"Runtime.evaluate\" for tab 46\nlocator.waitFor(visible) timed out for selector section[data-ready=\"true\"][data-selected=\"cad-adaptive-sampling\"]"
+      ]
+    },
+    {
+      "logLine": 17001,
+      "timestampUTC": "2026-10-11T11:42:48.692Z",
+      "callId": "call_e0cbb586842747d0ba6709d445d41986",
+      "texts": [
+        "Wall time: 0.1551 seconds\nOutput:",
+        "{\"receiptKind\":\"adaptive-dev-summary-load-after-deadline\",\"characters\":52604,\"points\":28,\"ready\":\"true\",\"segments\":27,\"tolerance\":0.05,\"view\":\"application-view-not-complete-public-result\",\"witness\":{\"keepLineFirstX\":true,\"keepPlaneFirstZ\":true},\"qualification\":\"Underlying3s DOM-control bootstrap deadline also occurred with smaller UI report. Payload reduction is reader-facing; it is not proof of the sole startup cause.\"}[\n  'Run input',\n  'Reset example',\n  'Coarser display · 0.2 mm',\n  'Finer display · 0.05 mm'\n]"
+      ]
+    },
+    {
+      "logLine": 17008,
+      "timestampUTC": "2026-10-11T11:43:34.425Z",
+      "callId": "call_c150e4176e0b4a91ae7c2fa85f796e53",
+      "texts": [
+        "Wall time: 3.1397 seconds\nOutput:",
+        "{\"receiptKind\":\"adaptive-dev-coarsen\",\"tolerance\":0.2,\"segments\":14,\"points\":15,\"depth\":4,\"nativeModelRetained\":true,\"negativeZero\":{\"keepLineFirstX\":true,\"keepPlaneFirstZ\":true},\"curveEqual\":true,\"sourceEqual\":true,\"projectionSame\":true,\"counts\":{\"originalSourceCompileCount\":1,\"extractionInvocationCount\":3,\"coefficientHelperInvocationCount\":11,\"subdivisionSourceCompileCount\":11,\"curveD0AttemptCount\":149,\"curveD1AttemptCount\":84,\"curveD1EvaluatedCount\":84,\"curveD1NativeRefusedCount\":0,\"visitedIntervalCount\":25,\"splitAttemptCount\":11,\"acceptedLeafCount\":14,\"outputPointCount\":15},\"sourceEditorAligned\":true,\"viewKind\":\"application-view-not-complete-public-result\",\"globalCertified\":false}{\"receiptKind\":\"adaptive-dev-input-refusal\",\"alert\":\"Input refused: INPUT: Source Curve adaptive sampling: Chord tolerance1e-7..1000 required. The last accepted output stays visible while the sample remains live.\",\"rawReportRetained\":true}{\"receiptKind\":\"adaptive-dev-budget-refusal\",\"alert\":\"Input refused: BUDGET: Source Curve adaptive sampling: Leaf budget below original span count. The last accepted output stays visible while the sample remains live.\",\"rawReportRetained\":true,\"logs\":[]}"
+      ]
+    },
+    {
+      "logLine": 17024,
+      "timestampUTC": "2026-10-11T11:45:03.026Z",
+      "callId": "call_7be9c43be26a43108e2568ef166b4765",
+      "texts": [
+        "Wall time: 5.8446 seconds\nOutput:",
+        "Error: Timed out running CDP command \"Input.dispatchMouseEvent\" for tab 46\nwaiting on click for selector internal:role=button[name=\"Reset example\"s]",
+        "{\"receiptKind\":\"adaptive-dev-native-image\",\"clip\":{\"height\":303.1875,\"scrollY\":631,\"viewportTop\":313.3984375,\"width\":462,\"x\":765,\"y\":944.3984375},\"state\":\"Coarser .2mm display14segments15points; originaldegree5coefficients unchanged\"}"
+      ]
+    },
+    {
+      "logLine": 17055,
+      "timestampUTC": "2026-10-11T11:50:51.969Z",
+      "callId": "call_6cb8dd4e335f4bf6a59eb3269c9777e8",
+      "texts": [
+        "Wall time: 0.0608 seconds\nOutput:",
+        "{\"receiptKind\":\"adaptive-dev-reset-after-input-deadline\",\"alerts\":0,\"points\":28,\"ready\":\"true\",\"segments\":27,\"tolerance\":0.05,\"witness\":{\"keepLineFirstX\":true,\"keepPlaneFirstZ\":true},\"qualification\":\"Reset click was dispatched once then underlying Input.dispatchMouseEvent timed out. This later read observes .05/27/28 restored, no repeated Reset.\"}"
+      ]
+    }
+  ],
+  "interpretation": {
+    "initialFullReportCharacters": 1231507,
+    "compactReportCharacters": 52604,
+    "compactReportNotSoleCauseProof": true,
+    "resetClickCount": 1,
+    "resetRetried": false,
+    "deadlineDoesNotEstablishNumericFailure": true,
+    "refusalRetentionScope": "Exact displayed report string retained after INPUT and BUDGET; no separate frame-byte comparison recorded here",
+    "nativeRetentionScope": "Host recursive Object.is comparison of complete original Model and Curve, plus exact source, and separate negative-zero witnesses",
+    "imageAttempt": {
+      "saved": false,
+      "receiptKind": "adaptive-dev-native-image",
+      "qualification": "Clip metadata was logged. No CAD image file was saved from this attempt; no screenshot bytes are claimed."
+    }
+  },
+  "cpuEvidence": {
+    "path": "evidence/cad-adaptive-sampling-consumer.json",
+    "status": "passed",
+    "nodeVersion": "v22.22.0",
+    "bytes": 791994,
+    "sha256": "61d6fb9314c433f70618aad5e29f0d89dadb026f33d8f5901a77f1bf1e05bd6d",
+    "replayed": false,
+    "wholeValidator": {
+      "validCalls": 1,
+      "tamperedCalls": 1,
+      "coldReconstruction": true,
+      "directCountsArePerSamplingConstruction": true
+    },
+    "applicationCalls": {
+      "sampleSourceCurveAdaptive": 4,
+      "validateSourceCurveAdaptive": 2,
+      "evaluateCurveD0": 0,
+      "evaluateCurveD1": 0
+    }
+  },
+  "worker": {
+    "implementation": "static files final; isolated browser module generated by root",
+    "sourceFiles": [
+      {
+        "path": "scripts/build-cad-adaptive-sampling.mjs",
+        "sha256": "1ef691eaa93874b6dd6eaa6decb5718da35eefae02a3e2f88173fd16ace8b7db"
+      },
+      {
+        "path": "scripts/snippets/cad-adaptive-sampling-host.mjs",
+        "sha256": "503ce9ac2786ba4e7bf289d9172073920d1179f80a270f5a147d5422e17ee58c"
+      },
+      {
+        "path": "scripts/snippets/cad-adaptive-sampling-worker.mjs",
+        "sha256": "1358432fd89388edae962a184c0af5ceedd92b0fedec755c3e80e6380b5b0026"
+      }
+    ],
+    "rootBundleReceipt": {
+      "cadAdaptiveSampling": {
+        "sourcePin": "733428030029a65797c26e3daadcae94c4762b09",
+        "verifiedBlobs": 204,
+        "ownSourceInputs": 202,
+        "ownDistInputs": 0,
+        "host": "Public CAD sampling in an app Worker; main-thread Canvas2D drawing",
+        "oldVisualPinUnchanged": "5f5ad866205a21510ac69552e704cc162fa253b5",
+        "sourceInputScope": "Worker metafile; main app contains no public CAD imports",
+        "worker": {
+          "ownSourceInputs": 202,
+          "ownDistInputs": 0,
+          "entrySHA256": "1358432fd89388edae962a184c0af5ceedd92b0fedec755c3e80e6380b5b0026",
+          "bundleSHA256": "01f5afab6b0b85264c4b318f2f6885153729b97926862311ba4b086a7953fc94",
+          "bundleBytes": 170963,
+          "embedded": true
+        },
+        "main": {
+          "ownSourceInputs": 0,
+          "ownDistInputs": 0,
+          "entrySHA256": "094fe21ad9ad823f159f2fb7504c04b12b90b070a09445bc333c17ec63b04beb"
+        }
+      },
+      "bundleBytes": 190255
+    },
+    "provenanceScope": "Worker and main metafiles are verified separately; ownSourceInputs202 is the Worker closure, main ownSourceInputs0; no dist inputs",
+    "execution": "Only public sampleSourceCurveAdaptive runs in the dedicated app Worker. JSON is parsed in that realm; full result transfers by structured clone, preserving negative zero. Main prepares and stages the same Canvas2D drawing.",
+    "cancellation": "Reject pending Promise and ignore stale response; does not interrupt queued synchronous computation. Dispose terminates Worker.",
+    "cleanup": "Dispose/initial failure remove handlers, reject pending requests, terminate Worker and revoke Blob URL. Worker fatal errors use the same cleanup.",
+    "errors": "Actual provider name/code/message relay into an ordinary main-thread Error; no provider instanceof claim.",
+    "browserStatus": "affected-dev-flow-passed",
+    "productionStatus": "selected-production-browser-flow-passed",
+    "measurementScope": "Selected public sampling call only; excludes startup, cloning and drawing; not a benchmark",
+    "browserTab": 48,
+    "receipts": [
+      {
+        "logLine": 17386,
+        "timestampUTC": "2026-10-11T12:03:46.846Z",
+        "receiptKind": "adaptive-worker-dev-initial",
+        "ready": "true",
+        "tolerance": 0.05,
+        "segments": 27,
+        "points": 28,
+        "depth": 5,
+        "negativeZeroWitness": {
+          "keepLineFirstX": true,
+          "keepPlaneFirstZ": true
+        },
+        "worker": {
+          "execution": "Application dedicated Worker",
+          "callId": 1,
+          "computeMilliseconds": 3949.5999999940395,
+          "measurement": "Selected public sampleSourceCurveAdaptive call only; not startup, cloning, drawing or a benchmark",
+          "ledgerAtAdoption": {
+            "requested": 1,
+            "completed": 1,
+            "failed": 0,
+            "cancelled": 0,
+            "staleResponses": 0
+          },
+          "ledgerScope": "Application Worker messages; unrelated to public provider directCounts"
+        },
+        "summaryChars": 53092
+      },
+      {
+        "logLine": 17393,
+        "timestampUTC": "2026-10-11T12:03:58.381Z",
+        "receiptKind": "adaptive-worker-dev-coarsen",
+        "segments": 14,
+        "points": 15,
+        "depth": 4,
+        "tolerance": 0.2,
+        "negativeZeroWitness": {
+          "keepLineFirstX": true,
+          "keepPlaneFirstZ": true
+        },
+        "completeNativeModelRetained": true,
+        "sourceEqual": true,
+        "curveEqual": true,
+        "projectionEqual": true,
+        "worker": {
+          "execution": "Application dedicated Worker",
+          "callId": 2,
+          "computeMilliseconds": 1121.9000000059605,
+          "measurement": "Selected public sampleSourceCurveAdaptive call only; not startup, cloning, drawing or a benchmark",
+          "ledgerAtAdoption": {
+            "requested": 2,
+            "completed": 2,
+            "failed": 0,
+            "cancelled": 0,
+            "staleResponses": 0
+          },
+          "ledgerScope": "Application Worker messages; unrelated to public provider directCounts"
+        },
+        "editorAligned": true
+      },
+      {
+        "logLine": 17398,
+        "timestampUTC": "2026-10-11T12:04:05.778Z",
+        "receiptKind": "adaptive-worker-dev-input-refusal",
+        "alert": "Input refused: INPUT: Source Curve adaptive sampling: Chord tolerance1e-7..1000 required. The last accepted output stays visible while the sample remains live.",
+        "completeDisplayedReportRetained": true
+      },
+      {
+        "logLine": 17403,
+        "timestampUTC": "2026-10-11T12:04:15.348Z",
+        "receiptKind": "adaptive-worker-dev-budget-refusal",
+        "alert": "Input refused: BUDGET: Source Curve adaptive sampling: Leaf budget below original span count. The last accepted output stays visible while the sample remains live.",
+        "completeDisplayedReportRetained": true
+      },
+      {
+        "logLine": 17408,
+        "timestampUTC": "2026-10-11T12:04:22.223Z",
+        "receiptKind": "adaptive-worker-dev-native-image",
+        "clip": {
+          "height": 303.1875,
+          "width": 462,
+          "x": 765,
+          "y": 944.3984375
+        },
+        "depictedAcceptedTolerance": 0.2,
+        "segments": 14,
+        "points": 15
+      },
+      {
+        "logLine": 17413,
+        "timestampUTC": "2026-10-11T12:04:28.482Z",
+        "receiptKind": "adaptive-worker-dev-reset-dispatch",
+        "ready": "false",
+        "resetEnabled": true,
+        "sourceTolerance": 0.05
+      },
+      {
+        "logLine": 17422,
+        "timestampUTC": "2026-10-11T12:04:40.810Z",
+        "receiptKind": "adaptive-worker-dev-reset-complete",
+        "ready": true,
+        "segments": 27,
+        "points": 28,
+        "tolerance": 0.05,
+        "negativeZeroWitness": {
+          "keepLineFirstX": true,
+          "keepPlaneFirstZ": true
+        },
+        "worker": {
+          "execution": "Application dedicated Worker",
+          "callId": 1,
+          "computeMilliseconds": 4076.5999999940395,
+          "measurement": "Selected public sampleSourceCurveAdaptive call only; not startup, cloning, drawing or a benchmark",
+          "ledgerAtAdoption": {
+            "requested": 1,
+            "completed": 1,
+            "failed": 0,
+            "cancelled": 0,
+            "staleResponses": 0
+          },
+          "ledgerScope": "Application Worker messages; unrelated to public provider directCounts"
+        },
+        "alerts": 0,
+        "logs": []
+      }
+    ],
+    "rawRecordedOutputs": [
+      {
+        "logLine": 17386,
+        "timestampUTC": "2026-10-11T12:03:46.846Z",
+        "callId": "call_Mlt3kC1IBCuYwE4IC6ynzEYG",
+        "texts": [
+          "Wall time: 0.6703 seconds\nOutput:",
+          "{\"receiptKind\":\"adaptive-worker-dev-initial\",\"ready\":\"true\",\"tolerance\":0.05,\"segments\":27,\"points\":28,\"depth\":5,\"negativeZeroWitness\":{\"keepLineFirstX\":true,\"keepPlaneFirstZ\":true},\"worker\":{\"execution\":\"Application dedicated Worker\",\"callId\":1,\"computeMilliseconds\":3949.5999999940395,\"measurement\":\"Selected public sampleSourceCurveAdaptive call only; not startup, cloning, drawing or a benchmark\",\"ledgerAtAdoption\":{\"requested\":1,\"completed\":1,\"failed\":0,\"cancelled\":0,\"staleResponses\":0},\"ledgerScope\":\"Application Worker messages; unrelated to public provider directCounts\"},\"summaryChars\":53092}9/examples/library#cad-adaptive-sampling\".\nThe following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.\n~\t\t\t\t113 button (disabled) Run input\n~\t\t\t\t118 button (disabled) Coarser display · 0.2 mm\n~\t\t\t\t119 button (disabled) Finer display · 0.05 mm\nThe focused UI element is 1 AXWebArea Find tasks for a library | BaroCSS Libraries, URL: 127.0.0.1:52949/examples/library#cad-adaptive-sampling"
+        ],
+        "imageDataOmitted": false
+      },
+      {
+        "logLine": 17393,
+        "timestampUTC": "2026-10-11T12:03:58.381Z",
+        "callId": "call_D739FWLfrQcKUnLshWNT9lc4",
+        "texts": [
+          "Wall time: 0.3816 seconds\nOutput:",
+          "{\"receiptKind\":\"adaptive-worker-dev-coarsen\",\"segments\":14,\"points\":15,\"depth\":4,\"tolerance\":0.2,\"negativeZeroWitness\":{\"keepLineFirstX\":true,\"keepPlaneFirstZ\":true},\"completeNativeModelRetained\":true,\"sourceEqual\":true,\"curveEqual\":true,\"projectionEqual\":true,\"worker\":{\"execution\":\"Application dedicated Worker\",\"callId\":2,\"computeMilliseconds\":1121.9000000059605,\"measurement\":\"Selected public sampleSourceCurveAdaptive call only; not startup, cloning, drawing or a benchmark\",\"ledgerAtAdoption\":{\"requested\":2,\"completed\":2,\"failed\":0,\"cancelled\":0,\"staleResponses\":0},\"ledgerScope\":\"Application Worker messages; unrelated to public provider directCounts\"},\"editorAligned\":true}"
+        ],
+        "imageDataOmitted": false
+      },
+      {
+        "logLine": 17398,
+        "timestampUTC": "2026-10-11T12:04:05.778Z",
+        "callId": "call_EtzviSuqyK1WlymOlHq5dIPG",
+        "texts": [
+          "Wall time: 0.7250 seconds\nOutput:",
+          "{\"receiptKind\":\"adaptive-worker-dev-input-refusal\",\"alert\":\"Input refused: INPUT: Source Curve adaptive sampling: Chord tolerance1e-7..1000 required. The last accepted output stays visible while the sample remains live.\",\"completeDisplayedReportRetained\":true}"
+        ],
+        "imageDataOmitted": false
+      },
+      {
+        "logLine": 17403,
+        "timestampUTC": "2026-10-11T12:04:15.348Z",
+        "callId": "call_D9RDUDjr66AozwlLKcG0nxC5",
+        "texts": [
+          "Wall time: 0.7051 seconds\nOutput:",
+          "{\"receiptKind\":\"adaptive-worker-dev-budget-refusal\",\"alert\":\"Input refused: BUDGET: Source Curve adaptive sampling: Leaf budget below original span count. The last accepted output stays visible while the sample remains live.\",\"completeDisplayedReportRetained\":true}{\n  height: 303.1875,\n  scrollY: 1063,\n  viewportHeight: 720,\n  width: 462,\n  x: 765,\n  y: -118.6015625\n}"
+        ],
+        "imageDataOmitted": false
+      },
+      {
+        "logLine": 17408,
+        "timestampUTC": "2026-10-11T12:04:22.223Z",
+        "callId": "call_5SG4W20ZhWHDzrAvo9BBl6nC",
+        "texts": [
+          "Wall time: 0.5682 seconds\nOutput:",
+          "{\"receiptKind\":\"adaptive-worker-dev-native-image\",\"clip\":{\"height\":303.1875,\"width\":462,\"x\":765,\"y\":944.3984375},\"depictedAcceptedTolerance\":0.2,\"segments\":14,\"points\":15}"
+        ],
+        "imageDataOmitted": true
+      },
+      {
+        "logLine": 17413,
+        "timestampUTC": "2026-10-11T12:04:28.482Z",
+        "callId": "call_yGrmme36UPjO0XO3OQmJ5DI3",
+        "texts": [
+          "Wall time: 0.5112 seconds\nOutput:",
+          "{\"receiptKind\":\"adaptive-worker-dev-reset-dispatch\",\"ready\":\"false\",\"resetEnabled\":true,\"sourceTolerance\":0.05}"
+        ],
+        "imageDataOmitted": false
+      },
+      {
+        "logLine": 17422,
+        "timestampUTC": "2026-10-11T12:04:40.810Z",
+        "callId": "call_jBsnc99reJ7uk3x01DoxenSl",
+        "texts": [
+          "Wall time: 0.3665 seconds\nOutput:",
+          "{\"receiptKind\":\"adaptive-worker-dev-reset-complete\",\"ready\":true,\"segments\":27,\"points\":28,\"tolerance\":0.05,\"negativeZeroWitness\":{\"keepLineFirstX\":true,\"keepPlaneFirstZ\":true},\"worker\":{\"execution\":\"Application dedicated Worker\",\"callId\":1,\"computeMilliseconds\":4076.5999999940395,\"measurement\":\"Selected public sampleSourceCurveAdaptive call only; not startup, cloning, drawing or a benchmark\",\"ledgerAtAdoption\":{\"requested\":1,\"completed\":1,\"failed\":0,\"cancelled\":0,\"staleResponses\":0},\"ledgerScope\":\"Application Worker messages; unrelated to public provider directCounts\"},\"alerts\":0,\"logs\":[]}"
+        ],
+        "imageDataOmitted": false
+      }
+    ],
+    "controlDeadlinesInSelectedWorkerFlow": [],
+    "resourceProof": "Source-backed lifecycle only. No instrumented Worker termination/resource-release proof.",
+    "nativeImage": {
+      "path": "docs/public/examples/cad-adaptive-sampling.jpg",
+      "bytes": 14300,
+      "sha256": "3079b2cea31ec136b9e6ec0add4f412e02aa951e3fb2d792da2ba59325caab89",
+      "width": 462,
+      "height": 303,
+      "depictedToleranceMM": 0.2,
+      "segments": 14,
+      "points": 15,
+      "nativeBytesUnmodified": true,
+      "authority": "Root captured actual browser output; file bytes read here for exact hash/size."
+    },
+    "production": {
+      "tab": 49,
+      "receipts": [
+        {
+          "logLine": 17657,
+          "timestampUTC": "2026-10-11T12:09:28.647Z",
+          "receiptKind": "paired-production-library-navigation",
+          "url": "http://127.0.0.1:52948/examples/library#cad-curve",
+          "selected": "cad-adaptive-sampling",
+          "ready": "false"
+        },
+        {
+          "logLine": 17664,
+          "timestampUTC": "2026-10-11T12:09:39.718Z",
+          "receiptKind": "adaptive-production-initial",
+          "url": "http://127.0.0.1:52948/examples/library#cad-adaptive-sampling",
+          "ready": true,
+          "segments": 27,
+          "points": 28,
+          "negativeZeroWitness": {
+            "keepLineFirstX": true,
+            "keepPlaneFirstZ": true
+          },
+          "worker": {
+            "execution": "Application dedicated Worker",
+            "callId": 1,
+            "computeMilliseconds": 4000.7999999821186,
+            "measurement": "Selected public sampleSourceCurveAdaptive call only; not startup, cloning, drawing or a benchmark",
+            "ledgerAtAdoption": {
+              "requested": 1,
+              "completed": 1,
+              "failed": 0,
+              "cancelled": 0,
+              "staleResponses": 0
+            },
+            "ledgerScope": "Application Worker messages; unrelated to public provider directCounts"
+          }
+        },
+        {
+          "logLine": 17669,
+          "timestampUTC": "2026-10-11T12:09:50.287Z",
+          "receiptKind": "adaptive-production-coarsen",
+          "tolerance": 0.2,
+          "segments": 14,
+          "points": 15,
+          "completeNativeModelRetained": true,
+          "negativeZeroWitness": {
+            "keepLineFirstX": true,
+            "keepPlaneFirstZ": true
+          },
+          "worker": {
+            "execution": "Application dedicated Worker",
+            "callId": 2,
+            "computeMilliseconds": 1120.300000011921,
+            "measurement": "Selected public sampleSourceCurveAdaptive call only; not startup, cloning, drawing or a benchmark",
+            "ledgerAtAdoption": {
+              "requested": 2,
+              "completed": 2,
+              "failed": 0,
+              "cancelled": 0,
+              "staleResponses": 0
+            },
+            "ledgerScope": "Application Worker messages; unrelated to public provider directCounts"
+          }
+        },
+        {
+          "logLine": 17669,
+          "timestampUTC": "2026-10-11T12:09:50.287Z",
+          "receiptKind": "adaptive-production-refusal",
+          "alert": "Input refused: INPUT: Source Curve adaptive sampling: Chord tolerance1e-7..1000 required. The last accepted output stays visible while the sample remains live.",
+          "rawReportRetained": true,
+          "logs": []
+        },
+        {
+          "logLine": 17676,
+          "timestampUTC": "2026-10-11T12:10:11.918Z",
+          "receiptKind": "adaptive-production-mobile-guide",
+          "url": "http://127.0.0.1:52948/packages/cad/adaptive-curve-sampling",
+          "image": {
+            "complete": true,
+            "naturalHeight": 303,
+            "naturalWidth": 462,
+            "width": 341.9921875
+          },
+          "body": {
+            "scrollWidth": 390,
+            "width": 390
+          },
+          "viewport": 390
+        },
+        {
+          "logLine": 17702,
+          "timestampUTC": "2026-10-11T12:10:50.957Z",
+          "receiptKind": "adaptive-production-guide-return-dispatch",
+          "url": "http://127.0.0.1:52948/examples/library#cad-adaptive-sampling",
+          "selected": "cad-adaptive-sampling"
+        },
+        {
+          "logLine": 17711,
+          "timestampUTC": "2026-10-11T12:11:04.907Z",
+          "receiptKind": "adaptive-production-mobile-live",
+          "ready": true,
+          "canvas": {
+            "height": 207.375,
+            "width": 316
+          },
+          "body": {
+            "scrollWidth": 390,
+            "width": 390
+          },
+          "viewport": 390
+        },
+        {
+          "logLine": 17711,
+          "timestampUTC": "2026-10-11T12:11:04.907Z",
+          "receiptKind": "adaptive-production-mobile-live",
+          "ready": true,
+          "canvas": {
+            "height": 207.375,
+            "width": 316
+          },
+          "body": {
+            "scrollWidth": 390,
+            "width": 390
+          },
+          "viewport": 390
+        },
+        {
+          "logLine": 17725,
+          "timestampUTC": "2026-10-11T12:11:22.765Z",
+          "receiptKind": "paired-production-catalog",
+          "url": "http://127.0.0.1:52948/examples/",
+          "count": "1 of 44 runnable examples",
+          "exampleLink": "/examples/library#viewer-display-pose"
+        },
+        {
+          "logLine": 17725,
+          "timestampUTC": "2026-10-11T12:11:22.765Z",
+          "receiptKind": "pose-production-catalog-return",
+          "url": "http://127.0.0.1:52948/examples/library#viewer-display-pose",
+          "ready": "true"
+        }
+      ],
+      "rawRecordedOutputs": [
+        {
+          "logLine": 17657,
+          "timestampUTC": "2026-10-11T12:09:28.647Z",
+          "callId": "call_29d142d3d9a0450e995174264d81ce43",
+          "texts": [
+            "Wall time: 1.0669 seconds\nOutput:",
+            "{\"receiptKind\":\"pose-production-guide-return\",\"url\":\"http://127.0.0.1:52948/examples/library#viewer-display-pose\",\"ready\":\"true\"}{\"receiptKind\":\"paired-production-library-navigation\",\"url\":\"http://127.0.0.1:52948/examples/library#cad-curve\",\"selected\":\"cad-adaptive-sampling\",\"ready\":\"false\"}"
+          ]
+        },
+        {
+          "logLine": 17664,
+          "timestampUTC": "2026-10-11T12:09:39.718Z",
+          "callId": "call_d325f7d502304d41aa95427188b3864c",
+          "texts": [
+            "Wall time: 1.1662 seconds\nOutput:",
+            "{\"receiptKind\":\"adaptive-production-initial\",\"url\":\"http://127.0.0.1:52948/examples/library#cad-adaptive-sampling\",\"ready\":true,\"segments\":27,\"points\":28,\"negativeZeroWitness\":{\"keepLineFirstX\":true,\"keepPlaneFirstZ\":true},\"worker\":{\"execution\":\"Application dedicated Worker\",\"callId\":1,\"computeMilliseconds\":4000.7999999821186,\"measurement\":\"Selected public sampleSourceCurveAdaptive call only; not startup, cloning, drawing or a benchmark\",\"ledgerAtAdoption\":{\"requested\":1,\"completed\":1,\"failed\":0,\"cancelled\":0,\"staleResponses\":0},\"ledgerScope\":\"Application Worker messages; unrelated to public provider directCounts\"}}"
+          ]
+        },
+        {
+          "logLine": 17669,
+          "timestampUTC": "2026-10-11T12:09:50.287Z",
+          "callId": "call_0ca56fe7213f401fa420c168235a24d3",
+          "texts": [
+            "Wall time: 1.0971 seconds\nOutput:",
+            "{\"receiptKind\":\"adaptive-production-coarsen\",\"tolerance\":0.2,\"segments\":14,\"points\":15,\"completeNativeModelRetained\":true,\"negativeZeroWitness\":{\"keepLineFirstX\":true,\"keepPlaneFirstZ\":true},\"worker\":{\"execution\":\"Application dedicated Worker\",\"callId\":2,\"computeMilliseconds\":1120.300000011921,\"measurement\":\"Selected public sampleSourceCurveAdaptive call only; not startup, cloning, drawing or a benchmark\",\"ledgerAtAdoption\":{\"requested\":2,\"completed\":2,\"failed\":0,\"cancelled\":0,\"staleResponses\":0},\"ledgerScope\":\"Application Worker messages; unrelated to public provider directCounts\"}}{\"receiptKind\":\"adaptive-production-refusal\",\"alert\":\"Input refused: INPUT: Source Curve adaptive sampling: Chord tolerance1e-7..1000 required. The last accepted output stays visible while the sample remains live.\",\"rawReportRetained\":true,\"logs\":[]}"
+          ]
+        },
+        {
+          "logLine": 17676,
+          "timestampUTC": "2026-10-11T12:10:11.918Z",
+          "callId": "call_de8446c351bb4266a5912420928a9ec3",
+          "texts": [
+            "Wall time: 0.7126 seconds\nOutput:",
+            "{\"receiptKind\":\"adaptive-production-mobile-guide\",\"url\":\"http://127.0.0.1:52948/packages/cad/adaptive-curve-sampling\",\"image\":{\"complete\":true,\"naturalHeight\":303,\"naturalWidth\":462,\"width\":341.9921875},\"body\":{\"scrollWidth\":390,\"width\":390},\"viewport\":390}"
+          ]
+        },
+        {
+          "logLine": 17702,
+          "timestampUTC": "2026-10-11T12:10:50.957Z",
+          "callId": "call_1ec1a3ebd1384bc7ab5b199b64a4fb39",
+          "texts": [
+            "Wall time: 0.3087 seconds\nOutput:",
+            "{\"receiptKind\":\"adaptive-production-guide-return-dispatch\",\"url\":\"http://127.0.0.1:52948/examples/library#cad-adaptive-sampling\",\"selected\":\"cad-adaptive-sampling\"}"
+          ]
+        },
+        {
+          "logLine": 17711,
+          "timestampUTC": "2026-10-11T12:11:04.907Z",
+          "callId": "call_7cb027b490b24dc7b93f15e10bbaa157",
+          "texts": [
+            "Wall time: 0.6650 seconds\nOutput:",
+            "Error: Browser Use encountered an error interacting with this webpage: Error: strict mode violation: getByRole('link', { name: 'Browse the catalog', exact: true }) resolved to 2 elements:\n    1) <a href=\"/examples/\" data-v-b3aed362=\"\">Browse the catalog</a> aka getByLabel('Runnable visual examples').getByRole('link', { name: 'Browse the catalog' })\n    2) <a href=\"./\">Browse the catalog</a> aka getByRole('link', { name: 'Browse the catalog' }).nth(1)\n\nwaiting on click for selector internal:role=link[name=\"Browse the catalog\"s]\nLocator diagnostics: {\"kind\":\"multiple_matches\",\"action\":\"click\",\"locator\":\"internal:role=link[name=\\\"Browse the catalog\\\"s]\",\"matchCount\":2,\"matches\":[{\"ariaLabel\":null,\"disabled\":false,\"role\":null,\"tag\":\"a\",\"text\":\"Browse the catalog\",\"type\":null,\"visible\":true},{\"ariaLabel\":null,\"disabled\":false,\"role\":null,\"tag\":\"a\",\"text\":\"Browse the catalog\",\"type\":null,\"visible\":true}],\"visibleCount\":2,\"truncated\":false}",
+            "{\"receiptKind\":\"adaptive-production-mobile-live\",\"ready\":true,\"canvas\":{\"height\":207.375,\"width\":316},\"body\":{\"scrollWidth\":390,\"width\":390},\"viewport\":390}"
+          ]
+        },
+        {
+          "logLine": 17711,
+          "timestampUTC": "2026-10-11T12:11:04.907Z",
+          "callId": "call_7cb027b490b24dc7b93f15e10bbaa157",
+          "texts": [
+            "Wall time: 0.6650 seconds\nOutput:",
+            "Error: Browser Use encountered an error interacting with this webpage: Error: strict mode violation: getByRole('link', { name: 'Browse the catalog', exact: true }) resolved to 2 elements:\n    1) <a href=\"/examples/\" data-v-b3aed362=\"\">Browse the catalog</a> aka getByLabel('Runnable visual examples').getByRole('link', { name: 'Browse the catalog' })\n    2) <a href=\"./\">Browse the catalog</a> aka getByRole('link', { name: 'Browse the catalog' }).nth(1)\n\nwaiting on click for selector internal:role=link[name=\"Browse the catalog\"s]\nLocator diagnostics: {\"kind\":\"multiple_matches\",\"action\":\"click\",\"locator\":\"internal:role=link[name=\\\"Browse the catalog\\\"s]\",\"matchCount\":2,\"matches\":[{\"ariaLabel\":null,\"disabled\":false,\"role\":null,\"tag\":\"a\",\"text\":\"Browse the catalog\",\"type\":null,\"visible\":true},{\"ariaLabel\":null,\"disabled\":false,\"role\":null,\"tag\":\"a\",\"text\":\"Browse the catalog\",\"type\":null,\"visible\":true}],\"visibleCount\":2,\"truncated\":false}",
+            "{\"receiptKind\":\"adaptive-production-mobile-live\",\"ready\":true,\"canvas\":{\"height\":207.375,\"width\":316},\"body\":{\"scrollWidth\":390,\"width\":390},\"viewport\":390}"
+          ]
+        },
+        {
+          "logLine": 17725,
+          "timestampUTC": "2026-10-11T12:11:22.765Z",
+          "callId": "call_12529d7868af47d499f84d7fbdf23888",
+          "texts": [
+            "Wall time: 0.6077 seconds\nOutput:",
+            "{\"receiptKind\":\"paired-production-catalog\",\"url\":\"http://127.0.0.1:52948/examples/\",\"count\":\"1 of 44 runnable examples\",\"exampleLink\":\"/examples/library#viewer-display-pose\"}{\"receiptKind\":\"pose-production-catalog-return\",\"url\":\"http://127.0.0.1:52948/examples/library#viewer-display-pose\",\"ready\":\"true\"}"
+          ]
+        }
+      ],
+      "navigationQualification": "Selection was observed while ready=false and the previous cad-curve hash remained. Later initial receipt observed the correct cad-adaptive-sampling hash and ready=true; not an immediate synchronous-hash claim.",
+      "resourceProof": "No instrumented Worker terminal/resource-release proof; lifecycle remains source-backed.",
+      "broaderScope": "No Root-global or Integration runtime acceptance.",
+      "catalogNavigation": {
+        "scopedCatalogLinkOpened": true,
+        "rootObservedInitialCount": "44 of 44",
+        "searchedViewerCount": "1 of 44 runnable examples",
+        "viewerHref": "/examples/library#viewer-display-pose",
+        "finalDeliverable": "Viewer example ready in tab49; viewport restored; preview33589 protected",
+        "qualification": "Root observed navigation only; no additional API flow performed by this extraction."
+      }
+    }
+  },
+  "productionBuild": {
+    "status": "second-build-and-docs-check-passed",
+    "attempts": [
+      {
+        "build": 1,
+        "seconds": 13.94,
+        "buildStatus": "passed",
+        "docsCheckStatus": "failed",
+        "reason": "Example catalog: runtime label/anchor differs: viewer-display-pose"
+      },
+      {
+        "build": 2,
+        "seconds": 13.78,
+        "buildStatus": "passed",
+        "docsCheckStatus": "passed",
+        "repair": "Root corrected only the two catalog labels and stopped preview 73846 before this build."
+      }
+    ],
+    "rawRecordedOutputs": [
+      {
+        "logLine": 17549,
+        "timestampUTC": "2026-10-11T12:07:16.189Z",
+        "exitCode": 0,
+        "stdout": "- building client + server bundles...\n\n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n\u001b[32m✓\u001b[0m building client + server bundles...\n- rendering pages...\n\u001b[32m✓\u001b[0m rendering pages...\nbuild complete in 13.94s.\n"
+      },
+      {
+        "logLine": 17563,
+        "timestampUTC": "2026-10-11T12:07:28.850Z",
+        "exitCode": 0,
+        "stdout": "file:///Users/user/.codex/worktrees/library-docs-continue/barocss/apps/library-docs/scripts/check-example-catalog.mjs:13\nconst require = (condition, message) => { if (!condition) throw new Error(`Example catalog: ${message}`); };\n                                                                ^\n\nError: Example catalog: runtime label/anchor differs: viewer-display-pose\n    at require (file:///Users/user/.codex/worktrees/library-docs-continue/barocss/apps/library-docs/scripts/check-example-catalog.mjs:13:65)\n    at checkExampleCatalog (file:///Users/user/.codex/worktrees/library-docs-continue/barocss/apps/library-docs/scripts/check-example-catalog.mjs:89:5)\n    at async file:///Users/user/.codex/worktrees/library-docs-continue/barocss/apps/library-docs/scripts/check-docs.mjs:77:24\n\nNode.js v22.22.0\n\u001b[32m✓\u001b[0m rendering pages...\nbuild complete in 13.94s.\n"
+      },
+      {
+        "logLine": 17603,
+        "timestampUTC": "2026-10-11T12:08:11.402Z",
+        "exitCode": 0,
+        "stdout": "- rendering pages...\n\u001b[32m✓\u001b[0m rendering pages...\nbuild complete in 13.78s.\n"
+      },
+      {
+        "logLine": 17613,
+        "timestampUTC": "2026-10-11T12:08:26.950Z",
+        "exitCode": 0,
+        "stdout": "{\"exampleCatalog\":{\"presets\":44,\"uniqueAnchors\":44,\"authoredSources\":44,\"categories\":{\"api\":11,\"language\":32,\"integration\":1},\"generatedModules\":13,\"builtAnchorsChecked\":true,\"execution\":\"Preset metadata and links only; no public API calls or gallery execution\"},\"pages\":109,\"packages\":12,\"checkedInternalLinks\":684,\"checkedImageAssets\":56,\"checkedDownloadAssets\":3,\"manifestHashes\":\"matched\",\"sourceCommit\":\"5f5ad866205a21510ac69552e704cc162fa253b5\"}\nBuilt site served at http://localhost:52948/\nviewer-display-pose 15228 f0b2e82f02fc50da19379734617465d9e7c4804e7e8166c4cff46f1f80eaaf28 built matched/image embedded\ncad-adaptive-sampling 14300 3079b2cea31ec136b9e6ec0add4f412e02aa951e3fb2d792da2ba59325caab89 built matched/image embedded\n"
+      }
+    ],
+    "finalDocsCheck": {
+      "pages": 109,
+      "internalLinks": 684,
+      "images": 56,
+      "downloads": 3,
+      "presets": 44,
+      "categories": {
+        "api": 11,
+        "language": 32,
+        "integration": 1
+      },
+      "generatedModules": 13,
+      "manifestHashes": "matched",
+      "packages": 12
+    },
+    "imageSourceAndBuiltBytesMatched": true,
+    "previewLifecycle": {
+      "stoppedBeforeBuild": [
+        "9266",
+        "85217"
+      ],
+      "stoppedBeforeSecondBuild": [
+        "73846"
+      ],
+      "finalProtectedSession": "33589",
+      "port": 52948
+    },
+    "scope": "Docs build/static checks and selected production browser operations only; no broader package runtime acceptance."
+  },
+  "productionNavigationFirstFailure": {
+    "logLine": 17711,
+    "timestampUTC": "2026-10-11T12:11:04.907Z",
+    "error": "Error: Browser Use encountered an error interacting with this webpage: Error: strict mode violation: getByRole('link', { name: 'Browse the catalog', exact: true }) resolved to 2 elements:\n    1) <a href=\"/examples/\" data-v-b3aed362=\"\">Browse the catalog</a> aka getByLabel('Runnable visual examples').getByRole('link', { name: 'Browse the catalog' })\n    2) <a href=\"./\">Browse the catalog</a> aka getByRole('link', { name: 'Browse the catalog' }).nth(1)\n\nwaiting on click for selector internal:role=link[name=\"Browse the catalog\"s]\nLocator diagnostics: {\"kind\":\"multiple_matches\",\"action\":\"click\",\"locator\":\"internal:role=link[name=\\\"Browse the catalog\\\"s]\",\"matchCount\":2,\"matches\":[{\"ariaLabel\":null,\"disabled\":false,\"role\":null,\"tag\":\"a\",\"text\":\"Browse the catalog\",\"type\":null,\"visible\":true},{\"ariaLabel\":null,\"disabled\":false,\"role\":null,\"tag\":\"a\",\"text\":\"Browse the catalog\",\"type\":null,\"visible\":true}],\"visibleCount\":2,\"truncated\":false}",
+    "scope": "Unscoped catalog-link locator matched two real links; no navigation occurred; scoped selector used next."
+  }
+}

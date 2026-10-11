@@ -1,0 +1,21 @@
+{
+  "kind": "cad-adaptive-sampling",
+  "title": "CAD adaptive sampling · tolerance and display points",
+  "label": "CAD adaptive sampling",
+  "anchor": "cad-adaptive-sampling",
+  "guide": "/packages/cad/adaptive-curve-sampling",
+  "sourceProfile": "733428030029a65797c26e3daadcae94c4762b09",
+  "language": "Complete Source0 Curve sampling request JSON",
+  "description": "Keep the weighted quintic Curve unchanged while editing its display chord criterion. Compare returned sample positions and parameter distribution under one projection of native XYZ. These sampled display points do not certify global error or create native edges.",
+  "source": "{\n  \"source\": \"/* 설계 π: retain the complete source and both unrelated objects. */\\r\\n@model adaptive_display { version: 0; length-unit: mm;\\r\\n  @curve #weighted_quintic { type: nurbs; degree: 5;\\r\\n    knots: [-3,-3,-3,-3,-3,-3,-1,2,5,5,5,5,5,5];\\r\\n    control-points: [[0,1,0],[2,-2,.25],[4,3,1],[6,-4,2.25],[8,5,4],[10,-6,6.25],[12,7,9],[14,-8,12.25]];\\r\\n    weights: [1,3,1,3,1,3,1,3]; }\\r\\n  @curve #keep_line { type: nurbs; degree: 1; knots: [-1.000,-1,1,1.00];\\r\\n    control-points: [[-0,-4,0],[10,-4,0]]; weights: [1,1]; }\\r\\n  @surface #keep_plane { type: nurbs; degree-u: 1; degree-v: 1;\\r\\n    knots-u: [0.000,0,1,1.00]; knots-v: [-1,-1,2,2];\\r\\n    control-points: [[[2,3,-0],[2,5,1]],[[4,3,2],[4,5,4]]]; weights: [[1,2],[3,4]]; }\\r\\n  /* Keep Ω, CRLF and the original native XYZ coordinates. */\\r\\n}\\r\\n\",\n  \"sourceVersion\": 0,\n  \"curveId\": \"weighted_quintic\",\n  \"options\": {\n    \"chordToleranceMM\": 0.05,\n    \"maxSegments\": 128,\n    \"maxDepth\": 12,\n    \"resultIdPrefix\": \"display\"\n  }\n}",
+  "actions": [
+    {
+      "id": "coarsen",
+      "label": "Coarser display · 0.2 mm"
+    },
+    {
+      "id": "fine",
+      "label": "Finer display · 0.05 mm"
+    }
+  ]
+}
