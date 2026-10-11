@@ -89,6 +89,14 @@ Hiding the selected object clears selection and this report. Retained selected C
 <details id="selected-native-derivatives-help"><summary>About selected native derivatives</summary><p>Use the selected native point's original U/V or t fields above. This report shows the original authored XYZ point in millimetres and raw dP/dU, dP/dV or dP/dt vectors in millimetres per original dimensionless parameter.
 The vectors are not normalized. They do not include display pose or scale and are not outward normals. Zero vectors are valid. Endpoints use the interior span; an exact C0 interior knot cannot supply a first derivative.
 Invalid active drafts keep the last completed report. Reset clears only this derivative report and keeps drafts, point, chord, measurements and File choices. Selection or source changes clear the report; view changes keep it. A retained selected CPU object remains available after presentation loss. No continuity, global accuracy or topology certificate is implied.</p></details></fieldset>
+<fieldset id="selected-native-surface-area-pane"><legend>Selected native Surface area</legend>
+<p id="selected-native-surface-area-target">Select an original native Surface.</p>
+<button id="inspect-selected-native-surface-area" disabled>Inspect selected Surface area</button><button id="reset-selected-native-surface-area" disabled>Reset Surface area report</button>
+<p id="selected-native-surface-area-output" role="status" aria-live="polite"></p>
+<details><summary>Native Surface area report</summary><pre id="selected-native-surface-area-details"></pre></details>
+<details id="selected-native-surface-area-help"><summary>About selected Surface area</summary><p>Inspect the whole original closed U/V parametric domain. The estimate and heuristic error use authored square millimetres before display poses or scale. Parameter regions count with multiplicity; this is not trimmed Face, BRep, Solid, union or visible display triangle area, and it is not a certified global or manufacturing error bound.
+Area analysis supports degree 1 to 3 on each Surface axis. A higher-degree Surface can be displayed but its area analysis can refuse. The original source is unchanged.
+Point and derivative drafts do not set an area region. Inspection and Reset keep their reports, the separate captured chord, SDK measurements and File choices. A different selection or accepted source clears this report; views and display changes keep it. Retained selected CPU geometry can be inspected after presentation loss. No midpoint, centroid, marker or saved document is added.</p></details></fieldset>
 <fieldset id="selected-native-curve-length-pane"><legend>Selected native Curve length</legend>
 <p id="selected-native-curve-length-target">Select an original native Curve.</p>
 <button id="inspect-selected-native-curve-length" disabled>Inspect selected Curve length</button><button id="reset-selected-native-curve-length" disabled>Reset Curve length report</button>
