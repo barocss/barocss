@@ -756,3 +756,16 @@ An admitted native request inserts exactly one interior knot, including another 
 Insertion and crossing its Undo/Redo boundary clear the affected obsolete pole selection, retaining the logical body and current view. Done exposes explicit selection of a fresh original coefficient; there is no index clamp or implicit point0. One accepted insertion adds one history state. Native Download persists current refined coefficients and complete siblings, not editor raw, insertion receipt, history or an editable discarded recipe. A fresh Open can edit the refined net.
 
 The bounded author flow is `apps/cad-editor/flows/curve-knot-flow.mjs`, using the unchanged full16/72000-byte weighted cubic document fixture. Native shape observations are local D0 evidence, not global equivalence, topology, closed Solid, manufacturing or commercial parity. Geometry-preserving insertion does not require a changed pixel hash. General degree4/5 document sampling, focus4/64 KiB display, actual Split Body, OS IME, resources/recovery and current integrated acceptance remain separate.
+
+
+### Conserved Solid Split session: native code stage
+
+`createCadEditorSplitSession(authoredText, options?)` owns the complete native constant-Y translated-strip Split result. It uses the native authored codec, whole-result validators and one four-pole wide Source edit for cut Y. It preserves the original closed Body, full sources, both closed output Bodies, recipes and qualified lineage. This session does not cast Solids into the Curve/Surface document family.
+
+The default presentation is `split`. `{ initialPresentation: 'original' }` starts with the original Body active while retaining the admitted complete Split recipe. `prepareApply()` prepares the first Split or a staged `stageCutYField(raw)` edit. `prepareUndo()` and `prepareRedo()` reconstruct native history from authored text and restore its explicit runtime original/split presentation. No native revision is invented. History retains at most 20 states and 64 MiB of actual UTF-8 and UTF-16 payload bytes (UTF-16 is twice the text length); native provider limits remain unchanged.
+
+`acceptCandidate(token)` commits CPU session state only. A future UI consumer must call it after successful display of the whole candidate through an admitted renderer/Viewer contract. It is not proof of GPU, Viewer, pixels, Canvas manipulation, picking or display recovery. Stale tokens refuse; failed Native preparation preserves accepted source, raw draft and history. Returned snapshots and candidates are copies.
+
+`serializeAccepted()` produces the existing native authored Split file only in split presentation. Original presentation refuses serialization because this codec has no unsplit state field. `prepareOpen(text)` genuinely reconstructs the original Body and both outputs and always prepares split presentation. Runtime presentation/history/candidates are not added to native files. Download capture tokens bind to session generation.
+
+Issue #1446 remains open. Whole twelve-Face/two-Body display, selection, atomic replacement, recovery and a real Canvas cut handle require the GPU/Viewer contract. The independent Native/session/file flow explicitly measures CPU commits and physical file writes; it does not substitute for the planned browser flow or professional CAD parity.

@@ -26,3 +26,7 @@ export type { CadEditorDrivingSketchConstraintField, CadEditorDrivingSketchView,
   CadEditorDrivingSketchCandidate, CadEditorDrivingSketchSnapshot, CadEditorDrivingSketchSession } from './driving-types.js';
 
 export type { CadEditorCurveIntervalField } from './types.js';
+
+export { createCadEditorSplitSession } from './split-session.js';
+export type { CadEditorSplitSessionOptions, CadEditorSplitPresentation, CadEditorSplitPending,
+  CadEditorSplitCandidate, CadEditorSplitSnapshot, CadEditorSplitDownload, CadEditorSplitSession } from './split-types.js';
