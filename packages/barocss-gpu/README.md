@@ -2925,3 +2925,48 @@ The fresh frozen nine-field version0 result uses profile `source2-typed-conditio
 Caps are eight predicates, 32 potential objects, 16 parameters, 1536 total references, 128 rules, 512 fields and 4096 cumulative work units. Each predicate charges12 authored units,3 comparison units,4 potential object/provenance units and two reference uses. The exact active view is additionally charged before allocation, including resolved field literals. Source and each candidate/selected shader remain64KiB UTF16/UTF8; the whole signed result remains2MiB before copying/freezing. Original ranges/source signs, scene-length/deg/scalar units and canonical Number coefficients remain separate from derived Float32 shaders or native CAD identities. Existing SceneParameterSourceError provides original diagnostics and actual delegated causes.
 
 After the affected GPU build, run `node examples/gpu-scene/scene-conditional-flow.mjs --output ABS_FRESH` for one complete original-source/emitted/manual-control/file/cold qualifier. This delivers CPU authoring and lowering; renderer/frame/TEN/lifetime, consumer files/history, integrated UI and publication require separate acceptance.
+## Typed mixed Scene generation
+
+`compileGeneratedAffineSceneSource(completeSource)` is an explicit source-only
+compiler for Source2 parameters, positive finite repeats and typed conditional
+objects in one file:
+
+```css
+@scene composed {
+  version:2;
+  @param used:length(2scene);
+  @param limit:length(3scene);
+  @repeat studs:sphere(2);
+  @when optional:sphere($used < $limit);
+}
+sphere { radius:1; translate:0 0 0; }
+```
+
+The result has format `barocss-gpu-generated-affine-scene-source`, version0,
+profile `source2-typed-mixed-generation-v0`, original `source`, authored `ast`,
+`parameters`, ordered repeat `generation`, all conditional `decisions`, selected
+`scene` and trusted `shaders`. The authored AST schema is
+`barocss-gpu-generated-affine-scene-ast`, schemaVersion0/sourceVersion2. Original
+tokens and rules remain separate from generated IDs and selected Scene2.
+
+Repeat count is a canonical positive decimal1..32. Conditions use exactly two
+same-quantity literal parameter references and strict `<`, with whitespace or
+comments on both sides. Eight generation statements share one limit; explicit
+objects plus every potential repeat/conditional object share the32-object limit.
+False conditions reserve identity and receive full shape/style validation. Stable
+IDs are `studs_0`, `studs_1` and potential `optional_0`; toggles never renumber.
+After all potential candidates pass the unchanged lowerer, a second unchanged
+lowerer processes the selected view. Only genuine false conditional objects and
+their exact own-ID rules are removed. Repeat objects stay selected.
+
+Source64KiB,16 parameters,1536 references,128 rules,512 fields and4096 cumulative
+work remain shared. The new profile charges all original records, generated
+objects, predicates, references, calculations and the selected view before
+generated object copies or lowering. Both shader results are limited to64KiB;
+the complete result is limited to2MiB in UTF16 and UTF8 before copying/freezing.
+Calls return fresh independent immutable graphs; input is primitive complete
+source text only. Existing `SceneParameterSourceError` codes/ranges/cause policy
+apply. Existing literal/product/arithmetic/repeat/conditional entries keep their
+own grammar and result types. No body, nesting, index variable, computed count,
+else, runtime condition, native CAD unit conversion, renderer admission, editor
+document format or publication is implied.

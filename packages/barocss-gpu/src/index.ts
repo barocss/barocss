@@ -185,3 +185,6 @@ export type { DirectionalLightShaderSourceCode, DirectionalLightShaderSlot, Dire
 
 export { compileConditionalAffineSceneSource } from './scene-conditional-source.js';
 export type { SceneConditionalDeclaration, SceneConditionalDecision, ConditionalAffineSceneAst, CompiledConditionalAffineSceneSource } from './scene-conditional-source.js';
+
+export { compileGeneratedAffineSceneSource } from './scene-generated-source.js';
+export type { GeneratedAffineSceneAst, CompiledGeneratedAffineSceneSource } from './scene-generated-source.js';
