@@ -1,0 +1,212 @@
+{
+  "status": "PASS",
+  "assertions": 82,
+  "hostAttribution": "same actual AST-extracted JS host functions against two PUBLIC HELPER variants; no emitted-host artifact",
+  "names": [
+    "active",
+    "current",
+    "find",
+    "maps",
+    "assets",
+    "world",
+    "sample",
+    "observation",
+    "checkRefusals"
+  ],
+  "sourceHostSHA256": "8cbb39abb2c5e389b7fe4a193ca825f69b653fdafdaf572bd30230bc52eae5df",
+  "extractionSHA256": "60a237caa6f3af5b89f89e13c3ed77d8720fca96e7e863b95bc2af937b246d1d",
+  "baselineHostSHA256": "9b47bbe755598a2f04a02d9c7782a634dfc0663e6a8f4ad18802ca64432e4a41",
+  "baselineExtractionSHA256": "42c012b71a336395624b493304968a9dae7ca7142acf77f7091850adfb34ef2f",
+  "fixture": {
+    "nativeBytes": 10226,
+    "SHA256": "1415a31d150fcaa0ebf5e0f759e522c35ba5ba1ed9d18903fcf29d33ec6ddc22",
+    "source10": "derived by removing known CopySourceRoot; no bootstrap/font flow",
+    "saved17": "genuine native document Scene/all4buffers"
+  },
+  "rows": [
+    {
+      "helper": "source-bundled public helper",
+      "fixtureNodes": 10,
+      "status": "PASS",
+      "cases": [
+        {
+          "name": "collision",
+          "code": "INVALID_SCENE",
+          "message": "nodeIds has a colliding new ID",
+          "retained": true
+        },
+        {
+          "name": "missing asset",
+          "code": "INVALID_SCENE",
+          "message": "assetIds has unknown or missing fields",
+          "retained": true
+        },
+        {
+          "name": "getter",
+          "code": "INVALID_SCENE",
+          "message": "assetIds.SourceImage must be a data field",
+          "retained": true
+        },
+        {
+          "name": "node budget",
+          "code": "SCENE_LIMIT",
+          "message": "duplicate exceeds 256 nodes",
+          "retained": true
+        }
+      ],
+      "getters": 0,
+      "publicErrorIdentities": true,
+      "acceptedSnapshotExact": true,
+      "simulation": "CPU observation uses literal readback stub; native renderer proof separate"
+    },
+    {
+      "helper": "source-bundled public helper",
+      "fixtureNodes": 17,
+      "status": "PASS",
+      "cases": [
+        {
+          "name": "collision",
+          "code": "INVALID_SCENE",
+          "message": "nodeIds has a colliding new ID",
+          "retained": true
+        },
+        {
+          "name": "missing asset",
+          "code": "INVALID_SCENE",
+          "message": "assetIds has unknown or missing fields",
+          "retained": true
+        },
+        {
+          "name": "getter",
+          "code": "INVALID_SCENE",
+          "message": "assetIds.SourceImage must be a data field",
+          "retained": true
+        },
+        {
+          "name": "node budget",
+          "code": "SCENE_LIMIT",
+          "message": "duplicate exceeds 256 nodes",
+          "retained": true
+        }
+      ],
+      "getters": 0,
+      "publicErrorIdentities": true,
+      "acceptedSnapshotExact": true,
+      "simulation": "CPU observation uses literal readback stub; native renderer proof separate"
+    },
+    {
+      "helper": "source-bundled public helper",
+      "fixtureNodes": 17,
+      "originalBaseline": "INCOMPLETE",
+      "maskedMessages": [
+        "nodeIds has a colliding new ID",
+        "nodeIds has a colliding new ID",
+        "nodeIds has a colliding new ID",
+        "duplicate exceeds 256 nodes"
+      ],
+      "originalGetter": 0
+    },
+    {
+      "helper": "emitted public helper",
+      "fixtureNodes": 10,
+      "status": "PASS",
+      "cases": [
+        {
+          "name": "collision",
+          "code": "INVALID_SCENE",
+          "message": "nodeIds has a colliding new ID",
+          "retained": true
+        },
+        {
+          "name": "missing asset",
+          "code": "INVALID_SCENE",
+          "message": "assetIds has unknown or missing fields",
+          "retained": true
+        },
+        {
+          "name": "getter",
+          "code": "INVALID_SCENE",
+          "message": "assetIds.SourceImage must be a data field",
+          "retained": true
+        },
+        {
+          "name": "node budget",
+          "code": "SCENE_LIMIT",
+          "message": "duplicate exceeds 256 nodes",
+          "retained": true
+        }
+      ],
+      "getters": 0,
+      "publicErrorIdentities": true,
+      "acceptedSnapshotExact": true,
+      "simulation": "CPU observation uses literal readback stub; native renderer proof separate"
+    },
+    {
+      "helper": "emitted public helper",
+      "fixtureNodes": 17,
+      "status": "PASS",
+      "cases": [
+        {
+          "name": "collision",
+          "code": "INVALID_SCENE",
+          "message": "nodeIds has a colliding new ID",
+          "retained": true
+        },
+        {
+          "name": "missing asset",
+          "code": "INVALID_SCENE",
+          "message": "assetIds has unknown or missing fields",
+          "retained": true
+        },
+        {
+          "name": "getter",
+          "code": "INVALID_SCENE",
+          "message": "assetIds.SourceImage must be a data field",
+          "retained": true
+        },
+        {
+          "name": "node budget",
+          "code": "SCENE_LIMIT",
+          "message": "duplicate exceeds 256 nodes",
+          "retained": true
+        }
+      ],
+      "getters": 0,
+      "publicErrorIdentities": true,
+      "acceptedSnapshotExact": true,
+      "simulation": "CPU observation uses literal readback stub; native renderer proof separate"
+    },
+    {
+      "helper": "emitted public helper",
+      "fixtureNodes": 17,
+      "originalBaseline": "INCOMPLETE",
+      "maskedMessages": [
+        "nodeIds has a colliding new ID",
+        "nodeIds has a colliding new ID",
+        "nodeIds has a colliding new ID",
+        "duplicate exceeds 256 nodes"
+      ],
+      "originalGetter": 0
+    }
+  ],
+  "firstFailures": [
+    {
+      "phase": "initial dependency inventory",
+      "message": "node_modules missing despite setup description; own ignored direct primary symlink created before build, no install/no API assertions"
+    }
+  ],
+  "limitations": [
+    "CPU stub draws=0 counter is not an independent draw/no-write proof; native draw/resource/frame retention belongs only actual browser",
+    "Same actual extracted host against two public helper variants; no emitted host artifact"
+  ],
+  "types": {
+    "common": {
+      "exit": 0,
+      "log": "/tmp/c2d1435-common-types.txt"
+    },
+    "originalScopedActualHostSourceAndEmittedPublic": {
+      "exit": 0,
+      "log": "/tmp/c2d1435-scoped-types.txt"
+    }
+  }
+}

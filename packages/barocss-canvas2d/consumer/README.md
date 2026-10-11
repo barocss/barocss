@@ -373,3 +373,10 @@ Open `consumer/current-v29-svg.html?gradient=1` to display the exported file wit
 The `consumer/image-decode.html` host gives each image selection or document Open a request token. A late decoder result or error cannot overwrite a newer Open. The token is captured before a native `File.text()` read; stale staged renderers are disposed. A newer refused request retains the accepted document and does not revive older work.
 
 The host's Dispose control invalidates pending work, removes its owned controls and releases the current renderer. Late completions and repeated Dispose retain readable terminal state. The public decoder, Blob limits and Scene6 document profile remain unchanged. See `consumer/evidence/blob-open-generation/` for the focused controlled-hold/native-file proof, separate from earlier decoder receipts and current-root acceptance.
+
+
+### Authored subtree copies
+
+`duplicateSceneSubtree(scene, sourceId, { nodeIds, assetIds, offset })` copies the selected Scene29 node and its descendants into the same parent, immediately after the original. Supply exact fresh node and asset ID maps. Layers remain unchanged; the offset uses parent-local logical pixels. The returned Scene and maps are independent. The helper copies references, not asset pixels or display resources.
+
+A host snapshots original pixels through `getImageAsset`, registers independent copies under the mapped IDs in a fresh renderer, and admits the candidate before replacing accepted state. Current asset/device limits still apply. The `consumer/subtree-duplicate.html` example edits the copied path, image and whole label, then restores both subtrees from a document. It does not clone listeners, capture, font work, history or selection. See `consumer/evidence/subtree-duplicate/` for the scoped native receipt; exact adoption and broader current-root acceptance remain separate.

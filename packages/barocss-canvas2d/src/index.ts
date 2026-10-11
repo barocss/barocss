@@ -98,3 +98,6 @@ export { outlineImageAsset } from './image-outline.js';
 export { exportSceneLinearSVG } from './svg-export.js';
 
 export { exportSceneGradientSVG } from './svg-export.js';
+
+export { duplicateSceneSubtree } from './scene-subtree-duplicate.js';
+export type { SceneSubtreeDuplicateOptions, SceneSubtreeDuplicateResult } from './scene-subtree-duplicate.js';

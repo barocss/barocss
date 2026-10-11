@@ -1,0 +1,65 @@
+{
+  "issue": 1425,
+  "parent": "ebae6a1409467638b3c2aeaac7049991c368180e",
+  "runtime": "Node22.22.0",
+  "build": {
+    "command": "pnpm --filter @barocss/canvas2d build:library",
+    "exit": 0,
+    "log": "/tmp/c2d1425-build.txt",
+    "firstPass": true,
+    "bundleBytes": 324194
+  },
+  "types": {
+    "common": {
+      "exit": 0,
+      "log": "/tmp/c2d1425-common-types.txt"
+    },
+    "actualHostSourceAndExplicitEmittedPublic": {
+      "exit": 0,
+      "log": "/tmp/c2d1425-scoped-download-ready-types.txt"
+    },
+    "successfulNumericalRuns": 1
+  },
+  "focused": {
+    "assertions": 347,
+    "source": {
+      "admissions": 13,
+      "refusals": 33
+    },
+    "emitted": {
+      "admissions": 13,
+      "refusals": 33
+    },
+    "log": "/tmp/c2d1425-probe-retry.txt",
+    "successfulNumericalRuns": 1
+  },
+  "firstFailures": [
+    {
+      "phase": "initial actual host scoped types",
+      "code": "TS7034/TS2488/TS2531/TS7005",
+      "log": "/tmp/c2d1425-scoped-types.txt",
+      "resolution": "Explicit controls JSDoc on own line, Array.from NodeList and known observation HTMLElement cast; no helper change"
+    },
+    {
+      "phase": "initial paired probe",
+      "code": "AssertionError prototype comparison",
+      "log": "/tmp/c2d1425-probe.txt",
+      "resolution": "Compare map own data and JSON semantic snapshot, not prototype equality; fixture-only repair before any browser"
+    },
+    {
+      "phase": "root-requested lifecycle host repair strict types",
+      "code": "TS2339/TS2304",
+      "logs": [
+        "/tmp/c2d1425-scoped-reviewed-types.txt",
+        "/tmp/c2d1425-scoped-final-ready-types.txt"
+      ],
+      "resolution": "Overbroad text replacement staged.renderer.dispose became staged.release(renderer); corrected to owned release(staged.renderer), before browser"
+    }
+  ],
+  "nativeBrowser": "COMPLETED_WITH_RETAINED_FIXTURE_FAILURE_AND_CONTRACT_INCOMPLETE",
+  "driverSyntax": {
+    "exit": 0,
+    "SHA256": "0a19962a87ed2cadbb9e749ff0a8b3b96921f0571ae49068a2a03501d95c195f"
+  },
+  "actualScope": "main Duplicate/Edit/Save/Open/resource proof; diagnostic masked causes require1435"
+}
