@@ -434,3 +434,7 @@ export type { PairedSurfaceIntersectionBranchRequest, PairedSurfaceIntersectionB
 
 export { splitTranslatedStripBodyByPlane, validateTranslatedStripPlaneSplit, serializeTranslatedStripPlaneSplit, parseTranslatedStripPlaneSplit, TranslatedStripPlaneSplitError, TranslatedStripPlaneSplitDiagnosticCode } from './translated-strip-plane-split.js';
 export type { TranslatedStripPlaneSplitRequest, TranslatedStripPlaneSplitOptions, TranslatedStripPlaneSplitReport, TranslatedStripPlaneSplitResult } from './translated-strip-plane-split.js';
+
+
+export { evaluateSourceLineWidthExtrusionGraph, updateSourceLineWidthExtrusionGraph, validateSourceLineWidthExtrusionGraph, validateSourceLineWidthExtrusionGraphUpdate, serializeSourceLineWidthExtrusionGraph, parseSourceLineWidthExtrusionGraph, SourceLineWidthExtrusionGraphError, SourceLineWidthExtrusionGraphDiagnosticCode } from './source-line-width-extrusion-graph.js';
+export type { SourceLineWidthExtrusionGraphV0, SourceLineWidthExtrusionGraphOptions, SourceLineWidthExtrusionGraphEdits, SourceLineWidthExtrusionGraphReport, SourceLineWidthExtrusionGraphResult, SourceLineWidthExtrusionGraphTransactionReport, SourceLineWidthExtrusionGraphTransaction, SourceLineWidthExtrusionGraphUpdateResult } from './source-line-width-extrusion-graph.js';
