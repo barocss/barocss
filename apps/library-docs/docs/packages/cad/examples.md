@@ -8,6 +8,8 @@ Compile original geometry, query it, then prepare a separate display mesh. These
 
 Use [CAD language practice](./language-examples) for weighted parameters, curved extrusion and nonunit Curve domains. Read the native values alongside each fitted display.
 
+[Shape a quadratic rational Surface](./rational-surface) with nine poles, a typed rise and a central weight. [Open the rational dome](/examples/language#cad-rational-dome) to compare its fixed boundary curves with the changed interior and evaluated grid.
+
 ## Edit sections and rebuild a Loft
 
 Use the [complete NURBS Loft graph example](./nurbs-loft-graph) to change a middle section pole and weight, preserve unrelated original geometry, and inspect affected versus reused results. The guide uses a separate newer API version and explains authored Save/Open versus complete evaluated result ingestion.

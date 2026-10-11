@@ -8,6 +8,8 @@ const materialSource = { language: 'GPU mesh material', libraries: Object.freeze
 // Category describes the reader's task. A shared display host is not an
 // integration task; libraries lists public packages used by that sample.
 export const exampleCatalog = Object.freeze({
+  'cad-rational-dome': item('CAD rational dome', 'cad-rational-dome', 'cad', 'language', '/packages/cad/rational-surface',
+    'Compare a nine-pole rational dome with its evaluated surface by editing a typed rise and central weight.', cadDisplay('CAD source2')),
   'svg-export': item('SVG export', 'svg-export', 'canvas2d', 'api', '/packages/canvas2d/svg-export',
     'Edit a two-stop path gradient, download its SVG image and reopen the separate editable scene JSON.'),
   scene: item('GPU scene', 'gpu-scene', 'gpu', 'language', '/packages/gpu/examples#rotated-box-and-sphere',

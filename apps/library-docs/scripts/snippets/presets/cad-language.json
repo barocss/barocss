@@ -161,5 +161,107 @@
         "code": "KNOTS"
       }
     }
+  },
+  "cad-rational-dome": {
+    "kind": "surface",
+    "title": "CAD rational dome",
+    "label": "CAD rational dome",
+    "language": "CAD source2 → GPU mesh",
+    "sourceVersion": 2,
+    "source": "@model domed_panel {\n  version: 2; length-unit: mm;\n  @parameter #rise { type: length; value: 2.4 cm; }\n  @parameter #centerWeight { type: scalar; value: 4; }\n  @surface #dome {\n    type: nurbs; degree-u: 2; degree-v: 2;\n    knots-u: [0,0,0,1,1,1]; knots-v: [0,0,0,1,1,1];\n    control-points: [[[0,0,0],[0,15,0],[0,30,0]],\n                     [[20,0,0],[20,15,$rise],[20,30,0]],\n                     [[40,0,0],[40,15,0],[40,30,0]]];\n    weights: [[1,1,1],[1,$centerWeight,1],[1,1,1]];\n  }\n}",
+    "description": "A quadratic 3×3 rational Surface keeps its boundary flat while a typed rise and dimensionless center weight shape the interior. Edit centerWeight from 4 to 1 or rise from 2.4 cm to 3.6 cm, then compare native points and the sampled U/V grid.",
+    "expected": {
+      "basis": "Analytic tensor-product quadratic basis verified by selected public CPU evaluation; browser display is separate.",
+      "irSchemaVersion": 2,
+      "modelVersion": 0,
+      "surfaceId": "dome",
+      "nativeObjectIds": [
+        "dome"
+      ],
+      "degree": [
+        2,
+        2
+      ],
+      "poleGrid": [
+        3,
+        3
+      ],
+      "domain": {
+        "u": [
+          0,
+          1
+        ],
+        "v": [
+          0,
+          1
+        ]
+      },
+      "centerMM": [
+        20,
+        15,
+        13.714285714285714
+      ],
+      "offCenter": {
+        "u": 0.25,
+        "v": 0.5,
+        "pointMM": [
+          13.6,
+          15,
+          11.52
+        ]
+      },
+      "vertices": 289,
+      "triangles": 512,
+      "sampledUVPaths": 34,
+      "certified": false,
+      "solid": false,
+      "parameters": {
+        "rise": {
+          "value": 24,
+          "unit": "mm"
+        },
+        "centerWeight": {
+          "value": 4,
+          "unit": "1"
+        }
+      },
+      "edits": [
+        {
+          "replace": "value: 4;",
+          "with": "value: 1;",
+          "centerMM": [
+            20,
+            15,
+            6
+          ],
+          "offCenterMM": [
+            10,
+            15,
+            4.5
+          ]
+        },
+        {
+          "replace": "value: 2.4 cm;",
+          "with": "value: 3.6 cm;",
+          "centerMM": [
+            20,
+            15,
+            20.571428571428573
+          ]
+        }
+      ],
+      "refusals": [
+        {
+          "replace": "value: 4;",
+          "with": "value: 0;",
+          "code": "WEIGHTS"
+        },
+        {
+          "replace": "[20,15,$rise]",
+          "with": "[20,15,$centerWeight]",
+          "code": "UNIT"
+        }
+      ]
+    }
   }
 }

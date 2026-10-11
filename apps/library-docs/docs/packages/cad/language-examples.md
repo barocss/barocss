@@ -152,4 +152,10 @@ Each displayed Surface uses a 17×17 sampling grid: 289 vertices and 512 triangl
 
 Source2 admits at most 64 Parameters and 16 geometry declarations. Fields keep their quantity rules: coordinate/vector components require lengths; degrees, knots and weights require scalars. Arrays must fit the native degree, pole and positive-weight bounds. Compiler ranges use half-open UTF-16 offsets and one-based lines/columns; apply them only to the exact candidate text that produced them. Recompile the complete edited input to obtain new independent native data.
 
+## Shape a quadratic rational dome
+
+[Open the rational dome](/examples/language#cad-rational-dome) and read [the complete rational Surface guide](./rational-surface). Its source2 input has a typed rise and dimensionless central weight, degree 2 in both directions and nine literal XY poles.
+
+The center pole is 24 mm high, while the original Surface center is `96/7` mm. Weight 4→1 changes that center to 6 mm without moving any pole. After Reset, rise 24→36 mm at weight 4 gives `144/7` mm. The four entire boundary curves stay fixed; an off-center probe shows that weight also changes XY parameterization. The displayed 17×17 grid and 34 evaluated U/V paths are sampled geometry, not the control net or Solid topology.
+
 [Model language](./language) · [CAD API](./api) · [Other geometry examples](./examples) · [Limits](./limits)

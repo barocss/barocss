@@ -26,7 +26,7 @@ export async function checkExampleCatalog(app = defaultApp, { built = true } = {
     }
   }
   const keys = Object.keys(exampleCatalog), runtimeKeys = Object.keys(runtime);
-  require(keys.length === 33 && runtimeKeys.length === 33, 'expected the 33 current presets');
+  require(keys.length === 34 && runtimeKeys.length === 34, 'expected the 34 current presets');
   require(keys.every(key => Object.hasOwn(runtime, key)) && runtimeKeys.every(key => Object.hasOwn(exampleCatalog, key)), 'runtime/catalog coverage differs');
 
   const authored = {};
@@ -52,7 +52,7 @@ export async function checkExampleCatalog(app = defaultApp, { built = true } = {
     builtinKeys.push(key);
   }
   require(builtinKeys.length === 4, 'expected four original visual source literals');
-  require(Object.keys(authored).length + builtinKeys.length === 33, 'authored source coverage differs');
+  require(Object.keys(authored).length + builtinKeys.length === 34, 'authored source coverage differs');
   for (const [key, preset] of Object.entries(authored)) {
     require(Object.hasOwn(runtime, key), `authored preset missing at runtime: ${key}`);
     require(runtime[key].source === preset.source, `generated source differs: ${key}`);
@@ -107,7 +107,7 @@ export async function checkExampleCatalog(app = defaultApp, { built = true } = {
     await builtAnchor('/playground', entry.anchor);
     counts[entry.category]++;
   }
-  return { presets: keys.length, uniqueAnchors: anchors.size, authoredSources: 33, categories: counts,
+  return { presets: keys.length, uniqueAnchors: anchors.size, authoredSources: 34, categories: counts,
     generatedModules: modules.length, builtAnchorsChecked: built, execution: 'Preset metadata and links only; no public API calls or gallery execution' };
 }
 
