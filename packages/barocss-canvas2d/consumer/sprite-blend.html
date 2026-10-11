@@ -15,9 +15,9 @@
 </head>
 <body>
   <h1>Canvas2D sprite blend and prepared alpha</h1>
-  <p>A partially transparent red sprite changes blend mode over a gray rectangle. The following sprite remains normal. Mask image alpha prepares copied bytes for the main Sprite while the original Follower stays unchanged.</p>
+  <p id="description">A partially transparent red sprite changes blend mode over a gray rectangle. The following sprite remains normal. Mask image alpha prepares copied bytes for the main Sprite while the original Follower stays unchanged.</p>
   <button id="normal">Normal</button><button id="add">Add</button>
-  <button id="mask">Mask image alpha</button><button id="edit">Move restored Sprite</button><button id="png">Export PNG</button><button id="dispose">Dispose</button>
+  <button id="mask">Mask image alpha</button><button id="key" hidden>Key RGB [40,160,80], tolerance 5</button><button id="edit">Move restored Sprite</button><button id="png">Export PNG</button><button id="dispose">Dispose</button>
   <button id="invalid">Invalid mode</button><button id="save">Save document</button>
   <label for="open">Open document</label><input id="open" type="file" accept="application/json,.json">
   <p id="status" role="status"></p>

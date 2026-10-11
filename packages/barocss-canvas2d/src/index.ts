@@ -101,3 +101,6 @@ export { exportSceneGradientSVG } from './svg-export.js';
 
 export { duplicateSceneSubtree } from './scene-subtree-duplicate.js';
 export type { SceneSubtreeDuplicateOptions, SceneSubtreeDuplicateResult } from './scene-subtree-duplicate.js';
+
+export { applyImageColorKey } from "./image-color-key.js";
+export type { ImageRGBKey } from "./image-color-key.js";
