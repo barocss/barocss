@@ -3,6 +3,7 @@ import {createPortal} from 'react-dom';
 import {validateMeshOptions, type MeshLighting} from '@barocss/gpu';
 import type {NativeSceneHost} from './native-scene-host';
 import {Button} from './components/ui/button';
+import {NativeTransformInspector} from './native-transform-inspector';
 
 interface Props {host: NativeSceneHost; disabled: boolean; onError: (cause: unknown) => void}
 const text = (value: number) => Object.is(value, -0) ? '-0' : String(value);
@@ -46,6 +47,7 @@ export function NativeSceneControls({host, disabled, onError}: Props) {
   if (!portal) return null;
   return createPortal(<section className="re-native-controls" aria-label="Native scene controls">
     <div className="re-material-heading"><h2 data-testid="native-properties-body-title" title={bodyTitle}>{bodyTitle}</h2><span>Properties</span></div>
+    <NativeTransformInspector host={host} disabled={disabled} onError={onError}/>
     <div className="re-material-heading"><h2>Lighting</h2><span>{snapshot.invalidLighting ? 'Correct fields' : 'Scene draft'}</span></div>
     {field(0)}{field(1)}<div className="re-native-direction" style={{display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))'}}>{[2, 3, 4].map(field)}</div>
     <div className="re-material-heading"><Button size="sm" disabled={locked || !snapshot.dirty} data-testid="native-scene-apply" onClick={apply}>Apply scene</Button><Button variant="ghost" size="sm" disabled={locked || !snapshot.dirty} data-testid="native-scene-discard" onClick={discard}>Discard</Button></div>

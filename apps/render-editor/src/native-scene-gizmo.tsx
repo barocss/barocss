@@ -24,7 +24,7 @@ export function NativeSceneGizmo({host, canvas, disabled, onError}: Props) {
       hitTest: hitTestRenderSceneGizmo,
       prepare(viewport) {
         const value = host.getSnapshot();
-        if (!value.available || value.disposed || value.viewDirty || value.nativeDirty || value.materialDirty || value.invalidLighting) return {pivot: [0, 0], handles: [], unavailable: 'Apply or Discard drafts and restore the view to use handles.'};
+        if (!value.available || value.disposed || value.viewDirty || value.nativeDirty || value.materialDirty || value.invalidLighting || value.invalidBodyPose) return {pivot: [0, 0], handles: [], unavailable: 'Correct or Discard drafts and restore the view to use handles.'};
         const original = captured.current;
         const document = original?.document ?? value.accepted;
         const pose = value.posePreview?.pose;

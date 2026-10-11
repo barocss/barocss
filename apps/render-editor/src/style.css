@@ -206,3 +206,16 @@ body:has(:is(.app-shell--mixed,.app-shell--scene)) [data-slot="dialog-content"] 
 .re-material-host .re-native-outliner-readonly .re-native-body-kind { display: none; }
 .re-material-host .re-native-controls .re-material-heading h2 { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .re-material-host .native-selection-status { position: absolute; top: 40px; left: 6px; z-index: 4; margin: 0; padding: 3px 5px; background: #222428dd; color: #d7dbe2; font-size: 11px; pointer-events: none; max-width: calc(100% - 12px); }
+
+/* Native numeric properties remain in the existing scrolling inspector. */
+.re-material-host .re-native-transform-row { margin: 4px 6px; padding: 0; border: 0; min-width: 0; }
+.re-material-host .re-native-transform-row legend { margin-bottom: 3px; padding: 0; color: #b7bec9; font-size: 10px; }
+.re-material-host .re-native-transform-vector { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.re-material-host .re-native-transform-vector label { display: flex; min-width: 0; margin: 0; gap: 3px; padding: 0 0 0 4px; border: 1px solid var(--re-material-line); border-radius: 3px; background: #1e2024; }
+.re-material-host .re-native-transform-vector label > span { flex: 0 0 auto; color: #a9b2bf; font-size: 9px; }
+.re-material-host .re-native-transform-vector input { min-width: 0; padding: 3px 2px; border: 0; border-radius: 0; font-size: 11px; }
+.re-material-host .re-native-transform-vector label:has(input[aria-invalid="true"]) { border-color: #cf8a79; }
+.re-material-host .re-native-rotation-cue { margin: 4px 6px; color: #9ea8b6; font-size: 10px; }
+.re-material-host .re-native-transform-error { margin: 4px 6px; color: #e6b19f; font-size: 10px; overflow-wrap: anywhere; }
+.re-material-host .re-native-transform-error p { margin: 3px 0; }
+.re-material-host .re-native-transform-error summary { cursor: pointer; }

@@ -18,6 +18,9 @@ export interface NativeSceneHostSnapshot {
   readonly nativeDirty: boolean;
   readonly materialDirty: boolean;
   readonly invalidLighting: boolean;
+  readonly invalidBodyPose: boolean;
+  readonly invalidBodyPoseBodyId: string | null;
+  readonly bodyPoseInputResetEpoch: number;
   readonly viewCamera: MeshCamera | null;
   readonly viewDirty: boolean;
   readonly poseGestureActive: boolean;
@@ -36,6 +39,8 @@ export interface NativeSceneHost {
   setPresenter(presenter: NativeScenePresenter | null, ownershipReader?: () => object): void;
   setAvailable(available: boolean): void;
   stageSceneDocument(document: RenderNativeSceneDocument): void;
+  stageBodyPose(bodyId: string, patch: {readonly translationMM: readonly [number, number, number]; readonly scale: readonly [number, number, number]}): void;
+  setBodyPoseInputInvalid(bodyId: string): void;
   stageLighting(lighting: MeshLighting): void;
   setLightingInputInvalid(invalid: boolean): void;
   prepareDraft(): RenderNativeScenePreparedCandidate;
@@ -89,6 +94,29 @@ function samePose(a: RenderNativeScenePose, b: RenderNativeScenePose): boolean {
     && a.rotationXYZW.every((value, index) => value === b.rotationXYZW[index])
     && a.scale.every((value, index) => value === b.scale[index]);
 }
+function bodyPoseFields(input: unknown): {translationMM: readonly [number, number, number]; scale: readonly [number, number, number]} {
+  check(input !== null && typeof input === 'object' && !Array.isArray(input)
+    && [Object.prototype, null].includes(Object.getPrototypeOf(input)), 'Body fields require ordinary own data.');
+  const keys = Reflect.ownKeys(input);
+  check(keys.length === 2 && keys.every(key => key === 'translationMM' || key === 'scale'), 'Body fields require Position and Scale only.');
+  const vector = (key: 'translationMM' | 'scale', minimum: number, maximum: number): readonly [number, number, number] => {
+    const descriptor = Object.getOwnPropertyDescriptor(input, key);
+    check(descriptor && 'value' in descriptor && descriptor.enumerable, 'Body fields refuse hidden fields and accessors.');
+    const value: unknown = descriptor.value;
+    check(Array.isArray(value) && Object.getPrototypeOf(value) === Array.prototype, 'Body fields require ordinary XYZ arrays.');
+    const length = Object.getOwnPropertyDescriptor(value, 'length');
+    check(length && 'value' in length && length.value === 3, 'Body fields require three XYZ values.');
+    const fields = Reflect.ownKeys(value);
+    check(fields.length === 4 && fields.every(field => field === 'length' || field === '0' || field === '1' || field === '2'), 'Body fields refuse extra array fields.');
+    return Object.freeze([0, 1, 2].map(index => {
+      const item = Object.getOwnPropertyDescriptor(value, String(index));
+      check(item && 'value' in item && item.enumerable && typeof item.value === 'number'
+        && Number.isFinite(item.value) && item.value >= minimum && item.value <= maximum, 'Check the finite Position or positive Scale values.');
+      return item.value as number;
+    }) as [number, number, number]);
+  };
+  return {translationMM: vector('translationMM', -10000, 10000), scale: vector('scale', .001, 100)};
+}
 function selectedMaterial(preparation: RenderNativeScenePreparation, bodyId: string) {
   const material = preparation.materials.find(item => item.target.bodyId === bodyId) ?? preparation.materials[0];
   check(material, 'This editor requires an authored material on a visible native Surface.');
@@ -110,6 +138,7 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
   let selectedBodyId = selectedMaterial(native.getSnapshot().preparation, '').target.bodyId;
   let local = createRenderMaterialSession(selectedMaterial(native.getSnapshot().preparation, selectedBodyId).preparation.document);
   let draftDocument = native.getSnapshot().accepted, invalidLighting = false;
+  let invalidBodyPoseBodyId: string | null = null, bodyPoseInputResetEpoch = 0;
   let viewCamera: MeshCamera | null = null, presenter: NativeScenePresenter | null = null, available = false;
   let disposed = false, locked = false, reentered = false, generation = 0;
   let ownershipReader: (() => object) | undefined, fallbackOwner: object = Object.freeze({});
@@ -148,7 +177,7 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
   const readSnapshots = () => {
     const state = native.getSnapshot(), raw = local.getSnapshot();
     const selected = selectedMaterial(state.preparation, selectedBodyId);
-    const dirty = state.dirty || raw.dirty || invalidLighting || viewCamera !== null || bodyPose !== null;
+    const dirty = state.dirty || raw.dirty || invalidLighting || invalidBodyPoseBodyId !== null || viewCamera !== null || bodyPose !== null;
     materialSnapshot = Object.freeze({...raw, accepted: selected.preparation.document, sample: selected.preparation.sample,
       dirty, canUndo: state.canUndo, canRedo: state.canRedo, disposed,
       savedRevision: state.savedRevision === state.accepted.revision ? selected.preparation.document.revision : null});
@@ -157,6 +186,7 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
         modelId: item.ref.modelId, surfaceId: item.ref.surfaceId,
         title: state.accepted.nativeDocument.bodies.find(body => body.id === item.target.bodyId)?.name ?? item.preparation.document.title}))),
       dirty, nativeDirty: state.dirty, materialDirty: raw.dirty, invalidLighting, viewCamera, viewDirty: viewCamera !== null,
+      invalidBodyPose: invalidBodyPoseBodyId !== null, invalidBodyPoseBodyId, bodyPoseInputResetEpoch,
       poseGestureActive: bodyPose?.gestureActive ?? false, posePreview: bodyPose?.preview ?? null,
       available, canUndo: state.canUndo, canRedo: state.canRedo, savedRevision: state.savedRevision, disposed});
   };
@@ -254,6 +284,7 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
     return candidate;
   };
   const prepareDraft = () => {
+    check(invalidBodyPoseBodyId === null, 'Correct the body Position and Scale values before Apply.');
     check(!invalidLighting, 'Correct the lighting values before Apply.');
     const raw = local.getSnapshot();
     if (raw.dirty) {stage(withMaterial(local.prepareDraft().document)); changed();}
@@ -287,7 +318,7 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
       acceptedOwner = nextStore.owner!;
       local.dispose(); local = nextStore.local!; nextStore.local = null;
       selectedBodyId = nextBody; draftDocument = native.getSnapshot().accepted;
-      invalidLighting = false; viewCamera = null; changed(); return result;
+      invalidLighting = false; invalidBodyPoseBodyId = null; bodyPoseInputResetEpoch++; viewCamera = null; changed(); return result;
     } finally {nextStore.local?.dispose();}
   };
   const restore = () => {
@@ -323,7 +354,7 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
     materialSession, getSnapshot: () => snapshot, subscribe,
     selectTarget(bodyId) {run(() => {
       check(!bodyPose && available, 'Finish the body transform or restore the preview before changing the active body.');
-      check(!native.getSnapshot().dirty && !local.getSnapshot().dirty && !invalidLighting, 'Apply or Discard authored drafts before changing the active body.');
+      check(!native.getSnapshot().dirty && !local.getSnapshot().dirty && !invalidLighting && invalidBodyPoseBodyId === null, 'Apply or Discard authored drafts before changing the active body.');
       check(typeof bodyId === 'string' && snapshot.targets.some(item => item.bodyId === bodyId), 'Choose an authored visible Surface material.');
       if (bodyId === selectedBodyId) return;
       const selected = selectedMaterial(native.getSnapshot().preparation, bodyId);
@@ -335,6 +366,40 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
       presenter = next; ownershipReader = reader; fallbackOwner = nextFallback; acceptedOwner = nextOwner; available = next !== null; changed();});},
     setAvailable(value) {run(() => {check(typeof value === 'boolean', 'Native availability must be a boolean.'); if (!value) invalidatePose(); if (available !== value) {available = value; changed();}});},
     stageSceneDocument(document) {run(() => {noView(); clean(); stage(document); changed();});},
+    stageBodyPose(bodyId, patch) {run(() => {
+      noView(); check(available, 'The native preview is unavailable.');
+      check(typeof bodyId === 'string' && bodyId === selectedBodyId
+        && snapshot.preparation.materials.some(value => value.target.bodyId === bodyId)
+        && snapshot.preparation.entries.some(value => value.kind === 'surface' && value.binding.bodyId === bodyId)
+        && draftDocument.display.visibleBodyIds.includes(bodyId), 'Edit the selected visible Surface body.');
+      check(invalidBodyPoseBodyId === null || invalidBodyPoseBodyId === bodyId, 'Correct the body with incomplete Position or Scale values.');
+      const fields = bodyPoseFields(patch), original = draftDocument.display.poses.find(value => value.bodyId === bodyId)
+        ?? {bodyId, translationMM: [0, 0, 0] as const, rotationXYZW: [0, 0, 0, 1] as const, scale: [1, 1, 1] as const};
+      const sameValue = draftDocument.display.poses.length === 0
+        ? (value: number, current: number) => value === current : Object.is;
+      const unchanged = fields.translationMM.every((value, index) => sameValue(value, original.translationMM[index]!))
+        && fields.scale.every((value, index) => sameValue(value, original.scale[index]!));
+      const poses = unchanged ? draftDocument.display.poses : (draftDocument.display.poses.length ? draftDocument.display.poses
+        : snapshot.preparation.entries.map(entry => ({bodyId: entry.binding.bodyId, translationMM: [0, 0, 0] as const,
+          rotationXYZW: [0, 0, 0, 1] as const, scale: [1, 1, 1] as const}))).map(value => value.bodyId === bodyId
+          ? {...value, translationMM: fields.translationMM, scale: fields.scale} : value);
+      const document = unchanged ? draftDocument : {...draftDocument, display: {...draftDocument.display, poses}};
+      prepareRenderNativeSceneAppearance(document);
+      if (reentered) throw new RenderEditorError('STALE_CANDIDATE', 'Body field preparation reentry was refused.');
+      if (!unchanged) stage(document);
+      const corrected = invalidBodyPoseBodyId === bodyId;
+      if (corrected) invalidBodyPoseBodyId = null;
+      if (!unchanged || corrected) changed();
+    });},
+    setBodyPoseInputInvalid(bodyId) {run(() => {
+      noView(); check(available, 'The native preview is unavailable.');
+      check(typeof bodyId === 'string' && bodyId === selectedBodyId
+        && snapshot.preparation.materials.some(value => value.target.bodyId === bodyId)
+        && snapshot.preparation.entries.some(value => value.kind === 'surface' && value.binding.bodyId === bodyId)
+        && draftDocument.display.visibleBodyIds.includes(bodyId), 'Correct the selected visible Surface body.');
+      check(invalidBodyPoseBodyId === null || invalidBodyPoseBodyId === bodyId, 'Correct the body with incomplete Position or Scale values.');
+      if (invalidBodyPoseBodyId !== bodyId) {invalidBodyPoseBodyId = bodyId; changed();}
+    });},
     stageLighting(lighting) {run(() => {noView(); stage({...draftDocument, display: {...draftDocument.display, lighting}}); invalidLighting = false; changed();});},
     setLightingInputInvalid(value) {run(() => {noView(); check(typeof value === 'boolean', 'Lighting validity requires a boolean.'); if (invalidLighting !== value) {invalidLighting = value; changed();}});},
     prepareDraft: () => run(() => {noView(); return prepareDraft();}),
@@ -342,13 +407,14 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
     prepareUndo: () => run(() => {noView(); clean(); return issue(native.prepareUndo());}),
     prepareRedo: () => run(() => {noView(); clean(); return issue(native.prepareRedo());}),
     commitPrepared: (candidate, beforeCommit) => run(() => {noView(); return commit(candidate, beforeCommit);}),
-    discardDraft() {run(() => {if (bodyPose) noView(); if (viewCamera) restore(); native.discardDraft(); local.discardDraft(); draftDocument = native.getSnapshot().accepted; invalidLighting = false; changed();});},
+    discardDraft() {run(() => {if (bodyPose) noView(); if (viewCamera) restore(); native.discardDraft(); local.discardDraft(); draftDocument = native.getSnapshot().accepted; invalidLighting = false; invalidBodyPoseBodyId = null; bodyPoseInputResetEpoch++; changed();});},
     markSaved(revision) {run(() => {noView(); native.markSaved(revision); changed();});},
     observeView(camera) {run(() => {const next = cameraCopy(camera), accepted = native.getSnapshot().accepted.display.camera;
+      check(invalidBodyPoseBodyId === null || sameCamera(next, accepted), 'Correct the body Position and Scale values before changing the view.');
       if (bodyPose) {check(sameCamera(next, accepted), 'The camera changed during the body transform. Cancel the transform first.'); return;}
       const pending = sameCamera(next, accepted) ? null : next;
       if (pending === null ? viewCamera !== null : viewCamera === null || !sameCamera(pending, viewCamera)) {viewCamera = pending; changed();}});},
-    applyCamera() {return run(() => {if (bodyPose) noView(); check(viewCamera, 'There is no view change to use.'); stage({...draftDocument, display: {...draftDocument.display, camera: viewCamera}}); changed(); return commit(prepareDraft());});},
+    applyCamera() {return run(() => {if (bodyPose) noView(); check(invalidBodyPoseBodyId === null, 'Correct the body Position and Scale values before using the view.'); check(viewCamera, 'There is no view change to use.'); stage({...draftDocument, display: {...draftDocument.display, camera: viewCamera}}); changed(); return commit(prepareDraft());});},
     restoreAccepted() {return run(() => {if (bodyPose) {const result = cancelPose(bodyPose.token); if (result) return result;} const result = restore(); changed(); return result;});},
     beginBodyPosePreview(bodyId) {return run(() => {
       noView(); clean(); check(available && presenter, 'The native preview is unavailable.');
