@@ -24,6 +24,7 @@ const hash=bytes=>bytes.reduce((n,byte)=>Math.imul(n^byte,16777619)>>>0,21661362
 const sha=async bytes=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(n=>n.toString(16).padStart(2,'0')).join('');
 const canvas=document.querySelector('canvas'),status=document.querySelector('#status'),inspection=document.querySelector('#inspection'),list=document.querySelector('#bodies');
 const navigateNativeView=document.querySelector('#navigate-native-view');
+const selectNativeObjects=document.querySelector('#select-native-objects'),nativeObjectSelectionOutput=document.querySelector('#native-object-selection-output');
 const nativeFileChoice=document.querySelector('#native-file-choice'),openNativeFileButton=document.querySelector('#open-native-file'),discardNativeFileButton=document.querySelector('#discard-native-file');
 const stagedNativeFile=document.querySelector('#staged-native-file'),acceptedNativeFile=document.querySelector('#accepted-native-file');
 const igesFileChoice=document.querySelector('#iges-file-choice'),igesYUpConfirmed=document.querySelector('#iges-yup-confirmed');
@@ -69,6 +70,8 @@ let documentResult=null,originalBytes=null,originalText='',projection=[],manifes
 let igesStatus='empty',hasIGESProvenance=false;
 let nativeNavigation=null,nativeNavigationDisposed=false;
 let nativeKeyboardAdapter=null,nativeKeyboardDisposed=false,nativeKeyboardStatus='empty',nativeKeyboardPending=null;
+let nativeObjectSelectionEnabled=false,nativeObjectSelectionEligible=false,nativeObjectSelectionDisposed=false,nativeObjectSelectionStatus='empty';
+let nativeObjectTap=null,nativeObjectSourceEpoch=0,nativeObjectFeedbackFrame=null,nativeObjectSelectionLastError=null,nativeObjectSelectionErrorCount=0;
 let selectedPointScope=null,selectedPointReport=null,selectedPointEpoch=0,selectedPointDisposed=false;
 let nativeChordFirst=null,nativeChordReport=null,nativeChordEpoch=0,nativeChordDisposed=false;
 let selectedDerivativesScope=null,selectedDerivativesReport=null,selectedDerivativesEpoch=0,selectedDerivativesDisposed=false;
@@ -136,7 +139,7 @@ function discardIGESFile(){check(igesFileOpen&&!disposed&&!running,'IGES file ch
   igesFileOpen.discard();igesFileChoice.value='';display('IGES choice discarded. Accepted geometry and provenance are unchanged.');return igesFileSnapshot();}
 function invalidateIGESFile(){if(!disposed)igesFileOpen?.invalidate();return igesFileSnapshot();}
 function invalidateFileIntents(){invalidateNativeFile();invalidateIGESFile();}
-function sourceAction(callback){invalidateFileIntents();try{const value=callback();invalidateNativeNavigation();nativeFileOpen?.clearAccepted();igesFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();inspection.textContent='';render();return value;}catch(error){render();throw error;}}
+function sourceAction(callback){invalidateFileIntents();try{const value=callback();invalidateNativeObjectSelection();invalidateNativeNavigation();nativeFileOpen?.clearAccepted();igesFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();inspection.textContent='';render();return value;}catch(error){render();throw error;}}
 function commitReplacement(candidate){uploads.length=0;draws.length=0;viewer.replaceNativeScene(candidate);return viewer.getState();}
 function replace(candidate){return sourceAction(()=>commitReplacement(candidate===undefined?buildCandidate():candidate));}
 function nativeSourceDownloadSnapshot(){return nativeSourceDownload?clone(nativeSourceDownload.snapshot()):{version:0,pending:false,disposed,enabled:false,report:null,error:null,activeUrls:0,activeAnchors:0,activeTimers:0};}
@@ -363,12 +366,12 @@ function setNativeNavigationEnabled(value){
 }
 function refreshNativeNavigationView(){
   if(nativeNavigationDisposed||disposed||running)return;
-  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();syncNativeNavigation();display('Native view moved.');
+  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();syncNativeNavigation();syncNativeObjectSelection();display('Native view moved.');
 }
 function reportNativeNavigationError(error){
   if(nativeNavigationDisposed||disposed)return;
   if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();}
-  syncNativeNavigation();display(error instanceof Error?error.message:String(error));
+  syncNativeNavigation();syncNativeObjectSelection();display(error instanceof Error?error.message:String(error));
 }
 function nativeKeyboardSnapshot(){
   check(arguments.length===0,'Keyboard snapshot takes no arguments.');
@@ -415,7 +418,7 @@ function reportNativeKeyboardError(error){
   if(nativeKeyboardPending)nativeKeyboardPending.failed=true;
   if(nativeKeyboardDisposed||disposed)return;
   if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();}
-  syncNativeNavigation();syncNativeKeyboard();display(error instanceof Error?error.message:String(error));
+  syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();display(error instanceof Error?error.message:String(error));
 }
 function nativeKeyboardObserver(event){
   const pending=nativeKeyboardPending;if(!pending||pending.event!==event)return;nativeKeyboardPending=null;
@@ -424,14 +427,135 @@ function nativeKeyboardObserver(event){
     if(event.key==='Escape'){
       refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();syncNativeNavigation();
       for(const button of list.querySelectorAll('button[aria-pressed]'))button.setAttribute('aria-pressed','false');
-      syncNativeKeyboard();display('Native selection cleared. Captured chord and SDK measurements remain.');
+      syncNativeKeyboard();syncNativeObjectSelection();display('Native selection cleared. Captured chord and SDK measurements remain.');
     }else{refreshNativeNavigationView();syncNativeKeyboard();display('Visible native display geometry fitted.');}
   }catch(error){reportNativeKeyboardError(error);}
+}
+function nativeObjectSelectionSnapshot(){
+  check(arguments.length===0,'Selection snapshot takes no arguments.');
+  return clone({enabled:nativeObjectSelectionEnabled,eligible:nativeObjectSelectionEligible,disposed:nativeObjectSelectionDisposed,status:nativeObjectSelectionStatus});
+}
+function nativeObjectSelectionMode(state){return state.status!=='disposed'&&!!state.native&&!!state.native.model
+  &&!state.document&&!state.modelSet&&!state.assembly&&!state.shell&&!state.qualifiedFaceScene
+  &&!state.uniformCurve&&!state.selectedUniformCurve&&!state.mixedDepth;}
+function nativeObjectSelectionProfile(state){return!running&&!disposed&&!nativeObjectSelectionDisposed
+  &&state.status==='ready'&&nativeObjectSelectionMode(state);}
+function readNativeObjectSelectionFrame(retained=false){
+  const state=viewer.getState();check(nativeObjectSelectionProfile(state)||retained&&!running&&!disposed&&!nativeObjectSelectionDisposed
+    &&['context-lost','unavailable'].includes(state.status)&&nativeObjectSelectionMode(state),'Native selection needs an idle ready original Source0 scene.');
+  const scope=readNativePointScope(viewer),refs=[...state.surfaces.map(ref=>({kind:'surface',...ref})),...state.curves.map(ref=>({kind:'curve',...ref}))];
+  check(state.native.source===scope.source&&same(state.native.model,scope.model)&&same(refs,scope.refs)
+    &&same(state.selectedGeometry,scope.selectedRef),'Native selection source changed while reading its frame.');
+  const rect=canvas.getBoundingClientRect();check([rect.left,rect.top,rect.width,rect.height].every(Number.isFinite)
+    &&rect.width>0&&rect.height>0,'Native selection needs a visible finite CSS canvas.');
+  return clone({scope,native:state.native,camera:state.camera,visibleGeometry:state.visibleGeometry,selected:state.selected,
+    motion:state.motion,geometryMotion:state.geometryMotion,surfaceMaterials:state.surfaceMaterials,lighting:state.lighting,
+    fluidFrame:state.fluidFrame,clothFrame:state.clothFrame,frame:state.frame,sourceUnit:state.sourceUnit,mmToSceneUnit:state.mmToSceneUnit,
+    curveSampleVersion:state.curveSampleVersion,width:canvas.width,height:canvas.height,
+    css:{left:rect.left,top:rect.top,width:rect.width,height:rect.height}});
+}
+function updateNativeObjectSelectionControls(){selectNativeObjects.checked=nativeObjectSelectionEnabled;
+  selectNativeObjects.disabled=nativeObjectSelectionDisposed||disposed||!nativeObjectSelectionEligible;}
+function syncNativeObjectSelection(){
+  check(arguments.length===0,'Selection sync takes no arguments.');
+  if(nativeObjectSelectionDisposed||disposed)return nativeObjectSelectionSnapshot();
+  const state=viewer.getState();nativeObjectSelectionStatus=state.status;let frame=null;
+  if(nativeObjectSelectionMode(state))try{frame=readNativeObjectSelectionFrame(true);}catch{}
+  nativeObjectSelectionEligible=!!frame&&nativeObjectSelectionProfile(state);
+  if(!nativeObjectSelectionEligible||nativeObjectTap&&(nativeObjectTap.epoch!==nativeObjectSourceEpoch||!same(nativeObjectTap.frame,frame)))nativeObjectTap=null;
+  if(!frame||nativeObjectFeedbackFrame&&!same(nativeObjectFeedbackFrame,frame)){
+    nativeObjectFeedbackFrame=null;nativeObjectSelectionOutput.textContent='';
+  }
+  updateNativeObjectSelectionControls();return nativeObjectSelectionSnapshot();
+}
+function invalidateNativeObjectSelection(){
+  check(arguments.length===0,'Selection invalidation takes no arguments.');
+  if(nativeObjectSelectionDisposed||disposed)return nativeObjectSelectionSnapshot();
+  nativeObjectSourceEpoch++;nativeObjectTap=null;nativeObjectFeedbackFrame=null;nativeObjectSelectionOutput.textContent='';
+  return syncNativeObjectSelection();
+}
+function setNativeObjectSelectionEnabled(value){
+  check(arguments.length===1&&typeof value==='boolean','Native selection preference requires one explicit boolean.');
+  check(!nativeObjectSelectionDisposed&&!disposed,'Native selection host is disposed.');
+  if(value){const snapshot=syncNativeObjectSelection();check(snapshot.eligible,'Native selection needs an idle ready original Source0 scene.');}
+  nativeObjectSelectionEnabled=value;nativeObjectTap=null;updateNativeObjectSelectionControls();
+  display(value?'Native object selection enabled. Tap a visible Surface or Curve.':'Native object selection disabled.');return nativeObjectSelectionSnapshot();
+}
+function nativeObjectTapEvent(event){return event.target===canvas&&event.currentTarget===canvas&&canvas.isConnected
+  &&!event.defaultPrevented&&!event.altKey&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey
+  &&Number.isFinite(event.clientX)&&Number.isFinite(event.clientY);}
+function nativeObjectPointerDown(event){
+  nativeObjectTap=null;
+  if(nativeObjectSelectionDisposed||disposed||!nativeObjectSelectionEnabled||running||!event.isPrimary||event.button!==0||!nativeObjectTapEvent(event))return;
+  try{const frame=readNativeObjectSelectionFrame();nativeObjectSelectionEligible=true;nativeObjectSelectionStatus='ready';
+    nativeObjectTap={phase:'pressed',id:event.pointerId,x:event.clientX,y:event.clientY,frame,epoch:nativeObjectSourceEpoch};
+  }catch{syncNativeObjectSelection();}
+}
+function nativeObjectPointerMove(event){
+  const tap=nativeObjectTap;if(!tap||tap.phase!=='pressed'||event.pointerId!==tap.id)return;
+  if(nativeObjectSelectionDisposed||disposed||!nativeObjectSelectionEnabled||running||!nativeObjectTapEvent(event)
+    ||Math.hypot(event.clientX-tap.x,event.clientY-tap.y)>3){nativeObjectTap=null;return;}
+  try{if(tap.epoch!==nativeObjectSourceEpoch||!same(tap.frame,readNativeObjectSelectionFrame()))nativeObjectTap=null;}catch{nativeObjectTap=null;}
+}
+function nativeObjectPointerUp(event){
+  const tap=nativeObjectTap;if(!tap||tap.phase!=='pressed'||event.pointerId!==tap.id)return;
+  if(nativeObjectSelectionDisposed||disposed||!nativeObjectSelectionEnabled||running||!event.isPrimary||event.button!==0
+    ||!nativeObjectTapEvent(event)||Math.hypot(event.clientX-tap.x,event.clientY-tap.y)>3){nativeObjectTap=null;return;}
+  try{if(tap.epoch!==nativeObjectSourceEpoch||!same(tap.frame,readNativeObjectSelectionFrame())){nativeObjectTap=null;return;}
+    tap.phase='released';tap.upX=event.clientX;tap.upY=event.clientY;
+  }catch{nativeObjectTap=null;}
+}
+function nativeObjectPointerCancel(event){if(nativeObjectTap?.id===event.pointerId)nativeObjectTap=null;}
+function nativeObjectLostCapture(event){if(nativeObjectTap?.phase==='pressed'&&nativeObjectTap.id===event.pointerId)nativeObjectTap=null;}
+function reportNativeObjectSelectionError(error){
+  if(nativeObjectSelectionDisposed||disposed)return;
+  nativeObjectSelectionLastError=error;nativeObjectSelectionErrorCount++;
+  if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();}
+  syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();display(error instanceof Error?error.message:String(error));
+}
+function nativeObjectSelectionClick(event){
+  const tap=nativeObjectTap;nativeObjectTap=null;
+  if(nativeObjectSelectionDisposed||disposed||!nativeObjectSelectionEnabled||running||!tap||tap.phase!=='released'
+    ||event.button!==0||!nativeObjectTapEvent(event)||(typeof event.pointerId==='number'&&event.pointerId!==tap.id)
+    ||Math.hypot(event.clientX-tap.x,event.clientY-tap.y)>3||Math.hypot(event.clientX-tap.upX,event.clientY-tap.upY)>3)return;
+  let frame;try{frame=readNativeObjectSelectionFrame();}catch{syncNativeObjectSelection();return;}
+  if(tap.epoch!==nativeObjectSourceEpoch||!same(tap.frame,frame))return;
+  try{
+    const hit=viewer.pickGeometry({xCss:event.clientX-frame.css.left,yCss:event.clientY-frame.css.top});
+    const current=readNativeObjectSelectionFrame();check(tap.epoch===nativeObjectSourceEpoch&&same(frame,current),'Native source or view changed during picking.');
+    check(hit===null||hit&&(hit.kind==='surface'||hit.kind==='curve'),'The picker returned no current native geometry.');
+    const ref=hit===null?null:{kind:hit.kind,...clone(hit.ref)};
+    check(ref===null||current.scope.refs.some(value=>same(value,ref))&&current.visibleGeometry.some(value=>same(value,ref)),
+      'The hit is not a current visible original geometry.');
+    viewer.selectGeometry(ref);event.preventDefault();
+    check(!nativeObjectSelectionDisposed&&!disposed,'POSTCOMMIT: Native selection host was disposed after selection.');
+    const expected=clone(current);expected.scope.selectedRef=clone(ref);
+    expected.selected=ref?.kind==='surface'?{modelId:ref.modelId,surfaceId:ref.surfaceId}:null;
+    const acceptedFrame=readNativeObjectSelectionFrame();
+    check(tap.epoch===nativeObjectSourceEpoch&&same(expected,acceptedFrame),
+      'POSTCOMMIT: Native source or view changed after selection; accepted selection is not rolled back.');
+    refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();
+    const selected=viewer.getState().selectedGeometry;
+    for(const row of list.children){const button=row.querySelector('button[aria-pressed]'),identity=row.querySelector('small');
+      if(button&&identity){const value=JSON.parse(identity.textContent);button.setAttribute('aria-pressed',String(!!selected&&same(selected,value)));}}
+    nativeObjectFeedbackFrame=clone(acceptedFrame);
+    const message=hit?'Approximate screen selection: '+hit.kind+' '+(ref.surfaceId??ref.curveId)+'.'
+      +(hit.ambiguous?' Ambiguous display hit at this tap.':''):'Approximate screen selection: no hit. Native selection cleared.';
+    nativeObjectSelectionOutput.textContent=message;display(message);
+  }catch(error){reportNativeObjectSelectionError(error);}
+}
+function nativeObjectSelectionPreferenceChange(){if(nativeObjectSelectionDisposed||disposed)return;action(()=>setNativeObjectSelectionEnabled(selectNativeObjects.checked));}
+function disposeNativeObjectSelection(){
+  check(arguments.length===0,'Selection disposal takes no arguments.');
+  if(nativeObjectSelectionDisposed)return nativeObjectSelectionSnapshot();
+  nativeObjectSelectionDisposed=true;nativeObjectSelectionEligible=false;nativeObjectTap=null;nativeObjectFeedbackFrame=null;nativeObjectSelectionOutput.textContent='';
+  for(const[type,handler]of[['pointerdown',nativeObjectPointerDown],['pointermove',nativeObjectPointerMove],['pointerup',nativeObjectPointerUp],['pointercancel',nativeObjectPointerCancel],['lostpointercapture',nativeObjectLostCapture]])canvas.removeEventListener(type,handler,true);
+  canvas.removeEventListener('click',nativeObjectSelectionClick);selectNativeObjects.removeEventListener('change',nativeObjectSelectionPreferenceChange);updateNativeObjectSelectionControls();return nativeObjectSelectionSnapshot();
 }
 function render(){const state=viewer.getState(),live=!disposed&&state.status!=='context-lost',ready=live&&state.status==='ready';
   const acceptedIGES=igesFileOpen?.snapshot().accepted,importCurrent=matchingIGES(state,acceptedIGES);
   let nativePointScope=null;if(!selectedPointDisposed&&!disposed)try{nativePointScope=readNativePointScope(viewer);}catch{}
-  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();
+  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();
   for(const[id,button]of Object.entries(buttons))button.disabled=id==='dispose'?disposed:!live||running;
   buttons.fit.disabled=!ready||running||!state.visibleGeometry.length;buttons.query.disabled=disposed||running||!state.curves.length||(!live&&!importCurrent);
   list.replaceChildren(...inventory().map(body=>{const item=document.createElement('li'),label=document.createElement('label'),checkbox=document.createElement('input');
@@ -543,24 +667,27 @@ async function runProof(){invalidateFileIntents();if(running||disposed||viewer.g
     documentBytes:manifest[0]?.bytes,contextCount:contexts.size,resources:resourceCounts(),limits:result.scope});
     try{await fetch('/result',{method:'POST',body:JSON.stringify(result)});}catch(error){result.recordingError=error.message;}}
   return result;}
-function dispose(){if(disposed)return;disposeNativeKeyboard();nativeNavigationDisposed=true;nativeNavigation?.dispose();selectedDerivativesDisposed=true;clearSelectedDerivativesContext();nativeChordDisposed=true;clearNativeChord();selectedPointDisposed=true;clearSelectedPointContext();igesFileOpen?.dispose();nativeSourceDownload?.dispose();nativeFileOpen?.dispose();viewer.dispose();viewer.dispose();disposed=true;render();const receipt={status:viewer.getState().status,resources:resourceCounts(),glErrors:glErrors(),
+function dispose(){if(disposed)return;disposeNativeObjectSelection();disposeNativeKeyboard();nativeNavigationDisposed=true;nativeNavigation?.dispose();selectedDerivativesDisposed=true;clearSelectedDerivativesContext();nativeChordDisposed=true;clearNativeChord();selectedPointDisposed=true;clearSelectedPointContext();igesFileOpen?.dispose();nativeSourceDownload?.dispose();nativeFileOpen?.dispose();viewer.dispose();viewer.dispose();disposed=true;render();const receipt={status:viewer.getState().status,resources:resourceCounts(),glErrors:glErrors(),
   contextCount:contexts.size,errors:[...errors],warnings:[...warnings]};if(result)result.disposal=receipt;display(receipt);return receipt;}
 try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=await(await fetch('/document.cad-document.json')).arrayBuffer();
   check(bytes.byteLength===manifest[0].bytes&&await sha(bytes)===manifest[0].sha256,'Unchanged original document bytes/hash differ');originalBytes=new Uint8Array(bytes);originalText=new TextDecoder().decode(bytes);
   documentResult=await loadBaroCadDocument(new URL('/document.cad-document.json',location.href).href);
   projection=prepareBaroCadDocumentPrimitiveNativeRefsV2(documentResult,documentOptions);for(const asset of documentResult.document.assets)sources[asset.id]=asset.source;
   viewer=createViewer(canvas,{mmToSceneUnit,background:[.035,.065,.105]});nativeFileOpen=createNativeFileOpen(viewer,{
-    onChange:snapshot=>renderNativeFileControls(snapshot),onAccepted:accepted=>{invalidateNativeNavigation();igesFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();inspection.textContent='';render();display('Opened original source '+accepted.name+'.');},
+    onChange:snapshot=>renderNativeFileControls(snapshot),onAccepted:accepted=>{invalidateNativeObjectSelection();invalidateNativeNavigation();igesFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();inspection.textContent='';render();display('Opened original source '+accepted.name+'.');},
     onError:error=>{render();display(error instanceof Error?error.message:String(error));}});
   igesFileOpen=createIGESFileOpen(viewer,{onChange:snapshot=>renderIGESFileControls(snapshot),
-    onAccepted:accepted=>{invalidateNativeNavigation();nativeFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();inspection.textContent='';render();display('Opened IGES geometry '+accepted.name+'.');},
+    onAccepted:accepted=>{invalidateNativeObjectSelection();invalidateNativeNavigation();nativeFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();inspection.textContent='';render();display('Opened IGES geometry '+accepted.name+'.');},
     onError:error=>{render();display(error instanceof Error?error.message:String(error));}});
   nativeSourceDownload=createNativeSourceDownload(viewer,canvas,{getAcceptedFile:()=>nativeFileSnapshot().accepted,
     onChange:snapshot=>renderNativeSourceDownloadControls(snapshot),onError:error=>display(error instanceof Error?error.message:String(error))});
+  for(const[type,handler]of[['pointerdown',nativeObjectPointerDown],['pointermove',nativeObjectPointerMove],['pointerup',nativeObjectPointerUp],['pointercancel',nativeObjectPointerCancel],['lostpointercapture',nativeObjectLostCapture]])canvas.addEventListener(type,handler,true);
+  canvas.addEventListener('click',nativeObjectSelectionClick);
   canvas.addEventListener('keydown',nativeKeyboardGuard,true);
   nativeNavigation=createNativePointerNavigation(viewer,canvas,{isIdle:()=>!running&&!disposed,onViewChange:refreshNativeNavigationView,onError:reportNativeNavigationError});
   replace();lossExtension=[...contexts][0].getExtension('WEBGL_lose_context');
   window.__viewerReplacementProof={viewer,createViewer,prepareViewerNativeSceneAppearance,preparePrimitiveSceneFrame,compileMeshMaterial,validateMeshMaterialIR,PrimitiveSceneRecoveryError,
+    setNativeObjectSelectionEnabled,nativeObjectSelectionSnapshot,syncNativeObjectSelection,invalidateNativeObjectSelection,disposeNativeObjectSelection,
     nativeKeyboardSnapshot,syncNativeKeyboard,disposeNativeKeyboard,
     createNativePointerNavigation,setNativeNavigationEnabled,syncNativeNavigation,nativeNavigationSnapshot,invalidateNativeNavigation,
     querySelectedNativeDerivatives,inspectSelectedNativeDerivatives,resetSelectedNativeDerivatives,selectedNativeDerivativesSnapshot,evaluateCurveD1,evaluateSurfaceD1,
@@ -573,10 +700,12 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=awa
     createCadGeometryReference,queryCadDocumentPoint,parseBooleanExtrusionFeatureGraph,prepareUniformCurvePreview,parseBaroCadAssembly,loadBaroCadAssembly,loadBaroCadModelSet,
     createClothWorld,createPhysicsClothWorld:createClothWorld,PrimitiveSceneRendererV2,PrimitiveViewport,BooleanShellSceneRenderer,resourceCounts,glErrors,pixelInfo,uploads,draws,errors,warnings,
     retained,capture,runProof,dispose,lossExtension,failAllocation,failNextBuffer(at=1){failAllocation('Buffer',at);},clearAllocationFault,
+    get nativeObjectSelectionLastError(){return nativeObjectSelectionLastError;},get nativeObjectSelectionErrorCount(){return nativeObjectSelectionErrorCount;},
     get gl(){return[...contexts][0];},get state(){return viewer.getState();},get result(){return result;}};
   window.__viewerReplacementProof.nativeSourcePanel=await(await fetch('/original-panel.barocad')).text();
   display('Ready: revision5 original two-asset document, four posed bodies, three visible, exact saved camera.');
 }catch(error){display({ok:false,stage:'startup',error:error.stack||error.message});}
+selectNativeObjects.addEventListener('change',nativeObjectSelectionPreferenceChange);
 navigateNativeView.addEventListener('change',()=>action(()=>setNativeNavigationEnabled(navigateNativeView.checked)));
 replaceMountedAppearanceButton.addEventListener('click',()=>action(()=>replaceMountedAppearance()));
 igesFileChoice.addEventListener('change',()=>{const file=igesFileChoice.files?.[0];if(file)try{stageIGESFile(file);}catch{}});

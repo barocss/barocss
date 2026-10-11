@@ -469,3 +469,53 @@ pointer, File and Viewer disposal. Proof hooks `nativeKeyboardSnapshot`,
 `syncNativeKeyboard` and `disposeNativeKeyboard` return copied local
 `{attached, disposed, status}` diagnostics and read no Viewer state after local
 disposal. No new SDK method, module, renderer, provider or release is added.
+
+
+## Select original native objects from the canvas (#1503)
+
+Open or load an original native Source0 scene. Enable **Select native objects**,
+then tap a displayed Surface or Curve. This starts off and works independently
+of pointer navigation and canvas F/Escape keys. It is available only for an
+idle ready ordinary native scene, including generated Source0 from accepted
+IGES. Other modes, loss, unavailability and disposal do not perform picking.
+
+The host uses existing public `pickGeometry({xCss,yCss})` with its default
+Surface/Curve kinds and 4 CSS-pixel Curve tolerance. It uses the returned
+candidate and reports an ambiguous result when present. Ambiguity can include
+adjacent triangles of the same Surface. It is not proof of two separate objects.
+A screen hit is approximate; it is not an exact native ray, U/V or Curve t.
+The host does not copy hit parameters or positions into original parameter
+inputs. A different selected object uses its original-domain midpoint drafts.
+Same-object selection keeps its existing drafts and point/derivative reports.
+
+A valid empty-space tap clears selection, the point and derivative reports,
+and their U/V/t drafts. Captured chord, SDK measurement caches, camera and
+File/import provenance remain. Each accepted hit or miss invokes one public
+`selectGeometry`, including an unchanged reference or already-clear selection;
+this can present a frame and is not a promised GPU no-op. Query and selection
+are separate: the public picker is read-only, while selection changes highlight.
+The picker and current-pin validation may evaluate original geometry internally.
+No total CAD-call count or zero-evaluation guarantee is implied.
+
+Only a completed primary unmodified tap is handled. A drag beyond 3 CSS pixels,
+cancellation, lost capture before release, or a changed source/view/backing/CSS
+scope invalidates the tap. Normal pointerup followed by capture release remains
+valid. Known successful source acceptance invalidates even identical content;
+failed source keeps a still-current tap. Pointer suppression also remains active.
+No global gesture listener, observer or click timer is added.
+
+The complete original Source0, Model, inventory and presentation scope are
+checked before and after picking, before selection. Current row aria state is
+updated in place; no list rebuild, focus move, automatic inspection or File
+intent change follows selection. Default prevention occurs only after public
+selection succeeds. Original failures are reported once; a later host refresh
+error is postcommit, without camera, selection or framebuffer rollback promises.
+
+Local screen selection disposes before keyboard, pointer, File and Viewer.
+`setNativeObjectSelectionEnabled` takes one explicit boolean. Zero-argument
+snapshot/sync/invalidate/dispose hooks return a copied local
+`{enabled,eligible,disposed,status}` and read no Viewer after local disposal.
+The test-only `nativeObjectSelectionLastError` and
+`nativeObjectSelectionErrorCount` getters expose local error diagnostics for
+identity checks; they are separate from the copied snapshot and source authority.
+No new SDK API, helper module, provider, renderer or release is introduced.
