@@ -201,5 +201,5 @@ export function DrivingDimensionHandles(props: Props) {
       onPointerDown={begin} onPointerMove={move} onPointerUp={end} onKeyDown={nudge}
       onPointerCancel={event => { if (gesture.current?.pointerId === event.pointerId) cancel(true); }}
       onLostPointerCapture={event => { if (gesture.current?.pointerId === event.pointerId) cancel(true); }}><title>Drag local distance in 1 mm steps</title></circle>
-  </svg><p className="driving-dimension-status" data-testid="driving-dimension-status" role="status">Local {data.axis === 0 ? 'X' : 'Y'} distance · 1 mm steps · Escape cancels</p></div>;
+  </svg>{current && <p className="driving-dimension-status" data-testid="driving-dimension-status" role="status">Δ{data.axis === 0 ? 'X' : 'Y'} {text(current.delta)} mm</p>}</div>;
 }
