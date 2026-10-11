@@ -190,3 +190,19 @@ body:has(:is(.app-shell--mixed,.app-shell--scene)) [data-slot="dialog-content"] 
 .re-native-controls .re-native-direction label { margin: 0 0 3px; display: block; }
 .re-native-controls .re-native-direction .re-material-uniform { padding: 4px; }
 .re-native-controls .re-native-direction input { padding: 3px; }
+
+/* Native inventory shares the existing Source column; no authored editor node is remounted. */
+.re-material-host .re-native-outliner-slot { flex: 0 0 auto; min-width: 0; }
+.re-material-host .re-native-outliner { border-bottom: 1px solid var(--re-material-line); background: #25282d; }
+.re-material-host .re-native-outliner-list { max-height: 128px; overflow: auto; padding: 2px 0; }
+.re-material-host .re-native-outliner-row { display: flex; align-items: center; gap: 5px; width: 100%; min-height: 25px; padding: 3px 6px; margin: 0; border: 0; border-radius: 0; background: transparent; text-align: left; color: inherit; font-size: 11px; }
+.re-material-host .re-native-outliner-row[data-active="true"] { background: #344763; color: #e1ecfb; }
+.re-material-host button.re-native-outliner-row:hover:not(:disabled) { background: #303b4b; }
+.re-material-host button.re-native-outliner-row[data-active="true"]:hover:not(:disabled) { background: #3b506e; }
+.re-material-host .re-native-body-icon,.re-material-host .re-native-body-visibility { display: inline-flex; flex: 0 0 auto; align-items: center; color: #9caec5; }
+.re-material-host .re-native-body-name { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.re-material-host .re-native-body-kind,.re-material-host .re-native-body-readonly { color: #a1a9b6; font-size: 9px; }
+.re-material-host .re-native-outliner-readonly { color: #9da5b1; }
+.re-material-host .re-native-outliner-readonly .re-native-body-kind { display: none; }
+.re-material-host .re-native-controls .re-material-heading h2 { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.re-material-host .native-selection-status { position: absolute; top: 40px; left: 6px; z-index: 4; margin: 0; padding: 3px 5px; background: #222428dd; color: #d7dbe2; font-size: 11px; pointer-events: none; max-width: calc(100% - 12px); }

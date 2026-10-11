@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState, useSyncExternalStore} from 'react';
 import {createViewer} from '@barocss/viewer';
-import type {Viewer, ViewerState, ViewerRef} from '@barocss/viewer';
+import type {Viewer, ViewerState, ViewerRef, ViewerGeometryPoint, ViewerGeometryPick} from '@barocss/viewer';
 import {loadBaroCadModelSet} from '@barocss/cad-interop/model-set';
 import {compileMeshMaterial} from '@barocss/gpu';
 import {RenderEditorError, normalizeRenderEditorError} from '@barocss/render-editor';
@@ -8,6 +8,7 @@ import type {RenderMaterialController, RenderMaterialPreparation, RenderNativeSc
 import {assertNativeScenePreviewContext} from './native-scene-host';
 import type {NativeSceneHost} from './native-scene-host';
 import {NativeSceneGizmo} from './native-scene-gizmo';
+import {createNativeSceneSelectionInput} from './native-scene-selection';
 
 export interface MaterialPreviewBridge {
   readonly source: string;
@@ -15,23 +16,25 @@ export interface MaterialPreviewBridge {
   getState(): ViewerState;
   getEpoch(): number;
   getAppearanceToken(): object;
+  pickNativeSurface(point: ViewerGeometryPoint): ViewerGeometryPick | null;
   present(prepared: RenderNativeSceneAppearancePreparation): void;
   beginTransition(): void;
   endTransition(): void;
   retireLegacy(): void;
 }
 type PreviewHandle = {viewer: Viewer; ref: ViewerRef; refresh(): void; syncControls(): void; present(material: RenderMaterialPreparation): void; bridge: MaterialPreviewBridge};
-interface Props {controller: RenderMaterialController; nativeHost?: NativeSceneHost | null; disabled: boolean; onError(error: unknown): void; onBridgeChange?(bridge: MaterialPreviewBridge | null): void}
+interface Props {controller: RenderMaterialController; nativeHost?: NativeSceneHost | null; disabled: boolean; onError(error: unknown): void; onBridgeChange?(bridge: MaterialPreviewBridge | null): void; onTarget?(bodyId: string): void}
 const context = {mmToSceneUnit: .001, background: [.025, .04, .06] as const};
 
 /** The Viewer belongs to this mounted Canvas, independently of its document session. */
-export function MaterialPreview({controller, nativeHost = null, disabled, onError, onBridgeChange}: Props) {
+export function MaterialPreview({controller, nativeHost = null, disabled, onError, onBridgeChange, onTarget}: Props) {
   const canvas = useRef<HTMLCanvasElement>(null), handle = useRef<PreviewHandle | null>(null);
   const mountId = useRef(crypto.randomUUID());
-  const current = useRef({controller, nativeHost, disabled, onError, onBridgeChange});
-  current.current = {controller, nativeHost, disabled, onError, onBridgeChange};
+  const current = useRef({controller, nativeHost, disabled, onError, onBridgeChange, onTarget});
+  current.current = {controller, nativeHost, disabled, onError, onBridgeChange, onTarget};
   const [state, setState] = useState<ViewerState | null>(null), [message, setMessage] = useState('Loading reference Surface…');
   const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(null);
+  const [selectionMessage, setSelectionMessage] = useState<{document: ReturnType<NativeSceneHost['getSnapshot']>['accepted']; bodyId: string; text: string} | null>(null);
   const presentation = useSyncExternalStore(controller.subscribe, controller.getSnapshot, controller.getSnapshot);
   useEffect(() => {
     const element = canvas.current; if (!element) return;
@@ -117,6 +120,13 @@ export function MaterialPreview({controller, nativeHost = null, disabled, onErro
           source, context,
           getState: () => requireViewer().getState(), getEpoch: () => epoch,
           getAppearanceToken: () => {requireViewer(); return appearanceToken;},
+          pickNativeSurface: point => {
+            const active = requireViewer(), token = appearanceToken, mount = epoch;
+            if (active.getState().status !== 'ready') throw new RenderEditorError('PRESENTATION_REFUSED', 'Body selection is unavailable.');
+            const hit = active.pickGeometry(point, {kinds: ['surface']});
+            if (token !== appearanceToken || mount !== epoch || active !== requireViewer()) throw new RenderEditorError('STALE_CANDIDATE', 'The scene changed during body selection.');
+            return hit;
+          },
           beginTransition: () => {requireViewer(); transitions++; stopControls();},
           endTransition: () => {if (transitions > 0) transitions--; syncControls();},
           retireLegacy: () => {
@@ -158,6 +168,17 @@ export function MaterialPreview({controller, nativeHost = null, disabled, onErro
   }, [controller, nativeHost]);
   useEffect(() => {handle.current?.syncControls();}, [disabled, presentation]);
   useEffect(() => nativeHost?.subscribe(() => handle.current?.syncControls()), [nativeHost]);
+  useEffect(() => {
+    const active = handle.current, element = canvas.current;
+    if (!nativeHost || !active || !element || state?.status !== 'ready') return;
+    const input = createNativeSceneSelectionInput(element, nativeHost, active.bridge, {
+      canSelect: () => !current.current.disabled && current.current.nativeHost === nativeHost,
+      onTarget: bodyId => current.current.onTarget?.(bodyId),
+      onStatus: text => {const snapshot = nativeHost.getSnapshot(); setSelectionMessage({document: snapshot.accepted, bodyId: snapshot.selectedBodyId, text});},
+      onError: cause => current.current.onError(cause),
+    });
+    return () => input.dispose();
+  }, [nativeHost, state?.status]);
   const visible = state?.visibleGeometry.some(ref => ref.kind === 'surface') ?? false, ready = state?.status === 'ready';
   const visibility = () => {
     const active = handle.current; if (!active || disabled || nativeHost) return;
@@ -179,10 +200,11 @@ export function MaterialPreview({controller, nativeHost = null, disabled, onErro
     geometryMotion: state.geometryMotion, lighting: state.lighting, camera: state.camera, displayedRevision: nativeHost?.getSnapshot().accepted.revision ?? presentation.displayed?.revision ?? null,
     nativeScene: nativeHost && {accepted: nativeHost.getSnapshot().accepted, selectedBodyId: nativeHost.getSnapshot().selectedBodyId, dirty: nativeHost.getSnapshot().dirty, viewDirty: nativeHost.getSnapshot().viewDirty, poseGestureActive: nativeHost.getSnapshot().poseGestureActive, posePreview: nativeHost.getSnapshot().posePreview, available: nativeHost.getSnapshot().available, canUndo: nativeHost.getSnapshot().canUndo, canRedo: nativeHost.getSnapshot().canRedo, savedRevision: nativeHost.getSnapshot().savedRevision}};
   return <div className="material-native-preview">
-    <div className="re-material-heading"><h2>{nativeHost ? 'Scene' : 'Surface preview'}</h2><span data-testid="material-preview-status">{state?.status ?? 'loading'}</span>{!nativeHost && <button type="button" data-testid="material-preview-visible" disabled={disabled || !ready} onClick={visibility}>{visible ? 'Hide' : 'Show'}</button>}<button type="button" disabled={disabled || !ready || !visible || !!nativeHost && (nativeHost.getSnapshot().nativeDirty || nativeHost.getSnapshot().materialDirty || nativeHost.getSnapshot().invalidLighting || nativeHost.getSnapshot().poseGestureActive || !!nativeHost.getSnapshot().posePreview)} onClick={fit}>Frame</button></div>
+    <div className="re-material-heading"><h2 data-testid="native-canvas-body-title">{nativeHost ? nativeHost.getSnapshot().targets.find(target => target.bodyId === nativeHost.getSnapshot().selectedBodyId)?.title ?? 'Scene' : 'Surface preview'}</h2><span data-testid="material-preview-status">{state?.status ?? 'loading'}</span>{!nativeHost && <button type="button" data-testid="material-preview-visible" disabled={disabled || !ready} onClick={visibility}>{visible ? 'Hide' : 'Show'}</button>}<button type="button" disabled={disabled || !ready || !visible || !!nativeHost && (nativeHost.getSnapshot().nativeDirty || nativeHost.getSnapshot().materialDirty || nativeHost.getSnapshot().invalidLighting || nativeHost.getSnapshot().poseGestureActive || !!nativeHost.getSnapshot().posePreview)} onClick={fit}>Frame</button></div>
     <div className="material-native-canvas re-editor--workbench">
       <canvas ref={canvas} data-testid="material-preview-canvas" data-mount-id={mountId.current} aria-label="Rendered native Surface"/>
       {nativeHost && <NativeSceneGizmo host={nativeHost} canvas={canvasElement} disabled={disabled || !ready || !visible} onError={onError}/>}
+      {nativeHost && selectionMessage && selectionMessage.document === nativeHost.getSnapshot().accepted && selectionMessage.bodyId === nativeHost.getSnapshot().selectedBodyId && <p className="native-selection-status" role="status" data-testid="native-selection-status">{selectionMessage.text}</p>}
       {(disabled || !ready || !visible) && <div className="material-native-overlay">{disabled ? 'Finish the current dialog to use the preview.' : visible ? message : state ? 'Surface hidden · Show to resume' : message}</div>}
       <span className="material-native-navigation">Drag: orbit · Shift + drag: pan · Wheel: zoom</span>
     </div>

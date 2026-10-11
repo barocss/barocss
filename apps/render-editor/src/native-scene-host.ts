@@ -321,7 +321,11 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
   });
   const host: NativeSceneHost = {
     materialSession, getSnapshot: () => snapshot, subscribe,
-    selectTarget(bodyId) {run(() => {noView(); clean(); check(typeof bodyId === 'string' && snapshot.targets.some(item => item.bodyId === bodyId), 'Choose an authored visible Surface material.');
+    selectTarget(bodyId) {run(() => {
+      check(!bodyPose && available, 'Finish the body transform or restore the preview before changing the active body.');
+      check(!native.getSnapshot().dirty && !local.getSnapshot().dirty && !invalidLighting, 'Apply or Discard authored drafts before changing the active body.');
+      check(typeof bodyId === 'string' && snapshot.targets.some(item => item.bodyId === bodyId), 'Choose an authored visible Surface material.');
+      if (bodyId === selectedBodyId) return;
       const selected = selectedMaterial(native.getSnapshot().preparation, bodyId);
       const next = createRenderMaterialSession(selected.preparation.document); local.dispose(); local = next; selectedBodyId = bodyId; changed();});},
     setPresenter(next, reader) {run(() => {check(next === null || typeof next === 'function', 'Native presenter must be a function or null.'); check(reader === undefined || typeof reader === 'function', 'Preview ownership reader must be a function.');

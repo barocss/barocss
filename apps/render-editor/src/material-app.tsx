@@ -7,6 +7,7 @@ import {MaterialPreview, type MaterialPreviewBridge} from './material-preview';
 import {createNativeSceneHost, type NativeSceneHost} from './native-scene-host';
 import {createNativeSceneBase, createNativeSceneSeed} from './native-scene-seed';
 import {NativeSceneControls} from './native-scene-controls';
+import {NativeSceneOutliner} from './native-scene-outliner';
 import {Button} from './components/ui/button';
 import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from './components/ui/dialog';
 import {Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarTrigger} from './components/ui/menubar';
@@ -94,7 +95,11 @@ export function MaterialApp() {
   const open = () => guard({label: 'open a file', execute: openChooser});
   const createNew = () => guard({label: 'create a new document', execute: newAccepted});
   const createScene = () => guard({label: 'create a native scene', execute: newNative});
-  const target = (bodyId: string) => guard({label: 'change the material target', execute: () => {try {current.current.native?.selectTarget(bodyId); setError(null);} catch (cause) {report(cause);}}});
+  const target = (bodyId: string) => {
+    if (blocked()) return;
+    const host = current.current.native; if (!host) return;
+    try {host.selectTarget(bodyId); setError(null); const title = host.getSnapshot().targets.find(target => target.bodyId === bodyId)?.title; setNotice(title ? title + ' selected.' : 'Body selected.');} catch (cause) {report(cause);}
+  };
   const discard = () => {try {if (native) native.discardDraft(); else session.discardDraft(); setError(null);} catch (cause) {report(cause);}};
   const finishPending = (apply: boolean) => {
     const action = pendingRef.current; if (!action || busyRef.current) return;
@@ -171,8 +176,8 @@ export function MaterialApp() {
     <div className="app-document-bar"><strong data-testid="material-title">{accepted.title}</strong>{filename && <span data-testid="material-filename">{filename}</span>}<span className="app-status-spacer"/><span>{viewDirty ? 'View preview' : dirty ? 'Draft changes' : savedRevision === accepted.revision ? 'File loaded / download requested' : 'Unsaved ' + (native ? 'scene' : 'material')}</span>
       <Button variant="ghost" size="icon-xs" aria-label="Undo change" data-testid="material-undo" disabled={disabled || dirty || viewDirty || !canUndo} onClick={() => history('undo')}><Undo2/></Button><Button variant="ghost" size="icon-xs" aria-label="Redo change" data-testid="material-redo" disabled={disabled || dirty || viewDirty || !canRedo} onClick={() => history('redo')}><Redo2/></Button>
     </div>
-    <MaterialEditor session={session} disabled={editingDisabled} onError={report} preview={<MaterialPreview controller={controller} nativeHost={native} onBridgeChange={onBridgeChange} disabled={busy || pending !== null || helpOpen} onError={report}/>}/>
-    {native && <NativeSceneControls host={native} disabled={disabled} onTarget={target} onError={report}/>}
+    <MaterialEditor session={session} disabled={editingDisabled} onError={report} preview={<MaterialPreview controller={controller} nativeHost={native} onBridgeChange={onBridgeChange} disabled={busy || pending !== null || helpOpen} onError={report} onTarget={target}/>}/>
+    {native && <><NativeSceneOutliner host={native} disabled={disabled} onTarget={target}/><NativeSceneControls host={native} disabled={disabled} onError={report}/></>}
     <footer className="app-status"><span role="status" data-testid="material-app-status">{error ? error.code + ': ' + error.message : notice}</span><span className="app-status-spacer"/><span data-testid="material-accepted-revision" data-revision={accepted.revision}>Applied {accepted.revision}</span><span>CPU · linear RGB</span></footer>
     <input ref={fileInput} type="file" accept={native ? '.native-scene.json,application/json' : '.material.json,application/json'} hidden data-testid="material-file-input" onChange={event => {const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; void readFile(file);}}/>
     <Dialog open={pending !== null} onOpenChange={value => {if (!value) cancelPending();}}><DialogContent onCloseAutoFocus={event => {event.preventDefault(); returnFocus.current?.focus();}}><DialogHeader><DialogTitle>Keep draft changes?</DialogTitle><DialogDescription>Apply or Discard the draft before you {pending?.label}. Cancel keeps the current text.</DialogDescription></DialogHeader>{error && <p role="alert">{error.message}</p>}<DialogFooter><Button variant="ghost" onClick={cancelPending}>Cancel</Button><Button variant="secondary" onClick={() => finishPending(false)}>Discard</Button><Button onClick={() => finishPending(true)}>Apply</Button></DialogFooter></DialogContent></Dialog>
