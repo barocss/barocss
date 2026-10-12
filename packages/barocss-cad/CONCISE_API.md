@@ -211,6 +211,31 @@ features; a back-bevel edit rebuilds that bevel and the split. Create each bevel
 selector from its exact parent; a selector from the other split side refuses.
 No chamfer is silently moved across the split or remapped to another edge.
 
+### 45-degree XY miter split
+
+`blank.split({plane:'x+y',at:cutPosition})` cuts along the fixed plane
+**x+y=at**. The threshold is a coordinate sum in millimeters, not perpendicular
+distance. Negative is below that sum; positive is above it. Exactly one of
+`axis` or `plane` is required. This enum is not an expression parser and accepts
+no arbitrary normal or other diagonal equation. `at` also accepts an owned
+add/scale dimension. The native source-backed cutter uses +Z and (+X,-Y) axes
+with actual parent coordinate-span knot domains.
+
+A 32×24×8 rectangle at sum24 has volumes 2304/3840 mm³. At sum32 it has
+3840/2304; at sum28 it has 3072/3072. A cut-position edit reuses the sketch and
+extrusion and rebuilds only the split. A parent with two opposite top-edge
+chamfers of distance2 has volume6016 and at sum28 splits into 3008/3008.
+The same direct-extrusion or owned one/two-chamfer ancestry and single-Boolean
+limits apply. No oblique post-split chamfer combination is certified here.
+
+Requesting an empty side refuses atomically with the genuine native status and
+contact dimension. At sum0, choosing only the positive side retains the full
+parent. Exact native affine/chart/crossing/pcurve and topology requirements
+remain authoritative; there is no automatic chart search, snapping or tolerance
+fallback. Failed edits leave the earlier accepted snapshot available for a
+valid subsequent edit. Save/load retains authored plane intent; cold load
+rebuilds rather than importing native caches.
+
 ## Bevel two opposite edges in sequence
 
 Call the second `chamfer` on the first result and create its selector from that
@@ -290,7 +315,7 @@ Bodies/evidence are deep-frozen native values usable by the existing tessellatio
 and display adapters. They allocate no renderer/GPU resources.
 
 The current supported graph envelope is at most two sketches, two extrusions,
-one through-slab cut, intersection or cardinal split and up to two sequential chamfers,
+one through-slab cut, intersection or supported split and up to two sequential chamfers,
 with at most six nodes and sixteen parameters. These are
 upper bounds, not six required roles: an extrusion-only or cut-only model builds,
 saves and reopens through the same API. No arbitrary Boolean graph is implied.
@@ -322,7 +347,7 @@ Run the ordinary boundary/type tests after building the package:
 ```sh
 node scripts/tool.mjs type-check
 node scripts/tool.mjs build
-node --test test/modeling.test.mjs test/modeling-intersection.test.mjs test/modeling-split.test.mjs test/modeling-cardinal-split.test.mjs test/modeling-chamfer-chain.test.mjs test/modeling-regeneration.test.mjs test/modeling-regeneration-helpers.test.mjs test/modeling-chamfer-split.test.mjs test/modeling-dimensions.test.mjs test/modeling-dimensions-helpers.test.mjs test/public-api.test.mjs
+node --test test/modeling.test.mjs test/modeling-intersection.test.mjs test/modeling-split.test.mjs test/modeling-cardinal-split.test.mjs test/modeling-chamfer-chain.test.mjs test/modeling-regeneration.test.mjs test/modeling-regeneration-helpers.test.mjs test/modeling-chamfer-split.test.mjs test/modeling-dimensions.test.mjs test/modeling-dimensions-helpers.test.mjs test/modeling-miter.test.mjs test/public-api.test.mjs
 node test/public-api-types.mjs
 ```
 
@@ -419,3 +444,16 @@ node --no-opt --max-old-space-size=2048 scripts/modeling-dimensions-consumer.mjs
 See #1634 for the width/offset rail fixture, exact prefix/volume assertions,
 pre-native arithmetic controls, referenced signed-zero edit and cold receipts.
 No new native geometric representation or transitive speed claim is implied.
+
+The separately bounded miter flow uses eight model calls and two baseline
+tessellations: six source calls and two fresh emitted cold/re-edit calls. It
+covers sum-threshold edits, outside refusal/recovery, signed-zero lower tangent,
+the symmetric two-chamfer parent, cap/source lineage and exact cold body parity.
+Upper tangent is inherited and is not another measured case in this flow.
+
+```sh
+node --no-opt --max-old-space-size=2048 test/modeling-miter-native.mjs
+node --no-opt --max-old-space-size=2048 scripts/modeling-miter-consumer.mjs test/modeling-miter-evidence
+```
+
+These are bounded CPU native receipts, not browser/GPU or performance claims.

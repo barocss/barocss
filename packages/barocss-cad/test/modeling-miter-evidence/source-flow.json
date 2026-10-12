@@ -1,0 +1,160 @@
+{
+  "status": "passed",
+  "modelCalls": 6,
+  "tessellations": 2,
+  "stages": [
+    {
+      "label": "miter sum24 baseline",
+      "elapsedMS": 449.072443,
+      "recomputation": {
+        "reusedFeatures": [],
+        "evaluatedFeatures": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    {
+      "label": "sum32 split-only edit",
+      "elapsedMS": 315.16099399999996,
+      "recomputation": {
+        "reusedFeatures": [
+          0,
+          1
+        ],
+        "evaluatedFeatures": [
+          2
+        ]
+      }
+    },
+    {
+      "label": "outside60 both-output refusal",
+      "elapsedMS": 137.1822189999998
+    },
+    {
+      "label": "sum28 recovery on same accepted snapshot",
+      "elapsedMS": 328.56257900000014,
+      "recomputation": {
+        "reusedFeatures": [
+          0,
+          1
+        ],
+        "evaluatedFeatures": [
+          2
+        ]
+      }
+    },
+    {
+      "label": "signed negative-zero one-output tangent",
+      "elapsedMS": 233.9450609999999,
+      "recomputation": {
+        "reusedFeatures": [],
+        "evaluatedFeatures": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    {
+      "label": "two-chamfer symmetric sum28",
+      "elapsedMS": 1612.358361,
+      "recomputation": {
+        "reusedFeatures": [],
+        "evaluatedFeatures": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      }
+    }
+  ],
+  "fullTransitiveNativeCoverage": "NOT_MEASURED",
+  "reportScope": "Model feature indices only; provider split counters exclude wrapper cutter compilation",
+  "entrySHA256": "5d11fe7a350ef36a6c86d779e44d8d380cc83ec527534c928736621b4f4ec7bf",
+  "pending": null,
+  "baseline": {
+    "plane": "x+y",
+    "at": 24,
+    "negativeMM3": 2304,
+    "positiveMM3": 3840,
+    "parentMM3": 6144,
+    "capEdges": 4,
+    "chamferAncestors": 0,
+    "originalPlaneBindings": 9,
+    "originalSourceLineage": true
+  },
+  "initialBodySHA256": "febe48b47c0306c688ef38f19d5f593a67d4b3060e19ddc2da688c1578da878a",
+  "display": [
+    {
+      "name": "negative",
+      "triangles": 8,
+      "nativeAuthority": false
+    },
+    {
+      "name": "positive",
+      "triangles": 12,
+      "nativeAuthority": false
+    }
+  ],
+  "transport": {
+    "bytes": 49139,
+    "sha256": "74850cdff999f76a47a9c01b34b4a55fddc5a64aa95b7156f6fef6ab7cc7154f"
+  },
+  "moved": {
+    "plane": "x+y",
+    "at": 32,
+    "negativeMM3": 3840,
+    "positiveMM3": 2304,
+    "parentMM3": 6144,
+    "capEdges": 4,
+    "chamferAncestors": 0,
+    "originalPlaneBindings": 9,
+    "originalSourceLineage": true
+  },
+  "refusal": {
+    "code": "SELECTION",
+    "operation": "split",
+    "cause": {
+      "side": "positive",
+      "status": "outside",
+      "sectionDimension": -1
+    }
+  },
+  "recovered": {
+    "plane": "x+y",
+    "at": 28,
+    "negativeMM3": 3072,
+    "positiveMM3": 3072,
+    "parentMM3": 6144,
+    "capEdges": 4,
+    "chamferAncestors": 0,
+    "originalPlaneBindings": 10,
+    "originalSourceLineage": true
+  },
+  "futureReuseAfterRefusal": true,
+  "editedBodySHA256": "46697b283b3776d819e33662940aab35af1ea77ae08bad8d4980ecc91f48ddc0",
+  "tangent": {
+    "status": "tangent",
+    "sectionDimension": 1,
+    "positiveMM3": 6144,
+    "unchangedParent": true,
+    "signedZeroSource": true
+  },
+  "chamferParent": {
+    "plane": "x+y",
+    "at": 28,
+    "negativeMM3": 3008,
+    "positiveMM3": 3008,
+    "parentMM3": 6016,
+    "capEdges": 6,
+    "chamferAncestors": 2,
+    "originalPlaneBindings": 35,
+    "originalSourceLineage": true
+  },
+  "oldAndNewSnapshotsIndependent": true,
+  "actualGPU": "UNRUN"
+}

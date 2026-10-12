@@ -68,3 +68,17 @@ derivedModel.dimension.scale(drivenWidth, drivenWidth);
 derivedModel.dimension.add(drivenWidth, 'offset');
 // @ts-expect-error Expression metadata is readonly, and never editable formula input.
 midpoint.kind = 'other';
+
+const miterModel = cad.model(), cutPosition = miterModel.parameter('cutPosition', 24);
+const miterBlank = miterModel.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const miterParts: CadSplit = miterBlank.split({ plane: 'x+y', at: miterModel.dimension.add(cutPosition, 0) });
+miterModel.build({ negative: miterParts.negative, positive: miterParts.positive }).withParameters({ cutPosition: 28 });
+// @ts-expect-error Axis and plane are mutually exclusive even on a non-literal variable.
+const bothPlanes: Parameters<CadShape['split']>[0] = { axis: 'x', plane: 'x+y', at: 24 };
+void bothPlanes;
+// @ts-expect-error One axis or fixed plane is required.
+miterBlank.split({ at: 24 });
+// @ts-expect-error Only the fixed x+y plane enum is supported.
+miterBlank.split({ plane: 'x-y', at: 24 });
+// @ts-expect-error Arbitrary normals are not an admitted plane option.
+miterBlank.split({ normal: [1,1,0], at: 24 });

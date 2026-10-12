@@ -34,11 +34,12 @@ export type CadAxis = 'x' | 'y' | 'z';
 export interface CadEdgeQuery { readonly parallelTo?: CadAxis; readonly at?: Readonly<Partial<Record<CadAxis, CadDimension | 'min' | 'max'>>> }
 export interface CadEdgeSelection { readonly kind: 'edge-selection' }
 export interface CadEdgeQueryHandle { one(): CadEdgeSelection }
+type SplitPlane = { readonly axis: CadAxis; readonly plane?: never } | { readonly plane: 'x+y'; readonly axis?: never };
 export interface CadShape {
   /** Positive-volume overlap of two distinct direct XY extrusions; disjoint/touching parts refuse. */
   intersect(other: CadShape): CadShape;
-  /** Cardinal split of a direct XY extrusion or its owned chamfer chain; negative is below the selected coordinate. */
-  split(options: { readonly axis: CadAxis; readonly at: CadDimension }): CadSplit;
+  /** Cardinal or x+y=at split of a direct XY extrusion or its owned chamfer chain; at is a coordinate/sum in mm. */
+  split(options: SplitPlane & { readonly at: CadDimension }): CadSplit;
   cut(tool: CadShape, options: { readonly axis: 'x' | 'y' }): CadCut;
   edges(query: CadEdgeQuery): CadEdgeQueryHandle;
   /** At most two sequential cardinal chamfers; each selector belongs to its exact parent result. */
@@ -84,7 +85,7 @@ export const CadModelLimits = Object.freeze({ nodes: 6, sketches: 2, extrusions:
 type Query = { parallelTo?: CadAxis; at?: Partial<Record<CadAxis, Dimension | 'min' | 'max'>> };
 type BodyRef = { node: number; side: 'solid' | 'negative' | 'positive' };
 type SketchNode = { kind: 'sketch'; profile: 'polygon'; points: [Dimension, Dimension][] } | { kind: 'sketch'; profile: 'rectangle'; min: [Dimension, Dimension]; max: [Dimension, Dimension] };
-type Node = SketchNode | { kind: 'extrude'; sketch: number; height: Dimension } | { kind: 'cut'; parent: BodyRef; tool: BodyRef; axis: 'x' | 'y' } | { kind: 'intersect'; left: BodyRef; right: BodyRef } | { kind: 'split'; parent: BodyRef; axis: CadAxis; at: Dimension } | { kind: 'chamfer'; parent: BodyRef; edge: Query; distance: Dimension };
+type Node = SketchNode | { kind: 'extrude'; sketch: number; height: Dimension } | { kind: 'cut'; parent: BodyRef; tool: BodyRef; axis: 'x' | 'y' } | { kind: 'intersect'; left: BodyRef; right: BodyRef } | ({ kind: 'split'; parent: BodyRef; at: Dimension } & SplitPlane) | { kind: 'chamfer'; parent: BodyRef; edge: Query; distance: Dimension };
 type Document = { format: 'barocss-cad-model'; schema: 1; units: 'mm'; parameters: Record<string, number>; nodes: Node[]; outputs: Record<string, BodyRef> };
 type EvaluatedValue = ConvexPlanarSolidResult | { negative?: ConvexPlanarSolidResult; positive?: ConvexPlanarSolidResult } | undefined;
 // Generated IDs/native options are fixed by this implementation authority plus the keyed graph.
@@ -146,6 +147,12 @@ function freeze<T>(value: T, seen = new WeakSet<object>()): T {
 }
 const equalRef = (a: BodyRef, b: BodyRef) => a.node === b.node && a.side === b.side;
 function deps(node: Node): number[] { return node.kind === 'sketch' ? [] : node.kind === 'extrude' ? [node.sketch] : node.kind === 'cut' ? [node.parent.node, node.tool.node] : node.kind === 'intersect' ? [node.left.node, node.right.node] : [node.parent.node]; }
+function splitPlane(value: unknown, fields: readonly string[]): SplitPlane {
+  const r = record(value, 'split'), cardinal = Object.hasOwn(r, 'axis');
+  record(r, 'split', [...fields, cardinal ? 'axis' : 'plane']);
+  if (cardinal) { demand(axes.includes(r.axis as CadAxis), 'CAPABILITY', 'split', 'Cardinal x/y/z axis required'); return { axis: r.axis as CadAxis }; }
+  demand(r.plane === 'x+y', 'CAPABILITY', 'split', 'Only the fixed x+y=at miter plane is supported'); return { plane: 'x+y' };
+}
 function splitParent(nodes: readonly Node[], reference: BodyRef): boolean {
   let current = reference;
   for (let bevels = 0; bevels <= CadModelLimits.chamfers; bevels++) {
@@ -187,8 +194,8 @@ function admit(input: Document): Document {
       record(n, 'intersect', ['kind', 'left', 'right']); body(n.left, i); body(n.right, i);
       demand(nodes[n.left.node].kind === 'extrude' && nodes[n.right.node].kind === 'extrude' && n.left.node !== n.right.node, 'CAPABILITY', 'intersect', 'Intersection requires two distinct direct XY extrusions');
     } else if (n.kind === 'split') {
-      record(n, 'split', ['kind', 'parent', 'axis', 'at']); body(n.parent, i); dimension(n.at);
-      demand(axes.includes(n.axis) && splitParent(nodes, n.parent), 'CAPABILITY', 'split', 'Cardinal split requires a direct XY extrusion or its owned chamfer chain');
+      splitPlane(n, ['kind', 'parent', 'at']); body(n.parent, i); dimension(n.at);
+      demand(splitParent(nodes, n.parent), 'CAPABILITY', 'split', 'Split requires a direct XY extrusion or its owned chamfer chain');
     } else {
       record(n, 'chamfer', ['kind', 'parent', 'edge', 'distance']); body(n.parent, i); dimension(n.distance);
       demand(counts.chamfer === 1 || (counts.chamfer === 2 && nodes[n.parent.node].kind === 'chamfer'), 'CAPABILITY', 'chamfer', 'At most two sequential chamfers in one chain are supported');
@@ -197,7 +204,7 @@ function admit(input: Document): Document {
       if (Object.hasOwn(q, 'at')) for (const [axis, v] of Object.entries(record(n.edge.at, 'selection'))) { demand(axes.includes(axis as CadAxis), 'INPUT', 'selection', 'Unknown selector axis'); if (v !== 'min' && v !== 'max') dimension(v); }
     }
   }
-  demand(counts.sketch <= 2 && counts.extrude <= 2 && counts.cut <= 1 && counts.intersect <= CadModelLimits.intersections && counts.split <= CadModelLimits.splits && counts.cut + counts.intersect + counts.split <= 1 && counts.chamfer <= CadModelLimits.chamfers, 'CAPABILITY', 'graph', 'Supported envelope: up to two sketches/extrusions, one through-slab cut, intersection or cardinal split and a two-chamfer chain within six nodes');
+  demand(counts.sketch <= 2 && counts.extrude <= 2 && counts.cut <= 1 && counts.intersect <= CadModelLimits.intersections && counts.split <= CadModelLimits.splits && counts.cut + counts.intersect + counts.split <= 1 && counts.chamfer <= CadModelLimits.chamfers, 'CAPABILITY', 'graph', 'Supported envelope: up to two sketches/extrusions, one through-slab cut, intersection or split and a two-chamfer chain within six nodes');
   record(d.outputs, 'outputs'); demand(Object.keys(d.outputs).length > 0 && Object.keys(d.outputs).length <= CadModelLimits.outputs, 'BUDGET', 'outputs', 'One to eight named outputs required');
   for (const [key, ref] of Object.entries(d.outputs)) { name(key, 'outputs'); body(ref, nodes.length); }
   return d;
@@ -222,15 +229,15 @@ export function createCadModel(): CadModel {
   const append = (node: Node) => {
     const limit = node.kind === 'sketch' || node.kind === 'extrude' ? 2 : node.kind === 'chamfer' ? CadModelLimits.chamfers : 1;
     demand(nodes.length < CadModelLimits.nodes && nodes.filter(n => n.kind === node.kind).length < limit, 'CAPABILITY', node.kind, 'Supported operation count exceeded');
-    demand(!['cut', 'intersect', 'split'].includes(node.kind) || !nodes.some(n => n.kind === 'cut' || n.kind === 'intersect' || n.kind === 'split'), 'CAPABILITY', node.kind, 'Only one through-slab cut, intersection or cardinal split is supported');
+    demand(!['cut', 'intersect', 'split'].includes(node.kind) || !nodes.some(n => n.kind === 'cut' || n.kind === 'intersect' || n.kind === 'split'), 'CAPABILITY', node.kind, 'Only one through-slab cut, intersection or split is supported');
     nodes.push(freeze(node)); return nodes.length - 1;
   };
   const shape = (reference: BodyRef): CadShape => {
     const handle: CadShape = Object.freeze({
-      split(options: { axis: CadAxis; at: CadDimension }): CadSplit {
-        record(options, 'split', ['axis', 'at']);
-        demand(axes.includes(options.axis) && splitParent(nodes, reference), 'CAPABILITY', 'split', 'Cardinal split requires a direct XY extrusion or its owned chamfer chain');
-        const at = dimension(options.at), node = append({ kind: 'split', parent: { ...reference }, axis: options.axis, at });
+      split(options: SplitPlane & { readonly at: CadDimension }): CadSplit {
+        const plane = splitPlane(options, ['at']);
+        demand(splitParent(nodes, reference), 'CAPABILITY', 'split', 'Split requires a direct XY extrusion or its owned chamfer chain');
+        const at = dimension(options.at), node = append({ kind: 'split', parent: { ...reference }, ...plane, at });
         return Object.freeze({ negative: shape({ node, side: 'negative' }), positive: shape({ node, side: 'positive' }) });
       },
       intersect(other: CadShape): CadShape {
@@ -290,6 +297,21 @@ function cardinalCutter(parent: ConvexPlanarSolidResult, axis: CadAxis, at: numb
   return { sourceId: prefix + '_cutter', source, sourceVersion: 0, model: compiled.model, surfaceId };
 }
 
+function miterCutter(parent: ConvexPlanarSolidResult, at: number, prefix: string): ConvexPlanarSolidCutter {
+  const points = parent.graph.vertices.map(vertex => vertex.pointMM);
+  const minX = Math.min(...points.map(p => p[0])), maxX = Math.max(...points.map(p => p[0]));
+  const minZ = Math.min(...points.map(p => p[2])), maxZ = Math.max(...points.map(p => p[2]));
+  // U = +Z, V = (+X,-Y), so U cross V points toward increasing x+y.
+  // Native exact affine/source/pcurve proofs remain authoritative; no chart retry or rounding.
+  const point = (x: number, z: number) => [x, at - x, z];
+  const controlPoints = [[point(minX, minZ), point(maxX, minZ)], [point(minX, maxZ), point(maxX, maxZ)]];
+  const spanU = maxZ - minZ, spanV = maxX - minX, surfaceId = prefix + '_plane';
+  const source = `@model ${prefix}_cutter { version:0; length-unit:mm; @surface #${surfaceId} { type:nurbs; degree-u:1; degree-v:1; knots-u:${signedJson([0, 0, spanU, spanU])}; knots-v:${signedJson([0, 0, spanV, spanV])}; control-points:${signedJson(controlPoints)}; weights:[[1,1],[1,1]]; } }\n`;
+  const compiled = compileCadModel(source, { sourceVersion: 0 });
+  if (!compiled.ok) throw new CadModelError('NATIVE', 'split', 'Generated miter cutter source refused', compiled);
+  return { sourceId: prefix + '_cutter', source, sourceVersion: 0, model: compiled.model, surfaceId };
+}
+
 function evaluate(input: Document, previous?: EvaluationFrame): CadModelSnapshot {
   const document = admit(input), evidence: CadModelEvidence[] = [], values: EvaluatedValue[] = [];
   const key = graphKey(document), reuseUntil = previous
@@ -337,7 +359,7 @@ function evaluate(input: Document, previous?: EvaluationFrame): CadModelSnapshot
         evidence.push({ kind: 'intersect', native }); values.push(native.outcome.solid);
       } else if (node.kind === 'split') {
         const parent = solid(node.parent), at = number(node.at); length(at, 'split');
-        const cutter = cardinalCutter(parent, node.axis, at, prefix);
+        const cutter = node.plane === 'x+y' ? miterCutter(parent, at, prefix) : cardinalCutter(parent, node.axis, at, prefix);
         const native = splitConvexPlanarSolid(parent, cutter, { operationId: prefix + '_split', resultIdPrefix: prefix, negativeSolidId: prefix + '_neg', positiveSolidId: prefix + '_pos' });
         evidence.push({ kind: 'split', native }); values.push({ ...(native.negative.kind === 'solid' ? { negative: native.negative.solid } : {}), ...(native.positive.kind === 'solid' ? { positive: native.positive.solid } : {}) });
       } else {
