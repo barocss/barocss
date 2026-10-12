@@ -1,5 +1,7 @@
 # Load, measure and manage Viewer lifetime
 
+[Authored directional lights](./authored-directional-lights) — Complete native documents, raw materials and authored lights through the explicit asynchronous required-WebGPU facade.
+
 [Native points and display pose](./display-pose) — Measure original native points, apply a separate display pose and select a projected point in the actual 3D view.
 
 ## Choose the load profile

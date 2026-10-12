@@ -1,5 +1,7 @@
 # Viewer: original geometry, sampled display and camera controls
 
+[Authored directional lights](./authored-directional-lights) — Complete native documents, raw materials and authored lights through the explicit asynchronous required-WebGPU facade.
+
 [Native points and display pose](./display-pose) — Measure original native points, apply a separate display pose and select a projected point in the actual 3D view.
 
 Open [the native panel example](/playground#viewer-panel). The source defines a100×40 mm Surface. Its native midpoint is `[50,0,20]` mm at U=0.5/V=0.5. The Viewer converts native millimetres to scene units once for display.
