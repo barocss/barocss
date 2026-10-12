@@ -30,6 +30,12 @@ The root exports `decodeImageBlob`, `loadImageURL`, `createImageAssetCache`, `bl
 
 See [retained scene edits](./guides#submit-a-tree-edit), [path construction](./guides#build-a-path) and [complete examples](./examples) for application use.
 
+## Copied CPU geometry
+
+[Intersect two convex polygons](./convex-intersection) with `intersectConvexPolygons(left, right): PolygonBooleanResult`: copied bounded integer inputs, canonical binary64 output, empty disjoint result and explicit contact refusals. The guide states its newer local source profile; this does not repin older renderer examples.
+
+[Split an authored L/Q/C segment](./path-subdivision) with public `splitPathSegment`: an exact cubic midpoint fixture, copied-command ownership and bounded refusals. Scene replacement and paint remain the application's responsibility.
+
 ## Document entry
 
 `serializeCanvasDocument(acceptedScene, getAsset): Promise<string>` copies referenced assets and canonical scene data. `parseCanvasDocument(text): Promise<ParsedCanvasDocument>` verifies and returns copied scene/assets. `stageCanvasDocument(text,freshCanvas,options): Promise<StagedCanvasDocument>` adds a rendered candidate. `exportCanvasDocumentPNG(text,options,createCanvas): Promise<CanvasPNGExport>` renders an owned candidate, returns a Blob and size metadata, and disposes its renderer.

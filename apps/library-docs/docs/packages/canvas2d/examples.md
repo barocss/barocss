@@ -18,6 +18,12 @@ The [diagram label guide](./diagram-labels) combines ASCII ellipsis with a separ
 
 [Import an SVG arc](./svg-arc-import) from the [arc API example](/examples/library#svg-arc-import). Inspect its cubic approximation, edit a control point and save the complete scene for fresh JSON Open. The viewport clip and transformed group remain part of that scene.
 
+## CPU geometry recipes
+
+[Intersect two convex polygons](./convex-intersection) to run the diamond/triangle fixture, inspect all six canonical points, accept a disjoint empty result and handle contact refusal. The source and genuine emitted public entries are checked without creating a renderer.
+
+[Split an authored L/Q/C segment](./path-subdivision) using `splitPathSegment`, the exact cubic midpoint fixture, copied-command ownership and bounded refusals. Each recipe declares its own source profile; these are CPU recipes, not additional interactive gallery entries.
+
 ## Create and submit a retained object
 
 Use a browser host with a TypeScript-capable bundler and the workspace package dependency. Put this HTML in the host page and use the following module as its `main.ts` entry. The bundler resolves public imports and transforms TypeScript; the browser receives JavaScript.
