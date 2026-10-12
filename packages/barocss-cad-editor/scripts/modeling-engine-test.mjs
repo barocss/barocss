@@ -20,7 +20,7 @@ function sampleBuilder() {
     chamfer(selection, distance) { assert.equal(selection.owner, index); return shape(nodes.push({ kind: 'chamfer', parent: index, query: selection.query, distance }) - 1); },
     index, cut() { const side = { edges() { return { one() { return {}; } }; }, chamfer() { return shape(nodes.push({ kind: 'chamfer' }) - 1); }, index: nodes.push({ kind: 'cut' }) - 1 }; return { positive: side, negative: side }; } });
   const sketch = profile => { const index = nodes.push({ kind: 'sketch', profile }) - 1; return { extrude(height) { return shape(nodes.push({ kind: 'extrude', sketch: index, height }) - 1); } }; };
-  return { parameter(name, value) { parameters[name] = value; return { parameter: name }; }, sketch: { polygon: sketch, rectangle: sketch },
+  return { dimension: { add(left, right) { return { op: 'add', left, right }; }, scale(value, factor) { return { op: 'scale', value, factor }; } }, parameter(name, value) { parameters[name] = value; return { parameter: name }; }, sketch: { polygon: sketch, rectangle: sketch },
     build(outputs) { return snapshot({ ...document, parameters, nodes, outputs: Object.fromEntries(Object.entries(outputs).map(([name, body]) => [name, { node: body.index, side: body.side ?? 'solid' }])) }); } };
 }
 const snapshots = [], snapshotEdits = [], loads = [];
@@ -121,7 +121,14 @@ for (const splitAxis of [undefined, 'x', 'z']) {
   assert.equal(doc.nodes[4].axis, splitAxis ?? 'x');
   assert.deepEqual(doc.outputs, { negative: { node: 4, side: 'negative' }, positive: { node: 4, side: 'positive' } }); checks++;
 }
-for (const [example, splitAxis] of [['chamfer-split', 'y'], ['chamfer-split', 'q'], ['chamfer-split', null], ['chamfer-split', 1], ['chamfer-split', {}], ['horizontal-split', 'q'], ['horizontal-split', null], ['horizontal-split', 1], ['horizontal-split', {}], ['intersection', 'x'], ['cut-chamfer', 'z'], ['two-chamfer', 'x'], [undefined, 'y']]) {
+const derivedSample = sampleEngine({ id: ++id, kind: 'example', example: 'derived-split' });
+assert.equal(derivedSample.ok, true); const derivedGraph = JSON.parse(derivedSample.text);
+assert.deepEqual(derivedSample.summary.parameters, { width: 32, offset: 0, frontDistance: 1, backDistance: 2 });
+assert.deepEqual(derivedGraph.nodes[4].at, { op: 'add', left: { op: 'scale', value: { parameter: 'width' }, factor: 0.5 }, right: { parameter: 'offset' } });
+assert.deepEqual(derivedGraph.nodes[0].profile, { width: { parameter: 'width' }, height: 24 });
+assert.equal(derivedGraph.nodes[4].axis, 'x'); assert.equal(derivedGraph.nodes[4].parent, 3);
+assert.equal(Object.hasOwn(derivedSample.summary.parameters, 'splitAt'), false); checks++;
+for (const [example, splitAxis] of [['derived-split', 'x'], ['derived-split', 'z'], ['derived-split', null], ['chamfer-split', 'y'], ['chamfer-split', 'q'], ['chamfer-split', null], ['chamfer-split', 1], ['chamfer-split', {}], ['horizontal-split', 'q'], ['horizontal-split', null], ['horizontal-split', 1], ['horizontal-split', {}], ['intersection', 'x'], ['cut-chamfer', 'z'], ['two-chamfer', 'x'], [undefined, 'y']]) {
   const calls = sampleCalls;
   assert.equal(sampleEngine({ id: ++id, kind: 'example', example, splitAxis }).ok, false);
   assert.equal(sampleCalls, calls); checks++;

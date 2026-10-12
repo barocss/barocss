@@ -1,0 +1,21 @@
+Normalized display transcript: ANSI escapes and trailing whitespace removed. Original log SHA256 is retained in verification.json.
+
+(node:207) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+/workspace/scratch/1591b2fb2f62/barocss-modeling-chamfer-consumer/apps/library-docs/scripts/check-modeling-dimensions.mjs
+  30:1  warning  Unexpected console statement  no-console
+
+/workspace/scratch/1591b2fb2f62/barocss-modeling-chamfer-consumer/packages/barocss-cad-editor/scripts/modeling-controller-test.mjs
+  290:81  warning  Unexpected console statement  no-console
+
+/workspace/scratch/1591b2fb2f62/barocss-modeling-chamfer-consumer/packages/barocss-cad-editor/scripts/modeling-dimensions-controller-test.mjs
+  75:76  warning  Unexpected console statement  no-console
+
+/workspace/scratch/1591b2fb2f62/barocss-modeling-chamfer-consumer/packages/barocss-cad-editor/scripts/modeling-dimensions-recipes-test.mjs
+  48:76  warning  Unexpected console statement  no-console
+
+/workspace/scratch/1591b2fb2f62/barocss-modeling-chamfer-consumer/packages/barocss-cad-editor/scripts/modeling-engine-test.mjs
+  181:81  warning  Unexpected console statement  no-console
+
+✖ 5 problems (0 errors, 5 warnings)

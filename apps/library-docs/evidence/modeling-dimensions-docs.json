@@ -1,0 +1,138 @@
+{
+  "issue": 1635,
+  "consumerBase": "545556ca5fadf9d506deef3a53bf7d54fc12b798",
+  "provider": "d9d0aa93fdaf6700fd30282bc91656e40e59baf1",
+  "download": "docs/public/examples/modeling-dimensions.ts",
+  "types": {
+    "source": {
+      "ok": true,
+      "scope": "seven public example/snippet types, source/receipt/transfer pins and two stale guide corrections; no native execution",
+      "mode": "source",
+      "typedExampleFiles": 7,
+      "enginePin": "d9d0aa93fdaf6700fd30282bc91656e40e59baf1",
+      "engineReceiptSHA256": "609bed5645aae4cc7e4eb5183a494c1920c6f278ab845994ecea9a02edc73f22",
+      "modelingSourceSHA256": "d33538b845cb7142525762563caf837f259941e30762f4125431df252d4999a8",
+      "entrySHA256": "931bf3c2b9fcf0b8222d95d793187f14af536c708e04935f8af621e9f779b028",
+      "downloadSHA256": "0439140e0addb1b2b4d28e70dd57711df712763f85b7473c9017b1b2b587fa91",
+      "nativeCampaignRun": false
+    },
+    "emitted": {
+      "ok": true,
+      "scope": "seven public example/snippet types, source/receipt/transfer pins and two stale guide corrections; no native execution",
+      "mode": "emitted",
+      "typedExampleFiles": 7,
+      "enginePin": "d9d0aa93fdaf6700fd30282bc91656e40e59baf1",
+      "engineReceiptSHA256": "609bed5645aae4cc7e4eb5183a494c1920c6f278ab845994ecea9a02edc73f22",
+      "modelingSourceSHA256": "d33538b845cb7142525762563caf837f259941e30762f4125431df252d4999a8",
+      "entrySHA256": "d34f89362113cbc214d9cd70dc3ae4388c7b995ea44fd859591366efe7fc9e64",
+      "downloadSHA256": "0439140e0addb1b2b4d28e70dd57711df712763f85b7473c9017b1b2b587fa91",
+      "nativeCampaignRun": false
+    }
+  },
+  "recipes": {
+    "ok": true,
+    "scope": "identical13 public construction calls, nested add/scale intent, exact owned shape chain and output mapping; stubbed authoring only",
+    "editorSHA256": "e353954a1e600b2cd37da599487e66e03f1f073da910c7f4b40521e67cc3c8bb",
+    "downloadSHA256": "0439140e0addb1b2b4d28e70dd57711df712763f85b7473c9017b1b2b587fa91",
+    "providerFixtureSHA256": "5cc718ea40e366aeeff4b2e8db7a9e05e52a80848ac423238872887d48e42f8c",
+    "calls": 13,
+    "numericDriversOnly": [
+      "width",
+      "offset",
+      "frontDistance",
+      "backDistance"
+    ],
+    "formula": {
+      "op": "add",
+      "left": {
+        "op": "scale",
+        "value": {
+          "parameter": "width"
+        },
+        "factor": 0.5
+      },
+      "right": {
+        "parameter": "offset"
+      }
+    },
+    "nativeGeometryRun": false
+  },
+  "preservedDownloads": [
+    {
+      "path": "apps/library-docs/docs/public/examples/body-boundary-mesh/main.owned-body.json",
+      "sha256": "6aa430ecc7775159b4bef758ab21363a75f186d84d15c8c4a56e8c00e2e6097d"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-line-width-extrusion-graph.authored.json",
+      "sha256": "6e707d5022a7ff454b25284392a170214d50e19e5f525f5d54bac26a4f7dd371"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-line-width-shell.json",
+      "sha256": "f91644774c356d2f814574d42b4a211b9374eb67101c6b362a9a4fe655e78fbb"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-prism-feature-v0-authored.json",
+      "sha256": "d9a999760b6492c0d3efe8642b12058ef5a4380e90d7f99d7feeb20c691630ce"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-quantity-functions.cad.css",
+      "sha256": "01f8980d6821bdecfbc1b64deb3428e428886b31c0d01909384c65e21a7ef42d"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-cardinal-split.ts",
+      "sha256": "f3e4e854cc68a990cf8fde396b4862843bf47cdff5f041df3940c8686e860aaa"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-chamfer-chain.ts",
+      "sha256": "eefa59ffd5c997f9115700ccf34baed0f2f201618f1f58c6debc6ca5d4504183"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-chamfer-split.ts",
+      "sha256": "c2501c205a8561a96c14b081055f5c0a288f6d6ba57c52e6425d84988d15edb5"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-intersection.ts",
+      "sha256": "acb9b1d71dbf0a0daf16d9748c808a0fdd644b4a0ba83284e539776dbb2ce4a9"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-split.ts",
+      "sha256": "20843920e8f55721a3941d7328b40a7ccccac1a062906b60e3bb36ea368c4c12"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/render-editor-directional.light-scene.json",
+      "sha256": "901f9d8e48185310b4c6cf109660e041790bdb44677be09807be33b5876dda23"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/render-editor-light-scene.ts",
+      "sha256": "8cd82f6e42e8a25edaaec3009b7c65f4b293e16d61dfd7535d884dd644afbd6a"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/render-editor-point.light-scene.json",
+      "sha256": "b6a393bd4abd2daae36271662c6fc601ca7861377d1b03bc1eb6ee0d432e20ce"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/serial-part-v2.json",
+      "sha256": "15672f1f44b154698759db7ed80f903081fafecd1c2683e11448d5564276aaf9"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/source0.cad.css",
+      "sha256": "e31fc1269d9d59645078cb9b1cc5bd13baece79bb21993d59a922888d758fdcf"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/source1.cad.css",
+      "sha256": "36e25f4e4f2aaa02620c901f4443da73d490f4032c3d6b41ff75e45d7d28c355"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/source2.cad.css",
+      "sha256": "3fa249d506991c15237531ce220ef3d168fcc95ba87c10d258c81b962a8d19ed"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/source3.cad.css",
+      "sha256": "7022e35b9aafff79d7ced839f0d01434591d498eb2be0571a90c4cce29f418bd"
+    }
+  ],
+  "totalDownloadsAfter": 19,
+  "guideSHA256": "dcee2982ed29587f97d9947dc8eea549c3d3e898423017dd518269cfebcca070",
+  "checkerSHA256": "f7f3f402e2cb922b2d067a436fb0b4af497c0a2bf8347a4fa3138ceb9b84ff59",
+  "scope": "Public example/static/type provenance only; no native/browser invocation; deployment separately recorded"
+}

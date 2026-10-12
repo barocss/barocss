@@ -11,7 +11,7 @@ All dimensions below are **millimetres**. Use a TypeScript-capable workspace/bun
 
 `rectangle({ width, height })` starts at XY `[0,0]`. Here its `height: depth` is the sketch's Y size, while `extrude(height)` is the solid's positive Z height. `makePlate()` returns an accepted snapshot; its named `bodies.part` output is the complete native Solid. A build requires at least one named output.
 
-Parameter handles belong to their model. Use them directly wherever a point coordinate or dimension is accepted. A name is safe ASCII matching `[A-Za-z_][A-Za-z0-9_-]{0,47}`, excluding `__proto__`, `prototype` and `constructor`. A finite literal can be used instead of a parameter handle. Parameter expressions and constraints are not part of this initial authoring surface.
+Parameter handles belong to their model. Use them directly wherever a point coordinate or dimension is accepted. A name is safe ASCII matching `[A-Za-z_][A-Za-z0-9_-]{0,47}`, excluding `__proto__`, `prototype` and `constructor`. A finite literal can be used instead of a parameter handle. Owned derived dimensions support bounded `model.dimension.add` and `model.dimension.scale` as described below. General formula strings and sketch constraints remain outside this authoring surface.
 
 ## 2. Cut and chamfer the actual component
 
@@ -186,6 +186,45 @@ The [adopted split-after-chamfer source](https://github.com/barocss/barocss/blob
 
 Lightweight tracing compares the same ten public authoring calls and output references in the editor, download and provider fixture for X16 and Z4. The unchanged 82,509-byte genuine X16 transport is replayed through the actual controller with a mocked Worker, checking two CPU geometries and approximate picking of both named outputs. Z has provider-native evidence plus recipe/routing/type checks; it does not have a fabricated transport replay. No extra native campaign or actual sample-worker execution is implied. Provider [#1631](https://github.com/barocss/barocss/issues/1631) and consumer [#1632](https://github.com/barocss/barocss/issues/1632) retain separate evidence. Editor browser/GPU, physical file-picker flows and npm publication remain **UNRUN** by these checks; manual deployment is recorded separately.
 
+## Keep a beveled split centered as width changes
+
+<a :href="withBase('/examples/modeling-dimensions.ts')" download>Download the complete typed centered-split example</a>
+
+A split coordinate can follow other dimensions without becoming another editable field. This recipe fixes the X plane at **width × 0.5 + offset**: widening the rail keeps the cut centered, while `offset` moves it relative to that center. It uses the same two owned chamfers and names both split outputs:
+
+<<< ../../public/examples/modeling-dimensions.ts#centered-split
+
+`model.dimension.scale(width, 0.5)` scales a length by a finite numeric, dimensionless factor. `model.dimension.add(..., offset)` adds two millimetre lengths. Each returns an opaque, frozen expression owned by that exact model. Pass it wherever a `CadDimension` is accepted; do not copy an expression or borrow one from another model. The expression is authored intent, not another feature node or a named numeric parameter.
+
+In **Modeling examples → Keep a beveled split centered**, acknowledge replacement and load. The only numeric drivers are `width`, `offset`, `frontDistance` and `backDistance`. Width is the rail's X size; offset is the X displacement from its center. There is no `splitAt` input, axis switch or formula text editor for this preset. The existing **Split a beveled part** keeps its independent X/Z coordinate recipes unchanged. Picker changes, loading, drafts, cancellation, history and authored Save/Open retain their existing atomic behavior.
+
+| Accepted state | Derived X plane (mm) | negative / positive (mm³) |
+| --- | --- | --- |
+| width32 / offset0 | 16 | 3032 / 3032 |
+| offset4 | 20 | 3790 / 2274 |
+| then width40 | 24 | 4548 / 3032 |
+| offset0 after refusal | 20 | 3790 / 3790 |
+| referenced offset−0, then fresh cold reopen | 20 | 3790 / 3790 |
+| reopened, offset4 | 24 | 4548 / 3032 |
+
+<<< ../../public/examples/modeling-dimensions.ts#edit-centered-split
+
+Changing only `offset` reuses model features 0–3 and evaluates the split at index4. Changing `width` evaluates all five features because the sketch depends on it. Changing a referenced `offset` from +0 to −0 conservatively reevaluates the split even when the final plane is numerically identical. Authored zero signs are preserved, but ordinary IEEE addition/multiplication rules determine each computed result. Compare parameter key sets and values; insertion order is not an API promise. The saved file retains the formula tree and driving values, without evaluated geometry or a private reuse frame. Fresh `cad.load` evaluates all features; the editor still tessellates accepted outputs.
+
+From the accepted width40/offset4 snapshot, `offset:40` puts the plane at X60 and requests an empty positive side. The measured result is `SELECTION` / `split` with the original positive/outside/sectionDimension−1 cause. The previous save, bodies and future reuse remain intact; offset0 succeeds from that same snapshot afterward:
+
+<<< ../../public/examples/modeling-dimensions.ts#refused-centered-split
+
+### Derived-dimension limits
+
+Only add and scale are exposed. There is no string parser, `eval`, division, arbitrary function or scalar-parameter family. Scale's factor is a finite numeric scalar; negative and zero factors are allowed, while the resulting length must still satisfy the consuming operation. Length literals, referenced parameters and every intermediate/result must be finite and within **±10000 mm**. Resolution uses deterministic left-to-right/postorder JavaScript binary64 arithmetic, with no clamping or reassociation; overflow or an out-of-range intermediate refuses before native evaluation.
+
+Each dimension allows at most **32 expression-tree nodes and depth6**, counting every literal/parameter/operator occurrence and repeated subtree occurrence. Formula validation precedes native evaluation and cache reuse. The existing six-feature, one cut/intersection/split, file-size, input-depth and native exactness limits still apply. Saving records only strict add/scale structure; unknown fields/operators, foreign or forged handles and malformed records refuse. Existing numeric/parameter files remain supported; legacy readers do not reinterpret formula records.
+
+The [derived-dimension source](https://github.com/barocss/barocss/blob/d9d0aa93fdaf6700fd30282bc91656e40e59baf1/packages/barocss-cad/src/modeling.ts), [exact derivedRail fixture](https://github.com/barocss/barocss/blob/d9d0aa93fdaf6700fd30282bc91656e40e59baf1/packages/barocss-cad/test/modeling-dimensions-fixture.mjs) and [native receipt](https://github.com/barocss/barocss/blob/d9d0aa93fdaf6700fd30282bc91656e40e59baf1/packages/barocss-cad/test/modeling-dimensions-evidence/verification.json) preserve **9 observed model calls and 1 negative-body tessellation across two attempts**. The six source calls passed. The first cold call built successfully before a test-only parameter-key-order assertion failed; the corrected two-call emitted retry then passed. Runtime source was unchanged. This is not a first-run eight-call pass or a native timing claim.
+
+Consumer tracing matches all13 public construction calls and nested formula ownership across editor/download/provider. Both output volumes and geometry come from provider-native results. The actual new baseline save/summary/negative mesh is preserved (41,830 bytes). Its full native-body hash equals the earlier #1631 baseline; after verifying that pinned parity, the CPU test combines it with that earlier positive mesh. This is an explicitly **geometry-equivalent adapted transport replay** through the real controller with a mocked Worker, not a new two-body tessellation or sample-worker run. Both original input hashes remain recorded. Provider [#1634](https://github.com/barocss/barocss/issues/1634) and consumer [#1635](https://github.com/barocss/barocss/issues/1635) retain separate receipts. Editor browser/GPU/React interaction, physical file-picker flows and npm publication remain **UNRUN** by these checks; manual deployment is separate.
+
 ## 3. Read named outputs and evidence
 
 <<< ../../../scripts/snippets/modeling-api.ts#outputs
@@ -250,7 +289,7 @@ This loader accepts files from this modeling API. Existing versioned feature doc
 | Extrude | Positive +Z height up to 10000 mm; exact affine native prism qualification | Taper, sweep, nonpositive height or nonrepresentable native/chart lift |
 | Cut | Two distinct direct XY extrusions; X or Y through-slab supports; full coverage by the remaining tool supports | Arbitrary cutter, cavity, union, chained cut parent, failed tool coverage |
 | Intersect | Two distinct same-model direct XY extrusions; positive-volume exact convex-planar overlap | Disjoint/touching-only results, same handle, cut-plus-intersection, repeated/nested intersection, union or general Boolean solids |
-| Split | One direct XY extrusion; world `axis: 'x'`, `'y'` or `'z'` with a finite coordinate; each selected side must be nonempty | Oblique plane, empty requested side, mixed cut/intersection/split graph, repeated/nested split |
+| Split | A direct XY extrusion or one/two owned serial chamfers rooted at it; world `axis: 'x'`, `'y'` or `'z'` with a finite coordinate; each selected side must be nonempty | Oblique plane, empty requested side, mixed cut/intersection/split graph, repeated/nested split |
 | Select | One exact cardinal-direction/endpoint-coordinate query on the same body | Zero/multiple matches, handles from another model/body, tolerance or persistent-topology matching |
 | Chamfer | Up to two serial owned cardinal-edge chamfers; second parent/selector from the first result; perpendicular signed-axis adjacent supports and supported endpoints; positive local setback | Sibling/third chamfer, stale selectors, curved or arbitrary-angle chamfer, zero/excessive/touching/nonlocal setback; unmeasured feature combinations |
 | Edit/load | Named finite-mm parameter batch; admitted unchanged-prefix reuse on the exact snapshot, cold build/load, independent new snapshots | Partial accepted candidate, arbitrary graph editing, implicit migration or cached geometry acceptance |

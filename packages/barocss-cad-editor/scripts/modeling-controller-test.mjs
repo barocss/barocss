@@ -53,6 +53,12 @@ const chamferSplit = axis => ({ ...structuredClone(chamferChain), parameters: { 
   nodes: [...structuredClone(chamferChain.nodes).map((node, index) => index === 3 ? { ...node, edge: { parallelTo: 'x', at: { y: 24, z: 'max' } } } : node),
     { kind: 'split', parent: { node: 3, side: 'solid' }, axis, at: { parameter: 'splitAt' } }],
   outputs: { negative: { node: 4, side: 'negative' }, positive: { node: 4, side: 'positive' } } });
+const derivedSplit = () => {
+  const document = chamferSplit('x'); document.parameters = { width: 32, offset: 0, frontDistance: 1, backDistance: 2 };
+  document.nodes[0] = { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [{ parameter: 'width' }, 24] };
+  document.nodes[4].at = { op: 'add', left: { op: 'scale', value: { parameter: 'width' }, factor: 0.5 }, right: { parameter: 'offset' } };
+  return document;
+};
 function reply(document = authored, revision = 0) {
   const names = Object.keys(document.outputs);
   return { id: 1, ok: true, text: signedJSON(document), summary: { documentId: 'cad_model', revision, source: 'model', parameters: document.parameters,
@@ -73,7 +79,7 @@ class Worker {
   terminate() { this.terminated = true; }
   send(result, id = this.requests.at(-1).id) { this.callbacks.get('message')({ data: { ...structuredClone(result), id } }); }
   accept(command = this.requests.at(-1)) {
-    const document = command.kind === 'example' ? structuredClone(command.example === 'intersection' ? overlap : command.example === 'horizontal-split' ? (command.splitAxis === 'x' || command.splitAxis === 'y' ? cardinal(command.splitAxis) : split) : command.example === 'two-chamfer' ? chamferChain : command.example === 'chamfer-split' ? chamferSplit(command.splitAxis ?? 'x') : authored) : command.kind === 'open' ? JSON.parse(command.text) : structuredClone(this.document);
+    const document = command.kind === 'example' ? structuredClone(command.example === 'intersection' ? overlap : command.example === 'horizontal-split' ? (command.splitAxis === 'x' || command.splitAxis === 'y' ? cardinal(command.splitAxis) : split) : command.example === 'two-chamfer' ? chamferChain : command.example === 'chamfer-split' ? chamferSplit(command.splitAxis ?? 'x') : command.example === 'derived-split' ? derivedSplit() : authored) : command.kind === 'open' ? JSON.parse(command.text) : structuredClone(this.document);
     if (command.kind === 'apply') Object.assign(document.parameters, command.parameters);
     this.document = document;
     const result = reply(document, command.kind === 'apply' ? command.expectedRevision + 1 : command.revision ?? 0); this.send(result, command.id); return result;
@@ -135,7 +141,7 @@ try {
     if (mode === 'display-refusal' || mode === 'cancel-staging' || mode === 'worker-failure-staging') assert.ok(disposals >= 2); s.dispose(); checks++;
   }
   // Every additive sample uses the same atomic replacement path, including drafts/history.
-  for (const [example, document, kind, outputs, axis] of [['intersection', overlap, 'intersect', ['overlap']], ['horizontal-split', split, 'split', ['lower', 'upper']], ['horizontal-split', cardinal('x'), 'split', ['negative', 'positive'], 'x'], ['horizontal-split', cardinal('y'), 'split', ['negative', 'positive'], 'y'], ['two-chamfer', chamferChain, 'chamfer', ['part']], ['chamfer-split', chamferSplit('x'), 'split', ['negative', 'positive'], 'x'], ['chamfer-split', chamferSplit('z'), 'split', ['negative', 'positive'], 'z']]) {
+  for (const [example, document, kind, outputs, axis] of [['intersection', overlap, 'intersect', ['overlap']], ['horizontal-split', split, 'split', ['lower', 'upper']], ['horizontal-split', cardinal('x'), 'split', ['negative', 'positive'], 'x'], ['horizontal-split', cardinal('y'), 'split', ['negative', 'positive'], 'y'], ['two-chamfer', chamferChain, 'chamfer', ['part']], ['chamfer-split', chamferSplit('x'), 'split', ['negative', 'positive'], 'x'], ['chamfer-split', chamferSplit('z'), 'split', ['negative', 'positive'], 'z'], ['derived-split', derivedSplit(), 'split', ['negative', 'positive']]]) {
     const samples = create(); p = samples.example(); let sampleWorker = instances.at(-1); sampleWorker.accept(); await p;
     samples.stage('height', '6'); p = samples.apply(); sampleWorker.accept(); await p;
     samples.stage('height', '7'); const beforeSample = stable(samples);
@@ -148,11 +154,11 @@ try {
     assert.deepEqual(samples.getSnapshot().accepted.outputs.map(output => output.name), outputs);
     assert.equal(samples.getSnapshot().accepted.features.at(-1).kind, kind);
     assert.equal(samples.getSnapshot().history.count, 1); assert.deepEqual(samples.getSnapshot().drafts, {}); checks++;
-    const editName = (example === 'two-chamfer' || example === 'chamfer-split') ? 'backDistance' : 'height';
-    const editValue = (example === 'two-chamfer' || example === 'chamfer-split') ? 3 : 2;
+    const editName = (example === 'two-chamfer' || example === 'chamfer-split' || example === 'derived-split') ? 'backDistance' : 'height';
+    const editValue = (example === 'two-chamfer' || example === 'chamfer-split' || example === 'derived-split') ? 3 : 2;
     samples.stage(editName, String(editValue)); const beforeOutputChange = stable(samples); p = samples.apply();
     const changed = structuredClone(document); changed.parameters[editName] = editValue;
-    if (axis) changed.outputs.negative.side = 'positive';
+    if (axis || example === 'derived-split') changed.outputs.negative.side = 'positive';
     else if (example === 'horizontal-split') changed.outputs.lower.side = 'positive';
     else if (example === 'two-chamfer') changed.outputs.part.node = 2;
     else changed.outputs.overlap.node = 1;
@@ -167,7 +173,7 @@ try {
     samples.dispose();
   }
   const invalid = create(); const beforeInvalid = stable(invalid), beforeWorkers = instances.length;
-  for (const [example, axis] of [['chamfer-split', 'y'], ['chamfer-split', 'q'], ['chamfer-split', null], ['chamfer-split', 1], ['chamfer-split', {}], ['horizontal-split', 'q'], ['horizontal-split', null], ['horizontal-split', 1], ['horizontal-split', {}], ['intersection', 'x'], ['cut-chamfer', 'z'], ['two-chamfer', 'x'], [undefined, 'y'], ['unknown', undefined]]) {
+  for (const [example, axis] of [['derived-split', 'x'], ['derived-split', 'z'], ['derived-split', null], ['chamfer-split', 'y'], ['chamfer-split', 'q'], ['chamfer-split', null], ['chamfer-split', 1], ['chamfer-split', {}], ['horizontal-split', 'q'], ['horizontal-split', null], ['horizontal-split', 1], ['horizontal-split', {}], ['intersection', 'x'], ['cut-chamfer', 'z'], ['two-chamfer', 'x'], [undefined, 'y'], ['unknown', undefined]]) {
     await assert.rejects(invalid.example(example, axis), /Choose/);
     assert.equal(instances.length, beforeWorkers); assert.deepEqual(stable(invalid), beforeInvalid); checks++;
   }
@@ -205,6 +211,27 @@ try {
       const changed = chamferSplit(axis); changed.parameters.backDistance = 3; mutate(changed); worker.send(reply(changed, 1)); await p;
       assert.ok(guarded.getSnapshot().error); assert.deepEqual(stable(guarded), before); guarded.dispose(); checks++;
     }
+  }
+  const derivedSession = create(); p = derivedSession.example('derived-split'); const derivedWorker = instances.at(-1); derivedWorker.accept(); await p;
+  const initialFormula = JSON.parse(derivedSession.getSnapshot().authoredText).nodes[4].at;
+  for (const [name, value] of [['offset', 4], ['width', 40], ['frontDistance', 2], ['backDistance', 3]]) {
+    derivedSession.stage(name, String(value)); p = derivedSession.apply(); assert.deepEqual(derivedWorker.requests.at(-1).parameters, { [name]: value });
+    derivedWorker.accept(); await p; assert.equal(derivedSession.getSnapshot().accepted.parameters[name], value);
+    assert.deepEqual(JSON.parse(derivedSession.getSnapshot().authoredText).nodes[4].at, initialFormula); checks++;
+  }
+  derivedSession.stage('offset', '-0'); p = derivedSession.apply(); derivedWorker.accept(); await p;
+  assert.ok(Object.is(derivedSession.getSnapshot().accepted.parameters.offset, -0));
+  const derivedSaved = derivedSession.getSnapshot().authoredText;
+  p = derivedSession.undo(); derivedWorker.accept(); await p; assert.equal(derivedSession.getSnapshot().accepted.parameters.offset, 4);
+  p = derivedSession.redo(); derivedWorker.accept(); await p; assert.equal(derivedSession.getSnapshot().authoredText, derivedSaved); checks++;
+  assert.throws(() => derivedSession.stage('splitAt', '16'), /named dimension/); derivedSession.dispose(); checks++;
+  for (const mutate of [d => d.nodes[4].at.op = 'scale', d => d.nodes[4].at.left.factor = 0.25,
+    d => d.nodes[4].at.left.value.parameter = 'offset', d => d.nodes[4].at.right = 4,
+    d => d.nodes[4].at.extra = 0, d => d.outputs.positive.side = 'negative']) {
+    const guarded = create(); p = guarded.example('derived-split'); const worker = instances.at(-1); worker.accept(); await p;
+    guarded.stage('width', '40'); const before = stable(guarded); p = guarded.apply();
+    const changed = derivedSplit(); changed.parameters.width = 40; mutate(changed); worker.send(reply(changed, 1)); await p;
+    assert.ok(guarded.getSnapshot().error); assert.deepEqual(stable(guarded), before); guarded.dispose(); checks++;
   }
   const chainSession = create(); p = chainSession.example('two-chamfer'); const chainWorker = instances.at(-1); chainWorker.accept(); await p;
   chainSession.stage('backDistance', '3'); p = chainSession.apply(); chainWorker.accept(); await p;

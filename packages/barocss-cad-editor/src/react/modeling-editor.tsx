@@ -38,6 +38,8 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
     && ['frontDistance', 'backDistance', 'backY'].every(name => Object.hasOwn(accepted.parameters, name));
   const chamferSplit = accepted?.source === 'model' && accepted.features.map(feature => feature.kind).join(',') === 'sketch,extrude,chamfer,chamfer,split'
     && ['frontDistance', 'backDistance', 'splitAt'].every(name => Object.hasOwn(accepted.parameters, name));
+  const derivedSplit = accepted?.source === 'model' && accepted.features.map(feature => feature.kind).join(',') === 'sketch,extrude,chamfer,chamfer,split'
+    && ['width', 'offset', 'frontDistance', 'backDistance'].every(name => Object.hasOwn(accepted.parameters, name));
   return <section className="barocss-cad-editor" aria-label="CAD model editor" style={{ padding: 24, overflow: 'auto', height: '100%' }}>
     <header><h1>Model a part</h1><p>Sketch → extrude → cut, intersect, split or chamfer · named dimensions in mm</p></header>
     <p role="status" aria-live="polite">{busy ? 'Computing native geometry in a dedicated worker… You can cancel.' : accepted ? draft ? 'Dimension changes pending' : 'Accepted model' : 'No accepted model'}</p>
@@ -59,6 +61,7 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         <option value="horizontal-split">Split a part</option>
         <option value="two-chamfer">Two chamfers on a part</option>
         <option value="chamfer-split">Split a beveled part</option>
+        <option value="derived-split">Keep a beveled split centered</option>
       </select>
       {(example === 'horizontal-split' || example === 'chamfer-split') && <>
         <Label htmlFor={`${id}-split-axis`}>Split axis for the new example</Label>
@@ -70,7 +73,9 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         </select>
         <p>Axis choice loads a new example after replacement acknowledgment; it does not edit the accepted part.</p>
       </>}
-      <p>{example === 'chamfer-split'
+      <p>{example === 'derived-split'
+        ? 'Keep the X split at width × 0.5 + offset after both bevels. Edit width and offset as numeric drivers; the formula and negative/positive outputs stay fixed. No separate splitAt field is needed.'
+        : example === 'chamfer-split'
         ? 'Split the finished two-chamfer rectangle into negative and positive bodies. X starts at 16 mm; Z starts at 4 mm. Both sides must have positive volume. This preset offers the measured X/Z cases; the plain split example still offers Y.'
         : example === 'horizontal-split'
         ? splitAxis === 'z' ? 'Split one direct XY extrusion at a Z height into lower and upper bodies. Both named sides must have positive volume.'
@@ -100,7 +105,7 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
       {accepted.source === 'legacy' && <p>This file uses its original compatibility reader. Saving preserves its authored format and modeling semantics.</p>}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 24 }}>
         <div><h2>Named dimensions</h2>{Object.entries(accepted.parameters).map(([name, value]) => <div key={name} style={{ marginBottom: 16 }}>
-          <Label htmlFor={`${id}-${name}`}>{chamferChain && name === 'backY' ? 'backY · edge-selection Y coordinate' : (chamferChain || chamferSplit) && name === 'frontDistance' ? 'frontDistance · front bevel distance' : (chamferChain || chamferSplit) && name === 'backDistance' ? 'backDistance · back bevel distance' : chamferSplit && name === 'splitAt' ? 'splitAt · selected-axis split coordinate' : name} (mm)</Label>
+          <Label htmlFor={`${id}-${name}`}>{chamferChain && name === 'backY' ? 'backY · edge-selection Y coordinate' : (chamferChain || chamferSplit || derivedSplit) && name === 'frontDistance' ? 'frontDistance · front bevel distance' : (chamferChain || chamferSplit || derivedSplit) && name === 'backDistance' ? 'backDistance · back bevel distance' : chamferSplit && name === 'splitAt' ? 'splitAt · selected-axis split coordinate' : derivedSplit && name === 'width' ? 'width · rail X size' : derivedSplit && name === 'offset' ? 'offset · X displacement from center' : name} (mm)</Label>
           <Input id={`${id}-${name}`} disabled={busy} inputMode="decimal"
             value={Object.hasOwn(snapshot?.drafts ?? {}, name) ? snapshot!.drafts[name] : Object.is(value, -0) ? '-0' : String(value)}
             onChange={event => action(s => s.stage(name, event.target.value))}

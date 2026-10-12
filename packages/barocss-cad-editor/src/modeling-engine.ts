@@ -12,7 +12,7 @@ export interface CadEditorModelingSummary {
 }
 export type CadEditorModelingSplitAxis = 'x' | 'y' | 'z';
 /** The split example ID is retained for compatibility; splitAxis defaults to Z. */
-export type CadEditorModelingExample = 'cut-chamfer' | 'intersection' | 'horizontal-split' | 'two-chamfer' | 'chamfer-split';
+export type CadEditorModelingExample = 'cut-chamfer' | 'intersection' | 'horizontal-split' | 'two-chamfer' | 'chamfer-split' | 'derived-split';
 export type ModelingCommand = { id: number } & (
   { kind: 'example'; example?: CadEditorModelingExample; splitAxis?: CadEditorModelingSplitAxis } | { kind: 'open'; text: string; revision?: number }
   | { kind: 'apply'; expectedRevision: number; parameters: Record<string, number> }
@@ -54,6 +54,19 @@ export function createCadEditorChamferSplitModel(axis: 'x' | 'z' = 'x'): CadMode
   const front = blank.chamfer(blank.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one(), frontDistance);
   const finished = front.chamfer(front.edges({ parallelTo: 'x', at: { y: 24, z: 'max' } }).one(), backDistance);
   const parts = finished.split({ axis, at: splitAt });
+  return model.build({ negative: parts.negative, positive: parts.positive });
+}
+
+/** Keep the X split centered on an editable width, with an independent numeric offset. */
+export function createCadEditorDerivedSplitModel(): CadModelSnapshot {
+  const model = cad.model();
+  const width = model.parameter('width', 32), offset = model.parameter('offset', 0);
+  const frontDistance = model.parameter('frontDistance', 1), backDistance = model.parameter('backDistance', 2);
+  const at = model.dimension.add(model.dimension.scale(width, 0.5), offset);
+  const blank = model.sketch.rectangle({ width, height: 24 }).extrude(8);
+  const front = blank.chamfer(blank.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one(), frontDistance);
+  const finished = front.chamfer(front.edges({ parallelTo: 'x', at: { y: 24, z: 'max' } }).one(), backDistance);
+  const parts = finished.split({ axis: 'x', at });
   return model.build({ negative: parts.negative, positive: parts.positive });
 }
 
@@ -122,7 +135,7 @@ export function createModelingEngine() {
   return (command: ModelingCommand): ModelingReply => {
     try {
       if (!command || !Number.isSafeInteger(command.id) || command.id < 1) throw new Error('A current worker request is required.');
-      if (command.kind === 'example' && command.example !== undefined && command.example !== 'cut-chamfer' && command.example !== 'intersection' && command.example !== 'horizontal-split' && command.example !== 'two-chamfer' && command.example !== 'chamfer-split')
+      if (command.kind === 'example' && command.example !== undefined && command.example !== 'cut-chamfer' && command.example !== 'intersection' && command.example !== 'horizontal-split' && command.example !== 'two-chamfer' && command.example !== 'chamfer-split' && command.example !== 'derived-split')
         throw new Error('Choose an available modeling example.');
       if (command.kind === 'example' && command.splitAxis !== undefined
         && (command.example === 'chamfer-split' ? !['x', 'z'].includes(command.splitAxis)
@@ -152,6 +165,7 @@ export function createModelingEngine() {
       }
       if (source !== 'model') throw new Error('Open a saved model first.');
       const snapshot = command.kind === 'example' ? (command.example === 'intersection' ? createCadEditorIntersectionModel()
+        : command.example === 'derived-split' ? createCadEditorDerivedSplitModel()
         : command.example === 'chamfer-split' ? createCadEditorChamferSplitModel(command.splitAxis === 'z' ? 'z' : 'x')
         : command.example === 'horizontal-split' ? (command.splitAxis === 'x' || command.splitAxis === 'y'
           ? createCadEditorCardinalSplitModel(command.splitAxis) : createCadEditorSplitModel()) : command.example === 'two-chamfer' ? createCadEditorChamferChainModel() : createCadEditorSampleModel())
