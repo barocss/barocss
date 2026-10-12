@@ -1,6 +1,7 @@
 import {createNativeDirectionalLightWebGPUViewer, createNativePointLightWebGPUViewer} from '@barocss/viewer';
 import type {ViewerNativeDirectionalLightInput, ViewerNativePointLightInput, ViewerNativeDirectionalLightWebGPU, ViewerNativePointLightWebGPU} from '@barocss/viewer';
-import type {NativeDirectionalLightWebGPUStatus, NativePointLightWebGPUStatus} from '@barocss/gpu';
+import {validateMeshCamera} from '@barocss/gpu';
+import type {MeshCamera, NativeDirectionalLightWebGPUStatus, NativePointLightWebGPUStatus} from '@barocss/gpu';
 import {prepareRenderNativeLightDocument, parseRenderNativeLightDocument,
   serializeRenderNativeLightDocument} from './native-light-document.js';
 import type {RenderNativeLightDocument} from './native-light-document.js';
@@ -19,7 +20,8 @@ export interface RenderNativeLightSavePayload {readonly documentId: string; read
 export interface RenderNativeLightSessionSnapshot {
   readonly accepted: RenderNativeLightDocument; readonly draftText: string;
   readonly dirty: boolean; readonly unsaved: boolean; readonly canUndo: boolean; readonly canRedo: boolean;
-  readonly pending: RenderNativeLightSessionPurpose | null;
+  readonly pending: RenderNativeLightSessionPurpose | 'view' | null;
+  readonly viewportCamera: MeshCamera | null; readonly viewDirty: boolean;
   readonly version: RenderNativeLightSessionVersion; readonly disposed: boolean;
 }
 export interface RenderNativeLightSession {
@@ -32,6 +34,8 @@ export interface RenderNativeLightSession {
   prepareUndo(expected: RenderNativeLightSessionVersion): RenderNativeLightPreparedCandidate | null;
   prepareRedo(expected: RenderNativeLightSessionVersion): RenderNativeLightPreparedCandidate | null;
   commitPrepared(candidate: RenderNativeLightPreparedCandidate): Promise<void>;
+  navigateViewportCamera(camera: MeshCamera, expected: RenderNativeLightSessionVersion): Promise<void>;
+  resetViewportCamera(expected: RenderNativeLightSessionVersion): Promise<void>;
   discardDraft(expected: RenderNativeLightSessionVersion): void;
   getSavePayload(): RenderNativeLightSavePayload;
   markSaved(payload: RenderNativeLightSavePayload): void;
@@ -47,6 +51,13 @@ interface Candidate {
   readonly viewerGeneration: number; used: boolean;
 }
 const encoder = new TextEncoder();
+function sameCamera(a: MeshCamera, b: MeshCamera): boolean {
+  return (['eye', 'target', 'up'] as const).every(key => a[key].every((value, index) => Object.is(value, b[key][index])))
+    && (['fovYDegrees', 'near', 'far'] as const).every(key => Object.is(a[key], b[key]));
+}
+function viewed<T extends ViewerNativeDirectionalLightInput | ViewerNativePointLightInput>(request: T, camera: MeshCamera | null): T {
+  return camera ? {...request, display: {...request.display, camera}} : request;
+}
 function fail(code: 'STALE_CANDIDATE' | 'DISPOSED' | 'DOCUMENT_INPUT' | 'DOCUMENT_BYTES' | 'HISTORY_LIMIT', message: string): never {
   throw new RenderEditorError(code, message);
 }
@@ -61,16 +72,16 @@ function draftBudget(text: unknown): asserts text is string {
 }
 function state(document: RenderNativeLightDocument, text: string, saved: string | null, identity: object,
   entries: readonly Entry[], index: number, draftText: string, generation: number,
-  pending: RenderNativeLightSessionPurpose | null = null, disposed = false): State {
+  pending: RenderNativeLightSessionSnapshot['pending'] = null, disposed = false, viewportCamera: MeshCamera | null = null): State {
   return Object.freeze({text, saved, identity, entries, index, snapshot: Object.freeze({accepted: document, draftText,
     dirty: draftText !== text, unsaved: text !== saved, canUndo: !disposed && index > 0,
     canRedo: !disposed && index < entries.length - 1, pending,
-    version: Object.freeze({revision: document.revision, generation}), disposed})});
+    version: Object.freeze({revision: document.revision, generation}), disposed, viewportCamera, viewDirty: viewportCamera !== null})});
 }
 function revise(current: State, draftText = current.snapshot.draftText, saved = current.saved,
-  pending: RenderNativeLightSessionPurpose | null = null, disposed = false): State {
+  pending: RenderNativeLightSessionSnapshot['pending'] = null, disposed = false, viewportCamera: MeshCamera | null = current.snapshot.viewportCamera): State {
   return state(current.snapshot.accepted, current.text, saved, current.identity, current.entries, current.index,
-    draftText, current.snapshot.version.generation + 1, pending, disposed);
+    draftText, current.snapshot.version.generation + 1, pending, disposed, viewportCamera);
 }
 /** Required-WebGPU authoring. This session exclusively owns its actual Viewer and cannot be externally presented. */
 export async function createRenderNativeLightSession(canvas: HTMLCanvasElement,
@@ -138,11 +149,63 @@ export async function createRenderNativeLightSession(canvas: HTMLCanvasElement,
       if (target !== undefined) entries[index] = entry;
       if (entries.length > RENDER_NATIVE_SCENE_LIMITS.historyEntries || entries.reduce((total, item) => total + item.bytes, 0) > RENDER_NATIVE_SCENE_LIMITS.historyBytes)
         fail('HISTORY_LIMIT', 'Light history exceeds its entry or canonical byte limit.');
-      const nextRequest = createRenderNativeLightRequest(next);
+      const localView = purpose === 'open' || current.snapshot.viewportCamera && sameCamera(current.snapshot.viewportCamera, next.display.camera) ? null : current.snapshot.viewportCamera;
+      const nextRequest = viewed(createRenderNativeLightRequest(next), localView);
       const success = state(next, canonical, purpose === 'open' ? canonical : current.saved, Object.freeze({}), Object.freeze(entries), index,
-        canonical, current.snapshot.version.generation + 2);
+        canonical, current.snapshot.version.generation + 2, null, false, localView);
       const candidate = Object.freeze({document: next, purpose, expected: current.snapshot.version});
       candidates.set(candidate, {request: nextRequest, success, viewerGeneration, used: false}); return candidate;
+    };
+    const present = async (request: ViewerNativeDirectionalLightInput | ViewerNativePointLightInput,
+      owner: {id: string; revision: number}, generation: number, started: number): Promise<void> => {
+      let result: Awaited<ReturnType<typeof viewer.replace>>;
+      try {result = await viewer.replace(request);} catch (cause) {
+        if (epoch === started) indeterminate = true;
+        throw presentation(cause);
+      }
+      if (epoch !== started || current.snapshot.disposed) fail('DISPOSED', 'Session disposed during presentation.');
+      let ok: boolean | undefined, backendError: unknown, acknowledgedGeneration: number | undefined;
+      let acknowledgedId: string | undefined, acknowledgedRevision: number | undefined;
+      try {
+        ok = result?.ok;
+        if (ok === true) {
+          const acknowledged = viewer.accepted;
+          acknowledgedGeneration = acknowledged.generation; acknowledgedId = acknowledged.owner.id;
+          acknowledgedRevision = acknowledged.owner.revision;
+        } else if (ok === false) backendError = (result as {ok: false; error: unknown}).error;
+      } catch (cause) {indeterminate = true; throw presentation(cause);}
+      if (typeof ok !== 'boolean') {indeterminate = true; throw presentation('Malformed Viewer acknowledgement; explicit remount required.');}
+      if (!ok) throw presentation(backendError);
+      // This checks acknowledged metadata, not live status: ACK followed by loss still adopts.
+      if (acknowledgedGeneration !== generation + 1 || acknowledgedId !== owner.id
+        || !Object.is(acknowledgedRevision, owner.revision)) {
+        indeterminate = true; throw presentation('Viewer acknowledgement metadata is inconsistent; explicit remount required.');
+      }
+    };
+    const navigate = async (input: MeshCamera, expected: RenderNativeLightSessionVersion): Promise<void> => {
+      mutable(); const token = {}; lock = token; const started = epoch;
+      let refusal: State | undefined, observers: readonly (() => void)[] = [];
+      try {
+        expectedVersion(expected);
+        const camera = validateMeshCamera(input);
+        if (epoch !== started || current.snapshot.disposed) fail('DISPOSED', 'Session disposed during camera admission.');
+        if (viewer.accepted.generation !== viewerGeneration) fail('STALE_CANDIDATE', 'Viewer generation differs from the local view.');
+        if (sameCamera(camera, current.snapshot.viewportCamera ?? current.snapshot.accepted.display.camera)) return;
+        const viewportCamera = sameCamera(camera, current.snapshot.accepted.display.camera) ? null : camera;
+        const request = viewed(createRenderNativeLightRequest(current.snapshot.accepted), viewportCamera);
+        const generation = viewerGeneration;
+        const pending = revise(current, current.snapshot.draftText, current.saved, 'view');
+        const success = revise(pending, pending.snapshot.draftText, pending.saved, null, false, viewportCamera);
+        refusal = revise(pending); observers = [...listeners];
+        current = pending; notify(observers);
+        if (epoch !== started || lock !== token) fail('DISPOSED', 'Session disposed before camera presentation.');
+        await present(request, request.owner, generation, started);
+        if (epoch !== started || current.snapshot.disposed) fail('DISPOSED', 'Session disposed after camera acknowledgement.');
+        current = success; viewerGeneration = generation + 1;
+      } catch (cause) {
+        if (refusal && epoch === started) current = refusal;
+        throw cause;
+      } finally {if (lock === token) {lock = null; notify(observers);}}
     };
     const session: RenderNativeLightSession = {
       getSnapshot: () => current.snapshot,
@@ -184,29 +247,8 @@ export async function createRenderNativeLightSession(canvas: HTMLCanvasElement,
           refusal = revise(pending); observers = [...listeners];
           current = pending; notify(observers);
           if (epoch !== started || lock !== token) fail('DISPOSED', 'Session disposed before presentation.');
-          let result: Awaited<ReturnType<typeof viewer.replace>>;
-          try {result = await viewer.replace(owned.request);} catch (cause) {
-            if (epoch === started) indeterminate = true;
-            throw presentation(cause);
-          }
-          if (epoch !== started || current.snapshot.disposed) fail('DISPOSED', 'Session disposed during presentation.');
-          let ok: boolean | undefined, backendError: unknown, acknowledgedGeneration: number | undefined;
-          let acknowledgedId: string | undefined, acknowledgedRevision: number | undefined;
-          try {
-            ok = result?.ok;
-            if (ok === true) {
-              const acknowledged = viewer.accepted;
-              acknowledgedGeneration = acknowledged.generation; acknowledgedId = acknowledged.owner.id;
-              acknowledgedRevision = acknowledged.owner.revision;
-            } else if (ok === false) backendError = (result as {ok: false; error: unknown}).error;
-          } catch (cause) {indeterminate = true; throw presentation(cause);}
-          if (typeof ok !== 'boolean') {indeterminate = true; throw presentation('Malformed Viewer acknowledgement; explicit remount required.');}
-          if (!ok) throw presentation(backendError);
-          // This checks acknowledged metadata, not live status: ACK followed by loss still adopts.
-          if (acknowledgedGeneration !== viewerGeneration + 1 || acknowledgedId !== candidate.document.documentId
-            || !Object.is(acknowledgedRevision, candidate.document.revision)) {
-            indeterminate = true; throw presentation('Viewer acknowledgement metadata is inconsistent; explicit remount required.');
-          }
+          await present(owned.request, owned.request.owner, viewerGeneration, started);
+          if (epoch !== started || current.snapshot.disposed) fail('DISPOSED', 'Session disposed after acknowledgement.');
           current = owned.success; viewerGeneration = owned.viewerGeneration + 1;
         } catch (cause) {
           if (refusal && epoch === started) current = refusal;
@@ -215,6 +257,8 @@ export async function createRenderNativeLightSession(canvas: HTMLCanvasElement,
           if (lock === token) {lock = null; notify(observers);}
         }
       },
+      navigateViewportCamera: navigate,
+      resetViewportCamera: expected => navigate(current.snapshot.accepted.display.camera, expected),
       discardDraft(expected) {qualify(expected, () => {if (current.snapshot.draftText !== current.text) current = revise(current, current.text);}); notify([...listeners]);},
       getSavePayload() {
         if (current.snapshot.disposed) fail('DISPOSED', 'Light session is disposed.');

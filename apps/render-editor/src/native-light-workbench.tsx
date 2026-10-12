@@ -5,6 +5,7 @@ import {normalizeRenderEditorError, RenderEditorError, serializeRenderNativeLigh
 import type {RenderNativeLightDocument, RenderNativeLightSession,
   RenderNativeLightSessionSnapshot} from '@barocss/render-editor';
 import {createNativeLightController} from './native-light-controller';
+import {createNativeLightNavigation} from './native-light-navigation';
 import {createNativeSceneBase, createNativeSceneSeed} from './native-scene-seed';
 import {readLightFields, applyLightFields, addLightFields,
   lightFieldsDirty, lightKind} from './native-light-fields';
@@ -38,6 +39,9 @@ const sectionStyle = {padding: 16, borderBottom: '1px solid var(--border)'};
 
 /** A distinct required-WebGPU authoring route; legacy material presentation is unchanged. */
 export function NativeLightWorkbench({initialDocument}: {initialDocument?: RenderNativeLightDocument}) {
+  const navigation = useRef<ReturnType<typeof createNativeLightNavigation> | null>(null), navigationBusy = useRef(false);
+  const [navigating, setNavigating] = useState(false), [navigationMode, setNavigationMode] = useState<'orbit' | 'pan'>('orbit');
+  const modeRef = useRef(navigationMode); modeRef.current = navigationMode;
   const [kind, setKind] = useState<LightKind | undefined>(initialDocument ? lightKind(initialDocument) : undefined);
   const canvas = useRef<HTMLCanvasElement>(null), fileInput = useRef<HTMLInputElement>(null);
   const sessionRef = useRef<RenderNativeLightSession | null>(null);
@@ -52,6 +56,8 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   const [status, setStatus] = useState('starting'), [notice, setNotice] = useState('Opening required WebGPU viewport…');
   const [error, setError] = useState<string | null>(null), [help, setHelp] = useState(false);
   const formRef = useRef(fields); formRef.current = fields;
+  const helpRef = useRef(help); helpRef.current = help;
+  const actionBusy = busy || navigating;
   const dirty = !!snapshot && (snapshot.dirty || lightFieldsDirty(fields, snapshot.accepted));
   const report = (cause: unknown, prefix = '') => {const value = normalizeRenderEditorError(cause); setError(prefix + value.code + ': ' + value.message);};
   const refresh = (session: RenderNativeLightSession, replaceFields = false) => {
@@ -67,7 +73,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
     mounted.current = true; const started = ++epoch.current;
     const controller = createNativeLightController(), abort = new AbortController();
     let unsubscribe: (() => void) | null = null;
-    sessionRef.current = null; setSnapshot(null); setStatus('starting'); setError(null);
+    sessionRef.current = null; setSnapshot(null); setStatus('starting'); setError(null); setNavigating(false);
     const live = () => mounted.current && epoch.current === started;
     void (async () => {
       try {
@@ -76,14 +82,21 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
         const session = await controller.mount(canvas.current, document, {width: 960, height: 600});
         if (!live() || !session) return;
         sessionRef.current = session; refresh(session, true);
+        navigation.current = createNativeLightNavigation(canvas.current, session, {
+          mode: () => modeRef.current,
+          canNavigate: () => live() && sessionRef.current === session && !busyRef.current && !openTicket.current && !helpRef.current,
+          onBusy: value => {navigationBusy.current = value; if (live()) setNavigating(value);},
+          onError: cause => {if (live()) {refresh(session); report(cause);}},
+        });
         unsubscribe = session.subscribe(() => {if (live()) refresh(session);});
         setNotice('Edit bodies, materials, lights or the scene camera, then Apply the complete scene.');
       } catch (cause) {if (live()) {setStatus('unavailable'); report(cause);}}
     })();
     // The existing session exposes live status through a getter, not a loss subscription.
-    const timer = window.setInterval(() => {if (live() && sessionRef.current) setStatus(sessionRef.current.getStatus().state);}, 300);
+    const timer = window.setInterval(() => {if (live() && sessionRef.current) {const next = sessionRef.current.getStatus().state; setStatus(next); if (next !== 'ready') navigation.current?.cancel();}}, 300);
     return () => {
       mounted.current = false; epoch.current++; operationEpoch.current++; openTicket.current = null; busyRef.current = false; abort.abort(); window.clearInterval(timer);
+      navigation.current?.dispose(); navigation.current = null; navigationBusy.current = false;
       sessionRef.current = null;
       try {controller.dispose();} finally {unsubscribe?.();}
     };
@@ -106,7 +119,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   }, []);
   const run = async (action: (session: RenderNativeLightSession, stillCurrent: () => boolean) => Promise<boolean>, successNotice = 'Scene accepted.', failurePrefix = '') => {
     const session = sessionRef.current;
-    if (!session || busyRef.current) return;
+    if (!session || busyRef.current || navigationBusy.current) return;
     busyRef.current = true; setBusy(true); setError(null);
     const started = ++operationEpoch.current, mountEpoch = epoch.current;
     // Operation fencing is separate from the mount lifetime; the session still belongs to this canvas.
@@ -135,16 +148,24 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
     return true;
   }, '');
   const discard = () => {
-    const session = sessionRef.current; if (!session || busyRef.current) return;
+    const session = sessionRef.current; if (!session || busyRef.current || navigationBusy.current) return;
     try {session.discardDraft(session.getSnapshot().version); refresh(session, true); setError(null); setNotice('Draft discarded.');} catch (cause) {report(cause);}
   };
+  const resetView = () => void run(async session => {await session.resetViewportCamera(session.getSnapshot().version); return false;}, '');
+  const useView = () => void run(async session => {
+    const current = session.getSnapshot();
+    if (current.dirty || lightFieldsDirty(formRef.current, current.accepted) || !current.viewportCamera) return false;
+    const next = {...current.accepted, display: {...current.accepted.display, camera: current.viewportCamera}};
+    session.setDraftText(serializeRenderNativeLightDocument(next), current.version);
+    await session.commitPrepared(session.prepareDraft(session.getSnapshot().version)); return true;
+  }, 'Current view accepted as the scene camera.');
   const history = (direction: 'undo' | 'redo') => void run(async session => {
     const candidate = direction === 'undo' ? session.prepareUndo(session.getSnapshot().version) : session.prepareRedo(session.getSnapshot().version);
     if (!candidate) return false; await session.commitPrepared(candidate); return true;
   });
   const open = (kind: 'current' | 'legacy-v0' = 'current') => {
     const session = sessionRef.current;
-    if (session && !busyRef.current && confirmReplace(kind === 'current' ? 'Open' : 'Import legacy Native scene')) {
+    if (session && !busyRef.current && !navigationBusy.current && confirmReplace(kind === 'current' ? 'Open' : 'Import legacy Native scene')) {
       openTicket.current = {session, snapshot: session.getSnapshot(), fields: formRef.current, kind};
       if (fileInput.current) fileInput.current.value = ''; fileInput.current?.click();
     }
@@ -173,7 +194,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
     ticket.kind === 'legacy-v0' ? 'Legacy Native scene import refused: ' : '');
   };
   const save = () => {
-    const session = sessionRef.current; if (!session || busyRef.current) return;
+    const session = sessionRef.current; if (!session || busyRef.current || navigationBusy.current) return;
     let requested = false;
     try {
       const payload = session.getSavePayload(), url = URL.createObjectURL(new Blob([payload.text], {type: 'application/json;charset=utf-8'}));
@@ -186,19 +207,19 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
     }
   };
   const remount = () => {
-    if (busyRef.current || !confirmReplace('Remount')) return;
+    if (busyRef.current || navigationBusy.current || !confirmReplace('Remount')) return;
     const retained = sessionRef.current?.getSnapshot().accepted ?? replacement.current;
     if (!window.confirm(retained ? 'Restart from retained authorship and clear Undo/Redo history?' : 'Retry starting this workspace?')) return;
     replacement.current = retained;
     setBusy(false); setNotice('Remounting required WebGPU viewport…'); setAttempt(value => value + 1);
   };
   const newWorkspace = (nextKind: LightKind) => {
-    if (busyRef.current || !confirmReplace('New ' + nextKind + ' workspace')) return;
+    if (busyRef.current || navigationBusy.current || !confirmReplace('New ' + nextKind + ' workspace')) return;
     openTicket.current = null; replacement.current = undefined;
     setKind(nextKind); setAttempt(value => value + 1); setBusy(false);
     setNotice('Starting a new ' + nextKind + ' workspace…');
   };
-  const edit = (next: LightForm) => {if (!busyRef.current) {formRef.current = next; setFields(next); setError(null);}};
+  const edit = (next: LightForm) => {if (!busyRef.current && !navigationBusy.current) {formRef.current = next; setFields(next); setError(null);}};
   const light = fields.lights.find(item => item.nodeId === selected);
   const editLight = (patch: Partial<LightFields>) => {if (light) edit({...fields, lights: fields.lights.map(item => item.nodeId === light.nodeId ? {...item, ...patch} : item)});};
   const editCamera = (patch: Partial<CameraFields>) => edit({...fields, camera: {...fields.camera, ...patch}});
@@ -214,7 +235,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   };
   const add = () => {try {const next = addLightFields(fields); edit(next); setSelected(next.lights.at(-1)!.nodeId);} catch (cause) {report(cause);}};
   const remove = () => {if (light) {const next = {...fields, lights: fields.lights.filter(item => item !== light)}; edit(next); setSelected(next.lights[0]?.nodeId ?? null);}};
-  const disabled = busy || !snapshot || status !== 'ready';
+  const disabled = actionBusy || !snapshot || status !== 'ready';
   const numberInput = (label: string, value: string, change: (text: string) => void) => <label style={{display: 'grid', gap: 5}}>{label}<input aria-label={label} inputMode="decimal" value={value} disabled={disabled} style={fieldStyle} onChange={event => change(event.target.value)}/></label>;
   if (!kind) return <main className="app-shell" data-testid="light-workbench-choice"><section style={sectionStyle}>
     <h1>Light workbench</h1><p>Choose the kind for this workspace. Directional and point lights use separate renderers; mixed lighting is not supported.</p>
@@ -224,25 +245,25 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   </section></main>;
   return <main className="app-shell" data-testid="light-workbench">
     <header className="app-topbar"><div className="app-brand"><Lightbulb size={18}/><strong>BaroCSS</strong><small>Light workbench · {kind}</small></div><div className="app-topbar-spacer"/>
-      <Button variant="ghost" size="sm" disabled={busy} onClick={() => {if (confirmReplace('Back to materials')) window.location.assign('./material.html');}}>Back to materials</Button>
-      <Button variant="ghost" size="sm" disabled={busy} onClick={() => newWorkspace('directional')}>New directional</Button>
-      <Button variant="ghost" size="sm" disabled={busy} onClick={() => newWorkspace('point')}>New point</Button>
-      <Button variant="ghost" size="sm" onClick={() => setHelp(value => !value)}>Help</Button>
+      <Button variant="ghost" size="sm" disabled={actionBusy} onClick={() => {if (confirmReplace('Back to materials')) window.location.assign('./material.html');}}>Back to materials</Button>
+      <Button variant="ghost" size="sm" disabled={actionBusy} onClick={() => newWorkspace('directional')}>New directional</Button>
+      <Button variant="ghost" size="sm" disabled={actionBusy} onClick={() => newWorkspace('point')}>New point</Button>
+      <Button variant="ghost" size="sm" disabled={actionBusy} onClick={() => {navigation.current?.cancel(); setHelp(value => !value);}}>Help</Button>
       <Button variant="ghost" size="sm" disabled={disabled} title="Explicitly migrate a Native scene into a directional workspace; point workspaces refuse this conversion" onClick={() => open('legacy-v0')}>Import legacy Native scene</Button>
       <Button variant="outline" size="sm" disabled={disabled} onClick={() => open()}><FolderOpen/>Open</Button>
-      <Button size="sm" disabled={busy || !snapshot} onClick={save}><Save/>Save accepted</Button>
+      <Button size="sm" disabled={actionBusy || !snapshot} onClick={save}><Save/>Save accepted</Button>
     </header>
     <div className="app-document-bar"><strong>{snapshot?.accepted.title ?? 'Native Surface light study'}</strong><span className="app-status-spacer"/>
       <span>{dirty ? 'Unapplied draft' : snapshot?.unsaved ? 'Unsaved scene' : snapshot ? 'File loaded / download requested' : 'Starting'}</span>
       <Button size="icon-xs" variant="ghost" aria-label="Undo" disabled={disabled || dirty || !snapshot?.canUndo} onClick={() => history('undo')}><Undo2/></Button>
       <Button size="icon-xs" variant="ghost" aria-label="Redo" disabled={disabled || dirty || !snapshot?.canRedo} onClick={() => history('redo')}><Redo2/></Button>
     </div>
-    {help && <section style={sectionStyle} aria-label="Light help">Choose a directional or point workspace. Each admits zero to four lights plus ambient; mixed lighting and cross-kind Open are refused without replacing your scene. Directions retain raw nonzero XYZ values. Points use final-world scene coordinates and range in scene units, with the GPU's artistic finite-range lighting. Color is linear RGB; ambient/color/intensity range from zero to one. Scene camera edits are authored data: eye, target and clipping planes use scene units, up is dimensionless and vertical FOV is in degrees. Body origin positions use millimetres and scales are dimensionless. Body selection keeps each object's corrective fields; rotation, visibility and original CAD source are retained. Body, camera, light and material fields Apply together in one complete transaction and refused fields remain available. Material controls edit only the selected body’s existing embedded binding, even when another binding repeats its material ID. Override supplies a scalar value; clearing Override uses the declared shader default without changing shader source. This route has no local orbit/pan/zoom controls. Open accepts current light scenes of the same kind and migrates supported directional legacy files. Import legacy Native scene explicitly converts V0 to directional authorship; a point workspace refuses it. Save writes the accepted current format. New workspace explicitly ends the old lifetime; remount retains accepted data but clears history. Actual device and physical-file acceptance remain separate.</section>}
+    {help && <section style={sectionStyle} aria-label="Light help">Choose a directional or point workspace. Each admits zero to four lights plus ambient; mixed lighting and cross-kind Open are refused without replacing your scene. Directions retain raw nonzero XYZ values. Points use final-world scene coordinates and range in scene units, with the GPU's artistic finite-range lighting. Color is linear RGB; ambient/color/intensity range from zero to one. Scene camera edits are authored data: eye, target and clipping planes use scene units, up is dimensionless and vertical FOV is in degrees. Body origin positions use millimetres and scales are dimensionless. Body selection keeps each object's corrective fields; rotation, visibility and original CAD source are retained. Body, camera, light and material fields Apply together in one complete transaction and refused fields remain available. Material controls edit only the selected body’s existing embedded binding, even when another binding repeats its material ID. Override supplies a scalar value; clearing Override uses the declared shader default without changing shader source. Orbit or Pan drags, Shift-drag and wheel zoom change only the local view. Scene camera resets that view; Set scene camera explicitly authors it once only when all fields are clean. Escape or lost capture stops queued navigation without undoing acknowledged view updates. Save keeps the accepted authored camera. Open accepts current light scenes of the same kind and migrates supported directional legacy files. Import legacy Native scene explicitly converts V0 to directional authorship; a point workspace refuses it. Save writes the accepted current format. New workspace explicitly ends the old lifetime; remount retains accepted data but clears history. Actual device and physical-file acceptance remain separate.</section>}
     <div className="app-body" style={{minHeight: 0}}>
       <aside style={{width: 210, flexShrink: 0, borderRight: '1px solid var(--border)', overflow: 'auto'}} aria-label="Light outliner">
         <div style={sectionStyle}><strong>Scene lights</strong><p style={{color: 'var(--muted-foreground)'}}>{fields.lights.length} / 4 {kind}</p>
           <Button size="sm" variant="outline" disabled={disabled || fields.lights.length >= 4} onClick={add}><Plus/>Add {kind}</Button></div>
-        {fields.lights.map(item => <button key={item.nodeId} aria-pressed={selected === item.nodeId} disabled={busy} onClick={() => setSelected(item.nodeId)} style={{display: 'block', width: '100%', padding: 14, textAlign: 'left', border: 0, color: 'inherit', background: selected === item.nodeId ? '#243735' : 'transparent'}}>{item.label || item.nodeId}<small style={{display: 'block', opacity: .65}}>{item.nodeId}{item.enabled ? '' : ' · disabled'}</small></button>)}
+        {fields.lights.map(item => <button key={item.nodeId} aria-pressed={selected === item.nodeId} disabled={actionBusy} onClick={() => setSelected(item.nodeId)} style={{display: 'block', width: '100%', padding: 14, textAlign: 'left', border: 0, color: 'inherit', background: selected === item.nodeId ? '#243735' : 'transparent'}}>{item.label || item.nodeId}<small style={{display: 'block', opacity: .65}}>{item.nodeId}{item.enabled ? '' : ' · disabled'}</small></button>)}
         <section style={sectionStyle} aria-label="Scene bodies"><strong>Scene bodies</strong><p>Choose an object to edit its display transform and existing material.</p>
           {fields.bodies.map(item => <button key={item.bodyId} aria-label={'Edit body ' + item.bodyId} aria-pressed={selectedBody === item.bodyId} disabled={disabled}
             onClick={() => setSelectedBody(item.bodyId)} style={{display: 'block', width: '100%', padding: '10px 4px', textAlign: 'left', border: 0, color: 'inherit', background: selectedBody === item.bodyId ? '#243735' : 'transparent'}}>
@@ -252,8 +273,17 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
         </section>
       </aside>
       <section style={{flex: 1, minWidth: 0, padding: 20, display: 'flex', flexDirection: 'column', justifyContent: 'center', background: '#0e151b'}} aria-label="Native Surface viewport">
-        <canvas key={attempt} ref={canvas} width={960} height={600} style={{width: '100%', aspectRatio: '8 / 5', objectFit: 'contain', maxHeight: '100%'}} aria-label="Required WebGPU light scene"/>
-        {status !== 'ready' && <div role="status" style={{padding: 16, textAlign: 'center'}}>{status === 'starting' ? 'Starting WebGPU…' : 'Presentation unavailable (' + status + '). ' + (snapshot ? 'Accepted data is retained.' : replacement.current ? 'Authored data remains available for retry.' : 'No scene has been accepted in this workspace.')}{status !== 'starting' && <p><Button variant="outline" disabled={busy} onClick={remount}>{snapshot ? 'Remount accepted scene' : replacement.current ? 'Retry authored scene' : 'Retry workspace'}</Button></p>}</div>}
+        <div role="toolbar" aria-label="Viewport navigation" style={{display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8}}>
+          <Button size="sm" variant="outline" aria-pressed={navigationMode === 'orbit'} disabled={disabled} onClick={() => setNavigationMode('orbit')}>Orbit</Button>
+          <Button size="sm" variant="outline" aria-pressed={navigationMode === 'pan'} disabled={disabled} onClick={() => setNavigationMode('pan')}>Pan</Button>
+          <Button size="sm" variant="outline" aria-label="Zoom in" disabled={disabled || help} onClick={() => navigation.current?.interact({kind: 'zoom', factor: 1.15})}>+</Button>
+          <Button size="sm" variant="outline" aria-label="Zoom out" disabled={disabled || help} onClick={() => navigation.current?.interact({kind: 'zoom', factor: 1 / 1.15})}>−</Button>
+          <Button size="sm" variant="outline" disabled={disabled || !snapshot?.viewDirty} onClick={resetView}>Scene camera</Button>
+          <Button size="sm" variant="outline" disabled={disabled || dirty || !snapshot?.viewDirty} onClick={useView}>Set scene camera</Button>
+          <span role="status" aria-label="Viewport camera status">{navigating ? 'Moving view…' : snapshot?.viewDirty ? 'User view' : 'Scene view'}</span>
+        </div>
+        <canvas key={attempt} ref={canvas} tabIndex={0} width={960} height={600} style={{width: '100%', aspectRatio: '8 / 5', objectFit: 'contain', maxHeight: '100%', touchAction: 'none'}} aria-label="Required WebGPU light scene"/>
+        {status !== 'ready' && <div role="status" style={{padding: 16, textAlign: 'center'}}>{status === 'starting' ? 'Starting WebGPU…' : 'Presentation unavailable (' + status + '). ' + (snapshot ? 'Accepted data is retained.' : replacement.current ? 'Authored data remains available for retry.' : 'No scene has been accepted in this workspace.')}{status !== 'starting' && <p><Button variant="outline" disabled={actionBusy} onClick={remount}>{snapshot ? 'Remount accepted scene' : replacement.current ? 'Retry authored scene' : 'Retry workspace'}</Button></p>}</div>}
       </section>
       <aside style={{width: 285, flexShrink: 0, borderLeft: '1px solid var(--border)', overflow: 'auto'}} aria-label="Light inspector">
         {body && <section style={{...sectionStyle, display: 'grid', gap: 14}} aria-label="Body transform">

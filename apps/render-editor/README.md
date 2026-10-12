@@ -512,3 +512,37 @@ The runner reports source/build input hashes and checks the genuine reference
 source hash; set `BAROCSS_GIZMO_METAFILE` to retain its esbuild input graph. This is
 software-event evidence only. The owner's actual failing scene, browser/device,
 DPR, physical drag behavior and Save/Open loop remain unresolved in #1573.
+
+## Light workbench local navigation (#1646)
+
+In either light workspace, drag the viewport in **Orbit** or **Pan** mode. Hold
+Shift while dragging to pan; scroll the wheel or use **Zoom in/out**. **User view**
+identifies a local camera. Navigation leaves the authored camera, all corrective
+field strings, accepted Save bytes and Undo/Redo history unchanged. Apply and
+Undo/Redo retain an active local view. Successful Open and a new workspace start
+from their scene camera; failed Open retains the current view.
+
+**Scene camera** explicitly resets the view without consuming drafts. **Set scene
+camera** is enabled only when all authoring fields are clean and navigation has
+finished. It accepts the current view through one ordinary whole-scene Apply,
+advancing the scene/catalog revision and history once. It does not silently Apply
+pending body, material, light or camera edits. Save always writes accepted scene
+authorship, so a local view alone is neither saved nor marked as unsaved content.
+
+The input transport holds at most one presentation in flight and accumulates new
+inputs against its latest desired camera. Other authoring/file actions wait while
+a drag or queued/pending view update is active. A file chooser and Help fence new
+gestures. Escape, pointer cancellation/capture loss, blur or a changed viewport
+rectangle stop the gesture and drop queued input. Already acknowledged and
+in-flight updates are not rolled back; use **Scene camera** after completion to
+reset them. Refusal unlocks controls and preserves the last acknowledged view.
+Loss and disposed/replaced workspaces fence queued or late work.
+
+`node apps/render-editor/native-light-workbench-flow.mjs` includes both-kind
+controlled DOM navigation checks, capped at 12 new view presentations per kind.
+The session tests cover source and emitted package entries separately. Real
+camera math, codecs, sessions and appearance admission run with controlled
+Viewer/RAF/pointer-capture boundaries. These checks establish software behavior;
+physical browser/GPU/device behavior and the #1573 owner report remain separate.
+Each current Viewer replacement rebuilds a complete render candidate, so this
+initial control makes no smooth-animation or 60 fps performance claim.

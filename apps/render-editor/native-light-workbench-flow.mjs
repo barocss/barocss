@@ -18,7 +18,9 @@ dom.window.HTMLInputElement.prototype.click = function () {if (this.type === 'fi
 const downloads = []; let latestBlob;
 URL.createObjectURL = blob => {latestBlob = blob; return 'blob:controlled-test';}; URL.revokeObjectURL = () => {};
 dom.window.HTMLAnchorElement.prototype.click = function () {downloads.push({name: this.download, blob: latestBlob});};
-const controls = []; let startupGate = null, startupFailure = null;
+const controls = []; let startupGate = null, startupFailure = null, navigationDom = null, mounted = null;
+let failed = false, firstError;
+const cleanupErrors = [];
 globalThis.__lightWorkbenchViewer = async (_canvas, request) => {
   if (startupFailure) throw startupFailure;
   const gate = startupGate;
@@ -41,7 +43,7 @@ export * from './apps/render-editor/src/native-light-fields';
 export * from './apps/render-editor/src/native-light-workbench-flow';
 export {createNativeSceneBase,createNativeSceneSeed} from './apps/render-editor/src/native-scene-seed';
 export {prepareViewerNativeSceneAppearance} from '@barocss/viewer';
-export {createRenderNativeLightRequest,prepareRenderNativeLightDocument,parseRenderNativeLightDocument,serializeRenderNativeLightDocument,serializeRenderNativeSceneDocument,serializeRenderNativeDirectionalLightDocument,parseRenderNativeDirectionalLightDocument} from '@barocss/render-editor';`,resolveDir: workspace},
+export {deriveRenderCameraInteraction,createRenderNativeLightRequest,prepareRenderNativeLightDocument,parseRenderNativeLightDocument,serializeRenderNativeLightDocument,serializeRenderNativeSceneDocument,serializeRenderNativeDirectionalLightDocument,parseRenderNativeDirectionalLightDocument} from '@barocss/render-editor';`,resolveDir: workspace},
     bundle: true, platform: 'node', format: 'esm', outfile: join(output, 'flow.mjs'),
     external: ['react', 'react-dom', 'react-dom/*', 'lucide-react', 'radix-ui', 'class-variance-authority', 'clsx', 'tailwind-merge'],
     plugins: [{name: 'controlled-viewer-only', setup(builder) {
@@ -71,7 +73,7 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
   assert.equal(ambientOnly.lights.lights.length, 0); assert(Object.is(ambientOnly.lights.ambientStrength, -0));
   const disabledLight = structuredClone(form); disabledLight.lights[1].enabled = false;
   assert.equal(api.applyLightFields(seed, disabledLight).lights.lights[1].enabled, false);
-  const container = document.getElementById('root'); let mounted = await api.mountLightWorkbenchFlow(container, seed);
+  const container = document.getElementById('root'); mounted = await api.mountLightWorkbenchFlow(container, seed);
   const text = () => container.textContent;
   const button = name => [...container.querySelectorAll('button')].find(node => node.textContent.trim() === name || node.getAttribute('aria-label') === name);
   const click = async name => {const target = button(name); assert(target, 'Missing button ' + name); assert(!target.disabled, 'Disabled button ' + name); await act(async () => target.click());};
@@ -959,7 +961,214 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
     }
   } finally {confirmation = true; globalThis.fetch = originalFetch;}
 
+  // #1646: bounded actual DOM input, public camera math, genuine session/request
+  // and appearance admission. Historical authoring flows above keep their own counts.
+  navigationDom = api.installLightNavigationFlowDom();
+  const navigationFlow = [];
+  const cameraStatus = () => container.querySelector('[aria-label="Viewport camera status"]').textContent;
+  const flushNavigation = async () => {await act(async () => {navigationDom.flushFrames();});};
+  const pointer = async (canvas, type, x, y, shift = false) => {await act(async () => {navigationDom.pointer(canvas, type, x, y, shift);});};
+  const wheel = async (canvas, delta, mode = 0) => {await act(async () => {navigationDom.wheel(canvas, delta, mode);});};
+  const interaction = (camera, kind, deltaX, deltaY) => api.deriveRenderCameraInteraction(camera, {kind, deltaX, deltaY, width: 900, height: 600});
+  const zoomView = (camera, factor) => api.deriveRenderCameraInteraction(camera, {kind: 'zoom', factor});
+  const assertViewRequest = (request, document, camera) => {
+    const expected = api.createRenderNativeLightRequest(document);
+    assert.deepEqual(request, {...expected, display: {...expected.display, camera}});
+    assert.equal(Object.isFrozen(request.display.camera), true);
+  };
+  for (const kind of ['directional', 'point']) {
+    const raw = structuredClone(api.createLightStudy(sourceText, kind));
+    Object.assign(raw.surfaceMaterials[0].material, {
+      shaderSource: '@shader #navigation_material { @uniform amount: float(0, 1, 0); @fragment { color: mix(#ff0000, #0000ff, amount); } }',
+      uniforms: {amount: .2},
+    });
+    const viewSeed = api.prepareRenderNativeLightDocument(raw).document;
+    const viewSeedText = api.serializeRenderNativeLightDocument(viewSeed), counts = {view: 0, authored: 0};
+    const track = control => {
+      control.prepare = prepareBodyAppearance;
+      const replace = control.viewer.replace;
+      control.viewer.replace = request => {
+        const owner = control.viewer.accepted.owner;
+        if (request.owner.id === owner.id && Object.is(request.owner.revision, owner.revision)) {
+          counts.view++; assert(counts.view <= 12, kind + ': focused navigation replacement cap');
+        } else counts.authored++;
+        return replace(request);
+      };
+      return control;
+    };
+    mounted = await api.mountLightWorkbenchFlow(container, viewSeed);
+    let viewControl = track(controls.at(-1)), canvas = container.querySelector('canvas');
+    assert.equal(cameraStatus(), 'Scene view'); assert(button('Scene camera').disabled); assert(button('Set scene camera').disabled);
+    assert.equal(await saveText(), viewSeedText); assert.equal(unloadBlocked(), false);
+    await selectBody(viewSeed.surfaceMaterials[0].target.bodyId);
+    const corrective = [['Camera eye X', ''], ['Intensity', '1e'], ['Body position X (mm)', '-'], ['Uniform amount', 'NaN']];
+    for (const [label, value] of corrective) await edit(label, value);
+    const assertCorrective = () => {for (const [label, value] of corrective) assert.equal(inputValue(label), value, label);};
+    assert(button('Set scene camera').disabled); assert.equal(unloadBlocked(), true);
+
+    let releaseFirst; viewControl.wait = new Promise(resolve => {releaseFirst = resolve;});
+    await pointer(canvas, 'pointerdown', 140, 125); assert.equal(document.activeElement, canvas);
+    assert.equal(navigationDom.captures(), 1); assert(button('Open').disabled, 'An active drag fences file replacement before presentation');
+    await pointer(canvas, 'pointermove', 160, 135); assert.equal(navigationDom.pendingFrames(), 1);
+    const firstView = interaction(viewSeed.display.camera, 'orbit', 20, 10);
+    await flushNavigation(); // View 1: first orbit while ACK remains pending.
+    assert.equal(counts.view, 1); assertViewRequest(viewControl.calls.at(-1), viewSeed, firstView);
+    for (const action of ['Apply', 'Discard', 'Undo', 'Redo', 'Open', 'Save accepted', 'New directional', 'New point', 'Set scene camera', 'Scene camera'])
+      assert(button(action).disabled, 'Pending view fences ' + action);
+    const firstCallCount = viewControl.calls.length;
+    await pointer(canvas, 'pointermove', 170, 140);
+    await pointer(canvas, 'pointermove', 176, 137, true);
+    await wheel(canvas, -24, 1);
+    await pointer(canvas, 'pointerup', 176, 137, true);
+    await flushNavigation(); assert.equal(viewControl.calls.length, firstCallCount, 'One in-flight request holds all newer motion');
+    assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+    const accumulated = zoomView(interaction(interaction(firstView, 'orbit', 10, 5), 'pan', 6, -3), Math.exp(24 * 16 * .001));
+    await act(async () => {releaseFirst(); await viewControl.wait;}); viewControl.wait = null;
+    assert.equal(navigationDom.pendingFrames(), 1, 'Only the latest accumulated target is queued');
+    await flushNavigation(); // View 2: coalesced orbit + Shift-pan + line-wheel zoom.
+    assert.equal(counts.view, 2); assert.equal(viewControl.calls.length, firstCallCount + 1);
+    assertViewRequest(viewControl.calls.at(-1), viewSeed, accumulated);
+    assert.equal(cameraStatus(), 'User view'); assertCorrective(); assert.equal(await saveText(), viewSeedText);
+    assert(button('Set scene camera').disabled); assert(!button('Apply').disabled); assert(!button('Discard').disabled);
+    assert.equal(navigationDom.pendingFrames(), 0);
+
+    // Cancellation before RAF costs no presentations and removes capture/queued work.
+    for (const cancel of ['pointercancel', 'lostpointercapture', 'canvas blur', 'window blur', 'Escape']) {
+      const calls = viewControl.calls.length;
+      await pointer(canvas, 'pointerdown', 140, 125); await pointer(canvas, 'pointermove', 143, 127);
+      assert.equal(navigationDom.pendingFrames(), 1);
+      await act(async () => {
+        if (cancel === 'canvas blur') canvas.dispatchEvent(new dom.window.Event('blur'));
+        else if (cancel === 'window blur') dom.window.dispatchEvent(new dom.window.Event('blur'));
+        else if (cancel === 'Escape') canvas.dispatchEvent(new dom.window.KeyboardEvent('keydown', {key: 'Escape', bubbles: true, cancelable: true}));
+        else navigationDom.pointer(canvas, cancel, 143, 127);
+      });
+      await flushNavigation(); assert.equal(viewControl.calls.length, calls, cancel);
+      assert.equal(navigationDom.captures(), 0); assert.equal(navigationDom.pendingFrames(), 0);
+      assert(!button('Open').disabled); assertCorrective();
+    }
+    for (const releaseBeforeResize of [false, true]) {
+      const calls = viewControl.calls.length;
+      await pointer(canvas, 'pointerdown', 140, 125); await pointer(canvas, 'pointermove', 146, 130);
+      if (releaseBeforeResize) await pointer(canvas, 'pointerup', 146, 130);
+      navigationDom.setRect({left: 50, top: 30, width: 800, height: 500});
+      await flushNavigation(); assert.equal(viewControl.calls.length, calls, 'Changed CSS rectangle refuses queued input before dispatch');
+      assert.equal(navigationDom.captures(), 0); assert.equal(navigationDom.pendingFrames(), 0);
+      assert(!button('Open').disabled); assertCorrective();
+      navigationDom.setRect({left: 40, top: 25, width: 900, height: 600});
+    }
+    await click('Pan'); assert.equal(button('Pan').getAttribute('aria-pressed'), 'true');
+    await pointer(canvas, 'pointerdown', 150, 135); await pointer(canvas, 'pointermove', 145, 139); await pointer(canvas, 'pointerup', 145, 139);
+    await flushNavigation(); // View 3: selected Pan mode.
+    let local = interaction(accumulated, 'pan', -5, 4);
+    assertViewRequest(viewControl.calls.at(-1), viewSeed, local); assert.equal(counts.view, 3);
+    await click('Zoom in'); await flushNavigation(); // View 4: accessible zoom button.
+    local = zoomView(local, 1.15); assertViewRequest(viewControl.calls.at(-1), viewSeed, local);
+    assertCorrective(); assert.equal(await saveText(), viewSeedText); assert(button('Set scene camera').disabled);
+    await click('Open'); const chooserCalls = viewControl.calls.length;
+    await pointer(canvas, 'pointerdown', 140, 125); await pointer(canvas, 'pointermove', 155, 132); await wheel(canvas, -30);
+    await flushNavigation(); assert.equal(viewControl.calls.length, chooserCalls); assert.equal(navigationDom.captures(), 0);
+    assertCorrective();
+    await act(async () => container.querySelector('input[type="file"]').dispatchEvent(new dom.window.Event('cancel', {bubbles: true})));
+    await click('Help'); await wheel(canvas, -30); await flushNavigation(); assert.equal(viewControl.calls.length, chooserCalls);
+    await click('Help'); assertCorrective();
+    await click('Scene camera'); // View 5: separate acknowledged reset, even with corrective strings.
+    assert.equal(cameraStatus(), 'Scene view'); assert(button('Scene camera').disabled); assertCorrective();
+    assertViewRequest(viewControl.calls.at(-1), viewSeed, viewSeed.display.camera); assert.equal(await saveText(), viewSeedText);
+    await click('Discard'); assert.equal(unloadBlocked(), false); assert(button('Undo').disabled); assert(button('Redo').disabled);
+    await click('Zoom out'); await flushNavigation(); // View 6: second accessible zoom direction.
+    local = zoomView(viewSeed.display.camera, 1 / 1.15);
+    assertViewRequest(viewControl.calls.at(-1), viewSeed, local); assert.equal(cameraStatus(), 'User view');
+    assert.equal(unloadBlocked(), false, 'Local navigation alone is not unsaved authorship');
+    assert(!button('Set scene camera').disabled); const setCalls = viewControl.calls.length;
+    await click('Set scene camera'); // Authored call, not a navigation replacement.
+    assert.equal(viewControl.calls.length, setCalls + 1); assert.equal(cameraStatus(), 'Scene view'); assert(button('Set scene camera').disabled);
+    await act(async () => button('Set scene camera').click()); assert.equal(viewControl.calls.length, setCalls + 1);
+    const setText = await saveText(), setDocument = api.parseRenderNativeLightDocument(setText);
+    assert.deepEqual(setDocument, {...viewSeed, revision: viewSeed.revision + 1,
+      display: {...viewSeed.display, camera: local}, lights: {...viewSeed.lights, revision: viewSeed.revision + 1}});
+    assertCamera(api.readLightFields(setDocument).camera); assert(!button('Undo').disabled); assert(button('Redo').disabled);
+
+    await click('Orbit'); await pointer(canvas, 'pointerdown', 140, 125); await pointer(canvas, 'pointermove', 147, 122); await pointer(canvas, 'pointerup', 147, 122);
+    await flushNavigation(); // View 7: independent local view retained through Apply/Undo/Redo.
+    local = interaction(setDocument.display.camera, 'orbit', 7, -3);
+    assertViewRequest(viewControl.calls.at(-1), setDocument, local);
+    await edit('Ambient strength', '.33');
+    let retainedText, retained;
+    for (const action of ['Apply', 'Undo', 'Redo']) {
+      await click(action); retainedText = await saveText(); retained = api.parseRenderNativeLightDocument(retainedText);
+      assertViewRequest(viewControl.calls.at(-1), retained, local); assert.equal(cameraStatus(), 'User view');
+      assert.deepEqual(retained.display.camera, setDocument.display.camera);
+      assert.equal(retained.lights.ambientStrength, action === 'Undo' ? viewSeed.lights.ambientStrength : .33);
+    }
+    viewControl.refusal = new Error('Controlled local navigation refusal');
+    await wheel(canvas, -25); await flushNavigation(); // View 8: recoverable refusal clears busy/queued work.
+    assert.equal(counts.view, 8); assert(text().includes('PRESENTATION_REFUSED')); assert.equal(cameraStatus(), 'User view');
+    assert.equal(navigationDom.pendingFrames(), 0); assert(!button('Open').disabled); assert(!button('Set scene camera').disabled);
+    assert.equal(await saveText(), retainedText); viewControl.refusal = null;
+    const incoming = {...retained, documentId: `navigation_open_${kind}`,
+      lights: {...retained.lights, sourceId: `navigation_open_${kind}`}, display: {...retained.display, camera: viewSeed.display.camera}};
+    const openText = api.serializeRenderNativeLightDocument(incoming);
+    viewControl.refusal = new Error('Controlled navigation Open refusal');
+    await click('Open'); await selectFile(file(openText)); assert(text().includes('PRESENTATION_REFUSED'));
+    assert.equal(cameraStatus(), 'User view'); assert.equal(await saveText(), retainedText); viewControl.refusal = null;
+    await click('Open'); await selectFile(file(openText));
+    assert.equal(cameraStatus(), 'Scene view'); assert(button('Undo').disabled); assert(button('Redo').disabled);
+    assert.equal(await saveText(), openText); assertCamera(api.readLightFields(incoming).camera);
+
+    let releaseCancelled; viewControl.wait = new Promise(resolve => {releaseCancelled = resolve;});
+    await pointer(canvas, 'pointerdown', 140, 125); await pointer(canvas, 'pointermove', 150, 129); await flushNavigation(); // View 9.
+    const acknowledgedAfterCancel = interaction(incoming.display.camera, 'orbit', 10, 4);
+    assertViewRequest(viewControl.calls.at(-1), incoming, acknowledgedAfterCancel);
+    await pointer(canvas, 'pointermove', 175, 145); await pointer(canvas, 'pointercancel', 175, 145);
+    assert.equal(navigationDom.captures(), 0); assert.equal(navigationDom.pendingFrames(), 0); assert(button('Open').disabled);
+    await act(async () => {releaseCancelled(); await viewControl.wait;}); viewControl.wait = null;
+    await flushNavigation(); assert.equal(counts.view, 9); assert.equal(cameraStatus(), 'User view'); assert(!button('Open').disabled);
+    assert.equal(await saveText(), openText, 'Cancellation retains the ACK without authoring queued motion');
+    let releaseLost; viewControl.wait = new Promise(resolve => {releaseLost = resolve;});
+    await wheel(canvas, -20); await flushNavigation(); // View 10: ACK followed by live loss.
+    assertViewRequest(viewControl.calls.at(-1), incoming, zoomView(acknowledgedAfterCancel, Math.exp(.02)));
+    viewControl.state = 'lost';
+    await act(async () => {releaseLost(); await viewControl.wait;}); viewControl.wait = null;
+    assert(text().includes('Presentation unavailable (lost)')); assert.equal(cameraStatus(), 'User view');
+    assert(button('Zoom in').disabled); assert.equal(await saveText(), openText);
+    assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+    const lostControl = viewControl;
+    await click('Remount accepted scene'); assert.equal(lostControl.disposed, 1);
+    viewControl = track(controls.at(-1)); canvas = container.querySelector('canvas');
+    assert.equal(cameraStatus(), 'Scene view'); assert.equal(await saveText(), openText);
+
+    for (const lateRefusal of [false, true]) {
+      const old = viewControl, oldCanvas = canvas; let releaseLate;
+      old.wait = new Promise(resolve => {releaseLate = resolve;});
+      if (lateRefusal) old.refusal = new Error('Disposed late navigation refusal');
+      await pointer(oldCanvas, 'pointerdown', 140, 125); await pointer(oldCanvas, 'pointermove', 145, 128); await flushNavigation(); // Views 11 and 12.
+      await pointer(oldCanvas, 'pointermove', 155, 135); const oldCalls = old.calls.length;
+      await mounted.dispose(); assert.equal(old.disposed, 1); assert.equal(navigationDom.captures(), 0); assert.equal(navigationDom.pendingFrames(), 0);
+      mounted = await api.mountLightWorkbenchFlow(container, incoming); viewControl = track(controls.at(-1)); canvas = container.querySelector('canvas');
+      await pointer(oldCanvas, 'pointerdown', 140, 125); await pointer(oldCanvas, 'pointermove', 160, 135); await wheel(oldCanvas, -25);
+      await act(async () => {releaseLate(); await old.wait;}); old.wait = null;
+      await flushNavigation(); assert.equal(old.calls.length, oldCalls); assert.equal(viewControl.calls.length, 0);
+      assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+      assert.equal(cameraStatus(), 'Scene view'); assert.equal(await saveText(), openText);
+      assert(!text().includes('Disposed late navigation refusal')); assert(!button('Zoom in').disabled);
+    }
+    assert.equal(counts.view, 12); assert.equal(counts.authored, 6);
+    await mounted.dispose(); assert.equal(viewControl.disposed, 1);
+    assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+    navigationFlow.push({kind, viewReplacements: counts.view, authoredReplacements: counts.authored,
+      coalescedPresentations: 2, cancellationCases: 6, queuedRectangleRefusals: 2, lateCompletionCases: 2, pendingFrames: navigationDom.pendingFrames(), captures: navigationDom.captures()});
+  }
+
   console.log(JSON.stringify({result: 'PASS', scope: 'actual React + original codec/session; controlled Viewer, no GPU/physical-file proof', acceptedRevision: last.revision,
     lights: last.lights.lights.length, replacementCalls: controls[0].calls.length, legacyReplacements: legacyControl.calls.length, convertedLegacyRevision: editedLegacy.revision,
-    cameraFlow, bodyFlow, materialFlow, downloadsRequested: downloads.length, confirmationPrompts: dialogs.length, disposed: controls.map(value => value.disposed)}));
-} finally {dom.window.close(); await rm(output, {recursive: true, force: true});}
+    cameraFlow, bodyFlow, materialFlow, navigationFlow, downloadsRequested: downloads.length, confirmationPrompts: dialogs.length, disposed: controls.map(value => value.disposed)}));
+} catch (cause) {failed = true; firstError = cause;}
+finally {
+  for (const cleanup of [() => mounted?.dispose(), () => navigationDom?.dispose(), () => dom.window.close(), () => rm(output, {recursive: true, force: true})]) {
+    try {await cleanup();} catch (cause) {cleanupErrors.push(cause);}
+  }
+}
+if (cleanupErrors.length) console.error('Light flow cleanup failures:', cleanupErrors);
+if (failed) throw firstError;
+if (cleanupErrors.length) throw new AggregateError(cleanupErrors, 'Light flow cleanup failed.');

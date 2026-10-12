@@ -360,6 +360,282 @@ for (const kind of kinds) {
   });
 }
 
+// #1646 has its own finite replacement ledger. Historical authoring tests above
+// are unchanged and are not counted as navigation. Each source/emitted run uses
+// 6 lifecycle + 4 failure/loss + 2 late-completion view replacements per kind.
+const navigationCalls = Object.fromEntries(kinds.map(kind => [kind, 0]));
+const navigationAuthoringCalls = Object.fromEntries(kinds.map(kind => [kind, 0]));
+async function mountNavigation(kind, initial = fixtures[kind]) {
+  const item = await mount(kind, initial), replace = item.backend.viewer.replace;
+  item.backend.viewer.replace = request => {
+    if (item.session.getSnapshot().pending === 'view') {
+      navigationCalls[kind]++;
+      assert.ok(navigationCalls[kind] <= 12, `${kind}: focused navigation replacement cap`);
+    } else navigationAuthoringCalls[kind]++;
+    return replace(request);
+  };
+  assert.equal(item.session.getSnapshot().viewportCamera, null);
+  assert.equal(item.session.getSnapshot().viewDirty, false);
+  return item;
+}
+function assertViewAuthority(session, before, save) {
+  const after = session.getSnapshot();
+  for (const key of ['accepted', 'draftText', 'dirty', 'unsaved', 'canUndo', 'canRedo']) assert.equal(after[key], before[key], key);
+  assert.ok(Object.is(after.version.revision, before.version.revision));
+  assert.equal(api.serializeRenderNativeLightDocument(after.accepted), save.text);
+  assert.deepEqual(session.getSavePayload(), save);
+  assert.equal(Object.isFrozen(after), true); frozen(after.viewportCamera);
+}
+function assertViewRequest(request, document, camera) {
+  const authored = api.createRenderNativeLightRequest(document);
+  assert.deepEqual(request, {...authored, display: {...authored.display, camera}});
+  assert.ok(Object.is(request.owner.revision, document.revision));
+  assert.ok(Object.is(request.lights.revision, document.lights.revision));
+  frozen(request.display.camera);
+}
+function zoom(camera, factor = 1.1) {return api.deriveRenderCameraInteraction(camera, {kind: 'zoom', factor});}
+
+for (const kind of kinds) {
+  test(`${kind}: local camera admission, exact no-op and foreign/stale versions never present`, async () => {
+    const {session, backend} = await mountNavigation(kind), saved = session.getSavePayload();
+    session.markSaved(saved); session.setDraftText('{ raw invalid camera correction', version(session));
+    const before = session.getSnapshot(), camera = before.accepted.display.camera;
+    await session.resetViewportCamera(version(session));
+    await session.navigateViewportCamera(structuredClone(camera), version(session));
+    assert.equal(session.getSnapshot(), before, 'exact no-op retains the observed snapshot and version');
+    let reads = 0;
+    const accessor = {...camera}; Object.defineProperty(accessor, 'eye', {enumerable: true, get() {reads++; return camera.eye;}});
+    const hidden = {...camera}; Object.defineProperty(hidden, 'extra', {value: 1});
+    const malformed = [null, {}, Object.create(camera), {...camera, extra: true}, hidden,
+      {...camera, [Symbol('extra')]: true}, accessor, {...camera, eye: new Array(3)},
+      {...camera, eye: [NaN, 5, 7]}, {...camera, target: [...camera.eye]},
+      {...camera, up: [0, 0, 0]}, {...camera, fovYDegrees: 101}, {...camera, near: camera.far}];
+    for (const value of malformed) {
+      await assert.rejects(session.navigateViewportCamera(value, version(session)), RangeError);
+      assert.equal(session.getSnapshot(), before);
+    }
+    assert.equal(reads, 0);
+    const admissionCause = {source: 'camera reflection refused'};
+    await assert.rejects(session.navigateViewportCamera(new Proxy({}, {getPrototypeOf() {throw admissionCause;}}), version(session)), error => error === admissionCause);
+    const versionAccessor = {...version(session)};
+    Object.defineProperty(versionAccessor, 'revision', {enumerable: true, get() {reads++; return -0;}});
+    const foreign = await mountNavigation(kind);
+    for (const expected of [foreign.session.getSnapshot().version, {revision: 0, generation: before.version.generation},
+      {...before.version, generation: before.version.generation + 1}, Object.create(before.version), versionAccessor,
+      {...before.version, extra: true}]) {
+      await assert.rejects(session.navigateViewportCamera(zoom(camera), expected), code('STALE_CANDIDATE'));
+      await assert.rejects(session.resetViewportCamera(expected), code('STALE_CANDIDATE'));
+    }
+    assert.equal(reads, 0); foreign.session.dispose();
+    const accepted = backend.viewer.accepted;
+    backend.viewer.accepted = {...accepted, generation: accepted.generation + 1};
+    await assert.rejects(session.navigateViewportCamera(zoom(camera), version(session)), code('STALE_CANDIDATE'));
+    backend.viewer.accepted = accepted;
+    assert.equal(backend.calls.length, 0); assert.equal(session.getSnapshot(), before);
+    assertViewAuthority(session, before, saved);
+    session.markSaved(saved); assert.equal(session.getSnapshot(), before); session.dispose();
+  });
+
+  test(`${kind}: six bounded local view operations preserve raw draft, Save authority and authored history`, async () => {
+    const {session, backend} = await mountNavigation(kind); await history(session);
+    let saved = session.getSavePayload(); session.markSaved(saved);
+    session.setDraftText('{ raw body/light/material/camera correction', version(session));
+    const before = session.getSnapshot(), stale = session.prepareUndo(version(session));
+    const initialCamera = before.accepted.display.camera;
+    const input = structuredClone(api.deriveRenderCameraInteraction(initialCamera,
+      {kind: 'orbit', deltaX: 18, deltaY: -7, width: 640, height: 480}));
+    const orbit = structuredClone(input), gate = deferred();
+    let notices = 0;
+    const unsubscribe = session.subscribe(() => {notices++; throw Error('isolated local-view observer');});
+    backend.result = () => gate.promise;
+    const calls = backend.calls.length, generation = backend.generation;
+    const navigating = session.navigateViewportCamera(input, version(session)); // View 1: orbit.
+    assert.equal(session.getSnapshot().pending, 'view');
+    assert.equal(session.getSnapshot().viewportCamera, null); assert.equal(session.getSnapshot().viewDirty, false);
+    assert.equal(backend.calls.length, calls + 1); assertViewAuthority(session, before, saved);
+    assertViewRequest(backend.calls.at(-1), before.accepted, orbit);
+    input.eye[0] = 900; input.up[0] = 50;
+    assertViewRequest(backend.calls.at(-1), before.accepted, orbit);
+    for (const action of [() => session.setDraftText('competing correction', version(session)),
+      () => session.discardDraft(version(session)), () => session.prepareDraft(version(session)),
+      () => session.prepareUndo(version(session)), () => session.prepareRedo(version(session)),
+      () => session.prepareOpen(saved.text, version(session)), () => session.markSaved(saved),
+      () => session.subscribe(() => {}), unsubscribe]) assert.throws(action, code('STALE_CANDIDATE'));
+    await assert.rejects(session.commitPrepared(stale), code('STALE_CANDIDATE'));
+    await assert.rejects(session.navigateViewportCamera(zoom(orbit), version(session)), code('STALE_CANDIDATE'));
+    await assert.rejects(session.resetViewportCamera(version(session)), code('STALE_CANDIDATE'));
+    assert.equal(backend.calls.length, calls + 1);
+    gate.resolve({ok: true}); await navigating; backend.result = null;
+    assert.equal(notices, 2); unsubscribe();
+    assert.equal(session.getSnapshot().pending, null); assert.equal(session.getSnapshot().viewDirty, true);
+    assert.deepEqual(session.getSnapshot().viewportCamera, orbit); assert.notEqual(session.getSnapshot().viewportCamera, input);
+    assert.equal(backend.generation, generation + 1);
+    assert.equal(version(session).generation, before.version.generation + 2);
+    assertViewAuthority(session, before, saved); session.markSaved(saved);
+    await assert.rejects(session.commitPrepared(stale), code('STALE_CANDIDATE'));
+    await assert.rejects(session.navigateViewportCamera(zoom(orbit), before.version), code('STALE_CANDIDATE'));
+    assert.equal(backend.calls.length, calls + 1);
+
+    const signed = {...orbit, target: [orbit.target[0], -0, orbit.target[2]]};
+    assert.ok(Object.is(orbit.target[1], 0));
+    const freeze = Object.freeze;
+    backend.result = async () => {Object.freeze = () => {throw Error('No fallible local-view freeze after ACK');}; return {ok: true};};
+    try {await session.navigateViewportCamera(signed, version(session));} finally {Object.freeze = freeze; backend.result = null;} // View 2: signed-zero-only change.
+    assert.equal(backend.calls.length, calls + 2);
+    assert.ok(Object.is(session.getSnapshot().viewportCamera.target[1], -0));
+    assertViewRequest(backend.calls.at(-1), before.accepted, signed); assertViewAuthority(session, before, saved);
+    const same = session.getSnapshot();
+    await session.navigateViewportCamera(structuredClone(signed), version(session));
+    assert.equal(session.getSnapshot(), same); assert.equal(backend.calls.length, calls + 2);
+
+    // Compose real pan and zoom math before one presentation to keep the suite finite.
+    const panned = api.deriveRenderCameraInteraction(signed, {kind: 'pan', deltaX: 8, deltaY: -4, width: 640, height: 480});
+    const local = zoom(panned);
+    await session.navigateViewportCamera(local, version(session)); // View 3: pan + zoom.
+    assertViewRequest(backend.calls.at(-1), before.accepted, local); assertViewAuthority(session, before, saved);
+    const retained = session.getSnapshot(), refusedCause = {source: 'recoverable local-view refusal'};
+    backend.result = async () => ({ok: false, error: refusedCause});
+    await assert.rejects(session.navigateViewportCamera(zoom(local), version(session)),
+      error => code('PRESENTATION_REFUSED')(error) && error.cause === refusedCause); // View 4: recoverable refusal.
+    assertViewAuthority(session, retained, saved);
+    assert.equal(session.getSnapshot().viewportCamera, retained.viewportCamera); assert.equal(session.getSnapshot().viewDirty, true);
+    assert.equal(session.getSnapshot().pending, null); assert.equal(session.getStatus().state, 'ready');
+    assert.equal(backend.generation, generation + 3); session.markSaved(saved); backend.result = null;
+
+    const commitViewed = async (candidate, strength, sceneCamera) => {
+      assert.ok(candidate);
+      await session.commitPrepared(candidate);
+      assert.equal(session.getSnapshot().accepted, candidate.document);
+      assert.equal(session.getSnapshot().accepted.lights.ambientStrength, strength);
+      assert.deepEqual(session.getSnapshot().accepted.display.camera, sceneCamera);
+      assert.equal(session.getSnapshot().viewportCamera, retained.viewportCamera); assert.equal(session.getSnapshot().viewDirty, true);
+      assertViewRequest(backend.calls.at(-1), candidate.document, local);
+      assert.deepEqual(api.parseRenderNativeLightDocument(session.getSavePayload().text).display.camera, sceneCamera);
+    };
+    await commitViewed(session.prepareRedo(version(session)), .4, initialCamera);
+    await commitViewed(session.prepareUndo(version(session)), .2, initialCamera);
+    const authoredCamera = zoom(initialCamera, 1.2), accepted = session.getSnapshot().accepted;
+    session.setDraftText(api.serializeRenderNativeLightDocument({...accepted, display: {...accepted.display, camera: authoredCamera},
+      lights: {...accepted.lights, ambientStrength: .6}}), version(session));
+    await commitViewed(session.prepareDraft(version(session)), .6, authoredCamera);
+    await commitViewed(session.prepareUndo(version(session)), .2, initialCamera);
+    await commitViewed(session.prepareRedo(version(session)), .6, authoredCamera);
+    assert.throws(() => session.markSaved(saved), code('STALE_CANDIDATE'), 'authorship, not navigation, invalidates old save identity');
+    saved = session.getSavePayload(); session.markSaved(saved);
+    session.setDraftText('still-unsubmitted correction after authored history', version(session));
+    const beforeReset = session.getSnapshot();
+    await session.resetViewportCamera(version(session)); // View 5: acknowledged explicit reset.
+    assertViewRequest(backend.calls.at(-1), beforeReset.accepted, authoredCamera);
+    assert.equal(session.getSnapshot().viewportCamera, null); assert.equal(session.getSnapshot().viewDirty, false);
+    assertViewAuthority(session, beforeReset, saved); session.markSaved(saved);
+    const reset = session.getSnapshot(), resetCalls = backend.calls.length;
+    await session.resetViewportCamera(version(session));
+    assert.equal(session.getSnapshot(), reset); assert.equal(backend.calls.length, resetCalls);
+    await session.navigateViewportCamera(local, version(session)); // View 6: local view before Open.
+    assertViewAuthority(session, beforeReset, saved);
+    const beforeOpen = session.getSnapshot();
+    const incoming = {...beforeOpen.accepted, documentId: `opened_${kind}`,
+      display: {...beforeOpen.accepted.display, camera: {...authoredCamera, fovYDegrees: 55}},
+      lights: {...beforeOpen.accepted.lights, sourceId: `opened_${kind}`}};
+    const openText = api.serializeRenderNativeLightDocument(incoming), openCause = {source: 'Open refusal retains local camera'}, openGate = deferred();
+    backend.result = () => openGate.promise;
+    const opening = session.commitPrepared(session.prepareOpen(openText, version(session))), openCalls = backend.calls.length;
+    assert.equal(session.getSnapshot().pending, 'open');
+    await assert.rejects(session.navigateViewportCamera(zoom(local), version(session)), code('STALE_CANDIDATE'));
+    await assert.rejects(session.resetViewportCamera(version(session)), code('STALE_CANDIDATE'));
+    assert.equal(backend.calls.length, openCalls);
+    openGate.resolve({ok: false, error: openCause});
+    await assert.rejects(opening, error => code('PRESENTATION_REFUSED')(error) && error.cause === openCause);
+    assertViewRequest(backend.calls.at(-1), incoming, incoming.display.camera);
+    assertViewAuthority(session, beforeOpen, saved);
+    assert.equal(session.getSnapshot().viewportCamera, beforeOpen.viewportCamera); assert.equal(session.getSnapshot().viewDirty, true);
+    session.markSaved(saved); backend.result = null;
+    const opened = session.prepareOpen(openText, version(session)); await session.commitPrepared(opened);
+    assert.equal(session.getSnapshot().accepted, opened.document);
+    assert.equal(session.getSnapshot().viewportCamera, null); assert.equal(session.getSnapshot().viewDirty, false);
+    assert.equal(session.getSnapshot().canUndo, false); assert.equal(session.getSnapshot().canRedo, false);
+    assert.equal(session.getSnapshot().dirty, false); assert.equal(session.getSnapshot().unsaved, false);
+    assert.equal(session.getSnapshot().draftText, openText); assert.equal(session.getSavePayload().text, openText);
+    assertViewRequest(backend.calls.at(-1), opened.document, incoming.display.camera);
+    assert.throws(() => session.markSaved(saved), code('STALE_CANDIDATE'));
+    assert.equal(navigationCalls[kind], 6); assert.equal(navigationAuthoringCalls[kind], 10);
+    const fresh = await mountNavigation(kind, api.parseRenderNativeLightDocument(session.getSavePayload().text));
+    assert.deepEqual(fresh.session.getSnapshot().accepted, opened.document); fresh.session.dispose(); session.dispose();
+  });
+
+  test(`${kind}: four bounded view faults preserve exact causes or acknowledge view before loss`, async () => {
+    const thrown = new Proxy({}, {getPrototypeOf() {throw Error('Do not inspect the local-view cause');}});
+    const cases = [
+      {name: 'throw', result: async () => {throw thrown;}, cause: thrown},
+      {name: 'malformed ACK', result: async () => null, cause: 'Malformed Viewer acknowledgement; explicit remount required.'},
+      {name: 'inconsistent ACK', result: null, cause: 'Viewer acknowledgement metadata is inconsistent; explicit remount required.'},
+      {name: 'ACK then loss', result: null, lost: true},
+    ];
+    for (const item of cases) {
+      const {session, backend} = await mountNavigation(kind), saved = session.getSavePayload();
+      session.markSaved(saved); session.setDraftText(`raw correction during ${item.name}`, version(session));
+      const before = session.getSnapshot(), camera = zoom(before.accepted.display.camera);
+      backend.result = item.lost ? async () => {backend.state = 'lost'; return {ok: true};} : item.result;
+      if (item.name === 'inconsistent ACK') {
+        const replace = backend.viewer.replace;
+        backend.viewer.replace = async request => {
+          const result = await replace(request);
+          // +0 is not the acknowledged authored -0 revision.
+          backend.viewer.accepted = {...backend.viewer.accepted, owner: {...request.owner, revision: 0}};
+          return result;
+        };
+      }
+      if (item.lost) {
+        await session.navigateViewportCamera(camera, version(session));
+        assert.deepEqual(session.getSnapshot().viewportCamera, camera); assert.equal(session.getSnapshot().viewDirty, true);
+        assert.equal(session.getStatus().state, 'lost'); assert.equal(backend.generation, 2);
+      } else {
+        await assert.rejects(session.navigateViewportCamera(camera, version(session)),
+          error => code('PRESENTATION_REFUSED')(error) && error.cause === item.cause);
+        assert.equal(session.getSnapshot().viewportCamera, before.viewportCamera); assert.equal(session.getSnapshot().viewDirty, false);
+        assert.equal(session.getStatus().state, 'failed');
+      }
+      assert.equal(session.getSnapshot().pending, null); assertViewAuthority(session, before, saved);
+      assertViewRequest(backend.calls[0], before.accepted, camera);
+      await assert.rejects(session.navigateViewportCamera(camera, version(session)), code('PRESENTATION_REFUSED'));
+      await assert.rejects(session.resetViewportCamera(version(session)), code('PRESENTATION_REFUSED'));
+      assert.equal(backend.calls.length, 1); session.dispose();
+    }
+  });
+
+  test(`${kind}: two bounded late view completions and observer disposal cannot revive a session`, async () => {
+    for (const result of [{ok: true}, {ok: false, error: 'late local-view refusal'}]) {
+      const {session, backend} = await mountNavigation(kind), gate = deferred();
+      session.setDraftText('raw correction retained through disposal', version(session));
+      const before = session.getSnapshot(), camera = zoom(before.accepted.display.camera);
+      backend.result = () => gate.promise;
+      const pending = session.navigateViewportCamera(camera, version(session));
+      assert.equal(session.getSnapshot().pending, 'view'); assert.equal(backend.calls.length, 1);
+      session.dispose(); const disposed = session.getSnapshot(); gate.resolve(result);
+      await assert.rejects(pending, code('DISPOSED'));
+      assert.equal(session.getSnapshot(), disposed); assert.equal(disposed.accepted, before.accepted);
+      assert.equal(disposed.draftText, before.draftText); assert.equal(disposed.viewportCamera, before.viewportCamera);
+      assert.equal(disposed.viewDirty, false); assert.equal(disposed.pending, null); assert.equal(disposed.disposed, true);
+      assert.equal(session.getStatus().state, 'disposed'); session.dispose(); assert.equal(backend.disposed, 1);
+      await assert.rejects(session.navigateViewportCamera(camera, disposed.version), code('DISPOSED'));
+      await assert.rejects(session.resetViewportCamera(disposed.version), code('DISPOSED'));
+      assert.equal(backend.calls.length, 1);
+    }
+    const {session, backend} = await mountNavigation(kind), before = session.getSnapshot();
+    session.subscribe(() => {if (session.getSnapshot().pending === 'view') session.dispose();});
+    await assert.rejects(session.navigateViewportCamera(zoom(before.accepted.display.camera), version(session)), code('DISPOSED'));
+    assert.equal(backend.calls.length, 0); assert.equal(backend.disposed, 1);
+    assert.equal(session.getSnapshot().accepted, before.accepted); assert.equal(session.getSnapshot().viewportCamera, null);
+  });
+}
+
+test('focused navigation budget is exactly 12 replacements per kind, separate from authored regression', () => {
+  for (const kind of kinds) {
+    assert.equal(navigationCalls[kind], 12, `${kind}: 6 lifecycle + 4 faults/loss + 2 late completions`);
+    assert.equal(navigationAuthoringCalls[kind], 10, `${kind}: focused history/Open setup, separately counted`);
+  }
+});
+
 test('legacy V1 uses strict migration; ordinary V0 Open is refused and explicit V0 import remains directional', async () => {
   const text = api.serializeRenderNativeDirectionalLightDocument(directionalV1);
   const strictLegacy = api.parseRenderNativeDirectionalLightDocument(text), migrated = api.parseRenderNativeLightDocument(text);

@@ -462,3 +462,33 @@ Focused checks with Node 22 and existing dependencies:
 providers remain real source modules. The tests privately control only the two
 imported Viewer factories. They prove software data/session behavior, not physical
 GPU compilation, pixels, browser files or current-device recovery.
+
+### Local viewport camera (#1646)
+
+`session.navigateViewportCamera(camera, session.getSnapshot().version)` presents
+a validated local camera through the existing owned Viewer. The snapshot exposes
+`viewportCamera` (a frozen copy, or `null` to follow the accepted scene camera),
+`viewDirty` and `pending: 'view'`. `resetViewportCamera(version)` acknowledges a
+return to the accepted scene camera. Exact signed-value camera no-ops do not call
+the Viewer or advance the session generation.
+
+Local navigation leaves the accepted document and its identity, raw draft,
+dirty/unsaved state, save payload identity, document/catalog revisions and history
+unchanged. Only presentation and session/Viewer generations advance. Apply and
+Undo/Redo preserve an active local camera; a camera equal to the next authored
+camera becomes `null`. Successful Open resets the local view, while refused Open
+retains it. A new session starts with its authored camera.
+
+These asynchronous operations share the session's existing lock and expected
+version admission. Refusal retains the last acknowledged camera. Malformed or
+inconsistent ACK/rejection requires explicit remount; ACK followed by loss still
+adopts its metadata, without certifying current pixels. Disposal fences late
+completion. Cancelling a host gesture cannot undo an already acknowledged or
+in-flight presentation. Observe the actual result before submitting more work.
+
+The Light workbench coalesces inputs using one in-flight request and one latest
+desired camera, derived from all queued inputs. The underlying directional/point
+Viewer replacement still prepares and rebuilds a complete candidate. This is not
+a camera-only GPU path or a frame-rate guarantee. The focused source/emitted
+session tests cap new navigation/reset presentations at 12 per light kind; their
+existing authoring regression calls are counted separately.
