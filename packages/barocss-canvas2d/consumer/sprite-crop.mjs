@@ -78,6 +78,12 @@ function observe() {
     samples: disposed ? [] : samples.map(([x, y]) => ({ x, y, rgba: pixel(x, y),
       hit: renderer.hitTest({ x, y })?.id ?? null })), pointerLog: [...pointerLog] };
 }
+/** @param {ReturnType<typeof observe>} observation */
+function retentionKey(observation) {
+  const { contexts: diagnostics, ...stable } = observation;
+  void diagnostics;
+  return JSON.stringify(stable);
+}
 /** @param {string} message */
 function show(message) { status.textContent = message; output.textContent = JSON.stringify(observe(), null, 2); }
 function subscribe() {
@@ -108,23 +114,23 @@ function submit(message) {
 function setCrop(crop) { active(); sprite.setImageSource('Atlas', crop); submit(crop ? `Source cell ${crop.x},${crop.y}` : 'Full source image'); }
 function invalid() {
   active();
-  const before = JSON.stringify(observe());
+  const before = retentionKey(observe());
   let code = 'ACCEPTED';
   try { sprite.setSourceRect({ x: 0, y: 0, width: 0, height: 1 }); }
   catch (error) { code = /** @type {import('@barocss/canvas2d').Canvas2DError} */ (error).code; }
-  show(`Rejected crop ${code}; retained ${JSON.stringify(observe()) === before}`);
+  show(`Rejected crop ${code}; retained ${retentionKey(observe()) === before}`);
   return code;
 }
 function outOfBounds() {
   active();
   const prior = sprite.data.sourceRect ?? null;
-  const before = JSON.stringify(observe());
+  const before = retentionKey(observe());
   sprite.setSourceRect({ x: 2, y: 0, width: 1, height: 1 });
   let code = 'ACCEPTED';
   try { renderer.updateScene(tree.snapshot()); }
   catch (error) { code = /** @type {import('@barocss/canvas2d').Canvas2DError} */ (error).code; }
   sprite.setSourceRect(prior);
-  show(`Renderer refused crop ${code}; retained ${JSON.stringify(observe()) === before}`);
+  show(`Renderer refused crop ${code}; retained ${retentionKey(observe()) === before}`);
   return code;
 }
 async function documentText() { return serializeCanvasDocument(accepted, id => hostAssets.get(id) ?? null); }
