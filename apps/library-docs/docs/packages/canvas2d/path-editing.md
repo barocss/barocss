@@ -8,6 +8,8 @@ The cyan curve is shown after moving its Q control. The purple curve and green M
 
 This guide uses public `@barocss/canvas2d` version `0.0.0-experimental` at local source provider `a833201e3b5d03f07dc9a46bb7ef407619e2de0b`. Its path APIs are also present in the earlier diagram provider. The controller, overlays and single-edit Undo/Redo below belong to the browser application; they are not package editor or history services. The rectangle, Unicode, diagram and shader examples retain their own source profiles.
 
+For a runnable public command-only example that inserts a boundary without flattening an L/Q/C segment, see [path subdivision](./path-subdivision). That guide uses a newer adopted source revision; it does not change this editor’s fixed profile.
+
 ## Create complete authored paths
 
 Use the matching source dependency with a TypeScript-capable browser bundler. Put this HTML in the host page and the following blocks, in order, in `main.ts`. The bundler resolves the ordinary public imports and supplies JavaScript to the browser.
