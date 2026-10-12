@@ -1,0 +1,11 @@
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
+  [
++   'other',
+    'part',
+-   'other'
+  ]
+
+    at accept (file:///workspace/scratch/1591b2fb2f62/barocss-modeling-editor/packages/barocss-cad-editor/scripts/modeling-native-smoke.mjs:33:10)
+    at file:///workspace/scratch/1591b2fb2f62/barocss-modeling-editor/packages/barocss-cad-editor/scripts/modeling-native-smoke.mjs:51:13

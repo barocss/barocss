@@ -1,0 +1,35 @@
+{
+  "ok": true,
+  "mode": "cold",
+  "nativeModelEvaluations": 2,
+  "nativeMeshEvaluations": 4,
+  "namedOutputs": [
+    "part",
+    "other"
+  ],
+  "volumes": [
+    {
+      "other": {
+        "numerator": "1536",
+        "denominator": "1"
+      },
+      "part": {
+        "numerator": "2488",
+        "denominator": "1"
+      }
+    },
+    {
+      "other": {
+        "numerator": "1536",
+        "denominator": "1"
+      },
+      "part": {
+        "numerator": "2464",
+        "denominator": "1"
+      }
+    }
+  ],
+  "bundleSHA256": "36303572442a4358e2409eaa4f8ff6125afa7db31a9d49cd84b694ca912d20c2",
+  "authoredSHA256": "7a4800cd443aee7be840be134b49a42e78a71118f90847b796a489e1a81ca742",
+  "evidence": "real public modeling API -> worker adapter -> native tessellation -> CPU scene/raycast; no browser/GPU pixels or OS file dialog"
+}

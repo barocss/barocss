@@ -4,6 +4,51 @@ Pure native CAD editing sessions and reusable React viewport/inspector component
 This locally public-configured ESM package is `0.0.0-experimental`. It has not
 been published to npm.
 
+## Start with ordinary modeling
+
+Use `CadEditorModeling` from `@barocss/cad-editor/react`, or open the host's
+`#/model` route. Its initial part is built through `cad.model()` handles, named
+millimetre parameters, sketches, extrusion, a through-slab cut and a chamfer.
+The inspector shows only explicitly named output bodies, including the actual
+finished chamfered part. There is no document-version selector or internal
+identity/reference authoring in this workflow.
+
+```tsx
+import { CadEditorModeling } from '@barocss/cad-editor/react';
+
+export function PartWorkspace() {
+  return <CadEditorModeling />;
+}
+```
+
+`initialAuthoredText` optionally opens a saved model. The controller's `open`,
+`stage`, `apply`, `undo`, `redo`, `cancel` and `getSnapshot` methods support the
+same workflow without React. Native build/edit/load and tessellation run in a
+dedicated Worker. Accepted authored bytes, named dimensions, scene, picking
+generation and history move together only after successful display staging.
+Failed edits and interrupted work retain the prior accepted model. UI selection
+uses a local accepted generation even when the kernel reuses native IDs.
+
+Save copies only accepted authored data. Open detects the new model envelope or
+previously supported legacy prism files internally. Legacy v0/v2 files delegate
+to the original reader and preserve their semantics and original display
+lineage; legacy v1 is still unsupported in this editor. Unknown or malformed
+formats refuse without conversion. Historical `CadEditorPrismFeature` routes
+and APIs remain compatibility entries.
+
+The display adapter keeps native face/use/edge/vertex provenance and namespaces
+scene objects by output name. Two output names may alias one native body without
+colliding in scene/pick identity. CPU admission checks copied-data consistency;
+it is not an authenticity or persistent-topology certificate. Browser pixels,
+actual interaction and physical file dialogs require separate device evidence.
+
+Focused checks live in `scripts/modeling-controller-test.mjs` and
+`scripts/modeling-engine-test.mjs`. The explicitly bounded real-native campaign
+is `node --no-opt --max-old-space-size=2048 scripts/modeling-native-smoke.mjs
+source EVIDENCE_DIR`, then the same command with `cold` in a fresh process.
+Each phase admits two complete model evaluations and four native tessellations,
+followed by CPU scene/raycast checks; it does not exercise GPU rendering.
+
 ## Entries
 
 | Entry | Workspace development | Published configuration |

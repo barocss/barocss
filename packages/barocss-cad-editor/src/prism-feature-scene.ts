@@ -1,9 +1,9 @@
 import { checkSerialLineage } from './prism-feature-lineage.js';
-import type { ConvexPlanarSolidMeshResult, XYAffinePrismFeatureResult, XYAffinePrismFeatureResultV2 } from '@barocss/cad';
+import type { ConvexPlanarSolidMeshResult, ConvexPlanarSolidResult, XYAffinePrismFeatureResult, XYAffinePrismFeatureResultV2 } from '@barocss/cad';
 import { prepareEngineScene, prepareEngineCameraRay, raycastEngineScene } from '@barocss/gpu';
 import type { EngineSceneV0, TriangleGeometryV0 } from '@barocss/gpu';
 
-export type PrismDisplayRole = 'source' | 'first' | 'second';
+export type PrismDisplayRole = string;
 export type PrismDisplayView = 'source' | 'result';
 /** No native Solid/Model crosses the worker boundary. Native UV and all provenance remain copied CPU data. */
 export interface PrismSerialLineage {
@@ -16,11 +16,14 @@ export interface PrismSerialLineage {
 }
 export interface PrismDisplayComponent extends Pick<ConvexPlanarSolidMeshResult, 'mesh' | 'boundaries' | 'internalDiagonals' | 'report'> {
   role: PrismDisplayRole;
-  lineage: XYAffinePrismFeatureResult['prisms'][number]['lineage'] | XYAffinePrismFeatureResult['subtraction']['first']['lineage'] | PrismSerialLineage;
+  lineage: XYAffinePrismFeatureResult['prisms'][number]['lineage'] | XYAffinePrismFeatureResult['subtraction']['first']['lineage'] | PrismSerialLineage
+    | { kind: 'model-output'; name: string; solidId: string; graph: Pick<ConvexPlanarSolidResult['graph'], 'vertices' | 'faces'>
+      & { edges: Pick<ConvexPlanarSolidResult['graph']['edges'][number], 'id' | 'vertexIds' | 'uses'>[] } };
 }
 export interface PrismDisplayPacket {
+  profile?: 'model-outputs';
   documentId: string; revision: number; components: PrismDisplayComponent[];
-  outcomes: { role: 'first' | 'second'; solidId: string; status: 'solid' | 'empty' }[];
+  outcomes: { role: string; solidId: string; status: 'solid' | 'empty' }[];
 }
 export interface PrismDisplayScene { packet: PrismDisplayPacket; view: PrismDisplayView; scene: EngineSceneV0 }
 export interface PrismFaceSelection {
@@ -36,13 +39,21 @@ const xyz = (values: number[]) => values.flatMap((value, i) => i % 3 ? [] : [val
 /** Software admission only; no native reconstruction, GPU execution or pixel claim. */
 export function preparePrismFeatureScene(packet: PrismDisplayPacket, view: PrismDisplayView, aspect = 1): PrismDisplayScene {
   check(packet && typeof packet.documentId === 'string' && Number.isSafeInteger(packet.revision) && packet.revision >= 0, 'document qualification required');
-  exact(packet, ['documentId', 'revision', 'components', 'outcomes']);
+  const model = packet.profile === 'model-outputs';
+  exact(packet, [...(model ? ['profile'] : []), 'documentId', 'revision', 'components', 'outcomes']);
   check(view === 'source' || view === 'result', 'unknown view');
   check(Number.isFinite(aspect) && aspect >= 1 / 2048 && aspect <= 2048, 'invalid viewport aspect');
-  check(Array.isArray(packet.components) && packet.components.length >= 1 && packet.components.length <= 3, 'component budget');
-  check(new Set(packet.components.map(c => c.role)).size === packet.components.length && packet.components.some(c => c.role === 'source')
-    && packet.components.every(c => ['source', 'first', 'second'].includes(c.role)), 'fixed role inventory required');
-  check(Array.isArray(packet.outcomes) && packet.outcomes.length === 2 && packet.outcomes[0].role === 'first' && packet.outcomes[1].role === 'second', 'ordered result roles required');
+  check(Array.isArray(packet.components) && packet.components.length >= 1 && packet.components.length <= (model ? 8 : 3), 'component budget');
+  check(new Set(packet.components.map(c => c.role)).size === packet.components.length, 'unique output roles required');
+  if (model) {
+    check(view === 'result' && packet.components.every(c => /^[A-Za-z_][A-Za-z0-9_-]{0,47}$/.test(c.role)
+      && !['__proto__', 'prototype', 'constructor'].includes(c.role)), 'named model outputs required');
+    check(Array.isArray(packet.outcomes) && packet.outcomes.length === packet.components.length
+      && packet.outcomes.every((o, i) => o.status === 'solid' && o.role === packet.components[i].role), 'complete named output inventory required');
+  } else {
+    check(packet.components.some(c => c.role === 'source') && packet.components.every(c => ['source', 'first', 'second'].includes(c.role)), 'fixed role inventory required');
+    check(Array.isArray(packet.outcomes) && packet.outcomes.length === 2 && packet.outcomes[0].role === 'first' && packet.outcomes[1].role === 'second', 'ordered result roles required');
+  }
   for (const outcome of packet.outcomes) {
     const component = packet.components.find(c => c.role === outcome.role);
     check(outcome.status === 'empty' ? !component : outcome.status === 'solid' && component?.report.solidId === outcome.solidId, 'result inventory mismatch');
@@ -51,6 +62,8 @@ export function preparePrismFeatureScene(packet: PrismDisplayPacket, view: Prism
   for (const component of packet.components) {
     exact(component, ['role', 'mesh', 'boundaries', 'internalDiagonals', 'report', 'lineage']);
     const { mesh, report, boundaries, internalDiagonals } = component;
+    if (model) check('kind' in component.lineage && component.lineage.kind === 'model-output', 'named output lineage required');
+    else check(!('kind' in component.lineage) || component.lineage.kind !== 'model-output', 'model output in a legacy packet');
     if ('kind' in component.lineage && component.lineage.kind === 'serial-part-v2') {
       const lineage = component.lineage;
       exact(lineage, ['kind', 'parentSolidId', 'finalSolidId', 'original', 'subtraction', 'chamfer', 'split', 'resolution']);
@@ -103,8 +116,69 @@ export function preparePrismFeatureScene(packet: PrismDisplayPacket, view: Prism
     }
     check(vertexOffset === mesh.vertices.length && indexOffset === mesh.indices.length && boundaries.length === report.boundaryUseCount
       && internalDiagonals.length === report.internalDiagonalCount, 'complete mesh ranges required');
+    if ('kind' in component.lineage && component.lineage.kind === 'model-output') {
+      const lineage = component.lineage, graph = lineage.graph;
+      exact(lineage, ['kind', 'name', 'solidId', 'graph']);
+      exact(graph, ['vertices', 'edges', 'faces']);
+      check(lineage.name === component.role && lineage.solidId === report.solidId, 'named body identity mismatch');
+      check(Array.isArray(graph.faces) && Array.isArray(graph.vertices) && Array.isArray(graph.edges)
+        && graph.faces.length === mesh.faces.length && graph.vertices.length >= 4 && graph.vertices.length <= 32
+        && graph.edges.length >= 6 && graph.edges.length <= 32, 'native output graph inventory');
+      check(new Set(graph.vertices.map(v => v.id)).size === graph.vertices.length && new Set(graph.edges.map(e => e.id)).size === graph.edges.length
+        && new Set(graph.faces.map(f => `${f.sourceId}/${f.faceId}`)).size === graph.faces.length, 'unique native output inventories required');
+      for (const vertex of graph.vertices) {
+        exact(vertex, ['id', 'pointMM', 'members']);
+        check(typeof vertex.id === 'string' && vertex.id.length > 0 && Array.isArray(vertex.pointMM) && vertex.pointMM.length === 3
+          && vertex.pointMM.every(Number.isFinite) && Array.isArray(vertex.members) && vertex.members.length >= 3 && vertex.members.length <= 12, 'complete native vertex tuple required');
+        for (const member of vertex.members) exact(member, ['sourceId', 'faceId', 'vertexId']);
+        const keys = vertex.members.map(m => `${m.sourceId}/${m.faceId}/${m.vertexId}`).sort();
+        const meshKeys = mesh.vertices.filter(v => v.solidVertexId === vertex.id).map(v => `${v.sourceId}/${v.faceId}/${v.nativeVertexId}`).sort();
+        check(new Set(keys).size === keys.length && JSON.stringify(keys) === JSON.stringify(meshKeys), 'complete native vertex members required');
+      }
+      for (const edge of graph.edges) {
+        exact(edge, ['id', 'vertexIds', 'uses']);
+        check(typeof edge.id === 'string' && edge.id.length > 0 && Array.isArray(edge.vertexIds) && edge.vertexIds.length === 2
+          && edge.vertexIds[0] !== edge.vertexIds[1] && edge.vertexIds.every(id => graph.vertices.some(v => v.id === id))
+          && Array.isArray(edge.uses) && edge.uses.length === 2, 'complete native edge tuple required');
+        const paired = boundaries.filter(b => b.solidEdgeId === edge.id);
+        check(paired.length === 2 && paired[0].solidVertexIds[0] === paired[1].solidVertexIds[1]
+          && paired[0].solidVertexIds[1] === paired[1].solidVertexIds[0], 'complete opposite native edge uses required');
+        for (const own of edge.uses) {
+          exact(own, ['sourceId', 'faceId', 'surfaceId', 'loopId', 'use']);
+          exact(own.use, ['id', 'edgeId', 'curveId', 'pcurveId', 'sense', 'interval', 'vertexIds']);
+          check(Array.isArray(own.use.interval) && own.use.interval.length === 2 && own.use.interval.every(Number.isFinite)
+            && Array.isArray(own.use.vertexIds) && own.use.vertexIds.length === 2 && own.use.vertexIds[0] !== own.use.vertexIds[1]
+            && ['forward', 'reverse'].includes(own.use.sense), 'complete directed-use tuples required');
+          check(paired.filter(b => b.sourceId === own.sourceId && b.faceId === own.faceId && b.loopId === own.loopId && b.useId === own.use.id).length === 1,
+            'each native edge use must own one boundary');
+        }
+        check(edge.uses[0].sourceId !== edge.uses[1].sourceId || edge.uses[0].faceId !== edge.uses[1].faceId, 'distinct incident faces required');
+      }
+      for (const [i, face] of mesh.faces.entries()) {
+        const native = graph.faces[i], uses = boundaries.filter(b => b.faceIndex === i);
+        exact(native, ['sourceId', 'faceId', 'surfaceId', 'loopId', 'vertexIds', 'edgeIds']);
+        check(native.sourceId === face.sourceId && native.faceId === face.faceId && native.surfaceId === face.surfaceId
+          && native.loopId === face.loopId && Array.isArray(native.vertexIds) && Array.isArray(native.edgeIds)
+          && native.vertexIds.length === face.vertexCount && native.edgeIds.length === uses.length
+          && new Set(native.vertexIds).size === native.vertexIds.length && new Set(native.edgeIds).size === native.edgeIds.length, 'output face lineage mismatch');
+        for (const [j, boundary] of uses.entries()) {
+          const vertex = mesh.vertices[face.vertexOffset + j], edge = graph.edges.find(e => e.id === boundary.solidEdgeId);
+          const own = edge?.uses.filter(u => u.sourceId === face.sourceId && u.faceId === face.faceId && u.surfaceId === face.surfaceId
+            && u.loopId === face.loopId && u.use.id === boundary.useId);
+          check(native.edgeIds[j] === boundary.solidEdgeId && native.vertexIds[j] === vertex.solidVertexId && edge && own?.length === 1, 'output directed-use lineage mismatch');
+          const use = own![0].use;
+          check(use.edgeId === boundary.edgeId && use.curveId === boundary.curveId && use.pcurveId === boundary.pcurveId
+            && use.sense === boundary.sense && use.interval.every((value, k) => value === boundary.interval[k])
+            && use.vertexIds.every((id, k) => id === boundary.nativeVertexIds[k])
+            && boundary.solidVertexIds.every(id => edge!.vertexIds.includes(id)), 'output edge lineage mismatch');
+          const point = graph.vertices.find(v => v.id === vertex.solidVertexId);
+          check(point && point.members.some(m => m.sourceId === face.sourceId && m.faceId === face.faceId && m.vertexId === vertex.nativeVertexId)
+            && point.pointMM.every((value, k) => value === mesh.positionsMM[(face.vertexOffset + j) * 3 + k]), 'output vertex lineage mismatch');
+        }
+      }
+    }
   }
-  const visible = packet.components.filter(c => view === 'source' ? c.role === 'source' : c.role !== 'source');
+  const visible = model ? packet.components : packet.components.filter(c => view === 'source' ? c.role === 'source' : c.role !== 'source');
   for (const component of packet.components) if ('kind' in component.lineage && component.lineage.kind === 'serial-part-v2')
     checkSerialLineage(component, packet.components.find(c => c.role === 'source')!);
   const geometries: TriangleGeometryV0[] = visible.map(c => ({ format: 'barocss-gpu-triangle-geometry', version: 0, id: `prism_geometry_${c.role}`,

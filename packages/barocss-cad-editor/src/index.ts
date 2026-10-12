@@ -52,6 +52,9 @@ export type { CadEditorRuledSurfaceCreation } from './types.js';
 export type { CadEditorTranslationalSweepCreation } from './types.js';
 
 export { createCadEditorPrismFeatureController } from './prism-feature-controller.js';
+export { createCadEditorModelingController } from './modeling-controller.js';
+export type { CadEditorModelingController, CadEditorModelingSnapshot } from './modeling-controller.js';
+export type { CadEditorModelingSummary } from './modeling-engine.js';
 export type { CadEditorPrismFeatureController } from './prism-feature-controller.js';
 export type { CadEditorPrismFeatureSummary, CadEditorPrismFeatureSnapshot } from './prism-feature-types.js';
 export { preparePrismFeatureScene, pickPrismFeatureScene } from './prism-feature-scene.js';

@@ -28,6 +28,46 @@ export function prismFeatureFieldText(drafts: Record<string, string>, parameter:
     : Object.is(parameter.valueMM, -0) ? '-0' : String(parameter.valueMM);
 }
 
+/** Shared compatibility admission; both inspectors retain the original serial provenance checks. */
+export function validatePrismFeatureNativeReply(
+  reply: Extract<PrismFeatureReply, { ok: true }>,
+  previousDocument?: Extract<PrismFeatureReply, { ok: true }>['summary']['document'],
+  values: Values = [],
+) {
+  if (reply.summary.document.version === 2) {
+    const document = reply.summary.document;
+    if (document.version !== 2) throw new Error('Explicit version two required.');
+    const detail = document.nodes[5], source = document.nodes[0];
+    if (!sameData(document.nodes.map(n => n.kind), ['sketch', 'sketch', 'prism', 'prism', 'subtraction', 'chamfer'])
+      || reply.display.components.find(c => c.role === 'source')?.report.solidId !== document.nodes[2].options.solidId
+      || reply.summary.components[0].solidId !== document.nodes[4].first.solidId
+      || !sameData(reply.summary.selectedWalls, [document.nodes[4].first.reference, document.nodes[4].second.reference]))
+      throw new Error('Serial document roles differ from worker reply.');
+    if (previousDocument && !sameData(document.parameters.map(p => [p.id, p.valueMM]),
+      previousDocument.parameters.map(p => [p.id, values.find(e => e.parameterId === p.id)?.valueMM ?? p.valueMM])))
+      throw new Error('Serial reply differs from requested parameter values.');
+    const serial = reply.summary.serial, final = reply.display.components.find(c => c.role === 'second');
+    if (!serial || !final || serial.finalSolidId !== final.report.solidId
+      || serial.parentSolidId !== serial.resolution.parent.solidId
+      || !('kind' in final.lineage) || final.lineage.kind !== 'serial-part-v2'
+      || JSON.stringify(final.lineage.resolution) !== JSON.stringify(serial.resolution)
+      || final.lineage.parentSolidId !== serial.parentSolidId || final.lineage.finalSolidId !== serial.finalSolidId
+      || !sameData(serial.resolution.parent, detail.parent) || detail.parent.subtractionNodeId !== document.nodes[4].id
+      || serial.parentSolidId !== document.nodes[4].second.solidId || serial.finalSolidId !== detail.options.retainedSolidId
+      || serial.resolution.originalPrismNodeId !== document.nodes[2].id
+      || final.lineage.original.sourceId !== source.sourceId || final.lineage.original.sketchId !== source.document.id
+      || final.lineage.original.sourceRevision !== source.revision
+      || detail.reference.sourceId !== source.sourceId || detail.reference.sketchId !== source.document.id || detail.reference.sourceRevision !== source.revision
+      || final.lineage.original.segments.filter(s => s.segmentId === detail.reference.segmentId && s.topEdgeId === serial.resolution.originalTopEdgeId).length !== 1
+      || !(['a', 'b'] as const).every(key => {
+        const origin = serial.resolution[key].origin, reference = detail.reference[key];
+        return origin.operand === 'parent'
+          && Object.entries(reference).every(([field, value]) => origin[field as keyof typeof origin] === value);
+      }))
+      throw new Error('Serial part provenance does not match the final display.');
+  } else if (reply.summary.serial) throw new Error('Version zero cannot carry serial part results.');
+}
+
 /** Responsive authored-intent controller. Native work always runs in its own Worker. */
 export function createCadEditorPrismFeatureController(displayPort?: PrismDisplayPort, aspect: () => number = () => 1, version: 0 | 2 = 0) {
   let state: State = { display: null, faceSelection: null, view: 'result', accepted: null, authoredText: null, drafts: {}, selection: null,
@@ -118,38 +158,7 @@ export function createCadEditorPrismFeatureController(displayPort?: PrismDisplay
       if (!reply.display || reply.display.documentId !== reply.summary.document.id || reply.display.revision !== reply.summary.document.revision)
         throw new Error('Display packet does not match the native document.');
       if (JSON.stringify(reply.display.outcomes) !== JSON.stringify(reply.summary.components)) throw new Error('Display result roles do not match native summary.');
-      if (version === 2) {
-        const document = reply.summary.document;
-        if (document.version !== 2) throw new Error('Explicit version two required.');
-        const detail = document.nodes[5], source = document.nodes[0];
-        if (!sameData(document.nodes.map(n => n.kind), ['sketch', 'sketch', 'prism', 'prism', 'subtraction', 'chamfer'])
-          || reply.display.components.find(c => c.role === 'source')?.report.solidId !== document.nodes[2].options.solidId
-          || reply.summary.components[0].solidId !== document.nodes[4].first.solidId
-          || !sameData(reply.summary.selectedWalls, [document.nodes[4].first.reference, document.nodes[4].second.reference]))
-          throw new Error('Serial document roles differ from worker reply.');
-        if (kind !== 'open' && state.accepted && !sameData(document.parameters.map(p => [p.id, p.valueMM]),
-          state.accepted.document.parameters.map(p => [p.id, values.find(e => e.parameterId === p.id)?.valueMM ?? p.valueMM])))
-          throw new Error('Serial reply differs from requested parameter values.');
-        const serial = reply.summary.serial, final = reply.display.components.find(c => c.role === 'second');
-        if (!serial || !final || serial.finalSolidId !== final.report.solidId
-          || serial.parentSolidId !== serial.resolution.parent.solidId
-          || !('kind' in final.lineage) || final.lineage.kind !== 'serial-part-v2'
-          || JSON.stringify(final.lineage.resolution) !== JSON.stringify(serial.resolution)
-          || final.lineage.parentSolidId !== serial.parentSolidId || final.lineage.finalSolidId !== serial.finalSolidId
-          || !sameData(serial.resolution.parent, detail.parent) || detail.parent.subtractionNodeId !== document.nodes[4].id
-          || serial.parentSolidId !== document.nodes[4].second.solidId || serial.finalSolidId !== detail.options.retainedSolidId
-          || serial.resolution.originalPrismNodeId !== document.nodes[2].id
-          || final.lineage.original.sourceId !== source.sourceId || final.lineage.original.sketchId !== source.document.id
-          || final.lineage.original.sourceRevision !== source.revision
-          || detail.reference.sourceId !== source.sourceId || detail.reference.sketchId !== source.document.id || detail.reference.sourceRevision !== source.revision
-          || final.lineage.original.segments.filter(s => s.segmentId === detail.reference.segmentId && s.topEdgeId === serial.resolution.originalTopEdgeId).length !== 1
-          || !(['a', 'b'] as const).every(key => {
-            const origin = serial.resolution[key].origin, reference = detail.reference[key];
-            return origin.operand === 'parent'
-              && Object.entries(reference).every(([field, value]) => origin[field as keyof typeof origin] === value);
-          }))
-          throw new Error('Serial part provenance does not match the final display.');
-      } else if (reply.summary.serial) throw new Error('Version zero cannot carry serial part results.');
+      validatePrismFeatureNativeReply(reply, kind === 'open' ? undefined : state.accepted?.document, values);
       const display = preparePrismFeatureScene(reply.display, state.view, aspect());
       displayCandidate = displayPort ? await displayPort.prepare(display) : null;
       if (operation !== epoch || state.disposed) { displayCandidate?.dispose(); return; }
