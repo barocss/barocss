@@ -13,9 +13,9 @@ Open **Material Editor → Light workbench** in `apps/render-editor` (`material.
 
 Open and New ask before leaving unsaved changes/drafts; cancelling retains them. A refused or stale Open also leaves the current scene and fields in place. **New directional** / **New point** deliberately ends the old lifetime and starts another; it is not an atomic backend swap. **Remount accepted scene** retains accepted authorship, clears history and requires a new renderer. Failed or lost presentation does not promise old pixels.
 
-### Edit a body's scalar material uniforms
+### Edit scalar material uniforms for a body
 
-Select a visible original body under **Scene bodies**, then use **Body material**. The controls show scalar names, ranges and defaults compiled from that binding's original shader declarations. A hidden body, missing/unqualified binding or material without scalar declarations has no editable uniform controls; selecting it creates no binding or ID. See [Surface B in the existing downloads](./examples#edit-surface-bs-existing-amount-uniform) for a ready example.
+Select a visible original body under **Scene bodies**, then use **Body material**. The controls show scalar names, ranges and defaults compiled from that binding's original shader declarations. A hidden body, missing/unqualified binding or material without scalar declarations has no editable uniform controls; selecting it creates no binding or ID. See [Surface B in the existing downloads](./examples#edit-the-existing-amount-uniform-on-surface-b) for a ready example.
 
 Enable **Override** to supply a finite decimal within the declared range. Clear it to omit the property and use the shader default. An explicit override equal to the default is still authored data and differs from omission. Corrective text stays with its own body/uniform while switching bodies or toggling Override; text under a cleared Override is retained locally but is not supplied to the material. Invalid active input refuses the complete Apply and remains available for correction. Successful Apply, Discard, Open, Undo or Redo refreshes fields from accepted authorship.
 

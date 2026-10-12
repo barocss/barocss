@@ -18,7 +18,7 @@ These are complete current authoring files for the Native Light workbench, with 
 
 In the app, open **Material Editor → Light workbench**, choose the matching directional or point workspace, and **Open** its JSON file. Select an original body under **Scene bodies**; edit position in mm, dimensionless scale, Scene camera and a light. **Apply** once, try **Undo/Redo**, then **Save accepted**. Open that saved file in a fresh same-kind workspace and re-edit the same qualified body. Refused numeric input stays available for correction; Save still contains accepted data. See the [complete workflow and no-op rules](./guides#author-a-native-light-scene).
 
-### Edit Surface B's existing amount uniform
+### Edit the existing amount uniform on Surface B
 
 Both JSON downloads above already contain this example; no file or shader changes are needed to expose the control.
 
@@ -28,7 +28,7 @@ Both JSON downloads above already contain this example; no file or shader change
 4. Optionally edit a body transform, Scene camera or light, then **Apply** once for all fields. A changed Surface B material advances its embedded revision from 0 to 1; Surface A's material remains unchanged. **Undo/Redo** restores the whole scene together after drafts are resolved.
 5. **Save accepted**, then **Open** that saved file in a fresh workspace of the same kind. Select `body_preview_b` again: the accepted `0.4` override, or its accepted omission and shader default, is ready to re-edit. A download request alone does not prove physical persistence.
 
-To inspect refusal retention, enter `1e` or an out-of-range value such as `1.1` with Override enabled, then Apply. Correct the retained field before expecting acceptance; Save still contains the previous accepted value. If the accepted override is `0.4`, entering `.40` alone is a numeric-format no-op. Signed zero remains distinct, and clearing an override remains an authored change even when its supplied value equalled the default. These are authoring instructions, not a screenshot or physical GPU/file result; [#1573](https://github.com/barocss/barocss/issues/1573) remains unresolved. See the [binding and transaction rules](./guides#edit-a-bodys-scalar-material-uniforms).
+To inspect refusal retention, enter `1e` or an out-of-range value such as `1.1` with Override enabled, then Apply. Correct the retained field before expecting acceptance; Save still contains the previous accepted value. If the accepted override is `0.4`, entering `.40` alone is a numeric-format no-op. Signed zero remains distinct, and clearing an override remains an authored change even when its supplied value equalled the default. These are authoring instructions, not a screenshot or physical GPU/file result; [#1573](https://github.com/barocss/barocss/issues/1573) remains unresolved. See the [binding and transaction rules](./guides#edit-scalar-material-uniforms-for-a-body).
 
 ### Import, mount and clean up the shared host
 

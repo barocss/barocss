@@ -20,7 +20,7 @@ Bounds are admission requirements, not permission to clamp or normalize. Origina
 - Enabled overrides require complete finite decimals within their declared ranges. Empty, incomplete, nonfinite or out-of-range active input refuses the whole transaction without accepting partial edits. Cleared overrides omit their property and use the declared default; their retained corrective text is not authored input. Explicit defaults differ from omission, and signed zero differs from positive zero. Equivalent numeric formatting with unchanged presence is a no-op when the complete scene is otherwise unchanged.
 - Existing material-session preparation owns dirty comparison and the single next embedded revision. Changed material revision `2147483647` refuses before presentation; unchanged bindings retain their revision. Temporary material sessions are disposed without a separate history commit or presentation. Material/body/camera/light changes use the same pending-operation fences, one scene Apply/history transaction and accepted-only Save described below.
 
-See the [body-bound uniform guide](./guides#edit-a-bodys-scalar-material-uniforms) and the [unchanged Surface B downloads](./examples#edit-surface-bs-existing-amount-uniform). These controls do not establish physical GPU/file/device acceptance or resolve #1573.
+See the [body-bound uniform guide](./guides#edit-scalar-material-uniforms-for-a-body) and the [unchanged Surface B downloads](./examples#edit-the-existing-amount-uniform-on-surface-b). These controls do not establish physical GPU/file/device acceptance or resolve #1573.
 
 ### Native Light transaction and cleanup limits
 
