@@ -1,8 +1,65 @@
 # Render Editor: original scene source and accepted presentation
 
+<script setup>
+import { withBase } from 'vitepress';
+</script>
+
 A source document stores original GPU Scene text and camera. The session holds drafts/history. The controller presents prepared changes before committing authoring. Rendered pixels and compiler buffers are derived output, not saved scene authority.
 
 Use the workspace package with a TypeScript-capable host. `/react` requires a compatible React 19.2.3 peer and a browser. This package is separate from the React screen-spec renderer in [Render](/packages/render/).
+
+## Native Light scene downloads
+
+These are complete current authoring files for the Native Light workbench, with original CAD source, qualified body/material bindings, shader source and supplied overrides, camera, poses and a homogeneous light catalog. They preserve authored signed values, including `-0`, raw camera Up and quaternion components. They are source inputs, not meshes, screenshots or GPU-acceptance certificates.
+
+- <a :href="withBase('/examples/render-editor-directional.light-scene.json')" download="render-editor-directional.light-scene.json">Download the directional light scene</a>
+- <a :href="withBase('/examples/render-editor-point.light-scene.json')" download="render-editor-point.light-scene.json">Download the point light scene</a>
+- <a :href="withBase('/examples/render-editor-light-scene.ts')" download="render-editor-light-scene.ts">Download the shared TypeScript host</a>
+
+In the app, open **Material Editor → Light workbench**, choose the matching directional or point workspace, and **Open** its JSON file. Select an original body under **Scene bodies**; edit position in mm, dimensionless scale, Scene camera and a light. **Apply** once, try **Undo/Redo**, then **Save accepted**. Open that saved file in a fresh same-kind workspace and re-edit the same qualified body. Refused numeric input stays available for correction; Save still contains accepted data. See the [complete workflow and no-op rules](./guides#author-a-native-light-scene).
+
+### Import, mount and clean up the shared host
+
+Place the downloaded `.ts` file beside your TypeScript-capable browser entry. It imports only the actual unsuffixed public `parseRenderNativeLightDocument`, `prepareRenderNativeLightDocument`, `serializeRenderNativeLightDocument`, `createRenderNativeLightRequest` and `createRenderNativeLightSession` APIs. Its `qualifyLightScene(text)` helper reconstructs native/TEN/material requests on the CPU. `createLightSceneHost` is example host code, not a new package export or public provider-injection seam.
+
+The host requires a real canvas and working WebGPU. Supply complete initial and edited JSON text of the same kind; edited text must keep the accepted scene owner/revision and matching light owner/revision. Use the signed serializer to produce it. Supply `persist` from your file-storage integration: resolve only when it succeeds, and reject on cancellation or failure.
+
+```ts
+import { createLightSceneHost } from './render-editor-light-scene';
+import type { RenderNativeLightSavePayload } from '@barocss/render-editor';
+
+async function editAndSave(
+  canvas: HTMLCanvasElement, initialText: string, editedText: string,
+  persist: (payload: RenderNativeLightSavePayload) => Promise<void>,
+) {
+  const host = createLightSceneHost(canvas, { width: 960, height: 600 });
+  const close = () => host.dispose();
+  const check = (result: { ok: true } | { ok: false; error: unknown }) => {
+    if (!result.ok) throw result.error;
+  };
+  window.addEventListener('pagehide', close, { once: true });
+  try {
+    check(await host.mount(initialText));
+    check(host.stage(editedText));
+    check(await host.apply());
+    check(await host.undo());
+    check(await host.redo());
+    check(await host.save(persist));
+    return host.getSnapshot()?.accepted;
+  } finally {
+    window.removeEventListener('pagehide', close);
+    host.dispose();
+  }
+}
+```
+
+This short sequence closes after the operation; an interactive editor keeps the host until route exit and displays refused outcomes while leaving corrective drafts available. The download fences mount, Apply, history, Open and Save through one pending-operation guard. `stage` and `discardDraft` are synchronous outcomes; mount/Apply/history/Open/Save return promises of `{ok:true}` or `{ok:false,error}`. Await and check each one. `getSnapshot()` returns an immutable snapshot or `null`. `dispose()` is idempotent; call it even while mount is pending so a late successful session is immediately released. No startup is assumed cancellable.
+
+For a fresh same-kind Open, create a new host/canvas lifetime, await `mount(initialText)` with the matching fixture, then await `open(savedText, confirmReplacement)`. The confirmation callback must return an actual user decision before replacing dirty or unsaved state; it defaults to refusal. A freshly mounted seed is unsaved, so include that callback. Check both outcomes, re-edit through stage/Apply, and use the same closure cleanup. Open preserves the imported revision and begins fresh history. Cross-kind files refuse without replacing the seed or any later accepted state.
+
+`save(persist)` captures `getSavePayload()`, awaits persistence, then acknowledges that exact payload with `markSaved`. It never saves raw corrective fields or treats a browser download click as disk proof. A signed whole-document comparison suppresses a true no-op before preparing Apply; the bare session does not add that policy. Required WebGPU startup, physical files, pixels and recovery still need their own actual-device checks. The unresolved [arrow-control report #1573](https://github.com/barocss/barocss/issues/1573) is not fixed or verified by these numeric examples.
+
+## Historical Source1 and mixed-depth examples
 
 ## Create a complete source document
 
