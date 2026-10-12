@@ -10086,3 +10086,62 @@ symbolic authoring vertex labels for explicit pairings, never coordinate-hash
 identity. Invalid topology, nonexact lifts and forged data preserve the previous
 result. GPU/browser presentation, packed interop #801 and broader integration
 verification remain separate.
+
+### Bounded numerical circle and interior segment tangency
+
+`buildXYCircularNumericalSketch` adds a separate
+`barocss-xy-circular-numerical-sketch` version 0 document with profile
+`bounded-radius-interior-tangent-v0`, mm lengths and rad angles.
+`solveXYCircularNumericalSketch` returns success or bounded diagnostics;
+`validateXYCircularNumericalSketch` completely rebuilds an owned result to check
+self-consistency, not authenticity. Existing exact, affine and numerical v0 APIs
+are unchanged.
+
+The document has `id`, `points`, `segments`, `circles`, `constraints` and
+`branchGuards` in addition to its format/version/profile/units. A circle is
+`{id, centerPointId, radius:{id,valueMM}, seamId}`. All declaration IDs are
+unique ASCII identifiers of at most 48 characters. In addition to the existing
+six numerical constraint kinds, `{id,kind:'radius',circleId,radiusMM}` drives a
+radius and `{id,kind:'line-circle-tangent',segmentId,circleId,side:'left'|'right'}`
+drives tangency. Circle centers reference real point unknowns; radius is a
+positive scalar unknown. Neither center nor radius is represented by a fake
+native pole or endpoint.
+
+Bounds: 1–16 points, 0–8 segments, 1–4 circles, at most 32 scalar unknowns,
+32 constraints/64 scalar residuals and 16 authored branch guards. Unknowns are
+point XY coordinates in authored order followed by circle radii. Coordinates
+and all circle pole extrema stay within ±10000 mm; radii are 0.001–10000 mm and
+segments are at least 0.001 mm. Every seed and accepted iterate must put each
+circle on its authored side of the directed segment with perpendicular contact
+strictly inside that finite segment. Endpoint or supporting-line-extension
+contact refuses. There is no clamping, tolerance widening or automatic side
+selection. Contacts report analytic segment fractions and construction XY
+coordinates, not circle NURBS parameters.
+
+The deterministic damped local solve reuses the existing numerical residual
+engine and column-pivoted Householder QR. Limits remain 100 iterations/1200
+evaluations, 1e-7 mm/1e-9 rad residual tolerances and 1e-10 relative rank threshold.
+Rank and DOF are local numerical diagnostics; nonconvergence does not prove
+inconsistency, nor does a seed-dependent root imply a global closest solution.
+The full result owns its authored document, solved points/radii, residuals,
+contacts and construction bindings.
+
+Native construction calls the unchanged `buildXYArc` for each solved circle,
+then compiles one actual source0/mm Model with degree-one segments followed by
+degree-two rational circles. A circle has nine poles, alternating unit and
+sqrt(1/2) weights, domain [0,4], and a +X seam binding to poles 0/8 and parameters
+0/4. It is endpoint-closed and nonperiodic; the center remains a construction
+point. Existing interior-knot D1 refusals remain. Native source is capped at
+262144 characters and bytes. No region, solid, topology or manufacturing
+certification is claimed.
+
+The reproducible demo verifies an oblique two-rail circle, radius editing with
+stable IDs, native coefficients and sample points, bounded refusals, and actual
+source/owned cold round trips using signed-zero-preserving structural JSON:
+
+```sh
+node examples/cad-nurbs/xy-circular-numerical-sketch-demo.mjs --controls /tmp/circular-controls
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/xy-circular-numerical-sketch-demo.mjs --source /tmp/circular-source
+node examples/cad-nurbs/xy-circular-numerical-sketch-demo.mjs --emitted /tmp/circular-emitted
+```
