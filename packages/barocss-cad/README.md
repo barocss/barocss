@@ -10292,3 +10292,42 @@ Focused actual-authoring source/emitted/cold example:
 The five-edge beveled footprint produces seven facets and exact6336mm³; editing
 its authored bevel produces6384mm³. Plane split composition is separate and must
 consume the actually adopted splitter API; no split implementation is embedded.
+
+### Exact intersection of two qualified convex planar Solids (#1594)
+
+`intersectConvexPlanarSolids(left, right, { operationId, solidId, resultIdPrefix })`
+reconstructs both complete #1589 inputs once and clips every original facet by the
+other occupied halfspace set. It constructs only surviving final native Faces,
+retaining the selected original supporting Surface and chart. Temporary rational
+crossings may be non-binary64; final coordinates and whole pcurve lifts must pass
+unchanged exact native admission. No tolerance welding, rounding, fitted charts,
+intermediate public split calls, or external geometry kernel is used.
+
+The atomic outcome is one qualified Solid or regularized empty, with contact rank
+-1 (disjoint), 0 (point), 1 (segment), or 2 (face); occupied results have rank 3.
+Coincident same-oriented facets must prove identical complete clipped coverage
+before becoming one output facet. Lineage keeps all operand-role-qualified source
+associations, complete supporting incidence and directed original edge parameter
+intervals, including original non-unit domains. Native generated ordinals are
+local to this evaluation, not certified persistent names. Identical operands may
+reuse namespaces because operand roles disambiguate them.
+
+`validateConvexPlanarSolidIntersection(result)` reconstructs the complete operation
+and compares all retained fields. This certifies owned-data self-consistency, not
+authenticity. `ConvexPlanarSolidIntersectionError` retains code, stage, entity and
+cause. Unsupported final representation, original-chart binding, ambiguous
+incidence, inventories and hostile descriptors fail without partial output.
+
+Bounds: each input/output <=12 facets, 8 edges/facet, 64 uses, 32 vertices/pairs,
+40 fan triangles; <=288 clipping passes, 20 temporary polygon vertices, 5760
+classifications, 576 crossings, 768 candidate records; <=48 Face compilations,
+768 binding observations/2304 D1. Root rational work <=200000 operations/GCD and
+8192-bit integers; at most four contexts aggregate <=800000. Descriptor-safe root
+signed-JSON occurrence ceilings are input32MiB/result64MiB/cumulative192MiB and
+retained128MiB; child ledgers are unchanged. These are bounds, not heap telemetry.
+
+Focused authored recipe, source/emitted parity and separate cold reconstruction:
+`NODE_OPTIONS=--max-old-space-size=2048 node examples/cad-nurbs/convex-planar-solid-intersection-demo.mjs --source|--emitted|--cold OUTPUT_DIRECTORY`
+with pinned Node22.23.3 and an affected CAD build before emitted/cold modes. This
+is a bounded convex planar intersection leaf, not union/subtraction, nonconvex
+Boolean, holes, curved faces, general sewing or commercial CAD completion.
