@@ -30,11 +30,21 @@ Accepted documents and candidates are immutable. Await `commitPrepared`; concurr
 
 Native Light errors use `RenderEditorError` codes including `DOCUMENT_INPUT`, `DOCUMENT_VERSION`, `DOCUMENT_BYTES`, `SOURCE_REFUSED`, `STALE_CANDIDATE`, `PRESENTATION_REFUSED`, `HISTORY_LIMIT` and `DISPOSED`, with reached provider causes retained. Correct data and reprepare after an ordinary refusal. An indeterminate acknowledgement or lost/unavailable presentation requires explicit disposal/remount. Retained CPU authorship is not retained pixels. The host must fence file reads and asynchronous actions, dispose its owned session, and clean up startup that completes after closure.
 
+### Local viewport navigation limits
+
+The [Light workbench navigation controls](./guides#navigate-a-local-viewport-camera) use the same strict camera bounds and raw-value admission above. The existing session's `navigateViewportCamera` and `resetViewportCamera` require a current expected version and an awaited result. Local view changes advance session/Viewer generations only: accepted authorship, raw drafts, document/catalog revisions, Save identity and history stay unchanged. Exact signed-value camera no-ops make no Viewer request. The camera is not added to the saved document unless the clean-only **Set scene camera** action accepts it through one whole-scene Apply.
+
+There is at most one in-flight workbench presentation and one latest desired target, accumulated from new inputs rather than the stale acknowledged camera. Drag/queued/pending input fences author/file actions. Cancellation, blur/capture loss and changed CSS rectangles discard queued motion, not an already submitted or acknowledged update. **Scene camera** is a separate acknowledged reset. Ordinary Apply/Undo/Redo retain an active local override; successful Open/new lifetime resets it, while refused Open retains it.
+
+Recoverable refusal retains the last acknowledged camera and accepted/raw state. Unexpected rejection or malformed/inconsistent acknowledgement is indeterminate and requires explicit disposal/remount. ACK followed by device loss still records acknowledged metadata with unavailable live status; it does not promise a visible frame. Disposal/replaced-workspace fences prevent late completion from reviving the old lifetime. Original validation failures and backend causes remain observable.
+
+Directional and point Viewer replacement currently rebuilds complete candidates/resources. Coalescing bounds concurrent work; it is not a camera-only GPU fast path, measured performance result, smoothness or 60 fps guarantee. The bounded software checks use actual input/math/codec/session behavior with controlled Viewer, DOM geometry, pointer capture and RAF boundaries. Physical browser/GPU/device behavior remains unverified by those checks.
+
 ### Evidence boundary
 
 The complete [scene downloads and shared host](./examples#native-light-scene-downloads) expose original authoring data and a bounded source-consumer workflow. Controlled Viewer acknowledgements can verify software transactions; they do not establish actual WebGPU availability, rendered pixels, picking, physical file dialogs/persistence or integrated device recovery. No Native Light screenshot or physical rendering result is asserted here.
 
-The numeric body fields do not establish a fix for [the physical arrow-control report #1573](https://github.com/barocss/barocss/issues/1573), which remains open and unresolved. Arbitrary mixed/spot lighting, local navigation gestures in this route, numeric rotation/visibility controls and native geometry editing are outside this workbench.
+The numeric body fields and local camera controls do not establish a fix for [the physical arrow-control report #1573](https://github.com/barocss/barocss/issues/1573), which remains open and unresolved. Arbitrary mixed/spot lighting, numeric rotation/visibility controls and native geometry editing are outside this workbench.
 
 ## Source format
 
