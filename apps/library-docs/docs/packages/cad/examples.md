@@ -6,6 +6,10 @@ Compile original geometry, query it, then prepare a separate display mesh. These
 
 [Open the CAD playground](/playground#cad-surface) · [Compiler API](./api#core-signatures) · [Surface sampling guide](./guides#sample-a-surface-for-display)
 
+## Divide a paired-roof Body
+
+The [paired-roof Body split example](./paired-roof-body-split) shows a compile-only typed application boundary over complete existing parents, explains the recorded 9/128 + 9/128 = 9/64 mm³ fixture, and links the existing native demonstration without running it automatically.
+
 ## More editable language examples
 
 Use [CAD language practice](./language-examples) for weighted parameters, curved extrusion and nonunit Curve domains. Read the native values alongside each fitted display.

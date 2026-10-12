@@ -2,6 +2,10 @@
 
 Use the task contracts below to check inputs, ownership, errors and lifecycle. Follow [Examples](./examples) for complete application inputs.
 
+## Split a paired-roof occupied Body
+
+The [paired-roof Body split guide](./paired-roof-body-split) documents `splitPairedRoofDifferenceBody` and `validatePairedRoofBodySplit`: complete parent inputs, fixed child options, two closed outputs, shared native cut, exact partition proof, ownership and bounded cost. Its source checkpoint and native campaign evidence are separate from the earlier core API profile.
+
 ## Original section edits and a dependent Loft
 
 The [NURBS Loft graph guide](./nurbs-loft-graph) covers the newer public `evaluateNurbsSourceLoftFeatureGraph`, `updateNurbsSourceLoftFeatureGraph`, both whole-result validators, and authored `serializeNurbsSourceLoftFeatureGraph` / `parseNurbsSourceLoftFeatureGraph`. It includes complete input, selective updates and a numeric before/after view. These version 0 APIs are available in the newer CAD provider identified in that guide; the core operations below retain their earlier source profile.
