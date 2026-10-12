@@ -116,3 +116,6 @@ export type { CadEditorBodyRenameProps } from './body-rename.js';
 export { CadEditorDrivingSketchEditor } from './driving-sketch-editor.js';
 export type { CadEditorDrivingSketchEditorProps, CadEditorDrivingSketchDisplayOptions,
   CadEditorDrivingSketchDisplayReceipt, CadEditorDrivingSketchFrameReceipt } from './driving-sketch-editor.js';
+
+export { CadEditorSolidSplit } from './solid-split-editor.js';
+export type { CadEditorSolidSplitProps } from './solid-split-editor.js';

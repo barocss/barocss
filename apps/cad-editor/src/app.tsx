@@ -15,6 +15,7 @@ import { FeatureApp } from './feature-app';
 import { LoftApp } from './loft-app';
 import { AssemblyApp } from './assembly-app';
 import { DrivingSketchApp } from './driving-sketch-app';
+import { SolidSplitApp } from './solid-split-app';
 import { ReplacementDialog } from './replacement-dialog';
 import { RecoveryDialog } from './recovery-dialog';
 import { buildRecoveryRecord, readRecoverySlot, writeRecoveryCopy, deleteRecoveryCopy, RECOVERY_CHANGE_CHANNEL, type RecoveryRecord, type RecoverySlot } from './recovery-storage';
@@ -443,6 +444,7 @@ function DirectApp() {
           <MenubarItem disabled={modelBusy} onSelect={() => { if (!commandBlocked() && !duplicateCaptured()) location.hash = '/lofts/loft_supported_graph'; }}>New NURBS loft</MenubarItem>
           <MenubarItem disabled={modelBusy} onSelect={() => { if (!commandBlocked() && !duplicateCaptured()) location.hash = '/assemblies/assembly_editor_fixture'; }}>New assembly</MenubarItem>
           <MenubarItem disabled={modelBusy} onSelect={() => { if (!commandBlocked() && !duplicateCaptured()) location.hash = '/sketches/driving_lines_document'; }}>New driving Sketch</MenubarItem>
+          <MenubarItem disabled={modelBusy} onSelect={() => { if (!commandBlocked() && !duplicateCaptured()) location.hash = '/solids/split'; }}>Solid Split</MenubarItem>
           <MenubarSeparator/><MenubarItem onSelect={showRecovery} disabled={modelBusy}>Recovery copies…</MenubarItem>
           <MenubarItem disabled={layout.resizing} onSelect={() => run(downloadCurrent)}>Download accepted document</MenubarItem>
           <MenubarSeparator/><MenubarItem disabled={layout.resizing} onSelect={() => { location.hash = '/projects'; }}>Projects</MenubarItem>
@@ -548,14 +550,14 @@ function DirectApp() {
 }
 
 export function App() {
-  const routeMode = () => location.hash.startsWith('#/sketches/') ? 'driving' : location.hash.startsWith('#/assemblies/') ? 'assembly' : location.hash.startsWith('#/lofts/') ? 'loft' : location.hash.startsWith('#/features/') ? 'feature' : 'direct';
+  const routeMode = () => location.hash === '#/solids/split' ? 'split' : location.hash.startsWith('#/sketches/') ? 'driving' : location.hash.startsWith('#/assemblies/') ? 'assembly' : location.hash.startsWith('#/lofts/') ? 'loft' : location.hash.startsWith('#/features/') ? 'feature' : 'direct';
   const [mode, setMode] = useState(routeMode);
-  const [visited, setVisited] = useState(() => ({direct:routeMode()==='direct',feature:routeMode()==='feature',loft:routeMode()==='loft',assembly:routeMode()==='assembly',driving:routeMode()==='driving'}));
+  const [visited, setVisited] = useState(() => ({direct:routeMode()==='direct',feature:routeMode()==='feature',loft:routeMode()==='loft',assembly:routeMode()==='assembly',driving:routeMode()==='driving',split:routeMode()==='split'}));
   useEffect(() => {
     const update = () => {
       const next = routeMode();
       setMode(next);
-      setVisited(prior => ({direct:prior.direct || next==='direct',feature:prior.feature || next==='feature',loft:prior.loft || next==='loft',assembly:prior.assembly || next==='assembly',driving:prior.driving || next==='driving'}));
+      setVisited(prior => ({direct:prior.direct || next==='direct',feature:prior.feature || next==='feature',loft:prior.loft || next==='loft',assembly:prior.assembly || next==='assembly',driving:prior.driving || next==='driving',split:prior.split || next==='split'}));
     };
     window.addEventListener('hashchange', update);
     return () => window.removeEventListener('hashchange', update);
@@ -565,5 +567,6 @@ export function App() {
     {visited.feature && <div className="cad-mode" hidden={mode!=='feature'}><FeatureApp /></div>}
     {visited.loft && <div className="cad-mode" hidden={mode!=='loft'}><LoftApp /></div>}
     {visited.assembly && <div className="cad-mode" hidden={mode!=='assembly'}><AssemblyApp /></div>}
-    {visited.driving && <div className="cad-mode" hidden={mode!=='driving'}><DrivingSketchApp /></div>}</>;
+    {visited.driving && <div className="cad-mode" hidden={mode!=='driving'}><DrivingSketchApp /></div>}
+    {visited.split && <div className="cad-mode" hidden={mode!=='split'}><SolidSplitApp /></div>}</>;
 }

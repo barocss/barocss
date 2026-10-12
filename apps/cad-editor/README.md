@@ -517,3 +517,30 @@ controls/Help/footer. Canvas Surface dragging, axis Gizmo, snapping/live shape
 preview and full Autodesk/Plasticity-level modeling remain planned required
 product work. No broader profile/device/numerical/durability/commercial parity
 is certified by this bounded native workflow.
+
+## Solid Split route
+
+Open `#/solids/split` for the authentic translated-strip constant-Y sample. The
+route starts with the complete original Body; Split shows both children in one
+explicit legacy WebGL2 canvas. Previously visited app sessions remain mounted.
+The fixture is 8,240 bytes, SHA256
+`b558f2f4bb29d97080032e74c1839e75558c3a04bd28c8966ecad5d5b0910a56`.
+
+Bounded CPU/controller verification uses
+`node apps/cad-editor/flows/solid-split-workspace-flow.mjs --controller --evidence <directory>`
+followed by ONE serial `--native` run, never automatic reruns. Before native
+execution, complete Editor type-check/library build, app build, changed-file lint
+and emitted React/type smoke. Admit at least 500,000,000 free disk bytes, cap Node
+heap at 2,048 MiB and the complete process tree at 60 minutes. The run budget is
+four native parses, one cut edit/additional split, two explicit serializations
+and ten complete-Body meshes across initial/first Split/Undo/Redo/cold Open/edit.
+The harness records phase timing and partial receipts; timeout means incomplete.
+Controlled renderer receipts establish call order, not physical pixels.
+
+External visual checklist (not replaced by CPU tests): original Body → both
+complete children with shared depth; qualified Body/Face tree and approximate
+canvas selection; Fit original/pair/selected; Undo original and Redo pair; actual
+native download → fresh file picker Open → Cut Y 3→4 → second download; dirty
+replacement cancellation; hidden-route draft retention; viewport resize; context
+loss and explicit fresh-canvas recovery; repeated mount/dispose. Canvas cut grip,
+general-cut capability and commercial completion remain outside this increment.

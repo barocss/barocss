@@ -497,3 +497,45 @@ text.assembly-translation-guide[data-axis="z"] { fill:#8babcf; stroke:none; }
 .pole-axis-feedback { position:absolute; right:8px; bottom:8px; max-width:184px; padding:4px 7px; border:1px solid #414a50; border-radius:4px; background:#22292ded; color:#c2cdd4; font-size:11px; line-height:1.4; pointer-events:none; }
 .pole-axis-feedback p { margin:0; }
 @media(max-width:799px) { .cad-editor-canvas-command-rail { top:92px; right:8px; } .cad-editor-canvas-command-rail[data-view-kind="curve-focus"] { top:92px; } }
+
+/* Exclusive complete-Body Solid Split workspace. */
+.cad-solid-split { display:flex; flex-direction:column; position:relative; min-height:620px; height:calc(100dvh - 40px); background:#171c22; color:#dce2ea; font:13px/1.5 system-ui,sans-serif; }
+.cad-solid-split * { box-sizing:border-box; }
+.cad-solid-split h1 { margin:0; font-size:20px; }
+.cad-solid-split h2 { margin:0 0 12px; font-size:13px; font-weight:600; }
+.cad-solid-split p { margin:8px 0; color:#aebcca; }
+.cad-solid-split button,.cad-solid-split input { font:inherit; color:inherit; border:1px solid #465363; border-radius:5px; background:#27313d; padding:7px 10px; }
+.cad-solid-split button { cursor:pointer; }
+.cad-solid-split button:disabled { opacity:.45; cursor:default; }
+.cad-solid-split button[aria-pressed="true"] { border-color:#b8d599; background:#354536; }
+.cad-solid-split :is(button,input,canvas):focus-visible { outline:2px solid #c6e6a5; outline-offset:2px; }
+.cad-solid-split-header { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:16px 20px; border-bottom:1px solid #34404d; }
+.cad-solid-split-header p { margin:3px 0 0; font-size:11px; }
+.cad-solid-split-filename { max-width:40%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#b6c4d2; }
+.cad-solid-split-toolbar { display:flex; flex-wrap:wrap; gap:6px; padding:10px 16px; border-bottom:1px solid #34404d; }
+.cad-solid-split-main { display:grid; grid-template-columns:minmax(180px,230px) minmax(220px,1fr) minmax(220px,280px); flex:1; min-height:360px; overflow:hidden; }
+.cad-solid-split-tree,.cad-solid-split-inspector { padding:16px; overflow:auto; }
+.cad-solid-split-tree { border-right:1px solid #34404d; }
+.cad-solid-split-tree section { margin-bottom:12px; }
+.cad-solid-split-tree button { width:100%; text-align:left; overflow-wrap:anywhere; font-size:11px; }
+.cad-solid-split-tree ul { list-style:none; margin:6px 0; padding-left:12px; }
+.cad-solid-split-tree li { margin:4px 0; }
+.cad-solid-split-viewport { position:relative; min-width:0; min-height:360px; background:#11161b; }
+.cad-solid-split-viewport canvas { display:block; width:100%; height:100%; min-height:360px; touch-action:none; }
+.cad-solid-split-overlay { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:24px; background:#171c22e8; }
+.cad-solid-split-overlay p { max-width:380px; }
+.cad-solid-split-inspector { border-left:1px solid #34404d; font-size:12px; }
+.cad-solid-split-inspector label { display:block; margin-bottom:5px; }
+.cad-solid-split-inspector input { width:100%; }
+.cad-solid-split-inspector h2:not(:first-child) { margin-top:24px; }
+.cad-solid-split-actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+.cad-solid-split-actions button:first-child { background:#b8d599; border-color:#b8d599; color:#172212; }
+.cad-solid-split-inspector dt { color:#95a8bb; margin-top:8px; }
+.cad-solid-split-inspector dd { margin:0; overflow-wrap:anywhere; }
+.cad-solid-split-error { padding:10px 16px; margin:0!important; background:#432830; color:#ffcfcd!important; overflow-wrap:anywhere; }
+.cad-solid-split-status { display:flex; flex-wrap:wrap; gap:8px 20px; padding:9px 16px; border-top:1px solid #34404d; font-size:11px; color:#b5c4d0; }
+.cad-solid-split-confirm { position:fixed; margin:auto; color:inherit; width:min(480px,90%); padding:24px; border:1px solid #73859a; border-radius:10px; background:#242e39; box-shadow:0 16px 80px #0008; z-index:10; }
+.cad-solid-split-confirm::backdrop { background:#0009; }
+.cad-solid-split-confirm button { margin:12px 8px 0 0; }
+@media(max-width:850px) { .cad-solid-split { height:auto; min-height:calc(100dvh - 40px); } .cad-solid-split-main { grid-template-columns:minmax(150px,200px) minmax(220px,1fr); overflow:visible; } .cad-solid-split-inspector { grid-column:1/-1; border-top:1px solid #34404d; border-left:0; } .cad-solid-split-viewport { min-height:400px; } }
+@media(max-width:480px) { .cad-solid-split-main { display:flex; flex-direction:column; } .cad-solid-split-tree { max-height:240px; border-bottom:1px solid #34404d; } .cad-solid-split-viewport { height:400px; } .cad-solid-split-filename { display:none; } }

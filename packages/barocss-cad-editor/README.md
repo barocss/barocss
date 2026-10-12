@@ -989,3 +989,28 @@ Driving dimension and fixed-point overlays show status only during an actual ges
 ### Document command icons
 
 The original-document editor uses 16px icons in 32px buttons for Open, Download, Fit and Fit selected. Each button retains its previous name through its accessible label and title. File selection, authored downloads, camera fitting, disabled guards and keyboard activation keep their existing behavior. Direction names, editable values, errors and active decisions remain readable.
+
+### Constant-Y Solid Split workspace (bounded)
+
+`CadEditorSolidSplit` from `@barocss/cad-editor/react` owns one native Split
+session and one explicitly labelled opaque legacy WebGL2 canvas. Supply genuine
+`initialAuthoredText`; optional `initialPresentation` defaults to `original`,
+`initialFilename` defaults to `solid-split.translated-strip-plane-split.json`, and
+`className` scopes the host. These props seed one mount, not later replacements.
+
+The original complete six-Face Body and both complete six-Face children use the
+same native authority, qualified approximate triangle selection, camera and depth.
+Numeric Cut Y is applied only by Split. Display admission/update must succeed
+before native session acceptance. A failed rollback makes pixels unavailable while
+retaining native authority. Context loss requires an explicit fresh canvas mount.
+Fit changes only the camera; Undo restores original and Redo the pair. Hidden
+routes retain session/draft state and dispose their canvas resources.
+
+Open requires a genuine bounded authored file and explicit dirty replacement.
+Save downloads only accepted native Split authority, excluding pending fields;
+original-only Save is unsupported. “Download started” is not disk-persistence
+verification. No generic cuts, paired-roof result casting, default-WebGPU policy
+change, native API change or Canvas cut grip is included. The native operations
+are synchronous and can take minutes; cancellation applies at asynchronous
+boundaries, not inside reconstruction. CPU/controller tests do not establish
+physical WebGL pixels or browser file-picker/download behavior.
