@@ -513,3 +513,6 @@ export type { XYAffineSketchPoint, XYAffineSketchSegment, XYAffineSketchReferenc
 // Bounded chained exact orthogonal solids; complete source-qualified result operands.
 export { buildOrthogonalSolidBoolean, validateOrthogonalSolidBoolean, OrthogonalSolidBooleanError, OrthogonalSolidBooleanDiagnosticCode } from './orthogonal-solid-boolean.js';
 export type { OrthogonalSolidBooleanOperand, OrthogonalSolidBooleanOptions, OrthogonalSolidBooleanResult, OrthogonalSolidBooleanReport } from './orthogonal-solid-boolean.js';
+
+export { buildXYNumericalSketch, solveXYNumericalSketch, validateXYNumericalSketch, XYNumericalSketchError, XYNumericalSketchDiagnosticCode } from './xy-numerical-sketch.js';
+export type { XYNumericalSketchPoint, XYNumericalSketchSegment, XYNumericalSketchConstraint, XYNumericalSketchBranchGuard, XYNumericalSketchDocumentV0, XYNumericalSketchResidual, XYNumericalSketchReport, XYNumericalSketchSuccess, XYNumericalSketchDiagnostic, XYNumericalSketchResult } from './xy-numerical-sketch.js';

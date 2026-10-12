@@ -9917,3 +9917,93 @@ pnpm --filter @barocss/cad build:library
 node examples/cad-nurbs/orthogonal-solid-boolean-demo.mjs --emitted /tmp/orthogonal-solid
 node examples/cad-nurbs/orthogonal-solid-boolean-demo.mjs --cold /tmp/orthogonal-solid
 ```
+
+### Bounded numerical XY lengths and signed angles (v0)
+
+`buildXYNumericalSketch`, `solveXYNumericalSketch`, and
+`validateXYNumericalSketch` implement a **separate numerical profile**:
+`format: 'barocss-xy-numerical-sketch'`, `version: 0`,
+`profile: 'bounded-length-angle-v0'`, explicit `lengthUnit: 'mm'` and
+`angleUnit: 'rad'`. This does not change or delegate through the exact affine
+or linear solvers; their exact representability refusals, including 1/3, remain.
+The exact root fields are `format/version/profile/id/lengthUnit/angleUnit/points/
+segments/constraints/branchGuards`. `branchGuards` is required; `[]` means none.
+Points have `{id,position:[x,y]}` and directed segments have
+`{id,startPointId,endPointId}`. Global ASCII IDs are unique, at most48 characters.
+
+Constraint records always have `id` and `kind`, plus exactly:
+
+- `fixed`: `pointId,target:[x,y]`
+- `coincident`: `pointA,pointB` (two scalar residuals)
+- `horizontal` / `vertical`: `segmentId`
+- `length`: `segmentId,lengthMM`, true Euclidean length, at least0.001mm
+- `signed-angle`: `segmentA,segmentB,angleRad`, directed A-to-B in (-π,π]
+
+Optional authored guards use exact records:
+`{id,kind:'positive-projection',segmentId,direction:[x,y]}` requires positive
+projection onto the nonzero authored normalized direction;
+`{id,kind:'oriented-triplet',pointA,pointB,pointC,orientation:'ccw'|'cw'}`
+requires strictly signed cross product. Seed and every accepted iterate must
+satisfy all guards. These are accepted-state branch guards, not a certificate
+for every point along an interpolated drag path. There is no automatic branch
+choice or global closest-root guarantee. Seeds determine the local outcome.
+
+Admission copies own plain data (foreign prototypes, accessors, symbols,
+hidden fields, sparse arrays, cycles and nonfinite values refuse). Input budget:
+4096 values, depth8, arrays64, records16, strings128; owned-result reconstruction:
+131072 values, depth32, arrays256, records64, strings262144. Reflection may run
+Proxy traps; thrown causes are retained without inspecting them. This is not
+Proxy authenticity or a zero-trap promise. Model limits:2..16 points,1..8
+segments,0..32 constraints,0..16 guards,64 scalar residuals,32 variables;
+coordinates/fixed targets/authored direction components within ±10000. All
+segments, including unconstrained ones, must stay at least0.001mm. Length targets
+cannot exceed20000√2mm.
+
+The deterministic local damped least-squares algorithm uses analytic Jacobians
+and column-pivoted Householder QR. Recomputed column norms select the first
+current column on ties; input constraint order and point XY order are retained.
+The objective is the sum of squared dimensionless residuals (linear/1mm,
+angular/1rad). Angular residuals wrap to (-π,π]. Damping starts at1e-3, divides
+by3 on acceptance (floor1e-12), multiplies by10 on rejection (ceiling1e12).
+At most100 iterations,12 candidate trials per iteration and1200 evaluations;
+stalled maximum damping refuses early. No tolerance relaxation or snapping.
+Final linear residuals must be ≤1e-7mm and angular residuals ≤1e-9rad.
+The independent final coefficient evaluation is included in the evaluation count.
+
+Reports retain actual/target/residual/unit/tolerance for every scalar equation,
+objective, numerical rank, threshold, local DOF, iterations/evaluations and
+termination. Rank threshold is max(1,max absolute QR diagonal)×1e-10 on the
+normalized final Jacobian. Rank/DOF are **local numerical** observations, never
+exact/global constraints, an inconsistency proof or a manufacturing tolerance
+certificate. Redundant equations may coexist with a successful solution;
+scalar residual count and rank are separately reported. A failed bounded solve
+returns `NONCONVERGENCE`, not blanket conflict. Schema/reference/limit/branch/
+degenerate/numerical/budget/compiler/owned-result refusals remain distinguishable.
+`solve` returns diagnostics only on failure; `build` throws a qualified error.
+Neither exposes partial geometry.
+
+Only independently rechecked final coefficients are compiled into original
+native degree1 XY/Z=0 Curves. Compiler output must match every solved endpoint
+and stable segment ID exactly. Results own copied CPU data and use GC, with no
+renderer resources. Whole-result validation deterministically reconstructs
+all data and proves self-consistency, not authenticity/history. This profile
+adds no GUI, drag transaction, feature propagation, general nonlinear solver,
+curved constraint, topology or professional CAD parity claim.
+
+Bounded executable brace flow (Node22):
+
+```sh
+node examples/cad-nurbs/xy-numerical-sketch-demo.mjs --controls /tmp/xy-numerical-controls
+node examples/cad-nurbs/xy-numerical-sketch-demo.mjs --source /tmp/xy-numerical-source
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/xy-numerical-sketch-demo.mjs --emitted /tmp/xy-numerical-emitted
+```
+
+Each source/emitted flow starts a cold child process, reopens saved documents,
+rebuilds complete results and recompiles saved original native source. The
+brace starts with fixed A, horizontal40mm AB,30mm AC and37° AB→AC, positive-X
+and CCW guards; edit35mm/42° keeps original IDs. Controls include analytic
+Jacobian finite differences, known QR rank/solutions, underconstrained and
+redundant systems, incompatible dimensions, branch/degenerate/input capacity
+refusals, accessor/hostile-cause safety, complete-result tampering and preserved
+exact-affine1/3 refusal. Example angles explicitly convert degrees to radians.
