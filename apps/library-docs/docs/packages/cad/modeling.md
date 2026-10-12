@@ -119,7 +119,7 @@ A caller may instead build only a genuinely nonempty side from an outside/tangen
 
 In **Modeling examples**, choose **Split a part**, keep **Z · lower / upper**, acknowledge replacement and load it. The original cut/chamfer default and overlap choice remain available. The existing controller owns replacement, cancellation, drafts and history; lower/upper flow through the same named-output display and selection path. A refused or cancelled load preserves the previously accepted model and pending dimensions.
 
-This Z example splits a direct XY extrusion horizontally. The current API also supports X/Y planes as described next. A model may contain one split OR one cut OR one intersection, not a mixture. Oblique planes and repeated/nested splits remain unsupported. The separate beveled-part example below extends split parents to one/two owned chamfers rooted at a direct extrusion. This example does not demonstrate chamfering a split side.
+This Z example splits a direct XY extrusion horizontally. The current API also supports X/Y planes as described next. A model may contain one split OR one cut OR one intersection, not a mixture. The fixed `plane: 'x+y'` miter has its own example below; arbitrary oblique planes and repeated/nested splits remain unsupported. The separate beveled-part example below extends split parents to one/two owned chamfers rooted at a direct extrusion. This example does not demonstrate chamfering a split side.
 
 The [split source](https://github.com/barocss/barocss/blob/142f4e5d745e1494771a530e293b374d1d29bcb2/packages/barocss-cad/src/modeling.ts) and [native receipt](https://github.com/barocss/barocss/blob/142f4e5d745e1494771a530e293b374d1d29bcb2/packages/barocss-cad/test/modeling-split-evidence/verification.json) record the baseline, edit and fresh-process results above. Lightweight tracing compares the exact five parameter/sketch/extrude/split calls and named output mapping of this download, the editor and the provider fixture, including signed zero. The provider's two genuine baseline tessellations are replayed through the actual controller with a mocked Worker; both CPU geometries and approximate CPU picks retain their lower/upper identities. This is not a second native execution or an editor browser/GPU test.
 
@@ -145,7 +145,7 @@ Exact native representation still matters. On this **X** fixture, setting `rearX
 
 <<< ../../public/examples/modeling-cardinal-split.ts#refused-cardinal
 
-Outside/tangent empty-side requests retain the same `SELECTION` behavior as Z. This plain example admits world X/Y/Z planes on a direct XY extrusion: no oblique plane, nested split or mixed cut/intersection/split graph. Split-after-chamfer has its own bounded example and evidence below.
+Outside/tangent empty-side requests retain the same `SELECTION` behavior as Z. This plain preset offers world X/Y/Z planes on a direct XY extrusion; the fixed `x+y` miter is a separate preset below. Arbitrary oblique planes, nested splits and mixed cut/intersection/split graphs remain unsupported. Split-after-chamfer has its own bounded example and evidence below.
 
 The [cardinal split source](https://github.com/barocss/barocss/blob/72ba5eb5ba54a94666812ce99ebf5c10fd3f7290/packages/barocss-cad/src/modeling.ts) and [native receipt](https://github.com/barocss/barocss/blob/72ba5eb5ba54a94666812ce99ebf5c10fd3f7290/packages/barocss-cad/test/modeling-cardinal-split-evidence/verification.json) record the X/Y construction/edit results and fresh-process X sequence. Exact six-call authoring traces and output mappings match this download, the editor and the provider fixture for both X and Y. The genuine X baseline transport passes the existing controller and both negative/positive CPU picks. Y uses the producer's real native evidence plus authored recipe/routing/type checks, not a fabricated Y transport replay. No additional native campaign or editor GPU execution is implied.
 
@@ -225,6 +225,42 @@ The [derived-dimension source](https://github.com/barocss/barocss/blob/d9d0aa93f
 
 Consumer tracing matches all13 public construction calls and nested formula ownership across editor/download/provider. Both output volumes and geometry come from provider-native results. The actual new baseline save/summary/negative mesh is preserved (41,830 bytes). Its full native-body hash equals the earlier #1631 baseline; after verifying that pinned parity, the CPU test combines it with that earlier positive mesh. This is an explicitly **geometry-equivalent adapted transport replay** through the real controller with a mocked Worker, not a new two-body tessellation or sample-worker run. Both original input hashes remain recorded. Provider [#1634](https://github.com/barocss/barocss/issues/1634) and consumer [#1635](https://github.com/barocss/barocss/issues/1635) retain separate receipts. Editor browser/GPU/React interaction, physical file-picker flows and npm publication remain **UNRUN** by these checks; manual deployment is separate.
 
+## Split a 45° XY miter
+
+<a :href="withBase('/examples/modeling-miter.ts')" download>Download the complete typed miter example</a>
+
+A rectangular rail can be divided along the fixed vertical plane **X + Y = cutPosition**. This is a 45° XY miter: the plane runs along Z and the (+X, −Y) direction. `cutPosition` is a **coordinate-sum threshold in millimeters, not perpendicular distance**. Negative names the side below that sum; positive names the side above it. Both bodies share the cut boundary.
+
+<<< ../../public/examples/modeling-miter.ts#miter
+
+Choose **Modeling examples → Split a 45° XY miter**, acknowledge replacement, and load. This preset is a plain 32 × 24 × 8 mm extrusion with one **cutPosition · X + Y threshold (mm)** field. It has no bevels, axis selector or editable normal. All prior presets and their axis choices remain available. Selecting this option clears replacement acknowledgment without changing the accepted scene; loading succeeds atomically or retains the previous accepted model, pending dimensions and history on refusal/cancellation.
+
+| Accepted state | X + Y threshold (mm) | Negative / positive volume (mm³) |
+| --- | ---: | ---: |
+| Initial rail | 24 | 2304 / 3840 |
+| Move the cut | 32 | 3840 / 2304 |
+| Recover after an outside-60 refusal | 28 | 3072 / 3072 |
+| Save and reopen cold | 28 | 3072 / 3072 |
+| Re-edit the reopened rail | 24 | 2304 / 3840 |
+
+<<< ../../public/examples/modeling-miter.ts#edit-miter
+
+`miterWorkflow()` performs the successful construction/edit/save/reopen sequence. The saved plane token and negative/positive output identities stay fixed while the numeric driver moves the cut. An accepted cut-position edit reuses the sketch/extrusion feature indices `[0,1]` and evaluates split `[2]`. Cold `cad.load` evaluates all three; accepted output tessellation still runs. These are model-feature counts, not native timing or a count of all transitive native work.
+
+### Refuse an empty miter side without losing the rail
+
+<<< ../../public/examples/modeling-miter.ts#refused-miter
+
+At `cutPosition: 60`, requesting both outputs refuses with `CadModelError`, code `SELECTION`, operation `split`, and the original native cause: positive side, status `outside`, `sectionDimension: -1`. Keep the returned accepted snapshot and edit it to 28 to recover. The provider separately measured a lower tangent at signed −0: requesting only the positive side returns the unchanged 6144 mm³ parent, with section dimension1 at the vertical corner edge. That one-output tangent is a separate case, not this two-output preset; no empty Solid is fabricated. Upper-tangent behavior was not newly exercised.
+
+### Fixed miter token and measured limits
+
+Pass exactly one of `axis` or `plane`. The only non-cardinal token here is `plane: 'x+y'`; this is not a plane-expression parser. `at` uses existing owned dimensions and must resolve to a finite coordinate-sum length within ±10000 mm. Arbitrary normals, other diagonal equations, repeated/nested splits and mixed cut/intersection/split graphs remain unsupported. The six-feature limit and direct-XY-extrusion or its exact owned one/two-chamfer ancestry remain. Exact native affine/source/chart/crossing/pcurve/topology proofs can refuse an otherwise finite input, preserving the original cause; no rounding or clamping fallback is used.
+
+The producer also measured a **separate symmetric two-chamfer parent**: opposite top edges each chamfered by 2 mm, then split at sum28, yielded **3008 / 3008 mm³** from a 6016 mm³ parent. This picker preset has no bevel toggle. That provider case does not certify arbitrary bevel combinations or an oblique post-split chamfer.
+
+The [miter source](https://github.com/barocss/barocss/blob/a7bec3dd9f280b827200e2a6e34fc5bafed26e49/packages/barocss-cad/src/modeling.ts), [exact miterRail fixture](https://github.com/barocss/barocss/blob/a7bec3dd9f280b827200e2a6e34fc5bafed26e49/packages/barocss-cad/test/modeling-miter-fixture.mjs) and [native receipt](https://github.com/barocss/barocss/blob/a7bec3dd9f280b827200e2a6e34fc5bafed26e49/packages/barocss-cad/test/modeling-miter-evidence/verification.json) record the first campaign's **8 model calls and 2 baseline tessellations**. All four public construction calls and output mapping match the editor/download/provider recipe. The genuine **49,139-byte two-body baseline transport** passes the actual CPU controller, scene preparation and both named-output picks with a mocked Worker. This reuses measured geometry; it is not another native campaign or sample-worker execution. Provider [#1637](https://github.com/barocss/barocss/issues/1637) and consumer [#1639](https://github.com/barocss/barocss/issues/1639) retain separate receipts. Editor browser/GPU/React interaction, physical file-picker flows and npm publication remain **UNRUN** by these checks; Manual deployment is separate.
+
 ## 3. Read named outputs and evidence
 
 <<< ../../../scripts/snippets/modeling-api.ts#outputs
@@ -289,7 +325,7 @@ This loader accepts files from this modeling API. Existing versioned feature doc
 | Extrude | Positive +Z height up to 10000 mm; exact affine native prism qualification | Taper, sweep, nonpositive height or nonrepresentable native/chart lift |
 | Cut | Two distinct direct XY extrusions; X or Y through-slab supports; full coverage by the remaining tool supports | Arbitrary cutter, cavity, union, chained cut parent, failed tool coverage |
 | Intersect | Two distinct same-model direct XY extrusions; positive-volume exact convex-planar overlap | Disjoint/touching-only results, same handle, cut-plus-intersection, repeated/nested intersection, union or general Boolean solids |
-| Split | A direct XY extrusion or one/two owned serial chamfers rooted at it; world `axis: 'x'`, `'y'` or `'z'` with a finite coordinate; each selected side must be nonempty | Oblique plane, empty requested side, mixed cut/intersection/split graph, repeated/nested split |
+| Split | A direct XY extrusion or one/two owned serial chamfers rooted at it; world `axis: 'x'`, `'y'` or `'z'`, or fixed `plane: 'x+y'`, with a finite coordinate/coordinate-sum; each selected side must be nonempty | Arbitrary oblique plane, empty requested side, mixed cut/intersection/split graph, repeated/nested split |
 | Select | One exact cardinal-direction/endpoint-coordinate query on the same body | Zero/multiple matches, handles from another model/body, tolerance or persistent-topology matching |
 | Chamfer | Up to two serial owned cardinal-edge chamfers; second parent/selector from the first result; perpendicular signed-axis adjacent supports and supported endpoints; positive local setback | Sibling/third chamfer, stale selectors, curved or arbitrary-angle chamfer, zero/excessive/touching/nonlocal setback; unmeasured feature combinations |
 | Edit/load | Named finite-mm parameter batch; admitted unchanged-prefix reuse on the exact snapshot, cold build/load, independent new snapshots | Partial accepted candidate, arbitrary graph editing, implicit migration or cached geometry acceptance |

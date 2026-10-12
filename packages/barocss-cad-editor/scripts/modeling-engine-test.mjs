@@ -121,6 +121,12 @@ for (const splitAxis of [undefined, 'x', 'z']) {
   assert.equal(doc.nodes[4].axis, splitAxis ?? 'x');
   assert.deepEqual(doc.outputs, { negative: { node: 4, side: 'negative' }, positive: { node: 4, side: 'positive' } }); checks++;
 }
+const miterSample = sampleEngine({ id: ++id, kind: 'example', example: 'miter-split' });
+assert.equal(miterSample.ok, true); const miterGraph = JSON.parse(miterSample.text);
+assert.deepEqual(miterSample.summary.parameters, { cutPosition: 24 });
+assert.deepEqual(miterGraph.nodes.map(node => node.kind), ['sketch', 'extrude', 'split']);
+assert.deepEqual(miterGraph.nodes[2], { kind: 'split', parent: 1, plane: 'x+y', at: { parameter: 'cutPosition' } });
+assert.deepEqual(miterGraph.outputs, { negative: { node: 2, side: 'negative' }, positive: { node: 2, side: 'positive' } }); checks++;
 const derivedSample = sampleEngine({ id: ++id, kind: 'example', example: 'derived-split' });
 assert.equal(derivedSample.ok, true); const derivedGraph = JSON.parse(derivedSample.text);
 assert.deepEqual(derivedSample.summary.parameters, { width: 32, offset: 0, frontDistance: 1, backDistance: 2 });
@@ -128,7 +134,7 @@ assert.deepEqual(derivedGraph.nodes[4].at, { op: 'add', left: { op: 'scale', val
 assert.deepEqual(derivedGraph.nodes[0].profile, { width: { parameter: 'width' }, height: 24 });
 assert.equal(derivedGraph.nodes[4].axis, 'x'); assert.equal(derivedGraph.nodes[4].parent, 3);
 assert.equal(Object.hasOwn(derivedSample.summary.parameters, 'splitAt'), false); checks++;
-for (const [example, splitAxis] of [['derived-split', 'x'], ['derived-split', 'z'], ['derived-split', null], ['chamfer-split', 'y'], ['chamfer-split', 'q'], ['chamfer-split', null], ['chamfer-split', 1], ['chamfer-split', {}], ['horizontal-split', 'q'], ['horizontal-split', null], ['horizontal-split', 1], ['horizontal-split', {}], ['intersection', 'x'], ['cut-chamfer', 'z'], ['two-chamfer', 'x'], [undefined, 'y']]) {
+for (const [example, splitAxis] of [['miter-split', 'x'], ['miter-split', 'y'], ['miter-split', 'z'], ['miter-split', null], ['miter-split', {}], ['derived-split', 'x'], ['derived-split', 'z'], ['derived-split', null], ['chamfer-split', 'y'], ['chamfer-split', 'q'], ['chamfer-split', null], ['chamfer-split', 1], ['chamfer-split', {}], ['horizontal-split', 'q'], ['horizontal-split', null], ['horizontal-split', 1], ['horizontal-split', {}], ['intersection', 'x'], ['cut-chamfer', 'z'], ['two-chamfer', 'x'], [undefined, 'y']]) {
   const calls = sampleCalls;
   assert.equal(sampleEngine({ id: ++id, kind: 'example', example, splitAxis }).ok, false);
   assert.equal(sampleCalls, calls); checks++;
