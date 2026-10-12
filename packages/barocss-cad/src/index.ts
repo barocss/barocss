@@ -524,3 +524,5 @@ export type { XYCircularNumericalSketchPoint, XYCircularNumericalSketchSegment, 
 
 export { splitConvexPlanarSolid, validateConvexPlanarSolidSplit, ConvexPlanarSolidSplitError } from './convex-planar-solid-split.js';
 export type { ConvexPlanarSolidCutter, ConvexPlanarSolidSplitOptions, ConvexPlanarSolidSplitOutcome, ConvexPlanarSolidSplitNode, ConvexPlanarSolidSplitSegment, ConvexPlanarSolidSplitFaceLineage, ConvexPlanarSolidSplitReport, ConvexPlanarSolidSplitResult, ConvexPlanarSolidSplitDiagnosticCode } from './convex-planar-solid-split.js';
+export { buildXYAffineSketchPrism, validateXYAffineSketchPrism, resolveXYAffineSketchPrismWall, XYAffineSketchPrismError } from './xy-affine-sketch-prism.js';
+export type { XYAffineSketchPrismOptions, XYAffineSketchPrismWallReference, XYAffineSketchPrismFaceReference, XYAffineSketchPrismLineage, XYAffineSketchPrismReport, XYAffineSketchPrismResult, XYAffineSketchPrismWallResolution, XYAffineSketchPrismStage } from './xy-affine-sketch-prism.js';

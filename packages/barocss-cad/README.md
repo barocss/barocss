@@ -10234,3 +10234,61 @@ The example pins Node22.23.3 and uses V8 precise function-entry counts alongside
 operation work reports. This is a bounded local CPU/native modeling capability,
 not general BRep Boolean support, manufacturing-tolerance certification, GPU
 consumption, an editor workflow or a package-publication claim.
+
+### Authored convex sketch → exact-qualified +Z prism
+
+`buildXYAffineSketchPrism(sketchSuccess, options)` consumes a complete actual
+`buildXYAffineSketch` result, all segment IDs in one explicitly ordered directed
+cycle, a positive height, and one declared cap chart. It constructs bottom/top/wall
+native Faces and pairs their edges using authored point/segment identities before
+calling unchanged `qualifyConvexPlanarSolid`. No hand-built solid facets or old shell
+receipts are required. Existing rectangle extrusion APIs are unchanged.
+
+```js
+const part = buildXYAffineSketchPrism(sketchSuccess, {
+  sourceId: 'authored_profile', sourceRevision: 0,
+  orderedSegmentIds: ['floor', 'right', 'bevel', 'roof', 'left'],
+  heightMM: 8, capChart: { originXY: [0, 0], spanXY: [64, 32] },
+  solidId: 'beveled_part', resultIdPrefix: 'part',
+});
+const wall = resolveXYAffineSketchPrismWall(part, {
+  sourceId: 'authored_profile', sketchId: sketchSuccess.document.id,
+  sourceRevision: 0, segmentId: 'bevel',
+});
+```
+
+The request retains the entire authored sketch, compiled source and operation.
+`lineage` maps source segments to walls/cap edges and points to vertical edges;
+`solid.request` retains every generated native Face source and declared pairing.
+The original segment parameter domain is recorded; the solid graph carries exact
+pairwise parameter maps. Lookup rebuilds the complete result, checks the source
+namespace/sketch identity, and returns `stale` with no targets for old revisions.
+Current source-segment associations are `preserved`; missing segments are
+`deleted`. Caps/vertical edges are explicitly `generated`. This one-to-one producer
+does not invent split/ambiguous results or certify general persistent naming.
+An edit requires a new complete sketch construction and an explicitly qualified
+revision; revision numbers are caller-supplied, not historical authenticity proofs.
+
+Admission is only 3–8 strictly convex native line segments. One caller-declared
+axis-aligned cap chart and natural segment×+Z wall charts are tried once. All native
+parent refusal boundaries, including strict represented pcurve lifts, remain.
+Exact-affine or numerical-sketch success alone does not guarantee prism success.
+No automatic chart search, snapping, tolerance promotion, curved extrusion or
+manufacturing guarantee. Failures are atomic `XYAffineSketchPrismError` diagnostics
+with stage/entity; no partially qualified output is returned.
+
+Each build reconstructs the sketch once, constructs n+2 Faces and calls the solid
+qualifier once (which reconstructs n+2 Faces): at most21 native source compilations,
+288 binding observations and864 D1 evaluations. The independent sketch and solid
+rational ceilings remain unchanged; they are not falsely reported as one shared
+budget. Whole-result validation or one wall lookup performs one bridge rebuild.
+The root own-data snapshot uses the solid ledger's strict descriptor, byte,
+occurrence/depth and retained-data ceilings; those bound serialized data, not V8
+heap usage. `report.childNativeWork` and both exact-work reports retain the counts.
+
+Focused actual-authoring source/emitted/cold example:
+`node examples/cad-nurbs/xy-affine-sketch-prism-demo.mjs --source <directory>`
+(and `--emitted`, `--cold` after the affected library build).
+The five-edge beveled footprint produces seven facets and exact6336mm³; editing
+its authored bevel produces6384mm³. Plane split composition is separate and must
+consume the actually adopted splitter API; no split implementation is embedded.
