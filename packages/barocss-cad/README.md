@@ -10580,3 +10580,29 @@ parent 3584 mm³, retained 3568 mm³, wedge 16 mm³ and slab 1024+1536 mm³.
 A uniform half-scale of original parent XY fixed targets, with its unchanged cap
 chart and segment identities, exercises actual sketch revision/reference advance:
 parent 1792 mm³, retained 1784 mm³, wedge 8 mm³ and slab 1024+0 mm³.
+
+### Qualified convex solid display mesh (#1602)
+
+`tessellateConvexPlanarSolid(solid, { maximumFanTriangles: 40 })` validates one
+complete `ConvexPlanarSolidResult` once and fans each actual outward trimmed
+convex face loop. It does not tessellate the support rectangle. The returned
+`mesh.positionsMM`, `normals`, `parametersUV`, and `indices` are ordinary copied
+number arrays, with face ranges and source-qualified per-vertex provenance.
+Positions preserve original stored XYZ/mm with no scene-unit or axis conversion;
+UV comes from original directed pcurve endpoint coefficients. Normals reuse
+validated original face bindings. Reverse-sense caps retain outward winding.
+
+`boundaries` retains every original directed native boundary use and global
+solid edge identity. `internalDiagonals` are display-only, never BRep edges.
+No native IDs are fabricated. Limits are 12 faces, 64 face-local display vertices,
+40 triangles and 120 indices. A lower explicit fan budget refuses atomically
+before parent reconstruction. Getter/foreign/malformed data and unrepresentable
+or uncertain display triangles refuse. No native geometry is changed or repaired.
+
+`validateConvexPlanarSolidMesh(result)` rebuilds and checks the complete retained
+parent, arrays, provenance, boundaries and report with one parent validation.
+This proves self-consistency, not historical authenticity. CPU arrays are
+independently copied and GC-owned. Number-derived normals/areas and any later
+Float32 projection are preview data, not manufacturing or geometry authority.
+The renderer adapter owns its own frame/unit conversion and Float32 admission;
+physical GPU acceptance is separate. No GPU resources are created here.

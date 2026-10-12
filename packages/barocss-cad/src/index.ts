@@ -542,3 +542,6 @@ export type { ConvexPlanarSolidMassOptions, ConvexPlanarSolidMassMeasure, Convex
 
 export { XYAffinePrismFeatureDocumentLimitsV1, evaluateXYAffinePrismFeatureDocumentV1, updateXYAffinePrismFeatureDocumentV1, validateXYAffinePrismFeatureDocumentV1, validateXYAffinePrismFeatureDocumentUpdateV1, serializeXYAffinePrismFeatureDocumentV1, parseXYAffinePrismFeatureDocumentV1 } from './xy-affine-prism-feature-document.js';
 export type { XYAffinePrismChamferNode, XYAffinePrismFeatureBindingV1, XYAffinePrismFeatureParameterV1, XYAffinePrismFeatureDocumentV1, XYAffinePrismFeatureWorkV1, XYAffinePrismFeatureResultV1, XYAffinePrismFeatureUpdateV1 } from './xy-affine-prism-feature-document.js';
+
+export { tessellateConvexPlanarSolid, validateConvexPlanarSolidMesh, ConvexPlanarSolidMeshError, ConvexPlanarSolidMeshLimits } from './convex-planar-solid-mesh.js';
+export type { ConvexPlanarSolidMeshDiagnosticCode, ConvexPlanarSolidMeshOptions, ConvexPlanarSolidMeshVertex, ConvexPlanarSolidMeshFace, ConvexPlanarSolidMeshBoundary, ConvexPlanarSolidMeshReport, ConvexPlanarSolidMeshResult } from './convex-planar-solid-mesh.js';
