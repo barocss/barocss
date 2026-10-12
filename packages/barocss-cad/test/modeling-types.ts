@@ -53,3 +53,6 @@ void reusedFeatureIndices; void evaluatedFeatureIndices;
 reopened.recomputation.reusedFeatures.push(0);
 // @ts-expect-error There is no caller-supplied reuse/cache parameter.
 reopened.withParameters({ width: 80 }, { evidence: [] });
+
+const dividedRail: CadSplit = finished.split({ axis: 'x', at: chainModel.parameter('splitAt', 16) });
+chainModel.build({ negative: dividedRail.negative, positive: dividedRail.positive }).withParameters({ splitAt: 8 });

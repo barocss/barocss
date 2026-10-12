@@ -34,7 +34,7 @@ export interface CadEdgeQueryHandle { one(): CadEdgeSelection }
 export interface CadShape {
   /** Positive-volume overlap of two distinct direct XY extrusions; disjoint/touching parts refuse. */
   intersect(other: CadShape): CadShape;
-  /** Cardinal plane split of one direct XY extrusion; negative is below the selected axis coordinate. */
+  /** Cardinal split of a direct XY extrusion or its owned chamfer chain; negative is below the selected coordinate. */
   split(options: { readonly axis: CadAxis; readonly at: CadDimension }): CadSplit;
   cut(tool: CadShape, options: { readonly axis: 'x' | 'y' }): CadCut;
   edges(query: CadEdgeQuery): CadEdgeQueryHandle;
@@ -135,6 +135,17 @@ function freeze<T>(value: T, seen = new WeakSet<object>()): T {
 }
 const equalRef = (a: BodyRef, b: BodyRef) => a.node === b.node && a.side === b.side;
 function deps(node: Node): number[] { return node.kind === 'sketch' ? [] : node.kind === 'extrude' ? [node.sketch] : node.kind === 'cut' ? [node.parent.node, node.tool.node] : node.kind === 'intersect' ? [node.left.node, node.right.node] : [node.parent.node]; }
+function splitParent(nodes: readonly Node[], reference: BodyRef): boolean {
+  let current = reference;
+  for (let bevels = 0; bevels <= CadModelLimits.chamfers; bevels++) {
+    if (current.side !== 'solid') return false;
+    const node = nodes[current.node];
+    if (node.kind === 'extrude') return true;
+    if (node.kind !== 'chamfer') return false;
+    current = node.parent;
+  }
+  return false;
+}
 function admit(input: Document): Document {
   const d = copy(input); record(d, 'load', ['format', 'schema', 'units', 'parameters', 'nodes', 'outputs']);
   demand(d.format === 'barocss-cad-model' && d.schema === 1 && d.units === 'mm', 'FORMAT', 'load', 'Supported CAD model file required; legacy feature files need their legacy reader');
@@ -166,7 +177,7 @@ function admit(input: Document): Document {
       demand(nodes[n.left.node].kind === 'extrude' && nodes[n.right.node].kind === 'extrude' && n.left.node !== n.right.node, 'CAPABILITY', 'intersect', 'Intersection requires two distinct direct XY extrusions');
     } else if (n.kind === 'split') {
       record(n, 'split', ['kind', 'parent', 'axis', 'at']); body(n.parent, i); dimension(n.at);
-      demand(axes.includes(n.axis) && nodes[n.parent.node].kind === 'extrude', 'CAPABILITY', 'split', 'Cardinal plane split of a direct XY extrusion required');
+      demand(axes.includes(n.axis) && splitParent(nodes, n.parent), 'CAPABILITY', 'split', 'Cardinal split requires a direct XY extrusion or its owned chamfer chain');
     } else {
       record(n, 'chamfer', ['kind', 'parent', 'edge', 'distance']); body(n.parent, i); dimension(n.distance);
       demand(counts.chamfer === 1 || (counts.chamfer === 2 && nodes[n.parent.node].kind === 'chamfer'), 'CAPABILITY', 'chamfer', 'At most two sequential chamfers in one chain are supported');
@@ -200,7 +211,7 @@ export function createCadModel(): CadModel {
     const handle: CadShape = Object.freeze({
       split(options: { axis: CadAxis; at: CadDimension }): CadSplit {
         record(options, 'split', ['axis', 'at']);
-        demand(axes.includes(options.axis) && nodes[reference.node].kind === 'extrude', 'CAPABILITY', 'split', 'Cardinal plane split of a direct XY extrusion required');
+        demand(axes.includes(options.axis) && splitParent(nodes, reference), 'CAPABILITY', 'split', 'Cardinal split requires a direct XY extrusion or its owned chamfer chain');
         const at = dimension(options.at), node = append({ kind: 'split', parent: { ...reference }, axis: options.axis, at });
         return Object.freeze({ negative: shape({ node, side: 'negative' }), positive: shape({ node, side: 'positive' }) });
       },

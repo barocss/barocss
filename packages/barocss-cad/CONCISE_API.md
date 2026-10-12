@@ -128,7 +128,8 @@ still apply.
 ## Divide an extruded part along an axis
 
 `const halves = blank.split({axis:'z',at:splitHeight})` authors one horizontal
-plane through a direct XY extrusion. `splitHeight` can be a number or an owned
+plane through a direct XY extrusion or its owned chamfer chain. `splitHeight`
+can be a number or an owned
 parameter. Use `model.build({lower:halves.negative,upper:halves.positive})` to
 retain both parts. Negative is below the authored plane, positive is above it;
 the choice is independent of polygon winding. Use `axis:'x'` for left/right
@@ -162,8 +163,18 @@ This avoids introducing normalized-chart fractions for dimensions such as 3 or
 5 mm. All native representation, binding and work limits still apply, with
 original failures retained under `cause`. Provider work reports exclude the
 wrapper's own compilation of the generated cutter; they are not total work counts.
-One split replaces the optional cut/intersection. Split inputs must be direct
-extrusions; nested splits and mixed cut/intersection/split graphs are refused.
+One split replaces the optional cut/intersection. Its input may be a direct
+extrusion or the result of one/two serial owned chamfers rooted in that extrusion.
+Nested splits and cut/intersection-rooted chains are refused. The six-node limit
+and native qualified-convex-parent requirements remain unchanged.
+
+For a 32×24×8 mm rectangular rail with opposite front/back bevels of 1 and 2 mm,
+`finished.split({axis:'x',at:splitAt})` at X=16 retains two 3032 mm³ bodies.
+Moving the plane to X=8 gives 1516 and 4548. Editing the back bevel to 3 mm
+then gives 1496 and 4488. A split-position edit reuses all four earlier model
+features; a back-bevel edit rebuilds that bevel and the split. Create each bevel
+selector from its exact parent; a selector from the other split side refuses.
+No chamfer is silently moved across the split or remapped to another edge.
 
 ## Bevel two opposite edges in sequence
 
@@ -276,7 +287,7 @@ Run the ordinary boundary/type tests after building the package:
 ```sh
 node scripts/tool.mjs type-check
 node scripts/tool.mjs build
-node --test test/modeling.test.mjs test/modeling-intersection.test.mjs test/modeling-split.test.mjs test/modeling-cardinal-split.test.mjs test/modeling-chamfer-chain.test.mjs test/modeling-regeneration.test.mjs test/modeling-regeneration-helpers.test.mjs test/public-api.test.mjs
+node --test test/modeling.test.mjs test/modeling-intersection.test.mjs test/modeling-split.test.mjs test/modeling-cardinal-split.test.mjs test/modeling-chamfer-chain.test.mjs test/modeling-regeneration.test.mjs test/modeling-regeneration-helpers.test.mjs test/modeling-chamfer-split.test.mjs test/public-api.test.mjs
 node test/public-api-types.mjs
 ```
 
@@ -328,8 +339,8 @@ node --no-opt --max-old-space-size=2048 test/modeling-cardinal-split-native.mjs
 node --no-opt --max-old-space-size=2048 scripts/modeling-cardinal-split-consumer.mjs test/modeling-cardinal-split-evidence
 ```
 
-The #1622 receipt records actual results and scope. It does not widen the
-direct-extrusion or one-split graph limit.
+The #1622 receipt records its direct-extrusion witness. Split after an owned
+chamfer chain is separately covered by #1631; the one-split graph limit remains.
 
 The separately bounded two-chamfer chain flow uses eight model evaluations and
 one final-part tessellation, including cold reconstruction and atomic failures:
@@ -350,3 +361,15 @@ node --no-opt --max-old-space-size=2048 scripts/modeling-regeneration-consumer.m
 
 The #1627 receipt distinguishes reused model features from actual provider work
 and verifies cold parity, snapshot independence and reuse after refusal.
+
+The split-after-chamfer flow uses eight model calls and two tessellations.
+It checks both native bodies, cap/source lineage, selective prefix reuse,
+empty-side refusal and cold reconstruction:
+
+```sh
+node --no-opt --max-old-space-size=2048 test/modeling-chamfer-split-native.mjs
+node --no-opt --max-old-space-size=2048 scripts/modeling-chamfer-split-consumer.mjs test/modeling-chamfer-split-evidence
+```
+
+See #1631 for the bounded source/emitted receipts. Provider reports do not include
+all wrapper work; full transitive native coverage and browser/GPU remain unclaimed.
