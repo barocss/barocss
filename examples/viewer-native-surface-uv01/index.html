@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Native Surface · UV01 materials</title>
+  <style>
+    :root { color-scheme: dark; font: 15px/1.5 system-ui, sans-serif; color: #edf2fa; background: #10141c; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    header, main { max-width: 1240px; margin: auto; padding: 20px; }
+    header { padding-bottom: 0; }
+    h1 { font-size: 1.6rem; margin: 0; }
+    h2 { font-size: 1.1rem; margin: 0 0 12px; }
+    p { margin: 8px 0; }
+    main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 380px); gap: 20px; }
+    section, aside { min-width: 0; }
+    .panel { background: #19202d; border: 1px solid #344055; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+    .muted { color: #b3bfd3; }
+    .small { font-size: .85rem; }
+    canvas { display: block; width: 100%; aspect-ratio: 4/3; background: #090d14; border-radius: 8px; cursor: crosshair; }
+    label { display: block; margin: 12px 0 5px; }
+    select, textarea, button { font: inherit; color: inherit; border: 1px solid #52617a; border-radius: 6px; padding: 8px; background: #111927; }
+    select, textarea { width: 100%; }
+    textarea { resize: vertical; min-height: 250px; font: 13px/1.6 ui-monospace, monospace; tab-size: 2; }
+    button { cursor: pointer; background: #2b477b; }
+    button:disabled, select:disabled, textarea:disabled { opacity: .5; cursor: default; }
+    :focus-visible { outline: 3px solid #a1c1ff; outline-offset: 2px; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+    #status, #error { overflow-wrap: anywhere; }
+    #error { color: #ffb7b7; white-space: pre-wrap; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.55 ui-monospace, monospace; max-height: 480px; overflow: auto; }
+    @media (max-width: 820px) { main { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Native Surface · UV01 materials</h1>
+  <p class="muted">Two original CAD Surfaces, two nonunit knot domains, one repeated Surface ID</p>
+</header>
+<main id="example">
+  <section aria-label="WebGPU viewport and identity">
+    <div class="panel">
+      <p><strong>WebGPU required</strong></p>
+      <p id="status" role="status" aria-live="polite">Not started</p>
+      <p id="error" role="alert"></p>
+      <canvas id="viewport" width="800" height="600" aria-label="Native Surfaces. Click to pick a Surface, or choose it from the visible Surface list."></canvas>
+      <div class="row"><button id="start" type="button">Start WebGPU</button><button id="dispose" type="button">Dispose</button></div>
+      <p class="small muted">Left: native U domain −3…7, V domain 2…5. Right: U −2…6, V 3…11. Materials read each original Surface's normalized surface_u01 and surface_v01.</p>
+    </div>
+    <div class="panel">
+      <h2>Accepted identity</h2>
+      <label for="surfaces">Visible Surface (full model alias / Surface ID)</label>
+      <select id="surfaces" disabled><option value="">No selection</option></select>
+      <pre id="identity">No accepted scene</pre>
+      <p class="small muted">Picking reports the rendered attachment's full reference, generation and all ten native identity pins. This is display picking, not an exact CAD intersection.</p>
+    </div>
+  </section>
+  <aside aria-label="Native UV01 material editor">
+    <section class="panel">
+      <h2>Original material source</h2>
+      <label for="materials">Surface material</label>
+      <select id="materials" disabled></select>
+      <label for="material-source">Native UV01 shader text</label>
+      <textarea id="material-source" spellcheck="false" aria-describedby="material-help" disabled></textarea>
+      <div class="row"><button id="apply" type="button" disabled>Apply material</button></div>
+      <p id="material-help" class="small muted">Apply changes only this material's source and the composition revision. Existing uniform overrides, original CAD sources, document and asset revisions, poses and TEN identity pins stay intact. Refused edits keep the accepted scene.</p>
+    </section>
+    <section class="panel">
+      <h2>Explicit native route</h2>
+      <p class="small muted">A single directional light illuminates both Surfaces. Native knot-domain normalization comes from the unchanged GPU provider.</p>
+      <p class="small muted">Actual browser/device rendering, WGSL and physical picking are separate qualification checks. Loading this page does not imply those checks passed.</p>
+    </section>
+  </aside>
+</main>
+<script type="module">
+  import { setupExample } from './app.ts';
+  setupExample(document.getElementById('example'));
+</script>
+</body>
+</html>

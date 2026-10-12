@@ -1062,3 +1062,77 @@ resize/refusal pixel retention, browser file selection/download/open and driver
 loss/cleanup remain **UNRUN, externally owned**. Broader rendered and async Editor
 acceptance remains pending. Software completion does not change default readiness,
 merge, deployment, npm publication or release status.
+
+## Original-document native UV01 WebGPU Viewer (#1581)
+
+`await createNativeSurfaceUV01WebGPUViewer(canvas, input, { width, height })`
+adds an explicit required-WebGPU route. It does not change `createViewer`,
+Editor behavior, or the authored-directional-light route. It reuses the #1574
+native UV01 viewport and the existing canonical document/TEN admission.
+
+The version0 input has exactly `format: 'barocss-viewer-native-surface-uv01-input'`,
+`version`, `owner: { id, revision }`, `source`, `display`, `materials`, `lighting`,
+and `context`. `source`, `display` and `context` have the same complete original
+canonical-document, exact TEN, motion/visibility/camera and scene-unit contract
+as `ViewerNativeSceneAppearanceInputV1`. `lighting` is an explicit singleton
+`MeshLighting`. The composition owner revision is separate from native document
+and asset revisions. Each visible Surface needs exactly one material:
+`{ ref: { modelId, surfaceId }, source: originalUV01ShaderText, uniforms?: overrides }`.
+Only original native UV01 material source is compiled; no external IR or
+prepared packet is accepted as authority. Omitted uniform overrides, original
+source whitespace and signed numbers remain in `originals`.
+
+Admission selects 1–4 native objects, all Surfaces, with at least one visible;
+sourceVersion0, unitsPerMillimeter1 and countU/countV2–17 are required. Native
+UV01 provider limits still apply, including the 64KiB original source limit,
+model1–16 objects, control grid2–16 and degree1–5. Each visible entry uses its
+complete original asset source and the admitted transform exactly once.
+Preview revision0 follows Interop's tessellation tag; true author revisions and
+all ten TEN fields remain unchanged. Missing, duplicate, hidden and foreign
+material targets refuse. Repeated SurfaceIDs are joined by the complete
+asset-derived display model alias and SurfaceID, preserving original TEN modelId.
+
+The frozen async facade exposes `originals`, `accepted`, `selected`, actual
+backend `status`, and `replace`, `resize`, `readPixels`, `pick`, `select`,
+`dispose`. Await replacement/resize; accepted originals, TEN, generation and
+selection adopt together only after successful presentation. Recoverable refusal
+retains prior metadata. Pending operations refuse competitors with `BUSY`;
+dispose invalidates pending work. Device loss remains terminal/unavailable even
+when retained metadata is readable. Pick uses backing-pixel coordinates and
+returns `{ generation, ref, binding }`, with null ref/binding for background;
+it is attachment identity, not exact CAD intersection/UV evidence.
+
+`ViewerNativeSurfaceUV01Error` codes are INPUT, BUDGET, OWNER, SOURCE, MATERIAL,
+GPU, BUSY, STATE and DISPOSED; nested provider diagnostics remain exact causes.
+Raw ordinary own data is bounded to 4MiB UTF16/UTF8, 327680 values and depth32;
+retained projection is charged to 12MiB/1048576 visits/depth64 before presentation.
+Canvas dimensions are 1–1024 per axis and at most1048576 backing pixels.
+
+### Small runnable example
+
+From the repository root, run:
+
+```sh
+pnpm exec vite examples/viewer-native-surface-uv01 --host 127.0.0.1 --port 4181 --strictPort
+```
+
+Open `http://127.0.0.1:4181/`, then Start. Two inline original native Surfaces
+share one SurfaceID under different asset aliases, with distinct nonunit knot
+domains, poses and UV01 materials. Edit a material and Apply, select/pick a
+Surface to inspect all TEN fields, then Dispose. There is no Save/Open workflow.
+The example also disposes a mount that resolves after pagehide/disposal.
+
+Focused software checks (Node22/pnpm9):
+
+```sh
+node --test packages/barocss-viewer/tests/native-surface-uv01-webgpu.test.mjs
+node examples/viewer-native-surface-uv01/qualify.mjs
+```
+
+The qualifier requires emitted Viewer/GPU/CAD/Interop outputs and at least
+500000000 free disk bytes. It checks source/emitted original-source joining,
+public declarations and the example bundle. Controlled-backend tests establish
+awaited transactions and ownership, not hardware rendering. Existing #1574 and
+#1580 unchanged provider proofs are reused. Actual WebGPU compilation, pixels,
+physical picking and browser/driver lifetime remain externally owned UNRUN;
+no default-readiness, Editor adoption or full producer-suite claim follows.

@@ -2464,3 +2464,10 @@ export type { ViewerNativeDirectionalLightCode, ViewerNativeDirectionalLightOwne
   ViewerNativeDirectionalLightInput, ViewerNativeDirectionalLightAccepted,
   ViewerNativeDirectionalLightPick } from './native-directional-light-candidate.js';
 export type { ViewerNativeDirectionalLightWebGPU } from './native-directional-light-webgpu.js';
+
+// Explicit original-document native UV01 route; existing Viewer defaults are unchanged.
+export { createNativeSurfaceUV01WebGPUViewer } from './native-surface-uv01-webgpu.js';
+export { ViewerNativeSurfaceUV01Error } from './native-surface-uv01-candidate.js';
+export type { ViewerNativeSurfaceUV01Code, ViewerNativeSurfaceUV01Owner, ViewerNativeSurfaceUV01Material,
+  ViewerNativeSurfaceUV01Input, ViewerNativeSurfaceUV01Accepted, ViewerNativeSurfaceUV01Pick } from './native-surface-uv01-candidate.js';
+export type { ViewerNativeSurfaceUV01WebGPU } from './native-surface-uv01-webgpu.js';
