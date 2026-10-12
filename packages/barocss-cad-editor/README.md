@@ -1122,14 +1122,31 @@ The source panel exposes canonical authored-only JSON and opens pasted v0 source
 through the native codec. Explicit replacement consent discards history/drafts.
 This is a text codec workflow, not native OS file Save/Open or persistent recovery.
 Native exact volumes and fixed component identities are displayed; empty roles
-remain explicit. Whole convex Solid 3D preview is unavailable: it requires a
-source-qualified convex-loop tessellation and whole-component display adapter.
-Existing rectangular forward-Face support-grid rendering cannot represent these
-trimmed/reversed polygon Faces. No manufacturing, whole-editor, GPU pixel or
+remain explicit. The existing route now consumes the public trimmed-solid mesh
+provider: Source prism shows the first authored prism, Subtraction results shows
+all nonempty fixed first/second outputs. The dedicated worker retains native
+geometry; its bounded display DTO copies original-mm mesh positions, flat normals,
+UVs, face/vertex/use/boundary/diagonal provenance and full original feature lineage.
+Scene basis is x,z,-y with one scene unit per mm. Each component is one generic
+triangle geometry, so the native 12-face limit does not exceed the renderer's
+16-geometry limit. Internal fan diagonals are never BRep edges.
+
+Display staging uses a hidden second canvas. Only a current successful candidate
+swaps canvas and commits authored state/history; refused/cancelled/late candidates
+retain the accepted canvas and reset worker authority when necessary. Resizing
+uses actual accepted backing dimensions for picking after a resize failure.
+Click selection is approximate triangle picking, qualified by document revision,
+fixed component role, Solid and face/source identity; full lineage stays in the
+receipt. Fit and source/result switches do not change native history. Empty results
+have an explicit empty presentation, never a bounds box or rectangle fallback. No manufacturing, whole-editor, GPU pixel or
 commercial-parity acceptance follows from the inspector.
 
 Scoped checks (Node 22, normal repository dependencies):
 `node scripts/prism-feature-controller-test.mjs` uses mocked worker transport;
 `node scripts/prism-feature-smoke.mjs` executes the real native engine and codec,
-with at most ten cold-equivalent phases. `EVIDENCE_DIR` selects an external evidence
+with at most ten cold-equivalent phases plus twelve bounded mesh parent validations.
+`node scripts/prism-feature-scene-test.mjs` uses recorded #1602 meshes and the real
+CPU generic scene/raycast adapter (its fixture lineage is intentionally empty; full
+lineage is asserted in native smoke). `node scripts/prism-feature-display-test.mjs`
+uses mock DOM/canvas/renderer lifecycle only. Browser/physical GPU pixels are UNRUN. `EVIDENCE_DIR` selects an external evidence
 directory; `REPO_DEPS_ROOT` may select an existing dependency store checkout.

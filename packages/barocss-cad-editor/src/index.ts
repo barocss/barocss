@@ -54,3 +54,5 @@ export type { CadEditorTranslationalSweepCreation } from './types.js';
 export { createCadEditorPrismFeatureController } from './prism-feature-controller.js';
 export type { CadEditorPrismFeatureController } from './prism-feature-controller.js';
 export type { CadEditorPrismFeatureSummary, CadEditorPrismFeatureSnapshot } from './prism-feature-types.js';
+export { preparePrismFeatureScene, pickPrismFeatureScene } from './prism-feature-scene.js';
+export type { PrismDisplayPacket, PrismDisplayComponent, PrismDisplayScene, PrismDisplayView, PrismFaceSelection } from './prism-feature-scene.js';

@@ -7,10 +7,11 @@ import { pathToFileURL } from 'node:url';
 const root = resolve(import.meta.dirname, '../../..');
 const output = resolve(process.env.EVIDENCE_DIR ?? '/tmp/cad-editor-prism-controller'); mkdirSync(output, { recursive: true });
 const require = createRequire(resolve(process.env.REPO_DEPS_ROOT ?? root, 'package.json'));
-const built = await require('esbuild').build({ entryPoints: [resolve(root, 'packages/barocss-cad-editor/src/prism-feature-controller.ts')], bundle: true, platform: 'node', format: 'esm', write: false });
+const built = await require('esbuild').build({ entryPoints: [resolve(root, 'packages/barocss-cad-editor/src/prism-feature-controller.ts')], bundle: true, platform: 'node', format: 'esm', write: false, alias: { '@barocss/gpu': resolve(root, 'packages/barocss-gpu/src/index.ts') } });
 writeFileSync(resolve(output, 'controller.mjs'), built.outputFiles[0].text);
 const { createCadEditorPrismFeatureController, prismFeatureFieldText } = await import(pathToFileURL(resolve(output, 'controller.mjs')));
 const fixture = JSON.parse(readFileSync(resolve(root, 'apps/cad-editor/src/fixtures/affine-prism.authored.json'), 'utf8'));
+const displayFixture = JSON.parse(readFileSync(resolve(root, 'packages/barocss-cad-editor/scripts/fixtures/convex-display.packet.json'), 'utf8'));
 const instances = [], timers = new Set();
 const originalTimeout = globalThis.setTimeout, originalClear = globalThis.clearTimeout;
 globalThis.setTimeout = callback => { const token = { callback }; timers.add(token); return token; };
@@ -29,8 +30,8 @@ class MockWorker {
     this.document = document;
     const fraction = { numerator: '1', denominator: '1' };
     this.send({ id: command.id, ok: true, text: JSON.stringify(document), summary: { document,
-      dependencies: document.nodes.map(n => ({ nodeId: n.id, dependsOn: [] })), components: [], selectedWalls: [],
-      volumes: { parent: fraction, first: fraction, second: fraction, remaining: fraction, removed: fraction } } });
+      dependencies: document.nodes.map(n => ({ nodeId: n.id, dependsOn: [] })), components: displayFixture.outcomes, selectedWalls: [],
+      volumes: { parent: fraction, first: fraction, second: fraction, remaining: fraction, removed: fraction } }, display: { ...structuredClone(displayFixture), documentId: document.id, revision } });
   }
 }
 globalThis.Worker = MockWorker;
@@ -95,5 +96,35 @@ try {
   assert.match(session.getSnapshot().error, /worker failed/); assert.equal(session.getSnapshot().accepted.document.parameters[1].valueMM, 60); checks++;
   const dead = session.open(JSON.stringify(fixture)), fifth = instances.at(-1); session.dispose(); fifth.accept(); await dead;
   assert.equal(session.getSnapshot().disposed, true); assert.equal(session.getSnapshot().accepted.document.parameters[1].valueMM, 60); checks++;
+  // Asynchronous display gate: no scene, authored state, history or selection may advance early.
+  let settle, failPrepare = false, commits = 0, disposals = 0;
+  const port = { prepare: () => new Promise((resolve, reject) => {
+    settle = () => failPrepare ? reject(new Error('display refused')) : resolve({ commit() { commits++; }, dispose() { disposals++; } });
+  }) };
+  const gated = createCadEditorPrismFeatureController(port);
+  let task = gated.open(JSON.stringify(fixture)), worker = instances.at(-1); worker.accept(); await tick();
+  assert.equal(gated.getSnapshot().accepted, null); assert.equal(gated.getSnapshot().history.count, 0);
+  settle(); await task; assert.equal(commits, 1); checks++;
+  gated.stage('upperX', '24'); const beforeDisplay = gated.getSnapshot();
+  task = gated.apply(); worker.accept(); await tick(); failPrepare = true; settle(); await task;
+  for (const key of ['accepted', 'display', 'history', 'selection', 'drafts']) assert.deepEqual(gated.getSnapshot()[key], beforeDisplay[key]);
+  assert.equal(worker.terminated, true); assert.equal(commits, 1); checks++;
+  failPrepare = false;
+  task = gated.apply(); worker = instances.at(-1); worker.accept(); await tick(); worker.accept(); await tick();
+  gated.cancel(); settle(); await task; assert.equal(commits, 1); assert.ok(disposals >= 2); checks++;
+  task = gated.apply(); worker = instances.at(-1); worker.accept(); await tick(); worker.accept(); await tick();
+  worker.callbacks.get('error')(); settle(); await task;
+  assert.equal(commits, 1); assert.match(gated.getSnapshot().error, /lost before display/); checks++;
+  task = gated.setView('source'); await tick(); gated.cancel(); settle(); await task;
+  assert.equal(gated.getSnapshot().view, 'result'); assert.equal(commits, 1); checks++;
+  task = gated.setView('source'); await tick(); settle(); await task;
+  assert.equal(gated.getSnapshot().view, 'source'); assert.equal(gated.getSnapshot().history.count, 1); checks++;
+  task = gated.setView('result'); await tick(); gated.dispose(); settle(); await task;
+  assert.equal(commits, 2); assert.equal(gated.getSnapshot().disposed, true); checks++;
+  const malformed = createCadEditorPrismFeatureController();
+  task = malformed.open(JSON.stringify(fixture)); worker = instances.at(-1);
+  const send = worker.send.bind(worker); worker.send = value => { value.summary.circular = value.summary; send(value); };
+  worker.accept(); await task; assert.match(malformed.getSnapshot().error, /Invalid native worker reply/);
+  assert.equal(malformed.getSnapshot().busy, false); assert.equal(worker.terminated, true); malformed.dispose(); checks++;
   console.log(JSON.stringify({ ok: true, checks, evidence: 'mocked worker transport only' }));
 } finally { globalThis.setTimeout = originalTimeout; globalThis.clearTimeout = originalClear; delete globalThis.Worker; }

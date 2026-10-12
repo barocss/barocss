@@ -2,24 +2,31 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { createCadEditorPrismFeatureController, prismFeatureFieldText } from '../prism-feature-controller.js';
 import type { CadEditorPrismFeatureController } from '../prism-feature-controller.js';
 import type { CadEditorPrismFeatureSnapshot } from '../prism-feature-types.js';
+import { createPrismFeatureDisplay } from '../prism-feature-display.js';
 import { Button } from './ui/button.js';
 import { Input } from './ui/input.js';
 import { Label } from './ui/label.js';
 
 export interface CadEditorPrismFeatureProps { initialAuthoredText: string }
-/** Real native model inspector; whole convex Solid viewport admission is a separate provider. */
+/** Native worker inspector with atomic trimmed-solid display candidates. */
 export function CadEditorPrismFeature({ initialAuthoredText }: CadEditorPrismFeatureProps) {
   const controlId = useId();
+  const viewport = useRef<HTMLDivElement | null>(null);
+  const displayRef = useRef<ReturnType<typeof createPrismFeatureDisplay> | null>(null);
   const controller = useRef<CadEditorPrismFeatureController | null>(null);
   const [snapshot, setSnapshot] = useState<CadEditorPrismFeatureSnapshot | null>(null);
   const [fileText, setFileText] = useState(''), [replaceConfirmed, setReplaceConfirmed] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   useEffect(() => {
-    const session = createCadEditorPrismFeatureController(); controller.current = session;
+    if (!viewport.current) return;
+    const display = createPrismFeatureDisplay(viewport.current); displayRef.current = display;
+    const session = createCadEditorPrismFeatureController(display, () => display.aspect()); controller.current = session;
+    const observer = new ResizeObserver(() => { try { display.resize(); } catch (error) { setLocalError(String(error)); } });
+    observer.observe(viewport.current);
     const unsubscribe = session.subscribe(() => setSnapshot(session.getSnapshot()));
     setSnapshot(session.getSnapshot());
     void session.open(initialAuthoredText).catch(error => setLocalError(String(error)));
-    return () => { unsubscribe(); session.dispose(); if (controller.current === session) controller.current = null; };
+    return () => { observer.disconnect(); unsubscribe(); session.dispose(); display.dispose(); if (displayRef.current === display) displayRef.current = null; if (controller.current === session) controller.current = null; };
   }, [initialAuthoredText]);
   const action = (operation: (session: CadEditorPrismFeatureController) => unknown) => {
     setLocalError(null);
@@ -42,7 +49,25 @@ export function CadEditorPrismFeature({ initialAuthoredText }: CadEditorPrismFea
       <Button disabled={!busy} onClick={() => action(s => s.cancel())}>Cancel computation</Button>
       {!accepted && !busy && <Button onClick={() => action(s => s.open(initialAuthoredText))}>Retry initial model</Button>}
     </div>
+    <div ref={viewport} style={{ position: 'relative', width: '100%', height: 400, marginTop: 16, background: '#06090d' }}
+      onClick={event => {
+        const display = displayRef.current, element = viewport.current;
+        if (!display || !element || !snapshot?.accepted || busy) return;
+        const rect = element.getBoundingClientRect(), size = display.dimensions();
+        if (!rect.width || !rect.height) return;
+        const x = Math.min(size.width - 1, Math.max(0, Math.floor((event.clientX - rect.left) * size.width / rect.width)));
+        const y = Math.min(size.height - 1, Math.max(0, size.height - 1 - Math.floor((event.clientY - rect.top) * size.height / rect.height)));
+        action(s => s.pick(size.width, size.height, x, y, snapshot.accepted!.document.revision));
+      }} />
     {accepted && <>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <Button disabled={busy} aria-pressed={snapshot?.view === 'source'} onClick={() => action(s => s.setView('source'))}>Source prism</Button>
+        <Button disabled={busy} aria-pressed={snapshot?.view === 'result'} onClick={() => action(s => s.setView('result'))}>Subtraction results</Button>
+        <Button disabled={busy} onClick={() => action(s => s.setView(snapshot!.view))}>Fit</Button>
+      </div>
+      <p>{snapshot?.display?.scene.geometries.length === 0 ? 'Empty result: no remaining solid triangles.' : 'Trimmed native boundary triangles · 1 scene unit = 1 mm · approximate face selection'}</p>
+      {snapshot?.faceSelection && <p>Selected {snapshot.faceSelection.role} / {snapshot.faceSelection.face.sourceId} / {snapshot.faceSelection.face.faceId}
+        {' · '}document revision {snapshot.faceSelection.revision}. Fan diagonals are display-only, not BRep edges.</p>}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 24, marginTop: 24 }}>
         <aside><h2>Feature tree</h2><ul>{accepted.document.nodes.map(node => <li key={node.id}>
           <Button variant="ghost" disabled={busy} aria-pressed={selected?.id === node.id}
@@ -61,7 +86,7 @@ export function CadEditorPrismFeature({ initialAuthoredText }: CadEditorPrismFea
         </div>)}</div>
       </div>
       <h2>Native results</h2>
-      <p>3D preview is unavailable for this profile. A source-qualified convex-loop tessellation and whole-component display adapter is still required. These values come from the accepted native Solid result.</p>
+      <p>These values come from the accepted native Solid result. Display meshes retain complete native face/source lineage; screen pixels and native OS file workflows are not verified by this flow.</p>
       <dl style={{ overflowWrap: 'anywhere' }}>{Object.entries(accepted.volumes).map(([name, value]) => <div key={name}><dt>{name} volume (exact mm³)</dt><dd>{value.numerator} / {value.denominator}</dd></div>)}</dl>
       <ul>{accepted.components.map((component, index) => <li key={component.role}>
         {component.role}: {component.solidId} · {component.status} · selected wall {accepted.selectedWalls[index].sourceId}/{accepted.selectedWalls[index].sketchId}/{accepted.selectedWalls[index].segmentId} · source revision {accepted.selectedWalls[index].sourceRevision}

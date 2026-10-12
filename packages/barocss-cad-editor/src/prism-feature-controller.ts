@@ -1,3 +1,6 @@
+import { preparePrismFeatureScene, pickPrismFeatureScene } from './prism-feature-scene.js';
+import type { PrismDisplayView } from './prism-feature-scene.js';
+import type { PrismDisplayPort, PrismDisplayCandidate } from './prism-feature-display.js';
 import type { CadEditorPrismFeatureSnapshot, PrismFeatureCommand, PrismFeatureReply } from './prism-feature-types.js';
 
 type State = CadEditorPrismFeatureSnapshot;
@@ -19,8 +22,8 @@ export function prismFeatureFieldText(drafts: Record<string, string>, parameter:
 }
 
 /** Responsive authored-intent controller. Native work always runs in its own Worker. */
-export function createCadEditorPrismFeatureController() {
-  let state: State = { accepted: null, authoredText: null, drafts: {}, selection: null,
+export function createCadEditorPrismFeatureController(displayPort?: PrismDisplayPort, aspect: () => number = () => 1) {
+  let state: State = { display: null, faceSelection: null, view: 'result', accepted: null, authoredText: null, drafts: {}, selection: null,
     busy: false, disposed: false, error: null, history: { index: -1, count: 0, canUndo: false, canRedo: false } };
   let worker: Worker | null = null, workerReady = false, sequence = 0, epoch = 0;
   let history: { values: Values; bytes: number }[] = [], index = -1;
@@ -30,7 +33,6 @@ export function createCadEditorPrismFeatureController() {
   const emit = () => { for (const listener of listeners) { try { listener(); } catch { /* UI subscriber isolation. */ } } };
   const live = () => { if (state.disposed) throw new Error('The prism inspector is disposed.'); };
   const idle = () => { live(); if (state.busy) throw new Error('A native operation is in progress.'); };
-  const historyState = () => ({ index, count: history.length, canUndo: index > 0, canRedo: index >= 0 && index < history.length - 1 });
   const stopWorker = (message: string) => {
     worker?.terminate(); worker = null; workerReady = false;
     if (pending) { const request = pending; pending = null; clearTimeout(request.timer); request.reject(new Error(message)); }
@@ -44,14 +46,17 @@ export function createCadEditorPrismFeatureController() {
       const reply = (event as MessageEvent<PrismFeatureReply>).data;
       if (!reply || reply.id !== pending.id) return; // Late/duplicate/different-instance replies are inert.
       const request = pending; pending = null; clearTimeout(request.timer);
-      if (reply.ok === false && typeof reply.message === 'string') { request.reject(new Error(reply.message.slice(0, 2048))); return; }
-      if (reply.ok !== true || typeof reply.text !== 'string' || reply.text.length > FILE_LIMIT
-        || !reply.summary || reply.summary.document?.format !== 'barocss-xy-affine-prism-feature-document'
-        || reply.summary.document.version !== 0 || reply.summary.document.nodes?.length !== 5
-        || !Array.isArray(reply.summary.document.parameters) || reply.summary.document.parameters.length > 16) {
-        stopWorker('Invalid native worker reply.'); request.reject(new Error('Invalid native worker reply.')); return;
-      }
-      request.resolve(reply);
+      try {
+        if (reply.ok === false && typeof reply.message === 'string') { request.reject(new Error(reply.message.slice(0, 2048))); return; }
+        if (reply.ok !== true || typeof reply.text !== 'string' || reply.text.length > FILE_LIMIT
+          || !reply.summary || reply.summary.document?.format !== 'barocss-xy-affine-prism-feature-document'
+          || reply.summary.document.version !== 0 || reply.summary.document.nodes?.length !== 5
+          || !Array.isArray(reply.summary.document.parameters) || reply.summary.document.parameters.length > 16) {
+          stopWorker('Invalid native worker reply.'); request.reject(new Error('Invalid native worker reply.')); return;
+        }
+        if (JSON.stringify(reply.summary).length > FILE_LIMIT) { stopWorker('Native summary exceeds budget.'); request.reject(new Error('Native summary exceeds budget.')); return; }
+        request.resolve(reply);
+      } catch { stopWorker('Invalid native worker reply.'); request.reject(new Error('Invalid native worker reply.')); }
     });
     const failed = () => { if (worker === instance) stopWorker('Native worker failed. Accepted intent is retained; retry to rebuild it.'); };
     instance.addEventListener('error', failed); instance.addEventListener('messageerror', failed);
@@ -83,6 +88,7 @@ export function createCadEditorPrismFeatureController() {
       if (!values.length) { state = { ...state, drafts: {}, error: null }; emit(); return; }
     }
     const operation = ++epoch;
+    let displayCandidate: PrismDisplayCandidate | null = null, nativeCandidate = false;
     state = { ...state, busy: true, error: null }; emit();
     try {
       if (kind !== 'open' && !workerReady) {
@@ -93,32 +99,68 @@ export function createCadEditorPrismFeatureController() {
       const reply = await request(kind === 'open' ? { kind: 'open', text: text! }
         : { kind: 'apply', expectedRevision: state.accepted!.document.revision, edits: values });
       if (operation !== epoch || state.disposed) return;
+      nativeCandidate = true;
+      const candidateWorker = worker;
       if (kind !== 'open' && (reply.summary.document.id !== state.accepted!.document.id
         || reply.summary.document.revision !== state.accepted!.document.revision + 1)) {
         stopWorker('Stale native result.'); throw new Error('Native result does not match the current document revision.');
       }
-      workerReady = true;
+      if (!reply.display || reply.display.documentId !== reply.summary.document.id || reply.display.revision !== reply.summary.document.revision)
+        throw new Error('Display packet does not match the native document.');
+      if (JSON.stringify(reply.display.outcomes) !== JSON.stringify(reply.summary.components)) throw new Error('Display result roles do not match native summary.');
+      const display = preparePrismFeatureScene(reply.display, state.view, aspect());
+      displayCandidate = displayPort ? await displayPort.prepare(display) : null;
+      if (operation !== epoch || state.disposed) { displayCandidate?.dispose(); return; }
+      let nextHistory = history, nextIndex = target;
       if (kind === 'open' || kind === 'apply') {
-        if (kind === 'open') { history = []; index = -1; }
-        history = history.slice(0, index + 1);
-        history.push({ values: reply.summary.document.parameters.map(p => ({ parameterId: p.id, valueMM: p.valueMM })),
+        nextHistory = kind === 'open' ? [] : history.slice(0, index + 1);
+        nextHistory.push({ values: reply.summary.document.parameters.map(p => ({ parameterId: p.id, valueMM: p.valueMM })),
           bytes: new TextEncoder().encode(reply.text).length });
-        while (history.length > 20 || history.reduce((n, item) => n + item.bytes, 0) > HISTORY_BYTES) history.shift();
-        index = history.length - 1;
-      } else index = target;
+        while (nextHistory.length > 20 || nextHistory.reduce((n, item) => n + item.bytes, 0) > HISTORY_BYTES) nextHistory.shift();
+        nextIndex = nextHistory.length - 1;
+      }
       const nodeId = kind !== 'open' && state.selection && reply.summary.document.nodes.some(n => n.id === state.selection!.nodeId)
         ? state.selection.nodeId : reply.summary.document.nodes[4].id;
-      state = { ...state, accepted: clone(reply.summary), authoredText: reply.text, drafts: {}, busy: false, error: null,
-        selection: { documentId: reply.summary.document.id, revision: reply.summary.document.revision, nodeId }, history: historyState() };
+      const nextState: State = { ...state, display, faceSelection: null, accepted: clone(reply.summary), authoredText: reply.text, drafts: {}, busy: false, error: null,
+        selection: { documentId: reply.summary.document.id, revision: reply.summary.document.revision, nodeId },
+        history: { index: nextIndex, count: nextHistory.length, canUndo: nextIndex > 0, canRedo: nextIndex >= 0 && nextIndex < nextHistory.length - 1 } };
+      if (!candidateWorker || worker !== candidateWorker) throw new Error('Native worker was lost before display acceptance.');
+      // All throwing preparation finishes before synchronous display/state/history acceptance.
+      displayCandidate?.commit();
+      workerReady = true; history = nextHistory; index = nextIndex; state = nextState;
     } catch (cause) {
       if (operation !== epoch || state.disposed) return;
+      if (displayCandidate) displayCandidate.dispose();
+      // Worker may have evaluated a candidate that display refused. Rebuild accepted intent next time.
+      if (nativeCandidate) stopWorker('Display candidate refused.');
       state = { ...state, busy: false, error: cause instanceof Error ? cause.message : 'Native operation refused.' };
     }
+    displayCandidate?.dispose();
     emit();
+  }
+  async function setView(view: PrismDisplayView) {
+    idle(); const acceptedDisplay = state.display;
+    if (!acceptedDisplay) throw new Error('Open an authored document first.');
+    const operation = ++epoch; let candidate: PrismDisplayCandidate | null = null;
+    state = { ...state, busy: true, error: null }; emit();
+    try {
+      const display = preparePrismFeatureScene(acceptedDisplay.packet, view, aspect());
+      candidate = displayPort ? await displayPort.prepare(display) : null;
+      if (operation !== epoch || state.disposed) { candidate?.dispose(); return; }
+      candidate?.commit(); state = { ...state, display, view, faceSelection: null, busy: false };
+    } catch (cause) {
+      if (operation === epoch && !state.disposed) state = { ...state, busy: false, error: cause instanceof Error ? cause.message : 'Display refused.' };
+    } finally { candidate?.dispose(); }
+    if (operation === epoch && !state.disposed) emit();
   }
   return {
     getSnapshot: (): State => clone(state),
     subscribe(listener: () => void) { live(); listeners.add(listener); return () => { listeners.delete(listener); }; },
+    setView,
+    pick(width: number, height: number, x: number, y: number, revision: number) {
+      idle(); if (!state.display || revision !== state.accepted?.document.revision) throw new Error('Display selection is stale.');
+      state = { ...state, faceSelection: pickPrismFeatureScene(state.display, width, height, x, y) }; emit();
+    },
     open: (text: string) => run('open', text), apply: () => run('apply'), undo: () => run('undo'), redo: () => run('redo'),
     stage(parameterId: string, raw: string) {
       idle(); if (!state.accepted?.document.parameters.some(p => p.id === parameterId) || typeof raw !== 'string' || raw.length > 128)
