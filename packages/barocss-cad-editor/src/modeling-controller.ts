@@ -100,7 +100,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
   async function run(kind: 'open' | 'example' | 'apply' | 'undo' | 'redo', text?: string, example?: CadEditorModelingExample, splitAxis?: CadEditorModelingSplitAxis) {
     idle();
     if (kind === 'example') {
-      if (example !== undefined && !['cut-chamfer', 'intersection', 'horizontal-split'].includes(example))
+      if (example !== undefined && !['cut-chamfer', 'intersection', 'horizontal-split', 'two-chamfer'].includes(example))
         throw new Error('Choose an available modeling example.');
       if (splitAxis !== undefined && (example !== 'horizontal-split' || !['x', 'y', 'z'].includes(splitAxis)))
         throw new Error('Choose X, Y or Z for the split example only.');

@@ -12,7 +12,7 @@ export interface CadEditorModelingSummary {
 }
 export type CadEditorModelingSplitAxis = 'x' | 'y' | 'z';
 /** The split example ID is retained for compatibility; splitAxis defaults to Z. */
-export type CadEditorModelingExample = 'cut-chamfer' | 'intersection' | 'horizontal-split';
+export type CadEditorModelingExample = 'cut-chamfer' | 'intersection' | 'horizontal-split' | 'two-chamfer';
 export type ModelingCommand = { id: number } & (
   { kind: 'example'; example?: CadEditorModelingExample; splitAxis?: CadEditorModelingSplitAxis } | { kind: 'open'; text: string; revision?: number }
   | { kind: 'apply'; expectedRevision: number; parameters: Record<string, number> }
@@ -32,6 +32,17 @@ export function createCadEditorSampleModel(): CadModelSnapshot {
   const cut = blank.cut(tool, { axis: 'x' });
   const front = cut.positive.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one();
   return model.build({ part: cut.positive.chamfer(front, setback), other: cut.negative });
+}
+
+/** Each chamfer selection is owned by the exact shape it modifies. */
+export function createCadEditorChamferChainModel(): CadModelSnapshot {
+  const model = cad.model();
+  const frontDistance = model.parameter('frontDistance', 1), backDistance = model.parameter('backDistance', 2);
+  const backY = model.parameter('backY', 24);
+  const blank = model.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+  const front = blank.chamfer(blank.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one(), frontDistance);
+  const part = front.chamfer(front.edges({ parallelTo: 'x', at: { y: backY, z: 'max' } }).one(), backDistance);
+  return model.build({ part });
 }
 
 /** A positive-volume overlap, authored through the same public handle API. */
@@ -99,7 +110,7 @@ export function createModelingEngine() {
   return (command: ModelingCommand): ModelingReply => {
     try {
       if (!command || !Number.isSafeInteger(command.id) || command.id < 1) throw new Error('A current worker request is required.');
-      if (command.kind === 'example' && command.example !== undefined && command.example !== 'cut-chamfer' && command.example !== 'intersection' && command.example !== 'horizontal-split')
+      if (command.kind === 'example' && command.example !== undefined && command.example !== 'cut-chamfer' && command.example !== 'intersection' && command.example !== 'horizontal-split' && command.example !== 'two-chamfer')
         throw new Error('Choose an available modeling example.');
       if (command.kind === 'example' && command.splitAxis !== undefined
         && (command.example !== 'horizontal-split' || !['x', 'y', 'z'].includes(command.splitAxis)))
@@ -129,7 +140,7 @@ export function createModelingEngine() {
       if (source !== 'model') throw new Error('Open a saved model first.');
       const snapshot = command.kind === 'example' ? (command.example === 'intersection' ? createCadEditorIntersectionModel()
         : command.example === 'horizontal-split' ? (command.splitAxis === 'x' || command.splitAxis === 'y'
-          ? createCadEditorCardinalSplitModel(command.splitAxis) : createCadEditorSplitModel()) : createCadEditorSampleModel())
+          ? createCadEditorCardinalSplitModel(command.splitAxis) : createCadEditorSplitModel()) : command.example === 'two-chamfer' ? createCadEditorChamferChainModel() : createCadEditorSampleModel())
         : command.kind === 'open' ? cad.load(command.text)
           : accepted?.source === 'model' ? accepted.snapshot.withParameters(command.parameters) : null;
       if (!snapshot) throw new Error('Open a saved model first.');

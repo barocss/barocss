@@ -27,6 +27,50 @@ The cutter must cover the entire parent in its other directions. Here the tool k
 
 The chamfer uses an equal physical setback on both adjacent planes. It is not the diagonal width of the new face. Selection and setback still have to pass the native cardinal-edge, perpendicular-support and locality rules below.
 
+## Chamfer two owned edges in sequence
+
+<a :href="withBase('/examples/modeling-chamfer-chain.ts')" download>Download the complete typed two-chamfer example</a>
+
+This rectangular part has two independently editable bevel distances. `frontDistance` and `backDistance` are equal physical setbacks on each edge's adjacent planes. `backY` is the **edge-selection Y coordinate**, not a bevel distance. The 32 × 24 × 8 mm blank starts at 6144 mm³.
+
+<<< ../../public/examples/modeling-chamfer-chain.ts#two-chamfers
+
+The first selector belongs to `blank`; the second selector is created from **`front`, the actual first chamfer result**, and is passed back to that same `front`. Do not reuse the blank's edge selector or append a second chamfer to the existing six-node cut example. This preset has four nodes: sketch → extrude → chamfer → chamfer, and one named output, `part`.
+
+| Authored dimensions | First removed / retained (mm³) | Second removed / final (mm³) |
+| --- | ---: | ---: |
+| `frontDistance:1, backDistance:2` | 16 / 6128 | 64 / 6064 |
+| `frontDistance:1, backDistance:3` | 16 / 6128 | 144 / 5984 |
+| `frontDistance:2, backDistance:3` | 64 / 6080 | 144 / 5936 |
+
+<<< ../../public/examples/modeling-chamfer-chain.ts#edit-chamfers
+
+Each edit rebuilds the second selector against the first result of that same evaluation. Saving the back-distance-3 state and loading it in a fresh process gives 5984 mm³; changing only `backDistance` back to 2 gives 6064 mm³. The independent front/back edits and authored save/load flow use the same snapshot API:
+
+<<< ../../public/examples/modeling-chamfer-chain.ts#chamfer-workflow
+
+In the editor, choose **Two chamfers on a part** under **Modeling examples**, acknowledge replacement and load. The fields explicitly distinguish the front/back bevel distances from `backY`, the edge-selection coordinate. Picker changes only configure a new example and clear the acknowledgment. A successful load replaces the old history and pending dimensions; refusal or cancellation retains the previous accepted scene, graph, drafts and history. Existing cut/chamfer, intersection and X/Y/Z split presets remain available.
+
+### Two-chamfer limits and refusal
+
+Only **two serial chamfers** are admitted, with the second parent and its selector owned by the actual first result. Sibling branches, a third chamfer and stale/foreign/copied selectors refuse. The total remains six nodes. This example demonstrates a directly extruded rectangle with opposite, noninteracting top edges; it does not establish a split/intersection plus two-chamfer combination, arbitrary-edge chamfer, fillet or topology remapping.
+
+The existing native restrictions still apply: adjacent supports must be perpendicular signed world-axis planes; endpoints need the supported perpendicular end planes; positive local setbacks must satisfy the exact representation, qualification and work bounds. Being selectable does not prove an edge is chamferable.
+
+Starting from `makeTwoChamferPart()` with `frontDistance:1`:
+
+- `backY:0` asks for the original front/top edge, already removed by the first chamfer. It refuses with `CadModelError` code `SELECTION`, operation `chamfer`, rather than remapping to a nearby edge
+- `backY:1` selects the new bevel/top edge, whose adjacent bevel support is not cardinal. It refuses with `NATIVE` / `chamfer`, preserving the original `ConvexPlanarSolidChamferError` cause with code `METRIC` and stage `chamfer`
+- `backDistance:0` refuses with `PARAMETER` / `chamfer`; positive finite distance is required
+
+All three preserve the prior accepted snapshot and saved text. Keep the actual error and its native cause rather than turning it into a successful approximation:
+
+<<< ../../public/examples/modeling-chamfer-chain.ts#refused-chamfer
+
+The [adopted two-chamfer source](https://github.com/barocss/barocss/blob/63f74623ddef0f44f9c6056c3e0b162e3f429f69/packages/barocss-cad/src/modeling.ts), [exact public fixture](https://github.com/barocss/barocss/blob/63f74623ddef0f44f9c6056c3e0b162e3f429f69/packages/barocss-cad/test/modeling-chamfer-chain-fixture.mjs) and [native receipt](https://github.com/barocss/barocss/blob/63f74623ddef0f44f9c6056c3e0b162e3f429f69/packages/barocss-cad/test/modeling-chamfer-chain-evidence/verification.json) record 8 model evaluations and 1 final-part tessellation, including fresh emitted load/re-edit. Each stage's removed-plus-retained volume is conserved, and the second native parent is exactly the first retained result. Provider counters cover direct work only; full transitive native coverage was not measured.
+
+Lightweight tracing compares the same nine parameter/rectangle/extrude/edge/chamfer authoring calls and final named output in the editor, this download and the provider fixture. The unchanged 41,471-byte genuine baseline DTO is replayed through the actual controller/CPU scene with a mocked Worker. This establishes transport, output identity and approximate CPU picking, not new native execution or actual sample-worker/browser/GPU execution. Editor browser/GPU and physical file dialogs remain **UNRUN** in this consumer check; live manual deployment is a separate gate.
+
 ## Intersect two extrusions into an overlap part
 
 <a :href="withBase('/examples/modeling-intersection.ts')" download>Download the complete typed overlap example</a>
@@ -145,7 +189,7 @@ This loader accepts files from this modeling API. Existing versioned feature doc
 | Intersect | Two distinct same-model direct XY extrusions; positive-volume exact convex-planar overlap | Disjoint/touching-only results, same handle, cut-plus-intersection, repeated/nested intersection, union or general Boolean solids |
 | Split | One direct XY extrusion; world `axis: 'x'`, `'y'` or `'z'` with a finite coordinate; each selected side must be nonempty | Oblique plane, empty requested side, mixed cut/intersection/split graph, repeated/nested split |
 | Select | One exact cardinal-direction/endpoint-coordinate query on the same body | Zero/multiple matches, handles from another model/body, tolerance or persistent-topology matching |
-| Chamfer | One cardinal edge; perpendicular signed-axis adjacent supports, valence-three endpoints, perpendicular end supports; positive local setback | Repeated/multi-edge chamfer, curved or arbitrary-angle chamfer, zero/excessive/touching/nonlocal setback |
+| Chamfer | Up to two serial owned cardinal-edge chamfers; second parent/selector from the first result; perpendicular signed-axis adjacent supports and supported endpoints; positive local setback | Sibling/third chamfer, stale selectors, curved or arbitrary-angle chamfer, zero/excessive/touching/nonlocal setback; unmeasured feature combinations |
 | Edit/load | Named finite-mm parameter batch; complete bounded rebuild into a new snapshot | Partial accepted candidate, arbitrary graph editing, implicit migration or cached geometry acceptance |
 
 A dimension being an ordinary integer is not enough to qualify an operation. The exact native XYZ, UV and chart constraints still apply. In the canonical part, combined `rearX:20` and `upperX:24` requires non-binary64 XYZ `80/3` and refuses; a `height:10` edit leaves the tool shorter than the parent and refuses coverage. `upperX:32` makes the selected positive side empty. Zero setback refuses the positive-dimension requirement; excessive setback refuses native locality. These are exactness and shape limits, not hidden tolerances or repair instructions.
@@ -157,7 +201,7 @@ A dimension being an ordinary integer is not enough to qualify an operation. The
 | Resource | Maximum |
 | --- | ---: |
 | Authored operation nodes | 6 |
-| Sketches / extrusions / cuts / intersections / chamfers / splits | 2 / 2 / 1 / 1 / 1 / 1 |
+| Sketches / extrusions / cuts / intersections / chamfers / splits | 2 / 2 / 1 / 1 / 2 / 1 |
 | Named parameters / outputs | 16 / 8 |
 | Polygon points | 8 |
 | Authored file UTF-8 bytes | 65536 (64 KiB) |
@@ -179,7 +223,7 @@ Adopted engine source: [`4a2d2c5a`](https://github.com/barocss/barocss/blob/4a2d
 
 The receipt preserves **15 initial-source evaluations** and **6 final evaluations**: source 1, emitted 1 and fresh-process cold 4. The initial source preceded array-admission/per-kind-limit hardening; the native geometry evaluator was unchanged. Final cold steps rebuilt the authored serial part and re-edited it. Do not describe all 21 evaluations as a fresh replay of the final source. Full package lint retained 27 existing errors, and the legacy consumer harness failed before imports on its inherited archive-name mismatch; the separate aggregate verifier also stopped after type/lightweight tests on a dependency-tooling failure before its lint step. Focused evidence is not a green whole-package claim.
 
-The original cut/chamfer snippets were typechecked against this source and its already-emitted declarations. The intersection and split examples have their own source-pinned provider checks and receipts; they do not rewrite the historical baseline evidence. The following optional check reads real native certificates if the host invokes it; the documentation check does **not** invoke it or run another native campaign:
+The original cut/chamfer snippets were typechecked against this source and its already-emitted declarations. The intersection, split and two-chamfer examples have their own source-pinned provider checks and receipts; they do not rewrite the historical baseline evidence. The following optional check reads real native certificates if the host invokes it; the documentation check does **not** invoke it or run another native campaign:
 
 <<< ../../../scripts/snippets/modeling-api.ts#checks
 

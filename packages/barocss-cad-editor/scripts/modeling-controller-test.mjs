@@ -44,10 +44,15 @@ const split = { ...structuredClone(authored), parameters: { height: 8, splitHeig
 const cardinal = axis => ({ ...structuredClone(split), parameters: { splitAt: 16, rearX: 16, height: 8 },
   nodes: split.nodes.map((node, index) => index === 2 ? { ...node, axis, at: { parameter: 'splitAt' } } : node),
   outputs: { negative: { node: 2, side: 'negative' }, positive: { node: 2, side: 'positive' } } });
+const chamferChain = { ...structuredClone(authored), parameters: { frontDistance: 1, backDistance: 2, backY: 24 },
+  nodes: [{ kind: 'sketch' }, { kind: 'extrude', sketch: 0 },
+    { kind: 'chamfer', parent: { node: 1, side: 'solid' }, edge: { parallelTo: 'x', at: { y: 0, z: 'max' } }, distance: { parameter: 'frontDistance' } },
+    { kind: 'chamfer', parent: { node: 2, side: 'solid' }, edge: { parallelTo: 'x', at: { y: { parameter: 'backY' }, z: 'max' } }, distance: { parameter: 'backDistance' } }],
+  outputs: { part: { node: 3, side: 'solid' } } };
 function reply(document = authored, revision = 0) {
   const names = Object.keys(document.outputs);
   return { id: 1, ok: true, text: signedJSON(document), summary: { documentId: 'cad_model', revision, source: 'model', parameters: document.parameters,
-    features: document.nodes.map((node, index) => ({ kind: node.kind, index, dependencies: index === 4 ? [1, 3] : index % 2 ? [index - 1] : [] })),
+    features: document.nodes.map((node, index) => ({ kind: node.kind, index, dependencies: node.kind === 'chamfer' ? [node.parent.node] : index === 4 ? [1, 3] : index % 2 ? [index - 1] : [] })),
     outputs: names.map(name => ({ name, solidId: nativeId, volumeMM3: { numerator: '1', denominator: '1' } })) },
   display: { profile: 'model-outputs', documentId: 'cad_model', revision,
     components: names.map(name => ({ ...structuredClone(base), role: name, lineage: { kind: 'model-output', name, solidId: nativeId, graph: structuredClone(graph) } })),
@@ -64,7 +69,7 @@ class Worker {
   terminate() { this.terminated = true; }
   send(result, id = this.requests.at(-1).id) { this.callbacks.get('message')({ data: { ...structuredClone(result), id } }); }
   accept(command = this.requests.at(-1)) {
-    const document = command.kind === 'example' ? structuredClone(command.example === 'intersection' ? overlap : command.example === 'horizontal-split' ? (command.splitAxis === 'x' || command.splitAxis === 'y' ? cardinal(command.splitAxis) : split) : authored) : command.kind === 'open' ? JSON.parse(command.text) : structuredClone(this.document);
+    const document = command.kind === 'example' ? structuredClone(command.example === 'intersection' ? overlap : command.example === 'horizontal-split' ? (command.splitAxis === 'x' || command.splitAxis === 'y' ? cardinal(command.splitAxis) : split) : command.example === 'two-chamfer' ? chamferChain : authored) : command.kind === 'open' ? JSON.parse(command.text) : structuredClone(this.document);
     if (command.kind === 'apply') Object.assign(document.parameters, command.parameters);
     this.document = document;
     const result = reply(document, command.kind === 'apply' ? command.expectedRevision + 1 : command.revision ?? 0); this.send(result, command.id); return result;
@@ -115,7 +120,7 @@ try {
     if (mode === 'display-refusal' || mode === 'cancel-staging' || mode === 'worker-failure-staging') assert.ok(disposals >= 2); s.dispose(); checks++;
   }
   // Every additive sample uses the same atomic replacement path, including drafts/history.
-  for (const [example, document, kind, outputs, axis] of [['intersection', overlap, 'intersect', ['overlap']], ['horizontal-split', split, 'split', ['lower', 'upper']], ['horizontal-split', cardinal('x'), 'split', ['negative', 'positive'], 'x'], ['horizontal-split', cardinal('y'), 'split', ['negative', 'positive'], 'y']]) {
+  for (const [example, document, kind, outputs, axis] of [['intersection', overlap, 'intersect', ['overlap']], ['horizontal-split', split, 'split', ['lower', 'upper']], ['horizontal-split', cardinal('x'), 'split', ['negative', 'positive'], 'x'], ['horizontal-split', cardinal('y'), 'split', ['negative', 'positive'], 'y'], ['two-chamfer', chamferChain, 'chamfer', ['part']]]) {
     const samples = create(); p = samples.example(); let sampleWorker = instances.at(-1); sampleWorker.accept(); await p;
     samples.stage('height', '6'); p = samples.apply(); sampleWorker.accept(); await p;
     samples.stage('height', '7'); const beforeSample = stable(samples);
@@ -128,10 +133,13 @@ try {
     assert.deepEqual(samples.getSnapshot().accepted.outputs.map(output => output.name), outputs);
     assert.equal(samples.getSnapshot().accepted.features.at(-1).kind, kind);
     assert.equal(samples.getSnapshot().history.count, 1); assert.deepEqual(samples.getSnapshot().drafts, {}); checks++;
-    samples.stage('height', '2'); const beforeOutputChange = stable(samples); p = samples.apply();
-    const changed = structuredClone(document); changed.parameters.height = 2;
+    const editName = example === 'two-chamfer' ? 'backDistance' : 'height';
+    const editValue = example === 'two-chamfer' ? 3 : 2;
+    samples.stage(editName, String(editValue)); const beforeOutputChange = stable(samples); p = samples.apply();
+    const changed = structuredClone(document); changed.parameters[editName] = editValue;
     if (axis) changed.outputs.negative.side = 'positive';
     else if (example === 'horizontal-split') changed.outputs.lower.side = 'positive';
+    else if (example === 'two-chamfer') changed.outputs.part.node = 2;
     else changed.outputs.overlap.node = 1;
     sampleWorker.send(reply(changed, 1)); await p; assert.deepEqual(stable(samples), beforeOutputChange); checks++;
     if (axis) {
@@ -144,7 +152,7 @@ try {
     samples.dispose();
   }
   const invalid = create(); const beforeInvalid = stable(invalid), beforeWorkers = instances.length;
-  for (const [example, axis] of [['horizontal-split', 'q'], ['horizontal-split', null], ['horizontal-split', 1], ['horizontal-split', {}], ['intersection', 'x'], ['cut-chamfer', 'z'], [undefined, 'y'], ['unknown', undefined]]) {
+  for (const [example, axis] of [['horizontal-split', 'q'], ['horizontal-split', null], ['horizontal-split', 1], ['horizontal-split', {}], ['intersection', 'x'], ['cut-chamfer', 'z'], ['two-chamfer', 'x'], [undefined, 'y'], ['unknown', undefined]]) {
     await assert.rejects(invalid.example(example, axis), /Choose/);
     assert.equal(instances.length, beforeWorkers); assert.deepEqual(stable(invalid), beforeInvalid); checks++;
   }
@@ -159,6 +167,24 @@ try {
     const data = structuredClone(authored); data.nodes[1].kind = kind;
     const s = create(); p = s.open(signedJSON(data)); instances.at(-1).send(reply(data)); await p;
     assert.equal(s.getSnapshot().accepted, null); assert.match(s.getSnapshot().error, /feature dependencies/); s.dispose(); checks++;
+  }
+  // Both distances remain ordinary independent draft dimensions on the same chain.
+  const chainSession = create(); p = chainSession.example('two-chamfer'); const chainWorker = instances.at(-1); chainWorker.accept(); await p;
+  chainSession.stage('backDistance', '3'); p = chainSession.apply(); chainWorker.accept(); await p;
+  assert.deepEqual(chainSession.getSnapshot().accepted.parameters, { frontDistance: 1, backDistance: 3, backY: 24 }); checks++;
+  p = chainSession.undo(); chainWorker.accept(); await p; assert.equal(chainSession.getSnapshot().accepted.parameters.backDistance, 2);
+  chainSession.stage('frontDistance', '2'); chainSession.stage('backDistance', '3'); p = chainSession.apply();
+  assert.deepEqual(chainWorker.requests.at(-1).parameters, { frontDistance: 2, backDistance: 3 }); chainWorker.accept(); await p;
+  assert.equal(chainSession.getSnapshot().history.count, 2); checks++;
+  p = chainSession.undo(); chainWorker.accept(); await p; assert.equal(chainSession.getSnapshot().accepted.parameters.frontDistance, 1);
+  p = chainSession.redo(); chainWorker.accept(); await p; assert.equal(chainSession.getSnapshot().accepted.parameters.frontDistance, 2); checks++;
+  chainSession.stage('backY', '0'); const beforeChainRefusal = stable(chainSession); p = chainSession.apply(); chainWorker.send({ ok: false, message: 'CAD model chamfer: Expected exactly one edge; matched 0' }); await p;
+  assert.deepEqual(stable(chainSession), beforeChainRefusal); chainSession.dispose(); checks++;
+  for (const mutate of [d => d.nodes[3].parent.node = 1, d => d.nodes[3].edge.at.y = 0]) {
+    const guarded = create(); p = guarded.example('two-chamfer'); const w = instances.at(-1); w.accept(); await p;
+    guarded.stage('backDistance', '3'); const before = stable(guarded); p = guarded.apply();
+    const forged = structuredClone(chamferChain); forged.parameters.backDistance = 3; mutate(forged); w.send(reply(forged, 1)); await p;
+    assert.deepEqual(stable(guarded), before); guarded.dispose(); checks++;
   }
   const changes = [p => p.components[0].lineage.name = 'wrong', p => p.components[0].lineage.solidId = 'wrong',
     p => p.components[0].lineage.graph.faces[0].faceId = 'wrong', p => p.components[0].lineage.graph.edges[0].uses[0].use.curveId = 'wrong',

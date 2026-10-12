@@ -34,6 +34,8 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
   };
   useEffect(() => { setReplaceExample(false); }, [snapshot?.generation]);
   const accepted = snapshot?.accepted, busy = snapshot?.busy ?? false, draft = Object.keys(snapshot?.drafts ?? {}).length > 0;
+  const chamferChain = accepted?.source === 'model' && accepted.features.map(feature => feature.kind).join(',') === 'sketch,extrude,chamfer,chamfer'
+    && ['frontDistance', 'backDistance', 'backY'].every(name => Object.hasOwn(accepted.parameters, name));
   return <section className="barocss-cad-editor" aria-label="CAD model editor" style={{ padding: 24, overflow: 'auto', height: '100%' }}>
     <header><h1>Model a part</h1><p>Sketch → extrude → cut, intersect, split or chamfer · named dimensions in mm</p></header>
     <p role="status" aria-live="polite">{busy ? 'Computing native geometry in a dedicated worker… You can cancel.' : accepted ? draft ? 'Dimension changes pending' : 'Accepted model' : 'No accepted model'}</p>
@@ -53,6 +55,7 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         <option value="cut-chamfer">Cut and chamfer a part</option>
         <option value="intersection">Intersect two extrusions</option>
         <option value="horizontal-split">Split a part</option>
+        <option value="two-chamfer">Two chamfers on a part</option>
       </select>
       {example === 'horizontal-split' && <>
         <Label htmlFor={`${id}-split-axis`}>Split axis for the new example</Label>
@@ -69,7 +72,9 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
           : 'Split one direct XY extrusion at an X or Y coordinate into negative and positive bodies. Negative is the lower-coordinate side.'
         : example === 'intersection'
           ? 'Intersection keeps only the positive-volume overlap of two direct convex XY extrusions. Empty or touching-only results are refused.'
-          : 'Cut a through-slab from a part, then chamfer one supported edge. Both outside components remain named outputs.'}</p>
+          : example === 'two-chamfer'
+            ? 'Chamfer opposite top edges of a rectangular part in sequence. The second edge belongs to the first result. frontDistance and backDistance are bevel distances; backY selects the second edge by its Y coordinate.'
+            : 'Cut a through-slab from a part, then chamfer one supported edge. Both outside components remain named outputs.'}</p>
       {accepted && <Label><input type="checkbox" checked={replaceExample} disabled={busy}
         onChange={event => setReplaceExample(event.target.checked)} /> Replace accepted model and discard its history and pending dimensions</Label>}
       <div><Button disabled={busy || (!!accepted && !replaceExample)} onClick={() => action(async s => {
@@ -90,7 +95,7 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
       {accepted.source === 'legacy' && <p>This file uses its original compatibility reader. Saving preserves its authored format and modeling semantics.</p>}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 24 }}>
         <div><h2>Named dimensions</h2>{Object.entries(accepted.parameters).map(([name, value]) => <div key={name} style={{ marginBottom: 16 }}>
-          <Label htmlFor={`${id}-${name}`}>{name} (mm)</Label>
+          <Label htmlFor={`${id}-${name}`}>{chamferChain && name === 'backY' ? 'backY · edge-selection Y coordinate' : chamferChain && name === 'frontDistance' ? 'frontDistance · front bevel distance' : chamferChain && name === 'backDistance' ? 'backDistance · back bevel distance' : name} (mm)</Label>
           <Input id={`${id}-${name}`} disabled={busy} inputMode="decimal"
             value={Object.hasOwn(snapshot?.drafts ?? {}, name) ? snapshot!.drafts[name] : Object.is(value, -0) ? '-0' : String(value)}
             onChange={event => action(s => s.stage(name, event.target.value))}

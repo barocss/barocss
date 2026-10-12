@@ -1,0 +1,41 @@
+{
+  "issue": 1626,
+  "base": "63f74623ddef0f44f9c6056c3e0b162e3f429f69",
+  "adoptedEnginePin": "63f74623ddef0f44f9c6056c3e0b162e3f429f69",
+  "checks": {
+    "source": {
+      "ok": true,
+      "scope": "download/public snippet types, example boundary and TSX syntax; no native CAD or browser execution",
+      "mode": "source",
+      "typedExampleFiles": 5,
+      "enginePin": "63f74623ddef0f44f9c6056c3e0b162e3f429f69",
+      "engineReceiptSHA256": "dbf6ff373fa7429ac7c1152e5ed1f30cbd5e0563b752e2c7bfa4d68d8e2ae5ac",
+      "entrySHA256": "57a7e673051aa44f61e8bed90c34e53c2521901e8b55010421d76b2036a71c5f",
+      "modelingSourceSHA256": "06f2c4135da930190f260159b12c8d5b77bcbd90541d3363123dfc20c97abfac",
+      "downloadSHA256": "3c0cb92e5198bcdeb8b7bac19b3b4451294ad474b68111f9f332afd3820a1033",
+      "nativeCampaignRun": false
+    },
+    "emitted": {
+      "ok": true,
+      "scope": "download/public snippet types, example boundary and TSX syntax; no native CAD or browser execution",
+      "mode": "emitted",
+      "typedExampleFiles": 5,
+      "enginePin": "63f74623ddef0f44f9c6056c3e0b162e3f429f69",
+      "engineReceiptSHA256": "dbf6ff373fa7429ac7c1152e5ed1f30cbd5e0563b752e2c7bfa4d68d8e2ae5ac",
+      "entrySHA256": "bc51e66126a6727648f41ad3386f0f8731733303570e94acbfcb4daea4d4ce05",
+      "modelingSourceSHA256": "06f2c4135da930190f260159b12c8d5b77bcbd90541d3363123dfc20c97abfac",
+      "downloadSHA256": "3c0cb92e5198bcdeb8b7bac19b3b4451294ad474b68111f9f332afd3820a1033",
+      "nativeCampaignRun": false
+    }
+  },
+  "downloadSHA256": "3c0cb92e5198bcdeb8b7bac19b3b4451294ad474b68111f9f332afd3820a1033",
+  "historicalExamples": "Original cut/chamfer, intersection, Z split and X/Y split examples all typechecked against current two-chamfer provider; historical receipts unchanged",
+  "runtimeEvidence": "Exact nine-call authoring equality connects editor/download to provider fixture, including exact second-selector ownership; preserved genuine baseline DTO replay is mocked Worker and actual CPU controller/scene/picking, no new native evaluation",
+  "uiEvidence": "TSX syntax, declared type/build and source assertions for existing default, acknowledgment reset, explicit load gate and backY coordinate label; no browser interaction run",
+  "notRun": [
+    "Full manual build/deployment for this increment",
+    "Editor browser/GPU",
+    "Physical file-picker flow",
+    "Npm publication"
+  ]
+}

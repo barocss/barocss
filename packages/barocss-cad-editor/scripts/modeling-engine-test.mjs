@@ -16,6 +16,8 @@ function sampleBuilder() {
   sampleCalls++; const parameters = {}, nodes = [];
   const shape = index => ({ intersect(other) { intersectCalls++; const node = nodes.push({ kind: 'intersect', left: index, right: other.index }) - 1; return shape(node); },
     split(options) { splitCalls++; const node = nodes.push({ kind: 'split', parent: index, ...options }) - 1; return { negative: { index: node, side: 'negative' }, positive: { index: node, side: 'positive' } }; },
+    edges(query) { return { one() { return { owner: index, query }; } }; },
+    chamfer(selection, distance) { assert.equal(selection.owner, index); return shape(nodes.push({ kind: 'chamfer', parent: index, query: selection.query, distance }) - 1); },
     index, cut() { const side = { edges() { return { one() { return {}; } }; }, chamfer() { return shape(nodes.push({ kind: 'chamfer' }) - 1); }, index: nodes.push({ kind: 'cut' }) - 1 }; return { positive: side, negative: side }; } });
   const sketch = profile => { const index = nodes.push({ kind: 'sketch', profile }) - 1; return { extrude(height) { return shape(nodes.push({ kind: 'extrude', sketch: index, height }) - 1); } }; };
   return { parameter(name, value) { parameters[name] = value; return { parameter: name }; }, sketch: { polygon: sketch, rectangle: sketch },
@@ -98,7 +100,14 @@ for (const splitAxis of ['x', 'y', 'z']) {
   assert.deepEqual(sample.summary.outputs.map(o => o.name), splitAxis === 'z' ? ['lower', 'upper'] : ['negative', 'positive']);
   assert.deepEqual(sample.summary.parameters, splitAxis === 'z' ? { height: 8, splitHeight: 2 } : { splitAt: 16, rearX: 16, height: 8 }); checks++;
 }
-for (const [example, splitAxis] of [['horizontal-split', 'q'], ['horizontal-split', null], ['horizontal-split', 1], ['horizontal-split', {}], ['intersection', 'x'], ['cut-chamfer', 'z'], [undefined, 'y']]) {
+const chainSample = sampleEngine({ id: ++id, kind: 'example', example: 'two-chamfer' });
+assert.equal(chainSample.ok, true);
+assert.deepEqual(chainSample.summary.parameters, { frontDistance: 1, backDistance: 2, backY: 24 });
+assert.deepEqual(chainSample.summary.outputs.map(o => o.name), ['part']);
+const chainDocument = JSON.parse(chainSample.text);
+assert.deepEqual(chainDocument.nodes.map(node => node.kind), ['sketch', 'extrude', 'chamfer', 'chamfer']);
+assert.equal(chainDocument.nodes[2].parent, 1); assert.equal(chainDocument.nodes[3].parent, 2); checks++;
+for (const [example, splitAxis] of [['horizontal-split', 'q'], ['horizontal-split', null], ['horizontal-split', 1], ['horizontal-split', {}], ['intersection', 'x'], ['cut-chamfer', 'z'], ['two-chamfer', 'x'], [undefined, 'y']]) {
   const calls = sampleCalls;
   assert.equal(sampleEngine({ id: ++id, kind: 'example', example, splitAxis }).ok, false);
   assert.equal(sampleCalls, calls); checks++;
@@ -106,8 +115,8 @@ for (const [example, splitAxis] of [['horizontal-split', 'q'], ['horizontal-spli
 const beforeSamples = sampleCalls;
 assert.equal(sampleEngine({ id: ++id, kind: 'example', example: 'not-a-sample' }).ok, false);
 assert.equal(sampleCalls, beforeSamples); checks++;
-const afterBadSample = sampleEngine({ id: ++id, kind: 'apply', expectedRevision: 0, parameters: { height: 2 } });
-assert.equal(afterBadSample.ok, true); assert.equal(afterBadSample.summary.parameters.height, 2); checks++;
+const afterBadSample = sampleEngine({ id: ++id, kind: 'apply', expectedRevision: 0, parameters: { backDistance: 3 } });
+assert.equal(afterBadSample.ok, true); assert.equal(afterBadSample.summary.parameters.backDistance, 3); checks++;
 const before = modelCalls + legacyCalls;
 assert.equal(engine({ id: ++id, kind: 'open', text: JSON.stringify({ ...legacyDocument, version: 1 }) }).ok, false);
 assert.equal(modelCalls + legacyCalls, before); checks++;
