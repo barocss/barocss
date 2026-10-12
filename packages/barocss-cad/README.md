@@ -10671,3 +10671,80 @@ independently copied and GC-owned. Number-derived normals/areas and any later
 Float32 projection are preview data, not manufacturing or geometry authority.
 The renderer adapter owns its own frame/unit conversion and Float32 admission;
 physical GPU acceptance is separate. No GPU resources are created here.
+
+### Serial slab-component chamfer part document v2 (#1607)
+
+`XYAffinePrismFeatureDocumentV2` is an explicit authored part IR, not new CAD-language syntax.
+It has exactly six fixed-role nodes: two sketches, their two prisms, the through-slab
+subtraction, and a chamfer whose parent is the subtraction's **second component**.
+Both prism options require `chartPolicy: { version: 1, kind: 'coordinate-span' }`;
+`capChart` remains authored. There is no chart search, automatic migration, or
+change to v0/v1 admission, return types, saved bytes, or entrypoints. The v1
+chamfer remains a sibling on its original prism.
+
+The sixth node replaces v1 `parentPrismId` with:
+
+```ts
+parent: {
+  kind: 'subtraction-component',
+  subtractionNodeId: 'subtraction_feature',
+  componentRole: 'second',
+  solidId: 'right_part',
+}
+```
+
+Its `reference` still stores the original `{ sourceId, sketchId, sourceRevision,
+segmentId, role: 'top', a, b }`, with complete original-prism source/use references.
+The evaluator resolves the original segment's top edge, then follows both the
+owning original face and complete per-face-use lineage into the selected component.
+The two derived uses must form exactly one qualified opposite-paired component edge.
+Generated component IDs and retained source intervals are output-only in
+`chamferResolution`; they are rebuilt on open and may change after an edit.
+No nearest-geometry, ordinal, component-switching, or historical naming claim follows.
+
+The explicit APIs are `evaluateXYAffinePrismFeatureDocumentV2`,
+`updateXYAffinePrismFeatureDocumentV2`, `validateXYAffinePrismFeatureDocumentV2`,
+`validateXYAffinePrismFeatureDocumentUpdateV2`, `serializeXYAffinePrismFeatureDocumentV2`,
+and `parseXYAffinePrismFeatureDocumentV2`. The final selected component is
+`result.chamfer.split.negative.solid`; `subtraction.second` is its pre-chamfer parent,
+and `subtraction.first` is the separate unchanged component.
+
+Updates use the existing typed coordinate, prism-height, and chamfer-distance bindings,
+with an exact expected revision and next revision. Every update first reconstructs and
+validates the whole prior result. Distance-only edits retain both prisms and the slab;
+tool edits rebuild the slab and its dependent chamfer. Same-value edits have zero
+candidate native work, but still perform full prior validation. Failed edits preserve
+both request and prior result. Serialization contains authored state only, preserves
+signed zero, rejects duplicate/extra JSON fields, and cold-open reconstructs geometry,
+lineage, work reports, and the derived edge selection.
+
+The fixed pentagon `(0,0),(32,0),(32,16),(rearX,32),(0,32)`, slab `x=8..16`, and
+1 mm chamfer have these exact selected-component volumes (mm³):
+
+| rearX | height | Before chamfer | Finished component | Removed wedge |
+| --- | --- | --- | --- | --- |
+| 16 | 8 | 3072 | 3064 | 8 |
+| 16 | 6 | 2304 | 2296 | 8 |
+| 20 | 8 | 3328 | 3320 | 8 |
+| 20 | 6 | 2496 | 2488 | 8 |
+
+The same unchanged restricted chamfer kernel enforces cardinal perpendicular supports,
+orthogonal ends, and strictly local setbacks. Unknown policies, forged/stale/ambiguous
+references, an empty selected second component, insufficient tool coverage, and
+nonrepresentable geometry still refuse. In particular, `rearX=20, upperX=24` still
+requires an unrepresentable `80/3` final coordinate and refuses atomically.
+
+`report.coldWork.exactAffineContexts` counts the additional exact affine helper contexts
+separately from legacy child-scoped rational counters. Conservative runtime ceilings are
+exported as `XYAffinePrismFeatureDocumentLimitsV2`; exact shape-specific observed counts
+belong to the bounded campaign, not a universal one-shape work assumption.
+
+Focused reproduction: Node 22.23.3, `NODE_OPTIONS=--max-old-space-size=2048`, and
+`node --no-opt examples/cad-nurbs/xy-affine-prism-serial-part-demo.mjs`
+with `--source`, `--emitted`, `--cold`, then `--legacy` and the same evidence directory.
+Build the library before emitted/cold runs; supply `LEGACY_CAD_DIST` to the frozen
+adopted pre-v2 emitted entrypoint for legacy comparison. `--no-opt` preserves reliable
+Inspector constructor/method call counts while retaining the environment's WebAssembly
+support. See the campaign/verification JSON for first-failure evidence, actual counters,
+and the explicitly separate incomplete first attempt. No browser, editor Save/Open,
+OS-file, manufacturing, generic feature-graph, or commercial CAD completeness is certified.

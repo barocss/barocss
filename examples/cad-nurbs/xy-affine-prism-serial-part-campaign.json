@@ -1,0 +1,176 @@
+{
+  "issue": 1607,
+  "parent": "d0b60849",
+  "node": "22.23.3",
+  "heapMiB": 2048,
+  "diskFloorMiB": 500,
+  "evidenceCeilingMiB": 128,
+  "serial": true,
+  "requiresRootNativeGrant": true,
+  "firstFailureStopsCampaign": true,
+  "noAutomaticRepairRetry": true,
+  "shapes": [
+    {
+      "rearX": 16,
+      "heights": [
+        8,
+        6
+      ],
+      "originalPrismFaces": 7,
+      "originalPrismUses": 30,
+      "toolFaces": 6,
+      "toolUses": 24,
+      "secondFaces": 6,
+      "secondUses": 24,
+      "chamferOutputFaces": [
+        7,
+        5
+      ],
+      "coldWork": {
+        "sketchBuilds": 2,
+        "prismBuilds": 2,
+        "wallResolutions": 2,
+        "subtractions": 1,
+        "chamfers": 1,
+        "sourceCompilations": 124,
+        "faceCompilations": 117,
+        "totalD1": 4266,
+        "rationalContexts": 20,
+        "exactAffineContexts": 142
+      }
+    },
+    {
+      "rearX": 20,
+      "heights": [
+        8,
+        6
+      ],
+      "originalPrismFaces": 7,
+      "originalPrismUses": 30,
+      "toolFaces": 6,
+      "toolUses": 24,
+      "secondFaces": 7,
+      "secondUses": 30,
+      "chamferOutputFaces": [
+        8,
+        5
+      ],
+      "coldWork": {
+        "sketchBuilds": 2,
+        "prismBuilds": 2,
+        "wallResolutions": 2,
+        "subtractions": 1,
+        "chamfers": 1,
+        "sourceCompilations": 129,
+        "faceCompilations": 122,
+        "totalD1": 4536,
+        "rationalContexts": 20,
+        "exactAffineContexts": 147
+      }
+    }
+  ],
+  "formulas": {
+    "cold": "2 upstream sketch builds + parent prism + tool prism + 2 full tool wall resolutions + slab + second-component chamfer",
+    "prism": "source=1+2F; faces=2F; D1=108segments; helpers=3F; legacy contexts=2",
+    "slab": "faces/source=13+2(outputFirstFaces+outputSecondFaces); D1=9(54+2(outputFirstUses+outputSecondUses)); helpers=faces; contexts=5",
+    "chamfer": "faces=F+2(F+1+5); sources=faces+1; D1=9(U+2(U+6+18)); helpers=faces; contexts=5",
+    "helpers": "one per native face plus explicit opted-in initial face (4 prism builds including walls). Never absorbed into old child-scoped contexts."
+  },
+  "perStageCeiling": {
+    "sourceCompilations": 750,
+    "faceCompilations": 720,
+    "D1": 30000,
+    "exactAffineContexts": 850,
+    "rationalContexts": 1000,
+    "rationalOperations": 200000000
+  },
+  "phaseCeiling": {
+    "source": {
+      "sourceCompilations": 10000,
+      "faceCompilations": 10000,
+      "D1": 500000,
+      "exactAffineContexts": 20000,
+      "rationalContexts": 30000,
+      "rationalOperations": 250000000
+    },
+    "emitted": {
+      "sourceCompilations": 1200,
+      "faceCompilations": 1200,
+      "D1": 60000,
+      "exactAffineContexts": 2400,
+      "rationalContexts": 3600,
+      "rationalOperations": 60000000
+    },
+    "cold": {
+      "sourceCompilations": 800,
+      "faceCompilations": 800,
+      "D1": 40000,
+      "exactAffineContexts": 1600,
+      "rationalContexts": 2400,
+      "rationalOperations": 40000000
+    },
+    "legacy": {
+      "sourceCompilations": 1800,
+      "faceCompilations": 1800,
+      "D1": 90000,
+      "exactAffineContexts": 3600,
+      "rationalContexts": 5400,
+      "rationalOperations": 80000000
+    }
+  },
+  "stages": {
+    "source": "4 core variants via baseline and height/rear/combined transactional updates;4 serializers;distance/tool updates;noop;validate;2 transaction replays;13 zero-native admission refusals;getter/JSON/file limits;14 complete original-use field refusals;3 forged-prior refusals;6 geometric/parameter atomic refusals",
+    "emitted": "same baseline +height/rear/combined transactions; hashes equal source",
+    "cold": "4 source-only authored parses; exact full result hashes",
+    "legacy": "baseline and candidate v0/v1 full-result and serialized-byte equality; legacy normalized chart height6/rear20 refusals"
+  },
+  "typeBuildBounds": {
+    "commands": [
+      "package type-check",
+      "package build:library",
+      "focused V0/V1/V2 type fixture",
+      "changed-source lint"
+    ],
+    "eachTimeoutSeconds": 180,
+    "maxConcurrent": 1,
+    "nativeCalls": 0,
+    "newDependencies": false
+  },
+  "nodeArguments": [
+    "--no-opt"
+  ],
+  "instrumentationRepair": {
+    "reason": "Node22 precise coverage loses optimized anonymous-class constructor and method entries. Standalone 12x2000-call probe reproduced loss; --no-opt retained exact constructor and method counts across all stages including forced GC and exited0 with the existing environment unchanged.",
+    "metadata": "Optional expected is null, never undefined; original malformed JSON evidence retained with separately labelled metadata-only derived valid copies.",
+    "firstAttemptObserved": {
+      "sourceCompilations": 3715,
+      "faceCompilations": 3507,
+      "D1": 128466,
+      "exactAffineContexts": 4289,
+      "rationalContexts": 3575,
+      "rationalOperations": 41313599
+    },
+    "firstAttemptLimitation": "All first-attempt numbers are observed instrumentation only, not a certified complete aggregate. Constructor entries demonstrably disappeared; the standalone mechanism also drops method work entries, so rational work41313599 may be incomplete even though it remained nonzero. Never fill missing actual counts from expected values. Geometry and earlier gates remain separate from failed instrumentation.",
+    "rerun": "All four phases replay with --no-opt, identical shape/native assertions and aggregate actual counters. First failed campaign remains separate cumulative evidence.",
+    "firstAttemptConservativeReserve": {
+      "sourceCompilations": 10000,
+      "faceCompilations": 10000,
+      "D1": 500000,
+      "exactAffineContexts": 20000,
+      "rationalContexts": 30000,
+      "rationalOperations": 6000000000,
+      "kind": "Original frozen entire-source-phase resource ceiling, not actual consumption"
+    },
+    "rejectedDiagnosticMode": "--jitless produced exact count rows but process exited1 because environment Undici needs WebAssembly. Rejected as incompatible; original failing stdout/stderr and explicit exit-confirmation retained. No required environment preload/security/network bootstrap removed."
+  },
+  "cumulativeCeilingIncludingFirstAttempt": {
+    "sourceCompilations": 23800,
+    "faceCompilations": 23800,
+    "D1": 1190000,
+    "exactAffineContexts": 47600,
+    "rationalContexts": 71400,
+    "rationalOperations": 6430000000,
+    "kind": "Original first-attempt full conservative reserve plus all four revised phase ceilings; not actual consumption",
+    "actualAccounting": "Report first-attempt observed incomplete counters separately from complete new non-optimizing actual counters. Total true first+new arithmetic/context work is unknown."
+  }
+}

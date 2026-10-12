@@ -1,3 +1,4 @@
+import { featureFields, featureIdentity, featureRevision, featureLength, signedJson } from './xy-affine-prism-feature-document-internal.js';
 import { chamferConvexPlanarSolid, ConvexPlanarSolidChamferError } from './convex-planar-solid-chamfer.js';
 import type { ConvexPlanarChamferUseReference, ConvexPlanarSolidChamferResult, ConvexPlanarSolidChamferOptions } from './convex-planar-solid-chamfer.js';
 import { buildXYAffineSketch } from './xy-affine-sketch.js';
@@ -96,20 +97,12 @@ function wrap<T>(s: State, action: () => T, code: XYAffinePrismFeatureDiagnostic
     throw new XYAffinePrismFeatureError((cause instanceof ConvexPlanarSlabSubtractionError || cause instanceof ConvexPlanarSolidChamferError) && cause.code === 'BUDGET' ? 'BUDGET' : code, s.stage, s.nodeId, cause instanceof Error ? cause.message : 'Operation refused', { ...s.work }, cause);
   }
 }
-function fields(s: State, v: unknown, keys: string[]): Record<string, unknown> {
-  check(s, v !== null && typeof v === 'object' && !Array.isArray(v), 'INPUT', 'Exact own record required');
-  const o = v as Record<string, unknown>; check(s, Object.keys(o).length === keys.length && keys.every(k => Object.hasOwn(o, k)), 'INPUT', 'Exact fields required: ' + keys.join(',')); return o;
-}
-function id(s: State, v: unknown, max = 48): void { check(s, typeof v === 'string' && v.length <= max && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(v), 'IDENTITY', 'Bounded ASCII identity required'); }
-function revision(s: State, v: unknown): void { check(s, typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= 1000000000 && !Object.is(v, -0), 'REVISION', 'Revision integer 0..1000000000 without negative zero required'); }
-function length(s: State, v: unknown): void { check(s, typeof v === 'number' && Number.isFinite(v) && Math.abs(v) <= 10000, 'PARAMETER', 'Finite literal millimetres within +/-10000 required'); }
+const reject = (s: State) => (code: 'INPUT' | 'IDENTITY' | 'REVISION' | 'PARAMETER', detail: string): never => { throw new XYAffinePrismFeatureError(code, s.stage, s.nodeId, detail, { ...s.work }); };
+function fields(s: State, v: unknown, keys: string[]): Record<string, unknown> { return featureFields(v, keys, reject(s)); }
+function id(s: State, v: unknown, max = 48): void { featureIdentity(v, max, reject(s)); }
+function revision(s: State, v: unknown): void { featureRevision(v, reject(s)); }
+function length(s: State, v: unknown): void { featureLength(v, reject(s)); }
 function own<T>(s: State, v: T, result = false): T { return wrap(s, () => s.ledger.copy(v, result), 'INPUT'); }
-function signedJson(v: unknown): string {
-  if (typeof v === 'number') return Object.is(v, -0) ? '-0' : JSON.stringify(v);
-  if (Array.isArray(v)) return '[' + v.map(signedJson).join(',') + ']';
-  if (v !== null && typeof v === 'object') return '{' + Object.keys(v).sort().map(k => JSON.stringify(k) + ':' + signedJson((v as Record<string, unknown>)[k])).join(',') + '}';
-  return JSON.stringify(v);
-}
 function file(s: State, doc: Document): string {
   const text = signedJson(doc) + '\n'; check(s, text.length <= FILE_LIMIT && cadDocumentOwnUtf8Bytes(text, 'JSON') <= FILE_LIMIT, 'BUDGET', 'Authored file exceeds 262144 UTF16/UTF8 units'); return text;
 }

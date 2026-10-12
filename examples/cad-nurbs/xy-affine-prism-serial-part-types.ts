@@ -1,0 +1,14 @@
+import { parseXYAffinePrismFeatureDocument, parseXYAffinePrismFeatureDocumentV1, parseXYAffinePrismFeatureDocumentV2 } from '../../packages/barocss-cad/dist/index.js';
+import type { XYAffinePrismFeatureResult, XYAffinePrismFeatureResultV1, XYAffinePrismFeatureResultV2, XYAffinePrismFeatureDocumentV0, XYAffinePrismFeatureDocumentV1, XYAffinePrismFeatureDocumentV2, XYAffinePrismNode, XYAffinePrismNodeV2 } from '../../packages/barocss-cad/dist/index.js';
+type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends (<T>() => T extends B ? 1 : 2) ? true : false;
+type Assert<T extends true> = T;
+export type V0Return = Assert<Equal<ReturnType<typeof parseXYAffinePrismFeatureDocument>, XYAffinePrismFeatureResult>>;
+export type V1Return = Assert<Equal<ReturnType<typeof parseXYAffinePrismFeatureDocumentV1>, XYAffinePrismFeatureResultV1>>;
+export type V2Return = Assert<Equal<ReturnType<typeof parseXYAffinePrismFeatureDocumentV2>, XYAffinePrismFeatureResultV2>>;
+export type V0Five = Assert<Equal<XYAffinePrismFeatureDocumentV0['nodes']['length'], 5>>;
+export type V1OptionalDetail = Assert<Equal<XYAffinePrismFeatureDocumentV1['nodes']['length'], 5 | 6>>;
+export type V2Six = Assert<Equal<XYAffinePrismFeatureDocumentV2['nodes']['length'], 6>>;
+export type V0NoPolicy = Assert<Equal<'chartPolicy' extends keyof XYAffinePrismNode['options'] ? true : false, false>>;
+export type V2Policy = Assert<Equal<XYAffinePrismNodeV2['options']['chartPolicy'], { version: 1; kind: 'coordinate-span' }>>;
+export type V2Second = Assert<Equal<XYAffinePrismFeatureDocumentV2['nodes'][5]['parent']['componentRole'], 'second'>>;
+export type V0Work = Assert<Equal<keyof XYAffinePrismFeatureResult['report']['coldWork'], 'sketchBuilds' | 'prismBuilds' | 'wallResolutions' | 'subtractions' | 'sourceCompilations' | 'faceCompilations' | 'bindingObservations' | 'totalD1' | 'rationalContexts' | 'rationalOperations' | 'gcdSteps'>>;

@@ -1,0 +1,737 @@
+{
+  "issue": 1607,
+  "status": "native and independent final review accepted; minimal local integration replay passed; remote adoption pending",
+  "verifiedProductCommit": "949029f9fabc8b3b09a683811b2efa2d3a4054ac",
+  "verifiedCampaignCommit": "9047581f9c2984d5ac03e416c388dad0c17e0525",
+  "implementationParent": "d0b60849",
+  "producerDependency": {
+    "issue": 1603,
+    "source": "2bdba2a8cec4801b4aff162e98d56cd7b7a180eb",
+    "adoptedDevelop": "7c81d103605994f218fc5499fb2d66141bc7cca3",
+    "note": "Task delta starts after locally layered producer, not a second copy of its change."
+  },
+  "runtime": {
+    "node": "22.23.3",
+    "arguments": [
+      "--no-opt"
+    ],
+    "heapMiB": 2048,
+    "diskFloorMiB": 500,
+    "evidenceCeilingMiB": 128,
+    "requiredRuntimePreloadsUnchanged": true
+  },
+  "staticChecks": {
+    "packageTypecheck": "passed",
+    "libraryBuild": "passed",
+    "V0V1V2CompatibilityTypes": "passed",
+    "changedSourceLint": "passed",
+    "diffCheck": "passed",
+    "wholePackageLint": "not run; scoped changed-source check only"
+  },
+  "phases": {
+    "source": {
+      "exitCode": 0,
+      "stages": 53,
+      "refusals": 39,
+      "actual": {
+        "ExactAffinePlane": 5668,
+        "SectionRationalContext": 6455,
+        "buildConvexPlanarFace": 4636,
+        "compileCadModel": 4911,
+        "evaluateCurveD1": 113184,
+        "evaluateSurfaceD1": 56592,
+        "work": 54639585
+      }
+    },
+    "emitted": {
+      "exitCode": 0,
+      "stages": 4,
+      "refusals": 0,
+      "actual": {
+        "ExactAffinePlane": 847,
+        "SectionRationalContext": 964,
+        "buildConvexPlanarFace": 726,
+        "compileCadModel": 761,
+        "evaluateCurveD1": 17856,
+        "evaluateSurfaceD1": 8928,
+        "work": 8168307
+      }
+    },
+    "cold": {
+      "exitCode": 0,
+      "stages": 4,
+      "refusals": 0,
+      "actual": {
+        "ExactAffinePlane": 578,
+        "SectionRationalContext": 658,
+        "buildConvexPlanarFace": 478,
+        "compileCadModel": 506,
+        "evaluateCurveD1": 11736,
+        "evaluateSurfaceD1": 5868,
+        "work": 5553582
+      }
+    },
+    "legacy": {
+      "exitCode": 0,
+      "stages": 4,
+      "refusals": 2,
+      "actual": {
+        "ExactAffinePlane": 1133,
+        "SectionRationalContext": 1326,
+        "buildConvexPlanarFace": 1133,
+        "compileCadModel": 1205,
+        "evaluateCurveD1": 27828,
+        "evaluateSurfaceD1": 13914,
+        "work": 9812935
+      }
+    }
+  },
+  "completeAcceptedCampaignActual": {
+    "ExactAffinePlane": 8226,
+    "SectionRationalContext": 9403,
+    "buildConvexPlanarFace": 6973,
+    "compileCadModel": 7383,
+    "evaluateCurveD1": 170604,
+    "evaluateSurfaceD1": 85302,
+    "work": 78174409,
+    "totalD1": 255906
+  },
+  "analyticalTargetsNowObserved": [
+    {
+      "rearX": 16,
+      "height": 8,
+      "second": 3072,
+      "retained": 3064,
+      "wedge": 8
+    },
+    {
+      "rearX": 16,
+      "height": 6,
+      "second": 2304,
+      "retained": 2296,
+      "wedge": 8
+    },
+    {
+      "rearX": 20,
+      "height": 8,
+      "second": 3328,
+      "retained": 3320,
+      "wedge": 8
+    },
+    {
+      "rearX": 20,
+      "height": 6,
+      "second": 2496,
+      "retained": 2488,
+      "wedge": 8
+    }
+  ],
+  "proofs": [
+    "Independent exact rational whole-edge lift, convex halfspaces, opposite use endpoints, closed Euler incidence and oriented volume for selected component/retained/wedge",
+    "Mandatory real second-component parent, original semantic reference retained, owning-original-face filtered complete use provenance",
+    "Height, rear coordinate, combined, distance-only, tool-change, no-op full-prior validation, source-only save and separate-process cold reconstruction",
+    "Versioned whole-transaction replay, strict malformed input and complete original-use-field forgery refusals, forged prior work/resolution/ambiguous lineage and atomic hash preservation",
+    "v0/v1 full-result equality against frozen adopted emitted baseline, identical serialized bytes and legacy normalized-chart refusals"
+  ],
+  "refusals": [
+    {
+      "cause": null,
+      "code": "INPUT",
+      "detail": "XY affine prism feature document: Exactly six serial fixed-role nodes required",
+      "label": "missing_sixth",
+      "stage": "input"
+    },
+    {
+      "cause": null,
+      "code": "DEPENDENCY",
+      "detail": "XY affine prism feature document: Fixed second subtraction component parent required",
+      "label": "wrong_component",
+      "stage": "input"
+    },
+    {
+      "cause": null,
+      "code": "DEPENDENCY",
+      "detail": "XY affine prism feature document: Chamfer must depend on the exact second subtraction component",
+      "label": "wrong_solid",
+      "stage": "input"
+    },
+    {
+      "cause": null,
+      "code": "DEPENDENCY",
+      "detail": "XY affine prism feature document: Chamfer must depend on the exact second subtraction component",
+      "label": "wrong_dependency",
+      "stage": "input"
+    },
+    {
+      "cause": null,
+      "code": "DEPENDENCY",
+      "detail": "XY affine prism feature document: Cyclic dependencies refused",
+      "label": "cycle",
+      "stage": "input"
+    },
+    {
+      "cause": null,
+      "code": "VERSION",
+      "detail": "XY affine prism feature document: Explicit coordinate-span version one chart policy required",
+      "label": "unknown_policy",
+      "stage": "input"
+    },
+    {
+      "cause": null,
+      "code": "INPUT",
+      "detail": "XY affine prism feature document: Exact fields required: version,kind",
+      "label": "extra_policy_key",
+      "stage": "input"
+    },
+    {
+      "cause": null,
+      "code": "INPUT",
+      "detail": "XY affine prism feature document: Exact fields required: orderedSegmentIds,heightMM,capChart,solidId,resultIdPrefix,chartPolicy",
+      "label": "missing_policy",
+      "stage": "input"
+    },
+    {
+      "cause": null,
+      "code": "INPUT",
+      "detail": "XY affine prism feature document: Exact fields required: format,version,id,revision,lengthUnit,nodes,parameters",
+      "label": "persisted_resolution",
+      "stage": "input"
+    },
+    {
+      "cause": null,
+      "code": "REFERENCE",
+      "detail": "XY affine prism feature document: Original chamfer sketch/segment context must be current",
+      "label": "stale_revision",
+      "stage": "input"
+    },
+    {
+      "cause": null,
+      "code": "REFERENCE",
+      "detail": "XY affine prism feature document: Two distinct complete references required",
+      "label": "duplicate_pair",
+      "stage": "input"
+    },
+    {
+      "cause": null,
+      "code": "INPUT",
+      "detail": "XY affine prism feature document: Exact fields required: kind,subtractionNodeId,componentRole,solidId",
+      "label": "extra_parent_key",
+      "stage": "input"
+    },
+    {
+      "cause": null,
+      "code": "IDENTITY",
+      "detail": "XY affine prism feature document: Document, node, operation, output and planned source namespaces collide",
+      "label": "identity_collision",
+      "stage": "input"
+    },
+    {
+      "cause": "Convex planar solid slab subtraction: Getter/symbol/hidden property refused",
+      "code": "INPUT",
+      "detail": "XY affine prism feature document: Convex planar solid slab subtraction: Getter/symbol/hidden property refused",
+      "label": "getter",
+      "stage": "input"
+    },
+    {
+      "cause": "CAD document: duplicate decoded JSON object key",
+      "code": "CODEC",
+      "detail": "XY affine prism feature document: CAD document: duplicate decoded JSON object key",
+      "label": "duplicate_json",
+      "stage": "codec"
+    },
+    {
+      "cause": null,
+      "code": "CODEC",
+      "detail": "XY affine prism feature document: Bounded well-formed authored JSON required",
+      "label": "file_budget",
+      "stage": "codec"
+    },
+    {
+      "cause": null,
+      "code": "REFERENCE",
+      "detail": "XY affine prism feature document: Persisted complete original use differs from named prism top edge",
+      "label": "forged_a_sourceId",
+      "stage": "chamfer-reference"
+    },
+    {
+      "cause": null,
+      "code": "REFERENCE",
+      "detail": "XY affine prism feature document: Persisted complete original use differs from named prism top edge",
+      "label": "forged_a_faceId",
+      "stage": "chamfer-reference"
+    },
+    {
+      "cause": null,
+      "code": "REFERENCE",
+      "detail": "XY affine prism feature document: Persisted complete original use differs from named prism top edge",
+      "label": "forged_a_surfaceId",
+      "stage": "chamfer-reference"
+    },
+    {
+      "cause": null,
+      "code": "REFERENCE",
+      "detail": "XY affine prism feature document: Persisted complete original use differs from named prism top edge",
+      "label": "forged_a_loopId",
+      "stage": "chamfer-reference"
+    },
+    {
+      "cause": null,
+      "code": "REFERENCE",
+      "detail": "XY affine prism feature document: Persisted complete original use differs from named prism top edge",
+      "label": "forged_a_useId",
+      "stage": "chamfer-reference"
+    },
+    {
+      "cause": null,
+      "code": "REFERENCE",
+      "detail": "XY affine prism feature document: Persisted complete original use differs from named prism top edge",
+      "label": "forged_a_curveId",
+      "stage": "chamfer-reference"
+    },
+    {
+      "cause": null,
+      "code": "REFERENCE",
+      "detail": "XY affine prism feature document: Persisted complete original use differs from named prism top edge",
+      "label": "forged_a_pcurveId",
+      "stage": "chamfer-reference"
+    },
+    {
+      "cause": null,
+      "code": "REFERENCE",
+      "detail": "XY affine prism feature document: Persisted complete original use differs from named prism top edge",
+      "label": "forged_b_sourceId",
+      "stage": "chamfer-reference"
+    },
+    {
+      "cause": null,
+      "code": "REFERENCE",
+      "detail": "XY affine prism feature document: Persisted complete original use differs from named prism top edge",
+      "label": "forged_b_faceId",
+      "stage": "chamfer-reference"
+    },
+    {
+      "cause": null,
+      "code": "REFERENCE",
+      "detail": "XY affine prism feature document: Persisted complete original use differs from named prism top edge",
+      "label": "forged_b_surfaceId",
+      "stage": "chamfer-reference"
+    },
+    {
+      "cause": null,
+      "code": "REFERENCE",
+      "detail": "XY affine prism feature document: Persisted complete original use differs from named prism top edge",
+      "label": "forged_b_loopId",
+      "stage": "chamfer-reference"
+    },
+    {
+      "cause": null,
+      "code": "REFERENCE",
+      "detail": "XY affine prism feature document: Persisted complete original use differs from named prism top edge",
+      "label": "forged_b_useId",
+      "stage": "chamfer-reference"
+    },
+    {
+      "cause": null,
+      "code": "REFERENCE",
+      "detail": "XY affine prism feature document: Persisted complete original use differs from named prism top edge",
+      "label": "forged_b_curveId",
+      "stage": "chamfer-reference"
+    },
+    {
+      "cause": null,
+      "code": "REFERENCE",
+      "detail": "XY affine prism feature document: Persisted complete original use differs from named prism top edge",
+      "label": "forged_b_pcurveId",
+      "stage": "chamfer-reference"
+    },
+    {
+      "cause": null,
+      "code": "OWNED",
+      "detail": "XY affine prism feature document: Complete retained document, geometry, references, proofs or work differ from cold rebuild",
+      "label": "forged_work",
+      "stage": "owned"
+    },
+    {
+      "cause": null,
+      "code": "OWNED",
+      "detail": "XY affine prism feature document: Complete retained document, geometry, references, proofs or work differ from cold rebuild",
+      "label": "forged_resolution",
+      "stage": "owned"
+    },
+    {
+      "cause": null,
+      "code": "OWNED",
+      "detail": "XY affine prism feature document: Complete retained document, geometry, references, proofs or work differ from cold rebuild",
+      "label": "ambiguous_lineage",
+      "stage": "owned"
+    },
+    {
+      "cause": "Convex planar solid slab subtraction: Convex planar solid: A derived weight is not exactly represented in binary64",
+      "code": "NATIVE",
+      "detail": "XY affine prism feature document: Convex planar solid slab subtraction: Convex planar solid: A derived weight is not exactly represented in binary64",
+      "label": "unrepresentable_80_over_3",
+      "stage": "subtraction"
+    },
+    {
+      "cause": "Convex planar solid slab subtraction: Convex planar solid slab subtraction: Every other tool halfspace must contain the entire parent",
+      "code": "NATIVE",
+      "detail": "XY affine prism feature document: Convex planar solid slab subtraction: Convex planar solid slab subtraction: Every other tool halfspace must contain the entire parent",
+      "label": "tool_coverage",
+      "stage": "subtraction"
+    },
+    {
+      "cause": "Convex planar solid chamfer: Convex planar solid chamfer: Adjacent outward supports must be signed world-axis planes",
+      "code": "NATIVE",
+      "detail": "XY affine prism feature document: Convex planar solid chamfer: Convex planar solid chamfer: Adjacent outward supports must be signed world-axis planes",
+      "label": "noncardinal",
+      "stage": "chamfer"
+    },
+    {
+      "cause": "Convex planar solid chamfer: Convex planar solid chamfer: Only selected endpoints may be removed; touching/nonlocal cuts refused",
+      "code": "NATIVE",
+      "detail": "XY affine prism feature document: Convex planar solid chamfer: Convex planar solid chamfer: Only selected endpoints may be removed; touching/nonlocal cuts refused",
+      "label": "nonlocal",
+      "stage": "chamfer"
+    },
+    {
+      "cause": null,
+      "code": "REFERENCE",
+      "detail": "XY affine prism feature document: Selected second component is empty or has wrong role",
+      "label": "empty_selected_component",
+      "stage": "chamfer-reference"
+    },
+    {
+      "cause": null,
+      "code": "PARAMETER",
+      "detail": "XY affine prism feature document: Positive chamfer distance required",
+      "label": "invalid_distance",
+      "stage": "update"
+    },
+    {
+      "cause": "Convex planar solid chamfer: Convex planar solid split: Convex planar solid: Stored whole pcurve lift is not exact; parent tolerance cannot certify sewing",
+      "code": "NATIVE",
+      "detail": "XY affine prism feature document: Convex planar solid chamfer: Convex planar solid split: Convex planar solid: Stored whole pcurve lift is not exact; parent tolerance cannot certify sewing",
+      "label": "height6_normalized_refusal",
+      "stage": "chamfer"
+    },
+    {
+      "cause": "Convex planar solid slab subtraction: Convex planar solid: Stored whole pcurve lift is not exact; parent tolerance cannot certify sewing",
+      "code": "NATIVE",
+      "detail": "XY affine prism feature document: Convex planar solid slab subtraction: Convex planar solid: Stored whole pcurve lift is not exact; parent tolerance cannot certify sewing",
+      "label": "rear20_normalized_refusal",
+      "stage": "subtraction"
+    }
+  ],
+  "history": {
+    "firstCampaign": {
+      "commit": "db818738b295b4f9b411c4dc5a81b2d266fb91ea",
+      "status": "failed instrumentation gate after successful geometry; not accepted as complete campaign",
+      "firstFailure": "forged_work constructor coverage observed0 vs expected162",
+      "observedUncertified": {
+        "compileCadModel": 3715,
+        "buildConvexPlanarFace": 3507,
+        "totalD1": 128466,
+        "ExactAffinePlane": 4289,
+        "SectionRationalContext": 3575,
+        "work": 41313599
+      },
+      "limitation": "Optimized coverage can omit constructor and method entries; observations may be incomplete. Actual first+new total arithmetic/context consumption is unknown. Conservative reserves in campaign file are not measurements.",
+      "metadata": "Original invalid expected:undefined JSON retained; separately labelled derived valid copies replace only that metadata with null."
+    },
+    "diagnostics": [
+      {
+        "mode": "default optimization",
+        "nonCadProbe": "12 stages x2000 anonymous-class constructor/method calls",
+        "result": "coverage entries disappear despite actual loop calls",
+        "confirmExitCode": 0
+      },
+      {
+        "mode": "--jitless",
+        "result": "exact count rows but rejected exit1 due environment Undici WebAssembly dependency; original stdout/stderr plus explicit exit confirmation preserved"
+      },
+      {
+        "mode": "--no-opt",
+        "result": "all12 stages retain exact2000 constructor and work calls including forced GC; exit0; no environment preload bypass"
+      }
+    ],
+    "launchOnly": "One --legacy request had a missing workdir slash; executor rejected before process creation. Corrected exact directory; no native work occurred in that launch failure."
+  },
+  "artifacts": {
+    "authored-base.json": {
+      "bytes": 5945,
+      "sha256": "15672f1f44b154698759db7ed80f903081fafecd1c2683e11448d5564276aaf9"
+    },
+    "source-summary.json": {
+      "bytes": 19831,
+      "sha256": "8c406ffe358ae25c66bb4cae404c375c9f2583b7c92a916f75040a9ef73fea6e"
+    },
+    "source-inputs.json": {
+      "bytes": 14715,
+      "sha256": "13addc2fef989a4cc2e8c01f15d14c88e3ea8c51fb39e5bcca1b459868b39c27"
+    },
+    "source-distance-update.json": {
+      "bytes": 1014716,
+      "sha256": "51fb7226fc4fd8aef05b3f99e322025ed42d56f76f017adf54e58b99f2d4a1a8"
+    },
+    "emitted.exit": {
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "authored-height.json": {
+      "bytes": 5945,
+      "sha256": "2f83bf170068abe13599b95de4d158d8d5cc103253a6d78ccc201ed3af742c2d"
+    },
+    "source-counts.json": {
+      "bytes": 17075,
+      "sha256": "d35e24ba3f64e63717df5d9cd4a9d6261385a5a0f66f5285671014764dfb9502"
+    },
+    "emitted-counts.json": {
+      "bytes": 1917,
+      "sha256": "3ce06f75f5067dbe8db3149f6b0be2df0cd1a861617d558df078c8ee28d5f0d1"
+    },
+    "authored-both.json": {
+      "bytes": 5945,
+      "sha256": "bcac91a8983d663c53c55be570833dcdc8f182fc5912c21a54c5311a52cf6ec3"
+    },
+    "legacy-inputs.json": {
+      "bytes": 14715,
+      "sha256": "13addc2fef989a4cc2e8c01f15d14c88e3ea8c51fb39e5bcca1b459868b39c27"
+    },
+    "cold-counts.json": {
+      "bytes": 1912,
+      "sha256": "980d0b2ba5bc6f7442fa4180ace332bed987d867fad5675aa09145d050f52430"
+    },
+    "source-tool-update.json": {
+      "bytes": 1012518,
+      "sha256": "3938db07dd52038dd1d3e1923bdcb69e505e17f98166741da217b044761f114d"
+    },
+    "authored-rear.json": {
+      "bytes": 5945,
+      "sha256": "68a10d4f802c56e0ceb1e92af3b04fb7eeb6e3a299280469401b60bc622d72ad"
+    },
+    "cold-summary.json": {
+      "bytes": 284,
+      "sha256": "b99d0a4238fae18e04eb41936a6419dae68f7726399d84126d913925eb647155"
+    },
+    "legacy-summary.json": {
+      "bytes": 1713,
+      "sha256": "db657b58ca29e38b9b862cc5ddf13a7770e7f990c674be84dda2dd0a53620179"
+    },
+    "cold.exit": {
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "legacy.exit": {
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "source.exit": {
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "expected.json": {
+      "bytes": 300,
+      "sha256": "b9f5d8eb2dfe2a7b83290853aeef73dc056df2494b3e9fd59a461e43894f67e0"
+    },
+    "emitted-summary.json": {
+      "bytes": 286,
+      "sha256": "9b88ec66386d5bd0680bbb9c2a4f220c3b3c2b8d4689b10d395c8d752cbbef12"
+    },
+    "legacy-counts.json": {
+      "bytes": 931,
+      "sha256": "56139a5960094a99b98fd1f87ce524044cbab52de4a564d944c7618fa32b904d"
+    }
+  },
+  "nonClaims": [
+    "No native browser/GPU/editor or OS-file Save/Open qualification",
+    "No general topology naming, generic feature graph, new CAD language grammar, migration or manufacturing/commercial-completeness claim",
+    "No publication, product push, PR, deployment or release performed by this task"
+  ],
+  "invocation": {
+    "cwd": "/workspace/scratch/1591b2fb2f62/barocss-serial-part-v2",
+    "executable": "/workspace/shared/barocss-toolchain/node_modules/node/bin/node",
+    "PATHPrefix": "/workspace/shared/barocss-toolchain/node_modules/node/bin",
+    "NODE_OPTIONS": "--max-old-space-size=2048",
+    "REPO_DEPS_ROOT": "/workspace/scratch/1591b2fb2f62/barocss-cloud-trial",
+    "commands": [
+      "node --no-opt examples/cad-nurbs/xy-affine-prism-serial-part-demo.mjs --source /workspace/shared/cad1607-native-9047581f",
+      "node --no-opt examples/cad-nurbs/xy-affine-prism-serial-part-demo.mjs --emitted /workspace/shared/cad1607-native-9047581f",
+      "node --no-opt examples/cad-nurbs/xy-affine-prism-serial-part-demo.mjs --cold /workspace/shared/cad1607-native-9047581f",
+      "node --no-opt examples/cad-nurbs/xy-affine-prism-serial-part-demo.mjs --legacy /workspace/shared/cad1607-native-9047581f"
+    ],
+    "LEGACY_CAD_DIST": "/workspace/scratch/1591b2fb2f62/barocss-exact-prism-adoption/packages/barocss-cad/dist/index.js"
+  },
+  "legacyBaseline": {
+    "sourceHead": "b350390db43a3f14600c918f05e52df81e804ac8",
+    "sourceTree": "35321cf42a49599ee9c073fd91b0ee5b2abdb4f9",
+    "trackedClean": true,
+    "emittedEntryPath": "/workspace/scratch/1591b2fb2f62/barocss-exact-prism-adoption/packages/barocss-cad/dist/index.js",
+    "emittedTree": {
+      "fileCount": 508,
+      "algorithm": "SHA256(concat sorted relative path UTF8, NUL, raw SHA256(file bytes))",
+      "sha256": "738aa517611c509927ab59daff3a1ad044084b0b7d494d72f58706063e70700e"
+    },
+    "emittedFeatureModuleSHA256": "eeff66ab0c9722f746610121963fd81ecae1ee2c04ffba7f0cb3bf981e675080",
+    "sourceFeatureModuleSHA256": "4861fa0cb90c3d55229476b29534ca096caf0e3b3dfe7eb9faf98a6e50d6b1a5"
+  },
+  "executedArtifacts": {
+    "sourceBundleSHA256": "cee380012535deaef7404e579352306ebb35a5097bcbbe47aebb879330aaf7e9",
+    "legacyNewSourceBundleSHA256": "cee380012535deaef7404e579352306ebb35a5097bcbbe47aebb879330aaf7e9",
+    "newEmittedTree": {
+      "fileCount": 512,
+      "algorithm": "SHA256(concat sorted relative path UTF8, NUL, raw SHA256(file bytes))",
+      "sha256": "ca74f537e12ae95c94e9f394ee2f3909e386ec8e06d3742c83979e43ca3b2948"
+    },
+    "newEmittedEntrySHA256": "0ea3499a52d145c3e2e5fe4e50fdef36ec9b995d01c0cdbc79773f5bbe4b80b5",
+    "newEmittedV2ModuleSHA256": "56b2209ed2ac56d9472da9af00afb3de3dc5a29bfdef64c6821701c9ff125e20",
+    "verifiedBuildSource": "949029f9fabc8b3b09a683811b2efa2d3a4054ac; later commits touch tests/docs only"
+  },
+  "preservedHistoryArtifacts": {
+    "constructor-coverage-default-confirm.exit": {
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "constructor-coverage-default-confirm.jsonl": {
+      "bytes": 5180,
+      "sha256": "5562cef761e9255064fa500b2f3daf13e4b7eabbf755afc7d3ac518015e12b58"
+    },
+    "constructor-coverage-default-confirm.stderr": {
+      "bytes": 174,
+      "sha256": "db12ad97221988bf346c55d06788e21a01bb6a683d69266bf732ed4d6d9763c8"
+    },
+    "constructor-coverage-diagnostic.jsonl": {
+      "bytes": 5180,
+      "sha256": "68b72afa2bbaab849b96cd22518581d2c806ed4683f69dd11f089e059db90dfb"
+    },
+    "constructor-coverage-diagnostic.mjs": {
+      "bytes": 965,
+      "sha256": "17898f6f1e18c860a4f7b74b1b300fdbada8cccf3e43a93e90dd439f01fbf56d"
+    },
+    "constructor-coverage-jitless-confirm.exit": {
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    "constructor-coverage-jitless-confirm.jsonl": {
+      "bytes": 6419,
+      "sha256": "b07f80bb265ac20f7f4f49bd622b769811670f3fd94098383229756d4e8dac8e"
+    },
+    "constructor-coverage-jitless-confirm.stderr": {
+      "bytes": 1081,
+      "sha256": "b2e00eecfff7dfcca6ae6e2f2d30a65fb306d87f7251d2d8af73d0b452b37280"
+    },
+    "constructor-coverage-jitless.jsonl": {
+      "bytes": 6419,
+      "sha256": "b07f80bb265ac20f7f4f49bd622b769811670f3fd94098383229756d4e8dac8e"
+    },
+    "constructor-coverage-jitless.stderr": {
+      "bytes": 1081,
+      "sha256": "b2e00eecfff7dfcca6ae6e2f2d30a65fb306d87f7251d2d8af73d0b452b37280"
+    },
+    "constructor-coverage-no-opt.exit": {
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "constructor-coverage-no-opt.jsonl": {
+      "bytes": 6419,
+      "sha256": "b07f80bb265ac20f7f4f49bd622b769811670f3fd94098383229756d4e8dac8e"
+    },
+    "constructor-coverage-no-opt.stderr": {
+      "bytes": 174,
+      "sha256": "e0cb71fe601c6aa0bc77d1c72b7de24eb689cec9d73775860edf39dc4fa5755c"
+    },
+    "source-counts.json": {
+      "bytes": 14843,
+      "sha256": "5798f7d7798a96cbda88779d36795e6d4e3a74d515ebbde4dacb5d30eb8331f4"
+    },
+    "source-counts.json.derived-valid.json": {
+      "bytes": 22710,
+      "sha256": "ee2356c1c9e640210c1fa589e35207dbc6b4182ae6f73a9976d5dda98dc28865"
+    },
+    "source-first-failure-6.json": {
+      "bytes": 16075,
+      "sha256": "67124c3347932192d65f8592357e0acf9bd6cbbd73cc94c17d851dc910a9c0f2"
+    },
+    "source-first-failure-6.json.derived-valid.json": {
+      "bytes": 26045,
+      "sha256": "0833b5548212b8c4f8adbf3c948a9d86b825257a9af182e1e9ee8a787fcb2773"
+    },
+    "source.log": {
+      "bytes": 174,
+      "sha256": "e0cb71fe601c6aa0bc77d1c72b7de24eb689cec9d73775860edf39dc4fa5755c"
+    }
+  },
+  "independentFinalReview": {
+    "acceptedNativeCommit": "4f88562f125f5da07bed6181699dcf2d277647f4",
+    "acceptedProductCommit": "949029f9fabc8b3b09a683811b2efa2d3a4054ac",
+    "acceptedCampaignCommit": "9047581f",
+    "result": "ACCEPT for serial adoption; all4 exit0, exact gates/stage sums, all21 accepted and18 preserved-history pins, and complete baseline/new emitted tree digests independently verified"
+  },
+  "integrationReplay": {
+    "candidate": "05b92fbde689e0fcebac021d971aa771b0cf4ee4",
+    "base": "a30e3d151a68dc2b5e281568961bc15873566af8",
+    "delta": "Only d0b60849..4f88562f; producer delta not copied; existing facade barrel and README preserved",
+    "sourceIdentity": {
+      "comparedNativeCADSourceFiles": 255,
+      "allExceptBarrelIdentical": true,
+      "hashManifestSHA256": "8edebcd5d1a55f32644d761143e51fcb0060d72c40f5cb790d974c910c0fa777",
+      "newBarrel": "Exact V2 exports appended after existing cad public-api export"
+    },
+    "checks": {
+      "type-check": {
+        "exitCode": 0,
+        "logSHA256": "357d92a12b89b0b80a0734e8b5802fc8f95280beb9778c6110550b880f7b5e12"
+      },
+      "build": {
+        "exitCode": 0,
+        "logSHA256": "e0cb71fe601c6aa0bc77d1c72b7de24eb689cec9d73775860edf39dc4fa5755c"
+      },
+      "types": {
+        "exitCode": 0,
+        "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "legacy": {
+        "exitCode": 0,
+        "logSHA256": "1e6b2eb74271efdb71b2ee117970b808f9e0e74127e4d82d0a73815cdfe2dec9"
+      }
+    },
+    "legacyActual": {
+      "ExactAffinePlane": 1133,
+      "SectionRationalContext": 1326,
+      "buildConvexPlanarFace": 1133,
+      "compileCadModel": 1205,
+      "evaluateCurveD1": 27828,
+      "evaluateSurfaceD1": 13914,
+      "work": 9812935
+    },
+    "legacyStages": 4,
+    "legacyRefusals": 2,
+    "legacyArguments": [
+      "--no-opt",
+      "examples/cad-nurbs/xy-affine-prism-serial-part-demo.mjs",
+      "--legacy",
+      "/workspace/shared/cad1607-adoption-05b92fbd"
+    ],
+    "heapMiB": 2048,
+    "fullCampaignRepeated": false,
+    "extraNativeWorkBeyondAcceptedCampaign": "Focused compatibility only, separately counted here",
+    "staticReparent": {
+      "from": "a30e3d151a68dc2b5e281568961bc15873566af8",
+      "to": "ba239301ff9556a20723644c65b437ceed44b3aa",
+      "replayedSourceCommit": "1ac180cf230cb65bc111216290456751c5ca87a0",
+      "CADPackageTreeBeforeAndAfter": "c42cd22be64c198a0049e584b30b1b956a614537",
+      "equality": "Exact whole CAD package tree identical, so no additional native rerun; #1604 editor-only base preserved byte-for-byte",
+      "changedPaths": "Exactly the same nine bounded #1607 paths; no editor, facade module, source-dialect guide or provider file added to task delta"
+    }
+  },
+  "completeNewAndReplayActual": {
+    "ExactAffinePlane": 9359,
+    "SectionRationalContext": 10729,
+    "buildConvexPlanarFace": 8106,
+    "compileCadModel": 8588,
+    "evaluateCurveD1": 198432,
+    "evaluateSurfaceD1": 99216,
+    "work": 87987344,
+    "totalD1": 297648,
+    "scope": "Accepted non-optimizing four-phase campaign plus minimal integration legacy replay; excludes incomplete original optimized campaign"
+  }
+}
