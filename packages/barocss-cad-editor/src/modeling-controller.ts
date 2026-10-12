@@ -100,10 +100,11 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
   async function run(kind: 'open' | 'example' | 'apply' | 'undo' | 'redo', text?: string, example?: CadEditorModelingExample, splitAxis?: CadEditorModelingSplitAxis) {
     idle();
     if (kind === 'example') {
-      if (example !== undefined && !['cut-chamfer', 'intersection', 'horizontal-split', 'two-chamfer'].includes(example))
+      if (example !== undefined && !['cut-chamfer', 'intersection', 'horizontal-split', 'two-chamfer', 'chamfer-split'].includes(example))
         throw new Error('Choose an available modeling example.');
-      if (splitAxis !== undefined && (example !== 'horizontal-split' || !['x', 'y', 'z'].includes(splitAxis)))
-        throw new Error('Choose X, Y or Z for the split example only.');
+      if (splitAxis !== undefined && (example === 'chamfer-split' ? !['x', 'z'].includes(splitAxis)
+        : example !== 'horizontal-split' || !['x', 'y', 'z'].includes(splitAxis)))
+        throw new Error('Choose an available split axis: X/Z for the beveled part, X/Y/Z for the plain part.');
     }
     let parameters: Record<string, number> = {}, target = index;
     if (kind === 'open') {

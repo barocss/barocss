@@ -49,10 +49,14 @@ const chamferChain = { ...structuredClone(authored), parameters: { frontDistance
     { kind: 'chamfer', parent: { node: 1, side: 'solid' }, edge: { parallelTo: 'x', at: { y: 0, z: 'max' } }, distance: { parameter: 'frontDistance' } },
     { kind: 'chamfer', parent: { node: 2, side: 'solid' }, edge: { parallelTo: 'x', at: { y: { parameter: 'backY' }, z: 'max' } }, distance: { parameter: 'backDistance' } }],
   outputs: { part: { node: 3, side: 'solid' } } };
+const chamferSplit = axis => ({ ...structuredClone(chamferChain), parameters: { frontDistance: 1, backDistance: 2, splitAt: axis === 'z' ? 4 : 16 },
+  nodes: [...structuredClone(chamferChain.nodes).map((node, index) => index === 3 ? { ...node, edge: { parallelTo: 'x', at: { y: 24, z: 'max' } } } : node),
+    { kind: 'split', parent: { node: 3, side: 'solid' }, axis, at: { parameter: 'splitAt' } }],
+  outputs: { negative: { node: 4, side: 'negative' }, positive: { node: 4, side: 'positive' } } });
 function reply(document = authored, revision = 0) {
   const names = Object.keys(document.outputs);
   return { id: 1, ok: true, text: signedJSON(document), summary: { documentId: 'cad_model', revision, source: 'model', parameters: document.parameters,
-    features: document.nodes.map((node, index) => ({ kind: node.kind, index, dependencies: node.kind === 'chamfer' ? [node.parent.node] : index === 4 ? [1, 3] : index % 2 ? [index - 1] : [] })),
+    features: document.nodes.map((node, index) => ({ kind: node.kind, index, dependencies: node.kind === 'chamfer' || (node.kind === 'split' && typeof node.parent === 'object') ? [node.parent.node] : index === 4 ? [1, 3] : index % 2 ? [index - 1] : [] })),
     outputs: names.map(name => ({ name, solidId: nativeId, volumeMM3: { numerator: '1', denominator: '1' } })) },
   display: { profile: 'model-outputs', documentId: 'cad_model', revision,
     components: names.map(name => ({ ...structuredClone(base), role: name, lineage: { kind: 'model-output', name, solidId: nativeId, graph: structuredClone(graph) } })),
@@ -69,7 +73,7 @@ class Worker {
   terminate() { this.terminated = true; }
   send(result, id = this.requests.at(-1).id) { this.callbacks.get('message')({ data: { ...structuredClone(result), id } }); }
   accept(command = this.requests.at(-1)) {
-    const document = command.kind === 'example' ? structuredClone(command.example === 'intersection' ? overlap : command.example === 'horizontal-split' ? (command.splitAxis === 'x' || command.splitAxis === 'y' ? cardinal(command.splitAxis) : split) : command.example === 'two-chamfer' ? chamferChain : authored) : command.kind === 'open' ? JSON.parse(command.text) : structuredClone(this.document);
+    const document = command.kind === 'example' ? structuredClone(command.example === 'intersection' ? overlap : command.example === 'horizontal-split' ? (command.splitAxis === 'x' || command.splitAxis === 'y' ? cardinal(command.splitAxis) : split) : command.example === 'two-chamfer' ? chamferChain : command.example === 'chamfer-split' ? chamferSplit(command.splitAxis ?? 'x') : authored) : command.kind === 'open' ? JSON.parse(command.text) : structuredClone(this.document);
     if (command.kind === 'apply') Object.assign(document.parameters, command.parameters);
     this.document = document;
     const result = reply(document, command.kind === 'apply' ? command.expectedRevision + 1 : command.revision ?? 0); this.send(result, command.id); return result;
@@ -131,7 +135,7 @@ try {
     if (mode === 'display-refusal' || mode === 'cancel-staging' || mode === 'worker-failure-staging') assert.ok(disposals >= 2); s.dispose(); checks++;
   }
   // Every additive sample uses the same atomic replacement path, including drafts/history.
-  for (const [example, document, kind, outputs, axis] of [['intersection', overlap, 'intersect', ['overlap']], ['horizontal-split', split, 'split', ['lower', 'upper']], ['horizontal-split', cardinal('x'), 'split', ['negative', 'positive'], 'x'], ['horizontal-split', cardinal('y'), 'split', ['negative', 'positive'], 'y'], ['two-chamfer', chamferChain, 'chamfer', ['part']]]) {
+  for (const [example, document, kind, outputs, axis] of [['intersection', overlap, 'intersect', ['overlap']], ['horizontal-split', split, 'split', ['lower', 'upper']], ['horizontal-split', cardinal('x'), 'split', ['negative', 'positive'], 'x'], ['horizontal-split', cardinal('y'), 'split', ['negative', 'positive'], 'y'], ['two-chamfer', chamferChain, 'chamfer', ['part']], ['chamfer-split', chamferSplit('x'), 'split', ['negative', 'positive'], 'x'], ['chamfer-split', chamferSplit('z'), 'split', ['negative', 'positive'], 'z']]) {
     const samples = create(); p = samples.example(); let sampleWorker = instances.at(-1); sampleWorker.accept(); await p;
     samples.stage('height', '6'); p = samples.apply(); sampleWorker.accept(); await p;
     samples.stage('height', '7'); const beforeSample = stable(samples);
@@ -144,8 +148,8 @@ try {
     assert.deepEqual(samples.getSnapshot().accepted.outputs.map(output => output.name), outputs);
     assert.equal(samples.getSnapshot().accepted.features.at(-1).kind, kind);
     assert.equal(samples.getSnapshot().history.count, 1); assert.deepEqual(samples.getSnapshot().drafts, {}); checks++;
-    const editName = example === 'two-chamfer' ? 'backDistance' : 'height';
-    const editValue = example === 'two-chamfer' ? 3 : 2;
+    const editName = (example === 'two-chamfer' || example === 'chamfer-split') ? 'backDistance' : 'height';
+    const editValue = (example === 'two-chamfer' || example === 'chamfer-split') ? 3 : 2;
     samples.stage(editName, String(editValue)); const beforeOutputChange = stable(samples); p = samples.apply();
     const changed = structuredClone(document); changed.parameters[editName] = editValue;
     if (axis) changed.outputs.negative.side = 'positive';
@@ -156,14 +160,14 @@ try {
     if (axis) {
       // A rejected forged result terminates that worker; use a fresh accepted session for the independent axis guard.
       const axisSession = create(); p = axisSession.example(example, axis); const axisWorker = instances.at(-1); axisWorker.accept(); await p;
-      axisSession.stage('height', '2'); const beforeAxisChange = stable(axisSession); p = axisSession.apply();
-      const forged = structuredClone(document); forged.parameters.height = 2; forged.nodes[2].axis = axis === 'x' ? 'y' : 'x';
+      axisSession.stage(editName, String(editValue)); const beforeAxisChange = stable(axisSession); p = axisSession.apply();
+      const forged = structuredClone(document); forged.parameters[editName] = editValue; forged.nodes.at(-1).axis = axis === 'x' ? 'y' : 'x';
       axisWorker.send(reply(forged, 1)); await p; assert.deepEqual(stable(axisSession), beforeAxisChange); axisSession.dispose(); checks++;
     }
     samples.dispose();
   }
   const invalid = create(); const beforeInvalid = stable(invalid), beforeWorkers = instances.length;
-  for (const [example, axis] of [['horizontal-split', 'q'], ['horizontal-split', null], ['horizontal-split', 1], ['horizontal-split', {}], ['intersection', 'x'], ['cut-chamfer', 'z'], ['two-chamfer', 'x'], [undefined, 'y'], ['unknown', undefined]]) {
+  for (const [example, axis] of [['chamfer-split', 'y'], ['chamfer-split', 'q'], ['chamfer-split', null], ['chamfer-split', 1], ['chamfer-split', {}], ['horizontal-split', 'q'], ['horizontal-split', null], ['horizontal-split', 1], ['horizontal-split', {}], ['intersection', 'x'], ['cut-chamfer', 'z'], ['two-chamfer', 'x'], [undefined, 'y'], ['unknown', undefined]]) {
     await assert.rejects(invalid.example(example, axis), /Choose/);
     assert.equal(instances.length, beforeWorkers); assert.deepEqual(stable(invalid), beforeInvalid); checks++;
   }
@@ -180,6 +184,28 @@ try {
     assert.equal(s.getSnapshot().accepted, null); assert.match(s.getSnapshot().error, /feature dependencies/); s.dispose(); checks++;
   }
   // Both distances remain ordinary independent draft dimensions on the same chain.
+  for (const axis of ['x', 'z']) {
+    const railSession = create(); p = railSession.example('chamfer-split', axis); const w = instances.at(-1); w.accept(); await p;
+    railSession.stage('splitAt', axis === 'x' ? '8' : '3'); p = railSession.apply(); w.accept(); await p;
+    const saved = railSession.getSnapshot().authoredText;
+    for (const [name, value] of [['frontDistance', 2], ['backDistance', 3]]) {
+      railSession.stage(name, String(value)); p = railSession.apply(); assert.deepEqual(w.requests.at(-1).parameters, { [name]: value });
+      w.accept(); await p; assert.equal(railSession.getSnapshot().accepted.parameters[name], value);
+      p = railSession.undo(); w.accept(); await p; assert.equal(railSession.getSnapshot().authoredText, saved); checks++;
+    }
+    railSession.stage('frontDistance', '2'); railSession.stage('backDistance', '3'); p = railSession.apply();
+    assert.deepEqual(w.requests.at(-1).parameters, { frontDistance: 2, backDistance: 3 }); w.accept(); await p;
+    p = railSession.undo(); w.accept(); await p; assert.equal(railSession.getSnapshot().authoredText, saved);
+    p = railSession.redo(); w.accept(); await p; assert.equal(railSession.getSnapshot().accepted.parameters.backDistance, 3); checks++;
+    railSession.dispose();
+    for (const mutate of [d => d.nodes[4].parent.node = 1, d => d.nodes[4].axis = 'y', d => d.nodes[3].parent.node = 1,
+      d => d.nodes[3].edge.at.y = 0, d => d.outputs.negative.node = 3, d => d.outputs.positive.side = 'negative']) {
+      const guarded = create(); p = guarded.example('chamfer-split', axis); const worker = instances.at(-1); worker.accept(); await p;
+      guarded.stage('backDistance', '3'); const before = stable(guarded); p = guarded.apply();
+      const changed = chamferSplit(axis); changed.parameters.backDistance = 3; mutate(changed); worker.send(reply(changed, 1)); await p;
+      assert.ok(guarded.getSnapshot().error); assert.deepEqual(stable(guarded), before); guarded.dispose(); checks++;
+    }
+  }
   const chainSession = create(); p = chainSession.example('two-chamfer'); const chainWorker = instances.at(-1); chainWorker.accept(); await p;
   chainSession.stage('backDistance', '3'); p = chainSession.apply(); chainWorker.accept(); await p;
   assert.deepEqual(chainSession.getSnapshot().accepted.parameters, { frontDistance: 1, backDistance: 3, backY: 24 }); checks++;

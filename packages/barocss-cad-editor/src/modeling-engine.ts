@@ -12,7 +12,7 @@ export interface CadEditorModelingSummary {
 }
 export type CadEditorModelingSplitAxis = 'x' | 'y' | 'z';
 /** The split example ID is retained for compatibility; splitAxis defaults to Z. */
-export type CadEditorModelingExample = 'cut-chamfer' | 'intersection' | 'horizontal-split' | 'two-chamfer';
+export type CadEditorModelingExample = 'cut-chamfer' | 'intersection' | 'horizontal-split' | 'two-chamfer' | 'chamfer-split';
 export type ModelingCommand = { id: number } & (
   { kind: 'example'; example?: CadEditorModelingExample; splitAxis?: CadEditorModelingSplitAxis } | { kind: 'open'; text: string; revision?: number }
   | { kind: 'apply'; expectedRevision: number; parameters: Record<string, number> }
@@ -43,6 +43,18 @@ export function createCadEditorChamferChainModel(): CadModelSnapshot {
   const front = blank.chamfer(blank.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one(), frontDistance);
   const part = front.chamfer(front.edges({ parallelTo: 'x', at: { y: backY, z: 'max' } }).one(), backDistance);
   return model.build({ part });
+}
+
+/** Divide the actual second chamfer result; this preset matches measured X/Z cases. */
+export function createCadEditorChamferSplitModel(axis: 'x' | 'z' = 'x'): CadModelSnapshot {
+  const model = cad.model();
+  const frontDistance = model.parameter('frontDistance', 1), backDistance = model.parameter('backDistance', 2);
+  const splitAt = model.parameter('splitAt', axis === 'z' ? 4 : 16);
+  const blank = model.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+  const front = blank.chamfer(blank.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one(), frontDistance);
+  const finished = front.chamfer(front.edges({ parallelTo: 'x', at: { y: 24, z: 'max' } }).one(), backDistance);
+  const parts = finished.split({ axis, at: splitAt });
+  return model.build({ negative: parts.negative, positive: parts.positive });
 }
 
 /** A positive-volume overlap, authored through the same public handle API. */
@@ -110,11 +122,12 @@ export function createModelingEngine() {
   return (command: ModelingCommand): ModelingReply => {
     try {
       if (!command || !Number.isSafeInteger(command.id) || command.id < 1) throw new Error('A current worker request is required.');
-      if (command.kind === 'example' && command.example !== undefined && command.example !== 'cut-chamfer' && command.example !== 'intersection' && command.example !== 'horizontal-split' && command.example !== 'two-chamfer')
+      if (command.kind === 'example' && command.example !== undefined && command.example !== 'cut-chamfer' && command.example !== 'intersection' && command.example !== 'horizontal-split' && command.example !== 'two-chamfer' && command.example !== 'chamfer-split')
         throw new Error('Choose an available modeling example.');
       if (command.kind === 'example' && command.splitAxis !== undefined
-        && (command.example !== 'horizontal-split' || !['x', 'y', 'z'].includes(command.splitAxis)))
-        throw new Error('Choose X, Y or Z for the split example only.');
+        && (command.example === 'chamfer-split' ? !['x', 'z'].includes(command.splitAxis)
+          : command.example !== 'horizontal-split' || !['x', 'y', 'z'].includes(command.splitAxis)))
+        throw new Error('Choose an available split axis: X/Z for the beveled part, X/Y/Z for the plain part.');
       if (command.kind === 'open' && command.revision !== undefined && (!Number.isSafeInteger(command.revision) || command.revision < 0))
         throw new Error('Invalid worker reconstruction revision.');
       if (command.kind === 'apply') {
@@ -139,6 +152,7 @@ export function createModelingEngine() {
       }
       if (source !== 'model') throw new Error('Open a saved model first.');
       const snapshot = command.kind === 'example' ? (command.example === 'intersection' ? createCadEditorIntersectionModel()
+        : command.example === 'chamfer-split' ? createCadEditorChamferSplitModel(command.splitAxis === 'z' ? 'z' : 'x')
         : command.example === 'horizontal-split' ? (command.splitAxis === 'x' || command.splitAxis === 'y'
           ? createCadEditorCardinalSplitModel(command.splitAxis) : createCadEditorSplitModel()) : command.example === 'two-chamfer' ? createCadEditorChamferChainModel() : createCadEditorSampleModel())
         : command.kind === 'open' ? cad.load(command.text)

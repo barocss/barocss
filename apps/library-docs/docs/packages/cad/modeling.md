@@ -53,7 +53,7 @@ In the editor, choose **Two chamfers on a part** under **Modeling examples**, ac
 
 ### Two-chamfer limits and refusal
 
-Only **two serial chamfers** are admitted, with the second parent and its selector owned by the actual first result. Sibling branches, a third chamfer and stale/foreign/copied selectors refuse. The total remains six nodes. This example demonstrates a directly extruded rectangle with opposite, noninteracting top edges; it does not establish a split/intersection plus two-chamfer combination, arbitrary-edge chamfer, fillet or topology remapping.
+Only **two serial chamfers** are admitted, with the second parent and its selector owned by the actual first result. Sibling branches, a third chamfer and stale/foreign/copied selectors refuse. The total remains six nodes. This example demonstrates a directly extruded rectangle with opposite, noninteracting top edges; its original evidence does not establish a split/intersection plus two-chamfer combination, arbitrary-edge chamfer, fillet or topology remapping. The separately verified split-after-chamfer recipe is described below.
 
 The existing native restrictions still apply: adjacent supports must be perpendicular signed world-axis planes; endpoints need the supported perpendicular end planes; positive local setbacks must satisfy the exact representation, qualification and work bounds. Being selectable does not prove an edge is chamferable.
 
@@ -119,7 +119,7 @@ A caller may instead build only a genuinely nonempty side from an outside/tangen
 
 In **Modeling examples**, choose **Split a part**, keep **Z · lower / upper**, acknowledge replacement and load it. The original cut/chamfer default and overlap choice remain available. The existing controller owns replacement, cancellation, drafts and history; lower/upper flow through the same named-output display and selection path. A refused or cancelled load preserves the previously accepted model and pending dimensions.
 
-This Z example splits a direct XY extrusion horizontally. The current API also supports X/Y planes as described next. A model may contain one split OR one cut OR one intersection, not a mixture. Oblique planes, repeated/nested splits and split parents made by other operations are outside this surface. This example does not demonstrate chamfering a split side.
+This Z example splits a direct XY extrusion horizontally. The current API also supports X/Y planes as described next. A model may contain one split OR one cut OR one intersection, not a mixture. Oblique planes and repeated/nested splits remain unsupported. The separate beveled-part example below extends split parents to one/two owned chamfers rooted at a direct extrusion. This example does not demonstrate chamfering a split side.
 
 The [split source](https://github.com/barocss/barocss/blob/142f4e5d745e1494771a530e293b374d1d29bcb2/packages/barocss-cad/src/modeling.ts) and [native receipt](https://github.com/barocss/barocss/blob/142f4e5d745e1494771a530e293b374d1d29bcb2/packages/barocss-cad/test/modeling-split-evidence/verification.json) record the baseline, edit and fresh-process results above. Lightweight tracing compares the exact five parameter/sketch/extrude/split calls and named output mapping of this download, the editor and the provider fixture, including signed zero. The provider's two genuine baseline tessellations are replayed through the actual controller with a mocked Worker; both CPU geometries and approximate CPU picks retain their lower/upper identities. This is not a second native execution or an editor browser/GPU test.
 
@@ -145,11 +145,46 @@ Exact native representation still matters. On this **X** fixture, setting `rearX
 
 <<< ../../public/examples/modeling-cardinal-split.ts#refused-cardinal
 
-Outside/tangent empty-side requests retain the same `SELECTION` behavior as Z. Only world X/Y/Z planes on a direct XY extrusion are admitted: no oblique plane, nested split, mixed cut/intersection/split graph or new chamfer-combination claim.
+Outside/tangent empty-side requests retain the same `SELECTION` behavior as Z. This plain example admits world X/Y/Z planes on a direct XY extrusion: no oblique plane, nested split or mixed cut/intersection/split graph. Split-after-chamfer has its own bounded example and evidence below.
 
 The [cardinal split source](https://github.com/barocss/barocss/blob/72ba5eb5ba54a94666812ce99ebf5c10fd3f7290/packages/barocss-cad/src/modeling.ts) and [native receipt](https://github.com/barocss/barocss/blob/72ba5eb5ba54a94666812ce99ebf5c10fd3f7290/packages/barocss-cad/test/modeling-cardinal-split-evidence/verification.json) record the X/Y construction/edit results and fresh-process X sequence. Exact six-call authoring traces and output mappings match this download, the editor and the provider fixture for both X and Y. The genuine X baseline transport passes the existing controller and both negative/positive CPU picks. Y uses the producer's real native evidence plus authored recipe/routing/type checks, not a fabricated Y transport replay. No additional native campaign or editor GPU execution is implied.
 
 Provider [#1622](https://github.com/barocss/barocss/issues/1622) and consumer [#1623](https://github.com/barocss/barocss/issues/1623) retain separate receipts. Actual editor browser/GPU pixels, physical file-picker acceptance and npm publication remain **UNRUN** by these checks; deployment is recorded separately.
+
+## Split a finished beveled part
+
+<a :href="withBase('/examples/modeling-chamfer-split.ts')" download>Download the complete typed beveled-part split example</a>
+
+Chamfer the front and back top edges of a 32 × 24 × 8 mm rectangle, then split the **actual second chamfer result**. The second edge selection belongs to the first result. The split outputs belong to the finished part, not the original blank:
+
+<<< ../../public/examples/modeling-chamfer-split.ts#beveled-split
+
+`makeBeveledSplit('x')` starts at X16. `makeBeveledSplit('z')` starts at Z4. Both keep the same two bevels, with independent `frontDistance` and `backDistance` parameters. `splitAt` is the selected-axis **split coordinate**, not a bevel distance. The names `negative` and `positive` describe the lower/higher-coordinate sides, each including the shared boundary plane. The five authored features are sketch, extrusion, front chamfer, back chamfer and split.
+
+| State | negative / positive (mm³) | Reused / evaluated model features |
+| --- | --- | --- |
+| Initial two-chamfer X16 | 3032 / 3032 | none / 0, 1, 2, 3, 4 |
+| From initial, `splitAt:8` | 1516 / 4548 | 0, 1, 2, 3 / 4 |
+| Then `backDistance:3` | 1496 / 4488 | 0, 1, 2 / 3, 4 |
+| Cold reopen of X8/back3 | 1496 / 4488 | none / 0, 1, 2, 3, 4 |
+| Reopened, `splitAt:16` | 2992 / 2992 | 0, 1, 2, 3 / 4 |
+| Independent two-chamfer Z4 | 3072 / 2992 | none / 0, 1, 2, 3, 4 |
+
+<<< ../../public/examples/modeling-chamfer-split.ts#edit-beveled-split
+
+The complete `beveledSplitWorkflow()` performs the measured X sequence. Feature reuse is the existing private-prefix mechanism: moving the split preserves the finished bevel prefix, while changing the second bevel evaluates that bevel and the split. These arrays count model features, not elapsed time or all transitive native calls. The editor still tessellates accepted output bodies; saved files contain authored intent and reopen cold.
+
+Starting from the accepted X8 snapshot, `splitAt:40` requests an empty positive side and throws `CadModelError` code `SELECTION`, operation `split`. Its original cause reports `side:'positive'`, `status:'outside'`, `sectionDimension:-1`. The previous saved text, bodies and evidence stay unchanged; the measured back-distance edit above succeeds from that same retained snapshot after refusal. Keep the actual error rather than fabricating an empty Solid:
+
+<<< ../../public/examples/modeling-chamfer-split.ts#refused-beveled-split
+
+In **Modeling examples**, select **Split a beveled part**. This new choice initializes **X · negative / positive**; choose **Z · negative / positive** for the Z4 recipe. Only X/Z are offered for this two-chamfer preset. The existing plain **Split a part** still offers X/Y/Z, including its unchanged Z `lower`/`upper` recipe. Axis or preset selection clears replacement acknowledgment without changing the accepted scene, dimensions, drafts or history. An acknowledged successful load resets history atomically; a refused or cancelled load preserves it. Apply, Undo/Redo and authored Save/Open use the same controller.
+
+The current API accepts a split parent that is a direct extrusion or **one/two owned serial chamfers ultimately rooted at that extrusion**, subject to native qualification. The six-node total and one cut OR intersection OR split remain. Nested/repeated splits, cut/intersection-rooted chamfer chains, sibling/side jumps and arbitrary planes are unsupported. Chamfer perpendicular-support/locality and exact native representation limits still apply. The producer also measured a **separate one-chamfer Y12** case at 3056 / 3072 mm³; that is not a two-chamfer Y witness and is not silently substituted by this preset.
+
+The [adopted split-after-chamfer source](https://github.com/barocss/barocss/blob/3a7b7ea2712c739f1d7bbc8774301f821027e9e6/packages/barocss-cad/src/modeling.ts), [exact dividedRail fixture](https://github.com/barocss/barocss/blob/3a7b7ea2712c739f1d7bbc8774301f821027e9e6/packages/barocss-cad/test/modeling-chamfer-split-fixture.mjs) and [native receipt](https://github.com/barocss/barocss/blob/3a7b7ea2712c739f1d7bbc8774301f821027e9e6/packages/barocss-cad/test/modeling-chamfer-split-evidence/verification.json) record 8 model calls and 2 baseline output tessellations, exact split-parent/source lineage and opposed section-cap uses. Full transitive native coverage was not measured.
+
+Lightweight tracing compares the same ten public authoring calls and output references in the editor, download and provider fixture for X16 and Z4. The unchanged 82,509-byte genuine X16 transport is replayed through the actual controller with a mocked Worker, checking two CPU geometries and approximate picking of both named outputs. Z has provider-native evidence plus recipe/routing/type checks; it does not have a fabricated transport replay. No extra native campaign or actual sample-worker execution is implied. Provider [#1631](https://github.com/barocss/barocss/issues/1631) and consumer [#1632](https://github.com/barocss/barocss/issues/1632) retain separate evidence. Editor browser/GPU, physical file-picker flows and npm publication remain **UNRUN** by these checks; manual deployment is recorded separately.
 
 ## 3. Read named outputs and evidence
 

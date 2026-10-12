@@ -112,7 +112,16 @@ assert.deepEqual(chainSample.summary.outputs.map(o => o.name), ['part']);
 const chainDocument = JSON.parse(chainSample.text);
 assert.deepEqual(chainDocument.nodes.map(node => node.kind), ['sketch', 'extrude', 'chamfer', 'chamfer']);
 assert.equal(chainDocument.nodes[2].parent, 1); assert.equal(chainDocument.nodes[3].parent, 2); checks++;
-for (const [example, splitAxis] of [['horizontal-split', 'q'], ['horizontal-split', null], ['horizontal-split', 1], ['horizontal-split', {}], ['intersection', 'x'], ['cut-chamfer', 'z'], ['two-chamfer', 'x'], [undefined, 'y']]) {
+for (const splitAxis of [undefined, 'x', 'z']) {
+  const sample = sampleEngine({ id: ++id, kind: 'example', example: 'chamfer-split', splitAxis });
+  assert.equal(sample.ok, true); const doc = JSON.parse(sample.text);
+  assert.deepEqual(sample.summary.parameters, { frontDistance: 1, backDistance: 2, splitAt: splitAxis === 'z' ? 4 : 16 });
+  assert.deepEqual(doc.nodes.map(node => node.kind), ['sketch', 'extrude', 'chamfer', 'chamfer', 'split']);
+  assert.equal(doc.nodes[3].parent, 2); assert.equal(doc.nodes[4].parent, 3);
+  assert.equal(doc.nodes[4].axis, splitAxis ?? 'x');
+  assert.deepEqual(doc.outputs, { negative: { node: 4, side: 'negative' }, positive: { node: 4, side: 'positive' } }); checks++;
+}
+for (const [example, splitAxis] of [['chamfer-split', 'y'], ['chamfer-split', 'q'], ['chamfer-split', null], ['chamfer-split', 1], ['chamfer-split', {}], ['horizontal-split', 'q'], ['horizontal-split', null], ['horizontal-split', 1], ['horizontal-split', {}], ['intersection', 'x'], ['cut-chamfer', 'z'], ['two-chamfer', 'x'], [undefined, 'y']]) {
   const calls = sampleCalls;
   assert.equal(sampleEngine({ id: ++id, kind: 'example', example, splitAxis }).ok, false);
   assert.equal(sampleCalls, calls); checks++;
