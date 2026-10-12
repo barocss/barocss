@@ -9655,3 +9655,73 @@ parent `86b1d7aeba0591eda0d09e79225af6ed20bdf9e8`; the historical Node24.19
 execution environment is not claimed. The detailed frozen schema is mirrored in
 [the before-code contract](https://github.com/barocss/barocss/issues/1559#issuecomment-6109205543),
 with its [input-failure clarification](https://github.com/barocss/barocss/issues/1559#issuecomment-6109218241).
+
+### Conserved paired-roof Body split
+
+`splitPairedRoofDifferenceBody({ whole, middle, options })` partitions a complete
+qualified paired-roof difference Body at the native A roof of a complete qualified
+paired-surface material Body. It constructs two new closed restricted-qualified
+Solids with the unchanged difference provider: lower-to-middle, then
+middle-to-upper. The exact options are `evaluationId`, `certificateId`,
+`maximumOutputBodies: 2`, `lowerOptions`, and `upperOptions`. Each child's options
+retain the existing six-field record and fixed 3/6/12/24 caps. The result retains
+`request`, `outputs`, `proof`, and `report`; no caller objects are aliased.
+`validatePairedRoofBodySplit(unknown)` reconstructs once and compares every retained
+field, returning only the independently copied report.
+
+Admission requires identical complete original B authority (including source
+spelling, sibling objects, units/axes and original parameter map), common footprint,
+native A domains, window and low bounds. Geometry-equivalent but differently
+identified B sources are refused. Both new whole 5-by-2 Bernstein roof gaps must be
+strictly positive. The composition certificate checks exact coefficient identities
+for the floors, intermediate roof, outer roof and summed gaps in the common
+injective footprint chart. Thus the closed occupied regions cover the parent,
+their interiors are disjoint, and their intersection is precisely the middle roof.
+It additionally resolves both cut faces to the same original native A face and all
+four original boundary uses, with opposite effective orientations and exactly one
+inherited floor reversal. Fresh exact volume conservation is supplementary evidence,
+not the region proof. General admitted variable gaps are supported; constant roof
+offsets are not an API restriction.
+
+Exactly 256 generated roles are reserved before constructing outputs: two wrapper
+IDs and two unchanged 127-role child reservations. Complete-parent collisions,
+getters, hidden fields and unsupported own data are refused atomically. Request and
+result envelopes are respectively 8 MiB and 16 MiB in both signed-zero-preserving
+JSON character and UTF-8 measurements, including a final newline. Other fixed bounds
+include 4,194,304 own values, depth 64, arrays 8192, records 64, source/string 262144,
+IDs 48, prefixes 8 and eight measurement-settling passes. One request-local rational
+context serves the wrapper and composition proof: 200,000 operations, 200,000 GCD
+steps, 8192 integer bits and zero float conversions. Child contexts and all inherited
+limits remain unchanged. These envelopes can refuse otherwise qualified parents;
+they do not promise that every parent fits.
+
+The successful direct schedule is one whole-owned validation, one middle-owned
+validation and two difference builds, with no direct source compilation or native
+sampling. This means three nested difference reconstructions and seven material
+validations, including 216 **difference-level** CurveD0 attempts; deeper inherited
+work is separate and its actual reports remain retained. Own validation repeats
+that schedule once. Errors use `PairedRoofBodySplitError` and the eleven
+`PairedRoofBodySplitDiagnosticCode` values, preserving attempted counts, phase,
+output index and original child cause. A failure returns no partial accepted split.
+
+`examples/cad-nurbs/paired-roof-body-split-demo.mjs` is the focused source/emitted/cold
+construction flow and seven refusal controls. Its default coordinator now separates
+source, six refusals, altered-proof owned reconstruction, emitted, and cold into five
+sequential processes, retaining the 600-second per-process and 2400-second total caps.
+
+Acceptance evidence is explicitly linked across a source-positive/six-control run and
+an authorized continuation. The first run timed out during the seventh control; the
+continuation completed that real owned reconstruction, emitted, and fresh cold stages.
+All seven controls passed, and the complete 4,877,768-byte source/emitted/cold results
+matched, including signed zero. Combined execution was 1708.761 seconds with 3134 log
+bytes. The interrupted owned attempt is additional work with unknown partial descendant
+counts; it is not erased or included in an asserted exact completed-call total. The
+five-process default scheduling amendment was syntax/static reviewed, not freshly run
+as a one-shot acceptance campaign. Source and emitted product artifacts are unchanged.
+
+Its midpoint fixture is a demonstration,
+not proof of a general-purpose split operation or a new persistence codec. Native
+acceptance, integration adoption and actual GPU/Loader use remain separate.
+Generic solid splitting/Boolean operations, crossings, pinches, manufacturing
+accuracy, global binary64 error certification, rendering and publication are outside
+this bounded API.

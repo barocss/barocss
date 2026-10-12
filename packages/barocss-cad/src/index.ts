@@ -488,3 +488,7 @@ export type { PairedRoofDifferenceBodyRequest, PairedRoofDifferenceBodyOptions, 
 // Bounded binary STL exchange from the whole qualified translated-strip Body mesh.
 export { exportQualifiedTranslatedStripBodyBinaryStl, validateQualifiedTranslatedStripBodyBinaryStl, QualifiedTranslatedStripBodyBinaryStlError, QualifiedTranslatedStripBodyBinaryStlDiagnosticCode } from './qualified-strip-binary-stl.js';
 export type { QualifiedTranslatedStripBodyBinaryStlOptions, QualifiedTranslatedStripBodyBinaryStlVertexLoss, QualifiedTranslatedStripBodyBinaryStlReport, QualifiedTranslatedStripBodyBinaryStlResult } from './qualified-strip-binary-stl.js';
+
+// Exact conserved partition at a retained native intermediate paired A roof.
+export { splitPairedRoofDifferenceBody, validatePairedRoofBodySplit, PairedRoofBodySplitError, PairedRoofBodySplitDiagnosticCode } from './paired-roof-body-split.js';
+export type { PairedRoofBodySplitRequest, PairedRoofBodySplitOptions, PairedRoofBodySplitResult, PairedRoofBodySplitReport } from './paired-roof-body-split.js';
