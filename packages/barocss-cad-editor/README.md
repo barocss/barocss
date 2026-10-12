@@ -1214,3 +1214,22 @@ history replay. Unsupported geometry/references retain the last accepted state.
 
 Scoped software, native-to-CPU mesh and controller checks are distinct from
 browser Worker execution, rendered GPU pixels and native OS file workflows.
+
+### Build artifact checks
+
+`node packages/barocss-cad-editor/scripts/build.mjs` runs checked declaration
+emission and Vite bundling in separate processes. This releases the compiler's
+whole-program graph before Vite builds the native split, prism and modeling
+workers. A successful build contains both ESM entries, all source declarations,
+scoped CSS and three self-contained module workers. Only the main library
+entries leave their package dependencies external. A failed phase returns a nonzero
+exit and removes incomplete/stale `dist` output; only a successful build is consumable.
+Both phases default to a 1536 MiB old-space limit and one Rayon thread. Explicit
+Node heap flags (including `NODE_OPTIONS`) and `RAYON_NUM_THREADS` remain
+authoritative; other execution flags and environment options are inherited.
+The current declaration graph exceeds a 768 MiB old-space budget.
+
+After building, run `node packages/barocss-cad-editor/scripts/check-build.mjs` to
+check emitted imports, declaration coverage, worker URLs and isolated worker
+startup. This artifact check does not claim native geometry, browser rendering,
+or Save/Open workflow coverage.

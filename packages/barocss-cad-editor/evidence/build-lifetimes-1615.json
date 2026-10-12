@@ -1,0 +1,186 @@
+{
+  "issue": 1615,
+  "base": "fcd5df4813cd49094c4a88dc112c560ac18277b4",
+  "runtime": {
+    "node": "22.23.3",
+    "typescript": "5.9.2",
+    "vite": "8.3.1"
+  },
+  "scope": "Package-local build orchestration and artifact checks. No native source, dependency, lockfile, API or Vite config change.",
+  "diagnosis": {
+    "mainNativeImportsExternal": true,
+    "workersTraverseNativeDependencies": [
+      "split",
+      "prism-feature",
+      "modeling"
+    ],
+    "originalScriptRetainedCheckedTypeScriptProgramDuringBundling": true,
+    "operatingSystemKillCause": "unproven; no cgroup kill-event access"
+  },
+  "defaults": {
+    "childOldSpaceMiB": 1536,
+    "childRayonThreads": 1,
+    "explicitCallerOverridesHonored": true,
+    "globalRuntimeChanges": false
+  },
+  "sourceSHA256": {
+    "README.md": "81d21902f7683b03c1b4ac64933592767b6621b6a50858ef35996143c6f6312e",
+    "scripts/build.mjs": "4bf1abf8375c37c29c0cb0663c457078e396ec4351a054749b3d983ac397e2ce",
+    "scripts/build-bundle.mjs": "57f372531e9cee50ce53b47444056cf22b41aa270d936aa01acad94f20990abe",
+    "scripts/build-declarations.mjs": "b724b4f0dc16bcdfad57775eb73a10b262148411be259f5878037d968d223a6c",
+    "scripts/build-lifecycle-test.mjs": "a0fb49acef112d89d44a84f70a1fe5e1bcde7308bc83624501abace6cbbf2e6a",
+    "scripts/check-build.mjs": "97462f8e7c1e2cf0fcf523c07a4b8718191eb28a2d791b293637922e9aaf505d"
+  },
+  "verification": {
+    "finalLibraryBuild": {
+      "command": "node packages/barocss-cad-editor/scripts/build.mjs",
+      "exit": 0,
+      "explicitEnvironmentOverrides": false,
+      "maximumChildRssKiB": 1019276
+    },
+    "libraryArtifacts": {
+      "ok": true,
+      "declarations": 112,
+      "javascript": 6,
+      "workers": [
+        "assets/modeling-worker-B8VWi4vI.js",
+        "assets/prism-feature-worker-_YO9OE3T.js",
+        "assets/split-worker-D0JEtUPT.js"
+      ],
+      "imports": 17,
+      "css": true,
+      "evidence": "Emitted syntax, declared imports, worker URLs and isolated worker startup; no geometry evaluation, browser rendering or file workflow"
+    },
+    "lifecycle": {
+      "ok": true,
+      "cases": [
+        "bounded defaults",
+        "environment overrides",
+        "quoted underscore environment flag",
+        "underscore CLI flag",
+        "duplicate CLI and environment precedence",
+        "CLI override",
+        "declaration failure",
+        "bundle failure"
+      ],
+      "checks": [
+        "phase order",
+        "separate processes",
+        "Node flags inherited",
+        "declaration staging cleanup",
+        "nonzero failure propagation",
+        "no stale or partial output"
+      ],
+      "evidence": "Orchestration with explicit phase stubs; no real TypeScript, Vite or native evaluation"
+    },
+    "appTypes": {
+      "command": "NODE_OPTIONS=--max-old-space-size=1536 node apps/cad-editor/node_modules/typescript/bin/tsc -p apps/cad-editor/tsconfig.json --noEmit",
+      "exit": 0
+    },
+    "sourceAppBundle": {
+      "cwd": "apps/cad-editor",
+      "command": "RAYON_NUM_THREADS=1 NODE_OPTIONS=--max-old-space-size=1536 node node_modules/vite/bin/vite.js build",
+      "exit": 0,
+      "maximumChildRssKiB": 952400
+    },
+    "compiledEditorConsumerApp": {
+      "command": "CAD_EDITOR_COMPILED_MAP=<map of the three editor exports to emitted JS/CSS> RAYON_NUM_THREADS=1 NODE_OPTIONS=--max-old-space-size=1536 node apps/cad-editor/node_modules/vite/bin/vite.js build apps/cad-editor --outDir <new consumer output directory>",
+      "exit": 0,
+      "nativeDependencies": "source package entries; not a fully emitted native graph",
+      "workerCopies": [
+        {
+          "library": "modeling-worker-B8VWi4vI.js",
+          "consumer": "modeling-worker-B8VWi4vI-B0DPXNg1.js",
+          "sha256": "d6286cc40ba2033ab0ef01c22dd7d1c6bf7911e40f2b3b450ee07956fd783234"
+        },
+        {
+          "library": "prism-feature-worker-_YO9OE3T.js",
+          "consumer": "prism-feature-worker-_YO9OE3T-BYACASEu.js",
+          "sha256": "d5424e84a5e6910d46dba3eb677471127ffc6910a73cd60024d0da19014ce1cd"
+        },
+        {
+          "library": "split-worker-D0JEtUPT.js",
+          "consumer": "split-worker-D0JEtUPT-DrIK9WMT.js",
+          "sha256": "e84028103d13f53203bde3092ff89a900dc485beabb57a0124bbc4a8909f1ca6"
+        }
+      ]
+    },
+    "modelingController": {
+      "ok": true,
+      "checks": 42,
+      "legacyChecks": 0,
+      "evidence": "CPU controller, saved mesh and synthesized graph-shaped DTO; optional saved real legacy replies; no native geometry, browser, GPU or OS files"
+    },
+    "modelingEngineRouting": {
+      "ok": true,
+      "checks": 12,
+      "modelCalls": 7,
+      "legacyCalls": 5,
+      "evidence": "stubbed providers; pure worker routing and authority only; no native geometry"
+    },
+    "recordedNativeController": {
+      "ok": true,
+      "acceptedNativeReplies": 4,
+      "checks": [
+        "initial model",
+        "batch dimensions",
+        "cold saved-state open",
+        "continued edit",
+        "stale selection",
+        "named output volume"
+      ],
+      "evidence": "recorded real native outputs through actual controller + mocked Worker; no new native, browser/GPU or OS file calls"
+    },
+    "legacyPrismController": {
+      "ok": true,
+      "checks": 28,
+      "evidence": "mocked worker transport only"
+    },
+    "legacySerialController": {
+      "ok": true,
+      "checks": 30,
+      "evidence": "saved real v2 replies, CPU and mocked Worker only"
+    },
+    "gitDiffCheck": "passed"
+  },
+  "preservedFirstFailures": [
+    {
+      "attempt": "Two prior combined library builds in #1612",
+      "outcome": "exit 137 during Vite transform",
+      "cause": "unproven"
+    },
+    {
+      "attempt": "Separated phases with explicit 768 MiB heap cap",
+      "outcome": "TypeScript explicit V8 heap exhaustion, child SIGABRT, launcher exit 1",
+      "fix": "1536 MiB phase cap; no source diagnostics suppressed"
+    },
+    {
+      "attempt": "Separated phases with this environment default 2096 MiB heap",
+      "outcome": "declaration child SIGKILL, launcher exit 1",
+      "cause": "unproven",
+      "fix": "package-local default1536 when caller does not supply a heap limit"
+    },
+    {
+      "attempt": "Serial controller fixture without SERIAL_REPLIES",
+      "outcome": "test harness missing required saved reply input",
+      "fix": "rerun with existing genuine #1608 replies; 30 checks passed"
+    },
+    {
+      "attempt": "Lifecycle fixture using --max_old_space_size and separate numeric CLI argument",
+      "outcome": "Node22 rejects this spelling before build launcher starts",
+      "fix": "use supported --max_old_space_size=128 form; precedence fixture passed"
+    }
+  ],
+  "scopeAmendmentTiming": "The final runner source was frozen before the ordinary build launch. The issue-body defaults amendment was verified after that launch; no preregistration claim for that run.",
+  "warnings": [
+    "Existing Vite use-client module-level directive warnings remain",
+    "Full repository CI, browser/GPU and native geometry re-evaluation are outside this bounded build fix"
+  ],
+  "notRun": [
+    "new native geometry evaluation",
+    "browser/GPU/rendering/physical file-picker workflow",
+    "whole repository checks",
+    "npm publication",
+    "deployment"
+  ]
+}
