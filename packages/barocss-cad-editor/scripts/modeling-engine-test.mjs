@@ -17,19 +17,20 @@ function sampleBuilder() {
   const shape = index => ({ intersect(other) { intersectCalls++; const node = nodes.push({ kind: 'intersect', left: index, right: other.index }) - 1; return shape(node); },
     split(options) { splitCalls++; const node = nodes.push({ kind: 'split', parent: index, ...options }) - 1; return { negative: { index: node, side: 'negative' }, positive: { index: node, side: 'positive' } }; },
     edges(query) { return { one() { return { owner: index, query }; } }; },
-    chamfer(selection, distance) { assert.equal(selection.owner, index); return shape(nodes.push({ kind: 'chamfer', parent: index, query: selection.query, distance }) - 1); },
+    chamfer(selection, distance, options) { assert.equal(selection.owner, index); return shape(nodes.push({ kind: 'chamfer', parent: index, query: selection.query, distance, ...(options ? {name: options.name, suppressed:false} : {}) }) - 1); },
     index, cut() { const side = { edges() { return { one() { return {}; } }; }, chamfer() { return shape(nodes.push({ kind: 'chamfer' }) - 1); }, index: nodes.push({ kind: 'cut' }) - 1 }; return { positive: side, negative: side }; } });
   const sketch = profile => { const index = nodes.push({ kind: 'sketch', profile }) - 1; return { extrude(height) { return shape(nodes.push({ kind: 'extrude', sketch: index, height }) - 1); } }; };
   return { dimension: { add(left, right) { return { op: 'add', left, right }; }, scale(value, factor) { return { op: 'scale', value, factor }; } }, parameter(name, value) { parameters[name] = value; return { parameter: name }; }, sketch: { polygon: sketch, rectangle: sketch },
     build(outputs) { return snapshot({ ...document, parameters, nodes, outputs: Object.fromEntries(Object.entries(outputs).map(([name, body]) => [name, { node: body.index, side: body.side ?? 'solid' }])) }); } };
 }
-const snapshots = [], snapshotEdits = [], loads = [];
+const snapshots = [], snapshotEdits = [], suppressionEdits = [], loads = [];
 let tessellations = 0, rejectTessellation = false;
 function snapshot(data) {
   const body = { report: { solidId: 'current_solid' }, certificate: { volumeMM3: { numerator: '1', denominator: '1' } }, graph: { vertices: [], edges: [], faces: [], vertexLinks: [] } };
-  const result = { parameters: data.parameters,
+  const result = { parameters: data.parameters, suppression:Object.fromEntries(data.nodes.filter(n=>n.name).map(n=>[n.name,n.suppressed])),
+    withSuppression(values) { suppressionEdits.push({snapshot:result,values:structuredClone(values)}); if(data.parameters.backY===1) throw new Error('METRIC candidate refused'); return snapshot({...data,nodes:data.nodes.map(n=>n.name&&Object.hasOwn(values,n.name)?{...n,suppressed:values[n.name]}:n)}); },
     recomputation: Object.freeze({ reusedFeatures: Object.freeze([]), evaluatedFeatures: Object.freeze(data.nodes.map((_node, index) => index)) }),
-    features: data.nodes.map((node, index) => ({ kind: node.kind, index, dependencies: [] })), bodies: Object.fromEntries(Object.keys(data.outputs).map(name => [name, body])),
+    features: data.nodes.map((node, index) => ({ kind: node.kind, index, dependencies: [], ...(node.name ? {name:node.name,suppressed:node.suppressed} : {}) })), bodies: Object.fromEntries(Object.keys(data.outputs).map(name => [name, body])),
     save: () => JSON.stringify({ ...data, outputs: Object.fromEntries(Object.entries(data.outputs).sort(([a], [b]) => a.localeCompare(b))) }), withParameters(values) { snapshotEdits.push({ snapshot: result, values: structuredClone(values) }); modelCalls++; if (Object.values(values).some(v => v < 0)) throw new Error('native candidate refused'); return snapshot({ ...data, parameters: { ...data.parameters, ...values } }); } };
   snapshots.push(result); return result;
 }
@@ -183,5 +184,31 @@ assert.equal(Object.hasOwn(afterReconstruction.summary, 'recomputation'), false)
 const before = modelCalls + legacyCalls;
 assert.equal(engine({ id: ++id, kind: 'open', text: JSON.stringify({ ...legacyDocument, version: 1 }) }).ok, false);
 assert.equal(modelCalls + legacyCalls, before); checks++;
+// Configuration commands retain the actual accepted snapshot and use only withSuppression.
+const finishEngine=create();
+const finishBase=finishEngine({id:++id,kind:'example',example:'configurable-finishes'});
+assert.equal(finishBase.ok,true);assert.deepEqual(finishBase.summary.suppression,{frontFinish:false,backFinish:false});
+assert.deepEqual(finishBase.summary.features.filter(f=>f.name).map(f=>[f.name,f.suppressed]),[['frontFinish',false],['backFinish',false]]);checks++;
+let finishSnapshot=snapshots.at(-1), finishRevision=0;
+for(const flags of [{frontFinish:false,backFinish:true},{frontFinish:true,backFinish:false},{frontFinish:true,backFinish:true},{frontFinish:false,backFinish:false}]) {
+  const edits=snapshotEdits.length, changed=finishEngine({id:++id,kind:'suppression',expectedRevision:finishRevision,suppression:flags});
+  assert.equal(changed.ok,true);assert.deepEqual(changed.summary.suppression,flags);assert.equal(suppressionEdits.at(-1).snapshot,finishSnapshot);
+  assert.equal(snapshotEdits.length,edits);finishSnapshot=snapshots.at(-1);finishRevision++;checks++;
+}
+let getterCalls=0;
+for(const bad of [null,[],Object.create(null),{unknown:true},{frontFinish:1},{frontFinish:'true'},Object.create({frontFinish:true}),Object.defineProperty({},'frontFinish',{get(){getterCalls++;return true;},enumerable:true}),Object.defineProperty({},'frontFinish',{value:true}),{[Symbol('x')]:true}]) {
+  const edits=suppressionEdits.length;
+  assert.equal(finishEngine({id:++id,kind:'suppression',expectedRevision:finishRevision,suppression:bad}).ok,false);assert.equal(suppressionEdits.length,edits);checks++;
+}
+assert.equal(getterCalls,0);checks++;
+assert.equal(finishEngine({id:++id,kind:'suppression',expectedRevision:finishRevision-1,suppression:{frontFinish:true}}).ok,false);checks++;
+rejectTessellation=true;
+assert.equal(finishEngine({id:++id,kind:'suppression',expectedRevision:finishRevision,suppression:{frontFinish:true}}).ok,false);
+rejectTessellation=false;
+const afterFailure=finishEngine({id:++id,kind:'suppression',expectedRevision:finishRevision,suppression:{backFinish:true}});
+assert.equal(afterFailure.ok,true);assert.equal(suppressionEdits.at(-1).snapshot,finishSnapshot);checks++;
+const reopenFinish=create()({id:++id,kind:'open',text:afterFailure.text,revision:afterFailure.summary.revision});
+assert.equal(reopenFinish.ok,true);assert.deepEqual(reopenFinish.summary,afterFailure.summary);checks++;
+assert.equal(Object.hasOwn(first.summary,'suppression'),false);assert.ok(first.summary.features.every(f=>!Object.hasOwn(f,'name')&&!Object.hasOwn(f,'suppressed')));checks++;
 const result = { ok: true, checks, modelCalls, legacyCalls, retainedSnapshotIdentityChecks: 7, coldLoadCallsObserved: loads.length, acceptedOutputsStillTessellate: true, recomputationNotTransported: true, evidence: 'stubbed providers; pure worker routing and authority only; no native geometry' };
 writeFileSync(resolve(output, 'result.json'), JSON.stringify(result, null, 2)); console.log(JSON.stringify(result));

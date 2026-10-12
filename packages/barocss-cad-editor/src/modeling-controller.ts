@@ -29,6 +29,35 @@ function scalar(raw: string): number {
   if (!Number.isFinite(value) || Math.abs(value) > 10000) throw new Error('Use millimetres between -10000 and 10000.');
   return value;
 }
+/** Inspect descriptors before cloning/posting so accessors never execute at this boundary. */
+function finishingChanges(value: unknown, known: Record<string, boolean> | undefined): Record<string, boolean> {
+  if (!known || !value || typeof value !== 'object' || Object.getPrototypeOf(value) !== Object.prototype
+    || Reflect.ownKeys(value).length > 6) throw new Error('Use a plain named finishing configuration.');
+  const changes: Record<string, boolean> = {};
+  for (const name of Reflect.ownKeys(value)) {
+    const descriptor = Object.getOwnPropertyDescriptor(value, name)!;
+    if (typeof name !== 'string' || !Object.hasOwn(known, name) || !descriptor.enumerable
+      || !Object.hasOwn(descriptor, 'value') || typeof descriptor.value !== 'boolean')
+      throw new Error('Use known finishing names and own boolean values.');
+    changes[name] = descriptor.value;
+  }
+  return changes;
+}
+function authoredFinishes(nodes: Record<string, unknown>[], features: CadEditorModelingSummary['features']): Record<string, boolean> | undefined {
+  const flags: Record<string, boolean> = {};
+  for (const [index, node] of nodes.entries()) {
+    const feature = features[index];
+    if (Object.hasOwn(node, 'name') || Object.hasOwn(node, 'suppressed')) {
+      if (node.kind !== 'chamfer' || typeof node.name !== 'string' || !/^[A-Za-z_][A-Za-z0-9_-]{0,47}$/.test(node.name)
+        || ['__proto__', 'prototype', 'constructor'].includes(node.name) || typeof node.suppressed !== 'boolean'
+        || Object.hasOwn(flags, node.name) || feature?.name !== node.name || feature.suppressed !== node.suppressed)
+        throw new Error('Named finishing metadata differs from authored chamfer nodes.');
+      flags[node.name] = node.suppressed;
+    } else if (Object.hasOwn(feature ?? {}, 'name') || Object.hasOwn(feature ?? {}, 'suppressed'))
+      throw new Error('Unnamed features must omit finishing metadata.');
+  }
+  return Object.keys(flags).length ? flags : undefined;
+}
 function sourceMatches(reply: Success) {
   const { summary } = reply, data = JSON.parse(reply.text);
   if (!summary || !Number.isSafeInteger(summary.revision) || summary.revision < 0 || typeof summary.documentId !== 'string'
@@ -40,11 +69,16 @@ function sourceMatches(reply: Success) {
     if (data?.format !== 'barocss-cad-model' || data.schema !== 1 || data.units !== 'mm' || !same(data.parameters, summary.parameters)
       || !Array.isArray(data.nodes) || !same(data.nodes.map((n: { kind: string }) => n.kind), summary.features.map(f => f.kind))
       || !same(Object.keys(data.outputs), summary.outputs.map(o => o.name)) || reply.compatibility !== undefined) throw new Error('Saved model differs from native summary.');
+    const flags = authoredFinishes(data.nodes, summary.features);
+    if (!same(flags, summary.suppression) || (flags === undefined && Object.hasOwn(summary, 'suppression')))
+      throw new Error('Saved finishing configuration differs from native summary.');
   } else if (summary.source === 'legacy') {
     if (data?.format !== 'barocss-xy-affine-prism-feature-document' || ![0, 2].includes(data.version)
       || data.id !== summary.documentId || data.revision !== summary.revision
       || !same(Object.fromEntries(data.parameters.map((p: { id: string; valueMM: number }) => [p.id, p.valueMM])), summary.parameters)
       || !same(data.nodes.map((n: { kind: string }) => n.kind), summary.features.map(f => f.kind))) throw new Error('Legacy source differs from native summary.');
+    if (Object.hasOwn(summary, 'suppression') || summary.features.some(f => Object.hasOwn(f, 'name') || Object.hasOwn(f, 'suppressed')))
+      throw new Error('Legacy summaries must omit finishing metadata.');
     const legacy = reply.compatibility;
     if (!legacy || !same(data, legacy.document) || JSON.stringify(legacy).length > FILE_LIMIT
       || !same(legacy.components.filter(c => c.status === 'solid').map(c => [c.role, c.solidId]), summary.outputs.map(o => [o.name, o.solidId])))
@@ -65,7 +99,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
     drafts: {}, selection: null, generation: 0, busy: false, disposed: false, error: null,
     history: { index: -1, count: 0, canUndo: false, canRedo: false } };
   let worker: Worker | null = null, ready = false, sequence = 0, epoch = 0, index = -1;
-  let history: { parameters: Record<string, number>; bytes: number }[] = [];
+  let history: { parameters: Record<string, number>; suppression?: Record<string, boolean>; bytes: number }[] = [];
   let pending: { id: number; resolve: (reply: Success) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> } | null = null;
   const listeners = new Set<() => void>();
   const emit = () => { for (const listener of listeners) { try { listener(); } catch { /* Subscriber isolation. */ } } };
@@ -97,30 +131,36 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
     pending = { id, resolve, reject, timer: setTimeout(() => stop('Native operation timed out. Accepted model is retained.'), 120000) };
     try { worker.postMessage({ ...payload, id }); } catch { stop('Could not send the model to its native worker.'); }
   });
-  async function run(kind: 'open' | 'example' | 'apply' | 'undo' | 'redo', text?: string, example?: CadEditorModelingExample, splitAxis?: CadEditorModelingSplitAxis) {
+  async function run(kind: 'open' | 'example' | 'apply' | 'suppression' | 'undo' | 'redo', text?: string, example?: CadEditorModelingExample, splitAxis?: CadEditorModelingSplitAxis, finishing?: Record<string, boolean>) {
     idle();
     if (kind === 'example') {
-      if (example !== undefined && !['cut-chamfer', 'intersection', 'horizontal-split', 'two-chamfer', 'chamfer-split', 'derived-split', 'miter-split'].includes(example))
+      if (example !== undefined && !['cut-chamfer', 'intersection', 'horizontal-split', 'two-chamfer', 'chamfer-split', 'derived-split', 'miter-split', 'configurable-finishes'].includes(example))
         throw new Error('Choose an available modeling example.');
       if (splitAxis !== undefined && (example === 'chamfer-split' ? !['x', 'z'].includes(splitAxis)
         : example !== 'horizontal-split' || !['x', 'y', 'z'].includes(splitAxis)))
         throw new Error('Choose an available split axis: X/Z for the beveled part, X/Y/Z for the plain part.');
     }
-    let parameters: Record<string, number> = {}, target = index;
+    let parameters: Record<string, number> = {}, suppression: Record<string, boolean> = {}, target = index;
     if (kind === 'open') {
       if (typeof text !== 'string' || text.length > FILE_LIMIT || new TextEncoder().encode(text).length > FILE_LIMIT)
         throw new Error('Authored input exceeds 262144 UTF-8 bytes or characters.');
     } else if (kind !== 'example') {
       if (!state.accepted) throw new Error('Open a saved model first.');
       if (kind === 'apply') parameters = Object.fromEntries(Object.entries(state.drafts).map(([name, raw]) => [name, scalar(raw)]));
-      else {
+      else if (kind === 'suppression') {
+        if (Object.keys(state.drafts).length) throw new Error('Apply or discard dimensions before configuring finishes.');
+        suppression = finishingChanges(finishing, state.accepted.suppression);
+      } else {
         if (Object.keys(state.drafts).length) throw new Error('Apply or discard dimensions before Undo/Redo.');
         target += kind === 'undo' ? -1 : 1;
         if (target < 0 || target >= history.length) throw new Error('This history direction is unavailable.');
         parameters = history[target].parameters;
+        suppression = history[target].suppression ?? {};
       }
       parameters = Object.fromEntries(Object.entries(parameters).filter(([name, value]) => !Object.is(state.accepted!.parameters[name], value)));
-      if (!Object.keys(parameters).length) { state = { ...state, drafts: {}, error: null }; emit(); return; }
+      suppression = Object.fromEntries(Object.entries(suppression).filter(([name, value]) => state.accepted!.suppression?.[name] !== value));
+      if (Object.keys(parameters).length && Object.keys(suppression).length) throw new Error('History requires one atomic editing channel.');
+      if (!Object.keys(parameters).length && !Object.keys(suppression).length) { state = { ...state, drafts: {}, error: null }; emit(); return; }
     }
     const operation = ++epoch, replacing = kind === 'open' || kind === 'example';
     let candidate: PrismDisplayCandidate | null = null, nativeCandidate = false;
@@ -133,7 +173,8 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
         if (operation !== epoch) return; ready = true;
       }
       const reply = await request(kind === 'example' ? { kind: 'example', ...(example === undefined ? {} : { example }), ...(splitAxis === undefined ? {} : { splitAxis }) } : kind === 'open' ? { kind: 'open', text: text! }
-        : { kind: 'apply', expectedRevision: state.accepted!.revision, parameters });
+        : Object.keys(suppression).length ? { kind: 'suppression', expectedRevision: state.accepted!.revision, suppression }
+          : { kind: 'apply', expectedRevision: state.accepted!.revision, parameters });
       if (operation !== epoch || state.disposed) return;
       nativeCandidate = true; const candidateWorker = worker;
       if (kind === 'open' && !same(JSON.parse(text!), JSON.parse(reply.text))) throw new Error('Opened result differs from requested authored data.');
@@ -142,8 +183,11 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
         || !same(reply.summary.parameters, { ...state.accepted!.parameters, ...parameters }))) throw new Error('Stale or mismatched native model edit.');
       if (!replacing && reply.summary.source === 'model') {
         const prior = JSON.parse(state.authoredText!);
-        if (!same(JSON.parse(reply.text), { ...prior, parameters: { ...prior.parameters, ...parameters } }))
-          throw new Error('A dimension edit changed the authored feature graph.');
+        const expected = { ...prior, parameters: { ...prior.parameters, ...parameters },
+          nodes: prior.nodes.map((node: Record<string, unknown>) => typeof node.name === 'string' && Object.hasOwn(suppression, node.name)
+            ? { ...node, suppressed: suppression[node.name] } : node) };
+        if (!same(JSON.parse(reply.text), expected))
+          throw new Error('An edit changed immutable authored feature data.');
       }
       if (!replacing && reply.summary.source === 'legacy') validatePrismFeatureNativeReply(
         { id: reply.id, ok: true, text: reply.text, summary: reply.compatibility!, display: reply.display },
@@ -154,9 +198,10 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
       candidate = displayPort ? await displayPort.prepare(display) : null;
       if (operation !== epoch || state.disposed) { candidate?.dispose(); return; }
       let nextHistory = history, nextIndex = target;
-      if (replacing || kind === 'apply') {
+      if (replacing || kind === 'apply' || kind === 'suppression') {
         nextHistory = replacing ? [] : history.slice(0, index + 1);
-        nextHistory.push({ parameters: clone(reply.summary.parameters), bytes: new TextEncoder().encode(reply.text).length });
+        nextHistory.push({ parameters: clone(reply.summary.parameters),
+          ...(reply.summary.suppression === undefined ? {} : { suppression: clone(reply.summary.suppression) }), bytes: new TextEncoder().encode(reply.text).length });
         while (nextHistory.length > 20 || nextHistory.reduce((sum, h) => sum + h.bytes, 0) > HISTORY_BYTES) nextHistory.shift();
         nextIndex = nextHistory.length - 1;
       }
@@ -176,7 +221,8 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
   return {
     getSnapshot: (): CadEditorModelingSnapshot => clone(state),
     subscribe(listener: () => void) { live(); listeners.add(listener); return () => { listeners.delete(listener); }; },
-    open: (text: string) => run('open', text), example: (example?: CadEditorModelingExample, splitAxis?: CadEditorModelingSplitAxis) => run('example', undefined, example, splitAxis), apply: () => run('apply'), undo: () => run('undo'), redo: () => run('redo'),
+    open: (text: string) => run('open', text), example: (example?: CadEditorModelingExample, splitAxis?: CadEditorModelingSplitAxis) => run('example', undefined, example, splitAxis), apply: () => run('apply'),
+    configureFinishes: (suppression: Record<string, boolean>) => run('suppression', undefined, undefined, undefined, suppression), undo: () => run('undo'), redo: () => run('redo'),
     stage(name: string, raw: string) {
       idle(); if (!state.accepted || !Object.hasOwn(state.accepted.parameters, name) || typeof raw !== 'string' || raw.length > 128)
         throw new Error('Choose a named dimension and bounded decimal input.');

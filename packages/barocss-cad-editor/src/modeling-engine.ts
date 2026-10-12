@@ -7,15 +7,17 @@ import type { PrismDisplayPacket } from './prism-feature-scene.js';
 export interface CadEditorModelingSummary {
   documentId: string; revision: number; source: 'model' | 'legacy';
   parameters: Record<string, number>;
-  features: { kind: string; index: number; dependencies: number[] }[];
+  suppression?: Record<string, boolean>;
+  features: { kind: string; index: number; dependencies: number[]; name?: string; suppressed?: boolean }[];
   outputs: { name: string; solidId: string; volumeMM3: { numerator: string; denominator: string } | null }[];
 }
 export type CadEditorModelingSplitAxis = 'x' | 'y' | 'z';
 /** The split example ID is retained for compatibility; splitAxis defaults to Z. */
-export type CadEditorModelingExample = 'cut-chamfer' | 'intersection' | 'horizontal-split' | 'two-chamfer' | 'chamfer-split' | 'derived-split' | 'miter-split';
+export type CadEditorModelingExample = 'cut-chamfer' | 'intersection' | 'horizontal-split' | 'two-chamfer' | 'chamfer-split' | 'derived-split' | 'miter-split' | 'configurable-finishes';
 export type ModelingCommand = { id: number } & (
   { kind: 'example'; example?: CadEditorModelingExample; splitAxis?: CadEditorModelingSplitAxis } | { kind: 'open'; text: string; revision?: number }
   | { kind: 'apply'; expectedRevision: number; parameters: Record<string, number> }
+  | { kind: 'suppression'; expectedRevision: number; suppression: Record<string, boolean> }
 );
 export type ModelingReply = { id: number } & (
   { ok: true; text: string; summary: CadEditorModelingSummary; display: PrismDisplayPacket; compatibility?: CadEditorPrismFeatureSummary }
@@ -43,6 +45,18 @@ export function createCadEditorChamferChainModel(): CadModelSnapshot {
   const front = blank.chamfer(blank.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one(), frontDistance);
   const part = front.chamfer(front.edges({ parallelTo: 'x', at: { y: backY, z: 'max' } }).one(), backDistance);
   return model.build({ part });
+}
+
+/** Named finishing operations keep exact result-owned selectors and a fixed X split. */
+export function createCadEditorConfigurableFinishesModel(): CadModelSnapshot {
+  const model = cad.model();
+  const frontDistance = model.parameter('frontDistance', 1), backDistance = model.parameter('backDistance', 2);
+  const backY = model.parameter('backY', 24);
+  const blank = model.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+  const front = blank.chamfer(blank.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one(), frontDistance, { name: 'frontFinish' });
+  const back = front.chamfer(front.edges({ parallelTo: 'x', at: { y: backY, z: 'max' } }).one(), backDistance, { name: 'backFinish' });
+  const parts = back.split({ axis: 'x', at: 16 });
+  return model.build({ negative: parts.negative, positive: parts.positive });
 }
 
 /** Divide the actual second chamfer result; this preset matches measured X/Z cases. */
@@ -143,7 +157,7 @@ export function createModelingEngine() {
   return (command: ModelingCommand): ModelingReply => {
     try {
       if (!command || !Number.isSafeInteger(command.id) || command.id < 1) throw new Error('A current worker request is required.');
-      if (command.kind === 'example' && command.example !== undefined && command.example !== 'cut-chamfer' && command.example !== 'intersection' && command.example !== 'horizontal-split' && command.example !== 'two-chamfer' && command.example !== 'chamfer-split' && command.example !== 'derived-split' && command.example !== 'miter-split')
+      if (command.kind === 'example' && command.example !== undefined && command.example !== 'cut-chamfer' && command.example !== 'intersection' && command.example !== 'horizontal-split' && command.example !== 'two-chamfer' && command.example !== 'chamfer-split' && command.example !== 'derived-split' && command.example !== 'miter-split' && command.example !== 'configurable-finishes')
         throw new Error('Choose an available modeling example.');
       if (command.kind === 'example' && command.splitAxis !== undefined
         && (command.example === 'chamfer-split' ? !['x', 'z'].includes(command.splitAxis)
@@ -151,10 +165,21 @@ export function createModelingEngine() {
         throw new Error('Choose an available split axis: X/Z for the beveled part, X/Y/Z for the plain part.');
       if (command.kind === 'open' && command.revision !== undefined && (!Number.isSafeInteger(command.revision) || command.revision < 0))
         throw new Error('Invalid worker reconstruction revision.');
-      if (command.kind === 'apply') {
+      if (command.kind === 'apply' || command.kind === 'suppression') {
         const revision = accepted?.source === 'model' ? accepted.revision : accepted?.summary.document.revision;
         if (!accepted || !Number.isSafeInteger(command.expectedRevision) || command.expectedRevision !== revision)
           throw new Error('The model edit is stale.');
+      }
+      if (command.kind === 'suppression') {
+        const changes = command.suppression;
+        if (accepted?.source !== 'model' || !changes || Object.getPrototypeOf(changes) !== Object.prototype
+          || Reflect.ownKeys(changes).length > 6) throw new Error('Use a plain named finishing configuration.');
+        for (const name of Reflect.ownKeys(changes)) {
+          const descriptor = Object.getOwnPropertyDescriptor(changes, name)!;
+          if (typeof name !== 'string' || !Object.hasOwn(accepted.snapshot.suppression, name)
+            || !descriptor.enumerable || !Object.hasOwn(descriptor, 'value') || typeof descriptor.value !== 'boolean')
+            throw new Error('Use known finishing names and own boolean values.');
+        }
       }
       const source = command.kind === 'open' ? modelingSourceKind(command.text)
         : command.kind === 'example' ? 'model' : accepted?.source;
@@ -173,21 +198,24 @@ export function createModelingEngine() {
       }
       if (source !== 'model') throw new Error('Open a saved model first.');
       const snapshot = command.kind === 'example' ? (command.example === 'intersection' ? createCadEditorIntersectionModel()
+        : command.example === 'configurable-finishes' ? createCadEditorConfigurableFinishesModel()
         : command.example === 'miter-split' ? createCadEditorMiterModel()
         : command.example === 'derived-split' ? createCadEditorDerivedSplitModel()
         : command.example === 'chamfer-split' ? createCadEditorChamferSplitModel(command.splitAxis === 'z' ? 'z' : 'x')
         : command.example === 'horizontal-split' ? (command.splitAxis === 'x' || command.splitAxis === 'y'
           ? createCadEditorCardinalSplitModel(command.splitAxis) : createCadEditorSplitModel()) : command.example === 'two-chamfer' ? createCadEditorChamferChainModel() : createCadEditorSampleModel())
         : command.kind === 'open' ? cad.load(command.text)
-          : accepted?.source === 'model' ? accepted.snapshot.withParameters(command.parameters) : null;
+          : accepted?.source === 'model' ? (command.kind === 'suppression' ? accepted.snapshot.withSuppression(command.suppression) : accepted.snapshot.withParameters(command.parameters)) : null;
       if (!snapshot) throw new Error('Open a saved model first.');
-      const revision = command.kind === 'apply' ? command.expectedRevision + 1 : command.kind === 'open' ? command.revision ?? 0 : 0;
+      const revision = command.kind === 'apply' || command.kind === 'suppression' ? command.expectedRevision + 1 : command.kind === 'open' ? command.revision ?? 0 : 0;
       const text = snapshot.save();
       // The codec owns canonical key order. Keep initial and reopened display inventories identical.
       const outputs = Object.keys(JSON.parse(text).outputs).map(name => [name, snapshot.bodies[name]] as const);
       const summary: CadEditorModelingSummary = { documentId: 'cad_model', revision, source: 'model',
         parameters: { ...snapshot.parameters },
-        features: snapshot.features.map(f => ({ kind: f.kind, index: f.index, dependencies: [...f.dependencies] })),
+        ...(Object.keys(snapshot.suppression).length ? { suppression: { ...snapshot.suppression } } : {}),
+        features: snapshot.features.map(f => ({ kind: f.kind, index: f.index, dependencies: [...f.dependencies],
+          ...(f.name === undefined ? {} : { name: f.name, suppressed: f.suppressed }) })),
         outputs: outputs.map(([name, body]) => ({ name, solidId: body.report.solidId,
           volumeMM3: { ...body.certificate.volumeMM3 } })) };
       const display: PrismDisplayPacket = { profile: 'model-outputs', documentId: summary.documentId, revision,

@@ -261,13 +261,68 @@ The producer also measured a **separate symmetric two-chamfer parent**: opposite
 
 The [miter source](https://github.com/barocss/barocss/blob/a7bec3dd9f280b827200e2a6e34fc5bafed26e49/packages/barocss-cad/src/modeling.ts), [exact miterRail fixture](https://github.com/barocss/barocss/blob/a7bec3dd9f280b827200e2a6e34fc5bafed26e49/packages/barocss-cad/test/modeling-miter-fixture.mjs) and [native receipt](https://github.com/barocss/barocss/blob/a7bec3dd9f280b827200e2a6e34fc5bafed26e49/packages/barocss-cad/test/modeling-miter-evidence/verification.json) record the first campaign's **8 model calls and 2 baseline tessellations**. All four public construction calls and output mapping match the editor/download/provider recipe. The genuine **49,139-byte two-body baseline transport** passes the actual CPU controller, scene preparation and both named-output picks with a mocked Worker. This reuses measured geometry; it is not another native campaign or sample-worker execution. Provider [#1637](https://github.com/barocss/barocss/issues/1637) and consumer [#1639](https://github.com/barocss/barocss/issues/1639) retain separate receipts. Editor browser/GPU/React interaction, physical file-picker flows and npm publication remain **UNRUN** by these checks; Manual deployment is separate.
 
+## Configure named rail finishes
+
+<a :href="withBase('/examples/modeling-suppression.ts')" download>Download the complete typed configurable-finishes example</a>
+
+Give the two owned chamfers stable application names, then choose which finishes contribute to the split rail. The three numeric parameters remain `frontDistance:1`, `backDistance:2` and `backY:24` mm. `backY` is an **edge-selection Y coordinate**, not a bevel distance. The blank is 32 × 24 × 8 mm, and the final split stays at X16 with named `negative` and `positive` outputs:
+
+<<< ../../public/examples/modeling-suppression.ts#configurable-rail
+
+The third chamfer argument supplies `{ name: 'frontFinish' }` or `{ name: 'backFinish' }`; a newly named chamfer starts active. The front selector belongs to `blank`, and the back selector belongs to the exact `front` result. The split follows the second result. Naming does not add features: the five features remain sketch → extrude → front chamfer → back chamfer → split. The ten public construction calls match the provider's `configurableRail` fixture.
+
+### Choose one of four accepted-model configurations
+
+`snapshot.withSuppression(edits)` returns a new accepted candidate after validating the whole requested batch. **`true` means the finish is off; `false` means it is on.** `snapshot.suppression` is a frozen, readonly map of named booleans, separate from the numeric millimetre parameters. Omitted names retain their previous flags; an unknown name or nonboolean value refuses instead of creating a feature.
+
+<<< ../../public/examples/modeling-suppression.ts#finishing-states
+
+| Finish choice | `frontFinish` suppressed | `backFinish` suppressed | negative / positive (mm³) |
+| --- | --- | --- | --- |
+| Both on | false | false | 3032 / 3032 |
+| Front only | false | true | 3064 / 3064 |
+| Back only | true | false | 3040 / 3040 |
+| Both off | true | true | 3072 / 3072 |
+
+These are measured native volumes with the initial 1/2/24 mm dimensions. They are not predictions for arbitrary numeric edits. Each split uses the exact selected qualified parent. A suppressed chamfer selects its unchanged parent as its output; its discarded bevel cap is absent from descendant source lineage. Its original, genuinely validated chamfer candidate remains diagnostic evidence, with `configuration.name`, `configuration.suppressed` and `configuration.output` (`'parent'` or `'chamfer-result'`). Feature metadata exposes the matching optional name and suppressed flag. Neither record is an editable native cache.
+
+In **Modeling examples → Configure rail finishes**, acknowledge replacement and load. The **Rail finishes** controls offer **Both on**, **Front only**, **Back only** and **Both off** on the currently accepted rail. The three numeric fields keep their existing meanings; this preset has no axis selector or generic feature-authoring/reordering UI. Changing the picker alone clears replacement acknowledgment and leaves the accepted scene, drafts and history intact. A successful explicit replacement resets history; refusal or cancellation preserves it.
+
+**Pending numeric drafts block finishing actions until Apply or Discard.** They are never silently discarded. A configuration action changes only the existing named flags, not dimensions, selectors, names, output references or graph ownership. Numeric Apply keeps the flags fixed. Undo/Redo uses one shared history for both numeric and finishing edits, including numeric edit → finishing change → numeric edit; each history step replays its original editing channel atomically. Refusal, cancellation, stale replies or display-preparation failure keep the previously accepted scene, saved intent and history.
+
+<<< ../../public/examples/modeling-suppression.ts#numeric-finishes
+
+This interleaved numeric sequence is an illustrative typed API example, not an additional native measurement. In the editor, choosing the already accepted configuration is a no-op: no Worker request, generation/revision change or history entry. The explicit API same-flags call is different: it returns a snapshot whose unchanged model features are all reused. A changed configuration conservatively evaluates all five model features. These counts are **model-feature indices only**, not timing, total transitive native calls or a native savings claim. Accepted output tessellation remains separate.
+
+### Disabled finishes still validate and can refuse
+
+Suppression is not an invalid-shape bypass. A disabled chamfer must still resolve a unique edge and satisfy positive-distance, cardinal-support, exactness, locality and native work limits, either by actual evaluation or legitimate reuse of an already validated result. Start with front on/back off, then try `backY:1`:
+
+<<< ../../public/examples/modeling-suppression.ts#refused-finish
+
+The measured result is `CadModelError` code **`NATIVE`**, operation **`chamfer`**, with the original **`ConvexPlanarSolidChamferError` / `METRIC` / `chamfer`** cause. The selector reaches the bevel/top edge with a non-cardinal adjacent support, even though the back finish is off. Keep the returned accepted `frontOnly` snapshot and original error/cause. Its bodies, saved text and flags remain unchanged; restoring both finishes from that same retained snapshot succeeds afterward.
+
+### Save the flags and reopen cold
+
+<<< ../../public/examples/modeling-suppression.ts#finishing-workflow
+
+`save()` retains accepted named configuration and numeric values. `cad.load(saved)` validates the authored graph and rebuilds cold; saved text contains no native results, private reuse frame, recomputation report or display meshes. The editor's Save/Open and Worker reconstruction preserve the same flags. Browser file dialogs are separate from these string APIs.
+
+Named chamfers serialize **paired `name`/`suppressed` fields** on their existing authored nodes. The envelope remains schema1; unnamed modeling files omit both fields and keep their existing authored bytes. Legacy readers remain separate and do not reinterpret these fields. Names obey the existing safe-ASCII naming rules and must be unique among named chamfers. Only existing named chamfers can be configured, with at most **two named chamfers** under the existing two-chamfer/six-feature bounds. Suppression does not authorize arbitrary feature deletion, reordered graphs, new Boolean combinations, unsupported parents or a third chamfer. Current owned-chain, split-parent and native qualification limits still apply.
+
+The [adopted configuration source](https://github.com/barocss/barocss/blob/bf349441ec853a5349156d01a9e235e8b99e990e/packages/barocss-cad/src/modeling.ts), [exact configurableRail fixture](https://github.com/barocss/barocss/blob/bf349441ec853a5349156d01a9e235e8b99e990e/packages/barocss-cad/test/modeling-suppression-fixture.mjs) and [native receipt](https://github.com/barocss/barocss/blob/bf349441ec853a5349156d01a9e235e8b99e990e/packages/barocss-cad/test/modeling-suppression-evidence/verification.json) preserve the first campaign's **8 model calls and 1 negative-body tessellation**, including fresh emitted reopen and the back-only state. Both output volumes, exact parent/lineage behavior, no-op reuse and recovery after the disabled-finish refusal were measured. Full transitive native coverage was not measured; no timing or native savings claim follows.
+
+The consumer's **41,901-byte baseline transfer** preserves the new actual saved intent, summary and measured negative mesh. Its full native-body hash matches the pinned #1631 baseline. Only under that measured parity does CPU replay combine it with #1631's earlier positive mesh: this is a **geometry-equivalent adapted transport replay** through the real controller with a **mocked Worker**. Both original input hashes are retained. The adapted baseline is not a fresh two-body tessellation, and mock displays used for other configuration-state controller tests are not newly tessellated native states. No extra native campaign or sample-worker execution is implied.
+
+Provider [#1640](https://github.com/barocss/barocss/issues/1640) and consumer [#1642](https://github.com/barocss/barocss/issues/1642) retain separate receipts. Source/emitted types, recipe tracing, controller replay, actual browser/GPU/React interaction, physical file-picker flows, full-repository CI, Manual deployment and npm publication are separate gates. Browser/GPU/React, physical files, full-repository CI and npm publication remain **UNRUN** by the consumer checks; Manual deployment is recorded separately.
+
 ## 3. Read named outputs and evidence
 
 <<< ../../../scripts/snippets/modeling-api.ts#outputs
 
 `bodies.part` is the finished chamfered Solid; `bodies.other` is the untouched negative-side component. Only names passed to `build()` appear in `bodies`. The entire authored graph is evaluated, including operations that are not named outputs. An unused invalid operation still refuses the build.
 
-`parameters`, `features`, `evidence` and native bodies are read-only, frozen snapshot data. Features expose operation kinds and dependency indexes; evidence contains original kernel results for diagnosis. Neither is an editable graph API. Keep the whole native Solid when calling supported native query/display adapters; a tessellated mesh or a renderer image does not replace it.
+`parameters`, `suppression`, `features`, `evidence` and native bodies are read-only, frozen snapshot data. Features expose operation kinds and dependency indexes, plus optional named-chamfer configuration; evidence contains original kernel results for diagnosis. Neither is an editable graph API. Keep the whole native Solid when calling supported native query/display adapters; a tessellated mesh or a renderer image does not replace it.
 
 ## 4. Edit parameters atomically
 
@@ -283,7 +338,7 @@ The readonly `snapshot.recomputation` report lists `reusedFeatures` and `evaluat
 
 <<< ../../public/examples/modeling-chamfer-chain.ts#inspect-recomputation
 
-Only `withParameters` on the exact accepted snapshot can reuse its privately held, deeply frozen evaluation prefix. Source graph/options and parameter names stay admitted and unchanged; comparisons distinguish `+0` and `-0`. A failed edit leaves earlier snapshots, saved text and later reuse intact. There is no caller-imported, global or serialized geometry cache.
+`withParameters` on the exact accepted snapshot can reuse its privately held, deeply frozen evaluation prefix; a same-flags `withSuppression` call can reuse the unchanged graph, while changed configuration conservatively evaluates all features. Source graph/options and parameter names stay admitted; numeric comparisons distinguish `+0` and `-0`. A failed edit leaves earlier snapshots, saved text and later reuse intact. There is no caller-imported, global or serialized geometry cache.
 
 The [selective-regeneration source](https://github.com/barocss/barocss/blob/9722e3ab1f28daf17065aa9a5a9fec887faa9838/packages/barocss-cad/src/modeling.ts) and [native receipt](https://github.com/barocss/barocss/blob/9722e3ab1f28daf17065aa9a5a9fec887faa9838/packages/barocss-cad/test/modeling-regeneration-evidence/verification.json) establish these results for a **separate four-node producer fixture**. That fixture adds editable `width`, `height` and `unused` parameters to the three-parameter two-chamfer editor preset; those extra fields are not silently added to the existing preset.
 
@@ -311,9 +366,9 @@ The consumer checks instrument exact snapshot identity with provider stubs and e
 
 <<< ../../../scripts/snippets/modeling-api.ts#persistence
 
-`save()` returns authored text only: dimensions, operations, queries and named outputs. It does not serialize native results, certificates, evidence or display meshes. Your application writes that string to storage; neither `save()` nor `cad.load(text)` opens an OS file dialog or performs filesystem I/O.
+`save()` returns authored text only: dimensions, operations, queries, optional named-chamfer configuration and named outputs. It does not serialize native results, certificates, evidence or display meshes. Your application writes that string to storage; neither `save()` nor `cad.load(text)` opens an OS file dialog or performs filesystem I/O.
 
-`cad.load(text)` validates the bounded file and freshly evaluates its authored graph. The returned snapshot supports the same named outputs and `withParameters` method. Internal envelope metadata identifies the file format; authors do not choose it or hand-edit identity/reference JSON. Unsupported envelopes, malformed or duplicate-key JSON, unknown fields and invalid graphs refuse.
+`cad.load(text)` validates the bounded file and freshly evaluates its authored graph. The returned snapshot supports the same named outputs, `withParameters` and `withSuppression` methods. Internal envelope metadata identifies the file format; authors do not choose it or hand-edit identity/reference JSON. Unsupported envelopes, malformed or duplicate-key JSON, unknown fields and invalid graphs refuse.
 
 This loader accepts files from this modeling API. Existing versioned feature documents retain their explicit legacy readers; there is no automatic migration through `cad.load`. See [historical serial-part files](./serial-part-v2) and [historical exact-prism files](./exact-prism-modeling) for those source-pinned contracts.
 
@@ -328,7 +383,7 @@ This loader accepts files from this modeling API. Existing versioned feature doc
 | Split | A direct XY extrusion or one/two owned serial chamfers rooted at it; world `axis: 'x'`, `'y'` or `'z'`, or fixed `plane: 'x+y'`, with a finite coordinate/coordinate-sum; each selected side must be nonempty | Arbitrary oblique plane, empty requested side, mixed cut/intersection/split graph, repeated/nested split |
 | Select | One exact cardinal-direction/endpoint-coordinate query on the same body | Zero/multiple matches, handles from another model/body, tolerance or persistent-topology matching |
 | Chamfer | Up to two serial owned cardinal-edge chamfers; second parent/selector from the first result; perpendicular signed-axis adjacent supports and supported endpoints; positive local setback | Sibling/third chamfer, stale selectors, curved or arbitrary-angle chamfer, zero/excessive/touching/nonlocal setback; unmeasured feature combinations |
-| Edit/load | Named finite-mm parameter batch; admitted unchanged-prefix reuse on the exact snapshot, cold build/load, independent new snapshots | Partial accepted candidate, arbitrary graph editing, implicit migration or cached geometry acceptance |
+| Edit/load | Named finite-mm parameter batch or boolean suppression batch for existing named chamfers; admitted unchanged-prefix reuse on the exact snapshot, cold build/load, independent new snapshots | Partial accepted candidate, unknown/nonboolean flags, invalid suppressed operations, arbitrary graph editing, implicit migration or cached geometry acceptance |
 
 A dimension being an ordinary integer is not enough to qualify an operation. The exact native XYZ, UV and chart constraints still apply. In the canonical part, combined `rearX:20` and `upperX:24` requires non-binary64 XYZ `80/3` and refuses; a `height:10` edit leaves the tool shorter than the parent and refuses coverage. `upperX:32` makes the selected positive side empty. Zero setback refuses the positive-dimension requirement; excessive setback refuses native locality. These are exactness and shape limits, not hidden tolerances or repair instructions.
 

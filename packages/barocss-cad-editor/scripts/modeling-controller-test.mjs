@@ -63,10 +63,17 @@ const miterSplit = () => ({ ...structuredClone(authored), parameters: { cutPosit
   nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [32, 24] }, { kind: 'extrude', sketch: 0, height: 8 },
     { kind: 'split', parent: { node: 1, side: 'solid' }, plane: 'x+y', at: { parameter: 'cutPosition' } }],
   outputs: { negative: { node: 2, side: 'negative' }, positive: { node: 2, side: 'positive' } } });
+const configurableFinishes = () => {
+  const doc=chamferSplit('x');doc.parameters={frontDistance:1,backDistance:2,backY:24};doc.nodes[4].at=16;
+  doc.nodes[3].edge.at.y={parameter:'backY'};
+  doc.nodes[2].name='frontFinish';doc.nodes[2].suppressed=false;doc.nodes[3].name='backFinish';doc.nodes[3].suppressed=false;
+  return doc;
+};
 function reply(document = authored, revision = 0) {
   const names = Object.keys(document.outputs);
   return { id: 1, ok: true, text: signedJSON(document), summary: { documentId: 'cad_model', revision, source: 'model', parameters: document.parameters,
-    features: document.nodes.map((node, index) => ({ kind: node.kind, index, dependencies: node.kind === 'chamfer' || (node.kind === 'split' && typeof node.parent === 'object') ? [node.parent.node] : index === 4 ? [1, 3] : index % 2 ? [index - 1] : [] })),
+    ...(document.nodes.some(n=>n.name)?{suppression:Object.fromEntries(document.nodes.filter(n=>n.name).map(n=>[n.name,n.suppressed]))}:{}),
+    features: document.nodes.map((node, index) => ({ kind: node.kind, index, ...(node.name?{name:node.name,suppressed:node.suppressed}:{}), dependencies: node.kind === 'chamfer' || (node.kind === 'split' && typeof node.parent === 'object') ? [node.parent.node] : index === 4 ? [1, 3] : index % 2 ? [index - 1] : [] })),
     outputs: names.map(name => ({ name, solidId: nativeId, volumeMM3: { numerator: '1', denominator: '1' } })) },
   display: { profile: 'model-outputs', documentId: 'cad_model', revision,
     components: names.map(name => ({ ...structuredClone(base), role: name, lineage: { kind: 'model-output', name, solidId: nativeId, graph: structuredClone(graph) } })),
@@ -83,10 +90,11 @@ class Worker {
   terminate() { this.terminated = true; }
   send(result, id = this.requests.at(-1).id) { this.callbacks.get('message')({ data: { ...structuredClone(result), id } }); }
   accept(command = this.requests.at(-1)) {
-    const document = command.kind === 'example' ? structuredClone(command.example === 'intersection' ? overlap : command.example === 'horizontal-split' ? (command.splitAxis === 'x' || command.splitAxis === 'y' ? cardinal(command.splitAxis) : split) : command.example === 'two-chamfer' ? chamferChain : command.example === 'chamfer-split' ? chamferSplit(command.splitAxis ?? 'x') : command.example === 'derived-split' ? derivedSplit() : command.example === 'miter-split' ? miterSplit() : authored) : command.kind === 'open' ? JSON.parse(command.text) : structuredClone(this.document);
+    const document = command.kind === 'example' ? structuredClone(command.example === 'intersection' ? overlap : command.example === 'horizontal-split' ? (command.splitAxis === 'x' || command.splitAxis === 'y' ? cardinal(command.splitAxis) : split) : command.example === 'two-chamfer' ? chamferChain : command.example === 'chamfer-split' ? chamferSplit(command.splitAxis ?? 'x') : command.example === 'derived-split' ? derivedSplit() : command.example === 'miter-split' ? miterSplit() : command.example === 'configurable-finishes' ? configurableFinishes() : authored) : command.kind === 'open' ? JSON.parse(command.text) : structuredClone(this.document);
     if (command.kind === 'apply') Object.assign(document.parameters, command.parameters);
+    if (command.kind === 'suppression') for(const n of document.nodes) if(n.name&&Object.hasOwn(command.suppression,n.name)) n.suppressed=command.suppression[n.name];
     this.document = document;
-    const result = reply(document, command.kind === 'apply' ? command.expectedRevision + 1 : command.revision ?? 0); this.send(result, command.id); return result;
+    const result = reply(document, command.kind === 'apply' || command.kind === 'suppression' ? command.expectedRevision + 1 : command.revision ?? 0); this.send(result, command.id); return result;
   }
 }
 globalThis.Worker = Worker;
@@ -94,6 +102,63 @@ const tick = () => Promise.resolve();
 const stable = s => { const x = s.getSnapshot(); return { accepted: x.accepted, authoredText: x.authoredText, display: x.display, faceSelection: x.faceSelection, selection: x.selection, generation: x.generation, history: x.history, drafts: x.drafts }; };
 let checks = 0, legacyChecks = 0;
 try {
+  // Configuration, dimensions and history share one atomic channel per accepted action.
+  const f=create();let fp=f.example('configurable-finishes'),fw=instances.at(-1);fw.accept();await fp;
+  assert.deepEqual(f.getSnapshot().accepted.suppression,{frontFinish:false,backFinish:false});checks++;
+  const finishBase=stable(f), requestCount=fw.requests.length;
+  await f.configureFinishes({frontFinish:false,backFinish:false});assert.deepEqual(stable(f),finishBase);assert.equal(fw.requests.length,requestCount);checks++;
+  f.stage('frontDistance','2');const pendingDimension=stable(f);
+  await assert.rejects(f.configureFinishes({frontFinish:true}),/Apply or discard/);assert.deepEqual(stable(f),pendingDimension);checks++;
+  fp=f.apply();fw.accept();await fp;const dimOne=stable(f);
+  fp=f.configureFinishes({frontFinish:true,backFinish:false});assert.equal(fw.requests.at(-1).kind,'suppression');fw.accept();await fp;const configOne=stable(f);
+  f.stage('backDistance','3');fp=f.apply();fw.accept();await fp;const dimTwo=stable(f);checks++;
+  for(const [direction,expected,channel] of [['undo',configOne,'apply'],['undo',dimOne,'suppression'],['undo',finishBase,'apply'],['redo',dimOne,'apply'],['redo',configOne,'suppression'],['redo',dimTwo,'apply']]) {
+    fp=f[direction]();assert.equal(fw.requests.at(-1).kind,channel);fw.accept();await fp;
+    assert.deepEqual(f.getSnapshot().accepted.parameters,expected.accepted.parameters);assert.deepEqual(f.getSnapshot().accepted.suppression,expected.accepted.suppression);assert.equal(f.getSnapshot().authoredText,expected.authoredText);checks++;
+  }
+  let getterCalls=0;
+  for(const bad of [null,[],Object.create(null),{missing:true},{frontFinish:0},{frontFinish:'true'},Object.create({frontFinish:true}),Object.defineProperty({},'frontFinish',{enumerable:true,get(){getterCalls++;return true;}}),Object.defineProperty({},'frontFinish',{value:true}),{[Symbol('x')]:true}]) {
+    const before=stable(f),count=fw.requests.length;await assert.rejects(f.configureFinishes(bad));assert.deepEqual(stable(f),before);assert.equal(fw.requests.length,count);checks++;
+  }
+  assert.equal(getterCalls,0);checks++;
+  for(const flags of [{frontFinish:false,backFinish:true},{frontFinish:true,backFinish:false},{frontFinish:true,backFinish:true},{frontFinish:false,backFinish:false}]) {
+    fp=f.configureFinishes(flags);fw.accept();await fp;assert.deepEqual(f.getSnapshot().accepted.suppression,flags);checks++;
+  }
+  const beforeRefusal=stable(f);fp=f.configureFinishes({frontFinish:true});fw.send({ok:false,message:'METRIC candidate refused'});await fp;assert.deepEqual(stable(f),beforeRefusal);checks++;
+  fp=f.configureFinishes({frontFinish:true});const lateFinish=fw.requests.at(-1);f.cancel();fw.accept(lateFinish);await fp;assert.deepEqual(stable(f),beforeRefusal);checks++;
+  fp=f.configureFinishes({backFinish:true});fw=instances.at(-1);assert.equal(fw.requests.at(-1).kind,'open');assert.equal(fw.requests.at(-1).text,beforeRefusal.authoredText);fw.accept();await tick();assert.equal(fw.requests.at(-1).kind,'suppression');fw.accept();await fp;assert.deepEqual(f.getSnapshot().accepted.suppression,{frontFinish:false,backFinish:true});checks++;
+  fp=f.open(f.getSnapshot().authoredText);fw.accept();await fp;assert.equal(f.getSnapshot().history.count,1);assert.deepEqual(f.getSnapshot().accepted.suppression,{frontFinish:false,backFinish:true});f.dispose();checks++;
+  const stale=create();fp=stale.example('configurable-finishes');fw=instances.at(-1);fw.accept();await fp;
+  fp=stale.configureFinishes({frontFinish:true});const beforeStale=stable(stale),oldID=fw.requests.at(-1).id;
+  fw.send({ok:false,message:'stale'},oldID-1);assert.equal(stale.getSnapshot().busy,true);assert.deepEqual(stable(stale),beforeStale);fw.accept();await fp;checks++;
+  stale.cancel();const beforeReconstruction=stable(stale);fp=stale.configureFinishes({backFinish:true});fw=instances.at(-1);
+  const wrongSeed=JSON.parse(fw.requests[0].text);wrongSeed.nodes[2].suppressed=false;fw.send(reply(wrongSeed,stale.getSnapshot().accepted.revision));await fp;
+  assert.deepEqual(stable(stale),beforeReconstruction);assert.match(stale.getSnapshot().error,/Reconstruction/);assert.equal(fw.requests.length,1);stale.dispose();checks++;
+  // Omitted metadata remains genuinely omitted; extra empty/undefined flags are refused.
+  for(const extra of [{suppression:{}},{suppression:undefined}]) {
+    const s=create();fp=s.example();const r=reply();Object.assign(r.summary,extra);instances.at(-1).send(r);await fp;assert.equal(s.getSnapshot().accepted,null);assert.ok(s.getSnapshot().error);s.dispose();checks++;
+  }
+  // Configuration mismatch, graph mutation and staging/race failures cannot replace accepted state.
+  for(const mode of ['display-refusal','cancel-staging','worker-failure-staging','wrong-flags','wrong-parameters','changed-name','changed-owner','changed-output','changed-distance','missing-flags','feature-metadata','named-sketch','duplicate-name']) {
+    let commits=0,release;const port={prepare:async()=>({commit(){commits++;},dispose(){}})};
+    const s=create(port);fp=s.example('configurable-finishes');const w=instances.at(-1);w.accept();await fp;const before=stable(s);
+    if(mode==='display-refusal')port.prepare=async()=>({commit(){throw new Error('display refused');},dispose(){}});
+    if(mode==='cancel-staging'||mode==='worker-failure-staging')port.prepare=()=>new Promise(resolve=>{release=()=>resolve({commit(){commits++;},dispose(){}});});
+    fp=s.configureFinishes({frontFinish:true});const doc=configurableFinishes();doc.nodes[2].suppressed=true;
+    if(mode==='wrong-flags')doc.nodes[3].suppressed=true;
+    if(mode==='wrong-parameters')doc.parameters.frontDistance=2;
+    if(mode==='changed-name')doc.nodes[2].name='renamed';
+    if(mode==='changed-owner')doc.nodes[3].parent.node=1;
+    if(mode==='changed-output')doc.outputs.negative.side='positive';
+    if(mode==='changed-distance')doc.nodes[2].distance=2;
+    if(mode==='named-sketch'){doc.nodes[0].name='bad';doc.nodes[0].suppressed=true;}
+    if(mode==='duplicate-name')doc.nodes[3].name='frontFinish';
+    const r=reply(doc,1);if(mode==='missing-flags')delete r.summary.suppression;if(mode==='feature-metadata')r.summary.features[2].suppressed=false;
+    w.send(r);await tick();await tick();
+    if(mode==='cancel-staging'){assert.equal(typeof release,'function');s.cancel();release();}
+    if(mode==='worker-failure-staging'){assert.equal(typeof release,'function');w.callbacks.get('error')();release();}
+    await fp;assert.deepEqual(stable(s),before);assert.equal(commits,1);s.dispose();checks++;
+  }
   const session = create(); let p = session.example(), worker = instances.at(-1); worker.accept(); await p;
   assert.ok(session.getSnapshot().accepted); assert.ok(Object.is(session.getSnapshot().accepted.parameters.signed, -0)); checks++;
   const noOpBefore = stable(session), requestsBeforeNoOp = worker.requests.length;
@@ -145,7 +210,7 @@ try {
     if (mode === 'display-refusal' || mode === 'cancel-staging' || mode === 'worker-failure-staging') assert.ok(disposals >= 2); s.dispose(); checks++;
   }
   // Every additive sample uses the same atomic replacement path, including drafts/history.
-  for (const [example, document, kind, outputs, axis] of [['intersection', overlap, 'intersect', ['overlap']], ['horizontal-split', split, 'split', ['lower', 'upper']], ['horizontal-split', cardinal('x'), 'split', ['negative', 'positive'], 'x'], ['horizontal-split', cardinal('y'), 'split', ['negative', 'positive'], 'y'], ['two-chamfer', chamferChain, 'chamfer', ['part']], ['chamfer-split', chamferSplit('x'), 'split', ['negative', 'positive'], 'x'], ['chamfer-split', chamferSplit('z'), 'split', ['negative', 'positive'], 'z'], ['derived-split', derivedSplit(), 'split', ['negative', 'positive']], ['miter-split', miterSplit(), 'split', ['negative', 'positive']]]) {
+  for (const [example, document, kind, outputs, axis] of [['intersection', overlap, 'intersect', ['overlap']], ['horizontal-split', split, 'split', ['lower', 'upper']], ['horizontal-split', cardinal('x'), 'split', ['negative', 'positive'], 'x'], ['horizontal-split', cardinal('y'), 'split', ['negative', 'positive'], 'y'], ['two-chamfer', chamferChain, 'chamfer', ['part']], ['chamfer-split', chamferSplit('x'), 'split', ['negative', 'positive'], 'x'], ['chamfer-split', chamferSplit('z'), 'split', ['negative', 'positive'], 'z'], ['derived-split', derivedSplit(), 'split', ['negative', 'positive']], ['miter-split', miterSplit(), 'split', ['negative', 'positive']], ['configurable-finishes', configurableFinishes(), 'split', ['negative', 'positive']]]) {
     const samples = create(); p = samples.example(); let sampleWorker = instances.at(-1); sampleWorker.accept(); await p;
     samples.stage('height', '6'); p = samples.apply(); sampleWorker.accept(); await p;
     samples.stage('height', '7'); const beforeSample = stable(samples);
@@ -158,11 +223,11 @@ try {
     assert.deepEqual(samples.getSnapshot().accepted.outputs.map(output => output.name), outputs);
     assert.equal(samples.getSnapshot().accepted.features.at(-1).kind, kind);
     assert.equal(samples.getSnapshot().history.count, 1); assert.deepEqual(samples.getSnapshot().drafts, {}); checks++;
-    const editName = example === 'miter-split' ? 'cutPosition' : (example === 'two-chamfer' || example === 'chamfer-split' || example === 'derived-split') ? 'backDistance' : 'height';
-    const editValue = example === 'miter-split' ? 32 : (example === 'two-chamfer' || example === 'chamfer-split' || example === 'derived-split') ? 3 : 2;
+    const editName = example === 'miter-split' ? 'cutPosition' : (example === 'two-chamfer' || example === 'chamfer-split' || example === 'derived-split' || example === 'configurable-finishes') ? 'backDistance' : 'height';
+    const editValue = example === 'miter-split' ? 32 : (example === 'two-chamfer' || example === 'chamfer-split' || example === 'derived-split' || example === 'configurable-finishes') ? 3 : 2;
     samples.stage(editName, String(editValue)); const beforeOutputChange = stable(samples); p = samples.apply();
     const changed = structuredClone(document); changed.parameters[editName] = editValue;
-    if (axis || example === 'derived-split' || example === 'miter-split') changed.outputs.negative.side = 'positive';
+    if (axis || example === 'derived-split' || example === 'miter-split' || example === 'configurable-finishes') changed.outputs.negative.side = 'positive';
     else if (example === 'horizontal-split') changed.outputs.lower.side = 'positive';
     else if (example === 'two-chamfer') changed.outputs.part.node = 2;
     else changed.outputs.overlap.node = 1;

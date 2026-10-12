@@ -43,6 +43,9 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
   const miterSplit = accepted?.source === 'model' && accepted.features.map(feature => feature.kind).join(',') === 'sketch,extrude,split'
     && Object.keys(accepted.parameters).length === 1 && Object.hasOwn(accepted.parameters, 'cutPosition')
     && JSON.parse(snapshot?.authoredText ?? '{}').nodes?.at(-1)?.plane === 'x+y';
+  const configurableFinishes = accepted?.source === 'model' && accepted.suppression !== undefined
+    && Object.keys(accepted.suppression).length === 2 && ['frontFinish', 'backFinish'].every(name => Object.hasOwn(accepted.suppression!, name))
+    && accepted.features.filter(feature => feature.name !== undefined).every(feature => feature.kind === 'chamfer');
   return <section className="barocss-cad-editor" aria-label="CAD model editor" style={{ padding: 24, overflow: 'auto', height: '100%' }}>
     <header><h1>Model a part</h1><p>Sketch → extrude → cut, intersect, split or chamfer · named dimensions in mm</p></header>
     <p role="status" aria-live="polite">{busy ? 'Computing native geometry in a dedicated worker… You can cancel.' : accepted ? draft ? 'Dimension changes pending' : 'Accepted model' : 'No accepted model'}</p>
@@ -66,6 +69,7 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         <option value="chamfer-split">Split a beveled part</option>
         <option value="derived-split">Keep a beveled split centered</option>
         <option value="miter-split">Split a 45° XY miter</option>
+        <option value="configurable-finishes">Configure rail finishes</option>
       </select>
       {(example === 'horizontal-split' || example === 'chamfer-split') && <>
         <Label htmlFor={`${id}-split-axis`}>Split axis for the new example</Label>
@@ -77,7 +81,9 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         </select>
         <p>Axis choice loads a new example after replacement acknowledgment; it does not edit the accepted part.</p>
       </>}
-      <p>{example === 'miter-split'
+      <p>{example === 'configurable-finishes'
+        ? 'Give the two result-owned chamfers names, then switch their finishing states on the accepted rail. The fixed X split keeps negative and positive outputs. Disabled operations still validate their candidate geometry.'
+        : example === 'miter-split'
         ? 'Split a plain rectangular rail on the fixed 45° plane X + Y = cutPosition. The driver is a coordinate-sum threshold in mm, not perpendicular distance. Negative is below the sum; positive is above it. Both sides must remain nonempty.'
         : example === 'derived-split'
         ? 'Keep the X split at width × 0.5 + offset after both bevels. Edit width and offset as numeric drivers; the formula and negative/positive outputs stay fixed. No separate splitAt field is needed.'
@@ -108,10 +114,21 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
       }} />
     {accepted && <>
       <p>Named output bodies · trimmed native triangles · 1 scene unit = 1 mm · approximate face selection</p>
+      {configurableFinishes && <fieldset disabled={busy || draft}>
+        <legend>Rail finishes</legend>
+        <p>Front: {accepted.suppression!.frontFinish ? 'off' : 'on'} · Back: {accepted.suppression!.backFinish ? 'off' : 'on'}</p>
+        {draft && <p>Apply or discard pending dimensions before configuring finishes.</p>}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {[['Both on', false, false], ['Front only', false, true], ['Back only', true, false], ['Both off', true, true]].map(([label, front, back]) =>
+            <Button key={String(label)} disabled={busy || draft} aria-pressed={accepted.suppression!.frontFinish === front && accepted.suppression!.backFinish === back}
+              onClick={() => action(s => s.configureFinishes({ frontFinish: front as boolean, backFinish: back as boolean }))}>{label}</Button>)}
+        </div>
+        <p>Disabled chamfers still validate. Invalid edge selection or geometry is refused without replacing this model.</p>
+      </fieldset>}
       {accepted.source === 'legacy' && <p>This file uses its original compatibility reader. Saving preserves its authored format and modeling semantics.</p>}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 24 }}>
         <div><h2>Named dimensions</h2>{Object.entries(accepted.parameters).map(([name, value]) => <div key={name} style={{ marginBottom: 16 }}>
-          <Label htmlFor={`${id}-${name}`}>{chamferChain && name === 'backY' ? 'backY · edge-selection Y coordinate' : (chamferChain || chamferSplit || derivedSplit) && name === 'frontDistance' ? 'frontDistance · front bevel distance' : (chamferChain || chamferSplit || derivedSplit) && name === 'backDistance' ? 'backDistance · back bevel distance' : chamferSplit && name === 'splitAt' ? 'splitAt · selected-axis split coordinate' : derivedSplit && name === 'width' ? 'width · rail X size' : derivedSplit && name === 'offset' ? 'offset · X displacement from center' : miterSplit && name === 'cutPosition' ? 'cutPosition · X + Y threshold' : name} (mm)</Label>
+          <Label htmlFor={`${id}-${name}`}>{(chamferChain || configurableFinishes) && name === 'backY' ? 'backY · edge-selection Y coordinate' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'frontDistance' ? 'frontDistance · front bevel distance' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'backDistance' ? 'backDistance · back bevel distance' : chamferSplit && name === 'splitAt' ? 'splitAt · selected-axis split coordinate' : derivedSplit && name === 'width' ? 'width · rail X size' : derivedSplit && name === 'offset' ? 'offset · X displacement from center' : miterSplit && name === 'cutPosition' ? 'cutPosition · X + Y threshold' : name} (mm)</Label>
           <Input id={`${id}-${name}`} disabled={busy} inputMode="decimal"
             value={Object.hasOwn(snapshot?.drafts ?? {}, name) ? snapshot!.drafts[name] : Object.is(value, -0) ? '-0' : String(value)}
             onChange={event => action(s => s.stage(name, event.target.value))}
@@ -119,7 +136,7 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         </div>)}</div>
         <aside><h2>Feature sequence</h2><ol>{accepted.features.map(feature => <li key={feature.index}>
           <Button variant="ghost" disabled={busy} aria-pressed={snapshot?.selection === feature.index}
-            onClick={() => action(s => s.select(feature.index, snapshot!.generation))}>{feature.kind}</Button>
+            onClick={() => action(s => s.select(feature.index, snapshot!.generation))}>{feature.kind}{feature.name === undefined ? '' : ` · ${feature.name} (${feature.suppressed ? 'off' : 'on'})`}</Button>
           {snapshot?.selection === feature.index && <p>{feature.dependencies.length ? `Uses earlier steps ${feature.dependencies.map(i => i + 1).join(', ')}` : 'Original sketch intent'}</p>}
         </li>)}</ol></aside>
       </div>
