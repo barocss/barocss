@@ -10396,3 +10396,44 @@ This is a bounded PART-06/PART-10 and BREP-05 subset. It does not support an
 arbitrary pocket/cavity, nonconvex single BRep, union, general sewing, persistent
 naming certification, manufacturing tolerances or GPU/UI acceptance. Result
 validation establishes self-consistency, not historical authenticity.
+
+### Authored sketch → prism → through-slab feature document
+
+`evaluateXYAffinePrismFeatureDocument` composes two exact-affine sketches, two
+qualified prisms and one named through-slab subtraction in five fixed roles.
+`XYAffinePrismFeatureDocumentV0` stores explicit dependencies, source revisions,
+immutable native recipes and literal-mm parameters bound to original fixed
+constraint X/Y targets. Selected tool walls resolve through original segment
+IDs with the unchanged public prism lookup. The `first` and `second` component
+roles remain fixed, including when either is empty.
+
+`updateXYAffinePrismFeatureDocument(previous, edits)` first cold-reconstructs
+and compares the **whole** prior result. Its candidate then reuses receipts
+only on equality of actual complete provider requests. A tool-width edit retains
+the parent branch in this candidate phase, while mandatory prior validation
+still reconstructs it. Transaction reports separate validation and candidate
+work and include the two wall-lookup prism reconstructions and nested providers.
+Current reports are cold-deterministic. `validateXYAffinePrismFeatureDocument`
+and `validateXYAffinePrismFeatureDocumentUpdate` reject forged retained state.
+A failed edit never mutates the accepted input. Error `attempted` counters include
+attempted direct calls and completed nested work only; a failed native call may
+perform additional partial work, bounded by the unchanged provider ceilings.
+
+`serializeXYAffinePrismFeatureDocument` validates by actual evaluation and saves
+only authored intent; `parseXYAffinePrismFeatureDocument` strictly decodes and
+rebuilds native results. Canonical sorted JSON preserves signed zero and ends in
+one newline. Authored files are bounded to 262144 UTF-16/UTF-8 units. This is a
+public data codec, not Editor or operating-system Save/Open integration.
+
+Every cold/candidate phase is capped at 158 source compilations, 152 Face
+compilations, 2304 binding observations, 6912 D1 evaluations and 15 exact contexts
+(3 million rational operations/GCD steps). A whole update allows two such phases:
+316/304/4608/13824/30 and 6 million operations/GCD steps. One cumulative root
+snapshot ledger covers the call: input 32 MiB, result 64 MiB, cumulative 192 MiB,
+retained 128 MiB, alongside unchanged nested provider ledgers. Byte counts are
+serialized occurrences, not heap measurements. No general scheduler, expressions,
+reorder, arbitrary Boolean, persistent topology naming or Editor certification.
+
+Focused source/emitted/fresh-process flow (Node 22.23.3, 2048 MiB heap):
+`node examples/cad-nurbs/xy-affine-prism-feature-document-demo.mjs --source /tmp/features`
+then `--emitted /tmp/features` and `--cold /tmp/features` after the package build.

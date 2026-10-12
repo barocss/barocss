@@ -531,3 +531,6 @@ export { intersectConvexPlanarSolids, validateConvexPlanarSolidIntersection, Con
 export type { ConvexPlanarSolidIntersectionOptions, ConvexPlanarSolidIntersectionSource, ConvexPlanarSolidIntersectionNode, ConvexPlanarSolidIntersectionEdgeOrigin, ConvexPlanarSolidIntersectionFace, ConvexPlanarSolidIntersectionReport, ConvexPlanarSolidIntersectionResult, ConvexPlanarSolidIntersectionDiagnosticCode } from './convex-planar-solid-intersection.js';
 
 export * from "./convex-planar-slab-subtraction.js";
+
+export { XYAffinePrismFeatureError, XYAffinePrismFeatureDocumentLimits, evaluateXYAffinePrismFeatureDocument, updateXYAffinePrismFeatureDocument, validateXYAffinePrismFeatureDocument, validateXYAffinePrismFeatureDocumentUpdate, serializeXYAffinePrismFeatureDocument, parseXYAffinePrismFeatureDocument } from './xy-affine-prism-feature-document.js';
+export type { XYAffinePrismSketchNode, XYAffinePrismNode, XYAffinePrismComponentRecipe, XYAffinePrismSubtractionNode, XYAffinePrismFeatureParameter, XYAffinePrismFeatureDocumentV0, XYAffinePrismFeatureEdits, XYAffinePrismFeatureWork, XYAffinePrismFeatureResult, XYAffinePrismFeatureUpdate, XYAffinePrismFeatureDiagnosticCode } from './xy-affine-prism-feature-document.js';
