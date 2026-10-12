@@ -4351,3 +4351,70 @@ target. Run `node examples/gpu-scene/engine-scene-renderer-flow.mjs --output
 <fresh-directory>` after the GPU build only for genuine source/emitted public
 module import, declarations and pre-canvas input admission. It uses no canvas,
 renderer instance, browser or mock GL and does not fulfill graphics acceptance.
+
+## Native point-light catalog and WGSL producer (#1583)
+
+`prepareNativePointLights(input)` admits a copied 0–4-light catalog with format
+`barocss-gpu-native-point-lights`, version 0 and profile
+`native-world-point-linear-v0`. Its exact fields are format, version, profile,
+sourceId, revision, ambientStrength and lights. Each light contains nodeId, label,
+enabled, positionScene, colorLinearRGB, intensity and rangeScene. Positions are
+world scene units within ±1e6; range uses the same units and is within
+[0.001, 1e6]. There is no implicit millimetre conversion. Colors, dimensionless artistic intensity and
+ambient are in [0,1]. Stable IDs, labels, signed original Numbers and disabled
+light data are retained. The complete catalog/execution projection is capped at
+16KiB. This prepares data only; it does not render or admit a frame.
+
+`prepareNativePointLightProgramWGSL({lights, material})` consumes that original
+catalog and either null/default opaque color or an unchanged legacy
+MeshMaterialBinding. It uses the existing material validator and WGSL lowerer,
+retaining original source and overrides separately from resolved Float32 data.
+Native UV, EngineUV, textures, mixed point/directional catalogs and runtime
+mounting are not supported by this producer.
+
+The emitted artistic law is colored Lambert diffuse multiplied by
+max(1 − distance/range, 0)². Outside range contributes zero. At coincidence,
+diffuse is zero and ambient is unaffected. Max-component scaled normalization
+avoids naive distance/normal square overflow. Both displacement and normal
+scales below 2^-126 produce zero diffuse before division, an explicit conservative
+near-zero approximation for WGSL's permitted subnormal flushing. CPU analytical
+values and actual device subnormal behavior are not equivalent claims. No
+inverse-square attenuation, photometry, PBR or HDR accuracy is claimed.
+
+A future frame caller must supply finite world positions within ±1e6 and finite
+nonzero normals with components within ±1e6, in the same frame/units as lights. This module cannot validate
+future vertex inputs. The scaled distance remains bounded by sqrt(3) × 2e6 in
+that envelope; normal-range light sums remain bounded. The final linear color
+is clamped to [0,1] then uses native power1/2.2 encoding and alpha1. Tiny final
+contributions may round/flush; there is no global underflow-free promise.
+
+The static ABI has position/normal float32x3 vertex slots 0/1, stride12, plus
+world-position and world-normal varyings. Group0 uniform bindings are frame144B,
+material64B, lights144B and draw16B. Lights comprise a 16B ambient header and four
+32B slots: position/range at16+32i and color/intensity at32+32i. Material and light
+upload arrays total208 bytes, use little-endian Float32, and zero unused bytes.
+The arrays are fresh mutable caller-owned artifacts; ordinary result data is
+frozen and copied. Nonfinite or nonzero-to-zero F32 lowering is refused. Raw
+signed Numbers remain in originals. Disabled effective intensity is +0.
+
+The result includes originals, execution, abi, program and uniforms with format
+`barocss-gpu-native-point-light-program-wgsl`, version0 and profile
+`native-world-point-linear-mesh-opaque-wgsl-v0`. WGSL is capped at64KiB and the
+complete signed ordinary projection at2MiB,32768values/depth48, plus208 binary
+bytes. Static targets are rgba8unorm/r32uint and depth24plus/write/less;
+entrypoints are vertexMain/fragmentMain. These declarations are not evidence of
+actual WGSL compilation or GPU acceptance.
+
+Run the focused source/static qualifier:
+
+```sh
+node --test packages/barocss-gpu/tests/native-point-light-program-wgsl.test.mjs
+# After the affected GPU build, also exercise the genuine emitted public entry:
+POINT_LIGHT_EMITTED=1 node --test packages/barocss-gpu/tests/native-point-light-program-wgsl.test.mjs
+```
+
+This checks independent analytic samples against a CPU transcription of emitted
+intent, exact static shader/ABI content, real legacy material lowering, signed
+copies/bytes and bounded refusals. It does not execute or parse WGSL. Device
+compilation, renderer/frame integration, pixels, physical picking, recovery,
+lifetime and Viewer/editor consumer acceptance remain separate, unrun stages.

@@ -253,3 +253,9 @@ export type { NativeDirectionalLightWebGPURequest, NativeDirectionalLightWebGPUO
 
 export {mountEngineScene,EngineSceneRenderer} from './engine-scene-renderer.js';
 export type {EngineSceneRendererOptions} from './engine-scene-renderer.js';
+
+// CPU-only native point-light catalog and trusted WGSL/ABI upload preparation (#1583).
+export { prepareNativePointLights, NativePointLightsError, NativePointLightsDiagnosticCode } from './native-point-lights.js';
+export type { NativePointLightV0, NativePointLightsV0, NativePointLightExecution, PreparedNativePointLights } from './native-point-lights.js';
+export { prepareNativePointLightProgramWGSL, NativePointLightProgramWGSLError } from './native-point-light-program-wgsl.js';
+export type { NativePointLightProgramWGSLCode, NativePointLightProgramWGSLRequest, NativePointLightProgramWGSLSlot, NativePointLightProgramWGSLExecution, NativePointLightProgramWGSLABI, NativePointLightProgramWGSLProgram, NativePointLightProgramWGSLUniforms, PreparedNativePointLightProgramWGSL } from './native-point-light-program-wgsl.js';
