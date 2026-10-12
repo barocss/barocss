@@ -11,8 +11,16 @@ export interface CameraFields {
   eye: [string, string, string]; target: [string, string, string]; up: [string, string, string];
   fovYDegrees: string; near: string; far: string;
 }
-export interface LightForm {kind: LightKind; ambient: string; lights: LightFields[]; camera: CameraFields}
+export interface BodyFields {
+  bodyId: string; position: [string, string, string]; scale: [string, string, string];
+}
+export interface LightForm {kind: LightKind; ambient: string; lights: LightFields[]; camera: CameraFields; bodies: BodyFields[]}
 const text = (value: number) => Object.is(value, -0) ? '-0' : String(value);
+function bodyIds(document: RenderNativeLightDocument): readonly string[] {
+  const ids = document.nativeOptions.bodyIds;
+  if (!Array.isArray(ids)) throw new RenderEditorError('DOCUMENT_INPUT', 'The scene requires its explicit qualified body selection.');
+  return ids;
+}
 export function lightKind(document: RenderNativeLightDocument): LightKind {
   return document.lights.profile === 'native-world-point-linear-v0' ? 'point' : 'directional';
 }
@@ -21,7 +29,12 @@ export function readLightFields(document: RenderNativeLightDocument): LightForm 
   const lights = catalog.profile === 'native-world-point-linear-v0'
     ? catalog.lights.map(light => ({...light, vector: light.positionScene, range: text(light.rangeScene)}))
     : catalog.lights.map(light => ({...light, vector: light.directionScene, range: ''}));
-  return {kind: lightKind(document), ambient: text(catalog.ambientStrength), camera: {
+  const bodies = bodyIds(document).map(bodyId => {
+    const pose = document.display.poses.find(item => item.bodyId === bodyId);
+    return {bodyId, position: (pose?.translationMM ?? [0, 0, 0]).map(text) as BodyFields['position'],
+      scale: (pose?.scale ?? [1, 1, 1]).map(text) as BodyFields['scale']};
+  });
+  return {kind: lightKind(document), ambient: text(catalog.ambientStrength), bodies, camera: {
     eye: camera.eye.map(text) as CameraFields['eye'], target: camera.target.map(text) as CameraFields['target'],
     up: camera.up.map(text) as CameraFields['up'], fovYDegrees: text(camera.fovYDegrees), near: text(camera.near), far: text(camera.far),
   }, lights: lights.map(light => ({
@@ -38,6 +51,21 @@ function numeric(value: string, label: string): number {
 /** Corrective text is not accepted authorship. The fixed workspace kind cannot be changed by fields. */
 export function applyLightFields(base: RenderNativeLightDocument, fields: LightForm): RenderNativeLightDocument {
   if (fields.kind !== lightKind(base)) throw new RenderEditorError('DOCUMENT_INPUT', 'Use a new workspace to change the light kind.');
+  const ids = bodyIds(base);
+  if (fields.bodies.length !== ids.length || ids.some((bodyId, index) => fields.bodies[index]?.bodyId !== bodyId))
+    throw new RenderEditorError('DOCUMENT_INPUT', 'Body fields must retain the exact qualified body selection and order.');
+  const parsedBodies = fields.bodies.map(body => {
+    if (body.position.length !== 3 || body.scale.length !== 3)
+      throw new RenderEditorError('DOCUMENT_INPUT', 'Body fields require complete position and scale XYZ values.');
+    return {bodyId: body.bodyId,
+      translationMM: [0, 1, 2].map(index => numeric(body.position[index], 'Body position')),
+      scale: [0, 1, 2].map(index => numeric(body.scale[index], 'Body scale'))};
+  });
+  // Empty poses are authored identity intent, not an instruction to materialize defaults.
+  const poses = base.display.poses.length
+    ? base.display.poses.map(pose => ({...pose, ...parsedBodies.find(body => body.bodyId === pose.bodyId)!}))
+    : parsedBodies.some(body => body.translationMM.some(value => !Object.is(value, 0)) || body.scale.some(value => !Object.is(value, 1)))
+      ? parsedBodies.map(body => ({...body, rotationXYZW: [0, 0, 0, 1]})) : [];
   const common = (light: LightFields) => ({nodeId: light.nodeId, label: light.label, enabled: light.enabled,
     colorLinearRGB: light.color.map(value => numeric(value, 'Linear color')),
     intensity: numeric(light.intensity, 'Intensity')});
@@ -46,7 +74,7 @@ export function applyLightFields(base: RenderNativeLightDocument, fields: LightF
     : fields.lights.map(light => ({...common(light), directionScene: light.vector.map(value => numeric(value, 'Direction'))}));
   const camera = fields.camera;
   return prepareRenderNativeLightDocument({...base,
-    display: {...base.display, camera: {
+    display: {...base.display, poses, camera: {
       eye: camera.eye.map(value => numeric(value, 'Camera eye')),
       target: camera.target.map(value => numeric(value, 'Camera target')),
       up: camera.up.map(value => numeric(value, 'Camera up')),

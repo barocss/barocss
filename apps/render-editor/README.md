@@ -429,3 +429,36 @@ The same bounded flow runner checks combined camera/light edits for both
 backends, raw-value preservation, invalid values, history, fresh chooser Open,
 refused/pending/stale work and disposal. It uses the actual React app, codecs and
 owned session with controlled Viewers; it is not physical graphics/file proof.
+
+### Existing body position and scale (#1630)
+
+Use **Scene bodies** to choose an object by its original body ID. Repeated names
+or geometry IDs do not merge targets. Selection only changes Inspector context:
+it does not change the scene, Apply drafts or add history. Every body's valid or
+invalid numeric draft survives switching between rows, including hidden bodies.
+
+**Origin position (mm)** edits XYZ translation in millimetres; **Scale** edits
+dimensionless XYZ factors. Existing authored bounds are −10000..10000 mm and
+0.001..100 scale, with actual whole-scene provider admission still authoritative.
+The raw XYZW rotation, visibility and CAD source remain unchanged. There is no
+rotation, visibility or geometry-edit control in this section.
+
+Edit one or more bodies, camera and lights, then **Apply** once for a single
+complete transaction/history step. **Discard** restores all fields. Save the
+accepted scene, Open it in a fresh same-kind workspace, choose the same body and
+continue editing. Refused fields and accepted Save data remain available.
+
+If the complete prepared document is unchanged (for example, scale `1.0` instead
+of `1`), Apply only resets corrective formatting. It makes no Viewer request,
+revision change or history entry. The comparison uses the signed-value codec;
+an actual `+0`/`-0`, camera, light or body change is not hidden by normalization.
+
+An empty pose list means identity intent. Reading/selecting, camera/light edits
+and numeric no-ops leave it empty. The first actual numeric transform change
+expands a complete pose list for every selected body, including hidden bodies;
+unchanged bodies receive identity poses. Signed zero is preserved as authored
+data. Existing nonempty pose order and each body's quaternion stay exact.
+
+The bounded runner includes both-backend body identity, empty-pose, combined
+history/file and refusal/lifecycle checks. These controls do not establish a fix
+for the physical arrow-control report in #1573, which remains separately open.
