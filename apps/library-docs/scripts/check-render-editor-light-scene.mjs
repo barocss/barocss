@@ -25,6 +25,8 @@ if (mode === '--types') {
   }));
   console.log(JSON.stringify({check: 'downloadable-host-types', result: 'PASS', sourcePin, hashes}));
 } else if (mode === '--links') {
+  const {createRenderEditorMarkdownAnchors} = await import('./render-editor-markdown-anchors.mjs');
+  const {assertAnchor} = await createRenderEditorMarkdownAnchors(resolve(app, 'docs'));
   const git = args => execFileSync('git', args, {cwd: root, encoding: 'utf8'}).trim();
   const old = git(['ls-tree', '-r', sourcePin, '--', 'apps/library-docs/docs/public/examples']).split('\n');
   for (const row of old) {
@@ -56,8 +58,7 @@ if (mode === '--types') {
       if (found === undefined && /\.(png|svg|jpg)$/.test(path ?? '')) found = git(['show', `HEAD:apps/library-docs/docs/public${path}`]);
       assert.notEqual(found, undefined, `Broken link ${href}`);
       if (fragment && found.startsWith('#')) {
-        const headings = [...found.matchAll(/^#{1,6}\s+(.+)$/gm)].map(item => item[1].toLowerCase().replace(/[^\p{L}\p{N}\s-]/gu, '').replace(/\s+/g, '-'));
-        assert(headings.includes(fragment), `Missing heading ${href}`);
+        assertAnchor(found, fragment, href);
       }
       links++;
     }
