@@ -539,3 +539,6 @@ export type { ConvexPlanarChamferUseReference, ConvexPlanarChamferSelection, Con
 
 export { measureConvexPlanarSolidMass, validateConvexPlanarSolidMass, ConvexPlanarSolidMassError, ConvexPlanarSolidMassDiagnosticCode } from './convex-planar-solid-mass.js';
 export type { ConvexPlanarSolidMassOptions, ConvexPlanarSolidMassMeasure, ConvexPlanarSolidMassReport, ConvexPlanarSolidMassResult } from './convex-planar-solid-mass.js';
+
+export { XYAffinePrismFeatureDocumentLimitsV1, evaluateXYAffinePrismFeatureDocumentV1, updateXYAffinePrismFeatureDocumentV1, validateXYAffinePrismFeatureDocumentV1, validateXYAffinePrismFeatureDocumentUpdateV1, serializeXYAffinePrismFeatureDocumentV1, parseXYAffinePrismFeatureDocumentV1 } from './xy-affine-prism-feature-document.js';
+export type { XYAffinePrismChamferNode, XYAffinePrismFeatureBindingV1, XYAffinePrismFeatureParameterV1, XYAffinePrismFeatureDocumentV1, XYAffinePrismFeatureWorkV1, XYAffinePrismFeatureResultV1, XYAffinePrismFeatureUpdateV1 } from './xy-affine-prism-feature-document.js';

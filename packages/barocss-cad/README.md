@@ -10529,3 +10529,54 @@ surface area, principal axes and manufacturing tolerance are outside this operat
 
 Focused source/emitted/cold example: `examples/cad-nurbs/convex-planar-solid-mass-demo.mjs`
 (`#1599`, under #540 ENG-02/ENG-03).
+
+### Editable prism chamfer document v1 (#1598 / PAR-04 / DETAIL-02)
+
+Explicit `evaluateXYAffinePrismFeatureDocumentV1` and matching update, validate,
+transaction-validate, serialize and parse `V1` entrypoints retain the existing five
+roles plus one optional `XYAffinePrismChamferNode`. The detail depends on the first
+prism; through-slab subtraction is its sibling. V0 functions, types, report keys,
+limits and serialized bytes remain unchanged. The one-argument v0 parser refuses
+v1; no implicit migration occurs.
+
+V1 literal parameters have typed `fixed-sketch-coordinate`, `prism-height` or
+`chamfer-distance` bindings. Height and distance edits advance document revision,
+not sketch revision. Actual constraint edits advance only their sketch revision.
+The detail persists original source/sketch/revision/segment, `role: 'top'`, and
+both complete source/use references. Resolution follows actual prism segment
+`topEdgeId` lineage and requires the whole pair to match. No coordinate, ordinal,
+proximity, silent retargeting or additional lookup reconstruction is used. A
+sketch revision advances the internal reference only within an atomic candidate
+that still verifies the original segment and complete pair.
+
+Mandatory whole-prior validation remains separate from selective candidate work.
+Distance-only candidate work rebuilds just the chamfer (34 source compilations,
+33 Faces, 1242 D1 for the documented pentagon), while prior validation performs
+127/120/4428 and 20 exact contexts. Tool-width edits retain the sibling detail;
+parent-height edits rebuild prism, slab and detail. Equal-value setters report
+no-op with zero candidate work but still fully validate prior state. Unsupported
+orthogonal supports, local-cut limits or insufficient slab coverage reject the
+entire edit without mutating the accepted document.
+
+Each v1 phase is capped at 204 source compilations, 197 Faces, 2970 binding
+observations, 8910 D1, 20 contexts and 4 million rational operations/GCD steps;
+updates allow twice those counts. Root serialized-occurrence snapshot limits
+remain 32 MiB input, 64 MiB result, 192 MiB cumulative and 128 MiB retained.
+Nested providers have separate unchanged ledgers; these are not heap claims.
+`XYAffinePrismFeatureDocumentLimitsV1` exposes the new limits; v0 limits stay fixed.
+
+Focused source/emitted/fresh-process recipe-file flow:
+`node examples/cad-nurbs/xy-affine-prism-editable-chamfer-demo.mjs --source /tmp/detail`
+then `--emitted /tmp/detail` and `--cold /tmp/detail`, Node 22.23.3 with a 2048 MiB
+heap. No general feature chains, persistent naming, OS file picker, GPU/UI or
+commercial CAD completeness is certified. Broad #551 and #536 remain open.
+
+The focused v1 acceptance was corrected after native evidence: an isolated rear
+X-coordinate edit 16→20 is refused by the existing exact coplanarity/lift policy.
+The originally planned height 8→6 with distance 1 requires non-binary64 wall UV
+5/6 and is an explicit atomic refusal, not an accepted 5360 mm³ detail. No provider
+or chart fallback is introduced. The admitted height edit 8→4 keeps distance 1:
+parent 3584 mm³, retained 3568 mm³, wedge 16 mm³ and slab 1024+1536 mm³.
+A uniform half-scale of original parent XY fixed targets, with its unchanged cap
+chart and segment identities, exercises actual sketch revision/reference advance:
+parent 1792 mm³, retained 1784 mm³, wedge 8 mm³ and slab 1024+0 mm³.
