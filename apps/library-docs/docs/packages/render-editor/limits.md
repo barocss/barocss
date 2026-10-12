@@ -13,6 +13,15 @@ The current native envelope is `barocss-render-editor-native-scene`, wire versio
 
 Bounds are admission requirements, not permission to clamp or normalize. Original up/quaternion/vector components, signed zero and omitted material overrides survive accepted authorship and the signed codec. Actual native/material/TEN and posed GPU admission remain authoritative after schema validation. Plain own enumerable data is required; unknown fields, foreign prototypes, accessors, symbols, sparse arrays, nonfinite numbers, unsupported profiles and mismatched owner/revision bindings refuse.
 
+### Body material uniform limits
+
+- **Body material** edits only scalar uniforms declared by an existing visible body's qualified embedded material. Names, ranges and defaults come from the actual shader compiler/provider; they are not a universal 0..1 range. Hidden/missing/unqualified bindings and materials with no scalar declarations are noneditable. No binding, ID or shader source is created or rewritten.
+- Each full body binding owns its embedded material independently. Repeated material `documentId` values do not link bodies or authorize changing another binding. Unrelated materials and original source/TEN/pose/camera/light data stay intact.
+- Enabled overrides require complete finite decimals within their declared ranges. Empty, incomplete, nonfinite or out-of-range active input refuses the whole transaction without accepting partial edits. Cleared overrides omit their property and use the declared default; their retained corrective text is not authored input. Explicit defaults differ from omission, and signed zero differs from positive zero. Equivalent numeric formatting with unchanged presence is a no-op when the complete scene is otherwise unchanged.
+- Existing material-session preparation owns dirty comparison and the single next embedded revision. Changed material revision `2147483647` refuses before presentation; unchanged bindings retain their revision. Temporary material sessions are disposed without a separate history commit or presentation. Material/body/camera/light changes use the same pending-operation fences, one scene Apply/history transaction and accepted-only Save described below.
+
+See the [body-bound uniform guide](./guides#edit-a-bodys-scalar-material-uniforms) and the [unchanged Surface B downloads](./examples#edit-surface-bs-existing-amount-uniform). These controls do not establish physical GPU/file/device acceptance or resolve #1573.
+
 ### Native Light transaction and cleanup limits
 
 A workspace's backend kind is fixed for its lifetime. Mixed lighting and cross-kind Open/Apply refuse. Supported legacy directional V1 can be parsed and migrated; Native V0 requires the app's explicit legacy import into a directional workspace. Switching kinds starts a new lifetime; remount reconstructs accepted data and resets history.

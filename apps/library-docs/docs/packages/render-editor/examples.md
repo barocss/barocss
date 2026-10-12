@@ -18,6 +18,18 @@ These are complete current authoring files for the Native Light workbench, with 
 
 In the app, open **Material Editor → Light workbench**, choose the matching directional or point workspace, and **Open** its JSON file. Select an original body under **Scene bodies**; edit position in mm, dimensionless scale, Scene camera and a light. **Apply** once, try **Undo/Redo**, then **Save accepted**. Open that saved file in a fresh same-kind workspace and re-edit the same qualified body. Refused numeric input stays available for correction; Save still contains accepted data. See the [complete workflow and no-op rules](./guides#author-a-native-light-scene).
 
+### Edit Surface B's existing amount uniform
+
+Both JSON downloads above already contain this example; no file or shader changes are needed to expose the control.
+
+1. Open either download in its matching workspace. Under **Scene bodies**, select **Surface B**, original ID `body_preview_b`. The initially selected **Surface A** (`body_preview_a`) has no editable scalar uniforms.
+2. In **Body material**, find `amount`: its original `native_blend_b` shader declares `float(0, 1, .25)`, so the range is **0 to 1** and the default is **0.25**. The file supplies **0.75**, with **Override** enabled.
+3. Keep Override enabled and enter **0.4**, or clear Override to omit `amount` and use **0.25**. Supplying **0.25** with Override enabled is a distinct authored choice from clearing it. Switching to Surface A and back retains Surface B's corrective text without applying it.
+4. Optionally edit a body transform, Scene camera or light, then **Apply** once for all fields. A changed Surface B material advances its embedded revision from 0 to 1; Surface A's material remains unchanged. **Undo/Redo** restores the whole scene together after drafts are resolved.
+5. **Save accepted**, then **Open** that saved file in a fresh workspace of the same kind. Select `body_preview_b` again: the accepted `0.4` override, or its accepted omission and shader default, is ready to re-edit. A download request alone does not prove physical persistence.
+
+To inspect refusal retention, enter `1e` or an out-of-range value such as `1.1` with Override enabled, then Apply. Correct the retained field before expecting acceptance; Save still contains the previous accepted value. If the accepted override is `0.4`, entering `.40` alone is a numeric-format no-op. Signed zero remains distinct, and clearing an override remains an authored change even when its supplied value equalled the default. These are authoring instructions, not a screenshot or physical GPU/file result; [#1573](https://github.com/barocss/barocss/issues/1573) remains unresolved. See the [binding and transaction rules](./guides#edit-a-bodys-scalar-material-uniforms).
+
 ### Import, mount and clean up the shared host
 
 Place the downloaded `.ts` file beside your TypeScript-capable browser entry. It imports only the actual unsuffixed public `parseRenderNativeLightDocument`, `prepareRenderNativeLightDocument`, `serializeRenderNativeLightDocument`, `createRenderNativeLightRequest` and `createRenderNativeLightSession` APIs. Its `qualifyLightScene(text)` helper reconstructs native/TEN/material requests on the CPU. `createLightSceneHost` is example host code, not a new package export or public provider-injection seam.
