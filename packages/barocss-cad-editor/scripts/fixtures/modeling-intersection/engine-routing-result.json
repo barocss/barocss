@@ -1,0 +1,7 @@
+{
+  "ok": true,
+  "checks": 16,
+  "modelCalls": 8,
+  "legacyCalls": 5,
+  "evidence": "stubbed providers; pure worker routing and authority only; no native geometry"
+}

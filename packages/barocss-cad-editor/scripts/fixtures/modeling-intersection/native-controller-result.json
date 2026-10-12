@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "actualNativeTransportReplays": 2,
+  "sourceTransportSHA256": "83b0743336c8e2dbe08beff27d6d6b8b823b2d3519889d28a2576f324769b537",
+  "checks": [
+    "real intersect kind",
+    "native output2176",
+    "actual CPU scene",
+    "CPU output picking",
+    "authored reopen",
+    "stale selection",
+    "simulated refusal retains accepted source"
+  ],
+  "evidence": "preserved real provider baseline DTO through actual controller with mocked Worker; no native geometry rerun, browser/GPU, physical file dialog or sample worker execution"
+}

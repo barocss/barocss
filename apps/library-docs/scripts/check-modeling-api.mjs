@@ -10,7 +10,8 @@ import { fileURLToPath } from 'node:url';
 const app = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const root = resolve(app, '../..');
 const base = '41a47d94def6e5c625e343824149cffb671ba221';
-const enginePin = '4a2d2c5a0d158d0b0a13a3ff85c38d8c57e439b4';
+const enginePin = '4a2d2c5a0d158d0b0a13a3ff85c38d8c57e439b4'; // Historical #1611 receipt stays immutable.
+const currentEnginePin = '45f6687692b97ab245a15b27e85658c3c0a154d2'; // Additive #1614 provider source.
 const provider = resolve(process.env.CAD_MODEL_ROOT ?? root);
 const mode = process.argv[2] ?? 'source';
 assert.ok(['source', 'emitted'].includes(mode), 'Use source or emitted');
@@ -52,7 +53,7 @@ const engineEvidencePath = 'packages/barocss-cad/test/modeling-evidence/verifica
 const engineEvidence = JSON.parse(git(['show', `${enginePin}:${engineEvidencePath}`]));
 for (const [path, expected] of Object.entries(engineEvidence.productSHA256)) {
   const local = readFileSync(resolve(provider, 'packages/barocss-cad', path));
-  assert.equal(digest(local), expected, `Provider source differs from verified receipt: ${path}`);
+  assert.equal(digest(local), digest(git(['show', `${currentEnginePin}:packages/barocss-cad/${path}`])), `Provider source differs from current feature pin: ${path}`);
   assert.equal(digest(git(['show', `${enginePin}:packages/barocss-cad/${path}`])), expected, `Pinned source differs: ${path}`);
 }
 assert.deepEqual(engineEvidence.publicGeometry, {
@@ -71,7 +72,7 @@ for (const [, sha, path] of page.matchAll(/https:\/\/github\.com\/barocss\/baroc
   git(['cat-file', '-e', `${sha}:${path}`]);
 }
 const limitsSource = readFileSync(resolve(provider, 'packages/barocss-cad/src/modeling.ts'), 'utf8');
-const expectedLimits = { nodes: 6, sketches: 2, extrusions: 2, cuts: 1, chamfers: 1, parameters: 16, outputs: 8, polygonPoints: 8, fileBytes: 65536, inputDepth: 12, lengthMM: 10000 };
+const expectedLimits = { nodes: 6, sketches: 2, extrusions: 2, cuts: 1, intersections: 1, chamfers: 1, parameters: 16, outputs: 8, polygonPoints: 8, fileBytes: 65536, inputDepth: 12, lengthMM: 10000 };
 const require = createRequire(resolve(process.env.REPO_DEPS_ROOT ?? root, 'package.json'));
 const ts = require('typescript');
 const configSyntax = ts.transpileModule(nav, {compilerOptions:{target:ts.ScriptTarget.ESNext,module:ts.ModuleKind.ESNext},fileName:'config.mts',reportDiagnostics:true});
@@ -104,4 +105,4 @@ try {
   }, files: [snippetPath] }));
   execFileSync(process.execPath, [require.resolve('typescript/bin/tsc'), '-p', config], {stdio:'inherit'});
 } finally { rmSync(directory, {recursive:true, force:true}); }
-console.log(JSON.stringify({scope:'static/source bounds and public snippet typecheck; no CAD execution', mode, base, enginePin, engineReceiptSHA256:digest(git(['show', `${enginePin}:${engineEvidencePath}`])), entrySHA256:digest(readFileSync(entry)), modelingSourceSHA256:digest(limitsSource), snippetSHA256:digest(snippet), historicalFilesPreserved:historical.length, limits, nativeCampaignRun:false}, null, 2));
+console.log(JSON.stringify({scope:'static/source bounds and public snippet typecheck; no CAD execution', mode, base, enginePin, currentEnginePin, engineReceiptSHA256:digest(git(['show', `${enginePin}:${engineEvidencePath}`])), entrySHA256:digest(readFileSync(entry)), modelingSourceSHA256:digest(limitsSource), snippetSHA256:digest(snippet), historicalFilesPreserved:historical.length, limits, nativeCampaignRun:false}, null, 2));

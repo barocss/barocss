@@ -1,0 +1,12 @@
+file:///workspace/scratch/1591b2fb2f62/barocss-modeling-intersection-build/packages/barocss-cad-editor/scripts/build.mjs:20
+  if (result.status !== 0) throw new Error(`${script} failed (${result.signal ?? result.status})`);
+                                 ^
+
+Error: build-declarations.mjs failed (SIGKILL)
+    at run (file:///workspace/scratch/1591b2fb2f62/barocss-modeling-intersection-build/packages/barocss-cad-editor/scripts/build.mjs:20:34)
+    at file:///workspace/scratch/1591b2fb2f62/barocss-modeling-intersection-build/packages/barocss-cad-editor/scripts/build.mjs:26:3
+    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)
+    at async node:internal/modules/esm/loader:643:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.19.0

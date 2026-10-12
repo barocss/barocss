@@ -1,0 +1,6 @@
+{
+  "ok": true,
+  "checks": 55,
+  "legacyChecks": 0,
+  "evidence": "CPU controller, saved mesh and synthesized graph-shaped DTO; optional saved real legacy replies; no native geometry, browser, GPU or OS files"
+}

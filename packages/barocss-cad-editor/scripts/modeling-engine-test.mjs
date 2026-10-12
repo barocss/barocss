@@ -11,13 +11,21 @@ const packet = JSON.parse(readFileSync(resolve(import.meta.dirname, 'fixtures/co
 const legacyDocument = JSON.parse(readFileSync(resolve(root, 'apps/cad-editor/src/fixtures/affine-prism.authored.json'), 'utf8'));
 const document = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: { height: 8 },
   nodes: [{ kind: 'sketch' }, { kind: 'extrude' }], outputs: { part: { node: 1, side: 'solid' }, other: { node: 1, side: 'solid' } } };
-let modelCalls = 0, legacyCalls = 0, lastLegacy, lastPacket;
+let modelCalls = 0, legacyCalls = 0, lastLegacy, lastPacket, sampleCalls = 0, intersectCalls = 0;
+function sampleBuilder() {
+  sampleCalls++; const parameters = {}, nodes = [];
+  const shape = index => ({ intersect(other) { intersectCalls++; const node = nodes.push({ kind: 'intersect', left: index, right: other.index }) - 1; return shape(node); },
+    index, cut() { const side = { edges() { return { one() { return {}; } }; }, chamfer() { return shape(nodes.push({ kind: 'chamfer' }) - 1); }, index: nodes.push({ kind: 'cut' }) - 1 }; return { positive: side, negative: side }; } });
+  const sketch = profile => { const index = nodes.push({ kind: 'sketch', profile }) - 1; return { extrude(height) { return shape(nodes.push({ kind: 'extrude', sketch: index, height }) - 1); } }; };
+  return { parameter(name, value) { parameters[name] = value; return { parameter: name }; }, sketch: { polygon: sketch, rectangle: sketch },
+    build(outputs) { return snapshot({ ...document, parameters, nodes, outputs: Object.fromEntries(Object.entries(outputs).map(([name, body]) => [name, { node: body.index, side: 'solid' }])) }); } };
+}
 function snapshot(data) {
   const body = { report: { solidId: 'current_solid' }, certificate: { volumeMM3: { numerator: '1', denominator: '1' } }, graph: { vertices: [], edges: [], faces: [], vertexLinks: [] } };
-  return { parameters: data.parameters, features: [{ kind: 'sketch', index: 0, dependencies: [] }, { kind: 'extrude', index: 1, dependencies: [0] }], bodies: { part: body, other: body },
+  return { parameters: data.parameters, features: data.nodes.map((node, index) => ({ kind: node.kind, index, dependencies: [] })), bodies: Object.fromEntries(Object.keys(data.outputs).map(name => [name, body])),
     save: () => JSON.stringify({ ...data, outputs: Object.fromEntries(Object.entries(data.outputs).sort(([a], [b]) => a.localeCompare(b))) }), withParameters(values) { modelCalls++; if (Object.values(values).some(v => v < 0)) throw new Error('native candidate refused'); return snapshot({ ...data, parameters: { ...data.parameters, ...values } }); } };
 }
-globalThis.__modelingCad = { cad: { load(text) { modelCalls++; const data = JSON.parse(text); if (data.invalid) throw new Error('codec refused'); return snapshot(data); } },
+globalThis.__modelingCad = { cad: { model: sampleBuilder, load(text) { modelCalls++; const data = JSON.parse(text); if (data.invalid) throw new Error('codec refused'); return snapshot(data); } },
   tessellateConvexPlanarSolid() { const { mesh, boundaries, internalDiagonals, report } = structuredClone(packet.components[0]); report.solidId = 'current_solid'; return { mesh, boundaries, internalDiagonals, report }; } };
 globalThis.__modelingLegacy = () => {
   let accepted;
@@ -70,6 +78,18 @@ for (const version of [0, 2]) {
   const editedLegacy = engine({ id: ++id, kind: 'apply', expectedRevision: legacy.summary.revision, parameters: { upperX: 24 } });
   assert.equal(editedLegacy.ok, true); assert.equal(editedLegacy.display, lastPacket); assert.deepEqual(lastLegacy.edits, [{ parameterId: 'upperX', valueMM: 24 }]); checks++;
 }
+const sampleEngine = create();
+const defaultSample = sampleEngine({ id: ++id, kind: 'example' });
+assert.equal(defaultSample.ok, true); assert.deepEqual(defaultSample.summary.outputs.map(o => o.name), ['other', 'part']); checks++;
+const overlapSample = sampleEngine({ id: ++id, kind: 'example', example: 'intersection' });
+assert.equal(overlapSample.ok, true); assert.deepEqual(overlapSample.summary.outputs.map(o => o.name), ['overlap']);
+assert.deepEqual(overlapSample.summary.parameters, { rearX: 16, leftX: 8, rightX: 40, lowY: -8, highY: 24, height: 4 });
+assert.equal(overlapSample.summary.features.at(-1).kind, 'intersect'); assert.equal(intersectCalls, 1); checks++;
+const beforeSamples = sampleCalls;
+assert.equal(sampleEngine({ id: ++id, kind: 'example', example: 'not-a-sample' }).ok, false);
+assert.equal(sampleCalls, beforeSamples); checks++;
+const afterBadSample = sampleEngine({ id: ++id, kind: 'apply', expectedRevision: 0, parameters: { height: 2 } });
+assert.equal(afterBadSample.ok, true); assert.equal(afterBadSample.summary.parameters.height, 2); checks++;
 const before = modelCalls + legacyCalls;
 assert.equal(engine({ id: ++id, kind: 'open', text: JSON.stringify({ ...legacyDocument, version: 1 }) }).ok, false);
 assert.equal(modelCalls + legacyCalls, before); checks++;

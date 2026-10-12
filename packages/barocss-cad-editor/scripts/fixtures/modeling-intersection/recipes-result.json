@@ -1,0 +1,9 @@
+{
+  "ok": true,
+  "scope": "identical public parameter/sketch/extrude/intersect/build calls, including signed zero; stubbed authoring only",
+  "editorSHA256": "9376831a74a84b8f6978066d985284eef08069f53a9412c21b055bae727759d4",
+  "downloadSHA256": "acb9b1d71dbf0a0daf16d9748c808a0fdd644b4a0ba83284e539776dbb2ce4a9",
+  "providerFixtureSHA256": "c3f5483214f8304c02825e4e16178fd602931198a36c19c3ed42d9a53cf3cf7c",
+  "callCount": 11,
+  "nativeGeometryRun": false
+}

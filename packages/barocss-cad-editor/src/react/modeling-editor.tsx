@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { createCadEditorModelingController } from '../modeling-controller.js';
 import type { CadEditorModelingController, CadEditorModelingSnapshot } from '../modeling-controller.js';
+import type { CadEditorModelingExample } from '../modeling-engine.js';
 import { createPrismFeatureDisplay } from '../prism-feature-display.js';
 import { Button } from './ui/button.js';
 import { Input } from './ui/input.js';
@@ -13,6 +14,8 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
   const controller = useRef<CadEditorModelingController | null>(null);
   const displayRef = useRef<ReturnType<typeof createPrismFeatureDisplay> | null>(null);
   const [snapshot, setSnapshot] = useState<CadEditorModelingSnapshot | null>(null);
+  const [example, setExample] = useState<CadEditorModelingExample>('cut-chamfer');
+  const [replaceExample, setReplaceExample] = useState(false);
   const [source, setSource] = useState(''), [confirmed, setConfirmed] = useState(false), [error, setError] = useState<string | null>(null);
   useEffect(() => {
     if (!viewport.current) return;
@@ -28,9 +31,10 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
     setError(null); try { if (controller.current) Promise.resolve(operation(controller.current)).catch(cause => setError(String(cause))); }
     catch (cause) { setError(String(cause)); }
   };
+  useEffect(() => { setReplaceExample(false); }, [snapshot?.generation]);
   const accepted = snapshot?.accepted, busy = snapshot?.busy ?? false, draft = Object.keys(snapshot?.drafts ?? {}).length > 0;
   return <section className="barocss-cad-editor" aria-label="CAD model editor" style={{ padding: 24, overflow: 'auto', height: '100%' }}>
-    <header><h1>Model a part</h1><p>Sketch → extrude → cut → chamfer · named dimensions in mm</p></header>
+    <header><h1>Model a part</h1><p>Sketch → extrude → cut, intersect or chamfer · named dimensions in mm</p></header>
     <p role="status" aria-live="polite">{busy ? 'Computing native geometry in a dedicated worker… You can cancel.' : accepted ? draft ? 'Dimension changes pending' : 'Accepted model' : 'No accepted model'}</p>
     {(error || snapshot?.error) && <p role="alert">{error ?? snapshot?.error}</p>}
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -41,6 +45,20 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
       <Button disabled={!busy} onClick={() => action(s => s.cancel())}>Cancel computation</Button>
       {!accepted && !busy && <Button onClick={() => action(s => initialAuthoredText === undefined ? s.example() : s.open(initialAuthoredText))}>Retry model</Button>}
     </div>
+    <details style={{ marginTop: 16 }}><summary>Modeling examples</summary>
+      <Label htmlFor={`${id}-example`}>Choose an example</Label>
+      <select id={`${id}-example`} value={example} disabled={busy}
+        onChange={event => { setExample(event.target.value as CadEditorModelingExample); setReplaceExample(false); }}>
+        <option value="cut-chamfer">Cut and chamfer a part</option>
+        <option value="intersection">Intersect two extrusions</option>
+      </select>
+      <p>Intersection keeps only the positive-volume overlap of two direct convex XY extrusions. Empty or touching-only results are refused.</p>
+      {accepted && <Label><input type="checkbox" checked={replaceExample} disabled={busy}
+        onChange={event => setReplaceExample(event.target.checked)} /> Replace accepted model and discard its history and pending dimensions</Label>}
+      <div><Button disabled={busy || (!!accepted && !replaceExample)} onClick={() => action(async s => {
+        await s.example(example); if (!s.getSnapshot().error) setReplaceExample(false);
+      })}>Load example</Button></div>
+    </details>
     <div ref={viewport} style={{ position: 'relative', width: '100%', height: 400, marginTop: 16, background: '#06090d' }}
       onClick={event => {
         const element = viewport.current, display = displayRef.current;

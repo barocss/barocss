@@ -1,7 +1,7 @@
 import { preparePrismFeatureScene, pickPrismFeatureScene } from './prism-feature-scene.js';
 import type { PrismDisplayScene, PrismFaceSelection } from './prism-feature-scene.js';
 import type { PrismDisplayPort, PrismDisplayCandidate } from './prism-feature-display.js';
-import type { CadEditorModelingSummary, ModelingCommand, ModelingReply } from './modeling-engine.js';
+import type { CadEditorModelingExample, CadEditorModelingSummary, ModelingCommand, ModelingReply } from './modeling-engine.js';
 import { validatePrismFeatureNativeReply } from './prism-feature-controller.js';
 import type { CadEditorPrismFeatureSummary } from './prism-feature-types.js';
 
@@ -51,7 +51,7 @@ function sourceMatches(reply: Success) {
       throw new Error('Legacy native summary differs from saved source.');
     validatePrismFeatureNativeReply({ id: reply.id, ok: true, text: reply.text, summary: legacy, display: reply.display });
   } else throw new Error('Unknown native source summary.');
-  if (!summary.features.every((f, i) => f.index === i && Array.isArray(f.dependencies)
+  if (!summary.features.every((f, i) => typeof f.kind === 'string' && f.kind.length > 0 && f.kind.length <= 64 && f.kind.trim().length > 0 && f.index === i && Array.isArray(f.dependencies)
     && f.dependencies.every(d => Number.isInteger(d) && d >= 0 && d < i))) throw new Error('Invalid feature dependencies.');
   if (!reply.display || reply.display.documentId !== summary.documentId || reply.display.revision !== summary.revision
     || !same(reply.display.outcomes.filter(o => o.status === 'solid').map(o => [o.role, o.solidId]), summary.outputs.map(o => [o.name, o.solidId])))
@@ -97,7 +97,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
     pending = { id, resolve, reject, timer: setTimeout(() => stop('Native operation timed out. Accepted model is retained.'), 120000) };
     try { worker.postMessage({ ...payload, id }); } catch { stop('Could not send the model to its native worker.'); }
   });
-  async function run(kind: 'open' | 'example' | 'apply' | 'undo' | 'redo', text?: string) {
+  async function run(kind: 'open' | 'example' | 'apply' | 'undo' | 'redo', text?: string, example?: CadEditorModelingExample) {
     idle(); let parameters: Record<string, number> = {}, target = index;
     if (kind === 'open') {
       if (typeof text !== 'string' || text.length > FILE_LIMIT || new TextEncoder().encode(text).length > FILE_LIMIT)
@@ -124,7 +124,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
           throw new Error('Reconstruction differs from the accepted model.');
         if (operation !== epoch) return; ready = true;
       }
-      const reply = await request(kind === 'example' ? { kind: 'example' } : kind === 'open' ? { kind: 'open', text: text! }
+      const reply = await request(kind === 'example' ? { kind: 'example', ...(example === undefined ? {} : { example }) } : kind === 'open' ? { kind: 'open', text: text! }
         : { kind: 'apply', expectedRevision: state.accepted!.revision, parameters });
       if (operation !== epoch || state.disposed) return;
       nativeCandidate = true; const candidateWorker = worker;
@@ -168,7 +168,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
   return {
     getSnapshot: (): CadEditorModelingSnapshot => clone(state),
     subscribe(listener: () => void) { live(); listeners.add(listener); return () => { listeners.delete(listener); }; },
-    open: (text: string) => run('open', text), example: () => run('example'), apply: () => run('apply'), undo: () => run('undo'), redo: () => run('redo'),
+    open: (text: string) => run('open', text), example: (example?: CadEditorModelingExample) => run('example', undefined, example), apply: () => run('apply'), undo: () => run('undo'), redo: () => run('redo'),
     stage(name: string, raw: string) {
       idle(); if (!state.accepted || !Object.hasOwn(state.accepted.parameters, name) || typeof raw !== 'string' || raw.length > 128)
         throw new Error('Choose a named dimension and bounded decimal input.');

@@ -1,6 +1,6 @@
 # Model a part, edit it and reopen it
 
-Use `cad.model()` to author a bounded solid part with named dimensions. Start with a sketch, extrude it, cut it with a through-slab tool, and chamfer a selected component edge. You do not choose a document version or author native IDs, revisions or reference records.
+Use `cad.model()` to author a bounded solid part with named dimensions. Start with a sketch, extrude it, cut it with a through-slab tool or intersect it with another extrusion, and use supported edge chamfers. You do not choose a document version or author native IDs, revisions or reference records.
 
 All dimensions below are **millimetres**. Use a TypeScript-capable workspace/bundler for source package entries; built ESM and declarations are a separate package build. Source adoption does not establish npm publication.
 
@@ -26,6 +26,32 @@ The cutter must cover the entire parent in its other directions. Here the tool k
 `edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one()` describes the exact top/front X-parallel edge. `min` and `max` refer to bounds of the entire owning body; every endpoint must meet the query exactly. `.one()` records the unique-selection requirement; resolution happens when the chamfer is evaluated during build, edit or load. Zero or multiple matches refuse instead of choosing an arbitrary edge. It is a geometric query, not persistent topology naming. Edits can change which edge matches; inspect the returned native evidence when identity matters.
 
 The chamfer uses an equal physical setback on both adjacent planes. It is not the diagonal width of the new face. Selection and setback still have to pass the native cardinal-edge, perpendicular-support and locality rules below.
+
+## Intersect two extrusions into an overlap part
+
+<a :href="withBase('/examples/modeling-intersection.ts')" download>Download the complete typed overlap example</a>
+
+Use `blank.intersect(tool)` when the useful part is the common positive-volume region. Both operands must be distinct direct XY extrusions owned by the same model. This example intersects the same convex pentagonal blank with a 4 mm-high rectangle; it does not require through-slab coverage.
+
+<<< ../../public/examples/modeling-intersection.ts#overlap
+
+The sole named output is `snapshot.bodies.overlap`. Its exact expected volume is **2176 mm³**. Move the tool with one batch of X-bound edits; the resulting expected overlap volume is **1408 mm³**. Parameter values are absolute millimetres, so editing just one bound also changes the rectangle width.
+
+<<< ../../public/examples/modeling-intersection.ts#edit-overlap
+
+Call `shifted.save()` and pass that text to `reopenOverlap`. A returned snapshot and its named outputs remain immutable while a candidate rebuild is evaluated. Reopening repeats the native operation; it does not load a display cache. The downloadable `overlapWorkflow()` combines construction, batch edit, save, reopen and a 2 mm-height edit. Its typecheck is distinct from runtime execution.
+
+Only one intersection is admitted. No cut-plus-intersection, repeated/nested intersection, same-handle self-intersection, union or arbitrary Boolean operation is implied. Native exact XYZ/UV representability, source charts, qualification and work budgets still apply. An intersection followed by chamfer is not demonstrated by this example.
+
+A disjoint or touching-only result cannot be a Solid output. It throws `CadModelError` with code `SELECTION`, operation `intersect`, and an explicit native contact dimension (-1 for disjoint; 1/2 for touching in these positive-Z extrusions, with point contact dimension 0 reserved to the lower-level provider). Keep the previously accepted snapshot instead of inventing an empty body. Native qualification failures retain code `NATIVE` and the original cause; they are not converted into an empty result.
+
+<<< ../../public/examples/modeling-intersection.ts#refused-overlap
+
+In the editor, open **Modeling examples**, choose **Intersect two extrusions**, acknowledge replacement and load the example. Changing the selection alone does not replace the accepted model. A successful load replaces its history and pending dimensions; a refused or cancelled load keeps them. The original **Cut and chamfer a part** example remains the default, and Save/Open continues to use the original compatibility readers for legacy files.
+
+The [current intersection source](https://github.com/barocss/barocss/blob/45f6687692b97ab245a15b27e85658c3c0a154d2/packages/barocss-cad/src/modeling.ts) and [native receipt](https://github.com/barocss/barocss/blob/45f6687692b97ab245a15b27e85658c3c0a154d2/packages/barocss-cad/test/modeling-intersection-evidence/verification.json) record **2176 → 1408 → fresh-process 1408 → height 2: 704 mm³**. Lightweight tracing establishes the same 11 public authoring calls, including signed zero, in the editor, this download and the provider fixture. The actual baseline native transport then passes the real controller and CPU picking. This is preserved native evidence plus a mocked-Worker replay; it is not a new execution of the sample worker or a browser run.
+
+The engine dependency is [intersection #1614](https://github.com/barocss/barocss/issues/1614); the editor/manual consumer is [#1617](https://github.com/barocss/barocss/issues/1617). Source/type/controller validation does not establish browser/GPU pixels, physical Download → fresh picker Open → re-edit, manual deployment or npm publication. Those remain **UNRUN** until separately recorded.
 
 ## 3. Read named outputs and evidence
 
@@ -62,6 +88,7 @@ This loader accepts files from this modeling API. Existing versioned feature doc
 | Sketch | One simple strictly convex XY polygon, 3–8 straight segments; rectangle from `{width,height}` or `{min,max}` | Holes, nonconvex/self-crossing cycles, arcs, numerical sketch constraints |
 | Extrude | Positive +Z height up to 10000 mm; exact affine native prism qualification | Taper, sweep, nonpositive height or nonrepresentable native/chart lift |
 | Cut | Two distinct direct XY extrusions; X or Y through-slab supports; full coverage by the remaining tool supports | Arbitrary cutter, cavity, union, chained cut parent, failed tool coverage |
+| Intersect | Two distinct same-model direct XY extrusions; positive-volume exact convex-planar overlap | Disjoint/touching-only results, same handle, cut-plus-intersection, repeated/nested intersection, union or general Boolean solids |
 | Select | One exact cardinal-direction/endpoint-coordinate query on the same body | Zero/multiple matches, handles from another model/body, tolerance or persistent-topology matching |
 | Chamfer | One cardinal edge; perpendicular signed-axis adjacent supports, valence-three endpoints, perpendicular end supports; positive local setback | Repeated/multi-edge chamfer, curved or arbitrary-angle chamfer, zero/excessive/touching/nonlocal setback |
 | Edit/load | Named finite-mm parameter batch; complete bounded rebuild into a new snapshot | Partial accepted candidate, arbitrary graph editing, implicit migration or cached geometry acceptance |
@@ -70,12 +97,12 @@ A dimension being an ordinary integer is not enough to qualify an operation. The
 
 ### Initial resource bounds
 
-`CadModelLimits` exposes these implementation bounds; they are not public version families. All limits apply together, and native operations retain their own tighter geometric/work budgets.
+`CadModelLimits` exposes these implementation bounds; they are not public version families. All limits apply together, and native operations retain their own tighter geometric/work budgets. Cut and intersection cannot coexist in the same graph.
 
 | Resource | Maximum |
 | --- | ---: |
 | Authored operation nodes | 6 |
-| Sketches / extrusions / cuts / chamfers | 2 / 2 / 1 / 1 |
+| Sketches / extrusions / cuts / intersections / chamfers | 2 / 2 / 1 / 1 / 1 |
 | Named parameters / outputs | 16 / 8 |
 | Polygon points | 8 |
 | Authored file UTF-8 bytes | 65536 (64 KiB) |
@@ -97,7 +124,7 @@ Adopted engine source: [`4a2d2c5a`](https://github.com/barocss/barocss/blob/4a2d
 
 The receipt preserves **15 initial-source evaluations** and **6 final evaluations**: source 1, emitted 1 and fresh-process cold 4. The initial source preceded array-admission/per-kind-limit hardening; the native geometry evaluator was unchanged. Final cold steps rebuilt the authored serial part and re-edited it. Do not describe all 21 evaluations as a fresh replay of the final source. Full package lint retained 27 existing errors, and the legacy consumer harness failed before imports on its inherited archive-name mismatch; the separate aggregate verifier also stopped after type/lightweight tests on a dependency-tooling failure before its lint step. Focused evidence is not a green whole-package claim.
 
-The guide's public snippets are typechecked against this source and its already-emitted declarations. The following optional check reads real native certificates if the host invokes it; the documentation check does **not** invoke it or run another native campaign:
+The original cut/chamfer snippets were typechecked against this source and its already-emitted declarations. The intersection example has its own current-provider check and receipt; it does not rewrite the historical baseline evidence. The following optional check reads real native certificates if the host invokes it; the documentation check does **not** invoke it or run another native campaign:
 
 <<< ../../../scripts/snippets/modeling-api.ts#checks
 
@@ -114,3 +141,7 @@ The independent [editor adoption #1612](https://github.com/barocss/barocss/issue
 - [Native capability reference](./capabilities): separate lower-level operations and their exact qualification/evidence
 
 [Quickstart](./quickstart) · [CAD overview](./) · [Guides](./guides) · [API reference](./api)
+
+<script setup>
+import { withBase } from 'vitepress'
+</script>
