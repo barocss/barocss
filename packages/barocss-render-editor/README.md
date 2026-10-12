@@ -335,3 +335,39 @@ Original Surface control-point Canvas mode shows the selected body's actual cont
 `RenderMaterialSession.setDraftMaterial(source, uniforms)` strictly validates both fields together before publishing one draft snapshot/notification. Refusal changes neither field. Existing individual setters retain their permissive corrective-editing behavior. The material controller forwards the paired operation under its existing transaction guard; staging does not present or commit history.
 
 The Native app's `stageMaterialAssignment(portable, expectedSnapshot)` requires the exact current clean selected-Surface snapshot and available presenter. It qualifies a temporary paired local session and complete native draft before publishing either live state. Imported metadata cannot rename or retarget a material. Changed imports at exhausted material/scene revisions are refused; identical imports keep clean state and history. Existing Preview/Cancel/Apply and whole-scene Undo/Redo remain authoritative.
+
+## Versioned native directional-light files (#1582)
+
+`RenderNativeDirectionalLightDocumentV1` is an additive authored file profile:
+`barocss-render-editor-native-scene`, version `1`, profile
+`canonical-native-directional-lights-v1`. It retains the complete original native
+document/options, qualified Surface materials, camera, poses, scale and visibility.
+Its display has no singleton `lighting`; `lights` is the actual GPU
+`NativeDirectionalLightsV0` catalog with matching scene ID/revision, 0–4 stable
+light entities, original directions, linear RGB and relative intensity. This
+profile requires 1–4 selected Surfaces and at least one visible Surface.
+
+- `prepareRenderNativeDirectionalLightDocument(input)` reconstructs genuine
+  original native data and returns owned immutable CPU preparation, never a
+  renderer acceptance certificate
+- `parseRenderNativeDirectionalLightDocument(text)` and
+  `serializeRenderNativeDirectionalLightDocument(document)` preserve signed zero,
+  exact source/shader text and supplied material-override omissions. Files are
+  bounded to 2 MiB; derived IR, buffers and normalized light directions are absent
+- `upgradeRenderNativeSceneToDirectionalLights(v0)` is an explicit conversion only.
+  It retains the original singleton direction/ambient/strength as one enabled
+  white `legacy-directional` light. Unsupported inputs are refused, never clamped.
+  It retains scene revision and does not create an authoring/history transaction.
+  This value mapping does not certify pixel equivalence across rendered profiles
+- `createRenderNativeDirectionalLightRequest(document)` produces the actual
+  `ViewerNativeDirectionalLightInput` for `createNativeDirectionalLightWebGPUViewer`.
+  Source/TEN reconstruction is genuine; final current-frame and asynchronous
+  renderer admission remain owned by Viewer. The private neutral singleton used
+  to reuse legacy CPU admission is omitted from the returned request and new file
+
+Legacy v0 parsing, sessions and synchronous hosts are unchanged. There is no
+implicit migration, async history, panel binding or default backend switch here.
+Malformed own data and structural limits report `DOCUMENT_INPUT`; version/profile
+mismatch reports `DOCUMENT_VERSION`; encoded byte limits report `DOCUMENT_BYTES`.
+Native/material provider errors retain their existing codes and nested causes.
+Physical file UI and GPU/browser acceptance remain separate.

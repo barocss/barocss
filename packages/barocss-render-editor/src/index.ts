@@ -61,3 +61,8 @@ export type {RenderNativeSceneSurfacePolePatch} from './native-surface-pole-edit
 
 export {prepareRenderNativeSceneSurfacePoleControls, deriveRenderNativeSceneSurfacePoleAxisDrag} from "./native-surface-pole-controls.js";
 export type {RenderNativeSceneSurfacePoleSelection, RenderNativeSceneSurfacePolePoint, RenderNativeSceneSurfacePoleControls} from "./native-surface-pole-controls.js";
+
+export {prepareRenderNativeDirectionalLightDocument, parseRenderNativeDirectionalLightDocument,
+  serializeRenderNativeDirectionalLightDocument, upgradeRenderNativeSceneToDirectionalLights} from './native-directional-light-document.js';
+export type {RenderNativeDirectionalLightDocumentV1, RenderNativeDirectionalLightPreparation} from './native-directional-light-document.js';
+export {createRenderNativeDirectionalLightRequest} from './native-directional-light-request.js';

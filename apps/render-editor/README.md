@@ -277,3 +277,23 @@ JS
 ```
 
 The UI fixture is tracked `reference-panel.barocad`, SHA-256 `8d3c423e8031bfa76d1606a982819b5e9a8d28c4915d4de2a86879f2f8d0af20`. DOM event/focus checks and captured Blob bytes remain CPU evidence; the substitutions do not establish real browser rendering or physical file acceptance.
+
+### Native directional-light persistence qualification (#1582)
+
+The additive package v1 codec/provider bridge is available, but the existing
+MaterialApp/NativeSceneHost still use their unchanged synchronous v0 profile.
+Async transactions and a real light panel are subsequent increments; no automatic
+migration or new app light UI is claimed.
+
+`src/native-directional-light-document-flow.ts` exports
+`runNativeDirectionalLightDocumentFlow(text)`. Pass the tracked small
+`packages/barocss-render-editor/fixtures/native-scene-document-v0.json` fixture.
+It exercises real canonical native reconstruction, explicit upgrade, signed
+canonical round trips, complete original source/material/pose retention, request
+mapping, and malformed/version/budget/own-data refusal. Its returned `wire` can be
+read in an independent fresh process through the emitted public parser. Bundle
+with the existing esbuild (`--bundle --platform=node --format=esm`) and invoke the
+export from Node; source and emitted-package mappings must be recorded separately.
+This is CPU persistence/source/TEN evidence, not renderer pixels, browser focus,
+physical file-picker or saved-download acceptance. No large Solid fixture or
+unchanged native-provider campaign is required for this codec change.
