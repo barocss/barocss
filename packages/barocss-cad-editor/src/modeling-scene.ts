@@ -1,3 +1,5 @@
+import { validateModelingUnion } from './modeling-union.js';
+import type { ModelingUnionDisplayComponent, ModelingUnionPanel } from './modeling-union.js';
 import type { OwnPlateHolePreviewResult, StoredPlateHoleSolidCertificate } from '@barocss/cad';
 import { prepareEngineScene, prepareEngineCameraRay, raycastEngineScene, prepareKernelFacePreview, resolveKernelFaceReference } from '@barocss/gpu';
 import type { EngineSceneV0, TriangleGeometryV0, KernelFacePreview, KernelFaceReference, KernelFaceBinding } from '@barocss/gpu';
@@ -23,8 +25,8 @@ export interface ModelingHoleDisplayComponent {
 }
 export interface ModelingBodyDisplayPacket {
   profile: 'model-body-faces'; documentId: string; revision: number; taskToken: string;
-  components: ({ family: 'convex-planar'; component: PrismDisplayComponent } | ModelingHoleDisplayComponent)[];
-  outcomes: { role: string; solidId: string; family: 'convex-planar' | 'stored-rational-plate-hole'; status: 'solid' }[];
+  components: ({ family: 'convex-planar'; component: PrismDisplayComponent } | ModelingHoleDisplayComponent | ModelingUnionDisplayComponent)[];
+  outcomes: { role: string; solidId: string; family: 'convex-planar' | 'stored-rational-plate-hole' | 'orthogonal-cell'; status: 'solid' }[];
 }
 export type ModelingDisplayPacket = PrismDisplayPacket | ModelingBodyDisplayPacket;
 export interface ModelingBodyDisplayScene { packet: ModelingBodyDisplayPacket; selectedOutput: string; scene: EngineSceneV0; canvasLabel: string }
@@ -34,8 +36,13 @@ export interface ModelingHoleFaceSelection {
   reference: KernelFaceReference; provenance: OwnPlateHolePreviewResult['provenance'][number]; lineage: ModelingHoleLineage;
   triangleIndex: number; approximate: true;
 }
-export type ModelingFaceSelection = PrismFaceSelection | ModelingHoleFaceSelection;
-type Accepted = { packet: ModelingBodyDisplayPacket; holes: Map<string, KernelFacePreview>; convex: Map<string, PrismDisplayScene>; selectedOutput: string };
+export interface ModelingUnionFaceSelection {
+  family: 'orthogonal-cell'; documentId: string; revision: number; role: string; solidId: string;
+  reference: KernelFaceReference; provenance: ModelingUnionPanel; lineage: ModelingUnionDisplayComponent['lineage'];
+  triangleIndex: number; approximate: true;
+}
+export type ModelingFaceSelection = PrismFaceSelection | ModelingHoleFaceSelection | ModelingUnionFaceSelection;
+type Accepted = { packet: ModelingBodyDisplayPacket; nativeFaces: Map<string, KernelFacePreview>; convex: Map<string, PrismDisplayScene>; selectedOutput: string };
 // Structured clones and public snapshots carry no receiving-realm prepared authority.
 const accepted = new WeakMap<ModelingDisplayScene, Accepted>();
 function check(value: unknown, detail: string): asserts value { if (!value) throw new Error(`Modeling display: ${detail}`); }
@@ -233,7 +240,7 @@ function admitHole(component: ModelingHoleDisplayComponent, packet: ModelingBody
   }
   return prepared;
 }
-function sceneForHole(component: ModelingHoleDisplayComponent, prepared: KernelFacePreview, aspect: number): EngineSceneV0 {
+function sceneForNative(component: { role: string }, prepared: KernelFacePreview, aspect: number): EngineSceneV0 {
   const geometry: TriangleGeometryV0 = { format: 'barocss-gpu-triangle-geometry', version: 0, id: 'model_geometry_' + component.role,
     coordinateSystem: 'right-handed-y-up', positionUnit: 'scene', winding: 'ccw', positions: [...prepared.packet.positions], normals: [...prepared.packet.normals],
     uvs: [...prepared.packet.parameters], indices: [...prepared.packet.indices] };
@@ -263,7 +270,7 @@ export function prepareModelingScene(input: ModelingDisplayPacket, aspect = 1, s
   check(Number.isFinite(aspect) && aspect >= 1 / 2048 && aspect <= 2048, 'invalid viewport aspect');
   check(Array.isArray(packet.components) && packet.components.length >= 1 && packet.components.length <= 8
     && Array.isArray(packet.outcomes) && packet.outcomes.length === packet.components.length, 'complete bounded output inventory');
-  const holes = new Map<string, KernelFacePreview>(), convex = new Map<string, PrismDisplayScene>(), scenes = new Map<string, EngineSceneV0>();
+  const nativeFaces = new Map<string, KernelFacePreview>(), convex = new Map<string, PrismDisplayScene>(), scenes = new Map<string, EngineSceneV0>();
   for (const [i, component] of packet.components.entries()) {
     const outcome = packet.outcomes[i]; exact(outcome, ['role', 'solidId', 'family', 'status']);
     check(/^[A-Za-z_][A-Za-z0-9_-]{0,47}$/.test(outcome.role) && !['__proto__', 'prototype', 'constructor'].includes(outcome.role)
@@ -274,35 +281,50 @@ export function prepareModelingScene(input: ModelingDisplayPacket, aspect = 1, s
       const display = preparePrismFeatureScene({ profile: 'model-outputs', documentId: packet.documentId, revision: packet.revision,
         components: [component.component], outcomes: [{ role: outcome.role, solidId: outcome.solidId, status: 'solid' }] }, 'result', aspect);
       convex.set(outcome.role, display); scenes.set(outcome.role, display.scene);
+    } else if (component.family === 'orthogonal-cell') {
+      check(component.role === outcome.role && component.solidId === outcome.solidId, 'union output identity required');
+      validateModelingUnion(component);
+      const context = component.mesh.context;
+      check(context.documentId === packet.documentId && context.bodyId === component.solidId && context.taskToken === packet.taskToken
+        && context.documentRevision === String(packet.revision) && context.kernelResultRevision === String(packet.revision)
+        && context.topologyRevision === String(packet.revision), 'union request/document/revision/body context mismatch');
+      const prepared = prepareKernelFacePreview(component.mesh, { displayId: component.role, packetRevision: packet.revision });
+      nativeFaces.set(outcome.role, prepared); scenes.set(outcome.role, sceneForNative(component, prepared, aspect));
     } else {
       check(component.family === 'stored-rational-plate-hole' && component.role === outcome.role && component.solidId === outcome.solidId, 'known native output family/identity required');
-      const prepared = admitHole(component, packet); holes.set(outcome.role, prepared); scenes.set(outcome.role, sceneForHole(component, prepared, aspect));
+      const prepared = admitHole(component, packet); nativeFaces.set(outcome.role, prepared); scenes.set(outcome.role, sceneForNative(component, prepared, aspect));
     }
   }
-  check(holes.size > 0, 'mixed-family profile requires a stored-rational hole output');
+  check(nativeFaces.size > 0, 'body-face profile requires a supported native face output');
   const selected = selectedOutput ?? packet.outcomes.at(-1)!.role, scene = scenes.get(selected);
   check(scene, 'selected output missing from admitted inventory');
   const family = packet.outcomes.find(o => o.role === selected)!.family;
   const display: ModelingBodyDisplayScene = freeze({ packet, selectedOutput: selected, scene, canvasLabel: `Model output ${selected} (${family})` });
-  accepted.set(display, { packet, holes, convex, selectedOutput: selected }); return display;
+  accepted.set(display, { packet, nativeFaces, convex, selectedOutput: selected }); return display;
 }
 /** Only the original accepted scene can resolve result-scoped copied references. */
 export function resolveModelingFaceReference(display: ModelingDisplayScene, reference: KernelFaceReference): KernelFaceBinding | null {
   const authority = accepted.get(display); check(authority, 'original accepted scene required');
-  const prepared = authority.holes.get(authority.selectedOutput); check(prepared, 'selected output has no sampled native faces');
+  const prepared = authority.nativeFaces.get(authority.selectedOutput); check(prepared, 'selected output has no sampled native faces');
   const binding = resolveKernelFaceReference(prepared, reference); return binding ? structuredClone(binding) : null;
 }
 export function pickModelingScene(display: ModelingDisplayScene, width: number, height: number, x: number, y: number): ModelingFaceSelection | null {
   if (display.packet.profile !== 'model-body-faces') return pickPrismFeatureScene({ packet: display.packet, view: 'result', scene: display.scene }, width, height, x, y);
   const authority = accepted.get(display); check(authority, 'original accepted scene required');
   const convex = authority.convex.get(authority.selectedOutput); if (convex) return pickPrismFeatureScene(convex, width, height, x, y);
-  const prepared = authority.holes.get(authority.selectedOutput)!;
+  const prepared = authority.nativeFaces.get(authority.selectedOutput)!;
   const { ray } = prepareEngineCameraRay(display.scene.camera, { format: 'barocss-gpu-engine-camera-ray-request', version: 0,
     pixelOrigin: 'bottom-left', sampling: 'pixel-center', viewportWidth: width, viewportHeight: height, pixelX: x, pixelY: y });
   const hit = raycastEngineScene(display.scene, ray); if (!hit) return null;
   const binding = prepared.faces.find(f => hit.triangleIndex * 3 >= f.indexRange[0] && hit.triangleIndex * 3 < f.indexRange[1]);
   check(binding && resolveKernelFaceReference(prepared, binding.reference), 'picked face lacks original prepared authority');
-  const component = authority.packet.components.find(c => c.family === 'stored-rational-plate-hole' && c.role === authority.selectedOutput) as ModelingHoleDisplayComponent;
+  const component = authority.packet.components.find(c => c.family !== 'convex-planar' && c.role === authority.selectedOutput);
+  check(component && component.family !== 'convex-planar', 'selected native component required');
+  if (component.family === 'orthogonal-cell') {
+    const provenance = component.lineage.panels.find(p => p.id === binding.reference.nativeFaceId)!;
+    return structuredClone({ family: 'orthogonal-cell', documentId: authority.packet.documentId, revision: authority.packet.revision,
+      role: component.role, solidId: component.solidId, reference: binding.reference, provenance, lineage: component.lineage, triangleIndex: hit.triangleIndex, approximate: true });
+  }
   const provenance = component.preview.provenance.find(p => p.faceToken === binding.reference.faceToken)!;
   return structuredClone({ family: 'stored-rational-plate-hole', documentId: authority.packet.documentId, revision: authority.packet.revision,
     role: component.role, solidId: component.solidId, reference: binding.reference, provenance, lineage: component.lineage, triangleIndex: hit.triangleIndex, approximate: true });

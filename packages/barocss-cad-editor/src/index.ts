@@ -61,3 +61,6 @@ export { preparePrismFeatureScene, pickPrismFeatureScene } from './prism-feature
 export type { PrismDisplayPacket, PrismDisplayComponent, PrismDisplayScene, PrismDisplayView, PrismFaceSelection } from './prism-feature-scene.js';
 
 export type { ModelingDisplayPacket, ModelingDisplayScene, ModelingFaceSelection, ModelingHoleDisplayComponent } from './modeling-scene.js';
+
+export type { ModelingUnionDisplayComponent, ModelingUnionPanel } from './modeling-union.js';
+export type { ModelingUnionFaceSelection } from './modeling-scene.js';

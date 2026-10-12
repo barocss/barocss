@@ -1,6 +1,6 @@
 # Model a part, edit it and reopen it
 
-Use `cad.model()` to author a bounded solid part with named dimensions. Start with a sketch, extrude it, cut it with a through-slab tool, intersect it with another extrusion, or split it by height, and use supported edge chamfers. You do not choose a document version or author native IDs, revisions or reference records.
+Use `cad.model()` to author a bounded solid part with named dimensions. Start with a sketch, extrude it, cut it with a through-slab tool, intersect it with another extrusion, fuse two rectangular extrusions, or split it by height, and use supported edge chamfers. You do not choose a document version or author native IDs, revisions or reference records.
 
 All dimensions below are **millimetres**. Use a TypeScript-capable workspace/bundler for source package entries; built ESM and declarations are a separate package build. Source adoption does not establish npm publication.
 
@@ -73,63 +73,73 @@ Lightweight tracing compares the same nine parameter/rectangle/extrude/edge/cham
 
 ## Fuse two rectangular extrusions
 
-Use `a.union(b)` to build one connected L-bracket or stepped boss from two owned
-direct rectangular XY extrusions. The result uses the same named body map:
+<a :href="withBase('/examples/modeling-union.ts')" download>Download the complete typed L-bracket example</a>
 
-```ts
-import { cad } from '@barocss/cad';
-const model = cad.model();
-const legWidth = model.parameter('legWidth', 8);
-const base = model.sketch.rectangle({ width: 32, height: 8 }).extrude(8);
-const leg = model.sketch.rectangle({ width: legWidth, height: 24 }).extrude(8);
-const bracket = base.union(leg);
-const initial = model.build({ base, leg, bracket });
-const wider = initial.withParameters({ legWidth: 12 });
-const reopened = cad.load(wider.save());
-const body = reopened.bodies.bracket;
-if (body.family !== 'orthogonal-cell') throw new Error('Expected a union body');
-const volumeMM3 = body.native.report.volumeMM3;
-```
+Choose **Fuse an L-bracket** (`union-bracket`) in **Modeling examples**, acknowledge replacement and load. This is the exact producer `unionBracket` recipe: a 32 × 8 mm base extruded 8 mm, plus a leg whose minimum is `[legMinX,legMinY]`, maximum is `[add(legMinX,legWidth),24]`, and extrusion height is `legHeight`. The four numeric fields distinguish the leg origin X/Y, width and extrusion height. The initial origins are signed `-0`, width is 8 mm and extrusion height is 8 mm. Moving the leg's minimum Y changes its length because its maximum Y remains 24 mm.
 
-The expected exact volumes are 3072 and 3584 mm³. The unchanged base prefix is
-reused when only the leg width changes. Save stores the authored union and driver
-values; cold load rebuilds both rectangles and the complete union. The union
-native report certifies its restricted integer-cell material and oriented-shell
-volume conservation, not an arbitrary BRep or manufacturing tolerance.
+<<< ../../public/examples/modeling-union.ts#union-bracket
 
-Both operands must be distinct direct **authored rectangles**. Corners resolve
-to integers within ±10000 mm; side lengths and positive extrusion heights are
-integers from 1 to 10000 mm. Both extrusions start at Z=0. One union fits the
-existing six-node envelope and cannot mix with cut, intersection, split, hole or
-chamfer, feed another union, or expose convex edge queries. Parameters and owned
-add/scale dimensions are supported only when the resulting dimensions satisfy
-these rules. A polygon that looks rectangular is not this authored rectangle
-contract.
+`base.union(leg)` takes two distinct direct rectangular XY extrusions owned by the same model. The five nodes are sketch → extrude, sketch → extrude, then union. `build({ base, leg, bracket })` retains all three output references. Importing the download does not evaluate or tessellate anything; invoke its functions only when native work is intended.
 
-Overlap and face-contact joins are admitted by the unchanged native provider.
-Edge-only contact preserves its genuine `NATIVE` / `union` error and `CONTACT`
-cause. Disjoint union completes the native two-body result, then refuses with
-`SELECTION` / `union`; its cause retains that full native result. The single
-shape API never picks one component or silently drops the other. Refused edits
-leave the prior snapshot, saved bytes and future same-snapshot reuse intact.
+### Exact material volume and generated face identity
 
-The private bridge compiles whole signed Source0 intent, builds six real native
-Faces and an AxisBoxShell per operand, and lets the Boolean qualify them. This
-is a new source-qualified representation of the owned rectangular intent, not a
-bounds cast. Feature evidence keeps both original convex parents and the complete
-union, including its new operand sources and per-panel lineage. Old convex face
-identities are not claimed to survive. Every evaluated union rebuilds these box
-assets even if a convex parent feature was reused; recomputation indices do not
-measure total native savings.
+Both operands have `family: 'convex-planar'`; `bracket` has `family: 'orthogonal-cell'`. Narrow the family before reading the complete frozen native value.
 
-**Editor preview is unavailable for this family.** The editor refuses the full
-candidate inventory before reading union native summaries or tessellating any
-body, retaining its prior accepted convex/hole state. The existing
-`prepareAxisBoxBooleanBuffers` provides complete CPU data after a full native
-revalidation and one tessellation per panel; it is not an existing renderer
-input. Visible union integration remains [#1119](https://github.com/barocss/barocss/issues/1119),
-with coordinate, UV, picking/context and complete-panel admission work still
-required. Never truncate the native 72-panel bound to a preview's 64-chunk limit.
+<<< ../../public/examples/modeling-union.ts#qualified-union-output
+
+The baseline union has exact restricted integer-cell volume **3072 mm³**: three occupied cells, one body and one shell, with 14 generated panels, 14 generated sources, 16 global native vertices and 28 global native edges. The editor represents its positive safe-integer volume as numerator `3072`, denominator `1`. This is the provider's integer-cell/oriented-shell material qualification, separate from derived preview triangles and approximate CPU picking. The hole family's **Certified volume unavailable** state remains `volumeMM3:null`; union volume is not substituted into it.
+
+The private native bridge builds a new source-qualified box representation of each authored rectangle. A generated union panel identifies its body, shell, panel, source, model, surface and face, plus **every contributing operand face** with its source/shell/global-face/local-face/surface identity and exact rational UV corners. These generated operand faces are not the original convex parents' face IDs. A face hit reports that generated panel/source and all contributing native operand faces; it does not promise persistent naming across edits or an exact material-classifier result.
+
+### Widen, join, refuse and recover
+
+The following values were measured by the [frozen #1645 provider receipt](https://github.com/barocss/barocss/blob/16535777b4ef2d5ace64b97dbf834f6aff3d6425/packages/barocss-cad/test/modeling-union-evidence/verification.json), rather than inferred from editor preview tests:
+
+| Accepted state | Edit from the preceding accepted state | Exact volume (mm³) | Generated panels |
+| --- | --- | ---: | ---: |
+| Baseline L-bracket | `legMinX:-0, legMinY:-0, legWidth:8, legHeight:8` | 3072 | 14 |
+| Wider leg | `legWidth:12` | 3584 | 14 |
+| Face-contact join | `legMinY:8` | 3584 | 14 |
+| Recovery after both refusals | `legWidth:8, legMinY:-0` | 3072 | 14 |
+| Fresh cold Open | Saved recovery state | 3072 | 14 |
+| Taller stepped bracket after Open | `legHeight:16` | 4608 | 20 |
+
+<<< ../../public/examples/modeling-union.ts#refused-union
+<<< ../../public/examples/modeling-union.ts#edit-union
+
+From the face-contact state, `legMinX:32` creates edge-only contact and refuses with `CadModelError` code `NATIVE`, operation `union`, and the original `AxisBoxSolidBooleanError` cause `CONTACT`. `legMinX:40` creates two disconnected bodies: the provider completes its native result, then the single-body authoring contract refuses with `SELECTION` / `union`, retaining that complete result as the cause. No component is silently chosen or dropped. Both refused candidates leave the same accepted face-contact snapshot, saved text and future reuse intact. Recovery is applied to that accepted snapshot.
+
+Width/origin edits reuse feature indices 0 and 1 and evaluate 2, 3 and 4. The cold taller edit reuses 0, 1 and 2 and evaluates 3 and 4. Every evaluated union rebuilds its box assets even if an original convex parent was reused. These indices describe model-feature reuse, not total native-call savings or a performance guarantee.
+
+### Select the bracket after Open
+
+The preset explicitly selects `bracket` by its configured output ID. Generic Open preserves the existing policy: choose the last entry in the validated canonical saved output inventory. This file saves the outputs in `base, bracket, leg` order, so **Open initially selects `leg`; choose `bracket` in the output chooser** to inspect the union. The chooser displays the selected ID and family. This is not view restoration or a name-based guess.
+
+All three outputs remain in the accepted summary and authored Save, including hidden operands. Every output is admitted before visibility is chosen. Choosing an output is a view-only display swap: it does not create a model revision or Undo/Redo entry, discard numeric drafts, or rewrite the file. Edits, Undo/Redo and Worker reconstruction retain the current choice when it still exists. A failed, cancelled or stale preparation retains the accepted model, scene, selection, drafts and history. Successful replacement still follows the existing acknowledgement and Apply/Discard rules.
+
+<<< ../../public/examples/modeling-union.ts#save-reopen-union
+
+Save contains the schema1 authored `union`, all four numeric drivers (including signed zeros), five nodes and three output references. It contains no native bodies, native IDs, mesh cache or prepared scene authority. `cad.load(saved)` rebuilds cold. The producer measured the recovered 3072 mm³ state reopening unchanged and then the taller 4608 mm³ result. The APIs do no filesystem I/O; physical Download → fresh picker Open remains a separate acceptance check.
+
+### Complete native-panel preview, with a narrower display bound
+
+The editor software adapter in [#1647](https://github.com/barocss/barocss/issues/1647) uses the existing modeling controller, output chooser and renderer. The Worker preflights **all outputs before any output tessellation**, including hidden operands, one-body union identity, complete panel/source inventories and the **64 complete generated panels** display ceiling. The native provider's maximum is **72 panels**. A 65-panel candidate refuses before any tessellation; never truncate or merge panels to evade the display limit.
+
+At runtime each qualified native panel surface goes through `tessellateSurface` with `countU:2, countV:2`. Its genuine raw `part-xyz` packet is checked against native source/model/surface/face identity, native vertex association and order, pcurve endpoint UVs, normals and winding before copying plain arrays. The receiving adapter applies the existing `prepareKernelFacePreview` conversion `[x,z,-y]` exactly once. Full native objects and prepared authority do not cross the Worker boundary. Copied qualification, complete global topology and lineage remain distinct from the preview.
+
+The receiving side checks every output, including hidden operands, and matches the authored output node, family, counts, positive safe-integer volume, identities and request document/revision/task context. Missing, duplicate or extra panels, forged family downgrades, stale references and cloned prepared scenes refuse. The display retains **1 scene unit = 1 mm** and the existing ±1000 scene-coordinate envelope. Native admission alone does not guarantee display admission; there is no automatic rescaling or substitute renderer.
+
+### Connected-union limits and evidence boundary
+
+Both operands must be distinct direct **authored rectangles**, not polygons that happen to look rectangular. Resolved corners must be integers within ±10000 mm; integer side lengths and positive extrusion heights are 1–10000 mm. Both extrusions start at Z=0. Parameters and owned add/scale dimensions are allowed when their resolved values satisfy these rules. Only one connected positive-volume union is admitted within the six-node envelope. Union nesting, edge queries on the union, mixed chamfer/split/cut/intersection/hole graphs, arbitrary solids, manufacturing tolerance and general Boolean support are outside this slice.
+
+The [adopted provider](https://github.com/barocss/barocss/issues/1645), pinned at `16535777b4ef2d5ace64b97dbf834f6aff3d6425`, retains the [exact public fixture](https://github.com/barocss/barocss/blob/16535777b4ef2d5ace64b97dbf834f6aff3d6425/packages/barocss-cad/test/modeling-union-fixture.mjs) and its measured **8 model calls and 1 CPU preparation** in 3.534 seconds. That preparation includes **1 full Boolean revalidation and 14 panel tessellations**, producing 56 display vertices and 28 triangles. These counts cover the recorded bounded campaign; full transitive native work was not measured. The 524,722-byte genuine baseline transfer is SHA256 `ad9ac80fa7e48e598116ba2d9e5ab37b597e9f3e15081e98513aea3479d81e06`.
+
+Consumer CPU replay adapts the retained helper positions/normals/indices only after checking its identity transform, native coordinates, native vertex order, indices and normals. The original tessellation UV arrays were not retained: replay copies matching genuine native pcurve endpoint coefficients in the known tessellation order. This is an **adapted replay**, not a newly measured raw packet. Convex operand previews use the real graph-derived fan algorithm with the native validator explicitly stubbed; they are not claimed as retained measured meshes. Changed-state meshes are mocked. The consumer adds **zero native model, validation or tessellation calls** to this verification campaign. Runtime projection still uses the real native tessellators.
+
+The documentation checker verifies static recipe/receipt provenance and all 22 prior download bytes, and offers source/emitted typechecks for eleven public examples/snippets. It never executes the examples or native geometry. The separate CPU/controller suites cover L-interior hits, the missing upper-right quadrant, complete provenance and atomic state behavior; their exact run results belong in the consumer receipt.
+
+**External visual gate OPEN:** actual editor browser/GPU pixels, React interaction and physical file-dialog acceptance remain **UNRUN** by these software checks. [#1647](https://github.com/barocss/barocss/issues/1647) keeps that gate open after software/Manual adoption; the prior hole gate [#1644](https://github.com/barocss/barocss/issues/1644) remains separate. Broader renderer [#1119](https://github.com/barocss/barocss/issues/1119) and roadmap [#534](https://github.com/barocss/barocss/issues/534), [#535](https://github.com/barocss/barocss/issues/535), [#551](https://github.com/barocss/barocss/issues/551) are not closed by CPU replay or Manual DOM readback. A bounded declaration-boundary editor build, exact-source Manual deployment and registry publication are separate outcomes; no new native or broad build campaign is implied.
 
 ## Intersect two extrusions into an overlap part
 
@@ -442,6 +452,7 @@ This loader accepts files from this modeling API. Existing versioned feature doc
 | Intersect | Two distinct same-model direct XY extrusions; positive-volume exact convex-planar overlap | Disjoint/touching-only results, same handle, cut-plus-intersection, repeated/nested intersection, union or general Boolean solids |
 | Split | A direct XY extrusion or one/two owned serial chamfers rooted at it; world `axis: 'x'`, `'y'` or `'z'`, or fixed `plane: 'x+y'`, with a finite coordinate/coordinate-sum; each selected side must be nonempty | Arbitrary oblique plane, empty requested side, mixed cut/intersection/split graph, repeated/nested split |
 | Hole | One direct origin-aligned rectangular extrusion with safe-integer width/depth/height, a strictly contained finite centre/radius and successful stored-rational qualification | Tangent/outside holes, nonrectangular or moved parents, repeated holes, mixed chamfer/split/cut/intersection; see the mounting-plate limits below |
+| Union | Two distinct same-model direct authored rectangular XY extrusions with integer corners/sizes; one connected positive-volume integer-cell result, including face joins | Edge-only contact, disconnected bodies, nesting, union edge queries or mixed finishing/Boolean/hole graphs; display additionally requires at most 64 complete panels |
 | Select | One exact cardinal-direction/endpoint-coordinate query on the same body | Zero/multiple matches, handles from another model/body, tolerance or persistent-topology matching |
 | Chamfer | Up to two serial owned cardinal-edge chamfers; second parent/selector from the first result; perpendicular signed-axis adjacent supports and supported endpoints; positive local setback | Sibling/third chamfer, stale selectors, curved or arbitrary-angle chamfer, zero/excessive/touching/nonlocal setback; unmeasured feature combinations |
 | Edit/load | Named finite-mm parameter batch or boolean suppression batch for existing named chamfers; admitted unchanged-prefix reuse on the exact snapshot, cold build/load, independent new snapshots | Partial accepted candidate, unknown/nonboolean flags, invalid suppressed operations, arbitrary graph editing, implicit migration or cached geometry acceptance |
@@ -450,12 +461,12 @@ A dimension being an ordinary integer is not enough to qualify an operation. The
 
 ### Initial resource bounds
 
-`CadModelLimits` exposes these implementation bounds; they are not public version families. All limits apply together, and native operations retain their own tighter geometric/work budgets. Only one cut, intersection or split may appear in the same graph. One hole may appear instead, without mixing any cut, intersection, split or chamfer.
+`CadModelLimits` exposes these implementation bounds; they are not public version families. All limits apply together, and native operations retain their own tighter geometric/work budgets. Only one cut, intersection or split may appear in the same graph. One hole or one connected union may appear instead, without mixing cut, intersection, split, chamfer or each other.
 
 | Resource | Maximum |
 | --- | ---: |
 | Authored operation nodes | 6 |
-| Sketches / extrusions / cuts / intersections / chamfers / splits / holes | 2 / 2 / 1 / 1 / 2 / 1 / 1 |
+| Sketches / extrusions / cuts / intersections / chamfers / splits / holes / unions | 2 / 2 / 1 / 1 / 2 / 1 / 1 / 1 |
 | Named parameters / outputs | 16 / 8 |
 | Polygon points | 8 |
 | Authored file UTF-8 bytes | 65536 (64 KiB) |

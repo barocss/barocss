@@ -1,5 +1,6 @@
-import { cad, tessellateConvexPlanarSolid, tessellateOwnPlateCircularHole } from '@barocss/cad';
+import { cad, tessellateConvexPlanarSolid, tessellateOwnPlateCircularHole, tessellateSurface } from '@barocss/cad';
 import type { CadModelSnapshot } from '@barocss/cad';
+import { preflightModelingUnion, projectModelingUnion } from './modeling-union.js';
 import { createPrismFeatureEngine } from './prism-feature-engine.js';
 import type { CadEditorPrismFeatureSummary } from './prism-feature-types.js';
 import type { PrismDisplayComponent } from './prism-feature-scene.js';
@@ -10,11 +11,11 @@ export interface CadEditorModelingSummary {
   parameters: Record<string, number>;
   suppression?: Record<string, boolean>;
   features: { kind: string; index: number; dependencies: number[]; name?: string; suppressed?: boolean }[];
-  outputs: { name: string; solidId: string; family?: 'convex-planar' | 'stored-rational-plate-hole'; volumeMM3: { numerator: string; denominator: string } | null }[];
+  outputs: { name: string; solidId: string; family?: 'convex-planar' | 'stored-rational-plate-hole' | 'orthogonal-cell'; volumeMM3: { numerator: string; denominator: string } | null }[];
 }
 export type CadEditorModelingSplitAxis = 'x' | 'y' | 'z';
 /** The split example ID is retained for compatibility; splitAxis defaults to Z. */
-export type CadEditorModelingExample = 'cut-chamfer' | 'intersection' | 'horizontal-split' | 'two-chamfer' | 'chamfer-split' | 'derived-split' | 'miter-split' | 'configurable-finishes' | 'mounting-plate';
+export type CadEditorModelingExample = 'cut-chamfer' | 'intersection' | 'horizontal-split' | 'two-chamfer' | 'chamfer-split' | 'derived-split' | 'miter-split' | 'configurable-finishes' | 'mounting-plate' | 'union-bracket';
 export type ModelingCommand = { id: number; taskToken?: string } & (
   { kind: 'example'; example?: CadEditorModelingExample; splitAxis?: CadEditorModelingSplitAxis } | { kind: 'open'; text: string; revision?: number }
   | { kind: 'apply'; expectedRevision: number; parameters: Record<string, number> }
@@ -56,6 +57,16 @@ export function createCadEditorMountingPlateModel(): CadModelSnapshot {
   const blank = model.sketch.rectangle({ width, height: depth }).extrude(height);
   const plate = blank.hole({ center: [centerX, centerY], radius });
   return model.build({ blank, plate });
+}
+
+/** Exact owned rectangular union recipe from the measured provider fixture. */
+export function createCadEditorUnionBracketModel(): CadModelSnapshot {
+  const model = cad.model(), legMinX = model.parameter('legMinX', -0), legMinY = model.parameter('legMinY', -0);
+  const legWidth = model.parameter('legWidth', 8), legHeight = model.parameter('legHeight', 8);
+  const base = model.sketch.rectangle({ width: 32, height: 8 }).extrude(8);
+  const leg = model.sketch.rectangle({ min: [legMinX, legMinY], max: [model.dimension.add(legMinX, legWidth), 24] }).extrude(legHeight);
+  const bracket = base.union(leg);
+  return model.build({ base, leg, bracket });
 }
 
 /** Named finishing operations keep exact result-owned selectors and a fixed X split. */
@@ -170,7 +181,7 @@ export function createModelingEngine() {
       if (!command || !Number.isSafeInteger(command.id) || command.id < 1) throw new Error('A current worker request is required.');
       if (command.taskToken !== undefined && (typeof command.taskToken !== 'string' || !/^[A-Za-z0-9_-]{1,48}$/.test(command.taskToken)))
         throw new Error('A bounded current display task token is required.');
-      if (command.kind === 'example' && command.example !== undefined && command.example !== 'cut-chamfer' && command.example !== 'intersection' && command.example !== 'horizontal-split' && command.example !== 'two-chamfer' && command.example !== 'chamfer-split' && command.example !== 'derived-split' && command.example !== 'miter-split' && command.example !== 'configurable-finishes' && command.example !== 'mounting-plate')
+      if (command.kind === 'example' && command.example !== undefined && command.example !== 'cut-chamfer' && command.example !== 'intersection' && command.example !== 'horizontal-split' && command.example !== 'two-chamfer' && command.example !== 'chamfer-split' && command.example !== 'derived-split' && command.example !== 'miter-split' && command.example !== 'configurable-finishes' && command.example !== 'mounting-plate' && command.example !== 'union-bracket')
         throw new Error('Choose an available modeling example.');
       if (command.kind === 'example' && command.splitAxis !== undefined
         && (command.example === 'chamfer-split' ? !['x', 'z'].includes(command.splitAxis)
@@ -211,6 +222,7 @@ export function createModelingEngine() {
       }
       if (source !== 'model') throw new Error('Open a saved model first.');
       const snapshot = command.kind === 'example' ? (command.example === 'intersection' ? createCadEditorIntersectionModel()
+        : command.example === 'union-bracket' ? createCadEditorUnionBracketModel()
         : command.example === 'mounting-plate' ? createCadEditorMountingPlateModel()
         : command.example === 'configurable-finishes' ? createCadEditorConfigurableFinishesModel()
         : command.example === 'miter-split' ? createCadEditorMiterModel()
@@ -229,21 +241,22 @@ export function createModelingEngine() {
         const body = snapshot.bodies[name];
         switch (body.family) {
           case 'convex-planar': case 'stored-rational-plate-hole': return [name, body] as const;
-          case 'orthogonal-cell': throw new Error('Orthogonal-cell union preview is not available. The previous accepted model remains open.');
+          case 'orthogonal-cell': preflightModelingUnion(body.native); return [name, body] as const;
           default: { const unsupported: never = body; throw new Error(`Unsupported model body family: ${String(unsupported)}`); }
         }
       });
-      const hasHole = outputs.some(([, body]) => body.family === 'stored-rational-plate-hole');
-      if (hasHole && !command.taskToken) throw new Error('A current display task token is required for native hole faces.');
+      const hasNativeFaces = outputs.some(([, body]) => body.family !== 'convex-planar');
+      if (hasNativeFaces && !command.taskToken) throw new Error('A current display task token is required for native model faces.');
       const summary: CadEditorModelingSummary = { documentId: 'cad_model', revision, source: 'model',
         parameters: { ...snapshot.parameters },
         ...(Object.keys(snapshot.suppression).length ? { suppression: { ...snapshot.suppression } } : {}),
         features: snapshot.features.map(f => ({ kind: f.kind, index: f.index, dependencies: [...f.dependencies],
           ...(f.name === undefined ? {} : { name: f.name, suppressed: f.suppressed }) })),
         outputs: outputs.map(([name, body]) => ({ name,
-          solidId: body.family === 'convex-planar' ? body.native.report.solidId : body.native.bundle.request.bodyId,
-          ...(hasHole ? { family: body.family } : {}),
-          volumeMM3: body.family === 'convex-planar' ? { ...body.native.certificate.volumeMM3 } : null })) };
+          solidId: body.family === 'convex-planar' ? body.native.report.solidId : body.family === 'orthogonal-cell' ? body.native.bodies[0].id : body.native.bundle.request.bodyId,
+          ...(hasNativeFaces ? { family: body.family } : {}),
+          volumeMM3: body.family === 'convex-planar' ? { ...body.native.certificate.volumeMM3 }
+            : body.family === 'orthogonal-cell' ? { numerator: String(body.native.report.volumeMM3), denominator: '1' } : null })) };
       const convex = (name: string, body: Extract<CadModelSnapshot['bodies'][string], { family: 'convex-planar' }>['native']): PrismDisplayComponent => {
         const { mesh, boundaries, internalDiagonals, report } = tessellateConvexPlanarSolid(body, { maximumFanTriangles: 40 });
         return { role: name, mesh, boundaries, internalDiagonals, report,
@@ -268,9 +281,12 @@ export function createModelingEngine() {
             loops: bundle.topology.loops.map(({ id, faceId, role, uses }) => ({ id, faceId, role,
               uses: uses.map(({ id, edgeId, sense, pcurve }) => ({ id, edgeId, sense, pcurveId: pcurve.curve.id, domain: pcurve.domain })) })) }) };
       };
-      const display: ModelingDisplayPacket = hasHole ? { profile: 'model-body-faces', documentId: summary.documentId, revision, taskToken: command.taskToken!,
+      const display: ModelingDisplayPacket = hasNativeFaces ? { profile: 'model-body-faces', documentId: summary.documentId, revision, taskToken: command.taskToken!,
         components: outputs.map(([name, body]) => body.family === 'convex-planar'
-          ? { family: 'convex-planar', component: convex(name, body.native) } : hole(name, body.native)),
+          ? { family: 'convex-planar', component: convex(name, body.native) }
+          : body.family === 'stored-rational-plate-hole' ? hole(name, body.native)
+            : projectModelingUnion(body.native, name, { documentId: summary.documentId, bodyId: body.native.bodies[0].id, documentRevision: String(revision),
+              kernelResultRevision: String(revision), topologyRevision: String(revision), taskToken: command.taskToken! }, tessellateSurface)),
         outcomes: summary.outputs.map(o => ({ role: o.name, solidId: o.solidId, family: o.family!, status: 'solid' })) }
         : { profile: 'model-outputs', documentId: summary.documentId, revision,
           components: outputs.map(([name, body]) => {

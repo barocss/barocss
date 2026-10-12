@@ -368,6 +368,7 @@ try {
     };
     const s = create(); p = s.open(real.text); instances.at(-1).send(wrap(real)); await p; assert.ok(s.getSnapshot().accepted); s.dispose(); legacyChecks++;
     for (const mutate of [r => { r.compatibility.document.nodes[5].kind = 'hole'; r.summary.features[5].kind = 'hole'; },
+      r => { r.compatibility.document.nodes[5].kind = 'union'; r.summary.features[5].kind = 'union'; },
       r => r.compatibility.document.nodes[5].reference.a.faceId = 'forged',
       r => r.compatibility.document.nodes[5].options.retainedSolidId = 'forged', r => r.compatibility.selectedWalls[0].segmentId = 'forged',
       r => r.compatibility.serial.resolution.originalPrismNodeId = 'forged']) {

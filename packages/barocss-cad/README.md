@@ -58,10 +58,14 @@ cannot mix with other Boolean/finishing features. Face contact is supported;
 edge-only or disconnected results refuse without changing the prior snapshot.
 Save/cold load and selective parameter edits use the existing API.
 
-The editor explicitly refuses this family's preview while preserving its
-accepted convex/hole model. Native CPU buffers do not establish visible
-rendering. See the [exact authoring contract](CONCISE_API.md#fuse-two-rectangular-extrusions)
-and [visible follow-up](https://github.com/barocss/barocss/issues/1119).
+The provider-only checkpoint refused this family's editor preview. The bounded
+editor software adapter in [#1647](https://github.com/barocss/barocss/issues/1647)
+now admits one connected union with at most 64 complete panels; the native
+provider's 72-panel limit remains separate. Native CPU buffers and adapted
+consumer replay do not establish visible rendering: the external browser/GPU
+and physical-file gate remains OPEN. See the
+[exact authoring contract](CONCISE_API.md#fuse-two-rectangular-extrusions)
+and [broader renderer follow-up](https://github.com/barocss/barocss/issues/1119).
 
 ## Editable overlap parts
 

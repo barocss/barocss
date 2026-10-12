@@ -29,7 +29,7 @@ let tessellations = 0, rejectTessellation = false, unsupportedNativeReads = 0, h
 function snapshot(data) {
   const native = { report: { solidId: 'current_solid' }, certificate: { volumeMM3: { numerator: '1', denominator: '1' } }, graph: { vertices: [], edges: [], faces: [], vertexLinks: [] } };
   const body = { family: 'convex-planar', native };
-  const unsupported = { family: data.union ? 'orthogonal-cell' : data.unknownFamily ? 'unknown-family' : 'stored-rational-plate-hole', get native() { unsupportedNativeReads++; throw new Error('Unsupported native payload must not be inspected'); } };
+  const unsupported = data.union ? {family:'orthogonal-cell',native:{panels:Array.from({length:65},()=>({}))}} : { family: data.unknownFamily ? 'unknown-family' : 'stored-rational-plate-hole', get native() { unsupportedNativeReads++; throw new Error('Unsupported native payload must not be inspected'); } };
   const result = { parameters: data.parameters, suppression:Object.fromEntries(data.nodes.filter(n=>n.name).map(n=>[n.name,n.suppressed])),
     withSuppression(values) { suppressionEdits.push({snapshot:result,values:structuredClone(values)}); if(data.parameters.backY===1) throw new Error('METRIC candidate refused'); return snapshot({...data,nodes:data.nodes.map(n=>n.name&&Object.hasOwn(values,n.name)?{...n,suppressed:values[n.name]}:n)}); },
     recomputation: Object.freeze({ reusedFeatures: Object.freeze([]), evaluatedFeatures: Object.freeze(data.nodes.map((_node, index) => index)) }),
@@ -63,7 +63,7 @@ const bundle = await require('esbuild').build({ entryPoints: [resolve(root, 'pac
     build.onResolve({ filter: /^@barocss\/cad$/ }, () => ({ path: 'cad', namespace: 'stub' }));
     build.onResolve({ filter: /^\.\/prism-feature-engine\.js$/ }, () => ({ path: 'legacy', namespace: 'stub' }));
     build.onLoad({ filter: /.*/, namespace: 'stub' }, args => ({ contents: args.path === 'cad'
-      ? 'export const {cad,tessellateConvexPlanarSolid,tessellateOwnPlateCircularHole}=globalThis.__modelingCad;'
+      ? 'export const {cad,tessellateConvexPlanarSolid,tessellateOwnPlateCircularHole}=globalThis.__modelingCad;export function tessellateSurface(){throw Error("No panel execution in this guard test");}'
       : 'export const createPrismFeatureEngine=globalThis.__modelingLegacy;' }));
   } }] });
 writeFileSync(resolve(output, 'engine.mjs'), bundle.outputFiles[0].text);
@@ -227,12 +227,12 @@ assert.equal(holeRecovered.ok,true,holeRecovered.message);assert.equal(snapshotE
 assert.equal(holeRecovered.summary.revision,1);assert.equal(holeRecovered.display.components[1].preview.mesh.context.taskToken,'recovered_mesh');checks++;
 const holeReopened=create()({id:++id,kind:'open',text:holeRecovered.text,revision:1,taskToken:'reopened_mesh'});
 assert.equal(holeReopened.ok,true);assert.deepEqual(holeReopened.summary,holeRecovered.summary);checks++;
-// Union authoring is supported by CAD, while its preview remains an explicit atomic refusal.
+// Oversized union display refuses all output tessellation before replacing accepted authority.
 for(const kind of ['convex','hole']) {
  const guarded=create(),baseline=kind==='hole'?guarded({id:++id,kind:'example',example:'mounting-plate',taskToken:'union_guard_hole'}):guarded({id:++id,kind:'open',text:JSON.stringify(document)});
  assert.equal(baseline.ok,true);const accepted=snapshots.at(-1),text=baseline.text,display=JSON.stringify(baseline.display),before=tessellations+holeTessellations;
  const refused=guarded({id:++id,kind:'open',text:JSON.stringify({...document,union:true}),taskToken:'union_refusal'});
- assert.equal(refused.ok,false);assert.match(refused.message,/Orthogonal-cell union preview is not available/);
+ assert.equal(refused.ok,false);assert.match(refused.message,/complete preview requires 1..64 panels/);
  assert.equal(unsupportedNativeReads,0);assert.equal(tessellations+holeTessellations,before);
  assert.equal(baseline.text,text);assert.equal(JSON.stringify(baseline.display),display);checks++;
  const recovered=guarded({id:++id,kind:'apply',expectedRevision:0,parameters:kind==='hole'?{radius:2.5}:{height:6},taskToken:'union_recovery'});

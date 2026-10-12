@@ -78,7 +78,7 @@ context/options. `classifyStoredPlateHoleSolidPoints` accepts the qualified nati
 result, query records and explicit options to query stored material. Preview sampling is not a new topology or volume proof.
 The editor has a qualified sampled-face adapter for this family, recorded in
 [#1644](https://github.com/barocss/barocss/issues/1644); actual browser/GPU acceptance
-is a separate gate. Union preview remains explicitly unavailable as described below.
+is a separate gate. The bounded union software adapter and its open visual gate are described below.
 
 ## Fuse two rectangular extrusions
 
@@ -131,14 +131,18 @@ identities are not claimed to survive. Every evaluated union rebuilds these box
 assets even if a convex parent feature was reused; recomputation indices do not
 measure total native savings.
 
-**Editor preview is unavailable for this family.** The editor refuses the full
-candidate inventory before reading union native summaries or tessellating any
-body, retaining its prior accepted convex/hole state. The existing
-`prepareAxisBoxBooleanBuffers` provides complete CPU data after a full native
-revalidation and one tessellation per panel; it is not an existing renderer
-input. Visible union integration remains [#1119](https://github.com/barocss/barocss/issues/1119),
-with coordinate, UV, picking/context and complete-panel admission work still
-required. Never truncate the native 72-panel bound to a preview's 64-chunk limit.
+**The provider-only checkpoint refused editor preview for this family.** The
+bounded editor software adapter in [#1647](https://github.com/barocss/barocss/issues/1647)
+now preflights every output and admits one connected union with at most 64
+complete generated panels before any output tessellation. It projects genuine
+raw native panel packets with one existing `[x,z,-y]` display conversion and
+retains generated source identity plus every contributing operand-face lineage.
+The existing `prepareAxisBoxBooleanBuffers` still provides separate CPU data
+after a full native revalidation and one tessellation per panel; retained helper
+buffers are adapted replay evidence, not an unchanged renderer input.
+The external browser/GPU/physical-file gate remains **OPEN**, and broader renderer
+work remains [#1119](https://github.com/barocss/barocss/issues/1119). Never truncate
+or merge the native 72-panel bound to evade the preview's 64-chunk limit.
 
 ## Keep dimensions related during edits
 

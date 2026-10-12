@@ -69,8 +69,9 @@ function sourceMatches(reply: Success, taskToken?: string) {
     if (data?.format !== 'barocss-cad-model' || data.schema !== 1 || data.units !== 'mm' || !same(data.parameters, summary.parameters)
       || !Array.isArray(data.nodes) || !same(data.nodes.map((n: { kind: string }) => n.kind), summary.features.map(f => f.kind))
       || !same(Object.keys(data.outputs), summary.outputs.map(o => o.name)) || reply.compatibility !== undefined) throw new Error('Saved model differs from native summary.');
-    if (Object.values(data.outputs as Record<string, { node: number }>).some(output => data.nodes[output.node]?.kind === 'hole')
-      && reply.display?.profile !== 'model-body-faces') throw new Error('Authored hole outputs require tagged body-face transport.');
+    if (Object.values(data.outputs as Record<string, { node: number }>).some(output => ['hole', 'union'].includes(data.nodes[output.node]?.kind))
+      && reply.display?.profile !== 'model-body-faces') throw new Error(Object.values(data.outputs as Record<string, { node: number }>).some(output => data.nodes[output.node]?.kind === 'hole')
+        ? 'Authored hole outputs require tagged body-face transport.' : 'Authored union outputs require tagged body-face transport.');
     const flags = authoredFinishes(data.nodes, summary.features);
     if (!same(flags, summary.suppression) || (flags === undefined && Object.hasOwn(summary, 'suppression')))
       throw new Error('Saved finishing configuration differs from native summary.');
@@ -79,7 +80,7 @@ function sourceMatches(reply: Success, taskToken?: string) {
       || data.id !== summary.documentId || data.revision !== summary.revision
       || !same(Object.fromEntries(data.parameters.map((p: { id: string; valueMM: number }) => [p.id, p.valueMM])), summary.parameters)
       || !same(data.nodes.map((n: { kind: string }) => n.kind), summary.features.map(f => f.kind))) throw new Error('Legacy source differs from native summary.');
-    if (data.nodes.some((node: { kind: string }) => node.kind === 'hole')) throw new Error('Legacy files cannot author model hole nodes.');
+    if (data.nodes.some((node: { kind: string }) => ['hole', 'union'].includes(node.kind))) throw new Error('Legacy files cannot author model hole or union nodes.');
     if (Object.hasOwn(summary, 'suppression') || summary.features.some(f => Object.hasOwn(f, 'name') || Object.hasOwn(f, 'suppressed')))
       throw new Error('Legacy summaries must omit finishing metadata.');
     const legacy = reply.compatibility;
@@ -102,9 +103,14 @@ function sourceMatches(reply: Success, taskToken?: string) {
       const node = data.nodes[data.outputs[output.name]?.node];
       if (output.family === 'stored-rational-plate-hole') {
         if (node?.kind !== 'hole' || output.volumeMM3 !== null) throw new Error('Hole outputs have no certified volume and must name an authored hole.');
+      } else if (output.family === 'orthogonal-cell') {
+        const volume = output.volumeMM3, component = reply.display.components.find(c => c.family === 'orthogonal-cell' && c.role === output.name);
+        if (node?.kind !== 'union' || !component || component.family !== 'orthogonal-cell' || !volume || Object.keys(volume).length !== 2
+          || volume.denominator !== '1' || volume.numerator !== String(component.qualification.volumeMM3))
+          throw new Error('Union output must retain its authored node and exact native integer volume.');
       } else {
         const volume = output.volumeMM3;
-        if (output.family !== 'convex-planar' || node?.kind === 'hole' || !volume || Object.keys(volume).length !== 2
+        if (output.family !== 'convex-planar' || ['hole', 'union'].includes(node?.kind) || !volume || Object.keys(volume).length !== 2
           || typeof volume.numerator !== 'string' || typeof volume.denominator !== 'string'
           || !/^[1-9][0-9]{0,255}$/.test(volume.numerator) || !/^[1-9][0-9]{0,255}$/.test(volume.denominator))
           throw new Error('The output family or certified volume differs from its authored native result.');
@@ -156,7 +162,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
   async function run(kind: 'open' | 'example' | 'apply' | 'suppression' | 'undo' | 'redo', text?: string, example?: CadEditorModelingExample, splitAxis?: CadEditorModelingSplitAxis, finishing?: Record<string, boolean>) {
     idle();
     if (kind === 'example') {
-      if (example !== undefined && !['cut-chamfer', 'intersection', 'horizontal-split', 'two-chamfer', 'chamfer-split', 'derived-split', 'miter-split', 'configurable-finishes', 'mounting-plate'].includes(example))
+      if (example !== undefined && !['cut-chamfer', 'intersection', 'horizontal-split', 'two-chamfer', 'chamfer-split', 'derived-split', 'miter-split', 'configurable-finishes', 'mounting-plate', 'union-bracket'].includes(example))
         throw new Error('Choose an available modeling example.');
       if (splitAxis !== undefined && (example === 'chamfer-split' ? !['x', 'z'].includes(splitAxis)
         : example !== 'horizontal-split' || !['x', 'y', 'z'].includes(splitAxis)))
@@ -217,7 +223,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
         Object.entries(parameters).map(([parameterId, valueMM]) => ({ parameterId, valueMM })),
       );
       const selectedOutput = reply.display.profile === 'model-body-faces'
-        ? replacing ? kind === 'example' && example === 'mounting-plate' ? 'plate' : undefined
+        ? replacing ? kind === 'example' && example === 'mounting-plate' ? 'plate' : kind === 'example' && example === 'union-bracket' ? 'bracket' : undefined
           : state.display && 'selectedOutput' in state.display ? state.display.selectedOutput : undefined
         : undefined;
       const display = prepareModelingScene(reply.display, aspect(), selectedOutput);

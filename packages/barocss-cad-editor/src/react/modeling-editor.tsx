@@ -44,12 +44,23 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
     && Object.keys(accepted.parameters).length === 1 && Object.hasOwn(accepted.parameters, 'cutPosition')
     && JSON.parse(snapshot?.authoredText ?? '{}').nodes?.at(-1)?.plane === 'x+y';
   const bodyView = snapshot?.display && 'selectedOutput' in snapshot.display ? snapshot.display : null;
+  const unionModel = accepted?.outputs.some(output => output.family === 'orthogonal-cell') ?? false;
+  const unionDrivers = unionModel && (() => {
+    const n = JSON.parse(snapshot?.authoredText ?? '{}').nodes;
+    return n?.length === 5 && n[0].kind === 'sketch' && n[0].profile === 'rectangle'
+      && JSON.stringify(n[0].min) === '[0,0]' && JSON.stringify(n[0].max) === '[32,8]'
+      && n[1].kind === 'extrude' && n[1].sketch === 0 && n[1].height === 8
+      && n[2].kind === 'sketch' && n[2].profile === 'rectangle' && n[2].min?.[0]?.parameter === 'legMinX' && n[2].min?.[1]?.parameter === 'legMinY'
+      && n[2].max?.[0]?.op === 'add' && n[2].max[0].left?.parameter === 'legMinX' && n[2].max[0].right?.parameter === 'legWidth' && n[2].max[1] === 24
+      && n[3].kind === 'extrude' && n[3].sketch === 2 && n[3].height?.parameter === 'legHeight'
+      && n[4].kind === 'union' && n[4].left?.node === 1 && n[4].right?.node === 3 && n[4].left.side === 'solid' && n[4].right.side === 'solid';
+  })();
   const holeModel = accepted?.outputs.some(output => output.family === 'stored-rational-plate-hole') ?? false;
   const configurableFinishes = accepted?.source === 'model' && accepted.suppression !== undefined
     && Object.keys(accepted.suppression).length === 2 && ['frontFinish', 'backFinish'].every(name => Object.hasOwn(accepted.suppression!, name))
     && accepted.features.filter(feature => feature.name !== undefined).every(feature => feature.kind === 'chamfer');
   return <section className="barocss-cad-editor" aria-label="CAD model editor" style={{ padding: 24, overflow: 'auto', height: '100%' }}>
-    <header><h1>Model a part</h1><p>Sketch → extrude → cut, intersect, split, chamfer or a qualified hole · named dimensions in mm</p></header>
+    <header><h1>Model a part</h1><p>Sketch → extrude → cut, intersect, split, chamfer union or a qualified hole · named dimensions in mm</p></header>
     <p role="status" aria-live="polite">{busy ? 'Computing native geometry in a dedicated worker… You can cancel.' : accepted ? draft ? 'Dimension changes pending' : 'Accepted model' : 'No accepted model'}</p>
     {(error || snapshot?.error) && <p role="alert">{error ?? snapshot?.error}</p>}
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -72,6 +83,7 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         <option value="derived-split">Keep a beveled split centered</option>
         <option value="miter-split">Split a 45° XY miter</option>
         <option value="configurable-finishes">Configure rail finishes</option>
+        <option value="union-bracket">Fuse an L-bracket</option>
         <option value="mounting-plate">Mounting plate with a through-hole</option>
       </select>
       {(example === 'horizontal-split' || example === 'chamfer-split') && <>
@@ -84,7 +96,9 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         </select>
         <p>Axis choice loads a new example after replacement acknowledgment; it does not edit the accepted part.</p>
       </>}
-      <p>{example === 'mounting-plate'
+      <p>{example === 'union-bracket'
+        ? 'Fuse two owned rectangular extrusions into one connected L-bracket. Edit the leg origin, width and height in integer millimetres. Base, leg and bracket remain saved; bracket is selected for this preset. Edge-only contact and disconnected material are refused.'
+        : example === 'mounting-plate'
         ? 'Create an 80 × 40 × 8 mm rectangular mounting plate with one qualified stored-rational through-hole. Radius and center coordinates are editable; both blank and plate remain saved outputs, with plate selected for display. Exact native qualification can refuse otherwise plausible dimensions.'
         : example === 'configurable-finishes'
         ? 'Give the two result-owned chamfers names, then switch their finishing states on the accepted rail. The fixed X split keeps negative and positive outputs. Disabled operations still validate their candidate geometry.'
@@ -127,8 +141,9 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
           {accepted.outputs.map(output => <option key={output.name} value={output.name}>{output.name} · {output.family}</option>)}
         </select>
         <p role="status">Visible: {bodyView.selectedOutput} · {accepted.outputs.find(output => output.name === bodyView.selectedOutput)?.family}. Other outputs are hidden, not removed.</p>
-        <p>Changing this view preserves saved outputs, pending dimensions and model history. Opening a file selects its last saved output; the mounting-plate example explicitly selects plate.</p>
+        <p>Changing this view preserves saved outputs, pending dimensions and model history. Opening a file selects its last saved output; the mounting-plate example selects plate and the union preset selects bracket. Reopen this union file, then choose bracket to view its fused result.</p>
       </fieldset>}
+      {unionModel && <p>The union has restricted integer-cell material and exact integer volume. Its complete source-qualified panel preview is limited to64 panels (the native provider permits72). Face picks identify generated panels and their contributing native operand faces; they do not preserve the original convex face IDs.</p>}
       {holeModel && <p>The plate has a qualified stored-rational genus-one boundary. Its seven-face preview is sampled and faceted; the preview itself retains uncertified geometry/topology flags. Certified volume is unavailable.</p>}
       {configurableFinishes && <fieldset disabled={busy || draft}>
         <legend>Rail finishes</legend>
@@ -144,7 +159,7 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
       {accepted.source === 'legacy' && <p>This file uses its original compatibility reader. Saving preserves its authored format and modeling semantics.</p>}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 24 }}>
         <div><h2>Named dimensions</h2>{Object.entries(accepted.parameters).map(([name, value]) => <div key={name} style={{ marginBottom: 16 }}>
-          <Label htmlFor={`${id}-${name}`}>{(chamferChain || configurableFinishes) && name === 'backY' ? 'backY · edge-selection Y coordinate' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'frontDistance' ? 'frontDistance · front bevel distance' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'backDistance' ? 'backDistance · back bevel distance' : chamferSplit && name === 'splitAt' ? 'splitAt · selected-axis split coordinate' : derivedSplit && name === 'width' ? 'width · rail X size' : derivedSplit && name === 'offset' ? 'offset · X displacement from center' : miterSplit && name === 'cutPosition' ? 'cutPosition · X + Y threshold' : name} (mm)</Label>
+          <Label htmlFor={`${id}-${name}`}>{unionDrivers && name === 'legMinX' ? 'legMinX · leg origin X' : unionDrivers && name === 'legMinY' ? 'legMinY · leg origin Y' : unionDrivers && name === 'legWidth' ? 'legWidth · leg X width' : unionDrivers && name === 'legHeight' ? 'legHeight · extrusion height' : (chamferChain || configurableFinishes) && name === 'backY' ? 'backY · edge-selection Y coordinate' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'frontDistance' ? 'frontDistance · front bevel distance' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'backDistance' ? 'backDistance · back bevel distance' : chamferSplit && name === 'splitAt' ? 'splitAt · selected-axis split coordinate' : derivedSplit && name === 'width' ? 'width · rail X size' : derivedSplit && name === 'offset' ? 'offset · X displacement from center' : miterSplit && name === 'cutPosition' ? 'cutPosition · X + Y threshold' : name} (mm)</Label>
           <Input id={`${id}-${name}`} disabled={busy} inputMode="decimal"
             value={Object.hasOwn(snapshot?.drafts ?? {}, name) ? snapshot!.drafts[name] : Object.is(value, -0) ? '-0' : String(value)}
             onChange={event => action(s => s.stage(name, event.target.value))}
@@ -159,7 +174,9 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
       <h2>Output bodies</h2><dl>{accepted.outputs.map(output => <div key={output.name}><dt>{output.name}</dt>
         <dd>{output.family === 'stored-rational-plate-hole' ? 'Certified volume unavailable' : output.volumeMM3 ? `${output.volumeMM3.numerator} / ${output.volumeMM3.denominator} mm³` : 'Empty'}</dd></div>)}</dl>
       {snapshot?.faceSelection && <details><summary>Selected {snapshot.faceSelection.role} face</summary>
-        {'reference' in snapshot.faceSelection
+        {'family' in snapshot.faceSelection && snapshot.faceSelection.family === 'orthogonal-cell'
+          ? <p>Native union body {snapshot.faceSelection.solidId}; generated panel {snapshot.faceSelection.provenance.id}; source {snapshot.faceSelection.provenance.query.sourceId}, model {snapshot.faceSelection.provenance.query.modelId}, surface {snapshot.faceSelection.provenance.query.surfaceId}. Contributing operand faces: {snapshot.faceSelection.provenance.lineage.map(link => `${link.operand}: ${link.sourceId}/${link.globalFaceId} (${link.localFaceId}, ${link.surfaceId})`).join('; ')}. This is an approximate triangle hit with copied native lineage.</p>
+          : 'reference' in snapshot.faceSelection
           ? <p>Native body {snapshot.faceSelection.solidId}; face {snapshot.faceSelection.reference.nativeFaceId}; surface {snapshot.faceSelection.provenance.nativeSurfaceId}. Loops: {snapshot.faceSelection.provenance.nativeLoopIds.join(', ')}. Edges: {snapshot.faceSelection.provenance.nativeEdgeIds.join(', ')}. This is an approximate sampled-triangle hit with original native face provenance, not a Solid certificate or a new BRep edge.</p>
           : <p>Native Solid {snapshot.faceSelection.solidId}; face {snapshot.faceSelection.face.sourceId}/{snapshot.faceSelection.face.faceId}. Fan diagonals are display-only, not BRep edges. Selection belongs to this accepted model.</p>}
       </details>}
