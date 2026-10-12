@@ -14,6 +14,7 @@ import type { ConvexPlanarSolidChamferResult, ConvexPlanarChamferUseReference } 
 import type { ConvexPlanarSolidResult, ConvexPlanarSolidGraph } from './convex-planar-solid.js';
 import { parseCadDocumentOwnJson, cadDocumentOwnUtf8Bytes } from './cad-document.js';
 import { signedJson } from './xy-affine-prism-feature-document-internal.js';
+import { modelingGraphKey as graphKey, modelingNodeParameters as nodeParameters, modelingReusablePrefix as reusablePrefix } from './modeling-regeneration-internal.js';
 
 export type CadModelErrorCode = 'INPUT' | 'PARAMETER' | 'OWNERSHIP' | 'CAPABILITY' | 'SELECTION' | 'FORMAT' | 'BUDGET' | 'NATIVE';
 export class CadModelError extends Error {
@@ -63,6 +64,8 @@ export interface CadModelSnapshot {
   readonly bodies: Readonly<Record<string, ConvexPlanarSolidResult>>;
   readonly parameters: Readonly<Record<string, number>>;
   readonly features: readonly CadModelFeature[];
+  /** Accepted model feature work only; native provider internals are not counted. Never saved. */
+  readonly recomputation: { readonly reusedFeatures: readonly number[]; readonly evaluatedFeatures: readonly number[] };
   /** Original kernel results. Diagnostic evidence, never a saved cache or editable input. */
   readonly evidence: readonly CadModelEvidence[];
   withParameters(edits: Readonly<Record<string, number>>): CadModelSnapshot;
@@ -77,6 +80,11 @@ type BodyRef = { node: number; side: 'solid' | 'negative' | 'positive' };
 type SketchNode = { kind: 'sketch'; profile: 'polygon'; points: [Dimension, Dimension][] } | { kind: 'sketch'; profile: 'rectangle'; min: [Dimension, Dimension]; max: [Dimension, Dimension] };
 type Node = SketchNode | { kind: 'extrude'; sketch: number; height: Dimension } | { kind: 'cut'; parent: BodyRef; tool: BodyRef; axis: 'x' | 'y' } | { kind: 'intersect'; left: BodyRef; right: BodyRef } | { kind: 'split'; parent: BodyRef; axis: CadAxis; at: Dimension } | { kind: 'chamfer'; parent: BodyRef; edge: Query; distance: Dimension };
 type Document = { format: 'barocss-cad-model'; schema: 1; units: 'mm'; parameters: Record<string, number>; nodes: Node[]; outputs: Record<string, BodyRef> };
+type EvaluatedValue = ConvexPlanarSolidResult | { negative?: ConvexPlanarSolidResult; positive?: ConvexPlanarSolidResult } | undefined;
+// Generated IDs/native options are fixed by this implementation authority plus the keyed graph.
+const evaluationAuthority = Object.freeze({});
+type EvaluationFrame = { readonly authority: object; readonly key: string; readonly document: Document; readonly evidence: CadModelEvidence[]; readonly values: EvaluatedValue[]; readonly parameterNames: readonly (readonly string[])[] };
+
 const dimensions = new WeakMap<CadParameter, { owner: object; name: string }>();
 const shapes = new WeakMap<CadShape, { owner: object; reference: BodyRef }>();
 const selections = new WeakMap<CadEdgeSelection, { owner: object; parent: BodyRef; query: Query }>();
@@ -249,8 +257,11 @@ function cardinalCutter(parent: ConvexPlanarSolidResult, axis: CadAxis, at: numb
   return { sourceId: prefix + '_cutter', source, sourceVersion: 0, model: compiled.model, surfaceId };
 }
 
-function evaluate(input: Document): CadModelSnapshot {
-  const document = admit(input), evidence: CadModelEvidence[] = [], values: (ConvexPlanarSolidResult | { negative?: ConvexPlanarSolidResult; positive?: ConvexPlanarSolidResult } | undefined)[] = [];
+function evaluate(input: Document, previous?: EvaluationFrame): CadModelSnapshot {
+  const document = admit(input), evidence: CadModelEvidence[] = [], values: EvaluatedValue[] = [];
+  const key = graphKey(document), reuseUntil = previous
+    ? reusablePrefix(previous.authority === evaluationAuthority, key, previous.key, document.parameters, previous.document.parameters, previous.parameterNames) : 0;
+  const recomputation: { reusedFeatures: number[]; evaluatedFeatures: number[] } = { reusedFeatures: [], evaluatedFeatures: [] };
   const number = (value: Dimension): number => typeof value === 'number' ? value : document.parameters[value.parameter];
   const solid = (ref: BodyRef): ConvexPlanarSolidResult => {
     const value = values[ref.node];
@@ -262,6 +273,10 @@ function evaluate(input: Document): CadModelSnapshot {
     demand(result, 'SELECTION', 'body', 'Selected cut side is empty; it cannot be a Solid output or operation parent'); return result;
   };
   for (const [index, node] of document.nodes.entries()) {
+    if (index < reuseUntil) {
+      evidence.push(previous!.evidence[index]); values.push(previous!.values[index]); recomputation.reusedFeatures.push(index); continue;
+    }
+    recomputation.evaluatedFeatures.push(index);
     const prefix = 'm' + index;
     try {
       if (node.kind === 'sketch') {
@@ -309,14 +324,20 @@ function evaluate(input: Document): CadModelSnapshot {
     } catch (cause) { if (cause instanceof CadModelError) throw cause; throw new CadModelError('NATIVE', node.kind, cause instanceof Error ? cause.message : 'Kernel refused operation', cause); }
   }
   const bodies = Object.fromEntries(Object.entries(document.outputs).map(([key, ref]) => [key, solid(ref)]));
-  freeze(document); freeze(evidence); freeze(bodies);
+  return makeSnapshot(document, key, evidence, values, bodies, recomputation);
+}
+
+// Separate closure construction prevents retaining the prior evaluation frame or discarded suffix.
+function makeSnapshot(document: Document, key: string, evidence: CadModelEvidence[], values: EvaluatedValue[], bodies: Record<string, ConvexPlanarSolidResult>, recomputation: CadModelSnapshot['recomputation']): CadModelSnapshot {
+  freeze(document); freeze(evidence); freeze(values); freeze(bodies); freeze(recomputation);
+  const frame: EvaluationFrame = Object.freeze({ authority: evaluationAuthority, key, document, evidence, values, parameterNames: Object.freeze(document.nodes.map(nodeParameters)) });
   const snapshot: CadModelSnapshot = {
-    bodies, parameters: document.parameters, evidence,
+    bodies, parameters: document.parameters, evidence, recomputation,
     features: freeze(document.nodes.map((n, index) => ({ kind: n.kind, index, dependencies: deps(n) }))),
     withParameters(edits: Readonly<Record<string, number>>): CadModelSnapshot {
       record(edits, 'parameters'); const candidate = copy(document);
       for (const [key, value] of Object.entries(edits)) { name(key, 'parameters'); demand(Object.hasOwn(candidate.parameters, key), 'PARAMETER', 'parameters', 'Unknown parameter: ' + key); length(value, 'parameters'); candidate.parameters[key] = value; }
-      return evaluate(candidate);
+      return evaluate(candidate, frame);
     },
     save(): string { const text = signedJson(document) + '\n'; demand(text.length <= CadModelLimits.fileBytes && cadDocumentOwnUtf8Bytes(text, 'JSON') <= CadModelLimits.fileBytes, 'BUDGET', 'save', 'Authored file exceeds 64 KiB'); return text; },
   };

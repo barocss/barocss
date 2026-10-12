@@ -1,0 +1,49 @@
+{
+  "status": "passed",
+  "modelCalls": 2,
+  "stages": [
+    {
+      "label": "emitted cold edited file",
+      "elapsedMS": 1235.0673379999998,
+      "recomputation": {
+        "reusedFeatures": [],
+        "evaluatedFeatures": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "label": "emitted second-distance re-edit",
+      "elapsedMS": 532.8473809999998,
+      "recomputation": {
+        "reusedFeatures": [
+          0,
+          1,
+          2
+        ],
+        "evaluatedFeatures": [
+          3
+        ]
+      }
+    }
+  ],
+  "entrySHA256": "7aa472e4a6295891906bbafba59571fc77926d8949bca793b29ba2e1911d546b",
+  "reopened": {
+    "originalMM3": 6144,
+    "firstRemovedMM3": 16,
+    "secondRemovedMM3": 144,
+    "finalMM3": 5984
+  },
+  "reedited": {
+    "originalMM3": 6144,
+    "firstRemovedMM3": 16,
+    "secondRemovedMM3": 64,
+    "finalMM3": 6064
+  },
+  "authoredInputSHA256": "d6fbe3300e84ed289798be1a26aeeb69d38609954a182967b6757393a7a9f84c",
+  "reopenedBodySHA256": "09c909812b0f516b42ac5e4aa3b9c81e5a69acc06f430e2f5bc812398ac945a4",
+  "reeditedBodySHA256": "05dd6aaa6ecc23ee956756cde9da5995ebd31001a0a38be3f54564fe81db4da1"
+}

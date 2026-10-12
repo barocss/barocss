@@ -45,3 +45,11 @@ const chainBlank = chainModel.sketch.rectangle({ width: 32, height: 24 }).extrud
 const front = chainBlank.chamfer(chainBlank.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one(), frontDistance);
 const finished = front.chamfer(front.edges({ parallelTo: 'x', at: { y: 24, z: 'max' } }).one(), backDistance);
 chainModel.build({ finished }).withParameters({ backDistance: 3 }).save();
+
+const reusedFeatureIndices: readonly number[] = reopened.recomputation.reusedFeatures;
+const evaluatedFeatureIndices: readonly number[] = reopened.recomputation.evaluatedFeatures;
+void reusedFeatureIndices; void evaluatedFeatureIndices;
+// @ts-expect-error Recompute diagnostics are immutable derived data.
+reopened.recomputation.reusedFeatures.push(0);
+// @ts-expect-error There is no caller-supplied reuse/cache parameter.
+reopened.withParameters({ width: 80 }, { evidence: [] });

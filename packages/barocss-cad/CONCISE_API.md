@@ -186,6 +186,28 @@ limits still apply; failed edits preserve earlier accepted snapshots and files.
 The two-step witness is a direct rectangular extrusion, not arbitrary edge
 chains or every possible split/intersection/chamfer combination.
 
+## Rebuild only the changed feature suffix
+
+`withParameters` reuses the unchanged leading features from that exact accepted
+snapshot. On the two-chamfer part, editing only the second distance reuses the
+sketch, extrusion and first chamfer. Editing the first distance rebuilds both
+chamfers; editing height starts at the extrusion; editing a profile coordinate
+starts at the sketch. This is conservative prefix reuse, not arbitrary graph
+scheduling or persistent topology naming.
+
+`snapshot.recomputation.reusedFeatures` and `evaluatedFeatures` list the model
+feature indices used for that accepted result. They do not count transitive
+native work, measure savings or promise latency. New builds and `cad.load` are
+always cold. A no-op or unused-parameter edit can reuse every feature; authored
+values still use exact `Object.is` comparison, including signed zero.
+
+Reuse is private to the accepted snapshot lineage and bound to its unchanged
+source/options graph and provider implementation. No JSON field, public evidence
+object or caller cache can supply it. Reused geometry is deeply frozen; each
+snapshot keeps independent authored state. A failed edit leaves the original
+snapshot and its future reuse available. Save files still contain authored
+intent only, never cached geometry or recomputation reports.
+
 ## Accepted snapshots and failures
 
 ```ts
@@ -254,7 +276,7 @@ Run the ordinary boundary/type tests after building the package:
 ```sh
 node scripts/tool.mjs type-check
 node scripts/tool.mjs build
-node --test test/modeling.test.mjs test/modeling-intersection.test.mjs test/modeling-split.test.mjs test/modeling-cardinal-split.test.mjs test/modeling-chamfer-chain.test.mjs test/public-api.test.mjs
+node --test test/modeling.test.mjs test/modeling-intersection.test.mjs test/modeling-split.test.mjs test/modeling-cardinal-split.test.mjs test/modeling-chamfer-chain.test.mjs test/modeling-regeneration.test.mjs test/modeling-regeneration-helpers.test.mjs test/public-api.test.mjs
 node test/public-api-types.mjs
 ```
 
@@ -318,3 +340,13 @@ node --no-opt --max-old-space-size=2048 scripts/modeling-chamfer-chain-consumer.
 ```
 
 See #1625 for the exact rectangular witness and measured source/emitted receipts.
+
+The bounded regeneration flow uses ten model calls and one baseline tessellation:
+
+```sh
+node --no-opt --max-old-space-size=2048 test/modeling-regeneration-native.mjs
+node --no-opt --max-old-space-size=2048 scripts/modeling-regeneration-consumer.mjs test/modeling-regeneration-evidence
+```
+
+The #1627 receipt distinguishes reused model features from actual provider work
+and verifies cold parity, snapshot independence and reuse after refusal.
