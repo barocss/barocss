@@ -10007,3 +10007,82 @@ Jacobian finite differences, known QR rank/solutions, underconstrained and
 redundant systems, incompatible dimensions, branch/degenerate/input capacity
 refusals, accessor/hostile-cause safety, complete-result tampering and preserved
 exact-affine1/3 refusal. Example angles explicitly convert degrees to radians.
+
+## Bounded convex planar solid qualification (#1589)
+
+`qualifyConvexPlanarSolid(assets, edgePairs, {solidId, resultIdPrefix})` qualifies
+one outward convex polyhedron from 4–12 complete original `ConvexPlanarFaceResult`
+assets. An asset is `{sourceId,face}`. Namespaces are unique; local geometry IDs
+may repeat across namespaces. Each whole facet has 3–8 native line edges. Explicit
+pairs `{a:{sourceId,useId},b:{sourceId,useId}}` cover every directed use exactly
+once with opposite whole-segment traversal. Limits: 64 uses, 32 pairs, 32 vertices.
+
+Output independently owns mutable CPU data: `request`, `graph`, `supports`,
+`certificate`, `report`. Original source/model/Surface/Face/loop/edge/use/pcurve/
+vertex data, actual domains/orientations and all child `solid:false` reports are
+retained unchanged. Only the new `exact-stored-affine-convex-polyhedron-v0`
+certificate establishes occupied solid status. Graph memberships and exact affine
+pair-parameter maps preserve lineage. IDs identify this evaluation, not persistent
+names across edits. Original `-0` bits are preserved; rational geometry equates
+both zeros without creating identity equivalence beyond explicit pairings.
+
+Each call reconstructs every full parent face once. Exact rational proofs establish
+regular affine supports and whole Curve=Surface(pcurve) using stored binary64
+coefficients. Existing Face validation permits 1e-7 residuals: any nonexact stored
+lift is rejected here, even if that parent validation passes. No snapping, welding,
+repair or mesh authority. Ordinary oblique numerical-sketch (#1588) output is not
+automatically eligible; arbitrary numerical-sketch extrusion remains unsupported.
+
+Qualification requires connected opposite-use incidence, one oriented cycle per
+vertex link, strict all-edge facet convexity, affine vertex rank 3, every vertex
+on/behind each outward support, and every coplanar vertex in its complete facet.
+Duplicate supports and unpaired coincident vertex classes refuse. Together with
+positive signed fan volume and a strict interior witness, these establish the
+complete convex-hull boundary. Volume/witness/support coefficients are exact
+reduced numerator/denominator decimal strings. Holes, cavities, curved/nonconvex
+solids, partial-edge joins, coplanar facet subdivisions, general Boolean and
+chamfer operations are outside this API.
+
+`validateConvexPlanarSolid(result)` compares a complete reconstruction and returns
+the report: self-consistency, not provenance/authenticity.
+`classifyConvexPlanarSolidPoints(result, points, {maximumHalfspacePredicates})`
+accepts up to 64 finite XYZ millimetre points and an integer ceiling 1–768. It
+reconstructs once per batch, then uses exact supporting halfspaces. Boundary
+results retain all source-qualified incident faces at edges/corners. Outside
+points have no incident faces; exact counters include reconstruction and queries.
+
+One unchanged request-local rational context enforces 200000 operations, 200000 GCD
+steps and 8192-bit integers, including queries. Root ceilings: 384 global support
+predicates, 64 whole-edge coefficient proofs, 40 fan triangles. Child counts are
+separate: at most 12 parent reconstructions/source compilations, 192 binding
+observations and 576 native D1 calls; no retries. These count direct calls and known
+provider loops, not opaque internals. Ceilings define an admitted subset, not a
+promise every geometrically valid polyhedron or query fits.
+
+Before native calls, descriptor-only snapshots reject getters, symbols, hidden,
+sparse, cyclic or foreign data and charge aliases per occurrence. Input caps:
+524288 values/depth 24/8 MiB serialized UTF8; result: 786432 values/depth 32/16 MiB.
+Containers: 4096 array elements/64 record fields; keys 128 and strings 262144 UTF16 code
+units. Aggregate key/string characters: 4 Mi input/8 Mi result. Per-call cumulative
+processed snapshot charge 48 MiB; conservative sum of produced owned input/result/
+report snapshot charge 32 MiB. Reconstruction inspects its already-owned request
+without duplicate allocation. These are deterministic JSON-data charges, not V8
+heap measurements. Failure is atomic; previous caller data remains unchanged.
+`ConvexPlanarSolidError.code` diagnoses bounded refusals and preserves native causes.
+
+Pinned Node22 example, source before own build, then emitted and separate PID cold:
+
+```
+node examples/cad-nurbs/convex-planar-solid-demo.mjs --source /tmp/convex-solid
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/convex-planar-solid-demo.mjs --emitted /tmp/convex-solid
+node examples/cad-nurbs/convex-planar-solid-demo.mjs --cold /tmp/convex-solid
+```
+
+The 40×20×10 mm block clipped by y+z≤26 has 7 genuine faces, including 2 pentagons and
+a sloped facet, V10/E15/F7, 7680 mm³. A modeled bevel depth 4→2 edit gives 7920 mm³.
+This qualifies a modeled bevel, not a general chamfer feature. The example uses
+symbolic authoring vertex labels for explicit pairings, never coordinate-hash
+identity. Invalid topology, nonexact lifts and forged data preserve the previous
+result. GPU/browser presentation, packed interop #801 and broader integration
+verification remain separate.
