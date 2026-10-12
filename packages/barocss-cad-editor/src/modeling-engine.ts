@@ -1,26 +1,27 @@
-import { cad, tessellateConvexPlanarSolid } from '@barocss/cad';
+import { cad, tessellateConvexPlanarSolid, tessellateOwnPlateCircularHole } from '@barocss/cad';
 import type { CadModelSnapshot } from '@barocss/cad';
 import { createPrismFeatureEngine } from './prism-feature-engine.js';
 import type { CadEditorPrismFeatureSummary } from './prism-feature-types.js';
-import type { PrismDisplayPacket } from './prism-feature-scene.js';
+import type { PrismDisplayComponent } from './prism-feature-scene.js';
+import type { ModelingDisplayPacket, ModelingHoleDisplayComponent } from './modeling-scene.js';
 
 export interface CadEditorModelingSummary {
   documentId: string; revision: number; source: 'model' | 'legacy';
   parameters: Record<string, number>;
   suppression?: Record<string, boolean>;
   features: { kind: string; index: number; dependencies: number[]; name?: string; suppressed?: boolean }[];
-  outputs: { name: string; solidId: string; volumeMM3: { numerator: string; denominator: string } | null }[];
+  outputs: { name: string; solidId: string; family?: 'convex-planar' | 'stored-rational-plate-hole'; volumeMM3: { numerator: string; denominator: string } | null }[];
 }
 export type CadEditorModelingSplitAxis = 'x' | 'y' | 'z';
 /** The split example ID is retained for compatibility; splitAxis defaults to Z. */
-export type CadEditorModelingExample = 'cut-chamfer' | 'intersection' | 'horizontal-split' | 'two-chamfer' | 'chamfer-split' | 'derived-split' | 'miter-split' | 'configurable-finishes';
-export type ModelingCommand = { id: number } & (
+export type CadEditorModelingExample = 'cut-chamfer' | 'intersection' | 'horizontal-split' | 'two-chamfer' | 'chamfer-split' | 'derived-split' | 'miter-split' | 'configurable-finishes' | 'mounting-plate';
+export type ModelingCommand = { id: number; taskToken?: string } & (
   { kind: 'example'; example?: CadEditorModelingExample; splitAxis?: CadEditorModelingSplitAxis } | { kind: 'open'; text: string; revision?: number }
   | { kind: 'apply'; expectedRevision: number; parameters: Record<string, number> }
   | { kind: 'suppression'; expectedRevision: number; suppression: Record<string, boolean> }
 );
 export type ModelingReply = { id: number } & (
-  { ok: true; text: string; summary: CadEditorModelingSummary; display: PrismDisplayPacket; compatibility?: CadEditorPrismFeatureSummary }
+  { ok: true; text: string; summary: CadEditorModelingSummary; display: ModelingDisplayPacket; compatibility?: CadEditorPrismFeatureSummary }
   | { ok: false; message: string }
 );
 
@@ -45,6 +46,16 @@ export function createCadEditorChamferChainModel(): CadModelSnapshot {
   const front = blank.chamfer(blank.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one(), frontDistance);
   const part = front.chamfer(front.edges({ parallelTo: 'x', at: { y: backY, z: 'max' } }).one(), backDistance);
   return model.build({ part });
+}
+
+/** The same qualified mounting-plate recipe as the measured primary provider fixture. */
+export function createCadEditorMountingPlateModel(): CadModelSnapshot {
+  const model = cad.model();
+  const width = model.parameter('width', 80), depth = model.parameter('depth', 40), height = model.parameter('height', 8);
+  const centerX = model.parameter('centerX', 40), centerY = model.parameter('centerY', 20), radius = model.parameter('radius', 5);
+  const blank = model.sketch.rectangle({ width, height: depth }).extrude(height);
+  const plate = blank.hole({ center: [centerX, centerY], radius });
+  return model.build({ blank, plate });
 }
 
 /** Named finishing operations keep exact result-owned selectors and a fixed X split. */
@@ -157,7 +168,9 @@ export function createModelingEngine() {
   return (command: ModelingCommand): ModelingReply => {
     try {
       if (!command || !Number.isSafeInteger(command.id) || command.id < 1) throw new Error('A current worker request is required.');
-      if (command.kind === 'example' && command.example !== undefined && command.example !== 'cut-chamfer' && command.example !== 'intersection' && command.example !== 'horizontal-split' && command.example !== 'two-chamfer' && command.example !== 'chamfer-split' && command.example !== 'derived-split' && command.example !== 'miter-split' && command.example !== 'configurable-finishes')
+      if (command.taskToken !== undefined && (typeof command.taskToken !== 'string' || !/^[A-Za-z0-9_-]{1,48}$/.test(command.taskToken)))
+        throw new Error('A bounded current display task token is required.');
+      if (command.kind === 'example' && command.example !== undefined && command.example !== 'cut-chamfer' && command.example !== 'intersection' && command.example !== 'horizontal-split' && command.example !== 'two-chamfer' && command.example !== 'chamfer-split' && command.example !== 'derived-split' && command.example !== 'miter-split' && command.example !== 'configurable-finishes' && command.example !== 'mounting-plate')
         throw new Error('Choose an available modeling example.');
       if (command.kind === 'example' && command.splitAxis !== undefined
         && (command.example === 'chamfer-split' ? !['x', 'z'].includes(command.splitAxis)
@@ -198,6 +211,7 @@ export function createModelingEngine() {
       }
       if (source !== 'model') throw new Error('Open a saved model first.');
       const snapshot = command.kind === 'example' ? (command.example === 'intersection' ? createCadEditorIntersectionModel()
+        : command.example === 'mounting-plate' ? createCadEditorMountingPlateModel()
         : command.example === 'configurable-finishes' ? createCadEditorConfigurableFinishesModel()
         : command.example === 'miter-split' ? createCadEditorMiterModel()
         : command.example === 'derived-split' ? createCadEditorDerivedSplitModel()
@@ -214,27 +228,54 @@ export function createModelingEngine() {
       const outputs = Object.keys(JSON.parse(text).outputs).map(name => {
         const body = snapshot.bodies[name];
         switch (body.family) {
-          case 'convex-planar': return [name, body.native] as const;
-          case 'stored-rational-plate-hole': throw new Error('Stored-rational plate-hole preview is not supported by this editor yet.');
+          case 'convex-planar': case 'stored-rational-plate-hole': return [name, body] as const;
           default: { const unsupported: never = body; throw new Error(`Unsupported model body family: ${String(unsupported)}`); }
         }
       });
+      const hasHole = outputs.some(([, body]) => body.family === 'stored-rational-plate-hole');
+      if (hasHole && !command.taskToken) throw new Error('A current display task token is required for native hole faces.');
       const summary: CadEditorModelingSummary = { documentId: 'cad_model', revision, source: 'model',
         parameters: { ...snapshot.parameters },
         ...(Object.keys(snapshot.suppression).length ? { suppression: { ...snapshot.suppression } } : {}),
         features: snapshot.features.map(f => ({ kind: f.kind, index: f.index, dependencies: [...f.dependencies],
           ...(f.name === undefined ? {} : { name: f.name, suppressed: f.suppressed }) })),
-        outputs: outputs.map(([name, body]) => ({ name, solidId: body.report.solidId,
-          volumeMM3: { ...body.certificate.volumeMM3 } })) };
-      const display: PrismDisplayPacket = { profile: 'model-outputs', documentId: summary.documentId, revision,
-        components: outputs.map(([name, body]) => {
-          const { mesh, boundaries, internalDiagonals, report } = tessellateConvexPlanarSolid(body, { maximumFanTriangles: 40 });
-          return { role: name, mesh, boundaries, internalDiagonals, report,
-            lineage: { kind: 'model-output', name, solidId: body.report.solidId,
-              graph: structuredClone({ vertices: body.graph.vertices, faces: body.graph.faces,
-                edges: body.graph.edges.map(({ id, vertexIds, uses }) => ({ id, vertexIds, uses })) }) } };
-        }),
-        outcomes: summary.outputs.map(o => ({ role: o.name, solidId: o.solidId, status: 'solid' })) };
+        outputs: outputs.map(([name, body]) => ({ name,
+          solidId: body.family === 'convex-planar' ? body.native.report.solidId : body.native.bundle.request.bodyId,
+          ...(hasHole ? { family: body.family } : {}),
+          volumeMM3: body.family === 'convex-planar' ? { ...body.native.certificate.volumeMM3 } : null })) };
+      const convex = (name: string, body: Extract<CadModelSnapshot['bodies'][string], { family: 'convex-planar' }>['native']): PrismDisplayComponent => {
+        const { mesh, boundaries, internalDiagonals, report } = tessellateConvexPlanarSolid(body, { maximumFanTriangles: 40 });
+        return { role: name, mesh, boundaries, internalDiagonals, report,
+          lineage: { kind: 'model-output', name, solidId: body.report.solidId,
+            graph: structuredClone({ vertices: body.graph.vertices, faces: body.graph.faces,
+              edges: body.graph.edges.map(({ id, vertexIds, uses }) => ({ id, vertexIds, uses })) }) } };
+      };
+      const hole = (name: string, body: Extract<CadModelSnapshot['bodies'][string], { family: 'stored-rational-plate-hole' }>['native']): ModelingHoleDisplayComponent => {
+        const { bundle, certificate } = body;
+        const context = { documentId: summary.documentId, bodyId: bundle.request.bodyId, documentRevision: String(revision),
+          kernelResultRevision: String(revision), topologyRevision: String(revision), taskToken: command.taskToken! };
+        const preview = tessellateOwnPlateCircularHole(bundle, { context, segmentsPerQuarter: 4 });
+        const { kind, version, lengthUnit, geometryAuthority, solid, topologyCertified, embeddedStoredGeometryCertified,
+          materialComponentCount, genus, faceCount, vertexCount, edgeCount, loopCount, edgeUseCount, weightedEuler } = certificate;
+        return { family: 'stored-rational-plate-hole', role: name, solidId: bundle.request.bodyId, preview,
+          qualification: { kind, version, lengthUnit, geometryAuthority, solid, topologyCertified, embeddedStoredGeometryCertified,
+            materialComponentCount, genus, faceCount, vertexCount, edgeCount, loopCount, edgeUseCount, weightedEuler },
+          lineage: structuredClone({ bodyId: bundle.request.bodyId,
+            faces: bundle.faces.map(({ id, role, surface, orientation, outerLoopId, innerLoopIds }) => ({ id, role, surfaceId: surface.id, orientation, outerLoopId, innerLoopIds })),
+            vertices: bundle.topology.vertices,
+            edges: bundle.topology.edges.map(({ id, curve, vertexIds, sourceParameterRange }) => ({ id, curveId: curve.id, vertexIds, sourceParameterRange })),
+            loops: bundle.topology.loops.map(({ id, faceId, role, uses }) => ({ id, faceId, role,
+              uses: uses.map(({ id, edgeId, sense, pcurve }) => ({ id, edgeId, sense, pcurveId: pcurve.curve.id, domain: pcurve.domain })) })) }) };
+      };
+      const display: ModelingDisplayPacket = hasHole ? { profile: 'model-body-faces', documentId: summary.documentId, revision, taskToken: command.taskToken!,
+        components: outputs.map(([name, body]) => body.family === 'convex-planar'
+          ? { family: 'convex-planar', component: convex(name, body.native) } : hole(name, body.native)),
+        outcomes: summary.outputs.map(o => ({ role: o.name, solidId: o.solidId, family: o.family!, status: 'solid' })) }
+        : { profile: 'model-outputs', documentId: summary.documentId, revision,
+          components: outputs.map(([name, body]) => {
+            if (body.family !== 'convex-planar') throw new Error('A complete narrowed convex inventory is required.');
+            return convex(name, body.native);
+          }), outcomes: summary.outputs.map(o => ({ role: o.name, solidId: o.solidId, status: 'solid' })) };
       if (JSON.stringify(display).length > 2 * 1024 * 1024) throw new Error('Model display exceeds 2 MiB.');
       accepted = { source: 'model', snapshot, revision };
       return { id: command.id, ok: true, text, summary, display };

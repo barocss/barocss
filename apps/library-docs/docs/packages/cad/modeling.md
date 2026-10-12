@@ -381,6 +381,7 @@ This loader accepts files from this modeling API. Existing versioned feature doc
 | Cut | Two distinct direct XY extrusions; X or Y through-slab supports; full coverage by the remaining tool supports | Arbitrary cutter, cavity, union, chained cut parent, failed tool coverage |
 | Intersect | Two distinct same-model direct XY extrusions; positive-volume exact convex-planar overlap | Disjoint/touching-only results, same handle, cut-plus-intersection, repeated/nested intersection, union or general Boolean solids |
 | Split | A direct XY extrusion or one/two owned serial chamfers rooted at it; world `axis: 'x'`, `'y'` or `'z'`, or fixed `plane: 'x+y'`, with a finite coordinate/coordinate-sum; each selected side must be nonempty | Arbitrary oblique plane, empty requested side, mixed cut/intersection/split graph, repeated/nested split |
+| Hole | One direct origin-aligned rectangular extrusion with safe-integer width/depth/height, a strictly contained finite centre/radius and successful stored-rational qualification | Tangent/outside holes, nonrectangular or moved parents, repeated holes, mixed chamfer/split/cut/intersection; see the mounting-plate limits below |
 | Select | One exact cardinal-direction/endpoint-coordinate query on the same body | Zero/multiple matches, handles from another model/body, tolerance or persistent-topology matching |
 | Chamfer | Up to two serial owned cardinal-edge chamfers; second parent/selector from the first result; perpendicular signed-axis adjacent supports and supported endpoints; positive local setback | Sibling/third chamfer, stale selectors, curved or arbitrary-angle chamfer, zero/excessive/touching/nonlocal setback; unmeasured feature combinations |
 | Edit/load | Named finite-mm parameter batch or boolean suppression batch for existing named chamfers; admitted unchanged-prefix reuse on the exact snapshot, cold build/load, independent new snapshots | Partial accepted candidate, unknown/nonboolean flags, invalid suppressed operations, arbitrary graph editing, implicit migration or cached geometry acceptance |
@@ -389,12 +390,12 @@ A dimension being an ordinary integer is not enough to qualify an operation. The
 
 ### Initial resource bounds
 
-`CadModelLimits` exposes these implementation bounds; they are not public version families. All limits apply together, and native operations retain their own tighter geometric/work budgets. Only one cut, intersection or split may appear in the same graph.
+`CadModelLimits` exposes these implementation bounds; they are not public version families. All limits apply together, and native operations retain their own tighter geometric/work budgets. Only one cut, intersection or split may appear in the same graph. One hole may appear instead, without mixing any cut, intersection, split or chamfer.
 
 | Resource | Maximum |
 | --- | ---: |
 | Authored operation nodes | 6 |
-| Sketches / extrusions / cuts / intersections / chamfers / splits | 2 / 2 / 1 / 1 / 2 / 1 |
+| Sketches / extrusions / cuts / intersections / chamfers / splits / holes | 2 / 2 / 1 / 1 / 2 / 1 / 1 |
 | Named parameters / outputs | 16 / 8 |
 | Polygon points | 8 |
 | Authored file UTF-8 bytes | 65536 (64 KiB) |
@@ -438,27 +439,57 @@ The independent [editor adoption #1612](https://github.com/barocss/barocss/issue
 import { withBase } from 'vitepress'
 </script>
 
-## Qualified mounting-plate through-hole API
+## Mounting plate with a through-hole
 
-The primary API also admits `blank.hole({center:[40,20],radius:5})` on a direct
-80 × 40 × 8 mm origin-aligned rectangular extrusion. Centre and radius may use
-owned parameters or derived dimensions, so the same accepted snapshot supports
-parameter edits, authored Save/Open and selective prefix reuse.
+<a :href="withBase('/examples/modeling-hole.ts')" download>Download the complete typed mounting-plate example</a>
 
-All `snapshot.bodies[name]` values use a single `{family,native}` contract.
-Existing part recipes produce `convex-planar` outputs; a qualified hole produces
-`stored-rational-plate-hole`. Narrow the family before inspecting or adapting
-its native result. No output is omitted, and native identity is preserved.
+Choose **Mounting plate with a through-hole** (`mounting-plate`) in the existing modeling editor picker. This is the exact producer `mountingPlate` fixture: an 80 × 40 × 8 mm origin-aligned plate with a 5 mm radius through-hole centred at `[40,20]`. All six values are named numeric parameters. The sketch's `height: depth` is its Y size; `extrude(height)` is the solid's Z thickness.
 
-The hole certificate describes the actual stored rational boundary and genus-one
-Solid. Its original uncertified parent report and analytic reference quantities
-remain diagnostic data; there is no certified ideal-cylinder volume. The
-matching native preview is sampled from the seven real faces, including both
-cap openings and the cavity wall. Integer plate sizes, strict clearance and exact
-stored-UV qualification restrict admission; tangent holes and some dimensions
-can genuinely refuse while preserving the previous accepted snapshot.
+<<< ../../public/examples/modeling-hole.ts#mounting-plate
 
-This first authoring slice permits one direct rectangular hole within six nodes,
-without mixing convex finishing operations. The current editor rejects hole
-outputs before replacing its accepted scene/history. Visible rendering and
-editing are tracked in [the dedicated consumer issue](https://github.com/barocss/barocss/issues/1644).
+The three authored nodes are sketch → extrude → hole. `blank.hole({ center, radius })` is owned by that direct rectangular extrusion. `build({ blank, plate })` preserves both outputs; hiding the blank does not remove it from the authored recipe or accepted summary. Importing the download does not evaluate or tessellate a model; call the exported functions when native work is intended.
+
+### Read the two native families separately
+
+All `snapshot.bodies[name]` values are frozen `{family,native}` wrappers. `blank` is `convex-planar`, with exact certified volume **25600 mm³**. `plate` is `stored-rational-plate-hole`; narrow its family before inspecting its unchanged native result.
+
+<<< ../../public/examples/modeling-hole.ts#qualified-hole-output
+
+The stored-rational qualification certifies one material component and a genus-one boundary: 7 faces, 10 native vertices, 15 edges, 9 loops and 30 directed edge uses. Its geometry authority is the stored-coefficient mathematical model. **Certified volume unavailable** is the hole's volume state (`volumeMM3:null` in the editor), distinct from legacy **Empty** and numeric zero. No certified ideal-cylinder/pi volume exists; analytic reference quantities in the original parent report are diagnostics, not certified mass.
+
+The separately sampled native preview has **7 faces, 256 display vertices and 128 triangles**, using `segmentsPerQuarter:4`. Each cap keeps its two original loops and 20 annular panels; the cavity wall has 20 panels and inward normals. Its report remains `solid:false` and `topologyCertified:false`, even though the separate stored-rational native qualification certifies a Solid. Display vertices are not native topology vertices. The renderer uses genuine UVs, index ranges, original winding and native normals; it does not fill the cap aperture, invent convex fan diagonals or repair normals.
+
+Face selection is approximate sampled-display selection. It reports the actual native face, surface, original loops and directed edge-use provenance. It does not turn a sampled hit into an exact material classifier result or a manufacturing certificate.
+
+### Edit, refuse and recover on the accepted snapshot
+
+<<< ../../public/examples/modeling-hole.ts#refused-hole
+<<< ../../public/examples/modeling-hole.ts#edit-hole
+
+The measured sequence first changes `radius:5` to `2.5`. A subsequent `width:81` candidate genuinely refuses with `CadModelError.code: NATIVE`, operation `hole`, and a `StoredPlateHoleSolidError` cause with code `GEOMETRY`: exact whole-curve stored-pole chart composition could not be qualified. The original accepted narrow snapshot remains usable. Applying `centerX:32.5, centerY:18.75` to the same accepted narrow snapshot succeeds. From this off-centre state, `radius:18.75` touches the plate boundary and refuses strict containment; the accepted geometry and saved text survive. A same-value API edit preserves the native wrapper/payload identity. The editor filters unchanged numeric drafts before sending a Worker request.
+
+Exact clearances and all six material-classifier outcomes are recorded in the [frozen provider receipt](https://github.com/barocss/barocss/blob/0c7d6f2ff1d0df713aef483d9dda6bd1bf3ab34a/packages/barocss-cad/test/modeling-hole-evidence/verification.json). The successful radius/centre edits reuse model feature indices 0 and 1 and evaluate hole feature 2; this reports model-feature work only, not total native work or a timing/savings guarantee.
+
+### Choose an output without changing the model
+
+New mixed-family packets show one selected output ID and family. The mounting-plate preset explicitly selects `plate`; generic Open chooses the **last entry in the validated saved output inventory**, without guessing from names. Existing all-convex and legacy packets retain their show-all behavior. Every output is admitted before visibility is chosen, including hidden outputs.
+
+Changing the output stages and atomically swaps only the display. Authored source, every saved output, accepted numeric data, model revision, Undo/Redo history and pending numeric drafts stay unchanged. Choosing the current output is a no-op. Edits, Undo/Redo and Worker reconstruction retain the chosen output when it still exists. A successful display swap clears stale face selection; failed, cancelled or stale display preparation preserves the accepted scene, selection and drafts. Existing replacement acknowledgement and Apply/Discard rules still apply to model changes.
+
+Native admission and renderer admission have different bounds. The display preserves **1 scene unit = 1 mm**, with the existing ±1000 scene-coordinate, camera and normal limits. A natively valid larger or unsuitable shape may refuse display and leave the last accepted scene intact. There is no automatic rescaling or replacement renderer.
+
+### Save authored intent, reopen and re-edit
+
+<<< ../../public/examples/modeling-hole.ts#save-reopen-hole
+
+The saved schema1 graph contains the `hole` operation, its numeric drivers and both named outputs. It contains no native IDs, native bodies, certificates or mesh cache. `cad.load(saved)` evaluates cold; after reopening the accepted off-centre state, changing radius from `2.5` back to `5` was measured successfully. Neither `save()` nor `cad.load()` performs filesystem I/O or opens a file dialog. Output visibility is a display choice and does not rewrite this saved recipe.
+
+### Through-hole limits and evidence boundary
+
+This first slice admits one hole on a **direct origin-aligned rectangle extrusion**. Width, depth and height must be safe integers from 1 to 10000 mm; centre and radius must be finite, strictly contained and qualified by the provider's represented-geometry and exact stored-UV rules. Parameter and owned derived-dimension handles are allowed. Merely staying below the numeric limits, using an integer, or appearing visually contained does not guarantee qualification. Tangent/outside holes, moved/nonrectangular parents, repeated holes, hole edge selection and mixed chamfer/split/cut/intersection graphs refuse. The existing six-node graph budget still applies.
+
+The [adopted #1643 provider](https://github.com/barocss/barocss/issues/1643) is pinned at `0c7d6f2ff1d0df713aef483d9dda6bd1bf3ab34a`; its independently accepted candidate is `76f47a90609bbc998318f64eb1bea2ecd5a35336`, with tested product `81f5d206d9cb02fc4bced496b64e7de0154f1f98`. Its first campaign passed **9 model calls, 2 tessellations and 1 six-query material classification in 2.571 seconds**. This is a bounded recorded campaign, not a benchmark. The actual 277,591-byte baseline transfer is pinned to SHA256 `3ee3d585448a24ad6d8fcdbc3cddd927eb6e13b399db6a707444940080fc4024` and includes both genuine native bodies and meshes.
+
+Consumer replay uses those actual baseline bytes with a mocked Worker, adapting only request-context envelopes when required. Mesh arrays, native bodies and provenance stay unchanged. Changed-state display tests are explicitly mocked, not newly tessellated native states. This consumer does not run another native model, tessellation or classifier campaign. The documentation checker statically checks the receipt/download and typechecks ten public examples/snippets against source or emitted declarations; it does not execute those examples.
+
+[Consumer #1644](https://github.com/barocss/barocss/issues/1644) tracks software admission, CPU picking, editor source, numeric/history/refusal behavior and the Manual. Actual browser/GPU pixels, real editor interactions and physical file-dialog flows remain **UNRUN** by these checks and an external/open validation gate. The planned editor build uses the provider's hash-verified emitted declaration boundary, while runtime Vite/Worker bundles use actual source. The historical #1642 full-source and diagnostic timeouts remain unpassed; a package-boundary build does not erase them. Manual deployment, registry publication and that external visual gate are separate outcomes.

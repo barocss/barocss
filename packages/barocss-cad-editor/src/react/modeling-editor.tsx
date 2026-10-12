@@ -43,11 +43,13 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
   const miterSplit = accepted?.source === 'model' && accepted.features.map(feature => feature.kind).join(',') === 'sketch,extrude,split'
     && Object.keys(accepted.parameters).length === 1 && Object.hasOwn(accepted.parameters, 'cutPosition')
     && JSON.parse(snapshot?.authoredText ?? '{}').nodes?.at(-1)?.plane === 'x+y';
+  const bodyView = snapshot?.display && 'selectedOutput' in snapshot.display ? snapshot.display : null;
+  const holeModel = accepted?.outputs.some(output => output.family === 'stored-rational-plate-hole') ?? false;
   const configurableFinishes = accepted?.source === 'model' && accepted.suppression !== undefined
     && Object.keys(accepted.suppression).length === 2 && ['frontFinish', 'backFinish'].every(name => Object.hasOwn(accepted.suppression!, name))
     && accepted.features.filter(feature => feature.name !== undefined).every(feature => feature.kind === 'chamfer');
   return <section className="barocss-cad-editor" aria-label="CAD model editor" style={{ padding: 24, overflow: 'auto', height: '100%' }}>
-    <header><h1>Model a part</h1><p>Sketch → extrude → cut, intersect, split or chamfer · named dimensions in mm</p></header>
+    <header><h1>Model a part</h1><p>Sketch → extrude → cut, intersect, split, chamfer or a qualified hole · named dimensions in mm</p></header>
     <p role="status" aria-live="polite">{busy ? 'Computing native geometry in a dedicated worker… You can cancel.' : accepted ? draft ? 'Dimension changes pending' : 'Accepted model' : 'No accepted model'}</p>
     {(error || snapshot?.error) && <p role="alert">{error ?? snapshot?.error}</p>}
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -70,6 +72,7 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         <option value="derived-split">Keep a beveled split centered</option>
         <option value="miter-split">Split a 45° XY miter</option>
         <option value="configurable-finishes">Configure rail finishes</option>
+        <option value="mounting-plate">Mounting plate with a through-hole</option>
       </select>
       {(example === 'horizontal-split' || example === 'chamfer-split') && <>
         <Label htmlFor={`${id}-split-axis`}>Split axis for the new example</Label>
@@ -81,7 +84,9 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         </select>
         <p>Axis choice loads a new example after replacement acknowledgment; it does not edit the accepted part.</p>
       </>}
-      <p>{example === 'configurable-finishes'
+      <p>{example === 'mounting-plate'
+        ? 'Create an 80 × 40 × 8 mm rectangular mounting plate with one qualified stored-rational through-hole. Radius and center coordinates are editable; both blank and plate remain saved outputs, with plate selected for display. Exact native qualification can refuse otherwise plausible dimensions.'
+        : example === 'configurable-finishes'
         ? 'Give the two result-owned chamfers names, then switch their finishing states on the accepted rail. The fixed X split keeps negative and positive outputs. Disabled operations still validate their candidate geometry.'
         : example === 'miter-split'
         ? 'Split a plain rectangular rail on the fixed 45° plane X + Y = cutPosition. The driver is a coordinate-sum threshold in mm, not perpendicular distance. Negative is below the sum; positive is above it. Both sides must remain nonempty.'
@@ -114,6 +119,17 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
       }} />
     {accepted && <>
       <p>Named output bodies · trimmed native triangles · 1 scene unit = 1 mm · approximate face selection</p>
+      {bodyView && <fieldset disabled={busy}>
+        <legend>Visible output body</legend>
+        <Label htmlFor={`${id}-visible-output`}>Choose one output to inspect</Label>
+        <select id={`${id}-visible-output`} value={bodyView.selectedOutput} disabled={busy}
+          onChange={event => action(s => s.viewOutput(event.target.value, snapshot!.generation))}>
+          {accepted.outputs.map(output => <option key={output.name} value={output.name}>{output.name} · {output.family}</option>)}
+        </select>
+        <p role="status">Visible: {bodyView.selectedOutput} · {accepted.outputs.find(output => output.name === bodyView.selectedOutput)?.family}. Other outputs are hidden, not removed.</p>
+        <p>Changing this view preserves saved outputs, pending dimensions and model history. Opening a file selects its last saved output; the mounting-plate example explicitly selects plate.</p>
+      </fieldset>}
+      {holeModel && <p>The plate has a qualified stored-rational genus-one boundary. Its seven-face preview is sampled and faceted; the preview itself retains uncertified geometry/topology flags. Certified volume is unavailable.</p>}
       {configurableFinishes && <fieldset disabled={busy || draft}>
         <legend>Rail finishes</legend>
         <p>Front: {accepted.suppression!.frontFinish ? 'off' : 'on'} · Back: {accepted.suppression!.backFinish ? 'off' : 'on'}</p>
@@ -141,9 +157,11 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         </li>)}</ol></aside>
       </div>
       <h2>Output bodies</h2><dl>{accepted.outputs.map(output => <div key={output.name}><dt>{output.name}</dt>
-        <dd>{output.volumeMM3 ? `${output.volumeMM3.numerator} / ${output.volumeMM3.denominator} mm³` : 'Empty'}</dd></div>)}</dl>
+        <dd>{output.family === 'stored-rational-plate-hole' ? 'Certified volume unavailable' : output.volumeMM3 ? `${output.volumeMM3.numerator} / ${output.volumeMM3.denominator} mm³` : 'Empty'}</dd></div>)}</dl>
       {snapshot?.faceSelection && <details><summary>Selected {snapshot.faceSelection.role} face</summary>
-        <p>Native Solid {snapshot.faceSelection.solidId}; face {snapshot.faceSelection.face.sourceId}/{snapshot.faceSelection.face.faceId}. Fan diagonals are display-only, not BRep edges. Selection belongs to this accepted model.</p>
+        {'reference' in snapshot.faceSelection
+          ? <p>Native body {snapshot.faceSelection.solidId}; face {snapshot.faceSelection.reference.nativeFaceId}; surface {snapshot.faceSelection.provenance.nativeSurfaceId}. Loops: {snapshot.faceSelection.provenance.nativeLoopIds.join(', ')}. Edges: {snapshot.faceSelection.provenance.nativeEdgeIds.join(', ')}. This is an approximate sampled-triangle hit with original native face provenance, not a Solid certificate or a new BRep edge.</p>
+          : <p>Native Solid {snapshot.faceSelection.solidId}; face {snapshot.faceSelection.face.sourceId}/{snapshot.faceSelection.face.faceId}. Fan diagonals are display-only, not BRep edges. Selection belongs to this accepted model.</p>}
       </details>}
       <p>History {snapshot!.history.index + 1} / {snapshot!.history.count}. Unsupported geometry or ambiguous edge selection is refused; the accepted model stays intact.</p>
     </>}

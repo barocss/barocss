@@ -30,7 +30,7 @@ const bundle = await require('esbuild').build({ stdin:{contents:`export { create
   bundle:true,platform:'node',format:'esm',write:false,plugins:[{name:'record-public-authoring-only',setup(build){
     build.onResolve({filter:/^@barocss\/cad$/},()=>({path:'cad',namespace:'stub'}));
     build.onResolve({filter:/^\.\/prism-feature-engine\.js$/},()=>({path:'legacy',namespace:'stub'}));
-    build.onLoad({filter:/.*/,namespace:'stub'},args=>({contents:args.path==='cad' ? 'export const cad=globalThis.__miterRecipeCad; export class CadModelError extends Error {} export function tessellateConvexPlanarSolid(){throw new Error("No native geometry in recipe check");}' : 'export function createPrismFeatureEngine(){throw new Error("No legacy execution in recipe check");}'}));
+    build.onLoad({filter:/.*/,namespace:'stub'},args=>({contents:args.path==='cad' ? 'export const cad=globalThis.__miterRecipeCad; export class CadModelError extends Error {} export function tessellateOwnPlateCircularHole(){throw new Error("No native hole geometry in recipe check");} export function tessellateConvexPlanarSolid(){throw new Error("No native geometry in recipe check");}' : 'export function createPrismFeatureEngine(){throw new Error("No legacy execution in recipe check");}'}));
   }}]});
 writeFileSync(resolve(output,'recipes.mjs'),bundle.outputFiles[0].text);
 const { createCadEditorMiterModel, makeMiter } = await import(pathToFileURL(resolve(output,'recipes.mjs')));

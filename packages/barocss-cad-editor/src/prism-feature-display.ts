@@ -1,9 +1,10 @@
 import { mountEngineScene } from '@barocss/gpu';
-import type { EngineSceneRenderer } from '@barocss/gpu';
+import type { EngineSceneRenderer, EngineSceneV0 } from '@barocss/gpu';
 import { preparePrismFeatureScene } from './prism-feature-scene.js';
 import type { PrismDisplayScene } from './prism-feature-scene.js';
 export interface PrismDisplayCandidate { commit(): void; dispose(): void }
-export interface PrismDisplayPort { prepare(display: PrismDisplayScene): Promise<PrismDisplayCandidate> }
+export interface CadEditorSceneDisplay { scene: EngineSceneV0; canvasLabel?: string }
+export interface PrismDisplayPort { prepare(display: CadEditorSceneDisplay): Promise<PrismDisplayCandidate> }
 type Renderer = Pick<EngineSceneRenderer, 'resize' | 'dispose'>;
 /** Stage on a second canvas. A refused candidate never updates the accepted renderer. */
 export function createPrismFeatureDisplay(host: HTMLElement, mount: typeof mountEngineScene = mountEngineScene) {
@@ -14,11 +15,11 @@ export function createPrismFeatureDisplay(host: HTMLElement, mount: typeof mount
     return { width: Math.max(1, Math.min(2048, Math.round(rect.width * ratio))), height: Math.max(1, Math.min(2048, Math.round(rect.height * ratio))) }; };
   const remove = (item: { canvas: HTMLCanvasElement; renderer: Renderer | null }) => { try { item.renderer?.dispose(); } finally { item.canvas.remove(); pending.delete(item); } };
   return {
-    async prepare(display: PrismDisplayScene): Promise<PrismDisplayCandidate> {
+    async prepare(display: CadEditorSceneDisplay): Promise<PrismDisplayCandidate> {
       if (disposed) throw new Error('Prism display disposed.');
       const token = ++epoch, canvas = host.ownerDocument.createElement('canvas'), viewport = size();
       canvas.style.cssText = 'width:100%;height:100%;position:absolute;inset:0;visibility:hidden';
-      canvas.setAttribute('aria-label', display.scene.geometries.length ? 'Trimmed prism triangles' : 'Empty subtraction result');
+      canvas.setAttribute('aria-label', display.canvasLabel ?? (display.scene.geometries.length ? 'Trimmed prism triangles' : 'Empty subtraction result'));
       canvas.width = viewport.width; canvas.height = viewport.height;
       const item: { canvas: HTMLCanvasElement; renderer: Renderer | null } = { canvas, renderer: null };
       pending.add(item); host.appendChild(canvas);

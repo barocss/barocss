@@ -1,5 +1,5 @@
-import { preparePrismFeatureScene, pickPrismFeatureScene } from './prism-feature-scene.js';
-import type { PrismDisplayScene, PrismFaceSelection } from './prism-feature-scene.js';
+import { prepareModelingScene, pickModelingScene } from './modeling-scene.js';
+import type { ModelingDisplayScene, ModelingFaceSelection } from './modeling-scene.js';
 import type { PrismDisplayPort, PrismDisplayCandidate } from './prism-feature-display.js';
 import type { CadEditorModelingExample, CadEditorModelingSplitAxis, CadEditorModelingSummary, ModelingCommand, ModelingReply } from './modeling-engine.js';
 import { validatePrismFeatureNativeReply } from './prism-feature-controller.js';
@@ -7,7 +7,7 @@ import type { CadEditorPrismFeatureSummary } from './prism-feature-types.js';
 
 export interface CadEditorModelingSnapshot {
   accepted: CadEditorModelingSummary | null; authoredText: string | null;
-  display: PrismDisplayScene | null; faceSelection: (PrismFaceSelection & { generation: number }) | null;
+  display: ModelingDisplayScene | null; faceSelection: (ModelingFaceSelection & { generation: number }) | null;
   drafts: Record<string, string>; selection: number | null; generation: number;
   busy: boolean; disposed: boolean; error: string | null;
   history: { index: number; count: number; canUndo: boolean; canRedo: boolean };
@@ -58,7 +58,7 @@ function authoredFinishes(nodes: Record<string, unknown>[], features: CadEditorM
   }
   return Object.keys(flags).length ? flags : undefined;
 }
-function sourceMatches(reply: Success) {
+function sourceMatches(reply: Success, taskToken?: string) {
   const { summary } = reply, data = JSON.parse(reply.text);
   if (!summary || !Number.isSafeInteger(summary.revision) || summary.revision < 0 || typeof summary.documentId !== 'string'
     || !summary.parameters || typeof summary.parameters !== 'object' || Array.isArray(summary.parameters)
@@ -69,6 +69,8 @@ function sourceMatches(reply: Success) {
     if (data?.format !== 'barocss-cad-model' || data.schema !== 1 || data.units !== 'mm' || !same(data.parameters, summary.parameters)
       || !Array.isArray(data.nodes) || !same(data.nodes.map((n: { kind: string }) => n.kind), summary.features.map(f => f.kind))
       || !same(Object.keys(data.outputs), summary.outputs.map(o => o.name)) || reply.compatibility !== undefined) throw new Error('Saved model differs from native summary.');
+    if (Object.values(data.outputs as Record<string, { node: number }>).some(output => data.nodes[output.node]?.kind === 'hole')
+      && reply.display?.profile !== 'model-body-faces') throw new Error('Authored hole outputs require tagged body-face transport.');
     const flags = authoredFinishes(data.nodes, summary.features);
     if (!same(flags, summary.suppression) || (flags === undefined && Object.hasOwn(summary, 'suppression')))
       throw new Error('Saved finishing configuration differs from native summary.');
@@ -77,12 +79,14 @@ function sourceMatches(reply: Success) {
       || data.id !== summary.documentId || data.revision !== summary.revision
       || !same(Object.fromEntries(data.parameters.map((p: { id: string; valueMM: number }) => [p.id, p.valueMM])), summary.parameters)
       || !same(data.nodes.map((n: { kind: string }) => n.kind), summary.features.map(f => f.kind))) throw new Error('Legacy source differs from native summary.');
+    if (data.nodes.some((node: { kind: string }) => node.kind === 'hole')) throw new Error('Legacy files cannot author model hole nodes.');
     if (Object.hasOwn(summary, 'suppression') || summary.features.some(f => Object.hasOwn(f, 'name') || Object.hasOwn(f, 'suppressed')))
       throw new Error('Legacy summaries must omit finishing metadata.');
     const legacy = reply.compatibility;
     if (!legacy || !same(data, legacy.document) || JSON.stringify(legacy).length > FILE_LIMIT
       || !same(legacy.components.filter(c => c.status === 'solid').map(c => [c.role, c.solidId]), summary.outputs.map(o => [o.name, o.solidId])))
       throw new Error('Legacy native summary differs from saved source.');
+    if (reply.display.profile === 'model-body-faces') throw new Error('Legacy files cannot carry model body-face packets.');
     validatePrismFeatureNativeReply({ id: reply.id, ok: true, text: reply.text, summary: legacy, display: reply.display });
   } else throw new Error('Unknown native source summary.');
   if (!summary.features.every((f, i) => typeof f.kind === 'string' && f.kind.length > 0 && f.kind.length <= 64 && f.kind.trim().length > 0 && f.index === i && Array.isArray(f.dependencies)
@@ -90,6 +94,24 @@ function sourceMatches(reply: Success) {
   if (!reply.display || reply.display.documentId !== summary.documentId || reply.display.revision !== summary.revision
     || !same(reply.display.outcomes.filter(o => o.status === 'solid').map(o => [o.role, o.solidId]), summary.outputs.map(o => [o.name, o.solidId])))
     throw new Error('Named output display differs from native summary.');
+  if (reply.display.profile === 'model-body-faces') {
+    if (summary.source !== 'model' || reply.display.taskToken !== taskToken
+      || !same(reply.display.outcomes.map(o => o.family), summary.outputs.map(o => o.family)))
+      throw new Error('Native body families or display task differ from the current request.');
+    for (const output of summary.outputs) {
+      const node = data.nodes[data.outputs[output.name]?.node];
+      if (output.family === 'stored-rational-plate-hole') {
+        if (node?.kind !== 'hole' || output.volumeMM3 !== null) throw new Error('Hole outputs have no certified volume and must name an authored hole.');
+      } else {
+        const volume = output.volumeMM3;
+        if (output.family !== 'convex-planar' || node?.kind === 'hole' || !volume || Object.keys(volume).length !== 2
+          || typeof volume.numerator !== 'string' || typeof volume.denominator !== 'string'
+          || !/^[1-9][0-9]{0,255}$/.test(volume.numerator) || !/^[1-9][0-9]{0,255}$/.test(volume.denominator))
+          throw new Error('The output family or certified volume differs from its authored native result.');
+      }
+    }
+  } else if (summary.outputs.some(o => Object.hasOwn(o, 'family')))
+    throw new Error('Existing convex and legacy summaries must retain their original family-free transport.');
   return data as unknown;
 }
 
@@ -100,7 +122,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
     history: { index: -1, count: 0, canUndo: false, canRedo: false } };
   let worker: Worker | null = null, ready = false, sequence = 0, epoch = 0, index = -1;
   let history: { parameters: Record<string, number>; suppression?: Record<string, boolean>; bytes: number }[] = [];
-  let pending: { id: number; resolve: (reply: Success) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> } | null = null;
+  let pending: { id: number; taskToken: string; resolve: (reply: Success) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> } | null = null;
   const listeners = new Set<() => void>();
   const emit = () => { for (const listener of listeners) { try { listener(); } catch { /* Subscriber isolation. */ } } };
   const live = () => { if (state.disposed) throw new Error('The modeling session is disposed.'); };
@@ -121,20 +143,20 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
         try {
           if (reply.ok !== true || typeof reply.text !== 'string' || reply.text.length > FILE_LIMIT
             || new TextEncoder().encode(reply.text).length > FILE_LIMIT || JSON.stringify(reply.summary).length > FILE_LIMIT) throw new Error('Invalid native worker reply.');
-          sourceMatches(reply); prior.resolve(reply);
+          sourceMatches(reply, prior.taskToken); prior.resolve(reply);
         } catch (cause) { stop('Invalid native worker reply.'); prior.reject(cause instanceof Error ? cause : new Error('Invalid native worker reply.')); }
       });
       const fail = () => { if (worker === instance) stop('Native worker failed. Accepted model is retained; retry to rebuild it.'); };
       instance.addEventListener('error', fail); instance.addEventListener('messageerror', fail);
     }
-    const id = ++sequence;
-    pending = { id, resolve, reject, timer: setTimeout(() => stop('Native operation timed out. Accepted model is retained.'), 120000) };
-    try { worker.postMessage({ ...payload, id }); } catch { stop('Could not send the model to its native worker.'); }
+    const id = ++sequence, taskToken = globalThis.crypto.randomUUID();
+    pending = { id, taskToken, resolve, reject, timer: setTimeout(() => stop('Native operation timed out. Accepted model is retained.'), 120000) };
+    try { worker.postMessage({ ...payload, id, taskToken }); } catch { stop('Could not send the model to its native worker.'); }
   });
   async function run(kind: 'open' | 'example' | 'apply' | 'suppression' | 'undo' | 'redo', text?: string, example?: CadEditorModelingExample, splitAxis?: CadEditorModelingSplitAxis, finishing?: Record<string, boolean>) {
     idle();
     if (kind === 'example') {
-      if (example !== undefined && !['cut-chamfer', 'intersection', 'horizontal-split', 'two-chamfer', 'chamfer-split', 'derived-split', 'miter-split', 'configurable-finishes'].includes(example))
+      if (example !== undefined && !['cut-chamfer', 'intersection', 'horizontal-split', 'two-chamfer', 'chamfer-split', 'derived-split', 'miter-split', 'configurable-finishes', 'mounting-plate'].includes(example))
         throw new Error('Choose an available modeling example.');
       if (splitAxis !== undefined && (example === 'chamfer-split' ? !['x', 'z'].includes(splitAxis)
         : example !== 'horizontal-split' || !['x', 'y', 'z'].includes(splitAxis)))
@@ -189,12 +211,16 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
         if (!same(JSON.parse(reply.text), expected))
           throw new Error('An edit changed immutable authored feature data.');
       }
-      if (!replacing && reply.summary.source === 'legacy') validatePrismFeatureNativeReply(
+      if (!replacing && reply.summary.source === 'legacy' && reply.display.profile !== 'model-body-faces') validatePrismFeatureNativeReply(
         { id: reply.id, ok: true, text: reply.text, summary: reply.compatibility!, display: reply.display },
         JSON.parse(state.authoredText!) as CadEditorPrismFeatureSummary['document'],
         Object.entries(parameters).map(([parameterId, valueMM]) => ({ parameterId, valueMM })),
       );
-      const display = preparePrismFeatureScene(reply.display, 'result', aspect());
+      const selectedOutput = reply.display.profile === 'model-body-faces'
+        ? replacing ? kind === 'example' && example === 'mounting-plate' ? 'plate' : undefined
+          : state.display && 'selectedOutput' in state.display ? state.display.selectedOutput : undefined
+        : undefined;
+      const display = prepareModelingScene(reply.display, aspect(), selectedOutput);
       candidate = displayPort ? await displayPort.prepare(display) : null;
       if (operation !== epoch || state.disposed) { candidate?.dispose(); return; }
       let nextHistory = history, nextIndex = target;
@@ -223,6 +249,27 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
     subscribe(listener: () => void) { live(); listeners.add(listener); return () => { listeners.delete(listener); }; },
     open: (text: string) => run('open', text), example: (example?: CadEditorModelingExample, splitAxis?: CadEditorModelingSplitAxis) => run('example', undefined, example, splitAxis), apply: () => run('apply'),
     configureFinishes: (suppression: Record<string, boolean>) => run('suppression', undefined, undefined, undefined, suppression), undo: () => run('undo'), redo: () => run('redo'),
+    async viewOutput(name: string, generation: number) {
+      idle();
+      if (!state.display || state.display.packet.profile !== 'model-body-faces' || !('selectedOutput' in state.display)
+        || generation !== state.generation || !state.accepted?.outputs.some(output => output.name === name))
+        throw new Error('Choose a current named output body.');
+      if (state.display.selectedOutput === name) return;
+      const operation = ++epoch, packet = state.display.packet;
+      let candidate: PrismDisplayCandidate | null = null;
+      state = { ...state, busy: true, error: null }; emit();
+      try {
+        const display = prepareModelingScene(packet, aspect(), name);
+        candidate = displayPort ? await displayPort.prepare(display) : null;
+        if (operation !== epoch || state.disposed) return;
+        candidate?.commit();
+        state = { ...state, display, faceSelection: null, generation: state.generation + 1, busy: false, error: null };
+      } catch (cause) {
+        if (operation !== epoch || state.disposed) return;
+        state = { ...state, busy: false, error: cause instanceof Error ? cause.message : 'Output display refused.' };
+      } finally { candidate?.dispose(); }
+      emit();
+    },
     stage(name: string, raw: string) {
       idle(); if (!state.accepted || !Object.hasOwn(state.accepted.parameters, name) || typeof raw !== 'string' || raw.length > 128)
         throw new Error('Choose a named dimension and bounded decimal input.');
@@ -235,7 +282,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
     },
     pick(width: number, height: number, x: number, y: number, generation: number) {
       idle(); if (!state.display || generation !== state.generation) throw new Error('Display selection is stale.');
-      const picked = pickPrismFeatureScene(state.display, width, height, x, y);
+      const picked = pickModelingScene(state.display, width, height, x, y);
       state = { ...state, faceSelection: picked ? { ...picked, generation } : null }; emit();
     },
     cancel() { live(); ++epoch; stop('Cancelled.'); state = { ...state, busy: false, error: null }; emit(); },

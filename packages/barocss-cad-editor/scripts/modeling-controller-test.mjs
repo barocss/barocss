@@ -102,6 +102,11 @@ const tick = () => Promise.resolve();
 const stable = s => { const x = s.getSnapshot(); return { accepted: x.accepted, authoredText: x.authoredText, display: x.display, faceSelection: x.faceSelection, selection: x.selection, generation: x.generation, history: x.history, drafts: x.drafts }; };
 let checks = 0, legacyChecks = 0;
 try {
+  // Existing all-convex scenes retain their exact shape and have no output-only chooser.
+  const convexOnly=create();const convexPending=convexOnly.example(),convexWorker=instances.at(-1);convexWorker.accept();await convexPending;
+  const convexAccepted=stable(convexOnly);assert.equal(Object.hasOwn(convexAccepted.display,'selectedOutput'),false);
+  await assert.rejects(convexOnly.viewOutput('part',convexAccepted.generation),/current named output/);assert.deepEqual(stable(convexOnly),convexAccepted);
+  assert.match(convexWorker.requests[0].taskToken,/^[A-Za-z0-9_-]{36}$/);convexOnly.dispose();checks+=2;
   // Configuration, dimensions and history share one atomic channel per accepted action.
   const f=create();let fp=f.example('configurable-finishes'),fw=instances.at(-1);fw.accept();await fp;
   assert.deepEqual(f.getSnapshot().accepted.suppression,{frontFinish:false,backFinish:false});checks++;
@@ -362,7 +367,8 @@ try {
           outputs: r.summary.components.filter(c => c.status === 'solid').map(c => ({ name: c.role, solidId: c.solidId, volumeMM3: c.role === 'second' ? r.summary.serial.volumes.negative : r.summary.volumes[c.role] })) } };
     };
     const s = create(); p = s.open(real.text); instances.at(-1).send(wrap(real)); await p; assert.ok(s.getSnapshot().accepted); s.dispose(); legacyChecks++;
-    for (const mutate of [r => r.compatibility.document.nodes[5].reference.a.faceId = 'forged',
+    for (const mutate of [r => { r.compatibility.document.nodes[5].kind = 'hole'; r.summary.features[5].kind = 'hole'; },
+      r => r.compatibility.document.nodes[5].reference.a.faceId = 'forged',
       r => r.compatibility.document.nodes[5].options.retainedSolidId = 'forged', r => r.compatibility.selectedWalls[0].segmentId = 'forged',
       r => r.compatibility.serial.resolution.originalPrismNodeId = 'forged']) {
       const r = wrap(real); mutate(r); r.text = signedJSON(r.compatibility.document);

@@ -59,3 +59,5 @@ export type { CadEditorPrismFeatureController } from './prism-feature-controller
 export type { CadEditorPrismFeatureSummary, CadEditorPrismFeatureSnapshot } from './prism-feature-types.js';
 export { preparePrismFeatureScene, pickPrismFeatureScene } from './prism-feature-scene.js';
 export type { PrismDisplayPacket, PrismDisplayComponent, PrismDisplayScene, PrismDisplayView, PrismFaceSelection } from './prism-feature-scene.js';
+
+export type { ModelingDisplayPacket, ModelingDisplayScene, ModelingFaceSelection, ModelingHoleDisplayComponent } from './modeling-scene.js';

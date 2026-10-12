@@ -7,6 +7,7 @@ import { pathToFileURL } from 'node:url';
 const root = resolve(import.meta.dirname, '../../..'), output = resolve(process.env.EVIDENCE_DIR ?? '/tmp/cad-modeling-engine');
 mkdirSync(output, { recursive: true });
 const require = createRequire(resolve(process.env.REPO_DEPS_ROOT ?? root, 'package.json'));
+const holeTransfer = JSON.parse(readFileSync(resolve(import.meta.dirname, 'fixtures/modeling-hole/baseline-native.json'), 'utf8'));
 const packet = JSON.parse(readFileSync(resolve(import.meta.dirname, 'fixtures/convex-display.packet.json'), 'utf8'));
 const legacyDocument = JSON.parse(readFileSync(resolve(root, 'apps/cad-editor/src/fixtures/affine-prism.authored.json'), 'utf8'));
 const document = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: { height: 8 },
@@ -14,7 +15,7 @@ const document = { format: 'barocss-cad-model', schema: 1, units: 'mm', paramete
 let modelCalls = 0, legacyCalls = 0, lastLegacy, lastPacket, sampleCalls = 0, intersectCalls = 0, splitCalls = 0;
 function sampleBuilder() {
   sampleCalls++; const parameters = {}, nodes = [];
-  const shape = index => ({ intersect(other) { intersectCalls++; const node = nodes.push({ kind: 'intersect', left: index, right: other.index }) - 1; return shape(node); },
+  const shape = index => ({ hole(options) { return shape(nodes.push({kind:'hole',parent:{node:index,side:'solid'},...options})-1); }, intersect(other) { intersectCalls++; const node = nodes.push({ kind: 'intersect', left: index, right: other.index }) - 1; return shape(node); },
     split(options) { splitCalls++; const node = nodes.push({ kind: 'split', parent: index, ...options }) - 1; return { negative: { index: node, side: 'negative' }, positive: { index: node, side: 'positive' } }; },
     edges(query) { return { one() { return { owner: index, query }; } }; },
     chamfer(selection, distance, options) { assert.equal(selection.owner, index); return shape(nodes.push({ kind: 'chamfer', parent: index, query: selection.query, distance, ...(options ? {name: options.name, suppressed:false} : {}) }) - 1); },
@@ -24,20 +25,21 @@ function sampleBuilder() {
     build(outputs) { return snapshot({ ...document, parameters, nodes, outputs: Object.fromEntries(Object.entries(outputs).map(([name, body]) => [name, { node: body.index, side: body.side ?? 'solid' }])) }); } };
 }
 const snapshots = [], snapshotEdits = [], suppressionEdits = [], loads = [];
-let tessellations = 0, rejectTessellation = false, unsupportedNativeReads = 0;
+let tessellations = 0, rejectTessellation = false, unsupportedNativeReads = 0, holeTessellations = 0, rejectHoleTessellation = false;
 function snapshot(data) {
   const native = { report: { solidId: 'current_solid' }, certificate: { volumeMM3: { numerator: '1', denominator: '1' } }, graph: { vertices: [], edges: [], faces: [], vertexLinks: [] } };
   const body = { family: 'convex-planar', native };
-  const unsupported = { family: 'stored-rational-plate-hole', get native() { unsupportedNativeReads++; throw new Error('Unsupported native payload must not be inspected'); } };
+  const unsupported = { family: data.unknownFamily ? 'unknown-family' : 'stored-rational-plate-hole', get native() { unsupportedNativeReads++; throw new Error('Unsupported native payload must not be inspected'); } };
   const result = { parameters: data.parameters, suppression:Object.fromEntries(data.nodes.filter(n=>n.name).map(n=>[n.name,n.suppressed])),
     withSuppression(values) { suppressionEdits.push({snapshot:result,values:structuredClone(values)}); if(data.parameters.backY===1) throw new Error('METRIC candidate refused'); return snapshot({...data,nodes:data.nodes.map(n=>n.name&&Object.hasOwn(values,n.name)?{...n,suppressed:values[n.name]}:n)}); },
     recomputation: Object.freeze({ reusedFeatures: Object.freeze([]), evaluatedFeatures: Object.freeze(data.nodes.map((_node, index) => index)) }),
-    features: data.nodes.map((node, index) => ({ kind: node.kind, index, dependencies: [], ...(node.name ? {name:node.name,suppressed:node.suppressed} : {}) })), bodies: Object.fromEntries(Object.keys(data.outputs).map(name => [name, data.hole && name === 'part' ? unsupported : body])),
+    features: data.nodes.map((node, index) => ({ kind: node.kind, index, dependencies: [], ...(node.name ? {name:node.name,suppressed:node.suppressed} : {}) })), bodies: Object.fromEntries(Object.keys(data.outputs).map(name => [name, (data.hole || data.unknownFamily) && name === 'part' ? unsupported : data.nodes.some(n=>n.kind==='hole') ? structuredClone(holeTransfer.bodies[data.nodes[data.outputs[name].node].kind==='hole'?'plate':'blank']) : body])),
     save: () => JSON.stringify({ ...data, outputs: Object.fromEntries(Object.entries(data.outputs).sort(([a], [b]) => a.localeCompare(b))) }), withParameters(values) { snapshotEdits.push({ snapshot: result, values: structuredClone(values) }); modelCalls++; if (Object.values(values).some(v => v < 0)) throw new Error('native candidate refused'); return snapshot({ ...data, parameters: { ...data.parameters, ...values } }); } };
   snapshots.push(result); return result;
 }
 globalThis.__modelingCad = { cad: { model: sampleBuilder, load(text) { modelCalls++; const data = JSON.parse(text); if (data.invalid) throw new Error('codec refused'); const result = snapshot(data); loads.push({ text, snapshot: result }); return result; } },
-  tessellateConvexPlanarSolid() { tessellations++; if (rejectTessellation) throw new Error('tessellation refused'); const { mesh, boundaries, internalDiagonals, report } = structuredClone(packet.components[0]); report.solidId = 'current_solid'; return { mesh, boundaries, internalDiagonals, report }; } };
+  tessellateOwnPlateCircularHole(bundle, options) { holeTessellations++; if(rejectHoleTessellation) throw new Error('hole tessellation refused'); assert.deepEqual(bundle,holeTransfer.bodies.plate.native.bundle); assert.equal(options.segmentsPerQuarter,4); const result=structuredClone(holeTransfer.holeMesh); result.mesh.context=structuredClone(options.context); return result; },
+  tessellateConvexPlanarSolid(body) { tessellations++; if (rejectTessellation) throw new Error('tessellation refused'); if(body.report.solidId===holeTransfer.bodies.blank.native.report.solidId) return structuredClone(holeTransfer.blankMesh); const { mesh, boundaries, internalDiagonals, report } = structuredClone(packet.components[0]); report.solidId = 'current_solid'; return { mesh, boundaries, internalDiagonals, report }; } };
 globalThis.__modelingLegacy = () => {
   let accepted;
   return command => {
@@ -61,7 +63,7 @@ const bundle = await require('esbuild').build({ entryPoints: [resolve(root, 'pac
     build.onResolve({ filter: /^@barocss\/cad$/ }, () => ({ path: 'cad', namespace: 'stub' }));
     build.onResolve({ filter: /^\.\/prism-feature-engine\.js$/ }, () => ({ path: 'legacy', namespace: 'stub' }));
     build.onLoad({ filter: /.*/, namespace: 'stub' }, args => ({ contents: args.path === 'cad'
-      ? 'export const {cad,tessellateConvexPlanarSolid}=globalThis.__modelingCad;'
+      ? 'export const {cad,tessellateConvexPlanarSolid,tessellateOwnPlateCircularHole}=globalThis.__modelingCad;'
       : 'export const createPrismFeatureEngine=globalThis.__modelingLegacy;' }));
   } }] });
 writeFileSync(resolve(output, 'engine.mjs'), bundle.outputFiles[0].text);
@@ -186,18 +188,45 @@ assert.equal(Object.hasOwn(afterReconstruction.summary, 'recomputation'), false)
 const before = modelCalls + legacyCalls;
 assert.equal(engine({ id: ++id, kind: 'open', text: JSON.stringify({ ...legacyDocument, version: 1 }) }).ok, false);
 assert.equal(modelCalls + legacyCalls, before); checks++;
-// A mixed output set is rejected atomically before any native summary or tessellation.
+// Missing hole task context and unknown families are refused before reading payloads or tessellating.
 const familyEngine = create();
 const familyBaseline = familyEngine({ id: ++id, kind: 'open', text: JSON.stringify(document) });
 assert.equal(familyBaseline.ok, true);
 const acceptedFamilySnapshot = snapshots.at(-1), familyText = familyBaseline.text, familyDisplay = JSON.stringify(familyBaseline.display), beforeHoleTessellations = tessellations;
 const refusedHole = familyEngine({ id: ++id, kind: 'open', text: JSON.stringify({ ...document, hole: true }) });
-assert.equal(refusedHole.ok, false); assert.match(refusedHole.message, /plate-hole preview is not supported/);
+assert.equal(refusedHole.ok, false); assert.match(refusedHole.message, /current display task token/);
 assert.equal(unsupportedNativeReads, 0); assert.equal(tessellations, beforeHoleTessellations);
 assert.equal(familyBaseline.text, familyText); assert.equal(JSON.stringify(familyBaseline.display), familyDisplay); checks++;
 const familyRecovery = familyEngine({ id: ++id, kind: 'apply', expectedRevision: 0, parameters: { height: 6 } });
 assert.equal(familyRecovery.ok, true); assert.equal(snapshotEdits.at(-1).snapshot, acceptedFamilySnapshot);
 assert.equal(familyRecovery.summary.revision, 1); checks++;
+// The same real recorded geometry is replayed through the actual worker serializer; providers remain stubbed.
+const holeEngine = create(), holeBase = holeEngine({id:++id,kind:'example',example:'mounting-plate',taskToken:'hole_baseline'});
+assert.equal(holeBase.ok,true,holeBase.message); assert.equal(holeBase.display.profile,'model-body-faces');
+assert.deepEqual(holeBase.summary.parameters,holeTransfer.parameters);
+assert.deepEqual(holeBase.summary.outputs.map(o=>[o.name,o.family,o.volumeMM3]),[['blank','convex-planar',{numerator:'25600',denominator:'1'}],['plate','stored-rational-plate-hole',null]]); checks++;
+const serializedHole=holeBase.display.components[1];
+assert.deepEqual(serializedHole.preview.mesh.chunks,holeTransfer.holeMesh.mesh.chunks);
+assert.deepEqual(serializedHole.preview.provenance,holeTransfer.holeMesh.provenance);
+assert.deepEqual(serializedHole.preview.report,holeTransfer.holeMesh.report);
+assert.deepEqual(serializedHole.preview.mesh.context,{documentId:'cad_model',bodyId:'m2_body',documentRevision:'0',kernelResultRevision:'0',topologyRevision:'0',taskToken:'hole_baseline'});
+assert.equal(serializedHole.qualification.solid,true);assert.equal(serializedHole.preview.report.solid,false);checks++;
+for(const taskToken of [null,'',1,{},'x'.repeat(49),'contains space']) {
+ const before=modelCalls+sampleCalls; assert.equal(holeEngine({id:++id,kind:'example',example:'mounting-plate',taskToken}).ok,false);assert.equal(modelCalls+sampleCalls,before);checks++;
+}
+const beforeUnknown=tessellations+holeTessellations;
+assert.equal(holeEngine({id:++id,kind:'open',text:JSON.stringify({...document,unknownFamily:true}),taskToken:'unknown_family'}).ok,false);
+assert.equal(unsupportedNativeReads,0);assert.equal(tessellations+holeTessellations,beforeUnknown);checks++;
+const acceptedHole=snapshots.at(-2); // Failed unknown-family snapshot is the latest temporary candidate.
+rejectHoleTessellation=true;
+const holeRefused=holeEngine({id:++id,kind:'apply',expectedRevision:0,parameters:{radius:2.5},taskToken:'refused_mesh'});
+assert.equal(holeRefused.ok,false);assert.equal(snapshotEdits.at(-1).snapshot,acceptedHole);
+rejectHoleTessellation=false;
+const holeRecovered=holeEngine({id:++id,kind:'apply',expectedRevision:0,parameters:{radius:2.5},taskToken:'recovered_mesh'});
+assert.equal(holeRecovered.ok,true,holeRecovered.message);assert.equal(snapshotEdits.at(-1).snapshot,acceptedHole);
+assert.equal(holeRecovered.summary.revision,1);assert.equal(holeRecovered.display.components[1].preview.mesh.context.taskToken,'recovered_mesh');checks++;
+const holeReopened=create()({id:++id,kind:'open',text:holeRecovered.text,revision:1,taskToken:'reopened_mesh'});
+assert.equal(holeReopened.ok,true);assert.deepEqual(holeReopened.summary,holeRecovered.summary);checks++;
 // Configuration commands retain the actual accepted snapshot and use only withSuppression.
 const finishEngine=create();
 const finishBase=finishEngine({id:++id,kind:'example',example:'configurable-finishes'});
@@ -224,5 +253,5 @@ assert.equal(afterFailure.ok,true);assert.equal(suppressionEdits.at(-1).snapshot
 const reopenFinish=create()({id:++id,kind:'open',text:afterFailure.text,revision:afterFailure.summary.revision});
 assert.equal(reopenFinish.ok,true);assert.deepEqual(reopenFinish.summary,afterFailure.summary);checks++;
 assert.equal(Object.hasOwn(first.summary,'suppression'),false);assert.ok(first.summary.features.every(f=>!Object.hasOwn(f,'name')&&!Object.hasOwn(f,'suppressed')));checks++;
-const result = { ok: true, checks, modelCalls, legacyCalls, retainedSnapshotIdentityChecks: 7, coldLoadCallsObserved: loads.length, acceptedOutputsStillTessellate: true, recomputationNotTransported: true, evidence: 'stubbed providers; pure worker routing and authority only; no native geometry' };
+const result = { ok: true, checks, modelCalls, legacyCalls, holeTessellations, holeGeometryReplay:true, retainedSnapshotIdentityChecks: 7, coldLoadCallsObserved: loads.length, acceptedOutputsStillTessellate: true, recomputationNotTransported: true, evidence: 'stubbed providers; pure worker routing and authority only; no native geometry' };
 writeFileSync(resolve(output, 'result.json'), JSON.stringify(result, null, 2)); console.log(JSON.stringify(result));
