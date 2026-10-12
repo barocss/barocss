@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Native Surface · Directional lights</title>
+  <style>
+    :root{color-scheme:dark;font:15px/1.5 system-ui,sans-serif;background:#10141c;color:#eef2fa}*{box-sizing:border-box}body{margin:0}header,main{max-width:1280px;margin:auto;padding:20px}header{padding-bottom:0}h1{font-size:1.5rem;margin:0}h2{font-size:1.1rem;margin:0 0 12px}p{margin:8px 0}.muted{color:#b3bfd3}main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px}section{min-width:0}.panel{background:#19202d;border:1px solid #344055;border-radius:12px;padding:16px;margin-bottom:16px}canvas{display:block;width:100%;aspect-ratio:4/3;background:#090d14;border-radius:8px;cursor:crosshair;touch-action:manipulation}label{display:block;margin:10px 0 4px}input,select,button{font:inherit;color:inherit;border:1px solid #52617a;border-radius:6px;padding:7px;background:#111927}input:not([type=checkbox]),select{width:100%}button{cursor:pointer;background:#263a59}button.primary{background:#3056a1}button:disabled,input:disabled,select:disabled{opacity:.48;cursor:default}:focus-visible{outline:3px solid #a1c1ff;outline-offset:2px}fieldset{border:0;padding:0;margin:0}legend{padding:0;margin-top:10px}.row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.triple{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.triple label{font-size:.85rem}.check{display:flex;align-items:center;gap:8px}.status{overflow-wrap:anywhere}#error{color:#ffb7b7;white-space:pre-wrap}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.55 ui-monospace,monospace;max-height:360px;overflow:auto}.small{font-size:.85rem}#open{max-width:100%}@media(max-width:800px){main{grid-template-columns:1fr}aside{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px}aside .panel{margin:0}}
+  </style>
+</head>
+<body>
+<header><h1>Native Surface · Directional lights</h1><p class="muted">Two original CAD Surfaces. One complete, editable light composition.</p></header>
+<main>
+<section aria-label="WebGPU viewport and composition">
+  <div class="panel">
+    <p><strong>WebGPU required</strong> · No fallback renderer</p>
+    <p id="status" class="status" role="status" aria-live="polite">Not started</p><p id="error" role="alert"></p>
+    <canvas id="viewport" width="800" height="600" aria-label="Native Surfaces. Click to select a visible Surface, or use the Surface list below."></canvas>
+    <div class="row"><button id="start" class="primary">Start WebGPU</button><button id="dispose">Dispose</button></div>
+    <fieldset id="size-controls"><legend>Backing-pixel size</legend><div class="row">
+      <label>Width <input id="width" type="number" min="1" max="1024" step="1" value="800"></label>
+      <label>Height <input id="height" type="number" min="1" max="1024" step="1" value="600"></label><button id="resize">Resize</button>
+    </div></fieldset>
+    <p class="small muted">Resize uses the async Viewer API. Picking uses top-left backing pixels and identifies rendered attachments, not exact CAD intersections.</p>
+  </div>
+  <div class="panel"><h2>Accepted composition</h2>
+    <label for="surfaces">Visible Surface</label><select id="surfaces"><option value="">No selection</option></select>
+    <pre id="identity">No accepted scene</pre><div class="row"><button id="save">Save accepted originals</button></div>
+    <label for="open">Open saved composition (.json, up to 4 MiB)</label><input id="open" type="file" accept=".json,application/json">
+    <p class="small muted">Files retain the complete original CAD document, embedded sources, material sources, exact overrides, poses and TEN pins. Unsaved draft edits are excluded.</p>
+  </div>
+</section>
+<aside aria-label="Light editor">
+  <section class="panel"><h2>Directional lights</h2>
+    <label for="lights">Light (stable node ID)</label><select id="lights"></select>
+    <div class="row"><button id="add">Add light</button><button id="remove">Remove light</button></div><p id="count" class="small muted">0 / 4 slots</p>
+    <fieldset id="light-fields"><legend>Edit draft</legend>
+      <label for="label">Label</label><input id="label" type="text" maxlength="128"><label class="check"><input id="enabled" type="checkbox"> Enabled</label>
+      <fieldset><legend>Direction · scene XYZ</legend><div class="triple"><label>X<input id="dx" type="number" step="any"></label><label>Y<input id="dy" type="number" step="any"></label><label>Z<input id="dz" type="number" step="any"></label></div></fieldset>
+      <fieldset><legend>Color · linear RGB</legend><div class="triple"><label>R<input id="r" type="number" step="any" min="0" max="1"></label><label>G<input id="g" type="number" step="any" min="0" max="1"></label><label>B<input id="b" type="number" step="any" min="0" max="1"></label></div></fieldset>
+      <label for="intensity">Intensity</label><input id="intensity" type="number" min="0" max="1" step="any">
+    </fieldset>
+    <label for="ambient">Ambient strength</label><input id="ambient" type="number" min="0" max="1" step="any"><div class="row"><button id="apply" class="primary">Apply complete draft</button></div>
+    <p class="small muted">Edits appear only after Apply succeeds. Disabled lights still occupy slots. Remove all lights for ambient-only rendering.</p>
+  </section>
+  <section class="panel"><h2>Scope</h2><p class="small muted">Software example for the required-WebGPU authored directional-light profile. Actual browser/device rendering, physical picking and file UI acceptance are separate checks. No device or visual acceptance is implied by the page loading.</p></section>
+</aside>
+</main><script type="module" src="./app.ts"></script>
+</body></html>

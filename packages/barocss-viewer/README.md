@@ -944,3 +944,121 @@ The bounded example adds an explicit scene-and-appearance action on its
 previously accepted native backend. Host File intent has its own policy; this
 SDK URL rule does not redefine it. Complete first material mount, arbitrary
 backend transitions and authored Render file Open remain separate requirements.
+
+## Explicit async native-document authored directional lights (WebGPU)
+
+`createNativeDirectionalLightWebGPUViewer(canvas, input, { width, height })`
+returns a Promise of `ViewerNativeDirectionalLightWebGPU`. This additive path
+requires WebGPU; `createViewer`, the existing synchronous Viewer and Render
+Editor APIs, and all provider implementations are unchanged. There is no automatic
+fallback or injected device/prepared-token API.
+
+The exact version-0 input format is
+`barocss-viewer-native-directional-light-input`, with `owner`, original document
+`source`, current `display`, raw `materials`, complete ordered `lights`, and
+`context`. The source is the existing appearance source `{ kind: 'document',
+result, options, bindings }`: a complete parsed original canonical CAD document,
+explicit `authored-xyz-matches-rhyup` basis, Source0, unitsPerMillimeter1, and
+2..17 grid samples. Select 1..4 Surfaces, including hidden objects; at least one
+must be visible. All ten original TEN pin fields and all selected poses are
+validated by unchanged `prepareViewerNativeSceneAppearance`/Interop admission.
+
+The composition owner `{ id, revision }` must exactly match the authored light
+catalog's sourceId/revision, including signed zero. It is separate from CAD
+original document/asset revisions and TEN bindings. `materials` retain the raw
+source/IR and supplied overrides, including omitted defaults and signed values.
+Both materials and selection use the complete display modelId/SurfaceID pair.
+Display model aliases are derived from asset IDs by existing Interop; TEN.modelId
+continues to name the original native model. Neither field is rewritten to join
+the two. The 0..4 light catalog includes disabled entries and supports ambient
+plus authored directional lights only.
+
+The facade exposes `canvas`, independent frozen `originals`, immutable `accepted`,
+`selected`, actual GPU `status`, and:
+
+- `replace(input)` and `resize(width, height)`: asynchronous `UpdateResult`
+- `readPixels()`: asynchronous Uint8Array, top-left backing-pixel order
+- `pick(x, y)`: asynchronous `{ generation, ref, binding }`, with null ref/binding
+  for background; successful Surface picks include the complete original TEN pin
+- `select(ref | null)`: synchronous metadata-only `UpdateResult`
+- `dispose()`: idempotent, also invalidates pending work
+
+`accepted` contains exactly owner, document identity/revision, complete inventory,
+visibleGeometry, per-ref bindings, and presented generation. It remains readable
+after disposal or device loss as retained metadata; status does not promise
+retained pixels when unavailable. Picking is rendered attachment selection, not
+CAD-exact intersection, UV or topology certification. Selection survives reorder
+by full pair and clears when hidden/removed or disposed.
+
+The wrapper locks before synchronous preparation and until presentation/adoption;
+competing operations refuse BUSY. A candidate prebuilds all observations and maps
+before calling the real `mountNativeDirectionalLightWebGPUViewport` or
+`updateFrame`. Adoption after successful presentation uses prebuilt references.
+CPU/recoverable GPU failure retains prior accepted metadata and selection. There
+is no second Viewer rollback or automatic remount. `ViewerNativeDirectionalLightError`
+uses INPUT, BUDGET, OWNER, SOURCE, GPU, BUSY, STATE or DISPOSED; nested provider
+causes retain original diagnostics, and combined construction/cleanup failures
+retain both causes.
+
+Raw own-data admission is bounded to 327680 visits, depth32, arrays4096,
+records64, strings/keys262144 UTF16/UTF8 units and signed representation4MiB.
+The complete retained ordinary projection is separately streamed under12MiB,
+1048576 visits and depth64. Provider caps may be stricter. One appearance
+admission runs per candidate; it reconstructs source once and runs common frame
+admission once, or twice when visibility is a subset. The actual GPU boundary
+then runs its own common admission and authored WGSL-program preparation. Its
+private neutral CPU singleton is omitted entirely from the GPU frame: it is
+never an extra rendered light. Original packets and poses are forwarded so the
+GPU applies pose/unit conversion exactly once.
+
+### Standalone light-editing and original-file example
+
+From the repository root, with existing Node22/pnpm9 dependencies installed:
+
+```sh
+pnpm exec vite examples/viewer-native-directional-lights --host 127.0.0.1 --port 4180 --strictPort
+# Open http://127.0.0.1:4180/
+pnpm exec vite build examples/viewer-native-directional-lights --outDir /tmp/1580-light-example-dist
+```
+
+The equivalent direct `node node_modules/vite/bin/vite.js` commands were checked:
+the example bundle built and HTML/app/controller HTTP entries returned200. These
+are static checks, not real-browser/WebGPU acceptance.
+
+The example includes two genuine Source0 Surface assets with the same Surface ID,
+distinct native geometry/poses, raw compiled material originals, a red+X light,
+a blue+Z light and ambient. Edit a stable light ID, add/remove/disable up to four
+lights, then Apply the complete draft. Only accepted Apply advances the
+composition/light revision; native CAD revisions and TEN pins stay unchanged.
+Choose a Surface from the list or canvas, inspect all TEN fields, and resize
+through the asynchronous facade. Conflicting controls are disabled while pending.
+
+Save downloads the accepted original composition, never an uncommitted draft or
+GPU packet/program. Open validates an example-owned exact version-0 file,
+re-parses the full embedded canonical CAD document with `parseBaroCadDocument`,
+recompiles original shader source with `compileMeshMaterial`, and lets the Viewer
+verify original TEN ownership before replacement. Signed JSON retains -0 and
+omitted overrides; files are capped at4MiB before reading/parsing. This local
+example codec is not a global Interop/Render codec or a replacement for the
+original IGES route. Pagehide/dispose removes listeners and download resources;
+a late initial factory result is immediately disposed without adoption.
+
+### Bounded software verification and remaining acceptance
+
+```sh
+NODE_OPTIONS=--max-old-space-size=2048 node --test --test-concurrency=1 packages/barocss-viewer/tests/native-directional-light-webgpu.test.mjs
+NODE_OPTIONS=--max-old-space-size=2048 node examples/viewer-native-directional-lights/qualify.mjs
+```
+
+Run the affected CAD, Interop, GPU and Viewer builds before the qualifier. It
+checks real source and emitted providers, exact public declarations, the complete
+original-file cold reconstruction in a fresh process, raw signed/full-pair joins,
+refusal retention, async locks/lifetime, controller editing/file flows, and
+repeatable software DOM wiring. Private import mocks and the explicit software
+platform exercise calls and lifecycle; neither is evidence of physical rendering.
+
+Actual WGSL compilation, colored-light device pixels, physical canvas picking,
+resize/refusal pixel retention, browser file selection/download/open and driver
+loss/cleanup remain **UNRUN, externally owned**. Broader rendered and async Editor
+acceptance remains pending. Software completion does not change default readiness,
+merge, deployment, npm publication or release status.

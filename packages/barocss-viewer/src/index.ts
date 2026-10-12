@@ -2456,3 +2456,11 @@ export function createViewer(canvas: HTMLCanvasElement, options: ViewerOptions):
 export { prepareViewerNativeSceneAppearance } from './native-scene-appearance.js';
 export type { ViewerNativeSceneAppearanceInputV1, ViewerNativeSceneAppearanceContext,
   PreparedViewerNativeSceneAppearance } from './native-scene-appearance.js';
+
+// Explicit async native-document authored-light consumer; no default backend change.
+export { createNativeDirectionalLightWebGPUViewer } from './native-directional-light-webgpu.js';
+export { ViewerNativeDirectionalLightError } from './native-directional-light-candidate.js';
+export type { ViewerNativeDirectionalLightCode, ViewerNativeDirectionalLightOwner,
+  ViewerNativeDirectionalLightInput, ViewerNativeDirectionalLightAccepted,
+  ViewerNativeDirectionalLightPick } from './native-directional-light-candidate.js';
+export type { ViewerNativeDirectionalLightWebGPU } from './native-directional-light-webgpu.js';
