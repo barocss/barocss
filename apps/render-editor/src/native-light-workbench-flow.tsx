@@ -1,6 +1,11 @@
 import {act} from 'react';
 import {createRoot} from 'react-dom/client';
+import {prepareRenderNativeLightDocument} from '@barocss/render-editor';
 import type {RenderNativeLightDocument} from '@barocss/render-editor';
+import {createCadGeometryReference, queryCadDocumentBounds, validateCadDocumentBounds} from '@barocss/cad';
+import {prepareCamera} from '@barocss/gpu';
+import type {MeshCamera} from '@barocss/gpu';
+import {prepareSceneTransform, sceneRotation} from '../../../packages/barocss-gpu/src/mesh-scene-transform';
 import {NativeLightWorkbench} from './native-light-workbench';
 
 /** Real React UI with a privately controlled Viewer in the runner. This does not prove GPU pixels. */
@@ -12,6 +17,41 @@ export async function mountLightWorkbenchFlow(container: HTMLElement, initial?: 
     throw cause;
   }
   return {async dispose() {await act(async () => {root.unmount();});}};
+}
+
+/** Independent test oracle: original CAD bounds and GPU pose/camera services, never fitter output corners. */
+export function inspectLightFramingFlow(document: RenderNativeLightDocument, camera: MeshCamera,
+  bodyIds: readonly string[], backing: {backingWidth: number; backingHeight: number}) {
+  const prepared = prepareRenderNativeLightDocument(document);
+  const matrices = prepareCamera(camera, backing.backingWidth / backing.backingHeight);
+  // Deliberately multiply the actual prepared Float32 matrices here instead of reusing
+  // the fitting helper's projection check or its camera-space distance calculation.
+  const multiply = (matrix: Float32Array, point: readonly number[]) => [0, 1, 2, 3].map(row => {
+    let value = Math.fround(matrix[row] * Math.fround(point[0]));
+    for (let column = 1; column < 4; column++) value = Math.fround(value + Math.fround(matrix[column * 4 + row] * Math.fround(point[column])));
+    return value;
+  });
+  return bodyIds.map(bodyId => {
+    const entry = prepared.entries.find(item => item.binding.bodyId === bodyId);
+    if (!entry) throw new Error('Missing original framing-test body ' + bodyId);
+    const reference = createCadGeometryReference(prepared.native, {bodyId}).reference;
+    const bounds = queryCadDocumentBounds(prepared.native, reference);
+    const report = validateCadDocumentBounds(prepared.native, bounds);
+    const authored = prepared.document.display.poses.find(pose => pose.bodyId === bodyId);
+    const pose = prepareSceneTransform(authored ? {translationMm: [...authored.translationMM],
+      rotationXYZW: [...authored.rotationXYZW], scale: [...authored.scale]}
+      : {translationMm: [0, 0, 0], rotationXYZW: [0, 0, 0, 1], scale: [1, 1, 1]});
+    const rotate = sceneRotation(pose);
+    const corners = Array.from({length: 8}, (_, bits) => {
+      const original = [0, 1, 2].map(axis => bits & (1 << axis) ? bounds.boundsMM.max[axis] : bounds.boundsMM.min[axis]);
+      const rotated = rotate(original[0] * pose.scale[0], original[1] * pose.scale[1], original[2] * pose.scale[2]);
+      const worldScene = rotated.map((value, axis) => (value + pose.translationMm[axis]) * document.display.mmToSceneUnit);
+      const view = multiply(matrices.view, [...worldScene, 1]);
+      const clip = multiply(matrices.projection, view);
+      return {original, worldScene, depth: -view[2], clip, ndc: clip.slice(0, 3).map(value => value / clip[3])};
+    });
+    return {bodyId, reference, binding: entry.binding, boundsMM: bounds.boundsMM, report, corners};
+  });
 }
 
 /** Controlled DOM boundary only; real input listeners, camera derivation and session remain in use. */

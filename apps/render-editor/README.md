@@ -546,3 +546,36 @@ Viewer/RAF/pointer-capture boundaries. These checks establish software behavior;
 physical browser/GPU/device behavior and the #1573 owner report remain separate.
 Each current Viewer replacement rebuilds a complete render candidate, so this
 initial control makes no smooth-animation or 60 fps performance claim.
+
+### Frame accepted Light bodies
+
+**Frame selected** fits the current Scene bodies row. **Frame all** fits the
+visible material-bound Surfaces. Both use accepted original geometry, including
+its display quaternion, positive nonuniform scale, translation and mm conversion;
+incomplete corrective fields are neither applied nor discarded. Hidden, missing,
+unqualified or ambiguous selected bodies refuse. Empty bound populations refuse.
+
+The private fitter uses real CAD reference/control-hull bounds and the existing
+GPU quaternion/projection/camera services. It keeps the viewing orientation, raw
+Up and FOV, centers conservative posed control-hull corners with a 1.2 visual
+margin, and chooses local near/far planes. All eight corners per included body
+must pass the actual camera projection and clipping checks. Unresolvable or
+out-of-limit fits refuse without clamping or changing authorship. This is not a
+tight Surface bound, centroid, exact arithmetic or pixel-containment certificate.
+
+Framing uses the existing owned asynchronous local-camera operation. Accepted
+files, revisions, history, body selection and raw fields remain intact. A repeated
+successful command with exactly the same accepted scene, acknowledged camera,
+body scope and CSS/backing dimensions makes no presentation; it does not repeatedly
+recompute floating-point camera fits. Any changed identity/dimension misses that
+cache, and the session still admits signed-value exact camera no-ops. Drag, queued
+or pending operations, file chooser, Help and unavailable presentation fence the
+buttons. No global framing shortcut or Canvas picking is added. Set scene camera
+remains the explicit clean-only authoring action; Save excludes framed local view.
+
+The existing workbench flow adds at most 36 pure provider/projection cases and
+8 controlled presentation calls per light kind, with prior regression counts
+reported separately. Actual bounds, pose and camera providers run; Viewer
+acknowledgement, DOM dimensions and files remain controlled. Source review and
+bounded runtime/types/build/lint results are required before software acceptance.
+Physical GPU/browser/device behavior and the unresolved #1573 report remain open.

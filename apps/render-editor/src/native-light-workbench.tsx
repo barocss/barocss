@@ -6,6 +6,7 @@ import type {RenderNativeLightDocument, RenderNativeLightSession,
   RenderNativeLightSessionSnapshot} from '@barocss/render-editor';
 import {createNativeLightController} from './native-light-controller';
 import {createNativeLightNavigation} from './native-light-navigation';
+import {deriveNativeLightFramingCamera} from './native-light-framing';
 import {createNativeSceneBase, createNativeSceneSeed} from './native-scene-seed';
 import {readLightFields, applyLightFields, addLightFields,
   lightFieldsDirty, lightKind} from './native-light-fields';
@@ -53,6 +54,9 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
     camera: {eye: ['', '', ''], target: ['', '', ''], up: ['', '', ''], fovYDegrees: '', near: '', far: ''}});
   const [selected, setSelected] = useState<string | null>(null), [busy, setBusy] = useState(false);
   const [selectedBody, setSelectedBody] = useState<string | null>(null);
+  const [choosingFile, setChoosingFile] = useState(false);
+  const framed = useRef<{document: RenderNativeLightDocument; camera: RenderNativeLightDocument['display']['camera'];
+    bodyId: string | undefined; dimensions: number[]} | null>(null);
   const [status, setStatus] = useState('starting'), [notice, setNotice] = useState('Opening required WebGPU viewport…');
   const [error, setError] = useState<string | null>(null), [help, setHelp] = useState(false);
   const formRef = useRef(fields); formRef.current = fields;
@@ -73,7 +77,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
     mounted.current = true; const started = ++epoch.current;
     const controller = createNativeLightController(), abort = new AbortController();
     let unsubscribe: (() => void) | null = null;
-    sessionRef.current = null; setSnapshot(null); setStatus('starting'); setError(null); setNavigating(false);
+    sessionRef.current = null; framed.current = null; setChoosingFile(false); setSnapshot(null); setStatus('starting'); setError(null); setNavigating(false);
     const live = () => mounted.current && epoch.current === started;
     void (async () => {
       try {
@@ -103,7 +107,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   }, [attempt, kind]);
   useEffect(() => {
     const input = fileInput.current;
-    const cancel = () => {if (!busyRef.current) {openTicket.current = null; setError(null); setNotice('File selection cancelled.');}};
+    const cancel = () => {if (!busyRef.current) {openTicket.current = null; setChoosingFile(false); setError(null); setNotice('File selection cancelled.');}};
     input?.addEventListener('cancel', cancel);
     return () => input?.removeEventListener('cancel', cancel);
   }, [kind]);
@@ -159,6 +163,38 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
     session.setDraftText(serializeRenderNativeLightDocument(next), current.version);
     await session.commitPrepared(session.prepareDraft(session.getSnapshot().version)); return true;
   }, 'Current view accepted as the scene camera.');
+  const frameBodies = (scope: 'all' | 'selected') => {
+    if (helpRef.current || openTicket.current || !canvas.current || status !== 'ready'
+      || scope === 'selected' && selectedBody === null) return;
+    const bodyId = scope === 'selected' ? selectedBody! : undefined;
+    void run(async (session, stillCurrent) => {
+      const element = canvas.current;
+      if (!element || helpRef.current || openTicket.current) return false;
+      const before = session.getSnapshot(), camera = before.viewportCamera ?? before.accepted.display.camera;
+      const liveStatus = session.getStatus();
+      if (before.disposed || before.pending !== null || liveStatus.state !== 'ready')
+        throw new RenderEditorError('PRESENTATION_REFUSED', 'Framing requires an available idle viewport.');
+      if (element.width !== liveStatus.width || element.height !== liveStatus.height)
+        throw new RenderEditorError('PRESENTATION_REFUSED', 'Canvas backing dimensions differ from the acknowledged viewport.');
+      const rect = element.getBoundingClientRect(), dimensions = [rect.width, rect.height, element.width, element.height];
+      const previous = framed.current;
+      // Exact observed identities prevent repeat commands from accumulating floating
+      // point fitting drift. Any accepted scene/view/scope/dimension change misses.
+      if (previous?.document === before.accepted && previous.camera === camera && previous.bodyId === bodyId
+        && dimensions.every((value, index) => Object.is(value, previous.dimensions[index]))) {
+        if (stillCurrent()) setNotice('This accepted geometry is already framed.'); return false;
+      }
+      const next = deriveNativeLightFramingCamera(before.accepted, camera,
+        {width: rect.width, height: rect.height, backingWidth: element.width, backingHeight: element.height}, bodyId);
+      await session.navigateViewportCamera(next, before.version);
+      if (stillCurrent()) {
+        const after = session.getSnapshot();
+        framed.current = {document: after.accepted, camera: after.viewportCamera ?? after.accepted.display.camera, bodyId, dimensions};
+        setNotice(scope === 'all' ? 'Visible accepted bodies framed in the local view.' : 'Selected accepted body framed in the local view.');
+      }
+      return false; // A local view command never refreshes/consumes corrective fields.
+    }, '');
+  };
   const history = (direction: 'undo' | 'redo') => void run(async session => {
     const candidate = direction === 'undo' ? session.prepareUndo(session.getSnapshot().version) : session.prepareRedo(session.getSnapshot().version);
     if (!candidate) return false; await session.commitPrepared(candidate); return true;
@@ -167,11 +203,12 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
     const session = sessionRef.current;
     if (session && !busyRef.current && !navigationBusy.current && confirmReplace(kind === 'current' ? 'Open' : 'Import legacy Native scene')) {
       openTicket.current = {session, snapshot: session.getSnapshot(), fields: formRef.current, kind};
+      setChoosingFile(true);
       if (fileInput.current) fileInput.current.value = ''; fileInput.current?.click();
     }
   };
   const readFile = (file: File | undefined) => {
-    const ticket = openTicket.current; openTicket.current = null;
+    const ticket = openTicket.current; openTicket.current = null; setChoosingFile(false);
     if (!file) return;
     if (!ticket || ticket.session !== sessionRef.current || ticket.snapshot !== ticket.session.getSnapshot() || ticket.fields !== formRef.current) {
       report(new RenderEditorError('STALE_CANDIDATE', 'The scene or draft changed while choosing the file. Choose it again.')); return;
@@ -215,7 +252,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   };
   const newWorkspace = (nextKind: LightKind) => {
     if (busyRef.current || navigationBusy.current || !confirmReplace('New ' + nextKind + ' workspace')) return;
-    openTicket.current = null; replacement.current = undefined;
+    openTicket.current = null; setChoosingFile(false); replacement.current = undefined;
     setKind(nextKind); setAttempt(value => value + 1); setBusy(false);
     setNotice('Starting a new ' + nextKind + ' workspace…');
   };
@@ -258,7 +295,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
       <Button size="icon-xs" variant="ghost" aria-label="Undo" disabled={disabled || dirty || !snapshot?.canUndo} onClick={() => history('undo')}><Undo2/></Button>
       <Button size="icon-xs" variant="ghost" aria-label="Redo" disabled={disabled || dirty || !snapshot?.canRedo} onClick={() => history('redo')}><Redo2/></Button>
     </div>
-    {help && <section style={sectionStyle} aria-label="Light help">Choose a directional or point workspace. Each admits zero to four lights plus ambient; mixed lighting and cross-kind Open are refused without replacing your scene. Directions retain raw nonzero XYZ values. Points use final-world scene coordinates and range in scene units, with the GPU's artistic finite-range lighting. Color is linear RGB; ambient/color/intensity range from zero to one. Scene camera edits are authored data: eye, target and clipping planes use scene units, up is dimensionless and vertical FOV is in degrees. Body origin positions use millimetres and scales are dimensionless. Body selection keeps each object's corrective fields; rotation, visibility and original CAD source are retained. Body, camera, light and material fields Apply together in one complete transaction and refused fields remain available. Material controls edit only the selected body’s existing embedded binding, even when another binding repeats its material ID. Override supplies a scalar value; clearing Override uses the declared shader default without changing shader source. Orbit or Pan drags, Shift-drag and wheel zoom change only the local view. Scene camera resets that view; Set scene camera explicitly authors it once only when all fields are clean. Escape or lost capture stops queued navigation without undoing acknowledged view updates. Save keeps the accepted authored camera. Open accepts current light scenes of the same kind and migrates supported directional legacy files. Import legacy Native scene explicitly converts V0 to directional authorship; a point workspace refuses it. Save writes the accepted current format. New workspace explicitly ends the old lifetime; remount retains accepted data but clears history. Actual device and physical-file acceptance remain separate.</section>}
+    {help && <section style={sectionStyle} aria-label="Light help">Choose a directional or point workspace. Each admits zero to four lights plus ambient; mixed lighting and cross-kind Open are refused without replacing your scene. Directions retain raw nonzero XYZ values. Points use final-world scene coordinates and range in scene units, with the GPU's artistic finite-range lighting. Color is linear RGB; ambient/color/intensity range from zero to one. Scene camera edits are authored data: eye, target and clipping planes use scene units, up is dimensionless and vertical FOV is in degrees. Body origin positions use millimetres and scales are dimensionless. Body selection keeps each object's corrective fields; rotation, visibility and original CAD source are retained. Body, camera, light and material fields Apply together in one complete transaction and refused fields remain available. Material controls edit only the selected body’s existing embedded binding, even when another binding repeats its material ID. Override supplies a scalar value; clearing Override uses the declared shader default without changing shader source. Orbit or Pan drags, Shift-drag and wheel zoom change only the local view. Frame selected fits the current body row and Frame all fits visible accepted bodies using conservative control-hull bounds with a 1.2 margin. Framing ignores and preserves corrective drafts; it retains viewing direction and FOV while choosing local clipping planes. It does not edit geometry or guarantee tight Surface or pixel bounds. Scene camera resets that view; Set scene camera explicitly authors it once only when all fields are clean. Escape or lost capture stops queued navigation without undoing acknowledged view updates. Save keeps the accepted authored camera. Open accepts current light scenes of the same kind and migrates supported directional legacy files. Import legacy Native scene explicitly converts V0 to directional authorship; a point workspace refuses it. Save writes the accepted current format. New workspace explicitly ends the old lifetime; remount retains accepted data but clears history. Actual device and physical-file acceptance remain separate.</section>}
     <div className="app-body" style={{minHeight: 0}}>
       <aside style={{width: 210, flexShrink: 0, borderRight: '1px solid var(--border)', overflow: 'auto'}} aria-label="Light outliner">
         <div style={sectionStyle}><strong>Scene lights</strong><p style={{color: 'var(--muted-foreground)'}}>{fields.lights.length} / 4 {kind}</p>
@@ -278,6 +315,9 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
           <Button size="sm" variant="outline" aria-pressed={navigationMode === 'pan'} disabled={disabled} onClick={() => setNavigationMode('pan')}>Pan</Button>
           <Button size="sm" variant="outline" aria-label="Zoom in" disabled={disabled || help} onClick={() => navigation.current?.interact({kind: 'zoom', factor: 1.15})}>+</Button>
           <Button size="sm" variant="outline" aria-label="Zoom out" disabled={disabled || help} onClick={() => navigation.current?.interact({kind: 'zoom', factor: 1 / 1.15})}>−</Button>
+          <Button size="sm" variant="outline" disabled={disabled || help || choosingFile || !selectedBody
+            || !snapshot?.accepted.display.visibleBodyIds.includes(selectedBody)} onClick={() => frameBodies('selected')}>Frame selected</Button>
+          <Button size="sm" variant="outline" disabled={disabled || help || choosingFile} onClick={() => frameBodies('all')}>Frame all</Button>
           <Button size="sm" variant="outline" disabled={disabled || !snapshot?.viewDirty} onClick={resetView}>Scene camera</Button>
           <Button size="sm" variant="outline" disabled={disabled || dirty || !snapshot?.viewDirty} onClick={useView}>Set scene camera</Button>
           <span role="status" aria-label="Viewport camera status">{navigating ? 'Moving view…' : snapshot?.viewDirty ? 'User view' : 'Scene view'}</span>

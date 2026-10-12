@@ -41,6 +41,7 @@ try {
   await build({stdin: {contents: `export * from './apps/render-editor/src/native-light-workbench';
 export * from './apps/render-editor/src/native-light-fields';
 export * from './apps/render-editor/src/native-light-workbench-flow';
+export {deriveNativeLightFramingCamera} from './apps/render-editor/src/native-light-framing';
 export {createNativeSceneBase,createNativeSceneSeed} from './apps/render-editor/src/native-scene-seed';
 export {prepareViewerNativeSceneAppearance} from '@barocss/viewer';
 export {deriveRenderCameraInteraction,createRenderNativeLightRequest,prepareRenderNativeLightDocument,parseRenderNativeLightDocument,serializeRenderNativeLightDocument,serializeRenderNativeSceneDocument,serializeRenderNativeDirectionalLightDocument,parseRenderNativeDirectionalLightDocument} from '@barocss/render-editor';`,resolveDir: workspace},
@@ -1160,9 +1161,257 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
       coalescedPresentations: 2, cancellationCases: 6, queuedRectangleRefusals: 2, lateCompletionCases: 2, pendingFrames: navigationDom.pendingFrames(), captures: navigationDom.captures()});
   }
 
+  // #1650: 36 named pure cases; each calls the real fitter once. Projection uses
+  // independent original CAD hulls and the GPU's prepared Float32 camera matrices.
+  // The React cases below separately cap *all* new replacements at eight per kind,
+  // including the three authored/history setup replacements and refused/late ones.
+  const framingChecks = [], framingFlow = [];
+  const frameViewport = {width: 900, height: 600, backingWidth: 960, backingHeight: 600};
+  const makeFramingSeed = kind => {
+    const raw = structuredClone(api.createLightStudy(sourceText, kind));
+    raw.nativeDocument.bodies.forEach(body => {body.name = 'Repeated Surface';});
+    raw.display.camera = {eye: [2, 3, 6], target: [-0, -.5, 0], up: [-0, 2, -0], fovYDegrees: 55, near: .025, far: 120};
+    Object.assign(poseFor(raw, A), {translationMM: [-8200, 900, -1500],
+      rotationXYZW: [Math.SQRT1_2, -0, -0, Math.SQRT1_2], scale: [1.3, .7, .8]});
+    const q = Math.SQRT1_2 * (1 + 2e-10);
+    Object.assign(poseFor(raw, B), {translationMM: [7300, -0, 2100], rotationXYZW: [-0, -0, q, q], scale: [.65, 1.4, 1.1]});
+    return api.prepareRenderNativeLightDocument(raw).document;
+  };
+  const close = (actual, expected, message, tolerance = 1e-10) => assert(Math.abs(actual - expected) <= tolerance, message + ': ' + actual + ' vs ' + expected);
+  const unitView = camera => {
+    const offset = camera.eye.map((value, index) => value - camera.target[index]), length = Math.hypot(...offset);
+    return offset.map(value => value / length);
+  };
+  const assertFramingProjection = (document, camera, ids, viewport, previous) => {
+    assert.deepEqual(camera.up, previous.up, 'Raw Up magnitude and signed zero survive framing');
+    assert.equal(camera.fovYDegrees, previous.fovYDegrees);
+    const direction = unitView(camera); unitView(previous).forEach((value, index) => close(direction[index], value, 'Current orientation ' + index));
+    const inspected = api.inspectLightFramingFlow(document, camera, ids, viewport);
+    assert.deepEqual(inspected.map(item => item.bodyId), ids);
+    const points = [];
+    for (const item of inspected) {
+      assert.equal(item.report.geometryAuthority, 'original-native-control-hull');
+      assert.equal(item.report.quality.boundsSemantics, 'conservative-control-hull-not-tight-geometry-extrema');
+      assert.equal(item.corners.length, 8);
+      assert.deepEqual(item.boundsMM, {min: [-700, -550, -700], max: [700, -550, 700]});
+      for (const pin of ['documentId', 'documentRevision', 'bodyId', 'assetId', 'assetRevision', 'geometryId'])
+        assert.deepEqual(item.reference[pin], item.binding[pin], 'Original bounds pin ' + pin);
+      assert.equal(item.binding.modelId, 'cloth_reference_981'); assert.equal(item.binding.geometryId, 'reference_panel');
+      for (const corner of item.corners) {
+        points.push(corner.worldScene);
+        assert([...corner.worldScene, corner.depth, ...corner.clip, ...corner.ndc].every(Number.isFinite));
+        assert(corner.clip[3] > 0 && corner.depth > camera.near && corner.depth < camera.far, 'Every corner has positive depth and clipping slack');
+        assert(Math.abs(corner.ndc[0]) <= 1 / 1.2 + 2e-5 && Math.abs(corner.ndc[1]) <= 1 / 1.2 + 2e-5,
+          'Actual Float32 corner projection retains the declared 1.2 margin');
+        assert(corner.ndc[2] > -1 && corner.ndc[2] < 1, 'Actual prepared projection clips retain every corner');
+      }
+    }
+    for (let axis = 0; axis < 3; axis++) close(camera.target[axis],
+      (Math.min(...points.map(point => point[axis])) + Math.max(...points.map(point => point[axis]))) / 2, 'Control-hull center ' + axis);
+    return inspected;
+  };
+  const pureFrame = (name, document, camera, viewport = frameViewport, bodyId, refuses = false) => {
+    framingChecks.push({name, outcome: refuses ? 'refused' : 'projected'});
+    assert(framingChecks.length <= 36, 'Focused framing pure-case cap');
+    if (refuses) {assert.throws(() => api.deriveNativeLightFramingCamera(document, camera, viewport, bodyId), undefined, name); return;}
+    return api.deriveNativeLightFramingCamera(document, camera, viewport, bodyId);
+  };
+  const framingSeed = makeFramingSeed('directional'), framingSeedText = api.serializeRenderNativeLightDocument(framingSeed);
+  const framingCamera = framingSeed.display.camera;
+  const fitA = pureFrame('qualified off-origin A', framingSeed, framingCamera, frameViewport, A);
+  const inspectedA = assertFramingProjection(framingSeed, fitA, [A], frameViewport, framingCamera);
+  // Literal 90-degree X/Z expectations are separate from both fitter and pose oracle.
+  inspectedA[0].corners[0].worldScene.forEach((value, axis) => close(value, [-9.11, 1.46, -1.885][axis], 'Original A corner rotation ' + axis));
+  const fitB = pureFrame('raw signed nonunit-tolerance Z rotation and nonuniform B', framingSeed, framingCamera, frameViewport, B);
+  const inspectedB = assertFramingProjection(framingSeed, fitB, [B], frameViewport, framingCamera);
+  inspectedB[0].corners[0].worldScene.forEach((value, axis) => close(value, [8.07, -.455, 1.33][axis], 'Original B corner rotation ' + axis));
+  assert.notDeepEqual(inspectedA[0].reference, inspectedB[0].reference, 'Repeated geometry IDs remain distinct original body/asset references');
+  assert.notEqual(Math.hypot(...poseFor(framingSeed, B).rotationXYZW), 1, 'Fixture retains raw accepted quaternion tolerance');
+  const fitAll = pureFrame('all visible original bodies', framingSeed, framingCamera);
+  assertFramingProjection(framingSeed, fitAll, [A, B], frameViewport, framingCamera);
+  assert.notDeepEqual(fitAll, fitB, 'All is not a substituted selected body');
+  const portrait = {...frameViewport, backingWidth: 600, backingHeight: 960};
+  const fitPortrait = pureFrame('backing aspect differs from CSS aspect', framingSeed, framingCamera, portrait);
+  assertFramingProjection(framingSeed, fitPortrait, [A, B], portrait, framingCamera);
+  assert(Math.hypot(...fitPortrait.eye.map((value, axis) => value - fitPortrait.target[axis]))
+    > Math.hypot(...fitAll.eye.map((value, axis) => value - fitAll.target[axis])), 'Portrait backing needs a larger fit');
+  const highDpi = {...frameViewport, backingWidth: 1920, backingHeight: 1200};
+  const fitHighDpi = pureFrame('equal backing aspect at different resolution', framingSeed, framingCamera, highDpi);
+  assert.deepEqual(fitHighDpi, fitAll); assertFramingProjection(framingSeed, fitHighDpi, [A, B], highDpi, framingCamera);
+  const hiddenRaw = structuredClone(framingSeed); hiddenRaw.display.visibleBodyIds = [B]; hiddenRaw.surfaceMaterials = hiddenRaw.surfaceMaterials.filter(item => item.target.bodyId === B);
+  const hidden = api.prepareRenderNativeLightDocument(hiddenRaw).document;
+  const fitHidden = pureFrame('all excludes hidden original body', hidden, framingCamera);
+  assert.deepEqual(fitHidden, fitB); assertFramingProjection(hidden, fitHidden, [B], frameViewport, framingCamera);
+  const unboundRaw = structuredClone(framingSeed); unboundRaw.surfaceMaterials = unboundRaw.surfaceMaterials.filter(item => item.target.bodyId === B);
+  const unbound = api.prepareRenderNativeLightDocument(unboundRaw).document;
+  const fitUnbound = pureFrame('all excludes visible unbound original body', unbound, framingCamera);
+  assert.deepEqual(fitUnbound, fitB); assertFramingProjection(unbound, fitUnbound, [B], frameViewport, framingCamera);
+  const identityRaw = structuredClone(framingSeed); identityRaw.display.poses = [];
+  const identity = api.prepareRenderNativeLightDocument(identityRaw).document;
+  const fitIdentity = pureFrame('omitted poses retain native identity intent', identity, framingCamera, frameViewport, A);
+  assertFramingProjection(identity, fitIdentity, [A], frameViewport, framingCamera);
+  const pointFramingSeed = makeFramingSeed('point');
+  const fitPoint = pureFrame('point uses the same qualified geometry fit', pointFramingSeed, framingCamera, frameViewport, B);
+  assert.deepEqual(fitPoint, fitB); assertFramingProjection(pointFramingSeed, fitPoint, [B], frameViewport, framingCamera);
+  const smallRaw = structuredClone(framingSeed);
+  Object.assign(poseFor(smallRaw, B), {scale: [.001, .002, .003], translationMM: [0, -0, 0]});
+  const small = api.prepareRenderNativeLightDocument(smallRaw).document;
+  const fitSmall = pureFrame('Native minimum positive scale remains admitted', small, framingCamera, frameViewport, B);
+  assertFramingProjection(small, fitSmall, [B], frameViewport, framingCamera);
+  const distantRaw = structuredClone(framingSeed); distantRaw.display.mmToSceneUnit = .02;
+  const distant = api.prepareRenderNativeLightDocument(distantRaw).document;
+  const fitDistant = pureFrame('no unrelated Source1 100-unit travel limit', distant, framingCamera, frameViewport, A);
+  assert(Math.hypot(...fitDistant.target) > 100); assertFramingProjection(distant, fitDistant, [A], frameViewport, framingCamera);
+  for (const [name, patch] of [['zero CSS width', {width: 0}], ['nonfinite CSS height', {height: NaN}],
+    ['fractional backing size', {backingWidth: 960.5}], ['oversized backing axis', {backingHeight: 4097}],
+    ['oversized backing area', {backingWidth: 4096, backingHeight: 4096}]])
+    pureFrame(name, framingSeed, framingCamera, {...frameViewport, ...patch}, undefined, true);
+  for (const [name, patch] of [['degenerate current camera', {target: framingCamera.eye}], ['zero current Up', {up: [0, -0, 0]}]])
+    pureFrame(name, framingSeed, {...framingCamera, ...patch}, frameViewport, undefined, true);
+  for (const [name, document, bodyId] of [['missing selected body', framingSeed, 'foreign_body'],
+    ['geometry ID is not a selected body', framingSeed, 'reference_panel'], ['hidden selected body', hidden, A], ['unbound selected body', unbound, A]])
+    pureFrame(name, document, framingCamera, frameViewport, bodyId, true);
+  pureFrame('empty material-bound population', {...framingSeed, surfaceMaterials: []}, framingCamera, frameViewport, undefined, true);
+  for (const pin of ['documentId', 'documentRevision', 'bodyId', 'assetId', 'assetRevision', 'modelId', 'geometryId']) {
+    const stale = structuredClone(framingSeed), target = stale.surfaceMaterials[1].target;
+    target[pin] = typeof target[pin] === 'number' ? target[pin] + 1 : 'foreign_' + target[pin];
+    pureFrame('mismatched original material pin ' + pin, stale, framingCamera, frameViewport, B, true);
+  }
+  pureFrame('ambiguous duplicate material binding', {...framingSeed, surfaceMaterials: [framingSeed.surfaceMaterials[1], framingSeed.surfaceMaterials[1]]}, framingCamera, frameViewport, B, true);
+  let framingGetterReads = 0;
+  const accessorViewport = {...frameViewport}; Object.defineProperty(accessorViewport, 'width', {enumerable: true, get() {framingGetterReads++; return 900;}});
+  pureFrame('dimension accessor never executes', framingSeed, framingCamera, accessorViewport, undefined, true);
+  const accessorCamera = {...framingCamera}; Object.defineProperty(accessorCamera, 'up', {enumerable: true, get() {framingGetterReads++; return [0, 1, 0];}});
+  pureFrame('camera accessor never executes', framingSeed, accessorCamera, frameViewport, undefined, true);
+  const accessorDocument = {...framingSeed}; Object.defineProperty(accessorDocument, 'display', {enumerable: true, get() {framingGetterReads++; return framingSeed.display;}});
+  pureFrame('document accessor never executes', accessorDocument, framingCamera, frameViewport, undefined, true);
+  pureFrame('throwing dimension reflection is recoverable', framingSeed, framingCamera,
+    new Proxy(frameViewport, {ownKeys() {throw new Error('Controlled dimension reflection refusal');}}), undefined, true);
+  const hugeRaw = structuredClone(framingSeed); hugeRaw.display.mmToSceneUnit = 1;
+  pureFrame('derived camera outside actual camera limits', hugeRaw, framingCamera, frameViewport, B, true);
+  assert.equal(framingChecks.length, 36); assert.equal(framingGetterReads, 0);
+  assert.equal(api.serializeRenderNativeLightDocument(framingSeed), framingSeedText, 'All accepted signed authoring authority remains immutable');
+
+  for (const kind of ['directional', 'point']) {
+    const frameSeed = kind === 'directional' ? framingSeed : pointFramingSeed;
+    const seedText = api.serializeRenderNativeLightDocument(frameSeed), replacementCounts = {view: 0, authored: 0, total: 0};
+    const trackFrame = control => {
+      control.prepare = prepareBodyAppearance;
+      const replace = control.viewer.replace;
+      control.viewer.replace = request => {
+        replacementCounts.total++; assert(replacementCounts.total <= 8, kind + ': eight total framing-flow replacements');
+        const owner = control.viewer.accepted.owner;
+        if (request.owner.id === owner.id && Object.is(request.owner.revision, owner.revision)) replacementCounts.view++;
+        else replacementCounts.authored++;
+        return replace(request);
+      };
+      return control;
+    };
+    navigationDom.setRect({left: 40, top: 25, width: frameViewport.width, height: frameViewport.height});
+    mounted = await api.mountLightWorkbenchFlow(container, frameSeed);
+    let frameControl = trackFrame(controls.at(-1)), canvas = container.querySelector('canvas');
+    await selectBody(B); assert(!button('Frame selected').disabled); assert(!button('Frame all').disabled);
+    assert.equal(await saveText(), seedText); assert.equal(unloadBlocked(), false);
+    const corrective = [['Camera eye X', ''], ['Intensity', '1e'], ['Body position X (mm)', '-'], ['Uniform amount', 'NaN']];
+    const stageCorrective = async () => {for (const [label, value] of corrective) await edit(label, value);};
+    const assertCorrective = () => {for (const [label, value] of corrective) assert.equal(inputValue(label), value, 'Framing retains ' + label);};
+    const assertSelected = () => assert.equal(button('Edit body ' + B).getAttribute('aria-pressed'), 'true');
+    const assertBlockedFrames = reason => {for (const label of ['Frame selected', 'Frame all']) assert(button(label).disabled, reason + ': ' + label);};
+    await stageCorrective(); await click('Frame selected'); // 1: accepted selected fit.
+    assert.equal(replacementCounts.total, 1);
+    let local = frameControl.calls.at(-1).display.camera;
+    assertViewRequest(frameControl.calls.at(-1), frameSeed, local);
+    assertFramingProjection(frameSeed, local, [B], frameViewport, frameSeed.display.camera);
+    assertCorrective(); assertSelected(); assert.equal(await saveText(), seedText); assert.equal(cameraStatus(), 'User view');
+    assert(button('Undo').disabled); assert(button('Redo').disabled); assert(button('Set scene camera').disabled);
+    const firstGeneration = frameControl.viewer.accepted.generation;
+    await click('Frame selected'); assert.equal(replacementCounts.total, 1); assert.equal(frameControl.viewer.accepted.generation, firstGeneration);
+    assertCorrective(); assertSelected(); assert.equal(await saveText(), seedText);
+
+    // Drag and queued navigation fences are exercised without flushing a new presentation.
+    await pointer(canvas, 'pointerdown', 140, 125); assertBlockedFrames('active drag');
+    await pointer(canvas, 'pointermove', 148, 130); assert.equal(navigationDom.pendingFrames(), 1); assertBlockedFrames('queued navigation');
+    await act(async () => {button('Frame selected').click(); button('Frame all').click(); navigationDom.pointer(canvas, 'pointercancel', 148, 130);});
+    await flushNavigation(); assert.equal(replacementCounts.total, 1); assert.equal(navigationDom.captures(), 0); assert.equal(navigationDom.pendingFrames(), 0);
+    await click('Help'); assertBlockedFrames('Help'); await act(async () => {button('Frame all').click();}); await click('Help');
+    await click('Open'); assertBlockedFrames('file chooser'); await act(async () => {button('Frame selected').click();});
+    await act(async () => container.querySelector('input[type="file"]').dispatchEvent(new dom.window.Event('cancel', {bubbles: true})));
+    assert.equal(replacementCounts.total, 1); assertCorrective(); assertSelected();
+    canvas.width = 480; await click('Frame selected');
+    assert(text().includes('PRESENTATION_REFUSED')); assert.equal(replacementCounts.total, 1); assertCorrective();
+    canvas.width = frameViewport.backingWidth;
+    navigationDom.setRect({left: 40, top: 25, width: 0, height: 600}); await click('Frame all');
+    assert(text().includes('DOCUMENT_INPUT')); assert.equal(replacementCounts.total, 1); assertCorrective();
+    navigationDom.setRect({left: 40, top: 25, width: frameViewport.width, height: frameViewport.height});
+
+    await click('Discard'); assert.equal(unloadBlocked(), false, 'Framing alone does not dirty authoring');
+    let releaseAuthored; frameControl.wait = new Promise(resolve => {releaseAuthored = resolve;});
+    await edit('Ambient strength', '.3'); await act(async () => button('Apply').click()); // 2: first authored edit.
+    assertBlockedFrames('pending author operation'); await act(async () => {button('Frame all').click();});
+    await act(async () => {releaseAuthored(); await frameControl.wait;}); frameControl.wait = null;
+    assert.deepEqual(frameControl.calls.at(-1).display.camera, local, 'Apply retains framed local view');
+    await edit('Ambient strength', '.4'); await click('Apply'); // 3: second authored edit.
+    assert.deepEqual(frameControl.calls.at(-1).display.camera, local);
+    await click('Undo'); // 4: both history branches exist, local fit is retained.
+    assert.deepEqual(frameControl.calls.at(-1).display.camera, local); assertHistory();
+    const retainedText = await saveText(), retained = api.parseRenderNativeLightDocument(retainedText);
+    assert.deepEqual(retained, {...frameSeed, revision: frameSeed.revision + 3, lights: {...frameSeed.lights, revision: frameSeed.revision + 3, ambientStrength: .3}});
+    await stageCorrective(); assertSelected();
+    frameControl.refusal = new Error('Controlled framing presentation refusal');
+    let releaseRefusal; frameControl.wait = new Promise(resolve => {releaseRefusal = resolve;});
+    await act(async () => button('Frame all').click()); // 5: pending recoverable refusal.
+    assert.equal(replacementCounts.total, 5); assertBlockedFrames('pending framing');
+    const refusedCamera = frameControl.calls.at(-1).display.camera;
+    assertViewRequest(frameControl.calls.at(-1), retained, refusedCamera);
+    assertFramingProjection(retained, refusedCamera, [A, B], frameViewport, local);
+    for (const label of ['Apply', 'Discard', 'Undo', 'Redo', 'Open', 'Save accepted', 'Import legacy Native scene', 'New directional', 'New point',
+      'Back to materials', 'Edit body ' + A, 'Edit body ' + B, 'Scene camera', 'Set scene camera', 'Zoom in', 'Zoom out'])
+      assert(button(label).disabled, 'Pending framing fences ' + label);
+    for (const [label] of corrective) assert(container.querySelector(`[aria-label="${label}"]`).disabled, 'Pending framing field ' + label);
+    await act(async () => {button('Frame selected').click(); button('Frame all').click(); button('Apply').click(); button('Open').click(); button('Edit body ' + A).click();});
+    await pointer(canvas, 'pointerdown', 140, 125); await pointer(canvas, 'pointermove', 155, 135); await wheel(canvas, -30); await flushNavigation();
+    assert.equal(replacementCounts.total, 5); assert.equal(navigationDom.captures(), 0); assert.equal(navigationDom.pendingFrames(), 0);
+    await act(async () => {releaseRefusal(); await frameControl.wait;}); frameControl.wait = null;
+    assert(text().includes('PRESENTATION_REFUSED')); assertCorrective(); assertSelected(); assert.equal(cameraStatus(), 'User view');
+    assert.equal(await saveText(), retainedText); assert(button('Undo').disabled); assert(button('Redo').disabled);
+    frameControl.refusal = null; await click('Frame all'); // 6: same scope retries after refusal.
+    assert.equal(replacementCounts.total, 6); assert.deepEqual(frameControl.calls.at(-1).display.camera, refusedCamera);
+    local = frameControl.calls.at(-1).display.camera;
+    assertViewRequest(frameControl.calls.at(-1), retained, local); assertCorrective(); assertSelected();
+    assert.equal(await saveText(), retainedText); assert(button('Undo').disabled); assert(button('Redo').disabled);
+    const allGeneration = frameControl.viewer.accepted.generation;
+    await click('Frame all'); assert.equal(replacementCounts.total, 6); assert.equal(frameControl.viewer.accepted.generation, allGeneration);
+    assertCorrective(); assertSelected(); assert.equal(await saveText(), retainedText);
+    await click('Discard'); assertHistory(); await stageCorrective();
+
+    for (const lateRefusal of [false, true]) {
+      const old = frameControl, oldCanvas = canvas; let releaseLateFrame;
+      old.wait = new Promise(resolve => {releaseLateFrame = resolve;});
+      if (lateRefusal) old.refusal = new Error('Disposed late framing refusal');
+      await act(async () => button(lateRefusal ? 'Frame all' : 'Frame selected').click()); // 7 and 8: disposed completion cases.
+      const oldCalls = old.calls.length; assertBlockedFrames('late pending framing');
+      await mounted.dispose(); assert.equal(old.disposed, 1); assert.equal(navigationDom.captures(), 0); assert.equal(navigationDom.pendingFrames(), 0);
+      mounted = await api.mountLightWorkbenchFlow(container, retained); frameControl = trackFrame(controls.at(-1)); canvas = container.querySelector('canvas');
+      await pointer(oldCanvas, 'pointerdown', 140, 125); await pointer(oldCanvas, 'pointermove', 150, 130); await wheel(oldCanvas, -20);
+      await act(async () => {releaseLateFrame(); await old.wait;}); old.wait = null; await flushNavigation();
+      assert.equal(old.calls.length, oldCalls); assert.equal(old.disposed, 1); assert.equal(frameControl.calls.length, 0);
+      assert.equal(cameraStatus(), 'Scene view'); assertCamera(api.readLightFields(retained).camera);
+      assert(!text().includes('Disposed late framing refusal')); assert(!button('Frame all').disabled);
+      assert.equal(await saveText(), retainedText); assert(button('Undo').disabled); assert(button('Redo').disabled);
+      assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+    }
+    assert.deepEqual(replacementCounts, {view: 5, authored: 3, total: 8});
+    frameControl.state = 'lost'; await act(async () => {await new Promise(resolve => setTimeout(resolve, 350));});
+    assertBlockedFrames('unavailable Viewer'); assert.equal(replacementCounts.total, 8);
+    await mounted.dispose(); assert.equal(frameControl.disposed, 1);
+    assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+    framingFlow.push({kind, ...replacementCounts, repeatNoOpCases: 2, disposedCompletionCases: 2,
+      pendingFrames: navigationDom.pendingFrames(), captures: navigationDom.captures()});
+  }
+
   console.log(JSON.stringify({result: 'PASS', scope: 'actual React + original codec/session; controlled Viewer, no GPU/physical-file proof', acceptedRevision: last.revision,
     lights: last.lights.lights.length, replacementCalls: controls[0].calls.length, legacyReplacements: legacyControl.calls.length, convertedLegacyRevision: editedLegacy.revision,
-    cameraFlow, bodyFlow, materialFlow, navigationFlow, downloadsRequested: downloads.length, confirmationPrompts: dialogs.length, disposed: controls.map(value => value.disposed)}));
+    cameraFlow, bodyFlow, materialFlow, navigationFlow, framingChecks, framingFlow, downloadsRequested: downloads.length, confirmationPrompts: dialogs.length, disposed: controls.map(value => value.disposed)}));
 } catch (cause) {failed = true; firstError = cause;}
 finally {
   for (const cleanup of [() => mounted?.dispose(), () => navigationDom?.dispose(), () => dom.window.close(), () => rm(output, {recursive: true, force: true})]) {
