@@ -1,0 +1,173 @@
+{
+  "status": "passed",
+  "evaluations": 10,
+  "tessellations": 2,
+  "stages": [
+    {
+      "label": "source horizontal split at2",
+      "elapsedMS": 540.110612
+    },
+    {
+      "label": "edit splitHeight4",
+      "elapsedMS": 528.580087
+    },
+    {
+      "label": "below-outside",
+      "elapsedMS": 300.659889
+    },
+    {
+      "label": "bottom-tangent-signed-zero",
+      "elapsedMS": 300.02387799999997
+    },
+    {
+      "label": "top-tangent",
+      "elapsedMS": 285.79267200000027
+    },
+    {
+      "label": "above-outside",
+      "elapsedMS": 287.8259320000002
+    },
+    {
+      "label": "upper-only signed-zero tangent",
+      "elapsedMS": 289.388457
+    },
+    {
+      "label": "lower-only above-outside",
+      "elapsedMS": 283.61015199999974
+    },
+    {
+      "label": "translated clockwise 3by5 height3 at1",
+      "elapsedMS": 419.9313180000004
+    },
+    {
+      "label": "lower split side cardinal chamfer",
+      "elapsedMS": 1048.4217009999998
+    }
+  ],
+  "refusals": [
+    {
+      "label": "below-outside",
+      "code": "SELECTION",
+      "operation": "split",
+      "message": "CAD model split: Selected negative split side is empty (outside; section dimension -1); it cannot be a Solid output or operation parent",
+      "cause": {
+        "side": "negative",
+        "status": "outside",
+        "sectionDimension": -1
+      }
+    },
+    {
+      "label": "bottom-tangent-signed-zero",
+      "code": "SELECTION",
+      "operation": "split",
+      "message": "CAD model split: Selected negative split side is empty (tangent; section dimension 2); it cannot be a Solid output or operation parent",
+      "cause": {
+        "side": "negative",
+        "status": "tangent",
+        "sectionDimension": 2
+      }
+    },
+    {
+      "label": "top-tangent",
+      "code": "SELECTION",
+      "operation": "split",
+      "message": "CAD model split: Selected positive split side is empty (tangent; section dimension 2); it cannot be a Solid output or operation parent",
+      "cause": {
+        "side": "positive",
+        "status": "tangent",
+        "sectionDimension": 2
+      }
+    },
+    {
+      "label": "above-outside",
+      "code": "SELECTION",
+      "operation": "split",
+      "message": "CAD model split: Selected positive split side is empty (outside; section dimension -1); it cannot be a Solid output or operation parent",
+      "cause": {
+        "side": "positive",
+        "status": "outside",
+        "sectionDimension": -1
+      }
+    }
+  ],
+  "fullTransitiveNativeCoverage": "NOT_MEASURED",
+  "providerCounterScope": "Provider nativeWork excludes the public wrapper compilation of each generated cutter source",
+  "entrySHA256": "e54ed12631fbfa9f1082f11ee833fa00e955bb71f78b8c9a4717b0d10ce5ca5f",
+  "baseline": {
+    "lowerMM3": 1792,
+    "upperMM3": 5376,
+    "nativeWork": {
+      "parentReconstructions": 1,
+      "outputQualifications": 2,
+      "completeFaceReconstructions": 21,
+      "newFaceConstructions": 14,
+      "faceCompilations": 35,
+      "cutterCompilations": 1,
+      "totalSourceCompilations": 36,
+      "bindingObservations": 450,
+      "totalD1": 1350,
+      "retries": 0,
+      "scope": "direct-calls-and-known-parent-loops-not-provider-internals"
+    },
+    "conservation": {
+      "parent": {
+        "numerator": "7168",
+        "denominator": "1"
+      },
+      "negative": {
+        "numerator": "1792",
+        "denominator": "1"
+      },
+      "positive": {
+        "numerator": "5376",
+        "denominator": "1"
+      },
+      "conserved": true
+    },
+    "capUsePairs": 5
+  },
+  "display": [
+    {
+      "name": "lower",
+      "triangles": 16,
+      "nativeAuthority": false
+    },
+    {
+      "name": "upper",
+      "triangles": 16,
+      "nativeAuthority": false
+    }
+  ],
+  "transport": {
+    "bytes": 68403,
+    "sha256": "28e6d0fc88f8b828b95b698845d6ac79addc1239d7fe80082cf552601ac8662a"
+  },
+  "signedZero": {
+    "authored": true,
+    "saved": true,
+    "cutterSourceAndModel": true
+  },
+  "nonPowerOfTwo": {
+    "lowerMM3": 15,
+    "upperMM3": 30,
+    "knotsU": [
+      0,
+      0,
+      3,
+      3
+    ],
+    "knotsV": [
+      0,
+      0,
+      5,
+      5
+    ],
+    "clockwiseAndTranslated": true
+  },
+  "chamfer": {
+    "lowerMM3": 1776,
+    "upperMM3": 5376,
+    "removedMM3": 16
+  },
+  "actualGPU": "UNRUN"
+}

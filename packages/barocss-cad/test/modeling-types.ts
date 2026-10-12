@@ -1,4 +1,4 @@
-import { cad, type CadModelSnapshot, type CadShape, type CadParameter } from '../src/index.js';
+import { cad, type CadModelSnapshot, type CadShape, type CadParameter, type CadSplit } from '../src/index.js';
 const model = cad.model();
 const width: CadParameter = model.parameter('width', 80);
 const plate: CadShape = model.sketch.rectangle({ min: [0, 0], max: [width, 60] }).extrude(10);
@@ -24,3 +24,13 @@ const overlapResult: CadModelSnapshot = overlapModel.build({ overlap });
 overlapResult.features[4].dependencies;
 // @ts-expect-error Intersection accepts a same-model shape handle, not a serialized reference.
 left.intersect({ node: 3, side: 'solid' });
+const splitModel = cad.model();
+const splitHeight = splitModel.parameter('splitHeight', 2);
+const splitBlank = splitModel.sketch.rectangle({ width: 16, height: 8 }).extrude(8);
+const halves: CadSplit = splitBlank.split({ axis: 'z', at: splitHeight });
+const splitResult: CadModelSnapshot = splitModel.build({ lower: halves.negative, upper: halves.positive });
+splitResult.withParameters({ splitHeight: 4 }).save();
+// @ts-expect-error The current plane is explicitly horizontal, not an arbitrary axis.
+splitBlank.split({ axis: 'x', at: 2 });
+// @ts-expect-error The plane location uses a number or owned dimension handle.
+splitBlank.split({ axis: 'z', at: '2' });

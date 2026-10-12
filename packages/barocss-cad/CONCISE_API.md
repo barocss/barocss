@@ -124,6 +124,38 @@ For the initial example above the retained volume is 2164 mm³, with 12 mm³
 removed. The existing exact selection, local setback and native restrictions
 still apply.
 
+## Divide an extruded part at a height
+
+`const halves = blank.split({axis:'z',at:splitHeight})` authors one horizontal
+plane through a direct XY extrusion. `splitHeight` can be a number or an owned
+parameter. Use `model.build({lower:halves.negative,upper:halves.positive})` to
+retain both parts. Negative is below the authored plane, positive is above it;
+the choice is independent of polygon winding. The current operation explicitly
+requires `axis:'z'`. Arbitrary planes and x/y split axes are not supported.
+
+For the same pentagon used above, an 8 mm extrusion split at Z=2 has native
+volumes 1792 and 5376 mm³. Editing the split height to 4 gives 3584 and 3584;
+after save/cold load, editing to 6 gives 5376 and 1792. Each result retains the
+native volume-conservation report and paired cap/source lineage. A supported
+cardinal chamfer may follow a nonempty side; a 1 mm chamfer on the lower part's
+front x-parallel top edge leaves 1776 mm³ in that part.
+
+A tangent or outside plane has one genuine empty side. Asking for both outputs,
+or using the empty side as a chamfer parent, throws `CadModelError` `SELECTION`
+with operation `split`. Its cause carries `side`, native `status` and
+`sectionDimension`. Selecting only the nonempty side succeeds with the actual
+unchanged parent Solid. No zero-volume Solid or other side is substituted.
+A failed edit leaves the previous accepted snapshot and saved bytes unchanged.
+
+The builder generates the cutter with the native part's XY coordinate-span
+chart, preserving signed zero and using the actual native source compiler.
+This avoids introducing normalized-chart fractions for dimensions such as 3 or
+5 mm. All native representation, binding and work limits still apply, with
+original failures retained under `cause`. Provider work reports exclude the
+wrapper's own compilation of the generated cutter; they are not total work counts.
+One split replaces the optional cut/intersection. Split inputs must be direct
+extrusions; nested splits and mixed cut/intersection/split graphs are refused.
+
 ## Accepted snapshots and failures
 
 ```ts
@@ -160,7 +192,7 @@ Bodies/evidence are deep-frozen native values usable by the existing tessellatio
 and display adapters. They allocate no renderer/GPU resources.
 
 The current supported graph envelope is at most two sketches, two extrusions,
-one through-slab cut or intersection and one chamfer, with at most sixteen parameters. These are
+one through-slab cut, intersection or horizontal split and one chamfer, with at most sixteen parameters. These are
 upper bounds, not six required roles: an extrusion-only or cut-only model builds,
 saves and reopens through the same API. No arbitrary Boolean graph is implied.
 Names are ASCII identifiers of 1..48 characters; `__proto__`, `constructor` and
@@ -191,7 +223,7 @@ Run the ordinary boundary/type tests after building the package:
 ```sh
 node scripts/tool.mjs type-check
 node scripts/tool.mjs build
-node --test test/modeling.test.mjs test/modeling-intersection.test.mjs test/public-api.test.mjs
+node --test test/modeling.test.mjs test/modeling-intersection.test.mjs test/modeling-split.test.mjs test/public-api.test.mjs
 node test/public-api-types.mjs
 ```
 
@@ -222,3 +254,15 @@ the second defaults to the emitted public entry and runs in a fresh process.
 The #1614 receipt records seven source evaluations, two cold emitted evaluations
 and one unchanged native tessellation. Provider direct work is recorded; full
 transitive call coverage and actual GPU rendering are not measured by this flow.
+
+The separately bounded horizontal-split flow runs through the same authored-file
+boundary with twelve model evaluations and two baseline tessellations:
+
+```sh
+node --no-opt --max-old-space-size=2048 test/modeling-split-native.mjs
+node --no-opt --max-old-space-size=2048 scripts/modeling-split-consumer.mjs test/modeling-split-evidence
+```
+
+See the #1619 receipt for source/emitted hashes, selected empty-side controls,
+translated clockwise/non-power-of-two chart evidence and the actual execution
+boundary. These CPU records do not establish browser/GPU acceptance.
