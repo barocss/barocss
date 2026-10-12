@@ -1,0 +1,2022 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Current checkout manifest metadata only; not an API, runtime, publication, or held-lane activation receipt.",
+  "manifestCommit": "23e6615a8e2c4ad9c9299184a6be5ff2735358b5",
+  "historicalSourceCommit": "5f5ad866205a21510ac69552e704cc162fa253b5",
+  "historicalInventorySha256": "b121aac9620fb8fe966c292710990317bf88b1b3535ea31a31cd787cefe7c2b5",
+  "packages": [
+    {
+      "slug": "kit",
+      "directory": "packages/barocss",
+      "manifestSha256": "ceda889b794e3be24cf52650b3530b6b69a04232b27d98c9a5b3af4e2a588651",
+      "manifest": {
+        "name": "@barocss/kit",
+        "version": "0.12.2",
+        "repository": {
+          "type": "git",
+          "url": "git+https://github.com/barocss/barocss.git",
+          "directory": "packages/barocss"
+        },
+        "type": "module",
+        "main": "src/index.ts",
+        "types": "src/index.ts",
+        "exports": {
+          ".": {
+            "types": "./src/index.ts",
+            "import": "./src/index.ts"
+          },
+          "./theme/default": {
+            "types": "./src/theme/index.ts",
+            "import": "./src/theme/index.ts"
+          }
+        },
+        "files": [
+          "dist/**/*",
+          "README.md",
+          "LICENSE"
+        ],
+        "publishConfig": {
+          "access": "public",
+          "main": "./dist/index.cjs",
+          "module": "./dist/index.js",
+          "types": "./dist/index.d.ts",
+          "exports": {
+            ".": {
+              "import": {
+                "types": "./dist/index.d.ts",
+                "default": "./dist/index.js"
+              },
+              "require": {
+                "types": "./dist/index.d.cts",
+                "default": "./dist/index.cjs"
+              }
+            },
+            "./theme/default": {
+              "import": {
+                "types": "./dist/theme/default.d.ts",
+                "default": "./dist/theme/default.js"
+              },
+              "require": {
+                "types": "./dist/theme/default.d.cts",
+                "default": "./dist/theme/default.cjs"
+              }
+            }
+          }
+        },
+        "scripts": {
+          "build": "vite build",
+          "build:library": "pnpm run build",
+          "test:watch": "vitest",
+          "test": "vitest run",
+          "type-check": "tsc --noEmit",
+          "lint": "eslint src/**/*.ts"
+        },
+        "devDependencies": {
+          "jsdom": "^26.1.0",
+          "postcss": "8.5.6",
+          "tailwindcss": "4.3.3",
+          "tailwindcss-4-1": "npm:tailwindcss@4.1.13",
+          "vite": "^8.3.1",
+          "vite-plugin-dts": "^4.5.4",
+          "vitest": "^5.0.2"
+        },
+        "license": "MIT"
+      },
+      "changesFromSourceSnapshot": [
+        {
+          "field": "version",
+          "before": "0.12.0",
+          "after": "0.12.2"
+        }
+      ]
+    },
+    {
+      "slug": "browser",
+      "directory": "packages/barocss-browser",
+      "manifestSha256": "4a7b27e15a6da3e5b1724a2f616813447b001a85eb3aad03eef63e315646b6cf",
+      "manifest": {
+        "name": "@barocss/browser",
+        "version": "0.12.2",
+        "repository": {
+          "type": "git",
+          "url": "git+https://github.com/barocss/barocss.git",
+          "directory": "packages/barocss-browser"
+        },
+        "type": "module",
+        "main": "src/index.ts",
+        "types": "src/index.ts",
+        "exports": {
+          ".": {
+            "types": "./src/index.ts",
+            "import": "./src/index.ts"
+          }
+        },
+        "files": [
+          "dist/**/*",
+          "README.md",
+          "LICENSE"
+        ],
+        "publishConfig": {
+          "access": "public",
+          "main": "./dist/index.cjs",
+          "module": "./dist/index.es.js",
+          "types": "./dist/index.d.ts",
+          "exports": {
+            ".": {
+              "import": {
+                "types": "./dist/index.d.ts",
+                "default": "./dist/index.es.js"
+              },
+              "require": {
+                "types": "./dist/index.d.cts",
+                "default": "./dist/index.cjs"
+              }
+            }
+          }
+        },
+        "scripts": {
+          "build": "vite build",
+          "build:cdn": "vite build --config vite.cdn.config.ts",
+          "build:library": "pnpm run build && pnpm run build:cdn",
+          "test:watch": "vitest",
+          "test": "vitest run",
+          "type-check": "tsc --noEmit",
+          "lint": "eslint src/**/*.ts"
+        },
+        "dependencies": {
+          "@barocss/kit": "workspace:*"
+        },
+        "devDependencies": {
+          "jsdom": "^26.1.0",
+          "vite": "^8.3.1",
+          "vite-plugin-dts": "^4.5.4",
+          "vitest": "^5.0.2"
+        },
+        "license": "MIT"
+      },
+      "changesFromSourceSnapshot": [
+        {
+          "field": "version",
+          "before": "0.12.0",
+          "after": "0.12.2"
+        }
+      ]
+    },
+    {
+      "slug": "server",
+      "directory": "packages/barocss-server",
+      "manifestSha256": "177c618d8b939baf632f18aae0c8d9c19f9be924520b5b54d3159824054306ba",
+      "manifest": {
+        "name": "@barocss/server",
+        "version": "0.12.2",
+        "repository": {
+          "type": "git",
+          "url": "git+https://github.com/barocss/barocss.git",
+          "directory": "packages/barocss-server"
+        },
+        "type": "module",
+        "main": "src/index.ts",
+        "types": "src/index.ts",
+        "exports": {
+          ".": {
+            "types": "./src/index.ts",
+            "import": "./src/index.ts"
+          }
+        },
+        "files": [
+          "dist/**/*",
+          "README.md",
+          "LICENSE"
+        ],
+        "publishConfig": {
+          "access": "public",
+          "main": "./dist/index.cjs",
+          "module": "./dist/index.es.js",
+          "types": "./dist/index.d.ts",
+          "exports": {
+            ".": {
+              "import": {
+                "types": "./dist/index.d.ts",
+                "default": "./dist/index.es.js"
+              },
+              "require": {
+                "types": "./dist/index.d.cts",
+                "default": "./dist/index.cjs"
+              }
+            }
+          }
+        },
+        "scripts": {
+          "build": "vite build",
+          "build:library": "pnpm run build",
+          "test:watch": "vitest",
+          "test": "vitest run",
+          "type-check": "tsc --noEmit",
+          "lint": "eslint src/**/*.ts"
+        },
+        "dependencies": {
+          "@barocss/kit": "workspace:*",
+          "jsdom": "^26.1.0"
+        },
+        "devDependencies": {
+          "vite": "^8.3.1",
+          "vite-plugin-dts": "^4.5.4",
+          "vitest": "^5.0.2"
+        },
+        "license": "MIT"
+      },
+      "changesFromSourceSnapshot": [
+        {
+          "field": "version",
+          "before": "0.12.0",
+          "after": "0.12.2"
+        }
+      ]
+    },
+    {
+      "slug": "render",
+      "directory": "packages/barocss-render",
+      "manifestSha256": "68206e354dc4e0f21d884cdc129c27ce977571210609598efc2129c9714a8f94",
+      "manifest": {
+        "name": "@barocss/render",
+        "version": "0.12.2",
+        "type": "module",
+        "peerDependencies": {
+          "react": "19.2.3"
+        },
+        "exports": {
+          ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+          }
+        },
+        "main": "./dist/index.js",
+        "types": "./dist/index.d.ts",
+        "files": [
+          "dist",
+          "README.md",
+          "examples/profile-form.tsx",
+          "LICENSE"
+        ],
+        "scripts": {
+          "build": "node build.mjs",
+          "build:library": "node build.mjs",
+          "test": "node --test --test-name-pattern=\"built ESM\" tests/consumer.test.mjs",
+          "test:consumer": "node --test tests/consumer.test.mjs"
+        },
+        "description": "Experimental React renderer for validated BaroCSS profile-form screen specs",
+        "license": "MIT",
+        "author": "BaroCSS Team",
+        "repository": {
+          "type": "git",
+          "url": "git+https://github.com/barocss/barocss.git",
+          "directory": "packages/barocss-render"
+        },
+        "homepage": "https://barocss.com",
+        "publishConfig": {
+          "access": "public"
+        },
+        "devDependencies": {
+          "@types/react": "19.2.14"
+        }
+      },
+      "changesFromSourceSnapshot": [
+        {
+          "field": "version",
+          "before": "0.12.0",
+          "after": "0.12.2"
+        }
+      ]
+    },
+    {
+      "slug": "gpu",
+      "directory": "packages/barocss-gpu",
+      "manifestSha256": "ce0529abd54255efad9ad24e8e7e8371bc40afa0d8e6c18e8f55606b49896553",
+      "manifest": {
+        "name": "@barocss/gpu",
+        "version": "0.0.0",
+        "private": false,
+        "type": "module",
+        "description": "Experimental bounded CSS scene compiler and WebGL2 SDF renderer",
+        "license": "MIT",
+        "dependencies": {
+          "@barocss/cad": "workspace:*"
+        },
+        "exports": {
+          ".": {
+            "types": "./src/index.ts",
+            "import": "./src/index.ts"
+          },
+          "./source": {
+            "types": "./src/index.ts",
+            "import": "./src/index.ts"
+          }
+        },
+        "main": "./src/index.ts",
+        "types": "./src/index.ts",
+        "files": [
+          "src",
+          "dist",
+          "README.md",
+          "LICENSE"
+        ],
+        "scripts": {
+          "lint": "eslint src",
+          "type-check": "tsc --noEmit",
+          "build:library": "tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/index.js",
+          "test": "node --test tests/scene.test.mjs tests/compiler.test.mjs tests/mesh-packet.test.mjs tests/camera.test.mjs tests/gpu-compiler.test.mjs",
+          "test:consumer": "node --test tests/consumer.test.mjs tests/mesh-consumer.test.mjs tests/gpu-compiler-consumer.test.mjs",
+          "test:browser": "node --test --test-concurrency=1 tests/browser.test.mjs tests/mesh-browser.test.mjs tests/camera-browser.test.mjs"
+        },
+        "publishConfig": {
+          "access": "public",
+          "main": "./dist/index.js",
+          "types": "./dist/index.d.ts",
+          "exports": {
+            ".": {
+              "types": "./dist/index.d.ts",
+              "import": "./dist/index.js"
+            },
+            "./source": {
+              "types": "./dist/index.d.ts",
+              "import": "./dist/index.js"
+            }
+          }
+        }
+      },
+      "changesFromSourceSnapshot": []
+    },
+    {
+      "slug": "cad",
+      "directory": "packages/barocss-cad",
+      "manifestSha256": "7f18887b37ed966cebfa183520064b7833aee5dafee20fd21bfa265bf68ecd22",
+      "manifest": {
+        "name": "@barocss/cad",
+        "version": "0.0.0-experimental",
+        "private": false,
+        "type": "module",
+        "description": "Original bounded CSS model NURBS and IGES experiment",
+        "license": "MIT",
+        "main": "./src/index.ts",
+        "types": "./src/index.ts",
+        "exports": {
+          ".": {
+            "types": "./src/index.ts",
+            "import": "./src/index.ts"
+          }
+        },
+        "publishConfig": {
+          "access": "public",
+          "main": "./dist/index.js",
+          "types": "./dist/index.d.ts",
+          "exports": {
+            ".": {
+              "types": "./dist/index.d.ts",
+              "import": "./dist/index.js"
+            }
+          }
+        },
+        "files": [
+          "src",
+          "dist",
+          "README.md",
+          "LICENSE"
+        ],
+        "scripts": {
+          "lint": "node scripts/tool.mjs lint",
+          "type-check": "node scripts/tool.mjs type-check",
+          "build:library": "node scripts/tool.mjs build",
+          "test": "node --test test/*.test.mjs",
+          "test:consumer": "node scripts/consumer.mjs",
+          "test:exchange": "node scripts/exchange.mjs"
+        }
+      },
+      "changesFromSourceSnapshot": []
+    },
+    {
+      "slug": "cad-interop",
+      "directory": "packages/barocss-cad-interop",
+      "manifestSha256": "1165e25a296cbfd93fc522f004392aff1a7ba886db138ad61f17aec16ba21867",
+      "manifest": {
+        "name": "@barocss/cad-interop",
+        "version": "0.0.0-experimental",
+        "private": false,
+        "publishConfig": {
+          "access": "public",
+          "main": "./dist/index.js",
+          "types": "./dist/index.d.ts",
+          "exports": {
+            ".": {
+              "types": "./dist/index.d.ts",
+              "import": "./dist/index.js"
+            },
+            "./native": {
+              "types": "./dist/native.d.ts",
+              "import": "./dist/native.js"
+            },
+            "./native-uniform-curve": {
+              "types": "./dist/native-uniform-curve.d.ts",
+              "import": "./dist/native-uniform-curve.js"
+            },
+            "./three-uniform-curve": {
+              "types": "./dist/three-uniform-curve.d.ts",
+              "import": "./dist/three-uniform-curve.js"
+            },
+            "./document": {
+              "types": "./dist/document.d.ts",
+              "import": "./dist/document.js"
+            },
+            "./boolean-extrusion-feature-graph": {
+              "types": "./dist/boolean-extrusion-feature-graph.d.ts",
+              "import": "./dist/boolean-extrusion-feature-graph.js"
+            },
+            "./boolean-extrusion-feature-mesh": {
+              "types": "./dist/boolean-extrusion-feature-mesh.d.ts",
+              "import": "./dist/boolean-extrusion-feature-mesh.js"
+            },
+            "./boolean-extrusion-feature-properties": {
+              "types": "./dist/boolean-extrusion-feature-properties.d.ts",
+              "import": "./dist/boolean-extrusion-feature-properties.js"
+            },
+            "./assembly": {
+              "types": "./dist/assembly.d.ts",
+              "import": "./dist/assembly.js"
+            },
+            "./document-glb": {
+              "types": "./dist/document-glb.d.ts",
+              "import": "./dist/document-glb.js"
+            },
+            "./boolean-mesh-glb": {
+              "types": "./dist/boolean-mesh-glb.d.ts",
+              "import": "./dist/boolean-mesh-glb.js"
+            },
+            "./boolean-extrusion-glb": {
+              "types": "./dist/boolean-extrusion-glb.d.ts",
+              "import": "./dist/boolean-extrusion-glb.js"
+            },
+            "./three-document": {
+              "types": "./dist/three-document.d.ts",
+              "import": "./dist/three-document.js"
+            },
+            "./three-assembly": {
+              "types": "./dist/three-assembly.d.ts",
+              "import": "./dist/three-assembly.js"
+            },
+            "./three-boolean-contours": {
+              "types": "./dist/three-boolean-contours.d.ts",
+              "import": "./dist/three-boolean-contours.js"
+            },
+            "./three-boolean-mesh": {
+              "types": "./dist/three-boolean-mesh.d.ts",
+              "import": "./dist/three-boolean-mesh.js"
+            },
+            "./three-boolean-extrusion-mesh": {
+              "types": "./dist/three-boolean-extrusion-mesh.d.ts",
+              "import": "./dist/three-boolean-extrusion-mesh.js"
+            },
+            "./three": {
+              "types": "./dist/three.d.ts",
+              "import": "./dist/three.js"
+            },
+            "./babylon": {
+              "types": "./dist/babylon.d.ts",
+              "import": "./dist/babylon.js"
+            },
+            "./babylon-document": {
+              "types": "./dist/babylon-document.d.ts",
+              "import": "./dist/babylon-document.js"
+            },
+            "./babylon-assembly": {
+              "types": "./dist/babylon-assembly.d.ts",
+              "import": "./dist/babylon-assembly.js"
+            },
+            "./babylon-boolean-mesh": {
+              "types": "./dist/babylon-boolean-mesh.d.ts",
+              "import": "./dist/babylon-boolean-mesh.js"
+            },
+            "./babylon-boolean-extrusion-mesh": {
+              "types": "./dist/babylon-boolean-extrusion-mesh.d.ts",
+              "import": "./dist/babylon-boolean-extrusion-mesh.js"
+            },
+            "./pixi3d": {
+              "types": "./dist/pixi3d.d.ts",
+              "import": "./dist/pixi3d.js"
+            },
+            "./pixi3d-document": {
+              "types": "./dist/pixi3d-document.d.ts",
+              "import": "./dist/pixi3d-document.js"
+            },
+            "./pixi3d-assembly": {
+              "types": "./dist/pixi3d-assembly.d.ts",
+              "import": "./dist/pixi3d-assembly.js"
+            },
+            "./pixi3d-boolean-mesh": {
+              "types": "./dist/pixi3d-boolean-mesh.d.ts",
+              "import": "./dist/pixi3d-boolean-mesh.js"
+            },
+            "./pixi3d-boolean-extrusion-mesh": {
+              "types": "./dist/pixi3d-boolean-extrusion-mesh.d.ts",
+              "import": "./dist/pixi3d-boolean-extrusion-mesh.js"
+            },
+            "./model-set": {
+              "types": "./dist/model-set.d.ts",
+              "import": "./dist/model-set.js"
+            },
+            "./native-selected-uniform-curve": {
+              "types": "./dist/native-selected-uniform-curve.d.ts",
+              "import": "./dist/native-selected-uniform-curve.js"
+            },
+            "./three-selected-uniform-curve": {
+              "types": "./dist/three-selected-uniform-curve.d.ts",
+              "import": "./dist/three-selected-uniform-curve.js"
+            },
+            "./babylon-uniform-curve": {
+              "types": "./dist/babylon-uniform-curve.d.ts",
+              "import": "./dist/babylon-uniform-curve.js"
+            },
+            "./pixi3d-uniform-curve": {
+              "types": "./dist/pixi3d-uniform-curve.d.ts",
+              "import": "./dist/pixi3d-uniform-curve.js"
+            },
+            "./babylon-selected-uniform-curve": {
+              "types": "./dist/babylon-selected-uniform-curve.d.ts",
+              "import": "./dist/babylon-selected-uniform-curve.js"
+            },
+            "./pixi3d-selected-uniform-curve": {
+              "types": "./dist/pixi3d-selected-uniform-curve.d.ts",
+              "import": "./dist/pixi3d-selected-uniform-curve.js"
+            },
+            "./qualified-body": {
+              "types": "./dist/qualified-body.d.ts",
+              "import": "./dist/qualified-body.js"
+            },
+            "./nurbs-source-loft-feature-graph": {
+              "types": "./dist/nurbs-source-loft-feature-graph.d.ts",
+              "import": "./dist/nurbs-source-loft-feature-graph.js"
+            },
+            "./translated-strip-world-points": {
+              "types": "./dist/translated-strip-world-points.d.ts",
+              "import": "./dist/translated-strip-world-points.js"
+            },
+            "./qualified-body-boundary-mesh": {
+              "types": "./dist/qualified-body-boundary-mesh.d.ts",
+              "import": "./dist/qualified-body-boundary-mesh.js"
+            },
+            "./source-curve-knot-insertion": {
+              "types": "./dist/source-curve-knot-insertion.d.ts",
+              "import": "./dist/source-curve-knot-insertion.js"
+            },
+            "./translated-strip-interval-boolean": {
+              "types": "./dist/translated-strip-interval-boolean.d.ts",
+              "import": "./dist/translated-strip-interval-boolean.js"
+            },
+            "./qualified-body-boundary-mesh-three": {
+              "types": "./dist/qualified-body-boundary-mesh-three.d.ts",
+              "import": "./dist/qualified-body-boundary-mesh-three.js"
+            },
+            "./source-surface-knot-insertion": {
+              "types": "./dist/source-surface-knot-insertion.d.ts",
+              "import": "./dist/source-surface-knot-insertion.js"
+            },
+            "./qualified-body-boundary-mesh-babylon": {
+              "types": "./dist/qualified-body-boundary-mesh-babylon.d.ts",
+              "import": "./dist/qualified-body-boundary-mesh-babylon.js"
+            },
+            "./source-knot-aligned-loft": {
+              "types": "./dist/source-knot-aligned-loft.d.ts",
+              "import": "./dist/source-knot-aligned-loft.js"
+            },
+            "./source-curve-interval-extraction": {
+              "types": "./dist/source-curve-interval-extraction.d.ts",
+              "import": "./dist/source-curve-interval-extraction.js"
+            },
+            "./source-curve-degree-elevation": {
+              "types": "./dist/source-curve-degree-elevation.d.ts",
+              "import": "./dist/source-curve-degree-elevation.js"
+            },
+            "./source-line-width-face": {
+              "types": "./dist/source-line-width-face.d.ts",
+              "import": "./dist/source-line-width-face.js"
+            },
+            "./qualified-body-boundary-mesh-pixi3d": {
+              "types": "./dist/qualified-body-boundary-mesh-pixi3d.d.ts",
+              "import": "./dist/qualified-body-boundary-mesh-pixi3d.js"
+            },
+            "./paired-surface-intersection-branch": {
+              "types": "./dist/paired-surface-intersection-branch.d.ts",
+              "import": "./dist/paired-surface-intersection-branch.js"
+            },
+            "./translated-strip-plane-split-result": {
+              "types": "./dist/translated-strip-plane-split-result.d.ts",
+              "import": "./dist/translated-strip-plane-split-result.js"
+            },
+            "./exact-paired-vlinear-surface-intersection-result": {
+              "types": "./dist/exact-paired-vlinear-surface-intersection-result.d.ts",
+              "import": "./dist/exact-paired-vlinear-surface-intersection-result.js"
+            },
+            "./paired-surface-uv-split-faces-result": {
+              "types": "./dist/paired-surface-uv-split-faces-result.d.ts",
+              "import": "./dist/paired-surface-uv-split-faces-result.js"
+            },
+            "./paired-surface-b-uv-split-faces-result": {
+              "types": "./dist/paired-surface-b-uv-split-faces-result.d.ts",
+              "import": "./dist/paired-surface-b-uv-split-faces-result.js"
+            },
+            "./paired-surface-uv-face-classification-result": {
+              "types": "./dist/paired-surface-uv-face-classification-result.d.ts",
+              "import": "./dist/paired-surface-uv-face-classification-result.js"
+            },
+            "./paired-surface-material-body-result": {
+              "types": "./dist/paired-surface-material-body-result.d.ts",
+              "import": "./dist/paired-surface-material-body-result.js"
+            }
+          }
+        },
+        "type": "module",
+        "description": "BaroCSS CAD preview export and native source loaders",
+        "license": "MIT",
+        "main": "./src/index.ts",
+        "types": "./src/index.ts",
+        "exports": {
+          ".": {
+            "types": "./src/index.ts",
+            "import": "./src/index.ts"
+          },
+          "./native": {
+            "types": "./src/native.ts",
+            "import": "./src/native.ts"
+          },
+          "./native-uniform-curve": {
+            "types": "./src/native-uniform-curve.ts",
+            "import": "./src/native-uniform-curve.ts"
+          },
+          "./three-uniform-curve": {
+            "types": "./src/three-uniform-curve.ts",
+            "import": "./src/three-uniform-curve.ts"
+          },
+          "./document": {
+            "types": "./src/document.ts",
+            "import": "./src/document.ts"
+          },
+          "./boolean-extrusion-feature-graph": {
+            "types": "./src/boolean-extrusion-feature-graph.ts",
+            "import": "./src/boolean-extrusion-feature-graph.ts"
+          },
+          "./boolean-extrusion-feature-mesh": {
+            "types": "./src/boolean-extrusion-feature-mesh.ts",
+            "import": "./src/boolean-extrusion-feature-mesh.ts"
+          },
+          "./boolean-extrusion-feature-properties": {
+            "types": "./src/boolean-extrusion-feature-properties.ts",
+            "import": "./src/boolean-extrusion-feature-properties.ts"
+          },
+          "./assembly": {
+            "types": "./src/assembly.ts",
+            "import": "./src/assembly.ts"
+          },
+          "./document-glb": {
+            "types": "./src/document-glb.ts",
+            "import": "./src/document-glb.ts"
+          },
+          "./boolean-mesh-glb": {
+            "types": "./src/boolean-mesh-glb.ts",
+            "import": "./src/boolean-mesh-glb.ts"
+          },
+          "./boolean-extrusion-glb": {
+            "types": "./src/boolean-extrusion-glb.ts",
+            "import": "./src/boolean-extrusion-glb.ts"
+          },
+          "./three-document": {
+            "types": "./src/three-document.ts",
+            "import": "./src/three-document.ts"
+          },
+          "./three-assembly": {
+            "types": "./src/three-assembly.ts",
+            "import": "./src/three-assembly.ts"
+          },
+          "./three-boolean-contours": {
+            "types": "./src/three-boolean-contours.ts",
+            "import": "./src/three-boolean-contours.ts"
+          },
+          "./three-boolean-mesh": {
+            "types": "./src/three-boolean-mesh.ts",
+            "import": "./src/three-boolean-mesh.ts"
+          },
+          "./three-boolean-extrusion-mesh": {
+            "types": "./src/three-boolean-extrusion-mesh.ts",
+            "import": "./src/three-boolean-extrusion-mesh.ts"
+          },
+          "./three": {
+            "types": "./src/three.ts",
+            "import": "./src/three.ts"
+          },
+          "./babylon": {
+            "types": "./src/babylon.ts",
+            "import": "./src/babylon.ts"
+          },
+          "./babylon-document": {
+            "types": "./src/babylon-document.ts",
+            "import": "./src/babylon-document.ts"
+          },
+          "./babylon-assembly": {
+            "types": "./src/babylon-assembly.ts",
+            "import": "./src/babylon-assembly.ts"
+          },
+          "./babylon-boolean-mesh": {
+            "types": "./src/babylon-boolean-mesh.ts",
+            "import": "./src/babylon-boolean-mesh.ts"
+          },
+          "./babylon-boolean-extrusion-mesh": {
+            "types": "./src/babylon-boolean-extrusion-mesh.ts",
+            "import": "./src/babylon-boolean-extrusion-mesh.ts"
+          },
+          "./pixi3d": {
+            "types": "./src/pixi3d.ts",
+            "import": "./src/pixi3d.ts"
+          },
+          "./pixi3d-document": {
+            "types": "./src/pixi3d-document.ts",
+            "import": "./src/pixi3d-document.ts"
+          },
+          "./pixi3d-assembly": {
+            "types": "./src/pixi3d-assembly.ts",
+            "import": "./src/pixi3d-assembly.ts"
+          },
+          "./pixi3d-boolean-mesh": {
+            "types": "./src/pixi3d-boolean-mesh.ts",
+            "import": "./src/pixi3d-boolean-mesh.ts"
+          },
+          "./pixi3d-boolean-extrusion-mesh": {
+            "types": "./src/pixi3d-boolean-extrusion-mesh.ts",
+            "import": "./src/pixi3d-boolean-extrusion-mesh.ts"
+          },
+          "./model-set": {
+            "types": "./src/model-set.ts",
+            "import": "./src/model-set.ts"
+          },
+          "./native-selected-uniform-curve": {
+            "types": "./src/native-selected-uniform-curve.ts",
+            "import": "./src/native-selected-uniform-curve.ts"
+          },
+          "./three-selected-uniform-curve": {
+            "types": "./src/three-selected-uniform-curve.ts",
+            "import": "./src/three-selected-uniform-curve.ts"
+          },
+          "./babylon-uniform-curve": {
+            "types": "./src/babylon-uniform-curve.ts",
+            "import": "./src/babylon-uniform-curve.ts"
+          },
+          "./pixi3d-uniform-curve": {
+            "types": "./src/pixi3d-uniform-curve.ts",
+            "import": "./src/pixi3d-uniform-curve.ts"
+          },
+          "./babylon-selected-uniform-curve": {
+            "types": "./src/babylon-selected-uniform-curve.ts",
+            "import": "./src/babylon-selected-uniform-curve.ts"
+          },
+          "./pixi3d-selected-uniform-curve": {
+            "types": "./src/pixi3d-selected-uniform-curve.ts",
+            "import": "./src/pixi3d-selected-uniform-curve.ts"
+          },
+          "./qualified-body": {
+            "types": "./src/qualified-body.ts",
+            "import": "./src/qualified-body.ts"
+          },
+          "./nurbs-source-loft-feature-graph": {
+            "types": "./src/nurbs-source-loft-feature-graph.ts",
+            "import": "./src/nurbs-source-loft-feature-graph.ts"
+          },
+          "./translated-strip-world-points": {
+            "types": "./src/translated-strip-world-points.ts",
+            "import": "./src/translated-strip-world-points.ts"
+          },
+          "./qualified-body-boundary-mesh": {
+            "types": "./src/qualified-body-boundary-mesh.ts",
+            "import": "./src/qualified-body-boundary-mesh.ts"
+          },
+          "./source-curve-knot-insertion": {
+            "types": "./src/source-curve-knot-insertion.ts",
+            "import": "./src/source-curve-knot-insertion.ts"
+          },
+          "./translated-strip-interval-boolean": {
+            "types": "./src/translated-strip-interval-boolean.ts",
+            "import": "./src/translated-strip-interval-boolean.ts"
+          },
+          "./qualified-body-boundary-mesh-three": {
+            "types": "./src/qualified-body-boundary-mesh-three.ts",
+            "import": "./src/qualified-body-boundary-mesh-three.ts"
+          },
+          "./source-surface-knot-insertion": {
+            "types": "./src/source-surface-knot-insertion.ts",
+            "import": "./src/source-surface-knot-insertion.ts"
+          },
+          "./qualified-body-boundary-mesh-babylon": {
+            "types": "./src/qualified-body-boundary-mesh-babylon.ts",
+            "import": "./src/qualified-body-boundary-mesh-babylon.ts"
+          },
+          "./source-knot-aligned-loft": {
+            "types": "./src/source-knot-aligned-loft.ts",
+            "import": "./src/source-knot-aligned-loft.ts"
+          },
+          "./source-curve-interval-extraction": {
+            "types": "./src/source-curve-interval-extraction.ts",
+            "import": "./src/source-curve-interval-extraction.ts"
+          },
+          "./source-curve-degree-elevation": {
+            "types": "./src/source-curve-degree-elevation.ts",
+            "import": "./src/source-curve-degree-elevation.ts"
+          },
+          "./source-line-width-face": {
+            "types": "./src/source-line-width-face.ts",
+            "import": "./src/source-line-width-face.ts"
+          },
+          "./qualified-body-boundary-mesh-pixi3d": {
+            "types": "./src/qualified-body-boundary-mesh-pixi3d.ts",
+            "import": "./src/qualified-body-boundary-mesh-pixi3d.ts"
+          },
+          "./paired-surface-intersection-branch": {
+            "types": "./src/paired-surface-intersection-branch.ts",
+            "import": "./src/paired-surface-intersection-branch.ts"
+          },
+          "./translated-strip-plane-split-result": {
+            "types": "./src/translated-strip-plane-split-result.ts",
+            "import": "./src/translated-strip-plane-split-result.ts"
+          },
+          "./exact-paired-vlinear-surface-intersection-result": {
+            "types": "./src/exact-paired-vlinear-surface-intersection-result.ts",
+            "import": "./src/exact-paired-vlinear-surface-intersection-result.ts"
+          },
+          "./paired-surface-uv-split-faces-result": {
+            "types": "./src/paired-surface-uv-split-faces-result.ts",
+            "import": "./src/paired-surface-uv-split-faces-result.ts"
+          },
+          "./paired-surface-b-uv-split-faces-result": {
+            "types": "./src/paired-surface-b-uv-split-faces-result.ts",
+            "import": "./src/paired-surface-b-uv-split-faces-result.ts"
+          },
+          "./paired-surface-uv-face-classification-result": {
+            "types": "./src/paired-surface-uv-face-classification-result.ts",
+            "import": "./src/paired-surface-uv-face-classification-result.ts"
+          },
+          "./paired-surface-material-body-result": {
+            "types": "./src/paired-surface-material-body-result.ts",
+            "import": "./src/paired-surface-material-body-result.ts"
+          }
+        },
+        "files": [
+          "dist",
+          "examples",
+          "README.md",
+          "LICENSE"
+        ],
+        "scripts": {
+          "build:library": "tsc -p tsconfig.json",
+          "type-check": "tsc -p tsconfig.json --noEmit",
+          "lint": "eslint src",
+          "test": "pnpm build:library && node --test test/interop.test.mjs",
+          "test:native": "pnpm --filter @barocss/cad build:library && pnpm build:library && node test/native-loader.test.mjs",
+          "test:babylon": "pnpm --filter @barocss/cad build:library && pnpm build:library && node test/babylon-loader.test.mjs",
+          "test:curve": "node test/curve-loader.test.mjs",
+          "test:abortable": "node test/abortable-loader.test.mjs",
+          "test:integration": "pnpm --filter @barocss/cad build:library && pnpm --filter @barocss/gpu build:library && pnpm build:library && node --test test/cad-integration.test.mjs"
+        },
+        "dependencies": {
+          "@barocss/cad": "workspace:*"
+        },
+        "peerDependencies": {
+          "@babylonjs/core": "9.29.0",
+          "three": "^0.186.1",
+          "pixi.js": "7.2.4",
+          "pixi3d": "2.5.0"
+        },
+        "peerDependenciesMeta": {
+          "@babylonjs/core": {
+            "optional": true
+          },
+          "three": {
+            "optional": true
+          },
+          "pixi.js": {
+            "optional": true
+          },
+          "pixi3d": {
+            "optional": true
+          }
+        },
+        "devDependencies": {
+          "@babylonjs/core": "9.29.0",
+          "@types/three": "^0.186.0",
+          "three": "^0.186.1",
+          "pixi.js": "7.2.4",
+          "pixi3d": "2.5.0"
+        }
+      },
+      "changesFromSourceSnapshot": [
+        {
+          "field": "publishConfig",
+          "before": {
+            "access": "public",
+            "main": "./dist/index.js",
+            "types": "./dist/index.d.ts",
+            "exports": {
+              ".": {
+                "types": "./dist/index.d.ts",
+                "import": "./dist/index.js"
+              },
+              "./native": {
+                "types": "./dist/native.d.ts",
+                "import": "./dist/native.js"
+              },
+              "./native-uniform-curve": {
+                "types": "./dist/native-uniform-curve.d.ts",
+                "import": "./dist/native-uniform-curve.js"
+              },
+              "./three-uniform-curve": {
+                "types": "./dist/three-uniform-curve.d.ts",
+                "import": "./dist/three-uniform-curve.js"
+              },
+              "./document": {
+                "types": "./dist/document.d.ts",
+                "import": "./dist/document.js"
+              },
+              "./boolean-extrusion-feature-graph": {
+                "types": "./dist/boolean-extrusion-feature-graph.d.ts",
+                "import": "./dist/boolean-extrusion-feature-graph.js"
+              },
+              "./boolean-extrusion-feature-mesh": {
+                "types": "./dist/boolean-extrusion-feature-mesh.d.ts",
+                "import": "./dist/boolean-extrusion-feature-mesh.js"
+              },
+              "./boolean-extrusion-feature-properties": {
+                "types": "./dist/boolean-extrusion-feature-properties.d.ts",
+                "import": "./dist/boolean-extrusion-feature-properties.js"
+              },
+              "./assembly": {
+                "types": "./dist/assembly.d.ts",
+                "import": "./dist/assembly.js"
+              },
+              "./document-glb": {
+                "types": "./dist/document-glb.d.ts",
+                "import": "./dist/document-glb.js"
+              },
+              "./boolean-mesh-glb": {
+                "types": "./dist/boolean-mesh-glb.d.ts",
+                "import": "./dist/boolean-mesh-glb.js"
+              },
+              "./boolean-extrusion-glb": {
+                "types": "./dist/boolean-extrusion-glb.d.ts",
+                "import": "./dist/boolean-extrusion-glb.js"
+              },
+              "./three-document": {
+                "types": "./dist/three-document.d.ts",
+                "import": "./dist/three-document.js"
+              },
+              "./three-assembly": {
+                "types": "./dist/three-assembly.d.ts",
+                "import": "./dist/three-assembly.js"
+              },
+              "./three-boolean-contours": {
+                "types": "./dist/three-boolean-contours.d.ts",
+                "import": "./dist/three-boolean-contours.js"
+              },
+              "./three-boolean-mesh": {
+                "types": "./dist/three-boolean-mesh.d.ts",
+                "import": "./dist/three-boolean-mesh.js"
+              },
+              "./three-boolean-extrusion-mesh": {
+                "types": "./dist/three-boolean-extrusion-mesh.d.ts",
+                "import": "./dist/three-boolean-extrusion-mesh.js"
+              },
+              "./three": {
+                "types": "./dist/three.d.ts",
+                "import": "./dist/three.js"
+              },
+              "./babylon": {
+                "types": "./dist/babylon.d.ts",
+                "import": "./dist/babylon.js"
+              },
+              "./babylon-document": {
+                "types": "./dist/babylon-document.d.ts",
+                "import": "./dist/babylon-document.js"
+              },
+              "./babylon-assembly": {
+                "types": "./dist/babylon-assembly.d.ts",
+                "import": "./dist/babylon-assembly.js"
+              },
+              "./babylon-boolean-mesh": {
+                "types": "./dist/babylon-boolean-mesh.d.ts",
+                "import": "./dist/babylon-boolean-mesh.js"
+              },
+              "./babylon-boolean-extrusion-mesh": {
+                "types": "./dist/babylon-boolean-extrusion-mesh.d.ts",
+                "import": "./dist/babylon-boolean-extrusion-mesh.js"
+              },
+              "./pixi3d": {
+                "types": "./dist/pixi3d.d.ts",
+                "import": "./dist/pixi3d.js"
+              },
+              "./pixi3d-document": {
+                "types": "./dist/pixi3d-document.d.ts",
+                "import": "./dist/pixi3d-document.js"
+              },
+              "./pixi3d-assembly": {
+                "types": "./dist/pixi3d-assembly.d.ts",
+                "import": "./dist/pixi3d-assembly.js"
+              },
+              "./pixi3d-boolean-mesh": {
+                "types": "./dist/pixi3d-boolean-mesh.d.ts",
+                "import": "./dist/pixi3d-boolean-mesh.js"
+              },
+              "./pixi3d-boolean-extrusion-mesh": {
+                "types": "./dist/pixi3d-boolean-extrusion-mesh.d.ts",
+                "import": "./dist/pixi3d-boolean-extrusion-mesh.js"
+              },
+              "./model-set": {
+                "types": "./dist/model-set.d.ts",
+                "import": "./dist/model-set.js"
+              },
+              "./native-selected-uniform-curve": {
+                "types": "./dist/native-selected-uniform-curve.d.ts",
+                "import": "./dist/native-selected-uniform-curve.js"
+              },
+              "./three-selected-uniform-curve": {
+                "types": "./dist/three-selected-uniform-curve.d.ts",
+                "import": "./dist/three-selected-uniform-curve.js"
+              },
+              "./babylon-uniform-curve": {
+                "types": "./dist/babylon-uniform-curve.d.ts",
+                "import": "./dist/babylon-uniform-curve.js"
+              },
+              "./pixi3d-uniform-curve": {
+                "types": "./dist/pixi3d-uniform-curve.d.ts",
+                "import": "./dist/pixi3d-uniform-curve.js"
+              },
+              "./babylon-selected-uniform-curve": {
+                "types": "./dist/babylon-selected-uniform-curve.d.ts",
+                "import": "./dist/babylon-selected-uniform-curve.js"
+              },
+              "./pixi3d-selected-uniform-curve": {
+                "types": "./dist/pixi3d-selected-uniform-curve.d.ts",
+                "import": "./dist/pixi3d-selected-uniform-curve.js"
+              }
+            }
+          },
+          "after": {
+            "access": "public",
+            "main": "./dist/index.js",
+            "types": "./dist/index.d.ts",
+            "exports": {
+              ".": {
+                "types": "./dist/index.d.ts",
+                "import": "./dist/index.js"
+              },
+              "./native": {
+                "types": "./dist/native.d.ts",
+                "import": "./dist/native.js"
+              },
+              "./native-uniform-curve": {
+                "types": "./dist/native-uniform-curve.d.ts",
+                "import": "./dist/native-uniform-curve.js"
+              },
+              "./three-uniform-curve": {
+                "types": "./dist/three-uniform-curve.d.ts",
+                "import": "./dist/three-uniform-curve.js"
+              },
+              "./document": {
+                "types": "./dist/document.d.ts",
+                "import": "./dist/document.js"
+              },
+              "./boolean-extrusion-feature-graph": {
+                "types": "./dist/boolean-extrusion-feature-graph.d.ts",
+                "import": "./dist/boolean-extrusion-feature-graph.js"
+              },
+              "./boolean-extrusion-feature-mesh": {
+                "types": "./dist/boolean-extrusion-feature-mesh.d.ts",
+                "import": "./dist/boolean-extrusion-feature-mesh.js"
+              },
+              "./boolean-extrusion-feature-properties": {
+                "types": "./dist/boolean-extrusion-feature-properties.d.ts",
+                "import": "./dist/boolean-extrusion-feature-properties.js"
+              },
+              "./assembly": {
+                "types": "./dist/assembly.d.ts",
+                "import": "./dist/assembly.js"
+              },
+              "./document-glb": {
+                "types": "./dist/document-glb.d.ts",
+                "import": "./dist/document-glb.js"
+              },
+              "./boolean-mesh-glb": {
+                "types": "./dist/boolean-mesh-glb.d.ts",
+                "import": "./dist/boolean-mesh-glb.js"
+              },
+              "./boolean-extrusion-glb": {
+                "types": "./dist/boolean-extrusion-glb.d.ts",
+                "import": "./dist/boolean-extrusion-glb.js"
+              },
+              "./three-document": {
+                "types": "./dist/three-document.d.ts",
+                "import": "./dist/three-document.js"
+              },
+              "./three-assembly": {
+                "types": "./dist/three-assembly.d.ts",
+                "import": "./dist/three-assembly.js"
+              },
+              "./three-boolean-contours": {
+                "types": "./dist/three-boolean-contours.d.ts",
+                "import": "./dist/three-boolean-contours.js"
+              },
+              "./three-boolean-mesh": {
+                "types": "./dist/three-boolean-mesh.d.ts",
+                "import": "./dist/three-boolean-mesh.js"
+              },
+              "./three-boolean-extrusion-mesh": {
+                "types": "./dist/three-boolean-extrusion-mesh.d.ts",
+                "import": "./dist/three-boolean-extrusion-mesh.js"
+              },
+              "./three": {
+                "types": "./dist/three.d.ts",
+                "import": "./dist/three.js"
+              },
+              "./babylon": {
+                "types": "./dist/babylon.d.ts",
+                "import": "./dist/babylon.js"
+              },
+              "./babylon-document": {
+                "types": "./dist/babylon-document.d.ts",
+                "import": "./dist/babylon-document.js"
+              },
+              "./babylon-assembly": {
+                "types": "./dist/babylon-assembly.d.ts",
+                "import": "./dist/babylon-assembly.js"
+              },
+              "./babylon-boolean-mesh": {
+                "types": "./dist/babylon-boolean-mesh.d.ts",
+                "import": "./dist/babylon-boolean-mesh.js"
+              },
+              "./babylon-boolean-extrusion-mesh": {
+                "types": "./dist/babylon-boolean-extrusion-mesh.d.ts",
+                "import": "./dist/babylon-boolean-extrusion-mesh.js"
+              },
+              "./pixi3d": {
+                "types": "./dist/pixi3d.d.ts",
+                "import": "./dist/pixi3d.js"
+              },
+              "./pixi3d-document": {
+                "types": "./dist/pixi3d-document.d.ts",
+                "import": "./dist/pixi3d-document.js"
+              },
+              "./pixi3d-assembly": {
+                "types": "./dist/pixi3d-assembly.d.ts",
+                "import": "./dist/pixi3d-assembly.js"
+              },
+              "./pixi3d-boolean-mesh": {
+                "types": "./dist/pixi3d-boolean-mesh.d.ts",
+                "import": "./dist/pixi3d-boolean-mesh.js"
+              },
+              "./pixi3d-boolean-extrusion-mesh": {
+                "types": "./dist/pixi3d-boolean-extrusion-mesh.d.ts",
+                "import": "./dist/pixi3d-boolean-extrusion-mesh.js"
+              },
+              "./model-set": {
+                "types": "./dist/model-set.d.ts",
+                "import": "./dist/model-set.js"
+              },
+              "./native-selected-uniform-curve": {
+                "types": "./dist/native-selected-uniform-curve.d.ts",
+                "import": "./dist/native-selected-uniform-curve.js"
+              },
+              "./three-selected-uniform-curve": {
+                "types": "./dist/three-selected-uniform-curve.d.ts",
+                "import": "./dist/three-selected-uniform-curve.js"
+              },
+              "./babylon-uniform-curve": {
+                "types": "./dist/babylon-uniform-curve.d.ts",
+                "import": "./dist/babylon-uniform-curve.js"
+              },
+              "./pixi3d-uniform-curve": {
+                "types": "./dist/pixi3d-uniform-curve.d.ts",
+                "import": "./dist/pixi3d-uniform-curve.js"
+              },
+              "./babylon-selected-uniform-curve": {
+                "types": "./dist/babylon-selected-uniform-curve.d.ts",
+                "import": "./dist/babylon-selected-uniform-curve.js"
+              },
+              "./pixi3d-selected-uniform-curve": {
+                "types": "./dist/pixi3d-selected-uniform-curve.d.ts",
+                "import": "./dist/pixi3d-selected-uniform-curve.js"
+              },
+              "./qualified-body": {
+                "types": "./dist/qualified-body.d.ts",
+                "import": "./dist/qualified-body.js"
+              },
+              "./nurbs-source-loft-feature-graph": {
+                "types": "./dist/nurbs-source-loft-feature-graph.d.ts",
+                "import": "./dist/nurbs-source-loft-feature-graph.js"
+              },
+              "./translated-strip-world-points": {
+                "types": "./dist/translated-strip-world-points.d.ts",
+                "import": "./dist/translated-strip-world-points.js"
+              },
+              "./qualified-body-boundary-mesh": {
+                "types": "./dist/qualified-body-boundary-mesh.d.ts",
+                "import": "./dist/qualified-body-boundary-mesh.js"
+              },
+              "./source-curve-knot-insertion": {
+                "types": "./dist/source-curve-knot-insertion.d.ts",
+                "import": "./dist/source-curve-knot-insertion.js"
+              },
+              "./translated-strip-interval-boolean": {
+                "types": "./dist/translated-strip-interval-boolean.d.ts",
+                "import": "./dist/translated-strip-interval-boolean.js"
+              },
+              "./qualified-body-boundary-mesh-three": {
+                "types": "./dist/qualified-body-boundary-mesh-three.d.ts",
+                "import": "./dist/qualified-body-boundary-mesh-three.js"
+              },
+              "./source-surface-knot-insertion": {
+                "types": "./dist/source-surface-knot-insertion.d.ts",
+                "import": "./dist/source-surface-knot-insertion.js"
+              },
+              "./qualified-body-boundary-mesh-babylon": {
+                "types": "./dist/qualified-body-boundary-mesh-babylon.d.ts",
+                "import": "./dist/qualified-body-boundary-mesh-babylon.js"
+              },
+              "./source-knot-aligned-loft": {
+                "types": "./dist/source-knot-aligned-loft.d.ts",
+                "import": "./dist/source-knot-aligned-loft.js"
+              },
+              "./source-curve-interval-extraction": {
+                "types": "./dist/source-curve-interval-extraction.d.ts",
+                "import": "./dist/source-curve-interval-extraction.js"
+              },
+              "./source-curve-degree-elevation": {
+                "types": "./dist/source-curve-degree-elevation.d.ts",
+                "import": "./dist/source-curve-degree-elevation.js"
+              },
+              "./source-line-width-face": {
+                "types": "./dist/source-line-width-face.d.ts",
+                "import": "./dist/source-line-width-face.js"
+              },
+              "./qualified-body-boundary-mesh-pixi3d": {
+                "types": "./dist/qualified-body-boundary-mesh-pixi3d.d.ts",
+                "import": "./dist/qualified-body-boundary-mesh-pixi3d.js"
+              },
+              "./paired-surface-intersection-branch": {
+                "types": "./dist/paired-surface-intersection-branch.d.ts",
+                "import": "./dist/paired-surface-intersection-branch.js"
+              },
+              "./translated-strip-plane-split-result": {
+                "types": "./dist/translated-strip-plane-split-result.d.ts",
+                "import": "./dist/translated-strip-plane-split-result.js"
+              },
+              "./exact-paired-vlinear-surface-intersection-result": {
+                "types": "./dist/exact-paired-vlinear-surface-intersection-result.d.ts",
+                "import": "./dist/exact-paired-vlinear-surface-intersection-result.js"
+              },
+              "./paired-surface-uv-split-faces-result": {
+                "types": "./dist/paired-surface-uv-split-faces-result.d.ts",
+                "import": "./dist/paired-surface-uv-split-faces-result.js"
+              },
+              "./paired-surface-b-uv-split-faces-result": {
+                "types": "./dist/paired-surface-b-uv-split-faces-result.d.ts",
+                "import": "./dist/paired-surface-b-uv-split-faces-result.js"
+              },
+              "./paired-surface-uv-face-classification-result": {
+                "types": "./dist/paired-surface-uv-face-classification-result.d.ts",
+                "import": "./dist/paired-surface-uv-face-classification-result.js"
+              },
+              "./paired-surface-material-body-result": {
+                "types": "./dist/paired-surface-material-body-result.d.ts",
+                "import": "./dist/paired-surface-material-body-result.js"
+              }
+            }
+          }
+        },
+        {
+          "field": "exports",
+          "before": {
+            ".": {
+              "types": "./src/index.ts",
+              "import": "./src/index.ts"
+            },
+            "./native": {
+              "types": "./src/native.ts",
+              "import": "./src/native.ts"
+            },
+            "./native-uniform-curve": {
+              "types": "./src/native-uniform-curve.ts",
+              "import": "./src/native-uniform-curve.ts"
+            },
+            "./three-uniform-curve": {
+              "types": "./src/three-uniform-curve.ts",
+              "import": "./src/three-uniform-curve.ts"
+            },
+            "./document": {
+              "types": "./src/document.ts",
+              "import": "./src/document.ts"
+            },
+            "./boolean-extrusion-feature-graph": {
+              "types": "./src/boolean-extrusion-feature-graph.ts",
+              "import": "./src/boolean-extrusion-feature-graph.ts"
+            },
+            "./boolean-extrusion-feature-mesh": {
+              "types": "./src/boolean-extrusion-feature-mesh.ts",
+              "import": "./src/boolean-extrusion-feature-mesh.ts"
+            },
+            "./boolean-extrusion-feature-properties": {
+              "types": "./src/boolean-extrusion-feature-properties.ts",
+              "import": "./src/boolean-extrusion-feature-properties.ts"
+            },
+            "./assembly": {
+              "types": "./src/assembly.ts",
+              "import": "./src/assembly.ts"
+            },
+            "./document-glb": {
+              "types": "./src/document-glb.ts",
+              "import": "./src/document-glb.ts"
+            },
+            "./boolean-mesh-glb": {
+              "types": "./src/boolean-mesh-glb.ts",
+              "import": "./src/boolean-mesh-glb.ts"
+            },
+            "./boolean-extrusion-glb": {
+              "types": "./src/boolean-extrusion-glb.ts",
+              "import": "./src/boolean-extrusion-glb.ts"
+            },
+            "./three-document": {
+              "types": "./src/three-document.ts",
+              "import": "./src/three-document.ts"
+            },
+            "./three-assembly": {
+              "types": "./src/three-assembly.ts",
+              "import": "./src/three-assembly.ts"
+            },
+            "./three-boolean-contours": {
+              "types": "./src/three-boolean-contours.ts",
+              "import": "./src/three-boolean-contours.ts"
+            },
+            "./three-boolean-mesh": {
+              "types": "./src/three-boolean-mesh.ts",
+              "import": "./src/three-boolean-mesh.ts"
+            },
+            "./three-boolean-extrusion-mesh": {
+              "types": "./src/three-boolean-extrusion-mesh.ts",
+              "import": "./src/three-boolean-extrusion-mesh.ts"
+            },
+            "./three": {
+              "types": "./src/three.ts",
+              "import": "./src/three.ts"
+            },
+            "./babylon": {
+              "types": "./src/babylon.ts",
+              "import": "./src/babylon.ts"
+            },
+            "./babylon-document": {
+              "types": "./src/babylon-document.ts",
+              "import": "./src/babylon-document.ts"
+            },
+            "./babylon-assembly": {
+              "types": "./src/babylon-assembly.ts",
+              "import": "./src/babylon-assembly.ts"
+            },
+            "./babylon-boolean-mesh": {
+              "types": "./src/babylon-boolean-mesh.ts",
+              "import": "./src/babylon-boolean-mesh.ts"
+            },
+            "./babylon-boolean-extrusion-mesh": {
+              "types": "./src/babylon-boolean-extrusion-mesh.ts",
+              "import": "./src/babylon-boolean-extrusion-mesh.ts"
+            },
+            "./pixi3d": {
+              "types": "./src/pixi3d.ts",
+              "import": "./src/pixi3d.ts"
+            },
+            "./pixi3d-document": {
+              "types": "./src/pixi3d-document.ts",
+              "import": "./src/pixi3d-document.ts"
+            },
+            "./pixi3d-assembly": {
+              "types": "./src/pixi3d-assembly.ts",
+              "import": "./src/pixi3d-assembly.ts"
+            },
+            "./pixi3d-boolean-mesh": {
+              "types": "./src/pixi3d-boolean-mesh.ts",
+              "import": "./src/pixi3d-boolean-mesh.ts"
+            },
+            "./pixi3d-boolean-extrusion-mesh": {
+              "types": "./src/pixi3d-boolean-extrusion-mesh.ts",
+              "import": "./src/pixi3d-boolean-extrusion-mesh.ts"
+            },
+            "./model-set": {
+              "types": "./src/model-set.ts",
+              "import": "./src/model-set.ts"
+            },
+            "./native-selected-uniform-curve": {
+              "types": "./src/native-selected-uniform-curve.ts",
+              "import": "./src/native-selected-uniform-curve.ts"
+            },
+            "./three-selected-uniform-curve": {
+              "types": "./src/three-selected-uniform-curve.ts",
+              "import": "./src/three-selected-uniform-curve.ts"
+            },
+            "./babylon-uniform-curve": {
+              "types": "./src/babylon-uniform-curve.ts",
+              "import": "./src/babylon-uniform-curve.ts"
+            },
+            "./pixi3d-uniform-curve": {
+              "types": "./src/pixi3d-uniform-curve.ts",
+              "import": "./src/pixi3d-uniform-curve.ts"
+            },
+            "./babylon-selected-uniform-curve": {
+              "types": "./src/babylon-selected-uniform-curve.ts",
+              "import": "./src/babylon-selected-uniform-curve.ts"
+            },
+            "./pixi3d-selected-uniform-curve": {
+              "types": "./src/pixi3d-selected-uniform-curve.ts",
+              "import": "./src/pixi3d-selected-uniform-curve.ts"
+            }
+          },
+          "after": {
+            ".": {
+              "types": "./src/index.ts",
+              "import": "./src/index.ts"
+            },
+            "./native": {
+              "types": "./src/native.ts",
+              "import": "./src/native.ts"
+            },
+            "./native-uniform-curve": {
+              "types": "./src/native-uniform-curve.ts",
+              "import": "./src/native-uniform-curve.ts"
+            },
+            "./three-uniform-curve": {
+              "types": "./src/three-uniform-curve.ts",
+              "import": "./src/three-uniform-curve.ts"
+            },
+            "./document": {
+              "types": "./src/document.ts",
+              "import": "./src/document.ts"
+            },
+            "./boolean-extrusion-feature-graph": {
+              "types": "./src/boolean-extrusion-feature-graph.ts",
+              "import": "./src/boolean-extrusion-feature-graph.ts"
+            },
+            "./boolean-extrusion-feature-mesh": {
+              "types": "./src/boolean-extrusion-feature-mesh.ts",
+              "import": "./src/boolean-extrusion-feature-mesh.ts"
+            },
+            "./boolean-extrusion-feature-properties": {
+              "types": "./src/boolean-extrusion-feature-properties.ts",
+              "import": "./src/boolean-extrusion-feature-properties.ts"
+            },
+            "./assembly": {
+              "types": "./src/assembly.ts",
+              "import": "./src/assembly.ts"
+            },
+            "./document-glb": {
+              "types": "./src/document-glb.ts",
+              "import": "./src/document-glb.ts"
+            },
+            "./boolean-mesh-glb": {
+              "types": "./src/boolean-mesh-glb.ts",
+              "import": "./src/boolean-mesh-glb.ts"
+            },
+            "./boolean-extrusion-glb": {
+              "types": "./src/boolean-extrusion-glb.ts",
+              "import": "./src/boolean-extrusion-glb.ts"
+            },
+            "./three-document": {
+              "types": "./src/three-document.ts",
+              "import": "./src/three-document.ts"
+            },
+            "./three-assembly": {
+              "types": "./src/three-assembly.ts",
+              "import": "./src/three-assembly.ts"
+            },
+            "./three-boolean-contours": {
+              "types": "./src/three-boolean-contours.ts",
+              "import": "./src/three-boolean-contours.ts"
+            },
+            "./three-boolean-mesh": {
+              "types": "./src/three-boolean-mesh.ts",
+              "import": "./src/three-boolean-mesh.ts"
+            },
+            "./three-boolean-extrusion-mesh": {
+              "types": "./src/three-boolean-extrusion-mesh.ts",
+              "import": "./src/three-boolean-extrusion-mesh.ts"
+            },
+            "./three": {
+              "types": "./src/three.ts",
+              "import": "./src/three.ts"
+            },
+            "./babylon": {
+              "types": "./src/babylon.ts",
+              "import": "./src/babylon.ts"
+            },
+            "./babylon-document": {
+              "types": "./src/babylon-document.ts",
+              "import": "./src/babylon-document.ts"
+            },
+            "./babylon-assembly": {
+              "types": "./src/babylon-assembly.ts",
+              "import": "./src/babylon-assembly.ts"
+            },
+            "./babylon-boolean-mesh": {
+              "types": "./src/babylon-boolean-mesh.ts",
+              "import": "./src/babylon-boolean-mesh.ts"
+            },
+            "./babylon-boolean-extrusion-mesh": {
+              "types": "./src/babylon-boolean-extrusion-mesh.ts",
+              "import": "./src/babylon-boolean-extrusion-mesh.ts"
+            },
+            "./pixi3d": {
+              "types": "./src/pixi3d.ts",
+              "import": "./src/pixi3d.ts"
+            },
+            "./pixi3d-document": {
+              "types": "./src/pixi3d-document.ts",
+              "import": "./src/pixi3d-document.ts"
+            },
+            "./pixi3d-assembly": {
+              "types": "./src/pixi3d-assembly.ts",
+              "import": "./src/pixi3d-assembly.ts"
+            },
+            "./pixi3d-boolean-mesh": {
+              "types": "./src/pixi3d-boolean-mesh.ts",
+              "import": "./src/pixi3d-boolean-mesh.ts"
+            },
+            "./pixi3d-boolean-extrusion-mesh": {
+              "types": "./src/pixi3d-boolean-extrusion-mesh.ts",
+              "import": "./src/pixi3d-boolean-extrusion-mesh.ts"
+            },
+            "./model-set": {
+              "types": "./src/model-set.ts",
+              "import": "./src/model-set.ts"
+            },
+            "./native-selected-uniform-curve": {
+              "types": "./src/native-selected-uniform-curve.ts",
+              "import": "./src/native-selected-uniform-curve.ts"
+            },
+            "./three-selected-uniform-curve": {
+              "types": "./src/three-selected-uniform-curve.ts",
+              "import": "./src/three-selected-uniform-curve.ts"
+            },
+            "./babylon-uniform-curve": {
+              "types": "./src/babylon-uniform-curve.ts",
+              "import": "./src/babylon-uniform-curve.ts"
+            },
+            "./pixi3d-uniform-curve": {
+              "types": "./src/pixi3d-uniform-curve.ts",
+              "import": "./src/pixi3d-uniform-curve.ts"
+            },
+            "./babylon-selected-uniform-curve": {
+              "types": "./src/babylon-selected-uniform-curve.ts",
+              "import": "./src/babylon-selected-uniform-curve.ts"
+            },
+            "./pixi3d-selected-uniform-curve": {
+              "types": "./src/pixi3d-selected-uniform-curve.ts",
+              "import": "./src/pixi3d-selected-uniform-curve.ts"
+            },
+            "./qualified-body": {
+              "types": "./src/qualified-body.ts",
+              "import": "./src/qualified-body.ts"
+            },
+            "./nurbs-source-loft-feature-graph": {
+              "types": "./src/nurbs-source-loft-feature-graph.ts",
+              "import": "./src/nurbs-source-loft-feature-graph.ts"
+            },
+            "./translated-strip-world-points": {
+              "types": "./src/translated-strip-world-points.ts",
+              "import": "./src/translated-strip-world-points.ts"
+            },
+            "./qualified-body-boundary-mesh": {
+              "types": "./src/qualified-body-boundary-mesh.ts",
+              "import": "./src/qualified-body-boundary-mesh.ts"
+            },
+            "./source-curve-knot-insertion": {
+              "types": "./src/source-curve-knot-insertion.ts",
+              "import": "./src/source-curve-knot-insertion.ts"
+            },
+            "./translated-strip-interval-boolean": {
+              "types": "./src/translated-strip-interval-boolean.ts",
+              "import": "./src/translated-strip-interval-boolean.ts"
+            },
+            "./qualified-body-boundary-mesh-three": {
+              "types": "./src/qualified-body-boundary-mesh-three.ts",
+              "import": "./src/qualified-body-boundary-mesh-three.ts"
+            },
+            "./source-surface-knot-insertion": {
+              "types": "./src/source-surface-knot-insertion.ts",
+              "import": "./src/source-surface-knot-insertion.ts"
+            },
+            "./qualified-body-boundary-mesh-babylon": {
+              "types": "./src/qualified-body-boundary-mesh-babylon.ts",
+              "import": "./src/qualified-body-boundary-mesh-babylon.ts"
+            },
+            "./source-knot-aligned-loft": {
+              "types": "./src/source-knot-aligned-loft.ts",
+              "import": "./src/source-knot-aligned-loft.ts"
+            },
+            "./source-curve-interval-extraction": {
+              "types": "./src/source-curve-interval-extraction.ts",
+              "import": "./src/source-curve-interval-extraction.ts"
+            },
+            "./source-curve-degree-elevation": {
+              "types": "./src/source-curve-degree-elevation.ts",
+              "import": "./src/source-curve-degree-elevation.ts"
+            },
+            "./source-line-width-face": {
+              "types": "./src/source-line-width-face.ts",
+              "import": "./src/source-line-width-face.ts"
+            },
+            "./qualified-body-boundary-mesh-pixi3d": {
+              "types": "./src/qualified-body-boundary-mesh-pixi3d.ts",
+              "import": "./src/qualified-body-boundary-mesh-pixi3d.ts"
+            },
+            "./paired-surface-intersection-branch": {
+              "types": "./src/paired-surface-intersection-branch.ts",
+              "import": "./src/paired-surface-intersection-branch.ts"
+            },
+            "./translated-strip-plane-split-result": {
+              "types": "./src/translated-strip-plane-split-result.ts",
+              "import": "./src/translated-strip-plane-split-result.ts"
+            },
+            "./exact-paired-vlinear-surface-intersection-result": {
+              "types": "./src/exact-paired-vlinear-surface-intersection-result.ts",
+              "import": "./src/exact-paired-vlinear-surface-intersection-result.ts"
+            },
+            "./paired-surface-uv-split-faces-result": {
+              "types": "./src/paired-surface-uv-split-faces-result.ts",
+              "import": "./src/paired-surface-uv-split-faces-result.ts"
+            },
+            "./paired-surface-b-uv-split-faces-result": {
+              "types": "./src/paired-surface-b-uv-split-faces-result.ts",
+              "import": "./src/paired-surface-b-uv-split-faces-result.ts"
+            },
+            "./paired-surface-uv-face-classification-result": {
+              "types": "./src/paired-surface-uv-face-classification-result.ts",
+              "import": "./src/paired-surface-uv-face-classification-result.ts"
+            },
+            "./paired-surface-material-body-result": {
+              "types": "./src/paired-surface-material-body-result.ts",
+              "import": "./src/paired-surface-material-body-result.ts"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "slug": "canvas2d",
+      "directory": "packages/barocss-canvas2d",
+      "manifestSha256": "b180d3b2bb1f28a90e62f55ad5f8880a3349dfd7b549d16b76f9cf1cef5a6202",
+      "manifest": {
+        "name": "@barocss/canvas2d",
+        "version": "0.0.0-experimental",
+        "private": false,
+        "type": "module",
+        "description": "Bounded retained WebGL2 canvas for logical-pixel 2D scenes",
+        "license": "MIT",
+        "exports": {
+          ".": {
+            "types": "./src/index.ts",
+            "import": "./src/index.ts"
+          },
+          "./document": {
+            "types": "./src/document.ts",
+            "import": "./src/document.ts"
+          }
+        },
+        "main": "./src/index.ts",
+        "types": "./src/index.ts",
+        "files": [
+          "dist",
+          "README.md",
+          "LICENSE"
+        ],
+        "scripts": {
+          "build:library": "tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/index.js"
+        },
+        "publishConfig": {
+          "access": "public",
+          "main": "./dist/index.js",
+          "types": "./dist/index.d.ts",
+          "exports": {
+            ".": {
+              "types": "./dist/index.d.ts",
+              "import": "./dist/index.js"
+            },
+            "./document": {
+              "types": "./dist/document.d.ts",
+              "import": "./dist/document.js"
+            }
+          }
+        }
+      },
+      "changesFromSourceSnapshot": []
+    },
+    {
+      "slug": "viewer",
+      "directory": "packages/barocss-viewer",
+      "manifestSha256": "7eae9edcf73be3de63de6dff19822866196d9fd6ce62577ff488e6f5a27e64d6",
+      "manifest": {
+        "name": "@barocss/viewer",
+        "version": "0.0.0-experimental",
+        "private": false,
+        "publishConfig": {
+          "access": "public",
+          "main": "./dist/index.js",
+          "types": "./dist/index.d.ts",
+          "exports": {
+            ".": {
+              "types": "./dist/index.d.ts",
+              "import": "./dist/index.js"
+            }
+          }
+        },
+        "type": "module",
+        "description": "Bounded native CAD Surface and Curve viewer using the BaroCSS GPU backend",
+        "license": "MIT",
+        "main": "./src/index.ts",
+        "types": "./src/index.ts",
+        "exports": {
+          ".": {
+            "types": "./src/index.ts",
+            "import": "./src/index.ts"
+          }
+        },
+        "files": [
+          "dist",
+          "README.md",
+          "LICENSE"
+        ],
+        "scripts": {
+          "build:library": "tsc -p tsconfig.json",
+          "type-check": "tsc -p tsconfig.json --noEmit"
+        },
+        "dependencies": {
+          "@barocss/cad": "workspace:*",
+          "@barocss/cad-interop": "workspace:*",
+          "@barocss/gpu": "workspace:*"
+        }
+      },
+      "changesFromSourceSnapshot": []
+    },
+    {
+      "slug": "physics",
+      "directory": "packages/barocss-physics",
+      "manifestSha256": "57d436d215a5ce0b31196e549aed6ced97b9ad9f602a99c7704b47c26f3dd56c",
+      "manifest": {
+        "name": "@barocss/physics",
+        "version": "0.0.0-experimental",
+        "private": false,
+        "type": "module",
+        "description": "Bounded renderer-neutral fixed-step 3D rigid, visual-water and cloth simulation",
+        "license": "MIT",
+        "exports": {
+          ".": {
+            "barocss-source": "./src/index.ts",
+            "types": "./src/index.ts",
+            "import": "./src/index.ts"
+          },
+          "./cad-proxy": {
+            "barocss-source": "./src/cad-proxy.ts",
+            "types": "./src/cad-proxy.ts",
+            "import": "./src/cad-proxy.ts"
+          },
+          "./replay": {
+            "barocss-source": "./src/replay.ts",
+            "types": "./src/replay.ts",
+            "import": "./src/replay.ts"
+          },
+          "./fluid": {
+            "barocss-source": "./src/fluid.ts",
+            "types": "./src/fluid.ts",
+            "import": "./src/fluid.ts"
+          },
+          "./cloth": {
+            "barocss-source": "./src/cloth.ts",
+            "types": "./src/cloth.ts",
+            "import": "./src/cloth.ts"
+          },
+          "./fluid-cad": {
+            "barocss-source": "./src/fluid-cad.ts",
+            "types": "./src/fluid-cad.ts",
+            "import": "./src/fluid-cad.ts"
+          }
+        },
+        "main": "./src/index.ts",
+        "types": "./src/index.ts",
+        "files": [
+          "src",
+          "dist",
+          "README.md",
+          "LICENSE"
+        ],
+        "scripts": {
+          "build:library": "tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --external:./types.js --outfile=dist/index.js"
+        },
+        "dependencies": {
+          "@barocss/cad": "workspace:*"
+        },
+        "publishConfig": {
+          "access": "public",
+          "main": "./dist/index.js",
+          "types": "./dist/index.d.ts",
+          "exports": {
+            ".": {
+              "barocss-source": "./dist/index.js",
+              "types": "./dist/index.d.ts",
+              "import": "./dist/index.js"
+            },
+            "./cad-proxy": {
+              "barocss-source": "./dist/cad-proxy.js",
+              "types": "./dist/cad-proxy.d.ts",
+              "import": "./dist/cad-proxy.js"
+            },
+            "./replay": {
+              "barocss-source": "./dist/replay.js",
+              "types": "./dist/replay.d.ts",
+              "import": "./dist/replay.js"
+            },
+            "./fluid": {
+              "barocss-source": "./dist/fluid.js",
+              "types": "./dist/fluid.d.ts",
+              "import": "./dist/fluid.js"
+            },
+            "./cloth": {
+              "barocss-source": "./dist/cloth.js",
+              "types": "./dist/cloth.d.ts",
+              "import": "./dist/cloth.js"
+            },
+            "./fluid-cad": {
+              "barocss-source": "./dist/fluid-cad.js",
+              "types": "./dist/fluid-cad.d.ts",
+              "import": "./dist/fluid-cad.js"
+            }
+          }
+        }
+      },
+      "changesFromSourceSnapshot": []
+    },
+    {
+      "slug": "cad-editor",
+      "directory": "packages/barocss-cad-editor",
+      "manifestSha256": "9941251b6133bf540ec06c3720cae27eebf147496680ad42a552f45304e3eb75",
+      "manifest": {
+        "name": "@barocss/cad-editor",
+        "version": "0.0.0-experimental",
+        "private": false,
+        "type": "module",
+        "license": "MIT",
+        "description": "Native CAD authoring sessions and reusable React viewport and inspector",
+        "main": "./src/index.ts",
+        "types": "./src/index.ts",
+        "exports": {
+          ".": {
+            "types": "./src/index.ts",
+            "import": "./src/index.ts"
+          },
+          "./react": {
+            "types": "./src/react/index.tsx",
+            "import": "./src/react/index.tsx"
+          },
+          "./styles.css": "./src/styles.css"
+        },
+        "publishConfig": {
+          "access": "public",
+          "main": "./dist/index.js",
+          "types": "./dist/index.d.ts",
+          "exports": {
+            ".": {
+              "types": "./dist/index.d.ts",
+              "import": "./dist/index.js"
+            },
+            "./react": {
+              "types": "./dist/react/index.d.ts",
+              "import": "./dist/react/index.js"
+            },
+            "./styles.css": "./dist/cad-editor.css"
+          }
+        },
+        "files": [
+          "dist",
+          "README.md",
+          "LICENSE"
+        ],
+        "scripts": {
+          "build:library": "node scripts/build.mjs",
+          "type-check": "tsc -p tsconfig.json --noEmit"
+        },
+        "dependencies": {
+          "@barocss/cad": "workspace:*",
+          "@barocss/viewer": "workspace:*",
+          "@barocss/cad-interop": "workspace:*",
+          "radix-ui": "1.7.0",
+          "class-variance-authority": "0.7.1",
+          "clsx": "2.1.1",
+          "tailwind-merge": "3.7.0",
+          "lucide-react": "1.52.0",
+          "@barocss/gpu": "workspace:*"
+        },
+        "peerDependencies": {
+          "react": "19.2.3",
+          "react-dom": "19.2.3"
+        },
+        "devDependencies": {
+          "typescript": "5.9.2",
+          "vite": "8.3.1",
+          "esbuild": "0.28.2",
+          "@types/react": "19.3.0",
+          "@types/react-dom": "19.3.0",
+          "@types/node": "26.6.4"
+        }
+      },
+      "changesFromSourceSnapshot": []
+    },
+    {
+      "slug": "render-editor",
+      "directory": "packages/barocss-render-editor",
+      "manifestSha256": "7fd0ce7ac93281892cda88738172627cc34d0b9ba4381f5f74e367a2e65ca3c8",
+      "manifest": {
+        "name": "@barocss/render-editor",
+        "version": "0.0.0-experimental",
+        "private": false,
+        "type": "module",
+        "description": "Source-authoritative scene editor sessions and reusable React panels over BaroCSS GPU",
+        "license": "MIT",
+        "main": "./src/index.ts",
+        "types": "./src/index.ts",
+        "exports": {
+          ".": {
+            "types": "./src/index.ts",
+            "import": "./src/index.ts"
+          },
+          "./react": {
+            "types": "./src/react.tsx",
+            "import": "./src/react.tsx"
+          },
+          "./style.css": "./src/style.css"
+        },
+        "publishConfig": {
+          "access": "public",
+          "main": "./dist/index.js",
+          "types": "./dist/index.d.ts",
+          "exports": {
+            ".": {
+              "types": "./dist/index.d.ts",
+              "import": "./dist/index.js"
+            },
+            "./react": {
+              "types": "./dist/react.d.ts",
+              "import": "./dist/react.js"
+            },
+            "./style.css": "./dist/style.css"
+          }
+        },
+        "files": [
+          "dist",
+          "src",
+          "README.md",
+          "LICENSE"
+        ],
+        "sideEffects": [
+          "**/*.css"
+        ],
+        "dependencies": {
+          "@barocss/gpu": "workspace:*",
+          "@barocss/cad": "workspace:*",
+          "@barocss/cad-interop": "workspace:*",
+          "@barocss/viewer": "workspace:*"
+        },
+        "peerDependencies": {
+          "react": "^19.2.3"
+        },
+        "scripts": {
+          "build:library": "tsc -p tsconfig.json && esbuild src/index.ts src/react.tsx --bundle --packages=external --format=esm --platform=browser --target=es2022 --outdir=dist && node scripts/copy-css.mjs",
+          "type-check": "tsc -p tsconfig.json --noEmit"
+        },
+        "devDependencies": {
+          "typescript": "5.9.2",
+          "esbuild": "0.28.2",
+          "@types/react": "19.3.0"
+        }
+      },
+      "changesFromSourceSnapshot": [
+        {
+          "field": "dependencies",
+          "before": {
+            "@barocss/gpu": "workspace:*",
+            "@barocss/cad": "workspace:*"
+          },
+          "after": {
+            "@barocss/gpu": "workspace:*",
+            "@barocss/cad": "workspace:*",
+            "@barocss/cad-interop": "workspace:*",
+            "@barocss/viewer": "workspace:*"
+          }
+        }
+      ]
+    }
+  ]
+}

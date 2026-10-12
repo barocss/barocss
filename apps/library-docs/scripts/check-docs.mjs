@@ -3,12 +3,12 @@ import { repairSourceLinks } from './source-links.mjs';
 import { readFile, readdir, access } from 'node:fs/promises';
 import { resolve, dirname, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createHash } from 'node:crypto';
+import { checkCurrentInventory } from './inventory.mjs';
 const app = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const root = resolve(app, '../..');
 const docs = resolve(app, 'docs');
 const inventory = JSON.parse(await readFile(resolve(app, 'evidence/package-inventory.json'), 'utf8'));
-if (inventory.packages.length !== 12) throw new Error('Expected 12 actual packages');
+const currentInventory = await checkCurrentInventory(root, app);
 const pages = [];
 async function walk(directory) {
   for (const item of await readdir(directory, { withFileTypes: true })) {
@@ -20,8 +20,6 @@ async function walk(directory) {
 }
 await walk(docs);
 for (const p of inventory.packages) {
-  const bytes = await readFile(resolve(root, p.directory, 'package.json'));
-  if (createHash('sha256').update(bytes).digest('hex') !== p.manifestSha256) throw new Error(`Manifest drift: ${p.name}; review the snapshot before updating it.`);
   const required = ['index', ...( ['kit','browser','server'].includes(p.slug) ? [] : ['quickstart','guides','api','reference','examples','limits'])];
   for (const name of required) {
     const text = await readFile(resolve(docs, 'packages', p.slug, `${name}.md`), 'utf8');
@@ -75,4 +73,4 @@ for (const page of pages) {
 }
 await repairSourceLinks(JSON.parse(await readFile(resolve(app, 'evidence/public-api.json'), 'utf8')), { check: true });
 const exampleCatalog = await checkExampleCatalog(app);
-console.log(JSON.stringify({ exampleCatalog, pages: pages.length, packages: 12, checkedInternalLinks: links, checkedImageAssets: assets, checkedDownloadAssets: downloads, manifestHashes: 'matched', sourceCommit: inventory.commit }));
+console.log(JSON.stringify({ exampleCatalog, pages: pages.length, packages: 12, checkedInternalLinks: links, checkedImageAssets: assets, checkedDownloadAssets: downloads, manifestHashes: 'matched', sourceCommit: inventory.commit, manifestCommit: currentInventory.manifestCommit }));

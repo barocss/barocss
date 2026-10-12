@@ -18,7 +18,16 @@ The native checkpoint reuses actual `/Users/user/.barocss-ai/v3/integration/node
 
 The source material probe creates ignored app-local GPU/CAD dependency links and uses esbuild's ordinary node-module search path for the transitive CAD dependency. It compiles, validates and lowers a real material and checks unsupported syntax refusal. It does not draw pixels or verify all exports. Documentation build, source API execution, compiled package acceptance, local integration and registry/site publication are separate stages.
 
-`evidence/package-inventory.json` freezes all12 actual manifest versions/maps/hashes. The checker refuses manifest drift; review changes before refreshing a snapshot. Native build/browser/snippet receipts record actual results and first failures. No deployment or Pages configuration is included.
+`evidence/package-inventory.json` preserves the historical 12-package manifest snapshot at the source/API pin above. Do not refresh or retag it to match a newer checkout. `evidence/current-package-inventory.json` separately records current manifest bytes, full metadata, the exact Git commit, the historical inventory checksum, and field-by-field changes from that source snapshot. `check:docs` verifies both provenance and all 12 current manifest hashes. A version, export-map, dependency or other manifest change still fails until deliberately reviewed and recorded. Render metadata is included without activating the held Render lane or claiming new API/runtime/publication acceptance.
+
+```sh
+node apps/library-docs/scripts/inventory.mjs --check
+node --test apps/library-docs/scripts/inventory.test.mjs
+# Only after reviewing the manifest changes at an immutable commit:
+node apps/library-docs/scripts/inventory.mjs --write --commit <full-reviewed-commit>
+```
+
+The writer reads manifests from that Git commit and refuses differing working-tree bytes; it never overwrites historical evidence. The checker requires both recorded Git commits to be available locally. Review `changesFromSourceSnapshot` and the metadata reconciliation receipt before accepting an update. Native build/browser/snippet receipts retain their original scope. No deployment or Pages configuration is included.
 
 ## API guidance and internal evidence maintenance
 
