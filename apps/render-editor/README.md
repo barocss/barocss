@@ -367,3 +367,39 @@ startup failure, loss/remount and late-mount cleanup. These are deterministic UI
 and protocol checks, not actual GPU pixels or physical file-dialog acceptance.
 Those remain separate under #1445/#1049/#1254/#674. Point lights, spot lights,
 shadows and photometric accuracy are outside this workbench.
+
+## Light workbench: directional or point (#1624)
+
+Material Editor's **Light workbench** button opens
+`material.html?workbench=lights`. Choose **Start directional workspace** or
+**Start point workspace** explicitly. Both use the same Outliner, Inspector,
+Apply/Discard, Undo/Redo and accepted Open/Save vocabulary. The older
+`workbench=directional-lights` route remains a strict compatibility route.
+
+Directional lights edit raw nonzero XYZ direction. Point lights edit raw final
+world XYZ position and range in scene units; their finite-range artistic lighting
+is supplied by the actual point backend. Shared fields are stable ID, label,
+enabled, linear RGB, intensity and ambient. Add/remove supports zero to four
+lights, including disabled entries. Invalid/empty fields remain corrective text.
+
+The workspace kind stays fixed. Mixed catalogs and cross-kind Open refuse while
+preserving accepted data, nonempty history and draft fields. **New directional**
+and **New point** explicitly confirm unsaved changes/drafts and start a new
+lifetime; that is not atomic backend exchange. A failed new lifetime reports
+unavailable honestly. Remount retains accepted authorship but clears history.
+
+Open accepts current generic light scenes of the same kind and migrates known
+legacy directional V1 through its strict parser. Save writes the current wire
+format; public authoring names remain unsuffixed. **Import legacy Native scene**
+is the explicit V0-to-directional conversion. Point workspaces refuse that
+conversion rather than reinterpreting vectors as positions. Original source,
+materials, camera, poses, IDs/revisions, signed zero and omitted overrides remain
+unchanged. Save targets accepted data, never unsaved corrective fields; a browser
+download request is not proof that a physical file was persisted.
+
+Run `node apps/render-editor/native-light-workbench-flow.mjs` with Node 22 and
+existing dependencies for the actual React/codec/session flow with privately
+controlled Viewers. It covers both kinds, legacy migration, cross-kind/mixed
+refusal, nonempty history, cancellation, pending failures and late lifetimes.
+This software flow does not prove GPU pixels, physical dialogs/files or device
+recovery; those acceptance gates stay under #1445/#1049/#1584/#1254/#674.

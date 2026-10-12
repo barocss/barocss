@@ -71,3 +71,12 @@ export {createRenderNativeDirectionalLightSession} from './native-directional-li
 export type {RenderNativeDirectionalLightSession, RenderNativeDirectionalLightSessionSnapshot,
   RenderNativeDirectionalLightSessionVersion, RenderNativeDirectionalLightPreparedCandidate,
   RenderNativeDirectionalLightSavePayload, RenderNativeDirectionalLightSessionPurpose} from './native-directional-light-session.js';
+
+export {prepareRenderNativeLightDocument, parseRenderNativeLightDocument,
+  serializeRenderNativeLightDocument} from './native-light-document.js';
+export type {RenderNativeLightDocument, RenderNativeLightPreparation} from './native-light-document.js';
+export {createRenderNativeLightRequest} from './native-light-request.js';
+export {createRenderNativeLightSession} from './native-light-session.js';
+export type {RenderNativeLightSession, RenderNativeLightSessionSnapshot,
+  RenderNativeLightSessionVersion, RenderNativeLightPreparedCandidate,
+  RenderNativeLightSavePayload, RenderNativeLightSessionPurpose} from './native-light-session.js';

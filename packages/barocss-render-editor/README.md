@@ -421,3 +421,44 @@ packages/barocss-render-editor/tests/native-directional-light-session.test.mjs`
 from the workspace root. Set `BAROCSS_SESSION_MODE=emitted` after the library
 build to test the emitted Editor entry with unchanged dependency source graphs.
 Actual GPU pixels, native file dialogs and full integrated CI are separate gates.
+
+## One Native light authoring API (#1624)
+
+Use `prepareRenderNativeLightDocument`, `parseRenderNativeLightDocument`,
+`serializeRenderNativeLightDocument`, `createRenderNativeLightRequest` and
+`createRenderNativeLightSession` for the preferred generic authoring path.
+`RenderNativeLightDocument` and `RenderNativeLightSession` have no version suffix.
+The unchanged catalog `profile` distinguishes directional from point lights; do
+not supply a second kind field. Both admit 0–4 lights plus ambient. The real GPU
+providers currently support homogeneous catalogs, so mixed lighting is refused.
+
+The current saved Native scene envelope has wire version 2 and profile
+`canonical-native-lights`. This is a file compatibility tag, not another public
+API family. Generic preparation/serialization accept that current shape. Generic
+parsing additionally migrates known directional V1 files through the actual
+strict directional parser, preserving raw values, signed zero, original native
+sources/revisions/options, camera/poses, material source and omitted overrides.
+The existing V0/V1 APIs remain unchanged. Generic Open rejects V0; explicit legacy
+import composes the existing V0 parser and directional upgrade. A directional
+vector is never converted into a point position.
+
+A session exclusively owns the actual Viewer selected by its initial catalog.
+Same-kind Apply/Open/Undo/Redo use owned one-shot candidates, immutable accepted
+state and the existing history limits. Cross-kind Open or draft Apply refuses
+before presentation and retains accepted data, history, corrective text and save
+payload identity. Choose a new workspace to change kind; no backend hot-swap is
+claimed. Point positions/ranges already use final-world scene units, unchanged
+by native pose or unit conversion. The GPU retains its artistic finite-range law.
+
+`getSavePayload()` serializes accepted authorship; only the exact issued payload
+can acknowledge `markSaved()`. Invalid drafts do not replace it. Session versions,
+Viewer generations, operation locks, disposal and late factory cleanup preserve
+owned transactions. Real Viewer refusal causes remain attached. Lost status is
+explicit, and retained data does not certify retained pixels.
+
+Focused checks with Node 22 and existing dependencies:
+`node --test --test-concurrency=1 packages/barocss-render-editor/tests/native-light-session.test.mjs`.
+`BAROCSS_SESSION_MODE=emitted` selects the built Editor entry while dependency
+providers remain real source modules. The tests privately control only the two
+imported Viewer factories. They prove software data/session behavior, not physical
+GPU compilation, pixels, browser files or current-device recovery.
