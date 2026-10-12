@@ -4418,3 +4418,177 @@ intent, exact static shader/ABI content, real legacy material lowering, signed
 copies/bytes and bounded refusals. It does not execute or parse WGSL. Device
 compilation, renderer/frame integration, pixels, physical picking, recovery,
 lifetime and Viewer/editor consumer acceptance remain separate, unrun stages.
+
+## Native point-light required-WebGPU viewport (#1584)
+
+`mountNativePointLightWebGPUViewport(canvas, request, { width, height })` is an
+explicit awaited native Surface route. It requires a genuine WebGPU platform,
+adapter, device and current-realm `HTMLCanvasElement`; it never selects WebGL2 or
+changes existing defaults. Use a fresh host-owned canvas. Duplicate claims are
+local to this route, not a general cross-renderer ownership registry.
+
+**Evidence stage:** deterministic software qualification, not genuine-device
+acceptance. The focused test platform records calls and synthesizes readback bytes;
+it does not compile WGSL, rasterize, measure point-light pixels or qualify a driver.
+#1584 remains open for permitted physical-device compilation, range/color pixels,
+shared depth/picking, update/refusal/remount and lifecycle acceptance. Earlier
+#1583 CPU/static and #1579/#1581 native/source evidence are reused, not rerun as a
+native/cold-file/browser campaign. Existing graphics-denial boundaries remain.
+
+### Complete raw request and public surface
+
+```ts
+const viewport = await mountNativePointLightWebGPUViewport(canvas, {
+  format: 'barocss-gpu-native-point-light-webgpu-request', version: 0,
+  frame: {
+    version: 0, scene: { version: 2, entries }, particles: null, materials,
+    options: { mmToSceneUnit, translate, background, camera },
+  },
+  lights, // complete NativePointLightsV0, not prepared execution data
+}, { width: 640, height: 480 });
+const result = await viewport.updateFrame(nextCompleteRequest);
+if (!result.ok) console.error(result.error);
+const picked = await viewport.pick(20, 30); // top-left integer backing pixel
+await viewport.resize(800, 600);
+const rgba = await viewport.readPixels(); // fresh, tightly packed top-left RGBA
+viewport.dispose();
+```
+
+The three runtime exports are `mountNativePointLightWebGPUViewport`,
+`NativePointLightWebGPUError`, and frozen `NativePointLightWebGPUDiagnosticCode`
+(with a matching type). Eight public interfaces have the `NativePointLightWebGPU`
+prefix: `Request`, `FrameOptions`, `Options`, `Viewport`, `Status`, `Limits`,
+`Resources`, `Pick`. Existing `PrimitiveSceneRef`, `UpdateResult`, `MeshCamera` and
+`NativePointLightsV0` types are reused. Private frame preparation is neither a
+barrel export nor an admitted caller token. There is no device/provider injection.
+
+Both dimensions are explicit integers 1..1024, at most 1,048,576 pixels. Frame
+options are exactly `mmToSceneUnit`, `translate`, `background`, `camera`;
+`lighting`, even `undefined`, is refused. A complete qualified-v2 frame has 1..4
+native Surface entries, distinct full `{modelId, geometryId}` references,
+`particles:null`, and 0..4 legacy material bindings on present pairs. Raw point
+catalogs contain 0..4 lights under the unchanged #1583 profile. No partial patch,
+carried-forward material, prepared program, UV/texture material or mixed light
+catalog is admitted. Native packet admission does not prove original CAD-source,
+TEN or current-display provenance; the caller and later Viewer consumer own that
+association.
+
+`canvas`, `originals`, `selected`, `status` are observations. Raw originals are
+fresh independent deeply frozen copies, retaining signed Numbers, catalog order,
+labels and disabled values, packet data, material source and omitted overrides.
+`updateFrame`/`resize` return `Promise<UpdateResult>`; selection is synchronous
+`select(ref|null):UpdateResult`, metadata-only, preserving full-pair identity
+through reorder and clearing on removal. Model IDs retain the existing 128-character
+domain. `pick` returns frozen `{generation,ref}`; identity 0 is background/null,
+1..N resolves the full pair, and an out-of-range identity is an error. Selection
+never changes pixels or generation. `dispose()` is idempotent after its first
+cleanup attempt.
+
+### World coordinates, trusted producer and ABI
+
+Actual unchanged common frame admission runs once, actual camera preparation once,
+and actual #1583 point-light program preparation once per draw, using the original
+full-pair material binding or null. No extra binder/lowerer/catalog invocation is
+inserted; current provider composition reconstructs a bound material three times
+per draw (zero for unbound draws).
+
+The common provider already emits final scene/world Float32 arrays. Without pose,
+`P = packetMm * mmToSceneUnit + translate`; with pose,
+`P = (R * S * packetMm + translationMm) * mmToSceneUnit + translate` and
+`N = normalize(R * inverse(S) * packetNormal)`. This route checks those final
+position and normal components are finite and within ±1e6, with nonzero normal
+triples, then uploads them without another transform or normalization. Stronger
+provider constraints, including display positions ±1000 and native normal checks,
+remain intact. Tiny original normal components need not survive provider f32
+conversion. Light `positionScene` and `rangeScene` are already final world scene
+units and are never scaled, rotated or translated with geometry.
+
+Producer WGSL and material64/light144 upload bytes are unchanged. Frame144 packs
+column-major view at 0, projection at 64, fallback RGB at 128/132/136 and zero
+padding; draw16 packs little-endian u32 identity at 0 and zero padding. All four
+group0 uniform bindings are present: frame144 vertex+fragment, material64 fragment,
+lights144 fragment, draw16 fragment. Vertex slots0/1 are position/normal
+`float32x3`, stride12; indices are actual u16, zero-padded to four bytes, with the
+original count. Local packing rejects nonfinite and nonzero-to-zero f32 conversion;
+ordinary rounding and signed zero remain supported.
+
+The artistic point contribution is linear color × intensity × Lambert diffuse ×
+`max(1-distance/range,0)^2`, zero outside range. The producer safely scales normals
+and deltas; max-component below 2^-126 gives zero diffuse while ambient remains.
+Coincidence therefore has no diffuse direction. Final linear radiance is clamped
+0..1 and encoded with power1/2.2/alpha1. This is not inverse-square, photometric or
+PBR lighting and does not promise device subnormal preservation.
+
+### Bounded data, device limits and logical resources
+
+Raw own-data snapshots happen synchronously before the first device await. Exact
+current-realm plain records and dense arrays only; no getters, symbols, hidden
+fields, foreign prototypes, cycles or coercion. Signed raw representation is capped
+at 2MiB in each UTF16/UTF8 count, 262144 visits, depth48; arrays24576, records64,
+strings/keys65536, and entry/material/light cardinalities are checked before their
+elements. Aggregate raw request + common frame + ordinary program results is
+capped at 8MiB per encoding, 524288 visits, depth64; binary bytes are charged below.
+Producer-specific smaller limits still apply.
+
+For N draws at W×H, `resources` has exactly eleven fields:
+- `geometryBytes`: sum of the three padded geometry uploads per draw
+- `uniformBytes`: 368N; `colorIdentityBytes`: 8WH
+- `depthTexels`: WH; `depthBudgetBytes`: 4WH
+- `chargedBytes`: geometry + 368N + 12WH
+- `readbackBytes`: ceil(4W/256) × 256 × H, separate transient storage
+- `buffers`: 7N; `textures`: 3; `bindGroups`: N; `pipelines`: N
+
+These are conservative logical charges, not physical driver memory. Candidate
+charge is at most32MiB; accepted + candidate + maximum of 256 and their padded
+readbacks is at most64MiB. These and the ±1e6 envelope are defensive bounds that
+may be unreachable under stronger existing providers; tests do not replace
+providers to fabricate reachability.
+
+Eleven actual safe-integer device limits are snapshotted: texture dimension,
+buffer size, uniform binding size, color attachment count/bytes-per-sample, vertex
+buffer/attribute count, bind group count, vertex stride, fragment uniform count,
+and group binding count. Requirements include uniform144, attachments2,
+attachment cost12, vertex buffers/attributes2, groups1, stride12, uniforms4 and
+bindings4. Every upload and max(256,full padded readback) must fit maxBufferSize;
+W/H must fit maxTextureDimension2D. Candidate/readback constraints are rechecked
+before allocation. RGBA8 + R32Uint render-target cost12 differs from storage8WH.
+
+There are exactly three shared textures: rgba8unorm, r32uint, depth24plus. Rendering
+uses triangle-list, no culling/blending, depth write/less, sample1. Clear values are
+admitted background/alpha1, identity0, depth1; equal depth keeps the first draw.
+Presentation copies accepted RGBA8 to a fixed opaque RGBA8 canvas. Readback strips
+256-byte row padding; synthetic test bytes are not lighting evidence.
+
+### Atomic acceptance, errors and lifetime
+
+Status is `{backend:'webgpu',profile:'qualified-surface-authored-point-webgpu-v0',
+state,generation,width,height,limits,resources}` with ready/lost/failed/disposed.
+Generation starts at1 only after successful presentation. Candidate rendering,
+WGSL diagnostics, pipeline creation, error scopes, upload, submission and queue
+completion precede presentation and atomic acceptance. Old resources are released
+only afterward. Recoverable refusal retains accepted originals, selection,
+dimensions and generation. A presentation failure restores prior dimensions and
+re-presents the accepted image; recovery or cleanup failure is terminal rather
+than claiming retained pixels.
+
+One asynchronous operation runs at a time; BUSY refusal cannot release another
+operation's lock. Selection is also BUSY during pending work. Backing mutations
+and epochs are checked around awaits, including after completed readback returns.
+Waits are bounded to10s. Dispose and resolved or rejected device-loss notification
+invalidate pending work, late devices are destroyed, late mapped buffers unmapped,
+and no late result can commit. Every owned release is attempted despite errors,
+with primary and cleanup causes retained. Lost/failed state requires an explicit
+remount; automatic recovery/fallback is absent. A failed mount restores dimensions
+it touched and releases its claim/resources.
+
+Diagnostic codes are INPUT, PROFILE, FRAME, PROGRAM, REPRESENTATION, BUDGET,
+UNSUPPORTED, INIT, DEVICE_LOST, RENDER, STATE, BUSY. Own-shape failures are INPUT;
+wrong profile/kind/legacy lighting PROFILE; actual common/camera errors FRAME;
+actual program errors PROGRAM; local f32/envelope REPRESENTATION; bounds BUDGET.
+Messages are capped at1024 characters. Exact causes, including undefined and
+provider code/spans, survive; combined failures use owned AggregateError causes.
+
+Focused software check: build the GPU package, then run
+`node --test --test-concurrency=1 packages/barocss-gpu/tests/native-point-light-webgpu-viewport.test.mjs`
+with the repository-pinned Node22 toolchain. Full old suites, native recompilation,
+cold-file and genuine browser/device campaigns are outside this bounded stage.

@@ -259,3 +259,11 @@ export { prepareNativePointLights, NativePointLightsError, NativePointLightsDiag
 export type { NativePointLightV0, NativePointLightsV0, NativePointLightExecution, PreparedNativePointLights } from './native-point-lights.js';
 export { prepareNativePointLightProgramWGSL, NativePointLightProgramWGSLError } from './native-point-light-program-wgsl.js';
 export type { NativePointLightProgramWGSLCode, NativePointLightProgramWGSLRequest, NativePointLightProgramWGSLSlot, NativePointLightProgramWGSLExecution, NativePointLightProgramWGSLABI, NativePointLightProgramWGSLProgram, NativePointLightProgramWGSLUniforms, PreparedNativePointLightProgramWGSL } from './native-point-light-program-wgsl.js';
+
+// Explicit required-WebGPU runtime for world-scene native point lights (#1584).
+export { mountNativePointLightWebGPUViewport } from './native-point-light-webgpu-viewport.js';
+export { NativePointLightWebGPUError, NativePointLightWebGPUDiagnosticCode } from './native-point-light-webgpu-frame.js';
+export type { NativePointLightWebGPURequest, NativePointLightWebGPUOptions,
+  NativePointLightWebGPUViewport, NativePointLightWebGPUStatus, NativePointLightWebGPULimits,
+  NativePointLightWebGPUResources, NativePointLightWebGPUPick,
+  NativePointLightWebGPUFrameOptions } from './native-point-light-webgpu-frame.js';
