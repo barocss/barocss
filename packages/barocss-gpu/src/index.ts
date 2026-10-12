@@ -240,3 +240,6 @@ export type { NativeSurfaceUV01FrameRequest, NativeSurfaceUV01FrameEntry, Native
 // Explicit required-WebGPU viewport for source-derived native Surface UV01 requests.
 export { mountNativeSurfaceUV01WebGPUViewport, NativeSurfaceUV01WebGPUError, NativeSurfaceUV01WebGPUDiagnosticCode } from './native-surface-uv01-webgpu-viewport.js';
 export type { NativeSurfaceUV01WebGPUViewport, NativeSurfaceUV01WebGPUOptions, NativeSurfaceUV01WebGPUStatus, NativeSurfaceUV01WebGPULimits, NativeSurfaceUV01WebGPUPick } from './native-surface-uv01-webgpu-viewport.js';
+
+export { prepareNativeDirectionalLightProgramWGSL, NativeDirectionalLightProgramWGSLError } from './native-directional-light-program-wgsl.js';
+export type { NativeDirectionalLightProgramWGSLCode, NativeDirectionalLightProgramWGSLRequest, NativeDirectionalLightProgramWGSLSlot, NativeDirectionalLightProgramWGSLExecution, NativeDirectionalLightProgramWGSLABI, NativeDirectionalLightProgramWGSLProgram, NativeDirectionalLightProgramWGSLUniforms, PreparedNativeDirectionalLightProgramWGSL } from './native-directional-light-program-wgsl.js';

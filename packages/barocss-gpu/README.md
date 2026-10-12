@@ -4163,3 +4163,71 @@ genuine cloud-browser acceptance is the next dependency, followed by named-consu
 original-source/TEN/current-display integration. This software implementation does
 not establish #1512 milestone-4 completion, default readiness, consumer acceptance,
 publication or release; the original Mac graphics denial is not bypassed.
+
+### Authored directional light WGSL preparation (#1578)
+
+`prepareNativeDirectionalLightProgramWGSL({ lights, material })` accepts the complete
+original `NativeDirectionalLightsV0` catalog and a legacy `MeshMaterialBinding` or
+`null`. It returns trusted complete WGSL (`vertexMain` / `fragmentMain`), explicit
+ABI metadata, derived f32 execution, and fresh 64-byte material / 144-byte light
+`Uint8Array` upload artifacts. `originals` preserves the complete signed catalog,
+raw material source/IR, and exactly the supplied overrides, including omitted
+defaults and `-0`; it is independent of normalized provider output. Ordinary
+observations are recursively frozen and independently owned. Upload bytes remain
+caller-mutable, cannot change observations or subsequent calls, and are never
+accepted as reusable trusted inputs.
+
+The original catalog provider runs once. Nonnull material uses one owned raw
+snapshot, one unchanged binder and one unchanged WGSL lowerer (two source
+reconstructions). Every resolved uniform must have its own finite in-range value.
+`NativeDirectionalLightProgramWGSLError.code` is `INPUT`, `LIGHTS`, `MATERIAL`,
+`REPRESENTATION` or `BUDGET`; actual reflection/provider failures retain their exact
+cause, including thrown `undefined`. Local refusals do not fabricate causes.
+Finite ordinary f32 rounding is supported; overflow or nonzero-to-zero loss is
+refused. Original subnormal directions can normalize to safe executable values.
+
+ABI: world position/normal occupy vertex slots and locations 0/1, stride12,
+`float32x3`. Group0 bindings are frame0=144 bytes (vertex+fragment), material1=64,
+lights2=144 and draw3=16 (fragment). Frame fields are column-major view at0,
+projection at64, color at128. Null material consumes `pow(color.xyz,2.2)`; color.w
+is unused. Clip z maps once from the existing camera convention to WebGPU.
+Draw identity is u32 at0 with zero padding at4/8/12. The future host supplies
+nonzero identity and a complete identity-to-(modelId,geometryId) mapping;
+background is0. Frame/draw bytes are not produced or validated here.
+
+Material uses the unchanged four-vec4 lowerer layout, offsets4*i. Light ambient
+is f32 at0, zero padding at4/8/12; four fixed32-byte slots start at16. Each slot
+has direction.xyz/intensity at16+32*i and linear color.xyz/zero padding at32+32*i.
+All floats are explicitly little endian. Disabled lights retain authored slots
+with effective +0 intensity. Unused slots/padding are zero. Removal compacts and
+reorder remaps slots; sourceId+nodeId remains authored identity, never slot index.
+The module unrolls up to four contributions, normalizes world normal once,
+accumulates ambient and Lambert terms, clamps baseLinear*light after accumulation,
+and encodes power1/2.2 with alpha1. This preserves linear-sRGB/power2.2 compatibility
+arithmetic, without a physical/PBR/HDR/exact-standard-sRGB claim.
+
+Downstream pipeline contract: triangle-list, cull none, no blending, one sample,
+color targets `rgba8unorm` and `r32uint`, depth `depth24plus`, write enabled,
+compare `less`. No device or pipeline is created. This API does not widen #1553
+or #1574 admission, accept caller WGSL, create UV/texture unions, or certify a
+frame, pixels, picking, loss/disposal, original-source/TEN/current-display join,
+or Viewer/Render editing/Save/Open. Those need explicit downstream work.
+
+Bounds: unchanged provider envelopes, raw material snapshot depth24/8192 values,
+256 array elements/16 record entries; WGSL <=64KiB UTF16 and UTF8; streamed signed
+ordinary result <=2MiB UTF16 and UTF8, depth48/32768 values, plus exactly208 binary
+bytes. Defensive output caps are not claimed to have been forced with mocks.
+
+After `pnpm --filter @barocss/gpu build:library`, run Node22:
+`node examples/gpu-scene/native-directional-light-program-wgsl-flow.mjs --output /absolute/fresh/directory`.
+The one CPU qualifier exercises ordinary source and emitted public entries,
+independent literal module/LE-byte expectations, declaration consumer and exact
+two runtime/eight type-only additions, edits/refusals/ownership, signed original
+file saves and cold reconstruction. Numerical CPU references are not rendered
+pixels; actual shader compilation, upload and GPU/runtime checks remain unrun.
+Actual legacy source admission rejects f32-overflow coefficients first (literal
+and generated coefficients are bounded by1000, intermediate ranges by1e6).
+Therefore lowerer overflow is unreachable under this unchanged profile; the
+qualifier records that upstream refusal, not a fabricated lowerer-overflow pass.
+Genuine lowerer coefficient/default/bound underflow is tested independently of
+local upload underflow.
