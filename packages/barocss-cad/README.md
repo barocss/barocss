@@ -9850,3 +9850,70 @@ ownership/admission controls, writes original documents and native source/full
 results, and cold-reconstructs them through a fresh process. It proves this
 native profile, not editor adoption, general CAD, a broad quality campaign or
 publication readiness.
+
+### Composed orthogonal solid Booleans (#1586)
+
+`buildOrthogonalSolidBoolean(left, right, options)` continues a complete two-box
+Boolean result with one more source-qualified box. Use
+`{kind:'axis-box', result}` for the original `buildAxisBoxSolidBoolean` result,
+then `{kind:'orthogonal', result}` for this API's result. `right` is the complete
+`AxisBoxSolidBooleanAsset`, including its original Source0 and six-face shell.
+A body's bounds are not an operand. The original two-box API is unchanged.
+
+Options require `operation: 'union' | 'intersection' | 'difference'`, a fresh
+`evaluationId`, a fresh ASCII `resultIdPrefix` of at most eight characters,
+`maximumCells:343`, `maximumPanels:384`, and
+`maximumNativeObservations:5760`. At most three operations total (including the
+original operation) and four original boxes are admitted. All original source
+qualifications and generated contexts remain distinct; local original Face and
+Surface IDs may repeat between source-qualified boxes.
+
+The engine refines the exact integer coordinate-plane grid, recomputes the
+ordered material expression, cancels internal tiles, and checks every boundary
+edge's opposite uses and every vertex's connected oriented link. It retains
+material components and outer/cavity shells, including a material island in a
+bounded empty region. Signed shell volume must equal occupied-cell volume.
+Every tile retains native Model5 Source0/Face data, immediate-parent panel UV
+references and original source/shell/global Face/local Face/Surface rational UV
+lineage. Coincident provenance and reversals remain explicit; erased provenance
+is not resurrected. Output fields are independently owned, including all
+retained parent occurrences. Empty results are valid but `solid:false`.
+
+A native-free full-chain planner runs before reconstruction. Each public call
+rebuilds the original result once and each composed stage once, comparing every
+retained parent in full. `report.nativeWork` counts all these stages, not only
+the last stage. The 5,760 observation ceiling applies cumulatively to the call:
+each reconstructed panel adds 15 records and 30 explicit D0/D1 evaluations.
+The original and right-box compiler/solid-validation calls are also reported;
+opaque work inside those unchanged providers is excluded explicitly. No hidden
+validator recursion or native retry is performed. `validateOrthogonalSolidBoolean`
+performs the same full native reconstruction and rejects altered results.
+
+Other limits: eight planes per axis, 343 cells, 2,058 candidate tiles, 384
+admitted panels, 512 vertices and 768 edges. Each complete snapshot is bounded
+by 4,194,304 value occurrences, depth 64 and a deterministic 32 MiB retained-data
+charge (not a V8 heap measurement). Charge each occurrence: null/boolean 1,
+number 8, string 2 × UTF-16 length, container 16, plus record key 2 × UTF-16
+length. Aliases are charged and copied separately. Getters, hidden/symbol
+fields, cycles, nonfinite numbers and non-plain or sparse data are refused.
+Unsupported/nonmanifold geometry, identity collisions and budget failures
+return no partial result and do not mutate the input or prior results.
+
+This remains the exact integer orthogonal family. It is not curved-surface
+Boolean, general B-Rep sewing/healing, a manufacturing-tolerance certificate,
+a browser/render test or commercial CAD parity. Native individual panel Face
+certification keeps its original `solid:false` semantics.
+
+The bounded native demo uses a genuine stock → pocket → boss → slot chain with
+analytical volumes 136 → 144 → 138 mm³ and areas 184 → 200 → 210 mm². Run its
+cheap controls first; source mode requires that planning receipt. Emitted and
+cold modes reuse the complete source-generated result. Use Node 22 and a 2 GiB
+heap; reserve one heavy execution slot and at least 500 MiB free disk.
+
+```sh
+node examples/cad-nurbs/orthogonal-solid-boolean-demo.mjs --planner /tmp/orthogonal-solid
+node examples/cad-nurbs/orthogonal-solid-boolean-demo.mjs --source /tmp/orthogonal-solid
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/orthogonal-solid-boolean-demo.mjs --emitted /tmp/orthogonal-solid
+node examples/cad-nurbs/orthogonal-solid-boolean-demo.mjs --cold /tmp/orthogonal-solid
+```

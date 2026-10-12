@@ -509,3 +509,7 @@ export type {
 // Separately versioned exact affine XY constraints; legacy linear sketches are unchanged.
 export { solveXYAffineSketch, buildXYAffineSketch, validateXYAffineSketch, XYAffineSketchError, XYAffineSketchDiagnosticCode } from './xy-affine-sketch.js';
 export type { XYAffineSketchPoint, XYAffineSketchSegment, XYAffineSketchReferenceLine, XYAffineSketchConstraint, XYAffineSketchDocumentV0, XYAffineSketchCoordinate, XYAffineSketchDiagnostic, XYAffineSketchReport, XYAffineSketchSuccess, XYAffineSketchResult } from './xy-affine-sketch.js';
+
+// Bounded chained exact orthogonal solids; complete source-qualified result operands.
+export { buildOrthogonalSolidBoolean, validateOrthogonalSolidBoolean, OrthogonalSolidBooleanError, OrthogonalSolidBooleanDiagnosticCode } from './orthogonal-solid-boolean.js';
+export type { OrthogonalSolidBooleanOperand, OrthogonalSolidBooleanOptions, OrthogonalSolidBooleanResult, OrthogonalSolidBooleanReport } from './orthogonal-solid-boolean.js';
