@@ -119,3 +119,6 @@ export type { CadEditorDrivingSketchEditorProps, CadEditorDrivingSketchDisplayOp
 
 export { CadEditorSolidSplit } from './solid-split-editor.js';
 export type { CadEditorSolidSplitProps } from './solid-split-editor.js';
+
+export { CadEditorPrismFeature } from './prism-feature-editor.js';
+export type { CadEditorPrismFeatureProps } from './prism-feature-editor.js';

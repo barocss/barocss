@@ -1,0 +1,138 @@
+import type { CadEditorPrismFeatureSnapshot, PrismFeatureCommand, PrismFeatureReply } from './prism-feature-types.js';
+
+type State = CadEditorPrismFeatureSnapshot;
+type Values = { parameterId: string; valueMM: number }[];
+const FILE_LIMIT = 262144, HISTORY_BYTES = 8 * 1024 * 1024;
+const clone = <T>(value: T): T => structuredClone(value);
+function scalar(raw: string): number {
+  if (raw.length > 128 || !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(raw.trim()))
+    throw new Error('Enter a finite decimal millimetre value.');
+  const value = Number(raw);
+  if (!Number.isFinite(value) || Math.abs(value) > 10000) throw new Error('Use millimetres between -10000 and 10000.');
+  return value;
+}
+
+/** Native ASCII IDs may be ordinary Object prototype names. Read only owned drafts. */
+export function prismFeatureFieldText(drafts: Record<string, string>, parameter: { id: string; valueMM: number }): string {
+  return Object.hasOwn(drafts, parameter.id) ? drafts[parameter.id]
+    : Object.is(parameter.valueMM, -0) ? '-0' : String(parameter.valueMM);
+}
+
+/** Responsive authored-intent controller. Native work always runs in its own Worker. */
+export function createCadEditorPrismFeatureController() {
+  let state: State = { accepted: null, authoredText: null, drafts: {}, selection: null,
+    busy: false, disposed: false, error: null, history: { index: -1, count: 0, canUndo: false, canRedo: false } };
+  let worker: Worker | null = null, workerReady = false, sequence = 0, epoch = 0;
+  let history: { values: Values; bytes: number }[] = [], index = -1;
+  let pending: { id: number; resolve: (reply: Extract<PrismFeatureReply, { ok: true }>) => void;
+    reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> } | null = null;
+  const listeners = new Set<() => void>();
+  const emit = () => { for (const listener of listeners) { try { listener(); } catch { /* UI subscriber isolation. */ } } };
+  const live = () => { if (state.disposed) throw new Error('The prism inspector is disposed.'); };
+  const idle = () => { live(); if (state.busy) throw new Error('A native operation is in progress.'); };
+  const historyState = () => ({ index, count: history.length, canUndo: index > 0, canRedo: index >= 0 && index < history.length - 1 });
+  const stopWorker = (message: string) => {
+    worker?.terminate(); worker = null; workerReady = false;
+    if (pending) { const request = pending; pending = null; clearTimeout(request.timer); request.reject(new Error(message)); }
+  };
+  const ensureWorker = () => {
+    if (worker) return worker;
+    const instance = new Worker(new URL('./prism-feature-worker.ts', import.meta.url), { type: 'module' });
+    worker = instance;
+    instance.addEventListener('message', event => {
+      if (worker !== instance || !pending) return;
+      const reply = (event as MessageEvent<PrismFeatureReply>).data;
+      if (!reply || reply.id !== pending.id) return; // Late/duplicate/different-instance replies are inert.
+      const request = pending; pending = null; clearTimeout(request.timer);
+      if (reply.ok === false && typeof reply.message === 'string') { request.reject(new Error(reply.message.slice(0, 2048))); return; }
+      if (reply.ok !== true || typeof reply.text !== 'string' || reply.text.length > FILE_LIMIT
+        || !reply.summary || reply.summary.document?.format !== 'barocss-xy-affine-prism-feature-document'
+        || reply.summary.document.version !== 0 || reply.summary.document.nodes?.length !== 5
+        || !Array.isArray(reply.summary.document.parameters) || reply.summary.document.parameters.length > 16) {
+        stopWorker('Invalid native worker reply.'); request.reject(new Error('Invalid native worker reply.')); return;
+      }
+      request.resolve(reply);
+    });
+    const failed = () => { if (worker === instance) stopWorker('Native worker failed. Accepted intent is retained; retry to rebuild it.'); };
+    instance.addEventListener('error', failed); instance.addEventListener('messageerror', failed);
+    return instance;
+  };
+  const request = (payload: Omit<Extract<PrismFeatureCommand, { kind: 'open' }>, 'id'>
+    | Omit<Extract<PrismFeatureCommand, { kind: 'apply' }>, 'id'>) => new Promise<Extract<PrismFeatureReply, { ok: true }>>((resolve, reject) => {
+    const instance = ensureWorker(), id = ++sequence;
+    pending = { id, resolve, reject, timer: setTimeout(() => stopWorker('Native operation timed out. Accepted intent is retained.'), 120000) };
+    try { instance.postMessage({ ...payload, id }); }
+    catch { stopWorker('Could not send authored intent to the native worker.'); }
+  });
+  async function run(kind: 'open' | 'apply' | 'undo' | 'redo', text?: string) {
+    idle();
+    let values: Values = [], target = index;
+    if (kind === 'open') {
+      if (typeof text !== 'string' || text.length > FILE_LIMIT || new TextEncoder().encode(text).length > FILE_LIMIT)
+        throw new Error('Authored input exceeds 262144 UTF-8 bytes or characters.');
+    } else {
+      if (!state.accepted) throw new Error('Open an authored document first.');
+      if (kind === 'apply') values = Object.entries(state.drafts).map(([parameterId, raw]) => ({ parameterId, valueMM: scalar(raw) }));
+      else {
+        if (Object.keys(state.drafts).length) throw new Error('Apply or discard dimension drafts before Undo/Redo.');
+        target += kind === 'undo' ? -1 : 1;
+        if (target < 0 || target >= history.length) throw new Error('This history direction is unavailable.');
+        values = history[target].values;
+      }
+      values = values.filter(edit => !Object.is(state.accepted!.document.parameters.find(p => p.id === edit.parameterId)?.valueMM, edit.valueMM));
+      if (!values.length) { state = { ...state, drafts: {}, error: null }; emit(); return; }
+    }
+    const operation = ++epoch;
+    state = { ...state, busy: true, error: null }; emit();
+    try {
+      if (kind !== 'open' && !workerReady) {
+        await request({ kind: 'open', text: state.authoredText! });
+        if (operation !== epoch) return;
+        workerReady = true;
+      }
+      const reply = await request(kind === 'open' ? { kind: 'open', text: text! }
+        : { kind: 'apply', expectedRevision: state.accepted!.document.revision, edits: values });
+      if (operation !== epoch || state.disposed) return;
+      if (kind !== 'open' && (reply.summary.document.id !== state.accepted!.document.id
+        || reply.summary.document.revision !== state.accepted!.document.revision + 1)) {
+        stopWorker('Stale native result.'); throw new Error('Native result does not match the current document revision.');
+      }
+      workerReady = true;
+      if (kind === 'open' || kind === 'apply') {
+        if (kind === 'open') { history = []; index = -1; }
+        history = history.slice(0, index + 1);
+        history.push({ values: reply.summary.document.parameters.map(p => ({ parameterId: p.id, valueMM: p.valueMM })),
+          bytes: new TextEncoder().encode(reply.text).length });
+        while (history.length > 20 || history.reduce((n, item) => n + item.bytes, 0) > HISTORY_BYTES) history.shift();
+        index = history.length - 1;
+      } else index = target;
+      const nodeId = kind !== 'open' && state.selection && reply.summary.document.nodes.some(n => n.id === state.selection!.nodeId)
+        ? state.selection.nodeId : reply.summary.document.nodes[4].id;
+      state = { ...state, accepted: clone(reply.summary), authoredText: reply.text, drafts: {}, busy: false, error: null,
+        selection: { documentId: reply.summary.document.id, revision: reply.summary.document.revision, nodeId }, history: historyState() };
+    } catch (cause) {
+      if (operation !== epoch || state.disposed) return;
+      state = { ...state, busy: false, error: cause instanceof Error ? cause.message : 'Native operation refused.' };
+    }
+    emit();
+  }
+  return {
+    getSnapshot: (): State => clone(state),
+    subscribe(listener: () => void) { live(); listeners.add(listener); return () => { listeners.delete(listener); }; },
+    open: (text: string) => run('open', text), apply: () => run('apply'), undo: () => run('undo'), redo: () => run('redo'),
+    stage(parameterId: string, raw: string) {
+      idle(); if (!state.accepted?.document.parameters.some(p => p.id === parameterId) || typeof raw !== 'string' || raw.length > 128)
+        throw new Error('Choose an existing parameter and bounded decimal input.');
+      state = { ...state, drafts: { ...state.drafts, [parameterId]: raw }, error: null }; emit();
+    },
+    discard() { idle(); state = { ...state, drafts: {}, error: null }; emit(); },
+    select(nodeId: string, revision: number) {
+      idle(); const document = state.accepted?.document;
+      if (!document || revision !== document.revision || !document.nodes.some(n => n.id === nodeId)) throw new Error('Feature selection is stale.');
+      state = { ...state, selection: { documentId: document.id, revision, nodeId } }; emit();
+    },
+    cancel() { live(); ++epoch; stopWorker('Cancelled.'); state = { ...state, busy: false, error: null }; emit(); },
+    dispose() { if (state.disposed) return; ++epoch; stopWorker('Disposed.'); state = { ...state, busy: false, disposed: true }; emit(); listeners.clear(); },
+  };
+}
+export type CadEditorPrismFeatureController = ReturnType<typeof createCadEditorPrismFeatureController>;

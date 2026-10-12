@@ -1,3 +1,4 @@
+import { PrismFeatureApp } from './prism-feature-app';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Box, ChevronRight, Copy, Crosshair, Download, Expand, FolderOpen, Layers3, Maximize, MousePointer2, PanelLeftClose, PanelRightClose, Redo2, Shrink, Spline, Undo2 } from 'lucide-react';
 import { parseCadDocument, resolveCadGeometryReference } from '@barocss/cad';
@@ -445,6 +446,7 @@ function DirectApp() {
           <MenubarItem disabled={modelBusy} onSelect={() => { if (!commandBlocked() && !duplicateCaptured()) location.hash = '/assemblies/assembly_editor_fixture'; }}>New assembly</MenubarItem>
           <MenubarItem disabled={modelBusy} onSelect={() => { if (!commandBlocked() && !duplicateCaptured()) location.hash = '/sketches/driving_lines_document'; }}>New driving Sketch</MenubarItem>
           <MenubarItem disabled={modelBusy} onSelect={() => { if (!commandBlocked() && !duplicateCaptured()) location.hash = '/solids/split'; }}>Solid Split</MenubarItem>
+          <MenubarItem disabled={modelBusy} onSelect={() => { if (!commandBlocked() && !duplicateCaptured()) location.hash = '/features/affine-prism'; }}>Prism dimensions</MenubarItem>
           <MenubarSeparator/><MenubarItem onSelect={showRecovery} disabled={modelBusy}>Recovery copies…</MenubarItem>
           <MenubarItem disabled={layout.resizing} onSelect={() => run(downloadCurrent)}>Download accepted document</MenubarItem>
           <MenubarSeparator/><MenubarItem disabled={layout.resizing} onSelect={() => { location.hash = '/projects'; }}>Projects</MenubarItem>
@@ -550,20 +552,20 @@ function DirectApp() {
 }
 
 export function App() {
-  const routeMode = () => location.hash === '#/solids/split' ? 'split' : location.hash.startsWith('#/sketches/') ? 'driving' : location.hash.startsWith('#/assemblies/') ? 'assembly' : location.hash.startsWith('#/lofts/') ? 'loft' : location.hash.startsWith('#/features/') ? 'feature' : 'direct';
+  const routeMode = () => location.hash === '#/features/affine-prism' ? 'prism' : location.hash === '#/solids/split' ? 'split' : location.hash.startsWith('#/sketches/') ? 'driving' : location.hash.startsWith('#/assemblies/') ? 'assembly' : location.hash.startsWith('#/lofts/') ? 'loft' : location.hash.startsWith('#/features/') ? 'feature' : 'direct';
   const [mode, setMode] = useState(routeMode);
-  const [visited, setVisited] = useState(() => ({direct:routeMode()==='direct',feature:routeMode()==='feature',loft:routeMode()==='loft',assembly:routeMode()==='assembly',driving:routeMode()==='driving',split:routeMode()==='split'}));
+  const [visited, setVisited] = useState(() => ({prism:routeMode()==='prism',direct:routeMode()==='direct',feature:routeMode()==='feature',loft:routeMode()==='loft',assembly:routeMode()==='assembly',driving:routeMode()==='driving',split:routeMode()==='split'}));
   useEffect(() => {
     const update = () => {
       const next = routeMode();
       setMode(next);
-      setVisited(prior => ({direct:prior.direct || next==='direct',feature:prior.feature || next==='feature',loft:prior.loft || next==='loft',assembly:prior.assembly || next==='assembly',driving:prior.driving || next==='driving',split:prior.split || next==='split'}));
+      setVisited(prior => ({prism:prior.prism || next==='prism',direct:prior.direct || next==='direct',feature:prior.feature || next==='feature',loft:prior.loft || next==='loft',assembly:prior.assembly || next==='assembly',driving:prior.driving || next==='driving',split:prior.split || next==='split'}));
     };
     window.addEventListener('hashchange', update);
     return () => window.removeEventListener('hashchange', update);
   }, []);
   // Mode navigation keeps each host-owned native session and its pending fields.
-  return <>{visited.direct && <div className="cad-mode" hidden={mode!=='direct'}><DirectApp /></div>}
+  return <>{visited.prism && <div className="cad-mode" hidden={mode!=='prism'}><PrismFeatureApp /></div>}{visited.direct && <div className="cad-mode" hidden={mode!=='direct'}><DirectApp /></div>}
     {visited.feature && <div className="cad-mode" hidden={mode!=='feature'}><FeatureApp /></div>}
     {visited.loft && <div className="cad-mode" hidden={mode!=='loft'}><LoftApp /></div>}
     {visited.assembly && <div className="cad-mode" hidden={mode!=='assembly'}><AssemblyApp /></div>}

@@ -1104,3 +1104,32 @@ worker/session/codec/provider contracts are unchanged, so their existing
 Actual browser drag/capture, responsiveness, GPU pixels, physical file flow,
 full CI and release qualification remain unrun here and are not inferred from
 CPU component events.
+
+### Authored affine-prism dimensions (experimental #1601)
+
+`CadEditorPrismFeature` (`@barocss/cad-editor/react`) and
+`createCadEditorPrismFeatureController` consume the public v0 authored five-node
+sketch/prism/subtraction engine in a dedicated Worker. The existing app exposes
+`#/features/affine-prism` from File → Prism dimensions. Select an actual feature,
+edit named literal-mm dimensions, Apply, Undo/Redo, or cancel a computation.
+Accepted source/results remain intact after native refusal; cancellation destroys
+only in-flight worker state and the next operation reconstructs accepted intent.
+Late responses cannot replace newer state. History is bounded to 20 states and
+8 MiB (charged as canonical authored bytes). Parameter restores advance the native
+revision and requalify original wall references; drafts are never saved.
+
+The source panel exposes canonical authored-only JSON and opens pasted v0 source
+through the native codec. Explicit replacement consent discards history/drafts.
+This is a text codec workflow, not native OS file Save/Open or persistent recovery.
+Native exact volumes and fixed component identities are displayed; empty roles
+remain explicit. Whole convex Solid 3D preview is unavailable: it requires a
+source-qualified convex-loop tessellation and whole-component display adapter.
+Existing rectangular forward-Face support-grid rendering cannot represent these
+trimmed/reversed polygon Faces. No manufacturing, whole-editor, GPU pixel or
+commercial-parity acceptance follows from the inspector.
+
+Scoped checks (Node 22, normal repository dependencies):
+`node scripts/prism-feature-controller-test.mjs` uses mocked worker transport;
+`node scripts/prism-feature-smoke.mjs` executes the real native engine and codec,
+with at most ten cold-equivalent phases. `EVIDENCE_DIR` selects an external evidence
+directory; `REPO_DEPS_ROOT` may select an existing dependency store checkout.

@@ -50,3 +50,7 @@ export type { CadEditorSurfaceReversalCreation } from './types.js';
 export type { CadEditorRuledSurfaceCreation } from './types.js';
 
 export type { CadEditorTranslationalSweepCreation } from './types.js';
+
+export { createCadEditorPrismFeatureController } from './prism-feature-controller.js';
+export type { CadEditorPrismFeatureController } from './prism-feature-controller.js';
+export type { CadEditorPrismFeatureSummary, CadEditorPrismFeatureSnapshot } from './prism-feature-types.js';
