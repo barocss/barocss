@@ -4,6 +4,8 @@
 
 [Sketch, cut and chamfer](./exact-prism-modeling) — Build an exact convex prism, widen a through-slab cut, reopen authored v0 intent and chamfer one original edge. Uses its own adopted public-source profile and complete runnable inputs.
 
+[Cut, chamfer and reopen a serial part v2](./serial-part-v2): complete authored JSON, short API, actual second-component selection, exact measured edits and fresh-process reconstruction.
+
 [Adaptive Curve display](./adaptive-curve-sampling) — Use a complete weighted degree-five Curve request to change display tolerance while keeping the native coefficients and full source intact.
 
 ## Construct an XY profile

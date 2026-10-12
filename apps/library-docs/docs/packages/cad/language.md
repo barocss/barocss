@@ -6,7 +6,7 @@ The CAD language describes native rational B-spline geometry and bounded constru
 
 ## What can the model language express today?
 
-This is the canonical authoring-interface coverage table. Source dialect versions, native Model versions and JSON document versions are separate contracts, even when their numbers match. The [native capability map](./capabilities) gives each Solid operation's exact input limits and evidence.
+This is the canonical authoring-interface coverage table. The Source0–3 grammar/execution coverage remains pinned to `0c9aa7e159d3713a70a4b67631715e027da28fef`; the separately versioned JSON/API rows include the newer adopted v2 serial-part profile. Source dialect versions, native Model versions and JSON document versions are separate contracts, even when their numbers match. The [native capability map](./capabilities) gives each Solid operation's exact input limits and evidence.
 
 | Task | CAD text | Other current authoring or consumption path |
 | --- | --- | --- |
@@ -17,12 +17,15 @@ This is the canonical authoring-interface coverage table. Source dialect version
 | Reusable numeric calculations | Source3 `@function`, named arguments | Pure length/scalar returns only; no geometry returns, loops or branches |
 | Constrained XY sketch → qualified convex prism | No Sketch, constraint or Solid declaration | `buildXYAffineSketch` → `buildXYAffineSketchPrism`; bounded JSON feature-document recipes |
 | Plane split and convex intersection | No text declaration | Qualified native Solid APIs; complete context and exact admitted inputs required |
-| Through-slab subtraction | No text declaration | Native API or authored feature-document v0/v1 subtraction recipe |
+| Through-slab subtraction | No text declaration | Native API or authored feature-document v0/v1/v2 subtraction recipe |
 | One original-edge chamfer | No text declaration | Native API; optional v1 feature-document chamfer on the original prism, sibling to subtraction |
+| Serial cut-component chamfer | No text declaration | [Authored v2 part](./serial-part-v2): explicit coordinate-span prisms, actual second subtraction component, mandatory chamfer; no automatic migration |
 | Solid mass properties | No text declaration | Derived numerical query on a qualified Solid, not an authoring feature |
 | Trimmed Solid display mesh | No text declaration | Derived display output with lineage, not replacement native geometry |
 
 See [the complete API/JSON workflow](./exact-prism-modeling) for sketch → prism → slab cut → parameter edit → serialize/reopen. That executed recipe keeps its own tested source pin. Its separate chamfer is on the **uncut** prism, not on a generated cut-part edge.
+
+For the newer actual cut-part → chamfer chain, use [the complete serial-part v2 JSON and concise API guide](./serial-part-v2). Its engine version does not add a Source4 grammar or a textual Solid declaration.
 
 There is no supported automatic conversion from those Solid feature recipes into this text language. A future feature-IR bridge or new language syntax needs its own versioned contract and implementation; this manual does not present proposed syntax as executable.
 
