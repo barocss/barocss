@@ -21,6 +21,10 @@ The [Body and topology guide](./body-1301) explains `buildQualifiedTranslatedStr
 
 All operations below are root exports from `@barocss/cad`. The root entry selects TypeScript source in this workspace. The publication map selects emitted `dist/index.js` and declarations for the separate build checkpoint. A declaration in an internal module is not a public API unless the root re-exports it.
 
+## Current Source3 compiler option
+
+The compiler at adopted source `0c9aa7e159d3713a70a4b67631715e027da28fef` accepts `{sourceVersion:0 | 1 | 2 | 3}`. See [complete checked source workflows](./language-workflows) and [the language coverage table](./language#what-can-the-model-language-express-today). Source3 adds typed numeric functions, not Solid feature declarations. The historical core-signature block below retains its original `5f5ad866` Source0/1/2 profile.
+
 ## Core signatures
 
 ```ts

@@ -1,0 +1,21 @@
+{
+  "scope": "isolated VitePress Markdown render and local target/anchor/blob checks; not full VitePress build or browser",
+  "pages": 5,
+  "renderedTargets": 9,
+  "links": 73,
+  "anchors": 14,
+  "includes": 4,
+  "downloads": 5,
+  "sourceLinks": 26,
+  "dynamicAnchorsNotChecked": [
+    "/playground#cad-surface",
+    "/examples/language#cad-quantity-functions",
+    "/playground#cad-curve",
+    "/playground#cad-surface",
+    "/playground#cad-extrude",
+    "/playground#cad-parameters",
+    "/examples/language#cad-quantity-functions",
+    "/playground#cad-extrude",
+    "/playground#cad-parameters"
+  ]
+}

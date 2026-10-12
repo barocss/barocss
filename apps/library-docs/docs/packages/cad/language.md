@@ -1,10 +1,34 @@
 # CAD model language
 
-The CAD language describes native rational B-spline geometry and bounded construction intent. It is data for `compileCadModel`, not browser CSS. Use the selected source dialect explicitly. All dialects produce native `Model` version 0 in millimetres.
+The CAD language describes native rational B-spline geometry and bounded construction intent. It is data for `compileCadModel`, not browser CSS. Use the selected source dialect explicitly. All dialects produce native `Model` version 0 in millimetres. **The text language does not yet express every implemented CAD operation.** Sketch constraints, qualified Solids, Solid Boolean operations and chamfer belong to separate APIs or bounded authored JSON documents; adding an engine operation does not automatically add grammar.
 
 [Compile and evaluate examples](./examples#run-the-complete-cpu-examples) · [Open the CAD playground](/playground#cad-surface) · [Compiler API](./api#core-signatures)
 
+## What can the model language express today?
+
+This is the canonical authoring-interface coverage table. Source dialect versions, native Model versions and JSON document versions are separate contracts, even when their numbers match. The [native capability map](./capabilities) gives each Solid operation's exact input limits and evidence.
+
+| Task | CAD text | Other current authoring or consumption path |
+| --- | --- | --- |
+| Rational B-spline Curve | Source0/1/2/3 `@curve` | Native Curve APIs |
+| NURBS Surface (literal in Source0; expressions in Source2/3) | Source0/2/3 `@surface`; **not Source1** | Native Surface APIs |
+| Translate a Curve into an open Surface | Source1/2/3 `@extrude` | Curve → Surface construction; no caps or Solid |
+| Typed length/scalar Parameters and arithmetic | Source2/3 `@parameter` | Resolved quantities and dependencies in IR; complete source recompile |
+| Reusable numeric calculations | Source3 `@function`, named arguments | Pure length/scalar returns only; no geometry returns, loops or branches |
+| Constrained XY sketch → qualified convex prism | No Sketch, constraint or Solid declaration | `buildXYAffineSketch` → `buildXYAffineSketchPrism`; bounded JSON feature-document recipes |
+| Plane split and convex intersection | No text declaration | Qualified native Solid APIs; complete context and exact admitted inputs required |
+| Through-slab subtraction | No text declaration | Native API or authored feature-document v0/v1 subtraction recipe |
+| One original-edge chamfer | No text declaration | Native API; optional v1 feature-document chamfer on the original prism, sibling to subtraction |
+| Solid mass properties | No text declaration | Derived numerical query on a qualified Solid, not an authoring feature |
+| Trimmed Solid display mesh | No text declaration | Derived display output with lineage, not replacement native geometry |
+
+See [the complete API/JSON workflow](./exact-prism-modeling) for sketch → prism → slab cut → parameter edit → serialize/reopen. That executed recipe keeps its own tested source pin. Its separate chamfer is on the **uncut** prism, not on a generated cut-part edge.
+
+There is no supported automatic conversion from those Solid feature recipes into this text language. A future feature-IR bridge or new language syntax needs its own versioned contract and implementation; this manual does not present proposed syntax as executable.
+
 ## Practice complete CAD inputs
+
+Start with [four complete Source0–3 programs, measured outputs, parameter edits and exact diagnostics](./language-workflows). These downloadable inputs are checked against the adopted compiler independently of the historical interactive gallery pins.
 
 The [CAD language practice examples](./language-examples) add typed weighted Surface and curved extrusion programs, plus a rational Curve with original U domain `[2,7]`. Each includes an editable input, expected native values and an actual output image.
 
@@ -15,8 +39,9 @@ The [CAD language practice examples](./language-examples) add typed weighted Sur
 | 0 | `@curve`, `@surface` | Finite signed decimal literals | schemaVersion 1,sourceVersion 0 |
 | 1 | `@curve`, `@extrude` | Finite signed decimal literals | schemaVersion 1,sourceVersion 1 |
 | 2 | `@curve`, `@surface`, `@extrude`, `@parameter` | Bounded typed expressions | schemaVersion 2,sourceVersion 2 |
+| 3 | All Source2 declarations plus typed `@function` | Typed expressions and named numeric calls | schemaVersion 3,sourceVersion 3 |
 
-For the separate newer Source3 dialect, read [quantity functions](./quantity-functions) and [open its language example](/examples/language#cad-quantity-functions). Matching provider `4f93558d` admits typed `@function` declarations and named calls with explicit `{sourceVersion:3}`; IR version is 3 and native Model version remains 0. The table, compiler options and complete programs on this page retain their older Source0/1/2 profiles.
+For Source3 function signatures, defaults, lexical scope, call receipts and budgets, read [quantity functions](./quantity-functions) and [open its language example](/examples/language#cad-quantity-functions). That interactive example retains its recorded `4f93558d` provider; the current source-backed syntax check below uses the separately pinned adopted compiler.
 
 ### Choose an editable example
 
@@ -25,6 +50,7 @@ For the separate newer Source3 dialect, read [quantity functions](./quantity-fun
 | Source0 Curve or literal Surface | [CAD curve](/playground#cad-curve) or [CAD surface](/playground#cad-surface) |
 | Source1 Curve and Extrude | [CAD extrude](/playground#cad-extrude) |
 | Source2 Parameters, expressions and geometry | [CAD parameters](/playground#cad-parameters) |
+| Source3 Functions and typed geometry expressions | [CAD quantity functions](/examples/language#cad-quantity-functions) |
 
 Each playground preset selects its compiler version explicitly: Curve and Surface use source0, Extrude uses source1, and Parameters uses source2. Choose the matching preset before editing its header or declarations. Changing a header alone does not change the selected compiler option. In your application, pass the matching version to `compileCadModel` explicitly.
 
@@ -38,7 +64,20 @@ if (!compiled.ok) {
 }
 ```
 
-`source` is the authored string, with a matching `version:2` header. The options record must contain exactly the own enumerable data field `sourceVersion:0`, `1` or `2`. Plain and null-prototype records are accepted. Getters, symbols, extra options and unsupported versions refuse. A source header does not select the compiler option automatically.
+`source` is the authored string, with a matching `version:2` header. The options record must contain exactly the own enumerable data field `sourceVersion:0`, `1`, `2` or `3`. Plain and null-prototype records are accepted. Getters, symbols, extra options and unsupported versions refuse. A source header does not select the compiler option automatically.
+
+## From authored source to native geometry
+
+`compileCadModel(text, {sourceVersion})` orchestrates the following stages. Passing a later dialect is an explicit caller decision; the header alone does not upgrade the compiler option or an editor/Loader consumer.
+
+1. Parse the selected grammar into a ranged AST. Check tokens, fields, declaration kinds and the matching model header
+2. Lower the AST into that dialect's IR. Resolve IDs, dependencies, typed Parameters and, for Source3, bounded function calls. Refuse missing references, cycles and invalid quantities
+3. Lower geometry/constructions into native Model version 0. Native degree, knot, weight, coordinate and extrusion constraints still apply to resolved values
+4. Optionally evaluate or tessellate the native geometry through separate APIs. A successful compiler result does not certify Solid topology or rendered pixels
+
+On success, inspect `ast`, `ir`, `model` and `constructions`. Native `model.objects` contains Curves and Surfaces, not live Parameter or function objects. IR retains authoring/evaluation information. On compiler failure, diagnostics are returned without a partial AST, IR or Model to adopt. Keep the previously accepted source/result separately and recompile the complete candidate after an edit.
+
+The [compiler](https://github.com/barocss/barocss/blob/0c9aa7e159d3713a70a4b67631715e027da28fef/packages/barocss-cad/src/model-compiler.ts), [declaration parser](https://github.com/barocss/barocss/blob/0c9aa7e159d3713a70a4b67631715e027da28fef/packages/barocss-cad/src/source-ast.ts) and [native lowering](https://github.com/barocss/barocss/blob/0c9aa7e159d3713a70a4b67631715e027da28fef/packages/barocss-cad/src/lower-model.ts) are pinned to the adopted source used for this manual increment.
 
 ## Common model structure
 
@@ -51,7 +90,7 @@ modelField   = "version" ":" versionNumber ";"
 declaration  = a declaration admitted by the selected dialect
 ```
 
-This grammar describes structure. Semantic checks also require both model fields, unique fields, 1..16 geometry declarations and valid geometry. Parameters do not count as geometry. Extra text or a second model after the closing brace refuses.
+This grammar describes structure. Semantic checks also require both model fields, unique fields, 1..16 geometry declarations and valid geometry. Parameters and Source3 functions do not count as geometry. Extra text or a second model after the closing brace refuses.
 
 ```css
 @model part_name {
@@ -89,7 +128,7 @@ signedDecimal = ("+" | "-")? (digits ("." digits?)? | "." digits)
 
 Examples: `10`, `-1.25`, `+.5`, `1.`. Values must be finite. Exponent spelling such as `1e2`, quoted numbers, unit suffixes, arithmetic, function calls and substitutions refuse in source0/1. In source2, a sign is a unary expression rather than part of the unsigned numeric leaf.
 
-## Curves in source0, source1 and source2
+## Curves in source0, source1, source2 and source3
 
 Each Curve requires these five fields:
 
@@ -134,7 +173,7 @@ Compile with `{sourceVersion:0}`. `curveDomain(curve)` returns `[2,7]`; `evaluat
 
 A rational Curve's control polygon is not its sampled shape. Endpoint closure does not itself certify a topological wire, region or Solid.
 
-## Surfaces in source0 and source2
+## Surfaces in source0, source2 and source3
 
 A literal Surface requires seven fields:
 
@@ -156,7 +195,7 @@ Wrap this block in the matching source0 or source2 model header. For the example
 
 Fields for trims, periodic flags, textures or materials are not accepted by this model language. Specialized public native operations/documents can support their own families without adding a declaration here.
 
-## Extrusions in source1 and source2
+## Extrusions in source1, source2 and source3
 
 `@extrude` requires a Curve reference and a three-component vector:
 
@@ -220,7 +259,7 @@ lengthUnit = "mm" | "cm" | "m"
 
 Signs bind first, then multiplication/division, then addition/subtraction. Binary operators at the same level are left associative: `20/2/2` is5. Parentheses change grouping: `(2+3)*4` is20; `2+3*4` is14. Unit suffixes can follow a decimal directly or after whitespace: `10cm` and `10 cm` are equivalent.
 
-No function, exponent literal, percentage, member/index access, string, import, interpolation or arbitrary source execution is admitted. `calc(2)`, `Math.PI`, `1e2`, `10%`, `"10mm"` and `${width}` are examples outside the grammar.
+In Source2, no function, exponent literal, percentage, member/index access, string, import, interpolation or arbitrary source execution is admitted. Source3 adds only the declared [typed quantity calls](./quantity-functions#declare-and-call-quantity-functions). `calc(2)`, `Math.PI`, `1e2`, `10%`, `"10mm"` and `${width}` are examples outside the grammar.
 
 ### Quantity rules
 
@@ -327,6 +366,6 @@ Parsing checks bounds before further growth. Native validation still applies aft
 
 ## API reference
 
-These source0/1/2 language forms belong to the experimental CAD compiler (`0.0.0-experimental`). [Compiler contracts](./api#core-signatures), [native domain and derivative queries](./guides#query-original-parameters-and-derivatives) and [typed expression rules](./language#parameters-and-expressions-in-source2) describe the public API used above. The newer [qualified Body API](./body-1301) is a separate construction family; it adds no language declaration to these grammars.
+These Source0/1/2/3 language forms belong to the experimental CAD compiler (`0.0.0-experimental`). [Compiler contracts](./api#core-signatures), [native domain and derivative queries](./guides#query-original-parameters-and-derivatives) and [typed expression rules](./language#parameters-and-expressions-in-source2) describe the public API used above. The newer [qualified Body API](./body-1301) is a separate construction family; it adds no language declaration to these grammars.
 
 [Overview](./) · [Quickstart](./quickstart) · [Guides](./guides) · [API](./api) · [Examples](./examples) · [Limits](./limits)

@@ -1,5 +1,7 @@
 # CAD guides
 
+[Compile and edit complete Source0–3 inputs](./language-workflows): exact versions, outputs, refusals and the separate JSON feature-document path.
+
 [Sketch, cut and chamfer](./exact-prism-modeling) — Build an exact convex prism, widen a through-slab cut, reopen authored v0 intent and chamfer one original edge. Uses its own adopted public-source profile and complete runnable inputs.
 
 [Adaptive Curve display](./adaptive-curve-sampling) — Use a complete weighted degree-five Curve request to change display tolerance while keeping the native coefficients and full source intact.

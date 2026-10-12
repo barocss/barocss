@@ -4,6 +4,8 @@ Choose a supported input **and** output profile before composing operations. Thi
 
 **Evidence snapshot: 2026-10-12.** The adopted source checkpoint is [a5019338](https://github.com/barocss/barocss/commit/a5019338d1a72658626eb053bcb4b20984511673). The separately executed [sketch → cut → edit → reopen recipe](./exact-prism-modeling) deliberately keeps its tested `31b3033f` source pin. Neither source exports nor emitted builds establish npm availability.
 
+**Choosing an authoring interface?** The [CAD text versus JSON/API coverage table](./language#what-can-the-model-language-express-today) identifies what Source0–3 can actually express. In particular, text `@extrude` creates an open Surface; the qualified sketch-to-Solid producer below is a different operation. Mass properties and display meshes are derived results.
+
 ## Shapes, operations and refusal boundaries
 
 All native coordinates are millimetres. Complete original source, native geometry, IDs, lineage and exact qualification remain authoritative; triangles and editor views are derived. Source links below pin the actual implementation or executable fixture, not a moving branch.

@@ -1,0 +1,343 @@
+{
+  "sourcePin": "0c9aa7e159d3713a70a4b67631715e027da28fef",
+  "node": "24.19.0",
+  "scope": "pure compiler and geometry evaluation; no Solid engine, full docs build, browser, GPU or file picker",
+  "authoredFixture": {
+    "bytes": 3641,
+    "sha256": "d9a999760b6492c0d3efe8642b12058ef5a4380e90d7f99d7feeb20c691630ce",
+    "sourceFactoryMatched": true,
+    "engineEvaluation": "not run"
+  },
+  "sourceInputs": [
+    "packages/barocss-cad/src/data-copy.ts",
+    "packages/barocss-cad/src/expression-parser.ts",
+    "packages/barocss-cad/src/extrusion-validation.ts",
+    "packages/barocss-cad/src/extrusion.ts",
+    "packages/barocss-cad/src/function-quantity-semantics.ts",
+    "packages/barocss-cad/src/lower-model.ts",
+    "packages/barocss-cad/src/math.ts",
+    "packages/barocss-cad/src/model-compiler.ts",
+    "packages/barocss-cad/src/parameter-semantics.ts",
+    "packages/barocss-cad/src/semantic-model.ts",
+    "packages/barocss-cad/src/source-ast.ts"
+  ],
+  "bundleSha256": "020eda862c3716a8983542e1c367a28ff69aca0a664d125d41ff87fe66a4b385",
+  "results": [
+    {
+      "sourceVersion": 0,
+      "irSchemaVersion": 1,
+      "modelVersion": 0,
+      "objects": [
+        {
+          "id": "profile",
+          "kind": "curve"
+        }
+      ],
+      "midpointMM": [
+        10,
+        0,
+        0
+      ]
+    },
+    {
+      "sourceVersion": 1,
+      "irSchemaVersion": 1,
+      "modelVersion": 0,
+      "objects": [
+        {
+          "id": "profile",
+          "kind": "curve"
+        },
+        {
+          "id": "wall",
+          "kind": "surface"
+        }
+      ],
+      "midpointMM": [
+        10,
+        0,
+        15
+      ]
+    },
+    {
+      "sourceVersion": 2,
+      "irSchemaVersion": 2,
+      "modelVersion": 0,
+      "objects": [
+        {
+          "id": "profile",
+          "kind": "curve"
+        },
+        {
+          "id": "wall",
+          "kind": "surface"
+        }
+      ],
+      "midpointMM": [
+        50,
+        0,
+        15
+      ]
+    },
+    {
+      "sourceVersion": 3,
+      "irSchemaVersion": 3,
+      "modelVersion": 0,
+      "objects": [
+        {
+          "id": "profile",
+          "kind": "curve"
+        },
+        {
+          "id": "wall",
+          "kind": "surface"
+        }
+      ],
+      "midpointMM": [
+        50,
+        0,
+        100
+      ]
+    }
+  ],
+  "parameterEdit": {
+    "before": [
+      50,
+      0,
+      100
+    ],
+    "after": [
+      60,
+      0,
+      120
+    ],
+    "priorResultRetained": true
+  },
+  "errors": [
+    {
+      "label": "unsupported @sketch",
+      "sourceVersion": 3,
+      "code": "KIND",
+      "message": "Unsupported declaration sketch",
+      "range": {
+        "start": 379,
+        "end": 386,
+        "line": 7,
+        "column": 3,
+        "endLine": 7,
+        "endColumn": 10
+      },
+      "text": "@sketch"
+    },
+    {
+      "label": "unsupported @constraint",
+      "sourceVersion": 3,
+      "code": "KIND",
+      "message": "Unsupported declaration constraint",
+      "range": {
+        "start": 379,
+        "end": 390,
+        "line": 7,
+        "column": 3,
+        "endLine": 7,
+        "endColumn": 14
+      },
+      "text": "@constraint"
+    },
+    {
+      "label": "unsupported @split",
+      "sourceVersion": 3,
+      "code": "KIND",
+      "message": "Unsupported declaration split",
+      "range": {
+        "start": 379,
+        "end": 385,
+        "line": 7,
+        "column": 3,
+        "endLine": 7,
+        "endColumn": 9
+      },
+      "text": "@split"
+    },
+    {
+      "label": "unsupported @intersection",
+      "sourceVersion": 3,
+      "code": "KIND",
+      "message": "Unsupported declaration intersection",
+      "range": {
+        "start": 379,
+        "end": 392,
+        "line": 7,
+        "column": 3,
+        "endLine": 7,
+        "endColumn": 16
+      },
+      "text": "@intersection"
+    },
+    {
+      "label": "unsupported @subtract",
+      "sourceVersion": 3,
+      "code": "KIND",
+      "message": "Unsupported declaration subtract",
+      "range": {
+        "start": 379,
+        "end": 388,
+        "line": 7,
+        "column": 3,
+        "endLine": 7,
+        "endColumn": 12
+      },
+      "text": "@subtract"
+    },
+    {
+      "label": "unsupported @chamfer",
+      "sourceVersion": 3,
+      "code": "KIND",
+      "message": "Unsupported declaration chamfer",
+      "range": {
+        "start": 379,
+        "end": 387,
+        "line": 7,
+        "column": 3,
+        "endLine": 7,
+        "endColumn": 11
+      },
+      "text": "@chamfer"
+    },
+    {
+      "label": "unsupported @mass",
+      "sourceVersion": 3,
+      "code": "KIND",
+      "message": "Unsupported declaration mass",
+      "range": {
+        "start": 379,
+        "end": 384,
+        "line": 7,
+        "column": 3,
+        "endLine": 7,
+        "endColumn": 8
+      },
+      "text": "@mass"
+    },
+    {
+      "label": "unsupported @mesh",
+      "sourceVersion": 3,
+      "code": "KIND",
+      "message": "Unsupported declaration mesh",
+      "range": {
+        "start": 379,
+        "end": 384,
+        "line": 7,
+        "column": 3,
+        "endLine": 7,
+        "endColumn": 8
+      },
+      "text": "@mesh"
+    },
+    {
+      "label": "header mismatch",
+      "sourceVersion": 0,
+      "code": "VERSION",
+      "message": "Declared source version must match sourceVersion: 0",
+      "range": {
+        "start": 25,
+        "end": 26,
+        "line": 2,
+        "column": 11,
+        "endLine": 2,
+        "endColumn": 12
+      },
+      "text": "1"
+    },
+    {
+      "label": "Source3 function with Source2 option",
+      "sourceVersion": 2,
+      "code": "KIND",
+      "message": "Unsupported declaration function",
+      "range": {
+        "start": 46,
+        "end": 55,
+        "line": 3,
+        "column": 3,
+        "endLine": 3,
+        "endColumn": 12
+      },
+      "text": "@function"
+    },
+    {
+      "label": "global length parameter needs a unit",
+      "sourceVersion": 3,
+      "code": "UNIT",
+      "message": "Parameter value does not match its declared quantity kind",
+      "range": {
+        "start": 176,
+        "end": 178,
+        "line": 4,
+        "column": 42,
+        "endLine": 4,
+        "endColumn": 44
+      },
+      "text": "10"
+    },
+    {
+      "label": "wrong function argument kind",
+      "sourceVersion": 3,
+      "code": "FUNCTION_TYPE",
+      "message": "Named argument does not match its formal quantity kind",
+      "range": {
+        "start": 365,
+        "end": 366,
+        "line": 6,
+        "column": 66,
+        "endLine": 6,
+        "endColumn": 67
+      },
+      "text": "2"
+    },
+    {
+      "label": "function cannot capture global parameter",
+      "sourceVersion": 3,
+      "code": "FUNCTION_CAPTURE",
+      "message": "A function may reference only its own formal arguments",
+      "range": {
+        "start": 117,
+        "end": 123,
+        "line": 3,
+        "column": 74,
+        "endLine": 3,
+        "endColumn": 80
+      },
+      "text": "$width"
+    },
+    {
+      "label": "division by zero",
+      "sourceVersion": 2,
+      "code": "DIVISION_ZERO",
+      "message": "Division by zero is unsupported",
+      "range": {
+        "start": 91,
+        "end": 92,
+        "line": 3,
+        "column": 48,
+        "endLine": 3,
+        "endColumn": 49
+      },
+      "text": "/"
+    },
+    {
+      "label": "Source1 does not admit literal surfaces",
+      "sourceVersion": 1,
+      "code": "KIND",
+      "message": "Unsupported declaration surface",
+      "range": {
+        "start": 39,
+        "end": 47,
+        "line": 1,
+        "column": 40,
+        "endLine": 1,
+        "endColumn": 48
+      },
+      "text": "@surface"
+    }
+  ]
+}
