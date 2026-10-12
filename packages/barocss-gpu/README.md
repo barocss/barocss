@@ -4231,3 +4231,85 @@ Therefore lowerer overflow is unreachable under this unchanged profile; the
 qualifier records that upstream refusal, not a fabricated lowerer-overflow pass.
 Genuine lowerer coefficient/default/bound underflow is tested independently of
 local upload underflow.
+
+## Authored directional-light required WebGPU viewport (#1579)
+
+`mountNativeDirectionalLightWebGPUViewport(canvas, request, {width,height})` is an
+additive, explicit required-WebGPU route. It renders 1–4 admitted qualified native
+Surface packets, legacy opaque material bindings, and a complete 0–4 authored
+world-directional light catalog. Existing routes, defaults and fallbacks are unchanged.
+
+The exact request is `{format:'barocss-gpu-native-directional-light-webgpu-request',
+version:0,frame,lights}`. `frame` is the complete existing version0 CPU frame
+`{version:0,scene:{version:2,entries},options,particles:null,materials}`. Options must
+explicitly contain exactly `mmToSceneUnit`, `translate`, `background`, and `camera`;
+any legacy `lighting` field is refused. Entry colors and optional existing transforms
+are admitted by the unchanged qualified-v2 provider. Material targets use full
+`{modelId,geometryId}` pairs (modelId up to128 characters). Each replacement is
+complete; omitted bindings do not carry forward. Pass the raw authored catalog,
+including disabled entries and original directions, labels, order and revisions.
+
+The frozen facade exposes `canvas`, fresh recursively frozen `originals`, fresh
+`selected`, and `status`. Operations are `updateFrame`, `resize`, `readPixels`,
+`pick`, `select`, and idempotent `dispose`. Mount rejects; update/resize/select
+return the existing `UpdateResult`. Readbacks reject on refusal. Generation starts
+at1 after presentation and advances only on accepted update/resize. Selection is
+metadata only. Pick reads a bounded integer top-left backing pixel and returns
+`{generation,ref}` from the identity attachment; readPixels returns fresh tightly
+packed top-left RGBA bytes. The host must provide a fresh current-realm canvas,
+retain ownership of it, and change backing size only through this viewport.
+Duplicate claims are prevented within this route, not across unrelated APIs.
+
+Private admission snapshots original packets, complete material source/overrides,
+and raw lights before awaiting a device. It invokes common admission exactly once
+and the actual directional WGSL provider once per draw. That means N catalog
+admissions and exactly3 material reconstructions per bound draw (common1,
+program2), unbound0. This admits authentic packet structure, not CAD-source
+provenance: callers retain complete CAD documents/models/revisions and own the
+packet/source/TEN/current-display join. A prepared frame is never a caller token.
+
+Each draw owns position, normal, U16 index and four uniform buffers, with group0
+bindings frame144/material64/lights144/draw16, all fragment-visible and frame also
+vertex-visible. Provider WGSL and material/light bytes are consumed unchanged;
+only new frame and identity data are packed locally, little-endian. There are N
+pipelines/groups and three shared color/identity/depth attachments. Color is opaque
+rgba8unorm, identity r32uint, depth depth24plus/less, no blend, cull none, sample1.
+No UV buffers, textures, shadows, point/spot lights or automatic fallback are added.
+
+For N draws and W×H, logical steady ownership is7N buffers,368N uniform bytes,
+padded geometry bytes plus12WH attachment budget, and3 textures. Readback is a
+separate `ceil(4W/256)*256*H` transient buffer. Candidate cap32MiB and overlap cap
+64MiB include the maximum readback. Dimensions are explicit integer1..1024, at
+most1048576 pixels. These are conservative logical charges, not physical driver
+allocation measurements. Device limits are checked before allocations, including
+color target cost12 bytes/sample (distinct from8WH packed color+identity storage),
+four fragment uniforms/bindings,144-byte uniform binding size and every upload
+and padded readback. Provider caps may make defensive residency ceilings unreachable.
+Raw signed ordinary data is capped at2MiB UTF16/UTF8,262144 visits,depth48;
+aggregate request/common/program metadata at8MiB,524288 visits,depth64. Records
+are current-realm own data, at most64 fields; arrays are dense, bounded24576,
+and source strings/keys bounded64KiB. Accessors, symbols, hidden fields, cycles,
+nonfinite values and legacy singleton lighting are refused without coercion.
+
+Candidate rendering precedes canvas mutation; presentation precedes commit.
+Recoverable candidate refusals retain accepted observations. Failed presentation
+restores dimensions and re-presents the accepted frame; failed restoration or
+cleanup is terminal. Operations serialize with BUSY; device loss, rejected loss
+promises and10-second timeout invalidate pending epochs with no fallback. Cleanup
+attempts every owned resource even after a failure, preserves aggregate causes,
+and releases the logical ledger. Disposal invalidates pending work; late devices
+are destroyed and late mappings unmapped. Remount explicitly after terminal failure.
+Diagnostics are INPUT,PROFILE,FRAME,PROGRAM,REPRESENTATION,BUDGET,UNSUPPORTED,INIT,
+DEVICE_LOST,RENDER,STATE,BUSY. Exact provider/reflection causes are retained.
+
+Software verification: `node --test --test-concurrency=1
+packages/barocss-gpu/tests/native-directional-light-webgpu-viewport.test.mjs` and,
+after the GPU library build, `node
+examples/gpu-scene/native-directional-light-webgpu-flow.mjs --output ABS_FRESH`.
+The latter compares source/emitted/DTS, independent ABI/resource expectations and
+fresh-process reconstruction from saved original CAD/material files. Test-platform
+bytes establish deterministic software control flow only. Genuine GPU shader
+compilation, rendered directional colors/depth, physical picking, original-file
+mount and driver cleanup remain UNRUN until permitted device acceptance. #1579
+stays open for that stage; editor integration and overall default readiness remain
+separate. No release/publication claim follows from these software checks.

@@ -243,3 +243,10 @@ export type { NativeSurfaceUV01WebGPUViewport, NativeSurfaceUV01WebGPUOptions, N
 
 export { prepareNativeDirectionalLightProgramWGSL, NativeDirectionalLightProgramWGSLError } from './native-directional-light-program-wgsl.js';
 export type { NativeDirectionalLightProgramWGSLCode, NativeDirectionalLightProgramWGSLRequest, NativeDirectionalLightProgramWGSLSlot, NativeDirectionalLightProgramWGSLExecution, NativeDirectionalLightProgramWGSLABI, NativeDirectionalLightProgramWGSLProgram, NativeDirectionalLightProgramWGSLUniforms, PreparedNativeDirectionalLightProgramWGSL } from './native-directional-light-program-wgsl.js';
+
+export { mountNativeDirectionalLightWebGPUViewport } from './native-directional-light-webgpu-viewport.js';
+export { NativeDirectionalLightWebGPUError, NativeDirectionalLightWebGPUDiagnosticCode } from './native-directional-light-webgpu-frame.js';
+export type { NativeDirectionalLightWebGPURequest, NativeDirectionalLightWebGPUOptions,
+  NativeDirectionalLightWebGPUViewport, NativeDirectionalLightWebGPUStatus, NativeDirectionalLightWebGPULimits,
+  NativeDirectionalLightWebGPUResources, NativeDirectionalLightWebGPUPick,
+  NativeDirectionalLightWebGPUFrameOptions } from './native-directional-light-webgpu-frame.js';
