@@ -495,3 +495,20 @@ restores them for re-edit. Refused/pending/stale operations use the existing own
 session fences. The same controlled React flow covers both light kinds, repeated
 material IDs, omission/signed values, no-ops, revision limits and lifecycle
 retention; physical GPU/file/device acceptance and #1573 remain separate.
+
+## Native gizmo component event reproduction (#1573)
+
+Run `node apps/render-editor/native-gizmo-ui-flow.mjs` from the repository root
+with the existing Node 22 dependencies. This finite source flow mounts the actual
+NativeSceneGizmo/shared GizmoSurface and real NativeSceneHost. It drives at most
+10 pointer attempts: offset-CSS/backing-scale picking, one release/Undo/Redo,
+no-op, Escape/cancel/capture-loss/blur, resize, guarded selection/stale availability,
+a nearly parallel axis and a recoverable refused cancellation. It checks full
+accepted authority and cleans up each root/host and controlled frame/capture.
+
+The presenter, jsdom geometry, pointer capture, ResizeObserver and RAF are explicit
+controlled boundaries. No gizmo adapter, picking function or pose math is replaced.
+The runner reports source/build input hashes and checks the genuine reference
+source hash; set `BAROCSS_GIZMO_METAFILE` to retain its esbuild input graph. This is
+software-event evidence only. The owner's actual failing scene, browser/device,
+DPR, physical drag behavior and Save/Open loop remain unresolved in #1573.
