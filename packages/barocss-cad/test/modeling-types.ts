@@ -82,3 +82,19 @@ miterBlank.split({ at: 24 });
 miterBlank.split({ plane: 'x-y', at: 24 });
 // @ts-expect-error Arbitrary normals are not an admitted plane option.
 miterBlank.split({ normal: [1,1,0], at: 24 });
+
+const finishModel = cad.model(), finishBlank = finishModel.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const finishEdge = finishBlank.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one();
+const optionalFinish: CadShape = finishBlank.chamfer(finishEdge, 1, { name: 'frontFinish' });
+const finishSnapshot = finishModel.build({ part: optionalFinish });
+const configured: CadModelSnapshot = finishSnapshot.withSuppression({ frontFinish: true });
+const finishStates: Readonly<Record<string, boolean>> = configured.suppression;
+void finishStates; configured.features[2].name; configured.features[2].suppressed;
+// @ts-expect-error Finishing states are strict booleans, not numeric dimensions.
+finishSnapshot.withSuppression({ frontFinish: 1 });
+// @ts-expect-error Configuration is readonly.
+finishSnapshot.suppression.frontFinish = true;
+// @ts-expect-error Boolean state is not a millimeter parameter value.
+finishModel.parameter('enabled', false);
+// @ts-expect-error Initial finish options name the feature; they cannot skip initial native validation.
+finishBlank.chamfer(finishEdge, 1, { name: 'frontFinish', suppressed: true });

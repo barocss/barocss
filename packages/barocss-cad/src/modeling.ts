@@ -43,7 +43,7 @@ export interface CadShape {
   cut(tool: CadShape, options: { readonly axis: 'x' | 'y' }): CadCut;
   edges(query: CadEdgeQuery): CadEdgeQueryHandle;
   /** At most two sequential cardinal chamfers; each selector belongs to its exact parent result. */
-  chamfer(edge: CadEdgeSelection, distance: CadDimension): CadShape;
+  chamfer(edge: CadEdgeSelection, distance: CadDimension, options?: { readonly name: string }): CadShape;
 }
 export interface CadCut { readonly negative: CadShape; readonly positive: CadShape }
 export interface CadSplit { readonly negative: CadShape; readonly positive: CadShape }
@@ -65,18 +65,22 @@ export type CadModelEvidence =
   | { readonly kind: 'cut'; readonly native: ConvexPlanarSlabSubtractionResult }
   | { readonly kind: 'intersect'; readonly native: ConvexPlanarSolidIntersectionResult }
   | { readonly kind: 'split'; readonly native: ConvexPlanarSolidSplitResult }
-  | { readonly kind: 'chamfer'; readonly native: ConvexPlanarSolidChamferResult };
-export interface CadModelFeature { readonly kind: CadModelEvidence['kind']; readonly index: number; readonly dependencies: readonly number[] }
+  | { readonly kind: 'chamfer'; readonly native: ConvexPlanarSolidChamferResult; readonly configuration?: { readonly name: string; readonly suppressed: boolean; readonly output: 'parent' | 'chamfer-result' } };
+export interface CadModelFeature { readonly kind: CadModelEvidence['kind']; readonly index: number; readonly dependencies: readonly number[]; readonly name?: string; readonly suppressed?: boolean }
 export interface CadModelSnapshot {
   /** Deep-frozen native Solids; source/topology remain authoritative for display adapters. */
   readonly bodies: Readonly<Record<string, ConvexPlanarSolidResult>>;
   readonly parameters: Readonly<Record<string, number>>;
+  /** Named validated finishing configuration, separate from numeric dimensions. */
+  readonly suppression: Readonly<Record<string, boolean>>;
   readonly features: readonly CadModelFeature[];
   /** Accepted model feature work only; native provider internals are not counted. Never saved. */
   readonly recomputation: { readonly reusedFeatures: readonly number[]; readonly evaluatedFeatures: readonly number[] };
   /** Original kernel results. Diagnostic evidence, never a saved cache or editable input. */
   readonly evidence: readonly CadModelEvidence[];
   withParameters(edits: Readonly<Record<string, number>>): CadModelSnapshot;
+  /** Disabled chamfers still validate; they select their exact parent as output. */
+  withSuppression(edits: Readonly<Record<string, boolean>>): CadModelSnapshot;
   /** Saves only accepted authored state; no native results or meshes. */
   save(): string;
 }
@@ -85,7 +89,8 @@ export const CadModelLimits = Object.freeze({ nodes: 6, sketches: 2, extrusions:
 type Query = { parallelTo?: CadAxis; at?: Partial<Record<CadAxis, Dimension | 'min' | 'max'>> };
 type BodyRef = { node: number; side: 'solid' | 'negative' | 'positive' };
 type SketchNode = { kind: 'sketch'; profile: 'polygon'; points: [Dimension, Dimension][] } | { kind: 'sketch'; profile: 'rectangle'; min: [Dimension, Dimension]; max: [Dimension, Dimension] };
-type Node = SketchNode | { kind: 'extrude'; sketch: number; height: Dimension } | { kind: 'cut'; parent: BodyRef; tool: BodyRef; axis: 'x' | 'y' } | { kind: 'intersect'; left: BodyRef; right: BodyRef } | ({ kind: 'split'; parent: BodyRef; at: Dimension } & SplitPlane) | { kind: 'chamfer'; parent: BodyRef; edge: Query; distance: Dimension };
+type ChamferConfiguration = { name: string; suppressed: boolean } | { name?: never; suppressed?: never };
+type Node = SketchNode | { kind: 'extrude'; sketch: number; height: Dimension } | { kind: 'cut'; parent: BodyRef; tool: BodyRef; axis: 'x' | 'y' } | { kind: 'intersect'; left: BodyRef; right: BodyRef } | ({ kind: 'split'; parent: BodyRef; at: Dimension } & SplitPlane) | ({ kind: 'chamfer'; parent: BodyRef; edge: Query; distance: Dimension } & ChamferConfiguration);
 type Document = { format: 'barocss-cad-model'; schema: 1; units: 'mm'; parameters: Record<string, number>; nodes: Node[]; outputs: Record<string, BodyRef> };
 type EvaluatedValue = ConvexPlanarSolidResult | { negative?: ConvexPlanarSolidResult; positive?: ConvexPlanarSolidResult } | undefined;
 // Generated IDs/native options are fixed by this implementation authority plus the keyed graph.
@@ -171,7 +176,7 @@ function admit(input: Document): Document {
   for (const [key, value] of Object.entries(d.parameters)) { name(key, 'parameters'); length(value, 'parameters'); }
   const dimension = (value: unknown) => { resolvedDimension(value, d.parameters); };
   const point = (value: unknown) => list(value, 'point', 2, 2).forEach(dimension);
-  const counts = { sketch: 0, extrude: 0, cut: 0, intersect: 0, split: 0, chamfer: 0 };
+  const counts = { sketch: 0, extrude: 0, cut: 0, intersect: 0, split: 0, chamfer: 0 }, featureNames = new Set<string>();
   const nodes = list(d.nodes, 'graph', 1, CadModelLimits.nodes) as Node[];
   const body = (value: unknown, before: number): BodyRef => {
     const r = record(value, 'body', ['node', 'side']);
@@ -197,7 +202,13 @@ function admit(input: Document): Document {
       splitPlane(n, ['kind', 'parent', 'at']); body(n.parent, i); dimension(n.at);
       demand(splitParent(nodes, n.parent), 'CAPABILITY', 'split', 'Split requires a direct XY extrusion or its owned chamfer chain');
     } else {
-      record(n, 'chamfer', ['kind', 'parent', 'edge', 'distance']); body(n.parent, i); dimension(n.distance);
+      const configured = Object.hasOwn(n, 'name') || Object.hasOwn(n, 'suppressed');
+      record(n, 'chamfer', configured ? ['kind', 'parent', 'edge', 'distance', 'name', 'suppressed'] : ['kind', 'parent', 'edge', 'distance']);
+      if (configured) {
+        name(n.name, 'chamfer'); demand(typeof n.suppressed === 'boolean' && !featureNames.has(n.name), 'INPUT', 'chamfer', 'Unique feature name and boolean suppression required');
+        featureNames.add(n.name);
+      }
+      body(n.parent, i); dimension(n.distance);
       demand(counts.chamfer === 1 || (counts.chamfer === 2 && nodes[n.parent.node].kind === 'chamfer'), 'CAPABILITY', 'chamfer', 'At most two sequential chamfers in one chain are supported');
       const q = record(n.edge, 'selection'); demand(Object.keys(q).every(k => k === 'parallelTo' || k === 'at'), 'INPUT', 'selection', 'Unknown selector field');
       if (Object.hasOwn(q, 'parallelTo')) demand(axes.includes(n.edge.parallelTo!), 'INPUT', 'selection', 'Cardinal selector direction required');
@@ -258,11 +269,17 @@ export function createCadModel(): CadModel {
         freeze(authored);
         return Object.freeze({ one(): CadEdgeSelection { const selection: CadEdgeSelection = Object.freeze({ kind: 'edge-selection' }); selections.set(selection, { owner, parent: { ...reference }, query: authored }); return selection; } });
       },
-      chamfer(edge: CadEdgeSelection, distance: CadDimension): CadShape {
+      chamfer(edge: CadEdgeSelection, distance: CadDimension, options?: { readonly name: string }): CadShape {
+        let configuration: ChamferConfiguration = {};
+        if (options !== undefined) {
+          record(options, 'chamfer', ['name']); name(options.name, 'chamfer');
+          demand(!nodes.some(n => n.kind === 'chamfer' && n.name === options.name), 'INPUT', 'chamfer', 'Feature name already exists');
+          configuration = { name: options.name, suppressed: false };
+        }
         const selected = selections.get(edge); demand(selected?.owner === owner && equalRef(selected.parent, reference), 'OWNERSHIP', 'chamfer', 'Edge query must belong to this exact body in this model');
         const first = nodes.findIndex(node => node.kind === 'chamfer');
         demand(first === -1 || reference.node === first, 'CAPABILITY', 'chamfer', 'The second chamfer must consume the first chamfer result; siblings and further steps are unsupported');
-        return shape({ node: append({ kind: 'chamfer', parent: { ...reference }, edge: copy(selected.query), distance: dimension(distance) }), side: 'solid' });
+        return shape({ node: append({ kind: 'chamfer', parent: { ...reference }, edge: copy(selected.query), distance: dimension(distance), ...configuration }), side: 'solid' });
       },
     });
     shapes.set(handle, { owner, reference: freeze({ ...reference }) }); return handle;
@@ -374,7 +391,10 @@ function evaluate(input: Document, previous?: EvaluationFrame): CadModelSnapshot
         demand(edges[0].uses.length === 2, 'SELECTION', 'chamfer', 'Selected edge must have two qualified incident uses');
         const use = (u: ConvexPlanarSolidGraph['edges'][number]['uses'][number]): ConvexPlanarChamferUseReference => ({ sourceId: u.sourceId, faceId: u.faceId, surfaceId: u.surfaceId, loopId: u.loopId, useId: u.use.id, curveId: u.use.curveId, pcurveId: u.use.pcurveId });
         const native = chamferConvexPlanarSolid(parent, { parentSolidId: parent.request.options.solidId, a: use(edges[0].uses[0]), b: use(edges[0].uses[1]) }, distance, { operationId: prefix + '_chamfer', resultIdPrefix: prefix, retainedSolidId: prefix + '_kept', removedSolidId: prefix + '_wedge' });
-        demand(native.split.negative.kind === 'solid', 'NATIVE', 'chamfer', 'Chamfer did not produce a retained Solid'); evidence.push({ kind: 'chamfer', native }); values.push(native.split.negative.solid);
+        demand(native.split.negative.kind === 'solid', 'NATIVE', 'chamfer', 'Chamfer did not produce a retained Solid');
+        // A disabled finish still has a genuinely validated candidate. Only its selected output changes.
+        evidence.push({ kind: 'chamfer', native, ...(node.name === undefined ? {} : { configuration: { name: node.name, suppressed: node.suppressed, output: node.suppressed ? 'parent' as const : 'chamfer-result' as const } }) });
+        values.push(node.suppressed ? parent : native.split.negative.solid);
       }
     } catch (cause) { if (cause instanceof CadModelError) throw cause; throw new CadModelError('NATIVE', node.kind, cause instanceof Error ? cause.message : 'Kernel refused operation', cause); }
   }
@@ -388,10 +408,21 @@ function makeSnapshot(document: Document, key: string, evidence: CadModelEvidenc
   const frame: EvaluationFrame = Object.freeze({ authority: evaluationAuthority, key, document, evidence, values, parameterNames: Object.freeze(document.nodes.map(nodeParameters)) });
   const snapshot: CadModelSnapshot = {
     bodies, parameters: document.parameters, evidence, recomputation,
-    features: freeze(document.nodes.map((n, index) => ({ kind: n.kind, index, dependencies: deps(n) }))),
+    suppression: freeze(Object.fromEntries(document.nodes.flatMap(n => n.kind === 'chamfer' && n.name !== undefined ? [[n.name, n.suppressed]] : []))),
+    features: freeze(document.nodes.map((n, index) => ({ kind: n.kind, index, dependencies: deps(n), ...(n.kind === 'chamfer' && n.name !== undefined ? { name: n.name, suppressed: n.suppressed } : {}) }))),
     withParameters(edits: Readonly<Record<string, number>>): CadModelSnapshot {
       record(edits, 'parameters'); const candidate = copy(document);
       for (const [key, value] of Object.entries(edits)) { name(key, 'parameters'); demand(Object.hasOwn(candidate.parameters, key), 'PARAMETER', 'parameters', 'Unknown parameter: ' + key); length(value, 'parameters'); candidate.parameters[key] = value; }
+      return evaluate(candidate, frame);
+    },
+    withSuppression(edits: Readonly<Record<string, boolean>>): CadModelSnapshot {
+      record(edits, 'suppression'); const candidate = copy(document);
+      for (const [key, value] of Object.entries(edits)) {
+        name(key, 'suppression'); demand(typeof value === 'boolean', 'INPUT', 'suppression', 'Boolean suppression required');
+        const node = candidate.nodes.find(n => n.kind === 'chamfer' && n.name === key);
+        demand(node?.kind === 'chamfer' && node.name !== undefined, 'INPUT', 'suppression', 'Unknown named chamfer: ' + key);
+        node.suppressed = value;
+      }
       return evaluate(candidate, frame);
     },
     save(): string { const text = signedJson(document) + '\n'; demand(text.length <= CadModelLimits.fileBytes && cadDocumentOwnUtf8Bytes(text, 'JSON') <= CadModelLimits.fileBytes, 'BUDGET', 'save', 'Authored file exceeds 64 KiB'); return text; },

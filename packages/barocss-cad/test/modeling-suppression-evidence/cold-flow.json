@@ -1,0 +1,72 @@
+{
+  "status": "passed",
+  "modelCalls": 2,
+  "stages": [
+    {
+      "label": "emitted cold named active finishes",
+      "elapsedMS": 1759.674789,
+      "recomputation": {
+        "reusedFeatures": [],
+        "evaluatedFeatures": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      }
+    },
+    {
+      "label": "emitted front finish disabled",
+      "elapsedMS": 1449.519891,
+      "recomputation": {
+        "reusedFeatures": [],
+        "evaluatedFeatures": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      }
+    }
+  ],
+  "entrySHA256": "7aa472e4a6295891906bbafba59571fc77926d8949bca793b29ba2e1911d546b",
+  "pending": null,
+  "reopened": {
+    "frontSuppressed": false,
+    "backSuppressed": false,
+    "parentMM3": 6064,
+    "negativeMM3": 3032,
+    "positiveMM3": 3032,
+    "capEdges": 6,
+    "validatedChamferCandidates": 2,
+    "activeCaps": 2,
+    "discardedCapsAbsent": 0,
+    "candidateBindings": 21,
+    "outputBindings": 14,
+    "exactSelectedParent": true
+  },
+  "preNativeControls": {
+    "refusedBeforeEvaluation": 9,
+    "originalSnapshotUnchanged": true,
+    "getterCalls": 0
+  },
+  "reedited": {
+    "frontSuppressed": true,
+    "backSuppressed": false,
+    "parentMM3": 6080,
+    "negativeMM3": 3040,
+    "positiveMM3": 3040,
+    "capEdges": 5,
+    "validatedChamferCandidates": 2,
+    "activeCaps": 1,
+    "discardedCapsAbsent": 1,
+    "candidateBindings": 20,
+    "outputBindings": 12,
+    "exactSelectedParent": true
+  },
+  "authoredInputSHA256": "84fdbf916aef9c55e7488743ae99f868a4e7593068d235b40fc966f82f56bfe4",
+  "reopenedBodySHA256": "8a8e95769f848840fda5205d6dd41d76acde7daa06764664abcee73159601230",
+  "reeditedBodySHA256": "1aadf1f6b16faab9ce853a7438b80231e47b55ba6c109bc9973ef4eb8a100cd3"
+}

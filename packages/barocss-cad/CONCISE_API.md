@@ -211,7 +211,42 @@ features; a back-bevel edit rebuilds that bevel and the split. Create each bevel
 selector from its exact parent; a selector from the other split side refuses.
 No chamfer is silently moved across the split or remapped to another edge.
 
-### 45-degree XY miter split
+#### Named validated finishes
+
+Name an optional finish with
+`blank.chamfer(edge,distance,{name:'frontFinish'})`. It starts active and remains
+a normal owned shape for later features. An accepted snapshot can use
+`withSuppression({frontFinish:true,backFinish:false})` to update one or both
+named finishes atomically. Names are unique, stable safe ASCII identifiers;
+`snapshot.suppression` and named `snapshot.features` metadata expose their
+readonly boolean state separately from millimeter parameters. Existing unnamed
+two-argument chamfers and their saved fields stay unchanged.
+
+This is **validated finishing configuration**: disabled chamfers still require
+a genuine valid native candidate, either rebuilt or privately reused. Disabling
+an invalid edge or distance cannot recover the model. It is not a geometry
+validation bypass or a native-work optimization. The selected output of a
+disabled finish is its exact qualified parent, with source identity unchanged.
+Named diagnostic evidence carries `configuration.output` as `parent` or
+`chamfer-result`; its `native` value remains the genuine validated candidate,
+which must not be confused with the selected output.
+
+For a 32×24×8 rail with front/back setbacks1/2 and X16 split, both active gives
+3032/3032 mm³, front disabled gives3040/3040, both disabled gives3072/3072, and
+back disabled gives3064/3064. Descendants consume the actual selected parent;
+discarded bevel caps do not become part of their source lineage. Edge queries
+still belong to their exact owned feature result, and invalid bindings refuse.
+
+Changed configuration conservatively rebuilds the graph. A same-value update
+reuses all unchanged model features. These indices are not total native-work
+measurements. Unknown names or non-boolean values reject the entire update;
+failed native validation leaves the earlier snapshot usable. Named intent is
+saved as paired `name`/`suppressed` fields on each configured chamfer node,
+with no new file version or native cache. Cold load validates/rebuilds normally.
+Only the existing two chamfers are configurable; this adds no reorder/delete,
+arbitrary feature suppression, curved/holed body or Boolean-union capability.
+
+## 45-degree XY miter split
 
 `blank.split({plane:'x+y',at:cutPosition})` cuts along the fixed plane
 **x+y=at**. The threshold is a coordinate sum in millimeters, not perpendicular
@@ -347,7 +382,7 @@ Run the ordinary boundary/type tests after building the package:
 ```sh
 node scripts/tool.mjs type-check
 node scripts/tool.mjs build
-node --test test/modeling.test.mjs test/modeling-intersection.test.mjs test/modeling-split.test.mjs test/modeling-cardinal-split.test.mjs test/modeling-chamfer-chain.test.mjs test/modeling-regeneration.test.mjs test/modeling-regeneration-helpers.test.mjs test/modeling-chamfer-split.test.mjs test/modeling-dimensions.test.mjs test/modeling-dimensions-helpers.test.mjs test/modeling-miter.test.mjs test/public-api.test.mjs
+node --test test/modeling.test.mjs test/modeling-intersection.test.mjs test/modeling-split.test.mjs test/modeling-cardinal-split.test.mjs test/modeling-chamfer-chain.test.mjs test/modeling-regeneration.test.mjs test/modeling-regeneration-helpers.test.mjs test/modeling-chamfer-split.test.mjs test/modeling-dimensions.test.mjs test/modeling-dimensions-helpers.test.mjs test/modeling-miter.test.mjs test/modeling-suppression.test.mjs test/public-api.test.mjs
 node test/public-api-types.mjs
 ```
 
@@ -457,3 +492,18 @@ node --no-opt --max-old-space-size=2048 scripts/modeling-miter-consumer.mjs test
 ```
 
 These are bounded CPU native receipts, not browser/GPU or performance claims.
+
+The validated-finishing flow uses eight model evaluations and one negative-body
+tessellation. Six source evaluations cover active, explicit no-op, atomic both-off,
+front-only, suppressed invalid-edge refusal and restoration. Two fresh emitted
+evaluations cover cold named-state rebuild and front-off re-edit. Descriptor/name
+controls reject before evaluation and are accounted separately. Both disabled
+native candidates remain validated diagnostic results.
+
+```sh
+node --no-opt --max-old-space-size=2048 test/modeling-suppression-native.mjs
+node --no-opt --max-old-space-size=2048 scripts/modeling-suppression-consumer.mjs test/modeling-suppression-evidence
+```
+
+The larger non-convex/curved owned-body, authored-codec and display contracts
+needed for holes and union remain separate roadmap dependencies.
