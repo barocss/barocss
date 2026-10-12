@@ -91,6 +91,18 @@ assert.equal(splitSample.ok, true); assert.deepEqual(splitSample.summary.outputs
 assert.deepEqual(splitSample.summary.parameters, { height: 8, splitHeight: 2 });
 assert.equal(splitSample.summary.features.at(-1).kind, 'split'); assert.equal(splitCalls, 1);
 assert.deepEqual(JSON.parse(splitSample.text).outputs, { lower: { node: 2, side: 'negative' }, upper: { node: 2, side: 'positive' } }); checks++;
+for (const splitAxis of ['x', 'y', 'z']) {
+  const sample = sampleEngine({ id: ++id, kind: 'example', example: 'horizontal-split', splitAxis });
+  assert.equal(sample.ok, true); const document = JSON.parse(sample.text);
+  assert.equal(document.nodes.at(-1).axis, splitAxis);
+  assert.deepEqual(sample.summary.outputs.map(o => o.name), splitAxis === 'z' ? ['lower', 'upper'] : ['negative', 'positive']);
+  assert.deepEqual(sample.summary.parameters, splitAxis === 'z' ? { height: 8, splitHeight: 2 } : { splitAt: 16, rearX: 16, height: 8 }); checks++;
+}
+for (const [example, splitAxis] of [['horizontal-split', 'q'], ['horizontal-split', null], ['horizontal-split', 1], ['horizontal-split', {}], ['intersection', 'x'], ['cut-chamfer', 'z'], [undefined, 'y']]) {
+  const calls = sampleCalls;
+  assert.equal(sampleEngine({ id: ++id, kind: 'example', example, splitAxis }).ok, false);
+  assert.equal(sampleCalls, calls); checks++;
+}
 const beforeSamples = sampleCalls;
 assert.equal(sampleEngine({ id: ++id, kind: 'example', example: 'not-a-sample' }).ok, false);
 assert.equal(sampleCalls, beforeSamples); checks++;

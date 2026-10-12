@@ -73,13 +73,39 @@ The two-output example requires `0 < splitHeight < height`. At or beyond either 
 
 A caller may instead build only a genuinely nonempty side from an outside/tangent split; that returns the provider's actual unchanged parent body. The two-output example never substitutes that side for an empty request. Other exact qualification/chart/budget failures remain native refusals with their original cause.
 
-In **Modeling examples**, choose **Split a part by height**, acknowledge replacement and load it. The original cut/chamfer default and overlap choice remain available. The existing controller owns replacement, cancellation, drafts and history; lower/upper flow through the same named-output display and selection path. A refused or cancelled load preserves the previously accepted model and pending dimensions.
+In **Modeling examples**, choose **Split a part**, keep **Z · lower / upper**, acknowledge replacement and load it. The original cut/chamfer default and overlap choice remain available. The existing controller owns replacement, cancellation, drafts and history; lower/upper flow through the same named-output display and selection path. A refused or cancelled load preserves the previously accepted model and pending dimensions.
 
-This API admits one horizontal split of a direct XY extrusion. A model may contain one split OR one cut OR one intersection, not a mixture. Arbitrary planes, X/Y split axes, repeated/nested splits and split parents made by other operations are outside this surface. This example does not demonstrate chamfering a split side.
+This Z example splits a direct XY extrusion horizontally. The current API also supports X/Y planes as described next. A model may contain one split OR one cut OR one intersection, not a mixture. Oblique planes, repeated/nested splits and split parents made by other operations are outside this surface. This example does not demonstrate chamfering a split side.
 
 The [split source](https://github.com/barocss/barocss/blob/142f4e5d745e1494771a530e293b374d1d29bcb2/packages/barocss-cad/src/modeling.ts) and [native receipt](https://github.com/barocss/barocss/blob/142f4e5d745e1494771a530e293b374d1d29bcb2/packages/barocss-cad/test/modeling-split-evidence/verification.json) record the baseline, edit and fresh-process results above. Lightweight tracing compares the exact five parameter/sketch/extrude/split calls and named output mapping of this download, the editor and the provider fixture, including signed zero. The provider's two genuine baseline tessellations are replayed through the actual controller with a mocked Worker; both CPU geometries and approximate CPU picks retain their lower/upper identities. This is not a second native execution or an editor browser/GPU test.
 
 Provider [#1619](https://github.com/barocss/barocss/issues/1619) and consumer [#1620](https://github.com/barocss/barocss/issues/1620) track their own evidence. Typed download checks, native producer evaluation, controller replay, actual browser/GPU pixels, physical file-picker acceptance, manual deployment and npm publication are separate gates; unexecuted gates remain **UNRUN**.
+
+### Choose an X or Y split plane
+
+<a :href="withBase('/examples/modeling-cardinal-split.ts')" download>Download the complete typed X/Y split example</a>
+
+Use the same `split({ axis, at })` operation with world axis `'x'` or `'y'`. For closed outputs, `negative` occupies coordinates `≤ at` and `positive` coordinates `≥ at`; both include their shared boundary plane. Names describe the selected coordinate, not volume signs or screen-left/screen-right.
+
+<<< ../../public/examples/modeling-cardinal-split.ts#cardinal-part
+
+Call `makeCardinalSplit('x')` for an X plane, or `makeCardinalSplit('y')` for a Y plane. With `splitAt: 16`, both fixtures have **negative / positive = 4096 / 3072 mm³**. The X fixture's coordinate bounds are **[0,16] / [16,32] mm**. Moving either plane to 24 mm produces **5888 / 1280 mm³**; the total remains **7168 mm³**.
+
+<<< ../../public/examples/modeling-cardinal-split.ts#edit-cardinal
+
+`cardinalSplitWorkflow()` in the download performs the measured X construction → coordinate 24 → save → reopen → coordinate 16 sequence. The saved graph retains its axis, and the restored X outputs return to **4096 / 3072 mm³**. Changing a parameter moves the plane; it does not change the axis or swap the named output mapping.
+
+In **Modeling examples → Split a part**, choose **X · negative / positive** or **Y · negative / positive**. The selector is explicitly for a **new example**. Changing it does not edit the accepted part, scene, pending dimensions or history, and it clears any replacement acknowledgment. A successful acknowledged load creates the selected example and resets its history. A refused or cancelled load retains the previous model, including its authored axis. The default Z choice still uses the exact `height`/`splitHeight` recipe and `lower`/`upper` names above; X/Y use `splitAt`, `rearX`, `height` and `negative`/`positive`.
+
+Exact native representation still matters. On this **X** fixture, setting `rearX: 20` and `splitAt: 24` makes the sloped edge crossing require `Y = 80/3`, which is not exactly representable in binary64. The measured result is `CadModelError` code `NATIVE`, operation `split`, with original cause `ConvexPlanarSolidSplitError`, code `REPRESENTABILITY`, stage `crossing-representability`. Keep the old snapshot; do not snap or approximate the crossing.
+
+<<< ../../public/examples/modeling-cardinal-split.ts#refused-cardinal
+
+Outside/tangent empty-side requests retain the same `SELECTION` behavior as Z. Only world X/Y/Z planes on a direct XY extrusion are admitted: no oblique plane, nested split, mixed cut/intersection/split graph or new chamfer-combination claim.
+
+The [cardinal split source](https://github.com/barocss/barocss/blob/72ba5eb5ba54a94666812ce99ebf5c10fd3f7290/packages/barocss-cad/src/modeling.ts) and [native receipt](https://github.com/barocss/barocss/blob/72ba5eb5ba54a94666812ce99ebf5c10fd3f7290/packages/barocss-cad/test/modeling-cardinal-split-evidence/verification.json) record the X/Y construction/edit results and fresh-process X sequence. Exact six-call authoring traces and output mappings match this download, the editor and the provider fixture for both X and Y. The genuine X baseline transport passes the existing controller and both negative/positive CPU picks. Y uses the producer's real native evidence plus authored recipe/routing/type checks, not a fabricated Y transport replay. No additional native campaign or editor GPU execution is implied.
+
+Provider [#1622](https://github.com/barocss/barocss/issues/1622) and consumer [#1623](https://github.com/barocss/barocss/issues/1623) retain separate receipts. Actual editor browser/GPU pixels, physical file-picker acceptance and npm publication remain **UNRUN** by these checks; deployment is recorded separately.
 
 ## 3. Read named outputs and evidence
 
@@ -117,7 +143,7 @@ This loader accepts files from this modeling API. Existing versioned feature doc
 | Extrude | Positive +Z height up to 10000 mm; exact affine native prism qualification | Taper, sweep, nonpositive height or nonrepresentable native/chart lift |
 | Cut | Two distinct direct XY extrusions; X or Y through-slab supports; full coverage by the remaining tool supports | Arbitrary cutter, cavity, union, chained cut parent, failed tool coverage |
 | Intersect | Two distinct same-model direct XY extrusions; positive-volume exact convex-planar overlap | Disjoint/touching-only results, same handle, cut-plus-intersection, repeated/nested intersection, union or general Boolean solids |
-| Split | One direct XY extrusion; `axis: 'z'` with a finite split height; each selected side must be nonempty | Arbitrary plane or X/Y axis, empty requested side, mixed cut/intersection/split graph, repeated/nested split |
+| Split | One direct XY extrusion; world `axis: 'x'`, `'y'` or `'z'` with a finite coordinate; each selected side must be nonempty | Oblique plane, empty requested side, mixed cut/intersection/split graph, repeated/nested split |
 | Select | One exact cardinal-direction/endpoint-coordinate query on the same body | Zero/multiple matches, handles from another model/body, tolerance or persistent-topology matching |
 | Chamfer | One cardinal edge; perpendicular signed-axis adjacent supports, valence-three endpoints, perpendicular end supports; positive local setback | Repeated/multi-edge chamfer, curved or arbitrary-angle chamfer, zero/excessive/touching/nonlocal setback |
 | Edit/load | Named finite-mm parameter batch; complete bounded rebuild into a new snapshot | Partial accepted candidate, arbitrary graph editing, implicit migration or cached geometry acceptance |
@@ -153,7 +179,7 @@ Adopted engine source: [`4a2d2c5a`](https://github.com/barocss/barocss/blob/4a2d
 
 The receipt preserves **15 initial-source evaluations** and **6 final evaluations**: source 1, emitted 1 and fresh-process cold 4. The initial source preceded array-admission/per-kind-limit hardening; the native geometry evaluator was unchanged. Final cold steps rebuilt the authored serial part and re-edited it. Do not describe all 21 evaluations as a fresh replay of the final source. Full package lint retained 27 existing errors, and the legacy consumer harness failed before imports on its inherited archive-name mismatch; the separate aggregate verifier also stopped after type/lightweight tests on a dependency-tooling failure before its lint step. Focused evidence is not a green whole-package claim.
 
-The original cut/chamfer snippets were typechecked against this source and its already-emitted declarations. The intersection and split examples have their own source-pinned provider checks and receipts; it does not rewrite the historical baseline evidence. The following optional check reads real native certificates if the host invokes it; the documentation check does **not** invoke it or run another native campaign:
+The original cut/chamfer snippets were typechecked against this source and its already-emitted declarations. The intersection and split examples have their own source-pinned provider checks and receipts; they do not rewrite the historical baseline evidence. The following optional check reads real native certificates if the host invokes it; the documentation check does **not** invoke it or run another native campaign:
 
 <<< ../../../scripts/snippets/modeling-api.ts#checks
 

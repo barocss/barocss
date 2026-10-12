@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { createCadEditorModelingController } from '../modeling-controller.js';
 import type { CadEditorModelingController, CadEditorModelingSnapshot } from '../modeling-controller.js';
-import type { CadEditorModelingExample } from '../modeling-engine.js';
+import type { CadEditorModelingExample, CadEditorModelingSplitAxis } from '../modeling-engine.js';
 import { createPrismFeatureDisplay } from '../prism-feature-display.js';
 import { Button } from './ui/button.js';
 import { Input } from './ui/input.js';
@@ -15,6 +15,7 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
   const displayRef = useRef<ReturnType<typeof createPrismFeatureDisplay> | null>(null);
   const [snapshot, setSnapshot] = useState<CadEditorModelingSnapshot | null>(null);
   const [example, setExample] = useState<CadEditorModelingExample>('cut-chamfer');
+  const [splitAxis, setSplitAxis] = useState<CadEditorModelingSplitAxis>('z');
   const [replaceExample, setReplaceExample] = useState(false);
   const [source, setSource] = useState(''), [confirmed, setConfirmed] = useState(false), [error, setError] = useState<string | null>(null);
   useEffect(() => {
@@ -51,17 +52,28 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         onChange={event => { setExample(event.target.value as CadEditorModelingExample); setReplaceExample(false); }}>
         <option value="cut-chamfer">Cut and chamfer a part</option>
         <option value="intersection">Intersect two extrusions</option>
-        <option value="horizontal-split">Split a part by height</option>
+        <option value="horizontal-split">Split a part</option>
       </select>
+      {example === 'horizontal-split' && <>
+        <Label htmlFor={`${id}-split-axis`}>Split axis for the new example</Label>
+        <select id={`${id}-split-axis`} value={splitAxis} disabled={busy}
+          onChange={event => { setSplitAxis(event.target.value as CadEditorModelingSplitAxis); setReplaceExample(false); }}>
+          <option value="z">Z · lower / upper</option>
+          <option value="x">X · negative / positive</option>
+          <option value="y">Y · negative / positive</option>
+        </select>
+        <p>Axis choice loads a new example after replacement acknowledgment; it does not edit the accepted part.</p>
+      </>}
       <p>{example === 'horizontal-split'
-        ? 'Split one direct XY extrusion at a Z height into lower and upper bodies. Both named sides must have positive volume.'
+        ? splitAxis === 'z' ? 'Split one direct XY extrusion at a Z height into lower and upper bodies. Both named sides must have positive volume.'
+          : 'Split one direct XY extrusion at an X or Y coordinate into negative and positive bodies. Negative is the lower-coordinate side.'
         : example === 'intersection'
           ? 'Intersection keeps only the positive-volume overlap of two direct convex XY extrusions. Empty or touching-only results are refused.'
           : 'Cut a through-slab from a part, then chamfer one supported edge. Both outside components remain named outputs.'}</p>
       {accepted && <Label><input type="checkbox" checked={replaceExample} disabled={busy}
         onChange={event => setReplaceExample(event.target.checked)} /> Replace accepted model and discard its history and pending dimensions</Label>}
       <div><Button disabled={busy || (!!accepted && !replaceExample)} onClick={() => action(async s => {
-        await s.example(example); if (!s.getSnapshot().error) setReplaceExample(false);
+        await s.example(example, example === 'horizontal-split' ? splitAxis : undefined); if (!s.getSnapshot().error) setReplaceExample(false);
       })}>Load example</Button></div>
     </details>
     <div ref={viewport} style={{ position: 'relative', width: '100%', height: 400, marginTop: 16, background: '#06090d' }}

@@ -10,9 +10,11 @@ export interface CadEditorModelingSummary {
   features: { kind: string; index: number; dependencies: number[] }[];
   outputs: { name: string; solidId: string; volumeMM3: { numerator: string; denominator: string } | null }[];
 }
+export type CadEditorModelingSplitAxis = 'x' | 'y' | 'z';
+/** The split example ID is retained for compatibility; splitAxis defaults to Z. */
 export type CadEditorModelingExample = 'cut-chamfer' | 'intersection' | 'horizontal-split';
 export type ModelingCommand = { id: number } & (
-  { kind: 'example'; example?: CadEditorModelingExample } | { kind: 'open'; text: string; revision?: number }
+  { kind: 'example'; example?: CadEditorModelingExample; splitAxis?: CadEditorModelingSplitAxis } | { kind: 'open'; text: string; revision?: number }
   | { kind: 'apply'; expectedRevision: number; parameters: Record<string, number> }
 );
 export type ModelingReply = { id: number } & (
@@ -49,6 +51,16 @@ export function createCadEditorSplitModel(): CadModelSnapshot {
   const blank = model.sketch.polygon([[-0, 0], [32, 0], [32, 16], [16, 32], [0, 32]]).extrude(height);
   const halves = blank.split({ axis: 'z', at: splitHeight });
   return model.build({ lower: halves.negative, upper: halves.positive });
+}
+
+/** The same split sample with a cardinal X/Y recipe and explicit coordinate-side names. */
+export function createCadEditorCardinalSplitModel(axis: 'x' | 'y'): CadModelSnapshot {
+  const model = cad.model();
+  const splitAt = model.parameter('splitAt', 16), rearX = model.parameter('rearX', 16);
+  const height = model.parameter('height', 8);
+  const blank = model.sketch.polygon([[-0, 0], [32, 0], [32, 16], [rearX, 32], [0, 32]]).extrude(height);
+  const parts = blank.split({ axis, at: splitAt });
+  return model.build({ negative: parts.negative, positive: parts.positive });
 }
 
 /** Inspect only the envelope. The chosen native codec validates every remaining field. */
@@ -89,6 +101,9 @@ export function createModelingEngine() {
       if (!command || !Number.isSafeInteger(command.id) || command.id < 1) throw new Error('A current worker request is required.');
       if (command.kind === 'example' && command.example !== undefined && command.example !== 'cut-chamfer' && command.example !== 'intersection' && command.example !== 'horizontal-split')
         throw new Error('Choose an available modeling example.');
+      if (command.kind === 'example' && command.splitAxis !== undefined
+        && (command.example !== 'horizontal-split' || !['x', 'y', 'z'].includes(command.splitAxis)))
+        throw new Error('Choose X, Y or Z for the split example only.');
       if (command.kind === 'open' && command.revision !== undefined && (!Number.isSafeInteger(command.revision) || command.revision < 0))
         throw new Error('Invalid worker reconstruction revision.');
       if (command.kind === 'apply') {
@@ -113,7 +128,8 @@ export function createModelingEngine() {
       }
       if (source !== 'model') throw new Error('Open a saved model first.');
       const snapshot = command.kind === 'example' ? (command.example === 'intersection' ? createCadEditorIntersectionModel()
-        : command.example === 'horizontal-split' ? createCadEditorSplitModel() : createCadEditorSampleModel())
+        : command.example === 'horizontal-split' ? (command.splitAxis === 'x' || command.splitAxis === 'y'
+          ? createCadEditorCardinalSplitModel(command.splitAxis) : createCadEditorSplitModel()) : createCadEditorSampleModel())
         : command.kind === 'open' ? cad.load(command.text)
           : accepted?.source === 'model' ? accepted.snapshot.withParameters(command.parameters) : null;
       if (!snapshot) throw new Error('Open a saved model first.');

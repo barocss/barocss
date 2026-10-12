@@ -41,6 +41,9 @@ const overlap = { ...structuredClone(authored), parameters: { rearX: 16, leftX: 
 const split = { ...structuredClone(authored), parameters: { height: 8, splitHeight: 2 },
   nodes: [{ kind: 'sketch' }, { kind: 'extrude' }, { kind: 'split', parent: 1, axis: 'z', at: { parameter: 'splitHeight' } }],
   outputs: { lower: { node: 2, side: 'negative' }, upper: { node: 2, side: 'positive' } } };
+const cardinal = axis => ({ ...structuredClone(split), parameters: { splitAt: 16, rearX: 16, height: 8 },
+  nodes: split.nodes.map((node, index) => index === 2 ? { ...node, axis, at: { parameter: 'splitAt' } } : node),
+  outputs: { negative: { node: 2, side: 'negative' }, positive: { node: 2, side: 'positive' } } });
 function reply(document = authored, revision = 0) {
   const names = Object.keys(document.outputs);
   return { id: 1, ok: true, text: signedJSON(document), summary: { documentId: 'cad_model', revision, source: 'model', parameters: document.parameters,
@@ -61,7 +64,7 @@ class Worker {
   terminate() { this.terminated = true; }
   send(result, id = this.requests.at(-1).id) { this.callbacks.get('message')({ data: { ...structuredClone(result), id } }); }
   accept(command = this.requests.at(-1)) {
-    const document = command.kind === 'example' ? structuredClone(command.example === 'intersection' ? overlap : command.example === 'horizontal-split' ? split : authored) : command.kind === 'open' ? JSON.parse(command.text) : structuredClone(this.document);
+    const document = command.kind === 'example' ? structuredClone(command.example === 'intersection' ? overlap : command.example === 'horizontal-split' ? (command.splitAxis === 'x' || command.splitAxis === 'y' ? cardinal(command.splitAxis) : split) : authored) : command.kind === 'open' ? JSON.parse(command.text) : structuredClone(this.document);
     if (command.kind === 'apply') Object.assign(document.parameters, command.parameters);
     this.document = document;
     const result = reply(document, command.kind === 'apply' ? command.expectedRevision + 1 : command.revision ?? 0); this.send(result, command.id); return result;
@@ -112,25 +115,40 @@ try {
     if (mode === 'display-refusal' || mode === 'cancel-staging' || mode === 'worker-failure-staging') assert.ok(disposals >= 2); s.dispose(); checks++;
   }
   // Every additive sample uses the same atomic replacement path, including drafts/history.
-  for (const [example, document, kind, outputs] of [['intersection', overlap, 'intersect', ['overlap']], ['horizontal-split', split, 'split', ['lower', 'upper']]]) {
+  for (const [example, document, kind, outputs, axis] of [['intersection', overlap, 'intersect', ['overlap']], ['horizontal-split', split, 'split', ['lower', 'upper']], ['horizontal-split', cardinal('x'), 'split', ['negative', 'positive'], 'x'], ['horizontal-split', cardinal('y'), 'split', ['negative', 'positive'], 'y']]) {
     const samples = create(); p = samples.example(); let sampleWorker = instances.at(-1); sampleWorker.accept(); await p;
     samples.stage('height', '6'); p = samples.apply(); sampleWorker.accept(); await p;
     samples.stage('height', '7'); const beforeSample = stable(samples);
-    p = samples.example(example); assert.equal(sampleWorker.requests.at(-1).example, example);
+    p = samples.example(example, axis); assert.equal(sampleWorker.requests.at(-1).example, example); assert.equal(sampleWorker.requests.at(-1).splitAxis, axis);
     sampleWorker.send({ ok: false, message: `${example} sample refused` }); await p;
     assert.deepEqual(stable(samples), beforeSample); checks++;
-    p = samples.example(example); const cancelledSample = sampleWorker.requests.at(-1); samples.cancel(); sampleWorker.accept(cancelledSample); await p;
+    p = samples.example(example, axis); const cancelledSample = sampleWorker.requests.at(-1); samples.cancel(); sampleWorker.accept(cancelledSample); await p;
     assert.deepEqual(stable(samples), beforeSample); checks++;
-    p = samples.example(example); sampleWorker = instances.at(-1); sampleWorker.accept(); await p;
+    p = samples.example(example, axis); sampleWorker = instances.at(-1); sampleWorker.accept(); await p;
     assert.deepEqual(samples.getSnapshot().accepted.outputs.map(output => output.name), outputs);
     assert.equal(samples.getSnapshot().accepted.features.at(-1).kind, kind);
     assert.equal(samples.getSnapshot().history.count, 1); assert.deepEqual(samples.getSnapshot().drafts, {}); checks++;
     samples.stage('height', '2'); const beforeOutputChange = stable(samples); p = samples.apply();
     const changed = structuredClone(document); changed.parameters.height = 2;
-    if (example === 'horizontal-split') changed.outputs.lower.side = 'positive';
+    if (axis) changed.outputs.negative.side = 'positive';
+    else if (example === 'horizontal-split') changed.outputs.lower.side = 'positive';
     else changed.outputs.overlap.node = 1;
-    sampleWorker.send(reply(changed, 1)); await p; assert.deepEqual(stable(samples), beforeOutputChange); samples.dispose(); checks++;
+    sampleWorker.send(reply(changed, 1)); await p; assert.deepEqual(stable(samples), beforeOutputChange); checks++;
+    if (axis) {
+      // A rejected forged result terminates that worker; use a fresh accepted session for the independent axis guard.
+      const axisSession = create(); p = axisSession.example(example, axis); const axisWorker = instances.at(-1); axisWorker.accept(); await p;
+      axisSession.stage('height', '2'); const beforeAxisChange = stable(axisSession); p = axisSession.apply();
+      const forged = structuredClone(document); forged.parameters.height = 2; forged.nodes[2].axis = axis === 'x' ? 'y' : 'x';
+      axisWorker.send(reply(forged, 1)); await p; assert.deepEqual(stable(axisSession), beforeAxisChange); axisSession.dispose(); checks++;
+    }
+    samples.dispose();
   }
+  const invalid = create(); const beforeInvalid = stable(invalid), beforeWorkers = instances.length;
+  for (const [example, axis] of [['horizontal-split', 'q'], ['horizontal-split', null], ['horizontal-split', 1], ['horizontal-split', {}], ['intersection', 'x'], ['cut-chamfer', 'z'], [undefined, 'y'], ['unknown', undefined]]) {
+    await assert.rejects(invalid.example(example, axis), /Choose/);
+    assert.equal(instances.length, beforeWorkers); assert.deepEqual(stable(invalid), beforeInvalid); checks++;
+  }
+  invalid.dispose();
   // The codec owns supported kinds. The transport validates their shape without a whitelist.
   for (const kind of ['intersect', 'split', 'future-native-operation']) {
     const data = structuredClone(authored); data.nodes[1].kind = kind;

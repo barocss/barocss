@@ -1,7 +1,7 @@
 import { preparePrismFeatureScene, pickPrismFeatureScene } from './prism-feature-scene.js';
 import type { PrismDisplayScene, PrismFaceSelection } from './prism-feature-scene.js';
 import type { PrismDisplayPort, PrismDisplayCandidate } from './prism-feature-display.js';
-import type { CadEditorModelingExample, CadEditorModelingSummary, ModelingCommand, ModelingReply } from './modeling-engine.js';
+import type { CadEditorModelingExample, CadEditorModelingSplitAxis, CadEditorModelingSummary, ModelingCommand, ModelingReply } from './modeling-engine.js';
 import { validatePrismFeatureNativeReply } from './prism-feature-controller.js';
 import type { CadEditorPrismFeatureSummary } from './prism-feature-types.js';
 
@@ -97,8 +97,15 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
     pending = { id, resolve, reject, timer: setTimeout(() => stop('Native operation timed out. Accepted model is retained.'), 120000) };
     try { worker.postMessage({ ...payload, id }); } catch { stop('Could not send the model to its native worker.'); }
   });
-  async function run(kind: 'open' | 'example' | 'apply' | 'undo' | 'redo', text?: string, example?: CadEditorModelingExample) {
-    idle(); let parameters: Record<string, number> = {}, target = index;
+  async function run(kind: 'open' | 'example' | 'apply' | 'undo' | 'redo', text?: string, example?: CadEditorModelingExample, splitAxis?: CadEditorModelingSplitAxis) {
+    idle();
+    if (kind === 'example') {
+      if (example !== undefined && !['cut-chamfer', 'intersection', 'horizontal-split'].includes(example))
+        throw new Error('Choose an available modeling example.');
+      if (splitAxis !== undefined && (example !== 'horizontal-split' || !['x', 'y', 'z'].includes(splitAxis)))
+        throw new Error('Choose X, Y or Z for the split example only.');
+    }
+    let parameters: Record<string, number> = {}, target = index;
     if (kind === 'open') {
       if (typeof text !== 'string' || text.length > FILE_LIMIT || new TextEncoder().encode(text).length > FILE_LIMIT)
         throw new Error('Authored input exceeds 262144 UTF-8 bytes or characters.');
@@ -124,7 +131,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
           throw new Error('Reconstruction differs from the accepted model.');
         if (operation !== epoch) return; ready = true;
       }
-      const reply = await request(kind === 'example' ? { kind: 'example', ...(example === undefined ? {} : { example }) } : kind === 'open' ? { kind: 'open', text: text! }
+      const reply = await request(kind === 'example' ? { kind: 'example', ...(example === undefined ? {} : { example }), ...(splitAxis === undefined ? {} : { splitAxis }) } : kind === 'open' ? { kind: 'open', text: text! }
         : { kind: 'apply', expectedRevision: state.accepted!.revision, parameters });
       if (operation !== epoch || state.disposed) return;
       nativeCandidate = true; const candidateWorker = worker;
@@ -168,7 +175,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
   return {
     getSnapshot: (): CadEditorModelingSnapshot => clone(state),
     subscribe(listener: () => void) { live(); listeners.add(listener); return () => { listeners.delete(listener); }; },
-    open: (text: string) => run('open', text), example: (example?: CadEditorModelingExample) => run('example', undefined, example), apply: () => run('apply'), undo: () => run('undo'), redo: () => run('redo'),
+    open: (text: string) => run('open', text), example: (example?: CadEditorModelingExample, splitAxis?: CadEditorModelingSplitAxis) => run('example', undefined, example, splitAxis), apply: () => run('apply'), undo: () => run('undo'), redo: () => run('redo'),
     stage(name: string, raw: string) {
       idle(); if (!state.accepted || !Object.hasOwn(state.accepted.parameters, name) || typeof raw !== 'string' || raw.length > 128)
         throw new Error('Choose a named dimension and bounded decimal input.');
