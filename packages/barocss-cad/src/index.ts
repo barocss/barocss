@@ -545,3 +545,5 @@ export type { XYAffinePrismChamferNode, XYAffinePrismFeatureBindingV1, XYAffineP
 
 export { tessellateConvexPlanarSolid, validateConvexPlanarSolidMesh, ConvexPlanarSolidMeshError, ConvexPlanarSolidMeshLimits } from './convex-planar-solid-mesh.js';
 export type { ConvexPlanarSolidMeshDiagnosticCode, ConvexPlanarSolidMeshOptions, ConvexPlanarSolidMeshVertex, ConvexPlanarSolidMeshFace, ConvexPlanarSolidMeshBoundary, ConvexPlanarSolidMeshReport, ConvexPlanarSolidMeshResult } from './convex-planar-solid-mesh.js';
+
+export { cad } from './public-api.js';
