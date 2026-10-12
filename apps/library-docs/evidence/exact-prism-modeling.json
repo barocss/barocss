@@ -1,0 +1,152 @@
+{
+  "issue": "https://github.com/barocss/barocss/issues/1600",
+  "engineSourcePin": "31b3033f9db55cab3aa61e3a15e755546d49823a",
+  "node": "22.23.3",
+  "vitepress": "1.6.4",
+  "scope": "One pinned public-source example and affected manual build; no native suite",
+  "consumer": {
+    "flow": "authored sketch-prism-slab/edit/codec; separate original-edge chamfer",
+    "remainingMM3": [
+      5120,
+      3328
+    ],
+    "parentMM3": 7168,
+    "retainedChamferMM3": [
+      7104,
+      7152
+    ],
+    "authoredBytes": 3641,
+    "sourceOnlyCodec": true,
+    "priorValidation": {
+      "sketchBuilds": 2,
+      "prismBuilds": 2,
+      "wallResolutions": 2,
+      "subtractions": 1,
+      "sourceCompilations": 93,
+      "faceCompilations": 87,
+      "bindingObservations": 1062,
+      "totalD1": 3186,
+      "rationalContexts": 15,
+      "rationalOperations": 592926,
+      "gcdSteps": 61460
+    },
+    "selectiveCandidate": {
+      "sketchBuilds": 1,
+      "prismBuilds": 1,
+      "wallResolutions": 2,
+      "subtractions": 1,
+      "sourceCompilations": 77,
+      "faceCompilations": 73,
+      "bindingObservations": 882,
+      "totalD1": 2646,
+      "rationalContexts": 12,
+      "rationalOperations": 511936,
+      "gcdSteps": 53580
+    },
+    "refusals": [
+      "stale document revision",
+      "zero chamfer distance"
+    ],
+    "browser": "not run",
+    "gpu": "not run",
+    "emittedPackage": "not run"
+  },
+  "provenance": {
+    "sourcePin": "31b3033f9db55cab3aa61e3a15e755546d49823a",
+    "node": "22.23.3",
+    "pinnedBlobs": 251,
+    "ownSourceInputs": 249,
+    "ownDistInputs": 0,
+    "consumerSha256": "366f3d52987cc0919b37bacce64ef9f2ae401d8ece9908e7005bd624e7f2026f",
+    "bundleSha256": "4d0828967e90a83f557b399759bd9c8c3a1d12d13f9367f356e898c0d20eff83",
+    "scope": "one public-source consumer; no native suite, browser, GPU or registry acceptance"
+  },
+  "resourceLimits": {
+    "childTimeoutSeconds": 180,
+    "heapMiB": 2048,
+    "providerBundleBytesMax": 16777216,
+    "childOutputBytesMax": 1048576,
+    "staticNativeUpperBounds": {
+      "sourceCompilations": 1040,
+      "faceCompilations": 1002,
+      "D1": 45468,
+      "rationalOperations": 20000000
+    },
+    "upperBoundMeaning": "Conservative six document phase envelopes plus two chamfers; not measured call counts"
+  },
+  "checks": {
+    "syntax": "passed",
+    "snippetRegions": 4,
+    "manifestInventory": "12 preserved manifests at23e6615a; historical5f5ad866 untouched",
+    "manualBuild": {
+      "status": "blocked",
+      "firstAttempt": {
+        "exitCode": 137,
+        "heapMiB": 2048,
+        "cause": "unproven resource termination"
+      },
+      "cachedRetry": {
+        "command": [
+          "node",
+          "node_modules/vitepress/bin/vitepress.js",
+          "build",
+          "docs"
+        ],
+        "heapMiB": 1024,
+        "timeoutSeconds": 180,
+        "elapsedSeconds": 30.755,
+        "exitCode": -9,
+        "timedOut": false,
+        "maximumChildRSSKiB": 831608,
+        "sourceConsumerRerun": false,
+        "firstBuildExit": 137,
+        "firstBuildCause": "unproven resource termination"
+      },
+      "repair": "four included source regions explicitly use js syntax highlighting",
+      "furtherRetries": 0
+    },
+    "docsAndBase": {
+      "status": "not run",
+      "reason": "full HTML build did not finish"
+    }
+  },
+  "publication": {
+    "status": "not published; root gate and successful full build/docs/base checks pending",
+    "workflowRepository": "barocss/manual",
+    "workflowBlob": "3509460c123b46a5a57d1695a31d3aa8a9156a48",
+    "base": "/manual/",
+    "domainDnsCname": "unchanged",
+    "manualRepositoryHead": "b665bbd9df2c4e319ff0cfc25caa9f7d2c280b28",
+    "remainingGate": "Unchanged exact-source Actions build, docs check and base-path check must pass before successful Pages deployment can be claimed"
+  },
+  "limits": [
+    "Browser live-site BLOCKED_BY_CLIENT not retried or bypassed",
+    "No OS file-picker, GPU, native screen, emitted-package or registry acceptance"
+  ],
+  "commands": [
+    "node apps/library-docs/scripts/run-exact-prism-modeling.mjs",
+    "BAROCSS_DOCS_BASE=/manual/ node apps/library-docs/scripts/build-examples.mjs",
+    "cd apps/library-docs && BAROCSS_DOCS_BASE=/manual/ node node_modules/vitepress/bin/vitepress.js build docs",
+    "node apps/library-docs/scripts/check-docs.mjs",
+    "node apps/library-docs/scripts/check-base-path.mjs /manual/"
+  ],
+  "logs": {
+    "examples-build.log": {
+      "sha256": "b921d4ec8278ee95cb17e86524269857987d8d4e97fa10f27e5787b18eac69f8",
+      "bytes": 655
+    },
+    "source-consumer.log": {
+      "sha256": "05af9ef5fd65f28707506d0a75a38b888d6af8bdd1243e0a6f5ece2c527c3635",
+      "bytes": 1719
+    },
+    "manual-build-retry.log": {
+      "sha256": "d5187436d6dbebd5785c434c1da52f8864d72fde9cc68ddd0f92406278fc5c33",
+      "bytes": 5471
+    },
+    "manual-build.log": {
+      "sha256": "ffd95ab93346860c8b6dec93b59a928551d93823ddc4192503f0f52d7557a5bd",
+      "bytes": 6461
+    }
+  },
+  "sourceConsumerComment": "https://github.com/barocss/barocss/issues/1600#issuecomment-6122871336"
+}

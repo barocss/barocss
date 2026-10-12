@@ -1,5 +1,9 @@
 # CAD examples
 
+## Exact editable prism and source-edge chamfer
+
+[Run the complete sketch → prism → slab → edit → codec example](./exact-prism-modeling), then chamfer the original uncut parent. The pinned CPU consumer checks remaining volume 5120→3328 mm³ and chamfer retained volumes 7104/7152 mm³. This is separate from the historical gallery and makes no editor/GPU or arbitrary Boolean claim.
+
 [Adaptive Curve display](./adaptive-curve-sampling) — Use a complete weighted degree-five Curve request to change display tolerance while keeping the native coefficients and full source intact.
 
 Compile original geometry, query it, then prepare a separate display mesh. These examples use actual `@barocss/cad` public exports at version `0.0.0-experimental`. Use [the language reference](./language) to edit source0/1/2 correctly.

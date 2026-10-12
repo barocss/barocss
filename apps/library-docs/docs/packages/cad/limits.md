@@ -1,5 +1,9 @@
 # CAD limits and errors
 
+## Newer exact convex modeling profile
+
+The separate [sketch, cut and chamfer guide](./exact-prism-modeling) covers adopted convex planar operations and a fixed five-node authored v0 document. Restricted source-edge chamfer is available for one cardinal perpendicular edge with orthogonal ends. General Boolean, chamfer, fillet and persistent topology naming remain outside that profile. Its source-only codec does not establish editor file-picker or GPU acceptance.
+
 ## Literal geometry and compiler bounds
 
 | Resource | Bound |
