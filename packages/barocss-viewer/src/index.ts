@@ -2471,3 +2471,11 @@ export { ViewerNativeSurfaceUV01Error } from './native-surface-uv01-candidate.js
 export type { ViewerNativeSurfaceUV01Code, ViewerNativeSurfaceUV01Owner, ViewerNativeSurfaceUV01Material,
   ViewerNativeSurfaceUV01Input, ViewerNativeSurfaceUV01Accepted, ViewerNativeSurfaceUV01Pick } from './native-surface-uv01-candidate.js';
 export type { ViewerNativeSurfaceUV01WebGPU } from './native-surface-uv01-webgpu.js';
+
+/** Additive original-source/TEN consumer of the required-WebGPU point-light viewport. */
+export { createNativePointLightWebGPUViewer } from './native-point-light-webgpu.js';
+export { ViewerNativePointLightError } from './native-point-light-candidate.js';
+export type { ViewerNativePointLightCode, ViewerNativePointLightOwner,
+  ViewerNativePointLightInput, ViewerNativePointLightAccepted,
+  ViewerNativePointLightPick } from './native-point-light-candidate.js';
+export type { ViewerNativePointLightWebGPU } from './native-point-light-webgpu.js';

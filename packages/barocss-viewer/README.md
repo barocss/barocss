@@ -1136,3 +1136,64 @@ awaited transactions and ownership, not hardware rendering. Existing #1574 and
 #1580 unchanged provider proofs are reused. Actual WebGPU compilation, pixels,
 physical picking and browser/driver lifetime remain externally owned UNRUN;
 no default-readiness, Editor adoption or full producer-suite claim follows.
+
+## Native point-light WebGPU bridge (#1621)
+
+`createNativePointLightWebGPUViewer(canvas, input, {width, height})` is an additive,
+required-WebGPU consumer of the existing point-light viewport. It joins the actual
+original CAD document and all ten source-binding fields with current visible
+Surfaces, raw material bindings, poses and camera. Existing Viewer, directional
+and UV APIs are unchanged. This bridge does not add an Editor panel or a file codec.
+
+The exact input is `{format:'barocss-viewer-native-point-light-input', version:0,
+owner, source, display, materials, lights, context}`. `source`, `display` and
+`context` reuse the existing native appearance input. Select 1–4 genuine native
+Surfaces, including hidden ones; at least one must be visible. `materials` targets
+visible full `modelId`/`surfaceId` pairs. `owner:{id,revision}` is separate from CAD
+source revisions and must exactly match the light catalog source/revision,
+including the sign of zero. Complete replacement may explicitly change owners.
+
+`lights` is the unchanged `NativePointLightsV0` catalog: 0–4 ordered lights,
+including disabled entries, with node ID, label, enabled, `positionScene`, linear
+RGB, intensity and `rangeScene`, plus ambient strength. Positions already use
+final-world scene units (finite components ±1e6); range is 0.001–1e6. RGB,
+intensity and ambient are 0–1. Disabled entries are validated too. No native pose,
+mm conversion, normalization or camera transform is applied to light positions
+or ranges. The GPU owns its existing artistic finite-range law and float32
+admission; no inverse-square, photometric or PBR claim follows.
+
+The facade exposes fresh frozen `originals`, accepted original document/TEN
+metadata, full-pair `selected`, actual backend `status`, async `replace`, `resize`,
+`readPixels`, `pick`, synchronous `select`, and idempotent `dispose`. Pick returns
+`{generation,ref,binding}` with the complete accepted binding; background has null
+ref/binding. This is rendered attachment selection, not CAD-exact intersection.
+
+Preparation snapshots ordinary own data synchronously, rejects getters and
+foreign/hidden/cyclic data, and applies the bounded 4 MiB signed-input/12 MiB
+retained-projection limits. Existing source admission runs once per candidate;
+its neutral singleton lighting is private CPU admission only and is absent from
+the actual GPU request. Original packet poses/mm conversion occur in the GPU
+once. Materials retain original source and supplied overrides, including omissions.
+
+One operation lock spans preparation and GPU waits. Candidate metadata is built
+before presentation and adopted only after success. Refusal keeps accepted data;
+loss/disposal prevents late adoption and successful stale reads. Retained original
+metadata does not promise retained pixels when status is unavailable. Recovery
+requires explicit remount. A pending initial factory has no cancellation handle;
+its caller must dispose a late returned facade if the caller has gone away.
+
+Runtime additions: `createNativePointLightWebGPUViewer`,
+`ViewerNativePointLightError`. Type-only additions: `ViewerNativePointLightCode`,
+`ViewerNativePointLightOwner`, `ViewerNativePointLightInput`,
+`ViewerNativePointLightAccepted`, `ViewerNativePointLightPick`,
+`ViewerNativePointLightWebGPU`. Error codes are INPUT, BUDGET, OWNER, SOURCE, GPU,
+BUSY, STATE and DISPOSED; original provider causes are retained.
+
+Focused check (Node 22, existing dependencies):
+`node --test --test-concurrency=1 packages/barocss-viewer/tests/native-point-light-webgpu.test.mjs`.
+After the Viewer declaration/JavaScript build, set `VIEWER_TEST_MODE=dist` for the
+same emitted-Viewer check with original dependency sources. Tests reuse genuine
+source fixtures, actual appearance and point frame/program providers, a private
+controlled mount, and a deterministic software GPU platform. They do not prove
+physical GPU compilation, light pixels, browser picking, files or driver recovery.
+Those gates remain UNRUN under #1584/#1445/#1512/#1254/#674.
