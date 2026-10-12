@@ -250,3 +250,6 @@ export type { NativeDirectionalLightWebGPURequest, NativeDirectionalLightWebGPUO
   NativeDirectionalLightWebGPUViewport, NativeDirectionalLightWebGPUStatus, NativeDirectionalLightWebGPULimits,
   NativeDirectionalLightWebGPUResources, NativeDirectionalLightWebGPUPick,
   NativeDirectionalLightWebGPUFrameOptions } from './native-directional-light-webgpu-frame.js';
+
+export {mountEngineScene,EngineSceneRenderer} from './engine-scene-renderer.js';
+export type {EngineSceneRendererOptions} from './engine-scene-renderer.js';
