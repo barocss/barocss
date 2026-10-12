@@ -314,3 +314,47 @@ This proves transaction/file-content state, not GPU pixels or physical picker
 and download behavior. Existing host/App/panels and synchronous thenable refusal
 remain unchanged. A real directional Add/select/Edit/Remove panel is a separate,
 deferred child; no point/spot support or default backend switch is added here.
+# Directional-light workbench (#1616)
+
+Open **Directional lights** from the Material Editor toolbar, or visit
+`material.html?workbench=directional-lights`. This explicit opt-in route owns one
+required-WebGPU canvas through the existing directional-light controller/session.
+It starts a separate two-Surface study from the original reference source; the
+current Material Editor scene is not implicitly transferred. Navigation asks
+before leaving unsaved data. The ordinary material route remains available.
+
+The Outliner supports 0–4 stable-ID directional lights. Select a light, edit its
+label/enabled state, raw scene-space XYZ direction, linear RGB and relative
+intensity, or remove it. Ambient remains editable with zero lights. Direction
+components are bounded by the existing ±1000 provider limit and cannot all be
+zero. Ambient, RGB and intensity use [0,1]. Numeric fields keep corrective text;
+neither directions nor signed zero are normalized in authored files.
+
+**Apply** submits one complete V1 scene through the actual async session.
+Refusal retains fields and accepted history. **Discard**, **Undo** and **Redo**
+use the same session. **Open** accepts complete directional-scene V1 JSON up to
+2 MiB and fences stale file selection/reads. **Save accepted** requests a full
+authored-file download, excluding unapplied fields; the message does not claim
+that a physical download completed. Original native sources, IDs, material
+authorship, camera and poses remain part of the saved scene.
+
+Unavailable/lost WebGPU is shown explicitly. There is no automatic fallback.
+Save can still request retained accepted authorship after loss; an unavailable
+session cannot acknowledge a new saved marker. Explicit **Remount accepted
+scene** restores accepted authorship, discards drafts only after confirmation,
+and clears Undo/Redo history. Each mount owns and disposes its controller.
+
+Focused verification (Node 22, existing workspace dependencies):
+
+```sh
+node apps/render-editor/native-directional-light-workbench-flow.mjs
+pnpm --filter @barocss/render-editor-app exec tsc --noEmit
+```
+
+The flow runs actual React, original document providers and the real async
+Editor session with a privately controlled Viewer. It covers Add/Edit/Remove,
+history, signed-zero Save/Open, refusal retention, pending actions, stale files,
+startup failure, loss/remount and late-mount cleanup. These are deterministic UI
+and protocol checks, not actual GPU pixels or physical file-dialog acceptance.
+Those remain separate under #1445/#1049/#1254/#674. Point lights, spot lights,
+shadows and photometric accuracy are outside this workbench.
