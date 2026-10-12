@@ -1,0 +1,42 @@
+{
+  "issue": 1620,
+  "base": "692e00a8cf0b6347fb27aa55bf850b3f6472b32c",
+  "providerCandidate": "e3a6e6d8ae1cc11bcae446070353744849ebd67a",
+  "checks": {
+    "source": {
+      "ok": true,
+      "scope": "download/public snippet types, example boundary and TSX syntax; no native CAD or browser execution",
+      "mode": "source",
+      "typedExampleFiles": 3,
+      "enginePin": "e3a6e6d8ae1cc11bcae446070353744849ebd67a",
+      "engineReceiptSHA256": "80ebe9f13e273f3a597ab91fd709e0a91874c540555caef7593cff17c7c3382f",
+      "entrySHA256": "57a7e673051aa44f61e8bed90c34e53c2521901e8b55010421d76b2036a71c5f",
+      "modelingSourceSHA256": "2d6d490554ba7e8b1a15a4dbcbbdee38452b158586c993512e80dfbc0eee568f",
+      "downloadSHA256": "20843920e8f55721a3941d7328b40a7ccccac1a062906b60e3bb36ea368c4c12",
+      "nativeCampaignRun": false
+    },
+    "emitted": {
+      "ok": true,
+      "scope": "download/public snippet types, example boundary and TSX syntax; no native CAD or browser execution",
+      "mode": "emitted",
+      "typedExampleFiles": 3,
+      "enginePin": "e3a6e6d8ae1cc11bcae446070353744849ebd67a",
+      "engineReceiptSHA256": "80ebe9f13e273f3a597ab91fd709e0a91874c540555caef7593cff17c7c3382f",
+      "entrySHA256": "bc51e66126a6727648f41ad3386f0f8731733303570e94acbfcb4daea4d4ce05",
+      "modelingSourceSHA256": "2d6d490554ba7e8b1a15a4dbcbbdee38452b158586c993512e80dfbc0eee568f",
+      "downloadSHA256": "20843920e8f55721a3941d7328b40a7ccccac1a062906b60e3bb36ea368c4c12",
+      "nativeCampaignRun": false
+    }
+  },
+  "downloadSHA256": "20843920e8f55721a3941d7328b40a7ccccac1a062906b60e3bb36ea368c4c12",
+  "historicalExamples": "Original cut/chamfer and intersection examples both typechecked against current split provider without rewriting historical receipts",
+  "runtimeEvidence": "Exact stubbed authoring recipe equality connects editor/download to real provider fixture; preserved baseline transport replay is mocked Worker and actual CPU controller/scene/picking, no new native evaluation",
+  "notRun": [
+    "Full manual build/deployment for this increment",
+    "Editor browser/GPU",
+    "Physical file-picker flow",
+    "Npm publication"
+  ],
+  "adoptedEnginePin": "142f4e5d745e1494771a530e293b374d1d29bcb2",
+  "adoptionParity": "Source, entry, native receipt and provider fixture matched reviewed candidate; typechecks remain exact candidate-byte evidence"
+}

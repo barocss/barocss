@@ -1,6 +1,6 @@
 # Model a part, edit it and reopen it
 
-Use `cad.model()` to author a bounded solid part with named dimensions. Start with a sketch, extrude it, cut it with a through-slab tool or intersect it with another extrusion, and use supported edge chamfers. You do not choose a document version or author native IDs, revisions or reference records.
+Use `cad.model()` to author a bounded solid part with named dimensions. Start with a sketch, extrude it, cut it with a through-slab tool, intersect it with another extrusion, or split it by height, and use supported edge chamfers. You do not choose a document version or author native IDs, revisions or reference records.
 
 All dimensions below are **millimetres**. Use a TypeScript-capable workspace/bundler for source package entries; built ESM and declarations are a separate package build. Source adoption does not establish npm publication.
 
@@ -53,6 +53,34 @@ The [current intersection source](https://github.com/barocss/barocss/blob/45f668
 
 The engine dependency is [intersection #1614](https://github.com/barocss/barocss/issues/1614); the editor/manual consumer is [#1617](https://github.com/barocss/barocss/issues/1617). Source/type/controller validation does not establish browser/GPU pixels, physical Download → fresh picker Open → re-edit, manual deployment or npm publication. Those remain **UNRUN** until separately recorded.
 
+## Split a part into lower and upper bodies
+
+<a :href="withBase('/examples/modeling-split.ts')" download>Download the complete typed split-body example</a>
+
+Use `blank.split({ axis: 'z', at: splitHeight })` to divide one direct XY extrusion at an editable Z height. `negative` means the region at `z ≤ at`; `positive` means `z ≥ at`, regardless of sketch winding. The two closed Solids meet at the split plane. Name them when building the model:
+
+<<< ../../public/examples/modeling-split.ts#split-part
+
+The accepted outputs are `snapshot.bodies.lower` and `snapshot.bodies.upper`. At `splitHeight: 2`, their exact volumes are **1792 / 5376 mm³**, with Z bounds **[0,2] / [2,8] mm**. They are distinct native bodies, not aliases of the original extrusion. Their total volume remains **7168 mm³**.
+
+<<< ../../public/examples/modeling-split.ts#edit-split
+
+`bisectPart(initial)` moves the plane to 4 mm, producing **3584 / 3584 mm³**. Save that snapshot, reopen its authored text, then call `raiseSplit(reopened)` to move the plane to 6 mm: **5376 / 1792 mm³**. The complete `splitPartWorkflow()` in the download shows this sequence. Each successful edit returns a new snapshot; the prior bodies and saved text remain unchanged.
+
+The two-output example requires `0 < splitHeight < height`. At or beyond either end, one requested side is empty, so the rebuild refuses with `CadModelError` code `SELECTION`, operation `split`. Its original cause identifies `side`, native `status` and `sectionDimension` (-1 for outside, 2 for these tangent planes). Keep the previous snapshot, including both named outputs:
+
+<<< ../../public/examples/modeling-split.ts#refused-split
+
+A caller may instead build only a genuinely nonempty side from an outside/tangent split; that returns the provider's actual unchanged parent body. The two-output example never substitutes that side for an empty request. Other exact qualification/chart/budget failures remain native refusals with their original cause.
+
+In **Modeling examples**, choose **Split a part by height**, acknowledge replacement and load it. The original cut/chamfer default and overlap choice remain available. The existing controller owns replacement, cancellation, drafts and history; lower/upper flow through the same named-output display and selection path. A refused or cancelled load preserves the previously accepted model and pending dimensions.
+
+This API admits one horizontal split of a direct XY extrusion. A model may contain one split OR one cut OR one intersection, not a mixture. Arbitrary planes, X/Y split axes, repeated/nested splits and split parents made by other operations are outside this surface. This example does not demonstrate chamfering a split side.
+
+The [split source](https://github.com/barocss/barocss/blob/142f4e5d745e1494771a530e293b374d1d29bcb2/packages/barocss-cad/src/modeling.ts) and [native receipt](https://github.com/barocss/barocss/blob/142f4e5d745e1494771a530e293b374d1d29bcb2/packages/barocss-cad/test/modeling-split-evidence/verification.json) record the baseline, edit and fresh-process results above. Lightweight tracing compares the exact five parameter/sketch/extrude/split calls and named output mapping of this download, the editor and the provider fixture, including signed zero. The provider's two genuine baseline tessellations are replayed through the actual controller with a mocked Worker; both CPU geometries and approximate CPU picks retain their lower/upper identities. This is not a second native execution or an editor browser/GPU test.
+
+Provider [#1619](https://github.com/barocss/barocss/issues/1619) and consumer [#1620](https://github.com/barocss/barocss/issues/1620) track their own evidence. Typed download checks, native producer evaluation, controller replay, actual browser/GPU pixels, physical file-picker acceptance, manual deployment and npm publication are separate gates; unexecuted gates remain **UNRUN**.
+
 ## 3. Read named outputs and evidence
 
 <<< ../../../scripts/snippets/modeling-api.ts#outputs
@@ -89,6 +117,7 @@ This loader accepts files from this modeling API. Existing versioned feature doc
 | Extrude | Positive +Z height up to 10000 mm; exact affine native prism qualification | Taper, sweep, nonpositive height or nonrepresentable native/chart lift |
 | Cut | Two distinct direct XY extrusions; X or Y through-slab supports; full coverage by the remaining tool supports | Arbitrary cutter, cavity, union, chained cut parent, failed tool coverage |
 | Intersect | Two distinct same-model direct XY extrusions; positive-volume exact convex-planar overlap | Disjoint/touching-only results, same handle, cut-plus-intersection, repeated/nested intersection, union or general Boolean solids |
+| Split | One direct XY extrusion; `axis: 'z'` with a finite split height; each selected side must be nonempty | Arbitrary plane or X/Y axis, empty requested side, mixed cut/intersection/split graph, repeated/nested split |
 | Select | One exact cardinal-direction/endpoint-coordinate query on the same body | Zero/multiple matches, handles from another model/body, tolerance or persistent-topology matching |
 | Chamfer | One cardinal edge; perpendicular signed-axis adjacent supports, valence-three endpoints, perpendicular end supports; positive local setback | Repeated/multi-edge chamfer, curved or arbitrary-angle chamfer, zero/excessive/touching/nonlocal setback |
 | Edit/load | Named finite-mm parameter batch; complete bounded rebuild into a new snapshot | Partial accepted candidate, arbitrary graph editing, implicit migration or cached geometry acceptance |
@@ -97,12 +126,12 @@ A dimension being an ordinary integer is not enough to qualify an operation. The
 
 ### Initial resource bounds
 
-`CadModelLimits` exposes these implementation bounds; they are not public version families. All limits apply together, and native operations retain their own tighter geometric/work budgets. Cut and intersection cannot coexist in the same graph.
+`CadModelLimits` exposes these implementation bounds; they are not public version families. All limits apply together, and native operations retain their own tighter geometric/work budgets. Only one cut, intersection or split may appear in the same graph.
 
 | Resource | Maximum |
 | --- | ---: |
 | Authored operation nodes | 6 |
-| Sketches / extrusions / cuts / intersections / chamfers | 2 / 2 / 1 / 1 / 1 |
+| Sketches / extrusions / cuts / intersections / chamfers / splits | 2 / 2 / 1 / 1 / 1 / 1 |
 | Named parameters / outputs | 16 / 8 |
 | Polygon points | 8 |
 | Authored file UTF-8 bytes | 65536 (64 KiB) |
@@ -124,7 +153,7 @@ Adopted engine source: [`4a2d2c5a`](https://github.com/barocss/barocss/blob/4a2d
 
 The receipt preserves **15 initial-source evaluations** and **6 final evaluations**: source 1, emitted 1 and fresh-process cold 4. The initial source preceded array-admission/per-kind-limit hardening; the native geometry evaluator was unchanged. Final cold steps rebuilt the authored serial part and re-edited it. Do not describe all 21 evaluations as a fresh replay of the final source. Full package lint retained 27 existing errors, and the legacy consumer harness failed before imports on its inherited archive-name mismatch; the separate aggregate verifier also stopped after type/lightweight tests on a dependency-tooling failure before its lint step. Focused evidence is not a green whole-package claim.
 
-The original cut/chamfer snippets were typechecked against this source and its already-emitted declarations. The intersection example has its own current-provider check and receipt; it does not rewrite the historical baseline evidence. The following optional check reads real native certificates if the host invokes it; the documentation check does **not** invoke it or run another native campaign:
+The original cut/chamfer snippets were typechecked against this source and its already-emitted declarations. The intersection and split examples have their own source-pinned provider checks and receipts; it does not rewrite the historical baseline evidence. The following optional check reads real native certificates if the host invokes it; the documentation check does **not** invoke it or run another native campaign:
 
 <<< ../../../scripts/snippets/modeling-api.ts#checks
 

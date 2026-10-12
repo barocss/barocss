@@ -10,7 +10,7 @@ export interface CadEditorModelingSummary {
   features: { kind: string; index: number; dependencies: number[] }[];
   outputs: { name: string; solidId: string; volumeMM3: { numerator: string; denominator: string } | null }[];
 }
-export type CadEditorModelingExample = 'cut-chamfer' | 'intersection';
+export type CadEditorModelingExample = 'cut-chamfer' | 'intersection' | 'horizontal-split';
 export type ModelingCommand = { id: number } & (
   { kind: 'example'; example?: CadEditorModelingExample } | { kind: 'open'; text: string; revision?: number }
   | { kind: 'apply'; expectedRevision: number; parameters: Record<string, number> }
@@ -40,6 +40,15 @@ export function createCadEditorIntersectionModel(): CadModelSnapshot {
   const blank = model.sketch.polygon([[-0, 0], [32, 0], [32, 16], [rearX, 32], [0, 32]]).extrude(8);
   const tool = model.sketch.rectangle({ min: [leftX, lowY], max: [rightX, highY] }).extrude(height);
   return model.build({ overlap: blank.intersect(tool) });
+}
+
+/** Two closed named outputs from one editable horizontal split. */
+export function createCadEditorSplitModel(): CadModelSnapshot {
+  const model = cad.model();
+  const height = model.parameter('height', 8), splitHeight = model.parameter('splitHeight', 2);
+  const blank = model.sketch.polygon([[-0, 0], [32, 0], [32, 16], [16, 32], [0, 32]]).extrude(height);
+  const halves = blank.split({ axis: 'z', at: splitHeight });
+  return model.build({ lower: halves.negative, upper: halves.positive });
 }
 
 /** Inspect only the envelope. The chosen native codec validates every remaining field. */
@@ -78,7 +87,7 @@ export function createModelingEngine() {
   return (command: ModelingCommand): ModelingReply => {
     try {
       if (!command || !Number.isSafeInteger(command.id) || command.id < 1) throw new Error('A current worker request is required.');
-      if (command.kind === 'example' && command.example !== undefined && command.example !== 'cut-chamfer' && command.example !== 'intersection')
+      if (command.kind === 'example' && command.example !== undefined && command.example !== 'cut-chamfer' && command.example !== 'intersection' && command.example !== 'horizontal-split')
         throw new Error('Choose an available modeling example.');
       if (command.kind === 'open' && command.revision !== undefined && (!Number.isSafeInteger(command.revision) || command.revision < 0))
         throw new Error('Invalid worker reconstruction revision.');
@@ -103,7 +112,8 @@ export function createModelingEngine() {
         return { id: command.id, ok: true, text: reply.text, summary, display: reply.display, compatibility: reply.summary };
       }
       if (source !== 'model') throw new Error('Open a saved model first.');
-      const snapshot = command.kind === 'example' ? (command.example === 'intersection' ? createCadEditorIntersectionModel() : createCadEditorSampleModel())
+      const snapshot = command.kind === 'example' ? (command.example === 'intersection' ? createCadEditorIntersectionModel()
+        : command.example === 'horizontal-split' ? createCadEditorSplitModel() : createCadEditorSampleModel())
         : command.kind === 'open' ? cad.load(command.text)
           : accepted?.source === 'model' ? accepted.snapshot.withParameters(command.parameters) : null;
       if (!snapshot) throw new Error('Open a saved model first.');

@@ -11,14 +11,15 @@ const packet = JSON.parse(readFileSync(resolve(import.meta.dirname, 'fixtures/co
 const legacyDocument = JSON.parse(readFileSync(resolve(root, 'apps/cad-editor/src/fixtures/affine-prism.authored.json'), 'utf8'));
 const document = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: { height: 8 },
   nodes: [{ kind: 'sketch' }, { kind: 'extrude' }], outputs: { part: { node: 1, side: 'solid' }, other: { node: 1, side: 'solid' } } };
-let modelCalls = 0, legacyCalls = 0, lastLegacy, lastPacket, sampleCalls = 0, intersectCalls = 0;
+let modelCalls = 0, legacyCalls = 0, lastLegacy, lastPacket, sampleCalls = 0, intersectCalls = 0, splitCalls = 0;
 function sampleBuilder() {
   sampleCalls++; const parameters = {}, nodes = [];
   const shape = index => ({ intersect(other) { intersectCalls++; const node = nodes.push({ kind: 'intersect', left: index, right: other.index }) - 1; return shape(node); },
+    split(options) { splitCalls++; const node = nodes.push({ kind: 'split', parent: index, ...options }) - 1; return { negative: { index: node, side: 'negative' }, positive: { index: node, side: 'positive' } }; },
     index, cut() { const side = { edges() { return { one() { return {}; } }; }, chamfer() { return shape(nodes.push({ kind: 'chamfer' }) - 1); }, index: nodes.push({ kind: 'cut' }) - 1 }; return { positive: side, negative: side }; } });
   const sketch = profile => { const index = nodes.push({ kind: 'sketch', profile }) - 1; return { extrude(height) { return shape(nodes.push({ kind: 'extrude', sketch: index, height }) - 1); } }; };
   return { parameter(name, value) { parameters[name] = value; return { parameter: name }; }, sketch: { polygon: sketch, rectangle: sketch },
-    build(outputs) { return snapshot({ ...document, parameters, nodes, outputs: Object.fromEntries(Object.entries(outputs).map(([name, body]) => [name, { node: body.index, side: 'solid' }])) }); } };
+    build(outputs) { return snapshot({ ...document, parameters, nodes, outputs: Object.fromEntries(Object.entries(outputs).map(([name, body]) => [name, { node: body.index, side: body.side ?? 'solid' }])) }); } };
 }
 function snapshot(data) {
   const body = { report: { solidId: 'current_solid' }, certificate: { volumeMM3: { numerator: '1', denominator: '1' } }, graph: { vertices: [], edges: [], faces: [], vertexLinks: [] } };
@@ -85,6 +86,11 @@ const overlapSample = sampleEngine({ id: ++id, kind: 'example', example: 'inters
 assert.equal(overlapSample.ok, true); assert.deepEqual(overlapSample.summary.outputs.map(o => o.name), ['overlap']);
 assert.deepEqual(overlapSample.summary.parameters, { rearX: 16, leftX: 8, rightX: 40, lowY: -8, highY: 24, height: 4 });
 assert.equal(overlapSample.summary.features.at(-1).kind, 'intersect'); assert.equal(intersectCalls, 1); checks++;
+const splitSample = sampleEngine({ id: ++id, kind: 'example', example: 'horizontal-split' });
+assert.equal(splitSample.ok, true); assert.deepEqual(splitSample.summary.outputs.map(o => o.name), ['lower', 'upper']);
+assert.deepEqual(splitSample.summary.parameters, { height: 8, splitHeight: 2 });
+assert.equal(splitSample.summary.features.at(-1).kind, 'split'); assert.equal(splitCalls, 1);
+assert.deepEqual(JSON.parse(splitSample.text).outputs, { lower: { node: 2, side: 'negative' }, upper: { node: 2, side: 'positive' } }); checks++;
 const beforeSamples = sampleCalls;
 assert.equal(sampleEngine({ id: ++id, kind: 'example', example: 'not-a-sample' }).ok, false);
 assert.equal(sampleCalls, beforeSamples); checks++;

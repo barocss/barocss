@@ -38,6 +38,9 @@ const authored = { format: 'barocss-cad-model', schema: 1, units: 'mm', paramete
 const overlap = { ...structuredClone(authored), parameters: { rearX: 16, leftX: 8, rightX: 40, lowY: -8, highY: 24, height: 4 },
   nodes: [{ kind: 'sketch' }, { kind: 'extrude' }, { kind: 'sketch' }, { kind: 'extrude' }, { kind: 'intersect' }],
   outputs: { overlap: { node: 4, side: 'solid' } } };
+const split = { ...structuredClone(authored), parameters: { height: 8, splitHeight: 2 },
+  nodes: [{ kind: 'sketch' }, { kind: 'extrude' }, { kind: 'split', parent: 1, axis: 'z', at: { parameter: 'splitHeight' } }],
+  outputs: { lower: { node: 2, side: 'negative' }, upper: { node: 2, side: 'positive' } } };
 function reply(document = authored, revision = 0) {
   const names = Object.keys(document.outputs);
   return { id: 1, ok: true, text: signedJSON(document), summary: { documentId: 'cad_model', revision, source: 'model', parameters: document.parameters,
@@ -58,7 +61,7 @@ class Worker {
   terminate() { this.terminated = true; }
   send(result, id = this.requests.at(-1).id) { this.callbacks.get('message')({ data: { ...structuredClone(result), id } }); }
   accept(command = this.requests.at(-1)) {
-    const document = command.kind === 'example' ? structuredClone(command.example === 'intersection' ? overlap : authored) : command.kind === 'open' ? JSON.parse(command.text) : structuredClone(this.document);
+    const document = command.kind === 'example' ? structuredClone(command.example === 'intersection' ? overlap : command.example === 'horizontal-split' ? split : authored) : command.kind === 'open' ? JSON.parse(command.text) : structuredClone(this.document);
     if (command.kind === 'apply') Object.assign(document.parameters, command.parameters);
     this.document = document;
     const result = reply(document, command.kind === 'apply' ? command.expectedRevision + 1 : command.revision ?? 0); this.send(result, command.id); return result;
@@ -108,24 +111,28 @@ try {
     await p; assert.deepEqual(stable(s), before); assert.equal(commits, 1); assert.equal(s.getSnapshot().busy, false);
     if (mode === 'display-refusal' || mode === 'cancel-staging' || mode === 'worker-failure-staging') assert.ok(disposals >= 2); s.dispose(); checks++;
   }
-  // Sample selection uses the existing atomic replacement path, including drafts/history.
-  const samples = create(); p = samples.example(); let sampleWorker = instances.at(-1); sampleWorker.accept(); await p;
-  samples.stage('height', '6'); p = samples.apply(); sampleWorker.accept(); await p;
-  samples.stage('height', '7'); const beforeSample = stable(samples);
-  p = samples.example('intersection'); assert.equal(sampleWorker.requests.at(-1).example, 'intersection');
-  sampleWorker.send({ ok: false, message: 'intersection sample refused' }); await p;
-  assert.deepEqual(stable(samples), beforeSample); checks++;
-  p = samples.example('intersection'); const cancelledSample = sampleWorker.requests.at(-1); samples.cancel(); sampleWorker.accept(cancelledSample); await p;
-  assert.deepEqual(stable(samples), beforeSample); checks++;
-  p = samples.example('intersection'); sampleWorker = instances.at(-1); sampleWorker.accept(); await p;
-  assert.deepEqual(samples.getSnapshot().accepted.outputs.map(output => output.name), ['overlap']);
-  assert.equal(samples.getSnapshot().accepted.features.at(-1).kind, 'intersect');
-  assert.equal(samples.getSnapshot().history.count, 1); assert.deepEqual(samples.getSnapshot().drafts, {}); checks++;
-  samples.stage('height', '2'); const beforeOutputChange = stable(samples); p = samples.apply();
-  const changed = structuredClone(overlap); changed.parameters.height = 2; changed.outputs.overlap.node = 1;
-  sampleWorker.send(reply(changed, 1)); await p; assert.deepEqual(stable(samples), beforeOutputChange); samples.dispose(); checks++;
+  // Every additive sample uses the same atomic replacement path, including drafts/history.
+  for (const [example, document, kind, outputs] of [['intersection', overlap, 'intersect', ['overlap']], ['horizontal-split', split, 'split', ['lower', 'upper']]]) {
+    const samples = create(); p = samples.example(); let sampleWorker = instances.at(-1); sampleWorker.accept(); await p;
+    samples.stage('height', '6'); p = samples.apply(); sampleWorker.accept(); await p;
+    samples.stage('height', '7'); const beforeSample = stable(samples);
+    p = samples.example(example); assert.equal(sampleWorker.requests.at(-1).example, example);
+    sampleWorker.send({ ok: false, message: `${example} sample refused` }); await p;
+    assert.deepEqual(stable(samples), beforeSample); checks++;
+    p = samples.example(example); const cancelledSample = sampleWorker.requests.at(-1); samples.cancel(); sampleWorker.accept(cancelledSample); await p;
+    assert.deepEqual(stable(samples), beforeSample); checks++;
+    p = samples.example(example); sampleWorker = instances.at(-1); sampleWorker.accept(); await p;
+    assert.deepEqual(samples.getSnapshot().accepted.outputs.map(output => output.name), outputs);
+    assert.equal(samples.getSnapshot().accepted.features.at(-1).kind, kind);
+    assert.equal(samples.getSnapshot().history.count, 1); assert.deepEqual(samples.getSnapshot().drafts, {}); checks++;
+    samples.stage('height', '2'); const beforeOutputChange = stable(samples); p = samples.apply();
+    const changed = structuredClone(document); changed.parameters.height = 2;
+    if (example === 'horizontal-split') changed.outputs.lower.side = 'positive';
+    else changed.outputs.overlap.node = 1;
+    sampleWorker.send(reply(changed, 1)); await p; assert.deepEqual(stable(samples), beforeOutputChange); samples.dispose(); checks++;
+  }
   // The codec owns supported kinds. The transport validates their shape without a whitelist.
-  for (const kind of ['intersect', 'future-native-operation']) {
+  for (const kind of ['intersect', 'split', 'future-native-operation']) {
     const data = structuredClone(authored); data.nodes[1].kind = kind;
     const s = create(); p = s.open(signedJSON(data)); instances.at(-1).send(reply(data)); await p;
     assert.equal(s.getSnapshot().accepted.features[1].kind, kind); s.dispose(); checks++;
