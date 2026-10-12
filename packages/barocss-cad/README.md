@@ -42,11 +42,26 @@ facade or supply topology incident-use identities.
 A direct origin-aligned rectangular extrusion can author
 `blank.hole({center:[40,20],radius:5})`. Build, edit and save the same owned graph.
 Named bodies use one `{family,native}` contract: narrow `family` to read the
-original convex or stored-rational plate-hole result. Hole qualification covers
+original convex, stored-rational plate-hole or orthogonal-cell result. Hole qualification covers
 the actual stored rational boundary, with no certified ideal-cylinder volume.
 The matching native sampled mesh is available; visible editor hole rendering
 remains [tracked separately](https://github.com/barocss/barocss/issues/1644).
 See the [exact scope and refusal rules](CONCISE_API.md#add-a-qualified-through-hole-to-a-mounting-plate).
+
+## Connected rectangular union
+
+Author `base.union(leg)` in the same `cad.model()` graph to make an L-bracket or
+stepped boss from two direct integer rectangular extrusions. The complete output
+has `family: 'orthogonal-cell'`; its unchanged native report carries actual
+integer-cell/oriented-shell volume and source-qualified panel lineage. One union
+cannot mix with other Boolean/finishing features. Face contact is supported;
+edge-only or disconnected results refuse without changing the prior snapshot.
+Save/cold load and selective parameter edits use the existing API.
+
+The editor explicitly refuses this family's preview while preserving its
+accepted convex/hole model. Native CPU buffers do not establish visible
+rendering. See the [exact authoring contract](CONCISE_API.md#fuse-two-rectangular-extrusions)
+and [visible follow-up](https://github.com/barocss/barocss/issues/1119).
 
 ## Editable overlap parts
 

@@ -229,6 +229,7 @@ export function createModelingEngine() {
         const body = snapshot.bodies[name];
         switch (body.family) {
           case 'convex-planar': case 'stored-rational-plate-hole': return [name, body] as const;
+          case 'orthogonal-cell': throw new Error('Orthogonal-cell union preview is not available. The previous accepted model remains open.');
           default: { const unsupported: never = body; throw new Error(`Unsupported model body family: ${String(unsupported)}`); }
         }
       });

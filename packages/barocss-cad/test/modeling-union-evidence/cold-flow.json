@@ -1,0 +1,449 @@
+{
+  "status": "passed",
+  "modelCalls": 2,
+  "stages": [
+    {
+      "label": "fresh emitted cold L-bracket",
+      "elapsedMS": 485.912701,
+      "recomputation": {
+        "reusedFeatures": [],
+        "evaluatedFeatures": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      }
+    },
+    {
+      "label": "cold leg height 8 to 16 stepped boss",
+      "elapsedMS": 346.69910900000013,
+      "recomputation": {
+        "reusedFeatures": [
+          0,
+          1,
+          2
+        ],
+        "evaluatedFeatures": [
+          3,
+          4
+        ]
+      }
+    }
+  ],
+  "entrySHA256": "7aa472e4a6295891906bbafba59571fc77926d8949bca793b29ba2e1911d546b",
+  "pending": null,
+  "reopened": {
+    "volumeMM3": 3072,
+    "bodyCount": 1,
+    "occupiedCells": 3,
+    "panels": 14,
+    "sourceCount": 14,
+    "report": {
+      "schema": "barocss-axis-box-solid-boolean",
+      "version": 0,
+      "evaluationId": "m4_union",
+      "operation": "union",
+      "geometryFamily": "exact-integer-orthogonal-cell-solid-v0",
+      "lengthUnit": "mm",
+      "empty": false,
+      "solid": true,
+      "cellCount": 4,
+      "occupiedCellCount": 3,
+      "vertexCount": 16,
+      "edgeCount": 28,
+      "panelCount": 14,
+      "shellCount": 1,
+      "bodyCount": 1,
+      "sourceCount": 14,
+      "volumeMM3": 3072,
+      "areaMM2": 1664,
+      "eulerCharacteristic": 2,
+      "operandBindings": [
+        {
+          "sourceId": "m4a_src",
+          "shellId": "m4a_shell",
+          "faces": [
+            {
+              "globalFaceId": "m4a_gf0",
+              "localFaceId": "m4a_f0",
+              "surfaceId": "m4a_s0"
+            },
+            {
+              "globalFaceId": "m4a_gf1",
+              "localFaceId": "m4a_f1",
+              "surfaceId": "m4a_s1"
+            },
+            {
+              "globalFaceId": "m4a_gf2",
+              "localFaceId": "m4a_f2",
+              "surfaceId": "m4a_s2"
+            },
+            {
+              "globalFaceId": "m4a_gf3",
+              "localFaceId": "m4a_f3",
+              "surfaceId": "m4a_s3"
+            },
+            {
+              "globalFaceId": "m4a_gf4",
+              "localFaceId": "m4a_f4",
+              "surfaceId": "m4a_s4"
+            },
+            {
+              "globalFaceId": "m4a_gf5",
+              "localFaceId": "m4a_f5",
+              "surfaceId": "m4a_s5"
+            }
+          ]
+        },
+        {
+          "sourceId": "m4b_src",
+          "shellId": "m4b_shell",
+          "faces": [
+            {
+              "globalFaceId": "m4b_gf0",
+              "localFaceId": "m4b_f0",
+              "surfaceId": "m4b_s0"
+            },
+            {
+              "globalFaceId": "m4b_gf1",
+              "localFaceId": "m4b_f1",
+              "surfaceId": "m4b_s1"
+            },
+            {
+              "globalFaceId": "m4b_gf2",
+              "localFaceId": "m4b_f2",
+              "surfaceId": "m4b_s2"
+            },
+            {
+              "globalFaceId": "m4b_gf3",
+              "localFaceId": "m4b_f3",
+              "surfaceId": "m4b_s3"
+            },
+            {
+              "globalFaceId": "m4b_gf4",
+              "localFaceId": "m4b_f4",
+              "surfaceId": "m4b_s4"
+            },
+            {
+              "globalFaceId": "m4b_gf5",
+              "localFaceId": "m4b_f5",
+              "surfaceId": "m4b_s5"
+            }
+          ]
+        }
+      ],
+      "emptyRegions": [
+        {
+          "id": "m4_void0",
+          "exterior": true,
+          "cellIndices": [
+            [
+              1,
+              1,
+              0
+            ]
+          ]
+        }
+      ],
+      "incidence": {
+        "allBoundaryTilesAccounted": true,
+        "internalFacesCancelled": true,
+        "everyEdgeTwoOppositeUses": true,
+        "orientedVertexLinksSingleCycles": true,
+        "cornerCount": 56,
+        "edgeUseCount": 56,
+        "panelEdgeEquation": true
+      },
+      "directCounts": {
+        "originalSourceCompilationCount": 2,
+        "operandSolidValidationCount": 2,
+        "faceBuildCount": 14,
+        "outputSourceCompilationCount": 14,
+        "curvePointEvaluationCount": 168,
+        "curveDerivativeEvaluationCount": 168,
+        "surfacePointEvaluationCount": 42,
+        "surfaceDerivativeEvaluationCount": 42,
+        "observationCount": 210
+      },
+      "numericPolicy": {
+        "material": "regularized-closure-of-occupied-open-integer-cells",
+        "generatedZero": "canonical-positive-zero-original-bits-retained",
+        "identity": "exact-original-coordinate-plane-grid-indices-no-tolerance-welding",
+        "source": "whole-original-models-and-per-panel-native-model5",
+        "lineageUV": "exact-reduced-integer-ratio-fractions",
+        "volume": "occupied-cell-volume-equals-sum-of-oriented-shell-volumes",
+        "euler": "diagnostic-no-sphere-or-single-shell-requirement",
+        "pointComparisonMM": 1e-9,
+        "relativeDerivativeComparison": 1e-9
+      },
+      "quality": {
+        "restrictedCellModelEmbeddingCertified": true,
+        "restrictedBoundaryManifoldCertified": true,
+        "regularizedMaterialCertified": true,
+        "arbitraryCurvedSolidCertified": false,
+        "globalBinary64EvaluationErrorCertified": false,
+        "manufacturingToleranceCertified": false,
+        "nativePanelFaceSubsetSolidFalse": true,
+        "weldingPerformed": false,
+        "ownership": "independent-copied-cpu-data-gc"
+      },
+      "limits": {
+        "maximumCells": 27,
+        "maximumCandidatePanels": 162,
+        "maximumPanels": 72,
+        "maximumGridVertices": 64,
+        "maximumGridSegments": 144,
+        "maximumObservations": 1080,
+        "maximumOriginalModelObjects": 16,
+        "outputModelObjects": 5,
+        "volumeMM3": 2000000000000,
+        "areaMM2": 1200000000,
+        "ownValues": 1048576,
+        "ownDepth": 64,
+        "arrayElements": 8192,
+        "recordFields": 64,
+        "sourceStringCharacters": 262144
+      },
+      "workScope": "direct-root-calls-inherited-provider-work-excluded",
+      "budgetFailure": "atomic-no-partial-solid-boolean"
+    },
+    "prismReportsForEvaluatedFeatures": [
+      {
+        "index": 1,
+        "report": {
+          "sketchReconstructionCount": 1,
+          "initialFaceConstructionCount": 6,
+          "solidQualificationCount": 1,
+          "solidFaceReconstructionCount": 6,
+          "sourceCompilationCount": 13,
+          "bindingObservationCount": 144,
+          "totalD1Count": 432,
+          "retries": 0
+        }
+      },
+      {
+        "index": 3,
+        "report": {
+          "sketchReconstructionCount": 1,
+          "initialFaceConstructionCount": 6,
+          "solidQualificationCount": 1,
+          "solidFaceReconstructionCount": 6,
+          "sourceCompilationCount": 13,
+          "bindingObservationCount": 144,
+          "totalD1Count": 432,
+          "retries": 0
+        }
+      }
+    ],
+    "newBoxRepresentation": "whole-source-six-native-faces-qualified-shells",
+    "originalConvexIdentity": true
+  },
+  "reopenedBodySHA256": "2f6a3c602a2cbe03c598fb46c2fc979c006fe0eb094aed004cd466b7f125142c",
+  "authoredInputSHA256": "3a180e469046d403aadacff2fabd3eabfe46a82e1d788346a9b6c9c0a1f6a397",
+  "reedited": {
+    "volumeMM3": 4608,
+    "bodyCount": 1,
+    "occupiedCells": 5,
+    "panels": 20,
+    "sourceCount": 20,
+    "report": {
+      "schema": "barocss-axis-box-solid-boolean",
+      "version": 0,
+      "evaluationId": "m4_union",
+      "operation": "union",
+      "geometryFamily": "exact-integer-orthogonal-cell-solid-v0",
+      "lengthUnit": "mm",
+      "empty": false,
+      "solid": true,
+      "cellCount": 8,
+      "occupiedCellCount": 5,
+      "vertexCount": 22,
+      "edgeCount": 40,
+      "panelCount": 20,
+      "shellCount": 1,
+      "bodyCount": 1,
+      "sourceCount": 20,
+      "volumeMM3": 4608,
+      "areaMM2": 2176,
+      "eulerCharacteristic": 2,
+      "operandBindings": [
+        {
+          "sourceId": "m4a_src",
+          "shellId": "m4a_shell",
+          "faces": [
+            {
+              "globalFaceId": "m4a_gf0",
+              "localFaceId": "m4a_f0",
+              "surfaceId": "m4a_s0"
+            },
+            {
+              "globalFaceId": "m4a_gf1",
+              "localFaceId": "m4a_f1",
+              "surfaceId": "m4a_s1"
+            },
+            {
+              "globalFaceId": "m4a_gf2",
+              "localFaceId": "m4a_f2",
+              "surfaceId": "m4a_s2"
+            },
+            {
+              "globalFaceId": "m4a_gf3",
+              "localFaceId": "m4a_f3",
+              "surfaceId": "m4a_s3"
+            },
+            {
+              "globalFaceId": "m4a_gf4",
+              "localFaceId": "m4a_f4",
+              "surfaceId": "m4a_s4"
+            },
+            {
+              "globalFaceId": "m4a_gf5",
+              "localFaceId": "m4a_f5",
+              "surfaceId": "m4a_s5"
+            }
+          ]
+        },
+        {
+          "sourceId": "m4b_src",
+          "shellId": "m4b_shell",
+          "faces": [
+            {
+              "globalFaceId": "m4b_gf0",
+              "localFaceId": "m4b_f0",
+              "surfaceId": "m4b_s0"
+            },
+            {
+              "globalFaceId": "m4b_gf1",
+              "localFaceId": "m4b_f1",
+              "surfaceId": "m4b_s1"
+            },
+            {
+              "globalFaceId": "m4b_gf2",
+              "localFaceId": "m4b_f2",
+              "surfaceId": "m4b_s2"
+            },
+            {
+              "globalFaceId": "m4b_gf3",
+              "localFaceId": "m4b_f3",
+              "surfaceId": "m4b_s3"
+            },
+            {
+              "globalFaceId": "m4b_gf4",
+              "localFaceId": "m4b_f4",
+              "surfaceId": "m4b_s4"
+            },
+            {
+              "globalFaceId": "m4b_gf5",
+              "localFaceId": "m4b_f5",
+              "surfaceId": "m4b_s5"
+            }
+          ]
+        }
+      ],
+      "emptyRegions": [
+        {
+          "id": "m4_void0",
+          "exterior": true,
+          "cellIndices": [
+            [
+              1,
+              0,
+              1
+            ],
+            [
+              1,
+              1,
+              0
+            ],
+            [
+              1,
+              1,
+              1
+            ]
+          ]
+        }
+      ],
+      "incidence": {
+        "allBoundaryTilesAccounted": true,
+        "internalFacesCancelled": true,
+        "everyEdgeTwoOppositeUses": true,
+        "orientedVertexLinksSingleCycles": true,
+        "cornerCount": 80,
+        "edgeUseCount": 80,
+        "panelEdgeEquation": true
+      },
+      "directCounts": {
+        "originalSourceCompilationCount": 2,
+        "operandSolidValidationCount": 2,
+        "faceBuildCount": 20,
+        "outputSourceCompilationCount": 20,
+        "curvePointEvaluationCount": 240,
+        "curveDerivativeEvaluationCount": 240,
+        "surfacePointEvaluationCount": 60,
+        "surfaceDerivativeEvaluationCount": 60,
+        "observationCount": 300
+      },
+      "numericPolicy": {
+        "material": "regularized-closure-of-occupied-open-integer-cells",
+        "generatedZero": "canonical-positive-zero-original-bits-retained",
+        "identity": "exact-original-coordinate-plane-grid-indices-no-tolerance-welding",
+        "source": "whole-original-models-and-per-panel-native-model5",
+        "lineageUV": "exact-reduced-integer-ratio-fractions",
+        "volume": "occupied-cell-volume-equals-sum-of-oriented-shell-volumes",
+        "euler": "diagnostic-no-sphere-or-single-shell-requirement",
+        "pointComparisonMM": 1e-9,
+        "relativeDerivativeComparison": 1e-9
+      },
+      "quality": {
+        "restrictedCellModelEmbeddingCertified": true,
+        "restrictedBoundaryManifoldCertified": true,
+        "regularizedMaterialCertified": true,
+        "arbitraryCurvedSolidCertified": false,
+        "globalBinary64EvaluationErrorCertified": false,
+        "manufacturingToleranceCertified": false,
+        "nativePanelFaceSubsetSolidFalse": true,
+        "weldingPerformed": false,
+        "ownership": "independent-copied-cpu-data-gc"
+      },
+      "limits": {
+        "maximumCells": 27,
+        "maximumCandidatePanels": 162,
+        "maximumPanels": 72,
+        "maximumGridVertices": 64,
+        "maximumGridSegments": 144,
+        "maximumObservations": 1080,
+        "maximumOriginalModelObjects": 16,
+        "outputModelObjects": 5,
+        "volumeMM3": 2000000000000,
+        "areaMM2": 1200000000,
+        "ownValues": 1048576,
+        "ownDepth": 64,
+        "arrayElements": 8192,
+        "recordFields": 64,
+        "sourceStringCharacters": 262144
+      },
+      "workScope": "direct-root-calls-inherited-provider-work-excluded",
+      "budgetFailure": "atomic-no-partial-solid-boolean"
+    },
+    "prismReportsForEvaluatedFeatures": [
+      {
+        "index": 3,
+        "report": {
+          "sketchReconstructionCount": 1,
+          "initialFaceConstructionCount": 6,
+          "solidQualificationCount": 1,
+          "solidFaceReconstructionCount": 6,
+          "sourceCompilationCount": 13,
+          "bindingObservationCount": 144,
+          "totalD1Count": 432,
+          "retries": 0
+        }
+      }
+    ],
+    "newBoxRepresentation": "whole-source-six-native-faces-qualified-shells",
+    "originalConvexIdentity": true
+  },
+  "reeditedBodySHA256": "56852de8af233829d8795dfcaf30a1485e8267d68e51842906b17ff08558067f"
+}

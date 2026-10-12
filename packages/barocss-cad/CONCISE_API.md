@@ -47,7 +47,8 @@ owned add/scale expressions. Editing radius to 2.5 mm reuses the unchanged
 sketch/extrusion prefix; Save/Open preserves the hole intent and cold rebuilds it.
 
 Every named output has one discriminated `CadBody` contract:
-`{family:'convex-planar',native}` or `{family:'stored-rational-plate-hole',native}`.
+`{family:'convex-planar',native}`, `{family:'stored-rational-plate-hole',native}`
+or `{family:'orthogonal-cell',native}`.
 Narrow `body.family` before passing `body.native` to its matching native adapter.
 Wrappers and their complete native values are deeply frozen; reused features
 retain both wrapper and native identity. A mixed output map never drops a body
@@ -65,7 +66,7 @@ the blank's face/edge identities.
 
 Only a direct authored rectangle with XY minimum `[0,0]` and integer X/Y/Z
 sizes from 1 to 10000 mm is admitted. One hole is allowed within six nodes;
-it cannot mix with cut, intersection, split or chamfer, or become a parent for
+it cannot mix with cut, intersection, split, chamfer or union, or become a parent for
 those operations or edge queries. Native radius, strict interior clearance,
 exact stored-UV composition and work bounds still apply. Even an otherwise
 ordinary integer width can be refused by exact native qualification. Errors
@@ -75,9 +76,69 @@ Signed-zero authored dimensions remain preserved by the existing codec.
 `tessellateOwnPlateCircularHole` accepts the native bundle and explicit preview
 context/options. `classifyStoredPlateHoleSolidPoints` accepts the qualified native
 result, query records and explicit options to query stored material. Preview sampling is not a new topology or volume proof.
-The current editor explicitly rejects this family before summarizing or
-rendering any candidate output, retaining its prior scene/history. Visible hole
-editing is tracked separately in [#1644](https://github.com/barocss/barocss/issues/1644).
+The editor has a qualified sampled-face adapter for this family, recorded in
+[#1644](https://github.com/barocss/barocss/issues/1644); actual browser/GPU acceptance
+is a separate gate. Union preview remains explicitly unavailable as described below.
+
+## Fuse two rectangular extrusions
+
+Use `a.union(b)` to build one connected L-bracket or stepped boss from two owned
+direct rectangular XY extrusions. The result uses the same named body map:
+
+```ts
+import { cad } from '@barocss/cad';
+const model = cad.model();
+const legWidth = model.parameter('legWidth', 8);
+const base = model.sketch.rectangle({ width: 32, height: 8 }).extrude(8);
+const leg = model.sketch.rectangle({ width: legWidth, height: 24 }).extrude(8);
+const bracket = base.union(leg);
+const initial = model.build({ base, leg, bracket });
+const wider = initial.withParameters({ legWidth: 12 });
+const reopened = cad.load(wider.save());
+const body = reopened.bodies.bracket;
+if (body.family !== 'orthogonal-cell') throw new Error('Expected a union body');
+const volumeMM3 = body.native.report.volumeMM3;
+```
+
+The expected exact volumes are 3072 and 3584 mm³. The unchanged base prefix is
+reused when only the leg width changes. Save stores the authored union and driver
+values; cold load rebuilds both rectangles and the complete union. The union
+native report certifies its restricted integer-cell material and oriented-shell
+volume conservation, not an arbitrary BRep or manufacturing tolerance.
+
+Both operands must be distinct direct **authored rectangles**. Corners resolve
+to integers within ±10000 mm; side lengths and positive extrusion heights are
+integers from 1 to 10000 mm. Both extrusions start at Z=0. One union fits the
+existing six-node envelope and cannot mix with cut, intersection, split, hole or
+chamfer, feed another union, or expose convex edge queries. Parameters and owned
+add/scale dimensions are supported only when the resulting dimensions satisfy
+these rules. A polygon that looks rectangular is not this authored rectangle
+contract.
+
+Overlap and face-contact joins are admitted by the unchanged native provider.
+Edge-only contact preserves its genuine `NATIVE` / `union` error and `CONTACT`
+cause. Disjoint union completes the native two-body result, then refuses with
+`SELECTION` / `union`; its cause retains that full native result. The single
+shape API never picks one component or silently drops the other. Refused edits
+leave the prior snapshot, saved bytes and future same-snapshot reuse intact.
+
+The private bridge compiles whole signed Source0 intent, builds six real native
+Faces and an AxisBoxShell per operand, and lets the Boolean qualify them. This
+is a new source-qualified representation of the owned rectangular intent, not a
+bounds cast. Feature evidence keeps both original convex parents and the complete
+union, including its new operand sources and per-panel lineage. Old convex face
+identities are not claimed to survive. Every evaluated union rebuilds these box
+assets even if a convex parent feature was reused; recomputation indices do not
+measure total native savings.
+
+**Editor preview is unavailable for this family.** The editor refuses the full
+candidate inventory before reading union native summaries or tessellating any
+body, retaining its prior accepted convex/hole state. The existing
+`prepareAxisBoxBooleanBuffers` provides complete CPU data after a full native
+revalidation and one tessellation per panel; it is not an existing renderer
+input. Visible union integration remains [#1119](https://github.com/barocss/barocss/issues/1119),
+with coordinate, UV, picking/context and complete-panel admission work still
+required. Never truncate the native 72-panel bound to a preview's 64-chunk limit.
 
 ## Keep dimensions related during edits
 
@@ -398,7 +459,7 @@ to its matching adapter. They allocate no renderer/GPU resources.
 
 The current supported graph envelope is at most two sketches, two extrusions,
 one through-slab cut, intersection or supported split and up to two sequential chamfers,
-or one separate rectangular through-hole graph, with at most six nodes and
+or one separate rectangular through-hole or integer-box union graph, with at most six nodes and
 sixteen parameters. These are
 upper bounds, not six required roles: an extrusion-only or cut-only model builds,
 saves and reopens through the same API. No arbitrary Boolean graph is implied.
@@ -430,7 +491,7 @@ Run the ordinary boundary/type tests after building the package:
 ```sh
 node scripts/tool.mjs type-check
 node scripts/tool.mjs build
-node --test test/modeling.test.mjs test/modeling-intersection.test.mjs test/modeling-split.test.mjs test/modeling-cardinal-split.test.mjs test/modeling-chamfer-chain.test.mjs test/modeling-regeneration.test.mjs test/modeling-regeneration-helpers.test.mjs test/modeling-chamfer-split.test.mjs test/modeling-dimensions.test.mjs test/modeling-dimensions-helpers.test.mjs test/modeling-miter.test.mjs test/modeling-suppression.test.mjs test/modeling-hole.test.mjs test/public-api.test.mjs
+node --test test/modeling.test.mjs test/modeling-intersection.test.mjs test/modeling-split.test.mjs test/modeling-cardinal-split.test.mjs test/modeling-chamfer-chain.test.mjs test/modeling-regeneration.test.mjs test/modeling-regeneration-helpers.test.mjs test/modeling-chamfer-split.test.mjs test/modeling-dimensions.test.mjs test/modeling-dimensions-helpers.test.mjs test/modeling-miter.test.mjs test/modeling-suppression.test.mjs test/modeling-hole.test.mjs test/modeling-union.test.mjs test/public-api.test.mjs
 node test/public-api-types.mjs
 ```
 
@@ -558,5 +619,22 @@ six-query stored-material classification call. Seven source calls cover radius
 edit, genuine width/clearance refusals, same-snapshot recovery/no-op and the old
 minimal authored file. Two fresh emitted calls cover cold parity and radius
 re-edit. Classification revalidation is accounted separately from model calls.
-General union, arbitrary curved Booleans and visible editor hole rendering remain
-separate roadmap dependencies; this bounded workflow does not complete them.
+General Boolean composition, arbitrary curved Booleans and actual editor/GPU
+acceptance remain separate roadmap dependencies.
+
+The bounded union flow uses eight model calls, plus one CPU-buffer preparation
+that rebuilds the native Boolean once and tessellates fourteen baseline panels.
+Six source calls cover overlap, width edit, face contact, native edge-contact
+refusal, complete disconnected-result refusal and same-snapshot recovery. Two
+fresh emitted calls cover cold parity and a taller stepped boss. No extra
+classification, no-op model evaluation or visible renderer run is included.
+
+```sh
+CAD_MODEL_GPU_MODULE=/path/to/source-bundled-axis-box-boolean-buffers.mjs node --no-opt --max-old-space-size=1536 test/modeling-union-native.mjs
+node --no-opt --max-old-space-size=1536 scripts/modeling-union-consumer.mjs test/modeling-union-evidence
+```
+
+Provider direct-count reports are asserted separately from model reuse and
+inherited work. CONTACT returns no completed native report. Conservative
+source-derived ceilings are not measured transitive totals. See #1645 for the
+frozen budget, failure preservation and final receipts.

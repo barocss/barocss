@@ -71,6 +71,66 @@ The [adopted two-chamfer source](https://github.com/barocss/barocss/blob/63f7462
 
 Lightweight tracing compares the same nine parameter/rectangle/extrude/edge/chamfer authoring calls and final named output in the editor, this download and the provider fixture. The unchanged 41,471-byte genuine baseline DTO is replayed through the actual controller/CPU scene with a mocked Worker. This establishes transport, output identity and approximate CPU picking, not new native execution or actual sample-worker/browser/GPU execution. Editor browser/GPU and physical file dialogs remain **UNRUN** in this consumer check; live manual deployment is a separate gate.
 
+## Fuse two rectangular extrusions
+
+Use `a.union(b)` to build one connected L-bracket or stepped boss from two owned
+direct rectangular XY extrusions. The result uses the same named body map:
+
+```ts
+import { cad } from '@barocss/cad';
+const model = cad.model();
+const legWidth = model.parameter('legWidth', 8);
+const base = model.sketch.rectangle({ width: 32, height: 8 }).extrude(8);
+const leg = model.sketch.rectangle({ width: legWidth, height: 24 }).extrude(8);
+const bracket = base.union(leg);
+const initial = model.build({ base, leg, bracket });
+const wider = initial.withParameters({ legWidth: 12 });
+const reopened = cad.load(wider.save());
+const body = reopened.bodies.bracket;
+if (body.family !== 'orthogonal-cell') throw new Error('Expected a union body');
+const volumeMM3 = body.native.report.volumeMM3;
+```
+
+The expected exact volumes are 3072 and 3584 mm³. The unchanged base prefix is
+reused when only the leg width changes. Save stores the authored union and driver
+values; cold load rebuilds both rectangles and the complete union. The union
+native report certifies its restricted integer-cell material and oriented-shell
+volume conservation, not an arbitrary BRep or manufacturing tolerance.
+
+Both operands must be distinct direct **authored rectangles**. Corners resolve
+to integers within ±10000 mm; side lengths and positive extrusion heights are
+integers from 1 to 10000 mm. Both extrusions start at Z=0. One union fits the
+existing six-node envelope and cannot mix with cut, intersection, split, hole or
+chamfer, feed another union, or expose convex edge queries. Parameters and owned
+add/scale dimensions are supported only when the resulting dimensions satisfy
+these rules. A polygon that looks rectangular is not this authored rectangle
+contract.
+
+Overlap and face-contact joins are admitted by the unchanged native provider.
+Edge-only contact preserves its genuine `NATIVE` / `union` error and `CONTACT`
+cause. Disjoint union completes the native two-body result, then refuses with
+`SELECTION` / `union`; its cause retains that full native result. The single
+shape API never picks one component or silently drops the other. Refused edits
+leave the prior snapshot, saved bytes and future same-snapshot reuse intact.
+
+The private bridge compiles whole signed Source0 intent, builds six real native
+Faces and an AxisBoxShell per operand, and lets the Boolean qualify them. This
+is a new source-qualified representation of the owned rectangular intent, not a
+bounds cast. Feature evidence keeps both original convex parents and the complete
+union, including its new operand sources and per-panel lineage. Old convex face
+identities are not claimed to survive. Every evaluated union rebuilds these box
+assets even if a convex parent feature was reused; recomputation indices do not
+measure total native savings.
+
+**Editor preview is unavailable for this family.** The editor refuses the full
+candidate inventory before reading union native summaries or tessellating any
+body, retaining its prior accepted convex/hole state. The existing
+`prepareAxisBoxBooleanBuffers` provides complete CPU data after a full native
+revalidation and one tessellation per panel; it is not an existing renderer
+input. Visible union integration remains [#1119](https://github.com/barocss/barocss/issues/1119),
+with coordinate, UV, picking/context and complete-panel admission work still
+required. Never truncate the native 72-panel bound to a preview's 64-chunk limit.
+
 ## Intersect two extrusions into an overlap part
 
 <a :href="withBase('/examples/modeling-intersection.ts')" download>Download the complete typed overlap example</a>

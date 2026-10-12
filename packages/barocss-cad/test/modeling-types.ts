@@ -109,6 +109,7 @@ function inspectBody(body: CadBody) {
   switch (body.family) {
     case 'convex-planar': return body.native.certificate.volumeMM3;
     case 'stored-rational-plate-hole': return body.native.certificate.genus;
+    case 'orthogonal-cell': return body.native.report.volumeMM3;
     default: { const exhaustive: never = body; return exhaustive; }
   }
 }
@@ -123,3 +124,13 @@ holeBlank.hole({ center: [40, 20, 0], radius: 5 });
 holeBlank.hole({ center: [40, 20], radius: 5, depth: 4 });
 // @ts-expect-error Radius is a millimetre dimension, not text.
 holeBlank.hole({ center: [40, 20], radius: '5' });
+
+const unionModel = cad.model(), unionWidth = unionModel.parameter('legWidth', 8);
+const unionA = unionModel.sketch.rectangle({ width: 32, height: 8 }).extrude(8);
+const unionB = unionModel.sketch.rectangle({ width: unionWidth, height: 24 }).extrude(8);
+const joined: CadShape = unionA.union(unionB);
+const joinedSnapshot = unionModel.build({ bracket: joined });
+if (joinedSnapshot.bodies.bracket.family === 'orthogonal-cell') joinedSnapshot.bodies.bracket.native.report.volumeMM3;
+joinedSnapshot.withParameters({ legWidth: 12 }).save();
+// @ts-expect-error Only an owned shape handle is an operand, not a serialized body reference.
+unionA.union({ node: 3, side: 'solid' });

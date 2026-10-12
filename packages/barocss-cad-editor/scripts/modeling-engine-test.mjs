@@ -29,11 +29,11 @@ let tessellations = 0, rejectTessellation = false, unsupportedNativeReads = 0, h
 function snapshot(data) {
   const native = { report: { solidId: 'current_solid' }, certificate: { volumeMM3: { numerator: '1', denominator: '1' } }, graph: { vertices: [], edges: [], faces: [], vertexLinks: [] } };
   const body = { family: 'convex-planar', native };
-  const unsupported = { family: data.unknownFamily ? 'unknown-family' : 'stored-rational-plate-hole', get native() { unsupportedNativeReads++; throw new Error('Unsupported native payload must not be inspected'); } };
+  const unsupported = { family: data.union ? 'orthogonal-cell' : data.unknownFamily ? 'unknown-family' : 'stored-rational-plate-hole', get native() { unsupportedNativeReads++; throw new Error('Unsupported native payload must not be inspected'); } };
   const result = { parameters: data.parameters, suppression:Object.fromEntries(data.nodes.filter(n=>n.name).map(n=>[n.name,n.suppressed])),
     withSuppression(values) { suppressionEdits.push({snapshot:result,values:structuredClone(values)}); if(data.parameters.backY===1) throw new Error('METRIC candidate refused'); return snapshot({...data,nodes:data.nodes.map(n=>n.name&&Object.hasOwn(values,n.name)?{...n,suppressed:values[n.name]}:n)}); },
     recomputation: Object.freeze({ reusedFeatures: Object.freeze([]), evaluatedFeatures: Object.freeze(data.nodes.map((_node, index) => index)) }),
-    features: data.nodes.map((node, index) => ({ kind: node.kind, index, dependencies: [], ...(node.name ? {name:node.name,suppressed:node.suppressed} : {}) })), bodies: Object.fromEntries(Object.keys(data.outputs).map(name => [name, (data.hole || data.unknownFamily) && name === 'part' ? unsupported : data.nodes.some(n=>n.kind==='hole') ? structuredClone(holeTransfer.bodies[data.nodes[data.outputs[name].node].kind==='hole'?'plate':'blank']) : body])),
+    features: data.nodes.map((node, index) => ({ kind: node.kind, index, dependencies: [], ...(node.name ? {name:node.name,suppressed:node.suppressed} : {}) })), bodies: Object.fromEntries(Object.keys(data.outputs).map(name => [name, (data.hole || data.unknownFamily || data.union) && name === 'part' ? unsupported : data.nodes.some(n=>n.kind==='hole') ? structuredClone(holeTransfer.bodies[data.nodes[data.outputs[name].node].kind==='hole'?'plate':'blank']) : body])),
     save: () => JSON.stringify({ ...data, outputs: Object.fromEntries(Object.entries(data.outputs).sort(([a], [b]) => a.localeCompare(b))) }), withParameters(values) { snapshotEdits.push({ snapshot: result, values: structuredClone(values) }); modelCalls++; if (Object.values(values).some(v => v < 0)) throw new Error('native candidate refused'); return snapshot({ ...data, parameters: { ...data.parameters, ...values } }); } };
   snapshots.push(result); return result;
 }
@@ -227,6 +227,17 @@ assert.equal(holeRecovered.ok,true,holeRecovered.message);assert.equal(snapshotE
 assert.equal(holeRecovered.summary.revision,1);assert.equal(holeRecovered.display.components[1].preview.mesh.context.taskToken,'recovered_mesh');checks++;
 const holeReopened=create()({id:++id,kind:'open',text:holeRecovered.text,revision:1,taskToken:'reopened_mesh'});
 assert.equal(holeReopened.ok,true);assert.deepEqual(holeReopened.summary,holeRecovered.summary);checks++;
+// Union authoring is supported by CAD, while its preview remains an explicit atomic refusal.
+for(const kind of ['convex','hole']) {
+ const guarded=create(),baseline=kind==='hole'?guarded({id:++id,kind:'example',example:'mounting-plate',taskToken:'union_guard_hole'}):guarded({id:++id,kind:'open',text:JSON.stringify(document)});
+ assert.equal(baseline.ok,true);const accepted=snapshots.at(-1),text=baseline.text,display=JSON.stringify(baseline.display),before=tessellations+holeTessellations;
+ const refused=guarded({id:++id,kind:'open',text:JSON.stringify({...document,union:true}),taskToken:'union_refusal'});
+ assert.equal(refused.ok,false);assert.match(refused.message,/Orthogonal-cell union preview is not available/);
+ assert.equal(unsupportedNativeReads,0);assert.equal(tessellations+holeTessellations,before);
+ assert.equal(baseline.text,text);assert.equal(JSON.stringify(baseline.display),display);checks++;
+ const recovered=guarded({id:++id,kind:'apply',expectedRevision:0,parameters:kind==='hole'?{radius:2.5}:{height:6},taskToken:'union_recovery'});
+ assert.equal(recovered.ok,true,recovered.message);assert.equal(snapshotEdits.at(-1).snapshot,accepted);assert.equal(recovered.summary.revision,1);checks++;
+}
 // Configuration commands retain the actual accepted snapshot and use only withSuppression.
 const finishEngine=create();
 const finishBase=finishEngine({id:++id,kind:'example',example:'configurable-finishes'});
