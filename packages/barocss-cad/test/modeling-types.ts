@@ -30,7 +30,12 @@ const splitBlank = splitModel.sketch.rectangle({ width: 16, height: 8 }).extrude
 const halves: CadSplit = splitBlank.split({ axis: 'z', at: splitHeight });
 const splitResult: CadModelSnapshot = splitModel.build({ lower: halves.negative, upper: halves.positive });
 splitResult.withParameters({ splitHeight: 4 }).save();
-// @ts-expect-error The current plane is explicitly horizontal, not an arbitrary axis.
-splitBlank.split({ axis: 'x', at: 2 });
+for (const axis of ['x', 'y'] as const) {
+  const m = cad.model(), location = m.parameter('splitAt', 2);
+  const parts: CadSplit = m.sketch.rectangle({ width: 16, height: 8 }).extrude(8).split({ axis, at: location });
+  m.build({ negative: parts.negative, positive: parts.positive });
+}
+// @ts-expect-error Split uses a cardinal axis, not an arbitrary plane description.
+splitBlank.split({ axis: 'w', at: 2 });
 // @ts-expect-error The plane location uses a number or owned dimension handle.
 splitBlank.split({ axis: 'z', at: '2' });

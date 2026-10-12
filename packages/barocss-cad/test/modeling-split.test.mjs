@@ -8,7 +8,7 @@ const fixture = () => { const model = cad.model(); return { model, blank: model.
 
 test('horizontal split ownership and capability checks happen before append', () => {
   const { model, blank } = fixture(), foreign = cad.model().parameter('level', 2);
-  refuses(() => blank.split({ axis: 'x', at: 2 }), 'CAPABILITY');
+  refuses(() => blank.split({ axis: 'w', at: 2 }), 'CAPABILITY');
   refuses(() => blank.split({ axis: 'z', at: foreign }), 'OWNERSHIP');
   refuses(() => blank.split({ axis: 'z', at: { name: 'level' } }), 'OWNERSHIP');
   refuses(() => blank.split({ axis: 'z', at: Infinity }), 'PARAMETER');
@@ -37,7 +37,7 @@ const document = () => ({ format: 'barocss-cad-model', schema: 1, units: 'mm', p
 ], outputs: { lower: { node: 2, side: 'negative' }, upper: { node: 2, side: 'positive' } } });
 test('split file schema rejects malformed, unsupported and mixed graphs before geometry', () => {
   const check = (edit, code) => { const d = document(); edit(d); refuses(() => cad.load(JSON.stringify(d)), code); };
-  check(d => { d.nodes[2].axis = 'x'; }, 'CAPABILITY');
+  check(d => { d.nodes[2].axis = 'w'; }, 'CAPABILITY');
   check(d => { d.nodes[2].other = true; }, 'INPUT');
   check(d => { delete d.nodes[2].at; }, 'INPUT');
   check(d => { d.nodes[2].parent.node = 2; }, 'INPUT');

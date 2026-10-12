@@ -124,14 +124,16 @@ For the initial example above the retained volume is 2164 mm³, with 12 mm³
 removed. The existing exact selection, local setback and native restrictions
 still apply.
 
-## Divide an extruded part at a height
+## Divide an extruded part along an axis
 
 `const halves = blank.split({axis:'z',at:splitHeight})` authors one horizontal
 plane through a direct XY extrusion. `splitHeight` can be a number or an owned
 parameter. Use `model.build({lower:halves.negative,upper:halves.positive})` to
 retain both parts. Negative is below the authored plane, positive is above it;
-the choice is independent of polygon winding. The current operation explicitly
-requires `axis:'z'`. Arbitrary planes and x/y split axes are not supported.
+the choice is independent of polygon winding. Use `axis:'x'` for left/right
+or `axis:'y'` for front/back pieces. Negative always means coordinate < at,
+positive means coordinate > at on the selected world axis. Arbitrary or oblique
+planes are not supported.
 
 For the same pentagon used above, an 8 mm extrusion split at Z=2 has native
 volumes 1792 and 5376 mm³. Editing the split height to 4 gives 3584 and 3584;
@@ -147,7 +149,13 @@ with operation `split`. Its cause carries `side`, native `status` and
 unchanged parent Solid. No zero-volume Solid or other side is substituted.
 A failed edit leaves the previous accepted snapshot and saved bytes unchanged.
 
-The builder generates the cutter with the native part's XY coordinate-span
+For the same pentagon, X=16 or Y=16 yields 4096 and 3072 mm³; moving either
+plane to 24 yields 5888 and 1280. Both sides are independently qualified native
+Solids. Vertical cuts still require exactly representable native crossings;
+for example, moving the rear vertex to X=20 and cutting at X=24 meets the
+sloped edge at Y=80/3 and is refused rather than rounded.
+
+The builder generates the cutter with the native part's selected coordinate-span
 chart, preserving signed zero and using the actual native source compiler.
 This avoids introducing normalized-chart fractions for dimensions such as 3 or
 5 mm. All native representation, binding and work limits still apply, with
@@ -192,7 +200,7 @@ Bodies/evidence are deep-frozen native values usable by the existing tessellatio
 and display adapters. They allocate no renderer/GPU resources.
 
 The current supported graph envelope is at most two sketches, two extrusions,
-one through-slab cut, intersection or horizontal split and one chamfer, with at most sixteen parameters. These are
+one through-slab cut, intersection or cardinal split and one chamfer, with at most sixteen parameters. These are
 upper bounds, not six required roles: an extrusion-only or cut-only model builds,
 saves and reopens through the same API. No arbitrary Boolean graph is implied.
 Names are ASCII identifiers of 1..48 characters; `__proto__`, `constructor` and
@@ -223,7 +231,7 @@ Run the ordinary boundary/type tests after building the package:
 ```sh
 node scripts/tool.mjs type-check
 node scripts/tool.mjs build
-node --test test/modeling.test.mjs test/modeling-intersection.test.mjs test/modeling-split.test.mjs test/public-api.test.mjs
+node --test test/modeling.test.mjs test/modeling-intersection.test.mjs test/modeling-split.test.mjs test/modeling-cardinal-split.test.mjs test/public-api.test.mjs
 node test/public-api-types.mjs
 ```
 
@@ -266,3 +274,14 @@ node --no-opt --max-old-space-size=2048 scripts/modeling-split-consumer.mjs test
 See the #1619 receipt for source/emitted hashes, selected empty-side controls,
 translated clockwise/non-power-of-two chart evidence and the actual execution
 boundary. These CPU records do not establish browser/GPU acceptance.
+
+The cardinal X/Y extension has a separate thirteen-evaluation, two-tessellation
+flow, including translated clockwise profiles and exact crossing refusal:
+
+```sh
+node --no-opt --max-old-space-size=2048 test/modeling-cardinal-split-native.mjs
+node --no-opt --max-old-space-size=2048 scripts/modeling-cardinal-split-consumer.mjs test/modeling-cardinal-split-evidence
+```
+
+The #1622 receipt records actual results and scope. It does not widen the
+direct-extrusion or one-split graph limit.
