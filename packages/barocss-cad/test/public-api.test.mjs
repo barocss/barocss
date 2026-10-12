@@ -35,10 +35,15 @@ const aliases = {
       parse: 'parseXYAffinePrismFeatureDocumentV1', serialize: 'serializeXYAffinePrismFeatureDocumentV1',
       validate: 'validateXYAffinePrismFeatureDocumentV1', validateUpdate: 'validateXYAffinePrismFeatureDocumentUpdateV1',
     },
+    prismV2: {
+      evaluate: 'evaluateXYAffinePrismFeatureDocumentV2', update: 'updateXYAffinePrismFeatureDocumentV2',
+      parse: 'parseXYAffinePrismFeatureDocumentV2', serialize: 'serializeXYAffinePrismFeatureDocumentV2',
+      validate: 'validateXYAffinePrismFeatureDocumentV2', validateUpdate: 'validateXYAffinePrismFeatureDocumentUpdateV2',
+    },
   },
 };
 
-test('all 27 concise leaves are the exact legacy functions, with no wrappers', () => {
+test('all 33 concise leaves are the exact named functions, with no wrappers', () => {
   let leaves = 0;
   function check(actual, expected, path) {
     assert.deepEqual(Reflect.ownKeys(actual).sort(), Object.keys(expected).sort(), path);
@@ -52,7 +57,7 @@ test('all 27 concise leaves are the exact legacy functions, with no wrappers', (
     }
   }
   check(api.cad, aliases, 'cad');
-  assert.equal(leaves, 27);
+  assert.equal(leaves, 33);
 });
 
 test('every namespace is frozen; replacement, extension and deletion refuse', () => {
@@ -68,13 +73,13 @@ test('every namespace is frozen; replacement, extension and deletion refuse', ()
     for (const [key, value] of Object.entries(expected)) if (typeof value !== 'string') check(actual[key], value);
   }
   check(api.cad, aliases);
-  assert.equal(records, 9);
+  assert.equal(records, 10);
 });
 
 test('destructured operations and their validators retain the original pairing', () => {
   const { affineXY } = api.cad.sketch;
   const { prismXY, convex } = api.cad.solid;
-  const { sourceV1, prismV1 } = api.cad.document;
+  const { sourceV1, prismV1, prismV2 } = api.cad.document;
   assert.equal(affineXY.build, api.buildXYAffineSketch);
   assert.equal(prismXY.build, api.buildXYAffineSketchPrism);
   assert.equal(convex.subtractSlab, api.subtractConvexPlanarSlab);
@@ -82,4 +87,9 @@ test('destructured operations and their validators retain the original pairing',
   assert.equal(sourceV1.parse, api.parseCadDocument);
   assert.equal(prismV1.parse, api.parseXYAffinePrismFeatureDocumentV1);
   assert.notEqual(sourceV1.parse, prismV1.parse);
+  assert.equal(prismV2.parse, api.parseXYAffinePrismFeatureDocumentV2);
+  assert.notEqual(sourceV1.parse, prismV2.parse);
+  for (const operation of Object.keys(aliases.document.prismV2)) {
+    assert.notEqual(prismV1[operation], prismV2[operation], operation + ' remains version-specific');
+  }
 });

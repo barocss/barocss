@@ -12,6 +12,11 @@ import {
   parseXYAffinePrismFeatureDocumentV1, serializeXYAffinePrismFeatureDocumentV1,
   validateXYAffinePrismFeatureDocumentV1, validateXYAffinePrismFeatureDocumentUpdateV1,
 } from './xy-affine-prism-feature-document.js';
+import {
+  evaluateXYAffinePrismFeatureDocumentV2, updateXYAffinePrismFeatureDocumentV2,
+  parseXYAffinePrismFeatureDocumentV2, serializeXYAffinePrismFeatureDocumentV2,
+  validateXYAffinePrismFeatureDocumentV2, validateXYAffinePrismFeatureDocumentUpdateV2,
+} from './xy-affine-prism-feature-document-v2.js';
 
 /**
  * Concise, profile-qualified aliases for existing CAD APIs.
@@ -74,6 +79,15 @@ export const cad = /* @__PURE__ */ Object.freeze({
       serialize: serializeXYAffinePrismFeatureDocumentV1,
       validate: validateXYAffinePrismFeatureDocumentV1,
       validateUpdate: validateXYAffinePrismFeatureDocumentUpdateV1,
+    }),
+    /** Explicit serial-part v2: coordinate-span prisms and an actual second subtraction-component chamfer. */
+    prismV2: /* @__PURE__ */ Object.freeze({
+      evaluate: evaluateXYAffinePrismFeatureDocumentV2,
+      update: updateXYAffinePrismFeatureDocumentV2,
+      parse: parseXYAffinePrismFeatureDocumentV2,
+      serialize: serializeXYAffinePrismFeatureDocumentV2,
+      validate: validateXYAffinePrismFeatureDocumentV2,
+      validateUpdate: validateXYAffinePrismFeatureDocumentUpdateV2,
     }),
   }),
 });
