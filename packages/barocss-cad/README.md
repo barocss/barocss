@@ -10505,3 +10505,27 @@ NODE_OPTIONS=--max-old-space-size=2048 node examples/cad-nurbs/convex-planar-sol
 
 No Editor Save/Open, current graphics, packed-reader or general DETAIL-02 completion
 is claimed by this native subset. The parent #536 remains open.
+
+### Exact qualified convex planar Solid mass properties
+
+`measureConvexPlanarSolidMass(solid, { densityKgPerM3, maximumFanTriangles })`
+accepts one complete `ConvexPlanarSolidResult` and a positive declared uniform density
+(up to 1,000,000 kg/m³). It reconstructs the complete native parent once, then integrates
+all original oriented facets about its exact interior witness. The result retains the
+whole source-qualified parent and reports exact rational volume, centroid, raw and central
+second moments, mass, and inertia about both the authored origin and centroid. Final
+binary64 values carry exact absolute conversion errors and upward error bounds. Units are
+mm³, mm, kg and kg·m²; no axis/frame conversion is implied.
+
+`validateConvexPlanarSolidMass` rebuilds the complete result with one parent validation.
+The caller's fan budget (1–40), complete inventory, two cumulative rational contexts,
+native reconstruction work and serialized-copy budgets are bounded; failures are atomic.
+The model and stored centroidal tensors must have positive exact leading principal minors.
+Authored signed zeros remain copied, while generated exact zero projects to positive zero.
+Validation establishes full self-consistency, not external source/revision authenticity.
+This is the current exact affine convex boundary family, not an extrusion estimate or an
+integer-cell-only property. Density/material certification, curved or heterogeneous Solids,
+surface area, principal axes and manufacturing tolerance are outside this operation.
+
+Focused source/emitted/cold example: `examples/cad-nurbs/convex-planar-solid-mass-demo.mjs`
+(`#1599`, under #540 ENG-02/ENG-03).

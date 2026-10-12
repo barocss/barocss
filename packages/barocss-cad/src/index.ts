@@ -536,3 +536,6 @@ export { XYAffinePrismFeatureError, XYAffinePrismFeatureDocumentLimits, evaluate
 export type { XYAffinePrismSketchNode, XYAffinePrismNode, XYAffinePrismComponentRecipe, XYAffinePrismSubtractionNode, XYAffinePrismFeatureParameter, XYAffinePrismFeatureDocumentV0, XYAffinePrismFeatureEdits, XYAffinePrismFeatureWork, XYAffinePrismFeatureResult, XYAffinePrismFeatureUpdate, XYAffinePrismFeatureDiagnosticCode } from './xy-affine-prism-feature-document.js';
 export { chamferConvexPlanarSolid, validateConvexPlanarSolidChamfer, ConvexPlanarSolidChamferError } from './convex-planar-solid-chamfer.js';
 export type { ConvexPlanarChamferUseReference, ConvexPlanarChamferSelection, ConvexPlanarSolidChamferOptions, ConvexPlanarSolidChamferReport, ConvexPlanarSolidChamferResult, ConvexPlanarSolidChamferDiagnosticCode } from './convex-planar-solid-chamfer.js';
+
+export { measureConvexPlanarSolidMass, validateConvexPlanarSolidMass, ConvexPlanarSolidMassError, ConvexPlanarSolidMassDiagnosticCode } from './convex-planar-solid-mass.js';
+export type { ConvexPlanarSolidMassOptions, ConvexPlanarSolidMassMeasure, ConvexPlanarSolidMassReport, ConvexPlanarSolidMassResult } from './convex-planar-solid-mass.js';
