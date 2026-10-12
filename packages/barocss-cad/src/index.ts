@@ -521,3 +521,6 @@ export type { ConvexPlanarSolidAsset, ConvexPlanarSolidUseReference, ConvexPlana
 
 export { buildXYCircularNumericalSketch, solveXYCircularNumericalSketch, validateXYCircularNumericalSketch, XYCircularNumericalSketchError, XYCircularNumericalSketchDiagnosticCode } from './xy-circular-numerical-sketch.js';
 export type { XYCircularNumericalSketchPoint, XYCircularNumericalSketchSegment, XYCircularNumericalSketchCircle, XYCircularNumericalSketchConstraint, XYCircularNumericalSketchBranchGuard, XYCircularNumericalSketchDocumentV0, XYCircularNumericalSketchRadius, XYCircularNumericalSketchContact, XYCircularNumericalSketchBinding, XYCircularNumericalSketchReport, XYCircularNumericalSketchSuccess, XYCircularNumericalSketchDiagnostic, XYCircularNumericalSketchResult } from './xy-circular-numerical-sketch.js';
+
+export { splitConvexPlanarSolid, validateConvexPlanarSolidSplit, ConvexPlanarSolidSplitError } from './convex-planar-solid-split.js';
+export type { ConvexPlanarSolidCutter, ConvexPlanarSolidSplitOptions, ConvexPlanarSolidSplitOutcome, ConvexPlanarSolidSplitNode, ConvexPlanarSolidSplitSegment, ConvexPlanarSolidSplitFaceLineage, ConvexPlanarSolidSplitReport, ConvexPlanarSolidSplitResult, ConvexPlanarSolidSplitDiagnosticCode } from './convex-planar-solid-split.js';

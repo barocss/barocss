@@ -10145,3 +10145,92 @@ pnpm --filter @barocss/cad build:library
 node examples/cad-nurbs/xy-circular-numerical-sketch-demo.mjs --source /tmp/circular-source
 node examples/cad-nurbs/xy-circular-numerical-sketch-demo.mjs --emitted /tmp/circular-emitted
 ```
+
+## Split an exact convex planar Solid (#1591)
+
+`splitConvexPlanarSolid(parent, cutter, options)` cuts a qualified convex planar
+Solid with an authored affine Surface. It returns both occupied halves as actual
+`ConvexPlanarSolidResult` values, each admitted by the unchanged exact qualifier.
+Select one half to clip a part. The input may already have sloped faces; this is
+not axis-box dispatch or a mesh operation.
+
+The cutter is `{ sourceId, source, sourceVersion: 0, model, surfaceId }`. Its
+complete original Source0 must compile to the supplied Model, and `surfaceId`
+selects one actual equal-weight degree-one affine Surface. Its finite chart must
+cover the cap. Positive means the side pointed to by the Surface's U-cross-V
+normal. The API never chooses a different chart automatically.
+
+Options are `{ operationId, resultIdPrefix, negativeSolidId, positiveSolidId }`.
+Use a distinct prefix for a subsequent operation so its generated cap namespace
+cannot collide with an earlier cap. The prefix is at most ten ASCII identifier
+characters; operation/output identities are distinct identifiers of at most48.
+
+```ts
+const cut = splitConvexPlanarSolid(qualifiedPart, authoredCutter, {
+  operationId: 'bevel_cut', resultIdPrefix: 'bevel',
+  negativeSolidId: 'retained', positiveSolidId: 'removed',
+});
+if (cut.negative.kind === 'solid') {
+  const nextPart = cut.negative.solid;
+  // Feed nextPart to another split, with a new operation/prefix/output IDs.
+}
+validateConvexPlanarSolidSplit(cut);
+```
+
+Each outcome is `{ kind: 'solid', solid }` or `{ kind: 'empty' }`. An outside or
+tangent cutter leaves the occupied parent unchanged and makes the other outcome
+empty. Its occupied Solid keeps the original parent ID. Contact dimension is
+reported separately (vertex0, edge1, facet2); no zero-volume Solid is fabricated.
+A genuine cut returns two positive-volume native solids, a shared section cycle,
+opposite cap-use correspondences and an exact volume-conservation result.
+
+The complete request preserves original source, model, support Surface/chart,
+Face, loop, edge, use, pcurve and vertex data. Lineage records original memberships,
+source-facet section roles and exact original curve parameters, even when a new
+edge uses domain `[0,1]`. Crossing keys depend on source-qualified incidence and
+operation identity. Keys can disappear when the crossing pattern changes; native
+result graph ordinals remain evaluation-local, not certified persistent naming.
+No coordinate hashing or tolerance welding establishes identity.
+
+Construction uses exact rational values of stored binary64 inputs. Every generated
+XYZ must be exactly representable, and the actual native pcurve coefficients must
+also pass the unchanged whole-edge exact lift proof. A cut at one third can refuse
+even if a floating rendering would appear correct. Representable XYZ alone does
+not guarantee admission: a native chart can generate nonexact UV coefficients.
+Native coplanarity, chart coverage or conditioning can also refuse. No measured
+residual promotes a Face to a Solid certificate.
+
+`ConvexPlanarSolidSplitError` gives a typed `code`, `stage`, `entity` and retained
+cause. Refusal returns no partial result and does not modify caller data or any
+previous accepted part. The whole-result validator reconstructs one complete
+operation, including both outcomes, lineage and reports; it establishes
+self-consistency, not origin authentication.
+
+Bounds remain12 facets,8 edges per facet,64 directed uses and32 vertices per
+nonempty child. A section cap has at most8 edges. Per operation: at most60 Face
+compilations plus one cutter-source compilation,960 binding observations and2880
+known D1 calls; reports contain actual work, including parent reconstruction and
+both output qualifications. At most four exact contexts have200000 operations
+and200000 GCD steps each,8192-bit integers, and800000 aggregate operations/GCD
+steps. There is no chart-search/retry loop. Root input/result snapshots are
+32/64MiB with192MiB cumulative and128MiB retained occurrence-byte ceilings;
+these signed-JSON data charges are not heap measurements. The original child
+snapshot ceilings remain in force.
+
+The runnable example uses public APIs to author a40×20×10 block, cut at y+z=26
+(7680/320mm³), edit to28 (7920/80mm³), then cut the retained sloped-face half at
+x=16 (3072/4608mm³). It also checks exact refusals, contacts, saved authoring
+reconstruction in a fresh process and accepted-state retention. Values are
+analytical checks of computed geometry, not geometry fixtures.
+
+```sh
+node examples/cad-nurbs/convex-planar-solid-split-demo.mjs --source /tmp/cad-split
+# After the affected CAD build, use its actual emitted public entry:
+node examples/cad-nurbs/convex-planar-solid-split-demo.mjs --emitted /tmp/cad-split
+node examples/cad-nurbs/convex-planar-solid-split-demo.mjs --cold /tmp/cad-split
+```
+
+The example pins Node22.23.3 and uses V8 precise function-entry counts alongside
+operation work reports. This is a bounded local CPU/native modeling capability,
+not general BRep Boolean support, manufacturing-tolerance certification, GPU
+consumption, an editor workflow or a package-publication claim.
