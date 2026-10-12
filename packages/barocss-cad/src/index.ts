@@ -492,3 +492,16 @@ export type { QualifiedTranslatedStripBodyBinaryStlOptions, QualifiedTranslatedS
 // Exact conserved partition at a retained native intermediate paired A roof.
 export { splitPairedRoofDifferenceBody, validatePairedRoofBodySplit, PairedRoofBodySplitError, PairedRoofBodySplitDiagnosticCode } from './paired-roof-body-split.js';
 export type { PairedRoofBodySplitRequest, PairedRoofBodySplitOptions, PairedRoofBodySplitResult, PairedRoofBodySplitReport } from './paired-roof-body-split.js';
+
+export {
+  classifyPairedRoofDifferenceBodyWorldPoints,
+  validatePairedRoofDifferenceBodyWorldPoints,
+  PairedRoofDifferenceBodyWorldPointError,
+  PairedRoofDifferenceBodyWorldPointDiagnosticCode,
+} from './paired-roof-difference-body-world-points.js';
+export type {
+  PairedRoofDifferenceBodyWorldPointQuery,
+  PairedRoofDifferenceBodyWorldPointOptions,
+  PairedRoofDifferenceBodyWorldPointResult,
+  PairedRoofDifferenceBodyWorldPointReport,
+} from './paired-roof-difference-body-world-points.js';

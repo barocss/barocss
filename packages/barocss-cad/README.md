@@ -9725,3 +9725,34 @@ acceptance, integration adoption and actual GPU/Loader use remain separate.
 Generic solid splitting/Boolean operations, crossings, pinches, manufacturing
 accuracy, global binary64 error certification, rendering and publication are outside
 this bounded API.
+
+## Exact paired-roof difference Body World points
+
+`classifyPairedRoofDifferenceBodyWorldPoints(body, queries, options)` accepts one
+complete `PairedRoofDifferenceBodyResult`, zero to sixteen exact represented
+World-mm queries `{queryId, pointMM}`, and `{evaluationId, maximumQueries:16}`.
+It owns the full request, validates the complete parent once, then classifies
+against its source-defined occupied region using the original UA/VA roof and
+original UB band polynomials. The variable floor and roof are both evaluated
+at physical `(X,Y)`, never in the normalized material chart.
+
+The staged exact rational predicate checks X, Y, then lower/upper Z. Outside
+wins over any earlier zero; boundary results retain all exact-zero actual
+parent Face references in parent order. Retained coordinates preserve signed
+zero. Full inherited native work is reported separately from the new predicate,
+which performs no native sampling, source compilation, projection, root solving,
+or rational-to-float conversion. This certifies only the bounded unit-axis
+paired-roof family, not arbitrary Body membership or renderer picking.
+
+`validatePairedRoofDifferenceBodyWorldPoints(unknown)` copies and reconstructs
+one complete result, compares every retained value including signed-zero bits,
+and returns an independent report. Invalid requests refuse atomically through
+`PairedRoofDifferenceBodyWorldPointError` and the eight exported diagnostic
+codes. Fixed rational, ownership and signed-zero-aware JSON envelopes are refusal
+caps; they do not promise that every otherwise admissible parent fits.
+
+The finite demonstration in
+`examples/cad-nurbs/paired-roof-difference-body-world-points-demo.mjs` consumes
+hash-verified preserved whole and split-piece parents from #1575. Its source,
+owned, emitted, cold and refusal partitions must run sequentially under their
+frozen resource ledger; it never regenerates the split.
