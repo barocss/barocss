@@ -45,7 +45,7 @@ The first selector belongs to `blank`; the second selector is created from **`fr
 
 <<< ../../public/examples/modeling-chamfer-chain.ts#edit-chamfers
 
-Each edit rebuilds the second selector against the first result of that same evaluation. Saving the back-distance-3 state and loading it in a fresh process gives 5984 mm³; changing only `backDistance` back to 2 gives 6064 mm³. The independent front/back edits and authored save/load flow use the same snapshot API:
+Each evaluated second chamfer resolves its selector against the first result available in that same candidate; an unchanged earlier result may be reused as described below. Saving the back-distance-3 state and loading it in a fresh process gives 5984 mm³; changing only `backDistance` back to 2 gives 6064 mm³. The independent front/back edits and authored save/load flow use the same snapshot API:
 
 <<< ../../public/examples/modeling-chamfer-chain.ts#chamfer-workflow
 
@@ -163,9 +163,37 @@ Provider [#1622](https://github.com/barocss/barocss/issues/1622) and consumer [#
 
 <<< ../../../scripts/snippets/modeling-api.ts#edit
 
-`withParameters` applies a batch to a new candidate and rebuilds all authored operations. Adopt the returned snapshot only after success. There are no revision counters to manage. Previous snapshots remain unchanged, and an unknown parameter refuses rather than creating a new one. This is a bounded full rebuild, not a selective-work or incremental-performance promise.
+`withParameters` applies a batch to a new candidate, reusing the unchanged feature prefix when it comes from the exact accepted snapshot. Adopt the returned snapshot only after success. There are no revision counters to manage. Previous snapshots remain unchanged, and an unknown parameter refuses rather than creating a new one. The first feature that references a changed parameter and every later feature are evaluated normally; earlier unchanged features may retain their frozen geometry/evidence by reference. This is conservative prefix reuse, not a general DAG scheduler or a speed guarantee.
 
 For this part, changing `height` and `rearX` together uses `{ height: 6, rearX: 20 }`. Changing `setback` is an ordinary parameter edit. No builder, edge-handle or native ID from the original construction is needed to re-edit an accepted snapshot.
+
+### Inspect feature reuse without assuming a timing gain
+
+The readonly `snapshot.recomputation` report lists `reusedFeatures` and `evaluatedFeatures`, using the same zero-based indices as `snapshot.features`. It reports **model feature work only**: not total native calls, tessellation work, elapsed time or a measured speedup. The report is derived and is **excluded from saved authored text**.
+
+<<< ../../public/examples/modeling-chamfer-chain.ts#inspect-recomputation
+
+Only `withParameters` on the exact accepted snapshot can reuse its privately held, deeply frozen evaluation prefix. Source graph/options and parameter names stay admitted and unchanged; comparisons distinguish `+0` and `-0`. A failed edit leaves earlier snapshots, saved text and later reuse intact. There is no caller-imported, global or serialized geometry cache.
+
+The [selective-regeneration source](https://github.com/barocss/barocss/blob/9722e3ab1f28daf17065aa9a5a9fec887faa9838/packages/barocss-cad/src/modeling.ts) and [native receipt](https://github.com/barocss/barocss/blob/9722e3ab1f28daf17065aa9a5a9fec887faa9838/packages/barocss-cad/test/modeling-regeneration-evidence/verification.json) establish these results for a **separate four-node producer fixture**. That fixture adds editable `width`, `height` and `unused` parameters to the three-parameter two-chamfer editor preset; those extra fields are not silently added to the existing preset.
+
+| Producer fixture call | Reused feature indices | Evaluated feature indices | Exact part volume (mm³) |
+| --- | --- | --- | ---: |
+| Cold build | none | 0, 1, 2, 3 | 6064 |
+| `backDistance:3` from initial | 0, 1, 2 | 3 | 5984 |
+| `frontDistance:2` from back-edited snapshot | 0, 1 | 2, 3 | 5936 |
+| `height:10` from initial | 0 | 1, 2, 3 | 7600 |
+| `width:40` from initial | none | 0, 1, 2, 3 | 7580 |
+| API same-value call on back-edited snapshot | 0, 1, 2, 3 | none | 5984 |
+| Unused `+0` → `-0` after a native refusal | 0, 1, 2, 3 | none | 6064 |
+| Fresh emitted load of back-edited save | none | 0, 1, 2, 3 | 5984 |
+| Back distance restored to 2 after that load | 0, 1, 2 | 3 | 6064 |
+
+The producer's 10 model calls include the actual `NATIVE`/`METRIC` chamfer refusal; the old accepted bodies/text and subsequent reuse survived it. One final-part tessellation was measured separately. These are model-feature and identity observations, not full transitive native coverage or a benchmark.
+
+The existing editor benefits through its retained-snapshot `withParameters` path without a new editing flow. It filters entirely unchanged drafts before requesting any Worker operation, which is different from the explicit API no-op row above. **Accepted outputs still tessellate.** Explicit Open and fresh Worker reconstruction use `cad.load` and evaluate cold; cancellation or Worker loss discards the private frame, then reconstructs the accepted saved model before retrying the edit. Native or display-preparation refusal preserves the previously accepted data and history. Feature-work arrays are not added to the editor transport or shown as UI timing counters.
+
+The consumer checks instrument exact snapshot identity with provider stubs and exercise the actual CPU controller's no-op, signed-zero and reconstruction paths. They do not rerun native geometry or establish editor browser/GPU behavior. Real reuse/cold identity proof belongs to the separately pinned producer receipt.
 
 `CadModelError` has `code`, `operation`, `message` and, when present, the original native `cause`. Codes are `INPUT`, `PARAMETER`, `OWNERSHIP`, `CAPABILITY`, `SELECTION`, `FORMAT`, `BUDGET` and `NATIVE`. A wrapper error can arise before native evaluation; kernel refusals are wrapped as `NATIVE`. Handle the actual code/operation and keep the last accepted snapshot. Do not silently snap coordinates, switch cut sides or choose another edge after refusal.
 
@@ -190,7 +218,7 @@ This loader accepts files from this modeling API. Existing versioned feature doc
 | Split | One direct XY extrusion; world `axis: 'x'`, `'y'` or `'z'` with a finite coordinate; each selected side must be nonempty | Oblique plane, empty requested side, mixed cut/intersection/split graph, repeated/nested split |
 | Select | One exact cardinal-direction/endpoint-coordinate query on the same body | Zero/multiple matches, handles from another model/body, tolerance or persistent-topology matching |
 | Chamfer | Up to two serial owned cardinal-edge chamfers; second parent/selector from the first result; perpendicular signed-axis adjacent supports and supported endpoints; positive local setback | Sibling/third chamfer, stale selectors, curved or arbitrary-angle chamfer, zero/excessive/touching/nonlocal setback; unmeasured feature combinations |
-| Edit/load | Named finite-mm parameter batch; complete bounded rebuild into a new snapshot | Partial accepted candidate, arbitrary graph editing, implicit migration or cached geometry acceptance |
+| Edit/load | Named finite-mm parameter batch; admitted unchanged-prefix reuse on the exact snapshot, cold build/load, independent new snapshots | Partial accepted candidate, arbitrary graph editing, implicit migration or cached geometry acceptance |
 
 A dimension being an ordinary integer is not enough to qualify an operation. The exact native XYZ, UV and chart constraints still apply. In the canonical part, combined `rearX:20` and `upperX:24` requires non-binary64 XYZ `80/3` and refuses; a `height:10` edit leaves the tool shorter than the parent and refuses coverage. `upperX:32` makes the selected positive side empty. Zero setback refuses the positive-dimension requirement; excessive setback refuses native locality. These are exactness and shape limits, not hidden tolerances or repair instructions.
 

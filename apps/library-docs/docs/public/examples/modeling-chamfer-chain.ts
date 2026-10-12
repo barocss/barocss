@@ -51,3 +51,10 @@ export function twoChamferWorkflow() {
   return { initial, backEdited, bothEdited, authoredText, reopened, restored };
 }
 // #endregion chamfer-workflow
+
+// #region inspect-recomputation
+export function inspectRecomputation(snapshot: CadModelSnapshot) {
+  // Model feature indices only. No native call totals, tessellation work or timings.
+  return snapshot.recomputation;
+}
+// #endregion inspect-recomputation

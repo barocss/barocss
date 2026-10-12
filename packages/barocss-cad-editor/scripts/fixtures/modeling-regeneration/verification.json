@@ -1,0 +1,317 @@
+{
+  "issue": 1629,
+  "base": "58a6e72bfc3e9c9886d00ea087fe599503d29f01",
+  "testedTestsAndDocsCommit": "c2dc6024ab54c6c50d0f3e99142e208751eafcf5",
+  "adoptedProviderPin": "9722e3ab1f28daf17065aa9a5a9fec887faa9838",
+  "acceptedProducerCandidate": "321fe1fe1e763e8d392bb311d745366527d7174b",
+  "providerNativeReceiptSHA256": "c12a48985c3a77ac1891ab07f296889d0f19f102be5127cc5d2f73db07a36300",
+  "providerScope": "Existing producer10-model-call1-tessellation campaign; no consumer native evaluation. Private prefix identity and cold-load proof attributed to producer.",
+  "productionEditorSourceUnchanged": {
+    "packages/barocss-cad-editor/src/modeling-engine.ts": "73a3706b782b6244a5efa3dead77efe7ab24ed56889aa7bfce744cc305c9a5ed",
+    "packages/barocss-cad-editor/src/modeling-controller.ts": "f7810dd23a842cfeee46456e25e4b1618523f35647f5c298c3f9f0a58d0f510d",
+    "packages/barocss-cad-editor/src/react/modeling-editor.tsx": "7d80f221acde35ccd71b8c606a3c87e9c2218f850c618ba4d4ddf76d355969fc"
+  },
+  "checks": {
+    "workerRoutingAndSnapshotIdentity": {
+      "ok": true,
+      "checks": 36,
+      "modelCalls": 18,
+      "legacyCalls": 5,
+      "retainedSnapshotIdentityChecks": 7,
+      "coldLoadCallsObserved": 5,
+      "acceptedOutputsStillTessellate": true,
+      "recomputationNotTransported": true,
+      "evidence": "stubbed providers; pure worker routing and authority only; no native geometry"
+    },
+    "controller": {
+      "ok": true,
+      "checks": 93,
+      "legacyChecks": 0,
+      "evidence": "CPU controller, saved mesh and synthesized graph-shaped DTO; optional saved real legacy replies; no native geometry, browser, GPU or OS files"
+    },
+    "chamferRecipe": {
+      "ok": true,
+      "scope": "identical public parameter/rectangle/extrude/owned-edge/chamfer/build calls, including exact second-result ownership; stubbed authoring only",
+      "editorSHA256": "73a3706b782b6244a5efa3dead77efe7ab24ed56889aa7bfce744cc305c9a5ed",
+      "downloadSHA256": "eefa59ffd5c997f9115700ccf34baed0f2f201618f1f58c6debc6ca5d4504183",
+      "providerFixtureSHA256": "3d85e35ddf97ae2bdf113dbd8d965c65fabd05cc103697803f3aeeb0aa3c12eb",
+      "callCountPerRecipe": 9,
+      "secondSelectorOwnerIsFirstResult": true,
+      "nativeGeometryRun": false
+    },
+    "chamferHistoricalDTO": {
+      "ok": true,
+      "actualNativeTransportReplays": 2,
+      "sourceTransportSHA256": "74e9a472c54aaa5d228a23d79b083c9a7c4c539bf5de6a5f274597e5fbfba4af",
+      "checks": [
+        "real four-node serial chain",
+        "native output6064",
+        "actual CPU scene",
+        "CPU output picking",
+        "authored reopen",
+        "stale selection",
+        "simulated refusal retains accepted source and draft",
+        "second-parent tamper refusal"
+      ],
+      "evidence": "preserved real provider baseline DTO through actual controller with mocked Worker; no native geometry rerun, browser/GPU, physical file dialog or sample worker execution"
+    },
+    "cardinalRecipe": {
+      "ok": true,
+      "scope": "identical public parameter/sketch/extrude/split/build calls, including signed zero; stubbed authoring only",
+      "editorSHA256": "73a3706b782b6244a5efa3dead77efe7ab24ed56889aa7bfce744cc305c9a5ed",
+      "downloadSHA256": "f3e4e854cc68a990cf8fde396b4862843bf47cdff5f041df3940c8686e860aaa",
+      "providerFixtureSHA256": "615843ed686e5399bfd1b45fc9154b2b16d0fedaa48a70c0f26c4eb7c7657dc5",
+      "axes": [
+        "x",
+        "y"
+      ],
+      "callCountPerRecipe": 6,
+      "nativeGeometryRun": false
+    },
+    "cardinalHistoricalDTO": {
+      "ok": true,
+      "actualNativeTransportReplays": 2,
+      "sourceTransportSHA256": "d5565b13c28ddf816b89f8e2bb284844c9b35e404fee6377ca450a22bf219e18",
+      "ranges": [
+        {
+          "role": "negative",
+          "minX": 0,
+          "maxX": 16
+        },
+        {
+          "role": "positive",
+          "minX": 16,
+          "maxX": 32
+        }
+      ],
+      "hits": [
+        {
+          "x": 78,
+          "y": 30,
+          "role": "positive",
+          "solidId": "m2_pos",
+          "faceId": "m1_w_0_f",
+          "triangleIndex": 4,
+          "approximate": true
+        },
+        {
+          "x": 42,
+          "y": 58,
+          "role": "negative",
+          "solidId": "m2_neg",
+          "faceId": "m1_w_0_f",
+          "triangleIndex": 4,
+          "approximate": true
+        }
+      ],
+      "checks": [
+        "real split kind",
+        "native X outputs4096/3072",
+        "two distinct CPU geometries",
+        "CPU picking of both named outputs",
+        "authored reopen",
+        "stale selection",
+        "simulated refusal retains accepted source/draft",
+        "output-side tamper refusal"
+      ],
+      "evidence": "preserved real provider baseline DTO through actual controller with mocked Worker; no native geometry rerun, browser/GPU, physical file dialog or sample worker execution"
+    },
+    "zRecipe": {
+      "ok": true,
+      "scope": "identical public parameter/sketch/extrude/split/build calls, including signed zero; stubbed authoring only",
+      "editorSHA256": "73a3706b782b6244a5efa3dead77efe7ab24ed56889aa7bfce744cc305c9a5ed",
+      "downloadSHA256": "20843920e8f55721a3941d7328b40a7ccccac1a062906b60e3bb36ea368c4c12",
+      "providerFixtureSHA256": "ea9208b8edad7de896082724e2bdbd35698f24dbb8b9608a9448b40b6e16885f",
+      "callCount": 5,
+      "nativeGeometryRun": false
+    },
+    "zHistoricalDTO": {
+      "ok": true,
+      "actualNativeTransportReplays": 2,
+      "sourceTransportSHA256": "28e6d0fc88f8b828b95b698845d6ac79addc1239d7fe80082cf552601ac8662a",
+      "ranges": [
+        {
+          "role": "lower",
+          "minZ": 0,
+          "maxZ": 2
+        },
+        {
+          "role": "upper",
+          "minZ": 2,
+          "maxZ": 8
+        }
+      ],
+      "hits": [
+        {
+          "x": 78,
+          "y": 30,
+          "role": "lower",
+          "solidId": "m2_neg",
+          "faceId": "m1_w_0_f",
+          "triangleIndex": 3,
+          "approximate": true
+        },
+        {
+          "x": 74,
+          "y": 38,
+          "role": "upper",
+          "solidId": "m2_pos",
+          "faceId": "m1_w_0_f",
+          "triangleIndex": 4,
+          "approximate": true
+        }
+      ],
+      "checks": [
+        "real split kind",
+        "native outputs1792/5376",
+        "two distinct CPU geometries",
+        "CPU picking of both named outputs",
+        "authored reopen",
+        "stale selection",
+        "simulated refusal retains accepted source/draft",
+        "output-side tamper refusal"
+      ],
+      "evidence": "preserved real provider baseline DTO through actual controller with mocked Worker; no native geometry rerun, browser/GPU, physical file dialog or sample worker execution"
+    },
+    "intersectionRecipe": {
+      "ok": true,
+      "scope": "identical public parameter/sketch/extrude/intersect/build calls, including signed zero; stubbed authoring only",
+      "editorSHA256": "73a3706b782b6244a5efa3dead77efe7ab24ed56889aa7bfce744cc305c9a5ed",
+      "downloadSHA256": "acb9b1d71dbf0a0daf16d9748c808a0fdd644b4a0ba83284e539776dbb2ce4a9",
+      "providerFixtureSHA256": "c3f5483214f8304c02825e4e16178fd602931198a36c19c3ed42d9a53cf3cf7c",
+      "callCount": 11,
+      "nativeGeometryRun": false
+    },
+    "intersectionHistoricalDTO": {
+      "ok": true,
+      "actualNativeTransportReplays": 2,
+      "sourceTransportSHA256": "83b0743336c8e2dbe08beff27d6d6b8b823b2d3519889d28a2576f324769b537",
+      "checks": [
+        "real intersect kind",
+        "native output2176",
+        "actual CPU scene",
+        "CPU output picking",
+        "authored reopen",
+        "stale selection",
+        "simulated refusal retains accepted source"
+      ],
+      "evidence": "preserved real provider baseline DTO through actual controller with mocked Worker; no native geometry rerun, browser/GPU, physical file dialog or sample worker execution"
+    },
+    "focusedLint": {
+      "exit": 0,
+      "errors": 0,
+      "consoleWarnings": 3,
+      "logSHA256": "38718d8abf0c643f6e46ac5f5c3adf9aa381caa61a02faa2dc9a3eaf0de612a8"
+    }
+  },
+  "downloadCount": 14,
+  "downloads": [
+    {
+      "path": "apps/library-docs/docs/public/examples/body-boundary-mesh/main.owned-body.json",
+      "sha256": "6aa430ecc7775159b4bef758ab21363a75f186d84d15c8c4a56e8c00e2e6097d",
+      "priorSHA256": "6aa430ecc7775159b4bef758ab21363a75f186d84d15c8c4a56e8c00e2e6097d",
+      "status": "unchanged"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-line-width-extrusion-graph.authored.json",
+      "sha256": "6e707d5022a7ff454b25284392a170214d50e19e5f525f5d54bac26a4f7dd371",
+      "priorSHA256": "6e707d5022a7ff454b25284392a170214d50e19e5f525f5d54bac26a4f7dd371",
+      "status": "unchanged"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-line-width-shell.json",
+      "sha256": "f91644774c356d2f814574d42b4a211b9374eb67101c6b362a9a4fe655e78fbb",
+      "priorSHA256": "f91644774c356d2f814574d42b4a211b9374eb67101c6b362a9a4fe655e78fbb",
+      "status": "unchanged"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-prism-feature-v0-authored.json",
+      "sha256": "d9a999760b6492c0d3efe8642b12058ef5a4380e90d7f99d7feeb20c691630ce",
+      "priorSHA256": "d9a999760b6492c0d3efe8642b12058ef5a4380e90d7f99d7feeb20c691630ce",
+      "status": "unchanged"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-quantity-functions.cad.css",
+      "sha256": "01f8980d6821bdecfbc1b64deb3428e428886b31c0d01909384c65e21a7ef42d",
+      "priorSHA256": "01f8980d6821bdecfbc1b64deb3428e428886b31c0d01909384c65e21a7ef42d",
+      "status": "unchanged"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-cardinal-split.ts",
+      "sha256": "f3e4e854cc68a990cf8fde396b4862843bf47cdff5f041df3940c8686e860aaa",
+      "priorSHA256": "f3e4e854cc68a990cf8fde396b4862843bf47cdff5f041df3940c8686e860aaa",
+      "status": "unchanged"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-chamfer-chain.ts",
+      "sha256": "eefa59ffd5c997f9115700ccf34baed0f2f201618f1f58c6debc6ca5d4504183",
+      "priorSHA256": "3c0cb92e5198bcdeb8b7bac19b3b4451294ad474b68111f9f332afd3820a1033",
+      "status": "readonly inspection helper added; construction recipe unchanged"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-intersection.ts",
+      "sha256": "acb9b1d71dbf0a0daf16d9748c808a0fdd644b4a0ba83284e539776dbb2ce4a9",
+      "priorSHA256": "acb9b1d71dbf0a0daf16d9748c808a0fdd644b4a0ba83284e539776dbb2ce4a9",
+      "status": "unchanged"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-split.ts",
+      "sha256": "20843920e8f55721a3941d7328b40a7ccccac1a062906b60e3bb36ea368c4c12",
+      "priorSHA256": "20843920e8f55721a3941d7328b40a7ccccac1a062906b60e3bb36ea368c4c12",
+      "status": "unchanged"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/serial-part-v2.json",
+      "sha256": "15672f1f44b154698759db7ed80f903081fafecd1c2683e11448d5564276aaf9",
+      "priorSHA256": "15672f1f44b154698759db7ed80f903081fafecd1c2683e11448d5564276aaf9",
+      "status": "unchanged"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/source0.cad.css",
+      "sha256": "e31fc1269d9d59645078cb9b1cc5bd13baece79bb21993d59a922888d758fdcf",
+      "priorSHA256": "e31fc1269d9d59645078cb9b1cc5bd13baece79bb21993d59a922888d758fdcf",
+      "status": "unchanged"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/source1.cad.css",
+      "sha256": "36e25f4e4f2aaa02620c901f4443da73d490f4032c3d6b41ff75e45d7d28c355",
+      "priorSHA256": "36e25f4e4f2aaa02620c901f4443da73d490f4032c3d6b41ff75e45d7d28c355",
+      "status": "unchanged"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/source2.cad.css",
+      "sha256": "3fa249d506991c15237531ce220ef3d168fcc95ba87c10d258c81b962a8d19ed",
+      "priorSHA256": "3fa249d506991c15237531ce220ef3d168fcc95ba87c10d258c81b962a8d19ed",
+      "status": "unchanged"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/source3.cad.css",
+      "sha256": "7022e35b9aafff79d7ced839f0d01434591d498eb2be0571a90c4cce29f418bd",
+      "priorSHA256": "7022e35b9aafff79d7ced839f0d01434591d498eb2be0571a90c4cce29f418bd",
+      "status": "unchanged"
+    }
+  ],
+  "sourceAndEmittedTypeChecks": "apps/library-docs/evidence/modeling-regeneration-docs.json",
+  "firstFailures": [],
+  "modelFeatureReportNotTransported": true,
+  "noNativeCampaign": true,
+  "noFullBundleReason": "Exactly tests/docs changes; unchanged production editor source, package configuration and transport. Producer emitted API/types/build were separately verified.",
+  "notRun": [
+    "Additional native geometry or tessellation",
+    "Editor browser/GPU",
+    "Physical file-picker",
+    "Full repository suite/CI",
+    "New editor/application bundle",
+    "Manual build/deployment for this increment",
+    "Npm publication"
+  ],
+  "commands": [
+    "REPO_DEPS_ROOT=<installed dependencies> Node22 packages/barocss-cad-editor/scripts/modeling-engine-test.mjs",
+    "REPO_DEPS_ROOT=<installed dependencies> Node22 packages/barocss-cad-editor/scripts/modeling-controller-test.mjs",
+    "CAD_MODEL_ROOT=<accepted provider> REPO_DEPS_ROOT=<installed dependencies> Node22 existing chamfer-chain/cardinal-split/split/intersection recipe and DTO controller replay scripts",
+    "CAD_MODEL_ROOT=<accepted provider> REPO_DEPS_ROOT=<installed dependencies> Node22 apps/library-docs/scripts/check-modeling-regeneration.mjs source",
+    "Same documentation check emitted mode",
+    "Focused eslint on the two test scripts, current checker and modified download"
+  ],
+  "publication": "Pending expected-parent serial adoption after provider9722e3ab"
+}

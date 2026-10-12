@@ -82,6 +82,15 @@ let checks = 0, legacyChecks = 0;
 try {
   const session = create(); let p = session.example(), worker = instances.at(-1); worker.accept(); await p;
   assert.ok(session.getSnapshot().accepted); assert.ok(Object.is(session.getSnapshot().accepted.parameters.signed, -0)); checks++;
+  const noOpBefore = stable(session), requestsBeforeNoOp = worker.requests.length;
+  session.stage('height', '8'); await session.apply();
+  assert.equal(worker.requests.length, requestsBeforeNoOp); assert.deepEqual(stable(session), noOpBefore); checks++;
+  session.stage('signed', '0'); p = session.apply(); assert.ok(Object.is(worker.requests.at(-1).parameters.signed, 0));
+  worker.accept(); await p; assert.ok(Object.is(session.getSnapshot().accepted.parameters.signed, 0)); checks++;
+  session.stage('signed', '-0'); p = session.apply(); assert.ok(Object.is(worker.requests.at(-1).parameters.signed, -0));
+  worker.accept(); await p; assert.ok(Object.is(session.getSnapshot().accepted.parameters.signed, -0)); checks++;
+  // Reset history after the dedicated signed-zero checks, retaining the original baseline flow.
+  p = session.open(signedJSON(authored)); worker.accept(); await p;
   for (const bad of ['', '0x10', 'Infinity', '10001', '1e-9999']) { session.stage('height', bad); await assert.rejects(session.apply()); } session.discard(); checks++;
   session.stage('height', '6'); p = session.apply(); await assert.rejects(session.apply(), /in progress/);
   worker.send({ ok: false, message: 'old reply' }, worker.requests.at(-1).id - 1); assert.equal(session.getSnapshot().busy, true);
@@ -92,7 +101,9 @@ try {
   session.stage('height', '7'); const prior = stable(session); p = session.apply(); const late = worker.requests.at(-1); session.cancel(); worker.accept(late); await p;
   assert.deepEqual(stable(session), prior); assert.equal(worker.terminated, true); checks++;
   p = session.apply(); worker = instances.at(-1); assert.equal(worker.requests[0].kind, 'open'); assert.equal(worker.requests[0].revision, prior.accepted.revision);
-  worker.accept(); await tick(); worker.accept(); await p; assert.equal(session.getSnapshot().accepted.parameters.height, 7); checks++;
+  assert.equal(worker.requests[0].text, prior.authoredText); assert.equal(worker.requests.length, 1); checks++;
+  worker.accept(); await tick(); assert.equal(worker.requests[1].kind, 'apply'); assert.deepEqual(worker.requests[1].parameters, { height: 7 });
+  worker.accept(); await p; assert.equal(session.getSnapshot().accepted.parameters.height, 7); checks++;
   session.stage('height', '5'); const accepted = stable(session); p = session.apply(); worker.send({ ok: false, message: 'native refusal' }); await p;
   assert.deepEqual(stable(session), accepted); session.discard(); checks++;
   const previous = session.getSnapshot(); p = session.open(previous.authoredText); worker.accept(); await p;

@@ -23,13 +23,18 @@ function sampleBuilder() {
   return { parameter(name, value) { parameters[name] = value; return { parameter: name }; }, sketch: { polygon: sketch, rectangle: sketch },
     build(outputs) { return snapshot({ ...document, parameters, nodes, outputs: Object.fromEntries(Object.entries(outputs).map(([name, body]) => [name, { node: body.index, side: body.side ?? 'solid' }])) }); } };
 }
+const snapshots = [], snapshotEdits = [], loads = [];
+let tessellations = 0, rejectTessellation = false;
 function snapshot(data) {
   const body = { report: { solidId: 'current_solid' }, certificate: { volumeMM3: { numerator: '1', denominator: '1' } }, graph: { vertices: [], edges: [], faces: [], vertexLinks: [] } };
-  return { parameters: data.parameters, features: data.nodes.map((node, index) => ({ kind: node.kind, index, dependencies: [] })), bodies: Object.fromEntries(Object.keys(data.outputs).map(name => [name, body])),
-    save: () => JSON.stringify({ ...data, outputs: Object.fromEntries(Object.entries(data.outputs).sort(([a], [b]) => a.localeCompare(b))) }), withParameters(values) { modelCalls++; if (Object.values(values).some(v => v < 0)) throw new Error('native candidate refused'); return snapshot({ ...data, parameters: { ...data.parameters, ...values } }); } };
+  const result = { parameters: data.parameters,
+    recomputation: Object.freeze({ reusedFeatures: Object.freeze([]), evaluatedFeatures: Object.freeze(data.nodes.map((_node, index) => index)) }),
+    features: data.nodes.map((node, index) => ({ kind: node.kind, index, dependencies: [] })), bodies: Object.fromEntries(Object.keys(data.outputs).map(name => [name, body])),
+    save: () => JSON.stringify({ ...data, outputs: Object.fromEntries(Object.entries(data.outputs).sort(([a], [b]) => a.localeCompare(b))) }), withParameters(values) { snapshotEdits.push({ snapshot: result, values: structuredClone(values) }); modelCalls++; if (Object.values(values).some(v => v < 0)) throw new Error('native candidate refused'); return snapshot({ ...data, parameters: { ...data.parameters, ...values } }); } };
+  snapshots.push(result); return result;
 }
-globalThis.__modelingCad = { cad: { model: sampleBuilder, load(text) { modelCalls++; const data = JSON.parse(text); if (data.invalid) throw new Error('codec refused'); return snapshot(data); } },
-  tessellateConvexPlanarSolid() { const { mesh, boundaries, internalDiagonals, report } = structuredClone(packet.components[0]); report.solidId = 'current_solid'; return { mesh, boundaries, internalDiagonals, report }; } };
+globalThis.__modelingCad = { cad: { model: sampleBuilder, load(text) { modelCalls++; const data = JSON.parse(text); if (data.invalid) throw new Error('codec refused'); const result = snapshot(data); loads.push({ text, snapshot: result }); return result; } },
+  tessellateConvexPlanarSolid() { tessellations++; if (rejectTessellation) throw new Error('tessellation refused'); const { mesh, boundaries, internalDiagonals, report } = structuredClone(packet.components[0]); report.solidId = 'current_solid'; return { mesh, boundaries, internalDiagonals, report }; } };
 globalThis.__modelingLegacy = () => {
   let accepted;
   return command => {
@@ -117,8 +122,44 @@ assert.equal(sampleEngine({ id: ++id, kind: 'example', example: 'not-a-sample' }
 assert.equal(sampleCalls, beforeSamples); checks++;
 const afterBadSample = sampleEngine({ id: ++id, kind: 'apply', expectedRevision: 0, parameters: { backDistance: 3 } });
 assert.equal(afterBadSample.ok, true); assert.equal(afterBadSample.summary.parameters.backDistance, 3); checks++;
+// Accepted snapshot identity is observed directly in provider stubs, not inferred from counters.
+const reuseEngine = create();
+const coldReply = reuseEngine({ id: ++id, kind: 'open', text: JSON.stringify(document) });
+assert.equal(coldReply.ok, true); const coldSnapshot = loads.at(-1).snapshot;
+assert.equal(Object.hasOwn(coldReply.summary, 'recomputation'), false);
+assert.equal(Object.hasOwn(JSON.parse(coldReply.text), 'recomputation'), false); checks++;
+let reuseReply = reuseEngine({ id: ++id, kind: 'apply', expectedRevision: 0, parameters: { height: 6 } });
+assert.equal(reuseReply.ok, true); assert.equal(snapshotEdits.at(-1).snapshot, coldSnapshot);
+const firstAccepted = snapshots.at(-1); assert.notEqual(firstAccepted, coldSnapshot); checks++;
+reuseReply = reuseEngine({ id: ++id, kind: 'apply', expectedRevision: 1, parameters: { height: 5 } });
+assert.equal(reuseReply.ok, true); assert.equal(snapshotEdits.at(-1).snapshot, firstAccepted);
+const secondAccepted = snapshots.at(-1); checks++;
+const refusedEdit = reuseEngine({ id: ++id, kind: 'apply', expectedRevision: 2, parameters: { height: -1 } });
+assert.equal(refusedEdit.ok, false); assert.equal(snapshotEdits.at(-1).snapshot, secondAccepted);
+reuseReply = reuseEngine({ id: ++id, kind: 'apply', expectedRevision: 2, parameters: { height: 4 } });
+assert.equal(reuseReply.ok, true); assert.equal(snapshotEdits.at(-1).snapshot, secondAccepted);
+const beforeDisplayFailure = snapshots.at(-1); checks++;
+rejectTessellation = true;
+const refusedDisplay = reuseEngine({ id: ++id, kind: 'apply', expectedRevision: 3, parameters: { height: 3 } });
+assert.equal(refusedDisplay.ok, false); assert.equal(snapshotEdits.at(-1).snapshot, beforeDisplayFailure);
+const discardedCandidate = snapshots.at(-1); assert.notEqual(discardedCandidate, beforeDisplayFailure);
+rejectTessellation = false; const tessellationsBefore = tessellations;
+reuseReply = reuseEngine({ id: ++id, kind: 'apply', expectedRevision: 3, parameters: { height: 2 } });
+assert.equal(reuseReply.ok, true); assert.equal(snapshotEdits.at(-1).snapshot, beforeDisplayFailure);
+assert.equal(tessellations - tessellationsBefore, Object.keys(document.outputs).length, 'Accepted outputs still tessellate'); checks++;
+const beforeExplicitOpen = snapshots.at(-1), editsBeforeOpen = snapshotEdits.length, loadsBeforeOpen = loads.length;
+const explicitlyOpened = reuseEngine({ id: ++id, kind: 'open', text: reuseReply.text });
+assert.equal(explicitlyOpened.ok, true); assert.equal(loads.length, loadsBeforeOpen + 1);
+assert.equal(loads.at(-1).text, reuseReply.text); assert.notEqual(loads.at(-1).snapshot, beforeExplicitOpen);
+assert.equal(snapshotEdits.length, editsBeforeOpen); checks++;
+const freshEngine = create(), fresh = freshEngine({ id: ++id, kind: 'open', text: reuseReply.text, revision: 4 });
+assert.equal(fresh.ok, true); assert.equal(fresh.summary.revision, 4); assert.equal(loads.length, loadsBeforeOpen + 2);
+const reconstructed = loads.at(-1).snapshot; assert.notEqual(reconstructed, beforeExplicitOpen);
+const afterReconstruction = freshEngine({ id: ++id, kind: 'apply', expectedRevision: 4, parameters: { height: 7 } });
+assert.equal(afterReconstruction.ok, true); assert.equal(snapshotEdits.at(-1).snapshot, reconstructed);
+assert.equal(Object.hasOwn(afterReconstruction.summary, 'recomputation'), false); checks++;
 const before = modelCalls + legacyCalls;
 assert.equal(engine({ id: ++id, kind: 'open', text: JSON.stringify({ ...legacyDocument, version: 1 }) }).ok, false);
 assert.equal(modelCalls + legacyCalls, before); checks++;
-const result = { ok: true, checks, modelCalls, legacyCalls, evidence: 'stubbed providers; pure worker routing and authority only; no native geometry' };
+const result = { ok: true, checks, modelCalls, legacyCalls, retainedSnapshotIdentityChecks: 7, coldLoadCallsObserved: loads.length, acceptedOutputsStillTessellate: true, recomputationNotTransported: true, evidence: 'stubbed providers; pure worker routing and authority only; no native geometry' };
 writeFileSync(resolve(output, 'result.json'), JSON.stringify(result, null, 2)); console.log(JSON.stringify(result));
