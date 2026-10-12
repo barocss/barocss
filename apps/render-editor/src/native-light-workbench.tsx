@@ -8,7 +8,7 @@ import {createNativeLightController} from './native-light-controller';
 import {createNativeSceneBase, createNativeSceneSeed} from './native-scene-seed';
 import {readLightFields, applyLightFields, addLightFields,
   lightFieldsDirty, lightKind} from './native-light-fields';
-import type {LightFields, LightForm, LightKind} from './native-light-fields';
+import type {CameraFields, LightFields, LightForm, LightKind} from './native-light-fields';
 import {Button} from './components/ui/button';
 
 async function initialScene(signal: AbortSignal, kind: LightKind): Promise<RenderNativeLightDocument> {
@@ -45,7 +45,8 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   const openTicket = useRef<{session: RenderNativeLightSession; snapshot: RenderNativeLightSessionSnapshot; fields: LightForm; kind: 'current' | 'legacy-v0'} | null>(null);
   const replacement = useRef<RenderNativeLightDocument | undefined>(initialDocument);
   const [attempt, setAttempt] = useState(0), [snapshot, setSnapshot] = useState<RenderNativeLightSessionSnapshot | null>(null);
-  const [fields, setFields] = useState<LightForm>({kind: kind ?? 'directional', ambient: '.2', lights: []});
+  const [fields, setFields] = useState<LightForm>({kind: kind ?? 'directional', ambient: '.2', lights: [],
+    camera: {eye: ['', '', ''], target: ['', '', ''], up: ['', '', ''], fovYDegrees: '', near: '', far: ''}});
   const [selected, setSelected] = useState<string | null>(null), [busy, setBusy] = useState(false);
   const [status, setStatus] = useState('starting'), [notice, setNotice] = useState('Opening required WebGPU viewport…');
   const [error, setError] = useState<string | null>(null), [help, setHelp] = useState(false);
@@ -74,7 +75,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
         if (!live() || !session) return;
         sessionRef.current = session; refresh(session, true);
         unsubscribe = session.subscribe(() => {if (live()) refresh(session);});
-        setNotice('Edit lights, then Apply the complete scene.');
+        setNotice('Edit lights or the scene camera, then Apply the complete scene.');
       } catch (cause) {if (live()) {setStatus('unavailable'); report(cause);}}
     })();
     // The existing session exposes live status through a getter, not a loss subscription.
@@ -189,6 +190,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   const edit = (next: LightForm) => {if (!busyRef.current) {formRef.current = next; setFields(next); setError(null);}};
   const light = fields.lights.find(item => item.nodeId === selected);
   const editLight = (patch: Partial<LightFields>) => {if (light) edit({...fields, lights: fields.lights.map(item => item.nodeId === light.nodeId ? {...item, ...patch} : item)});};
+  const editCamera = (patch: Partial<CameraFields>) => edit({...fields, camera: {...fields.camera, ...patch}});
   const add = () => {try {const next = addLightFields(fields); edit(next); setSelected(next.lights.at(-1)!.nodeId);} catch (cause) {report(cause);}};
   const remove = () => {if (light) {const next = {...fields, lights: fields.lights.filter(item => item !== light)}; edit(next); setSelected(next.lights[0]?.nodeId ?? null);}};
   const disabled = busy || !snapshot || status !== 'ready';
@@ -214,7 +216,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
       <Button size="icon-xs" variant="ghost" aria-label="Undo" disabled={disabled || dirty || !snapshot?.canUndo} onClick={() => history('undo')}><Undo2/></Button>
       <Button size="icon-xs" variant="ghost" aria-label="Redo" disabled={disabled || dirty || !snapshot?.canRedo} onClick={() => history('redo')}><Redo2/></Button>
     </div>
-    {help && <section style={sectionStyle} aria-label="Light help">Choose a directional or point workspace. Each admits zero to four lights plus ambient; mixed lighting and cross-kind Open are refused without replacing your scene. Directions retain raw nonzero XYZ values. Points use final-world scene coordinates and range in scene units, with the GPU's artistic finite-range lighting. Color is linear RGB; ambient/color/intensity range from zero to one. Apply accepts one complete transaction and retains refused fields. Open accepts current light scenes of the same kind and migrates supported directional legacy files. Import legacy Native scene explicitly converts V0 to directional authorship; a point workspace refuses it. Save writes the accepted current format. New workspace explicitly ends the old lifetime; remount retains accepted data but clears history. Actual device and physical-file acceptance remain separate.</section>}
+    {help && <section style={sectionStyle} aria-label="Light help">Choose a directional or point workspace. Each admits zero to four lights plus ambient; mixed lighting and cross-kind Open are refused without replacing your scene. Directions retain raw nonzero XYZ values. Points use final-world scene coordinates and range in scene units, with the GPU's artistic finite-range lighting. Color is linear RGB; ambient/color/intensity range from zero to one. Scene camera edits are authored data: eye, target and clipping planes use scene units, up is dimensionless and vertical FOV is in degrees. Camera and light fields Apply together in one complete transaction and refused fields remain available. This route has no local orbit/pan/zoom controls. Open accepts current light scenes of the same kind and migrates supported directional legacy files. Import legacy Native scene explicitly converts V0 to directional authorship; a point workspace refuses it. Save writes the accepted current format. New workspace explicitly ends the old lifetime; remount retains accepted data but clears history. Actual device and physical-file acceptance remain separate.</section>}
     <div className="app-body" style={{minHeight: 0}}>
       <aside style={{width: 210, flexShrink: 0, borderRight: '1px solid var(--border)', overflow: 'auto'}} aria-label="Light outliner">
         <div style={sectionStyle}><strong>Scene lights</strong><p style={{color: 'var(--muted-foreground)'}}>{fields.lights.length} / 4 {kind}</p>
@@ -236,6 +238,20 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
           {numberInput('Intensity', light.intensity, intensity => editLight({intensity}))}
           <Button variant="outline" disabled={disabled} onClick={remove}><Trash2/>Remove light</Button>
         </section> : <section style={sectionStyle}>Select a light, or add a light of this workspace kind. Ambient remains available with no lights.</section>}
+        <section style={{...sectionStyle, display: 'grid', gap: 14}} aria-label="Scene camera">
+          <strong>Scene camera</strong><small>Saved with the scene. Apply accepts camera and light edits together.</small>
+          {(['eye', 'target', 'up'] as const).map(key => <fieldset key={key} style={{border: 0, margin: 0, padding: 0, minWidth: 0}}>
+            <legend style={{marginBottom: 7}}>{key === 'eye' ? 'Eye (scene units)' : key === 'target' ? 'Target (scene units)' : 'Up (dimensionless)'}</legend>
+            <div style={{display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 7}}>{['X', 'Y', 'Z'].map((axis, index) => <div key={axis}>
+              {numberInput('Camera ' + key + ' ' + axis, fields.camera[key][index], value => {
+                const vector = [...fields.camera[key]] as CameraFields[typeof key]; vector[index] = value; editCamera({[key]: vector});
+              })}
+            </div>)}</div>
+          </fieldset>)}
+          {numberInput('Vertical FOV (degrees)', fields.camera.fovYDegrees, fovYDegrees => editCamera({fovYDegrees}))}
+          {numberInput('Near clip (scene units)', fields.camera.near, near => editCamera({near}))}
+          {numberInput('Far clip (scene units)', fields.camera.far, far => editCamera({far}))}
+        </section>
         <section style={{...sectionStyle, display: 'flex', gap: 8}}><Button disabled={disabled || !dirty} onClick={apply}>Apply</Button><Button variant="outline" disabled={disabled || !dirty} onClick={discard}>Discard</Button></section>
       </aside>
     </div>

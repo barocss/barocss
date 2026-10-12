@@ -38,7 +38,7 @@ try {
 export * from './apps/render-editor/src/native-light-fields';
 export * from './apps/render-editor/src/native-light-workbench-flow';
 export {createNativeSceneBase,createNativeSceneSeed} from './apps/render-editor/src/native-scene-seed';
-export {parseRenderNativeLightDocument,serializeRenderNativeLightDocument,serializeRenderNativeSceneDocument,serializeRenderNativeDirectionalLightDocument,parseRenderNativeDirectionalLightDocument} from '@barocss/render-editor';`,resolveDir: workspace},
+export {prepareRenderNativeLightDocument,parseRenderNativeLightDocument,serializeRenderNativeLightDocument,serializeRenderNativeSceneDocument,serializeRenderNativeDirectionalLightDocument,parseRenderNativeDirectionalLightDocument} from '@barocss/render-editor';`,resolveDir: workspace},
     bundle: true, platform: 'node', format: 'esm', outfile: join(output, 'flow.mjs'),
     external: ['react', 'react-dom', 'react-dom/*', 'lucide-react', 'radix-ui', 'class-variance-authority', 'clsx', 'tailwind-merge'],
     plugins: [{name: 'controlled-viewer-only', setup(builder) {
@@ -64,7 +64,7 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
   }
   const four = api.addLightFields(api.addLightFields(form)); assert.equal(four.lights.length, 4);
   assert.throws(() => api.addLightFields(four));
-  const ambientOnly = api.applyLightFields(seed, {kind: 'directional', ambient: '-0', lights: []});
+  const ambientOnly = api.applyLightFields(seed, {...api.readLightFields(seed), ambient: '-0', lights: []});
   assert.equal(ambientOnly.lights.lights.length, 0); assert(Object.is(ambientOnly.lights.ambientStrength, -0));
   const disabledLight = structuredClone(form); disabledLight.lights[1].enabled = false;
   assert.equal(api.applyLightFields(seed, disabledLight).lights.lights[1].enabled, false);
@@ -235,7 +235,197 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
     await mounted.dispose(); assert.equal(preferredDirectional.disposed,1);
   } finally {globalThis.fetch=originalFetch;}
 
+  // Authored camera is part of the same real provider-backed form and session for both kinds.
+  // Controlled Viewers acknowledge software transactions only; they do not prove pixels or file I/O.
+  const cameraFlow = [];
+  const cameraEntries = camera => [
+    ...['eye', 'target', 'up'].flatMap(vector => ['X', 'Y', 'Z'].map((axis, index) =>
+      ['Camera ' + vector + ' ' + axis, camera[vector][index]])),
+    ['Vertical FOV (degrees)', camera.fovYDegrees], ['Near clip (scene units)', camera.near], ['Far clip (scene units)', camera.far],
+  ];
+  const inputValue = label => {
+    const input = container.querySelector(`[aria-label="${label}"]`); assert(input, 'Missing input ' + label); return input.value;
+  };
+  const assertCamera = camera => {for (const [label, value] of cameraEntries(camera)) assert.equal(inputValue(label), value, label);};
+  const editCamera = async camera => {for (const [label, value] of cameraEntries(camera)) await edit(label, value);};
+  const saveText = async () => {await click('Save accepted'); return downloads.at(-1).blob.text();};
+  const assertHistory = () => {assert(!button('Undo').disabled); assert(!button('Redo').disabled);};
+  const unloadBlocked = () => {
+    const event = new dom.window.Event('beforeunload', {cancelable: true}); dom.window.dispatchEvent(event); return event.defaultPrevented;
+  };
+  const assertAuthorship = (actual, expected) => {
+    for (const key of ['nativeDocument', 'nativeOptions', 'surfaceMaterials']) assert.deepEqual(actual[key], expected[key], key);
+    const actualDisplay = {...actual.display}, expectedDisplay = {...expected.display};
+    delete actualDisplay.camera; delete expectedDisplay.camera;
+    assert.deepEqual(actualDisplay, expectedDisplay);
+    assert.equal(Object.hasOwn(actual.surfaceMaterials[1].material.uniforms, 'amount'), false, 'Omitted uniform stays omitted');
+    assert(Object.is(actual.display.poses[0].translationMM[1], -0), 'Unedited pose signed zero survives');
+  };
+  const cameraDraft = {eye: ['2', '3', '6'], target: ['-0', '-.5', '0'], up: ['-0', '2', '-0'],
+    fovYDegrees: '55', near: '.025', far: '120'};
+  const invalidCameras = [
+    ['empty coordinate', camera => {camera.eye[0] = '';}, /finite decimal/],
+    ['blank coordinate', camera => {camera.target[1] = ' ';}, /finite decimal/],
+    ['NaN up', camera => {camera.up[0] = 'NaN';}, /finite decimal/],
+    ['infinite coordinate', camera => {camera.eye[2] = 'Infinity';}, /finite decimal/],
+    ['eye bounds', camera => {camera.eye[0] = '1000.01';}, /Camera.eye.*bounded/],
+    ['target bounds', camera => {camera.target[0] = '-1000.01';}, /Camera.target.*bounded/],
+    ['coincident eye and target', camera => {camera.target = [...camera.eye];}, /eye-target separation/],
+    ['tiny separation', camera => {camera.eye = ['0', '0', '0']; camera.target = ['0', '0', '.00001'];}, /eye-target separation/],
+    ['zero up', camera => {camera.up = ['0', '0', '-0'];}, /up length/],
+    ['tiny up', camera => {camera.up = ['0', '.0000001', '0'];}, /up length/],
+    ['parallel up', camera => {camera.eye = ['0', '0', '6']; camera.target = ['0', '0', '0']; camera.up = ['0', '0', '2'];}, /axes are singular/],
+    ['near-parallel up', camera => {camera.eye = ['0', '0', '6']; camera.target = ['0', '0', '0']; camera.up = ['.00000001', '0', '1'];}, /axes are singular/],
+    ['low FOV', camera => {camera.fovYDegrees = '9.99';}, /FOV/],
+    ['high FOV', camera => {camera.fovYDegrees = '100.01';}, /FOV/],
+    ['empty clipping', camera => {camera.near = '';}, /finite decimal/],
+    ['nonfinite clipping', camera => {camera.far = '-Infinity';}, /finite decimal/],
+    ['zero near', camera => {camera.near = '0';}, /clipping/],
+    ['near below bound', camera => {camera.near = '.00001';}, /clipping/],
+    ['far above bound', camera => {camera.far = '10000.01';}, /clipping/],
+    ['equal clipping', camera => {camera.far = camera.near;}, /clipping/],
+    ['reversed clipping', camera => {camera.near = '121';}, /clipping/],
+    ['Float32 clipping collapse', camera => {camera.near = '1'; camera.far = '1.00000001';}, /Float32 clipping planes collapse/],
+    ['Float32 depth conditioning', camera => {camera.near = '.0001'; camera.far = '10000';}, /Float32 projection/],
+  ];
+  globalThis.fetch = async url => {assert.equal(url, './reference-panel.barocad'); return {ok: true, text: async () => sourceText};};
+  try {
+    for (const kind of ['directional', 'point']) {
+      const owned = structuredClone(api.createLightStudy(sourceText, kind));
+      // A source-declared default must remain omitted while camera and light values change.
+      delete owned.surfaceMaterials[1].material.uniforms.amount;
+      const cameraSeed = api.prepareRenderNativeLightDocument(owned).document;
+      const seedText = api.serializeRenderNativeLightDocument(cameraSeed), seedFields = api.readLightFields(cameraSeed);
+      const authoredFields = structuredClone(seedFields);
+      authoredFields.camera = structuredClone(cameraDraft); authoredFields.lights[0].vector = ['-0', '2', '-4'];
+      authoredFields.lights[0].intensity = '.4';
+      const authored = api.applyLightFields(cameraSeed, authoredFields);
+      assertAuthorship(authored, cameraSeed);
+      assert.deepEqual(authored.display.camera, {eye: [2, 3, 6], target: [-0, -.5, 0], up: [-0, 2, -0], fovYDegrees: 55, near: .025, far: 120});
+      assert(Object.is(authored.display.camera.target[0], -0)); assert(Object.is(authored.display.camera.up[0], -0));
+      assert(Object.is(authored.display.camera.up[2], -0)); assert.equal(authored.display.camera.up[1], 2);
+      const vectorKey = kind === 'point' ? 'positionScene' : 'directionScene', vectorLabel = kind === 'point' ? 'Position ' : 'Direction ';
+      assert.deepEqual(authored.lights.lights[0][vectorKey], [-0, 2, -4]);
+      assert.equal(api.readLightFields(authored).camera.target[0], '-0');
+      assert.equal(api.lightFieldsDirty(authoredFields, cameraSeed), true);
+      for (const [name, mutate, diagnostic] of invalidCameras) {
+        const invalid = structuredClone(authoredFields); mutate(invalid.camera); const before = structuredClone(invalid);
+        assert.throws(() => api.applyLightFields(cameraSeed, invalid), diagnostic, kind + ': ' + name);
+        assert.deepEqual(invalid, before, 'Validation must retain corrective strings: ' + name);
+        assert.equal(api.serializeRenderNativeLightDocument(cameraSeed), seedText, 'Validation must not alter accepted authorship');
+      }
+      // Even very large valid raw up magnitude belongs to authorship, not an app normalization.
+      const largeUp = structuredClone(authoredFields); largeUp.camera.up = ['-0', '1e200', '0'];
+      assert.deepEqual(api.applyLightFields(cameraSeed, largeUp).display.camera.up, [-0, 1e200, 0]);
+      mounted = await api.mountLightWorkbenchFlow(container, cameraSeed); const cameraControl = controls.at(-1);
+      assert.equal(cameraControl.initial.format, 'barocss-viewer-native-' + kind + '-light-input');
+      assert(text().includes('Scene camera')); assertCamera(seedFields.camera); assert.equal(await saveText(), seedText); assert.equal(unloadBlocked(), false);
+      await editCamera(cameraDraft);
+      for (const [index, axis] of ['X', 'Y', 'Z'].entries()) await edit(vectorLabel + axis, authoredFields.lights[0].vector[index]);
+      await edit('Intensity', '.4'); assert(text().includes('Unapplied draft')); assert.equal(unloadBlocked(), true);
+      assert.equal(await saveText(), seedText, 'Save excludes both camera and light draft text');
+      await click('Apply'); assert.equal(cameraControl.calls.length, 1, 'Combined camera/light Apply uses one replacement');
+      const authoredText = await saveText(), acceptedAuthored = api.parseRenderNativeLightDocument(authoredText);
+      assert.equal(acceptedAuthored.revision, cameraSeed.revision + 1);
+      assert.deepEqual(acceptedAuthored.display.camera, authored.display.camera); assert.deepEqual(acceptedAuthored.lights.lights, authored.lights.lights);
+      assertAuthorship(acceptedAuthored, cameraSeed);
+      const request = cameraControl.calls.at(-1);
+      assert.deepEqual(request.display.camera, acceptedAuthored.display.camera); assert.deepEqual(request.lights, acceptedAuthored.lights);
+      assert.deepEqual(request.source.result.document, cameraSeed.nativeDocument); assert.deepEqual(request.source.options, cameraSeed.nativeOptions);
+      assert.deepEqual(request.context, {mmToSceneUnit: cameraSeed.display.mmToSceneUnit, background: cameraSeed.display.background});
+      await click('Undo'); assert.equal(cameraControl.calls.length, 2); assertCamera(seedFields.camera);
+      assert.equal(inputValue('Intensity'), seedFields.lights[0].intensity); assert(button('Undo').disabled, 'Combined Apply has exactly one history entry');
+      const undone = api.parseRenderNativeLightDocument(await saveText());
+      assert.deepEqual(undone.display.camera, cameraSeed.display.camera); assert.deepEqual(undone.lights.lights, cameraSeed.lights.lights);
+      await click('Redo'); assert.equal(cameraControl.calls.length, 3); assertCamera(api.readLightFields(acceptedAuthored).camera);
+      assert.equal(inputValue('Intensity'), '0.4'); assert(button('Redo').disabled);
+      await edit('Camera eye X', '4'); await edit('Intensity', '.5'); await click('Apply'); await click('Undo'); assertHistory();
+      const retainedText = await saveText(), retained = api.parseRenderNativeLightDocument(retainedText), retainedFields = api.readLightFields(retained);
+      const retainedCalls = cameraControl.calls.length;
+      assert.deepEqual(retained.display.camera, acceptedAuthored.display.camera); assert.deepEqual(retained.lights.lights, acceptedAuthored.lights.lights);
+      // Invalid camera text must keep a simultaneous, valid light correction and both history branches.
+      for (const [label, value] of [['Camera eye X', ''], ['Camera target X', '1001'], ['Camera up Y', '0'], ['Vertical FOV (degrees)', '101']]) {
+        await edit(label, value); await edit('Intensity', '.42'); await click('Apply');
+        assert.equal(cameraControl.calls.length, retainedCalls); assert.equal(inputValue(label), value); assert.equal(inputValue('Intensity'), '.42');
+        assert.equal(await saveText(), retainedText); await click('Discard'); assertCamera(retainedFields.camera); assertHistory();
+      }
+      await edit('Camera eye X', '3'); await edit('Intensity', ''); await click('Apply');
+      assert.equal(cameraControl.calls.length, retainedCalls); assert.equal(inputValue('Camera eye X'), '3'); assert.equal(inputValue('Intensity'), '');
+      assert.equal(await saveText(), retainedText); await click('Discard'); assertCamera(retainedFields.camera); assertHistory();
+      // Camera-only drafts participate in unload and every ordinary replacement confirmation.
+      await edit('Camera eye X', '-0'); assert.equal(unloadBlocked(), true);
+      confirmation = false; const beforePrompts = dialogs.length, beforeChoosers = fileChoosers, beforeMounts = controls.length;
+      for (const action of ['Open', 'Import legacy Native scene', 'New directional', 'New point', 'Back to materials']) await click(action);
+      assert.equal(dialogs.length, beforePrompts + 5); assert.equal(fileChoosers, beforeChoosers); assert.equal(controls.length, beforeMounts);
+      assert.equal(cameraControl.calls.length, retainedCalls); assert.equal(inputValue('Camera eye X'), '-0');
+      assert.equal(await saveText(), retainedText); confirmation = true; await click('Discard'); assertHistory(); assert.equal(unloadBlocked(), false);
+      await click('Open'); await edit('Camera eye X', '3'); await selectFile(file(authoredText));
+      assert(text().includes('STALE_CANDIDATE')); assert.equal(cameraControl.calls.length, retainedCalls); assert.equal(inputValue('Camera eye X'), '3');
+      await edit('Intensity', '.43'); await click('Open');
+      await act(async () => container.querySelector('input[type="file"]').dispatchEvent(new dom.window.Event('cancel', {bubbles: true})));
+      assert(text().includes('File selection cancelled.')); assert.equal(inputValue('Camera eye X'), '3'); assert.equal(inputValue('Intensity'), '.43');
+      await selectFile(file(authoredText)); assert(text().includes('STALE_CANDIDATE')); assert.equal(cameraControl.calls.length, retainedCalls);
+      assert.equal(await saveText(), retainedText); await click('Discard'); assertHistory();
+      cameraControl.refusal = new Error('Controlled combined camera/light refusal');
+      await edit('Vertical FOV (degrees)', '58'); await edit('Intensity', '.44'); await click('Apply');
+      assert.equal(cameraControl.calls.length, retainedCalls + 1); assert(text().includes('PRESENTATION_REFUSED'));
+      assert.equal(inputValue('Vertical FOV (degrees)'), '58'); assert.equal(inputValue('Intensity'), '.44');
+      assert.equal(await saveText(), retainedText); await click('Discard'); assertCamera(retainedFields.camera); assertHistory();
+      let releaseCamera; cameraControl.wait = new Promise(resolve => {releaseCamera = resolve;});
+      await edit('Vertical FOV (degrees)', '62'); await edit('Intensity', '.45'); await act(async () => button('Apply').click());
+      assert.equal(cameraControl.calls.length, retainedCalls + 2); assert.equal(unloadBlocked(), true);
+      for (const label of ['Apply', 'Discard', 'Undo', 'Redo', 'Open', 'Save accepted', 'Import legacy Native scene', 'New directional', 'New point', 'Back to materials', 'Add ' + kind, 'Remove light'])
+        assert(button(label).disabled, 'Pending transaction fences ' + label);
+      for (const [label] of cameraEntries(cameraDraft)) assert(container.querySelector(`[aria-label="${label}"]`).disabled, 'Pending camera field ' + label);
+      assert(container.querySelector('[aria-label="Intensity"]').disabled);
+      await act(async () => {button('Apply').click(); button('Open').click(); button('New point').click();});
+      assert.equal(cameraControl.calls.length, retainedCalls + 2, 'Repeated pending clicks cannot start another transaction');
+      await act(async () => {releaseCamera(); await cameraControl.wait;}); cameraControl.wait = null;
+      assert(text().includes('PRESENTATION_REFUSED')); assert.equal(inputValue('Vertical FOV (degrees)'), '62'); assert.equal(inputValue('Intensity'), '.45');
+      assert.equal(await saveText(), retainedText); await click('Discard'); assertHistory(); assertCamera(retainedFields.camera);
+      cameraControl.refusal = null; await edit('Vertical FOV (degrees)', '62'); await edit('Intensity', '.45'); await click('Apply');
+      assert.equal(cameraControl.calls.length, retainedCalls + 3); assert(button('Redo').disabled);
+      const composedText = await saveText(), composed = api.parseRenderNativeLightDocument(composedText);
+      assert.equal(composed.revision, retained.revision + 1); assert.equal(composed.display.camera.fovYDegrees, 62); assert.equal(composed.lights.lights[0].intensity, .45);
+      assertAuthorship(composed, cameraSeed); await mounted.dispose(); assert.equal(cameraControl.disposed, 1);
+      // Fresh preferred-route lifetime must use its chooser to load authored camera, then re-edit it.
+      const mountsBeforeChoice = controls.length; mounted = await api.mountLightWorkbenchFlow(container);
+      assert(text().includes('Choose the kind')); assert.equal(controls.length, mountsBeforeChoice); await click('Start ' + kind + ' workspace');
+      const freshCamera = controls.at(-1); assert.equal(freshCamera.initial.format, 'barocss-viewer-native-' + kind + '-light-input');
+      await click('Open'); await selectFile(file(composedText)); assert.equal(freshCamera.calls.length, 1);
+      assertCamera(api.readLightFields(composed).camera); assert.equal(inputValue('Intensity'), '0.45');
+      assert(button('Undo').disabled); assert(button('Redo').disabled); assert.equal(await saveText(), composedText);
+      await edit('Camera eye X', '-0'); await edit('Intensity', '.6'); await click('Apply');
+      assert.equal(freshCamera.calls.length, 2); const reedited = api.parseRenderNativeLightDocument(await saveText());
+      assert.equal(reedited.revision, composed.revision + 1); assert(Object.is(reedited.display.camera.eye[0], -0));
+      assert.deepEqual(reedited.display.camera.up, [-0, 2, -0]); assert.equal(reedited.lights.lights[0].intensity, .6); assertAuthorship(reedited, composed);
+      // Give the old lifetime both history branches before allowing a replacement to complete late.
+      await edit('Camera target Y', '-.75'); await edit('Intensity', '.55'); await click('Apply'); await click('Undo'); assertHistory();
+      const beforeLateText = await saveText(), beforeLate = api.parseRenderNativeLightDocument(beforeLateText);
+      let releaseLateCamera; freshCamera.wait = new Promise(resolve => {releaseLateCamera = resolve;});
+      await edit('Vertical FOV (degrees)', '70'); await edit('Intensity', '.62'); await act(async () => button('Apply').click());
+      assert(button('Open').disabled); const oldCalls = freshCamera.calls.length;
+      await mounted.dispose(); assert.equal(freshCamera.disposed, 1);
+      mounted = await api.mountLightWorkbenchFlow(container, beforeLate); const afterLate = controls.at(-1);
+      await act(async () => {releaseLateCamera(); await freshCamera.wait;}); freshCamera.wait = null;
+      assert.equal(freshCamera.calls.length, oldCalls); assert.equal(freshCamera.disposed, 1); assert.equal(afterLate.calls.length, 0);
+      assertCamera(api.readLightFields(beforeLate).camera); assert.equal(inputValue('Intensity'), '0.6');
+      assert.equal(await saveText(), beforeLateText, 'Late presentation cannot publish into the current lifetime');
+      assert(button('Undo').disabled); assert(button('Redo').disabled);
+      // A late chooser read is also inert after its owning camera/light workspace is disposed.
+      let releaseCameraRead; await click('Open');
+      await selectFile({name: 'late-camera.json', size: composedText.length, arrayBuffer: () => new Promise(resolve => {releaseCameraRead = resolve;})});
+      assert(button('Apply').disabled); assert(button('Open').disabled); assert(button('New directional').disabled);
+      await mounted.dispose(); mounted = await api.mountLightWorkbenchFlow(container, cameraSeed); const afterRead = controls.at(-1);
+      await act(async () => releaseCameraRead(new TextEncoder().encode(composedText).buffer));
+      assert.equal(afterLate.calls.length, 0); assert.equal(afterLate.disposed, 1); assert.equal(afterRead.calls.length, 0);
+      assertCamera(seedFields.camera); assert.equal(await saveText(), seedText); await mounted.dispose(); assert.equal(afterRead.disposed, 1);
+      cameraFlow.push({kind, invalidCameraCases: invalidCameras.length, combinedReplacements: cameraControl.calls.length,
+        freshChooserReplacements: freshCamera.calls.length, reopenedRevision: composed.revision, reeditedRevision: reedited.revision});
+    }
+  } finally {confirmation = true; globalThis.fetch = originalFetch;}
+
   console.log(JSON.stringify({result: 'PASS', scope: 'actual React + original codec/session; controlled Viewer, no GPU/physical-file proof', acceptedRevision: last.revision,
     lights: last.lights.lights.length, replacementCalls: controls[0].calls.length, legacyReplacements: legacyControl.calls.length, convertedLegacyRevision: editedLegacy.revision,
-    downloadsRequested: downloads.length, confirmationPrompts: dialogs.length, disposed: controls.map(value => value.disposed)}));
+    cameraFlow, downloadsRequested: downloads.length, confirmationPrompts: dialogs.length, disposed: controls.map(value => value.disposed)}));
 } finally {dom.window.close(); await rm(output, {recursive: true, force: true});}

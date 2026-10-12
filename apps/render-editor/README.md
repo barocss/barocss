@@ -403,3 +403,29 @@ controlled Viewers. It covers both kinds, legacy migration, cross-kind/mixed
 refusal, nonempty history, cancellation, pending failures and late lifetimes.
 This software flow does not prove GPU pixels, physical dialogs/files or device
 recovery; those acceptance gates stay under #1445/#1049/#1584/#1254/#674.
+
+### Authored Scene camera (#1628)
+
+The **Scene camera** Inspector section is available in either workspace kind.
+Eye and target XYZ and near/far clipping planes use scene units; Up XYZ is
+dimensionless, and vertical FOV uses degrees. Up keeps its authored magnitude.
+These are saved scene-camera fields, separate from the Material Editor's local
+orbit/pan/zoom navigation. This route does not add navigation gestures.
+
+1. Edit the camera and any light fields, then **Apply** once to accept the whole
+   scene as one history step. **Undo/Redo** restores both camera and lighting.
+2. **Save accepted** requests the accepted camera/light document. Draft strings
+   are excluded. **Open** that file in a fresh same-kind workspace to re-edit.
+3. Invalid camera data stays in the fields for correction. **Discard** restores
+   accepted camera and light values. Cancelled or refused Open keeps the draft.
+
+The existing GPU camera validator remains authoritative for finite coordinates,
+eye/target separation, nonzero nonsingular up, FOV, clipping and Float32
+conditioning. Values are not clamped or normalized, and signed zero survives
+authoring and persistence. A refused transaction retains the accepted scene and
+history; pending actions cannot start a competing camera or light update.
+
+The same bounded flow runner checks combined camera/light edits for both
+backends, raw-value preservation, invalid values, history, fresh chooser Open,
+refused/pending/stale work and disposal. It uses the actual React app, codecs and
+owned session with controlled Viewers; it is not physical graphics/file proof.
