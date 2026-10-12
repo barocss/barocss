@@ -1,7 +1,7 @@
 import {useEffect, useRef, useState} from 'react';
 import {Lightbulb, Plus, Trash2, FolderOpen, Save, Undo2, Redo2} from 'lucide-react';
 import {normalizeRenderEditorError, RenderEditorError, serializeRenderNativeDirectionalLightDocument,
-  upgradeRenderNativeSceneToDirectionalLights, RENDER_NATIVE_SCENE_LIMITS} from '@barocss/render-editor';
+  upgradeRenderNativeSceneToDirectionalLights, parseRenderNativeSceneDocument, RENDER_NATIVE_SCENE_LIMITS} from '@barocss/render-editor';
 import type {RenderNativeDirectionalLightDocumentV1, RenderNativeDirectionalLightSession,
   RenderNativeDirectionalLightSessionSnapshot} from '@barocss/render-editor';
 import {createNativeDirectionalLightController} from './native-directional-light-controller';
@@ -35,7 +35,7 @@ export function NativeDirectionalLightWorkbench({initialDocument}: {initialDocum
   const canvas = useRef<HTMLCanvasElement>(null), fileInput = useRef<HTMLInputElement>(null);
   const sessionRef = useRef<RenderNativeDirectionalLightSession | null>(null);
   const mounted = useRef(false), epoch = useRef(0), operationEpoch = useRef(0), busyRef = useRef(false);
-  const openTicket = useRef<{session: RenderNativeDirectionalLightSession; snapshot: RenderNativeDirectionalLightSessionSnapshot; fields: DirectionalLightForm} | null>(null);
+  const openTicket = useRef<{session: RenderNativeDirectionalLightSession; snapshot: RenderNativeDirectionalLightSessionSnapshot; fields: DirectionalLightForm; kind: 'v1' | 'legacy-v0'} | null>(null);
   const replacement = useRef<RenderNativeDirectionalLightDocumentV1 | undefined>(initialDocument);
   const [attempt, setAttempt] = useState(0), [snapshot, setSnapshot] = useState<RenderNativeDirectionalLightSessionSnapshot | null>(null);
   const [fields, setFields] = useState<DirectionalLightForm>({ambient: '.2', lights: []});
@@ -44,7 +44,7 @@ export function NativeDirectionalLightWorkbench({initialDocument}: {initialDocum
   const [error, setError] = useState<string | null>(null), [help, setHelp] = useState(false);
   const formRef = useRef(fields); formRef.current = fields;
   const dirty = !!snapshot && (snapshot.dirty || directionalLightFieldsDirty(fields, snapshot.accepted));
-  const report = (cause: unknown) => {const value = normalizeRenderEditorError(cause); setError(value.code + ': ' + value.message);};
+  const report = (cause: unknown, prefix = '') => {const value = normalizeRenderEditorError(cause); setError(prefix + value.code + ': ' + value.message);};
   const refresh = (session: RenderNativeDirectionalLightSession, replaceFields = false) => {
     const value = session.getSnapshot(); setSnapshot(value); setStatus(session.getStatus().state);
     if (replaceFields) {
@@ -78,6 +78,12 @@ export function NativeDirectionalLightWorkbench({initialDocument}: {initialDocum
     };
   }, [attempt]);
   useEffect(() => {
+    const input = fileInput.current;
+    const cancel = () => {if (!busyRef.current) {openTicket.current = null; setError(null); setNotice('File selection cancelled.');}};
+    input?.addEventListener('cancel', cancel);
+    return () => input?.removeEventListener('cancel', cancel);
+  }, []);
+  useEffect(() => {
     const beforeUnload = (event: BeforeUnloadEvent) => {
       const current = sessionRef.current?.getSnapshot();
       if (busyRef.current || current && (current.dirty || current.unsaved || directionalLightFieldsDirty(formRef.current, current.accepted))) {
@@ -87,15 +93,15 @@ export function NativeDirectionalLightWorkbench({initialDocument}: {initialDocum
     window.addEventListener('beforeunload', beforeUnload);
     return () => window.removeEventListener('beforeunload', beforeUnload);
   }, []);
-  const run = async (action: (session: RenderNativeDirectionalLightSession, stillCurrent: () => boolean) => Promise<boolean>) => {
+  const run = async (action: (session: RenderNativeDirectionalLightSession, stillCurrent: () => boolean) => Promise<boolean>, successNotice = 'Scene accepted.', failurePrefix = '') => {
     const session = sessionRef.current;
     if (!session || busyRef.current) return;
     busyRef.current = true; setBusy(true); setError(null);
     const started = ++operationEpoch.current, mountEpoch = epoch.current;
     // Operation fencing is separate from the mount lifetime; the session still belongs to this canvas.
     const stillCurrent = () => mounted.current && operationEpoch.current === started && epoch.current === mountEpoch && sessionRef.current === session;
-    try {const accepted = await action(session, stillCurrent); if (stillCurrent()) {refresh(session, accepted); if (accepted) setNotice('Scene accepted.');}}
-    catch (cause) {if (stillCurrent()) {refresh(session); report(cause);}}
+    try {const accepted = await action(session, stillCurrent); if (stillCurrent()) {refresh(session, accepted); if (accepted) setNotice(successNotice);}}
+    catch (cause) {if (stillCurrent()) {refresh(session); report(cause, failurePrefix);}}
     finally {if (stillCurrent()) {busyRef.current = false; setBusy(false);}}
   };
   const confirmReplace = (action: string) => {
@@ -116,10 +122,10 @@ export function NativeDirectionalLightWorkbench({initialDocument}: {initialDocum
     const candidate = direction === 'undo' ? session.prepareUndo(session.getSnapshot().version) : session.prepareRedo(session.getSnapshot().version);
     if (!candidate) return false; await session.commitPrepared(candidate); return true;
   });
-  const open = () => {
+  const open = (kind: 'v1' | 'legacy-v0' = 'v1') => {
     const session = sessionRef.current;
-    if (session && !busyRef.current && confirmReplace('Open')) {
-      openTicket.current = {session, snapshot: session.getSnapshot(), fields: formRef.current};
+    if (session && !busyRef.current && confirmReplace(kind === 'v1' ? 'Open' : 'Import legacy Native scene')) {
+      openTicket.current = {session, snapshot: session.getSnapshot(), fields: formRef.current, kind};
       if (fileInput.current) fileInput.current.value = ''; fileInput.current?.click();
     }
   };
@@ -136,8 +142,11 @@ export function NativeDirectionalLightWorkbench({initialDocument}: {initialDocum
       if (!stillCurrent() || session.getSnapshot() !== before) throw new RenderEditorError('STALE_CANDIDATE', 'The scene changed while reading the file.');
       if (bytes.byteLength > RENDER_NATIVE_SCENE_LIMITS.fileBytes) throw new RenderEditorError('DOCUMENT_BYTES', 'Scene file exceeds 2 MiB.');
       const text = new TextDecoder('utf-8', {fatal: true}).decode(bytes);
-      await session.commitPrepared(session.prepareOpen(text, before.version)); return true;
-    });
+      const directionalText = ticket.kind === 'legacy-v0'
+        ? serializeRenderNativeDirectionalLightDocument(upgradeRenderNativeSceneToDirectionalLights(parseRenderNativeSceneDocument(text))) : text;
+      await session.commitPrepared(session.prepareOpen(directionalText, before.version)); return true;
+    }, ticket.kind === 'legacy-v0' ? 'Legacy Native scene converted to directional V1. Save accepted writes the new format.' : 'Scene accepted.',
+    ticket.kind === 'legacy-v0' ? 'Legacy Native scene import refused: ' : '');
   };
   const save = () => {
     const session = sessionRef.current; if (!session || busyRef.current) return;
@@ -169,7 +178,8 @@ export function NativeDirectionalLightWorkbench({initialDocument}: {initialDocum
     <header className="app-topbar"><div className="app-brand"><Lightbulb size={18}/><strong>BaroCSS</strong><small>Directional lights</small></div><div className="app-topbar-spacer"/>
       <Button variant="ghost" size="sm" disabled={busy} onClick={() => {if (confirmReplace('Back to materials')) window.location.assign('./material.html');}}>Back to materials</Button>
       <Button variant="ghost" size="sm" onClick={() => setHelp(value => !value)}>Help</Button>
-      <Button variant="outline" size="sm" disabled={disabled} onClick={open}><FolderOpen/>Open</Button>
+      <Button variant="ghost" size="sm" disabled={disabled} title="Explicitly convert a Native scene V0 file to directional-scene V1" onClick={() => open('legacy-v0')}>Import legacy Native scene</Button>
+      <Button variant="outline" size="sm" disabled={disabled} onClick={() => open()}><FolderOpen/>Open</Button>
       <Button size="sm" disabled={busy || !snapshot} onClick={save}><Save/>Save accepted</Button>
     </header>
     <div className="app-document-bar"><strong>{snapshot?.accepted.title ?? 'Native Surface light study'}</strong><span className="app-status-spacer"/>
@@ -177,7 +187,7 @@ export function NativeDirectionalLightWorkbench({initialDocument}: {initialDocum
       <Button size="icon-xs" variant="ghost" aria-label="Undo" disabled={disabled || dirty || !snapshot?.canUndo} onClick={() => history('undo')}><Undo2/></Button>
       <Button size="icon-xs" variant="ghost" aria-label="Redo" disabled={disabled || dirty || !snapshot?.canRedo} onClick={() => history('redo')}><Redo2/></Button>
     </div>
-    {help && <section style={sectionStyle} aria-label="Directional light help">This opt-in workbench requires WebGPU. Directions use the scene's right-handed Y-up frame; XYZ values are retained as authored and must form a nonzero vector. Colors are linear RGB, not sRGB hex. Ambient, color and relative intensity range from 0 to 1. Up to four directional lights are supported. Apply accepts one complete scene transaction; a refusal keeps your fields and prior scene. Save downloads accepted authorship only. Remount restores accepted authorship and clears history. Actual device and physical-file acceptance remain separate.</section>}
+    {help && <section style={sectionStyle} aria-label="Directional light help">This opt-in workbench requires WebGPU. Directions use the scene's right-handed Y-up frame; XYZ values are retained as authored and must form a nonzero vector. Colors are linear RGB, not sRGB hex. Ambient, color and relative intensity range from 0 to 1. Up to four directional lights are supported. Apply accepts one complete scene transaction; a refusal keeps your fields and prior scene. Open reads only directional-scene V1 files. Import legacy Native scene explicitly converts a Material Editor V0 scene, retaining its original sources, materials, camera and poses. Its global light becomes one directional entity; Save writes V1. Save downloads accepted authorship only. Remount restores accepted authorship and clears history. Actual device and physical-file acceptance remain separate.</section>}
     <div className="app-body" style={{minHeight: 0}}>
       <aside style={{width: 210, flexShrink: 0, borderRight: '1px solid var(--border)', overflow: 'auto'}} aria-label="Light outliner">
         <div style={sectionStyle}><strong>Scene lights</strong><p style={{color: 'var(--muted-foreground)'}}>{fields.lights.length} / 4 directional</p>

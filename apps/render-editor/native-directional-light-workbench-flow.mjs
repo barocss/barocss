@@ -37,7 +37,8 @@ try {
   await build({stdin: {contents: `export * from './apps/render-editor/src/native-directional-light-workbench';
 export * from './apps/render-editor/src/native-directional-light-fields';
 export * from './apps/render-editor/src/native-directional-light-workbench-flow';
-export {parseRenderNativeDirectionalLightDocument,serializeRenderNativeDirectionalLightDocument} from '@barocss/render-editor';`,resolveDir: workspace},
+export {createNativeSceneBase,createNativeSceneSeed} from './apps/render-editor/src/native-scene-seed';
+export {parseRenderNativeDirectionalLightDocument,serializeRenderNativeDirectionalLightDocument,serializeRenderNativeSceneDocument} from '@barocss/render-editor';`,resolveDir: workspace},
     bundle: true, platform: 'node', format: 'esm', outfile: join(output, 'flow.mjs'),
     external: ['react', 'react-dom', 'react-dom/*', 'lucide-react', 'radix-ui', 'class-variance-authority', 'clsx', 'tailwind-merge'],
     plugins: [{name: 'controlled-viewer-only', setup(builder) {
@@ -46,7 +47,8 @@ export {parseRenderNativeDirectionalLightDocument,serializeRenderNativeDirection
 export const createNativeDirectionalLightWebGPUViewer = (...args) => globalThis.__lightWorkbenchViewer(...args);`, resolveDir: workspace}));
     }}]});
   const api = await import(pathToFileURL(join(output, 'flow.mjs')).href), {act} = await import('react');
-  const seed = api.createDirectionalLightStudy(await readFile(join(app, 'public/reference-panel.barocad'), 'utf8'));
+  const sourceText = await readFile(join(app, 'public/reference-panel.barocad'), 'utf8');
+  const seed = api.createDirectionalLightStudy(sourceText);
   const original = api.serializeRenderNativeDirectionalLightDocument(seed);
   const form = api.addDirectionalLightFields(api.readDirectionalLightFields(seed));
   form.lights[1].direction = ['-0', '2', '-4']; form.lights[1].color = ['.3', '.5', '.8'];
@@ -114,6 +116,51 @@ export const createNativeDirectionalLightWebGPUViewer = (...args) => globalThis.
   let finishStartup; startupGate = new Promise(resolve => {finishStartup = resolve;});
   mounted = await api.mountDirectionalLightWorkbenchFlow(container, last); await mounted.dispose();
   await act(async () => {finishStartup(); await startupGate;}); startupGate = null; assert.equal(controls[3].disposed, 1);
+
+  // Explicit legacy import reuses genuine V0 providers; ordinary V1 Open stays strict.
+  const legacySeed = api.createNativeSceneSeed(api.createNativeSceneBase(sourceText, seed.surfaceMaterials[0].material, seed.display.camera,
+    {ambientStrength: -0, directionalStrength: .6, direction: [2, -0, -4]}, {documentId: 'legacy-import', title: 'Legacy scene'}));
+  const legacy = {...legacySeed, revision: -0}, legacyText = api.serializeRenderNativeSceneDocument(legacy);
+  mounted = await api.mountDirectionalLightWorkbenchFlow(container, last); const legacyControl = controls[4];
+  await edit('Ambient strength', '.4'); await click('Apply'); await edit('Ambient strength', '.45'); await click('Apply'); await click('Undo');
+  assert(text().includes('Accepted 6')); assert(!button('Undo').disabled); assert(!button('Redo').disabled);
+  const historyCalls = legacyControl.calls.length;
+  await click('Open'); await selectFile(file(legacyText)); assert(text().includes('Accepted 6')); assert.equal(legacyControl.calls.length, historyCalls);
+  await click('Import legacy Native scene'); await selectFile(file(first)); assert(text().includes('Legacy Native scene import refused')); assert.equal(legacyControl.calls.length, historyCalls);
+  await click('Import legacy Native scene'); await selectFile(file('{invalid')); assert(text().includes('Legacy Native scene import refused')); assert.equal(legacyControl.calls.length, historyCalls);
+  await click('Import legacy Native scene'); await selectFile(file(JSON.stringify({...legacy, profile: 'unsupported-legacy-profile'}))); assert(text().includes('DOCUMENT_VERSION')); assert.equal(legacyControl.calls.length, historyCalls);
+  let oversizedReads = 0; await click('Import legacy Native scene'); await selectFile({name: 'oversized.json', size: 2097153, arrayBuffer: async () => {oversizedReads++; return new ArrayBuffer(0);}});
+  assert.equal(oversizedReads, 0); assert(text().includes('DOCUMENT_BYTES')); assert.equal(legacyControl.calls.length, historyCalls);
+  assert(!button('Undo').disabled); assert(!button('Redo').disabled);
+  await edit('Ambient strength', '.7'); confirmation = false; const importChoosers = fileChoosers;
+  await click('Import legacy Native scene'); assert.equal(fileChoosers, importChoosers); assert.equal(container.querySelector('[aria-label="Ambient strength"]').value, '.7');
+  confirmation = true; await click('Import legacy Native scene'); await act(async () => container.querySelector('input[type="file"]').dispatchEvent(new dom.window.Event('cancel', {bubbles: true})));
+  assert(text().includes('File selection cancelled.')); await selectFile(file(legacyText)); assert(text().includes('STALE_CANDIDATE')); assert.equal(legacyControl.calls.length, historyCalls);
+  await click('Import legacy Native scene'); await edit('Ambient strength', '.8'); await selectFile(file(legacyText)); assert(text().includes('STALE_CANDIDATE')); assert.equal(legacyControl.calls.length, historyCalls);
+  legacyControl.refusal = new Error('Controlled legacy import refusal'); await click('Import legacy Native scene'); await selectFile(file(legacyText));
+  assert.equal(legacyControl.calls.length, historyCalls + 1); assert(text().includes('Accepted 6')); assert.equal(container.querySelector('[aria-label="Ambient strength"]').value, '.8');
+  await click('Discard'); assert(!button('Undo').disabled); assert(!button('Redo').disabled);
+  legacyControl.refusal = null; await click('Import legacy Native scene'); await selectFile(file(legacyText));
+  assert.equal(legacyControl.calls.length, historyCalls + 2); assert(text().includes('Legacy Native scene converted to directional V1')); assert(button('Undo').disabled); assert(button('Redo').disabled);
+  assert.equal(container.querySelector('[aria-label="Ambient strength"]').value, '-0');
+  const importedRequest = legacyControl.calls.at(-1);
+  assert.deepEqual(importedRequest.owner, {id: 'legacy-import', revision: -0});
+  assert.deepEqual(importedRequest.source.result.document, legacy.nativeDocument); assert.deepEqual(importedRequest.display.camera, legacy.display.camera);
+  assert.deepEqual(importedRequest.context, {mmToSceneUnit: legacy.display.mmToSceneUnit, background: legacy.display.background});
+  assert.deepEqual(importedRequest.lights.lights[0], {nodeId: 'legacy-directional', label: 'Legacy directional', enabled: true, directionScene: [2, -0, -4], colorLinearRGB: [1, 1, 1], intensity: .6});
+  await click('Save accepted'); const convertedText = await downloads.at(-1).blob.text(), converted = api.parseRenderNativeDirectionalLightDocument(convertedText);
+  assert.equal(converted.version, 1); assert(Object.is(converted.revision, -0)); assert(Object.is(converted.lights.ambientStrength, -0));
+  assert.deepEqual(converted.nativeDocument, legacy.nativeDocument); assert.deepEqual(converted.nativeOptions, legacy.nativeOptions); assert.deepEqual(converted.surfaceMaterials, legacy.surfaceMaterials);
+  const {lighting: legacyLighting, ...legacyDisplay} = legacy.display; assert.equal(legacyLighting.directionalStrength, .6); assert.deepEqual(converted.display, legacyDisplay);
+  await click('Open'); await selectFile(file(convertedText)); await edit('Ambient strength', '.3'); await click('Apply'); await click('Save accepted');
+  const editedLegacy = api.parseRenderNativeDirectionalLightDocument(await downloads.at(-1).blob.text()); assert.equal(editedLegacy.revision, 1); assert.equal(editedLegacy.lights.ambientStrength, .3);
+  assert.deepEqual(editedLegacy.nativeDocument, legacy.nativeDocument); assert.deepEqual(editedLegacy.lights.lights[0].directionScene, [2, -0, -4]);
+  await click('Import legacy Native scene'); let finishLegacyRead;
+  await selectFile({name: 'late-legacy.json', size: legacyText.length, arrayBuffer: () => new Promise(resolve => {finishLegacyRead = resolve;})});
+  assert(button('Open').disabled); assert(button('Import legacy Native scene').disabled); const acceptedLegacyCalls = legacyControl.calls.length;
+  await mounted.dispose(); await act(async () => finishLegacyRead(new TextEncoder().encode(legacyText).buffer));
+  assert.equal(legacyControl.calls.length, acceptedLegacyCalls); assert.equal(legacyControl.disposed, 1);
   console.log(JSON.stringify({result: 'PASS', scope: 'actual React + original codec/session; controlled Viewer, no GPU/physical-file proof', acceptedRevision: last.revision,
-    lights: last.lights.lights.length, replacementCalls: controls[0].calls.length, downloadsRequested: downloads.length, confirmationPrompts: dialogs.length, disposed: controls.map(value => value.disposed)}));
+    lights: last.lights.lights.length, replacementCalls: controls[0].calls.length, legacyReplacements: legacyControl.calls.length, convertedLegacyRevision: editedLegacy.revision,
+    downloadsRequested: downloads.length, confirmationPrompts: dialogs.length, disposed: controls.map(value => value.disposed)}));
 } finally {dom.window.close(); await rm(output, {recursive: true, force: true});}

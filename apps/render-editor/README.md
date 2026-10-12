@@ -323,6 +323,15 @@ It starts a separate two-Surface study from the original reference source; the
 current Material Editor scene is not implicitly transferred. Navigation asks
 before leaving unsaved data. The ordinary material route remains available.
 
+**Import legacy Native scene** explicitly converts a Material Editor V0 Native
+scene file into the directional V1 profile (#1618). It uses the existing legacy
+parser and upgrade provider; ordinary **Open** remains V1-only. The import keeps
+original CAD assets/IDs, materials, camera, poses and context. Its global ambient
+and raw direction/strength become ambient plus one `legacy-directional` light.
+Successful import starts the normal Open history state; Save writes a V1 file.
+Unsupported profiles, malformed/oversized files, declined/cancelled selection,
+stale reads and presentation refusals retain the previous scene and draft.
+
 The Outliner supports 0–4 stable-ID directional lights. Select a light, edit its
 label/enabled state, raw scene-space XYZ direction, linear RGB and relative
 intensity, or remove it. Ambient remains editable with zero lights. Direction
