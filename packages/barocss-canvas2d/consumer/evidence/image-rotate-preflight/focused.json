@@ -1,0 +1,1737 @@
+{
+  "issue": 1283,
+  "status": "PASS: current-source and emitted CPU checks; browser/GL UNRUN",
+  "base": "5d42e727510b398a8c20fde1c03a008b9dee5a4d",
+  "unavailableHistoricalNative": "71479903eab4370f20bd880b7d790069fb7d3b22",
+  "historicalEvidenceReused": false,
+  "originalEvidenceBlobs": {
+    "packages/barocss-canvas2d/consumer/evidence/image-rotate/browser-flow.js": "3a8f437743e8e090a96d12ffedde9ee252cc7f09",
+    "packages/barocss-canvas2d/consumer/evidence/image-rotate/browser-observations.json": "e2911d4b81f3922352c04f02be659ad388a3d0ef",
+    "packages/barocss-canvas2d/consumer/evidence/image-rotate/exported.png": "c0f32427f68fd1fa6c9f9798030a7add4280ac40",
+    "packages/barocss-canvas2d/consumer/evidence/image-rotate/focused.json": "42c99a27c82e1380577aacd37e51d7f9f7a7dc24",
+    "packages/barocss-canvas2d/consumer/evidence/image-rotate/observation.md": "7dafaa7edd1dc8c83511d8f4dd7a3ee6aefe91a2",
+    "packages/barocss-canvas2d/consumer/evidence/image-rotate/probe.mjs": "217f26fa0e6dcbde975acc368d2e85488f0504b3",
+    "packages/barocss-canvas2d/consumer/evidence/image-rotate/saved-document.json": "e4551768c021683302f4bcfe7318bc4ae2e85856",
+    "packages/barocss-canvas2d/consumer/evidence/image-rotate/screenshot.png": "fcf370d6d0c07fb757d2537d2d7dffdb85d9b016"
+  },
+  "maxCallsPerActualRoot": 96,
+  "actualRoots": [
+    "source-bundled public index",
+    "emitted public index"
+  ],
+  "browserGL": "UNRUN; original issue gate remains open",
+  "sourceBlob": "b4aa09838065f1dcdaf1afb5e347a75aec7ff98f",
+  "plannedCallsPerActualRoot": {
+    "total": 84,
+    "accepted": 33,
+    "refused": 51
+  },
+  "testedCommit": "4f833a931ec8c538270fb5b352d3828a9e5cecad",
+  "testedTree": "5931d9f8375a49627d9963b1edf8dc846a880a9e",
+  "testedProductAndProbe": {
+    "packages/barocss-canvas2d/src/image-rotate.ts": {
+      "blob": "b4aa09838065f1dcdaf1afb5e347a75aec7ff98f",
+      "sha256": "abb99164fd898c5608577ee1d6b74487023fe57d81ca8a8edbf548d3422d62f3"
+    },
+    "packages/barocss-canvas2d/README.md": {
+      "blob": "0c3dae5ef73f91147ebf487b273f5af8d670946d",
+      "sha256": "48a3aaaa79213a81d09112693f24bbfd113835fb6485d0b39f93a17dd5889d36"
+    },
+    "packages/barocss-canvas2d/consumer/README.md": {
+      "blob": "ad7477e6175b59327bf8cd7311453a213f5cab33",
+      "sha256": "c5960b2e0ce6224847b538b6c0f8d76753d1ffd55d9978cc30b0bb0f5181fb4b"
+    },
+    "packages/barocss-canvas2d/consumer/evidence/image-rotate-preflight/probe.mjs": {
+      "blob": "0d23d0da2e3b0e96cb0113e49b0f1a030d82005d",
+      "sha256": "5d6e066e57908be68430e2a61625036249f42af64d359cb807421d25e763e7d0"
+    }
+  },
+  "sourceTree": "8b1d7258344f9318ede4db83c10c5edae300e330",
+  "toolchain": {
+    "node": "22.23.3",
+    "typescript": "5.9.3",
+    "esbuild": "0.25.12",
+    "nodeMaxOldSpaceMiB": 1536,
+    "rayonThreads": 1
+  },
+  "checks": [
+    {
+      "name": "package-types",
+      "exitCode": 0,
+      "seconds": 4,
+      "head": "4f833a931ec8c538270fb5b352d3828a9e5cecad",
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "-p",
+        "packages/barocss-canvas2d/tsconfig.json"
+      ]
+    },
+    {
+      "name": "package-bundle",
+      "exitCode": 0,
+      "seconds": 0,
+      "head": "4f833a931ec8c538270fb5b352d3828a9e5cecad",
+      "command": [
+        "node",
+        "node_modules/esbuild/bin/esbuild",
+        "packages/barocss-canvas2d/src/index.ts",
+        "--bundle",
+        "--format=esm",
+        "--platform=browser",
+        "--target=es2022",
+        "--outfile=packages/barocss-canvas2d/dist/index.js"
+      ]
+    },
+    {
+      "name": "consumer-types",
+      "exitCode": 0,
+      "seconds": 4,
+      "head": "4f833a931ec8c538270fb5b352d3828a9e5cecad",
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "-p",
+        "packages/barocss-canvas2d/consumer/tsconfig.image-rotate.json"
+      ]
+    },
+    {
+      "name": "source-bundle",
+      "exitCode": 0,
+      "seconds": 0,
+      "head": "4f833a931ec8c538270fb5b352d3828a9e5cecad",
+      "command": [
+        "node",
+        "node_modules/esbuild/bin/esbuild",
+        "packages/barocss-canvas2d/src/index.ts",
+        "--bundle",
+        "--format=esm",
+        "--platform=node",
+        "--target=node22",
+        "--outfile=/tmp/barocss-1283-source/index.mjs",
+        "--metafile=/tmp/barocss-1283-source/metafile.json"
+      ]
+    },
+    {
+      "name": "source-probe",
+      "exitCode": 0,
+      "seconds": 1,
+      "head": "4f833a931ec8c538270fb5b352d3828a9e5cecad",
+      "command": [
+        "env",
+        "BAROCSS_ROTATE_MODULE=file:///tmp/barocss-1283-source/index.mjs",
+        "node",
+        "packages/barocss-canvas2d/consumer/evidence/image-rotate-preflight/probe.mjs"
+      ]
+    },
+    {
+      "name": "emitted-probe",
+      "exitCode": 0,
+      "seconds": 0,
+      "head": "4f833a931ec8c538270fb5b352d3828a9e5cecad",
+      "command": [
+        "node",
+        "packages/barocss-canvas2d/consumer/evidence/image-rotate-preflight/probe.mjs"
+      ]
+    }
+  ],
+  "sourceBundle": {
+    "entryPoint": "packages/barocss-canvas2d/src/index.ts",
+    "inputCount": 41,
+    "allInputsActualPackageSources": true,
+    "inputs": {
+      "packages/barocss-canvas2d/src/application.ts": {
+        "blob": "76e003b89c494c5fd6f5e3d44ceed7944d326b25",
+        "sha256": "ba8d80198da03acf937ce84648423a27ace015e70527f0764171e99e77c192c2"
+      },
+      "packages/barocss-canvas2d/src/boolean.ts": {
+        "blob": "077cc66486841af8b4ab02d5e4f6d4a1b6a599c8",
+        "sha256": "0f88063b47c2710ae9f9606e51498640db6a0615958b2f3c462a45982320454b"
+      },
+      "packages/barocss-canvas2d/src/browser-text.ts": {
+        "blob": "1d93590428d244ac14c29a0f6143f9e8e3f18cda",
+        "sha256": "d97a5a00390f9176530ad00ec64684f1773f29e236ac7a4e074656fb7970a9dc"
+      },
+      "packages/barocss-canvas2d/src/clip.ts": {
+        "blob": "71b836ea12440633eba901fe56fbe72282f2d59c",
+        "sha256": "d0dda4a9efaef09861046ce774838c1b336da4a7684178bcddd25b8f6abb7ec3"
+      },
+      "packages/barocss-canvas2d/src/convex-intersection.ts": {
+        "blob": "8d85cf37303edf5c62540ed85fa159e8e8ffefae",
+        "sha256": "5c9df14edbe1f4593fc993e9a963dfa956cf4af64690a1e77ff1b389ec279e53"
+      },
+      "packages/barocss-canvas2d/src/display-tree.ts": {
+        "blob": "c2da68aa438ab8cb7ca223430ee5af9f618406f5",
+        "sha256": "f042389d1e9fee61743dd6d5d4e5daffbd2fadde3da48df0263ec07f14cf9b92"
+      },
+      "packages/barocss-canvas2d/src/image-alpha-mask.ts": {
+        "blob": "48b9dea047ab7407470719bcfeb4406f4ce16c51",
+        "sha256": "b76fa6657bb992737c84588999ae4f3582b3f835e425d1827df5fd2bf6e7736c"
+      },
+      "packages/barocss-canvas2d/src/image-alpha-matte.ts": {
+        "blob": "d1d506b594d07f8e449bf809e93514510ca877ff",
+        "sha256": "d4dd32341c2c088953555248e40b8448fb3d8ee4291e425428a906f2a2dd24d7"
+      },
+      "packages/barocss-canvas2d/src/image-blur.ts": {
+        "blob": "ba9e9ce01d9e8ca1cd9dc74777fe4de4b3a85ef9",
+        "sha256": "47b99acf03c80d40f5a6083fc957d59d41781adf645298974bc490fd46111ae5"
+      },
+      "packages/barocss-canvas2d/src/image-cache.ts": {
+        "blob": "8add5af657652301fa6b9e6879ced8dc6da23874",
+        "sha256": "1eabe764d91d2d9d2fa101ad62287a5a6c2221ec33292345e2370cbee86a185f"
+      },
+      "packages/barocss-canvas2d/src/image-color-key.ts": {
+        "blob": "47cd5eaa7cc5950eb0eedf0bedc27bdbcb78ad54",
+        "sha256": "99fa7252746b5f3522b8b790265e125f31ef2388992822c5cae22b649cc5be9a"
+      },
+      "packages/barocss-canvas2d/src/image-color.ts": {
+        "blob": "57704009a3eb59adf7fd2e486650058f4f119aad",
+        "sha256": "f1a132413cbaae3ff91d8eb69b02764f18feba4aedd9dfb620ac4ed95e1615a1"
+      },
+      "packages/barocss-canvas2d/src/image-composite.ts": {
+        "blob": "e71f21192f0ba0260e3ce19072bfbb8d3d6ed9d3",
+        "sha256": "253daba7d2ad61982b827efd48e7bc0c85972512abb1d3261942287472ead56b"
+      },
+      "packages/barocss-canvas2d/src/image-crop.ts": {
+        "blob": "c1aca0938ce184c2483d55385fb6d91939e0ff6d",
+        "sha256": "29270e89720237eb290ddb1ddfbb14c05035cabbed4eef4d663d552732844ffb"
+      },
+      "packages/barocss-canvas2d/src/image-decode.ts": {
+        "blob": "dbec475205bd350d41f0b58e95f512bdd825e267",
+        "sha256": "eeaac211aa3be6dc63ec084aa4906ce4284cda9cb8c820e894648ad6e59e99cc"
+      },
+      "packages/barocss-canvas2d/src/image-extrude.ts": {
+        "blob": "95b0aabc8faa1609059be138e0730bfa87c06035",
+        "sha256": "78724b21ca1764a4bd76cc73694051b7b5d38dc6c1e07869253b1dc3d439e972"
+      },
+      "packages/barocss-canvas2d/src/image-mirror.ts": {
+        "blob": "0dd82c9eaf8a620a8d88e40589215ca56d03b8f1",
+        "sha256": "22c91bb13079ac865ccf9dba1167b255c37f3f451b7f8fc64184448a531f0f02"
+      },
+      "packages/barocss-canvas2d/src/image-outline.ts": {
+        "blob": "c281b2fe98258f2df525402f905063bd83d765cb",
+        "sha256": "a4cc4f4753e44c1617425ce838d552590faa45785f66caf912836021c292dd85"
+      },
+      "packages/barocss-canvas2d/src/image-pad.ts": {
+        "blob": "d1d4d230457526e15cb460e03c3351f1820a85ae",
+        "sha256": "1fc90c05b1862c11e1a38541786d3218f1692ed9b27e328d7e6d68080b018a5d"
+      },
+      "packages/barocss-canvas2d/src/image-resize.ts": {
+        "blob": "4d27950a5ee5805a4b6efe3bfd899c329248087c",
+        "sha256": "8c693945c615d621f62645c7fa68dba9df34e9bf2785c45dc0d7d5af03d1dba5"
+      },
+      "packages/barocss-canvas2d/src/image-rotate.ts": {
+        "blob": "b4aa09838065f1dcdaf1afb5e347a75aec7ff98f",
+        "sha256": "abb99164fd898c5608577ee1d6b74487023fe57d81ca8a8edbf548d3422d62f3"
+      },
+      "packages/barocss-canvas2d/src/image-shadow.ts": {
+        "blob": "3c5e42f87e335f03da10b8ef01bb67f62b19c1a7",
+        "sha256": "e9254927dcbdff0bb8f6695dd509aaf387fd3beaf6a145498e8c11240110179a"
+      },
+      "packages/barocss-canvas2d/src/image-trim.ts": {
+        "blob": "678da8f408f9492d7dadb7551f7ad694b16cfdf0",
+        "sha256": "0b279b28ed4c360d3dcbc97769f8acb4f53a73df1506ea5d6fc59e73d45f9191"
+      },
+      "packages/barocss-canvas2d/src/image-url.ts": {
+        "blob": "75eb2e39ba0d2be7755191eb79e4030345cc62c3",
+        "sha256": "687c3e015a2b841a8f6dde9fe0446ecc2f49c69cb4b71cf6dc8286295006aeb5"
+      },
+      "packages/barocss-canvas2d/src/image.ts": {
+        "blob": "6817418a8d2bbb5af9991d0841bdcea45ac35a00",
+        "sha256": "d6132d5ac4dd77c909a48c0d945eac4e04570f5160778d2afad361563dcfccc2"
+      },
+      "packages/barocss-canvas2d/src/index.ts": {
+        "blob": "893719b35586f8ad1b22155881d8168f5069564d",
+        "sha256": "552c97fb55fd5ed74fa5de5a95cbd67c6b16320824917f291609bd148dd23667"
+      },
+      "packages/barocss-canvas2d/src/path-builder.ts": {
+        "blob": "4c005157e1cccf3ab4327c9ec9e5baa6bede6d8a",
+        "sha256": "f01eda1b81ffcfd74c0d015e2baa5f5bd3b2d732d8036b2e16201c819194cd61"
+      },
+      "packages/barocss-canvas2d/src/path-split.ts": {
+        "blob": "e964eac5fc95300d15e6271c8a6acf2efeb9fde5",
+        "sha256": "077dc84c85afc4bcad58b3a7f9ce7b1d2b91d97572b62745b03eab63ef5dcef1"
+      },
+      "packages/barocss-canvas2d/src/path.ts": {
+        "blob": "5157edefb6d0cc27983709680988470c28153e29",
+        "sha256": "9886484ff3ed1f057a8297b8d7f9eacaeb105ee8214361e917974f29b9e6952d"
+      },
+      "packages/barocss-canvas2d/src/polygon-mask-gpu.ts": {
+        "blob": "d5c534ed5e3ac3e92dde32c77046cebd637eafb8",
+        "sha256": "0fc8d866ae30409a457227b7c5d81f8f775d63504d0e9a8fee62a3181ef54e61"
+      },
+      "packages/barocss-canvas2d/src/polygon-mask.ts": {
+        "blob": "470034d1b29a49536ebfc84f0748587283f4de0d",
+        "sha256": "a149409415c8f8813b4055c9b7ea25918293b1391bec575bf07c8ea11e863b8e"
+      },
+      "packages/barocss-canvas2d/src/renderer.ts": {
+        "blob": "c8bdb7b72f7b5c6fa5edf3ce0645836e150dfd24",
+        "sha256": "31ad5333af50480f267d7e451f0a71b9af31376f13f03b19fbcdb60edc3b8b1e"
+      },
+      "packages/barocss-canvas2d/src/scene-subtree-duplicate.ts": {
+        "blob": "32d3bfff3e08eb156055ba164e47516915af3ea6",
+        "sha256": "fc8ec8fb3616b6c47f3dcc4a5dbe9e1b122c732d9db30f7ece24c75e5bf34279"
+      },
+      "packages/barocss-canvas2d/src/schema.ts": {
+        "blob": "4e058508380afee2b41d5a3cdb2089d3f18409a6",
+        "sha256": "370ff729c3f9199bae852e8eec0e197e744762d226c201448f5fa25e29955388"
+      },
+      "packages/barocss-canvas2d/src/sprite-animation.ts": {
+        "blob": "aee01db8e6636c76800de2f02d9cae0bbb8fbdc5",
+        "sha256": "04e5c773ccb2e69f9a8b2e0b4f59e248cbe7d8adaaf1c15d9f0bcdaa3cdcd3ba"
+      },
+      "packages/barocss-canvas2d/src/sprite-atlas-pack.ts": {
+        "blob": "b98acdab9b2573dbfb063e56c71c21de0b945727",
+        "sha256": "d5c2d4d9faeb664e50935474636b2b85baf9d08a00e9606a529cb8eec2254f5b"
+      },
+      "packages/barocss-canvas2d/src/sprite-atlas.ts": {
+        "blob": "54ea4bd98aa8952effe6a82619880cc0706a6ae9",
+        "sha256": "b7a8c3768c7d178bbe57832db13be6574b132d3c435cbdee9df57bfb64698c7a"
+      },
+      "packages/barocss-canvas2d/src/svg-export.ts": {
+        "blob": "07b9c824748a3c6cdd8e435698c44a11713adce1",
+        "sha256": "a53da78133cb33e5c47a493b052f3fbd672867bf4d04e8aceb70186b35c185c9"
+      },
+      "packages/barocss-canvas2d/src/svg.ts": {
+        "blob": "fba2ee9f4bd864853c41ab673e9f42b479b67388",
+        "sha256": "a375b5beae7a9c0387b167534a72d967c6ff011cf8144f230bc8dfdce2a879a6"
+      },
+      "packages/barocss-canvas2d/src/ticker.ts": {
+        "blob": "5861913ffbc8029eb46f5fc893aab54924abedfa",
+        "sha256": "de0b6027930695ac974e84db8013752f5d681673ddbcef28d960b3e0f56b5dbe"
+      },
+      "packages/barocss-canvas2d/src/tile.ts": {
+        "blob": "bc2f185e79fa2af2454b21d9bff44e4a0c097df8",
+        "sha256": "ccfbb0161962517117a7d907f48e03039475b92327a26d46eca95f6983fa50d4"
+      }
+    },
+    "sha256": "edf30fac8c6cacd77c22252d592dec669c8eb04fa7543cf05320ad6ea49dcf76"
+  },
+  "emittedBundle": {
+    "path": "packages/barocss-canvas2d/dist/index.js",
+    "sha256": "edf30fac8c6cacd77c22252d592dec669c8eb04fa7543cf05320ad6ea49dcf76"
+  },
+  "reports": {
+    "source": {
+      "contract": "1283-current-source-cpu-preflight-v1",
+      "module": "file:///tmp/barocss-1283-source/index.mjs",
+      "status": "pass",
+      "callLimit": 96,
+      "expectedCalls": 84,
+      "calls": 84,
+      "accepted": 33,
+      "refused": 51,
+      "byteComparisons": 2098592,
+      "pixelTargetOwnKeys": 0,
+      "typedConstructions": 59,
+      "typedPayloadBytes": 2098212,
+      "refusalTypedConstructions": 0,
+      "getterReads": {
+        "unrelated": 0,
+        "asset": 0,
+        "metadata": 0
+      },
+      "globalsRestored": true,
+      "exactBudget": {
+        "inputBytes": 1048576,
+        "outputBytes": 1048576,
+        "typedConstructions": 2,
+        "typedPayloadBytes": 2097152
+      },
+      "results": [
+        {
+          "case": "literal-3x2-turn-0",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 1,
+          "typedPayloadBytes": 24
+        },
+        {
+          "case": "literal-3x2-turn-1",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "literal-3x2-turn-2",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "literal-3x2-turn-3",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "single-hidden-rgb-turn-0",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 1,
+          "typedPayloadBytes": 4
+        },
+        {
+          "case": "single-hidden-rgb-turn-1",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 8
+        },
+        {
+          "case": "single-hidden-rgb-turn-2",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 8
+        },
+        {
+          "case": "single-hidden-rgb-turn-3",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 8
+        },
+        {
+          "case": "thin-horizontal-turn-0",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 1,
+          "typedPayloadBytes": 12
+        },
+        {
+          "case": "thin-vertical-turn-0",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 1,
+          "typedPayloadBytes": 12
+        },
+        {
+          "case": "thin-horizontal-turn-1",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 24
+        },
+        {
+          "case": "thin-vertical-turn-1",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 24
+        },
+        {
+          "case": "thin-horizontal-turn-2",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 24
+        },
+        {
+          "case": "thin-vertical-turn-2",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 24
+        },
+        {
+          "case": "thin-horizontal-turn-3",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 24
+        },
+        {
+          "case": "thin-vertical-turn-3",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 24
+        },
+        {
+          "case": "nonzero-offset-turn-0",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 1,
+          "typedPayloadBytes": 24
+        },
+        {
+          "case": "nonzero-offset-turn-1",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "nonzero-offset-turn-2",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "nonzero-offset-turn-3",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "null-prototype-asset",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "frozen-asset-data-descriptors",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "unrelated-string-turn-0",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 1,
+          "typedPayloadBytes": 24
+        },
+        {
+          "case": "unrelated-symbol-turn-1",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "unrelated-hidden-turn-2",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "unrelated-accessor-turn-3",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "unrelated-combined-turn-0",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 1,
+          "typedPayloadBytes": 24
+        },
+        {
+          "case": "unrelated-combined-turn-1",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "unrelated-combined-turn-2",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "unrelated-combined-turn-3",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "copy-isolation-first",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "copy-isolation-repeat",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "exact-1MiB-nonidentity",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 2097152
+        },
+        {
+          "case": "asset-null",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "asset-array",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "asset-custom-prototype",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "asset-missing-field",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "asset-hidden-width",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "asset-accessor-width",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "asset-hidden-height",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "asset-accessor-height",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "asset-hidden-pixels",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "asset-accessor-pixels",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "asset-extra-string",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "asset-extra-symbol",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "asset-extra-hidden",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "asset-extra-accessor",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-own-buffer-value",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-own-buffer-getter",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-own-byteLength-value",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-own-byteLength-getter",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-own-byteOffset-value",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-own-byteOffset-getter",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-own-length-value",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-own-length-getter",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-wrong-type-array",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-wrong-type-clamped",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-wrong-type-uint16",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-wrong-type-data-view",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-wrong-type-array-buffer",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-wrong-type-subclass",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-wrong-type-null",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-extent-empty",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-extent-short",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-extent-long",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-shared-buffer",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-detached-buffer",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "dimension-width-zero",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "dimension-width-too-large",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "dimension-width-fraction",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "dimension-width-nan",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "dimension-height-zero",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "dimension-height-too-large",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "dimension-height-fraction",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "dimension-height-string",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "turn-negative-zero",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "turn-negative",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "turn-four",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "turn-fraction",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "turn-nan",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "turn-string",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "turn-undefined",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "turn-null",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "oversized-valid-dimensions",
+          "outcome": "ASSET_LIMIT",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        }
+      ],
+      "diagnostics": []
+    },
+    "emitted": {
+      "contract": "1283-current-source-cpu-preflight-v1",
+      "module": "../../../dist/index.js",
+      "status": "pass",
+      "callLimit": 96,
+      "expectedCalls": 84,
+      "calls": 84,
+      "accepted": 33,
+      "refused": 51,
+      "byteComparisons": 2098592,
+      "pixelTargetOwnKeys": 0,
+      "typedConstructions": 59,
+      "typedPayloadBytes": 2098212,
+      "refusalTypedConstructions": 0,
+      "getterReads": {
+        "unrelated": 0,
+        "asset": 0,
+        "metadata": 0
+      },
+      "globalsRestored": true,
+      "exactBudget": {
+        "inputBytes": 1048576,
+        "outputBytes": 1048576,
+        "typedConstructions": 2,
+        "typedPayloadBytes": 2097152
+      },
+      "results": [
+        {
+          "case": "literal-3x2-turn-0",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 1,
+          "typedPayloadBytes": 24
+        },
+        {
+          "case": "literal-3x2-turn-1",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "literal-3x2-turn-2",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "literal-3x2-turn-3",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "single-hidden-rgb-turn-0",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 1,
+          "typedPayloadBytes": 4
+        },
+        {
+          "case": "single-hidden-rgb-turn-1",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 8
+        },
+        {
+          "case": "single-hidden-rgb-turn-2",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 8
+        },
+        {
+          "case": "single-hidden-rgb-turn-3",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 8
+        },
+        {
+          "case": "thin-horizontal-turn-0",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 1,
+          "typedPayloadBytes": 12
+        },
+        {
+          "case": "thin-vertical-turn-0",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 1,
+          "typedPayloadBytes": 12
+        },
+        {
+          "case": "thin-horizontal-turn-1",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 24
+        },
+        {
+          "case": "thin-vertical-turn-1",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 24
+        },
+        {
+          "case": "thin-horizontal-turn-2",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 24
+        },
+        {
+          "case": "thin-vertical-turn-2",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 24
+        },
+        {
+          "case": "thin-horizontal-turn-3",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 24
+        },
+        {
+          "case": "thin-vertical-turn-3",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 24
+        },
+        {
+          "case": "nonzero-offset-turn-0",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 1,
+          "typedPayloadBytes": 24
+        },
+        {
+          "case": "nonzero-offset-turn-1",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "nonzero-offset-turn-2",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "nonzero-offset-turn-3",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "null-prototype-asset",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "frozen-asset-data-descriptors",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "unrelated-string-turn-0",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 1,
+          "typedPayloadBytes": 24
+        },
+        {
+          "case": "unrelated-symbol-turn-1",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "unrelated-hidden-turn-2",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "unrelated-accessor-turn-3",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "unrelated-combined-turn-0",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 1,
+          "typedPayloadBytes": 24
+        },
+        {
+          "case": "unrelated-combined-turn-1",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "unrelated-combined-turn-2",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "unrelated-combined-turn-3",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "copy-isolation-first",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "copy-isolation-repeat",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 48
+        },
+        {
+          "case": "exact-1MiB-nonidentity",
+          "outcome": "accepted",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 2,
+          "typedPayloadBytes": 2097152
+        },
+        {
+          "case": "asset-null",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "asset-array",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "asset-custom-prototype",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "asset-missing-field",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "asset-hidden-width",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "asset-accessor-width",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "asset-hidden-height",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "asset-accessor-height",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "asset-hidden-pixels",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "asset-accessor-pixels",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "asset-extra-string",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "asset-extra-symbol",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "asset-extra-hidden",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "asset-extra-accessor",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-own-buffer-value",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-own-buffer-getter",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-own-byteLength-value",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-own-byteLength-getter",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-own-byteOffset-value",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-own-byteOffset-getter",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-own-length-value",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-own-length-getter",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-wrong-type-array",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-wrong-type-clamped",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-wrong-type-uint16",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-wrong-type-data-view",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-wrong-type-array-buffer",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-wrong-type-subclass",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-wrong-type-null",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-extent-empty",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-extent-short",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-extent-long",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-shared-buffer",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "pixels-detached-buffer",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "dimension-width-zero",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "dimension-width-too-large",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "dimension-width-fraction",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "dimension-width-nan",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "dimension-height-zero",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "dimension-height-too-large",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "dimension-height-fraction",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "dimension-height-string",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "turn-negative-zero",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "turn-negative",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "turn-four",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "turn-fraction",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "turn-nan",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "turn-string",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "turn-undefined",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "turn-null",
+          "outcome": "INVALID_ASSET",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        },
+        {
+          "case": "oversized-valid-dimensions",
+          "outcome": "ASSET_LIMIT",
+          "passed": true,
+          "pixelOwnKeys": 0,
+          "typedConstructions": 0,
+          "typedPayloadBytes": 0
+        }
+      ],
+      "diagnostics": []
+    }
+  },
+  "receiptHashes": {
+    "barocss-1283-package-types-first.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "barocss-1283-package-bundle-first.log": "b283709a5f20c70afeeaab4e88779674b95842fdd191a610f764643517f628ce",
+    "barocss-1283-consumer-types-first.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "barocss-1283-source-bundle-first.log": "4b9f24a77bb99a9b7c79eda75bb50d35e9630cacfb59af97aa028defcee5eca2",
+    "barocss-1283-source-probe-first.log": "3eb3196479cd8e7121db25fd46ee175201d7e610e5279e1ab2fc4035dff7201c",
+    "barocss-1283-emitted-probe-first.log": "d29b2be8aa3dbd84ca28ac75cf01f2fc3a487270ba38437e91fc831a3fbe31a2",
+    "barocss-1283-commands-first.jsonl": "5b96a3c34e3eadc57cee377a28fcc5269eb396d34304dfd1fcc9b2d966af445f",
+    "barocss-1283-summary-first-failure.log": "eebecd917870656fb8e97d68c881f16200a9d9b2509069f9d9004fda31552393"
+  },
+  "firstReceiptProcessingFailure": {
+    "outerRunnerExit": 1,
+    "cause": "Final summary parsed the whole combined stdout/stderr log, but an injected Node environment warning preceded JSON. All six actual commands had exit 0.",
+    "recovery": "Parsed the sole JSON record from each original log; no product/probe/type/build rerun.",
+    "preservedReceipt": "barocss-1283-summary-first-failure.log"
+  },
+  "minimumObservedWorkspaceFreeMiB": 571
+}

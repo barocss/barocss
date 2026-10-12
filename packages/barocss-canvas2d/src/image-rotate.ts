@@ -32,10 +32,6 @@ function boundedAsset(value: unknown): ImageAssetInput {
   }
   if ((typeof SharedArrayBuffer !== 'undefined' && pixels.buffer instanceof SharedArrayBuffer) ||
       pixels.byteLength !== width * height * 4) invalid('rotation pixels must be exact non-shared RGBA8');
-  if (Reflect.ownKeys(pixels).some(key => typeof key !== 'string' ||
-      !/^(0|[1-9]\d*)$/.test(key) || Number(key) >= pixels.length)) {
-    invalid('rotation pixels must not have extra fields');
-  }
   if (pixels.byteLength > 1024 * 1024) throw new Canvas2DError('ASSET_LIMIT', 'rotation input exceeds 1 MiB');
   return copyImageAsset({ width, height, pixels });
 }
