@@ -1,13 +1,22 @@
-import type { ConvexPlanarSolidMeshResult, XYAffinePrismFeatureResult } from '@barocss/cad';
+import { checkSerialLineage } from './prism-feature-lineage.js';
+import type { ConvexPlanarSolidMeshResult, XYAffinePrismFeatureResult, XYAffinePrismFeatureResultV2 } from '@barocss/cad';
 import { prepareEngineScene, prepareEngineCameraRay, raycastEngineScene } from '@barocss/gpu';
 import type { EngineSceneV0, TriangleGeometryV0 } from '@barocss/gpu';
 
 export type PrismDisplayRole = 'source' | 'first' | 'second';
 export type PrismDisplayView = 'source' | 'result';
 /** No native Solid/Model crosses the worker boundary. Native UV and all provenance remain copied CPU data. */
+export interface PrismSerialLineage {
+  kind: 'serial-part-v2'; parentSolidId: string; finalSolidId: string;
+  original: XYAffinePrismFeatureResultV2['prisms'][0]['lineage'];
+  subtraction: XYAffinePrismFeatureResultV2['subtraction']['second']['lineage'];
+  chamfer: XYAffinePrismFeatureResultV2['chamfer']['lineage'];
+  split: XYAffinePrismFeatureResultV2['chamfer']['split']['lineage'];
+  resolution: XYAffinePrismFeatureResultV2['chamferResolution'];
+}
 export interface PrismDisplayComponent extends Pick<ConvexPlanarSolidMeshResult, 'mesh' | 'boundaries' | 'internalDiagonals' | 'report'> {
   role: PrismDisplayRole;
-  lineage: XYAffinePrismFeatureResult['prisms'][number]['lineage'] | XYAffinePrismFeatureResult['subtraction']['first']['lineage'];
+  lineage: XYAffinePrismFeatureResult['prisms'][number]['lineage'] | XYAffinePrismFeatureResult['subtraction']['first']['lineage'] | PrismSerialLineage;
 }
 export interface PrismDisplayPacket {
   documentId: string; revision: number; components: PrismDisplayComponent[];
@@ -42,6 +51,16 @@ export function preparePrismFeatureScene(packet: PrismDisplayPacket, view: Prism
   for (const component of packet.components) {
     exact(component, ['role', 'mesh', 'boundaries', 'internalDiagonals', 'report', 'lineage']);
     const { mesh, report, boundaries, internalDiagonals } = component;
+    if ('kind' in component.lineage && component.lineage.kind === 'serial-part-v2') {
+      const lineage = component.lineage;
+      exact(lineage, ['kind', 'parentSolidId', 'finalSolidId', 'original', 'subtraction', 'chamfer', 'split', 'resolution']);
+      check(component.role === 'second' && lineage.finalSolidId === report.solidId
+        && lineage.parentSolidId === lineage.resolution.parent.solidId
+        && lineage.parentSolidId !== lineage.finalSolidId
+        && lineage.resolution.parent.componentRole === 'second'
+        && lineage.resolution.policy === 'original-face-and-complete-use-lineage-to-one-opposite-pair'
+        && lineage.resolution.persistentNamingCertified === false, 'serial final/parent identity mismatch');
+    }
     exact(mesh, ['positionsMM', 'normals', 'parametersUV', 'indices', 'vertices', 'faces']);
     check(report.schema === 'barocss-convex-planar-solid-mesh' && report.version === 0 && report.lengthUnit === 'mm'
       && report.sourceFrame === 'authored-xyz-no-axis-conversion', 'mesh profile mismatch');
@@ -86,6 +105,8 @@ export function preparePrismFeatureScene(packet: PrismDisplayPacket, view: Prism
       && internalDiagonals.length === report.internalDiagonalCount, 'complete mesh ranges required');
   }
   const visible = packet.components.filter(c => view === 'source' ? c.role === 'source' : c.role !== 'source');
+  for (const component of packet.components) if ('kind' in component.lineage && component.lineage.kind === 'serial-part-v2')
+    checkSerialLineage(component, packet.components.find(c => c.role === 'source')!);
   const geometries: TriangleGeometryV0[] = visible.map(c => ({ format: 'barocss-gpu-triangle-geometry', version: 0, id: `prism_geometry_${c.role}`,
     coordinateSystem: 'right-handed-y-up', positionUnit: 'scene', winding: 'ccw', positions: xyz(c.mesh.positionsMM), normals: xyz(c.mesh.normals),
     uvs: Array(c.mesh.vertices.length * 2).fill(0), indices: [...c.mesh.indices] }));

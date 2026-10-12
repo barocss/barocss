@@ -1,0 +1,545 @@
+{
+  "format": "barocss-xy-affine-prism-feature-document",
+  "id": "part_document",
+  "lengthUnit": "mm",
+  "nodes": [
+    {
+      "document": {
+        "constraints": [
+          {
+            "id": "fix_p0",
+            "kind": "fixed",
+            "pointId": "p0",
+            "target": [
+              -0.0,
+              0
+            ]
+          },
+          {
+            "id": "fix_p1",
+            "kind": "fixed",
+            "pointId": "p1",
+            "target": [
+              32,
+              0
+            ]
+          },
+          {
+            "id": "fix_p2",
+            "kind": "fixed",
+            "pointId": "p2",
+            "target": [
+              32,
+              16
+            ]
+          },
+          {
+            "id": "fix_p3",
+            "kind": "fixed",
+            "pointId": "p3",
+            "target": [
+              16,
+              32
+            ]
+          },
+          {
+            "id": "fix_p4",
+            "kind": "fixed",
+            "pointId": "p4",
+            "target": [
+              0,
+              32
+            ]
+          }
+        ],
+        "format": "barocss-xy-affine-sketch",
+        "id": "aa_sketch",
+        "lengthUnit": "mm",
+        "points": [
+          {
+            "id": "p0",
+            "position": [
+              -0.0,
+              0
+            ]
+          },
+          {
+            "id": "p1",
+            "position": [
+              32,
+              0
+            ]
+          },
+          {
+            "id": "p2",
+            "position": [
+              32,
+              16
+            ]
+          },
+          {
+            "id": "p3",
+            "position": [
+              16,
+              32
+            ]
+          },
+          {
+            "id": "p4",
+            "position": [
+              0,
+              32
+            ]
+          }
+        ],
+        "profile": "exact-affine-binary64",
+        "referenceLines": [],
+        "segments": [
+          {
+            "endPointId": "p1",
+            "id": "s0",
+            "startPointId": "p0"
+          },
+          {
+            "endPointId": "p2",
+            "id": "s1",
+            "startPointId": "p1"
+          },
+          {
+            "endPointId": "p3",
+            "id": "s2",
+            "startPointId": "p2"
+          },
+          {
+            "endPointId": "p4",
+            "id": "s3",
+            "startPointId": "p3"
+          },
+          {
+            "endPointId": "p0",
+            "id": "s4",
+            "startPointId": "p4"
+          }
+        ],
+        "version": 0
+      },
+      "id": "aa_sketch_node",
+      "kind": "sketch",
+      "revision": 0,
+      "sourceId": "aa_source"
+    },
+    {
+      "document": {
+        "constraints": [
+          {
+            "id": "fix_p0",
+            "kind": "fixed",
+            "pointId": "p0",
+            "target": [
+              8,
+              -16
+            ]
+          },
+          {
+            "id": "fix_p1",
+            "kind": "fixed",
+            "pointId": "p1",
+            "target": [
+              16,
+              -16
+            ]
+          },
+          {
+            "id": "fix_p2",
+            "kind": "fixed",
+            "pointId": "p2",
+            "target": [
+              16,
+              48
+            ]
+          },
+          {
+            "id": "fix_p3",
+            "kind": "fixed",
+            "pointId": "p3",
+            "target": [
+              8,
+              48
+            ]
+          }
+        ],
+        "format": "barocss-xy-affine-sketch",
+        "id": "bb_sketch",
+        "lengthUnit": "mm",
+        "points": [
+          {
+            "id": "p0",
+            "position": [
+              8,
+              -16
+            ]
+          },
+          {
+            "id": "p1",
+            "position": [
+              16,
+              -16
+            ]
+          },
+          {
+            "id": "p2",
+            "position": [
+              16,
+              48
+            ]
+          },
+          {
+            "id": "p3",
+            "position": [
+              8,
+              48
+            ]
+          }
+        ],
+        "profile": "exact-affine-binary64",
+        "referenceLines": [],
+        "segments": [
+          {
+            "endPointId": "p1",
+            "id": "s0",
+            "startPointId": "p0"
+          },
+          {
+            "endPointId": "p2",
+            "id": "s1",
+            "startPointId": "p1"
+          },
+          {
+            "endPointId": "p3",
+            "id": "s2",
+            "startPointId": "p2"
+          },
+          {
+            "endPointId": "p0",
+            "id": "s3",
+            "startPointId": "p3"
+          }
+        ],
+        "version": 0
+      },
+      "id": "bb_sketch_node",
+      "kind": "sketch",
+      "revision": 0,
+      "sourceId": "bb_source"
+    },
+    {
+      "id": "aa_prism_node",
+      "kind": "prism",
+      "options": {
+        "capChart": {
+          "originXY": [
+            0,
+            0
+          ],
+          "spanXY": [
+            32,
+            32
+          ]
+        },
+        "heightMM": 8,
+        "orderedSegmentIds": [
+          "s0",
+          "s1",
+          "s2",
+          "s3",
+          "s4"
+        ],
+        "resultIdPrefix": "aa",
+        "solidId": "aa_solid",
+        "chartPolicy": {
+          "version": 1,
+          "kind": "coordinate-span"
+        }
+      },
+      "sketchNodeId": "aa_sketch_node"
+    },
+    {
+      "id": "bb_prism_node",
+      "kind": "prism",
+      "options": {
+        "capChart": {
+          "originXY": [
+            0,
+            -16
+          ],
+          "spanXY": [
+            32,
+            64
+          ]
+        },
+        "heightMM": 8,
+        "orderedSegmentIds": [
+          "s0",
+          "s1",
+          "s2",
+          "s3"
+        ],
+        "resultIdPrefix": "bb",
+        "solidId": "bb_solid",
+        "chartPolicy": {
+          "version": 1,
+          "kind": "coordinate-span"
+        }
+      },
+      "sketchNodeId": "bb_sketch_node"
+    },
+    {
+      "first": {
+        "reference": {
+          "segmentId": "s3",
+          "sketchId": "bb_sketch",
+          "sourceId": "bb_source",
+          "sourceRevision": 0
+        },
+        "resultIdPrefix": "left",
+        "solidId": "left_part"
+      },
+      "id": "subtraction_feature",
+      "kind": "subtraction",
+      "operationId": "remove_slab",
+      "parentPrismId": "aa_prism_node",
+      "second": {
+        "reference": {
+          "segmentId": "s1",
+          "sketchId": "bb_sketch",
+          "sourceId": "bb_source",
+          "sourceRevision": 0
+        },
+        "resultIdPrefix": "right",
+        "solidId": "right_part"
+      },
+      "toolPrismId": "bb_prism_node"
+    },
+    {
+      "distanceMM": 1,
+      "id": "front_detail",
+      "kind": "chamfer",
+      "options": {
+        "operationId": "front_chamfer",
+        "removedSolidId": "front_wedge",
+        "resultIdPrefix": "ch",
+        "retainedSolidId": "detailed_part"
+      },
+      "reference": {
+        "a": {
+          "curveId": "s0",
+          "faceId": "aa_t_f",
+          "loopId": "aa_t_l",
+          "pcurveId": "aa_t_uv_0",
+          "sourceId": "aa_t",
+          "surfaceId": "aa_t_s",
+          "useId": "aa_t_use_0"
+        },
+        "b": {
+          "curveId": "aa_w_0_c_2",
+          "faceId": "aa_w_0_f",
+          "loopId": "aa_w_0_l",
+          "pcurveId": "aa_w_0_uv_2",
+          "sourceId": "aa_w_0",
+          "surfaceId": "aa_w_0_s",
+          "useId": "aa_w_0_use_2"
+        },
+        "role": "top",
+        "segmentId": "s0",
+        "sketchId": "aa_sketch",
+        "sourceId": "aa_source",
+        "sourceRevision": 0
+      },
+      "parent": {
+        "kind": "subtraction-component",
+        "subtractionNodeId": "subtraction_feature",
+        "componentRole": "second",
+        "solidId": "right_part"
+      }
+    }
+  ],
+  "parameters": [
+    {
+      "bindings": [
+        {
+          "axis": "x",
+          "constraintId": "fix_p0",
+          "kind": "fixed-sketch-coordinate",
+          "sketchNodeId": "bb_sketch_node"
+        },
+        {
+          "axis": "x",
+          "constraintId": "fix_p3",
+          "kind": "fixed-sketch-coordinate",
+          "sketchNodeId": "bb_sketch_node"
+        }
+      ],
+      "id": "lowerX",
+      "unit": "mm",
+      "valueMM": 8
+    },
+    {
+      "bindings": [
+        {
+          "axis": "x",
+          "constraintId": "fix_p1",
+          "kind": "fixed-sketch-coordinate",
+          "sketchNodeId": "bb_sketch_node"
+        },
+        {
+          "axis": "x",
+          "constraintId": "fix_p2",
+          "kind": "fixed-sketch-coordinate",
+          "sketchNodeId": "bb_sketch_node"
+        }
+      ],
+      "id": "upperX",
+      "unit": "mm",
+      "valueMM": 16
+    },
+    {
+      "bindings": [
+        {
+          "axis": "y",
+          "constraintId": "fix_p0",
+          "kind": "fixed-sketch-coordinate",
+          "sketchNodeId": "bb_sketch_node"
+        },
+        {
+          "axis": "y",
+          "constraintId": "fix_p1",
+          "kind": "fixed-sketch-coordinate",
+          "sketchNodeId": "bb_sketch_node"
+        }
+      ],
+      "id": "lowerY",
+      "unit": "mm",
+      "valueMM": -16
+    },
+    {
+      "bindings": [
+        {
+          "axis": "y",
+          "constraintId": "fix_p2",
+          "kind": "fixed-sketch-coordinate",
+          "sketchNodeId": "bb_sketch_node"
+        },
+        {
+          "axis": "y",
+          "constraintId": "fix_p3",
+          "kind": "fixed-sketch-coordinate",
+          "sketchNodeId": "bb_sketch_node"
+        }
+      ],
+      "id": "upperY",
+      "unit": "mm",
+      "valueMM": 48
+    },
+    {
+      "bindings": [
+        {
+          "kind": "prism-height",
+          "prismNodeId": "aa_prism_node"
+        }
+      ],
+      "id": "parentHeight",
+      "unit": "mm",
+      "valueMM": 8
+    },
+    {
+      "bindings": [
+        {
+          "chamferNodeId": "front_detail",
+          "kind": "chamfer-distance"
+        }
+      ],
+      "id": "setback",
+      "unit": "mm",
+      "valueMM": 1
+    },
+    {
+      "bindings": [
+        {
+          "axis": "x",
+          "constraintId": "fix_p3",
+          "kind": "fixed-sketch-coordinate",
+          "sketchNodeId": "aa_sketch_node"
+        }
+      ],
+      "id": "rearX",
+      "unit": "mm",
+      "valueMM": 16
+    },
+    {
+      "bindings": [
+        {
+          "axis": "x",
+          "constraintId": "fix_p1",
+          "kind": "fixed-sketch-coordinate",
+          "sketchNodeId": "aa_sketch_node"
+        },
+        {
+          "axis": "x",
+          "constraintId": "fix_p2",
+          "kind": "fixed-sketch-coordinate",
+          "sketchNodeId": "aa_sketch_node"
+        }
+      ],
+      "id": "rightX",
+      "unit": "mm",
+      "valueMM": 32
+    },
+    {
+      "bindings": [
+        {
+          "axis": "y",
+          "constraintId": "fix_p2",
+          "kind": "fixed-sketch-coordinate",
+          "sketchNodeId": "aa_sketch_node"
+        }
+      ],
+      "id": "shoulderY",
+      "unit": "mm",
+      "valueMM": 16
+    },
+    {
+      "bindings": [
+        {
+          "axis": "y",
+          "constraintId": "fix_p3",
+          "kind": "fixed-sketch-coordinate",
+          "sketchNodeId": "aa_sketch_node"
+        },
+        {
+          "axis": "y",
+          "constraintId": "fix_p4",
+          "kind": "fixed-sketch-coordinate",
+          "sketchNodeId": "aa_sketch_node"
+        }
+      ],
+      "id": "rearY",
+      "unit": "mm",
+      "valueMM": 32
+    },
+    {
+      "bindings": [
+        {
+          "axis": "y",
+          "constraintId": "fix_p1",
+          "kind": "fixed-sketch-coordinate",
+          "sketchNodeId": "aa_sketch_node"
+        }
+      ],
+      "id": "frontY",
+      "unit": "mm",
+      "valueMM": 0
+    }
+  ],
+  "revision": 0,
+  "version": 2
+}

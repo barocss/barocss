@@ -1,8 +1,13 @@
 import type { PrismDisplayPacket, PrismDisplayScene, PrismFaceSelection, PrismDisplayView } from './prism-feature-scene.js';
-import type { XYAffinePrismFeatureDocumentV0, XYAffinePrismFeatureResult } from '@barocss/cad';
+import type { XYAffinePrismFeatureDocumentV0, XYAffinePrismFeatureResult, XYAffinePrismFeatureDocumentV2, XYAffinePrismFeatureResultV2 } from '@barocss/cad';
 
 export interface CadEditorPrismFeatureSummary {
-  document: XYAffinePrismFeatureDocumentV0;
+  document: XYAffinePrismFeatureDocumentV0 | XYAffinePrismFeatureDocumentV2;
+  serial?: {
+    parentSolidId: string; finalSolidId: string;
+    resolution: XYAffinePrismFeatureResultV2['chamferResolution'];
+    volumes: XYAffinePrismFeatureResultV2['chamfer']['split']['report']['volumeMM3'];
+  };
   dependencies: XYAffinePrismFeatureResult['report']['dependencies'];
   components: XYAffinePrismFeatureResult['report']['componentRoles'];
   volumes: XYAffinePrismFeatureResult['subtraction']['report']['volumeMM3'];
@@ -19,7 +24,7 @@ export interface CadEditorPrismFeatureSnapshot {
 }
 /** Private worker transport: only authored data and a bounded display packet and native summary cross it. */
 export type PrismFeatureCommand = { id: number } & (
-  { kind: 'open'; text: string }
+  { kind: 'open'; text: string; version?: 0 | 2 }
   | { kind: 'apply'; expectedRevision: number; edits: { parameterId: string; valueMM: number }[] }
 );
 export type PrismFeatureReply = { id: number } & (

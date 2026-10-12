@@ -1150,3 +1150,22 @@ CPU generic scene/raycast adapter (its fixture lineage is intentionally empty; f
 lineage is asserted in native smoke). `node scripts/prism-feature-display-test.mjs`
 uses mock DOM/canvas/renderer lifecycle only. Browser/physical GPU pixels are UNRUN. `EVIDENCE_DIR` selects an external evidence
 directory; `REPO_DEPS_ROOT` may select an existing dependency store checkout.
+
+### Explicit serial prism part v2
+
+The host route `#/features/serial-part-v2` starts a separate six-node v2 fixture.
+The existing `#/features/affine-prism` remains v0; neither inspector silently
+migrates files or accepts the other version. The v2 route exposes literal
+coordinate, prism-height and chamfer-distance bindings from the authored recipe.
+Its target is read-only: the second subtraction component, followed through
+complete original source/use provenance to the supported top-edge chamfer.
+
+Source view shows the original prism. Finished results show the unchanged first
+component and the actual negative/retained chamfer Solid. The intermediate second
+Solid ID and final retained Solid ID are shown separately, including in picked
+face provenance. Full original, subtraction, chamfer and split lineage is copied;
+internal fan diagonals remain display-only. Geometry is regenerated on import and
+history replay. Unsupported geometry/references retain the last accepted state.
+
+Scoped software, native-to-CPU mesh and controller checks are distinct from
+browser Worker execution, rendered GPU pixels and native OS file workflows.

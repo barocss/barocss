@@ -7,6 +7,13 @@ type State = CadEditorPrismFeatureSnapshot;
 type Values = { parameterId: string; valueMM: number }[];
 const FILE_LIMIT = 262144, HISTORY_BYTES = 8 * 1024 * 1024;
 const clone = <T>(value: T): T => structuredClone(value);
+/** Authored own data comparison retains signed-zero bits and ignores JSON key order. */
+function sameData(a: unknown, b: unknown): boolean {
+  if (Object.is(a, b)) return true;
+  if (!a || !b || typeof a !== 'object' || typeof b !== 'object' || Array.isArray(a) !== Array.isArray(b)) return false;
+  const x = a as Record<string, unknown>, y = b as Record<string, unknown>;
+  return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(k => Object.hasOwn(y, k) && sameData(x[k], y[k]));
+}
 function scalar(raw: string): number {
   if (raw.length > 128 || !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(raw.trim()))
     throw new Error('Enter a finite decimal millimetre value.');
@@ -22,7 +29,7 @@ export function prismFeatureFieldText(drafts: Record<string, string>, parameter:
 }
 
 /** Responsive authored-intent controller. Native work always runs in its own Worker. */
-export function createCadEditorPrismFeatureController(displayPort?: PrismDisplayPort, aspect: () => number = () => 1) {
+export function createCadEditorPrismFeatureController(displayPort?: PrismDisplayPort, aspect: () => number = () => 1, version: 0 | 2 = 0) {
   let state: State = { display: null, faceSelection: null, view: 'result', accepted: null, authoredText: null, drafts: {}, selection: null,
     busy: false, disposed: false, error: null, history: { index: -1, count: 0, canUndo: false, canRedo: false } };
   let worker: Worker | null = null, workerReady = false, sequence = 0, epoch = 0;
@@ -50,11 +57,12 @@ export function createCadEditorPrismFeatureController(displayPort?: PrismDisplay
         if (reply.ok === false && typeof reply.message === 'string') { request.reject(new Error(reply.message.slice(0, 2048))); return; }
         if (reply.ok !== true || typeof reply.text !== 'string' || reply.text.length > FILE_LIMIT
           || !reply.summary || reply.summary.document?.format !== 'barocss-xy-affine-prism-feature-document'
-          || reply.summary.document.version !== 0 || reply.summary.document.nodes?.length !== 5
+          || reply.summary.document.version !== version || reply.summary.document.nodes?.length !== (version === 2 ? 6 : 5)
           || !Array.isArray(reply.summary.document.parameters) || reply.summary.document.parameters.length > 16) {
           stopWorker('Invalid native worker reply.'); request.reject(new Error('Invalid native worker reply.')); return;
         }
         if (JSON.stringify(reply.summary).length > FILE_LIMIT) { stopWorker('Native summary exceeds budget.'); request.reject(new Error('Native summary exceeds budget.')); return; }
+        if (!sameData(JSON.parse(reply.text), reply.summary.document)) throw new Error('Authored source differs from native summary.');
         request.resolve(reply);
       } catch { stopWorker('Invalid native worker reply.'); request.reject(new Error('Invalid native worker reply.')); }
     });
@@ -92,14 +100,16 @@ export function createCadEditorPrismFeatureController(displayPort?: PrismDisplay
     state = { ...state, busy: true, error: null }; emit();
     try {
       if (kind !== 'open' && !workerReady) {
-        await request({ kind: 'open', text: state.authoredText! });
+        const seeded = await request({ kind: 'open', text: state.authoredText!, version });
+        if (!sameData(seeded.summary.document, state.accepted!.document)) { stopWorker('Rehydration differs from accepted intent.'); throw new Error('Rehydration differs from accepted intent.'); }
         if (operation !== epoch) return;
         workerReady = true;
       }
-      const reply = await request(kind === 'open' ? { kind: 'open', text: text! }
+      const reply = await request(kind === 'open' ? { kind: 'open', text: text!, version }
         : { kind: 'apply', expectedRevision: state.accepted!.document.revision, edits: values });
       if (operation !== epoch || state.disposed) return;
       nativeCandidate = true;
+      if (kind === 'open' && !sameData(JSON.parse(text!), reply.summary.document)) throw new Error('Opened result differs from requested intent.');
       const candidateWorker = worker;
       if (kind !== 'open' && (reply.summary.document.id !== state.accepted!.document.id
         || reply.summary.document.revision !== state.accepted!.document.revision + 1)) {
@@ -108,6 +118,38 @@ export function createCadEditorPrismFeatureController(displayPort?: PrismDisplay
       if (!reply.display || reply.display.documentId !== reply.summary.document.id || reply.display.revision !== reply.summary.document.revision)
         throw new Error('Display packet does not match the native document.');
       if (JSON.stringify(reply.display.outcomes) !== JSON.stringify(reply.summary.components)) throw new Error('Display result roles do not match native summary.');
+      if (version === 2) {
+        const document = reply.summary.document;
+        if (document.version !== 2) throw new Error('Explicit version two required.');
+        const detail = document.nodes[5], source = document.nodes[0];
+        if (!sameData(document.nodes.map(n => n.kind), ['sketch', 'sketch', 'prism', 'prism', 'subtraction', 'chamfer'])
+          || reply.display.components.find(c => c.role === 'source')?.report.solidId !== document.nodes[2].options.solidId
+          || reply.summary.components[0].solidId !== document.nodes[4].first.solidId
+          || !sameData(reply.summary.selectedWalls, [document.nodes[4].first.reference, document.nodes[4].second.reference]))
+          throw new Error('Serial document roles differ from worker reply.');
+        if (kind !== 'open' && state.accepted && !sameData(document.parameters.map(p => [p.id, p.valueMM]),
+          state.accepted.document.parameters.map(p => [p.id, values.find(e => e.parameterId === p.id)?.valueMM ?? p.valueMM])))
+          throw new Error('Serial reply differs from requested parameter values.');
+        const serial = reply.summary.serial, final = reply.display.components.find(c => c.role === 'second');
+        if (!serial || !final || serial.finalSolidId !== final.report.solidId
+          || serial.parentSolidId !== serial.resolution.parent.solidId
+          || !('kind' in final.lineage) || final.lineage.kind !== 'serial-part-v2'
+          || JSON.stringify(final.lineage.resolution) !== JSON.stringify(serial.resolution)
+          || final.lineage.parentSolidId !== serial.parentSolidId || final.lineage.finalSolidId !== serial.finalSolidId
+          || !sameData(serial.resolution.parent, detail.parent) || detail.parent.subtractionNodeId !== document.nodes[4].id
+          || serial.parentSolidId !== document.nodes[4].second.solidId || serial.finalSolidId !== detail.options.retainedSolidId
+          || serial.resolution.originalPrismNodeId !== document.nodes[2].id
+          || final.lineage.original.sourceId !== source.sourceId || final.lineage.original.sketchId !== source.document.id
+          || final.lineage.original.sourceRevision !== source.revision
+          || detail.reference.sourceId !== source.sourceId || detail.reference.sketchId !== source.document.id || detail.reference.sourceRevision !== source.revision
+          || final.lineage.original.segments.filter(s => s.segmentId === detail.reference.segmentId && s.topEdgeId === serial.resolution.originalTopEdgeId).length !== 1
+          || !(['a', 'b'] as const).every(key => {
+            const origin = serial.resolution[key].origin, reference = detail.reference[key];
+            return origin.operand === 'parent'
+              && Object.entries(reference).every(([field, value]) => origin[field as keyof typeof origin] === value);
+          }))
+          throw new Error('Serial part provenance does not match the final display.');
+      } else if (reply.summary.serial) throw new Error('Version zero cannot carry serial part results.');
       const display = preparePrismFeatureScene(reply.display, state.view, aspect());
       displayCandidate = displayPort ? await displayPort.prepare(display) : null;
       if (operation !== epoch || state.disposed) { displayCandidate?.dispose(); return; }
