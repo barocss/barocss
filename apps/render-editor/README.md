@@ -230,3 +230,50 @@ Native transforms default to Bounds center, computed from the original CAD contr
 Native Source control point edits one original unshared Surface pole through the public CAD Wide token writer. U row/V column index the original grid; XYZ are source mm and weight is dimensionless. Corrective strings remain local and invalid values block scene/file acceptance without clearing the applied frame. Repeated drafts derive from accepted source, advancing asset/CAD revisions once, then compose with valid pose/material/light changes in one Scene Apply. No source normalization, sampled triangle mutation or implicit source copy occurs. Duplicate a shared body first. Discard, accepted history and successful Open restore field bindings; failure keeps corrective state.
 
 Original Surface control-point Canvas mode shows the selected body's actual control grid as x-ray glyphs. Click a glyph to share its U/V selection with Properties. XYZ arrows move one source-mm axis through the body's actual quaternion and nonuniform scale. During capture the actual Surface and control-point handles update together. Release commits one scene edit and history entry. Escape restores the original Surface. A failed restoration keeps the same pending preview and Cancel retry; accepted Source and history stay unchanged. Shared assets require Duplicate, and draft/modal/pose operations block new captures. Markers are control coefficients, not sampled vertices or certified visible surface hits.
+
+
+### Selected Surface material files
+
+In Native mode, File → **Import material to selected Surface…** reads a portable `.material.json` document into the selected visible Surface's draft. Only original shader source and supplied numeric overrides are copied; target identity/title/revision, complete CAD source, qualified targets, other materials, poses, light, authored camera and current view remain unchanged. Imported document metadata never becomes a native reference. Use the existing material Preview/Cancel/Apply workflow afterward. Apply accepts one scene history entry with one material and scene revision increment; Undo/Redo restore whole-scene authorship. An identical import leaves the scene clean.
+
+File → **Export selected material…** downloads only that Surface's accepted embedded material as `<material-documentId>.material.json`, preserving exact source, override omissions and signed zero. It does not export a draft, change the scene filename or mark the scene saved. A download request does not verify disk persistence.
+
+Apply or Discard drafts before either action. Gestures, previews, dialogs, another file read or unavailable presentation block transfer. Import captures the exact target/host/preview before opening the chooser; target, draft, history, file, preview or mount changes invalidate the attempt. Cancel keeps state and permits same-file reselection. Both declared file size and actual buffer size are limited to 256 KiB before fatal UTF-8 decoding; original source remains limited to 64 KiB and supplied overrides to 16 under the current opaque scalar provider. No textures, vectors, PBR or generated shader persistence is added.
+
+The focused `native-material-transfer-flow.ts` qualification uses the actual CPU host, controller, sessions and portable/native codecs. Component tests, when run, use declared DOM and transport doubles and cannot certify the native chooser, actual browser focus, a physically saved/reopened download or rendered pixels. Those physical UI/file/GPU acceptance checks remain unverified for this feature.
+
+For the bounded source-graph CPU check (Node 22, existing workspace dependencies), bundle `apps/render-editor/src/native-material-transfer-flow.ts` with esbuild using `--bundle --platform=node --format=esm`, then call its exported `runNativeMaterialTransferFlow` with the tracked `packages/barocss-render-editor/fixtures/native-scene-document-v0.json` bytes. The fixture SHA-256 is `a3b062ba2fc5a92cbfb1b03c9aa164c2378dd379581fa5012e528a104550f53e`. Run `runNativeSceneMaterialPreviewFlow` from the neighboring existing flow against the same bytes for the preview regression. These CPU checks deliberately refuse browser globals and use an atomic CPU presenter, never GPU pixel evidence.
+
+`native-material-transfer-ui-flow.tsx` exports the actual component-event qualification and its explicitly substituted CPU preview. Run it only with existing React/jsdom/esbuild dependencies; it requires no new framework. Bootstrap DOM globals before importing the bundle, and substitute only `./material-preview` with `CpuMaterialTransferPreview`. For example, from the repository root with Node 22:
+
+```sh
+NODE_OPTIONS=--max-old-space-size=2048 node --input-type=module <<'JS'
+import {build} from 'esbuild';
+import {JSDOM} from 'jsdom';
+import {mkdtempSync, readFileSync, symlinkSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join, resolve} from 'node:path';
+import {pathToFileURL} from 'node:url';
+const root = process.cwd(), out = mkdtempSync(join(tmpdir(), 'material-transfer-'));
+symlinkSync(resolve('node_modules'), join(out, 'node_modules'), 'dir');
+const dom = new JSDOM('<!doctype html><html><body></body></html>', {url: 'http://cpu.test/', pretendToBeVisual: true});
+for (const name of ['window', 'document', 'navigator', 'location', 'HTMLElement', 'Element', 'Node', 'NodeFilter', 'DocumentFragment', 'HTMLInputElement', 'HTMLTextAreaElement', 'HTMLAnchorElement', 'HTMLButtonElement', 'HTMLCanvasElement', 'Event', 'MouseEvent', 'KeyboardEvent', 'CustomEvent', 'FocusEvent', 'MutationObserver', 'getComputedStyle']) Object.defineProperty(globalThis, name, {configurable: true, value: dom.window[name]});
+globalThis.requestAnimationFrame = dom.window.requestAnimationFrame.bind(dom.window);
+globalThis.cancelAnimationFrame = dom.window.cancelAnimationFrame.bind(dom.window);
+globalThis.PointerEvent = dom.window.MouseEvent;
+globalThis.ResizeObserver = class {observe() {} unobserve() {} disconnect() {}};
+HTMLElement.prototype.scrollIntoView = function () {};
+HTMLElement.prototype.hasPointerCapture = function () {return false;};
+HTMLElement.prototype.setPointerCapture = HTMLElement.prototype.releasePointerCapture = function () {};
+globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+const entry = resolve('apps/render-editor/src/native-material-transfer-ui-flow.tsx'), outfile = join(out, 'ui.mjs');
+await build({absWorkingDir: root, entryPoints: [entry], outfile, bundle: true, platform: 'node', format: 'esm', external: ['react', 'react/*', 'react-dom', 'react-dom/*'], banner: {js: "import {createRequire} from 'node:module'; const require = createRequire(import.meta.url);"}, plugins: [{name: 'declared-cpu-preview', setup(builder) {
+  builder.onResolve({filter: /^\.\/material-preview$/}, () => ({path: 'cpu-preview', namespace: 'cpu'}));
+  builder.onLoad({filter: /.*/, namespace: 'cpu'}, () => ({contents: `export {CpuMaterialTransferPreview as MaterialPreview} from ${JSON.stringify(entry)};`, resolveDir: root, loader: 'ts'}));
+}}]});
+const flow = await import(pathToFileURL(outfile).href);
+try {console.log(await flow.runNativeMaterialTransferUiFlow(readFileSync('apps/render-editor/public/reference-panel.barocad', 'utf8')));} finally {dom.window.close();}
+JS
+```
+
+The UI fixture is tracked `reference-panel.barocad`, SHA-256 `8d3c423e8031bfa76d1606a982819b5e9a8d28c4915d4de2a86879f2f8d0af20`. DOM event/focus checks and captured Blob bytes remain CPU evidence; the substitutions do not establish real browser rendering or physical file acceptance.

@@ -24,6 +24,7 @@ export interface RenderMaterialSessionSnapshot {
 export interface RenderMaterialSession {
   getSnapshot(): RenderMaterialSessionSnapshot;
   subscribe(listener: () => void): () => void;
+  setDraftMaterial(source: string, uniforms: Readonly<Record<string, number>>): void;
   setDraftSource(source: string): void;
   setDraftUniforms(uniforms: Readonly<Record<string, number>>): void;
   prepareDraft(): RenderMaterialPreparedCandidate;
@@ -91,6 +92,12 @@ export function createRenderMaterialSession(initial: RenderMaterialDocument): Re
       assertMutable();
       if (typeof listener !== 'function') throw new RenderEditorError('DOCUMENT_INPUT', 'Material listener must be a function.');
       listeners.add(listener); return () => { listeners.delete(listener); };
+    },
+    setDraftMaterial(source, uniforms) {
+      qualify(() => {
+        const next = prepareRenderMaterialDocument({...accepted, shaderSource: source, uniforms}).document;
+        draftSource = next.shaderSource; draftUniforms = next.uniforms; diagnostics = EMPTY_DIAGNOSTICS;
+      }); changed();
     },
     setDraftSource(source) {
       qualify(() => {

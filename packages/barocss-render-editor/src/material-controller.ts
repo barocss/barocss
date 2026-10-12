@@ -71,6 +71,7 @@ export function createRenderMaterialController(session: RenderMaterialSession): 
   const editorSession: RenderMaterialSession = Object.freeze({
     getSnapshot: () => session.getSnapshot(),
     subscribe: (listener: () => void) => listen(sessionListeners, listener),
+    setDraftMaterial: (source: string, uniforms: Readonly<Record<string, number>>) => run(() => session.setDraftMaterial(source, uniforms)),
     setDraftSource: (source: string) => run(() => session.setDraftSource(source)),
     setDraftUniforms: (uniforms: Readonly<Record<string, number>>) => run(() => session.setDraftUniforms(uniforms)),
     prepareDraft: () => run(() => session.prepareDraft()),

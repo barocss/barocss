@@ -1,9 +1,9 @@
-import {createRenderNativeSceneSession, createRenderMaterialSession, prepareRenderMaterialDocument,
+import {createRenderNativeSceneSession, createRenderMaterialSession, prepareRenderMaterialDocument, deriveRenderMaterialAssignment,
   validateRenderNativeSceneDocument, serializeRenderNativeSceneDocument, prepareRenderNativeSceneAppearance,
   commitRenderNativeSceneAppearanceCandidate, deriveRenderNativeSceneBodyDuplicate, deriveRenderNativeSceneBodyRemoval, deriveRenderNativeSceneSurfaceAddition, deriveRenderNativeSceneSurfacePoleEdit, RenderEditorError, normalizeRenderEditorError} from '@barocss/render-editor';
 import type {RenderNativeSceneDocument, RenderNativeScenePreparation, RenderNativeScenePreparedCandidate,
   RenderNativeSceneAppearancePreparation, RenderMaterialSession, RenderMaterialSessionSnapshot,
-  RenderMaterialPreparedCandidate, RenderNativeScenePose, RenderNativeSceneSurfacePolePatch} from '@barocss/render-editor';
+  RenderMaterialDocument, RenderMaterialPreparedCandidate, RenderNativeScenePose, RenderNativeSceneSurfacePolePatch} from '@barocss/render-editor';
 import {validateMeshCamera} from '@barocss/gpu';
 import type {MeshCamera, MeshLighting} from '@barocss/gpu';
 
@@ -47,6 +47,7 @@ export interface NativeSceneHost {
   selectTarget(bodyId: string): void;
   setPresenter(presenter: NativeScenePresenter | null, ownershipReader?: () => object, actualCameraReader?: () => MeshCamera): void;
   setAvailable(available: boolean): void;
+  stageMaterialAssignment(portable: RenderMaterialDocument, expected: NativeSceneHostSnapshot): void;
   stageSceneDocument(document: RenderNativeSceneDocument): void;
   addSurface(source: string, surfaceId: string): RenderNativeSceneAppearancePreparation;
   duplicateSelectedBody(): RenderNativeSceneAppearancePreparation;
@@ -528,6 +529,25 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
     return {...draftDocument, surfaceMaterials: draftDocument.surfaceMaterials.map(item => item.target.bodyId === selectedBodyId
       ? {...item, material: document} : item)};
   };
+  // All provider, local-session and complete-scene qualification precedes either live write.
+  const stageMaterial = (source: string, uniforms: Readonly<Record<string, number>>) => {
+    const next = createRenderMaterialSession(local.getSnapshot().accepted);
+    let published = false;
+    try {
+      next.setDraftMaterial(source, uniforms);
+      const raw = next.getSnapshot();
+      const document = validateRenderNativeSceneDocument(withMaterial({...raw.accepted, shaderSource: raw.draftSource, uniforms: raw.draftUniforms}));
+      const text = serializeRenderNativeSceneDocument(document);
+      if (reentered) throw new RenderEditorError('STALE_CANDIDATE', 'Material input reflection reentry was refused.');
+      if (!snapshot.dirty && !raw.dirty) return;
+      check(!raw.dirty || raw.accepted.revision < 2147483647, 'Material revision is at its maximum.');
+      check(native.getSnapshot().accepted.revision < 2147483647, 'Native scene revision is at its maximum.');
+      // The owned native setter has no external listeners and text is already byte-qualified.
+      native.setDraftText(text);
+      const previous = local; local = next; draftDocument = document; published = true;
+      previous.dispose(); changed();
+    } finally {if (!published) next.dispose();}
+  };
   const stageValidMaterial = () => {
     const raw = local.getSnapshot();
     if (raw.diagnostics.length) return;
@@ -608,6 +628,7 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
   const materialSession: RenderMaterialSession = Object.freeze({
     getSnapshot: () => materialSnapshot,
     subscribe,
+    setDraftMaterial(source: string, uniforms: Readonly<Record<string, number>>) {run(() => {noView(); stageMaterial(source, uniforms);});},
     setDraftSource(source: string) {run(() => {noView(); local.setDraftSource(source); try {stageValidMaterial();} finally {changed();}});},
     setDraftUniforms(uniforms: Readonly<Record<string, number>>) {run(() => {noView(); local.setDraftUniforms(uniforms); try {stageValidMaterial();} finally {changed();}});},
     prepareDraft: () => run(() => {noView(); return materialCandidate(prepareDraft())!;}),
@@ -640,6 +661,17 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
       if (reentered) throw new RenderEditorError('STALE_CANDIDATE', 'Preview ownership reentry was refused.');
       presenter = next; ownershipReader = reader; actualCameraReader = cameraReader; fallbackOwner = nextFallback; acceptedOwner = nextOwner; available = next !== null; changed();});},
     setAvailable(value) {run(() => {check(typeof value === 'boolean', 'Native availability must be a boolean.'); if (!value) {invalidatePose(); invalidatePoleDrag(); invalidateMaterialPreview();} if (available !== value) {available = value; changed();}});},
+    stageMaterialAssignment(portable, expected) {run(() => {
+      noView(); clean();
+      if (expected !== snapshot) throw new RenderEditorError('STALE_CANDIDATE', 'The selected Surface or scene changed before material import.');
+      check(available && presenter && nativePresented, 'The applied native preview is unavailable.');
+      const accepted = native.getSnapshot().accepted;
+      const binding = accepted.surfaceMaterials.find(item => item.target.bodyId === selectedBodyId);
+      check(binding && accepted.display.visibleBodyIds.includes(selectedBodyId)
+        && snapshot.preparation.materials.some(item => item.target.bodyId === selectedBodyId), 'Select a visible original Surface material.');
+      const assigned = deriveRenderMaterialAssignment(binding.material, portable);
+      stageMaterial(assigned.shaderSource, assigned.uniforms);
+    });},
     stageSceneDocument(document) {run(() => {noView(); clean(); stage(document); changed();});},
     addSurface(source, surfaceId) {return run(() => {
       noView(); clean(); check(available && presenter && nativePresented, 'The applied native preview is unavailable.');

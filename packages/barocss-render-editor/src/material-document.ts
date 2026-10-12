@@ -91,3 +91,10 @@ export function serializeRenderMaterialDocument(input: RenderMaterialDocument): 
   if (bytes(text) > RENDER_MATERIAL_LIMITS.fileBytes) refuse('DOCUMENT_BYTES', 'Serialized material file exceeds 262144 UTF-8 bytes.');
   return text;
 }
+
+/** Owned-copy assignment: portable identity never replaces the target's authorship. */
+export function deriveRenderMaterialAssignment(target: RenderMaterialDocument, portable: RenderMaterialDocument): RenderMaterialDocument {
+  const destination = prepareRenderMaterialDocument(target).document;
+  const source = prepareRenderMaterialDocument(portable).document;
+  return prepareRenderMaterialDocument({...destination, shaderSource: source.shaderSource, uniforms: source.uniforms}).document;
+}
