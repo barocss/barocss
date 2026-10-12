@@ -145,8 +145,10 @@ export function prepareSolidSplitScene(presentation: CadEditorSplitPresentation,
   return fitSolidSplitScene(receipt, 1);
 }
 
+/** Display-only shape shared with the bounded worker DTO. */
+export type SolidSplitDisplay = Pick<SolidSplitSceneReceipt, 'scene' | 'bodies' | 'qualifications' | 'presentationKind' | 'basis' | 'textureUV'>;
 /** Camera-only fit from admitted display positions, without native calls or history edits. */
-export function fitSolidSplitScene(receipt: SolidSplitSceneReceipt, aspect: number, componentId?: string): SolidSplitSceneReceipt {
+export function fitSolidSplitScene<T extends SolidSplitDisplay>(receipt: T, aspect: number, componentId?: string): T {
   check(Number.isFinite(aspect) && aspect >= 1 / 2048 && aspect <= 2048, 'INPUT', 'Fit requires the actual bounded viewport aspect.');
   const selected = componentId === undefined ? receipt.bodies : receipt.bodies.filter(body => body.componentId === componentId);
   check(selected.length > 0, 'STALE', 'The selected Solid Split Body is no longer displayed.');
@@ -163,12 +165,12 @@ export function fitSolidSplitScene(receipt: SolidSplitSceneReceipt, aspect: numb
   phase('DISPLAY', 'Solid Split fitted camera is not representable at this viewport aspect.', () => prepareCamera(camera, aspect));
   const scene: EngineSceneV0 = { ...receipt.scene, camera };
   const prepared = phase('DISPLAY', 'GPU admission refused the fitted Solid Split scene.', () => prepareEngineScene(scene));
-  const result = { ...receipt, scene, prepared };
+  const result = (Object.hasOwn(receipt, 'prepared') ? { ...receipt, scene, prepared } : { ...receipt, scene }) as T;
   checkWholeSize(result); return freezeOrdinary(result);
 }
 
 /** x/y are actual backing pixel indices, bottom-left origin. Approximate triangles only. */
-export function pickSolidSplitScene(receipt: SolidSplitSceneReceipt, width: number, height: number,
+export function pickSolidSplitScene(receipt: SolidSplitDisplay, width: number, height: number,
   x: number, y: number): SolidSplitSelection | null {
   const hit = phase('DISPLAY', 'Approximate Solid Split camera-ray query refused.', () => {
     const { ray } = prepareEngineCameraRay(receipt.scene.camera, { format: 'barocss-gpu-engine-camera-ray-request', version: 0,

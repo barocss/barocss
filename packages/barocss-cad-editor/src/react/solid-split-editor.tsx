@@ -26,12 +26,13 @@ export function CadEditorSolidSplit({ initialAuthoredText, initialPresentation =
   const [workspace] = useState(() => createSolidSplitWorkspace(initialAuthoredText, { initialPresentation, initialFilename }));
   const [snapshot, setSnapshot] = useState(() => workspace.getSnapshot());
   const [canvasKey, setCanvasKey] = useState(0), [localError, setLocalError] = useState<string | null>(null);
+  const [draft, setDraft] = useState<string | null>(null);
   const [replacement, setReplacement] = useState<File | null>(null);
   const root = useRef<HTMLDivElement>(null), canvas = useRef<HTMLCanvasElement>(null), fileInput = useRef<HTMLInputElement>(null);
   const replacementDialog = useRef<HTMLDialogElement>(null);
   const lifetime = useRef(0), contextLost = useRef(false), composing = useRef(false);
   const cutId = useId();
-  const session = snapshot.session, hasDraft = !!session && Object.hasOwn(session.pending, 'cutY');
+  const session = snapshot.session, hasDraft = draft !== null && draft !== '' || !!session && Object.hasOwn(session.pending, 'cutY');
   const blocked = snapshot.busy || !snapshot.available || !!replacement;
   const selected = snapshot.selection;
   const selectedFace = selected?.faceId ? snapshot.display?.qualifications.find(face =>
@@ -47,6 +48,8 @@ export function CadEditorSolidSplit({ initialAuthoredText, initialPresentation =
       queueMicrotask(() => { if (lifetime.current === epoch) workspace.dispose(); });
     };
   }, [workspace]);
+
+  useEffect(() => { setDraft(null); }, [session?.generation]);
 
   useEffect(() => {
     const dialog = replacementDialog.current;
@@ -119,7 +122,7 @@ export function CadEditorSolidSplit({ initialAuthoredText, initialPresentation =
     if (blocked || hasDraft || !session || !(undo ? session.history.canUndo : session.history.canRedo)) return;
     run(() => undo ? workspace.undo() : workspace.redo());
   }
-  const cutY = session?.pending.cutY ?? (session ? String(session.accepted.request.cutAsset.surface.controlPoints[0][0][1]) : '');
+  const cutY = draft ?? session?.pending.cutY ?? (session ? String(session.cutY) : '');
   return <div ref={root} className={['cad-solid-split', className].filter(Boolean).join(' ')} onKeyDown={historyKey}
     onCompositionStartCapture={() => { composing.current = true; }} onCompositionEndCapture={() => { composing.current = false; }}
     aria-busy={snapshot.busy} data-testid="solid-split-workspace">
@@ -161,17 +164,25 @@ export function CadEditorSolidSplit({ initialAuthoredText, initialPresentation =
             run(() => workspace.pick(x, element.height - 1 - topY));
           }}/>
         {(snapshot.busy || !snapshot.available) && <div className="cad-solid-split-overlay" role="status">
-          {snapshot.busy ? <><strong>Preparing native Solid Split…</strong><p>Native reconstruction is synchronous and may take several minutes. Cancellation is checked between phases.</p></>
-            : <><strong>Presentation unavailable</strong><p>The accepted native Body and pending field are retained.</p><button type="button" onClick={() => {
+          {snapshot.busy ? <><strong>{snapshot.cancelling ? 'Cancelling native preparation…' : 'Preparing native Solid Split…'}</strong><p>Native work runs in a dedicated worker. Cancellation waits for the current native phase to finish.</p>{snapshot.canCancel && <button type="button" onClick={() => workspace.cancelOperation()}>Cancel preparation</button>}</>
+            : <><strong>Presentation unavailable</strong><p>{snapshot.authorityAvailable ? 'The accepted native Body and pending field are retained.' : 'Worker authority could not be confirmed. Reload the workspace to begin a new session.'}</p><button disabled={!snapshot.authorityAvailable} type="button" onClick={() => {
               contextLost.current = false; setLocalError(null); setCanvasKey(value => value + 1);
             }}>Remount canvas</button></>}
         </div>}
       </div>
       <aside className="cad-solid-split-inspector" aria-label="Split and lineage"><h2>Plane cut</h2>
         <label htmlFor={cutId}>Cut Y (mm)</label><input id={cutId} type="text" inputMode="decimal" maxLength={128}
-          value={cutY} disabled={blocked} onChange={event => run(() => workspace.stageCutYField(event.target.value))}/>
-        <div className="cad-solid-split-actions"><button type="button" disabled={blocked || composing.current} onClick={() => run(() => workspace.apply())}>Split</button>
-          <button type="button" disabled={blocked || !hasDraft} onClick={() => run(() => workspace.discardPending())}>Discard field</button></div>
+          value={cutY} disabled={blocked} onChange={event => setDraft(event.target.value)}/>
+        <div className="cad-solid-split-actions"><button type="button" disabled={blocked || composing.current} onClick={() => run(async () => {
+            if (draft !== null) {
+              await workspace.stageCutYField(draft);
+              if (workspace.getSnapshot().error) return;
+            }
+            await workspace.apply();
+            const after = workspace.getSnapshot();
+            if (!after.error && !after.busy && after.session && !Object.hasOwn(after.session.pending, 'cutY')) setDraft(null);
+          })}>Split</button>
+          <button type="button" disabled={blocked || !hasDraft} onClick={() => run(async () => { await workspace.discardPending(); if (!workspace.getSnapshot().error) setDraft(null); })}>Discard field</button></div>
         <p>Type a finite constant Y value, then choose Split. The full original Body and cut Surface remain native authority.</p>
         <h2>Selection lineage</h2><p>Canvas selection is approximate triangle picking, not exact BRep or pixel picking.</p>
         {selected ? <dl><dt>Component</dt><dd>{selected.componentId}</dd><dt>Native Body</dt><dd>{selected.bodyId}</dd>
@@ -187,7 +198,7 @@ export function CadEditorSolidSplit({ initialAuthoredText, initialPresentation =
       <button type="button" autoFocus onClick={() => setReplacement(null)}>Cancel</button>
       <button type="button" onClick={() => openFile(replacement, true)}>Replace and open</button>
     </dialog>}
-    <footer className="cad-solid-split-status" aria-live="polite"><span>{snapshot.busy ? 'Native operation in progress' : snapshot.available ? `${session?.presentation.kind === 'original' ? 'Original Body' : 'Split pair'} displayed` : 'Pixels unavailable'}</span>
+    <footer className="cad-solid-split-status" aria-live="polite"><span>{snapshot.cancelling ? 'Cancelling; waiting for worker' : snapshot.busy ? 'Native operation in progress' : snapshot.available ? `${session?.presentation.kind === 'original' ? 'Original Body' : 'Split pair'} displayed` : 'Pixels unavailable'}</span>
       <span>{hasDraft ? 'Cut draft pending' : 'No pending field'}</span><span>{session?.dirty ? 'Unsaved changes' : 'No new changes'}</span>
       <span>{session?.downloadStatus ?? 'Not downloaded'}</span>{session && <span>History {session.history.index + 1} / {session.history.count}</span>}
     </footer>

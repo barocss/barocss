@@ -11,6 +11,7 @@ const aliases: { find: string; replacement: string }[] = compiledMap
   : [];
 aliases.sort((a, b) => b.find.length - a.find.length);
 export default defineConfig({
+  worker: { format: 'es' },
   plugins: [tailwindcss()],
   resolve: { alias: aliases },
   server: { host: '127.0.0.1', port: 52010, strictPort: true, fs: { allow: [repo, ...(compiledMap ? Object.values(JSON.parse(readFileSync(compiledMap, 'utf8'))) as string[] : [])] } },

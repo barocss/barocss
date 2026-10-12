@@ -993,7 +993,8 @@ The original-document editor uses 16px icons in 32px buttons for Open, Download,
 ### Constant-Y Solid Split workspace (bounded)
 
 `CadEditorSolidSplit` from `@barocss/cad-editor/react` owns one native Split
-session and one explicitly labelled opaque legacy WebGL2 canvas. Supply genuine
+session in one dedicated module worker and one explicitly labelled opaque legacy
+WebGL2 canvas on the main thread. Supply genuine
 `initialAuthoredText`; optional `initialPresentation` defaults to `original`,
 `initialFilename` defaults to `solid-split.translated-strip-plane-split.json`, and
 `className` scopes the host. These props seed one mount, not later replacements.
@@ -1010,7 +1011,53 @@ Open requires a genuine bounded authored file and explicit dirty replacement.
 Save downloads only accepted native Split authority, excluding pending fields;
 original-only Save is unsupported. “Download started” is not disk-persistence
 verification. No generic cuts, paired-roof result casting, default-WebGPU policy
-change, native API change or Canvas cut grip is included. The native operations
-are synchronous and can take minutes; cancellation applies at asynchronous
-boundaries, not inside reconstruction. CPU/controller tests do not establish
-physical WebGL pixels or browser file-picker/download behavior.
+change, native API change or Canvas cut grip is included. Native reconstruction and complete qualified meshing run off the UI thread;
+renderer admission, camera/picking and file initiation remain on the main thread.
+There is no synchronous fallback. Private bounded versioned DTOs omit complete
+native authority, history and prepared renderer resources. Main renderer admission
+precedes the worker ACCEPT request; only its matching ACK publishes the new
+session, filename and selection. Duplicate ACCEPT cannot commit twice. Loss or
+timeout after ACCEPT is ambiguous: authority and presentation become unavailable,
+with the last confirmed view retained rather than a silently restarted session.
+
+Cancel preparation immediately prevents unaccepted canvas adoption, then waits for
+a worker drain acknowledgement before another operation. Synchronous native calls
+cannot be interrupted; queued cancellation can skip candidate meshing at a task
+boundary. Initial loading is special: it completes and retains its initial display
+DTO while hidden/cancelled, allowing remount without rebuilding native authority.
+Once ACCEPT is sent, cancellation is no longer offered; a late accepted ACK can
+update retained state while the canvas is hidden. Disposal terminates the worker,
+rejects pending requests and clears listeners, timers and object URLs. Raw Cut Y
+editing stays local until Split stages it in the worker, so typing and IME do not
+wait for a worker round trip. Pending input remains excluded from Save.
+
+The package and app emit ES-module worker assets with a bundled native dependency
+closure. The bounded worker CPU smoke initializes original, admits one presentation
+Split, canonically serializes it and disposes. Pre-invocation guards cap parser1,
+meshes3, serializers3, validators4 and native edits/top-level new splits0;
+the canonical codec and validator necessarily reconstruct five nested splits
+(parser-owned1, standalone-validator-owned1, serializer→validator-owned3); one process group has a 180s
+wall deadline with TERM/KILL cleanup and no retry. Cheap real-thread lifecycle
+checks precede it. Earlier native Undo/Redo/Open/edit evidence remains applicable
+to the unchanged native session; it is not replayed for this transport increment.
+Worker compute, DTO size, postMessage sender duration, main ingestion and total
+round-trip are separate measurements; round-trip is not pure transfer latency.
+CPU host-timer evidence does not establish actual browser responsiveness, physical
+WebGL pixels or browser file-picker/download behavior; those checks remain external.
+
+The old app flow `solid-split-workspace-flow.mjs --native/--cold` is retired for
+this worker coordinator; its earlier successful native receipts are preserved.
+Run cheap controller coverage with `node apps/cad-editor/flows/solid-split-workspace-flow.mjs --controller`
+and worker lifecycle coverage with `node apps/cad-editor/flows/solid-split-worker-flow.mjs --cheap`.
+The single guarded emitted-worker smoke is an explicit separate invocation:
+`node apps/cad-editor/flows/solid-split-worker-flow.mjs --native --worker packages/barocss-cad-editor/dist/assets/<emitted-worker>.js`.
+Use the pinned toolchain Node and the documented heap/disk preflight; do not
+repeat it automatically after failure or replay the historical native campaign.
+
+The worker smoke's first instrumentation attempt incorrectly treated those
+mandatory nested reconstructions as new user splits and stopped before the first
+split invocation. Preserve that failed attempt; a separately approved corrected
+attempt uses exact call-stack ancestry caps. The guard-only `--guard-plan --worker
+<emitted-worker>` preflight validates these counters without invoking native code.
+Native function timing is inclusive of nested calls and must not be summed as
+independent total compute time. Additional native attempts require a fresh decision.

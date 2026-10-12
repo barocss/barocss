@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { execFileSync, spawn } from 'node:child_process';
@@ -8,6 +8,9 @@ import { build } from 'esbuild';
 
 // Controlled renderer evidence is CPU ordering only. This runner never claims GL pixels.
 const args = process.argv.slice(2);
+if (args.some(arg => ['--native', '--native-worker', '--cold'].includes(arg))) {
+  throw new Error('Historical synchronous native modes are retired; preserved prior native receipts must not be replayed. Use exactly once after the cheap gates: node --max-old-space-size=2048 apps/cad-editor/flows/solid-split-worker-flow.mjs --native --worker <final-emitted-worker-asset> --evidence <new-evidence-directory>.');
+}
 const option = (name, fallback) => args.includes(name) ? args[args.indexOf(name) + 1] : fallback;
 const repo = resolve(import.meta.dirname, '../../..');
 const evidence = resolve(option('--evidence', resolve(repo, '.tmp/solid-split-workspace')));
@@ -36,7 +39,7 @@ async function phase(name, action) {
 const modulePath = resolve(option('--module', resolve(evidence, 'workspace-source.mjs')));
 if (!args.includes('--module')) {
   const editor = resolve(repo, 'packages/barocss-cad-editor/src');
-  const cadEntry = resolve(repo, 'packages/barocss-cad/src/index.ts');
+  const cadEntry = resolve(realpathSync(resolve(repo, 'node_modules/@barocss/cad')), 'src/index.ts');
   const measured = ['parseTranslatedStripPlaneSplit', 'serializeTranslatedStripPlaneSplit', 'validateTranslatedStripPlaneSplit',
     'editSourceSurfaceControlNetWide', 'validateSourceSurfaceControlNetWideEdit', 'splitTranslatedStripBodyByPlane', 'tessellateQualifiedTranslatedStripBody'];
   const instrument = { name: 'measure-session-owned-native-calls', setup(builder) {
@@ -47,7 +50,7 @@ if (!args.includes('--module')) {
   } };
 
   await build({ absWorkingDir: repo, stdin: { contents: `export { createSolidSplitWorkspace } from ${JSON.stringify(editor + '/split-workspace.ts')};\nexport { createCadEditorSplitSession } from ${JSON.stringify(editor + '/split-session.ts')};\nexport { prepareSolidSplitScene, pickSolidSplitScene } from ${JSON.stringify(editor + '/split-scene.ts')};\nexport { prepareEngineScene } from '@barocss/gpu';`, resolveDir: repo, sourcefile: 'solid-split-workspace-consumer.mjs' },
-    alias: { '@barocss/gpu': resolve(repo, 'packages/barocss-gpu/src/index.ts') }, plugins: [instrument],
+    alias: { '@barocss/gpu': resolve(realpathSync(resolve(repo, 'node_modules/@barocss/gpu')), 'src/index.ts') }, plugins: [instrument],
     bundle: true, platform: 'node', format: 'esm', target: 'es2022', outfile: modulePath });
 }
 report.modulePath = modulePath; report.moduleSHA256 = sha(readFileSync(modulePath)); save();
@@ -112,15 +115,41 @@ if (mode === 'supervisor') {
       cancelCandidate(token) { assert.equal(state.candidate?.token, token); events.push(`session.cancel:${token}`); state.candidate = null; },
       acceptCandidate(token) { events.push('session.accept'); assert.equal(state.candidate?.token, token); if (behavior.commitFailure) throw new Error('controlled commit refusal'); state.generation++; state.displayGeneration++; state.presentation = state.candidate.presentation; state.candidate = null; state.pending = {}; return session.getSnapshot(); },
       serializeAccepted() { throw new Error('No controller serialization'); }, markDownloaded() {}, dispose() { state.disposed = true; } };
-    const workspace = api.createSolidSplitWorkspace('{}', {}, { createSession: () => session,
-      prepareScene(presentation) { behavior.prepare?.(state, prepare); return makeSynthetic(presentation.kind, behavior.source?.()); }, mountRenderer: () => renderer(behavior), yieldPaint: () => behavior.paint?.() ?? Promise.resolve() });
+    const summarize = () => ({ cutY: 3, presentation: { kind: state.presentation.kind }, generation: state.generation,
+      displayGeneration: state.displayGeneration, pending: { ...state.pending }, history: { ...state.history, bytesUTF8: 2, bytesUTF16: 4 },
+      dirty: state.dirty, disposed: state.disposed, downloadStatus: state.downloadStatus });
+    let unavailable = false;
+    const client = { get unavailable() { return unavailable; }, subscribeFailure: () => () => {}, dispose() { unavailable = true; session.dispose(); },
+      async request(command) {
+        await Promise.resolve();
+        const ack = () => ({ type: 'ACK', summary: summarize(), cancelled: false });
+        if (command.type === 'INIT') return { type: 'INIT_READY', summary: summarize(), display: makeSynthetic(state.presentation.kind, behavior.source?.()) };
+        if (command.type === 'STAGE') { session.stageCutYField(command.cutY); return ack(); }
+        if (command.type === 'DISCARD') { session.discardPending(); return ack(); }
+        if (command.type === 'CANCEL') { if (state.candidate) session.cancelCandidate(state.candidate.token); return { ...ack(), cancelled: true }; }
+        if (command.type === 'ACCEPT') {
+          try { session.acceptCandidate(command.token); return ack(); }
+          catch (cause) { Object.defineProperty(cause, 'unchanged', { value: true }); throw cause; }
+        }
+        if (command.type.startsWith('PREPARE_')) {
+          const kind = { PREPARE_APPLY: 'apply', PREPARE_OPEN: 'open', PREPARE_UNDO: 'undo', PREPARE_REDO: 'redo' }[command.type];
+          const candidate = prepare(kind); behavior.prepare?.(state, prepare);
+          const display = makeSynthetic(candidate.presentation.kind, behavior.source?.());
+          if (state.candidate?.token !== candidate.token) throw Object.assign(new Error('Controlled stale candidate'), { unchanged: true });
+          return { type: 'CANDIDATE', token: candidate.token, kind: candidate.kind, summary: summarize(), display };
+        }
+        throw new Error(`Unexpected controller command ${command.type}`);
+      },
+    };
+    const workspace = api.createSolidSplitWorkspace('{}', {}, { createClient: () => client,
+      mountRenderer: () => renderer(behavior), yieldPaint: () => behavior.paint?.() ?? Promise.resolve() });
     return { workspace, state, session, prepare };
   }
   async function controllers() {
     await phase('display-before-commit-and-raw-preflight', async () => {
       const { workspace } = controlled(); await workspace.mount({}, 800, 600); ok(workspace);
-      events.length = 0; workspace.stageCutYField('nonsense'); await assert.rejects(workspace.apply()); assert.deepEqual(events, []); assert.equal(workspace.getSnapshot().session.pending.cutY, 'nonsense');
-      workspace.discardPending(); await workspace.apply(); ok(workspace); assert.deepEqual(events, ['session.prepare', 'renderer.update', 'session.accept']);
+      events.length = 0; await workspace.stageCutYField('nonsense'); await assert.rejects(workspace.apply()); assert.deepEqual(events, []); assert.equal(workspace.getSnapshot().session.pending.cutY, 'nonsense');
+      await workspace.discardPending(); await workspace.apply(); ok(workspace); assert.deepEqual(events, ['session.prepare', 'renderer.update', 'session.accept']);
       workspace.dispose(); workspace.dispose(); assert.equal(events.filter(event => event === 'renderer.dispose').length, 1);
       return { ordering: true, invalidRawRetained: true, disposalOnce: true };
     });
@@ -178,7 +207,7 @@ if (mode === 'supervisor') {
       const opening = workspace.open({ name: 'cancelled.json', size: 2, arrayBuffer() { started.resolve(); return reading.promise; } }, true);
       await started.promise; workspace.cancelOperation(); reading.resolve(new TextEncoder().encode('{}').buffer); await opening;
       assert.equal(workspace.getSnapshot().session.generation, 0); assert.notEqual(workspace.getSnapshot().filename, 'cancelled.json');
-      workspace.stageCutYField('4'); workspace.unmount(); assert.equal(workspace.getSnapshot().session.pending.cutY, '4'); await workspace.mount({}, 800, 600); ok(workspace); assert.equal(workspace.getSnapshot().session.pending.cutY, '4');
+      await workspace.stageCutYField('4'); workspace.unmount(); assert.equal(workspace.getSnapshot().session.pending.cutY, '4'); await workspace.mount({}, 800, 600); ok(workspace); assert.equal(workspace.getSnapshot().session.pending.cutY, '4');
       workspace.markUnavailable(new Error('controlled context loss')); assert.equal(workspace.getSnapshot().available, false); assert.throws(() => workspace.select('original')); workspace.dispose();
       return { cancelledBytesNeverParsed: true, hiddenDraftRetained: true, contextLossUnavailable: true };
     });
