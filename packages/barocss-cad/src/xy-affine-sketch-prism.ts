@@ -1,3 +1,4 @@
+import { ExactAffinePlane } from './exact-affine-plane-internal.js';
 import { validateXYAffineSketch } from './xy-affine-sketch.js';
 import type { XYAffineSketchSuccess } from './xy-affine-sketch.js';
 import { buildConvexPlanarFace } from './own-convex-planar-face.js';
@@ -12,6 +13,11 @@ export interface XYAffineSketchPrismOptions {
   capChart: { originXY: [number, number]; spanXY: [number, number] };
   solidId: string; resultIdPrefix: string;
 }
+export interface XYAffineSketchPrismCoordinateSpanOptions extends XYAffineSketchPrismOptions {
+  chartPolicy: { version: 1; kind: 'coordinate-span' };
+}
+type PrismOptions = XYAffineSketchPrismOptions | XYAffineSketchPrismCoordinateSpanOptions;
+function coordinateSpan(options: PrismOptions): options is XYAffineSketchPrismCoordinateSpanOptions { return Object.hasOwn(options, 'chartPolicy'); }
 export interface XYAffineSketchPrismWallReference { sourceId: string; sketchId: string; sourceRevision: number; segmentId: string }
 export interface XYAffineSketchPrismFaceReference { sourceId: string; faceId: string; surfaceId: string }
 export interface XYAffineSketchPrismLineage {
@@ -37,6 +43,14 @@ export interface XYAffineSketchPrismResult {
   request: { sketch: XYAffineSketchSuccess; options: XYAffineSketchPrismOptions };
   solid: ConvexPlanarSolidResult; lineage: XYAffineSketchPrismLineage; report: XYAffineSketchPrismReport;
 }
+export interface XYAffineSketchPrismCoordinateSpanReport extends Omit<XYAffineSketchPrismReport, 'numericPolicy'> {
+  numericPolicy: 'explicit-coordinate-span-v1-exact-stored-solid-proof-no-retry';
+}
+export interface XYAffineSketchPrismCoordinateSpanResult extends Omit<XYAffineSketchPrismResult, 'request' | 'report'> {
+  request: { sketch: XYAffineSketchSuccess; options: XYAffineSketchPrismCoordinateSpanOptions };
+  report: XYAffineSketchPrismCoordinateSpanReport;
+}
+type PrismResult = XYAffineSketchPrismResult | XYAffineSketchPrismCoordinateSpanResult;
 export interface XYAffineSketchPrismWallResolution {
   reference: XYAffineSketchPrismWallReference; currentRevision: number;
   status: 'preserved' | 'deleted' | 'stale'; targets: XYAffineSketchPrismFaceReference[];
@@ -60,27 +74,32 @@ function revision(value: unknown): asserts value is number { check(Number.isInte
 function tuple(value: unknown, positive = false): asserts value is [number, number] {
   check(Array.isArray(value) && value.length === 2 && value.every(v => typeof v === 'number' && Number.isFinite(v) && Math.abs(v) <= 10000 && (!positive || v > 0)), 'chart', null, 'Bounded finite XY tuple required');
 }
-function settings(input: unknown): XYAffineSketchPrismOptions {
-  const o = record(input, ['sourceId', 'sourceRevision', 'orderedSegmentIds', 'heightMM', 'capChart', 'solidId', 'resultIdPrefix']);
+function settings(input: unknown): PrismOptions {
+  const hasPolicy = input !== null && typeof input === 'object' && Object.hasOwn(input, 'chartPolicy');
+  const o = record(input, ['sourceId', 'sourceRevision', 'orderedSegmentIds', 'heightMM', 'capChart', 'solidId', 'resultIdPrefix', ...(hasPolicy ? ['chartPolicy'] : [])]);
+  if (hasPolicy) {
+    const policy = record(o.chartPolicy, ['version', 'kind']);
+    check(policy.version === 1 && policy.kind === 'coordinate-span', 'chart', null, 'Explicit coordinate-span chart policy version1 required');
+  }
   id(o.sourceId); id(o.solidId); id(o.resultIdPrefix, 12); revision(o.sourceRevision);
   check(typeof o.heightMM === 'number' && Number.isFinite(o.heightMM) && o.heightMM > 0 && o.heightMM <= 10000, 'input', null, 'Finite +Z height >0..10000mm required');
   check(Array.isArray(o.orderedSegmentIds) && o.orderedSegmentIds.length >= 3 && o.orderedSegmentIds.length <= 8, 'cycle', null, '3..8 explicit ordered segment IDs required');
   o.orderedSegmentIds.forEach(value => id(value));
   check(new Set(o.orderedSegmentIds).size === o.orderedSegmentIds.length, 'cycle', null, 'Repeated segment identity refused');
   const chart = record(o.capChart, ['originXY', 'spanXY']); tuple(chart.originXY); tuple(chart.spanXY, true);
-  return o as unknown as XYAffineSketchPrismOptions;
+  return o as unknown as PrismOptions;
 }
 // Error-free two-sum residual: refuse an unrepresentable declared chart corner, never change the chart.
 function exactAdd(a: number, b: number): number {
   const sum = a + b, virtual = sum - a, error = (a - (sum - virtual)) + (b - virtual);
   check(Number.isFinite(sum) && Math.abs(sum) <= 10000 && error === 0, 'chart', null, 'Declared cap chart corner is not exactly representable within +/-10000mm'); return sum;
 }
-function plane(name: string, corners: [[Point, Point], [Point, Point]]): Surface {
-  return { kind: 'surface', id: name + '_s', degreeU: 1, degreeV: 1, knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1], controlPoints: corners, weights: [[1, 1], [1, 1]] };
+function plane(name: string, corners: [[Point, Point], [Point, Point]], spans: [number, number] = [1, 1]): Surface {
+  return { kind: 'surface', id: name + '_s', degreeU: 1, degreeV: 1, knotsU: [0, 0, spans[0], spans[0]], knotsV: [0, 0, spans[1], spans[1]], controlPoints: corners, weights: [[1, 1], [1, 1]] };
 }
 function line(name: string, a: Point, b: Point): Curve { return { kind: 'curve', id: name, degree: 1, knots: [0, 0, 1, 1], controlPoints: [a, b], weights: [1, 1] }; }
 interface Recipe { name: string; face: ConvexPlanarFaceResult; edgeKeys: string[] }
-function build(request: XYAffineSketchPrismResult['request']): XYAffineSketchPrismResult {
+function build(request: PrismResult['request']): PrismResult {
   const options = at('input', null, () => settings(request.options)), { sketch } = request, n = options.orderedSegmentIds.length;
   // All nested calls are bounded: one sketch reconstruction, n+2 faces, one solid qualification.
   at('sketch', options.sourceId, () => validateXYAffineSketch(sketch));
@@ -105,11 +124,22 @@ function build(request: XYAffineSketchPrismResult['request']): XYAffineSketchPri
   const prefix = options.resultIdPrefix, recipes: Recipe[] = [];
   const add = (name: string, support: Surface, edges: Curve[], edgeKeys: string[], orientation: 'forward' | 'reverse', entity: string): ConvexPlanarFaceResult => {
     const face = at('face', entity, () => buildConvexPlanarFace(support, { id: name + '_l', edges }, { faceId: name + '_f', evaluationId: name + '_m', resultIdPrefix: name, orientation }));
+    if (coordinateSpan(options)) at('chart', entity, () => {
+      const exact = new ExactAffinePlane(support, 'XY affine prism coordinate-span chart');
+      for (const curve of edges) {
+        const pcurve = face.pcurves.find(candidate => candidate.curveId === curve.id);
+        check(pcurve !== undefined, 'chart', entity, 'Generated curve must have its ordered native pcurve');
+        for (let i = 0; i < 2; i++) {
+          const uv = exact.pointToUV(curve.controlPoints[i]);
+          check(uv.every((value, axis) => value === pcurve.curve.controlPoints[i][axis]), 'chart', entity, 'Native-generated pcurve differs from exact authored coordinate-span chart solve');
+        }
+      }
+    });
     recipes.push({ name, face, edgeKeys }); return face;
   };
   const cap = (role: 'bottom' | 'top', z: number) => {
     const name = prefix + (role === 'bottom' ? '_b' : '_t');
-    return add(name, plane(name, [[[x, y, z], [x, y1, z]], [[x1, y, z], [x1, y1, z]]]),
+    return add(name, plane(name, [[[x, y, z], [x, y1, z]], [[x1, y, z], [x1, y1, z]]], coordinateSpan(options) ? [sx, sy] : [1, 1]),
       curves.map(c => ({ ...c, controlPoints: c.controlPoints.map(p => [p[0], p[1], z] as Point) })),
       segments.map(s => role + ':' + s.id), role === 'bottom' ? 'reverse' : 'forward', options.sourceId);
   };
@@ -117,7 +147,7 @@ function build(request: XYAffineSketchPrismResult['request']): XYAffineSketchPri
   const orientation = bottomFace.report.authoredOrientation;
   for (let i = 0; i < n; i++) {
     const j = (i + 1) % n, name = prefix + '_w_' + i, vertices = [bottom[i], bottom[j], top[j], top[i]], segment = segments[i];
-    add(name, plane(name, [[bottom[i], top[i]], [bottom[j], top[j]]]),
+    add(name, plane(name, [[bottom[i], top[i]], [bottom[j], top[j]]], coordinateSpan(options) ? [Math.max(Math.abs(exactAdd(bottom[j][0], -bottom[i][0])), Math.abs(exactAdd(bottom[j][1], -bottom[i][1]))), options.heightMM] : [1, 1]),
       vertices.map((p, k) => line(name + '_c_' + k, p, vertices[(k + 1) % 4])),
       ['bottom:' + segment.id, 'vertical:' + segment.endPointId, 'top:' + segment.id, 'vertical:' + segment.startPointId],
       orientation === 'ccw' ? 'forward' : 'reverse', segment.id);
@@ -146,33 +176,37 @@ function build(request: XYAffineSketchPrismResult['request']): XYAffineSketchPri
       bottomEdgeId: edgeId('bottom:' + segment.id), topEdgeId: edgeId('top:' + segment.id), boundaryEdgeStatus: 'generated', nativeParameterDomain: [curves[i].knots[1], curves[i].knots[2]] })),
     points: segments.map((segment, i) => ({ pointId: segment.startPointId, status: 'generated', verticalEdgeId: edgeId('vertical:' + segment.startPointId), bottomVertexId: vertexId(recipes[0], i), topVertexId: vertexId(recipes[1], i) })),
   };
-  const report: XYAffineSketchPrismReport = {
+  const report: PrismResult['report'] = {
     schema: 'barocss-xy-affine-sketch-prism', version: 0, solid: true, sourceId: options.sourceId, sketchId: sketch.document.id, sourceRevision: options.sourceRevision,
     profileOrientation: orientation, segmentCount: n, heightMM: options.heightMM,
     childNativeWork: { sketchReconstructionCount: 1, initialFaceConstructionCount: n + 2, solidQualificationCount: 1, solidFaceReconstructionCount: n + 2,
       sourceCompilationCount: 2 * (n + 2) + 1, bindingObservationCount: 36 * n, totalD1Count: 108 * n, retries: 0 },
     exactWork: { sketch: sketch.report.rationalWork, solid: solid.report.exactWork },
     limits: { segments: 8, facets: 10, directedUses: 48, edgePairs: 24, vertices: 16, fanTriangles: 28, sourceCompilations: 21, bindingObservations: 288, totalD1: 864 },
-    numericPolicy: 'declared-cap-chart-natural-wall-chart-exact-stored-solid-proof-no-retry',
+    numericPolicy: coordinateSpan(options) ? 'explicit-coordinate-span-v1-exact-stored-solid-proof-no-retry' : 'declared-cap-chart-natural-wall-chart-exact-stored-solid-proof-no-retry',
     revisionPolicy: 'explicit-caller-revision-complete-source-reconstruction-no-historical-authenticity', persistentNamingCertified: false, manufacturingToleranceCertified: false,
   };
-  return { request, solid, lineage, report };
+  return { request, solid, lineage, report } as PrismResult;
 }
-function reconstruct(input: XYAffineSketchPrismResult, ledger: SolidSnapshotLedger): XYAffineSketchPrismResult {
-  const owned = record(input, ['request', 'solid', 'lineage', 'report']) as unknown as XYAffineSketchPrismResult;
+function reconstruct(input: PrismResult, ledger: SolidSnapshotLedger): PrismResult {
+  const owned = record(input, ['request', 'solid', 'lineage', 'report']) as unknown as PrismResult;
   const request = ledger.copy(owned.request, false, true); record(request, ['sketch', 'options']);
   const expected = ledger.copy(build(request), true); check(same(owned, expected), 'result', null, 'Complete prism source/operation/solid/lineage/report differs from reconstruction'); return expected;
 }
 /** Construct only the declared exact-admitted +Z prism; no shell cast, chart search or tolerance sewing. */
-export function buildXYAffineSketchPrism(sketch: XYAffineSketchSuccess, options: XYAffineSketchPrismOptions): XYAffineSketchPrismResult {
+export function buildXYAffineSketchPrism(sketch: XYAffineSketchSuccess, options: XYAffineSketchPrismCoordinateSpanOptions): XYAffineSketchPrismCoordinateSpanResult;
+export function buildXYAffineSketchPrism(sketch: XYAffineSketchSuccess, options: XYAffineSketchPrismOptions): XYAffineSketchPrismResult;
+export function buildXYAffineSketchPrism(sketch: XYAffineSketchSuccess, options: PrismOptions): PrismResult {
   return at('input', null, () => { const ledger = new SolidSnapshotLedger(), request = ledger.copy({ sketch, options }); return at('result', null, () => ledger.copy(build(request), true)); });
 }
 /** One full native rebuild checks self-consistency, not historical provenance or persistent naming. */
-export function validateXYAffineSketchPrism(input: XYAffineSketchPrismResult): XYAffineSketchPrismReport {
+export function validateXYAffineSketchPrism(input: XYAffineSketchPrismCoordinateSpanResult): XYAffineSketchPrismCoordinateSpanReport;
+export function validateXYAffineSketchPrism(input: XYAffineSketchPrismResult): XYAffineSketchPrismReport;
+export function validateXYAffineSketchPrism(input: PrismResult): PrismResult['report'] {
   return at('result', null, () => { const ledger = new SolidSnapshotLedger(); return ledger.copy(reconstruct(ledger.copy(input, true), ledger).report, true); });
 }
 /** Old revisions never silently retarget a wall. Rebuild and explicitly qualify the intended new reference. */
-export function resolveXYAffineSketchPrismWall(input: XYAffineSketchPrismResult, reference: XYAffineSketchPrismWallReference): XYAffineSketchPrismWallResolution {
+export function resolveXYAffineSketchPrismWall(input: PrismResult, reference: XYAffineSketchPrismWallReference): XYAffineSketchPrismWallResolution {
   return at('reference', null, () => {
     const ledger = new SolidSnapshotLedger(), owned = ledger.copy({ input, reference }, true);
     const ref = record(owned.reference, ['sourceId', 'sketchId', 'sourceRevision', 'segmentId']) as unknown as XYAffineSketchPrismWallReference;

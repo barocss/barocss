@@ -1,0 +1,382 @@
+{
+  "issue": 1603,
+  "parent": "8535d09f2c6c5d5c706e33d3802d595151f41df0",
+  "node": "22.23.3",
+  "heapMiB": 2048,
+  "diskFloorMiB": 500,
+  "evidenceCeilingMiB": 128,
+  "serial": true,
+  "requiresRootGrant": true,
+  "firstFailureStopsCampaign": true,
+  "noAutomaticRepairRetry": true,
+  "corePhase": {
+    "variants": 4,
+    "eachVariant": {
+      "prisms": 2,
+      "slabs": 1,
+      "chamfers": 1,
+      "sourceCompilations": 101,
+      "faceConstructions": 96,
+      "D1": 3564,
+      "note": "rearX16 counts below; rearX20 right slab component has7 rather than6 faces, constructed and requalified: add2 source compilations,2 face constructions,108D1,2 exact-affine contexts"
+    },
+    "expected": {
+      "sourceCompilations": 408,
+      "faceConstructions": 388,
+      "D1": 14472
+    },
+    "maximumExactAffineContexts": 440,
+    "maximumRationalContexts": 520,
+    "maximumRationalOperations": 104000000,
+    "maximumRationalGcdSteps": 104000000,
+    "explanation": "Each native face adds one bounded ExactAffinePlane context; each opted-in producer face adds one strict solve context. Legacy exactWork reports remain their original scoped child receipts. Inspector counts include all added contexts. Per-context rational/GCD ceiling200000 and integer8192bits unchanged.",
+    "repetitions": 3,
+    "precomputedShapeTable": [
+      {
+        "rearX": 16,
+        "height": 8,
+        "prismFaces": 7,
+        "toolFaces": 6,
+        "slabOutputFaces": [
+          6,
+          6
+        ],
+        "chamferOutputFaces": [
+          8,
+          5
+        ],
+        "sourceCompilations": 101,
+        "faceConstructions": 96,
+        "D1": 3564,
+        "exactAffineContexts": 109
+      },
+      {
+        "rearX": 16,
+        "height": 6,
+        "prismFaces": 7,
+        "toolFaces": 6,
+        "slabOutputFaces": [
+          6,
+          6
+        ],
+        "chamferOutputFaces": [
+          8,
+          5
+        ],
+        "sourceCompilations": 101,
+        "faceConstructions": 96,
+        "D1": 3564,
+        "exactAffineContexts": 109
+      },
+      {
+        "rearX": 20,
+        "height": 8,
+        "prismFaces": 7,
+        "toolFaces": 6,
+        "slabOutputFaces": [
+          6,
+          7
+        ],
+        "chamferOutputFaces": [
+          8,
+          5
+        ],
+        "sourceCompilations": 103,
+        "faceConstructions": 98,
+        "D1": 3672,
+        "exactAffineContexts": 111
+      },
+      {
+        "rearX": 20,
+        "height": 6,
+        "prismFaces": 7,
+        "toolFaces": 6,
+        "slabOutputFaces": [
+          6,
+          7
+        ],
+        "chamferOutputFaces": [
+          8,
+          5
+        ],
+        "sourceCompilations": 103,
+        "faceConstructions": 98,
+        "D1": 3672,
+        "exactAffineContexts": 111
+      }
+    ]
+  },
+  "sourceRefusalPhase": {
+    "maximumPrismBuildsIncludingReconstruction": 8,
+    "maximumSlabAttempts": 3,
+    "maximumChamferAttempts": 2,
+    "maximumFaceConstructions": 370,
+    "maximumSourceCompilations": 390,
+    "maximumD1": 17760,
+    "maximumExactAffineContexts": 450,
+    "maximumRationalContexts": 510,
+    "maximumRationalOperations": 102000000,
+    "maximumRationalGcdSteps": 102000000,
+    "staticReserveDerivation": "Conservative8 prism builds each<=16compiles/14faces/540D1;3 slab attempts each<=39compiles/39faces/1458D1;2 chamfer attempts each<=34compiles/33faces/1242D1. Bounds313compiles/295faces/11178D1 fit frozen390/370/17760; invalid policy/getter/refused noncardinal may stop earlier. Rational bounds include one helper context perface plus strict contexts per opted-in producer face and scoped old proof contexts."
+  },
+  "phases": [
+    "static lint/typecheck/compile-only compatibility/build",
+    "exact-affine controls",
+    "source core plus refusals",
+    "emitted core",
+    "cold request-only core",
+    "legacy v0 fixture comparison",
+    "shared face/hole/Boolean/clip regression scripts"
+  ],
+  "requiredRegressionScripts": [
+    "xy-affine-sketch-prism-demo.mjs",
+    "own-convex-planar-face-holes-demo.mjs",
+    "coplanar-face-boolean-demo.mjs",
+    "own-convex-loop-clip-demo.mjs"
+  ],
+  "nativeEvaluatorPolicy": "Original arbitrary-knot basis, native Surface/Curve D1 and stored whole-edge lift are unchanged mandatory gates; span support is unproven until this campaign passes.",
+  "helperControls": {
+    "cases": 11,
+    "maximumSourceCompilations": 0,
+    "maximumFaceConstructions": 1,
+    "maximumD1": 0,
+    "maximumRationalContexts": 10,
+    "maximumRationalOperations": 2000000,
+    "staticDerivation": "10 ExactAffinePlane constructions including actual public off-plane Face admission,11 named assertions; no successful source compiler/D1 calls. One actual Face call refuses before compilation. Exact point-admission ceiling64 explicitly exercised."
+  },
+  "legacyAndRegressionPhases": {
+    "count": 4,
+    "eachMaximumSourceCompilations": 2048,
+    "eachMaximumFaceConstructions": 1024,
+    "eachMaximumD1": 300000,
+    "eachMaximumRationalContexts": 4096,
+    "eachMaximumRationalOperations": 819200000,
+    "note": "Separate-process inspector ceilings include all successful and refusal branches in the existing bounded scripts; no reruns. Legacy source-result/source-edited compare bytewise with frozen cad1592-campaign receipts before moving on."
+  },
+  "aggregateCeilings": {
+    "sourceCompilations": 9806,
+    "faceConstructions": 5631,
+    "D1": 1261176,
+    "rationalContexts": 18464,
+    "rationalOperations": 3692800000,
+    "rationalGcdSteps": 3692800000
+  },
+  "commands": [
+    "node scripts/tool.mjs lint (CAD package cwd)",
+    "node scripts/tool.mjs type-check (CAD package cwd)",
+    "node TypeScript/bin/tsc --noEmit --strict --skipLibCheck --target ES2022 --module NodeNext --moduleResolution NodeNext examples/cad-nurbs/coordinate-span-prism-types.ts",
+    "node scripts/tool.mjs build (CAD package cwd)",
+    "node examples/cad-nurbs/exact-affine-admission-demo.mjs OUTPUT/helper",
+    "node examples/cad-nurbs/coordinate-span-prism-demo.mjs --source OUTPUT/core",
+    "node examples/cad-nurbs/coordinate-span-prism-demo.mjs --emitted OUTPUT/core",
+    "node examples/cad-nurbs/coordinate-span-prism-demo.mjs --cold OUTPUT/core",
+    "node examples/cad-nurbs/coordinate-span-regression-runner.mjs examples/cad-nurbs/xy-affine-sketch-prism-demo.mjs OUTPUT/legacy",
+    "cmp OUTPUT/legacy/source-result.json /workspace/shared/cad1592-campaign/source-result.json; cmp OUTPUT/legacy/source-edited.json /workspace/shared/cad1592-campaign/source-edited.json",
+    "node examples/cad-nurbs/coordinate-span-regression-runner.mjs examples/cad-nurbs/own-convex-planar-face-holes-demo.mjs OUTPUT/holes",
+    "node examples/cad-nurbs/coordinate-span-regression-runner.mjs examples/cad-nurbs/coplanar-face-boolean-demo.mjs OUTPUT/boolean",
+    "node examples/cad-nurbs/coordinate-span-regression-runner.mjs examples/cad-nurbs/own-convex-loop-clip-demo.mjs OUTPUT/clip"
+  ],
+  "preservedAttempt4": {
+    "candidate": "2bdba2a8cec4801b4aff162e98d56cd7b7a180eb",
+    "failure": "Count assertion99 omitted two explicit upstream sketch source compilations; first variant geometry proofs completed, all later native cases unrun",
+    "actualSourceCompilations": 101,
+    "actualFaceConstructions": 96,
+    "actualD1": 3564,
+    "actualRationalContexts": 125,
+    "actualExactAffineContexts": 109,
+    "actualRationalWork": 1060365,
+    "note": "ExactAffine contexts are a subset of SectionRationalContext count, not109 additional rational contexts. GCD steps not separately instrumented; conservative125x200000 bound charged."
+  },
+  "cumulativeCeilingsIncludingSpent": {
+    "sourceCompilations": 10212,
+    "faceConstructions": 6017,
+    "D1": 1275540,
+    "rationalContexts": 18966,
+    "rationalOperations": 3697075714,
+    "rationalGcdSteps": 3793200000
+  },
+  "staticGateClarification": "Root-approved same-file baseline8535d09f comparison: zero NEW lint diagnostics, five inherited unused-symbol errors; whole-package lint incomplete afterSIGKILL. Package typecheck, overload fixture and build passed at2bdba2a8. No product source change in count repair.",
+  "preservedAttempt5": {
+    "candidate": "63402e9a907615293c7a634dd923333cc8d0ad02",
+    "failure": "Uniform count assertion omitted the rearX20 second-slab extra facet; baseline,height6,rear20 geometry proofs completed, both/refusals/emitted/cold unrun",
+    "actualSourceCompilations": 305,
+    "actualFaceConstructions": 290,
+    "actualD1": 10800,
+    "actualRationalContexts": 377,
+    "actualExactAffineContexts": 329,
+    "actualRationalWork": 3215349
+  },
+  "preservedAttempt6": {
+    "candidate": "4f101e0e30f23330adb0577dfc00300f45a45c0f",
+    "successful": [
+      "source4variants+refusals",
+      "emitted4variants",
+      "cold4variants",
+      "helper11controls",
+      "legacy+two-byte-comparisons",
+      "holes"
+    ],
+    "failure": "Boolean final emitted-consumer smoke selected development source export instead of existing publishConfig emitted mapping; source Boolean assertions passed",
+    "actualSourceCompilations": 3010,
+    "actualFaceConstructions": 1766,
+    "actualD1": 77725,
+    "actualRationalContexts": 2468,
+    "actualExactAffineContexts": 2186,
+    "actualRationalWork": 17481451,
+    "helperUninstrumentedMaximumContexts": 10,
+    "helperUninstrumentedMaximumWork": 2000000,
+    "helperUninstrumentedMaximumFaceConstructions": 1
+  },
+  "continuation": {
+    "phases": [
+      "Boolean full existing demo with published emitted export",
+      "convex-loop clip existing demo"
+    ],
+    "maximumSourceCompilations": 4096,
+    "maximumFaceConstructions": 2048,
+    "maximumD1": 600000,
+    "maximumRationalContexts": 8192,
+    "maximumRationalWork": 1638400000,
+    "note": "Already-passed stages not repeated; repeated Boolean source work explicitly charged. Product source identical to2bdba2a8."
+  },
+  "cumulativeContinuationCeilings": {
+    "sourceCompilations": 7512,
+    "faceConstructions": 4201,
+    "D1": 692089,
+    "rationalContexts": 11172,
+    "rationalOperations": 1662157165,
+    "rationalGcdSteps": 2234400000
+  },
+  "integrationCompatibility": {
+    "parent": "0c9aa7e159d3713a70a4b67631715e027da28fef",
+    "phase1": {
+      "script": "convex-planar-solid-chamfer-demo.mjs --emitted",
+      "maximumSourceCompilations": 84,
+      "maximumFaceConstructions": 80,
+      "maximumD1": 3024,
+      "legacyContexts": 13,
+      "helperContexts": 80,
+      "maximumTotalWork": 2600000,
+      "inputs": [
+        "archived cad1597-evidence/source-result.json",
+        "archived cad1597-evidence/source-edited.json"
+      ]
+    },
+    "phase2": {
+      "script": "xy-affine-prism-editable-chamfer-demo.mjs --emitted",
+      "inputs": [
+        "cad1598-evidence-repair/authored-v1.json",
+        "cad1598-evidence-repair/expected-v1.json"
+      ],
+      "maximumSourceCompilations": 1224,
+      "maximumFaceConstructions": 1182,
+      "maximumD1": 53460,
+      "legacyContexts": 120,
+      "helperContexts": 1182,
+      "maximumTotalWork": 24000000
+    },
+    "phase3": {
+      "script": "coordinate-span-v1-refusal-compatibility.mjs",
+      "input": "phase2 emitted-edited-result.json",
+      "updates": [
+        "parentHeight6",
+        "rearX20"
+      ],
+      "eachUpdatePhases": [
+        "one complete prior-result validation",
+        "one candidate evaluation that must refuse exact pcurve lift"
+      ],
+      "maximumSourceCompilations": 816,
+      "maximumFaceConstructions": 788,
+      "maximumD1": 35640,
+      "legacyContexts": 80,
+      "helperContexts": 788,
+      "maximumTotalWork": 16000000,
+      "atomicity": "identical signed-JSON SHA256 before/after each update"
+    },
+    "aggregateCeilings": {
+      "sourceCompilations": 2124,
+      "faceConstructions": 2050,
+      "D1": 92124,
+      "rationalContexts": 2263,
+      "work": 42600000
+    },
+    "cumulativeIncludingAllEarlierAttemptsAndHelperReserve": {
+      "sourceCompilations": 8761,
+      "faceConstructions": 5071,
+      "D1": 225604,
+      "rationalContexts": 6354,
+      "work": 70808181
+    },
+    "subsetProof": "ExactAffinePlane==admitConvexNativeLineLoop<=buildConvexPlanarFace; holes,Boolean,clip counters0. Thus no strict producer proof or nonface helper paths in normalized legacy fixtures; residual SectionRationalContext caps remain unchanged. Old source/D1/totalwork caps unchanged.",
+    "resourcePolicy": "Root-granted serial only; first failure stops;128MiB evidence root;500MiB free disk;Node22.23.3 heap2048MiB;120second stage timeout; no full41phase source rerun",
+    "preservedDriverInputFailure": {
+      "candidate": "d0b608493a96269c70f4b32d1555fc9bb567e1ee",
+      "failure": "Emitted1597 final parity read lacked archived source result inputs; geometry assertions had completed.1598/atomic stages unrun.",
+      "sourceCompilations": 84,
+      "faceConstructions": 80,
+      "D1": 3024,
+      "rationalContexts": 93,
+      "exactAffineContexts": 80,
+      "work": 689722
+    },
+    "inputPreflight": {
+      "/workspace/shared/cad1597-evidence/source-result.json": {
+        "bytes": 376254,
+        "sha256": "799b7d07ff7add248d432a2748f8f51d493b9b376ba494ef1b7b47b8e553c700"
+      },
+      "/workspace/shared/cad1597-evidence/source-edited.json": {
+        "bytes": 376653,
+        "sha256": "14b51f657f75788b3db7069f92196cbf98454a8e93a7723384e4d8f062ce89ce"
+      },
+      "/workspace/shared/cad1598-evidence/authored-v1.json": {
+        "bytes": 5065,
+        "sha256": "4aac9592e4dfb58e01fa688345b52483a078f9218ce2579cfa58bd2d70a01ad6"
+      },
+      "/workspace/shared/cad1598-evidence/expected-v1.json": {
+        "bytes": 164,
+        "sha256": "89331d08ddade17c86c615328c121341c66b55ac5c20d139f054a696916d9b1c"
+      },
+      "/workspace/shared/cad1598-evidence-repair/authored-v1.json": {
+        "bytes": 5739,
+        "sha256": "64cf34b873db837f22ea52d5af28efc59360b6b1a9e8096d673c5d632d385d47"
+      },
+      "/workspace/shared/cad1598-evidence-repair/expected-v1.json": {
+        "bytes": 164,
+        "sha256": "70325ba585b39844661d77751674ae14d6881ff64287cab4fd0289f27e22c125"
+      }
+    },
+    "preservedSecondIntegrationAttempt": {
+      "candidate": "47f4450aef84aae323a2c02476525d7149a9afca",
+      "chamfer": "passed;no rerun",
+      "documentFailure": "Old failed1598 archive omitted later accepted parameter bindings; all preceding geometry passed. Final repaired archive actual authored bytes match retained assertion output; published demo blob74e84f39 verified.",
+      "documentSpent": {
+        "sourceCompilations": 601,
+        "faceConstructions": 567,
+        "D1": 20898,
+        "rationalContexts": 662,
+        "exactAffineContexts": 567,
+        "work": 4937250
+      },
+      "chamferSpent": {
+        "sourceCompilations": 84,
+        "faceConstructions": 80,
+        "D1": 3024,
+        "rationalContexts": 93,
+        "exactAffineContexts": 80,
+        "work": 689722
+      }
+    },
+    "continuationOnly": {
+      "phases": [
+        "emitted1598 using final accepted repaired inputs",
+        "two v1 atomic-refusal probes"
+      ],
+      "maximumSourceCompilations": 2040,
+      "maximumFaceConstructions": 1970,
+      "maximumD1": 89100,
+      "maximumRationalContexts": 2170,
+      "maximumWork": 40000000
+    }
+  }
+}

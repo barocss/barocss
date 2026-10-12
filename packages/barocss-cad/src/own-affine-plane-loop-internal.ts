@@ -1,3 +1,4 @@
+import { ExactAffinePlane } from './exact-affine-plane-internal.js';
 import { validateCurve, validateSurface, surfaceDomain } from './math.js';
 import type { CurveAffinePlaneAxes } from './own-curve-plane-intersection.js';
 import type { Curve, Surface, Point } from './types.js';
@@ -34,9 +35,10 @@ export function directedUVDeterminant(direction:Point,relative:Point,label=DEFAU
   const a=product(direction[0],relative[1]),b=product(direction[1],relative[0]);return{value:finite(a-b,label),threshold:finite(64*Number.EPSILON*finite(Math.abs(a)+Math.abs(b),label),label)};
 }
 /** Actual supplied Plane axes/native Lines only; no synthetic Curve probe or source construction. */
-export function admitConvexNativeLineLoop(edges:Curve[],axes:CurveAffinePlaneAxes,label=DEFAULT_LABEL):AffineConvexLineLoopAdmission {
+export function admitConvexNativeLineLoop(edges:Curve[],axes:CurveAffinePlaneAxes,label:string,plane:Surface):AffineConvexLineLoopAdmission {
+  const exact = new ExactAffinePlane(plane, label);
   check(edges.length>=3&&edges.length<=8,'3..8 ordered native Line edges required',label);
-  for(const edge of edges){validateCurve(edge);check(edge.kind==='curve'&&edge.degree===1&&edge.controlPoints.length===2&&edge.knots.length===4&&Object.is(edge.weights[0],edge.weights[1]),'actual equal-weight two-pole native Line required',label);check(edge.controlPoints[0].some((value,i)=>value!==edge.controlPoints[1][i]),'nondegenerate native edge required',label);for(const point of edge.controlPoints){const distance=dot(axes.unitNormal,subtract(point,axes.originMM,label),label),coefficient=finite(distance*edge.weights[0],label);check(distance===0||coefficient!==0,'nonzero original Line coplanarity coefficient underflowed to zero',label);check(coefficient===0,'original homogeneous Line coplanarity is not proven',label);const uv=mapAffinePlanePointToUV(point,axes,label);check(uv[0]>=axes.domains.u[0]&&uv[0]<=axes.domains.u[1]&&uv[1]>=axes.domains.v[0]&&uv[1]<=axes.domains.v[1],'original Line endpoints must lie inside the finite native Plane domain',label);}}
+  for(const edge of edges){validateCurve(edge);check(edge.kind==='curve'&&edge.degree===1&&edge.controlPoints.length===2&&edge.knots.length===4&&Object.is(edge.weights[0],edge.weights[1]),'actual equal-weight two-pole native Line required',label);check(edge.controlPoints[0].some((value,i)=>value!==edge.controlPoints[1][i]),'nondegenerate native edge required',label);for(const point of edge.controlPoints){exact.coplanar(point);const uv=mapAffinePlanePointToUV(point,axes,label);check(uv[0]>=axes.domains.u[0]&&uv[0]<=axes.domains.u[1]&&uv[1]>=axes.domains.v[0]&&uv[1]<=axes.domains.v[1],'original Line endpoints must lie inside the finite native Plane domain',label);}}
   for(let i=0;i<edges.length;i++)check(edges[i].controlPoints[1].every((value,j)=>Object.is(value,edges[(i+1)%edges.length].controlPoints[0][j])),'original Line endpoint closure must preserve represented XYZ bits',label);
   const verticesUV=edges.map(edge=>mapAffinePlanePointToUV(edge.controlPoints[0],axes,label));
   for(let i=0;i<verticesUV.length;i++)for(let j=i+1;j<verticesUV.length;j++)check(verticesUV[i][0]!==verticesUV[j][0]||verticesUV[i][1]!==verticesUV[j][1],'repeated native UV loop vertex refused',label);

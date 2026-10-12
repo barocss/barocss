@@ -1,0 +1,461 @@
+{
+  "issue": 1603,
+  "verifiedProductCommit": "2bdba2a8cec4801b4aff162e98d56cd7b7a180eb",
+  "verifiedCampaignCommit": "869d714bbd5eea492b1365f0a3480f430d41c4c9",
+  "status": "all-planned-local-gates-passed-with-inherited-lint-limit",
+  "checks": {
+    "packageTypecheck": "passed",
+    "producerCompatibilityTypes": "passed",
+    "libraryBuild": "passed",
+    "changedSourceLint": "zero new diagnostics;5 identical inherited unused-symbol errors",
+    "wholePackageLint": "incomplete;attempt2 ESLint SIGKILL",
+    "source": "4 variants and10 refusal cases passed",
+    "emitted": "4 variants full-result equal to source",
+    "cold": "4 source-recipe-only reconstructions full-result equal to source",
+    "helper": "11 controls passed",
+    "legacy": "existing prism demo and2 archived full-result byte comparisons passed",
+    "holes": "passed",
+    "Boolean": "passed after verification-only publishConfig emitted-path correction",
+    "clip": "passed"
+  },
+  "cumulativeInstrumentedActualIncludingFailures": {
+    "compileCadModel": 5952,
+    "buildConvexPlanarFace": 2373,
+    "evaluateCurveD1": 76207,
+    "evaluateSurfaceD1": 33351,
+    "SectionRationalContext": 3326,
+    "ExactAffinePlane": 2980,
+    "work": 22491487
+  },
+  "cumulativeD1": 109558,
+  "separateHelperReserve": {
+    "maximumFaceConstructions": 1,
+    "maximumRationalContexts": 10,
+    "maximumRationalWork": 2000000,
+    "note": "Helper controls passed;these counts are conservative uninstrumented limits,not measured totals"
+  },
+  "knownRefusals": [
+    "rearX20,width24 final XYZ80/3",
+    "height10 parent withheight8 tool coverage",
+    "noncardinal selected chamfer edge",
+    "old normalized chart height6 and rearX20 cuts"
+  ],
+  "nonGoals": [
+    "feature document adoption",
+    "serial slab-component to chamfer document chain",
+    "generic shape support",
+    "browser/GPU/OS files",
+    "publication"
+  ],
+  "artifacts": [
+    {
+      "file": "cad1603-campaign-attempt4/core/first-failure-source-238.json",
+      "sha256": "fcdf2b400bfcb1037eae4deb88bf9a91d3b95d08ecd33c37606a1c36509fc218"
+    },
+    {
+      "file": "cad1603-campaign-attempt4/core/source-counts.json",
+      "sha256": "9ac988349218f88d6c86d069b0a3504e05c820b9406beddd688e2d9d6a702ca1"
+    },
+    {
+      "file": "cad1603-campaign-attempt4/core/source-result-0.json",
+      "sha256": "bc3adfda15096afd38e7e428f4ff977ba96093aab0efef121a7b2f8e0ae1ff67"
+    },
+    {
+      "file": "cad1603-campaign-attempt4/first-failure.json",
+      "sha256": "b4d3eb8eafebc4e2182ec91d9fd4e083994bdb4e5f9d7bcda2d84d0d5f2fbaad"
+    },
+    {
+      "file": "cad1603-campaign-attempt4/lint-delta-summary.json",
+      "sha256": "1e43915c1967b266d316c82c6edf8ebdd9bec0ef48434120a384ee1f86f842d9"
+    },
+    {
+      "file": "cad1603-campaign-attempt4/stages.json",
+      "sha256": "9159f120a448f6a62dc884864903e0198e189f7eb6340e474c94ee2854421505"
+    },
+    {
+      "file": "cad1603-campaign-attempt5/core/first-failure-source-8.json",
+      "sha256": "e63f3f7c7cf0fd4662705458efb97ed770c447e21323ac38628fae4b8685b12a"
+    },
+    {
+      "file": "cad1603-campaign-attempt5/core/source-counts.json",
+      "sha256": "3a0b181d9bd4ca96a02d73ffed9d2d5046c31979afb8750d67c091650157d6e6"
+    },
+    {
+      "file": "cad1603-campaign-attempt5/core/source-result-0.json",
+      "sha256": "bc3adfda15096afd38e7e428f4ff977ba96093aab0efef121a7b2f8e0ae1ff67"
+    },
+    {
+      "file": "cad1603-campaign-attempt5/core/source-result-1.json",
+      "sha256": "94f0e23b4ded2043a946c1cab23021d2f9840286f9eca0561adac1d2d450346a"
+    },
+    {
+      "file": "cad1603-campaign-attempt5/core/source-result-2.json",
+      "sha256": "2932f1d1fc4117dd330788a788ab4be759dcea1ae8d2ee7c679a9affa9358838"
+    },
+    {
+      "file": "cad1603-campaign-attempt5/first-failure.json",
+      "sha256": "2ecec8f45391ea1647bf76ae5299c31d686a6cbacec5cf43dec703d5ec6211ab"
+    },
+    {
+      "file": "cad1603-campaign-attempt5/stages.json",
+      "sha256": "49a9b12eb82a5ce6361c16200b2a667b1c0ed46c63b0a0961ff1d75c6bd354fb"
+    },
+    {
+      "file": "cad1603-campaign-attempt6/boolean/regression-counts.json",
+      "sha256": "9659d99662121490ff007c1291753a85701d4a8b18e97c7b43d5233eda3baafd"
+    },
+    {
+      "file": "cad1603-campaign-attempt6/core/cold-counts.json",
+      "sha256": "f1edd1ef4935fc8c0f5e547b11e615e334558befc5a5937705659dcde0ce5003"
+    },
+    {
+      "file": "cad1603-campaign-attempt6/core/emitted-counts.json",
+      "sha256": "f1edd1ef4935fc8c0f5e547b11e615e334558befc5a5937705659dcde0ce5003"
+    },
+    {
+      "file": "cad1603-campaign-attempt6/core/source-counts.json",
+      "sha256": "7a44f5902d4fca677e6ed823aa2b305c70ebadbf173998bad88c6b8b715db773"
+    },
+    {
+      "file": "cad1603-campaign-attempt6/core/source-result-0.json",
+      "sha256": "bc3adfda15096afd38e7e428f4ff977ba96093aab0efef121a7b2f8e0ae1ff67"
+    },
+    {
+      "file": "cad1603-campaign-attempt6/core/source-result-1.json",
+      "sha256": "94f0e23b4ded2043a946c1cab23021d2f9840286f9eca0561adac1d2d450346a"
+    },
+    {
+      "file": "cad1603-campaign-attempt6/core/source-result-2.json",
+      "sha256": "2932f1d1fc4117dd330788a788ab4be759dcea1ae8d2ee7c679a9affa9358838"
+    },
+    {
+      "file": "cad1603-campaign-attempt6/core/source-result-3.json",
+      "sha256": "3e60d0474c720bee0aad20350e638911693c70641298341bf8e77ae9e5fb274e"
+    },
+    {
+      "file": "cad1603-campaign-attempt6/first-failure.json",
+      "sha256": "65d3b6a67366cbaa63afb94565b4e2ec40d14f21ef9c6915c0c0cfc8b759fde3"
+    },
+    {
+      "file": "cad1603-campaign-attempt6/holes/regression-counts.json",
+      "sha256": "e7798c207051fa3b68fb1a9a3c2ffaf29ca98ff7349dfb886a1136edc071b3de"
+    },
+    {
+      "file": "cad1603-campaign-attempt6/legacy/regression-counts.json",
+      "sha256": "0b19b06233b8dd8ec070a330aaed8b4d88625e6b8ce335a7d4966e3c57455a79"
+    },
+    {
+      "file": "cad1603-campaign-attempt6/stages.json",
+      "sha256": "ae46d0c0311c9a80d531900f6445bc73f27578ba1d4b676d51260a0a1a7df382"
+    },
+    {
+      "file": "cad1603-campaign-attempt7/boolean/regression-counts.json",
+      "sha256": "65954039b81df333029fa101319898ae1b9e678dacda6393dd16ddc2bb25457e"
+    },
+    {
+      "file": "cad1603-campaign-attempt7/clip/regression-counts.json",
+      "sha256": "539fd1c75c773fe4d5d07f73a418d13ca7e37e4505e83ea26dfa0784b06abf9a"
+    },
+    {
+      "file": "cad1603-campaign-attempt7/completed.json",
+      "sha256": "ea4afff78d2568a5cf06e19c4c2b957bb8c35d81ca85c576b07d15ae43182e5e"
+    },
+    {
+      "file": "cad1603-campaign-attempt7/stages.json",
+      "sha256": "d6df4757921e5d2e891014fa2aef475265994a76155d6129ed66c693fe85ce2d"
+    },
+    {
+      "file": "cad1603-integration-attempt1/build.log",
+      "sha256": "fd44092d61acfbd101915d232a0b7fbc963a4581ed696c4a00816f43cfaa1ebd"
+    },
+    {
+      "file": "cad1603-integration-attempt1/compatibility-types.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "cad1603-integration-attempt1/completed.json",
+      "sha256": "fc8763924270ea7af8050043c04930abb9b77d17b75a78bbb7719e7fa80b846f"
+    },
+    {
+      "file": "cad1603-integration-attempt1/driver.py",
+      "sha256": "cbf6b8a82edb8bd93d35a27d401b4bc2bbbce70545c425a43bb8b3626b25212e"
+    },
+    {
+      "file": "cad1603-integration-attempt1/stages.json",
+      "sha256": "1396506645697ed706b228392cb176dcd6abc17c6493a7f29035e75a81e45d17"
+    },
+    {
+      "file": "cad1603-integration-attempt1/types.log",
+      "sha256": "119993fee89521c0aae7896b4a56857f0721429ac7a7a287dd47c5031fa4b6fd"
+    },
+    {
+      "file": "cad1603-integration-native-attempt1/chamfer/emitted-failed-coverage-10.json",
+      "sha256": "6018b1915e26933793ed1e4c51aec433a8f480d2e3dcd998d4cf923efea625df"
+    },
+    {
+      "file": "cad1603-integration-native-attempt1/chamfer/first-failure-emitted-10.json",
+      "sha256": "854edc35e83dd66d6db9ab0dfee8955ad86bb0f5eac40e480fa8c785fe491aeb"
+    },
+    {
+      "file": "cad1603-integration-native-attempt1/chamfer.log",
+      "sha256": "790bfbbaceb894cc92ed5cbf51888ba8386d9e1fbadd14813ce55f01655ff2f1"
+    },
+    {
+      "file": "cad1603-integration-native-attempt1/document/authored-v1.json",
+      "sha256": "4aac9592e4dfb58e01fa688345b52483a078f9218ce2579cfa58bd2d70a01ad6"
+    },
+    {
+      "file": "cad1603-integration-native-attempt1/document/expected-v1.json",
+      "sha256": "89331d08ddade17c86c615328c121341c66b55ac5c20d139f054a696916d9b1c"
+    },
+    {
+      "file": "cad1603-integration-native-attempt1/driver.py",
+      "sha256": "48263187add68f402f4514a5b874a8e78a11406cddd80b38feb1e6d1e5637979"
+    },
+    {
+      "file": "cad1603-integration-native-attempt1/first-failure.json",
+      "sha256": "838f58d7d200cda11737430c3a389bf7ecfc5ddc0525bccb0973ab527d896b40"
+    },
+    {
+      "file": "cad1603-integration-native-attempt1/inputs.json",
+      "sha256": "a99b1451e07aff7b6386e469520cbcd4c42d8f45afff223984191245107a7c4e"
+    },
+    {
+      "file": "cad1603-integration-native-attempt1/spent-counts.json",
+      "sha256": "e3ddf7519745e832bf378769860e911d035fd47254863cfb916fa77f4317dcc7"
+    },
+    {
+      "file": "cad1603-integration-native-attempt1/stages.json",
+      "sha256": "dafca6e58882eae48a19947cea9666a913603e111caca6fabc5420b10a587c13"
+    },
+    {
+      "file": "cad1603-integration-native-attempt2/chamfer/emitted-coverage.json",
+      "sha256": "954e498b73a57e44037187007c6c208fb87aad24d0cbde457e1c99f143ce0fcf"
+    },
+    {
+      "file": "cad1603-integration-native-attempt2/chamfer/emitted-edited.json",
+      "sha256": "14b51f657f75788b3db7069f92196cbf98454a8e93a7723384e4d8f062ce89ce"
+    },
+    {
+      "file": "cad1603-integration-native-attempt2/chamfer/emitted-result.json",
+      "sha256": "799b7d07ff7add248d432a2748f8f51d493b9b376ba494ef1b7b47b8e553c700"
+    },
+    {
+      "file": "cad1603-integration-native-attempt2/chamfer/emitted-summary.json",
+      "sha256": "3f0ced16db0b775d25673f692deba2bd1e3d637099ec8e2db009dc4f1504c0f4"
+    },
+    {
+      "file": "cad1603-integration-native-attempt2/chamfer/source-edited.json",
+      "sha256": "14b51f657f75788b3db7069f92196cbf98454a8e93a7723384e4d8f062ce89ce"
+    },
+    {
+      "file": "cad1603-integration-native-attempt2/chamfer/source-result.json",
+      "sha256": "799b7d07ff7add248d432a2748f8f51d493b9b376ba494ef1b7b47b8e553c700"
+    },
+    {
+      "file": "cad1603-integration-native-attempt2/chamfer.log",
+      "sha256": "daf9ee8a781c970436844a68b8f06cdfe88e23ef09f2d63037cec44371f30cf5"
+    },
+    {
+      "file": "cad1603-integration-native-attempt2/complete-input-preflight.json",
+      "sha256": "259cb592f7fd5322f42fc7cee6674a80f1ea4d665700b2b7d9c6bd5a8bd0bf8a"
+    },
+    {
+      "file": "cad1603-integration-native-attempt2/document/authored-v1.json",
+      "sha256": "4aac9592e4dfb58e01fa688345b52483a078f9218ce2579cfa58bd2d70a01ad6"
+    },
+    {
+      "file": "cad1603-integration-native-attempt2/document/emitted-failed-coverage-17.json",
+      "sha256": "036884f900992cb7863c219bad457b99cda13a415724824bd126d1d015bbbf87"
+    },
+    {
+      "file": "cad1603-integration-native-attempt2/document/emitted-first-failure-17.json",
+      "sha256": "42f40bbe2f2225e4b46970c3ddf1ebc3f2bd09f573268f981073ca8ed1dcf6a8"
+    },
+    {
+      "file": "cad1603-integration-native-attempt2/document/expected-v1.json",
+      "sha256": "89331d08ddade17c86c615328c121341c66b55ac5c20d139f054a696916d9b1c"
+    },
+    {
+      "file": "cad1603-integration-native-attempt2/document-spent-counts.json",
+      "sha256": "6747434e733a23b31a7507de8485b33a92e0463d4798b19716e614e8e0cde832"
+    },
+    {
+      "file": "cad1603-integration-native-attempt2/document.log",
+      "sha256": "f7494c2d7d97c854731bd741374e092876312e2505d980d910c7bf39d6fc0b5b"
+    },
+    {
+      "file": "cad1603-integration-native-attempt2/driver.py",
+      "sha256": "0f422c45bb89063c44a68079d3fd08137b1c850297bbeab3870845a2e75eab71"
+    },
+    {
+      "file": "cad1603-integration-native-attempt2/first-failure.json",
+      "sha256": "fdb56a460e782c54e3b06682f47cf38f7b817c30c17bd78aba635f199322eab3"
+    },
+    {
+      "file": "cad1603-integration-native-attempt2/inputs.json",
+      "sha256": "a99b1451e07aff7b6386e469520cbcd4c42d8f45afff223984191245107a7c4e"
+    },
+    {
+      "file": "cad1603-integration-native-attempt2/repaired-input-identity.json",
+      "sha256": "7a74b21105370de4ba5ccf529395ce99d13e74f804a31da21fbbc744b9284d40"
+    },
+    {
+      "file": "cad1603-integration-native-attempt2/stages.json",
+      "sha256": "0dcacdb4c73fc08948ce11d6635d9b2f09b8873c096778d0064fcb456a258e0d"
+    },
+    {
+      "file": "cad1603-integration-native-attempt3/atomic/refusal-compatibility.json",
+      "sha256": "aefe0d1438fb73ea4d4f3678296257ae316c9dff1d156125708ff1e5c6556d80"
+    },
+    {
+      "file": "cad1603-integration-native-attempt3/atomic-refusals.log",
+      "sha256": "3a55bee2309810197bd8422071bdebee2c7b395309f4be263e38e9a2330048ac"
+    },
+    {
+      "file": "cad1603-integration-native-attempt3/complete-input-preflight.json",
+      "sha256": "20ec7f302e672c563da71f745219c7f05914a252ba04bc123078452887287799"
+    },
+    {
+      "file": "cad1603-integration-native-attempt3/completed.json",
+      "sha256": "c061626e7e63e441fedcff40d6c41b6d9251e99ec8bd92e0c39d16e922791962"
+    },
+    {
+      "file": "cad1603-integration-native-attempt3/document/authored-v1.json",
+      "sha256": "64cf34b873db837f22ea52d5af28efc59360b6b1a9e8096d673c5d632d385d47"
+    },
+    {
+      "file": "cad1603-integration-native-attempt3/document/emitted-coverage.json",
+      "sha256": "31d7d8ead81fc818df9021fb7fd1024ed099a16ff5e9ed641085794402cab5b9"
+    },
+    {
+      "file": "cad1603-integration-native-attempt3/document/emitted-edited-result.json",
+      "sha256": "be8e18d021d32540b7447808dffdfd59e204743d34eb8c4e0425ad592c94228c"
+    },
+    {
+      "file": "cad1603-integration-native-attempt3/document/emitted-summary.json",
+      "sha256": "e0905dba9be587ab23da5c7f8d2d8bb0bfb27b8ba845050040d6d8d521f2cdde"
+    },
+    {
+      "file": "cad1603-integration-native-attempt3/document/expected-v1.json",
+      "sha256": "70325ba585b39844661d77751674ae14d6881ff64287cab4fd0289f27e22c125"
+    },
+    {
+      "file": "cad1603-integration-native-attempt3/document.log",
+      "sha256": "56ed184ff27021c23928fc25f75bbd4f9722a7e984caad6bebec3d4d8b52ac1c"
+    },
+    {
+      "file": "cad1603-integration-native-attempt3/driver.py",
+      "sha256": "89ae8a298ddd3ab6d7ce5a067047d631bf13197585fa55e2ce35562d18b23ddc"
+    },
+    {
+      "file": "cad1603-integration-native-attempt3/inputs.json",
+      "sha256": "6dfd082141baf62100d975b056d7036f768a8f6345f3db334fd3b778d2dbdf08"
+    },
+    {
+      "file": "cad1603-integration-native-attempt3/stages.json",
+      "sha256": "0fc11cdf6ef67110b22f307ccaa1c7e94c8a52202be6877b360e9a73d0be0172"
+    }
+  ],
+  "integrationCompatibility": {
+    "verifiedCampaignCommit": "bfea25a14e960f2da16e5824252c2aa781fa2540",
+    "baseCommit": "0c9aa7e159d3713a70a4b67631715e027da28fef",
+    "packageTypecheck": "passed",
+    "packageBuild": "passed",
+    "oldV1AndNewProducerTypeFixtures": "passed",
+    "emitted1597": "passed in integration attempt2",
+    "emitted1598": "passed in integration attempt3 against final accepted repaired archive",
+    "atomicRefusals": "height6 fails exact lift at chamfer;rearX20 fails exact lift at subtraction;both NATIVE and signed result SHA256 unchanged",
+    "legacyInspectorAccounting": "ExactAffinePlane==admit<=faces;holes/Boolean/clip0;old residual context, totalwork, source, D1 and report gates unchanged",
+    "preservedFailures": [
+      "attempt1 missing1597 historical inputs",
+      "attempt2 selected superseded failed1598 archive instead of final accepted repaired archive"
+    ],
+    "instrumentedStages": [
+      {
+        "stage": "integration1-failed-input",
+        "counts": {
+          "compileCadModel": 84,
+          "buildConvexPlanarFace": 80,
+          "evaluateCurveD1": 2016,
+          "evaluateSurfaceD1": 1008,
+          "SectionRationalContext": 93,
+          "ExactAffinePlane": 80,
+          "work": 689722
+        }
+      },
+      {
+        "stage": "integration2-chamfer-pass",
+        "counts": {
+          "compileCadModel": 84,
+          "buildConvexPlanarFace": 80,
+          "evaluateCurveD1": 2016,
+          "evaluateSurfaceD1": 1008,
+          "SectionRationalContext": 93,
+          "ExactAffinePlane": 80,
+          "work": 689722
+        }
+      },
+      {
+        "stage": "integration2-failed-old-archive",
+        "counts": {
+          "compileCadModel": 601,
+          "buildConvexPlanarFace": 567,
+          "evaluateCurveD1": 13932,
+          "evaluateSurfaceD1": 6966,
+          "SectionRationalContext": 662,
+          "ExactAffinePlane": 567,
+          "work": 4937250
+        }
+      },
+      {
+        "stage": "integration3-document-pass",
+        "counts": {
+          "compileCadModel": 601,
+          "buildConvexPlanarFace": 567,
+          "evaluateCurveD1": 13932,
+          "evaluateSurfaceD1": 6966,
+          "SectionRationalContext": 662,
+          "ExactAffinePlane": 567,
+          "work": 4937250
+        }
+      },
+      {
+        "stage": "atomic-parentHeight",
+        "counts": {
+          "compileCadModel": 203,
+          "buildConvexPlanarFace": 194,
+          "evaluateCurveD1": 4824,
+          "evaluateSurfaceD1": 2412,
+          "SectionRationalContext": 225,
+          "ExactAffinePlane": 194,
+          "work": 1705977
+        }
+      },
+      {
+        "stage": "atomic-rearX",
+        "counts": {
+          "compileCadModel": 168,
+          "buildConvexPlanarFace": 159,
+          "evaluateCurveD1": 3924,
+          "evaluateSurfaceD1": 1962,
+          "SectionRationalContext": 186,
+          "ExactAffinePlane": 159,
+          "work": 1436531
+        }
+      }
+    ],
+    "cumulativeInstrumentedActualIncludingAllFailures": {
+      "compileCadModel": 7693,
+      "buildConvexPlanarFace": 4020,
+      "evaluateCurveD1": 116851,
+      "evaluateSurfaceD1": 53673,
+      "SectionRationalContext": 5247,
+      "ExactAffinePlane": 4627,
+      "work": 36887939
+    },
+    "cumulativeD1": 170524,
+    "helperReserve": "same separate reserve above, not added to measured totals",
+    "noAdditionalNativeCampaign": "original accepted source/emitted/cold/helper/consumer evidence retained;only bounded integration compatibility executed"
+  }
+}

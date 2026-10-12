@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict';
+import { Session } from 'node:inspector';
+import { mkdirSync, writeFileSync, statfsSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+const [script, output] = process.argv.slice(2); assert.ok(script && output);
+mkdirSync(output, { recursive: true });
+assert.ok(statfsSync(output).bavail * statfsSync(output).bsize >= 500 * 1024 * 1024);
+const inspector = new Session(); inspector.connect();
+const post = (method, params = {}) => new Promise((yes, no) => inspector.post(method, params, (e, r) => e ? no(e) : yes(r)));
+await post('Profiler.enable'); await post('Profiler.startPreciseCoverage', { callCount: true, detailed: true });
+process.argv = [process.execPath, resolve(script), '--source', resolve(output)];
+let failure;
+try { await import(pathToFileURL(resolve(script))); } catch (error) { failure = error; }
+const raw = await post('Profiler.takePreciseCoverage');
+const names = ['compileCadModel', 'buildConvexPlanarFace', 'evaluateCurveD1', 'evaluateSurfaceD1', 'SectionRationalContext', 'ExactAffinePlane', 'work'];
+const counts = Object.fromEntries(names.map(n => [n, raw.result.flatMap(s => s.functions.filter(f => f.functionName === n)).reduce((a, f) => a + f.ranges[0].count, 0)]));
+writeFileSync(resolve(output, 'regression-counts.json'), JSON.stringify({ script, counts, failure: failure?.message ?? null }) + '\n');
+await post('Profiler.stopPreciseCoverage'); inspector.disconnect();
+if (failure) throw failure;
+assert.ok(counts.compileCadModel <= 2048 && counts.buildConvexPlanarFace <= 1024);
+assert.ok(counts.evaluateCurveD1 + counts.evaluateSurfaceD1 <= 300000);
+assert.ok(counts.SectionRationalContext <= 4096 && counts.work <= 819200000);

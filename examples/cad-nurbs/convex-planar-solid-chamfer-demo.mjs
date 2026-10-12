@@ -26,7 +26,7 @@ if (mode === '--source') {
 const inspector = new Session(); inspector.connect();
 const post = (method, params = {}) => new Promise((ok, no) => inspector.post(method, params, (error, result) => error ? no(error) : ok(result)));
 await post('Profiler.enable'); await post('Profiler.startPreciseCoverage', { callCount: true, detailed: true });
-const names = ['buildXYAffineSketch', 'validateXYAffineSketch', 'buildXYAffineSketchPrism', 'compileCadModel', 'buildConvexPlanarFace', 'evaluateCurveD1', 'evaluateSurfaceD1', 'qualifyConvexPlanarSolid', 'validateConvexPlanarSolid', 'classifyConvexPlanarSolidPoints', 'splitConvexPlanarSolid', 'validateConvexPlanarSolidSplit', 'chamferConvexPlanarSolid', 'validateConvexPlanarSolidChamfer', 'SectionRationalContext', 'work'];
+const names = ['buildXYAffineSketch', 'validateXYAffineSketch', 'buildXYAffineSketchPrism', 'compileCadModel', 'buildConvexPlanarFace', 'evaluateCurveD1', 'evaluateSurfaceD1', 'qualifyConvexPlanarSolid', 'validateConvexPlanarSolid', 'classifyConvexPlanarSolidPoints', 'splitConvexPlanarSolid', 'validateConvexPlanarSolidSplit', 'chamferConvexPlanarSolid', 'validateConvexPlanarSolidChamfer', 'SectionRationalContext', 'ExactAffinePlane', 'admitConvexNativeLineLoop', 'buildConvexPlanarFaceWithHoles', 'booleanCoplanarFaces', 'clipCurveWithConvexLineLoop', 'work'];
 const parts = [], steps = [];
 const count = coverage => Object.fromEntries(names.map(name => [name, coverage.result.flatMap(s => s.functions.filter(f => f.functionName === name)).reduce((sum, f) => sum + f.ranges[0].count, 0)]));
 const checkpoint = async label => { const data = await post('Profiler.takePreciseCoverage'); parts.push(data); const counts = count(data); steps.push({ label, counts }); return counts; };
@@ -133,6 +133,13 @@ assert.equal(counts.buildXYAffineSketchPrism, mode === '--source' ? 2 : 1);
 assert.ok(counts.buildConvexPlanarFace <= (mode === '--source' ? 303 : 80)); assert.ok(counts.compileCadModel <= (mode === '--source' ? 315 : 84));
 assert.ok(counts.evaluateCurveD1 + counts.evaluateSurfaceD1 <= (mode === '--source' ? 11385 : 3024));
 assert.ok(counts.work > 0 && counts.work <= (mode === '--source' ? 11000000 : 2600000));
-assert.ok(counts.SectionRationalContext <= (mode === '--source' ? 55 : 13));
+// Normalized-v0 producer requests do not create strict coordinate-span proof contexts.
+// These campaigns use convex faces only; prove the helper subset rather than raising legacy caps.
+assert.equal(counts.buildConvexPlanarFaceWithHoles + counts.booleanCoplanarFaces + counts.clipCurveWithConvexLineLoop, 0);
+assert.equal(counts.ExactAffinePlane, counts.admitConvexNativeLineLoop);
+assert.ok(counts.ExactAffinePlane <= counts.buildConvexPlanarFace);
+const legacyRationalContexts = counts.SectionRationalContext - counts.ExactAffinePlane;
+assert.ok(legacyRationalContexts >= 0);
+assert.ok(legacyRationalContexts <= (mode === '--source' ? 55 : 13));
 const summary = { status: 'passed', mode, pid: process.pid, counts, mainCounts, steps, attempts, validations, native: result.report.nativeWork, exact: result.report.exactWork, volume: result.split.report.volumeMM3, editedVolume: edited.split.report.volumeMM3, refusals: failures, evidenceWrittenBytes: writtenBytes, signedZeroPreserved: true };
 write(mode.slice(2) + '-summary.json', summary); process.stdout.write(JSON.stringify({ status: summary.status, mode, pid: process.pid, counts, attempts, validations }) + '\n');

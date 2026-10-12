@@ -469,7 +469,8 @@ intact();
 // Separate built package consumer: four runtime names and eight DTO names.
 const packageRoot = resolve(repo, 'packages/barocss-cad');
 const manifest = JSON.parse(readFileSync(resolve(packageRoot, 'package.json'), 'utf8'));
-const declared = manifest.exports['.'];
+// Development exports intentionally point to TypeScript; this stage exercises the published build.
+const declared = manifest.publishConfig.exports['.'];
 const runtimePath = resolve(packageRoot, declared.import), declarationPath = resolve(packageRoot, declared.types);
 assert.ok(existsSync(runtimePath)); assert.ok(existsSync(declarationPath));
 const publicAPI = await import(pathToFileURL(runtimePath).href);

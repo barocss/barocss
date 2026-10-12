@@ -222,8 +222,8 @@ export function booleanCoplanarFaces(faceAInput: ConvexPlanarFaceResult, faceBIn
     }
     for (const pcurve of face.pcurves) boundedPoints(pcurve.curve.controlPoints, true);
   }
-  const admissions = [native(() => admitConvexNativeLineLoop(faceA.loop.edges, axes), 'original a native convex Line loop', CODE.INPUT),
-    native(() => admitConvexNativeLineLoop(faceB.loop.edges, axes), 'original b native convex Line loop', CODE.INPUT)] as const;
+  const admissions = [native(() => admitConvexNativeLineLoop(faceA.loop.edges, axes, 'Coplanar face Boolean', support), 'original a native convex Line loop', CODE.INPUT),
+    native(() => admitConvexNativeLineLoop(faceB.loop.edges, axes, 'Coplanar face Boolean', support), 'original b native convex Line loop', CODE.INPUT)] as const;
   const arrangement = buildCoplanarArrangement(faceA, faceB, support, [admissions[0], admissions[1]], admitted, role, check, native);
   let maximumEndpointDifferenceMM = 0, maximumPointDifferenceMM = 0, maximumRelativeD1Difference = 0;
   const fragments: CoplanarFaceBooleanFragment[] = arrangement.fragments.map(plan => {

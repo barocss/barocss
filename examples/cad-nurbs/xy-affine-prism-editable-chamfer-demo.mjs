@@ -27,7 +27,7 @@ const inspector = new Session(); inspector.connect();
 const post = (method, params = {}) => new Promise((ok, no) => inspector.post(method, params, (error, value) => error ? no(error) : ok(value)));
 await post('Profiler.enable'); await post('Profiler.startPreciseCoverage', { callCount: true, detailed: true });
 failureCoverage = async () => { const value = await post('Profiler.takePreciseCoverage'); await post('Profiler.stopPreciseCoverage'); inspector.disconnect(); return { completedIntervals: parts, finalInterval: value, milestones }; };
-const names = ['splitConvexPlanarSolid', 'validateConvexPlanarSolid', 'qualifyConvexPlanarSolid', 'validateXYAffineSketchPrism', 'validateConvexPlanarSolidChamfer', 'evaluateXYAffinePrismFeatureDocumentV1', 'updateXYAffinePrismFeatureDocumentV1', 'validateXYAffinePrismFeatureDocumentV1', 'validateXYAffinePrismFeatureDocumentUpdateV1', 'serializeXYAffinePrismFeatureDocumentV1', 'parseXYAffinePrismFeatureDocumentV1', 'chamferConvexPlanarSolid', 'SectionRationalContext', 'work', 'evaluateXYAffinePrismFeatureDocument', 'updateXYAffinePrismFeatureDocument', 'validateXYAffinePrismFeatureDocument', 'validateXYAffinePrismFeatureDocumentUpdate', 'serializeXYAffinePrismFeatureDocument', 'parseXYAffinePrismFeatureDocument', 'buildXYAffineSketch', 'buildXYAffineSketchPrism', 'resolveXYAffineSketchPrismWall', 'subtractConvexPlanarSlab', 'compileCadModel', 'buildConvexPlanarFace', 'evaluateCurveD1', 'evaluateSurfaceD1'];
+const names = ['splitConvexPlanarSolid', 'validateConvexPlanarSolid', 'qualifyConvexPlanarSolid', 'validateXYAffineSketchPrism', 'validateConvexPlanarSolidChamfer', 'evaluateXYAffinePrismFeatureDocumentV1', 'updateXYAffinePrismFeatureDocumentV1', 'validateXYAffinePrismFeatureDocumentV1', 'validateXYAffinePrismFeatureDocumentUpdateV1', 'serializeXYAffinePrismFeatureDocumentV1', 'parseXYAffinePrismFeatureDocumentV1', 'chamferConvexPlanarSolid', 'SectionRationalContext', 'ExactAffinePlane', 'admitConvexNativeLineLoop', 'buildConvexPlanarFaceWithHoles', 'booleanCoplanarFaces', 'clipCurveWithConvexLineLoop', 'work', 'evaluateXYAffinePrismFeatureDocument', 'updateXYAffinePrismFeatureDocument', 'validateXYAffinePrismFeatureDocument', 'validateXYAffinePrismFeatureDocumentUpdate', 'serializeXYAffinePrismFeatureDocument', 'parseXYAffinePrismFeatureDocument', 'buildXYAffineSketch', 'buildXYAffineSketchPrism', 'resolveXYAffineSketchPrismWall', 'subtractConvexPlanarSlab', 'compileCadModel', 'buildConvexPlanarFace', 'evaluateCurveD1', 'evaluateSurfaceD1'];
 const count = coverage => Object.fromEntries(names.map(name => [name, coverage.result.flatMap(s => s.functions.filter(f => f.functionName === name)).reduce((n, f) => n + f.ranges[0].count, 0)]));
 const parts = [], milestones = [], refusals = [];
 async function mark(label, expectedWork) {
@@ -139,7 +139,15 @@ const counts = Object.fromEntries(names.map(name => [name, parts.reduce((n, part
 // Entire predetermined campaign, including native refusals, uses this conservative aggregate reserve.
 assert.equal(counts.validateXYAffineSketchPrism, 0); assert.equal(counts.validateConvexPlanarSolidChamfer, 0);
 const phases = mode === '--source' ? 41 : mode === '--emitted' ? 6 : 3;
-assert.ok(counts.compileCadModel <= phases * 204); assert.ok(counts.buildConvexPlanarFace <= phases * 197); assert.ok(counts.evaluateCurveD1 + counts.evaluateSurfaceD1 <= phases * 8910); assert.ok(counts.SectionRationalContext <= phases * 20); assert.ok(counts.work <= phases * 4000000);
+assert.ok(counts.compileCadModel <= phases * 204); assert.ok(counts.buildConvexPlanarFace <= phases * 197); assert.ok(counts.evaluateCurveD1 + counts.evaluateSurfaceD1 <= phases * 8910);
+// Normalized-v0 producer requests do not create strict coordinate-span proof contexts.
+// These campaigns use convex faces only; prove the helper subset rather than raising legacy caps.
+assert.equal(counts.buildConvexPlanarFaceWithHoles + counts.booleanCoplanarFaces + counts.clipCurveWithConvexLineLoop, 0);
+assert.equal(counts.ExactAffinePlane, counts.admitConvexNativeLineLoop);
+assert.ok(counts.ExactAffinePlane <= counts.buildConvexPlanarFace);
+const legacyRationalContexts = counts.SectionRationalContext - counts.ExactAffinePlane;
+assert.ok(legacyRationalContexts >= 0);
+assert.ok(legacyRationalContexts <= phases * 20); assert.ok(counts.work <= phases * 4000000);
 write(mode.slice(2) + '-coverage.json', parts);
 const summary = { status: 'passed', mode, pid: process.pid, counts, milestones, refusals, editedHash: hash(edited), authoredBytes: Buffer.byteLength(text), evidenceBytes: outputBytes, phases, limits: api.XYAffinePrismFeatureDocumentLimitsV1 };
 write(mode.slice(2) + '-summary.json', summary); process.stdout.write(JSON.stringify({ status: summary.status, mode, pid: process.pid, counts, refusals: refusals.length }) + '\n');

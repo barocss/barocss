@@ -10293,6 +10293,71 @@ The five-edge beveled footprint produces seven facets and exact6336mm³; editing
 its authored bevel produces6384mm³. Plane split composition is separate and must
 consume the actually adopted splitter API; no split implementation is embedded.
 
+### Explicit coordinate-span affine prism charts (#1603)
+
+The additive `XYAffineSketchPrismCoordinateSpanOptions` overload opts into
+`chartPolicy: { version: 1, kind: 'coordinate-span' }`. Persist this complete
+producer request and reconstruct it with `buildXYAffineSketchPrism`; it is not a
+new feature-document schema. The existing feature-document codecs do not accept
+this policy. The old options/result/report types and omitted-policy behavior stay
+unchanged; both frozen legacy prism result files were verified byte-identical.
+
+```js
+const part = buildXYAffineSketchPrism(sketchSuccess, {
+  ...originalPrismOptions,
+  chartPolicy: { version: 1, kind: 'coordinate-span' },
+});
+```
+
+The selected producer explicitly authors cap knot domains `[0, spanX]` and
+`[0, spanY]`, and wall domains `[0, max(abs(dx), abs(dy))]` and `[0, height]`.
+Original control poles, boundary line parameter domains and source-qualified
+lineage remain unchanged. Each generated pcurve endpoint must equal an exact
+rational solve on those original stored poles and domains. No pcurve correction,
+chart search or rechart of pre-existing authored surfaces is performed. Shared
+loop admission now proves original-surface coplanarity using an unnormalized
+exact cross product; approximate query projection is unchanged. Original native
+Surface/Curve D1 acceptance and exact whole-edge solid lifting remain required.
+
+Source, emitted and request-only cold reconstruction prove the pentagon
+`(0,0),(32,0),(32,16),(rearX,32),(0,32)` for all four combinations of rearX16/20
+and height8/6. Parent volumes are respectively7168/5376/7424/5568mm³. Direct
+front-top distance1 chamfer removes16mm³. Direct removal of the x8..16 slab
+retains2048+3072,1536+2304,2048+3328 and1536+2496mm³. These are separate operations
+on the parent prism, not a serial cut-component→chamfer document chain.
+Independent rational checks cover stored chart lift, outward halfspaces, signed
+volume, opposite paired edge endpoints and closed Euler incidence. The shared
+holes, coplanar Boolean and convex-loop clipping regressions also pass.
+
+The bounded demonstrated range is not arbitrary dimension admission. A rearX20
+width24 cut still refuses final non-binary64 XYZ80/3; height10 with a height8 tool
+still refuses incomplete coverage; a noncardinal selected edge still refuses the
+cardinal chamfer contract. Existing normalized charts can still refuse height6
+and rearX20 cuts. Invalid policy versions, extra fields, getters and forged
+pcurves are refused. No manufacturing-tolerance certification is added.
+
+Each private exact-affine context is limited to64 point admissions,200000
+rational operations/GCD steps and8192-bit integers. Added helper contexts are
+accounted separately in the campaign; old `exactWork` sketch/solid child receipts
+retain their original scope rather than pretending to be aggregate totals.
+
+Rerun `examples/cad-nurbs/coordinate-span-prism-demo.mjs` in `--source`,
+`--emitted` and `--cold` modes after building the package; the adjacent campaign
+manifest freezes per-shape work inventories and resource guards. The adjacent
+verification receipt preserves failed attempts, the emitted-consumer smoke-path
+repair, source hashes and measured cumulative work. Package type-check, overload
+compatibility and build passed. Changed-file lint has zero new diagnostics and
+five baseline-identical unused-symbol errors; whole-package lint is incomplete
+after its process was killed. No full-package lint pass is claimed.
+
+Integration on the later v1-document/mesh/docs baseline also passed package types,
+build and both old-v1/new-producer type fixtures. Existing emitted chamfer and
+editable-document receipts match their accepted baselines. Focused v1 height6 and
+rearX20 updates still refuse exact pcurve lift atomically, at chamfer and slab
+subtraction respectively. The legacy demos separately count added affine helpers
+while retaining their original arithmetic and geometric gates. Driver input
+failures and the corrected final-archive provenance remain in the receipt.
+
 ### Exact intersection of two qualified convex planar Solids (#1594)
 
 `intersectConvexPlanarSolids(left, right, { operationId, solidId, resultIdPrefix })`
