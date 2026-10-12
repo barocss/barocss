@@ -37,6 +37,7 @@ export interface CadShape {
   split(options: { readonly axis: CadAxis; readonly at: CadDimension }): CadSplit;
   cut(tool: CadShape, options: { readonly axis: 'x' | 'y' }): CadCut;
   edges(query: CadEdgeQuery): CadEdgeQueryHandle;
+  /** At most two sequential cardinal chamfers; each selector belongs to its exact parent result. */
   chamfer(edge: CadEdgeSelection, distance: CadDimension): CadShape;
 }
 export interface CadCut { readonly negative: CadShape; readonly positive: CadShape }
@@ -68,7 +69,7 @@ export interface CadModelSnapshot {
   /** Saves only accepted authored state; no native results or meshes. */
   save(): string;
 }
-export const CadModelLimits = Object.freeze({ nodes: 6, sketches: 2, extrusions: 2, cuts: 1, intersections: 1, splits: 1, chamfers: 1, parameters: 16, outputs: 8, polygonPoints: 8, fileBytes: 65536, inputDepth: 12, lengthMM: 10000 });
+export const CadModelLimits = Object.freeze({ nodes: 6, sketches: 2, extrusions: 2, cuts: 1, intersections: 1, splits: 1, chamfers: 2, parameters: 16, outputs: 8, polygonPoints: 8, fileBytes: 65536, inputDepth: 12, lengthMM: 10000 });
 
 type Dimension = number | { parameter: string };
 type Query = { parallelTo?: CadAxis; at?: Partial<Record<CadAxis, Dimension | 'min' | 'max'>> };
@@ -160,13 +161,13 @@ function admit(input: Document): Document {
       demand(axes.includes(n.axis) && nodes[n.parent.node].kind === 'extrude', 'CAPABILITY', 'split', 'Cardinal plane split of a direct XY extrusion required');
     } else {
       record(n, 'chamfer', ['kind', 'parent', 'edge', 'distance']); body(n.parent, i); dimension(n.distance);
-      demand(nodes[n.parent.node].kind !== 'chamfer', 'CAPABILITY', 'chamfer', 'Repeated chamfer is unsupported');
+      demand(counts.chamfer === 1 || (counts.chamfer === 2 && nodes[n.parent.node].kind === 'chamfer'), 'CAPABILITY', 'chamfer', 'At most two sequential chamfers in one chain are supported');
       const q = record(n.edge, 'selection'); demand(Object.keys(q).every(k => k === 'parallelTo' || k === 'at'), 'INPUT', 'selection', 'Unknown selector field');
       if (Object.hasOwn(q, 'parallelTo')) demand(axes.includes(n.edge.parallelTo!), 'INPUT', 'selection', 'Cardinal selector direction required');
       if (Object.hasOwn(q, 'at')) for (const [axis, v] of Object.entries(record(n.edge.at, 'selection'))) { demand(axes.includes(axis as CadAxis), 'INPUT', 'selection', 'Unknown selector axis'); if (v !== 'min' && v !== 'max') dimension(v); }
     }
   }
-  demand(counts.sketch <= 2 && counts.extrude <= 2 && counts.cut <= 1 && counts.intersect <= CadModelLimits.intersections && counts.split <= CadModelLimits.splits && counts.cut + counts.intersect + counts.split <= 1 && counts.chamfer <= 1, 'CAPABILITY', 'graph', 'Supported envelope: up to two sketches/extrusions, one through-slab cut, intersection or cardinal split and one chamfer');
+  demand(counts.sketch <= 2 && counts.extrude <= 2 && counts.cut <= 1 && counts.intersect <= CadModelLimits.intersections && counts.split <= CadModelLimits.splits && counts.cut + counts.intersect + counts.split <= 1 && counts.chamfer <= CadModelLimits.chamfers, 'CAPABILITY', 'graph', 'Supported envelope: up to two sketches/extrusions, one through-slab cut, intersection or cardinal split and a two-chamfer chain within six nodes');
   record(d.outputs, 'outputs'); demand(Object.keys(d.outputs).length > 0 && Object.keys(d.outputs).length <= CadModelLimits.outputs, 'BUDGET', 'outputs', 'One to eight named outputs required');
   for (const [key, ref] of Object.entries(d.outputs)) { name(key, 'outputs'); body(ref, nodes.length); }
   return d;
@@ -182,7 +183,7 @@ export function createCadModel(): CadModel {
   const point = (value: CadPoint2): [Dimension, Dimension] => { const p = list(value, 'point', 2, 2); return [dimension(p[0] as CadDimension), dimension(p[1] as CadDimension)]; };
   const body = (shape: CadShape): BodyRef => { const s = shapes.get(shape); demand(s?.owner === owner, 'OWNERSHIP', 'body', 'Shape belongs to another model or is not an owned handle'); return { ...s.reference }; };
   const append = (node: Node) => {
-    const limit = node.kind === 'sketch' || node.kind === 'extrude' ? 2 : 1;
+    const limit = node.kind === 'sketch' || node.kind === 'extrude' ? 2 : node.kind === 'chamfer' ? CadModelLimits.chamfers : 1;
     demand(nodes.length < CadModelLimits.nodes && nodes.filter(n => n.kind === node.kind).length < limit, 'CAPABILITY', node.kind, 'Supported operation count exceeded');
     demand(!['cut', 'intersect', 'split'].includes(node.kind) || !nodes.some(n => n.kind === 'cut' || n.kind === 'intersect' || n.kind === 'split'), 'CAPABILITY', node.kind, 'Only one through-slab cut, intersection or cardinal split is supported');
     nodes.push(freeze(node)); return nodes.length - 1;
@@ -215,7 +216,8 @@ export function createCadModel(): CadModel {
       },
       chamfer(edge: CadEdgeSelection, distance: CadDimension): CadShape {
         const selected = selections.get(edge); demand(selected?.owner === owner && equalRef(selected.parent, reference), 'OWNERSHIP', 'chamfer', 'Edge query must belong to this exact body in this model');
-        demand(nodes[reference.node].kind !== 'chamfer', 'CAPABILITY', 'chamfer', 'Repeated chamfer is unsupported');
+        const first = nodes.findIndex(node => node.kind === 'chamfer');
+        demand(first === -1 || reference.node === first, 'CAPABILITY', 'chamfer', 'The second chamfer must consume the first chamfer result; siblings and further steps are unsupported');
         return shape({ node: append({ kind: 'chamfer', parent: { ...reference }, edge: copy(selected.query), distance: dimension(distance) }), side: 'solid' });
       },
     });

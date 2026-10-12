@@ -39,3 +39,9 @@ for (const axis of ['x', 'y'] as const) {
 splitBlank.split({ axis: 'w', at: 2 });
 // @ts-expect-error The plane location uses a number or owned dimension handle.
 splitBlank.split({ axis: 'z', at: '2' });
+
+const chainModel = cad.model(), frontDistance = chainModel.parameter('frontDistance', 1), backDistance = chainModel.parameter('backDistance', 2);
+const chainBlank = chainModel.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const front = chainBlank.chamfer(chainBlank.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one(), frontDistance);
+const finished = front.chamfer(front.edges({ parallelTo: 'x', at: { y: 24, z: 'max' } }).one(), backDistance);
+chainModel.build({ finished }).withParameters({ backDistance: 3 }).save();

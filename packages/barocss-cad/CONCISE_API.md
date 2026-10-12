@@ -87,8 +87,9 @@ native results, not universal CAD tolerance guarantees.
   it is not a promise of persistent topology identity
 - `chamfer(edge,distance)` applies the kernel's equal-distance cardinal-edge
   profile to the actual selected parent. Orthogonal end supports, local setback,
-  exact representability and native work limits still apply. Repeated chamfers,
-  curves, fillets and general edge chains are unsupported
+  exact representability and native work limits still apply. At most two serial
+  chamfers are admitted within six nodes, each selecting its exact parent result;
+  sibling branches, further steps, curves, fillets and general edge chains are unsupported
 
 ## Keep the overlapping part of two extrusions
 
@@ -164,6 +165,27 @@ wrapper's own compilation of the generated cutter; they are not total work count
 One split replaces the optional cut/intersection. Split inputs must be direct
 extrusions; nested splits and mixed cut/intersection/split graphs are refused.
 
+## Bevel two opposite edges in sequence
+
+Call the second `chamfer` on the first result and create its selector from that
+same result: `front.chamfer(front.edges(query).one(), backDistance)`. The model
+admits at most one two-step chamfer chain within the existing six-node limit.
+A selector from the original blank or another body refuses ownership; a second
+sibling branch or third chamfer refuses capability. No edge is silently remapped.
+
+For a 32×24×8 mm rectangular blank, first bevel the x-parallel edge at y=0,z=max
+by 1 mm, then the first result's opposite edge at y=24,z=max by 2 mm. The first
+removes 16 mm³ and the second 64, leaving 6064 mm³. Editing the second distance
+to 3 leaves 5984; changing the first to 2 and the second to 3 leaves 5936.
+
+Each operation keeps its actual native parent and source-qualified edge pair.
+Moving a selector to the removed original edge refuses selection. Selecting a
+new bevel edge whose adjacent faces are not cardinal planes preserves the native
+metric refusal. Positive distance, exact representation and native geometry
+limits still apply; failed edits preserve earlier accepted snapshots and files.
+The two-step witness is a direct rectangular extrusion, not arbitrary edge
+chains or every possible split/intersection/chamfer combination.
+
 ## Accepted snapshots and failures
 
 ```ts
@@ -200,7 +222,8 @@ Bodies/evidence are deep-frozen native values usable by the existing tessellatio
 and display adapters. They allocate no renderer/GPU resources.
 
 The current supported graph envelope is at most two sketches, two extrusions,
-one through-slab cut, intersection or cardinal split and one chamfer, with at most sixteen parameters. These are
+one through-slab cut, intersection or cardinal split and up to two sequential chamfers,
+with at most six nodes and sixteen parameters. These are
 upper bounds, not six required roles: an extrusion-only or cut-only model builds,
 saves and reopens through the same API. No arbitrary Boolean graph is implied.
 Names are ASCII identifiers of 1..48 characters; `__proto__`, `constructor` and
@@ -231,7 +254,7 @@ Run the ordinary boundary/type tests after building the package:
 ```sh
 node scripts/tool.mjs type-check
 node scripts/tool.mjs build
-node --test test/modeling.test.mjs test/modeling-intersection.test.mjs test/modeling-split.test.mjs test/modeling-cardinal-split.test.mjs test/public-api.test.mjs
+node --test test/modeling.test.mjs test/modeling-intersection.test.mjs test/modeling-split.test.mjs test/modeling-cardinal-split.test.mjs test/modeling-chamfer-chain.test.mjs test/public-api.test.mjs
 node test/public-api-types.mjs
 ```
 
@@ -285,3 +308,13 @@ node --no-opt --max-old-space-size=2048 scripts/modeling-cardinal-split-consumer
 
 The #1622 receipt records actual results and scope. It does not widen the
 direct-extrusion or one-split graph limit.
+
+The separately bounded two-chamfer chain flow uses eight model evaluations and
+one final-part tessellation, including cold reconstruction and atomic failures:
+
+```sh
+node --no-opt --max-old-space-size=2048 test/modeling-chamfer-chain-native.mjs
+node --no-opt --max-old-space-size=2048 scripts/modeling-chamfer-chain-consumer.mjs test/modeling-chamfer-chain-evidence
+```
+
+See #1625 for the exact rectangular witness and measured source/emitted receipts.
