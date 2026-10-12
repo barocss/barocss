@@ -108,7 +108,8 @@ export function createImageAssetCache(options: ImageAssetCacheOptions = {}): Ima
       let rejectCancellation: (reason: unknown) => void = () => {};
       const cancellation = new Promise<never>((_resolve, reject) => { rejectCancellation = reject; });
       let record: Pending;
-      const fetched = loadImageURL(key, { signal: controller.signal, fetcher });
+      // Publish the complete pending record before caller-controlled fetcher reentry.
+      const fetched = Promise.resolve().then(() => loadImageURL(key, { signal: controller.signal, fetcher }));
       const promise = Promise.race([fetched, cancellation]).then(asset => {
         if (disposed || pending.get(key) !== record) throw abortError();
         const owned = copyImageAsset(asset);

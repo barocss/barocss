@@ -1,0 +1,989 @@
+{
+  "issue": 1285,
+  "status": "PASS: current-source and emitted CPU checks; original browser/GL UNRUN",
+  "base": "bb0177bc7d99897f4ea6a4e0e67a76ce642ee951",
+  "amendment": "https://github.com/barocss/barocss/issues/1285#issuecomment-6131760578",
+  "unavailableHistoricalNative": "e0c2181db41224972034e758ab2621481741bc0e",
+  "historicalEvidenceReused": false,
+  "preservedOriginalBlobs": {
+    "examples/canvas2d-scene/image-cache-probe.mjs": "56298ebf374e044fbe6647b1c134c504e706c6cd",
+    "packages/barocss-canvas2d/consumer/evidence/image-cache/cache-document.json": "7440d6fdae95f2d1d25a2280b10db74298952da2",
+    "packages/barocss-canvas2d/consumer/evidence/image-cache/observation.md": "c2098df20c85e1d15932f3154037b09378c5e97b",
+    "packages/barocss-canvas2d/consumer/evidence/image-cache/reopened.png": "cffb31a97b1fc6dc1f84ea08adbb446cf87f566c"
+  },
+  "maxLoadsPerActualRoot": 48,
+  "browserGL": "UNRUN; original issue gate remains open",
+  "plannedLoadsPerActualRoot": 40,
+  "plannedScenarios": 11,
+  "preRuntimeStaticCorrection": {
+    "initialProbeBlob": "df0082089b05372083d97303912ea90a1003de8c",
+    "cause": "Intentional bitmap close/scratch-reset exceptions conflicted with all-created-resources cleaned acceptance.",
+    "repair": "Replaced them with decoder rejection and pixel-read failure; all created bitmaps must close and all scratch dimensions must reach zero.",
+    "runtimeExecutedBeforeRepair": false
+  },
+  "testedCommit": "0710509430b7675b7661aa5e32cbc4515dfb518e",
+  "testedTree": "92a1bd72d17bc103348f1671fd29cdb8cb902861",
+  "testedProductAndProbe": {
+    "packages/barocss-canvas2d/src/image-cache.ts": {
+      "blob": "e5fa29039c0ff70c11974c5e8fc89d722471a09c",
+      "sha256": "8c30d8500bbcbb683da93074a9ffc589989849d63b9a8ce7c9e2c55ec4cbcd19"
+    },
+    "packages/barocss-canvas2d/consumer/image-cache-reentry-types.ts": {
+      "blob": "cd90ff95616ae60355e34c2b113ec88ad1a07dfb",
+      "sha256": "18627eec09dc0e3d184f1a313ff00e1f11c0128bb0d8afb6da754e1d9d25901b"
+    },
+    "packages/barocss-canvas2d/consumer/tsconfig.image-cache-reentry.json": {
+      "blob": "c1bd1994c8c791c18cd0d7f46757c2d121f3f09b",
+      "sha256": "4f802d96b835d7e2920e6eed067235ae0db36119527ca1a4ebff3b1a5acc59d7"
+    },
+    "packages/barocss-canvas2d/consumer/evidence/image-cache-reentry/probe.mjs": {
+      "blob": "075896bada321fe0397556bf86a46b2fe8793675",
+      "sha256": "56d276e9e185d3905630c24756ba64c06a0c7a097995cc369592bcb24a670ddc"
+    }
+  },
+  "typecheckedUnchangedHost": {
+    "path": "packages/barocss-canvas2d/consumer/image-cache.mjs",
+    "blob": "3294976c19af841f96ac47a17ed2670a230d62ac",
+    "sha256": "735379e45ac535430dff10378c14456d1f870dc12bd0479fdd2bddf8da2b4c2e"
+  },
+  "sourceTree": "6c22b0c9c48f42b4772f4ce91100c95992ea9dc3",
+  "toolchain": {
+    "node": "22.23.3",
+    "typescript": "5.9.3",
+    "esbuild": "0.25.12",
+    "nodeMaxOldSpaceMiB": 1536,
+    "rayonThreads": 1
+  },
+  "checks": [
+    {
+      "name": "package-types",
+      "exitCode": 0,
+      "seconds": 5,
+      "head": "0710509430b7675b7661aa5e32cbc4515dfb518e",
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "-p",
+        "packages/barocss-canvas2d/tsconfig.json"
+      ]
+    },
+    {
+      "name": "package-bundle",
+      "exitCode": 0,
+      "seconds": 0,
+      "head": "0710509430b7675b7661aa5e32cbc4515dfb518e",
+      "command": [
+        "node",
+        "node_modules/esbuild/bin/esbuild",
+        "packages/barocss-canvas2d/src/index.ts",
+        "--bundle",
+        "--format=esm",
+        "--platform=browser",
+        "--target=es2022",
+        "--outfile=packages/barocss-canvas2d/dist/index.js"
+      ]
+    },
+    {
+      "name": "consumer-types",
+      "exitCode": 0,
+      "seconds": 5,
+      "head": "0710509430b7675b7661aa5e32cbc4515dfb518e",
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "-p",
+        "packages/barocss-canvas2d/consumer/tsconfig.image-cache-reentry.json"
+      ]
+    },
+    {
+      "name": "source-bundle",
+      "exitCode": 0,
+      "seconds": 0,
+      "head": "0710509430b7675b7661aa5e32cbc4515dfb518e",
+      "command": [
+        "node",
+        "node_modules/esbuild/bin/esbuild",
+        "packages/barocss-canvas2d/src/index.ts",
+        "--bundle",
+        "--format=esm",
+        "--platform=node",
+        "--target=node22",
+        "--outfile=/tmp/barocss-1285-source/index.mjs",
+        "--metafile=/tmp/barocss-1285-source/metafile.json"
+      ]
+    },
+    {
+      "name": "source-probe",
+      "exitCode": 0,
+      "seconds": 0,
+      "head": "0710509430b7675b7661aa5e32cbc4515dfb518e",
+      "command": [
+        "env",
+        "BAROCSS_CACHE_MODULE=file:///tmp/barocss-1285-source/index.mjs",
+        "node",
+        "packages/barocss-canvas2d/consumer/evidence/image-cache-reentry/probe.mjs"
+      ]
+    },
+    {
+      "name": "emitted-probe",
+      "exitCode": 0,
+      "seconds": 0,
+      "head": "0710509430b7675b7661aa5e32cbc4515dfb518e",
+      "command": [
+        "node",
+        "packages/barocss-canvas2d/consumer/evidence/image-cache-reentry/probe.mjs"
+      ]
+    }
+  ],
+  "sourceBundle": {
+    "entryPoint": "packages/barocss-canvas2d/src/index.ts",
+    "inputCount": 41,
+    "allInputsActualPackageSources": true,
+    "inputs": {
+      "packages/barocss-canvas2d/src/application.ts": {
+        "blob": "76e003b89c494c5fd6f5e3d44ceed7944d326b25",
+        "sha256": "ba8d80198da03acf937ce84648423a27ace015e70527f0764171e99e77c192c2"
+      },
+      "packages/barocss-canvas2d/src/boolean.ts": {
+        "blob": "077cc66486841af8b4ab02d5e4f6d4a1b6a599c8",
+        "sha256": "0f88063b47c2710ae9f9606e51498640db6a0615958b2f3c462a45982320454b"
+      },
+      "packages/barocss-canvas2d/src/browser-text.ts": {
+        "blob": "1d93590428d244ac14c29a0f6143f9e8e3f18cda",
+        "sha256": "d97a5a00390f9176530ad00ec64684f1773f29e236ac7a4e074656fb7970a9dc"
+      },
+      "packages/barocss-canvas2d/src/clip.ts": {
+        "blob": "71b836ea12440633eba901fe56fbe72282f2d59c",
+        "sha256": "d0dda4a9efaef09861046ce774838c1b336da4a7684178bcddd25b8f6abb7ec3"
+      },
+      "packages/barocss-canvas2d/src/convex-intersection.ts": {
+        "blob": "8d85cf37303edf5c62540ed85fa159e8e8ffefae",
+        "sha256": "5c9df14edbe1f4593fc993e9a963dfa956cf4af64690a1e77ff1b389ec279e53"
+      },
+      "packages/barocss-canvas2d/src/display-tree.ts": {
+        "blob": "c2da68aa438ab8cb7ca223430ee5af9f618406f5",
+        "sha256": "f042389d1e9fee61743dd6d5d4e5daffbd2fadde3da48df0263ec07f14cf9b92"
+      },
+      "packages/barocss-canvas2d/src/image-alpha-mask.ts": {
+        "blob": "48b9dea047ab7407470719bcfeb4406f4ce16c51",
+        "sha256": "b76fa6657bb992737c84588999ae4f3582b3f835e425d1827df5fd2bf6e7736c"
+      },
+      "packages/barocss-canvas2d/src/image-alpha-matte.ts": {
+        "blob": "d1d506b594d07f8e449bf809e93514510ca877ff",
+        "sha256": "d4dd32341c2c088953555248e40b8448fb3d8ee4291e425428a906f2a2dd24d7"
+      },
+      "packages/barocss-canvas2d/src/image-blur.ts": {
+        "blob": "ba9e9ce01d9e8ca1cd9dc74777fe4de4b3a85ef9",
+        "sha256": "47b99acf03c80d40f5a6083fc957d59d41781adf645298974bc490fd46111ae5"
+      },
+      "packages/barocss-canvas2d/src/image-cache.ts": {
+        "blob": "e5fa29039c0ff70c11974c5e8fc89d722471a09c",
+        "sha256": "8c30d8500bbcbb683da93074a9ffc589989849d63b9a8ce7c9e2c55ec4cbcd19"
+      },
+      "packages/barocss-canvas2d/src/image-color-key.ts": {
+        "blob": "47cd5eaa7cc5950eb0eedf0bedc27bdbcb78ad54",
+        "sha256": "99fa7252746b5f3522b8b790265e125f31ef2388992822c5cae22b649cc5be9a"
+      },
+      "packages/barocss-canvas2d/src/image-color.ts": {
+        "blob": "57704009a3eb59adf7fd2e486650058f4f119aad",
+        "sha256": "f1a132413cbaae3ff91d8eb69b02764f18feba4aedd9dfb620ac4ed95e1615a1"
+      },
+      "packages/barocss-canvas2d/src/image-composite.ts": {
+        "blob": "e71f21192f0ba0260e3ce19072bfbb8d3d6ed9d3",
+        "sha256": "253daba7d2ad61982b827efd48e7bc0c85972512abb1d3261942287472ead56b"
+      },
+      "packages/barocss-canvas2d/src/image-crop.ts": {
+        "blob": "c1aca0938ce184c2483d55385fb6d91939e0ff6d",
+        "sha256": "29270e89720237eb290ddb1ddfbb14c05035cabbed4eef4d663d552732844ffb"
+      },
+      "packages/barocss-canvas2d/src/image-decode.ts": {
+        "blob": "dbec475205bd350d41f0b58e95f512bdd825e267",
+        "sha256": "eeaac211aa3be6dc63ec084aa4906ce4284cda9cb8c820e894648ad6e59e99cc"
+      },
+      "packages/barocss-canvas2d/src/image-extrude.ts": {
+        "blob": "95b0aabc8faa1609059be138e0730bfa87c06035",
+        "sha256": "78724b21ca1764a4bd76cc73694051b7b5d38dc6c1e07869253b1dc3d439e972"
+      },
+      "packages/barocss-canvas2d/src/image-mirror.ts": {
+        "blob": "0dd82c9eaf8a620a8d88e40589215ca56d03b8f1",
+        "sha256": "22c91bb13079ac865ccf9dba1167b255c37f3f451b7f8fc64184448a531f0f02"
+      },
+      "packages/barocss-canvas2d/src/image-outline.ts": {
+        "blob": "c281b2fe98258f2df525402f905063bd83d765cb",
+        "sha256": "a4cc4f4753e44c1617425ce838d552590faa45785f66caf912836021c292dd85"
+      },
+      "packages/barocss-canvas2d/src/image-pad.ts": {
+        "blob": "d1d4d230457526e15cb460e03c3351f1820a85ae",
+        "sha256": "1fc90c05b1862c11e1a38541786d3218f1692ed9b27e328d7e6d68080b018a5d"
+      },
+      "packages/barocss-canvas2d/src/image-resize.ts": {
+        "blob": "4d27950a5ee5805a4b6efe3bfd899c329248087c",
+        "sha256": "8c693945c615d621f62645c7fa68dba9df34e9bf2785c45dc0d7d5af03d1dba5"
+      },
+      "packages/barocss-canvas2d/src/image-rotate.ts": {
+        "blob": "b4aa09838065f1dcdaf1afb5e347a75aec7ff98f",
+        "sha256": "abb99164fd898c5608577ee1d6b74487023fe57d81ca8a8edbf548d3422d62f3"
+      },
+      "packages/barocss-canvas2d/src/image-shadow.ts": {
+        "blob": "3c5e42f87e335f03da10b8ef01bb67f62b19c1a7",
+        "sha256": "e9254927dcbdff0bb8f6695dd509aaf387fd3beaf6a145498e8c11240110179a"
+      },
+      "packages/barocss-canvas2d/src/image-trim.ts": {
+        "blob": "678da8f408f9492d7dadb7551f7ad694b16cfdf0",
+        "sha256": "0b279b28ed4c360d3dcbc97769f8acb4f53a73df1506ea5d6fc59e73d45f9191"
+      },
+      "packages/barocss-canvas2d/src/image-url.ts": {
+        "blob": "75eb2e39ba0d2be7755191eb79e4030345cc62c3",
+        "sha256": "687c3e015a2b841a8f6dde9fe0446ecc2f49c69cb4b71cf6dc8286295006aeb5"
+      },
+      "packages/barocss-canvas2d/src/image.ts": {
+        "blob": "6817418a8d2bbb5af9991d0841bdcea45ac35a00",
+        "sha256": "d6132d5ac4dd77c909a48c0d945eac4e04570f5160778d2afad361563dcfccc2"
+      },
+      "packages/barocss-canvas2d/src/index.ts": {
+        "blob": "893719b35586f8ad1b22155881d8168f5069564d",
+        "sha256": "552c97fb55fd5ed74fa5de5a95cbd67c6b16320824917f291609bd148dd23667"
+      },
+      "packages/barocss-canvas2d/src/path-builder.ts": {
+        "blob": "4c005157e1cccf3ab4327c9ec9e5baa6bede6d8a",
+        "sha256": "f01eda1b81ffcfd74c0d015e2baa5f5bd3b2d732d8036b2e16201c819194cd61"
+      },
+      "packages/barocss-canvas2d/src/path-split.ts": {
+        "blob": "e964eac5fc95300d15e6271c8a6acf2efeb9fde5",
+        "sha256": "077dc84c85afc4bcad58b3a7f9ce7b1d2b91d97572b62745b03eab63ef5dcef1"
+      },
+      "packages/barocss-canvas2d/src/path.ts": {
+        "blob": "5157edefb6d0cc27983709680988470c28153e29",
+        "sha256": "9886484ff3ed1f057a8297b8d7f9eacaeb105ee8214361e917974f29b9e6952d"
+      },
+      "packages/barocss-canvas2d/src/polygon-mask-gpu.ts": {
+        "blob": "d5c534ed5e3ac3e92dde32c77046cebd637eafb8",
+        "sha256": "0fc8d866ae30409a457227b7c5d81f8f775d63504d0e9a8fee62a3181ef54e61"
+      },
+      "packages/barocss-canvas2d/src/polygon-mask.ts": {
+        "blob": "470034d1b29a49536ebfc84f0748587283f4de0d",
+        "sha256": "a149409415c8f8813b4055c9b7ea25918293b1391bec575bf07c8ea11e863b8e"
+      },
+      "packages/barocss-canvas2d/src/renderer.ts": {
+        "blob": "c8bdb7b72f7b5c6fa5edf3ce0645836e150dfd24",
+        "sha256": "31ad5333af50480f267d7e451f0a71b9af31376f13f03b19fbcdb60edc3b8b1e"
+      },
+      "packages/barocss-canvas2d/src/scene-subtree-duplicate.ts": {
+        "blob": "32d3bfff3e08eb156055ba164e47516915af3ea6",
+        "sha256": "fc8ec8fb3616b6c47f3dcc4a5dbe9e1b122c732d9db30f7ece24c75e5bf34279"
+      },
+      "packages/barocss-canvas2d/src/schema.ts": {
+        "blob": "4e058508380afee2b41d5a3cdb2089d3f18409a6",
+        "sha256": "370ff729c3f9199bae852e8eec0e197e744762d226c201448f5fa25e29955388"
+      },
+      "packages/barocss-canvas2d/src/sprite-animation.ts": {
+        "blob": "aee01db8e6636c76800de2f02d9cae0bbb8fbdc5",
+        "sha256": "04e5c773ccb2e69f9a8b2e0b4f59e248cbe7d8adaaf1c15d9f0bcdaa3cdcd3ba"
+      },
+      "packages/barocss-canvas2d/src/sprite-atlas-pack.ts": {
+        "blob": "b98acdab9b2573dbfb063e56c71c21de0b945727",
+        "sha256": "d5c2d4d9faeb664e50935474636b2b85baf9d08a00e9606a529cb8eec2254f5b"
+      },
+      "packages/barocss-canvas2d/src/sprite-atlas.ts": {
+        "blob": "54ea4bd98aa8952effe6a82619880cc0706a6ae9",
+        "sha256": "b7a8c3768c7d178bbe57832db13be6574b132d3c435cbdee9df57bfb64698c7a"
+      },
+      "packages/barocss-canvas2d/src/svg-export.ts": {
+        "blob": "07b9c824748a3c6cdd8e435698c44a11713adce1",
+        "sha256": "a53da78133cb33e5c47a493b052f3fbd672867bf4d04e8aceb70186b35c185c9"
+      },
+      "packages/barocss-canvas2d/src/svg.ts": {
+        "blob": "fba2ee9f4bd864853c41ab673e9f42b479b67388",
+        "sha256": "a375b5beae7a9c0387b167534a72d967c6ff011cf8144f230bc8dfdce2a879a6"
+      },
+      "packages/barocss-canvas2d/src/ticker.ts": {
+        "blob": "5861913ffbc8029eb46f5fc893aab54924abedfa",
+        "sha256": "de0b6027930695ac974e84db8013752f5d681673ddbcef28d960b3e0f56b5dbe"
+      },
+      "packages/barocss-canvas2d/src/tile.ts": {
+        "blob": "bc2f185e79fa2af2454b21d9bff44e4a0c097df8",
+        "sha256": "ccfbb0161962517117a7d907f48e03039475b92327a26d46eca95f6983fa50d4"
+      }
+    },
+    "sha256": "dc0b4c53533cfd490a82c1db77a43cfe12698d03ebb86aa1d52dedfdcc6a1d35"
+  },
+  "emittedBundle": {
+    "path": "packages/barocss-canvas2d/dist/index.js",
+    "sha256": "dc0b4c53533cfd490a82c1db77a43cfe12698d03ebb86aa1d52dedfdcc6a1d35",
+    "publicDeclarationsSha256": "9d2bc5c8413461b943d4a00464846f16ebb710092eaa95e84c01398d4a5057ec"
+  },
+  "reports": {
+    "source": {
+      "result": "ok",
+      "scope": "bounded CPU control flow through actual public cache/URL/decoder",
+      "actualNetwork": false,
+      "actualPNGDecode": false,
+      "browserOrGPU": false,
+      "loadLimit": 48,
+      "exactLoadCalls": 40,
+      "cachesDisposed": 11,
+      "encodedFixtureBytes": 16,
+      "decodedAsset": {
+        "width": 2,
+        "height": 2,
+        "bytes": 16
+      },
+      "unhandledRejections": 0,
+      "globalsAndListenerRestored": true,
+      "expectedFailureResources": {
+        "headerResponseDrainedByHarness": 1,
+        "readerReleaseThrowsAfterUnlock": 1,
+        "bitmapRejectionCreatesNoBitmap": 1,
+        "pixelReadFailureStillClosesAndZeros": 1
+      },
+      "allCreatedBitmapsClosed": true,
+      "allScratchDimensionsZero": true,
+      "counters": {
+        "loadCalls": 40,
+        "fetches": 17,
+        "responses": 16,
+        "readers": 11,
+        "reads": 21,
+        "readerCancels": 1,
+        "readerReleases": 11,
+        "bodyCancels": 4,
+        "manualBodyCancels": 1,
+        "decodeCalls": 9,
+        "bitmaps": 8,
+        "bitmapCloseAttempts": 8,
+        "bitmapCloseCompleted": 8,
+        "canvases": 8,
+        "scratchWidthZeroAttempts": 8,
+        "scratchWidthZeroCompleted": 8,
+        "scratchHeightZeros": 8,
+        "expectedBodyCancelRejections": 1,
+        "expectedReaderCancelRejections": 1,
+        "expectedReaderReleaseErrors": 1,
+        "expectedBitmapDecodeRejections": 1,
+        "expectedPixelReadErrors": 1
+      },
+      "matrix": [
+        {
+          "name": "synchronous-same-key-reentry-and-full-capacity",
+          "loadCalls": 4,
+          "fetches": 1,
+          "responses": 1,
+          "readers": 1,
+          "reads": 2,
+          "readerCancels": 0,
+          "readerReleases": 1,
+          "bodyCancels": 0,
+          "manualBodyCancels": 0,
+          "decodeCalls": 1,
+          "bitmaps": 1,
+          "bitmapCloseAttempts": 1,
+          "bitmapCloseCompleted": 1,
+          "canvases": 1,
+          "scratchWidthZeroAttempts": 1,
+          "scratchWidthZeroCompleted": 1,
+          "scratchHeightZeros": 1,
+          "expectedBodyCancelRejections": 0,
+          "expectedReaderCancelRejections": 0,
+          "expectedReaderReleaseErrors": 0,
+          "expectedBitmapDecodeRejections": 0,
+          "expectedPixelReadErrors": 0
+        },
+        {
+          "name": "fetch-callback-delete-cancels-reentrant-waiters",
+          "loadCalls": 2,
+          "fetches": 1,
+          "responses": 1,
+          "readers": 0,
+          "reads": 0,
+          "readerCancels": 0,
+          "readerReleases": 0,
+          "bodyCancels": 1,
+          "manualBodyCancels": 0,
+          "decodeCalls": 0,
+          "bitmaps": 0,
+          "bitmapCloseAttempts": 0,
+          "bitmapCloseCompleted": 0,
+          "canvases": 0,
+          "scratchWidthZeroAttempts": 0,
+          "scratchWidthZeroCompleted": 0,
+          "scratchHeightZeros": 0,
+          "expectedBodyCancelRejections": 0,
+          "expectedReaderCancelRejections": 0,
+          "expectedReaderReleaseErrors": 0,
+          "expectedBitmapDecodeRejections": 0,
+          "expectedPixelReadErrors": 0
+        },
+        {
+          "name": "fetch-callback-clear-cancels-reentrant-waiters",
+          "loadCalls": 2,
+          "fetches": 1,
+          "responses": 1,
+          "readers": 0,
+          "reads": 0,
+          "readerCancels": 0,
+          "readerReleases": 0,
+          "bodyCancels": 1,
+          "manualBodyCancels": 0,
+          "decodeCalls": 0,
+          "bitmaps": 0,
+          "bitmapCloseAttempts": 0,
+          "bitmapCloseCompleted": 0,
+          "canvases": 0,
+          "scratchWidthZeroAttempts": 0,
+          "scratchWidthZeroCompleted": 0,
+          "scratchHeightZeros": 0,
+          "expectedBodyCancelRejections": 1,
+          "expectedReaderCancelRejections": 0,
+          "expectedReaderReleaseErrors": 0,
+          "expectedBitmapDecodeRejections": 0,
+          "expectedPixelReadErrors": 0
+        },
+        {
+          "name": "fetch-callback-dispose-cancels-reentrant-waiters",
+          "loadCalls": 2,
+          "fetches": 1,
+          "responses": 1,
+          "readers": 0,
+          "reads": 0,
+          "readerCancels": 0,
+          "readerReleases": 0,
+          "bodyCancels": 1,
+          "manualBodyCancels": 0,
+          "decodeCalls": 0,
+          "bitmaps": 0,
+          "bitmapCloseAttempts": 0,
+          "bitmapCloseCompleted": 0,
+          "canvases": 0,
+          "scratchWidthZeroAttempts": 0,
+          "scratchWidthZeroCompleted": 0,
+          "scratchHeightZeros": 0,
+          "expectedBodyCancelRejections": 0,
+          "expectedReaderCancelRejections": 0,
+          "expectedReaderReleaseErrors": 0,
+          "expectedBitmapDecodeRejections": 0,
+          "expectedPixelReadErrors": 0
+        },
+        {
+          "name": "same-turn-delete-prevents-dispatch",
+          "loadCalls": 2,
+          "fetches": 0,
+          "responses": 0,
+          "readers": 0,
+          "reads": 0,
+          "readerCancels": 0,
+          "readerReleases": 0,
+          "bodyCancels": 0,
+          "manualBodyCancels": 0,
+          "decodeCalls": 0,
+          "bitmaps": 0,
+          "bitmapCloseAttempts": 0,
+          "bitmapCloseCompleted": 0,
+          "canvases": 0,
+          "scratchWidthZeroAttempts": 0,
+          "scratchWidthZeroCompleted": 0,
+          "scratchHeightZeros": 0,
+          "expectedBodyCancelRejections": 0,
+          "expectedReaderCancelRejections": 0,
+          "expectedReaderReleaseErrors": 0,
+          "expectedBitmapDecodeRejections": 0,
+          "expectedPixelReadErrors": 0
+        },
+        {
+          "name": "same-turn-clear-prevents-dispatch",
+          "loadCalls": 2,
+          "fetches": 0,
+          "responses": 0,
+          "readers": 0,
+          "reads": 0,
+          "readerCancels": 0,
+          "readerReleases": 0,
+          "bodyCancels": 0,
+          "manualBodyCancels": 0,
+          "decodeCalls": 0,
+          "bitmaps": 0,
+          "bitmapCloseAttempts": 0,
+          "bitmapCloseCompleted": 0,
+          "canvases": 0,
+          "scratchWidthZeroAttempts": 0,
+          "scratchWidthZeroCompleted": 0,
+          "scratchHeightZeros": 0,
+          "expectedBodyCancelRejections": 0,
+          "expectedReaderCancelRejections": 0,
+          "expectedReaderReleaseErrors": 0,
+          "expectedBitmapDecodeRejections": 0,
+          "expectedPixelReadErrors": 0
+        },
+        {
+          "name": "same-turn-dispose-prevents-dispatch",
+          "loadCalls": 2,
+          "fetches": 0,
+          "responses": 0,
+          "readers": 0,
+          "reads": 0,
+          "readerCancels": 0,
+          "readerReleases": 0,
+          "bodyCancels": 0,
+          "manualBodyCancels": 0,
+          "decodeCalls": 0,
+          "bitmaps": 0,
+          "bitmapCloseAttempts": 0,
+          "bitmapCloseCompleted": 0,
+          "canvases": 0,
+          "scratchWidthZeroAttempts": 0,
+          "scratchWidthZeroCompleted": 0,
+          "scratchHeightZeros": 0,
+          "expectedBodyCancelRejections": 0,
+          "expectedReaderCancelRejections": 0,
+          "expectedReaderReleaseErrors": 0,
+          "expectedBitmapDecodeRejections": 0,
+          "expectedPixelReadErrors": 0
+        },
+        {
+          "name": "mapped-fetch-failure-preserves-resident-and-retries",
+          "loadCalls": 5,
+          "fetches": 3,
+          "responses": 2,
+          "readers": 2,
+          "reads": 4,
+          "readerCancels": 0,
+          "readerReleases": 2,
+          "bodyCancels": 0,
+          "manualBodyCancels": 0,
+          "decodeCalls": 2,
+          "bitmaps": 2,
+          "bitmapCloseAttempts": 2,
+          "bitmapCloseCompleted": 2,
+          "canvases": 2,
+          "scratchWidthZeroAttempts": 2,
+          "scratchWidthZeroCompleted": 2,
+          "scratchHeightZeros": 2,
+          "expectedBodyCancelRejections": 0,
+          "expectedReaderCancelRejections": 0,
+          "expectedReaderReleaseErrors": 0,
+          "expectedBitmapDecodeRejections": 0,
+          "expectedPixelReadErrors": 0
+        },
+        {
+          "name": "exposed-errors-and-best-effort-cleanup-preserve-resident",
+          "loadCalls": 11,
+          "fetches": 6,
+          "responses": 6,
+          "readers": 5,
+          "reads": 9,
+          "readerCancels": 1,
+          "readerReleases": 5,
+          "bodyCancels": 0,
+          "manualBodyCancels": 1,
+          "decodeCalls": 3,
+          "bitmaps": 2,
+          "bitmapCloseAttempts": 2,
+          "bitmapCloseCompleted": 2,
+          "canvases": 2,
+          "scratchWidthZeroAttempts": 2,
+          "scratchWidthZeroCompleted": 2,
+          "scratchHeightZeros": 2,
+          "expectedBodyCancelRejections": 0,
+          "expectedReaderCancelRejections": 1,
+          "expectedReaderReleaseErrors": 1,
+          "expectedBitmapDecodeRejections": 1,
+          "expectedPixelReadErrors": 1
+        },
+        {
+          "name": "cancelled-finally-keeps-new-pending-and-late-response-keeps-resident",
+          "loadCalls": 5,
+          "fetches": 2,
+          "responses": 2,
+          "readers": 1,
+          "reads": 2,
+          "readerCancels": 0,
+          "readerReleases": 1,
+          "bodyCancels": 1,
+          "manualBodyCancels": 0,
+          "decodeCalls": 1,
+          "bitmaps": 1,
+          "bitmapCloseAttempts": 1,
+          "bitmapCloseCompleted": 1,
+          "canvases": 1,
+          "scratchWidthZeroAttempts": 1,
+          "scratchWidthZeroCompleted": 1,
+          "scratchHeightZeros": 1,
+          "expectedBodyCancelRejections": 0,
+          "expectedReaderCancelRejections": 0,
+          "expectedReaderReleaseErrors": 0,
+          "expectedBitmapDecodeRejections": 0,
+          "expectedPixelReadErrors": 0
+        },
+        {
+          "name": "pending-decode-cancellation-cannot-overwrite-new-resident",
+          "loadCalls": 3,
+          "fetches": 2,
+          "responses": 2,
+          "readers": 2,
+          "reads": 4,
+          "readerCancels": 0,
+          "readerReleases": 2,
+          "bodyCancels": 0,
+          "manualBodyCancels": 0,
+          "decodeCalls": 2,
+          "bitmaps": 2,
+          "bitmapCloseAttempts": 2,
+          "bitmapCloseCompleted": 2,
+          "canvases": 2,
+          "scratchWidthZeroAttempts": 2,
+          "scratchWidthZeroCompleted": 2,
+          "scratchHeightZeros": 2,
+          "expectedBodyCancelRejections": 0,
+          "expectedReaderCancelRejections": 0,
+          "expectedReaderReleaseErrors": 0,
+          "expectedBitmapDecodeRejections": 0,
+          "expectedPixelReadErrors": 0
+        }
+      ]
+    },
+    "emitted": {
+      "result": "ok",
+      "scope": "bounded CPU control flow through actual public cache/URL/decoder",
+      "actualNetwork": false,
+      "actualPNGDecode": false,
+      "browserOrGPU": false,
+      "loadLimit": 48,
+      "exactLoadCalls": 40,
+      "cachesDisposed": 11,
+      "encodedFixtureBytes": 16,
+      "decodedAsset": {
+        "width": 2,
+        "height": 2,
+        "bytes": 16
+      },
+      "unhandledRejections": 0,
+      "globalsAndListenerRestored": true,
+      "expectedFailureResources": {
+        "headerResponseDrainedByHarness": 1,
+        "readerReleaseThrowsAfterUnlock": 1,
+        "bitmapRejectionCreatesNoBitmap": 1,
+        "pixelReadFailureStillClosesAndZeros": 1
+      },
+      "allCreatedBitmapsClosed": true,
+      "allScratchDimensionsZero": true,
+      "counters": {
+        "loadCalls": 40,
+        "fetches": 17,
+        "responses": 16,
+        "readers": 11,
+        "reads": 21,
+        "readerCancels": 1,
+        "readerReleases": 11,
+        "bodyCancels": 4,
+        "manualBodyCancels": 1,
+        "decodeCalls": 9,
+        "bitmaps": 8,
+        "bitmapCloseAttempts": 8,
+        "bitmapCloseCompleted": 8,
+        "canvases": 8,
+        "scratchWidthZeroAttempts": 8,
+        "scratchWidthZeroCompleted": 8,
+        "scratchHeightZeros": 8,
+        "expectedBodyCancelRejections": 1,
+        "expectedReaderCancelRejections": 1,
+        "expectedReaderReleaseErrors": 1,
+        "expectedBitmapDecodeRejections": 1,
+        "expectedPixelReadErrors": 1
+      },
+      "matrix": [
+        {
+          "name": "synchronous-same-key-reentry-and-full-capacity",
+          "loadCalls": 4,
+          "fetches": 1,
+          "responses": 1,
+          "readers": 1,
+          "reads": 2,
+          "readerCancels": 0,
+          "readerReleases": 1,
+          "bodyCancels": 0,
+          "manualBodyCancels": 0,
+          "decodeCalls": 1,
+          "bitmaps": 1,
+          "bitmapCloseAttempts": 1,
+          "bitmapCloseCompleted": 1,
+          "canvases": 1,
+          "scratchWidthZeroAttempts": 1,
+          "scratchWidthZeroCompleted": 1,
+          "scratchHeightZeros": 1,
+          "expectedBodyCancelRejections": 0,
+          "expectedReaderCancelRejections": 0,
+          "expectedReaderReleaseErrors": 0,
+          "expectedBitmapDecodeRejections": 0,
+          "expectedPixelReadErrors": 0
+        },
+        {
+          "name": "fetch-callback-delete-cancels-reentrant-waiters",
+          "loadCalls": 2,
+          "fetches": 1,
+          "responses": 1,
+          "readers": 0,
+          "reads": 0,
+          "readerCancels": 0,
+          "readerReleases": 0,
+          "bodyCancels": 1,
+          "manualBodyCancels": 0,
+          "decodeCalls": 0,
+          "bitmaps": 0,
+          "bitmapCloseAttempts": 0,
+          "bitmapCloseCompleted": 0,
+          "canvases": 0,
+          "scratchWidthZeroAttempts": 0,
+          "scratchWidthZeroCompleted": 0,
+          "scratchHeightZeros": 0,
+          "expectedBodyCancelRejections": 0,
+          "expectedReaderCancelRejections": 0,
+          "expectedReaderReleaseErrors": 0,
+          "expectedBitmapDecodeRejections": 0,
+          "expectedPixelReadErrors": 0
+        },
+        {
+          "name": "fetch-callback-clear-cancels-reentrant-waiters",
+          "loadCalls": 2,
+          "fetches": 1,
+          "responses": 1,
+          "readers": 0,
+          "reads": 0,
+          "readerCancels": 0,
+          "readerReleases": 0,
+          "bodyCancels": 1,
+          "manualBodyCancels": 0,
+          "decodeCalls": 0,
+          "bitmaps": 0,
+          "bitmapCloseAttempts": 0,
+          "bitmapCloseCompleted": 0,
+          "canvases": 0,
+          "scratchWidthZeroAttempts": 0,
+          "scratchWidthZeroCompleted": 0,
+          "scratchHeightZeros": 0,
+          "expectedBodyCancelRejections": 1,
+          "expectedReaderCancelRejections": 0,
+          "expectedReaderReleaseErrors": 0,
+          "expectedBitmapDecodeRejections": 0,
+          "expectedPixelReadErrors": 0
+        },
+        {
+          "name": "fetch-callback-dispose-cancels-reentrant-waiters",
+          "loadCalls": 2,
+          "fetches": 1,
+          "responses": 1,
+          "readers": 0,
+          "reads": 0,
+          "readerCancels": 0,
+          "readerReleases": 0,
+          "bodyCancels": 1,
+          "manualBodyCancels": 0,
+          "decodeCalls": 0,
+          "bitmaps": 0,
+          "bitmapCloseAttempts": 0,
+          "bitmapCloseCompleted": 0,
+          "canvases": 0,
+          "scratchWidthZeroAttempts": 0,
+          "scratchWidthZeroCompleted": 0,
+          "scratchHeightZeros": 0,
+          "expectedBodyCancelRejections": 0,
+          "expectedReaderCancelRejections": 0,
+          "expectedReaderReleaseErrors": 0,
+          "expectedBitmapDecodeRejections": 0,
+          "expectedPixelReadErrors": 0
+        },
+        {
+          "name": "same-turn-delete-prevents-dispatch",
+          "loadCalls": 2,
+          "fetches": 0,
+          "responses": 0,
+          "readers": 0,
+          "reads": 0,
+          "readerCancels": 0,
+          "readerReleases": 0,
+          "bodyCancels": 0,
+          "manualBodyCancels": 0,
+          "decodeCalls": 0,
+          "bitmaps": 0,
+          "bitmapCloseAttempts": 0,
+          "bitmapCloseCompleted": 0,
+          "canvases": 0,
+          "scratchWidthZeroAttempts": 0,
+          "scratchWidthZeroCompleted": 0,
+          "scratchHeightZeros": 0,
+          "expectedBodyCancelRejections": 0,
+          "expectedReaderCancelRejections": 0,
+          "expectedReaderReleaseErrors": 0,
+          "expectedBitmapDecodeRejections": 0,
+          "expectedPixelReadErrors": 0
+        },
+        {
+          "name": "same-turn-clear-prevents-dispatch",
+          "loadCalls": 2,
+          "fetches": 0,
+          "responses": 0,
+          "readers": 0,
+          "reads": 0,
+          "readerCancels": 0,
+          "readerReleases": 0,
+          "bodyCancels": 0,
+          "manualBodyCancels": 0,
+          "decodeCalls": 0,
+          "bitmaps": 0,
+          "bitmapCloseAttempts": 0,
+          "bitmapCloseCompleted": 0,
+          "canvases": 0,
+          "scratchWidthZeroAttempts": 0,
+          "scratchWidthZeroCompleted": 0,
+          "scratchHeightZeros": 0,
+          "expectedBodyCancelRejections": 0,
+          "expectedReaderCancelRejections": 0,
+          "expectedReaderReleaseErrors": 0,
+          "expectedBitmapDecodeRejections": 0,
+          "expectedPixelReadErrors": 0
+        },
+        {
+          "name": "same-turn-dispose-prevents-dispatch",
+          "loadCalls": 2,
+          "fetches": 0,
+          "responses": 0,
+          "readers": 0,
+          "reads": 0,
+          "readerCancels": 0,
+          "readerReleases": 0,
+          "bodyCancels": 0,
+          "manualBodyCancels": 0,
+          "decodeCalls": 0,
+          "bitmaps": 0,
+          "bitmapCloseAttempts": 0,
+          "bitmapCloseCompleted": 0,
+          "canvases": 0,
+          "scratchWidthZeroAttempts": 0,
+          "scratchWidthZeroCompleted": 0,
+          "scratchHeightZeros": 0,
+          "expectedBodyCancelRejections": 0,
+          "expectedReaderCancelRejections": 0,
+          "expectedReaderReleaseErrors": 0,
+          "expectedBitmapDecodeRejections": 0,
+          "expectedPixelReadErrors": 0
+        },
+        {
+          "name": "mapped-fetch-failure-preserves-resident-and-retries",
+          "loadCalls": 5,
+          "fetches": 3,
+          "responses": 2,
+          "readers": 2,
+          "reads": 4,
+          "readerCancels": 0,
+          "readerReleases": 2,
+          "bodyCancels": 0,
+          "manualBodyCancels": 0,
+          "decodeCalls": 2,
+          "bitmaps": 2,
+          "bitmapCloseAttempts": 2,
+          "bitmapCloseCompleted": 2,
+          "canvases": 2,
+          "scratchWidthZeroAttempts": 2,
+          "scratchWidthZeroCompleted": 2,
+          "scratchHeightZeros": 2,
+          "expectedBodyCancelRejections": 0,
+          "expectedReaderCancelRejections": 0,
+          "expectedReaderReleaseErrors": 0,
+          "expectedBitmapDecodeRejections": 0,
+          "expectedPixelReadErrors": 0
+        },
+        {
+          "name": "exposed-errors-and-best-effort-cleanup-preserve-resident",
+          "loadCalls": 11,
+          "fetches": 6,
+          "responses": 6,
+          "readers": 5,
+          "reads": 9,
+          "readerCancels": 1,
+          "readerReleases": 5,
+          "bodyCancels": 0,
+          "manualBodyCancels": 1,
+          "decodeCalls": 3,
+          "bitmaps": 2,
+          "bitmapCloseAttempts": 2,
+          "bitmapCloseCompleted": 2,
+          "canvases": 2,
+          "scratchWidthZeroAttempts": 2,
+          "scratchWidthZeroCompleted": 2,
+          "scratchHeightZeros": 2,
+          "expectedBodyCancelRejections": 0,
+          "expectedReaderCancelRejections": 1,
+          "expectedReaderReleaseErrors": 1,
+          "expectedBitmapDecodeRejections": 1,
+          "expectedPixelReadErrors": 1
+        },
+        {
+          "name": "cancelled-finally-keeps-new-pending-and-late-response-keeps-resident",
+          "loadCalls": 5,
+          "fetches": 2,
+          "responses": 2,
+          "readers": 1,
+          "reads": 2,
+          "readerCancels": 0,
+          "readerReleases": 1,
+          "bodyCancels": 1,
+          "manualBodyCancels": 0,
+          "decodeCalls": 1,
+          "bitmaps": 1,
+          "bitmapCloseAttempts": 1,
+          "bitmapCloseCompleted": 1,
+          "canvases": 1,
+          "scratchWidthZeroAttempts": 1,
+          "scratchWidthZeroCompleted": 1,
+          "scratchHeightZeros": 1,
+          "expectedBodyCancelRejections": 0,
+          "expectedReaderCancelRejections": 0,
+          "expectedReaderReleaseErrors": 0,
+          "expectedBitmapDecodeRejections": 0,
+          "expectedPixelReadErrors": 0
+        },
+        {
+          "name": "pending-decode-cancellation-cannot-overwrite-new-resident",
+          "loadCalls": 3,
+          "fetches": 2,
+          "responses": 2,
+          "readers": 2,
+          "reads": 4,
+          "readerCancels": 0,
+          "readerReleases": 2,
+          "bodyCancels": 0,
+          "manualBodyCancels": 0,
+          "decodeCalls": 2,
+          "bitmaps": 2,
+          "bitmapCloseAttempts": 2,
+          "bitmapCloseCompleted": 2,
+          "canvases": 2,
+          "scratchWidthZeroAttempts": 2,
+          "scratchWidthZeroCompleted": 2,
+          "scratchHeightZeros": 2,
+          "expectedBodyCancelRejections": 0,
+          "expectedReaderCancelRejections": 0,
+          "expectedReaderReleaseErrors": 0,
+          "expectedBitmapDecodeRejections": 0,
+          "expectedPixelReadErrors": 0
+        }
+      ]
+    }
+  },
+  "receiptHashes": {
+    "barocss-1285-commands-first.jsonl": "7fef7413d428910ea71c4687549b75f05dc15eafd328c79fad37dc95f4b5e8cb",
+    "barocss-1285-package-types-first.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "barocss-1285-package-types-first.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "barocss-1285-package-bundle-first.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "barocss-1285-package-bundle-first.stderr": "e35d079572a53da990205ae99db9463ba0b5097953a4717df21743e970789672",
+    "barocss-1285-consumer-types-first.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "barocss-1285-consumer-types-first.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "barocss-1285-source-bundle-first.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "barocss-1285-source-bundle-first.stderr": "f6b1c5f4d9a39bbe897a987449831fae06b9b1763d0627cf4ef10dbec9ef0abd",
+    "barocss-1285-source-probe-first.log": "c03458be96c760e16b949fd9b17ad57c7fb2785dc4686563d6f6b22d2c1a1cbb",
+    "barocss-1285-source-probe-first.stderr": "083f3bb107e3176ec9a64eb9749d0d331fea654a83421aebabd3fc77a59161d1",
+    "barocss-1285-emitted-probe-first.log": "c03458be96c760e16b949fd9b17ad57c7fb2785dc4686563d6f6b22d2c1a1cbb",
+    "barocss-1285-emitted-probe-first.stderr": "d0835be1923d502a3fbbf70af953406557680777d269163c104ccf2e1019d9f6"
+  },
+  "firstFunctionalFailures": [],
+  "outerRunnerExit": 0,
+  "minimumObservedWorkspaceFreeMiB": 546
+}
