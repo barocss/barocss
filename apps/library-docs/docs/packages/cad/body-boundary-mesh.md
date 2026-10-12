@@ -10,7 +10,7 @@ The image projects the shared packet's native XYZ positions and indexed triangle
 
 ## Load a complete Body and mesh its trimmed Faces
 
-<a href="/examples/body-boundary-mesh/main.owned-body.json" download>Download the complete Body input</a>. This JSON contains the full `main_body` result, including its qualified parents, original sources, two Models, topology and material proof. It is 1,997,294 bytes. Its exact parent volume is 520 mm³; it is a different Body from the smaller examples in other guides.
+<a :href="withBase('/examples/body-boundary-mesh/main.owned-body.json')" download>Download the complete Body input</a>. This JSON contains the full `main_body` result, including its qualified parents, original sources, two Models, topology and material proof. It is 1,997,294 bytes. Its exact parent volume is 520 mm³; it is a different Body from the smaller examples in other guides.
 
 The following browser application code reads the whole Body, tessellates it and validates the whole mesh result. Serve the downloaded asset at the shown URL in your application. Do not replace it with only its `body`, `models` or `report` field.
 
@@ -147,3 +147,7 @@ Direct native counts exclude work performed inside parent validation. Outside pa
 Use dense plain own-data arrays and records. Accessors, symbols, hidden fields, cycles and foreign prototypes refuse. A failed call returns no partial mesh and preserves caller data.
 
 [Qualified Body](./body-1301) · [CAD API](./api) · [Geometry examples](./examples)
+
+<script setup>
+import { withBase } from 'vitepress'
+</script>

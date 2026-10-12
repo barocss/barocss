@@ -15,6 +15,11 @@ import { buildGeneratedScene } from '../../scripts/build-generated-scene.mjs'
 import { buildSvgArcImport } from '../../scripts/build-svg-arc-import.mjs'
 import { buildRadialSvgExport } from '../../scripts/build-radial-svg-export.mjs'
 import { buildMaterialBench } from '../../scripts/build-material-bench.mjs'
+// Root hosting by default; GitHub project Pages uses BAROCSS_DOCS_BASE=/manual/.
+const base = process.env.BAROCSS_DOCS_BASE || '/'
+if (!/^\/(?:[a-zA-Z0-9_-]+\/)*$/.test(base)) {
+  throw new Error('BAROCSS_DOCS_BASE must be / or a slash-delimited path such as /manual/')
+}
 const appRoot = fileURLToPath(new URL('../../', import.meta.url))
 await Promise.all([buildAdvancedShader(appRoot), buildUnicodeLabel(appRoot), buildDiagramLabel(appRoot), buildPathEdit(appRoot), buildSvgExport(appRoot), buildRadialSvgExport(appRoot), buildReusableShader(appRoot), buildCadQuantityFunctions(appRoot), buildDiscreteMaterial(appRoot), buildSvgArcImport(appRoot), buildViewerDisplayPose(appRoot), buildCadAdaptiveSampling(appRoot), buildGeneratedScene(appRoot), buildMaterialBench(appRoot)])
 const packages = ['kit', 'browser', 'server', 'render', 'gpu', 'cad', 'cad-interop', 'canvas2d', 'viewer', 'physics', 'cad-editor', 'render-editor']
@@ -36,6 +41,7 @@ const sidebar = Object.fromEntries(packages.map(p => [`/packages/${p}/`, [
   ] }, { text: 'Shared concepts', items: common }, catalog
 ]]))
 export default defineConfig({
+  base,
   title: 'BaroCSS Libraries',
   description: 'Task guides and public API contracts for the BaroCSS library family.',
   lang: 'en-US',
@@ -44,7 +50,7 @@ export default defineConfig({
     const css = createRequire(import.meta.url).resolve('@docsearch/css')
     if (!server.config.server.fs.allow.includes(css)) server.config.server.fs.allow.push(css)
   } }] },
-  head: [['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }]],
+  head: [['link', { rel: 'icon', type: 'image/svg+xml', href: `${base}favicon.svg` }]],
   lastUpdated: false,
   themeConfig: {
     siteTitle: 'BaroCSS Libraries',

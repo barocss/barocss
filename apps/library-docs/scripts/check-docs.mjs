@@ -31,8 +31,8 @@ const builtAnchors = new Map();
 for (const page of pages) {
   const text = (await readFile(page, 'utf8')).replace(/```[\s\S]*?```/g, '');
   // Complete example data uses native download anchors, not documentation routes.
-  for (const match of text.matchAll(/<a\b[^>]*\bhref="([^"?#]+\.json)"[^>]*>/g)) {
-    const href = match[1];
+  for (const match of text.matchAll(/<a\b[^>]*\s(?::href="withBase\('([^'?#]+\.(?:json|css))'\)"|href="([^"?#]+\.(?:json|css))")[^>]*>/g)) {
+    const href = match[1] || match[2];
     if (!href.startsWith('/examples/')) throw new Error(`Unexpected example download: ${href}`);
     const source = resolve(docs, 'public', `.${href}`);
     const built = resolve(docs, '.vitepress/dist', `.${href}`);

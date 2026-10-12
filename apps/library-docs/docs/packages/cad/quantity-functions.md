@@ -27,7 +27,7 @@ version: 3; length-unit: mm;
 }
 ```
 
-<a href="/examples/cad-quantity-functions.cad.css" download>Download the complete initial Source3 input</a>.
+<a :href="withBase('/examples/cad-quantity-functions.cad.css')" download>Download the complete initial Source3 input</a>.
 
 The download matches the initial preset and **Reset example**, including its original CRLF line endings, comments, Unicode and numeric spellings. The source block shows the same complete program. This link does not save your current source draft or edited accepted state.
 
@@ -211,3 +211,7 @@ Native geometry validation can separately report coordinate, degree, knots, weig
 Preflight refuses excessive expansion before allocating numerical call frames. A short source can still exceed evaluation or complete-success limits through calls and retained receipts. Bounds authorize complete accepted results, not truncated calls, partial native geometry or a wider declaration family.
 
 [Source0/1/2 language](./language) · [CAD language examples](./language-examples) · [CAD examples](./examples) · [CAD guides](./guides)
+
+<script setup>
+import { withBase } from 'vitepress'
+</script>

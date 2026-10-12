@@ -182,7 +182,7 @@ Read the public error's `code`, `message` and `cause`. A zero width or zero dist
 
 ## Keep the complete native context
 
-<a href="/examples/cad-line-width-shell.json" download>Download the complete Line-width and Shell context</a>. It retains the original mixed source and Model, authored width intent, complete width construction, final 12 mm direct request/result and their separate generated sources. It is native example data, not a universal CAD document format or a certified Solid file.
+<a :href="withBase('/examples/cad-line-width-shell.json')" download>Download the complete Line-width and Shell context</a>. It retains the original mixed source and Model, authored width intent, complete width construction, final 12 mm direct request/result and their separate generated sources. It is native example data, not a universal CAD document format or a certified Solid file.
 
 The application container has `format:'barocss-docs-line-width-extrusion-context'`, `version:0` and the fixed `sourceProfile`, followed by `widthResult`, `extrusionRequest`, `extrusionResult` and `heightComparison`. The complete direct result uses the 12 mm distance. `heightComparison` contains separate readouts for 10 and 12 mm; those readouts do not replace either complete construction. These container fields are application conventions, not a package file schema.
 
@@ -191,3 +191,7 @@ Keep the original source text as text, including its `-0` spelling. In-memory co
 For a height edit, retain the width result and rebuild the direct result with the new distance. For a width edit, rebuild the width result from the complete original source, then build the direct result from the new `face`. Revalidate complete stored families when adopting them; do not reuse an old report as authority for changed geometry.
 
 Read [source0/1/2 language rules](./language) for the original input, [the bounded rectangle Solid example](./guides#build-a-bounded-rectangle-extrusion) for its different certification domain, and [complete Body data](./body-1301) for the separate qualified Body workflow.
+
+<script setup>
+import { withBase } from 'vitepress'
+</script>

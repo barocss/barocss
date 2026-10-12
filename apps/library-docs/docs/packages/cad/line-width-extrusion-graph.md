@@ -151,7 +151,7 @@ Outputs are mutable independent CPU copies, not deep-frozen live handles. Releas
 
 ## Save authored intent and reopen a fresh result
 
-<a href="/examples/cad-line-width-extrusion-graph.authored.json" download>Download the authored Line-width extrusion graph</a>.
+<a :href="withBase('/examples/cad-line-width-extrusion-graph.authored.json')" download>Download the authored Line-width extrusion graph</a>.
 
 The file is the public codec's authored document, not a wrapper containing budgets or evaluated results. It contains source text, fixed feature recipes, literal Parameters, suppression state and current revision. It contains no generated Models, width/extrusion receipts, Shell proofs, transaction, undo history or app display state.
 
@@ -250,3 +250,7 @@ Suppression does not bypass width construction, source validation or planned rol
 Parent Line/Face constraints remain the forward natural XY rectangle and positive-Z profile explained in [direct extrusion](./line-width-extrusion). No general frames, reversed inputs, holes, boolean operation, automatic pole substitution or tolerance repair is added by the graph.
 
 [Direct Line-width extrusion](./line-width-extrusion) · [CAD guides](./guides) · [CAD examples](./examples) · [Language rules](./language)
+
+<script setup>
+import { withBase } from 'vitepress'
+</script>

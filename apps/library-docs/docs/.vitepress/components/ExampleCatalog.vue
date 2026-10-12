@@ -1,4 +1,5 @@
 <script setup>
+import { withBase } from 'vitepress'
 import { ref, computed } from 'vue'
 import { exampleCatalog, exampleHref } from '../example-catalog.mjs'
 const libraries={cad:'CAD',gpu:'GPU',canvas2d:'Canvas2D',viewer:'Viewer',physics:'Physics'}
@@ -14,9 +15,9 @@ function clear(){library.value='all';purpose.value='all';query.value=''}
 <template>
 <section class="example-catalog" aria-label="Example catalog">
  <nav class="catalog-views" aria-label="Ways to browse examples">
-  <a href="/examples/library"><img src="/examples/path-edit.jpg" alt="Quadratic and cubic paths rendered by Canvas2D"/><strong>By library</strong><span>Choose a library, then open its language, API or workflow examples.</span></a>
-  <a href="/examples/language"><img src="/examples/advanced-shader.png" alt="Neon plasma rendered from a complete GPU shader"/><strong>Language practice</strong><span>Learn model declarations, scene syntax and material expressions.</span></a>
-  <a href="/examples/integration"><img src="/examples/cad-surface.png" alt="A sampled CAD surface displayed by the GPU renderer"/><strong>Integrated workflows</strong><span>Follow native data through multiple public libraries.</span></a>
+  <a :href="withBase('/examples/library')"><img :src="withBase('/examples/path-edit.jpg')" alt="Quadratic and cubic paths rendered by Canvas2D"/><strong>By library</strong><span>Choose a library, then open its language, API or workflow examples.</span></a>
+  <a :href="withBase('/examples/language')"><img :src="withBase('/examples/advanced-shader.png')" alt="Neon plasma rendered from a complete GPU shader"/><strong>Language practice</strong><span>Learn model declarations, scene syntax and material expressions.</span></a>
+  <a :href="withBase('/examples/integration')"><img :src="withBase('/examples/cad-surface.png')" alt="A sampled CAD surface displayed by the GPU renderer"/><strong>Integrated workflows</strong><span>Follow native data through multiple public libraries.</span></a>
  </nav>
  <div class="catalog-filters">
   <label>Library<select v-model="library" aria-label="Catalog library"><option value="all">All libraries</option><option v-for="(name,key) in libraries" :key="key" :value="key">{{name}}</option></select></label>
@@ -26,8 +27,8 @@ function clear(){library.value='all';purpose.value='all';query.value=''}
  <p class="catalog-count" role="status">{{matches.length}} of {{entries.length}} runnable examples</p>
  <ul class="catalog-list">
   <li v-for="[key,entry] in matches" :key="key">
-   <div><a class="catalog-title" :href="exampleHref(key)">{{entry.label}}</a><p class="catalog-meta">{{libraries[entry.library]}} · {{purposes[entry.category]}}</p><p>{{entry.summary}}</p></div>
-   <div class="catalog-actions"><a :href="exampleHref(key)">Run example</a><a :href="entry.guide">Read guide</a></div>
+   <div><a class="catalog-title" :href="withBase(exampleHref(key))">{{entry.label}}</a><p class="catalog-meta">{{libraries[entry.library]}} · {{purposes[entry.category]}}</p><p>{{entry.summary}}</p></div>
+   <div class="catalog-actions"><a :href="withBase(exampleHref(key))">Run example</a><a :href="withBase(entry.guide)">Read guide</a></div>
   </li>
  </ul>
  <div v-if="!matches.length" class="catalog-empty"><p>No examples match these filters.</p><button @click="clear">Clear filters</button></div>
