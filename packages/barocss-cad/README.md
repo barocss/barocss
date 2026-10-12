@@ -12,6 +12,31 @@ compiled checkpoint and publication.
 build configuration. Published files include compiled modules/declarations,
 original source, this README and the MIT LICENSE. Compiled runtime import needs no repository build scripts or TypeScript loader.
 
+## Start modeling with one API
+
+Use `cad.model()` for parameterized XY sketches, extrusion, supported through-slab
+cuts, exact edge selection, cardinal chamfer and authored Save/Open. The public
+workflow manages native identities and file versions internally:
+
+```ts
+import { cad } from '@barocss/cad';
+const model = cad.model();
+const width = model.parameter('width', 80);
+const plate = model.sketch.rectangle({ width, height: 60 }).extrude(10);
+const accepted = model.build({ plate });
+const wider = accepted.withParameters({ width: 100 });
+const reopened = cad.load(wider.save());
+const nativeSolid = reopened.bodies.plate;
+```
+
+Read the [modeling API guide](CONCISE_API.md) for the actual cut → component →
+chamfer workflow, immutable ownership, selection semantics, bounded capabilities,
+errors and verification commands. Existing low-level exports and legacy file
+readers below remain compatibility interfaces; new authors do not choose a v1/v2
+facade or supply topology incident-use identities.
+
+## Low-level source and exchange
+
 ```js
 import { compileCadModel, evaluateCurve, exportIGES } from '@barocss/cad';
 const compiled = compileCadModel(source, { sourceVersion: 0 });

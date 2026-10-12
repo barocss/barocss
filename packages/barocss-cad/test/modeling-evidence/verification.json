@@ -1,0 +1,386 @@
+{
+  "issue": 1611,
+  "status": "native final source/emitted/cold verified; parent integration and remote publication pending",
+  "base": "41a47d94def6e5c625e343824149cffb671ba221",
+  "productSHA256": {
+    "src/modeling.ts": "cb617f02316ee432982746f961c43e6c5b590964df02aacd5643cd6189336e54",
+    "src/public-api.ts": "92911a266b8b0abfef6db85e2b02eb6588a09dcef195dadd1512ac1641121534",
+    "src/index.ts": "bf23286bbac1c849a9ab07077356390d3bd00db15cb829036423000128d62e19"
+  },
+  "runtime": {
+    "node": "22.23.3",
+    "nativeArguments": [
+      "--no-opt",
+      "--max-old-space-size=2048"
+    ],
+    "diskFloorMiB": 500,
+    "evidenceCeilingMiB": 64,
+    "timeoutSeconds": 900
+  },
+  "campaigns": {
+    "initialSource": {
+      "evaluations": 15,
+      "note": "Preserved pre-hardening loaded source. Final product adds ordinary-array admission and pre-mutation per-kind checks; geometry evaluator unchanged.",
+      "bundleSHA256": "b478518cc53a2cb6cd593ab2ee14afc0047fdfb29c6fae7f4ced6df053628d04",
+      "actual": {
+        "compileCadModel": 900,
+        "buildConvexPlanarFace": 843,
+        "evaluateCurveD1": 20664,
+        "evaluateSurfaceD1": 10332,
+        "ExactAffinePlane": 1010,
+        "SectionRationalContext": 1166
+      },
+      "stages": [
+        {
+          "label": "user rectangle width80",
+          "observed": {
+            "compileCadModel": 14,
+            "buildConvexPlanarFace": 12,
+            "evaluateCurveD1": 288,
+            "evaluateSurfaceD1": 144,
+            "ExactAffinePlane": 18,
+            "SectionRationalContext": 21
+          }
+        },
+        {
+          "label": "rectangle width100 update",
+          "observed": {
+            "compileCadModel": 14,
+            "buildConvexPlanarFace": 12,
+            "evaluateCurveD1": 288,
+            "evaluateSurfaceD1": 144,
+            "ExactAffinePlane": 18,
+            "SectionRationalContext": 21
+          }
+        },
+        {
+          "label": "pentagon cut positive chamfer",
+          "observed": {
+            "compileCadModel": 98,
+            "buildConvexPlanarFace": 93,
+            "evaluateCurveD1": 2268,
+            "evaluateSurfaceD1": 1134,
+            "ExactAffinePlane": 106,
+            "SectionRationalContext": 122
+          }
+        },
+        {
+          "label": "batch height6 rearX20",
+          "observed": {
+            "compileCadModel": 103,
+            "buildConvexPlanarFace": 98,
+            "evaluateCurveD1": 2448,
+            "evaluateSurfaceD1": 1224,
+            "ExactAffinePlane": 111,
+            "SectionRationalContext": 127
+          }
+        },
+        {
+          "label": "setback2",
+          "observed": {
+            "compileCadModel": 98,
+            "buildConvexPlanarFace": 93,
+            "evaluateCurveD1": 2268,
+            "evaluateSurfaceD1": 1134,
+            "ExactAffinePlane": 106,
+            "SectionRationalContext": 122
+          }
+        },
+        {
+          "label": "cut upperX24",
+          "observed": {
+            "compileCadModel": 98,
+            "buildConvexPlanarFace": 93,
+            "evaluateCurveD1": 2268,
+            "evaluateSurfaceD1": 1134,
+            "ExactAffinePlane": 106,
+            "SectionRationalContext": 122
+          }
+        },
+        {
+          "label": "non-dyadic 80/3",
+          "observed": {
+            "compileCadModel": 43,
+            "buildConvexPlanarFace": 39,
+            "evaluateCurveD1": 972,
+            "evaluateSurfaceD1": 486,
+            "ExactAffinePlane": 52,
+            "SectionRationalContext": 61
+          }
+        },
+        {
+          "label": "tool misses taller parent",
+          "observed": {
+            "compileCadModel": 43,
+            "buildConvexPlanarFace": 39,
+            "evaluateCurveD1": 972,
+            "evaluateSurfaceD1": 486,
+            "ExactAffinePlane": 52,
+            "SectionRationalContext": 61
+          }
+        },
+        {
+          "label": "setback locality",
+          "observed": {
+            "compileCadModel": 67,
+            "buildConvexPlanarFace": 63,
+            "evaluateCurveD1": 1548,
+            "evaluateSurfaceD1": 774,
+            "ExactAffinePlane": 76,
+            "SectionRationalContext": 88
+          }
+        },
+        {
+          "label": "empty positive side",
+          "observed": {
+            "compileCadModel": 55,
+            "buildConvexPlanarFace": 51,
+            "evaluateCurveD1": 1260,
+            "evaluateSurfaceD1": 630,
+            "ExactAffinePlane": 64,
+            "SectionRationalContext": 74
+          }
+        },
+        {
+          "label": "ambiguous deferred edge",
+          "observed": {
+            "compileCadModel": 67,
+            "buildConvexPlanarFace": 63,
+            "evaluateCurveD1": 1548,
+            "evaluateSurfaceD1": 774,
+            "ExactAffinePlane": 76,
+            "SectionRationalContext": 87
+          }
+        },
+        {
+          "label": "missing deferred edge",
+          "observed": {
+            "compileCadModel": 67,
+            "buildConvexPlanarFace": 63,
+            "evaluateCurveD1": 1548,
+            "evaluateSurfaceD1": 774,
+            "ExactAffinePlane": 76,
+            "SectionRationalContext": 87
+          }
+        },
+        {
+          "label": "cut-only no chamfer",
+          "observed": {
+            "compileCadModel": 67,
+            "buildConvexPlanarFace": 63,
+            "evaluateCurveD1": 1548,
+            "evaluateSurfaceD1": 774,
+            "ExactAffinePlane": 76,
+            "SectionRationalContext": 87
+          }
+        },
+        {
+          "label": "y cut clockwise polygons",
+          "observed": {
+            "compileCadModel": 64,
+            "buildConvexPlanarFace": 60,
+            "evaluateCurveD1": 1440,
+            "evaluateSurfaceD1": 720,
+            "ExactAffinePlane": 72,
+            "SectionRationalContext": 83
+          }
+        },
+        {
+          "label": "native concave refusal",
+          "observed": {
+            "compileCadModel": 2,
+            "buildConvexPlanarFace": 1,
+            "evaluateCurveD1": 0,
+            "evaluateSurfaceD1": 0,
+            "ExactAffinePlane": 1,
+            "SectionRationalContext": 3
+          }
+        }
+      ]
+    },
+    "final": {
+      "evaluations": 6,
+      "note": "Final frozen source and compiled modules with separate-process cold load/re-edit.",
+      "bundleSHA256": "49f5d581193aadbb60bff1252e5b1f9ec61a5848f4df4be81eecc751e3ce39ad",
+      "actual": {
+        "compileCadModel": 369,
+        "buildConvexPlanarFace": 346,
+        "evaluateCurveD1": 8568,
+        "evaluateSurfaceD1": 4284,
+        "ExactAffinePlane": 410,
+        "SectionRationalContext": 471
+      },
+      "modes": {
+        "source": {
+          "status": "passed",
+          "evaluations": 1,
+          "stages": [
+            {
+              "label": "final source minimal plate after rejected third sketch",
+              "actual": {
+                "compileCadModel": 15,
+                "buildConvexPlanarFace": 12,
+                "evaluateCurveD1": 288,
+                "evaluateSurfaceD1": 144,
+                "ExactAffinePlane": 18,
+                "SectionRationalContext": 22
+              }
+            }
+          ]
+        },
+        "emitted": {
+          "status": "passed",
+          "evaluations": 1,
+          "stages": [
+            {
+              "label": "emitted cut-only after rejected second cut and third sketch",
+              "actual": {
+                "compileCadModel": 67,
+                "buildConvexPlanarFace": 63,
+                "evaluateCurveD1": 1548,
+                "evaluateSurfaceD1": 774,
+                "ExactAffinePlane": 76,
+                "SectionRationalContext": 87
+              }
+            }
+          ]
+        },
+        "cold": {
+          "status": "passed",
+          "evaluations": 4,
+          "stages": [
+            {
+              "label": "cold standalone extrusion",
+              "actual": {
+                "compileCadModel": 14,
+                "buildConvexPlanarFace": 12,
+                "evaluateCurveD1": 288,
+                "evaluateSurfaceD1": 144,
+                "ExactAffinePlane": 18,
+                "SectionRationalContext": 21
+              }
+            },
+            {
+              "label": "cold cut-only",
+              "actual": {
+                "compileCadModel": 67,
+                "buildConvexPlanarFace": 63,
+                "evaluateCurveD1": 1548,
+                "evaluateSurfaceD1": 774,
+                "ExactAffinePlane": 76,
+                "SectionRationalContext": 87
+              }
+            },
+            {
+              "label": "cold serial authored graph",
+              "actual": {
+                "compileCadModel": 103,
+                "buildConvexPlanarFace": 98,
+                "evaluateCurveD1": 2448,
+                "evaluateSurfaceD1": 1224,
+                "ExactAffinePlane": 111,
+                "SectionRationalContext": 127
+              }
+            },
+            {
+              "label": "cold serial re-edit setback2",
+              "actual": {
+                "compileCadModel": 103,
+                "buildConvexPlanarFace": 98,
+                "evaluateCurveD1": 2448,
+                "evaluateSurfaceD1": 1224,
+                "ExactAffinePlane": 111,
+                "SectionRationalContext": 127
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "combinedNativeActual": {
+    "compileCadModel": 1269,
+    "buildConvexPlanarFace": 1189,
+    "evaluateCurveD1": 29232,
+    "evaluateSurfaceD1": 14616,
+    "ExactAffinePlane": 1420,
+    "SectionRationalContext": 1637
+  },
+  "budgetAmendment": "Before final replay owner approved 21 evaluations (15 initial plus 6 final), preserving 5000 compilation/face-build and 200000 total D1 ceilings.",
+  "checks": {
+    "packageTypecheck": "passed",
+    "libraryBuild": "passed",
+    "changedSourceLint": "passed",
+    "defaultLightweightAndAliases": "4 passed",
+    "sourceLightweight": "1 passed",
+    "ordinaryExamplesAndOldAliasTypes": "3 complete examples plus contracts passed for source and emitted declarations",
+    "packedPublicImportAndDeclarations": "passed; no geometry in packed smoke",
+    "fullPackageLint": "Direct node scripts/tool.mjs lint actually ran and failed with 27 baseline errors in unchanged provider files; this is separate from the verifier pnpm wrapper failure.",
+    "legacyConsumer": "failed before imports: inherited hardcoded private-experimental archive filename conflicts with existing public experimental manifest",
+    "verifyLocal": "exit 1: required type-check and four lightweight/compatibility tests passed; automatic pnpm lint triggered dependency-status auto-install, which failed before lint (ENOENT pnpm home store). No installation completed or retried. Later aggregate commands were not reached.",
+    "wholeRepositoryBuild": "not run",
+    "browserGPUOSFiles": "not run"
+  },
+  "publicGeometry": {
+    "initialPartVolumeMM3": 3064,
+    "otherPartVolumeMM3": 2048,
+    "batchHeight6RearX20VolumeMM3": 2488,
+    "coldReeditSetback2VolumeMM3": 2464,
+    "sourceMinimalPlateVolumeMM3": 4096,
+    "userPlateVolumeMM3": 48000,
+    "userWiderPlateVolumeMM3": 60000
+  },
+  "refusalCoverage": [
+    "ambiguous exact edge",
+    "missing exact edge",
+    "non-dyadic 80/3 candidate",
+    "tool coverage when parent height 10",
+    "setback locality 8",
+    "empty selected positive component",
+    "concave native polygon",
+    "cross-model parameters/shapes/outputs",
+    "wrong-body selection",
+    "duplicate parameter",
+    "nonfinite values",
+    "custom array prototype/species",
+    "accessor without invocation",
+    "unknown/duplicate saved fields",
+    "invalid dependency",
+    "unsupported repeated cut",
+    "per-kind append refusal followed by valid build"
+  ],
+  "commands": [
+    "node scripts/tool.mjs type-check",
+    "node scripts/tool.mjs build",
+    "node --test test/modeling.test.mjs test/public-api.test.mjs",
+    "node test/public-api-types.mjs",
+    "CAD_PUBLIC_API_TYPES_ENTRY=./dist/index.d.ts node test/public-api-types.mjs",
+    "node --no-opt --max-old-space-size=2048 --test test/modeling-native.mjs",
+    "node --no-opt --max-old-space-size=2048 scripts/modeling-consumer.mjs source <evidence> <source-bundle>",
+    "node --no-opt --max-old-space-size=2048 scripts/modeling-consumer.mjs emitted <evidence>",
+    "node --no-opt --max-old-space-size=2048 scripts/modeling-consumer.mjs cold <evidence>",
+    "node test/modeling-package.mjs"
+  ],
+  "packedPublicArtifactSHA256": "332e939ac52b8a8e0faaf2e44c9036632532e3a632391a737a8f54499c350e70",
+  "harnessFirstFailures": [
+    "Initial typecheck invocation from repository root missed package tsconfig; rerun from package cwd passed",
+    "Initial legacy consumer invocation from repository root failed pack metadata; correct package cwd reproduced inherited private filename defect",
+    "Adding packed digest introduced a test-harness string syntax error; corrected and final packed runtime/declarations rerun passed"
+  ],
+  "testedProductCommit": "5c780ffa63d749a646dfa536662bf31835f2f273",
+  "verifierEvidence": {
+    "command": "python3 tools/ai-v3/verify-local.py --base 41a47d94def6e5c625e343824149cffb671ba221 --head HEAD --issue-body <verified-issue-1611-body>",
+    "exit": 1,
+    "completed": [
+      "CAD package type-check",
+      "4 lightweight/compatibility tests"
+    ],
+    "terminal": "pnpm -C packages/barocss-cad lint: automatic dependency-status install failed ENOENT before ESLint",
+    "subsequentNotRun": [
+      "automatic second package type-check",
+      "whole-repository build:library",
+      "check-packages.mjs"
+    ],
+    "logSHA256": "b549bbb29eb14eb85ebb3e155034f33691051623b529de0800a935c1f02bc25f"
+  }
+}

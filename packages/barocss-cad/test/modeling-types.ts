@@ -1,0 +1,18 @@
+import { cad, type CadModelSnapshot, type CadShape, type CadParameter } from '../src/index.js';
+const model = cad.model();
+const width: CadParameter = model.parameter('width', 80);
+const plate: CadShape = model.sketch.rectangle({ min: [0, 0], max: [width, 60] }).extrude(10);
+const result: CadModelSnapshot = model.build({ plate });
+const wider = result.withParameters({ width: 100 });
+const reopened = cad.load(wider.save());
+reopened.bodies.plate.certificate.volumeMM3;
+const serial = cad.model(), setback = serial.parameter('setback', 1);
+const blank = serial.sketch.polygon([[0,0],[32,0],[32,16],[16,32],[0,32]]).extrude(8);
+const tool = serial.sketch.rectangle({ min: [8,-16], max: [16,48] }).extrude(8);
+const cut = blank.cut(tool, { axis: 'x' });
+const part = cut.positive.chamfer(cut.positive.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one(), setback);
+serial.build({ part, other: cut.negative });
+// @ts-expect-error Public cut is cardinal through-slab only.
+blank.cut(tool, { axis: 'z' });
+// @ts-expect-error Scalar parameter values have explicit mm number input.
+model.parameter('bad', '8');

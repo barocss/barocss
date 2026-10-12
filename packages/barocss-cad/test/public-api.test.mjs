@@ -56,7 +56,9 @@ test('all 33 concise leaves are the exact named functions, with no wrappers', ()
       } else check(actual[key], value, path + '.' + key);
     }
   }
-  check(api.cad, aliases, 'cad');
+  assert.deepEqual(Reflect.ownKeys(api.cad).sort(), [...Object.keys(aliases), 'model', 'load'].sort());
+  assert.equal(typeof api.cad.model, 'function'); assert.equal(typeof api.cad.load, 'function');
+  check({ sketch: api.cad.sketch, solid: api.cad.solid, document: api.cad.document }, aliases, 'cad.compatibility');
   assert.equal(leaves, 33);
 });
 

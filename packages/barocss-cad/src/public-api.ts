@@ -1,3 +1,4 @@
+import { createCadModel, loadCadModel } from './modeling.js';
 import { solveXYAffineSketch, buildXYAffineSketch, validateXYAffineSketch } from './xy-affine-sketch.js';
 import { buildXYAffineSketchPrism, validateXYAffineSketchPrism, resolveXYAffineSketchPrismWall } from './xy-affine-sketch-prism.js';
 import { validateConvexPlanarSolid } from './convex-planar-solid.js';
@@ -19,14 +20,17 @@ import {
 } from './xy-affine-prism-feature-document-v2.js';
 
 /**
- * Concise, profile-qualified aliases for existing CAD APIs.
+ * Primary owned CAD authoring API plus compatibility aliases for existing providers.
  *
- * Each leaf is the original function: signatures, overloads, units, result
+ * Compatibility namespace leaves are the original functions: signatures, overloads, units, result
  * ownership, diagnostics and refusal limits are unchanged. Only these namespace
  * records are frozen; caller data and provider functions are not frozen here.
  * Destructure a profile for short calls: `const { convex } = cad.solid`.
  */
 export const cad = /* @__PURE__ */ Object.freeze({
+  /** Primary authoring API. Schema versions and native identities are codec/kernel details. */
+  model: createCadModel,
+  load: loadCadModel,
   sketch: /* @__PURE__ */ Object.freeze({
     /** Exact affine constraints on XY line sketches in mm; not a general sketch solver. */
     affineXY: /* @__PURE__ */ Object.freeze({
