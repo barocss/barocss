@@ -1,4 +1,4 @@
-import { cad, type CadModelSnapshot, type CadShape, type CadParameter, type CadSplit } from '../src/index.js';
+import { cad, type CadModelSnapshot, type CadShape, type CadParameter, type CadSplit, type CadDimensionExpression } from '../src/index.js';
 const model = cad.model();
 const width: CadParameter = model.parameter('width', 80);
 const plate: CadShape = model.sketch.rectangle({ min: [0, 0], max: [width, 60] }).extrude(10);
@@ -56,3 +56,15 @@ reopened.withParameters({ width: 80 }, { evidence: [] });
 
 const dividedRail: CadSplit = finished.split({ axis: 'x', at: chainModel.parameter('splitAt', 16) });
 chainModel.build({ negative: dividedRail.negative, positive: dividedRail.positive }).withParameters({ splitAt: 8 });
+
+const derivedModel = cad.model(), drivenWidth = derivedModel.parameter('width', 32), offset = derivedModel.parameter('offset', 0);
+const midpoint: CadDimensionExpression = derivedModel.dimension.add(derivedModel.dimension.scale(drivenWidth, .5), offset);
+const drivenBlank = derivedModel.sketch.rectangle({ width: drivenWidth, height: derivedModel.dimension.add(12, 12) }).extrude(8);
+const drivenHalves = drivenBlank.split({ axis: 'x', at: midpoint });
+derivedModel.build({ negative: drivenHalves.negative, positive: drivenHalves.positive }).withParameters({ width: 40, offset: 4 });
+// @ts-expect-error Scale is a numeric dimensionless factor, not a length handle.
+derivedModel.dimension.scale(drivenWidth, drivenWidth);
+// @ts-expect-error No expression strings or parser API.
+derivedModel.dimension.add(drivenWidth, 'offset');
+// @ts-expect-error Expression metadata is readonly, and never editable formula input.
+midpoint.kind = 'other';

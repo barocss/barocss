@@ -552,4 +552,4 @@ export { XYAffinePrismFeatureDocumentLimitsV2, evaluateXYAffinePrismFeatureDocum
 export type { XYAffinePrismNodeV2, XYAffinePrismChamferNodeV2, XYAffinePrismChamferResolutionV2, XYAffinePrismFeatureDocumentV2, XYAffinePrismFeatureWorkV2, XYAffinePrismFeatureResultV2, XYAffinePrismFeatureUpdateV2 } from './xy-affine-prism-feature-document-v2.js';
 
 export { CadModelError, CadModelLimits } from './modeling.js';
-export type { CadModel, CadModelSnapshot, CadModelFeature, CadModelEvidence, CadModelErrorCode, CadParameter, CadDimension, CadPoint2, CadAxis, CadEdgeQuery, CadEdgeSelection, CadEdgeQueryHandle, CadShape, CadCut, CadSplit, CadSketch, CadRectangle } from './modeling.js';
+export type { CadModel, CadModelSnapshot, CadModelFeature, CadModelEvidence, CadModelErrorCode, CadParameter, CadDimensionExpression, CadDimension, CadPoint2, CadAxis, CadEdgeQuery, CadEdgeSelection, CadEdgeQueryHandle, CadShape, CadCut, CadSplit, CadSketch, CadRectangle } from './modeling.js';

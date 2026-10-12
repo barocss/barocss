@@ -15,6 +15,8 @@ import type { ConvexPlanarSolidResult, ConvexPlanarSolidGraph } from './convex-p
 import { parseCadDocumentOwnJson, cadDocumentOwnUtf8Bytes } from './cad-document.js';
 import { signedJson } from './xy-affine-prism-feature-document-internal.js';
 import { modelingGraphKey as graphKey, modelingNodeParameters as nodeParameters, modelingReusablePrefix as reusablePrefix } from './modeling-regeneration-internal.js';
+import { resolveModelDimension, ModelDimensionError, ModelDimensionLimits } from './modeling-dimension-internal.js';
+import type { ModelDimension as Dimension } from './modeling-dimension-internal.js';
 
 export type CadModelErrorCode = 'INPUT' | 'PARAMETER' | 'OWNERSHIP' | 'CAPABILITY' | 'SELECTION' | 'FORMAT' | 'BUDGET' | 'NATIVE';
 export class CadModelError extends Error {
@@ -24,7 +26,8 @@ export class CadModelError extends Error {
   }
 }
 export interface CadParameter { readonly name: string }
-export type CadDimension = number | CadParameter;
+export interface CadDimensionExpression { readonly kind: 'dimension-expression' }
+export type CadDimension = number | CadParameter | CadDimensionExpression;
 export type CadPoint2 = readonly [CadDimension, CadDimension];
 export type CadAxis = 'x' | 'y' | 'z';
 /** Exact endpoint query. min/max are bounds of the entire owning body. */
@@ -47,6 +50,10 @@ export interface CadSketch { extrude(height: CadDimension): CadShape }
 export type CadRectangle = { readonly min: CadPoint2; readonly max: CadPoint2 } | { readonly width: CadDimension; readonly height: CadDimension };
 export interface CadModel {
   parameter(name: string, valueMM: number): CadParameter;
+  readonly dimension: {
+    add(left: CadDimension, right: CadDimension): CadDimensionExpression;
+    scale(value: CadDimension, factor: number): CadDimensionExpression;
+  };
   readonly sketch: { polygon(points: readonly CadPoint2[]): CadSketch; rectangle(rectangle: CadRectangle): CadSketch };
   /** Evaluates every authored node. Only these explicitly named Solid outputs are exposed. */
   build(outputs: Readonly<Record<string, CadShape>>): CadModelSnapshot;
@@ -72,9 +79,8 @@ export interface CadModelSnapshot {
   /** Saves only accepted authored state; no native results or meshes. */
   save(): string;
 }
-export const CadModelLimits = Object.freeze({ nodes: 6, sketches: 2, extrusions: 2, cuts: 1, intersections: 1, splits: 1, chamfers: 2, parameters: 16, outputs: 8, polygonPoints: 8, fileBytes: 65536, inputDepth: 12, lengthMM: 10000 });
+export const CadModelLimits = Object.freeze({ nodes: 6, sketches: 2, extrusions: 2, cuts: 1, intersections: 1, splits: 1, chamfers: 2, parameters: 16, outputs: 8, polygonPoints: 8, fileBytes: 65536, inputDepth: 12, lengthMM: 10000, dimensionNodes: ModelDimensionLimits.nodes, dimensionDepth: ModelDimensionLimits.depth });
 
-type Dimension = number | { parameter: string };
 type Query = { parallelTo?: CadAxis; at?: Partial<Record<CadAxis, Dimension | 'min' | 'max'>> };
 type BodyRef = { node: number; side: 'solid' | 'negative' | 'positive' };
 type SketchNode = { kind: 'sketch'; profile: 'polygon'; points: [Dimension, Dimension][] } | { kind: 'sketch'; profile: 'rectangle'; min: [Dimension, Dimension]; max: [Dimension, Dimension] };
@@ -86,6 +92,7 @@ const evaluationAuthority = Object.freeze({});
 type EvaluationFrame = { readonly authority: object; readonly key: string; readonly document: Document; readonly evidence: CadModelEvidence[]; readonly values: EvaluatedValue[]; readonly parameterNames: readonly (readonly string[])[] };
 
 const dimensions = new WeakMap<CadParameter, { owner: object; name: string }>();
+const expressions = new WeakMap<CadDimensionExpression, { owner: object; expression: Dimension }>();
 const shapes = new WeakMap<CadShape, { owner: object; reference: BodyRef }>();
 const selections = new WeakMap<CadEdgeSelection, { owner: object; parent: BodyRef; query: Query }>();
 const axes: CadAxis[] = ['x', 'y', 'z'];
@@ -112,6 +119,10 @@ function name(value: unknown, operation: string): asserts value is string {
 }
 function length(value: unknown, operation: string, positive = false): asserts value is number {
   demand(typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= CadModelLimits.lengthMM && (!positive || value > 0), 'PARAMETER', operation, positive ? 'Positive finite mm dimension at most 10000 required' : 'Finite mm dimension within +/-10000 required');
+}
+function resolvedDimension(value: unknown, parameters: Readonly<Record<string, number>>): number {
+  try { return resolveModelDimension(value, parameters); }
+  catch (cause) { if (cause instanceof ModelDimensionError) throw new CadModelError(cause.code, 'dimension', cause.message, cause); throw cause; }
 }
 function copy<T>(input: T): T {
   let remaining = 4096;
@@ -151,7 +162,7 @@ function admit(input: Document): Document {
   demand(d.format === 'barocss-cad-model' && d.schema === 1 && d.units === 'mm', 'FORMAT', 'load', 'Supported CAD model file required; legacy feature files need their legacy reader');
   record(d.parameters, 'parameters');
   for (const [key, value] of Object.entries(d.parameters)) { name(key, 'parameters'); length(value, 'parameters'); }
-  const dimension = (value: unknown) => { if (typeof value === 'number') length(value, 'dimension'); else { const r = record(value, 'dimension', ['parameter']); name(r.parameter, 'dimension'); demand(Object.hasOwn(d.parameters, r.parameter), 'PARAMETER', 'dimension', 'Unknown parameter: ' + r.parameter); } };
+  const dimension = (value: unknown) => { resolvedDimension(value, d.parameters); };
   const point = (value: unknown) => list(value, 'point', 2, 2).forEach(dimension);
   const counts = { sketch: 0, extrude: 0, cut: 0, intersect: 0, split: 0, chamfer: 0 };
   const nodes = list(d.nodes, 'graph', 1, CadModelLimits.nodes) as Node[];
@@ -197,7 +208,14 @@ export function createCadModel(): CadModel {
   const owner = {}, parameters: Record<string, number> = {}, nodes: Node[] = [];
   const dimension = (value: CadDimension): Dimension => {
     if (typeof value === 'number') { length(value, 'dimension'); return value; }
-    const p = dimensions.get(value); demand(p?.owner === owner, 'OWNERSHIP', 'dimension', 'Parameter belongs to another model or is not an owned handle'); return { parameter: p.name };
+    const p = dimensions.get(value as CadParameter); if (p?.owner === owner) return { parameter: p.name };
+    const expression = expressions.get(value as CadDimensionExpression);
+    demand(expression?.owner === owner, 'OWNERSHIP', 'dimension', 'Dimension belongs to another model or is not an owned handle'); return expression.expression;
+  };
+  const expression = (value: Dimension): CadDimensionExpression => {
+    resolvedDimension(value, parameters);
+    const handle: CadDimensionExpression = Object.freeze({ kind: 'dimension-expression' });
+    expressions.set(handle, { owner, expression: freeze(value) }); return handle;
   };
   const point = (value: CadPoint2): [Dimension, Dimension] => { const p = list(value, 'point', 2, 2); return [dimension(p[0] as CadDimension), dimension(p[1] as CadDimension)]; };
   const body = (shape: CadShape): BodyRef => { const s = shapes.get(shape); demand(s?.owner === owner, 'OWNERSHIP', 'body', 'Shape belongs to another model or is not an owned handle'); return { ...s.reference }; };
@@ -245,6 +263,10 @@ export function createCadModel(): CadModel {
   const sketch = (node: SketchNode): CadSketch => { const index = append(node); return Object.freeze({ extrude(height: CadDimension): CadShape { return shape({ node: append({ kind: 'extrude', sketch: index, height: dimension(height) }), side: 'solid' }); } }); };
   return Object.freeze({
     parameter(key: string, value: number): CadParameter { name(key, 'parameter'); length(value, 'parameter'); demand(!Object.hasOwn(parameters, key), 'PARAMETER', 'parameter', 'Parameter already exists: ' + key); demand(Object.keys(parameters).length < CadModelLimits.parameters, 'BUDGET', 'parameter', 'Parameter limit reached'); const p = Object.freeze({ name: key }); parameters[key] = value; dimensions.set(p, { owner, name: key }); return p; },
+    dimension: Object.freeze({
+      add(left: CadDimension, right: CadDimension): CadDimensionExpression { return expression({ op: 'add', left: dimension(left), right: dimension(right) }); },
+      scale(value: CadDimension, factor: number): CadDimensionExpression { return expression({ op: 'scale', value: dimension(value), factor }); },
+    }),
     sketch: Object.freeze({
       polygon(points: readonly CadPoint2[]): CadSketch { return sketch({ kind: 'sketch', profile: 'polygon', points: list(points, 'polygon', 3, 8).map(p => point(p as CadPoint2)) }); },
       rectangle(input: CadRectangle): CadSketch { const r = record(input, 'rectangle'); if (Object.hasOwn(r, 'width')) { record(r, 'rectangle', ['width', 'height']); return sketch({ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [dimension(r.width as CadDimension), dimension(r.height as CadDimension)] }); } record(r, 'rectangle', ['min', 'max']); return sketch({ kind: 'sketch', profile: 'rectangle', min: point(r.min as CadPoint2), max: point(r.max as CadPoint2) }); },
@@ -273,7 +295,7 @@ function evaluate(input: Document, previous?: EvaluationFrame): CadModelSnapshot
   const key = graphKey(document), reuseUntil = previous
     ? reusablePrefix(previous.authority === evaluationAuthority, key, previous.key, document.parameters, previous.document.parameters, previous.parameterNames) : 0;
   const recomputation: { reusedFeatures: number[]; evaluatedFeatures: number[] } = { reusedFeatures: [], evaluatedFeatures: [] };
-  const number = (value: Dimension): number => typeof value === 'number' ? value : document.parameters[value.parameter];
+  const number = (value: Dimension): number => resolvedDimension(value, document.parameters);
   const solid = (ref: BodyRef): ConvexPlanarSolidResult => {
     const value = values[ref.node];
     const result = ref.side === 'solid' ? value as ConvexPlanarSolidResult | undefined : (value as { negative?: ConvexPlanarSolidResult; positive?: ConvexPlanarSolidResult })[ref.side];

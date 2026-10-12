@@ -35,6 +35,41 @@ checks that can be made during authoring reject before appending an operation.
 Geometric checks occur at evaluation; correcting parameter values can repair a
 failed candidate without modifying a previous accepted snapshot.
 
+## Keep dimensions related during edits
+
+Use `model.dimension.scale(width, 0.5)` for half of an owned width parameter,
+then `model.dimension.add(halfWidth, offset)` to add another millimetre dimension.
+Pass the returned owned handle directly to profile coordinates, extrusion,
+split position, chamfer distance or edge-selector coordinates. For example,
+`finished.split({axis:'x',at:model.dimension.add(model.dimension.scale(width,0.5),offset)})`
+keeps the plane at width/2 + offset after edits. No native IDs or expression
+strings are needed. Copying a handle or mixing model owners refuses.
+
+`add` combines two millimetre lengths. `scale` multiplies a length by a finite
+numeric, dimensionless factor. There is no division, expression parser, scalar
+parameter or implicit unit conversion in this API. Negative and zero results
+still face the consuming geometry's restrictions. Expressions are authored
+immutable dimensions, not extra feature nodes or named derived parameters;
+`snapshot.parameters` contains only numeric drivers.
+
+Arithmetic resolves left-to-right/postorder with ordinary binary64 rounding.
+Every length literal, parameter and intermediate must be finite within ±10000mm;
+overflow or an out-of-range intermediate refuses before geometry, even if a
+later operation would cancel it. A factor may be any finite number. No clamping
+or algebraic reassociation is performed. Standard signed-zero arithmetic applies;
+authored zero signs survive save/load, while an arithmetic result follows the
+normal addition/multiplication sign rules.
+
+Each dimension is limited to 32 tree-node occurrences and depth 6; reusing one
+handle twice counts its subtree twice. Existing global input/file limits also
+apply. Saved files contain only exact nested add/scale/parameter/literal intent,
+not resolved caches. Older numeric/parameter documents remain readable.
+The unchanged private dependency collector includes parameters nested inside
+formulas. Changing offset re-evaluates its split suffix; changing a profile width
+re-evaluates the profile and all downstream features. A referenced +0→-0 change
+still invalidates that dependency, even if its formula evaluates to the same
+coordinate. Cold `cad.load` rebuilds normally.
+
 ## Cut an actual part, then chamfer its edge
 
 ```ts
@@ -287,7 +322,7 @@ Run the ordinary boundary/type tests after building the package:
 ```sh
 node scripts/tool.mjs type-check
 node scripts/tool.mjs build
-node --test test/modeling.test.mjs test/modeling-intersection.test.mjs test/modeling-split.test.mjs test/modeling-cardinal-split.test.mjs test/modeling-chamfer-chain.test.mjs test/modeling-regeneration.test.mjs test/modeling-regeneration-helpers.test.mjs test/modeling-chamfer-split.test.mjs test/public-api.test.mjs
+node --test test/modeling.test.mjs test/modeling-intersection.test.mjs test/modeling-split.test.mjs test/modeling-cardinal-split.test.mjs test/modeling-chamfer-chain.test.mjs test/modeling-regeneration.test.mjs test/modeling-regeneration-helpers.test.mjs test/modeling-chamfer-split.test.mjs test/modeling-dimensions.test.mjs test/modeling-dimensions-helpers.test.mjs test/public-api.test.mjs
 node test/public-api-types.mjs
 ```
 
@@ -373,3 +408,14 @@ node --no-opt --max-old-space-size=2048 scripts/modeling-chamfer-split-consumer.
 
 See #1631 for the bounded source/emitted receipts. Provider reports do not include
 all wrapper work; full transitive native coverage and browser/GPU remain unclaimed.
+
+The derived-dimension campaign uses eight model calls and one tessellation:
+
+```sh
+node --no-opt --max-old-space-size=2048 test/modeling-dimensions-native.mjs
+node --no-opt --max-old-space-size=2048 scripts/modeling-dimensions-consumer.mjs test/modeling-dimensions-evidence
+```
+
+See #1634 for the width/offset rail fixture, exact prefix/volume assertions,
+pre-native arithmetic controls, referenced signed-zero edit and cold receipts.
+No new native geometric representation or transitive speed claim is implied.

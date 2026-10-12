@@ -1,0 +1,157 @@
+{
+  "status": "passed",
+  "modelCalls": 6,
+  "tessellations": 1,
+  "stages": [
+    {
+      "label": "derived width32 midpoint",
+      "elapsedMS": 1608.0974350000001,
+      "recomputation": {
+        "reusedFeatures": [],
+        "evaluatedFeatures": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      }
+    },
+    {
+      "label": "offset4 only",
+      "elapsedMS": 561.4167789999999,
+      "recomputation": {
+        "reusedFeatures": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "evaluatedFeatures": [
+          4
+        ]
+      }
+    },
+    {
+      "label": "width40 from offset4",
+      "elapsedMS": 1568.4841599999995,
+      "recomputation": {
+        "reusedFeatures": [],
+        "evaluatedFeatures": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      }
+    },
+    {
+      "label": "offset40 empty-side refusal",
+      "elapsedMS": 207.69893800000045
+    },
+    {
+      "label": "offset0 after refusal on same snapshot",
+      "elapsedMS": 511.81940900000063,
+      "recomputation": {
+        "reusedFeatures": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "evaluatedFeatures": [
+          4
+        ]
+      }
+    },
+    {
+      "label": "referenced offset negative-zero edit",
+      "elapsedMS": 524.553731,
+      "recomputation": {
+        "reusedFeatures": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "evaluatedFeatures": [
+          4
+        ]
+      }
+    }
+  ],
+  "fullTransitiveNativeCoverage": "NOT_MEASURED",
+  "reportScope": "Accepted model feature indices only; no speed or transitive native-work claim",
+  "entrySHA256": "9b5657bcb00cd8d7f97fd648e25d13b5913318a2eecad5ace6c6ed131c80098b",
+  "baseline": {
+    "width": 32,
+    "offset": 0,
+    "resolvedSplitAt": 16,
+    "negativeMM3": 3032,
+    "positiveMM3": 3032,
+    "parentMM3": 6064,
+    "originalSourceLineage": true
+  },
+  "initialBodySHA256": "8a8e95769f848840fda5205d6dd41d76acde7daa06764664abcee73159601230",
+  "literalPredecessorBodyParity": true,
+  "display": {
+    "side": "negative",
+    "triangles": 20,
+    "nativeAuthority": false
+  },
+  "transfer": {
+    "bytes": 41830,
+    "sha256": "de4bd05004896341378f7b7b13f29b53f86822975f8379e575167a2a1c1be388"
+  },
+  "offset": {
+    "width": 32,
+    "offset": 4,
+    "resolvedSplitAt": 20,
+    "negativeMM3": 3790,
+    "positiveMM3": 2274,
+    "parentMM3": 6064,
+    "originalSourceLineage": true
+  },
+  "wider": {
+    "width": 40,
+    "offset": 4,
+    "resolvedSplitAt": 24,
+    "negativeMM3": 4548,
+    "positiveMM3": 3032,
+    "parentMM3": 7580,
+    "originalSourceLineage": true
+  },
+  "refusal": {
+    "code": "SELECTION",
+    "operation": "split",
+    "cause": {
+      "side": "positive",
+      "status": "outside",
+      "sectionDimension": -1
+    }
+  },
+  "recovered": {
+    "width": 40,
+    "offset": 0,
+    "resolvedSplitAt": 20,
+    "negativeMM3": 3790,
+    "positiveMM3": 3790,
+    "parentMM3": 7580,
+    "originalSourceLineage": true
+  },
+  "signedZero": {
+    "width": 40,
+    "offset": 0,
+    "resolvedSplitAt": 20,
+    "negativeMM3": 3790,
+    "positiveMM3": 3790,
+    "parentMM3": 7580,
+    "originalSourceLineage": true
+  },
+  "futureReuseAfterRefusal": true,
+  "referencedSignedZeroPreserved": true,
+  "oldAndNewSnapshotsIndependent": true,
+  "editedBodySHA256": "0c53768308ee7347b28a2dee1b5f3d651dfe569d76f5d3f38eb226c2868220a7",
+  "actualGPU": "UNRUN"
+}
