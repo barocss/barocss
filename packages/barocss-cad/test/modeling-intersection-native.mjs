@@ -1,3 +1,4 @@
+import { convexBody } from './modeling-regeneration-fixture.mjs';
 import assert from 'node:assert/strict';
 import { mkdirSync, writeFileSync, statfsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -25,22 +26,22 @@ try {
   assert.throws(() => fixture.blank.intersect(fixture.tool), error => error.code === 'CAPABILITY');
   assert.throws(() => fixture.blank.cut(fixture.tool, { axis: 'x' }), error => error.code === 'CAPABILITY');
   const initial = stage('source overlap', fixture.build), saved = initial.save();
-  prove(initial.bodies.overlap, 2176, [7, 15, 10]);
+  prove(convexBody(initial,'overlap'), 2176, [7, 15, 10]);
   assert.deepEqual(initial.features.map(f => f.kind), ['sketch', 'extrude', 'sketch', 'extrude', 'intersect']);
   assert.deepEqual(initial.features[4].dependencies, [1, 3]);
   const native = initial.evidence[4].native;
-  assert.equal(native.outcome.solid, initial.bodies.overlap);
+  assert.equal(native.outcome.solid, convexBody(initial,'overlap'));
   assert.equal(native.report.status, 'solid'); assert.equal(native.contact.dimension, 3);
   assert.ok(native.lineage.faces.some(face => new Set(face.sources.map(source => source.operand)).size === 2));
   assert.ok(Object.is(initial.evidence[0].native.document.points[0].position[0], -0));
   write('initial.cad-model.json', saved);
-  const mesh = tessellateConvexPlanarSolid(initial.bodies.overlap, { maximumFanTriangles: 40 });
+  const mesh = tessellateConvexPlanarSolid(convexBody(initial,'overlap'), { maximumFanTriangles: 40 });
   assert.ok(mesh.report.triangleCount > 0);
   assert.equal(mesh.mesh.indices.length % 3, 0);
   write('display.json', { namedOutput: 'overlap', vertices: mesh.mesh.positionsMM.length / 3, triangles: mesh.mesh.indices.length / 3, report: mesh.report });
   if (process.env.CAD_MODEL_TRANSPORT_DIR) {
     const output = resolve(process.env.CAD_MODEL_TRANSPORT_DIR); mkdirSync(output, { recursive: true });
-    const body = initial.bodies.overlap;
+    const body = convexBody(initial,'overlap');
     const transport = { id: 1, ok: true, text: saved,
       summary: { documentId: 'cad_model', revision: 0, source: 'model', parameters: initial.parameters,
         features: initial.features, outputs: [{ name: 'overlap', solidId: body.report.solidId, volumeMM3: body.certificate.volumeMM3 }] },
@@ -53,7 +54,7 @@ try {
     writeFileSync(resolve(output, 'baseline-transport.json'), text + '\n');
   }
   const edited = stage('move tool bounds +8', () => initial.withParameters({ leftX: 16, rightX: 48 }));
-  prove(edited.bodies.overlap, 1408, [7, 15, 10]); write('edited.cad-model.json', edited.save());
+  prove(convexBody(edited,'overlap'), 1408, [7, 15, 10]); write('edited.cad-model.json', edited.save());
   const refuse = (label, edits, dimension) => stage(label, () => {
     assert.throws(() => initial.withParameters(edits), error => {
       assert.ok(error instanceof CadModelError); assert.equal(error.operation, 'intersect');
@@ -68,14 +69,14 @@ try {
         contactDimension: error.cause?.contactDimension });
       return true;
     });
-    assert.equal(initial.save(), saved); prove(initial.bodies.overlap, 2176, [7, 15, 10]);
+    assert.equal(initial.save(), saved); prove(convexBody(initial,'overlap'), 2176, [7, 15, 10]);
   });
   refuse('disjoint', { leftX: 64, rightX: 96 }, -1);
   refuse('face-touch', { leftX: 32, rightX: 64 }, 2);
   refuse('edge-touch', { leftX: 32, rightX: 64, lowY: 16, highY: 48 }, 1);
   refuse('non-dyadic', { rearX: 20, leftX: 24, rightX: 56, highY: 56 }, null);
   const beveled = stage('intersection then cardinal chamfer', overlap(cad, true).build);
-  prove(beveled.bodies.overlap, 2164, [8, 18, 12]);
+  prove(convexBody(beveled,'overlap'), 2164, [8, 18, 12]);
   assert.deepEqual(beveled.evidence[5].native.metric.removedVolumeMM3, { numerator: '12', denominator: '1' });
   assert.equal(beveled.evidence[5].native.split.request.parent.request.options.solidId, beveled.evidence[4].native.outcome.solid.request.options.solidId);
   write('chamfer.cad-model.json', beveled.save());

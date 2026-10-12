@@ -1,3 +1,4 @@
+import { convexBody } from './modeling-regeneration-fixture.mjs';
 import assert from 'node:assert/strict';
 import { prove } from './modeling-intersection-fixture.mjs';
 import { bounds } from './modeling-cardinal-split-fixture.mjs';
@@ -54,7 +55,7 @@ export function proveMiter(snapshot, at, negative, positive, bevels = 0) {
   assert.deepEqual(plane.knotsU, [0,0,8,8]); assert.deepEqual(plane.knotsV, [0,0,32,32]);
   assert.deepEqual(plane.controlPoints, [[[0,at,0],[32,at-32,0]],[[0,at,8],[32,at-32,8]]]);
   for (const [side, volume, sign] of [['negative',negative,1n],['positive',positive,-1n]]) {
-    const body = snapshot.bodies[side]; assert.equal(native[side].kind, 'solid'); assert.equal(body, native[side].solid); prove(body, volume);
+    const body = convexBody(snapshot,side); assert.equal(native[side].kind, 'solid'); assert.equal(body, native[side].solid); prove(body, volume);
     bounds(body, 0, side === 'negative' ? 0 : Math.max(0, at - 24), side === 'negative' ? Math.min(32, at) : 32);
     bounds(body, 1, 0, 24); bounds(body, 2, 0, 8);
     for (const vertex of body.graph.vertices) assert.ok(side === 'negative' ? vertex.pointMM[0] + vertex.pointMM[1] <= at : vertex.pointMM[0] + vertex.pointMM[1] >= at);

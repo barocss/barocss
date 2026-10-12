@@ -11,7 +11,7 @@ Start with `cad.model()`, give dimensions names, and build a named native Solid.
 
 <<< ../../../scripts/snippets/modeling-api.ts#edit-plate
 
-This function uses the imports and `makePlate` function above. Read `editPlate().bodies.part.certificate.volumeMM3` for the exact native volume. `withParameters` returns a new snapshot only after the whole candidate succeeds. Keep `original` or the last accepted snapshot if an edit throws `CadModelError`; no partial candidate is accepted. `save()` returns authored text, and `cad.load()` rebuilds it. Your application owns storage and file dialogs.
+This function uses the imports and `makePlate` function above. Narrow `editPlate().bodies.part.family` to `convex-planar`, then read its `native.certificate.volumeMM3` for the exact native volume. `withParameters` returns a new snapshot only after the whole candidate succeeds. Keep `original` or the last accepted snapshot if an edit throws `CadModelError`; no partial candidate is accepted. `save()` returns authored text, and `cad.load()` rebuilds it. Your application owns storage and file dialogs.
 
 ## Next: cut and chamfer a part
 

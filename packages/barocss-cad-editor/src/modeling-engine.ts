@@ -210,7 +210,15 @@ export function createModelingEngine() {
       const revision = command.kind === 'apply' || command.kind === 'suppression' ? command.expectedRevision + 1 : command.kind === 'open' ? command.revision ?? 0 : 0;
       const text = snapshot.save();
       // The codec owns canonical key order. Keep initial and reopened display inventories identical.
-      const outputs = Object.keys(JSON.parse(text).outputs).map(name => [name, snapshot.bodies[name]] as const);
+      // Admit every output family before reading native summaries or tessellating any output.
+      const outputs = Object.keys(JSON.parse(text).outputs).map(name => {
+        const body = snapshot.bodies[name];
+        switch (body.family) {
+          case 'convex-planar': return [name, body.native] as const;
+          case 'stored-rational-plate-hole': throw new Error('Stored-rational plate-hole preview is not supported by this editor yet.');
+          default: { const unsupported: never = body; throw new Error(`Unsupported model body family: ${String(unsupported)}`); }
+        }
+      });
       const summary: CadEditorModelingSummary = { documentId: 'cad_model', revision, source: 'model',
         parameters: { ...snapshot.parameters },
         ...(Object.keys(snapshot.suppression).length ? { suppression: { ...snapshot.suppression } } : {}),

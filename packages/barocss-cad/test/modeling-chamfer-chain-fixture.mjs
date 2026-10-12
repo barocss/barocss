@@ -1,3 +1,4 @@
+import { convexBody } from './modeling-regeneration-fixture.mjs';
 import assert from 'node:assert/strict';
 import { prove } from './modeling-intersection-fixture.mjs';
 export { prove };
@@ -20,8 +21,8 @@ export function chainProof(snapshot, frontRemoved, backRemoved, volume) {
   assert.equal(second.request.selection.parentSolidId, first.split.negative.solid.report.solidId);
   assert.deepEqual(second.split.request.parent, first.split.negative.solid);
   prove(first.split.request.parent, 6144); prove(first.split.negative.solid, 6144 - frontRemoved); prove(first.split.positive.solid, frontRemoved);
-  prove(second.split.negative.solid, volume); prove(second.split.positive.solid, backRemoved); prove(snapshot.bodies.part, volume);
-  assert.deepEqual(snapshot.bodies.part, second.split.negative.solid);
+  prove(second.split.negative.solid, volume); prove(second.split.positive.solid, backRemoved); prove(convexBody(snapshot,'part'), volume);
+  assert.deepEqual(convexBody(snapshot,'part'), second.split.negative.solid);
   assert.deepEqual(first.metric.removedVolumeMM3, { numerator: String(frontRemoved), denominator: '1' });
   assert.deepEqual(second.metric.removedVolumeMM3, { numerator: String(backRemoved), denominator: '1' });
   assert.equal(first.split.report.volumeMM3.conserved, true); assert.equal(second.split.report.volumeMM3.conserved, true);

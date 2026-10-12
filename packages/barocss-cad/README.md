@@ -26,7 +26,9 @@ const plate = model.sketch.rectangle({ width, height: 60 }).extrude(10);
 const accepted = model.build({ plate });
 const wider = accepted.withParameters({ width: 100 });
 const reopened = cad.load(wider.save());
-const nativeSolid = reopened.bodies.plate;
+const body = reopened.bodies.plate;
+if (body.family !== 'convex-planar') throw new Error('Expected a convex plate');
+const nativeSolid = body.native;
 ```
 
 Read the [modeling API guide](CONCISE_API.md) for the actual cut → component →
@@ -34,6 +36,17 @@ chamfer workflow, immutable ownership, selection semantics, bounded capabilities
 errors and verification commands. Existing low-level exports and legacy file
 readers below remain compatibility interfaces; new authors do not choose a v1/v2
 facade or supply topology incident-use identities.
+
+## Mounting-plate through-hole
+
+A direct origin-aligned rectangular extrusion can author
+`blank.hole({center:[40,20],radius:5})`. Build, edit and save the same owned graph.
+Named bodies use one `{family,native}` contract: narrow `family` to read the
+original convex or stored-rational plate-hole result. Hole qualification covers
+the actual stored rational boundary, with no certified ideal-cylinder volume.
+The matching native sampled mesh is available; visible editor hole rendering
+remains [tracked separately](https://github.com/barocss/barocss/issues/1644).
+See the [exact scope and refusal rules](CONCISE_API.md#add-a-qualified-through-hole-to-a-mounting-plate).
 
 ## Editable overlap parts
 

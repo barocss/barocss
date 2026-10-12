@@ -1,3 +1,4 @@
+import { convexBody } from './modeling-regeneration-fixture.mjs';
 import assert from 'node:assert/strict';
 import { mkdirSync, writeFileSync, readFileSync, statfsSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -23,7 +24,8 @@ try {
   const initial = stage('two-chamfer X16 split', dividedRail(cad).build), initialText = initial.save();
   work(initial, [], [0,1,2,3,4]); flow.baseline = proveSplit(initial, 'x', 16, 3032, 3032, 6);
   writeFileSync(resolve(directory, 'initial.cad-model.json'), initialText);
-  const components = Object.entries(initial.bodies).map(([name, body]) => {
+  const components = Object.keys(initial.bodies).map(name => {
+    const body = convexBody(initial,name);
     const result = tessellateConvexPlanarSolid(body, { maximumFanTriangles: 40 }); flow.tessellations++;
     assert.ok(result.report.triangleCount > 0);
     return { role: name, mesh: result.mesh, boundaries: result.boundaries, internalDiagonals: result.internalDiagonals, report: result.report,
@@ -33,7 +35,7 @@ try {
   flow.display = components.map(c => ({ name: c.role, triangles: c.report.triangleCount, nativeAuthority: c.report.nativeAuthority }));
   if (process.env.CAD_MODEL_TRANSPORT_DIR) {
     const output = resolve(process.env.CAD_MODEL_TRANSPORT_DIR); mkdirSync(output, { recursive: true });
-    const outputs = Object.entries(initial.bodies).map(([name, body]) => ({ name, solidId: body.report.solidId, volumeMM3: body.certificate.volumeMM3 }));
+    const outputs = Object.keys(initial.bodies).map(name => { const body = convexBody(initial,name); return { name, solidId: body.report.solidId, volumeMM3: body.certificate.volumeMM3 }; });
     const transport = { id: 1, ok: true, text: initialText,
       summary: { documentId: 'cad_model', revision: 0, source: 'model', parameters: initial.parameters, features: initial.features, outputs },
       display: { profile: 'model-outputs', documentId: 'cad_model', revision: 0, components, outcomes: outputs.map(o => ({ role: o.name, solidId: o.solidId, status: 'solid' })) } };

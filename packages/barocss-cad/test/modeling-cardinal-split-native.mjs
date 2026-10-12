@@ -1,3 +1,4 @@
+import { convexBody } from './modeling-regeneration-fixture.mjs';
 import assert from 'node:assert/strict';
 import { mkdirSync, writeFileSync, readFileSync, statfsSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -20,20 +21,21 @@ const stage = (label, action) => {
   flow.stages.push({ label, elapsedMS: performance.now() - start }); pending = null; write(); return result;
 };
 const volumes = (result, negative, positive, axis, min, at, max, height = 8) => {
-  prove(result.bodies.negative, negative); prove(result.bodies.positive, positive);
-  bounds(result.bodies.negative, axis, min, at); bounds(result.bodies.positive, axis, at, max);
-  for (const body of Object.values(result.bodies)) bounds(body, 2, 0, height);
+  prove(convexBody(result,'negative'), negative); prove(convexBody(result,'positive'), positive);
+  bounds(convexBody(result,'negative'), axis, min, at); bounds(convexBody(result,'positive'), axis, at, max);
+  for (const name of Object.keys(result.bodies)) bounds(convexBody(result,name), 2, 0, height);
   const native = result.evidence[2].native; capPair(native, axis);
   assert.deepEqual(native.report.volumeMM3.parent, { numerator: String(negative + positive), denominator: '1' });
-  assert.deepEqual(native.report.volumeMM3.negative, result.bodies.negative.certificate.volumeMM3);
-  assert.deepEqual(native.report.volumeMM3.positive, result.bodies.positive.certificate.volumeMM3);
+  assert.deepEqual(native.report.volumeMM3.negative, convexBody(result,'negative').certificate.volumeMM3);
+  assert.deepEqual(native.report.volumeMM3.positive, convexBody(result,'positive').certificate.volumeMM3);
 };
 try {
   const initial = stage('source X16', cardinalPart(cad).build), saved = initial.save();
   volumes(initial, 4096, 3072, 0, 0, 16, 32);
   assert.deepEqual(initial.features[2], { kind: 'split', index: 2, dependencies: [1] });
   flow.baseline = { volumesMM3: [4096, 3072], nativeWork: initial.evidence[2].native.report.nativeWork, conservation: initial.evidence[2].native.report.volumeMM3 };
-  const components = Object.entries(initial.bodies).map(([name, body]) => {
+  const components = Object.keys(initial.bodies).map(name => {
+    const body = convexBody(initial,name);
     const result = tessellateConvexPlanarSolid(body, { maximumFanTriangles: 40 }); flow.tessellations++;
     assert.ok(result.report.triangleCount > 0);
     return { role: name, mesh: result.mesh, boundaries: result.boundaries, internalDiagonals: result.internalDiagonals, report: result.report,
@@ -43,7 +45,7 @@ try {
   flow.display = components.map(c => ({ name: c.role, triangles: c.report.triangleCount, nativeAuthority: c.report.nativeAuthority }));
   if (process.env.CAD_MODEL_TRANSPORT_DIR) {
     const output = resolve(process.env.CAD_MODEL_TRANSPORT_DIR); mkdirSync(output, { recursive: true });
-    const outputs = Object.entries(initial.bodies).map(([name, body]) => ({ name, solidId: body.report.solidId, volumeMM3: body.certificate.volumeMM3 }));
+    const outputs = Object.keys(initial.bodies).map(name => { const body = convexBody(initial,name); return { name, solidId: body.report.solidId, volumeMM3: body.certificate.volumeMM3 }; });
     const transport = { id: 1, ok: true, text: saved,
       summary: { documentId: 'cad_model', revision: 0, source: 'model', parameters: initial.parameters, features: initial.features, outputs },
       display: { profile: 'model-outputs', documentId: 'cad_model', revision: 0, components, outcomes: outputs.map(o => ({ role: o.name, solidId: o.solidId, status: 'solid' })) } };
@@ -75,14 +77,14 @@ try {
       assert.deepEqual(error.cause, { side, status: 'outside', sectionDimension: -1 }); assert.ok(Object.isFrozen(error.cause));
       flow.refusals.push({ label, code: error.code, operation: error.operation, message: error.message, cause: error.cause }); return true;
     });
-    assert.equal(accepted.save(), text); prove(accepted.bodies.negative, 4096); prove(accepted.bodies.positive, 3072);
+    assert.equal(accepted.save(), text); prove(convexBody(accepted,'negative'), 4096); prove(convexBody(accepted,'positive'), 3072);
   });
   const xTangent = stage('positive-only X signed-zero tangent', cardinalPart(cad, { at: -0, mode: 'positive' }).build);
   const yTangent = stage('negative-only Y32 tangent', cardinalPart(cad, { axis: 'y', at: 32, mode: 'negative' }).build);
   for (const [result, side, empty] of [[xTangent,'positive','negative'], [yTangent,'negative','positive']]) {
-    prove(result.bodies[side], 7168); assert.equal(result.evidence[2].native[empty].kind, 'empty');
+    prove(convexBody(result,side), 7168); assert.equal(result.evidence[2].native[empty].kind, 'empty');
     assert.equal(result.evidence[2].native.report.status, 'tangent'); assert.equal(result.evidence[2].native.section.dimension, 2);
-    assert.deepEqual(result.bodies[side], result.evidence[2].native.request.parent);
+    assert.deepEqual(convexBody(result,side), result.evidence[2].native.request.parent);
   }
   assert.ok(Object.is(xTangent.parameters.splitAt, -0) && xTangent.save().includes('"splitAt":-0'));
   const cutter = xTangent.evidence[2].native.request.cutter;
@@ -94,7 +96,7 @@ try {
       assert.ok(error.cause instanceof ConvexPlanarSolidSplitError); assert.equal(error.cause.code, 'REPRESENTABILITY');
       flow.nativeRefusal = { code: error.code, operation: error.operation, cause: { name: error.cause.name, code: error.cause.code, stage: error.cause.stage, entity: error.cause.entity, message: error.cause.message } }; return true;
     });
-    assert.equal(initial.save(), saved); prove(initial.bodies.negative, 4096); prove(initial.bodies.positive, 3072);
+    assert.equal(initial.save(), saved); prove(convexBody(initial,'negative'), 4096); prove(convexBody(initial,'positive'), 3072);
   });
   assert.equal(flow.evaluations, 11); assert.equal(flow.tessellations, 2); assert.equal(initial.save(), saved);
   flow.status = 'passed'; flow.actualGPU = 'UNRUN'; write();

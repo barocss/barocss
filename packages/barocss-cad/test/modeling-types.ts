@@ -1,11 +1,12 @@
-import { cad, type CadModelSnapshot, type CadShape, type CadParameter, type CadSplit, type CadDimensionExpression } from '../src/index.js';
+import { cad, type CadModelSnapshot, type CadShape, type CadParameter, type CadSplit, type CadDimensionExpression, type CadBody } from '../src/index.js';
 const model = cad.model();
 const width: CadParameter = model.parameter('width', 80);
 const plate: CadShape = model.sketch.rectangle({ min: [0, 0], max: [width, 60] }).extrude(10);
 const result: CadModelSnapshot = model.build({ plate });
 const wider = result.withParameters({ width: 100 });
 const reopened = cad.load(wider.save());
-reopened.bodies.plate.certificate.volumeMM3;
+if (reopened.bodies.plate.family !== 'convex-planar') throw new Error('Expected a convex plate');
+reopened.bodies.plate.native.certificate.volumeMM3;
 const serial = cad.model(), setback = serial.parameter('setback', 1);
 const blank = serial.sketch.polygon([[0,0],[32,0],[32,16],[16,32],[0,32]]).extrude(8);
 const tool = serial.sketch.rectangle({ min: [8,-16], max: [16,48] }).extrude(8);
@@ -98,3 +99,27 @@ finishSnapshot.suppression.frontFinish = true;
 finishModel.parameter('enabled', false);
 // @ts-expect-error Initial finish options name the feature; they cannot skip initial native validation.
 finishBlank.chamfer(finishEdge, 1, { name: 'frontFinish', suppressed: true });
+
+const holeModel = cad.model(), holeRadius = holeModel.parameter('radius', 5);
+const holeBlank = holeModel.sketch.rectangle({ width: 80, height: 40 }).extrude(8);
+const drilled: CadShape = holeBlank.hole({ center: [holeModel.dimension.add(20, 20), 20], radius: holeRadius });
+const holeSnapshot: CadModelSnapshot = holeModel.build({ blank: holeBlank, plate: drilled });
+holeSnapshot.withParameters({ radius: 2.5 }).save();
+function inspectBody(body: CadBody) {
+  switch (body.family) {
+    case 'convex-planar': return body.native.certificate.volumeMM3;
+    case 'stored-rational-plate-hole': return body.native.certificate.genus;
+    default: { const exhaustive: never = body; return exhaustive; }
+  }
+}
+inspectBody(holeSnapshot.bodies.plate);
+// @ts-expect-error The one public body contract requires explicit family narrowing and unwrapping.
+holeSnapshot.bodies.plate.certificate;
+// @ts-expect-error A stored-rational hole does not have a certified analytic cylinder volume.
+if (holeSnapshot.bodies.plate.family === 'stored-rational-plate-hole') holeSnapshot.bodies.plate.native.certificate.volumeMM3;
+// @ts-expect-error Centre requires exactly two owned dimensions.
+holeBlank.hole({ center: [40, 20, 0], radius: 5 });
+// @ts-expect-error The bounded feature is through-hole only, without a depth option.
+holeBlank.hole({ center: [40, 20], radius: 5, depth: 4 });
+// @ts-expect-error Radius is a millimetre dimension, not text.
+holeBlank.hole({ center: [40, 20], radius: '5' });

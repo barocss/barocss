@@ -1,3 +1,4 @@
+import { convexBody } from './modeling-regeneration-fixture.mjs';
 import assert from 'node:assert/strict';
 import { mkdirSync, writeFileSync, readFileSync, statfsSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -26,7 +27,7 @@ try {
   const prior = JSON.parse(readFileSync(new URL('./modeling-chamfer-split-evidence/source-flow.json', import.meta.url), 'utf8'));
   assert.equal(flow.initialBodySHA256, prior.initialBodySHA256); flow.literalPredecessorBodyParity = true;
   writeFileSync(resolve(directory, 'initial.cad-model.json'), initialText);
-  const body = initial.bodies.negative, result = tessellateConvexPlanarSolid(body, { maximumFanTriangles: 40 }); flow.tessellations++;
+  const body = convexBody(initial,'negative'), result = tessellateConvexPlanarSolid(body, { maximumFanTriangles: 40 }); flow.tessellations++;
   assert.ok(result.report.triangleCount > 0); flow.display = { side: 'negative', triangles: result.report.triangleCount, nativeAuthority: result.report.nativeAuthority };
   if (process.env.CAD_MODEL_TRANSPORT_DIR) {
     const output = resolve(process.env.CAD_MODEL_TRANSPORT_DIR); mkdirSync(output, { recursive: true });

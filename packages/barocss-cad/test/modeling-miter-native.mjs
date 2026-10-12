@@ -1,3 +1,4 @@
+import { convexBody } from './modeling-regeneration-fixture.mjs';
 import assert from 'node:assert/strict';
 import { mkdirSync, writeFileSync, readFileSync, statfsSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -24,7 +25,8 @@ try {
   const initial = stage('miter sum24 baseline', miterRail(cad).build), initialText = initial.save();
   work(initial, [], [0,1,2]); flow.baseline = proveMiter(initial, 24, 2304, 3840); flow.initialBodySHA256 = bodyHash(initial);
   writeFileSync(resolve(directory, 'initial.cad-model.json'), initialText);
-  const components = Object.entries(initial.bodies).map(([name, body]) => {
+  const components = Object.keys(initial.bodies).map(name => {
+    const body = convexBody(initial,name);
     disk(); assert.ok(++flow.tessellations <= 2); write(); const result = tessellateConvexPlanarSolid(body, { maximumFanTriangles: 40 });
     assert.ok(result.report.triangleCount > 0);
     return { role: name, mesh: result.mesh, boundaries: result.boundaries, internalDiagonals: result.internalDiagonals, report: result.report,
@@ -34,7 +36,7 @@ try {
   flow.display = components.map(c => ({ name: c.role, triangles: c.report.triangleCount, nativeAuthority: c.report.nativeAuthority }));
   if (process.env.CAD_MODEL_TRANSPORT_DIR) {
     const output = resolve(process.env.CAD_MODEL_TRANSPORT_DIR); mkdirSync(output, { recursive: true });
-    const outputs = Object.entries(initial.bodies).map(([name, body]) => ({ name, solidId: body.report.solidId, volumeMM3: body.certificate.volumeMM3 }));
+    const outputs = Object.keys(initial.bodies).map(name => { const body = convexBody(initial,name); return { name, solidId: body.report.solidId, volumeMM3: body.certificate.volumeMM3 }; });
     const transport = { id: 1, ok: true, text: initialText,
       summary: { documentId: 'cad_model', revision: 0, source: 'model', parameters: initial.parameters, features: initial.features, outputs },
       display: { profile: 'model-outputs', documentId: 'cad_model', revision: 0, components, outcomes: outputs.map(o => ({ role: o.name, solidId: o.solidId, status: 'solid' })) } };
@@ -59,7 +61,7 @@ try {
   const tangent = stage('signed negative-zero one-output tangent', miterRail(cad, { at: -0, occupiedOnly: true }).build);
   work(tangent, [], [0,1,2]); const native = tangent.evidence[2].native;
   assert.equal(native.report.status, 'tangent'); assert.equal(native.section.dimension, 1); assert.equal(native.negative.kind, 'empty');
-  assert.equal(tangent.bodies.positive, native.positive.solid); assert.deepEqual(tangent.bodies.positive, native.request.parent); prove(tangent.bodies.positive, 6144);
+  assert.equal(convexBody(tangent,'positive'), native.positive.solid); assert.deepEqual(convexBody(tangent,'positive'), native.request.parent); prove(convexBody(tangent,'positive'), 6144);
   assert.ok(Object.is(tangent.parameters.cutPosition, -0)); assert.ok(tangent.save().includes('"cutPosition":-0'));
   const plane = native.request.cutter.model.objects.find(o => o.id === native.request.cutter.surfaceId);
   assert.ok(Object.is(plane.controlPoints[0][0][1], -0)); assert.ok(native.request.cutter.source.includes('[0,-0,0]'));

@@ -1,3 +1,4 @@
+import { convexBody } from './modeling-regeneration-fixture.mjs';
 import assert from 'node:assert/strict';
 import { prove } from './modeling-intersection-fixture.mjs';
 import { bounds } from './modeling-cardinal-split-fixture.mjs';
@@ -57,8 +58,8 @@ export function proveSplit(snapshot, axis, at, negative, positive, capEdges) {
   assert.deepEqual(parent, ancestor); originalPlaneBindings += inheritedPlanes(native);
   const a = ['x','y','z'].indexOf(axis), max = [32,24,8][a];
   for (const [side, volume, low, high] of [['negative',negative,0,at],['positive',positive,at,max]]) {
-    assert.equal(native[side].kind, 'solid'); assert.equal(snapshot.bodies[side], native[side].solid);
-    prove(snapshot.bodies[side], volume); bounds(snapshot.bodies[side], a, low, high);
+    assert.equal(native[side].kind, 'solid'); assert.equal(convexBody(snapshot,side), native[side].solid);
+    prove(convexBody(snapshot,side), volume); bounds(convexBody(snapshot,side), a, low, high);
   }
   assert.equal(native.report.status, 'split'); assert.equal(native.report.volumeMM3.conserved, true);
   assert.deepEqual(native.report.volumeMM3.parent, { numerator: String(negative + positive), denominator: '1' });

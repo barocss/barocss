@@ -50,10 +50,10 @@ export function makePart() {
 // #region outputs
 export function inspectPart(accepted: CadModelSnapshot) {
   const part = accepted.bodies.part;
-  if (!part) throw new Error('Expected a named part output');
+  if (!part || part.family !== 'convex-planar') throw new Error('Expected a named convex part output');
   // This is the actual native Solid certificate, not a mesh-volume estimate.
   return {
-    volumeMM3: part.certificate.volumeMM3,
+    volumeMM3: part.native.certificate.volumeMM3,
     parameters: accepted.parameters,
     features: accepted.features,
     evidence: accepted.evidence,

@@ -1,3 +1,4 @@
+import { convexBody } from './modeling-regeneration-fixture.mjs';
 import assert from 'node:assert/strict';
 import { mkdirSync, writeFileSync, readFileSync, statfsSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -22,7 +23,7 @@ const stage = (label, action) => {
 try {
   const initial = stage('source front1 back2', chamferPart(cad).build), saved = initial.save();
   flow.baseline = chainProof(initial, 16, 64, 6064);
-  const body = initial.bodies.part, display = tessellateConvexPlanarSolid(body, { maximumFanTriangles: 40 }); flow.tessellations++;
+  const body = convexBody(initial,'part'), display = tessellateConvexPlanarSolid(body, { maximumFanTriangles: 40 }); flow.tessellations++;
   assert.ok(display.report.triangleCount > 0); flow.display = { triangles: display.report.triangleCount, nativeAuthority: display.report.nativeAuthority };
   if (process.env.CAD_MODEL_TRANSPORT_DIR) {
     const output = resolve(process.env.CAD_MODEL_TRANSPORT_DIR); mkdirSync(output, { recursive: true });
@@ -57,7 +58,7 @@ try {
       }
       flow.refusals.push(refusal); return true;
     });
-    assert.equal(initial.save(), saved); prove(initial.bodies.part, 6064);
+    assert.equal(initial.save(), saved); prove(convexBody(initial,'part'), 6064);
     assert.deepEqual(initial.evidence[3].native.split.request.parent, initial.evidence[2].native.split.negative.solid);
   });
   assert.equal(flow.evaluations, 6); assert.equal(flow.tessellations, 1); assert.equal(initial.save(), saved);

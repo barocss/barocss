@@ -19,7 +19,7 @@ export function provePart(snapshot, width, height, front, back) {
   prove(second.split.negative.solid, original - removedFirst - removedSecond); prove(second.split.positive.solid, removedSecond);
   assert.deepEqual(second.split.request.parent, first.split.negative.solid);
   assert.equal(first.split.report.volumeMM3.conserved, true); assert.equal(second.split.report.volumeMM3.conserved, true);
-  prove(snapshot.bodies.part, original - removedFirst - removedSecond);
+  prove(convexBody(snapshot,'part'), original - removedFirst - removedSecond);
   return { originalMM3: original, firstRemovedMM3: removedFirst, secondRemovedMM3: removedSecond, finalMM3: original - removedFirst - removedSecond };
 }
 
@@ -42,11 +42,15 @@ export function work(snapshot, reused, evaluated, previous) {
   deepFrozen(snapshot.bodies); deepFrozen(snapshot.evidence); deepFrozen(snapshot.parameters);
 }
 
+export function convexBody(snapshot,name) {
+  const body=snapshot.bodies[name];assert.equal(body.family,'convex-planar');return body.native;
+}
+
 // Independent deterministic data hashing retains signed zeros; never used as geometry authority.
 export function bodyHash(snapshot) {
   const text = value => typeof value === 'number' ? Object.is(value, -0) ? '-0' : JSON.stringify(value)
     : Array.isArray(value) ? '[' + value.map(text).join(',') + ']'
       : value !== null && typeof value === 'object' ? '{' + Object.keys(value).sort().map(k => JSON.stringify(k) + ':' + text(value[k])).join(',') + '}'
         : JSON.stringify(value);
-  return createHash('sha256').update(text(snapshot.bodies)).digest('hex');
+  return createHash('sha256').update(text(Object.fromEntries(Object.keys(snapshot.bodies).map(name=>[name,convexBody(snapshot,name)])))).digest('hex');
 }

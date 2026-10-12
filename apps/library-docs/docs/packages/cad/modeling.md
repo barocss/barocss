@@ -9,7 +9,7 @@ All dimensions below are **millimetres**. Use a TypeScript-capable workspace/bun
 <<< ../../../scripts/snippets/modeling-api.ts#imports
 <<< ../../../scripts/snippets/modeling-api.ts#plate
 
-`rectangle({ width, height })` starts at XY `[0,0]`. Here its `height: depth` is the sketch's Y size, while `extrude(height)` is the solid's positive Z height. `makePlate()` returns an accepted snapshot; its named `bodies.part` output is the complete native Solid. A build requires at least one named output.
+`rectangle({ width, height })` starts at XY `[0,0]`. Here its `height: depth` is the sketch's Y size, while `extrude(height)` is the solid's positive Z height. `makePlate()` returns an accepted snapshot; its named `bodies.part` output is a frozen `{family,native}` wrapper around the complete native Solid. A build requires at least one named output.
 
 Parameter handles belong to their model. Use them directly wherever a point coordinate or dimension is accepted. A name is safe ASCII matching `[A-Za-z_][A-Za-z0-9_-]{0,47}`, excluding `__proto__`, `prototype` and `constructor`. A finite literal can be used instead of a parameter handle. Owned derived dimensions support bounded `model.dimension.add` and `model.dimension.scale` as described below. General formula strings and sketch constraints remain outside this authoring surface.
 
@@ -105,7 +105,7 @@ Use `blank.split({ axis: 'z', at: splitHeight })` to divide one direct XY extrus
 
 <<< ../../public/examples/modeling-split.ts#split-part
 
-The accepted outputs are `snapshot.bodies.lower` and `snapshot.bodies.upper`. At `splitHeight: 2`, their exact volumes are **1792 / 5376 mm³**, with Z bounds **[0,2] / [2,8] mm**. They are distinct native bodies, not aliases of the original extrusion. Their total volume remains **7168 mm³**.
+The accepted outputs are `snapshot.bodies.lower` and `snapshot.bodies.upper`. At `splitHeight: 2`, their exact volumes are **1792 / 5376 mm³**, with Z bounds **[0,2] / [2,8] mm**. Their `native` values are distinct bodies, not aliases of the original extrusion. Their total volume remains **7168 mm³**.
 
 <<< ../../public/examples/modeling-split.ts#edit-split
 
@@ -320,9 +320,9 @@ Provider [#1640](https://github.com/barocss/barocss/issues/1640) and consumer [#
 
 <<< ../../../scripts/snippets/modeling-api.ts#outputs
 
-`bodies.part` is the finished chamfered Solid; `bodies.other` is the untouched negative-side component. Only names passed to `build()` appear in `bodies`. The entire authored graph is evaluated, including operations that are not named outputs. An unused invalid operation still refuses the build.
+After narrowing each output to `family: 'convex-planar'`, `bodies.part.native` is the finished chamfered Solid and `bodies.other.native` is the untouched negative-side component. Only names passed to `build()` appear in `bodies`. The entire authored graph is evaluated, including operations that are not named outputs. An unused invalid operation still refuses the build.
 
-`parameters`, `suppression`, `features`, `evidence` and native bodies are read-only, frozen snapshot data. Features expose operation kinds and dependency indexes, plus optional named-chamfer configuration; evidence contains original kernel results for diagnosis. Neither is an editable graph API. Keep the whole native Solid when calling supported native query/display adapters; a tessellated mesh or a renderer image does not replace it.
+`parameters`, `suppression`, `features`, `evidence` and native bodies are read-only, frozen snapshot data. Features expose operation kinds and dependency indexes, plus optional named-chamfer configuration; evidence contains original kernel results for diagnosis. Neither is an editable graph API. Narrow the output family and pass its whole `native` Solid when calling matching native query/display adapters; a tessellated mesh or a renderer image does not replace it.
 
 ## 4. Edit parameters atomically
 
@@ -437,3 +437,28 @@ The independent [editor adoption #1612](https://github.com/barocss/barocss/issue
 <script setup>
 import { withBase } from 'vitepress'
 </script>
+
+## Qualified mounting-plate through-hole API
+
+The primary API also admits `blank.hole({center:[40,20],radius:5})` on a direct
+80 × 40 × 8 mm origin-aligned rectangular extrusion. Centre and radius may use
+owned parameters or derived dimensions, so the same accepted snapshot supports
+parameter edits, authored Save/Open and selective prefix reuse.
+
+All `snapshot.bodies[name]` values use a single `{family,native}` contract.
+Existing part recipes produce `convex-planar` outputs; a qualified hole produces
+`stored-rational-plate-hole`. Narrow the family before inspecting or adapting
+its native result. No output is omitted, and native identity is preserved.
+
+The hole certificate describes the actual stored rational boundary and genus-one
+Solid. Its original uncertified parent report and analytic reference quantities
+remain diagnostic data; there is no certified ideal-cylinder volume. The
+matching native preview is sampled from the seven real faces, including both
+cap openings and the cavity wall. Integer plate sizes, strict clearance and exact
+stored-UV qualification restrict admission; tangent holes and some dimensions
+can genuinely refuse while preserving the previous accepted snapshot.
+
+This first authoring slice permits one direct rectangular hole within six nodes,
+without mixing convex finishing operations. The current editor rejects hole
+outputs before replacing its accepted scene/history. Visible rendering and
+editing are tracked in [the dedicated consumer issue](https://github.com/barocss/barocss/issues/1644).

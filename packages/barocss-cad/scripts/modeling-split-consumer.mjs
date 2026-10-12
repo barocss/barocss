@@ -1,3 +1,4 @@
+import { convexBody } from '../test/modeling-regeneration-fixture.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync, statfsSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -13,10 +14,10 @@ const stage = (label, action) => { const disk = statfsSync(directory); assert.ok
 try {
   const text = readFileSync(resolve(directory, 'edited.cad-model.json'), 'utf8');
   const reopened = stage('emitted cold horizontal split at4', () => cad.load(text));
-  prove(reopened.bodies.lower, 3584); prove(reopened.bodies.upper, 3584); zBounds(reopened.bodies.lower, 0, 4); zBounds(reopened.bodies.upper, 4, 8); capPair(reopened.evidence[2].native, 5);
+  prove(convexBody(reopened,'lower'), 3584); prove(convexBody(reopened,'upper'), 3584); zBounds(convexBody(reopened,'lower'), 0, 4); zBounds(convexBody(reopened,'upper'), 4, 8); capPair(reopened.evidence[2].native, 5);
   assert.equal(reopened.save(), text); assert.deepEqual(reopened.features[2], { kind: 'split', index: 2, dependencies: [1] });
   const edited = stage('emitted re-edit splitHeight6', () => reopened.withParameters({ splitHeight: 6 }));
-  prove(edited.bodies.lower, 5376); prove(edited.bodies.upper, 1792); zBounds(edited.bodies.lower, 0, 6); zBounds(edited.bodies.upper, 6, 8); capPair(edited.evidence[2].native, 5);
+  prove(convexBody(edited,'lower'), 5376); prove(convexBody(edited,'upper'), 1792); zBounds(convexBody(edited,'lower'), 0, 6); zBounds(convexBody(edited,'upper'), 6, 8); capPair(edited.evidence[2].native, 5);
   assert.equal(reopened.save(), text); flow.status = 'passed'; flow.reopenedVolumes = [3584, 3584]; flow.reeditedVolumes = [5376, 1792];
   flow.authoredInputSHA256 = createHash('sha256').update(text).digest('hex'); flow.reeditedAuthored = edited.save(); write();
 } catch (error) { flow.status = 'failed'; flow.failure = { message: error.message, stack: error.stack, cause: error.cause?.message }; write(); throw error; }

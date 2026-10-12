@@ -1,3 +1,4 @@
+import { convexBody } from './modeling-regeneration-fixture.mjs';
 import assert from 'node:assert/strict';
 import { prove } from './modeling-intersection-fixture.mjs';
 import { bounds } from './modeling-cardinal-split-fixture.mjs';
@@ -64,11 +65,11 @@ export function proveFinishes(snapshot,frontSuppressed,backSuppressed,halfVolume
   for(const cap of discardedCaps) {
     assert.ok(!split.request.parent.request.assets.some(a=>a.sourceId===cap.sourceId));
     assert.ok(!split.lineage.faces.some(f=>f.parent?.sourceId===cap.sourceId||f.output?.sourceId===cap.sourceId));
-    for(const body of Object.values(snapshot.bodies))assert.ok(!body.request.assets.some(a=>a.sourceId===cap.sourceId));
+    for(const name of Object.keys(snapshot.bodies))assert.ok(!convexBody(snapshot,name).request.assets.some(a=>a.sourceId===cap.sourceId));
   }
   const outputBindings=inherited(split);
   for(const [side,min,max,sign] of [['negative',0,16,1n],['positive',16,32,-1n]]) {
-    const body=snapshot.bodies[side];assert.equal(body,split[side].solid);prove(body,halfVolume);bounds(body,0,min,max);bounds(body,1,0,24);bounds(body,2,0,8);
+    const body=convexBody(snapshot,side);assert.equal(body,split[side].solid);prove(body,halfVolume);bounds(body,0,min,max);bounds(body,1,0,24);bounds(body,2,0,8);
     for(const cap of activeCaps)assert.ok(split.lineage.faces.some(f=>f.side===side&&f.output&&f.parent?.sourceId===cap.sourceId&&f.parent?.faceId===cap.faceId));
     const cap=split.lineage.faces.find(f=>f.side===side&&f.role==='cap');assert.ok(cap&&!cap.parent);
     const support=body.supports.find(s=>s.sourceId===cap.output.sourceId&&s.faceId===cap.output.faceId);

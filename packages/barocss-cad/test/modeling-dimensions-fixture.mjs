@@ -1,3 +1,4 @@
+import { convexBody } from './modeling-regeneration-fixture.mjs';
 import assert from 'node:assert/strict';
 import { prove } from './modeling-intersection-fixture.mjs';
 import { bounds } from './modeling-cardinal-split-fixture.mjs';
@@ -31,7 +32,7 @@ export function proveDimensions(snapshot, at, negative, positive) {
   prove(native.request.parent, width * 189.5);
   assert.equal(negative + positive, width * 189.5);
   for (const [side, volume, min, max, sign] of [['negative',negative,0,at,1n],['positive',positive,at,width,-1n]]) {
-    const body = snapshot.bodies[side]; assert.equal(body, native[side].solid);
+    const body = convexBody(snapshot,side); assert.equal(body, native[side].solid);
     prove(body, volume); bounds(body, 0, min, max);
     assert.deepEqual(native.report.volumeMM3[side], body.certificate.volumeMM3);
     const cap = native.lineage.faces.find(f => f.side === side && f.role === 'cap');

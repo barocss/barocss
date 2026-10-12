@@ -24,13 +24,15 @@ function sampleBuilder() {
     build(outputs) { return snapshot({ ...document, parameters, nodes, outputs: Object.fromEntries(Object.entries(outputs).map(([name, body]) => [name, { node: body.index, side: body.side ?? 'solid' }])) }); } };
 }
 const snapshots = [], snapshotEdits = [], suppressionEdits = [], loads = [];
-let tessellations = 0, rejectTessellation = false;
+let tessellations = 0, rejectTessellation = false, unsupportedNativeReads = 0;
 function snapshot(data) {
-  const body = { report: { solidId: 'current_solid' }, certificate: { volumeMM3: { numerator: '1', denominator: '1' } }, graph: { vertices: [], edges: [], faces: [], vertexLinks: [] } };
+  const native = { report: { solidId: 'current_solid' }, certificate: { volumeMM3: { numerator: '1', denominator: '1' } }, graph: { vertices: [], edges: [], faces: [], vertexLinks: [] } };
+  const body = { family: 'convex-planar', native };
+  const unsupported = { family: 'stored-rational-plate-hole', get native() { unsupportedNativeReads++; throw new Error('Unsupported native payload must not be inspected'); } };
   const result = { parameters: data.parameters, suppression:Object.fromEntries(data.nodes.filter(n=>n.name).map(n=>[n.name,n.suppressed])),
     withSuppression(values) { suppressionEdits.push({snapshot:result,values:structuredClone(values)}); if(data.parameters.backY===1) throw new Error('METRIC candidate refused'); return snapshot({...data,nodes:data.nodes.map(n=>n.name&&Object.hasOwn(values,n.name)?{...n,suppressed:values[n.name]}:n)}); },
     recomputation: Object.freeze({ reusedFeatures: Object.freeze([]), evaluatedFeatures: Object.freeze(data.nodes.map((_node, index) => index)) }),
-    features: data.nodes.map((node, index) => ({ kind: node.kind, index, dependencies: [], ...(node.name ? {name:node.name,suppressed:node.suppressed} : {}) })), bodies: Object.fromEntries(Object.keys(data.outputs).map(name => [name, body])),
+    features: data.nodes.map((node, index) => ({ kind: node.kind, index, dependencies: [], ...(node.name ? {name:node.name,suppressed:node.suppressed} : {}) })), bodies: Object.fromEntries(Object.keys(data.outputs).map(name => [name, data.hole && name === 'part' ? unsupported : body])),
     save: () => JSON.stringify({ ...data, outputs: Object.fromEntries(Object.entries(data.outputs).sort(([a], [b]) => a.localeCompare(b))) }), withParameters(values) { snapshotEdits.push({ snapshot: result, values: structuredClone(values) }); modelCalls++; if (Object.values(values).some(v => v < 0)) throw new Error('native candidate refused'); return snapshot({ ...data, parameters: { ...data.parameters, ...values } }); } };
   snapshots.push(result); return result;
 }
@@ -184,6 +186,18 @@ assert.equal(Object.hasOwn(afterReconstruction.summary, 'recomputation'), false)
 const before = modelCalls + legacyCalls;
 assert.equal(engine({ id: ++id, kind: 'open', text: JSON.stringify({ ...legacyDocument, version: 1 }) }).ok, false);
 assert.equal(modelCalls + legacyCalls, before); checks++;
+// A mixed output set is rejected atomically before any native summary or tessellation.
+const familyEngine = create();
+const familyBaseline = familyEngine({ id: ++id, kind: 'open', text: JSON.stringify(document) });
+assert.equal(familyBaseline.ok, true);
+const acceptedFamilySnapshot = snapshots.at(-1), familyText = familyBaseline.text, familyDisplay = JSON.stringify(familyBaseline.display), beforeHoleTessellations = tessellations;
+const refusedHole = familyEngine({ id: ++id, kind: 'open', text: JSON.stringify({ ...document, hole: true }) });
+assert.equal(refusedHole.ok, false); assert.match(refusedHole.message, /plate-hole preview is not supported/);
+assert.equal(unsupportedNativeReads, 0); assert.equal(tessellations, beforeHoleTessellations);
+assert.equal(familyBaseline.text, familyText); assert.equal(JSON.stringify(familyBaseline.display), familyDisplay); checks++;
+const familyRecovery = familyEngine({ id: ++id, kind: 'apply', expectedRevision: 0, parameters: { height: 6 } });
+assert.equal(familyRecovery.ok, true); assert.equal(snapshotEdits.at(-1).snapshot, acceptedFamilySnapshot);
+assert.equal(familyRecovery.summary.revision, 1); checks++;
 // Configuration commands retain the actual accepted snapshot and use only withSuppression.
 const finishEngine=create();
 const finishBase=finishEngine({id:++id,kind:'example',example:'configurable-finishes'});

@@ -1,3 +1,4 @@
+import { convexBody } from './modeling-regeneration-fixture.mjs';
 import assert from 'node:assert/strict';
 import { mkdirSync, writeFileSync, readFileSync, statfsSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -24,7 +25,7 @@ try {
   const initial = stage('cold source build', regeneratingPart(cad).build), initialText = initial.save();
   work(initial, [], [0,1,2,3]); flow.baseline = provePart(initial, 32, 8, 1, 2);
   writeFileSync(resolve(directory, 'initial.cad-model.json'), initialText);
-  const mesh = tessellateConvexPlanarSolid(initial.bodies.part, { maximumFanTriangles: 40 }); flow.tessellations++;
+  const mesh = tessellateConvexPlanarSolid(convexBody(initial,'part'), { maximumFanTriangles: 40 }); flow.tessellations++;
   assert.ok(mesh.report.triangleCount > 0); flow.display = { triangles: mesh.report.triangleCount, nativeAuthority: mesh.report.nativeAuthority };
   const edited = stage('back distance3 only', () => initial.withParameters({ backDistance: 3 })), editedText = edited.save();
   work(edited, [0,1,2], [3], initial); flow.backEdit = provePart(edited, 32, 8, 1, 3);

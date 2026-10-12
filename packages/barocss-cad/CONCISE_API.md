@@ -17,7 +17,9 @@ const result = model.build({ plate });
 const wider = result.withParameters({ width: 100 });
 const saved = wider.save();
 const reopened = cad.load(saved);
-const solid = reopened.bodies.plate;
+const body = reopened.bodies.plate;
+if (body.family !== 'convex-planar') throw new Error('Expected a convex plate');
+const solid = body.native;
 ```
 
 `rectangle({width,height})` starts at XY `[0,0]`. Use
@@ -34,6 +36,48 @@ to a builder cannot change an already built snapshot. Capability/ownership/input
 checks that can be made during authoring reject before appending an operation.
 Geometric checks occur at evaluation; correcting parameter values can repair a
 failed candidate without modifying a previous accepted snapshot.
+
+## Add a qualified through-hole to a mounting plate
+
+Author `const plate = blank.hole({center:[centerX,centerY],radius})` on an
+origin-aligned rectangular XY extrusion, then `model.build({blank,plate})`.
+For example, an 80 × 40 mm rectangle extruded 8 mm admits a centre `[40,20]`
+and radius 5 mm. Coordinates and radius accept literals, owned parameters or
+owned add/scale expressions. Editing radius to 2.5 mm reuses the unchanged
+sketch/extrusion prefix; Save/Open preserves the hole intent and cold rebuilds it.
+
+Every named output has one discriminated `CadBody` contract:
+`{family:'convex-planar',native}` or `{family:'stored-rational-plate-hole',native}`.
+Narrow `body.family` before passing `body.native` to its matching native adapter.
+Wrappers and their complete native values are deeply frozen; reused features
+retain both wrapper and native identity. A mixed output map never drops a body
+or pretends that a hole has a convex certificate.
+
+The hole's native certificate qualifies the **stored rational geometry** as a
+single genus-one Solid: seven faces, ten vertices, fifteen edges and annular
+caps. Its stored binary64 middle weight is the geometric authority, not an
+ideal circular cylinder. There is no certified analytic π-based volume.
+The original `parentReport` remains explicitly uncertified beside this new
+qualification; its reference formula must not be used as a certified volume.
+The feature evidence also retains the actual convex blank parent. The hole
+provider generates its own seven source-backed surfaces; it does not inherit
+the blank's face/edge identities.
+
+Only a direct authored rectangle with XY minimum `[0,0]` and integer X/Y/Z
+sizes from 1 to 10000 mm is admitted. One hole is allowed within six nodes;
+it cannot mix with cut, intersection, split or chamfer, or become a parent for
+those operations or edge queries. Native radius, strict interior clearance,
+exact stored-UV composition and work bounds still apply. Even an otherwise
+ordinary integer width can be refused by exact native qualification. Errors
+preserve the original provider cause and leave the prior snapshot reusable.
+Signed-zero authored dimensions remain preserved by the existing codec.
+
+`tessellateOwnPlateCircularHole` accepts the native bundle and explicit preview
+context/options. `classifyStoredPlateHoleSolidPoints` accepts the qualified native
+result, query records and explicit options to query stored material. Preview sampling is not a new topology or volume proof.
+The current editor explicitly rejects this family before summarizing or
+rendering any candidate output, retaining its prior scene/history. Visible hole
+editing is tracked separately in [#1644](https://github.com/barocss/barocss/issues/1644).
 
 ## Keep dimensions related during edits
 
@@ -94,7 +138,9 @@ const result = model.build({ part: finished, other: cut.negative });
 const edited = result.withParameters({ height: 6, rearX: 20 });
 const reopened = cad.load(edited.save());
 const reedited = reopened.withParameters({ setback: 2 });
-const finalPart = reedited.bodies.part;
+const output = reedited.bodies.part;
+if (output.family !== 'convex-planar') throw new Error('Expected a convex part');
+const finalPart = output.native;
 ```
 
 The initial part has exact native volume 3064 mm³; the separately retained
@@ -337,8 +383,8 @@ const stillAccepted = accepted.save();
 `withParameters` evaluates one complete candidate from a batch of named mm values.
 Unknown names, invalid numbers, ambiguous selections and native refusals leave
 the old parameters, native bodies, evidence and serialized bytes unchanged.
-No caller-managed revision or binding array is needed. A same-value edit still
-cold-evaluates the graph; no caching or partial-rebuild performance is promised.
+No caller-managed revision or binding array is needed. Same-value edits can reuse all model features; the recomputation report does not
+claim total native work or a performance improvement.
 
 `build({name:shape,...})` requires 1..8 explicitly named final outputs. Only those
 outputs are returned as `snapshot.bodies`; consumed tools and intermediate bodies
@@ -346,12 +392,14 @@ are not silently added. Every authored node is evaluated, including unused
 branches, so invalid unused geometry is also refused. Native evidence for all
 operations is preserved under `snapshot.evidence`. `snapshot.features` provides
 kind, diagnostic index and dependency indices; these are not authoring handles.
-Bodies/evidence are deep-frozen native values usable by the existing tessellation
-and display adapters. They allocate no renderer/GPU resources.
+Bodies are deep-frozen family-tagged wrappers around original native values;
+evidence retains the original provider results. Pass the narrowed native value
+to its matching adapter. They allocate no renderer/GPU resources.
 
 The current supported graph envelope is at most two sketches, two extrusions,
 one through-slab cut, intersection or supported split and up to two sequential chamfers,
-with at most six nodes and sixteen parameters. These are
+or one separate rectangular through-hole graph, with at most six nodes and
+sixteen parameters. These are
 upper bounds, not six required roles: an extrusion-only or cut-only model builds,
 saves and reopens through the same API. No arbitrary Boolean graph is implied.
 Names are ASCII identifiers of 1..48 characters; `__proto__`, `constructor` and
@@ -382,7 +430,7 @@ Run the ordinary boundary/type tests after building the package:
 ```sh
 node scripts/tool.mjs type-check
 node scripts/tool.mjs build
-node --test test/modeling.test.mjs test/modeling-intersection.test.mjs test/modeling-split.test.mjs test/modeling-cardinal-split.test.mjs test/modeling-chamfer-chain.test.mjs test/modeling-regeneration.test.mjs test/modeling-regeneration-helpers.test.mjs test/modeling-chamfer-split.test.mjs test/modeling-dimensions.test.mjs test/modeling-dimensions-helpers.test.mjs test/modeling-miter.test.mjs test/modeling-suppression.test.mjs test/public-api.test.mjs
+node --test test/modeling.test.mjs test/modeling-intersection.test.mjs test/modeling-split.test.mjs test/modeling-cardinal-split.test.mjs test/modeling-chamfer-chain.test.mjs test/modeling-regeneration.test.mjs test/modeling-regeneration-helpers.test.mjs test/modeling-chamfer-split.test.mjs test/modeling-dimensions.test.mjs test/modeling-dimensions-helpers.test.mjs test/modeling-miter.test.mjs test/modeling-suppression.test.mjs test/modeling-hole.test.mjs test/public-api.test.mjs
 node test/public-api-types.mjs
 ```
 
@@ -505,5 +553,10 @@ node --no-opt --max-old-space-size=2048 test/modeling-suppression-native.mjs
 node --no-opt --max-old-space-size=2048 scripts/modeling-suppression-consumer.mjs test/modeling-suppression-evidence
 ```
 
-The larger non-convex/curved owned-body, authored-codec and display contracts
-needed for holes and union remain separate roadmap dependencies.
+The bounded hole flow uses nine model calls, two baseline tessellations and one
+six-query stored-material classification call. Seven source calls cover radius
+edit, genuine width/clearance refusals, same-snapshot recovery/no-op and the old
+minimal authored file. Two fresh emitted calls cover cold parity and radius
+re-edit. Classification revalidation is accounted separately from model calls.
+General union, arbitrary curved Booleans and visible editor hole rendering remain
+separate roadmap dependencies; this bounded workflow does not complete them.

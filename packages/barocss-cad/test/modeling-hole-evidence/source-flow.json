@@ -1,0 +1,697 @@
+{
+  "status": "passed",
+  "modelCalls": 7,
+  "tessellations": 2,
+  "classificationCalls": 1,
+  "classificationQueries": 6,
+  "stages": [
+    {
+      "label": "mixed convex blank and qualified through-hole",
+      "elapsedMS": 343.97004100000004,
+      "recomputation": {
+        "reusedFeatures": [],
+        "evaluatedFeatures": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    {
+      "label": "radius 5 to 2.5",
+      "elapsedMS": 208.78056299999992,
+      "recomputation": {
+        "reusedFeatures": [
+          0,
+          1
+        ],
+        "evaluatedFeatures": [
+          2
+        ]
+      }
+    },
+    {
+      "label": "width 81 exact stored UV refusal",
+      "elapsedMS": 285.43922799999996
+    },
+    {
+      "label": "same accepted snapshot off-centre recovery",
+      "elapsedMS": 198.21351499999992,
+      "recomputation": {
+        "reusedFeatures": [
+          0,
+          1
+        ],
+        "evaluatedFeatures": [
+          2
+        ]
+      }
+    },
+    {
+      "label": "tangent radius 18.75 genuine containment refusal",
+      "elapsedMS": 3.782173000000057
+    },
+    {
+      "label": "same accepted snapshot explicit no-op",
+      "elapsedMS": 4.622620000000097,
+      "recomputation": {
+        "reusedFeatures": [
+          0,
+          1,
+          2
+        ],
+        "evaluatedFeatures": []
+      }
+    },
+    {
+      "label": "unchanged old authored convex file",
+      "elapsedMS": 93.85607600000003,
+      "recomputation": {
+        "reusedFeatures": [],
+        "evaluatedFeatures": [
+          0,
+          1,
+          2
+        ]
+      }
+    }
+  ],
+  "fullTransitiveNativeCoverage": "NOT_MEASURED",
+  "entrySHA256": "62c5c734a8fa9da9e402a7472078b90602d1981e3b16e1ed712c5558d92eb3c7",
+  "pending": null,
+  "baseline": {
+    "center": [
+      40,
+      20
+    ],
+    "radius": 5,
+    "clearance": [
+      35,
+      35,
+      15,
+      15
+    ],
+    "boundsMM": {
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        80,
+        40,
+        8
+      ]
+    },
+    "genus": 1,
+    "weightedEuler": 0,
+    "faces": 7,
+    "vertices": 10,
+    "edges": 15,
+    "loops": 9,
+    "uses": 30,
+    "sourceModels": 7,
+    "certifiedVolume": "UNAVAILABLE",
+    "nativeIdentityPreserved": true
+  },
+  "initialBodySHA256": "5b9e66ca2ff86f8dd49c72ff874f79b3d7bbcbf2d9ec1592754923ba129d119d",
+  "blankDisplay": {
+    "family": "convex-planar",
+    "triangles": 12
+  },
+  "holeDisplay": {
+    "faces": 7,
+    "triangles": 128,
+    "centreApertureOpen": true,
+    "cavityNormalsInward": true,
+    "approximation": "sampled-native-circle-ring-and-faceted-surface"
+  },
+  "material": {
+    "queries": [
+      {
+        "queryId": "material_0",
+        "pointMM": [
+          40,
+          20,
+          4
+        ]
+      },
+      {
+        "queryId": "material_1",
+        "pointMM": [
+          1,
+          1,
+          4
+        ]
+      },
+      {
+        "queryId": "material_2",
+        "pointMM": [
+          45,
+          20,
+          4
+        ]
+      },
+      {
+        "queryId": "material_3",
+        "pointMM": [
+          40,
+          20,
+          0
+        ]
+      },
+      {
+        "queryId": "material_4",
+        "pointMM": [
+          1,
+          1,
+          8
+        ]
+      },
+      {
+        "queryId": "material_5",
+        "pointMM": [
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "classifications": [
+      {
+        "queryId": "material_0",
+        "status": "outside",
+        "bodyIds": [],
+        "boundary": {
+          "faces": [],
+          "edges": [],
+          "vertexIds": []
+        }
+      },
+      {
+        "queryId": "material_1",
+        "status": "inside",
+        "bodyIds": [
+          "m2_body"
+        ],
+        "boundary": {
+          "faces": [],
+          "edges": [],
+          "vertexIds": []
+        }
+      },
+      {
+        "queryId": "material_2",
+        "status": "boundary",
+        "bodyIds": [
+          "m2_body"
+        ],
+        "boundary": {
+          "faces": [
+            {
+              "faceId": "m2_body_hole_wall",
+              "surfaceId": "m2_body_hole_wall_surface",
+              "sourceModelFaceId": "m2_body_hole_wall",
+              "role": "hole-wall"
+            }
+          ],
+          "edges": [
+            {
+              "edgeId": "m2_body_hole_wall_seam_edge",
+              "curveId": "m2_body_hole_seam_curve",
+              "vertexIds": [
+                "m2_body_hole_z_min_seam",
+                "m2_body_hole_z_max_seam"
+              ],
+              "kind": "wall-seam",
+              "useIds": [
+                "m2_body_hole_wall_left_use",
+                "m2_body_hole_wall_right_use"
+              ]
+            }
+          ],
+          "vertexIds": []
+        }
+      },
+      {
+        "queryId": "material_3",
+        "status": "outside",
+        "bodyIds": [],
+        "boundary": {
+          "faces": [],
+          "edges": [],
+          "vertexIds": []
+        }
+      },
+      {
+        "queryId": "material_4",
+        "status": "boundary",
+        "bodyIds": [
+          "m2_body"
+        ],
+        "boundary": {
+          "faces": [
+            {
+              "faceId": "m2_body_face_z_max",
+              "surfaceId": "m2_body_z_max_surface",
+              "sourceModelFaceId": "m2_body_face_z_max",
+              "role": "top-cap"
+            }
+          ],
+          "edges": [],
+          "vertexIds": []
+        }
+      },
+      {
+        "queryId": "material_5",
+        "status": "boundary",
+        "bodyIds": [
+          "m2_body"
+        ],
+        "boundary": {
+          "faces": [
+            {
+              "faceId": "m2_body_face_x_min",
+              "surfaceId": "m2_body_x_min_surface",
+              "sourceModelFaceId": "m2_body_face_x_min",
+              "role": "outer-side"
+            },
+            {
+              "faceId": "m2_body_face_y_min",
+              "surfaceId": "m2_body_y_min_surface",
+              "sourceModelFaceId": "m2_body_face_y_min",
+              "role": "outer-side"
+            },
+            {
+              "faceId": "m2_body_face_z_min",
+              "surfaceId": "m2_body_z_min_surface",
+              "sourceModelFaceId": "m2_body_face_z_min",
+              "role": "bottom-cap"
+            }
+          ],
+          "edges": [
+            {
+              "edgeId": "m2_body_e0",
+              "curveId": "m2_body_y_min_c0",
+              "vertexIds": [
+                "m2_body_v0",
+                "m2_body_v1"
+              ],
+              "kind": "outer-line",
+              "useIds": [
+                "m2_body_face_y_min_use_0",
+                "m2_body_face_z_min_use_3"
+              ]
+            },
+            {
+              "edgeId": "m2_body_e1",
+              "curveId": "m2_body_z_min_c0",
+              "vertexIds": [
+                "m2_body_v0",
+                "m2_body_v2"
+              ],
+              "kind": "outer-line",
+              "useIds": [
+                "m2_body_face_x_min_use_3",
+                "m2_body_face_z_min_use_0"
+              ]
+            },
+            {
+              "edgeId": "m2_body_e2",
+              "curveId": "m2_body_x_min_c0",
+              "vertexIds": [
+                "m2_body_v0",
+                "m2_body_v4"
+              ],
+              "kind": "outer-line",
+              "useIds": [
+                "m2_body_face_x_min_use_0",
+                "m2_body_face_y_min_use_3"
+              ]
+            }
+          ],
+          "vertexIds": [
+            "m2_body_v0"
+          ]
+        }
+      }
+    ],
+    "proof": [
+      {
+        "queryId": "material_0",
+        "boxPositions": [
+          "interior",
+          "interior",
+          "interior"
+        ],
+        "quadrant": 0,
+        "normalized": {
+          "x": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "y": {
+            "numerator": "0",
+            "denominator": "1"
+          }
+        },
+        "holeStatus": "inside",
+        "branch": "below-chord",
+        "conic": null,
+        "faceTestCount": 0,
+        "edgeTestCount": 0,
+        "vertexTestCount": 0
+      },
+      {
+        "queryId": "material_1",
+        "boxPositions": [
+          "interior",
+          "interior",
+          "interior"
+        ],
+        "quadrant": 2,
+        "normalized": {
+          "x": {
+            "numerator": "39",
+            "denominator": "5"
+          },
+          "y": {
+            "numerator": "19",
+            "denominator": "5"
+          }
+        },
+        "holeStatus": "outside",
+        "branch": "beyond-cardinal-box",
+        "conic": null,
+        "faceTestCount": 0,
+        "edgeTestCount": 0,
+        "vertexTestCount": 0
+      },
+      {
+        "queryId": "material_2",
+        "boxPositions": [
+          "interior",
+          "interior",
+          "interior"
+        ],
+        "quadrant": 0,
+        "normalized": {
+          "x": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "y": {
+            "numerator": "0",
+            "denominator": "1"
+          }
+        },
+        "holeStatus": "boundary",
+        "branch": "on-chord",
+        "conic": null,
+        "faceTestCount": 7,
+        "edgeTestCount": 15,
+        "vertexTestCount": 10
+      },
+      {
+        "queryId": "material_3",
+        "boxPositions": [
+          "interior",
+          "interior",
+          "minimum"
+        ],
+        "quadrant": 0,
+        "normalized": {
+          "x": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "y": {
+            "numerator": "0",
+            "denominator": "1"
+          }
+        },
+        "holeStatus": "inside",
+        "branch": "below-chord",
+        "conic": null,
+        "faceTestCount": 0,
+        "edgeTestCount": 0,
+        "vertexTestCount": 0
+      },
+      {
+        "queryId": "material_4",
+        "boxPositions": [
+          "interior",
+          "interior",
+          "maximum"
+        ],
+        "quadrant": 2,
+        "normalized": {
+          "x": {
+            "numerator": "39",
+            "denominator": "5"
+          },
+          "y": {
+            "numerator": "19",
+            "denominator": "5"
+          }
+        },
+        "holeStatus": "outside",
+        "branch": "beyond-cardinal-box",
+        "conic": null,
+        "faceTestCount": 7,
+        "edgeTestCount": 15,
+        "vertexTestCount": 10
+      },
+      {
+        "queryId": "material_5",
+        "boxPositions": [
+          "minimum",
+          "minimum",
+          "minimum"
+        ],
+        "quadrant": 2,
+        "normalized": {
+          "x": {
+            "numerator": "8",
+            "denominator": "1"
+          },
+          "y": {
+            "numerator": "4",
+            "denominator": "1"
+          }
+        },
+        "holeStatus": "outside",
+        "branch": "beyond-cardinal-box",
+        "conic": null,
+        "faceTestCount": 7,
+        "edgeTestCount": 15,
+        "vertexTestCount": 10
+      }
+    ],
+    "report": {
+      "schema": "barocss-stored-plate-hole-solid-point-classification",
+      "version": 0,
+      "evaluationId": "mounting_material",
+      "bodyId": "m2_body",
+      "lengthUnit": "mm",
+      "sourceFrame": "authored-xyz",
+      "authority": "stored-coefficient-conic-product-material",
+      "queryCount": 6,
+      "counts": {
+        "inside": 1,
+        "outside": 2,
+        "boundary": 3
+      },
+      "quality": {
+        "restrictedStoredMaterialCertified": true,
+        "generalCurvedSolidCertified": false,
+        "toleranceUsed": false,
+        "rayUsed": false,
+        "nativeD0EqualityAuthority": false,
+        "parentUnchanged": true
+      },
+      "directCounts": {
+        "solidValidationCount": 1,
+        "curvePointEvaluationCount": 0,
+        "curveDerivativeEvaluationCount": 0,
+        "surfacePointEvaluationCount": 0,
+        "surfaceDerivativeEvaluationCount": 0,
+        "sourceCompilationCount": 0,
+        "faceTests": 21,
+        "edgeTests": 45,
+        "vertexTests": 30
+      },
+      "rationalCounts": {
+        "operations": 3467,
+        "gcdSteps": 260,
+        "floatSearchSteps": 0,
+        "floatConversions": 0,
+        "maximumObservedBits": 107
+      },
+      "limits": {
+        "maximumQueries": 8,
+        "faceTests": 56,
+        "edgeTests": 120,
+        "vertexTests": 80,
+        "rationalOperations": 200000,
+        "gcdSteps": 200000,
+        "rationalBits": 8192,
+        "ownOccurrences": 131072,
+        "ownDepth": 32,
+        "arrayEntries": 1024,
+        "recordFields": 64,
+        "stringUnits": 262144,
+        "aggregateStringUnits": 1048576,
+        "fileUTF16": 262144,
+        "fileUTF8": 262144
+      }
+    }
+  },
+  "transfer": {
+    "bytes": 277591,
+    "sha256": "3ee3d585448a24ad6d8fcdbc3cddd927eb6e13b399db6a707444940080fc4024",
+    "scope": "actual qualified native bodies and both provider meshes; no editor packet or browser execution"
+  },
+  "narrow": {
+    "center": [
+      40,
+      20
+    ],
+    "radius": 2.5,
+    "clearance": [
+      37.5,
+      37.5,
+      17.5,
+      17.5
+    ],
+    "boundsMM": {
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        80,
+        40,
+        8
+      ]
+    },
+    "genus": 1,
+    "weightedEuler": 0,
+    "faces": 7,
+    "vertices": 10,
+    "edges": 15,
+    "loops": 9,
+    "uses": 30,
+    "sourceModels": 7,
+    "certifiedVolume": "UNAVAILABLE",
+    "nativeIdentityPreserved": true
+  },
+  "chartRefusal": {
+    "name": "CadModelError",
+    "code": "NATIVE",
+    "operation": "hole",
+    "message": "CAD model hole: Stored plate-hole Solid: Exact whole-curve stored pole chart composition refused",
+    "stack": "CadModelError: CAD model hole: Stored plate-hole Solid: Exact whole-curve stored pole chart composition refused\n    at evaluate17 (file:///workspace/shared/cad-1643-validation/source.mjs:76093:13)\n    at Object.withParameters (file:///workspace/shared/cad-1643-validation/source.mjs:76122:14)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-modeling-split/packages/barocss-cad/test/modeling-hole-native.mjs:45:30\n    at getActual (node:assert:609:5)\n    at Function.throws (node:assert:757:24)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-modeling-split/packages/barocss-cad/test/modeling-hole-native.mjs:45:12\n    at stage (file:///workspace/scratch/1591b2fb2f62/barocss-modeling-split/packages/barocss-cad/test/modeling-hole-native.mjs:15:133)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-modeling-split/packages/barocss-cad/test/modeling-hole-native.mjs:44:3\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)",
+    "cause": {
+      "name": "StoredPlateHoleSolidError",
+      "code": "GEOMETRY",
+      "message": "Stored plate-hole Solid: Exact whole-curve stored pole chart composition refused",
+      "stack": "StoredPlateHoleSolidError: Stored plate-hole Solid: Exact whole-curve stored pole chart composition refused\n    at check125 (file:///workspace/shared/cad-1643-validation/source.mjs:39937:18)\n    at qualifyStoredPlateHoleSolid (file:///workspace/shared/cad-1643-validation/source.mjs:40061:37)\n    at evaluate17 (file:///workspace/shared/cad-1643-validation/source.mjs:76068:26)\n    at Object.withParameters (file:///workspace/shared/cad-1643-validation/source.mjs:76122:14)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-modeling-split/packages/barocss-cad/test/modeling-hole-native.mjs:45:30\n    at getActual (node:assert:609:5)\n    at Function.throws (node:assert:757:24)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-modeling-split/packages/barocss-cad/test/modeling-hole-native.mjs:45:12\n    at stage (file:///workspace/scratch/1591b2fb2f62/barocss-modeling-split/packages/barocss-cad/test/modeling-hole-native.mjs:15:133)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-modeling-split/packages/barocss-cad/test/modeling-hole-native.mjs:44:3"
+    }
+  },
+  "offset": {
+    "center": [
+      32.5,
+      18.75
+    ],
+    "radius": 2.5,
+    "clearance": [
+      30,
+      45,
+      16.25,
+      18.75
+    ],
+    "boundsMM": {
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        80,
+        40,
+        8
+      ]
+    },
+    "genus": 1,
+    "weightedEuler": 0,
+    "faces": 7,
+    "vertices": 10,
+    "edges": 15,
+    "loops": 9,
+    "uses": 30,
+    "sourceModels": 7,
+    "certifiedVolume": "UNAVAILABLE",
+    "nativeIdentityPreserved": true
+  },
+  "tangentRefusal": {
+    "name": "CadModelError",
+    "code": "NATIVE",
+    "operation": "hole",
+    "message": "CAD model hole: Own plate circular through-hole: strict represented contained circular hole required; touching/outside/unsafe refuses",
+    "stack": "CadModelError: CAD model hole: Own plate circular through-hole: strict represented contained circular hole required; touching/outside/unsafe refuses\n    at evaluate17 (file:///workspace/shared/cad-1643-validation/source.mjs:76093:13)\n    at Object.withParameters (file:///workspace/shared/cad-1643-validation/source.mjs:76122:14)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-modeling-split/packages/barocss-cad/test/modeling-hole-native.mjs:54:30\n    at getActual (node:assert:609:5)\n    at Function.throws (node:assert:757:24)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-modeling-split/packages/barocss-cad/test/modeling-hole-native.mjs:54:12\n    at stage (file:///workspace/scratch/1591b2fb2f62/barocss-modeling-split/packages/barocss-cad/test/modeling-hole-native.mjs:15:133)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-modeling-split/packages/barocss-cad/test/modeling-hole-native.mjs:53:3\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)",
+    "cause": {
+      "name": "Error",
+      "message": "Own plate circular through-hole: strict represented contained circular hole required; touching/outside/unsafe refuses",
+      "stack": "Error: Own plate circular through-hole: strict represented contained circular hole required; touching/outside/unsafe refuses\n    at check45 (file:///workspace/shared/cad-1643-validation/source.mjs:12855:25)\n    at request2 (file:///workspace/shared/cad-1643-validation/source.mjs:12914:3)\n    at buildOwnPlateCircularHole (file:///workspace/shared/cad-1643-validation/source.mjs:13055:28)\n    at evaluate17 (file:///workspace/shared/cad-1643-validation/source.mjs:76058:23)\n    at Object.withParameters (file:///workspace/shared/cad-1643-validation/source.mjs:76122:14)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-modeling-split/packages/barocss-cad/test/modeling-hole-native.mjs:54:30\n    at getActual (node:assert:609:5)\n    at Function.throws (node:assert:757:24)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-modeling-split/packages/barocss-cad/test/modeling-hole-native.mjs:54:12\n    at stage (file:///workspace/scratch/1591b2fb2f62/barocss-modeling-split/packages/barocss-cad/test/modeling-hole-native.mjs:15:133)"
+    }
+  },
+  "noop": {
+    "center": [
+      32.5,
+      18.75
+    ],
+    "radius": 2.5,
+    "clearance": [
+      30,
+      45,
+      16.25,
+      18.75
+    ],
+    "boundsMM": {
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        80,
+        40,
+        8
+      ]
+    },
+    "genus": 1,
+    "weightedEuler": 0,
+    "faces": 7,
+    "vertices": 10,
+    "edges": 15,
+    "loops": 9,
+    "uses": 30,
+    "sourceModels": 7,
+    "certifiedVolume": "UNAVAILABLE",
+    "nativeIdentityPreserved": true
+  },
+  "noopWrapperAndNativeIdentity": true,
+  "editedBodySHA256": "5f6faf6c260dc2a13531eaf999c63e7bfb541248177e6d0f2c8caca7488d5f3f",
+  "legacy": {
+    "fileSHA256": "b3a1fa71f0c25d0be6caa8e2b5e1fc84b23de86eaa8fd65f921235c3e1eada54",
+    "bodySHA256": "5954dd5b93ed8ae1a2d637bace3fee864cbae0d182f404e0885bb64c9eaa7e73",
+    "volumeMM3": 4096,
+    "authoredBytesUnchanged": true,
+    "nativeIdentityUnchanged": true
+  },
+  "futureUseAfterBothRefusals": true,
+  "oldAndNewSnapshotsIndependent": true,
+  "actualEditorGPU": "UNRUN"
+}
