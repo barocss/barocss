@@ -1,4 +1,4 @@
-import { cad, type CadModelSnapshot, type CadShape, type CadParameter, type CadSplit, type CadDimensionExpression, type CadBody } from '../src/index.js';
+import { cad, type CadModelSnapshot, type CadShape, type CadParameter, type CadSplit, type CadDimensionExpression, type CadBody, type CadCut } from '../src/index.js';
 const model = cad.model();
 const width: CadParameter = model.parameter('width', 80);
 const plate: CadShape = model.sketch.rectangle({ min: [0, 0], max: [width, 60] }).extrude(10);
@@ -134,3 +134,29 @@ if (joinedSnapshot.bodies.bracket.family === 'orthogonal-cell') joinedSnapshot.b
 joinedSnapshot.withParameters({ legWidth: 12 }).save();
 // @ts-expect-error Only an owned shape handle is an operand, not a serialized body reference.
 unionA.union({ node: 3, side: 'solid' });
+
+const cutModel = cad.model(), cutDepth = cutModel.parameter('depth', 4);
+const cutPlate = cutModel.sketch.rectangle({ min: [-0, 0], max: [32, 24] }).extrude(8);
+const cutTool = cutModel.sketch.rectangle({ min: [8, 8], max: [24, 16] }).extrude(cutDepth);
+const recessed: CadShape = cutPlate.cut(cutTool);
+const cutSnapshot: CadModelSnapshot = cutModel.build({ part: recessed });
+cutSnapshot.withParameters({ depth: 8 }).save();
+const throughSlab: CadCut = cutPlate.cut(cutTool, { axis: 'x' });
+void throughSlab;
+// @ts-expect-error Omitted options return one shape, not a pair.
+const notPair: CadCut = cutPlate.cut(cutTool);
+// @ts-expect-error Explicit axis options return a pair, not a shape.
+const notShape: CadShape = cutPlate.cut(cutTool, { axis: 'y' });
+// @ts-expect-error Explicit undefined is not omission.
+cutPlate.cut(cutTool, undefined);
+// @ts-expect-error Empty options are ambiguous and refused.
+cutPlate.cut(cutTool, {});
+// @ts-expect-error Null is not an axis record.
+cutPlate.cut(cutTool, null);
+// @ts-expect-error Legacy through-slab has only x/y axes.
+cutPlate.cut(cutTool, { axis: 'z' });
+// @ts-expect-error No third argument.
+cutPlate.cut(cutTool, { axis: 'x' }, true);
+// @ts-expect-error An owned shape is required.
+cutPlate.cut({ node: 3, side: 'solid' });
+void notPair; void notShape;

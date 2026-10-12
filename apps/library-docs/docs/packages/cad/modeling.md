@@ -442,13 +442,28 @@ The consumer checks instrument exact snapshot identity with provider stubs and e
 
 This loader accepts files from this modeling API. Existing versioned feature documents retain their explicit legacy readers; there is no automatic migration through `cad.load`. See [historical serial-part files](./serial-part-v2) and [historical exact-prism files](./exact-prism-modeling) for those source-pinned contracts.
 
+## Rectangular recess and through-window (provider API)
+
+`plate.cut(tool)` returns one `CadShape` from two distinct direct integer rectangular XY extrusions. `plate.cut(tool,{axis:'x'|'y'})` retains the original through-slab `CadCut` pair. Omitting the second argument is meaningful; explicitly passing `undefined`, `null`, `{}`, extra fields or extra arguments refuses before geometry.
+
+For a 32×24×8 mm plate, a tool spanning X8..24 and Y8..16, extruded4 mm, removes512 mm³ and retains5632 mm³. Both begin at Z=0, so this is an **underside recess**, not a top-entry pocket. Increasing depth to6 retains5376; depth8 creates a through-window retaining5120. Corners resolve to integers within ±10000 mm, with integer side lengths/heights1..10000. Owned add/scale dimensions may drive the bounds.
+
+The complete named outputs keep `family:'orthogonal-cell'` with actual native material, source-qualified operand boxes and generated panel lineage. Original convex parent identity stays in diagnostic evidence. Empty or multi-body results are not converted into a shape: `SELECTION` / `cut` retains the full frozen native result as cause. A disjoint tool returns a newly qualified retained material body. All refused edits preserve previous saved text, bodies and future reuse.
+
+The new saved node kind is `difference`, with parent/tool references. Cold load rebuilds the five-node graph. Depth edits reuse0/1/2 and evaluate3/4; tool XY edits reuse0/1 and evaluate2/3/4. These are model-feature indices, not measured total native savings. The old axis-cut schema and saved fixtures are unchanged.
+
+**The editor currently refuses difference outputs before preview access or tessellation.** Its union-only adapter does not authorize pocket/window preview, inward cut-tool orientation or a forged convex/legacy packet. Previous accepted union/hole/convex scene and history remain intact. The new provider flow includes CPU buffers, but browser/GPU/picking and physical-file display acceptance await a separate consumer under [#1119](https://github.com/barocss/barocss/issues/1119). Do not silently truncate the native72-panel ceiling to the current64-panel preview bound.
+
+See the [complete typed primary-API example](https://github.com/barocss/barocss/blob/develop/packages/barocss-cad/CONCISE_API.md#cut-an-underside-recess-or-through-window). This five-node operation cannot mix with other Booleans, holes or chamfers, use an operation result as an operand, or expose convex edge queries. Translated-Z, cylindrical and arbitrary BRep cutters remain outside this scope.
+
 ## Supported shapes and useful refusals
 
 | Operation | Admitted input | Refused or outside this surface |
 | --- | --- | --- |
 | Sketch | One simple strictly convex XY polygon, 3–8 straight segments; rectangle from `{width,height}` or `{min,max}` | Holes, nonconvex/self-crossing cycles, arcs, numerical sketch constraints |
 | Extrude | Positive +Z height up to 10000 mm; exact affine native prism qualification | Taper, sweep, nonpositive height or nonrepresentable native/chart lift |
-| Cut | Two distinct direct XY extrusions; X or Y through-slab supports; full coverage by the remaining tool supports | Arbitrary cutter, cavity, union, chained cut parent, failed tool coverage |
+| Cut with axis options | Two distinct direct XY extrusions; X or Y through-slab supports; full coverage by the remaining tool supports | Arbitrary cutter, cavity, union, chained cut parent, failed tool coverage |
+| Cut without options | Two distinct direct integer authored rectangular XY extrusions from Z=0; one positive-volume orthogonal-cell result | Empty/multiple bodies, nesting/mixed graphs, top-entry or arbitrary cutters; editor preview unavailable |
 | Intersect | Two distinct same-model direct XY extrusions; positive-volume exact convex-planar overlap | Disjoint/touching-only results, same handle, cut-plus-intersection, repeated/nested intersection, union or general Boolean solids |
 | Split | A direct XY extrusion or one/two owned serial chamfers rooted at it; world `axis: 'x'`, `'y'` or `'z'`, or fixed `plane: 'x+y'`, with a finite coordinate/coordinate-sum; each selected side must be nonempty | Arbitrary oblique plane, empty requested side, mixed cut/intersection/split graph, repeated/nested split |
 | Hole | One direct origin-aligned rectangular extrusion with safe-integer width/depth/height, a strictly contained finite centre/radius and successful stored-rational qualification | Tangent/outside holes, nonrectangular or moved parents, repeated holes, mixed chamfer/split/cut/intersection; see the mounting-plate limits below |
@@ -461,12 +476,12 @@ A dimension being an ordinary integer is not enough to qualify an operation. The
 
 ### Initial resource bounds
 
-`CadModelLimits` exposes these implementation bounds; they are not public version families. All limits apply together, and native operations retain their own tighter geometric/work budgets. Only one cut, intersection or split may appear in the same graph. One hole or one connected union may appear instead, without mixing cut, intersection, split, chamfer or each other.
+`CadModelLimits` exposes these implementation bounds; they are not public version families. All limits apply together, and native operations retain their own tighter geometric/work budgets. Only one cut, intersection or split may appear in the same graph. One hole, one connected union or one rectangular difference may appear instead, without mixing Boolean/finishing operations.
 
 | Resource | Maximum |
 | --- | ---: |
 | Authored operation nodes | 6 |
-| Sketches / extrusions / cuts / intersections / chamfers / splits / holes / unions | 2 / 2 / 1 / 1 / 2 / 1 / 1 / 1 |
+| Sketches / extrusions / cuts / intersections / chamfers / splits / holes / unions / differences | 2 / 2 / 1 / 1 / 2 / 1 / 1 / 1 / 1 |
 | Named parameters / outputs | 16 / 8 |
 | Polygon points | 8 |
 | Authored file UTF-8 bytes | 65536 (64 KiB) |

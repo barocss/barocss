@@ -38,6 +38,11 @@ const authored = { format: 'barocss-cad-model', schema: 1, units: 'mm', paramete
 const overlap = { ...structuredClone(authored), parameters: { rearX: 16, leftX: 8, rightX: 40, lowY: -8, highY: 24, height: 4 },
   nodes: [{ kind: 'sketch' }, { kind: 'extrude' }, { kind: 'sketch' }, { kind: 'extrude' }, { kind: 'intersect' }],
   outputs: { overlap: { node: 4, side: 'solid' } } };
+const difference = { ...structuredClone(authored), nodes: [
+  ...structuredClone(authored.nodes),
+  { kind: 'sketch', profile: 'rectangle', min: [8, 0], max: [16, 8] }, { kind: 'extrude', sketch: 2, height: 8 },
+  { kind: 'difference', parent: { node: 1, side: 'solid' }, tool: { node: 3, side: 'solid' } },
+], outputs: { blank: { node: 1, side: 'solid' }, part: { node: 4, side: 'solid' } } };
 const split = { ...structuredClone(authored), parameters: { height: 8, splitHeight: 2 },
   nodes: [{ kind: 'sketch' }, { kind: 'extrude' }, { kind: 'split', parent: 1, axis: 'z', at: { parameter: 'splitHeight' } }],
   outputs: { lower: { node: 2, side: 'negative' }, upper: { node: 2, side: 'positive' } } };
@@ -107,6 +112,53 @@ try {
   const convexAccepted=stable(convexOnly);assert.equal(Object.hasOwn(convexAccepted.display,'selectedOutput'),false);
   await assert.rejects(convexOnly.viewOutput('part',convexAccepted.generation),/current named output/);assert.deepEqual(stable(convexOnly),convexAccepted);
   assert.match(convexWorker.requests[0].taskToken,/^[A-Za-z0-9_-]{36}$/);convexOnly.dispose();checks+=2;
+  // Difference cannot be laundered as an untagged convex, tagged convex, union or legacy reply.
+  for (const mode of ['untagged-convex', 'tagged-convex', 'tagged-union', 'legacy-v0', 'legacy-v2']) {
+    let commits = 0;
+    const guarded = create({ prepare: async () => ({ commit() { commits++; }, dispose() {} }) });
+    let pending = guarded.example(), worker = instances.at(-1); worker.accept(); await pending;
+    guarded.stage('height', '6'); pending = guarded.apply(); worker.accept(); await pending;
+    guarded.stage('height', '7'); guarded.select(1, guarded.getSnapshot().generation);
+    const before = stable(guarded), commitCount = commits, candidate = reply(difference);
+    if (mode.startsWith('legacy')) {
+      const legacy = { format: 'barocss-xy-affine-prism-feature-document', version: mode === 'legacy-v0' ? 0 : 2,
+        id: candidate.summary.documentId, revision: 0,
+        parameters: Object.entries(difference.parameters).map(([id, valueMM]) => ({ id, valueMM })), nodes: structuredClone(difference.nodes) };
+      candidate.text = signedJSON(legacy); candidate.summary.source = 'legacy';
+      candidate.compatibility = { document: legacy, components: candidate.display.outcomes };
+    }
+    pending = guarded.open(candidate.text);
+    if (mode.startsWith('tagged')) {
+      candidate.display.profile = 'model-body-faces'; candidate.display.taskToken = worker.requests.at(-1).taskToken;
+      candidate.display.components = candidate.display.components.map(component => ({ family: 'convex-planar', component }));
+      for (const output of candidate.summary.outputs) output.family = 'convex-planar';
+      for (const outcome of candidate.display.outcomes) outcome.family = 'convex-planar';
+      if (mode === 'tagged-union') {
+        candidate.summary.outputs[1].family = candidate.display.outcomes[1].family = 'orthogonal-cell';
+        candidate.display.components[1] = { family: 'orthogonal-cell', role: 'part', solidId: nativeId,
+          qualification: { operation: 'union', volumeMM3: 1 } };
+      }
+    }
+    worker.send(candidate); await pending;
+    assert.match(guarded.getSnapshot().error, mode.startsWith('legacy') ? /Legacy files cannot author.*difference/ : /difference outputs.*unsupported nonconvex/);
+    assert.deepEqual(stable(guarded), before); assert.equal(commits, commitCount); assert.equal(worker.terminated, true); checks++;
+    // Recovery must reconstruct the previous accepted source, retaining the pending dimension edit.
+    pending = guarded.apply(); worker = instances.at(-1);
+    assert.equal(worker.requests[0].kind, 'open'); assert.equal(worker.requests[0].text, before.authoredText);
+    assert.equal(worker.requests[0].revision, before.accepted.revision); worker.accept(); await tick();
+    assert.equal(worker.requests[1].kind, 'apply'); assert.deepEqual(worker.requests[1].parameters, { height: 7 });
+    worker.accept(); await pending;
+    assert.equal(guarded.getSnapshot().accepted.parameters.height, 7);
+    assert.equal(guarded.getSnapshot().history.count, before.history.count + 1); assert.equal(commits, commitCount + 1);
+    assert.deepEqual(guarded.getSnapshot().drafts, {}); assert.equal(guarded.getSnapshot().error, null); guarded.dispose(); checks++;
+  }
+  const unusedDifference = { ...structuredClone(difference), outputs: { blank: { node: 1, side: 'solid' } } };
+  const convexWithUnusedDifference = create();
+  const unusedPending = convexWithUnusedDifference.open(signedJSON(unusedDifference));
+  instances.at(-1).send(reply(unusedDifference)); await unusedPending;
+  assert.equal(convexWithUnusedDifference.getSnapshot().error, null);
+  assert.deepEqual(convexWithUnusedDifference.getSnapshot().accepted.outputs.map(output => output.name), ['blank']);
+  convexWithUnusedDifference.dispose(); checks++;
   // Configuration, dimensions and history share one atomic channel per accepted action.
   const f=create();let fp=f.example('configurable-finishes'),fw=instances.at(-1);fw.accept();await fp;
   assert.deepEqual(f.getSnapshot().accepted.suppression,{frontFinish:false,backFinish:false});checks++;
@@ -369,6 +421,7 @@ try {
     const s = create(); p = s.open(real.text); instances.at(-1).send(wrap(real)); await p; assert.ok(s.getSnapshot().accepted); s.dispose(); legacyChecks++;
     for (const mutate of [r => { r.compatibility.document.nodes[5].kind = 'hole'; r.summary.features[5].kind = 'hole'; },
       r => { r.compatibility.document.nodes[5].kind = 'union'; r.summary.features[5].kind = 'union'; },
+      r => { r.compatibility.document.nodes[5].kind = 'difference'; r.summary.features[5].kind = 'difference'; },
       r => r.compatibility.document.nodes[5].reference.a.faceId = 'forged',
       r => r.compatibility.document.nodes[5].options.retainedSolidId = 'forged', r => r.compatibility.selectedWalls[0].segmentId = 'forged',
       r => r.compatibility.serial.resolution.originalPrismNodeId = 'forged']) {

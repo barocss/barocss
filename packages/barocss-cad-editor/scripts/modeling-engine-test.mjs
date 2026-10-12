@@ -25,6 +25,7 @@ function sampleBuilder() {
     build(outputs) { return snapshot({ ...document, parameters, nodes, outputs: Object.fromEntries(Object.entries(outputs).map(([name, body]) => [name, { node: body.index, side: body.side ?? 'solid' }])) }); } };
 }
 const snapshots = [], snapshotEdits = [], suppressionEdits = [], loads = [];
+let nextLoadedSnapshot = null;
 let tessellations = 0, rejectTessellation = false, unsupportedNativeReads = 0, holeTessellations = 0, rejectHoleTessellation = false;
 function snapshot(data) {
   const native = { report: { solidId: 'current_solid' }, certificate: { volumeMM3: { numerator: '1', denominator: '1' } }, graph: { vertices: [], edges: [], faces: [], vertexLinks: [] } };
@@ -37,7 +38,7 @@ function snapshot(data) {
     save: () => JSON.stringify({ ...data, outputs: Object.fromEntries(Object.entries(data.outputs).sort(([a], [b]) => a.localeCompare(b))) }), withParameters(values) { snapshotEdits.push({ snapshot: result, values: structuredClone(values) }); modelCalls++; if (Object.values(values).some(v => v < 0)) throw new Error('native candidate refused'); return snapshot({ ...data, parameters: { ...data.parameters, ...values } }); } };
   snapshots.push(result); return result;
 }
-globalThis.__modelingCad = { cad: { model: sampleBuilder, load(text) { modelCalls++; const data = JSON.parse(text); if (data.invalid) throw new Error('codec refused'); const result = snapshot(data); loads.push({ text, snapshot: result }); return result; } },
+globalThis.__modelingCad = { cad: { model: sampleBuilder, load(text) { modelCalls++; const data = JSON.parse(text); if (data.invalid) throw new Error('codec refused'); const result = nextLoadedSnapshot ?? snapshot(data); nextLoadedSnapshot = null; loads.push({ text, snapshot: result }); return result; } },
   tessellateOwnPlateCircularHole(bundle, options) { holeTessellations++; if(rejectHoleTessellation) throw new Error('hole tessellation refused'); assert.deepEqual(bundle,holeTransfer.bodies.plate.native.bundle); assert.equal(options.segmentsPerQuarter,4); const result=structuredClone(holeTransfer.holeMesh); result.mesh.context=structuredClone(options.context); return result; },
   tessellateConvexPlanarSolid(body) { tessellations++; if (rejectTessellation) throw new Error('tessellation refused'); if(body.report.solidId===holeTransfer.bodies.blank.native.report.solidId) return structuredClone(holeTransfer.blankMesh); const { mesh, boundaries, internalDiagonals, report } = structuredClone(packet.components[0]); report.solidId = 'current_solid'; return { mesh, boundaries, internalDiagonals, report }; } };
 globalThis.__modelingLegacy = () => {
@@ -238,6 +239,49 @@ for(const kind of ['convex','hole']) {
  const recovered=guarded({id:++id,kind:'apply',expectedRevision:0,parameters:kind==='hole'?{radius:2.5}:{height:6},taskToken:'union_recovery'});
  assert.equal(recovered.ok,true,recovered.message);assert.equal(snapshotEdits.at(-1).snapshot,accepted);assert.equal(recovered.summary.revision,1);checks++;
 }
+// Saved output references reject difference before any native getter, including an earlier union.
+// The loaded snapshot's canonical graph is authoritative even when the incoming text has no difference.
+let differenceSummaryReads = 0;
+for (const acceptedKind of ['convex', 'hole']) for (const firstKind of ['extrude', 'hole', 'union']) {
+  const guarded = create(), baseline = acceptedKind === 'hole'
+    ? guarded({ id: ++id, kind: 'example', example: 'mounting-plate', taskToken: 'difference_guard_hole' })
+    : guarded({ id: ++id, kind: 'open', text: JSON.stringify(document) });
+  assert.equal(baseline.ok, true, baseline.message);
+  const accepted = snapshots.at(-1), savedBaseline = JSON.stringify(baseline), before = tessellations + holeTessellations;
+  const differenceGraph = { ...document, nodes: [
+    { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [32, 24] }, { kind: 'extrude', sketch: 0, height: { parameter: 'height' } },
+    { kind: 'sketch', profile: 'rectangle', min: [8, 0], max: [16, 8] }, { kind: 'extrude', sketch: 2, height: 8 },
+    firstKind === 'hole' ? { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [16, 12], radius: 2 }
+      : { kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } },
+    { kind: 'difference', parent: { node: 1, side: 'solid' }, tool: { node: 3, side: 'solid' } },
+  ], outputs: { aSupported: { node: firstKind === 'extrude' ? 1 : 4, side: 'solid' }, zDifference: { node: 5, side: 'solid' } } };
+  const candidate = snapshot(differenceGraph);
+  candidate.bodies = Object.fromEntries(Object.keys(differenceGraph.outputs).map(name => [name, {
+    family: name === 'zDifference' || firstKind === 'union' ? 'orthogonal-cell' : firstKind === 'hole' ? 'stored-rational-plate-hole' : 'convex-planar',
+    get native() { unsupportedNativeReads++; throw new Error('Difference refusal must precede every native payload getter'); },
+  }]));
+  for (const property of ['parameters', 'suppression', 'features']) Object.defineProperty(candidate, property, {
+    get() { differenceSummaryReads++; throw new Error('Difference refusal must precede snapshot summary reads'); },
+  });
+  nextLoadedSnapshot = candidate;
+  const refused = guarded({ id: ++id, kind: 'open', text: JSON.stringify({ ...document, operation: 'union' }), taskToken: 'difference_refusal' });
+  assert.equal(refused.ok, false); assert.match(refused.message, /difference outputs.*unsupported nonconvex/);
+  assert.equal(unsupportedNativeReads, 0); assert.equal(differenceSummaryReads, 0); assert.equal(tessellations + holeTessellations, before);
+  assert.equal(JSON.stringify(baseline), savedBaseline); checks++;
+  const recovered = guarded({ id: ++id, kind: 'apply', expectedRevision: 0,
+    parameters: acceptedKind === 'hole' ? { radius: 2.5 } : { height: 6 }, taskToken: 'difference_recovery' });
+  assert.equal(recovered.ok, true, recovered.message); assert.equal(snapshotEdits.at(-1).snapshot, accepted);
+  assert.equal(recovered.summary.revision, 1); checks++;
+}
+// Neither a caller operation label nor an unreferenced difference node changes a convex output.
+const unusedDifference = { ...document, operation: 'difference', nodes: [
+  { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [32, 24] }, { kind: 'extrude', sketch: 0, height: { parameter: 'height' } },
+  { kind: 'sketch', profile: 'rectangle', min: [8, 0], max: [16, 8] }, { kind: 'extrude', sketch: 2, height: 8 },
+  { kind: 'difference', parent: { node: 1, side: 'solid' }, tool: { node: 3, side: 'solid' } },
+] };
+const convexWithUnusedDifference = create()({ id: ++id, kind: 'open', text: JSON.stringify(unusedDifference) });
+assert.equal(convexWithUnusedDifference.ok, true, convexWithUnusedDifference.message);
+assert.equal(convexWithUnusedDifference.display.profile, 'model-outputs'); checks++;
 // Configuration commands retain the actual accepted snapshot and use only withSuppression.
 const finishEngine=create();
 const finishBase=finishEngine({id:++id,kind:'example',example:'configurable-finishes'});

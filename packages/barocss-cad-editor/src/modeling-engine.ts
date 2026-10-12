@@ -236,8 +236,14 @@ export function createModelingEngine() {
       const revision = command.kind === 'apply' || command.kind === 'suppression' ? command.expectedRevision + 1 : command.kind === 'open' ? command.revision ?? 0 : 0;
       const text = snapshot.save();
       // The codec owns canonical key order. Keep initial and reopened display inventories identical.
+      const authored = JSON.parse(text) as { nodes: { kind: string }[]; outputs: Record<string, { node: number }> };
+      const outputNames = Object.keys(authored.outputs);
+      // Difference shares the union body family, but has no admitted preview. Inspect the
+      // trusted saved output references before reading any output's native payload or summary.
+      if (outputNames.some(name => authored.nodes[authored.outputs[name].node].kind === 'difference'))
+        throw new Error('Authored difference outputs require an unsupported nonconvex preview.');
       // Admit every output family before reading native summaries or tessellating any output.
-      const outputs = Object.keys(JSON.parse(text).outputs).map(name => {
+      const outputs = outputNames.map(name => {
         const body = snapshot.bodies[name];
         switch (body.family) {
           case 'convex-planar': case 'stored-rational-plate-hole': return [name, body] as const;

@@ -15,7 +15,7 @@ original source, this README and the MIT LICENSE. Compiled runtime import needs 
 ## Start modeling with one API
 
 Use `cad.model()` for parameterized XY sketches, extrusion, supported through-slab
-cuts, exact edge selection, cardinal chamfer and authored Save/Open. The public
+cuts, rectangular recesses/windows, exact edge selection, cardinal chamfer and authored Save/Open. The public
 workflow manages native identities and file versions internally:
 
 ```ts
@@ -66,6 +66,22 @@ consumer replay do not establish visible rendering: the external browser/GPU
 and physical-file gate remains OPEN. See the
 [exact authoring contract](CONCISE_API.md#fuse-two-rectangular-extrusions)
 and [broader renderer follow-up](https://github.com/barocss/barocss/issues/1119).
+
+## Rectangular recess and through-window
+
+`plate.cut(tool)` returns one positive-volume rectangular difference in the same
+owned model. Both direct integer rectangular extrusions start at Z=0: a shorter
+tool makes an underside recess, and a full-height tool makes a through-window.
+The result uses the existing `orthogonal-cell` body family, actual qualified box
+sources, generated panel lineage and exact integer-cell volume. Empty/multiple
+bodies refuse with their complete native result retained as the error cause.
+
+The existing `cut(tool,{axis:'x'|'y'})` remains a through-slab **pair**; omitted
+options return one **shape**, while explicit undefined/empty options refuse.
+Save/cold load and atomic dimension edits use the same API and unchanged helpers.
+This provider slice has no difference editor preview: current union/hole scenes
+remain accepted on refusal. See the [bounded authoring contract](CONCISE_API.md#cut-an-underside-recess-or-through-window)
+and [display dependency](https://github.com/barocss/barocss/issues/1119).
 
 ## Editable overlap parts
 

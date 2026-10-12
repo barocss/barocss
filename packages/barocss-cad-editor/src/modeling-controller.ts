@@ -69,8 +69,10 @@ function sourceMatches(reply: Success, taskToken?: string) {
     if (data?.format !== 'barocss-cad-model' || data.schema !== 1 || data.units !== 'mm' || !same(data.parameters, summary.parameters)
       || !Array.isArray(data.nodes) || !same(data.nodes.map((n: { kind: string }) => n.kind), summary.features.map(f => f.kind))
       || !same(Object.keys(data.outputs), summary.outputs.map(o => o.name)) || reply.compatibility !== undefined) throw new Error('Saved model differs from native summary.');
-    if (Object.values(data.outputs as Record<string, { node: number }>).some(output => ['hole', 'union'].includes(data.nodes[output.node]?.kind))
-      && reply.display?.profile !== 'model-body-faces') throw new Error(Object.values(data.outputs as Record<string, { node: number }>).some(output => data.nodes[output.node]?.kind === 'hole')
+    const outputKinds = Object.values(data.outputs as Record<string, { node: number }>).map(output => data.nodes[output.node]?.kind);
+    if (outputKinds.includes('difference')) throw new Error('Authored difference outputs require an unsupported nonconvex preview.');
+    if (outputKinds.some(kind => ['hole', 'union'].includes(kind))
+      && reply.display?.profile !== 'model-body-faces') throw new Error(outputKinds.includes('hole')
         ? 'Authored hole outputs require tagged body-face transport.' : 'Authored union outputs require tagged body-face transport.');
     const flags = authoredFinishes(data.nodes, summary.features);
     if (!same(flags, summary.suppression) || (flags === undefined && Object.hasOwn(summary, 'suppression')))
@@ -80,7 +82,7 @@ function sourceMatches(reply: Success, taskToken?: string) {
       || data.id !== summary.documentId || data.revision !== summary.revision
       || !same(Object.fromEntries(data.parameters.map((p: { id: string; valueMM: number }) => [p.id, p.valueMM])), summary.parameters)
       || !same(data.nodes.map((n: { kind: string }) => n.kind), summary.features.map(f => f.kind))) throw new Error('Legacy source differs from native summary.');
-    if (data.nodes.some((node: { kind: string }) => ['hole', 'union'].includes(node.kind))) throw new Error('Legacy files cannot author model hole or union nodes.');
+    if (data.nodes.some((node: { kind: string }) => ['hole', 'union', 'difference'].includes(node.kind))) throw new Error('Legacy files cannot author model hole, union or difference nodes.');
     if (Object.hasOwn(summary, 'suppression') || summary.features.some(f => Object.hasOwn(f, 'name') || Object.hasOwn(f, 'suppressed')))
       throw new Error('Legacy summaries must omit finishing metadata.');
     const legacy = reply.compatibility;
@@ -110,7 +112,7 @@ function sourceMatches(reply: Success, taskToken?: string) {
           throw new Error('Union output must retain its authored node and exact native integer volume.');
       } else {
         const volume = output.volumeMM3;
-        if (output.family !== 'convex-planar' || ['hole', 'union'].includes(node?.kind) || !volume || Object.keys(volume).length !== 2
+        if (output.family !== 'convex-planar' || ['hole', 'union', 'difference'].includes(node?.kind) || !volume || Object.keys(volume).length !== 2
           || typeof volume.numerator !== 'string' || typeof volume.denominator !== 'string'
           || !/^[1-9][0-9]{0,255}$/.test(volume.numerator) || !/^[1-9][0-9]{0,255}$/.test(volume.denominator))
           throw new Error('The output family or certified volume differs from its authored native result.');

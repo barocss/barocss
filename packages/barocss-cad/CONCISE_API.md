@@ -144,6 +144,72 @@ The external browser/GPU/physical-file gate remains **OPEN**, and broader render
 work remains [#1119](https://github.com/barocss/barocss/issues/1119). Never truncate
 or merge the native 72-panel bound to evade the preview's 64-chunk limit.
 
+## Cut an underside recess or through-window
+
+Use `plate.cut(tool)` for one restricted rectangular difference. Omitting options
+returns a `CadShape`; `plate.cut(tool,{axis:'x'|'y'})` still returns the existing
+`CadCut` pair. Explicit `undefined`, `null`, `{}`, extra fields or arguments refuse.
+There is no automatic choice between these two return contracts.
+
+```ts
+import { cad } from '@barocss/cad';
+const model = cad.model();
+const toolX = model.parameter('toolX', 8);
+const toolY = model.parameter('toolY', 8);
+const toolWidth = model.parameter('toolWidth', 16);
+const toolSpanY = model.parameter('toolSpanY', 8);
+const depth = model.parameter('depth', 4);
+const plate = model.sketch.rectangle({ min: [-0, 0], max: [32, 24] }).extrude(8);
+const tool = model.sketch.rectangle({
+  min: [toolX, toolY],
+  max: [model.dimension.add(toolX, toolWidth), model.dimension.add(toolY, toolSpanY)],
+}).extrude(depth);
+const part = plate.cut(tool);
+const accepted = model.build({ plate, tool, part });
+const window = accepted.withParameters({ depth: 8 });
+const reopened = cad.load(window.save());
+const body = reopened.bodies.part;
+if (body.family !== 'orthogonal-cell') throw new Error('Expected rectangular difference');
+const volumeMM3 = body.native.report.volumeMM3;
+```
+
+Both direct authored rectangle extrusions belong to this model and begin at Z=0.
+Resolved corners must be integers within ±10000 mm, and each side/height an integer
+from 1 to 10000 mm. A depth4 tool cuts an **underside** recess through Z=0..4;
+it is not a top-entry pocket. The 32×24×8 plate retains5632 mm³, depth6 retains5376,
+and depth8 opens a through-window retaining5120. A translated-Z tool, buried
+cavity, rotated/cylindrical cutter or arbitrary BRep subtraction is not supported.
+
+The new authored node kind is `difference`; public error operation is `cut`.
+The same complete `{family:'orthogonal-cell',native}` body contract retains actual
+integer-cell and oriented-shell volume, all generated panel sources, and full
+operand lineage. Private whole-Source0 box construction qualifies six actual
+faces per operand. Original convex parents remain in diagnostic evidence with
+exact native identity; their face IDs are not silently reassigned to the boxes.
+Both box assets rebuild whenever the difference feature evaluates.
+
+Only exactly one positive-volume body can be a shape. Empty or disconnected
+results complete natively, then refuse `SELECTION` / `cut` with the full frozen
+native result as cause. Other native errors retain their cause. A disjoint tool
+returns newly qualified orthogonal-cell material, not a substituted convex parent.
+No nested/mixed Boolean, hole, chamfer or convex edge query is admitted for this
+five-node graph. The six-node and one-Boolean limits remain unchanged.
+
+Save contains only driver values and authored intent. Cold load rebuilds all five
+features; a depth edit reuses indices0/1/2 and evaluates3/4, while moving the tool
+reuses0/1 and evaluates2/3/4. These are model-feature indices, not total native work.
+Refused candidates leave the same previous snapshot and future reuse intact.
+The legacy axis-cut schema and saved fixtures are unchanged.
+
+**Difference preview is unavailable in the editor.** Its current union panel
+adapter does not implicitly admit cut-tool orientation or pocket/window material.
+All difference outputs refuse before native preview access or tessellation, and
+controller downgrade/legacy guards preserve the accepted scene/history. A later
+consumer must verify the complete panel/UV/operand contract and the64-panel
+preview ceiling; the native bound remains72. Native CPU buffers alone are not
+visible rendering proof. The wider display dependency remains
+[#1119](https://github.com/barocss/barocss/issues/1119).
+
 ## Keep dimensions related during edits
 
 Use `model.dimension.scale(width, 0.5)` for half of an owned width parameter,
@@ -463,7 +529,7 @@ to its matching adapter. They allocate no renderer/GPU resources.
 
 The current supported graph envelope is at most two sketches, two extrusions,
 one through-slab cut, intersection or supported split and up to two sequential chamfers,
-or one separate rectangular through-hole or integer-box union graph, with at most six nodes and
+or one separate rectangular through-hole, integer-box union or rectangular difference graph, with at most six nodes and
 sixteen parameters. These are
 upper bounds, not six required roles: an extrusion-only or cut-only model builds,
 saves and reopens through the same API. No arbitrary Boolean graph is implied.
@@ -495,7 +561,7 @@ Run the ordinary boundary/type tests after building the package:
 ```sh
 node scripts/tool.mjs type-check
 node scripts/tool.mjs build
-node --test test/modeling.test.mjs test/modeling-intersection.test.mjs test/modeling-split.test.mjs test/modeling-cardinal-split.test.mjs test/modeling-chamfer-chain.test.mjs test/modeling-regeneration.test.mjs test/modeling-regeneration-helpers.test.mjs test/modeling-chamfer-split.test.mjs test/modeling-dimensions.test.mjs test/modeling-dimensions-helpers.test.mjs test/modeling-miter.test.mjs test/modeling-suppression.test.mjs test/modeling-hole.test.mjs test/modeling-union.test.mjs test/public-api.test.mjs
+node --test test/modeling.test.mjs test/modeling-intersection.test.mjs test/modeling-split.test.mjs test/modeling-cardinal-split.test.mjs test/modeling-chamfer-chain.test.mjs test/modeling-regeneration.test.mjs test/modeling-regeneration-helpers.test.mjs test/modeling-chamfer-split.test.mjs test/modeling-dimensions.test.mjs test/modeling-dimensions-helpers.test.mjs test/modeling-miter.test.mjs test/modeling-suppression.test.mjs test/modeling-hole.test.mjs test/modeling-union.test.mjs test/modeling-box-cut.test.mjs test/public-api.test.mjs
 node test/public-api-types.mjs
 ```
 
@@ -642,3 +708,15 @@ Provider direct-count reports are asserted separately from model reuse and
 inherited work. CONTACT returns no completed native report. Conservative
 source-derived ceilings are not measured transitive totals. See #1645 for the
 frozen budget, failure preservation and final receipts.
+
+The bounded rectangular-cut flow freezes eight model calls and one CPU preparation,
+which rebuilds the native Boolean once and tessellates46 panels. It checks an
+underside recess, deeper seat, through-window, complete two-body/empty refusals,
+same-snapshot recovery, cold reopen and a disjoint cutter. The actual reports and
+source-derived work bounds are recorded separately; full transitive work is not
+measured. Run only under a reserved native budget:
+
+```sh
+CAD_MODEL_GPU_MODULE=/path/to/source-bundled-axis-box-boolean-buffers.mjs node --no-opt --max-old-space-size=1536 test/modeling-box-cut-native.mjs
+node --no-opt --max-old-space-size=1536 scripts/modeling-box-cut-consumer.mjs test/modeling-box-cut-evidence
+```
