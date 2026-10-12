@@ -297,3 +297,20 @@ export from Node; source and emitted-package mappings must be recorded separatel
 This is CPU persistence/source/TEN evidence, not renderer pixels, browser focus,
 physical file-picker or saved-download acceptance. No large Solid fixture or
 unchanged native-provider campaign is required for this codec change.
+
+## Headless directional-light transactions (#1585)
+
+`native-directional-light-controller.ts` owns the asynchronous v1 session mount.
+Its generation/closed guard disposes sessions that resolve after supersession
+or route cleanup; it never pretends to cancel an active factory Promise. The
+controller exposes only the session, not its mutable Viewer. Repeated disposal
+is terminal, including when backend cleanup reports an error.
+
+`native-directional-light-session-flow.ts` exercises Apply twice, Undo/Redo,
+accepted Save with a separate invalid draft, explicit fresh parse/Open, re-edit
+and a second Save. The focused package test runs this headless consumer against
+source and emitted Editor entries with a private controlled Viewer import.
+This proves transaction/file-content state, not GPU pixels or physical picker
+and download behavior. Existing host/App/panels and synchronous thenable refusal
+remain unchanged. A real directional Add/select/Edit/Remove panel is a separate,
+deferred child; no point/spot support or default backend switch is added here.

@@ -371,3 +371,53 @@ Malformed own data and structural limits report `DOCUMENT_INPUT`; version/profil
 mismatch reports `DOCUMENT_VERSION`; encoded byte limits report `DOCUMENT_BYTES`.
 Native/material provider errors retain their existing codes and nested causes.
 Physical file UI and GPU/browser acceptance remain separate.
+
+### Async authored directional-light session (#1585)
+
+`createRenderNativeDirectionalLightSession(canvas, initialV1, {width, height})`
+returns a Promise and exclusively owns a real required-WebGPU #1580 Viewer.
+It does not change the legacy synchronous session or host. Observe
+`getSnapshot()` and live `getStatus()`; edits/preparations take the snapshot's
+exact `{revision, generation}`. Session generation is not the native source
+revision or Viewer display generation.
+
+Set draft text, `prepareDraft(version)`, then `await commitPrepared(candidate)`.
+Candidates are CPU-prepared, private-identity branded and single-use. Only a
+real `ok:true` Viewer ACK adopts the prebuilt canonical document and history.
+The whole pending operation has one owner lock; competing mutations, save
+markers, subscriptions and unsubscriptions refuse without releasing that lock.
+Observations and `dispose()` remain available. Listener failures are isolated.
+Preparation genuinely invokes the existing codec/request reconstruction; this
+is not a one-preflight cache or a new renderer acceptance certificate.
+
+Apply and Undo/Redo increment the outer and catalog revisions together while
+preserving native source/TEN authority. Open explicitly accepts a loaded owner
+and revision and resets history only after ACK. History is capped at 64 entries
+and 16 MiB of canonical UTF8 (both checked before presentation); branch edits
+truncate redo only on success. Revision 2147483647 cannot be incremented.
+`dirty` means draft differs from accepted canonical text; `unsaved` separately
+means accepted canonical text differs from the last saved payload. Initial
+content starts unsaved, while an acknowledged Open starts saved.
+
+`getSavePayload()` returns accepted `{documentId, revision, text}`, never an
+unaccepted draft. Call `markSaved(payload)` only after the application's write
+succeeds. Payload identity is tied privately to that exact accepted document;
+a same-revision Open invalidates old payloads, while draft-only editing does
+not. The package does not open a file picker or write a file.
+
+Recoverable refusal retains history, accepted data and editable draft. Device
+loss makes retained metadata historical, not proof of retained pixels. ACK
+followed immediately by loss still adopts the acknowledged document and exposes
+live unavailable status. Unexpected rejection or inconsistent ACK marks the
+session unavailable, requiring explicit disposal/remount, with no retry,
+fallback or fake cancellation. Disposal invalidates pending work before cleanup;
+late results cannot resurrect it. Cleanup errors retain their exact cause and
+leave disposal terminal. Existing RenderEditorError codes and original codec
+errors are retained; backend refusals use PRESENTATION_REFUSED with exact cause.
+
+Focused tests use real codecs/requests and a private controlled Viewer import,
+not a public injection seam: `node --test
+packages/barocss-render-editor/tests/native-directional-light-session.test.mjs`
+from the workspace root. Set `BAROCSS_SESSION_MODE=emitted` after the library
+build to test the emitted Editor entry with unchanged dependency source graphs.
+Actual GPU pixels, native file dialogs and full integrated CI are separate gates.

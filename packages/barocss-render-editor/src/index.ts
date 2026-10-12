@@ -66,3 +66,8 @@ export {prepareRenderNativeDirectionalLightDocument, parseRenderNativeDirectiona
   serializeRenderNativeDirectionalLightDocument, upgradeRenderNativeSceneToDirectionalLights} from './native-directional-light-document.js';
 export type {RenderNativeDirectionalLightDocumentV1, RenderNativeDirectionalLightPreparation} from './native-directional-light-document.js';
 export {createRenderNativeDirectionalLightRequest} from './native-directional-light-request.js';
+
+export {createRenderNativeDirectionalLightSession} from './native-directional-light-session.js';
+export type {RenderNativeDirectionalLightSession, RenderNativeDirectionalLightSessionSnapshot,
+  RenderNativeDirectionalLightSessionVersion, RenderNativeDirectionalLightPreparedCandidate,
+  RenderNativeDirectionalLightSavePayload, RenderNativeDirectionalLightSessionPurpose} from './native-directional-light-session.js';
