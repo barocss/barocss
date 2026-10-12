@@ -505,3 +505,7 @@ export type {
   PairedRoofDifferenceBodyWorldPointResult,
   PairedRoofDifferenceBodyWorldPointReport,
 } from './paired-roof-difference-body-world-points.js';
+
+// Separately versioned exact affine XY constraints; legacy linear sketches are unchanged.
+export { solveXYAffineSketch, buildXYAffineSketch, validateXYAffineSketch, XYAffineSketchError, XYAffineSketchDiagnosticCode } from './xy-affine-sketch.js';
+export type { XYAffineSketchPoint, XYAffineSketchSegment, XYAffineSketchReferenceLine, XYAffineSketchConstraint, XYAffineSketchDocumentV0, XYAffineSketchCoordinate, XYAffineSketchDiagnostic, XYAffineSketchReport, XYAffineSketchSuccess, XYAffineSketchResult } from './xy-affine-sketch.js';

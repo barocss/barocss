@@ -9756,3 +9756,97 @@ The finite demonstration in
 hash-verified preserved whole and split-piece parents from #1575. Its source,
 owned, emitted, cold and refusal partitions must run sequentially under their
 frozen resource ledger; it never regenerates the split.
+
+## Exact affine XY sketches (separate document v0)
+
+`buildXYAffineSketch(document)` constructs native XY degree-one Curves from an
+exact affine solve, or throws `XYAffineSketchError`. `solveXYAffineSketch(document)`
+returns the same success or `{ok:false, diagnostics}` with no partial geometry.
+`validateXYAffineSketch(success)` rebuilds and compares the **complete** result,
+including document, points, source, native Model/IR, report and rational work
+counts, returning a copied report or throwing `OWNED`. This checks internal
+consistency, not historical authenticity: an independently self-consistent
+replacement document/result remains valid. Old
+`solveXYLinearSketch` V0/V1 and mixed-workplane driving sketches are unchanged.
+
+The exact document fields are:
+
+```ts
+{
+  format: 'barocss-xy-affine-sketch', version: 0,
+  profile: 'exact-affine-binary64', id: 'bracket', lengthUnit: 'mm',
+  points: [{id:'A',position:[0,0]}, {id:'B',position:[99,8]}],
+  segments: [{id:'edge',startPointId:'A',endPointId:'B'}],
+  referenceLines: [{id:'slope',anchor:[0,0],direction:[3,4]}],
+  constraints: [
+    {id:'origin',kind:'fixed',pointId:'A',target:[0,0]},
+    {id:'direction',kind:'segment-parallel-to-fixed-direction',
+      segmentId:'edge',referenceLineId:'slope'}
+  ]
+}
+```
+
+This yields `A=[0,0]`, `B=[6,8]`: free coordinate `B.y` keeps its authored seed;
+`B.x` is solved. It is not a least-squares/minimum-displacement solver.
+
+All constraint records have distinct `id` and these exact additional fields:
+
+- `fixed`: `pointId`, `target:[x,y]` (two scalar equations)
+- `coincident`: `pointA`, `pointB` (two equations)
+- `horizontal` / `vertical`: `segmentId` (one equation)
+- `midpoint`: `midpointId`, `pointA`, `pointB`; `2M-A-B=0` (two equations)
+- `point-on-authored-line`: `pointId`, `referenceLineId`;
+  `cross(direction,point-anchor)=0` (one equation)
+- `segment-parallel-to-fixed-direction`: `segmentId`, `referenceLineId`;
+  `cross(direction,B-A)=0` (one equation; the reference anchor is irrelevant)
+
+Reference-line anchors are millimetres and directions are dimensionless,
+nonzero authored constants, without normalization. They never move with solved
+points. Seeds, targets and anchors are finite within ±10000 mm; direction
+components are finite within ±10000. Global ASCII IDs are distinct and at most
+48 characters. Own-data admission rejects extra fields, getters without calling
+them, symbols, hidden fields, foreign prototypes, sparse arrays and cycles.
+There are 2–16 points (construction-only points allowed), 1–8 native segments,
+0–8 reference lines, 0–32 authored constraints, at most 64 scalar equations and
+32 unknowns. Native segments retain IDs, degree 1, knots `[0,0,1,1]`, unit
+weights and XYZ `[x,y,0]`, with the existing 0.001 mm minimum segment admission.
+
+Input numbers denote their exact represented binary64 rationals. Deterministic
+incremental elimination processes authored equations chronologically, using
+leftmost pivots, and back-substitutes with original nonpivot seeds. Free signed
+zero retains its bits; derived rational zero becomes +0. The report publishes
+rank/DOF, ordered pivot/free coordinates, equation count and rational work counts.
+A constraint is redundant only when it adds zero rank at its authored position.
+`CONFLICT` reports chronological contributing IDs; this set is **nonminimal**.
+
+Every solved coordinate, including construction-only points, must convert to
+binary64 **exactly**. For example, `3*x=1` refuses with `REPRESENTABILITY`, point
+ID, axis and fraction `1/3`, rather than publishing rounded geometry. Every
+coordinate is converted/bounded and every represented equation rechecked before
+any native source compilation. Reused private rational limits are 200000
+operations, 200000 GCD steps, 8192 integer bits and 64 search iterations per
+conversion. Exceeding arithmetic limits refuses atomically with `BUDGET`.
+Input snapshots are bounded to 4096 own values/depth 8/64 array elements/16
+record fields/128-character strings; full results to 131072/depth 32/256 array
+elements/64 fields/262144-character source strings. Returned CPU data is copied,
+with no renderer resources or retained state.
+
+Exactness covers affine equations and native control coefficients, not general
+Curve evaluator rounding, Euclidean lengths, topology or manufacturing tolerance.
+There is no Euclidean-length/angle/radius/tangent/nonlinear solver, variable
+reference line, general variable-parallel constraint or implicit profile upgrade.
+This is the bounded increment tracked by #1587 under #532/#549/#503.
+
+Focused reproducible flow (Node 22; installed repository esbuild for source mode):
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/xy-affine-sketch-demo.mjs --source /tmp/affine-source
+node examples/cad-nurbs/xy-affine-sketch-demo.mjs --emitted /tmp/affine-emitted
+```
+
+Each flow tests a rotated bracket with real midpoint, exact refusals and
+ownership/admission controls, writes original documents and native source/full
+results, and cold-reconstructs them through a fresh process. It proves this
+native profile, not editor adoption, general CAD, a broad quality campaign or
+publication readiness.
