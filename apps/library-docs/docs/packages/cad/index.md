@@ -10,6 +10,7 @@ Use CAD for authoritative geometry. Retain the original source, native IDs, unit
 
 | Task | Page |
 | --- | --- |
+| Choose a supported shape and edit chain | [Capabilities and evidence](./capabilities) |
 | Compile a Curve and evaluate a point | [Quickstart](./quickstart) |
 | Build profiles, measure derivatives or sample a Surface | [Guides](./guides) |
 | Find the actual public operation/type | [API](./api) |
