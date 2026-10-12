@@ -90,6 +90,40 @@ native results, not universal CAD tolerance guarantees.
   exact representability and native work limits still apply. Repeated chamfers,
   curves, fillets and general edge chains are unsupported
 
+## Keep the overlapping part of two extrusions
+
+Use `const overlap = blank.intersect(tool)` with two distinct direct extrusion
+handles from the same model, then `model.build({ overlap })`. Both original
+profiles remain editable through named parameters. The operation uses the
+existing exact convex planar Solid intersection provider; original native
+source/Face lineage is retained in the intersection evidence.
+
+For a concrete example, extrude the pentagon
+`[[0,0],[32,0],[32,16],[16,32],[0,32]]` by 8 mm, and the rectangle
+`{min:[8,-8],max:[40,24]}` by 4 mm. Their overlap has 7 faces, 15 edges,
+10 vertices and volume 2176 mm³. Moving the rectangle's X bounds together to
+16 and 48 gives 1408 mm³. Save and `cad.load` retain the same editable operation.
+
+Intersection requires positive volume. Disjoint parts or contact at only a face
+or edge throw `CadModelError` with code `SELECTION`, operation `intersect`,
+and the actual native contact dimension in the message and
+`cause.contactDimension` (-1, 2 or 1 respectively). Direct positive-Z extrusions
+do not produce a vertex-only contact; the native provider also defines dimension
+0, which remains available in its diagnostics. A failed parameter edit
+leaves the previous accepted bodies and saved bytes unchanged. Unsupported exact
+XYZ/UV representation retains the original native error under `cause`; no
+rounding, tolerance welding or alternate chart search occurs.
+
+Only one intersection or through-slab cut is allowed in a model. Nested/repeated
+intersection, intersecting a cut/chamfer result, and mixing cut with intersection
+are unsupported. This is the bounded convex planar operation, not a general
+curved/nonconvex Boolean system.
+One supported cardinal chamfer may follow this overlap: select
+`overlap.edges({parallelTo:'x',at:{y:0,z:'max'}}).one()` and chamfer by 1 mm.
+For the initial example above the retained volume is 2164 mm³, with 12 mm³
+removed. The existing exact selection, local setback and native restrictions
+still apply.
+
 ## Accepted snapshots and failures
 
 ```ts
@@ -126,7 +160,7 @@ Bodies/evidence are deep-frozen native values usable by the existing tessellatio
 and display adapters. They allocate no renderer/GPU resources.
 
 The current supported graph envelope is at most two sketches, two extrusions,
-one through-slab cut and one chamfer, with at most sixteen parameters. These are
+one through-slab cut or intersection and one chamfer, with at most sixteen parameters. These are
 upper bounds, not six required roles: an extrusion-only or cut-only model builds,
 saves and reopens through the same API. No arbitrary Boolean graph is implied.
 Names are ASCII identifiers of 1..48 characters; `__proto__`, `constructor` and
@@ -157,7 +191,7 @@ Run the ordinary boundary/type tests after building the package:
 ```sh
 node scripts/tool.mjs type-check
 node scripts/tool.mjs build
-node --test test/modeling.test.mjs test/public-api.test.mjs
+node --test test/modeling.test.mjs test/modeling-intersection.test.mjs test/public-api.test.mjs
 node test/public-api-types.mjs
 ```
 
@@ -174,3 +208,17 @@ native refusals with independently measured call counts. The focused
 compiled imports and cold authored-file reopening; see the #1611 receipt for
 exact commands, source hashes and validation limits. CPU/native evidence does
 not assert browser, OS-file, GPU or full-suite verification.
+
+The separate overlap campaign uses real native outputs and an independent signed
+volume sum, plus face/edge/disjoint and native-representability refusal controls:
+
+```sh
+node --no-opt --max-old-space-size=2048 test/modeling-intersection-native.mjs
+node --no-opt --max-old-space-size=2048 scripts/modeling-intersection-consumer.mjs test/modeling-intersection-evidence
+```
+
+The first command may select a bundled source entry using `CAD_MODEL_TEST_MODULE`;
+the second defaults to the emitted public entry and runs in a fresh process.
+The #1614 receipt records seven source evaluations, two cold emitted evaluations
+and one unchanged native tessellation. Provider direct work is recorded; full
+transitive call coverage and actual GPU rendering are not measured by this flow.

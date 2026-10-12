@@ -4,6 +4,8 @@ import { buildXYAffineSketchPrism } from './xy-affine-sketch-prism.js';
 import type { XYAffineSketchPrismCoordinateSpanResult } from './xy-affine-sketch-prism.js';
 import { subtractConvexPlanarSlab } from './convex-planar-slab-subtraction.js';
 import type { ConvexPlanarSlabSubtractionResult } from './convex-planar-slab-subtraction.js';
+import { intersectConvexPlanarSolids } from './convex-planar-solid-intersection.js';
+import type { ConvexPlanarSolidIntersectionResult } from './convex-planar-solid-intersection.js';
 import { chamferConvexPlanarSolid } from './convex-planar-solid-chamfer.js';
 import type { ConvexPlanarSolidChamferResult, ConvexPlanarChamferUseReference } from './convex-planar-solid-chamfer.js';
 import type { ConvexPlanarSolidResult, ConvexPlanarSolidGraph } from './convex-planar-solid.js';
@@ -26,6 +28,8 @@ export interface CadEdgeQuery { readonly parallelTo?: CadAxis; readonly at?: Rea
 export interface CadEdgeSelection { readonly kind: 'edge-selection' }
 export interface CadEdgeQueryHandle { one(): CadEdgeSelection }
 export interface CadShape {
+  /** Positive-volume overlap of two distinct direct XY extrusions; disjoint/touching parts refuse. */
+  intersect(other: CadShape): CadShape;
   cut(tool: CadShape, options: { readonly axis: 'x' | 'y' }): CadCut;
   edges(query: CadEdgeQuery): CadEdgeQueryHandle;
   chamfer(edge: CadEdgeSelection, distance: CadDimension): CadShape;
@@ -43,6 +47,7 @@ export type CadModelEvidence =
   | { readonly kind: 'sketch'; readonly native: XYAffineSketchSuccess }
   | { readonly kind: 'extrude'; readonly native: XYAffineSketchPrismCoordinateSpanResult }
   | { readonly kind: 'cut'; readonly native: ConvexPlanarSlabSubtractionResult }
+  | { readonly kind: 'intersect'; readonly native: ConvexPlanarSolidIntersectionResult }
   | { readonly kind: 'chamfer'; readonly native: ConvexPlanarSolidChamferResult };
 export interface CadModelFeature { readonly kind: CadModelEvidence['kind']; readonly index: number; readonly dependencies: readonly number[] }
 export interface CadModelSnapshot {
@@ -56,13 +61,13 @@ export interface CadModelSnapshot {
   /** Saves only accepted authored state; no native results or meshes. */
   save(): string;
 }
-export const CadModelLimits = Object.freeze({ nodes: 6, sketches: 2, extrusions: 2, cuts: 1, chamfers: 1, parameters: 16, outputs: 8, polygonPoints: 8, fileBytes: 65536, inputDepth: 12, lengthMM: 10000 });
+export const CadModelLimits = Object.freeze({ nodes: 6, sketches: 2, extrusions: 2, cuts: 1, intersections: 1, chamfers: 1, parameters: 16, outputs: 8, polygonPoints: 8, fileBytes: 65536, inputDepth: 12, lengthMM: 10000 });
 
 type Dimension = number | { parameter: string };
 type Query = { parallelTo?: CadAxis; at?: Partial<Record<CadAxis, Dimension | 'min' | 'max'>> };
 type BodyRef = { node: number; side: 'solid' | 'negative' | 'positive' };
 type SketchNode = { kind: 'sketch'; profile: 'polygon'; points: [Dimension, Dimension][] } | { kind: 'sketch'; profile: 'rectangle'; min: [Dimension, Dimension]; max: [Dimension, Dimension] };
-type Node = SketchNode | { kind: 'extrude'; sketch: number; height: Dimension } | { kind: 'cut'; parent: BodyRef; tool: BodyRef; axis: 'x' | 'y' } | { kind: 'chamfer'; parent: BodyRef; edge: Query; distance: Dimension };
+type Node = SketchNode | { kind: 'extrude'; sketch: number; height: Dimension } | { kind: 'cut'; parent: BodyRef; tool: BodyRef; axis: 'x' | 'y' } | { kind: 'intersect'; left: BodyRef; right: BodyRef } | { kind: 'chamfer'; parent: BodyRef; edge: Query; distance: Dimension };
 type Document = { format: 'barocss-cad-model'; schema: 1; units: 'mm'; parameters: Record<string, number>; nodes: Node[]; outputs: Record<string, BodyRef> };
 const dimensions = new WeakMap<CadParameter, { owner: object; name: string }>();
 const shapes = new WeakMap<CadShape, { owner: object; reference: BodyRef }>();
@@ -113,7 +118,7 @@ function freeze<T>(value: T, seen = new WeakSet<object>()): T {
   return value;
 }
 const equalRef = (a: BodyRef, b: BodyRef) => a.node === b.node && a.side === b.side;
-function deps(node: Node): number[] { return node.kind === 'sketch' ? [] : node.kind === 'extrude' ? [node.sketch] : node.kind === 'cut' ? [node.parent.node, node.tool.node] : [node.parent.node]; }
+function deps(node: Node): number[] { return node.kind === 'sketch' ? [] : node.kind === 'extrude' ? [node.sketch] : node.kind === 'cut' ? [node.parent.node, node.tool.node] : node.kind === 'intersect' ? [node.left.node, node.right.node] : [node.parent.node]; }
 function admit(input: Document): Document {
   const d = copy(input); record(d, 'load', ['format', 'schema', 'units', 'parameters', 'nodes', 'outputs']);
   demand(d.format === 'barocss-cad-model' && d.schema === 1 && d.units === 'mm', 'FORMAT', 'load', 'Supported CAD model file required; legacy feature files need their legacy reader');
@@ -121,17 +126,17 @@ function admit(input: Document): Document {
   for (const [key, value] of Object.entries(d.parameters)) { name(key, 'parameters'); length(value, 'parameters'); }
   const dimension = (value: unknown) => { if (typeof value === 'number') length(value, 'dimension'); else { const r = record(value, 'dimension', ['parameter']); name(r.parameter, 'dimension'); demand(Object.hasOwn(d.parameters, r.parameter), 'PARAMETER', 'dimension', 'Unknown parameter: ' + r.parameter); } };
   const point = (value: unknown) => list(value, 'point', 2, 2).forEach(dimension);
-  const counts = { sketch: 0, extrude: 0, cut: 0, chamfer: 0 };
+  const counts = { sketch: 0, extrude: 0, cut: 0, intersect: 0, chamfer: 0 };
   const nodes = list(d.nodes, 'graph', 1, CadModelLimits.nodes) as Node[];
   const body = (value: unknown, before: number): BodyRef => {
     const r = record(value, 'body', ['node', 'side']);
     demand(Number.isInteger(r.node) && !Object.is(r.node, -0) && (r.node as number) >= 0 && (r.node as number) < before, 'INPUT', 'body', 'Body must reference an earlier authored operation');
     const source = nodes[r.node as number];
-    demand(source.kind === 'cut' ? r.side === 'negative' || r.side === 'positive' : (source.kind === 'extrude' || source.kind === 'chamfer') && r.side === 'solid', 'INPUT', 'body', 'Body reference kind mismatch');
+    demand(source.kind === 'cut' ? r.side === 'negative' || r.side === 'positive' : (source.kind === 'extrude' || source.kind === 'intersect' || source.kind === 'chamfer') && r.side === 'solid', 'INPUT', 'body', 'Body reference kind mismatch');
     return r as unknown as BodyRef;
   };
   for (const [i, n] of nodes.entries()) {
-    record(n, 'node'); demand(['sketch', 'extrude', 'cut', 'chamfer'].includes(n.kind), 'CAPABILITY', 'graph', 'Unknown operation'); counts[n.kind]++;
+    record(n, 'node'); demand(['sketch', 'extrude', 'cut', 'intersect', 'chamfer'].includes(n.kind), 'CAPABILITY', 'graph', 'Unknown operation'); counts[n.kind]++;
     if (n.kind === 'sketch') {
       if (n.profile === 'polygon') { record(n, 'sketch', ['kind', 'profile', 'points']); list(n.points, 'polygon', 3, CadModelLimits.polygonPoints).forEach(point); }
       else { record(n, 'sketch', ['kind', 'profile', 'min', 'max']); demand(n.profile === 'rectangle', 'CAPABILITY', 'sketch', 'Only convex XY polygons and rectangles supported'); point(n.min); point(n.max); }
@@ -140,6 +145,9 @@ function admit(input: Document): Document {
     } else if (n.kind === 'cut') {
       record(n, 'cut', ['kind', 'parent', 'tool', 'axis']); body(n.parent, i); body(n.tool, i);
       demand((n.axis === 'x' || n.axis === 'y') && nodes[n.parent.node].kind === 'extrude' && nodes[n.tool.node].kind === 'extrude' && n.parent.node !== n.tool.node, 'CAPABILITY', 'cut', 'Cut requires two distinct direct XY extrusions and an x/y through-slab axis');
+    } else if (n.kind === 'intersect') {
+      record(n, 'intersect', ['kind', 'left', 'right']); body(n.left, i); body(n.right, i);
+      demand(nodes[n.left.node].kind === 'extrude' && nodes[n.right.node].kind === 'extrude' && n.left.node !== n.right.node, 'CAPABILITY', 'intersect', 'Intersection requires two distinct direct XY extrusions');
     } else {
       record(n, 'chamfer', ['kind', 'parent', 'edge', 'distance']); body(n.parent, i); dimension(n.distance);
       demand(nodes[n.parent.node].kind !== 'chamfer', 'CAPABILITY', 'chamfer', 'Repeated chamfer is unsupported');
@@ -148,7 +156,7 @@ function admit(input: Document): Document {
       if (Object.hasOwn(q, 'at')) for (const [axis, v] of Object.entries(record(n.edge.at, 'selection'))) { demand(axes.includes(axis as CadAxis), 'INPUT', 'selection', 'Unknown selector axis'); if (v !== 'min' && v !== 'max') dimension(v); }
     }
   }
-  demand(counts.sketch <= 2 && counts.extrude <= 2 && counts.cut <= 1 && counts.chamfer <= 1, 'CAPABILITY', 'graph', 'Supported envelope: up to two sketches/extrusions, one through-slab cut and one chamfer');
+  demand(counts.sketch <= 2 && counts.extrude <= 2 && counts.cut <= 1 && counts.intersect <= CadModelLimits.intersections && counts.cut + counts.intersect <= 1 && counts.chamfer <= 1, 'CAPABILITY', 'graph', 'Supported envelope: up to two sketches/extrusions, one through-slab cut or intersection and one chamfer');
   record(d.outputs, 'outputs'); demand(Object.keys(d.outputs).length > 0 && Object.keys(d.outputs).length <= CadModelLimits.outputs, 'BUDGET', 'outputs', 'One to eight named outputs required');
   for (const [key, ref] of Object.entries(d.outputs)) { name(key, 'outputs'); body(ref, nodes.length); }
   return d;
@@ -166,10 +174,16 @@ export function createCadModel(): CadModel {
   const append = (node: Node) => {
     const limit = node.kind === 'sketch' || node.kind === 'extrude' ? 2 : 1;
     demand(nodes.length < CadModelLimits.nodes && nodes.filter(n => n.kind === node.kind).length < limit, 'CAPABILITY', node.kind, 'Supported operation count exceeded');
+    demand((node.kind !== 'cut' && node.kind !== 'intersect') || !nodes.some(n => n.kind === 'cut' || n.kind === 'intersect'), 'CAPABILITY', node.kind, 'Only one through-slab cut or intersection is supported');
     nodes.push(freeze(node)); return nodes.length - 1;
   };
   const shape = (reference: BodyRef): CadShape => {
     const handle: CadShape = Object.freeze({
+      intersect(other: CadShape): CadShape {
+        const right = body(other);
+        demand(nodes[reference.node].kind === 'extrude' && nodes[right.node].kind === 'extrude' && reference.node !== right.node, 'CAPABILITY', 'intersect', 'Intersection requires two distinct direct XY extrusions');
+        return shape({ node: append({ kind: 'intersect', left: { ...reference }, right }), side: 'solid' });
+      },
       cut(tool: CadShape, options: { axis: 'x' | 'y' }): CadCut {
         record(options, 'cut', ['axis']); const toolRef = body(tool);
         demand((options.axis === 'x' || options.axis === 'y') && nodes[reference.node].kind === 'extrude' && nodes[toolRef.node].kind === 'extrude' && reference.node !== toolRef.node, 'CAPABILITY', 'cut', 'Cut requires distinct direct XY extrusions and an x/y through-slab axis');
@@ -232,6 +246,10 @@ function evaluate(input: Document): CadModelSnapshot {
         };
         const native = subtractConvexPlanarSlab(solid(node.parent), tool, { operationId: prefix + '_cut', first: { toolFace: support(-1), solidId: prefix + '_neg', resultIdPrefix: prefix + 'n' }, second: { toolFace: support(1), solidId: prefix + '_pos', resultIdPrefix: prefix + 'p' } });
         evidence.push({ kind: 'cut', native }); values.push({ ...(native.first.outcome.kind === 'solid' ? { negative: native.first.outcome.solid } : {}), ...(native.second.outcome.kind === 'solid' ? { positive: native.second.outcome.solid } : {}) });
+      } else if (node.kind === 'intersect') {
+        const native = intersectConvexPlanarSolids(solid(node.left), solid(node.right), { operationId: prefix + '_intersect', solidId: prefix + '_solid', resultIdPrefix: prefix });
+        if (native.outcome.kind === 'empty') throw new CadModelError('SELECTION', 'intersect', `Intersection has no positive-volume Solid (contact dimension ${native.contact.dimension})`, freeze({ contactDimension: native.contact.dimension }));
+        evidence.push({ kind: 'intersect', native }); values.push(native.outcome.solid);
       } else {
         const parent = solid(node.parent), distance = number(node.distance); length(distance, 'chamfer', true);
         const bounds = axes.map((_, a) => ({ min: Math.min(...parent.graph.vertices.map(v => v.pointMM[a])), max: Math.max(...parent.graph.vertices.map(v => v.pointMM[a])) }));

@@ -1,0 +1,6 @@
+{
+  "code": "SELECTION",
+  "operation": "intersect",
+  "message": "CAD model intersect: Intersection has no positive-volume Solid (contact dimension 1)",
+  "contactDimension": 1
+}

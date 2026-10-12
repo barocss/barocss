@@ -35,6 +35,18 @@ errors and verification commands. Existing low-level exports and legacy file
 readers below remain compatibility interfaces; new authors do not choose a v1/v2
 facade or supply topology incident-use identities.
 
+## Editable overlap parts
+
+The primary `cad.model()` API supports `blank.intersect(tool)` for two distinct
+same-model direct XY extrusion handles. Build a named overlap output, edit its
+parameters, save and cold-load through the existing API. It returns a qualified
+positive-volume convex planar Solid. Disjoint or touching-only operands refuse
+with `CadModelError` `SELECTION` / `intersect` and the native contact dimension;
+prior accepted state remains unchanged. One intersection replaces the optional
+through-slab cut within the existing six-node envelope. Exact native admission
+and source/topology lineage are preserved; arbitrary/nonconvex Boolean and
+nested intersections remain unsupported. See [the modeling guide](CONCISE_API.md#keep-the-overlapping-part-of-two-extrusions).
+
 ## Low-level source and exchange
 
 ```js

@@ -1,0 +1,60 @@
+{
+  "namedOutput": "overlap",
+  "vertices": 30,
+  "triangles": 16,
+  "report": {
+    "schema": "barocss-convex-planar-solid-mesh",
+    "version": 0,
+    "solidId": "m4_solid",
+    "lengthUnit": "mm",
+    "sourceFrame": "authored-xyz-no-axis-conversion",
+    "faceCount": 7,
+    "vertexCount": 30,
+    "triangleCount": 16,
+    "boundaryUseCount": 30,
+    "internalDiagonalCount": 9,
+    "directCounts": {
+      "parentValidationCount": 1,
+      "newGeometryEvaluationCount": 0,
+      "retries": 0
+    },
+    "parentNativeWork": {
+      "completeFaceReconstructionCount": 7,
+      "sourceCompilationCount": 7,
+      "bindingObservationCount": 90,
+      "curveD1Count": 90,
+      "pcurveD1Count": 90,
+      "surfaceD1Count": 90,
+      "totalD1Count": 270,
+      "retries": 0,
+      "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals"
+    },
+    "limits": {
+      "faces": 12,
+      "directedUses": 64,
+      "nativeVertices": 32,
+      "nativeEdges": 32,
+      "faceVertices": 8,
+      "meshVertices": 64,
+      "triangles": 40,
+      "indices": 120,
+      "positionValues": 192,
+      "normalValues": 192,
+      "uvValues": 128,
+      "faceReconstructions": 12,
+      "nativeD1Calls": 576,
+      "snapshotBytes": 16777216,
+      "wrapperSnapshotBytes": 67108864,
+      "parentSnapshotReserveBytes": 50331648,
+      "aggregateSnapshotBytes": 117440512
+    },
+    "validationScope": "whole-result-self-consistency-not-authenticity",
+    "positionPolicy": "original-stored-native-vertices",
+    "uvPolicy": "original-directed-pcurve-endpoint-coefficients",
+    "normalPolicy": "validated-original-face-binding",
+    "ownership": "independent-copied-cpu-data-gc",
+    "nativeAuthority": false,
+    "float32ProjectionCertified": false,
+    "manufacturingToleranceCertified": false
+  }
+}

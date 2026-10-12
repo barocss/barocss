@@ -1,0 +1,131 @@
+{
+  "issue": 1614,
+  "base": "fcd5df4813cd49094c4a88dc112c560ac18277b4",
+  "testedProductCommit": "a406acf423d782282060d30a94008d3779590d30",
+  "dateUTC": "2026-10-12",
+  "runtime": "Node 22.23.3",
+  "nativeFlags": [
+    "--no-opt",
+    "--max-old-space-size=2048"
+  ],
+  "nativeTimeoutSeconds": 600,
+  "nativeWallSeconds": 7.166,
+  "diskFloorBytes": 524288000,
+  "sourceGraph": {
+    "inputs": 257,
+    "allOwnSrc": true,
+    "ownDistInputs": 0,
+    "bundleSHA256": "02eb63bbc32a455bb63989ce091609a5a44bef7be62fbb7f887e3a24025aeee8"
+  },
+  "emittedIndexSHA256": "7aa472e4a6295891906bbafba59571fc77926d8949bca793b29ba2e1911d546b",
+  "checks": {
+    "packageTypeCheck": 0,
+    "packageBuild": 0,
+    "changedSourceLint": 0,
+    "sourceLightweight": {
+      "exit": 0,
+      "passed": 3
+    },
+    "emittedLightweight": {
+      "exit": 0,
+      "passed": 3
+    },
+    "sourceModelingTypes": 0,
+    "emittedModelingTypes": 0,
+    "sourceDocumentationExamples": {
+      "exit": 0,
+      "count": 3
+    },
+    "emittedDocumentationExamples": {
+      "exit": 0,
+      "count": 3
+    },
+    "nativeSource": {
+      "exit": 0,
+      "modelEvaluations": 7,
+      "tessellations": 1
+    },
+    "nativeColdEmitted": {
+      "exit": 0,
+      "modelEvaluations": 2
+    },
+    "diffCheck": 0
+  },
+  "actual": {
+    "initialVolumeMM3": 2176,
+    "editedVolumeMM3": 1408,
+    "coldReeditedVolumeMM3": 704,
+    "chamferVolumeMM3": 2164,
+    "chamferRemovedMM3": 12,
+    "initialInventory": {
+      "faces": 7,
+      "edges": 15,
+      "vertices": 10
+    },
+    "refusedContactDimensions": [
+      -1,
+      2,
+      1
+    ],
+    "nativeRefusal": {
+      "code": "REPRESENTABILITY",
+      "stage": "final-representability"
+    },
+    "acceptedSavedBytesUnchangedAfterRefusals": true
+  },
+  "firstFailures": [
+    {
+      "kind": "command-wrapper",
+      "detail": "Initial changed-source lint used a wrong relative ESLint CLI path. Preserved then corrected; no lint or native work occurred in this attempt.",
+      "logSHA256": "0cc23d4f9cdf8487aec2abc7bd0218dfe6f4554710dc7e07343892171a8f18d4"
+    },
+    {
+      "kind": "command-wrapper",
+      "detail": "Initial native envelope used absent /usr/bin/time. Preserved then switched to Bash timing; no native process launched in this attempt.",
+      "logSHA256": "3e737f6a9117cec194b02103b357f8668fae9adb86a8a8cd0bf25efab8948548"
+    }
+  ],
+  "nativeGeometryFirstRun": "PASS; no retry",
+  "fullTransitiveNativeCoverage": "NOT_MEASURED; provider direct work only",
+  "controllerTransfer": {
+    "file": "baseline-transport.json",
+    "bytes": 33288,
+    "sha256": "83b0743336c8e2dbe08beff27d6d6b8b823b2d3519889d28a2576f324769b537",
+    "purpose": "Exact native baseline DTO retained for independent controller replay; replay is not real engine/browser/GPU acceptance"
+  },
+  "notRun": [
+    "Full repository suite/CI",
+    "Legacy full native campaign",
+    "GPU/browser/physical file picker",
+    "Pack/publish/release"
+  ],
+  "commands": [
+    "node scripts/tool.mjs type-check",
+    "node scripts/tool.mjs build",
+    "node <installed-eslint-cli> src/modeling.ts",
+    "esbuild src/index.ts --bundle --format=esm --platform=node --target=node22 --outfile=<source-bundle> --metafile=<metafile>",
+    "CAD_MODEL_TEST_MODULE=<source-bundle> node --test test/modeling-intersection.test.mjs test/modeling.test.mjs",
+    "node --test test/modeling-intersection.test.mjs test/modeling.test.mjs",
+    "tsc -p <strict source/emitted modeling-types configuration>",
+    "node test/public-api-types.mjs",
+    "CAD_PUBLIC_API_TYPES_ENTRY=./dist/index.d.ts node test/public-api-types.mjs",
+    "CAD_MODEL_TEST_MODULE=<source-bundle> node --no-opt --max-old-space-size=2048 test/modeling-intersection-native.mjs",
+    "node --no-opt --max-old-space-size=2048 scripts/modeling-intersection-consumer.mjs test/modeling-intersection-evidence"
+  ],
+  "logSHA256": {
+    "native-source.log": "119993fee89521c0aae7896b4a56857f0721429ac7a7a287dd47c5031fa4b6fd",
+    "first-lint-path-failure.log": "0cc23d4f9cdf8487aec2abc7bd0218dfe6f4554710dc7e07343892171a8f18d4",
+    "type-check.log": "e0cb71fe601c6aa0bc77d1c72b7de24eb689cec9d73775860edf39dc4fa5755c",
+    "docs-source-types.log": "a9b08f03072b493b3d5b5543816002c1830df16e9f718c64e10caa929fd81902",
+    "source-lightweight.log": "8ad4503a05cf5ef00591e168e9ab5fad170c592a7a7bc57cd5d3372daf3abe2d",
+    "lint.log": "e0cb71fe601c6aa0bc77d1c72b7de24eb689cec9d73775860edf39dc4fa5755c",
+    "first-native-time-path-failure.log": "3e737f6a9117cec194b02103b357f8668fae9adb86a8a8cd0bf25efab8948548",
+    "emitted-lightweight.log": "cee6eb2ab88c308dc8e73f02c1f65741dc6648b033464ac2750f2fbcfcd936ed",
+    "docs-emitted-types.log": "94df4714d21c589cdd5dd6217f2f0bbb8942f416a2c47c240ffeca15a7ca8915",
+    "source-build.log": "8ab9d869bb94e54e9820cc7c60c8819949a1d9729320f1c47493780de71a2817",
+    "modeling-types.log": "ed385735cb18e6a325086910802f90ba744228ffcfd1ce1818f5b22101bbbc33",
+    "native-cold.log": "c6834112bf065716f10e22a08aeaee0ad8268294002115f63678f9bab270c158",
+    "native-process.log": "898dc5b404b70f1eb6dd0a8a8eebc9d9bca715e069096474cb3415b376b1fa07",
+    "build.log": "e46d47a7210b395e37458fbbef5525872371f97f301b318d19a9868d3aefb785"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "entry": "/workspace/shared/cad-1614-validation/source.mjs",
+  "entrySHA256": "02eb63bbc32a455bb63989ce091609a5a44bef7be62fbb7f887e3a24025aeee8",
+  "stages": [
+    {
+      "label": "source overlap",
+      "elapsedMS": 767.317016
+    },
+    {
+      "label": "move tool bounds +8",
+      "elapsedMS": 709.5609810000001
+    },
+    {
+      "label": "disjoint",
+      "elapsedMS": 487.29803100000004
+    },
+    {
+      "label": "face-touch",
+      "elapsedMS": 435.3322330000001
+    },
+    {
+      "label": "edge-touch",
+      "elapsedMS": 481.2733390000003
+    },
+    {
+      "label": "non-dyadic",
+      "elapsedMS": 458.63727800000015
+    },
+    {
+      "label": "intersection then cardinal chamfer",
+      "elapsedMS": 1496.9062969999995
+    }
+  ]
+}

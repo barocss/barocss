@@ -16,3 +16,11 @@ serial.build({ part, other: cut.negative });
 blank.cut(tool, { axis: 'z' });
 // @ts-expect-error Scalar parameter values have explicit mm number input.
 model.parameter('bad', '8');
+const overlapModel = cad.model();
+const left = overlapModel.sketch.rectangle({ width: 16, height: 16 }).extrude(8);
+const right = overlapModel.sketch.rectangle({ min: [8, 0], max: [24, 16] }).extrude(4);
+const overlap: CadShape = left.intersect(right);
+const overlapResult: CadModelSnapshot = overlapModel.build({ overlap });
+overlapResult.features[4].dependencies;
+// @ts-expect-error Intersection accepts a same-model shape handle, not a serialized reference.
+left.intersect({ node: 3, side: 'solid' });
