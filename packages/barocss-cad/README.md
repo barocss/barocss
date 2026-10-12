@@ -10437,3 +10437,71 @@ reorder, arbitrary Boolean, persistent topology naming or Editor certification.
 Focused source/emitted/fresh-process flow (Node 22.23.3, 2048 MiB heap):
 `node examples/cad-nurbs/xy-affine-prism-feature-document-demo.mjs --source /tmp/features`
 then `--emitted /tmp/features` and `--cold /tmp/features` after the package build.
+
+## Source-qualified equal-distance edge chamfer (#1597 / DETAIL-02)
+
+`chamferConvexPlanarSolid(parent, selection, distanceMM, options)` removes one
+triangular wedge from a qualified convex planar solid. `selection` carries the
+parent Solid ID and two complete `{sourceId,faceId,surfaceId,loopId,useId,curveId,
+pcurveId}` references from the actual paired graph edge. `options` supplies
+`operationId`, `resultIdPrefix` (at most 10 ASCII characters), `retainedSolidId`
+and `removedSolidId`. Never select by generated ordinal, proximity or coordinate
+hash. References remain usable for distance-only rebuilds of the same parent;
+this is not general persistent naming or sketch/model-document adoption.
+
+The two outward supports must be perpendicular signed world-axis planes, and
+both valence-three endpoints must have end supports perpendicular to the edge.
+Other parent facets may be sloped. A finite positive physical equal setback `d`
+in millimetres cuts `sA+sB=d` and keeps `sA+sB>=d`. Only the two original edge
+endpoints may be removed; every other original vertex must be strictly retained.
+Touching and nonlocal edits fail atomically. Unequal setbacks, angle-distance,
+rotated or oblique selected supports, curved/concave/multiple edges, fillets and
+tolerance repair are unsupported.
+
+The result contains one complete `split`: `negative.solid` is the retained part
+and `positive.solid` is the required qualified removed wedge. No duplicate full
+retained Solid is stored. `metric` proves unit normals, physical length/setbacks
+and wedge volume `length*d*d/2`; `lineage` links the deleted original edge, two
+new setback boundaries and one chamfer Face. The nested split preserves complete
+original contributor intervals. Its genuine authored Source0/model/Surface
+cutter is compiled exactly once. One split authenticates the entire provisional
+parent before success, builds both sides and proves conservation.
+`validateConvexPlanarSolidChamfer` reconstructs this entire feature once, comparing
+all source, geometry, metric, lineage and report fields with signed-zero-preserving
+equality. It does not separately validate then rebuild the parent or split.
+
+Admission is bounded to parent F<=11, V<=30, directed uses U<=58, U-2F<=36,
+and at most seven edges on the third endpoint facets. Retained topology is
+F+1/V+2/E+3, with four crossings and four cap segments. Per operation at most
+45 Face compilations, 46 total source compilations, 666 binding observations and
+1998 native D1 evaluations; five unchanged exact rational contexts each permit
+200000 operations/GCD steps and 8192-bit integers (one million aggregate).
+Exact representability and unchanged original-chart UV lift are required.
+No automatic chart replacement or rounded cutoff is attempted.
+
+Wrapper snapshots reject accessors without invoking them, symbols, hidden fields,
+sparse/cyclic/foreign objects; shared aliases count per occurrence. Input/result
+ceilings are 16/64 MiB, wrapper cumulative/retained ceiling 224 MiB. Unchanged
+nested split and three qualifier ledgers add cumulative ceilings of 192+3*48 MiB:
+560 MiB total serialized occurrence accounting, not heap telemetry. The report
+separates those ledgers. Bounds are refusal limits, not promises that every valid
+polyhedron fits.
+
+The reproducible demo authors an actual fixed pentagonal sketch
+`[(0,0),(32,0),(32,16),(16,32),(0,32)]`, extrudes it 8 mm and resolves its named
+front segment's returned `topEdgeId` into real graph use references. A 2 mm
+front/top chamfer retains 7104 mm3 and removes 64 mm3; a 1 mm edit retains
+7152 mm3 and removes 16 mm3. It checks the unchanged sloped wall, complete native
+lineage, classifications, refusal atomicity and cold saved-recipe rebuild.
+
+Run only within an approved bounded campaign, Node 22.23.3, 2048 MiB heap and
+500 MiB free disk; source must precede emitted and a separate cold PID:
+
+```
+NODE_OPTIONS=--max-old-space-size=2048 node examples/cad-nurbs/convex-planar-solid-chamfer-demo.mjs --source /path/to/evidence
+NODE_OPTIONS=--max-old-space-size=2048 node examples/cad-nurbs/convex-planar-solid-chamfer-demo.mjs --emitted /path/to/evidence
+NODE_OPTIONS=--max-old-space-size=2048 node examples/cad-nurbs/convex-planar-solid-chamfer-demo.mjs --cold /path/to/evidence
+```
+
+No Editor Save/Open, current graphics, packed-reader or general DETAIL-02 completion
+is claimed by this native subset. The parent #536 remains open.
