@@ -10331,3 +10331,68 @@ Focused authored recipe, source/emitted parity and separate cold reconstruction:
 with pinned Node22.23.3 and an affected CAD build before emitted/cold modes. This
 is a bounded convex planar intersection leaf, not union/subtraction, nonconvex
 Boolean, holes, curved faces, general sewing or commercial CAD completion.
+
+### Qualified convex through-slab subtraction (#1595)
+
+`subtractConvexPlanarSlab(parent, tool, options)` returns two fixed `first` / `second`
+components, each with a `solid` or `empty` outcome. Both inputs must satisfy the
+unchanged convex planar Solid qualifier. Each option contains a source-qualified
+`toolFace: { sourceId, faceId }`, distinct output `solidId` and `resultIdPrefix`;
+`operationId` identifies the operation. Selector order defines component roles,
+not a world axis or dynamically surviving component. A missing component never
+retargets the other identity. `validateConvexPlanarSlabSubtraction` reconstructs
+and compares the complete request, outputs, proof, lineage and work report once.
+Typed `ConvexPlanarSlabSubtractionError` includes code, stage, entity and cause.
+
+Admission proves exactly that the two selected outward support normals are
+antiparallel with positive offset gap. Every other tool halfspace must contain
+all parent vertices. Within that parent the tool is therefore precisely the
+selected closed slab. The regularized difference is the union of the two
+positive-volume intersections of the parent with the selected outside closed
+halfspaces. These components have a strictly positive separating gap. Face,
+edge and point remnants with affine rank below three are dropped. The material
+proof records the selected supports, normalized offsets, gap and other-tool
+coverage maxima. Volumes supplement this complete halfspace equality proof;
+volume subtraction alone is not the construction argument.
+
+Only final clipped parent facets and each selected finite tool cap clipped by
+all parent supports are constructed. Tool caps reverse the original effective
+orientation while retaining their original Surface/chart. Source-qualified
+parent/tool incidence gives semantic node/face keys and original directed edge
+parameter intervals. Generated native ordinals remain evaluation-local.
+Both final component inventories and XYZ representability are checked before
+creating final native Faces. Every nonempty result is independently qualified.
+No public split chain, middle discarded Solid, chart search, welding, rounding,
+or changes to provider admission occur. Nonrepresentable final XYZ, nonexact
+native UV lifts, invalid selections, uncovered parent material, stale/forged
+inputs, hostile descriptors and budget excess refuse atomically without
+mutating either input or an earlier result.
+
+Limits preserve each child's 12 facets, 8 edges/facet, 64 uses, 32 edges/vertices
+and 40 fan triangles. Operation ceilings: 72 Face/source compilations, 1152
+binding observations, 3456 D1 calls, 48 facet-plane passes, 960 clipping
+classifications, 96 crossings, 256 candidate occurrences, 20 temporary polygon
+vertices and 320 separate coverage predicates. Initial candidates include both
+copies of parent polygons and both selected tool caps. At most five rational
+contexts each admit 200000 operations/GCD steps and 8192-bit integers, with
+aggregate ceilings of 1000000 operations/GCD steps. Snapshot ceilings remain
+32 MiB input, 64 MiB result, 192 MiB cumulative and 128 MiB retained occurrence
+bytes. This accounting is not V8 heap telemetry. Child ledgers are unchanged.
+
+`examples/cad-nurbs/convex-planar-slab-subtraction-demo.mjs` runs with `--source`,
+`--emitted` or `--cold` plus an evidence directory, pinned Node 22.23.3,
+`NODE_OPTIONS=--max-old-space-size=2048`, and at least 500 MiB free disk. Source
+and emitted modes each attempt 16 subtractions and two validators using ten
+actual authored sketch/prism producers. Cold mode reconstructs both original
+and edited results from saved recipes using two operations and three producers
+in a separate process. Inspector call counts include both each initial sketch
+compile and the prism's sketch validation compile. The pentagonal parent has
+volume 7168 mm³; removing x=8..16 gives fixed components of 2048 and 3072 mm³.
+Editing the authored upper-X constraint to 24 with a new revision preserves
+IDs and gives 2048 and 1280 mm³. The right component retains the sloped boundary.
+The demo's recipe replay is not a public document codec or Editor Save/Open.
+
+This is a bounded PART-06/PART-10 and BREP-05 subset. It does not support an
+arbitrary pocket/cavity, nonconvex single BRep, union, general sewing, persistent
+naming certification, manufacturing tolerances or GPU/UI acceptance. Result
+validation establishes self-consistency, not historical authenticity.

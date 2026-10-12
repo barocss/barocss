@@ -529,3 +529,5 @@ export type { XYAffineSketchPrismOptions, XYAffineSketchPrismWallReference, XYAf
 
 export { intersectConvexPlanarSolids, validateConvexPlanarSolidIntersection, ConvexPlanarSolidIntersectionError } from './convex-planar-solid-intersection.js';
 export type { ConvexPlanarSolidIntersectionOptions, ConvexPlanarSolidIntersectionSource, ConvexPlanarSolidIntersectionNode, ConvexPlanarSolidIntersectionEdgeOrigin, ConvexPlanarSolidIntersectionFace, ConvexPlanarSolidIntersectionReport, ConvexPlanarSolidIntersectionResult, ConvexPlanarSolidIntersectionDiagnosticCode } from './convex-planar-solid-intersection.js';
+
+export * from "./convex-planar-slab-subtraction.js";
