@@ -539,3 +539,8 @@ text.assembly-translation-guide[data-axis="z"] { fill:#8babcf; stroke:none; }
 .cad-solid-split-confirm button { margin:12px 8px 0 0; }
 @media(max-width:850px) { .cad-solid-split { height:auto; min-height:calc(100dvh - 40px); } .cad-solid-split-main { grid-template-columns:minmax(150px,200px) minmax(220px,1fr); overflow:visible; } .cad-solid-split-inspector { grid-column:1/-1; border-top:1px solid #34404d; border-left:0; } .cad-solid-split-viewport { min-height:400px; } }
 @media(max-width:480px) { .cad-solid-split-main { display:flex; flex-direction:column; } .cad-solid-split-tree { max-height:240px; border-bottom:1px solid #34404d; } .cad-solid-split-viewport { height:400px; } .cad-solid-split-filename { display:none; } }
+
+.cad-solid-split-cut-guide { position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+.cad-solid-split button.cad-solid-split-cut-grip { position:absolute; transform:translate(-50%,-50%); pointer-events:auto; touch-action:none; user-select:none; width:34px; height:34px; padding:0; border:2px solid #e7ca88; border-radius:50%; background:#423923; color:#fff1cb; cursor:grab; }
+.cad-solid-split button.cad-solid-split-cut-grip:active { cursor:grabbing; }
+.cad-solid-split-cut-caption { position:absolute; left:10px; bottom:10px; max-width:calc(100% - 20px); padding:4px 7px; background:#171c22dc; color:#e7ca88; font-size:11px; }

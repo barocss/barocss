@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import { createSolidSplitWorkspace } from '../split-workspace.js';
+import { SolidSplitCutHandle, type SolidSplitCutDraft } from './solid-split-cut-handle.js';
 
 export interface CadEditorSolidSplitProps {
   initialAuthoredText: string;
@@ -26,14 +27,20 @@ export function CadEditorSolidSplit({ initialAuthoredText, initialPresentation =
   const [workspace] = useState(() => createSolidSplitWorkspace(initialAuthoredText, { initialPresentation, initialFilename }));
   const [snapshot, setSnapshot] = useState(() => workspace.getSnapshot());
   const [canvasKey, setCanvasKey] = useState(0), [localError, setLocalError] = useState<string | null>(null);
-  const [draft, setDraft] = useState<string | null>(null);
+  const [draft, setDraftValue] = useState<string | null>(null);
+  const draftToken = useRef<SolidSplitCutDraft>({ value: null, revision: 0 });
+  const [gripping, setGripping] = useState(false);
+  function setDraft(value: string | null): SolidSplitCutDraft {
+    const token = { value, revision: draftToken.current.revision + 1 };
+    draftToken.current = token; setDraftValue(value); return token;
+  }
   const [replacement, setReplacement] = useState<File | null>(null);
   const root = useRef<HTMLDivElement>(null), canvas = useRef<HTMLCanvasElement>(null), fileInput = useRef<HTMLInputElement>(null);
   const replacementDialog = useRef<HTMLDialogElement>(null);
   const lifetime = useRef(0), contextLost = useRef(false), composing = useRef(false);
   const cutId = useId();
   const session = snapshot.session, hasDraft = draft !== null && draft !== '' || !!session && Object.hasOwn(session.pending, 'cutY');
-  const blocked = snapshot.busy || !snapshot.available || !!replacement;
+  const blocked = snapshot.busy || !snapshot.available || !!replacement || gripping;
   const selected = snapshot.selection;
   const selectedFace = selected?.faceId ? snapshot.display?.qualifications.find(face =>
     face.componentId === selected.componentId && face.faceId === selected.faceId) : null;
@@ -163,6 +170,9 @@ export function CadEditorSolidSplit({ initialAuthoredText, initialPresentation =
             if (x < 0 || topY < 0 || x >= element.width || topY >= element.height) return;
             run(() => workspace.pick(x, element.height - 1 - topY));
           }}/>
+        <SolidSplitCutHandle canvas={canvas.current} snapshot={snapshot} getSnapshot={() => workspace.getSnapshot()}
+          raw={cutY} disabled={snapshot.busy || !snapshot.available || !!replacement || composing.current}
+          getDraft={() => draftToken.current} onDraft={setDraft} onGesture={setGripping}/>
         {(snapshot.busy || !snapshot.available) && <div className="cad-solid-split-overlay" role="status">
           {snapshot.busy ? <><strong>{snapshot.cancelling ? 'Cancelling native preparation…' : 'Preparing native Solid Split…'}</strong><p>Native work runs in a dedicated worker. Cancellation waits for the current native phase to finish.</p>{snapshot.canCancel && <button type="button" onClick={() => workspace.cancelOperation()}>Cancel preparation</button>}</>
             : <><strong>Presentation unavailable</strong><p>{snapshot.authorityAvailable ? 'The accepted native Body and pending field are retained.' : 'Worker authority could not be confirmed. Reload the workspace to begin a new session.'}</p><button disabled={!snapshot.authorityAvailable} type="button" onClick={() => {
@@ -183,7 +193,7 @@ export function CadEditorSolidSplit({ initialAuthoredText, initialPresentation =
             if (!after.error && !after.busy && after.session && !Object.hasOwn(after.session.pending, 'cutY')) setDraft(null);
           })}>Split</button>
           <button type="button" disabled={blocked || !hasDraft} onClick={() => run(async () => { await workspace.discardPending(); if (!workspace.getSnapshot().error) setDraft(null); })}>Discard field</button></div>
-        <p>Type a finite constant Y value, then choose Split. The full original Body and cut Surface remain native authority.</p>
+        <p>Drag the approximate Y guide or type a finite constant Y value, then choose Split. Drafting does not change the displayed Bodies. The full original Body and cut Surface remain native authority.</p>
         <h2>Selection lineage</h2><p>Canvas selection is approximate triangle picking, not exact BRep or pixel picking.</p>
         {selected ? <dl><dt>Component</dt><dd>{selected.componentId}</dd><dt>Native Body</dt><dd>{selected.bodyId}</dd>
           {selectedFace && <><dt>Native Face</dt><dd>{selectedFace.faceId}</dd><dt>Role</dt><dd>{selectedFace.role}</dd>

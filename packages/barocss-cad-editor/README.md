@@ -1061,3 +1061,46 @@ attempt uses exact call-stack ancestry caps. The guard-only `--guard-plan --work
 <emitted-worker>` preflight validates these counters without invoking native code.
 Native function timing is inclusive of nested calls and must not be summed as
 independent total compute time. Additional native attempts require a fresh decision.
+
+
+### Solid Split constant-Y draft grip (#1446)
+
+The Solid Split canvas has an approximate Y editing guide. Drag it or edit the
+Cut Y field, then explicitly choose **Split**. A drag updates only the local raw
+field: it never calls the worker, prepares native geometry, changes accepted
+Bodies, writes a file or creates history. Existing worker-owned Split acceptance
+and native refusal remain unchanged. This guide is not certified cut geometry.
+
+The anchor is the complete admitted display bounds centre in native X/Z, at the
+current draft Y, using the established scene basis `[x,z,-y]`. The real GPU camera
+matrices project it; pointer displacement is inverted along that projected line
+with homogeneous perspective arithmetic, including backing/CSS aspect. No fixed
+mm-per-pixel approximation or clamping is used. A clipped/behind-camera guide,
+view-aligned axis, singular inverse or invalid raw field has no usable grip;
+use the numeric field instead. This adds no camera orbit or zoom controls.
+
+The gesture captures pointer, display/generation/selection, camera, canvas size
+and position, and the exact pre-gesture draft token. Conflicting commands and the
+numeric field lock during drag. No movement preserves the original lexical
+text. Escape, cancellation/lost capture, secondary pointer, blur/composition,
+resize, view changes, route hiding, context loss and unmount interrupt safely.
+Cancellation restores the exact previous raw value (including an absent local
+draft) only while it still owns the draft; a newer draft or accepted generation
+cannot be overwritten. A successful pointer-up leaves a pending draft only.
+
+Focused CPU verification (pinned Node 22; existing development dependencies):
+
+```sh
+node apps/cad-editor/flows/solid-split-cut-handle-flow.mjs
+```
+
+This runs real camera mapping and actual React editor/handle events in jsdom,
+with explicitly substituted workspace transport, DOM layout and pointer capture.
+It checks perspective round trips, clipping/degeneracy, lexical restoration,
+stale/interrupt lifecycles, numeric synchronization and exactly one stage/apply
+sequence after explicit Split. It invokes no native provider. The source and
+worker/session/codec/provider contracts are unchanged, so their existing
+`d36ed9bb` native/canonical-file/worker acceptance is reused rather than replayed.
+Actual browser drag/capture, responsiveness, GPU pixels, physical file flow,
+full CI and release qualification remain unrun here and are not inferred from
+CPU component events.
