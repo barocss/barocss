@@ -8,7 +8,7 @@ import {createNativeLightController} from './native-light-controller';
 import {createNativeSceneBase, createNativeSceneSeed} from './native-scene-seed';
 import {readLightFields, applyLightFields, addLightFields,
   lightFieldsDirty, lightKind} from './native-light-fields';
-import type {BodyFields, CameraFields, LightFields, LightForm, LightKind} from './native-light-fields';
+import type {BodyFields, CameraFields, LightFields, LightForm, LightKind, MaterialUniformFields} from './native-light-fields';
 import {Button} from './components/ui/button';
 
 async function initialScene(signal: AbortSignal, kind: LightKind): Promise<RenderNativeLightDocument> {
@@ -45,7 +45,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   const openTicket = useRef<{session: RenderNativeLightSession; snapshot: RenderNativeLightSessionSnapshot; fields: LightForm; kind: 'current' | 'legacy-v0'} | null>(null);
   const replacement = useRef<RenderNativeLightDocument | undefined>(initialDocument);
   const [attempt, setAttempt] = useState(0), [snapshot, setSnapshot] = useState<RenderNativeLightSessionSnapshot | null>(null);
-  const [fields, setFields] = useState<LightForm>({kind: kind ?? 'directional', ambient: '.2', lights: [], bodies: [],
+  const [fields, setFields] = useState<LightForm>({kind: kind ?? 'directional', ambient: '.2', lights: [], bodies: [], materials: [],
     camera: {eye: ['', '', ''], target: ['', '', ''], up: ['', '', ''], fovYDegrees: '', near: '', far: ''}});
   const [selected, setSelected] = useState<string | null>(null), [busy, setBusy] = useState(false);
   const [selectedBody, setSelectedBody] = useState<string | null>(null);
@@ -77,7 +77,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
         if (!live() || !session) return;
         sessionRef.current = session; refresh(session, true);
         unsubscribe = session.subscribe(() => {if (live()) refresh(session);});
-        setNotice('Edit bodies, lights or the scene camera, then Apply the complete scene.');
+        setNotice('Edit bodies, materials, lights or the scene camera, then Apply the complete scene.');
       } catch (cause) {if (live()) {setStatus('unavailable'); report(cause);}}
     })();
     // The existing session exposes live status through a getter, not a loss subscription.
@@ -206,6 +206,12 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   const editBody = (patch: Partial<Pick<BodyFields, 'position' | 'scale'>>) => {
     if (body) edit({...fields, bodies: fields.bodies.map(item => item.bodyId === body.bodyId ? {...item, ...patch} : item)});
   };
+  const material = body && snapshot?.accepted.display.visibleBodyIds.includes(body.bodyId)
+    ? fields.materials.find(item => item.target.bodyId === body.bodyId) : undefined;
+  const editUniform = (name: string, patch: Partial<Pick<MaterialUniformFields, 'value' | 'override'>>) => {
+    if (material) edit({...fields, materials: fields.materials.map(item => item === material
+      ? {...item, uniforms: item.uniforms.map(uniform => uniform.name === name ? {...uniform, ...patch} : uniform)} : item)});
+  };
   const add = () => {try {const next = addLightFields(fields); edit(next); setSelected(next.lights.at(-1)!.nodeId);} catch (cause) {report(cause);}};
   const remove = () => {if (light) {const next = {...fields, lights: fields.lights.filter(item => item !== light)}; edit(next); setSelected(next.lights[0]?.nodeId ?? null);}};
   const disabled = busy || !snapshot || status !== 'ready';
@@ -231,13 +237,13 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
       <Button size="icon-xs" variant="ghost" aria-label="Undo" disabled={disabled || dirty || !snapshot?.canUndo} onClick={() => history('undo')}><Undo2/></Button>
       <Button size="icon-xs" variant="ghost" aria-label="Redo" disabled={disabled || dirty || !snapshot?.canRedo} onClick={() => history('redo')}><Redo2/></Button>
     </div>
-    {help && <section style={sectionStyle} aria-label="Light help">Choose a directional or point workspace. Each admits zero to four lights plus ambient; mixed lighting and cross-kind Open are refused without replacing your scene. Directions retain raw nonzero XYZ values. Points use final-world scene coordinates and range in scene units, with the GPU's artistic finite-range lighting. Color is linear RGB; ambient/color/intensity range from zero to one. Scene camera edits are authored data: eye, target and clipping planes use scene units, up is dimensionless and vertical FOV is in degrees. Body origin positions use millimetres and scales are dimensionless. Body selection keeps each object's corrective fields; rotation, visibility and original CAD source are retained. Body, camera and light fields Apply together in one complete transaction and refused fields remain available. This route has no local orbit/pan/zoom controls. Open accepts current light scenes of the same kind and migrates supported directional legacy files. Import legacy Native scene explicitly converts V0 to directional authorship; a point workspace refuses it. Save writes the accepted current format. New workspace explicitly ends the old lifetime; remount retains accepted data but clears history. Actual device and physical-file acceptance remain separate.</section>}
+    {help && <section style={sectionStyle} aria-label="Light help">Choose a directional or point workspace. Each admits zero to four lights plus ambient; mixed lighting and cross-kind Open are refused without replacing your scene. Directions retain raw nonzero XYZ values. Points use final-world scene coordinates and range in scene units, with the GPU's artistic finite-range lighting. Color is linear RGB; ambient/color/intensity range from zero to one. Scene camera edits are authored data: eye, target and clipping planes use scene units, up is dimensionless and vertical FOV is in degrees. Body origin positions use millimetres and scales are dimensionless. Body selection keeps each object's corrective fields; rotation, visibility and original CAD source are retained. Body, camera, light and material fields Apply together in one complete transaction and refused fields remain available. Material controls edit only the selected body’s existing embedded binding, even when another binding repeats its material ID. Override supplies a scalar value; clearing Override uses the declared shader default without changing shader source. This route has no local orbit/pan/zoom controls. Open accepts current light scenes of the same kind and migrates supported directional legacy files. Import legacy Native scene explicitly converts V0 to directional authorship; a point workspace refuses it. Save writes the accepted current format. New workspace explicitly ends the old lifetime; remount retains accepted data but clears history. Actual device and physical-file acceptance remain separate.</section>}
     <div className="app-body" style={{minHeight: 0}}>
       <aside style={{width: 210, flexShrink: 0, borderRight: '1px solid var(--border)', overflow: 'auto'}} aria-label="Light outliner">
         <div style={sectionStyle}><strong>Scene lights</strong><p style={{color: 'var(--muted-foreground)'}}>{fields.lights.length} / 4 {kind}</p>
           <Button size="sm" variant="outline" disabled={disabled || fields.lights.length >= 4} onClick={add}><Plus/>Add {kind}</Button></div>
         {fields.lights.map(item => <button key={item.nodeId} aria-pressed={selected === item.nodeId} disabled={busy} onClick={() => setSelected(item.nodeId)} style={{display: 'block', width: '100%', padding: 14, textAlign: 'left', border: 0, color: 'inherit', background: selected === item.nodeId ? '#243735' : 'transparent'}}>{item.label || item.nodeId}<small style={{display: 'block', opacity: .65}}>{item.nodeId}{item.enabled ? '' : ' · disabled'}</small></button>)}
-        <section style={sectionStyle} aria-label="Scene bodies"><strong>Scene bodies</strong><p>Choose an object to edit its display transform.</p>
+        <section style={sectionStyle} aria-label="Scene bodies"><strong>Scene bodies</strong><p>Choose an object to edit its display transform and existing material.</p>
           {fields.bodies.map(item => <button key={item.bodyId} aria-label={'Edit body ' + item.bodyId} aria-pressed={selectedBody === item.bodyId} disabled={disabled}
             onClick={() => setSelectedBody(item.bodyId)} style={{display: 'block', width: '100%', padding: '10px 4px', textAlign: 'left', border: 0, color: 'inherit', background: selectedBody === item.bodyId ? '#243735' : 'transparent'}}>
             {snapshot?.accepted.nativeDocument.bodies.find(body => body.id === item.bodyId)?.name ?? item.bodyId}
@@ -261,6 +267,22 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
             </div>)}</div>
           </fieldset>)}
           <small>Rotation and visibility are retained. Display transforms do not edit CAD geometry. Apply accepts every body's draft with camera and light edits.</small>
+        </section>}
+        {body && <section style={{...sectionStyle, display: 'grid', gap: 12}} aria-label="Body material">
+          <strong>Body material</strong>
+          {material ? <>
+            <small>{material.documentId} · revision {material.revision} · body {body.bodyId}</small>
+            <small>Only this existing body binding changes. Shader source and other bindings are retained.</small>
+            {material.uniforms.length ? material.uniforms.map(uniform => <fieldset key={uniform.name} style={{border: 0, margin: 0, padding: 0, minWidth: 0, display: 'grid', gap: 6}}>
+              <legend>{uniform.name}</legend>
+              <small>Range {uniform.min} to {uniform.max} · shader default {uniform.defaultValue}</small>
+              <label><input type="checkbox" aria-label={'Override uniform ' + uniform.name} checked={uniform.override} disabled={disabled}
+                onChange={event => editUniform(uniform.name, {override: event.target.checked})}/> Override (clear to use shader default)</label>
+              <input aria-label={'Uniform ' + uniform.name} inputMode="decimal" value={uniform.value} disabled={disabled || !uniform.override}
+                style={fieldStyle} onChange={event => editUniform(uniform.name, {value: event.target.value})}/>
+              {!uniform.override && <small>Using shader default {uniform.defaultValue}; retained text is not a supplied override.</small>}
+            </fieldset>) : <small>This material declares no editable scalar uniforms.</small>}
+          </> : <small>No editable material binding for this body. Select a visible Surface with an existing qualified material; no binding is created.</small>}
         </section>}
         <section style={sectionStyle}>{numberInput('Ambient strength', fields.ambient, ambient => edit({...fields, ambient}))}</section>
         {light ? <section style={{...sectionStyle, display: 'grid', gap: 14}}><strong>{kind === 'point' ? 'Point light' : 'Directional light'}</strong><small>{light.nodeId}</small>

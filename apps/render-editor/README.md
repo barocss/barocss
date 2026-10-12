@@ -462,3 +462,36 @@ data. Existing nonempty pose order and each body's quaternion stay exact.
 The bounded runner includes both-backend body identity, empty-pose, combined
 history/file and refusal/lifecycle checks. These controls do not establish a fix
 for the physical arrow-control report in #1573, which remains separately open.
+
+
+### Body-bound scalar material uniforms (#1636)
+
+Select a visible **Scene body** with an existing qualified material. **Body
+material** shows that binding's shader-declared scalar names, ranges and defaults.
+Enable **Override** to supply a number; clear it to use the shader default and
+omit the property. Corrective text stays with its own body/uniform while toggling
+or changing selection. Text under a cleared Override is retained locally but is
+not an authored value. Missing/hidden/unbound targets and materials with no scalar
+uniforms are explicitly noneditable; no material binding or ID is created.
+
+The target is the original full body binding, not a material-ID lookup. If two
+bodies independently embed the same material document ID and shader, editing A
+changes only A's existing embedded document; B stays exact. Shader source,
+metadata, target pins and unrelated bindings are retained. There is no shared
+material asset link, source editor, import or preview in this control.
+
+Actual compiler/provider ranges remain authoritative. Invalid active values
+(empty/incomplete/nonfinite/out-of-range) refuse the complete transaction and
+retain corrective input. Explicit default values differ from omitted overrides;
+`-0` differs from `+0`. Formatting-only changes with unchanged presence are no-ops.
+The existing material session decides dirty/revision semantics in a temporary
+preparation that is always disposed. Each changed binding advances its embedded
+material revision once; maximum revision refuses before presentation. Unchanged
+bindings keep their original revision. No separate material history is committed.
+
+Body, material, camera and light edits share one whole-scene **Apply** and existing
+Undo/Redo. Save includes accepted embedded materials only; fresh same-kind Open
+restores them for re-edit. Refused/pending/stale operations use the existing owned
+session fences. The same controlled React flow covers both light kinds, repeated
+material IDs, omission/signed values, no-ops, revision limits and lifecycle
+retention; physical GPU/file/device acceptance and #1573 remain separate.

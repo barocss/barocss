@@ -1,5 +1,6 @@
-import {prepareRenderNativeLightDocument, RenderEditorError} from '@barocss/render-editor';
+import {prepareRenderNativeLightDocument, createRenderMaterialSession, RenderEditorError} from '@barocss/render-editor';
 import type {RenderNativeLightDocument} from '@barocss/render-editor';
+import {compileMeshMaterial} from '@barocss/gpu';
 
 export type LightKind = 'directional' | 'point';
 export interface LightFields {
@@ -14,7 +15,19 @@ export interface CameraFields {
 export interface BodyFields {
   bodyId: string; position: [string, string, string]; scale: [string, string, string];
 }
-export interface LightForm {kind: LightKind; ambient: string; lights: LightFields[]; camera: CameraFields; bodies: BodyFields[]}
+export interface MaterialUniformFields {
+  name: string; override: boolean; value: string; min: number; max: number; defaultValue: string;
+}
+export interface MaterialFields {
+  target: RenderNativeLightDocument['surfaceMaterials'][number]['target'];
+  documentId: string; revision: number; uniforms: MaterialUniformFields[];
+}
+export interface LightForm {kind: LightKind; ambient: string; lights: LightFields[]; camera: CameraFields; bodies: BodyFields[]; materials: MaterialFields[]}
+function declarations(source: string) {
+  const result = compileMeshMaterial(source);
+  if (!result.ok) throw new RenderEditorError('SOURCE_REFUSED', 'The original material shader could not be compiled.');
+  return result.material.uniforms;
+}
 const text = (value: number) => Object.is(value, -0) ? '-0' : String(value);
 function bodyIds(document: RenderNativeLightDocument): readonly string[] {
   const ids = document.nativeOptions.bodyIds;
@@ -34,7 +47,12 @@ export function readLightFields(document: RenderNativeLightDocument): LightForm 
     return {bodyId, position: (pose?.translationMM ?? [0, 0, 0]).map(text) as BodyFields['position'],
       scale: (pose?.scale ?? [1, 1, 1]).map(text) as BodyFields['scale']};
   });
-  return {kind: lightKind(document), ambient: text(catalog.ambientStrength), bodies, camera: {
+  const materials = document.surfaceMaterials.map(({target, material}) => ({target, documentId: material.documentId, revision: material.revision,
+    uniforms: declarations(material.shaderSource).map(uniform => ({name: uniform.name, min: uniform.min, max: uniform.max,
+      defaultValue: text(uniform.default), override: Object.hasOwn(material.uniforms, uniform.name),
+      value: text(Object.hasOwn(material.uniforms, uniform.name) ? material.uniforms[uniform.name] : uniform.default)})),
+  }));
+  return {kind: lightKind(document), ambient: text(catalog.ambientStrength), bodies, materials, camera: {
     eye: camera.eye.map(text) as CameraFields['eye'], target: camera.target.map(text) as CameraFields['target'],
     up: camera.up.map(text) as CameraFields['up'], fovYDegrees: text(camera.fovYDegrees), near: text(camera.near), far: text(camera.far),
   }, lights: lights.map(light => ({
@@ -72,8 +90,30 @@ export function applyLightFields(base: RenderNativeLightDocument, fields: LightF
   const lights = fields.kind === 'point'
     ? fields.lights.map(light => ({...common(light), positionScene: light.vector.map(value => numeric(value, 'World position')), rangeScene: numeric(light.range, 'Range')}))
     : fields.lights.map(light => ({...common(light), directionScene: light.vector.map(value => numeric(value, 'Direction'))}));
+  if (fields.materials.length !== base.surfaceMaterials.length)
+    throw new RenderEditorError('DOCUMENT_INPUT', 'Material fields must retain the existing body bindings.');
+  const surfaceMaterials = base.surfaceMaterials.map((binding, index) => {
+    const row = fields.materials[index], targetKeys = Object.keys(binding.target) as (keyof typeof binding.target)[];
+    if (!row || row.documentId !== binding.material.documentId || !Object.is(row.revision, binding.material.revision)
+      || Object.keys(row.target).length !== targetKeys.length || targetKeys.some(key => !Object.is(row.target[key], binding.target[key])))
+      throw new RenderEditorError('DOCUMENT_INPUT', 'Material fields must retain the complete original target and embedded owner.');
+    const uniforms = declarations(binding.material.shaderSource);
+    if (row.uniforms.length !== uniforms.length || uniforms.some((uniform, i) => row.uniforms[i]?.name !== uniform.name
+      || typeof row.uniforms[i]?.override !== 'boolean'))
+      throw new RenderEditorError('DOCUMENT_INPUT', 'Material fields must retain the exact shader-declared uniform names and order.');
+    const values = new Map(row.uniforms.filter(field => field.override).map(field => [field.name, numeric(field.value, 'Uniform ' + field.name)]));
+    // Keep existing supplied-key order; new overrides follow shader declaration order.
+    const names = [...Object.keys(binding.material.uniforms).filter(name => values.has(name)),
+      ...row.uniforms.filter(field => field.override && !Object.hasOwn(binding.material.uniforms, field.name)).map(field => field.name)];
+    const session = createRenderMaterialSession(binding.material);
+    try {
+      session.setDraftUniforms(Object.fromEntries(names.map(name => [name, values.get(name)!])));
+      // Actual material-session ownership decides omission/signed equality and revision overflow.
+      return session.getSnapshot().dirty ? {...binding, material: session.prepareDraft().document} : binding;
+    } finally {session.dispose();}
+  });
   const camera = fields.camera;
-  return prepareRenderNativeLightDocument({...base,
+  return prepareRenderNativeLightDocument({...base, surfaceMaterials,
     display: {...base.display, poses, camera: {
       eye: camera.eye.map(value => numeric(value, 'Camera eye')),
       target: camera.target.map(value => numeric(value, 'Camera target')),

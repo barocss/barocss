@@ -706,7 +706,260 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
     }
   } finally {confirmation = true; globalThis.fetch = originalFetch;}
 
+  // Existing embedded materials belong to full body bindings, even when their material IDs repeat.
+  // Reuse the actual compiler/material session and native appearance provider; only Viewer delivery is controlled.
+  const materialFlow = [];
+  const bindingFor = (document, bodyId) => document.surfaceMaterials.find(item => item.target.bodyId === bodyId);
+  const materialRow = (fields, bodyId) => fields.materials.find(item => item.target.bodyId === bodyId);
+  const uniformRow = (fields, bodyId, name = 'amount') => materialRow(fields, bodyId).uniforms.find(item => item.name === name);
+  const uniformInput = name => container.querySelector(`[aria-label="Uniform ${name}"]`);
+  const overrideInput = name => container.querySelector(`[aria-label="Override uniform ${name}"]`);
+  const override = async (name, enabled) => {
+    const input = overrideInput(name); assert(input, 'Missing override ' + name); assert(!input.disabled);
+    if (input.checked !== enabled) await act(async () => input.click());
+    assert.equal(overrideInput(name).checked, enabled);
+  };
+  const assertMaterialFields = row => {
+    for (const uniform of row.uniforms) {
+      assert.equal(inputValue('Uniform ' + uniform.name), uniform.value);
+      assert.equal(overrideInput(uniform.name).checked, uniform.override);
+      assert.equal(uniformInput(uniform.name).disabled, !uniform.override);
+    }
+  };
+  const withMaterial = (base, updates, outerRevision = base.revision) => {
+    const expected = structuredClone(base); expected.revision = outerRevision; expected.lights.revision = outerRevision;
+    for (const [bodyId, uniforms] of updates) {
+      const material = bindingFor(expected, bodyId).material; material.revision++; material.uniforms = uniforms;
+    }
+    return expected;
+  };
+  const invalidMaterialFields = [
+    ['missing binding', fields => {fields.materials.pop();}],
+    ['sparse binding', fields => {delete fields.materials[0];}],
+    ['duplicate binding', fields => {fields.materials[1] = structuredClone(fields.materials[0]);}],
+    ['reordered binding', fields => {fields.materials.reverse();}],
+    ['material identity', fields => {fields.materials[0].documentId = 'foreign-material';}],
+    ['material revision', fields => {fields.materials[0].revision++;}],
+    ...['documentId', 'documentRevision', 'bodyId', 'assetId', 'assetRevision', 'modelId', 'geometryId'].map(key =>
+      ['qualified target ' + key, fields => {const target = fields.materials[0].target; target[key] = typeof target[key] === 'number' ? target[key] + 1 : 'foreign';}]),
+    ['missing uniform', fields => {fields.materials[0].uniforms.pop();}],
+    ['sparse uniform', fields => {delete fields.materials[0].uniforms[0];}],
+    ['invented uniform', fields => {fields.materials[0].uniforms[0].name = 'foreign';}],
+    ['duplicate uniform', fields => {fields.materials[0].uniforms[1].name = 'amount';}],
+    ['reordered uniform', fields => {fields.materials[0].uniforms.reverse();}],
+    ['forged minimum', fields => {Object.assign(fields.materials[0].uniforms[0], {min: -100, override: true, value: '-2'});}],
+    ['forged maximum', fields => {Object.assign(fields.materials[0].uniforms[0], {max: 100, override: true, value: '2'});}],
+    ['nonboolean override', fields => {fields.materials[0].uniforms[0].override = 'true';}],
+    ...['', ' ', '1e', 'NaN', 'Infinity', '-Infinity', '0x10', '-1.01', '1.01'].map(value =>
+      ['active text ' + JSON.stringify(value), fields => {Object.assign(fields.materials[0].uniforms[0], {override: true, value});}]),
+  ];
+  globalThis.fetch = async url => {assert.equal(url, './reference-panel.barocad'); return {ok: true, text: async () => sourceText};};
+  try {
+    for (const kind of ['directional', 'point']) {
+      const raw = structuredClone(api.createLightStudy(sourceText, kind));
+      raw.nativeDocument.bodies.forEach(body => {body.name = 'Repeated Surface';});
+      raw.display.camera.up = [-0, 2, -0];
+      raw.display.poses[1].rotationXYZW = [-0, Math.sin(.2) * (1 + 2e-10), -0, Math.cos(.2) * (1 + 2e-10)];
+      for (const item of raw.surfaceMaterials) Object.assign(item.material, {documentId: 'shared-look', title: 'Repeated material', revision: 7,
+        shaderSource: '// Original independently owned material.\n@shader #shared_look {\n  @uniform amount: float(-1, 1, 0);\n  @uniform gain: float(0, 2, 1);\n  @fragment { color: mix(#ff0000, #0000ff, clamp(amount * gain, 0, 1)); }\n}\n', uniforms: {}});
+      const materialSeed = api.prepareRenderNativeLightDocument(raw).document;
+      const materialSeedText = api.serializeRenderNativeLightDocument(materialSeed), materialFields = api.readLightFields(materialSeed);
+      assert.equal(new Set(materialSeed.nativeDocument.bodies.map(body => body.name)).size, 1);
+      assert.equal(new Set(materialSeed.surfaceMaterials.map(item => item.target.geometryId)).size, 1);
+      assert.equal(new Set(materialSeed.surfaceMaterials.map(item => item.material.documentId)).size, 1);
+      assert.deepEqual(materialFields.materials.map(row => row.target), materialSeed.surfaceMaterials.map(item => item.target));
+      assert.deepEqual(materialFields.materials.map(row => [row.documentId, row.revision]), [['shared-look', 7], ['shared-look', 7]]);
+      for (const row of materialFields.materials) assert.deepEqual(row.uniforms, [
+        {name: 'amount', override: false, value: '0', min: -1, max: 1, defaultValue: '0'},
+        {name: 'gain', override: false, value: '1', min: 0, max: 2, defaultValue: '1'},
+      ]);
+      assert.deepEqual(api.applyLightFields(materialSeed, materialFields), materialSeed, 'Reading cannot materialize defaults');
+      for (const [name, mutate] of invalidMaterialFields) {
+        const invalid = structuredClone(materialFields); mutate(invalid); const retained = structuredClone(invalid);
+        assert.throws(() => api.applyLightFields(materialSeed, invalid), undefined, kind + ': ' + name);
+        assert.deepEqual(invalid, retained, 'Material validation retains draft: ' + name);
+        assert.equal(api.serializeRenderNativeLightDocument(materialSeed), materialSeedText);
+      }
+      const inactive = structuredClone(materialFields); uniformRow(inactive, A).value = 'Infinity';
+      uniformRow(inactive, A).defaultValue = '.5';
+      assert.deepEqual(api.applyLightFields(materialSeed, inactive), materialSeed, 'Inactive text and UI default hints cannot replace source authority');
+      for (const [textValue, numericValue] of [['+0', 0], ['-0', -0], ['-1', -1], ['1', 1]]) {
+        const single = structuredClone(materialFields); Object.assign(uniformRow(single, A), {override: true, value: textValue});
+        assert.deepEqual(api.applyLightFields(materialSeed, single), withMaterial(materialSeed, [[A, {amount: numericValue}]]), 'Only full selected binding changes');
+      }
+      const explicitDefault = structuredClone(materialFields); Object.assign(uniformRow(explicitDefault, A, 'gain'), {override: true, value: '1.0'});
+      const explicit = api.applyLightFields(materialSeed, explicitDefault);
+      assert.deepEqual(explicit, withMaterial(materialSeed, [[A, {gain: 1}]]), 'Explicit shader default is real authorship');
+      const lexical = api.readLightFields(explicit); uniformRow(lexical, A, 'gain').value = '+1e0';
+      assert.deepEqual(api.applyLightFields(explicit, lexical), explicit, 'Numeric formatting retains original embedded revision');
+      const omitted = api.readLightFields(explicit); Object.assign(uniformRow(omitted, A, 'gain'), {override: false, value: '1e'});
+      assert.deepEqual(api.applyLightFields(explicit, omitted), withMaterial(explicit, [[A, {}]]));
+
+      mounted = await api.mountLightWorkbenchFlow(container, materialSeed); const materialControl = controls.at(-1);
+      const preparedMaterials = []; materialControl.prepare = request => {preparedMaterials.push(prepareBodyAppearance(request));};
+      assert.equal(materialControl.initial.format, 'barocss-viewer-native-' + kind + '-light-input');
+      const materialSection = container.querySelector('[aria-label="Body material"]'); assert(materialSection);
+      assert.match(materialSection.textContent, /amount/); assert.match(materialSection.textContent, /-1/);
+      assert.match(materialSection.textContent, /default\s*0/i); assert.match(materialSection.textContent, /gain/); assert.match(materialSection.textContent, /default\s*1/i);
+      assert.match(materialSection.textContent, /Range -1 to 1/); assert.match(materialSection.textContent, /Range 0 to 2/);
+      assertMaterialFields(materialRow(materialFields, A)); assert.equal(await saveText(), materialSeedText);
+      await selectBody(B); await selectBody(A); assert(button('Apply').disabled); assert.equal(unloadBlocked(), false); assert.equal(materialControl.calls.length, 0);
+      await override('amount', true); await edit('Uniform amount', '1e'); await override('amount', false);
+      assert.equal(inputValue('Uniform amount'), '1e'); assert(uniformInput('amount').disabled);
+      await selectBody(B); await override('gain', true); await edit('Uniform gain', '1.250');
+      await selectBody(A); assert.equal(inputValue('Uniform amount'), '1e'); await override('amount', true);
+      assert.equal(inputValue('Uniform amount'), '1e'); assert.equal(await saveText(), materialSeedText); await click('Apply');
+      assert.equal(materialControl.calls.length, 0); await selectBody(B); assert.equal(inputValue('Uniform gain'), '1.250');
+      await click('Discard'); await selectBody(A); assertMaterialFields(materialRow(materialFields, A));
+      await selectBody(B); assertMaterialFields(materialRow(materialFields, B)); await selectBody(A);
+      await override('amount', true); await click('Apply');
+      const plusText = await saveText(), plus = api.parseRenderNativeLightDocument(plusText);
+      assert.deepEqual(plus, withMaterial(materialSeed, [[A, {amount: 0}]], materialSeed.revision + 1));
+      assert.equal(materialControl.calls.length, 1); assert(button('Redo').disabled);
+      await edit('Uniform amount', '-0'); await click('Apply');
+      const minusText = await saveText(), minus = api.parseRenderNativeLightDocument(minusText);
+      assert.deepEqual(minus, withMaterial(plus, [[A, {amount: -0}]], plus.revision + 1));
+      assert(Object.is(bindingFor(minus, A).material.uniforms.amount, -0));
+      await edit('Uniform amount', '-0.00'); await click('Apply'); assert.equal(materialControl.calls.length, 2);
+      assert.equal(await saveText(), minusText); assert.equal(inputValue('Uniform amount'), '-0');
+      await edit('Uniform amount', '1e'); await override('amount', false); await click('Apply');
+      const defaultText = await saveText(), defaulted = api.parseRenderNativeLightDocument(defaultText);
+      assert.deepEqual(defaulted, withMaterial(minus, [[A, {}]], minus.revision + 1));
+      assert.equal(inputValue('Uniform amount'), '0'); assert(uniformInput('amount').disabled);
+      await click('Undo'); assert.deepEqual(api.parseRenderNativeLightDocument(await saveText()).surfaceMaterials, minus.surfaceMaterials);
+      await click('Redo'); assert.deepEqual(api.parseRenderNativeLightDocument(await saveText()).surfaceMaterials, defaulted.surfaceMaterials);
+
+      // Reset whole-scene history, then combine two independent materials with body/camera/light in one Apply.
+      await click('Open'); await selectFile(file(materialSeedText)); assert(button('Undo').disabled); assert(button('Redo').disabled);
+      const beforeCombinedCalls = materialControl.calls.length;
+      await selectBody(A); await override('amount', true); await edit('Uniform amount', '-.5');
+      await edit('Body position X (mm)', '-950'); await edit('Body scale Y', '1.05');
+      await selectBody(B); await override('gain', true); await edit('Uniform gain', '1.25'); await edit('Body position Z (mm)', '50');
+      await selectBody(A); assert.equal(inputValue('Uniform amount'), '-.5'); await selectBody(B); assert.equal(inputValue('Uniform gain'), '1.25');
+      await edit('Camera eye X', '3'); await edit('Intensity', '.4'); assert.equal(await saveText(), materialSeedText); await click('Apply');
+      assert.equal(materialControl.calls.length, beforeCombinedCalls + 1, 'Two materials/body/camera/light use one replacement');
+      const combinedText = await saveText(), combined = api.parseRenderNativeLightDocument(combinedText);
+      const expectedCombined = withMaterial(materialSeed, [[A, {amount: -.5}], [B, {gain: 1.25}]], materialSeed.revision + 1);
+      poseFor(expectedCombined, A).translationMM[0] = -950; poseFor(expectedCombined, A).scale[1] = 1.05;
+      poseFor(expectedCombined, B).translationMM[2] = 50; expectedCombined.display.camera.eye[0] = 3; expectedCombined.lights.lights[0].intensity = .4;
+      assert.deepEqual(combined, expectedCombined, 'Unedited source/TEN/raw rotation/Up/visibility/override omissions remain exact');
+      assert.deepEqual(materialControl.calls.at(-1), api.createRenderNativeLightRequest(combined));
+      const mapping = api.prepareRenderNativeLightDocument(combined).materials, appearance = preparedMaterials.at(-1);
+      assert.equal(appearance.prepared.primitives.length, 2);
+      assert.notEqual(mapping[0].ref.modelId, mapping[1].ref.modelId, 'Actual provider qualifies duplicate authored geometry names');
+      for (const mapped of mapping) {
+        const primitive = appearance.prepared.primitives.find(item => item.entry.ref.modelId === mapped.ref.modelId && item.entry.ref.geometryId === mapped.ref.surfaceId);
+        assert(primitive?.material, 'Qualified body receives its own provider material');
+        assert.deepEqual(primitive.material.uniforms, mapped.preparation.sample.uniforms);
+        assert.deepEqual(primitive.material.material, mapped.preparation.sample.material);
+      }
+      await click('Undo'); assert(button('Undo').disabled, 'No separate material-history transaction');
+      const undone = api.parseRenderNativeLightDocument(await saveText());
+      assert.deepEqual(undone, {...materialSeed, revision: combined.revision + 1, lights: {...materialSeed.lights, revision: combined.revision + 1}});
+      await click('Redo'); assert(button('Redo').disabled);
+      assert.deepEqual(api.parseRenderNativeLightDocument(await saveText()).surfaceMaterials, combined.surfaceMaterials);
+      await selectBody(A); await edit('Uniform amount', '.5'); await click('Apply'); await click('Undo'); assertHistory();
+      const retainedText = await saveText(), retained = api.parseRenderNativeLightDocument(retainedText), retainedFields = api.readLightFields(retained);
+      const retainedCalls = materialControl.calls.length;
+      for (const invalid of ['', '1e', 'NaN', 'Infinity', '-Infinity', '-1.01', '1.01']) {
+        await selectBody(A); await edit('Uniform amount', invalid); await edit('Body position X (mm)', '-960');
+        await edit('Camera eye X', '4'); await edit('Intensity', '.42');
+        await selectBody(B); await edit('Uniform gain', '1.50'); await click('Apply');
+        assert.equal(materialControl.calls.length, retainedCalls); assert.equal(inputValue('Uniform gain'), '1.50');
+        await selectBody(A); assert.equal(inputValue('Uniform amount'), invalid); assert.equal(inputValue('Body position X (mm)'), '-960');
+        assert.equal(inputValue('Camera eye X'), '4'); assert.equal(inputValue('Intensity'), '.42'); assert.equal(await saveText(), retainedText);
+        await click('Discard'); assertHistory(); assertMaterialFields(materialRow(retainedFields, A));
+      }
+      // A material draft invalidates an earlier chooser ticket and protects ordinary replacement exits.
+      await edit('Uniform amount', '-.4'); confirmation = false;
+      const promptsBeforeMaterial = dialogs.length, choosersBeforeMaterial = fileChoosers, mountsBeforeMaterial = controls.length;
+      for (const action of ['Open', 'Import legacy Native scene', 'New directional', 'New point', 'Back to materials']) await click(action);
+      assert.equal(dialogs.length, promptsBeforeMaterial + 5); assert.equal(fileChoosers, choosersBeforeMaterial); assert.equal(controls.length, mountsBeforeMaterial);
+      assert.equal(inputValue('Uniform amount'), '-.4'); confirmation = true; await click('Discard');
+      await click('Open'); await edit('Uniform amount', '-.3'); await selectFile(file(combinedText));
+      assert(text().includes('STALE_CANDIDATE')); assert.equal(materialControl.calls.length, retainedCalls);
+      assert.equal(inputValue('Uniform amount'), '-.3'); assert.equal(await saveText(), retainedText); await click('Discard'); assertHistory();
+
+      materialControl.refusal = new Error('Controlled pending material/body/camera/light refusal');
+      await edit('Uniform amount', '-.4'); await edit('Body position X (mm)', '-975'); await edit('Camera eye X', '4'); await edit('Intensity', '.44');
+      await selectBody(B); await edit('Uniform gain', '1.50');
+      let releaseMaterial; materialControl.wait = new Promise(resolve => {releaseMaterial = resolve;}); await act(async () => button('Apply').click());
+      assert.equal(materialControl.calls.length, retainedCalls + 1); assert.equal(unloadBlocked(), true);
+      for (const action of ['Apply', 'Discard', 'Undo', 'Redo', 'Open', 'Save accepted', 'Import legacy Native scene', 'New directional', 'New point', 'Back to materials', 'Add ' + kind, 'Remove light', 'Edit body ' + A, 'Edit body ' + B])
+        assert(button(action).disabled, 'Pending material fence: ' + action);
+      for (const name of ['amount', 'gain']) {assert(overrideInput(name).disabled); assert(uniformInput(name).disabled);}
+      for (const label of ['Body position X (mm)', 'Camera eye X', 'Intensity']) assert(container.querySelector(`[aria-label="${label}"]`).disabled);
+      await act(async () => {button('Apply').click(); button('Open').click(); button('Edit body ' + A).click(); overrideInput('gain').click();});
+      assert.equal(materialControl.calls.length, retainedCalls + 1); assert.equal(button('Edit body ' + B).getAttribute('aria-pressed'), 'true');
+      await act(async () => {releaseMaterial(); await materialControl.wait;}); materialControl.wait = null;
+      assert(text().includes('PRESENTATION_REFUSED')); assert.equal(inputValue('Uniform gain'), '1.50'); assert(overrideInput('gain').checked);
+      await selectBody(A); assert.equal(inputValue('Uniform amount'), '-.4'); assert.equal(inputValue('Body position X (mm)'), '-975');
+      assert.equal(inputValue('Camera eye X'), '4'); assert.equal(inputValue('Intensity'), '.44'); assert.equal(await saveText(), retainedText);
+      await click('Discard'); assertHistory(); assertMaterialFields(materialRow(retainedFields, A));
+      materialControl.refusal = null; await edit('Uniform amount', '-.4'); await selectBody(B); await edit('Uniform gain', '1.50'); await click('Apply');
+      assert.equal(materialControl.calls.length, retainedCalls + 2); assert(button('Redo').disabled);
+      const savedText = await saveText(), saved = api.parseRenderNativeLightDocument(savedText);
+      assert.deepEqual(saved, withMaterial(retained, [[A, {amount: -.4}], [B, {gain: 1.5}]], retained.revision + 1));
+      await mounted.dispose(); assert.equal(materialControl.disposed, 1);
+
+      const mountsBeforeChoice = controls.length; mounted = await api.mountLightWorkbenchFlow(container);
+      assert(text().includes('Choose the kind')); assert.equal(controls.length, mountsBeforeChoice); await click('Start ' + kind + ' workspace');
+      const freshMaterial = controls.at(-1); freshMaterial.prepare = prepareBodyAppearance;
+      await click('Open'); await selectFile(file(savedText)); assert.equal(freshMaterial.calls.length, 1);
+      assert(button('Undo').disabled); assert(button('Redo').disabled); assert.equal(await saveText(), savedText);
+      await selectBody(B); assertMaterialFields(materialRow(api.readLightFields(saved), B)); await edit('Uniform gain', '1.75'); await click('Apply');
+      const reeditedText = await saveText(), reedited = api.parseRenderNativeLightDocument(reeditedText);
+      assert.deepEqual(reedited, withMaterial(saved, [[B, {gain: 1.75}]], saved.revision + 1));
+      assert.equal(freshMaterial.calls.length, 2); await edit('Uniform gain', '1.9'); await click('Apply'); await click('Undo'); assertHistory();
+      const beforeLateText = await saveText(), beforeLate = api.parseRenderNativeLightDocument(beforeLateText);
+      await selectBody(A); await edit('Uniform amount', '.7');
+      let releaseLateMaterial; freshMaterial.wait = new Promise(resolve => {releaseLateMaterial = resolve;}); await act(async () => button('Apply').click());
+      const lateCalls = freshMaterial.calls.length; assert(uniformInput('amount').disabled); await mounted.dispose(); assert.equal(freshMaterial.disposed, 1);
+      mounted = await api.mountLightWorkbenchFlow(container, beforeLate); const afterLateMaterial = controls.at(-1);
+      await act(async () => {releaseLateMaterial(); await freshMaterial.wait;}); freshMaterial.wait = null;
+      assert.equal(freshMaterial.calls.length, lateCalls); assert.equal(afterLateMaterial.calls.length, 0);
+      assert.equal(await saveText(), beforeLateText); assertMaterialFields(materialRow(api.readLightFields(beforeLate), A));
+      assert(button('Undo').disabled); assert(button('Redo').disabled); await mounted.dispose();
+
+      // Maximum embedded revision refuses only a real change, before either backend receives a replacement.
+      const maximalRaw = structuredClone(materialSeed); bindingFor(maximalRaw, A).material.revision = 2147483647;
+      bindingFor(maximalRaw, A).material.uniforms = {amount: 0};
+      const maximal = api.prepareRenderNativeLightDocument(maximalRaw).document;
+      mounted = await api.mountLightWorkbenchFlow(container, maximal); const maxControl = controls.at(-1);
+      await edit('Uniform amount', '+0.0'); await click('Apply'); assert.equal(maxControl.calls.length, 0); assert(button('Undo').disabled);
+      await edit('Ambient strength', '.3'); await click('Apply'); await edit('Ambient strength', '.4'); await click('Apply'); await click('Undo'); assertHistory();
+      const maxRetainedText = await saveText(), maxCalls = maxControl.calls.length;
+      await edit('Uniform amount', '.2'); await selectBody(B); await override('gain', true); await edit('Uniform gain', '1.1');
+      await edit('Camera eye X', '4'); await click('Apply'); assert.equal(maxControl.calls.length, maxCalls); assert.match(text(), /revision.*maximum/i);
+      assert.equal(inputValue('Uniform gain'), '1.1'); await selectBody(A); assert.equal(inputValue('Uniform amount'), '.2');
+      assert.equal(inputValue('Camera eye X'), '4'); assert.equal(await saveText(), maxRetainedText); await click('Discard'); assertHistory();
+      await mounted.dispose(); assert.equal(maxControl.disposed, 1);
+
+      // No binding is synthesized for a visible unbound or hidden body; its ordinary transform controls remain.
+      for (const hidden of [false, true]) {
+        const unavailableRaw = structuredClone(materialSeed); unavailableRaw.surfaceMaterials = [bindingFor(unavailableRaw, B)];
+        if (hidden) unavailableRaw.display.visibleBodyIds = [B];
+        const unavailable = api.prepareRenderNativeLightDocument(unavailableRaw).document, unavailableText = api.serializeRenderNativeLightDocument(unavailable);
+        assert.deepEqual(api.readLightFields(unavailable).materials.map(row => row.target.bodyId), [B]);
+        mounted = await api.mountLightWorkbenchFlow(container, unavailable); const unavailableControl = controls.at(-1);
+        await selectBody(A); assert(!uniformInput('amount')); assert(!overrideInput('amount'));
+        assert.match(container.querySelector('[aria-label="Body material"]').textContent, /no |not |unavailable|hidden|noneditable|non-editable/i);
+        assert(!container.querySelector('[aria-label="Body position X (mm)"]').disabled);
+        await selectBody(B); assertMaterialFields(materialRow(api.readLightFields(unavailable), B)); await selectBody(A);
+        assert.equal(await saveText(), unavailableText); assert.equal(unavailableControl.calls.length, 0);
+        await edit('Body position X (mm)', '-925'); await click('Apply');
+        const unboundEdited = api.parseRenderNativeLightDocument(await saveText());
+        assert.deepEqual(unboundEdited.surfaceMaterials, unavailable.surfaceMaterials); assert.deepEqual(unboundEdited.display.visibleBodyIds, unavailable.display.visibleBodyIds);
+        assert.equal(poseFor(unboundEdited, A).translationMM[0], -925); await mounted.dispose(); assert.equal(unavailableControl.disposed, 1);
+      }
+      materialFlow.push({kind, invalidMaterialCases: invalidMaterialFields.length, bindingIds: materialFields.materials.map(row => row.target.bodyId),
+        embeddedDocumentId: 'shared-look', initialEmbeddedRevision: 7, combinedEmbeddedRevisions: combined.surfaceMaterials.map(item => item.material.revision),
+        materialReplacements: materialControl.calls.length, freshChooserReplacements: freshMaterial.calls.length,
+        savedRevision: saved.revision, reeditedRevision: reedited.revision, maxRevisionRefusedBeforeViewer: maxControl.calls.length === maxCalls});
+    }
+  } finally {confirmation = true; globalThis.fetch = originalFetch;}
+
   console.log(JSON.stringify({result: 'PASS', scope: 'actual React + original codec/session; controlled Viewer, no GPU/physical-file proof', acceptedRevision: last.revision,
     lights: last.lights.lights.length, replacementCalls: controls[0].calls.length, legacyReplacements: legacyControl.calls.length, convertedLegacyRevision: editedLegacy.revision,
-    cameraFlow, bodyFlow, downloadsRequested: downloads.length, confirmationPrompts: dialogs.length, disposed: controls.map(value => value.disposed)}));
+    cameraFlow, bodyFlow, materialFlow, downloadsRequested: downloads.length, confirmationPrompts: dialogs.length, disposed: controls.map(value => value.disposed)}));
 } finally {dom.window.close(); await rm(output, {recursive: true, force: true});}
