@@ -48,7 +48,7 @@ for (const name of ['serial-part-v2', 'capabilities']) {
   }
 }
 const configText = readFileSync(resolve(app, 'docs/.vitepress/config.mts'), 'utf8');
-assert.ok(configText.includes("'serial-part-v2': 'Serial cut-part and chamfer v2'"));
+assert.ok(configText.includes("'serial-part-v2': 'Archive: serial-part v2'"));
 const require = createRequire(resolve(process.env.REPO_DEPS_ROOT ?? root, 'package.json'));
 const entry = resolve(process.env.CAD_SERIAL_TYPES_ENTRY ?? resolve(root, 'packages/barocss-cad/dist/index.d.ts'));
 assert.ok(existsSync(entry), 'Build a matching CAD package first or set CAD_SERIAL_TYPES_ENTRY to its declarations');

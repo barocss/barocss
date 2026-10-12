@@ -1,23 +1,27 @@
 # CAD
 
-[Adaptive Curve display](./adaptive-curve-sampling) — Use a complete weighted degree-five Curve request to change display tolerance while keeping the native coefficients and full source intact.
+Start with the [solid modeling quickstart](./quickstart), then [cut, chamfer, edit and reopen a part](./modeling). The current public entry is `cad.model()`: named millimetre dimensions, shape operations and named native Solid outputs, without version selection or internal identity/reference authoring.
 
-[Run and edit an actual example](/playground#cad-surface). Read the [language reference](./language). Compare the input with [captured result images](./examples).
-
-`@barocss/cad` provides an original bounded model compiler, rational B-spline evaluation, native construction/query operations and an ASCII IGES writer. Its manifest version is `0.0.0-experimental`.
-
-Use CAD for authoritative geometry. Retain the original source, native IDs, units and operation reports. Use [CAD interop](../cad-interop/) for loading or renderer adapters, and [GPU](../gpu/) for admitted display profiles.
+`@barocss/cad` also provides rational B-spline evaluation, native construction/query operations, a bounded text compiler and an ASCII IGES writer. Its manifest version is `0.0.0-experimental`. Those advanced APIs retain their separate contracts.
 
 | Task | Page |
 | --- | --- |
-| Choose a supported shape and edit chain | [Capabilities and evidence](./capabilities) |
-| Compile a Curve and evaluate a point | [Quickstart](./quickstart) |
-| Build profiles, measure derivatives or sample a Surface | [Guides](./guides) |
+| Make and edit a solid plate | [Quickstart](./quickstart) |
+| Sketch → extrude → cut → chamfer → edit → save/load | [Model a part](./modeling) |
+| Check supported shapes, bounds and evidence | [Capabilities](./capabilities) |
+| Find advanced geometry and compatibility recipes | [Guides](./guides) |
 | Find the actual public operation/type | [API](./api) |
-| Reproduce a complete plane→packet→GPU preparation | [Examples](./examples) |
+| Work with Curve/Surface text programs | [Advanced language reference](./language) |
+| See captured display examples | [Examples](./examples) |
 | Check native/compiler bounds and refusal | [Limits](./limits) |
 
-## Native authority
+Use CAD for authoritative native geometry and authored intent. Use [CAD interop](../cad-interop/) for loading or renderer adapters, and [GPU](../gpu/) for admitted display profiles. A mesh is derived display data. The [modeling guide's evidence boundary](./modeling#evidence-and-current-availability) separates API acceptance, editor adoption, site deployment and package publication.
+
+## Advanced and historical contracts
+
+The [exact-prism workflow](./exact-prism-modeling), [serial-part v2 files](./serial-part-v2) and [Source0–3 programs](./language-workflows) remain source-pinned historical/advanced references. Existing saved files keep their matching readers; `cad.load` does not automatically migrate them. New solid examples use the [modeling API](./modeling).
+
+## Native Curve/Surface authority
 
 `Model` version0 holds Curves and Surfaces in millimetres. A native Curve holds degree, knots, poles and weights. A native Surface uses `controlPoints[uIndex][vIndex]` and corresponding weights. Parameters, knots and weights are dimensionless. Do not replace these fields with sampled display vertices.
 
@@ -31,6 +35,6 @@ Many operations qualify a narrow family, such as an integer axis box or a select
 
 ---
 
-Source snapshot: local Git `5f5ad866205a21510ac69552e704cc162fa253b5`. `packages/barocss-cad/package.json` (Manifest; local source), `packages/barocss-cad/src/index.ts` (public root; local source), `packages/barocss-cad/README.md` (package README; local source). Source paths identify that fixed local snapshot. Local source is the authority for this manual.
+Historical Curve/Surface overview source snapshot: local Git `5f5ad866205a21510ac69552e704cc162fa253b5`. `packages/barocss-cad/package.json` (Manifest; local source), `packages/barocss-cad/src/index.ts` (public root; local source), `packages/barocss-cad/README.md` (package README; local source). Source paths identify that fixed local snapshot. Local source is the authority for this manual.
 
 [Overview](./) · [Quickstart](./quickstart) · [Guides](./guides) · [API](./api) · [Examples](./examples) · [Limits](./limits)

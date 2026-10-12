@@ -1,49 +1,24 @@
-# Compile and evaluate a native Curve
+# Make and edit a solid plate
 
-Describe geometry in millimetres, select its language version, then evaluate it in the original parameter domain. This complete example uses public `@barocss/cad` APIs and source0. For development source entries, use a TypeScript-capable bundler; built ESM entries provide compiled JavaScript.
+Start with `cad.model()`, give dimensions names, and build a named native Solid. All values are millimetres. No document version, native IDs or revision counters are needed.
 
-```ts
-import { compileCadModel, evaluateCurve, curveDomain, exportIGES } from '@barocss/cad';
+<<< ../../../scripts/snippets/modeling-api.ts#imports
+<<< ../../../scripts/snippets/modeling-api.ts#plate
 
-const source = `
-@model line_example {
-  version: 0;
-  length-unit: mm;
-  @curve #edge {
-    type: nurbs;
-    degree: 1;
-    knots: [0,0,1,1];
-    control-points: [[0,0,0],[20,0,0]];
-    weights: [1,1];
-  }
-}
-`;
-const result = compileCadModel(source, { sourceVersion: 0 });
-if (!result.ok) throw new Error(result.diagnostics[0].message);
-const curve = result.model.objects[0];
-if (curve.kind !== 'curve') throw new Error('Expected the authored Curve');
-console.log(curveDomain(curve)); // [0,1]
-console.log(evaluateCurve(curve, 0.5)); // [10,0,0], in mm
-const artifact = exportIGES(result.model, ['edge']);
-console.log(artifact.report.objects[0].entity); // 126
-```
+`makePlate()` returns an immutable accepted snapshot. Its `bodies.part` is the actual native Solid. `width` and `depth` describe the XY rectangle; `height` is its positive Z extrusion. A build evaluates every authored operation and requires at least one named output.
 
-## Keep source and output together
+## Edit, save and reopen
 
-Success includes `ast`, `ir`, `model`, `constructions` and an empty diagnostics array. Failure includes diagnostics and no partial model. Keep the original source and owning IDs with any output. The compiler owns each nested output occurrence independently; modifying AST or IR data does not edit the model or source.
+<<< ../../../scripts/snippets/modeling-api.ts#edit-plate
 
-A source0 model requires `version:0`, `length-unit:mm` and 1..16 unique Curve/Surface declarations. Arrays use commas without trailing commas. Each field ends in `;`; a geometry block ends in `}`. Finite decimal literals are accepted. Arbitrary functions, exponent spelling in authored numeric literals, file imports and scripts are outside this dialect.
+This function uses the imports and `makePlate` function above. Read `editPlate().bodies.part.certificate.volumeMM3` for the exact native volume. `withParameters` returns a new snapshot only after the whole candidate succeeds. Keep `original` or the last accepted snapshot if an edit throws `CadModelError`; no partial candidate is accepted. `save()` returns authored text, and `cad.load()` rebuilds it. Your application owns storage and file dialogs.
 
-## Export geometry explicitly
+## Next: cut and chamfer a part
 
-`exportIGES(model, ids)` takes selected native IDs in caller order and returns bytes as a string plus a report. Your application chooses where to save the returned geometry text. It performs no filesystem call. Curves use entity126; Surfaces use entity128. This geometry export excludes editable source and a closed Solid serialization. Retain the source and full-ID report for later edits.
+Continue with the [complete modeling guide](./modeling) for a convex polygon, through-slab cut, unique edge selection, real component chamfer, atomic parameter edits and save/load/re-edit. It includes the supported/refused shapes, error handling and initial resource limits.
 
-## Edit and display geometry
+This API is bounded: convex XY line sketches, positive +Z extrusions, one X/Y through-slab cut and one admitted cardinal-edge chamfer. Native exactness and tool-coverage rules still apply. It does not establish arbitrary Boolean modeling, persistent topology naming or commercial CAD parity.
 
-Open [the CAD Curve example](/playground#cad-curve) to change native poles or weights and inspect the evaluated shape. Use [the Surface example](./examples#sample-a-plane-and-prepare-gpu-buffers) to sample a control net into a display packet.
+For Curve/Surface text programs or older saved feature documents, use the [advanced language reference](./language) and [historical compatibility links](./modeling#advanced-and-historical-compatibility). Source package imports need a TypeScript-capable transformer; built ESM/declarations, registry publication and deployed editor support are separate stages. See the [evidence boundary](./modeling#evidence-and-current-availability).
 
-Native geometry, sampled mesh and image have separate roles. Keep the original source and Model for edits. Select explicit display units and dispose display resources when the view closes. Failed compilation provides diagnostics without a partial Model; retain the last accepted application state.
-
-The compiler examples use experimental CAD source0/1/2. The [qualified translated-strip Body](./body-1301) requires its separate newer Body API; compiling a Curve or Surface alone does not certify a Body.
-
-[Overview](./) · [Language](./language) · [Guides](./guides) · [API](./api) · [Examples](./examples) · [Limits](./limits)
+[Overview](./) · [Model a part](./modeling) · [Capabilities](./capabilities) · [Guides](./guides) · [API](./api)

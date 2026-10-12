@@ -1,0 +1,186 @@
+{
+  "issue": 1613,
+  "scope": "Manual-only primary modeling API guide, quickstart, navigation, public snippets and static/type checks; no CAD execution",
+  "docsBase": "41a47d94def6e5c625e343824149cffb671ba221",
+  "resultCommit": "The containing documentation commit; exact SHA is reported in the parent handoff",
+  "engineSourcePin": "4a2d2c5a0d158d0b0a13a3ff85c38d8c57e439b4",
+  "enginePinMeaning": "Verified adopted develop source; not a claim of npm publication or manual deployment",
+  "engineReceipt": "https://github.com/barocss/barocss/blob/4a2d2c5a0d158d0b0a13a3ff85c38d8c57e439b4/packages/barocss-cad/test/modeling-evidence/verification.json",
+  "reusedNativeEvidence": {
+    "initialSourceEvaluations": 15,
+    "initialSourceScope": "Preserved pre-hardening array-admission/per-kind-limit source; native evaluator unchanged",
+    "finalEvaluations": 6,
+    "finalSourceEvaluations": 1,
+    "finalEmittedEvaluations": 1,
+    "finalColdEvaluations": 4,
+    "sourceMinimalPlateVolumeMM3": 4096,
+    "initialPartAndOtherVolumesMM3": [
+      3064,
+      2048
+    ],
+    "batchAndColdVolumeMM3": 2488,
+    "coldReeditSetback2VolumeMM3": 2464,
+    "campaignRepeatedByDocs": false,
+    "fullPackageLint": "Direct node scripts/tool.mjs lint actually ran and failed with 27 baseline errors in unchanged provider files; this is separate from the verifier pnpm wrapper failure.",
+    "legacyConsumer": "Engine receipt retains inherited archive-filename mismatch before imports",
+    "verifyLocal": "exit 1: required type-check and four lightweight/compatibility tests passed; automatic pnpm lint triggered dependency-status auto-install, which failed before lint (ENOENT pnpm home store). No installation completed or retried. Later aggregate commands were not reached."
+  },
+  "checks": {
+    "sourceSnippetTypes": {
+      "scope": "static/source bounds and public snippet typecheck; no CAD execution",
+      "mode": "source",
+      "base": "41a47d94def6e5c625e343824149cffb671ba221",
+      "enginePin": "4a2d2c5a0d158d0b0a13a3ff85c38d8c57e439b4",
+      "engineReceiptSHA256": "e3e9959676ed33cb2f8b871a665de37b896c539af043be74a3d260b8f87896b8",
+      "entrySHA256": "bf23286bbac1c849a9ab07077356390d3bd00db15cb829036423000128d62e19",
+      "modelingSourceSHA256": "cb617f02316ee432982746f961c43e6c5b590964df02aacd5643cd6189336e54",
+      "snippetSHA256": "da4dead506b7717bd5377beac65f389475e02a84d9d67c9cf5b926625543fd2b",
+      "historicalFilesPreserved": 6,
+      "limits": {
+        "nodes": 6,
+        "sketches": 2,
+        "extrusions": 2,
+        "cuts": 1,
+        "chamfers": 1,
+        "parameters": 16,
+        "outputs": 8,
+        "polygonPoints": 8,
+        "fileBytes": 65536,
+        "inputDepth": 12,
+        "lengthMM": 10000
+      },
+      "nativeCampaignRun": false
+    },
+    "emittedSnippetTypes": {
+      "scope": "static/source bounds and public snippet typecheck; no CAD execution",
+      "mode": "emitted",
+      "base": "41a47d94def6e5c625e343824149cffb671ba221",
+      "enginePin": "4a2d2c5a0d158d0b0a13a3ff85c38d8c57e439b4",
+      "engineReceiptSHA256": "e3e9959676ed33cb2f8b871a665de37b896c539af043be74a3d260b8f87896b8",
+      "entrySHA256": "871662e340a7b815c4013df49bf423ebdbbe97c07cf96f493271155891193658",
+      "modelingSourceSHA256": "cb617f02316ee432982746f961c43e6c5b590964df02aacd5643cd6189336e54",
+      "snippetSHA256": "da4dead506b7717bd5377beac65f389475e02a84d9d67c9cf5b926625543fd2b",
+      "historicalFilesPreserved": 6,
+      "limits": {
+        "nodes": 6,
+        "sketches": 2,
+        "extrusions": 2,
+        "cuts": 1,
+        "chamfers": 1,
+        "parameters": 16,
+        "outputs": 8,
+        "polygonPoints": 8,
+        "fileBytes": 65536,
+        "inputDepth": 12,
+        "lengthMM": 10000
+      },
+      "nativeCampaignRun": false
+    },
+    "markdownRenderAndLinks": {
+      "scope": "isolated VitePress Markdown render and local target/anchor/blob checks; not full VitePress build or browser",
+      "pages": 9,
+      "renderedTargets": 13,
+      "links": 145,
+      "anchors": 23,
+      "includes": 19,
+      "downloads": 6,
+      "sourceLinks": 44,
+      "dynamicAnchorsNotChecked": [
+        "/playground#cad-surface",
+        "/examples/language#cad-quantity-functions",
+        "/playground#cad-curve",
+        "/playground#cad-surface",
+        "/playground#cad-extrude",
+        "/playground#cad-parameters",
+        "/examples/language#cad-quantity-functions",
+        "/playground#cad-extrude",
+        "/playground#cad-parameters"
+      ]
+    },
+    "capabilityReference": {
+      "page": "cad/capabilities",
+      "immutableBlobLinks": 28,
+      "exactPrismPinPreserved": true,
+      "nativeCampaignRun": false
+    },
+    "legacySerialFixtureAndTypes": {
+      "scope": "docs fixture/static/type checks only; no CAD execution",
+      "enginePin": "2d2a31977c16c00ab30b9273e13c26b71b49ef26",
+      "apiPin": "d71cb7dd79569aaeb12a8915d28293c4b9801c1c",
+      "fixtureBytes": 5945,
+      "fixtureSHA256": "15672f1f44b154698759db7ed80f903081fafecd1c2683e11448d5564276aaf9",
+      "immutableLinks": 35,
+      "fullFixtureTyped": true,
+      "apiAndColdSnippetsTyped": true,
+      "historicalPinsPreserved": true,
+      "nativeCampaignRun": false
+    },
+    "vitepressConfigSyntax": "passed without importing config or executing its build hooks",
+    "scriptSyntax": "passed",
+    "gitDiffCheck": "passed",
+    "changedFileScope": "apps/library-docs/** only",
+    "adoptedTreeEquality": "passed; actual adopted commit4a2d2c5a tree98518d50 equals local receipt commit7574a25f"
+  },
+  "commands": [
+    {
+      "command": "CAD_MODEL_ROOT=../barocss-modeling-api node apps/library-docs/scripts/check-modeling-api.mjs source",
+      "exit": 0
+    },
+    {
+      "command": "CAD_MODEL_ROOT=../barocss-modeling-api node apps/library-docs/scripts/check-modeling-api.mjs emitted",
+      "exit": 0
+    },
+    {
+      "command": "node apps/library-docs/scripts/check-cad-language-docs.mjs",
+      "exit": 0
+    },
+    {
+      "command": "node apps/library-docs/scripts/check-cad-capabilities.mjs",
+      "exit": 0
+    },
+    {
+      "command": "CAD_SERIAL_TYPES_ENTRY=../barocss-modeling-api/packages/barocss-cad/dist/index.d.ts node apps/library-docs/scripts/check-serial-part-v2.mjs",
+      "exit": 0
+    },
+    {
+      "command": "node --check apps/library-docs/scripts/check-modeling-api.mjs",
+      "exit": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit": 0
+    },
+    {
+      "command": "git show -s --format=\"%H %T %s\" 4a2d2c5a0d158d0b0a13a3ff85c38d8c57e439b4; compare its tree with local receipt commit7574a25f",
+      "exit": 0
+    }
+  ],
+  "frozenHistoricalFiles": [
+    "docs/packages/cad/exact-prism-modeling.md",
+    "docs/packages/cad/serial-part-v2.md",
+    "docs/packages/cad/language-workflows.md",
+    "evidence/exact-prism-modeling.json",
+    "evidence/serial-part-v2-docs.json",
+    "docs/public/examples/serial-part-v2.json"
+  ],
+  "failures": "No documentation/static/typecheck failures in the final run; inherited engine gate failures are preserved above",
+  "notRun": [
+    "Native CAD geometry execution",
+    "Full VitePress build or generated-site check:docs",
+    "Browser/GPU/physical file-picker interactions",
+    "New CAD package build",
+    "Whole-package lint or whole-repository CI",
+    "Site deployment or remote Git writes"
+  ],
+  "editorBoundary": "#1612 independent consumer in progress; no manual claim of browser/device acceptance",
+  "publication": "Parent review, serial adoption and deployment are separate; this leaf did not push or deploy",
+  "engineAdoption": {
+    "adoptedCommit": "4a2d2c5a0d158d0b0a13a3ff85c38d8c57e439b4",
+    "tree": "98518d50ae663f9a5eaa2e34c6bb6dcb7aa53c07",
+    "localReceiptCommit": "7574a25fe8ff9a249916b1fe6d9d5ea33371af84",
+    "testedProductCommit": "5c780ffa63d749a646dfa536662bf31835f2f273",
+    "productSourceUnchanged": true,
+    "remoteVerification": "Parent verified remote develop and tree equality before requesting this documentation pin update"
+  },
+  "previousDocumentationCommit": "437624671c53d84edc949eebf870a6cee4eee84b"
+}

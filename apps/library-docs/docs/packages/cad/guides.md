@@ -1,5 +1,15 @@
 # CAD guides
 
+## Start with the modeling API
+
+[Make and edit a solid plate](./quickstart), then follow [Model a part](./modeling) for a complete convex sketch → extrusion → through-slab cut → component chamfer → batch parameter edit → save/load/re-edit. New solid authoring uses `cad.model()`, named dimensions and named outputs; readers do not choose a provider version or write IDs/revisions.
+
+The [supported/refused table and initial bounds](./modeling#supported-shapes-and-useful-refusals) are part of that contract. [Native capabilities](./capabilities) document additional lower-level operations separately. Engine, editor, browser and deployment evidence remain distinct.
+
+## Advanced and historical references
+
+The rest of this page covers older, separately scoped geometry APIs. [Exact-prism modeling](./exact-prism-modeling), [serial-part v2 files](./serial-part-v2) and [Source0–3 programs](./language-workflows) retain their historical text and evidence. Use their explicit readers for existing files; there is no automatic migration through `cad.load`.
+
 [Compile and edit complete Source0–3 inputs](./language-workflows): exact versions, outputs, refusals and the separate JSON feature-document path.
 
 [Sketch, cut and chamfer](./exact-prism-modeling) — Build an exact convex prism, widen a through-slab cut, reopen authored v0 intent and chamfer one original edge. Uses its own adopted public-source profile and complete runnable inputs.
@@ -84,12 +94,12 @@ Follow [the complete plane example](./examples#sample-a-plane-and-prepare-gpu-bu
 
 For reusable length/scalar calculations in authored geometry, use [Source3 quantity functions](./quantity-functions). Its separate newer compiler profile retains typed named/default call receipts and compiles raw source again with explicit sourceVersion 3. Keep that raw source for its function intent; this example adds no project codec or native editor Save/Open admission.
 
-Use the exported serializer/parser pair for the specific native document family you use. The public API includes rectangle features, polygon prisms, circle feature graphs, driven sketches, assemblies and additional bounded families. Each has its own version, ID/reference rules and error domain. Read [operation families](./api#choose-an-operation-family) to choose the operation.
+For the current modeling API, use `snapshot.save()` and `cad.load(text)` as shown in [the modeling guide](./modeling#_5-save-authored-intent-and-reopen-it). For advanced or historical native document families, use their matching exported serializer/parser pair. The public API includes rectangle features, polygon prisms, circle feature graphs, driven sketches, assemblies and additional bounded families. Each has its own version, ID/reference rules and error domain. Read [operation families](./api#choose-an-operation-family) to choose the operation.
 
 Do not use a display GLB as an editable-document format. Do not serialize an IR or operation report as a universal CAD file merely because it is JSON data. Preserve source, native document, owning IDs and reports separately. Failed edits must leave the previously accepted host document available.
 
 ---
 
-Source snapshot: local Git `5f5ad866205a21510ac69552e704cc162fa253b5`. `packages/barocss-cad/package.json` (Manifest; local source), `packages/barocss-cad/src/index.ts` (public root; local source), `packages/barocss-cad/README.md` (package README; local source). Source paths identify that fixed local snapshot. Local source is the authority for this manual.
+Historical advanced-guide source snapshot: local Git `5f5ad866205a21510ac69552e704cc162fa253b5`. `packages/barocss-cad/package.json` (Manifest; local source), `packages/barocss-cad/src/index.ts` (public root; local source), `packages/barocss-cad/README.md` (package README; local source). Source paths identify that fixed local snapshot. Local source is the authority for this manual.
 
 [Overview](./) · [Quickstart](./quickstart) · [Guides](./guides) · [API](./api) · [Examples](./examples) · [Limits](./limits)

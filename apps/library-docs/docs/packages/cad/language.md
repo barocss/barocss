@@ -1,4 +1,6 @@
-# CAD model language
+# CAD text language: advanced reference
+
+For new solid parts, start with the [modeling API quickstart](./quickstart) and [complete cut/chamfer guide](./modeling). `cad.model()` provides the primary sketch → Solid → parameter edit → save/load path without public version selection. The text compiler below is a separate advanced interface; the preserved [Source0–3 workflow page](./language-workflows) is a historical source-pinned reference.
 
 The CAD language describes native rational B-spline geometry and bounded construction intent. It is data for `compileCadModel`, not browser CSS. Use the selected source dialect explicitly. All dialects produce native `Model` version 0 in millimetres. **The text language does not yet express every implemented CAD operation.** Sketch constraints, qualified Solids, Solid Boolean operations and chamfer belong to separate APIs or bounded authored JSON documents; adding an engine operation does not automatically add grammar.
 
@@ -6,9 +8,11 @@ The CAD language describes native rational B-spline geometry and bounded constru
 
 ## What can the model language express today?
 
-This is the canonical authoring-interface coverage table. The Source0–3 grammar/execution coverage remains pinned to `0c9aa7e159d3713a70a4b67631715e027da28fef`; the separately versioned JSON/API rows include the newer adopted v2 serial-part profile. Source dialect versions, native Model versions and JSON document versions are separate contracts, even when their numbers match. The [native capability map](./capabilities) gives each Solid operation's exact input limits and evidence.
+The current modeling API covers convex line sketches, positive +Z extrusion, one X/Y through-slab cut and one cardinal component-edge chamfer. Use `withParameters`, `save()` and `cad.load()` for that bounded workflow; see [supported inputs and refusals](./modeling#supported-shapes-and-useful-refusals). It does not add declarations to this text grammar.
 
-| Task | CAD text | Other current authoring or consumption path |
+The following is the historical text/native-interface coverage table. The Source0–3 grammar/execution coverage remains pinned to `0c9aa7e159d3713a70a4b67631715e027da28fef`; the separately versioned JSON/API rows include the newer adopted v2 serial-part profile. Source dialect versions, native Model versions and JSON document versions are separate contracts, even when their numbers match. The [native capability map](./capabilities) gives each Solid operation's exact input limits and evidence.
+
+| Task | CAD text | Advanced/native or historical consumption path |
 | --- | --- | --- |
 | Rational B-spline Curve | Source0/1/2/3 `@curve` | Native Curve APIs |
 | NURBS Surface (literal in Source0; expressions in Source2/3) | Source0/2/3 `@surface`; **not Source1** | Native Surface APIs |
@@ -23,15 +27,15 @@ This is the canonical authoring-interface coverage table. The Source0–3 gramma
 | Solid mass properties | No text declaration | Derived numerical query on a qualified Solid, not an authoring feature |
 | Trimmed Solid display mesh | No text declaration | Derived display output with lineage, not replacement native geometry |
 
-See [the complete API/JSON workflow](./exact-prism-modeling) for sketch → prism → slab cut → parameter edit → serialize/reopen. That executed recipe keeps its own tested source pin. Its separate chamfer is on the **uncut** prism, not on a generated cut-part edge.
+For compatibility, see [the historical API/JSON workflow](./exact-prism-modeling) for sketch → prism → slab cut → parameter edit → serialize/reopen. That executed recipe keeps its own tested source pin. Its separate chamfer is on the **uncut** prism, not on a generated cut-part edge.
 
-For the newer actual cut-part → chamfer chain, use [the complete serial-part v2 JSON and concise API guide](./serial-part-v2). Its engine version does not add a Source4 grammar or a textual Solid declaration.
+For older saved serial-part files, use [the historical serial-part v2 JSON and concise API guide](./serial-part-v2). Its engine version does not add a Source4 grammar or a textual Solid declaration.
 
 There is no supported automatic conversion from those Solid feature recipes into this text language. A future feature-IR bridge or new language syntax needs its own versioned contract and implementation; this manual does not present proposed syntax as executable.
 
 ## Practice complete CAD inputs
 
-Start with [four complete Source0–3 programs, measured outputs, parameter edits and exact diagnostics](./language-workflows). These downloadable inputs are checked against the adopted compiler independently of the historical interactive gallery pins.
+For this advanced text interface, use [four complete Source0–3 programs, measured outputs, parameter edits and exact diagnostics](./language-workflows). These downloadable inputs are checked against the adopted compiler independently of the historical interactive gallery pins.
 
 The [CAD language practice examples](./language-examples) add typed weighted Surface and curved extrusion programs, plus a rational Curve with original U domain `[2,7]`. Each includes an editable input, expected native values and an actual output image.
 
