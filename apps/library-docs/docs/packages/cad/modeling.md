@@ -35,6 +35,22 @@ After opening the two-gusset saved model in **Model a part**, choose **right · 
 An unavailable worker changes the action to **Recover accepted model and export STL** and explains the rebuild before you click. Recovery checks the accepted source and summary before export; a stale response, cancellation or refusal produces no file. The status reports byte/facet counts and maximum Float32 vertex displacement. Files use authored XYZ, an mm convention and at most40 facets; STL itself has no unit or editable model data. Browser disk persistence and slicer/manufacturing acceptance still require separate verification.
 
 
+## Copy a finished two-chamfer rail
+
+Finish one **32 × 24 × 8 mm** rail, then translate the finished result with an owned spacing driver. Each edge is selected from the shape it actually modifies: front chamfer1 mm, then back chamfer2 mm at Y=24. The copy starts at X=48.
+
+<a :href="withBase('/examples/modeling-translated-finished-rail.ts')" download>Download the typed finished-rail example</a>
+
+<<< ../../public/examples/modeling-translated-finished-rail.ts
+
+Call `makeTranslatedFinishedRail()`, save its authored text with `pair.save()`, then use **Save or open a model → Choose model file → Open saved model** in **Model a part**, acknowledging replacement if needed. Generic Open shows both **left** and **right** convex outputs and the existing frontDistance, backDistance, backY and spacing controls. Change spacing48→64 with **Apply dimensions**, or call `spaceFinishedRail(pair)`. No extra preset or scene transform is needed.
+
+The [adopted provider evidence](https://github.com/barocss/barocss/blob/f6e19f627c06b44d583cc7d110f91def11a3e508/packages/barocss-cad/test/modeling-finished-copy-evidence/verification.json) measured **6064 mm³ per output**, unchanged by spacing64; backDistance3 gave **5984 mm³**. Both genuine baseline previews have20 triangles. The consumer check replays those unchanged packets through the current serializer/controller/receiver with mocked provider delivery; edited pixels and physical file interaction for this rail remain unverified.
+
+Translation is terminal and currently accepts a direct affine extrusion with at most two sequential owned chamfers. It rebuilds the copied native boundary with independent source lineage. Repeated translation, operations after the copy, unsupported ancestry and inexact/out-of-range coordinate sums can refuse; this is not an arbitrary Solid transform.
+
+The existing [STL output action](#download-stl-from-the-model-editor) and named-convex `snapshot.exportStl(name)` API are available separately. This finished-rail campaign captured **no STL exports**. The runnable download therefore contains no export call, and the gusset STL sample must not be treated as a measured rail file.
+
 ## Resize a constrained plate
 
 <a :href="withBase('/examples/modeling-constrained-profile.ts')" download>Download the complete constrained-profile example</a>
