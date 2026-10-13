@@ -70,6 +70,10 @@ export {prepareTriangleGeometry,TriangleGeometryError,TriangleGeometryDiagnostic
 export type {TriangleGeometryV0,PreparedTriangleGeometry} from './triangle-geometry.js';
 
 export {prepareEngineScene,EngineSceneError,EngineSceneDiagnosticCode} from './engine-scene.js';
+export {prepareEngineDrawBatches} from './engine-draw-batches.js';
+export {prepareEngineWebGPUFrame,engineSceneWGSL} from './engine-webgpu-frame.js';
+export type {PreparedEngineWebGPUFrame,EngineWebGPUFrameDraw} from './engine-webgpu-frame.js';
+export type {EngineDrawBatch,EngineDrawBatchPlan} from './engine-draw-batches.js';
 export type {EngineSceneV0,EngineSceneMaterialV0,EngineSceneNodeV0,PreparedEngineSceneNode,PreparedEngineSceneDraw,PreparedEngineScene} from './engine-scene.js';
 
 export {raycastEngineScene,EngineRaycastError,EngineRaycastDiagnosticCode} from './engine-raycast.js';

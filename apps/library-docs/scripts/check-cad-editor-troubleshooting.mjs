@@ -26,7 +26,8 @@ for (const claim of ['Certified volume unavailable','stored-rational-circle-pris
  assert.ok(page.includes(claim), 'Guide missing qualification: '+claim);
  assert.ok(model.includes(claim), 'Modeling reference missing qualification: '+claim);
 }
-assert.ok(nav.includes("['first-model', 'troubleshooting']"));
+const pages = nav.match(/p === 'cad-editor' \? \[([^\]]+)\]/)?.[1] ?? '';
+for (const route of ['first-model','troubleshooting']) assert.ok(pages.includes("'" + route + "'"));
 assert.ok(nav.includes("'troubleshooting': 'Modeling troubleshooting'"));
 assert.ok(intro.includes('./troubleshooting'));
 assert.ok(page.includes('UNRUN here'));

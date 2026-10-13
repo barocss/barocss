@@ -10921,8 +10921,32 @@ Reused model prefixes do not eliminate the native composition provider's actual
 reconstruction of its retained union. Native, cell and shell volume remain exact
 within the admitted integer family; preview is sampled separately.
 
-Composed bracket-slot preview is unavailable in the current editor boundary.
-It refuses before reading native output data or replacing the accepted scene.
-A separate receiver must validate all three original operands and immediate
-parent-panel lineage before using the existing raw face preview path. See #1695
-for the frozen source/native campaign and its measured status.
+The #1751 software editor adapter admits the bounded common-Z0..8 eight-node
+bracket-slot chain through the existing raw face path, validating all three
+original operands and self-contained immediate-parent panel lineage. It retains
+64 panels per body and the complete2 MiB transport limit; unsupported native
+chains still refuse atomically. #1695 remains the provider evidence. CPU preview
+acceptance is separate from the still-OPEN external physical editor/GPU gate.
+
+
+### Absolute-Z affine extrusion and top-entry pockets
+
+The primary API accepts `sketch.extrude(height, { from })` for affine XY
+profiles. The optional owned dimension is the absolute bottom Z in mm; height
+remains a positive +Z distance. Native caps/walls and integer-box adapters use
+the actual displaced coordinates. The original Z0 sketch and segment domains
+stay intact, with explicit source-to-bottom translation lineage.
+
+A 32×24×8 plate and a 16×8 tool extruded from `8-depth` by `depth` produce a
+true top-entry pocket: depth4 gives volume5632mm³ and floorZ4; depth6 gives
+5376mm³ and floorZ2. The existing two-box receiver admits actual integer XYZ
+origins while retaining all support, UV, occupancy, mesh and shell checks.
+This structural receiver coverage does not replace native qualification or
+physical editor/GPU acceptance; no new preset is included.
+
+Offset mode requires bounded finite endpoints and an exactly representable
+`from+height`, without rounding/healing. Omission retains old save and native
+bytes; explicit negative zero retains distinct authored/lineage/source bits.
+Circle options and nonzero-Z `hole()` parents refuse before geometry. Existing
+node/operation limits and exact native refusals remain. See the complete
+[primary example and boundaries](./CONCISE_API.md#start-an-affine-extrusion-above-or-below-the-sketch-plane).

@@ -201,3 +201,31 @@ for (const feature of roundSnapshot.evidence) {
     else feature.native.solid.certificate;
   }
 }
+
+const offsetModel = cad.model(), offsetDepth = offsetModel.parameter('depth', 4);
+const offsetSketch = offsetModel.sketch.rectangle({ min: [8, 8], max: [24, 16] });
+const offsetTool: CadShape = offsetSketch.extrude(offsetDepth, { from: offsetModel.dimension.add(8, offsetModel.dimension.scale(offsetDepth, -1)) });
+const signedOffset: CadShape = offsetSketch.extrude(3, { from: -0 });
+void offsetTool; void signedOffset;
+// @ts-expect-error Explicit undefined is not omitted extrusion options.
+offsetSketch.extrude(3, undefined);
+// @ts-expect-error An exact from record is required.
+offsetSketch.extrude(3, {});
+// @ts-expect-error No third argument.
+offsetSketch.extrude(3, { from: -2 }, true);
+// @ts-expect-error No expression strings.
+offsetSketch.extrude(3, { from: 'height-depth' });
+// @ts-expect-error The one option is an absolute start, not an arbitrary transform.
+offsetSketch.extrude(3, { from: 2, axis: 'z' });
+// @ts-expect-error Null is not an options record.
+offsetSketch.extrude(3, null);
+
+import type { XYAffineSketchPrismOffsetCoordinateSpanOptions, XYAffineSketchPrismOffsetCoordinateSpanResult, XYAffineSketchSuccess } from '../src/index.js';
+import { buildXYAffineSketchPrism, validateXYAffineSketchPrism } from '../src/index.js';
+declare const ownedOffsetSketch: XYAffineSketchSuccess;
+const nativeOffsetOptions: XYAffineSketchPrismOffsetCoordinateSpanOptions = { sourceId: 'src', sourceRevision: 0, orderedSegmentIds: ['a','b','c','d'],
+  heightMM: 3, capChart: { originXY: [-3,2], spanXY: [3,5] }, chartPolicy: { version: 1, kind: 'coordinate-span' }, solidId: 'solid', resultIdPrefix: 'prism', fromMM: -2 };
+const qualifiedOffset: XYAffineSketchPrismOffsetCoordinateSpanResult = buildXYAffineSketchPrism(ownedOffsetSketch, nativeOffsetOptions);
+const actualOffset: number = validateXYAffineSketchPrism(qualifiedOffset).fromMM;
+const sourceTranslation: number = qualifiedOffset.lineage.sourceToBottomTranslationMM[2];
+void actualOffset; void sourceTranslation;

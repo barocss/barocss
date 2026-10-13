@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import { isModelingCompositionGraph } from '../modeling-composition.js';
 import { createCadEditorModelingController } from '../modeling-controller.js';
 import type { CadEditorModelingController, CadEditorModelingSnapshot } from '../modeling-controller.js';
 import type { CadEditorModelingExample, CadEditorModelingSplitAxis } from '../modeling-engine.js';
@@ -98,11 +99,22 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         radius: { factor: 0.5, op: 'scale', value: { parameter: 'diameter' } } },
       { height: { parameter: 'height' }, kind: 'extrude', sketch: 0 },
     ]) && JSON.stringify(authored?.outputs) === JSON.stringify({ post: { node: 1, side: 'solid' } });
+  const composedModel = isModelingCompositionGraph(authored);
+  const slotDrivers = composedModel && Object.keys(accepted!.parameters).sort().join(',') === 'legWidth,slotSpanY,slotWidth,slotX,slotY'
+    && JSON.stringify(authored.nodes) === JSON.stringify([
+      { kind: 'sketch', max: [32, 8], min: [0, 0], profile: 'rectangle' }, { height: 8, kind: 'extrude', sketch: 0 },
+      { kind: 'sketch', max: [{ parameter: 'legWidth' }, 24], min: [-0, 0], profile: 'rectangle' }, { height: 8, kind: 'extrude', sketch: 2 },
+      { kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } },
+      { kind: 'sketch', max: [{ left: { parameter: 'slotX' }, op: 'add', right: { parameter: 'slotWidth' } },
+        { left: { parameter: 'slotY' }, op: 'add', right: { parameter: 'slotSpanY' } }], min: [{ parameter: 'slotX' }, { parameter: 'slotY' }], profile: 'rectangle' },
+      { height: 8, kind: 'extrude', sketch: 5 }, { kind: 'difference', parent: { node: 4, side: 'solid' }, tool: { node: 6, side: 'solid' } },
+    ]) && Object.is(authored.nodes[2].min[0], -0)
+    && JSON.stringify(authored.outputs) === JSON.stringify({ bracket: { node: 4, side: 'solid' }, slotted: { node: 7, side: 'solid' } });
   const configurableFinishes = accepted?.source === 'model' && accepted.suppression !== undefined
     && Object.keys(accepted.suppression).length === 2 && ['frontFinish', 'backFinish'].every(name => Object.hasOwn(accepted.suppression!, name))
     && accepted.features.filter(feature => feature.name !== undefined).every(feature => feature.kind === 'chamfer');
   const dimensionInput = ([name, value]: [string, number]) => <div key={name} style={{ marginBottom: 16 }}>
-          <Label htmlFor={`${id}-${name}`}>{roundPostDrivers && name === 'diameter' ? 'Diameter' : roundPostDrivers && name === 'height' ? 'Extrusion height' : roundPostDrivers && name === 'centerX' ? 'Center X' : roundPostDrivers && name === 'centerY' ? 'Center Y' : pocketDrivers && name === 'toolX' ? 'toolX · tool origin X' : pocketDrivers && name === 'toolY' ? 'toolY · tool origin Y' : pocketDrivers && name === 'toolWidth' ? 'toolWidth · tool X width' : pocketDrivers && name === 'toolSpanY' ? 'toolSpanY · tool Y span' : pocketDrivers && name === 'depth' ? 'depth · positive Z depth from underside Z=0' : unionDrivers && name === 'legMinX' ? 'legMinX · leg origin X' : unionDrivers && name === 'legMinY' ? 'legMinY · leg origin Y' : unionDrivers && name === 'legWidth' ? 'legWidth · leg X width' : unionDrivers && name === 'legHeight' ? 'legHeight · extrusion height' : (chamferChain || configurableFinishes) && name === 'backY' ? 'backY · edge-selection Y coordinate' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'frontDistance' ? 'frontDistance · front bevel distance' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'backDistance' ? 'backDistance · back bevel distance' : chamferSplit && name === 'splitAt' ? 'splitAt · selected-axis split coordinate' : derivedSplit && name === 'width' ? 'width · rail X size' : derivedSplit && name === 'offset' ? 'offset · X displacement from center' : miterSplit && name === 'cutPosition' ? 'cutPosition · X + Y threshold' : name} (mm)</Label>
+          <Label htmlFor={`${id}-${name}`}>{slotDrivers && name === 'legWidth' ? 'legWidth · leg X width' : slotDrivers && name === 'slotX' ? 'slotX · slot origin X' : slotDrivers && name === 'slotY' ? 'slotY · slot origin Y' : slotDrivers && name === 'slotWidth' ? 'slotWidth · slot X width' : slotDrivers && name === 'slotSpanY' ? 'slotSpanY · slot Y span' : roundPostDrivers && name === 'diameter' ? 'Diameter' : roundPostDrivers && name === 'height' ? 'Extrusion height' : roundPostDrivers && name === 'centerX' ? 'Center X' : roundPostDrivers && name === 'centerY' ? 'Center Y' : pocketDrivers && name === 'toolX' ? 'toolX · tool origin X' : pocketDrivers && name === 'toolY' ? 'toolY · tool origin Y' : pocketDrivers && name === 'toolWidth' ? 'toolWidth · tool X width' : pocketDrivers && name === 'toolSpanY' ? 'toolSpanY · tool Y span' : pocketDrivers && name === 'depth' ? 'depth · positive Z depth from underside Z=0' : unionDrivers && name === 'legMinX' ? 'legMinX · leg origin X' : unionDrivers && name === 'legMinY' ? 'legMinY · leg origin Y' : unionDrivers && name === 'legWidth' ? 'legWidth · leg X width' : unionDrivers && name === 'legHeight' ? 'legHeight · extrusion height' : (chamferChain || configurableFinishes) && name === 'backY' ? 'backY · edge-selection Y coordinate' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'frontDistance' ? 'frontDistance · front bevel distance' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'backDistance' ? 'backDistance · back bevel distance' : chamferSplit && name === 'splitAt' ? 'splitAt · selected-axis split coordinate' : derivedSplit && name === 'width' ? 'width · rail X size' : derivedSplit && name === 'offset' ? 'offset · X displacement from center' : miterSplit && name === 'cutPosition' ? 'cutPosition · X + Y threshold' : name} (mm)</Label>
           <Input id={`${id}-${name}`} disabled={busy} inputMode="decimal"
             value={Object.hasOwn(snapshot?.drafts ?? {}, name) ? snapshot!.drafts[name] : Object.is(value, -0) ? '-0' : String(value)}
             onChange={event => action(s => s.stage(name, event.target.value))}
@@ -132,6 +144,7 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         <option value="derived-split">Keep a beveled split centered</option>
         <option value="miter-split">Split a 45° XY miter</option>
         <option value="configurable-finishes">Configure rail finishes</option>
+        <option value="slotted-bracket">Cut a slot in a bracket</option>
         <option value="round-post">Create a round post</option>
         <option value="underside-pocket">Cut an underside pocket</option>
         <option value="union-bracket">Fuse an L-bracket</option>
@@ -147,7 +160,9 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         </select>
         <p>Axis choice loads a new example after replacement acknowledgment; it does not edit the accepted part.</p>
       </>}
-      <p>{example === 'round-post'
+      <p>{example === 'slotted-bracket'
+        ? 'Fuse the base and leg, then cut a through-slot in that owned bracket. Edit leg width and slot X/Y origin, width and span. Both saved outputs remain available; this preset selects slotted.'
+        : example === 'round-post'
         ? 'Create a diameter-driven round post from an owned rational circle. Edit diameter and extrusion height in millimetres; optional center coordinates locate the post. Exact native qualification can refuse dimensions without replacing the accepted part. Certified volume is unavailable.'
         : example === 'underside-pocket'
         ? 'Cut an underside pocket into a 32 × 24 × 8 mm plate. Tool X/Y origin, width, Y span and depth are numeric drivers. Both extrusions start at Z=0; depth8 makes a through-window. The preset selects part while plate and tool remain saved.'
@@ -199,7 +214,8 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         <p>Changing this view preserves saved outputs, pending dimensions and model history. Opening a file selects its last saved output. The mounting-plate, union and pocket presets explicitly select plate, bracket and part respectively. The chooser changes only the view, not authored outputs.</p>
       </fieldset>}
       {pocketSavedOutputs && <p>This preset file initially selects tool when opened, because tool is the last canonical saved output. Choose part to inspect the pocket; hidden plate and tool outputs remain saved.</p>}
-      {differenceModel && <p>The difference retains one restricted integer-cell body and exact integer volume. Complete preview requires at most64 panels (native limit72). Empty or multiple-body results are refused. Tool-contributed cavity walls retain inward relative orientation and original operand lineage; no mesh arrays are repaired.</p>}
+      {differenceModel && !composedModel && <p>The difference retains one restricted integer-cell body and exact integer volume. Complete preview requires at most64 panels (native limit72). Empty or multiple-body results are refused. Tool-contributed cavity walls retain inward relative orientation and original operand lineage; no mesh arrays are repaired.</p>}
+      {composedModel && <p>The eight-step union → slot workflow retains exact integer-cell volume and both original-box and immediate-parent panel lineage. This preview supports a common Z=0..8 slab, at most5 X/Y coordinate planes,16 cells and64 complete panels per body. Empty or disconnected results are refused. Opening selects the last saved output; the preset explicitly selects slotted.</p>}
       {unionModel && <p>The union has restricted integer-cell material and exact integer volume. Its complete source-qualified panel preview is limited to64 panels (the native provider permits72). Face picks identify generated panels and their contributing native operand faces; they do not preserve the original convex face IDs.</p>}
       {circleModel && <p>The circle extrusion has a qualified stored-rational boundary. Its three-face preview is sampled with faceted wall normals; the preview retains its original uncertified flags. Certified volume is unavailable.</p>}
       {roundPostDrivers && <p>Diameter is the numeric driver for radius = diameter × 0.5 in this preset.</p>}
@@ -235,7 +251,7 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         {'family' in snapshot.faceSelection && snapshot.faceSelection.family === 'stored-rational-circle-prism'
           ? <p>Native circle body {snapshot.faceSelection.solidId}; face {snapshot.faceSelection.provenance.faceId}; surface {snapshot.faceSelection.provenance.surfaceId}; role {snapshot.faceSelection.provenance.role}. This approximate sampled-triangle hit retains the original cap/wall range and closed-ring/seam lineage. It is not a certified measurement.</p>
           : 'family' in snapshot.faceSelection && snapshot.faceSelection.family === 'orthogonal-cell'
-          ? <p>Native orthogonal body {snapshot.faceSelection.solidId}; generated panel {snapshot.faceSelection.provenance.id}; source {snapshot.faceSelection.provenance.query.sourceId}, model {snapshot.faceSelection.provenance.query.modelId}, surface {snapshot.faceSelection.provenance.query.surfaceId}. Contributing operand faces: {snapshot.faceSelection.provenance.lineage.map(link => `${link.operand}: ${link.sourceId}/${link.globalFaceId} (${link.localFaceId}, ${link.surfaceId})`).join('; ')}. This is an approximate triangle hit with copied native lineage.</p>
+          ? <p>Native orthogonal body {snapshot.faceSelection.solidId}; generated panel {snapshot.faceSelection.provenance.id}; source {snapshot.faceSelection.provenance.query.sourceId}, model {snapshot.faceSelection.provenance.query.modelId}, surface {snapshot.faceSelection.provenance.query.surfaceId}. Contributing operand faces: {snapshot.faceSelection.provenance.lineage.map(link => `${'originalIndex' in link ? `original ${link.originalIndex}` : link.operand}: ${link.sourceId}/${link.globalFaceId} (${link.localFaceId}, ${link.surfaceId})`).join('; ')}. {'parentPanels' in snapshot.faceSelection.provenance && <>Immediate parent panels: {snapshot.faceSelection.provenance.parentPanels.map(link => `${link.evaluationId}/${link.panelId} (${link.sourceId})`).join('; ') || 'none: third-box wall'}. </>}This is an approximate triangle hit with copied native lineage.</p>
           : 'reference' in snapshot.faceSelection
           ? <p>Native body {snapshot.faceSelection.solidId}; face {snapshot.faceSelection.reference.nativeFaceId}; surface {snapshot.faceSelection.provenance.nativeSurfaceId}. Loops: {snapshot.faceSelection.provenance.nativeLoopIds.join(', ')}. Edges: {snapshot.faceSelection.provenance.nativeEdgeIds.join(', ')}. This is an approximate sampled-triangle hit with original native face provenance, not a Solid certificate or a new BRep edge.</p>
           : <p>Native Solid {snapshot.faceSelection.solidId}; face {snapshot.faceSelection.face.sourceId}/{snapshot.faceSelection.face.faceId}. Fan diagonals are display-only, not BRep edges. Selection belongs to this accepted model.</p>}

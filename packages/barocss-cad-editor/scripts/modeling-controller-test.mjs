@@ -168,6 +168,7 @@ try {
       {kind:'sketch',profile:'rectangle',min:[16,2],max:[24,6]},{kind:'extrude',sketch:5,height:8},
       {kind:'difference',parent:{node:4,side:'solid'},tool:{node:6,side:'solid'}},
     ],outputs:mode==='hidden-chain'?{base:{node:1,side:'solid'}}:{part:{node:7,side:'solid'}}};
+    graph.nodes[7].tool.node=3; // This malformed ancestry remains unavailable even if its output is hidden.
     const candidate=reply(graph);
     if(mode.startsWith('legacy')) {
       const legacy={format:'barocss-xy-affine-prism-feature-document',version:mode==='legacy-v0'?0:2,
@@ -186,7 +187,7 @@ try {
       Object.defineProperty(candidate,'display',{get(){displayReads++;throw Error('Unsupported chain must refuse before display');}});
       candidate.id=worker.requests.at(-1).id;worker.callbacks.get('message')({data:candidate});
     } else worker.send(candidate);
-    await pending;assert.match(guarded.getSnapshot().error,/Composed union-slot preview is not available/);
+    await pending;assert.match(guarded.getSnapshot().error,/Composed preview requires the supported eight-node/);
     assert.equal(displayReads,0);assert.deepEqual(stable(guarded),before);assert.equal(commits,commitCount);assert.equal(worker.terminated,true);checks++;
     pending=guarded.apply();worker=instances.at(-1);assert.equal(worker.requests[0].text,before.authoredText);worker.accept();await tick();
     assert.deepEqual(worker.requests[1].parameters,{height:7});worker.accept();await pending;

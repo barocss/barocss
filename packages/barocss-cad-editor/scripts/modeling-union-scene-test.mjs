@@ -67,7 +67,7 @@ if(process.argv[1]===fileURLToPath(import.meta.url)){
  c=>c.mesh.nativeFrame='right-handed-y-up',c=>c.mesh.context.taskToken='stale',c=>c.mesh.context.bodyId='wrong',c=>c.qualification.quality.manufacturingToleranceCertified=true,
  c=>c.lineage.body.boundsMM.max[0]++,c=>c.lineage.shells[0].areaMM2++,c=>c.lineage.shells[0].panelIds.pop(),c=>c.lineage.shells[0].edgeIds.pop(),c=>c.lineage.shells[0].vertexIds.pop(),c=>c.lineage.shells[0].eulerCharacteristic++,
  c=>c.lineage.panels[0].topology.loop.uses[0].boundary='u-max',c=>c.lineage.panels[0].topology.edges[0].vertexIds.reverse(),c=>c.lineage.panels[0].lineage[0].relativeOrientation*=-1,
- c=>c.lineage.edges[0].canonical.curveId='wrong',c=>c.lineage.edges[0].vertexIds.reverse(),c=>c.lineage.operands[0].origin[0]++,c=>c.lineage.operands[0].faces[0].query.sourceId='wrong',c=>c.lineage.edges[0].uses[0].sourceId='wrong'];
+ c=>c.lineage.edges[0].canonical.curveId='wrong',c=>c.lineage.edges[0].vertexIds.reverse(),c=>c.lineage.operands[0].origin[0]++,c=>c.lineage.operands[0].origin[2]++,c=>c.lineage.operands[0].faces[0].surface.controlPoints[0][0][2]++,c=>c.lineage.grid.z[0]--,c=>c.lineage.operands[0].faces[0].query.sourceId='wrong',c=>c.lineage.edges[0].uses[0].sourceId='wrong'];
  const nativeCycleControls=[
   ['collapsed UV endpoints and matching mesh UV',c=>{for(const use of c.lineage.panels[0].topology.loop.uses){use.boundary='u-min';use.pcurve.uv0=[0,0];use.pcurve.uv1=[0,0];}c.mesh.chunks[0].parametersUV=Array(8).fill(0);}],
   ['reversed native loop uses',c=>c.lineage.panels[0].topology.loop.uses.reverse()],
