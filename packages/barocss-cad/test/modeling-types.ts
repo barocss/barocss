@@ -1,4 +1,4 @@
-import { cad, type CadModelSnapshot, type CadShape, type CadParameter, type CadSplit, type CadDimensionExpression, type CadBody, type CadCut } from '../src/index.js';
+import { cad, type CadModelSnapshot, type CadShape, type CadParameter, type CadSplit, type CadDimensionExpression, type CadBody, type CadCut, type CadStlExport } from '../src/index.js';
 const composedModel = cad.model();
 const composedA = composedModel.sketch.rectangle({ width: 32, height: 8 }).extrude(8);
 const composedB = composedModel.sketch.rectangle({ width: 8, height: 24 }).extrude(8);
@@ -329,3 +329,18 @@ copySeed.translate(['48mm', 0, 0]);
 copySeed.translate([1, 2, 3], {});
 // @ts-expect-error An explicit offset is required.
 copySeed.translate();
+
+// Named convex STL export has one discoverable immutable result and no file API.
+const stlResult: CadStlExport = copyModel.build({ copy: copySeed }).exportStl('copy');
+const stlBytes: readonly number[] = stlResult.bytes;
+const stlFileBytes: Uint8Array = Uint8Array.from(stlBytes);
+const stlUnit: 'mm' = stlResult.lengthUnit;
+void stlFileBytes; void stlUnit;
+// @ts-expect-error Output name is required.
+copyModel.build({ copy: copySeed }).exportStl();
+// @ts-expect-error No format/options overload.
+copyModel.build({ copy: copySeed }).exportStl('copy', {});
+// @ts-expect-error Results remain immutable.
+stlResult.bytes[0] = 1;
+// @ts-expect-error Complete native detail is deeply readonly.
+stlResult.details.native.mesh.positionsMM[0] = 1;

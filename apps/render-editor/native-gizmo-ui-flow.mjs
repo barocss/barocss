@@ -7,6 +7,9 @@ import {dirname, join, resolve} from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {build} from 'esbuild';
 import {JSDOM} from 'jsdom';
+// Run the adopted focused camera-keyboard regression before allocating Gizmo DOM globals.
+// A rejection propagates through this existing pnpm test command; no checks are skipped.
+await import('./native-light-view-presets-flow.mjs');
 const app = dirname(fileURLToPath(import.meta.url)), workspace = resolve(app, '../..');
 // Resolve peer React imports through this app's installed pnpm node_modules, not /tmp.
 const output = await mkdtemp(join(app, 'node_modules', '.barocss-native-gizmo-ui-'));

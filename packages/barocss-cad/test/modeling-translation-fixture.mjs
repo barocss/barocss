@@ -43,7 +43,7 @@ export function work(snapshot, reused, evaluated, previous) {
   exactData(snapshot.features, [{ kind: 'sketch', index: 0, dependencies: [] },
     { kind: 'extrude', index: 1, dependencies: [0] }, { kind: 'translate', index: 2, dependencies: [1] }]);
   exactData(Object.keys(snapshot).sort(), ['bodies', 'parameters', 'suppression', 'features', 'recomputation', 'evidence',
-    'withParameters', 'withSuppression', 'massProperties', 'save'].sort());
+    'withParameters', 'withSuppression', 'massProperties', 'exportStl', 'save'].sort());
   if (previous) {
     assert.notEqual(snapshot, previous); assert.notEqual(snapshot.parameters, previous.parameters); assert.notEqual(snapshot.evidence, previous.evidence);
     for (const index of reused) assert.equal(snapshot.evidence[index], previous.evidence[index]);

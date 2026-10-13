@@ -1,4 +1,4 @@
-import { cad, type CadModelSnapshot } from '@barocss/cad';
+import { cad, type CadModelSnapshot, type CadStlExport } from '@barocss/cad';
 
 /** The measured #1880 recipe; importing this module performs no modeling work. */
 export function makeTranslatedGussets(): CadModelSnapshot {
@@ -23,3 +23,15 @@ export function spaceTranslatedGussets(accepted: CadModelSnapshot, spacing: numb
 // const savedText = initial.save(); // Paste into Modeling > Saved model data.
 // const wider = spaceTranslatedGussets(initial, 64);
 // const reopened = cad.load(wider.save()); // Rebuilds authored intent, not a mesh cache.
+
+/** Export one named convex output. The caller owns saving these returned bytes. */
+export function exportRightGusset(accepted: CadModelSnapshot): CadStlExport {
+  return accepted.exportStl('right');
+}
+
+// const result = exportRightGusset(initial);
+// const fileBytes = Uint8Array.from(result.bytes); // Save with your host's file API.
+// result.outputName; result.byteLength; result.triangleCount;
+// result.maximumVertexDisplacementMM; // Measured Float32 loss, not a tolerance certificate.
+// result.details.encoding.vertexLosses; // Original and quantized coordinates.
+// Keep initial.save() separately when you need editable CAD intent.

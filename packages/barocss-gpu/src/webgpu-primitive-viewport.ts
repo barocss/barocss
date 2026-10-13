@@ -233,7 +233,17 @@ class BackendViewport implements PrimitiveBackendViewport {
   private enter(): void { this.live(); if (this.busy) fail('BUSY', 'One asynchronous operation is already pending'); this.busy = true; }
   private terminal(error: unknown): void {
     if (error instanceof PrimitiveBackendError && error.code === 'STATE' && this.current.state === 'ready') {
-      this.current.state = 'failed'; this.releaseOwned(); this.device?.destroy();
+      this.current.state = 'failed';
+      const failures: unknown[] = [];
+      try { failures.push(...this.releaseOwned()); } catch (cause) { failures.push(cause); }
+      try { this.device?.destroy(); } catch (cause) { failures.push(cause); }
+      // Preserve the original STATE failure while retaining every teardown refusal.
+      if (failures.length) {
+        const causes = error.cause === undefined ? failures : [error.cause, ...failures];
+        Object.defineProperty(error, 'cause', {
+          value: new AggregateError(causes, 'GPU terminal cleanup refused'), configurable: true,
+        });
+      }
     }
   }
   private releaseOwned(): unknown[] {

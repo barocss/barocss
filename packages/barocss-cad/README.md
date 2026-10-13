@@ -11014,7 +11014,7 @@ body family or renderer replacement is involved.
 ### One exact owned translated copy
 
 The primary `CadShape.translate([dx,dy,dz])` creates a terminal copy of a direct
-affine extrusion. A two-gusset recipe can build `{ left, right: left.translate([spacing,0,0]) }`
+affine extrusion or its complete one/two-chamfer finishing chain. A two-gusset recipe can build `{ left, right: left.translate([spacing,0,0]) }`
 and edit `spacing` without rebuilding the accepted parent sketch or extrusion.
 See the complete [two-gusset example](CONCISE_API.md#two-owned-gussets-with-a-driving-spacing).
 
@@ -11032,11 +11032,33 @@ sign; nonzero exact cancellation produces +0. A zero vector creates a distinct
 coincident body rather than an empty or fused result. Refusals preserve the prior
 snapshot, original cause and future selective reuse.
 
-The first scope allows one direct rectangle/polygon/constrainedPolygon extrusion
-copy, including admitted `from` placement, within six nodes. It remains the
+One direct rectangle/polygon/constrainedPolygon extrusion copy, including admitted
+`from` placement, remains supported within six nodes. A finished copy additionally
+accepts only the exact sketch → extrusion → one/two sequential chamfers → translate
+chain. Finish a rail once, then call `finished.translate([spacing, -0, 0])`; changing
+spacing reuses the accepted finishes. Named disabled finishes still validate, and
+the copy consumes the actual selected parent. The native reconstruction and its
+10-Face/48-use/24-edge/16-vertex limits are unchanged. It remains the
 existing `convex-planar` body family and can be named, saved, reopened, tessellated
 and measured. No translated-parent Boolean, split, chamfer, hole, chaining,
-rotation, mirror, scale or pattern is admitted; graphs mixing translation with
-Boolean/finishing features refuse. Circle and other body families remain outside
+rotation, mirror, scale or pattern is admitted. Boolean mixtures, finishing
+siblings and operations after the finished copy refuse. Circle and other body families remain outside
 this scope. Native preview packets do not establish a new editor preset or
 browser/GPU/physical acceptance.
+
+### Named convex output to binary STL
+
+The primary `snapshot.exportStl('right')` validates and exports one owned convex
+output, including the translated gusset above. Its immutable byte array preserves
+authored XYZ; the unit convention is millimetres. Byte length, triangle count and
+measured Float32 vertex displacement are directly available, with complete native
+mesh/face lineage and exact loss/encoding details retained separately. See the
+[typed STL example](CONCISE_API.md#export-one-output-as-binary-stl).
+
+This reuses the unchanged convex tessellator and existing exact Float32 loss and
+facet-collapse guards. No file is written by the API. Unsupported rational and
+integer-cell families refuse before native export; no strip certificate is
+invented for a convex mesh. Facet noncollapse/normal alignment are finite encoding
+checks, not global topology, original-Solid orientation, slicer or manufacturing
+acceptance. STL loses native identity, units metadata, UV trims and editability;
+retain the authored `save()` document alongside it.
