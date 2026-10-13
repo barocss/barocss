@@ -13,9 +13,9 @@ let dom, failure, result;
 try {
   await build({absWorkingDir: root, entryPoints: [join(app, 'src/native-light-navigation.ts'),
     join(app, 'src/native-light-view-presets.ts')], outdir: work, bundle: true,
-    platform: 'node', format: 'esm', target: 'es2022'});
-  const navigation = await import(pathToFileURL(join(work, 'native-light-navigation.js')).href);
-  const presets = await import(pathToFileURL(join(work, 'native-light-view-presets.js')).href);
+    platform: 'node', format: 'esm', target: 'es2022', outExtension: {'.js': '.mjs'}});
+  const navigation = await import(pathToFileURL(join(work, 'native-light-navigation.mjs')).href);
+  const presets = await import(pathToFileURL(join(work, 'native-light-view-presets.mjs')).href);
   dom = new JSDOM('<!doctype html><html><body><canvas tabindex="0"></canvas><button>Other</button></body></html>',
     {url: 'http://localhost/material.html?workbench=lights'});
   const canvas = dom.window.document.querySelector('canvas'), other = dom.window.document.querySelector('button');
