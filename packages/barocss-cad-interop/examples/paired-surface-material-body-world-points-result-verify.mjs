@@ -33,6 +33,12 @@ refuse(() => read(symbol), 'OWNED');
 const cycle = {}; cycle.self = cycle;
 refuse(() => read(cycle), 'OWNED');
 
+
+// Keep caller input rejection independent of fixture availability.
+const chunks = {chunks:Array.from({length:512},()=>Array(8192).fill(0))};
+refuse(() => read(chunks), 'BUDGET');
+refuse(() => parse('{"request":{},"classifications":[],"proof":{},"report":{"schema":"wrong","version":0}}'), 'SCHEMA');
+
 for (const name of ['main-result.json','edited-result.json']) {
   const text = await readFile(dataFile(name), 'utf8');
   const parsed = parse(text);
