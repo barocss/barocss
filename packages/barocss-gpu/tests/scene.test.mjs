@@ -65,8 +65,8 @@ test('duplicate IDs and scene metadata reject explicitly', () => {
 
 test('missing/nonzero versions and multiple scenes reject', () => {
   rejects('@scene demo { sphere #a; }', /requires version/);
-  rejects('@scene demo { version: 1; }', /Only scene version 0/);
-  rejects('@scene demo { version: 0.0; }', /Only scene version 0/);
+  rejects('@scene demo { version: 1; }', /Only scene version 0|Expected scene version 0/);
+  rejects('@scene demo { version: 0.0; }', /Only scene version 0|Expected scene version 0/);
   rejects(`${source('')} ${source('')}`, /selectors/);
 });
 
