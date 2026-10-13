@@ -37,3 +37,28 @@ test('refuses boundary, disjoint, invalid inputs and hostile accessors',()=>{
  assert.equal(reads,0);
  assert.deepEqual(intersect(p(0,0),p(0,0),p(0,1),p(1,0)),{status:'unsupported',reason:'degenerate-segment'});
 });
+
+
+test('exact rational intersection uses same admitted own point values as classification', () => {
+  let reads = 0;
+  const hostile = value => new Proxy(value, {
+    get() { reads++; throw new Error('external coordinate read forbidden'); },
+  });
+  const result = intersect(hostile(p(0, 0)), hostile(p(4, 4)),
+    hostile(p(0, 4)), hostile(p(4, 0)));
+  assert.equal(result.status, 'exact');
+  assert.deepEqual(result.pointMM, { x: rat('2'), y: rat('2') });
+  assert.deepEqual(result.parameterAB, rat('1', '2'));
+  assert.deepEqual(result.parameterCD, rat('1', '2'));
+  assert.equal(reads, 0);
+
+  const falseGet = new Proxy(p(0, 4), { get() { reads++; return -100; } });
+  assert.deepEqual(intersect(p(0, 0), p(4, 4), falseGet, p(4, 0)).pointMM,
+    { x: rat('2'), y: rat('2') });
+  assert.equal(reads, 0);
+
+  const revoked = Proxy.revocable(p(0, 0), {});
+  revoked.revoke();
+  assert.deepEqual(intersect(revoked.proxy, p(4, 4), p(0, 4), p(4, 0)),
+    { status: 'unsupported', reason: 'invalid-input' });
+});
