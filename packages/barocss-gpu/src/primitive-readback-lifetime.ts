@@ -5,12 +5,14 @@ export interface PrimitiveReadbackLease {
   readonly buffer: GPUBufferHandle;
   unmapped: boolean;
   destroyed: boolean;
+  /** Retain failures even when owner teardown runs before the readback finally. */
+  readonly failures: unknown[];
 }
 
 /** Always attempt both operations; preserve failures for the caller to aggregate. */
 export function releasePrimitiveReadback(lease: PrimitiveReadbackLease | null): unknown[] {
   if (!lease) return [];
-  const failures: unknown[] = [];
+  const failures = lease.failures;
   if (!lease.unmapped) {
     lease.unmapped = true;
     try { lease.buffer.unmap(); } catch (cause) { failures.push(cause); }
@@ -19,5 +21,5 @@ export function releasePrimitiveReadback(lease: PrimitiveReadbackLease | null): 
     lease.destroyed = true;
     try { lease.buffer.destroy(); } catch (cause) { failures.push(cause); }
   }
-  return failures;
+  return failures.slice();
 }
