@@ -119,8 +119,8 @@ test('host options require finite positive scale and bounded opaque RGB/translat
 });
 
 test('conversion rejects overflow, coordinate limits and float32 collapsed triangles', () => {
-  for (const scale of [Number.MAX_VALUE, 201]) { const o = options(); o.mmToSceneUnit = scale; assert.throws(() => prepareMesh(patch(), o), /Converted GPU/); }
-  const o = options(); o.translate = [1000, 0, 0]; assert.throws(() => prepareMesh(patch(), o), /Converted GPU/);
+  for (const scale of [Number.MAX_VALUE, 201]) { const o = options(); o.mmToSceneUnit = scale; assert.throws(() => prepareMesh(patch(), o), /Converted GPU|Native Surface coordinate overflows or underflows during scene scaling/); }
+  const o = options(); o.translate = [1000, 0, 0]; assert.throws(() => prepareMesh(patch(), o), /Converted GPU|Native Surface coordinate overflows or underflows during scene scaling/);
   const tinyScale = options(); tinyScale.mmToSceneUnit = Number.MIN_VALUE; assert.throws(() => prepareMesh(patch(), tinyScale), /Float32 GPU.*zero area/);
   const collapsed = options(); collapsed.mmToSceneUnit = 1e-9; collapsed.translate = [1, 1, 1]; assert.throws(() => prepareMesh(patch(), collapsed), /Float32 GPU.*zero area/);
   const boundary = options(); boundary.mmToSceneUnit = 200; assert.equal(prepareMesh(patch(), boundary).positions[6], 1000);
