@@ -129,6 +129,18 @@ for (const name of ['main-result.json','edited-result.json']) {
         assert.equal(error.cause?.context?.phase, 'owned');
         assert.equal(error.cause?.context?.queryIndex, null);
         assert.equal(error.cause?.context?.stage, null);
+        const counts = error.cause?.context?.directCounts;
+        assert.ok(counts && typeof counts === 'object');
+        assert.deepEqual(Object.keys(counts).sort(), [
+          'bodyValidationCount','queryCount','yRoofEvaluationCount','zRoofEvaluationCount',
+          'signComparisonCount','curveD0Count','curveD1Count','surfaceD0Count',
+          'surfaceD1Count','sourceCompilationCount','rootSolveCount','rationalFloatConversionCount',
+        ].sort());
+        assert.equal(counts.bodyValidationCount, 1);
+        assert.equal(counts.queryCount, 16);
+        assert.equal(counts.yRoofEvaluationCount, 15);
+        assert.equal(counts.zRoofEvaluationCount, 14);
+        assert.equal(counts.signComparisonCount, 165);
         return true;
       });
     }
