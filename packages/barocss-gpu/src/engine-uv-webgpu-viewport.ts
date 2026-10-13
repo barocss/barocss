@@ -376,6 +376,7 @@ class EngineUVViewport implements EngineUVTextureWebGPUViewport {
     const width = identity ? 1 : accepted.frame.width, height = identity ? 1 : accepted.frame.height;
     const rowBytes = Math.ceil(width * 4 / 256) * 256;
     let readback: Readback | null = null, failed = false, original: unknown;
+    let result: Uint8Array | null = null, cleanupFailures: unknown[] = [];
     try {
       await this.scoped(epoch, async () => {
         const buffer = this.device.createBuffer({ size: rowBytes * height, usage: MAP_READ | BUFFER_COPY_DST });
@@ -391,16 +392,20 @@ class EngineUVViewport implements EngineUVTextureWebGPUViewport {
       if (!mapped || mapped.released) error('STATE', 'Readback was invalidated');
       const padded = new Uint8Array(mapped.buffer.getMappedRange()), pixels = new Uint8Array(width * height * 4);
       for (let row = 0; row < height; row++) pixels.set(padded.subarray(row * rowBytes, row * rowBytes + width * 4), row * width * 4);
-      return pixels;
+      result = pixels;
     } catch (cause) {
-      failed = true; original = cause; throw cause;
+      failed = true; original = cause;
     } finally {
-      const failures = releaseReadback(readback); if (this.readback === readback) this.readback = null;
-      if (failures.length) {
-        const cause = new EngineUVWebGPUError('RENDER', 'Readback cleanup refused', new AggregateError(failed ? [original, ...failures] : failures));
-        this.failTerminal(cause); throw cause;
-      }
+      cleanupFailures = releaseReadback(readback);
+      if (this.readback === readback) this.readback = null;
     }
+    if (cleanupFailures.length) {
+      const cause = new EngineUVWebGPUError('RENDER', 'Readback cleanup refused', new AggregateError(failed ? [original, ...cleanupFailures] : cleanupFailures));
+      this.failTerminal(cause); throw cause;
+    }
+    if (failed) throw original;
+    if (!result) error('STATE', 'Readback produced no pixels');
+    return result;
   }
   async readPixels(): Promise<Uint8Array> {
     let entered = false;
