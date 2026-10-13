@@ -574,3 +574,21 @@ display boundaries, replaying the retained genuine constrained-plate baseline;
 edited geometry is a fixture substitute, not new native evidence. Physical layout,
 GPU pixels, actual file chooser/download and keyboard behavior still need the
 existing Execute Tester on an exact adopted build.
+
+### Author a new rectangular part
+
+In `#/model`, **Create → New rectangular part** accepts your width, profile height
+and thickness (32×24×8 mm by default). Inspect the authored source, then choose
+**Replace current model**, or **Create part** if no document is accepted. Existing
+model drafts must first be applied/canceled in their own editor. Replacement is
+explicit and starts a new document history; it does not save the old document.
+Cancel/Escape preserves the current document. Native/display refusal keeps it
+visible and leaves creation settings available for correction.
+
+Edit the resulting named dimensions or select Extrude 01 → Edit extrusion to
+change thickness; existing Apply/Undo/Redo and Save/Open remain available. File
+Download model saves accepted values, so apply desired edits before downloading.
+Local focused runtime check: `node apps/cad-editor/flows/modeling-new-part-flow.mjs`.
+It uses actual React/controller/receiver paths with explicitly mocked delivery and
+baseline geometry reuse, not a new native or physical-browser campaign. Track the
+exact-source creation/file acceptance in [#1951](https://github.com/barocss/barocss/issues/1951).

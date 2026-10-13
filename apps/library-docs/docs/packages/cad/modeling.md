@@ -17,7 +17,17 @@ For other recipes, **MODIFY → Edit model dimensions** exposes the existing mod
 
 Use **INSPECT → Inspect selection** for accepted output details and approximate picked-face provenance; **INSPECT → Output bodies** for supported output display choices; and **INSPECT → Capabilities & limits** for the current boundary. **FILE → Save or open a model** contains the saved-data/file controls. **FILE → Export accepted STL** opens the existing independent output selector and export action. The example instructions below use these same panels.
 
-This increment changes command organization, not native capability. It adds no sketch drawing, arbitrary feature editing, feature reorder or camera tools. Local React/controller checks cover command selection, draft retention, Apply/Cancel/Escape, history and stale completion. Actual new-layout pixels, resize and visible-face picking remain **unverified** under [#1943](https://github.com/barocss/barocss/issues/1943); earlier feature evidence does not prove this layout.
+This increment changes command organization, not native capability. It adds no sketch drawing, arbitrary feature editing, feature reorder or camera tools. Local React/controller checks cover command selection, draft retention, Apply/Cancel/Escape, history and stale completion. The later [scoped workspace screen checks](https://github.com/barocss/barocss/issues/1943#issuecomment-6157399564) cover the constrained-plate flow and round-post resize/picking on exact `f96a94a1`; they do not cover the new-part command below.
+
+### Create your own rectangular part
+
+Choose **CREATE → New rectangular part**. Enter **Width**, **Profile height** and **Thickness** in millimetres; the defaults are 32 × 24 × 8. These values author an origin-zero rectangle and extrusion with independent named `width`, `height` and `thickness` parameters, not an example-picker selection. **Authored model source** shows the exact intent that will be loaded.
+
+The inputs are temporary creation settings, separate from pending edits of the current model. Existing model drafts block creation; **Review pending dimensions** lets you apply or cancel them first. **Cancel/Escape** closes the new-part command without changing the accepted document. A current document is replaced only by the explicit **Replace current model** action: download the accepted document first if needed, because successful replacement resets Undo history to one entry and does not save a file. With no accepted model, use **Create part**. The accepted preview stays visible until native admission succeeds; invalid dimensions, native refusal or display refusal preserve it. **Cancel computation** interrupts an active build.
+
+After creation, use **MODIFY → Edit model dimensions** for the named profile sizes, or select **Extrude 01 → MODIFY → Edit extrusion** to change **Height · thickness**. Apply shows the accepted native shape and advances history; Undo/Redo use that history. **FILE → Save or open a model** downloads accepted authored intent and reopens it through the existing loader. The current download action saves accepted values only; unapplied edits are not saved.
+
+Dimensions must be finite and greater than 0, up to 10000 mm; native exact-representability limits can still refuse a value. This command adds no sketch drawing or live draft-mesh preview. [#1951](https://github.com/barocss/barocss/issues/1951) tracks the focused software and actual new-part/file workflow separately; physical acceptance is pending until its exact-source Tester result.
 
 ### Edit an existing extrusion
 
@@ -25,7 +35,7 @@ For example, load **Create a round post**, select **Extrude 01**, then choose **
 
 Only direct named height/start-Z drivers are editable here. Authored literals, omitted start-Z = 0 and derived expressions are read-only; use **Review model dimensions** to edit the model's named drivers. One shared parameter can affect other fields or features, including a pocket's derived start coordinate. This is not an isolated feature edit or an expression-rewriting tool.
 
-Options stay pinned to the feature chosen when the command opens, even if Browser selection changes. Unrelated pending dimensions are shown in the global editor rather than silently applied. A model or output-view change makes older options stale; reopen the command. Stale options cannot apply or discard newer drafts. The [local interaction scope](https://github.com/barocss/barocss/issues/1948) uses retained baseline packets and explicitly mocked edited geometry; physical visual acceptance remains pending.
+Options stay pinned to the feature chosen when the command opens, even if Browser selection changes. Unrelated pending dimensions are shown in the global editor rather than silently applied. A model or output-view change makes older options stale; reopen the command. Stale options cannot apply or discard newer drafts. The [local interaction scope](https://github.com/barocss/barocss/issues/1948) uses retained baseline packets and explicitly mocked edited geometry; the later [bounded round-post screen check](https://github.com/barocss/barocss/issues/1948#issuecomment-6157158440) covers the adopted command on exact `f96a94a1`.
 
 ## Open and space two translated gussets
 

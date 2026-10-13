@@ -12,6 +12,8 @@ import type { ModelingWorkspacePanel } from './modeling-workspace.js';
 import { modelingDimensionCommand } from '../modeling-dimension-key.js';
 import { extrusionCommandCurrent, projectExtrusionCommand } from '../modeling-extrusion-command.js';
 import type { ExtrusionCommandTarget } from '../modeling-extrusion-command.js';
+import { createRectangularPartSource } from '../modeling-rectangular-part.js';
+import type { RectangularPartInput } from '../modeling-rectangular-part.js';
 import { Button } from './ui/button.js';
 import { Input } from './ui/input.js';
 import { Label } from './ui/label.js';
@@ -33,6 +35,9 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
   const [extrusionTarget, setExtrusionTarget] = useState<(ExtrusionCommandTarget & { session: CadEditorModelingController; instance: number }) | null>(null);
   const extrusionCommandInstance = useRef(0);
   const workspaceCommandEpoch = useRef(0);
+  const newPartCommandInstance = useRef(0), newPartOperationEpoch = useRef(0);
+  const [newPartTarget, setNewPartTarget] = useState<{ session: CadEditorModelingController; authoredText: string | null; generation: number; instance: number } | null>(null);
+  const [newPartInput, setNewPartInput] = useState<RectangularPartInput>({ width: '32', height: '24', thickness: '8' });
   const [example, setExample] = useState<CadEditorModelingExample>('cut-chamfer');
   const [splitAxis, setSplitAxis] = useState<CadEditorModelingSplitAxis>('z');
   const [stlOutput, setStlOutput] = useState('');
@@ -41,6 +46,7 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
   const [source, setSource] = useState(''), [confirmed, setConfirmed] = useState(false), [error, setError] = useState<string | null>(null);
   useEffect(() => {
     if (!viewport.current) return;
+    newPartOperationEpoch.current++; newPartCommandInstance.current++; setNewPartTarget(null);
     extrusionCommandInstance.current++; setExtrusionTarget(null); setWorkspacePanel(null);
     const display = createPrismFeatureDisplay(viewport.current); displayRef.current = display;
     const session = createCadEditorModelingController(display, () => display.aspect()); controller.current = session;
@@ -48,7 +54,7 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
     observer.observe(viewport.current);
     const unsubscribe = session.subscribe(() => setSnapshot(session.getSnapshot())); setSnapshot(session.getSnapshot());
     void (initialAuthoredText === undefined ? session.example() : session.open(initialAuthoredText)).catch(cause => setError(String(cause)));
-    return () => { workspaceCommandEpoch.current++; extrusionCommandInstance.current++; fileReadEpoch.current++; observer.disconnect(); unsubscribe(); session.dispose(); display.dispose(); if (controller.current === session) controller.current = null; if (displayRef.current === display) displayRef.current = null; };
+    return () => { newPartOperationEpoch.current++; newPartCommandInstance.current++; workspaceCommandEpoch.current++; extrusionCommandInstance.current++; fileReadEpoch.current++; observer.disconnect(); unsubscribe(); session.dispose(); display.dispose(); if (controller.current === session) controller.current = null; if (displayRef.current === display) displayRef.current = null; };
   }, [initialAuthoredText]);
   const stageModelFile = async (file?: File) => {
     if (!file || snapshot?.busy) return;
@@ -72,20 +78,70 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
   };
   const extrusionCommandLive = () => extrusionTarget !== null && extrusionTarget.session === controller.current
     && extrusionTarget.instance === extrusionCommandInstance.current;
+  const newPartCommandLive = () => newPartTarget !== null && newPartTarget.session === controller.current
+    && newPartTarget.instance === newPartCommandInstance.current;
+  const newPartCommandCurrent = () => {
+    const current = controller.current?.getSnapshot();
+    return newPartCommandLive() && !!current && !current.disposed && current.authoredText === newPartTarget!.authoredText
+      && current.generation === newPartTarget!.generation;
+  };
+  const newPartRenderCurrent = () => {
+    const current = controller.current?.getSnapshot();
+    return newPartCommandLive() && !!current && current.generation === snapshot?.generation
+      && current.authoredText === snapshot?.authoredText;
+  };
   const openWorkspacePanel = (panel: ModelingWorkspacePanel | null) => {
+    if (panel === 'new-part') {
+      const session = controller.current, current = session?.getSnapshot();
+      if (!session || !current || current.busy || current.disposed) return;
+      if (workspacePanel === 'new-part' && newPartCommandCurrent()) return;
+      setNewPartInput({ width: '32', height: '24', thickness: '8' });
+      setNewPartTarget({ session, authoredText: current.authoredText, generation: current.generation, instance: newPartCommandInstance.current + 1 });
+      setError(null);
+    }
     if (panel === 'extrusion') {
       const current = controller.current?.getSnapshot();
       const projection = current && projectExtrusionCommand(current, current.selection);
       if (!current || current.busy || !projection || !current.authoredText) return;
       if (Object.keys(current.drafts).some(name => !projection.parameters.includes(name))) {
         setError('Other model dimensions are pending. Review all pending dimensions before editing this extrusion.');
-        workspaceCommandEpoch.current++; extrusionCommandInstance.current++; setWorkspacePanel('dimensions'); return;
+        workspaceCommandEpoch.current++; extrusionCommandInstance.current++; newPartCommandInstance.current++; setWorkspacePanel('dimensions'); return;
       }
       setError(null);
       setExtrusionTarget({ index: projection.index, authoredText: current.authoredText, generation: current.generation,
         session: controller.current!, instance: extrusionCommandInstance.current + 1 });
     }
-    workspaceCommandEpoch.current++; extrusionCommandInstance.current++; setWorkspacePanel(panel);
+    workspaceCommandEpoch.current++; extrusionCommandInstance.current++; newPartCommandInstance.current++; setWorkspacePanel(panel);
+  };
+  const cancelNewPart = () => {
+    const current = controller.current?.getSnapshot();
+    // Only the currently rendered close action may dismiss stale document options.
+    if (!newPartRenderCurrent() || !current || current.busy) return;
+    openWorkspacePanel(null);
+  };
+  const createNewPart = () => {
+    if (workspacePanel !== 'new-part' || !newPartCommandCurrent()) return;
+    const session = controller.current!, current = session.getSnapshot();
+    if (current.busy || Object.keys(current.drafts).length) return;
+    let text: string;
+    try { text = createRectangularPartSource(newPartInput); } catch (cause) { setError(String(cause)); return; }
+    const commandEpoch = ++workspaceCommandEpoch.current, generation = current.generation;
+    const operationEpoch = ++newPartOperationEpoch.current;
+    const fileEpoch = ++fileReadEpoch.current; // Old reads cannot stage bytes into a new document.
+    action(async active => {
+      if (active !== session) return;
+      await active.open(text);
+      const after = active.getSnapshot();
+      const replaced = operationEpoch === newPartOperationEpoch.current && controller.current === active
+        && after.generation === generation + 1
+        && !after.busy && !after.error && !after.disposed;
+      // Document replacement invalidates old file consent even if the user opened another panel.
+      // A newer explicit file action owns its own staged text and must not be cleared here.
+      if (replaced && fileReadEpoch.current === fileEpoch) { setSource(''); setConfirmed(false); }
+      if (replaced && commandEpoch === workspaceCommandEpoch.current && newPartCommandLive()) {
+        openWorkspacePanel(null);
+      }
+    });
   };
   const applyDimensions = () => {
     if (workspacePanel === 'extrusion' && !extrusionCommandLive()) return;
@@ -379,6 +435,31 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
         </div>
         <p>Disabled chamfers still validate. Invalid edge selection or geometry is refused without replacing this model.</p>
       </fieldset>;
+  let newPartSource = '', newPartValidation = '';
+  try { newPartSource = createRectangularPartSource(newPartInput); } catch (cause) { newPartValidation = cause instanceof Error ? cause.message : String(cause); }
+  const newPartCurrent = newPartCommandCurrent();
+  const newPartPanel = <div>
+    <p>Create your own origin-zero rectangular sketch and extrusion. All three sizes become named editable model parameters.</p>
+    <p>These are temporary creation settings. The accepted viewport stays unchanged until Create succeeds.</p>
+    {([['width', 'Width'], ['height', 'Profile height'], ['thickness', 'Thickness']] as const).map(([name, label]) => <div key={name} style={{ marginBottom: 16 }}>
+      <Label htmlFor={`${id}-new-part-${name}`}>{label} (mm)</Label>
+      <Input id={`${id}-new-part-${name}`} inputMode="decimal" maxLength={64} value={newPartInput[name]} disabled={busy || !newPartCurrent}
+        onChange={event => { if (workspacePanel === 'new-part' && newPartCommandCurrent() && !controller.current?.getSnapshot().busy) setNewPartInput(values => ({ ...values, [name]: event.target.value })); }}
+        onKeyDown={event => {
+          if (!newPartCommandLive() || event.repeat || event.nativeEvent.isComposing || event.keyCode === 229
+            || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+          if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); cancelNewPart(); }
+          else if (event.key === 'Enter') { event.preventDefault(); event.stopPropagation(); createNewPart(); }
+        }} />
+    </div>)}
+    {newPartValidation && <p role="status">{newPartValidation}</p>}
+    <p>The native loader may refuse unsupported precision or geometry. A refusal keeps the current document and history.</p>
+    {accepted && <p><strong>Replace current model:</strong> creating this part replaces the accepted document and resets its Undo history. Download the accepted model first if you need to keep it. No file is saved automatically.</p>}
+    {draft && <p role="status">Existing model dimensions are pending. Apply or cancel them in their own editor before replacing the document. These creation settings do not apply or discard those drafts.</p>}
+    {!newPartCurrent && <p role="status">The target document changed. Reopen New rectangular part before replacing it.</p>}
+    {draft && <Button variant="outline" disabled={busy} onClick={() => { if (newPartRenderCurrent()) openWorkspacePanel('dimensions'); }}>Review pending dimensions</Button>}
+    <details><summary>Authored model source</summary><pre>{newPartSource || 'Enter valid creation dimensions.'}</pre></details>
+  </div>;
   const dimensionsPanel = accepted && (<div><h2>Named dimensions</h2>{constrainedPlateDrivers ? (['width', 'height'] as const).map(name => dimensionInput([name, accepted.parameters[name]])) : roundPostDrivers ? <>
           {(['diameter', 'height'] as const).map(name => dimensionInput([name, accepted.parameters[name]]))}
           <details><summary>Optional center coordinates</summary>
@@ -443,15 +524,16 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
       <p>Choose model file stages its UTF-8 text for inspection; it does not replace the accepted model. Review the contents and explicitly confirm Open. Invalid files still go through native validation on Open. Actual file-picker, browser and GPU acceptance require separate device verification.</p>
     </details>;
   if (workspace) return <ModelingWorkspace snapshot={snapshot} viewport={viewportElement} panel={workspacePanel} error={error}
-    panels={{ examples: examplesPanel, dimensions: dimensionsPanel, extrusion: extrusionPanel, outputs: <>{visibilityPanel}{exportPanel}</>, files: filesPanel,
+    panels={{ 'new-part': newPartPanel, examples: examplesPanel, dimensions: dimensionsPanel, extrusion: extrusionPanel, outputs: <>{visibilityPanel}{exportPanel}</>, files: filesPanel,
       inspect: inspectionPanel, limits: limitsPanel, configuration: finishesPanel }}
     dimensionLabel={constrainedPlateDrivers ? 'Edit dimensions' : 'Edit model dimensions'}
     canEditDimensions={!!accepted && (!constrainedPlateDrivers || snapshot?.selection === null || accepted.features[snapshot?.selection ?? -1]?.kind === 'sketch')}
     canEditExtrusion={!!selectedExtrusion} canApplyExtrusion={!!currentExtrusion?.parameters.length}
     configurableFinishes={!!configurableFinishes} onPanel={openWorkspacePanel}
     onSelect={index => action(session => session.select(index, session.getSnapshot().generation))}
-    onApply={applyDimensions} onCancelDimensions={cancelDimensions}
-    onCancelComputation={() => action(session => session.cancel())}
+    onApply={applyDimensions} onCancelDimensions={cancelDimensions} onCancelNewPart={cancelNewPart} onCreatePart={createNewPart}
+    canCreatePart={!draft && newPartCurrent && !newPartValidation}
+    onCancelComputation={() => { newPartOperationEpoch.current++; action(session => session.cancel()); }}
     onUndo={() => action(session => session.undo())} onRedo={() => action(session => session.redo())}
     onRetry={() => { fileReadEpoch.current++; action(session => initialAuthoredText === undefined ? session.example() : session.open(initialAuthoredText)); }} />;
   return <section className="barocss-cad-editor" aria-label="CAD model editor" style={{ padding: 24, overflow: 'auto', height: '100%' }}>

@@ -1319,3 +1319,25 @@ Successful Apply and Undo/Redo retain the existing admission/history behavior.
 The focused local flow replays genuine round-post baseline geometry with mocked
 provider delivery and edited-state geometry; native edits and physical pixels are
 not newly measured by this UI slice.
+
+### New rectangular part (#1951)
+
+**Create → New rectangular part** authors a public model document from width,
+profile height and thickness. Its rectangle starts at XY [0,0] and extrudes from
+Z=0; all three sizes are named parameters. The private source builder validates
+positive finite decimal input ≤10000 mm, while the existing native loader owns
+geometry and representability. No model, mesh or worker protocol is invented.
+
+Temporary creation fields do not stage edits on the current model. Pending model
+drafts block replacement and can be reviewed in their existing editor. The
+explicit **Replace current model** action warns that accepted work should be
+downloaded first and that successful creation resets document history. Cancel
+preserves accepted state and existing drafts. Source/generation/controller and
+command-instance guards reject stale callbacks. Refusal or canceled computation
+retains the accepted viewport/history; only successfully admitted replacement
+closes options. The viewport and controller remain mounted.
+
+Use existing named-dimension, selected-Extrude, history, file and STL commands
+after creating the part. Local tests reuse genuine 32×24×8 convex body/preview
+bytes with explicitly adapted authored state and mocked provider/display delivery;
+edited geometry and the new physical creation/file workflow need separate evidence.
