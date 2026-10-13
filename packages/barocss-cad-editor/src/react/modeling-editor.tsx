@@ -5,6 +5,7 @@ import type { CadEditorModelingController, CadEditorModelingSnapshot } from '../
 import type { CadEditorModelingExample, CadEditorModelingSplitAxis } from '../modeling-engine.js';
 import { createPrismFeatureDisplay } from '../prism-feature-display.js';
 import { readModelingFileText } from '../modeling-file.js';
+import { modelingDimensionCommand } from '../modeling-dimension-key.js';
 import { Button } from './ui/button.js';
 import { Input } from './ui/input.js';
 import { Label } from './ui/label.js';
@@ -140,7 +141,21 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
           <Input id={`${id}-${name}`} disabled={busy} inputMode="decimal"
             value={Object.hasOwn(snapshot?.drafts ?? {}, name) ? snapshot!.drafts[name] : Object.is(value, -0) ? '-0' : String(value)}
             onChange={event => action(s => s.stage(name, event.target.value))}
-            onKeyDown={event => { if (event.key === 'Escape') action(s => s.discard()); }} />
+            onKeyDown={event => {
+              const current = controller.current?.getSnapshot();
+              if (!current) return;
+              const command = modelingDimensionCommand({
+                key: event.key, repeat: event.repeat, isComposing: event.nativeEvent.isComposing,
+                keyCode: event.keyCode, altKey: event.altKey, ctrlKey: event.ctrlKey,
+                metaKey: event.metaKey, shiftKey: event.shiftKey,
+              }, {
+                accepted: current.accepted !== null, draftCount: Object.keys(current.drafts).length,
+                busy: current.busy, disposed: current.disposed,
+              });
+              if (command === null) return;
+              event.preventDefault(); event.stopPropagation();
+              action(s => command === 'apply' ? s.apply() : s.discard());
+            }} />
         </div>;
   return <section className="barocss-cad-editor" aria-label="CAD model editor" style={{ padding: 24, overflow: 'auto', height: '100%' }}>
     <header><h1>Model a part</h1><p>Sketch a polygon or circle → extrude → supported cut, intersect, split, chamfer, fuse, pocket or hole · named dimensions in mm</p></header>
@@ -152,6 +167,7 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
       <Button disabled={busy || draft || !snapshot?.history.canUndo} onClick={() => action(s => s.undo())}>Undo</Button>
       <Button disabled={busy || draft || !snapshot?.history.canRedo} onClick={() => action(s => s.redo())}>Redo</Button>
       <Button disabled={!busy} onClick={() => action(s => s.cancel())}>Cancel computation</Button>
+      <span style={{ alignSelf: 'center', fontSize: 12, opacity: 0.75 }}>In a dimension field: Enter to apply · Esc to discard</span>
       {!accepted && !busy && <Button onClick={() => { fileReadEpoch.current++; action(s => initialAuthoredText === undefined ? s.example() : s.open(initialAuthoredText)); }}>Retry model</Button>}
     </div>
     <details style={{ marginTop: 16 }}><summary>Modeling examples</summary>
