@@ -175,7 +175,7 @@ export function GizmoSurface<C>({canvas, mode, adapter, disabled = false, pendin
       {mode === 'translate' ? <polygon className="re-gizmo-anchor" points={arrowPoints(handle.points, handle.anchor)} style={{pointerEvents: 'none'}}/> : mode === 'scale' ? <rect className="re-gizmo-anchor" x={handle.anchor[0] - 5} y={handle.anchor[1] - 5} width="10" height="10" style={{pointerEvents: 'none'}}/> : null}
       {mode !== 'rotate' && <text x={handle.anchor[0] + 8} y={handle.anchor[1] - 7} style={{pointerEvents: 'none'}}>{handle.key === 'uniform' ? 'All' : handle.key.toUpperCase()}</text>}
     </g>)}</svg>
-    <p className="re-gizmo-status" data-testid="gizmo-status" role="status">{active ? `${active} · Release to apply · Escape to cancel` : pending || retained ? 'Transform preview · Cancel or correct the refused change' : notice || preparation.unavailable || profileNotice || (highlighted ? `${mode === 'translate' ? 'Move' : mode === 'rotate' ? 'Rotate' : 'Scale'} ${highlighted === 'uniform' ? 'uniform' : highlighted.toUpperCase()}` : '')}</p>
+    <p className="re-gizmo-status" data-testid="gizmo-status" role="status">{active ? `${active} · Release to apply · Escape to cancel` : pending || retained ? 'Transform preview · Cancel or correct the refused change' : notice || preparation.unavailable || (highlighted ? `${mode === 'translate' ? 'Move' : mode === 'rotate' ? 'Rotate' : 'Scale'} ${highlighted === 'uniform' ? 'uniform' : highlighted.toUpperCase()}` : '') || profileNotice}</p>
     {localHelp && <div className="re-camera-local-help" role="dialog" aria-label="Transform controls"><p>{helpText}</p><button type="button" onClick={() => {setLocalHelp(false); help.current?.focus();}}>Close Help</button></div>}
   </>;
 }
