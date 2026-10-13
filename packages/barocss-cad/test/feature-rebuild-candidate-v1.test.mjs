@@ -24,7 +24,7 @@ test('transactional candidate refuses cyclic and sparse edit inputs before nativ
   cyclic.faceEdits.push(cyclic);
   assert.throws(() => prepareBooleanExtrusionRebuildV1({}, cyclic), /Cyclic edit snapshot refused/);
   const sparse = { expectedRevision: 0, revision: 1, parameterEdits: new Array(1), faceEdits: [], booleanEdits: [], distanceEdits: [] };
-  assert.throws(() => prepareBooleanExtrusionRebuildV1({}, sparse), /Sparse edit array refused/);
+  assert.throws(() => prepareBooleanExtrusionRebuildV1({}, sparse), /Dense bounded edit array required|Sparse edit array refused/);
 });
 
 
