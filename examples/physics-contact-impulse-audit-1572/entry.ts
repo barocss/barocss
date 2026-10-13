@@ -43,6 +43,9 @@ check(near(boxCopy.velocityMps[1],box.velocityMps[1]), 'warm start reproduces no
 const support = body('support',0,V(0,-0.5,0),V());
 const upper = body('upper',1,V(0,0.5,0),V(1,-1,0));
 const armPoint: Vec3 = V(0.25,0,0);
+// Isolate the normal lever-arm response: friction can counter the induced spin.
+support.frictionStatic = support.frictionDynamic = 0;
+upper.frictionStatic = upper.frictionDynamic = 0;
 const off: PointImpulse = { normalNs:0, tangentNs:V() };
 solvePersistentPoint(support,upper,armPoint,n,off);
 check(off.normalNs>0 && Number.isFinite(off.normalNs), 'off-centre positive normal impulse');
