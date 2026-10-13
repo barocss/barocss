@@ -6,11 +6,11 @@ A feature is usable in the modeling workspace only when its **native provider ac
 
 | Feature / user goal | Native implementation | Editor workflow | Authored save/reopen | Browser/GPU evidence for this manual |
 | --- | --- | --- | --- | --- |
-| Rectangle/polygon sketch → +Z extrusion | Qualified bounded convex/rectangular profiles | `#/model` named-parameter presets | Supported for admitted `cad.model()` recipes | **Not freshly run** for these lessons |
-| Circle sketch → round post | Stored-rational circle-prism; exact stored boundary only | **Create a round post** preset | Authored radius relation and named post output | **Not freshly run**; certified volume unavailable |
-| Rectangular through-hole in plate | Stored-rational plate-hole family, strict placement/qualification | **Mounting plate with a through-hole** preset | Admitted model saved and rebuilt | **Not freshly run**; certified hole-part volume unavailable |
+| Rectangle/polygon sketch → +Z extrusion | Qualified bounded `convex-planar` profiles | `#/model` named-parameter presets | Supported for admitted `cad.model()` recipes | **Not freshly run** for these lessons |
+| Circle sketch → round post | `stored-rational-circle-prism`; exact stored boundary only | **Create a round post** preset | Authored radius relation and named post output | **Not freshly run**; certified volume unavailable |
+| Rectangular through-hole in plate | `stored-rational-plate-hole` family, strict placement/qualification | **Mounting plate with a through-hole** preset | Admitted model saved and rebuilt | **Not freshly run**; certified hole-part volume unavailable |
 | Underside pocket or through-window | Restricted rectangular cutter, one accepted retained part | **Cut an underside pocket** preset | Preserves named `part`, `plate`, `tool` outputs | **Not freshly run** |
-| Union of rectangular extrusions | Restricted connected integer-cell orthogonal material | **Fuse an L-bracket** preset | Preserves `base`, `leg`, `bracket` | **Not freshly run**; edge-only/disconnected refused |
+| Union of rectangular extrusions | Restricted connected `orthogonal-cell` material | **Fuse an L-bracket** preset | Preserves `base`, `leg`, `bracket` | **Not freshly run**; edge-only/disconnected refused |
 | Convex intersection and through-slab cut | Bounded convex/native operation families | Available through admitted modeling examples | Bounded authored-graph save/rebuild | Per-feature evidence; no general browser guarantee |
 | Cardinal-edge chamfer and some splits | Qualified restricted edges/planes | Admitted modeling presets, selected options | Bounded parameter edit and rebuild | Per-feature evidence; not arbitrary fillet/chamfer |
 | NURBS Curve/Surface control edits | Original native coefficients, knots, weights, qualified operations | Separate Surface/Curve editor workspace | Original document files retained | Existing focused flows; not blanket device parity |
