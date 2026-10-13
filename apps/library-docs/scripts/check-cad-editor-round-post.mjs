@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const read = path => readFileSync(resolve(root, path), 'utf8');
 const lesson = read('apps/library-docs/docs/packages/cad-editor/round-post.md');
+const firstLesson = read('apps/library-docs/docs/packages/cad-editor/first-model.md');
 const guide = read('apps/library-docs/docs/packages/cad-editor/guides.md');
 const modelUI = read('packages/barocss-cad-editor/src/react/modeling-editor.tsx');
 const route = read('apps/cad-editor/src/app.tsx');
@@ -53,4 +54,6 @@ for (const claim of [
   }
 }
 assert.ok(guide.includes('./round-post'), 'Round-post lesson missing from guide entry');
+assert.ok(firstLesson.includes('](./round-post)'), 'First-model lesson lacks follow-up');
+assert.ok(lesson.includes('](./first-model)'), 'Round-post lesson lacks back navigation');
 console.log('CAD Editor round-post lesson: read-only UI/source/reference drift PASS (no native/browser execution)');
