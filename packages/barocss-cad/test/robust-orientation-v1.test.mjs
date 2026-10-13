@@ -40,6 +40,12 @@ test('qualified orient2d exact, bounded, and refusal behavior', { timeout: 12000
     Object.defineProperty(hostile, 'x', { enumerable: true, get() { getterReads++; return 1; } });
     assert.equal(orient(hostile,b,a).status,'unsupported');
     assert.equal(getterReads,0,'untrusted coordinate getter must never run');
+    let optionGetterReads = 0;
+    const hostileOptions = { determinantUncertaintyMM2: 0 };
+    Object.defineProperty(hostileOptions,'maxAbsCoordinateMM',
+      { enumerable:true, get() { optionGetterReads++; return 10000; } });
+    assert.equal(orient(a,b,{x:0,y:3},hostileOptions).status,'unsupported');
+    assert.equal(optionGetterReads,0,'untrusted options getter must never run');
     assert.equal(orient(a,b,{x:0.1,y:0},{maxAbsCoordinateMM:0,determinantUncertaintyMM2:0}).status,'unsupported');
   } finally { rmSync(dir,{recursive:true,force:true}); }
 });
