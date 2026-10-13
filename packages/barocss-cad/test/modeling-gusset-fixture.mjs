@@ -90,7 +90,7 @@ export function proveSketch(result, parameters = DEFAULTS) {
 export function work(snapshot, previous) {
   exactData(snapshot.recomputation, { reusedFeatures: [], evaluatedFeatures: [0, 1] });
   exactData(snapshot.features, [{ kind: 'sketch', index: 0, dependencies: [] }, { kind: 'extrude', index: 1, dependencies: [0] }]);
-  exactData(Object.keys(snapshot).sort(), ['bodies', 'parameters', 'suppression', 'features', 'recomputation', 'evidence', 'withParameters', 'withSuppression', 'massProperties', 'save'].sort());
+  exactData(Object.keys(snapshot).sort(), ['bodies', 'parameters', 'suppression', 'features', 'recomputation', 'evidence', 'withParameters', 'withSuppression', 'massProperties', 'exportStl', 'save'].sort());
   if (previous) {
     for (const key of ['parameters', 'evidence', 'bodies']) assert.notEqual(snapshot[key], previous[key]);
     for (const i of [0, 1]) assert.notEqual(snapshot.evidence[i], previous.evidence[i]);
