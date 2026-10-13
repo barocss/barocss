@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "purpose": "Current checkout manifest metadata only; not an API, runtime, publication, or held-lane activation receipt.",
-  "manifestCommit": "23e6615a8e2c4ad9c9299184a6be5ff2735358b5",
+  "manifestCommit": "ea249b0de2de79b6de4bc6db063de7692e87848b",
   "historicalSourceCommit": "5f5ad866205a21510ac69552e704cc162fa253b5",
   "historicalInventorySha256": "b121aac9620fb8fe966c292710990317bf88b1b3535ea31a31cd787cefe7c2b5",
   "packages": [
@@ -291,7 +291,7 @@
     {
       "slug": "gpu",
       "directory": "packages/barocss-gpu",
-      "manifestSha256": "ce0529abd54255efad9ad24e8e7e8371bc40afa0d8e6c18e8f55606b49896553",
+      "manifestSha256": "2d5391413990319bda2f9e9fda169f93dd085c825cf1673a8e6351b01bddf3cd",
       "manifest": {
         "name": "@barocss/gpu",
         "version": "0.0.0",
@@ -324,7 +324,7 @@
           "lint": "eslint src",
           "type-check": "tsc --noEmit",
           "build:library": "tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/index.js",
-          "test": "node --test tests/scene.test.mjs tests/compiler.test.mjs tests/mesh-packet.test.mjs tests/camera.test.mjs tests/gpu-compiler.test.mjs",
+          "test": "node --test tests/scene.test.mjs tests/compiler.test.mjs tests/material-lint-regression.test.mjs tests/primitive-readback-lifetime.test.mjs tests/primitive-webgpu-update-preflight.test.mjs tests/primitive-webgpu-bounded-wait.test.mjs tests/primitive-webgpu-device-loss-observer.test.mjs tests/engine-uv-device-loss-cleanup.test.mjs tests/primitive-resource-release.test.mjs tests/primitive-webgpu-resource-release.test.mjs tests/primitive-webgpu-terminal-cleanup.test.mjs tests/primitive-pixel-windows.test.mjs tests/engine-draw-batches.test.mjs tests/engine-webgpu-frame.test.mjs tests/engine-webgpu-geometry.test.mjs tests/engine-webgpu-renderpass.test.mjs tests/engine-webgpu-targets.test.mjs tests/engine-webgpu-uniforms.test.mjs tests/engine-webgpu-scene-geometry.test.mjs tests/engine-webgpu-pipeline.test.mjs ../../examples/gpu-scene/primitive-device-receipt-gate.test.mjs tests/mesh-packet.test.mjs tests/camera.test.mjs tests/gpu-compiler.test.mjs",
           "test:consumer": "node --test tests/consumer.test.mjs tests/mesh-consumer.test.mjs tests/gpu-compiler-consumer.test.mjs",
           "test:browser": "node --test --test-concurrency=1 tests/browser.test.mjs tests/mesh-browser.test.mjs tests/camera-browser.test.mjs"
         },
@@ -344,7 +344,27 @@
           }
         }
       },
-      "changesFromSourceSnapshot": []
+      "changesFromSourceSnapshot": [
+        {
+          "field": "scripts",
+          "before": {
+            "lint": "eslint src",
+            "type-check": "tsc --noEmit",
+            "build:library": "tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/index.js",
+            "test": "node --test tests/scene.test.mjs tests/compiler.test.mjs tests/mesh-packet.test.mjs tests/camera.test.mjs tests/gpu-compiler.test.mjs",
+            "test:consumer": "node --test tests/consumer.test.mjs tests/mesh-consumer.test.mjs tests/gpu-compiler-consumer.test.mjs",
+            "test:browser": "node --test --test-concurrency=1 tests/browser.test.mjs tests/mesh-browser.test.mjs tests/camera-browser.test.mjs"
+          },
+          "after": {
+            "lint": "eslint src",
+            "type-check": "tsc --noEmit",
+            "build:library": "tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/index.js",
+            "test": "node --test tests/scene.test.mjs tests/compiler.test.mjs tests/material-lint-regression.test.mjs tests/primitive-readback-lifetime.test.mjs tests/primitive-webgpu-update-preflight.test.mjs tests/primitive-webgpu-bounded-wait.test.mjs tests/primitive-webgpu-device-loss-observer.test.mjs tests/engine-uv-device-loss-cleanup.test.mjs tests/primitive-resource-release.test.mjs tests/primitive-webgpu-resource-release.test.mjs tests/primitive-webgpu-terminal-cleanup.test.mjs tests/primitive-pixel-windows.test.mjs tests/engine-draw-batches.test.mjs tests/engine-webgpu-frame.test.mjs tests/engine-webgpu-geometry.test.mjs tests/engine-webgpu-renderpass.test.mjs tests/engine-webgpu-targets.test.mjs tests/engine-webgpu-uniforms.test.mjs tests/engine-webgpu-scene-geometry.test.mjs tests/engine-webgpu-pipeline.test.mjs ../../examples/gpu-scene/primitive-device-receipt-gate.test.mjs tests/mesh-packet.test.mjs tests/camera.test.mjs tests/gpu-compiler.test.mjs",
+            "test:consumer": "node --test tests/consumer.test.mjs tests/mesh-consumer.test.mjs tests/gpu-compiler-consumer.test.mjs",
+            "test:browser": "node --test --test-concurrency=1 tests/browser.test.mjs tests/mesh-browser.test.mjs tests/camera-browser.test.mjs"
+          }
+        }
+      ]
     },
     {
       "slug": "cad",
@@ -1862,7 +1882,7 @@
     {
       "slug": "cad-editor",
       "directory": "packages/barocss-cad-editor",
-      "manifestSha256": "9941251b6133bf540ec06c3720cae27eebf147496680ad42a552f45304e3eb75",
+      "manifestSha256": "b99f37ca8e2c4817ec6b6a154ae7837b48913eb68a8ac76edec773ddfd73a6a0",
       "manifest": {
         "name": "@barocss/cad-editor",
         "version": "0.0.0-experimental",
@@ -1906,7 +1926,8 @@
         ],
         "scripts": {
           "build:library": "node scripts/build.mjs",
-          "type-check": "tsc -p tsconfig.json --noEmit"
+          "type-check": "tsc -p tsconfig.json --noEmit",
+          "test": "node scripts/modeling-file-test.mjs && node scripts/feature-preview-epoch-test.mjs && node scripts/feature-preview-lifecycle-test.mjs && node scripts/feature-preview-advisory-test.mjs && node scripts/modeling-pocket-recipes-test.mjs && node scripts/modeling-top-pocket-recipes-test.mjs && node scripts/modeling-stl-test.mjs && node scripts/modeling-stl-download-test.mjs"
         },
         "dependencies": {
           "@barocss/cad": "workspace:*",
@@ -1932,7 +1953,20 @@
           "@types/node": "26.6.4"
         }
       },
-      "changesFromSourceSnapshot": []
+      "changesFromSourceSnapshot": [
+        {
+          "field": "scripts",
+          "before": {
+            "build:library": "node scripts/build.mjs",
+            "type-check": "tsc -p tsconfig.json --noEmit"
+          },
+          "after": {
+            "build:library": "node scripts/build.mjs",
+            "type-check": "tsc -p tsconfig.json --noEmit",
+            "test": "node scripts/modeling-file-test.mjs && node scripts/feature-preview-epoch-test.mjs && node scripts/feature-preview-lifecycle-test.mjs && node scripts/feature-preview-advisory-test.mjs && node scripts/modeling-pocket-recipes-test.mjs && node scripts/modeling-top-pocket-recipes-test.mjs && node scripts/modeling-stl-test.mjs && node scripts/modeling-stl-download-test.mjs"
+          }
+        }
+      ]
     },
     {
       "slug": "render-editor",

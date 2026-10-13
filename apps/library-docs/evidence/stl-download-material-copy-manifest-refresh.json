@@ -1,0 +1,496 @@
+{
+  "issue": 1712,
+  "scope": "immutable Manual snapshot only; current-develop synchronization not claimed",
+  "baseCommit": "ea249b0de2de79b6de4bc6db063de7692e87848b",
+  "includedFeatures": {
+    "cadDownloadStl": "ea249b0de2de79b6de4bc6db063de7692e87848b",
+    "renderMaterialCopy": "daf34cdb8249b90d4f48ec43c411100c7fae9140",
+    "renderDocs": "f6bf1661a0dff5bd90a04c2a75fe1975ef28400e"
+  },
+  "historicalSourceCommit": "5f5ad866205a21510ac69552e704cc162fa253b5",
+  "inventorySHA256": "43cd2cb7ab356ef14d1c2f48ff851d3a2f388333943a1058a8137633b3474a98",
+  "manifestCount": 12,
+  "publicAssets": 86,
+  "publicDownloads": 30,
+  "assets": [
+    {
+      "path": "apps/library-docs/docs/public/examples/advanced-shader-phase.png",
+      "sha": "6d5aaf57f084ef19e7728cd84192a2b1ba898881",
+      "sha256": "55f90a3cabcded47b68b3c65fca1de72b5464749b7832edc35ff532740673d40"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/advanced-shader.png",
+      "sha": "d93485ecae1eaca236c64892af25e57e9e8d3c9d",
+      "sha256": "2c3d952e28b3ebb24ae8a83f5a90cf18a1792e960d56f49bbf024d75efad5124"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/body-boundary-mesh.svg",
+      "sha": "a6645b33ab0b91445a228795c1b4408e47c7caa0",
+      "sha256": "e68069e8e33e0a194e045f49099cc198223c5a385cb91d8f886cd7aa7ef9f09c"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/body-boundary-mesh/main.owned-body.json",
+      "sha": "f80efe5cfc591368fc3adb95a4074f2062cd4b0c",
+      "sha256": "6aa430ecc7775159b4bef758ab21363a75f186d84d15c8c4a56e8c00e2e6097d"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-adaptive-sampling.jpg",
+      "sha": "d25f966296ed88a98c63012e811e2b215035bacf",
+      "sha256": "3079b2cea31ec136b9e6ec0add4f412e02aa951e3fb2d792da2ba59325caab89"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-curve-knot-insertion.svg",
+      "sha": "dc955a5170e9e8e6f67d8d730940b67d26b2d0c0",
+      "sha256": "3d6eb3f4c8356a9eb2c8693370e0d52be37ed0d6a9611691c2a25cd869f1a99d"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-curve.png",
+      "sha": "ca8befb019e25facdbda996301613848fdf2aa8d",
+      "sha256": "2678d32167f72796c171358865d69f37d20933849d691059980f79c0f1c66409"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-curved-extrude.png",
+      "sha": "7b006517791dfafd414bbbc6a1a801515728cf46",
+      "sha256": "ba145462767e8bbb9a51f07e8521e1d75d1291c00d9c4b3d3608cf7e889a06a1"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-extrude.png",
+      "sha": "9d9d8a61cc3c0bbe19ec62d873b2d633eecb0094",
+      "sha256": "599e269a3cd1811ce7bbb7c52b1bf85143316bcf1c91740c8b6f5e28bfe7aa4b"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-line-width-extrusion-graph.authored.json",
+      "sha": "ac798fcd03ed8c87403f9596af006334268bde65",
+      "sha256": "6e707d5022a7ff454b25284392a170214d50e19e5f525f5d54bac26a4f7dd371"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-line-width-extrusion-graph.svg",
+      "sha": "57221cd91328cc8188e324082d8105d016968daf",
+      "sha256": "1633187d85d9a40781b2c3512473f63a021c4d54ac474c11c9675b8e634dc097"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-line-width-shell.json",
+      "sha": "ab6e6862a88ce46acfe4b96b02ac97ae417f26f0",
+      "sha256": "f91644774c356d2f814574d42b4a211b9374eb67101c6b362a9a4fe655e78fbb"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-nonunit-curve.png",
+      "sha": "f270c62fc93d4c0d01b4c47a4c3ada12f6954cbb",
+      "sha256": "eb5d1e7cda03a64c91824f92b253a6912a16819d27fb5abd8c1a3db5443bc470"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-parameters.png",
+      "sha": "6f583693c782be306a3882c936d2aeedd77bfffd",
+      "sha256": "f38940b8c74dd9328652e9b171270ee6f815b5cce06e09b8be5ce49ec0c4190a"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-prism-feature-v0-authored.json",
+      "sha": "4c4fcf3066807b8240840596ac1586f757b8c36b",
+      "sha256": "d9a999760b6492c0d3efe8642b12058ef5a4380e90d7f99d7feeb20c691630ce"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-quantity-functions.cad.css",
+      "sha": "e786cc8677dc7f2342030d30efc4a1fa6f96817b",
+      "sha256": "01f8980d6821bdecfbc1b64deb3428e428886b31c0d01909384c65e21a7ef42d"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-quantity-functions.jpg",
+      "sha": "1db5863301eebd2b3b7f2079f65b90bc1cb9f135",
+      "sha256": "481266d5e0b79a0b2ac051ec10307fba6fe7b51fb0cba55d66273630571895af"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-rational-dome.jpg",
+      "sha": "08284e3453618a22410d1a929a73b89ed7de1cd2",
+      "sha256": "6f98da7717f0e9badfb5e1f9e7aeaa9e91c338f8d766f163fca5ecee7e5956a2"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-surface-knot-insertion.svg",
+      "sha": "203d5e712121777ca77dbb600a35c81a5d97bb0d",
+      "sha256": "98a276250bd2b946e087c8f115845d47e779bdb287898846a4d1b7f7e9f04bc6"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-surface.png",
+      "sha": "fa497da0b5cf2bbed181c317decb5660e65cfbd5",
+      "sha256": "564006d47babd5eb140d309e10d49fc5d1e54b37af92d9b6406e1959954c25c9"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-weighted-parameters.png",
+      "sha": "2d6e91ac84aad1f8891096c89716d9d78f1afed5",
+      "sha256": "676671785dcbcc7daadf3b616bc7fa0a083946becd5bcf4d3f6ad138b08f0d85"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/canvas2d-rectangle.png",
+      "sha": "32ff92d5305579b3bd0bcb2e28f0506adaec1939",
+      "sha256": "edb2d63f4a0dd40b0aa6dabf96f0001d924fc7ae50e807d0525410e5e194e78e"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/caustics-shader-phase.jpg",
+      "sha": "5f462dc83eaeabb3c9022712a4f1400eb07d7569",
+      "sha256": "10af52be01fc49fb78049eda0ef965d3d3c6fb89beecd931f41a056de9ad75c0"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/caustics-shader.jpg",
+      "sha": "a08d049cfa8381176da2b2a9a4023dc72cadb355",
+      "sha256": "69891851c9b4afc4508ac2600831550a85447d724eec9205af53efc3fa109110"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/contour-shader.jpg",
+      "sha": "a8a75f839df1e6da0522b8d176fadbaba8f530ae",
+      "sha256": "773af6e569b2cf119beb6b9a8514acf1eb00a3fc8d1a5914ef05fba7fe654ffc"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cpu-material-evaluation.svg",
+      "sha": "62a911bdf4a81977d0fa928f109fcda54a366f9f",
+      "sha256": "a84d259be32c8d63e33c849d801d0e955ebaaf6c809b184b714c301fd9cb450a"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/diagram-label.jpg",
+      "sha": "5965298bbf72585fcc2fc2da70332863ff198440",
+      "sha256": "d81e38b2ce2e0aac7355428fafc51071c132b6c994a2d8bcabecda98b76181a7"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/discrete-material.jpg",
+      "sha": "1f5c02bd8f300fc0dea087919cfe7617ca2d218c",
+      "sha256": "10ecd1a7f106c12c5e2b7df490fe227ff56645b2b7c02c0ce16efc4313b7b137"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/example-organization.jpg",
+      "sha": "49bd014cda453a05f58777e23c80650a0d942902",
+      "sha256": "a0cafb6d41945954422535fdd0f070c09cd19be923bf6a858b418c5e1fc1466e"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/generated-scene.jpg",
+      "sha": "765234429aea78cf894efb678b0cd26e01fab9cc",
+      "sha256": "8dafa80b0eb1af6216a0c15fa33a53bad2f66ab5eed87ff7b3496ceb2a95e5f4"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/gpu-crossed-capsules.png",
+      "sha": "1f8f7e0935c1e33c4ca01b5b1894754443e4dbd4",
+      "sha256": "812d17868e0b981583398ccd3241c11f8ec672c04e3bf455af7939f8fd87baca"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/gpu-material-amount1.png",
+      "sha": "95442f2d671c793389dbe4110f842fcf0d71b536",
+      "sha256": "adb848095f39116045e7c6e9cf8215dad6ad003920c5ed10182fbd7d4088f7e1"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/gpu-material.png",
+      "sha": "8c2f01327b932fd5655cbfd9cd9844874a1feb59",
+      "sha256": "489ee2325dc9f9137c690d59f333a8483f43015a950ac87e1f4a4637a7b83dac"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/gpu-rounded-stack.png",
+      "sha": "58ff3b7156794be75b1421c59b0962dfee663060",
+      "sha256": "575294a792dd4240c1458afbdbc52586a3761408b52c9d8d4b33a71c8ae0cfbc"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/gpu-scene.png",
+      "sha": "24420ddd533ae061e1dea6abdba73558abe2a791",
+      "sha256": "179b3f9fe60d788c81466dc2fdf7dc1e47d79c47cdf896e6ed4769f5a346f5e7"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/gpu-six-shapes.png",
+      "sha": "f0ed8e5163fcd5c55345858e6ca84372635d44f0",
+      "sha256": "8402da338ef9cca9d1e2b715613a67c6d08c738da371105ccdf5ba79c1a5bd28"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/halftone-shader.jpg",
+      "sha": "ea4b44acfd6c5b2e5d2f95bee2caba3bc87b8bb6",
+      "sha256": "649edf2aab8fbea6169354fe059730f5ff5f08192630c5d8fac9011d85d9a594"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-abs.png",
+      "sha": "91c78805534f4fce72e32e849c2bc12221212dca",
+      "sha256": "1dbfe923f18917322b93d88b5439d5305824045cfcf1cd89f44a1e4af09e24d5"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-clamp.png",
+      "sha": "ee164757e376d5fabb0e90566b7fce2d2d80197d",
+      "sha256": "66063a61bb0076282e56018224f12956d2b6cec3d3f2a18a7c88b85523ffd9b1"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-cos.png",
+      "sha": "be478fe4369a31520ec7626de020e6a53a8108f5",
+      "sha256": "d9b13f39c85e98cab1797ee5b26ec2c3caf6ee7089e1e0106ffe0fab39de4623"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-max.png",
+      "sha": "1403d4c828c88425591d69b85c57e200ec443e8e",
+      "sha256": "9e14e635d5737cf7028582628fc01d3f4615efe07a043d0266edbbb974e7ef09"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-min.png",
+      "sha": "854499973fb095bc02a983670273667998cbf810",
+      "sha256": "a9fa048d80f5f8252a82a4ac5063557d16d27950a1bddbd282ab5e8e446340ab"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-mix.png",
+      "sha": "d3de4ffdf3f10ba51a7432133023e77b4ba5d62e",
+      "sha256": "6a3a93020d2bba54004bae08a53e2ea67e3a1d213092063aa7fce8a0a83677d5"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-pow.png",
+      "sha": "9200d6eaa295a0e84a0cfad9a7040fc406ebdb5e",
+      "sha256": "eb3a4fa1169e54b421a68677ed6270d8fc3b93e7333ddabcad8ccc023bb0ebb3"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-radians.png",
+      "sha": "adf01a74f61f72bfe0df6fc7db34c25c7b406239",
+      "sha256": "0a7a04d1dd8a76aa5449a19e85761d1e6107260045a486ef037297be3a711153"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-rgb.png",
+      "sha": "6fc4374adecf768de978b8fa63847688f9e01434",
+      "sha256": "a5af6202242559d2b1ae1d8a1146d48adf26c1077a5921105f47707ccf28f7f2"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-sin.png",
+      "sha": "7518020c2977f09f6fcc0fd4b57cd0b67428bc15",
+      "sha256": "ec8870ce9fc134b763fe07b8b9085d189164fb92e251318dd0fd0613d999a16c"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-smoothstep.png",
+      "sha": "d0bcd1b996475f52813534bea632b079ebf3a57f",
+      "sha256": "d623c9834e258aef180fa0c9c2f2c995e16e68a48ea09387806bb09d43320a59"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-transition-window.png",
+      "sha": "8bec091a4249444b79ab396ad4b3e9ccc8cbf410",
+      "sha256": "61b01307d9fed1d730d75676b6208df32234826b88d040516c121375b5285dac"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-cardinal-split.ts",
+      "sha": "6e72a0947b00cb622211ff46673bae6be8c503d1",
+      "sha256": "f3e4e854cc68a990cf8fde396b4862843bf47cdff5f041df3940c8686e860aaa"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-chamfer-chain.ts",
+      "sha": "6b3a4214f1b881041fad8d9b4b0ea987f28341b3",
+      "sha256": "eefa59ffd5c997f9115700ccf34baed0f2f201618f1f58c6debc6ca5d4504183"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-chamfer-split.ts",
+      "sha": "1c7ad69c00ad423167abba5c38a1fd3def1b62f4",
+      "sha256": "c2501c205a8561a96c14b081055f5c0a288f6d6ba57c52e6425d84988d15edb5"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-circle.ts",
+      "sha": "bb2980ae0edf2ed20d1a278291f16b5bda68708b",
+      "sha256": "0e48918c77a25d12dfc081adf36763f71a972cd4e2b2cae5c10412f2856edbbe"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-composition.ts",
+      "sha": "d111e589044cf44504ba8b2273a5619adcff1379",
+      "sha256": "05b3da828161e918b2a8cb08f4a0f817732fb31b1cc4f49159964fa4c1a5e84f"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-constrained-profile.ts",
+      "sha": "dab69a877815546911ae6feab4e86f6f31e0a11b",
+      "sha256": "6020dc8b35f8d97681e170a3209d4dd9ed85409234576ce5156ed57ec77a7477"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-dimensions.ts",
+      "sha": "239c3c97213f33cc6141471f8456d0aafc0f906c",
+      "sha256": "0439140e0addb1b2b4d28e70dd57711df712763f85b7473c9017b1b2b587fa91"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-hole.ts",
+      "sha": "451e2d0be46f7b1a1202a6a983c73d98f3a35fe7",
+      "sha256": "1b6fd4d8a0dbc23293ac6673ef04065ce2281f79797613dd4b0cbaec25589bf5"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-intersection.ts",
+      "sha": "8dea38b7d6f32e376c4a983b9718e8e6814be11b",
+      "sha256": "acb9b1d71dbf0a0daf16d9748c808a0fdd644b4a0ba83284e539776dbb2ce4a9"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-miter.ts",
+      "sha": "b67e858a90aa35a2fe4cfbe409386126ac2e5d03",
+      "sha256": "55d95d8252ba647377cad41729eaf262b475e5fc00a9941526bf4fe36aa68d34"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-pocket.ts",
+      "sha": "9c754569d313c23f9627db2ab8757c640cac2136",
+      "sha256": "37b9d1ddd08aa5393555a6cf6eee7a3f04fc49e49bce197a8e60f7330be20db1"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-split.ts",
+      "sha": "4770320ac6e437007227dc3aafc840c43d12bc4d",
+      "sha256": "20843920e8f55721a3941d7328b40a7ccccac1a062906b60e3bb36ea368c4c12"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-suppression.ts",
+      "sha": "e54dec45eae958604c04095cce3570a1fd2616d5",
+      "sha256": "bb1b26283c0993a5f536348a006a27787169b3db2908f7cb5f431f9f30d2de8c"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-top-pocket.ts",
+      "sha": "d7d0ee5b5cd34276c78b1d89da7a3f9be1ec5552",
+      "sha256": "517d77adeffc9945b3974fa2b116bac9fb14325a237638246da39a4fca4cf262"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-translated-gusset-right.stl",
+      "sha": "400ab39a44be8671645d4cd4c8267996dc7951b8",
+      "sha256": "c2a8c63ec1a0ff9ea8d1cded0737bc0cb9e79ceeea9f689eeefcedb5430f7d6e"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-translated-gussets.ts",
+      "sha": "c0d7eb358f26562b073ad5b25418a58b52694d36",
+      "sha256": "c1df94dc977ba15665e0d09dd36601f0d6884237405e75df0fbfe8feaaca7b2d"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-union.ts",
+      "sha": "43d96da109b4f7f8443d66d57fc0945ac987e0c9",
+      "sha256": "2ca830595b86623be0a9b94cb63a651f9290d6f3ccb932d36b295404f474fd32"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/nurbs-loft-graph.svg",
+      "sha": "22c0863f909c2760add38ca979ed8d85b5030e3f",
+      "sha256": "6060d7ab60aa538a1fbc368e4657da34f3173b4274c2c8f8aafeb1122a7fc6a9"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/path-edit.jpg",
+      "sha": "761797089bd7827c87c32d303e1ae4171fb9d03a",
+      "sha256": "725da9813026c4a288ff6b9f6645f5cf6a2b57fa65823d084784907a26cc3e01"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/physics-step.png",
+      "sha": "b04489f53d8019eeb07f437e13e2caacc89d3b83",
+      "sha256": "cf9f607ba09b76d98c509b474a965d671db510ec13a151b06aa9648c40f8551b"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/radial-svg-export.jpg",
+      "sha": "300232b4c889e88808b84c1a7cd8b7ff8562691b",
+      "sha256": "d397e39c2ce0c9a73609790c60318f18ddbd013ea40b104f4ec9b3c5714dd7cc"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/render-editor-directional.light-scene.json",
+      "sha": "aad7bd544d9aaedb7ee64ef7bc1d2b6f9a3898c0",
+      "sha256": "901f9d8e48185310b4c6cf109660e041790bdb44677be09807be33b5876dda23"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/render-editor-light-scene.ts",
+      "sha": "d5918529c0cab820c3e9d2683ab365ef4096741d",
+      "sha256": "8cd82f6e42e8a25edaaec3009b7c65f4b293e16d61dfd7535d884dd644afbd6a"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/render-editor-point.light-scene.json",
+      "sha": "2f402a2943c724f11ab49b7cd519e628631c0c79",
+      "sha256": "b6a393bd4abd2daae36271662c6fc601ca7861377d1b03bc1eb6ee0d432e20ce"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/reusable-shader.jpg",
+      "sha": "0b54539c0f0cdad5c1fb93c267e0db928e6c408c",
+      "sha256": "24d702cb4b5475db0c86c8701718d517b1650ceba448773ae715d7afe1778b77"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/serial-part-v2.json",
+      "sha": "50f7d1521c62e144846ac8687d5218bf061e3fbc",
+      "sha256": "15672f1f44b154698759db7ed80f903081fafecd1c2683e11448d5564276aaf9"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/source0.cad.css",
+      "sha": "fa33e637d4e6e20f840e245baf1a5aaffbb3228b",
+      "sha256": "e31fc1269d9d59645078cb9b1cc5bd13baece79bb21993d59a922888d758fdcf"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/source1.cad.css",
+      "sha": "0aabc07461b8ade77787ff14347706b0e87596e0",
+      "sha256": "36e25f4e4f2aaa02620c901f4443da73d490f4032c3d6b41ff75e45d7d28c355"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/source2.cad.css",
+      "sha": "6f1d4e76a5d799a859bc0c469a501140b0a6fff8",
+      "sha256": "3fa249d506991c15237531ce220ef3d168fcc95ba87c10d258c81b962a8d19ed"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/source3.cad.css",
+      "sha": "a036e0d8a7ce7e7bb0668d35c9ebd71557df902e",
+      "sha256": "7022e35b9aafff79d7ced839f0d01434591d498eb2be0571a90c4cce29f418bd"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/svg-arc-import.jpg",
+      "sha": "bd5e8f00ce5beebfec68ee97cdd8412b4bdb01bb",
+      "sha256": "63ed4e5df4c7a364e3d0378f64301cb0a34b4279e8f09821016adb560f61644e"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/svg-export.jpg",
+      "sha": "8be005c66efc5e6bf5d676a9970f0fd0226b4f3e",
+      "sha256": "6797bc5cf2116d548764d0d9a45709a6c4f450a5387fae1543b94cbe6f35478b"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/unicode-label.jpg",
+      "sha": "5885cc1fd22ce735e3d82ca417d2f07615ab3c5f",
+      "sha256": "cdce237b79d477c32f0d84c7a6558dbad62db73b06ba8afe5898ae7a89e06065"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/viewer-display-pose.jpg",
+      "sha": "c97d4889ab1731ea3424da5ebcd78a6187d87791",
+      "sha256": "f0b2e82f02fc50da19379734617465d9e7c4804e7e8166c4cff46f1f80eaaf28"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/viewer-panel.png",
+      "sha": "337851ed0f125dbe874c49f2ae13778830acf020",
+      "sha256": "f6f028ce737059c7953b88def1533ffd4cf86609842309c91c618a423eecb4a0"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/weave-shader.jpg",
+      "sha": "693897f7d2bad9ab824bbe109d5a42747dc30d92",
+      "sha256": "cfa4c1dc33b58940b8fa581271a890d90459d057c51fc509ca8533228cd11e2d"
+    },
+    {
+      "path": "apps/library-docs/docs/public/favicon.svg",
+      "sha": "6134481ce0dcf240975122a24d9804fa92e1b805",
+      "sha256": "0b41f5a023ae1050244e932754d959f92295fda2ffc9c4c478a3b78485153042"
+    }
+  ],
+  "expectedList": "Exact byte-identical previously qualified GPU/CAD-editor scripts field expectations from d0573aa66c9a34f195dcc3a01285bdde1ddf3428",
+  "unchangedCheckerSHA256": "71476729968c49f97d09a83b60465a0c47d08ceb84c73ad05e9f7128cd337488",
+  "unchangedHistoricalInventorySHA256": "b121aac9620fb8fe966c292710990317bf88b1b3535ea31a31cd787cefe7c2b5",
+  "docsHashes": {
+    "apps/library-docs/docs/packages/cad/modeling.md": "3a312e5b9bf93497f2e4b272ab047cdbb506aea928de343ad911e91792cf8516",
+    "apps/library-docs/docs/packages/render-editor/guides.md": "59cc00046e6a4ce810c6118f32fd2f71ca8a216b572d14309e31c7619b5efd63",
+    "apps/library-docs/docs/packages/render-editor/limits.md": "7187b0e91942338f90ae7004d139d75ded563ba3a1ab77b8a7c6c9015988a9ab"
+  },
+  "logs": {
+    "inventory-write.log": {
+      "sha256": "ee061b472756f07d201d39b6731920366f6a9628a58dc3da6fe72adc519e00e9",
+      "text": "(node:47) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\nRecorded current manifest metadata at ea249b0de2de79b6de4bc6db063de7692e87848b. Review changesFromSourceSnapshot; historical evidence was not rewritten.\n"
+    },
+    "inventory-test.log": {
+      "sha256": "5677ec32fe05c9a1e6ad4ae9090fba90ffa6d3149fd1180c5880b42445c29206",
+      "text": "(node:85) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\nTAP version 13\n# (node:92) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n# (Use `node --trace-warnings ...` to show where the warning was created)\n# Subtest: all 12 current manifests match; historical source pin and evidence stay separate\nok 1 - all 12 current manifests match; historical source pin and evidence stay separate\n  ---\n  duration_ms: 153.38828\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed version drift\nok 2 - refuses unreviewed version drift\n  ---\n  duration_ms: 79.751029\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed held Render version drift\nok 3 - refuses unreviewed held Render version drift\n  ---\n  duration_ms: 72.903186\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed development exports drift\nok 4 - refuses unreviewed development exports drift\n  ---\n  duration_ms: 74.878317\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed published exports drift\nok 5 - refuses unreviewed published exports drift\n  ---\n  duration_ms: 70.851159\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed dependencies drift\nok 6 - refuses unreviewed dependencies drift\n  ---\n  duration_ms: 71.748499\n  type: 'test'\n  ...\n# Subtest: refuses blind hash refresh and current metadata tampering\nok 7 - refuses blind hash refresh and current metadata tampering\n  ---\n  duration_ms: 65.071914\n  type: 'test'\n  ...\n# Subtest: refuses historical evidence or source pin replacement\nok 8 - refuses historical evidence or source pin replacement\n  ---\n  duration_ms: 8.886705\n  type: 'test'\n  ...\n# Subtest: records exact changed fields including metadata-only held Render\nok 9 - records exact changed fields including metadata-only held Render\n  ---\n  duration_ms: 0.320432\n  type: 'test'\n  ...\n# Subtest: requires an immutable full SHA instead of a moving branch or tag\nok 10 - requires an immutable full SHA instead of a moving branch or tag\n  ---\n  duration_ms: 0.249586\n  type: 'test'\n  ...\n# Subtest: refuses a missing package entry instead of silently reducing coverage\nok 11 - refuses a missing package entry instead of silently reducing coverage\n  ---\n  duration_ms: 70.41282\n  type: 'test'\n  ...\n# Subtest: refuses rewritten historical manifest metadata\nok 12 - refuses rewritten historical manifest metadata\n  ---\n  duration_ms: 12.371008\n  type: 'test'\n  ...\n1..12\n# tests 12\n# suites 0\n# pass 12\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 786.712843\n"
+    },
+    "inventory-check.log": {
+      "sha256": "feec692efe0907ad1ced497530828b58c186387ba4c8fb85c75de32a7544c8ba",
+      "text": "(node:341) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\nMatched 12 current manifests at ea249b0de2de79b6de4bc6db063de7692e87848b; historical source remains 5f5ad866205a21510ac69552e704cc162fa253b5.\n"
+    },
+    "source-links.log": {
+      "sha256": "3fd264bfd789c016b89cf57ddd8e3893bdc656ca4e9493d553136ef8ca5ff195",
+      "text": "(node:378) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\nCAD Editor round-post lesson: read-only UI/source/reference drift PASS (no native/browser execution)\nnode:internal/fs/promises:639\n  return new FileHandle(await PromisePrototypeThen(\n                        ^\n\nError: ENOENT: no such file or directory, open '/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/apps/library-docs/docs/.vitepress/dist/packages/cad/examples.html'\n    at async open (node:internal/fs/promises:639:25)\n    at async readFile (node:internal/fs/promises:1252:14)\n    at async file:///workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/apps/library-docs/scripts/check-docs.mjs:67:22 {\n  errno: -2,\n  code: 'ENOENT',\n  syscall: 'open',\n  path: '/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/apps/library-docs/docs/.vitepress/dist/packages/cad/examples.html'\n}\n\nNode.js v22.23.3\n"
+    },
+    "source-links-final.log": {
+      "sha256": "201e0feb6916b12b0eb0ea0782b0cea025d5dc29cc2cc80fabbe4178e81e281e",
+      "text": "(node:5) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"remoteCommitAvailable\":false,\"publicDeclarationLinksConverted\":0,\"localProvenancePaths\":0,\"policy\":\"Exact local pin preserved; no moving-branch substitution\"}\n"
+    }
+  },
+  "limitations": [
+    "Historical #1712 canceled ref mutation remains stopped and issue OPEN. This new snapshot never updates develop.",
+    "No new local full build or native campaign. Deployment/artifact verification pending at snapshot creation.",
+    "Actual STL download awaits Execute Tester. Static live navigation remains unrun; prior denial not bypassed."
+  ],
+  "checks": {
+    "inventoryTests": "12/12 PASS",
+    "inventoryConsistency": "12/12 PASS",
+    "sourceLinkPolicy": "PASS",
+    "fullBuiltDocsCheck": "NOT PASSED locally: mistakenly invoked built checker before build, preserved ENOENT; actual build/anchors belong to Manual workflow"
+  },
+  "firstFailures": [
+    {
+      "log": "source-links.log",
+      "command": "node apps/library-docs/scripts/check-docs.mjs --links",
+      "cause": "That command requires built HTML and has no source-only --links mode. Preserved ENOENT; no source/checker changes.",
+      "correction": "Run existing node apps/library-docs/scripts/source-links.mjs --check for the approved source-only check."
+    }
+  ]
+}
