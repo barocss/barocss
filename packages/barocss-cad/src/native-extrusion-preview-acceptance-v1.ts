@@ -74,6 +74,7 @@ export function createNativeExtrusionPreviewAcceptanceV1(
   const region = accepted.features.find(row => row.featureId === leaf.regionFeatureId);
   if (!region || region.kind !== 'coplanar-boolean')
     throw new TypeError('Previously evaluated owned Boolean region required');
+  const regionFeatureId = region.featureId;
   let privateRegion: typeof region.evaluation | null = region.evaluation;
   let privateOptions: typeof leaf.options | null = { ...leaf.options };
   const live = (): BooleanExtrusionFeatureGraphResult => {
@@ -131,7 +132,7 @@ export function createNativeExtrusionPreviewAcceptanceV1(
         parameterEdits: [], faceEdits: [], booleanEdits: [],
         distanceEdits: [{ featureId, definition: { kind: 'literal', valueMM: candidate.distanceMM } }],
       });
-      const rebuiltRegion = next.features.find(row => row.featureId === region.featureId);
+      const rebuiltRegion = next.features.find(row => row.featureId === regionFeatureId);
       if (!rebuiltRegion || rebuiltRegion.kind !== 'coplanar-boolean' ||
           !same(rebuiltRegion.evaluation, privateRegion))
         throw new Error('Native preview region changed during full rebuild; accepted state retained');
