@@ -20,6 +20,7 @@ const world=createPhysicsWorld(config);
 let accepted=0,maxPenetrationM=0,maxHeightDeviationM=0,maxTiltRad=0;
 let maxSpeedMps=0,maxAngularSpeedRadps=0;
 let refusal:string|null=null, firstFailure:string|null=null;
+const lastWindow = new Map<string,{firstY:number,lastY:number,maxHorizontalDriftM:number,maxSpeedMps:number,maxAngularSpeedRadps:number,maxTiltRad:number}>();
 try {
   for(let step=0;step<steps;step++){
     try {
@@ -35,6 +36,17 @@ try {
         maxTiltRad=Math.max(maxTiltRad,2*Math.acos(Math.min(1,Math.abs(body.orientation[3]))));
         maxSpeedMps=Math.max(maxSpeedMps,Math.hypot(...body.velocityMps));
         maxAngularSpeedRadps=Math.max(maxAngularSpeedRadps,Math.hypot(...body.angularVelocityRadps));
+        if(step>=960){
+          const tilt=2*Math.acos(Math.min(1,Math.abs(body.orientation[3])));
+          const metric=lastWindow.get(body.id)??{firstY:body.positionM[1],lastY:body.positionM[1],
+            maxHorizontalDriftM:0,maxSpeedMps:0,maxAngularSpeedRadps:0,maxTiltRad:0};
+          metric.lastY=body.positionM[1];
+          metric.maxHorizontalDriftM=Math.max(metric.maxHorizontalDriftM,Math.hypot(body.positionM[0],body.positionM[2]));
+          metric.maxSpeedMps=Math.max(metric.maxSpeedMps,Math.hypot(...body.velocityMps));
+          metric.maxAngularSpeedRadps=Math.max(metric.maxAngularSpeedRadps,Math.hypot(...body.angularVelocityRadps));
+          metric.maxTiltRad=Math.max(metric.maxTiltRad,tilt);
+          lastWindow.set(body.id,metric);
+        }
         if(![...body.positionM,...body.velocityMps,...body.orientation,...body.angularVelocityRadps].every(Number.isFinite))
           throw Error('nonfinite body');
       }
@@ -51,6 +63,7 @@ try {
   console.log(JSON.stringify({profile:'public-small-stack-resting-10s-v1',stackSize,stepsRequested:steps,
     accepted,firstFailure,refusal,maxPenetrationM,maxHeightDeviationM,
     maxTiltRad,maxSpeedMps,maxAngularSpeedRadps,
+    lastTwoSeconds:Object.fromEntries([...lastWindow].sort(([a],[b])=>a.localeCompare(b)).map(([id,m])=>[id,{verticalDriftM:Math.abs(m.lastY-m.firstY),maxHorizontalDriftM:m.maxHorizontalDriftM,maxSpeedMps:m.maxSpeedMps,maxAngularSpeedRadps:m.maxAngularSpeedRadps,maxTiltRad:m.maxTiltRad}])),
     smallProfileNumericResult:firstFailure?'NO_GO':'MEASURED_ONLY',
     nineBodyStableWorldQualified:false},null,2));
   if(firstFailure)process.exitCode=1;
