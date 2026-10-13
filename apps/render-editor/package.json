@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 52047 --strictPort",
     "build": "tsc --noEmit && vite build",
-    "test": "node native-gizmo-ui-flow.mjs && node native-gizmo-authoring-ci.mjs"
+    "test": "node native-gizmo-ui-flow.mjs && node native-gizmo-authoring-ci.mjs && node native-light-bodies-ci.mjs"
   },
   "dependencies": {
     "@barocss/cad": "workspace:*",
