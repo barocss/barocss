@@ -61,7 +61,7 @@ A viewport click is an approximate display-face selection. It is not proof of ce
 
 Open **Save or open a model**.
 
-1. Choose **Download model** to initiate a browser download named `part.cad.json`. Confirm that your browser actually saved the file; starting a download is **not** proof of filesystem persistence. **Show saved model** is also available if you prefer to inspect or copy the accepted authored text.
+1. Choose **Download model** to initiate a browser download named `part.cad.json`. Confirm that your browser actually saved the file; starting a download is **not** proof of filesystem persistence and does not by itself prove successful storage. **Show saved model** is also available if you prefer to inspect or copy the accepted authored text.
 2. Choose **Choose model file** and pick the saved `part.cad.json` from your computer. This **only stages** its UTF-8 text inside **Saved model data**; it does not parse or accept the file, replace the model, change history, or alter the viewport.
 3. Review the staged text, then check **Replace accepted model and discard its history and pending dimensions** and choose **Open saved model**. Only this explicit action asks the model controller to validate, rebuild and accept the authored geometry. If it refuses, the previous accepted model remains.
 4. After acceptance, use **Visible output body** to choose `part` again. Find `depth` under **Named dimensions** and make another supported edit to verify the model remains editable.
