@@ -61,3 +61,21 @@ test('circle dimensions use the same nested dependency/key and signed-zero autho
   assert.notEqual(key({ ...document, nodes: [{ ...circle, profile: 'rectangle' }, height] }), graph);
   assert.equal(prefix(false, graph, graph, values, values, names), 0);
 });
+
+test('union-slot graph keeps complete dependencies and only reuses the unchanged prefix', () => {
+  const p = parameter => ({ parameter });
+  const nodes = [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [32, 8] }, { kind: 'extrude', sketch: 0, height: 8 },
+    { kind: 'sketch', profile: 'rectangle', min: [p('x'), 0], max: [p('legWidth'), 24] }, { kind: 'extrude', sketch: 2, height: 8 },
+    { kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } },
+    { kind: 'sketch', profile: 'rectangle', min: [16, 2], max: [{ op: 'add', left: 16, right: p('slotWidth') }, 6] },
+    { kind: 'extrude', sketch: 5, height: 8 }, { kind: 'difference', parent: { node: 4, side: 'solid' }, tool: { node: 6, side: 'solid' } }];
+  const values = { x: -0, legWidth: 8, slotWidth: 8 }, names = nodes.map(refs);
+  assert.deepEqual(names, [[], [], ['legWidth', 'x'], [], [], ['slotWidth'], [], []]);
+  const doc = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: values, nodes, outputs: { slotted: { node: 7, side: 'solid' } } }, k = key(doc);
+  assert.equal(prefix(true, k, k, { ...values }, values, names), 8);
+  assert.equal(prefix(true, k, k, { ...values, slotWidth: 12 }, values, names), 5);
+  assert.equal(prefix(true, k, k, { ...values, legWidth: 12 }, values, names), 2);
+  assert.equal(prefix(true, k, k, { ...values, x: 0 }, values, names), 2);
+  const changed = structuredClone(doc); changed.nodes[7].parent.node = 1; assert.notEqual(key(changed), k);
+  assert.equal(prefix(false, k, k, values, values, names), 0);
+});

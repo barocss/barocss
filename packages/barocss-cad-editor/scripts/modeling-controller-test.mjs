@@ -152,6 +152,47 @@ try {
     assert.equal(guarded.getSnapshot().history.count, before.history.count + 1); assert.equal(commits, commitCount + 1);
     assert.deepEqual(guarded.getSnapshot().drafts, {}); assert.equal(guarded.getSnapshot().error, null); guarded.dispose(); checks++;
   }
+  // The new eight-node chain cannot masquerade as existing transports or hide
+  // behind an earlier output. Every refusal preserves history/selection/recovery.
+  for(const mode of ['untagged-convex','tagged-convex','old-orthogonal','legacy-v0','legacy-v2','hidden-chain','display-getter']) {
+    let commits=0,displayReads=0;
+    const guarded=create({prepare:async()=>({commit(){commits++;},dispose(){}})});
+    let pending=guarded.example(),worker=instances.at(-1);worker.accept();await pending;
+    guarded.stage('height','6');pending=guarded.apply();worker.accept();await pending;
+    guarded.stage('height','7');guarded.select(1,guarded.getSnapshot().generation);
+    const before=stable(guarded),commitCount=commits;
+    const graph={...structuredClone(authored),nodes:[
+      ...structuredClone(authored.nodes),
+      {kind:'sketch',profile:'rectangle',min:[0,0],max:[8,24]},{kind:'extrude',sketch:2,height:8},
+      {kind:'union',left:{node:1,side:'solid'},right:{node:3,side:'solid'}},
+      {kind:'sketch',profile:'rectangle',min:[16,2],max:[24,6]},{kind:'extrude',sketch:5,height:8},
+      {kind:'difference',parent:{node:4,side:'solid'},tool:{node:6,side:'solid'}},
+    ],outputs:mode==='hidden-chain'?{base:{node:1,side:'solid'}}:{part:{node:7,side:'solid'}}};
+    const candidate=reply(graph);
+    if(mode.startsWith('legacy')) {
+      const legacy={format:'barocss-xy-affine-prism-feature-document',version:mode==='legacy-v0'?0:2,
+        id:candidate.summary.documentId,revision:0,parameters:Object.entries(graph.parameters).map(([id,valueMM])=>({id,valueMM})),nodes:graph.nodes};
+      candidate.text=signedJSON(legacy);candidate.summary.source='legacy';candidate.compatibility={document:legacy,components:candidate.display.outcomes};
+    }
+    pending=guarded.open(candidate.text);
+    if(mode==='tagged-convex'||mode==='old-orthogonal') {
+      const family=mode==='old-orthogonal'?'orthogonal-cell':'convex-planar';
+      candidate.display.profile='model-body-faces';candidate.display.taskToken=worker.requests.at(-1).taskToken;
+      candidate.summary.outputs[0].family=candidate.display.outcomes[0].family=family;
+      candidate.display.components=family==='convex-planar'?[{family,component:candidate.display.components[0]}]
+        :[{family,role:'part',solidId:nativeId,qualification:{operation:'difference',volumeMM3:1}}];
+    }
+    if(mode==='display-getter') {
+      Object.defineProperty(candidate,'display',{get(){displayReads++;throw Error('Unsupported chain must refuse before display');}});
+      candidate.id=worker.requests.at(-1).id;worker.callbacks.get('message')({data:candidate});
+    } else worker.send(candidate);
+    await pending;assert.match(guarded.getSnapshot().error,/Composed union-slot preview is not available/);
+    assert.equal(displayReads,0);assert.deepEqual(stable(guarded),before);assert.equal(commits,commitCount);assert.equal(worker.terminated,true);checks++;
+    pending=guarded.apply();worker=instances.at(-1);assert.equal(worker.requests[0].text,before.authoredText);worker.accept();await tick();
+    assert.deepEqual(worker.requests[1].parameters,{height:7});worker.accept();await pending;
+    assert.equal(guarded.getSnapshot().error,null);assert.equal(guarded.getSnapshot().accepted.parameters.height,7);
+    assert.equal(guarded.getSnapshot().history.count,before.history.count+1);assert.equal(commits,commitCount+1);guarded.dispose();checks++;
+  }
   // A circle extrusion cannot masquerade as any existing transport or a legacy file.
   for (const mode of ['untagged-convex','tagged-convex','tagged-circle','legacy-v0','legacy-v2']) {
     let commits = 0;

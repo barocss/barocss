@@ -769,3 +769,46 @@ measured. Run only under a reserved native budget:
 CAD_MODEL_GPU_MODULE=/path/to/source-bundled-axis-box-boolean-buffers.mjs node --no-opt --max-old-space-size=1536 test/modeling-box-cut-native.mjs
 node --no-opt --max-old-space-size=1536 scripts/modeling-box-cut-consumer.mjs test/modeling-box-cut-evidence
 ```
+
+## Cut a through-slot in a union bracket
+
+```ts
+import { cad } from '@barocss/cad';
+
+const m = cad.model();
+const width = m.parameter('slotWidth', 8);
+const base = m.sketch.rectangle({ width: 32, height: 8 }).extrude(8);
+const leg = m.sketch.rectangle({ width: 8, height: 24 }).extrude(8);
+const bracket = base.union(leg);
+const tool = m.sketch.rectangle({
+  min: [16, 2], max: [m.dimension.add(16, width), 6],
+}).extrude(8);
+const slotted = bracket.cut(tool);
+const initial = m.build({ bracket, slotted });
+const wider = initial.withParameters({ slotWidth: 12 });
+const reopened = cad.load(wider.save());
+const body = reopened.bodies.slotted;
+if (body.family !== 'orthogonal-cell') throw new Error('Expected orthogonal cells');
+const volumeMM3 = body.native.report.volumeMM3;
+void volumeMM3;
+```
+
+The bracket has exact volume 3072 mm³. The slotted part has 2816 mm³ initially
+and 2688 mm³ after the edit. This chain alone admits eight nodes and three direct
+integer rectangles/extrusions. The third rectangle follows the accepted authored
+union prefix; the final cut must consume that union and the distinct third tool.
+All boxes start at Z=0. The normal six-node limit remains for other recipes.
+
+The final native schema is `barocss-orthogonal-solid-boolean`, distinct from the
+two-box result. Its complete parents and exact original/immediate-parent UV
+lineage are preserved. A diagnostic feature with `composition: 'union-slot'`
+exposes that real union parent and direct convex tool. Empty or disconnected
+results cannot become a `CadShape`; the error retains their complete native data.
+Unchanged model features can be reused, but composed native evaluation still
+reconstructs its retained union. Save/load never imports a geometry cache.
+
+Composed bracket-slot preview is unavailable in the current editor boundary;
+the accepted scene/history remains intact on refusal. A later complete receiver
+must validate three-operand occupancy and parent-panel lineage, without treating
+this result as the old two-box transport. General nested Booleans, round-post
+operations and arbitrary transformed solids remain outside this slice.

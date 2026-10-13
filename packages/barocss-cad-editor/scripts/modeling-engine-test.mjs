@@ -31,7 +31,7 @@ let tessellations = 0, rejectTessellation = false, unsupportedNativeReads = 0, h
 function snapshot(data) {
   const native = { report: { solidId: 'current_solid' }, certificate: { volumeMM3: { numerator: '1', denominator: '1' } }, graph: { vertices: [], edges: [], faces: [], vertexLinks: [] } };
   const body = { family: 'convex-planar', native };
-  const unsupported = data.union ? {family:'orthogonal-cell',native:{panels:Array.from({length:65},()=>({}))}} : { family: data.unknownFamily ? 'unknown-family' : 'stored-rational-plate-hole', get native() { unsupportedNativeReads++; throw new Error('Unsupported native payload must not be inspected'); } };
+  const unsupported = data.union ? {family:'orthogonal-cell',native:{report:{schema:'barocss-axis-box-solid-boolean'},a:{},panels:Array.from({length:65},()=>({}))}} : { family: data.unknownFamily ? 'unknown-family' : 'stored-rational-plate-hole', get native() { unsupportedNativeReads++; throw new Error('Unsupported native payload must not be inspected'); } };
   const result = { parameters: data.parameters, suppression:Object.fromEntries(data.nodes.filter(n=>n.name).map(n=>[n.name,n.suppressed])),
     withSuppression(values) { suppressionEdits.push({snapshot:result,values:structuredClone(values)}); if(data.parameters.backY===1) throw new Error('METRIC candidate refused'); return snapshot({...data,nodes:data.nodes.map(n=>n.name&&Object.hasOwn(values,n.name)?{...n,suppressed:values[n.name]}:n)}); },
     recomputation: Object.freeze({ reusedFeatures: Object.freeze([]), evaluatedFeatures: Object.freeze(data.nodes.map((_node, index) => index)) }),
@@ -313,6 +313,43 @@ for (const acceptedKind of ['convex', 'hole']) for (const family of ['convex-pla
   const recovered = guarded({ id: ++id, kind: 'apply', expectedRevision: 0, parameters: acceptedKind === 'hole' ? { radius: 2.5 } : { height: 6 }, taskToken: 'circle_recovery' });
   assert.equal(recovered.ok, true, recovered.message); assert.equal(snapshotEdits.at(-1).snapshot, accepted); checks++;
 }
+// A complete union-slot graph refuses before every native payload and summary,
+// even when its composed output is hidden or laundered under an existing family.
+let compositionSummaryReads = 0;
+const compositionNodes = [
+  { kind: 'sketch', profile: 'rectangle', min: [0,0], max: [32,8] }, { kind: 'extrude', sketch: 0, height: 8 },
+  { kind: 'sketch', profile: 'rectangle', min: [0,0], max: [8,24] }, { kind: 'extrude', sketch: 2, height: 8 },
+  { kind: 'union', left: {node:1,side:'solid'}, right: {node:3,side:'solid'} },
+  { kind: 'sketch', profile: 'rectangle', min: [16,2], max: [24,6] }, { kind: 'extrude', sketch: 5, height: 8 },
+  { kind: 'difference', parent: {node:4,side:'solid'}, tool: {node:6,side:'solid'} },
+];
+for (const acceptedKind of ['convex','hole','circle']) for (const family of ['convex-planar','orthogonal-cell']) for (const hidden of [false,true]) {
+  const guarded=create(),baseline=acceptedKind==='convex'
+    ? guarded({id:++id,kind:'open',text:JSON.stringify(document)})
+    : guarded({id:++id,kind:'example',example:acceptedKind==='hole'?'mounting-plate':'round-post',taskToken:'composition_base'});
+  assert.equal(baseline.ok,true,baseline.message);
+  const accepted=snapshots.at(-1),saved=JSON.stringify(baseline),before=tessellations+holeTessellations+circleTessellations;
+  const graph={...document,nodes:structuredClone(compositionNodes),outputs:hidden?{base:{node:1,side:'solid'}}:{base:{node:1,side:'solid'},slot:{node:7,side:'solid'}}};
+  const candidate=snapshot(graph);
+  candidate.bodies=Object.fromEntries(Object.keys(graph.outputs).map(name=>[name,{family,
+    get native(){unsupportedNativeReads++;throw Error('Composition must refuse before native access');}}]));
+  for(const property of ['parameters','suppression','features'])Object.defineProperty(candidate,property,{get(){compositionSummaryReads++;throw Error('Composition must refuse before summary access');}});
+  nextLoadedSnapshot=candidate;
+  const refused=guarded({id:++id,kind:'open',text:JSON.stringify({...document,operation:'union'}),taskToken:'composition_refused'});
+  assert.equal(refused.ok,false);assert.match(refused.message,/Composed union-slot preview is not available/);
+  assert.equal(unsupportedNativeReads,0);assert.equal(compositionSummaryReads,0);
+  assert.equal(tessellations+holeTessellations+circleTessellations,before);assert.equal(JSON.stringify(baseline),saved);checks++;
+  const recovered=guarded({id:++id,kind:'apply',expectedRevision:0,parameters:acceptedKind==='hole'?{radius:2.5}:{height:9},taskToken:'composition_recovery'});
+  assert.equal(recovered.ok,true,recovered.message);assert.equal(snapshotEdits.at(-1).snapshot,accepted);assert.equal(recovered.summary.revision,1);checks++;
+}
+// Native schema remains a second boundary if a forged provider omits ancestry.
+const forgedSchemaGraph={...document,nodes:[...compositionNodes.slice(0,4),{kind:'difference',parent:{node:1,side:'solid'},tool:{node:3,side:'solid'}}],outputs:{part:{node:4,side:'solid'}}};
+const forgedSchema=snapshot(forgedSchemaGraph);let composedPayloadReads=0;
+forgedSchema.bodies={part:{family:'orthogonal-cell',native:{report:{schema:'barocss-orthogonal-solid-boolean'},
+  get panels(){composedPayloadReads++;throw Error('Composed panels must not enter the two-box receiver');}}}};
+nextLoadedSnapshot=forgedSchema;
+const schemaRefusal=create()({id:++id,kind:'open',text:JSON.stringify(document),taskToken:'composition_schema'});
+assert.equal(schemaRefusal.ok,false);assert.match(schemaRefusal.message,/separate native-schema receiver/);assert.equal(composedPayloadReads,0);checks++;
 // Genuine measured baseline is serialized through the real adapter with fresh display-only context.
 const roundEngine=create(),roundFirst=roundEngine({id:++id,kind:'example',example:'round-post',taskToken:'round_initial'});
 assert.equal(roundFirst.ok,true,roundFirst.message);assert.equal(roundFirst.summary.outputs[0].family,'stored-rational-circle-prism');assert.equal(roundFirst.summary.outputs[0].volumeMM3,null);assert.equal(roundFirst.display.components[0].preview.packet.positions.length/3,98);checks++;

@@ -10898,3 +10898,31 @@ source-derived child-call accounting and its measured evidence status. Existing
 shell preview emits authored XYZ coordinates even though its packet carries the
 legacy Y-up label; a future consumer must establish its coordinate conversion
 explicitly. Qualification and the sampled preview do not certify each other.
+
+### Cut a slot in an owned union bracket
+
+The primary model admits one exact `base.union(leg).cut(tool)` chain of three
+distinct direct integer rectangular extrusions. Author the two base extrusions,
+their union, then the third rectangular tool and final cut. This workflow has an
+explicit eight-node/three-sketch/three-extrusion envelope; all other recipes keep
+the ordinary six-node envelope. It does not enable reversed, repeated or general
+mixed Booleans, circle operations, or finishing on an orthogonal result.
+
+The final `bodies[name].family` is still `orthogonal-cell`. Its unchanged native
+payload is either `AxisBoxSolidBooleanResult` or `OrthogonalSolidBooleanResult`;
+inspect the actual `report.schema` before using representation-specific fields.
+The composed schema is `barocss-orthogonal-solid-boolean`, with complete left/right
+parents, original-index lineage and immediate `parentPanels` UV correspondence.
+It is never a bounds-derived box. Empty and disconnected results refuse a public
+single-shape output with their complete native result retained as the error cause.
+
+Parameter edits and authored save/load use the existing immutable model lifecycle.
+Reused model prefixes do not eliminate the native composition provider's actual
+reconstruction of its retained union. Native, cell and shell volume remain exact
+within the admitted integer family; preview is sampled separately.
+
+Composed bracket-slot preview is unavailable in the current editor boundary.
+It refuses before reading native output data or replacing the accepted scene.
+A separate receiver must validate all three original operands and immediate
+parent-panel lineage before using the existing raw face preview path. See #1695
+for the frozen source/native campaign and its measured status.

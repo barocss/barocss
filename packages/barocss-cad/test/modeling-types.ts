@@ -1,4 +1,18 @@
 import { cad, type CadModelSnapshot, type CadShape, type CadParameter, type CadSplit, type CadDimensionExpression, type CadBody, type CadCut } from '../src/index.js';
+const composedModel = cad.model();
+const composedA = composedModel.sketch.rectangle({ width: 32, height: 8 }).extrude(8);
+const composedB = composedModel.sketch.rectangle({ width: 8, height: 24 }).extrude(8);
+const composedUnion = composedA.union(composedB);
+const composedTool = composedModel.sketch.rectangle({ min: [16, 2], max: [24, 6] }).extrude(8);
+const composedSnapshot = composedModel.build({ slotted: composedUnion.cut(composedTool) });
+for (const feature of composedSnapshot.evidence) if (feature.kind === 'difference') {
+  if (feature.composition === 'union-slot') {
+    feature.native.left.result.panels; feature.native.panels[0].parentPanels;
+    feature.parent.a.source; feature.tool.certificate;
+    // @ts-expect-error Composed evidence is not the legacy convex-parent tuple.
+    feature.parents;
+  } else { feature.parents[0].certificate; feature.native.a.source; }
+}
 const model = cad.model();
 const width: CadParameter = model.parameter('width', 80);
 const plate: CadShape = model.sketch.rectangle({ min: [0, 0], max: [width, 60] }).extrude(10);

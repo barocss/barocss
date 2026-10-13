@@ -60,6 +60,14 @@ function authoredFinishes(nodes: Record<string, unknown>[], features: CadEditorM
 }
 function sourceMatches(reply: Success, taskToken?: string) {
   const { summary } = reply, data = JSON.parse(reply.text);
+  // Refuse unsupported ancestry before inspecting any worker display payload,
+  // including a forged legacy/convex/two-box summary or hidden chain output.
+  if (Array.isArray(data?.nodes) && data.nodes.some((node: { kind?: string; parent?: { node?: number } }, index: number) => {
+    const parent = node?.parent?.node;
+    return node?.kind === 'difference' && typeof parent === 'number' && Number.isSafeInteger(parent)
+      && parent >= 0 && parent < index && data.nodes[parent]?.kind === 'union';
+  }))
+    throw new Error('Composed union-slot preview is not available yet.');
   const circleOutput = (index: number): boolean => {
     const node = data.nodes?.[index], sketch = node?.sketch;
     return node?.kind === 'extrude' && Number.isSafeInteger(sketch) && sketch >= 0 && sketch < index

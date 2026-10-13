@@ -19,6 +19,8 @@ import type { ConvexPlanarSolidChamferResult, ConvexPlanarChamferUseReference } 
 import type { ConvexPlanarSolidResult, ConvexPlanarSolidGraph } from './convex-planar-solid.js';
 import { buildAxisBoxSolidBoolean } from './axis-box-boolean.js';
 import type { AxisBoxSolidBooleanResult } from './axis-box-boolean.js';
+import { buildOrthogonalSolidBoolean } from './orthogonal-solid-boolean.js';
+import type { OrthogonalSolidBooleanResult } from './orthogonal-solid-boolean.js';
 import { buildModelingBox } from './modeling-box-internal.js';
 import type { Point } from './types.js';
 import { buildOwnPlateCircularHole } from './own-plate-circular-hole.js';
@@ -56,7 +58,7 @@ export interface CadShape {
   intersect(other: CadShape): CadShape;
   /** Cardinal or x+y=at split of a direct XY extrusion or its owned chamfer chain; at is a coordinate/sum in mm. */
   split(options: SplitPlane & { readonly at: CadDimension }): CadSplit;
-  /** One positive-volume rectangular difference; both integer extrusion operands start at Z=0. */
+  /** One rectangular difference, or one third-box slot in an owned union; all boxes start at Z=0. */
   cut(tool: CadShape): CadShape;
   /** Legacy through-slab pair. Options must be provided as an exact axis record. */
   cut(tool: CadShape, options: { readonly axis: 'x' | 'y' }): CadCut;
@@ -86,7 +88,8 @@ export type CadModelEvidence =
   | { readonly kind: 'cut'; readonly native: ConvexPlanarSlabSubtractionResult }
   | { readonly kind: 'intersect'; readonly native: ConvexPlanarSolidIntersectionResult }
   | { readonly kind: 'split'; readonly native: ConvexPlanarSolidSplitResult }
-  | { readonly kind: 'difference'; readonly parents: readonly [ConvexPlanarSolidResult, ConvexPlanarSolidResult]; readonly native: AxisBoxSolidBooleanResult }
+  | { readonly kind: 'difference'; readonly composition?: never; readonly parents: readonly [ConvexPlanarSolidResult, ConvexPlanarSolidResult]; readonly native: AxisBoxSolidBooleanResult }
+  | { readonly kind: 'difference'; readonly composition: 'union-slot'; readonly parent: AxisBoxSolidBooleanResult; readonly tool: ConvexPlanarSolidResult; readonly native: OrthogonalSolidBooleanResult }
   | { readonly kind: 'union'; readonly parents: readonly [ConvexPlanarSolidResult, ConvexPlanarSolidResult]; readonly native: AxisBoxSolidBooleanResult }
   | { readonly kind: 'hole'; readonly parent: ConvexPlanarSolidResult; readonly native: StoredPlateHoleSolidResult }
   | { readonly kind: 'chamfer'; readonly native: ConvexPlanarSolidChamferResult; readonly configuration?: { readonly name: string; readonly suppressed: boolean; readonly output: 'parent' | 'chamfer-result' } };
@@ -94,7 +97,7 @@ export interface CadModelFeature { readonly kind: CadModelEvidence['kind']; read
 /** One complete output contract. Narrow family before using its unchanged native result. */
 export type CadBody = { readonly family: 'convex-planar'; readonly native: ConvexPlanarSolidResult }
   | { readonly family: 'stored-rational-plate-hole'; readonly native: StoredPlateHoleSolidResult }
-  | { readonly family: 'orthogonal-cell'; readonly native: AxisBoxSolidBooleanResult }
+  | { readonly family: 'orthogonal-cell'; readonly native: AxisBoxSolidBooleanResult | OrthogonalSolidBooleanResult }
   | { readonly family: 'stored-rational-circle-prism'; readonly native: StoredCirclePrismSolidResult };
 export interface CadModelSnapshot {
   /** Deep-frozen tagged bodies; native source/topology/certificates remain authoritative. */
@@ -113,7 +116,7 @@ export interface CadModelSnapshot {
   /** Saves only accepted authored state; no native results or meshes. */
   save(): string;
 }
-export const CadModelLimits = Object.freeze({ nodes: 6, sketches: 2, extrusions: 2, cuts: 1, intersections: 1, splits: 1, chamfers: 2, holes: 1, unions: 1, differences: 1, parameters: 16, outputs: 8, polygonPoints: 8, fileBytes: 65536, inputDepth: 12, lengthMM: 10000, dimensionNodes: ModelDimensionLimits.nodes, dimensionDepth: ModelDimensionLimits.depth });
+export const CadModelLimits = Object.freeze({ nodes: 6, sketches: 2, extrusions: 2, compositionNodes: 8, compositionSketches: 3, compositionExtrusions: 3, cuts: 1, intersections: 1, splits: 1, chamfers: 2, holes: 1, unions: 1, differences: 1, parameters: 16, outputs: 8, polygonPoints: 8, fileBytes: 65536, inputDepth: 12, lengthMM: 10000, dimensionNodes: ModelDimensionLimits.nodes, dimensionDepth: ModelDimensionLimits.depth });
 
 type Query = { parallelTo?: CadAxis; at?: Partial<Record<CadAxis, Dimension | 'min' | 'max'>> };
 type BodyRef = { node: number; side: 'solid' | 'negative' | 'positive' };
@@ -242,6 +245,22 @@ function plateDimensions(nodes: readonly Node[], reference: BodyRef, parameters:
   demand(dimensions.every(value => Number.isSafeInteger(value) && value >= 1 && value <= CadModelLimits.lengthMM), 'CAPABILITY', 'hole', 'Hole plate dimensions must be integers from 1 to 10000 mm');
   return dimensions;
 }
+/** The expanded budget belongs only to this owned authoring prefix, never arbitrary extra features. */
+function compositionPrefix(nodes: readonly Node[]): boolean {
+  if (nodes.length < 5 || nodes.length > CadModelLimits.compositionNodes) return false;
+  const ref = (value: BodyRef | undefined, index: number) => value?.node === index && value.side === 'solid';
+  for (const [sketch, extrusion] of [[0, 1], [2, 3], [5, 6]]) {
+    if (sketch >= nodes.length) continue;
+    const s = nodes[sketch]; if (s?.kind !== 'sketch' || s.profile !== 'rectangle') return false;
+    if (extrusion >= nodes.length) continue;
+    const e = nodes[extrusion]; if (e?.kind !== 'extrude' || e.sketch !== sketch) return false;
+  }
+  const union = nodes[4];
+  if (union?.kind !== 'union' || !ref(union.left, 1) || !ref(union.right, 3)) return false;
+  const difference = nodes[7];
+  return nodes.length < 8 || difference?.kind === 'difference' && ref(difference.parent, 4) && ref(difference.tool, 6);
+}
+function compositionGraph(nodes: readonly Node[]): boolean { return nodes.length === CadModelLimits.compositionNodes && compositionPrefix(nodes); }
 function admit(input: Document): Document {
   const d = copy(input); record(d, 'load', ['format', 'schema', 'units', 'parameters', 'nodes', 'outputs']);
   demand(d.format === 'barocss-cad-model' && d.schema === 1 && d.units === 'mm', 'FORMAT', 'load', 'Supported CAD model file required; legacy feature files need their legacy reader');
@@ -250,7 +269,9 @@ function admit(input: Document): Document {
   const dimension = (value: unknown) => { resolvedDimension(value, d.parameters); };
   const point = (value: unknown) => list(value, 'point', 2, 2).forEach(dimension);
   const counts = { sketch: 0, extrude: 0, cut: 0, intersect: 0, split: 0, chamfer: 0, hole: 0, union: 0, difference: 0 }, featureNames = new Set<string>();
-  const nodes = list(d.nodes, 'graph', 1, CadModelLimits.nodes) as Node[];
+  const nodes = list(d.nodes, 'graph', 1, CadModelLimits.compositionNodes) as Node[];
+  demand(nodes.length <= CadModelLimits.nodes || compositionPrefix(nodes), 'BUDGET', 'graph', 'Only the exact union-slot chain may exceed six nodes');
+  const composed = compositionGraph(nodes);
   const body = (value: unknown, before: number): BodyRef => {
     const r = record(value, 'body', ['node', 'side']);
     demand(Number.isInteger(r.node) && !Object.is(r.node, -0) && (r.node as number) >= 0 && (r.node as number) < before, 'INPUT', 'body', 'Body must reference an earlier authored operation');
@@ -273,7 +294,9 @@ function admit(input: Document): Document {
     } else if (n.kind === 'difference') {
       record(n, 'cut', ['kind', 'parent', 'tool']); body(n.parent, i); body(n.tool, i);
       demand(n.parent.node !== n.tool.node, 'CAPABILITY', 'cut', 'Distinct extrusion operands required');
-      boxDimensions(nodes, n.parent, d.parameters, 'cut'); boxDimensions(nodes, n.tool, d.parameters, 'cut');
+      if (nodes[n.parent.node].kind === 'union') demand(composed && i === 7, 'CAPABILITY', 'cut', 'Only the complete owned union followed by a third direct box is supported');
+      else boxDimensions(nodes, n.parent, d.parameters, 'cut');
+      boxDimensions(nodes, n.tool, d.parameters, 'cut');
     } else if (n.kind === 'union') {
       record(n, 'union', ['kind', 'left', 'right']); body(n.left, i); body(n.right, i);
       demand(n.left.node !== n.right.node, 'CAPABILITY', 'union', 'Distinct extrusion operands required');
@@ -302,10 +325,11 @@ function admit(input: Document): Document {
       if (Object.hasOwn(q, 'at')) for (const [axis, v] of Object.entries(record(n.edge.at, 'selection'))) { demand(axes.includes(axis as CadAxis), 'INPUT', 'selection', 'Unknown selector axis'); if (v !== 'min' && v !== 'max') dimension(v); }
     }
   }
-  demand(counts.difference <= CadModelLimits.differences && (!counts.difference || counts.cut + counts.intersect + counts.split + counts.chamfer + counts.hole + counts.union === 0), 'CAPABILITY', 'graph', 'One rectangular difference cannot be mixed with other Boolean or finishing operations');
+  demand(counts.difference <= CadModelLimits.differences && (!counts.difference || composed || counts.cut + counts.intersect + counts.split + counts.chamfer + counts.hole + counts.union === 0), 'CAPABILITY', 'graph', 'Only one exact union-slot chain may mix a difference with another operation');
   demand(counts.union <= CadModelLimits.unions && (!counts.union || counts.cut + counts.intersect + counts.split + counts.chamfer + counts.hole === 0), 'CAPABILITY', 'graph', 'One union cannot be mixed with other Boolean or finishing operations');
   demand(counts.hole <= CadModelLimits.holes && (!counts.hole || counts.cut + counts.intersect + counts.split + counts.chamfer === 0), 'CAPABILITY', 'graph', 'One hole cannot be mixed with cuts, intersections, splits or chamfers');
-  demand(counts.sketch <= 2 && counts.extrude <= 2 && counts.cut <= 1 && counts.intersect <= CadModelLimits.intersections && counts.split <= CadModelLimits.splits && counts.cut + counts.intersect + counts.split <= 1 && counts.chamfer <= CadModelLimits.chamfers, 'CAPABILITY', 'graph', 'Supported envelope: up to two sketches/extrusions, one through-slab cut, intersection or split and a two-chamfer chain within six nodes');
+  demand(nodes.length <= CadModelLimits.nodes || composed, 'BUDGET', 'graph', 'The expanded union-slot chain must be complete');
+  demand(counts.sketch <= (composed ? CadModelLimits.compositionSketches : CadModelLimits.sketches) && counts.extrude <= (composed ? CadModelLimits.compositionExtrusions : CadModelLimits.extrusions) && counts.cut <= 1 && counts.intersect <= CadModelLimits.intersections && counts.split <= CadModelLimits.splits && counts.cut + counts.intersect + counts.split <= 1 && counts.chamfer <= CadModelLimits.chamfers, 'CAPABILITY', 'graph', 'Six-node base envelope or the exact eight-node union-slot chain required');
   record(d.outputs, 'outputs'); demand(Object.keys(d.outputs).length > 0 && Object.keys(d.outputs).length <= CadModelLimits.outputs, 'BUDGET', 'outputs', 'One to eight named outputs required');
   for (const [key, ref] of Object.entries(d.outputs)) { name(key, 'outputs'); body(ref, nodes.length); }
   return d;
@@ -329,15 +353,16 @@ export function createCadModel(): CadModel {
   const body = (shape: CadShape): BodyRef => { const s = shapes.get(shape); demand(s?.owner === owner, 'OWNERSHIP', 'body', 'Shape belongs to another model or is not an owned handle'); return { ...s.reference }; };
   const append = (node: Node) => {
     const operation = node.kind === 'difference' ? 'cut' : node.kind;
-    const limit = node.kind === 'sketch' || node.kind === 'extrude' ? 2 : node.kind === 'chamfer' ? CadModelLimits.chamfers : 1;
-    demand(nodes.length < CadModelLimits.nodes && nodes.filter(n => n.kind === node.kind).length < limit, 'CAPABILITY', operation, 'Supported operation count exceeded');
+    const composed = compositionPrefix([...nodes, node]);
+    const limit = node.kind === 'sketch' || node.kind === 'extrude' ? (composed ? CadModelLimits.compositionSketches : CadModelLimits.sketches) : node.kind === 'chamfer' ? CadModelLimits.chamfers : 1;
+    demand(nodes.length < (composed ? CadModelLimits.compositionNodes : CadModelLimits.nodes) && nodes.filter(n => n.kind === node.kind).length < limit, 'CAPABILITY', operation, 'Supported operation count exceeded');
     demand(!['cut', 'intersect', 'split'].includes(node.kind) || !nodes.some(n => n.kind === 'cut' || n.kind === 'intersect' || n.kind === 'split'), 'CAPABILITY', operation, 'Only one through-slab cut, intersection or split is supported');
     const finishing = ['cut', 'intersect', 'split', 'chamfer'];
     demand(node.kind === 'hole' ? !nodes.some(n => finishing.includes(n.kind)) : !finishing.includes(node.kind) || !nodes.some(n => n.kind === 'hole'), 'CAPABILITY', operation, 'A hole cannot be mixed with convex finishing operations');
     const incompatibleUnion = ['cut', 'intersect', 'split', 'chamfer', 'hole'];
     demand(node.kind === 'union' ? !nodes.some(n => incompatibleUnion.includes(n.kind)) : !incompatibleUnion.includes(node.kind) || !nodes.some(n => n.kind === 'union'), 'CAPABILITY', operation, 'A union cannot be mixed with other Boolean or finishing operations');
     const incompatibleDifference = ['cut', 'intersect', 'split', 'chamfer', 'hole', 'union'];
-    demand(node.kind === 'difference' ? !nodes.some(n => incompatibleDifference.includes(n.kind)) : !incompatibleDifference.includes(node.kind) || !nodes.some(n => n.kind === 'difference'), 'CAPABILITY', operation, 'A rectangular difference cannot be mixed with other Boolean or finishing operations');
+    demand(node.kind === 'difference' ? composed || !nodes.some(n => incompatibleDifference.includes(n.kind)) : !incompatibleDifference.includes(node.kind) || !nodes.some(n => n.kind === 'difference'), 'CAPABILITY', operation, 'Only the exact union-slot chain may mix a rectangular difference');
     nodes.push(freeze(node)); return nodes.length - 1;
   };
   const shape = (reference: BodyRef): CadShape => {
@@ -348,7 +373,9 @@ export function createCadModel(): CadModel {
       if (arguments.length === 1) {
         const toolRef = body(tool);
         demand(reference.node !== toolRef.node, 'CAPABILITY', 'cut', 'Distinct extrusion operands required');
-        boxDimensions(nodes, reference, parameters, 'cut'); boxDimensions(nodes, toolRef, parameters, 'cut');
+        if (nodes[reference.node].kind === 'union') demand(compositionGraph([...nodes, { kind: 'difference', parent: reference, tool: toolRef }]), 'CAPABILITY', 'cut', 'Union slot requires its third distinct direct rectangular tool');
+        else boxDimensions(nodes, reference, parameters, 'cut');
+        boxDimensions(nodes, toolRef, parameters, 'cut');
         return shape({ node: append({ kind: 'difference', parent: { ...reference }, tool: toolRef }), side: 'solid' });
       }
       const fields = record(options, 'cut', ['axis']), toolRef = body(tool);
@@ -526,6 +553,17 @@ function evaluate(input: Document, previous?: EvaluationFrame): CadModelSnapshot
           throw new CadModelError('SELECTION', 'union', `Union must have exactly one positive-volume body; native body count ${native.report.bodyCount}`, freeze(native));
         evidence.push({ kind: 'union', parents, native }); values.push({ family: 'orthogonal-cell', native });
       } else if (node.kind === 'difference') {
+        if (document.nodes[node.parent.node].kind === 'union') {
+          const parent = evidence[node.parent.node];
+          demand(parent.kind === 'union', 'CAPABILITY', 'cut', 'The exact evaluated union parent is required');
+          const tool = solid(node.tool, 'cut'), dimensions = boxDimensions(document.nodes, node.tool, document.parameters, 'cut');
+          const native = buildOrthogonalSolidBoolean({ kind: 'axis-box', result: parent.native }, buildModelingBox(dimensions.origin, dimensions.sides, prefix + 'c'),
+            { operation: 'difference', evaluationId: prefix + '_difference', resultIdPrefix: prefix, maximumCells: 343, maximumPanels: 384, maximumNativeObservations: 5760 });
+          if (native.report.bodyCount !== 1 || !native.report.solid || native.report.volumeMM3 <= 0)
+            throw new CadModelError('SELECTION', 'cut', `Composed difference must have exactly one positive-volume body; native body count ${native.report.bodyCount}`, freeze(native));
+          evidence.push({ kind: 'difference', composition: 'union-slot', parent: parent.native, tool, native }); values.push({ family: 'orthogonal-cell', native });
+          continue;
+        }
         const parents = [solid(node.parent, 'cut'), solid(node.tool, 'cut')] as const;
         const a = boxDimensions(document.nodes, node.parent, document.parameters, 'cut'), b = boxDimensions(document.nodes, node.tool, document.parameters, 'cut');
         const native = buildAxisBoxSolidBoolean(buildModelingBox(a.origin, a.sides, prefix + 'a'), buildModelingBox(b.origin, b.sides, prefix + 'b'),

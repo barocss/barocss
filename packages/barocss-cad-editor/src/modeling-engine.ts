@@ -260,7 +260,15 @@ export function createModelingEngine() {
       const revision = command.kind === 'apply' || command.kind === 'suppression' ? command.expectedRevision + 1 : command.kind === 'open' ? command.revision ?? 0 : 0;
       const text = snapshot.save();
       // The codec owns canonical key order. Keep initial and reopened display inventories identical.
-      const authored = JSON.parse(text) as { nodes: { kind: string; profile?: string; sketch?: number }[]; outputs: Record<string, { node: number }> };
+      const authored = JSON.parse(text) as { nodes: { kind: string; profile?: string; sketch?: number; parent?: { node: number; side: string } }[]; outputs: Record<string, { node: number }> };
+      // This saved graph came from the admitted native snapshot. Reject the whole
+      // unsupported chain even when only an earlier supported output is named.
+      if (authored.nodes.some((node, index) => {
+        const parent = node.parent?.node;
+        return node.kind === 'difference' && typeof parent === 'number' && Number.isSafeInteger(parent)
+          && parent >= 0 && parent < index && authored.nodes[parent]?.kind === 'union';
+      }))
+        throw new Error('Composed union-slot preview is not available yet; the accepted scene is unchanged.');
       const circleOutput = (index: number) => {
         const node = authored.nodes[index], sketch = node?.sketch;
         return node?.kind === 'extrude' && Number.isSafeInteger(sketch) && sketch! >= 0 && sketch! < index
@@ -286,7 +294,13 @@ export function createModelingEngine() {
         switch (body.family) {
           case 'convex-planar': case 'stored-rational-plate-hole': return [name, body] as const;
           case 'stored-rational-circle-prism': preflightModelingCircle(body.native); return [name, body] as const;
-          case 'orthogonal-cell': preflightModelingUnion(body.native, operation(name)); return [name, body] as const;
+          case 'orthogonal-cell': {
+            const native = body.native;
+            if (native.report.schema !== 'barocss-axis-box-solid-boolean' || !('a' in native))
+              throw new Error('Composed union-slot preview requires a separate native-schema receiver.');
+            preflightModelingUnion(native, operation(name));
+            return [name, { family: body.family, native }] as const;
+          }
           default: { const unsupported: never = body; throw new Error(`Unsupported model body family: ${String(unsupported)}`); }
         }
       });
