@@ -78,7 +78,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   const [bodyRecovery, setBodyRecovery] = useState(false);
   const surfaceTicket = useRef<SurfaceTicket | null>(null), [surfaceDialog, setSurfaceDialog] = useState<SurfaceTicket | null>(null);
   const [attempt, setAttempt] = useState(0), [snapshot, setSnapshot] = useState<RenderNativeLightSessionSnapshot | null>(null);
-  const [fields, setFields] = useState<LightForm>({kind: kind ?? 'directional', ambient: '.2', lights: [], bodies: [], materials: [],
+  const [fields, setFields] = useState<LightForm>({kind: kind ?? 'directional', title: '', ambient: '.2', lights: [], bodies: [], materials: [],
     camera: {eye: ['', '', ''], target: ['', '', ''], up: ['', '', ''], fovYDegrees: '', near: '', far: ''}});
   const [selected, setSelected] = useState<string | null>(null), [busy, setBusy] = useState(false);
   const [selectedBody, setSelectedBody] = useState<string | null>(null);
@@ -399,6 +399,14 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
     setNotice('Starting a new ' + nextKind + ' workspace…');
   };
   const edit = (next: LightForm) => {if (!busyRef.current && !navigationBusy.current && !surfaceTicket.current && !bodyCommandTicket.current) {formRef.current = next; setFields(next); setError(null);}};
+  const titleEpoch = epoch.current;
+  const editTitle = (title: string) => {
+    const session = sessionRef.current;
+    if (!mounted.current || epoch.current !== titleEpoch || !session || session.getStatus().state !== 'ready'
+      || session.getSnapshot().accepted !== snapshot?.accepted || session.getSnapshot().pending
+      || helpRef.current || openTicket.current || materialTicket.current) return;
+    edit({...formRef.current, title});
+  };
   const light = fields.lights.find(item => item.nodeId === selected);
   const editLight = (patch: Partial<LightFields>) => {if (light) edit({...fields, lights: fields.lights.map(item => item.nodeId === light.nodeId ? {...item, ...patch} : item)});};
   const editCamera = (patch: Partial<CameraFields>) => edit({...fields, camera: {...fields.camera, ...patch}});
@@ -669,7 +677,13 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
       <Button variant="outline" size="sm" disabled={disabled} onClick={() => open()}><FolderOpen/>Open</Button>
       <Button size="sm" disabled={actionBusy || !snapshot} onClick={save}><Save/>Save accepted</Button>
     </header>
-    <div className="app-document-bar"><strong>{snapshot?.accepted.title ?? 'Native Surface light study'}</strong><span className="app-status-spacer"/>
+    <div className="app-document-bar"><strong title={snapshot?.accepted.title} style={{maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{snapshot?.accepted.title ?? 'Native Surface light study'}</strong>
+      <label style={{display: 'flex', alignItems: 'center', gap: 6, marginLeft: 12}}>Scene title
+        <input aria-label="Scene title" value={fields.title} maxLength={256} disabled={disabled || help || choosingFile}
+          title="Apply saves this title with the whole scene; Discard restores the accepted title."
+          style={{...fieldStyle, width: 220}} onChange={event => editTitle(event.target.value)}/>
+        <small>Apply to save title</small>
+      </label><span className="app-status-spacer"/>
       <span>{dirty ? 'Unapplied draft' : snapshot?.unsaved ? 'Unsaved scene' : snapshot ? 'File loaded / download requested' : 'Starting'}</span>
       <Button size="icon-xs" variant="ghost" aria-label="Undo" disabled={disabled || dirty || !snapshot?.canUndo} onClick={() => history('undo')}><Undo2/></Button>
       <Button size="icon-xs" variant="ghost" aria-label="Redo" disabled={disabled || dirty || !snapshot?.canRedo} onClick={() => history('redo')}><Redo2/></Button>
