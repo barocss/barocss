@@ -291,3 +291,20 @@ constrainedModel.sketch.constrainedPolygon(() => [[0, 0], [1, 0], [0, 1]]);
 constrainedModel.sketch.constrainedPolygon(async s => [s.point([0, 0]), s.point([1, 0]), s.point([0, 1])]);
 // @ts-expect-error No extra public callback options.
 constrainedModel.sketch.constrainedPolygon(s => [s.point([0, 0]), s.point([1, 0]), s.point([0, 1])], {});
+
+const gussetModel = cad.model(), gussetWidth = gussetModel.parameter('width', 40), gussetHeight = gussetModel.parameter('height', 24);
+const gussetProfile = gussetModel.sketch.constrainedPolygon(s => {
+  const a = s.point([-0, 0]), b = s.point([gussetWidth, 0]), c = s.point([gussetWidth, gussetHeight]), d = s.point([1, gussetHeight]);
+  s.fixed(a); s.fixed(b); s.fixed(c); s.horizontal(c, d); s.parallelTo(d, a, [1, 3]);
+  // @ts-expect-error Direction is a dimensionless numeric pair, not a length parameter.
+  s.parallelTo(d, a, [gussetHeight, 1]);
+  // @ts-expect-error Exactly two direction components.
+  s.parallelTo(d, a, [1, 2, 3]);
+  // @ts-expect-error Callback-owned handles required for the edge.
+  s.parallelTo([0, 0], a, [1, 3]);
+  // @ts-expect-error An explicit direction is required.
+  s.parallelTo(d, a);
+  return [a, b, c, d];
+});
+const gussetSnapshot = gussetModel.build({ gusset: gussetProfile.extrude(8) });
+cad.load(gussetSnapshot.withParameters({ width: 48 }).save());

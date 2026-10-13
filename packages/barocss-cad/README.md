@@ -10972,7 +10972,8 @@ Measurements add no authored features or saved state. See the
 ### Fully constrained convex profiles
 
 `model.sketch.constrainedPolygon(builder => points)` authors one closed XY cycle with
-callback-owned points and `fixed`, `horizontal`, and `vertical` constraints. Return
+callback-owned points and `fixed`, `horizontal`, `vertical`, and authored-direction
+`parallelTo` constraints. Return
 all 3–8 points once in boundary order; orientation constraints must join adjacent
 points. `fixed(point)` uses its authored seed as a target, so owned parameters and
 derived dimensions remain editable. At most 16 constraints are admitted.
@@ -10991,3 +10992,21 @@ outline is not an authored rectangle for integer-box Boolean or plate-hole
 shortcuts. No nonlinear dimensions, construction points, automatic constraint
 inference, new body family, sketch UI or physical acceptance is implied. See
 [the complete primary example](./CONCISE_API.md#constraint-driven-profiles).
+
+### A direction-driven tapered gusset
+
+Inside `constrainedPolygon`, `parallelTo(a, b, [dx, dy])` constrains one adjacent
+owned edge to an authored dimensionless direction. Fix three corners, keep the top
+edge horizontal, and give the sloped edge direction `[1, 3]`; the exact solver
+then determines the fourth corner. Width and height edits rebuild the real convex
+extrusion, and Save/Open retains the constraints. The
+[complete gusset example](./CONCISE_API.md#a-tapered-gusset-from-an-edge-direction)
+creates a 6,912 mm³ part from a 40×24 mm profile extruded 8 mm.
+
+Direction components are finite numeric literals within ±10,000, not lengths,
+parameter handles or angle values. The pair must be nonzero; it is neither
+normalized nor rounded. Up to eight direction constraints fit within the existing
+16-constraint budget. Exact rational results that cannot be represented as binary64
+still refuse: changing this profile height to 1 mm requires a corner at 1/3 mm.
+The original typed cause and earlier usable snapshot are preserved. No solver,
+body family or renderer replacement is involved.

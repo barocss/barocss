@@ -932,7 +932,7 @@ console.log(reopened.bodies.part.family);
 `point` takes an XY seed with the usual literal, parameter or derived dimensions.
 `fixed(point)` constrains it to that current authored seed. Other solved points may
 move from their seeds. Return every staged point exactly once in cycle order;
-3–8 points and up to 16 constraints are supported. Horizontal/vertical pairs must
+3–8 points and up to 16 constraints are supported. Horizontal/vertical and `parallelTo` pairs must
 be adjacent in that cycle, in either order. Point handles belong only to their
 synchronous callback. Copied/foreign handles, asynchronous returns, leaked builder
 calls and same-model authoring/build reentry refuse without consuming a node.
@@ -953,3 +953,47 @@ unchanged. The new authored profile is not eligible for the direct-rectangle
 Boolean/hole shortcuts, even if its solution happens to be rectangular. Existing
 convex-operation limits still apply; this addition makes no broader mixed-feature,
 new editor preset, drag or physical-file claim.
+
+## A tapered gusset from an edge direction
+
+Use a direction constraint when an edge's slope should determine a corner. This
+example fixes three corners; the solver determines the fourth at `(height/3,height)`.
+
+```ts
+import { cad } from '@barocss/cad';
+
+const m = cad.model();
+const width = m.parameter('width', 40);
+const height = m.parameter('height', 24);
+const profile = m.sketch.constrainedPolygon(s => {
+  const a = s.point([-0, 0]);
+  const b = s.point([width, 0]);
+  const c = s.point([width, height]);
+  const d = s.point([1, height]);
+  s.fixed(a); s.fixed(b); s.fixed(c);
+  s.horizontal(c, d);
+  s.parallelTo(d, a, [1, 3]);
+  return [a, b, c, d];
+});
+const part = m.build({ gusset: profile.extrude(8) });
+const wider = part.withParameters({ width: 48 });
+const reopened = cad.load(wider.save());
+console.log(reopened.bodies.gusset.family);
+```
+
+The baseline volume is 6,912 mm³; the wider part is 8,448 mm³. Both use the existing
+convex-planar body, ordinary parameter edits and authored-only Save/Open.
+
+`parallelTo` requires two active callback-owned adjacent points and exactly one
+`[dx,dy]` numeric tuple. Components are dimensionless, finite and within ±10,000;
+they cannot both be zero. Direction values are constants, not `CadParameter` or
+derived length handles. Signs, scale and signed zero remain authored data; reversing
+the vector or endpoint order does not select a different geometric parallel line.
+It constrains orientation only, without fixing an edge's length or location.
+Eight direction records are supported within the existing 16 total constraints.
+
+The same exact-or-refuse policy applies. In this example, a height of 1 mm requires
+`x=1/3` at the solved corner and throws `CadModelError` with code `NATIVE`, operation
+`sketch`, and the original `XYAffineSketchError` (`REPRESENTABILITY`) in `cause`.
+Contradictory constraints retain native `CONFLICT`; failed edits leave `part` usable.
+No implicit rounding, general angle solver or nonconvex extrusion support is added.

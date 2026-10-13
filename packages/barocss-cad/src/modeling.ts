@@ -4,7 +4,7 @@ import { buildXYCirclePrismShell } from './xy-circle-prism-shell.js';
 import { qualifyStoredCirclePrismSolid } from './stored-circle-prism-solid.js';
 import type { StoredCirclePrismSolidResult } from './stored-circle-prism-solid.js';
 import { buildXYAffineSketch } from './xy-affine-sketch.js';
-import type { XYAffineSketchSuccess, XYAffineSketchConstraint } from './xy-affine-sketch.js';
+import type { XYAffineSketchSuccess, XYAffineSketchConstraint, XYAffineSketchReferenceLine } from './xy-affine-sketch.js';
 import { buildXYAffineSketchPrism } from './xy-affine-sketch-prism.js';
 import type { XYAffineSketchPrismCoordinateSpanResult, XYAffineSketchPrismOffsetCoordinateSpanResult } from './xy-affine-sketch-prism.js';
 import { subtractConvexPlanarSlab } from './convex-planar-slab-subtraction.js';
@@ -85,6 +85,8 @@ export interface CadConstrainedPolygonBuilder {
   fixed(point: CadSketchPoint): void;
   horizontal(a: CadSketchPoint, b: CadSketchPoint): void;
   vertical(a: CadSketchPoint, b: CadSketchPoint): void;
+  /** Adjacent owned edge parallel to a finite nonzero authored dimensionless direction. */
+  parallelTo(a: CadSketchPoint, b: CadSketchPoint, direction: readonly [number, number]): void;
 }
 export interface CadModel {
   parameter(name: string, valueMM: number): CadParameter;
@@ -161,7 +163,8 @@ export const CadModelLimits = Object.freeze({ nodes: 6, sketches: 2, extrusions:
 
 type Query = { parallelTo?: CadAxis; at?: Partial<Record<CadAxis, Dimension | 'min' | 'max'>> };
 type BodyRef = { node: number; side: 'solid' | 'negative' | 'positive' };
-type PolygonConstraint = { kind: 'fixed'; point: number } | { kind: 'horizontal' | 'vertical'; points: [number, number] };
+type PolygonConstraint = { kind: 'fixed'; point: number } | { kind: 'horizontal' | 'vertical'; points: [number, number] }
+  | { kind: 'parallel-to-direction'; points: [number, number]; direction: [number, number] };
 type SketchNode = { kind: 'sketch'; profile: 'polygon'; points: [Dimension, Dimension][] }
   | { kind: 'sketch'; profile: 'constrained-polygon'; points: [Dimension, Dimension][]; constraints: PolygonConstraint[] }
   | { kind: 'sketch'; profile: 'rectangle'; min: [Dimension, Dimension]; max: [Dimension, Dimension] }
@@ -179,6 +182,7 @@ const expressions = new WeakMap<CadDimensionExpression, { owner: object; express
 const shapes = new WeakMap<CadShape, { owner: object; reference: BodyRef }>();
 const selections = new WeakMap<CadEdgeSelection, { owner: object; parent: BodyRef; query: Query }>();
 const axes: CadAxis[] = ['x', 'y', 'z'];
+const polygonDirectionLimit = 8;
 function demand(value: unknown, code: CadModelErrorCode, operation: string, detail: string): asserts value {
   if (!value) throw new CadModelError(code, operation, detail);
 }
@@ -204,8 +208,14 @@ function length(value: unknown, operation: string, positive = false): asserts va
   demand(typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= CadModelLimits.lengthMM && (!positive || value > 0), 'PARAMETER', operation, positive ? 'Positive finite mm dimension at most 10000 required' : 'Finite mm dimension within +/-10000 required');
 }
 /** Local cycle references are authored intent, never native or persistent topology IDs. */
+function polygonDirection(value: unknown): [number, number] {
+  const operation = 'constrainedPolygon', values = list(value, operation, 2, 2);
+  demand(values.every(v => typeof v === 'number' && Number.isFinite(v) && Math.abs(v) <= 10000) && values.some(v => v !== 0),
+    'INPUT', operation, 'Finite nonzero dimensionless direction within +/-10000 required');
+  return [values[0] as number, values[1] as number];
+}
 function polygonConstraints(input: unknown, count: number): PolygonConstraint[] {
-  const operation = 'constrainedPolygon';
+  const operation = 'constrainedPolygon'; let directions = 0;
   const index = (value: unknown): number => {
     demand(Number.isInteger(value) && !Object.is(value, -0) && (value as number) >= 0 && (value as number) < count,
       'INPUT', operation, 'Constraint must reference a point in its own cycle'); return value as number;
@@ -213,10 +223,15 @@ function polygonConstraints(input: unknown, count: number): PolygonConstraint[] 
   return list(input, operation, 0, CadModelLimits.polygonConstraints).map(value => {
     const c = record(value, operation);
     if (c.kind === 'fixed') { record(c, operation, ['kind', 'point']); return { kind: 'fixed', point: index(c.point) }; }
-    demand(c.kind === 'horizontal' || c.kind === 'vertical', 'CAPABILITY', operation, 'Only fixed, horizontal and vertical constraints are supported');
-    record(c, operation, ['kind', 'points']); const pair = list(c.points, operation, 2, 2).map(index) as [number, number];
+    demand(c.kind === 'horizontal' || c.kind === 'vertical' || c.kind === 'parallel-to-direction', 'CAPABILITY', operation, 'Only fixed, horizontal, vertical and authored-direction constraints are supported');
+    record(c, operation, c.kind === 'parallel-to-direction' ? ['kind', 'points', 'direction'] : ['kind', 'points']);
+    const pair = list(c.points, operation, 2, 2).map(index) as [number, number];
     demand(pair[0] !== pair[1] && ((pair[0] + 1) % count === pair[1] || (pair[1] + 1) % count === pair[0]),
       'INPUT', operation, 'Orientation constraints require two adjacent cycle points');
+    if (c.kind === 'parallel-to-direction') {
+      demand(++directions <= polygonDirectionLimit, 'BUDGET', operation, 'At most eight authored directions are supported');
+      return { kind: c.kind, points: pair, direction: polygonDirection(c.direction) };
+    }
     return { kind: c.kind, points: pair };
   });
 }
@@ -552,7 +567,9 @@ export function createCadModel(): CadModel {
       demand(index !== undefined, 'OWNERSHIP', operation, 'Point handle belongs to another callback or is not owned'); return index;
     };
     const add = (constraint: PolygonConstraint) => {
-      demand(constraints.length < CadModelLimits.polygonConstraints, 'BUDGET', operation, 'At most sixteen constraints are supported'); constraints.push(constraint);
+      demand(constraints.length < CadModelLimits.polygonConstraints, 'BUDGET', operation, 'At most sixteen constraints are supported');
+      demand(constraint.kind !== 'parallel-to-direction' || constraints.filter(c => c.kind === 'parallel-to-direction').length < polygonDirectionLimit,
+        'BUDGET', operation, 'At most eight authored directions are supported'); constraints.push(constraint);
     };
     const orientation = (kind: 'horizontal' | 'vertical', a: CadSketchPoint, b: CadSketchPoint) => {
       const pair: [number, number] = [owned(a), owned(b)];
@@ -568,6 +585,12 @@ export function createCadModel(): CadModel {
       fixed(handle: CadSketchPoint): void { open(); demand(arguments.length === 1, 'INPUT', operation, 'Fixed requires exactly one point'); add({ kind: 'fixed', point: owned(handle) }); },
       horizontal(a: CadSketchPoint, b: CadSketchPoint): void { open(); demand(arguments.length === 2, 'INPUT', operation, 'Horizontal requires exactly two points'); orientation('horizontal', a, b); },
       vertical(a: CadSketchPoint, b: CadSketchPoint): void { open(); demand(arguments.length === 2, 'INPUT', operation, 'Vertical requires exactly two points'); orientation('vertical', a, b); },
+      parallelTo(a: CadSketchPoint, b: CadSketchPoint, direction: readonly [number, number]): void {
+        open(); demand(arguments.length === 3, 'INPUT', operation, 'ParallelTo requires two points and one dimensionless direction');
+        const pair: [number, number] = [owned(a), owned(b)];
+        demand(pair[0] !== pair[1], 'INPUT', operation, 'Orientation requires distinct points');
+        add({ kind: 'parallel-to-direction', points: pair, direction: polygonDirection(direction) });
+      },
     });
     let node: Extract<SketchNode, { profile: 'constrained-polygon' }>;
     staging = true;
@@ -576,8 +599,11 @@ export function createCadModel(): CadModel {
       const order = list(callback(builder), operation, 3, CadModelLimits.polygonPoints).map(value => owned(value as CadSketchPoint));
       demand(order.length === seeds.length && new Set(order).size === seeds.length, 'OWNERSHIP', operation, 'Return every staged point exactly once in cycle order');
       const indices = new Map(order.map((value, index) => [value, index]));
-      const local = constraints.map((c): PolygonConstraint => c.kind === 'fixed' ? { kind: 'fixed', point: indices.get(c.point)! }
-        : { kind: c.kind, points: c.points.map(index => indices.get(index)!) as [number, number] });
+      const local = constraints.map((c): PolygonConstraint => {
+        if (c.kind === 'fixed') return { kind: c.kind, point: indices.get(c.point)! };
+        const points = c.points.map(index => indices.get(index)!) as [number, number];
+        return c.kind === 'parallel-to-direction' ? { kind: c.kind, points, direction: [...c.direction] } : { kind: c.kind, points };
+      });
       node = { kind: 'sketch', profile: 'constrained-polygon', points: order.map(index => seeds[index]), constraints: polygonConstraints(local, order.length) };
     } catch (cause) {
       if (cause instanceof CadModelError) throw cause;
@@ -667,11 +693,17 @@ function evaluate(input: Document, previous?: EvaluationFrame): CadModelSnapshot
         let points: [number, number][];
         if (node.profile === 'polygon' || node.profile === 'constrained-polygon') points = node.points.map(p => [number(p[0]), number(p[1])]);
         else { const min = node.min.map(number), max = node.max.map(number); demand(min.every((v, i) => v < max[i]), 'PARAMETER', 'rectangle', 'Rectangle min must be strictly below max on each axis'); points = [[min[0], min[1]], [max[0], min[1]], [max[0], max[1]], [min[0], max[1]]]; }
+        const referenceLines: XYAffineSketchReferenceLine[] = node.profile === 'constrained-polygon'
+          ? node.constraints.flatMap((c, i) => c.kind === 'parallel-to-direction' ? [{ id: 'dir' + i, anchor: [0, 0] as [number, number], direction: c.direction }] : []) : [];
         const constraints: XYAffineSketchConstraint[] = node.profile === 'constrained-polygon'
-          ? node.constraints.map((c, i) => c.kind === 'fixed' ? { id: 'c' + i, kind: 'fixed', pointId: 'p' + c.point, target: points[c.point] }
-            : { id: 'c' + i, kind: c.kind, segmentId: 's' + ((c.points[0] + 1) % points.length === c.points[1] ? c.points[0] : c.points[1]) })
+          ? node.constraints.map((c, i): XYAffineSketchConstraint => {
+            if (c.kind === 'fixed') return { id: 'c' + i, kind: c.kind, pointId: 'p' + c.point, target: points[c.point] };
+            const segmentId = 's' + ((c.points[0] + 1) % points.length === c.points[1] ? c.points[0] : c.points[1]);
+            return c.kind === 'parallel-to-direction' ? { id: 'c' + i, kind: 'segment-parallel-to-fixed-direction', segmentId, referenceLineId: 'dir' + i }
+              : { id: 'c' + i, kind: c.kind, segmentId };
+          })
           : points.map((target, i) => ({ id: 'fix' + i, kind: 'fixed', pointId: 'p' + i, target }));
-        const native = buildXYAffineSketch({ format: 'barocss-xy-affine-sketch', version: 0, profile: 'exact-affine-binary64', id: prefix + '_sk', lengthUnit: 'mm', points: points.map((position, i) => ({ id: 'p' + i, position })), segments: points.map((_, i) => ({ id: 's' + i, startPointId: 'p' + i, endPointId: 'p' + ((i + 1) % points.length) })), referenceLines: [], constraints });
+        const native = buildXYAffineSketch({ format: 'barocss-xy-affine-sketch', version: 0, profile: 'exact-affine-binary64', id: prefix + '_sk', lengthUnit: 'mm', points: points.map((position, i) => ({ id: 'p' + i, position })), segments: points.map((_, i) => ({ id: 's' + i, startPointId: 'p' + i, endPointId: 'p' + ((i + 1) % points.length) })), referenceLines, constraints });
         if (node.profile === 'constrained-polygon' && (!native.report.fullyConstrained || native.report.degreesOfFreedom !== 0))
           throw new CadModelError('CAPABILITY', 'sketch', `Constrained polygon retains ${native.report.degreesOfFreedom} degrees of freedom; a fully constrained profile is required`, freeze(native));
         evidence.push({ kind: 'sketch', native }); values.push(undefined);
