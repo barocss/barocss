@@ -1,5 +1,7 @@
 # CAD Editor: original native authoring
 
+**Browser/GPU verification requires independent evidence:** [Browser evidence protocol](./browser-evidence).
+
 **Begin with the [CAD learning path](./learning-path)** for all four adopted hands-on exercises.
 
 **Need help recovering a part?** See [Modeling troubleshooting](./troubleshooting).
