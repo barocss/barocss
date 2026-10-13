@@ -8,15 +8,23 @@ export type ExactBinary64OrientationV1 =
   | { readonly status: 'unsupported'; readonly reason: 'invalid-input' | 'non-finite-coordinate' | 'out-of-range-coordinate' };
 export interface Binary64PointV1 { readonly x: number; readonly y: number }
 
-const point = (input: unknown): input is Binary64PointV1 => {
-  if (!input || typeof input !== 'object' || Array.isArray(input)) return false;
-  const proto = Object.getPrototypeOf(input);
-  if (proto !== Object.prototype && proto !== null) return false;
-  const fields = Object.getOwnPropertyDescriptors(input);
-  const keys = Reflect.ownKeys(input);
-  return keys.length === 2 && ['x', 'y'].every(k =>
-    Object.hasOwn(fields, k) && 'value' in fields[k] &&
-    fields[k].enumerable && typeof fields[k].value === 'number');
+/** Admit and capture exact own data values once; never re-read input.x/y. */
+const point = (input: unknown): Binary64PointV1 | null => {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return null;
+  try {
+    const proto = Object.getPrototypeOf(input);
+    if (proto !== Object.prototype && proto !== null) return null;
+    const fields = Object.getOwnPropertyDescriptors(input);
+    const keys = Reflect.ownKeys(input);
+    if (keys.length !== 2 || !['x', 'y'].every(k =>
+      Object.hasOwn(fields, k) && 'value' in fields[k] &&
+      fields[k].enumerable && typeof fields[k].value === 'number')) return null;
+    return { x: fields.x.value as number, y: fields.y.value as number };
+  } catch {
+    // A hostile Proxy can throw while reflecting descriptors. Refuse rather
+    // than allowing it to drive a native topology decision or propagate.
+    return null;
+  }
 };
 
 type Dyadic = { coefficient: bigint; exponent: number };
@@ -44,12 +52,13 @@ export function orient2dExactBinary64V1(
   a: unknown, b: unknown, c: unknown,
   maxAbsCoordinateMM = 10000,
 ): ExactBinary64OrientationV1 {
-  if (!point(a) || !point(b) || !point(c) ||
+  const pa = point(a), pb = point(b), pc = point(c);
+  if (!pa || !pb || !pc ||
       typeof maxAbsCoordinateMM !== 'number' || !Number.isFinite(maxAbsCoordinateMM) ||
       maxAbsCoordinateMM <= 0 || maxAbsCoordinateMM > 10000)
     return { status: 'unsupported', reason: 'invalid-input' };
 
-  const values = [a.x, a.y, b.x, b.y, c.x, c.y];
+  const values = [pa.x, pa.y, pb.x, pb.y, pc.x, pc.y];
   if (!values.every(Number.isFinite))
     return { status: 'unsupported', reason: 'non-finite-coordinate' };
   if (values.some(value => Math.abs(value) > maxAbsCoordinateMM))
