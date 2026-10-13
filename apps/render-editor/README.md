@@ -805,6 +805,14 @@ The existing native preparation and full body/asset binding qualify the read. UT
 
 Focused `node native-light-workbench-flow.mjs --source-export` runs only eight helper cases/four download attempts/zero Viewer replacements/one lifetime per kind, using actual source reimport and controlled download transport. Older file flows are not rerun by that flag.
 
+### Copy accepted material between bodies (#1917)
+
+Select the destination body, choose another visible material-bound body in **Copy accepted material from body**, then **Stage material copy**. Resolve all scene drafts first. The source is its accepted shader source and supplied overrides; the destination keeps its existing material ID, revision and complete qualified binding. Other bodies remain independent, including repeated material IDs. Omitted overrides, explicit defaults and signed zero retain their existing material authority.
+
+Staging changes only the destination's private material fields. **Apply** accepts the complete scene once, **Discard** restores accepted fields, and Undo/Redo uses ordinary scene history. Equal content is a no-op, including at maximum revisions. Changed material/scene revision limits refuse before presentation. Source selection is invalidated by a body-selection or accepted-scene change; selecting away and back does not revive it. Pending operations, dialogs, navigation and unavailable lifetimes retain their existing fences. No file transport or new binding is involved.
+
+Focused `node native-light-workbench-flow.mjs --material-copy` runs only this actual-provider/React block: at most ten helper calls, four controlled Viewer attempts, zero file transports and one lifetime per kind. Physical rendering and ordinary browser interaction remain separate Execute Tester checks.
+
 ## Native Light viewport orientation shortcuts (#1915)
 
 Focus the **Required WebGPU light scene** Canvas and press **1** for Front (+Z),

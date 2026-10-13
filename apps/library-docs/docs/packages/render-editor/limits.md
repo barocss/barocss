@@ -32,6 +32,13 @@ The finite software flow covers both light kinds with 32 direct helper cases, 12
 
 The bounded actual-provider/React/session flow uses controlled Viewers and file transport. Physical chooser, disk persistence, GPU pixels and integrated device recovery remain separate. The scoped software evidence does not add physical acceptance for [#1573](https://github.com/barocss/barocss/issues/1573). This Manual documents the local app entry point and does not deploy the editor itself.
 
+### Accepted original source export limits
+
+- [Export accepted CAD source](./guides#export-an-accepted-original-cad-asset) requires a current visible, unambiguous, qualified material-bound original Surface. The selected body identifies its whole asset; repeated geometry IDs do not select another asset and shared ownership does not block this read-only operation.
+- The download preserves exact accepted source text as UTF-8, including other objects and accepted point edits. Native document admission rejects malformed source and unpaired surrogates; an additional encoding roundtrip refuses replacement. No geometry serialization, axis conversion, scene transform, newline or BOM insertion is performed. Accepted text is not a claim of byte identity to an imported file before decoding.
+- Export does not consume drafts, mark the scene saved, alter revisions/history or request a Viewer replacement. Current selection epoch, accepted identity, lifetime and pending/dialog/chooser/navigation fences reject stale operations. Anchors and object URLs are cleaned even if the download request throws.
+- Focused actual-provider/React checks cover whole-asset reimport and accepted-only bytes through a controlled download transport. They do not establish physical chooser/disk persistence or GPU acceptance.
+
 ### Original Surface control-point limits
 
 - [Edit control point](./guides#edit-an-original-surface-control-point) requires a clean ready scene and one visible, unambiguous, qualified material-bound Surface. U/V are original row/column indices. XYZ is bounded to **±1000000 source mm**, weight to **0.000001..1000000**, and corrective fields to 256 characters. Existing source, rational geometry, posed display and revision admission remains authoritative; values are never silently clamped.

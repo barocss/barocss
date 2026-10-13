@@ -231,6 +231,13 @@ export function selectedLightMaterial(base: RenderNativeLightDocument, bodyId: s
   return bindings[0]!;
 }
 
+/** Copy accepted content between qualified embedded bindings, never their identities. */
+export function stageLightMaterialCopy(base: RenderNativeLightDocument, fields: LightForm,
+  destinationBodyId: string, sourceBodyId: string): LightForm {
+  const source = selectedLightMaterial(base, sourceBodyId);
+  return stageLightMaterialFields(base, fields, destinationBodyId, source.material);
+}
+
 /** Portable data stages only source and overrides; original target metadata remain authoritative. */
 export function stageLightMaterialFields(base: RenderNativeLightDocument, fields: LightForm,
   bodyId: string, portable: RenderMaterialDocument): LightForm {
