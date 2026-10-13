@@ -27,7 +27,7 @@ export function validateCadEvidence(receipt) {
     if (!v || !string(v.path) || !hash.test(v.sha256??'') || !string(v.step) || !string(v.output)) bad('screenshots.'+i,'path, sha256, step, output required');
   }
   const anyPass = stages.some(k=>s?.[k]==='PASS');
-  if (anyPass && (!receipt.commands?.length || !receipt.commands.every(string))) bad('commands','executed commands required for PASS');
+  if (anyPass && (!Array.isArray(receipt.commands) || !receipt.commands.length || !receipt.commands.every(string))) bad('commands','executed commands required for PASS');
   if (s?.browser==='PASS' && (!receipt.screenshots?.length || !string(receipt.browser) || receipt.accepted?.generation == null)) bad('stages.browser','frame evidence and accepted generation required');
   if (s?.gpu==='PASS' && (s?.browser!=='PASS' || !string(receipt.gpuBackend) || receipt.gpuBackend==='unavailable' || !receipt.gpuReadback?.sha256 || !hash.test(receipt.gpuReadback.sha256))) bad('stages.gpu','browser PASS and real readback sha256 required');
   if (s?.file==='PASS') {
