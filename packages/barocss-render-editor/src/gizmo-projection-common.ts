@@ -22,6 +22,11 @@ export interface GizmoProjectionPlane {normal: Vector; a: Vector; b: Vector}
 const projectedDepths = new WeakMap<RenderSceneGizmoHandle, readonly number[]>();
 export const GIZMO_AXES: readonly RenderSceneGizmoAxis[] = ['x', 'y', 'z'];
 export const GIZMO_WORLD: Vector[] = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+// Hit testing leaves a 13.5px pivot exclusion at the default 9px tolerance.
+// Do not render an axis unless at least one full tolerance-width span is pickable.
+const DEFAULT_GIZMO_HIT_TOLERANCE_CSS = 9;
+const MIN_PICKABLE_AXIS_SPAN_CSS =
+  Math.max(12, DEFAULT_GIZMO_HIT_TOLERANCE_CSS * 1.5) + DEFAULT_GIZMO_HIT_TOLERANCE_CSS;
 export function refused(message: string): RenderEditorError {return new RenderEditorError('DOCUMENT_INPUT', message);}
 export function native(cause: unknown): RenderEditorError {
   const error = normalizeRenderEditorError(cause, 'DOCUMENT_INPUT');
@@ -115,7 +120,7 @@ export function ring(context: GizmoProjectionContext, plane: GizmoProjectionPlan
 }
 export function axisHandle(context: GizmoProjectionContext, direction: Vector, axis: RenderSceneGizmoAxis, mode: 'translate' | 'scale', label?: string): RenderSceneGizmoHandle | null {
   const end = css(context, clipAt(context, add(context.origin, direction, context.radius)));
-  if (!inside(end, context.viewport) || Math.hypot(end[0] - context.pivot[0], end[1] - context.pivot[1]) < 4) return null;
+  if (!inside(end, context.viewport) || Math.hypot(end[0] - context.pivot[0], end[1] - context.pivot[1]) < MIN_PICKABLE_AXIS_SPAN_CSS) return null;
   const value = handle(axis, mode, [context.pivot, end], end, label), endClip = clipAt(context, add(context.origin, direction, context.radius));
   projectedDepths.set(value, Object.freeze([context.clip[2]! / context.clip[3]!, endClip[2]! / endClip[3]!]));
   return value;
@@ -183,7 +188,7 @@ function closestSegment(pointer: Point, a: Point, b: Point): {distance: number; 
   return {distance: Math.hypot(pointer[0] - a[0] - ratio * x, pointer[1] - a[1] - ratio * y), ratio};
 }
 /** Nearest projected transform geometry; neither DOM order nor a remembered axis participates. */
-export function hitTestRenderSceneGizmo(preparation: RenderSceneGizmoPreparation, pointer: Point, tolerance = 9): RenderSceneGizmoHandle | null {
+export function hitTestRenderSceneGizmo(preparation: RenderSceneGizmoPreparation, pointer: Point, tolerance = DEFAULT_GIZMO_HIT_TOLERANCE_CSS): RenderSceneGizmoHandle | null {
   try {
     if (typeof tolerance !== 'number' || !Number.isFinite(tolerance) || tolerance < 0) throw refused('Hit tolerance must be a finite nonnegative CSS distance.');
     const point = pointCopy(pointer), data = gizmoRecord(preparation, ['pivot', 'handles', 'unavailable']), pivot = pointCopy(data.pivot);
