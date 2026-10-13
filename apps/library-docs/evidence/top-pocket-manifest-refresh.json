@@ -1,0 +1,545 @@
+{
+  "issue": 1712,
+  "consumerIssue": 1826,
+  "renderDocsIssue": 1852,
+  "scope": "immutable combined Manual snapshot, not synchronization of moving develop",
+  "manifestReferent": "4a8fdbda774228bd0c0c5da504b74a080dfc2630",
+  "productPins": {
+    "topPocket": "466c10f69f883d8db2ac87ed8e8166bbdc356837",
+    "addSurface": "4a8fdbda774228bd0c0c5da504b74a080dfc2630"
+  },
+  "renderProse": {
+    "source": "f22688e68b23f85d37b5091221601564aca03488",
+    "blobs": {
+      "apps/library-docs/docs/packages/render-editor/guides.md": "d653c284be00edfe88940b9f4aee009986f59251",
+      "apps/library-docs/docs/packages/render-editor/limits.md": "b3898c1ebd63ca71b6151429c0b9a14a18837f78"
+    }
+  },
+  "changesFromPreviousCurrentInventory": [
+    {
+      "slug": "gpu",
+      "beforeSHA256": "ce0529abd54255efad9ad24e8e7e8371bc40afa0d8e6c18e8f55606b49896553",
+      "afterSHA256": "b0eacb46b3ce8444f3ffd150d1398737db9f504ca279b5d743c9157d3f2558fb",
+      "fields": [
+        "scripts"
+      ]
+    },
+    {
+      "slug": "cad-editor",
+      "beforeSHA256": "9941251b6133bf540ec06c3720cae27eebf147496680ad42a552f45304e3eb75",
+      "afterSHA256": "5cb504982853c4faafc9841900d08fe5e17b02dc6f5ed80009f5e768572ba796",
+      "fields": [
+        "scripts"
+      ]
+    }
+  ],
+  "protectedHashes": {
+    "apps/library-docs/evidence/package-inventory.json": "b121aac9620fb8fe966c292710990317bf88b1b3535ea31a31cd787cefe7c2b5",
+    "apps/library-docs/scripts/inventory.mjs": "71476729968c49f97d09a83b60465a0c47d08ceb84c73ad05e9f7128cd337488"
+  },
+  "currentInventorySHA256": "b32e39eeb1b2b6d77903b379b44dc09ed3d130b89d5f1ea43433eba13171b80d",
+  "testSHA256": "c36c1857e8cd5c06f10d191a3ff6306643b39732cc1730ab7e7926f4da566abb",
+  "manifests": [
+    {
+      "path": "packages/barocss/package.json",
+      "sha256": "ceda889b794e3be24cf52650b3530b6b69a04232b27d98c9a5b3af4e2a588651"
+    },
+    {
+      "path": "packages/barocss-browser/package.json",
+      "sha256": "4a7b27e15a6da3e5b1724a2f616813447b001a85eb3aad03eef63e315646b6cf"
+    },
+    {
+      "path": "packages/barocss-server/package.json",
+      "sha256": "177c618d8b939baf632f18aae0c8d9c19f9be924520b5b54d3159824054306ba"
+    },
+    {
+      "path": "packages/barocss-render/package.json",
+      "sha256": "68206e354dc4e0f21d884cdc129c27ce977571210609598efc2129c9714a8f94"
+    },
+    {
+      "path": "packages/barocss-gpu/package.json",
+      "sha256": "b0eacb46b3ce8444f3ffd150d1398737db9f504ca279b5d743c9157d3f2558fb"
+    },
+    {
+      "path": "packages/barocss-cad/package.json",
+      "sha256": "7f18887b37ed966cebfa183520064b7833aee5dafee20fd21bfa265bf68ecd22"
+    },
+    {
+      "path": "packages/barocss-cad-interop/package.json",
+      "sha256": "1165e25a296cbfd93fc522f004392aff1a7ba886db138ad61f17aec16ba21867"
+    },
+    {
+      "path": "packages/barocss-canvas2d/package.json",
+      "sha256": "b180d3b2bb1f28a90e62f55ad5f8880a3349dfd7b549d16b76f9cf1cef5a6202"
+    },
+    {
+      "path": "packages/barocss-viewer/package.json",
+      "sha256": "7eae9edcf73be3de63de6dff19822866196d9fd6ce62577ff488e6f5a27e64d6"
+    },
+    {
+      "path": "packages/barocss-physics/package.json",
+      "sha256": "57d436d215a5ce0b31196e549aed6ced97b9ad9f602a99c7704b47c26f3dd56c"
+    },
+    {
+      "path": "packages/barocss-cad-editor/package.json",
+      "sha256": "5cb504982853c4faafc9841900d08fe5e17b02dc6f5ed80009f5e768572ba796"
+    },
+    {
+      "path": "packages/barocss-render-editor/package.json",
+      "sha256": "7fd0ce7ac93281892cda88738172627cc34d0b9ba4381f5f74e367a2e65ca3c8"
+    }
+  ],
+  "assets": [
+    {
+      "path": "apps/library-docs/docs/public/examples/advanced-shader-phase.png",
+      "sha256": "55f90a3cabcded47b68b3c65fca1de72b5464749b7832edc35ff532740673d40",
+      "bytes": 413598
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/advanced-shader.png",
+      "sha256": "2c3d952e28b3ebb24ae8a83f5a90cf18a1792e960d56f49bbf024d75efad5124",
+      "bytes": 413146
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/body-boundary-mesh.svg",
+      "sha256": "e68069e8e33e0a194e045f49099cc198223c5a385cb91d8f886cd7aa7ef9f09c",
+      "bytes": 97145
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/body-boundary-mesh/main.owned-body.json",
+      "sha256": "6aa430ecc7775159b4bef758ab21363a75f186d84d15c8c4a56e8c00e2e6097d",
+      "bytes": 1997294
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-adaptive-sampling.jpg",
+      "sha256": "3079b2cea31ec136b9e6ec0add4f412e02aa951e3fb2d792da2ba59325caab89",
+      "bytes": 14300
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-curve-knot-insertion.svg",
+      "sha256": "3d6eb3f4c8356a9eb2c8693370e0d52be37ed0d6a9611691c2a25cd869f1a99d",
+      "bytes": 9876
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-curve.png",
+      "sha256": "2678d32167f72796c171358865d69f37d20933849d691059980f79c0f1c66409",
+      "bytes": 96312
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-curved-extrude.png",
+      "sha256": "ba145462767e8bbb9a51f07e8521e1d75d1291c00d9c4b3d3608cf7e889a06a1",
+      "bytes": 17251
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-extrude.png",
+      "sha256": "599e269a3cd1811ce7bbb7c52b1bf85143316bcf1c91740c8b6f5e28bfe7aa4b",
+      "bytes": 122998
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-line-width-extrusion-graph.authored.json",
+      "sha256": "6e707d5022a7ff454b25284392a170214d50e19e5f525f5d54bac26a4f7dd371",
+      "bytes": 1687
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-line-width-extrusion-graph.svg",
+      "sha256": "1633187d85d9a40781b2c3512473f63a021c4d54ac474c11c9675b8e634dc097",
+      "bytes": 10415
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-line-width-shell.json",
+      "sha256": "f91644774c356d2f814574d42b4a211b9374eb67101c6b362a9a4fe655e78fbb",
+      "bytes": 374346
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-nonunit-curve.png",
+      "sha256": "eb5d1e7cda03a64c91824f92b253a6912a16819d27fb5abd8c1a3db5443bc470",
+      "bytes": 22697
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-parameters.png",
+      "sha256": "f38940b8c74dd9328652e9b171270ee6f815b5cce06e09b8be5ce49ec0c4190a",
+      "bytes": 134320
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-prism-feature-v0-authored.json",
+      "sha256": "d9a999760b6492c0d3efe8642b12058ef5a4380e90d7f99d7feeb20c691630ce",
+      "bytes": 3641
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-quantity-functions.cad.css",
+      "sha256": "01f8980d6821bdecfbc1b64deb3428e428886b31c0d01909384c65e21a7ef42d",
+      "bytes": 1118
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-quantity-functions.jpg",
+      "sha256": "481266d5e0b79a0b2ac051ec10307fba6fe7b51fb0cba55d66273630571895af",
+      "bytes": 8580
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-rational-dome.jpg",
+      "sha256": "6f98da7717f0e9badfb5e1f9e7aeaa9e91c338f8d766f163fca5ecee7e5956a2",
+      "bytes": 8700
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-surface-knot-insertion.svg",
+      "sha256": "98a276250bd2b946e087c8f115845d47e779bdb287898846a4d1b7f7e9f04bc6",
+      "bytes": 25600
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-surface.png",
+      "sha256": "564006d47babd5eb140d309e10d49fc5d1e54b37af92d9b6406e1959954c25c9",
+      "bytes": 108456
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-weighted-parameters.png",
+      "sha256": "676671785dcbcc7daadf3b616bc7fa0a083946becd5bcf4d3f6ad138b08f0d85",
+      "bytes": 24844
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/canvas2d-rectangle.png",
+      "sha256": "edb2d63f4a0dd40b0aa6dabf96f0001d924fc7ae50e807d0525410e5e194e78e",
+      "bytes": 96176
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/caustics-shader-phase.jpg",
+      "sha256": "10af52be01fc49fb78049eda0ef965d3d3c6fb89beecd931f41a056de9ad75c0",
+      "bytes": 23320
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/caustics-shader.jpg",
+      "sha256": "69891851c9b4afc4508ac2600831550a85447d724eec9205af53efc3fa109110",
+      "bytes": 23040
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/contour-shader.jpg",
+      "sha256": "773af6e569b2cf119beb6b9a8514acf1eb00a3fc8d1a5914ef05fba7fe654ffc",
+      "bytes": 24584
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cpu-material-evaluation.svg",
+      "sha256": "a84d259be32c8d63e33c849d801d0e955ebaaf6c809b184b714c301fd9cb450a",
+      "bytes": 3475
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/diagram-label.jpg",
+      "sha256": "d81e38b2ce2e0aac7355428fafc51071c132b6c994a2d8bcabecda98b76181a7",
+      "bytes": 5861
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/discrete-material.jpg",
+      "sha256": "10ecd1a7f106c12c5e2b7df490fe227ff56645b2b7c02c0ce16efc4313b7b137",
+      "bytes": 13657
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/example-organization.jpg",
+      "sha256": "a0cafb6d41945954422535fdd0f070c09cd19be923bf6a858b418c5e1fc1466e",
+      "bytes": 79271
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/generated-scene.jpg",
+      "sha256": "8dafa80b0eb1af6216a0c15fa33a53bad2f66ab5eed87ff7b3496ceb2a95e5f4",
+      "bytes": 19678
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/gpu-crossed-capsules.png",
+      "sha256": "812d17868e0b981583398ccd3241c11f8ec672c04e3bf455af7939f8fd87baca",
+      "bytes": 38303
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/gpu-material-amount1.png",
+      "sha256": "adb848095f39116045e7c6e9cf8215dad6ad003920c5ed10182fbd7d4088f7e1",
+      "bytes": 86542
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/gpu-material.png",
+      "sha256": "489ee2325dc9f9137c690d59f333a8483f43015a950ac87e1f4a4637a7b83dac",
+      "bytes": 86356
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/gpu-rounded-stack.png",
+      "sha256": "575294a792dd4240c1458afbdbc52586a3761408b52c9d8d4b33a71c8ae0cfbc",
+      "bytes": 19422
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/gpu-scene.png",
+      "sha256": "179b3f9fe60d788c81466dc2fdf7dc1e47d79c47cdf896e6ed4769f5a346f5e7",
+      "bytes": 93347
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/gpu-six-shapes.png",
+      "sha256": "8402da338ef9cca9d1e2b715613a67c6d08c738da371105ccdf5ba79c1a5bd28",
+      "bytes": 127844
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/halftone-shader.jpg",
+      "sha256": "649edf2aab8fbea6169354fe059730f5ff5f08192630c5d8fac9011d85d9a594",
+      "bytes": 12362
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-abs.png",
+      "sha256": "1dbfe923f18917322b93d88b5439d5305824045cfcf1cd89f44a1e4af09e24d5",
+      "bytes": 103526
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-clamp.png",
+      "sha256": "66063a61bb0076282e56018224f12956d2b6cec3d3f2a18a7c88b85523ffd9b1",
+      "bytes": 100988
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-cos.png",
+      "sha256": "d9b13f39c85e98cab1797ee5b26ec2c3caf6ee7089e1e0106ffe0fab39de4623",
+      "bytes": 100626
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-max.png",
+      "sha256": "9e14e635d5737cf7028582628fc01d3f4615efe07a043d0266edbbb974e7ef09",
+      "bytes": 98463
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-min.png",
+      "sha256": "a9fa048d80f5f8252a82a4ac5063557d16d27950a1bddbd282ab5e8e446340ab",
+      "bytes": 98576
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-mix.png",
+      "sha256": "6a3a93020d2bba54004bae08a53e2ea67e3a1d213092063aa7fce8a0a83677d5",
+      "bytes": 103490
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-pow.png",
+      "sha256": "eb3a4fa1169e54b421a68677ed6270d8fc3b93e7333ddabcad8ccc023bb0ebb3",
+      "bytes": 99729
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-radians.png",
+      "sha256": "0a7a04d1dd8a76aa5449a19e85761d1e6107260045a486ef037297be3a711153",
+      "bytes": 107036
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-rgb.png",
+      "sha256": "a5af6202242559d2b1ae1d8a1146d48adf26c1077a5921105f47707ccf28f7f2",
+      "bytes": 101152
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-sin.png",
+      "sha256": "ec8870ce9fc134b763fe07b8b9085d189164fb92e251318dd0fd0613d999a16c",
+      "bytes": 100293
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-smoothstep.png",
+      "sha256": "d623c9834e258aef180fa0c9c2f2c995e16e68a48ea09387806bb09d43320a59",
+      "bytes": 101982
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-transition-window.png",
+      "sha256": "61b01307d9fed1d730d75676b6208df32234826b88d040516c121375b5285dac",
+      "bytes": 19824
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-cardinal-split.ts",
+      "sha256": "f3e4e854cc68a990cf8fde396b4862843bf47cdff5f041df3940c8686e860aaa",
+      "bytes": 2063
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-chamfer-chain.ts",
+      "sha256": "eefa59ffd5c997f9115700ccf34baed0f2f201618f1f58c6debc6ca5d4504183",
+      "bytes": 2461
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-chamfer-split.ts",
+      "sha256": "c2501c205a8561a96c14b081055f5c0a288f6d6ba57c52e6425d84988d15edb5",
+      "bytes": 2288
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-circle.ts",
+      "sha256": "0e48918c77a25d12dfc081adf36763f71a972cd4e2b2cae5c10412f2856edbbe",
+      "bytes": 2006
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-composition.ts",
+      "sha256": "05b3da828161e918b2a8cb08f4a0f817732fb31b1cc4f49159964fa4c1a5e84f",
+      "bytes": 1345
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-dimensions.ts",
+      "sha256": "0439140e0addb1b2b4d28e70dd57711df712763f85b7473c9017b1b2b587fa91",
+      "bytes": 2469
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-hole.ts",
+      "sha256": "1b6fd4d8a0dbc23293ac6673ef04065ce2281f79797613dd4b0cbaec25589bf5",
+      "bytes": 3606
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-intersection.ts",
+      "sha256": "acb9b1d71dbf0a0daf16d9748c808a0fdd644b4a0ba83284e539776dbb2ce4a9",
+      "bytes": 2268
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-miter.ts",
+      "sha256": "55d95d8252ba647377cad41729eaf262b475e5fc00a9941526bf4fe36aa68d34",
+      "bytes": 1819
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-pocket.ts",
+      "sha256": "37b9d1ddd08aa5393555a6cf6eee7a3f04fc49e49bce197a8e60f7330be20db1",
+      "bytes": 2008
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-split.ts",
+      "sha256": "20843920e8f55721a3941d7328b40a7ccccac1a062906b60e3bb36ea368c4c12",
+      "bytes": 1887
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-suppression.ts",
+      "sha256": "bb1b26283c0993a5f536348a006a27787169b3db2908f7cb5f431f9f30d2de8c",
+      "bytes": 3461
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-top-pocket.ts",
+      "sha256": "517d77adeffc9945b3974fa2b116bac9fb14325a237638246da39a4fca4cf262",
+      "bytes": 1372
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-union.ts",
+      "sha256": "2ca830595b86623be0a9b94cb63a651f9290d6f3ccb932d36b295404f474fd32",
+      "bytes": 3799
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/nurbs-loft-graph.svg",
+      "sha256": "6060d7ab60aa538a1fbc368e4657da34f3173b4274c2c8f8aafeb1122a7fc6a9",
+      "bytes": 4323
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/path-edit.jpg",
+      "sha256": "725da9813026c4a288ff6b9f6645f5cf6a2b57fa65823d084784907a26cc3e01",
+      "bytes": 9543
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/physics-step.png",
+      "sha256": "cf9f607ba09b76d98c509b474a965d671db510ec13a151b06aa9648c40f8551b",
+      "bytes": 168591
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/radial-svg-export.jpg",
+      "sha256": "d397e39c2ce0c9a73609790c60318f18ddbd013ea40b104f4ec9b3c5714dd7cc",
+      "bytes": 9829
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/render-editor-directional.light-scene.json",
+      "sha256": "901f9d8e48185310b4c6cf109660e041790bdb44677be09807be33b5876dda23",
+      "bytes": 5501
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/render-editor-light-scene.ts",
+      "sha256": "8cd82f6e42e8a25edaaec3009b7c65f4b293e16d61dfd7535d884dd644afbd6a",
+      "bytes": 5499
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/render-editor-point.light-scene.json",
+      "sha256": "b6a393bd4abd2daae36271662c6fc601ca7861377d1b03bc1eb6ee0d432e20ce",
+      "bytes": 5483
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/reusable-shader.jpg",
+      "sha256": "24d702cb4b5475db0c86c8701718d517b1650ceba448773ae715d7afe1778b77",
+      "bytes": 11471
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/serial-part-v2.json",
+      "sha256": "15672f1f44b154698759db7ed80f903081fafecd1c2683e11448d5564276aaf9",
+      "bytes": 5945
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/source0.cad.css",
+      "sha256": "e31fc1269d9d59645078cb9b1cc5bd13baece79bb21993d59a922888d758fdcf",
+      "bytes": 157
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/source1.cad.css",
+      "sha256": "36e25f4e4f2aaa02620c901f4443da73d490f4032c3d6b41ff75e45d7d28c355",
+      "bytes": 211
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/source2.cad.css",
+      "sha256": "3fa249d506991c15237531ce220ef3d168fcc95ba87c10d258c81b962a8d19ed",
+      "bytes": 265
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/source3.cad.css",
+      "sha256": "7022e35b9aafff79d7ced839f0d01434591d498eb2be0571a90c4cce29f418bd",
+      "bytes": 379
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/svg-arc-import.jpg",
+      "sha256": "63ed4e5df4c7a364e3d0378f64301cb0a34b4279e8f09821016adb560f61644e",
+      "bytes": 6924
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/svg-export.jpg",
+      "sha256": "6797bc5cf2116d548764d0d9a45709a6c4f450a5387fae1543b94cbe6f35478b",
+      "bytes": 8965
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/unicode-label.jpg",
+      "sha256": "cdce237b79d477c32f0d84c7a6558dbad62db73b06ba8afe5898ae7a89e06065",
+      "bytes": 3348
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/viewer-display-pose.jpg",
+      "sha256": "f0b2e82f02fc50da19379734617465d9e7c4804e7e8166c4cff46f1f80eaaf28",
+      "bytes": 15228
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/viewer-panel.png",
+      "sha256": "f6f028ce737059c7953b88def1533ffd4cf86609842309c91c618a423eecb4a0",
+      "bytes": 107287
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/weave-shader.jpg",
+      "sha256": "cfa4c1dc33b58940b8fa581271a890d90459d057c51fc509ca8533228cd11e2d",
+      "bytes": 14593
+    },
+    {
+      "path": "apps/library-docs/docs/public/favicon.svg",
+      "sha256": "0b41f5a023ae1050244e932754d959f92295fda2ffc9c4c478a3b78485153042",
+      "bytes": 270
+    }
+  ],
+  "assetCount": 83,
+  "downloadCount": 27,
+  "logs": {
+    "inventory-write": {
+      "exitCode": 0,
+      "sha256": "b327a135781f7ac7dc2303a27a446a1b0196322424b6640319a0d7aec083f02f",
+      "text": "(node:79) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\nRecorded current manifest metadata at 4a8fdbda774228bd0c0c5da504b74a080dfc2630. Review changesFromSourceSnapshot; historical evidence was not rewritten.\n"
+    },
+    "inventory-test": {
+      "exitCode": 0,
+      "sha256": "a0550afaad23e4438fca142cf7fd1f9baf45fd119d5972f71e52f39c15fbb9c7",
+      "text": "(node:6) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\nTAP version 13\n# (node:13) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n# (Use `node --trace-warnings ...` to show where the warning was created)\n# Subtest: all 12 current manifests match; historical source pin and evidence stay separate\nok 1 - all 12 current manifests match; historical source pin and evidence stay separate\n  ---\n  duration_ms: 145.998343\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed version drift\nok 2 - refuses unreviewed version drift\n  ---\n  duration_ms: 96.368553\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed held Render version drift\nok 3 - refuses unreviewed held Render version drift\n  ---\n  duration_ms: 74.031164\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed development exports drift\nok 4 - refuses unreviewed development exports drift\n  ---\n  duration_ms: 74.166116\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed published exports drift\nok 5 - refuses unreviewed published exports drift\n  ---\n  duration_ms: 73.570421\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed dependencies drift\nok 6 - refuses unreviewed dependencies drift\n  ---\n  duration_ms: 89.624255\n  type: 'test'\n  ...\n# Subtest: refuses blind hash refresh and current metadata tampering\nok 7 - refuses blind hash refresh and current metadata tampering\n  ---\n  duration_ms: 74.182461\n  type: 'test'\n  ...\n# Subtest: refuses historical evidence or source pin replacement\nok 8 - refuses historical evidence or source pin replacement\n  ---\n  duration_ms: 9.663698\n  type: 'test'\n  ...\n# Subtest: records exact changed fields including metadata-only held Render\nok 9 - records exact changed fields including metadata-only held Render\n  ---\n  duration_ms: 0.362224\n  type: 'test'\n  ...\n# Subtest: requires an immutable full SHA instead of a moving branch or tag\nok 10 - requires an immutable full SHA instead of a moving branch or tag\n  ---\n  duration_ms: 0.327984\n  type: 'test'\n  ...\n# Subtest: refuses a missing package entry instead of silently reducing coverage\nok 11 - refuses a missing package entry instead of silently reducing coverage\n  ---\n  duration_ms: 76.40654\n  type: 'test'\n  ...\n# Subtest: refuses rewritten historical manifest metadata\nok 12 - refuses rewritten historical manifest metadata\n  ---\n  duration_ms: 13.181812\n  type: 'test'\n  ...\n1..12\n# tests 12\n# suites 0\n# pass 12\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 806.126029\n"
+    },
+    "inventory-check": {
+      "exitCode": 0,
+      "sha256": "842feda32fe5904ee8c95ad70e977e11fc10d5d1de154f383c6921d03d8613c6",
+      "text": "(node:263) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\nMatched 12 current manifests at 4a8fdbda774228bd0c0c5da504b74a080dfc2630; historical source remains 5f5ad866205a21510ac69552e704cc162fa253b5.\n"
+    },
+    "source-links": {
+      "exitCode": 0,
+      "sha256": "2f6e110425b8b5031ab9e1fe0f56abe2d0dab36f5525adc77699f449a442f626",
+      "text": "(node:12) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"remoteCommitAvailable\":false,\"publicDeclarationLinksConverted\":0,\"localProvenancePaths\":0,\"policy\":\"Exact local pin preserved; no moving-branch substitution\"}\n"
+    }
+  },
+  "priorSuccessfulManual": "67a5636c0005858b399144785e3d98e60c5a9e9a / run38381223465",
+  "historicalRefs": {
+    "canceledDevelopCommit": "062fc6c7b6296f8986ae02de4c3f0c3fe5765e7b",
+    "snapshot89f": "89f9e428 (run38367947779)",
+    "retainedFailedRuns": [
+      38363889239,
+      38380199475
+    ]
+  },
+  "originalCancellation": "The old #1712 expected-parent ref retry was canceled and remains stopped. This is a newly qualified snapshot branch; no retry or latest-develop claim.",
+  "validation": "Existing12 inventory controls and one consistency check/source-link pass; no repeated editor/native/build campaign. Full built Manual/deployment is pending the single workflow run.",
+  "physicalGate": "OPEN; no screen/GPU QA"
+}
