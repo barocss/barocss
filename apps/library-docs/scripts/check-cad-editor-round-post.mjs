@@ -54,6 +54,11 @@ for (const claim of [
   }
 }
 assert.ok(guide.includes('./round-post'), 'Round-post lesson missing from guide entry');
+const overview = read('apps/library-docs/docs/packages/cad-editor/index.md');
+const nav = read('apps/library-docs/docs/.vitepress/config.mts');
+assert.ok(overview.includes('./round-post'), 'Round-post lesson missing from overview');
+assert.ok(nav.includes("'round-post': 'Create a round post'"), 'Round-post sidebar label missing');
+assert.ok(nav.includes("['first-model', 'round-post']"), 'Round-post sidebar route missing');
 assert.ok(firstLesson.includes('](./round-post)'), 'First-model lesson lacks follow-up');
 assert.ok(lesson.includes('](./first-model)'), 'Round-post lesson lacks back navigation');
 console.log('CAD Editor round-post lesson: read-only UI/source/reference drift PASS (no native/browser execution)');
