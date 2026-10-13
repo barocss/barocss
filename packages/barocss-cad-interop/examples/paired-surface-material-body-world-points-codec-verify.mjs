@@ -1,5 +1,9 @@
 import assert from 'node:assert/strict';
 import {
+  parseBaroCadPairedSurfaceMaterialBodyWorldPointsResult as parseReader,
+  readBaroCadPairedSurfaceMaterialBodyWorldPointsResult as readReader,
+} from '../dist/paired-surface-material-body-world-points-result.js';
+import {
   PAIRED_SURFACE_MATERIAL_BODY_WORLD_POINTS_LIMITS as limits,
   BaroCadPairedSurfaceMaterialBodyWorldPointsReadError as ReadError,
   parsePairedSurfaceMaterialBodyWorldPointsJson as parse,
@@ -10,6 +14,12 @@ function refuse(run, code, expected) {
   assert.throws(run, error => error instanceof ReadError &&
     error.code === code && (!expected || error.message.includes(expected)));
 }
+// Public entry guards must refuse malformed inputs before native reconstruction.
+refuse(() => parseReader({}), 'INPUT');
+refuse(() => readReader([]), 'INPUT');
+refuse(() => readReader({request:{},classifications:[],proof:{}}), 'SCHEMA');
+refuse(() => readReader({request:{},classifications:[],proof:{},report:{schema:'wrong',version:0}}), 'SCHEMA');
+refuse(() => readReader({request:{},classifications:[],proof:{},report:{schema:'barocss-paired-surface-material-body-world-points',version:1}}), 'SCHEMA');
 assert.equal(limits.utf8Bytes, 16777216);
 assert.equal(limits.utf16Units, 16777216);
 assert.equal(limits.values, 4194304);
