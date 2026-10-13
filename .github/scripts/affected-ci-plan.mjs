@@ -59,13 +59,27 @@ function graph(packages) {
 }
 
 export function createAffectedPlan({ packages, basePackages, changes = [], contents = {}, validBase = true, fullReason = null, head, runId }) {
-  const plan = { version: 1, head, runId, mode: 'full', appTests: 'external', runtimeTests: 'manual/pre-release', reasons: [], changedPaths: [...new Set(changes.flatMap((change) => [change.oldPath, change.path]).filter((path) => typeof path === 'string'))].sort(), packages: [], builds: [], docsNeeded: changes.some(({ path, oldPath }) => [path, oldPath].some((p) => p?.startsWith('apps/library-docs/'))) };
+  const plan = { version: 1, head, runId, mode: 'full', docsCheckScriptOnly: false, appTests: 'external', runtimeTests: 'manual/pre-release', reasons: [], changedPaths: [...new Set(changes.flatMap((change) => [change.oldPath, change.path]).filter((path) => typeof path === 'string'))].sort(), packages: [], builds: [], docsNeeded: changes.some(({ path, oldPath }) => [path, oldPath].some((p) => p?.startsWith('apps/library-docs/'))) };
   const finish = () => ({ ...plan, planId: digest(plan) });
   try {
     if (!shaPattern.test(head) || !/^\d+$/.test(runId)) throw new Error('invalid run identity');
     if (fullReason || !validBase || !changes.length) throw new Error(fullReason || 'comparison unavailable or empty');
     const { rows, edges } = graph(packages); graph(basePackages);
     const manifests = (items) => items.map(({ directory, manifest }) => ({ directory, manifest })).sort((a, b) => a.directory.localeCompare(b.directory));
+    // A docs validator command does not change another app's ESLint environment.
+    // Compare the trusted base with the actual checkout, not just changed path names.
+    const docsPath = 'apps/library-docs/package.json';
+    const docsChanges = changes.filter(({ path, oldPath }) => path === docsPath || oldPath === docsPath);
+    const docsBefore = basePackages.find(({ directory }) => directory === 'apps/library-docs')?.manifest;
+    const docsAfter = packages.find(({ directory }) => directory === 'apps/library-docs')?.manifest;
+    const omitDocsCheck = (items) => manifests(items).map(({ directory, manifest }) => ({ directory,
+      manifest: directory === 'apps/library-docs'
+        ? { ...manifest, scripts: { ...manifest.scripts, 'check:docs': '<compared separately>' } } : manifest }));
+    plan.docsCheckScriptOnly = docsChanges.length === 1 && docsChanges[0].status === 'M' && !docsChanges[0].oldPath
+      && typeof docsBefore?.scripts?.['check:docs'] === 'string' && !!docsBefore.scripts['check:docs']
+      && typeof docsAfter?.scripts?.['check:docs'] === 'string' && !!docsAfter.scripts['check:docs']
+      && docsBefore.scripts['check:docs'] !== docsAfter.scripts['check:docs']
+      && canonical(omitDocsCheck(packages)) === canonical(omitDocsCheck(basePackages));
     if (canonical(manifests(packages)) !== canonical(manifests(basePackages))) throw new Error('workspace manifest changed');
     const selected = new Set(); let docs = false;
     for (const change of changes) {
@@ -112,7 +126,7 @@ export function createAffectedPlan({ packages, basePackages, changes = [], conte
 }
 
 export function validatePlan(plan) {
-  if (!plan || plan.version !== 1 || !shaPattern.test(plan.head) || !/^\d+$/.test(plan.runId) || !['full', 'packages', 'docs'].includes(plan.mode) || plan.appTests !== 'external' || plan.runtimeTests !== 'manual/pre-release' || typeof plan.docsNeeded !== 'boolean' || !Array.isArray(plan.packages) || !Array.isArray(plan.builds)) throw new Error('invalid plan');
+  if (!plan || plan.version !== 1 || !shaPattern.test(plan.head) || !/^\d+$/.test(plan.runId) || !['full', 'packages', 'docs'].includes(plan.mode) || plan.appTests !== 'external' || plan.runtimeTests !== 'manual/pre-release' || typeof plan.docsCheckScriptOnly !== 'boolean' || typeof plan.docsNeeded !== 'boolean' || !Array.isArray(plan.packages) || !Array.isArray(plan.builds)) throw new Error('invalid plan');
   const { planId, ...body } = plan;
   if (digest(body) !== planId || (plan.mode === 'packages' && !plan.packages.length) || (plan.mode === 'docs' && (!plan.docsNeeded || plan.packages.length))) throw new Error('invalid plan identity or empty selection');
   for (const row of plan.builds) {
