@@ -45,6 +45,9 @@ jobs:
       - name: Test point-light WebGPU Viewer async lifecycle
         run: NODE_OPTIONS=--max-old-space-size=2048 node --test --test-concurrency=1 packages/barocss-viewer/tests/native-point-light-webgpu.test.mjs
 
+      - name: Test original Surface curvature without browser
+        run: node --test examples/viewer-native-scene-replacement/surface-curvature-contract.test.mjs
+
       - name: Run CI checks
         run: pnpm check
 
