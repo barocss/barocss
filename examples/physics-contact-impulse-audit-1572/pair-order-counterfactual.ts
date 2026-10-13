@@ -7,7 +7,7 @@
 import {createPhysicsWorld} from '../../packages/barocss-physics/src/index.js';
 import type {PhysicsBodyConfig,PhysicsWorldConfig} from '../../packages/barocss-physics/src/types.js';
 type Scene='OFFSET'|'YAW';
-type Order='baseline'|'reverse'|'alternate';
+type Order='baseline'|'reverse'|'alternate'|'supportUp'|'supportDown';
 const dt=1/120, steps=1200;
 const globals=globalThis as typeof globalThis & {
   __p1572PairOrder?:Order;
@@ -103,6 +103,8 @@ try{
     const baseline=run(scene,'baseline');
     const reversed=run(scene,'reverse');
     const alternate=run(scene,'alternate');
+    const supportUp=run(scene,'supportUp');
+    const supportDown=run(scene,'supportDown');
     if(baseline.pass0CandidateOrder.join('|')===
        reversed.pass0CandidateOrder.join('|'))
       throw Error('PAIR_ORDER_CONTROL_NOT_DISTINCT');
@@ -111,15 +113,25 @@ try{
        baseline.pass1CandidateOrder.join('|')===
        alternate.pass1CandidateOrder.join('|'))
       throw Error('PAIR_ORDER_ALTERNATING_NOT_DISTINCT');
-    console.log(JSON.stringify({scene,baseline,reversed,alternate,
+    const support=[ 'b0/floor','b0/b1','b1/b2' ];
+    const onlySupport=(list:string[])=>list.filter(name=>support.includes(name));
+    if(onlySupport(supportUp.pass0CandidateOrder).join('|')!==support.join('|'))
+      throw Error('PAIR_ORDER_SUPPORT_UP_NOT_DISTINCT');
+    if(onlySupport(supportDown.pass0CandidateOrder).join('|')!==[...support].reverse().join('|'))
+      throw Error('PAIR_ORDER_SUPPORT_DOWN_NOT_DISTINCT');
+    console.log(JSON.stringify({scene,baseline,reversed,alternate,supportUp,supportDown,
       comparisons:{
         reverseMinusBaselineHorizontalM:
           reversed.maxHorizontalFromInitialM-baseline.maxHorizontalFromInitialM,
         alternateMinusBaselineHorizontalM:
-          alternate.maxHorizontalFromInitialM-baseline.maxHorizontalFromInitialM
+          alternate.maxHorizontalFromInitialM-baseline.maxHorizontalFromInitialM,
+        supportUpMinusBaselineHorizontalM:
+          supportUp.maxHorizontalFromInitialM-baseline.maxHorizontalFromInitialM,
+        supportDownMinusBaselineHorizontalM:
+          supportDown.maxHorizontalFromInitialM-baseline.maxHorizontalFromInitialM
       },
       interpretation:'temporary traversal-order-only perturbation, not a production solver fix; order effect may depend on other solver defects'}));
-    if([baseline,reversed,alternate].some(s=>s.firstFailure!==null))
+    if([baseline,reversed,alternate,supportUp,supportDown].some(s=>s.firstFailure!==null))
       process.exitCode=1;
   }
 }finally{

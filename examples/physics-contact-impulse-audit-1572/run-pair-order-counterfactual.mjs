@@ -23,9 +23,22 @@ try{
           throw Error('PAIR_ORDER_EXACT_WORLD_SOURCE_MISMATCH');
         const transformed=`
         const __pairOrder=(globalThis as {__p1572PairOrder?:string}).__p1572PairOrder;
-        const __orderedPairs=__pairOrder==='reverse'
-          || (__pairOrder==='alternate' && pass%2===1)
-          ? [...pairs].reverse() : pairs;
+        const __supportRank=(pair:[number,number]):number=>{
+          const key=next[pair[0]].id+'/'+next[pair[1]].id;
+          if(key==='b0/floor')return 0;
+          if(key==='b0/b1')return 1;
+          if(key==='b1/b2')return 2;
+          return 3;
+        };
+        const __orderedPairs=__pairOrder==='supportUp'||__pairOrder==='supportDown'
+          ? [...pairs].sort((left,right)=>{
+              const a=__supportRank(left),b=__supportRank(right);
+              const first=__pairOrder==='supportUp'?a:(a===3?10:2-a);
+              const second=__pairOrder==='supportUp'?b:(b===3?10:2-b);
+              return first-second;
+            })
+          : (__pairOrder==='reverse'||(__pairOrder==='alternate'&&pass%2===1))
+            ? [...pairs].reverse():pairs;
         for (const [aIndex,bIndex] of __orderedPairs) {
           (globalThis as {__p1572PairVisit?:(event:unknown)=>void}).__p1572PairVisit?.({
             step:stepIndex+1,pass,pair:next[aIndex].id+'/'+next[bIndex].id
