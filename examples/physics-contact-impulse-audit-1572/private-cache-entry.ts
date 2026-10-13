@@ -4,13 +4,35 @@
  * temporary esbuild graph. The production Physics API and files stay unchanged.
  */
 import {createPhysicsWorld} from '../../packages/barocss-physics/src/index.js';
-import type {PhysicsBodyConfig,PhysicsWorldConfig} from '../../packages/barocss-physics/src/types.js';
+import type {PhysicsBodyConfig,PhysicsWorldConfig,PhysicsState} from '../../packages/barocss-physics/src/types.js';
 
 type CacheEvent =
  | {kind:'manifold',step:number,pass:number,pointCount:number,fallback:boolean}
  | {kind:'new-point',step:number,pass:number,pointId:string,reused:boolean,
     priorNormalNs:number,priorTangentMagnitudeNs:number}
  | {kind:'commit',step:number,cachedPoints:number};
+
+
+// Contact-point tangential relative speed reconstructed from COPIED accepted
+// public World state, not the private per-iteration point-speed or friction law.
+// Comparing consecutive accepted snapshots is only a temporal correlation.
+function acceptedContactSlip(state:PhysicsState):number|null{
+  const c=state.contacts.find(contact=>contact.aId==='b0'&&contact.bId==='b1');
+  if(!c)return null;
+  const a=state.bodies.find(body=>body.id===c.aId);
+  const b=state.bodies.find(body=>body.id===c.bId);
+  if(!a||!b)return null;
+  const cross=(u:number[],v:number[])=>[
+    u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];
+  const at=(body:typeof a)=>{
+    const arm=c.pointM.map((v,i)=>v-body.positionM[i]);
+    const angular=cross(body.angularVelocityRadps,arm);
+    return body.velocityMps.map((v,i)=>v+angular[i]);
+  };
+  const av=at(a),bv=at(b),rel=bv.map((v,i)=>v-av[i]);
+  const projection=rel.reduce((v,x,i)=>v+x*c.normalAtoB[i],0);
+  return Math.hypot(...rel.map((v,i)=>v-projection*c.normalAtoB[i]));
+}
 
 const dt=1/120;
 const floor:PhysicsBodyConfig={id:'floor',kind:'static',
@@ -51,10 +73,34 @@ for(const mode of ['OFFSET','YAW'] as const){
   const world=createPhysicsWorld(config);
   let accepted=0,firstFailure:string|null=null;
   const samples:unknown[]=[];
+  const transitionSamples:unknown[]=[];
+  const slipGroups={freshFrames:0,noFreshFrames:0,
+    freshSumAbsDeltaMps:0,noFreshSumAbsDeltaMps:0,
+    freshPeakAbsDeltaMps:0,noFreshPeakAbsDeltaMps:0};
   try{
     for(let step=1;step<=1200;step++){
       try{
+        const priorSlip=acceptedContactSlip(world.getState());
         const state=world.step(dt);accepted=step;
+        const slip=acceptedContactSlip(state);
+        const stepCache=perStep.get(step)??{fallbackPasses:0,manifoldPasses:0,fresh:0,reused:0};
+        if(priorSlip!==null&&slip!==null){
+          const delta=slip-priorSlip;
+          const fresh=stepCache.fresh>0;
+          if(fresh){
+            slipGroups.freshFrames++;
+            slipGroups.freshSumAbsDeltaMps+=Math.abs(delta);
+            slipGroups.freshPeakAbsDeltaMps=Math.max(slipGroups.freshPeakAbsDeltaMps,Math.abs(delta));
+          }else{
+            slipGroups.noFreshFrames++;
+            slipGroups.noFreshSumAbsDeltaMps+=Math.abs(delta);
+            slipGroups.noFreshPeakAbsDeltaMps=Math.max(slipGroups.noFreshPeakAbsDeltaMps,Math.abs(delta));
+          }
+          if(fresh&&transitionSamples.length<30)
+            transitionSamples.push({step,priorSlipMps:priorSlip,currentSlipMps:slip,
+              slipDeltaMps:delta,fresh:stepCache.fresh,reused:stepCache.reused,
+              fallbackPasses:stepCache.fallbackPasses});
+        }
         if(step===1||step%120===0){
           const b1=state.bodies.find(b=>b.id==='b1')!;
           const b2=state.bodies.find(b=>b.id==='b2')!;
@@ -67,7 +113,13 @@ for(const mode of ['OFFSET','YAW'] as const){
     world.dispose();
     delete (globalThis as typeof globalThis & {__physics1572Probe?: unknown}).__physics1572Probe;
   }
-  console.log(JSON.stringify({mode,accepted,firstFailure,counters,samples,
+  console.log(JSON.stringify({mode,accepted,firstFailure,counters,samples,transitionSamples,
+    slipGroups:{
+      ...slipGroups,
+      freshMeanAbsDeltaMps:slipGroups.freshFrames?slipGroups.freshSumAbsDeltaMps/slipGroups.freshFrames:null,
+      noFreshMeanAbsDeltaMps:slipGroups.noFreshFrames?slipGroups.noFreshSumAbsDeltaMps/slipGroups.noFreshFrames:null
+    },
+    measurementCaveat:'consecutive accepted snapshots, possibly different contact points; correlation only',
     instrumentation:'temporary esbuild source transform; actual private World cache',
     productionFileModified:false,eightBoxQualified:false,physicalGO:false}));
   if(firstFailure)process.exitCode=1;
