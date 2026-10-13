@@ -58,16 +58,23 @@ const floorContact: PointImpulse = { normalNs:0,tangentNs:V() };
 const upperContact: PointImpulse = { normalNs:0,tangentNs:V() };
 solvePersistentPoint(stackFloor,stackLower,V(0,0,0),n,floorContact);
 solvePersistentPoint(stackLower,stackUpper,V(0,1,0),n,upperContact);
-check(near(stackLower.velocityMps[1],0), 'two-box lower supported after ordered sweep');
-check(near(stackUpper.velocityMps[1],0), 'two-box upper supported after ordered sweep');
-check(near(floorContact.normalNs,1), 'two-box lower support impulse');
-check(near(upperContact.normalNs,1), 'two-box inter-body support impulse');
-// A second sweep must not invent new normal impulses in this zero-gravity,
-// zero-relative-velocity snapshot. The physical gravity load test is separate.
-solvePersistentPoint(stackFloor,stackLower,V(0,0,0),n,floorContact);
-solvePersistentPoint(stackLower,stackUpper,V(0,1,0),n,upperContact);
-check(near(floorContact.normalNs,1) && near(upperContact.normalNs,1),
-  'second zero-relative-velocity sweep preserves accumulated impulses');
+// With a coupled stack, one Gauss-Seidel pass transfers momentum back to the
+// lower box. It MUST NOT be mistaken for convergence.
+check(near(stackLower.velocityMps[1],-0.5), 'first sweep lower has back reaction');
+check(near(stackUpper.velocityMps[1],-0.5), 'first sweep upper shares velocity');
+check(near(floorContact.normalNs,1), 'first sweep floor impulse');
+check(near(upperContact.normalNs,0.5), 'first sweep inter-body impulse');
+
+// Revisit both rows with one fixed, bounded 48-sweep budget; do not silently
+// increase iterations until a new quality gate passes.
+for (let sweep=1; sweep<48; sweep++) {
+  solvePersistentPoint(stackFloor,stackLower,V(0,0,0),n,floorContact);
+  solvePersistentPoint(stackLower,stackUpper,V(0,1,0),n,upperContact);
+}
+check(Math.abs(stackLower.velocityMps[1])<=1e-10, 'lower speed converges');
+check(Math.abs(stackUpper.velocityMps[1])<=1e-10, 'upper speed converges');
+check(near(floorContact.normalNs,2,1e-10), 'floor carries both incoming bodies');
+check(near(upperContact.normalNs,1,1e-10), 'inter-body impulse carries upper body');
 console.log(JSON.stringify({
   profile:'isolated-impulse-audit-v1', fullWorldQualified:false,
   oneBodyNormalImpulseNs:impulse.normalNs,
