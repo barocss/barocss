@@ -14,6 +14,7 @@ Choose a task to continue:
 - [API contracts](./api) explain inputs, results, ownership and refusal boundaries.
 - [Quickstart](./quickstart) shows the initial host setup.
 - [Examples](./examples) provide complete inputs and observable results.
+- [Beveled and parametric split exercise](./beveled-parametric-split) compares two actually available modeling presets: editable split coordinate versus owned width-and-offset formula.
 - [Limits and errors](./limits) explain supported scope and recovery.
 
 Use the source profile stated in each guide. A package entry or method name alone does not establish publication or runtime support beyond that guide.

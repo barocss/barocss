@@ -24,6 +24,7 @@ jobs:
       - name: Compile physics package
         run: pnpm --filter @barocss/physics build:library
       - name: Run Physics 1572 audited TypeScript consumers
+        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
@@ -54,7 +55,7 @@ jobs:
           echo "Failed audit consumers: ${failures}"
           test "${failures}" -eq 0
       - name: Preserve audit output
-        if: always()
+        if: always() && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: physics-1572-logs

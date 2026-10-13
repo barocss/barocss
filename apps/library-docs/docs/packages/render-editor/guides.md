@@ -15,6 +15,12 @@ With workspace dependencies installed, run `pnpm --filter @barocss/render-editor
 
 Open and New ask before leaving unsaved changes/drafts; cancelling retains them. A refused or stale Open also leaves the current scene and fields in place. **New directional** / **New point** deliberately ends the old lifetime and starts another; it is not an atomic backend swap. **Remount accepted scene** retains accepted authorship, clears history and requires a new renderer. Failed or lost presentation does not promise old pixels.
 
+### Focus the Light workspace inspector
+
+Choose a **Scene bodies** or **Scene lights** row to focus its current target, or use **Body / Light / Camera / Scene** above the inspector. **Body** contains the selected display transform and bound material; **Light** contains the selected authored light. **Camera** edits the saved scene camera, while viewport navigation still changes only the local view. **Scene** contains **Scene title** and ambient strength. File, Body, Light and View controls group existing commands by purpose; changing focus keeps the actual Canvas and complete scene form mounted.
+
+The fixed **Apply / Discard** bar affects **all scene drafts, including hidden sections**. Switching focus never accepts or discards fields. If Apply refuses an invalid hidden field, return to its target and correct it, or Discard all drafts. Accepted heading and **Save accepted** stay on accepted data until acknowledgement; one successful Apply accepts all changes through the existing history transaction. See [workspace focus limits](./limits#workspace-focus-and-transaction-limits) and the adopted [workbench](https://github.com/barocss/barocss/blob/7bb5c5e833c8fa17c8d99aa0a5bbc59360cc16c1/apps/render-editor/src/native-light-workbench.tsx).
+
 ### Select a body from the Canvas
 
 Choose a **Scene bodies** row, or click an admitted visible material-bound body with the primary left pointer and no modifiers. The complete original binding identifies the Inspector target even when geometry IDs repeat. A background miss keeps the current row. Selection retains every body's unfinished fields, accepted scene, history, Save authority and local view; it does not apply a transform or highlight material.
@@ -45,6 +51,12 @@ A canceled/empty chooser or failed later read keeps the previous inspected candi
 
 See [Surface file limits](./limits#original-surface-file-addition-limits), the adopted [private dialog](https://github.com/barocss/barocss/blob/4a8fdbda774228bd0c0c5da504b74a080dfc2630/apps/render-editor/src/native-light-surface-add-dialog.tsx), [qualified addition helper](https://github.com/barocss/barocss/blob/4a8fdbda774228bd0c0c5da504b74a080dfc2630/apps/render-editor/src/native-light-bodies.ts), [owned transaction](https://github.com/barocss/barocss/blob/4a8fdbda774228bd0c0c5da504b74a080dfc2630/apps/render-editor/src/native-light-workbench.tsx) and [both-kind software flow](https://github.com/barocss/barocss/blob/4a8fdbda774228bd0c0c5da504b74a080dfc2630/apps/render-editor/native-light-workbench-flow.mjs). These software checks do not establish physical file persistence, GPU rendering or a fix for [#1573](https://github.com/barocss/barocss/issues/1573).
 
+### Export an accepted original CAD asset
+
+Select a visible material-bound **Scene bodies** row and choose **Export accepted CAD source**. The `.barocad` download contains that body's **complete accepted source asset**, including other original objects in the same asset, comments, line endings and numeric spelling in native millimetres. Shared assets can be exported. Accepted control-point edits are included; scene position/rotation/scale, materials, lights and unfinished fields are excluded. Use **Save accepted** when you need the complete scene instead.
+
+Export is read-only and remains available with ordinary corrective drafts. It keeps those fields, selection, local view, history and the scene's saved marker. Finish pending/navigation/file work and close dialogs first. The filename uses a safe `asset-` prefix and `.barocad` extension. A request does not prove that the browser saved a physical file. See [source-export limits](./limits#accepted-original-source-export-limits) and the adopted [qualified asset reader](https://github.com/barocss/barocss/blob/cacb097763dedac8fbed97574db8510eef69c17c/apps/render-editor/src/native-light-bodies.ts) and [download control](https://github.com/barocss/barocss/blob/cacb097763dedac8fbed97574db8510eef69c17c/apps/render-editor/src/native-light-workbench.tsx).
+
 ### Edit an original Surface control point
 
 Select a visible material-bound **Scene bodies** row in a clean, ready Light workspace, then choose **Edit control point…**. Choose the original **U row** and **V column**, and enter XYZ in **source millimetres** plus the rational **weight**. These are control-grid indices and original coefficients, not UV parameters or sampled mesh vertices. Body transforms stay unchanged.
@@ -54,6 +66,12 @@ Select a visible material-bound **Scene bodies** row in a clean, ready Light wor
 If another native body shares the source asset, even hidden or unselected, close the dialog and **Duplicate body** before editing the selected copy. The duplicate owns a separate source asset, but duplication still needs available asset/body/display/material capacity. No implicit clone is made. Submitted Apply point fences Cancel, Escape and outside-close; after a failure use the existing body-command recovery when reported. Retained authorship does not certify restored pixels.
 
 See [control-point limits](./limits#original-surface-control-point-limits), the adopted [private point dialog](https://github.com/barocss/barocss/blob/975ed3deb288d39e8d2d1c9212fc5010acc6ad7b/apps/render-editor/src/native-light-surface-point-dialog.tsx), [qualified helper](https://github.com/barocss/barocss/blob/975ed3deb288d39e8d2d1c9212fc5010acc6ad7b/apps/render-editor/src/native-light-bodies.ts) and [owned transaction](https://github.com/barocss/barocss/blob/975ed3deb288d39e8d2d1c9212fc5010acc6ad7b/apps/render-editor/src/native-light-workbench.tsx). The focused software checks use controlled Viewers and file transport; they add no physical GPU/file acceptance.
+
+### Stage a body transform reset
+
+Select the intended **Scene bodies** row, then choose **Stage reset transform** beside Body transform. This explicitly replaces that body's position with `[0,0,0]` mm, XYZW rotation with `[0,0,0,1]`, and dimensionless scale with `[1,1,1]`, including its unfinished corrective text. Other bodies, camera, light and material drafts stay available. The reset is staged: use **Apply** to accept the complete scene in one history entry, or **Discard** to restore accepted fields. **Undo/Redo** restores the combined accepted transaction.
+
+Staging does not present a frame, move the local view or change original CAD geometry. An already identical signed-zero-aware numerical transform keeps its exact field strings and omitted identity poses. An intentional reset can replace signed-zero or negative-identity quaternion authorship; it does not silently normalize imported data. The existing providers can refuse an unsafe generated identity, retaining all previous fields. Finish pending/navigation/file work and close dialogs before resetting. See [reset limits](./limits#body-transform-reset-limits) and the adopted [field helper](https://github.com/barocss/barocss/blob/68c40b1ef56895e99a04103b21c99d80eea265bc/apps/render-editor/src/native-light-fields.ts) and [workbench control](https://github.com/barocss/barocss/blob/68c40b1ef56895e99a04103b21c99d80eea265bc/apps/render-editor/src/native-light-workbench.tsx).
 
 ### Rotate a body by degrees
 
@@ -110,6 +128,12 @@ Cancel, an empty selection, malformed/oversized data or a stale read leaves prio
 **Export accepted material** requests a signed-value `.material.json` download named from the selected accepted material's existing ID. It can be used while corrective fields remain, but excludes all staged material changes. It does not save the scene, clear its unsaved state or change history. The owned download link and object URL are cleaned up even if transport fails; a download request does not certify physical persistence.
 
 The [adopted app controls](https://github.com/barocss/barocss/blob/f4d66c12781e370d1d6ab0e214cd911079313eba/apps/render-editor/src/native-light-workbench.tsx) and [atomic binding preparation](https://github.com/barocss/barocss/blob/f4d66c12781e370d1d6ab0e214cd911079313eba/apps/render-editor/src/native-light-fields.ts) reuse the [existing material APIs](./api#portable-material-authority). Controlled software checks cover both light kinds; physical file, pointer, focus, GPU and device recovery acceptance remains separate under #1577/#1573.
+
+### Copy a material from another body
+
+Select the destination **Scene bodies** row and resolve **all** scene drafts with **Apply** or **Discard**. In **Body material**, choose another visible body from **Copy accepted material from body**; the source choices and **Destination** show names and original body IDs. Press **Stage material copy** to copy the source binding's accepted shader and supplied overrides into the destination form. Staging alone changes no rendered scene, accepted revision or history. Inspect the fields, then use ordinary **Apply** to accept one whole-scene history step; **Discard** abandons the staged copy and **Undo/Redo** restores accepted scene history.
+
+Materials remain independent, even when their embedded IDs repeat. The destination keeps its identity/title and qualified target; the source binding stays unchanged. Copying equal content is a no-op. Changing destination selection away and back, or changing the accepted scene, requires choosing the source again; corrective drafts cannot be silently consumed. Finish pending work/navigation and close dialogs first. See [material copy limits](./limits#body-material-copy-limits) and the adopted [field authority](https://github.com/barocss/barocss/blob/daf34cdb8249b90d4f48ec43c411100c7fae9140/apps/render-editor/src/native-light-fields.ts) and [workbench controls](https://github.com/barocss/barocss/blob/daf34cdb8249b90d4f48ec43c411100c7fae9140/apps/render-editor/src/native-light-workbench.tsx).
 
 ### Preserve qualified authority and raw values
 

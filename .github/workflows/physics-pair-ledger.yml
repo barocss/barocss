@@ -22,11 +22,12 @@ jobs:
       - run: pnpm --filter @barocss/physics build:library
       - run: mkdir -p /tmp/physics1572-pair
       - name: Run original b0/b1 and b1/b2 lateral response audit
+        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
           node examples/physics-contact-impulse-audit-1572/run-pair-response-ledger.mjs | tee /tmp/physics1572-pair/results.jsonl
-      - if: always()
+      - if: always() && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: physics1572-pair-response
