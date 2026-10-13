@@ -41,7 +41,8 @@
   ],
   "scripts": {
     "build:library": "node scripts/build.mjs",
-    "type-check": "tsc -p tsconfig.json --noEmit"
+    "type-check": "tsc -p tsconfig.json --noEmit",
+    "test": "node scripts/modeling-file-test.mjs"
   },
   "dependencies": {
     "@barocss/cad": "workspace:*",
