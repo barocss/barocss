@@ -80,11 +80,11 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
     const n = authored?.nodes;
     return n?.length === 5 && n[0].kind === 'sketch' && n[0].profile === 'rectangle'
       && JSON.stringify(n[0].min) === '[0,0]' && JSON.stringify(n[0].max) === '[32,24]'
-      && n[1].kind === 'extrude' && n[1].sketch === 0 && n[1].height === 8
+      && n[1].kind === 'extrude' && n[1].sketch === 0 && n[1].height === 8 && !Object.hasOwn(n[1], 'from')
       && n[2].kind === 'sketch' && n[2].profile === 'rectangle' && n[2].min?.[0]?.parameter === 'toolX' && n[2].min?.[1]?.parameter === 'toolY'
       && n[2].max?.[0]?.op === 'add' && n[2].max[0].left?.parameter === 'toolX' && n[2].max[0].right?.parameter === 'toolWidth'
       && n[2].max?.[1]?.op === 'add' && n[2].max[1].left?.parameter === 'toolY' && n[2].max[1].right?.parameter === 'toolSpanY'
-      && n[3].kind === 'extrude' && n[3].sketch === 2 && n[3].height?.parameter === 'depth'
+      && n[3].kind === 'extrude' && n[3].sketch === 2 && n[3].height?.parameter === 'depth' && !Object.hasOwn(n[3], 'from')
       && n[4].kind === 'difference' && n[4].parent?.node === 1 && n[4].tool?.node === 3 && n[4].parent.side === 'solid' && n[4].tool.side === 'solid';
   })();
   const pocketSavedOutputs = pocketDrivers && Object.keys(authored.outputs).join(',') === 'part,plate,tool'
