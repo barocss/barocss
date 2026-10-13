@@ -71,10 +71,24 @@ for(const name of ['ALIGNED','OFFSET','YAW'] as const){
       }
     }
     if(firstFailure)anyFailure=true;
+    // Apply the original #1185 settling thresholds as a diagnostic comparison,
+    // NOT as a public 8-box certification or independent geometry result.
+    const thresholdM=0.005, horizontalLimitM=0.01, speedLimitMps=0.02;
+    const angularLimitRadps=0.02, tiltLimitRad=Math.PI/180;
+    const settlingViolations=[...stats].flatMap(([id,m])=>[
+      ...(m.maxVerticalDriftM>thresholdM?[`${id}:verticalDrift`]:[]),
+      ...(m.maxHorizontalFromInitialM>horizontalLimitM?[`${id}:horizontalDrift`]:[]),
+      ...(m.maxLinearSpeedMps>speedLimitMps?[`${id}:linearSpeed`]:[]),
+      ...(m.maxAngularSpeedRadps>angularLimitRadps?[`${id}:angularSpeed`]:[]),
+      ...(m.maxTiltFromUprightRad>tiltLimitRad?[`${id}:uprightTilt`]:[])
+    ]);
     console.log(JSON.stringify({case:name,profile:'original-fixture-three-box-public-v1',
       stepsRequested:steps,accepted,firstFailure,peakProducerContactPenetrationM,
       bodyFinalWindow:Object.fromEntries([...stats].sort(([a],[b])=>a.localeCompare(b))),
-      collisionReference:'producer-only',eightDynamicBoxQualified:false,physicalResult:'MEASURED_ONLY'}));
+      boundedSettlingThresholdsPassed:accepted===steps&&settlingViolations.length===0,
+      settlingViolations,collisionReference:'producer-only',
+      eightDynamicBoxQualified:false,
+      physicalResult:firstFailure||settlingViolations.length?'BOUNDED_SETTLING_NO_GO':'BOUNDED_SETTLING_THRESHOLDS_MET_ONLY'}));
   }finally{world.dispose();}
 }
 if(anyFailure)process.exitCode=1;
