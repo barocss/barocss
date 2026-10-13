@@ -11,7 +11,7 @@ import {deriveNativeLightFramingCamera} from './native-light-framing';
 import {deriveLightBodyCommand, deriveLightSurfaceAddition, lightBodyReservedIds} from './native-light-bodies';
 import type {LightBodyCommand, LightBodyCommandResult} from './native-light-bodies';
 import {createNativeSceneBase, createNativeSceneSeed} from './native-scene-seed';
-import {readLightFields, applyLightFields, addLightFields,
+import {readLightFields, applyLightFields, addLightFields, duplicateLightFields,
   lightFieldsDirty, lightKind, selectedLightMaterial, stageLightMaterialFields, stageLightBodyRotation} from './native-light-fields';
 import type {BodyFields, CameraFields, LightFields, LightForm, LightKind, MaterialUniformFields, LightRotationAxis, LightRotationSpace} from './native-light-fields';
 import {Button} from './components/ui/button';
@@ -534,6 +534,10 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   };
   const add = () => {try {const next = addLightFields(fields); edit(next); setSelected(next.lights.at(-1)!.nodeId);} catch (cause) {report(cause);}};
   const remove = () => {if (light) {const next = {...fields, lights: fields.lights.filter(item => item !== light)}; edit(next); setSelected(next.lights[0]?.nodeId ?? null);}};
+  const duplicateLight = () => {if (!light || actionBusy || fields.lights.length >= 4) return;
+    try {const next = duplicateLightFields(fields, light.nodeId); edit(next); setSelected(next.lights.at(-1)!.nodeId); setNotice('Light copied into the scene draft. Apply to accept it.');}
+    catch (cause) {report(cause, 'Light copy refused: ');}
+  };
   const disabled = actionBusy || bodyRecovery || !snapshot || status !== 'ready';
   const bodyCommandReason = disabled ? 'An available idle scene is required.' : help || choosingFile ? 'Close Help or the file chooser first.'
     : dirty ? 'Apply or Discard all scene drafts first.' : !body || !material ? 'Choose a visible body with an existing material.'
@@ -570,7 +574,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
     <div className="app-body" style={{minHeight: 0}}>
       <aside style={{width: 210, flexShrink: 0, borderRight: '1px solid var(--border)', overflow: 'auto'}} aria-label="Light outliner">
         <div style={sectionStyle}><strong>Scene lights</strong><p style={{color: 'var(--muted-foreground)'}}>{fields.lights.length} / 4 {kind}</p>
-          <Button size="sm" variant="outline" disabled={disabled || fields.lights.length >= 4} onClick={add}><Plus/>Add {kind}</Button></div>
+          <Button size="sm" variant="outline" disabled={disabled || fields.lights.length >= 4} onClick={add}><Plus/>Add {kind}</Button> <Button size="sm" variant="outline" disabled={disabled || !light || fields.lights.length >= 4} onClick={duplicateLight}>Duplicate light</Button></div>
         {fields.lights.map(item => <button key={item.nodeId} aria-pressed={selected === item.nodeId} disabled={actionBusy} onClick={() => {if (!surfaceTicket.current) setSelected(item.nodeId);}} style={{display: 'block', width: '100%', padding: 14, textAlign: 'left', border: 0, color: 'inherit', background: selected === item.nodeId ? '#243735' : 'transparent'}}>{item.label || item.nodeId}<small style={{display: 'block', opacity: .65}}>{item.nodeId}{item.enabled ? '' : ' · disabled'}</small></button>)}
         <section style={sectionStyle} aria-label="Scene bodies"><strong>Scene bodies</strong><p>Choose a row or click a visible body in the Canvas to edit its display transform and existing material.</p>
           {fields.bodies.map(item => <button key={item.bodyId} aria-label={'Edit body ' + item.bodyId} aria-pressed={selectedBody === item.bodyId} disabled={disabled}
