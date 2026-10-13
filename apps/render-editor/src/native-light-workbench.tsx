@@ -12,7 +12,7 @@ import {deriveLightBodyCommand, deriveLightSurfaceAddition, deriveLightSurfacePo
 import type {LightBodyCommand, LightBodyCommandResult, LightSurfacePointData} from './native-light-bodies';
 import {createNativeSceneBase, createNativeSceneSeed} from './native-scene-seed';
 import {readLightFields, applyLightFields, addLightFields, duplicateLightFields,
-  lightFieldsDirty, lightKind, selectedLightMaterial, stageLightMaterialFields, stageLightBodyRotation} from './native-light-fields';
+  lightFieldsDirty, lightKind, selectedLightMaterial, stageLightMaterialFields, stageLightBodyRotation, stageLightBodyTransformReset} from './native-light-fields';
 import type {BodyFields, CameraFields, LightFields, LightForm, LightKind, MaterialUniformFields, LightRotationAxis, LightRotationSpace} from './native-light-fields';
 import {Button} from './components/ui/button';
 import {NativeLightSurfaceAddDialog} from './native-light-surface-add-dialog';
@@ -416,6 +416,17 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
       setNotice(next === previous ? 'No rotation change. Authored values retained.' : 'Rotation staged. Apply accepts the complete scene.');
     } catch (cause) {report(cause, 'Rotation refused: ');}
   };
+  const resetBodyTransform = () => {
+    if (!body || !rotationReady()) return;
+    const session = sessionRef.current!;
+    try {
+      const previous = formRef.current;
+      const next = stageLightBodyTransformReset(session.getSnapshot().accepted, previous, body.bodyId);
+      edit(next);
+      setNotice(next === previous ? 'Body transform is already identity. Corrective fields retained.'
+        : 'Body transform reset staged. Apply accepts the entire scene.');
+    } catch (cause) {report(cause, 'Transform reset refused: ');}
+  };
   const commitBodyResult = async (session: RenderNativeLightSession, before: RenderNativeLightSessionSnapshot,
     result: LightBodyCommandResult, bodyId: string, selectedEpoch: number, stillCurrent: () => boolean) => {
     const accepted = before.accepted;
@@ -673,6 +684,9 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
             </div>
             <small>About the body origin. Position and scale stay fixed. Stage adds to the current draft; Apply accepts it. Zero and full turns keep the original orientation.</small>
           </fieldset>
+          <Button size="sm" variant="outline" disabled={rotationDisabled}
+            onClick={resetBodyTransform}>Stage reset transform</Button>
+          <small>Resets only this body to origin [0,0,0] mm, identity rotation and scale [1,1,1]. Other drafts remain. Apply accepts the complete scene.</small>
           <details><summary>Advanced quaternion (read-only)</summary><output aria-label="Body rotation XYZW" style={{overflowWrap: 'anywhere'}}>{body.rotation.join(', ')}</output></details>
           <small>Visibility is retained. Display transforms do not edit CAD geometry. Apply accepts every body's draft with camera and light edits.</small>
         </section>}
