@@ -129,7 +129,10 @@ class EngineUVViewport implements EngineUVTextureWebGPUViewport {
     void device.lost.then(info => {
       if (this.state === 'disposed' || this.state === 'failed' || this.state === 'lost') return;
       this.state = 'lost'; this.terminalError = new EngineUVWebGPUError('DEVICE_LOST', 'Actual WebGPU device was lost; explicit remount required', info);
-      this.invalidate(); this.releaseOwned(); this.releaseDevice();
+      this.invalidate();
+      const failures = [...this.releaseOwned(), ...this.releaseDevice()];
+      if (failures.length)
+        this.terminalError = new EngineUVWebGPUError('DEVICE_LOST', 'Actual device loss and cleanup refused', new AggregateError([this.terminalError, ...failures]));
     }, cause => {
       if (this.state === 'ready') this.failTerminal(new EngineUVWebGPUError('DEVICE_LOST', 'Actual device loss observation rejected', cause));
     });
