@@ -26,6 +26,6 @@ test('UV material input lowers to the declared interpolant', () => {
   if (!compiled.ok) return;
   const lowered = lowerEngineUVMaterial(compiled.material);
   assert.equal(lowered.inputDeclarations, 'in vec2 v_engine_uv;');
-  assert.match(lowered.expression, /v_engine_uv\\.x/);
+  assert.match(lowered.expression, /v_engine_uv\.x/);
   assert.ok(!lowered.expression.includes('mat_s_0'));
 });
