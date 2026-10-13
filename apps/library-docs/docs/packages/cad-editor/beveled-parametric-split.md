@@ -52,7 +52,9 @@ The outputs are independently named `negative` and `positive`, meaning the lower
 | Cold reopen of saved X8/front1/back3 | **1496 mm³** | **4488 mm³** |
 | Reopened model, X16/front1/back3 | **2992 mm³** | **2992 mm³** |
 
-These figures are certified only within the **bounded convex-planar qualified family** of the measured fixture. They are **not** reconstructed from browser pixels or guaranteed for unrelated imported models.
+For quick comparison with the frozen provider's `negative / positive` notation: **X16 = 3032 / 3032**, **X8 = 1516 / 4548**, **X8/back3 = 1496 / 4488**, and **reopened X16/back3 = 2992 / 2992** (all mm³).
+
+These figures are qualified only within the **bounded convex-planar family** of the measured fixture. They are **not** reconstructed from browser pixels or guaranteed for unrelated imported models.
 
 Moving only `splitAt` can reuse the unchanged model features leading to the finished chamfered part. Editing `backDistance` changes the second chamfer **and** the subsequent split. Feature reuse counts are not timing or total native-call benchmarks; the app still regenerates display geometry from accepted outputs.
 
