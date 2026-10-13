@@ -41,6 +41,13 @@ The bounded actual-provider/React/session flow uses controlled Viewers and file 
 
 Both light kinds passed focused actual-provider/React/session checks with 12 edit-helper calls plus one real duplicate, six Viewer attempts, two Save/Open transports and three lifetimes per kind. These controlled checks do not establish physical GPU, file persistence or gizmo acceptance.
 
+### Body transform reset limits
+
+- [Stage reset transform](./guides#stage-a-body-transform-reset) replaces only the selected body's position/rotation/scale fields. It can correct that body's invalid numeric text without parsing or consuming unrelated drafts. Those other drafts still participate in the eventual whole-scene Apply and can refuse it.
+- The target is source-origin `[0,0,0]` mm, XYZW `[0,0,0,1]` and scale `[1,1,1]`. Existing document and posed-display admission must accept the generated selected pose before fields change. Source geometry, materials, lights, visibility and local view are retained; there is no automatic framing.
+- Signed-zero-aware exact numerical identity returns the same form, preserving lexical values such as `1.0` and omitted poses. A genuine explicit reset may replace `-0` with `+0` or a negative-identity quaternion with the stated target. It never normalizes an imported quaternion implicitly.
+- Current qualified selection, selection epoch, lifetime, pending operation, dialog, chooser and navigation fences apply. Staging adds no revision/history or Viewer request; ordinary Apply owns the acknowledged whole-scene change. Both-kind focused controlled checks establish software behavior, not physical GPU or file acceptance.
+
 ### Body rotation controls
 
 - [Rotate by](./guides#rotate-a-body-by-degrees) accepts finite decimal degrees in **−360..360**. It turns about the selected body origin without translating or scaling it. With XYZW axis delta `δ = [axis × sin(d × π / 360), cos(d × π / 360)]`, local is **q × δ** and world is **δ × q**, using Hamilton multiplication in the existing right-handed basis.
