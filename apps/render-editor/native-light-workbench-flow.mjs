@@ -2553,7 +2553,10 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
       const seed = api.prepareRenderNativeLightDocument(raw).document, original = api.serializeRenderNativeLightDocument(seed);
       const cases = []; let exportAttempts = 0;
       const beforeControls = controls.length, beforeDownloads = downloads.length, beforeChoosers = fileChoosers;
+      // Focused mode simulates an older Save whose deferred cleanup crosses this block.
+      const priorUrl = sourceExportOnly && !sourceExportPreflight ? URL.createObjectURL(new Blob(['prior-flow'])) : null;
       const beforeUrls = createdUrls.length, beforeRevoked = revokedUrls.length;
+      const unrelatedRevocation = priorUrl ? Promise.resolve().then(() => URL.revokeObjectURL(priorUrl)) : null;
       activeSurfaceLedger = {feature: 'accepted-source-export', kind, cases, get exportAttempts() {return exportAttempts;},
         get lifetimes() {return controls.length - beforeControls;}, presentations: 0, fileChoosers: 0};
       const read = (name, value = seed, bodyId = B) => {cases.push(name); assert(cases.length <= 8);
@@ -2625,10 +2628,16 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
       await mounted.dispose(); mounted = null; await act(async () => {detached.click(); staleButton.click();});
       assert.equal(control.disposed, 1); assert.equal(control.calls.length, 0); assert.equal(exportAttempts, 4);
       assert.equal(controls.length - beforeControls, 1); assert.equal(fileChoosers, beforeChoosers);
-      assert.deepEqual(createdUrls.slice(beforeUrls), revokedUrls.slice(beforeRevoked)); assert.equal(createdUrls.length - beforeUrls, 4);
+      await unrelatedRevocation;
+      const ownedUrls = createdUrls.slice(beforeUrls), ownedSet = new Set(ownedUrls);
+      assert.equal(ownedUrls.length, 4); assert.equal(ownedSet.size, 4);
+      assert.deepEqual(revokedUrls.slice(beforeRevoked).filter(url => ownedSet.has(url)), ownedUrls,
+        'Every source-export URL is revoked exactly once; prior-block cleanup is unrelated');
+      if (priorUrl) assert(revokedUrls.slice(beforeRevoked).includes(priorUrl), 'Prior deferred revocation actually crossed the observation boundary');
       assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
       sourceExportFlow.push({kind, helperCases: cases.length, cases, setupPointDerivations: 1, exportAttempts, successfulDownloads: 3,
-        presentations: 0, choosers: 0, lifetimes: 1, acceptedOnly: true, wholeAssetRoundtrip: true, cleanup: true});
+        presentations: 0, choosers: 0, lifetimes: 1, acceptedOnly: true, wholeAssetRoundtrip: true, cleanup: true,
+        unrelatedDeferredRevocation: priorUrl !== null});
     }
     console.log(JSON.stringify({result: 'PASS', scope: sourceExportPreflight ? 'Accepted source export actual-provider fixture preflight' : 'Accepted source export actual React/provider; controlled download, no physical file or GPU proof', sourceExportFlow}));
   }
