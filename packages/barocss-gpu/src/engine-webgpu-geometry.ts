@@ -21,7 +21,10 @@ export function uploadEngineWebGPUGeometry(device: GPUDeviceHandle, input: Trian
     const positions = device.createBuffer({ size: geometry.positions.byteLength, usage: VERTEX | COPY_DST });
     owned.push(positions);
     device.queue.writeBuffer(positions, 0, geometry.positions);
-    // WebGPU buffer sizes and queue.writeBuffer copies require 4-byte alignment.\n    const indexSize = Math.ceil(geometry.indices.byteLength / 4) * 4;\n    const indexBytes = new Uint8Array(indexSize);\n    indexBytes.set(new Uint8Array(geometry.indices.buffer, geometry.indices.byteOffset, geometry.indices.byteLength));\n    const indices = device.createBuffer({ size: indexSize, usage: INDEX | COPY_DST });
+    // WebGPU buffer sizes and queue.writeBuffer copies require 4-byte alignment.
+    const indexSize = Math.ceil(geometry.indices.byteLength / 4) * 4;
+    const indexBytes = new Uint8Array(indexSize);\n    indexBytes.set(new Uint8Array(geometry.indices.buffer, geometry.indices.byteOffset, geometry.indices.byteLength));
+    const indices = device.createBuffer({ size: indexSize, usage: INDEX | COPY_DST });
     owned.push(indices);
     device.queue.writeBuffer(indices, 0, indexBytes);
     let disposed = false;
