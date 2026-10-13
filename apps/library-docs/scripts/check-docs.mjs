@@ -1,4 +1,5 @@
 import './check-cad-editor-round-post.mjs';
+import './check-cad-editor-next-lessons.mjs';
 import { checkExampleCatalog } from './check-example-catalog.mjs';
 import { repairSourceLinks } from './source-links.mjs';
 import { readFile, readdir, access } from 'node:fs/promises';

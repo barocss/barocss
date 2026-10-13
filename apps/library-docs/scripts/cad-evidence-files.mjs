@@ -24,7 +24,7 @@ export function verifyEvidenceFiles(receipt, evidenceRoot) {
       const digest = createHash('sha256').update(bytes).digest('hex');
       if (!SHA256.test(entry.sha256 || '') || digest.toLowerCase() !== entry.sha256.toLowerCase()) errors.push(label + ': sha256 mismatch');
       if (size !== undefined && (!Number.isSafeInteger(size) || bytes.length !== size)) errors.push(label + ': byte count mismatch');
-    } catch (e) { errors.push(label + ': cannot read evidence file'); }
+    } catch { errors.push(label + ': cannot read evidence file'); }
   }
   for (const [i, shot] of (receipt.screenshots ?? []).entries()) verify('screenshots.'+i, shot);
   if (receipt.stages?.file === 'PASS') verify('download', receipt.download, receipt.download?.byteCount);

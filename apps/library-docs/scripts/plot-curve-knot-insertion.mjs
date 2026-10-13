@@ -63,7 +63,7 @@ function controls(curve,color,prefix,ghost=false){
  if(ghost)return line;
  return line+curve.controlPoints.map((point,index)=>{
  const [x,y]=project(point);
- let labelX=x+11,labelY=y-8;
+ const labelX=x+11;let labelY=y-8;
  if(index===0)labelY=y+1;
  if(point[0]===0)labelY=y-9;
  return `<circle cx="${coordinate(x)}" cy="${coordinate(y)}" r="4.2" fill="${color}" stroke="#fff" stroke-width="1" data-curve-id="${esc(curve.id)}" data-pole-index="${index}" data-native-point-mm="${esc(JSON.stringify(point))}"><title>${prefix}${index} native pole ${esc(JSON.stringify(point))}; weight ${curve.weights[index]}</title></circle>

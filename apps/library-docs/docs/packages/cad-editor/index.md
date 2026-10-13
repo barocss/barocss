@@ -4,7 +4,7 @@
 
 **Browser/GPU verification requires independent evidence:** [Browser evidence protocol](./browser-evidence).
 
-**Begin with the [CAD learning path](./learning-path)** for all four adopted hands-on exercises.
+**Begin with the [CAD learning path](./learning-path)**: four previously adopted lessons and two new source-backed exercises ([top-entry pocket](./top-entry-pocket), [constrained plate](./constrained-plate)) in this documentation change.
 
 **Need help recovering a part?** See [Modeling troubleshooting](./troubleshooting).
 

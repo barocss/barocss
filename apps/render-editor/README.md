@@ -859,3 +859,11 @@ Select a Body or Light to focus its inspector, or use **Body / Light / Camera / 
 The fixed **Apply / Discard** bar always affects the complete scene, including drafts in hidden sections. Changing inspector focus never discards or accepts fields. If Apply reports an invalid hidden field, return to that target and correct it, or Discard all drafts. The accepted heading and **Save accepted** remain unchanged until acknowledgement. Existing pending/dialog, file, recovery and selection rules still apply.
 
 Focused local `node native-light-workbench-flow.mjs --workspace-focus` checks real React/session ownership with a controlled Viewer and file transport. Physical layout, ordinary pointer/file behavior and GPU pixels require separate Execute Tester evidence; DOM structure alone does not establish them.
+
+### Selected Body task commands (#1947)
+
+Select a Body, then choose **Move**, **Rotate**, **Scale** or **Material** to expose that task's existing fields. Move edits the body origin in millimetres; Rotate stages the existing bounded local/world degree delta; Scale is dimensionless; Material edits only the existing qualified binding. Body overview keeps the accepted whole-source export and explicit staged transform reset. Surface creation/point editing and Duplicate/Remove retain their existing command semantics.
+
+**Back to body overview** returns focus to the task command and keeps all raw drafts. Selecting another body resets the task view to overview without discarding either body's fields. All field groups and the actual Canvas/controller remain mounted. **Apply / Discard** still affects the whole scene, including hidden body, light, camera and title drafts. After an error, use the visible correction routes and Scene bodies to find the affected fields; the original provider error remains authoritative. Changing a task is neither preview nor acceptance.
+
+Focused local `node native-light-workbench-flow.mjs --body-tasks` covers eight UI scenarios/four controlled Viewer attempts/zero files/one lifetime per kind. Physical layout, ordinary pointer/keyboard and GPU acceptance remain separate Tester work.

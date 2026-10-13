@@ -10,6 +10,8 @@ import type { CadEditorStlExport } from '../modeling-stl.js';
 import { ModelingWorkspace } from './modeling-workspace.js';
 import type { ModelingWorkspacePanel } from './modeling-workspace.js';
 import { modelingDimensionCommand } from '../modeling-dimension-key.js';
+import { extrusionCommandCurrent, projectExtrusionCommand } from '../modeling-extrusion-command.js';
+import type { ExtrusionCommandTarget } from '../modeling-extrusion-command.js';
 import { Button } from './ui/button.js';
 import { Input } from './ui/input.js';
 import { Label } from './ui/label.js';
@@ -28,6 +30,8 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
   const fileInput = useRef<HTMLInputElement | null>(null), fileReadEpoch = useRef(0);
   const [snapshot, setSnapshot] = useState<CadEditorModelingSnapshot | null>(null);
   const [workspacePanel, setWorkspacePanel] = useState<ModelingWorkspacePanel | null>(null);
+  const [extrusionTarget, setExtrusionTarget] = useState<(ExtrusionCommandTarget & { session: CadEditorModelingController; instance: number }) | null>(null);
+  const extrusionCommandInstance = useRef(0);
   const workspaceCommandEpoch = useRef(0);
   const [example, setExample] = useState<CadEditorModelingExample>('cut-chamfer');
   const [splitAxis, setSplitAxis] = useState<CadEditorModelingSplitAxis>('z');
@@ -37,13 +41,14 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
   const [source, setSource] = useState(''), [confirmed, setConfirmed] = useState(false), [error, setError] = useState<string | null>(null);
   useEffect(() => {
     if (!viewport.current) return;
+    extrusionCommandInstance.current++; setExtrusionTarget(null); setWorkspacePanel(null);
     const display = createPrismFeatureDisplay(viewport.current); displayRef.current = display;
     const session = createCadEditorModelingController(display, () => display.aspect()); controller.current = session;
     const observer = new ResizeObserver(() => { try { display.resize(); } catch (cause) { setError(String(cause)); } });
     observer.observe(viewport.current);
     const unsubscribe = session.subscribe(() => setSnapshot(session.getSnapshot())); setSnapshot(session.getSnapshot());
     void (initialAuthoredText === undefined ? session.example() : session.open(initialAuthoredText)).catch(cause => setError(String(cause)));
-    return () => { workspaceCommandEpoch.current++; fileReadEpoch.current++; observer.disconnect(); unsubscribe(); session.dispose(); display.dispose(); if (controller.current === session) controller.current = null; if (displayRef.current === display) displayRef.current = null; };
+    return () => { workspaceCommandEpoch.current++; extrusionCommandInstance.current++; fileReadEpoch.current++; observer.disconnect(); unsubscribe(); session.dispose(); display.dispose(); if (controller.current === session) controller.current = null; if (displayRef.current === display) displayRef.current = null; };
   }, [initialAuthoredText]);
   const stageModelFile = async (file?: File) => {
     if (!file || snapshot?.busy) return;
@@ -65,23 +70,54 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
     setError(null); try { if (controller.current) Promise.resolve(operation(controller.current)).catch(cause => setError(String(cause))); }
     catch (cause) { setError(String(cause)); }
   };
+  const extrusionCommandLive = () => extrusionTarget !== null && extrusionTarget.session === controller.current
+    && extrusionTarget.instance === extrusionCommandInstance.current;
   const openWorkspacePanel = (panel: ModelingWorkspacePanel | null) => {
-    workspaceCommandEpoch.current++; setWorkspacePanel(panel);
+    if (panel === 'extrusion') {
+      const current = controller.current?.getSnapshot();
+      const projection = current && projectExtrusionCommand(current, current.selection);
+      if (!current || current.busy || !projection || !current.authoredText) return;
+      if (Object.keys(current.drafts).some(name => !projection.parameters.includes(name))) {
+        setError('Other model dimensions are pending. Review all pending dimensions before editing this extrusion.');
+        workspaceCommandEpoch.current++; extrusionCommandInstance.current++; setWorkspacePanel('dimensions'); return;
+      }
+      setError(null);
+      setExtrusionTarget({ index: projection.index, authoredText: current.authoredText, generation: current.generation,
+        session: controller.current!, instance: extrusionCommandInstance.current + 1 });
+    }
+    workspaceCommandEpoch.current++; extrusionCommandInstance.current++; setWorkspacePanel(panel);
   };
   const applyDimensions = () => {
+    if (workspacePanel === 'extrusion' && !extrusionCommandLive()) return;
     const commandEpoch = ++workspaceCommandEpoch.current;
     action(async session => {
+      if (workspacePanel === 'extrusion') {
+        const projection = extrusionCommandCurrent(session.getSnapshot(), extrusionTarget);
+        if (!projection?.parameters.length) throw Error('This extrusion command is stale or other dimensions are pending. Reopen it or review model dimensions.');
+      }
       await session.apply();
       const current = session.getSnapshot();
       if (workspace && controller.current === session && commandEpoch === workspaceCommandEpoch.current
-        && !current.disposed && !current.busy && !current.error && !Object.keys(current.drafts).length) setWorkspacePanel(null);
+        && !current.disposed && !current.busy && !current.error && !Object.keys(current.drafts).length) {
+        extrusionCommandInstance.current++; setWorkspacePanel(null);
+      }
     });
   };
-  const cancelDimensions = () => action(session => {
-    session.discard(); openWorkspacePanel(null);
-  });
+  const cancelDimensions = () => {
+    if (workspacePanel === 'extrusion' && !extrusionCommandLive()) return;
+    action(session => {
+      // A stale command never discards a newer model's drafts or hidden unrelated fields.
+      if (workspacePanel !== 'extrusion' || extrusionCommandCurrent(session.getSnapshot(), extrusionTarget)) session.discard();
+      openWorkspacePanel(null);
+    });
+  };
   useEffect(() => { setReplaceExample(false); setStlOutput(''); setStlResult(null); }, [snapshot?.generation]);
   const accepted = snapshot?.accepted, busy = snapshot?.busy ?? false, draft = Object.keys(snapshot?.drafts ?? {}).length > 0;
+  const selectedExtrusion = projectExtrusionCommand(snapshot, snapshot?.selection ?? null);
+  const currentExtrusion = extrusionCommandLive() ? extrusionCommandCurrent(snapshot, extrusionTarget) : null;
+  const extrusionSourceCurrent = extrusionCommandLive() && !!snapshot && !!extrusionTarget && snapshot.authoredText === extrusionTarget.authoredText
+    && snapshot.generation === extrusionTarget.generation;
+  const pinnedExtrusion = extrusionSourceCurrent ? projectExtrusionCommand(snapshot, extrusionTarget!.index) : null;
   const selectedStlOutput = accepted?.outputs.find(output => output.name === stlOutput);
   const canExportStl = accepted?.source === 'model' && selectedStlOutput
     && (selectedStlOutput.family === undefined || selectedStlOutput.family === 'convex-planar');
@@ -180,12 +216,20 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
   const configurableFinishes = accepted?.source === 'model' && accepted.suppression !== undefined
     && Object.keys(accepted.suppression).length === 2 && ['frontFinish', 'backFinish'].every(name => Object.hasOwn(accepted.suppression!, name))
     && accepted.features.filter(feature => feature.name !== undefined).every(feature => feature.kind === 'chamfer');
-  const dimensionInput = ([name, value]: [string, number]) => <div key={name} style={{ marginBottom: 16 }}>
-          <Label htmlFor={`${id}-${name}`}>{constrainedPlateDrivers && name === 'width' ? 'Profile X width' : constrainedPlateDrivers && name === 'height' ? 'Profile Y height' : topPocketDrivers && name === 'depth' ? 'Pocket depth downward from top Z=8' : topPocketDrivers && name === 'toolY' ? 'Tool Y origin' : topPocketDrivers && name === 'toolSpanY' ? 'Tool Y span' : slotDrivers && name === 'legWidth' ? 'legWidth · leg X width' : slotDrivers && name === 'slotX' ? 'slotX · slot origin X' : slotDrivers && name === 'slotY' ? 'slotY · slot origin Y' : slotDrivers && name === 'slotWidth' ? 'slotWidth · slot X width' : slotDrivers && name === 'slotSpanY' ? 'slotSpanY · slot Y span' : roundPostDrivers && name === 'diameter' ? 'Diameter' : roundPostDrivers && name === 'height' ? 'Extrusion height' : roundPostDrivers && name === 'centerX' ? 'Center X' : roundPostDrivers && name === 'centerY' ? 'Center Y' : pocketDrivers && name === 'toolX' ? 'toolX · tool origin X' : pocketDrivers && name === 'toolY' ? 'toolY · tool origin Y' : pocketDrivers && name === 'toolWidth' ? 'toolWidth · tool X width' : pocketDrivers && name === 'toolSpanY' ? 'toolSpanY · tool Y span' : pocketDrivers && name === 'depth' ? 'depth · positive Z depth from underside Z=0' : unionDrivers && name === 'legMinX' ? 'legMinX · leg origin X' : unionDrivers && name === 'legMinY' ? 'legMinY · leg origin Y' : unionDrivers && name === 'legWidth' ? 'legWidth · leg X width' : unionDrivers && name === 'legHeight' ? 'legHeight · extrusion height' : (chamferChain || configurableFinishes) && name === 'backY' ? 'backY · edge-selection Y coordinate' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'frontDistance' ? 'frontDistance · front bevel distance' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'backDistance' ? 'backDistance · back bevel distance' : chamferSplit && name === 'splitAt' ? 'splitAt · selected-axis split coordinate' : derivedSplit && name === 'width' ? 'width · rail X size' : derivedSplit && name === 'offset' ? 'offset · X displacement from center' : miterSplit && name === 'cutPosition' ? 'cutPosition · X + Y threshold' : name} (mm)</Label>
-          <Input id={`${id}-${name}`} disabled={busy} inputMode="decimal"
+  const dimensionInput = ([name, value]: [string, number], extrusionLabel?: string) => <div key={name} style={{ marginBottom: 16 }}>
+          <Label htmlFor={`${id}-${extrusionLabel ? 'extrusion-' : ''}${name}`}>{extrusionLabel ?? (constrainedPlateDrivers && name === 'width' ? 'Profile X width' : constrainedPlateDrivers && name === 'height' ? 'Profile Y height' : topPocketDrivers && name === 'depth' ? 'Pocket depth downward from top Z=8' : topPocketDrivers && name === 'toolY' ? 'Tool Y origin' : topPocketDrivers && name === 'toolSpanY' ? 'Tool Y span' : slotDrivers && name === 'legWidth' ? 'legWidth · leg X width' : slotDrivers && name === 'slotX' ? 'slotX · slot origin X' : slotDrivers && name === 'slotY' ? 'slotY · slot origin Y' : slotDrivers && name === 'slotWidth' ? 'slotWidth · slot X width' : slotDrivers && name === 'slotSpanY' ? 'slotSpanY · slot Y span' : roundPostDrivers && name === 'diameter' ? 'Diameter' : roundPostDrivers && name === 'height' ? 'Extrusion height' : roundPostDrivers && name === 'centerX' ? 'Center X' : roundPostDrivers && name === 'centerY' ? 'Center Y' : pocketDrivers && name === 'toolX' ? 'toolX · tool origin X' : pocketDrivers && name === 'toolY' ? 'toolY · tool origin Y' : pocketDrivers && name === 'toolWidth' ? 'toolWidth · tool X width' : pocketDrivers && name === 'toolSpanY' ? 'toolSpanY · tool Y span' : pocketDrivers && name === 'depth' ? 'depth · positive Z depth from underside Z=0' : unionDrivers && name === 'legMinX' ? 'legMinX · leg origin X' : unionDrivers && name === 'legMinY' ? 'legMinY · leg origin Y' : unionDrivers && name === 'legWidth' ? 'legWidth · leg X width' : unionDrivers && name === 'legHeight' ? 'legHeight · extrusion height' : (chamferChain || configurableFinishes) && name === 'backY' ? 'backY · edge-selection Y coordinate' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'frontDistance' ? 'frontDistance · front bevel distance' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'backDistance' ? 'backDistance · back bevel distance' : chamferSplit && name === 'splitAt' ? 'splitAt · selected-axis split coordinate' : derivedSplit && name === 'width' ? 'width · rail X size' : derivedSplit && name === 'offset' ? 'offset · X displacement from center' : miterSplit && name === 'cutPosition' ? 'cutPosition · X + Y threshold' : name)} (mm)</Label>
+          <Input id={`${id}-${extrusionLabel ? 'extrusion-' : ''}${name}`} disabled={busy || (!!extrusionLabel && !currentExtrusion)} inputMode="decimal"
             value={Object.hasOwn(snapshot?.drafts ?? {}, name) ? snapshot!.drafts[name] : Object.is(value, -0) ? '-0' : String(value)}
-            onChange={event => action(s => s.stage(name, event.target.value))}
+            onChange={event => {
+              if (extrusionLabel && !extrusionCommandLive()) return;
+              action(s => {
+              if (extrusionLabel && (workspacePanel !== 'extrusion' || !extrusionCommandCurrent(s.getSnapshot(), extrusionTarget)?.parameters.includes(name)))
+                throw Error('Reopen the extrusion command before changing this driver. Pending model dimensions are retained.');
+              s.stage(name, event.target.value);
+              });
+            }}
             onKeyDown={event => {
+              if (extrusionLabel && (workspacePanel !== 'extrusion' || !extrusionCommandLive())) return;
               const current = controller.current?.getSnapshot();
               if (!current) return;
               const command = modelingDimensionCommand({
@@ -340,7 +384,24 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
           <details><summary>Optional center coordinates</summary>
             {(['centerX', 'centerY'] as const).map(name => dimensionInput([name, accepted.parameters[name]]))}
           </details>
-        </> : Object.entries(accepted.parameters).map(dimensionInput)}</div>);
+        </> : Object.entries(accepted.parameters).map(entry => dimensionInput(entry))}</div>);
+  const extrusionPanel = accepted && <div>
+    {pinnedExtrusion ? <>
+      <h2>{pinnedExtrusion.label}</h2>
+      <p>Editing this pinned feature. Browser selection does not retarget these options.</p>
+      <p>Changes update each named model parameter wherever it is used, including other fields and dependent features.</p>
+      {pinnedExtrusion.fields.filter(field => field.kind !== 'parameter').map(field => <p key={field.label}>
+        <strong>{field.label}: </strong>{field.kind === 'literal'
+          ? `${Object.is(field.value, -0) ? '-0' : field.value} mm · read-only authored value`
+          : 'Derived expression · read-only; use Edit model dimensions'}
+      </p>)}
+      {pinnedExtrusion.parameters.map(name => dimensionInput([name, accepted.parameters[name]],
+        `${pinnedExtrusion.fields.filter(field => field.kind === 'parameter' && field.parameter === name).map(field => field.label).join(' / ')} · ${name}`))}
+      {!pinnedExtrusion.parameters.length && <p>No editable extrusion drivers. Literal values and expressions cannot be rewritten here.</p>}
+      {!currentExtrusion && <p role="status">Other model dimensions are pending. This command cannot apply or discard them. Review model dimensions; Cancel only closes these options.</p>}
+    </> : <p role="status">This extrusion command is stale because the accepted model or output view changed. Reopen Edit extrusion for the current selection. Pending dimensions are retained.</p>}
+    <Button variant="outline" disabled={busy} onClick={() => openWorkspacePanel('dimensions')}>Review model dimensions</Button>
+  </div>;
   const inspectionPanel = accepted && <>{snapshot?.selection !== null && snapshot?.selection !== undefined && accepted.features[snapshot.selection] && <>
     <h2>Selected feature</h2><p>{accepted.features[snapshot.selection].kind} · step {snapshot.selection + 1}
       {accepted.features[snapshot.selection].name ? ` · ${accepted.features[snapshot.selection].name}` : ''}</p>
@@ -382,10 +443,11 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
       <p>Choose model file stages its UTF-8 text for inspection; it does not replace the accepted model. Review the contents and explicitly confirm Open. Invalid files still go through native validation on Open. Actual file-picker, browser and GPU acceptance require separate device verification.</p>
     </details>;
   if (workspace) return <ModelingWorkspace snapshot={snapshot} viewport={viewportElement} panel={workspacePanel} error={error}
-    panels={{ examples: examplesPanel, dimensions: dimensionsPanel, outputs: <>{visibilityPanel}{exportPanel}</>, files: filesPanel,
+    panels={{ examples: examplesPanel, dimensions: dimensionsPanel, extrusion: extrusionPanel, outputs: <>{visibilityPanel}{exportPanel}</>, files: filesPanel,
       inspect: inspectionPanel, limits: limitsPanel, configuration: finishesPanel }}
     dimensionLabel={constrainedPlateDrivers ? 'Edit dimensions' : 'Edit model dimensions'}
     canEditDimensions={!!accepted && (!constrainedPlateDrivers || snapshot?.selection === null || accepted.features[snapshot?.selection ?? -1]?.kind === 'sketch')}
+    canEditExtrusion={!!selectedExtrusion} canApplyExtrusion={!!currentExtrusion?.parameters.length}
     configurableFinishes={!!configurableFinishes} onPanel={openWorkspacePanel}
     onSelect={index => action(session => session.select(index, session.getSnapshot().generation))}
     onApply={applyDimensions} onCancelDimensions={cancelDimensions}

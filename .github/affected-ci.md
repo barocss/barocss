@@ -73,3 +73,26 @@ tracked code in affected app owners. Manual/pre-release regression also uses all
 relevant tracked app code. This can expose existing app lint errors; the former
 recursive root lint did not cover apps without scripts. Runtime tests remain
 external to required CI.
+
+A narrowly verified `apps/library-docs/package.json` change to only the existing
+`check:docs` command does not widen fallback lint to unrelated apps. The planner
+compares all workspace manifests at the trusted base and actual checkout: every
+other field and script must be semantically identical. The docs app still gets
+all of its owned tracked code linted, and the full types/build/docs route remains.
+Missing, added, deleted or renamed manifests, another script (including install
+or prepare), dependency/configuration changes, and root manifests remain global.
+Concurrent lint, TypeScript or build configuration changes also retain broad lint.
+This is selection scope, not a waiver for the existing CAD-app lint errors exposed
+by a prior overly broad docs-only selection.
+
+The same lint-scope distinction applies to strictly additive GPU runtime test
+registration in `packages/barocss-gpu/package.json`. The existing literal
+`node --test` prefix and every existing argument must stay in order, with no
+duplicates or removals. New arguments must be safe owned `tests/*.test.mjs` paths
+added by the comparison and tracked as regular files in the actual checkout;
+options, shell syntax, symlinks and untracked/missing paths refuse classification.
+Every other workspace manifest field and script must remain identical. The full
+types/lint/build route is retained, including GPU source lint, and concurrent app
+source edits still receive their normal changed-file lint. Root, lifecycle,
+dependency or configuration changes remain conservative. This does not waive the
+66-file CAD lint debt: manual/pre-release full app lint remains unchanged.
