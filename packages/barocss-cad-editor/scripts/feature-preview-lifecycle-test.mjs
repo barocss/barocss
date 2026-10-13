@@ -21,7 +21,8 @@ assert.equal(gate.isCurrent(second), true); checks++;
 state = {...state, selectedFeatureId: 'other'};
 assert.equal(gate.isCurrent(second), false); checks++;
 state = {...state, selectedFeatureId: 'extrusion'};
-const third = gate.begin();
+assert.equal(gate.isCurrent(second), false, 'ABA: restoring selection cannot revive lease'); checks++;
+let third = gate.begin();
 for (const [field, value] of [
   ['generation', 4], ['displayGeneration', 5], ['graphId', 'other'],
   ['revision', 4], ['selectedFeatureId', 'other'],
@@ -29,6 +30,9 @@ for (const [field, value] of [
   state = {...state, [field]: value};
   assert.equal(gate.isCurrent(third), false, field); checks++;
   state = {...third.epoch};
+  assert.equal(gate.isCurrent(third), false, 'ABA: restored epoch remains stale'); checks++;
+  third = gate.begin();
+  assert.equal(gate.isCurrent(third), true); checks++;
 }
 gate.cancel();
 assert.equal(gate.isCurrent(third), false); checks++;

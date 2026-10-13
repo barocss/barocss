@@ -36,8 +36,14 @@ export function createCadEditorPreviewLifecycle(
     isCurrent(lease) {
       if (disposed || active !== lease) return false;
       // Read current state on completion, never trust a snapshot captured at request time.
-      try { return isCadEditorPreviewEpochCurrent(lease.epoch, currentEpoch()); }
-      catch { return false; }
+      try {
+        if (isCadEditorPreviewEpochCurrent(lease.epoch, currentEpoch())) return true;
+      } catch {
+        // A refused or unavailable snapshot must permanently invalidate this lease.
+      }
+      ++sequence;
+      active = null;
+      return false;
     },
     cancel() {
       requireLive();
