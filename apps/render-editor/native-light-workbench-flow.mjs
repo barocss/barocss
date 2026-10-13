@@ -2445,11 +2445,18 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
     let oversizedReads = 0;
     await choose('reported oversize never reads', {name: 'large', size: 65537, arrayBuffer: async () => {oversizedReads++; return new ArrayBuffer(0);}});
     assert.equal(oversizedReads, 0); assert.match(dialog().textContent, /65536/);
+    const oversizedBuffer = new ArrayBuffer(65537), previousCandidate = candidateName();
     let decodeCalls = 0; const decode = TextDecoder.prototype.decode;
-    TextDecoder.prototype.decode = function (...args) {decodeCalls++; return decode.apply(this, args);};
-    try {await choose('actual oversize refuses before decode', {name: 'actual-large', size: 1, arrayBuffer: async () => new ArrayBuffer(65537)});}
+    TextDecoder.prototype.decode = function (...args) {
+      const input = args[0], buffer = ArrayBuffer.isView(input) ? input.buffer : input;
+      if (buffer === oversizedBuffer) decodeCalls++;
+      return decode.apply(this, args);
+    };
+    try {await choose('actual oversize refuses before decode', {name: 'actual-large', size: 1, arrayBuffer: async () => oversizedBuffer});}
     finally {TextDecoder.prototype.decode = decode;}
-    assert.equal(decodeCalls, 0);
+    assert.equal(decodeCalls, 0, 'The actual oversized file buffer must never be decoded');
+    assert.match(dialog().querySelector('[data-testid="light-add-error"]').textContent, /DOCUMENT_BYTES.*65536/);
+    assert.equal(candidateName(), previousCandidate);
     await choose('fatal UTF-8 retains candidate', {name: 'invalid-utf8', size: 2, arrayBuffer: async () => new Uint8Array([0xc3, 0x28]).buffer});
     await choose('rejected read retains candidate', {name: 'unreadable', size: 1, arrayBuffer: async () => {throw new Error('Controlled source read failure');}});
     await choose('malformed source retains candidate', file('@model invalid', 'bad.barocad'));
