@@ -391,5 +391,14 @@ assert.equal(afterFailure.ok,true);assert.equal(suppressionEdits.at(-1).snapshot
 const reopenFinish=create()({id:++id,kind:'open',text:afterFailure.text,revision:afterFailure.summary.revision});
 assert.equal(reopenFinish.ok,true);assert.deepEqual(reopenFinish.summary,afterFailure.summary);checks++;
 assert.equal(Object.hasOwn(first.summary,'suppression'),false);assert.ok(first.summary.features.every(f=>!Object.hasOwn(f,'name')&&!Object.hasOwn(f,'suppressed')));checks++;
+// Picker routing only: a sentinel provider stops before any geometry or scene claims.
+const originalModel = globalThis.__modelingCad.cad.model;
+let topPocketFactoryCalls = 0;
+globalThis.__modelingCad.cad.model = () => { topPocketFactoryCalls++; throw Error('top-pocket routing sentinel'); };
+const topPocketRoute = create()({ id: ++id, kind: 'example', example: 'top-entry-pocket', taskToken: 'top_pocket_route' });
+assert.equal(topPocketRoute.ok, false); assert.match(topPocketRoute.message, /top-pocket routing sentinel/); assert.equal(topPocketFactoryCalls, 1); checks++;
+const invalidTopPocketRoute = create()({ id: ++id, kind: 'example', example: 'top-entry-pocket-unknown' });
+assert.equal(invalidTopPocketRoute.ok, false); assert.equal(topPocketFactoryCalls, 1); checks++;
+globalThis.__modelingCad.cad.model = originalModel;
 const result = { ok: true, checks, modelCalls, legacyCalls, holeTessellations, holeGeometryReplay:true, retainedSnapshotIdentityChecks: 7, coldLoadCallsObserved: loads.length, acceptedOutputsStillTessellate: true, recomputationNotTransported: true, evidence: 'stubbed providers; pure worker routing and authority only; no native geometry' };
 writeFileSync(resolve(output, 'result.json'), JSON.stringify(result, null, 2)); console.log(JSON.stringify(result));

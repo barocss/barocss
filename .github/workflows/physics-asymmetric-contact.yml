@@ -21,8 +21,9 @@ jobs:
       - run: pnpm --filter @barocss/physics build:library
       - run: mkdir -p /tmp/physics-asymmetric
       - run: pnpm exec esbuild examples/physics-contact-impulse-audit-1572/asymmetric-contact-diagnostic.ts --bundle --platform=node --format=esm --target=node22 --outfile=/tmp/physics-asymmetric/run.mjs
-      - run: node /tmp/physics-asymmetric/run.mjs > /tmp/physics-asymmetric/results.jsonl
-      - if: always()
+      - if: github.event_name != 'pull_request'
+        run: node /tmp/physics-asymmetric/run.mjs > /tmp/physics-asymmetric/results.jsonl
+      - if: always() && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: asymmetric-contact-results

@@ -1,5 +1,7 @@
 import { cad, tessellateConvexPlanarSolid, tessellateOwnPlateCircularHole, tessellateSurface, tessellateXYCirclePrismShell } from '@barocss/cad';
 import type { CadModelSnapshot } from '@barocss/cad';
+import { createModelingStlExport } from './modeling-stl.js';
+import type { CadEditorStlExport } from './modeling-stl.js';
 import { isModelingCompositionGraph, preflightModelingComposition, projectModelingComposition } from './modeling-composition.js';
 import type { ModelingUnionDisplayComponent } from './modeling-union.js';
 import { preflightModelingCircle, projectModelingCircle } from './modeling-circle.js';
@@ -18,16 +20,18 @@ export interface CadEditorModelingSummary {
 }
 export type CadEditorModelingSplitAxis = 'x' | 'y' | 'z';
 /** The split example ID is retained for compatibility; splitAxis defaults to Z. */
-export type CadEditorModelingExample = 'cut-chamfer' | 'intersection' | 'horizontal-split' | 'two-chamfer' | 'chamfer-split' | 'derived-split' | 'miter-split' | 'configurable-finishes' | 'mounting-plate' | 'union-bracket' | 'underside-pocket' | 'round-post' | 'slotted-bracket';
+export type CadEditorModelingExample = 'cut-chamfer' | 'intersection' | 'horizontal-split' | 'two-chamfer' | 'chamfer-split' | 'derived-split' | 'miter-split' | 'configurable-finishes' | 'mounting-plate' | 'union-bracket' | 'underside-pocket' | 'top-entry-pocket' | 'round-post' | 'slotted-bracket' | 'constrained-plate';
 export type ModelingCommand = { id: number; taskToken?: string } & (
   { kind: 'example'; example?: CadEditorModelingExample; splitAxis?: CadEditorModelingSplitAxis } | { kind: 'open'; text: string; revision?: number }
   | { kind: 'apply'; expectedRevision: number; parameters: Record<string, number> }
   | { kind: 'suppression'; expectedRevision: number; suppression: Record<string, boolean> }
+  | { kind: 'export-stl'; expectedRevision: number; acceptedTaskToken: string; outputName: string; solidId: string }
 );
-export type ModelingReply = { id: number } & (
+export type ModelingDisplayReply = { id: number } & (
   { ok: true; text: string; summary: CadEditorModelingSummary; display: ModelingDisplayPacket; compatibility?: CadEditorPrismFeatureSummary }
   | { ok: false; message: string }
 );
+export type ModelingReply = ModelingDisplayReply | { id: number; ok: true; kind: 'stl-export'; export: CadEditorStlExport };
 
 /** The example is ordinary public authoring, never hand-written provider JSON. */
 export function createCadEditorSampleModel(): CadModelSnapshot {
@@ -63,6 +67,19 @@ export function createCadEditorMountingPlateModel(): CadModelSnapshot {
 }
 
 /** Exact owned diameter-driven circle recipe; the provider retains its rational boundary. */
+/** Dimension-driven exact fixed/H/V profile; lockY stays internal to this preset. */
+export function createCadEditorConstrainedPlateModel(): CadModelSnapshot {
+  const model = cad.model(), width = model.parameter('width', 32), height = model.parameter('height', 24), lockY = model.parameter('lockY', 0);
+  const sketch = model.sketch.constrainedPolygon(s => {
+    const a = s.point([-0, 0]), b = s.point([width, lockY]), c = s.point([width, height]), d = s.point([1, height]);
+    s.fixed(a); s.fixed(c);
+    s.horizontal(a, b); s.vertical(b, c); s.horizontal(c, d); s.vertical(d, a); s.fixed(b);
+    return [a, b, c, d];
+  });
+  const part = sketch.extrude(8);
+  return model.build({ part });
+}
+
 export function createCadEditorRoundPostModel(): CadModelSnapshot {
   const model = cad.model();
   const centerX = model.parameter('centerX', 2), centerY = model.parameter('centerY', -3);
@@ -79,6 +96,16 @@ export function createCadEditorPocketModel(): CadModelSnapshot {
   const plate = model.sketch.rectangle({ min: [-0, 0], max: [32, 24] }).extrude(8);
   const tool = model.sketch.rectangle({ min: [toolX, toolY],
     max: [model.dimension.add(toolX, toolWidth), model.dimension.add(toolY, toolSpanY)] }).extrude(depth);
+  const part = plate.cut(tool);
+  return model.build({ plate, tool, part });
+}
+
+/** Exact adopted topPocket recipe: depth moves its lower origin down from Z=8. */
+export function createCadEditorTopPocketModel(): CadModelSnapshot {
+  const model = cad.model(), depth = model.parameter('depth', 4), toolY = model.parameter('toolY', 8), toolSpanY = model.parameter('toolSpanY', 8);
+  const plate = model.sketch.rectangle({ min: [-0, 0], max: [32, 24] }).extrude(8);
+  const from = model.dimension.add(8, model.dimension.scale(depth, -1));
+  const tool = model.sketch.rectangle({ min: [8, toolY], max: [24, model.dimension.add(toolY, toolSpanY)] }).extrude(depth, { from });
   const part = plate.cut(tool);
   return model.build({ plate, tool, part });
 }
@@ -210,7 +237,7 @@ function legacySummary(summary: CadEditorPrismFeatureSummary): CadEditorModeling
 
 /** Worker-only native authority. Public snapshots and full native results never cross the transport. */
 export function createModelingEngine() {
-  let accepted: { source: 'model'; snapshot: CadModelSnapshot; revision: number }
+  let accepted: { source: 'model'; snapshot: CadModelSnapshot; revision: number; taskToken?: string }
     | { source: 'legacy'; summary: CadEditorPrismFeatureSummary } | null = null;
   const legacy = createPrismFeatureEngine();
   return (command: ModelingCommand): ModelingReply => {
@@ -218,7 +245,23 @@ export function createModelingEngine() {
       if (!command || !Number.isSafeInteger(command.id) || command.id < 1) throw new Error('A current worker request is required.');
       if (command.taskToken !== undefined && (typeof command.taskToken !== 'string' || !/^[A-Za-z0-9_-]{1,48}$/.test(command.taskToken)))
         throw new Error('A bounded current display task token is required.');
-      if (command.kind === 'example' && command.example !== undefined && command.example !== 'cut-chamfer' && command.example !== 'intersection' && command.example !== 'horizontal-split' && command.example !== 'two-chamfer' && command.example !== 'chamfer-split' && command.example !== 'derived-split' && command.example !== 'miter-split' && command.example !== 'configurable-finishes' && command.example !== 'mounting-plate' && command.example !== 'union-bracket' && command.example !== 'underside-pocket' && command.example !== 'round-post' && command.example !== 'slotted-bracket')
+      if (command.kind === 'export-stl') {
+        const keys = ['id', 'kind', 'taskToken', 'expectedRevision', 'acceptedTaskToken', 'outputName', 'solidId'];
+        if (Object.getPrototypeOf(command) !== Object.prototype || Reflect.ownKeys(command).length !== keys.length
+          || keys.some(key => { const d = Object.getOwnPropertyDescriptor(command, key); return !d?.enumerable || !Object.hasOwn(d, 'value'); })
+          || accepted?.source !== 'model' || !command.taskToken || !accepted.taskToken
+          || command.acceptedTaskToken !== accepted.taskToken || command.expectedRevision !== accepted.revision
+          || typeof command.outputName !== 'string' || !Object.hasOwn(accepted.snapshot.bodies, command.outputName))
+          throw Error('Choose a current accepted primary model output for STL.');
+        const body = accepted.snapshot.bodies[command.outputName];
+        if (body.family !== 'convex-planar') throw Error('STL export currently supports convex-planar outputs only.');
+        if (command.solidId !== body.native.report.solidId) throw Error('The STL output identity is stale.');
+        const result = accepted.snapshot.exportStl(command.outputName);
+        return { id: command.id, ok: true, kind: 'stl-export', export: createModelingStlExport(result, {
+          outputName: command.outputName, solidId: command.solidId, revision: accepted.revision,
+          acceptedTaskToken: accepted.taskToken, requestTaskToken: command.taskToken }) };
+      }
+      if (command.kind === 'example' && command.example !== undefined && command.example !== 'cut-chamfer' && command.example !== 'intersection' && command.example !== 'horizontal-split' && command.example !== 'two-chamfer' && command.example !== 'chamfer-split' && command.example !== 'derived-split' && command.example !== 'miter-split' && command.example !== 'configurable-finishes' && command.example !== 'mounting-plate' && command.example !== 'union-bracket' && command.example !== 'underside-pocket' && command.example !== 'top-entry-pocket' && command.example !== 'round-post' && command.example !== 'slotted-bracket' && command.example !== 'constrained-plate')
         throw new Error('Choose an available modeling example.');
       if (command.kind === 'example' && command.splitAxis !== undefined
         && (command.example === 'chamfer-split' ? !['x', 'z'].includes(command.splitAxis)
@@ -259,9 +302,11 @@ export function createModelingEngine() {
       }
       if (source !== 'model') throw new Error('Open a saved model first.');
       const snapshot = command.kind === 'example' ? (command.example === 'intersection' ? createCadEditorIntersectionModel()
+        : command.example === 'constrained-plate' ? createCadEditorConstrainedPlateModel()
         : command.example === 'slotted-bracket' ? createCadEditorSlottedBracketModel()
         : command.example === 'round-post' ? createCadEditorRoundPostModel()
         : command.example === 'underside-pocket' ? createCadEditorPocketModel()
+        : command.example === 'top-entry-pocket' ? createCadEditorTopPocketModel()
         : command.example === 'union-bracket' ? createCadEditorUnionBracketModel()
         : command.example === 'mounting-plate' ? createCadEditorMountingPlateModel()
         : command.example === 'configurable-finishes' ? createCadEditorConfigurableFinishesModel()
@@ -390,7 +435,7 @@ export function createModelingEngine() {
             return convex(name, body.native);
           }), outcomes: summary.outputs.map(o => ({ role: o.name, solidId: o.solidId, status: 'solid' })) };
       if (JSON.stringify(display).length > 2 * 1024 * 1024) throw new Error('Model display exceeds 2 MiB.');
-      accepted = { source: 'model', snapshot, revision };
+      accepted = { source: 'model', snapshot, revision, taskToken: command.taskToken };
       return { id: command.id, ok: true, text, summary, display };
     } catch (cause) {
       return { id: command?.id, ok: false, message: (cause instanceof Error ? cause.message : 'CAD modeling refused.').slice(0, 2048) };

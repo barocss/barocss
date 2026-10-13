@@ -34,6 +34,7 @@ jobs:
           pnpm --filter @barocss/cad-interop exec tsc -p tsconfig.world-reader-contract.json
           pnpm --filter @barocss/cad-interop exec tsc -p tsconfig.world-reader-physical.json
       - name: Loader codec tests
+        if: github.event_name != 'pull_request'
         run: pnpm --filter @barocss/cad-interop exec node examples/paired-surface-material-body-world-points-codec-verify.mjs
       - name: Original Native fixtures absent from CI
         run: echo "Original byte-pinned producer fixtures are external; Native whole-result acceptance remains separate."

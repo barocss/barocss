@@ -5,6 +5,9 @@ import type { CadEditorModelingController, CadEditorModelingSnapshot } from '../
 import type { CadEditorModelingExample, CadEditorModelingSplitAxis } from '../modeling-engine.js';
 import { createPrismFeatureDisplay } from '../prism-feature-display.js';
 import { readModelingFileText } from '../modeling-file.js';
+import { downloadModelingStl } from '../modeling-stl.js';
+import type { CadEditorStlExport } from '../modeling-stl.js';
+import { modelingDimensionCommand } from '../modeling-dimension-key.js';
 import { Button } from './ui/button.js';
 import { Input } from './ui/input.js';
 import { Label } from './ui/label.js';
@@ -19,6 +22,8 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
   const [snapshot, setSnapshot] = useState<CadEditorModelingSnapshot | null>(null);
   const [example, setExample] = useState<CadEditorModelingExample>('cut-chamfer');
   const [splitAxis, setSplitAxis] = useState<CadEditorModelingSplitAxis>('z');
+  const [stlOutput, setStlOutput] = useState('');
+  const [stlResult, setStlResult] = useState<CadEditorStlExport | null>(null);
   const [replaceExample, setReplaceExample] = useState(false);
   const [source, setSource] = useState(''), [confirmed, setConfirmed] = useState(false), [error, setError] = useState<string | null>(null);
   useEffect(() => {
@@ -51,8 +56,24 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
     setError(null); try { if (controller.current) Promise.resolve(operation(controller.current)).catch(cause => setError(String(cause))); }
     catch (cause) { setError(String(cause)); }
   };
-  useEffect(() => { setReplaceExample(false); }, [snapshot?.generation]);
+  useEffect(() => { setReplaceExample(false); setStlOutput(''); setStlResult(null); }, [snapshot?.generation]);
   const accepted = snapshot?.accepted, busy = snapshot?.busy ?? false, draft = Object.keys(snapshot?.drafts ?? {}).length > 0;
+  const selectedStlOutput = accepted?.outputs.find(output => output.name === stlOutput);
+  const canExportStl = accepted?.source === 'model' && selectedStlOutput
+    && (selectedStlOutput.family === undefined || selectedStlOutput.family === 'convex-planar');
+  const exportStl = async () => {
+    const session = controller.current, generation = snapshot?.generation;
+    if (!session || generation === undefined || !canExportStl || busy || draft) return;
+    setError(null); setStlResult(null);
+    try {
+      const result = await session.exportStl(stlOutput, generation, !snapshot?.workerReady);
+      const current = session.getSnapshot();
+      if (!result || controller.current !== session || current.generation !== generation || current.disposed || current.busy
+        || Object.keys(current.drafts).length || current.accepted?.revision !== result.revision
+        || !current.accepted.outputs.some(output => output.name === result.outputName && output.solidId === result.solidId)) return;
+      downloadModelingStl(result); setStlResult(result);
+    } catch (cause) { if (controller.current === session) setError(String(cause)); }
+  };
   const chamferChain = accepted?.source === 'model' && accepted.features.map(feature => feature.kind).join(',') === 'sketch,extrude,chamfer,chamfer'
     && ['frontDistance', 'backDistance', 'backY'].every(name => Object.hasOwn(accepted.parameters, name));
   const chamferSplit = accepted?.source === 'model' && accepted.features.map(feature => feature.kind).join(',') === 'sketch,extrude,chamfer,chamfer,split'
@@ -90,6 +111,28 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
   const pocketSavedOutputs = pocketDrivers && Object.keys(authored.outputs).join(',') === 'part,plate,tool'
     && authored.outputs.part.node === 4 && authored.outputs.plate.node === 1 && authored.outputs.tool.node === 3
     && ['part', 'plate', 'tool'].every(name => authored.outputs[name].side === 'solid');
+  const topPocketDrivers = differenceModel && accepted?.source === 'model'
+    && Object.keys(accepted.parameters).sort().join(',') === 'depth,toolSpanY,toolY'
+    && JSON.stringify(authored?.nodes) === JSON.stringify([
+      { kind: 'sketch', max: [32, 24], min: [-0, 0], profile: 'rectangle' },
+      { height: 8, kind: 'extrude', sketch: 0 },
+      { kind: 'sketch', max: [24, { left: { parameter: 'toolY' }, op: 'add', right: { parameter: 'toolSpanY' } }],
+        min: [8, { parameter: 'toolY' }], profile: 'rectangle' },
+      { from: { left: 8, op: 'add', right: { factor: -1, op: 'scale', value: { parameter: 'depth' } } },
+        height: { parameter: 'depth' }, kind: 'extrude', sketch: 2 },
+      { kind: 'difference', parent: { node: 1, side: 'solid' }, tool: { node: 3, side: 'solid' } },
+    ]) && JSON.stringify(authored?.outputs) === JSON.stringify({ part: { node: 4, side: 'solid' }, plate: { node: 1, side: 'solid' }, tool: { node: 3, side: 'solid' } });
+  const constrainedPlateDrivers = accepted?.source === 'model'
+    && Object.keys(accepted.parameters).sort().join(',') === 'height,lockY,width' && accepted.parameters.lockY === 0
+    && JSON.stringify(authored?.nodes) === JSON.stringify([
+      { constraints: [{ kind: 'fixed', point: 0 }, { kind: 'fixed', point: 2 },
+        { kind: 'horizontal', points: [0, 1] }, { kind: 'vertical', points: [1, 2] },
+        { kind: 'horizontal', points: [2, 3] }, { kind: 'vertical', points: [3, 0] }, { kind: 'fixed', point: 1 }],
+      kind: 'sketch', points: [[-0, 0], [{ parameter: 'width' }, { parameter: 'lockY' }],
+        [{ parameter: 'width' }, { parameter: 'height' }], [1, { parameter: 'height' }]], profile: 'constrained-polygon' },
+      { height: 8, kind: 'extrude', sketch: 0 },
+    ]) && Object.is(authored.nodes[0].points[0][0], -0)
+    && JSON.stringify(authored.outputs) === JSON.stringify({ part: { node: 1, side: 'solid' } });
   const holeModel = accepted?.outputs.some(output => output.family === 'stored-rational-plate-hole') ?? false;
   const circleModel = accepted?.outputs.some(output => output.family === 'stored-rational-circle-prism') ?? false;
   const roundPostDrivers = circleModel && accepted?.source === 'model'
@@ -114,11 +157,25 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
     && Object.keys(accepted.suppression).length === 2 && ['frontFinish', 'backFinish'].every(name => Object.hasOwn(accepted.suppression!, name))
     && accepted.features.filter(feature => feature.name !== undefined).every(feature => feature.kind === 'chamfer');
   const dimensionInput = ([name, value]: [string, number]) => <div key={name} style={{ marginBottom: 16 }}>
-          <Label htmlFor={`${id}-${name}`}>{slotDrivers && name === 'legWidth' ? 'legWidth · leg X width' : slotDrivers && name === 'slotX' ? 'slotX · slot origin X' : slotDrivers && name === 'slotY' ? 'slotY · slot origin Y' : slotDrivers && name === 'slotWidth' ? 'slotWidth · slot X width' : slotDrivers && name === 'slotSpanY' ? 'slotSpanY · slot Y span' : roundPostDrivers && name === 'diameter' ? 'Diameter' : roundPostDrivers && name === 'height' ? 'Extrusion height' : roundPostDrivers && name === 'centerX' ? 'Center X' : roundPostDrivers && name === 'centerY' ? 'Center Y' : pocketDrivers && name === 'toolX' ? 'toolX · tool origin X' : pocketDrivers && name === 'toolY' ? 'toolY · tool origin Y' : pocketDrivers && name === 'toolWidth' ? 'toolWidth · tool X width' : pocketDrivers && name === 'toolSpanY' ? 'toolSpanY · tool Y span' : pocketDrivers && name === 'depth' ? 'depth · positive Z depth from underside Z=0' : unionDrivers && name === 'legMinX' ? 'legMinX · leg origin X' : unionDrivers && name === 'legMinY' ? 'legMinY · leg origin Y' : unionDrivers && name === 'legWidth' ? 'legWidth · leg X width' : unionDrivers && name === 'legHeight' ? 'legHeight · extrusion height' : (chamferChain || configurableFinishes) && name === 'backY' ? 'backY · edge-selection Y coordinate' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'frontDistance' ? 'frontDistance · front bevel distance' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'backDistance' ? 'backDistance · back bevel distance' : chamferSplit && name === 'splitAt' ? 'splitAt · selected-axis split coordinate' : derivedSplit && name === 'width' ? 'width · rail X size' : derivedSplit && name === 'offset' ? 'offset · X displacement from center' : miterSplit && name === 'cutPosition' ? 'cutPosition · X + Y threshold' : name} (mm)</Label>
+          <Label htmlFor={`${id}-${name}`}>{constrainedPlateDrivers && name === 'width' ? 'Profile X width' : constrainedPlateDrivers && name === 'height' ? 'Profile Y height' : topPocketDrivers && name === 'depth' ? 'Pocket depth downward from top Z=8' : topPocketDrivers && name === 'toolY' ? 'Tool Y origin' : topPocketDrivers && name === 'toolSpanY' ? 'Tool Y span' : slotDrivers && name === 'legWidth' ? 'legWidth · leg X width' : slotDrivers && name === 'slotX' ? 'slotX · slot origin X' : slotDrivers && name === 'slotY' ? 'slotY · slot origin Y' : slotDrivers && name === 'slotWidth' ? 'slotWidth · slot X width' : slotDrivers && name === 'slotSpanY' ? 'slotSpanY · slot Y span' : roundPostDrivers && name === 'diameter' ? 'Diameter' : roundPostDrivers && name === 'height' ? 'Extrusion height' : roundPostDrivers && name === 'centerX' ? 'Center X' : roundPostDrivers && name === 'centerY' ? 'Center Y' : pocketDrivers && name === 'toolX' ? 'toolX · tool origin X' : pocketDrivers && name === 'toolY' ? 'toolY · tool origin Y' : pocketDrivers && name === 'toolWidth' ? 'toolWidth · tool X width' : pocketDrivers && name === 'toolSpanY' ? 'toolSpanY · tool Y span' : pocketDrivers && name === 'depth' ? 'depth · positive Z depth from underside Z=0' : unionDrivers && name === 'legMinX' ? 'legMinX · leg origin X' : unionDrivers && name === 'legMinY' ? 'legMinY · leg origin Y' : unionDrivers && name === 'legWidth' ? 'legWidth · leg X width' : unionDrivers && name === 'legHeight' ? 'legHeight · extrusion height' : (chamferChain || configurableFinishes) && name === 'backY' ? 'backY · edge-selection Y coordinate' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'frontDistance' ? 'frontDistance · front bevel distance' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'backDistance' ? 'backDistance · back bevel distance' : chamferSplit && name === 'splitAt' ? 'splitAt · selected-axis split coordinate' : derivedSplit && name === 'width' ? 'width · rail X size' : derivedSplit && name === 'offset' ? 'offset · X displacement from center' : miterSplit && name === 'cutPosition' ? 'cutPosition · X + Y threshold' : name} (mm)</Label>
           <Input id={`${id}-${name}`} disabled={busy} inputMode="decimal"
             value={Object.hasOwn(snapshot?.drafts ?? {}, name) ? snapshot!.drafts[name] : Object.is(value, -0) ? '-0' : String(value)}
             onChange={event => action(s => s.stage(name, event.target.value))}
-            onKeyDown={event => { if (event.key === 'Escape') action(s => s.discard()); }} />
+            onKeyDown={event => {
+              const current = controller.current?.getSnapshot();
+              if (!current) return;
+              const command = modelingDimensionCommand({
+                key: event.key, repeat: event.repeat, isComposing: event.nativeEvent.isComposing,
+                keyCode: event.keyCode, altKey: event.altKey, ctrlKey: event.ctrlKey,
+                metaKey: event.metaKey, shiftKey: event.shiftKey,
+              }, {
+                accepted: current.accepted !== null, draftCount: Object.keys(current.drafts).length,
+                busy: current.busy, disposed: current.disposed,
+              });
+              if (command === null) return;
+              event.preventDefault(); event.stopPropagation();
+              action(s => command === 'apply' ? s.apply() : s.discard());
+            }} />
         </div>;
   return <section className="barocss-cad-editor" aria-label="CAD model editor" style={{ padding: 24, overflow: 'auto', height: '100%' }}>
     <header><h1>Model a part</h1><p>Sketch a polygon or circle → extrude → supported cut, intersect, split, chamfer, fuse, pocket or hole · named dimensions in mm</p></header>
@@ -130,7 +187,8 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
       <Button disabled={busy || draft || !snapshot?.history.canUndo} onClick={() => action(s => s.undo())}>Undo</Button>
       <Button disabled={busy || draft || !snapshot?.history.canRedo} onClick={() => action(s => s.redo())}>Redo</Button>
       <Button disabled={!busy} onClick={() => action(s => s.cancel())}>Cancel computation</Button>
-      {!accepted && !busy && <Button onClick={() => action(s => initialAuthoredText === undefined ? s.example() : s.open(initialAuthoredText))}>Retry model</Button>}
+      <span style={{ alignSelf: 'center', fontSize: 12, opacity: 0.75 }}>In a dimension field: Enter to apply · Esc to discard</span>
+      {!accepted && !busy && <Button onClick={() => { fileReadEpoch.current++; action(s => initialAuthoredText === undefined ? s.example() : s.open(initialAuthoredText)); }}>Retry model</Button>}
     </div>
     <details style={{ marginTop: 16 }}><summary>Modeling examples</summary>
       <Label htmlFor={`${id}-example`}>Choose an example</Label>
@@ -147,6 +205,8 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         <option value="slotted-bracket">Cut a slot in a bracket</option>
         <option value="round-post">Create a round post</option>
         <option value="underside-pocket">Cut an underside pocket</option>
+        <option value="constrained-plate">Resize a constrained plate</option>
+        <option value="top-entry-pocket">Cut a top-entry pocket</option>
         <option value="union-bracket">Fuse an L-bracket</option>
         <option value="mounting-plate">Mounting plate with a through-hole</option>
       </select>
@@ -160,10 +220,14 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         </select>
         <p>Axis choice loads a new example after replacement acknowledgment; it does not edit the accepted part.</p>
       </>}
-      <p>{example === 'slotted-bracket'
+      <p>{example === 'constrained-plate'
+        ? 'Resize an 8 mm thick plate through its constrained XY profile. Width and profile height drive fixed corners; horizontal and vertical edges remain constrained.'
+        : example === 'slotted-bracket'
         ? 'Fuse the base and leg, then cut a through-slot in that owned bracket. Edit leg width and slot X/Y origin, width and span. Both saved outputs remain available; this preset selects slotted.'
         : example === 'round-post'
         ? 'Create a diameter-driven round post from an owned rational circle. Edit diameter and extrusion height in millimetres; optional center coordinates locate the post. Exact native qualification can refuse dimensions without replacing the accepted part. Certified volume is unavailable.'
+        : example === 'top-entry-pocket'
+        ? 'Cut downward from the top Z=8 of a 32 × 24 × 8 mm plate. Depth drives the lower tool origin 8 − depth; tool Y origin and Y span are editable. Tool X stays 8..24. Depth8 makes a through-window. The preset selects part while plate and tool remain saved.'
         : example === 'underside-pocket'
         ? 'Cut an underside pocket into a 32 × 24 × 8 mm plate. Tool X/Y origin, width, Y span and depth are numeric drivers. Both extrusions start at Z=0; depth8 makes a through-window. The preset selects part while plate and tool remain saved.'
         : example === 'union-bracket'
@@ -189,6 +253,7 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
       {accepted && <Label><input type="checkbox" checked={replaceExample} disabled={busy}
         onChange={event => setReplaceExample(event.target.checked)} /> Replace accepted model and discard its history and pending dimensions</Label>}
       <div><Button disabled={busy || (!!accepted && !replaceExample)} onClick={() => action(async s => {
+        fileReadEpoch.current++; // Supersede pending file reads before replacing the accepted example.
         await s.example(example, example === 'horizontal-split' || example === 'chamfer-split' ? splitAxis : undefined); if (!s.getSnapshot().error) setReplaceExample(false);
       })}>Load example</Button></div>
     </details>
@@ -202,6 +267,25 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         action(s => s.pick(size.width, size.height, x, y, snapshot.generation));
       }} />
     {accepted && <>
+      <fieldset disabled={busy || draft} style={{ marginTop: 16 }}>
+        <legend>Export accepted geometry</legend>
+        <Label htmlFor={`${id}-stl-output`}>STL output</Label>
+        <select id={`${id}-stl-output`} value={stlOutput} disabled={busy || draft || accepted.source !== 'model'}
+          onChange={event => { setStlOutput(event.target.value); setStlResult(null); }}>
+          <option value="">Choose an accepted output</option>
+          {accepted.outputs.map(output => <option key={output.name} value={output.name}
+            disabled={accepted.source !== 'model' || (output.family !== undefined && output.family !== 'convex-planar')}>
+            {output.name} · {accepted.source === 'legacy' ? 'legacy (unavailable)' : output.family ?? 'convex-planar'}
+          </option>)}
+        </select>
+        <Button disabled={busy || draft || !canExportStl} onClick={() => void exportStl()}>
+          {snapshot?.workerReady ? 'Download STL' : 'Recover accepted model and export STL'}
+        </Button>
+        {!snapshot?.workerReady && <p>The native worker is unavailable. This action rebuilds the accepted saved model, verifies matching source and summary, then exports the selected output. It does not change model history or the accepted display.</p>}
+        <p>Choose the output independently of visible bodies or a selected face. Only primary convex outputs are supported. Apply or discard pending dimensions first. Export validates and encodes the accepted native body.</p>
+        <p>Binary STL uses approximate Float32 facets and an mm convention (STL stores no unit). At most40 facets; no coordinate conversion. Save the model separately to retain editable intent. Manufacturing and slicer acceptance require separate checks.</p>
+        {stlResult && <p role="status">{stlResult.outputName}.stl · {stlResult.byteLength} bytes · {stlResult.triangleCount} facets · maximum vertex displacement {stlResult.maximumVertexDisplacementMM} mm. Browser download requested.</p>}
+      </fieldset>
       <p>Named output bodies · trimmed native triangles · 1 scene unit = 1 mm · approximate face selection</p>
       {bodyView && <fieldset disabled={busy}>
         <legend>Visible output body</legend>
@@ -213,7 +297,9 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         <p role="status">Visible: {bodyView.selectedOutput} · {accepted.outputs.find(output => output.name === bodyView.selectedOutput)?.family}. Other outputs are hidden, not removed.</p>
         <p>Changing this view preserves saved outputs, pending dimensions and model history. Opening a file selects its last saved output. The mounting-plate, union and pocket presets explicitly select plate, bracket and part respectively. The chooser changes only the view, not authored outputs.</p>
       </fieldset>}
-      {pocketSavedOutputs && <p>This preset file initially selects tool when opened, because tool is the last canonical saved output. Choose part to inspect the pocket; hidden plate and tool outputs remain saved.</p>}
+      {(pocketSavedOutputs || topPocketDrivers) && <p>This preset file initially selects tool when opened, because tool is the last canonical saved output. Choose part to inspect the pocket; hidden plate and tool outputs remain saved.</p>}
+      {constrainedPlateDrivers && <p>Width and profile height drive the constrained sketch. Extrusion thickness remains 8 mm; the fixed lower corner stays at Y=0.</p>}
+      {topPocketDrivers && <p>Depth is measured downward from top Z=8. The positive-height cutter starts at Z=8 − depth; its fixed X extent is 8..24 mm. Native qualification may refuse dimensions that look plausible.</p>}
       {differenceModel && !composedModel && <p>The difference retains one restricted integer-cell body and exact integer volume. Complete preview requires at most64 panels (native limit72). Empty or multiple-body results are refused. Tool-contributed cavity walls retain inward relative orientation and original operand lineage; no mesh arrays are repaired.</p>}
       {composedModel && <p>The eight-step union → slot workflow retains exact integer-cell volume and both original-box and immediate-parent panel lineage. This preview supports a common Z=0..8 slab, at most5 X/Y coordinate planes,16 cells and64 complete panels per body. Empty or disconnected results are refused. Opening selects the last saved output; the preset explicitly selects slotted.</p>}
       {unionModel && <p>The union has restricted integer-cell material and exact integer volume. Its complete source-qualified panel preview is limited to64 panels (the native provider permits72). Face picks identify generated panels and their contributing native operand faces; they do not preserve the original convex face IDs.</p>}
@@ -233,7 +319,7 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
       </fieldset>}
       {accepted.source === 'legacy' && <p>This file uses its original compatibility reader. Saving preserves its authored format and modeling semantics.</p>}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 24 }}>
-        <div><h2>Named dimensions</h2>{roundPostDrivers ? <>
+        <div><h2>Named dimensions</h2>{constrainedPlateDrivers ? (['width', 'height'] as const).map(name => dimensionInput([name, accepted.parameters[name]])) : roundPostDrivers ? <>
           {(['diameter', 'height'] as const).map(name => dimensionInput([name, accepted.parameters[name]]))}
           <details><summary>Optional center coordinates</summary>
             {(['centerX', 'centerY'] as const).map(name => dimensionInput([name, accepted.parameters[name]]))}

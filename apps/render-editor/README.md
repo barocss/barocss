@@ -725,3 +725,129 @@ Selection/corrective/Help/chooser and pending guards add no presentations. The
 remount-after-Undo witness proves removed generated IDs remain reserved; the
 fresh Open witness proves reservations reset to the incoming scene. Original
 local-view navigation regressions remain separate from this command ledger.
+
+### Add original Surfaces to the Light workbench (#1809)
+
+Select a visible body with an accepted material and resolve every scene draft,
+then choose **Add Surface…**. The private dialog reads an original CAD text file,
+shows its actual model and object inventory, and lets you select a real Surface.
+It preserves the complete source, including unselected geometry and comments.
+Native XYZ uses millimetres with the existing scene scale; it does not convert
+axes. Reported file size is checked before reading, actual buffer length before
+fatal UTF-8 decoding, then the provider checks 65536 UTF-8 bytes and UTF-16 code
+units. Extensions are hints, not validation. A canceled chooser or bad later
+file keeps the previous inspected candidate.
+
+Explicit **Add Surface** copies the selected accepted material into a new
+independent binding, using actual Native source-add and qualification providers.
+Repeated material IDs do not cause another body's binding to be copied. The new
+body starts at its source origin with identity pose; existing omitted identity
+poses stay omitted. One Viewer acknowledgement creates one scene/history step,
+reserves all three new IDs together and selects the new row. Use **Frame selected**
+to find off-screen geometry. Numeric transform/material edits, Undo/Redo and
+accepted Save/fresh Open use the existing session. Source inspection alone does
+not edit or save the scene or move the view.
+
+All competing scene actions wait while the dialog owns its captured scene,
+selection, form and material. Cancel/escape can close a pending file read, whose
+late result is ignored. Once Add is submitted, Cancel/escape/outside-close wait
+for that transaction; they cannot promise to undo a renderer acknowledgement.
+A ready refusal clears only the owned temporary command draft and keeps the
+candidate for retry. Unavailable failure retains the existing recovery fence;
+close the dialog, then Discard when ready or remount accepted authorship. No
+pixel rollback is claimed. Unmount invalidates both read and Add continuations.
+
+The #1809 finite per-kind ledger has 24 actual helper cases, nine replacement
+attempts (ceiling ten), 18 chooser/Save/Open transports and five owned lifetimes:
+- Helpers cover selected/reordered/repeated material identity, full original
+  source, omitted poses, actual qualified target reconstruction, reservation
+  exact/overflow limits, byte/code-unit limits, malformed/curve-only/unknown
+  Surface, hidden/unbound/forged selection, revision/capacity and Float32 refusals
+- Replacements: stale Add disposal, ready refused Add, accepted Add, Undo, Redo,
+  fresh Open, new-body position/material Apply, lost Add, post-recovery Add
+- Transports: ten first-lifetime chooser outcomes; one ready-refusal/retry source;
+  Save; fresh Open; re-edit Save; lost-Add source; held lost/disposed read;
+  recovery source; final Save
+- Lifetimes: initial stale Add, main acceptance, fresh Open, accepted-scene
+  recovery remount, and fresh lifetime after the held read
+
+All authored fixtures are admitted by the real parser before the full scoped
+flow. Existing regressions have separate counters. Controlled jsdom/file/Viewer
+proof is software evidence only; physical chooser, GPU pixels and #1573 remain
+separate gates. Package APIs, parser, schema, limits and the older synchronous
+Native Surface dialog are unchanged.
+
+### Light original control-point editing (#1861)
+
+In either Light workspace, resolve existing scene drafts, select a visible material-bound Surface and choose **Edit control point…**. U row/V column are original control-grid indices, not UV parameters or sampled mesh vertices. XYZ uses source millimetres; weight is the original rational coefficient. The actual source writer admits coordinates within ±1e6 mm and weight from 1e-6 to 1e6, then the entire posed scene still passes its stricter display admission.
+
+Choose a point while its fields are unchanged. Corrective text locks point switching until **Reset fields** or explicit **Apply point**. This command immediately acknowledges one scene/history step; it does not consume other drafts or require another Apply. Exact serialized no-ops retain the raw fields, signs, source and revisions without presenting. A refused command retains the fields; accepted edits close the dialog and use ordinary Undo/Redo and accepted Save/Open. Original source spans, unedited coefficients, other geometry, body poses, material contents and lights remain under existing provider authority.
+
+Any other native body sharing the source asset, even hidden or unselected, makes point editing unavailable. **Duplicate body** creates an independently owned source asset for its selected copy; duplication can itself refuse the current asset/body/display/material capacity, so it is not an unconditional escape. No implicit source clone occurs during point editing.
+
+Submitted Apply point fences Cancel, Escape and outside close synchronously. The existing captured geometry ticket and exact command-draft cleanup own ready-refusal retry, loss/recovery and stale completion. No pixel rollback is promised. This numeric control adds no gizmo or source parser and does not resolve physical report #1573.
+
+Focused software check: `node native-light-workbench-flow.mjs --surface-point` runs only the new actual-provider/React block with controlled Viewers and files. `--surface-point-preflight` checks fixture admission first. Default execution retains the existing regressions and includes the new block. Per kind the budget is 12 edit-helper calls, one separately counted actual duplicate derivation, 6 replacement attempts, 2 Save/Open transports and 3 owned lifetimes. Physical GPU/files remain outside this proof.
+
+### Stage a selected body transform reset (#1881)
+
+**Stage reset transform** replaces only the selected body's position, rotation and scale fields with `[0,0,0]` mm, XYZW `[0,0,0,1]` and `[1,1,1]`. It explicitly replaces that body's corrective text; other body, camera, material and light drafts remain. Existing **Apply** accepts the whole scene once; Undo/Redo restores it. Staging does not move the local view, present a frame, change history or edit original CAD source.
+
+A signed-zero-aware numerical identity is a no-op, retaining the same form, lexical values such as `1.0`, and omitted poses. An explicit genuine reset can replace `-0` or negative-identity quaternion authorship with the stated canonical target. It never silently normalizes an imported orientation. The existing document and posed-display providers admit the generated selected pose before fields change; refusal retains all corrective text. Current body identity, selection epoch, pending operations, dialogs and lifetime fences are shared with rotation controls.
+
+`node native-light-workbench-flow.mjs --body-reset` runs only the new focused actual-provider/React block: at most ten helper calls, four controlled Viewer attempts and zero file transports per kind. Default CI retains older coverage. Physical GPU/files are not established by this check.
+
+### Export an accepted original CAD asset (#1901)
+
+**Export accepted CAD source** downloads the selected visible material-bound Surface's complete original asset as `asset-<safe-asset-id>.barocad`. Other original objects in that asset remain included, along with exact accepted comments, line endings, numeric spelling and native mm. Shared assets are exportable. Accepted control-point edits are included; scene poses, materials, lights and unfinished field drafts are not baked into the file. Use Save accepted for a complete scene instead.
+
+The existing native preparation and full body/asset binding qualify the read. UTF-8 must preserve the exact accepted text; unpaired-surrogate replacement refuses. No newline/BOM is inserted and no geometry is reserialized. This does not certify byte identity to a file before import decoding. Export leaves history, saved marker, selection, local view and drafts intact, and submits no Viewer replacement. Current selection-epoch/lifetime and pending/dialog/file/navigation fences apply. Anchors and object URLs are cleaned even if the download request fails; requesting a download does not prove disk persistence.
+
+Focused `node native-light-workbench-flow.mjs --source-export` runs only eight helper cases/four download attempts/zero Viewer replacements/one lifetime per kind, using actual source reimport and controlled download transport. Older file flows are not rerun by that flag.
+
+### Copy accepted material between bodies (#1917)
+
+Select the destination body, choose another visible material-bound body in **Copy accepted material from body**, then **Stage material copy**. Resolve all scene drafts first. The source is its accepted shader source and supplied overrides; the destination keeps its existing material ID, revision and complete qualified binding. Other bodies remain independent, including repeated material IDs. Omitted overrides, explicit defaults and signed zero retain their existing material authority.
+
+Staging changes only the destination's private material fields. **Apply** accepts the complete scene once, **Discard** restores accepted fields, and Undo/Redo uses ordinary scene history. Equal content is a no-op, including at maximum revisions. Changed material/scene revision limits refuse before presentation. Source selection is invalidated by a body-selection or accepted-scene change; selecting away and back does not revive it. Pending operations, dialogs, navigation and unavailable lifetimes retain their existing fences. No file transport or new binding is involved.
+
+Focused `node native-light-workbench-flow.mjs --material-copy` runs only this actual-provider/React block: at most ten helper calls, four controlled Viewer attempts, zero file transports and one lifetime per kind. Physical rendering and ordinary browser interaction remain separate Execute Tester checks.
+
+## Native Light viewport orientation shortcuts (#1915)
+
+Focus the **Required WebGPU light scene** Canvas and press **1** for Front (+Z),
+**3** for Right (+X), or **7** for Top (+Y). These are **perspective** views
+in the admitted right-handed Y-up scene basis, not orthographic projections.
+The active viewport target, eye distance, field of view and near/far clipping
+are preserved. Top uses screen-up −Z; Front and Right use screen-up +Y.
+
+Only the current local viewport camera changes through the ordinary acknowledged
+navigation session. The authored Scene camera, native CAD assets, Body poses,
+materials/lights, history, dirty drafts, accepted Save and revision remain
+untouched. Use **Set scene camera** separately if you explicitly want to author
+the local view. No conversion of original CAD millimetres or geometry occurs.
+
+Shortcuts require an actually focused Canvas and a ready, idle workspace.
+Modifiers, key repeat/composition, pending operations, dialogs, active pointer
+navigation/picking, device loss and disposal refuse. Escape can cancel a queued
+navigation request, but it cannot falsely undo an already acknowledged Viewer
+replacement. Refused admission retains the previous authored source and exposes
+the existing navigation error.
+
+Focused Node22 software qualification, distinct from actual GPU/browser input:
+
+```sh
+node apps/render-editor/native-light-view-presets-flow.mjs
+```
+
+This tests the real source-based camera derivation and DOM keyboard transport
+with a controlled async navigation session. It does not certify WebGPU pixels,
+physical keyboard/focus behavior, OS file downloads or integrated acceptance.
+
+### Edit the Light scene title (#1927)
+
+Use **Scene title** beside the accepted heading, then ordinary **Apply** to save it with all other scene drafts. **Discard** restores the accepted title; **Undo/Redo** restores whole-scene authorship. The heading and **Save accepted** keep accepted data until acknowledgement. Save and a fresh same-kind Open preserve the exact admitted title for further editing; the document ID and download filename are not renamed.
+
+The existing Native/Light provider requires non-whitespace text, at most 128 Unicode code points, 256 UTF-16 code units and 512 UTF-8 bytes. Valid text is not trimmed or normalized. Invalid title text remains available for correction and refuses the whole Apply. Exact equal title is a no-op; source/body/material identities, original geometry, poses, camera/local view and light values are retained by a title-only edit. Current pending, dialog/chooser, navigation and lifetime fences apply.
+
+Focused `node native-light-workbench-flow.mjs --scene-title` uses at most eight actual field/codec controls, five controlled Viewer attempts, two Save/Open transports and two lifetimes per kind. Ordinary pointer/IME, physical file persistence and GPU behavior remain separate Tester checks.
