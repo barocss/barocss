@@ -53,6 +53,8 @@ async function screenshot(page, stage) {
 }
 async function source(page) {
   const root = page.locator('section[aria-label="CAD model editor"]');
+  const details = root.locator('details').filter({ has: root.getByText('Save or open a model', { exact: true }) });
+  if (!(await details.evaluate(element => element.open))) await details.locator('summary').click();
   await root.getByRole('button', { name: 'Show saved model' }).click();
   return root.getByLabel('Saved model data').inputValue();
 }
@@ -176,7 +178,7 @@ try {
     await fresh.getByText('Save or open a model', { exact: true }).click();
     await attach(fresh, bytes, 'part.cad.json');
     await fresh.getByLabel('Saved model data').waitFor();
-    await fresh.waitForFunction(text => document.querySelector('textarea')?.value === text, edited);
+    await fresh.waitForFunction(text => document.querySelector('section[aria-label="CAD model editor"] textarea')?.value === text, edited);
     assert.equal(await partVolume(fresh), originalVolume, 'File selection alone cannot replace accepted geometry');
     await fresh.getByText('Replace accepted model and discard its history and pending dimensions').locator('input[type="checkbox"]').check();
     await fresh.getByRole('button', { name: 'Open saved model' }).click();
