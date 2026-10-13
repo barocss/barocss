@@ -15,7 +15,7 @@ const point = (input: unknown): Binary64PointV1 | null => {
     const proto = Object.getPrototypeOf(input);
     if (proto !== Object.prototype && proto !== null) return null;
     const fields = Object.getOwnPropertyDescriptors(input);
-    const keys = Reflect.ownKeys(input);
+    const keys = Reflect.ownKeys(fields);
     if (keys.length !== 2 || !['x', 'y'].every(k =>
       Object.hasOwn(fields, k) && 'value' in fields[k] &&
       fields[k].enumerable && typeof fields[k].value === 'number')) return null;
