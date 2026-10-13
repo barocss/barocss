@@ -42,6 +42,9 @@ jobs:
       - name: Test native UV01 WebGPU Viewer async lifecycle
         run: NODE_OPTIONS=--max-old-space-size=2048 node --test --test-concurrency=1 packages/barocss-viewer/tests/native-surface-uv01-webgpu.test.mjs
 
+      - name: Test point-light WebGPU Viewer async lifecycle
+        run: NODE_OPTIONS=--max-old-space-size=2048 node --test --test-concurrency=1 packages/barocss-viewer/tests/native-point-light-webgpu.test.mjs
+
       - name: Run CI checks
         run: pnpm check
 
