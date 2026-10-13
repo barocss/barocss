@@ -61,6 +61,17 @@ A run record should contain these required fields, with no secrets or private lo
 
 The template's `null` values are intentionally **not** successes. For screenshots include the file's SHA-256, capture step and exact accepted output. For downloaded authored files include SHA-256, byte count, and cold-reopen status. Separate the authority of native XYZ coordinates from any displayed scene-axis conversion. State whether a real GPU readback was exercised.
 
+## Validate a collected receipt
+
+The app-local validation utility checks that a claimed `PASS` contains basic provenance fields. It does **not** verify whether a screenshot is genuine, whether its bytes actually match the stated hash, or whether a browser truly ran; these require independent artifact inspection.
+
+```sh
+pnpm --filter @barocss/library-docs check:cad-evidence
+node apps/library-docs/scripts/check-cad-browser-receipt.mjs ./path/to/actual-receipt.json
+```
+
+The CLI exits 0 for structurally valid evidence, 1 for invalid fields, and 2 for unreadable input/usage errors. A structurally valid `UNRUN` receipt is still `UNRUN`, never a success. Browser `PASS` requires a declared capture with SHA-256 and accepted generation; GPU `PASS` additionally requires GPU readback metadata; file `PASS` requires recorded bytes, checksum, fresh Open and re-edit. Native/Worker claims require their own provider/transport references. Human or CI reviewers must inspect and reproduce claimed artifacts before treating results as trusted.
+
 ## Acceptance rules
 
 A case is `PASS` only when each stage required by that particular test ran and its observable assertions passed. `UNRUN`, `BLOCKED`, and `FAIL` are distinct; a prior source-pinned receipt may be cited as historical evidence but cannot be promoted to a fresh device result.
