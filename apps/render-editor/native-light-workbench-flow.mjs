@@ -74,9 +74,12 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
   const sourceText = await readFile(join(app, 'public/reference-panel.barocad'), 'utf8');
   const surfacePointPreflight = process.argv.includes('--surface-point-preflight');
   const bodyResetOnly = process.argv.includes('--body-reset');
+  const materialCopyOnly = process.argv.includes('--material-copy');
+  const sceneTitleOnly = process.argv.includes('--scene-title');
+  const workspaceFocusOnly = process.argv.includes('--workspace-focus');
   const sourceExportPreflight = process.argv.includes('--source-export-preflight');
   const sourceExportOnly = process.argv.includes('--source-export') || sourceExportPreflight;
-  if (!sourceExportOnly && !bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight) {
+  if (!workspaceFocusOnly && (!sceneTitleOnly && !materialCopyOnly && !sourceExportOnly && !bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight)) {
   const seed = api.createLightStudy(sourceText);
   const original = api.serializeRenderNativeLightDocument(seed);
   const form = api.addLightFields(api.readLightFields(seed));
@@ -2535,7 +2538,7 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
   }
 
   // #1901: accepted whole-asset source transport, with no Viewer replacement.
-  if (sourceExportOnly || (!bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight)) {
+  if (!workspaceFocusOnly && (!sceneTitleOnly && !materialCopyOnly && (sourceExportOnly || (!bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight)))) {
     const sourceExportFlow = [], container = document.getElementById('root');
     const button = label => [...container.querySelectorAll('button')].find(node => node.textContent.trim() === label || node.getAttribute('aria-label') === label);
     const click = async label => {const node = button(label); assert(node && !node.disabled, label); await act(async () => node.click());};
@@ -2553,7 +2556,10 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
       const seed = api.prepareRenderNativeLightDocument(raw).document, original = api.serializeRenderNativeLightDocument(seed);
       const cases = []; let exportAttempts = 0;
       const beforeControls = controls.length, beforeDownloads = downloads.length, beforeChoosers = fileChoosers;
+      // Focused mode simulates an older Save whose deferred cleanup crosses this block.
+      const priorUrl = sourceExportOnly && !sourceExportPreflight ? URL.createObjectURL(new Blob(['prior-flow'])) : null;
       const beforeUrls = createdUrls.length, beforeRevoked = revokedUrls.length;
+      const unrelatedRevocation = priorUrl ? Promise.resolve().then(() => URL.revokeObjectURL(priorUrl)) : null;
       activeSurfaceLedger = {feature: 'accepted-source-export', kind, cases, get exportAttempts() {return exportAttempts;},
         get lifetimes() {return controls.length - beforeControls;}, presentations: 0, fileChoosers: 0};
       const read = (name, value = seed, bodyId = B) => {cases.push(name); assert(cases.length <= 8);
@@ -2625,17 +2631,23 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
       await mounted.dispose(); mounted = null; await act(async () => {detached.click(); staleButton.click();});
       assert.equal(control.disposed, 1); assert.equal(control.calls.length, 0); assert.equal(exportAttempts, 4);
       assert.equal(controls.length - beforeControls, 1); assert.equal(fileChoosers, beforeChoosers);
-      assert.deepEqual(createdUrls.slice(beforeUrls), revokedUrls.slice(beforeRevoked)); assert.equal(createdUrls.length - beforeUrls, 4);
+      await unrelatedRevocation;
+      const ownedUrls = createdUrls.slice(beforeUrls), ownedSet = new Set(ownedUrls);
+      assert.equal(ownedUrls.length, 4); assert.equal(ownedSet.size, 4);
+      assert.deepEqual(revokedUrls.slice(beforeRevoked).filter(url => ownedSet.has(url)), ownedUrls,
+        'Every source-export URL is revoked exactly once; prior-block cleanup is unrelated');
+      if (priorUrl) assert(revokedUrls.slice(beforeRevoked).includes(priorUrl), 'Prior deferred revocation actually crossed the observation boundary');
       assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
       sourceExportFlow.push({kind, helperCases: cases.length, cases, setupPointDerivations: 1, exportAttempts, successfulDownloads: 3,
-        presentations: 0, choosers: 0, lifetimes: 1, acceptedOnly: true, wholeAssetRoundtrip: true, cleanup: true});
+        presentations: 0, choosers: 0, lifetimes: 1, acceptedOnly: true, wholeAssetRoundtrip: true, cleanup: true,
+        unrelatedDeferredRevocation: priorUrl !== null});
     }
     console.log(JSON.stringify({result: 'PASS', scope: sourceExportPreflight ? 'Accepted source export actual-provider fixture preflight' : 'Accepted source export actual React/provider; controlled download, no physical file or GPU proof', sourceExportFlow}));
   }
 
   // #1881: independent focused acceptance, also included by default. --body-reset
   // excludes every older block, including Surface points; there are no file transports.
-  if (!sourceExportOnly && (bodyResetOnly || (!process.argv.includes('--surface-point') && !surfacePointPreflight))) {
+  if (!workspaceFocusOnly && (!sceneTitleOnly && !materialCopyOnly && !sourceExportOnly && (bodyResetOnly || (!process.argv.includes('--surface-point') && !surfacePointPreflight)))) {
   const bodyResetFlow = [], resetContainer = document.getElementById('root');
   const resetButton = name => [...resetContainer.querySelectorAll('button')]
     .find(node => node.textContent.trim() === name || node.getAttribute('aria-label') === name);
@@ -2847,7 +2859,7 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
 
   // #1861: this block also runs in default CI, independently of all older flow setup.
   // --surface-point runs only this acceptance; --surface-point-preflight admits fixtures only.
-  if (!bodyResetOnly && !sourceExportOnly) {
+  if (!workspaceFocusOnly && (!sceneTitleOnly && !materialCopyOnly && !bodyResetOnly && !sourceExportOnly)) {
   const surfacePointFlow = [], pointContainer = document.getElementById('root');
   const pointButton = name => [...pointContainer.querySelectorAll('button')]
     .find(node => node.textContent.trim() === name || node.getAttribute('aria-label') === name);
@@ -3064,6 +3076,705 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
   }
   console.log(JSON.stringify({result: 'PASS', scope: surfacePointPreflight ? 'Surface point fixture admission only'
     : 'Surface control points: actual React/source/codec/session; controlled Viewer and file transport, no GPU or physical files', surfacePointFlow}));
+  }
+
+  // #1917: independent actual-provider fixtures; --material-copy excludes every older block.
+  // Ten direct copy controls, four Viewer attempts, zero file transports and one lifetime per kind.
+  if (!workspaceFocusOnly && (!sceneTitleOnly && (materialCopyOnly || (!sourceExportOnly && !bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight)))) {
+  const materialCopyFlow = [], copyContainer = document.getElementById('root');
+  const copyButton = name => [...copyContainer.querySelectorAll('button')]
+    .find(node => node.textContent.trim() === name || node.getAttribute('aria-label') === name);
+  const copyClick = async name => {const button = copyButton(name); assert(button, name); assert(!button.disabled, name);
+    await act(async () => button.click());};
+  const copyInput = label => {const input = copyContainer.querySelector(`[aria-label="${label}"]`); assert(input, label); return input;};
+  const setCopyInput = (input, value) => {
+    Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value').set.call(input, value);
+    input.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  };
+  const copyEdit = async (label, value) => {const input = copyInput(label); assert(!input.disabled, label);
+    await act(async () => setCopyInput(input, value));};
+  const copySelect = () => copyInput('Copy accepted material from body');
+  const setCopySource = (select, bodyId) => {select.value = bodyId; select.dispatchEvent(new dom.window.Event('change', {bubbles: true}));};
+  const chooseCopySource = async bodyId => {const select = copySelect(); assert(!select.disabled);
+    await act(async () => setCopySource(select, bodyId)); assert.equal(copySelect().value, bodyId);};
+  const copyBody = async bodyId => {await copyClick('Edit body ' + bodyId);
+    assert.equal(copyButton('Edit body ' + bodyId).getAttribute('aria-pressed'), 'true');};
+  const copyBinding = (document, bodyId) => document.surfaceMaterials.find(binding => binding.target.bodyId === bodyId);
+  const copyRow = (fields, bodyId) => fields.materials.find(row => row.target.bodyId === bodyId);
+  const copyAppearance = request => api.prepareViewerNativeSceneAppearance({version: 1,
+    source: request.source, display: request.display,
+    appearance: {lighting: {ambientStrength: 1, directionalStrength: 0, direction: [0, 0, 1]}, materials: request.materials}}, request.context);
+  navigationDom?.dispose(); navigationDom = api.installLightNavigationFlowDom();
+  for (const kind of ['directional', 'point']) {
+    const A = 'body_preview_a', B = 'body_preview_b', raw = structuredClone(api.createLightStudy(sourceText, kind));
+    raw.nativeOptions.bodyIds = [B, A]; raw.nativeDocument.bodies.forEach(body => {body.name = 'Repeated Surface';});
+    raw.display.camera.up = [-0, 2, -0];
+    Object.assign(copyBinding(raw, A).material, {documentId: 'shared-look', title: 'Destination metadata', revision: 7,
+      shaderSource: '// Destination source.\n@shader #original {\n  @uniform amount: float(-1, 1, 0);\n  @fragment { color: mix(#ff0000, #0000ff, clamp(amount, 0, 1)); }\n}\n',
+      uniforms: {amount: .25}});
+    Object.assign(copyBinding(raw, B).material, {documentId: 'shared-look', title: 'Source metadata', revision: 145,
+      shaderSource: '// Accepted source retains exact whitespace.\n@shader #portable {\n  @uniform signed: float(-1, 1, 0);\n  @uniform explicit: float(0, 2, 1);\n  @uniform omitted: float(0, 3, 2);\n  @fragment { color: mix(#00ff00, #0000ff, clamp(signed * explicit, 0, 1)); }\n}\n',
+      uniforms: {explicit: 1, signed: -0}});
+    const prepared = api.prepareRenderNativeLightDocument(raw), copySeed = prepared.document;
+    const copyText = api.serializeRenderNativeLightDocument(copySeed), copyFields = api.readLightFields(copySeed);
+    const destination = copyBinding(copySeed, A), source = copyBinding(copySeed, B);
+    assert.equal(destination.material.documentId, source.material.documentId);
+    assert.equal(destination.target.geometryId, source.target.geometryId);
+    assert.notEqual(destination.target.assetId, source.target.assetId);
+    assert.equal(new Set(prepared.entries.map(entry => entry.binding.assetId)).size, 2);
+    copyAppearance(api.createRenderNativeLightRequest(copySeed));
+    const cases = [], controlsBefore = controls.length, downloadsBefore = downloads.length;
+    const choosersBefore = fileChoosers, urlsBefore = createdUrls.length, dialogsBefore = dialogs.length;
+    let presentations = 0;
+    activeSurfaceLedger = {feature: 'accepted-material-copy', kind, cases, get presentations() {return presentations;},
+      get lifetimes() {return controls.length - controlsBefore;}, saveOpenTransports: 0};
+    const stageCopy = (label, base = copySeed, fields = copyFields, destinationBody = A, sourceBody = B) => {
+      cases.push(label); assert(cases.length <= 10, kind + ': ten direct material copy calls');
+      const beforeFields = structuredClone(fields), beforeDocument = structuredClone(base);
+      try {return api.stageLightMaterialCopy(base, fields, destinationBody, sourceBody);}
+      finally {assert.deepEqual(fields, beforeFields, label + ': raw fields immutable');
+        assert.deepEqual(base, beforeDocument, label + ': accepted scene immutable');}
+    };
+    const refuseCopy = (...args) => {let error; try {stageCopy(...args);} catch (cause) {
+      if (cause instanceof assert.AssertionError) throw cause; error = cause;
+    } assert(error, args[0] + ': copy must refuse'); return error;};
+    const staged = stageCopy('qualified source and destination with repeated IDs'); // 1.
+    const copiedRow = copyRow(staged, A);
+    assert.notEqual(staged, copyFields); assert.equal(copyRow(staged, B), copyRow(copyFields, B));
+    for (const key of ['ambient', 'lights', 'bodies', 'camera']) assert.equal(staged[key], copyFields[key]);
+    assert.equal(copiedRow.target, copyRow(copyFields, A).target);
+    assert.equal(copiedRow.documentId, destination.material.documentId); assert.equal(copiedRow.revision, 7);
+    assert.equal(copiedRow.shaderSource, source.material.shaderSource);
+    assert.deepEqual(copiedRow.suppliedOrder, ['explicit', 'signed']);
+    assert.deepEqual(copiedRow.uniforms, [
+      {name: 'signed', override: true, value: '-0', min: -1, max: 1, defaultValue: '0'},
+      {name: 'explicit', override: true, value: '1', min: 0, max: 2, defaultValue: '1'},
+      {name: 'omitted', override: false, value: '2', min: 0, max: 3, defaultValue: '2'},
+    ]);
+    assert.notEqual(copiedRow.uniforms, copyRow(staged, B).uniforms);
+    assert.notEqual(copiedRow.uniforms[0], copyRow(staged, B).uniforms[0], 'No live linkage to source fields');
+    const expected = structuredClone(copySeed);
+    Object.assign(copyBinding(expected, A).material, {shaderSource: source.material.shaderSource,
+      uniforms: structuredClone(source.material.uniforms), revision: 8});
+    assert.deepEqual(api.applyLightFields(copySeed, staged), expected);
+    assert.deepEqual(copyBinding(expected, B), source);
+    const editedSource = structuredClone(staged); copyRow(editedSource, B).uniforms[0].value = '.5';
+    const independent = api.applyLightFields(copySeed, editedSource);
+    assert.equal(copyBinding(independent, B).material.uniforms.signed, .5);
+    assert(Object.is(copyBinding(independent, A).material.uniforms.signed, -0), 'Subsequent source editing never changes the copy');
+    assert.equal(stageCopy('same accepted body is an exact helper no-op', copySeed, copyFields, A, A), copyFields); // 2.
+    refuseCopy('geometry name cannot replace a qualified body', copySeed, copyFields, A, source.target.geometryId); // 3.
+    const hiddenRaw = structuredClone(copySeed); hiddenRaw.display.visibleBodyIds = [A];
+    hiddenRaw.surfaceMaterials = hiddenRaw.surfaceMaterials.filter(binding => binding.target.bodyId !== B);
+    const hidden = api.prepareRenderNativeLightDocument(hiddenRaw).document;
+    refuseCopy('hidden unbound source', hidden, api.readLightFields(hidden)); // 4.
+    const dirtyFields = structuredClone(copyFields);
+    dirtyFields.ambient = '1e'; dirtyFields.camera.eye[0] = ''; dirtyFields.bodies[0].position[0] = 'NaN';
+    dirtyFields.lights[0].intensity = 'Infinity'; copyRow(dirtyFields, B).uniforms[0].value = '1e';
+    refuseCopy('all scene drafts must resolve before copying', copySeed, dirtyFields); // 5.
+    const maximumRaw = structuredClone(expected);
+    maximumRaw.revision = 2147483647; maximumRaw.lights.revision = 2147483647;
+    copyBinding(maximumRaw, A).material.revision = 2147483647;
+    const maximum = api.prepareRenderNativeLightDocument(maximumRaw).document, maximumFields = api.readLightFields(maximum);
+    assert.equal(stageCopy('exact content no-op at scene and material maxima', maximum, maximumFields), maximumFields); // 6.
+    const materialMaxRaw = structuredClone(copySeed); copyBinding(materialMaxRaw, A).material.revision = 2147483647;
+    const materialMax = api.prepareRenderNativeLightDocument(materialMaxRaw).document;
+    assert.match(refuseCopy('changed destination at material maximum', materialMax, api.readLightFields(materialMax)).message, /revision|maximum/i); // 7.
+    const sceneMaxRaw = structuredClone(copySeed); sceneMaxRaw.revision = 2147483647; sceneMaxRaw.lights.revision = 2147483647;
+    const sceneMax = api.prepareRenderNativeLightDocument(sceneMaxRaw).document;
+    assert.match(refuseCopy('changed destination at scene maximum', sceneMax, api.readLightFields(sceneMax)).message, /revision|maximum/i); // 8.
+    const defaultsRaw = structuredClone(expected);
+    copyBinding(defaultsRaw, A).material.uniforms = {signed: 0, omitted: 2};
+    const defaults = api.prepareRenderNativeLightDocument(defaultsRaw).document, defaultsFields = api.readLightFields(defaults);
+    const explicit = stageCopy('omitted and explicit defaults plus signed zero are authored changes', defaults, defaultsFields); // 9.
+    assert.notEqual(explicit, defaultsFields);
+    const explicitMaterial = copyBinding(api.applyLightFields(defaults, explicit), A).material;
+    assert.deepEqual(explicitMaterial.uniforms, {explicit: 1, signed: -0});
+    assert.equal(Object.hasOwn(explicitMaterial.uniforms, 'omitted'), false); assert(Object.is(explicitMaterial.uniforms.signed, -0));
+    assert.equal(explicitMaterial.revision, copyBinding(defaults, A).material.revision + 1);
+    const forged = structuredClone(copySeed); copyBinding(forged, B).target.modelId = 'foreign-model';
+    refuseCopy('full source binding rejects a foreign model pin', forged, copyFields); // 10.
+    assert.equal(cases.length, 10); assert.equal(new Set(cases).size, 10); assert.equal(presentations, 0);
+
+    mounted = await api.mountLightWorkbenchFlow(copyContainer, copySeed); const control = controls.at(-1);
+    control.prepare = copyAppearance;
+    const replace = control.viewer.replace;
+    control.viewer.replace = request => {presentations++; assert(presentations <= 4, kind + ': four material copy Viewer attempts'); return replace(request);};
+    const session = flowControllers.at(-1).getSession(), snapshot = () => session.getSnapshot();
+    const draft = () => api.readLightWorkbenchFlowDraft(copyContainer), savePayload = () => session.getSavePayload().text;
+    await copyBody(A); const baseline = snapshot(), baselineDraft = draft();
+    assert.equal(savePayload(), copyText); assert.equal(copySelect().tagName, 'SELECT'); assert.equal(copySelect().value, '');
+    assert.deepEqual([...copySelect().options].map(option => option.value), ['', B]);
+    assert(copyButton('Stage material copy').disabled, 'No automatic source');
+    await chooseCopySource(B);
+    assert.match(copyContainer.querySelector('[aria-label="Body material"]').textContent, new RegExp(A));
+    assert.match(copyContainer.querySelector('[aria-label="Body material"]').textContent, new RegExp(B));
+    const staleStage = copyButton('Stage material copy'), staleSelect = copySelect();
+    await act(async () => {copyButton('Edit body ' + B).click(); staleStage.click(); setCopySource(staleSelect, B);});
+    assert.equal(copySelect().value, ''); assert(copyButton('Stage material copy').disabled);
+    await copyBody(A); assert.equal(copySelect().value, ''); assert(copyButton('Stage material copy').disabled);
+    assert.equal(snapshot(), baseline); assert.deepEqual(draft(), baselineDraft); assert.equal(presentations, 0);
+
+    await chooseCopySource(B); const dirtyStage = copyButton('Stage material copy');
+    await act(async () => {setCopyInput(copyInput('Body position X (mm)'), '1e'); dirtyStage.click();});
+    await copyEdit('Camera eye X', ''); await copyEdit('Intensity', 'NaN'); await copyEdit('Uniform amount', '1e');
+    const dirtyDraft = draft(); assert(copySelect().disabled); assert(copyButton('Stage material copy').disabled);
+    await act(async () => {dirtyStage.click(); setCopySource(copySelect(), B);});
+    assert.deepEqual(draft(), dirtyDraft); assert.equal(snapshot(), baseline); assert.equal(savePayload(), copyText); assert.equal(presentations, 0);
+    await copyClick('Discard'); assert.deepEqual(draft(), baselineDraft);
+    await chooseCopySource(B); await copyClick('Help'); assert(copySelect().disabled); assert(copyButton('Stage material copy').disabled);
+    await copyClick('Help'); await copyClick('Edit control point…');
+    assert(copySelect().disabled); assert(copyButton('Stage material copy').disabled);
+    const pointDialog = document.querySelector('[data-testid="light-point-dialog"]'); assert(pointDialog);
+    const cancelPoint = [...pointDialog.querySelectorAll('button')].find(button => button.textContent.trim() === 'Cancel');
+    assert(cancelPoint && !cancelPoint.disabled); await act(async () => cancelPoint.click());
+    const canvas = copyContainer.querySelector('canvas');
+    await act(async () => navigationDom.pointer(canvas, 'pointerdown', 140, 125));
+    assert(copySelect().disabled); assert(copyButton('Stage material copy').disabled);
+    await act(async () => {navigationDom.pointer(canvas, 'pointercancel', 140, 125); navigationDom.flushFrames(); await Promise.resolve();});
+    assert.equal(presentations, 0); assert.equal(savePayload(), copyText);
+
+    await chooseCopySource(B); await copyClick('Stage material copy');
+    assert.equal(copyInput('Uniform signed').value, '-0'); assert.equal(copyInput('Uniform explicit').value, '1');
+    assert.equal(copyInput('Override uniform explicit').checked, true); assert.equal(copyInput('Override uniform omitted').checked, false);
+    assert.equal(snapshot().accepted, baseline.accepted); assert.equal(snapshot().unsaved, baseline.unsaved);
+    assert.equal(snapshot().canUndo, false); assert.equal(snapshot().canRedo, false); assert.equal(presentations, 0);
+    assert.equal(savePayload(), copyText); assert.equal(copyContainer.querySelector('[aria-label="Viewport camera status"]').textContent, 'Scene view');
+    await copyBody(B); assert.equal(copyInput('Uniform signed').value, '-0'); await copyBody(A);
+    await copyClick('Discard'); assert.deepEqual(draft(), baselineDraft); assert.equal(savePayload(), copyText); assert.equal(presentations, 0);
+    await chooseCopySource(B); await copyClick('Stage material copy'); const stagedDraft = draft();
+    const beforeApply = snapshot(); let release;
+    control.wait = new Promise(resolve => {release = resolve;}); control.refusal = new Error('Controlled held material copy refusal');
+    await act(async () => copyButton('Apply').click()); // 1: refusal keeps correctable private material fields.
+    assert.equal(presentations, 1); assert(snapshot().pending); assert(copySelect().disabled);
+    for (const label of ['Stage material copy', 'Apply', 'Open', 'Save accepted', 'Edit body ' + B]) assert(copyButton(label).disabled, label + ': pending fence');
+    await act(async () => {staleStage.click(); setCopySource(staleSelect, B); release(); await control.wait;}); control.wait = null;
+    assert.match(copyContainer.textContent, /PRESENTATION_REFUSED/); assert.deepEqual(draft(), stagedDraft);
+    for (const key of ['accepted', 'canUndo', 'canRedo', 'unsaved']) assert.equal(snapshot()[key], beforeApply[key], key);
+    assert.equal(savePayload(), copyText); assert.equal(control.state, 'ready');
+    control.refusal = null; await copyClick('Apply'); // 2: one whole-scene transaction.
+    expected.revision++; expected.lights.revision++;
+    assert.deepEqual(snapshot().accepted, expected); assert(snapshot().canUndo); assert.equal(snapshot().canRedo, false);
+    assert.deepEqual(control.calls.at(-1), api.createRenderNativeLightRequest(expected));
+    assert.deepEqual(copyBinding(snapshot().accepted, B), source, 'Accepted source binding remains exact');
+    assert.deepEqual(snapshot().accepted.nativeDocument, copySeed.nativeDocument);
+    assert.deepEqual(snapshot().accepted.display, copySeed.display); assert.deepEqual(snapshot().accepted.nativeOptions, copySeed.nativeOptions);
+    assert.deepEqual({...snapshot().accepted.lights, revision: copySeed.lights.revision}, copySeed.lights);
+    assert.equal(copySelect().value, ''); assert(copyButton('Stage material copy').disabled, 'Accepted scene invalidates source ticket');
+    await chooseCopySource(B); const beforeNoOp = snapshot(), noOpDraft = draft();
+    await copyClick('Stage material copy'); assert.equal(snapshot(), beforeNoOp); assert.deepEqual(draft(), noOpDraft);
+    assert.equal(presentations, 2); assert.equal(savePayload(), api.serializeRenderNativeLightDocument(expected));
+    await copyClick('Undo'); // 3: one history entry restores the destination and leaves source untouched.
+    const undone = {...copySeed, revision: copySeed.revision + 2, lights: {...copySeed.lights, revision: copySeed.lights.revision + 2}};
+    assert.deepEqual(snapshot().accepted, undone); assert.equal(snapshot().canUndo, false); assert(snapshot().canRedo);
+    assert.equal(copyInput('Uniform amount').value, '0.25');
+    assert.equal(copySelect().value, ''); assert(copyButton('Stage material copy').disabled);
+    await copyClick('Redo'); // 4.
+    const redone = {...expected, revision: expected.revision + 2, lights: {...expected.lights, revision: expected.lights.revision + 2}};
+    assert.deepEqual(snapshot().accepted, redone); assert(snapshot().canUndo); assert.equal(snapshot().canRedo, false);
+    assert.equal(savePayload(), api.serializeRenderNativeLightDocument(redone)); assert.equal(copyInput('Uniform signed').value, '-0');
+    await chooseCopySource(B); const settled = snapshot(), settledDraft = draft(); control.state = 'lost';
+    await act(async () => {await new Promise(resolve => setTimeout(resolve, 350));});
+    assert(copySelect().disabled); assert(copyButton('Stage material copy').disabled);
+    await act(async () => {copyButton('Stage material copy').click(); setCopySource(copySelect(), B);});
+    assert.equal(snapshot(), settled); assert.deepEqual(draft(), settledDraft);
+    const detachedStage = copyButton('Stage material copy'), detachedSelect = copySelect();
+    await mounted.dispose(); mounted = null;
+    await act(async () => {detachedStage.click(); setCopySource(detachedSelect, B); staleStage.click();});
+    assert.equal(control.disposed, 1); assert.equal(controls.length - controlsBefore, 1); assert.equal(presentations, 4);
+    assert.equal(downloads.length, downloadsBefore); assert.equal(fileChoosers, choosersBefore); assert.equal(createdUrls.length, urlsBefore);
+    assert.equal(dialogs.length, dialogsBefore); assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+    assert.equal(api.serializeRenderNativeLightDocument(copySeed), copyText);
+    materialCopyFlow.push({kind, helperCases: cases.length, cases, presentations, saveOpenTransports: 0, lifetimes: 1,
+      historyEntries: 1, privateStageAndNoOpPresentations: 0, sourceRetained: true, staleSelectionFence: true,
+      readyRefusalRetainsDraft: true, pendingFence: true, proof: 'actual React/document/provider/session; controlled Viewer, no GPU or physical files'});
+  }
+  console.log(JSON.stringify({result: 'PASS', scope: 'Accepted material copy: actual React/provider/session; controlled Viewer, zero file transport', materialCopyFlow}));
+  }
+  // #1927: eight direct admission cases, five Viewer attempts, two transports and two lifetimes per kind.
+  // --scene-title runs this new block only; ordinary CI still includes every historical block.
+  if (!workspaceFocusOnly && (sceneTitleOnly || (!materialCopyOnly && !sourceExportOnly && !bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight))) {
+  const sceneTitleFlow = [], titleContainer = document.getElementById('root');
+  const titleButton = name => [...titleContainer.querySelectorAll('button')]
+    .find(node => node.textContent.trim() === name || node.getAttribute('aria-label') === name);
+  const titleClick = async name => {const button = titleButton(name); assert(button, name); assert(!button.disabled, name);
+    await act(async () => button.click());};
+  const titleInput = label => {const input = titleContainer.querySelector(`[aria-label="${label}"]`); assert(input, label); return input;};
+  const setTitleInput = (input, value) => {
+    Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value').set.call(input, value);
+    input.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  };
+  const titleEdit = async (label, value) => {const input = titleInput(label); assert(!input.disabled, label);
+    await act(async () => setTitleInput(input, value));};
+  const heading = () => titleContainer.querySelector('.app-document-bar > strong').textContent;
+  const titleAppearance = request => api.prepareViewerNativeSceneAppearance({version: 1, source: request.source, display: request.display,
+    appearance: {lighting: {ambientStrength: 1, directionalStrength: 0, direction: [0, 0, 1]}, materials: request.materials}}, request.context);
+  navigationDom?.dispose(); navigationDom = api.installLightNavigationFlowDom();
+  const originalTimeout = dom.window.setTimeout, titleTimers = [], titleUrlStart = createdUrls.length, titleConfirmation = confirmation;
+  confirmation = true;
+  dom.window.setTimeout = function (callback, delay, ...args) {
+    const id = originalTimeout.call(this, callback, delay, ...args); if (delay === 1000) titleTimers.push(id); return id;
+  };
+  try {
+  for (const kind of ['directional', 'point']) {
+    const importedTitle = '  가져온 e\u0301 🧭  ', editedTitle = '  새 장면 e\u0301 🌌  ';
+    const seed = api.prepareRenderNativeLightDocument({...api.createLightStudy(sourceText, kind), title: importedTitle}).document;
+    const original = api.serializeRenderNativeLightDocument(seed), fields = api.readLightFields(seed), cases = [];
+    const controlsBefore = controls.length, downloadsBefore = downloads.length, choosersBefore = fileChoosers;
+    let presentations = 0, transports = 0, fileReads = 0, releaseTitle;
+    const titleControls = [];
+    activeSurfaceLedger = {feature: 'scene-title', kind, cases, get presentations() {return presentations;},
+      get saveOpenTransports() {return transports;}, get lifetimes() {return controls.length - controlsBefore;}};
+    const admit = (label, nextFields) => {
+      cases.push(label); assert(cases.length <= 8, kind + ': eight direct title cases');
+      const before = structuredClone(nextFields);
+      try {return api.applyLightFields(seed, nextFields);}
+      finally {assert.deepEqual(nextFields, before, label + ': corrective fields immutable');}
+    };
+    assert.equal(fields.title, importedTitle); assert.notEqual(importedTitle.normalize('NFC'), importedTitle);
+    const unchanged = admit('exact imported Unicode/whitespace and codec no-op', fields); // 1.
+    assert.equal(api.lightFieldsDirty(fields, seed), false); assert.deepEqual(unchanged, seed);
+    assert.equal(api.parseRenderNativeLightDocument(api.serializeRenderNativeLightDocument(unchanged)).title, importedTitle);
+    assert.equal(admit('128 ASCII code points', {...fields, title: 'a'.repeat(128)}).title, 'a'.repeat(128)); // 2.
+    const boundary = '🌌'.repeat(128);
+    assert.equal(boundary.length, 256); assert.equal(new TextEncoder().encode(boundary).length, 512);
+    assert.equal(admit('128 astral points / 256 UTF-16 / 512 UTF-8', {...fields, title: boundary}).title, boundary); // 3.
+    for (const [label, title] of [['129 ASCII code points', 'a'.repeat(129)], ['129 astral points', '🌌'.repeat(129)],
+      ['empty title', ''], ['whitespace-only title', ' \t\n\u3000 ']]) { // 4–7.
+      assert.throws(() => admit(label, {...fields, title}), error => error.code === 'DOCUMENT_INPUT' && /title/i.test(error.message));
+    }
+    const combinedFields = structuredClone(fields); combinedFields.title = editedTitle; combinedFields.ambient = '.35';
+    combinedFields.camera.eye[0] = '2'; combinedFields.bodies[0].position[0] = '-850'; combinedFields.lights[0].intensity = '.4';
+    combinedFields.materials.find(row => row.target.bodyId === 'body_preview_b').uniforms[0].value = '.5';
+    const combined = admit('title and all ordinary field groups participate together', combinedFields); // 8.
+    assert.equal(combined.title, editedTitle); assert.equal(combined.lights.ambientStrength, .35);
+    assert.equal(combined.display.camera.eye[0], 2); assert.equal(combined.display.poses[0].translationMM[0], -850);
+    assert.equal(combined.lights.lights[0].intensity, .4);
+    assert.equal(combined.surfaceMaterials[1].material.uniforms.amount, .5);
+    assert.equal(combined.surfaceMaterials[1].material.revision, seed.surfaceMaterials[1].material.revision + 1);
+    assert.deepEqual(combined.nativeDocument, seed.nativeDocument); assert.deepEqual(combined.nativeOptions, seed.nativeOptions);
+    assert.deepEqual(combined.surfaceMaterials.map(binding => binding.target), seed.surfaceMaterials.map(binding => binding.target));
+    assert.equal(cases.length, 8); assert.equal(new Set(cases).size, 8);
+    const mountTitle = async () => {
+      mounted = await api.mountLightWorkbenchFlow(titleContainer, seed);
+      assert(controls.length - controlsBefore <= 2, kind + ': two title lifetimes');
+      const control = controls.at(-1), replace = control.viewer.replace; control.prepare = titleAppearance;
+      control.viewer.replace = request => {presentations++; assert(presentations <= 5, kind + ': five title Viewer attempts'); return replace(request);};
+      titleControls.push({control, replace}); return control;
+    };
+    const session = () => flowControllers.at(-1).getSession(), snapshot = () => session().getSnapshot();
+    const draft = () => api.readLightWorkbenchFlowDraft(titleContainer), saveText = () => session().getSavePayload().text;
+    const revised = (document, revision) => ({...document, revision, lights: {...document.lights, revision}});
+    try {
+      const control = await mountTitle(), baseline = snapshot();
+      assert.equal(titleInput('Scene title').value, importedTitle); assert.equal(titleInput('Scene title').maxLength, 256);
+      assert.equal(heading(), importedTitle); assert.match(titleInput('Scene title').parentElement.textContent, /Apply/);
+      assert(titleButton('Apply').disabled); assert.equal(saveText(), original);
+      await titleClick('Help'); assert(titleInput('Scene title').disabled); await titleClick('Help');
+      await titleClick('Edit control point…'); assert(titleInput('Scene title').disabled);
+      const pointDialog = document.querySelector('[data-testid="light-point-dialog"]'); assert(pointDialog);
+      const cancel = [...pointDialog.querySelectorAll('button')].find(button => button.textContent.trim() === 'Cancel');
+      assert(cancel && !cancel.disabled); await act(async () => cancel.click());
+      const canvas = titleContainer.querySelector('canvas');
+      await act(async () => navigationDom.pointer(canvas, 'pointerdown', 140, 125)); assert(titleInput('Scene title').disabled);
+      await act(async () => {navigationDom.pointer(canvas, 'pointercancel', 140, 125); navigationDom.flushFrames();});
+      assert.equal(snapshot(), baseline); assert.equal(presentations, 0);
+
+      await titleEdit('Scene title', ''); await titleEdit('Ambient strength', '.35');
+      const emptyDraft = draft(); await titleClick('Apply');
+      assert.deepEqual(draft(), emptyDraft); assert.equal(snapshot(), baseline); assert.equal(presentations, 0);
+      assert.equal(heading(), importedTitle); assert.equal(saveText(), original);
+      await titleEdit('Scene title', editedTitle); await titleEdit('Ambient strength', '1e');
+      const invalidOtherDraft = draft(); await titleClick('Apply');
+      assert.deepEqual(draft(), invalidOtherDraft); assert.equal(snapshot(), baseline); assert.equal(presentations, 0);
+      await titleEdit('Ambient strength', '.35'); await titleEdit('Camera eye X', '2');
+      await titleEdit('Body position X (mm)', '-850'); await titleEdit('Intensity', '.4');
+      await titleClick('Edit body body_preview_b'); await titleEdit('Uniform amount', '.5');
+      const combinedDraft = draft(); control.refusal = new Error('Controlled complete title draft refusal');
+      await titleClick('Apply'); // 1: genuine complete candidate, ready Viewer refusal.
+      assert.equal(presentations, 1); assert.match(titleContainer.textContent, /PRESENTATION_REFUSED/);
+      assert.deepEqual(control.calls.at(-1), api.createRenderNativeLightRequest(revised(combined, seed.revision + 1)));
+      assert.deepEqual(draft(), combinedDraft); assert.equal(heading(), importedTitle); assert.equal(saveText(), original);
+      for (const key of ['accepted', 'canUndo', 'canRedo', 'unsaved', 'viewportCamera']) assert.equal(snapshot()[key], baseline[key], key);
+      control.refusal = null; await titleClick('Discard');
+      assert.equal(titleInput('Scene title').value, importedTitle); assert.equal(titleInput('Ambient strength').value, fields.ambient);
+      assert.equal(titleInput('Uniform amount').value, fields.materials[1].uniforms[0].value);
+      await titleEdit('Scene title', editedTitle);
+      const pendingDraft = draft(); control.wait = new Promise(resolve => {releaseTitle = resolve;});
+      await act(async () => titleButton('Apply').click()); // 2: title-only acceptance is held before ACK.
+      assert.equal(snapshot().pending, 'apply'); assert.equal(presentations, 2); assert(titleInput('Scene title').disabled);
+      assert.equal(heading(), importedTitle); assert.equal(saveText(), original); assert.deepEqual(draft(), pendingDraft);
+      for (const label of ['Apply', 'Discard', 'Open', 'Save accepted', 'Undo', 'Redo']) assert(titleButton(label).disabled, label);
+      await act(async () => {titleButton('Apply').click(); titleButton('Discard').click(); releaseTitle(); await control.wait;});
+      control.wait = null; releaseTitle = undefined;
+      const accepted = revised({...seed, title: editedTitle}, seed.revision + 1);
+      assert.deepEqual(snapshot().accepted, accepted, 'Title-only acceptance retains every source, identity, material, pose, camera and light value');
+      assert.equal(snapshot().viewportCamera, baseline.viewportCamera); assert.equal(heading(), editedTitle);
+      assert.equal(titleInput('Scene title').value, editedTitle); assert(snapshot().canUndo); assert.equal(snapshot().canRedo, false);
+      assert.deepEqual(control.calls.at(-1), api.createRenderNativeLightRequest(accepted));
+      await titleEdit('Scene title', 'temporary'); await titleEdit('Scene title', editedTitle);
+      assert(titleButton('Apply').disabled, 'Exact title equality is not an authored change');
+      await titleEdit('Ambient strength', '0.20'); await titleClick('Apply');
+      assert.deepEqual(snapshot().accepted, accepted); assert.equal(presentations, 2);
+      assert.equal(titleInput('Scene title').value, editedTitle); assert.match(titleContainer.textContent, /No authored changes/);
+      await titleClick('Undo'); // 3: exactly one title history entry.
+      assert.deepEqual(snapshot().accepted, revised(seed, seed.revision + 2)); assert.equal(snapshot().canUndo, false); assert(snapshot().canRedo);
+      assert.equal(heading(), importedTitle); assert.equal(titleInput('Scene title').value, importedTitle);
+      await titleClick('Redo'); // 4.
+      const redone = revised({...seed, title: editedTitle}, seed.revision + 3);
+      assert.deepEqual(snapshot().accepted, redone); assert(snapshot().canUndo); assert.equal(snapshot().canRedo, false);
+      assert.equal(heading(), editedTitle); assert.equal(titleInput('Scene title').value, editedTitle);
+      await titleEdit('Scene title', 'unsaved corrective title'); await titleEdit('Ambient strength', '1e');
+      const unsavedDraft = draft(); transports++; await titleClick('Save accepted'); // Transport 1.
+      const savedText = await downloads.at(-1).blob.text();
+      assert.equal(savedText, api.serializeRenderNativeLightDocument(redone)); assert.deepEqual(draft(), unsavedDraft);
+      assert.equal(downloads.at(-1).name, seed.documentId + '.light-scene.json'); assert.equal(heading(), editedTitle);
+      assert.equal(snapshot().unsaved, false); assert.equal(snapshot().accepted.title, editedTitle);
+      const detachedTitle = titleInput('Scene title'), detachedApply = titleButton('Apply'), oldSession = session();
+      await mounted.dispose(); mounted = null; const disposed = oldSession.getSnapshot();
+      await act(async () => {setTitleInput(detachedTitle, 'detached title'); detachedApply.click();});
+      assert.equal(oldSession.getSnapshot(), disposed); assert(disposed.disposed); assert.equal(control.disposed, 1);
+      const reopenedControl = await mountTitle(); transports++; assert(transports <= 2); await titleClick('Open');
+      assert(titleInput('Scene title').disabled, 'Chooser fences title edits');
+      const input = titleContainer.querySelector('input[type="file"]'), bytes = new TextEncoder().encode(savedText);
+      Object.defineProperty(input, 'files', {configurable: true, value: [{name: 'same-kind.light-scene.json', size: bytes.length,
+        arrayBuffer: async () => {fileReads++; return bytes.buffer;}}]});
+      await act(async () => input.dispatchEvent(new dom.window.Event('change', {bubbles: true}))); // Transport 2, Viewer 5.
+      assert.deepEqual(snapshot().accepted, redone); assert.equal(heading(), editedTitle); assert.equal(titleInput('Scene title').value, editedTitle);
+      assert.equal(snapshot().canUndo, false); assert.equal(snapshot().canRedo, false); assert.equal(snapshot().unsaved, false);
+      await titleEdit('Scene title', 'fresh correction'); await titleClick('Discard'); assert.equal(titleInput('Scene title').value, editedTitle);
+      const beforeLoss = snapshot(); reopenedControl.state = 'lost';
+      await act(async () => {await new Promise(resolve => setTimeout(resolve, 350));});
+      assert(titleInput('Scene title').disabled); assert.equal(snapshot(), beforeLoss); assert.equal(saveText(), savedText);
+      assert.equal(presentations, 5); assert.equal(transports, 2); assert.equal(fileReads, 1);
+      assert.equal(controls.length - controlsBefore, 2); assert.equal(downloads.length - downloadsBefore, 1);
+      assert.equal(fileChoosers - choosersBefore, 1); assert.equal(api.serializeRenderNativeLightDocument(seed), original);
+    } finally {
+      for (const cleanup of [async () => {if (releaseTitle) {await act(async () => releaseTitle()); releaseTitle = undefined;}},
+        async () => {const live = mounted; mounted = null; await live?.dispose();},
+        () => {for (const {control, replace} of titleControls) {control.viewer.replace = replace; control.wait = null; control.refusal = null; control.prepare = null;}}]) {
+        try {await cleanup();} catch (cause) {cleanupErrors.push(cause);}
+      }
+    }
+    assert(titleControls.every(({control}) => control.disposed === 1));
+    assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+    sceneTitleFlow.push({kind, helperCases: cases.length, cases, presentations, saveOpenTransports: transports, lifetimes: 2,
+      historyEntries: 1, acceptedOnlySave: true, exactUnicodeWhitespace: true,
+      proof: 'actual React/field/codec/controller/session; controlled Viewer and file transport, no GPU, IME or physical-file proof'});
+  }
+  } finally {
+    for (const cleanup of [() => {confirmation = titleConfirmation; dom.window.setTimeout = originalTimeout;},
+      () => {for (const timer of titleTimers) dom.window.clearTimeout(timer);},
+      () => {for (const url of createdUrls.slice(titleUrlStart)) if (!revokedUrls.includes(url)) URL.revokeObjectURL(url);},
+      () => {navigationDom?.dispose(); navigationDom = null;}]) {
+      try {await cleanup();} catch (cause) {cleanupErrors.push(cause);}
+    }
+  }
+  console.log(JSON.stringify({result: 'PASS', scope: 'Scene titles: bounded actual provider and UI/session flow', sceneTitleFlow}));
+  }
+  // #1944: twelve UI scenarios per kind, six Viewer replacements, two Save/Open
+  // transports and two lifetimes. --workspace-focus excludes every historical block.
+  if (workspaceFocusOnly || (!sceneTitleOnly && !materialCopyOnly && !sourceExportOnly && !bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight)) {
+  const workspaceFocusFlow = [], focusContainer = document.getElementById('root');
+  // Source-linked layout contract, not a browser layout measurement. The element
+  // and bitmap share the same aspect; the existing pick control checks its center.
+  const layoutCss = await readFile(join(app, 'src/style.css'), 'utf8');
+  assert.match(layoutCss, /\.light-canvas-frame \{[^}]*container-type: size;/);
+  assert.match(layoutCss, /\.light-workspace \.light-canvas-frame canvas \{[^}]*width: min\(100cqw, 160cqh\); height: auto; aspect-ratio: 8 \/ 5; border: 0; padding: 0;/);
+  const aspectFrames = [[960, 300], [400, 600], [640, 400], [1280, 120]];
+  for (const [frameWidth, frameHeight] of aspectFrames) {
+    const width = Math.min(frameWidth, 1.6 * frameHeight), height = width / 1.6;
+    assert(width <= frameWidth && height <= frameHeight);
+    assert.equal(width / height, 8 / 5);
+  }
+  const focusButton = label => [...focusContainer.querySelectorAll('button')]
+    .find(node => node.textContent.trim() === label || node.getAttribute('aria-label') === label);
+  const focusClick = async label => {const button = focusButton(label); assert(button && !button.disabled, label);
+    await act(async () => button.click());};
+  const focusInput = label => {const input = focusContainer.querySelector(`[aria-label="${label}"]`); assert(input, label); return input;};
+  const setFocusInput = (input, value) => {
+    Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value').set.call(input, value);
+    input.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  };
+  const focusEdit = async (label, value) => {const input = focusInput(label);
+    assert(!input.disabled && !input.closest('[hidden]'), label + ': edit the reachable target');
+    await act(async () => setFocusInput(input, value));};
+  const focusTargets = ['body', 'light', 'camera', 'scene'];
+  const inspector = () => focusInput('Light inspector');
+  const focusHeading = () => inspector().querySelector('header h1, header h2, header h3, header [role="heading"]');
+  const activeFocus = () => focusTargets.find(target => focusButton('Inspect ' + target).getAttribute('aria-pressed') === 'true');
+  const selectedFocusBody = () => [...focusContainer.querySelectorAll('[aria-label^="Edit body "]')]
+    .find(node => node.getAttribute('aria-pressed') === 'true')?.getAttribute('aria-label').slice(10);
+  const selectedFocusLight = () => [...focusInput('Light outliner').querySelectorAll('button[aria-pressed]')]
+    .filter(node => !node.getAttribute('aria-label')?.startsWith('Edit body '))
+    .find(node => node.getAttribute('aria-pressed') === 'true');
+  const focusSections = () => [
+    ['body', focusInput('Body transform')], ['body', focusInput('Body material')],
+    ['light', focusInput('Light label').closest('section')], ['camera', focusInput('Scene camera')],
+    ['scene', focusInput('Ambient strength').closest('section')], ['scene', focusInput('Scene title').closest('section')],
+  ];
+  const assertFocus = target => {
+    assert.equal(activeFocus(), target); assert(focusHeading(), 'Inspector has a semantic target heading');
+    const expectedHeading = target === 'body' ? focusButton('Edit body ' + selectedFocusBody()).firstChild.textContent
+      : target === 'light' ? focusInput('Light label').value : target === 'camera' ? 'Authored scene camera' : 'Scene settings';
+    assert.equal(focusHeading().textContent, expectedHeading);
+    for (const [sectionTarget, section] of focusSections()) {
+      assert(section && section.isConnected, sectionTarget + ': fields stay mounted');
+      assert.equal(section.hidden, sectionTarget !== target, sectionTarget + ': explicit hidden state');
+    }
+    assert.equal(focusTargets.filter(value => focusButton('Inspect ' + value).getAttribute('aria-pressed') === 'true').length, 1);
+  };
+  const focusAppearance = request => api.prepareViewerNativeSceneAppearance({version: 1, source: request.source, display: request.display,
+    appearance: {lighting: {ambientStrength: 1, directionalStrength: 0, direction: [0, 0, 1]}, materials: request.materials}}, request.context);
+  navigationDom?.dispose(); navigationDom = api.installLightNavigationFlowDom();
+  // Wide/short 960x300 frame produces a 480x300 Canvas element, without letterboxing.
+  navigationDom.setRect({left: 40, top: 25, width: 480, height: 300});
+  const originalTimeout = dom.window.setTimeout, focusTimers = [], focusUrlStart = createdUrls.length, focusConfirmation = confirmation;
+  confirmation = true;
+  dom.window.setTimeout = function (callback, delay, ...args) {
+    const id = originalTimeout.call(this, callback, delay, ...args); if (delay === 1000) focusTimers.push(id); return id;
+  };
+  try {
+  for (const kind of ['directional', 'point']) {
+    // Reuse the admitted two-body reference scene and its existing amount material.
+    // There is no new CAD source, shader fixture or surrogate authoring state.
+    const seed = api.createLightStudy(sourceText, kind), original = api.serializeRenderNativeLightDocument(seed);
+    const seedFields = api.readLightFields(seed), A = 'body_preview_a', B = 'body_preview_b';
+    const editedTitle = '  Focused e\u0301 scene 🧭  ', vectorLabel = kind === 'point' ? 'Position X' : 'Direction X';
+    const cases = [], focusControls = [], controlsBefore = controls.length, downloadsBefore = downloads.length;
+    const choosersBefore = fileChoosers; let presentations = 0, transports = 0, fileReads = 0, releaseFocus;
+    activeSurfaceLedger = {feature: 'workspace-focus', kind, cases, get presentations() {return presentations;},
+      get saveOpenTransports() {return transports;}, get lifetimes() {return controls.length - controlsBefore;}};
+    const scenario = label => {cases.push(label); assert(cases.length <= 12, kind + ': twelve workspace UI scenarios');};
+    const mountFocus = async () => {
+      mounted = await api.mountLightWorkbenchFlow(focusContainer, seed);
+      assert(controls.length - controlsBefore <= 2, kind + ': two workspace lifetimes');
+      const control = controls.at(-1), replace = control.viewer.replace; control.prepare = focusAppearance;
+      control.viewer.replace = request => {presentations++; assert(presentations <= 6, kind + ': six workspace Viewer attempts'); return replace(request);};
+      focusControls.push({control, replace}); return control;
+    };
+    const controller = () => flowControllers.at(-1), session = () => controller().getSession(), snapshot = () => session().getSnapshot();
+    const draft = () => api.readLightWorkbenchFlowDraft(focusContainer), savePayload = () => session().getSavePayload().text;
+    const acceptedHeading = () => focusContainer.querySelector('.app-document-bar > strong').textContent;
+    const viewedRequest = document => {const request = api.createRenderNativeLightRequest(document), camera = snapshot().viewportCamera;
+      return camera ? {...request, display: {...request.display, camera}} : request;};
+    const revised = (document, revision) => ({...document, revision, lights: {...document.lights, revision}});
+    const go = async target => {
+      const before = snapshot(), beforeDraft = draft(), beforeController = controller(), beforeSession = session();
+      const canvas = focusContainer.querySelector('canvas'), body = selectedFocusBody(), light = selectedFocusLight();
+      const inputs = [...inspector().querySelectorAll('input')], sections = focusSections().map(([, section]) => section);
+      const calls = presentations;
+      await focusClick('Inspect ' + target); assertFocus(target);
+      assert.equal(controller(), beforeController); assert.equal(session(), beforeSession); assert.equal(snapshot(), before);
+      assert.equal(focusContainer.querySelector('canvas'), canvas); assert.equal(canvas.isConnected, true);
+      assert.equal(selectedFocusBody(), body); assert.equal(selectedFocusLight(), light);
+      assert.deepEqual(draft(), beforeDraft); assert.equal(presentations, calls);
+      const currentInputs = [...inspector().querySelectorAll('input')], currentSections = focusSections().map(([, section]) => section);
+      assert.equal(currentInputs.length, inputs.length); assert.equal(currentSections.length, sections.length);
+      inputs.forEach((input, index) => assert.equal(currentInputs[index], input, 'Focus does not remount fields'));
+      sections.forEach((section, index) => assert.equal(currentSections[index], section, 'Focus does not remount sections'));
+    };
+    const assertFocusLocked = async label => {
+      const target = activeFocus(), before = snapshot(), beforeDraft = draft(), body = selectedFocusBody(), light = selectedFocusLight();
+      for (const value of focusTargets) assert(focusButton('Inspect ' + value).disabled, label + ': ' + value);
+      await act(async () => {for (const value of focusTargets) focusButton('Inspect ' + value).click();});
+      assertFocus(target); assert.equal(snapshot(), before); assert.deepEqual(draft(), beforeDraft);
+      assert.equal(selectedFocusBody(), body); assert.equal(selectedFocusLight(), light);
+    };
+    const setCopySource = (input, value) => {input.value = value; input.dispatchEvent(new dom.window.Event('change', {bubbles: true}));};
+    const chooseCopySource = async value => {const input = focusInput('Copy accepted material from body'); assert(!input.disabled);
+      await act(async () => setCopySource(input, value)); assert.equal(input.value, value);};
+    const stageAll = async (invalid = false) => {
+      await go('body'); await focusEdit('Body position X (mm)', invalid ? '1e' : '-0'); await focusEdit('Uniform amount', '-0');
+      await go('light'); await focusEdit(vectorLabel, '-0'); await focusEdit('Intensity', invalid ? '1e' : '.4');
+      await go('camera'); await focusEdit('Camera eye X', invalid ? '1e' : '2');
+      await go('scene'); await focusEdit('Ambient strength', '-0'); await focusEdit('Scene title', invalid ? '' : editedTitle);
+    };
+    try {
+      const control = await mountFocus(), originalSession = session(), originalController = controller();
+      const canvas = focusContainer.querySelector('canvas'), baseline = snapshot();
+      scenario('accessible target sections and stable actual Canvas/controller/session'); // 1.
+      assert(canvas.parentElement.classList.contains('light-canvas-frame'), 'Canvas has a dedicated aspect-preserving frame');
+      assert.equal(canvas.width / canvas.height, 8 / 5);
+      const fieldsRegion = focusInput('Inspector fields'), footer = focusInput('Whole-scene draft actions');
+      assert.equal(inspector().tagName, 'ASIDE'); assert.equal(fieldsRegion.parentElement, inspector());
+      assert.equal(footer.parentElement, inspector()); assert.equal(fieldsRegion.nextElementSibling, footer);
+      assert(!fieldsRegion.contains(footer)); assert(inspector().querySelector('header')?.contains(focusHeading()));
+      assert.match(footer.textContent, /Apply[\s\S]*all scene drafts/i); assert.match(footer.textContent, /Discard[\s\S]*all scene drafts/i);
+      for (const label of ['Apply', 'Discard']) {
+        assert(footer.contains(focusButton(label))); assert.equal(focusButton(label).tagName, 'BUTTON'); assert(focusButton(label).tabIndex >= 0);
+      }
+      for (const label of ['File commands', 'Body commands', 'Light commands']) assert.equal(focusInput(label).getAttribute('role'), 'group');
+      for (const label of ['Open', 'Save accepted', 'Import legacy Native scene']) assert(focusInput('File commands').contains(focusButton(label)), label);
+      for (const label of ['Add Surface…', 'Edit control point…', 'Duplicate body', 'Remove body']) assert(focusInput('Body commands').contains(focusButton(label)), label);
+      for (const label of ['Add ' + kind, 'Duplicate light']) assert(focusInput('Light commands').contains(focusButton(label)), label);
+      assert.equal(focusInput('Viewport navigation').getAttribute('role'), 'toolbar');
+      for (const target of focusTargets) {
+        assert(inspector().querySelector('header').contains(focusButton('Inspect ' + target)));
+        assert.equal(focusButton('Inspect ' + target).tagName, 'BUTTON'); await go(target);
+      }
+      assert.equal(acceptedHeading(), seed.title); assert.equal(snapshot(), baseline); assert.equal(savePayload(), original);
+
+      scenario('inventory and actual Canvas picking retain qualified material-copy fences'); // 2.
+      await focusClick('Edit body ' + A); assertFocus('body'); await chooseCopySource(B);
+      const staleCopy = focusButton('Stage material copy'), staleSource = focusInput('Copy accepted material from body');
+      await go('camera'); await go('body'); assert.equal(staleSource.value, B, 'Focus alone retains the qualified material source');
+      await act(async () => {focusButton('Edit body ' + B).click(); staleCopy.click(); setCopySource(staleSource, B);});
+      assertFocus('body'); assert.equal(selectedFocusBody(), B); assert.equal(focusInput('Copy accepted material from body').value, '');
+      assert(focusButton('Stage material copy').disabled); assert.equal(snapshot(), baseline); assert.equal(savePayload(), original);
+      const entry = api.prepareRenderNativeLightDocument(seed).entries.find(value => value.binding.bodyId === A);
+      assert(entry); control.pickResult = () => ({generation: control.viewer.accepted.generation,
+        ref: {kind: 'surface', modelId: entry.ref.modelId, surfaceId: entry.ref.geometryId}, binding: entry.binding});
+      await go('scene'); await act(async () => {
+        navigationDom.pointer(canvas, 'pointerdown', 280, 175); navigationDom.pointer(canvas, 'pointerup', 280, 175); await Promise.resolve();
+      });
+      assert.deepEqual(control.picks, [[480, 300]], 'Aspect-preserving element center maps to backing center');
+      assert.equal(control.picks.length, 1); assert.equal(selectedFocusBody(), A); assertFocus('body');
+      await focusClick('Edit body ' + B); assertFocus('body');
+      const lightRow = selectedFocusLight(); assert(lightRow && !lightRow.disabled);
+      await act(async () => lightRow.click()); assertFocus('light'); assert.equal(selectedFocusBody(), B);
+      assert.equal(snapshot(), baseline); assert.equal(presentations, 0);
+
+      scenario('local camera navigation fences focus without authoring or remounting'); // 3.
+      const cleanBodyDraft = draft(); await focusClick('Zoom in'); await assertFocusLocked('queued navigation');
+      await act(async () => {navigationDom.flushFrames(); await Promise.resolve();}); // Viewer 1.
+      assert.equal(presentations, 1); assert.equal(snapshot().accepted, baseline.accepted); assert.equal(snapshot().viewDirty, true);
+      assert.equal(snapshot().canUndo, false); assert.equal(snapshot().canRedo, false); assert.equal(savePayload(), original);
+      assert.equal(focusInput('Viewport camera status').textContent, 'User view'); assert.deepEqual(draft(), cleanBodyDraft);
+      for (const target of focusTargets) await go(target);
+
+      scenario('hidden raw signed and invalid drafts remain mounted and block whole-scene Apply'); // 4.
+      await stageAll(true); const invalidDraft = draft(), beforeInvalid = snapshot();
+      await go('light'); await focusClick('Apply');
+      assert.equal(snapshot(), beforeInvalid); assert.deepEqual(draft(), invalidDraft); assert.equal(presentations, 1);
+      assert.equal(focusInput('Scene title').value, ''); assert.equal(focusInput('Body position X (mm)').value, '1e');
+      assert.equal(focusInput('Uniform amount').value, '-0'); assert.equal(focusInput('Ambient strength').value, '-0');
+      assert.equal(focusInput(vectorLabel).value, '-0'); assert.equal(acceptedHeading(), seed.title); assert.equal(savePayload(), original);
+      assert.match(focusContainer.textContent, /Unapplied draft/); assert(focusInput('Copy accepted material from body').disabled);
+      assert(focusButton('Stage material copy').disabled); assert(focusButton('Duplicate body').disabled); assert(focusButton('Remove body').disabled);
+
+      scenario('hidden errors stay reachable and each correction preserves all other drafts'); // 5.
+      for (const [target, label, value] of [['scene', 'Scene title', editedTitle], ['body', 'Body position X (mm)', '-0'], ['camera', 'Camera eye X', '2']]) {
+        await go(target); await focusEdit(label, value); await go(target === 'scene' ? 'camera' : 'scene');
+        const corrective = draft(); await focusClick('Apply');
+        assert.equal(snapshot(), beforeInvalid); assert.deepEqual(draft(), corrective); assert.equal(presentations, 1);
+      }
+      await go('light'); await focusEdit('Intensity', '.4');
+      const candidateFields = structuredClone(seedFields);
+      candidateFields.title = editedTitle; candidateFields.ambient = '-0'; candidateFields.camera.eye[0] = '2';
+      candidateFields.lights[0].vector[0] = '-0'; candidateFields.lights[0].intensity = '.4';
+      candidateFields.bodies.find(value => value.bodyId === B).position[0] = '-0';
+      candidateFields.materials.find(value => value.target.bodyId === B).uniforms[0].value = '-0';
+      const candidate = api.applyLightFields(seed, candidateFields), correctedDraft = draft(), beforeRefusal = snapshot();
+
+      scenario('refused complete-scene ACK retains hidden fields and pending focus ownership'); // 6.
+      control.wait = new Promise(resolve => {releaseFocus = resolve;}); control.refusal = new Error('Controlled workspace focus refusal');
+      await act(async () => focusButton('Apply').click()); // Viewer 2.
+      assert.equal(snapshot().pending, 'apply'); await assertFocusLocked('refused pending Apply');
+      for (const label of ['Apply', 'Discard', 'Open', 'Save accepted', 'Edit body ' + A]) assert(focusButton(label).disabled, label);
+      assert.equal(acceptedHeading(), seed.title); assert.equal(savePayload(), original);
+      await act(async () => {releaseFocus(); await control.wait;}); control.wait = null; releaseFocus = undefined;
+      assert.equal(presentations, 2); assert.match(focusContainer.textContent, /PRESENTATION_REFUSED/); assert.deepEqual(draft(), correctedDraft);
+      for (const key of ['accepted', 'canUndo', 'canRedo', 'unsaved', 'viewportCamera']) assert.equal(snapshot()[key], beforeRefusal[key], key);
+      assert.deepEqual(control.calls.at(-1), viewedRequest(revised(candidate, seed.revision + 1)));
+      control.refusal = null; for (const target of focusTargets) await go(target);
+
+      scenario('accessible fixed-sibling footer Discard restores all hidden scene fields'); // 7.
+      await go('camera'); focusButton('Discard').focus(); assert.equal(document.activeElement, focusButton('Discard'));
+      await focusClick('Discard'); assert.deepEqual(draft(), cleanBodyDraft); assert.equal(savePayload(), original);
+      assert.equal(snapshot().accepted, baseline.accepted); assert.equal(snapshot().canUndo, false); assert.equal(snapshot().canRedo, false);
+      assert.equal(presentations, 2); assert.equal(acceptedHeading(), seed.title);
+
+      scenario('Help and modal ownership refuse focus and preserve material source'); // 8.
+      await go('body'); await chooseCopySource(A); const beforeModal = snapshot(), modalDraft = draft();
+      await focusClick('Help'); await assertFocusLocked('Help'); await focusClick('Help');
+      await focusClick('Add Surface…'); const dialog = document.querySelector('[data-testid="light-add-dialog"]'); assert(dialog);
+      await assertFocusLocked('Add Surface dialog'); assert(focusInput('Copy accepted material from body').disabled);
+      const cancel = [...dialog.querySelectorAll('button')].find(button => button.textContent.trim() === 'Cancel');
+      assert(cancel && !cancel.disabled); await act(async () => cancel.click());
+      assert.equal(snapshot(), beforeModal); assert.deepEqual(draft(), modalDraft); assert.equal(focusInput('Copy accepted material from body').value, A);
+      assert.equal(presentations, 2); assert.equal(fileChoosers, choosersBefore);
+
+      scenario('one held accepted Apply commits every focused and hidden group together'); // 9.
+      await stageAll(); await go('camera'); const pendingDraft = draft();
+      focusButton('Apply').focus(); assert.equal(document.activeElement, focusButton('Apply'));
+      control.wait = new Promise(resolve => {releaseFocus = resolve;});
+      await act(async () => focusButton('Apply').click()); // Viewer 3.
+      assert.equal(snapshot().pending, 'apply'); await assertFocusLocked('accepted pending Apply');
+      assert.equal(acceptedHeading(), seed.title); assert.equal(savePayload(), original); assert.deepEqual(draft(), pendingDraft);
+      await act(async () => {focusButton('Apply').click(); focusButton('Discard').click(); releaseFocus(); await control.wait;});
+      control.wait = null; releaseFocus = undefined;
+      const accepted = revised(candidate, seed.revision + 1);
+      assert.deepEqual(snapshot().accepted, accepted); assert.equal(presentations, 3); assert(snapshot().canUndo); assert.equal(snapshot().canRedo, false);
+      assert.equal(acceptedHeading(), editedTitle); assert.deepEqual(control.calls.at(-1), viewedRequest(accepted));
+      assert.deepEqual(snapshot().accepted.nativeDocument, seed.nativeDocument); assert.deepEqual(snapshot().accepted.nativeOptions, seed.nativeOptions);
+      assert.deepEqual(snapshot().accepted.surfaceMaterials[0], seed.surfaceMaterials[0]);
+      assert(Object.is(snapshot().accepted.lights.ambientStrength, -0)); assert(Object.is(snapshot().accepted.surfaceMaterials[1].material.uniforms.amount, -0));
+      assert.equal(focusInput('Copy accepted material from body').value, '', 'Acceptance invalidates the old qualified source ticket');
+      assert.equal(focusContainer.querySelector('canvas'), canvas); assert.equal(controller(), originalController); assert.equal(session(), originalSession);
+
+      scenario('Undo and Redo expose exactly one whole-scene history entry'); // 10.
+      await go('light'); await focusClick('Undo'); // Viewer 4.
+      assert.deepEqual(snapshot().accepted, revised(seed, seed.revision + 2)); assert.equal(snapshot().canUndo, false); assert(snapshot().canRedo);
+      assert.equal(acceptedHeading(), seed.title); assert.equal(focusInput('Uniform amount').value, seedFields.materials[1].uniforms[0].value);
+      await go('scene'); await focusClick('Redo'); // Viewer 5.
+      const redone = revised(candidate, seed.revision + 3);
+      assert.deepEqual(snapshot().accepted, redone); assert(snapshot().canUndo); assert.equal(snapshot().canRedo, false);
+      assert.equal(acceptedHeading(), editedTitle); assert.equal(focusInput('Uniform amount').value, '-0'); assert.equal(presentations, 5);
+
+      scenario('Save transports only accepted data while hidden invalid corrections survive'); // 11.
+      await focusEdit('Scene title', 'unsaved corrective title'); await go('body'); await focusEdit('Body position X (mm)', '1e'); await go('light');
+      const unsavedDraft = draft(); transports++; assert(transports <= 2); await focusClick('Save accepted');
+      const savedText = await downloads.at(-1).blob.text(); assert.equal(savedText, api.serializeRenderNativeLightDocument(redone));
+      assert.deepEqual(api.parseRenderNativeLightDocument(savedText), redone); assert.deepEqual(draft(), unsavedDraft);
+      assert.equal(downloads.at(-1).name, seed.documentId + '.light-scene.json'); assert.equal(snapshot().unsaved, false);
+      const detachedFocus = focusButton('Inspect scene'), detachedApply = focusButton('Apply'), detachedField = focusInput('Scene title');
+      await mounted.dispose(); mounted = null; const disposed = originalSession.getSnapshot(); assert(disposed.disposed);
+      await act(async () => {detachedFocus.click(); detachedApply.click(); setFocusInput(detachedField, 'late detached correction');});
+      assert.equal(originalSession.getSnapshot(), disposed); assert.equal(control.disposed, 1);
+
+      scenario('fresh Open fences chooser and recovery with exact accepted fields and no history'); // 12.
+      const reopened = await mountFocus(), reopenedCanvas = focusContainer.querySelector('canvas'), reopenedSession = session();
+      assert.notEqual(reopenedCanvas, canvas); assert.notEqual(reopenedSession, originalSession);
+      transports++; assert(transports <= 2); await focusClick('Open'); await assertFocusLocked('Open chooser');
+      const input = focusInput('Open light scene file'), bytes = new TextEncoder().encode(savedText);
+      Object.defineProperty(input, 'files', {configurable: true, value: [{name: 'focused.light-scene.json', size: bytes.length,
+        arrayBuffer: async () => {fileReads++; return bytes.buffer;}}]});
+      await act(async () => input.dispatchEvent(new dom.window.Event('change', {bubbles: true}))); // Transport 2, Viewer 6.
+      assert.deepEqual(snapshot().accepted, redone); assert.equal(savePayload(), savedText); assert.equal(snapshot().canUndo, false);
+      assert.equal(snapshot().canRedo, false); assert.equal(snapshot().unsaved, false); assert.equal(acceptedHeading(), editedTitle);
+      await focusClick('Edit body ' + B); assertFocus('body'); assert.equal(focusInput('Body position X (mm)').value, '-0');
+      assert.equal(focusInput('Uniform amount').value, '-0'); assert.equal(focusInput('Scene title').value, editedTitle);
+      for (const target of focusTargets) await go(target);
+      const beforeLoss = snapshot(), lostDraft = draft(); reopened.state = 'lost';
+      await act(async () => {await new Promise(resolve => setTimeout(resolve, 350));}); await assertFocusLocked('presentation recovery');
+      assert.equal(snapshot(), beforeLoss); assert.deepEqual(draft(), lostDraft); assert.equal(savePayload(), savedText);
+      assert.equal(focusContainer.querySelector('canvas'), reopenedCanvas); assert.equal(session(), reopenedSession);
+      assert.equal(presentations, 6); assert.equal(transports, 2); assert.equal(fileReads, 1);
+      assert.equal(controls.length - controlsBefore, 2); assert.equal(downloads.length - downloadsBefore, 1); assert.equal(fileChoosers - choosersBefore, 1);
+      assert.equal(cases.length, 12); assert.equal(new Set(cases).size, 12); assert.equal(api.serializeRenderNativeLightDocument(seed), original);
+    } finally {
+      for (const cleanup of [async () => {if (releaseFocus) {await act(async () => releaseFocus()); releaseFocus = undefined;}},
+        async () => {const live = mounted; mounted = null; await live?.dispose();},
+        () => {for (const {control, replace} of focusControls) {control.viewer.replace = replace; control.wait = null; control.refusal = null; control.prepare = null;}}]) {
+        try {await cleanup();} catch (cause) {cleanupErrors.push(cause);}
+      }
+    }
+    assert(focusControls.every(({control}) => control.disposed === 1));
+    assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+    workspaceFocusFlow.push({kind, uiScenarios: cases.length, cases, presentations, saveOpenTransports: transports, lifetimes: 2,
+      historyEntries: 1, stableCanvasSession: true, hiddenDraftValidation: true, acceptedOnlySave: true,
+      proof: 'actual React/field/codec/controller/session; controlled Viewer and DOM transport, no physical layout, pointer/file or GPU proof'});
+  }
+  } finally {
+    for (const cleanup of [() => {confirmation = focusConfirmation; dom.window.setTimeout = originalTimeout;},
+      () => {for (const timer of focusTimers) dom.window.clearTimeout(timer);},
+      () => {for (const url of createdUrls.slice(focusUrlStart)) if (!revokedUrls.includes(url)) URL.revokeObjectURL(url);},
+      () => {navigationDom?.dispose(); navigationDom = null;}]) {
+      try {await cleanup();} catch (cause) {cleanupErrors.push(cause);}
+    }
+  }
+  console.log(JSON.stringify({result: 'PASS', scope: 'Workspace focus: bounded actual React/controller/session flow', sourceLinkedAspectCases: aspectFrames.length, workspaceFocusFlow}));
   }
 } catch (cause) {failed = true; firstError = cause; console.error('Original Light flow failure:', cause); console.error('Active Surface ledger:', JSON.stringify(activeSurfaceLedger));}
 finally {

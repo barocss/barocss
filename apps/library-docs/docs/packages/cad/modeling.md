@@ -4,6 +4,21 @@ Use `cad.model()` to author a bounded solid part with named dimensions. Start wi
 
 All dimensions below are **millimetres**. Use a TypeScript-capable workspace/bundler for source package entries; built ESM and declarations are a separate package build. Source adoption does not establish npm publication.
 
+## Use the modeling workspace
+
+Open **Model a part** (`#/model`). The [contextual workspace](https://github.com/barocss/barocss/commit/a5c881b0cbe9e99f5285613d474e5e63f29e9137) keeps the accepted preview in the center, with a **Browser** of authored features and named outputs on the left. Selecting a feature in the Browser or bottom feature strip does not rebuild the model. The strip shows existing feature order; it is not a reorder or rollback editor.
+
+1. Choose **CREATE → Modeling examples → Resize a constrained plate**. Acknowledge replacement, then **Load example**. The existing accepted model remains until the new model is admitted.
+2. Select **Sketch 01**, then **MODIFY → Edit dimensions**. Temporary options show **Profile X width** and **Profile Y height**. Type width **40**; the accepted preview stays unchanged while dimensions are pending.
+3. Choose **Apply dimensions** to submit the batch. Successful acceptance closes the options and advances history. A refused edit keeps the previous model and leaves the options, draft and error available. **Cancel**, or unmodified **Escape** in a dimension input, discards the pending dimensions and closes the command. Unmodified **Enter** in a dimension input applies them.
+4. Use **Undo/Redo** in the document bar. **Ctrl/Cmd-Z** and **Ctrl/Cmd-Shift-Z** also work while focus is in the workspace outside editable fields, with no pending dimensions or computation. These actions use the existing accepted-model history.
+
+For other recipes, **MODIFY → Edit model dimensions** exposes the existing model-wide named drivers; selecting a feature does not make those drivers feature-local. Switching to an inspection or file panel retains drafts; **Resume dimension edit** returns to them. **Cancel computation** interrupts an active operation and retains pending dimensions. File replacement still requires its existing acknowledgment.
+
+Use **INSPECT → Inspect selection** for accepted output details and approximate picked-face provenance; **INSPECT → Output bodies** for supported output display choices; and **INSPECT → Capabilities & limits** for the current boundary. **FILE → Save or open a model** contains the saved-data/file controls. **FILE → Export accepted STL** opens the existing independent output selector and export action. The example instructions below use these same panels.
+
+This increment changes command organization, not native capability. It adds no sketch drawing, arbitrary feature editing, feature reorder or camera tools. Local React/controller checks cover command selection, draft retention, Apply/Cancel/Escape, history and stale completion. Actual new-layout pixels, resize and visible-face picking remain **unverified** under [#1943](https://github.com/barocss/barocss/issues/1943); earlier feature evidence does not prove this layout.
+
 ## Open and space two translated gussets
 
 <a :href="withBase('/examples/modeling-translated-gussets.ts')" download>Download the complete translated-gussets example</a>
@@ -12,11 +27,44 @@ The [adopted translation API](https://github.com/barocss/barocss/commit/31ad07d5
 
 <<< ../../public/examples/modeling-translated-gussets.ts
 
-Call `makeTranslatedGussets()` in a host using `@barocss/cad`, then obtain `initial.save()`. Alternatively, copy the exact [measured baseline saved model](https://github.com/barocss/barocss/blob/31ad07d5234326bf68b937c070000e94d2c45501/packages/barocss-cad/test/modeling-translation-evidence/initial.cad-model.json). In the existing Modeling editor, expand **Save or open a model**, paste the text into **Saved model data**, acknowledge replacement, and choose **Open saved model**. Both convex outputs are displayed together. Edit the generic **spacing** dimension to 64 and Apply to move the copy; **width/height** drive the XY profile, while **offsetY/offsetZ** place the copy in Y/Z. Thickness remains 8 mm. There is no new picker preset.
+Call `makeTranslatedGussets()` in a host using `@barocss/cad`, then obtain `initial.save()`. Alternatively, copy the exact [measured baseline saved model](https://github.com/barocss/barocss/blob/31ad07d5234326bf68b937c070000e94d2c45501/packages/barocss-cad/test/modeling-translation-evidence/initial.cad-model.json). In the Modeling workspace, choose **FILE → Save or open a model**, paste the text into **Saved model data**, acknowledge replacement, and choose **Open saved model**. Both convex outputs are displayed together. Edit the generic **spacing** dimension to 64 and Apply to move the copy; **width/height** drive the XY profile, while **offsetY/offsetZ** place the copy in Y/Z. Thickness remains 8 mm. There is no new picker preset.
 
 Only one translation of a direct affine rectangle, polygon or constrained-polygon extrusion is supported, including an admitted extrusion start coordinate. Its result is terminal: do not Boolean, split, hole, chamfer or translate it again, or mix this graph with Boolean/finishing nodes. Circle, hole and orthogonal-cell parents are refused. Coordinates must remain within ±10000 mm and every translated coefficient must be exactly representable; the measured `spacing:0.1` edit refuses rather than rounding. A zero offset still creates a distinct named copy, not a union. Refusal preserves the accepted snapshot. Save stores authored intent; `cad.load(savedText)` rebuilds native geometry.
 
 The [provider evidence](https://github.com/barocss/barocss/tree/31ad07d5234326bf68b937c070000e94d2c45501/packages/barocss-cad/test/modeling-translation-evidence) retains both genuine baseline previews, each 24 vertices/12 triangles. Existing serializer/receiver CPU replay admitted the complete **53,882-byte** pair, preserved each native body/face lineage, converted XYZ once and picked both bodies; four malformed controls retained the prior accepted display. Provider loading and Worker delivery were mocked in that replay. This documentation adds no native calls or adapter changes. Edited-state pixels, React interaction and physical file dialogs remain **unverified**.
+
+### Export the right gusset as STL
+
+The same download now includes `exportRightGusset(accepted)`, which calls the [adopted named-output API](https://github.com/barocss/barocss/commit/5c6dc223a9b9e6b88bc8134651366b23147bc7c4): `accepted.exportStl('right')`. Convert its immutable `bytes` with `Uint8Array.from(result.bytes)` and pass that array to your host's file-saving API. Importing the example performs no modeling or export; the CAD method itself writes no file or starts a download.
+
+<a :href="withBase('/examples/modeling-translated-gusset-right.stl')" download>Download the measured right-gusset STL sample</a>
+
+This exact retained sample is **684 bytes / 12 facets**, with authored XYZ bounds **[48, 0, 0]–[88, 24, 8] mm** and zero measured vertex displacement for this integer-coordinate specimen. It was exported and cold-rebuilt by [the bounded provider campaign](https://github.com/barocss/barocss/tree/5c6dc223a9b9e6b88bc8134651366b23147bc7c4/packages/barocss-cad/test/modeling-stl-evidence); this guide reuses those bytes without a new geometry run. `outputName`, `byteLength`, `triangleCount` and `maximumVertexDisplacementMM` describe the result. `details.encoding.vertexLosses` preserves original and Float32 coordinates; `details.native` retains native source/face lineage beside the file.
+
+Only a named **convex-planar** output is supported. Hole, round-post and orthogonal-cell outputs refuse. Every export revalidates the complete native parent and checks all quantized facets; Float32 collapse refuses without partial STL bytes. Other coordinates can incur nonzero loss. The millimetre convention belongs to the caller/report because STL carries no units metadata, native IDs or UV trims. The checks do not certify watertightness, global topology after quantization, manufacturing tolerance or slicer acceptance. Keep `accepted.save()` for editable CAD Save/Open; STL is an approximate facet handoff. This addition does not establish browser download or viewer acceptance.
+
+#### Download STL from the model editor
+
+After opening the two-gusset saved model in **Model a part**, open **FILE → Export accepted STL**, choose **right · convex-planar** in **STL output**, then **Download STL**. The selector is independent of the visible bodies and selected face. The accepted native snapshot supplies the file; source, history and display stay unchanged. Apply or discard dimension drafts first. This also works for other supported primary convex outputs; hole, circle, orthogonal-cell and legacy outputs are unavailable.
+
+An unavailable worker changes the action to **Recover accepted model and export STL** and explains the rebuild before you click. Recovery checks the accepted source and summary before export; a stale response, cancellation or refusal produces no file. The status reports byte/facet counts and maximum Float32 vertex displacement. Files use authored XYZ, an mm convention and at most40 facets; STL itself has no unit or editable model data. Browser disk persistence and slicer/manufacturing acceptance still require separate verification.
+
+
+## Copy a finished two-chamfer rail
+
+Finish one **32 × 24 × 8 mm** rail, then translate the finished result with an owned spacing driver. Each edge is selected from the shape it actually modifies: front chamfer1 mm, then back chamfer2 mm at Y=24. The copy starts at X=48.
+
+<a :href="withBase('/examples/modeling-translated-finished-rail.ts')" download>Download the typed finished-rail example</a>
+
+<<< ../../public/examples/modeling-translated-finished-rail.ts
+
+Call `makeTranslatedFinishedRail()`, save its authored text with `pair.save()`, then use **FILE → Save or open a model → Choose model file → Open saved model** in **Model a part**, acknowledging replacement if needed. Generic Open shows both **left** and **right** convex outputs and the existing frontDistance, backDistance, backY and spacing controls. Change spacing48→64 with **Apply dimensions**, or call `spaceFinishedRail(pair)`. No extra preset or scene transform is needed.
+
+The [adopted provider evidence](https://github.com/barocss/barocss/blob/f6e19f627c06b44d583cc7d110f91def11a3e508/packages/barocss-cad/test/modeling-finished-copy-evidence/verification.json) measured **6064 mm³ per output**, unchanged by spacing64; backDistance3 gave **5984 mm³**. Both genuine baseline previews have20 triangles. The consumer check replays those unchanged packets through the current serializer/controller/receiver with mocked provider delivery; edited pixels and physical file interaction for this rail remain unverified.
+
+Translation is terminal and currently accepts a direct affine extrusion with at most two sequential owned chamfers. It rebuilds the copied native boundary with independent source lineage. Repeated translation, operations after the copy, unsupported ancestry and inexact/out-of-range coordinate sums can refuse; this is not an arbitrary Solid transform.
+
+The existing [STL output action](#download-stl-from-the-model-editor) and named-convex `snapshot.exportStl(name)` API are available separately. This finished-rail campaign captured **no STL exports**. The runnable download therefore contains no export call, and the gusset STL sample must not be treated as a measured rail file.
 
 ## Resize a constrained plate
 
@@ -52,6 +100,7 @@ const deeper = initial.withParameters({ depth: 6 });
 ```
 
 The preset explicitly displays **part**, while **all outputs are validated**, including hidden plate and tool. All three remain authored and saved. Generic Open initially displays **tool**, the last canonical `part,plate,tool` output; choose part to inspect the pocket. That chooser only changes the displayed output. Exact graph, driver and output-map matching gates the friendly top-entry labels; similarly named imported dimensions keep generic labels. Apply/Discard, no-op, refusal, cancellation and Undo/Redo use the existing atomic session.
+
 
 ### Top-entry limits and evidence
 

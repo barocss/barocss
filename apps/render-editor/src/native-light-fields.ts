@@ -26,7 +26,7 @@ export interface MaterialFields {
   target: RenderNativeLightDocument['surfaceMaterials'][number]['target'];
   documentId: string; revision: number; shaderSource: string; suppliedOrder: string[]; uniforms: MaterialUniformFields[];
 }
-export interface LightForm {kind: LightKind; ambient: string; lights: LightFields[]; camera: CameraFields; bodies: BodyFields[]; materials: MaterialFields[]}
+export interface LightForm {kind: LightKind; title: string; ambient: string; lights: LightFields[]; camera: CameraFields; bodies: BodyFields[]; materials: MaterialFields[]}
 function declarations(source: string) {
   const result = compileMeshMaterial(source);
   if (!result.ok) throw new RenderEditorError('SOURCE_REFUSED', 'The original material shader could not be compiled.');
@@ -60,7 +60,7 @@ export function readLightFields(document: RenderNativeLightDocument): LightForm 
       rotation: (pose?.rotationXYZW ?? [0, 0, 0, 1]).map(text) as BodyFields['rotation']};
   });
   const materials = document.surfaceMaterials.map(({target, material}) => materialFields(target, material));
-  return {kind: lightKind(document), ambient: text(catalog.ambientStrength), bodies, materials, camera: {
+  return {kind: lightKind(document), title: document.title, ambient: text(catalog.ambientStrength), bodies, materials, camera: {
     eye: camera.eye.map(text) as CameraFields['eye'], target: camera.target.map(text) as CameraFields['target'],
     up: camera.up.map(text) as CameraFields['up'], fovYDegrees: text(camera.fovYDegrees), near: text(camera.near), far: text(camera.far),
   }, lights: lights.map(light => ({
@@ -125,7 +125,7 @@ export function applyLightFields(base: RenderNativeLightDocument, fields: LightF
     } finally {session.dispose();}
   });
   const camera = fields.camera;
-  return prepareRenderNativeLightDocument({...base, surfaceMaterials,
+  return prepareRenderNativeLightDocument({...base, title: fields.title, surfaceMaterials,
     display: {...base.display, poses, camera: {
       eye: camera.eye.map(value => numeric(value, 'Camera eye')),
       target: camera.target.map(value => numeric(value, 'Camera target')),
@@ -229,6 +229,13 @@ export function selectedLightMaterial(base: RenderNativeLightDocument, bodyId: s
   if (!base.display.visibleBodyIds.includes(bodyId) || bindings.length !== 1)
     throw new RenderEditorError('DOCUMENT_INPUT', 'Select one visible Surface with an existing qualified material binding.');
   return bindings[0]!;
+}
+
+/** Copy accepted content between qualified embedded bindings, never their identities. */
+export function stageLightMaterialCopy(base: RenderNativeLightDocument, fields: LightForm,
+  destinationBodyId: string, sourceBodyId: string): LightForm {
+  const source = selectedLightMaterial(base, sourceBodyId);
+  return stageLightMaterialFields(base, fields, destinationBodyId, source.material);
 }
 
 /** Portable data stages only source and overrides; original target metadata remain authoritative. */
