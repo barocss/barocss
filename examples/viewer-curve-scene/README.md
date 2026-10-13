@@ -32,3 +32,27 @@ accepted pose; **Fit all** returns to whole-scene framing. The
 original `pick` and `select` remain Surface-only. The one-pixel GPU line and
 screen tolerance do not certify an
 exact Curve intersection or a native boundary.
+
+## Browser-local Curve pick probe
+
+After starting the example, use the browser console to measure the actual loaded
+scene (including the Wide 64-pole Curve, after clicking that button):
+
+```js
+const report = window.viewerCurveDemo.benchmarkCurvePicking({
+  repetitions: 5, columns: 8, rows: 6
+});
+console.table(report.timingsMs);
+console.log(report);
+```
+
+The probe measures 48 fixed CSS-space points per scan using the public
+`pickGeometry` Curve-only path. It warms up once, checks that every repeated
+scan returns the same complete local hit signature (Curve ref, segment,
+parameter, distance and ambiguity), and checks that accepted Viewer state is
+unchanged. The median is a browser-local current-build measurement: it is
+**not** an old-build comparison, a GPU timing measurement, proof of exact CAD
+intersection, or a general performance improvement claim. For a fair A/B
+comparison, run the same scene, camera, poses, viewport/DPR and probe settings
+on the old and new commits in the same browser and record both reports. The
+probe does not load or alter scenes automatically.
