@@ -23,11 +23,12 @@ try {
     parameterOrder: ['base', 'derived', 'independent'],
     featureOrder: ['faceA', 'faceB', 'boolean', 'extrude', 'sibling'],
     parameterDependencies: [{ parameterId: 'derived', dependsOn: 'base' }],
+    distances: [{ featureId: 'extrude', dependencyIds: ['derived'] }],
     featureDependencies: [
       { featureId: 'faceA', dependencyIds: [] },
       { featureId: 'faceB', dependencyIds: [] },
       { featureId: 'boolean', dependencyIds: ['faceA', 'faceB'] },
-      { featureId: 'extrude', dependencyIds: ['boolean', 'derived'] },
+      { featureId: 'extrude', dependencyIds: ['boolean'] },
       { featureId: 'sibling', dependencyIds: ['independent'] },
     ]
   };
@@ -43,6 +44,14 @@ try {
   assert.throws(() => plan(report, { parameterIds: ['base', 'base'], featureIds: [] }), TypeError);
   assert.throws(() => plan({ ...report, featureDependencies: [] },
     { parameterIds: [], featureIds: [] }), TypeError);
+  assert.throws(() => plan({ ...report, distances: [{ featureId: 'extrude', dependencyIds: ['unknown'] }] },
+    { parameterIds: ['base'], featureIds: [] }), /Inconsistent native extrusion distance/);
+  assert.throws(() => plan({ ...report, distances: [...report.distances, ...report.distances] },
+    { parameterIds: ['base'], featureIds: [] }), /Inconsistent native extrusion distance/);
+  assert.throws(() => plan({ ...report, distances: undefined },
+    { parameterIds: ['base'], featureIds: [] }), /Complete native dependency report/);
+  const topologyOnly = { ...report, distances: [] };
+  assert.deepEqual(plan(topologyOnly, { parameterIds: ['base'], featureIds: [] }).affectedFeatureIds, []);
   console.log('PASS: bounded dependency impact positive/negative controls');
 } finally {
   rmSync(tmp, { recursive: true, force: true });
