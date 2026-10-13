@@ -141,6 +141,14 @@ export function prepareWebGPUPrimitiveFrame(input: unknown, width: number, heigh
   return Object.freeze({ format: 'barocss-gpu-webgpu-primitive-frame', version: 0, profile: 'qualified-surface-v0', frame, wgsl, frameUniforms, materialUniforms });
 }
 
+/** Observe both device-loss settlement paths without an orphaned rejection. */
+function observeDeviceLoss(lost: Promise<unknown>, onSettled: () => void): void {
+  const settle = (): void => {
+    try { onSettled(); } catch { /* Terminal device-loss cleanup must not escape the observer. */ }
+  };
+  void lost.then(settle, settle);
+}
+
 const WAIT_MS = 10000;
 function bounded<T>(promise: Promise<T>, label: string, late?: (value: T) => void): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -202,9 +210,10 @@ class BackendViewport implements PrimitiveBackendViewport {
     fallbackReason: string | null, limits: PrimitiveBackendLimits | null) {
     this.width = canvas.width; this.height = canvas.height;
     this.cpu = prepared; this.current = { backend, state: 'ready', generation: 0, fallbackReason, limits };
-    if (device) void device.lost.then(() => {
+    if (device) observeDeviceLoss(device.lost, () => {
       if (this.current.state === 'disposed' || this.current.state === 'failed') return;
-      this.current.state = 'lost'; this.releaseOwned();
+      this.current.state = 'lost';
+      try { this.releaseOwned(); } catch { this.current.state = 'failed'; }
     });
   }
   get frame(): PrimitiveSceneCpuFrameV0 { return structuredClone(this.cpu.frame.frame); }
