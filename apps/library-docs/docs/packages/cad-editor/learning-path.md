@@ -12,17 +12,17 @@ You will load a 32 × 24 × 8 mm plate, change underside recess depth from 4 to 
 
 **Try it yourself:** change to depth 4, accept; change to depth 8, accept; undo; redo; download; reopen; select `part` again. A passed native fixture does not prove the browser interaction or downloaded file was successful on your machine.
 
-## Upcoming lessons: source-backed, not yet adopted
+## Continue with the adopted hands-on lessons
 
-The following tutorials have been proposed in separate **normal GitHub PRs**, but are not local documentation routes in this baseline. Follow the PR links to review the draft content. **Do not assume a lesson is deployed or merged just because its engine capability exists.**
+These pages now exist in the accepted `develop` documentation. Their provider fixtures are source-backed; live browser/GPU/device evidence remains separate.
 
-| Planned lesson | Key learning goal | Documentation status |
+| Lesson | What you practise | Open the lesson |
 | --- | --- | --- |
-| Round post | Diameter vs radius, center location, rational stored boundary; certified volume unavailable | [PR #1746](https://github.com/barocss/barocss/pull/1746) — awaiting integration |
-| Mounting plate | Through-hole, blank vs plate, strict containment and refusal; native-vs-mesh topology | [PR #1754](https://github.com/barocss/barocss/pull/1754) — awaiting integration |
-| L-bracket | Union of two qualified rectangular extrusions, named operands, CONTACT refusal | [PR #1757](https://github.com/barocss/barocss/pull/1757) — awaiting integration |
+| **2. Round post** | Diameter vs radius, center location, rational stored boundary and unavailable certified volume | [Round post](./round-post) |
+| **3. Mounting plate** | Through-hole, blank vs plate, strict containment and native-vs-mesh topology | [Mounting plate](./mounting-plate) |
+| **4. L-bracket** | Union of two rectangular extrusions, named operands and CONTACT refusal | [L-bracket](./l-bracket) |
 
-Each future local link will be activated **only when its content exists on the accepted documentation branch**. PR statuses above describe this page's source snapshot; check GitHub for newer acceptance.
+The source PRs [#1746](https://github.com/barocss/barocss/pull/1746), [#1754](https://github.com/barocss/barocss/pull/1754), and [#1757](https://github.com/barocss/barocss/pull/1757) were merged before this learning-path update. Documentation adoption is not a claim of external product publication.
 
 ## The core workflow you will repeat
 
