@@ -1,6 +1,6 @@
 # CAD Editor: original native authoring
 
-**New to the editor?** Start with [your first model in the UI](./first-model): load a bounded pocket sample, change its depth, inspect a named output, undo, and save/reopen authored dimensions. No internal graph IDs or code are required. Next, [fuse an L-bracket](./l-bracket) with two qualified rectangular extrusions.
+**New to the editor?** Start with [your first model in the UI](./first-model): load a bounded pocket sample, change its depth, inspect a named output, undo, and save/reopen authored dimensions. No internal graph IDs or code are required. Continue with [a round post](./round-post) for diameter-driven modeling and native-versus-preview precision, then [fuse an L-bracket](./l-bracket) with two qualified rectangular extrusions.
 
 CAD Editor provides pure editing sessions and reusable React components. Use it to stage native control-point fields, prepare a complete qualified candidate, display it, and then accept the actual native edit.
 

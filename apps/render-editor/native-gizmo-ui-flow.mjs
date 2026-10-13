@@ -1,15 +1,15 @@
 /** Node 22 controlled DOM event reproduction, not a browser or GPU acceptance run. */
 import assert from 'node:assert/strict';
-import {mkdtemp, readFile, rm, symlink, writeFile} from 'node:fs/promises';
+import {mkdtemp, readFile, rm, writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
-import {tmpdir} from 'node:os';
 import {dirname, join, resolve} from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {build} from 'esbuild';
 import {JSDOM} from 'jsdom';
 const app = dirname(fileURLToPath(import.meta.url)), workspace = resolve(app, '../..');
-const output = await mkdtemp(join(tmpdir(), 'barocss-native-gizmo-ui-'));
+// Resolve peer React imports through this app's installed pnpm node_modules, not /tmp.
+const output = await mkdtemp(join(app, 'node_modules', '.barocss-native-gizmo-ui-'));
 const dom = new JSDOM('<!doctype html><body></body>', {url: 'http://localhost/material.html'});
 const saved = new Map(), frames = new Map(), captures = new Map(), observers = new Set();
 let frameId = 0, result, failure, failed = false;
@@ -33,7 +33,6 @@ try {
     if (captures.get(id) !== this) return; captures.delete(id);
     const event = new dom.window.Event('lostpointercapture', {bubbles: true}); Object.defineProperty(event, 'pointerId', {value: id}); this.dispatchEvent(event);
   };
-  await symlink(join(app, 'node_modules'), join(output, 'node_modules'));
   const source = await readFile(join(app, 'public/reference-panel.barocad'), 'utf8'), sourceSha256 = createHash('sha256').update(source).digest('hex');
   assert.equal(sourceSha256, '8d3c423e8031bfa76d1606a982819b5e9a8d28c4915d4de2a86879f2f8d0af20');
   const built = await build({entryPoints: [join(app, 'src/native-gizmo-ui-flow.tsx')], outfile: join(output, 'flow.mjs'), absWorkingDir: workspace,
