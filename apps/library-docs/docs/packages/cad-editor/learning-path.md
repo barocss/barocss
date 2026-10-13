@@ -21,6 +21,10 @@ These pages now exist in the accepted `develop` documentation. Their provider fi
 | **2. Round post** | Diameter vs radius, center location, rational stored boundary and unavailable certified volume | [Round post](./round-post) |
 | **3. Mounting plate** | Through-hole, blank vs plate, strict containment and native-vs-mesh topology | [Mounting plate](./mounting-plate) |
 | **4. L-bracket** | Union of two rectangular extrusions, named operands and CONTACT refusal | [L-bracket](./l-bracket) |
+| **5. Top-entry pocket** | Cut down from Z=8, keep an exact floor, then open a through-window | [Top-entry pocket](./top-entry-pocket) |
+| **6. Constrained plate** | Resize width and profile Y height with fixed/H/V relationships; distinguish sketch vs extrusion thickness | [Constrained plate](./constrained-plate) |
+
+The first four lessons are accepted source-backed entries; lessons 5 and 6 are a new documentation proposal under [#1888](https://github.com/barocss/barocss/issues/1888) and must not be described as adopted on `develop` before their PR is merged. Their provider/consumer features already exist, but external browser checks remain separate.
 
 The source PRs [#1746](https://github.com/barocss/barocss/pull/1746), [#1754](https://github.com/barocss/barocss/pull/1754), and [#1757](https://github.com/barocss/barocss/pull/1757) were merged before this learning-path update. Documentation adoption is not a claim of external product publication.
 
