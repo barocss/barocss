@@ -146,7 +146,14 @@ function bounded<T>(promise: Promise<T>, label: string, late?: (value: T) => voi
   return new Promise((resolve, reject) => {
     let expired = false;
     const timer = setTimeout(() => { expired = true; reject(new PrimitiveBackendError('STATE', label + ' exceeded10s; remount required')); }, WAIT_MS);
-    promise.then(value => { clearTimeout(timer); if (expired) late?.(value); else resolve(value); }, cause => { clearTimeout(timer); if (!expired) reject(cause); });
+    promise.then(value => {
+      clearTimeout(timer);
+      if (expired) {
+        // The timeout has already rejected the public wait. A late cleanup
+        // refusal must not create an unhandled rejection on this detached then.
+        try { late?.(value); } catch { /* No later error can settle the completed wait. */ }
+      } else resolve(value);
+    }, cause => { clearTimeout(timer); if (!expired) reject(cause); });
   });
 }
 interface Resources {
