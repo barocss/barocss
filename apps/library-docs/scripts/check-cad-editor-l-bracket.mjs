@@ -26,7 +26,7 @@ for (const item of ['3072 mm³','3584 mm³','4608 mm³','legMinX:32','legMinX:40
   assert.ok(page.includes(item), 'Manual missing source-backed boundary: ' + item);
 }
 const editorPages = nav.match(/p === 'cad-editor' \? \[([^\]]+)\]/)?.[1] ?? '';
-for (const page of ['first-model', 'round-post', 'l-bracket']) assert.ok(editorPages.includes("'" + page + "'"), 'Missing sidebar page: ' + page);
+for (const page of ['first-model', 'round-post', 'mounting-plate', 'l-bracket']) assert.ok(editorPages.includes("'" + page + "'"), 'Missing sidebar page: ' + page);
 assert.ok(nav.includes("'l-bracket': 'Fuse an L-bracket'"));
 assert.ok(entry.includes('./l-bracket'));
 console.log('CAD Editor L-bracket documentation source drift PASS; no native/browser execution');
