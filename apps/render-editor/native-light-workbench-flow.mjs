@@ -74,7 +74,9 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
   const sourceText = await readFile(join(app, 'public/reference-panel.barocad'), 'utf8');
   const surfacePointPreflight = process.argv.includes('--surface-point-preflight');
   const bodyResetOnly = process.argv.includes('--body-reset');
-  if (!bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight) {
+  const sourceExportPreflight = process.argv.includes('--source-export-preflight');
+  const sourceExportOnly = process.argv.includes('--source-export') || sourceExportPreflight;
+  if (!sourceExportOnly && !bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight) {
   const seed = api.createLightStudy(sourceText);
   const original = api.serializeRenderNativeLightDocument(seed);
   const form = api.addLightFields(api.readLightFields(seed));
@@ -2532,9 +2534,108 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
     downloadsRequested: downloads.length, confirmationPrompts: dialogs.length, disposed: controls.map(value => value.disposed)}));
   }
 
+  // #1901: accepted whole-asset source transport, with no Viewer replacement.
+  if (sourceExportOnly || (!bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight)) {
+    const sourceExportFlow = [], container = document.getElementById('root');
+    const button = label => [...container.querySelectorAll('button')].find(node => node.textContent.trim() === label || node.getAttribute('aria-label') === label);
+    const click = async label => {const node = button(label); assert(node && !node.disabled, label); await act(async () => node.click());};
+    const edit = async (label, value) => {const node = container.querySelector(`[aria-label="${label}"]`); assert(node && !node.disabled, label);
+      await act(async () => {Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value').set.call(node, value);
+        node.dispatchEvent(new dom.window.Event('input', {bubbles: true}));});};
+    navigationDom?.dispose(); navigationDom = api.installLightNavigationFlowDom();
+    const surface = sourceText.match(/ {2}@surface #reference_panel \{[\s\S]*?\n {2}\}/)[0];
+    const sourceA = '/* Asset A, preserved -0 and numeric spelling. */\n' + sourceText;
+    const sourceB = ('/* Asset B: accepted 원본 source. */\n' + sourceText.replace(/\n}\s*$/, '\n' + surface.replace('#reference_panel', '#sibling_panel') + '\n}\n')).replaceAll('\n', '\r\n');
+    for (const kind of ['directional', 'point']) {
+      const A = 'body_preview_a', B = 'body_preview_b', raw = structuredClone(api.createLightStudy(sourceA, kind));
+      raw.nativeDocument.assets.find(asset => asset.id === 'preview_b').source = sourceB;
+      raw.nativeOptions.bodyIds = [B, A];
+      const seed = api.prepareRenderNativeLightDocument(raw).document, original = api.serializeRenderNativeLightDocument(seed);
+      const cases = []; let exportAttempts = 0;
+      const beforeControls = controls.length, beforeDownloads = downloads.length, beforeChoosers = fileChoosers;
+      const beforeUrls = createdUrls.length, beforeRevoked = revokedUrls.length;
+      activeSurfaceLedger = {feature: 'accepted-source-export', kind, cases, get exportAttempts() {return exportAttempts;},
+        get lifetimes() {return controls.length - beforeControls;}, presentations: 0, fileChoosers: 0};
+      const read = (name, value = seed, bodyId = B) => {cases.push(name); assert(cases.length <= 8);
+        const before = structuredClone(value); try {return api.readLightSourceExport(value, bodyId);}
+        finally {assert.deepEqual(value, before, name + ': source input retained');}};
+      const refuse = (...args) => {let error; try {read(...args);} catch (cause) {if (cause instanceof assert.AssertionError) throw cause; error = cause;}
+        assert(error, args[0]); return error;};
+      const reimport = payload => {const bytes = new TextEncoder().encode(payload.text), text = new TextDecoder('utf-8', {fatal: true, ignoreBOM: true}).decode(bytes);
+        assert.equal(text, payload.text); const imported = api.prepareRenderNativeSourceImport(text); assert.equal(imported.source, payload.text); return imported;};
+      const exportedB = read('whole selected B source with CRLF Unicode comments and other Surface'); // 1
+      assert.equal(exportedB.text, sourceB); assert.equal(exportedB.filename, 'asset-preview_b.barocad');
+      assert.deepEqual(reimport(exportedB).surfaces.map(value => value.id), ['reference_panel', 'sibling_panel']);
+      const exportedA = read('distinct A asset despite repeated geometry IDs', seed, A); // 2
+      assert.equal(exportedA.text, sourceA); assert.equal(exportedA.filename, 'asset-preview-a.barocad');
+      assert.notEqual(exportedA.text, exportedB.text); assert.equal(reimport(exportedA).surfaces.length, 1);
+      const shared = structuredClone(seed); shared.nativeDocument.bodies.push({id: 'hidden_sibling', name: 'Hidden sibling',
+        kind: 'direct-geometry-object', assetId: 'preview_b', geometryId: 'sibling_panel'});
+      const sharedAccepted = api.prepareRenderNativeLightDocument(shared).document;
+      assert.equal(read('read-only export permits shared asset and retains sibling source', sharedAccepted).text, sourceB); // 3
+      const edited = api.deriveLightSurfacePointEdit(seed, B, {uIndex: 0, vIndex: 0, xMM: -700, yMM: -450, zMM: -700, weight: 1}).document;
+      const editedSource = edited.nativeDocument.assets.find(asset => asset.id === 'preview_b').source;
+      assert.notEqual(editedSource, sourceB);
+      const acceptedEdit = read('accepted provider point edit is exported exactly', edited); // 4
+      assert.equal(acceptedEdit.text, editedSource); assert.equal(reimport(acceptedEdit).surfaces.length, 2);
+      refuse('geometry ID cannot replace body identity', seed, 'reference_panel'); // 5
+      const hidden = structuredClone(seed); hidden.display.visibleBodyIds = [A]; hidden.surfaceMaterials = hidden.surfaceMaterials.filter(value => value.target.bodyId !== B);
+      const hiddenAccepted = api.prepareRenderNativeLightDocument(hidden).document;
+      refuse('hidden unbound Surface is not exportable', hiddenAccepted); // 6
+      const stale = structuredClone(seed); stale.surfaceMaterials.find(value => value.target.bodyId === B).target.assetRevision++;
+      refuse('foreign stale asset binding refuses', stale); // 7
+      const surrogate = structuredClone(seed); surrogate.nativeDocument.assets.find(asset => asset.id === 'preview_b').source += '/* \ud800 */\r\n';
+      assert.match(refuse('UTF-8 replacement refuses rather than rewriting source text', surrogate).message, /Unicode surrogate|UTF-8/); // 8: the actual document provider may refuse first.
+      assert.equal(cases.length, 8);
+      if (sourceExportPreflight) {sourceExportFlow.push({kind, helperCases: cases.length, cases, setupPointDerivations: 1, result: 'PASS'}); continue;}
+
+      mounted = await api.mountLightWorkbenchFlow(container, seed); const control = controls.at(-1);
+      const session = flowControllers.at(-1).getSession(), snapshot = session.getSnapshot(), initialDraft = api.readLightWorkbenchFlowDraft(container);
+      const assertRetained = expectedDraft => {assert.equal(session.getSnapshot(), snapshot); assert.deepEqual(api.readLightWorkbenchFlowDraft(container), expectedDraft);
+        assert.equal(api.serializeRenderNativeLightDocument(snapshot.accepted), original); assert.equal(control.calls.length, 0);};
+      const download = async expected => {exportAttempts++; assert(exportAttempts <= 4); await click('Export accepted CAD source');
+        const item = downloads.at(-1); assert.equal(item.name, expected.filename); assert.equal(item.blob.type, 'text/plain;charset=utf-8');
+        const bytes = new Uint8Array(await item.blob.arrayBuffer()); assert.deepEqual(bytes, new TextEncoder().encode(expected.text));
+        assert.equal(api.prepareRenderNativeSourceImport(await item.blob.text()).source, expected.text);
+        assert.equal(document.querySelectorAll('a[download]').length, 0);};
+      assert.match(container.textContent, /Complete original asset in native mm, including its other objects/);
+      const staleButton = button('Export accepted CAD source');
+      await act(async () => {button('Edit body ' + A).click(); staleButton.click();});
+      assert.equal(downloads.length, beforeDownloads); await click('Edit body ' + B); assertRetained(initialDraft);
+      await download(exportedB); assertRetained(initialDraft); // 1.
+      await click('Edit body ' + A); const draftA = api.readLightWorkbenchFlowDraft(container);
+      await download(exportedA); assertRetained(draftA); // 2.
+      await click('Edit body ' + B); await edit('Body position X (mm)', '1e'); await edit('Camera eye X', ''); await edit('Uniform amount', 'NaN');
+      const dirty = api.readLightWorkbenchFlowDraft(container);
+      await download(exportedB); assertRetained(dirty); // 3, accepted-only while corrective text remains.
+      downloadFailure = new Error('Controlled CAD source anchor failure'); exportAttempts++;
+      try {await click('Export accepted CAD source');} finally {downloadFailure = null;}
+      assert.match(container.textContent, /CAD source export refused/); assert.equal(downloads.length - beforeDownloads, 3);
+      assert.equal(document.querySelectorAll('a[download]').length, 0); assertRetained(dirty); // 4.
+      await click('Help'); assert(button('Export accepted CAD source').disabled); await click('Help');
+      await click('Discard'); const clean = api.readLightWorkbenchFlowDraft(container); assertRetained(clean);
+      await click('Edit control point…'); assert(button('Export accepted CAD source').disabled);
+      const dialog = document.querySelector('[data-testid="light-point-dialog"]');
+      await act(async () => [...dialog.querySelectorAll('button')].find(node => node.textContent.trim() === 'Cancel').click());
+      const canvas = container.querySelector('canvas'); await act(async () => navigationDom.pointer(canvas, 'pointerdown', 140, 125));
+      assert(button('Export accepted CAD source').disabled);
+      await act(async () => {navigationDom.pointer(canvas, 'pointercancel', 140, 125); navigationDom.flushFrames();});
+      assertRetained(clean); control.state = 'lost'; await act(async () => {await new Promise(resolve => setTimeout(resolve, 350));});
+      assert(button('Export accepted CAD source').disabled); const detached = button('Export accepted CAD source');
+      await mounted.dispose(); mounted = null; await act(async () => {detached.click(); staleButton.click();});
+      assert.equal(control.disposed, 1); assert.equal(control.calls.length, 0); assert.equal(exportAttempts, 4);
+      assert.equal(controls.length - beforeControls, 1); assert.equal(fileChoosers, beforeChoosers);
+      assert.deepEqual(createdUrls.slice(beforeUrls), revokedUrls.slice(beforeRevoked)); assert.equal(createdUrls.length - beforeUrls, 4);
+      assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+      sourceExportFlow.push({kind, helperCases: cases.length, cases, setupPointDerivations: 1, exportAttempts, successfulDownloads: 3,
+        presentations: 0, choosers: 0, lifetimes: 1, acceptedOnly: true, wholeAssetRoundtrip: true, cleanup: true});
+    }
+    console.log(JSON.stringify({result: 'PASS', scope: sourceExportPreflight ? 'Accepted source export actual-provider fixture preflight' : 'Accepted source export actual React/provider; controlled download, no physical file or GPU proof', sourceExportFlow}));
+  }
+
   // #1881: independent focused acceptance, also included by default. --body-reset
   // excludes every older block, including Surface points; there are no file transports.
-  if (bodyResetOnly || (!process.argv.includes('--surface-point') && !surfacePointPreflight)) {
+  if (!sourceExportOnly && (bodyResetOnly || (!process.argv.includes('--surface-point') && !surfacePointPreflight))) {
   const bodyResetFlow = [], resetContainer = document.getElementById('root');
   const resetButton = name => [...resetContainer.querySelectorAll('button')]
     .find(node => node.textContent.trim() === name || node.getAttribute('aria-label') === name);
@@ -2746,7 +2847,7 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
 
   // #1861: this block also runs in default CI, independently of all older flow setup.
   // --surface-point runs only this acceptance; --surface-point-preflight admits fixtures only.
-  if (!bodyResetOnly) {
+  if (!bodyResetOnly && !sourceExportOnly) {
   const surfacePointFlow = [], pointContainer = document.getElementById('root');
   const pointButton = name => [...pointContainer.querySelectorAll('button')]
     .find(node => node.textContent.trim() === name || node.getAttribute('aria-label') === name);
