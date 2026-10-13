@@ -10,8 +10,10 @@ function bridge(input: RenderNativeLightDocument): {
   light: RenderNativeLightDocument; native: RenderNativeSceneDocument;
 } {
   const light = prepareRenderNativeLightDocument(input).document;
+  const {lights: _lights, ...nativeFields} = light;
+  void _lights;
   const native = prepareRenderNativeSceneDocument({
-    ...light, version: 0, profile: 'canonical-native-opaque-scene-v0',
+    ...nativeFields, version: 0, profile: 'canonical-native-opaque-scene-v0',
     display: {...light.display, lighting: NEUTRAL_LIGHTING},
   }).document;
   return {light, native};
