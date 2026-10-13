@@ -73,6 +73,97 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
   const api = await import(pathToFileURL(join(output, 'flow.mjs')).href), {act} = await import('react');
   const sourceText = await readFile(join(app, 'public/reference-panel.barocad'), 'utf8');
   const surfacePointPreflight = process.argv.includes('--surface-point-preflight');
+  if (process.argv.includes('--transform-reset')) {
+    const checks = [];
+    const identityPose = bodyId => ({bodyId, translationMM: [0, 0, 0],
+      rotationXYZW: [0, 0, 0, 1], scale: [1, 1, 1]});
+    for (const kind of ['directional', 'point']) {
+      const original = api.createLightStudy(sourceText, kind), bodyId = original.nativeOptions.bodyIds[1];
+      assert(bodyId, 'Reset requires the genuine second native Surface');
+      const poses = original.nativeOptions.bodyIds.map(id => id === bodyId
+        ? {...identityPose(id), translationMM: [12, -0, 3], rotationXYZW: [0, 0, Math.SQRT1_2, Math.SQRT1_2], scale: [1.2, .8, 1]}
+        : original.display.poses.find(p => p.bodyId === id) ?? identityPose(id));
+      const seed = api.prepareRenderNativeLightDocument({...original, display: {...original.display, poses}}).document;
+      const baseline = api.serializeRenderNativeLightDocument(seed);
+      const before = api.readLightFields(seed), index = before.bodies.findIndex(b => b.bodyId === bodyId);
+      assert(index >= 0); let directCalls = 0;
+      const stage = (fields = before, target = bodyId, doc = seed) => {
+        directCalls++; assert(directCalls <= 10, 'Reset focused helper budget exceeded');
+        return api.stageLightBodyTransformReset(doc, fields, target);
+      };
+      const expected = {bodyId, position: ['0', '0', '0'], rotation: ['0', '0', '0', '1'], scale: ['1', '1', '1']};
+      const staged = stage();
+      assert.notStrictEqual(staged, before); assert.deepEqual(staged.bodies[index], expected);
+      assert.deepEqual(staged.bodies.filter((_, i) => i !== index), before.bodies.filter((_, i) => i !== index));
+      assert.deepEqual(staged.camera, before.camera); assert.deepEqual(staged.lights, before.lights);
+      assert.equal(api.serializeRenderNativeLightDocument(seed), baseline, 'Staging changed accepted authorship');
+      const lexical = structuredClone(staged);
+      lexical.bodies[index].position = ['0.0', '+0', '0'];
+      lexical.bodies[index].rotation = ['0', '0.000', '0', '1.0'];
+      lexical.bodies[index].scale = ['1.0', '1', '+1'];
+      assert.strictEqual(stage(lexical), lexical, 'Exact numeric identity should preserve lexical forms');
+      const negative = structuredClone(lexical); negative.bodies[index].position[0] = '-0';
+      assert.deepEqual(stage(negative).bodies[index], expected, 'Signed negative zero requires explicit reset');
+      const invalidSelected = structuredClone(before); invalidSelected.bodies[index].position[0] = '-';
+      assert.deepEqual(stage(invalidSelected).bodies[index], expected, 'Selected corrective text must be replaceable');
+      const unrelated = structuredClone(before);
+      unrelated.camera.eye[0] = '1e'; unrelated.ambient = '-'; unrelated.bodies[0].position[0] = '-';
+      const isolated = stage(unrelated);
+      assert.deepEqual(isolated.camera, unrelated.camera);
+      assert.equal(isolated.ambient, '-');
+      assert.deepEqual(isolated.bodies[0], unrelated.bodies[0]);
+      assert.throws(() => stage(before, 'unknown-body'), /qualified|selection/i);
+      const reordered = structuredClone(before); reordered.bodies.reverse();
+      assert.throws(() => stage(reordered), /qualified|selection/i);
+      const wrongKind = structuredClone(before); wrongKind.kind = kind === 'directional' ? 'point' : 'directional';
+      assert.throws(() => stage(wrongKind), /qualified|selection/i);
+      const badAuthority = structuredClone(seed); badAuthority.surfaceMaterials[1].target.modelId = 'foreign-model';
+      assert.throws(() => stage(before, bodyId, badAuthority), /./, 'Generated reset must pass actual provider admission');
+      assert.equal(directCalls, 9);
+      // Real component/session/controlled-Viewer flow: stage is never an acknowledgement.
+      const root = document.getElementById('root');
+      mounted = await api.mountLightWorkbenchFlow(root, seed);
+      const control = controls.at(-1), controller = flowControllers.at(-1);
+      const snapshot = () => controller.getSession().getSnapshot();
+      const ui = label => [...root.querySelectorAll('button')].find(node =>
+        node.textContent.trim() === label || node.getAttribute('aria-label') === label);
+      const click = async label => {const node = ui(label); assert(node && !node.disabled, label);
+        await act(async () => node.click());};
+      await click('Edit body ' + bodyId);
+      const beforeStage = snapshot();
+      await click('Stage reset transform');
+      assert.strictEqual(snapshot().accepted, beforeStage.accepted);
+      assert.equal(control.calls.length, 0, 'Staging must never contact Viewer');
+      assert.equal(snapshot().canUndo, beforeStage.canUndo);
+      assert.deepEqual(api.readLightWorkbenchFlowDraft(root).bodies[index], expected);
+      control.refusal = new Error('Controlled reset Apply refusal');
+      await click('Apply'); // Viewer 1: refusal.
+      assert.strictEqual(snapshot().accepted, beforeStage.accepted);
+      assert.equal(snapshot().canUndo, beforeStage.canUndo);
+      assert.deepEqual(api.readLightWorkbenchFlowDraft(root).bodies[index], expected);
+      control.refusal = null;
+      await click('Apply'); // Viewer 2: success, one history step.
+      const accepted = snapshot().accepted;
+      assert.equal(accepted.revision, seed.revision + 1);
+      assert.deepEqual(accepted.display.poses.find(p => p.bodyId === bodyId), identityPose(bodyId));
+      assert.deepEqual(accepted.nativeDocument, seed.nativeDocument);
+      assert.deepEqual(accepted.surfaceMaterials, seed.surfaceMaterials);
+      assert.deepEqual(accepted.lights.lights, seed.lights.lights);
+      assert.deepEqual(accepted.display.camera, seed.display.camera);
+      assert(snapshot().canUndo);
+      await click('Undo'); // Viewer 3.
+      assert.deepEqual(snapshot().accepted.display.poses, seed.display.poses);
+      assert(!snapshot().canUndo && snapshot().canRedo);
+      await click('Redo'); // Viewer 4.
+      assert.deepEqual(snapshot().accepted.display.poses, accepted.display.poses);
+      assert.equal(control.calls.length, 4, 'One refusal, Apply, Undo and Redo');
+      await mounted.dispose(); mounted = null;
+      assert.equal(control.disposed, 1);
+      checks.push({kind, directCalls, viewerAttempts: control.calls.length, lifetimes: 1,
+        history: 'one successful Apply', noOp: 'exact signed-zero-aware identity', originalSourcePreserved: true});
+    }
+    console.log(JSON.stringify({result: 'PASS', scope: 'Selected Native Light body transform reset: actual provider, React/session and controlled Viewer; no GPU/physical file', checks}));
+  } else {
   if (!process.argv.includes('--surface-point') && !surfacePointPreflight) {
   const seed = api.createLightStudy(sourceText);
   const original = api.serializeRenderNativeLightDocument(seed);
@@ -2749,6 +2840,7 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
   }
   console.log(JSON.stringify({result: 'PASS', scope: surfacePointPreflight ? 'Surface point fixture admission only'
     : 'Surface control points: actual React/source/codec/session; controlled Viewer and file transport, no GPU or physical files', surfacePointFlow}));
+  }
 } catch (cause) {failed = true; firstError = cause; console.error('Original Light flow failure:', cause); console.error('Active Surface ledger:', JSON.stringify(activeSurfaceLedger));}
 finally {
   for (const cleanup of [() => mounted?.dispose(), async () => {
