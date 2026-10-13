@@ -82,7 +82,7 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
   assert.deepEqual(copiedFields.lights.at(-1).vector, form.lights[0].vector);
   assert.deepEqual(copiedFields.lights.at(-1).color, form.lights[0].color);
   assert.notStrictEqual(copiedFields.lights.at(-1).vector, form.lights[0].vector);
-  assert.deepEqual(form.lights[0].label, 'Directional 1');
+  assert.equal(form.lights[0].nodeId, api.readLightFields(seed).lights[0].nodeId, 'Duplicate must not mutate the original light');
   assert.throws(() => api.duplicateLightFields(form, 'missing-light'));
   assert.throws(() => api.duplicateLightFields(api.addLightFields(copiedFields), form.lights[0].nodeId));
   form.lights[1].vector = ['-0', '2', '-4']; form.lights[1].color = ['.3', '.5', '.8'];
