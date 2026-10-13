@@ -189,9 +189,12 @@ function readLimits(device: GPUDeviceHandle): PrimitiveBackendLimits {
 function release(resources: Resources | null): unknown[] {
   if (!resources) return [];
   const failures: unknown[] = [];
-  for (const buffer of resources.buffers) try { buffer.destroy(); } catch (cause) { failures.push(cause); }
-  for (const texture of resources.textures) try { texture.destroy(); } catch (cause) { failures.push(cause); }
-  resources.buffers.length = 0; resources.textures.length = 0; resources.pipeline = null; resources.group = null;
+  // Clear ownership before invoking driver cleanup: callbacks and repeated
+  // terminal release must never destroy a partially processed handle twice.
+  const buffers = resources.buffers.splice(0), textures = resources.textures.splice(0);
+  resources.pipeline = null; resources.group = null;
+  for (const buffer of buffers) try { buffer.destroy(); } catch (cause) { failures.push(cause); }
+  for (const texture of textures) try { texture.destroy(); } catch (cause) { failures.push(cause); }
   return failures;
 }
 
