@@ -12,7 +12,7 @@ import {deriveLightBodyCommand, deriveLightSurfaceAddition, deriveLightSurfacePo
 import type {LightBodyCommand, LightBodyCommandResult, LightSurfacePointData} from './native-light-bodies';
 import {createNativeSceneBase, createNativeSceneSeed} from './native-scene-seed';
 import {readLightFields, applyLightFields, addLightFields, duplicateLightFields,
-  lightFieldsDirty, lightKind, selectedLightMaterial, stageLightMaterialFields, stageLightBodyRotation, stageLightBodyTransformReset} from './native-light-fields';
+  lightFieldsDirty, lightKind, selectedLightMaterial, stageLightMaterialFields, stageLightMaterialCopy, stageLightBodyRotation, stageLightBodyTransformReset} from './native-light-fields';
 import type {BodyFields, CameraFields, LightFields, LightForm, LightKind, MaterialUniformFields, LightRotationAxis, LightRotationSpace} from './native-light-fields';
 import {Button} from './components/ui/button';
 import {NativeLightSurfaceAddDialog} from './native-light-surface-add-dialog';
@@ -49,6 +49,13 @@ interface SurfaceTicket {
   mountEpoch: number; operationEpoch: number; trigger: HTMLButtonElement;
 }
 interface RotationCommand {axis: LightRotationAxis; space: LightRotationSpace; degrees: string}
+interface MaterialCopyChoice {
+  session: RenderNativeLightSession; accepted: RenderNativeLightDocument;
+  sourceBodyId: string; destinationBodyId: string;
+  sourceBinding: RenderNativeLightDocument['surfaceMaterials'][number];
+  destinationBinding: RenderNativeLightDocument['surfaceMaterials'][number];
+  selectionEpoch: number; mountEpoch: number;
+}
 const initialRotation: RotationCommand = {axis: 'z', space: 'local', degrees: '90'};
 
 /** A distinct required-WebGPU authoring route; legacy material presentation is unchanged. */
@@ -75,6 +82,8 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
     camera: {eye: ['', '', ''], target: ['', '', ''], up: ['', '', ''], fovYDegrees: '', near: '', far: ''}});
   const [selected, setSelected] = useState<string | null>(null), [busy, setBusy] = useState(false);
   const [selectedBody, setSelectedBody] = useState<string | null>(null);
+  const [materialCopy, setMaterialCopy] = useState<MaterialCopyChoice | null>(null);
+  const materialCopyRef = useRef<MaterialCopyChoice | null>(null);
   const [rotationCommands, setRotationCommands] = useState<Map<string, RotationCommand>>(() => new Map());
   const rotationCommandsRef = useRef(rotationCommands);
   const [choosingFile, setChoosingFile] = useState(false);
@@ -87,13 +96,17 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   const actionBusy = busy || navigating || surfaceDialog !== null;
   const dirty = !!snapshot && (snapshot.dirty || lightFieldsDirty(fields, snapshot.accepted));
   const selectBody = (bodyId: string | null) => {
-    if (selection.current.bodyId !== bodyId) selection.current = {bodyId, epoch: selection.current.epoch + 1};
+    if (selection.current.bodyId !== bodyId) {
+      selection.current = {bodyId, epoch: selection.current.epoch + 1};
+      materialCopyRef.current = null; setMaterialCopy(null);
+    }
     setSelectedBody(bodyId);
   };
   const report = (cause: unknown, prefix = '') => {const value = normalizeRenderEditorError(cause); setError(prefix + value.code + ': ' + value.message);};
   const refresh = (session: RenderNativeLightSession, replaceFields = false) => {
     const value = session.getSnapshot(); setSnapshot(value); setStatus(session.getStatus().state);
     if (replaceFields) {
+      materialCopyRef.current = null; setMaterialCopy(null);
       const form = readLightFields(value.accepted); formRef.current = form; setFields(form);
       rotationCommandsRef.current = new Map(); setRotationCommands(rotationCommandsRef.current);
       setSelected(previous => form.lights.some(light => light.nodeId === previous) ? previous : form.lights[0]?.nodeId ?? null);
@@ -579,6 +592,44 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   };
   const material = body && snapshot?.accepted.display.visibleBodyIds.includes(body.bodyId)
     ? fields.materials.find(item => item.target.bodyId === body.bodyId) : undefined;
+  const materialCopyCurrent = !!materialCopy && materialCopyRef.current === materialCopy
+    && materialCopy.session === sessionRef.current && materialCopy.accepted === snapshot?.accepted
+    && materialCopy.mountEpoch === epoch.current && materialCopy.selectionEpoch === selection.current.epoch
+    && materialCopy.destinationBodyId === body?.bodyId;
+  const materialCopySources = snapshot?.accepted.surfaceMaterials.filter(binding => binding.target.bodyId !== body?.bodyId
+    && snapshot.accepted.display.visibleBodyIds.includes(binding.target.bodyId)) ?? [];
+  const chooseMaterialCopy = (sourceBodyId: string) => {
+    if (!body || !rotationReady()) return;
+    materialCopyRef.current = null; setMaterialCopy(null);
+    if (!sourceBodyId) return;
+    try {
+      const session = sessionRef.current!, current = session.getSnapshot();
+      if (current.dirty || lightFieldsDirty(formRef.current, current.accepted))
+        throw new RenderEditorError('DOCUMENT_INPUT', 'Apply or Discard all scene drafts before copying a material.');
+      if (sourceBodyId === body.bodyId)
+        throw new RenderEditorError('DOCUMENT_INPUT', 'Choose another body as the material source.');
+      const choice: MaterialCopyChoice = {session, accepted: current.accepted, sourceBodyId, destinationBodyId: body.bodyId,
+        sourceBinding: selectedLightMaterial(current.accepted, sourceBodyId), destinationBinding: selectedLightMaterial(current.accepted, body.bodyId),
+        selectionEpoch: selection.current.epoch, mountEpoch: epoch.current};
+      materialCopyRef.current = choice; setMaterialCopy(choice); setError(null);
+    } catch (cause) {report(cause, 'Material copy refused: ');}
+  };
+  const copyMaterial = () => {
+    if (!body || !rotationReady()) return;
+    try {
+      const choice = materialCopyRef.current, current = sessionRef.current!.getSnapshot();
+      if (!choice || choice !== materialCopy || !materialCopyCurrent || current.accepted !== choice.accepted
+        || !current.accepted.surfaceMaterials.includes(choice.sourceBinding)
+        || !current.accepted.surfaceMaterials.includes(choice.destinationBinding))
+        throw new RenderEditorError('STALE_CANDIDATE', 'Choose the material source again for the current destination.');
+      if (current.dirty)
+        throw new RenderEditorError('DOCUMENT_INPUT', 'Apply or Discard all scene drafts before copying a material.');
+      const previous = formRef.current, next = stageLightMaterialCopy(current.accepted, previous, body.bodyId, choice.sourceBodyId);
+      if (next !== previous) {formRef.current = next; setFields(next);}
+      setError(null); setNotice(next === previous ? 'The destination already has the same material source and overrides.'
+        : 'Accepted material from ' + choice.sourceBodyId + ' staged for ' + body.bodyId + '. Apply accepts the complete scene.');
+    } catch (cause) {report(cause, 'Material copy refused: ');}
+  };
   const editUniform = (name: string, patch: Partial<Pick<MaterialUniformFields, 'value' | 'override'>>) => {
     if (material) edit({...fields, materials: fields.materials.map(item => item === material
       ? {...item, uniforms: item.uniforms.map(uniform => uniform.name === name ? {...uniform, ...patch} : uniform)} : item)});
@@ -717,8 +768,20 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
                 onClick={event => importMaterial(event.currentTarget)}>Import material…</Button>
               <Button size="sm" variant="outline" disabled={disabled || help || choosingFile} onClick={exportMaterial}>Export accepted material</Button>
             </div>
+            <label style={{display: 'grid', gap: 5}}>Copy accepted material from body
+              <select aria-label="Copy accepted material from body" value={materialCopyCurrent ? materialCopy!.sourceBodyId : ''}
+                disabled={rotationDisabled || dirty || materialCopySources.length === 0} style={fieldStyle}
+                onChange={event => chooseMaterialCopy(event.target.value)}>
+                <option value="">Choose source body…</option>
+                {materialCopySources.map(binding => <option key={binding.target.bodyId} value={binding.target.bodyId}>
+                  {snapshot!.accepted.nativeDocument.bodies.find(row => row.id === binding.target.bodyId)?.name ?? binding.target.bodyId} ({binding.target.bodyId})
+                </option>)}
+              </select>
+            </label>
+            <small>Destination: {snapshot?.accepted.nativeDocument.bodies.find(row => row.id === body.bodyId)?.name ?? body.bodyId} ({body.bodyId}). Copies accepted source and overrides only; materials remain independent.</small>
+            <Button size="sm" variant="outline" disabled={rotationDisabled || dirty || !materialCopyCurrent} onClick={copyMaterial}>Stage material copy</Button>
             {material.shaderSource !== snapshot?.accepted.surfaceMaterials.find(binding => binding.target.bodyId === body.bodyId)?.material.shaderSource
-              && <small>Imported shader source is staged. Apply or Discard with the complete scene.</small>}
+              && <small>Material shader source is staged. Apply or Discard with the complete scene.</small>}
             {material.uniforms.length ? material.uniforms.map(uniform => <fieldset key={uniform.name} style={{border: 0, margin: 0, padding: 0, minWidth: 0, display: 'grid', gap: 6}}>
               <legend>{uniform.name}</legend>
               <small>Range {uniform.min} to {uniform.max} · shader default {uniform.defaultValue}</small>
