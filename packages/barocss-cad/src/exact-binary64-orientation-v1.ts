@@ -10,8 +10,11 @@ export interface Binary64PointV1 { readonly x: number; readonly y: number }
 
 /** Admit and capture exact own data values once; never re-read input.x/y. */
 const point = (input: unknown): Binary64PointV1 | null => {
-  if (!input || typeof input !== 'object' || Array.isArray(input)) return null;
+  if (!input || typeof input !== 'object') return null;
   try {
+    // Array.isArray also throws for a revoked Proxy, so reflection belongs
+    // inside the same fail-closed admission boundary.
+    if (Array.isArray(input)) return null;
     const proto = Object.getPrototypeOf(input);
     if (proto !== Object.prototype && proto !== null) return null;
     const fields = Object.getOwnPropertyDescriptors(input);
