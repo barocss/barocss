@@ -36,8 +36,8 @@ for (const sourceFact of ['5632 mm³', '5120 mm³', 'Cut an underside pocket']) 
   assert.ok(modeling.includes(sourceFact), `Modeling reference changed: ${sourceFact}`);
 }
 for (const text of [
-  'not a published product', 'does not by itself prove', 'not a saved mesh',
-  'not a top-opening pocket', 'browser', 'UNRUN', 'not a persistent topological',
+  'a published product', 'does not by itself prove', 'not a saved mesh',
+  'neither a top-opening pocket', 'browser', 'UNRUN', 'persistent topological face ID',
 ]) {
   assert.ok(guide.toLowerCase().includes(text.toLowerCase()), `Missing evidence/limit boundary: ${text}`);
 }
