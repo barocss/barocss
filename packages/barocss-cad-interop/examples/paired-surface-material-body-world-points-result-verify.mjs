@@ -109,7 +109,15 @@ for (const name of ['main-result.json','edited-result.json']) {
     for (const mutate of mutations) {
       const packet = structuredClone(parsed.native);
       mutate(packet);
-      refuse(() => read(packet), 'NATIVE');
+      assert.throws(() => read(packet), error => {
+        assert.equal(error instanceof ReadError, true);
+        assert.equal(error.code, 'NATIVE');
+        assert.equal(error.cause?.code, 'OWNED');
+        assert.equal(error.cause?.context?.phase, 'owned');
+        assert.equal(error.cause?.context?.queryIndex, null);
+        assert.equal(error.cause?.context?.stage, null);
+        return true;
+      });
     }
   }
   assert.equal(parsed.native.request.queries.length, 16);
