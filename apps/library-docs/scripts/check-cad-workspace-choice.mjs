@@ -13,7 +13,8 @@ for(const item of ['#/model','Modeling examples','Named dimensions','Apply dimen
  if(item==='UNRUN') continue;
  assert.ok(page.includes(item),'Missing workspace instruction: '+item);
 }
-for(const item of ['#/model','New Boolean extrusion'])assert.ok(host.includes(item),'Host source drift: '+item);
+assert.ok(host.includes('New Boolean extrusion'),'Host source drift: Boolean workbench');
+assert.ok(editor.includes('#/model'),'Model route source drift');
 for(const item of ['cad.model()','Choose model file','Open saved model'])assert.ok(editor.includes(item),'Editor source drift: '+item);
 assert.ok(page.includes('not')||page.includes('Not'));
 assert.ok(index.includes('./choose-workspace'));
