@@ -63,3 +63,43 @@ test('independent exact integer determinant oracle across bounded point triples'
   }
   assert.equal(checked, 15625);
 });
+
+test('exact determinant uses captured own descriptors without Proxy get traps', () => {
+  let propertyReads = 0;
+  const guard = value => new Proxy(value, {
+    get() {
+      propertyReads++;
+      throw new Error('unexpected host point property read');
+    },
+  });
+  const a = guard(p(0, 0)), b = guard(p(0.1, 0)), c = guard(p(0, Number.MIN_VALUE));
+  assert.deepEqual(orient(a, b, c), {
+    status: 'exact', sign: 'positive', method: 'binary64-dyadic-bigint',
+  });
+  assert.equal(propertyReads, 0, 'binary64 determinant must use only previously admitted descriptor values');
+
+  // Even if a Proxy would lie on get(), the descriptor-provided input wins.
+  let forgedReads = 0;
+  const forged = new Proxy(p(0, -1), {
+    get() { forgedReads++; return 10000; },
+  });
+  assert.equal(orient(p(0, 0), p(1, 0), forged).sign, 'negative');
+  assert.equal(forgedReads, 0);
+});
+
+test('hostile point reflection traps fail closed as unsupported input', () => {
+  const blockedKeys = new Proxy(p(0, 0), {
+    ownKeys() { throw new Error('hostile enumeration'); },
+  });
+  const blockedDescriptors = new Proxy(p(0, 0), {
+    getOwnPropertyDescriptor() { throw new Error('hostile descriptor'); },
+  });
+  const blockedPrototype = new Proxy(p(0, 0), {
+    getPrototypeOf() { throw new Error('hostile prototype'); },
+  });
+  for (const hostile of [blockedKeys, blockedDescriptors, blockedPrototype]) {
+    assert.deepEqual(orient(hostile, p(1, 0), p(0, 1)), {
+      status: 'unsupported', reason: 'invalid-input',
+    });
+  }
+});
