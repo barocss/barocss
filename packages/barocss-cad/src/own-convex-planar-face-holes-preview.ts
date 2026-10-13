@@ -92,7 +92,7 @@ export function tessellateConvexPlanarFaceWithHoles(faceInput:ConvexPlanarFaceWi
   });check(vertices.length<=15,'at most15 actual native mesh vertices');const uv=vertices.map(vertex=>[vertex.uv[0],vertex.uv[1],0] as Point),nativeIndex=new Map(vertices.map(vertex=>[vertex.nativeVertexId,vertex.index])),loopIndices=face.topology.loops.map(loop=>face.topology.vertices.filter(vertex=>vertex.loopId===loop.id).map(vertex=>{const index=nativeIndex.get(vertex.id);check(index!==undefined,'native vertex index association');return index;}));
   const boundaryPairs=face.topology.edges.map(edge=>{const a=nativeIndex.get(edge.vertexIds[0]),b=nativeIndex.get(edge.vertexIds[1]);check(a!==undefined&&b!==undefined,'actual native boundary endpoint association');return{edge,pair:[a,b] as [number,number]};});
   const key=(a:number,b:number):string=>a<b?a+':'+b:b+':'+a;
-  const {orientation,onSegment,compatibleSegments,separatedPolygons}=createNativeUVGraphPredicates(uv,check,LABEL);
+  const {orientation,compatibleSegments,separatedPolygons}=createNativeUVGraphPredicates(uv,check,LABEL);
   const openHolePassage=(a:number,b:number,hole:number[]):boolean=>{
     const topologyLoop=face.topology.loops.find(loop=>loop.id===vertices[hole[0]].loopId);check(topologyLoop!==undefined,'actual hole orientation association');const sign=topologyLoop.authoredOrientation==='ccw'?1:-1;let low=0,high=1;
     for(let i=0;i<hole.length;i++){
