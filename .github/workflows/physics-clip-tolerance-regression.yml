@@ -1,0 +1,24 @@
+name: Physics tolerant clip regression
+on:
+  pull_request:
+    branches: [develop]
+    paths:
+      - 'packages/barocss-physics/src/contact-manifold.ts'
+      - 'examples/physics-contact-impulse-audit-1572/clip-tolerance-regression.ts'
+      - 'examples/physics-contact-impulse-audit-1572/run-clip-tolerance-regression.mjs'
+      - '.github/workflows/physics-clip-tolerance-regression.yml'
+  workflow_dispatch:
+jobs:
+  clip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @barocss/physics build:library
+      - run: node examples/physics-contact-impulse-audit-1572/run-clip-tolerance-regression.mjs
