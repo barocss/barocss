@@ -50,6 +50,9 @@ try {
     if (y < -1e-15 || y > 1 + 1e-15 || Math.abs(z) > 1e-15)
       throw Error('CLIP_BOUNDARY_BAD_TANGENT');
   }
+  // Preserve #1876's explicit near-band boundary-count witness as well.
+  const nearBoundaryCount = clipped.filter(p => Math.abs(p[0] - 1e-9) < 1e-12).length;
+  if (nearBoundaryCount !== 2) throw Error('CLIP_NEAR_TOLERANCE_CROSSING');
 
   // Repeat with an exact boundary crossing; the 1 nm tolerance plane must
   // locate the intersections at 1 nm on the original polygon segments.
@@ -57,9 +60,22 @@ try {
     [0, 0, 0], [1, 0, 0], 0);
   if (exact.length !== 4 || exact.filter(p => Math.abs(p[0] - 1e-9) <= 1e-15).length !== 2)
     throw Error('CLIP_BOUNDARY_WRONG_PLANE');
+
+  // Preserve #1876's distinct macroscopic crossing using this same actual
+  // source function, without its implementation-spelling requirement.
+  const wide = clip([[-1, 0, 0], [1, 0, 0], [1, 1, 0], [-1, 1, 0]],
+    [0, 0, 0], [1, 0, 0], 0);
+  const wideBoundaryCount = wide.filter(p => Math.abs(p[0] - 1e-9) < 1e-12).length;
+  if (wide.length !== 4 || wideBoundaryCount !== 2) throw Error('CLIP_BOUNDARY_WITNESS');
+  for (const point of wide) {
+    if (point[0] > 1e-9 + 1e-12 || !point.every(Number.isFinite))
+      throw Error('CLIP_OUTSIDE_TOLERANT_HALFSPACE');
+  }
   console.log(JSON.stringify({ status: 'PASS', sourceLoads,
     toleranceM: 1e-9, nearBoundaryVertices: clipped.length,
-    exactBoundaryVertices: exact.length, publicApiChanged: false }));
+    exactBoundaryVertices: exact.length, nearBoundaryCount,
+    wideBoundaryVertices: wide.length, wideBoundaryCount, clipCalls: 3,
+    preservedCompanion: 1876, publicApiChanged: false, physicalEightBoxGO: false }));
 } finally {
   await rm(dir, { recursive: true, force: true });
 }

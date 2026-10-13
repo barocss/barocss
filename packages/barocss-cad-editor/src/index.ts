@@ -69,3 +69,5 @@ export type { ModelingCircleDisplayComponent, ModelingCircleLineage, ModelingCir
 export type { ModelingCircleFaceSelection } from './modeling-scene.js';
 
 export type { ModelingCompositionDisplayComponent, ModelingCompositionPanel } from './modeling-composition.js';
+
+export type { CadEditorStlExport } from './modeling-stl.js';

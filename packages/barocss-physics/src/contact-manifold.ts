@@ -25,8 +25,8 @@ function clip(polygon: Vec3[], centre: Vec3, axis: Vec3, limit: number): Vec3[] 
     const current = polygon[index], next = polygon[(index + 1) % polygon.length];
     // Classify and intersect against the *same* tolerance-shifted plane.
     // Using a 1e-9 inside test with an unshifted intersection plane can
-    // extrapolate outside the edge when both endpoints lie within the
-    // tolerance band on the same side of the true plane.
+    // extrapolate outside the edge when one endpoint lies inside the
+    // tolerance band and the other lies outside, on the same side of the true plane.
     const a = dot(sub(current, centre), axis) - limit - 1e-9;
     const b = dot(sub(next, centre), axis) - limit - 1e-9;
     const insideA = a <= 0, insideB = b <= 0;

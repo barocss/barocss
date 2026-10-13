@@ -4,7 +4,7 @@ import { buildXYCirclePrismShell } from './xy-circle-prism-shell.js';
 import { qualifyStoredCirclePrismSolid } from './stored-circle-prism-solid.js';
 import type { StoredCirclePrismSolidResult } from './stored-circle-prism-solid.js';
 import { buildXYAffineSketch } from './xy-affine-sketch.js';
-import type { XYAffineSketchSuccess, XYAffineSketchConstraint } from './xy-affine-sketch.js';
+import type { XYAffineSketchSuccess, XYAffineSketchConstraint, XYAffineSketchReferenceLine } from './xy-affine-sketch.js';
 import { buildXYAffineSketchPrism } from './xy-affine-sketch-prism.js';
 import type { XYAffineSketchPrismCoordinateSpanResult, XYAffineSketchPrismOffsetCoordinateSpanResult } from './xy-affine-sketch-prism.js';
 import { subtractConvexPlanarSlab } from './convex-planar-slab-subtraction.js';
@@ -26,6 +26,10 @@ import type { AxisBoxSolidBooleanResult } from './axis-box-boolean.js';
 import { buildOrthogonalSolidBoolean } from './orthogonal-solid-boolean.js';
 import type { OrthogonalSolidBooleanResult } from './orthogonal-solid-boolean.js';
 import { buildModelingBox } from './modeling-box-internal.js';
+import { buildModelingTranslation } from './modeling-translation-internal.js';
+import type { ModelingTranslationResult } from './modeling-translation-internal.js';
+import { buildModelingStl } from './modeling-stl-internal.js';
+import type { ModelingStlResult } from './modeling-stl-internal.js';
 import type { Point } from './types.js';
 import { buildOwnPlateCircularHole } from './own-plate-circular-hole.js';
 import { qualifyStoredPlateHoleSolid } from './stored-plate-hole-solid.js';
@@ -54,6 +58,8 @@ export interface CadEdgeSelection { readonly kind: 'edge-selection' }
 export interface CadEdgeQueryHandle { one(): CadEdgeSelection }
 type SplitPlane = { readonly axis: CadAxis; readonly plane?: never } | { readonly plane: 'x+y'; readonly axis?: never };
 export interface CadShape {
+  /** One exact translated copy of a direct affine extrusion; the copy is a terminal named output. */
+  translate(offset: readonly [CadDimension, CadDimension, CadDimension]): CadShape;
   /** One connected union of two distinct direct integer rectangular extrusions. */
   union(other: CadShape): CadShape;
   /** One full-thickness stored-rational hole in a direct origin-aligned integer rectangular plate. */
@@ -85,6 +91,8 @@ export interface CadConstrainedPolygonBuilder {
   fixed(point: CadSketchPoint): void;
   horizontal(a: CadSketchPoint, b: CadSketchPoint): void;
   vertical(a: CadSketchPoint, b: CadSketchPoint): void;
+  /** Adjacent owned edge parallel to a finite nonzero authored dimensionless direction. */
+  parallelTo(a: CadSketchPoint, b: CadSketchPoint, direction: readonly [number, number]): void;
 }
 export interface CadModel {
   parameter(name: string, valueMM: number): CadParameter;
@@ -107,6 +115,7 @@ export type CadModelEvidence =
   | { readonly kind: 'sketch'; readonly profile: 'circle'; readonly native: XYArcResult }
   | { readonly kind: 'extrude'; readonly profile?: never; readonly native: XYAffineSketchPrismCoordinateSpanResult | XYAffineSketchPrismOffsetCoordinateSpanResult }
   | { readonly kind: 'extrude'; readonly profile: 'circle'; readonly native: StoredCirclePrismSolidResult }
+  | { readonly kind: 'translate'; readonly native: ModelingTranslationResult }
   | { readonly kind: 'cut'; readonly native: ConvexPlanarSlabSubtractionResult }
   | { readonly kind: 'intersect'; readonly native: ConvexPlanarSolidIntersectionResult }
   | { readonly kind: 'split'; readonly native: ConvexPlanarSolidSplitResult }
@@ -138,6 +147,18 @@ export type CadMassProperties = MassValues & (
   | { readonly family: 'convex-planar'; readonly details: { readonly exact: MassExact; readonly conversionErrors: MassErrors; readonly native: MassReadonly<ConvexPlanarSolidMassResult> } }
   | { readonly family: 'orthogonal-cell'; readonly details: { readonly exact: MassExact; readonly conversionErrors: MassErrors; readonly native: MassReadonly<AxisBoxSolidMassResult> } }
 );
+/** Binary STL facets in authored XYZ. Units and native identity live in details, not STL metadata. */
+export interface CadStlExport {
+  readonly outputName: string;
+  readonly family: 'convex-planar';
+  readonly format: 'binary-stl';
+  readonly lengthUnit: 'mm';
+  readonly bytes: readonly number[];
+  readonly byteLength: number;
+  readonly triangleCount: number;
+  readonly maximumVertexDisplacementMM: number;
+  readonly details: MassReadonly<ModelingStlResult>;
+}
 export interface CadModelSnapshot {
   /** Deep-frozen tagged bodies; native source/topology/certificates remain authoritative. */
   readonly bodies: Readonly<Record<string, CadBody>>;
@@ -151,6 +172,8 @@ export interface CadModelSnapshot {
   readonly evidence: readonly CadModelEvidence[];
   /** Revalidates and measures one named convex or two-box integer-cell output. Curved/composed families refuse. */
   massProperties(outputName: string, options: CadMassPropertiesOptions): CadMassProperties;
+  /** Export one owned convex output. No file side effects; Float32 loss/collapse is explicit. */
+  exportStl(outputName: string): CadStlExport;
   withParameters(edits: Readonly<Record<string, number>>): CadModelSnapshot;
   /** Disabled chamfers still validate; they select their exact parent as output. */
   withSuppression(edits: Readonly<Record<string, boolean>>): CadModelSnapshot;
@@ -161,13 +184,14 @@ export const CadModelLimits = Object.freeze({ nodes: 6, sketches: 2, extrusions:
 
 type Query = { parallelTo?: CadAxis; at?: Partial<Record<CadAxis, Dimension | 'min' | 'max'>> };
 type BodyRef = { node: number; side: 'solid' | 'negative' | 'positive' };
-type PolygonConstraint = { kind: 'fixed'; point: number } | { kind: 'horizontal' | 'vertical'; points: [number, number] };
+type PolygonConstraint = { kind: 'fixed'; point: number } | { kind: 'horizontal' | 'vertical'; points: [number, number] }
+  | { kind: 'parallel-to-direction'; points: [number, number]; direction: [number, number] };
 type SketchNode = { kind: 'sketch'; profile: 'polygon'; points: [Dimension, Dimension][] }
   | { kind: 'sketch'; profile: 'constrained-polygon'; points: [Dimension, Dimension][]; constraints: PolygonConstraint[] }
   | { kind: 'sketch'; profile: 'rectangle'; min: [Dimension, Dimension]; max: [Dimension, Dimension] }
   | { kind: 'sketch'; profile: 'circle'; center: [Dimension, Dimension]; radius: Dimension };
 type ChamferConfiguration = { name: string; suppressed: boolean } | { name?: never; suppressed?: never };
-type Node = SketchNode | { kind: 'extrude'; sketch: number; height: Dimension; from?: Dimension } | { kind: 'cut'; parent: BodyRef; tool: BodyRef; axis: 'x' | 'y' } | { kind: 'intersect'; left: BodyRef; right: BodyRef } | { kind: 'union'; left: BodyRef; right: BodyRef } | { kind: 'difference'; parent: BodyRef; tool: BodyRef } | ({ kind: 'split'; parent: BodyRef; at: Dimension } & SplitPlane) | ({ kind: 'chamfer'; parent: BodyRef; edge: Query; distance: Dimension } & ChamferConfiguration) | { kind: 'hole'; parent: BodyRef; center: [Dimension, Dimension]; radius: Dimension };
+type Node = SketchNode | { kind: 'extrude'; sketch: number; height: Dimension; from?: Dimension } | { kind: 'translate'; parent: BodyRef; offset: [Dimension, Dimension, Dimension] } | { kind: 'cut'; parent: BodyRef; tool: BodyRef; axis: 'x' | 'y' } | { kind: 'intersect'; left: BodyRef; right: BodyRef } | { kind: 'union'; left: BodyRef; right: BodyRef } | { kind: 'difference'; parent: BodyRef; tool: BodyRef } | ({ kind: 'split'; parent: BodyRef; at: Dimension } & SplitPlane) | ({ kind: 'chamfer'; parent: BodyRef; edge: Query; distance: Dimension } & ChamferConfiguration) | { kind: 'hole'; parent: BodyRef; center: [Dimension, Dimension]; radius: Dimension };
 type Document = { format: 'barocss-cad-model'; schema: 1; units: 'mm'; parameters: Record<string, number>; nodes: Node[]; outputs: Record<string, BodyRef> };
 type EvaluatedValue = CadBody | { negative?: CadBody; positive?: CadBody } | undefined;
 // Generated IDs/native options are fixed by this implementation authority plus the keyed graph.
@@ -179,6 +203,7 @@ const expressions = new WeakMap<CadDimensionExpression, { owner: object; express
 const shapes = new WeakMap<CadShape, { owner: object; reference: BodyRef }>();
 const selections = new WeakMap<CadEdgeSelection, { owner: object; parent: BodyRef; query: Query }>();
 const axes: CadAxis[] = ['x', 'y', 'z'];
+const polygonDirectionLimit = 8;
 function demand(value: unknown, code: CadModelErrorCode, operation: string, detail: string): asserts value {
   if (!value) throw new CadModelError(code, operation, detail);
 }
@@ -204,8 +229,14 @@ function length(value: unknown, operation: string, positive = false): asserts va
   demand(typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= CadModelLimits.lengthMM && (!positive || value > 0), 'PARAMETER', operation, positive ? 'Positive finite mm dimension at most 10000 required' : 'Finite mm dimension within +/-10000 required');
 }
 /** Local cycle references are authored intent, never native or persistent topology IDs. */
+function polygonDirection(value: unknown): [number, number] {
+  const operation = 'constrainedPolygon', values = list(value, operation, 2, 2);
+  demand(values.every(v => typeof v === 'number' && Number.isFinite(v) && Math.abs(v) <= 10000) && values.some(v => v !== 0),
+    'INPUT', operation, 'Finite nonzero dimensionless direction within +/-10000 required');
+  return [values[0] as number, values[1] as number];
+}
 function polygonConstraints(input: unknown, count: number): PolygonConstraint[] {
-  const operation = 'constrainedPolygon';
+  const operation = 'constrainedPolygon'; let directions = 0;
   const index = (value: unknown): number => {
     demand(Number.isInteger(value) && !Object.is(value, -0) && (value as number) >= 0 && (value as number) < count,
       'INPUT', operation, 'Constraint must reference a point in its own cycle'); return value as number;
@@ -213,10 +244,15 @@ function polygonConstraints(input: unknown, count: number): PolygonConstraint[] 
   return list(input, operation, 0, CadModelLimits.polygonConstraints).map(value => {
     const c = record(value, operation);
     if (c.kind === 'fixed') { record(c, operation, ['kind', 'point']); return { kind: 'fixed', point: index(c.point) }; }
-    demand(c.kind === 'horizontal' || c.kind === 'vertical', 'CAPABILITY', operation, 'Only fixed, horizontal and vertical constraints are supported');
-    record(c, operation, ['kind', 'points']); const pair = list(c.points, operation, 2, 2).map(index) as [number, number];
+    demand(c.kind === 'horizontal' || c.kind === 'vertical' || c.kind === 'parallel-to-direction', 'CAPABILITY', operation, 'Only fixed, horizontal, vertical and authored-direction constraints are supported');
+    record(c, operation, c.kind === 'parallel-to-direction' ? ['kind', 'points', 'direction'] : ['kind', 'points']);
+    const pair = list(c.points, operation, 2, 2).map(index) as [number, number];
     demand(pair[0] !== pair[1] && ((pair[0] + 1) % count === pair[1] || (pair[1] + 1) % count === pair[0]),
       'INPUT', operation, 'Orientation constraints require two adjacent cycle points');
+    if (c.kind === 'parallel-to-direction') {
+      demand(++directions <= polygonDirectionLimit, 'BUDGET', operation, 'At most eight authored directions are supported');
+      return { kind: c.kind, points: pair, direction: polygonDirection(c.direction) };
+    }
     return { kind: c.kind, points: pair };
   });
 }
@@ -291,6 +327,19 @@ function splitParent(nodes: readonly Node[], reference: BodyRef): boolean {
   }
   return false;
 }
+// The finishing-copy extension admits one complete linear prefix, never a
+// general convex family or an unrelated finishing sibling. Direct copies keep
+// their original admission path and serialized records.
+function finishedTranslationPrefix(nodes: readonly Node[], reference: BodyRef): boolean {
+  if (nodes.length < 3 || nodes.length > 4 || reference.side !== 'solid' || reference.node !== nodes.length - 1) return false;
+  if (nodes[0]?.kind !== 'sketch' || nodes[1]?.kind !== 'extrude' || nodes[1].sketch !== 0
+    || !affineExtrusion(nodes, { node: 1, side: 'solid' })) return false;
+  for (let i = 2; i < nodes.length; i++) {
+    const node = nodes[i];
+    if (node.kind !== 'chamfer' || node.parent.node !== i - 1 || node.parent.side !== 'solid') return false;
+  }
+  return true;
+}
 function boxDimensions(nodes: readonly Node[], reference: BodyRef, parameters: Readonly<Record<string, number>>, operation: 'union' | 'cut' = 'union'): { origin: Point; sides: Point } {
   const extrusion = nodes[reference.node];
   demand(reference.side === 'solid' && extrusion.kind === 'extrude', 'CAPABILITY', operation, 'Integer-box Boolean requires direct rectangular extrusions');
@@ -341,7 +390,7 @@ function admit(input: Document): Document {
   for (const [key, value] of Object.entries(d.parameters)) { name(key, 'parameters'); length(value, 'parameters'); }
   const dimension = (value: unknown) => { resolvedDimension(value, d.parameters); };
   const point = (value: unknown) => list(value, 'point', 2, 2).forEach(dimension);
-  const counts = { sketch: 0, extrude: 0, cut: 0, intersect: 0, split: 0, chamfer: 0, hole: 0, union: 0, difference: 0 }, featureNames = new Set<string>();
+  const counts = { sketch: 0, extrude: 0, cut: 0, intersect: 0, split: 0, chamfer: 0, hole: 0, union: 0, difference: 0, translate: 0 }, featureNames = new Set<string>();
   const nodes = list(d.nodes, 'graph', 1, CadModelLimits.compositionNodes) as Node[];
   demand(nodes.length <= CadModelLimits.nodes || compositionPrefix(nodes), 'BUDGET', 'graph', 'Only the exact union-slot chain may exceed six nodes');
   const composed = compositionGraph(nodes);
@@ -349,11 +398,11 @@ function admit(input: Document): Document {
     const r = record(value, 'body', ['node', 'side']);
     demand(Number.isInteger(r.node) && !Object.is(r.node, -0) && (r.node as number) >= 0 && (r.node as number) < before, 'INPUT', 'body', 'Body must reference an earlier authored operation');
     const source = nodes[r.node as number];
-    demand(source.kind === 'cut' || source.kind === 'split' ? r.side === 'negative' || r.side === 'positive' : (source.kind === 'extrude' || source.kind === 'intersect' || source.kind === 'union' || source.kind === 'difference' || source.kind === 'chamfer' || source.kind === 'hole') && r.side === 'solid', 'INPUT', 'body', 'Body reference kind mismatch');
+    demand(source.kind === 'cut' || source.kind === 'split' ? r.side === 'negative' || r.side === 'positive' : (source.kind === 'extrude' || source.kind === 'translate' || source.kind === 'intersect' || source.kind === 'union' || source.kind === 'difference' || source.kind === 'chamfer' || source.kind === 'hole') && r.side === 'solid', 'INPUT', 'body', 'Body reference kind mismatch');
     return r as unknown as BodyRef;
   };
   for (const [i, n] of nodes.entries()) {
-    record(n, 'node'); demand(['sketch', 'extrude', 'cut', 'intersect', 'split', 'chamfer', 'hole', 'union', 'difference'].includes(n.kind), 'CAPABILITY', 'graph', 'Unknown operation'); counts[n.kind]++;
+    record(n, 'node'); demand(['sketch', 'extrude', 'translate', 'cut', 'intersect', 'split', 'chamfer', 'hole', 'union', 'difference'].includes(n.kind), 'CAPABILITY', 'graph', 'Unknown operation'); counts[n.kind]++;
     if (n.kind === 'sketch') {
       if (n.profile === 'polygon') { record(n, 'sketch', ['kind', 'profile', 'points']); list(n.points, 'polygon', 3, CadModelLimits.polygonPoints).forEach(point); }
       else if (n.profile === 'constrained-polygon') { record(n, 'sketch', ['kind', 'profile', 'points', 'constraints']); list(n.points, 'constrainedPolygon', 3, CadModelLimits.polygonPoints).forEach(point); polygonConstraints(n.constraints, n.points.length); }
@@ -367,6 +416,10 @@ function admit(input: Document): Document {
         offsetRange(n.from!, n.height, d.parameters);
       }
       if (circleExtrusion(nodes, { node: i, side: 'solid' })) circleMeasure(n.height, d.parameters, 'extrude');
+    } else if (n.kind === 'translate') {
+      record(n, 'translate', ['kind', 'parent', 'offset']); body(n.parent, i);
+      demand(affineExtrusion(nodes, n.parent) || finishedTranslationPrefix(nodes.slice(0, i), n.parent), 'CAPABILITY', 'translate', 'Translation requires a direct affine extrusion or its complete owned finishing chain');
+      list(n.offset, 'translate', 3, 3).forEach(dimension);
     } else if (n.kind === 'cut') {
       record(n, 'cut', ['kind', 'parent', 'tool', 'axis']); body(n.parent, i); body(n.tool, i);
       demand((n.axis === 'x' || n.axis === 'y') && affineExtrusion(nodes, n.parent) && affineExtrusion(nodes, n.tool) && n.parent.node !== n.tool.node, 'CAPABILITY', 'cut', 'Cut requires two distinct direct XY extrusions and an x/y through-slab axis');
@@ -404,6 +457,10 @@ function admit(input: Document): Document {
       if (Object.hasOwn(q, 'at')) for (const [axis, v] of Object.entries(record(n.edge.at, 'selection'))) { demand(axes.includes(axis as CadAxis), 'INPUT', 'selection', 'Unknown selector axis'); if (v !== 'min' && v !== 'max') dimension(v); }
     }
   }
+  const last = nodes[nodes.length - 1];
+  demand(counts.translate <= 1 && (!counts.translate || counts.cut + counts.intersect + counts.split + counts.hole + counts.union + counts.difference === 0
+    && (!counts.chamfer || last.kind === 'translate' && finishedTranslationPrefix(nodes.slice(0, -1), last.parent))),
+  'CAPABILITY', 'translate', 'One terminal translation permits only its complete owned finishing chain');
   demand(counts.difference <= CadModelLimits.differences && (!counts.difference || composed || counts.cut + counts.intersect + counts.split + counts.chamfer + counts.hole + counts.union === 0), 'CAPABILITY', 'graph', 'Only one exact union-slot chain may mix a difference with another operation');
   demand(counts.union <= CadModelLimits.unions && (!counts.union || counts.cut + counts.intersect + counts.split + counts.chamfer + counts.hole === 0), 'CAPABILITY', 'graph', 'One union cannot be mixed with other Boolean or finishing operations');
   demand(counts.hole <= CadModelLimits.holes && (!counts.hole || counts.cut + counts.intersect + counts.split + counts.chamfer === 0), 'CAPABILITY', 'graph', 'One hole cannot be mixed with cuts, intersections, splits or chamfers');
@@ -435,10 +492,18 @@ export function createCadModel(): CadModel {
   const append = (node: Node) => {
     const operation = node.kind === 'difference' ? 'cut' : node.kind;
     authoring(operation);
+    demand(!nodes.some(n => n.kind === 'translate') || !nodes.some(n => n.kind === 'chamfer'),
+      'CAPABILITY', operation, 'A finished translation is the final authored operation');
     const composed = compositionPrefix([...nodes, node]);
     const limit = node.kind === 'sketch' || node.kind === 'extrude' ? (composed ? CadModelLimits.compositionSketches : CadModelLimits.sketches) : node.kind === 'chamfer' ? CadModelLimits.chamfers : 1;
     demand(nodes.length < (composed ? CadModelLimits.compositionNodes : CadModelLimits.nodes) && nodes.filter(n => n.kind === node.kind).length < limit, 'CAPABILITY', operation, 'Supported operation count exceeded');
     demand(!['cut', 'intersect', 'split'].includes(node.kind) || !nodes.some(n => n.kind === 'cut' || n.kind === 'intersect' || n.kind === 'split'), 'CAPABILITY', operation, 'Only one through-slab cut, intersection or split is supported');
+    const translationIncompatible = ['cut', 'intersect', 'split', 'chamfer', 'hole', 'union', 'difference'];
+    demand(node.kind === 'translate'
+      ? !nodes.some(n => translationIncompatible.includes(n.kind) && n.kind !== 'chamfer')
+        && (!nodes.some(n => n.kind === 'chamfer') || finishedTranslationPrefix(nodes, node.parent))
+      : !translationIncompatible.includes(node.kind) || !nodes.some(n => n.kind === 'translate'),
+    'CAPABILITY', operation, 'Translation permits only its complete owned finishing chain');
     const finishing = ['cut', 'intersect', 'split', 'chamfer'];
     demand(node.kind === 'hole' ? !nodes.some(n => finishing.includes(n.kind)) : !finishing.includes(node.kind) || !nodes.some(n => n.kind === 'hole'), 'CAPABILITY', operation, 'A hole cannot be mixed with convex finishing operations');
     const incompatibleUnion = ['cut', 'intersect', 'split', 'chamfer', 'hole'];
@@ -467,6 +532,14 @@ export function createCadModel(): CadModel {
       const node = append({ kind: 'cut', parent: { ...reference }, tool: toolRef, axis }); return Object.freeze({ negative: shape({ node, side: 'negative' }), positive: shape({ node, side: 'positive' }) });
     }
     const handle: CadShape = Object.freeze({
+      translate(offset: readonly [CadDimension, CadDimension, CadDimension]): CadShape {
+        authoring('translate');
+        demand(this === handle, 'OWNERSHIP', 'translate', 'Translation belongs to this exact owned shape handle');
+        demand(arguments.length === 1, 'INPUT', 'translate', 'Translation requires exactly one offset tuple');
+        demand(affineExtrusion(nodes, reference) || finishedTranslationPrefix(nodes, reference), 'CAPABILITY', 'translate', 'Translation requires a direct affine extrusion or its complete owned finishing chain');
+        const vector = list(offset, 'translate', 3, 3).map(value => dimension(value as CadDimension)) as [Dimension, Dimension, Dimension];
+        return shape({ node: append({ kind: 'translate', parent: { ...reference }, offset: vector }), side: 'solid' });
+      },
       hole(options: { readonly center: CadPoint2; readonly radius: CadDimension }): CadShape {
         authoring('hole');
         record(options, 'hole', ['center', 'radius']);
@@ -497,7 +570,7 @@ export function createCadModel(): CadModel {
       cut,
       edges(query: CadEdgeQuery): CadEdgeQueryHandle {
         authoring('selection');
-        demand(!circleExtrusion(nodes, reference) && nodes[reference.node].kind !== 'hole' && nodes[reference.node].kind !== 'union' && nodes[reference.node].kind !== 'difference', 'CAPABILITY', 'selection', 'This body family is not admitted to convex edge queries');
+        demand(!circleExtrusion(nodes, reference) && nodes[reference.node].kind !== 'hole' && nodes[reference.node].kind !== 'union' && nodes[reference.node].kind !== 'difference' && nodes[reference.node].kind !== 'translate', 'CAPABILITY', 'selection', 'This body family is not admitted to convex edge queries');
         const q = record(query, 'selection'); demand(Object.keys(q).every(k => k === 'parallelTo' || k === 'at'), 'INPUT', 'selection', 'Unknown selector field');
         const authored: Query = {};
         if (Object.hasOwn(q, 'parallelTo')) { demand(axes.includes(query.parallelTo!), 'INPUT', 'selection', 'Cardinal direction required'); authored.parallelTo = query.parallelTo; }
@@ -508,6 +581,7 @@ export function createCadModel(): CadModel {
       chamfer(edge: CadEdgeSelection, distance: CadDimension, options?: { readonly name: string }): CadShape {
         authoring('chamfer');
         demand(!circleExtrusion(nodes, reference), 'CAPABILITY', 'chamfer', 'Circle bodies are not admitted to convex finishing operations');
+        demand(nodes[reference.node].kind !== 'translate', 'CAPABILITY', 'chamfer', 'Translated copies are terminal outputs');
         let configuration: ChamferConfiguration = {};
         if (options !== undefined) {
           record(options, 'chamfer', ['name']); name(options.name, 'chamfer');
@@ -552,7 +626,9 @@ export function createCadModel(): CadModel {
       demand(index !== undefined, 'OWNERSHIP', operation, 'Point handle belongs to another callback or is not owned'); return index;
     };
     const add = (constraint: PolygonConstraint) => {
-      demand(constraints.length < CadModelLimits.polygonConstraints, 'BUDGET', operation, 'At most sixteen constraints are supported'); constraints.push(constraint);
+      demand(constraints.length < CadModelLimits.polygonConstraints, 'BUDGET', operation, 'At most sixteen constraints are supported');
+      demand(constraint.kind !== 'parallel-to-direction' || constraints.filter(c => c.kind === 'parallel-to-direction').length < polygonDirectionLimit,
+        'BUDGET', operation, 'At most eight authored directions are supported'); constraints.push(constraint);
     };
     const orientation = (kind: 'horizontal' | 'vertical', a: CadSketchPoint, b: CadSketchPoint) => {
       const pair: [number, number] = [owned(a), owned(b)];
@@ -568,6 +644,12 @@ export function createCadModel(): CadModel {
       fixed(handle: CadSketchPoint): void { open(); demand(arguments.length === 1, 'INPUT', operation, 'Fixed requires exactly one point'); add({ kind: 'fixed', point: owned(handle) }); },
       horizontal(a: CadSketchPoint, b: CadSketchPoint): void { open(); demand(arguments.length === 2, 'INPUT', operation, 'Horizontal requires exactly two points'); orientation('horizontal', a, b); },
       vertical(a: CadSketchPoint, b: CadSketchPoint): void { open(); demand(arguments.length === 2, 'INPUT', operation, 'Vertical requires exactly two points'); orientation('vertical', a, b); },
+      parallelTo(a: CadSketchPoint, b: CadSketchPoint, direction: readonly [number, number]): void {
+        open(); demand(arguments.length === 3, 'INPUT', operation, 'ParallelTo requires two points and one dimensionless direction');
+        const pair: [number, number] = [owned(a), owned(b)];
+        demand(pair[0] !== pair[1], 'INPUT', operation, 'Orientation requires distinct points');
+        add({ kind: 'parallel-to-direction', points: pair, direction: polygonDirection(direction) });
+      },
     });
     let node: Extract<SketchNode, { profile: 'constrained-polygon' }>;
     staging = true;
@@ -576,8 +658,11 @@ export function createCadModel(): CadModel {
       const order = list(callback(builder), operation, 3, CadModelLimits.polygonPoints).map(value => owned(value as CadSketchPoint));
       demand(order.length === seeds.length && new Set(order).size === seeds.length, 'OWNERSHIP', operation, 'Return every staged point exactly once in cycle order');
       const indices = new Map(order.map((value, index) => [value, index]));
-      const local = constraints.map((c): PolygonConstraint => c.kind === 'fixed' ? { kind: 'fixed', point: indices.get(c.point)! }
-        : { kind: c.kind, points: c.points.map(index => indices.get(index)!) as [number, number] });
+      const local = constraints.map((c): PolygonConstraint => {
+        if (c.kind === 'fixed') return { kind: c.kind, point: indices.get(c.point)! };
+        const points = c.points.map(index => indices.get(index)!) as [number, number];
+        return c.kind === 'parallel-to-direction' ? { kind: c.kind, points, direction: [...c.direction] } : { kind: c.kind, points };
+      });
       node = { kind: 'sketch', profile: 'constrained-polygon', points: order.map(index => seeds[index]), constraints: polygonConstraints(local, order.length) };
     } catch (cause) {
       if (cause instanceof CadModelError) throw cause;
@@ -667,11 +752,17 @@ function evaluate(input: Document, previous?: EvaluationFrame): CadModelSnapshot
         let points: [number, number][];
         if (node.profile === 'polygon' || node.profile === 'constrained-polygon') points = node.points.map(p => [number(p[0]), number(p[1])]);
         else { const min = node.min.map(number), max = node.max.map(number); demand(min.every((v, i) => v < max[i]), 'PARAMETER', 'rectangle', 'Rectangle min must be strictly below max on each axis'); points = [[min[0], min[1]], [max[0], min[1]], [max[0], max[1]], [min[0], max[1]]]; }
+        const referenceLines: XYAffineSketchReferenceLine[] = node.profile === 'constrained-polygon'
+          ? node.constraints.flatMap((c, i) => c.kind === 'parallel-to-direction' ? [{ id: 'dir' + i, anchor: [0, 0] as [number, number], direction: c.direction }] : []) : [];
         const constraints: XYAffineSketchConstraint[] = node.profile === 'constrained-polygon'
-          ? node.constraints.map((c, i) => c.kind === 'fixed' ? { id: 'c' + i, kind: 'fixed', pointId: 'p' + c.point, target: points[c.point] }
-            : { id: 'c' + i, kind: c.kind, segmentId: 's' + ((c.points[0] + 1) % points.length === c.points[1] ? c.points[0] : c.points[1]) })
+          ? node.constraints.map((c, i): XYAffineSketchConstraint => {
+            if (c.kind === 'fixed') return { id: 'c' + i, kind: c.kind, pointId: 'p' + c.point, target: points[c.point] };
+            const segmentId = 's' + ((c.points[0] + 1) % points.length === c.points[1] ? c.points[0] : c.points[1]);
+            return c.kind === 'parallel-to-direction' ? { id: 'c' + i, kind: 'segment-parallel-to-fixed-direction', segmentId, referenceLineId: 'dir' + i }
+              : { id: 'c' + i, kind: c.kind, segmentId };
+          })
           : points.map((target, i) => ({ id: 'fix' + i, kind: 'fixed', pointId: 'p' + i, target }));
-        const native = buildXYAffineSketch({ format: 'barocss-xy-affine-sketch', version: 0, profile: 'exact-affine-binary64', id: prefix + '_sk', lengthUnit: 'mm', points: points.map((position, i) => ({ id: 'p' + i, position })), segments: points.map((_, i) => ({ id: 's' + i, startPointId: 'p' + i, endPointId: 'p' + ((i + 1) % points.length) })), referenceLines: [], constraints });
+        const native = buildXYAffineSketch({ format: 'barocss-xy-affine-sketch', version: 0, profile: 'exact-affine-binary64', id: prefix + '_sk', lengthUnit: 'mm', points: points.map((position, i) => ({ id: 'p' + i, position })), segments: points.map((_, i) => ({ id: 's' + i, startPointId: 'p' + i, endPointId: 'p' + ((i + 1) % points.length) })), referenceLines, constraints });
         if (node.profile === 'constrained-polygon' && (!native.report.fullyConstrained || native.report.degreesOfFreedom !== 0))
           throw new CadModelError('CAPABILITY', 'sketch', `Constrained polygon retains ${native.report.degreesOfFreedom} degrees of freedom; a fully constrained profile is required`, freeze(native));
         evidence.push({ kind: 'sketch', native }); values.push(undefined);
@@ -686,6 +777,10 @@ function evaluate(input: Document, previous?: EvaluationFrame): CadModelSnapshot
         const native = buildXYAffineSketchPrism(sketch.native, { sourceId: 'm' + node.sketch + '_src', sourceRevision: 0, orderedSegmentIds: sketch.native.document.segments.map(s => s.id), heightMM: height, capChart: { originXY: min as [number, number], spanXY: [max[0] - min[0], max[1] - min[1]] }, chartPolicy: { version: 1, kind: 'coordinate-span' }, solidId: prefix + '_solid', resultIdPrefix: prefix,
           ...(Object.hasOwn(node, 'from') ? { fromMM: number(node.from!) } : {}) });
         evidence.push({ kind: 'extrude', native }); values.push(convex(native.solid));
+      } else if (node.kind === 'translate') {
+        const offset = node.offset.map(number) as Point;
+        const native = buildModelingTranslation(solid(node.parent, 'translate'), offset, prefix);
+        evidence.push({ kind: 'translate', native }); values.push(convex(native.solid));
       } else if (node.kind === 'cut') {
         const tool = solid(node.tool, 'cut'), axis = axes.indexOf(node.axis);
         const support = (sign: number) => {
@@ -799,6 +894,24 @@ function measureNamedBody(bodies: Readonly<Record<string, CadBody>>, outputName:
   }
 }
 
+function exportNamedStl(bodies: Readonly<Record<string, CadBody>>, outputName: string): CadStlExport {
+  const operation = 'exportStl';
+  name(outputName, operation);
+  demand(Object.hasOwn(bodies, outputName), 'SELECTION', operation, 'Unknown output: ' + outputName);
+  const body = bodies[outputName];
+  demand(body.family === 'convex-planar', 'CAPABILITY', operation, 'Binary STL currently supports only owned convex planar outputs');
+  try {
+    const details = buildModelingStl(body.native);
+    return freeze({ outputName, family: 'convex-planar', format: 'binary-stl', lengthUnit: 'mm',
+      bytes: details.encoding.bytes, byteLength: details.encoding.bytes.length,
+      triangleCount: details.native.report.triangleCount,
+      maximumVertexDisplacementMM: details.encoding.maximumMeasuredDisplacementMM, details });
+  } catch (cause) {
+    if (cause instanceof CadModelError) throw cause;
+    throw new CadModelError('NATIVE', operation, cause instanceof Error ? cause.message : 'Native STL export refused', cause);
+  }
+}
+
 // Separate closure construction prevents retaining the prior evaluation frame or discarded suffix.
 function makeSnapshot(document: Document, key: string, evidence: CadModelEvidence[], values: EvaluatedValue[], bodies: Record<string, CadBody>, recomputation: CadModelSnapshot['recomputation']): CadModelSnapshot {
   freeze(document); freeze(evidence); freeze(values); freeze(bodies); freeze(recomputation);
@@ -807,6 +920,10 @@ function makeSnapshot(document: Document, key: string, evidence: CadModelEvidenc
     bodies, parameters: document.parameters, evidence, recomputation,
     suppression: freeze(Object.fromEntries(document.nodes.flatMap(n => n.kind === 'chamfer' && n.name !== undefined ? [[n.name, n.suppressed]] : []))),
     features: freeze(document.nodes.map((n, index) => ({ kind: n.kind, index, dependencies: deps(n), ...(n.kind === 'chamfer' && n.name !== undefined ? { name: n.name, suppressed: n.suppressed } : {}) }))),
+    exportStl(outputName: string): CadStlExport {
+      demand(arguments.length === 1, 'INPUT', 'exportStl', 'Exactly one output name is required');
+      return exportNamedStl(bodies, outputName);
+    },
     massProperties(outputName: string, options: CadMassPropertiesOptions): CadMassProperties {
       demand(arguments.length === 2, 'INPUT', 'massProperties', 'Exactly an output name and density options are required');
       return measureNamedBody(bodies, outputName, options);
