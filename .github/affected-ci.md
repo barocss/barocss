@@ -57,3 +57,19 @@ Run planner/artifact/policy controls locally with
 `node --test .github/scripts/*.test.mjs`. Actual first Actions results must be
 observed before claiming a speed improvement. This policy does not diagnose
 historical runner shutdowns or establish physical browser acceptance.
+
+## Application ESLint fallback
+
+Apps without a declared `lint` script use the root ESLint configuration on
+changed, tracked JS/TS files in that app. The runner uses safe individual argv
+entries, not shell interpolation, and excludes untracked generated build files.
+It prints the actual covered files and configured exclusions. Empty/ignored
+selections explicitly do not claim a lint pass; `apps/barocss-docs` currently
+has a root-config ignore. No ignore or lint rule is weakened.
+
+Lint can have cross-file effects. Root/nested lint configuration, dependency
+changes, unavailable comparison bases and unaudited local plugin wiring use all
+tracked code in affected app owners. Manual/pre-release regression also uses all
+relevant tracked app code. This can expose existing app lint errors; the former
+recursive root lint did not cover apps without scripts. Runtime tests remain
+external to required CI.

@@ -72,6 +72,43 @@ export function fullCheckCommands(rootManifest, regression = false) {
     ...(regression ? [['--recursive', '--filter', '!./apps/**', 'run', 'test']] : []),
   ];
 }
+export function selectAppLintFiles(directory, tracked, changed, all = false) {
+  if (!/^apps\/[A-Za-z0-9_.-]+$/.test(directory) || !Array.isArray(tracked) || !Array.isArray(changed)) throw new Error('invalid app lint ownership');
+  for (const path of [...tracked, ...changed]) if (!safePath(path)) throw new Error('unsafe app lint path');
+  const changes = new Set(changed);
+  return [...new Set(tracked)].filter((path) => path.startsWith(`${directory}/`)
+    && /\.[cm]?[jt]sx?$/.test(path) && (all || changes.has(path))).sort();
+}
+export function allAppLintRequired(plan, config, regression = false) {
+  // Current root config imports only registry packages. Unknown/local plugin wiring is conservative.
+  return regression || !plan.changedPaths.length || plan.reasons.some((reason) => /unavailable comparison|comparison unavailable/.test(reason))
+    || /(?:['"`]\.{1,2}\/|\b(?:import|require)\s*\()/.test(config)
+    || plan.changedPaths.some((path) => /(?:^|\/)(?:package\.json|eslint\.config\.[cm]?[jt]s|\.eslintrc[^/]*|pnpm-lock\.yaml|pnpm-workspace\.yaml|\.npmrc)$/.test(path)
+      || (!/^(?:apps|packages|examples|\.github|\.ai)\//.test(path) && !/\.md$/.test(path)));
+}
+async function appLint(plan, selectedDirectories, regression = false) {
+  const result = spawnSync('git', ['ls-files', '-z', '--', 'apps'], { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
+  if (result.status !== 0) throw new Error('cannot enumerate tracked app lint inputs');
+  const tracked = result.stdout.split('\0').filter(Boolean);
+  const all = allAppLintRequired(plan, readFileSync('eslint.config.mjs', 'utf8'), regression);
+  const directories = selectedDirectories ?? tracked.filter((path) => /^apps\/[^/]+\/package\.json$/.test(path)).map((path) => dirname(path));
+  const { ESLint } = await import('eslint');
+  const eslint = new ESLint({ cwd: process.cwd() });
+  for (const directory of directories) {
+    const manifest = JSON.parse(readFileSync(`${directory}/package.json`, 'utf8'));
+    if (manifest.scripts?.lint) continue; // Existing declared command remains authoritative.
+    const candidates = selectAppLintFiles(directory, tracked, plan.changedPaths, all || plan.changedPaths.includes(`${directory}/package.json`));
+    const files = []; const ignored = [];
+    for (const path of candidates) {
+      if (!lstatSync(path).isFile()) throw new Error(`non-regular app lint input: ${path}`);
+      if (await eslint.isPathIgnored(path)) ignored.push(path); else files.push(path);
+    }
+    console.log(JSON.stringify({ appLint: directory, coverage: all ? 'all tracked code' : 'changed tracked code', files, configuredExclusions: ignored }));
+    if (files.length) run('pnpm', ['exec', 'eslint', '--no-warn-ignored', '--', ...files]);
+    else console.log(`App ESLint ${directory}: no eligible files; no lint PASS claimed`);
+  }
+}
+
 function docs() {
   // Keep generated examples and all current docs validators; no deploy action.
   for (const script of docsValidationScripts) run('pnpm', ['--filter', '@barocss/library-docs', 'run', script]);
@@ -100,7 +137,7 @@ function restore(plan) {
   }
   for (const file of manifest.files) { mkdirSync(dirname(file.path), { recursive: true }); copyFileSync(`.ci-dist/${file.path}`, file.path); }
 }
-function main() {
+async function main() {
   const plan = JSON.parse(readFileSync('affected-ci-plan.json', 'utf8')); checkCurrent(plan);
   const action = process.argv[2];
   console.log('Required CI runs lint/types/build. Package/runtime tests run on manual/pre-release regression. Application tests are external: run locally or on Execute Tester. This CI does not claim they passed.');
@@ -112,7 +149,10 @@ function main() {
     const regression = action === 'regression';
     if (regression && !['workflow_dispatch', 'workflow_call'].includes(process.env.GITHUB_EVENT_NAME)) throw new Error('regression requires a manual/pre-release caller');
     if (regression) viewer();
-    for (const args of fullCheckCommands(JSON.parse(readFileSync('package.json', 'utf8')), regression)) run('pnpm', args);
+    for (const args of fullCheckCommands(JSON.parse(readFileSync('package.json', 'utf8')), regression)) {
+      run('pnpm', args);
+      if (args.length === 1 && args[0] === 'lint') await appLint(plan, undefined, regression);
+    }
     if (regression) rootChecks(); if (plan.docsNeeded) docs(); return; }
   if (plan.mode === 'full') throw new Error('partial action on full plan');
   if (action === 'build') { build(plan); return; }
@@ -128,8 +168,9 @@ function main() {
       if (packageCheckCommands(row).some(([selected]) => selected === command)) packageScript(row.name, row.directory, command, expected);
       else if (expected !== null) console.log(`External runtime test: ${row.name} ${command} (not run in CI)`);
     }
+    if (row.directory.startsWith('apps/')) await appLint(plan, [row.directory]);
     return;
   }
   throw new Error('unknown CI action');
 }
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) await main();

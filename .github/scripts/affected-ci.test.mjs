@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { classifyMarkdown, createAffectedPlan, validateAggregate, resolveComparison, buildOutputDirectory } from './affected-ci-plan.mjs';
-import { validateArtifactManifest, packageCheckCommands, fullCheckCommands, docsValidationScripts } from './affected-ci-run.mjs';
+import { validateArtifactManifest, packageCheckCommands, fullCheckCommands, docsValidationScripts, selectAppLintFiles, allAppLintRequired } from './affected-ci-run.mjs';
 
 const head = 'a'.repeat(40);
 const runId = '12345';
@@ -426,4 +426,25 @@ test('manual regression retains package tests while required full mode has no te
   const root = { scripts: { check: 'pnpm type-check && pnpm lint && pnpm build:library && pnpm test', test: 'pnpm run -r test' } };
   assert(!fullCheckCommands(root).some((args) => args.includes('test')));
   assert.deepEqual(fullCheckCommands(root, true).at(-1), ['--recursive', '--filter', '!./apps/**', 'run', 'test']);
+});
+
+
+test('app lint fallback selects safe changed tracked code without generated or foreign files', () => {
+  const files = ['apps/render-editor/src/a.ts', 'apps/render-editor/src/b.tsx', 'apps/render-editor/native-flow.mjs', 'apps/render-editor/README.md', 'apps/other/src/a.ts'];
+  assert.deepEqual(selectAppLintFiles('apps/render-editor', files, ['apps/render-editor/src/a.ts', 'apps/render-editor/dist/new.js', 'apps/other/src/a.ts']), ['apps/render-editor/src/a.ts']);
+  assert.deepEqual(selectAppLintFiles('apps/render-editor', files, [], true), files.slice(0, 3).sort());
+  assert.deepEqual(selectAppLintFiles('apps/render-editor', files, ['apps/render-editor/deleted.ts']), []);
+  for (const path of ['apps/render-editor/../secret.ts', '/tmp/secret.ts', 'apps/render-editor/a;echo.ts']) assert.throws(() => selectAppLintFiles('apps/render-editor', [path], []));
+  assert.throws(() => selectAppLintFiles('packages/other', files, []));
+});
+
+test('app lint uses all owned code for config, dependency, unknown-base and regression changes', () => {
+  const plan = { changedPaths: ['apps/render-editor/src/a.ts'], reasons: [] };
+  assert.equal(allAppLintRequired(plan, "import js from '@eslint/js'"), false);
+  for (const path of ['eslint.config.mjs', 'pnpm-lock.yaml', 'packages/tool/package.json', 'tools/custom-lint.mjs']) assert.equal(allAppLintRequired({ ...plan, changedPaths: [path] }, ''), true, path);
+  assert.equal(allAppLintRequired({ ...plan, changedPaths: [] }, ''), true);
+  assert.equal(allAppLintRequired({ ...plan, reasons: ['unavailable comparison: missing base'] }, ''), true);
+  for (const config of ["import local from './plugin.mjs'", "import './plugin.mjs'", "import('./plugin.mjs')", "require('./plugin.cjs')", "new URL('./plugin.mjs', import.meta.url)", 'import(pluginPath)', 'require(pluginPath)']) assert.equal(allAppLintRequired(plan, config), true, config);
+  assert.equal(allAppLintRequired(plan, '', true), true);
+  assert.equal(allAppLintRequired({ ...plan, changedPaths: ['.github/workflows/ci.yml'] }, ''), false);
 });

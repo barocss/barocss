@@ -124,7 +124,36 @@ test('regression is separately callable and required before either release opera
 
 test('all PR Physics runtime stages are manual-only while their package compilation remains', () => {
   const paths = readdirSync('.github/workflows').filter((name) => /^physics-.*\.yml$/.test(name));
-  assert.equal(paths.length, 27);
+  const baseline = [
+    'physics-1572.yml',
+    'physics-asymmetric-contact.yml',
+    'physics-cache-counterfactual-1572.yml',
+    'physics-clip-stage-audit.yml',
+    'physics-contact-correction-ledger.yml',
+    'physics-contact-energy-1572.yml',
+    'physics-energy-phase-1572.yml',
+    'physics-face-choice-audit.yml',
+    'physics-face-plane-witness.yml',
+    'physics-fallback-angular-1572.yml',
+    'physics-fallback-inclusive-1572.yml',
+    'physics-fallback-torque-1572.yml',
+    'physics-horizontal-ledger.yml',
+    'physics-independent-axis-selection.yml',
+    'physics-independent-projection.yml',
+    'physics-manifold-fallback-cause.yml',
+    'physics-manifold-identity.yml',
+    'physics-original-mini-1572.yml',
+    'physics-pair-ledger.yml',
+    'physics-pair-order-control-1572.yml',
+    'physics-point-momentum-reference.yml',
+    'physics-post-correction-redetect.yml',
+    'physics-private-cache-1572.yml',
+    'physics-sat-separation-witness.yml',
+    'physics-static-support-1572.yml',
+    'physics-support-centroid-1572.yml',
+    'physics-total-energy-1572.yml',
+  ];
+  for (const name of baseline) assert(paths.includes(name), `missing baseline workflow: ${name}`);
   for (const name of paths) {
     const source = readFileSync(`.github/workflows/${name}`, 'utf8');
     assert.match(source, /workflow_dispatch:/, name);
