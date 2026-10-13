@@ -22,3 +22,12 @@ test('represented decimals, subnormals, bounds and hostile getter',()=>{
  assert.equal(qualify([hostile,p(1,0),p(0,1)]).status,'refused');
  assert.equal(reads,0);
 });
+
+test('refuses adjacent collinear edge backtracking even with distinct vertices and nonzero area',()=>{
+ assert.deepEqual(qualify([p(0,0),p(4,0),p(2,0),p(2,2),p(0,2)]),
+   {status:'refused',reason:'non-simple-boundary'});
+ assert.deepEqual(qualify([p(2,0),p(0,0),p(4,0),p(4,2),p(2,2)]),
+   {status:'refused',reason:'non-simple-boundary'});
+ assert.equal(qualify([p(0,0),p(2,0),p(4,0),p(4,2),p(0,2)]).status,'qualified',
+   'consecutive collinear edges continuing forward may form a simple boundary');
+});
