@@ -49,3 +49,17 @@ test('rejects invalid coordinates, foreign records and getter inputs without inv
   assert.equal(orient(Object.assign(Object.create({ inherited: true }), { x: 0, y: 0 }), p(1, 0), p(0, 1)).status, 'unsupported');
   assert.equal(orient({ x: 0, y: 0, [Symbol('extra')]: true }, p(1, 0), p(0, 1)).status, 'unsupported');
 });
+
+test('independent exact integer determinant oracle across bounded point triples', () => {
+  const points = [];
+  for (let x = -2; x <= 2; x++) for (let y = -2; y <= 2; y++) points.push(p(x, y));
+  let checked = 0;
+  for (const a of points) for (const b of points) for (const c of points) {
+    const det = (BigInt(b.x) - BigInt(a.x)) * (BigInt(c.y) - BigInt(a.y))
+      - (BigInt(b.y) - BigInt(a.y)) * (BigInt(c.x) - BigInt(a.x));
+    const expected = det > 0n ? 'positive' : det < 0n ? 'negative' : 'zero';
+    assert.equal(sign(a, b, c), expected);
+    checked++;
+  }
+  assert.equal(checked, 15625);
+});
