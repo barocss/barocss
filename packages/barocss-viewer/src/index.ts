@@ -2286,25 +2286,31 @@ export class Viewer {
       const pose = curvePose({ modelId: entry.modelId, curveId }, this.geometryMotion);
       const displayed = (pointMM: number[]): Vec3 => displayVertex(pointMM as Vec3,
         pose, this.options.mmToSceneUnit).map(Math.fround) as Vec3;
-      // Reuse the previous endpoint: adjacent sampled segments share one vertex.
+      const view = (position: Vec3): Vec3 => {
+        const offset = subtract(position, this.camera.eye);
+        return [dot(offset, right), dot(offset, up), dot(offset, forward)];
+      };
+      const planes = (position: Vec3): number[] => [
+        position[2] - this.camera.near, this.camera.far - position[2],
+        position[0] + position[2] * tangent * aspect,
+        position[2] * tangent * aspect - position[0],
+        position[1] + position[2] * tangent,
+        position[2] * tangent - position[1],
+      ];
+      // Consecutive segments share one displayed endpoint, camera-space point
+      // and six clipping-plane distances; calculate each unique vertex once.
       let previous = sample.pointsMM.length ? displayed(sample.pointsMM[0]) : null;
+      let previousView = previous === null ? null : view(previous);
+      let previousPlanes = previousView === null ? null : planes(previousView);
       for (let index = 0; index + 1 < sample.pointsMM.length; index++) {
         const a = previous!;
         const b = displayed(sample.pointsMM[index + 1]);
+        const secondView = view(b);
+        const firstPlanes = previousPlanes!;
+        const secondPlanes = planes(secondView);
         previous = b;
-        const view = (position: Vec3): Vec3 => {
-          const offset = subtract(position, this.camera.eye);
-          return [dot(offset, right), dot(offset, up), dot(offset, forward)];
-        };
-        const firstView = view(a), secondView = view(b);
-        const planes = (position: Vec3): number[] => [
-          position[2] - this.camera.near, this.camera.far - position[2],
-          position[0] + position[2] * tangent * aspect,
-          position[2] * tangent * aspect - position[0],
-          position[1] + position[2] * tangent,
-          position[2] * tangent - position[1],
-        ];
-        const firstPlanes = planes(firstView), secondPlanes = planes(secondView);
+        previousView = secondView;
+        previousPlanes = secondPlanes;
         let low = 0, high = 1;
         for (let plane = 0; plane < firstPlanes.length; plane++) {
           const start = firstPlanes[plane], end = secondPlanes[plane];
