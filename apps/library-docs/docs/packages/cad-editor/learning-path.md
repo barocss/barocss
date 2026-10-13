@@ -14,13 +14,17 @@ You will load a 32 × 24 × 8 mm plate, change underside recess depth from 4 to 
 
 ## Continue with the adopted hands-on lessons
 
-These pages now exist in the accepted `develop` documentation. Their provider fixtures are source-backed; live browser/GPU/device evidence remains separate.
+Lessons 2–4 are already adopted in `develop`; lessons 5–6 are added by this documentation proposal. Each lesson links previously admitted provider features, but all live browser/GPU/device checks remain separate.
 
 | Lesson | What you practise | Open the lesson |
 | --- | --- | --- |
 | **2. Round post** | Diameter vs radius, center location, rational stored boundary and unavailable certified volume | [Round post](./round-post) |
 | **3. Mounting plate** | Through-hole, blank vs plate, strict containment and native-vs-mesh topology | [Mounting plate](./mounting-plate) |
 | **4. L-bracket** | Union of two rectangular extrusions, named operands and CONTACT refusal | [L-bracket](./l-bracket) |
+| **5. Top-entry pocket** | Cut down from Z=8, keep an exact floor, then open a through-window | [Top-entry pocket](./top-entry-pocket) |
+| **6. Constrained plate** | Resize width and profile Y height with fixed/H/V relationships; distinguish sketch vs extrusion thickness | [Constrained plate](./constrained-plate) |
+
+Lessons 5–6 are introduced under [#1888](https://github.com/barocss/barocss/issues/1888). Their implementation is already in the source, but documentation merge and device acceptance are independent gates; publication must not be inferred.
 
 The source PRs [#1746](https://github.com/barocss/barocss/pull/1746), [#1754](https://github.com/barocss/barocss/pull/1754), and [#1757](https://github.com/barocss/barocss/pull/1757) were merged before this learning-path update. Documentation adoption is not a claim of external product publication.
 

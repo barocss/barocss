@@ -50,6 +50,7 @@ function packageScript(name, directory, command, expected) {
 }
 function viewer() {
   for (const name of ['native-directional-light-webgpu', 'native-surface-uv01-webgpu', 'native-point-light-webgpu']) run(process.execPath, ['--test', '--test-concurrency=1', `packages/barocss-viewer/tests/${name}.test.mjs`]);
+  run(process.execPath, ['--test', 'examples/viewer-native-scene-replacement/surface-curvature-contract.test.mjs']);
 }
 function rootChecks() {
   const tests = readdirSync('.github/scripts').filter((name) => name.endsWith('.test.mjs')).sort().map((name) => `.github/scripts/${name}`);

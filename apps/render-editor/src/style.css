@@ -303,6 +303,15 @@ body:has(:is(.app-shell--mixed,.app-shell--scene)) [data-slot="dialog-content"] 
 .light-inspector-targets [aria-pressed="true"] { background: #243735; color: #bce4db; }
 .light-inspector-header h2 { margin: 10px 0 4px; font-size: 14px; overflow-wrap: anywhere; }
 .light-inspector-header small { color: var(--muted-foreground); }
+.light-body-tasks { display: grid; gap: 7px; margin-top: 10px; }
+.light-body-tasks > [role="group"] { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; }
+.light-body-tasks > [role="group"] button { min-width: 0; padding-inline: 4px; font-size: 11px; }
+.light-body-tasks [aria-pressed="true"] { background: #243735; color: #bce4db; }
+.light-body-tasks > strong { font-size: 12px; }
+.light-body-tasks > button { justify-self: start; }
+.light-draft-routes { flex-wrap: wrap; gap: 4px !important; }
+.light-draft-routes > small { flex-basis: 100%; line-height: 1.4; }
+.light-transaction-bar > .light-draft-routes > button { flex: 0 1 auto; padding-inline: 7px; font-size: 11px; }
 .light-inspector-fields { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; }
 .light-transaction-bar { flex: 0 0 auto; display: grid; gap: 7px; padding: 12px; border-top: 1px solid var(--border); background: #202c31; }
 .light-transaction-bar > small { color: #b4c3cb; line-height: 1.4; }

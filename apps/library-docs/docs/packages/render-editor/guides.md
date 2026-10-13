@@ -21,6 +21,14 @@ Choose a **Scene bodies** or **Scene lights** row to focus its current target, o
 
 The fixed **Apply / Discard** bar affects **all scene drafts, including hidden sections**. Switching focus never accepts or discards fields. If Apply refuses an invalid hidden field, return to its target and correct it, or Discard all drafts. Accepted heading and **Save accepted** stay on accepted data until acknowledgement; one successful Apply accepts all changes through the existing history transaction. See [workspace focus limits](./limits#workspace-focus-and-transaction-limits) and the adopted [workbench](https://github.com/barocss/barocss/blob/7bb5c5e833c8fa17c8d99aa0a5bbc59360cc16c1/apps/render-editor/src/native-light-workbench.tsx).
 
+### Choose a selected Body task
+
+Select a **Scene bodies** row, then choose **Move**, **Rotate**, **Scale** or **Material** in the Body inspector. Each task shows its existing fields: origin position in native millimetres, a staged local/world degree turn, dimensionless scale, or the selected qualified material. **Body overview** retains accepted source export and explicit staged transform reset; Surface and Duplicate/Remove commands keep their existing transaction rules.
+
+**Back to body overview** keeps raw input and returns focus to the task command. Selecting another body returns to overview while retaining both bodies’ drafts. The field groups and Canvas stay mounted; switching tasks is not preview or acceptance. The fixed **Apply / Discard** still affects **all scene drafts, including hidden body, light, camera and title fields**.
+
+After a hidden-field refusal, use **Scene bodies** to select the body to correct, then **Review body Move**, **Review body Scale** or **Review body Material**. Those routes reveal existing inputs without rewriting them and preserve the reported error. Editing a field clears that message; Apply runs the existing provider validation again. See [Body task limits](./limits#selected-body-task-limits) and the adopted [workbench](https://github.com/barocss/barocss/blob/d77e98528c639b07e893d6faa049d15376a80703/apps/render-editor/src/native-light-workbench.tsx).
+
 ### Select a body from the Canvas
 
 Choose a **Scene bodies** row, or click an admitted visible material-bound body with the primary left pointer and no modifiers. The complete original binding identifies the Inspector target even when geometry IDs repeat. A background miss keeps the current row. Selection retains every body's unfinished fields, accepted scene, history, Save authority and local view; it does not apply a transform or highlight material.
