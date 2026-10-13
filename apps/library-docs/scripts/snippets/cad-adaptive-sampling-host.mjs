@@ -1,3 +1,5 @@
+/* global workerCode: readonly */
+// Build-time binding prepended by build-cad-adaptive-sampling.mjs before bundling.
 const sourceProfile='733428030029a65797c26e3daadcae94c4762b09';
 const width=640,height=420;
 const project=point=>[point[0]+.4*point[2],point[1]+.6*point[2]];
@@ -37,10 +39,10 @@ function bitmapFor(canvas,data) {
     context.font='14px sans-serif';context.fillStyle='#B8C9D8';
     context.fillText(`Criterion ${result.request.options.chordToleranceMM} mm · ${result.report.segmentCount} segments · ${result.report.pointCount} points`,22,55);
     context.fillText('XYZ projection: x + 0.4z, y + 0.6z · native coordinates remain mm',22,77);
-    context.beginPath();result.curve.controlPoints.forEach((point,index)=>{const[x,y]=screen(point);index?context.lineTo(x,y):context.moveTo(x,y);});
+    context.beginPath();result.curve.controlPoints.forEach((point,index)=>{const[x,y]=screen(point);if(index)context.lineTo(x,y);else context.moveTo(x,y);});
     context.setLineDash([5,5]);context.strokeStyle='#BD8655';context.lineWidth=1.5;context.stroke();context.setLineDash([]);
     result.curve.controlPoints.forEach((point,index)=>{const[x,y]=screen(point);context.beginPath();context.arc(x,y,3,0,Math.PI*2);context.fillStyle='#F0B36D';context.fill();context.font='11px sans-serif';context.fillText('P'+index,x+5,y-5);});
-    context.beginPath();result.samples.forEach((sample,index)=>{const[x,y]=screen(sample.pointMM);index?context.lineTo(x,y):context.moveTo(x,y);});
+    context.beginPath();result.samples.forEach((sample,index)=>{const[x,y]=screen(sample.pointMM);if(index)context.lineTo(x,y);else context.moveTo(x,y);});
     context.lineWidth=3;context.strokeStyle='#68D5E1';context.stroke();
     result.samples.forEach(sample=>{const[x,y]=screen(sample.pointMM);context.beginPath();context.arc(x,y,2.5,0,Math.PI*2);context.fillStyle=sample.originalD1Guarded?'#FF7979':'#D5F8FB';context.fill();});
     const [start,end]=result.domain,axisY=369;

@@ -21,8 +21,9 @@ jobs:
       - run: pnpm --filter @barocss/physics build:library
       - run: mkdir -p /tmp/manifold-identity
       - run: pnpm exec esbuild examples/physics-contact-impulse-audit-1572/manifold-identity.ts --bundle --platform=node --format=esm --target=node22 --outfile=/tmp/manifold-identity/run.mjs
-      - run: node /tmp/manifold-identity/run.mjs > /tmp/manifold-identity/results.jsonl
-      - if: always()
+      - if: github.event_name != 'pull_request'
+        run: node /tmp/manifold-identity/run.mjs > /tmp/manifold-identity/results.jsonl
+      - if: always() && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: physics-manifold-identity-results

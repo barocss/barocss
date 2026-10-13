@@ -80,7 +80,7 @@ export function createCanvas2DExample(canvas, source) {
       return structuredClone(result);
     } catch (error) {
       // Restore admitted data and attempt frame restoration. Context loss can prevent paint.
-      try { renderer.updateScene(accepted.snapshot); renderer.render(); } catch {}
+      try { renderer.updateScene(accepted.snapshot); renderer.render(); } catch { /* Preserve the original error if best-effort frame restoration also fails. */ }
       throw error;
     }
   }

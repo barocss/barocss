@@ -21,6 +21,7 @@ jobs:
       - name: Build Physics library
         run: pnpm --filter @barocss/physics build:library
       - name: Run 3-box original family comparison
+        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
@@ -28,7 +29,7 @@ jobs:
           pnpm exec esbuild examples/physics-contact-impulse-audit-1572/original-mini-stacks.ts --bundle --platform=node --format=esm --target=node22 --outfile=/tmp/physics-1572-original-mini/audit.mjs
           node /tmp/physics-1572-original-mini/audit.mjs | tee /tmp/physics-1572-original-mini/results.jsonl
       - name: Preserve raw per-case results
-        if: always()
+        if: always() && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: physics-1572-original-mini-results

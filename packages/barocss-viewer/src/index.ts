@@ -1198,6 +1198,28 @@ export class Viewer {
     this.appearanceDocument = null;
     this.sceneRequest++;
   }
+  /** First mount of a complete qualified native document and appearance on an unused canvas. */
+  loadNativeSceneAppearance(input: ViewerNativeSceneAppearanceInputV1): void {
+    this.gpuLive(); check(!this.contextLost, 'Cannot mount native appearance after WebGL2 context loss');
+    check(this.renderer === null, 'Initial native appearance requires an unmounted Viewer');
+    const request = this.sceneRequest;
+    const candidate = prepareMountedNativeSceneAppearance(input,
+      { mmToSceneUnit: this.options.mmToSceneUnit, background: this.options.background });
+    this.gpuLive(); check(!this.contextLost, 'Cannot mount native appearance after WebGL2 context loss');
+    check(this.renderer === null && this.sceneRequest === request,
+      'Native appearance preparation changed the initial renderer or source request');
+    const renderer = mountPrimitiveViewport(this.canvas, candidate.prepared.prepared.frame.options);
+    try {
+      const result = renderer.updateFrame(candidate.prepared.prepared.frame);
+      if (!result.ok) throw result.error;
+    } catch (cause) {
+      try { renderer.dispose(); }
+      catch (cleanup) { throw new AggregateError([cause, cleanup], 'Native appearance mount and cleanup failed'); }
+      throw cause;
+    }
+    this.renderer = renderer;
+    this.adoptNativeSceneAppearance(candidate);
+  }
   /** One complete frame update on an already accepted qualified primitive backend. */
   replaceNativeSceneAppearance(input: ViewerNativeSceneAppearanceInputV1): void {
     this.gpuLive(); check(!this.contextLost, 'Cannot replace native appearance after WebGL2 context loss');
@@ -1212,6 +1234,9 @@ export class Viewer {
     check(this.renderer === renderer && this.sceneRequest === request,
       'Native appearance preparation changed the accepted renderer or source request');
     this.primitiveResult(renderer.updateFrame(candidate.prepared.prepared.frame));
+    this.adoptNativeSceneAppearance(candidate);
+  }
+  private adoptNativeSceneAppearance(candidate: ReturnType<typeof prepareMountedNativeSceneAppearance>): void {
     this.packets = candidate.packets; this.curves = candidate.curves;
     this.document = candidate.prepared.source.result; this.documentBodies = candidate.documentBodies;
     this.hiddenGeometry = candidate.hiddenGeometry; this.geometryMotion = candidate.prepared.display.motion;
@@ -2256,6 +2281,8 @@ export class Viewer {
       if (!this.visible({ kind: 'curve', modelId: entry.modelId,
         curveId: viewerCurveId(entry) })) continue;
       const sample = entry.sample, curveId = viewerCurveId(entry);
+      const nativeCurve = this.nativeModel(entry.modelId)?.objects.find(object => object.kind === 'curve'
+        && object.id === curveId);
       const pose = curvePose({ modelId: entry.modelId, curveId }, this.geometryMotion);
       const displayed = (pointMM: number[]): Vec3 => displayVertex(pointMM as Vec3,
         pose, this.options.mmToSceneUnit).map(Math.fround) as Vec3;
@@ -2312,10 +2339,8 @@ export class Viewer {
           [sample.parameters[index], sample.parameters[index + 1]];
         const parameterApprox = parameterInterval[0]
           + (parameterInterval[1] - parameterInterval[0]) * segmentFraction;
-        const curve = this.nativeModel(entry.modelId)?.objects.find(object => object.kind === 'curve'
-          && object.id === curveId);
-        check(curve && curve.kind === 'curve', 'Displayed Curve has no accepted native authority');
-        const nativePointMM = [...evaluateCurve(curve, parameterApprox)] as Vec3;
+        check(nativeCurve && nativeCurve.kind === 'curve', 'Displayed Curve has no accepted native authority');
+        const nativePointMM = [...evaluateCurve(nativeCurve, parameterApprox)] as Vec3;
         candidates.push({ result: { kind: 'curve',
           ref: { modelId: entry.modelId, curveId }, segmentIndex: index,
           parameterInterval, parameterApprox, displayPositionScene, nativePointMM,
