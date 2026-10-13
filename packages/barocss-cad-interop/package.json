@@ -230,6 +230,10 @@
       "./paired-surface-material-body-result": {
         "types": "./dist/paired-surface-material-body-result.d.ts",
         "import": "./dist/paired-surface-material-body-result.js"
+      },
+      "./paired-surface-material-body-world-points-result": {
+        "types": "./dist/paired-surface-material-body-world-points-result.d.ts",
+        "import": "./dist/paired-surface-material-body-world-points-result.js"
       }
     }
   },
@@ -462,6 +466,10 @@
     "./paired-surface-material-body-result": {
       "types": "./src/paired-surface-material-body-result.ts",
       "import": "./src/paired-surface-material-body-result.ts"
+    },
+    "./paired-surface-material-body-world-points-result": {
+      "types": "./src/paired-surface-material-body-world-points-result.ts",
+      "import": "./src/paired-surface-material-body-world-points-result.ts"
     }
   },
   "files": [
