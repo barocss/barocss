@@ -35,6 +35,11 @@ test('qualified orient2d exact, bounded, and refusal behavior', { timeout: 12000
     assert.deepEqual(orient(a,b,{x:10001,y:0}),
       {status:'unsupported',reason:'out-of-range-coordinate'});
     assert.equal(orient(null,b,a).status,'unsupported');
+    let getterReads = 0;
+    const hostile = { y: 1 };
+    Object.defineProperty(hostile, 'x', { enumerable: true, get() { getterReads++; return 1; } });
+    assert.equal(orient(hostile,b,a).status,'unsupported');
+    assert.equal(getterReads,0,'untrusted coordinate getter must never run');
     assert.equal(orient(a,b,{x:0.1,y:0},{maxAbsCoordinateMM:0,determinantUncertaintyMM2:0}).status,'unsupported');
   } finally { rmSync(dir,{recursive:true,force:true}); }
 });
