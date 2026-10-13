@@ -22,7 +22,7 @@ export async function loadModules(mode = 'source', evidence) {
   const disk = await statfs(root); assert.ok(disk.bavail * disk.bsize >= 500000000, 'Fresh 500000000 bytes free required');
   const dir = mode === 'source' ? 'src' : 'dist', ext = mode === 'source' ? 'ts' : 'js';
   const key = `barocss1581-${++serial}`;
-  const state = { calls: [], instances: [], counts: {}, gate: null, pickGate: null, mountGate: null, failure: null, failurePhase: null, mountPhase: 'ready', picked: undefined };
+  const state = { calls: [], instances: [], counts: {}, gate: null, pickGate: null, mountGate: null, selectionLoss: false, failure: null, failurePhase: null, mountPhase: 'ready', picked: undefined };
   globalThis[key] = state;
   const gpu = resolve(root, `packages/barocss-gpu/${dir}/index.${ext}`);
   const frame = resolve(root, `packages/barocss-gpu/${dir}/native-surface-uv01-frame.${ext}`);
@@ -40,7 +40,7 @@ export async function loadModules(mode = 'source', evidence) {
         async resize(w,t){h.calls.push(['resize',w,t]);try{prepare(raw,w,t);if(h.gate)await h.gate.promise;if(h.failure){const error=h.failure;h.failure=null;if(h.failurePhase)phase=h.failurePhase;return {ok:false,error}}width=w;height=t;generation++;return {ok:true}}catch(error){return {ok:false,error}}},
         async readPixels(){h.calls.push(['read']);if(h.gate)await h.gate.promise;return new Uint8Array(width*height*4)},
         async pick(x,y){h.calls.push(['pick',x,y]);if(h.pickGate)await h.pickGate.promise;return h.picked??{generation,ref:raw.entries[0].ref}},
-        select(ref){h.calls.push(['select',ref]);selected=ref;return {ok:true}},
+        select(ref){h.calls.push(['select',ref]);selected=ref;if(h.selectionLoss)phase='lost';return {ok:true}},
         dispose(){h.calls.push(['dispose']);phase='disposed'}
       };h.instances.push(instance);return instance;
     }`;
@@ -156,7 +156,16 @@ export async function runFacadeChecks(m) {
   const { viewer: api, state } = m, input = m.example.createSeedInput();
   const viewer = await api.createNativeSurfaceUV01WebGPUViewer({}, input, dimensions);
   const original = signed(viewer.originals), accepted = viewer.accepted, chosen = input.display.visibleGeometry[1];
-  good(viewer.select(chosen)); frozen(viewer.originals); assert.notEqual(viewer.originals, viewer.originals);
+  good(viewer.select(chosen)); frozen(viewer.originals);
+  const transient=await api.createNativeSurfaceUV01WebGPUViewer({},input,dimensions);
+  good(transient.select(chosen));
+  const priorSelection=transient.selected;
+  state.selectionLoss=true;
+  bad(transient.select(null),'STATE');
+  assert.deepEqual(transient.selected,priorSelection);
+  assert.equal(transient.status.state,'lost');
+  state.selectionLoss=false; transient.dispose();
+ assert.notEqual(viewer.originals, viewer.originals);
   state.gate = deferred(); const next = copy(input); next.owner.revision++;
   const update = viewer.replace(next); next.materials[0].source = 'mutated after await';
   assert.equal(viewer.accepted, accepted); assert.equal(signed(viewer.originals), original);
