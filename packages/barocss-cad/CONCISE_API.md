@@ -1038,13 +1038,34 @@ coefficients must be exactly representable binary64 values within ±10,000 mm;
 otherwise the edit refuses atomically with its original staged cause. For example,
 a 0.1 mm X spacing for this gusset cannot represent every exact coordinate sum.
 
-One translated copy of a direct affine extrusion is supported within the existing
-six-node envelope. Rectangle, convex polygon and constrainedPolygon parents,
+One translated copy of a direct affine extrusion or its complete one/two-chamfer
+finishing chain is supported within the existing six-node envelope. Rectangle, convex polygon and constrainedPolygon parents,
 including admitted extrusion placement, use the same convex body contract.
 The copy is a terminal named output: no translation chaining, edge finishing,
-Boolean, hole or split consumes it, and this graph cannot mix translation with
-those operations. Round posts and other body families are refused early. This is
+Boolean, hole or split consumes it. Finished-copy graphs must be exactly one
+sketch, its extrusion, one/two sequential chamfers, then the translation.
+Unrelated finishing siblings and Boolean mixtures remain unsupported. Round posts and other body families are refused early. This is
 not a rotation, scale, mirror, pattern or arbitrary B-Rep transform API.
+
+For two finished rails, keep the existing edge-selection and copy syntax:
+
+```ts
+import { cad } from '@barocss/cad';
+const model = cad.model();
+const spacing = model.parameter('spacing', 48);
+const blank = model.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const front = blank.chamfer(blank.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one(), 1);
+const finished = front.chamfer(front.edges({ parallelTo: 'x', at: { y: 24, z: 'max' } }).one(), 2);
+const pair = model.build({ left: finished, right: finished.translate([spacing, -0, 0]) });
+const wider = pair.withParameters({ spacing: 64 });
+const reopened = cad.load(wider.save());
+```
+
+The two outputs retain independently reconstructed source identities and full
+chamfer-to-copy lineage. Each rail has exact volume6064mm³; spacing-only edits
+reuse the four upstream features. Disabled named finishes still validate and
+select their actual parent before translation. Exact coordinate-sum refusals,
+native inventory limits and all existing error causes remain authoritative.
 
 A zero offset creates a distinct owned copy, even though its geometry coincides
 with the parent. A zero component preserves the parent's coordinate bits, while
@@ -1052,3 +1073,40 @@ the authored offset retains its own signed zero; exact nonzero cancellation uses
 +0. Generated target source identities are distinct and complete original-to-copy
 lineage is retained. Existing convex tessellation and named-output mass queries
 remain available; a new editor preset and physical/GPU acceptance are separate.
+
+## Export one output as binary STL
+
+```ts
+import { cad, type CadStlExport } from '@barocss/cad';
+
+const model = cad.model();
+const spacing = model.parameter('spacing', 48);
+const left = model.sketch.polygon([[0, 0], [40, 0], [40, 24], [8, 24]]).extrude(8);
+const pair = model.build({ left, right: left.translate([spacing, 0, 0]) });
+const exported: CadStlExport = pair.exportStl('right');
+const fileBytes = Uint8Array.from(exported.bytes);
+const maximumLossMM = exported.maximumVertexDisplacementMM;
+```
+
+`exportStl(outputName)` exports exactly one existing **convex-planar** body in its
+authored XYZ position. It performs complete native validation and creates the
+existing convex facet mesh before encoding. The result exposes immutable bytes,
+byte length, triangle count and measured Float32 vertex displacement. Full native
+mesh/source/face evidence, exact loss fractions, facet mapping and separated work
+counters live under `details`. The API does not write files or trigger downloads.
+
+Binary STL uses little-endian Float32 facets and zero attribute bytes. Coordinates
+follow the millimetre convention, with no recentering, axis conversion, scale or
+welding. STL does not embed units metadata, native identity, UV trims or editable
+CAD topology; use `save()` and `cad.load()` for editable models. Existing hole,
+circle and integer-cell families refuse before export work; another convex output
+in the same snapshot can still be selected by name.
+
+The unchanged native mesh budget is at most 64 vertices/40 triangles, or 2084 STL
+bytes. Each quantized triangle must remain nonzero and its encoded normal must
+align with that quantized triangle before binary storage is allocated. This does
+not certify preserved global topology or orientation against the original Solid
+after arbitrary rounding, downstream slicer compatibility or manufacturing
+tolerance. Exact native geometry can still collapse in Float32; such refusal
+retains the original cause and leaves the accepted model and earlier exported
+bytes unchanged. Native/provider details keep their original quality flags.

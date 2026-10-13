@@ -5,6 +5,8 @@ import type { CadEditorModelingController, CadEditorModelingSnapshot } from '../
 import type { CadEditorModelingExample, CadEditorModelingSplitAxis } from '../modeling-engine.js';
 import { createPrismFeatureDisplay } from '../prism-feature-display.js';
 import { readModelingFileText } from '../modeling-file.js';
+import { downloadModelingStl } from '../modeling-stl.js';
+import type { CadEditorStlExport } from '../modeling-stl.js';
 import { modelingDimensionCommand } from '../modeling-dimension-key.js';
 import { Button } from './ui/button.js';
 import { Input } from './ui/input.js';
@@ -20,6 +22,8 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
   const [snapshot, setSnapshot] = useState<CadEditorModelingSnapshot | null>(null);
   const [example, setExample] = useState<CadEditorModelingExample>('cut-chamfer');
   const [splitAxis, setSplitAxis] = useState<CadEditorModelingSplitAxis>('z');
+  const [stlOutput, setStlOutput] = useState('');
+  const [stlResult, setStlResult] = useState<CadEditorStlExport | null>(null);
   const [replaceExample, setReplaceExample] = useState(false);
   const [source, setSource] = useState(''), [confirmed, setConfirmed] = useState(false), [error, setError] = useState<string | null>(null);
   useEffect(() => {
@@ -52,8 +56,24 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
     setError(null); try { if (controller.current) Promise.resolve(operation(controller.current)).catch(cause => setError(String(cause))); }
     catch (cause) { setError(String(cause)); }
   };
-  useEffect(() => { setReplaceExample(false); }, [snapshot?.generation]);
+  useEffect(() => { setReplaceExample(false); setStlOutput(''); setStlResult(null); }, [snapshot?.generation]);
   const accepted = snapshot?.accepted, busy = snapshot?.busy ?? false, draft = Object.keys(snapshot?.drafts ?? {}).length > 0;
+  const selectedStlOutput = accepted?.outputs.find(output => output.name === stlOutput);
+  const canExportStl = accepted?.source === 'model' && selectedStlOutput
+    && (selectedStlOutput.family === undefined || selectedStlOutput.family === 'convex-planar');
+  const exportStl = async () => {
+    const session = controller.current, generation = snapshot?.generation;
+    if (!session || generation === undefined || !canExportStl || busy || draft) return;
+    setError(null); setStlResult(null);
+    try {
+      const result = await session.exportStl(stlOutput, generation, !snapshot?.workerReady);
+      const current = session.getSnapshot();
+      if (!result || controller.current !== session || current.generation !== generation || current.disposed || current.busy
+        || Object.keys(current.drafts).length || current.accepted?.revision !== result.revision
+        || !current.accepted.outputs.some(output => output.name === result.outputName && output.solidId === result.solidId)) return;
+      downloadModelingStl(result); setStlResult(result);
+    } catch (cause) { if (controller.current === session) setError(String(cause)); }
+  };
   const chamferChain = accepted?.source === 'model' && accepted.features.map(feature => feature.kind).join(',') === 'sketch,extrude,chamfer,chamfer'
     && ['frontDistance', 'backDistance', 'backY'].every(name => Object.hasOwn(accepted.parameters, name));
   const chamferSplit = accepted?.source === 'model' && accepted.features.map(feature => feature.kind).join(',') === 'sketch,extrude,chamfer,chamfer,split'
@@ -247,6 +267,25 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         action(s => s.pick(size.width, size.height, x, y, snapshot.generation));
       }} />
     {accepted && <>
+      <fieldset disabled={busy || draft} style={{ marginTop: 16 }}>
+        <legend>Export accepted geometry</legend>
+        <Label htmlFor={`${id}-stl-output`}>STL output</Label>
+        <select id={`${id}-stl-output`} value={stlOutput} disabled={busy || draft || accepted.source !== 'model'}
+          onChange={event => { setStlOutput(event.target.value); setStlResult(null); }}>
+          <option value="">Choose an accepted output</option>
+          {accepted.outputs.map(output => <option key={output.name} value={output.name}
+            disabled={accepted.source !== 'model' || (output.family !== undefined && output.family !== 'convex-planar')}>
+            {output.name} · {accepted.source === 'legacy' ? 'legacy (unavailable)' : output.family ?? 'convex-planar'}
+          </option>)}
+        </select>
+        <Button disabled={busy || draft || !canExportStl} onClick={() => void exportStl()}>
+          {snapshot?.workerReady ? 'Download STL' : 'Recover accepted model and export STL'}
+        </Button>
+        {!snapshot?.workerReady && <p>The native worker is unavailable. This action rebuilds the accepted saved model, verifies matching source and summary, then exports the selected output. It does not change model history or the accepted display.</p>}
+        <p>Choose the output independently of visible bodies or a selected face. Only primary convex outputs are supported. Apply or discard pending dimensions first. Export validates and encodes the accepted native body.</p>
+        <p>Binary STL uses approximate Float32 facets and an mm convention (STL stores no unit). At most40 facets; no coordinate conversion. Save the model separately to retain editable intent. Manufacturing and slicer acceptance require separate checks.</p>
+        {stlResult && <p role="status">{stlResult.outputName}.stl · {stlResult.byteLength} bytes · {stlResult.triangleCount} facets · maximum vertex displacement {stlResult.maximumVertexDisplacementMM} mm. Browser download requested.</p>}
+      </fieldset>
       <p>Named output bodies · trimmed native triangles · 1 scene unit = 1 mm · approximate face selection</p>
       {bodyView && <fieldset disabled={busy}>
         <legend>Visible output body</legend>

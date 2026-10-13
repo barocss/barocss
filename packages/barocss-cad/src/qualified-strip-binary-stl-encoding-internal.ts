@@ -1,6 +1,13 @@
-import type { QualifiedTranslatedStripBodyMeshPacket } from './qualified-translated-strip-body-mesh.js';
 import type { SectionFraction, SectionRational, SectionRationalContext } from './section-rational-internal.js';
 import type { Point } from './types.js';
+
+/** Geometry only, projected by a caller that owns the complete native validation. */
+export interface QualifiedStlGeometry {
+  readonly positionsMM: readonly number[];
+  readonly indices: readonly number[];
+  readonly vertices: readonly { readonly index: number; readonly point: readonly number[] }[];
+  readonly triangles: readonly { readonly index: number; readonly faceId: string; readonly vertexIndices: readonly number[] }[];
+}
 
 /** Private seam: the caller first admits the complete native mesh, once. */
 export interface QualifiedStlCounts {
@@ -36,7 +43,7 @@ type ExactPoint=[SectionRational,SectionRational,SectionRational];
 
 /** Encode only after every vertex-loss and quantized-facet guard has succeeded. */
 export function encodeQualifiedStripBinaryStlTrusted(
-  packet:QualifiedTranslatedStripBodyMeshPacket,
+  packet:QualifiedStlGeometry,
   q:SectionRationalContext,
   counts:QualifiedStlCounts,
   callbacks:QualifiedStlEncodingCallbacks,

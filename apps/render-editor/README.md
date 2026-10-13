@@ -796,3 +796,58 @@ Focused software check: `node native-light-workbench-flow.mjs --surface-point` r
 A signed-zero-aware numerical identity is a no-op, retaining the same form, lexical values such as `1.0`, and omitted poses. An explicit genuine reset can replace `-0` or negative-identity quaternion authorship with the stated canonical target. It never silently normalizes an imported orientation. The existing document and posed-display providers admit the generated selected pose before fields change; refusal retains all corrective text. Current body identity, selection epoch, pending operations, dialogs and lifetime fences are shared with rotation controls.
 
 `node native-light-workbench-flow.mjs --body-reset` runs only the new focused actual-provider/React block: at most ten helper calls, four controlled Viewer attempts and zero file transports per kind. Default CI retains older coverage. Physical GPU/files are not established by this check.
+
+### Export an accepted original CAD asset (#1901)
+
+**Export accepted CAD source** downloads the selected visible material-bound Surface's complete original asset as `asset-<safe-asset-id>.barocad`. Other original objects in that asset remain included, along with exact accepted comments, line endings, numeric spelling and native mm. Shared assets are exportable. Accepted control-point edits are included; scene poses, materials, lights and unfinished field drafts are not baked into the file. Use Save accepted for a complete scene instead.
+
+The existing native preparation and full body/asset binding qualify the read. UTF-8 must preserve the exact accepted text; unpaired-surrogate replacement refuses. No newline/BOM is inserted and no geometry is reserialized. This does not certify byte identity to a file before import decoding. Export leaves history, saved marker, selection, local view and drafts intact, and submits no Viewer replacement. Current selection-epoch/lifetime and pending/dialog/file/navigation fences apply. Anchors and object URLs are cleaned even if the download request fails; requesting a download does not prove disk persistence.
+
+Focused `node native-light-workbench-flow.mjs --source-export` runs only eight helper cases/four download attempts/zero Viewer replacements/one lifetime per kind, using actual source reimport and controlled download transport. Older file flows are not rerun by that flag.
+
+### Copy accepted material between bodies (#1917)
+
+Select the destination body, choose another visible material-bound body in **Copy accepted material from body**, then **Stage material copy**. Resolve all scene drafts first. The source is its accepted shader source and supplied overrides; the destination keeps its existing material ID, revision and complete qualified binding. Other bodies remain independent, including repeated material IDs. Omitted overrides, explicit defaults and signed zero retain their existing material authority.
+
+Staging changes only the destination's private material fields. **Apply** accepts the complete scene once, **Discard** restores accepted fields, and Undo/Redo uses ordinary scene history. Equal content is a no-op, including at maximum revisions. Changed material/scene revision limits refuse before presentation. Source selection is invalidated by a body-selection or accepted-scene change; selecting away and back does not revive it. Pending operations, dialogs, navigation and unavailable lifetimes retain their existing fences. No file transport or new binding is involved.
+
+Focused `node native-light-workbench-flow.mjs --material-copy` runs only this actual-provider/React block: at most ten helper calls, four controlled Viewer attempts, zero file transports and one lifetime per kind. Physical rendering and ordinary browser interaction remain separate Execute Tester checks.
+
+## Native Light viewport orientation shortcuts (#1915)
+
+Focus the **Required WebGPU light scene** Canvas and press **1** for Front (+Z),
+**3** for Right (+X), or **7** for Top (+Y). These are **perspective** views
+in the admitted right-handed Y-up scene basis, not orthographic projections.
+The active viewport target, eye distance, field of view and near/far clipping
+are preserved. Top uses screen-up −Z; Front and Right use screen-up +Y.
+
+Only the current local viewport camera changes through the ordinary acknowledged
+navigation session. The authored Scene camera, native CAD assets, Body poses,
+materials/lights, history, dirty drafts, accepted Save and revision remain
+untouched. Use **Set scene camera** separately if you explicitly want to author
+the local view. No conversion of original CAD millimetres or geometry occurs.
+
+Shortcuts require an actually focused Canvas and a ready, idle workspace.
+Modifiers, key repeat/composition, pending operations, dialogs, active pointer
+navigation/picking, device loss and disposal refuse. Escape can cancel a queued
+navigation request, but it cannot falsely undo an already acknowledged Viewer
+replacement. Refused admission retains the previous authored source and exposes
+the existing navigation error.
+
+Focused Node22 software qualification, distinct from actual GPU/browser input:
+
+```sh
+node apps/render-editor/native-light-view-presets-flow.mjs
+```
+
+This tests the real source-based camera derivation and DOM keyboard transport
+with a controlled async navigation session. It does not certify WebGPU pixels,
+physical keyboard/focus behavior, OS file downloads or integrated acceptance.
+
+### Edit the Light scene title (#1927)
+
+Use **Scene title** beside the accepted heading, then ordinary **Apply** to save it with all other scene drafts. **Discard** restores the accepted title; **Undo/Redo** restores whole-scene authorship. The heading and **Save accepted** keep accepted data until acknowledgement. Save and a fresh same-kind Open preserve the exact admitted title for further editing; the document ID and download filename are not renamed.
+
+The existing Native/Light provider requires non-whitespace text, at most 128 Unicode code points, 256 UTF-16 code units and 512 UTF-8 bytes. Valid text is not trimmed or normalized. Invalid title text remains available for correction and refuses the whole Apply. Exact equal title is a no-op; source/body/material identities, original geometry, poses, camera/local view and light values are retained by a title-only edit. Current pending, dialog/chooser, navigation and lifetime fences apply.
+
+Focused `node native-light-workbench-flow.mjs --scene-title` uses at most eight actual field/codec controls, five controlled Viewer attempts, two Save/Open transports and two lifetimes per kind. Ordinary pointer/IME, physical file persistence and GPU behavior remain separate Tester checks.
