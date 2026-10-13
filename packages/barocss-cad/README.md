@@ -10968,3 +10968,26 @@ certificate. Unknown output names and invalid options refuse atomically. Native
 refusals retain their original cause, including unrepresentable tiny masses.
 Measurements add no authored features or saved state. See the
 [primary API example](./CONCISE_API.md#measure-weight-and-balance-by-output-name).
+
+### Fully constrained convex profiles
+
+`model.sketch.constrainedPolygon(builder => points)` authors one closed XY cycle with
+callback-owned points and `fixed`, `horizontal`, and `vertical` constraints. Return
+all 3–8 points once in boundary order; orientation constraints must join adjacent
+points. `fixed(point)` uses its authored seed as a target, so owned parameters and
+derived dimensions remain editable. At most 16 constraints are admitted.
+
+The existing exact affine solver must report zero degrees of freedom before the
+existing prism constructor can qualify the result. Consistent redundant constraints
+remain in native evidence. Underconstrained profiles refuse with `CAPABILITY` and
+the complete actual solver result in `cause`; contradictory equations retain the
+original native error under `NATIVE`. Building or editing never adopts a partial
+profile. The synchronous callback is staged atomically, rejects foreign/copied
+handles and same-model mutation, and seals its builder on every exit.
+
+The returned `CadSketch` supports ordinary extrusion, including its existing exact
+`from` option. The resulting Solid remains convex-planar; a solved rectangular
+outline is not an authored rectangle for integer-box Boolean or plate-hole
+shortcuts. No nonlinear dimensions, construction points, automatic constraint
+inference, new body family, sketch UI or physical acceptance is implied. See
+[the complete primary example](./CONCISE_API.md#constraint-driven-profiles).

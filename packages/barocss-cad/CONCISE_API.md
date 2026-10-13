@@ -902,3 +902,54 @@ and its later edits. Measuring does not change save bytes, recomputation,
 parameters or finishing configuration; reopening measures a fresh native parent.
 No material database, principal axes, physical pose conversion or measurement UI
 is included in this method.
+
+## Constraint-driven profiles
+
+Use owned points to declare relationships without native identifiers:
+
+```ts
+import { cad } from '@barocss/cad';
+
+const m = cad.model();
+const width = m.parameter('width', 32);
+const height = m.parameter('height', 24);
+const profile = m.sketch.constrainedPolygon(s => {
+  const a = s.point([0, 0]);
+  const b = s.point([width, 1]);
+  const c = s.point([width, height]);
+  const d = s.point([1, height]);
+  s.fixed(a); s.fixed(c);
+  s.horizontal(a, b); s.vertical(b, c);
+  s.horizontal(c, d); s.vertical(d, a);
+  return [a, b, c, d];
+});
+const part = m.build({ part: profile.extrude(8) });
+const wider = part.withParameters({ width: 40 });
+const reopened = cad.load(wider.save());
+console.log(reopened.bodies.part.family);
+```
+
+`point` takes an XY seed with the usual literal, parameter or derived dimensions.
+`fixed(point)` constrains it to that current authored seed. Other solved points may
+move from their seeds. Return every staged point exactly once in cycle order;
+3–8 points and up to 16 constraints are supported. Horizontal/vertical pairs must
+be adjacent in that cycle, in either order. Point handles belong only to their
+synchronous callback. Copied/foreign handles, asynchronous returns, leaked builder
+calls and same-model authoring/build reentry refuse without consuming a node.
+Immutable dimension expressions can be created within the callback.
+
+Only a fully constrained result is accepted. Actual rank, DOF and consistent
+redundancy remain in the sketch's existing native evidence. An underconstrained
+solve throws `CadModelError` with code `CAPABILITY`, operation `sketch`, and the
+complete frozen native success in `cause`; no extrusion is attempted. A native
+contradiction retains its original `XYAffineSketchError` as the `NATIVE` cause.
+Failed parameter edits leave the earlier snapshot and future edits usable.
+
+The solver uses exact represented-binary64 rationals. Authored signed zero survives
+Save/Open and cache keys; a solved derived zero follows the native solver's +0
+policy. The actual solved cycle still needs the existing convex prism proof, so
+concave, crossed or degenerate profiles can refuse. Six-node/two-sketch limits are
+unchanged. The new authored profile is not eligible for the direct-rectangle
+Boolean/hole shortcuts, even if its solution happens to be rectangular. Existing
+convex-operation limits still apply; this addition makes no broader mixed-feature,
+new editor preset, drag or physical-file claim.

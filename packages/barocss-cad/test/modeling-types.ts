@@ -261,3 +261,33 @@ massProperties.centroidMM[0] = 0;
 // @ts-expect-error Full native details are read-only too.
 if (massProperties.family === 'convex-planar') massProperties.details.native.solid.request.options.solidId = 'fake';
 void [massKG, massCenter, inertiaEntry, exactVolume, massErrorUpper];
+
+import type { CadSketch, CadSketchPoint, CadConstrainedPolygonBuilder } from '../src/index.js';
+const constrainedModel = cad.model(), constrainedWidth = constrainedModel.parameter('width', 32);
+const constrainedProfile: CadSketch = constrainedModel.sketch.constrainedPolygon((s: CadConstrainedPolygonBuilder) => {
+  const a: CadSketchPoint = s.point([0, 0]);
+  const b = s.point([constrainedWidth, 1]), c = s.point([constrainedWidth, 24]), d = s.point([1, 24]);
+  s.fixed(a); s.fixed(c); s.horizontal(a, b); s.vertical(b, c); s.horizontal(c, d); s.vertical(d, a);
+  // @ts-expect-error Point handles are not coordinate tuples.
+  s.horizontal([0, 0], b);
+  // @ts-expect-error Fixed uses the point's authored seed, without another target.
+  s.fixed(a, [0, 0]);
+  // @ts-expect-error Every orientation constraint requires two point handles.
+  s.vertical(a);
+  // @ts-expect-error Only the bounded linear constraint methods exist.
+  s.tangent(a, b);
+  // @ts-expect-error The opaque point is read-only.
+  a.kind = 'sketch-point';
+  return [a, b, c, d] as const;
+});
+const constrainedShape: CadShape = constrainedProfile.extrude(8, { from: -2 });
+const constrainedSnapshot = constrainedModel.build({ part: constrainedShape });
+constrainedSnapshot.withParameters({ width: 40 }).save();
+// @ts-expect-error A callback is required.
+constrainedModel.sketch.constrainedPolygon();
+// @ts-expect-error Coordinates cannot replace callback-owned handles.
+constrainedModel.sketch.constrainedPolygon(() => [[0, 0], [1, 0], [0, 1]]);
+// @ts-expect-error Async callbacks cannot return a synchronous owned cycle.
+constrainedModel.sketch.constrainedPolygon(async s => [s.point([0, 0]), s.point([1, 0]), s.point([0, 1])]);
+// @ts-expect-error No extra public callback options.
+constrainedModel.sketch.constrainedPolygon(s => [s.point([0, 0]), s.point([1, 0]), s.point([0, 1])], {});
