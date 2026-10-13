@@ -36,6 +36,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Test directional WebGPU Viewer async lifecycle
+        run: NODE_OPTIONS=--max-old-space-size=2048 node --test --test-concurrency=1 packages/barocss-viewer/tests/native-directional-light-webgpu.test.mjs
+
+      - name: Test native UV01 WebGPU Viewer async lifecycle
+        run: NODE_OPTIONS=--max-old-space-size=2048 node --test --test-concurrency=1 packages/barocss-viewer/tests/native-surface-uv01-webgpu.test.mjs
+
       - name: Run CI checks
         run: pnpm check
 
