@@ -29,12 +29,13 @@ export function classifyExactSegmentCrossingV1(
     return { status: 'unsupported', reason: 'non-finite-coordinate' };
   if (points.some(p => Math.abs(p.x) > maxAbsCoordinateMM || Math.abs(p.y) > maxAbsCoordinateMM))
     return { status: 'unsupported', reason: 'out-of-range-coordinate' };
-  if (Object.is(a.x, b.x) && Object.is(a.y, b.y) ||
-      Object.is(c.x, d.x) && Object.is(c.y, d.y))
+  const [pa, pb, pc, pd] = points;
+  if (pa.x === pb.x && pa.y === pb.y ||
+      pc.x === pd.x && pc.y === pd.y)
     return { status: 'unsupported', reason: 'degenerate-segment' };
 
-  const abC = orient2dExactBinary64V1(a, b, c), abD = orient2dExactBinary64V1(a, b, d);
-  const cdA = orient2dExactBinary64V1(c, d, a), cdB = orient2dExactBinary64V1(c, d, b);
+  const abC = orient2dExactBinary64V1(pa, pb, pc), abD = orient2dExactBinary64V1(pa, pb, pd);
+  const cdA = orient2dExactBinary64V1(pc, pd, pa), cdB = orient2dExactBinary64V1(pc, pd, pb);
   if ([abC, abD, cdA, cdB].some(x => x.status !== 'exact'))
     return { status: 'unsupported', reason: 'invalid-input' };
   const signs = [abC, abD, cdA, cdB].map(x => x.status === 'exact' ? x.sign : 'zero');
