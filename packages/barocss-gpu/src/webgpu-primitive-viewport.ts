@@ -185,11 +185,16 @@ function readLimits(device: GPUDeviceHandle): PrimitiveBackendLimits {
   }
   return Object.freeze(result);
 }
-function release(resources: Resources | null): void {
-  if (!resources) return;
-  for (const buffer of resources.buffers) buffer.destroy();
-  for (const texture of resources.textures) texture.destroy();
-  resources.buffers.length = 0; resources.textures.length = 0; resources.pipeline = null; resources.group = null;
+function release(resources: Resources | null): unknown[] {
+  if (!resources) return [];
+  const failures: unknown[] = [];
+  // Clear ownership before invoking driver cleanup: callbacks and repeated
+  // terminal release must never destroy a partially processed handle twice.
+  const buffers = resources.buffers.splice(0), textures = resources.textures.splice(0);
+  resources.pipeline = null; resources.group = null;
+  for (const buffer of buffers) try { buffer.destroy(); } catch (cause) { failures.push(cause); }
+  for (const texture of textures) try { texture.destroy(); } catch (cause) { failures.push(cause); }
+  return failures;
 }
 
 class BackendViewport implements PrimitiveBackendViewport {
@@ -213,7 +218,7 @@ class BackendViewport implements PrimitiveBackendViewport {
     if (device) observeDeviceLoss(device.lost, () => {
       if (this.current.state === 'disposed' || this.current.state === 'failed') return;
       this.current.state = 'lost';
-      try { this.releaseOwned(); } catch { this.current.state = 'failed'; }
+      if (this.releaseOwned().length) this.current.state = 'failed';
     });
   }
   get frame(): PrimitiveSceneCpuFrameV0 { return structuredClone(this.cpu.frame.frame); }
@@ -231,9 +236,10 @@ class BackendViewport implements PrimitiveBackendViewport {
       this.current.state = 'failed'; this.releaseOwned(); this.device?.destroy();
     }
   }
-  private releaseOwned(): void {
-    release(this.accepted); release(this.candidate); this.accepted = null; this.candidate = null;
-    releasePrimitiveReadback(this.readback); this.readback = null;
+  private releaseOwned(): unknown[] {
+    const failures = [...release(this.accepted), ...release(this.candidate), ...releasePrimitiveReadback(this.readback)];
+    this.accepted = null; this.candidate = null; this.readback = null;
+    return failures;
   }
   async initialize(): Promise<void> {
     if (this.current.backend === 'webgl2') {
@@ -344,7 +350,10 @@ class BackendViewport implements PrimitiveBackendViewport {
           throw wrap('RENDER', 'Candidate presentation and accepted recovery failed', new AggregateError([cause, recovery]));
         }
       }
-      release(this.candidate); this.candidate = null; throw cause;
+      const cleanupFailures = release(this.candidate); this.candidate = null;
+      if (cleanupFailures.length)
+        throw wrap('RENDER', 'Candidate operation and cleanup refused', new AggregateError([cause, ...cleanupFailures]));
+      throw cause;
     }
   }
   async updateFrame(input: unknown): Promise<UpdateResult> {

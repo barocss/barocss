@@ -107,3 +107,45 @@ test('acceptance creation refuses unsupported feature and host getters without e
       document, options, invalid));
   }
 });
+
+test('dispose invalidates outstanding Native preview, is idempotent, preserves owned caller copies and other sessions', { timeout: 180000 }, () => {
+  const doc = authored();
+  const first = createNativeExtrusionPreviewAcceptanceV1(doc, options, 'extrusion_feature');
+  const other = createNativeExtrusionPreviewAcceptanceV1(doc, options, 'extrusion_feature');
+  const acceptedCopy = first.getAccepted();
+  const preview = first.prepareDistanceMM(3);
+  const ownedPreview = structuredClone(preview.geometry);
+  first.dispose();
+  first.dispose();
+  for (const invoke of [
+    () => first.getAccepted(),
+    () => first.prepareDistanceMM(4),
+    () => first.accept(preview.token),
+    () => first.cancel(preview.token),
+  ]) assert.throws(invoke, /DISPOSED/);
+  assert.deepEqual(preview.geometry, ownedPreview, 'returned preview remains independently owned');
+  assert.equal(acceptedCopy.document.revision, 0, 'prior caller-owned accepted data remains usable');
+  const next = other.prepareDistanceMM(3);
+  assert.equal(other.accept(next.token).revision, 1, 'disposing one session must not affect another');
+  other.dispose();
+});
+
+test('disposed session always rejects malformed, forged and replayed tickets before inspecting input', { timeout: 180000 }, () => {
+  const session = createNativeExtrusionPreviewAcceptanceV1(authored(), options, 'extrusion_feature');
+  const pending = session.prepareDistanceMM(3);
+  session.dispose();
+  let reads = 0;
+  const hostile = Object.defineProperty({}, 'kind', {
+    get() { reads++; throw new Error('host getter must not run'); },
+  });
+  for (const operation of [
+    () => session.prepareDistanceMM(NaN),
+    () => session.prepareDistanceMM(hostile),
+    () => session.accept(hostile),
+    () => session.cancel(hostile),
+    () => session.accept(pending.token),
+    () => session.cancel(pending.token),
+    () => session.accept(Object.freeze({ kind: 'native-extrusion-preview-token' })),
+  ]) assert.throws(operation, /DISPOSED/);
+  assert.equal(reads, 0, 'closed session must not invoke external getters');
+});
