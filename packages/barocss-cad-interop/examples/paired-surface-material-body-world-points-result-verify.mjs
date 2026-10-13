@@ -94,6 +94,19 @@ for (const name of ['main-result.json','edited-result.json']) {
   own(parsed.native, owned.native);
   own(parsed.validationReport, owned.validationReport);
   assert.notStrictEqual(parsed.native, parsed.validationReport);
+  // A caller may mutate its own copies, never the other admission or report.
+  const ownBefore = owned.native.request.queries[0].pointMM[0];
+  const reportBefore = owned.validationReport.queryCount;
+  const nativeBefore = parsed.native.request.queries[0].pointMM[0];
+  parsed.native.request.queries[0].pointMM[0] = nativeBefore + 0.125;
+  assert.equal(owned.native.request.queries[0].pointMM[0], ownBefore);
+  assert.equal(owned.validationReport.queryCount, reportBefore);
+  parsed.native.request.queries[0].pointMM[0] = nativeBefore;
+  const parsedReportBefore = parsed.validationReport.queryCount;
+  parsed.validationReport.queryCount = parsedReportBefore + 1;
+  assert.equal(owned.validationReport.queryCount, reportBefore);
+  assert.equal(parsed.native.report.queryCount, parsedReportBefore);
+  parsed.validationReport.queryCount = parsedReportBefore;
   for (const path of negativeZeroPaths) {
     assert.equal(Object.is(getAt(parsed.native, path), -0), true, name + ':' + path.join('.'));
     assert.equal(Object.is(getAt(owned.native, path), -0), true, name + ':' + path.join('.'));
