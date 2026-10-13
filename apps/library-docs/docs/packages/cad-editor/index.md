@@ -1,5 +1,7 @@
 # CAD Editor: original native authoring
 
+**Not sure which tool or editor mode to open?** Use [Choose a CAD workspace](./choose-workspace).
+
 **Which CAD tools are actually supported?** Check the [feature coverage matrix](./feature-coverage).
 
 **Browser/GPU verification requires independent evidence:** [Browser evidence protocol](./browser-evidence).
