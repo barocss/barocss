@@ -88,7 +88,7 @@ export function run(source) {
         const after = other.getSnapshot();
         if (!stale || after.available || after.materialPreview !== null || shown !== shownBeforeDrift
           || after.accepted !== baseline.accepted || !after.dirty || after.canUndo !== baseline.canUndo)
-          throw Error('Foreign ' + kind + ' must quarantine without publishing or editing authorship');
+          throw Error('Foreign ' + kind + ' must quarantine without publishing or editing authorship: ' + JSON.stringify({stale,available:after.available,preview:after.materialPreview,shown,shownBeforeDrift,sameAccepted:after.accepted===baseline.accepted,dirty:after.dirty,canUndo:after.canUndo,previousUndo:baseline.canUndo}));
         let replay = false;
         try {other.cancelMaterialPreview(token);} catch (cause) {replay = cause?.code === 'STALE_CANDIDATE';}
         if (!replay) throw Error('Invalidated ' + kind + ' preview token replayed');
