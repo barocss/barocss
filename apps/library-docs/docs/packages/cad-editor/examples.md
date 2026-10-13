@@ -1,6 +1,6 @@
 # CAD Editor: draft coefficients and accept a complete native document
 
-A native document is accepted authoring data. Raw input fields are drafts. A prepared candidate is a proposed complete document. A displayed frame is derived from that candidate. Keep these roles separate when embedding the editor.
+**Prefer hands-on solid modeling?** Follow [Two chamfers on a part](./two-chamfers), then [Split a part into lower and upper bodies](./split-part). Both teach the existing `#/model` presets, actual named millimetre dimensions, accepted-state recovery and authored Save/Open; this page below documents the separate developer-oriented original Surface/Curve session.\n\nA native document is accepted authoring data. Raw input fields are drafts. A prepared candidate is a proposed complete document. A displayed frame is derived from that candidate. Keep these roles separate when embedding the editor.
 
 Use the workspace packages with a TypeScript-capable bundler. The root is a pure CPU session API; `/react` requires React and React DOM 19.2.3 and a browser host.
 

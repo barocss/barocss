@@ -26,7 +26,7 @@ export interface MaterialFields {
   target: RenderNativeLightDocument['surfaceMaterials'][number]['target'];
   documentId: string; revision: number; shaderSource: string; suppliedOrder: string[]; uniforms: MaterialUniformFields[];
 }
-export interface LightForm {kind: LightKind; ambient: string; lights: LightFields[]; camera: CameraFields; bodies: BodyFields[]; materials: MaterialFields[]}
+export interface LightForm {kind: LightKind; title: string; ambient: string; lights: LightFields[]; camera: CameraFields; bodies: BodyFields[]; materials: MaterialFields[]}
 function declarations(source: string) {
   const result = compileMeshMaterial(source);
   if (!result.ok) throw new RenderEditorError('SOURCE_REFUSED', 'The original material shader could not be compiled.');
@@ -60,7 +60,7 @@ export function readLightFields(document: RenderNativeLightDocument): LightForm 
       rotation: (pose?.rotationXYZW ?? [0, 0, 0, 1]).map(text) as BodyFields['rotation']};
   });
   const materials = document.surfaceMaterials.map(({target, material}) => materialFields(target, material));
-  return {kind: lightKind(document), ambient: text(catalog.ambientStrength), bodies, materials, camera: {
+  return {kind: lightKind(document), title: document.title, ambient: text(catalog.ambientStrength), bodies, materials, camera: {
     eye: camera.eye.map(text) as CameraFields['eye'], target: camera.target.map(text) as CameraFields['target'],
     up: camera.up.map(text) as CameraFields['up'], fovYDegrees: text(camera.fovYDegrees), near: text(camera.near), far: text(camera.far),
   }, lights: lights.map(light => ({
@@ -125,7 +125,7 @@ export function applyLightFields(base: RenderNativeLightDocument, fields: LightF
     } finally {session.dispose();}
   });
   const camera = fields.camera;
-  return prepareRenderNativeLightDocument({...base, surfaceMaterials,
+  return prepareRenderNativeLightDocument({...base, title: fields.title, surfaceMaterials,
     display: {...base.display, poses, camera: {
       eye: camera.eye.map(value => numeric(value, 'Camera eye')),
       target: camera.target.map(value => numeric(value, 'Camera target')),
@@ -155,6 +155,30 @@ export function duplicateLightFields(fields: LightForm, nodeId: string): LightFo
 }
 export function lightFieldsDirty(fields: LightForm, accepted: RenderNativeLightDocument): boolean {
   return JSON.stringify(fields) !== JSON.stringify(readLightFields(accepted));
+}
+
+/** Explicit selected-field replacement; unrelated corrective drafts are never parsed or consumed. */
+export function stageLightBodyTransformReset(base: RenderNativeLightDocument, fields: LightForm, bodyId: string): LightForm {
+  const ids = bodyIds(base), index = ids.indexOf(bodyId);
+  if (fields.kind !== lightKind(base) || index < 0 || fields.bodies.length !== ids.length
+    || ids.some((id, i) => fields.bodies[i]?.bodyId !== id))
+    throw new RenderEditorError('DOCUMENT_INPUT', 'Reset requires the current original body selection.');
+  const body = fields.bodies[index];
+  if (body.position.length !== 3 || body.scale.length !== 3 || body.rotation.length !== 4)
+    throw new RenderEditorError('DOCUMENT_INPUT', 'Reset requires complete selected transform fields.');
+  const identity: BodyFields = {...body, position: ['0', '0', '0'], rotation: ['0', '0', '0', '1'], scale: ['1', '1', '1']};
+  let unchanged = false;
+  try {
+    unchanged = (['position', 'rotation', 'scale'] as const).every(key => body[key].every((value, i) =>
+      Object.is(numeric(value, 'Body transform'), Number(identity[key][i]))));
+  } catch { /* Explicit reset is also a correction of this selected body's invalid text. */ }
+  if (unchanged) return fields;
+  const baseline = readLightFields(base);
+  const candidate = applyLightFields(base, {...baseline, bodies: baseline.bodies.map((row, i) => i === index ? identity : row)});
+  const request = createRenderNativeLightRequest(candidate);
+  prepareViewerNativeSceneAppearance({version: 1, source: request.source, display: request.display,
+    appearance: {lighting: {ambientStrength: 1, directionalStrength: 0, direction: [0, 0, 1]}, materials: request.materials}}, request.context);
+  return {...fields, bodies: fields.bodies.map((row, i) => i === index ? identity : row)};
 }
 
 /** Explicit body-origin delta, never an Euler decomposition or an authored-q normalization. */
@@ -205,6 +229,13 @@ export function selectedLightMaterial(base: RenderNativeLightDocument, bodyId: s
   if (!base.display.visibleBodyIds.includes(bodyId) || bindings.length !== 1)
     throw new RenderEditorError('DOCUMENT_INPUT', 'Select one visible Surface with an existing qualified material binding.');
   return bindings[0]!;
+}
+
+/** Copy accepted content between qualified embedded bindings, never their identities. */
+export function stageLightMaterialCopy(base: RenderNativeLightDocument, fields: LightForm,
+  destinationBodyId: string, sourceBodyId: string): LightForm {
+  const source = selectedLightMaterial(base, sourceBodyId);
+  return stageLightMaterialFields(base, fields, destinationBodyId, source.material);
 }
 
 /** Portable data stages only source and overrides; original target metadata remain authoritative. */

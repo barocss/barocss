@@ -13,6 +13,12 @@ The current native envelope is `barocss-render-editor-native-scene`, wire versio
 
 Bounds are admission requirements, not permission to clamp or normalize. Original up/quaternion/vector components, signed zero and omitted material overrides survive accepted authorship and the signed codec. Actual native/material/TEN and posed GPU admission remain authoritative after schema validation. Plain own enumerable data is required; unknown fields, foreign prototypes, accessors, symbols, sparse arrays, nonfinite numbers, unsupported profiles and mismatched owner/revision bindings refuse.
 
+### Workspace focus and transaction limits
+
+- [Inspector focus](./guides#focus-the-light-workspace-inspector) is presentation state, not a new selection identity, document format or partial transaction. Body/light targets and every corrective field retain their existing authority. Focus controls refuse during pending work, navigation, Help, file/material reads, dialogs and recovery; changing a target never silently resolves hidden drafts.
+- The fixed footer uses the existing whole-scene Apply/Discard handlers. Invalid hidden fields remain reachable and refuse Apply; accepted-only Save, one acknowledged history step and unavailable-presentation recovery retain their existing limits. Scene titles retain the provider's raw admitted text and bounds: non-whitespace, at most 128 Unicode code points, 256 UTF-16 code units and 512 UTF-8 bytes.
+- Canvas sizing preserves the element's 8:5 backing aspect while fitting both frame axes, so the intended pick rectangle is the displayed image rectangle. Source-linked sizing and controlled center-pick checks do not establish rendered CSS, ordinary pointer behavior or GPU pixels. Physical narrow/short viewport picking, fixed-footer visibility and keyboard reachability still need actual-device verification; see the adopted [styles](https://github.com/barocss/barocss/blob/7bb5c5e833c8fa17c8d99aa0a5bbc59360cc16c1/apps/render-editor/src/style.css) and [focused flow](https://github.com/barocss/barocss/blob/7bb5c5e833c8fa17c8d99aa0a5bbc59360cc16c1/apps/render-editor/native-light-workbench-flow.mjs).
+
 ### Body duplicate and remove limits
 
 - [Duplicate/Remove](./guides#duplicate-or-remove-a-body) reuse the actual Native derivations and reconstruct every qualified target. A copy has new body/asset/embedded material IDs, with only its new asset/material revisions reset by that authority. The native document revision advances once; the owned whole-scene acceptance advances scene/light revisions and history once. Original source, raw pose/quaternion/signed zero, omitted poses/uniforms, other materials, light catalog and authored camera retain their values.
@@ -32,6 +38,13 @@ The finite software flow covers both light kinds with 32 direct helper cases, 12
 
 The bounded actual-provider/React/session flow uses controlled Viewers and file transport. Physical chooser, disk persistence, GPU pixels and integrated device recovery remain separate. The scoped software evidence does not add physical acceptance for [#1573](https://github.com/barocss/barocss/issues/1573). This Manual documents the local app entry point and does not deploy the editor itself.
 
+### Accepted original source export limits
+
+- [Export accepted CAD source](./guides#export-an-accepted-original-cad-asset) requires a current visible, unambiguous, qualified material-bound original Surface. The selected body identifies its whole asset; repeated geometry IDs do not select another asset and shared ownership does not block this read-only operation.
+- The download preserves exact accepted source text as UTF-8, including other objects and accepted point edits. Native document admission rejects malformed source and unpaired surrogates; an additional encoding roundtrip refuses replacement. No geometry serialization, axis conversion, scene transform, newline or BOM insertion is performed. Accepted text is not a claim of byte identity to an imported file before decoding.
+- Export does not consume drafts, mark the scene saved, alter revisions/history or request a Viewer replacement. Current selection epoch, accepted identity, lifetime and pending/dialog/chooser/navigation fences reject stale operations. Anchors and object URLs are cleaned even if the download request throws.
+- Focused actual-provider/React checks cover whole-asset reimport and accepted-only bytes through a controlled download transport. They do not establish physical chooser/disk persistence or GPU acceptance.
+
 ### Original Surface control-point limits
 
 - [Edit control point](./guides#edit-an-original-surface-control-point) requires a clean ready scene and one visible, unambiguous, qualified material-bound Surface. U/V are original row/column indices. XYZ is bounded to **±1000000 source mm**, weight to **0.000001..1000000**, and corrective fields to 256 characters. Existing source, rational geometry, posed display and revision admission remains authoritative; values are never silently clamped.
@@ -40,6 +53,13 @@ The bounded actual-provider/React/session flow uses controlled Viewers and file 
 - The captured coefficient/selection/lifetime ticket and existing exact command-draft cleanup own ready-refusal retry and loss recovery. Submitted Apply point synchronously disables all close routes; unmount invalidates its continuation. A stale completion cannot update a replacement lifetime. No rollback of physical pixels is promised.
 
 Both light kinds passed focused actual-provider/React/session checks with 12 edit-helper calls plus one real duplicate, six Viewer attempts, two Save/Open transports and three lifetimes per kind. These controlled checks do not establish physical GPU, file persistence or gizmo acceptance.
+
+### Body transform reset limits
+
+- [Stage reset transform](./guides#stage-a-body-transform-reset) replaces only the selected body's position/rotation/scale fields. It can correct that body's invalid numeric text without parsing or consuming unrelated drafts. Those other drafts still participate in the eventual whole-scene Apply and can refuse it.
+- The target is source-origin `[0,0,0]` mm, XYZW `[0,0,0,1]` and scale `[1,1,1]`. Existing document and posed-display admission must accept the generated selected pose before fields change. Source geometry, materials, lights, visibility and local view are retained; there is no automatic framing.
+- Signed-zero-aware exact numerical identity returns the same form, preserving lexical values such as `1.0` and omitted poses. A genuine explicit reset may replace `-0` with `+0` or a negative-identity quaternion with the stated target. It never normalizes an imported quaternion implicitly.
+- Current qualified selection, selection epoch, lifetime, pending operation, dialog, chooser and navigation fences apply. Staging adds no revision/history or Viewer request; ordinary Apply owns the acknowledged whole-scene change. Both-kind focused controlled checks establish software behavior, not physical GPU or file acceptance.
 
 ### Body rotation controls
 
@@ -66,6 +86,13 @@ See the [body-bound uniform guide](./guides#edit-scalar-material-uniforms-for-a-
 - Export reads only the selected accepted embedded material, even if private fields are dirty. It uses the signed portable serializer and safe existing ID filename, never calls the scene's saved acknowledgement, and always removes its owned link/revokes its URL. Download transport is not proof of disk persistence. Hidden, unbound, unqualified and busy targets remain unavailable.
 
 See the [material Import/Export steps](./guides#import-and-export-a-body-material) and [existing material authority](./api#portable-material-authority). Controlled files and Viewers establish software retention and lifecycle behavior only; #1577's physical file/pixel gate and #1573's physical gizmo gate remain open.
+
+### Body material copy limits
+
+- [Stage material copy](./guides#copy-a-material-from-another-body) reads the accepted source from another visible, unambiguous, fully qualified body binding. It uses the same actual assignment/material-session authority as portable import, retaining the destination identity/title/target and unrelated scene data. Repeated material or geometry IDs do not create a shared material.
+- Shader text and supplied overrides retain omission versus explicit defaults and signed zero. Exact equal content returns the unchanged form with no Viewer/history request. Changed material or scene revisions at **2147483647** refuse before staging; successful ordinary Apply advances each changed material and the scene once.
+- The whole-scene form/session must be clean and ready. Captured accepted-scene, source/destination binding, selection epoch and lifetime identities fence stale actions; selection away/back invalidates the choice. Pending operations, dialogs, file choosers, navigation and unavailable presentation block the command. A refused Apply retains staged corrective data under the existing transaction contract.
+- Both-kind focused provider/React checks cover ten helper cases, four Viewer attempts, no file transport and one lifetime per kind. Ordinary browser selection, visible material changes and physical GPU behavior require separate Execute Tester evidence; directional observations do not establish point-light pixels.
 
 ### Native Light transaction and cleanup limits
 
