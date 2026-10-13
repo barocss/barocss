@@ -61,7 +61,7 @@ jobs:
         with:
           version: 9
       - run: pnpm install --frozen-lockfile
-      - run: pnpm test
+      - run: pnpm --recursive --filter '!./apps/**' run test
       - run: node --test .github/scripts/*.test.mjs
 
   publish:

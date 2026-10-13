@@ -47,7 +47,7 @@ function graph(packages) {
 }
 
 export function createAffectedPlan({ packages, basePackages, changes = [], contents = {}, validBase = true, fullReason = null, head, runId }) {
-  const plan = { version: 1, head, runId, mode: 'full', reasons: [], changedPaths: [...new Set(changes.flatMap((change) => [change.oldPath, change.path]).filter((path) => typeof path === 'string'))].sort(), packages: [], builds: [], docsNeeded: changes.some(({ path, oldPath }) => [path, oldPath].some((p) => p?.startsWith('apps/library-docs/'))) };
+  const plan = { version: 1, head, runId, mode: 'full', appTests: 'external', reasons: [], changedPaths: [...new Set(changes.flatMap((change) => [change.oldPath, change.path]).filter((path) => typeof path === 'string'))].sort(), packages: [], builds: [], docsNeeded: changes.some(({ path, oldPath }) => [path, oldPath].some((p) => p?.startsWith('apps/library-docs/'))) };
   const finish = () => ({ ...plan, planId: digest(plan) });
   try {
     if (!shaPattern.test(head) || !/^\d+$/.test(runId)) throw new Error('invalid run identity');
@@ -100,7 +100,7 @@ export function createAffectedPlan({ packages, basePackages, changes = [], conte
 }
 
 export function validatePlan(plan) {
-  if (!plan || plan.version !== 1 || !shaPattern.test(plan.head) || !/^\d+$/.test(plan.runId) || !['full', 'packages', 'docs'].includes(plan.mode) || typeof plan.docsNeeded !== 'boolean' || !Array.isArray(plan.packages) || !Array.isArray(plan.builds)) throw new Error('invalid plan');
+  if (!plan || plan.version !== 1 || !shaPattern.test(plan.head) || !/^\d+$/.test(plan.runId) || !['full', 'packages', 'docs'].includes(plan.mode) || plan.appTests !== 'external' || typeof plan.docsNeeded !== 'boolean' || !Array.isArray(plan.packages) || !Array.isArray(plan.builds)) throw new Error('invalid plan');
   const { planId, ...body } = plan;
   if (digest(body) !== planId || (plan.mode === 'packages' && !plan.packages.length) || (plan.mode === 'docs' && (!plan.docsNeeded || plan.packages.length))) throw new Error('invalid plan identity or empty selection');
   return true;
@@ -162,7 +162,7 @@ function main() {
   const plan = createAffectedPlan(args); validatePlan(plan);
   writeFileSync('affected-ci-plan.json', `${JSON.stringify(plan, null, 2)}\n`);
   if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `mode=${plan.mode}\ndocs=${plan.docsNeeded}\nmatrix=${JSON.stringify({ package: plan.packages.map(({ name }) => name) })}\n`);
-  const summary = `Affected CI: ${plan.mode}\nReasons: ${plan.reasons.join('; ')}\nChecks: ${plan.packages.map(({ name }) => name).join(', ') || 'full/docs route'}\nBuilds: ${plan.builds.map(({ name }) => name).join(', ')}\nPlan: ${plan.planId}\n`;
+  const summary = `Affected CI: ${plan.mode}\nApplication tests: external (local / Execute Tester), not a CI pass claim\nReasons: ${plan.reasons.join('; ')}\nChecks: ${plan.packages.map(({ name }) => name).join(', ') || 'full/docs route'}\nBuilds: ${plan.builds.map(({ name }) => name).join(', ')}\nPlan: ${plan.planId}\n`;
   console.log(summary);
   if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
 }
