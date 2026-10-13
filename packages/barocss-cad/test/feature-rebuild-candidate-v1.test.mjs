@@ -26,3 +26,35 @@ test('transactional candidate refuses cyclic and sparse edit inputs before nativ
   const sparse = { expectedRevision: 0, revision: 1, parameterEdits: new Array(1), faceEdits: [], booleanEdits: [], distanceEdits: [] };
   assert.throws(() => prepareBooleanExtrusionRebuildV1({}, sparse), /Sparse edit array refused/);
 });
+
+
+test('real authored Native graph rebuild generates a separately owned candidate and impact', { timeout: 120000 }, async () => {
+  const { readFileSync } = await import('node:fs');
+  const { fileURLToPath } = await import('node:url');
+  const { resolve } = await import('node:path');
+  const { evaluateBooleanExtrusionFeatureGraph, updateBooleanExtrusionFeatureGraph } = await import('../dist/index.js');
+  const fixture = resolve(fileURLToPath(new URL('../../../apps/cad-editor/fixtures/boolean-extrusion.authored-graph.json', import.meta.url)));
+  const document = JSON.parse(readFileSync(fixture, 'utf8'));
+  const options = { maximumParameterResolutions: 8, maximumFeatureEvaluations: 7 };
+  const previous = evaluateBooleanExtrusionFeatureGraph(document, options);
+  const before = structuredClone(previous);
+  const edits = { expectedRevision: 0, revision: 1,
+    parameterEdits: [{ parameterId: 'base_height', definition: { kind: 'literal', valueMM: 3 } }],
+    faceEdits: [], booleanEdits: [], distanceEdits: [] };
+  const editsBefore = structuredClone(edits);
+  const prepared = prepareBooleanExtrusionRebuildV1(previous, edits);
+  const independent = updateBooleanExtrusionFeatureGraph(previous, edits);
+  assert.deepEqual(prepared.candidate, independent);
+  assert.equal(prepared.priorRevision, 0);
+  assert.equal(prepared.candidateRevision, 1);
+  assert.equal(prepared.evaluationMode, 'complete-native-rebuild-candidate');
+  assert.equal(prepared.impact.evaluationMode, 'analysis-only-full-rebuild-required');
+  assert.ok(prepared.impact.affectedParameterIds.includes('base_height'));
+  assert.ok(prepared.impact.affectedParameterIds.includes('design_height'));
+  assert.ok(prepared.impact.affectedFeatureIds.includes('extrusion_feature'));
+  assert.deepEqual(previous, before);
+  assert.deepEqual(edits, editsBefore);
+  const invalid = { ...edits, expectedRevision: 77 };
+  assert.throws(() => prepareBooleanExtrusionRebuildV1(previous, invalid));
+  assert.deepEqual(previous, before, 'failed candidate may not mutate accepted Native state');
+});
