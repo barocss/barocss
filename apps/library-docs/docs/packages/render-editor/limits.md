@@ -81,6 +81,13 @@ See the [body-bound uniform guide](./guides#edit-scalar-material-uniforms-for-a-
 
 See the [material Import/Export steps](./guides#import-and-export-a-body-material) and [existing material authority](./api#portable-material-authority). Controlled files and Viewers establish software retention and lifecycle behavior only; #1577's physical file/pixel gate and #1573's physical gizmo gate remain open.
 
+### Body material copy limits
+
+- [Stage material copy](./guides#copy-a-material-from-another-body) reads the accepted source from another visible, unambiguous, fully qualified body binding. It uses the same actual assignment/material-session authority as portable import, retaining the destination identity/title/target and unrelated scene data. Repeated material or geometry IDs do not create a shared material.
+- Shader text and supplied overrides retain omission versus explicit defaults and signed zero. Exact equal content returns the unchanged form with no Viewer/history request. Changed material or scene revisions at **2147483647** refuse before staging; successful ordinary Apply advances each changed material and the scene once.
+- The whole-scene form/session must be clean and ready. Captured accepted-scene, source/destination binding, selection epoch and lifetime identities fence stale actions; selection away/back invalidates the choice. Pending operations, dialogs, file choosers, navigation and unavailable presentation block the command. A refused Apply retains staged corrective data under the existing transaction contract.
+- Both-kind focused provider/React checks cover ten helper cases, four Viewer attempts, no file transport and one lifetime per kind. Ordinary browser selection, visible material changes and physical GPU behavior require separate Execute Tester evidence; directional observations do not establish point-light pixels.
+
 ### Native Light transaction and cleanup limits
 
 A workspace's backend kind is fixed for its lifetime. Mixed lighting and cross-kind Open/Apply refuse. Supported legacy directional V1 can be parsed and migrated; Native V0 requires the app's explicit legacy import into a directional workspace. Switching kinds starts a new lifetime; remount reconstructs accepted data and resets history.
