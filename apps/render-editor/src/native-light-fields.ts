@@ -157,6 +157,30 @@ export function lightFieldsDirty(fields: LightForm, accepted: RenderNativeLightD
   return JSON.stringify(fields) !== JSON.stringify(readLightFields(accepted));
 }
 
+/** Explicit selected-field replacement; unrelated corrective drafts are never parsed or consumed. */
+export function stageLightBodyTransformReset(base: RenderNativeLightDocument, fields: LightForm, bodyId: string): LightForm {
+  const ids = bodyIds(base), index = ids.indexOf(bodyId);
+  if (fields.kind !== lightKind(base) || index < 0 || fields.bodies.length !== ids.length
+    || ids.some((id, i) => fields.bodies[i]?.bodyId !== id))
+    throw new RenderEditorError('DOCUMENT_INPUT', 'Reset requires the current original body selection.');
+  const body = fields.bodies[index];
+  if (body.position.length !== 3 || body.scale.length !== 3 || body.rotation.length !== 4)
+    throw new RenderEditorError('DOCUMENT_INPUT', 'Reset requires complete selected transform fields.');
+  const identity: BodyFields = {...body, position: ['0', '0', '0'], rotation: ['0', '0', '0', '1'], scale: ['1', '1', '1']};
+  let unchanged = false;
+  try {
+    unchanged = (['position', 'rotation', 'scale'] as const).every(key => body[key].every((value, i) =>
+      Object.is(numeric(value, 'Body transform'), Number(identity[key][i]))));
+  } catch { /* Explicit reset is also a correction of this selected body's invalid text. */ }
+  if (unchanged) return fields;
+  const baseline = readLightFields(base);
+  const candidate = applyLightFields(base, {...baseline, bodies: baseline.bodies.map((row, i) => i === index ? identity : row)});
+  const request = createRenderNativeLightRequest(candidate);
+  prepareViewerNativeSceneAppearance({version: 1, source: request.source, display: request.display,
+    appearance: {lighting: {ambientStrength: 1, directionalStrength: 0, direction: [0, 0, 1]}, materials: request.materials}}, request.context);
+  return {...fields, bodies: fields.bodies.map((row, i) => i === index ? identity : row)};
+}
+
 /** Explicit body-origin delta, never an Euler decomposition or an authored-q normalization. */
 export function stageLightBodyRotation(base: RenderNativeLightDocument, fields: LightForm, bodyId: string,
   axis: LightRotationAxis, space: LightRotationSpace, degrees: string): LightForm {

@@ -788,3 +788,11 @@ Any other native body sharing the source asset, even hidden or unselected, makes
 Submitted Apply point fences Cancel, Escape and outside close synchronously. The existing captured geometry ticket and exact command-draft cleanup own ready-refusal retry, loss/recovery and stale completion. No pixel rollback is promised. This numeric control adds no gizmo or source parser and does not resolve physical report #1573.
 
 Focused software check: `node native-light-workbench-flow.mjs --surface-point` runs only the new actual-provider/React block with controlled Viewers and files. `--surface-point-preflight` checks fixture admission first. Default execution retains the existing regressions and includes the new block. Per kind the budget is 12 edit-helper calls, one separately counted actual duplicate derivation, 6 replacement attempts, 2 Save/Open transports and 3 owned lifetimes. Physical GPU/files remain outside this proof.
+
+### Stage a selected body transform reset (#1881)
+
+**Stage reset transform** replaces only the selected body's position, rotation and scale fields with `[0,0,0]` mm, XYZW `[0,0,0,1]` and `[1,1,1]`. It explicitly replaces that body's corrective text; other body, camera, material and light drafts remain. Existing **Apply** accepts the whole scene once; Undo/Redo restores it. Staging does not move the local view, present a frame, change history or edit original CAD source.
+
+A signed-zero-aware numerical identity is a no-op, retaining the same form, lexical values such as `1.0`, and omitted poses. An explicit genuine reset can replace `-0` or negative-identity quaternion authorship with the stated canonical target. It never silently normalizes an imported orientation. The existing document and posed-display providers admit the generated selected pose before fields change; refusal retains all corrective text. Current body identity, selection epoch, pending operations, dialogs and lifetime fences are shared with rotation controls.
+
+`node native-light-workbench-flow.mjs --body-reset` runs only the new focused actual-provider/React block: at most ten helper calls, four controlled Viewer attempts and zero file transports per kind. Default CI retains older coverage. Physical GPU/files are not established by this check.
