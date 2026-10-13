@@ -14,7 +14,7 @@ You will load a 32 × 24 × 8 mm plate, change underside recess depth from 4 to 
 
 ## Continue with the adopted hands-on lessons
 
-Lessons 2–4 are already adopted in `develop`; lessons 5–6 are added by this documentation proposal. Each lesson links previously admitted provider features, but all live browser/GPU/device checks remain separate.
+All six lessons below are now included in the accepted `develop` documentation. Their previously adopted provider fixtures support the stated native cases; real browser/GPU/device checks remain separate.
 
 | Lesson | What you practise | Open the lesson |
 | --- | --- | --- |
@@ -24,7 +24,7 @@ Lessons 2–4 are already adopted in `develop`; lessons 5–6 are added by this 
 | **5. Top-entry pocket** | Cut down from Z=8, keep an exact floor, then open a through-window | [Top-entry pocket](./top-entry-pocket) |
 | **6. Constrained plate** | Resize width and profile Y height with fixed/H/V relationships; distinguish sketch vs extrusion thickness | [Constrained plate](./constrained-plate) |
 
-Lessons 5–6 are introduced under [#1888](https://github.com/barocss/barocss/issues/1888). Their implementation is already in the source, but documentation merge and device acceptance are independent gates; publication must not be inferred.
+Lessons 5–6 were delivered by merged [PR #1898](https://github.com/barocss/barocss/pull/1898), closing [#1888](https://github.com/barocss/barocss/issues/1888). This is documentation/source adoption, not proof of deployment, release, physical GPU/browser acceptance or commercial capability.
 
 The source PRs [#1746](https://github.com/barocss/barocss/pull/1746), [#1754](https://github.com/barocss/barocss/pull/1754), and [#1757](https://github.com/barocss/barocss/pull/1757) were merged before this learning-path update. Documentation adoption is not a claim of external product publication.
 
