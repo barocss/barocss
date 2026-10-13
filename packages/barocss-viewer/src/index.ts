@@ -2256,6 +2256,8 @@ export class Viewer {
       if (!this.visible({ kind: 'curve', modelId: entry.modelId,
         curveId: viewerCurveId(entry) })) continue;
       const sample = entry.sample, curveId = viewerCurveId(entry);
+      const nativeCurve = this.nativeModel(entry.modelId)?.objects.find(object => object.kind === 'curve'
+        && object.id === curveId);
       const pose = curvePose({ modelId: entry.modelId, curveId }, this.geometryMotion);
       const displayed = (pointMM: number[]): Vec3 => displayVertex(pointMM as Vec3,
         pose, this.options.mmToSceneUnit).map(Math.fround) as Vec3;
@@ -2312,10 +2314,8 @@ export class Viewer {
           [sample.parameters[index], sample.parameters[index + 1]];
         const parameterApprox = parameterInterval[0]
           + (parameterInterval[1] - parameterInterval[0]) * segmentFraction;
-        const curve = this.nativeModel(entry.modelId)?.objects.find(object => object.kind === 'curve'
-          && object.id === curveId);
-        check(curve && curve.kind === 'curve', 'Displayed Curve has no accepted native authority');
-        const nativePointMM = [...evaluateCurve(curve, parameterApprox)] as Vec3;
+        check(nativeCurve && nativeCurve.kind === 'curve', 'Displayed Curve has no accepted native authority');
+        const nativePointMM = [...evaluateCurve(nativeCurve, parameterApprox)] as Vec3;
         candidates.push({ result: { kind: 'curve',
           ref: { modelId: entry.modelId, curveId }, segmentIndex: index,
           parameterInterval, parameterApprox, displayPositionScene, nativePointMM,
