@@ -57,7 +57,7 @@ The existing [native API recipe and accepted provider evidence](../cad/modeling#
 
 ## 4. Understand an intentional refusal
 
-One measured provider counterexample widens the through-cut across the plate and receives **two disconnected remaining components**. The single-result `part` authoring contract refuses that request instead of picking one component or welding them. This is a specialized fixture, **not a user-facing "width" slider on this preset**: X remains fixed at 8..24, so do not search for a missing width control.
+You can recreate the **provider-qualified refusal inputs** with the visible controls, after reaching an accepted `depth=8` through-window: change **Tool Y origin** to `0` and **Tool Y span** to `24` in one pending batch, leaving depth at `8`. The cutter then crosses the full Y extent of the plate, leaving **two disconnected remaining components** (1536 mm³ each in the native fixture). The single-result `part` authoring contract refuses instead of silently choosing one disconnected piece. The previous accepted through-window remains usable; correct or **Discard draft**. This is a Y-extent change, **not** a separate X-width slider: tool X stays fixed at 8..24. The exact provider refusal is known, but this documentation change has not independently tested the live browser UI.
 
 The current UI can also refuse invalid or nonrepresentable tool dimensions, positive-height violations, geometry qualification, or the 64-panel display limit. A refused **Apply dimensions** preserves the previous accepted snapshot, history and authored text. Check the actual diagnostic, then correct or **Discard draft**. Do not infer that a native acceptance guarantees a GPU frame.
 
