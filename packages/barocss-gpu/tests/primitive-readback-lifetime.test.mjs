@@ -11,7 +11,7 @@ const emitted = ts.transpileModule(source, {
 const { releasePrimitiveReadback } = await import('data:text/javascript;base64,' + Buffer.from(emitted).toString('base64'));
 
 function lease(unmap = () => {}, destroy = () => {}) {
-  return { buffer: { unmap, destroy }, unmapped: false, destroyed: false };
+  return { buffer: { unmap, destroy }, unmapped: false, destroyed: false, failures: [] };
 }
 
 test('normal cleanup is attempted exactly once even after a late callback', () => {
@@ -32,7 +32,8 @@ test('both cleanup failures are retained, each operation still attempted once', 
     () => { calls.push('destroy'); throw second; },
   );
   assert.deepEqual(releasePrimitiveReadback(ref), [first, second]);
-  assert.deepEqual(releasePrimitiveReadback(ref), []);
+  // A later finally must still observe failures from an earlier device-loss cleanup.
+  assert.deepEqual(releasePrimitiveReadback(ref), [first, second]);
   assert.deepEqual(calls, ['unmap', 'destroy']);
 });
 
@@ -46,4 +47,13 @@ test('late map completion after owner teardown cannot release buffer again', asy
   complete();
   assert.deepEqual(await late, []);
   assert.deepEqual(calls, ['unmap', 'destroy']);
+});
+
+test('cleanup failure receipt is independent of caller mutation', () => {
+  const refused = new Error('early cleanup refused');
+  const ref = lease(() => { throw refused; });
+  const observed = releasePrimitiveReadback(ref);
+  assert.deepEqual(observed, [refused]);
+  observed.length = 0;
+  assert.deepEqual(releasePrimitiveReadback(ref), [refused]);
 });
