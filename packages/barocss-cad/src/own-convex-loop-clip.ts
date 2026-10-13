@@ -4,7 +4,7 @@ import { evaluateCurveD1 } from './derivatives.js';
 import { splitCurveAtParameter } from './curve-parameter-split.js';
 import type { CurveParameterSplitProvenance } from './curve-parameter-split.js';
 import { intersectCoplanarCurveWithLineSegment } from './own-curve-line-intersection.js';
-import type { CoplanarCurveLineIntersectionResult, CurveLinePointEvent, CurveLineOverlapContact, CurveLineOverlapPiece, CurveLineBinding } from './own-curve-line-intersection.js';
+import type { CoplanarCurveLineIntersectionResult, CurveLinePointEvent, CurveLineOverlapContact, CurveLineBinding } from './own-curve-line-intersection.js';
 import type { PlaneClipUVSplitProvenance } from './own-coincident-plane-clip.js';
 import type { CurveAffinePlaneAxes, CurvePlaneD1State } from './own-curve-plane-intersection.js';
 import { compileCadModel } from './model-compiler.js';
