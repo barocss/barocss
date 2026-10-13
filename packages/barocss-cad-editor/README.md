@@ -36,6 +36,26 @@ lineage; legacy v1 is still unsupported in this editor. Unknown or malformed
 formats refuse without conversion. Historical `CadEditorPrismFeature` routes
 and APIs remain compatibility entries.
 
+The `#/model` editor's **Choose model file** action opens a native browser
+file picker for `.json` / `.cad.json`, then stages the chosen file's raw UTF-8
+text in the existing Saved model data field. The picker does **not** call the
+CAD Worker, replace the accepted model, advance history, discard pending
+dimensions, or change the displayed GPU scene. The user must review the text,
+explicitly acknowledge replacement when there is an accepted model, and press
+**Open saved model**. That original controller operation remains the sole
+authoritative parser/display/admission/rollback path. File selection is not
+successful native Open.
+
+The file reader checks a 262144-byte limit before reading and verifies actual
+bytes after the read, rejecting malformed UTF-8 and empty contents. The text
+field also retains its 262144-code-unit maximum. Failed reads retain the
+previously staged text and accepted model; selection clears prior replacement
+acknowledgement. A newer picker choice, typed edit, Show saved model or
+explicit Open wins over an older asynchronous read. A physical picker flow
+and browser/GPU/file-download roundtrip still need independent runtime
+verification; the pure preflight regression is
+`node packages/barocss-cad-editor/scripts/modeling-file-test.mjs`.
+
 The display adapter keeps native face/use/edge/vertex provenance and namespaces
 scene objects by output name. Two output names may alias one native body without
 colliding in scene/pick identity. CPU admission checks copied-data consistency;
