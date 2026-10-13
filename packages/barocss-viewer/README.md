@@ -1197,3 +1197,21 @@ source fixtures, actual appearance and point frame/program providers, a private
 controlled mount, and a deterministic software GPU platform. They do not prove
 physical GPU compilation, light pixels, browser picking, files or driver recovery.
 Those gates remain UNRUN under #1584/#1445/#1512/#1254/#674.
+
+
+### Initial native scene appearance mount
+
+On a fresh, unmounted Viewer, `viewer.loadNativeSceneAppearance(input)` uses
+the same qualified `ViewerNativeSceneAppearanceInputV1` as
+`replaceNativeSceneAppearance`. It prepares the complete original document,
+TEN pins, poses, visible Surfaces/Curves, materials, explicit camera and
+lighting before acquiring a temporary GPU viewport. It submits one complete
+frame, and adopts the prepared CPU authority only after success.
+
+This first-mount path refuses an already mounted renderer (including an empty
+viewport). Use `replaceNativeSceneAppearance` for supported mounted V2 or
+Viewport modes. A failed candidate does not accept partial document or
+appearance state. If GPU submission fails after the temporary renderer is
+created, the renderer is disposed; if that disposal also fails, both errors
+are retained in an `AggregateError`. This is a software implementation
+contract, not a browser/device acceptance certificate.
