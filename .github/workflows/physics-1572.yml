@@ -29,7 +29,7 @@ jobs:
           set -euo pipefail
           mkdir -p /tmp/physics-1572-audit
           failures=0
-          for test in entry friction-release gravity-velocity pose-drift fresh-contact public-world-smoke; do
+          for test in entry friction-release gravity-velocity pose-drift fresh-contact public-world-smoke public-two-box-resting-10s; do
             if pnpm exec esbuild "examples/physics-contact-impulse-audit-1572/${test}.ts" --bundle --platform=node --format=esm --target=node22 --outfile="/tmp/physics-1572-audit/${test}.mjs" >"/tmp/physics-1572-audit/${test}.build.log" 2>&1; then
               if node "/tmp/physics-1572-audit/${test}.mjs" >"/tmp/physics-1572-audit/${test}.log" 2>&1; then
                 echo "PASS ${test}"
@@ -44,6 +44,13 @@ jobs:
               failures=$((failures+1))
             fi
           done
+          if node /tmp/physics-1572-audit/public-two-box-resting-10s.mjs --three-boxes > /tmp/physics-1572-audit/public-three-box-resting-10s.log 2>&1; then
+            echo "PASS public-three-box-resting-10s"
+          else
+            echo "FAIL runtime public-three-box-resting-10s"
+            cat /tmp/physics-1572-audit/public-three-box-resting-10s.log
+            failures=$((failures+1))
+          fi
           echo "Failed audit consumers: ${failures}"
           test "${failures}" -eq 0
       - name: Preserve audit output
