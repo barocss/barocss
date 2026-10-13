@@ -1,6 +1,7 @@
-import {prepareRenderNativeLightDocument, createRenderMaterialSession, deriveRenderMaterialAssignment, RenderEditorError} from '@barocss/render-editor';
+import {prepareRenderNativeLightDocument, createRenderNativeLightRequest, createRenderMaterialSession, deriveRenderMaterialAssignment, RenderEditorError} from '@barocss/render-editor';
 import type {RenderNativeLightDocument, RenderMaterialDocument} from '@barocss/render-editor';
 import {compileMeshMaterial} from '@barocss/gpu';
+import {prepareViewerNativeSceneAppearance} from '@barocss/viewer';
 
 export type LightKind = 'directional' | 'point';
 export interface LightFields {
@@ -14,7 +15,10 @@ export interface CameraFields {
 }
 export interface BodyFields {
   bodyId: string; position: [string, string, string]; scale: [string, string, string];
+  rotation: [string, string, string, string];
 }
+export type LightRotationAxis = 'x' | 'y' | 'z';
+export type LightRotationSpace = 'local' | 'world';
 export interface MaterialUniformFields {
   name: string; override: boolean; value: string; min: number; max: number; defaultValue: string;
 }
@@ -52,7 +56,8 @@ export function readLightFields(document: RenderNativeLightDocument): LightForm 
   const bodies = bodyIds(document).map(bodyId => {
     const pose = document.display.poses.find(item => item.bodyId === bodyId);
     return {bodyId, position: (pose?.translationMM ?? [0, 0, 0]).map(text) as BodyFields['position'],
-      scale: (pose?.scale ?? [1, 1, 1]).map(text) as BodyFields['scale']};
+      scale: (pose?.scale ?? [1, 1, 1]).map(text) as BodyFields['scale'],
+      rotation: (pose?.rotationXYZW ?? [0, 0, 0, 1]).map(text) as BodyFields['rotation']};
   });
   const materials = document.surfaceMaterials.map(({target, material}) => materialFields(target, material));
   return {kind: lightKind(document), ambient: text(catalog.ambientStrength), bodies, materials, camera: {
@@ -76,17 +81,18 @@ export function applyLightFields(base: RenderNativeLightDocument, fields: LightF
   if (fields.bodies.length !== ids.length || ids.some((bodyId, index) => fields.bodies[index]?.bodyId !== bodyId))
     throw new RenderEditorError('DOCUMENT_INPUT', 'Body fields must retain the exact qualified body selection and order.');
   const parsedBodies = fields.bodies.map(body => {
-    if (body.position.length !== 3 || body.scale.length !== 3)
-      throw new RenderEditorError('DOCUMENT_INPUT', 'Body fields require complete position and scale XYZ values.');
+    if (body.position.length !== 3 || body.scale.length !== 3 || body.rotation.length !== 4)
+      throw new RenderEditorError('DOCUMENT_INPUT', 'Body fields require complete position/scale XYZ and rotation XYZW values.');
     return {bodyId: body.bodyId,
       translationMM: [0, 1, 2].map(index => numeric(body.position[index], 'Body position')),
-      scale: [0, 1, 2].map(index => numeric(body.scale[index], 'Body scale'))};
+      scale: [0, 1, 2].map(index => numeric(body.scale[index], 'Body scale')),
+      rotationXYZW: [0, 1, 2, 3].map(index => numeric(body.rotation[index], 'Body rotation'))};
   });
   // Empty poses are authored identity intent, not an instruction to materialize defaults.
   const poses = base.display.poses.length
     ? base.display.poses.map(pose => ({...pose, ...parsedBodies.find(body => body.bodyId === pose.bodyId)!}))
-    : parsedBodies.some(body => body.translationMM.some(value => !Object.is(value, 0)) || body.scale.some(value => !Object.is(value, 1)))
-      ? parsedBodies.map(body => ({...body, rotationXYZW: [0, 0, 0, 1]})) : [];
+    : parsedBodies.some(body => body.translationMM.some(value => !Object.is(value, 0)) || body.scale.some(value => !Object.is(value, 1))
+      || body.rotationXYZW.some((value, index) => !Object.is(value, index === 3 ? 1 : 0))) ? parsedBodies : [];
   const common = (light: LightFields) => ({nodeId: light.nodeId, label: light.label, enabled: light.enabled,
     colorLinearRGB: light.color.map(value => numeric(value, 'Linear color')),
     intensity: numeric(light.intensity, 'Intensity')});
@@ -137,6 +143,47 @@ export function addLightFields(fields: LightForm): LightForm {
 }
 export function lightFieldsDirty(fields: LightForm, accepted: RenderNativeLightDocument): boolean {
   return JSON.stringify(fields) !== JSON.stringify(readLightFields(accepted));
+}
+
+/** Explicit body-origin delta, never an Euler decomposition or an authored-q normalization. */
+export function stageLightBodyRotation(base: RenderNativeLightDocument, fields: LightForm, bodyId: string,
+  axis: LightRotationAxis, space: LightRotationSpace, degrees: string): LightForm {
+  const ids = bodyIds(base), index = ids.indexOf(bodyId);
+  if (fields.kind !== lightKind(base) || index < 0 || fields.bodies.length !== ids.length
+    || ids.some((id, i) => fields.bodies[i]?.bodyId !== id))
+    throw new RenderEditorError('DOCUMENT_INPUT', 'Rotation requires the current original body selection.');
+  if (!['x', 'y', 'z'].includes(axis) || !['local', 'world'].includes(space))
+    throw new RenderEditorError('DOCUMENT_INPUT', 'Choose X, Y or Z and local or world axes.');
+  const angle = numeric(degrees, 'Rotation degrees');
+  if (Math.abs(angle) > 360) throw new RenderEditorError('DOCUMENT_INPUT', 'Rotation degrees must be from -360 to 360.');
+  // Identity commands retain exact raw authorship, even q/-q and omitted poses.
+  if (angle === 0 || Math.abs(angle) === 360) return fields;
+  const body = fields.bodies[index], baseline = readLightFields(base);
+  const isolated = {...baseline, bodies: baseline.bodies.map((row, i) => i === index ? body : row)};
+  // Admit the current selected pose before using its quaternion. Unrelated invalid
+  // corrective text stays in fields, outside this temporary validation document.
+  const current = applyLightFields(base, isolated);
+  const q = current.display.poses.find(pose => pose.bodyId === bodyId)?.rotationXYZW ?? [0, 0, 0, 1] as const;
+  const half = angle * Math.PI / 360, delta: [number, number, number, number] = [0, 0, 0, Math.cos(half)];
+  if (half === 0) throw new RenderEditorError('DOCUMENT_INPUT', 'Rotation degrees are too small to represent safely.');
+  delta[['x', 'y', 'z'].indexOf(axis)] = Math.sin(half);
+  const [ax, ay, az, aw] = space === 'local' ? q : delta;
+  const [bx, by, bz, bw] = space === 'local' ? delta : q;
+  // Same Hamilton XYZW order as Native gizmos: local q*delta, world delta*q.
+  // Keep the computed values. The actual authority refuses unsafe roundoff;
+  // it is not permission to normalize or choose the sign of the original q.
+  const rotation = [aw * bx + ax * bw + ay * bz - az * by,
+    aw * by - ax * bz + ay * bw + az * bx,
+    aw * bz + ax * by - ay * bx + az * bw,
+    aw * bw - ax * bx - ay * by - az * bz].map(text) as BodyFields['rotation'];
+  const changed = {...body, rotation};
+  const candidate = applyLightFields(base, {...isolated, bodies: isolated.bodies.map((row, i) => i === index ? changed : row)});
+  const request = createRenderNativeLightRequest(candidate);
+  // This is the same real pose/material CPU preflight used by both native light
+  // candidates. Catalog lighting was admitted above; no renderer is mounted.
+  prepareViewerNativeSceneAppearance({version: 1, source: request.source, display: request.display,
+    appearance: {lighting: {ambientStrength: 1, directionalStrength: 0, direction: [0, 0, 1]}, materials: request.materials}}, request.context);
+  return {...fields, bodies: fields.bodies.map((row, i) => i === index ? changed : row)};
 }
 
 /** Select only an existing, fully qualified visible binding; embedded IDs are not global assets. */

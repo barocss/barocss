@@ -630,3 +630,43 @@ scene sessions are used; a read-only test observer captures the real controller.
 File/DOM/Viewer transports remain controlled. Source review and scoped flow, app
 types/build and lint must pass before software acceptance. Physical files, browser
 focus, GPU pixels, device recovery and the #1573/#1577 gates remain unverified.
+
+### Rotate Light scene bodies by degrees (#1693)
+
+Select a body, choose **Local body axes** or **World axes** and X/Y/Z, then
+enter **Rotate by (degrees)** and choose **Stage rotation**. The **−90° / +90°**
+buttons stage a quarter turn around the selected axis. These controls rotate
+about the body origin, keeping position and scale fixed. **Apply** accepts the
+whole scene once; Undo/Redo and accepted-only Save/Open retain that same history.
+Multiple commands accumulate on the current draft. Staging does not present a
+frame. An invalid angle or pose leaves the corrective text and prior draft intact.
+Unrelated invalid camera/light/body/material text is retained and must still be
+corrected before whole-scene Apply. Command preferences alone do not dirty the
+scene; they remain per body until the existing Apply/Discard/Open/history refresh.
+
+Angles are finite decimal degrees in **−360..360**. Positive angles follow the
+right-handed scene basis. For an axis quaternion delta made from
+`sin(degrees * π / 360)` and `cos(degrees * π / 360)`, local rotation is
+`q * delta`; world rotation is `delta * q`, using the existing Native gizmo XYZW
+Hamilton convention. Imported orientation is never decomposed to Euler angles.
+Neither its quaternion nor the generated delta/result is normalized or sign
+snapped. The existing scene and posed Viewer/GPU CPU validators refuse unsafe
+results, including roundoff outside their component/unit-norm limits. An angle
+too small to retain a nonzero half-angle is refused rather than underflowing to
+a pretend rotation. Quaternion values are available only as an advanced read-only
+display, not the primary editing controls.
+
+Exactly **+0, −0, +360 and −360** keep the identical form and raw quaternion,
+including signed zero, quaternion sign and omitted identity poses. Other angles
+are not wrapped or clamped; several intentional rotations may produce a
+different raw quaternion even when the resulting orientations coincide. Existing
+signed whole-document comparison, not approximate orientation equality, owns
+Apply no-ops. A genuine rotation expands an omitted pose list to the existing
+complete selected-body contract. Original CAD geometry, qualified body identity,
+visibility and every unrelated authored field remain unchanged.
+
+The existing flow command adds at most 36 helper calls, six Viewer replacements
+and four Save/Open transports per light kind, separately from prior regressions.
+It uses actual scene/pose admission and an independent vector oracle, plus real
+React/session controls with controlled Viewer/file transport. Physical pixels,
+pointer ergonomics and the owner-reported #1573 gizmo gate remain unverified.

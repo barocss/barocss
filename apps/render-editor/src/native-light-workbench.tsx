@@ -10,8 +10,8 @@ import {createNativeLightNavigation} from './native-light-navigation';
 import {deriveNativeLightFramingCamera} from './native-light-framing';
 import {createNativeSceneBase, createNativeSceneSeed} from './native-scene-seed';
 import {readLightFields, applyLightFields, addLightFields,
-  lightFieldsDirty, lightKind, selectedLightMaterial, stageLightMaterialFields} from './native-light-fields';
-import type {BodyFields, CameraFields, LightFields, LightForm, LightKind, MaterialUniformFields} from './native-light-fields';
+  lightFieldsDirty, lightKind, selectedLightMaterial, stageLightMaterialFields, stageLightBodyRotation} from './native-light-fields';
+import type {BodyFields, CameraFields, LightFields, LightForm, LightKind, MaterialUniformFields, LightRotationAxis, LightRotationSpace} from './native-light-fields';
 import {Button} from './components/ui/button';
 
 async function initialScene(signal: AbortSignal, kind: LightKind): Promise<RenderNativeLightDocument> {
@@ -38,6 +38,8 @@ export function createLightStudy(source: string, kind: LightKind = 'directional'
 const fieldStyle = {width: '100%', minWidth: 0, padding: '7px 8px', borderRadius: 4,
   border: '1px solid var(--border)', color: 'var(--foreground)', background: '#11181d'};
 const sectionStyle = {padding: 16, borderBottom: '1px solid var(--border)'};
+interface RotationCommand {axis: LightRotationAxis; space: LightRotationSpace; degrees: string}
+const initialRotation: RotationCommand = {axis: 'z', space: 'local', degrees: '90'};
 
 /** A distinct required-WebGPU authoring route; legacy material presentation is unchanged. */
 export function NativeLightWorkbench({initialDocument}: {initialDocument?: RenderNativeLightDocument}) {
@@ -59,6 +61,8 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
     camera: {eye: ['', '', ''], target: ['', '', ''], up: ['', '', ''], fovYDegrees: '', near: '', far: ''}});
   const [selected, setSelected] = useState<string | null>(null), [busy, setBusy] = useState(false);
   const [selectedBody, setSelectedBody] = useState<string | null>(null);
+  const [rotationCommands, setRotationCommands] = useState<Map<string, RotationCommand>>(() => new Map());
+  const rotationCommandsRef = useRef(rotationCommands);
   const [choosingFile, setChoosingFile] = useState(false);
   const framed = useRef<{document: RenderNativeLightDocument; camera: RenderNativeLightDocument['display']['camera'];
     bodyId: string | undefined; dimensions: number[]} | null>(null);
@@ -77,6 +81,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
     const value = session.getSnapshot(); setSnapshot(value); setStatus(session.getStatus().state);
     if (replaceFields) {
       const form = readLightFields(value.accepted); formRef.current = form; setFields(form);
+      rotationCommandsRef.current = new Map(); setRotationCommands(rotationCommandsRef.current);
       setSelected(previous => form.lights.some(light => light.nodeId === previous) ? previous : form.lights[0]?.nodeId ?? null);
       selectBody(form.bodies.some(body => body.bodyId === selection.current.bodyId) ? selection.current.bodyId : form.bodies[0]?.bodyId ?? null);
     }
@@ -361,6 +366,32 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   const editLight = (patch: Partial<LightFields>) => {if (light) edit({...fields, lights: fields.lights.map(item => item.nodeId === light.nodeId ? {...item, ...patch} : item)});};
   const editCamera = (patch: Partial<CameraFields>) => edit({...fields, camera: {...fields.camera, ...patch}});
   const body = fields.bodies.find(item => item.bodyId === selectedBody);
+  const rotationSelectionEpoch = selection.current.epoch;
+  const rotationCommand = body ? rotationCommands.get(body.bodyId) ?? initialRotation : initialRotation;
+  const rotationReady = () => {
+    const session = sessionRef.current;
+    return !!body && mounted.current && !!session && session.getStatus().state === 'ready'
+      && session.getSnapshot().accepted === snapshot?.accepted && !session.getSnapshot().pending
+      && selection.current.bodyId === body.bodyId && selection.current.epoch === rotationSelectionEpoch
+      && !busyRef.current && !navigationBusy.current && !openTicket.current && !materialTicket.current && !helpRef.current;
+  };
+  const editRotationCommand = (patch: Partial<RotationCommand>) => {
+    if (!body || !rotationReady()) return;
+    const next = new Map(rotationCommandsRef.current);
+    next.set(body.bodyId, {...(next.get(body.bodyId) ?? initialRotation), ...patch});
+    rotationCommandsRef.current = next; setRotationCommands(next); setError(null);
+  };
+  const rotateBody = (degrees?: string) => {
+    if (!body || !rotationReady()) return;
+    const session = sessionRef.current!, command = rotationCommandsRef.current.get(body.bodyId) ?? initialRotation;
+    try {
+      const previous = formRef.current;
+      const next = stageLightBodyRotation(session.getSnapshot().accepted, previous, body.bodyId,
+        command.axis, command.space, degrees ?? command.degrees);
+      edit(next);
+      setNotice(next === previous ? 'No rotation change. Authored values retained.' : 'Rotation staged. Apply accepts the complete scene.');
+    } catch (cause) {report(cause, 'Rotation refused: ');}
+  };
   const editBody = (patch: Partial<Pick<BodyFields, 'position' | 'scale'>>) => {
     if (body) edit({...fields, bodies: fields.bodies.map(item => item.bodyId === body.bodyId ? {...item, ...patch} : item)});
   };
@@ -373,6 +404,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   const add = () => {try {const next = addLightFields(fields); edit(next); setSelected(next.lights.at(-1)!.nodeId);} catch (cause) {report(cause);}};
   const remove = () => {if (light) {const next = {...fields, lights: fields.lights.filter(item => item !== light)}; edit(next); setSelected(next.lights[0]?.nodeId ?? null);}};
   const disabled = actionBusy || !snapshot || status !== 'ready';
+  const rotationDisabled = disabled || help || choosingFile;
   const numberInput = (label: string, value: string, change: (text: string) => void) => <label style={{display: 'grid', gap: 5}}>{label}<input aria-label={label} inputMode="decimal" value={value} disabled={disabled} style={fieldStyle} onChange={event => change(event.target.value)}/></label>;
   if (!kind) return <main className="app-shell" data-testid="light-workbench-choice"><section style={sectionStyle}>
     <h1>Light workbench</h1><p>Choose the kind for this workspace. Directional and point lights use separate renderers; mixed lighting is not supported.</p>
@@ -436,7 +468,29 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
               })}
             </div>)}</div>
           </fieldset>)}
-          <small>Rotation and visibility are retained. Display transforms do not edit CAD geometry. Apply accepts every body's draft with camera and light edits.</small>
+          <fieldset style={{border: 0, margin: 0, padding: 0, display: 'grid', gap: 8}} disabled={rotationDisabled}>
+            <legend style={{marginBottom: 7}}>Rotate by</legend>
+            <div style={{display: 'grid', gridTemplateColumns: '70px minmax(0,1fr)', gap: 7}}>
+              <label style={{display: 'grid', gap: 5}}>Axis<select aria-label="Rotation axis" value={rotationCommand.axis} style={fieldStyle} disabled={rotationDisabled}
+                onChange={event => editRotationCommand({axis: event.target.value as LightRotationAxis})}>
+                <option value="x">X</option><option value="y">Y</option><option value="z">Z</option>
+              </select></label>
+              <label style={{display: 'grid', gap: 5}}>Frame<select aria-label="Rotation frame" value={rotationCommand.space} style={fieldStyle} disabled={rotationDisabled}
+                onChange={event => editRotationCommand({space: event.target.value as LightRotationSpace})}>
+                <option value="local">Local body axes</option><option value="world">World axes</option>
+              </select></label>
+            </div>
+            <label style={{display: 'grid', gap: 5}}>Degrees (−360 to 360)<input aria-label="Rotate by (degrees)" inputMode="decimal" maxLength={256} disabled={rotationDisabled}
+              value={rotationCommand.degrees} style={fieldStyle} onChange={event => editRotationCommand({degrees: event.target.value})}/></label>
+            <Button size="sm" variant="outline" disabled={rotationDisabled} onClick={() => rotateBody()}>Stage rotation</Button>
+            <div style={{display: 'flex', gap: 6}}>
+              <Button size="sm" variant="outline" aria-label="Rotate −90°" disabled={rotationDisabled} onClick={() => rotateBody('-90')}>−90°</Button>
+              <Button size="sm" variant="outline" aria-label="Rotate +90°" disabled={rotationDisabled} onClick={() => rotateBody('90')}>+90°</Button>
+            </div>
+            <small>About the body origin. Position and scale stay fixed. Stage adds to the current draft; Apply accepts it. Zero and full turns keep the original orientation.</small>
+          </fieldset>
+          <details><summary>Advanced quaternion (read-only)</summary><output aria-label="Body rotation XYZW" style={{overflowWrap: 'anywhere'}}>{body.rotation.join(', ')}</output></details>
+          <small>Visibility is retained. Display transforms do not edit CAD geometry. Apply accepts every body's draft with camera and light edits.</small>
         </section>}
         {body && <section style={{...sectionStyle, display: 'grid', gap: 12}} aria-label="Body material">
           <strong>Body material</strong>

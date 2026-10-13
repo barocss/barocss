@@ -498,7 +498,7 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
       const preparedSeed = api.prepareRenderNativeLightDocument(raw), bodySeed = preparedSeed.document;
       const bodySeedText = api.serializeRenderNativeLightDocument(bodySeed), bodyFields = api.readLightFields(bodySeed);
       assert.deepEqual(bodyFields.bodies.map(body => body.bodyId), [B, A]);
-      assert.deepEqual(bodyFields.bodies.map(body => Object.keys(body).sort()), [['bodyId', 'position', 'scale'], ['bodyId', 'position', 'scale']]);
+      assert.deepEqual(bodyFields.bodies.map(body => Object.keys(body).sort()), [['bodyId', 'position', 'rotation', 'scale'], ['bodyId', 'position', 'rotation', 'scale']]);
       assert.equal(new Set(preparedSeed.entries.map(entry => entry.binding.bodyId)).size, 2);
       assert.equal(new Set(preparedSeed.entries.map(entry => entry.binding.assetId)).size, 2);
       assert(preparedSeed.entries.every(entry => entry.binding.modelId === 'cloth_reference_981' && entry.binding.geometryId === 'reference_panel'));
@@ -538,7 +538,7 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
 
       const empty = api.prepareRenderNativeLightDocument({...bodySeed, display: {...bodySeed.display, poses: []}}).document;
       const emptyText = api.serializeRenderNativeLightDocument(empty), emptyFields = api.readLightFields(empty);
-      assert.deepEqual(emptyFields.bodies, [B, A].map(bodyId => ({bodyId, position: ['0', '0', '0'], scale: ['1', '1', '1']})));
+      assert.deepEqual(emptyFields.bodies, [B, A].map(bodyId => ({bodyId, position: ['0', '0', '0'], scale: ['1', '1', '1'], rotation: ['0', '0', '0', '1']})));
       assert.deepEqual(api.applyLightFields(empty, emptyFields).display.poses, []);
       const lexical = structuredClone(emptyFields); lexical.bodies[0].position = ['+0.00', '0e3', '0.000']; lexical.bodies[1].scale = ['1.00', '1e0', '+1'];
       assert.deepEqual(api.applyLightFields(empty, lexical).display.poses, [], 'Lexical edits with identical signed values do not expand identity intent');
@@ -1095,6 +1095,14 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
     local = zoomView(viewSeed.display.camera, 1 / 1.15);
     assertViewRequest(viewControl.calls.at(-1), viewSeed, local); assert.equal(cameraStatus(), 'User view');
     assert.equal(unloadBlocked(), false, 'Local navigation alone is not unsaved authorship');
+    // #1693 reuses this already-counted local view; staging adds no presentation or file transport.
+    const beforeRotationView = flowControllers.at(-1).getSession().getSnapshot(), beforeRotationCalls = viewControl.calls.length;
+    await click('Rotate +90°');
+    assert.equal(flowControllers.at(-1).getSession().getSnapshot(), beforeRotationView);
+    assert.equal(viewControl.calls.length, beforeRotationCalls); assert.equal(cameraStatus(), 'User view');
+    assert(!button('Apply').disabled); await click('Discard');
+    assert.deepEqual(flowControllers.at(-1).getSession().getSnapshot().viewportCamera, beforeRotationView.viewportCamera);
+    assert.equal(viewControl.calls.length, beforeRotationCalls); assert.equal(cameraStatus(), 'User view');
     assert(!button('Set scene camera').disabled); const setCalls = viewControl.calls.length;
     await click('Set scene camera'); // Authored call, not a navigation replacement.
     assert.equal(viewControl.calls.length, setCalls + 1); assert.equal(cameraStatus(), 'Scene view'); assert(button('Set scene camera').disabled);
@@ -1770,9 +1778,283 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
       instrumentation: 'read-only actual controller/session observation', proof: 'software only; no GPU pixels or physical-file persistence'});
   }
 
+  // #1693: private helper calls, new Viewer replacements and Save/Open transports
+  // have separate hard budgets. All older regression counts above remain unchanged.
+  const rotationFlow = [];
+  const axes = {x: [1, 0, 0], y: [0, 1, 0], z: [0, 0, 1]};
+  const scalarText = value => Object.is(value, -0) ? '-0' : String(value);
+  const rotationRow = (fields, bodyId) => fields.bodies.find(body => body.bodyId === bodyId);
+  const rotationNumbers = row => row.rotation.map(Number);
+  const vectorClose = (actual, expected, label, tolerance = 2e-12) => {
+    actual.forEach((value, index) => assert(Math.abs(value - expected[index]) <= tolerance,
+      label + '[' + index + ']: ' + value + ' != ' + expected[index]));
+  };
+  // Independent geometric oracle: Rodrigues operates on vectors, not Hamilton products.
+  // Normalization here interprets orientation for comparison; it never rewrites authored q.
+  const rodrigues = (vector, axis, angle) => {
+    const cosine = Math.cos(angle), sine = Math.sin(angle), dot = vector.reduce((sum, value, i) => sum + value * axis[i], 0);
+    const cross = [axis[1] * vector[2] - axis[2] * vector[1], axis[2] * vector[0] - axis[0] * vector[2], axis[0] * vector[1] - axis[1] * vector[0]];
+    return vector.map((value, i) => value * cosine + cross[i] * sine + axis[i] * dot * (1 - cosine));
+  };
+  const initialVector = (vector, quaternion) => {
+    const length = Math.hypot(...quaternion.slice(0, 3));
+    return length === 0 ? vector : rodrigues(vector, quaternion.slice(0, 3).map(value => value / length), 2 * Math.atan2(length, quaternion[3]));
+  };
+  const quaternionVector = (vector, quaternion) => {
+    const [x, y, z, w] = quaternion, norm = quaternion.reduce((sum, value) => sum + value * value, 0);
+    return [
+      ((w*w+x*x-y*y-z*z)*vector[0] + 2*(x*y-z*w)*vector[1] + 2*(x*z+y*w)*vector[2]) / norm,
+      (2*(x*y+z*w)*vector[0] + (w*w-x*x+y*y-z*z)*vector[1] + 2*(y*z-x*w)*vector[2]) / norm,
+      (2*(x*z-y*w)*vector[0] + 2*(y*z+x*w)*vector[1] + (w*w-x*x-y*y+z*z)*vector[2]) / norm,
+    ];
+  };
+  const assertRotationOracle = (before, after, axis, frame, degrees, label) => {
+    for (const vector of [[1, 0, 0], [0, 1, 0], [.2, -.3, .8]]) {
+      const delta = value => rodrigues(value, axes[axis], degrees * Math.PI / 180);
+      const expected = frame === 'local' ? initialVector(delta(vector), before) : delta(initialVector(vector, before));
+      vectorClose(quaternionVector(vector, after), expected, label);
+    }
+    assert(Math.abs(Math.hypot(...before) - Math.hypot(...after)) <= 8e-16, label + ': raw norm is retained');
+  };
+  const selectRotation = async (label, value) => {
+    const element = container.querySelector(`[aria-label="${label}"]`); assert(element, label);
+    await act(async () => {element.value = value; element.dispatchEvent(new dom.window.Event('change', {bubbles: true}));});
+  };
+  const visibleRotation = () => {
+    const output = container.querySelector('[aria-label="Body rotation XYZW"]'); assert(output);
+    assert.equal(output.tagName, 'OUTPUT'); return output.textContent.split(', ');
+  };
+  for (const kind of ['directional', 'point']) {
+    const raw = structuredClone(api.createLightStudy(sourceText, kind));
+    raw.nativeDocument.bodies.forEach(body => {body.name = 'Repeated Surface';});
+    raw.nativeOptions.bodyIds = [B, A];
+    const magnitude = 1 + 2e-10, sine = Math.sin(.37), cosine = Math.cos(.37);
+    const importedQ = [1, 2, 3].map(value => -value * sine / Math.sqrt(14) * magnitude).concat(-cosine * magnitude);
+    Object.assign(poseFor(raw, B), {rotationXYZW: importedQ, translationMM: [1050, -0, 80], scale: [1.2, .8, 1.1]});
+    const rotationSeed = api.prepareRenderNativeLightDocument(raw).document;
+    const rotationText = api.serializeRenderNativeLightDocument(rotationSeed), rotationFields = api.readLightFields(rotationSeed);
+    const preparedRotation = api.prepareRenderNativeLightDocument(rotationSeed);
+    assert.equal(new Set(preparedRotation.entries.map(entry => entry.binding.geometryId)).size, 1);
+    assert.equal(new Set(preparedRotation.entries.map(entry => entry.binding.bodyId)).size, 2);
+    assert.notEqual(Math.hypot(...importedQ), 1, 'Fixture exposes authored normalization');
+    const cases = [], results = new Map();
+    const stageCase = (label, base, fields, bodyId = B, axis = 'z', frame = 'local', degrees = '90') => {
+      cases.push(label); assert(cases.length <= 36, kind + ': 36 actual helper invocation cap');
+      const beforeFields = structuredClone(fields), beforeBase = api.serializeRenderNativeLightDocument(base);
+      try {return api.stageLightBodyRotation(base, fields, bodyId, axis, frame, degrees);}
+      finally {
+        assert.deepEqual(fields, beforeFields, label + ': original corrective form is immutable');
+        assert.equal(api.serializeRenderNativeLightDocument(base), beforeBase, label + ': accepted authorship is immutable');
+      }
+    };
+    for (const axis of ['x', 'y', 'z']) for (const frame of ['local', 'world']) for (const degrees of [-90, 90]) {
+      const label = [axis, frame, degrees].join('/');
+      const staged = stageCase(label, rotationSeed, rotationFields, B, axis, frame, String(degrees));
+      results.set(label, staged);
+      const changed = rotationRow(staged, B), q = rotationNumbers(changed);
+      assert.notEqual(staged, rotationFields); assert.notEqual(changed, rotationRow(rotationFields, B));
+      assert.equal(rotationRow(staged, A), rotationRow(rotationFields, A), 'Repeated geometry IDs do not fan out');
+      for (const key of ['position', 'scale']) assert.equal(changed[key], rotationRow(rotationFields, B)[key]);
+      for (const key of ['ambient', 'camera', 'lights', 'materials']) assert.equal(staged[key], rotationFields[key]);
+      assert(q[3] < 0, label + ': imported negative q is not sign-canonicalized');
+      assert.notEqual(Math.hypot(...q), 1, label + ': tolerance is not normalized away');
+      assertRotationOracle(importedQ, q, axis, frame, degrees, label);
+      const admitted = api.applyLightFields(rotationSeed, staged);
+      assert.deepEqual(poseFor(admitted, A), poseFor(rotationSeed, A));
+      assert.deepEqual(poseFor(admitted, B), {...poseFor(rotationSeed, B), rotationXYZW: q});
+      for (const key of ['nativeDocument', 'nativeOptions', 'surfaceMaterials', 'lights']) assert.deepEqual(admitted[key], rotationSeed[key]);
+      assert.deepEqual({...admitted.display, poses: []}, {...rotationSeed.display, poses: []});
+      prepareBodyAppearance(api.createRenderNativeLightRequest(admitted));
+    }
+    const signedRaw = structuredClone(rotationSeed);
+    poseFor(signedRaw, B).rotationXYZW = [-0, -Math.sin(.2) * magnitude, -0, -Math.cos(.2) * magnitude];
+    const signedSeed = api.prepareRenderNativeLightDocument(signedRaw).document, signedFields = api.readLightFields(signedSeed);
+    const emptySeed = api.prepareRenderNativeLightDocument({...rotationSeed, display: {...rotationSeed.display, poses: []}}).document;
+    const emptyFields = api.readLightFields(emptySeed);
+    for (const degrees of ['+0', '-0', '+360', '-360']) {
+      const signed = stageCase('raw identity ' + degrees, signedSeed, signedFields, B, 'y', 'world', degrees);
+      assert.equal(signed, signedFields); assert.deepEqual(api.applyLightFields(signedSeed, signed), signedSeed);
+      assert(Object.is(poseFor(signedSeed, B).rotationXYZW[0], -0)); assert(poseFor(signedSeed, B).rotationXYZW[3] < 0);
+      const omitted = stageCase('omitted identity ' + degrees, emptySeed, emptyFields, B, 'x', 'local', degrees);
+      assert.equal(omitted, emptyFields); assert.deepEqual(api.applyLightFields(emptySeed, omitted).display.poses, []);
+    }
+    const expandedFields = stageCase('empty pose expansion', emptySeed, emptyFields);
+    const expandedRotation = api.applyLightFields(emptySeed, expandedFields);
+    assert.deepEqual(expandedRotation.display.poses.map(pose => pose.bodyId), [B, A]);
+    assert.deepEqual(poseFor(expandedRotation, A), {bodyId: A, translationMM: [0, 0, 0], rotationXYZW: [0, 0, 0, 1], scale: [1, 1, 1]});
+    assertRotationOracle([0, 0, 0, 1], poseFor(expandedRotation, B).rotationXYZW, 'z', 'local', 90, 'empty pose expansion');
+    const firstRotation = results.get('z/local/90');
+    const repeated = stageCase('compose current draft', rotationSeed, firstRotation, B, 'x', 'world', '-90');
+    const repeatedQ = rotationNumbers(rotationRow(repeated, B));
+    assertRotationOracle(rotationNumbers(rotationRow(firstRotation, B)), repeatedQ, 'x', 'world', -90, 'compose current draft');
+    assert.notDeepEqual(repeatedQ, rotationNumbers(rotationRow(results.get('x/world/-90'), B)), 'Second command never restarts from accepted q');
+    const corrective = structuredClone(rotationFields);
+    rotationRow(corrective, B).position = ['+1050.00', '-0', '80.000']; rotationRow(corrective, B).scale = ['1.200', '.8', '1.1'];
+    rotationRow(corrective, A).position[0] = '1e'; corrective.camera.eye[0] = ''; corrective.lights[0].intensity = 'NaN';
+    const corrected = stageCase('retain unrelated corrective fields', rotationSeed, corrective);
+    assert.equal(rotationRow(corrected, A), rotationRow(corrective, A));
+    for (const key of ['camera', 'lights', 'materials']) assert.equal(corrected[key], corrective[key]);
+    assert.equal(rotationRow(corrected, B).position, rotationRow(corrective, B).position);
+    assert.equal(rotationRow(corrected, B).scale, rotationRow(corrective, B).scale);
+    assert.throws(() => api.applyLightFields(rotationSeed, corrected));
+    const unsafeRaw = structuredClone(rotationSeed);
+    poseFor(unsafeRaw, B).rotationXYZW = [0, 0, -Math.sin(Math.PI / 8) * magnitude, Math.cos(Math.PI / 8) * magnitude];
+    const unsafeSeed = api.prepareRenderNativeLightDocument(unsafeRaw).document;
+    const invalidRotations = [
+      ...['', 'NaN', 'Infinity', '360.01', '-360.01'].map(degrees => ({label: 'invalid degrees ' + JSON.stringify(degrees), degrees})),
+      {label: 'wrong axis', axis: 'w'}, {label: 'wrong frame', frame: 'camera'}, {label: 'geometry is not original body', bodyId: 'reference_panel'},
+      {label: 'unsafe current component', mutate: fields => {rotationRow(fields, B).rotation = ['0', '0', '0', '1.1'];}},
+      {label: 'unsafe current norm', mutate: fields => {rotationRow(fields, B).rotation = ['.1', '0', '0', '1'];}},
+      {label: 'unsafe composed component', base: unsafeSeed, degrees: '45'},
+      {label: 'invalid selected scale', mutate: fields => {rotationRow(fields, B).scale[0] = '0';}},
+      {label: 'actual selected-pose provider underflow', bodyId: A, axis: 'x', mutate: fields => {rotationRow(fields, A).position[0] = '1e-50';}},
+    ];
+    for (const test of invalidRotations) {
+      const base = test.base ?? rotationSeed, invalid = structuredClone(api.readLightFields(base)); test.mutate?.(invalid);
+      let refusal;
+      try {stageCase(test.label, base, invalid, test.bodyId ?? B, test.axis ?? 'z', test.frame ?? 'local', test.degrees ?? '90');}
+      catch (error) {if (error instanceof assert.AssertionError) throw error; refusal = error;}
+      assert(refusal, test.label + ': actual helper must refuse');
+      if (test.label.includes('provider underflow')) assert.match(JSON.stringify(errorTree(refusal)), /underflow/i);
+    }
+    assert.equal(cases.length, 36); assert.equal(new Set(cases).size, 36);
+    assert.equal(api.serializeRenderNativeLightDocument(rotationSeed), rotationText);
+
+    let presentations = 0, transports = 0;
+    const rotationControls = [];
+    const trackRotation = control => {
+      control.prepare = prepareBodyAppearance;
+      const replace = control.viewer.replace;
+      control.viewer.replace = request => {presentations++; assert(presentations <= 6, kind + ': six new rotation presentations'); return replace(request);};
+      rotationControls.push(control); return control;
+    };
+    const mountRotation = async document => {mounted = await api.mountLightWorkbenchFlow(container, document); return trackRotation(controls.at(-1));};
+    const rotationSnapshot = () => flowControllers.at(-1).getSession().getSnapshot();
+    const rotationDraft = () => api.readLightWorkbenchFlowDraft(container);
+    const saveRotation = async () => {transports++; assert(transports <= 4); return saveText();};
+    const assertRotationBlocked = reason => {
+      for (const label of ['Stage rotation', 'Rotate −90°', 'Rotate +90°']) assert(button(label).disabled, reason + ': ' + label);
+      for (const label of ['Rotation axis', 'Rotation frame', 'Rotate by (degrees)']) assert(container.querySelector(`[aria-label="${label}"]`).disabled, reason + ': ' + label);
+    };
+    let rotationControl = await mountRotation(rotationSeed);
+    const initialRotationSnapshot = rotationSnapshot();
+    assert.equal(inputValue('Rotation axis'), 'z'); assert.equal(inputValue('Rotation frame'), 'local'); assert.equal(inputValue('Rotate by (degrees)'), '90');
+    assert.deepEqual(visibleRotation(), rotationRow(rotationFields, B).rotation);
+    const advanced = [...container.querySelectorAll('details')].find(node => node.textContent.includes('Advanced quaternion'));
+    assert(advanced); assert.equal(advanced.open, false);
+    assert.equal(advanced.querySelectorAll('input, textarea, select, [contenteditable="true"]').length, 0, 'Advanced quaternion is not an authoring surface');
+    await selectRotation('Rotation axis', 'x'); await selectRotation('Rotation frame', 'world'); await edit('Rotate by (degrees)', '1e');
+    assert(button('Apply').disabled, 'Unfinished command preference is not authored dirty state');
+    await selectBody(A); assert.equal(inputValue('Rotate by (degrees)'), '90'); await selectBody(B);
+    assert.equal(inputValue('Rotate by (degrees)'), '1e'); assert.equal(inputValue('Rotation axis'), 'x'); assert.equal(inputValue('Rotation frame'), 'world');
+    await click('Stage rotation'); assert.equal(inputValue('Rotate by (degrees)'), '1e'); assert.deepEqual(visibleRotation(), rotationRow(rotationFields, B).rotation);
+    assert.equal(rotationSnapshot(), initialRotationSnapshot); assert.equal(presentations, 0);
+    await edit('Rotate by (degrees)', '90');
+    const oldStage = button('Stage rotation');
+    await act(async () => {button('Edit body ' + A).click(); oldStage.click();});
+    assert.deepEqual(visibleRotation(), rotationRow(rotationFields, A).rotation, 'Old selection event cannot rotate newly selected body');
+    await selectBody(B); assert.deepEqual(visibleRotation(), rotationRow(rotationFields, B).rotation, 'Old selection event cannot rotate former body');
+    await selectRotation('Rotation axis', 'z'); await selectRotation('Rotation frame', 'local');
+    for (const degrees of ['+0', '-0', '+360', '-360']) {
+      await edit('Rotate by (degrees)', degrees); await click('Stage rotation');
+      assert.equal(inputValue('Rotate by (degrees)'), degrees); assert.deepEqual(visibleRotation(), rotationRow(rotationFields, B).rotation);
+      assert.equal(rotationSnapshot(), initialRotationSnapshot); assert(button('Apply').disabled); assert.equal(presentations, 0);
+    }
+    await click('Help'); assertRotationBlocked('Help'); await click('Help');
+    const rotationCanvas = container.querySelector('canvas');
+    await pointer(rotationCanvas, 'pointerdown', 140, 125); assertRotationBlocked('active navigation');
+    await pointer(rotationCanvas, 'pointermove', 148, 130); assertRotationBlocked('queued navigation');
+    await pointer(rotationCanvas, 'pointercancel', 148, 130); await flushNavigation(); assert.equal(presentations, 0);
+    await edit('Rotate by (degrees)', '90'); await edit('Body position X (mm)', '1e'); await click('Stage rotation');
+    assert.equal(inputValue('Body position X (mm)'), '1e'); assert.equal(inputValue('Rotate by (degrees)'), '90');
+    assert.deepEqual(visibleRotation(), rotationRow(rotationFields, B).rotation); assert.equal(rotationSnapshot(), initialRotationSnapshot);
+    await edit('Rotate by (degrees)', '-0'); await click('Stage rotation');
+    assert.equal(inputValue('Body position X (mm)'), '1e', 'Identity command does not consume invalid selected corrective text');
+    assert.deepEqual(visibleRotation(), rotationRow(rotationFields, B).rotation); assert.equal(rotationSnapshot(), initialRotationSnapshot);
+    await edit('Rotate by (degrees)', '90');
+    await edit('Body position X (mm)', '+1050.00'); await edit('Body scale X', '1.200');
+    await selectBody(A); await edit('Body position X (mm)', '1e'); await selectBody(B);
+    await edit('Camera eye X', ''); await edit('Intensity', 'NaN'); await click('Stage rotation');
+    assert.deepEqual(visibleRotation(), rotationRow(firstRotation, B).rotation);
+    assert.equal(inputValue('Body position X (mm)'), '+1050.00'); assert.equal(inputValue('Body scale X'), '1.200');
+    assert.equal(inputValue('Camera eye X'), ''); assert.equal(inputValue('Intensity'), 'NaN');
+    await click('Apply'); assert.equal(presentations, 0, 'Unrelated invalid fields still block the whole scene');
+    assert.deepEqual(visibleRotation(), rotationRow(firstRotation, B).rotation);
+    await selectBody(A); assert.equal(inputValue('Body position X (mm)'), '1e');
+    await edit('Body position X (mm)', rotationRow(rotationFields, A).position[0]); await selectBody(B);
+    await edit('Camera eye X', '2'); await edit('Intensity', '.4');
+    await selectRotation('Rotation axis', 'x'); await selectRotation('Rotation frame', 'world'); await click('Rotate −90°');
+    assert.deepEqual(visibleRotation(), rotationRow(repeated, B).rotation, 'Shortcut composes onto the staged quaternion');
+    const combinedRotationFields = structuredClone(repeated); combinedRotationFields.camera.eye[0] = '2'; combinedRotationFields.lights[0].intensity = '.4';
+    const expectedRotation = structuredClone(api.applyLightFields(rotationSeed, combinedRotationFields));
+    const stagedRotationDraft = rotationDraft();
+    assert.equal(await saveRotation(), rotationText, 'Transport 1: Save while staged is accepted-only');
+    assert.deepEqual(rotationDraft(), stagedRotationDraft); assert.equal(rotationSnapshot().canUndo, false);
+    let releaseRotation; rotationControl.wait = new Promise(resolve => {releaseRotation = resolve;});
+    rotationControl.refusal = new Error('Controlled pending degree-rotation refusal');
+    await act(async () => button('Apply').click()); // Presentation 1.
+    assertRotationBlocked('pending Apply'); assert.equal(presentations, 1);
+    assert(button('Open').disabled); assert(button('Save accepted').disabled);
+    await act(async () => {button('Stage rotation').click(); button('Rotate +90°').click(); releaseRotation(); await rotationControl.wait;});
+    rotationControl.wait = null;
+    assert.deepEqual(rotationDraft(), stagedRotationDraft); assert.deepEqual(rotationSnapshot().accepted, rotationSeed);
+    assert.equal(rotationSnapshot().canUndo, false); assert.equal(rotationSnapshot().canRedo, false);
+    assert.match(text(), /PRESENTATION_REFUSED/);
+    rotationControl.refusal = null; await click('Apply'); // Presentation 2.
+    expectedRotation.revision++; expectedRotation.lights.revision++;
+    assert.deepEqual(rotationSnapshot().accepted, expectedRotation);
+    assert.equal(rotationSnapshot().canUndo, true); assert.equal(rotationSnapshot().canRedo, false);
+    assert.deepEqual(rotationControl.calls.at(-1), api.createRenderNativeLightRequest(expectedRotation));
+    await click('Undo'); // Presentation 3.
+    assert.deepEqual(rotationSnapshot().accepted.display, rotationSeed.display); assert.deepEqual(rotationSnapshot().accepted.lights.lights, rotationSeed.lights.lights);
+    assert.equal(rotationSnapshot().canUndo, false, 'Both rotations plus camera/light changes create one history entry');
+    assert.equal(rotationSnapshot().canRedo, true); assert.deepEqual(visibleRotation(), rotationRow(rotationFields, B).rotation);
+    await click('Redo'); // Presentation 4.
+    assert.deepEqual(rotationSnapshot().accepted.display, expectedRotation.display); assert.equal(rotationSnapshot().canRedo, false);
+    assert.deepEqual(visibleRotation(), rotationRow(repeated, B).rotation);
+    const savedRotationText = await saveRotation(), savedRotation = api.parseRenderNativeLightDocument(savedRotationText); // Transport 2.
+    assert.deepEqual(savedRotation, rotationSnapshot().accepted); assert.equal(rotationSnapshot().unsaved, false);
+    assert.deepEqual(poseFor(savedRotation, B).rotationXYZW, repeatedQ);
+    await mounted.dispose(); assert.equal(rotationControl.disposed, 1);
+    rotationControl = await mountRotation(rotationSeed);
+    transports++; assert.equal(transports, 3); await click('Open'); assertRotationBlocked('Open chooser');
+    await selectFile(file(savedRotationText, 'rotated.light-scene.json')); // Transport 3, presentation 5.
+    assert.deepEqual(rotationSnapshot().accepted, savedRotation); assert.equal(rotationSnapshot().canUndo, false); assert.equal(rotationSnapshot().canRedo, false);
+    assert.deepEqual(visibleRotation(), rotationRow(repeated, B).rotation);
+    await selectBody(A); await selectRotation('Rotation axis', 'y'); await selectRotation('Rotation frame', 'local'); await click('Rotate +90°');
+    const secondQ = [0, Math.sin(Math.PI / 4), 0, Math.cos(Math.PI / 4)];
+    assert.deepEqual(visibleRotation(), secondQ.map(scalarText));
+    await click('Apply'); // Presentation 6.
+    const finalRotationText = await saveRotation(), finalRotation = api.parseRenderNativeLightDocument(finalRotationText); // Transport 4.
+    assert.deepEqual(finalRotation, rotationSnapshot().accepted); assert.equal(finalRotation.revision, savedRotation.revision + 1);
+    assert.deepEqual(poseFor(finalRotation, B), poseFor(savedRotation, B));
+    assert.deepEqual(poseFor(finalRotation, A), {...poseFor(savedRotation, A), rotationXYZW: secondQ});
+    for (const key of ['nativeDocument', 'nativeOptions', 'surfaceMaterials']) assert.deepEqual(finalRotation[key], rotationSeed[key]);
+    assert.deepEqual(finalRotation.display.camera, savedRotation.display.camera); assert.deepEqual(finalRotation.lights.lights, savedRotation.lights.lights);
+    assert.equal(presentations, 6); assert.equal(transports, 4);
+    const beforeLoss = rotationSnapshot(), beforeLossDraft = rotationDraft(); rotationControl.state = 'lost';
+    await act(async () => {await new Promise(resolve => setTimeout(resolve, 350));}); assertRotationBlocked('lost presentation');
+    assert.equal(rotationSnapshot(), beforeLoss); assert.deepEqual(rotationDraft(), beforeLossDraft);
+    const detachedStage = button('Stage rotation'); await mounted.dispose(); assert.equal(rotationControl.disposed, 1);
+    // A stale actual startup completes after disposal; no extra replacement/transport is invented.
+    let releaseStartup; startupGate = new Promise(resolve => {releaseStartup = resolve;});
+    await mountRotation(rotationSeed); const staleStartup = rotationControls.at(-1);
+    await mounted.dispose(); startupGate = null;
+    rotationControl = await mountRotation(finalRotation); const freshSnapshot = rotationSnapshot(), freshDraft = rotationDraft();
+    await act(async () => {detachedStage.click(); releaseStartup(); await Promise.resolve();});
+    assert.equal(staleStartup.disposed, 1); assert.equal(rotationSnapshot(), freshSnapshot); assert.deepEqual(rotationDraft(), freshDraft);
+    assert.equal(rotationSnapshot().canUndo, false); assert.equal(rotationSnapshot().canRedo, false);
+    assert.equal(presentations, 6); assert.equal(transports, 4); assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+    await mounted.dispose(); assert(rotationControls.every(control => control.disposed === 1));
+    rotationFlow.push({kind, helperCases: cases.length, cases, presentations, saveOpenTransports: transports,
+      oracle: 'independent Rodrigues/vector comparison; raw quaternion norm/sign checked separately',
+      historyEntries: 1, staleStartupCompletions: 1, instrumentation: 'read-only actual controller/session',
+      proof: 'software only; no GPU pixels, native picker or physical #1573 acceptance'});
+  }
+
   console.log(JSON.stringify({result: 'PASS', scope: 'actual React + original codec/session; controlled Viewer, no GPU/physical-file proof', acceptedRevision: last.revision,
     lights: last.lights.lights.length, replacementCalls: controls[0].calls.length, legacyReplacements: legacyControl.calls.length, convertedLegacyRevision: editedLegacy.revision,
-    cameraFlow, bodyFlow, materialFlow, navigationFlow, framingChecks, framingFlow, selectionFlow, materialTransferFlow,
+    cameraFlow, bodyFlow, materialFlow, navigationFlow, framingChecks, framingFlow, selectionFlow, materialTransferFlow, rotationFlow,
     downloadsRequested: downloads.length, confirmationPrompts: dialogs.length, disposed: controls.map(value => value.disposed)}));
 } catch (cause) {failed = true; firstError = cause;}
 finally {
