@@ -53,7 +53,7 @@ async function screenshot(page, stage) {
 }
 async function source(page) {
   const root = page.locator('section[aria-label="CAD model editor"]');
-  const details = root.locator('details').filter({ has: root.getByText('Save or open a model', { exact: true }) });
+  const details = root.locator('details').filter({ has: root.locator('summary').getByText('Save or open a model', { exact: true }) });
   if (!(await details.evaluate(element => element.open))) await details.locator('summary').click();
   await root.getByRole('button', { name: 'Show saved model' }).click();
   return root.getByLabel('Saved model data').inputValue();
