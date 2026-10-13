@@ -19,8 +19,17 @@ export interface OrientationOptions {
 }
 
 const sign = (v: number | bigint): OrientationSign => v > 0 ? 'positive' : v < 0 ? 'negative' : 'zero';
-const point = (v: unknown): v is PlanarPoint =>
-  v !== null && typeof v === 'object' && typeof (v as PlanarPoint).x === 'number' && typeof (v as PlanarPoint).y === 'number';
+const point = (v: unknown): v is PlanarPoint => {
+  if (v === null || typeof v !== 'object' || Array.isArray(v)) return false;
+  const proto = Object.getPrototypeOf(v);
+  if (proto !== Object.prototype && proto !== null) return false;
+  const fields = Object.getOwnPropertyDescriptors(v);
+  return Reflect.ownKeys(v).length === 2 &&
+    Object.keys(fields).length === 2 &&
+    ['x', 'y'].every(k => Object.hasOwn(fields, k) &&
+      'value' in fields[k] && fields[k].enumerable &&
+      typeof fields[k].value === 'number');
+};
 
 /**
  * Returns a sign only when an integer determinant is exact or when a
