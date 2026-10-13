@@ -4,7 +4,7 @@ import { uploadEngineWebGPUSceneGeometry } from '../dist/engine-webgpu-scene-geo
 function scene() {
   const geometry = {format:'barocss-gpu-triangle-geometry',version:0,id:'shared',
     coordinateSystem:'right-handed-y-up',positionUnit:'scene',winding:'ccw',
-    positions:[0,0,0,1,0,0,0,1,0],normals:[0,0,1,0,0,1,0,0,0,1],
+    positions:[0,0,0,1,0,0,0,1,0],normals:[0,0,1,0,0,1,0,0,1],
     uvs:[0,0,1,0,0,1],indices:[0,1,2]};
   const node = id => ({id,type:'mesh',parentId:null,translation:[0,0,0],
     rotationXYZW:[0,0,0,1],scale:[1,1,1],visible:true,geometryId:'shared',materialId:'red'});
