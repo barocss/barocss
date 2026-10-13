@@ -29,6 +29,24 @@ for (const prefix of ['main','edited']) {
   assert.deepStrictEqual(Object.keys(result).sort(),['request','classifications','proof','report'].sort());
   assert.deepStrictEqual(result.request,request,`${prefix}: request association`);
   assert.equal(result.request.queries.length,16);
+  assert.equal(result.classifications.length,16,`${prefix}: classifications`);
+  assert.equal(result.proof.queries.length,16,`${prefix}: proof count`);
+  assert.equal(result.report.schema,'barocss-paired-surface-material-body-world-points');
+  assert.equal(result.report.version,0);
+  assert.equal(result.report.quality.exactWorldRegionMembershipCertified,true);
+  assert.equal(result.request.body.body.solid,true);
+  assert.equal(result.request.body.body.restrictedSolidCertified,true);
+  for(let index=0;index<16;index++) {
+    const query=result.request.queries[index];
+    const classification=result.classifications[index];
+    const proof=result.proof.queries[index];
+    assert.equal(query.queryId,classification.queryId,`${prefix}: classification identity ${index}`);
+    assert.equal(query.queryId,proof.queryId,`${prefix}: proof identity ${index}`);
+    assert.deepStrictEqual(query.pointMM,proof.pointExact.map(value => Number(value.numerator)/Number(value.denominator)),`${prefix}: proof XYZ ${index}`);
+    assert.equal(classification.status,proof.classification,`${prefix}: decision ${index}`);
+    for(const face of classification.boundaryFaces)
+      assert.equal(face.parentField,'request.body',`${prefix}: qualified parent ${index}`);
+  }
   for(const path of zeroPaths) assert.ok(Object.is(at(request,path),-0),`${prefix}: signed zero ${path.join('.')}`);
   const expected = prefix==='main' ? {inside:1,outside:5,boundary:10}:{inside:3,outside:3,boundary:10};
   for (const [key,count] of Object.entries(expected)) assert.equal(result.classifications.filter(x=>x.status===key).length,count);
