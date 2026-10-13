@@ -1,7 +1,6 @@
 // Maintainer-only selected public sampling flow; no browser drawing.
 import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { bundleCadAdaptiveSampling } from './build-cad-adaptive-sampling.mjs';

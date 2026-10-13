@@ -22,9 +22,10 @@ jobs:
       - run: pnpm --filter @barocss/physics build:library
       - run: mkdir -p /tmp/physics-cache-1572
       - name: Execute true World cache observation in temporary built copy
+        if: github.event_name != 'pull_request'
         shell: bash
         run: node examples/physics-contact-impulse-audit-1572/instrument-private-cache.mjs | tee /tmp/physics-cache-1572/results.jsonl
-      - if: always()
+      - if: always() && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: physics-private-cache-results

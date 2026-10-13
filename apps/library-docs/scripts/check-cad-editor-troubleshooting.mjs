@@ -1,4 +1,5 @@
 // Read-only contract check: no CAD execution, browser, or GPU testing.
+import './check-cad-editor-beveled-parametric-split.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
