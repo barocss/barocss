@@ -43,10 +43,15 @@ export function solvePersistentPoint(a: Body, b: Body, pointM: Vec3, normal: Vec
   const relative = relativeVelocity(a, b, pointM);
   const tangent = sub(relative, scale(normal, dot(relative, normal)));
   const tangentSpeed = Math.hypot(...tangent);
-  if (tangentSpeed < 1e-12) return;
-  const direction = scale(tangent, 1 / tangentSpeed);
-  const tangentMass = effectiveInverseMass(a, b, pointM, direction);
-  const requested = sub(impulse.tangentNs, scale(direction, tangentSpeed / tangentMass));
+  // Even when tangential speed is zero, a reduced normal impulse may
+  // invalidate previously accumulated friction. Reproject the cache instead
+  // of returning with a now-impossible Coulomb impulse.
+  let requested = impulse.tangentNs;
+  if (tangentSpeed >= 1e-12) {
+    const direction = scale(tangent, 1 / tangentSpeed);
+    const tangentMass = effectiveInverseMass(a, b, pointM, direction);
+    requested = sub(impulse.tangentNs, scale(direction, tangentSpeed / tangentMass));
+  }
   const requestedMagnitude = Math.hypot(...requested);
   const staticLimit = Math.sqrt(a.frictionStatic * b.frictionStatic) * impulse.normalNs;
   const dynamicLimit = Math.sqrt(a.frictionDynamic * b.frictionDynamic) * impulse.normalNs;
