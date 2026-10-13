@@ -14,9 +14,9 @@ const refuse = (): never => { throw new RangeError('Finite XYZ and supported car
 /** Own-data snapshot, bounded before arithmetic. Caller Proxy getters cannot influence geometry. */
 function admit(point: Point, spec: CardinalRotationSpec): { point: Point; spec: CardinalRotationSpec } {
   try {
-    if (!Array.isArray(point) || Object.getPrototypeOf(point) !== Array.prototype || point.length !== 3) refuse();
+    if (!Array.isArray(point) || Object.getPrototypeOf(point) !== Array.prototype) refuse();
     const entries = Object.getOwnPropertyDescriptors(point);
-    if (Reflect.ownKeys(entries).length !== 4) refuse();
+    if (Reflect.ownKeys(entries).length !== 4 || !('value' in entries.length) || entries.length.value !== 3) refuse();
     const values = [0, 1, 2].map(i => {
       const item = entries[String(i)];
       if (!item || !('value' in item) || !item.enumerable || typeof item.value !== 'number' ||
