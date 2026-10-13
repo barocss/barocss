@@ -70,6 +70,14 @@ pnpm --filter @barocss/library-docs check:cad-evidence
 node apps/library-docs/scripts/check-cad-browser-receipt.mjs ./path/to/actual-receipt.json
 ```
 
+To check actual screenshot and downloaded model bytes as well, run:
+
+```sh
+node apps/library-docs/scripts/check-cad-browser-receipt.mjs ./evidence/run.json --evidence-root ./evidence
+```
+
+Receipt paths must be relative to the selected evidence root; `download.path` is required for file-PASS physical verification. The checker recomputes SHA-256, checks download byte count, and rejects missing files or paths escaping the root. This proves only that local files match the declared digests, **not** that the images depict real browser activity.
+
 The CLI exits 0 for structurally valid evidence, 1 for invalid fields, and 2 for unreadable input/usage errors. A structurally valid `UNRUN` receipt is still `UNRUN`, never a success. Browser `PASS` requires a declared capture with SHA-256 and accepted generation; GPU `PASS` additionally requires GPU readback metadata; file `PASS` requires recorded bytes, checksum, fresh Open and re-edit. Native/Worker claims require their own provider/transport references. Human or CI reviewers must inspect and reproduce claimed artifacts before treating results as trusted.
 
 ## Acceptance rules
