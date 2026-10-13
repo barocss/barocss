@@ -1,6 +1,5 @@
 // Exact top-entry authoring call shape and actual modeling-editor initializer, no native evaluations.
 import assert from 'node:assert/strict';
-import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 const root = resolve(import.meta.dirname, '../../..');
@@ -17,19 +16,13 @@ globalThis.__topPocketStub = {model(){return {
  sketch:{rectangle(profile){const node=record('rectangle',profile);return {extrude(height,options){return handle(record('extrude',{sketch:node,height,...options}));}};}},
  build(outputs){return {calls:structuredClone(calls),outputs:Object.fromEntries(Object.entries(outputs).map(([name,obj])=>[name,obj.node]))};},
 };}};
-const built=await require('esbuild').build({
- entryPoints:[resolve(root,'packages/barocss-cad-editor/src/modeling-engine.ts')],
- bundle:true,platform:'node',format:'esm',write:false,
- plugins:[{name:'stub-cad',setup(build){
-  build.onResolve({filter:/^@barocss\/cad$/},()=>({path:'native',namespace:'stub'}));
-  build.onResolve({filter:/^\.\/prism-feature-engine\.js$/},()=>({path:'legacy',namespace:'stub'}));
-  build.onLoad({filter:/.*/,namespace:'stub'},a=>({contents:a.path==='native'
-   ? 'export const cad=globalThis.__topPocketStub;export function tessellateSurface(){};export function tessellateConvexPlanarSolid(){};export function tessellateOwnPlateCircularHole(){};export function tessellateXYCirclePrismShell(){};'
-   : 'export function createPrismFeatureEngine(){throw Error("No legacy native execution");}'}));
- }}],
-});
-const module=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
-const result=module.createCadEditorTopPocketModel();
+// Execute the actual production recipe body with public-authoring recording stubs.
+const engine=readFileSync(resolve(root,'packages/barocss-cad-editor/src/modeling-engine.ts'),'utf8');
+const recipe=engine.match(/export function createCadEditorTopPocketModel\(\): CadModelSnapshot \{([\s\S]*?)\n\}\n\n/);
+assert.ok(recipe,'Production top-entry pocket recipe is present');
+const buildRecipe=new Function('cad',recipe[1]);
+const result=buildRecipe(globalThis.__topPocketStub);
+
 assert.deepEqual(Object.keys(result.outputs),['plate','tool','part']);
 assert.equal(result.calls.filter(row=>row.kind==='parameter').map(row=>row.name).join(','),'depth,toolY,toolSpanY');
 assert.equal(result.calls.filter(row=>row.kind==='extrude').length,2);
