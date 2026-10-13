@@ -1,6 +1,6 @@
 import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
 import type { CurveD1Result, SurfaceD1Result } from './derivatives.js';
-import { curveDomain, evaluateCurve, validateCurve } from './math.js';
+import { curveDomain, validateCurve } from './math.js';
 import { validateConvexPlanarFace } from './own-convex-planar-face.js';
 import type { ConvexPlanarFaceResult } from './own-convex-planar-face.js';
 import { buildAffinePlaneAxes, mapAffinePlanePointToUV, directedUVDeterminant } from './own-affine-plane-loop-internal.js';
