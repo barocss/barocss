@@ -38,6 +38,8 @@ export interface NativeExtrusionPreviewAcceptanceSessionV1 {
   prepareDistanceMM(distanceMM: number): NativeExtrusionPreparedV1;
   accept(token: NativeExtrusionPreviewTicketV1): NativeExtrusionAcceptedV1;
   cancel(token: NativeExtrusionPreviewTicketV1): void;
+  /** Idempotently revoke all pending tickets and drop private native state. */
+  dispose(): void;
 }
 function same(a: unknown, b: unknown): boolean {
   if (Array.isArray(a) || Array.isArray(b))
@@ -63,7 +65,7 @@ export function createNativeExtrusionPreviewAcceptanceV1(
 ): NativeExtrusionPreviewAcceptanceSessionV1 {
   // Evaluate and privately own the entire native graph only once at creation.
   // Neither this private region nor its owning options are returned to callers.
-  let accepted = evaluateBooleanExtrusionFeatureGraph(document, options);
+  let accepted: BooleanExtrusionFeatureGraphResult | null = evaluateBooleanExtrusionFeatureGraph(document, options);
   if (typeof featureId !== 'string' || featureId.length === 0 || featureId.length > 48)
     throw new TypeError('Existing bounded native extrusion feature ID required');
   const leaf = accepted.document.features.find(feature => feature.id === featureId);
@@ -72,15 +74,21 @@ export function createNativeExtrusionPreviewAcceptanceV1(
   const region = accepted.features.find(row => row.featureId === leaf.regionFeatureId);
   if (!region || region.kind !== 'coplanar-boolean')
     throw new TypeError('Previously evaluated owned Boolean region required');
-  const privateRegion = region.evaluation;
-  const privateOptions = { ...leaf.options };
+  let privateRegion: typeof region.evaluation | null = region.evaluation;
+  let privateOptions: typeof leaf.options | null = { ...leaf.options };
+  const live = (): BooleanExtrusionFeatureGraphResult => {
+    if (!accepted || !privateRegion || !privateOptions)
+      throw new Error('DISPOSED native extrusion preview acceptance session');
+    return accepted;
+  };
   const previewDistanceMM = (distanceMM: number): CoplanarFaceBooleanExtrusionResult => {
     if (typeof distanceMM !== 'number' || !Number.isFinite(distanceMM) ||
         distanceMM <= 0 || distanceMM > 10000)
       throw new RangeError('Finite native extrusion preview distance in (0,10000] mm required');
     // Only the extrusion is newly evaluated for a preview. Its existing
     // native builder still validates the retained private Boolean region.
-    return copyCadData(extrudeCoplanarFaceBoolean(privateRegion, { ...privateOptions, distanceMM }));
+    live();
+    return copyCadData(extrudeCoplanarFaceBoolean(privateRegion!, { ...privateOptions!, distanceMM }));
   };
   const graphId = accepted.document.id;
   let prepared: {
@@ -97,26 +105,27 @@ export function createNativeExtrusionPreviewAcceptanceV1(
     graphId,
     featureId,
     getAccepted(): BooleanExtrusionFeatureGraphResult {
-      return copyCadData(accepted);
+      return copyCadData(live());
     },
     prepareDistanceMM(distanceMM: number): NativeExtrusionPreparedV1 {
       // Full native provider admission, not an approximation or UI mesh.
+      live();
       const geometry = previewDistanceMM(distanceMM);
       const token = Object.freeze({ kind: 'native-extrusion-preview-token' as const });
-      const baseRevision = accepted.document.revision;
+      const baseRevision = live().document.revision;
       prepared = { token, baseRevision, distanceMM, geometry: copyCadData(geometry) };
       return { token, graphId, featureId, baseRevision, previewDistanceMM: distanceMM,
         geometry: copyCadData(geometry) };
     },
     accept(token: NativeExtrusionPreviewTicketV1): NativeExtrusionAcceptedV1 {
-      const candidate = prepared;
-      if (!candidate || token !== candidate.token || candidate.baseRevision !== accepted.document.revision)
+      const current = live(), candidate = prepared;
+      if (!candidate || token !== candidate.token || candidate.baseRevision !== current.document.revision)
         return stale();
       // Refuse revision overflow and never change accepted state on failure.
       const revision = candidate.baseRevision + 1;
       if (!Number.isSafeInteger(revision) || revision > 1_000_000_000)
         throw new RangeError('Native preview revision budget exceeded');
-      const next = updateBooleanExtrusionFeatureGraph(accepted, {
+      const next = updateBooleanExtrusionFeatureGraph(current, {
         expectedRevision: candidate.baseRevision,
         revision,
         parameterEdits: [], faceEdits: [], booleanEdits: [],
@@ -136,8 +145,15 @@ export function createNativeExtrusionPreviewAcceptanceV1(
         executionMode: 'full-native-rebuild-on-accept', accepted: copyCadData(next) };
     },
     cancel(token: NativeExtrusionPreviewTicketV1): void {
+      live();
       if (!prepared || prepared.token !== token) return stale();
       prepared = null;
+    },
+    dispose(): void {
+      prepared = null;
+      accepted = null;
+      privateRegion = null;
+      privateOptions = null;
     },
   });
 }
