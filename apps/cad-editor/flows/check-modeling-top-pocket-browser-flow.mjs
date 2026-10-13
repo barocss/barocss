@@ -27,7 +27,7 @@ for (const token of [
   "assert.equal(await partVolume(page), '5376 / 1 mm³')", "assert.equal(await partVolume(fresh), '5504 / 1 mm³')",
   "name: 'Undo'", "name: 'Redo'", "name: 'Apply dimensions'",
   "page.waitForEvent('download')", "download.path()", "page.waitForEvent('filechooser')",
-  "modal.setFiles", "fresh.getByRole('button', { name: 'Open saved model' })",
+  "modal.setFiles", "filter({ hasText: 'Save or open a model' })", "fresh.getByRole('button', { name: 'Open saved model' })",
   "await screenshot(page, 'refused-two-body')", "invalid-utf8.cad.json", "oversize.cad.json",
   "assert.deepEqual(receipt.pageErrors, [])", "receipt.result = 'UNRUN'", "receipt.result = 'FAILED'",
   "receipt.result = 'PASSED_BROWSER'", "sha256: sha(bytes)", "await browser?.close()",
