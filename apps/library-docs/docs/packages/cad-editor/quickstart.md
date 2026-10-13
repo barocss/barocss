@@ -1,5 +1,7 @@
 # Open a native document into a pure session
 
+**Looking for the visible CAD Editor rather than a developer session?** Begin with the [first-model UI walkthrough](./first-model). The instructions below are for embedding and controlling the original native Surface/Curve session programmatically, not the `#/model` end-user workspace.
+
 Use the real `apps/cad-editor/fixtures/canonical-surface-and-curve.cad-document.json` (canonical Surface/Curve document; local source) as a text asset in your local host. Pass its complete text into this function.
 
 ```ts
