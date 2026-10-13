@@ -1,0 +1,119 @@
+{
+  "issue": 1712,
+  "consumerIssue": 1865,
+  "renderDocsIssue": 1879,
+  "scope": "Immutable Manual snapshot only; moving develop inventory is not synchronized",
+  "manifestReferent": "147b331c9bc8f18d1e37015e9ab8c395ddf4bf7d",
+  "productPins": {
+    "constrainedPlate": "c4d014d538921b8c4d257479dfec8cb42d2f9c97",
+    "surfacePointControls": "975ed3deb288d39e8d2d1c9212fc5010acc6ad7b",
+    "renderProse": "147b331c9bc8f18d1e37015e9ab8c395ddf4bf7d"
+  },
+  "renderPageBlobs": {
+    "apps/library-docs/docs/packages/render-editor/guides.md": "bb276425a951ea4fa26ec5caa114cb21e08e4266",
+    "apps/library-docs/docs/packages/render-editor/limits.md": "ca0476005f6d388d009d05e03f774c3df31e42a2"
+  },
+  "changesFromPriorInventory": [
+    {
+      "slug": "gpu",
+      "fields": [
+        "scripts"
+      ]
+    },
+    {
+      "slug": "cad-editor",
+      "fields": [
+        "scripts"
+      ]
+    }
+  ],
+  "protectedHashes": {
+    "apps/library-docs/evidence/package-inventory.json": "b121aac9620fb8fe966c292710990317bf88b1b3535ea31a31cd787cefe7c2b5",
+    "apps/library-docs/scripts/inventory.mjs": "71476729968c49f97d09a83b60465a0c47d08ceb84c73ad05e9f7128cd337488"
+  },
+  "inventorySHA256": "9f06a9a39e8a30bac738ad6455f98a07aa89765c9b6efd7299b3306bb49c674e",
+  "testSHA256": "c36c1857e8cd5c06f10d191a3ff6306643b39732cc1730ab7e7926f4da566abb",
+  "testChange": "Same previously reviewed expected GPU/CAD-editor scripts entries; all12 controls unchanged",
+  "manifests": [
+    {
+      "path": "packages/barocss/package.json",
+      "sha256": "ceda889b794e3be24cf52650b3530b6b69a04232b27d98c9a5b3af4e2a588651"
+    },
+    {
+      "path": "packages/barocss-browser/package.json",
+      "sha256": "4a7b27e15a6da3e5b1724a2f616813447b001a85eb3aad03eef63e315646b6cf"
+    },
+    {
+      "path": "packages/barocss-server/package.json",
+      "sha256": "177c618d8b939baf632f18aae0c8d9c19f9be924520b5b54d3159824054306ba"
+    },
+    {
+      "path": "packages/barocss-render/package.json",
+      "sha256": "68206e354dc4e0f21d884cdc129c27ce977571210609598efc2129c9714a8f94"
+    },
+    {
+      "path": "packages/barocss-gpu/package.json",
+      "sha256": "f631e8c695bc43c1ccdcc780122ec1ee05176e8fed2cc926fa638974e24357b2"
+    },
+    {
+      "path": "packages/barocss-cad/package.json",
+      "sha256": "7f18887b37ed966cebfa183520064b7833aee5dafee20fd21bfa265bf68ecd22"
+    },
+    {
+      "path": "packages/barocss-cad-interop/package.json",
+      "sha256": "1165e25a296cbfd93fc522f004392aff1a7ba886db138ad61f17aec16ba21867"
+    },
+    {
+      "path": "packages/barocss-canvas2d/package.json",
+      "sha256": "b180d3b2bb1f28a90e62f55ad5f8880a3349dfd7b549d16b76f9cf1cef5a6202"
+    },
+    {
+      "path": "packages/barocss-viewer/package.json",
+      "sha256": "7eae9edcf73be3de63de6dff19822866196d9fd6ce62577ff488e6f5a27e64d6"
+    },
+    {
+      "path": "packages/barocss-physics/package.json",
+      "sha256": "57d436d215a5ce0b31196e549aed6ced97b9ad9f602a99c7704b47c26f3dd56c"
+    },
+    {
+      "path": "packages/barocss-cad-editor/package.json",
+      "sha256": "b354ae099a28e1561869dc9e58db3ac979ae02d9e864732ed91e26f285fd4aec"
+    },
+    {
+      "path": "packages/barocss-render-editor/package.json",
+      "sha256": "7fd0ce7ac93281892cda88738172627cc34d0b9ba4381f5f74e367a2e65ca3c8"
+    }
+  ],
+  "publicAssetCount": 84,
+  "downloadCount": 28,
+  "publicAssetInventorySHA256": "9fe12f51198a66e47f5afc3bceee8da83387d811aa4069352c0c31236d8b592f",
+  "logs": {
+    "inventory-write": {
+      "exitCode": 0,
+      "sha256": "9de5ca4228b54d65bc456eaf9afc8b78ec26bf439b9ff205f49bb5f8d94557d3",
+      "text": "(node:56) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\nRecorded current manifest metadata at 147b331c9bc8f18d1e37015e9ab8c395ddf4bf7d. Review changesFromSourceSnapshot; historical evidence was not rewritten.\n"
+    },
+    "inventory-test": {
+      "exitCode": 0,
+      "sha256": "0674b5e2a5a072da9ca56342b345aaec61c4cbf4ca0827c206eff759af69dded",
+      "text": "(node:93) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\nTAP version 13\n# (node:100) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n# (Use `node --trace-warnings ...` to show where the warning was created)\n# Subtest: all 12 current manifests match; historical source pin and evidence stay separate\nok 1 - all 12 current manifests match; historical source pin and evidence stay separate\n  ---\n  duration_ms: 181.080516\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed version drift\nok 2 - refuses unreviewed version drift\n  ---\n  duration_ms: 93.398588\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed held Render version drift\nok 3 - refuses unreviewed held Render version drift\n  ---\n  duration_ms: 86.289597\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed development exports drift\nok 4 - refuses unreviewed development exports drift\n  ---\n  duration_ms: 90.451056\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed published exports drift\nok 5 - refuses unreviewed published exports drift\n  ---\n  duration_ms: 80.54783\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed dependencies drift\nok 6 - refuses unreviewed dependencies drift\n  ---\n  duration_ms: 87.370481\n  type: 'test'\n  ...\n# Subtest: refuses blind hash refresh and current metadata tampering\nok 7 - refuses blind hash refresh and current metadata tampering\n  ---\n  duration_ms: 79.460911\n  type: 'test'\n  ...\n# Subtest: refuses historical evidence or source pin replacement\nok 8 - refuses historical evidence or source pin replacement\n  ---\n  duration_ms: 9.90201\n  type: 'test'\n  ...\n# Subtest: records exact changed fields including metadata-only held Render\nok 9 - records exact changed fields including metadata-only held Render\n  ---\n  duration_ms: 0.451679\n  type: 'test'\n  ...\n# Subtest: requires an immutable full SHA instead of a moving branch or tag\nok 10 - requires an immutable full SHA instead of a moving branch or tag\n  ---\n  duration_ms: 0.660984\n  type: 'test'\n  ...\n# Subtest: refuses a missing package entry instead of silently reducing coverage\nok 11 - refuses a missing package entry instead of silently reducing coverage\n  ---\n  duration_ms: 79.098366\n  type: 'test'\n  ...\n# Subtest: refuses rewritten historical manifest metadata\nok 12 - refuses rewritten historical manifest metadata\n  ---\n  duration_ms: 15.480011\n  type: 'test'\n  ...\n1..12\n# tests 12\n# suites 0\n# pass 12\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 905.745936\n"
+    },
+    "inventory-check": {
+      "exitCode": 0,
+      "sha256": "35a694d887d35e7ba204dd82765aef2a696b5dd3c895304f7d1d82a7eacea6bd",
+      "text": "(node:349) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\nMatched 12 current manifests at 147b331c9bc8f18d1e37015e9ab8c395ddf4bf7d; historical source remains 5f5ad866205a21510ac69552e704cc162fa253b5.\n"
+    },
+    "source-links": {
+      "exitCode": 0,
+      "sha256": "f056444aa2912281225c6fb99754fa1b17139f91fa030b4db395153af395cd9b",
+      "text": "(node:386) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"remoteCommitAvailable\":false,\"publicDeclarationLinksConverted\":0,\"localProvenancePaths\":0,\"policy\":\"Exact local pin preserved; no moving-branch substitution\"}\n"
+    }
+  },
+  "priorSuccessfulManual": {
+    "source": "cfed509e66a9aa3c40eb2b16ae67efbdac03b94a",
+    "run": 38388895978
+  },
+  "oldCancellation": "The canceled #1712 expected-parent ref update remains stopped; this new snapshot does not retry it or rewind develop.",
+  "ci": "Exact consumer CI38392280755 ended failure after runner shutdown/SIGTERM; scoped local feature checks passed. Descendant CI is tracked separately. No full CI pass inferred.",
+  "remaining": "Workflow/built artifact verification pending; static live page inspection and physical/GPU acceptance unrun. No new editor build/native calls."
+}
