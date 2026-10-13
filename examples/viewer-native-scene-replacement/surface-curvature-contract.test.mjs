@@ -11,6 +11,7 @@ const { outputFiles } = await build({
     export { compileCadModel } from '@barocss/cad';
   `, resolveDir: root, sourcefile: 'surface-curvature-contract.mjs', loader: 'js' },
   bundle: true, platform: 'node', format: 'esm', target: 'node22', write: false,
+  alias: { '@barocss/cad': resolve(root, 'packages/barocss-cad/src/index.ts') },
 });
 const { querySelectedNativeSurfaceCurvature, compileCadModel } =
   await import('data:text/javascript;base64,' + Buffer.from(outputFiles[0].text).toString('base64'));
