@@ -9,7 +9,7 @@ test('exact proper crossing and disjoint classification are symmetric under reve
     assert.equal(relation(x,y,u,v), 'proper-interior-crossing');
   }
   assert.equal(relation(p(0,0),p(3,0),p(0,1),p(3,1)),'disjoint');
-  assert.equal(relation(p(0,0),p(1,1),p(2,0),p(3,-1)),'disjoint');
+  assert.equal(relation(p(0,0),p(1,1),p(2,0),p(3,1)),'disjoint');
   assert.equal(relation(p(0,0),p(1,0),p(0.5,-Number.MIN_VALUE),p(0.5,Number.MIN_VALUE)), 'proper-interior-crossing');
 });
 test('zero orientation explicitly refuses to certify tangency and collinear topology', () => {
