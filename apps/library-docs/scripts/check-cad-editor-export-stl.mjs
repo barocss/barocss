@@ -69,7 +69,7 @@ for (const fact of [
   '262,144-byte', '40 facets', '2,084 bytes',
   'Float32', 'convex-planar', 'stored-rational-circle-prism',
   'stored-rational-plate-hole', 'orthogonal-cell',
-  'not a warranty', 'UNRUN',
+  'warranty', 'UNRUN',
 ]) must(guide, fact, 'Missing truth or refusal boundary');
 for (const [page,name] of [[index,'index'],[chooser,'choose-workspace'],[matrix,'coverage']]) {
   must(page, './export-stl', name + ' entry link');
