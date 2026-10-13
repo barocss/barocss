@@ -223,7 +223,7 @@ test('strict options and nonstring source use structured diagnostics without exe
   const hidden = {}; Object.defineProperty(hidden,'sourceVersion',{value:0,enumerable:false});
   const foreign = {sourceVersion:0}; Object.defineProperty(foreign,'target',{value:'iges',enumerable:false});
   const symbol = {sourceVersion:0,[Symbol('foreign')]:true};
-  for (const options of [undefined,null,0,{},[],{sourceVersion:3},{sourceVersion:'0'},
+  for (const options of [undefined,null,0,{},[],{sourceVersion:4},{sourceVersion:'0'},
     {sourceVersion:0,target:'iges'},{sourceVersion:0,profile:'AP214'},getter,hidden,foreign,symbol]) {
     const result = compileCadModel(v0,options);
     assert.deepEqual(Object.keys(result).sort(), ['diagnostics','ok']);

@@ -237,7 +237,7 @@ export function buildAxisBoxSolidBoolean(aInput: AxisBoxSolidBooleanAsset, bInpu
       const global = edges.find(edge => edge.id === plan.edgeIds[corner])!, use = global.uses.find(use => use.sourceId === plan.sourceId && use.faceId === plan.id);
       check(use !== undefined && use.localEdgeId === local.id && use.curveId === curve.id && same(use.sense === 'forward' ? global.vertexIds : [global.vertexIds[1], global.vertexIds[0]], [plan.vertexIds[corner], plan.vertexIds[(corner + 1) % 4]]), CODE.BINDING, 'Actual local Curve must bind the two opposed qualified global edge uses without welding');
     }
-    const { points: _points, ...metadata } = plan; panels.push({ ...metadata, bundle, lineage: lineages[index] }); sources.push(emitSource(bundle, plan.sourceId, plan.id));
+    const { points: _points, ...metadata } = plan; void _points; panels.push({ ...metadata, bundle, lineage: lineages[index] }); sources.push(emitSource(bundle, plan.sourceId, plan.id));
     const du = plan.points[1].map((value, axis) => integer(value - plan.points[0][axis])) as Point, dv = plan.points[3].map((value, axis) => integer(value - plan.points[0][axis])) as Point;
     const normal: Point = [integer(du[1] * dv[2] - du[2] * dv[1]), integer(du[2] * dv[0] - du[0] * dv[2]), integer(du[0] * dv[1] - du[1] * dv[0])];
     check(normal[plan.axis] === plan.sign * plan.areaMM2 && normal.every((value, axis) => axis === plan.axis || value === 0), CODE.BINDING, 'Planned exact rectangle cross product must point from material toward its empty neighbor');

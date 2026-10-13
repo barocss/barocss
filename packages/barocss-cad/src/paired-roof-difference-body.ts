@@ -248,7 +248,7 @@ export function buildPairedRoofDifferenceBody(inputLower: Operand,inputUpper: Op
  prefix();state.phase='parent';state.assetIndex=0;call('parentValidationCount',CODE.PARENT,'Full lower material Body refused',()=>validatePairedSurfaceMaterialBody(lower));state.assetIndex=1;call('parentValidationCount',CODE.PARENT,'Full upper material Body refused',()=>validatePairedSurfaceMaterialBody(upper));state.assetIndex=null;state.phase='profile';
  reservedIds=reserveRoles(state,request);
  const q=new SectionRationalContext((kind,detail)=>fail(state,CODE[kind],detail));
- const zero=q.integer(0),one=q.integer(1),read=(f:F):SectionRational=>q.rat(BigInt(f.numerator),BigInt(f.denominator));
+ const zero=q.integer(0),read=(f:F):SectionRational=>q.rat(BigInt(f.numerator),BigInt(f.denominator));
  const equal=(a:SectionRational,b:SectionRational):boolean=>q.compare(a,b)===0;
  try {
   geometry=constructPairedRoofDifferenceGeometryTrusted(request,q,{

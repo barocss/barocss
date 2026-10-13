@@ -268,7 +268,7 @@ export function provePairedRoofDifferenceBodyTrusted(
     'TOPOLOGY', 'Shell/Body must bind this complete graph');
   const inventory = new Map<string, SourceRef>();
   const path = (name: string): unknown => {
-    check(/^(request\.(lower|upper)|geometry\.(band|closures))([.\[\]A-Za-z_0-9])*$/.test(name),
+    check(/^(request\.(lower|upper)|geometry\.(band|closures))([.[\]A-Za-z_0-9])*$/.test(name),
       'BINDING', 'Only full retained request/geometry paths are permitted');
     const parts = name.match(/[A-Za-z_][A-Za-z0-9_]*|\d+/g) ?? [];
     let value: unknown = { request, geometry };

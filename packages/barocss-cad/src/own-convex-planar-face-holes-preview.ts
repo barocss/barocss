@@ -1,4 +1,4 @@
-import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
+import { evaluateSurfaceD1 } from './derivatives.js';
 import type { CurveD1Result, SurfaceD1Result } from './derivatives.js';
 import { validateConvexPlanarFaceWithHoles } from './own-convex-planar-face-holes.js';
 import type { ConvexPlanarFaceWithHolesResult } from './own-convex-planar-face-holes.js';
@@ -47,7 +47,6 @@ function finite(n:number):number {check(Number.isFinite(n),'finite native homoge
 function snapshot(input:unknown,results=false):unknown {
   let budget=results?131072:65536;const copy=(v:unknown,depth:number):unknown=>{check(--budget>=0&&depth<=(results?24:20),'own-data values/depth bound');if(v===null&&results)return null;if(typeof v==='number'){check(Number.isFinite(v),'finite own numbers');return v;}if(typeof v==='string'){check(v.length<=(results?262144:128),'bounded own string');return v;}if(typeof v==='boolean'&&results)return v;check(v!==null&&typeof v==='object','plain own data');const array=Array.isArray(v),proto=Object.getPrototypeOf(v),keys=Reflect.ownKeys(v),descriptors=Object.getOwnPropertyDescriptors(v);check(array?proto===Array.prototype:proto===Object.prototype||proto===null,'foreign own-data prototype');check(keys.length<=(array?(results?513:65):(results?48:16))&&keys.every(k=>typeof k==='string'&&k.length<=128&&'value'in descriptors[k]&&(array&&k==='length'||descriptors[k].enumerable===true)),'getter/symbol/hidden/excess own data');if(array){const n=descriptors.length.value as number;check(Number.isInteger(n)&&n>=0&&n<=(results?512:64)&&keys.length===n+1,'dense bounded own array');return Array.from({length:n},(_,i)=>{check(Object.hasOwn(descriptors,String(i)),'sparse own array');return copy(descriptors[String(i)].value,depth+1);});}return Object.fromEntries((keys as string[]).map(k=>[k,copy(descriptors[k].value,depth+1)]));};return copy(input,0);
 }
-function record(v:unknown,keys:string[]):Record<string,unknown>{check(v!==null&&typeof v==='object'&&!Array.isArray(v),'own record');const r=v as Record<string,unknown>;check(Object.keys(r).length===keys.length&&keys.every(k=>Object.hasOwn(r,k)),'exact fields required: '+keys.join(','));return r;}
 function id(v:unknown):string {check(typeof v==='string'&&v.length<=48&&/^[A-Za-z_][A-Za-z0-9_-]*$/.test(v),'ASCII ID1..48 required');return v;}
 function same(a:unknown,b:unknown):boolean {if(Array.isArray(a)||Array.isArray(b))return Array.isArray(a)&&Array.isArray(b)&&a.length===b.length&&a.every((x,i)=>same(x,b[i]));if(a&&b&&typeof a==='object'&&typeof b==='object'){const x=a as Record<string,unknown>,y=b as Record<string,unknown>;return Object.keys(x).length===Object.keys(y).length&&Object.keys(x).every(k=>Object.hasOwn(y,k)&&same(x[k],y[k]));}return Object.is(a,b);}
 function delta(a:Point,b:Point):Point{return a.map((x,i)=>finite(x-b[i])) as Point;}
@@ -92,7 +91,7 @@ export function tessellateConvexPlanarFaceWithHoles(faceInput:ConvexPlanarFaceWi
   });check(vertices.length<=15,'at most15 actual native mesh vertices');const uv=vertices.map(vertex=>[vertex.uv[0],vertex.uv[1],0] as Point),nativeIndex=new Map(vertices.map(vertex=>[vertex.nativeVertexId,vertex.index])),loopIndices=face.topology.loops.map(loop=>face.topology.vertices.filter(vertex=>vertex.loopId===loop.id).map(vertex=>{const index=nativeIndex.get(vertex.id);check(index!==undefined,'native vertex index association');return index;}));
   const boundaryPairs=face.topology.edges.map(edge=>{const a=nativeIndex.get(edge.vertexIds[0]),b=nativeIndex.get(edge.vertexIds[1]);check(a!==undefined&&b!==undefined,'actual native boundary endpoint association');return{edge,pair:[a,b] as [number,number]};});
   const key=(a:number,b:number):string=>a<b?a+':'+b:b+':'+a;
-  const {orientation,onSegment,compatibleSegments,separatedPolygons}=createNativeUVGraphPredicates(uv,check,LABEL);
+  const {orientation,compatibleSegments,separatedPolygons}=createNativeUVGraphPredicates(uv,check,LABEL);
   const openHolePassage=(a:number,b:number,hole:number[]):boolean=>{
     const topologyLoop=face.topology.loops.find(loop=>loop.id===vertices[hole[0]].loopId);check(topologyLoop!==undefined,'actual hole orientation association');const sign=topologyLoop.authoredOrientation==='ccw'?1:-1;let low=0,high=1;
     for(let i=0;i<hole.length;i++){

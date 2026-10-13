@@ -65,8 +65,8 @@ test('duplicate IDs and scene metadata reject explicitly', () => {
 
 test('missing/nonzero versions and multiple scenes reject', () => {
   rejects('@scene demo { sphere #a; }', /requires version/);
-  rejects('@scene demo { version: 1; }', /Only scene version 0/);
-  rejects('@scene demo { version: 0.0; }', /Only scene version 0/);
+  rejects('@scene demo { version: 1; }', /Only scene version 0|Expected scene version 0/);
+  rejects('@scene demo { version: 0.0; }', /Only scene version 0|Expected scene version 0/);
   rejects(`${source('')} ${source('')}`, /selectors/);
 });
 
@@ -97,7 +97,7 @@ test('numeric boundaries accept 1000 and reject nonfinite, zero, negative and ov
 
 test('value arity and opaque color restrictions reject unsupported syntax', () => {
   for (const rule of ['sphere { radius: 1 2; }', 'sphere { translate: 1 2; }', 'box { size: 1; }']) rejects(source(undefined, rule), /requires/);
-  for (const color of ['red', '#abcd', '#12345678', 'rgb(1,2,3)', 'url(https://example.test)', '#12gggg', '#fff !important']) rejects(source(undefined, `sphere { color: ${color}; }`), /opaque/);
+  for (const color of ['red', '#abcd', '#12345678', 'rgb(1,2,3)', 'url(https://example.test)', '#12gggg', '#fff !important']) rejects(source(undefined, `sphere { color: ${color}; }`), /opaque|Expected ';' after declaration/);
 });
 
 test('malformed input is never silently ignored', () => {

@@ -204,7 +204,7 @@ process.stdout.write(JSON.stringify({exports:Object.keys(built).sort(), invalid:
 `);
   const { stdout } = await exec(process.execPath, [path.join(dir, 'smoke.mjs')], { cwd: dir, timeout: 30_000 });
   const built = JSON.parse(stdout);
-  assert.deepEqual(built.exports, ['Renderer', 'classesFor', 'validateSpec']);
+  assert.deepEqual(built.exports, ['Renderer', 'classesFor', 'getRenderSpecDefinition', 'validateSpec']);
   assert.deepEqual(built.invalid, { ok: false, errors: [{ path: '$', message: 'Expected a JSON object' }] });
   const source = fs.readFileSync(path.join(packageDir, 'dist/index.js'), 'utf8');
   assert(!source.includes('barocss-render-progressive'));

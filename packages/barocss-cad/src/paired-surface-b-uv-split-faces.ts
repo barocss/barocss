@@ -28,8 +28,6 @@ export interface PairedSurfaceBUVSplitFacesRequest { // EXACT2
   section:ExactPairedVLinearSurfaceIntersectionResult;
   options:PairedSurfaceBUVSplitFacesOptions;
 }
-type SourceRef = {sourceField:'world.source';modelField:'world.model';
-  modelName:string;objectIndex:number;curveId:string};
 type SupportRef = {sourceId:string;surfaceId:string;
   sourceField:'request.section.request.assets[1].source';
   modelField:'request.section.originalModels[1]';modelName:string;objectIndex:number};
