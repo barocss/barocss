@@ -13,6 +13,31 @@ export type NativePlanarFaceBoundaryV1 =
       readonly halfEdges: readonly NativeBoundaryHalfEdgeV1[] }
   | { readonly status: 'refused' | 'unsupported'; readonly reason: string };
 
+/** Capture the entire bounded input with reflection only, before qualification. */
+function snapshotLoop(input: unknown): Binary64PointV1[] | null {
+  try {
+    if (!Array.isArray(input) || input.length < 3 || input.length > 16) return null;
+    const slots = Object.getOwnPropertyDescriptors(input);
+    const points: Binary64PointV1[] = [];
+    for (let i = 0; i < input.length; i++) {
+      const slot = slots[String(i)];
+      if (!slot || !('value' in slot)) return null;
+      const raw: unknown = slot.value;
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+      const prototype = Object.getPrototypeOf(raw);
+      if (prototype !== Object.prototype && prototype !== null) return null;
+      const fields = Object.getOwnPropertyDescriptors(raw);
+      if (Reflect.ownKeys(fields).length !== 2 ||
+          !['x', 'y'].every(k => Object.hasOwn(fields, k) && 'value' in fields[k] &&
+            fields[k].enumerable && typeof fields[k].value === 'number')) return null;
+      points.push({ x: fields.x.value as number, y: fields.y.value as number });
+    }
+    return points;
+  } catch {
+    return null;
+  }
+}
+
 /** One immutable oriented boundary cycle, not a sewn B-Rep Face/Shell. Twin is absent. */
 export function constructNativePlanarFaceBoundaryV1(faceId: unknown, loop: unknown): NativePlanarFaceBoundaryV1 {
   if (typeof faceId !== 'string' || !/^[A-Za-z][A-Za-z0-9_-]{0,63}$/.test(faceId))
