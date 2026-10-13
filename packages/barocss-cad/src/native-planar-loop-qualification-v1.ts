@@ -1,3 +1,4 @@
+import { orient2dExactBinary64V1 } from './exact-binary64-orientation-v1.js';
 import { classifyExactSegmentCrossingV1 } from './exact-segment-crossing-v1.js';
 import type { Binary64PointV1 } from './exact-binary64-orientation-v1.js';
 
@@ -33,6 +34,16 @@ export function qualifyNativePlanarLoopV1(input: unknown): NativePlanarLoopQuali
   if (new Set(keys).size!==points.length) return {status:'refused',reason:'repeated-vertex'};
   for(let i=0;i<points.length;i++){
     const a=points[i],b=points[(i+1)%points.length];
+    const next=points[(i+2)%points.length];
+    const turn=orient2dExactBinary64V1(a,b,next);
+    if(turn.status!=='exact') return {status:'unsupported',reason:'orientation-refused'};
+    // Adjacent collinear edges may backtrack over each other even with all vertices distinct.
+    // Compare coordinate order, not a potentially underflowing floating-point dot product.
+    if(turn.sign==='zero') {
+      const axis=a.x!==b.x?'x':'y';
+      if((b[axis]>a[axis]) !== (next[axis]>b[axis]))
+        return {status:'refused',reason:'non-simple-boundary'};
+    }
     if(a.x===b.x&&a.y===b.y) return {status:'refused',reason:'zero-edge'};
     for(let j=i+1;j<points.length;j++){
       if(j===i+1||(i===0&&j===points.length-1))continue;
