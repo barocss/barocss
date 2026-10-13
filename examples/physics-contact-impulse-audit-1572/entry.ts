@@ -49,11 +49,31 @@ check(off.normalNs>0 && Number.isFinite(off.normalNs), 'off-centre positive norm
 check(magnitude(upper.angularVelocityRadps)>0, 'off-centre angular response');
 check(magnitude(off.tangentNs) <= 0.8*off.normalNs + 1e-10, 'Coulomb accumulated tangent bound');
 check([...upper.velocityMps,...upper.angularVelocityRadps].every(Number.isFinite), 'finite result');
+// A bounded two-box stack checks sequential contact impulse transport.
+// This is a single contact-velocity sweep, NOT a time-stepped gravity simulation.
+const stackFloor = body('stackFloor',0,V(0,-0.5,0),V());
+const stackLower = body('stackLower',1,V(0,0.5,0),V(0,-1,0));
+const stackUpper = body('stackUpper',1,V(0,1.5,0),V(0,-1,0));
+const floorContact: PointImpulse = { normalNs:0,tangentNs:V() };
+const upperContact: PointImpulse = { normalNs:0,tangentNs:V() };
+solvePersistentPoint(stackFloor,stackLower,V(0,0,0),n,floorContact);
+solvePersistentPoint(stackLower,stackUpper,V(0,1,0),n,upperContact);
+check(near(stackLower.velocityMps[1],0), 'two-box lower supported after ordered sweep');
+check(near(stackUpper.velocityMps[1],0), 'two-box upper supported after ordered sweep');
+check(near(floorContact.normalNs,1), 'two-box lower support impulse');
+check(near(upperContact.normalNs,1), 'two-box inter-body support impulse');
+// A second sweep must not invent new normal impulses in this zero-gravity,
+// zero-relative-velocity snapshot. The physical gravity load test is separate.
+solvePersistentPoint(stackFloor,stackLower,V(0,0,0),n,floorContact);
+solvePersistentPoint(stackLower,stackUpper,V(0,1,0),n,upperContact);
+check(near(floorContact.normalNs,1) && near(upperContact.normalNs,1),
+  'second zero-relative-velocity sweep preserves accumulated impulses');
 console.log(JSON.stringify({
   profile:'isolated-impulse-audit-v1', fullWorldQualified:false,
   oneBodyNormalImpulseNs:impulse.normalNs,
   offCentreNormalImpulseNs:off.normalNs,
   offCentreAngularVelocityRadps:upper.angularVelocityRadps,
   frictionImpulseNs:off.tangentNs,
+  twoBodyStackImpulseNs:[floorContact.normalNs,upperContact.normalNs],
   status:'PASS'
 },null,2));
