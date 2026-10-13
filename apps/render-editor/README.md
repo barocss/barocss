@@ -804,3 +804,34 @@ A signed-zero-aware numerical identity is a no-op, retaining the same form, lexi
 The existing native preparation and full body/asset binding qualify the read. UTF-8 must preserve the exact accepted text; unpaired-surrogate replacement refuses. No newline/BOM is inserted and no geometry is reserialized. This does not certify byte identity to a file before import decoding. Export leaves history, saved marker, selection, local view and drafts intact, and submits no Viewer replacement. Current selection-epoch/lifetime and pending/dialog/file/navigation fences apply. Anchors and object URLs are cleaned even if the download request fails; requesting a download does not prove disk persistence.
 
 Focused `node native-light-workbench-flow.mjs --source-export` runs only eight helper cases/four download attempts/zero Viewer replacements/one lifetime per kind, using actual source reimport and controlled download transport. Older file flows are not rerun by that flag.
+
+## Native Light viewport orientation shortcuts (#1915)
+
+Focus the **Required WebGPU light scene** Canvas and press **1** for Front (+Z),
+**3** for Right (+X), or **7** for Top (+Y). These are **perspective** views
+in the admitted right-handed Y-up scene basis, not orthographic projections.
+The active viewport target, eye distance, field of view and near/far clipping
+are preserved. Top uses screen-up −Z; Front and Right use screen-up +Y.
+
+Only the current local viewport camera changes through the ordinary acknowledged
+navigation session. The authored Scene camera, native CAD assets, Body poses,
+materials/lights, history, dirty drafts, accepted Save and revision remain
+untouched. Use **Set scene camera** separately if you explicitly want to author
+the local view. No conversion of original CAD millimetres or geometry occurs.
+
+Shortcuts require an actually focused Canvas and a ready, idle workspace.
+Modifiers, key repeat/composition, pending operations, dialogs, active pointer
+navigation/picking, device loss and disposal refuse. Escape can cancel a queued
+navigation request, but it cannot falsely undo an already acknowledged Viewer
+replacement. Refused admission retains the previous authored source and exposes
+the existing navigation error.
+
+Focused Node22 software qualification, distinct from actual GPU/browser input:
+
+```sh
+node apps/render-editor/native-light-view-presets-flow.mjs
+```
+
+This tests the real source-based camera derivation and DOM keyboard transport
+with a controlled async navigation session. It does not certify WebGPU pixels,
+physical keyboard/focus behavior, OS file downloads or integrated acceptance.
