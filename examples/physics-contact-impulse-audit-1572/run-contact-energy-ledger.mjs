@@ -19,7 +19,7 @@ function __energy1572Body(body:Body){
    const warm='                if (prior) warmStartPoint(a, b, point.pointM, hit.normal, impulse);';
    source=replaceOnce(source,warm,`
                 if(prior){
-                  const __observe=a.id==='b0'&&b.id==='b1'&&[1,600,1200].includes(stepIndex+1);
+                  const __observe=((a.id==='b0'&&b.id==='b1')||(a.id==='b1'&&b.id==='b2'))&&(stepIndex+1===1||(stepIndex+1)%120===0||((stepIndex+1)>=680&&(stepIndex+1)<=720));
                   const __before=__observe?[__energy1572Body(a),__energy1572Body(b)]:null;
                   warmStartPoint(a,b,point.pointM,hit.normal,impulse);
                   if(__before)(globalThis as {__physics1572EnergyProbe?:(event:unknown)=>void}).__physics1572EnergyProbe?.({
@@ -29,7 +29,7 @@ function __energy1572Body(body:Body){
 `);
    const solve='                solvePersistentPoint(a, b, point.pointM, hit.normal, impulse);';
    source=replaceOnce(source,solve,`
-                const __observe=a.id==='b0'&&b.id==='b1'&&[1,600,1200].includes(stepIndex+1);
+                const __observe=((a.id==='b0'&&b.id==='b1')||(a.id==='b1'&&b.id==='b2'))&&(stepIndex+1===1||(stepIndex+1)%120===0||((stepIndex+1)>=680&&(stepIndex+1)<=720));
                 const __before=__observe?[__energy1572Body(a),__energy1572Body(b)]:null;
 `+solve+`
                 if(__before)(globalThis as {__physics1572EnergyProbe?:(event:unknown)=>void}).__physics1572EnergyProbe?.({
