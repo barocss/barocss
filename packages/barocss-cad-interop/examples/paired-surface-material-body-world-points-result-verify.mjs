@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
+import {resolve} from 'node:path';
 import {
   parseBaroCadPairedSurfaceMaterialBodyWorldPointsResult as parse,
   readBaroCadPairedSurfaceMaterialBodyWorldPointsResult as read,
@@ -10,7 +11,7 @@ import {
 
 // Original producer files may be supplied outside the repository; never synthesize them.
 const dataFile = name => process.env.BARO_CAD_WORLD_FIXTURE_DIR
-  ? fileURLToPath(new URL(name, 'file://' + process.env.BARO_CAD_WORLD_FIXTURE_DIR.replace(/\\/$/, '') + '/'))
+  ? resolve(process.env.BARO_CAD_WORLD_FIXTURE_DIR, name)
   : fileURLToPath(new URL('./paired-surface-material-body-world-points-result-data/' + name, import.meta.url));
 const fixturePins = Object.freeze({
   'main-result.json': {bytes:562166,sha256:'aa3cbfac04cccd9ef03e89020fc434393115f61cc5c6b6bcd8288b8f4f8e34dd'},
