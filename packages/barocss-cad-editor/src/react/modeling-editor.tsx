@@ -76,6 +76,26 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
       && n[3].kind === 'extrude' && n[3].sketch === 2 && n[3].height?.parameter === 'legHeight'
       && n[4].kind === 'union' && n[4].left?.node === 1 && n[4].right?.node === 3 && n[4].left.side === 'solid' && n[4].right.side === 'solid';
   })();
+  const topPocketDrivers = differenceModel && accepted?.source === 'model' && (() => {
+    const n = authored?.nodes, p = accepted.parameters;
+    return n?.length === 5 && Object.keys(p).sort().join(',') === 'depth,toolSpanY,toolY'
+      && n[0].kind === 'sketch' && n[0].profile === 'rectangle'
+      && JSON.stringify(n[0].min) === '[0,0]' && JSON.stringify(n[0].max) === '[32,24]'
+      && n[1].kind === 'extrude' && n[1].sketch === 0 && n[1].height === 8 && !Object.hasOwn(n[1], 'from')
+      && n[2].kind === 'sketch' && n[2].profile === 'rectangle'
+      && n[2].min?.[0] === 8 && n[2].min?.[1]?.parameter === 'toolY'
+      && n[2].max?.[0] === 24 && n[2].max?.[1]?.op === 'add'
+      && n[2].max[1].left?.parameter === 'toolY' && n[2].max[1].right?.parameter === 'toolSpanY'
+      && n[3].kind === 'extrude' && n[3].sketch === 2 && n[3].height?.parameter === 'depth'
+      && n[3].from?.op === 'add' && n[3].from.left === 8
+      && n[3].from.right?.op === 'scale' && n[3].from.right.factor === -1
+      && n[3].from.right.value?.parameter === 'depth'
+      && n[4].kind === 'difference' && n[4].parent?.node === 1 && n[4].tool?.node === 3
+      && n[4].parent.side === 'solid' && n[4].tool.side === 'solid'
+      && Object.keys(authored.outputs).join(',') === 'part,plate,tool'
+      && authored.outputs.part.node === 4 && authored.outputs.plate.node === 1 && authored.outputs.tool.node === 3
+      && ['part', 'plate', 'tool'].every(name => authored.outputs[name].side === 'solid');
+  })();
   const pocketDrivers = differenceModel && (() => {
     const n = authored?.nodes;
     return n?.length === 5 && n[0].kind === 'sketch' && n[0].profile === 'rectangle'
@@ -114,7 +134,7 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
     && Object.keys(accepted.suppression).length === 2 && ['frontFinish', 'backFinish'].every(name => Object.hasOwn(accepted.suppression!, name))
     && accepted.features.filter(feature => feature.name !== undefined).every(feature => feature.kind === 'chamfer');
   const dimensionInput = ([name, value]: [string, number]) => <div key={name} style={{ marginBottom: 16 }}>
-          <Label htmlFor={`${id}-${name}`}>{slotDrivers && name === 'legWidth' ? 'legWidth · leg X width' : slotDrivers && name === 'slotX' ? 'slotX · slot origin X' : slotDrivers && name === 'slotY' ? 'slotY · slot origin Y' : slotDrivers && name === 'slotWidth' ? 'slotWidth · slot X width' : slotDrivers && name === 'slotSpanY' ? 'slotSpanY · slot Y span' : roundPostDrivers && name === 'diameter' ? 'Diameter' : roundPostDrivers && name === 'height' ? 'Extrusion height' : roundPostDrivers && name === 'centerX' ? 'Center X' : roundPostDrivers && name === 'centerY' ? 'Center Y' : pocketDrivers && name === 'toolX' ? 'toolX · tool origin X' : pocketDrivers && name === 'toolY' ? 'toolY · tool origin Y' : pocketDrivers && name === 'toolWidth' ? 'toolWidth · tool X width' : pocketDrivers && name === 'toolSpanY' ? 'toolSpanY · tool Y span' : pocketDrivers && name === 'depth' ? 'depth · positive Z depth from underside Z=0' : unionDrivers && name === 'legMinX' ? 'legMinX · leg origin X' : unionDrivers && name === 'legMinY' ? 'legMinY · leg origin Y' : unionDrivers && name === 'legWidth' ? 'legWidth · leg X width' : unionDrivers && name === 'legHeight' ? 'legHeight · extrusion height' : (chamferChain || configurableFinishes) && name === 'backY' ? 'backY · edge-selection Y coordinate' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'frontDistance' ? 'frontDistance · front bevel distance' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'backDistance' ? 'backDistance · back bevel distance' : chamferSplit && name === 'splitAt' ? 'splitAt · selected-axis split coordinate' : derivedSplit && name === 'width' ? 'width · rail X size' : derivedSplit && name === 'offset' ? 'offset · X displacement from center' : miterSplit && name === 'cutPosition' ? 'cutPosition · X + Y threshold' : name} (mm)</Label>
+          <Label htmlFor={`${id}-${name}`}>{slotDrivers && name === 'legWidth' ? 'legWidth · leg X width' : slotDrivers && name === 'slotX' ? 'slotX · slot origin X' : slotDrivers && name === 'slotY' ? 'slotY · slot origin Y' : slotDrivers && name === 'slotWidth' ? 'slotWidth · slot X width' : slotDrivers && name === 'slotSpanY' ? 'slotSpanY · slot Y span' : roundPostDrivers && name === 'diameter' ? 'Diameter' : roundPostDrivers && name === 'height' ? 'Extrusion height' : roundPostDrivers && name === 'centerX' ? 'Center X' : roundPostDrivers && name === 'centerY' ? 'Center Y' : topPocketDrivers && name === 'depth' ? 'Pocket depth downward from top Z=8' : topPocketDrivers && name === 'toolY' ? 'Tool Y origin' : topPocketDrivers && name === 'toolSpanY' ? 'Tool Y span' : pocketDrivers && name === 'toolX' ? 'toolX · tool origin X' : pocketDrivers && name === 'toolY' ? 'toolY · tool origin Y' : pocketDrivers && name === 'toolWidth' ? 'toolWidth · tool X width' : pocketDrivers && name === 'toolSpanY' ? 'toolSpanY · tool Y span' : pocketDrivers && name === 'depth' ? 'depth · positive Z depth from underside Z=0' : unionDrivers && name === 'legMinX' ? 'legMinX · leg origin X' : unionDrivers && name === 'legMinY' ? 'legMinY · leg origin Y' : unionDrivers && name === 'legWidth' ? 'legWidth · leg X width' : unionDrivers && name === 'legHeight' ? 'legHeight · extrusion height' : (chamferChain || configurableFinishes) && name === 'backY' ? 'backY · edge-selection Y coordinate' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'frontDistance' ? 'frontDistance · front bevel distance' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'backDistance' ? 'backDistance · back bevel distance' : chamferSplit && name === 'splitAt' ? 'splitAt · selected-axis split coordinate' : derivedSplit && name === 'width' ? 'width · rail X size' : derivedSplit && name === 'offset' ? 'offset · X displacement from center' : miterSplit && name === 'cutPosition' ? 'cutPosition · X + Y threshold' : name} (mm)</Label>
           <Input id={`${id}-${name}`} disabled={busy} inputMode="decimal"
             value={Object.hasOwn(snapshot?.drafts ?? {}, name) ? snapshot!.drafts[name] : Object.is(value, -0) ? '-0' : String(value)}
             onChange={event => action(s => s.stage(name, event.target.value))}
@@ -147,6 +167,7 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         <option value="slotted-bracket">Cut a slot in a bracket</option>
         <option value="round-post">Create a round post</option>
         <option value="underside-pocket">Cut an underside pocket</option>
+        <option value="top-entry-pocket">Cut a top-entry pocket</option>
         <option value="union-bracket">Fuse an L-bracket</option>
         <option value="mounting-plate">Mounting plate with a through-hole</option>
       </select>
@@ -164,6 +185,8 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         ? 'Fuse the base and leg, then cut a through-slot in that owned bracket. Edit leg width and slot X/Y origin, width and span. Both saved outputs remain available; this preset selects slotted.'
         : example === 'round-post'
         ? 'Create a diameter-driven round post from an owned rational circle. Edit diameter and extrusion height in millimetres; optional center coordinates locate the post. Exact native qualification can refuse dimensions without replacing the accepted part. Certified volume is unavailable.'
+        : example === 'top-entry-pocket'
+        ? 'Cut downward from Z=8 into a 32 × 24 × 8 mm plate. Depth, tool Y origin and Y span are editable. The top-pocket preset selects part; plate and tool remain saved. Explicit Open initially selects the last canonical output, tool, until part is chosen.'
         : example === 'underside-pocket'
         ? 'Cut an underside pocket into a 32 × 24 × 8 mm plate. Tool X/Y origin, width, Y span and depth are numeric drivers. Both extrusions start at Z=0; depth8 makes a through-window. The preset selects part while plate and tool remain saved.'
         : example === 'union-bracket'
