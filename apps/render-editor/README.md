@@ -788,3 +788,37 @@ Any other native body sharing the source asset, even hidden or unselected, makes
 Submitted Apply point fences Cancel, Escape and outside close synchronously. The existing captured geometry ticket and exact command-draft cleanup own ready-refusal retry, loss/recovery and stale completion. No pixel rollback is promised. This numeric control adds no gizmo or source parser and does not resolve physical report #1573.
 
 Focused software check: `node native-light-workbench-flow.mjs --surface-point` runs only the new actual-provider/React block with controlled Viewers and files. `--surface-point-preflight` checks fixture admission first. Default execution retains the existing regressions and includes the new block. Per kind the budget is 12 edit-helper calls, one separately counted actual duplicate derivation, 6 replacement attempts, 2 Save/Open transports and 3 owned lifetimes. Physical GPU/files remain outside this proof.
+
+## Light workbench selected-body transform reset (#1881)
+
+Under **Body transform**, **Stage reset transform** replaces only the selected
+original body's corrective origin position (0, 0, 0 mm), raw XYZW quaternion
+(0, 0, 0, 1), and dimensionless scale (1, 1, 1). This stages a complete
+selected-body reset, not a CAD source edit, geometry recenter, automatic camera
+frame, Viewer replacement, or separate history entry. Other bodies and their
+incomplete drafts, material/light/camera fields, original assets and identities
+remain untouched. Apply is the only whole-scene presentation/acceptance step;
+Undo/Redo and accepted-only Save keep their existing contracts.
+
+The command uses the same current selection/epoch/lifetime, navigation,
+pending, file and dialog fences as **Rotate by**. Its generated selected pose
+is admitted by the real document/Viewer appearance preparation before showing
+changed fields. Invalid selected corrective fields can be deliberately
+replaced; unrelated incomplete text does not participate in preflight.
+Exact numeric identity (including equivalent decimal formatting) is a no-op,
+preserving the original form/text and omitted-identity intent. Signed -0 and
+negative identity quaternion are not silently normalized: an explicit reset
+may replace them with +0 and positive identity. A staging refusal leaves all
+corrective fields as entered. No physical GPU, device, mouse or OS-file
+acceptance follows from the focused CPU/controller/DOM tests.
+
+Focused existing-workspace test entry (no extra package dependency):
+
+```sh
+node apps/render-editor/native-light-workbench-flow.mjs --transform-reset
+```
+
+The dedicated test covers directional/point bodies, qualified native bindings,
+direct helper/no-op/correction/refusal cases, staged-only UI, controlled
+Apply refusal/retry, Undo/Redo and one owned lifetime per kind. The normal
+default workbench suite is separate; this flag avoids rerunning its broad flow.
