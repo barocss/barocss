@@ -15,6 +15,12 @@ With workspace dependencies installed, run `pnpm --filter @barocss/render-editor
 
 Open and New ask before leaving unsaved changes/drafts; cancelling retains them. A refused or stale Open also leaves the current scene and fields in place. **New directional** / **New point** deliberately ends the old lifetime and starts another; it is not an atomic backend swap. **Remount accepted scene** retains accepted authorship, clears history and requires a new renderer. Failed or lost presentation does not promise old pixels.
 
+### Focus the Light workspace inspector
+
+Choose a **Scene bodies** or **Scene lights** row to focus its current target, or use **Body / Light / Camera / Scene** above the inspector. **Body** contains the selected display transform and bound material; **Light** contains the selected authored light. **Camera** edits the saved scene camera, while viewport navigation still changes only the local view. **Scene** contains **Scene title** and ambient strength. File, Body, Light and View controls group existing commands by purpose; changing focus keeps the actual Canvas and complete scene form mounted.
+
+The fixed **Apply / Discard** bar affects **all scene drafts, including hidden sections**. Switching focus never accepts or discards fields. If Apply refuses an invalid hidden field, return to its target and correct it, or Discard all drafts. Accepted heading and **Save accepted** stay on accepted data until acknowledgement; one successful Apply accepts all changes through the existing history transaction. See [workspace focus limits](./limits#workspace-focus-and-transaction-limits) and the adopted [workbench](https://github.com/barocss/barocss/blob/7bb5c5e833c8fa17c8d99aa0a5bbc59360cc16c1/apps/render-editor/src/native-light-workbench.tsx).
+
 ### Select a body from the Canvas
 
 Choose a **Scene bodies** row, or click an admitted visible material-bound body with the primary left pointer and no modifiers. The complete original binding identifies the Inspector target even when geometry IDs repeat. A background miss keeps the current row. Selection retains every body's unfinished fields, accepted scene, history, Save authority and local view; it does not apply a transform or highlight material.
