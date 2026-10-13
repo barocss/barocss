@@ -1,4 +1,4 @@
-import { cad, type CadModelSnapshot, type CadShape, type CadParameter, type CadSplit, type CadDimensionExpression, type CadBody, type CadCut } from '../src/index.js';
+import { cad, type CadModelSnapshot, type CadShape, type CadParameter, type CadSplit, type CadDimensionExpression, type CadBody, type CadCut, type CadStlExport } from '../src/index.js';
 const composedModel = cad.model();
 const composedA = composedModel.sketch.rectangle({ width: 32, height: 8 }).extrude(8);
 const composedB = composedModel.sketch.rectangle({ width: 8, height: 24 }).extrude(8);
@@ -291,3 +291,56 @@ constrainedModel.sketch.constrainedPolygon(() => [[0, 0], [1, 0], [0, 1]]);
 constrainedModel.sketch.constrainedPolygon(async s => [s.point([0, 0]), s.point([1, 0]), s.point([0, 1])]);
 // @ts-expect-error No extra public callback options.
 constrainedModel.sketch.constrainedPolygon(s => [s.point([0, 0]), s.point([1, 0]), s.point([0, 1])], {});
+
+const gussetModel = cad.model(), gussetWidth = gussetModel.parameter('width', 40), gussetHeight = gussetModel.parameter('height', 24);
+const gussetProfile = gussetModel.sketch.constrainedPolygon(s => {
+  const a = s.point([-0, 0]), b = s.point([gussetWidth, 0]), c = s.point([gussetWidth, gussetHeight]), d = s.point([1, gussetHeight]);
+  s.fixed(a); s.fixed(b); s.fixed(c); s.horizontal(c, d); s.parallelTo(d, a, [1, 3]);
+  // @ts-expect-error Direction is a dimensionless numeric pair, not a length parameter.
+  s.parallelTo(d, a, [gussetHeight, 1]);
+  // @ts-expect-error Exactly two direction components.
+  s.parallelTo(d, a, [1, 2, 3]);
+  // @ts-expect-error Callback-owned handles required for the edge.
+  s.parallelTo([0, 0], a, [1, 3]);
+  // @ts-expect-error An explicit direction is required.
+  s.parallelTo(d, a);
+  return [a, b, c, d];
+});
+const gussetSnapshot = gussetModel.build({ gusset: gussetProfile.extrude(8) });
+cad.load(gussetSnapshot.withParameters({ width: 48 }).save());
+
+const copyModel = cad.model(), copySpacing = copyModel.parameter('spacing', 48);
+const copySeed = copyModel.sketch.rectangle({ width: 40, height: 24 }).extrude(8);
+const copyShape: CadShape = copySeed.translate([copySpacing, copyModel.dimension.scale(copySpacing, -0.5), -0]);
+const copySnapshot = copyModel.build({ left: copySeed, right: copyShape });
+cad.load(copySnapshot.withParameters({ spacing: 64 }).save());
+const copyEvidence = copySnapshot.evidence.find(item => item.kind === 'translate');
+if (copyEvidence?.kind === 'translate') {
+  const exactCopy: string = copyEvidence.native.solid.certificate.volumeMM3.numerator;
+  void exactCopy;
+}
+// @ts-expect-error Exactly three length components are required.
+copySeed.translate([1, 2]);
+// @ts-expect-error Extra tuple components are not accepted.
+copySeed.translate([1, 2, 3, 4]);
+// @ts-expect-error Offsets are dimensions, not expression strings.
+copySeed.translate(['48mm', 0, 0]);
+// @ts-expect-error No matrix/options overload is exposed.
+copySeed.translate([1, 2, 3], {});
+// @ts-expect-error An explicit offset is required.
+copySeed.translate();
+
+// Named convex STL export has one discoverable immutable result and no file API.
+const stlResult: CadStlExport = copyModel.build({ copy: copySeed }).exportStl('copy');
+const stlBytes: readonly number[] = stlResult.bytes;
+const stlFileBytes: Uint8Array = Uint8Array.from(stlBytes);
+const stlUnit: 'mm' = stlResult.lengthUnit;
+void stlFileBytes; void stlUnit;
+// @ts-expect-error Output name is required.
+copyModel.build({ copy: copySeed }).exportStl();
+// @ts-expect-error No format/options overload.
+copyModel.build({ copy: copySeed }).exportStl('copy', {});
+// @ts-expect-error Results remain immutable.
+stlResult.bytes[0] = 1;
+// @ts-expect-error Complete native detail is deeply readonly.
+stlResult.details.native.mesh.positionsMM[0] = 1;

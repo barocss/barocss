@@ -25,6 +25,7 @@ const providers = new Map([
   ['convex-planar-solid-split', 'splitConvexPlanarSolid'], ['model-compiler', 'compileCadModel'],
   ['convex-planar-solid-chamfer', 'chamferConvexPlanarSolid'], ['axis-box-boolean', 'buildAxisBoxSolidBoolean'],
   ['orthogonal-solid-boolean', 'buildOrthogonalSolidBoolean'], ['modeling-box-internal', 'buildModelingBox'],
+  ['modeling-translation-internal', 'buildModelingTranslation'], ['modeling-stl-internal', 'buildModelingStl'],
   ['own-plate-circular-hole', 'buildOwnPlateCircularHole'], ['stored-plate-hole-solid', 'qualifyStoredPlateHoleSolid'],
   ['convex-planar-solid-mass', 'measureConvexPlanarSolidMass'], ['axis-box-solid-mass', 'measureAxisBoxSolidBooleanMass'],
 ]);
@@ -101,7 +102,7 @@ if (process.env.EVIDENCE_DIR) {
 }
 after(() => {
   const counts = Object.fromEntries([...new Set(state.calls.map(call => call.binding))].sort().map(binding => [binding, state.calls.filter(call => call.binding === binding).length]));
-  if (provenance) writeFileSync(resolve(provenance.directory, 'receipt.json'), JSON.stringify({ issue: 1835,
+  if (provenance) writeFileSync(resolve(provenance.directory, 'receipt.json'), JSON.stringify({ issue: 1862, inheritedAdmissionIssue: 1835,
     scope: 'Actual modeling facade and unchanged pure helpers; isolated inert providers; admission and routing only, no geometric or solver acceptance',
     realNativeGeometryCalls: 0, unexpectedProviderAttempts: state.unexpected, inertProviderCalls: counts,
     fullTransitiveNativeCoverage: 'NOT_MEASURED', provenance }, null, 2) + '\n', { flag: 'wx' });
@@ -157,10 +158,10 @@ function assertRecovered(model) {
 }
 
 // All tests below use only the actual facade plus immutable helper authority.
-test('entry isolates all seventeen providers; successful routing preserves the existing snapshot inventory', () => {
+test('entry isolates all nineteen providers; successful routing preserves the existing snapshot inventory', () => {
   const { snapshot } = authored();
-  assert.equal(replaced.size, 17); assert.equal(inputPaths.length, pureModules.size);
-  assert.deepEqual(Object.keys(snapshot).sort(), ['bodies', 'parameters', 'suppression', 'features', 'recomputation', 'evidence', 'withParameters', 'withSuppression', 'massProperties', 'save'].sort());
+  assert.equal(replaced.size, 19); assert.equal(inputPaths.length, pureModules.size);
+  assert.deepEqual(Object.keys(snapshot).sort(), ['bodies', 'parameters', 'suppression', 'features', 'recomputation', 'evidence', 'withParameters', 'withSuppression', 'massProperties', 'exportStl', 'save'].sort());
   assert.equal(snapshot.bodies.part.family, 'convex-planar'); assert.equal(snapshot.bodies.part.native.controlOnly, marker);
   assert.deepEqual(snapshot.evidence.map(value => value.kind), ['sketch', 'extrude']);
   assert.deepEqual(snapshot.recomputation, { reusedFeatures: [], evaluatedFeatures: [0, 1] }); frozen(snapshot);
@@ -275,7 +276,7 @@ test('builder seals in finally on success, caller throw and final cycle-admissio
     });
     if (outcome === 'success') action();
     else { const error = refuses(action); if (outcome === 'caller-error') assert.equal(error.cause, cause); }
-    for (const action of [() => leaked.point([2, 2]), () => leaked.fixed(points[0]), () => leaked.horizontal(points[0], points[1]), () => leaked.vertical(points[1], points[2])]) refuses(action);
+    for (const action of [() => leaked.point([2, 2]), () => leaked.fixed(points[0]), () => leaked.horizontal(points[0], points[1]), () => leaked.vertical(points[1], points[2]), () => leaked.parallelTo(points[0], points[1], [1, 3])]) refuses(action);
     if (outcome !== 'success') assertRecovered(model);
     else {
       const next = model.sketch.rectangle({ width: 4, height: 3 }).extrude(1);
@@ -512,4 +513,72 @@ test('a constrained polygon never becomes an authored rectangle for integer-box 
   const box = model.sketch.rectangle({ width: 4, height: 4 }).extrude(8);
   refuses(() => part.hole({ center: [2, 2], radius: 1 }), 'CAPABILITY');
   refuses(() => part.union(box), 'CAPABILITY'); refuses(() => part.cut(box), 'CAPABILITY'); refuses(() => box.cut(part), 'CAPABILITY');
+});
+
+function gussetControl(direction = [1, 3], reverse = false) {
+  const model = createCadModel(), width = model.parameter('width', 40), height = model.parameter('height', 24);
+  const profile = model.sketch.constrainedPolygon(s => {
+    const a = s.point([-0, 0]), b = s.point([width, 0]), c = s.point([width, height]), d = s.point([1, height]);
+    s.fixed(a); s.fixed(b); s.fixed(c); s.horizontal(c, d); s.parallelTo(...(reverse ? [a, d] : [d, a]), direction);
+    return [a, b, c, d];
+  });
+  return { model, snapshot: mockNative(() => model.build({ gusset: profile.extrude(8) })) };
+}
+test('parallelTo rejects invalid arity, ownership and dimensionless data without consuming constraints', () => {
+  const model = createCadModel(), length = model.parameter('length', 3), expression = model.dimension.scale(length, 2);
+  let stale, leaked;
+  createCadModel().sketch.constrainedPolygon(s => { const points = four(s); stale = points[0]; return points; });
+  const profile = model.sketch.constrainedPolygon(s => {
+    leaked = s; const points = four(s), [a, b] = points;
+    for (const args of [[], [a], [a, b], [a, b, [1, 3], undefined]]) refuses(() => s.parallelTo(...args), 'INPUT');
+    for (const invalid of [stale, { ...a }, {}, null]) refuses(() => s.parallelTo(invalid, b, [1, 3]), 'OWNERSHIP');
+    refuses(() => s.parallelTo(a, a, [1, 3]), 'INPUT');
+    for (const invalid of [[0, -0], [Infinity, 1], [NaN, 1], [10001, 1], [1, -10001], [length, 1], [1, expression], ['1', 3], null, {}, [], [1], [1, 2, 3]])
+      refuses(() => s.parallelTo(a, b, invalid));
+    s.parallelTo(a, b, [10000, -10000]); return points;
+  });
+  refuses(() => leaked.parallelTo(stale, stale, [1, 3]), 'OWNERSHIP');
+  const snapshot = mockNative(() => model.build({ part: profile.extrude(1) }));
+  assert.equal(JSON.parse(snapshot.save()).nodes[0].constraints.length, 7);
+  assert.equal(snapshot.evidence[0].native.document.referenceLines.length, 1);
+  const diagonal = createCadModel();
+  refuses(() => diagonal.sketch.constrainedPolygon(s => { const points = four(s); s.parallelTo(points[0], points[2], [1, 3]); return points; }), 'INPUT'); assertRecovered(diagonal);
+});
+test('parallel directions are exact copied own tuples with stable native IDs, endpoint mapping and signed keys', () => {
+  for (const reverse of [false, true]) for (const direction of [[1, 3], [-1, -3], [-0, 1], [0, -1]]) {
+    const original = [...direction], { snapshot } = gussetControl(direction, reverse); direction[0] = 999;
+    const doc = JSON.parse(snapshot.save()), constraint = doc.nodes[0].constraints[4], native = snapshot.evidence[0].native.document;
+    assert.deepEqual(constraint, { kind: 'parallel-to-direction', points: reverse ? [0, 3] : [3, 0], direction: original });
+    assert.deepEqual(native.referenceLines, [{ id: 'dir4', anchor: [0, 0], direction: original }]);
+    assert.deepEqual(native.constraints[4], { id: 'c4', kind: 'segment-parallel-to-fixed-direction', segmentId: 's3', referenceLineId: 'dir4' });
+    assert.equal(mockNative(() => loadCadModel(snapshot.save())).save(), snapshot.save());
+    assert.deepEqual(modelingNodeParameters(doc.nodes[0]), ['height', 'width']);
+    const key = modelingGraphKey(doc), changed = clone(doc); changed.nodes[0].constraints[4].direction.reverse();
+    assert.notEqual(modelingGraphKey(changed), key);
+  }
+  assert.notEqual(modelingGraphKey(JSON.parse(gussetControl([-0, 1]).snapshot.save())), modelingGraphKey(JSON.parse(gussetControl([0, 1]).snapshot.save())));
+  let reads = 0;
+  const accessor = [1, 3]; Object.defineProperty(accessor, '0', { enumerable: true, get() { reads++; throw Error('No getter'); } });
+  const symbol = [1, 3]; symbol[Symbol('extra')] = 1;
+  const extra = [1, 3]; extra.extra = 1;
+  for (const direction of [accessor, symbol, extra, Object.assign(Object.create(null), { 0: 1, 1: 3, length: 2 })]) {
+    const model = createCadModel(); refuses(() => model.sketch.constrainedPolygon(s => { const p = four(s); s.parallelTo(p[0], p[1], direction); return p; })); assertRecovered(model);
+  }
+  assert.equal(reads, 0);
+});
+test('parallel reference budget is eight, rejects a ninth atomically, and codec checks exact local intent', () => {
+  const model = createCadModel(), profile = model.sketch.constrainedPolygon(s => {
+    const p = [[0, 0], [8, 0], [8, 6], [0, 6]].map(v => s.point(v)); p.forEach(v => s.fixed(v));
+    for (let i = 0; i < 8; i++) s.parallelTo(p[0], p[1], [1, i]);
+    refuses(() => s.parallelTo(p[0], p[1], [1, 9]), 'BUDGET'); return p;
+  });
+  const snapshot = mockNative(() => model.build({ part: profile.extrude(1) })), text = snapshot.save(), document = JSON.parse(text);
+  assert.equal(snapshot.evidence[0].native.document.referenceLines.length, 8);
+  assert.equal(document.nodes[0].constraints.length, 12); assert.equal(mockNative(() => loadCadModel(text)).save(), text);
+  for (const mutate of [c => { delete c.direction; }, c => { c.extra = 1; }, c => { c.direction = [0, 0]; }, c => { c.direction = [{ parameter: 'width' }, 1]; },
+    c => { c.direction = [1, 3, 4]; }, c => { c.points = [0, 2]; }, c => { c.points = [0, 9]; }, c => { c.points = [-0, 1]; }, c => { c.points = [0, 0]; }]) {
+    const broken = clone(document); mutate(broken.nodes[0].constraints[4]); refuses(() => loadCadModel(signedJson(broken)));
+  }
+  const excessive = clone(document); excessive.nodes[0].constraints.push(clone(excessive.nodes[0].constraints[4]));
+  refuses(() => loadCadModel(signedJson(excessive)), 'BUDGET'); assert.equal(snapshot.save(), text);
 });

@@ -1,0 +1,31 @@
+name: Manual and pre-release regression
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+env:
+  NODE_OPTIONS: --max-old-space-size=2048
+  RAYON_NUM_THREADS: '1'
+  npm_config_workspace_concurrency: '2'
+
+jobs:
+  regression:
+    name: Package and runtime regression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - name: Bind regression to checked-out source
+        run: node .github/scripts/affected-ci-plan.mjs
+      - name: Run package, Viewer and release contracts
+        run: node .github/scripts/affected-ci-run.mjs regression
