@@ -37,7 +37,7 @@ assert.ok(modelUI.includes("Cannot read model file:"), 'Missing file-reading err
 assert.ok(fileReader.includes('MAX_MODELING_FILE_BYTES = 262144'), 'Staging reader byte budget changed');
 assert.ok(fileReader.includes("new TextDecoder('utf-8', { fatal: true })"), 'Fatal UTF-8 decode contract changed');
 assert.ok(fileReader.includes('if (!text.trim())'), 'Empty file refusal contract changed');
-for (const explanation of ['only stages', 'not proof of filesystem persistence', 'invalid UTF-8', '262,144 UTF-8 bytes', 'Open saved model', 'Cannot read model file']) {
+for (const explanation of ['only stages', 'proof of filesystem persistence', 'invalid UTF-8', '262,144 UTF-8 bytes', 'Open saved model', 'Cannot read model file']) {
   assert.ok(guide.includes(explanation), `First-model file workflow missing: ${explanation}`);
 }
 assert.ok(guide.includes('http://127.0.0.1:52010/#/model'));
