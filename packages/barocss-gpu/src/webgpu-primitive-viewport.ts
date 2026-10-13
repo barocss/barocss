@@ -187,9 +187,12 @@ function readLimits(device: GPUDeviceHandle): PrimitiveBackendLimits {
 }
 function release(resources: Resources | null): void {
   if (!resources) return;
-  for (const buffer of resources.buffers) buffer.destroy();
-  for (const texture of resources.textures) texture.destroy();
-  resources.buffers.length = 0; resources.textures.length = 0; resources.pipeline = null; resources.group = null;
+  // Clear ownership first: a repeated terminal cleanup must not retry destroyed
+  // handles, and one driver refusal must not strand later buffers or textures.
+  const buffers = resources.buffers.splice(0), textures = resources.textures.splice(0);
+  resources.pipeline = null; resources.group = null;
+  for (const buffer of buffers) try { buffer.destroy(); } catch { /* best-effort terminal release */ }
+  for (const texture of textures) try { texture.destroy(); } catch { /* continue releasing peers */ }
 }
 
 class BackendViewport implements PrimitiveBackendViewport {
