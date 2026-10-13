@@ -44,3 +44,20 @@ test('private prefix rejects authority/key mismatch and uses Object.is on releva
   assert.equal(run({}, false), 0); assert.equal(run({}, true, 'different'), 0);
   assert.ok(Object.is(previous.minX, 0) && Object.is(previous.unused, 0));
 });
+
+test('circle dimensions use the same nested dependency/key and signed-zero authority rules', () => {
+  const parameter = name => ({ parameter: name });
+  const circle = { kind: 'sketch', profile: 'circle', center: [parameter('cx'), { op: 'add', left: parameter('cy'), right: parameter('offset') }], radius: { op: 'scale', value: parameter('diameter'), factor: .5 } };
+  const height = { kind: 'extrude', sketch: 0, height: parameter('height') };
+  const names = [refs(circle), refs(height)];
+  assert.deepEqual(names, [['cx','cy','diameter','offset'], ['height']]);
+  const values = { cx: 0, cy: -3, offset: 0, diameter: 8, height: 6 };
+  const document = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: values, nodes: [circle, height], outputs: { post: { node: 1, side: 'solid' } } };
+  const graph = key(document);
+  assert.equal(prefix(true, graph, graph, { ...values }, values, names), 2);
+  assert.equal(prefix(true, graph, graph, { ...values, height: 9 }, values, names), 1);
+  for (const edits of [{ cx: -0 }, { offset: -0 }, { diameter: 4 }, { cy: -2 }]) assert.equal(prefix(true, graph, graph, { ...values, ...edits }, values, names), 0);
+  assert.notEqual(key({ ...document, nodes: [{ ...circle, center: [-0, -3] }, height] }), key({ ...document, nodes: [{ ...circle, center: [0, -3] }, height] }));
+  assert.notEqual(key({ ...document, nodes: [{ ...circle, profile: 'rectangle' }, height] }), graph);
+  assert.equal(prefix(false, graph, graph, values, values, names), 0);
+});

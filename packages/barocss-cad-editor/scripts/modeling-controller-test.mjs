@@ -152,6 +152,40 @@ try {
     assert.equal(guarded.getSnapshot().history.count, before.history.count + 1); assert.equal(commits, commitCount + 1);
     assert.deepEqual(guarded.getSnapshot().drafts, {}); assert.equal(guarded.getSnapshot().error, null); guarded.dispose(); checks++;
   }
+  // A circle extrusion cannot masquerade as any existing transport or a legacy file.
+  for (const mode of ['untagged-convex','tagged-convex','tagged-circle','legacy-v0','legacy-v2']) {
+    let commits = 0;
+    const guarded = create({ prepare: async () => ({ commit() { commits++; }, dispose() {} }) });
+    let pending = guarded.example(), worker = instances.at(-1); worker.accept(); await pending;
+    guarded.stage('height','7'); const before = stable(guarded), commitCount = commits;
+    const circle = { ...structuredClone(authored), nodes: [
+      { kind: 'sketch', profile: 'circle', center: [2,-3], radius: 4 }, { kind: 'extrude', sketch: 0, height: { parameter: 'height' } },
+    ] };
+    const candidate = reply(circle);
+    if (mode.startsWith('legacy')) {
+      const legacy = { format: 'barocss-xy-affine-prism-feature-document', version: mode === 'legacy-v0' ? 0 : 2,
+        id: candidate.summary.documentId, revision: 0, parameters: Object.entries(circle.parameters).map(([id,valueMM]) => ({id,valueMM})), nodes: structuredClone(circle.nodes) };
+      candidate.text = signedJSON(legacy); candidate.summary.source = 'legacy'; candidate.compatibility = { document: legacy, components: candidate.display.outcomes };
+    }
+    pending = guarded.open(candidate.text);
+    if (mode.startsWith('tagged')) {
+      const family = mode === 'tagged-circle' ? 'stored-rational-circle-prism' : 'convex-planar';
+      candidate.display.profile = 'model-body-faces'; candidate.display.taskToken = worker.requests.at(-1).taskToken;
+      candidate.display.components = candidate.display.components.map(component => ({ family, component }));
+      for (const output of candidate.summary.outputs) output.family = family;
+      for (const output of candidate.display.outcomes) output.family = family;
+    }
+    worker.send(candidate); await pending;
+    assert.match(guarded.getSnapshot().error, mode.startsWith('legacy') ? /Legacy files cannot author primary circle/ : /Authored circle outputs/);
+    assert.deepEqual(stable(guarded),before); assert.equal(commits,commitCount); assert.equal(worker.terminated,true); checks++;
+    pending = guarded.apply(); worker = instances.at(-1); worker.accept(); await tick(); worker.accept(); await pending;
+    assert.equal(guarded.getSnapshot().accepted.parameters.height,7); assert.equal(commits,commitCount+1); guarded.dispose(); checks++;
+  }
+  const unusedCircle = { ...structuredClone(authored), nodes: [...structuredClone(authored.nodes),
+    {kind:'sketch',profile:'circle',center:[2,-3],radius:4},{kind:'extrude',sketch:2,height:6}] };
+  const circleUnused = create(), circleUnusedPending = circleUnused.open(signedJSON(unusedCircle));
+  instances.at(-1).send(reply(unusedCircle)); await circleUnusedPending;
+  assert.equal(circleUnused.getSnapshot().error,null); circleUnused.dispose(); checks++;
   const unusedDifference = { ...structuredClone(difference), outputs: { blank: { node: 1, side: 'solid' } } };
   const convexWithUnusedDifference = create();
   const unusedPending = convexWithUnusedDifference.open(signedJSON(unusedDifference));

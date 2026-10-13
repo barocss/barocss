@@ -48,6 +48,21 @@ The matching native sampled mesh is available; visible editor hole rendering
 remains [tracked separately](https://github.com/barocss/barocss/issues/1644).
 See the [exact scope and refusal rules](CONCISE_API.md#add-a-qualified-through-hole-to-a-mounting-plate).
 
+## Editable round posts and spacers
+
+Use `model.sketch.circle({center:[x,y],radius}).extrude(height)` in the same
+`cad.model()` API. Diameter can drive radius with `model.dimension.scale`, while
+height/center edits, authored Save/Open and selective rebuild use the existing
+snapshot methods. The tagged `stored-rational-circle-prism` result retains the
+original Shell and its separate exact qualification. There is no certified
+ideal-cylinder volume or automatic admission to Boolean/finishing operations.
+Exact decimal trim mismatches refuse atomically with their original cause.
+
+The provider-phase editor guard preserves the prior scene when a circle output
+is opened; visible circle editing is a separate consumer step. See the
+[round-post authoring example](CONCISE_API.md#create-an-editable-round-post)
+and [bounded implementation scope](https://github.com/barocss/barocss/issues/1677).
+
 ## Connected rectangular union
 
 Author `base.union(leg)` in the same `cad.model()` graph to make an L-bracket or
@@ -10857,8 +10872,8 @@ and one oriented three-germ vertex-link cycle at each self-loop seam vertex.
 and compares all parent, source and proof fields, returning a frozen certificate.
 Neither function trusts imported proof flags or caller-provided counters.
 
-This is a bounded native foundation for round posts and spacers. It does not add
-a circle sketch to `cad.model`, a public modeling body family or an editor adapter.
+This is the bounded native foundation for the primary round-post authoring
+workflow above. Qualification itself does not add an editor adapter.
 The stored rational boundary is not promoted to an ideal cylinder: no certified
 pi-based volume, area or mass is supplied. Existing parent reference measurements
 and sampled preview flags retain their original meanings. Native wall D1 queries

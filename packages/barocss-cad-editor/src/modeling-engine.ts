@@ -249,7 +249,12 @@ export function createModelingEngine() {
       const revision = command.kind === 'apply' || command.kind === 'suppression' ? command.expectedRevision + 1 : command.kind === 'open' ? command.revision ?? 0 : 0;
       const text = snapshot.save();
       // The codec owns canonical key order. Keep initial and reopened display inventories identical.
-      const authored = JSON.parse(text) as { nodes: { kind: string }[]; outputs: Record<string, { node: number }> };
+      const authored = JSON.parse(text) as { nodes: { kind: string; profile?: string; sketch?: number }[]; outputs: Record<string, { node: number }> };
+      const circleOutput = (index: number) => {
+        const node = authored.nodes[index], sketch = node?.sketch;
+        return node?.kind === 'extrude' && Number.isSafeInteger(sketch) && sketch! >= 0 && sketch! < index
+          && authored.nodes[sketch!]?.kind === 'sketch' && authored.nodes[sketch!].profile === 'circle';
+      };
       const outputNames = Object.keys(authored.outputs);
       const operation = (name: string): 'union' | 'difference' => {
         const kind = authored.nodes[authored.outputs[name].node]?.kind;
@@ -260,14 +265,19 @@ export function createModelingEngine() {
       const inventory = outputNames.map(name => {
         const body = snapshot.bodies[name], kind = authored.nodes[authored.outputs[name].node]?.kind;
         if (!body || ((kind === 'union' || kind === 'difference') !== (body.family === 'orthogonal-cell'))
-          || ((kind === 'hole') !== (body.family === 'stored-rational-plate-hole')))
+          || ((kind === 'hole') !== (body.family === 'stored-rational-plate-hole'))
+          || (circleOutput(authored.outputs[name].node) !== (body.family === 'stored-rational-circle-prism')))
           throw new Error('Authored output kind differs from its native body family.');
         return [name, body] as const;
       });
+      // Reject the complete circle inventory before even an earlier supported native preflight.
+      if (inventory.some(([, body]) => body.family === 'stored-rational-circle-prism'))
+        throw new Error('Stored-rational circle preview is not available yet; the accepted scene is unchanged.');
       // Complete all preflights, including hidden outputs, before any tessellation.
       const outputs = inventory.map(([name, body]) => {
         switch (body.family) {
           case 'convex-planar': case 'stored-rational-plate-hole': return [name, body] as const;
+          case 'stored-rational-circle-prism': throw new Error('Stored-rational circle preview is not available yet.');
           case 'orthogonal-cell': preflightModelingUnion(body.native, operation(name)); return [name, body] as const;
           default: { const unsupported: never = body; throw new Error(`Unsupported model body family: ${String(unsupported)}`); }
         }

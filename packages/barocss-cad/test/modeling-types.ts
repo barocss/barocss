@@ -110,6 +110,7 @@ function inspectBody(body: CadBody) {
     case 'convex-planar': return body.native.certificate.volumeMM3;
     case 'stored-rational-plate-hole': return body.native.certificate.genus;
     case 'orthogonal-cell': return body.native.report.volumeMM3;
+    case 'stored-rational-circle-prism': return body.native.certificate.genus;
     default: { const exhaustive: never = body; return exhaustive; }
   }
 }
@@ -160,3 +161,29 @@ cutPlate.cut(cutTool, { axis: 'x' }, true);
 // @ts-expect-error An owned shape is required.
 cutPlate.cut({ node: 3, side: 'solid' });
 void notPair; void notShape;
+
+const round = cad.model(), diameter = round.parameter('diameter', 8);
+const post: CadShape = round.sketch.circle({ center: [2, -3], radius: round.dimension.scale(diameter, .5) }).extrude(6);
+const roundSnapshot = round.build({ post });
+roundSnapshot.withParameters({ diameter: 4 }).save();
+// @ts-expect-error Circle requires exact XY center and radius, not a diameter option.
+round.sketch.circle({ center: [0, 0], diameter });
+// @ts-expect-error Circle center has exactly two owned length dimensions.
+round.sketch.circle({ center: [0, 0, 0], radius: 4 });
+// @ts-expect-error Radius is not an expression string.
+round.sketch.circle({ center: [0, 0], radius: 'diameter/2' });
+if (roundSnapshot.bodies.post.family === 'stored-rational-circle-prism') {
+  const noVolume: true = roundSnapshot.bodies.post.native.certificate.solid;
+  void noVolume;
+  // @ts-expect-error The exact stored-rational qualification supplies no ideal volume.
+  roundSnapshot.bodies.post.native.certificate.volumeMM3;
+}
+for (const feature of roundSnapshot.evidence) {
+  if (feature.kind === 'sketch') {
+    if (feature.profile === 'circle') feature.native.curve.controlPoints;
+    else feature.native.solution.points;
+  } else if (feature.kind === 'extrude') {
+    if (feature.profile === 'circle') feature.native.parent.profile.source;
+    else feature.native.solid.certificate;
+  }
+}

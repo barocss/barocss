@@ -37,6 +37,53 @@ checks that can be made during authoring reject before appending an operation.
 Geometric checks occur at evaluation; correcting parameter values can repair a
 failed candidate without modifying a previous accepted snapshot.
 
+## Create an editable round post
+
+```ts
+import { cad } from '@barocss/cad';
+
+const model = cad.model();
+const diameter = model.parameter('diameter', 8);
+const height = model.parameter('height', 6);
+const post = model.sketch.circle({
+  center: [2, -3], radius: model.dimension.scale(diameter, 0.5),
+}).extrude(height);
+const initial = model.build({ post });
+const taller = initial.withParameters({ height: 9 });
+const reopened = cad.load(taller.save());
+const body = reopened.bodies.post;
+if (body.family !== 'stored-rational-circle-prism') throw new Error('Expected a round post');
+const qualified = body.native;
+```
+
+`circle({center:[x,y],radius})` accepts owned length parameters and add/scale
+expressions, just like rectangle dimensions. Radius and height must be from
+0.001 to 10000 mm, and all circle poles must lie within ±10000 mm. Extrusion
+starts at Z=0 along +Z. Height-only edits reuse the sketch; diameter or center
+edits rebuild it. No-op edits reuse both native bodies and their wrappers.
+Authored Save/Open retains circle intent and signed zero; cold load rebuilds it.
+
+The result is a qualified **stored-rational** boundary with two seam vertices,
+three edges and three faces. Its original Shell parent and sampled preview keep
+their own `solid:false` flags; the separate exact certificate establishes the
+admitted solid. No certified ideal-cylinder volume, area or mass is supplied.
+Circle sketch/extrusion evidence has `profile:'circle'`; affine evidence retains
+its existing shape. The sketch's Source0 and coefficients match the extrusion's
+original profile, and the complete qualified parent/source/proof stays available.
+
+Exact trim correspondence can refuse decimal inputs: center `[.2,.2]`, radius
+`.1`, height `.3` has a nonzero stored cap-composition residual. The public
+`NATIVE` / `extrude` error retains the provider's `GEOMETRY` cause and residual;
+there is no coefficient healing. Earlier accepted snapshots remain usable.
+Circle cut, union, intersection, split, hole, chamfer and edge queries are not
+admitted. This slice adds no arc sweep, constraint solver or ideal-circle claim.
+
+The editor currently rejects circle outputs before inspecting native payloads or
+preparing a scene, retaining its previous accepted scene and history. A visible
+round-post preset is the next separately tracked consumer step. The existing
+native preview contains genuine face/UV/seam data, but its legacy coordinate
+label must not be treated as a performed coordinate conversion.
+
 ## Add a qualified through-hole to a mounting plate
 
 Author `const plate = blank.hole({center:[centerX,centerY],radius})` on an
@@ -48,7 +95,7 @@ sketch/extrusion prefix; Save/Open preserves the hole intent and cold rebuilds i
 
 Every named output has one discriminated `CadBody` contract:
 `{family:'convex-planar',native}`, `{family:'stored-rational-plate-hole',native}`
-or `{family:'orthogonal-cell',native}`.
+`{family:'orthogonal-cell',native}` or `{family:'stored-rational-circle-prism',native}`.
 Narrow `body.family` before passing `body.native` to its matching native adapter.
 Wrappers and their complete native values are deeply frozen; reused features
 retain both wrapper and native identity. A mixed output map never drops a body

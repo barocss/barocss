@@ -282,6 +282,41 @@ const unusedDifference = { ...document, operation: 'difference', nodes: [
 const convexWithUnusedDifference = create()({ id: ++id, kind: 'open', text: JSON.stringify(unusedDifference) });
 assert.equal(convexWithUnusedDifference.ok, true, convexWithUnusedDifference.message);
 assert.equal(convexWithUnusedDifference.display.profile, 'model-outputs'); checks++;
+// Circle previews and forged family labels refuse before any payload or summary access.
+let circleSummaryReads = 0;
+for (const acceptedKind of ['convex', 'hole']) for (const family of ['stored-rational-circle-prism', 'convex-planar', 'stored-rational-plate-hole', 'orthogonal-cell']) {
+  const guarded = create(), baseline = acceptedKind === 'hole'
+    ? guarded({ id: ++id, kind: 'example', example: 'mounting-plate', taskToken: 'circle_guard_hole' })
+    : guarded({ id: ++id, kind: 'open', text: JSON.stringify(document) });
+  assert.equal(baseline.ok, true, baseline.message);
+  const accepted = snapshots.at(-1), original = JSON.stringify(baseline), before = tessellations + holeTessellations;
+  const circleGraph = { ...document, nodes: [
+    { kind: 'sketch', profile: 'rectangle', min: [0,0], max: [8,8] }, { kind: 'extrude', sketch: 0, height: 8 },
+    { kind: 'sketch', profile: 'circle', center: [2,-3], radius: 4 }, { kind: 'extrude', sketch: 2, height: 6 },
+  ], outputs: { aSupported: { node: 1, side: 'solid' }, zPost: { node: 3, side: 'solid' } } };
+  const candidate = snapshot(circleGraph);
+  candidate.bodies = Object.fromEntries(Object.keys(circleGraph.outputs).map(name => [name, {
+    family: name === 'zPost' ? family : 'convex-planar',
+    get native() { unsupportedNativeReads++; throw new Error('Circle refusal must precede every native payload getter'); },
+  }]));
+  for (const property of ['parameters','suppression','features']) Object.defineProperty(candidate, property, {
+    get() { circleSummaryReads++; throw new Error('Circle refusal must precede summary access'); },
+  });
+  nextLoadedSnapshot = candidate;
+  // Saved trusted candidate ancestry, not an arbitrary field in the incoming text, is used.
+  const refused = guarded({ id: ++id, kind: 'open', text: JSON.stringify({ ...document, profile: 'rectangle' }), taskToken: 'circle_refusal' });
+  assert.equal(refused.ok, false); assert.match(refused.message, family === 'stored-rational-circle-prism' ? /circle preview is not available/ : /Authored output kind differs/);
+  assert.equal(unsupportedNativeReads, 0); assert.equal(circleSummaryReads, 0); assert.equal(tessellations + holeTessellations, before);
+  assert.equal(JSON.stringify(baseline), original); checks++;
+  const recovered = guarded({ id: ++id, kind: 'apply', expectedRevision: 0, parameters: acceptedKind === 'hole' ? { radius: 2.5 } : { height: 6 }, taskToken: 'circle_recovery' });
+  assert.equal(recovered.ok, true, recovered.message); assert.equal(snapshotEdits.at(-1).snapshot, accepted); checks++;
+}
+const unusedCircle = { ...document, nodes: [
+  { kind: 'sketch', profile: 'rectangle', min: [0,0], max: [8,8] }, { kind: 'extrude', sketch: 0, height: 8 },
+  { kind: 'sketch', profile: 'circle', center: [2,-3], radius: 4 }, { kind: 'extrude', sketch: 2, height: 6 },
+] };
+const unusedCircleReply = create()({ id: ++id, kind: 'open', text: JSON.stringify(unusedCircle) });
+assert.equal(unusedCircleReply.ok, true, unusedCircleReply.message); assert.equal(unusedCircleReply.display.profile, 'model-outputs'); checks++;
 // Configuration commands retain the actual accepted snapshot and use only withSuppression.
 const finishEngine=create();
 const finishBase=finishEngine({id:++id,kind:'example',example:'configurable-finishes'});

@@ -69,6 +69,12 @@ function sourceMatches(reply: Success, taskToken?: string) {
     if (data?.format !== 'barocss-cad-model' || data.schema !== 1 || data.units !== 'mm' || !same(data.parameters, summary.parameters)
       || !Array.isArray(data.nodes) || !same(data.nodes.map((n: { kind: string }) => n.kind), summary.features.map(f => f.kind))
       || !same(Object.keys(data.outputs), summary.outputs.map(o => o.name)) || reply.compatibility !== undefined) throw new Error('Saved model differs from native summary.');
+    const outputNodes = Object.values(data.outputs as Record<string, { node: number }>);
+    if (outputNodes.some(output => {
+      const node = data.nodes[output.node], sketch = node?.sketch;
+      return node?.kind === 'extrude' && Number.isSafeInteger(sketch) && sketch >= 0 && sketch < output.node
+        && data.nodes[sketch]?.kind === 'sketch' && data.nodes[sketch].profile === 'circle';
+    })) throw new Error('Authored circle outputs require the unavailable circle preview adapter.');
     const outputKinds = Object.values(data.outputs as Record<string, { node: number }>).map(output => data.nodes[output.node]?.kind);
     if (outputKinds.some(kind => ['hole', 'union', 'difference'].includes(kind))
       && reply.display?.profile !== 'model-body-faces') throw new Error(outputKinds.includes('hole')
@@ -82,6 +88,7 @@ function sourceMatches(reply: Success, taskToken?: string) {
       || data.id !== summary.documentId || data.revision !== summary.revision
       || !same(Object.fromEntries(data.parameters.map((p: { id: string; valueMM: number }) => [p.id, p.valueMM])), summary.parameters)
       || !same(data.nodes.map((n: { kind: string }) => n.kind), summary.features.map(f => f.kind))) throw new Error('Legacy source differs from native summary.');
+    if (data.nodes.some((node: { kind: string; profile?: string }) => node.kind === 'sketch' && node.profile === 'circle')) throw new Error('Legacy files cannot author primary circle profiles.');
     if (data.nodes.some((node: { kind: string }) => ['hole', 'union', 'difference'].includes(node.kind))) throw new Error('Legacy files cannot author model hole, union or difference nodes.');
     if (Object.hasOwn(summary, 'suppression') || summary.features.some(f => Object.hasOwn(f, 'name') || Object.hasOwn(f, 'suppressed')))
       throw new Error('Legacy summaries must omit finishing metadata.');

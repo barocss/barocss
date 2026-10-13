@@ -11,7 +11,7 @@ const require = createRequire(resolve(process.env.REPO_DEPS_ROOT ?? root, 'packa
 const entry = resolve(process.env.CAD_PUBLIC_API_TYPES_ENTRY ?? join(import.meta.dirname, '../src/index.ts'));
 const documentation = readFileSync(new URL('../CONCISE_API.md', import.meta.url), 'utf8');
 const examples = [...documentation.matchAll(/^```ts\n([\s\S]*?)^```/gm)].map(match => match[1]);
-assert.equal(examples.length, 5, 'check every complete TypeScript example');
+assert.equal(examples.length, 6, 'check every complete TypeScript example');
 const directory = mkdtempSync(join(tmpdir(), 'barocss-public-api-types-'));
 try {
   const files = examples.map((source, i) => {
