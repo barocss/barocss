@@ -19,6 +19,13 @@ export async function mountLightWorkbenchFlow(container: HTMLElement, initial?: 
   return {async dispose() {await act(async () => {root.unmount();});}};
 }
 
+/** Visible raw fields only: no React internals or alternate authoring state. */
+export function readLightWorkbenchFlowDraft(container: HTMLElement) {
+  return [...container.querySelectorAll<HTMLInputElement>('input[aria-label]:not([type="file"])')]
+    .map(input => ({label: input.getAttribute('aria-label'), value: input.value,
+      ...(input.type === 'checkbox' ? {checked: input.checked} : {})}));
+}
+
 /** Independent test oracle: original CAD bounds and GPU pose/camera services, never fitter output corners. */
 export function inspectLightFramingFlow(document: RenderNativeLightDocument, camera: MeshCamera,
   bodyIds: readonly string[], backing: {backingWidth: number; backingHeight: number}) {

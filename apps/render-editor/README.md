@@ -587,3 +587,46 @@ An unmodified primary left click selects the original visible material-bound bod
 The private input transport maps the current axis-aligned CSS rect to integer top-left backing pixels with `floor`, without clamping outside/invalid points. It checks actual acknowledged backing size and freezes the session/snapshot/generation, rect/backing and lifetime around the real session-owned query. Help, chooser and active/pending work fence input. A pending query keeps authoring controls blocked until it actually settles, even when its gesture is cancelled; stale completion cannot select a new workspace. Same-body hits are local no-ops. Per-body corrective strings, original accepted data, revisions/history/Save identity and local view are retained. No highlight provider, geometry change or new document schema is involved.
 
 `node apps/render-editor/native-light-workbench-flow.mjs` includes exactly ten new actual component pointer sequences per kind, five controlled identity reads and bounded camera updates, separately from prior authoring/navigation/framing regressions. It verifies qualified repeated geometry IDs, backing-pixel mapping, jitter/full-displacement threshold, out-and-back nonclick, modifiers/cancel/bounds, pending refusal/stale lifetimes and capture cleanup. DOM rectangles, pointer capture, RAF and Viewer readback remain controlled boundaries. Physical picking/pixels/device behavior and the owner-reported #1573 arrow defect remain unverified.
+
+
+### Portable materials in the Light workbench (#1676)
+
+Select a visible qualified body from its row or the Canvas, then choose **Import
+material…** under Body material. Resolve all scene drafts first. The existing
+material codec and owned-copy assignment copy only shader source and supplied
+uniform overrides into that body's existing embedded material. Imported IDs,
+title and revision never retarget or rename it. Repeated material IDs do not
+link bodies. Scalar controls come from the actual imported shader declarations;
+this does not expose a shader-source editor or add a new format/backend.
+
+Import stages both fields together only after full qualification. There is no
+Viewer presentation, accepted revision, history or saved-marker change until
+**Apply** accepts one whole-scene transaction. The existing material session
+owns its one revision increment; scene revision exhaustion is checked before
+staging. Exact source/value no-ops retain the original form, including at maximum
+revision. Omitted overrides, explicit defaults, signed zero and original source
+text remain distinct. Apply/Undo/Redo/Discard and whole-scene Save/Open retain
+their existing authority; a refused Apply keeps the imported corrective draft.
+
+**Export accepted material** downloads the selected accepted binding, even when
+unrelated corrective fields remain. It never calls the scene's saved-marker
+method, changes scene filename/history or exports a staged material by mistake.
+The temporary download link and object URL are cleaned up on success or failure.
+Requesting a download does not certify physical persistence.
+
+A separate chooser captures the exact session, snapshot, form, full binding,
+selection epoch and mount/operation lifetime before opening. Selection away and
+back, changed fields/history, loss/disposal or a replaced workspace refuses stale
+completion. Both reported and actual bytes must fit the existing 256 KiB limit,
+then fatal UTF-8 and the strict codec apply. Cancel keeps data and allows the same
+file to be selected again. Pending reads keep the owning operation locked until
+they settle; cleanup does not claim to cancel the read. Focus returns only when
+it will not replace a newer intentional focus.
+
+The existing `node apps/render-editor/native-light-workbench-flow.mjs` adds at
+most sixteen file transport attempts and six Viewer presentations per light kind,
+separately from existing regressions. Actual React, codec, compiler, material and
+scene sessions are used; a read-only test observer captures the real controller.
+File/DOM/Viewer transports remain controlled. Source review and scoped flow, app
+types/build and lint must pass before software acceptance. Physical files, browser
+focus, GPU pixels, device recovery and the #1573/#1577 gates remain unverified.

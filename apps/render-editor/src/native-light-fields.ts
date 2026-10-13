@@ -1,5 +1,5 @@
-import {prepareRenderNativeLightDocument, createRenderMaterialSession, RenderEditorError} from '@barocss/render-editor';
-import type {RenderNativeLightDocument} from '@barocss/render-editor';
+import {prepareRenderNativeLightDocument, createRenderMaterialSession, deriveRenderMaterialAssignment, RenderEditorError} from '@barocss/render-editor';
+import type {RenderNativeLightDocument, RenderMaterialDocument} from '@barocss/render-editor';
 import {compileMeshMaterial} from '@barocss/gpu';
 
 export type LightKind = 'directional' | 'point';
@@ -20,7 +20,7 @@ export interface MaterialUniformFields {
 }
 export interface MaterialFields {
   target: RenderNativeLightDocument['surfaceMaterials'][number]['target'];
-  documentId: string; revision: number; uniforms: MaterialUniformFields[];
+  documentId: string; revision: number; shaderSource: string; suppliedOrder: string[]; uniforms: MaterialUniformFields[];
 }
 export interface LightForm {kind: LightKind; ambient: string; lights: LightFields[]; camera: CameraFields; bodies: BodyFields[]; materials: MaterialFields[]}
 function declarations(source: string) {
@@ -29,6 +29,13 @@ function declarations(source: string) {
   return result.material.uniforms;
 }
 const text = (value: number) => Object.is(value, -0) ? '-0' : String(value);
+function materialFields(target: MaterialFields['target'], material: RenderMaterialDocument): MaterialFields {
+  return {target, documentId: material.documentId, revision: material.revision, shaderSource: material.shaderSource,
+    suppliedOrder: Object.keys(material.uniforms),
+    uniforms: declarations(material.shaderSource).map(uniform => ({name: uniform.name, min: uniform.min, max: uniform.max,
+      defaultValue: text(uniform.default), override: Object.hasOwn(material.uniforms, uniform.name),
+      value: text(Object.hasOwn(material.uniforms, uniform.name) ? material.uniforms[uniform.name] : uniform.default)}))};
+}
 function bodyIds(document: RenderNativeLightDocument): readonly string[] {
   const ids = document.nativeOptions.bodyIds;
   if (!Array.isArray(ids)) throw new RenderEditorError('DOCUMENT_INPUT', 'The scene requires its explicit qualified body selection.');
@@ -47,11 +54,7 @@ export function readLightFields(document: RenderNativeLightDocument): LightForm 
     return {bodyId, position: (pose?.translationMM ?? [0, 0, 0]).map(text) as BodyFields['position'],
       scale: (pose?.scale ?? [1, 1, 1]).map(text) as BodyFields['scale']};
   });
-  const materials = document.surfaceMaterials.map(({target, material}) => ({target, documentId: material.documentId, revision: material.revision,
-    uniforms: declarations(material.shaderSource).map(uniform => ({name: uniform.name, min: uniform.min, max: uniform.max,
-      defaultValue: text(uniform.default), override: Object.hasOwn(material.uniforms, uniform.name),
-      value: text(Object.hasOwn(material.uniforms, uniform.name) ? material.uniforms[uniform.name] : uniform.default)})),
-  }));
+  const materials = document.surfaceMaterials.map(({target, material}) => materialFields(target, material));
   return {kind: lightKind(document), ambient: text(catalog.ambientStrength), bodies, materials, camera: {
     eye: camera.eye.map(text) as CameraFields['eye'], target: camera.target.map(text) as CameraFields['target'],
     up: camera.up.map(text) as CameraFields['up'], fovYDegrees: text(camera.fovYDegrees), near: text(camera.near), far: text(camera.far),
@@ -97,17 +100,20 @@ export function applyLightFields(base: RenderNativeLightDocument, fields: LightF
     if (!row || row.documentId !== binding.material.documentId || !Object.is(row.revision, binding.material.revision)
       || Object.keys(row.target).length !== targetKeys.length || targetKeys.some(key => !Object.is(row.target[key], binding.target[key])))
       throw new RenderEditorError('DOCUMENT_INPUT', 'Material fields must retain the complete original target and embedded owner.');
-    const uniforms = declarations(binding.material.shaderSource);
+    const uniforms = declarations(row.shaderSource);
     if (row.uniforms.length !== uniforms.length || uniforms.some((uniform, i) => row.uniforms[i]?.name !== uniform.name
       || typeof row.uniforms[i]?.override !== 'boolean'))
       throw new RenderEditorError('DOCUMENT_INPUT', 'Material fields must retain the exact shader-declared uniform names and order.');
     const values = new Map(row.uniforms.filter(field => field.override).map(field => [field.name, numeric(field.value, 'Uniform ' + field.name)]));
-    // Keep existing supplied-key order; new overrides follow shader declaration order.
-    const names = [...Object.keys(binding.material.uniforms).filter(name => values.has(name)),
-      ...row.uniforms.filter(field => field.override && !Object.hasOwn(binding.material.uniforms, field.name)).map(field => field.name)];
+    if (!Array.isArray(row.suppliedOrder) || new Set(row.suppliedOrder).size !== row.suppliedOrder.length
+      || row.suppliedOrder.some(name => !uniforms.some(uniform => uniform.name === name)))
+      throw new RenderEditorError('DOCUMENT_INPUT', 'Material supplied-key order must refer to unique declared uniforms.');
+    // Retain the accepted/imported key order; newly enabled overrides follow declarations.
+    const names = [...row.suppliedOrder.filter(name => values.has(name)),
+      ...row.uniforms.filter(field => field.override && !row.suppliedOrder.includes(field.name)).map(field => field.name)];
     const session = createRenderMaterialSession(binding.material);
     try {
-      session.setDraftUniforms(Object.fromEntries(names.map(name => [name, values.get(name)!])));
+      session.setDraftMaterial(row.shaderSource, Object.fromEntries(names.map(name => [name, values.get(name)!])));
       // Actual material-session ownership decides omission/signed equality and revision overflow.
       return session.getSnapshot().dirty ? {...binding, material: session.prepareDraft().document} : binding;
     } finally {session.dispose();}
@@ -131,4 +137,33 @@ export function addLightFields(fields: LightForm): LightForm {
 }
 export function lightFieldsDirty(fields: LightForm, accepted: RenderNativeLightDocument): boolean {
   return JSON.stringify(fields) !== JSON.stringify(readLightFields(accepted));
+}
+
+/** Select only an existing, fully qualified visible binding; embedded IDs are not global assets. */
+export function selectedLightMaterial(base: RenderNativeLightDocument, bodyId: string) {
+  prepareRenderNativeLightDocument(base);
+  const bindings = base.surfaceMaterials.filter(binding => binding.target.bodyId === bodyId);
+  if (!base.display.visibleBodyIds.includes(bodyId) || bindings.length !== 1)
+    throw new RenderEditorError('DOCUMENT_INPUT', 'Select one visible Surface with an existing qualified material binding.');
+  return bindings[0]!;
+}
+
+/** Portable data stages only source and overrides; original target metadata remain authoritative. */
+export function stageLightMaterialFields(base: RenderNativeLightDocument, fields: LightForm,
+  bodyId: string, portable: RenderMaterialDocument): LightForm {
+  if (lightFieldsDirty(fields, base))
+    throw new RenderEditorError('DOCUMENT_INPUT', 'Apply or Discard all scene drafts before importing a material.');
+  const binding = selectedLightMaterial(base, bodyId), index = base.surfaceMaterials.indexOf(binding);
+  const assigned = deriveRenderMaterialAssignment(binding.material, portable);
+  const session = createRenderMaterialSession(binding.material);
+  try {
+    session.setDraftMaterial(assigned.shaderSource, assigned.uniforms);
+    if (!session.getSnapshot().dirty) return fields;
+    if (base.revision === 2147483647)
+      throw new RenderEditorError('DOCUMENT_INPUT', 'Light revision is at its maximum.');
+    session.prepareDraft(); // The actual material authority checks its next revision before staging.
+    const next = {...fields, materials: fields.materials.map((row, i) => i === index ? materialFields(binding.target, assigned) : row)};
+    applyLightFields(base, next); // Qualify the complete scene before exposing either imported field.
+    return next;
+  } finally {session.dispose();}
 }

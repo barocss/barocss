@@ -15,9 +15,16 @@ const dialogs = []; let confirmation = true, fileChoosers = 0;
 dom.window.confirm = message => {dialogs.push(message); return confirmation;};
 const inputClick = dom.window.HTMLInputElement.prototype.click;
 dom.window.HTMLInputElement.prototype.click = function () {if (this.type === 'file') fileChoosers++; return inputClick.call(this);};
-const downloads = []; let latestBlob;
-URL.createObjectURL = blob => {latestBlob = blob; return 'blob:controlled-test';}; URL.revokeObjectURL = () => {};
-dom.window.HTMLAnchorElement.prototype.click = function () {downloads.push({name: this.download, blob: latestBlob});};
+const downloads = [], createdUrls = [], revokedUrls = []; let latestBlob, downloadFailure = null;
+URL.createObjectURL = blob => {latestBlob = blob; const url = 'blob:controlled-test-' + createdUrls.length; createdUrls.push(url); return url;};
+URL.revokeObjectURL = url => {revokedUrls.push(url);};
+dom.window.HTMLAnchorElement.prototype.click = function () {
+  if (downloadFailure) throw downloadFailure;
+  downloads.push({name: this.download, blob: latestBlob});
+};
+// Read-only instrumentation captures the genuine controller, never a replacement session.
+const flowControllers = [], previousControllerObserver = Object.getOwnPropertyDescriptor(globalThis, '__observeLightFlowController');
+Object.defineProperty(globalThis, '__observeLightFlowController', {configurable: true, value: controller => {flowControllers.push(controller);}});
 const controls = []; let startupGate = null, startupFailure = null, navigationDom = null, mounted = null;
 let failed = false, firstError;
 const cleanupErrors = [];
@@ -48,10 +55,13 @@ export * from './apps/render-editor/src/native-light-workbench-flow';
 export {deriveNativeLightFramingCamera} from './apps/render-editor/src/native-light-framing';
 export {createNativeSceneBase,createNativeSceneSeed} from './apps/render-editor/src/native-scene-seed';
 export {prepareViewerNativeSceneAppearance} from '@barocss/viewer';
-export {deriveRenderCameraInteraction,createRenderNativeLightRequest,prepareRenderNativeLightDocument,parseRenderNativeLightDocument,serializeRenderNativeLightDocument,serializeRenderNativeSceneDocument,serializeRenderNativeDirectionalLightDocument,parseRenderNativeDirectionalLightDocument} from '@barocss/render-editor';`,resolveDir: workspace},
+export {deriveRenderCameraInteraction,createRenderNativeLightRequest,prepareRenderNativeLightDocument,parseRenderNativeLightDocument,serializeRenderNativeLightDocument,serializeRenderNativeSceneDocument,serializeRenderNativeDirectionalLightDocument,parseRenderNativeDirectionalLightDocument,prepareRenderMaterialDocument,parseRenderMaterialDocument,serializeRenderMaterialDocument,deriveRenderMaterialAssignment,RENDER_MATERIAL_LIMITS} from '@barocss/render-editor';`,resolveDir: workspace},
     bundle: true, platform: 'node', format: 'esm', outfile: join(output, 'flow.mjs'),
     external: ['react', 'react-dom', 'react-dom/*', 'lucide-react', 'radix-ui', 'class-variance-authority', 'clsx', 'tailwind-merge'],
     plugins: [{name: 'controlled-viewer-only', setup(builder) {
+      builder.onResolve({filter: /^\.\/native-light-controller$/}, () => ({path: 'observed-light-controller', namespace: 'light-flow-observer'}));
+      builder.onLoad({filter: /.*/, namespace: 'light-flow-observer'}, () => ({contents: `import {createNativeLightController as actual} from ${JSON.stringify(join(app, 'src/native-light-controller.ts'))};
+export function createNativeLightController() {const controller = actual(); globalThis.__observeLightFlowController(controller); return controller;}`, resolveDir: workspace}));
       builder.onResolve({filter: /^@barocss\/viewer$/}, () => ({path: 'controlled-viewer', namespace: 'test'}));
       builder.onLoad({filter: /.*/, namespace: 'test'}, () => ({contents: `export * from ${JSON.stringify(join(workspace, 'packages/barocss-viewer/src/index.ts'))};
 export const createNativeDirectionalLightWebGPUViewer = (...args) => globalThis.__lightWorkbenchViewer(...args);
@@ -1502,12 +1512,274 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
       sourceAndDraftsRetained: true, staleCompletions: 2, captures: navigationDom.captures(), pendingFrames: navigationDom.pendingFrames()});
   }
 
+  // #1676: exactly sixteen transport attempts and six Viewer replacements per kind.
+  // Pure qualification cases below do not open a chooser, read a file, or present.
+  const materialTransferFlow = [];
+  for (const kind of ['directional', 'point']) {
+    const raw = structuredClone(api.createLightStudy(sourceText, kind));
+    raw.display.camera.up = [-0, 2, -0];
+    for (const binding of raw.surfaceMaterials) Object.assign(binding.material, {
+      documentId: 'shared-look', title: 'Destination metadata stays here', revision: 7,
+      shaderSource: '// Original source, including its whitespace.\n@shader #original {\n  @uniform amount: float(-1, 1, 0);\n  @fragment { color: mix(#ff0000, #0000ff, clamp(amount, 0, 1)); }\n}\n',
+      uniforms: {amount: .25},
+    });
+    const transferSeed = api.prepareRenderNativeLightDocument(raw).document;
+    const transferText = api.serializeRenderNativeLightDocument(transferSeed), transferFields = api.readLightFields(transferSeed);
+    const portable = api.prepareRenderMaterialDocument({...bindingFor(transferSeed, A).material,
+      documentId: 'foreign-portable', title: 'Never adopts this title', revision: 145,
+      shaderSource: '// Imported text is retained verbatim.\n@shader #portable {\n  @uniform signed: float(-1, 1, 0);\n  @uniform explicit: float(0, 2, 1);\n  @uniform omitted: float(0, 3, 2);\n  @fragment { color: mix(#00ff00, #0000ff, clamp(signed * explicit, 0, 1)); }\n}\n',
+      uniforms: {explicit: 1, signed: -0},
+    }).document;
+    const portableText = api.serializeRenderMaterialDocument(portable), portableFile = file(portableText, 'foreign.material.json');
+    const originalMaterial = bindingFor(transferSeed, A).material;
+    assert.equal(api.selectedLightMaterial(transferSeed, A), bindingFor(transferSeed, A), 'Selection returns the existing complete binding');
+    assert.equal(new Set(transferSeed.surfaceMaterials.map(binding => binding.material.documentId)).size, 1);
+    assert.throws(() => api.prepareRenderMaterialDocument({...originalMaterial, shaderSource: portable.shaderSource}), undefined,
+      'New source cannot be paired with the old supplied uniform');
+    assert.throws(() => api.prepareRenderMaterialDocument({...originalMaterial, uniforms: portable.uniforms}), undefined,
+      'New supplied uniforms cannot be paired with the old source');
+    const staged = api.stageLightMaterialFields(transferSeed, transferFields, A, portable);
+    assert.notEqual(staged, transferFields); assert.notEqual(materialRow(staged, A), materialRow(transferFields, A));
+    assert.equal(materialRow(staged, B), materialRow(transferFields, B), 'Repeated material ID never fans out');
+    for (const key of ['ambient', 'lights', 'bodies', 'camera']) assert.equal(staged[key], transferFields[key], key + ' is retained exactly');
+    assert.equal(materialRow(staged, A).shaderSource, portable.shaderSource);
+    assert.deepEqual(materialRow(staged, A).suppliedOrder, ['explicit', 'signed']);
+    assert.deepEqual(materialRow(staged, A).uniforms, [
+      {name: 'signed', override: true, value: '-0', min: -1, max: 1, defaultValue: '0'},
+      {name: 'explicit', override: true, value: '1', min: 0, max: 2, defaultValue: '1'},
+      {name: 'omitted', override: false, value: '2', min: 0, max: 3, defaultValue: '2'},
+    ]);
+    const expectedFirst = structuredClone(transferSeed);
+    Object.assign(bindingFor(expectedFirst, A).material, {shaderSource: portable.shaderSource, uniforms: portable.uniforms, revision: 8});
+    assert.deepEqual(api.applyLightFields(transferSeed, staged), expectedFirst);
+    assert.deepEqual(transferFields, api.readLightFields(transferSeed), 'Staging never mutates prior raw fields');
+    assert.equal(api.serializeRenderNativeLightDocument(transferSeed), transferText);
+    assert.equal(api.stageLightMaterialFields(transferSeed, transferFields, A, originalMaterial), transferFields,
+      'Exact no-op retains the original form object');
+    const invalidPortable = [
+      ['unknown document key', {...portable, extra: true}],
+      ['missing codec field', Object.fromEntries(Object.entries(portable).filter(([key]) => key !== 'profile'))],
+      ['malformed source', {...portable, shaderSource: '@shader #broken {'}],
+      ['unknown uniform key', {...portable, uniforms: {unknown: .5}}],
+      ['out-of-range uniform', {...portable, uniforms: {signed: 2}}],
+      ['nonnumeric uniform', {...portable, uniforms: {signed: '0'}}],
+    ];
+    for (const [reason, badPortable] of invalidPortable) {
+      const beforeFields = structuredClone(transferFields), beforePortable = structuredClone(badPortable);
+      assert.throws(() => api.stageLightMaterialFields(transferSeed, transferFields, A, badPortable), undefined, reason);
+      assert.deepEqual(transferFields, beforeFields, reason + ': no partial source or uniform state');
+      assert.deepEqual(badPortable, beforePortable, reason + ': no input mutation');
+      assert.equal(api.serializeRenderNativeLightDocument(transferSeed), transferText);
+    }
+    for (const ceiling of ['material', 'scene']) {
+      const maximum = structuredClone(transferSeed);
+      if (ceiling === 'material') bindingFor(maximum, A).material.revision = 2147483647;
+      else {maximum.revision = 2147483647; maximum.lights.revision = 2147483647;}
+      const acceptedMaximum = api.prepareRenderNativeLightDocument(maximum).document, fieldsMaximum = api.readLightFields(acceptedMaximum);
+      const retainedMaximum = structuredClone(fieldsMaximum);
+      assert.throws(() => api.stageLightMaterialFields(acceptedMaximum, fieldsMaximum, A, portable), /revision|maximum/i, ceiling + ' ceiling');
+      assert.deepEqual(fieldsMaximum, retainedMaximum);
+      assert.equal(api.stageLightMaterialFields(acceptedMaximum, fieldsMaximum, A, bindingFor(acceptedMaximum, A).material), fieldsMaximum,
+        ceiling + ': a no-op needs no next revision');
+    }
+    for (const unavailable of ['hidden', 'unbound']) {
+      const unavailableRaw = structuredClone(transferSeed);
+      unavailableRaw.surfaceMaterials = unavailableRaw.surfaceMaterials.filter(binding => binding.target.bodyId !== A);
+      if (unavailable === 'hidden') unavailableRaw.display.visibleBodyIds = [B];
+      const unavailableDocument = api.prepareRenderNativeLightDocument(unavailableRaw).document;
+      const unavailableFields = api.readLightFields(unavailableDocument), retainedFields = structuredClone(unavailableFields);
+      assert.throws(() => api.stageLightMaterialFields(unavailableDocument, unavailableFields, A, portable), undefined, unavailable);
+      assert.deepEqual(unavailableFields, retainedFields);
+    }
+    for (const invalidTarget of ['ambiguous binding', 'foreign model pin']) {
+      const invalidDocument = structuredClone(transferSeed);
+      if (invalidTarget === 'ambiguous binding') invalidDocument.surfaceMaterials.push(structuredClone(bindingFor(invalidDocument, A)));
+      else bindingFor(invalidDocument, A).target.modelId = 'foreign-model';
+      const retainedDocument = structuredClone(invalidDocument);
+      assert.throws(() => api.selectedLightMaterial(invalidDocument, A), undefined, invalidTarget);
+      assert.deepEqual(invalidDocument, retainedDocument);
+    }
+
+    const attempts = [], transferControls = [], urlStart = createdUrls.length;
+    let presentations = 0, readCount = 0;
+    const countAttempt = label => {attempts.push(label); assert(attempts.length <= 16, kind + ': sixteen transport cap');};
+    const mountTransfer = async document => {
+      mounted = await api.mountLightWorkbenchFlow(container, document);
+      const control = controls.at(-1), replace = control.viewer.replace;
+      control.prepare = prepareBodyAppearance;
+      control.viewer.replace = request => {presentations++; assert(presentations <= 6, kind + ': six presentation cap'); return replace(request);};
+      transferControls.push(control); return control;
+    };
+    const session = () => flowControllers.at(-1).getSession();
+    const snapshot = () => session().getSnapshot();
+    const draft = () => api.readLightWorkbenchFlowDraft(container);
+    const materialInput = () => {const input = container.querySelector('[aria-label="Open material file"]'); assert(input); return input;};
+    const deliverMaterial = async value => {
+      const input = materialInput(); Object.defineProperty(input, 'files', {value: value ? [value] : [], configurable: true});
+      await act(async () => input.dispatchEvent(new dom.window.Event('change', {bubbles: true})));
+      assert.equal(input.value, '', 'Same-file reselection remains possible');
+    };
+    const beginImport = async label => {countAttempt(label); await click('Import material…');};
+    const importFile = async (label, value) => {await beginImport(label); await deliverMaterial(value);};
+    const assertUnchanged = (before, rawDraft, label) => {
+      assert.equal(snapshot(), before, label + ': exact actual session snapshot retained');
+      assert.deepEqual(draft(), rawDraft, label + ': every raw visible field retained');
+      assert.equal(presentations, 0, label + ': no Viewer work');
+    };
+    let transferControl = await mountTransfer(transferSeed);
+    await selectBody(A);
+    const initialSnapshot = snapshot(), initialDraft = draft();
+    assert.equal(initialSnapshot.unsaved, true); assert.equal(initialSnapshot.canUndo, false); assert.equal(initialSnapshot.canRedo, false);
+
+    await beginImport('cancel and empty selection'); // 1
+    await act(async () => materialInput().dispatchEvent(new dom.window.Event('cancel', {bubbles: true})));
+    await deliverMaterial(undefined); assertUnchanged(initialSnapshot, initialDraft, 'cancel');
+    assert(!button('Import material…').disabled); assert(!button('Export accepted material').disabled);
+
+    await beginImport('selection away and back'); // 2
+    await selectBody(B); await selectBody(A);
+    await deliverMaterial({...portableFile, arrayBuffer: async () => {readCount++; return new TextEncoder().encode(portableText).buffer;}});
+    assert.equal(readCount, 0, 'Selection epoch refuses before read even after returning to the same body');
+    assert.match(text(), /STALE_CANDIDATE/); assertUnchanged(initialSnapshot, initialDraft, 'selection epoch');
+
+    await beginImport('changed corrective form'); // 3
+    await edit('Intensity', '1e'); await edit('Body position X (mm)', '-'); await edit('Camera eye X', '');
+    const correctiveDraft = draft();
+    await deliverMaterial({...portableFile, arrayBuffer: async () => {readCount++; return new TextEncoder().encode(portableText).buffer;}});
+    assert.equal(readCount, 0); assert.match(text(), /STALE_CANDIDATE/); assertUnchanged(initialSnapshot, correctiveDraft, 'corrective form');
+    assert(button('Import material…').disabled); assert(!button('Export accepted material').disabled);
+    await click('Discard');
+    const cleanSnapshot = snapshot(), cleanDraft = draft();
+    const refusedFiles = [
+      ['reported size', {name: 'reported.material.json', size: api.RENDER_MATERIAL_LIMITS.fileBytes + 1,
+        arrayBuffer: async () => {assert.fail('Reported oversize must refuse before reading');}}],
+      ['actual size', {name: 'actual.material.json', size: 1, arrayBuffer: async () => new Uint8Array(api.RENDER_MATERIAL_LIMITS.fileBytes + 1).buffer}],
+      ['invalid UTF-8', {name: 'utf8.material.json', size: 2, arrayBuffer: async () => new Uint8Array([0xc3, 0x28]).buffer}],
+      ['read failure', {name: 'failure.material.json', size: 1, arrayBuffer: async () => {throw new Error('Controlled material read failure');}}],
+      ['malformed JSON', file('{"format":', 'invalid.material.json')],
+    ];
+    for (const [label, refusedFile] of refusedFiles) { // 4..8
+      await beginImport(label);
+      const movedFocus = container.querySelector('[aria-label="Intensity"]'); movedFocus.focus();
+      await deliverMaterial(refusedFile); assertUnchanged(cleanSnapshot, cleanDraft, label);
+      assert.equal(document.activeElement, movedFocus, 'Failure must preserve intentionally moved focus');
+      assert(container.querySelector('[role="alert"]'), label + ': actionable error');
+      assert(!button('Import material…').disabled);
+    }
+    await importFile('valid atomic source and uniforms', portableFile); // 9
+    assert.equal(snapshot(), cleanSnapshot, 'Import stages only private form state');
+    assert.equal(presentations, 0); assert(button('Undo').disabled); assert(button('Redo').disabled);
+    assert(!uniformInput('amount')); assert.equal(inputValue('Uniform signed'), '-0');
+    assert.equal(overrideInput('explicit').checked, true); assert.equal(overrideInput('omitted').checked, false);
+    assert.equal(inputValue('Uniform omitted'), '2'); assert.match(container.querySelector('[aria-label="Body material"]').textContent, /Range -1 to 1/);
+    assert.equal(container.querySelector('[aria-label="Body material"]').querySelectorAll('textarea').length, 0, 'Import does not expose a shader editor');
+    await selectBody(B); assertMaterialFields(materialRow(transferFields, B)); await selectBody(A);
+    assert.equal(inputValue('Uniform signed'), '-0'); assert.equal(snapshot().accepted, cleanSnapshot.accepted);
+    const stagedDraft = draft();
+    countAttempt('export accepted while material is staged'); await click('Export accepted material'); // 10
+    assert.equal(downloads.at(-1).name, 'shared-look.material.json');
+    assert.equal(await downloads.at(-1).blob.text(), api.serializeRenderMaterialDocument(originalMaterial));
+    assert.equal(snapshot(), cleanSnapshot); assert.deepEqual(draft(), stagedDraft); assert.equal(snapshot().unsaved, true);
+
+    transferControl.refusal = new Error('Controlled portable material presentation refusal');
+    await click('Apply'); // Presentation 1: failed delivery retains source plus uniforms and accepted authority.
+    assert.equal(presentations, 1); assert.match(text(), /PRESENTATION_REFUSED/);
+    assert.deepEqual(snapshot().accepted, transferSeed); assert.deepEqual(draft(), stagedDraft);
+    assert.equal(snapshot().canUndo, false); assert.equal(snapshot().canRedo, false);
+    transferControl.refusal = null; await click('Apply'); // Presentation 2: one accepted whole-scene transaction.
+    expectedFirst.revision = transferSeed.revision + 1; expectedFirst.lights.revision = expectedFirst.revision;
+    assert.deepEqual(snapshot().accepted, expectedFirst); assert.equal(snapshot().canUndo, true); assert.equal(snapshot().canRedo, false);
+    assert.equal(bindingFor(snapshot().accepted, A).material.revision, 8);
+    assert.deepEqual(bindingFor(snapshot().accepted, B), bindingFor(transferSeed, B));
+    assert(Object.is(bindingFor(snapshot().accepted, A).material.uniforms.signed, -0));
+    assert.equal(Object.hasOwn(bindingFor(snapshot().accepted, A).material.uniforms, 'omitted'), false);
+    await edit('Intensity', '1e'); const exportSnapshot = snapshot(), exportDraft = draft(), downloadCount = downloads.length;
+    countAttempt('accepted export transport failure'); downloadFailure = new Error('Controlled material anchor failure'); // 11
+    try {await click('Export accepted material');} finally {downloadFailure = null;}
+    assert.equal(downloads.length, downloadCount, 'A failed transport is not reported as a completed download');
+    assert.equal(await latestBlob.text(), api.serializeRenderMaterialDocument(bindingFor(expectedFirst, A).material));
+    assert.equal(snapshot(), exportSnapshot); assert.deepEqual(draft(), exportDraft); assert.equal(snapshot().unsaved, true);
+    assert.equal(document.querySelectorAll('a[download]').length, 0, 'Failure removes its temporary link');
+    await click('Discard');
+    await click('Undo'); // Presentation 3.
+    assert.deepEqual(snapshot().accepted.surfaceMaterials, transferSeed.surfaceMaterials);
+    assert.equal(snapshot().canUndo, false); assert.equal(snapshot().canRedo, true, 'Import plus Apply created one history entry');
+    await click('Redo'); // Presentation 4.
+    assert.deepEqual(snapshot().accepted.surfaceMaterials, expectedFirst.surfaceMaterials);
+    assert.equal(snapshot().accepted.revision, transferSeed.revision + 3);
+    const noOpSnapshot = snapshot(), noOpDraft = draft();
+    await importFile('exact no-op same-file reselection', portableFile); // 12: identical source and supplied values despite foreign metadata.
+    assert.equal(snapshot(), noOpSnapshot); assert.deepEqual(draft(), noOpDraft);
+    assert(button('Apply').disabled); assert.equal(presentations, 4);
+    countAttempt('accepted scene Save'); await click('Save accepted'); // 13
+    const savedText = await downloads.at(-1).blob.text(), savedDocument = api.parseRenderNativeLightDocument(savedText);
+    assert.equal(downloads.at(-1).name, transferSeed.documentId + '.light-scene.json');
+    assert.deepEqual(savedDocument, noOpSnapshot.accepted); assert.equal(snapshot().unsaved, false);
+    assert.equal(unloadBlocked(), false);
+    await mounted.dispose(); assert.equal(transferControl.disposed, 1);
+    transferControl = await mountTransfer(transferSeed);
+    countAttempt('fresh same-kind scene Open'); await click('Open'); await selectFile(file(savedText, 'saved.light-scene.json')); // 14, presentation 5.
+    assert.deepEqual(snapshot().accepted, savedDocument); assert.equal(snapshot().canUndo, false); assert.equal(snapshot().canRedo, false);
+    await selectBody(A); assert.equal(inputValue('Uniform signed'), '-0'); assert.equal(overrideInput('omitted').checked, false);
+    await edit('Uniform signed', '.5'); await click('Apply'); // Presentation 6.
+    const reedited = structuredClone(savedDocument); reedited.revision++; reedited.lights.revision++;
+    Object.assign(bindingFor(reedited, A).material, {revision: 9, uniforms: {explicit: 1, signed: .5}});
+    assert.deepEqual(snapshot().accepted, reedited); assert.equal(presentations, 6);
+
+    for (const lifecycle of ['loss', 'disposal']) { // 15 and 16; no cancellation fiction or extra presentation.
+      await mounted.dispose(); assert.equal(transferControl.disposed, 1);
+      transferControl = await mountTransfer(transferSeed); await selectBody(A);
+      const heldControl = transferControl, heldSnapshot = snapshot(), heldDraft = draft();
+      let releaseHeld; const held = new Promise(resolve => {releaseHeld = resolve;});
+      await importFile('held read after ' + lifecycle, {name: 'held.material.json', size: portableFile.size, arrayBuffer: () => held});
+      for (const label of ['Import material…', 'Export accepted material', 'Open', 'Save accepted', 'New directional', 'New point', 'Help'])
+        assert(button(label).disabled, 'Held material read fences ' + label);
+      const chooserCount = fileChoosers, calls = heldControl.calls.length;
+      await act(async () => {button('Import material…').click(); button('Open').click(); materialInput().dispatchEvent(new dom.window.Event('cancel', {bubbles: true}));});
+      assert.equal(fileChoosers, chooserCount); assert(button('Open').disabled, 'Cancel cannot release an active read');
+      if (lifecycle === 'loss') {
+        heldControl.state = 'lost';
+        await act(async () => {await new Promise(resolve => setTimeout(resolve, 350));});
+        await act(async () => {releaseHeld(new TextEncoder().encode(portableText).buffer); await held;});
+        assert.equal(snapshot().accepted, heldSnapshot.accepted); assert.deepEqual(draft(), heldDraft);
+        assert.equal(snapshot().canUndo, false); assert.equal(snapshot().canRedo, false);
+        assert(!button('Save accepted').disabled, 'Owning failed read releases busy after loss');
+        assert(button('Import material…').disabled); assert(button('Export accepted material').disabled);
+      } else {
+        await mounted.dispose(); assert.equal(heldControl.disposed, 1);
+        transferControl = await mountTransfer(savedDocument); const freshSnapshot = snapshot(), freshDraft = draft();
+        await act(async () => {releaseHeld(new TextEncoder().encode(portableText).buffer); await held;});
+        assert.equal(snapshot(), freshSnapshot); assert.deepEqual(draft(), freshDraft);
+        assert(!button('Import material…').disabled); assert(!text().includes('held.material.json'));
+      }
+      assert.equal(heldControl.calls.length, calls); assert.equal(presentations, 6);
+    }
+    await mounted.dispose(); assert.equal(transferControl.disposed, 1);
+    // Let each existing URL owner's real delayed revocation run; this is DOM transport cleanup only.
+    await act(async () => {await new Promise(resolve => setTimeout(resolve, 1050));});
+    const ownedUrls = createdUrls.slice(urlStart);
+    assert.equal(ownedUrls.length, 3, 'Two material export attempts plus one whole-scene Save');
+    for (const url of ownedUrls) assert.equal(revokedUrls.filter(value => value === url).length, 1, 'Exactly one revocation for ' + url);
+    assert.equal(document.querySelectorAll('a[download]').length, 0);
+    assert.equal(attempts.length, 16); assert.equal(presentations, 6);
+    assert(transferControls.every(control => control.disposed === 1));
+    materialTransferFlow.push({kind, transportAttempts: attempts.length, attempts, presentations,
+      pureInvalidPortableCases: invalidPortable.length, revisionCeilings: 2, noneditableTargets: 2, invalidQualifiedTargets: 2,
+      capturedBinding: A, repeatedMaterialId: 'shared-look', originalMaterialRevision: 7, reeditedMaterialRevision: 9,
+      ownedObjectUrls: ownedUrls.length, revokedObjectUrls: ownedUrls.length,
+      instrumentation: 'read-only actual controller/session observation', proof: 'software only; no GPU pixels or physical-file persistence'});
+  }
+
   console.log(JSON.stringify({result: 'PASS', scope: 'actual React + original codec/session; controlled Viewer, no GPU/physical-file proof', acceptedRevision: last.revision,
     lights: last.lights.lights.length, replacementCalls: controls[0].calls.length, legacyReplacements: legacyControl.calls.length, convertedLegacyRevision: editedLegacy.revision,
-    cameraFlow, bodyFlow, materialFlow, navigationFlow, framingChecks, framingFlow, selectionFlow, downloadsRequested: downloads.length, confirmationPrompts: dialogs.length, disposed: controls.map(value => value.disposed)}));
+    cameraFlow, bodyFlow, materialFlow, navigationFlow, framingChecks, framingFlow, selectionFlow, materialTransferFlow,
+    downloadsRequested: downloads.length, confirmationPrompts: dialogs.length, disposed: controls.map(value => value.disposed)}));
 } catch (cause) {failed = true; firstError = cause;}
 finally {
-  for (const cleanup of [() => mounted?.dispose(), () => navigationDom?.dispose(), () => dom.window.close(), () => rm(output, {recursive: true, force: true})]) {
+  for (const cleanup of [() => mounted?.dispose(), () => navigationDom?.dispose(), () => {
+    if (previousControllerObserver) Object.defineProperty(globalThis, '__observeLightFlowController', previousControllerObserver);
+    else Reflect.deleteProperty(globalThis, '__observeLightFlowController');
+  }, () => dom.window.close(), () => rm(output, {recursive: true, force: true})]) {
     try {await cleanup();} catch (cause) {cleanupErrors.push(cause);}
   }
 }
