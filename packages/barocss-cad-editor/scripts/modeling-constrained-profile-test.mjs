@@ -24,7 +24,7 @@ let checks=4;
 const ui=readFileSync(resolve(root,'packages/barocss-cad-editor/src/react/modeling-editor.tsx'),'utf8');
 const fragment=ui.match(/ {2}const canonicalConstrained = ([\s\S]*?);\n {2}const constrainedPlateDrivers = ([\s\S]*?);\n {2}const circleModel/);
 assert.ok(fragment,'Actual React classifier initializer');checks++;
-const classifier=new Function('accepted','authored',`const canonicalConstrained = ${fragment[1]}; return ${fragment[2]};`);
+const classifier=new Function('accepted','authored',`const canonicalConstrained = ${fragment[1].replace('(value: unknown)', '(value)')}; return ${fragment[2]};`);
 const p=name=>({parameter:name});
 const graph={parameters:{width:32,height:24,lockY:0},nodes:[
  {kind:'sketch',profile:'constrained-polygon',points:[[-0,0],[p('width'),p('lockY')],[p('width'),p('height')],[1,p('height')]],
