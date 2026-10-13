@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { evaluateBooleanExtrusionFeatureGraph, updateBooleanExtrusionFeatureGraph } from '../dist/index.js';
+import { evaluateBooleanExtrusionFeatureGraph, updateBooleanExtrusionFeatureGraph, serializeBooleanExtrusionFeatureGraph, parseBooleanExtrusionFeatureGraph } from '../dist/index.js';
 import { createNativeExtrusionPreviewAcceptanceV1 } from '../dist/native-extrusion-preview-acceptance-v1.js';
 
 const fixture = fileURLToPath(new URL('../../../apps/cad-editor/fixtures/boolean-extrusion.authored-graph.json', import.meta.url));
@@ -13,9 +13,10 @@ test('Native preview acceptance survives authored-only cold reopen without impor
   const session = createNativeExtrusionPreviewAcceptanceV1(authored, options, 'extrusion_feature');
   const pending = session.prepareDistanceMM(3);
   const accepted = session.accept(pending.token);
-  const savedDocument = JSON.stringify(accepted.accepted.document);
-  const reopenedDocument = JSON.parse(savedDocument);
-  const cold = evaluateBooleanExtrusionFeatureGraph(reopenedDocument, options);
+  // The native authored codec preserves signed zero, unlike JSON.stringify.
+  const savedDocument = serializeBooleanExtrusionFeatureGraph(accepted.accepted.document, options);
+  const cold = parseBooleanExtrusionFeatureGraph(savedDocument, options);
+  const reopenedDocument = cold.document;
   assert.deepEqual(cold, accepted.accepted, 'authored cold evaluation retains actual Native geometry');
   assert.equal(Object.hasOwn(reopenedDocument, 'preview'), false);
   assert.equal(Object.hasOwn(reopenedDocument, 'token'), false);
