@@ -42,7 +42,7 @@ for (const claim of [
   '[-2,-7,0]', '[6,1,6]', '[0,-5,0]', '[4,-1,9]',
   'stored-rational-circle-prism', 'Certified volume unavailable',
   '98 vertices, 64 triangles', 'not a claim of an npm-published',
-  'not yet a verified', 'not a valid parent for cut',
+  'Not verified in this documentation change:', 'a valid parent for cut',
   '0.001..10,000 mm', 'UNRUN',
 ]) {
   // Browser evidence is explicitly NOT claimed, so check the actual words rather than numeric-only acceptance.
