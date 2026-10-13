@@ -15,13 +15,13 @@ try {
       resolve('packages/barocss-cad/src/persistent-face-reference-v1.ts'),
     ],
     bundle:true, platform:'node', format:'esm', target:'es2022',
-    outdir:dir, write:true,
+    outdir:dir, outExtension:{'.js':'.mjs'}, write:true,
   });
   assert.ok(bundled.errors.length===0);
   const { projectConvexPlanarSplitFaceEvolution:project } =
-    await import(pathToFileURL(join(dir,'split-face-evolution.js')));
+    await import(pathToFileURL(join(dir,'split-face-evolution.mjs')));
   const { resolveAuthoredFaceAfterSplitV1:resolveRef } =
-    await import(pathToFileURL(join(dir,'persistent-face-reference-v1.js')));
+    await import(pathToFileURL(join(dir,'persistent-face-reference-v1.mjs')));
   const original = {sourceId:'source',faceId:'top',surfaceId:'plane',loopId:'outer'};
   const output = (side) => ({sourceId:side,faceId:side+'Top',surfaceId:side+'Plane',loopId:side+'Loop'});
   const entry = (side,role,result) => ({side,role,key:side+role,parent:original,output:result,edges:[]});
