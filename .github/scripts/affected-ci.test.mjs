@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { classifyMarkdown, createAffectedPlan, validateAggregate, resolveComparison, buildOutputDirectory } from './affected-ci-plan.mjs';
+import { classifyMarkdown, createAffectedPlan, validatePlan, validateAggregate, resolveComparison, buildOutputDirectory } from './affected-ci-plan.mjs';
 import { validateArtifactManifest, packageCheckCommands, fullCheckCommands, docsValidationScripts, selectAppLintFiles, allAppLintRequired } from './affected-ci-run.mjs';
 
 const head = 'a'.repeat(40);
@@ -447,4 +447,68 @@ test('app lint uses all owned code for config, dependency, unknown-base and regr
   for (const config of ["import local from './plugin.mjs'", "import './plugin.mjs'", "import('./plugin.mjs')", "require('./plugin.cjs')", "new URL('./plugin.mjs', import.meta.url)", 'import(pluginPath)', 'require(pluginPath)']) assert.equal(allAppLintRequired(plan, config), true, config);
   assert.equal(allAppLintRequired(plan, '', true), true);
   assert.equal(allAppLintRequired({ ...plan, changedPaths: ['.github/workflows/ci.yml'] }, ''), false);
+});
+
+test('verified docs check registration keeps full CI but does not widen unrelated app lint', () => {
+  const args = input({ changes: [{ status: 'M', path: 'apps/library-docs/package.json' }] });
+  args.packages.find(row => row.directory === 'apps/library-docs').manifest.scripts['check:docs'] = 'node scripts/new-check.mjs && node scripts/check-docs.mjs';
+  const plan = createAffectedPlan(args);
+  validatePlan(plan);
+  assert.equal(plan.mode, 'full');
+  assert.equal(plan.docsNeeded, true);
+  assert.equal(plan.docsCheckScriptOnly, true);
+  assert.equal(allAppLintRequired(plan, ''), false);
+  const tracked = ['apps/cad-editor/src/old.ts', 'apps/library-docs/scripts/new-check.mjs', 'apps/library-docs/scripts/old-check.mjs'];
+  assert.deepEqual(selectAppLintFiles('apps/cad-editor', tracked, plan.changedPaths, false), []);
+  const ownAll = plan.changedPaths.includes('apps/library-docs/package.json');
+  assert.deepEqual(selectAppLintFiles('apps/library-docs', tracked, plan.changedPaths, ownAll), tracked.slice(1));
+});
+
+test('docs exception rejects every additional script, lifecycle, metadata and dependency change', () => {
+  for (const change of [
+    ...['prepare', 'preinstall', 'install', 'postinstall', 'lint', 'type-check', 'build', 'test', 'check:other'].map(key => manifest => { manifest.scripts[key] = 'node other.mjs'; }),
+    manifest => { manifest.dependencies = { eslint: '^9.0.0' }; },
+    manifest => { manifest.version = '2.0.0'; },
+    manifest => { delete manifest.scripts['check:docs']; },
+    manifest => { manifest.scripts['check:docs'] = null; },
+  ]) {
+    const args = input({ changes: [{ status: 'M', path: 'apps/library-docs/package.json' }] });
+    const manifest = args.packages.find(row => row.directory === 'apps/library-docs').manifest;
+    manifest.scripts['check:docs'] = 'node scripts/new-check.mjs'; change(manifest);
+    const plan = createAffectedPlan(args);
+    assert.equal(plan.mode, 'full'); assert.equal(plan.docsCheckScriptOnly, false);
+    assert.equal(allAppLintRequired(plan, ''), true);
+  }
+});
+
+test('missing renamed or uncertain docs manifests and checkout-only drift retain global lint', () => {
+  for (const change of [{ status: 'A', path: 'apps/library-docs/package.json' },
+    { status: 'D', path: 'apps/library-docs/package.json' },
+    { status: 'R100', oldPath: 'apps/old-docs/package.json', path: 'apps/library-docs/package.json' },
+    { status: 'M', path: 'apps/library-docs/package.json', oldPath: 'apps/library-docs/package.json' }]) {
+    const args = input({ changes: [change] });
+    args.packages.find(row => row.directory === 'apps/library-docs').manifest.scripts['check:docs'] = 'node new.mjs';
+    const plan = createAffectedPlan(args); assert.equal(plan.docsCheckScriptOnly, false); assert.equal(allAppLintRequired(plan, ''), true);
+  }
+  for (const alter of [args => { args.validBase = false; }, args => { args.basePackages = []; },
+    args => { args.basePackages = args.basePackages.filter(row => row.directory !== 'apps/library-docs'); },
+    args => { args.packages.find(row => row.directory === 'packages/feature').manifest.dependencies = { eslint: '^9.0.0' }; }]) {
+    const args = input({ changes: [{ status: 'M', path: 'apps/library-docs/package.json' }] });
+    args.packages.find(row => row.directory === 'apps/library-docs').manifest.scripts['check:docs'] = 'node new.mjs'; alter(args);
+    const plan = createAffectedPlan(args); assert.equal(plan.docsCheckScriptOnly, false); assert.equal(allAppLintRequired(plan, ''), true);
+  }
+});
+
+test('docs exception never masks concurrent root dependency lint type or build inputs', () => {
+  const args = input({ changes: [{ status: 'M', path: 'apps/library-docs/package.json' }] });
+  args.packages.find(row => row.directory === 'apps/library-docs').manifest.scripts['check:docs'] = 'node new.mjs';
+  for (const path of ['package.json', 'pnpm-lock.yaml', 'packages/tool/package.json', 'eslint.config.mjs',
+    'apps/render-editor/eslint.config.mjs', 'apps/render-editor/tsconfig.json', 'apps/render-editor/vite.config.ts', 'apps/render-editor/scripts/build.mjs']) {
+    const plan = createAffectedPlan({ ...args, changes: [...args.changes, { status: 'M', path }] });
+    assert.equal(allAppLintRequired(plan, ''), true, path);
+  }
+  const plan = createAffectedPlan({ ...args, changes: [...args.changes, { status: 'M', path: 'apps/render-editor/src/changed.tsx' }] });
+  assert.equal(allAppLintRequired(plan, ''), false);
+  assert.deepEqual(selectAppLintFiles('apps/render-editor', ['apps/render-editor/src/changed.tsx', 'apps/render-editor/src/old.tsx'], plan.changedPaths), ['apps/render-editor/src/changed.tsx']);
+  assert.equal(allAppLintRequired(plan, '', true), true);
 });

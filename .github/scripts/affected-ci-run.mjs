@@ -83,8 +83,10 @@ export function allAppLintRequired(plan, config, regression = false) {
   // Current root config imports only registry packages. Unknown/local plugin wiring is conservative.
   return regression || !plan.changedPaths.length || plan.reasons.some((reason) => /unavailable comparison|comparison unavailable/.test(reason))
     || /(?:['"`]\.{1,2}\/|\b(?:import|require)\s*\()/.test(config)
-    || plan.changedPaths.some((path) => /(?:^|\/)(?:package\.json|eslint\.config\.[cm]?[jt]s|\.eslintrc[^/]*|pnpm-lock\.yaml|pnpm-workspace\.yaml|\.npmrc)$/.test(path)
-      || (!/^(?:apps|packages|examples|\.github|\.ai)\//.test(path) && !/\.md$/.test(path)));
+    || plan.changedPaths.some((path) => !(path === 'apps/library-docs/package.json' && plan.docsCheckScriptOnly === true)
+      && (/(?:^|\/)(?:package\.json|[^/]*\.config\.[cm]?[jt]s|\.eslintrc[^/]*|tsconfig[^/]*\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|\.npmrc)$/.test(path)
+        || /(?:^|\/)(?:build[^/]*\.[cm]?[jt]s|build\/)/.test(path)
+        || (!/^(?:apps|packages|examples|\.github|\.ai)\//.test(path) && !/\.md$/.test(path))));
 }
 async function appLint(plan, selectedDirectories, regression = false) {
   const result = spawnSync('git', ['ls-files', '-z', '--', 'apps'], { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
@@ -97,13 +99,14 @@ async function appLint(plan, selectedDirectories, regression = false) {
   for (const directory of directories) {
     const manifest = JSON.parse(readFileSync(`${directory}/package.json`, 'utf8'));
     if (manifest.scripts?.lint) continue; // Existing declared command remains authoritative.
-    const candidates = selectAppLintFiles(directory, tracked, plan.changedPaths, all || plan.changedPaths.includes(`${directory}/package.json`));
+    const allOwned = all || plan.changedPaths.includes(`${directory}/package.json`);
+    const candidates = selectAppLintFiles(directory, tracked, plan.changedPaths, allOwned);
     const files = []; const ignored = [];
     for (const path of candidates) {
       if (!lstatSync(path).isFile()) throw new Error(`non-regular app lint input: ${path}`);
       if (await eslint.isPathIgnored(path)) ignored.push(path); else files.push(path);
     }
-    console.log(JSON.stringify({ appLint: directory, coverage: all ? 'all tracked code' : 'changed tracked code', files, configuredExclusions: ignored }));
+    console.log(JSON.stringify({ appLint: directory, coverage: allOwned ? 'all tracked code' : 'changed tracked code', files, configuredExclusions: ignored }));
     if (files.length) run('pnpm', ['exec', 'eslint', '--no-warn-ignored', '--', ...files]);
     else console.log(`App ESLint ${directory}: no eligible files; no lint PASS claimed`);
   }
