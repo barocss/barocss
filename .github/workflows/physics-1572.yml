@@ -44,6 +44,13 @@ jobs:
               failures=$((failures+1))
             fi
           done
+          if node /tmp/physics-1572-audit/public-two-box-resting-10s.mjs --three-boxes > /tmp/physics-1572-audit/public-three-box-resting-10s.log 2>&1; then
+            echo "PASS public-three-box-resting-10s"
+          else
+            echo "FAIL runtime public-three-box-resting-10s"
+            cat /tmp/physics-1572-audit/public-three-box-resting-10s.log
+            failures=$((failures+1))
+          fi
           echo "Failed audit consumers: ${failures}"
           test "${failures}" -eq 0
       - name: Preserve audit output
