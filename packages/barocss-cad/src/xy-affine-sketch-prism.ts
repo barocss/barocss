@@ -16,8 +16,11 @@ export interface XYAffineSketchPrismOptions {
 export interface XYAffineSketchPrismCoordinateSpanOptions extends XYAffineSketchPrismOptions {
   chartPolicy: { version: 1; kind: 'coordinate-span' };
 }
-type PrismOptions = XYAffineSketchPrismOptions | XYAffineSketchPrismCoordinateSpanOptions;
+/** Absolute bottom Z; the original owned sketch stays on its authored Z=0 plane. */
+export interface XYAffineSketchPrismOffsetCoordinateSpanOptions extends XYAffineSketchPrismCoordinateSpanOptions { fromMM: number }
+type PrismOptions = XYAffineSketchPrismOptions | XYAffineSketchPrismCoordinateSpanOptions | XYAffineSketchPrismOffsetCoordinateSpanOptions;
 function coordinateSpan(options: PrismOptions): options is XYAffineSketchPrismCoordinateSpanOptions { return Object.hasOwn(options, 'chartPolicy'); }
+function offset(options: PrismOptions): options is XYAffineSketchPrismOffsetCoordinateSpanOptions { return Object.hasOwn(options, 'fromMM'); }
 export interface XYAffineSketchPrismWallReference { sourceId: string; sketchId: string; sourceRevision: number; segmentId: string }
 export interface XYAffineSketchPrismFaceReference { sourceId: string; faceId: string; surfaceId: string }
 export interface XYAffineSketchPrismLineage {
@@ -50,7 +53,14 @@ export interface XYAffineSketchPrismCoordinateSpanResult extends Omit<XYAffineSk
   request: { sketch: XYAffineSketchSuccess; options: XYAffineSketchPrismCoordinateSpanOptions };
   report: XYAffineSketchPrismCoordinateSpanReport;
 }
-type PrismResult = XYAffineSketchPrismResult | XYAffineSketchPrismCoordinateSpanResult;
+export interface XYAffineSketchPrismOffsetCoordinateSpanReport extends XYAffineSketchPrismCoordinateSpanReport { fromMM: number }
+export interface XYAffineSketchPrismOffsetLineage extends XYAffineSketchPrismLineage { sourceToBottomTranslationMM: Point }
+export interface XYAffineSketchPrismOffsetCoordinateSpanResult extends Omit<XYAffineSketchPrismCoordinateSpanResult, 'request' | 'report' | 'lineage'> {
+  request: { sketch: XYAffineSketchSuccess; options: XYAffineSketchPrismOffsetCoordinateSpanOptions };
+  report: XYAffineSketchPrismOffsetCoordinateSpanReport;
+  lineage: XYAffineSketchPrismOffsetLineage;
+}
+type PrismResult = XYAffineSketchPrismResult | XYAffineSketchPrismCoordinateSpanResult | XYAffineSketchPrismOffsetCoordinateSpanResult;
 export interface XYAffineSketchPrismWallResolution {
   reference: XYAffineSketchPrismWallReference; currentRevision: number;
   status: 'preserved' | 'deleted' | 'stale'; targets: XYAffineSketchPrismFaceReference[];
@@ -76,13 +86,21 @@ function tuple(value: unknown, positive = false): asserts value is [number, numb
 }
 function settings(input: unknown): PrismOptions {
   const hasPolicy = input !== null && typeof input === 'object' && Object.hasOwn(input, 'chartPolicy');
-  const o = record(input, ['sourceId', 'sourceRevision', 'orderedSegmentIds', 'heightMM', 'capChart', 'solidId', 'resultIdPrefix', ...(hasPolicy ? ['chartPolicy'] : [])]);
+  const hasOffset = input !== null && typeof input === 'object' && Object.hasOwn(input, 'fromMM');
+  const o = record(input, ['sourceId', 'sourceRevision', 'orderedSegmentIds', 'heightMM', 'capChart', 'solidId', 'resultIdPrefix', ...(hasPolicy ? ['chartPolicy'] : []), ...(hasOffset ? ['fromMM'] : [])]);
   if (hasPolicy) {
     const policy = record(o.chartPolicy, ['version', 'kind']);
     check(policy.version === 1 && policy.kind === 'coordinate-span', 'chart', null, 'Explicit coordinate-span chart policy version1 required');
   }
   id(o.sourceId); id(o.solidId); id(o.resultIdPrefix, 12); revision(o.sourceRevision);
   check(typeof o.heightMM === 'number' && Number.isFinite(o.heightMM) && o.heightMM > 0 && o.heightMM <= 10000, 'input', null, 'Finite +Z height >0..10000mm required');
+  if (hasOffset) {
+    check(hasPolicy, 'input', null, 'Offset extrusion requires the explicit coordinate-span chart policy');
+    check(typeof o.fromMM === 'number' && Number.isFinite(o.fromMM) && Math.abs(o.fromMM) <= 10000, 'input', null, 'Finite bottom Z within +/-10000mm required');
+    const from = o.fromMM as number, height = o.heightMM as number, top = from + height, virtual = top - from;
+    check(Number.isFinite(top) && Math.abs(top) <= 10000 && (from - (top - virtual)) + (height - virtual) === 0,
+      'input', null, 'Offset top Z must be exactly representable within +/-10000mm');
+  }
   check(Array.isArray(o.orderedSegmentIds) && o.orderedSegmentIds.length >= 3 && o.orderedSegmentIds.length <= 8, 'cycle', null, '3..8 explicit ordered segment IDs required');
   o.orderedSegmentIds.forEach(value => id(value));
   check(new Set(o.orderedSegmentIds).size === o.orderedSegmentIds.length, 'cycle', null, 'Repeated segment identity refused');
@@ -119,7 +137,10 @@ function build(request: PrismResult['request']): PrismResult {
     }
     return curve;
   });
-  const bottom = curves.map(c => c.controlPoints[0]), top = bottom.map(p => [p[0], p[1], options.heightMM] as Point);
+  // Keep the omitted branch byte-for-byte unchanged, including original zero signs.
+  const from = offset(options) ? options.fromMM : 0, topZ = offset(options) ? from + options.heightMM : options.heightMM;
+  const bottom = curves.map(c => offset(options) ? [c.controlPoints[0][0], c.controlPoints[0][1], from] as Point : c.controlPoints[0]);
+  const top = bottom.map(p => [p[0], p[1], topZ] as Point);
   const { originXY: [x, y], spanXY: [sx, sy] } = options.capChart, x1 = exactAdd(x, sx), y1 = exactAdd(y, sy);
   const prefix = options.resultIdPrefix, recipes: Recipe[] = [];
   const add = (name: string, support: Surface, edges: Curve[], edgeKeys: string[], orientation: 'forward' | 'reverse', entity: string): ConvexPlanarFaceResult => {
@@ -143,7 +164,7 @@ function build(request: PrismResult['request']): PrismResult {
       curves.map(c => ({ ...c, controlPoints: c.controlPoints.map(p => [p[0], p[1], z] as Point) })),
       segments.map(s => role + ':' + s.id), role === 'bottom' ? 'reverse' : 'forward', options.sourceId);
   };
-  const bottomFace = cap('bottom', 0); cap('top', options.heightMM);
+  const bottomFace = cap('bottom', from); cap('top', topZ);
   const orientation = bottomFace.report.authoredOrientation;
   for (let i = 0; i < n; i++) {
     const j = (i + 1) % n, name = prefix + '_w_' + i, vertices = [bottom[i], bottom[j], top[j], top[i]], segment = segments[i];
@@ -169,23 +190,29 @@ function build(request: PrismResult['request']): PrismResult {
     const vertex = solid.graph.vertices.find(v => v.members.some(m => m.sourceId === recipe.name && m.vertexId === originalVertex));
     check(vertex !== undefined, 'lineage', originalVertex, 'Source-qualified vertex missing from qualified graph'); return vertex.id;
   };
-  const lineage: XYAffineSketchPrismLineage = {
+  const lineage: XYAffineSketchPrismLineage | XYAffineSketchPrismOffsetLineage = {
     sourceId: options.sourceId, sketchId: sketch.document.id, sourceRevision: options.sourceRevision,
     caps: [{ role: 'bottom', status: 'generated', target: faceRef(recipes[0]) }, { role: 'top', status: 'generated', target: faceRef(recipes[1]) }],
     segments: segments.map((segment, i) => ({ segmentId: segment.id, startPointId: segment.startPointId, endPointId: segment.endPointId, status: 'preserved', wall: faceRef(recipes[i + 2]),
       bottomEdgeId: edgeId('bottom:' + segment.id), topEdgeId: edgeId('top:' + segment.id), boundaryEdgeStatus: 'generated', nativeParameterDomain: [curves[i].knots[1], curves[i].knots[2]] })),
     points: segments.map((segment, i) => ({ pointId: segment.startPointId, status: 'generated', verticalEdgeId: edgeId('vertical:' + segment.startPointId), bottomVertexId: vertexId(recipes[0], i), topVertexId: vertexId(recipes[1], i) })),
+    ...(offset(options) ? { sourceToBottomTranslationMM: [0, 0, options.fromMM] as Point } : {}),
   };
-  const report: PrismResult['report'] = {
+  const baseReport: XYAffineSketchPrismReport = {
     schema: 'barocss-xy-affine-sketch-prism', version: 0, solid: true, sourceId: options.sourceId, sketchId: sketch.document.id, sourceRevision: options.sourceRevision,
     profileOrientation: orientation, segmentCount: n, heightMM: options.heightMM,
     childNativeWork: { sketchReconstructionCount: 1, initialFaceConstructionCount: n + 2, solidQualificationCount: 1, solidFaceReconstructionCount: n + 2,
       sourceCompilationCount: 2 * (n + 2) + 1, bindingObservationCount: 36 * n, totalD1Count: 108 * n, retries: 0 },
     exactWork: { sketch: sketch.report.rationalWork, solid: solid.report.exactWork },
     limits: { segments: 8, facets: 10, directedUses: 48, edgePairs: 24, vertices: 16, fanTriangles: 28, sourceCompilations: 21, bindingObservations: 288, totalD1: 864 },
-    numericPolicy: coordinateSpan(options) ? 'explicit-coordinate-span-v1-exact-stored-solid-proof-no-retry' : 'declared-cap-chart-natural-wall-chart-exact-stored-solid-proof-no-retry',
+    numericPolicy: 'declared-cap-chart-natural-wall-chart-exact-stored-solid-proof-no-retry',
     revisionPolicy: 'explicit-caller-revision-complete-source-reconstruction-no-historical-authenticity', persistentNamingCertified: false, manufacturingToleranceCertified: false,
   };
+  // Explicit branches keep required offset metadata typed without widening the
+  // legacy report. Overriding an existing key retains its original field order.
+  const report: PrismResult['report'] = offset(options)
+    ? { ...baseReport, numericPolicy: 'explicit-coordinate-span-v1-exact-stored-solid-proof-no-retry', fromMM: options.fromMM }
+    : coordinateSpan(options) ? { ...baseReport, numericPolicy: 'explicit-coordinate-span-v1-exact-stored-solid-proof-no-retry' } : baseReport;
   return { request, solid, lineage, report } as PrismResult;
 }
 function reconstruct(input: PrismResult, ledger: SolidSnapshotLedger): PrismResult {
@@ -194,12 +221,14 @@ function reconstruct(input: PrismResult, ledger: SolidSnapshotLedger): PrismResu
   const expected = ledger.copy(build(request), true); check(same(owned, expected), 'result', null, 'Complete prism source/operation/solid/lineage/report differs from reconstruction'); return expected;
 }
 /** Construct only the declared exact-admitted +Z prism; no shell cast, chart search or tolerance sewing. */
+export function buildXYAffineSketchPrism(sketch: XYAffineSketchSuccess, options: XYAffineSketchPrismOffsetCoordinateSpanOptions): XYAffineSketchPrismOffsetCoordinateSpanResult;
 export function buildXYAffineSketchPrism(sketch: XYAffineSketchSuccess, options: XYAffineSketchPrismCoordinateSpanOptions): XYAffineSketchPrismCoordinateSpanResult;
 export function buildXYAffineSketchPrism(sketch: XYAffineSketchSuccess, options: XYAffineSketchPrismOptions): XYAffineSketchPrismResult;
 export function buildXYAffineSketchPrism(sketch: XYAffineSketchSuccess, options: PrismOptions): PrismResult {
   return at('input', null, () => { const ledger = new SolidSnapshotLedger(), request = ledger.copy({ sketch, options }); return at('result', null, () => ledger.copy(build(request), true)); });
 }
 /** One full native rebuild checks self-consistency, not historical provenance or persistent naming. */
+export function validateXYAffineSketchPrism(input: XYAffineSketchPrismOffsetCoordinateSpanResult): XYAffineSketchPrismOffsetCoordinateSpanReport;
 export function validateXYAffineSketchPrism(input: XYAffineSketchPrismCoordinateSpanResult): XYAffineSketchPrismCoordinateSpanReport;
 export function validateXYAffineSketchPrism(input: XYAffineSketchPrismResult): XYAffineSketchPrismReport;
 export function validateXYAffineSketchPrism(input: PrismResult): PrismResult['report'] {

@@ -6,7 +6,7 @@ import type { StoredCirclePrismSolidResult } from './stored-circle-prism-solid.j
 import { buildXYAffineSketch } from './xy-affine-sketch.js';
 import type { XYAffineSketchSuccess } from './xy-affine-sketch.js';
 import { buildXYAffineSketchPrism } from './xy-affine-sketch-prism.js';
-import type { XYAffineSketchPrismCoordinateSpanResult } from './xy-affine-sketch-prism.js';
+import type { XYAffineSketchPrismCoordinateSpanResult, XYAffineSketchPrismOffsetCoordinateSpanResult } from './xy-affine-sketch-prism.js';
 import { subtractConvexPlanarSlab } from './convex-planar-slab-subtraction.js';
 import type { ConvexPlanarSlabSubtractionResult } from './convex-planar-slab-subtraction.js';
 import { intersectConvexPlanarSolids } from './convex-planar-solid-intersection.js';
@@ -58,7 +58,7 @@ export interface CadShape {
   intersect(other: CadShape): CadShape;
   /** Cardinal or x+y=at split of a direct XY extrusion or its owned chamfer chain; at is a coordinate/sum in mm. */
   split(options: SplitPlane & { readonly at: CadDimension }): CadSplit;
-  /** One rectangular difference, or one third-box slot in an owned union; all boxes start at Z=0. */
+  /** One rectangular difference, or one third-box slot in an owned union; actual integer XYZ bounds are used. */
   cut(tool: CadShape): CadShape;
   /** Legacy through-slab pair. Options must be provided as an exact axis record. */
   cut(tool: CadShape, options: { readonly axis: 'x' | 'y' }): CadCut;
@@ -68,7 +68,11 @@ export interface CadShape {
 }
 export interface CadCut { readonly negative: CadShape; readonly positive: CadShape }
 export interface CadSplit { readonly negative: CadShape; readonly positive: CadShape }
-export interface CadSketch { extrude(height: CadDimension): CadShape }
+export interface CadSketch {
+  extrude(height: CadDimension): CadShape;
+  /** Absolute bottom Z for an affine XY profile; positive height stays a +Z distance. Circle options refuse. */
+  extrude(height: CadDimension, options: { readonly from: CadDimension }): CadShape;
+}
 export type CadRectangle = { readonly min: CadPoint2; readonly max: CadPoint2 } | { readonly width: CadDimension; readonly height: CadDimension };
 export interface CadModel {
   parameter(name: string, valueMM: number): CadParameter;
@@ -83,7 +87,7 @@ export interface CadModel {
 export type CadModelEvidence =
   | { readonly kind: 'sketch'; readonly profile?: never; readonly native: XYAffineSketchSuccess }
   | { readonly kind: 'sketch'; readonly profile: 'circle'; readonly native: XYArcResult }
-  | { readonly kind: 'extrude'; readonly profile?: never; readonly native: XYAffineSketchPrismCoordinateSpanResult }
+  | { readonly kind: 'extrude'; readonly profile?: never; readonly native: XYAffineSketchPrismCoordinateSpanResult | XYAffineSketchPrismOffsetCoordinateSpanResult }
   | { readonly kind: 'extrude'; readonly profile: 'circle'; readonly native: StoredCirclePrismSolidResult }
   | { readonly kind: 'cut'; readonly native: ConvexPlanarSlabSubtractionResult }
   | { readonly kind: 'intersect'; readonly native: ConvexPlanarSolidIntersectionResult }
@@ -122,7 +126,7 @@ type Query = { parallelTo?: CadAxis; at?: Partial<Record<CadAxis, Dimension | 'm
 type BodyRef = { node: number; side: 'solid' | 'negative' | 'positive' };
 type SketchNode = { kind: 'sketch'; profile: 'polygon'; points: [Dimension, Dimension][] } | { kind: 'sketch'; profile: 'rectangle'; min: [Dimension, Dimension]; max: [Dimension, Dimension] } | { kind: 'sketch'; profile: 'circle'; center: [Dimension, Dimension]; radius: Dimension };
 type ChamferConfiguration = { name: string; suppressed: boolean } | { name?: never; suppressed?: never };
-type Node = SketchNode | { kind: 'extrude'; sketch: number; height: Dimension } | { kind: 'cut'; parent: BodyRef; tool: BodyRef; axis: 'x' | 'y' } | { kind: 'intersect'; left: BodyRef; right: BodyRef } | { kind: 'union'; left: BodyRef; right: BodyRef } | { kind: 'difference'; parent: BodyRef; tool: BodyRef } | ({ kind: 'split'; parent: BodyRef; at: Dimension } & SplitPlane) | ({ kind: 'chamfer'; parent: BodyRef; edge: Query; distance: Dimension } & ChamferConfiguration) | { kind: 'hole'; parent: BodyRef; center: [Dimension, Dimension]; radius: Dimension };
+type Node = SketchNode | { kind: 'extrude'; sketch: number; height: Dimension; from?: Dimension } | { kind: 'cut'; parent: BodyRef; tool: BodyRef; axis: 'x' | 'y' } | { kind: 'intersect'; left: BodyRef; right: BodyRef } | { kind: 'union'; left: BodyRef; right: BodyRef } | { kind: 'difference'; parent: BodyRef; tool: BodyRef } | ({ kind: 'split'; parent: BodyRef; at: Dimension } & SplitPlane) | ({ kind: 'chamfer'; parent: BodyRef; edge: Query; distance: Dimension } & ChamferConfiguration) | { kind: 'hole'; parent: BodyRef; center: [Dimension, Dimension]; radius: Dimension };
 type Document = { format: 'barocss-cad-model'; schema: 1; units: 'mm'; parameters: Record<string, number>; nodes: Node[]; outputs: Record<string, BodyRef> };
 type EvaluatedValue = CadBody | { negative?: CadBody; positive?: CadBody } | undefined;
 // Generated IDs/native options are fixed by this implementation authority plus the keyed graph.
@@ -161,6 +165,15 @@ function length(value: unknown, operation: string, positive = false): asserts va
 function resolvedDimension(value: unknown, parameters: Readonly<Record<string, number>>): number {
   try { return resolveModelDimension(value, parameters); }
   catch (cause) { if (cause instanceof ModelDimensionError) throw new CadModelError(cause.code, 'dimension', cause.message, cause); throw cause; }
+}
+/** New placement mode never rounds an authored height into a different Z interval. */
+function offsetRange(fromDimension: Dimension, heightDimension: Dimension, parameters: Readonly<Record<string, number>>): { from: number; top: number } {
+  const from = resolvedDimension(fromDimension, parameters), height = resolvedDimension(heightDimension, parameters);
+  length(from, 'extrude'); length(height, 'extrude', true);
+  const top = from + height, virtual = top - from;
+  demand(Number.isFinite(top) && Math.abs(top) <= CadModelLimits.lengthMM && (from - (top - virtual)) + (height - virtual) === 0,
+    'PARAMETER', 'extrude', 'Offset top Z must be exactly representable within +/-10000 mm');
+  return { from, top };
 }
 function copy<T>(input: T): T {
   let remaining = 4096;
@@ -226,8 +239,9 @@ function boxDimensions(nodes: readonly Node[], reference: BodyRef, parameters: R
   const sketch = nodes[extrusion.sketch];
   demand(sketch.kind === 'sketch' && sketch.profile === 'rectangle', 'CAPABILITY', operation, 'Integer-box Boolean requires authored rectangles');
   const number = (value: Dimension) => resolvedDimension(value, parameters);
-  const origin: Point = [number(sketch.min[0]), number(sketch.min[1]), 0];
-  const max: Point = [number(sketch.max[0]), number(sketch.max[1]), number(extrusion.height)];
+  const range = Object.hasOwn(extrusion, 'from') ? offsetRange(extrusion.from!, extrusion.height, parameters) : { from: 0, top: number(extrusion.height) };
+  const origin: Point = [number(sketch.min[0]), number(sketch.min[1]), range.from];
+  const max: Point = [number(sketch.max[0]), number(sketch.max[1]), range.top];
   const sides = max.map((value, i) => value - origin[i]) as Point;
   demand([...origin, ...max].every(value => Number.isSafeInteger(value) && Math.abs(value) <= CadModelLimits.lengthMM)
     && sides.every(value => Number.isSafeInteger(value) && value >= 1 && value <= CadModelLimits.lengthMM),
@@ -240,6 +254,7 @@ function plateDimensions(nodes: readonly Node[], reference: BodyRef, parameters:
   const sketch = nodes[extrusion.sketch];
   demand(sketch.kind === 'sketch' && sketch.profile === 'rectangle', 'CAPABILITY', 'hole', 'Hole requires an authored rectangle');
   const number = (value: Dimension) => resolvedDimension(value, parameters);
+  demand(!Object.hasOwn(extrusion, 'from') || number(extrusion.from!) === 0, 'CAPABILITY', 'hole', 'Hole plate must start at Z=0');
   demand(sketch.min.every(value => number(value) === 0), 'CAPABILITY', 'hole', 'Hole plate must start at the XY origin');
   const dimensions: [number, number, number] = [number(sketch.max[0]), number(sketch.max[1]), number(extrusion.height)];
   demand(dimensions.every(value => Number.isSafeInteger(value) && value >= 1 && value <= CadModelLimits.lengthMM), 'CAPABILITY', 'hole', 'Hole plate dimensions must be integers from 1 to 10000 mm');
@@ -286,7 +301,12 @@ function admit(input: Document): Document {
       else if (n.profile === 'circle') { record(n, 'sketch', ['kind', 'profile', 'center', 'radius']); point(n.center); circleProfile(n.center, n.radius, d.parameters); }
       else { record(n, 'sketch', ['kind', 'profile', 'min', 'max']); demand(n.profile === 'rectangle', 'CAPABILITY', 'sketch', 'Only convex XY polygons and rectangles supported'); point(n.min); point(n.max); }
     } else if (n.kind === 'extrude') {
-      record(n, 'extrude', ['kind', 'sketch', 'height']); demand(Number.isInteger(n.sketch) && !Object.is(n.sketch, -0) && n.sketch >= 0 && n.sketch < i && nodes[n.sketch].kind === 'sketch', 'INPUT', 'extrude', 'Earlier sketch required'); dimension(n.height);
+      const placed = Object.hasOwn(n, 'from');
+      record(n, 'extrude', ['kind', 'sketch', 'height', ...(placed ? ['from'] : [])]); demand(Number.isInteger(n.sketch) && !Object.is(n.sketch, -0) && n.sketch >= 0 && n.sketch < i && nodes[n.sketch].kind === 'sketch', 'INPUT', 'extrude', 'Earlier sketch required'); dimension(n.height);
+      if (placed) {
+        demand(!circleExtrusion(nodes, { node: i, side: 'solid' }), 'CAPABILITY', 'extrude', 'Extrusion placement options require an affine XY profile');
+        offsetRange(n.from!, n.height, d.parameters);
+      }
       if (circleExtrusion(nodes, { node: i, side: 'solid' })) circleMeasure(n.height, d.parameters, 'extrude');
     } else if (n.kind === 'cut') {
       record(n, 'cut', ['kind', 'parent', 'tool', 'axis']); body(n.parent, i); body(n.tool, i);
@@ -433,7 +453,24 @@ export function createCadModel(): CadModel {
     });
     shapes.set(handle, { owner, reference: freeze({ ...reference }) }); return handle;
   };
-  const sketch = (node: SketchNode): CadSketch => { const index = append(node); return Object.freeze({ extrude(height: CadDimension): CadShape { const authored = dimension(height); if (node.profile === 'circle') circleMeasure(authored, parameters, 'extrude'); return shape({ node: append({ kind: 'extrude', sketch: index, height: authored }), side: 'solid' }); } }); };
+  const sketch = (node: SketchNode): CadSketch => {
+    const index = append(node);
+    function extrude(height: CadDimension): CadShape;
+    function extrude(height: CadDimension, options: { readonly from: CadDimension }): CadShape;
+    function extrude(height: CadDimension, options?: { readonly from: CadDimension }): CadShape {
+      demand(arguments.length === 1 || arguments.length === 2, 'INPUT', 'extrude', 'Extrude requires a height, optionally one exact from record');
+      const authored = dimension(height);
+      if (arguments.length === 2) {
+        const fields = record(options, 'extrude', ['from']);
+        demand(node.profile !== 'circle', 'CAPABILITY', 'extrude', 'Extrusion placement options require an affine XY profile');
+        const from = dimension(fields.from as CadDimension); offsetRange(from, authored, parameters);
+        return shape({ node: append({ kind: 'extrude', sketch: index, height: authored, from }), side: 'solid' });
+      }
+      if (node.profile === 'circle') circleMeasure(authored, parameters, 'extrude');
+      return shape({ node: append({ kind: 'extrude', sketch: index, height: authored }), side: 'solid' });
+    }
+    return Object.freeze({ extrude });
+  };
   return Object.freeze({
     parameter(key: string, value: number): CadParameter { name(key, 'parameter'); length(value, 'parameter'); demand(!Object.hasOwn(parameters, key), 'PARAMETER', 'parameter', 'Parameter already exists: ' + key); demand(Object.keys(parameters).length < CadModelLimits.parameters, 'BUDGET', 'parameter', 'Parameter limit reached'); const p = Object.freeze({ name: key }); parameters[key] = value; dimensions.set(p, { owner, name: key }); return p; },
     dimension: Object.freeze({
@@ -525,7 +562,8 @@ function evaluate(input: Document, previous?: EvaluationFrame): CadModelSnapshot
           evidence.push({ kind: 'extrude', profile: 'circle', native }); values.push({ family: 'stored-rational-circle-prism', native }); continue;
         }
         const points = sketch.native.solution.points.map(p => p.position), min = [0, 1].map(a => Math.min(...points.map(p => p[a]))), max = [0, 1].map(a => Math.max(...points.map(p => p[a])));
-        const native = buildXYAffineSketchPrism(sketch.native, { sourceId: 'm' + node.sketch + '_src', sourceRevision: 0, orderedSegmentIds: sketch.native.document.segments.map(s => s.id), heightMM: height, capChart: { originXY: min as [number, number], spanXY: [max[0] - min[0], max[1] - min[1]] }, chartPolicy: { version: 1, kind: 'coordinate-span' }, solidId: prefix + '_solid', resultIdPrefix: prefix });
+        const native = buildXYAffineSketchPrism(sketch.native, { sourceId: 'm' + node.sketch + '_src', sourceRevision: 0, orderedSegmentIds: sketch.native.document.segments.map(s => s.id), heightMM: height, capChart: { originXY: min as [number, number], spanXY: [max[0] - min[0], max[1] - min[1]] }, chartPolicy: { version: 1, kind: 'coordinate-span' }, solidId: prefix + '_solid', resultIdPrefix: prefix,
+          ...(Object.hasOwn(node, 'from') ? { fromMM: number(node.from!) } : {}) });
         evidence.push({ kind: 'extrude', native }); values.push(convex(native.solid));
       } else if (node.kind === 'cut') {
         const tool = solid(node.tool, 'cut'), axis = axes.indexOf(node.axis);

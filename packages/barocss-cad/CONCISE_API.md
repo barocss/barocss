@@ -27,7 +27,7 @@ const solid = body.native;
 forms. Coordinates and dimensions accept numbers or same-model parameter handles.
 `polygon(points)` closes the final point to the first; do not repeat the first
 point. The current kernel admits one strictly convex, 3..8-edge XY line polygon.
-Extrusion starts at Z=0, along +Z. All coordinates and dimensions are millimetres.
+Extrusion defaults to Z=0, along +Z. Affine profiles may supply an absolute bottom coordinate with `extrude(height, { from })`. All coordinates and dimensions are millimetres.
 Heights and chamfer distances must be positive, and dimensions are bounded by
 10000 mm in magnitude. Exact kernel representability restrictions still apply.
 
@@ -156,7 +156,7 @@ volume conservation, not an arbitrary BRep or manufacturing tolerance.
 
 Both operands must be distinct direct **authored rectangles**. Corners resolve
 to integers within ±10000 mm; side lengths and positive extrusion heights are
-integers from 1 to 10000 mm. Both extrusions start at Z=0. One union fits the
+integers from 1 to 10000 mm. Extrusions default to Z=0; an affine `{ from }` option uses its actual integer Z origin. One union fits the
 existing six-node envelope and cannot mix with cut, intersection, split, hole or
 chamfer, feed another union, or expose convex edge queries. Parameters and owned
 add/scale dimensions are supported only when the resulting dimensions satisfy
@@ -221,7 +221,7 @@ if (body.family !== 'orthogonal-cell') throw new Error('Expected rectangular dif
 const volumeMM3 = body.native.report.volumeMM3;
 ```
 
-Both direct authored rectangle extrusions belong to this model and begin at Z=0.
+Both direct authored rectangle extrusions belong to this model. They default to Z=0; an optional affine `{ from }` supplies the actual bottom Z.
 Resolved corners must be integers within ±10000 mm, and each side/height an integer
 from 1 to 10000 mm. A depth4 tool cuts an **underside** recess through Z=0..4;
 it is not a top-entry pocket. The 32×24×8 plate retains5632 mm³, depth6 retains5376,
@@ -797,7 +797,7 @@ The bracket has exact volume 3072 mm³. The slotted part has 2816 mm³ initially
 and 2688 mm³ after the edit. This chain alone admits eight nodes and three direct
 integer rectangles/extrusions. The third rectangle follows the accepted authored
 union prefix; the final cut must consume that union and the distinct third tool.
-All boxes start at Z=0. The normal six-node limit remains for other recipes.
+This example starts all boxes at Z=0. Offset composed-chain acceptance is not covered by its verification. The normal six-node limit remains for other recipes.
 
 The final native schema is `barocss-orthogonal-solid-boolean`, distinct from the
 two-box result. Its complete parents and exact original/immediate-parent UV
@@ -812,3 +812,50 @@ the accepted scene/history remains intact on refusal. A later complete receiver
 must validate three-operand occupancy and parent-panel lineage, without treating
 this result as the old two-box transport. General nested Booleans, round-post
 operations and arbitrary transformed solids remain outside this slice.
+
+
+## Start an affine extrusion above or below the sketch plane
+
+`sketch.extrude(height, { from })` creates real bottom/top Faces at `from` and
+`from + height`. The original owned XY sketch stays at Z=0, and native lineage
+records its source-to-bottom translation. `from` is an absolute millimetre
+coordinate, not an edit of a previously accepted Solid.
+
+```ts
+import { cad } from '@barocss/cad';
+const m = cad.model();
+const depth = m.parameter('depth', 4);
+const plate = m.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const tool = m.sketch.rectangle({ min: [8, 8], max: [24, 16] }).extrude(depth, {
+  from: m.dimension.add(8, m.dimension.scale(depth, -1)),
+});
+const initial = m.build({ part: plate.cut(tool) });
+const deeper = initial.withParameters({ depth: 6 });
+const reopened = cad.load(deeper.save());
+```
+
+This is a **top-entry pocket**: depth4 leaves a floor at Z=4 and volume5632mm³;
+depth6 leaves Z=2 and volume5376mm³. Depth8 makes a through-window. The two-box
+native result and copied preview use the actual displaced tool supports and
+inward cavity normals. Native qualification remains the existing bounded
+integer-cell authority; receiver checks establish structural correspondence,
+not a new native certification. A dedicated editor preset and physical screen
+acceptance remain separate work.
+
+Height must be positive, at most10000mm. Bottom and top must be within
+±10000mm, and their declared binary64 sum must be exact. For example,
+`extrude(0.2, { from: 0.1 })` refuses rather than silently changing height.
+Owned parameters and existing add/scale expressions work in `from`; changed
+start-coordinate dependencies invalidate the appropriate feature prefix.
+Native exact-chart or qualification refusals retain their original cause.
+
+Omitting options retains the original authored/native bytes. Explicit
+`{ from: -0 }` is a distinct saved option with its own signed source and
+translation metadata, even though its mathematical bottom is Z=0. Explicit
+undefined, empty/extra-field options, foreign handles and extra arguments
+refuse before consuming a feature. Every supplied option on a circle sketch
+refuses. The origin-aligned `hole()` operation refuses a displaced parent,
+including after a parameter edit; rejected edits retain the accepted snapshot.
+Existing operation and node budgets are unchanged. Offset finishing,
+raised-boss union and composed-chain combinations are not part of this slice's
+measured acceptance matrix.

@@ -79,3 +79,22 @@ test('union-slot graph keeps complete dependencies and only reuses the unchanged
   const changed = structuredClone(doc); changed.nodes[7].parent.node = 1; assert.notEqual(key(changed), k);
   assert.equal(prefix(false, k, k, values, values, names), 0);
 });
+
+test('offset extrusion binds optional intent, nested start dimensions and exact signed-zero parameters', () => {
+  const p = parameter => ({ parameter });
+  const sketch = { kind: 'sketch', profile: 'rectangle', min: [0,0], max: [32,24] };
+  const omitted = { kind: 'extrude', sketch: 0, height: p('height') };
+  const offset = { ...omitted, from: { op: 'add', left: p('thickness'), right: { op: 'scale', value: p('depth'), factor: -1 } } };
+  assert.deepEqual(refs(offset), ['depth','height','thickness']);
+  const values = { height: 4, thickness: 8, depth: 4, start: 0 };
+  const document = nodes => ({ format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: values, nodes, outputs: { tool: { node: 1, side: 'solid' } } });
+  const doc = document([sketch, offset]), k = key(doc), names = doc.nodes.map(refs);
+  assert.equal(prefix(true, k, k, { ...values }, values, names), 2);
+  assert.equal(prefix(true, k, k, { ...values, depth: 6 }, values, names), 1);
+  assert.equal(prefix(true, k, k, { ...values, thickness: 10 }, values, names), 1);
+  assert.notEqual(key(document([sketch, omitted])), key(document([sketch, { ...omitted, from: 0 }])));
+  assert.notEqual(key(document([sketch, { ...omitted, from: 0 }])), key(document([sketch, { ...omitted, from: -0 }])));
+  const parameterNode = { ...omitted, from: p('start') }, parameterDoc = document([sketch, parameterNode]), pk = key(parameterDoc);
+  assert.equal(prefix(true, pk, pk, { ...values, start: -0 }, values, parameterDoc.nodes.map(refs)), 1);
+  assert.equal(prefix(false, pk, pk, values, values, parameterDoc.nodes.map(refs)), 0);
+});
