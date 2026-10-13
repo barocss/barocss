@@ -42,7 +42,7 @@
   "scripts": {
     "build:library": "node scripts/build.mjs",
     "type-check": "tsc -p tsconfig.json --noEmit",
-    "test": "node scripts/modeling-file-test.mjs && node scripts/feature-preview-epoch-test.mjs && node scripts/feature-preview-lifecycle-test.mjs && node scripts/feature-preview-advisory-test.mjs && node scripts/modeling-pocket-recipes-test.mjs && node scripts/modeling-top-pocket-recipes-test.mjs"
+    "test": "node scripts/modeling-file-test.mjs && node scripts/feature-preview-epoch-test.mjs && node scripts/feature-preview-lifecycle-test.mjs && node scripts/feature-preview-advisory-test.mjs && node scripts/modeling-pocket-recipes-test.mjs && node scripts/modeling-top-pocket-recipes-test.mjs && node scripts/modeling-constrained-profile-test.mjs"
   },
   "dependencies": {
     "@barocss/cad": "workspace:*",
