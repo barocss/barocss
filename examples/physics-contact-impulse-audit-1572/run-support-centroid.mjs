@@ -17,7 +17,7 @@ try{
           if(pass===7 && [1,600,1200].includes(stepIndex+1)
              && ((a.id==='b0'&&b.id==='b1')||(a.id==='b1'&&b.id==='b2'))){
             const observed=manifold?.map(point=>{
-              const impulse=nextPersistentPoints.get(`\${key}\\u0000\${point.id}`);
+              const impulse=nextPersistentPoints.get(key+String.fromCharCode(0)+point.id);
               return {pointM:[...point.pointM],normalNs:impulse?.normalNs??0,
                 tangentNs:[...(impulse?.tangentNs??[0,0,0])]};
             })??[];
