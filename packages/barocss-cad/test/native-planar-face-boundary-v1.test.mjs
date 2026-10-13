@@ -28,3 +28,34 @@ test('clockwise cycle preserves input direction, invalid loops and IDs fail clos
  assert.deepEqual(construct('invalid/id',input),{status:'refused',reason:'invalid-face-id'});
  assert.equal(construct('faceB',[p(0,0),p(4,4),p(0,4),p(4,0)]).status,'refused');
 });
+
+test('face is built exclusively from descriptor snapshot despite hostile getter traps',()=>{
+ let gets=0;
+ const guard=(x,y)=>new Proxy(p(x,y),{get(){gets++;throw Error('external get');}});
+ const r=construct('faceProxy',[guard(0,0),guard(4,0),guard(4,4),guard(0,4)]);
+ assert.equal(r.status,'qualified');
+ assert.equal(r.winding,'counterclockwise');
+ assert.deepEqual(r.vertices.map(v=>v.pointMM),[p(0,0),p(4,0),p(4,4),p(0,4)]);
+ const liar=(x,y)=>new Proxy(p(x,y),{get(){gets++;return 9000;}});
+ const l=construct('faceLiar',[liar(0,0),liar(4,0),liar(4,4),liar(0,4)]);
+ assert.equal(l.status,'qualified');
+ assert.deepEqual(l.vertices.map(v=>v.pointMM),[p(0,0),p(4,0),p(4,4),p(0,4)]);
+ assert.equal(gets,0);
+});
+test('face refuses revoked proxies, reflection traps and array getter without evaluation',()=>{
+ const revoked=Proxy.revocable(p(0,0),{});revoked.revoke();
+ const revokedArray=Proxy.revocable([p(0,0),p(1,0),p(0,1)],{});revokedArray.revoke();
+ const hostile=[
+  revoked.proxy,
+  new Proxy(p(0,0),{getPrototypeOf(){throw Error('prototype');}}),
+  new Proxy(p(0,0),{ownKeys(){throw Error('keys');}}),
+  new Proxy(p(0,0),{getOwnPropertyDescriptor(){throw Error('descriptor');}})
+ ];
+ for(const point of hostile) assert.deepEqual(construct('faceA',[point,p(1,0),p(0,1)]),
+  {status:'refused',reason:'invalid-loop'});
+ assert.deepEqual(construct('faceA',revokedArray.proxy),{status:'refused',reason:'invalid-loop'});
+ const array=[p(0,0),p(1,0),p(0,1)];let reads=0;
+ Object.defineProperty(array,'0',{enumerable:true,get(){reads++;return p(0,0);}});
+ assert.deepEqual(construct('faceA',array),{status:'refused',reason:'invalid-loop'});
+ assert.equal(reads,0);
+});
