@@ -216,7 +216,8 @@ async function pump(promise, mutate) {
   }
   assert.ok(done, 'Bounded worker pump must settle'); await promise;
 }
-const stable = session => { const value = session.getSnapshot(); delete value.busy; delete value.error; return value; };
+// Worker readiness is a recoverable transport state, not authored or displayed authority.
+const stable = session => { const value = session.getSnapshot(); delete value.busy; delete value.error; delete value.workerReady; return value; };
 const parameters = session => session.getSnapshot().accepted.parameters;
 function retained(session, before, pattern) {
   assert.deepEqual(stable(session), before, 'Refusal retains authored/accepted/display/drafts/history/selection/generation');
@@ -281,7 +282,7 @@ try {
 
   current.stage('width', '36'); const beforeCommit = stable(current), beforeCommits = commits;
   commitFailure = true; await pump(current.apply()); commitFailure = false;
-  retained(current, beforeCommit, /display commit refusal/); assert.equal(commits, beforeCommits);
+  retained(current, beforeCommit, /display commit refusal/); assert.equal(current.getSnapshot().workerReady, false, 'Display refusal invalidates the Worker, not accepted authority'); assert.equal(commits, beforeCommits);
   assert.ok(disposals > 0); cases.push('display-commit-refusal');
 
   // The refused display stopped its Worker. Reconstruct before canceling the

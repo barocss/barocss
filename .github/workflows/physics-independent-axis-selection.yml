@@ -22,11 +22,12 @@ jobs:
       - run: pnpm --filter @barocss/physics build:library
       - run: mkdir -p /tmp/p1572-axes
       - name: Independently compare all fifteen SAT axes at real box poses
+        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
           node examples/physics-contact-impulse-audit-1572/run-independent-axis-selection.mjs | tee /tmp/p1572-axes/results.jsonl
-      - if: always()
+      - if: always() && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: physics1572-independent-axis-selection
