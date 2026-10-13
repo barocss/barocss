@@ -84,4 +84,4 @@ The developer reference [Fuse two rectangular extrusions](../cad/modeling#fuse-t
 
 **Source inspected:** current modeling preset, accepted numeric fixture and native report, saved output order, and staged-file UI. **Not executed in this documentation change:** Node source-drift script, site build, live Chromium/React interaction, GPU pixels, physical Download → Open and screenshots. These checks remain **UNRUN** until separately measured. A successful Markdown link check is not a substitute for a native or browser acceptance.
 
-[First part](./first-model) · [Round post](./round-post) · [Mounting plate](./mounting-plate) · [CAD Editor overview](./)
+[First part](./first-model) · [CAD Editor overview](./) · [Native modeling reference](../cad/modeling)
