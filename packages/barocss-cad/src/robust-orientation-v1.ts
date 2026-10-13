@@ -68,6 +68,13 @@ export function orient2dQualified(
   if (v.every(Number.isSafeInteger)) {
     const ax = BigInt(a.x), ay = BigInt(a.y), bx = BigInt(b.x), by = BigInt(b.y), cx = BigInt(c.x), cy = BigInt(c.y);
     const det = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
+    // Exact arithmetic does not eliminate uncertainty declared by the caller.
+    // This threshold is an input uncertainty bound in mm², not rounding error.
+    if (admitted.determinantUncertaintyMM2 > 0) {
+      const threshold = admitted.determinantUncertaintyMM2;
+      if (Math.abs(Number(det)) <= threshold)
+        return { status: 'indeterminate', reason: 'within-error-bound' };
+    }
     return { status: 'exact', sign: sign(det), method: 'safe-integer-bigint' };
   }
 
