@@ -1,6 +1,6 @@
 import { buildAxisRectangleExtrusion } from './axis-rectangle-extrusion.js';
 import { buildXYCirclePrismShell } from './xy-circle-prism-shell.js';
-import { evaluateCurve, evaluateSurface, curveDomain, surfaceDomain, validateCurve, validateSurface } from './math.js';
+import { evaluateCurve, evaluateSurface, curveDomain, validateCurve, validateSurface } from './math.js';
 import { evaluateSurfaceD1 } from './derivatives.js';
 import { compileCadModel } from './model-compiler.js';
 import { curveDecimal } from './curve-source.js';
