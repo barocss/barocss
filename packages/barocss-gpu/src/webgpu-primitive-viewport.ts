@@ -5,6 +5,8 @@ import type { PrimitiveSceneRef, PrimitiveViewport } from './primitive-scene-ren
 import type { UpdateResult } from './renderer.js';
 import { prepareCamera } from './camera.js';
 import { lowerMeshMaterialWGSL } from './mesh-material-wgsl.js';
+import { releasePrimitiveReadback } from './primitive-readback-lifetime.js';
+import type { PrimitiveReadbackLease } from './primitive-readback-lifetime.js';
 import type { GPUBufferHandle, GPUTextureHandle, GPUPipelineHandle, GPUDeviceHandle,
   GPUPlatformHandle, GPUCanvasHandle } from './webgpu-platform.js';
 
@@ -179,7 +181,7 @@ class BackendViewport implements PrimitiveBackendViewport {
   private cpu: PreparedWebGPUPrimitiveFrame;
   private accepted: Resources | null = null;
   private candidate: Resources | null = null;
-  private readback: GPUBufferHandle | null = null;
+  private readback: PrimitiveReadbackLease | null = null;
   private gl: PrimitiveViewport | null = null;
   private currentSelection: PrimitiveSceneRef | null = null;
   private busy = false;
@@ -215,7 +217,7 @@ class BackendViewport implements PrimitiveBackendViewport {
   }
   private releaseOwned(): void {
     release(this.accepted); release(this.candidate); this.accepted = null; this.candidate = null;
-    this.readback?.destroy(); this.readback = null;
+    releasePrimitiveReadback(this.readback); this.readback = null;
   }
   async initialize(): Promise<void> {
     if (this.current.backend === 'webgl2') {
@@ -358,22 +360,23 @@ class BackendViewport implements PrimitiveBackendViewport {
     const frame = this.accepted!, width = identity ? 1 : frame.width, height = identity ? 1 : frame.height;
     const rowBytes = Math.ceil(width * 4 / 256) * 256;
     const device = this.device!;
-    let buffer: GPUBufferHandle | null = null;
+    let readback: PrimitiveReadbackLease | null = null;
     let resultPixels: Uint8Array | undefined;
     let originalError: unknown, failed = false;
     let cleanupError: PrimitiveBackendError | undefined;
     try {
       await this.scoped(async () => {
-        buffer = device.createBuffer({ size: rowBytes * height, usage: MAP_READ | COPY_DST });
-        this.readback = buffer;
+        readback = { buffer: device.createBuffer({ size: rowBytes * height, usage: MAP_READ | COPY_DST }), unmapped: false, destroyed: false };
+        this.readback = readback;
+        const buffer = readback.buffer;
         const encoder = device.createCommandEncoder();
         encoder.copyTextureToBuffer({ texture: frame.textures[identity ? 1 : 0], origin: { x, y, z: 0 } },
           { buffer, bytesPerRow: rowBytes, rowsPerImage: height }, { width, height, depthOrArrayLayers: 1 });
         device.queue.submit([encoder.finish()]); await bounded(device.queue.onSubmittedWorkDone(), 'GPU readback submission');
       });
-      const mappedBuffer = buffer as GPUBufferHandle | null;
+      const mappedBuffer = (readback as PrimitiveReadbackLease | null)?.buffer ?? null;
       if (!mappedBuffer) fail('RENDER', 'Readback allocation did not complete');
-      await bounded(mappedBuffer.mapAsync(1), 'GPU readback map', () => { mappedBuffer.unmap(); mappedBuffer.destroy(); }); this.live();
+      await bounded(mappedBuffer.mapAsync(1), 'GPU readback map', () => { releasePrimitiveReadback(readback); }); this.live();
       const padded = new Uint8Array(mappedBuffer.getMappedRange()), result = new Uint8Array(width * height * 4);
       for (let row = 0; row < height; row++) result.set(padded.subarray(row * rowBytes, row * rowBytes + width * 4), row * width * 4);
       if (!identity && this.format === 'bgra8unorm') for (let offset = 0; offset < result.length; offset += 4) [result[offset], result[offset + 2]] = [result[offset + 2], result[offset]];
@@ -381,14 +384,10 @@ class BackendViewport implements PrimitiveBackendViewport {
     } catch (cause) {
       failed = true; originalError = cause;
     } finally {
-      const owned = buffer as GPUBufferHandle | null, failures: unknown[] = [];
-      try { owned?.unmap(); } catch (cause) { failures.push(cause); }
-      try { owned?.destroy(); } catch (cause) { failures.push(cause); }
-      if (this.readback === owned) this.readback = null;
-      if (failures.length) {
-        cleanupError = new PrimitiveBackendError('RENDER', 'GPU readback cleanup refused');
-        Object.defineProperty(cleanupError, 'cause', { value: new AggregateError(failed ? [originalError, ...failures] : failures) });
-      }
+      const failures = releasePrimitiveReadback(readback);
+      if (this.readback === readback) this.readback = null;
+      if (failures.length)
+        cleanupError = wrap('RENDER', 'GPU readback cleanup refused', new AggregateError(failed ? [originalError, ...failures] : failures));
     }
     if (cleanupError) throw cleanupError;
     if (failed) throw originalError;
