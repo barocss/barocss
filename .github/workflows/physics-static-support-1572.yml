@@ -1,0 +1,34 @@
+name: Physics independent static support reference
+on:
+  pull_request:
+    branches: [develop]
+    paths:
+      - 'examples/physics-contact-impulse-audit-1572/static-support-reference.ts'
+      - '.github/workflows/physics-static-support-1572.yml'
+  workflow_dispatch:
+jobs:
+  static-support:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @barocss/physics build:library
+      - run: mkdir -p /tmp/physics-static-support
+      - name: Run independent polygon and force-moment support witnesses
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm exec esbuild examples/physics-contact-impulse-audit-1572/static-support-reference.ts --bundle --platform=node --format=esm --target=node22 --outfile=/tmp/physics-static-support/check.mjs
+          node /tmp/physics-static-support/check.mjs | tee /tmp/physics-static-support/results.jsonl
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: physics-static-support-witnesses
+          path: /tmp/physics-static-support/results.jsonl
+          if-no-files-found: ignore
