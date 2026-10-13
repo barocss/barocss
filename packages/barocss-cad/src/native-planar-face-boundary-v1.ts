@@ -42,27 +42,8 @@ function snapshotLoop(input: unknown): Binary64PointV1[] | null {
 export function constructNativePlanarFaceBoundaryV1(faceId: unknown, loop: unknown): NativePlanarFaceBoundaryV1 {
   if (typeof faceId !== 'string' || !/^[A-Za-z][A-Za-z0-9_-]{0,63}$/.test(faceId))
     return { status: 'refused', reason: 'invalid-face-id' };
-  // Snapshot descriptors, not property getters: construction must consume the
-  // same finite represented coordinates that the loop qualifier admitted.
-  if (!Array.isArray(loop) || loop.length < 3 || loop.length > 16)
-    return { status: 'refused', reason: 'invalid-loop' };
-  const points: Binary64PointV1[] = [];
-  try {
-    for (let i = 0; i < loop.length; i++) {
-      const input: unknown = Object.getOwnPropertyDescriptor(loop, String(i))?.value;
-      if (!input || typeof input !== 'object' || Array.isArray(input)) return { status: 'refused', reason: 'invalid-loop' };
-      const proto = Object.getPrototypeOf(input);
-      if (proto !== Object.prototype && proto !== null) return { status: 'refused', reason: 'invalid-loop' };
-      const fields = Object.getOwnPropertyDescriptors(input);
-      const keys = Reflect.ownKeys(fields);
-      if (keys.length !== 2 || !['x', 'y'].every(key =>
-        Object.hasOwn(fields, key) && 'value' in fields[key] &&
-        typeof fields[key].value === 'number')) return { status: 'refused', reason: 'invalid-loop' };
-      points.push({ x: fields.x.value as number, y: fields.y.value as number });
-    }
-  } catch {
-    return { status: 'refused', reason: 'invalid-loop' };
-  }
+  const points = snapshotLoop(loop);
+  if (!points) return { status: 'refused', reason: 'invalid-loop' };
   const result = qualifyNativePlanarLoopV1(points);
   if (result.status !== 'qualified') return result;
   const n = points.length;
