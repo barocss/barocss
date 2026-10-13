@@ -3,6 +3,7 @@ import {createRoot} from 'react-dom/client';
 import {deriveRenderNativeSceneGizmoPose, prepareRenderNativeSceneGizmo, hitTestRenderSceneGizmo,
   validateRenderNativeSceneDocument, serializeRenderNativeSceneDocument} from '@barocss/render-editor';
 import type {RenderNativeSceneDocument, RenderNativeScenePose, RenderSceneGizmoViewport} from '@barocss/render-editor';
+import {prepareCamera} from '@barocss/gpu';
 import type {MeshCamera} from '@barocss/gpu';
 import {NativeSceneGizmo} from './native-scene-gizmo';
 import {createNativeSceneHost} from './native-scene-host';
@@ -41,6 +42,35 @@ export async function runNativeGizmoUiFlow(source: string, controls: NativeGizmo
     {ambientStrength: .4, directionalStrength: .6, direction: [.3, 1, .4]}));
   const documentSeed = validateRenderNativeSceneDocument({...seed, display: {...seed.display, camera}});
   const checks: string[] = [], attempts: Array<Record<string, unknown>> = [], cleanupErrors: string[] = [];
+  // Independent actual-camera projection witnesses an axis that used to be drawn
+  // wholly inside the 13.5 CSS-pixel pivot exclusion (and could never be hit).
+  const nativeOrigin = pose(documentSeed, BODY).translationMM.map(value => value * documentSeed.display.mmToSceneUnit);
+  const nearZCamera: MeshCamera = {...camera, target: [nativeOrigin[0]!, nativeOrigin[1]!, nativeOrigin[2]!],
+    eye: [nativeOrigin[0]! + .45, nativeOrigin[1]!, nativeOrigin[2]! + 5]};
+  const matrices = prepareCamera(nearZCamera, viewport.backingWidth / viewport.backingHeight);
+  const cameraProject = (point: readonly number[]): Point => {
+    const vector = [...point, 1];
+    const view = [0, 1, 2, 3].map(row => [0, 1, 2, 3].reduce((sum, col) =>
+      sum + matrices.view[col * 4 + row]! * vector[col]!, 0));
+    const clip = [0, 1, 2, 3].map(row => [0, 1, 2, 3].reduce((sum, col) =>
+      sum + matrices.projection[col * 4 + row]! * view[col]!, 0));
+    return [(1 + clip[0]! / clip[3]!) * viewport.width / 2, (1 - clip[1]! / clip[3]!) * viewport.height / 2];
+  };
+  const depth = -[0, 1, 2].reduce((sum, col) => sum + matrices.view[col * 4 + 2]! * nativeOrigin[col]!, matrices.view[14]!);
+  const radius = 160 * depth / (matrices.projection[5]! * viewport.height);
+  const center = cameraProject(nativeOrigin);
+  const zTip = cameraProject([nativeOrigin[0]!, nativeOrigin[1]!, nativeOrigin[2]! + radius]);
+  const nearZProjectedCSS = Math.hypot(zTip[0] - center[0], zTip[1] - center[1]);
+  check(nearZProjectedCSS > 4 && nearZProjectedCSS < 13.5,
+    'Fixture no longer witnesses a historically visible but unpickable Z axis');
+  const nearZ = prepareRenderNativeSceneGizmo(documentSeed, BODY, nearZCamera, viewport, 'translate', 'world', 'origin');
+  check(!nearZ.handles.some(handle => handle.key === 'z'), 'Unpickable near-view-aligned Z arrow is still shown');
+  for (const axis of ['x', 'y'] as const) {
+    const handle = nearZ.handles.find(handle => handle.key === axis);
+    check(handle && hitTestRenderSceneGizmo(nearZ, handle.anchor) === handle,
+      'Unrelated projected ' + axis.toUpperCase() + ' arrow was lost');
+  }
+
   const cleanupAfterFailure = async (cause: unknown, cleanup: () => Promise<void>): Promise<never> => {
     try {await cleanup();} catch (error) {cleanupErrors.push(String(error), ...(error instanceof AggregateError ? error.errors.map(String) : []));}
     if (cause instanceof Error) Object.defineProperty(cause, 'gizmoCleanupErrors', {value: [...cleanupErrors], configurable: true});
@@ -179,6 +209,6 @@ export async function runNativeGizmoUiFlow(source: string, controls: NativeGizmo
   });
   check(pointerAttempts === 10 && attempts.length === 10 && checks.length === 10 && disposedHosts === 10 && unmountedRoots === 10, 'Incomplete finite flow');
   return {scope: 'Actual Native React/shared GizmoSurface and real NativeSceneHost CPU event flow; controlled DOM geometry, capture, RAF, ResizeObserver and presentation. No GPU/browser/physical-file acceptance.',
-    checks, attempts, cleanupErrors, pointerAttempts, disposedHosts, unmountedRoots, totalPresentations, sourceRetained: documentSeed.nativeDocument.assets.every(asset => asset.source === source), canonicalSeed: serializeRenderNativeSceneDocument(documentSeed),
+    nearZProjectedCSS, nearZCamera, checks, attempts, cleanupErrors, pointerAttempts, disposedHosts, unmountedRoots, totalPresentations, sourceRetained: documentSeed.nativeDocument.assets.every(asset => asset.source === source), canonicalSeed: serializeRenderNativeSceneDocument(documentSeed),
     pendingFrames: controls.pendingFrames(), captures: controls.captures(), observers: controls.observers()};
 }
