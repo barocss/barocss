@@ -12,7 +12,12 @@ permissions:
   pull-requests: write
 
 jobs:
+  regression:
+    if: github.repository == 'barocss/barocss' && github.ref == 'refs/heads/develop'
+    uses: ./.github/workflows/regression.yml
+
   version:
+    needs: [regression]
     if: github.repository == 'barocss/barocss' && github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     timeout-minutes: 30

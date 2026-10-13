@@ -26,7 +26,7 @@ function filesUnder(root) {
 export function validateArtifactManifest(manifest, plan) {
   validatePlan(plan);
   if (!manifest || manifest.version !== 1 || ['head', 'runId', 'planId'].some((key) => manifest[key] !== plan[key])) throw new Error('artifact identity mismatch');
-  const expected = plan.builds.map(({ directory }) => `${directory}/dist`).sort();
+  const expected = plan.builds.map(({ outputDirectory }) => outputDirectory).sort();
   if (!expected.length || !Array.isArray(manifest.directories) || JSON.stringify([...manifest.directories].sort()) !== JSON.stringify(expected) || new Set(expected).size !== expected.length || !Array.isArray(manifest.files) || !manifest.files.length) throw new Error('artifact directories mismatch');
   const seen = new Set(); const found = new Set();
   for (const file of manifest.files) {
@@ -60,15 +60,16 @@ function rootChecks() {
 export const docsValidationScripts = ['build', 'check:docs', 'check:api'];
 export function packageCheckCommands(row) {
   return Object.entries(row.scripts).filter(([command, expected]) => expected !== null
-    && !(command === 'test' && row.directory.startsWith('apps/')));
+    && command !== 'test');
 }
-export function fullCheckCommands(rootManifest) {
+export function fullCheckCommands(rootManifest, regression = false) {
   // Refuse a future root-check contract change rather than silently drop its obligations.
   if (rootManifest.scripts?.check !== 'pnpm type-check && pnpm lint && pnpm build:library && pnpm test'
     || rootManifest.scripts?.test !== 'pnpm run -r test') throw new Error('root check/test contract changed; update CI policy explicitly');
   return [
     ['type-check'], ['lint'], ['build:library'],
-    ['--recursive', '--filter', '!./apps/**', 'run', 'test'],
+    ['--recursive', '--filter', './apps/**', '--filter', './examples/cad-preview', '--if-present', 'run', 'build'],
+    ...(regression ? [['--recursive', '--filter', '!./apps/**', 'run', 'test']] : []),
   ];
 }
 function docs() {
@@ -78,7 +79,7 @@ function docs() {
 function build(plan) {
   // One topological build process at a time, separate from the max-two check runners.
   for (const row of plan.builds) packageScript(row.name, row.directory, row.command);
-  const directories = plan.builds.map(({ directory }) => `${directory}/dist`);
+  const directories = plan.builds.map(({ outputDirectory }) => outputDirectory);
   const files = directories.flatMap((directory) => filesUnder(directory).map((path) => {
     const bytes = readFileSync(path); const destination = `.ci-dist/${path}`;
     mkdirSync(dirname(destination), { recursive: true }); copyFileSync(path, destination);
@@ -102,18 +103,21 @@ function restore(plan) {
 function main() {
   const plan = JSON.parse(readFileSync('affected-ci-plan.json', 'utf8')); checkCurrent(plan);
   const action = process.argv[2];
-  console.log('Application tests are external: run locally or on Execute Tester. This CI does not claim they passed.');
+  console.log('Required CI runs lint/types/build. Package/runtime tests run on manual/pre-release regression. Application tests are external: run locally or on Execute Tester. This CI does not claim they passed.');
   if (action === 'aggregate') { const needs = JSON.parse(process.env.CI_NEEDS); validateAggregate(plan, { ...needs, build: needs.prerequisites }); console.log('Selected CI coverage succeeded', plan.planId); return; }
-  if (action === 'full') {
+  if (action === 'full' || action === 'regression') {
     const concurrency = spawnSync('pnpm', ['config', 'get', 'workspace-concurrency'], { encoding: 'utf8' });
     if (concurrency.status !== 0 || concurrency.stdout.trim() !== '2') throw new Error('full workspace concurrency must be 2');
-    if (plan.mode !== 'full') throw new Error('wrong route'); viewer();
-    for (const args of fullCheckCommands(JSON.parse(readFileSync('package.json', 'utf8')))) run('pnpm', args);
-    rootChecks(); if (plan.docsNeeded) docs(); return; }
+    if (plan.mode !== 'full') throw new Error('wrong route');
+    const regression = action === 'regression';
+    if (regression && !['workflow_dispatch', 'workflow_call'].includes(process.env.GITHUB_EVENT_NAME)) throw new Error('regression requires a manual/pre-release caller');
+    if (regression) viewer();
+    for (const args of fullCheckCommands(JSON.parse(readFileSync('package.json', 'utf8')), regression)) run('pnpm', args);
+    if (regression) rootChecks(); if (plan.docsNeeded) docs(); return; }
   if (plan.mode === 'full') throw new Error('partial action on full plan');
   if (action === 'build') { build(plan); return; }
   restore(plan);
-  if (action === 'root') { rootChecks(); return; }
+  if (action === 'root') { console.log('All selected build artifacts verified'); return; }
   if (action === 'docs' && plan.docsNeeded) { docs(); return; }
   if (action === 'package') {
     const row = plan.packages.find(({ name }) => name === process.env.CI_PACKAGE);
@@ -122,9 +126,8 @@ function main() {
       const current = JSON.parse(readFileSync(`${row.directory}/package.json`, 'utf8')).scripts?.[command] ?? null;
       if (current !== expected) throw new Error('selected optional script changed');
       if (packageCheckCommands(row).some(([selected]) => selected === command)) packageScript(row.name, row.directory, command, expected);
-      else if (expected !== null) console.log(`External application test: ${row.name} ${command} (not run in CI)`);
+      else if (expected !== null) console.log(`External runtime test: ${row.name} ${command} (not run in CI)`);
     }
-    if (row.name === '@barocss/viewer') viewer();
     return;
   }
   throw new Error('unknown CI action');

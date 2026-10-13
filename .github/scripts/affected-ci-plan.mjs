@@ -24,6 +24,18 @@ export function classifyMarkdown(text) {
   return !fence && !/(?:<|\{\{|^\s*(?:import|export)\s|^\s*:::)/m.test(plain.join('\n'));
 }
 
+// Audited build layouts. These are outputs, never optional artifact hints.
+export function buildOutputDirectory(directory, config = '') {
+  if (/^packages\/[^/]+$/.test(directory)) return `${directory}/dist`;
+  if (['apps/library-docs', 'apps/barocss-docs'].includes(directory)) return `${directory}/docs/.vitepress/dist`;
+  if (!['apps/cad-editor', 'apps/render-editor', 'apps/barocss-site', 'examples/cad-preview'].includes(directory)) throw new Error('unaudited build output');
+  const declarations = [...config.matchAll(/\boutDir\s*:\s*(['"])([^'"\r\n]+)\1/g)];
+  if (declarations.length > 1 || (/\boutDir\s*:/.test(config) && declarations.length !== 1)) throw new Error('dynamic build output');
+  const relative = declarations[0]?.[2] ?? 'dist';
+  if (!safePath(relative)) throw new Error('unsafe build output');
+  return `${directory}/${relative}`;
+}
+
 function graph(packages) {
   if (!Array.isArray(packages) || !packages.length) throw new Error('missing workspace graph');
   const rows = new Map(); const directories = new Set();
@@ -47,7 +59,7 @@ function graph(packages) {
 }
 
 export function createAffectedPlan({ packages, basePackages, changes = [], contents = {}, validBase = true, fullReason = null, head, runId }) {
-  const plan = { version: 1, head, runId, mode: 'full', appTests: 'external', reasons: [], changedPaths: [...new Set(changes.flatMap((change) => [change.oldPath, change.path]).filter((path) => typeof path === 'string'))].sort(), packages: [], builds: [], docsNeeded: changes.some(({ path, oldPath }) => [path, oldPath].some((p) => p?.startsWith('apps/library-docs/'))) };
+  const plan = { version: 1, head, runId, mode: 'full', appTests: 'external', runtimeTests: 'manual/pre-release', reasons: [], changedPaths: [...new Set(changes.flatMap((change) => [change.oldPath, change.path]).filter((path) => typeof path === 'string'))].sort(), packages: [], builds: [], docsNeeded: changes.some(({ path, oldPath }) => [path, oldPath].some((p) => p?.startsWith('apps/library-docs/'))) };
   const finish = () => ({ ...plan, planId: digest(plan) });
   try {
     if (!shaPattern.test(head) || !/^\d+$/.test(runId)) throw new Error('invalid run identity');
@@ -86,7 +98,7 @@ export function createAffectedPlan({ packages, basePackages, changes = [], conte
       const row = rows.get(name); const scripts = row.manifest.scripts ?? {};
       const command = scripts['build:library'] ? 'build:library' : scripts.build ? 'build' : null;
       if (!command) { if (releases.includes(name)) throw new Error('missing release build'); return []; }
-      return [{ name, directory: row.directory, command }];
+      return [{ name, directory: row.directory, command, outputDirectory: row.outputDirectory ?? buildOutputDirectory(row.directory) }];
     });
     plan.packages = [...selected].sort().map((name) => {
       const row = rows.get(name); const scripts = Object.fromEntries(checks.map((key) => [key, row.manifest.scripts?.[key] ?? null]));
@@ -100,9 +112,12 @@ export function createAffectedPlan({ packages, basePackages, changes = [], conte
 }
 
 export function validatePlan(plan) {
-  if (!plan || plan.version !== 1 || !shaPattern.test(plan.head) || !/^\d+$/.test(plan.runId) || !['full', 'packages', 'docs'].includes(plan.mode) || plan.appTests !== 'external' || typeof plan.docsNeeded !== 'boolean' || !Array.isArray(plan.packages) || !Array.isArray(plan.builds)) throw new Error('invalid plan');
+  if (!plan || plan.version !== 1 || !shaPattern.test(plan.head) || !/^\d+$/.test(plan.runId) || !['full', 'packages', 'docs'].includes(plan.mode) || plan.appTests !== 'external' || plan.runtimeTests !== 'manual/pre-release' || typeof plan.docsNeeded !== 'boolean' || !Array.isArray(plan.packages) || !Array.isArray(plan.builds)) throw new Error('invalid plan');
   const { planId, ...body } = plan;
   if (digest(body) !== planId || (plan.mode === 'packages' && !plan.packages.length) || (plan.mode === 'docs' && (!plan.docsNeeded || plan.packages.length))) throw new Error('invalid plan identity or empty selection');
+  for (const row of plan.builds) {
+    if (!safePath(row.directory) || !safePath(row.outputDirectory) || !row.outputDirectory.startsWith(`${row.directory}/`) || /(?:^|\/)src(?:\/|$)/.test(row.outputDirectory)) throw new Error('invalid build output ownership');
+  }
   return true;
 }
 
@@ -141,7 +156,15 @@ export function resolveComparison(eventName, event, checkoutSha, runGit = git) {
 function workspaceRows(ref) {
   const workspace = git(['show', `${ref}:pnpm-workspace.yaml`]);
   if (workspace.replace(/\s/g, '') !== "packages:-'apps/*'-'packages/*'-'examples/cad-preview'") throw new Error('unaudited workspace patterns');
-  return git(['ls-tree', '-r', '--name-only', ref]).split('\n').filter((path) => /^(?:(?:apps|packages)\/[^/]+|examples\/cad-preview)\/package\.json$/.test(path)).map((path) => ({ directory: path.slice(0, -13), manifest: JSON.parse(git(['show', `${ref}:${path}`])) }));
+  return git(['ls-tree', '-r', '--name-only', ref]).split('\n').filter((path) => /^(?:(?:apps|packages)\/[^/]+|examples\/cad-preview)\/package\.json$/.test(path)).map((path) => {
+    const directory = path.slice(0, -13); const manifest = JSON.parse(git(['show', `${ref}:${path}`]));
+    let outputDirectory;
+    if (manifest.scripts?.build || manifest.scripts?.['build:library']) {
+      const config = ['apps/cad-editor', 'apps/render-editor', 'apps/barocss-site', 'examples/cad-preview'].includes(directory) ? git(['show', `${ref}:${directory}/vite.config.ts`]) : '';
+      outputDirectory = buildOutputDirectory(directory, config);
+    }
+    return { directory, manifest, outputDirectory };
+  });
 }
 function main() {
   const head = git(['rev-parse', 'HEAD']).trim(); const runId = process.env.GITHUB_RUN_ID;
@@ -162,7 +185,7 @@ function main() {
   const plan = createAffectedPlan(args); validatePlan(plan);
   writeFileSync('affected-ci-plan.json', `${JSON.stringify(plan, null, 2)}\n`);
   if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `mode=${plan.mode}\ndocs=${plan.docsNeeded}\nmatrix=${JSON.stringify({ package: plan.packages.map(({ name }) => name) })}\n`);
-  const summary = `Affected CI: ${plan.mode}\nApplication tests: external (local / Execute Tester), not a CI pass claim\nReasons: ${plan.reasons.join('; ')}\nChecks: ${plan.packages.map(({ name }) => name).join(', ') || 'full/docs route'}\nBuilds: ${plan.builds.map(({ name }) => name).join(', ')}\nPlan: ${plan.planId}\n`;
+  const summary = `Affected CI: ${plan.mode}\nRequired CI: lint/types/build; runtime tests: manual/pre-release\nApplication tests: external (local / Execute Tester), not a CI pass claim\nReasons: ${plan.reasons.join('; ')}\nChecks: ${plan.packages.map(({ name }) => name).join(', ') || 'full/docs route'}\nBuilds: ${plan.builds.map(({ name }) => name).join(', ')}\nPlan: ${plan.planId}\n`;
   console.log(summary);
   if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
 }

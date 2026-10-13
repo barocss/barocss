@@ -44,7 +44,7 @@ jobs:
           retention-days: 7
 
   full:
-    name: Full regression
+    name: Full lint types and builds
     needs: [plan]
     if: needs.plan.outputs.mode == 'full'
     runs-on: ubuntu-latest
@@ -153,7 +153,7 @@ jobs:
         run: node .github/scripts/affected-ci-run.mjs docs
 
   root:
-    name: Release gates and packed exports
+    name: Verify build artifacts
     needs: [plan, prerequisites]
     if: needs.plan.outputs.mode != 'full'
     runs-on: ubuntu-latest

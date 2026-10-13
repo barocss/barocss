@@ -21,12 +21,13 @@ jobs:
       - run: pnpm --filter @barocss/physics build:library
       - run: mkdir -p /tmp/physics1572-total-energy
       - name: Audit all 1200 full-step total energies
+        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
           pnpm exec esbuild examples/physics-contact-impulse-audit-1572/total-mechanical-energy.ts --bundle --platform=node --format=esm --target=node22 --outfile=/tmp/physics1572-total-energy/experiment.mjs
           node /tmp/physics1572-total-energy/experiment.mjs | tee /tmp/physics1572-total-energy/results.jsonl
-      - if: always()
+      - if: always() && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: physics1572-total-energy-results
