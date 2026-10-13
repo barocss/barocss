@@ -61,12 +61,20 @@ A viewport click is an approximate display-face selection. It is not proof of ce
 
 Open **Save or open a model**.
 
-1. Choose **Show saved model** to copy the currently accepted authored JSON text, or **Download model** to initiate a browser download named `part.cad.json`.
-2. Keep that exact text for the next step. **Download model** starts a browser action; it does not by itself prove the file exists on disk.
-3. Paste the saved text into **Saved model data**. Check **Replace accepted model and discard its history and pending dimensions**, then choose **Open saved model**.
+1. Choose **Download model** to initiate a browser download named `part.cad.json`. Confirm that your browser actually saved the file; starting a download is **not** proof of filesystem persistence. **Show saved model** is also available if you prefer to inspect or copy the accepted authored text.
+2. Choose **Choose model file** and pick the saved `part.cad.json` from your computer. This **only stages** its UTF-8 text inside **Saved model data**; it does not parse or accept the file, replace the model, change history, or alter the viewport.
+3. Review the staged text, then check **Replace accepted model and discard its history and pending dimensions** and choose **Open saved model**. Only this explicit action asks the model controller to validate, rebuild and accept the authored geometry. If it refuses, the previous accepted model remains.
 4. After acceptance, use **Visible output body** to choose `part` again. Find `depth` under **Named dimensions** and make another supported edit to verify the model remains editable.
 
-This editor's local modeling pane opens **text pasted into Saved model data**. Do not confuse its **Open saved model** action with the host Surface/Curve **File → Open** file picker. `cad.load()` rebuilds authored operations and native geometry; the file is not a saved mesh, screenshot, GPU cache, or display-camera snapshot.
+You can alternatively paste complete saved text directly into **Saved model data**, then confirm **Open saved model**. The model editor's **Choose model file** is distinct from the original Surface/Curve host's **File → Open** action; both have their own authority and document formats.
+
+### File-picker safety boundaries
+
+The staging reader enforces **262,144 UTF-8 bytes maximum**, and checks that decoded text is nonempty and within its 262,144-character input limit. A larger file, invalid UTF-8, empty file, or failed file read shows **Cannot read model file** while keeping the previous staged text and the accepted model. A syntactically readable file is **not** necessarily a valid CAD model: it is parsed and qualified only when you explicitly choose **Open saved model**.
+
+Choosing a new file clears the previous replacement acknowledgment. A newer picker selection or user text edit supersedes an older pending read, so late asynchronous file contents cannot silently overwrite the newly staged input. This is a source-supported design contract, not yet a verified cross-browser file-picker test.
+
+`cad.load()` rebuilds authored operations and native geometry; the file is not a saved mesh, screenshot, GPU cache, or display-camera snapshot.
 
 ## 6. Recover from a refused edit
 
