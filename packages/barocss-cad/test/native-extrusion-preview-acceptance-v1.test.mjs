@@ -65,3 +65,45 @@ test('stale, cancelled, forged and invalid previews cannot mutate accepted Nativ
   const third = session.prepareDistanceMM(3);
   assert.equal(session.accept(third.token).revision, 1);
 });
+
+test('one admitted private Native frame is isolated from later caller document and option edits', { timeout: 180000 }, () => {
+  const document = authored(), settings = { ...options };
+  const prior = evaluateBooleanExtrusionFeatureGraph(document, settings);
+  const session = createNativeExtrusionPreviewAcceptanceV1(document, settings, 'extrusion_feature');
+  const expected = prior.features.find(row => row.featureId === 'extrusion_feature').evaluation;
+
+  // The caller is not allowed to replace the native Boolean region, update
+  // admitted extrusion options or poison subsequent preview/accept operations.
+  const boolean = document.features.find(row => row.id === 'boolean_feature');
+  boolean.options.operation = 'difference';
+  const extrusion = document.features.find(row => row.id === 'extrusion_feature');
+  extrusion.options.resultIdPrefix = 'external_changed';
+  settings.maximumFeatureEvaluations = 1;
+
+  const prepared = session.prepareDistanceMM(2);
+  assert.deepEqual(prepared.geometry, expected);
+  const accepted = session.accept(prepared.token);
+  assert.deepEqual(accepted.accepted,
+    updateBooleanExtrusionFeatureGraph(prior, edit(prior, 2)));
+  assert.equal(session.getAccepted().document.features.find(
+    row => row.id === 'boolean_feature').options.operation, 'union');
+  assert.equal(session.getAccepted().document.features.find(
+    row => row.id === 'extrusion_feature').options.resultIdPrefix, 'gext');
+});
+
+test('acceptance creation refuses unsupported feature and host getters without executing them', { timeout: 180000 }, () => {
+  const document = authored();
+  let reads = 0;
+  const hostile = { ...document };
+  Object.defineProperty(hostile, 'features', {
+    enumerable: true,
+    get() { reads++; return document.features; },
+  });
+  assert.throws(() => createNativeExtrusionPreviewAcceptanceV1(
+    hostile, options, 'extrusion_feature'));
+  assert.equal(reads, 0);
+  for (const invalid of ['', 'missing_feature', 'boolean_feature']) {
+    assert.throws(() => createNativeExtrusionPreviewAcceptanceV1(
+      document, options, invalid));
+  }
+});
