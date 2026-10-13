@@ -1,7 +1,10 @@
+import { validateModelingStlExport } from './modeling-stl.js';
+import type { CadEditorStlExport, ModelingStlBinding } from './modeling-stl.js';
+import { isModelingCompositionGraph } from './modeling-composition.js';
 import { prepareModelingScene, pickModelingScene } from './modeling-scene.js';
 import type { ModelingDisplayScene, ModelingFaceSelection } from './modeling-scene.js';
 import type { PrismDisplayPort, PrismDisplayCandidate } from './prism-feature-display.js';
-import type { CadEditorModelingExample, CadEditorModelingSplitAxis, CadEditorModelingSummary, ModelingCommand, ModelingReply } from './modeling-engine.js';
+import type { CadEditorModelingExample, CadEditorModelingSplitAxis, CadEditorModelingSummary, ModelingCommand, ModelingReply, ModelingDisplayReply } from './modeling-engine.js';
 import { validatePrismFeatureNativeReply } from './prism-feature-controller.js';
 import type { CadEditorPrismFeatureSummary } from './prism-feature-types.js';
 
@@ -9,11 +12,15 @@ export interface CadEditorModelingSnapshot {
   accepted: CadEditorModelingSummary | null; authoredText: string | null;
   display: ModelingDisplayScene | null; faceSelection: (ModelingFaceSelection & { generation: number }) | null;
   drafts: Record<string, string>; selection: number | null; generation: number;
-  busy: boolean; disposed: boolean; error: string | null;
+  busy: boolean; disposed: boolean; error: string | null; workerReady: boolean;
   history: { index: number; count: number; canUndo: boolean; canRedo: boolean };
 }
-type Success = Extract<ModelingReply, { ok: true }>;
+type Success = Extract<ModelingDisplayReply, { ok: true }>;
+type ExportSuccess = Extract<ModelingReply, { kind: 'stl-export' }>;
+type InternalSnapshot = Omit<CadEditorModelingSnapshot, 'workerReady'>;
 type Payload = ModelingCommand extends infer C ? C extends ModelingCommand ? Omit<C, 'id'> : never : never;
+type DisplayPayload = Exclude<Payload, { kind: 'export-stl' }>;
+type ExportPayload = Extract<Payload, { kind: 'export-stl' }>;
 const FILE_LIMIT = 262144, HISTORY_BYTES = 8 * 1024 * 1024;
 const clone = <T>(value: T): T => structuredClone(value);
 function same(a: unknown, b: unknown): boolean {
@@ -62,12 +69,13 @@ function sourceMatches(reply: Success, taskToken?: string) {
   const { summary } = reply, data = JSON.parse(reply.text);
   // Refuse unsupported ancestry before inspecting any worker display payload,
   // including a forged legacy/convex/two-box summary or hidden chain output.
-  if (Array.isArray(data?.nodes) && data.nodes.some((node: { kind?: string; parent?: { node?: number } }, index: number) => {
+  const composedGraph = isModelingCompositionGraph(data);
+  if (!composedGraph && Array.isArray(data?.nodes) && data.nodes.some((node: { kind?: string; parent?: { node?: number } }, index: number) => {
     const parent = node?.parent?.node;
     return node?.kind === 'difference' && typeof parent === 'number' && Number.isSafeInteger(parent)
       && parent >= 0 && parent < index && data.nodes[parent]?.kind === 'union';
   }))
-    throw new Error('Composed union-slot preview is not available yet.');
+    throw new Error('Composed preview requires the supported eight-node rectangular union-slot ancestry.');
   const circleOutput = (index: number): boolean => {
     const node = data.nodes?.[index], sketch = node?.sketch;
     return node?.kind === 'extrude' && Number.isSafeInteger(sketch) && sketch >= 0 && sketch < index
@@ -76,12 +84,14 @@ function sourceMatches(reply: Success, taskToken?: string) {
   if (!summary || !Number.isSafeInteger(summary.revision) || summary.revision < 0 || typeof summary.documentId !== 'string'
     || !summary.parameters || typeof summary.parameters !== 'object' || Array.isArray(summary.parameters)
     || Object.keys(summary.parameters).length > 16 || !Object.values(summary.parameters).every(Number.isFinite)
-    || !Array.isArray(summary.features) || summary.features.length > 6 || !Array.isArray(summary.outputs) || summary.outputs.length > 8)
+    || !Array.isArray(summary.features) || summary.features.length > (composedGraph ? 8 : 6) || !Array.isArray(summary.outputs) || summary.outputs.length > 8)
     throw new Error('Invalid native model summary.');
   if (summary.source === 'model') {
     if (data?.format !== 'barocss-cad-model' || data.schema !== 1 || data.units !== 'mm' || !same(data.parameters, summary.parameters)
       || !Array.isArray(data.nodes) || !same(data.nodes.map((n: { kind: string }) => n.kind), summary.features.map(f => f.kind))
       || !same(Object.keys(data.outputs), summary.outputs.map(o => o.name)) || reply.compatibility !== undefined) throw new Error('Saved model differs from native summary.');
+    if (composedGraph && !same(summary.features.map(f => f.dependencies), [[], [0], [], [2], [1, 3], [], [5], [4, 6]]))
+      throw new Error('Composed features must retain exact owned dependency indices.');
     const outputNodes = Object.values(data.outputs as Record<string, { node: number }>);
     if (outputNodes.some(output => circleOutput(output.node)) && reply.display?.profile !== 'model-body-faces')
       throw new Error('Authored circle outputs require tagged circle body-face transport.');
@@ -129,6 +139,20 @@ function sourceMatches(reply: Success, taskToken?: string) {
         if (node?.kind !== 'hole' || output.volumeMM3 !== null) throw new Error('Hole outputs have no certified volume and must name an authored hole.');
       } else if (output.family === 'orthogonal-cell') {
         const volume = output.volumeMM3, component = reply.display.components.find(c => c.family === 'orthogonal-cell' && c.role === output.name);
+        const composedOutput = composedGraph && data.outputs[output.name].node === 7;
+        if (composedOutput && component?.family === 'orthogonal-cell' && 'parent' in component.lineage) {
+          const embedded = component.lineage.parent.component;
+          for (const saved of summary.outputs.filter(value => data.outputs[value.name].node === 4)) {
+            const named = reply.display.components.find(value => value.family === 'orthogonal-cell' && value.role === saved.name);
+            if (!named || named.family !== 'orthogonal-cell' || named.solidId !== embedded.solidId
+              || !same(named.qualification, embedded.qualification) || !same(named.lineage, embedded.lineage) || !same(named.mesh, embedded.mesh))
+              throw new Error('Named parent differs from the complete embedded composed authority.');
+          }
+        }
+
+        if (component?.family === 'orthogonal-cell'
+          && (component.qualification.schema === 'barocss-orthogonal-solid-boolean') !== composedOutput)
+          throw new Error('Authored composed output requires its exact composed native-schema transport.');
         if (!['union', 'difference'].includes(node?.kind) || !component || component.family !== 'orthogonal-cell' || component.qualification.operation !== node.kind || !volume || Object.keys(volume).length !== 2
           || volume.denominator !== '1' || volume.numerator !== String(component.qualification.volumeMM3))
           throw new Error('Orthogonal output must retain its authored operation and exact native integer volume.');
@@ -147,21 +171,23 @@ function sourceMatches(reply: Success, taskToken?: string) {
 
 /** One authoring session. Generations protect freshness even when native IDs are reused. */
 export function createCadEditorModelingController(displayPort?: PrismDisplayPort, aspect: () => number = () => 1) {
-  let state: CadEditorModelingSnapshot = { accepted: null, authoredText: null, display: null, faceSelection: null,
+  let state: InternalSnapshot = { accepted: null, authoredText: null, display: null, faceSelection: null,
     drafts: {}, selection: null, generation: 0, busy: false, disposed: false, error: null,
     history: { index: -1, count: 0, canUndo: false, canRedo: false } };
-  let worker: Worker | null = null, ready = false, sequence = 0, epoch = 0, index = -1;
+  let worker: Worker | null = null, ready = false, acceptedWorkerToken = '', sequence = 0, epoch = 0, index = -1;
   let history: { parameters: Record<string, number>; suppression?: Record<string, boolean>; bytes: number }[] = [];
-  let pending: { id: number; taskToken: string; resolve: (reply: Success) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> } | null = null;
+  let pending: { id: number; taskToken: string; binding?: ModelingStlBinding; resolve: (reply: Success | ExportSuccess) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> } | null = null;
   const listeners = new Set<() => void>();
   const emit = () => { for (const listener of listeners) { try { listener(); } catch { /* Subscriber isolation. */ } } };
   const live = () => { if (state.disposed) throw new Error('The modeling session is disposed.'); };
   const idle = () => { live(); if (state.busy) throw new Error('A native operation is in progress.'); };
   const stop = (message: string) => {
-    worker?.terminate(); worker = null; ready = false;
+    worker?.terminate(); worker = null; ready = false; acceptedWorkerToken = '';
     if (pending) { const prior = pending; pending = null; clearTimeout(prior.timer); prior.reject(new Error(message)); }
   };
-  const request = (payload: Payload) => new Promise<Success>((resolve, reject) => {
+  function request(payload: DisplayPayload): Promise<Success>;
+  function request(payload: ExportPayload): Promise<ExportSuccess>;
+  function request(payload: Payload): Promise<Success | ExportSuccess> { return new Promise((resolve, reject) => {
     if (!worker) {
       const instance = new Worker(new URL('./modeling-worker.ts', import.meta.url), { type: 'module' }); worker = instance;
       instance.addEventListener('message', event => {
@@ -171,22 +197,33 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
         const prior = pending; pending = null; clearTimeout(prior.timer);
         if (reply.ok === false && typeof reply.message === 'string') { prior.reject(new Error(reply.message.slice(0, 2048))); return; }
         try {
+          if (prior.binding) {
+            if (reply.ok !== true || !('kind' in reply) || reply.kind !== 'stl-export'
+              || Object.getPrototypeOf(reply) !== Object.prototype || Reflect.ownKeys(reply).length !== 4)
+              throw Error('Invalid STL worker reply.');
+            prior.resolve({ id: reply.id, ok: true, kind: 'stl-export', export: validateModelingStlExport(reply.export, prior.binding) });
+            return;
+          }
+          if ('kind' in reply) throw Error('Unexpected STL reply for a modeling operation.');
           if (reply.ok !== true || typeof reply.text !== 'string' || reply.text.length > FILE_LIMIT
             || new TextEncoder().encode(reply.text).length > FILE_LIMIT || JSON.stringify(reply.summary).length > FILE_LIMIT) throw new Error('Invalid native worker reply.');
-          sourceMatches(reply, prior.taskToken); prior.resolve(reply);
+          sourceMatches(reply, prior.taskToken); acceptedWorkerToken = prior.taskToken; prior.resolve(reply);
         } catch (cause) { stop('Invalid native worker reply.'); prior.reject(cause instanceof Error ? cause : new Error('Invalid native worker reply.')); }
       });
-      const fail = () => { if (worker === instance) stop('Native worker failed. Accepted model is retained; retry to rebuild it.'); };
+      const fail = () => { if (worker === instance) {
+        stop('Native worker failed. Accepted model is retained; retry to rebuild it.');
+        if (!state.busy) { state = { ...state, error: 'Native worker unavailable. Recover the accepted model before exporting STL.' }; emit(); }
+      } };
       instance.addEventListener('error', fail); instance.addEventListener('messageerror', fail);
     }
     const id = ++sequence, taskToken = globalThis.crypto.randomUUID();
-    pending = { id, taskToken, resolve, reject, timer: setTimeout(() => stop('Native operation timed out. Accepted model is retained.'), 120000) };
+    pending = { id, taskToken, ...(payload.kind === 'export-stl' ? { binding: { outputName: payload.outputName, solidId: payload.solidId, revision: payload.expectedRevision, acceptedTaskToken: payload.acceptedTaskToken, requestTaskToken: taskToken } } : {}), resolve, reject, timer: setTimeout(() => stop('Native operation timed out. Accepted model is retained.'), 120000) };
     try { worker.postMessage({ ...payload, id, taskToken }); } catch { stop('Could not send the model to its native worker.'); }
-  });
+  }); }
   async function run(kind: 'open' | 'example' | 'apply' | 'suppression' | 'undo' | 'redo', text?: string, example?: CadEditorModelingExample, splitAxis?: CadEditorModelingSplitAxis, finishing?: Record<string, boolean>) {
     idle();
     if (kind === 'example') {
-      if (example !== undefined && !['cut-chamfer', 'intersection', 'horizontal-split', 'two-chamfer', 'chamfer-split', 'derived-split', 'miter-split', 'configurable-finishes', 'mounting-plate', 'union-bracket', 'underside-pocket', 'round-post'].includes(example))
+      if (example !== undefined && !['cut-chamfer', 'intersection', 'horizontal-split', 'two-chamfer', 'chamfer-split', 'derived-split', 'miter-split', 'configurable-finishes', 'mounting-plate', 'union-bracket', 'underside-pocket', 'top-entry-pocket', 'round-post', 'slotted-bracket', 'constrained-plate'].includes(example))
         throw new Error('Choose an available modeling example.');
       if (splitAxis !== undefined && (example === 'chamfer-split' ? !['x', 'z'].includes(splitAxis)
         : example !== 'horizontal-split' || !['x', 'y', 'z'].includes(splitAxis)))
@@ -247,7 +284,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
         Object.entries(parameters).map(([parameterId, valueMM]) => ({ parameterId, valueMM })),
       );
       const selectedOutput = reply.display.profile === 'model-body-faces'
-        ? replacing ? kind === 'example' && example === 'mounting-plate' ? 'plate' : kind === 'example' && example === 'union-bracket' ? 'bracket' : kind === 'example' && example === 'underside-pocket' ? 'part' : kind === 'example' && example === 'round-post' ? 'post' : undefined
+        ? replacing ? kind === 'example' && example === 'slotted-bracket' ? 'slotted' : kind === 'example' && example === 'mounting-plate' ? 'plate' : kind === 'example' && example === 'union-bracket' ? 'bracket' : kind === 'example' && (example === 'underside-pocket' || example === 'top-entry-pocket') ? 'part' : kind === 'example' && example === 'round-post' ? 'post' : undefined
           : state.display && 'selectedOutput' in state.display ? state.display.selectedOutput : undefined
         : undefined;
       const display = prepareModelingScene(reply.display, aspect(), selectedOutput);
@@ -261,7 +298,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
         while (nextHistory.length > 20 || nextHistory.reduce((sum, h) => sum + h.bytes, 0) > HISTORY_BYTES) nextHistory.shift();
         nextIndex = nextHistory.length - 1;
       }
-      const nextState: CadEditorModelingSnapshot = { ...state, accepted: clone(reply.summary), authoredText: reply.text, display,
+      const nextState: InternalSnapshot = { ...state, accepted: clone(reply.summary), authoredText: reply.text, display,
         drafts: {}, faceSelection: null, selection: !replacing && state.selection !== null && state.selection < reply.summary.features.length ? state.selection : null,
         generation: state.generation + 1, busy: false, error: null,
         history: { index: nextIndex, count: nextHistory.length, canUndo: nextIndex > 0, canRedo: nextIndex + 1 < nextHistory.length } };
@@ -275,10 +312,42 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
     candidate?.dispose(); emit();
   }
   return {
-    getSnapshot: (): CadEditorModelingSnapshot => clone(state),
+    getSnapshot: (): CadEditorModelingSnapshot => clone({ ...state, workerReady: ready }),
     subscribe(listener: () => void) { live(); listeners.add(listener); return () => { listeners.delete(listener); }; },
     open: (text: string) => run('open', text), example: (example?: CadEditorModelingExample, splitAxis?: CadEditorModelingSplitAxis) => run('example', undefined, example, splitAxis), apply: () => run('apply'),
     configureFinishes: (suppression: Record<string, boolean>) => run('suppression', undefined, undefined, undefined, suppression), undo: () => run('undo'), redo: () => run('redo'),
+    async exportStl(name: string, generation: number, recover = false): Promise<CadEditorStlExport | null> {
+      idle();
+      const accepted = state.accepted, output = accepted?.outputs.find(value => value.name === name);
+      if (accepted?.source !== 'model' || !output || (output.family !== undefined && output.family !== 'convex-planar')
+        || generation !== state.generation || typeof recover !== 'boolean') throw Error('Choose a current accepted convex output for STL.');
+      if (Object.keys(state.drafts).length) throw Error('Apply or discard dimensions before exporting STL.');
+      if (!ready && !recover) throw Error('Recover the accepted model explicitly before exporting STL.');
+      const operation = ++epoch;
+      state = { ...state, busy: true, error: null }; emit();
+      try {
+        if (!ready) {
+          const seed = await request({ kind: 'open', text: state.authoredText!, revision: accepted.revision });
+          if (operation !== epoch || state.disposed) return null;
+          if (!same(seed.summary, accepted) || !same(JSON.parse(seed.text), JSON.parse(state.authoredText!)))
+            throw Error('Reconstruction differs from the accepted model.');
+          // Admit every recovered output without preparing/committing a renderer replacement.
+          prepareModelingScene(seed.display, aspect(), state.display && 'selectedOutput' in state.display ? state.display.selectedOutput : undefined);
+          ready = true;
+        }
+        const reply = await request({ kind: 'export-stl', expectedRevision: accepted.revision,
+          acceptedTaskToken: acceptedWorkerToken, outputName: name, solidId: output.solidId });
+        if (operation !== epoch || state.disposed) return null;
+        state = { ...state, busy: false, error: null }; emit();
+        return operation === epoch && !state.disposed ? reply.export : null;
+      } catch (cause) {
+        if (operation !== epoch || state.disposed) return null;
+        // A failed reconstruction must not make an unaccepted native session reusable.
+        if (!ready) stop('Accepted-model recovery refused.');
+        state = { ...state, busy: false, error: cause instanceof Error ? cause.message : 'STL export refused.' }; emit();
+        return null;
+      }
+    },
     async viewOutput(name: string, generation: number) {
       idle();
       if (!state.display || state.display.packet.profile !== 'model-body-faces' || !('selectedOutput' in state.display)

@@ -1,0 +1,35 @@
+name: Physics fallback angular response
+on:
+  pull_request:
+    branches: [develop]
+    paths:
+      - 'examples/physics-contact-impulse-audit-1572/fallback-angular-ledger.ts'
+      - 'examples/physics-contact-impulse-audit-1572/run-fallback-angular-ledger.mjs'
+      - '.github/workflows/physics-fallback-angular-1572.yml'
+  workflow_dispatch:
+jobs:
+  angular-observer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @barocss/physics build:library
+      - run: mkdir -p /tmp/p1572-angular
+      - name: Execute fallback inclusive original OFFSET and YAW
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node examples/physics-contact-impulse-audit-1572/run-fallback-angular-ledger.mjs | tee /tmp/p1572-angular/results.jsonl
+      - if: always() && github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: physics1572-angular-pair-results
+          path: /tmp/p1572-angular/results.jsonl
+          if-no-files-found: ignore

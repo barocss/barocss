@@ -27,7 +27,7 @@ const solid = body.native;
 forms. Coordinates and dimensions accept numbers or same-model parameter handles.
 `polygon(points)` closes the final point to the first; do not repeat the first
 point. The current kernel admits one strictly convex, 3..8-edge XY line polygon.
-Extrusion starts at Z=0, along +Z. All coordinates and dimensions are millimetres.
+Extrusion defaults to Z=0, along +Z. Affine profiles may supply an absolute bottom coordinate with `extrude(height, { from })`. All coordinates and dimensions are millimetres.
 Heights and chamfer distances must be positive, and dimensions are bounded by
 10000 mm in magnitude. Exact kernel representability restrictions still apply.
 
@@ -156,7 +156,7 @@ volume conservation, not an arbitrary BRep or manufacturing tolerance.
 
 Both operands must be distinct direct **authored rectangles**. Corners resolve
 to integers within ±10000 mm; side lengths and positive extrusion heights are
-integers from 1 to 10000 mm. Both extrusions start at Z=0. One union fits the
+integers from 1 to 10000 mm. Extrusions default to Z=0; an affine `{ from }` option uses its actual integer Z origin. One union fits the
 existing six-node envelope and cannot mix with cut, intersection, split, hole or
 chamfer, feed another union, or expose convex edge queries. Parameters and owned
 add/scale dimensions are supported only when the resulting dimensions satisfy
@@ -221,7 +221,7 @@ if (body.family !== 'orthogonal-cell') throw new Error('Expected rectangular dif
 const volumeMM3 = body.native.report.volumeMM3;
 ```
 
-Both direct authored rectangle extrusions belong to this model and begin at Z=0.
+Both direct authored rectangle extrusions belong to this model. They default to Z=0; an optional affine `{ from }` supplies the actual bottom Z.
 Resolved corners must be integers within ±10000 mm, and each side/height an integer
 from 1 to 10000 mm. A depth4 tool cuts an **underside** recess through Z=0..4;
 it is not a top-entry pocket. The 32×24×8 plate retains5632 mm³, depth6 retains5376,
@@ -797,7 +797,7 @@ The bracket has exact volume 3072 mm³. The slotted part has 2816 mm³ initially
 and 2688 mm³ after the edit. This chain alone admits eight nodes and three direct
 integer rectangles/extrusions. The third rectangle follows the accepted authored
 union prefix; the final cut must consume that union and the distinct third tool.
-All boxes start at Z=0. The normal six-node limit remains for other recipes.
+This example starts all boxes at Z=0. Offset composed-chain acceptance is not covered by its verification. The normal six-node limit remains for other recipes.
 
 The final native schema is `barocss-orthogonal-solid-boolean`, distinct from the
 two-box result. Its complete parents and exact original/immediate-parent UV
@@ -807,8 +807,306 @@ results cannot become a `CadShape`; the error retains their complete native data
 Unchanged model features can be reused, but composed native evaluation still
 reconstructs its retained union. Save/load never imports a geometry cache.
 
-Composed bracket-slot preview is unavailable in the current editor boundary;
-the accepted scene/history remains intact on refusal. A later complete receiver
-must validate three-operand occupancy and parent-panel lineage, without treating
-this result as the old two-box transport. General nested Booleans, round-post
-operations and arbitrary transformed solids remain outside this slice.
+The #1751 software editor adapter accepts the bounded common-Z0..8 eight-node
+bracket-slot preset with complete three-operand occupancy and embedded-parent
+lineage checks. It does not reinterpret this result as old two-box transport;
+unsupported chains retain the accepted scene/history on refusal. General nested
+Booleans, round-post operations and arbitrary transformed solids remain outside
+this slice. Physical editor/GPU acceptance remains an OPEN external gate.
+
+
+## Start an affine extrusion above or below the sketch plane
+
+`sketch.extrude(height, { from })` creates real bottom/top Faces at `from` and
+`from + height`. The original owned XY sketch stays at Z=0, and native lineage
+records its source-to-bottom translation. `from` is an absolute millimetre
+coordinate, not an edit of a previously accepted Solid.
+
+```ts
+import { cad } from '@barocss/cad';
+const m = cad.model();
+const depth = m.parameter('depth', 4);
+const plate = m.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const tool = m.sketch.rectangle({ min: [8, 8], max: [24, 16] }).extrude(depth, {
+  from: m.dimension.add(8, m.dimension.scale(depth, -1)),
+});
+const initial = m.build({ part: plate.cut(tool) });
+const deeper = initial.withParameters({ depth: 6 });
+const reopened = cad.load(deeper.save());
+```
+
+This is a **top-entry pocket**: depth4 leaves a floor at Z=4 and volume5632mm³;
+depth6 leaves Z=2 and volume5376mm³. Depth8 makes a through-window. The two-box
+native result and copied preview use the actual displaced tool supports and
+inward cavity normals. Native qualification remains the existing bounded
+integer-cell authority; receiver checks establish structural correspondence,
+not a new native certification. A dedicated editor preset and physical screen
+acceptance remain separate work.
+
+Height must be positive, at most10000mm. Bottom and top must be within
+±10000mm, and their declared binary64 sum must be exact. For example,
+`extrude(0.2, { from: 0.1 })` refuses rather than silently changing height.
+Owned parameters and existing add/scale expressions work in `from`; changed
+start-coordinate dependencies invalidate the appropriate feature prefix.
+Native exact-chart or qualification refusals retain their original cause.
+
+Omitting options retains the original authored/native bytes. Explicit
+`{ from: -0 }` is a distinct saved option with its own signed source and
+translation metadata, even though its mathematical bottom is Z=0. Explicit
+undefined, empty/extra-field options, foreign handles and extra arguments
+refuse before consuming a feature. Every supplied option on a circle sketch
+refuses. The origin-aligned `hole()` operation refuses a displaced parent,
+including after a parameter edit; rejected edits retain the accepted snapshot.
+Existing operation and node budgets are unchanged. Offset finishing,
+raised-boss union and composed-chain combinations are not part of this slice's
+measured acceptance matrix.
+
+## Measure weight and balance by output name
+
+```ts
+import { cad } from '@barocss/cad';
+const m = cad.model();
+const plate = m.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const tool = m.sketch.rectangle({ min: [8, 8], max: [24, 16] }).extrude(4, { from: 4 });
+const accepted = m.build({ plate, part: plate.cut(tool) });
+const properties = accepted.massProperties('part', { densityKgPerM3: 2700 });
+const { volumeMM3, massKG, centroidMM, inertiaCentroidKgM2 } = properties;
+const reopened = cad.load(accepted.save());
+const again = reopened.massProperties('part', { densityKgPerM3: 2700 });
+void [volumeMM3, massKG, centroidMM, inertiaCentroidKgM2, again];
+```
+
+The pocket has volume5632mm³, mass0.0152064kg at the declared density, and
+centroid[16,12,42/11]mm. The centroidal inertia tensor uses kg·m² in the original
+authored XYZ frame. Density is a caller assumption, not certified material data.
+The native exact value, nearest binary64 projection and conversion error are
+kept separately: `details.exact`, `details.conversionErrors`, and the complete
+`details.native` result. Narrow `family` to inspect family-specific diagnostics.
+The common centroid and tensor are non-null; only positive single-body outputs
+are supported. All returned data is deeply frozen.
+
+Provide exactly the existing output name and an exact `{ densityKgPerM3 }`
+record. Density must be finite, positive and at most1,000,000kg/m³. Missing,
+undefined, extra-field or accessor options refuse. An unknown safe output name
+uses `SELECTION`; malformed inputs use `INPUT`. Qualified convex-planar bodies
+and the two-box integer-cell schema are supported. Stored-rational hole/circle
+bodies and three-source composed results use `CAPABILITY`, before mass-provider
+work. No ideal circular volume is substituted.
+
+Each call performs real native parent validation and exact integration within
+the existing native bounds, including at most40 convex fan triangles or27
+integer cells. A native refusal uses `NATIVE` and preserves its original typed
+cause. Very small positive density can refuse when a nonzero exact property
+cannot be represented. Rejected measurements preserve the accepted snapshot
+and its later edits. Measuring does not change save bytes, recomputation,
+parameters or finishing configuration; reopening measures a fresh native parent.
+No material database, principal axes, physical pose conversion or measurement UI
+is included in this method.
+
+## Constraint-driven profiles
+
+Use owned points to declare relationships without native identifiers:
+
+```ts
+import { cad } from '@barocss/cad';
+
+const m = cad.model();
+const width = m.parameter('width', 32);
+const height = m.parameter('height', 24);
+const profile = m.sketch.constrainedPolygon(s => {
+  const a = s.point([0, 0]);
+  const b = s.point([width, 1]);
+  const c = s.point([width, height]);
+  const d = s.point([1, height]);
+  s.fixed(a); s.fixed(c);
+  s.horizontal(a, b); s.vertical(b, c);
+  s.horizontal(c, d); s.vertical(d, a);
+  return [a, b, c, d];
+});
+const part = m.build({ part: profile.extrude(8) });
+const wider = part.withParameters({ width: 40 });
+const reopened = cad.load(wider.save());
+console.log(reopened.bodies.part.family);
+```
+
+`point` takes an XY seed with the usual literal, parameter or derived dimensions.
+`fixed(point)` constrains it to that current authored seed. Other solved points may
+move from their seeds. Return every staged point exactly once in cycle order;
+3–8 points and up to 16 constraints are supported. Horizontal/vertical and `parallelTo` pairs must
+be adjacent in that cycle, in either order. Point handles belong only to their
+synchronous callback. Copied/foreign handles, asynchronous returns, leaked builder
+calls and same-model authoring/build reentry refuse without consuming a node.
+Immutable dimension expressions can be created within the callback.
+
+Only a fully constrained result is accepted. Actual rank, DOF and consistent
+redundancy remain in the sketch's existing native evidence. An underconstrained
+solve throws `CadModelError` with code `CAPABILITY`, operation `sketch`, and the
+complete frozen native success in `cause`; no extrusion is attempted. A native
+contradiction retains its original `XYAffineSketchError` as the `NATIVE` cause.
+Failed parameter edits leave the earlier snapshot and future edits usable.
+
+The solver uses exact represented-binary64 rationals. Authored signed zero survives
+Save/Open and cache keys; a solved derived zero follows the native solver's +0
+policy. The actual solved cycle still needs the existing convex prism proof, so
+concave, crossed or degenerate profiles can refuse. Six-node/two-sketch limits are
+unchanged. The new authored profile is not eligible for the direct-rectangle
+Boolean/hole shortcuts, even if its solution happens to be rectangular. Existing
+convex-operation limits still apply; this addition makes no broader mixed-feature,
+new editor preset, drag or physical-file claim.
+
+## A tapered gusset from an edge direction
+
+Use a direction constraint when an edge's slope should determine a corner. This
+example fixes three corners; the solver determines the fourth at `(height/3,height)`.
+
+```ts
+import { cad } from '@barocss/cad';
+
+const m = cad.model();
+const width = m.parameter('width', 40);
+const height = m.parameter('height', 24);
+const profile = m.sketch.constrainedPolygon(s => {
+  const a = s.point([-0, 0]);
+  const b = s.point([width, 0]);
+  const c = s.point([width, height]);
+  const d = s.point([1, height]);
+  s.fixed(a); s.fixed(b); s.fixed(c);
+  s.horizontal(c, d);
+  s.parallelTo(d, a, [1, 3]);
+  return [a, b, c, d];
+});
+const part = m.build({ gusset: profile.extrude(8) });
+const wider = part.withParameters({ width: 48 });
+const reopened = cad.load(wider.save());
+console.log(reopened.bodies.gusset.family);
+```
+
+The baseline volume is 6,912 mm³; the wider part is 8,448 mm³. Both use the existing
+convex-planar body, ordinary parameter edits and authored-only Save/Open.
+
+`parallelTo` requires two active callback-owned adjacent points and exactly one
+`[dx,dy]` numeric tuple. Components are dimensionless, finite and within ±10,000;
+they cannot both be zero. Direction values are constants, not `CadParameter` or
+derived length handles. Signs, scale and signed zero remain authored data; reversing
+the vector or endpoint order does not select a different geometric parallel line.
+It constrains orientation only, without fixing an edge's length or location.
+Eight direction records are supported within the existing 16 total constraints.
+
+The same exact-or-refuse policy applies. In this example, a height of 1 mm requires
+`x=1/3` at the solved corner and throws `CadModelError` with code `NATIVE`, operation
+`sketch`, and the original `XYAffineSketchError` (`REPRESENTABILITY`) in `cause`.
+Contradictory constraints retain native `CONFLICT`; failed edits leave `part` usable.
+No implicit rounding, general angle solver or nonconvex extrusion support is added.
+
+
+## Two owned gussets with a driving spacing
+
+Create one exact translated copy without rewriting the original sketch:
+
+```ts
+import { cad } from '@barocss/cad';
+
+const model = cad.model();
+const width = model.parameter('width', 40);
+const height = model.parameter('height', 24);
+const spacing = model.parameter('spacing', 48);
+const profile = model.sketch.constrainedPolygon(s => {
+  const a = s.point([-0, 0]), b = s.point([width, 0]);
+  const c = s.point([width, height]), d = s.point([1, height]);
+  s.fixed(a); s.fixed(b); s.fixed(c);
+  s.horizontal(c, d); s.parallelTo(d, a, [1, 3]);
+  return [a, b, c, d];
+});
+const left = profile.extrude(8);
+const right = left.translate([spacing, 0, 0]);
+const pair = model.build({ left, right });
+const spread = pair.withParameters({ spacing: 64 });
+const reopened = cad.load(spread.save());
+console.log(reopened.bodies.right.family); // convex-planar
+```
+
+Both baseline bodies occupy 6,912 mm³. The left X bounds are [0,40] mm and
+right X bounds are [48,88] mm; the spacing edit moves only the copy to [64,104].
+Only the translation feature is reevaluated when its offset drivers change.
+
+`translate([dx,dy,dz])` accepts exactly three owned length dimensions in mm,
+including parameters and derived dimensions. It returns a new owned shape and
+leaves the parent unchanged. Every actual plane and trim coefficient is translated
+exactly, all target Faces are reconstructed and the complete convex Solid is
+qualified. Bounds or preview vertices alone cannot establish the result. All
+coefficients must be exactly representable binary64 values within ±10,000 mm;
+otherwise the edit refuses atomically with its original staged cause. For example,
+a 0.1 mm X spacing for this gusset cannot represent every exact coordinate sum.
+
+One translated copy of a direct affine extrusion or its complete one/two-chamfer
+finishing chain is supported within the existing six-node envelope. Rectangle, convex polygon and constrainedPolygon parents,
+including admitted extrusion placement, use the same convex body contract.
+The copy is a terminal named output: no translation chaining, edge finishing,
+Boolean, hole or split consumes it. Finished-copy graphs must be exactly one
+sketch, its extrusion, one/two sequential chamfers, then the translation.
+Unrelated finishing siblings and Boolean mixtures remain unsupported. Round posts and other body families are refused early. This is
+not a rotation, scale, mirror, pattern or arbitrary B-Rep transform API.
+
+For two finished rails, keep the existing edge-selection and copy syntax:
+
+```ts
+import { cad } from '@barocss/cad';
+const model = cad.model();
+const spacing = model.parameter('spacing', 48);
+const blank = model.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const front = blank.chamfer(blank.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one(), 1);
+const finished = front.chamfer(front.edges({ parallelTo: 'x', at: { y: 24, z: 'max' } }).one(), 2);
+const pair = model.build({ left: finished, right: finished.translate([spacing, -0, 0]) });
+const wider = pair.withParameters({ spacing: 64 });
+const reopened = cad.load(wider.save());
+```
+
+The two outputs retain independently reconstructed source identities and full
+chamfer-to-copy lineage. Each rail has exact volume6064mm³; spacing-only edits
+reuse the four upstream features. Disabled named finishes still validate and
+select their actual parent before translation. Exact coordinate-sum refusals,
+native inventory limits and all existing error causes remain authoritative.
+
+A zero offset creates a distinct owned copy, even though its geometry coincides
+with the parent. A zero component preserves the parent's coordinate bits, while
+the authored offset retains its own signed zero; exact nonzero cancellation uses
++0. Generated target source identities are distinct and complete original-to-copy
+lineage is retained. Existing convex tessellation and named-output mass queries
+remain available; a new editor preset and physical/GPU acceptance are separate.
+
+## Export one output as binary STL
+
+```ts
+import { cad, type CadStlExport } from '@barocss/cad';
+
+const model = cad.model();
+const spacing = model.parameter('spacing', 48);
+const left = model.sketch.polygon([[0, 0], [40, 0], [40, 24], [8, 24]]).extrude(8);
+const pair = model.build({ left, right: left.translate([spacing, 0, 0]) });
+const exported: CadStlExport = pair.exportStl('right');
+const fileBytes = Uint8Array.from(exported.bytes);
+const maximumLossMM = exported.maximumVertexDisplacementMM;
+```
+
+`exportStl(outputName)` exports exactly one existing **convex-planar** body in its
+authored XYZ position. It performs complete native validation and creates the
+existing convex facet mesh before encoding. The result exposes immutable bytes,
+byte length, triangle count and measured Float32 vertex displacement. Full native
+mesh/source/face evidence, exact loss fractions, facet mapping and separated work
+counters live under `details`. The API does not write files or trigger downloads.
+
+Binary STL uses little-endian Float32 facets and zero attribute bytes. Coordinates
+follow the millimetre convention, with no recentering, axis conversion, scale or
+welding. STL does not embed units metadata, native identity, UV trims or editable
+CAD topology; use `save()` and `cad.load()` for editable models. Existing hole,
+circle and integer-cell families refuse before export work; another convex output
+in the same snapshot can still be selected by name.
+
+The unchanged native mesh budget is at most 64 vertices/40 triangles, or 2084 STL
+bytes. Each quantized triangle must remain nonzero and its encoded normal must
+align with that quantized triangle before binary storage is allocated. This does
+not certify preserved global topology or orientation against the original Solid
+after arbitrary rounding, downstream slicer compatibility or manufacturing
+tolerance. Exact native geometry can still collapse in Float32; such refusal
+retains the original cause and leaves the accepted model and earlier exported
+bytes unchanged. Native/provider details keep their original quality flags.

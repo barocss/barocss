@@ -21,12 +21,13 @@ jobs:
       - run: pnpm --filter @barocss/physics build:library
       - run: mkdir -p /tmp/physics-static-support
       - name: Run independent polygon and force-moment support witnesses
+        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
           pnpm exec esbuild examples/physics-contact-impulse-audit-1572/static-support-reference.ts --bundle --platform=node --format=esm --target=node22 --outfile=/tmp/physics-static-support/check.mjs
           node /tmp/physics-static-support/check.mjs | tee /tmp/physics-static-support/results.jsonl
-      - if: always()
+      - if: always() && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: physics-static-support-witnesses

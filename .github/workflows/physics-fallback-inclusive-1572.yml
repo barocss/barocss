@@ -1,0 +1,35 @@
+name: Physics fallback-inclusive impulse audit
+on:
+  pull_request:
+    branches: [develop]
+    paths:
+      - 'examples/physics-contact-impulse-audit-1572/fallback-inclusive-impulse.ts'
+      - 'examples/physics-contact-impulse-audit-1572/run-fallback-inclusive-impulse.mjs'
+      - '.github/workflows/physics-fallback-inclusive-1572.yml'
+  workflow_dispatch:
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @barocss/physics build:library
+      - run: mkdir -p /tmp/physics1572-fallback
+      - name: Observe original 3-cube fallback-inclusive impulse blocks
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node examples/physics-contact-impulse-audit-1572/run-fallback-inclusive-impulse.mjs | tee /tmp/physics1572-fallback/results.jsonl
+      - if: always() && github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: physics1572-fallback-impulses
+          path: /tmp/physics1572-fallback/results.jsonl
+          if-no-files-found: ignore

@@ -1,23 +1,38 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import { isModelingCompositionGraph } from '../modeling-composition.js';
 import { createCadEditorModelingController } from '../modeling-controller.js';
 import type { CadEditorModelingController, CadEditorModelingSnapshot } from '../modeling-controller.js';
 import type { CadEditorModelingExample, CadEditorModelingSplitAxis } from '../modeling-engine.js';
 import { createPrismFeatureDisplay } from '../prism-feature-display.js';
 import { readModelingFileText } from '../modeling-file.js';
+import { downloadModelingStl } from '../modeling-stl.js';
+import type { CadEditorStlExport } from '../modeling-stl.js';
+import { ModelingWorkspace } from './modeling-workspace.js';
+import type { ModelingWorkspacePanel } from './modeling-workspace.js';
+import { modelingDimensionCommand } from '../modeling-dimension-key.js';
 import { Button } from './ui/button.js';
 import { Input } from './ui/input.js';
 import { Label } from './ui/label.js';
 
-export interface CadEditorModelingProps { initialAuthoredText?: string }
+export interface CadEditorModelingProps {
+  initialAuthoredText?: string;
+  /** Mount-time layout choice. Changing this prop does not replace the active document or viewport. */
+  workspace?: boolean;
+}
 /** Named dimensions over the single modeling API, using the existing native display. */
-export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProps) {
+export function CadEditorModeling({ initialAuthoredText, workspace: initialWorkspace = false }: CadEditorModelingProps) {
+  const workspace = useRef(initialWorkspace).current;
   const id = useId(), viewport = useRef<HTMLDivElement | null>(null);
   const controller = useRef<CadEditorModelingController | null>(null);
   const displayRef = useRef<ReturnType<typeof createPrismFeatureDisplay> | null>(null);
   const fileInput = useRef<HTMLInputElement | null>(null), fileReadEpoch = useRef(0);
   const [snapshot, setSnapshot] = useState<CadEditorModelingSnapshot | null>(null);
+  const [workspacePanel, setWorkspacePanel] = useState<ModelingWorkspacePanel | null>(null);
+  const workspaceCommandEpoch = useRef(0);
   const [example, setExample] = useState<CadEditorModelingExample>('cut-chamfer');
   const [splitAxis, setSplitAxis] = useState<CadEditorModelingSplitAxis>('z');
+  const [stlOutput, setStlOutput] = useState('');
+  const [stlResult, setStlResult] = useState<CadEditorStlExport | null>(null);
   const [replaceExample, setReplaceExample] = useState(false);
   const [source, setSource] = useState(''), [confirmed, setConfirmed] = useState(false), [error, setError] = useState<string | null>(null);
   useEffect(() => {
@@ -28,7 +43,7 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
     observer.observe(viewport.current);
     const unsubscribe = session.subscribe(() => setSnapshot(session.getSnapshot())); setSnapshot(session.getSnapshot());
     void (initialAuthoredText === undefined ? session.example() : session.open(initialAuthoredText)).catch(cause => setError(String(cause)));
-    return () => { fileReadEpoch.current++; observer.disconnect(); unsubscribe(); session.dispose(); display.dispose(); if (controller.current === session) controller.current = null; if (displayRef.current === display) displayRef.current = null; };
+    return () => { workspaceCommandEpoch.current++; fileReadEpoch.current++; observer.disconnect(); unsubscribe(); session.dispose(); display.dispose(); if (controller.current === session) controller.current = null; if (displayRef.current === display) displayRef.current = null; };
   }, [initialAuthoredText]);
   const stageModelFile = async (file?: File) => {
     if (!file || snapshot?.busy) return;
@@ -50,8 +65,39 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
     setError(null); try { if (controller.current) Promise.resolve(operation(controller.current)).catch(cause => setError(String(cause))); }
     catch (cause) { setError(String(cause)); }
   };
-  useEffect(() => { setReplaceExample(false); }, [snapshot?.generation]);
+  const openWorkspacePanel = (panel: ModelingWorkspacePanel | null) => {
+    workspaceCommandEpoch.current++; setWorkspacePanel(panel);
+  };
+  const applyDimensions = () => {
+    const commandEpoch = ++workspaceCommandEpoch.current;
+    action(async session => {
+      await session.apply();
+      const current = session.getSnapshot();
+      if (workspace && controller.current === session && commandEpoch === workspaceCommandEpoch.current
+        && !current.disposed && !current.busy && !current.error && !Object.keys(current.drafts).length) setWorkspacePanel(null);
+    });
+  };
+  const cancelDimensions = () => action(session => {
+    session.discard(); openWorkspacePanel(null);
+  });
+  useEffect(() => { setReplaceExample(false); setStlOutput(''); setStlResult(null); }, [snapshot?.generation]);
   const accepted = snapshot?.accepted, busy = snapshot?.busy ?? false, draft = Object.keys(snapshot?.drafts ?? {}).length > 0;
+  const selectedStlOutput = accepted?.outputs.find(output => output.name === stlOutput);
+  const canExportStl = accepted?.source === 'model' && selectedStlOutput
+    && (selectedStlOutput.family === undefined || selectedStlOutput.family === 'convex-planar');
+  const exportStl = async () => {
+    const session = controller.current, generation = snapshot?.generation;
+    if (!session || generation === undefined || !canExportStl || busy || draft) return;
+    setError(null); setStlResult(null);
+    try {
+      const result = await session.exportStl(stlOutput, generation, !snapshot?.workerReady);
+      const current = session.getSnapshot();
+      if (!result || controller.current !== session || current.generation !== generation || current.disposed || current.busy
+        || Object.keys(current.drafts).length || current.accepted?.revision !== result.revision
+        || !current.accepted.outputs.some(output => output.name === result.outputName && output.solidId === result.solidId)) return;
+      downloadModelingStl(result); setStlResult(result);
+    } catch (cause) { if (controller.current === session) setError(String(cause)); }
+  };
   const chamferChain = accepted?.source === 'model' && accepted.features.map(feature => feature.kind).join(',') === 'sketch,extrude,chamfer,chamfer'
     && ['frontDistance', 'backDistance', 'backY'].every(name => Object.hasOwn(accepted.parameters, name));
   const chamferSplit = accepted?.source === 'model' && accepted.features.map(feature => feature.kind).join(',') === 'sketch,extrude,chamfer,chamfer,split'
@@ -79,16 +125,38 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
     const n = authored?.nodes;
     return n?.length === 5 && n[0].kind === 'sketch' && n[0].profile === 'rectangle'
       && JSON.stringify(n[0].min) === '[0,0]' && JSON.stringify(n[0].max) === '[32,24]'
-      && n[1].kind === 'extrude' && n[1].sketch === 0 && n[1].height === 8
+      && n[1].kind === 'extrude' && n[1].sketch === 0 && n[1].height === 8 && !Object.hasOwn(n[1], 'from')
       && n[2].kind === 'sketch' && n[2].profile === 'rectangle' && n[2].min?.[0]?.parameter === 'toolX' && n[2].min?.[1]?.parameter === 'toolY'
       && n[2].max?.[0]?.op === 'add' && n[2].max[0].left?.parameter === 'toolX' && n[2].max[0].right?.parameter === 'toolWidth'
       && n[2].max?.[1]?.op === 'add' && n[2].max[1].left?.parameter === 'toolY' && n[2].max[1].right?.parameter === 'toolSpanY'
-      && n[3].kind === 'extrude' && n[3].sketch === 2 && n[3].height?.parameter === 'depth'
+      && n[3].kind === 'extrude' && n[3].sketch === 2 && n[3].height?.parameter === 'depth' && !Object.hasOwn(n[3], 'from')
       && n[4].kind === 'difference' && n[4].parent?.node === 1 && n[4].tool?.node === 3 && n[4].parent.side === 'solid' && n[4].tool.side === 'solid';
   })();
   const pocketSavedOutputs = pocketDrivers && Object.keys(authored.outputs).join(',') === 'part,plate,tool'
     && authored.outputs.part.node === 4 && authored.outputs.plate.node === 1 && authored.outputs.tool.node === 3
     && ['part', 'plate', 'tool'].every(name => authored.outputs[name].side === 'solid');
+  const topPocketDrivers = differenceModel && accepted?.source === 'model'
+    && Object.keys(accepted.parameters).sort().join(',') === 'depth,toolSpanY,toolY'
+    && JSON.stringify(authored?.nodes) === JSON.stringify([
+      { kind: 'sketch', max: [32, 24], min: [-0, 0], profile: 'rectangle' },
+      { height: 8, kind: 'extrude', sketch: 0 },
+      { kind: 'sketch', max: [24, { left: { parameter: 'toolY' }, op: 'add', right: { parameter: 'toolSpanY' } }],
+        min: [8, { parameter: 'toolY' }], profile: 'rectangle' },
+      { from: { left: 8, op: 'add', right: { factor: -1, op: 'scale', value: { parameter: 'depth' } } },
+        height: { parameter: 'depth' }, kind: 'extrude', sketch: 2 },
+      { kind: 'difference', parent: { node: 1, side: 'solid' }, tool: { node: 3, side: 'solid' } },
+    ]) && JSON.stringify(authored?.outputs) === JSON.stringify({ part: { node: 4, side: 'solid' }, plate: { node: 1, side: 'solid' }, tool: { node: 3, side: 'solid' } });
+  const constrainedPlateDrivers = accepted?.source === 'model'
+    && Object.keys(accepted.parameters).sort().join(',') === 'height,lockY,width' && accepted.parameters.lockY === 0
+    && JSON.stringify(authored?.nodes) === JSON.stringify([
+      { constraints: [{ kind: 'fixed', point: 0 }, { kind: 'fixed', point: 2 },
+        { kind: 'horizontal', points: [0, 1] }, { kind: 'vertical', points: [1, 2] },
+        { kind: 'horizontal', points: [2, 3] }, { kind: 'vertical', points: [3, 0] }, { kind: 'fixed', point: 1 }],
+      kind: 'sketch', points: [[-0, 0], [{ parameter: 'width' }, { parameter: 'lockY' }],
+        [{ parameter: 'width' }, { parameter: 'height' }], [1, { parameter: 'height' }]], profile: 'constrained-polygon' },
+      { height: 8, kind: 'extrude', sketch: 0 },
+    ]) && Object.is(authored.nodes[0].points[0][0], -0)
+    && JSON.stringify(authored.outputs) === JSON.stringify({ part: { node: 1, side: 'solid' } });
   const holeModel = accepted?.outputs.some(output => output.family === 'stored-rational-plate-hole') ?? false;
   const circleModel = accepted?.outputs.some(output => output.family === 'stored-rational-circle-prism') ?? false;
   const roundPostDrivers = circleModel && accepted?.source === 'model'
@@ -98,29 +166,47 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         radius: { factor: 0.5, op: 'scale', value: { parameter: 'diameter' } } },
       { height: { parameter: 'height' }, kind: 'extrude', sketch: 0 },
     ]) && JSON.stringify(authored?.outputs) === JSON.stringify({ post: { node: 1, side: 'solid' } });
+  const composedModel = isModelingCompositionGraph(authored);
+  const slotDrivers = composedModel && Object.keys(accepted!.parameters).sort().join(',') === 'legWidth,slotSpanY,slotWidth,slotX,slotY'
+    && JSON.stringify(authored.nodes) === JSON.stringify([
+      { kind: 'sketch', max: [32, 8], min: [0, 0], profile: 'rectangle' }, { height: 8, kind: 'extrude', sketch: 0 },
+      { kind: 'sketch', max: [{ parameter: 'legWidth' }, 24], min: [-0, 0], profile: 'rectangle' }, { height: 8, kind: 'extrude', sketch: 2 },
+      { kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } },
+      { kind: 'sketch', max: [{ left: { parameter: 'slotX' }, op: 'add', right: { parameter: 'slotWidth' } },
+        { left: { parameter: 'slotY' }, op: 'add', right: { parameter: 'slotSpanY' } }], min: [{ parameter: 'slotX' }, { parameter: 'slotY' }], profile: 'rectangle' },
+      { height: 8, kind: 'extrude', sketch: 5 }, { kind: 'difference', parent: { node: 4, side: 'solid' }, tool: { node: 6, side: 'solid' } },
+    ]) && Object.is(authored.nodes[2].min[0], -0)
+    && JSON.stringify(authored.outputs) === JSON.stringify({ bracket: { node: 4, side: 'solid' }, slotted: { node: 7, side: 'solid' } });
   const configurableFinishes = accepted?.source === 'model' && accepted.suppression !== undefined
     && Object.keys(accepted.suppression).length === 2 && ['frontFinish', 'backFinish'].every(name => Object.hasOwn(accepted.suppression!, name))
     && accepted.features.filter(feature => feature.name !== undefined).every(feature => feature.kind === 'chamfer');
   const dimensionInput = ([name, value]: [string, number]) => <div key={name} style={{ marginBottom: 16 }}>
-          <Label htmlFor={`${id}-${name}`}>{roundPostDrivers && name === 'diameter' ? 'Diameter' : roundPostDrivers && name === 'height' ? 'Extrusion height' : roundPostDrivers && name === 'centerX' ? 'Center X' : roundPostDrivers && name === 'centerY' ? 'Center Y' : pocketDrivers && name === 'toolX' ? 'toolX · tool origin X' : pocketDrivers && name === 'toolY' ? 'toolY · tool origin Y' : pocketDrivers && name === 'toolWidth' ? 'toolWidth · tool X width' : pocketDrivers && name === 'toolSpanY' ? 'toolSpanY · tool Y span' : pocketDrivers && name === 'depth' ? 'depth · positive Z depth from underside Z=0' : unionDrivers && name === 'legMinX' ? 'legMinX · leg origin X' : unionDrivers && name === 'legMinY' ? 'legMinY · leg origin Y' : unionDrivers && name === 'legWidth' ? 'legWidth · leg X width' : unionDrivers && name === 'legHeight' ? 'legHeight · extrusion height' : (chamferChain || configurableFinishes) && name === 'backY' ? 'backY · edge-selection Y coordinate' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'frontDistance' ? 'frontDistance · front bevel distance' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'backDistance' ? 'backDistance · back bevel distance' : chamferSplit && name === 'splitAt' ? 'splitAt · selected-axis split coordinate' : derivedSplit && name === 'width' ? 'width · rail X size' : derivedSplit && name === 'offset' ? 'offset · X displacement from center' : miterSplit && name === 'cutPosition' ? 'cutPosition · X + Y threshold' : name} (mm)</Label>
+          <Label htmlFor={`${id}-${name}`}>{constrainedPlateDrivers && name === 'width' ? 'Profile X width' : constrainedPlateDrivers && name === 'height' ? 'Profile Y height' : topPocketDrivers && name === 'depth' ? 'Pocket depth downward from top Z=8' : topPocketDrivers && name === 'toolY' ? 'Tool Y origin' : topPocketDrivers && name === 'toolSpanY' ? 'Tool Y span' : slotDrivers && name === 'legWidth' ? 'legWidth · leg X width' : slotDrivers && name === 'slotX' ? 'slotX · slot origin X' : slotDrivers && name === 'slotY' ? 'slotY · slot origin Y' : slotDrivers && name === 'slotWidth' ? 'slotWidth · slot X width' : slotDrivers && name === 'slotSpanY' ? 'slotSpanY · slot Y span' : roundPostDrivers && name === 'diameter' ? 'Diameter' : roundPostDrivers && name === 'height' ? 'Extrusion height' : roundPostDrivers && name === 'centerX' ? 'Center X' : roundPostDrivers && name === 'centerY' ? 'Center Y' : pocketDrivers && name === 'toolX' ? 'toolX · tool origin X' : pocketDrivers && name === 'toolY' ? 'toolY · tool origin Y' : pocketDrivers && name === 'toolWidth' ? 'toolWidth · tool X width' : pocketDrivers && name === 'toolSpanY' ? 'toolSpanY · tool Y span' : pocketDrivers && name === 'depth' ? 'depth · positive Z depth from underside Z=0' : unionDrivers && name === 'legMinX' ? 'legMinX · leg origin X' : unionDrivers && name === 'legMinY' ? 'legMinY · leg origin Y' : unionDrivers && name === 'legWidth' ? 'legWidth · leg X width' : unionDrivers && name === 'legHeight' ? 'legHeight · extrusion height' : (chamferChain || configurableFinishes) && name === 'backY' ? 'backY · edge-selection Y coordinate' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'frontDistance' ? 'frontDistance · front bevel distance' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'backDistance' ? 'backDistance · back bevel distance' : chamferSplit && name === 'splitAt' ? 'splitAt · selected-axis split coordinate' : derivedSplit && name === 'width' ? 'width · rail X size' : derivedSplit && name === 'offset' ? 'offset · X displacement from center' : miterSplit && name === 'cutPosition' ? 'cutPosition · X + Y threshold' : name} (mm)</Label>
           <Input id={`${id}-${name}`} disabled={busy} inputMode="decimal"
             value={Object.hasOwn(snapshot?.drafts ?? {}, name) ? snapshot!.drafts[name] : Object.is(value, -0) ? '-0' : String(value)}
             onChange={event => action(s => s.stage(name, event.target.value))}
-            onKeyDown={event => { if (event.key === 'Escape') action(s => s.discard()); }} />
+            onKeyDown={event => {
+              const current = controller.current?.getSnapshot();
+              if (!current) return;
+              const command = modelingDimensionCommand({
+                key: event.key, repeat: event.repeat, isComposing: event.nativeEvent.isComposing,
+                keyCode: event.keyCode, altKey: event.altKey, ctrlKey: event.ctrlKey,
+                metaKey: event.metaKey, shiftKey: event.shiftKey,
+              }, {
+                accepted: current.accepted !== null, draftCount: Object.keys(current.drafts).length,
+                busy: current.busy, disposed: current.disposed,
+              });
+              if (workspace && event.key === 'Escape' && !event.repeat && !event.nativeEvent.isComposing && event.keyCode !== 229
+                && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey && !current.busy && !current.disposed) {
+                event.preventDefault(); event.stopPropagation(); cancelDimensions(); return;
+              }
+              if (command === null) return;
+              event.preventDefault(); event.stopPropagation();
+              if (workspace) { if (command === 'apply') applyDimensions(); else cancelDimensions(); }
+              else action(s => command === 'apply' ? s.apply() : s.discard());
+            }} />
         </div>;
-  return <section className="barocss-cad-editor" aria-label="CAD model editor" style={{ padding: 24, overflow: 'auto', height: '100%' }}>
-    <header><h1>Model a part</h1><p>Sketch a polygon or circle → extrude → supported cut, intersect, split, chamfer, fuse, pocket or hole · named dimensions in mm</p></header>
-    <p role="status" aria-live="polite">{busy ? 'Computing native geometry in a dedicated worker… You can cancel.' : accepted ? draft ? 'Dimension changes pending' : 'Accepted model' : 'No accepted model'}</p>
-    {(error || snapshot?.error) && <p role="alert">{error ?? snapshot?.error}</p>}
-    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-      <Button disabled={busy || !draft} onClick={() => action(s => s.apply())}>Apply dimensions</Button>
-      <Button disabled={busy || !draft} onClick={() => action(s => s.discard())}>Discard draft</Button>
-      <Button disabled={busy || draft || !snapshot?.history.canUndo} onClick={() => action(s => s.undo())}>Undo</Button>
-      <Button disabled={busy || draft || !snapshot?.history.canRedo} onClick={() => action(s => s.redo())}>Redo</Button>
-      <Button disabled={!busy} onClick={() => action(s => s.cancel())}>Cancel computation</Button>
-      {!accepted && !busy && <Button onClick={() => action(s => initialAuthoredText === undefined ? s.example() : s.open(initialAuthoredText))}>Retry model</Button>}
-    </div>
-    <details style={{ marginTop: 16 }}><summary>Modeling examples</summary>
+  const examplesPanel = <details open={workspace || undefined} style={{ marginTop: 16 }}><summary>Modeling examples</summary>
       <Label htmlFor={`${id}-example`}>Choose an example</Label>
       <select id={`${id}-example`} value={example} disabled={busy}
         onChange={event => { setExample(event.target.value as CadEditorModelingExample); setReplaceExample(false); if (event.target.value === 'chamfer-split') setSplitAxis('x'); }}>
@@ -132,8 +218,11 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         <option value="derived-split">Keep a beveled split centered</option>
         <option value="miter-split">Split a 45° XY miter</option>
         <option value="configurable-finishes">Configure rail finishes</option>
+        <option value="slotted-bracket">Cut a slot in a bracket</option>
         <option value="round-post">Create a round post</option>
         <option value="underside-pocket">Cut an underside pocket</option>
+        <option value="constrained-plate">Resize a constrained plate</option>
+        <option value="top-entry-pocket">Cut a top-entry pocket</option>
         <option value="union-bracket">Fuse an L-bracket</option>
         <option value="mounting-plate">Mounting plate with a through-hole</option>
       </select>
@@ -147,8 +236,14 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         </select>
         <p>Axis choice loads a new example after replacement acknowledgment; it does not edit the accepted part.</p>
       </>}
-      <p>{example === 'round-post'
+      <p>{example === 'constrained-plate'
+        ? 'Resize an 8 mm thick plate through its constrained XY profile. Width and profile height drive fixed corners; horizontal and vertical edges remain constrained.'
+        : example === 'slotted-bracket'
+        ? 'Fuse the base and leg, then cut a through-slot in that owned bracket. Edit leg width and slot X/Y origin, width and span. Both saved outputs remain available; this preset selects slotted.'
+        : example === 'round-post'
         ? 'Create a diameter-driven round post from an owned rational circle. Edit diameter and extrusion height in millimetres; optional center coordinates locate the post. Exact native qualification can refuse dimensions without replacing the accepted part. Certified volume is unavailable.'
+        : example === 'top-entry-pocket'
+        ? 'Cut downward from the top Z=8 of a 32 × 24 × 8 mm plate. Depth drives the lower tool origin 8 − depth; tool Y origin and Y span are editable. Tool X stays 8..24. Depth8 makes a through-window. The preset selects part while plate and tool remain saved.'
         : example === 'underside-pocket'
         ? 'Cut an underside pocket into a 32 × 24 × 8 mm plate. Tool X/Y origin, width, Y span and depth are numeric drivers. Both extrusions start at Z=0; depth8 makes a through-window. The preset selects part while plate and tool remain saved.'
         : example === 'union-bracket'
@@ -174,10 +269,12 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
       {accepted && <Label><input type="checkbox" checked={replaceExample} disabled={busy}
         onChange={event => setReplaceExample(event.target.checked)} /> Replace accepted model and discard its history and pending dimensions</Label>}
       <div><Button disabled={busy || (!!accepted && !replaceExample)} onClick={() => action(async s => {
+        fileReadEpoch.current++; // Supersede pending file reads before replacing the accepted example.
         await s.example(example, example === 'horizontal-split' || example === 'chamfer-split' ? splitAxis : undefined); if (!s.getSnapshot().error) setReplaceExample(false);
       })}>Load example</Button></div>
-    </details>
-    <div ref={viewport} style={{ position: 'relative', width: '100%', height: 400, marginTop: 16, background: '#06090d' }}
+    </details>;
+  const viewportElement = <div ref={viewport} data-testid="modeling-viewport" className={workspace ? 'modeling-viewport-host' : undefined}
+      style={workspace ? undefined : { position: 'relative', width: '100%', height: 400, marginTop: 16, background: '#06090d' }}
       onClick={event => {
         const element = viewport.current, display = displayRef.current;
         if (!element || !display || !snapshot?.accepted || busy) return;
@@ -185,9 +282,27 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         const x = Math.min(size.width - 1, Math.max(0, Math.floor((event.clientX - rect.left) * size.width / rect.width)));
         const y = Math.min(size.height - 1, Math.max(0, size.height - 1 - Math.floor((event.clientY - rect.top) * size.height / rect.height)));
         action(s => s.pick(size.width, size.height, x, y, snapshot.generation));
-      }} />
-    {accepted && <>
-      <p>Named output bodies · trimmed native triangles · 1 scene unit = 1 mm · approximate face selection</p>
+      }} />;
+  const exportPanel = accepted && (<fieldset disabled={busy || draft} style={{ marginTop: 16 }}>
+        <legend>Export accepted geometry</legend>
+        <Label htmlFor={`${id}-stl-output`}>STL output</Label>
+        <select id={`${id}-stl-output`} value={stlOutput} disabled={busy || draft || accepted.source !== 'model'}
+          onChange={event => { setStlOutput(event.target.value); setStlResult(null); }}>
+          <option value="">Choose an accepted output</option>
+          {accepted.outputs.map(output => <option key={output.name} value={output.name}
+            disabled={accepted.source !== 'model' || (output.family !== undefined && output.family !== 'convex-planar')}>
+            {output.name} · {accepted.source === 'legacy' ? 'legacy (unavailable)' : output.family ?? 'convex-planar'}
+          </option>)}
+        </select>
+        <Button disabled={busy || draft || !canExportStl} onClick={() => void exportStl()}>
+          {snapshot?.workerReady ? 'Download STL' : 'Recover accepted model and export STL'}
+        </Button>
+        {!snapshot?.workerReady && <p>The native worker is unavailable. This action rebuilds the accepted saved model, verifies matching source and summary, then exports the selected output. It does not change model history or the accepted display.</p>}
+        <p>Choose the output independently of visible bodies or a selected face. Only primary convex outputs are supported. Apply or discard pending dimensions first. Export validates and encodes the accepted native body.</p>
+        <p>Binary STL uses approximate Float32 facets and an mm convention (STL stores no unit). At most40 facets; no coordinate conversion. Save the model separately to retain editable intent. Manufacturing and slicer acceptance require separate checks.</p>
+        {stlResult && <p role="status">{stlResult.outputName}.stl · {stlResult.byteLength} bytes · {stlResult.triangleCount} facets · maximum vertex displacement {stlResult.maximumVertexDisplacementMM} mm. Browser download requested.</p>}
+      </fieldset>);
+  const visibilityPanel = accepted && <><p>Named output bodies · trimmed native triangles · 1 scene unit = 1 mm · approximate face selection</p>
       {bodyView && <fieldset disabled={busy}>
         <legend>Visible output body</legend>
         <Label htmlFor={`${id}-visible-output`}>Choose one output to inspect</Label>
@@ -197,14 +312,19 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         </select>
         <p role="status">Visible: {bodyView.selectedOutput} · {accepted.outputs.find(output => output.name === bodyView.selectedOutput)?.family}. Other outputs are hidden, not removed.</p>
         <p>Changing this view preserves saved outputs, pending dimensions and model history. Opening a file selects its last saved output. The mounting-plate, union and pocket presets explicitly select plate, bracket and part respectively. The chooser changes only the view, not authored outputs.</p>
-      </fieldset>}
-      {pocketSavedOutputs && <p>This preset file initially selects tool when opened, because tool is the last canonical saved output. Choose part to inspect the pocket; hidden plate and tool outputs remain saved.</p>}
-      {differenceModel && <p>The difference retains one restricted integer-cell body and exact integer volume. Complete preview requires at most64 panels (native limit72). Empty or multiple-body results are refused. Tool-contributed cavity walls retain inward relative orientation and original operand lineage; no mesh arrays are repaired.</p>}
+      </fieldset>}</>;
+  const limitsPanel = accepted && <>{(pocketSavedOutputs || topPocketDrivers) && <p>This preset file initially selects tool when opened, because tool is the last canonical saved output. Choose part to inspect the pocket; hidden plate and tool outputs remain saved.</p>}
+      {constrainedPlateDrivers && <p>Width and profile height drive the constrained sketch. Extrusion thickness remains 8 mm; the fixed lower corner stays at Y=0.</p>}
+      {topPocketDrivers && <p>Depth is measured downward from top Z=8. The positive-height cutter starts at Z=8 − depth; its fixed X extent is 8..24 mm. Native qualification may refuse dimensions that look plausible.</p>}
+      {differenceModel && !composedModel && <p>The difference retains one restricted integer-cell body and exact integer volume. Complete preview requires at most64 panels (native limit72). Empty or multiple-body results are refused. Tool-contributed cavity walls retain inward relative orientation and original operand lineage; no mesh arrays are repaired.</p>}
+      {composedModel && <p>The eight-step union → slot workflow retains exact integer-cell volume and both original-box and immediate-parent panel lineage. This preview supports a common Z=0..8 slab, at most5 X/Y coordinate planes,16 cells and64 complete panels per body. Empty or disconnected results are refused. Opening selects the last saved output; the preset explicitly selects slotted.</p>}
       {unionModel && <p>The union has restricted integer-cell material and exact integer volume. Its complete source-qualified panel preview is limited to64 panels (the native provider permits72). Face picks identify generated panels and their contributing native operand faces; they do not preserve the original convex face IDs.</p>}
       {circleModel && <p>The circle extrusion has a qualified stored-rational boundary. Its three-face preview is sampled with faceted wall normals; the preview retains its original uncertified flags. Certified volume is unavailable.</p>}
       {roundPostDrivers && <p>Diameter is the numeric driver for radius = diameter × 0.5 in this preset.</p>}
       {holeModel && <p>The plate has a qualified stored-rational genus-one boundary. Its seven-face preview is sampled and faceted; the preview itself retains uncertified geometry/topology flags. Certified volume is unavailable.</p>}
-      {configurableFinishes && <fieldset disabled={busy || draft}>
+    {accepted.source === 'legacy' && <p>This file uses its original compatibility reader. Saving preserves its authored format and modeling semantics.</p>}
+  </>;
+  const finishesPanel = configurableFinishes && <fieldset disabled={busy || draft}>
         <legend>Rail finishes</legend>
         <p>Front: {accepted.suppression!.frontFinish ? 'off' : 'on'} · Back: {accepted.suppression!.backFinish ? 'off' : 'on'}</p>
         {draft && <p>Apply or discard pending dimensions before configuring finishes.</p>}
@@ -214,35 +334,31 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
               onClick={() => action(s => s.configureFinishes({ frontFinish: front as boolean, backFinish: back as boolean }))}>{label}</Button>)}
         </div>
         <p>Disabled chamfers still validate. Invalid edge selection or geometry is refused without replacing this model.</p>
-      </fieldset>}
-      {accepted.source === 'legacy' && <p>This file uses its original compatibility reader. Saving preserves its authored format and modeling semantics.</p>}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 24 }}>
-        <div><h2>Named dimensions</h2>{roundPostDrivers ? <>
+      </fieldset>;
+  const dimensionsPanel = accepted && (<div><h2>Named dimensions</h2>{constrainedPlateDrivers ? (['width', 'height'] as const).map(name => dimensionInput([name, accepted.parameters[name]])) : roundPostDrivers ? <>
           {(['diameter', 'height'] as const).map(name => dimensionInput([name, accepted.parameters[name]]))}
           <details><summary>Optional center coordinates</summary>
             {(['centerX', 'centerY'] as const).map(name => dimensionInput([name, accepted.parameters[name]]))}
           </details>
-        </> : Object.entries(accepted.parameters).map(dimensionInput)}</div>
-        <aside><h2>Feature sequence</h2><ol>{accepted.features.map(feature => <li key={feature.index}>
-          <Button variant="ghost" disabled={busy} aria-pressed={snapshot?.selection === feature.index}
-            onClick={() => action(s => s.select(feature.index, snapshot!.generation))}>{feature.kind}{feature.name === undefined ? '' : ` · ${feature.name} (${feature.suppressed ? 'off' : 'on'})`}</Button>
-          {snapshot?.selection === feature.index && <p>{feature.dependencies.length ? `Uses earlier steps ${feature.dependencies.map(i => i + 1).join(', ')}` : 'Original sketch intent'}</p>}
-        </li>)}</ol></aside>
-      </div>
-      <h2>Output bodies</h2><dl>{accepted.outputs.map(output => <div key={output.name}><dt>{output.name}</dt>
+        </> : Object.entries(accepted.parameters).map(dimensionInput)}</div>);
+  const inspectionPanel = accepted && <>{snapshot?.selection !== null && snapshot?.selection !== undefined && accepted.features[snapshot.selection] && <>
+    <h2>Selected feature</h2><p>{accepted.features[snapshot.selection].kind} · step {snapshot.selection + 1}
+      {accepted.features[snapshot.selection].name ? ` · ${accepted.features[snapshot.selection].name}` : ''}</p>
+    <p>{accepted.features[snapshot.selection].dependencies.length
+      ? `Uses earlier steps ${accepted.features[snapshot.selection].dependencies.map(index => index + 1).join(', ')}` : 'Original sketch intent'}</p>
+  </>}<h2>Output bodies</h2><dl>{accepted.outputs.map(output => <div key={output.name}><dt>{output.name}</dt>
         <dd>{output.family === 'stored-rational-plate-hole' || output.family === 'stored-rational-circle-prism' ? 'Certified volume unavailable' : output.volumeMM3 ? `${output.volumeMM3.numerator} / ${output.volumeMM3.denominator} mm³` : 'Empty'}</dd></div>)}</dl>
       {snapshot?.faceSelection && <details><summary>Selected {snapshot.faceSelection.role} face</summary>
         {'family' in snapshot.faceSelection && snapshot.faceSelection.family === 'stored-rational-circle-prism'
           ? <p>Native circle body {snapshot.faceSelection.solidId}; face {snapshot.faceSelection.provenance.faceId}; surface {snapshot.faceSelection.provenance.surfaceId}; role {snapshot.faceSelection.provenance.role}. This approximate sampled-triangle hit retains the original cap/wall range and closed-ring/seam lineage. It is not a certified measurement.</p>
           : 'family' in snapshot.faceSelection && snapshot.faceSelection.family === 'orthogonal-cell'
-          ? <p>Native orthogonal body {snapshot.faceSelection.solidId}; generated panel {snapshot.faceSelection.provenance.id}; source {snapshot.faceSelection.provenance.query.sourceId}, model {snapshot.faceSelection.provenance.query.modelId}, surface {snapshot.faceSelection.provenance.query.surfaceId}. Contributing operand faces: {snapshot.faceSelection.provenance.lineage.map(link => `${link.operand}: ${link.sourceId}/${link.globalFaceId} (${link.localFaceId}, ${link.surfaceId})`).join('; ')}. This is an approximate triangle hit with copied native lineage.</p>
+          ? <p>Native orthogonal body {snapshot.faceSelection.solidId}; generated panel {snapshot.faceSelection.provenance.id}; source {snapshot.faceSelection.provenance.query.sourceId}, model {snapshot.faceSelection.provenance.query.modelId}, surface {snapshot.faceSelection.provenance.query.surfaceId}. Contributing operand faces: {snapshot.faceSelection.provenance.lineage.map(link => `${'originalIndex' in link ? `original ${link.originalIndex}` : link.operand}: ${link.sourceId}/${link.globalFaceId} (${link.localFaceId}, ${link.surfaceId})`).join('; ')}. {'parentPanels' in snapshot.faceSelection.provenance && <>Immediate parent panels: {snapshot.faceSelection.provenance.parentPanels.map(link => `${link.evaluationId}/${link.panelId} (${link.sourceId})`).join('; ') || 'none: third-box wall'}. </>}This is an approximate triangle hit with copied native lineage.</p>
           : 'reference' in snapshot.faceSelection
           ? <p>Native body {snapshot.faceSelection.solidId}; face {snapshot.faceSelection.reference.nativeFaceId}; surface {snapshot.faceSelection.provenance.nativeSurfaceId}. Loops: {snapshot.faceSelection.provenance.nativeLoopIds.join(', ')}. Edges: {snapshot.faceSelection.provenance.nativeEdgeIds.join(', ')}. This is an approximate sampled-triangle hit with original native face provenance, not a Solid certificate or a new BRep edge.</p>
           : <p>Native Solid {snapshot.faceSelection.solidId}; face {snapshot.faceSelection.face.sourceId}/{snapshot.faceSelection.face.faceId}. Fan diagonals are display-only, not BRep edges. Selection belongs to this accepted model.</p>}
       </details>}
-      <p>History {snapshot!.history.index + 1} / {snapshot!.history.count}. Unsupported geometry or ambiguous edge selection is refused; the accepted model stays intact.</p>
-    </>}
-    <details style={{ marginTop: 24 }}><summary>Save or open a model</summary>
+      <p>History {snapshot!.history.index + 1} / {snapshot!.history.count}. Unsupported geometry or ambiguous edge selection is refused; the accepted model stays intact.</p></>;
+  const filesPanel = <details open={workspace || undefined} style={{ marginTop: 24 }}><summary>Save or open a model</summary>
       <p>Save authored dimensions and modeling intent. Native geometry and display caches are rebuilt on open. Supported old files are detected internally; unsupported formats are refused without conversion.</p>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <input ref={fileInput} type="file" accept=".json,.cad.json,application/json" aria-label="Choose saved model file"
@@ -264,6 +380,49 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
       <div><Button disabled={busy || !source.trim() || (!!accepted && !confirmed)}
         onClick={() => { fileReadEpoch.current++; action(async s => { await s.open(source); setConfirmed(false); }); }}>Open saved model</Button></div>
       <p>Choose model file stages its UTF-8 text for inspection; it does not replace the accepted model. Review the contents and explicitly confirm Open. Invalid files still go through native validation on Open. Actual file-picker, browser and GPU acceptance require separate device verification.</p>
-    </details>
+    </details>;
+  if (workspace) return <ModelingWorkspace snapshot={snapshot} viewport={viewportElement} panel={workspacePanel} error={error}
+    panels={{ examples: examplesPanel, dimensions: dimensionsPanel, outputs: <>{visibilityPanel}{exportPanel}</>, files: filesPanel,
+      inspect: inspectionPanel, limits: limitsPanel, configuration: finishesPanel }}
+    dimensionLabel={constrainedPlateDrivers ? 'Edit dimensions' : 'Edit model dimensions'}
+    canEditDimensions={!!accepted && (!constrainedPlateDrivers || snapshot?.selection === null || accepted.features[snapshot?.selection ?? -1]?.kind === 'sketch')}
+    configurableFinishes={!!configurableFinishes} onPanel={openWorkspacePanel}
+    onSelect={index => action(session => session.select(index, session.getSnapshot().generation))}
+    onApply={applyDimensions} onCancelDimensions={cancelDimensions}
+    onCancelComputation={() => action(session => session.cancel())}
+    onUndo={() => action(session => session.undo())} onRedo={() => action(session => session.redo())}
+    onRetry={() => { fileReadEpoch.current++; action(session => initialAuthoredText === undefined ? session.example() : session.open(initialAuthoredText)); }} />;
+  return <section className="barocss-cad-editor" aria-label="CAD model editor" style={{ padding: 24, overflow: 'auto', height: '100%' }}>
+    <header><h1>Model a part</h1><p>Sketch a polygon or circle → extrude → supported cut, intersect, split, chamfer, fuse, pocket or hole · named dimensions in mm</p></header>
+    <p role="status" aria-live="polite">{busy ? 'Computing native geometry in a dedicated worker… You can cancel.' : accepted ? draft ? 'Dimension changes pending' : 'Accepted model' : 'No accepted model'}</p>
+    {(error || snapshot?.error) && <p role="alert">{error ?? snapshot?.error}</p>}
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      <Button disabled={busy || !draft} onClick={() => action(s => s.apply())}>Apply dimensions</Button>
+      <Button disabled={busy || !draft} onClick={() => action(s => s.discard())}>Discard draft</Button>
+      <Button disabled={busy || draft || !snapshot?.history.canUndo} onClick={() => action(s => s.undo())}>Undo</Button>
+      <Button disabled={busy || draft || !snapshot?.history.canRedo} onClick={() => action(s => s.redo())}>Redo</Button>
+      <Button disabled={!busy} onClick={() => action(s => s.cancel())}>Cancel computation</Button>
+      <span style={{ alignSelf: 'center', fontSize: 12, opacity: 0.75 }}>In a dimension field: Enter to apply · Esc to discard</span>
+      {!accepted && !busy && <Button onClick={() => { fileReadEpoch.current++; action(s => initialAuthoredText === undefined ? s.example() : s.open(initialAuthoredText)); }}>Retry model</Button>}
+    </div>
+    {examplesPanel}
+    {viewportElement}
+    {accepted && <>
+      {exportPanel}
+      {visibilityPanel}
+      {limitsPanel}
+      {finishesPanel}
+      {accepted.source === 'legacy' && <p>This file uses its original compatibility reader. Saving preserves its authored format and modeling semantics.</p>}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 24 }}>
+        {dimensionsPanel}
+        <aside><h2>Feature sequence</h2><ol>{accepted.features.map(feature => <li key={feature.index}>
+          <Button variant="ghost" disabled={busy} aria-pressed={snapshot?.selection === feature.index}
+            onClick={() => action(s => s.select(feature.index, snapshot!.generation))}>{feature.kind}{feature.name === undefined ? '' : ` · ${feature.name} (${feature.suppressed ? 'off' : 'on'})`}</Button>
+          {snapshot?.selection === feature.index && <p>{feature.dependencies.length ? `Uses earlier steps ${feature.dependencies.map(i => i + 1).join(', ')}` : 'Original sketch intent'}</p>}
+        </li>)}</ol></aside>
+      </div>
+      {inspectionPanel}
+    </>}
+    {filesPanel}
   </section>;
 }

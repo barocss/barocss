@@ -15,7 +15,7 @@ let serial = 0;
 export async function loadModules(mode = 'source', mock = true, evidence) {
   const dir = mode === 'source' ? 'src' : 'dist', ext = mode === 'source' ? 'ts' : 'js';
   const key = `barocss1580-${++serial}`;
-  const state = { calls: [], counts: {}, instances: [], mountGate: null, updateGate: null, pickGate: null, readGate: null, nextFailure: null, mountFailure: null, disposeFailure: null, picked: undefined };
+  const state = { calls: [], counts: {}, instances: [], mountGate: null, updateGate: null, pickGate: null, selectionLoss: false, readGate: null, nextFailure: null, mountFailure: null, mountPhase: null, disposeFailure: null, picked: undefined };
   globalThis[key] = state;
   const gpu = resolve(root, `packages/barocss-gpu/${dir}/index.${ext}`);
   const frame = resolve(root, `packages/barocss-gpu/${dir}/native-directional-light-webgpu-frame.${ext}`);
@@ -26,7 +26,7 @@ export async function loadModules(mode = 'source', mock = true, evidence) {
       h.calls.push(['mount',input,options]); prepare(input,options.width,options.height);
       if(h.mountFailure) throw h.mountFailure;
       if(h.mountGate) await h.mountGate.promise;
-      let raw=input, generation=1, selected=null, phase='ready', width=options.width,height=options.height;
+      let raw=input, generation=1, selected=null, phase=h.mountPhase || 'ready', width=options.width,height=options.height;
       const instance={canvas,get originals(){return raw},get selected(){return selected},
         get status(){return {backend:'webgpu',profile:'qualified-surface-authored-directional-webgpu-v0',state:phase,generation,width,height,limits:{},resources:{}}},
         setPhase(value){phase=value},
@@ -34,7 +34,7 @@ export async function loadModules(mode = 'source', mock = true, evidence) {
         async resize(w,t){h.calls.push(['resize',w,t]);try{prepare(raw,w,t);if(h.updateGate)await h.updateGate.promise;if(h.nextFailure){const error=h.nextFailure;h.nextFailure=null;return {ok:false,error}}width=w;height=t;generation++;return {ok:true}}catch(error){return {ok:false,error}}},
         async readPixels(){h.calls.push(['read']);if(h.readGate)await h.readGate.promise;return new Uint8Array(width*height*4)},
         async pick(x,y){h.calls.push(['pick',x,y]);if(h.pickGate)await h.pickGate.promise;return h.picked===undefined?{generation,ref:raw.frame.scene.entries[0].ref}:h.picked},
-        select(ref){h.calls.push(['select',ref]);selected=ref;return {ok:true}},
+        select(ref){h.calls.push(['select',ref]);selected=ref;if(h.selectionLoss)phase='lost';return {ok:true}},
         dispose(){h.calls.push(['dispose']);phase='disposed';if(h.disposeFailure)throw h.disposeFailure}
       };h.instances.push(instance);return instance;
     }`;
@@ -171,6 +171,13 @@ export async function runFacadeChecks(m) {
   let v = await viewer.createNativeDirectionalLightWebGPUViewer({}, input, dimensions);
   assert.equal(v.accepted.generation,1); frozen(v.originals); independent(v.originals,v.originals);
   good(v.select(input.display.visibleGeometry[1])); assert.equal(state.calls.at(-1)[1].modelId,input.display.visibleGeometry[1].modelId);
+  state.selectionLoss=true;
+  const priorSelection=v.selected;
+  failed(v.select(null),'STATE');
+  assert.deepEqual(v.selected,priorSelection);
+  state.selectionLoss=false; v.dispose();
+  v=await viewer.createNativeDirectionalLightWebGPUViewer({},input,dimensions);
+
   let reentrant;
   const observed=new Proxy(copy(input),{getPrototypeOf(target){reentrant=v.select(null);return Object.getPrototypeOf(target)}});
   good(await v.replace(observed)); failed(reentrant,'BUSY'); v.dispose(); v=await viewer.createNativeDirectionalLightWebGPUViewer({},input,dimensions); good(v.select(input.display.visibleGeometry[1]));
@@ -203,10 +210,40 @@ export async function runFacadeChecks(m) {
   good(await v.replace(hide)); assert.equal(v.selected,null);
   for(const count of [0,4]) { const lights=copy(input); lights.lights.lights=Array.from({length:count},(_,i)=>({...copy(input.lights.lights[0]),nodeId:'node'+i,enabled:i%2===0})); good(await v.replace(lights)); }
   const f32=copy(input); f32.lights.lights[0].intensity=1e-50; const f32Result=await v.replace(f32); failed(f32Result,'GPU');
-  state.instances.at(-1).setPhase('lost'); assert.equal(v.status.state,'lost'); failed(await v.replace(input),'STATE'); assert.ok(v.accepted);
+  // A completed backend promise must not adopt candidate metadata after device loss.
+  const stable=v.accepted;
+  state.updateGate=deferred(); const interrupted=v.replace(input);
+  state.instances.at(-1).setPhase('lost'); state.updateGate.resolve();
+  failed(await interrupted,'STATE'); state.updateGate=null; assert.equal(v.accepted,stable);
+  failed(await v.replace(input),'STATE');
+  v.dispose(); assert.equal(v.status.state,'disposed');
+  v=await viewer.createNativeDirectionalLightWebGPUViewer({},input,dimensions);
+  // Device loss during readback or a pick must reject the stale asynchronous result.
+  state.readGate=deferred(); const interruptedRead=v.readPixels();
+  state.instances.at(-1).setPhase('lost'); state.readGate.resolve();
+  await assert.rejects(interruptedRead,error=>err(error,'STATE')); state.readGate=null;
+  v.dispose();
+  v=await viewer.createNativeDirectionalLightWebGPUViewer({},input,dimensions);
+  state.pickGate=deferred(); const interruptedPick=v.pick(0,0);
+  state.instances.at(-1).setPhase('lost'); state.pickGate.resolve();
+  await assert.rejects(interruptedPick,error=>err(error,'STATE')); state.pickGate=null;
+  v.dispose();
+  v=await viewer.createNativeDirectionalLightWebGPUViewer({},input,dimensions);
+  const stableResize=v.accepted;
+  state.updateGate=deferred(); const interruptedResize=v.resize(11,11);
+  state.instances.at(-1).setPhase('lost'); state.updateGate.resolve();
+  failed(await interruptedResize,'STATE'); state.updateGate=null; assert.equal(v.accepted,stableResize);
+  failed(await v.replace(input),'STATE');
   v.dispose(); assert.equal(v.selected,null); assert.equal(v.status.state,'disposed'); failed(await v.replace(input),'DISPOSED'); v.dispose();
   v=await viewer.createNativeDirectionalLightWebGPUViewer({},input,dimensions); const retained=v.accepted;
   state.updateGate=deferred(); const late=v.replace(input); v.dispose(); state.updateGate.resolve(); failed(await late,'DISPOSED'); state.updateGate=null; assert.equal(v.accepted,retained); assert.equal(v.selected,null);
+  // A mount resolving in a lost state must not expose a live facade.
+  state.mountPhase='lost';
+  try {
+    await assert.rejects(viewer.createNativeDirectionalLightWebGPUViewer({},input,dimensions),
+      error=>err(error,'STATE'));
+    assert.equal(state.instances.at(-1).status.state,'disposed');
+  } finally { state.mountPhase=null; }
   // Constructor failure after successful mount must dispose the newly owned backend.
   state.mountGate=deferred(); const mounting=viewer.createNativeDirectionalLightWebGPUViewer({},input,dimensions);
   Object.freeze=()=>{throw new Error('factory freeze')};

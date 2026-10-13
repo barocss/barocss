@@ -62,7 +62,7 @@ export function work(snapshot, reused, evaluated, previous) {
   exactData(snapshot.recomputation, { reusedFeatures: reused, evaluatedFeatures: evaluated });
   exactData([...reused, ...evaluated], [0, 1]);
   exactData(snapshot.features, [{ kind: 'sketch', index: 0, dependencies: [] }, { kind: 'extrude', index: 1, dependencies: [0] }]);
-  exactData(Object.keys(snapshot).sort(), ['bodies', 'parameters', 'suppression', 'features', 'recomputation', 'evidence', 'withParameters', 'withSuppression', 'save'].sort());
+  exactData(Object.keys(snapshot).sort(), ['bodies', 'parameters', 'suppression', 'features', 'recomputation', 'evidence', 'withParameters', 'withSuppression', 'massProperties', 'exportStl', 'save'].sort());
   deepFrozen(snapshot); // Includes every public data field, not just bodies.
   if (previous) {
     assert.notEqual(snapshot, previous); assert.notEqual(snapshot.parameters, previous.parameters);

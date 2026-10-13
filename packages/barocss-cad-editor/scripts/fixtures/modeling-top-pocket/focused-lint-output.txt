@@ -1,0 +1,19 @@
+(node:5) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+<repo>/apps/library-docs/scripts/check-modeling-top-pocket.mjs
+  21:1  warning  Unexpected console statement  no-console
+
+<repo>/packages/barocss-cad-editor/scripts/modeling-controller-test.mjs
+  522:81  warning  Unexpected console statement  no-console
+
+<repo>/packages/barocss-cad-editor/scripts/modeling-engine-test.mjs
+  404:81  warning  Unexpected console statement  no-console
+
+<repo>/packages/barocss-cad-editor/scripts/modeling-top-pocket-controller-test.mjs
+  383:3  warning  Unexpected console statement  no-console
+
+<repo>/packages/barocss-cad-editor/scripts/modeling-top-pocket-recipes-test.mjs
+  77:88  warning  Unexpected console statement  no-console
+
+✖ 5 problems (0 errors, 5 warnings)

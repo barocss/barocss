@@ -8,8 +8,11 @@ import {JSDOM} from 'jsdom';
 const app = dirname(fileURLToPath(import.meta.url)), workspace = resolve(app, '../..');
 const output = join(app, '.generic-light-flow'); await mkdir(output, {recursive: true});
 const dom = new JSDOM('<!doctype html><div id="root"></div>', {url: 'http://localhost/material.html?workbench=lights'});
-for (const name of ['window', 'document', 'HTMLElement', 'HTMLInputElement', 'HTMLCanvasElement', 'Event', 'MouseEvent', 'File'])
+const domNames = ['window', 'document', 'HTMLElement', 'HTMLInputElement', 'HTMLCanvasElement', 'Event', 'MouseEvent', 'File', 'Element', 'Node', 'NodeFilter', 'MutationObserver', 'CustomEvent', 'HTMLSelectElement'];
+const previousDomGlobals = new Map([...domNames, 'getComputedStyle', 'IS_REACT_ACT_ENVIRONMENT'].map(name => [name, Object.getOwnPropertyDescriptor(globalThis, name)]));
+for (const name of domNames)
   Object.defineProperty(globalThis, name, {value: dom.window[name], configurable: true});
+globalThis.getComputedStyle = dom.window.getComputedStyle.bind(dom.window);
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const dialogs = []; let confirmation = true, fileChoosers = 0;
 dom.window.confirm = message => {dialogs.push(message); return confirmation;};
@@ -26,7 +29,7 @@ dom.window.HTMLAnchorElement.prototype.click = function () {
 const flowControllers = [], previousControllerObserver = Object.getOwnPropertyDescriptor(globalThis, '__observeLightFlowController');
 Object.defineProperty(globalThis, '__observeLightFlowController', {configurable: true, value: controller => {flowControllers.push(controller);}});
 const controls = []; let startupGate = null, startupFailure = null, navigationDom = null, mounted = null;
-let failed = false, firstError;
+let failed = false, firstError, activeSurfaceLedger = null;
 const cleanupErrors = [];
 globalThis.__lightWorkbenchViewer = async (_canvas, request) => {
   if (startupFailure) throw startupFailure;
@@ -55,7 +58,7 @@ export * from './apps/render-editor/src/native-light-workbench-flow';
 export {deriveNativeLightFramingCamera} from './apps/render-editor/src/native-light-framing';
 export {createNativeSceneBase,createNativeSceneSeed} from './apps/render-editor/src/native-scene-seed';
 export {prepareViewerNativeSceneAppearance} from '@barocss/viewer';
-export {deriveRenderCameraInteraction,createRenderNativeLightRequest,prepareRenderNativeLightDocument,parseRenderNativeLightDocument,serializeRenderNativeLightDocument,serializeRenderNativeSceneDocument,serializeRenderNativeDirectionalLightDocument,parseRenderNativeDirectionalLightDocument,prepareRenderMaterialDocument,parseRenderMaterialDocument,serializeRenderMaterialDocument,deriveRenderMaterialAssignment,RENDER_MATERIAL_LIMITS} from '@barocss/render-editor';`,resolveDir: workspace},
+export {deriveRenderCameraInteraction,createRenderNativeLightRequest,prepareRenderNativeLightDocument,parseRenderNativeLightDocument,serializeRenderNativeLightDocument,serializeRenderNativeSceneDocument,serializeRenderNativeDirectionalLightDocument,parseRenderNativeDirectionalLightDocument,prepareRenderMaterialDocument,parseRenderMaterialDocument,serializeRenderMaterialDocument,deriveRenderMaterialAssignment,RENDER_MATERIAL_LIMITS,prepareRenderNativeSourceImport} from './packages/barocss-render-editor/src/index';`,resolveDir: workspace},
     bundle: true, platform: 'node', format: 'esm', outfile: join(output, 'flow.mjs'),
     external: ['react', 'react-dom', 'react-dom/*', 'lucide-react', 'radix-ui', 'class-variance-authority', 'clsx', 'tailwind-merge'],
     plugins: [{name: 'controlled-viewer-only', setup(builder) {
@@ -69,9 +72,30 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
     }}]});
   const api = await import(pathToFileURL(join(output, 'flow.mjs')).href), {act} = await import('react');
   const sourceText = await readFile(join(app, 'public/reference-panel.barocad'), 'utf8');
+  const surfacePointPreflight = process.argv.includes('--surface-point-preflight');
+  const bodyResetOnly = process.argv.includes('--body-reset');
+  const materialCopyOnly = process.argv.includes('--material-copy');
+  const sceneTitleOnly = process.argv.includes('--scene-title');
+  const workspaceFocusOnly = process.argv.includes('--workspace-focus');
+  const bodyTasksOnly = process.argv.includes('--body-tasks');
+  const sourceExportPreflight = process.argv.includes('--source-export-preflight');
+  const sourceExportOnly = process.argv.includes('--source-export') || sourceExportPreflight;
+  // The bounded Body-task proof never enters historical suites.
+  if (!bodyTasksOnly) {
+  if (!workspaceFocusOnly && (!sceneTitleOnly && !materialCopyOnly && !sourceExportOnly && !bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight)) {
   const seed = api.createLightStudy(sourceText);
   const original = api.serializeRenderNativeLightDocument(seed);
   const form = api.addLightFields(api.readLightFields(seed));
+  // Product light duplication: independent ID, complete exact draft values, cap and no mutation.
+  const copiedFields = api.duplicateLightFields(form, form.lights[0].nodeId);
+  assert.equal(copiedFields.lights.length, form.lights.length + 1);
+  assert.notEqual(copiedFields.lights.at(-1).nodeId, form.lights[0].nodeId);
+  assert.deepEqual(copiedFields.lights.at(-1).vector, form.lights[0].vector);
+  assert.deepEqual(copiedFields.lights.at(-1).color, form.lights[0].color);
+  assert.notStrictEqual(copiedFields.lights.at(-1).vector, form.lights[0].vector);
+  assert.equal(form.lights[0].nodeId, api.readLightFields(seed).lights[0].nodeId, 'Duplicate must not mutate the original light');
+  assert.throws(() => api.duplicateLightFields(form, 'missing-light'));
+  assert.throws(() => api.duplicateLightFields(api.addLightFields(copiedFields), form.lights[0].nodeId));
   form.lights[1].vector = ['-0', '2', '-4']; form.lights[1].color = ['.3', '.5', '.8'];
   const candidate = api.applyLightFields(seed, form);
   assert(Object.is(candidate.lights.lights[1].directionScene[0], -0));
@@ -2052,16 +2076,1990 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
       proof: 'software only; no GPU pixels, native picker or physical #1573 acceptance'});
   }
 
+  // #1734: 32 direct real derivations, <=12 replacements and four transports per kind.
+  const bodyCommandFlow = [];
+  for (const kind of ['directional', 'point']) {
+    const raw = structuredClone(api.createLightStudy(sourceText, kind));
+    raw.surfaceMaterials[1].material.documentId = raw.surfaceMaterials[0].material.documentId;
+    raw.surfaceMaterials[1].material.uniforms.amount = -0;
+    poseFor(raw, B).rotationXYZW = [-0, 0, 0, -1];
+    const commandSeed = api.prepareRenderNativeLightDocument(raw).document;
+    const seedText = api.serializeRenderNativeLightDocument(commandSeed);
+    const cases = [];
+    const bodyCase = (label, document, bodyId, action, reserved = []) => {
+      cases.push(label); assert(cases.length <= 32, kind + ': direct body helper ceiling');
+      const before = structuredClone(document);
+      try {return api.deriveLightBodyCommand(document, bodyId, action, reserved);}
+      finally {assert.deepEqual(document, before, label + ': caller document immutable');}
+    };
+    const refuseBody = (...args) => {
+      let error; try {bodyCase(...args);} catch (cause) {if (cause instanceof assert.AssertionError) throw cause; error = cause;}
+      assert(error, args[0] + ': real derivation must refuse'); return error;
+    };
+    const copyA = bodyCase('duplicate A', commandSeed, A, 'duplicate');
+    const copyB = bodyCase('duplicate B repeated material/geometry IDs', commandSeed, B, 'duplicate');
+    for (const [result, originalId] of [[copyA, A], [copyB, B]]) {
+      const oldBody = commandSeed.nativeDocument.bodies.find(item => item.id === originalId);
+      const newBody = result.document.nativeDocument.bodies.find(item => item.id === result.selectedBodyId);
+      assert.equal(result.generatedIds.length, 3); assert.equal(new Set(result.generatedIds).size, 3);
+      assert.equal(newBody.geometryId, oldBody.geometryId); assert.notEqual(newBody.assetId, oldBody.assetId);
+      const oldAsset = commandSeed.nativeDocument.assets.find(item => item.id === oldBody.assetId);
+      const newAsset = result.document.nativeDocument.assets.find(item => item.id === newBody.assetId);
+      assert.deepEqual(newAsset, {...oldAsset, id: newBody.assetId, revision: 0});
+      assert.deepEqual(result.document.nativeDocument.assets.slice(0, 2), commandSeed.nativeDocument.assets);
+      assert.deepEqual(poseFor(result.document, result.selectedBodyId), {...poseFor(commandSeed, originalId), bodyId: result.selectedBodyId});
+      const oldMaterial = commandSeed.surfaceMaterials.find(item => item.target.bodyId === originalId).material;
+      const newMaterial = result.document.surfaceMaterials.find(item => item.target.bodyId === result.selectedBodyId).material;
+      assert.deepEqual(newMaterial, {...oldMaterial, documentId: result.generatedIds[2], revision: 0});
+      assert.deepEqual(result.document.lights, commandSeed.lights); assert.deepEqual(result.document.display.camera, commandSeed.display.camera);
+      assert.equal(result.document.revision, commandSeed.revision); assert.equal(result.document.nativeDocument.revision, commandSeed.nativeDocument.revision + 1);
+      const prepared = api.prepareRenderNativeLightDocument(result.document);
+      for (const binding of result.document.surfaceMaterials) {
+        const actual = prepared.entries.find(entry => entry.binding.bodyId === binding.target.bodyId).binding;
+        for (const key of Object.keys(binding.target)) assert.equal(binding.target[key], actual[key], key);
+      }
+      prepareBodyAppearance(api.createRenderNativeLightRequest(result.document));
+    }
+    const empty = api.prepareRenderNativeLightDocument({...commandSeed, display: {...commandSeed.display, poses: []}}).document;
+    assert.deepEqual(bodyCase('duplicate omitted poses', empty, B, 'duplicate').document.display.poses, []);
+    const removedA = bodyCase('remove A orphan asset', commandSeed, A, 'remove');
+    assert.deepEqual(removedA.document.nativeDocument.assets, [commandSeed.nativeDocument.assets[1]]);
+    assert.equal(removedA.selectedBodyId, B);
+    const reorderedCopy = api.prepareRenderNativeLightDocument({...copyB.document,
+      surfaceMaterials: [...copyB.document.surfaceMaterials].reverse()}).document;
+    const removedCopy = bodyCase('remove independent copy with reversed material order', reorderedCopy, copyB.selectedBodyId, 'remove');
+    assert.equal(removedCopy.selectedBodyId, A, 'select the first surviving Inspector row, not the first material');
+    assert.deepEqual(removedCopy.document.surfaceMaterials.map(binding => binding.target.bodyId), [B, A]);
+    assert.deepEqual(removedCopy.document.nativeDocument.assets, commandSeed.nativeDocument.assets);
+    assert.deepEqual(removedCopy.document.display, commandSeed.display);
+    const sourceWithSurfaces = ids => {
+      const surface = sourceText.match(/ {2}@surface #reference_panel \{[\s\S]*?\n {2}\}/)?.[0];
+      assert(surface, 'fixture contains its original Surface declaration');
+      return sourceText.replace(/\}\s*$/, ids.map(id => surface.replace('#reference_panel', '#' + id)).join('\n') + '\n}\n');
+    };
+    const shared = structuredClone(commandSeed), sharedAsset = shared.nativeDocument.assets[0];
+    sharedAsset.source = sourceWithSurfaces(['shared_panel']);
+    shared.nativeDocument.assets = [sharedAsset];
+    Object.assign(shared.nativeDocument.bodies[1], {assetId: sharedAsset.id, geometryId: 'shared_panel'});
+    Object.assign(shared.surfaceMaterials[1].target, {assetId: sharedAsset.id, assetRevision: sharedAsset.revision, geometryId: 'shared_panel'});
+    const sharedResult = bodyCase('remove shared source body', api.prepareRenderNativeLightDocument(shared).document, A, 'remove');
+    assert.deepEqual(sharedResult.document.nativeDocument.assets, [sharedAsset]);
+    const sibling = structuredClone(commandSeed);
+    sibling.nativeDocument.assets[0].source = sourceWithSurfaces(['sibling_panel']);
+    sibling.nativeDocument.bodies.push({...sibling.nativeDocument.bodies[0], id: 'hidden_sibling', geometryId: 'sibling_panel'});
+    const siblingResult = bodyCase('unselected sibling retains asset', api.prepareRenderNativeLightDocument(sibling).document, A, 'remove');
+    assert.deepEqual(siblingResult.document.nativeDocument.assets, sibling.nativeDocument.assets);
+    assert(siblingResult.document.nativeDocument.bodies.some(item => item.id === 'hidden_sibling'));
+    assert.deepEqual(bodyCase('remove omitted poses', empty, A, 'remove').document.display.poses, []);
+    const reservedCopy = bodyCase('reserved IDs survive undo', commandSeed, B, 'duplicate', copyB.reservedIds);
+    assert(reservedCopy.generatedIds.every(id => !copyB.generatedIds.includes(id)));
+    const baselineIds = [...api.lightBodyReservedIds(commandSeed)];
+    const reservations = length => baselineIds.concat(Array.from({length: length - baselineIds.length}, (_, i) => 'reserved_' + i));
+    assert.equal(bodyCase('exact 2048 union', commandSeed, B, 'duplicate', reservations(2045)).reservedIds.length, 2048);
+    assert.equal(bodyCase('remove at reservation limit', commandSeed, B, 'remove', reservations(2048)).reservedIds.length, 2048);
+    const full = bodyCase('four-body capacity reached', copyB.document, A, 'duplicate', copyB.reservedIds);
+    refuseBody('fifth body refused', full.document, A, 'duplicate');
+    const manyBodies = structuredClone(commandSeed);
+    const extraSurfaces = ['unselected_panel_0', 'unselected_panel_1', 'unselected_panel_2'];
+    // Four admitted sources, each with four distinct Surfaces: both inventory caps are reached.
+    for (let i = 2; i < 4; i++) manyBodies.nativeDocument.assets.push({...manyBodies.nativeDocument.assets[0], id: 'unselected_asset_' + i});
+    for (const [index, asset] of manyBodies.nativeDocument.assets.entries()) {
+      asset.source = sourceWithSurfaces(extraSurfaces);
+      const geometries = index < 2 ? extraSurfaces : ['reference_panel', ...extraSurfaces];
+      for (const [j, geometryId] of geometries.entries()) manyBodies.nativeDocument.bodies.push({...manyBodies.nativeDocument.bodies[0],
+        id: 'unselected_' + index + '_' + j, assetId: asset.id, geometryId});
+    }
+    assert.equal(manyBodies.nativeDocument.bodies.length, 16);
+    refuseBody('sixteen bodies and four assets refuse duplicate', api.prepareRenderNativeLightDocument(manyBodies).document, B, 'duplicate');
+    const maximum = structuredClone(commandSeed); maximum.nativeDocument.revision = 2147483647;
+    maximum.surfaceMaterials.forEach(item => {item.target.documentRevision = maximum.nativeDocument.revision;});
+    const maximumDocument = api.prepareRenderNativeLightDocument(maximum).document;
+    refuseBody('native revision max duplicate', maximumDocument, B, 'duplicate');
+    refuseBody('native revision max remove', maximumDocument, B, 'remove');
+    refuseBody('unknown duplicate', commandSeed, 'foreign_body', 'duplicate');
+    refuseBody('unknown remove', commandSeed, 'foreign_body', 'remove');
+    const hidden = api.prepareRenderNativeLightDocument({...commandSeed,
+      display: {...commandSeed.display, visibleBodyIds: [B]}, surfaceMaterials: commandSeed.surfaceMaterials.filter(item => item.target.bodyId === B)}).document;
+    refuseBody('hidden duplicate', hidden, A, 'duplicate'); refuseBody('hidden remove', hidden, A, 'remove');
+    const unbound = api.prepareRenderNativeLightDocument({...commandSeed, surfaceMaterials: commandSeed.surfaceMaterials.filter(item => item.target.bodyId === B)}).document;
+    refuseBody('unbound duplicate', unbound, A, 'duplicate'); refuseBody('unbound remove', unbound, A, 'remove');
+    refuseBody('last editable body', removedA.document, B, 'remove');
+    refuseBody('unknown command', commandSeed, B, 'hide');
+    refuseBody('non-array reservations', commandSeed, B, 'duplicate', null);
+    refuseBody('sparse reservations', commandSeed, B, 'duplicate', new Array(1));
+    let reservationReads = 0; const accessor = [];
+    Object.defineProperty(accessor, '0', {enumerable: true, get() {reservationReads++; return 'forbidden';}});
+    refuseBody('accessor reservations', commandSeed, B, 'duplicate', accessor); assert.equal(reservationReads, 0);
+    const symbolic = []; symbolic[Symbol('extra')] = 'x';
+    refuseBody('symbol reservations', commandSeed, B, 'duplicate', symbolic);
+    refuseBody('invalid reservation ID', commandSeed, B, 'duplicate', ['invalid id']);
+    refuseBody('oversize reservations', commandSeed, B, 'duplicate', reservations(2049));
+    refuseBody('resulting reservation union overflow', commandSeed, B, 'duplicate', reservations(2046));
+    const unsafe = structuredClone(commandSeed); poseFor(unsafe, A).translationMM[0] = 1e-50;
+    const unsafeError = refuseBody('actual posed Float32 admission', api.prepareRenderNativeLightDocument(unsafe).document, B, 'duplicate');
+    assert.match(JSON.stringify(errorTree(unsafeError)), /underflow/i);
+    assert.equal(cases.length, 32); assert.equal(new Set(cases).size, 32); assert.equal(api.serializeRenderNativeLightDocument(commandSeed), seedText);
+
+    let presentations = 0, transports = 0; const commandControls = [];
+    const trackCommands = control => {
+      control.prepare = prepareBodyAppearance; const replace = control.viewer.replace;
+      control.viewer.replace = request => {presentations++; assert(presentations <= 12, kind + ': body command presentation ceiling'); return replace(request);};
+      commandControls.push(control); return control;
+    };
+    const mountCommands = async value => {mounted = await api.mountLightWorkbenchFlow(container, value); return trackCommands(controls.at(-1));};
+    const commandSession = () => flowControllers.at(-1).getSession(), commandSnapshot = () => commandSession().getSnapshot();
+    const commandDraft = () => api.readLightWorkbenchFlowDraft(container);
+    const saveCommands = async () => {transports++; assert(transports <= 4); return saveText();};
+    const selectedCommandBody = () => [...container.querySelectorAll('[aria-label^="Edit body "]')].find(node => node.getAttribute('aria-pressed') === 'true')?.getAttribute('aria-label').slice(10);
+    const maxOuter = api.prepareRenderNativeLightDocument({...commandSeed, revision: 2147483647, lights: {...commandSeed.lights, revision: 2147483647}}).document;
+    let control = await mountCommands(maxOuter);
+    assert(button('Duplicate body').disabled); assert(button('Remove body').disabled); assert(button('Add Surface…').disabled); assert.equal(presentations, 0); await mounted.dispose();
+    control = await mountCommands(hidden); assert(button('Duplicate body').disabled); assert(button('Remove body').disabled);
+    await selectBody(B); assert(button('Remove body').disabled, 'Last editable visible material body');
+    assert.equal(presentations, 0); await mounted.dispose();
+    control = await mountCommands(commandSeed); await selectBody(B);
+    const clean = commandSnapshot(); await edit('Body position X (mm)', '1e');
+    assert(button('Duplicate body').disabled); assert(button('Remove body').disabled);
+    const corrective = commandDraft(); await act(async () => {button('Duplicate body').click(); button('Remove body').click();});
+    assert.deepEqual(commandDraft(), corrective); assert.equal(commandSnapshot(), clean); assert.equal(presentations, 0);
+    await click('Discard'); await selectBody(B);
+    await click('Help'); assert(button('Duplicate body').disabled); await click('Help');
+    const staleDuplicate = button('Duplicate body'); await act(async () => {button('Edit body ' + A).click(); staleDuplicate.click();});
+    assert.equal(presentations, 0); assert.equal(commandSnapshot().accepted, clean.accepted); await selectBody(B);
+    assert.equal(await saveCommands(), seedText); // Transport 1: known accepted baseline.
+    const beforeRefusal = commandSnapshot(), beforeRefusalDraft = commandDraft();
+    let release; control.wait = new Promise(resolve => {release = resolve;}); control.refusal = new Error('Controlled body duplicate refusal');
+    await act(async () => {button('Duplicate body').click(); button('Edit body ' + A).click();}); // Replacement 1.
+    assert.equal(selectedCommandBody(), B, 'Pending command fences same-act competing row selection');
+    assert(button('Remove body').disabled); assert(button('Open').disabled); assert(button('Apply').disabled);
+    await act(async () => {release(); await control.wait;}); control.wait = null; control.refusal = null;
+    assert.equal(commandSnapshot().accepted, beforeRefusal.accepted); assert.equal(commandSnapshot().canUndo, beforeRefusal.canUndo);
+    assert.equal(commandSnapshot().canRedo, beforeRefusal.canRedo); assert.equal(commandSnapshot().unsaved, beforeRefusal.unsaved);
+    assert.equal(commandSnapshot().dirty, false); assert.deepEqual(commandDraft(), beforeRefusalDraft); assert.equal(selectedCommandBody(), B);
+    assert(!container.querySelector('[aria-label="Body command recovery"]'));
+    await click('Duplicate body'); // 2.
+    const firstCopy = selectedCommandBody(), firstCopyDoc = commandSnapshot().accepted;
+    assert.notEqual(firstCopy, B); assert.equal(firstCopyDoc.nativeDocument.revision, commandSeed.nativeDocument.revision + 1);
+    assert.equal(firstCopyDoc.revision, commandSeed.revision + 1); assert.equal(commandSnapshot().canUndo, true);
+    assert.deepEqual(poseFor(firstCopyDoc, firstCopy), {...poseFor(commandSeed, B), bodyId: firstCopy});
+    assert.deepEqual(commandSnapshot().viewportCamera, beforeRefusal.viewportCamera);
+    await click('Undo'); // 3: generated IDs remain reserved.
+    assert.equal(commandSnapshot().canUndo, false); assert.equal(commandSnapshot().canRedo, true);
+    control.state = 'lost'; await act(async () => {await new Promise(resolve => setTimeout(resolve, 350));});
+    await click('Remount accepted scene'); assert.equal(control.disposed, 1); control = trackCommands(controls.at(-1));
+    assert.equal(commandSnapshot().canUndo, false); assert.equal(commandSnapshot().canRedo, false); await selectBody(B);
+    await click('Duplicate body'); // 4: a fresh branch must not reuse the removed copy identity.
+    const secondCopy = selectedCommandBody(); assert.notEqual(secondCopy, firstCopy); assert.equal(commandSnapshot().canRedo, false);
+    const savedText = await saveCommands(), saved = api.parseRenderNativeLightDocument(savedText); // Transport 2.
+    const originalMaterial = saved.surfaceMaterials.find(item => item.target.bodyId === B).material;
+    const copiedMaterial = saved.surfaceMaterials.find(item => item.target.bodyId === secondCopy).material;
+    assert.notEqual(originalMaterial.documentId, copiedMaterial.documentId); assert(Object.is(copiedMaterial.uniforms.amount, -0));
+    await click('Remove body'); // 5.
+    assert(!commandSnapshot().accepted.nativeDocument.bodies.some(item => item.id === secondCopy)); assert.notEqual(selectedCommandBody(), secondCopy);
+    await click('Undo'); // 6.
+    assert(commandSnapshot().accepted.nativeDocument.bodies.some(item => item.id === secondCopy));
+    await click('Redo'); // 7.
+    assert(!commandSnapshot().accepted.nativeDocument.bodies.some(item => item.id === secondCopy));
+    await mounted.dispose(); control = await mountCommands(commandSeed);
+    transports++; await click('Open'); assert(button('Duplicate body').disabled);
+    await selectFile(file(savedText)); // Transport 3 / replacement 8, actual fresh chooser.
+    assert.deepEqual(commandSnapshot().accepted, saved); assert.equal(commandSnapshot().canUndo, false);
+    await selectBody(secondCopy); await edit('Uniform amount', '.6'); await edit('Body position X (mm)', '950'); await click('Apply'); // 9.
+    const edited = commandSnapshot().accepted;
+    assert.equal(edited.surfaceMaterials.find(item => item.target.bodyId === secondCopy).material.uniforms.amount, .6);
+    assert.deepEqual(edited.surfaceMaterials.find(item => item.target.bodyId === B).material, originalMaterial);
+    assert.deepEqual(edited.nativeDocument, saved.nativeDocument); assert.equal(poseFor(edited, secondCopy).translationMM[0], 950);
+    assert.deepEqual(edited.lights.lights, saved.lights.lights);
+    const beforeLoss = commandSnapshot(); control.wait = new Promise(resolve => {release = resolve;}); control.refusal = new Error('Controlled lost body remove');
+    await act(async () => button('Remove body').click()); // 10.
+    control.state = 'lost'; await act(async () => {release(); await control.wait;}); control.wait = null;
+    assert.equal(commandSnapshot().accepted, beforeLoss.accepted); assert.equal(commandSnapshot().canUndo, beforeLoss.canUndo);
+    assert.equal(commandSnapshot().canRedo, beforeLoss.canRedo); assert.equal(commandSnapshot().unsaved, beforeLoss.unsaved);
+    assert(commandSnapshot().dirty); assert(container.querySelector('[aria-label="Body command recovery"]'));
+    for (const label of ['Apply', 'Open', 'Import material…', 'Duplicate body', 'Remove body', 'New point', 'New directional', 'Frame all']) assert(button(label).disabled, label + ': recovery fence');
+    assert.equal(commandSession().getSavePayload().text, api.serializeRenderNativeLightDocument(beforeLoss.accepted));
+    assert(!button('Save accepted').disabled);
+    await click('Remount accepted scene'); assert.equal(control.disposed, 1);
+    control = trackCommands(controls.at(-1));
+    assert.equal(commandSnapshot().dirty, false); assert.equal(commandSnapshot().canUndo, false); assert(!container.querySelector('[aria-label="Body command recovery"]'));
+    // This lifetime imported saved copy_2; remove reservations are retained through remount.
+    await selectBody(B); await click('Duplicate body'); // 11.
+    const thirdCopy = selectedCommandBody(); assert.notEqual(thirdCopy, secondCopy);
+    assert.equal(thirdCopy, firstCopy, 'Successful Open resets historical reservations; remount alone did not');
+    const finalText = await saveCommands(), finalDocument = api.parseRenderNativeLightDocument(finalText); // Transport 4.
+    assert.deepEqual(finalDocument, commandSnapshot().accepted); assert.equal(commandSnapshot().unsaved, false);
+    assert(button('Duplicate body').disabled, 'Four assets/bodies at capacity');
+    let releaseStale; control.wait = new Promise(resolve => {releaseStale = resolve;});
+    await act(async () => button('Remove body').click()); // 12: held completion after disposal.
+    await mounted.dispose(); assert.equal(control.disposed, 1);
+    const oldControl = control; control = await mountCommands(commandSeed); const fresh = commandSnapshot(), freshDraft = commandDraft();
+    await act(async () => {releaseStale(); await oldControl.wait;});
+    assert.equal(commandSnapshot(), fresh); assert.deepEqual(commandDraft(), freshDraft); assert.equal(selectedCommandBody(), A);
+    assert.equal(commandSnapshot().canUndo, false); assert.equal(commandSnapshot().dirty, false);
+    assert.equal(presentations, 12); assert.equal(transports, 4);
+    assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+    await mounted.dispose(); assert(commandControls.every(item => item.disposed === 1));
+    bodyCommandFlow.push({kind, helperCases: cases.length, cases, presentations, saveOpenTransports: transports,
+      readyRefusal: true, unavailableRecovery: true, staleCommandCompletion: true,
+      proof: 'actual Native derivations and owned React/session; controlled Viewer/file transport only'});
+  }
+
+  // #1809 fixture factory is extracted verbatim by the cheap admission-only preflight.
+  function surfaceImportFixtures(api, sourceText, kind) {
+    const raw = structuredClone(api.createLightStudy(sourceText, kind));
+    raw.surfaceMaterials[1].material.documentId = raw.surfaceMaterials[0].material.documentId;
+    raw.surfaceMaterials[1].material.uniforms.amount = -0;
+    raw.display.poses[1].rotationXYZW = [-0, 0, 0, -1];
+    const seed = api.prepareRenderNativeLightDocument(raw).document;
+    const declaration = sourceText.match(/ {2}@surface #reference_panel \{[\s\S]*?\n {2}\}/)?.[0];
+    assert(declaration, 'actual original Surface declaration');
+    const sourceWith = ids => sourceText.replace(/\}\s*$/, ids.map(id => declaration.replace('#reference_panel', '#' + id)).join('\n') + '\n}\n');
+    const source = sourceWith(['imported_panel']).replace('@model cloth_reference_981', '@model imported_model')
+      .replace('version: 0;', 'version: 0; /* original spelling and comments stay */\n');
+    const curve = '@model curve_only { version: 0; length-unit: mm; @curve #path { type: nurbs; degree: 1; knots: [0,0,1,1]; control-points: [[-0,0,0],[1,2,3]]; weights: [1,1]; } }';
+    const empty = api.prepareRenderNativeLightDocument({...seed, display: {...seed.display, poses: []}}).document;
+    const hidden = api.prepareRenderNativeLightDocument({...seed, display: {...seed.display, visibleBodyIds: ['body_preview_b']},
+      surfaceMaterials: seed.surfaceMaterials.filter(item => item.target.bodyId === 'body_preview_b')}).document;
+    const unbound = api.prepareRenderNativeLightDocument({...seed,
+      surfaceMaterials: seed.surfaceMaterials.filter(item => item.target.bodyId === 'body_preview_b')}).document;
+    const maximum = structuredClone(seed); maximum.nativeDocument.revision = 2147483647;
+    maximum.surfaceMaterials.forEach(item => {item.target.documentRevision = 2147483647;});
+    const maxNative = api.prepareRenderNativeLightDocument(maximum).document;
+    const maxOuter = api.prepareRenderNativeLightDocument({...seed, revision: 2147483647, lights: {...seed.lights, revision: 2147483647}}).document;
+    const assets = structuredClone(seed);
+    for (let i = 2; i < 4; i++) {
+      assets.nativeDocument.assets.push({...assets.nativeDocument.assets[0], id: 'unselected_asset_' + i});
+      assets.nativeDocument.bodies.push({...assets.nativeDocument.bodies[0], id: 'unselected_body_' + i, assetId: 'unselected_asset_' + i});
+    }
+    const assetCap = api.prepareRenderNativeLightDocument(assets).document;
+    const selected = structuredClone(seed);
+    selected.nativeDocument.assets[0].source = sourceWith(['selected_c', 'selected_d']);
+    for (const id of ['selected_c', 'selected_d']) {
+      selected.nativeDocument.bodies.push({...selected.nativeDocument.bodies[0], id, geometryId: id});
+      selected.nativeOptions.bodyIds.push(id); selected.display.visibleBodyIds.push(id);
+      selected.display.poses.push({...selected.display.poses[0], bodyId: id});
+      selected.surfaceMaterials.push({target: {...selected.surfaceMaterials[0].target, bodyId: id, geometryId: id}, material: selected.surfaceMaterials[0].material});
+    }
+    const selectionCap = api.prepareRenderNativeLightDocument(selected).document;
+    const both = structuredClone(assetCap);
+    const extra = ['extra_0', 'extra_1', 'extra_2'];
+    for (const [index, asset] of both.nativeDocument.assets.entries()) {
+      asset.source = sourceWith(extra);
+      for (const [j, geometryId] of extra.entries())
+        both.nativeDocument.bodies.push({...both.nativeDocument.bodies[0], id: 'body_' + index + '_' + j, assetId: asset.id, geometryId});
+    }
+    const bothCaps = api.prepareRenderNativeLightDocument(both).document;
+    return {seed, empty, hidden, unbound, maxNative, maxOuter, assetCap, selectionCap, bothCaps,
+      source, curve, tooMany: sourceWith(['extra_0', 'extra_1', 'extra_2', 'extra_3']), unsafe: source.replaceAll('-700', '0.' + '0'.repeat(49) + '1')};
+  }
+  const surfaceImportFlow = [];
+  for (const kind of ['directional', 'point']) {
+    const fixtures = surfaceImportFixtures(api, sourceText, kind), {seed: importSeed, source: importSource} = fixtures;
+    const originalText = api.serializeRenderNativeLightDocument(importSeed), cases = [];
+    activeSurfaceLedger = {kind, cases, presentations: 0, transports: 0, lifetimes: 0};
+    const addition = (label, value = importSeed, bodyId = B, source = importSource, surfaceId = 'imported_panel', reservations = []) => {
+      cases.push(label); assert(cases.length <= 24, 'Surface helper ceiling'); const before = structuredClone(value);
+      try {return api.deriveLightSurfaceAddition(value, bodyId, source, surfaceId, reservations);}
+      finally {assert.deepEqual(value, before, label + ': original immutable');}
+    };
+    const refuses = (...args) => {let error; try {addition(...args);} catch (cause) {if (cause instanceof assert.AssertionError) throw cause; error = cause;}
+      assert(error, args[0] + ': actual provider refuses'); return error;};
+    const byA = addition('selected A material and actual second Surface', importSeed, A);
+    const reordered = api.prepareRenderNativeLightDocument({...importSeed, surfaceMaterials: [...importSeed.surfaceMaterials].reverse()}).document;
+    const byB = addition('selected B with repeated IDs and reversed bindings', reordered);
+    for (const [result, originalBody] of [[byA, A], [byB, B]]) {
+      const expectedMaterial = importSeed.surfaceMaterials.find(item => item.target.bodyId === originalBody).material;
+      assert.deepEqual(result.document.surfaceMaterials.at(-1).material, {...expectedMaterial, documentId: result.generatedIds[2], revision: 0});
+      assert.equal(result.document.nativeDocument.assets.at(-1).source, importSource);
+      assert.equal(result.document.nativeDocument.bodies.at(-1).geometryId, 'imported_panel');
+      assert.deepEqual(result.document.nativeDocument.assets.slice(0, 2), importSeed.nativeDocument.assets);
+      assert.deepEqual(result.document.nativeDocument.bodies.slice(0, 2), importSeed.nativeDocument.bodies);
+      assert.deepEqual(result.document.display.poses.slice(0, 2), importSeed.display.poses);
+      assert.deepEqual(result.document.display.poses.at(-1), {bodyId: result.selectedBodyId, translationMM: [0, 0, 0], rotationXYZW: [0, 0, 0, 1], scale: [1, 1, 1]});
+      assert.deepEqual(result.document.lights, importSeed.lights); assert.deepEqual(result.document.display.camera, importSeed.display.camera);
+      assert.equal(result.document.revision, importSeed.revision); assert.equal(result.document.nativeDocument.revision, importSeed.nativeDocument.revision + 1);
+      const prepared = api.prepareRenderNativeLightDocument(result.document);
+      for (const binding of result.document.surfaceMaterials) {
+        const actual = prepared.entries.find(entry => entry.binding.bodyId === binding.target.bodyId).binding;
+        for (const key of Object.keys(binding.target)) assert.equal(binding.target[key], actual[key]);
+      }
+      prepareBodyAppearance(api.createRenderNativeLightRequest(result.document));
+    }
+    assert.deepEqual(addition('omitted identity poses stay omitted', fixtures.empty).document.display.poses, []);
+    const reserved = addition('reserved successful identities are not reused', importSeed, B, importSource, 'imported_panel', byB.reservedIds);
+    assert(reserved.generatedIds.every(id => !byB.generatedIds.includes(id)));
+    const baselineIds = [...api.lightBodyReservedIds(importSeed)];
+    const reservations = length => baselineIds.concat(Array.from({length: length - baselineIds.length}, (_, i) => 'reserve_' + i));
+    assert.equal(addition('exact complete 2048 reservation union', importSeed, B, importSource, 'imported_panel', reservations(2045)).reservedIds.length, 2048);
+    refuses('malformed original source', importSeed, B, '@model invalid');
+    refuses('real curve-only source', importSeed, B, fixtures.curve, 'path');
+    refuses('unknown Surface', importSeed, B, importSource, 'invented');
+    refuses('source code-unit limit', importSeed, B, 'a'.repeat(65537));
+    refuses('source UTF-8 limit before code-unit limit', importSeed, B, 'é'.repeat(32769));
+    refuses('unknown selected body', importSeed, 'unknown');
+    refuses('hidden selected body', fixtures.hidden, A);
+    refuses('unbound selected body', fixtures.unbound, A);
+    const forged = structuredClone(importSeed); forged.surfaceMaterials[1].target.modelId = 'foreign_model';
+    refuses('forged qualified material target', forged);
+    refuses('maximum native revision', fixtures.maxNative);
+    refuses('four assets', fixtures.assetCap);
+    refuses('four selected bodies with only two assets', fixtures.selectionCap);
+    assert.equal(fixtures.bothCaps.nativeDocument.bodies.length, 16);
+    refuses('sixteen bodies and four assets together', fixtures.bothCaps);
+    refuses('non-array reservations', importSeed, B, importSource, 'imported_panel', null);
+    let reads = 0; const accessor = []; Object.defineProperty(accessor, '0', {enumerable: true, get() {reads++; return 'forbidden';}});
+    refuses('accessor reservation is not evaluated', importSeed, B, importSource, 'imported_panel', accessor); assert.equal(reads, 0);
+    refuses('result reservation union overflow', importSeed, B, importSource, 'imported_panel', reservations(2046));
+    const unsafeError = refuses('actual Float32 underflow refuses import', importSeed, B, fixtures.unsafe);
+    assert.match(JSON.stringify(errorTree(unsafeError)), /underflow/i);
+    assert.equal(api.prepareRenderNativeSourceImport(fixtures.tooMany).surfaces.length, 5);
+    refuses('inspection is not five-Surface display admission', importSeed, B, fixtures.tooMany, 'reference_panel');
+    assert.equal(addition('provider does not invent outer revision increment', fixtures.maxOuter).document.revision, 2147483647);
+    assert.equal(cases.length, 24); assert.equal(new Set(cases).size, 24); assert.equal(api.serializeRenderNativeLightDocument(importSeed), originalText);
+
+    let presentations = 0, transports = 0; const owned = [], attempts = [];
+    activeSurfaceLedger = {kind, cases, attempts, get presentations() {return presentations;}, get transports() {return transports;}, get lifetimes() {return owned.length;}};
+    const track = control => {control.prepare = prepareBodyAppearance; const replace = control.viewer.replace;
+      control.viewer.replace = request => {presentations++; assert(presentations <= 10); return replace(request);}; owned.push(control); assert(owned.length <= 5); return control;};
+    const mountImport = async value => {mounted = await api.mountLightWorkbenchFlow(container, value); return track(controls.at(-1));};
+    const snapshot = () => flowControllers.at(-1).getSession().getSnapshot();
+    const draft = () => api.readLightWorkbenchFlowDraft(container);
+    const dialog = () => document.querySelector('[data-testid="light-add-dialog"]');
+    const dialogButton = label => [...dialog().querySelectorAll('button')].find(node => node.textContent.trim() === label);
+    const dialogClick = async label => {const target = dialogButton(label); assert(target && !target.disabled, label); await act(async () => target.click());};
+    const pickSurface = async () => {const target = dialog().querySelector('[aria-label="Surface to add"]'); await act(async () => {target.value = 'imported_panel'; target.dispatchEvent(new dom.window.Event('change', {bubbles: true}));});};
+    const transport = label => {transports++; attempts.push(label); assert(transports <= 18);};
+    const choose = async (label, value, cancel = false) => {
+      transport(label); await dialogClick('Choose CAD source'); const input = dialog().querySelector('input[type="file"]');
+      if (cancel) {await act(async () => input.dispatchEvent(new dom.window.Event('cancel'))); return;}
+      Object.defineProperty(input, 'files', {value: value ? [value] : [], configurable: true});
+      await act(async () => input.dispatchEvent(new dom.window.Event('change', {bubbles: true})));
+    };
+    const sourceFile = () => file(importSource, 'original.barocad');
+    const saveImport = async label => {transport(label); return saveText();};
+    const selectedId = () => [...container.querySelectorAll('[aria-label^="Edit body "]')].find(node => node.getAttribute('aria-pressed') === 'true')?.getAttribute('aria-label').slice(10);
+    const noChange = (before, fields) => {assert.equal(snapshot(), before); assert.deepEqual(draft(), fields); assert.equal(presentations, 0);};
+    let control = await mountImport(importSeed); await selectBody(B);
+    await edit('Body position X (mm)', '1e'); assert(button('Add Surface…').disabled); await click('Discard');
+    const staleTrigger = button('Add Surface…'); await act(async () => {button('Edit body ' + A).click(); staleTrigger.click();});
+    assert.equal(dialog(), null); await selectBody(B);
+    const before = snapshot(), beforeDraft = draft(); await click('Add Surface…');
+    for (const label of ['Apply', 'Open', 'Save accepted', 'New point', 'Duplicate body', 'Frame all']) assert(button(label).disabled, label + ': modal fence');
+    await act(async () => {button('Edit body ' + A).click(); button('Help').click();}); assert.equal(selectedId(), B);
+    await choose('valid original multi-Surface candidate', sourceFile()); await pickSurface();
+    assert.match(dialog().textContent, /imported_model/); assert.equal(dialog().querySelectorAll('[aria-label="Source objects"] li').length, 2);
+    const candidateName = () => dialog().querySelector('[aria-label="Surface to add"]')?.value;
+    await choose('chooser cancel retains candidate', null, true); assert.equal(candidateName(), 'imported_panel');
+    await choose('empty selection retains candidate', null); assert.equal(candidateName(), 'imported_panel');
+    let oversizedReads = 0;
+    await choose('reported oversize never reads', {name: 'large', size: 65537, arrayBuffer: async () => {oversizedReads++; return new ArrayBuffer(0);}});
+    assert.equal(oversizedReads, 0); assert.match(dialog().textContent, /65536/);
+    const oversizedBuffer = new ArrayBuffer(65537), previousCandidate = candidateName();
+    let decodeCalls = 0; const decode = TextDecoder.prototype.decode;
+    TextDecoder.prototype.decode = function (...args) {
+      const input = args[0], buffer = ArrayBuffer.isView(input) ? input.buffer : input;
+      if (buffer === oversizedBuffer) decodeCalls++;
+      return decode.apply(this, args);
+    };
+    try {await choose('actual oversize refuses before decode', {name: 'actual-large', size: 1, arrayBuffer: async () => oversizedBuffer});}
+    finally {TextDecoder.prototype.decode = decode;}
+    assert.equal(decodeCalls, 0, 'The actual oversized file buffer must never be decoded');
+    assert.match(dialog().querySelector('[data-testid="light-add-error"]').textContent, /DOCUMENT_BYTES.*65536/);
+    assert.equal(candidateName(), previousCandidate);
+    await choose('fatal UTF-8 retains candidate', {name: 'invalid-utf8', size: 2, arrayBuffer: async () => new Uint8Array([0xc3, 0x28]).buffer});
+    await choose('rejected read retains candidate', {name: 'unreadable', size: 1, arrayBuffer: async () => {throw new Error('Controlled source read failure');}});
+    await choose('malformed source retains candidate', file('@model invalid', 'bad.barocad'));
+    assert.equal(candidateName(), 'imported_panel'); noChange(before, beforeDraft);
+    let resolveRead; await choose('held read closed before completion', {name: 'held', size: importSource.length, arrayBuffer: () => new Promise(resolve => {resolveRead = resolve;})});
+    await dialogClick('Cancel'); assert.equal(dialog(), null); assert.equal(document.activeElement, button('Add Surface…'));
+    await act(async () => resolveRead(new TextEncoder().encode(importSource).buffer)); noChange(before, beforeDraft);
+    await click('Add Surface…'); await choose('valid source before stale Add disposal', sourceFile()); await pickSurface();
+    let release; control.wait = new Promise(resolve => {release = resolve;});
+    await act(async () => dialogButton('Add Surface').click()); // 1: hold and dispose actual submitted Add.
+    assert(dialogButton('Cancel').disabled);
+    await act(async () => {dialog().dispatchEvent(new dom.window.KeyboardEvent('keydown', {key: 'Escape', bubbles: true})); dialogButton('Cancel').click();});
+    assert(dialog()); assert.equal(snapshot().accepted, before.accepted);
+    const staleControl = control; await mounted.dispose(); control = await mountImport(importSeed);
+    const fresh = snapshot(); await act(async () => {release(); await staleControl.wait;}); assert.equal(snapshot(), fresh); assert.equal(dialog(), null);
+    await selectBody(B); await click('Add Surface…'); await choose('valid source ready-refusal then retry', sourceFile()); await pickSurface();
+    const beforeRefusal = snapshot(), refusalDraft = draft(); control.refusal = new Error('Controlled Surface Add refusal');
+    await dialogClick('Add Surface'); // 2.
+    assert.equal(snapshot().accepted, beforeRefusal.accepted); assert.equal(snapshot().canUndo, false); assert.equal(snapshot().dirty, false);
+    assert.equal(snapshot().unsaved, beforeRefusal.unsaved); assert.deepEqual(draft(), refusalDraft); assert.equal(candidateName(), 'imported_panel');
+    assert.match(dialog().textContent, /PRESENTATION_REFUSED/); control.refusal = null;
+    await dialogClick('Add Surface'); // 3.
+    assert.equal(dialog(), null); const addedId = selectedId(), added = snapshot().accepted;
+    assert.equal(addedId, byB.selectedBodyId); assert.equal(added.revision, importSeed.revision + 1);
+    assert.equal(added.nativeDocument.revision, importSeed.nativeDocument.revision + 1);
+    assert.deepEqual(added, {...byB.document, surfaceMaterials: [byB.document.surfaceMaterials[1], byB.document.surfaceMaterials[0], byB.document.surfaceMaterials[2]],
+      revision: added.revision, lights: {...byB.document.lights, revision: added.revision}});
+    assert.deepEqual(snapshot().viewportCamera, beforeRefusal.viewportCamera); assert(snapshot().canUndo);
+    await click('Undo'); // 4.
+    assert.equal(snapshot().canUndo, false); assert(snapshot().canRedo); assert.equal(snapshot().accepted.nativeDocument.bodies.length, 2);
+    await click('Redo'); // 5.
+    assert.equal(snapshot().canRedo, false); await selectBody(addedId);
+    const savedText = await saveImport('accepted added scene Save'), saved = api.parseRenderNativeLightDocument(savedText);
+    await mounted.dispose(); control = await mountImport(importSeed);
+    transport('fresh same-kind chooser Open'); await click('Open'); await selectFile(file(savedText)); // 6.
+    assert.deepEqual(snapshot().accepted, saved); assert.equal(snapshot().canUndo, false); await selectBody(addedId);
+    await edit('Body position X (mm)', '125'); await edit('Uniform amount', '.6'); await click('Apply'); // 7.
+    assert.equal(poseFor(snapshot().accepted, addedId).translationMM[0], 125);
+    assert.deepEqual(snapshot().accepted.nativeDocument, saved.nativeDocument);
+    assert.deepEqual(snapshot().accepted.surfaceMaterials.slice(0, 2), saved.surfaceMaterials.slice(0, 2));
+    assert.equal(snapshot().accepted.surfaceMaterials.at(-1).material.uniforms.amount, .6);
+    const editedText = await saveImport('accepted new body re-edit Save'), edited = api.parseRenderNativeLightDocument(editedText);
+    await selectBody(B); await click('Add Surface…'); await choose('valid source before lost Add', sourceFile()); await pickSurface();
+    control.wait = new Promise(resolve => {release = resolve;}); control.refusal = new Error('Controlled lost Surface Add');
+    const beforeLoss = snapshot(); await act(async () => dialogButton('Add Surface').click()); // 8.
+    control.state = 'lost'; await act(async () => {release(); await control.wait;});
+    assert.equal(snapshot().accepted, beforeLoss.accepted); assert.equal(snapshot().canUndo, beforeLoss.canUndo); assert(snapshot().dirty);
+    assert.match(dialog().textContent, /recovery required/); await dialogClick('Cancel');
+    assert(container.querySelector('[aria-label="Body command recovery"]')); assert(!button('Save accepted').disabled);
+    assert.equal(flowControllers.at(-1).getSession().getSavePayload().text, api.serializeRenderNativeLightDocument(beforeLoss.accepted));
+    await click('Remount accepted scene'); assert.equal(control.disposed, 1); control = track(controls.at(-1));
+    assert.equal(snapshot().canUndo, false); assert.equal(snapshot().dirty, false);
+    await selectBody(B); await click('Add Surface…');
+    await choose('held source read lost and disposed', {name: 'held-lost', size: importSource.length, arrayBuffer: () => new Promise(resolve => {resolveRead = resolve;})});
+    control.state = 'lost'; await act(async () => {await new Promise(resolve => setTimeout(resolve, 350));}); await mounted.dispose();
+    control = await mountImport(edited); const lastFresh = snapshot(), lastDraft = draft();
+    await act(async () => resolveRead(new TextEncoder().encode(importSource).buffer)); assert.equal(snapshot(), lastFresh); assert.deepEqual(draft(), lastDraft); assert.equal(dialog(), null);
+    await selectBody(B); await click('Add Surface…'); await choose('post-recovery source Add', sourceFile()); await pickSurface(); await dialogClick('Add Surface'); // 9.
+    assert.notEqual(selectedId(), addedId); assert.equal(snapshot().accepted.nativeDocument.bodies.length, 4);
+    assert.deepEqual(api.parseRenderNativeLightDocument(await saveImport('final accepted Save')), snapshot().accepted);
+    assert.equal(transports, 18); assert.equal(presentations, 9); assert.equal(owned.length, 5);
+    assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+    await mounted.dispose(); assert(owned.every(value => value.disposed === 1)); assert.equal(dialog(), null);
+    surfaceImportFlow.push({kind, helperCases: cases.length, cases, presentations, transports, attempts, lifetimes: owned.length,
+      priorCandidateRetention: true, byteGuardBeforeDecode: true, ownedRecovery: true, staleReadAndAdd: true,
+      proof: 'actual source/derivation/React/session with controlled Viewer and file transport'});
+  }
+
   console.log(JSON.stringify({result: 'PASS', scope: 'actual React + original codec/session; controlled Viewer, no GPU/physical-file proof', acceptedRevision: last.revision,
     lights: last.lights.lights.length, replacementCalls: controls[0].calls.length, legacyReplacements: legacyControl.calls.length, convertedLegacyRevision: editedLegacy.revision,
-    cameraFlow, bodyFlow, materialFlow, navigationFlow, framingChecks, framingFlow, selectionFlow, materialTransferFlow, rotationFlow,
+    cameraFlow, bodyFlow, materialFlow, navigationFlow, framingChecks, framingFlow, selectionFlow, materialTransferFlow, rotationFlow, bodyCommandFlow, surfaceImportFlow,
     downloadsRequested: downloads.length, confirmationPrompts: dialogs.length, disposed: controls.map(value => value.disposed)}));
-} catch (cause) {failed = true; firstError = cause;}
+  }
+
+  // #1901: accepted whole-asset source transport, with no Viewer replacement.
+  if (!workspaceFocusOnly && (!sceneTitleOnly && !materialCopyOnly && (sourceExportOnly || (!bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight)))) {
+    const sourceExportFlow = [], container = document.getElementById('root');
+    const button = label => [...container.querySelectorAll('button')].find(node => node.textContent.trim() === label || node.getAttribute('aria-label') === label);
+    const click = async label => {const node = button(label); assert(node && !node.disabled, label); await act(async () => node.click());};
+    const edit = async (label, value) => {const node = container.querySelector(`[aria-label="${label}"]`); assert(node && !node.disabled, label);
+      await act(async () => {Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value').set.call(node, value);
+        node.dispatchEvent(new dom.window.Event('input', {bubbles: true}));});};
+    navigationDom?.dispose(); navigationDom = api.installLightNavigationFlowDom();
+    const surface = sourceText.match(/ {2}@surface #reference_panel \{[\s\S]*?\n {2}\}/)[0];
+    const sourceA = '/* Asset A, preserved -0 and numeric spelling. */\n' + sourceText;
+    const sourceB = ('/* Asset B: accepted 원본 source. */\n' + sourceText.replace(/\n}\s*$/, '\n' + surface.replace('#reference_panel', '#sibling_panel') + '\n}\n')).replaceAll('\n', '\r\n');
+    for (const kind of ['directional', 'point']) {
+      const A = 'body_preview_a', B = 'body_preview_b', raw = structuredClone(api.createLightStudy(sourceA, kind));
+      raw.nativeDocument.assets.find(asset => asset.id === 'preview_b').source = sourceB;
+      raw.nativeOptions.bodyIds = [B, A];
+      const seed = api.prepareRenderNativeLightDocument(raw).document, original = api.serializeRenderNativeLightDocument(seed);
+      const cases = []; let exportAttempts = 0;
+      const beforeControls = controls.length, beforeDownloads = downloads.length, beforeChoosers = fileChoosers;
+      // Focused mode simulates an older Save whose deferred cleanup crosses this block.
+      const priorUrl = sourceExportOnly && !sourceExportPreflight ? URL.createObjectURL(new Blob(['prior-flow'])) : null;
+      const beforeUrls = createdUrls.length, beforeRevoked = revokedUrls.length;
+      const unrelatedRevocation = priorUrl ? Promise.resolve().then(() => URL.revokeObjectURL(priorUrl)) : null;
+      activeSurfaceLedger = {feature: 'accepted-source-export', kind, cases, get exportAttempts() {return exportAttempts;},
+        get lifetimes() {return controls.length - beforeControls;}, presentations: 0, fileChoosers: 0};
+      const read = (name, value = seed, bodyId = B) => {cases.push(name); assert(cases.length <= 8);
+        const before = structuredClone(value); try {return api.readLightSourceExport(value, bodyId);}
+        finally {assert.deepEqual(value, before, name + ': source input retained');}};
+      const refuse = (...args) => {let error; try {read(...args);} catch (cause) {if (cause instanceof assert.AssertionError) throw cause; error = cause;}
+        assert(error, args[0]); return error;};
+      const reimport = payload => {const bytes = new TextEncoder().encode(payload.text), text = new TextDecoder('utf-8', {fatal: true, ignoreBOM: true}).decode(bytes);
+        assert.equal(text, payload.text); const imported = api.prepareRenderNativeSourceImport(text); assert.equal(imported.source, payload.text); return imported;};
+      const exportedB = read('whole selected B source with CRLF Unicode comments and other Surface'); // 1
+      assert.equal(exportedB.text, sourceB); assert.equal(exportedB.filename, 'asset-preview_b.barocad');
+      assert.deepEqual(reimport(exportedB).surfaces.map(value => value.id), ['reference_panel', 'sibling_panel']);
+      const exportedA = read('distinct A asset despite repeated geometry IDs', seed, A); // 2
+      assert.equal(exportedA.text, sourceA); assert.equal(exportedA.filename, 'asset-preview-a.barocad');
+      assert.notEqual(exportedA.text, exportedB.text); assert.equal(reimport(exportedA).surfaces.length, 1);
+      const shared = structuredClone(seed); shared.nativeDocument.bodies.push({id: 'hidden_sibling', name: 'Hidden sibling',
+        kind: 'direct-geometry-object', assetId: 'preview_b', geometryId: 'sibling_panel'});
+      const sharedAccepted = api.prepareRenderNativeLightDocument(shared).document;
+      assert.equal(read('read-only export permits shared asset and retains sibling source', sharedAccepted).text, sourceB); // 3
+      const edited = api.deriveLightSurfacePointEdit(seed, B, {uIndex: 0, vIndex: 0, xMM: -700, yMM: -450, zMM: -700, weight: 1}).document;
+      const editedSource = edited.nativeDocument.assets.find(asset => asset.id === 'preview_b').source;
+      assert.notEqual(editedSource, sourceB);
+      const acceptedEdit = read('accepted provider point edit is exported exactly', edited); // 4
+      assert.equal(acceptedEdit.text, editedSource); assert.equal(reimport(acceptedEdit).surfaces.length, 2);
+      refuse('geometry ID cannot replace body identity', seed, 'reference_panel'); // 5
+      const hidden = structuredClone(seed); hidden.display.visibleBodyIds = [A]; hidden.surfaceMaterials = hidden.surfaceMaterials.filter(value => value.target.bodyId !== B);
+      const hiddenAccepted = api.prepareRenderNativeLightDocument(hidden).document;
+      refuse('hidden unbound Surface is not exportable', hiddenAccepted); // 6
+      const stale = structuredClone(seed); stale.surfaceMaterials.find(value => value.target.bodyId === B).target.assetRevision++;
+      refuse('foreign stale asset binding refuses', stale); // 7
+      const surrogate = structuredClone(seed); surrogate.nativeDocument.assets.find(asset => asset.id === 'preview_b').source += '/* \ud800 */\r\n';
+      assert.match(refuse('UTF-8 replacement refuses rather than rewriting source text', surrogate).message, /Unicode surrogate|UTF-8/); // 8: the actual document provider may refuse first.
+      assert.equal(cases.length, 8);
+      if (sourceExportPreflight) {sourceExportFlow.push({kind, helperCases: cases.length, cases, setupPointDerivations: 1, result: 'PASS'}); continue;}
+
+      mounted = await api.mountLightWorkbenchFlow(container, seed); const control = controls.at(-1);
+      const session = flowControllers.at(-1).getSession(), snapshot = session.getSnapshot(), initialDraft = api.readLightWorkbenchFlowDraft(container);
+      const assertRetained = expectedDraft => {assert.equal(session.getSnapshot(), snapshot); assert.deepEqual(api.readLightWorkbenchFlowDraft(container), expectedDraft);
+        assert.equal(api.serializeRenderNativeLightDocument(snapshot.accepted), original); assert.equal(control.calls.length, 0);};
+      const download = async expected => {exportAttempts++; assert(exportAttempts <= 4); await click('Export accepted CAD source');
+        const item = downloads.at(-1); assert.equal(item.name, expected.filename); assert.equal(item.blob.type, 'text/plain;charset=utf-8');
+        const bytes = new Uint8Array(await item.blob.arrayBuffer()); assert.deepEqual(bytes, new TextEncoder().encode(expected.text));
+        assert.equal(api.prepareRenderNativeSourceImport(await item.blob.text()).source, expected.text);
+        assert.equal(document.querySelectorAll('a[download]').length, 0);};
+      assert.match(container.textContent, /Complete original asset in native mm, including its other objects/);
+      const staleButton = button('Export accepted CAD source');
+      await act(async () => {button('Edit body ' + A).click(); staleButton.click();});
+      assert.equal(downloads.length, beforeDownloads); await click('Edit body ' + B); assertRetained(initialDraft);
+      await download(exportedB); assertRetained(initialDraft); // 1.
+      await click('Edit body ' + A); const draftA = api.readLightWorkbenchFlowDraft(container);
+      await download(exportedA); assertRetained(draftA); // 2.
+      await click('Edit body ' + B); await edit('Body position X (mm)', '1e'); await edit('Camera eye X', ''); await edit('Uniform amount', 'NaN');
+      const dirty = api.readLightWorkbenchFlowDraft(container);
+      await download(exportedB); assertRetained(dirty); // 3, accepted-only while corrective text remains.
+      downloadFailure = new Error('Controlled CAD source anchor failure'); exportAttempts++;
+      try {await click('Export accepted CAD source');} finally {downloadFailure = null;}
+      assert.match(container.textContent, /CAD source export refused/); assert.equal(downloads.length - beforeDownloads, 3);
+      assert.equal(document.querySelectorAll('a[download]').length, 0); assertRetained(dirty); // 4.
+      await click('Help'); assert(button('Export accepted CAD source').disabled); await click('Help');
+      await click('Discard'); const clean = api.readLightWorkbenchFlowDraft(container); assertRetained(clean);
+      await click('Edit control point…'); assert(button('Export accepted CAD source').disabled);
+      const dialog = document.querySelector('[data-testid="light-point-dialog"]');
+      await act(async () => [...dialog.querySelectorAll('button')].find(node => node.textContent.trim() === 'Cancel').click());
+      const canvas = container.querySelector('canvas'); await act(async () => navigationDom.pointer(canvas, 'pointerdown', 140, 125));
+      assert(button('Export accepted CAD source').disabled);
+      await act(async () => {navigationDom.pointer(canvas, 'pointercancel', 140, 125); navigationDom.flushFrames();});
+      assertRetained(clean); control.state = 'lost'; await act(async () => {await new Promise(resolve => setTimeout(resolve, 350));});
+      assert(button('Export accepted CAD source').disabled); const detached = button('Export accepted CAD source');
+      await mounted.dispose(); mounted = null; await act(async () => {detached.click(); staleButton.click();});
+      assert.equal(control.disposed, 1); assert.equal(control.calls.length, 0); assert.equal(exportAttempts, 4);
+      assert.equal(controls.length - beforeControls, 1); assert.equal(fileChoosers, beforeChoosers);
+      await unrelatedRevocation;
+      const ownedUrls = createdUrls.slice(beforeUrls), ownedSet = new Set(ownedUrls);
+      assert.equal(ownedUrls.length, 4); assert.equal(ownedSet.size, 4);
+      assert.deepEqual(revokedUrls.slice(beforeRevoked).filter(url => ownedSet.has(url)), ownedUrls,
+        'Every source-export URL is revoked exactly once; prior-block cleanup is unrelated');
+      if (priorUrl) assert(revokedUrls.slice(beforeRevoked).includes(priorUrl), 'Prior deferred revocation actually crossed the observation boundary');
+      assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+      sourceExportFlow.push({kind, helperCases: cases.length, cases, setupPointDerivations: 1, exportAttempts, successfulDownloads: 3,
+        presentations: 0, choosers: 0, lifetimes: 1, acceptedOnly: true, wholeAssetRoundtrip: true, cleanup: true,
+        unrelatedDeferredRevocation: priorUrl !== null});
+    }
+    console.log(JSON.stringify({result: 'PASS', scope: sourceExportPreflight ? 'Accepted source export actual-provider fixture preflight' : 'Accepted source export actual React/provider; controlled download, no physical file or GPU proof', sourceExportFlow}));
+  }
+
+  // #1881: independent focused acceptance, also included by default. --body-reset
+  // excludes every older block, including Surface points; there are no file transports.
+  if (!workspaceFocusOnly && (!sceneTitleOnly && !materialCopyOnly && !sourceExportOnly && (bodyResetOnly || (!process.argv.includes('--surface-point') && !surfacePointPreflight)))) {
+  const bodyResetFlow = [], resetContainer = document.getElementById('root');
+  const resetButton = name => [...resetContainer.querySelectorAll('button')]
+    .find(node => node.textContent.trim() === name || node.getAttribute('aria-label') === name);
+  const resetClick = async name => {const target = resetButton(name); assert(target && !target.disabled, name); await act(async () => target.click());};
+  const resetInput = label => {const input = resetContainer.querySelector(`[aria-label="${label}"]`); assert(input, label); return input;};
+  const resetEdit = async (label, value) => {const input = resetInput(label); assert(!input.disabled, label); await act(async () => {
+    Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value').set.call(input, value);
+    input.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  });};
+  const resetSelectBody = async bodyId => {await resetClick('Edit body ' + bodyId);
+    assert.equal(resetButton('Edit body ' + bodyId).getAttribute('aria-pressed'), 'true');};
+  const resetRow = (fields, bodyId) => fields.bodies.find(row => row.bodyId === bodyId);
+  const resetPose = (value, bodyId) => value.display.poses.find(pose => pose.bodyId === bodyId);
+  const identityRow = bodyId => ({bodyId, position: ['0', '0', '0'], rotation: ['0', '0', '0', '1'], scale: ['1', '1', '1']});
+  const identityPose = bodyId => ({bodyId, translationMM: [0, 0, 0], rotationXYZW: [0, 0, 0, 1], scale: [1, 1, 1]});
+  const assertResetRow = row => {
+    for (const key of ['position', 'scale']) ['X', 'Y', 'Z'].forEach((axis, index) =>
+      assert.equal(resetInput('Body ' + key + ' ' + axis + (key === 'position' ? ' (mm)' : '')).value, row[key][index]));
+    assert.deepEqual(resetInput('Body rotation XYZW').textContent.split(', '), row.rotation);
+  };
+  const resetAppearance = request => api.prepareViewerNativeSceneAppearance({version: 1,
+    source: request.source, display: request.display,
+    appearance: {lighting: {ambientStrength: 1, directionalStrength: 0, direction: [0, 0, 1]}, materials: request.materials}}, request.context);
+  const resetErrorTree = (error, depth = 0) => !error || depth > 6 || typeof error !== 'object' ? String(error)
+    : {name: error.name, message: error.message, code: error.code, cause: error.cause === undefined ? null : resetErrorTree(error.cause, depth + 1)};
+  navigationDom?.dispose(); navigationDom = api.installLightNavigationFlowDom();
+  for (const kind of ['directional', 'point']) {
+    const A = 'body_preview_a', B = 'body_preview_b', raw = structuredClone(api.createLightStudy(sourceText, kind));
+    raw.nativeOptions.bodyIds = [B, A]; raw.nativeDocument.bodies.forEach(body => {body.name = 'Repeated Surface';});
+    const magnitude = 1 + 2e-10, importedQ = [-0, -Math.sin(.2) * magnitude, -0, -Math.cos(.2) * magnitude];
+    Object.assign(resetPose(raw, B), {translationMM: [1050, -0, 80], rotationXYZW: importedQ, scale: [1.2, .8, 1.1]});
+    const prepared = api.prepareRenderNativeLightDocument(raw), resetSeed = prepared.document;
+    const originalText = api.serializeRenderNativeLightDocument(resetSeed), resetFields = api.readLightFields(resetSeed);
+    assert.equal(new Set(prepared.entries.map(entry => entry.binding.geometryId)).size, 1);
+    assert.equal(new Set(prepared.entries.map(entry => entry.binding.assetId)).size, 2);
+    assert.equal(new Set(prepared.entries.map(entry => entry.binding.bodyId)).size, 2);
+    assert.notEqual(Math.hypot(...importedQ), 1, 'Imported raw quaternion exposes accidental normalization');
+    resetAppearance(api.createRenderNativeLightRequest(resetSeed));
+    const cases = [], controlsBefore = controls.length, downloadsBefore = downloads.length;
+    const choosersBefore = fileChoosers, urlsBefore = createdUrls.length, dialogsBefore = dialogs.length;
+    let presentations = 0;
+    activeSurfaceLedger = {feature: 'body-transform-reset', kind, cases, get presentations() {return presentations;},
+      get lifetimes() {return controls.length - controlsBefore;}, saveOpenTransports: 0};
+    const stageReset = (label, base = resetSeed, fields = resetFields, bodyId = B) => {
+      cases.push(label); assert(cases.length <= 10, kind + ': ten direct reset helper calls');
+      const before = structuredClone(fields), acceptedBefore = api.serializeRenderNativeLightDocument(base);
+      try {return api.stageLightBodyTransformReset(base, fields, bodyId);}
+      finally {
+        assert.deepEqual(fields, before, label + ': caller corrective form is immutable');
+        assert.equal(api.serializeRenderNativeLightDocument(base), acceptedBefore, label + ': accepted source is immutable');
+      }
+    };
+    const refuseReset = (...args) => {let error; try {stageReset(...args);} catch (cause) {
+      if (cause instanceof assert.AssertionError) throw cause; error = cause;
+    } assert(error, args[0] + ': reset must refuse'); return error;};
+
+    const staged = stageReset('selected-only position rotation scale replacement'); // 1.
+    assert.notEqual(staged, resetFields); assert.notEqual(resetRow(staged, B), resetRow(resetFields, B));
+    assert.deepEqual(resetRow(staged, B), identityRow(B));
+    assert.equal(resetRow(staged, A), resetRow(resetFields, A), 'Repeated geometry names never fan out');
+    for (const key of ['ambient', 'camera', 'lights', 'materials']) assert.equal(staged[key], resetFields[key]);
+    const resetDocument = api.applyLightFields(resetSeed, staged);
+    assert.deepEqual(resetPose(resetDocument, B), identityPose(B)); assert.deepEqual(resetPose(resetDocument, A), resetPose(resetSeed, A));
+    for (const key of ['nativeDocument', 'nativeOptions', 'surfaceMaterials', 'lights']) assert.deepEqual(resetDocument[key], resetSeed[key]);
+    assert.deepEqual({...resetDocument.display, poses: []}, {...resetSeed.display, poses: []}, 'Reset never frames camera or changes visibility');
+
+    const lexicalIdentity = fields => {
+      const lexical = structuredClone(fields);
+      Object.assign(resetRow(lexical, B), {position: ['+0.00', '0e3', '0.000'], rotation: ['+0', '0.0', '0e0', '1.0'], scale: ['1.0', '+1', '1e0']});
+      return lexical;
+    };
+    const identityFields = lexicalIdentity(api.readLightFields(resetDocument));
+    assert.equal(stageReset('exact numeric identity retains lexical fields', resetDocument, identityFields), identityFields); // 2.
+    assert.equal(api.serializeRenderNativeLightDocument(api.applyLightFields(resetDocument, identityFields)), api.serializeRenderNativeLightDocument(resetDocument));
+    const omitted = api.prepareRenderNativeLightDocument({...resetSeed, display: {...resetSeed.display, poses: []}}).document;
+    const omittedFields = lexicalIdentity(api.readLightFields(omitted));
+    assert.equal(stageReset('omitted identity poses retain the exact form', omitted, omittedFields), omittedFields); // 3.
+    assert.deepEqual(api.applyLightFields(omitted, omittedFields).display.poses, []);
+    const signedRaw = structuredClone(resetDocument);
+    Object.assign(resetPose(signedRaw, B), {rotationXYZW: [-0, 0, 0, -1]});
+    const signed = api.prepareRenderNativeLightDocument(signedRaw).document, signedFields = api.readLightFields(signed);
+    const unsigned = stageReset('explicit negative-identity quaternion correction', signed, signedFields); // 4.
+    assert.notEqual(unsigned, signedFields); assert.deepEqual(resetRow(unsigned, B), identityRow(B));
+    assert.deepEqual(resetPose(api.applyLightFields(signed, unsigned), B), identityPose(B));
+    assert(Object.is(resetPose(signed, B).rotationXYZW[0], -0)); assert.equal(resetPose(signed, B).rotationXYZW[3], -1);
+
+    const corrective = structuredClone(resetFields);
+    Object.assign(resetRow(corrective, B), {position: ['1e', '', 'Infinity'], rotation: ['NaN', '', '1e', '0'], scale: ['0', '-1', 'NaN']});
+    resetRow(corrective, A).position[0] = '1e'; corrective.camera.eye[0] = ''; corrective.lights[0].intensity = 'NaN';
+    corrective.materials.find(row => row.target.bodyId === B).uniforms[0].value = '1e';
+    const corrected = stageReset('selected invalid text replaces without consuming other drafts', resetSeed, corrective); // 5.
+    assert.deepEqual(resetRow(corrected, B), identityRow(B)); assert.equal(resetRow(corrected, A), resetRow(corrective, A));
+    for (const key of ['ambient', 'camera', 'lights', 'materials']) assert.equal(corrected[key], corrective[key]);
+    assert.throws(() => api.applyLightFields(resetSeed, corrected), 'Unrelated invalid corrective text still blocks whole-scene Apply');
+    refuseReset('geometry name is not a qualified body identity', resetSeed, resetFields, 'reference_panel'); // 6.
+    const staleRows = structuredClone(resetFields); staleRows.bodies.reverse();
+    refuseReset('stale or reordered selected body rows', resetSeed, staleRows); // 7.
+    const negativeZeroFields = api.readLightFields(resetDocument); resetRow(negativeZeroFields, B).position[0] = '-0';
+    const positiveZero = stageReset('signed-zero alone is an explicit numerical change', resetDocument, negativeZeroFields); // 8.
+    assert.notEqual(positiveZero, negativeZeroFields); assert.deepEqual(resetRow(positiveZero, B), identityRow(B));
+    assert.deepEqual(resetPose(api.applyLightFields(resetDocument, positiveZero), B), identityPose(B));
+    const malformed = structuredClone(resetFields); resetRow(malformed, B).rotation.pop();
+    refuseReset('malformed selected transform tuple', resetSeed, malformed); // 9.
+
+    // Known provider witness: a literal 1e-50 source X is masked by the accepted
+    // +900mm translation, then exposed at the generated identity. No stress matrix.
+    const tinyDecimal = '0.' + '0'.repeat(49) + '1'; assert.equal(Number(tinyDecimal), 1e-50);
+    const unsafeSource = sourceText.replace('[-700,-550,-700]', '[' + tinyDecimal + ',-550,-700]');
+    assert.notEqual(unsafeSource, sourceText);
+    const unsafe = api.prepareRenderNativeLightDocument(api.createLightStudy(unsafeSource, kind)).document;
+    assert.equal(resetPose(unsafe, B).translationMM[0], 900);
+    resetAppearance(api.createRenderNativeLightRequest(unsafe));
+    const unsafeFields = api.readLightFields(unsafe), generatedFields = structuredClone(unsafeFields);
+    Object.assign(resetRow(generatedFields, B), identityRow(B));
+    const unsafeIdentity = api.applyLightFields(unsafe, generatedFields);
+    let actualProviderError;
+    try {resetAppearance(api.createRenderNativeLightRequest(unsafeIdentity));} catch (cause) {actualProviderError = cause;}
+    assert(actualProviderError, 'Report actual fixture admission if generated identity unexpectedly succeeds');
+    assert.match(JSON.stringify(resetErrorTree(actualProviderError)), /underflow/i);
+    const unsafeRefusal = refuseReset('actual generated identity provider underflow', unsafe, unsafeFields); // 10.
+    assert.match(JSON.stringify(resetErrorTree(unsafeRefusal)), /underflow/i);
+    assert.equal(cases.length, 10); assert.equal(new Set(cases).size, 10);
+
+    mounted = await api.mountLightWorkbenchFlow(resetContainer, resetSeed); const control = controls.at(-1);
+    control.prepare = resetAppearance;
+    const replace = control.viewer.replace;
+    control.viewer.replace = request => {presentations++; assert(presentations <= 4, kind + ': four reset Viewer attempts'); return replace(request);};
+    const session = flowControllers.at(-1).getSession(), snapshot = () => session.getSnapshot();
+    const draft = () => api.readLightWorkbenchFlowDraft(resetContainer), savePayload = () => session.getSavePayload().text;
+    const baseline = snapshot(), baselineDraft = draft();
+    assert.equal(controls.length - controlsBefore, 1); assertResetRow(resetRow(resetFields, B));
+    assert(resetContainer.querySelector('[aria-label="Body transform"]').contains(resetButton('Stage reset transform')));
+    assert.match(resetContainer.querySelector('[aria-label="Body transform"]').textContent, /Other drafts stay.*Apply/);
+    assert.equal(savePayload(), originalText);
+    const staleReset = resetButton('Stage reset transform');
+    await act(async () => {resetButton('Edit body ' + A).click(); staleReset.click();});
+    assertResetRow(resetRow(resetFields, A)); await resetSelectBody(B); assertResetRow(resetRow(resetFields, B));
+    assert.equal(snapshot(), baseline); assert.deepEqual(draft(), baselineDraft); assert.equal(presentations, 0);
+    await resetClick('Help'); assert(resetButton('Stage reset transform').disabled); await resetClick('Help');
+    await resetClick('Edit control point…'); assert(resetButton('Stage reset transform').disabled);
+    const pointDialog = document.querySelector('[data-testid="light-point-dialog"]'); assert(pointDialog);
+    const cancelPoint = [...pointDialog.querySelectorAll('button')].find(button => button.textContent.trim() === 'Cancel');
+    assert(cancelPoint && !cancelPoint.disabled); await act(async () => cancelPoint.click());
+    const canvas = resetContainer.querySelector('canvas');
+    await act(async () => navigationDom.pointer(canvas, 'pointerdown', 140, 125)); assert(resetButton('Stage reset transform').disabled);
+    await act(async () => navigationDom.pointer(canvas, 'pointermove', 148, 130)); assert(resetButton('Stage reset transform').disabled);
+    await act(async () => {navigationDom.pointer(canvas, 'pointercancel', 148, 130); navigationDom.flushFrames(); await Promise.resolve();});
+    assert.equal(presentations, 0); assert.equal(snapshot(), baseline);
+
+    await resetEdit('Body position X (mm)', '1e'); await resetEdit('Body scale X', '0');
+    await resetSelectBody(A); await resetEdit('Body position X (mm)', '1e'); await resetSelectBody(B);
+    await resetEdit('Camera eye X', ''); await resetEdit('Intensity', 'NaN'); await resetEdit('Uniform amount', '1e');
+    await resetEdit('Rotate by (degrees)', '1e'); await resetClick('Stage reset transform');
+    assertResetRow(identityRow(B)); assert.equal(resetInput('Rotate by (degrees)').value, '1e');
+    assert.equal(resetInput('Camera eye X').value, ''); assert.equal(resetInput('Intensity').value, 'NaN');
+    assert.equal(resetInput('Uniform amount').value, '1e');
+    assert.equal(snapshot(), baseline); assert.equal(savePayload(), originalText); assert.equal(presentations, 0);
+    await resetClick('Apply'); assert.equal(presentations, 0); assertResetRow(identityRow(B));
+    assert.equal(snapshot().accepted, baseline.accepted); assert.equal(snapshot().canUndo, false); assert.equal(snapshot().canRedo, false);
+    await resetEdit('Body position X (mm)', '+0.00'); await resetEdit('Body scale X', '1.0');
+    const lexicalDraft = draft(), beforeNoOp = snapshot(); await resetClick('Stage reset transform');
+    assert.deepEqual(draft(), lexicalDraft); assert.equal(snapshot(), beforeNoOp); assert.equal(presentations, 0);
+    await resetSelectBody(A); assert.equal(resetInput('Body position X (mm)').value, '1e');
+    await resetEdit('Body position X (mm)', '-880'); await resetSelectBody(B);
+    await resetEdit('Camera eye X', '2'); await resetEdit('Intensity', '.4'); await resetEdit('Uniform amount', '.5');
+    const combinedFields = structuredClone(staged);
+    resetRow(combinedFields, A).position[0] = '-880'; combinedFields.camera.eye[0] = '2'; combinedFields.lights[0].intensity = '.4';
+    combinedFields.materials.find(row => row.target.bodyId === B).uniforms[0].value = '.5';
+    const expected = structuredClone(api.applyLightFields(resetSeed, combinedFields)), stagedDraft = draft();
+    let release; control.wait = new Promise(resolve => {release = resolve;});
+    control.refusal = new Error('Controlled held ready transform reset refusal');
+    await act(async () => resetButton('Apply').click()); // 1: held ready refusal.
+    assert.equal(presentations, 1); assert.equal(control.state, 'ready'); assert(snapshot().pending);
+    for (const label of ['Stage reset transform', 'Apply', 'Open', 'Save accepted', 'Edit body ' + A]) assert(resetButton(label).disabled, label + ': pending fence');
+    await act(async () => {resetButton('Stage reset transform').click(); staleReset.click(); release(); await control.wait;}); control.wait = null;
+    assert.match(resetContainer.textContent, /PRESENTATION_REFUSED/); assert.deepEqual(draft(), stagedDraft);
+    for (const key of ['accepted', 'canUndo', 'canRedo', 'unsaved']) assert.equal(snapshot()[key], baseline[key], key);
+    assert.equal(savePayload(), originalText); assert.equal(control.state, 'ready');
+    control.refusal = null; await resetClick('Apply'); // 2: the combined transaction.
+    expected.revision++; expected.lights.revision++;
+    assert.deepEqual(snapshot().accepted, expected); assert(snapshot().canUndo); assert.equal(snapshot().canRedo, false);
+    assert.deepEqual(control.calls.at(-1), api.createRenderNativeLightRequest(expected));
+    assert.deepEqual(snapshot().accepted.nativeDocument, resetSeed.nativeDocument); assert.deepEqual(snapshot().accepted.nativeOptions, resetSeed.nativeOptions);
+    assert.deepEqual(resetPose(snapshot().accepted, B), identityPose(B)); assertResetRow(identityRow(B));
+    await resetClick('Undo'); // 3: one history entry owns reset and all other drafts.
+    const undone = {...resetSeed, revision: resetSeed.revision + 2, lights: {...resetSeed.lights, revision: resetSeed.lights.revision + 2}};
+    assert.deepEqual(snapshot().accepted, undone); assert.equal(snapshot().canUndo, false); assert(snapshot().canRedo);
+    assertResetRow(resetRow(resetFields, B)); assert.deepEqual(resetPose(snapshot().accepted, B).rotationXYZW, importedQ);
+    await resetClick('Redo'); // 4.
+    const redone = {...expected, revision: expected.revision + 2, lights: {...expected.lights, revision: expected.lights.revision + 2}};
+    assert.deepEqual(snapshot().accepted, redone); assert.equal(snapshot().canRedo, false); assert(snapshot().canUndo);
+    assertResetRow(identityRow(B)); assert.equal(savePayload(), api.serializeRenderNativeLightDocument(redone));
+    const settled = snapshot(), settledDraft = draft(); control.state = 'lost';
+    await act(async () => {await new Promise(resolve => setTimeout(resolve, 350));});
+    assert(resetButton('Stage reset transform').disabled); assert.equal(snapshot(), settled); assert.deepEqual(draft(), settledDraft);
+    const detachedReset = resetButton('Stage reset transform'); await mounted.dispose(); mounted = null;
+    await act(async () => {detachedReset.click(); staleReset.click();});
+    assert.equal(control.disposed, 1); assert.equal(controls.length - controlsBefore, 1); assert.equal(presentations, 4);
+    assert.equal(downloads.length, downloadsBefore); assert.equal(fileChoosers, choosersBefore); assert.equal(createdUrls.length, urlsBefore);
+    assert.equal(dialogs.length, dialogsBefore); assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+    assert.equal(api.serializeRenderNativeLightDocument(resetSeed), originalText);
+    bodyResetFlow.push({kind, helperCases: cases.length, cases, presentations, saveOpenTransports: 0, lifetimes: 1, historyEntries: 1,
+      generatedIdentityProviderRefusal: resetErrorTree(actualProviderError), rawSignedCorrection: true, lexicalAndOmittedIdentity: true,
+      unrelatedCorrectiveRetention: true, selectionEpochFence: true, pendingFence: true,
+      proof: 'actual React/document/provider/session; controlled Viewer acknowledgement, no GPU or physical files'});
+  }
+  console.log(JSON.stringify({result: 'PASS', scope: 'Body transform reset only: actual React/provider/session; controlled Viewer, zero file transport', bodyResetFlow}));
+  }
+
+  // #1861: this block also runs in default CI, independently of all older flow setup.
+  // --surface-point runs only this acceptance; --surface-point-preflight admits fixtures only.
+  if (!workspaceFocusOnly && (!sceneTitleOnly && !materialCopyOnly && !bodyResetOnly && !sourceExportOnly)) {
+  const surfacePointFlow = [], pointContainer = document.getElementById('root');
+  const pointButton = name => [...pointContainer.querySelectorAll('button')]
+    .find(node => node.textContent.trim() === name || node.getAttribute('aria-label') === name);
+  const pointClick = async name => {const target = pointButton(name); assert(target && !target.disabled, name); await act(async () => target.click());};
+  const pointDialog = () => document.querySelector('[data-testid="light-point-dialog"]');
+  const pointDialogButton = name => [...pointDialog().querySelectorAll('button')].find(node => node.textContent.trim() === name);
+  const pointDialogClick = async name => {const target = pointDialogButton(name); assert(target && !target.disabled, name); await act(async () => target.click());};
+  const pointInput = label => {const input = document.querySelector(`[aria-label="${label}"]`); assert(input, label); return input;};
+  const pointEdit = async (label, value) => {const input = pointInput(label); assert(!input.disabled, label); await act(async () => {
+    Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value').set.call(input, value);
+    input.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  });};
+  const pointSelect = async (label, value) => {const input = pointInput(label); assert(!input.disabled, label); await act(async () => {
+    input.value = String(value); input.dispatchEvent(new dom.window.Event('change', {bubbles: true}));
+  });};
+  const pointBody = async id => {await pointClick('Edit body ' + id); assert.equal(pointButton('Edit body ' + id).getAttribute('aria-pressed'), 'true');};
+  const pointSnapshot = () => flowControllers.at(-1).getSession().getSnapshot();
+  const pointDraft = () => api.readLightWorkbenchFlowDraft(pointContainer);
+  const pointSavePayload = () => flowControllers.at(-1).getSession().getSavePayload().text;
+  const pointAppearance = request => api.prepareViewerNativeSceneAppearance({version: 1,
+    source: request.source, display: request.display,
+    appearance: {lighting: {ambientStrength: 1, directionalStrength: 0, direction: [0, 0, 1]}, materials: request.materials}}, request.context);
+  const pointErrorTree = (error, depth = 0) => !error || depth > 6 || typeof error !== 'object' ? String(error)
+    : {name: error.name, message: error.message, code: error.code, cause: error.cause === undefined ? null : pointErrorTree(error.cause, depth + 1)};
+  if (!surfacePointPreflight) {navigationDom?.dispose(); navigationDom = api.installLightNavigationFlowDom();}
+  for (const kind of ['directional', 'point']) {
+    const A = 'body_preview_a', B = 'body_preview_b';
+    const declaration = sourceText.match(/ {2}@surface #reference_panel \{[\s\S]*?\n {2}\}/)?.[0];
+    assert(declaration, 'real source Surface declaration');
+    const pointSource = sourceText.replace('version: 0;', 'version: 0; /* retain original comments */')
+      .replace('[-700,-550,-700]', '[-700.00, -550.0, -700.000]')
+      .replace('weights: [[1,1]', 'weights: [[1.00,1]')
+      .replace(/\}\s*$/, declaration.replace('#reference_panel', '#retained_panel') + '\n}\n');
+    const raw = structuredClone(api.createLightStudy(pointSource, kind));
+    raw.surfaceMaterials[1].material.documentId = raw.surfaceMaterials[0].material.documentId;
+    raw.surfaceMaterials[1].material.uniforms.amount = -0;
+    raw.display.poses[1].rotationXYZW = [-0, 0, 0, -1];
+    raw.lights.ambientStrength = -0;
+    raw.lights.lights.push({...raw.lights.lights[0], nodeId: 'retained_fill', label: 'Unedited fill', enabled: false,
+      colorLinearRGB: [.2, .4, .6], intensity: .35,
+      ...(kind === 'directional' ? {directionScene: [-0, 2, -4]} : {positionScene: [-0, 2, -4], rangeScene: 8})});
+    // Distinct source geometry is required. Aliasing one geometry to two bodies is invalid.
+    raw.nativeDocument.bodies.push({...raw.nativeDocument.bodies[0], id: 'hidden_sibling', geometryId: 'retained_panel'});
+    const pointSeed = api.prepareRenderNativeLightDocument(raw).document;
+    const assetFor = (value, bodyId = B) => value.nativeDocument.assets.find(asset => asset.id
+      === value.nativeDocument.bodies.find(body => body.id === bodyId).assetId);
+    const hidden = api.prepareRenderNativeLightDocument({...pointSeed, display: {...pointSeed.display, visibleBodyIds: [A]},
+      surfaceMaterials: pointSeed.surfaceMaterials.filter(binding => binding.target.bodyId === A)}).document;
+    const maxNativeRaw = structuredClone(pointSeed); maxNativeRaw.nativeDocument.revision = 2147483647;
+    maxNativeRaw.surfaceMaterials.forEach(binding => {binding.target.documentRevision = 2147483647;});
+    const maxNative = api.prepareRenderNativeLightDocument(maxNativeRaw).document;
+    const maxAssetRaw = structuredClone(pointSeed); assetFor(maxAssetRaw).revision = 2147483647;
+    maxAssetRaw.surfaceMaterials.find(binding => binding.target.bodyId === B).target.assetRevision = 2147483647;
+    const maxAsset = api.prepareRenderNativeLightDocument(maxAssetRaw).document;
+    for (const value of [pointSeed, hidden, maxNative, maxAsset]) pointAppearance(api.createRenderNativeLightRequest(value));
+    assert.equal(api.readLightSurfacePoints(pointSeed, A).shared, true);
+    const points = api.readLightSurfacePoints(pointSeed, B);
+    assert.equal(points.shared, false); assert.equal(points.rows.length, 2); assert.equal(points.rows[0].length, 2);
+    assert.deepEqual(points.rows[0][0], {pointMM: [-700, -550, -700], weight: 1});
+    if (surfacePointPreflight) {
+      surfacePointFlow.push({kind, admittedFixtures: 4, directEditCalls: 0, presentations: 0, saveOpenTransports: 0, lifetimes: 0});
+      continue;
+    }
+    const originalText = api.serializeRenderNativeLightDocument(pointSeed), cases = [];
+    let presentations = 0, transports = 0, duplicateDerivations = 0; const owned = [], attempts = [];
+    activeSurfaceLedger = {feature: 'control-point', kind, cases, attempts, get duplicateDerivations() {return duplicateDerivations;},
+      get presentations() {return presentations;}, get transports() {return transports;}, get lifetimes() {return owned.length;}};
+    const patch = {uIndex: 0, vIndex: 0, xMM: -0, yMM: -540, zMM: -680, weight: 1.25};
+    const derivePoint = (label, value = pointSeed, bodyId = B, edit = patch, reserved = []) => {
+      cases.push(label); assert(cases.length <= 12, kind + ': direct point helper ceiling');
+      const before = structuredClone(value);
+      try {return api.deriveLightSurfacePointEdit(value, bodyId, edit, reserved);}
+      finally {assert.deepEqual(value, before, label + ': caller authorship immutable');}
+    };
+    const refusePoint = (...args) => {let error; try {derivePoint(...args);} catch (cause) {
+      if (cause instanceof assert.AssertionError) throw cause; error = cause;
+    } assert(error, args[0] + ': actual provider must refuse'); return error;};
+    const changed = derivePoint('four exact scalar spans and signed zero');
+    const expectedSource = pointSource.replace('[-700.00, -550.0, -700.000]', '[-0, -540, -680]')
+      .replace('weights: [[1.00,1]', 'weights: [[1.25,1]');
+    assert.equal(assetFor(changed.document).source, expectedSource, 'Only four selected scalar spans change');
+    assert.deepEqual(changed.document.nativeDocument, {...pointSeed.nativeDocument, revision: pointSeed.nativeDocument.revision + 1,
+      assets: pointSeed.nativeDocument.assets.map(asset => asset.id === assetFor(pointSeed).id
+        ? {...asset, revision: asset.revision + 1, source: expectedSource} : asset)});
+    for (const key of ['revision', 'nativeOptions', 'display', 'lights']) assert.deepEqual(changed.document[key], pointSeed[key], key);
+    assert.deepEqual(changed.document.surfaceMaterials.map(binding => binding.material), pointSeed.surfaceMaterials.map(binding => binding.material));
+    assert.deepEqual(changed.generatedIds, []); assert.equal(changed.selectedBodyId, B);
+    const refreshed = api.prepareRenderNativeLightDocument(changed.document);
+    for (const binding of changed.document.surfaceMaterials) {
+      const actual = refreshed.entries.find(entry => entry.binding.bodyId === binding.target.bodyId).binding;
+      for (const key of Object.keys(binding.target)) assert.equal(binding.target[key], actual[key], key);
+    }
+    assert(Object.is(api.readLightSurfacePoints(changed.document, B).rows[0][0].pointMM[0], -0));
+    assert.equal(api.serializeRenderNativeLightDocument(derivePoint('exact signed no-op preserves source and revisions', changed.document).document),
+      api.serializeRenderNativeLightDocument(changed.document));
+    assert.match(refusePoint('hidden unselected source sibling refuses shared edit', pointSeed, A).message, /shared|Duplicate/i);
+    const beforeDuplicate = structuredClone(pointSeed); duplicateDerivations++;
+    const copy = api.deriveLightBodyCommand(pointSeed, A, 'duplicate');
+    assert.deepEqual(pointSeed, beforeDuplicate); assert.equal(copy.generatedIds.length, 3);
+    const copiedBody = copy.document.nativeDocument.bodies.find(body => body.id === copy.selectedBodyId);
+    assert.notEqual(copiedBody.assetId, assetFor(pointSeed, A).id);
+    assert.equal(copy.document.nativeDocument.bodies.filter(body => body.assetId === copiedBody.assetId).length, 1);
+    assert.equal(api.readLightSurfacePoints(copy.document, copy.selectedBodyId).shared, false);
+    const editedCopy = derivePoint('real duplicate creates editable independent source', copy.document, copy.selectedBodyId, patch, copy.reservedIds);
+    assert.equal(assetFor(editedCopy.document, copy.selectedBodyId).source, expectedSource);
+    assert.deepEqual(editedCopy.document.nativeDocument.assets.slice(0, 2), pointSeed.nativeDocument.assets);
+    assert.deepEqual(editedCopy.document.nativeDocument.bodies.slice(0, 3), pointSeed.nativeDocument.bodies);
+    assert.deepEqual(editedCopy.reservedIds, copy.reservedIds);
+    refusePoint('out-of-grid original index', pointSeed, B, {...patch, uIndex: 2});
+    refusePoint('source millimetre coordinate range', pointSeed, B, {...patch, xMM: 1000001});
+    refusePoint('positive bounded weight', pointSeed, B, {...patch, weight: 0});
+    refusePoint('native revision overflow', maxNative);
+    refusePoint('asset revision overflow', maxAsset);
+    refusePoint('hidden target is not editable', hidden);
+    const forged = structuredClone(pointSeed); forged.surfaceMaterials[1].target.modelId = 'foreign_model';
+    refusePoint('forged original qualified target', forged);
+    const unsafe = refusePoint('real source geometry Float32 underflow', pointSeed, B, {...patch, yMM: 1e-50});
+    assert.match(JSON.stringify(pointErrorTree(unsafe)), /underflow/i);
+    assert.equal(cases.length, 12); assert.equal(new Set(cases).size, 12); assert.equal(duplicateDerivations, 1);
+    assert.equal(api.serializeRenderNativeLightDocument(pointSeed), originalText);
+
+    const mountPoint = async value => {
+      mounted = await api.mountLightWorkbenchFlow(pointContainer, value); const control = controls.at(-1);
+      control.prepare = pointAppearance; const replace = control.viewer.replace;
+      control.viewer.replace = request => {presentations++; attempts.push(request.owner); assert(presentations <= 6, kind + ': point Viewer ceiling'); return replace(request);};
+      owned.push(control); assert(owned.length <= 3, kind + ': point lifetime ceiling'); return control;
+    };
+    const transport = label => {transports++; assert(transports <= 2, label + ': point Save/Open ceiling');};
+    let control = await mountPoint(pointSeed);
+    await pointBody(A); await pointClick('Edit control point…');
+    assert.match(pointDialog().textContent, /shared.*Duplicate body/s); assert.match(pointDialog().textContent, /capacity/);
+    assert(pointDialogButton('Apply point').disabled); await pointDialogClick('Cancel');
+    await pointBody(B); await pointEdit('Ambient strength', '.3'); assert(pointButton('Edit control point…').disabled);
+    await pointClick('Discard');
+    const beforeLightCopy = pointSnapshot(); await pointClick('Duplicate light');
+    assert(pointButton('Edit control point…').disabled); assert.equal(pointSnapshot(), beforeLightCopy); assert.equal(presentations, 0);
+    await pointClick('Discard'); await pointClick('Edit control point…');
+    assert(pointButton('Duplicate light').disabled, 'Point dialog owns command routing');
+    const baseline = pointSnapshot(), baselineDraft = pointDraft();
+    await pointSelect('Control point U row', 1); await pointSelect('Control point V column', 1);
+    assert.equal(pointInput('Control point X in source mm').value, '700');
+    await pointSelect('Control point U row', 0); await pointSelect('Control point V column', 0);
+    assert.equal(pointInput('Control point X in source mm').maxLength, 256);
+    await pointEdit('Control point X in source mm', '1e'); await pointDialogClick('Apply point');
+    assert.equal(pointInput('Control point X in source mm').value, '1e'); assert.match(pointDialog().textContent, /finite decimal/);
+    assert(pointInput('Control point U row').disabled); assert(pointInput('Control point V column').disabled);
+    assert.equal(pointSnapshot(), baseline); assert.equal(presentations, 0);
+    await pointDialogClick('Reset fields'); assert.equal(pointInput('Control point X in source mm').value, '-700');
+    assert(!pointInput('Control point U row').disabled);
+    await pointEdit('Control point X in source mm', '-700.0000'); await pointDialogClick('Apply point');
+    assert.equal(pointInput('Control point X in source mm').value, '-700.0000'); assert.match(pointDialog().textContent, /No source change/);
+    assert.equal(pointSnapshot(), baseline); assert.deepEqual(pointDraft(), baselineDraft); assert.equal(presentations, 0);
+    await pointEdit('Control point X in source mm', '-0.000'); await pointEdit('Control point Y in source mm', '-540.00');
+    await pointEdit('Control point Z in source mm', '-680.000'); await pointEdit('Control point weight', '1.2500');
+    control.refusal = new Error('Controlled ready point refusal'); await pointDialogClick('Apply point'); // 1.
+    assert.equal(presentations, 1); assert.match(pointDialog().textContent, /PRESENTATION_REFUSED/);
+    assert.equal(pointInput('Control point X in source mm').value, '-0.000'); assert.equal(pointInput('Control point weight').value, '1.2500');
+    const refused = pointSnapshot();
+    for (const key of ['accepted', 'canUndo', 'canRedo', 'unsaved']) assert.equal(refused[key], baseline[key], key);
+    assert.equal(refused.dirty, false); assert.deepEqual(pointDraft(), baselineDraft); assert.equal(pointSavePayload(), originalText);
+    assert.equal(pointContainer.querySelector('[aria-label="Body command recovery"]'), null);
+    control.refusal = null; await pointDialogClick('Apply point'); // 2.
+    assert.equal(pointDialog(), null); const accepted = pointSnapshot().accepted;
+    assert.deepEqual(accepted, {...changed.document, revision: pointSeed.revision + 1,
+      lights: {...changed.document.lights, revision: pointSeed.revision + 1}});
+    assert(pointSnapshot().canUndo); assert.equal(pointSnapshot().canRedo, false);
+    assert.deepEqual(control.calls.at(-1), api.createRenderNativeLightRequest(accepted));
+    await pointClick('Edit control point…'); await pointEdit('Control point X in source mm', '-0.0000');
+    const signedBefore = pointSnapshot(); await pointDialogClick('Apply point');
+    assert.equal(pointSnapshot(), signedBefore); assert.equal(presentations, 2);
+    assert.equal(pointInput('Control point X in source mm').value, '-0.0000'); await pointDialogClick('Cancel');
+    await pointClick('Undo'); // 3.
+    assert.deepEqual(pointSnapshot().accepted.nativeDocument, pointSeed.nativeDocument);
+    assert.deepEqual(pointSnapshot().accepted.surfaceMaterials, pointSeed.surfaceMaterials);
+    assert.equal(pointSnapshot().canUndo, false); assert(pointSnapshot().canRedo);
+    await pointClick('Redo'); // 4.
+    assert.deepEqual(pointSnapshot().accepted.nativeDocument, accepted.nativeDocument);
+    assert.deepEqual(pointSnapshot().accepted.surfaceMaterials, accepted.surfaceMaterials); assert.equal(pointSnapshot().canRedo, false);
+    transport('accepted source Save'); await pointClick('Save accepted');
+    const savedText = await downloads.at(-1).blob.text(), saved = api.parseRenderNativeLightDocument(savedText);
+    assert.equal(savedText, api.serializeRenderNativeLightDocument(pointSnapshot().accepted));
+    assert.equal(pointSnapshot().unsaved, false); assert(Object.is(api.readLightSurfacePoints(saved, B).rows[0][0].pointMM[0], -0));
+    await mounted.dispose(); assert.equal(control.disposed, 1); control = await mountPoint(pointSeed);
+    transport('fresh same-kind Open'); await pointClick('Open');
+    const fileInput = pointContainer.querySelector('input[type="file"]'), bytes = new TextEncoder().encode(savedText);
+    Object.defineProperty(fileInput, 'files', {value: [{name: 'original-point.light-scene.json', size: bytes.length,
+      arrayBuffer: async () => bytes.buffer}], configurable: true});
+    await act(async () => fileInput.dispatchEvent(new dom.window.Event('change', {bubbles: true}))); // 5.
+    assert.deepEqual(pointSnapshot().accepted, saved); assert.equal(pointSavePayload(), savedText);
+    assert.equal(pointSnapshot().canUndo, false); assert.equal(pointSnapshot().canRedo, false);
+    await pointBody(B); await pointClick('Edit control point…'); await pointEdit('Control point X in source mm', '12.50');
+    const beforeLoss = pointSnapshot(); let release;
+    control.wait = new Promise(resolve => {release = resolve;}); control.refusal = new Error('Controlled lost point refusal');
+    await act(async () => pointDialogButton('Apply point').click()); // 6: pending loss, disposal, then stale completion.
+    const detachedCancel = pointDialogButton('Cancel'), detachedApply = pointDialogButton('Applying point…');
+    assert(detachedCancel.disabled); assert(detachedApply.disabled); assert(pointButton('Open').disabled);
+    await act(async () => {pointDialog().dispatchEvent(new dom.window.KeyboardEvent('keydown', {key: 'Escape', bubbles: true})); detachedCancel.click();});
+    assert(pointDialog()); assert.equal(pointInput('Control point X in source mm').value, '12.50');
+    control.state = 'lost'; await act(async () => {await new Promise(resolve => setTimeout(resolve, 350));});
+    assert.equal(pointSnapshot().accepted, beforeLoss.accepted); assert(pointSnapshot().dirty);
+    assert.equal(pointSnapshot().canUndo, beforeLoss.canUndo); assert.equal(pointSnapshot().canRedo, beforeLoss.canRedo);
+    assert.equal(pointSavePayload(), savedText, 'Lost pending command retains exact accepted authorship');
+    const stale = control; await mounted.dispose(); assert.equal(stale.disposed, 1);
+    control = await mountPoint(saved); const fresh = pointSnapshot(), freshDraft = pointDraft();
+    await act(async () => {detachedCancel.click(); detachedApply.click(); release(); await stale.wait;});
+    assert.equal(pointSnapshot(), fresh); assert.deepEqual(pointDraft(), freshDraft); assert.equal(pointDialog(), null);
+    assert.equal(pointSavePayload(), savedText); assert.equal(control.calls.length, 0);
+    assert.equal(presentations, 6); assert.equal(transports, 2); assert.equal(owned.length, 3);
+    assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+    await mounted.dispose(); assert(owned.every(value => value.disposed === 1));
+    surfacePointFlow.push({kind, helperCases: cases.length, cases, duplicateDerivations, presentations,
+      saveOpenTransports: transports, lifetimes: owned.length, historyEntries: 1, signedNoOp: true,
+      exactSourceSpans: true, sharedHiddenSibling: true, readyRefusalRetention: true, heldLossAndStaleCompletion: true});
+  }
+  console.log(JSON.stringify({result: 'PASS', scope: surfacePointPreflight ? 'Surface point fixture admission only'
+    : 'Surface control points: actual React/source/codec/session; controlled Viewer and file transport, no GPU or physical files', surfacePointFlow}));
+  }
+
+  // #1917: independent actual-provider fixtures; --material-copy excludes every older block.
+  // Ten direct copy controls, four Viewer attempts, zero file transports and one lifetime per kind.
+  if (!workspaceFocusOnly && (!sceneTitleOnly && (materialCopyOnly || (!sourceExportOnly && !bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight)))) {
+  const materialCopyFlow = [], copyContainer = document.getElementById('root');
+  const copyButton = name => [...copyContainer.querySelectorAll('button')]
+    .find(node => node.textContent.trim() === name || node.getAttribute('aria-label') === name);
+  const copyClick = async name => {const button = copyButton(name); assert(button, name); assert(!button.disabled, name);
+    await act(async () => button.click());};
+  const copyInput = label => {const input = copyContainer.querySelector(`[aria-label="${label}"]`); assert(input, label); return input;};
+  const setCopyInput = (input, value) => {
+    Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value').set.call(input, value);
+    input.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  };
+  const copyEdit = async (label, value) => {const input = copyInput(label); assert(!input.disabled, label);
+    await act(async () => setCopyInput(input, value));};
+  const copySelect = () => copyInput('Copy accepted material from body');
+  const setCopySource = (select, bodyId) => {select.value = bodyId; select.dispatchEvent(new dom.window.Event('change', {bubbles: true}));};
+  const chooseCopySource = async bodyId => {const select = copySelect(); assert(!select.disabled);
+    await act(async () => setCopySource(select, bodyId)); assert.equal(copySelect().value, bodyId);};
+  const copyBody = async bodyId => {await copyClick('Edit body ' + bodyId);
+    assert.equal(copyButton('Edit body ' + bodyId).getAttribute('aria-pressed'), 'true');};
+  const copyBinding = (document, bodyId) => document.surfaceMaterials.find(binding => binding.target.bodyId === bodyId);
+  const copyRow = (fields, bodyId) => fields.materials.find(row => row.target.bodyId === bodyId);
+  const copyAppearance = request => api.prepareViewerNativeSceneAppearance({version: 1,
+    source: request.source, display: request.display,
+    appearance: {lighting: {ambientStrength: 1, directionalStrength: 0, direction: [0, 0, 1]}, materials: request.materials}}, request.context);
+  navigationDom?.dispose(); navigationDom = api.installLightNavigationFlowDom();
+  for (const kind of ['directional', 'point']) {
+    const A = 'body_preview_a', B = 'body_preview_b', raw = structuredClone(api.createLightStudy(sourceText, kind));
+    raw.nativeOptions.bodyIds = [B, A]; raw.nativeDocument.bodies.forEach(body => {body.name = 'Repeated Surface';});
+    raw.display.camera.up = [-0, 2, -0];
+    Object.assign(copyBinding(raw, A).material, {documentId: 'shared-look', title: 'Destination metadata', revision: 7,
+      shaderSource: '// Destination source.\n@shader #original {\n  @uniform amount: float(-1, 1, 0);\n  @fragment { color: mix(#ff0000, #0000ff, clamp(amount, 0, 1)); }\n}\n',
+      uniforms: {amount: .25}});
+    Object.assign(copyBinding(raw, B).material, {documentId: 'shared-look', title: 'Source metadata', revision: 145,
+      shaderSource: '// Accepted source retains exact whitespace.\n@shader #portable {\n  @uniform signed: float(-1, 1, 0);\n  @uniform explicit: float(0, 2, 1);\n  @uniform omitted: float(0, 3, 2);\n  @fragment { color: mix(#00ff00, #0000ff, clamp(signed * explicit, 0, 1)); }\n}\n',
+      uniforms: {explicit: 1, signed: -0}});
+    const prepared = api.prepareRenderNativeLightDocument(raw), copySeed = prepared.document;
+    const copyText = api.serializeRenderNativeLightDocument(copySeed), copyFields = api.readLightFields(copySeed);
+    const destination = copyBinding(copySeed, A), source = copyBinding(copySeed, B);
+    assert.equal(destination.material.documentId, source.material.documentId);
+    assert.equal(destination.target.geometryId, source.target.geometryId);
+    assert.notEqual(destination.target.assetId, source.target.assetId);
+    assert.equal(new Set(prepared.entries.map(entry => entry.binding.assetId)).size, 2);
+    copyAppearance(api.createRenderNativeLightRequest(copySeed));
+    const cases = [], controlsBefore = controls.length, downloadsBefore = downloads.length;
+    const choosersBefore = fileChoosers, urlsBefore = createdUrls.length, dialogsBefore = dialogs.length;
+    let presentations = 0;
+    activeSurfaceLedger = {feature: 'accepted-material-copy', kind, cases, get presentations() {return presentations;},
+      get lifetimes() {return controls.length - controlsBefore;}, saveOpenTransports: 0};
+    const stageCopy = (label, base = copySeed, fields = copyFields, destinationBody = A, sourceBody = B) => {
+      cases.push(label); assert(cases.length <= 10, kind + ': ten direct material copy calls');
+      const beforeFields = structuredClone(fields), beforeDocument = structuredClone(base);
+      try {return api.stageLightMaterialCopy(base, fields, destinationBody, sourceBody);}
+      finally {assert.deepEqual(fields, beforeFields, label + ': raw fields immutable');
+        assert.deepEqual(base, beforeDocument, label + ': accepted scene immutable');}
+    };
+    const refuseCopy = (...args) => {let error; try {stageCopy(...args);} catch (cause) {
+      if (cause instanceof assert.AssertionError) throw cause; error = cause;
+    } assert(error, args[0] + ': copy must refuse'); return error;};
+    const staged = stageCopy('qualified source and destination with repeated IDs'); // 1.
+    const copiedRow = copyRow(staged, A);
+    assert.notEqual(staged, copyFields); assert.equal(copyRow(staged, B), copyRow(copyFields, B));
+    for (const key of ['ambient', 'lights', 'bodies', 'camera']) assert.equal(staged[key], copyFields[key]);
+    assert.equal(copiedRow.target, copyRow(copyFields, A).target);
+    assert.equal(copiedRow.documentId, destination.material.documentId); assert.equal(copiedRow.revision, 7);
+    assert.equal(copiedRow.shaderSource, source.material.shaderSource);
+    assert.deepEqual(copiedRow.suppliedOrder, ['explicit', 'signed']);
+    assert.deepEqual(copiedRow.uniforms, [
+      {name: 'signed', override: true, value: '-0', min: -1, max: 1, defaultValue: '0'},
+      {name: 'explicit', override: true, value: '1', min: 0, max: 2, defaultValue: '1'},
+      {name: 'omitted', override: false, value: '2', min: 0, max: 3, defaultValue: '2'},
+    ]);
+    assert.notEqual(copiedRow.uniforms, copyRow(staged, B).uniforms);
+    assert.notEqual(copiedRow.uniforms[0], copyRow(staged, B).uniforms[0], 'No live linkage to source fields');
+    const expected = structuredClone(copySeed);
+    Object.assign(copyBinding(expected, A).material, {shaderSource: source.material.shaderSource,
+      uniforms: structuredClone(source.material.uniforms), revision: 8});
+    assert.deepEqual(api.applyLightFields(copySeed, staged), expected);
+    assert.deepEqual(copyBinding(expected, B), source);
+    const editedSource = structuredClone(staged); copyRow(editedSource, B).uniforms[0].value = '.5';
+    const independent = api.applyLightFields(copySeed, editedSource);
+    assert.equal(copyBinding(independent, B).material.uniforms.signed, .5);
+    assert(Object.is(copyBinding(independent, A).material.uniforms.signed, -0), 'Subsequent source editing never changes the copy');
+    assert.equal(stageCopy('same accepted body is an exact helper no-op', copySeed, copyFields, A, A), copyFields); // 2.
+    refuseCopy('geometry name cannot replace a qualified body', copySeed, copyFields, A, source.target.geometryId); // 3.
+    const hiddenRaw = structuredClone(copySeed); hiddenRaw.display.visibleBodyIds = [A];
+    hiddenRaw.surfaceMaterials = hiddenRaw.surfaceMaterials.filter(binding => binding.target.bodyId !== B);
+    const hidden = api.prepareRenderNativeLightDocument(hiddenRaw).document;
+    refuseCopy('hidden unbound source', hidden, api.readLightFields(hidden)); // 4.
+    const dirtyFields = structuredClone(copyFields);
+    dirtyFields.ambient = '1e'; dirtyFields.camera.eye[0] = ''; dirtyFields.bodies[0].position[0] = 'NaN';
+    dirtyFields.lights[0].intensity = 'Infinity'; copyRow(dirtyFields, B).uniforms[0].value = '1e';
+    refuseCopy('all scene drafts must resolve before copying', copySeed, dirtyFields); // 5.
+    const maximumRaw = structuredClone(expected);
+    maximumRaw.revision = 2147483647; maximumRaw.lights.revision = 2147483647;
+    copyBinding(maximumRaw, A).material.revision = 2147483647;
+    const maximum = api.prepareRenderNativeLightDocument(maximumRaw).document, maximumFields = api.readLightFields(maximum);
+    assert.equal(stageCopy('exact content no-op at scene and material maxima', maximum, maximumFields), maximumFields); // 6.
+    const materialMaxRaw = structuredClone(copySeed); copyBinding(materialMaxRaw, A).material.revision = 2147483647;
+    const materialMax = api.prepareRenderNativeLightDocument(materialMaxRaw).document;
+    assert.match(refuseCopy('changed destination at material maximum', materialMax, api.readLightFields(materialMax)).message, /revision|maximum/i); // 7.
+    const sceneMaxRaw = structuredClone(copySeed); sceneMaxRaw.revision = 2147483647; sceneMaxRaw.lights.revision = 2147483647;
+    const sceneMax = api.prepareRenderNativeLightDocument(sceneMaxRaw).document;
+    assert.match(refuseCopy('changed destination at scene maximum', sceneMax, api.readLightFields(sceneMax)).message, /revision|maximum/i); // 8.
+    const defaultsRaw = structuredClone(expected);
+    copyBinding(defaultsRaw, A).material.uniforms = {signed: 0, omitted: 2};
+    const defaults = api.prepareRenderNativeLightDocument(defaultsRaw).document, defaultsFields = api.readLightFields(defaults);
+    const explicit = stageCopy('omitted and explicit defaults plus signed zero are authored changes', defaults, defaultsFields); // 9.
+    assert.notEqual(explicit, defaultsFields);
+    const explicitMaterial = copyBinding(api.applyLightFields(defaults, explicit), A).material;
+    assert.deepEqual(explicitMaterial.uniforms, {explicit: 1, signed: -0});
+    assert.equal(Object.hasOwn(explicitMaterial.uniforms, 'omitted'), false); assert(Object.is(explicitMaterial.uniforms.signed, -0));
+    assert.equal(explicitMaterial.revision, copyBinding(defaults, A).material.revision + 1);
+    const forged = structuredClone(copySeed); copyBinding(forged, B).target.modelId = 'foreign-model';
+    refuseCopy('full source binding rejects a foreign model pin', forged, copyFields); // 10.
+    assert.equal(cases.length, 10); assert.equal(new Set(cases).size, 10); assert.equal(presentations, 0);
+
+    mounted = await api.mountLightWorkbenchFlow(copyContainer, copySeed); const control = controls.at(-1);
+    control.prepare = copyAppearance;
+    const replace = control.viewer.replace;
+    control.viewer.replace = request => {presentations++; assert(presentations <= 4, kind + ': four material copy Viewer attempts'); return replace(request);};
+    const session = flowControllers.at(-1).getSession(), snapshot = () => session.getSnapshot();
+    const draft = () => api.readLightWorkbenchFlowDraft(copyContainer), savePayload = () => session.getSavePayload().text;
+    await copyBody(A); const baseline = snapshot(), baselineDraft = draft();
+    assert.equal(savePayload(), copyText); assert.equal(copySelect().tagName, 'SELECT'); assert.equal(copySelect().value, '');
+    assert.deepEqual([...copySelect().options].map(option => option.value), ['', B]);
+    assert(copyButton('Stage material copy').disabled, 'No automatic source');
+    await chooseCopySource(B);
+    assert.match(copyContainer.querySelector('[aria-label="Body material"]').textContent, new RegExp(A));
+    assert.match(copyContainer.querySelector('[aria-label="Body material"]').textContent, new RegExp(B));
+    const staleStage = copyButton('Stage material copy'), staleSelect = copySelect();
+    await act(async () => {copyButton('Edit body ' + B).click(); staleStage.click(); setCopySource(staleSelect, B);});
+    assert.equal(copySelect().value, ''); assert(copyButton('Stage material copy').disabled);
+    await copyBody(A); assert.equal(copySelect().value, ''); assert(copyButton('Stage material copy').disabled);
+    assert.equal(snapshot(), baseline); assert.deepEqual(draft(), baselineDraft); assert.equal(presentations, 0);
+
+    await chooseCopySource(B); const dirtyStage = copyButton('Stage material copy');
+    await act(async () => {setCopyInput(copyInput('Body position X (mm)'), '1e'); dirtyStage.click();});
+    await copyEdit('Camera eye X', ''); await copyEdit('Intensity', 'NaN'); await copyEdit('Uniform amount', '1e');
+    const dirtyDraft = draft(); assert(copySelect().disabled); assert(copyButton('Stage material copy').disabled);
+    await act(async () => {dirtyStage.click(); setCopySource(copySelect(), B);});
+    assert.deepEqual(draft(), dirtyDraft); assert.equal(snapshot(), baseline); assert.equal(savePayload(), copyText); assert.equal(presentations, 0);
+    await copyClick('Discard'); assert.deepEqual(draft(), baselineDraft);
+    await chooseCopySource(B); await copyClick('Help'); assert(copySelect().disabled); assert(copyButton('Stage material copy').disabled);
+    await copyClick('Help'); await copyClick('Edit control point…');
+    assert(copySelect().disabled); assert(copyButton('Stage material copy').disabled);
+    const pointDialog = document.querySelector('[data-testid="light-point-dialog"]'); assert(pointDialog);
+    const cancelPoint = [...pointDialog.querySelectorAll('button')].find(button => button.textContent.trim() === 'Cancel');
+    assert(cancelPoint && !cancelPoint.disabled); await act(async () => cancelPoint.click());
+    const canvas = copyContainer.querySelector('canvas');
+    await act(async () => navigationDom.pointer(canvas, 'pointerdown', 140, 125));
+    assert(copySelect().disabled); assert(copyButton('Stage material copy').disabled);
+    await act(async () => {navigationDom.pointer(canvas, 'pointercancel', 140, 125); navigationDom.flushFrames(); await Promise.resolve();});
+    assert.equal(presentations, 0); assert.equal(savePayload(), copyText);
+
+    await chooseCopySource(B); await copyClick('Stage material copy');
+    assert.equal(copyInput('Uniform signed').value, '-0'); assert.equal(copyInput('Uniform explicit').value, '1');
+    assert.equal(copyInput('Override uniform explicit').checked, true); assert.equal(copyInput('Override uniform omitted').checked, false);
+    assert.equal(snapshot().accepted, baseline.accepted); assert.equal(snapshot().unsaved, baseline.unsaved);
+    assert.equal(snapshot().canUndo, false); assert.equal(snapshot().canRedo, false); assert.equal(presentations, 0);
+    assert.equal(savePayload(), copyText); assert.equal(copyContainer.querySelector('[aria-label="Viewport camera status"]').textContent, 'Scene view');
+    await copyBody(B); assert.equal(copyInput('Uniform signed').value, '-0'); await copyBody(A);
+    await copyClick('Discard'); assert.deepEqual(draft(), baselineDraft); assert.equal(savePayload(), copyText); assert.equal(presentations, 0);
+    await chooseCopySource(B); await copyClick('Stage material copy'); const stagedDraft = draft();
+    const beforeApply = snapshot(); let release;
+    control.wait = new Promise(resolve => {release = resolve;}); control.refusal = new Error('Controlled held material copy refusal');
+    await act(async () => copyButton('Apply').click()); // 1: refusal keeps correctable private material fields.
+    assert.equal(presentations, 1); assert(snapshot().pending); assert(copySelect().disabled);
+    for (const label of ['Stage material copy', 'Apply', 'Open', 'Save accepted', 'Edit body ' + B]) assert(copyButton(label).disabled, label + ': pending fence');
+    await act(async () => {staleStage.click(); setCopySource(staleSelect, B); release(); await control.wait;}); control.wait = null;
+    assert.match(copyContainer.textContent, /PRESENTATION_REFUSED/); assert.deepEqual(draft(), stagedDraft);
+    for (const key of ['accepted', 'canUndo', 'canRedo', 'unsaved']) assert.equal(snapshot()[key], beforeApply[key], key);
+    assert.equal(savePayload(), copyText); assert.equal(control.state, 'ready');
+    control.refusal = null; await copyClick('Apply'); // 2: one whole-scene transaction.
+    expected.revision++; expected.lights.revision++;
+    assert.deepEqual(snapshot().accepted, expected); assert(snapshot().canUndo); assert.equal(snapshot().canRedo, false);
+    assert.deepEqual(control.calls.at(-1), api.createRenderNativeLightRequest(expected));
+    assert.deepEqual(copyBinding(snapshot().accepted, B), source, 'Accepted source binding remains exact');
+    assert.deepEqual(snapshot().accepted.nativeDocument, copySeed.nativeDocument);
+    assert.deepEqual(snapshot().accepted.display, copySeed.display); assert.deepEqual(snapshot().accepted.nativeOptions, copySeed.nativeOptions);
+    assert.deepEqual({...snapshot().accepted.lights, revision: copySeed.lights.revision}, copySeed.lights);
+    assert.equal(copySelect().value, ''); assert(copyButton('Stage material copy').disabled, 'Accepted scene invalidates source ticket');
+    await chooseCopySource(B); const beforeNoOp = snapshot(), noOpDraft = draft();
+    await copyClick('Stage material copy'); assert.equal(snapshot(), beforeNoOp); assert.deepEqual(draft(), noOpDraft);
+    assert.equal(presentations, 2); assert.equal(savePayload(), api.serializeRenderNativeLightDocument(expected));
+    await copyClick('Undo'); // 3: one history entry restores the destination and leaves source untouched.
+    const undone = {...copySeed, revision: copySeed.revision + 2, lights: {...copySeed.lights, revision: copySeed.lights.revision + 2}};
+    assert.deepEqual(snapshot().accepted, undone); assert.equal(snapshot().canUndo, false); assert(snapshot().canRedo);
+    assert.equal(copyInput('Uniform amount').value, '0.25');
+    assert.equal(copySelect().value, ''); assert(copyButton('Stage material copy').disabled);
+    await copyClick('Redo'); // 4.
+    const redone = {...expected, revision: expected.revision + 2, lights: {...expected.lights, revision: expected.lights.revision + 2}};
+    assert.deepEqual(snapshot().accepted, redone); assert(snapshot().canUndo); assert.equal(snapshot().canRedo, false);
+    assert.equal(savePayload(), api.serializeRenderNativeLightDocument(redone)); assert.equal(copyInput('Uniform signed').value, '-0');
+    await chooseCopySource(B); const settled = snapshot(), settledDraft = draft(); control.state = 'lost';
+    await act(async () => {await new Promise(resolve => setTimeout(resolve, 350));});
+    assert(copySelect().disabled); assert(copyButton('Stage material copy').disabled);
+    await act(async () => {copyButton('Stage material copy').click(); setCopySource(copySelect(), B);});
+    assert.equal(snapshot(), settled); assert.deepEqual(draft(), settledDraft);
+    const detachedStage = copyButton('Stage material copy'), detachedSelect = copySelect();
+    await mounted.dispose(); mounted = null;
+    await act(async () => {detachedStage.click(); setCopySource(detachedSelect, B); staleStage.click();});
+    assert.equal(control.disposed, 1); assert.equal(controls.length - controlsBefore, 1); assert.equal(presentations, 4);
+    assert.equal(downloads.length, downloadsBefore); assert.equal(fileChoosers, choosersBefore); assert.equal(createdUrls.length, urlsBefore);
+    assert.equal(dialogs.length, dialogsBefore); assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+    assert.equal(api.serializeRenderNativeLightDocument(copySeed), copyText);
+    materialCopyFlow.push({kind, helperCases: cases.length, cases, presentations, saveOpenTransports: 0, lifetimes: 1,
+      historyEntries: 1, privateStageAndNoOpPresentations: 0, sourceRetained: true, staleSelectionFence: true,
+      readyRefusalRetainsDraft: true, pendingFence: true, proof: 'actual React/document/provider/session; controlled Viewer, no GPU or physical files'});
+  }
+  console.log(JSON.stringify({result: 'PASS', scope: 'Accepted material copy: actual React/provider/session; controlled Viewer, zero file transport', materialCopyFlow}));
+  }
+  // #1927: eight direct admission cases, five Viewer attempts, two transports and two lifetimes per kind.
+  // --scene-title runs this new block only; ordinary CI still includes every historical block.
+  if (!workspaceFocusOnly && (sceneTitleOnly || (!materialCopyOnly && !sourceExportOnly && !bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight))) {
+  const sceneTitleFlow = [], titleContainer = document.getElementById('root');
+  const titleButton = name => [...titleContainer.querySelectorAll('button')]
+    .find(node => node.textContent.trim() === name || node.getAttribute('aria-label') === name);
+  const titleClick = async name => {const button = titleButton(name); assert(button, name); assert(!button.disabled, name);
+    await act(async () => button.click());};
+  const titleInput = label => {const input = titleContainer.querySelector(`[aria-label="${label}"]`); assert(input, label); return input;};
+  const setTitleInput = (input, value) => {
+    Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value').set.call(input, value);
+    input.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  };
+  const titleEdit = async (label, value) => {const input = titleInput(label); assert(!input.disabled, label);
+    await act(async () => setTitleInput(input, value));};
+  const heading = () => titleContainer.querySelector('.app-document-bar > strong').textContent;
+  const titleAppearance = request => api.prepareViewerNativeSceneAppearance({version: 1, source: request.source, display: request.display,
+    appearance: {lighting: {ambientStrength: 1, directionalStrength: 0, direction: [0, 0, 1]}, materials: request.materials}}, request.context);
+  navigationDom?.dispose(); navigationDom = api.installLightNavigationFlowDom();
+  const originalTimeout = dom.window.setTimeout, titleTimers = [], titleUrlStart = createdUrls.length, titleConfirmation = confirmation;
+  confirmation = true;
+  dom.window.setTimeout = function (callback, delay, ...args) {
+    const id = originalTimeout.call(this, callback, delay, ...args); if (delay === 1000) titleTimers.push(id); return id;
+  };
+  try {
+  for (const kind of ['directional', 'point']) {
+    const importedTitle = '  가져온 e\u0301 🧭  ', editedTitle = '  새 장면 e\u0301 🌌  ';
+    const seed = api.prepareRenderNativeLightDocument({...api.createLightStudy(sourceText, kind), title: importedTitle}).document;
+    const original = api.serializeRenderNativeLightDocument(seed), fields = api.readLightFields(seed), cases = [];
+    const controlsBefore = controls.length, downloadsBefore = downloads.length, choosersBefore = fileChoosers;
+    let presentations = 0, transports = 0, fileReads = 0, releaseTitle;
+    const titleControls = [];
+    activeSurfaceLedger = {feature: 'scene-title', kind, cases, get presentations() {return presentations;},
+      get saveOpenTransports() {return transports;}, get lifetimes() {return controls.length - controlsBefore;}};
+    const admit = (label, nextFields) => {
+      cases.push(label); assert(cases.length <= 8, kind + ': eight direct title cases');
+      const before = structuredClone(nextFields);
+      try {return api.applyLightFields(seed, nextFields);}
+      finally {assert.deepEqual(nextFields, before, label + ': corrective fields immutable');}
+    };
+    assert.equal(fields.title, importedTitle); assert.notEqual(importedTitle.normalize('NFC'), importedTitle);
+    const unchanged = admit('exact imported Unicode/whitespace and codec no-op', fields); // 1.
+    assert.equal(api.lightFieldsDirty(fields, seed), false); assert.deepEqual(unchanged, seed);
+    assert.equal(api.parseRenderNativeLightDocument(api.serializeRenderNativeLightDocument(unchanged)).title, importedTitle);
+    assert.equal(admit('128 ASCII code points', {...fields, title: 'a'.repeat(128)}).title, 'a'.repeat(128)); // 2.
+    const boundary = '🌌'.repeat(128);
+    assert.equal(boundary.length, 256); assert.equal(new TextEncoder().encode(boundary).length, 512);
+    assert.equal(admit('128 astral points / 256 UTF-16 / 512 UTF-8', {...fields, title: boundary}).title, boundary); // 3.
+    for (const [label, title] of [['129 ASCII code points', 'a'.repeat(129)], ['129 astral points', '🌌'.repeat(129)],
+      ['empty title', ''], ['whitespace-only title', ' \t\n\u3000 ']]) { // 4–7.
+      assert.throws(() => admit(label, {...fields, title}), error => error.code === 'DOCUMENT_INPUT' && /title/i.test(error.message));
+    }
+    const combinedFields = structuredClone(fields); combinedFields.title = editedTitle; combinedFields.ambient = '.35';
+    combinedFields.camera.eye[0] = '2'; combinedFields.bodies[0].position[0] = '-850'; combinedFields.lights[0].intensity = '.4';
+    combinedFields.materials.find(row => row.target.bodyId === 'body_preview_b').uniforms[0].value = '.5';
+    const combined = admit('title and all ordinary field groups participate together', combinedFields); // 8.
+    assert.equal(combined.title, editedTitle); assert.equal(combined.lights.ambientStrength, .35);
+    assert.equal(combined.display.camera.eye[0], 2); assert.equal(combined.display.poses[0].translationMM[0], -850);
+    assert.equal(combined.lights.lights[0].intensity, .4);
+    assert.equal(combined.surfaceMaterials[1].material.uniforms.amount, .5);
+    assert.equal(combined.surfaceMaterials[1].material.revision, seed.surfaceMaterials[1].material.revision + 1);
+    assert.deepEqual(combined.nativeDocument, seed.nativeDocument); assert.deepEqual(combined.nativeOptions, seed.nativeOptions);
+    assert.deepEqual(combined.surfaceMaterials.map(binding => binding.target), seed.surfaceMaterials.map(binding => binding.target));
+    assert.equal(cases.length, 8); assert.equal(new Set(cases).size, 8);
+    const mountTitle = async () => {
+      mounted = await api.mountLightWorkbenchFlow(titleContainer, seed);
+      assert(controls.length - controlsBefore <= 2, kind + ': two title lifetimes');
+      const control = controls.at(-1), replace = control.viewer.replace; control.prepare = titleAppearance;
+      control.viewer.replace = request => {presentations++; assert(presentations <= 5, kind + ': five title Viewer attempts'); return replace(request);};
+      titleControls.push({control, replace}); return control;
+    };
+    const session = () => flowControllers.at(-1).getSession(), snapshot = () => session().getSnapshot();
+    const draft = () => api.readLightWorkbenchFlowDraft(titleContainer), saveText = () => session().getSavePayload().text;
+    const revised = (document, revision) => ({...document, revision, lights: {...document.lights, revision}});
+    try {
+      const control = await mountTitle(), baseline = snapshot();
+      assert.equal(titleInput('Scene title').value, importedTitle); assert.equal(titleInput('Scene title').maxLength, 256);
+      assert.equal(heading(), importedTitle); assert.match(titleInput('Scene title').parentElement.textContent, /Apply/);
+      assert(titleButton('Apply').disabled); assert.equal(saveText(), original);
+      await titleClick('Help'); assert(titleInput('Scene title').disabled); await titleClick('Help');
+      await titleClick('Edit control point…'); assert(titleInput('Scene title').disabled);
+      const pointDialog = document.querySelector('[data-testid="light-point-dialog"]'); assert(pointDialog);
+      const cancel = [...pointDialog.querySelectorAll('button')].find(button => button.textContent.trim() === 'Cancel');
+      assert(cancel && !cancel.disabled); await act(async () => cancel.click());
+      const canvas = titleContainer.querySelector('canvas');
+      await act(async () => navigationDom.pointer(canvas, 'pointerdown', 140, 125)); assert(titleInput('Scene title').disabled);
+      await act(async () => {navigationDom.pointer(canvas, 'pointercancel', 140, 125); navigationDom.flushFrames();});
+      assert.equal(snapshot(), baseline); assert.equal(presentations, 0);
+
+      await titleEdit('Scene title', ''); await titleEdit('Ambient strength', '.35');
+      const emptyDraft = draft(); await titleClick('Apply');
+      assert.deepEqual(draft(), emptyDraft); assert.equal(snapshot(), baseline); assert.equal(presentations, 0);
+      assert.equal(heading(), importedTitle); assert.equal(saveText(), original);
+      await titleEdit('Scene title', editedTitle); await titleEdit('Ambient strength', '1e');
+      const invalidOtherDraft = draft(); await titleClick('Apply');
+      assert.deepEqual(draft(), invalidOtherDraft); assert.equal(snapshot(), baseline); assert.equal(presentations, 0);
+      await titleEdit('Ambient strength', '.35'); await titleEdit('Camera eye X', '2');
+      await titleEdit('Body position X (mm)', '-850'); await titleEdit('Intensity', '.4');
+      await titleClick('Edit body body_preview_b'); await titleEdit('Uniform amount', '.5');
+      const combinedDraft = draft(); control.refusal = new Error('Controlled complete title draft refusal');
+      await titleClick('Apply'); // 1: genuine complete candidate, ready Viewer refusal.
+      assert.equal(presentations, 1); assert.match(titleContainer.textContent, /PRESENTATION_REFUSED/);
+      assert.deepEqual(control.calls.at(-1), api.createRenderNativeLightRequest(revised(combined, seed.revision + 1)));
+      assert.deepEqual(draft(), combinedDraft); assert.equal(heading(), importedTitle); assert.equal(saveText(), original);
+      for (const key of ['accepted', 'canUndo', 'canRedo', 'unsaved', 'viewportCamera']) assert.equal(snapshot()[key], baseline[key], key);
+      control.refusal = null; await titleClick('Discard');
+      assert.equal(titleInput('Scene title').value, importedTitle); assert.equal(titleInput('Ambient strength').value, fields.ambient);
+      assert.equal(titleInput('Uniform amount').value, fields.materials[1].uniforms[0].value);
+      await titleEdit('Scene title', editedTitle);
+      const pendingDraft = draft(); control.wait = new Promise(resolve => {releaseTitle = resolve;});
+      await act(async () => titleButton('Apply').click()); // 2: title-only acceptance is held before ACK.
+      assert.equal(snapshot().pending, 'apply'); assert.equal(presentations, 2); assert(titleInput('Scene title').disabled);
+      assert.equal(heading(), importedTitle); assert.equal(saveText(), original); assert.deepEqual(draft(), pendingDraft);
+      for (const label of ['Apply', 'Discard', 'Open', 'Save accepted', 'Undo', 'Redo']) assert(titleButton(label).disabled, label);
+      await act(async () => {titleButton('Apply').click(); titleButton('Discard').click(); releaseTitle(); await control.wait;});
+      control.wait = null; releaseTitle = undefined;
+      const accepted = revised({...seed, title: editedTitle}, seed.revision + 1);
+      assert.deepEqual(snapshot().accepted, accepted, 'Title-only acceptance retains every source, identity, material, pose, camera and light value');
+      assert.equal(snapshot().viewportCamera, baseline.viewportCamera); assert.equal(heading(), editedTitle);
+      assert.equal(titleInput('Scene title').value, editedTitle); assert(snapshot().canUndo); assert.equal(snapshot().canRedo, false);
+      assert.deepEqual(control.calls.at(-1), api.createRenderNativeLightRequest(accepted));
+      await titleEdit('Scene title', 'temporary'); await titleEdit('Scene title', editedTitle);
+      assert(titleButton('Apply').disabled, 'Exact title equality is not an authored change');
+      await titleEdit('Ambient strength', '0.20'); await titleClick('Apply');
+      assert.deepEqual(snapshot().accepted, accepted); assert.equal(presentations, 2);
+      assert.equal(titleInput('Scene title').value, editedTitle); assert.match(titleContainer.textContent, /No authored changes/);
+      await titleClick('Undo'); // 3: exactly one title history entry.
+      assert.deepEqual(snapshot().accepted, revised(seed, seed.revision + 2)); assert.equal(snapshot().canUndo, false); assert(snapshot().canRedo);
+      assert.equal(heading(), importedTitle); assert.equal(titleInput('Scene title').value, importedTitle);
+      await titleClick('Redo'); // 4.
+      const redone = revised({...seed, title: editedTitle}, seed.revision + 3);
+      assert.deepEqual(snapshot().accepted, redone); assert(snapshot().canUndo); assert.equal(snapshot().canRedo, false);
+      assert.equal(heading(), editedTitle); assert.equal(titleInput('Scene title').value, editedTitle);
+      await titleEdit('Scene title', 'unsaved corrective title'); await titleEdit('Ambient strength', '1e');
+      const unsavedDraft = draft(); transports++; await titleClick('Save accepted'); // Transport 1.
+      const savedText = await downloads.at(-1).blob.text();
+      assert.equal(savedText, api.serializeRenderNativeLightDocument(redone)); assert.deepEqual(draft(), unsavedDraft);
+      assert.equal(downloads.at(-1).name, seed.documentId + '.light-scene.json'); assert.equal(heading(), editedTitle);
+      assert.equal(snapshot().unsaved, false); assert.equal(snapshot().accepted.title, editedTitle);
+      const detachedTitle = titleInput('Scene title'), detachedApply = titleButton('Apply'), oldSession = session();
+      await mounted.dispose(); mounted = null; const disposed = oldSession.getSnapshot();
+      await act(async () => {setTitleInput(detachedTitle, 'detached title'); detachedApply.click();});
+      assert.equal(oldSession.getSnapshot(), disposed); assert(disposed.disposed); assert.equal(control.disposed, 1);
+      const reopenedControl = await mountTitle(); transports++; assert(transports <= 2); await titleClick('Open');
+      assert(titleInput('Scene title').disabled, 'Chooser fences title edits');
+      const input = titleContainer.querySelector('input[type="file"]'), bytes = new TextEncoder().encode(savedText);
+      Object.defineProperty(input, 'files', {configurable: true, value: [{name: 'same-kind.light-scene.json', size: bytes.length,
+        arrayBuffer: async () => {fileReads++; return bytes.buffer;}}]});
+      await act(async () => input.dispatchEvent(new dom.window.Event('change', {bubbles: true}))); // Transport 2, Viewer 5.
+      assert.deepEqual(snapshot().accepted, redone); assert.equal(heading(), editedTitle); assert.equal(titleInput('Scene title').value, editedTitle);
+      assert.equal(snapshot().canUndo, false); assert.equal(snapshot().canRedo, false); assert.equal(snapshot().unsaved, false);
+      await titleEdit('Scene title', 'fresh correction'); await titleClick('Discard'); assert.equal(titleInput('Scene title').value, editedTitle);
+      const beforeLoss = snapshot(); reopenedControl.state = 'lost';
+      await act(async () => {await new Promise(resolve => setTimeout(resolve, 350));});
+      assert(titleInput('Scene title').disabled); assert.equal(snapshot(), beforeLoss); assert.equal(saveText(), savedText);
+      assert.equal(presentations, 5); assert.equal(transports, 2); assert.equal(fileReads, 1);
+      assert.equal(controls.length - controlsBefore, 2); assert.equal(downloads.length - downloadsBefore, 1);
+      assert.equal(fileChoosers - choosersBefore, 1); assert.equal(api.serializeRenderNativeLightDocument(seed), original);
+    } finally {
+      for (const cleanup of [async () => {if (releaseTitle) {await act(async () => releaseTitle()); releaseTitle = undefined;}},
+        async () => {const live = mounted; mounted = null; await live?.dispose();},
+        () => {for (const {control, replace} of titleControls) {control.viewer.replace = replace; control.wait = null; control.refusal = null; control.prepare = null;}}]) {
+        try {await cleanup();} catch (cause) {cleanupErrors.push(cause);}
+      }
+    }
+    assert(titleControls.every(({control}) => control.disposed === 1));
+    assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+    sceneTitleFlow.push({kind, helperCases: cases.length, cases, presentations, saveOpenTransports: transports, lifetimes: 2,
+      historyEntries: 1, acceptedOnlySave: true, exactUnicodeWhitespace: true,
+      proof: 'actual React/field/codec/controller/session; controlled Viewer and file transport, no GPU, IME or physical-file proof'});
+  }
+  } finally {
+    for (const cleanup of [() => {confirmation = titleConfirmation; dom.window.setTimeout = originalTimeout;},
+      () => {for (const timer of titleTimers) dom.window.clearTimeout(timer);},
+      () => {for (const url of createdUrls.slice(titleUrlStart)) if (!revokedUrls.includes(url)) URL.revokeObjectURL(url);},
+      () => {navigationDom?.dispose(); navigationDom = null;}]) {
+      try {await cleanup();} catch (cause) {cleanupErrors.push(cause);}
+    }
+  }
+  console.log(JSON.stringify({result: 'PASS', scope: 'Scene titles: bounded actual provider and UI/session flow', sceneTitleFlow}));
+  }
+  // #1944: twelve UI scenarios per kind, six Viewer replacements, two Save/Open
+  // transports and two lifetimes. --workspace-focus excludes every historical block.
+  if (workspaceFocusOnly || (!sceneTitleOnly && !materialCopyOnly && !sourceExportOnly && !bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight)) {
+  const workspaceFocusFlow = [], focusContainer = document.getElementById('root');
+  // Source-linked layout contract, not a browser layout measurement. The element
+  // and bitmap share the same aspect; the existing pick control checks its center.
+  const layoutCss = await readFile(join(app, 'src/style.css'), 'utf8');
+  assert.match(layoutCss, /\.light-canvas-frame \{[^}]*container-type: size;/);
+  assert.match(layoutCss, /\.light-workspace \.light-canvas-frame canvas \{[^}]*width: min\(100cqw, 160cqh\); height: auto; aspect-ratio: 8 \/ 5; border: 0; padding: 0;/);
+  const aspectFrames = [[960, 300], [400, 600], [640, 400], [1280, 120]];
+  for (const [frameWidth, frameHeight] of aspectFrames) {
+    const width = Math.min(frameWidth, 1.6 * frameHeight), height = width / 1.6;
+    assert(width <= frameWidth && height <= frameHeight);
+    assert.equal(width / height, 8 / 5);
+  }
+  const focusButton = label => [...focusContainer.querySelectorAll('button')]
+    .find(node => node.textContent.trim() === label || node.getAttribute('aria-label') === label);
+  const focusClick = async label => {const button = focusButton(label); assert(button && !button.disabled, label);
+    await act(async () => button.click());};
+  const focusInput = label => {const input = focusContainer.querySelector(`[aria-label="${label}"]`); assert(input, label); return input;};
+  const setFocusInput = (input, value) => {
+    Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value').set.call(input, value);
+    input.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  };
+  const focusEdit = async (label, value) => {
+    const task = label.startsWith('Body position ') ? 'Move' : label.startsWith('Body scale ') ? 'Scale'
+      : label.startsWith('Body rotation ') || label === 'Rotate by (degrees)' ? 'Rotate'
+        : label.startsWith('Uniform ') ? 'Material' : null;
+    if (task) await focusClick('Edit body ' + task);
+    const input = focusInput(label);
+    assert(!input.disabled && !input.closest('[hidden]'), label + ': edit the reachable target');
+    await act(async () => setFocusInput(input, value));};
+  const focusTargets = ['body', 'light', 'camera', 'scene'];
+  const inspector = () => focusInput('Light inspector');
+  const focusHeading = () => inspector().querySelector('header h1, header h2, header h3, header [role="heading"]');
+  const activeFocus = () => focusTargets.find(target => focusButton('Inspect ' + target).getAttribute('aria-pressed') === 'true');
+  const selectedFocusBody = () => [...focusContainer.querySelectorAll('[aria-label^="Edit body "]')]
+    .find(node => node.getAttribute('aria-pressed') === 'true')?.getAttribute('aria-label').slice(10);
+  const selectedFocusLight = () => [...focusInput('Light outliner').querySelectorAll('button[aria-pressed]')]
+    .filter(node => !node.getAttribute('aria-label')?.startsWith('Edit body '))
+    .find(node => node.getAttribute('aria-pressed') === 'true');
+  const focusSections = () => [
+    ['body', focusInput('Body transform')], ['body', focusInput('Body material')],
+    ['light', focusInput('Light label').closest('section')], ['camera', focusInput('Scene camera')],
+    ['scene', focusInput('Ambient strength').closest('section')], ['scene', focusInput('Scene title').closest('section')],
+  ];
+  const assertFocus = target => {
+    assert.equal(activeFocus(), target); assert(focusHeading(), 'Inspector has a semantic target heading');
+    const expectedHeading = target === 'body' ? focusButton('Edit body ' + selectedFocusBody()).firstChild.textContent
+      : target === 'light' ? focusInput('Light label').value : target === 'camera' ? 'Authored scene camera' : 'Scene settings';
+    assert.equal(focusHeading().textContent, expectedHeading);
+    for (const [sectionTarget, section] of focusSections()) {
+      assert(section && section.isConnected, sectionTarget + ': fields stay mounted');
+      const task = focusInput('Active body task').textContent.trim();
+      const taskHidden = sectionTarget === 'body' && (section.getAttribute('aria-label') === 'Body material'
+        ? task !== 'Material' : !['Move', 'Rotate', 'Scale'].includes(task));
+      assert.equal(section.hidden, sectionTarget !== target || taskHidden, sectionTarget + ': explicit hidden state');
+    }
+    assert.equal(focusTargets.filter(value => focusButton('Inspect ' + value).getAttribute('aria-pressed') === 'true').length, 1);
+  };
+  const focusAppearance = request => api.prepareViewerNativeSceneAppearance({version: 1, source: request.source, display: request.display,
+    appearance: {lighting: {ambientStrength: 1, directionalStrength: 0, direction: [0, 0, 1]}, materials: request.materials}}, request.context);
+  navigationDom?.dispose(); navigationDom = api.installLightNavigationFlowDom();
+  // Wide/short 960x300 frame produces a 480x300 Canvas element, without letterboxing.
+  navigationDom.setRect({left: 40, top: 25, width: 480, height: 300});
+  const originalTimeout = dom.window.setTimeout, focusTimers = [], focusUrlStart = createdUrls.length, focusConfirmation = confirmation;
+  confirmation = true;
+  dom.window.setTimeout = function (callback, delay, ...args) {
+    const id = originalTimeout.call(this, callback, delay, ...args); if (delay === 1000) focusTimers.push(id); return id;
+  };
+  try {
+  for (const kind of ['directional', 'point']) {
+    // Reuse the admitted two-body reference scene and its existing amount material.
+    // There is no new CAD source, shader fixture or surrogate authoring state.
+    const seed = api.createLightStudy(sourceText, kind), original = api.serializeRenderNativeLightDocument(seed);
+    const seedFields = api.readLightFields(seed), A = 'body_preview_a', B = 'body_preview_b';
+    const editedTitle = '  Focused e\u0301 scene 🧭  ', vectorLabel = kind === 'point' ? 'Position X' : 'Direction X';
+    const cases = [], focusControls = [], controlsBefore = controls.length, downloadsBefore = downloads.length;
+    const choosersBefore = fileChoosers; let presentations = 0, transports = 0, fileReads = 0, releaseFocus;
+    activeSurfaceLedger = {feature: 'workspace-focus', kind, cases, get presentations() {return presentations;},
+      get saveOpenTransports() {return transports;}, get lifetimes() {return controls.length - controlsBefore;}};
+    const scenario = label => {cases.push(label); assert(cases.length <= 12, kind + ': twelve workspace UI scenarios');};
+    const mountFocus = async () => {
+      mounted = await api.mountLightWorkbenchFlow(focusContainer, seed);
+      assert(controls.length - controlsBefore <= 2, kind + ': two workspace lifetimes');
+      const control = controls.at(-1), replace = control.viewer.replace; control.prepare = focusAppearance;
+      control.viewer.replace = request => {presentations++; assert(presentations <= 6, kind + ': six workspace Viewer attempts'); return replace(request);};
+      focusControls.push({control, replace}); return control;
+    };
+    const controller = () => flowControllers.at(-1), session = () => controller().getSession(), snapshot = () => session().getSnapshot();
+    const draft = () => api.readLightWorkbenchFlowDraft(focusContainer), savePayload = () => session().getSavePayload().text;
+    const acceptedHeading = () => focusContainer.querySelector('.app-document-bar > strong').textContent;
+    const viewedRequest = document => {const request = api.createRenderNativeLightRequest(document), camera = snapshot().viewportCamera;
+      return camera ? {...request, display: {...request.display, camera}} : request;};
+    const revised = (document, revision) => ({...document, revision, lights: {...document.lights, revision}});
+    const go = async target => {
+      const before = snapshot(), beforeDraft = draft(), beforeController = controller(), beforeSession = session();
+      const canvas = focusContainer.querySelector('canvas'), body = selectedFocusBody(), light = selectedFocusLight();
+      const inputs = [...inspector().querySelectorAll('input')], sections = focusSections().map(([, section]) => section);
+      const calls = presentations;
+      await focusClick('Inspect ' + target); assertFocus(target);
+      assert.equal(controller(), beforeController); assert.equal(session(), beforeSession); assert.equal(snapshot(), before);
+      assert.equal(focusContainer.querySelector('canvas'), canvas); assert.equal(canvas.isConnected, true);
+      assert.equal(selectedFocusBody(), body); assert.equal(selectedFocusLight(), light);
+      assert.deepEqual(draft(), beforeDraft); assert.equal(presentations, calls);
+      const currentInputs = [...inspector().querySelectorAll('input')], currentSections = focusSections().map(([, section]) => section);
+      assert.equal(currentInputs.length, inputs.length); assert.equal(currentSections.length, sections.length);
+      inputs.forEach((input, index) => assert.equal(currentInputs[index], input, 'Focus does not remount fields'));
+      sections.forEach((section, index) => assert.equal(currentSections[index], section, 'Focus does not remount sections'));
+    };
+    const assertFocusLocked = async label => {
+      const target = activeFocus(), before = snapshot(), beforeDraft = draft(), body = selectedFocusBody(), light = selectedFocusLight();
+      for (const value of focusTargets) assert(focusButton('Inspect ' + value).disabled, label + ': ' + value);
+      await act(async () => {for (const value of focusTargets) focusButton('Inspect ' + value).click();});
+      assertFocus(target); assert.equal(snapshot(), before); assert.deepEqual(draft(), beforeDraft);
+      assert.equal(selectedFocusBody(), body); assert.equal(selectedFocusLight(), light);
+    };
+    const setCopySource = (input, value) => {input.value = value; input.dispatchEvent(new dom.window.Event('change', {bubbles: true}));};
+    const chooseCopySource = async value => {await focusClick('Edit body Material');
+      const input = focusInput('Copy accepted material from body'); assert(!input.disabled && !input.closest('[hidden]'));
+      await act(async () => setCopySource(input, value)); assert.equal(input.value, value);};
+    const stageAll = async (invalid = false) => {
+      await go('body'); await focusEdit('Body position X (mm)', invalid ? '1e' : '-0'); await focusEdit('Uniform amount', '-0');
+      await go('light'); await focusEdit(vectorLabel, '-0'); await focusEdit('Intensity', invalid ? '1e' : '.4');
+      await go('camera'); await focusEdit('Camera eye X', invalid ? '1e' : '2');
+      await go('scene'); await focusEdit('Ambient strength', '-0'); await focusEdit('Scene title', invalid ? '' : editedTitle);
+    };
+    try {
+      const control = await mountFocus(), originalSession = session(), originalController = controller();
+      const canvas = focusContainer.querySelector('canvas'), baseline = snapshot();
+      scenario('accessible target sections and stable actual Canvas/controller/session'); // 1.
+      assert(canvas.parentElement.classList.contains('light-canvas-frame'), 'Canvas has a dedicated aspect-preserving frame');
+      assert.equal(canvas.width / canvas.height, 8 / 5);
+      const fieldsRegion = focusInput('Inspector fields'), footer = focusInput('Whole-scene draft actions');
+      assert.equal(inspector().tagName, 'ASIDE'); assert.equal(fieldsRegion.parentElement, inspector());
+      assert.equal(footer.parentElement, inspector()); assert.equal(fieldsRegion.nextElementSibling, footer);
+      assert(!fieldsRegion.contains(footer)); assert(inspector().querySelector('header')?.contains(focusHeading()));
+      assert.match(footer.textContent, /Apply[\s\S]*all scene drafts/i); assert.match(footer.textContent, /Discard[\s\S]*all scene drafts/i);
+      for (const label of ['Apply', 'Discard']) {
+        assert(footer.contains(focusButton(label))); assert.equal(focusButton(label).tagName, 'BUTTON'); assert(focusButton(label).tabIndex >= 0);
+      }
+      for (const label of ['File commands', 'Body commands', 'Light commands']) assert.equal(focusInput(label).getAttribute('role'), 'group');
+      for (const label of ['Open', 'Save accepted', 'Import legacy Native scene']) assert(focusInput('File commands').contains(focusButton(label)), label);
+      for (const label of ['Add Surface…', 'Edit control point…', 'Duplicate body', 'Remove body']) assert(focusInput('Body commands').contains(focusButton(label)), label);
+      for (const label of ['Add ' + kind, 'Duplicate light']) assert(focusInput('Light commands').contains(focusButton(label)), label);
+      assert.equal(focusInput('Viewport navigation').getAttribute('role'), 'toolbar');
+      for (const target of focusTargets) {
+        assert(inspector().querySelector('header').contains(focusButton('Inspect ' + target)));
+        assert.equal(focusButton('Inspect ' + target).tagName, 'BUTTON'); await go(target);
+      }
+      assert.equal(acceptedHeading(), seed.title); assert.equal(snapshot(), baseline); assert.equal(savePayload(), original);
+
+      scenario('inventory and actual Canvas picking retain qualified material-copy fences'); // 2.
+      await focusClick('Edit body ' + A); assertFocus('body'); await chooseCopySource(B);
+      const staleCopy = focusButton('Stage material copy'), staleSource = focusInput('Copy accepted material from body');
+      await go('camera'); await go('body'); assert.equal(staleSource.value, B, 'Focus alone retains the qualified material source');
+      await act(async () => {focusButton('Edit body ' + B).click(); staleCopy.click(); setCopySource(staleSource, B);});
+      assertFocus('body'); assert.equal(selectedFocusBody(), B); assert.equal(focusInput('Copy accepted material from body').value, '');
+      assert(focusButton('Stage material copy').disabled); assert.equal(snapshot(), baseline); assert.equal(savePayload(), original);
+      const entry = api.prepareRenderNativeLightDocument(seed).entries.find(value => value.binding.bodyId === A);
+      assert(entry); control.pickResult = () => ({generation: control.viewer.accepted.generation,
+        ref: {kind: 'surface', modelId: entry.ref.modelId, surfaceId: entry.ref.geometryId}, binding: entry.binding});
+      await go('scene'); await act(async () => {
+        navigationDom.pointer(canvas, 'pointerdown', 280, 175); navigationDom.pointer(canvas, 'pointerup', 280, 175); await Promise.resolve();
+      });
+      assert.deepEqual(control.picks, [[480, 300]], 'Aspect-preserving element center maps to backing center');
+      assert.equal(control.picks.length, 1); assert.equal(selectedFocusBody(), A); assertFocus('body');
+      await focusClick('Edit body ' + B); assertFocus('body');
+      const lightRow = selectedFocusLight(); assert(lightRow && !lightRow.disabled);
+      await act(async () => lightRow.click()); assertFocus('light'); assert.equal(selectedFocusBody(), B);
+      assert.equal(snapshot(), baseline); assert.equal(presentations, 0);
+
+      scenario('local camera navigation fences focus without authoring or remounting'); // 3.
+      const cleanBodyDraft = draft(); await focusClick('Zoom in'); await assertFocusLocked('queued navigation');
+      await act(async () => {navigationDom.flushFrames(); await Promise.resolve();}); // Viewer 1.
+      assert.equal(presentations, 1); assert.equal(snapshot().accepted, baseline.accepted); assert.equal(snapshot().viewDirty, true);
+      assert.equal(snapshot().canUndo, false); assert.equal(snapshot().canRedo, false); assert.equal(savePayload(), original);
+      assert.equal(focusInput('Viewport camera status').textContent, 'User view'); assert.deepEqual(draft(), cleanBodyDraft);
+      for (const target of focusTargets) await go(target);
+
+      scenario('hidden raw signed and invalid drafts remain mounted and block whole-scene Apply'); // 4.
+      await stageAll(true); const invalidDraft = draft(), beforeInvalid = snapshot();
+      await go('light'); await focusClick('Apply');
+      assert.equal(snapshot(), beforeInvalid); assert.deepEqual(draft(), invalidDraft); assert.equal(presentations, 1);
+      assert.equal(focusInput('Scene title').value, ''); assert.equal(focusInput('Body position X (mm)').value, '1e');
+      assert.equal(focusInput('Uniform amount').value, '-0'); assert.equal(focusInput('Ambient strength').value, '-0');
+      assert.equal(focusInput(vectorLabel).value, '-0'); assert.equal(acceptedHeading(), seed.title); assert.equal(savePayload(), original);
+      assert.match(focusContainer.textContent, /Unapplied draft/); assert(focusInput('Copy accepted material from body').disabled);
+      assert(focusButton('Stage material copy').disabled); assert(focusButton('Duplicate body').disabled); assert(focusButton('Remove body').disabled);
+
+      scenario('hidden errors stay reachable and each correction preserves all other drafts'); // 5.
+      for (const [target, label, value] of [['scene', 'Scene title', editedTitle], ['body', 'Body position X (mm)', '-0'], ['camera', 'Camera eye X', '2']]) {
+        await go(target); await focusEdit(label, value); await go(target === 'scene' ? 'camera' : 'scene');
+        const corrective = draft(); await focusClick('Apply');
+        assert.equal(snapshot(), beforeInvalid); assert.deepEqual(draft(), corrective); assert.equal(presentations, 1);
+      }
+      await go('light'); await focusEdit('Intensity', '.4');
+      const candidateFields = structuredClone(seedFields);
+      candidateFields.title = editedTitle; candidateFields.ambient = '-0'; candidateFields.camera.eye[0] = '2';
+      candidateFields.lights[0].vector[0] = '-0'; candidateFields.lights[0].intensity = '.4';
+      candidateFields.bodies.find(value => value.bodyId === B).position[0] = '-0';
+      candidateFields.materials.find(value => value.target.bodyId === B).uniforms[0].value = '-0';
+      const candidate = api.applyLightFields(seed, candidateFields), correctedDraft = draft(), beforeRefusal = snapshot();
+
+      scenario('refused complete-scene ACK retains hidden fields and pending focus ownership'); // 6.
+      control.wait = new Promise(resolve => {releaseFocus = resolve;}); control.refusal = new Error('Controlled workspace focus refusal');
+      await act(async () => focusButton('Apply').click()); // Viewer 2.
+      assert.equal(snapshot().pending, 'apply'); await assertFocusLocked('refused pending Apply');
+      for (const label of ['Apply', 'Discard', 'Open', 'Save accepted', 'Edit body ' + A]) assert(focusButton(label).disabled, label);
+      assert.equal(acceptedHeading(), seed.title); assert.equal(savePayload(), original);
+      await act(async () => {releaseFocus(); await control.wait;}); control.wait = null; releaseFocus = undefined;
+      assert.equal(presentations, 2); assert.match(focusContainer.textContent, /PRESENTATION_REFUSED/); assert.deepEqual(draft(), correctedDraft);
+      for (const key of ['accepted', 'canUndo', 'canRedo', 'unsaved', 'viewportCamera']) assert.equal(snapshot()[key], beforeRefusal[key], key);
+      assert.deepEqual(control.calls.at(-1), viewedRequest(revised(candidate, seed.revision + 1)));
+      control.refusal = null; for (const target of focusTargets) await go(target);
+
+      scenario('accessible fixed-sibling footer Discard restores all hidden scene fields'); // 7.
+      await go('camera'); focusButton('Discard').focus(); assert.equal(document.activeElement, focusButton('Discard'));
+      await focusClick('Discard'); assert.deepEqual(draft(), cleanBodyDraft); assert.equal(savePayload(), original);
+      assert.equal(snapshot().accepted, baseline.accepted); assert.equal(snapshot().canUndo, false); assert.equal(snapshot().canRedo, false);
+      assert.equal(presentations, 2); assert.equal(acceptedHeading(), seed.title);
+
+      scenario('Help and modal ownership refuse focus and preserve material source'); // 8.
+      await go('body'); await chooseCopySource(A); const beforeModal = snapshot(), modalDraft = draft();
+      await focusClick('Help'); await assertFocusLocked('Help'); await focusClick('Help');
+      await focusClick('Add Surface…'); const dialog = document.querySelector('[data-testid="light-add-dialog"]'); assert(dialog);
+      await assertFocusLocked('Add Surface dialog'); assert(focusInput('Copy accepted material from body').disabled);
+      const cancel = [...dialog.querySelectorAll('button')].find(button => button.textContent.trim() === 'Cancel');
+      assert(cancel && !cancel.disabled); await act(async () => cancel.click());
+      assert.equal(snapshot(), beforeModal); assert.deepEqual(draft(), modalDraft); assert.equal(focusInput('Copy accepted material from body').value, A);
+      assert.equal(presentations, 2); assert.equal(fileChoosers, choosersBefore);
+
+      scenario('one held accepted Apply commits every focused and hidden group together'); // 9.
+      await stageAll(); await go('camera'); const pendingDraft = draft();
+      focusButton('Apply').focus(); assert.equal(document.activeElement, focusButton('Apply'));
+      control.wait = new Promise(resolve => {releaseFocus = resolve;});
+      await act(async () => focusButton('Apply').click()); // Viewer 3.
+      assert.equal(snapshot().pending, 'apply'); await assertFocusLocked('accepted pending Apply');
+      assert.equal(acceptedHeading(), seed.title); assert.equal(savePayload(), original); assert.deepEqual(draft(), pendingDraft);
+      await act(async () => {focusButton('Apply').click(); focusButton('Discard').click(); releaseFocus(); await control.wait;});
+      control.wait = null; releaseFocus = undefined;
+      const accepted = revised(candidate, seed.revision + 1);
+      assert.deepEqual(snapshot().accepted, accepted); assert.equal(presentations, 3); assert(snapshot().canUndo); assert.equal(snapshot().canRedo, false);
+      assert.equal(acceptedHeading(), editedTitle); assert.deepEqual(control.calls.at(-1), viewedRequest(accepted));
+      assert.deepEqual(snapshot().accepted.nativeDocument, seed.nativeDocument); assert.deepEqual(snapshot().accepted.nativeOptions, seed.nativeOptions);
+      assert.deepEqual(snapshot().accepted.surfaceMaterials[0], seed.surfaceMaterials[0]);
+      assert(Object.is(snapshot().accepted.lights.ambientStrength, -0)); assert(Object.is(snapshot().accepted.surfaceMaterials[1].material.uniforms.amount, -0));
+      assert.equal(focusInput('Copy accepted material from body').value, '', 'Acceptance invalidates the old qualified source ticket');
+      assert.equal(focusContainer.querySelector('canvas'), canvas); assert.equal(controller(), originalController); assert.equal(session(), originalSession);
+
+      scenario('Undo and Redo expose exactly one whole-scene history entry'); // 10.
+      await go('light'); await focusClick('Undo'); // Viewer 4.
+      assert.deepEqual(snapshot().accepted, revised(seed, seed.revision + 2)); assert.equal(snapshot().canUndo, false); assert(snapshot().canRedo);
+      assert.equal(acceptedHeading(), seed.title); assert.equal(focusInput('Uniform amount').value, seedFields.materials[1].uniforms[0].value);
+      await go('scene'); await focusClick('Redo'); // Viewer 5.
+      const redone = revised(candidate, seed.revision + 3);
+      assert.deepEqual(snapshot().accepted, redone); assert(snapshot().canUndo); assert.equal(snapshot().canRedo, false);
+      assert.equal(acceptedHeading(), editedTitle); assert.equal(focusInput('Uniform amount').value, '-0'); assert.equal(presentations, 5);
+
+      scenario('Save transports only accepted data while hidden invalid corrections survive'); // 11.
+      await focusEdit('Scene title', 'unsaved corrective title'); await go('body'); await focusEdit('Body position X (mm)', '1e'); await go('light');
+      const unsavedDraft = draft(); transports++; assert(transports <= 2); await focusClick('Save accepted');
+      const savedText = await downloads.at(-1).blob.text(); assert.equal(savedText, api.serializeRenderNativeLightDocument(redone));
+      assert.deepEqual(api.parseRenderNativeLightDocument(savedText), redone); assert.deepEqual(draft(), unsavedDraft);
+      assert.equal(downloads.at(-1).name, seed.documentId + '.light-scene.json'); assert.equal(snapshot().unsaved, false);
+      const detachedFocus = focusButton('Inspect scene'), detachedApply = focusButton('Apply'), detachedField = focusInput('Scene title');
+      await mounted.dispose(); mounted = null; const disposed = originalSession.getSnapshot(); assert(disposed.disposed);
+      await act(async () => {detachedFocus.click(); detachedApply.click(); setFocusInput(detachedField, 'late detached correction');});
+      assert.equal(originalSession.getSnapshot(), disposed); assert.equal(control.disposed, 1);
+
+      scenario('fresh Open fences chooser and recovery with exact accepted fields and no history'); // 12.
+      const reopened = await mountFocus(), reopenedCanvas = focusContainer.querySelector('canvas'), reopenedSession = session();
+      assert.notEqual(reopenedCanvas, canvas); assert.notEqual(reopenedSession, originalSession);
+      transports++; assert(transports <= 2); await focusClick('Open'); await assertFocusLocked('Open chooser');
+      const input = focusInput('Open light scene file'), bytes = new TextEncoder().encode(savedText);
+      Object.defineProperty(input, 'files', {configurable: true, value: [{name: 'focused.light-scene.json', size: bytes.length,
+        arrayBuffer: async () => {fileReads++; return bytes.buffer;}}]});
+      await act(async () => input.dispatchEvent(new dom.window.Event('change', {bubbles: true}))); // Transport 2, Viewer 6.
+      assert.deepEqual(snapshot().accepted, redone); assert.equal(savePayload(), savedText); assert.equal(snapshot().canUndo, false);
+      assert.equal(snapshot().canRedo, false); assert.equal(snapshot().unsaved, false); assert.equal(acceptedHeading(), editedTitle);
+      await focusClick('Edit body ' + B); assertFocus('body'); assert.equal(focusInput('Body position X (mm)').value, '-0');
+      assert.equal(focusInput('Uniform amount').value, '-0'); assert.equal(focusInput('Scene title').value, editedTitle);
+      for (const target of focusTargets) await go(target);
+      const beforeLoss = snapshot(), lostDraft = draft(); reopened.state = 'lost';
+      await act(async () => {await new Promise(resolve => setTimeout(resolve, 350));}); await assertFocusLocked('presentation recovery');
+      assert.equal(snapshot(), beforeLoss); assert.deepEqual(draft(), lostDraft); assert.equal(savePayload(), savedText);
+      assert.equal(focusContainer.querySelector('canvas'), reopenedCanvas); assert.equal(session(), reopenedSession);
+      assert.equal(presentations, 6); assert.equal(transports, 2); assert.equal(fileReads, 1);
+      assert.equal(controls.length - controlsBefore, 2); assert.equal(downloads.length - downloadsBefore, 1); assert.equal(fileChoosers - choosersBefore, 1);
+      assert.equal(cases.length, 12); assert.equal(new Set(cases).size, 12); assert.equal(api.serializeRenderNativeLightDocument(seed), original);
+    } finally {
+      for (const cleanup of [async () => {if (releaseFocus) {await act(async () => releaseFocus()); releaseFocus = undefined;}},
+        async () => {const live = mounted; mounted = null; await live?.dispose();},
+        () => {for (const {control, replace} of focusControls) {control.viewer.replace = replace; control.wait = null; control.refusal = null; control.prepare = null;}}]) {
+        try {await cleanup();} catch (cause) {cleanupErrors.push(cause);}
+      }
+    }
+    assert(focusControls.every(({control}) => control.disposed === 1));
+    assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+    workspaceFocusFlow.push({kind, uiScenarios: cases.length, cases, presentations, saveOpenTransports: transports, lifetimes: 2,
+      historyEntries: 1, stableCanvasSession: true, hiddenDraftValidation: true, acceptedOnlySave: true,
+      proof: 'actual React/field/codec/controller/session; controlled Viewer and DOM transport, no physical layout, pointer/file or GPU proof'});
+  }
+  } finally {
+    for (const cleanup of [() => {confirmation = focusConfirmation; dom.window.setTimeout = originalTimeout;},
+      () => {for (const timer of focusTimers) dom.window.clearTimeout(timer);},
+      () => {for (const url of createdUrls.slice(focusUrlStart)) if (!revokedUrls.includes(url)) URL.revokeObjectURL(url);},
+      () => {navigationDom?.dispose(); navigationDom = null;}]) {
+      try {await cleanup();} catch (cause) {cleanupErrors.push(cause);}
+    }
+  }
+  console.log(JSON.stringify({result: 'PASS', scope: 'Workspace focus: bounded actual React/controller/session flow', sourceLinkedAspectCases: aspectFrames.length, workspaceFocusFlow}));
+  }
+  }
+  // #1947: eight actual UI scenarios, four controlled Viewer attempts, zero file
+  // transports and one lifetime per kind. Older budgets are unchanged; only the
+  // #1944 reachable-field helpers account for the explicit Body task context.
+  if (bodyTasksOnly || (!workspaceFocusOnly && !sceneTitleOnly && !materialCopyOnly && !sourceExportOnly
+    && !bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight)) {
+  const bodyTaskFlow = [], taskContainer = document.getElementById('root'), tasks = ['Move', 'Rotate', 'Scale', 'Material'];
+  const taskButton = label => [...taskContainer.querySelectorAll('button')]
+    .find(node => node.textContent.trim() === label || node.getAttribute('aria-label') === label);
+  const taskInput = label => {const input = taskContainer.querySelector(`[aria-label="${label}"]`); assert(input, label); return input;};
+  const reachable = node => node.isConnected && !node.closest('[hidden]');
+  const taskClick = async label => {const button = taskButton(label); assert(button && !button.disabled && reachable(button), label);
+    await act(async () => button.click());};
+  const setTaskInput = (input, value) => {
+    Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value').set.call(input, value);
+    input.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  };
+  const taskEdit = async (label, value) => {const input = taskInput(label); assert(!input.disabled && reachable(input), label);
+    await act(async () => setTaskInput(input, value));};
+  const taskSelect = async (label, value) => {const input = taskInput(label); assert(!input.disabled && reachable(input), label);
+    await act(async () => {input.value = value; input.dispatchEvent(new dom.window.Event('change', {bubbles: true}));});};
+  const taskCommand = name => taskButton('Edit body ' + name);
+  const selectedBody = () => [...taskInput('Scene bodies').querySelectorAll('button[aria-pressed]')]
+    .find(button => button.getAttribute('aria-pressed') === 'true')?.getAttribute('aria-label').slice(10);
+  const taskSections = () => [
+    ['Body overview', taskInput('Body overview')], ['Move', taskInput('Body position X (mm)').closest('fieldset')],
+    ['Rotate', taskInput('Rotate by (degrees)').closest('fieldset')], ['Scale', taskInput('Body scale X').closest('fieldset')],
+    ['Material', taskInput('Body material')], ['Rotate', taskInput('Body rotation XYZW').closest('details')],
+  ];
+  const activeTask = () => taskInput('Active body task').textContent.trim();
+  const assertTask = expected => {
+    assert.equal(taskButton('Inspect body').getAttribute('aria-pressed'), 'true');
+    assert.equal(activeTask(), expected);
+    assert.equal(taskInput('Light inspector').querySelector('header h2').textContent,
+      taskButton('Edit body ' + selectedBody()).firstChild.textContent, 'Selected body remains clearly labeled');
+    for (const [name, section] of taskSections()) {
+      assert(section?.isConnected, name + ': every task group stays mounted');
+      assert.equal(reachable(section), name === expected, name + ': only the active task is exposed');
+    }
+    for (const name of tasks) {
+      assert(reachable(taskCommand(name)), name + ': visible task command');
+      assert.equal(taskCommand(name).getAttribute('aria-pressed'), String(name === expected));
+    }
+    assert.equal(reachable(taskButton('Back to body overview')), expected !== 'Body overview');
+  };
+  const taskRaw = () => ({fields: api.readLightWorkbenchFlowDraft(taskContainer),
+    axis: taskInput('Rotation axis').value, frame: taskInput('Rotation frame').value,
+    quaternion: taskInput('Body rotation XYZW').textContent});
+  const taskAppearance = request => api.prepareViewerNativeSceneAppearance({version: 1, source: request.source, display: request.display,
+    appearance: {lighting: {ambientStrength: 1, directionalStrength: 0, direction: [0, 0, 1]}, materials: request.materials}}, request.context);
+  navigationDom?.dispose(); navigationDom = api.installLightNavigationFlowDom();
+  for (const kind of ['directional', 'point']) {
+    // The existing two-body seed already includes Surface B's scalar amount material.
+    const seed = api.createLightStudy(sourceText, kind), original = api.serializeRenderNativeLightDocument(seed);
+    const seedFields = api.readLightFields(seed), A = 'body_preview_a', B = 'body_preview_b';
+    const cases = [], controlsBefore = controls.length, controllersBefore = flowControllers.length;
+    const downloadsBefore = downloads.length, choosersBefore = fileChoosers, urlsBefore = createdUrls.length;
+    let presentations = 0, control, replace, releaseTask;
+    activeSurfaceLedger = {feature: 'body-tasks', kind, cases, get presentations() {return presentations;},
+      saveOpenTransports: 0, get lifetimes() {return controls.length - controlsBefore;}};
+    const scenario = label => {cases.push(label); assert(cases.length <= 8, kind + ': eight Body-task UI scenarios');};
+    const controller = () => flowControllers.at(-1), session = () => controller().getSession(), snapshot = () => session().getSnapshot();
+    const saved = () => session().getSavePayload().text;
+    const revised = (document, revision) => ({...document, revision, lights: {...document.lights, revision}});
+    const row = (fields, bodyId) => fields.bodies.find(body => body.bodyId === bodyId);
+    try {
+      mounted = await api.mountLightWorkbenchFlow(taskContainer, seed); control = controls.at(-1); replace = control.viewer.replace;
+      control.prepare = taskAppearance;
+      control.viewer.replace = request => {presentations++; assert(presentations <= 4, kind + ': four Body-task Viewer attempts'); return replace(request);};
+      const originalController = controller(), originalSession = session(), canvas = taskContainer.querySelector('canvas');
+      const baseline = snapshot(), originalView = baseline.viewportCamera;
+      const stable = () => {
+        assert.equal(controller(), originalController); assert.equal(session(), originalSession);
+        assert.equal(taskContainer.querySelector('canvas'), canvas); assert(canvas.isConnected);
+        assert.equal(snapshot().viewportCamera, originalView);
+        assert.equal(controls.length - controlsBefore, 1); assert.equal(flowControllers.length - controllersBefore, 1);
+      };
+      const switchTask = async name => {
+        const before = snapshot(), raw = taskRaw(), body = selectedBody(), calls = presentations;
+        const fields = [...taskInput('Inspector fields').querySelectorAll('input, select, fieldset, details')];
+        await taskClick('Edit body ' + name); assertTask(name); stable();
+        assert.equal(snapshot(), before); assert.deepEqual(taskRaw(), raw); assert.equal(selectedBody(), body); assert.equal(presentations, calls);
+        const afterFields = [...taskInput('Inspector fields').querySelectorAll('input, select, fieldset, details')];
+        assert.equal(afterFields.length, fields.length);
+        fields.forEach((field, index) => assert.equal(afterFields[index], field, 'Task switches preserve the actual mounted controls'));
+      };
+      const back = async name => {
+        const before = snapshot(), raw = taskRaw(), calls = presentations;
+        taskButton('Back to body overview').focus(); await taskClick('Back to body overview');
+        assertTask('Body overview'); assert.equal(document.activeElement, taskCommand(name));
+        assert.equal(snapshot(), before); assert.deepEqual(taskRaw(), raw); assert.equal(presentations, calls); stable();
+      };
+      const selectBody = async bodyId => {const before = snapshot(), calls = presentations;
+        await taskClick('Edit body ' + bodyId); assert.equal(selectedBody(), bodyId);
+        assert.equal(snapshot(), before); assert.equal(presentations, calls); stable();};
+      const locked = async label => {
+        const before = snapshot(), raw = taskRaw(), task = activeTask(), body = selectedBody(), calls = presentations;
+        for (const name of tasks) assert(taskCommand(name).disabled, label + ': ' + name);
+        assert(taskButton('Back to body overview').disabled, label + ': Back');
+        await act(async () => {for (const name of tasks) taskCommand(name).click(); taskButton('Back to body overview').click();});
+        assert.equal(activeTask(), task); assert.equal(selectedBody(), body); assert.equal(snapshot(), before);
+        assert.deepEqual(taskRaw(), raw); assert.equal(presentations, calls); stable();
+      };
+
+      scenario('overview commands, mounted groups and fixed whole-scene footer retain Canvas/session'); // 1.
+      assertTask('Body overview'); assert.equal(selectedBody(), A);
+      const inspector = taskInput('Light inspector'), header = inspector.querySelector('header');
+      const footer = taskInput('Whole-scene draft actions'), fields = taskInput('Inspector fields');
+      assert(header.contains(taskInput('Body editing tasks'))); assert.equal(taskInput('Body editing tasks').getAttribute('role'), 'group');
+      assert.equal(header.querySelector('h2').textContent, 'Surface A');
+      for (const name of tasks) {assert(header.contains(taskCommand(name))); assert.equal(taskCommand(name).tagName, 'BUTTON'); assert(taskCommand(name).tabIndex >= 0);}
+      for (const name of ['Stage reset transform', 'Export accepted CAD source']) assert(taskInput('Body overview').contains(taskButton(name)) && reachable(taskButton(name)));
+      assert.equal(footer.parentElement, inspector); assert.equal(fields.nextElementSibling, footer);
+      assert.match(footer.textContent, /Apply and Discard affect all scene drafts, including hidden sections/);
+      for (const name of ['Apply', 'Discard']) assert(footer.contains(taskButton(name)));
+      assert.equal(saved(), original); assert.equal(presentations, 0); stable();
+
+      scenario('actual point dialog and synchronous Help/navigation ownership fence task routing'); // 2.
+      await selectBody(B); await switchTask('Move');
+      const dialogSnapshot = snapshot(), dialogDraft = taskRaw(), staleTask = taskCommand('Scale');
+      await act(async () => {taskButton('Edit control point…').click(); staleTask.click();});
+      const dialog = document.querySelector('[data-testid="light-point-dialog"]'); assert(dialog);
+      assertTask('Move'); await locked('existing point dialog');
+      assert.equal(taskInput('Body position X (mm)').disabled, true); assert(taskButton('Edit body ' + A).disabled);
+      const pointX = dialog.querySelector('[aria-label="Control point X in source mm"]'); assert(pointX && !pointX.disabled);
+      const cancel = [...dialog.querySelectorAll('button')].find(button => button.textContent.trim() === 'Cancel');
+      assert(cancel && !cancel.disabled); await act(async () => cancel.click());
+      assert.equal(document.querySelector('[data-testid="light-point-dialog"]'), null);
+      assert.equal(snapshot(), dialogSnapshot); assert.deepEqual(taskRaw(), dialogDraft); assertTask('Move');
+      await taskClick('Help'); await locked('Help'); await taskClick('Help');
+      await act(async () => {navigationDom.pointer(canvas, 'pointerdown', 140, 125); taskCommand('Scale').click();});
+      assertTask('Move'); await locked('active navigation');
+      await act(async () => navigationDom.pointer(canvas, 'pointercancel', 140, 125));
+      assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+      assert.equal(snapshot(), baseline); assert.equal(presentations, 0);
+
+      scenario('each task and Back retain exact raw fields, rotation commands and unrelated light edits'); // 3.
+      await taskEdit('Body position X (mm)', '+925.00'); await back('Move');
+      await switchTask('Scale'); await taskEdit('Body scale X', '1.200'); await back('Scale');
+      await switchTask('Rotate'); await taskSelect('Rotation axis', 'x'); await taskSelect('Rotation frame', 'world');
+      await taskEdit('Rotate by (degrees)', '1e');
+      assert.equal(taskInput('Body rotation XYZW').textContent, row(seedFields, B).rotation.join(', ')); await back('Rotate');
+      await switchTask('Material'); await taskEdit('Uniform amount', '.600'); await back('Material');
+      for (const name of tasks) {await switchTask(name); await back(name);}
+      await taskClick('Inspect light'); await taskEdit('Intensity', '.4');
+      const hiddenRaw = taskRaw(), hiddenSnapshot = snapshot();
+      for (const [, section] of taskSections()) assert(!reachable(section));
+      await taskClick('Inspect body'); assertTask('Body overview'); assert.deepEqual(taskRaw(), hiddenRaw); assert.equal(snapshot(), hiddenSnapshot);
+      assert.equal(taskInput('Body position X (mm)').value, '+925.00'); assert.equal(taskInput('Body scale X').value, '1.200');
+      assert.equal(taskInput('Rotate by (degrees)').value, '1e'); assert.equal(taskInput('Uniform amount').value, '.600');
+      assert.equal(taskInput('Intensity').value, '.4'); assert.equal(presentations, 0); stable();
+
+      scenario('actual selection resets overview, preserves per-body drafts and evacuates hidden focus'); // 4.
+      await switchTask('Move'); const bodyField = taskInput('Body position X (mm)'); bodyField.focus();
+      await selectBody(A); assertTask('Body overview');
+      assert.equal(document.activeElement, header.querySelector('h2')); assert(reachable(document.activeElement));
+      await switchTask('Move'); await taskEdit('Body position X (mm)', '-875.00');
+      await switchTask('Rotate'); await taskSelect('Rotation axis', 'z'); await taskSelect('Rotation frame', 'local');
+      await taskEdit('Rotate by (degrees)', '-045.00'); taskInput('Rotate by (degrees)').focus();
+      const oldSelectionTask = taskCommand('Scale');
+      await act(async () => {taskButton('Edit body ' + B).click(); oldSelectionTask.click();});
+      assertTask('Body overview'); assert.equal(selectedBody(), B); assert.equal(document.activeElement, header.querySelector('h2'));
+      assert.equal(taskInput('Body position X (mm)').value, '+925.00'); assert.equal(taskInput('Body scale X').value, '1.200');
+      assert.equal(taskInput('Uniform amount').value, '.600'); assert.equal(taskInput('Rotate by (degrees)').value, '1e');
+      assert.equal(taskInput('Rotation axis').value, 'x'); assert.equal(taskInput('Rotation frame').value, 'world');
+      await switchTask('Rotate'); const sameBodyRaw = taskRaw(); await selectBody(B); assertTask('Rotate'); assert.deepEqual(taskRaw(), sameBodyRaw);
+      await selectBody(A); assertTask('Body overview'); assert.equal(taskInput('Body position X (mm)').value, '-875.00');
+      assert.equal(taskInput('Rotate by (degrees)').value, '-045.00'); assert.equal(taskInput('Rotation axis').value, 'z');
+      await selectBody(B); assertTask('Body overview'); assert.equal(snapshot(), baseline); stable();
+
+      scenario('hidden invalid drafts retain provider errors and visible Move/Scale/Material correction routes'); // 5.
+      for (const [name, label] of [['Move', 'Body position X (mm)'], ['Scale', 'Body scale X'], ['Material', 'Uniform amount']]) {
+        await switchTask(name); await taskEdit(label, '1e');
+      }
+      await selectBody(A); assertTask('Body overview');
+      const beforeInvalid = snapshot(); await taskClick('Apply');
+      assert.equal(snapshot(), beforeInvalid); assert.equal(presentations, 0); assert.equal(saved(), original);
+      assert.match(taskContainer.textContent, /DOCUMENT_INPUT: Body position requires a finite decimal number\./);
+      const routes = taskInput('Body draft correction routes'); assert(reachable(routes)); assert(footer.contains(routes));
+      assert.match(routes.textContent, /Select the body to correct in Scene bodies/);
+      for (const name of ['Move', 'Scale', 'Material']) assert(routes.contains(taskButton('Review body ' + name)) && reachable(taskButton('Review body ' + name)));
+      await selectBody(B); assert.equal(taskInput('Body position X (mm)').value, '1e');
+      for (const [name, label, value, error] of [['Move', 'Body position X (mm)', '+925.00', 'Body position'],
+        ['Scale', 'Body scale X', '1.200', 'Body scale'], ['Material', 'Uniform amount', '.600', 'Uniform amount']]) {
+        assert.match(taskContainer.textContent, new RegExp('DOCUMENT_INPUT: ' + error + ' requires a finite decimal number\\.'));
+        await taskClick('Review body ' + name); assertTask(name); assert.equal(taskInput(label).value, '1e');
+        await taskEdit(label, value); await back(name);
+        if (name !== 'Material') {await taskClick('Apply'); assert.equal(snapshot(), beforeInvalid); assert.equal(presentations, 0);}
+      }
+      assert.equal(taskInput('Intensity').value, '.4'); assert.equal(taskInput('Rotate by (degrees)').value, '1e');
+      await switchTask('Rotate'); await taskEdit('Rotate by (degrees)', '+090.0'); await taskClick('Stage rotation');
+      const candidateFields = structuredClone(seedFields); row(candidateFields, A).position[0] = '-875.00';
+      row(candidateFields, B).position[0] = '+925.00'; row(candidateFields, B).scale[0] = '1.200';
+      candidateFields.materials.find(material => material.target.bodyId === B).uniforms[0].value = '.600'; candidateFields.lights[0].intensity = '.4';
+      const rotatedFields = api.stageLightBodyRotation(seed, candidateFields, B, 'x', 'world', '+090.0');
+      const candidate = api.applyLightFields(seed, rotatedFields);
+      assert.equal(taskInput('Body rotation XYZW').textContent, row(rotatedFields, B).rotation.join(', '));
+      assert.equal(snapshot(), beforeInvalid); assert.equal(presentations, 0);
+
+      scenario('held ready refusal fences same-turn task routing and preserves the complete corrective draft'); // 6.
+      const beforeRefusal = snapshot(), refusedRaw = taskRaw(), pendingCommand = taskCommand('Material');
+      control.wait = new Promise(resolve => {releaseTask = resolve;}); control.refusal = new Error('Controlled Body task ready refusal');
+      await act(async () => {taskButton('Apply').click(); pendingCommand.click(); taskButton('Back to body overview').click();}); // Viewer 1.
+      assert.equal(snapshot().pending, 'apply'); assertTask('Rotate'); await locked('held Apply');
+      for (const name of ['Apply', 'Discard', 'Open', 'Save accepted', 'Edit control point…', 'Edit body ' + A]) assert(taskButton(name).disabled, name);
+      assert.deepEqual(taskRaw(), refusedRaw); assert.equal(saved(), original); assert.equal(snapshot().accepted, baseline.accepted);
+      await act(async () => {releaseTask(); await control.wait;}); control.wait = null; releaseTask = undefined;
+      assert.match(taskContainer.textContent, /PRESENTATION_REFUSED/); assert.deepEqual(taskRaw(), refusedRaw); assertTask('Rotate');
+      for (const key of ['accepted', 'canUndo', 'canRedo', 'unsaved', 'viewportCamera']) assert.equal(snapshot()[key], beforeRefusal[key], key);
+      assert.equal(presentations, 1); assert.deepEqual(control.calls.at(-1), api.createRenderNativeLightRequest(revised(candidate, seed.revision + 1)));
+      control.refusal = null; await back('Rotate'); stable();
+
+      scenario('one whole-scene Apply plus Undo/Redo acknowledges body, material and unrelated light changes together'); // 7.
+      await taskClick('Inspect light'); await taskClick('Apply'); // Viewer 2.
+      const accepted = revised(candidate, seed.revision + 1);
+      assert.deepEqual(snapshot().accepted, accepted); assert(snapshot().canUndo); assert.equal(snapshot().canRedo, false);
+      assert.deepEqual(control.calls.at(-1), api.createRenderNativeLightRequest(accepted)); assert.equal(presentations, 2);
+      assert.deepEqual(accepted.nativeDocument, seed.nativeDocument); assert.deepEqual(accepted.nativeOptions, seed.nativeOptions);
+      assert.deepEqual(accepted.display.camera, seed.display.camera); assert.deepEqual(accepted.surfaceMaterials[0], seed.surfaceMaterials[0]);
+      assert.equal(accepted.lights.lights[0].intensity, .4); assert.equal(accepted.surfaceMaterials[1].material.uniforms.amount, .6);
+      await taskClick('Inspect body'); assertTask('Body overview'); await switchTask('Material');
+      await taskClick('Undo'); // Viewer 3.
+      assert.deepEqual(snapshot().accepted, revised(seed, seed.revision + 2)); assert.equal(snapshot().canUndo, false); assert(snapshot().canRedo);
+      assert.equal(taskInput('Uniform amount').value, seedFields.materials.find(material => material.target.bodyId === B).uniforms[0].value);
+      assert.equal(taskInput('Body rotation XYZW').textContent, row(seedFields, B).rotation.join(', '));
+      await back('Material'); await taskClick('Redo'); // Viewer 4.
+      const redone = revised(candidate, seed.revision + 3);
+      assert.deepEqual(snapshot().accepted, redone); assert(snapshot().canUndo); assert.equal(snapshot().canRedo, false);
+      assert.equal(taskInput('Body rotation XYZW').textContent, row(rotatedFields, B).rotation.join(', '));
+      assert.equal(taskInput('Uniform amount').value, '0.6'); assert.equal(taskInput('Intensity').value, '0.4');
+      assert.equal(presentations, 4); assert.equal(saved(), api.serializeRenderNativeLightDocument(redone)); stable();
+
+      scenario('lost presentation and disposal retain accepted ownership without another lifetime or transport'); // 8.
+      await switchTask('Move'); await taskEdit('Body position X (mm)', '1e');
+      const lossRaw = taskRaw(), beforeLoss = snapshot(); control.state = 'lost';
+      await act(async () => {await new Promise(resolve => setTimeout(resolve, 350));});
+      await locked('lost presentation'); assert.match(taskContainer.textContent, /Presentation unavailable \(lost\)/);
+      assert.equal(snapshot(), beforeLoss); assert.deepEqual(taskRaw(), lossRaw); assert.equal(saved(), api.serializeRenderNativeLightDocument(redone));
+      const detachedTask = taskCommand('Scale'), detachedBack = taskButton('Back to body overview'), detachedApply = taskButton('Apply');
+      await mounted.dispose(); mounted = null; const disposed = originalSession.getSnapshot(); assert(disposed.disposed);
+      await act(async () => {detachedTask.click(); detachedBack.click(); detachedApply.click();});
+      assert.equal(originalSession.getSnapshot(), disposed); assert.equal(control.disposed, 1);
+      assert.equal(presentations, 4); assert.equal(control.calls.length, 4); assert.equal(controls.length - controlsBefore, 1);
+      assert.equal(downloads.length, downloadsBefore); assert.equal(fileChoosers, choosersBefore); assert.equal(createdUrls.length, urlsBefore);
+      assert.equal(cases.length, 8); assert.equal(new Set(cases).size, 8); assert.equal(api.serializeRenderNativeLightDocument(seed), original);
+    } finally {
+      for (const cleanup of [async () => {if (releaseTask) {await act(async () => releaseTask()); releaseTask = undefined;}},
+        async () => {const live = mounted; mounted = null; await live?.dispose();},
+        () => {if (control) {control.viewer.replace = replace; control.wait = null; control.refusal = null; control.prepare = null;}}]) {
+        try {await cleanup();} catch (cause) {cleanupErrors.push(cause);}
+      }
+    }
+    assert.equal(control.disposed, 1); assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+    bodyTaskFlow.push({kind, uiScenarios: cases.length, cases, presentations, saveOpenTransports: 0, lifetimes: 1,
+      historyEntries: 1, stableCanvasSession: true, hiddenDraftValidation: true, keyboardFocus: true, actualPointDialogFence: true,
+      proof: 'actual React/fields/codec/controller/session; controlled Viewer and DOM, no physical CSS/pointer/file or GPU proof'});
+  }
+  navigationDom.dispose(); navigationDom = null;
+  console.log(JSON.stringify({result: 'PASS', scope: 'Body task commands: bounded actual React/controller/session flow', bodyTaskFlow}));
+  }
+} catch (cause) {failed = true; firstError = cause; console.error('Original Light flow failure:', cause); console.error('Active Surface ledger:', JSON.stringify(activeSurfaceLedger));}
 finally {
-  for (const cleanup of [() => mounted?.dispose(), () => navigationDom?.dispose(), () => {
+  for (const cleanup of [() => mounted?.dispose(), async () => {
+    // Radix restores focus in a deferred task. Keep the original DOM realm alive
+    // until that cleanup has dispatched, before restoring global constructors.
+    await new Promise(resolve => setTimeout(resolve, 0));
+  }, () => navigationDom?.dispose(), () => {
     if (previousControllerObserver) Object.defineProperty(globalThis, '__observeLightFlowController', previousControllerObserver);
     else Reflect.deleteProperty(globalThis, '__observeLightFlowController');
-  }, () => dom.window.close(), () => rm(output, {recursive: true, force: true})]) {
+  }, () => dom.window.close(), () => {
+    for (const [name, descriptor] of previousDomGlobals) {if (descriptor) Object.defineProperty(globalThis, name, descriptor); else Reflect.deleteProperty(globalThis, name);}
+  }, () => rm(output, {recursive: true, force: true})]) {
     try {await cleanup();} catch (cause) {cleanupErrors.push(cause);}
   }
 }

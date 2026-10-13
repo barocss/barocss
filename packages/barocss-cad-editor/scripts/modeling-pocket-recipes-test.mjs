@@ -16,4 +16,21 @@ assert.equal(classify(true,data),true);assert.equal(classify(false,data),false);
 const changes=[d=>d.nodes[0].max[0]=40,d=>d.nodes[2].min[0].parameter='other',d=>d.nodes[2].max[1].right.parameter='toolWidth',d=>d.nodes[3].height.parameter='toolX',d=>d.nodes[4].parent.node=3,d=>d.nodes[4].kind='union'];
 for(const change of changes){const wrong=structuredClone(data);change(wrong);assert.equal(classify(true,wrong),false);}
 for(const change of [d=>d.outputs={part:d.outputs.part},d=>d.outputs={...d.outputs,result:d.outputs.part},d=>d.outputs.plate.node=3,d=>d.outputs.tool.side='negative']){const wrong=structuredClone(data);change(wrong);assert.equal(notice(true,wrong),false);}
-const hash=p=>createHash('sha256').update(readFileSync(p)).digest('hex'),result={ok:true,calls:12,actualUILabelChecks:14,editorSHA256:hash(engine),downloadSHA256:hash(download),providerFixtureSHA256:hash(fixture),nativeCalls:0,scope:'exact editor/download/provider call and output equality, including signed zero'};writeFileSync(resolve(out,'result.json'),JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result));
+// Imported extrusion origins must not inherit the omitted-origin underside label.
+const originCases = [
+  ['offset cutter', d => d.nodes[3].from = 4],
+  ['offset plate', d => d.nodes[1].from = 2],
+  ['both offset', d => { d.nodes[1].from = 2; d.nodes[3].from = 4; }],
+  ['parameter origin', d => d.nodes[3].from = { parameter: 'toolX' }],
+  ['derived origin', d => d.nodes[3].from = { op: 'add', left: 2, right: 2 }],
+  ['explicit cutter zero', d => d.nodes[3].from = 0],
+  ['explicit plate zero', d => d.nodes[1].from = 0],
+  ['explicit negative zero', d => d.nodes[3].from = -0],
+];
+for (const [name, change] of originCases) {
+  const imported = structuredClone(data); change(imported);
+  const friendly = classify(true, imported);
+  assert.equal(friendly, false, `${name} must retain generic numeric labels`);
+  assert.equal(notice(friendly, imported), false, `${name} must not claim preset output semantics`);
+}
+const hash=p=>createHash('sha256').update(readFileSync(p)).digest('hex'),result={ok:true,calls:12,actualUILabelChecks:30,originalUILabelChecks:14,offsetOriginChecks:16,editorSHA256:hash(engine),downloadSHA256:hash(download),providerFixtureSHA256:hash(fixture),nativeCalls:0,scope:'exact editor/download/provider call and output equality, including signed zero'};writeFileSync(resolve(out,'result.json'),JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result));

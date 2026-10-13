@@ -34,6 +34,7 @@ export async function createNativeDirectionalLightWebGPUViewer(canvas: HTMLCanva
   try { backend = await mountNativeDirectionalLightWebGPUViewport(canvas, current.gpuRequest, options); }
   catch (cause) { throw gpuError(cause); }
   try {
+    if (backend.status.state !== 'ready') refuse('STATE', 'WebGPU became unavailable during mount');
     let lock: object | null = null, epoch = 0, disposed = false;
     const enter = (): object => {
       if (disposed) refuse('DISPOSED', 'Viewer is disposed');
@@ -42,8 +43,12 @@ export async function createNativeDirectionalLightWebGPUViewer(canvas: HTMLCanva
       const token = {}; lock = token; return token;
     };
     const leave = (token: object | undefined): void => { if (token && lock === token) lock = null; };
-    const check = (started: number): void => {
+    const checkEpoch = (started: number): void => {
       if (disposed || epoch !== started) refuse('DISPOSED', 'Viewer was disposed during the operation');
+    };
+    const check = (started: number): void => {
+      checkEpoch(started);
+      if (backend.status.state !== 'ready') refuse('STATE', 'WebGPU became unavailable during the operation');
     };
     const viewer: ViewerNativeDirectionalLightWebGPU = {
       canvas,
@@ -59,8 +64,9 @@ export async function createNativeDirectionalLightWebGPUViewer(canvas: HTMLCanva
           let result: UpdateResult;
           try { result = await backend.updateFrame(candidate.gpuRequest); }
           catch (cause) { throw gpuError(cause); }
-          check(started);
+          checkEpoch(started);
           if (!result.ok) throw gpuError(result.error);
+          check(started);
           // All copies, maps, selection and metadata were completed before presentation.
           current = candidate;
           return success;
@@ -76,8 +82,9 @@ export async function createNativeDirectionalLightWebGPUViewer(canvas: HTMLCanva
           let result: UpdateResult;
           try { result = await backend.resize(width, height); }
           catch (cause) { throw gpuError(cause); }
-          check(started);
+          checkEpoch(started);
           if (!result.ok) throw gpuError(result.error);
+          check(started);
           current = candidate;
           return success;
         } catch (cause) { return failure(cause); }
@@ -124,6 +131,7 @@ export async function createNativeDirectionalLightWebGPUViewer(canvas: HTMLCanva
           const result = backend.select(selected && selected.kind === 'surface'
             ? { modelId: selected.modelId, geometryId: selected.surfaceId } : null);
           if (!result.ok) throw gpuError(result.error);
+          if (backend.status.state !== 'ready') refuse('STATE', 'WebGPU became unavailable during selection');
           current = candidate;
           return success;
         } catch (cause) { return failure(cause); }

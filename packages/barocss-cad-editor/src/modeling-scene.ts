@@ -1,3 +1,5 @@
+import { validateModelingComposition } from './modeling-composition.js';
+import type { ModelingCompositionDisplayComponent, ModelingCompositionPanel } from './modeling-composition.js';
 import { validateModelingCircle } from './modeling-circle.js';
 import type { ModelingCircleDisplayComponent } from './modeling-circle.js';
 import { validateModelingUnion } from './modeling-union.js';
@@ -27,7 +29,7 @@ export interface ModelingHoleDisplayComponent {
 }
 export interface ModelingBodyDisplayPacket {
   profile: 'model-body-faces'; documentId: string; revision: number; taskToken: string;
-  components: ({ family: 'convex-planar'; component: PrismDisplayComponent } | ModelingHoleDisplayComponent | ModelingUnionDisplayComponent | ModelingCircleDisplayComponent)[];
+  components: ({ family: 'convex-planar'; component: PrismDisplayComponent } | ModelingHoleDisplayComponent | ModelingUnionDisplayComponent | ModelingCircleDisplayComponent | ModelingCompositionDisplayComponent)[];
   outcomes: { role: string; solidId: string; family: 'convex-planar' | 'stored-rational-plate-hole' | 'orthogonal-cell' | 'stored-rational-circle-prism'; status: 'solid' }[];
 }
 export type ModelingDisplayPacket = PrismDisplayPacket | ModelingBodyDisplayPacket;
@@ -40,7 +42,7 @@ export interface ModelingHoleFaceSelection {
 }
 export interface ModelingUnionFaceSelection {
   family: 'orthogonal-cell'; documentId: string; revision: number; role: string; solidId: string;
-  reference: KernelFaceReference; provenance: ModelingUnionPanel; lineage: ModelingUnionDisplayComponent['lineage'];
+  reference: KernelFaceReference; provenance: ModelingUnionPanel | ModelingCompositionPanel; lineage: ModelingUnionDisplayComponent['lineage'] | ModelingCompositionDisplayComponent['lineage'];
   triangleIndex: number; approximate: true;
 }
 export interface ModelingCircleFaceSelection {
@@ -300,7 +302,9 @@ export function prepareModelingScene(input: ModelingDisplayPacket, aspect = 1, s
       nativeFaces.set(outcome.role, prepared); scenes.set(outcome.role, sceneForNative(component, prepared, aspect));
     } else if (component.family === 'orthogonal-cell') {
       check(component.role === outcome.role && component.solidId === outcome.solidId, 'orthogonal output identity required');
-      validateModelingUnion(component);
+      if (component.qualification.schema === 'barocss-orthogonal-solid-boolean')
+        validateModelingComposition(component as ModelingCompositionDisplayComponent);
+      else validateModelingUnion(component as ModelingUnionDisplayComponent);
       const context = component.mesh.context;
       check(context.documentId === packet.documentId && context.bodyId === component.solidId && context.taskToken === packet.taskToken
         && context.documentRevision === String(packet.revision) && context.kernelResultRevision === String(packet.revision)

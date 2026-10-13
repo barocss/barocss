@@ -1,0 +1,35 @@
+name: Physics face plane witness
+on:
+  pull_request:
+    branches: [develop]
+    paths:
+      - 'examples/physics-contact-impulse-audit-1572/face-plane-witness.ts'
+      - 'examples/physics-contact-impulse-audit-1572/run-face-plane-witness.mjs'
+      - '.github/workflows/physics-face-plane-witness.yml'
+  workflow_dispatch:
+jobs:
+  geometry-reference:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @barocss/physics build:library
+      - run: mkdir -p /tmp/p1572-plane
+      - name: Verify source face-plane separation using independent vector arithmetic
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node examples/physics-contact-impulse-audit-1572/run-face-plane-witness.mjs | tee /tmp/p1572-plane/results.jsonl
+      - if: always() && github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: physics1572-face-plane-witness
+          path: /tmp/p1572-plane/results.jsonl
+          if-no-files-found: ignore

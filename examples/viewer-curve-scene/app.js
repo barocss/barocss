@@ -121,5 +121,49 @@ canvas.addEventListener('click', event => {
   else describe('No visible geometry near this point.');
 });
 
+// Opt-in real-browser timing probe. It never changes the accepted scene or selection.
+function benchmarkCurvePicking({ repetitions = 3, columns = 8, rows = 6 } = {}) {
+  if (!Number.isSafeInteger(repetitions) || repetitions < 1 || repetitions > 10
+      || !Number.isSafeInteger(columns) || columns < 1 || columns > 32
+      || !Number.isSafeInteger(rows) || rows < 1 || rows > 32)
+    throw new RangeError('Benchmark counts must be positive bounded integers');
+  const stateBefore = viewer.getState();
+  if (stateBefore.status !== 'ready') throw new Error('Load a ready Curve scene first');
+  const rect = canvas.getBoundingClientRect();
+  if (rect.width <= 0 || rect.height <= 0) throw new Error('Canvas must have CSS dimensions');
+  const points = Array.from({ length: rows * columns }, (_, index) => ({
+    xCss: (index % columns + 0.5) * rect.width / columns,
+    yCss: (Math.floor(index / columns) + 0.5) * rect.height / rows,
+  }));
+  const signature = hit => hit === null ? 'none' : hit.kind === 'curve'
+    ? ['curve', hit.ref.modelId, hit.ref.curveId, hit.segmentIndex,
+      hit.parameterApprox, hit.screenDistancePx, hit.ambiguous].join('|')
+    : ['surface', hit.ref.modelId, hit.ref.surfaceId, hit.ambiguous].join('|');
+  const scan = () => points.map(point => signature(viewer.pickGeometry(point, { kinds: ['curve'] })));
+  // Warm up outside timing. Every subsequent scan must return identical results.
+  const expected = scan(), timingsMs = [];
+  for (let iteration = 0; iteration < repetitions; iteration++) {
+    const start = performance.now();
+    const actual = scan();
+    timingsMs.push(performance.now() - start);
+    if (actual.length !== expected.length || actual.some((value, i) => value !== expected[i]))
+      throw new Error('Curve picks changed between equivalent benchmark scans');
+  }
+  const stateAfter = viewer.getState();
+  if (JSON.stringify(stateBefore) !== JSON.stringify(stateAfter))
+    throw new Error('Benchmark unexpectedly modified Viewer accepted state');
+  const sorted = [...timingsMs].sort((a, b) => a - b);
+  return Object.freeze({
+    sampleVersion: stateBefore.curveSampleVersion,
+    curveCount: stateBefore.curves.length,
+    canvasCss: [rect.width, rect.height],
+    pointsPerScan: points.length,
+    hits: expected.filter(value => value !== 'none').length,
+    repetitions, timingsMs,
+    medianMs: sorted[Math.floor(sorted.length / 2)],
+    // Timing measures the current build only, not old-versus-new speedup.
+    note: 'Browser-local timing; same-build determinism only; not a baseline comparison',
+  });
+}
 window.viewerCurveDemo = { viewer, createViewer, lightingInput, sources, options, wideOptions, load, loadUrl, describe,
-  get lastHit() { return lastHit; } };
+  benchmarkCurvePicking, get lastHit() { return lastHit; } };

@@ -129,3 +129,23 @@ test('dispose invalidates outstanding Native preview, is idempotent, preserves o
   assert.equal(other.accept(next.token).revision, 1, 'disposing one session must not affect another');
   other.dispose();
 });
+
+test('disposed session always rejects malformed, forged and replayed tickets before inspecting input', { timeout: 180000 }, () => {
+  const session = createNativeExtrusionPreviewAcceptanceV1(authored(), options, 'extrusion_feature');
+  const pending = session.prepareDistanceMM(3);
+  session.dispose();
+  let reads = 0;
+  const hostile = Object.defineProperty({}, 'kind', {
+    get() { reads++; throw new Error('host getter must not run'); },
+  });
+  for (const operation of [
+    () => session.prepareDistanceMM(NaN),
+    () => session.prepareDistanceMM(hostile),
+    () => session.accept(hostile),
+    () => session.cancel(hostile),
+    () => session.accept(pending.token),
+    () => session.cancel(pending.token),
+    () => session.accept(Object.freeze({ kind: 'native-extrusion-preview-token' })),
+  ]) assert.throws(operation, /DISPOSED/);
+  assert.equal(reads, 0, 'closed session must not invoke external getters');
+});

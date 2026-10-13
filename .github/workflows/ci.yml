@@ -2,45 +2,198 @@ name: CI
 
 on:
   push:
-    branches:
-      - develop
-      - release
+    branches: [develop, release]
   pull_request:
-    branches:
-      - develop
-      - release
+    branches: [develop, release]
+  workflow_dispatch:
+
+# Each matrix entry runs on a separate runner; builds remain serial/topological.
+# No token permissions or required-status names are changed.
+env:
+  NODE_OPTIONS: --max-old-space-size=2048
+  RAYON_NUM_THREADS: '1'
+  npm_config_workspace_concurrency: '2'
 
 jobs:
-  verify:
-    name: Test and Build
+  plan:
+    name: Plan affected checks
     runs-on: ubuntu-latest
+    outputs:
+      mode: ${{ steps.plan.outputs.mode }}
+      docs: ${{ steps.plan.outputs.docs }}
+      matrix: ${{ steps.plan.outputs.matrix }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - name: Check autonomous protocol state
         run: |
           python3 -c "import yaml" 2>/dev/null || python3 -m pip install --user pyyaml
           python3 .ai/check.py
+      - name: Plan checked-out coverage
+        id: plan
+        run: node .github/scripts/affected-ci-plan.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: affected-ci-plan
+          path: affected-ci-plan.json
+          if-no-files-found: error
+          retention-days: 7
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+  full:
+    name: Full lint types and builds
+    needs: [plan]
+    if: needs.plan.outputs.mode == 'full'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v4
         with:
           version: 9
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          name: affected-ci-plan
+      - name: Run full coverage
+        run: node .github/scripts/affected-ci-run.mjs full
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+  prerequisites:
+    name: Build selected prerequisites
+    needs: [plan]
+    if: needs.plan.outputs.mode != 'full'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          name: affected-ci-plan
+      - name: Run build coverage
+        run: node .github/scripts/affected-ci-run.mjs build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: affected-ci-dist
+          path: .ci-dist/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 1
 
-      - name: Run CI checks
-        run: pnpm check
+  checks:
+    name: Affected package (${{ matrix.package }})
+    needs: [plan, prerequisites]
+    if: needs.plan.outputs.mode == 'packages'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          name: affected-ci-plan
+      - uses: actions/download-artifact@v4
+        with:
+          name: affected-ci-dist
+          path: .ci-dist
+      - name: Run checks coverage
+        env:
+          CI_PACKAGE: ${{ matrix.package }}
+        run: node .github/scripts/affected-ci-run.mjs package
 
-      - name: Check release gates
-        run: node --test .github/scripts/*.test.mjs
+  docs:
+    name: Manual documentation
+    needs: [plan, prerequisites]
+    if: needs.plan.outputs.mode != 'full' && needs.plan.outputs.docs == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          name: affected-ci-plan
+      - uses: actions/download-artifact@v4
+        with:
+          name: affected-ci-dist
+          path: .ci-dist
+      - name: Run docs coverage
+        run: node .github/scripts/affected-ci-run.mjs docs
 
-      - name: Check packed package exports
-        run: node .github/scripts/check-packages.mjs
+  root:
+    name: Verify build artifacts
+    needs: [plan, prerequisites]
+    if: needs.plan.outputs.mode != 'full'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          name: affected-ci-plan
+      - uses: actions/download-artifact@v4
+        with:
+          name: affected-ci-dist
+          path: .ci-dist
+      - name: Run root coverage
+        run: node .github/scripts/affected-ci-run.mjs root
+
+  verify:
+    name: Test and Build
+    needs: [plan, full, prerequisites, checks, docs, root]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: affected-ci-plan
+      - name: Require every selected check
+        env:
+          CI_NEEDS: ${{ toJSON(needs) }}
+        run: node .github/scripts/affected-ci-run.mjs aggregate

@@ -274,3 +274,54 @@ body:has(:is(.app-shell--mixed,.app-shell--scene)) [data-slot="dialog-content"] 
 .re-material-host .re-native-material-preview-error p { margin: 3px 0; }
 .re-material-host .re-native-material-preview-error summary { cursor: pointer; }
 .re-material-host .native-material-preview-badge { margin: 0; padding: 2px 4px; background: #354862; color: #d9eaff; border-radius: 3px; font-size: 10px; white-space: nowrap; }
+
+/* Light authoring: target-focused fields, one persistent viewport and transaction. */
+.light-workspace { position: relative; }
+.light-workspace [hidden] { display: none !important; }
+.light-workspace .app-topbar { height: auto; min-height: 42px; gap: 8px; padding: 6px 10px; flex-wrap: wrap; }
+.light-workspace .app-brand { font-size: 11px; }
+.light-workspace .app-document-bar { min-height: 36px; padding: 6px 12px; gap: 10px; }
+.light-file-commands { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.light-command-label { color: var(--muted-foreground); font-size: 11px; }
+.light-workspace .light-file-commands [data-slot="button"] { font-size: 11px; padding-inline: 7px; }
+.light-command-ribbon { flex: 0 0 auto; min-height: 42px; padding: 6px 12px; border-bottom: 1px solid var(--border); background: #1c252b; }
+.light-command-group { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.light-command-group > strong { margin-right: 8px; font-size: 11px; color: var(--muted-foreground); }
+.light-command-group > small { font-size: 11px; }
+.light-command-note { display: block; padding: 7px 0; color: var(--muted-foreground); font-size: 11px; }
+.light-workspace .light-outliner { width: 190px !important; }
+.light-workspace .light-outliner section, .light-workspace .light-outliner > div { padding: 12px !important; }
+.light-workspace .light-outliner p { font-size: 11px; line-height: 1.5; color: var(--muted-foreground); }
+.light-viewport { min-height: 0; overflow: auto; }
+/* The Canvas element itself stays 8:5: pick coordinates use its full rect.
+   Size from both frame axes; object-fit letterboxing must not create dead pixels. */
+.light-canvas-frame { flex: 1; min-width: 0; min-height: 0; container-type: size; display: grid; place-items: center; }
+.light-workspace .light-canvas-frame canvas { display: block; width: min(100cqw, 160cqh); height: auto; aspect-ratio: 8 / 5; border: 0; padding: 0; }
+.light-inspector { width: 310px; flex-shrink: 0; min-height: 0; display: flex; flex-direction: column; border-left: 1px solid var(--border); background: #171f25; }
+.light-inspector-header { flex: 0 0 auto; padding: 8px 12px 12px; border-bottom: 1px solid var(--border); }
+.light-inspector-targets { display: flex; gap: 2px; }
+.light-inspector-targets [aria-pressed="true"] { background: #243735; color: #bce4db; }
+.light-inspector-header h2 { margin: 10px 0 4px; font-size: 14px; overflow-wrap: anywhere; }
+.light-inspector-header small { color: var(--muted-foreground); }
+.light-body-tasks { display: grid; gap: 7px; margin-top: 10px; }
+.light-body-tasks > [role="group"] { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; }
+.light-body-tasks > [role="group"] button { min-width: 0; padding-inline: 4px; font-size: 11px; }
+.light-body-tasks [aria-pressed="true"] { background: #243735; color: #bce4db; }
+.light-body-tasks > strong { font-size: 12px; }
+.light-body-tasks > button { justify-self: start; }
+.light-draft-routes { flex-wrap: wrap; gap: 4px !important; }
+.light-draft-routes > small { flex-basis: 100%; line-height: 1.4; }
+.light-transaction-bar > .light-draft-routes > button { flex: 0 1 auto; padding-inline: 7px; font-size: 11px; }
+.light-inspector-fields { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; }
+.light-transaction-bar { flex: 0 0 auto; display: grid; gap: 7px; padding: 12px; border-top: 1px solid var(--border); background: #202c31; }
+.light-transaction-bar > small { color: #b4c3cb; line-height: 1.4; }
+.light-transaction-bar > div { display: flex; gap: 8px; }
+.light-transaction-bar > div > button { flex: 1; }
+.light-help { position: absolute; z-index: 10; inset: 52px 16px 45px; overflow: auto; background: var(--background); border: 1px solid var(--border); line-height: 1.7; box-shadow: 0 12px 40px #0008; }
+.light-help > button { display: block; margin-bottom: 12px; }
+@media (max-width: 1000px) {
+  .light-workspace .light-outliner { width: 160px !important; }
+  .light-inspector { width: 280px; }
+  .light-workspace .app-brand small { display: none; }
+  .light-workspace .app-topbar-spacer { display: none; }
+}

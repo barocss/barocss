@@ -4,6 +4,149 @@ Use `cad.model()` to author a bounded solid part with named dimensions. Start wi
 
 All dimensions below are **millimetres**. Use a TypeScript-capable workspace/bundler for source package entries; built ESM and declarations are a separate package build. Source adoption does not establish npm publication.
 
+## Use the modeling workspace
+
+Open **Model a part** (`#/model`). The [contextual workspace](https://github.com/barocss/barocss/commit/a5c881b0cbe9e99f5285613d474e5e63f29e9137) keeps the accepted preview in the center, with a **Browser** of authored features and named outputs on the left. Selecting a feature in the Browser or bottom feature strip does not rebuild the model. The strip shows existing feature order; it is not a reorder or rollback editor.
+
+1. Choose **CREATE → Modeling examples → Resize a constrained plate**. Acknowledge replacement, then **Load example**. The existing accepted model remains until the new model is admitted.
+2. Select **Sketch 01**, then **MODIFY → Edit dimensions**. Temporary options show **Profile X width** and **Profile Y height**. Type width **40**; the accepted preview stays unchanged while dimensions are pending.
+3. Choose **Apply dimensions** to submit the batch. Successful acceptance closes the options and advances history. A refused edit keeps the previous model and leaves the options, draft and error available. **Cancel**, or unmodified **Escape** in a dimension input, discards the pending dimensions and closes the command. Unmodified **Enter** in a dimension input applies them.
+4. Use **Undo/Redo** in the document bar. **Ctrl/Cmd-Z** and **Ctrl/Cmd-Shift-Z** also work while focus is in the workspace outside editable fields, with no pending dimensions or computation. These actions use the existing accepted-model history.
+
+For other recipes, **MODIFY → Edit model dimensions** exposes the existing model-wide named drivers; selecting a feature does not make those drivers feature-local. Switching to an inspection or file panel retains drafts; **Resume dimension edit** returns to them. **Cancel computation** interrupts an active operation and retains pending dimensions. File replacement still requires its existing acknowledgment.
+
+Use **INSPECT → Inspect selection** for accepted output details and approximate picked-face provenance; **INSPECT → Output bodies** for supported output display choices; and **INSPECT → Capabilities & limits** for the current boundary. **FILE → Save or open a model** contains the saved-data/file controls. **FILE → Export accepted STL** opens the existing independent output selector and export action. The example instructions below use these same panels.
+
+This increment changes command organization, not native capability. It adds no sketch drawing, arbitrary feature editing, feature reorder or camera tools. Local React/controller checks cover command selection, draft retention, Apply/Cancel/Escape, history and stale completion. Actual new-layout pixels, resize and visible-face picking remain **unverified** under [#1943](https://github.com/barocss/barocss/issues/1943); earlier feature evidence does not prove this layout.
+
+## Open and space two translated gussets
+
+<a :href="withBase('/examples/modeling-translated-gussets.ts')" download>Download the complete translated-gussets example</a>
+
+The [adopted translation API](https://github.com/barocss/barocss/commit/31ad07d5234326bf68b937c070000e94d2c45501) creates an independently qualified copy of a direct extrusion. This example keeps the original **left** gusset and places **right** 48 mm along X. Each has certified volume **6912 mm³**; the constrained profile is 40 × 24 mm with an inclined edge, extruded 8 mm.
+
+<<< ../../public/examples/modeling-translated-gussets.ts
+
+Call `makeTranslatedGussets()` in a host using `@barocss/cad`, then obtain `initial.save()`. Alternatively, copy the exact [measured baseline saved model](https://github.com/barocss/barocss/blob/31ad07d5234326bf68b937c070000e94d2c45501/packages/barocss-cad/test/modeling-translation-evidence/initial.cad-model.json). In the Modeling workspace, choose **FILE → Save or open a model**, paste the text into **Saved model data**, acknowledge replacement, and choose **Open saved model**. Both convex outputs are displayed together. Edit the generic **spacing** dimension to 64 and Apply to move the copy; **width/height** drive the XY profile, while **offsetY/offsetZ** place the copy in Y/Z. Thickness remains 8 mm. There is no new picker preset.
+
+Only one translation of a direct affine rectangle, polygon or constrained-polygon extrusion is supported, including an admitted extrusion start coordinate. Its result is terminal: do not Boolean, split, hole, chamfer or translate it again, or mix this graph with Boolean/finishing nodes. Circle, hole and orthogonal-cell parents are refused. Coordinates must remain within ±10000 mm and every translated coefficient must be exactly representable; the measured `spacing:0.1` edit refuses rather than rounding. A zero offset still creates a distinct named copy, not a union. Refusal preserves the accepted snapshot. Save stores authored intent; `cad.load(savedText)` rebuilds native geometry.
+
+The [provider evidence](https://github.com/barocss/barocss/tree/31ad07d5234326bf68b937c070000e94d2c45501/packages/barocss-cad/test/modeling-translation-evidence) retains both genuine baseline previews, each 24 vertices/12 triangles. Existing serializer/receiver CPU replay admitted the complete **53,882-byte** pair, preserved each native body/face lineage, converted XYZ once and picked both bodies; four malformed controls retained the prior accepted display. Provider loading and Worker delivery were mocked in that replay. This documentation adds no native calls or adapter changes. Edited-state pixels, React interaction and physical file dialogs remain **unverified**.
+
+### Export the right gusset as STL
+
+The same download now includes `exportRightGusset(accepted)`, which calls the [adopted named-output API](https://github.com/barocss/barocss/commit/5c6dc223a9b9e6b88bc8134651366b23147bc7c4): `accepted.exportStl('right')`. Convert its immutable `bytes` with `Uint8Array.from(result.bytes)` and pass that array to your host's file-saving API. Importing the example performs no modeling or export; the CAD method itself writes no file or starts a download.
+
+<a :href="withBase('/examples/modeling-translated-gusset-right.stl')" download>Download the measured right-gusset STL sample</a>
+
+This exact retained sample is **684 bytes / 12 facets**, with authored XYZ bounds **[48, 0, 0]–[88, 24, 8] mm** and zero measured vertex displacement for this integer-coordinate specimen. It was exported and cold-rebuilt by [the bounded provider campaign](https://github.com/barocss/barocss/tree/5c6dc223a9b9e6b88bc8134651366b23147bc7c4/packages/barocss-cad/test/modeling-stl-evidence); this guide reuses those bytes without a new geometry run. `outputName`, `byteLength`, `triangleCount` and `maximumVertexDisplacementMM` describe the result. `details.encoding.vertexLosses` preserves original and Float32 coordinates; `details.native` retains native source/face lineage beside the file.
+
+Only a named **convex-planar** output is supported. Hole, round-post and orthogonal-cell outputs refuse. Every export revalidates the complete native parent and checks all quantized facets; Float32 collapse refuses without partial STL bytes. Other coordinates can incur nonzero loss. The millimetre convention belongs to the caller/report because STL carries no units metadata, native IDs or UV trims. The checks do not certify watertightness, global topology after quantization, manufacturing tolerance or slicer acceptance. Keep `accepted.save()` for editable CAD Save/Open; STL is an approximate facet handoff. This addition does not establish browser download or viewer acceptance.
+
+#### Download STL from the model editor
+
+After opening the two-gusset saved model in **Model a part**, open **FILE → Export accepted STL**, choose **right · convex-planar** in **STL output**, then **Download STL**. The selector is independent of the visible bodies and selected face. The accepted native snapshot supplies the file; source, history and display stay unchanged. Apply or discard dimension drafts first. This also works for other supported primary convex outputs; hole, circle, orthogonal-cell and legacy outputs are unavailable.
+
+An unavailable worker changes the action to **Recover accepted model and export STL** and explains the rebuild before you click. Recovery checks the accepted source and summary before export; a stale response, cancellation or refusal produces no file. The status reports byte/facet counts and maximum Float32 vertex displacement. Files use authored XYZ, an mm convention and at most40 facets; STL itself has no unit or editable model data. Browser disk persistence and slicer/manufacturing acceptance still require separate verification.
+
+
+## Copy a finished two-chamfer rail
+
+Finish one **32 × 24 × 8 mm** rail, then translate the finished result with an owned spacing driver. Each edge is selected from the shape it actually modifies: front chamfer1 mm, then back chamfer2 mm at Y=24. The copy starts at X=48.
+
+<a :href="withBase('/examples/modeling-translated-finished-rail.ts')" download>Download the typed finished-rail example</a>
+
+<<< ../../public/examples/modeling-translated-finished-rail.ts
+
+Call `makeTranslatedFinishedRail()`, save its authored text with `pair.save()`, then use **FILE → Save or open a model → Choose model file → Open saved model** in **Model a part**, acknowledging replacement if needed. Generic Open shows both **left** and **right** convex outputs and the existing frontDistance, backDistance, backY and spacing controls. Change spacing48→64 with **Apply dimensions**, or call `spaceFinishedRail(pair)`. No extra preset or scene transform is needed.
+
+The [adopted provider evidence](https://github.com/barocss/barocss/blob/f6e19f627c06b44d583cc7d110f91def11a3e508/packages/barocss-cad/test/modeling-finished-copy-evidence/verification.json) measured **6064 mm³ per output**, unchanged by spacing64; backDistance3 gave **5984 mm³**. Both genuine baseline previews have20 triangles. The consumer check replays those unchanged packets through the current serializer/controller/receiver with mocked provider delivery; edited pixels and physical file interaction for this rail remain unverified.
+
+Translation is terminal and currently accepts a direct affine extrusion with at most two sequential owned chamfers. It rebuilds the copied native boundary with independent source lineage. Repeated translation, operations after the copy, unsupported ancestry and inexact/out-of-range coordinate sums can refuse; this is not an arbitrary Solid transform.
+
+The existing [STL output action](#download-stl-from-the-model-editor) and named-convex `snapshot.exportStl(name)` API are available separately. This finished-rail campaign captured **no STL exports**. The runnable download therefore contains no export call, and the gusset STL sample must not be treated as a measured rail file.
+
+## Resize a constrained plate
+
+<a :href="withBase('/examples/modeling-constrained-profile.ts')" download>Download the complete constrained-profile example</a>
+
+Choose **Resize a constrained plate** (`constrained-plate`) in the existing Modeling picker. Edit **Profile X width** and **Profile Y height**, then Apply. Thickness stays **8 mm**. Fixed corner targets and horizontal/vertical edges determine the rectangular profile; the initial fourth-point seed X=1 is solved to X=0 rather than treated as the finished corner.
+
+<<< ../../public/examples/modeling-constrained-profile.ts
+
+This is the exact [adopted #1835](https://github.com/barocss/barocss/issues/1835) `constrainedPlate` recipe on `c24b659fafe76ac02c5590e6d801d86e1af0cbfd`. Its authored `lockY:0` parameter remains internal to the preset, so the UI exposes only width/height. Generic imported graphs keep their own numeric controls; friendly labels and this filtering require the exact preset graph, constraints, driver set and sole `part` output. The callback owns its points and ordered constraints; this does not add interactive sketch drawing or a constraint-editing panel.
+
+The measured native baseline is fully constrained (rank8, DOF0), with a consistent redundant final fixed-corner constraint. It qualifies a convex Solid with **6144 mm³**, 6 faces, 12 edges and 8 topology vertices. The provider separately measured width40 → **7680 mm³**, a genuine `lockY:1` native `CONFLICT` refusal, and height16 recovery → **4096 mm³** on the still-accepted baseline. Failed candidates do not replace accepted source, geometry or history. The conflict case is a test of the native contract, not a production control exposed by this preset.
+
+Save retains authored points/constraints/parameters, not the solved native mesh or a scene cache. Reopen uses the existing cold loader. Even when the solved shape is rectangular, this constrained profile is not an authored rectangle and does not acquire rectangle-only union/difference/hole shortcuts. The existing exact native admission and convex display limits still apply.
+
+The committed [provider evidence](https://github.com/barocss/barocss/tree/c24b659fafe76ac02c5590e6d801d86e1af0cbfd/packages/barocss-cad/test/modeling-constraints-evidence) includes the genuine **292,980-byte baseline transfer**, SHA256 `194b855ed3e862e76c2468cbbcb0d2f21f7b2eda0a217325fa95a32fee226721`, with **24 display vertices and 12 triangles**. The consumer replays that unchanged baseline preview through the real serializer/CPU receiver. Its provider/Worker responses and every edited-state display are explicitly mocked; they are not newly measured geometry. This consumer runs **zero new native calls**. CPU picking and state tests do not prove browser/GPU pixels or physical file dialogs. **External visual gate OPEN** under [#1865](https://github.com/barocss/barocss/issues/1865).
+
+## Cut a top-entry pocket
+
+<a :href="withBase('/examples/modeling-top-pocket.ts')" download>Download the complete typed top-entry pocket example</a>
+
+Choose **Cut a top-entry pocket** in **Modeling examples**, acknowledge replacement and load it. Edit **Pocket depth downward from top Z=8**, **Tool Y origin** or **Tool Y span**, then Apply. The plate is 32 × 24 × 8 mm and the cutter's X extent stays 8..24 mm. The owned expression `from = 8 - depth` moves the bottom of the positive-height cutter while its top remains at Z=8. Depth4 leaves a 4 mm floor; depth6 leaves a 2 mm floor; depth8 makes a through-window. The existing underside-entry example still starts both extrusions at Z=0.
+
+```ts
+const model = cad.model(), depth = model.parameter('depth', 4);
+const toolY = model.parameter('toolY', 8), toolSpanY = model.parameter('toolSpanY', 8);
+const plate = model.sketch.rectangle({ min: [-0, 0], max: [32, 24] }).extrude(8);
+const from = model.dimension.add(8, model.dimension.scale(depth, -1));
+const tool = model.sketch.rectangle({ min: [8, toolY],
+  max: [24, model.dimension.add(toolY, toolSpanY)] }).extrude(depth, { from });
+const initial = model.build({ plate, tool, part: plate.cut(tool) });
+const deeper = initial.withParameters({ depth: 6 });
+```
+
+The preset explicitly displays **part**, while **all outputs are validated**, including hidden plate and tool. All three remain authored and saved. Generic Open initially displays **tool**, the last canonical `part,plate,tool` output; choose part to inspect the pocket. That chooser only changes the displayed output. Exact graph, driver and output-map matching gates the friendly top-entry labels; similarly named imported dimensions keep generic labels. Apply/Discard, no-op, refusal, cancellation and Undo/Redo use the existing atomic session.
+
+
+### Top-entry limits and evidence
+
+The [adopted offset-extrusion provider](https://github.com/barocss/barocss/blob/ba6ccf1d52667564cf69db8763f185aa8c8fab76/packages/barocss-cad/test/modeling-offset-evidence/verification.json) measured part volumes **5632 mm³** at depth4/from4, **5376 mm³** at depth6/from2 and **5120 mm³** at depth8/from0. A full-width through cutter that leaves two bodies is refused; the accepted snapshot survives and can be edited again. Positive extrusion height, exact represented origin arithmetic, integer-box qualification, nonempty single-body material and the existing **64 panels** complete-display limit still apply. Native qualification can refuse otherwise plausible dimensions.
+
+This consumer reuses the unchanged **46 genuine part packets**,184 vertices/92 triangles from the 1,514,483-byte provider transfer (SHA256 `c0a29404b5ffb8dc66eb9e6f8073b9e1545e94f3fe4c055d65ca95a9ca8fd536`). Raw XYZ, UVs, normals and triangle order remain unchanged before the existing single `[x,z,-y]` conversion. The genuine baseline part replay has a top-center ray hit at the Z=4 floor and a bottom ray hit at Z=0.
+
+There are **no retained plate/tool meshes** or depth6/window preview packets in this capture. Full worker/controller tests use explicitly **mocked operand meshes and edited-state display data** alongside the genuine baseline part. Those tests establish software wiring and atomic state, not newly measured three-output native pictures. Production uses the actual existing samplers for all outputs. The consumer makes **zero new native calls**.
+
+**External visual gate OPEN**: actual React interaction, three-output native display, changed-state pixels, device/GPU behavior and physical file dialogs remain separate acceptance work in [#1826](https://github.com/barocss/barocss/issues/1826). CPU replay and the scoped declaration-boundary build do not close that gate.
+
+## Cut a slot in a bracket
+
+<a :href="withBase('/examples/modeling-composition.ts')" download>Download the complete typed slotted-bracket example</a>
+
+Choose **Cut a slot in a bracket** in **Modeling examples**, acknowledge replacement, then load it. The preset first fuses a32×8×8 base with an8×24×8 leg, then calls `bracket.cut(tool)` on that exact owned union result. **legWidth** edits the leg's X width. **slotX**, **slotY**, **slotWidth** and **slotSpanY** describe the rectangular through-slot. Apply commits the numeric batch only after native and display admission; Discard, Undo/Redo, refusal, cancellation and no-op behavior use the existing modeling session.
+
+```ts
+const model = cad.model(), legWidth = model.parameter('legWidth', 8);
+const slotX = model.parameter('slotX', 16), slotY = model.parameter('slotY', 2);
+const slotWidth = model.parameter('slotWidth', 8), slotSpanY = model.parameter('slotSpanY', 4);
+const base = model.sketch.rectangle({ width: 32, height: 8 }).extrude(8);
+const leg = model.sketch.rectangle({ min: [-0, 0], max: [legWidth, 24] }).extrude(8);
+const bracket = base.union(leg);
+const tool = model.sketch.rectangle({ min: [slotX, slotY],
+  max: [model.dimension.add(slotX, slotWidth), model.dimension.add(slotY, slotSpanY)] }).extrude(8);
+const initial = model.build({ bracket, slotted: bracket.cut(tool) });
+const wider = initial.withParameters({ slotWidth: 12 });
+```
+
+The baseline exact integer-cell volumes are **bracket3072 and slotted2816 mm³**; `slotWidth:12` retains2688 mm³. These are restricted material volumes, not mesh-derived estimates. Empty and disconnected results refuse and leave the previous accepted snapshot usable. The provider's separate native campaign records recovery3328 and cold3200 mm³; the consumer does not resample those edited states.
+
+Both named results remain saved. The preset explicitly selects **slotted**; generic Open selects the last validated saved output, without inferring meaning from its name. Output choice changes only visibility and never removes authoring outputs, numeric drafts or history. Renamed and final-only outputs are supported because the composed result carries its own complete, self-contained parent proof. Save stores authored intent and numeric parameters, not a prepared scene or native cache. Open rebuilds cold; it does not restore a serialized view selection.
+
+### Bracket-slot receiver limits and evidence
+
+This software preview accepts exactly the eight-node rectangular union → third-box difference chain, with a common Z=0..8 slab, at most5 X/Y planes and2 Z planes,16 cells,64 vertices,144 edges and64 complete panels per body. Other native-valid composed graphs remain outside this finite display boundary. The old six-node limits remain for all other modeling graphs. There is no general nested-Boolean renderer and no cap increase or partial preview.
+
+Every named output and embedded parent is checked before acceptance. The receiver binds all three original support inventories, original0/1 contributors surviving through immediate-parent panels, original2 inward slot walls, exact reduced rational UV/XYZ charts, occupied-cell material, safe-integer volume/area and ordered raw triangles. A named parent must equal the embedded authority. The entire copied packet retains its2 MiB, occurrence/depth/string budgets; embedded and named occurrences both count. CPU picking returns actual generated face/source IDs and copied original/immediate-parent lineage in the current request context. It is an approximate sampled-triangle hit, not a new BRep edge.
+
+The [adopted provider](https://github.com/barocss/barocss/blob/4cd5237c400784d8ce51cccbce02a22929832950/packages/barocss-cad/test/modeling-composition-evidence/verification.json) passed eight model calls and44 genuine raw Surface samples. Its2,334,314-byte research transfer includes duplicated evidence and is not a renderer DTO. The consumer separately captured only the missing14 bracket Surfaces from the exact retained body: **zero model calls, zero Boolean reconstructions**,56 vertices/28 triangles. The frozen historical runtime is tested commit `4fa8920a7f00c2bc8e78ae76664f8e957111f28f`; all268 emitted JS hashes were recovered exactly. The first attempt from the later adopted source differed in two unrelated private modules and was preserved before the corrected full-source emit. No emitted JS was hand-edited.
+
+Together the genuine58 raw packets feed the real serializer and CPU receiver. The final compact DTO is measured in the consumer receipt, including the complete parent proof; none of the14 bracket packets is synthetic or borrowed from a signed-zero-different fixture. Raw XYZ, UVs, normals and triangle order are copied unchanged before the existing single `[x,z,-y]` conversion. Native qualification remains distinct from sampled display geometry. Controller changed-state display tests use an explicitly disclosed **baseline mock**; the producer's native edit receipts are separate evidence.
+
+**External visual gate OPEN**: CPU rays through the opening and against material/cavity walls, receiving-realm authority, malformed transport and atomic mocked-worker tests do not establish physical WebGPU pixels, React interaction, device behavior or physical file-picker acceptance. No additional screen QA campaign is included in this software scope.
+
 ## 1. Make a plate
 
 <<< ../../../scripts/snippets/modeling-api.ts#imports
@@ -547,12 +690,12 @@ A dimension being an ordinary integer is not enough to qualify an operation. The
 
 ### Initial resource bounds
 
-`CadModelLimits` exposes these implementation bounds; they are not public version families. All limits apply together, and native operations retain their own tighter geometric/work budgets. Only one cut, intersection or split may appear in the same graph. One hole, one connected union or one rectangular difference may appear instead, without mixing Boolean/finishing operations.
+`CadModelLimits` exposes these implementation bounds; they are not public version families. All limits apply together, and native operations retain their own tighter geometric/work budgets. Only one cut, intersection or split may appear in the same graph. One hole, one connected union or one rectangular difference may appear instead, without mixing Boolean/finishing operations. The explicit eight-node rectangular union → third-box difference chain is the bounded exception described above.
 
 | Resource | Maximum |
 | --- | ---: |
-| Authored operation nodes | 6 |
-| Sketches / extrusions / cuts / intersections / chamfers / splits / holes / unions / differences | 2 / 2 / 1 / 1 / 2 / 1 / 1 / 1 / 1 |
+| Authored operation nodes | 6 normally;8 only for the exact union → slot chain |
+| Sketches / extrusions / cuts / intersections / chamfers / splits / holes / unions / differences | 2 / 2 / 1 / 1 / 2 / 1 / 1 / 1 / 1 normally; the union → slot chain uses3 sketches and3 extrusions |
 | Named parameters / outputs | 16 / 8 |
 | Polygon points | 8 |
 | Authored file UTF-8 bytes | 65536 (64 KiB) |
