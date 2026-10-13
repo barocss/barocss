@@ -101,6 +101,21 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         height: { parameter: 'depth' }, kind: 'extrude', sketch: 2 },
       { kind: 'difference', parent: { node: 1, side: 'solid' }, tool: { node: 3, side: 'solid' } },
     ]) && JSON.stringify(authored?.outputs) === JSON.stringify({ part: { node: 4, side: 'solid' }, plate: { node: 1, side: 'solid' }, tool: { node: 3, side: 'solid' } });
+  const constrainedPlateDrivers = accepted?.source === 'model'
+    && Object.keys(accepted.parameters).sort().join(',') === 'height,lockY,width'
+    && Object.is(accepted.parameters.lockY, 0)
+    && JSON.stringify(authored?.nodes) === JSON.stringify([
+      { kind: 'sketch', profile: 'constrained-polygon',
+        points: [[-0, 0], [{ parameter: 'width' }, { parameter: 'lockY' }],
+          [{ parameter: 'width' }, { parameter: 'height' }], [1, { parameter: 'height' }]],
+        constraints: [
+          { kind: 'fixed', point: 0 }, { kind: 'fixed', point: 2 },
+          { kind: 'horizontal', points: [0, 1] }, { kind: 'vertical', points: [1, 2] },
+          { kind: 'horizontal', points: [2, 3] }, { kind: 'vertical', points: [3, 0] },
+          { kind: 'fixed', point: 1 },
+        ] },
+      { kind: 'extrude', sketch: 0, height: 8 },
+    ]) && JSON.stringify(authored?.outputs) === JSON.stringify({ part: { node: 1, side: 'solid' } });
   const holeModel = accepted?.outputs.some(output => output.family === 'stored-rational-plate-hole') ?? false;
   const circleModel = accepted?.outputs.some(output => output.family === 'stored-rational-circle-prism') ?? false;
   const roundPostDrivers = circleModel && accepted?.source === 'model'
@@ -125,7 +140,7 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
     && Object.keys(accepted.suppression).length === 2 && ['frontFinish', 'backFinish'].every(name => Object.hasOwn(accepted.suppression!, name))
     && accepted.features.filter(feature => feature.name !== undefined).every(feature => feature.kind === 'chamfer');
   const dimensionInput = ([name, value]: [string, number]) => <div key={name} style={{ marginBottom: 16 }}>
-          <Label htmlFor={`${id}-${name}`}>{topPocketDrivers && name === 'depth' ? 'Pocket depth downward from top Z=8' : topPocketDrivers && name === 'toolY' ? 'Tool Y origin' : topPocketDrivers && name === 'toolSpanY' ? 'Tool Y span' : slotDrivers && name === 'legWidth' ? 'legWidth · leg X width' : slotDrivers && name === 'slotX' ? 'slotX · slot origin X' : slotDrivers && name === 'slotY' ? 'slotY · slot origin Y' : slotDrivers && name === 'slotWidth' ? 'slotWidth · slot X width' : slotDrivers && name === 'slotSpanY' ? 'slotSpanY · slot Y span' : roundPostDrivers && name === 'diameter' ? 'Diameter' : roundPostDrivers && name === 'height' ? 'Extrusion height' : roundPostDrivers && name === 'centerX' ? 'Center X' : roundPostDrivers && name === 'centerY' ? 'Center Y' : pocketDrivers && name === 'toolX' ? 'toolX · tool origin X' : pocketDrivers && name === 'toolY' ? 'toolY · tool origin Y' : pocketDrivers && name === 'toolWidth' ? 'toolWidth · tool X width' : pocketDrivers && name === 'toolSpanY' ? 'toolSpanY · tool Y span' : pocketDrivers && name === 'depth' ? 'depth · positive Z depth from underside Z=0' : unionDrivers && name === 'legMinX' ? 'legMinX · leg origin X' : unionDrivers && name === 'legMinY' ? 'legMinY · leg origin Y' : unionDrivers && name === 'legWidth' ? 'legWidth · leg X width' : unionDrivers && name === 'legHeight' ? 'legHeight · extrusion height' : (chamferChain || configurableFinishes) && name === 'backY' ? 'backY · edge-selection Y coordinate' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'frontDistance' ? 'frontDistance · front bevel distance' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'backDistance' ? 'backDistance · back bevel distance' : chamferSplit && name === 'splitAt' ? 'splitAt · selected-axis split coordinate' : derivedSplit && name === 'width' ? 'width · rail X size' : derivedSplit && name === 'offset' ? 'offset · X displacement from center' : miterSplit && name === 'cutPosition' ? 'cutPosition · X + Y threshold' : name} (mm)</Label>
+          <Label htmlFor={`${id}-${name}`}>{constrainedPlateDrivers && name === 'width' ? 'Profile X width' : constrainedPlateDrivers && name === 'height' ? 'Profile Y height' : topPocketDrivers && name === 'depth' ? 'Pocket depth downward from top Z=8' : topPocketDrivers && name === 'toolY' ? 'Tool Y origin' : topPocketDrivers && name === 'toolSpanY' ? 'Tool Y span' : slotDrivers && name === 'legWidth' ? 'legWidth · leg X width' : slotDrivers && name === 'slotX' ? 'slotX · slot origin X' : slotDrivers && name === 'slotY' ? 'slotY · slot origin Y' : slotDrivers && name === 'slotWidth' ? 'slotWidth · slot X width' : slotDrivers && name === 'slotSpanY' ? 'slotSpanY · slot Y span' : roundPostDrivers && name === 'diameter' ? 'Diameter' : roundPostDrivers && name === 'height' ? 'Extrusion height' : roundPostDrivers && name === 'centerX' ? 'Center X' : roundPostDrivers && name === 'centerY' ? 'Center Y' : pocketDrivers && name === 'toolX' ? 'toolX · tool origin X' : pocketDrivers && name === 'toolY' ? 'toolY · tool origin Y' : pocketDrivers && name === 'toolWidth' ? 'toolWidth · tool X width' : pocketDrivers && name === 'toolSpanY' ? 'toolSpanY · tool Y span' : pocketDrivers && name === 'depth' ? 'depth · positive Z depth from underside Z=0' : unionDrivers && name === 'legMinX' ? 'legMinX · leg origin X' : unionDrivers && name === 'legMinY' ? 'legMinY · leg origin Y' : unionDrivers && name === 'legWidth' ? 'legWidth · leg X width' : unionDrivers && name === 'legHeight' ? 'legHeight · extrusion height' : (chamferChain || configurableFinishes) && name === 'backY' ? 'backY · edge-selection Y coordinate' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'frontDistance' ? 'frontDistance · front bevel distance' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'backDistance' ? 'backDistance · back bevel distance' : chamferSplit && name === 'splitAt' ? 'splitAt · selected-axis split coordinate' : derivedSplit && name === 'width' ? 'width · rail X size' : derivedSplit && name === 'offset' ? 'offset · X displacement from center' : miterSplit && name === 'cutPosition' ? 'cutPosition · X + Y threshold' : name} (mm)</Label>
           <Input id={`${id}-${name}`} disabled={busy} inputMode="decimal"
             value={Object.hasOwn(snapshot?.drafts ?? {}, name) ? snapshot!.drafts[name] : Object.is(value, -0) ? '-0' : String(value)}
             onChange={event => action(s => s.stage(name, event.target.value))}
@@ -155,6 +170,7 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         <option value="derived-split">Keep a beveled split centered</option>
         <option value="miter-split">Split a 45° XY miter</option>
         <option value="configurable-finishes">Configure rail finishes</option>
+        <option value="constrained-plate">Resize a constrained plate</option>
         <option value="slotted-bracket">Cut a slot in a bracket</option>
         <option value="round-post">Create a round post</option>
         <option value="underside-pocket">Cut an underside pocket</option>
@@ -172,7 +188,9 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         </select>
         <p>Axis choice loads a new example after replacement acknowledgment; it does not edit the accepted part.</p>
       </>}
-      <p>{example === 'slotted-bracket'
+      <p>{example === 'constrained-plate'
+        ? 'Resize a plate using native fixed, horizontal and vertical polygon constraints. Change X width or Y height; thickness stays 8 mm. The internal lockY=0 parameter is not exposed for this exact preset.'
+        : example === 'slotted-bracket'
         ? 'Fuse the base and leg, then cut a through-slot in that owned bracket. Edit leg width and slot X/Y origin, width and span. Both saved outputs remain available; this preset selects slotted.'
         : example === 'round-post'
         ? 'Create a diameter-driven round post from an owned rational circle. Edit diameter and extrusion height in millimetres; optional center coordinates locate the post. Exact native qualification can refuse dimensions without replacing the accepted part. Certified volume is unavailable.'
@@ -254,7 +272,7 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
           <details><summary>Optional center coordinates</summary>
             {(['centerX', 'centerY'] as const).map(name => dimensionInput([name, accepted.parameters[name]]))}
           </details>
-        </> : Object.entries(accepted.parameters).map(dimensionInput)}</div>
+        </> : constrainedPlateDrivers ? (['width', 'height'] as const).map(name => dimensionInput([name, accepted.parameters[name]])) : Object.entries(accepted.parameters).map(dimensionInput)}</div>
         <aside><h2>Feature sequence</h2><ol>{accepted.features.map(feature => <li key={feature.index}>
           <Button variant="ghost" disabled={busy} aria-pressed={snapshot?.selection === feature.index}
             onClick={() => action(s => s.select(feature.index, snapshot!.generation))}>{feature.kind}{feature.name === undefined ? '' : ` · ${feature.name} (${feature.suppressed ? 'off' : 'on'})`}</Button>
