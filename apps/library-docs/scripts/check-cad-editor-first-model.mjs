@@ -9,6 +9,7 @@ const root = resolve(app, '../..');
 const read = path => readFileSync(resolve(root, path), 'utf8');
 const guide = read('apps/library-docs/docs/packages/cad-editor/first-model.md');
 const modelUI = read('packages/barocss-cad-editor/src/react/modeling-editor.tsx');
+const fileReader = read('packages/barocss-cad-editor/src/modeling-file.ts');
 const route = read('apps/cad-editor/src/app.tsx');
 const modeling = read('apps/library-docs/docs/packages/cad/modeling.md');
 const intro = read('apps/library-docs/docs/packages/cad-editor/index.md');
@@ -21,13 +22,24 @@ for (const label of [
   'Replace accepted model and discard its history and pending dimensions',
   'Load example', 'Apply dimensions', 'Discard draft', 'Undo', 'Redo',
   'Named dimensions', 'Visible output body', 'Choose one output to inspect',
-  'Output bodies', 'Save or open a model', 'Show saved model', 'Download model',
+  'Output bodies', 'Save or open a model', 'Choose model file', 'Show saved model', 'Download model',
   'Saved model data', 'Open saved model', 'Cancel computation',
 ]) {
   assert.ok(modelUI.includes(label), `CAD Editor UI label changed: ${label}`);
   assert.ok(guide.includes(label), `First-model guide lacks label: ${label}`);
 }
 assert.ok(route.includes("location.hash === '#/model'"), 'Model route changed');
+assert.ok(modelUI.includes("setSource(text);"), 'Chosen file must only stage decoded text');
+assert.ok(modelUI.includes("setConfirmed(false); // Consent granted while a read was pending"), 'Late file read must revoke stale replacement confirmation');
+assert.ok(modelUI.includes("fileReadEpoch.current++"), 'File staging race guard removed');
+assert.ok(modelUI.includes("await s.open(source)"), 'Only explicit Open may accept the staged model');
+assert.ok(modelUI.includes("Cannot read model file:"), 'Missing file-reading error guidance');
+assert.ok(fileReader.includes('MAX_MODELING_FILE_BYTES = 262144'), 'Staging reader byte budget changed');
+assert.ok(fileReader.includes("new TextDecoder('utf-8', { fatal: true })"), 'Fatal UTF-8 decode contract changed');
+assert.ok(fileReader.includes('if (!text.trim())'), 'Empty file refusal contract changed');
+for (const explanation of ['only stages', 'not proof of filesystem persistence', 'invalid UTF-8', '262,144 UTF-8 bytes', 'Open saved model', 'Cannot read model file']) {
+  assert.ok(guide.includes(explanation), `First-model file workflow missing: ${explanation}`);
+}
 assert.ok(guide.includes('http://127.0.0.1:52010/#/model'));
 for (const result of ['5632 mm³', '5120 mm³', 'generic Open', 'tool', 'part', 'plate']) {
   assert.ok(guide.includes(result), `Missing tutorial expectation: ${result}`);
