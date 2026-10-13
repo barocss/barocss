@@ -39,6 +39,9 @@ jobs:
       - name: Run CI checks
         run: pnpm check
 
+      - name: Test directional WebGPU Viewer async lifecycle
+        run: NODE_OPTIONS=--max-old-space-size=2048 node --test --test-concurrency=1 packages/barocss-viewer/tests/native-directional-light-webgpu.test.mjs
+
       - name: Check release gates
         run: node --test .github/scripts/*.test.mjs
 
