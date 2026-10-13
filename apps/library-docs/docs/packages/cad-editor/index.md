@@ -6,7 +6,7 @@
 
 **Browser/GPU verification requires independent evidence:** [Browser evidence protocol](./browser-evidence).
 
-**Begin with the [CAD learning path](./learning-path)**: four previously adopted lessons and two new source-backed exercises ([top-entry pocket](./top-entry-pocket), [constrained plate](./constrained-plate)) in this documentation change.
+**Begin with the [CAD learning path](./learning-path)**: follow the adopted hands-on lessons, including [top-entry pocket](./top-entry-pocket) and [constrained plate](./constrained-plate). To hand off one supported output, see [export a convex STL without losing your editable CAD source](./export-stl).
 
 **Need help recovering a part?** See [Modeling troubleshooting](./troubleshooting).
 

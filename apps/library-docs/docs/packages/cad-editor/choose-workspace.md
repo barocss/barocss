@@ -23,7 +23,7 @@ BaroCSS currently contains **several bounded CAD authoring workflows**, not one 
 5. Inspect the required **named output** rather than assuming every intermediate tool/operand is the finished part. Undo and Redo operate on accepted history.
 6. Choose **Download model** for authored model bytes. **Choose model file** stages raw text only; review it and explicitly select **Open saved model** to parse/admit a replacement. A download notification does not certify that bytes persisted on disk.
 
-For exact actions and examples: [first pocket](./first-model), [round post](./round-post), [mounting plate](./mounting-plate), [L-bracket](./l-bracket). For accepted/draft confusion or a refused edit: [troubleshooting](./troubleshooting).
+For exact actions and examples: [first pocket](./first-model), [round post](./round-post), [mounting plate](./mounting-plate), [L-bracket](./l-bracket). For a supported named convex output, use the [STL export versus editable CAD Save guide](./export-stl): **Download model** preserves modeling intent, whereas **Download STL** writes approximate facet bytes. For accepted/draft confusion or a refused edit: [troubleshooting](./troubleshooting).
 
 ## Working with original Curve and Surface assets
 
