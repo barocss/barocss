@@ -53,7 +53,7 @@ type PairStats={
 const empty=():PairStats=>({
  calls:0,warmCalls:0,solveCalls:0,maxLinearResidualMps:0,maxAngularResidualRadps:0,
  maxCoulombViolationNs:0,nonFinite:0,appliedJxNs:0,appliedJyNs:0,appliedJzNs:0,
- appliedTorqueAxNms:0,appliedTorqueAzNms:0,appliedTorqueBxNms:0,
+ appliedTorqueAxNms:0,appliedTorqueAzNms:0,appliedTorqueBxNms:0,appliedTorqueBzNms:0,
  sumAbsoluteJxNs:0,sumAbsoluteJyNs:0
 });
 type Fixture='OFFSET'|'YAW';
@@ -99,6 +99,8 @@ for(const mode of ['OFFSET','YAW'] as const){
   record.appliedTorqueAxNms+=aTorque[0];record.appliedTorqueAzNms+=aTorque[2];
   record.appliedTorqueBxNms+=bTorque[0];record.appliedTorqueBzNms+=bTorque[2];
   record.sumAbsoluteJxNs+=Math.abs(j[0]);record.sumAbsoluteJyNs+=Math.abs(j[1]);
+  if(Object.values(record).some(value=>!Number.isFinite(value)))
+    throw Error('P1572_TORQUE_LEDGER_NONFINITE:'+key);
   all.set(key,record);
   if(samples.length<16)
     samples.push({step:e.step,pair:e.pair,mode:e.mode,pass:e.pass,iteration:e.iteration,
