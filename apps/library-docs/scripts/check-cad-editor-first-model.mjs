@@ -56,5 +56,12 @@ for (const text of [
 assert.ok(intro.includes('./first-model'), 'Missing overview gateway');
 assert.ok(quickstart.includes('./first-model'), 'Missing developer-page gateway');
 assert.ok(navigation.includes("'first-model': 'First model in the UI'"), 'Missing navigation title');
-assert.ok(navigation.includes("p === 'cad-editor' ? ['first-model']"), 'Missing navigation route');
+export function hasCadEditorFirstModelRoute(source) {
+  const array = source.match(/\bp\s*===\s*(['"])cad-editor\1\s*\?\s*\[([^\]]*)\]\s*:\s*\[\s*\]/)?.[2];
+  if (array === undefined) return false;
+  const entries = array.trim().replace(/,\s*$/, '').split(',').map(entry => entry.trim());
+  if (!entries.every(entry => /^(['"])[a-z][a-z0-9-]*\1$/.test(entry))) return false;
+  return entries.some(entry => entry.slice(1, -1) === 'first-model');
+}
+assert.ok(hasCadEditorFirstModelRoute(navigation), 'Missing navigation route');
 console.log('CAD Editor first-model UI labels, source fixture, route and navigation: static PASS (no native/browser execution)');
