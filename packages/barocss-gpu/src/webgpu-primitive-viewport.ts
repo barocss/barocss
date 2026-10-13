@@ -359,6 +359,9 @@ class BackendViewport implements PrimitiveBackendViewport {
     const rowBytes = Math.ceil(width * 4 / 256) * 256;
     const device = this.device!;
     let buffer: GPUBufferHandle | null = null;
+    let resultPixels: Uint8Array | undefined;
+    let originalError: unknown, failed = false;
+    let cleanupError: PrimitiveBackendError | undefined;
     try {
       await this.scoped(async () => {
         buffer = device.createBuffer({ size: rowBytes * height, usage: MAP_READ | COPY_DST });
@@ -374,11 +377,23 @@ class BackendViewport implements PrimitiveBackendViewport {
       const padded = new Uint8Array(mappedBuffer.getMappedRange()), result = new Uint8Array(width * height * 4);
       for (let row = 0; row < height; row++) result.set(padded.subarray(row * rowBytes, row * rowBytes + width * 4), row * width * 4);
       if (!identity && this.format === 'bgra8unorm') for (let offset = 0; offset < result.length; offset += 4) [result[offset], result[offset + 2]] = [result[offset + 2], result[offset]];
-      return result;
+      resultPixels = result;
+    } catch (cause) {
+      failed = true; originalError = cause;
     } finally {
-      const owned = buffer as GPUBufferHandle | null;
-      owned?.unmap(); owned?.destroy(); if (this.readback === owned) this.readback = null;
+      const owned = buffer as GPUBufferHandle | null, failures: unknown[] = [];
+      try { owned?.unmap(); } catch (cause) { failures.push(cause); }
+      try { owned?.destroy(); } catch (cause) { failures.push(cause); }
+      if (this.readback === owned) this.readback = null;
+      if (failures.length) {
+        cleanupError = new PrimitiveBackendError('RENDER', 'GPU readback cleanup refused');
+        Object.defineProperty(cleanupError, 'cause', { value: new AggregateError(failed ? [originalError, ...failures] : failures) });
+      }
     }
+    if (cleanupError) throw cleanupError;
+    if (failed) throw originalError;
+    if (!resultPixels) fail('RENDER', 'Readback produced no pixels');
+    return resultPixels;
   }
   async readPixels(): Promise<Uint8Array> {
     let entered = false;
