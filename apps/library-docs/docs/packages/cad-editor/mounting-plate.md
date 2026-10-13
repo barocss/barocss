@@ -13,7 +13,7 @@ pnpm --filter @barocss/cad-editor build:library
 pnpm --filter @barocss/cad-editor-app dev
 ```
 
-Open `http://127.0.0.1:52010/#/model` (or the actual Vite port followed by `#/model`). Wait for **Accepted model**.
+Open `http://127.0.0.1:52010/#/model` (or the actual Vite port followed by `#/model`). The page heading is **Model a part**. Wait for **Accepted model**.
 
 1. Open **Modeling examples** and its **Choose an example** menu.
 2. Select **Mounting plate with a through-hole**.
