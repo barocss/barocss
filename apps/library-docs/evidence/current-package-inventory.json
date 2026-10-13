@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "purpose": "Current checkout manifest metadata only; not an API, runtime, publication, or held-lane activation receipt.",
-  "manifestCommit": "23e6615a8e2c4ad9c9299184a6be5ff2735358b5",
+  "manifestCommit": "3f1dcd817fc6fa1209d6d68b0ca18a057cb1677e",
   "historicalSourceCommit": "5f5ad866205a21510ac69552e704cc162fa253b5",
   "historicalInventorySha256": "b121aac9620fb8fe966c292710990317bf88b1b3535ea31a31cd787cefe7c2b5",
   "packages": [
@@ -291,7 +291,7 @@
     {
       "slug": "gpu",
       "directory": "packages/barocss-gpu",
-      "manifestSha256": "ce0529abd54255efad9ad24e8e7e8371bc40afa0d8e6c18e8f55606b49896553",
+      "manifestSha256": "1a18e054da6628908460c04657b76ae3708af900cd6e54730a395acd1ecf1d97",
       "manifest": {
         "name": "@barocss/gpu",
         "version": "0.0.0",
@@ -324,7 +324,7 @@
           "lint": "eslint src",
           "type-check": "tsc --noEmit",
           "build:library": "tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/index.js",
-          "test": "node --test tests/scene.test.mjs tests/compiler.test.mjs tests/mesh-packet.test.mjs tests/camera.test.mjs tests/gpu-compiler.test.mjs",
+          "test": "node --test tests/scene.test.mjs tests/compiler.test.mjs tests/material-lint-regression.test.mjs tests/primitive-readback-lifetime.test.mjs tests/primitive-webgpu-update-preflight.test.mjs tests/primitive-pixel-windows.test.mjs tests/mesh-packet.test.mjs tests/camera.test.mjs tests/gpu-compiler.test.mjs",
           "test:consumer": "node --test tests/consumer.test.mjs tests/mesh-consumer.test.mjs tests/gpu-compiler-consumer.test.mjs",
           "test:browser": "node --test --test-concurrency=1 tests/browser.test.mjs tests/mesh-browser.test.mjs tests/camera-browser.test.mjs"
         },
@@ -344,7 +344,27 @@
           }
         }
       },
-      "changesFromSourceSnapshot": []
+      "changesFromSourceSnapshot": [
+        {
+          "field": "scripts",
+          "before": {
+            "lint": "eslint src",
+            "type-check": "tsc --noEmit",
+            "build:library": "tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/index.js",
+            "test": "node --test tests/scene.test.mjs tests/compiler.test.mjs tests/mesh-packet.test.mjs tests/camera.test.mjs tests/gpu-compiler.test.mjs",
+            "test:consumer": "node --test tests/consumer.test.mjs tests/mesh-consumer.test.mjs tests/gpu-compiler-consumer.test.mjs",
+            "test:browser": "node --test --test-concurrency=1 tests/browser.test.mjs tests/mesh-browser.test.mjs tests/camera-browser.test.mjs"
+          },
+          "after": {
+            "lint": "eslint src",
+            "type-check": "tsc --noEmit",
+            "build:library": "tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/index.js",
+            "test": "node --test tests/scene.test.mjs tests/compiler.test.mjs tests/material-lint-regression.test.mjs tests/primitive-readback-lifetime.test.mjs tests/primitive-webgpu-update-preflight.test.mjs tests/primitive-pixel-windows.test.mjs tests/mesh-packet.test.mjs tests/camera.test.mjs tests/gpu-compiler.test.mjs",
+            "test:consumer": "node --test tests/consumer.test.mjs tests/mesh-consumer.test.mjs tests/gpu-compiler-consumer.test.mjs",
+            "test:browser": "node --test --test-concurrency=1 tests/browser.test.mjs tests/mesh-browser.test.mjs tests/camera-browser.test.mjs"
+          }
+        }
+      ]
     },
     {
       "slug": "cad",

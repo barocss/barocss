@@ -1,0 +1,479 @@
+{
+  "issue": 1712,
+  "status": "metadata and bounded regression checks passed; review/adoption/Manual retry pending",
+  "base": "3f1dcd817fc6fa1209d6d68b0ca18a057cb1677e",
+  "manifestReferent": "3f1dcd817fc6fa1209d6d68b0ca18a057cb1677e",
+  "historicalSourcePin": "5f5ad866205a21510ac69552e704cc162fa253b5",
+  "historicalInventorySHA256": "b121aac9620fb8fe966c292710990317bf88b1b3535ea31a31cd787cefe7c2b5",
+  "unchangedCheckerSHA256": "71476729968c49f97d09a83b60465a0c47d08ceb84c73ad05e9f7128cd337488",
+  "currentInventorySHA256": "7f1aa53c866ccabd3bb6270bdd1c28520141c368dd951d74296aa2cfcc9f9a4b",
+  "testSHA256": "74f50080f7f3f27a5b49e4bc80f69ef1f811c832803532a37d442ffab110fef9",
+  "onlyChangedManifest": [
+    {
+      "slug": "gpu",
+      "changedFields": [
+        "scripts"
+      ],
+      "beforeTestScript": "node --test tests/scene.test.mjs tests/compiler.test.mjs tests/mesh-packet.test.mjs tests/camera.test.mjs tests/gpu-compiler.test.mjs",
+      "afterTestScript": "node --test tests/scene.test.mjs tests/compiler.test.mjs tests/material-lint-regression.test.mjs tests/primitive-readback-lifetime.test.mjs tests/primitive-webgpu-update-preflight.test.mjs tests/primitive-pixel-windows.test.mjs tests/mesh-packet.test.mjs tests/camera.test.mjs tests/gpu-compiler.test.mjs"
+    }
+  ],
+  "reviewedAdditions": [
+    {
+      "commit": "1c59bcebd01572d33520500d6b5a1ef9ea6f2a8a",
+      "test": "material-lint-regression.test.mjs"
+    },
+    {
+      "commit": "9ca030c362a14c2c89714f24611cd1bc7a36a6b7",
+      "PR": 1698,
+      "test": "primitive-readback-lifetime.test.mjs"
+    },
+    {
+      "commit": "5ec172fa6703daf2d83e9e59d74598decbad7bfb",
+      "PR": 1708,
+      "test": "primitive-webgpu-update-preflight.test.mjs"
+    },
+    {
+      "commit": "1e04ab144680b5995d37e37ef732a97118e57d77",
+      "PR": 1714,
+      "test": "primitive-pixel-windows.test.mjs"
+    }
+  ],
+  "manifestHashes": {
+    "packages/barocss/package.json": "ceda889b794e3be24cf52650b3530b6b69a04232b27d98c9a5b3af4e2a588651",
+    "packages/barocss-browser/package.json": "4a7b27e15a6da3e5b1724a2f616813447b001a85eb3aad03eef63e315646b6cf",
+    "packages/barocss-server/package.json": "177c618d8b939baf632f18aae0c8d9c19f9be924520b5b54d3159824054306ba",
+    "packages/barocss-render/package.json": "68206e354dc4e0f21d884cdc129c27ce977571210609598efc2129c9714a8f94",
+    "packages/barocss-gpu/package.json": "1a18e054da6628908460c04657b76ae3708af900cd6e54730a395acd1ecf1d97",
+    "packages/barocss-cad/package.json": "7f18887b37ed966cebfa183520064b7833aee5dafee20fd21bfa265bf68ecd22",
+    "packages/barocss-cad-interop/package.json": "1165e25a296cbfd93fc522f004392aff1a7ba886db138ad61f17aec16ba21867",
+    "packages/barocss-canvas2d/package.json": "b180d3b2bb1f28a90e62f55ad5f8880a3349dfd7b549d16b76f9cf1cef5a6202",
+    "packages/barocss-viewer/package.json": "7eae9edcf73be3de63de6dff19822866196d9fd6ce62577ff488e6f5a27e64d6",
+    "packages/barocss-physics/package.json": "57d436d215a5ce0b31196e549aed6ced97b9ad9f602a99c7704b47c26f3dd56c",
+    "packages/barocss-cad-editor/package.json": "9941251b6133bf540ec06c3720cae27eebf147496680ad42a552f45304e3eb75",
+    "packages/barocss-render-editor/package.json": "7fd0ce7ac93281892cda88738172627cc34d0b9ba4381f5f74e367a2e65ca3c8"
+  },
+  "redGreen": {
+    "red": {
+      "pass": 11,
+      "fail": 1,
+      "exitCode": 1,
+      "failure": "exact changed-field package list lacked newly reviewed GPU scripts"
+    },
+    "correction": "One expected-list entry only; checker and all negative test bodies unchanged",
+    "green": {
+      "pass": 12,
+      "fail": 0,
+      "exitCode": 0
+    }
+  },
+  "runtime": "Node22.23.3",
+  "sourceLinkCheck": {
+    "pagesUnchanged": 120,
+    "localTargetsExist": 886,
+    "qualification": "Source destination existence and exact unchanged page bytes. Built-anchor validation remains required in the full Manual workflow; not a substituted HTML build."
+  },
+  "preservedAssets": [
+    {
+      "path": "apps/library-docs/docs/public/examples/advanced-shader-phase.png",
+      "sha256": "55f90a3cabcded47b68b3c65fca1de72b5464749b7832edc35ff532740673d40"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/advanced-shader.png",
+      "sha256": "2c3d952e28b3ebb24ae8a83f5a90cf18a1792e960d56f49bbf024d75efad5124"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/body-boundary-mesh.svg",
+      "sha256": "e68069e8e33e0a194e045f49099cc198223c5a385cb91d8f886cd7aa7ef9f09c"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/body-boundary-mesh/main.owned-body.json",
+      "sha256": "6aa430ecc7775159b4bef758ab21363a75f186d84d15c8c4a56e8c00e2e6097d"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-adaptive-sampling.jpg",
+      "sha256": "3079b2cea31ec136b9e6ec0add4f412e02aa951e3fb2d792da2ba59325caab89"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-curve-knot-insertion.svg",
+      "sha256": "3d6eb3f4c8356a9eb2c8693370e0d52be37ed0d6a9611691c2a25cd869f1a99d"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-curve.png",
+      "sha256": "2678d32167f72796c171358865d69f37d20933849d691059980f79c0f1c66409"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-curved-extrude.png",
+      "sha256": "ba145462767e8bbb9a51f07e8521e1d75d1291c00d9c4b3d3608cf7e889a06a1"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-extrude.png",
+      "sha256": "599e269a3cd1811ce7bbb7c52b1bf85143316bcf1c91740c8b6f5e28bfe7aa4b"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-line-width-extrusion-graph.authored.json",
+      "sha256": "6e707d5022a7ff454b25284392a170214d50e19e5f525f5d54bac26a4f7dd371"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-line-width-extrusion-graph.svg",
+      "sha256": "1633187d85d9a40781b2c3512473f63a021c4d54ac474c11c9675b8e634dc097"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-line-width-shell.json",
+      "sha256": "f91644774c356d2f814574d42b4a211b9374eb67101c6b362a9a4fe655e78fbb"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-nonunit-curve.png",
+      "sha256": "eb5d1e7cda03a64c91824f92b253a6912a16819d27fb5abd8c1a3db5443bc470"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-parameters.png",
+      "sha256": "f38940b8c74dd9328652e9b171270ee6f815b5cce06e09b8be5ce49ec0c4190a"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-prism-feature-v0-authored.json",
+      "sha256": "d9a999760b6492c0d3efe8642b12058ef5a4380e90d7f99d7feeb20c691630ce"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-quantity-functions.cad.css",
+      "sha256": "01f8980d6821bdecfbc1b64deb3428e428886b31c0d01909384c65e21a7ef42d"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-quantity-functions.jpg",
+      "sha256": "481266d5e0b79a0b2ac051ec10307fba6fe7b51fb0cba55d66273630571895af"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-rational-dome.jpg",
+      "sha256": "6f98da7717f0e9badfb5e1f9e7aeaa9e91c338f8d766f163fca5ecee7e5956a2"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-surface-knot-insertion.svg",
+      "sha256": "98a276250bd2b946e087c8f115845d47e779bdb287898846a4d1b7f7e9f04bc6"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-surface.png",
+      "sha256": "564006d47babd5eb140d309e10d49fc5d1e54b37af92d9b6406e1959954c25c9"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cad-weighted-parameters.png",
+      "sha256": "676671785dcbcc7daadf3b616bc7fa0a083946becd5bcf4d3f6ad138b08f0d85"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/canvas2d-rectangle.png",
+      "sha256": "edb2d63f4a0dd40b0aa6dabf96f0001d924fc7ae50e807d0525410e5e194e78e"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/caustics-shader-phase.jpg",
+      "sha256": "10af52be01fc49fb78049eda0ef965d3d3c6fb89beecd931f41a056de9ad75c0"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/caustics-shader.jpg",
+      "sha256": "69891851c9b4afc4508ac2600831550a85447d724eec9205af53efc3fa109110"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/contour-shader.jpg",
+      "sha256": "773af6e569b2cf119beb6b9a8514acf1eb00a3fc8d1a5914ef05fba7fe654ffc"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/cpu-material-evaluation.svg",
+      "sha256": "a84d259be32c8d63e33c849d801d0e955ebaaf6c809b184b714c301fd9cb450a"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/diagram-label.jpg",
+      "sha256": "d81e38b2ce2e0aac7355428fafc51071c132b6c994a2d8bcabecda98b76181a7"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/discrete-material.jpg",
+      "sha256": "10ecd1a7f106c12c5e2b7df490fe227ff56645b2b7c02c0ce16efc4313b7b137"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/example-organization.jpg",
+      "sha256": "a0cafb6d41945954422535fdd0f070c09cd19be923bf6a858b418c5e1fc1466e"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/generated-scene.jpg",
+      "sha256": "8dafa80b0eb1af6216a0c15fa33a53bad2f66ab5eed87ff7b3496ceb2a95e5f4"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/gpu-crossed-capsules.png",
+      "sha256": "812d17868e0b981583398ccd3241c11f8ec672c04e3bf455af7939f8fd87baca"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/gpu-material-amount1.png",
+      "sha256": "adb848095f39116045e7c6e9cf8215dad6ad003920c5ed10182fbd7d4088f7e1"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/gpu-material.png",
+      "sha256": "489ee2325dc9f9137c690d59f333a8483f43015a950ac87e1f4a4637a7b83dac"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/gpu-rounded-stack.png",
+      "sha256": "575294a792dd4240c1458afbdbc52586a3761408b52c9d8d4b33a71c8ae0cfbc"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/gpu-scene.png",
+      "sha256": "179b3f9fe60d788c81466dc2fdf7dc1e47d79c47cdf896e6ed4769f5a346f5e7"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/gpu-six-shapes.png",
+      "sha256": "8402da338ef9cca9d1e2b715613a67c6d08c738da371105ccdf5ba79c1a5bd28"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/halftone-shader.jpg",
+      "sha256": "649edf2aab8fbea6169354fe059730f5ff5f08192630c5d8fac9011d85d9a594"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-abs.png",
+      "sha256": "1dbfe923f18917322b93d88b5439d5305824045cfcf1cd89f44a1e4af09e24d5"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-clamp.png",
+      "sha256": "66063a61bb0076282e56018224f12956d2b6cec3d3f2a18a7c88b85523ffd9b1"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-cos.png",
+      "sha256": "d9b13f39c85e98cab1797ee5b26ec2c3caf6ee7089e1e0106ffe0fab39de4623"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-max.png",
+      "sha256": "9e14e635d5737cf7028582628fc01d3f4615efe07a043d0266edbbb974e7ef09"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-min.png",
+      "sha256": "a9fa048d80f5f8252a82a4ac5063557d16d27950a1bddbd282ab5e8e446340ab"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-mix.png",
+      "sha256": "6a3a93020d2bba54004bae08a53e2ea67e3a1d213092063aa7fce8a0a83677d5"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-pow.png",
+      "sha256": "eb3a4fa1169e54b421a68677ed6270d8fc3b93e7333ddabcad8ccc023bb0ebb3"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-radians.png",
+      "sha256": "0a7a04d1dd8a76aa5449a19e85761d1e6107260045a486ef037297be3a711153"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-rgb.png",
+      "sha256": "a5af6202242559d2b1ae1d8a1146d48adf26c1077a5921105f47707ccf28f7f2"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-sin.png",
+      "sha256": "ec8870ce9fc134b763fe07b8b9085d189164fb92e251318dd0fd0613d999a16c"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-smoothstep.png",
+      "sha256": "d623c9834e258aef180fa0c9c2f2c995e16e68a48ea09387806bb09d43320a59"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/material-transition-window.png",
+      "sha256": "61b01307d9fed1d730d75676b6208df32234826b88d040516c121375b5285dac"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-cardinal-split.ts",
+      "sha256": "f3e4e854cc68a990cf8fde396b4862843bf47cdff5f041df3940c8686e860aaa"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-chamfer-chain.ts",
+      "sha256": "eefa59ffd5c997f9115700ccf34baed0f2f201618f1f58c6debc6ca5d4504183"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-chamfer-split.ts",
+      "sha256": "c2501c205a8561a96c14b081055f5c0a288f6d6ba57c52e6425d84988d15edb5"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-circle.ts",
+      "sha256": "0e48918c77a25d12dfc081adf36763f71a972cd4e2b2cae5c10412f2856edbbe"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-dimensions.ts",
+      "sha256": "0439140e0addb1b2b4d28e70dd57711df712763f85b7473c9017b1b2b587fa91"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-hole.ts",
+      "sha256": "1b6fd4d8a0dbc23293ac6673ef04065ce2281f79797613dd4b0cbaec25589bf5"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-intersection.ts",
+      "sha256": "acb9b1d71dbf0a0daf16d9748c808a0fdd644b4a0ba83284e539776dbb2ce4a9"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-miter.ts",
+      "sha256": "55d95d8252ba647377cad41729eaf262b475e5fc00a9941526bf4fe36aa68d34"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-pocket.ts",
+      "sha256": "37b9d1ddd08aa5393555a6cf6eee7a3f04fc49e49bce197a8e60f7330be20db1"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-split.ts",
+      "sha256": "20843920e8f55721a3941d7328b40a7ccccac1a062906b60e3bb36ea368c4c12"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-suppression.ts",
+      "sha256": "bb1b26283c0993a5f536348a006a27787169b3db2908f7cb5f431f9f30d2de8c"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/modeling-union.ts",
+      "sha256": "2ca830595b86623be0a9b94cb63a651f9290d6f3ccb932d36b295404f474fd32"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/nurbs-loft-graph.svg",
+      "sha256": "6060d7ab60aa538a1fbc368e4657da34f3173b4274c2c8f8aafeb1122a7fc6a9"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/path-edit.jpg",
+      "sha256": "725da9813026c4a288ff6b9f6645f5cf6a2b57fa65823d084784907a26cc3e01"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/physics-step.png",
+      "sha256": "cf9f607ba09b76d98c509b474a965d671db510ec13a151b06aa9648c40f8551b"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/radial-svg-export.jpg",
+      "sha256": "d397e39c2ce0c9a73609790c60318f18ddbd013ea40b104f4ec9b3c5714dd7cc"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/render-editor-directional.light-scene.json",
+      "sha256": "901f9d8e48185310b4c6cf109660e041790bdb44677be09807be33b5876dda23"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/render-editor-light-scene.ts",
+      "sha256": "8cd82f6e42e8a25edaaec3009b7c65f4b293e16d61dfd7535d884dd644afbd6a"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/render-editor-point.light-scene.json",
+      "sha256": "b6a393bd4abd2daae36271662c6fc601ca7861377d1b03bc1eb6ee0d432e20ce"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/reusable-shader.jpg",
+      "sha256": "24d702cb4b5475db0c86c8701718d517b1650ceba448773ae715d7afe1778b77"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/serial-part-v2.json",
+      "sha256": "15672f1f44b154698759db7ed80f903081fafecd1c2683e11448d5564276aaf9"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/source0.cad.css",
+      "sha256": "e31fc1269d9d59645078cb9b1cc5bd13baece79bb21993d59a922888d758fdcf"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/source1.cad.css",
+      "sha256": "36e25f4e4f2aaa02620c901f4443da73d490f4032c3d6b41ff75e45d7d28c355"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/source2.cad.css",
+      "sha256": "3fa249d506991c15237531ce220ef3d168fcc95ba87c10d258c81b962a8d19ed"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/source3.cad.css",
+      "sha256": "7022e35b9aafff79d7ced839f0d01434591d498eb2be0571a90c4cce29f418bd"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/svg-arc-import.jpg",
+      "sha256": "63ed4e5df4c7a364e3d0378f64301cb0a34b4279e8f09821016adb560f61644e"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/svg-export.jpg",
+      "sha256": "6797bc5cf2116d548764d0d9a45709a6c4f450a5387fae1543b94cbe6f35478b"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/unicode-label.jpg",
+      "sha256": "cdce237b79d477c32f0d84c7a6558dbad62db73b06ba8afe5898ae7a89e06065"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/viewer-display-pose.jpg",
+      "sha256": "f0b2e82f02fc50da19379734617465d9e7c4804e7e8166c4cff46f1f80eaaf28"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/viewer-panel.png",
+      "sha256": "f6f028ce737059c7953b88def1533ffd4cf86609842309c91c618a423eecb4a0"
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/weave-shader.jpg",
+      "sha256": "cfa4c1dc33b58940b8fa581271a890d90459d057c51fc509ca8533228cd11e2d"
+    },
+    {
+      "path": "apps/library-docs/docs/public/favicon.svg",
+      "sha256": "0b41f5a023ae1050244e932754d959f92295fda2ffc9c4c478a3b78485153042"
+    }
+  ],
+  "downloadCount": 25,
+  "preparationInterruption": "Initial local worktree action denied from separate-Work scope confusion, later authorized. Inventory writer began with only injected warning then poll was cancelled; read-only clean-state/no-check-or-red-log reconciliation and unknown session established no inventory mutation/test completion. Resumed writer completed; red and green above are the first actual test executions. No invented result for cancelled session.",
+  "logs": {
+    "write.txt": {
+      "sha256": "11f2c258cfb57ffb5526fa9c144199ce2d48e83a936d6bc9041adf55dcfd6198",
+      "text": "(node:3) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    "write-resumed.txt": {
+      "sha256": "e50de90c1835dcd0abe4bc2e0dbfeeabf8c3ac64407f64ec8609015ed74dae82",
+      "text": "(node:3) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\nRecorded current manifest metadata at 5ec172fa6703daf2d83e9e59d74598decbad7bfb. Review changesFromSourceSnapshot; historical evidence was not rewritten.\n"
+    },
+    "check.txt": {
+      "sha256": "466223c4eccbc8f2301072d50868bcff911eccc89c683b8f9cdf7c509bff2d2e",
+      "text": "(node:3) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\nMatched 12 current manifests at 5ec172fa6703daf2d83e9e59d74598decbad7bfb; historical source remains 5f5ad866205a21510ac69552e704cc162fa253b5.\n"
+    },
+    "red.txt": {
+      "sha256": "94a0895c9609206a005099349a4a7fc545e78b82396ac48acfd4312525713d4e",
+      "text": "(node:40) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\nTAP version 13\n# (node:47) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n# (Use `node --trace-warnings ...` to show where the warning was created)\n# Subtest: all 12 current manifests match; historical source pin and evidence stay separate\nok 1 - all 12 current manifests match; historical source pin and evidence stay separate\n  ---\n  duration_ms: 179.034903\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed version drift\nok 2 - refuses unreviewed version drift\n  ---\n  duration_ms: 87.138816\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed held Render version drift\nok 3 - refuses unreviewed held Render version drift\n  ---\n  duration_ms: 77.67765\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed development exports drift\nok 4 - refuses unreviewed development exports drift\n  ---\n  duration_ms: 80.652131\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed published exports drift\nok 5 - refuses unreviewed published exports drift\n  ---\n  duration_ms: 75.24657\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed dependencies drift\nok 6 - refuses unreviewed dependencies drift\n  ---\n  duration_ms: 86.14038\n  type: 'test'\n  ...\n# Subtest: refuses blind hash refresh and current metadata tampering\nok 7 - refuses blind hash refresh and current metadata tampering\n  ---\n  duration_ms: 81.594897\n  type: 'test'\n  ...\n# Subtest: refuses historical evidence or source pin replacement\nok 8 - refuses historical evidence or source pin replacement\n  ---\n  duration_ms: 10.47849\n  type: 'test'\n  ...\n# Subtest: records exact changed fields including metadata-only held Render\nnot ok 9 - records exact changed fields including metadata-only held Render\n  ---\n  duration_ms: 2.366417\n  type: 'test'\n  location: '/workspace/scratch/1591b2fb2f62/barocss-manual-inventory-1712/apps/library-docs/scripts/inventory.test.mjs:72:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    ... Skipped lines\n    \n      [\n        [\n          'kit',\n          [\n            'version'\n    ...\n        [\n    +     'gpu',\n    +     [\n    +       'scripts'\n    +     ]\n    +   ],\n    +   [\n          'cad-interop',\n          [\n            'publishConfig',\n            'exports'\n          ]\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    0:\n      0: 'kit'\n      1:\n        0: 'version'\n    1:\n      0: 'browser'\n      1:\n        0: 'version'\n    2:\n      0: 'server'\n      1:\n        0: 'version'\n    3:\n      0: 'render'\n      1:\n        0: 'version'\n    4:\n      0: 'cad-interop'\n      1:\n        0: 'publishConfig'\n        1: 'exports'\n    5:\n      0: 'render-editor'\n      1:\n        0: 'dependencies'\n  actual:\n    0:\n      0: 'kit'\n      1:\n        0: 'version'\n    1:\n      0: 'browser'\n      1:\n        0: 'version'\n    2:\n      0: 'server'\n      1:\n        0: 'version'\n    3:\n      0: 'render'\n      1:\n        0: 'version'\n    4:\n      0: 'gpu'\n      1:\n        0: 'scripts'\n    5:\n      0: 'cad-interop'\n      1:\n        0: 'publishConfig'\n        1: 'exports'\n    6:\n      0: 'render-editor'\n      1:\n        0: 'dependencies'\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///workspace/scratch/1591b2fb2f62/barocss-manual-inventory-1712/apps/library-docs/scripts/inventory.test.mjs:73:10)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: requires an immutable full SHA instead of a moving branch or tag\nok 10 - requires an immutable full SHA instead of a moving branch or tag\n  ---\n  duration_ms: 0.288924\n  type: 'test'\n  ...\n# Subtest: refuses a missing package entry instead of silently reducing coverage\nok 11 - refuses a missing package entry instead of silently reducing coverage\n  ---\n  duration_ms: 89.762475\n  type: 'test'\n  ...\n# Subtest: refuses rewritten historical manifest metadata\nok 12 - refuses rewritten historical manifest metadata\n  ---\n  duration_ms: 12.327961\n  type: 'test'\n  ...\n1..12\n# tests 12\n# suites 0\n# pass 11\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 857.290856\n"
+    },
+    "green.txt": {
+      "sha256": "05db8bd7cf24ec1ac2b1d9187017d402cd7407e45daa54001481e122d7c39f82",
+      "text": "(node:3) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\nTAP version 13\n# (node:10) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n# (Use `node --trace-warnings ...` to show where the warning was created)\n# Subtest: all 12 current manifests match; historical source pin and evidence stay separate\nok 1 - all 12 current manifests match; historical source pin and evidence stay separate\n  ---\n  duration_ms: 161.991208\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed version drift\nok 2 - refuses unreviewed version drift\n  ---\n  duration_ms: 87.519373\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed held Render version drift\nok 3 - refuses unreviewed held Render version drift\n  ---\n  duration_ms: 89.759449\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed development exports drift\nok 4 - refuses unreviewed development exports drift\n  ---\n  duration_ms: 89.336274\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed published exports drift\nok 5 - refuses unreviewed published exports drift\n  ---\n  duration_ms: 83.437583\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed dependencies drift\nok 6 - refuses unreviewed dependencies drift\n  ---\n  duration_ms: 91.169088\n  type: 'test'\n  ...\n# Subtest: refuses blind hash refresh and current metadata tampering\nok 7 - refuses blind hash refresh and current metadata tampering\n  ---\n  duration_ms: 76.179763\n  type: 'test'\n  ...\n# Subtest: refuses historical evidence or source pin replacement\nok 8 - refuses historical evidence or source pin replacement\n  ---\n  duration_ms: 10.316316\n  type: 'test'\n  ...\n# Subtest: records exact changed fields including metadata-only held Render\nok 9 - records exact changed fields including metadata-only held Render\n  ---\n  duration_ms: 0.389436\n  type: 'test'\n  ...\n# Subtest: requires an immutable full SHA instead of a moving branch or tag\nok 10 - requires an immutable full SHA instead of a moving branch or tag\n  ---\n  duration_ms: 0.358949\n  type: 'test'\n  ...\n# Subtest: refuses a missing package entry instead of silently reducing coverage\nok 11 - refuses a missing package entry instead of silently reducing coverage\n  ---\n  duration_ms: 81.814453\n  type: 'test'\n  ...\n# Subtest: refuses rewritten historical manifest metadata\nok 12 - refuses rewritten historical manifest metadata\n  ---\n  duration_ms: 13.203355\n  type: 'test'\n  ...\n1..12\n# tests 12\n# suites 0\n# pass 12\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 863.350282\n"
+    }
+  },
+  "firstManualFailure": {
+    "run": 38363889239,
+    "source": "8b1b7f85a4d51aa42d86590f02d251f81960d382",
+    "job": 115184301663,
+    "logSHA256": "2a4fa1b03f080be59b955164462bc081c80b8936326f1763d307cd01699569c4",
+    "build": "PASS",
+    "checkDocs": "FAIL current @barocss/gpu manifest drift",
+    "artifact": "none",
+    "deploy": "skipped",
+    "url": "https://github.com/barocss/manual/actions/runs/38363889239"
+  },
+  "nativeCalls": 0,
+  "editorBuilds": 0,
+  "unrun": [
+    "Manual retry/full built-doc checks/deployment/live parity",
+    "GPU/browser/physical file acceptance"
+  ],
+  "externalVisualGate": "#1683 remains OPEN",
+  "historicalAcceptedCheckpoint": {
+    "candidate": "75194b47273a9e9d5ed4a1021ac5fd25e19b9a2f",
+    "receiptSHA256": "13de136f61f5dbe06cddd5c742e1bc7373d3ff9e59b4f0a99a01257adbf6e8fb",
+    "manifestReferent": "5ec172fa6703daf2d83e9e59d74598decbad7bfb",
+    "qualification": "Accepted checkpoint became stale before publication; no remote repair writes occurred."
+  },
+  "latestBaseSupplement": {
+    "preflight": "Actual parent 3f1dcd817 had one additional GPU test-script entry, so twelve-manifest parity stopped before publication with AssertionError: gpu.",
+    "newDelta": "scripts.test adds primitive-pixel-windows.test.mjs only; no exports, dependencies or version changes.",
+    "logs": {
+      "current-write.txt": {
+        "sha256": "41becf16abefefa878e9015d9f5229cd6b6ffbd5a9eacbf60a288790df0994e1",
+        "text": "(node:73) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\nRecorded current manifest metadata at 3f1dcd817fc6fa1209d6d68b0ca18a057cb1677e. Review changesFromSourceSnapshot; historical evidence was not rewritten.\n"
+      },
+      "current-check.txt": {
+        "sha256": "0a11fde985ee7601d70aa618fe2a4c0a71b8dec66b47879ac05cc96639c314c3",
+        "text": "(node:110) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\nMatched 12 current manifests at 3f1dcd817fc6fa1209d6d68b0ca18a057cb1677e; historical source remains 5f5ad866205a21510ac69552e704cc162fa253b5.\n"
+      },
+      "current-green.txt": {
+        "sha256": "13c68e80e6b0bf8a213911e138d90319bd468df3aa0dfa0dddfbccd4d6b59602",
+        "text": "(node:147) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\nTAP version 13\n# (node:154) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n# (Use `node --trace-warnings ...` to show where the warning was created)\n# Subtest: all 12 current manifests match; historical source pin and evidence stay separate\nok 1 - all 12 current manifests match; historical source pin and evidence stay separate\n  ---\n  duration_ms: 173.890325\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed version drift\nok 2 - refuses unreviewed version drift\n  ---\n  duration_ms: 87.471388\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed held Render version drift\nok 3 - refuses unreviewed held Render version drift\n  ---\n  duration_ms: 81.559361\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed development exports drift\nok 4 - refuses unreviewed development exports drift\n  ---\n  duration_ms: 83.643574\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed published exports drift\nok 5 - refuses unreviewed published exports drift\n  ---\n  duration_ms: 75.762733\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed dependencies drift\nok 6 - refuses unreviewed dependencies drift\n  ---\n  duration_ms: 81.313056\n  type: 'test'\n  ...\n# Subtest: refuses blind hash refresh and current metadata tampering\nok 7 - refuses blind hash refresh and current metadata tampering\n  ---\n  duration_ms: 75.256256\n  type: 'test'\n  ...\n# Subtest: refuses historical evidence or source pin replacement\nok 8 - refuses historical evidence or source pin replacement\n  ---\n  duration_ms: 9.615755\n  type: 'test'\n  ...\n# Subtest: records exact changed fields including metadata-only held Render\nok 9 - records exact changed fields including metadata-only held Render\n  ---\n  duration_ms: 0.321744\n  type: 'test'\n  ...\n# Subtest: requires an immutable full SHA instead of a moving branch or tag\nok 10 - requires an immutable full SHA instead of a moving branch or tag\n  ---\n  duration_ms: 0.328304\n  type: 'test'\n  ...\n# Subtest: refuses a missing package entry instead of silently reducing coverage\nok 11 - refuses a missing package entry instead of silently reducing coverage\n  ---\n  duration_ms: 74.276789\n  type: 'test'\n  ...\n# Subtest: refuses rewritten historical manifest metadata\nok 12 - refuses rewritten historical manifest metadata\n  ---\n  duration_ms: 12.982661\n  type: 'test'\n  ...\n1..12\n# tests 12\n# suites 0\n# pass 12\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 827.907833\n"
+      }
+    },
+    "regressionResult": {
+      "pass": 12,
+      "fail": 0
+    },
+    "sourceParity": {
+      "manifests": 12,
+      "assets": 81,
+      "downloads": 25,
+      "checkerAndHistoricalInventory": "byte-identical",
+      "Render1705Pages": "preserved from current parent"
+    }
+  }
+}
