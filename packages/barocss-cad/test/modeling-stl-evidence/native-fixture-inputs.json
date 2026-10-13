@@ -1,0 +1,34 @@
+{
+  "final": {
+    "packages/barocss-cad/test/modeling-stl-native.mjs": "529b36b0611135bc9f6888135bd6b9bcd6b81793821c67bd722ee922bae024bd",
+    "packages/barocss-cad/test/modeling-stl-fixture.mjs": "9dd2ec0b4e6abc87ba8e530523b7929d1b7d41532e53806d420b41f6703c7b19",
+    "packages/barocss-cad/test/modeling-translation-fixture.mjs": "baad77202840a3642366cf3167bde5642a57712d1f1b8519c1c931ea29e6e825",
+    "packages/barocss-cad/test/modeling-gusset-fixture.mjs": "83e041fbbb7ab48c5f3d5b2fdf60a1620827375db77544c599bcc76c7f3c2abd",
+    "packages/barocss-cad/test/modeling-constraints-fixture.mjs": "1fa133ddc478d538fb45544467a596d7d2598497071d48c90651dfa9fee66ce0",
+    "packages/barocss-cad/test/modeling-circle-fixture.mjs": "46e379494318e1e8c7ab90cc463654d91f3827c0e8ce2040f45d7277a432ddb5",
+    "packages/barocss-cad/test/stored-circle-prism-solid-fixture.mjs": "4b21c827ae6fee1b3882ca037e00902a1d8301b48d2936b3cce507a8406d6850",
+    "packages/barocss-cad/test/modeling-offset-fixture.mjs": "3fcd712aa2a5024aad7ef3b8df48e398dbeae9c86f80d81eb3aa029acf263170",
+    "packages/barocss-cad/test/modeling-box-cut-fixture.mjs": "0f7d664bf58bddbff99e6ca1182375418da4c500b6b3b3aa4cbf07e9f4ae1861",
+    "packages/barocss-cad/test/modeling-regeneration-fixture.mjs": "924bc3b5dbedc82ff5f48ab51e941c893ad13788a3ddfcc5f69689490598e615",
+    "packages/barocss-cad/test/modeling-intersection-fixture.mjs": "c3f5483214f8304c02825e4e16178fd602931198a36c19c3ed42d9a53cf3cf7c",
+    "packages/barocss-cad/test/modeling-hole-fixture.mjs": "72545fffbba49af62705c4db0298184441019b0e29369e263a856573c7b7cf71",
+    "packages/barocss-cad/scripts/modeling-stl-consumer.mjs": "f8f0a590ac2dc56cad8c2a24856e1d58107c438eda7aba154595b0c98c793384",
+    "packages/barocss-cad/test/modeling-stl-evidence/continuation.mjs": "df3deeb6a8c623b684a27ca7568958e5b51a262c8e41285a8225b7d5c753a6a1"
+  },
+  "firstNativeProductCommit": "1fecc9c8e423725e335a98492b053caa2d0989f2",
+  "firstNativeFixtureHashes": {
+    "packages/barocss-cad/test/modeling-stl-native.mjs": "529b36b0611135bc9f6888135bd6b9bcd6b81793821c67bd722ee922bae024bd",
+    "packages/barocss-cad/test/modeling-stl-fixture.mjs": "468450237fa8c7fee62a295d674fa49b27a521e7ba6c1919dfc78430807ec076",
+    "packages/barocss-cad/test/modeling-translation-fixture.mjs": "baad77202840a3642366cf3167bde5642a57712d1f1b8519c1c931ea29e6e825",
+    "packages/barocss-cad/test/modeling-gusset-fixture.mjs": "83e041fbbb7ab48c5f3d5b2fdf60a1620827375db77544c599bcc76c7f3c2abd",
+    "packages/barocss-cad/test/modeling-constraints-fixture.mjs": "1fa133ddc478d538fb45544467a596d7d2598497071d48c90651dfa9fee66ce0",
+    "packages/barocss-cad/test/modeling-circle-fixture.mjs": "46e379494318e1e8c7ab90cc463654d91f3827c0e8ce2040f45d7277a432ddb5",
+    "packages/barocss-cad/test/stored-circle-prism-solid-fixture.mjs": "4b21c827ae6fee1b3882ca037e00902a1d8301b48d2936b3cce507a8406d6850",
+    "packages/barocss-cad/test/modeling-offset-fixture.mjs": "3fcd712aa2a5024aad7ef3b8df48e398dbeae9c86f80d81eb3aa029acf263170",
+    "packages/barocss-cad/test/modeling-box-cut-fixture.mjs": "0f7d664bf58bddbff99e6ca1182375418da4c500b6b3b3aa4cbf07e9f4ae1861",
+    "packages/barocss-cad/test/modeling-regeneration-fixture.mjs": "924bc3b5dbedc82ff5f48ab51e941c893ad13788a3ddfcc5f69689490598e615",
+    "packages/barocss-cad/test/modeling-intersection-fixture.mjs": "c3f5483214f8304c02825e4e16178fd602931198a36c19c3ed42d9a53cf3cf7c",
+    "packages/barocss-cad/test/modeling-hole-fixture.mjs": "72545fffbba49af62705c4db0298184441019b0e29369e263a856573c7b7cf71",
+    "packages/barocss-cad/scripts/modeling-stl-consumer.mjs": "f170368d7a66eba96edc0250b4d4c3a74b89b8fedd42bba20600a097ffa52bc7"
+  }
+}

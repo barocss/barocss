@@ -1,0 +1,1 @@
+{"format":"barocss-cad-model","nodes":[{"kind":"sketch","max":[2,2],"min":[0,0],"profile":"rectangle"},{"from":9999,"height":0.000244140625,"kind":"extrude","sketch":0}],"outputs":{"thin":{"node":1,"side":"solid"}},"parameters":{},"schema":1,"units":"mm"}

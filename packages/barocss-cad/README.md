@@ -10972,7 +10972,8 @@ Measurements add no authored features or saved state. See the
 ### Fully constrained convex profiles
 
 `model.sketch.constrainedPolygon(builder => points)` authors one closed XY cycle with
-callback-owned points and `fixed`, `horizontal`, and `vertical` constraints. Return
+callback-owned points and `fixed`, `horizontal`, `vertical`, and authored-direction
+`parallelTo` constraints. Return
 all 3–8 points once in boundary order; orientation constraints must join adjacent
 points. `fixed(point)` uses its authored seed as a target, so owned parameters and
 derived dimensions remain editable. At most 16 constraints are admitted.
@@ -10991,3 +10992,73 @@ outline is not an authored rectangle for integer-box Boolean or plate-hole
 shortcuts. No nonlinear dimensions, construction points, automatic constraint
 inference, new body family, sketch UI or physical acceptance is implied. See
 [the complete primary example](./CONCISE_API.md#constraint-driven-profiles).
+
+### A direction-driven tapered gusset
+
+Inside `constrainedPolygon`, `parallelTo(a, b, [dx, dy])` constrains one adjacent
+owned edge to an authored dimensionless direction. Fix three corners, keep the top
+edge horizontal, and give the sloped edge direction `[1, 3]`; the exact solver
+then determines the fourth corner. Width and height edits rebuild the real convex
+extrusion, and Save/Open retains the constraints. The
+[complete gusset example](./CONCISE_API.md#a-tapered-gusset-from-an-edge-direction)
+creates a 6,912 mm³ part from a 40×24 mm profile extruded 8 mm.
+
+Direction components are finite numeric literals within ±10,000, not lengths,
+parameter handles or angle values. The pair must be nonzero; it is neither
+normalized nor rounded. Up to eight direction constraints fit within the existing
+16-constraint budget. Exact rational results that cannot be represented as binary64
+still refuse: changing this profile height to 1 mm requires a corner at 1/3 mm.
+The original typed cause and earlier usable snapshot are preserved. No solver,
+body family or renderer replacement is involved.
+
+### One exact owned translated copy
+
+The primary `CadShape.translate([dx,dy,dz])` creates a terminal copy of a direct
+affine extrusion or its complete one/two-chamfer finishing chain. A two-gusset recipe can build `{ left, right: left.translate([spacing,0,0]) }`
+and edit `spacing` without rebuilding the accepted parent sketch or extrusion.
+See the complete [two-gusset example](CONCISE_API.md#two-owned-gussets-with-a-driving-spacing).
+
+Offsets are owned length dimensions in mm. Every target Surface and trim Line
+coefficient is staged with exact stored-binary64 rational arithmetic before any
+target Face is constructed. The complete parent is validated, actual target Faces
+are built with distinct source identities, every directed-use pairing is remapped,
+and the existing convex Solid qualifier proves the full result. Original-to-copy
+Face/Curve/use/edge/vertex lineage and the real native reports are retained.
+Existing raw Curve/Surface affine transforms do not supply this Solid authority.
+
+All sums must be exactly representable and remain within ±10,000 mm. Zero offset
+components bit-copy source coordinates and preserve the separate authored zero
+sign; nonzero exact cancellation produces +0. A zero vector creates a distinct
+coincident body rather than an empty or fused result. Refusals preserve the prior
+snapshot, original cause and future selective reuse.
+
+One direct rectangle/polygon/constrainedPolygon extrusion copy, including admitted
+`from` placement, remains supported within six nodes. A finished copy additionally
+accepts only the exact sketch → extrusion → one/two sequential chamfers → translate
+chain. Finish a rail once, then call `finished.translate([spacing, -0, 0])`; changing
+spacing reuses the accepted finishes. Named disabled finishes still validate, and
+the copy consumes the actual selected parent. The native reconstruction and its
+10-Face/48-use/24-edge/16-vertex limits are unchanged. It remains the
+existing `convex-planar` body family and can be named, saved, reopened, tessellated
+and measured. No translated-parent Boolean, split, chamfer, hole, chaining,
+rotation, mirror, scale or pattern is admitted. Boolean mixtures, finishing
+siblings and operations after the finished copy refuse. Circle and other body families remain outside
+this scope. Native preview packets do not establish a new editor preset or
+browser/GPU/physical acceptance.
+
+### Named convex output to binary STL
+
+The primary `snapshot.exportStl('right')` validates and exports one owned convex
+output, including the translated gusset above. Its immutable byte array preserves
+authored XYZ; the unit convention is millimetres. Byte length, triangle count and
+measured Float32 vertex displacement are directly available, with complete native
+mesh/face lineage and exact loss/encoding details retained separately. See the
+[typed STL example](CONCISE_API.md#export-one-output-as-binary-stl).
+
+This reuses the unchanged convex tessellator and existing exact Float32 loss and
+facet-collapse guards. No file is written by the API. Unsupported rational and
+integer-cell families refuse before native export; no strip certificate is
+invented for a convex mesh. Facet noncollapse/normal alignment are finite encoding
+checks, not global topology, original-Solid orientation, slicer or manufacturing
+acceptance. STL loses native identity, units metadata, UV trims and editability;
+retain the authored `save()` document alongside it.

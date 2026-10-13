@@ -1,0 +1,35 @@
+name: Physics post correction redetection
+on:
+  pull_request:
+    branches: [develop]
+    paths:
+      - 'examples/physics-contact-impulse-audit-1572/post-correction-redetect.ts'
+      - 'examples/physics-contact-impulse-audit-1572/run-post-correction-redetect.mjs'
+      - '.github/workflows/physics-post-correction-redetect.yml'
+  workflow_dispatch:
+jobs:
+  redetect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @barocss/physics build:library
+      - run: mkdir -p /tmp/p1572-redetect
+      - name: Compare original and post correction SAT/manifold
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node examples/physics-contact-impulse-audit-1572/run-post-correction-redetect.mjs | tee /tmp/p1572-redetect/results.jsonl
+      - if: always() && github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: physics1572-post-correction-redetect
+          path: /tmp/p1572-redetect/results.jsonl
+          if-no-files-found: ignore
