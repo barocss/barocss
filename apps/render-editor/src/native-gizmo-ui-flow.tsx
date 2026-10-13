@@ -46,7 +46,7 @@ export async function runNativeGizmoUiFlow(source: string, controls: NativeGizmo
   // wholly inside the 13.5 CSS-pixel pivot exclusion (and could never be hit).
   const nativeOrigin = pose(documentSeed, BODY).translationMM.map(value => value * documentSeed.display.mmToSceneUnit);
   const nearZCamera: MeshCamera = {...camera, target: [nativeOrigin[0]!, nativeOrigin[1]!, nativeOrigin[2]!],
-    eye: [nativeOrigin[0]! + .25, nativeOrigin[1]!, nativeOrigin[2]! + 5]};
+    eye: [nativeOrigin[0]! + .55, nativeOrigin[1]!, nativeOrigin[2]! + 5]};
   const matrices = prepareCamera(nearZCamera, viewport.backingWidth / viewport.backingHeight);
   const cameraProject = (point: readonly number[]): Point => {
     const vector = [...point, 1];
