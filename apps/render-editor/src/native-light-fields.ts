@@ -198,6 +198,36 @@ export function stageLightBodyRotation(base: RenderNativeLightDocument, fields: 
   return {...fields, bodies: fields.bodies.map((row, i) => i === index ? changed : row)};
 }
 
+/** Explicitly reset just one selected display pose. No scene/history/Viewer mutation occurs here. */
+export function stageLightBodyTransformReset(base: RenderNativeLightDocument, fields: LightForm, bodyId: string): LightForm {
+  const ids = bodyIds(base), index = ids.indexOf(bodyId);
+  if (fields.kind !== lightKind(base) || index < 0 || fields.bodies.length !== ids.length
+    || ids.some((id, i) => fields.bodies[i]?.bodyId !== id))
+    throw new RenderEditorError('DOCUMENT_INPUT', 'Reset requires the current qualified body selection.');
+
+  const identity: BodyFields = {bodyId, position: ['0', '0', '0'],
+    rotation: ['0', '0', '0', '1'], scale: ['1', '1', '1']};
+  // Validate only the generated selected pose. Other corrective body/material/light/
+  // camera strings may be intentionally incomplete and must remain untouched.
+  const baseline = readLightFields(base);
+  const isolated = {...baseline, bodies: baseline.bodies.map((row, i) => i === index ? identity : row)};
+  const candidate = applyLightFields(base, isolated);
+  const request = createRenderNativeLightRequest(candidate);
+  prepareViewerNativeSceneAppearance({version: 1, source: request.source, display: request.display,
+    appearance: {lighting: {ambientStrength: 1, directionalStrength: 0, direction: [0, 0, 1]},
+      materials: request.materials}}, request.context);
+
+  const selected = fields.bodies[index]!;
+  const isIdentity = (values: readonly string[], expected: readonly number[]): boolean =>
+    values.length === expected.length && values.every((value, i) => {
+      try {return Object.is(numeric(value, 'Body transform'), expected[i]);}
+      catch (cause) {if (cause instanceof RenderEditorError && cause.code === 'DOCUMENT_INPUT') return false; throw cause;}
+    });
+  if (isIdentity(selected.position, [0, 0, 0]) && isIdentity(selected.rotation, [0, 0, 0, 1])
+    && isIdentity(selected.scale, [1, 1, 1])) return fields;
+  return {...fields, bodies: fields.bodies.map((row, i) => i === index ? identity : row)};
+}
+
 /** Select only an existing, fully qualified visible binding; embedded IDs are not global assets. */
 export function selectedLightMaterial(base: RenderNativeLightDocument, bodyId: string) {
   prepareRenderNativeLightDocument(base);
