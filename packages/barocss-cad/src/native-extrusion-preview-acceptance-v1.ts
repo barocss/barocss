@@ -4,7 +4,7 @@ import type {
   BooleanExtrusionFeatureGraphOptions,
   BooleanExtrusionFeatureGraphResult,
 } from './boolean-extrusion-feature-graph.js';
-import { createNativeExtrusionPreviewSessionV1 } from './native-extrusion-preview-session-v1.js';
+import { extrudeCoplanarFaceBoolean } from './coplanar-face-boolean-extrusion.js';
 import type { CoplanarFaceBooleanExtrusionResult } from './coplanar-face-boolean-extrusion.js';
 import { copyCadData } from './data-copy.js';
 
@@ -61,12 +61,27 @@ export function createNativeExtrusionPreviewAcceptanceV1(
   options: BooleanExtrusionFeatureGraphOptions,
   featureId: string,
 ): NativeExtrusionPreviewAcceptanceSessionV1 {
-  // This accepted state is reconstructed once, then retained as private data.
-  // The preview v1 session separately owns its own fully evaluated region.
+  // Evaluate and privately own the entire native graph only once at creation.
+  // Neither this private region nor its owning options are returned to callers.
   let accepted = evaluateBooleanExtrusionFeatureGraph(document, options);
-  const preview = createNativeExtrusionPreviewSessionV1(accepted.document, accepted.options, featureId);
-  if (preview.graphId !== accepted.document.id || preview.acceptedRevision !== accepted.document.revision)
-    throw new TypeError('Native preview and acceptance identities differ');
+  if (typeof featureId !== 'string' || featureId.length === 0 || featureId.length > 48)
+    throw new TypeError('Existing bounded native extrusion feature ID required');
+  const leaf = accepted.document.features.find(feature => feature.id === featureId);
+  if (!leaf || leaf.kind !== 'normal-extrusion')
+    throw new RangeError('Existing native extrusion leaf required');
+  const region = accepted.features.find(row => row.featureId === leaf.regionFeatureId);
+  if (!region || region.kind !== 'coplanar-boolean')
+    throw new TypeError('Previously evaluated owned Boolean region required');
+  const privateRegion = region.evaluation;
+  const privateOptions = { ...leaf.options };
+  const previewDistanceMM = (distanceMM: number): CoplanarFaceBooleanExtrusionResult => {
+    if (typeof distanceMM !== 'number' || !Number.isFinite(distanceMM) ||
+        distanceMM <= 0 || distanceMM > 10000)
+      throw new RangeError('Finite native extrusion preview distance in (0,10000] mm required');
+    // Only the extrusion is newly evaluated for a preview. Its existing
+    // native builder still validates the retained private Boolean region.
+    return copyCadData(extrudeCoplanarFaceBoolean(privateRegion, { ...privateOptions, distanceMM }));
+  };
   const graphId = accepted.document.id;
   let prepared: {
     token: NativeExtrusionPreviewTicketV1;
@@ -86,7 +101,7 @@ export function createNativeExtrusionPreviewAcceptanceV1(
     },
     prepareDistanceMM(distanceMM: number): NativeExtrusionPreparedV1 {
       // Full native provider admission, not an approximation or UI mesh.
-      const geometry = preview.previewDistanceMM(distanceMM);
+      const geometry = previewDistanceMM(distanceMM);
       const token = Object.freeze({ kind: 'native-extrusion-preview-token' as const });
       const baseRevision = accepted.document.revision;
       prepared = { token, baseRevision, distanceMM, geometry: copyCadData(geometry) };
@@ -107,8 +122,13 @@ export function createNativeExtrusionPreviewAcceptanceV1(
         parameterEdits: [], faceEdits: [], booleanEdits: [],
         distanceEdits: [{ featureId, definition: { kind: 'literal', valueMM: candidate.distanceMM } }],
       });
-      const leaf = next.features.find(row => row.featureId === featureId);
-      if (!leaf || leaf.kind !== 'normal-extrusion' || !same(leaf.evaluation, candidate.geometry))
+      const rebuiltRegion = next.features.find(row => row.featureId === region.featureId);
+      if (!rebuiltRegion || rebuiltRegion.kind !== 'coplanar-boolean' ||
+          !same(rebuiltRegion.evaluation, privateRegion))
+        throw new Error('Native preview region changed during full rebuild; accepted state retained');
+      const rebuiltLeaf = next.features.find(row => row.featureId === featureId);
+      if (!rebuiltLeaf || rebuiltLeaf.kind !== 'normal-extrusion' ||
+          !same(rebuiltLeaf.evaluation, candidate.geometry))
         throw new Error('Native preview/full rebuild geometry mismatch; accepted state retained');
       accepted = next;
       prepared = null;
