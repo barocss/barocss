@@ -101,7 +101,7 @@ export function constructPlaneCylinderCandidate(input: XYCirclePrismShellBundle,
   const shell = snapshot(input) as XYCirclePrismShellBundle; validateXYCirclePrismShellBundle(shell); const opt = admitOptions(snapshot(inputOptions),shell);
   const sourceCircle = shell.geometry.objects.find(o => o.id === shell.topology.sourceCurveId) as Curve, wallFace = shell.topology.faces.find(f => f.role === 'wall')!;
   const wall = copyCadData(shell.geometry.objects.find(o => o.id === wallFace.surfaceId) as Surface), bottomFace = shell.topology.faces.find(f => f.role === 'bottom-cap')!, support = shell.geometry.objects.find(o => o.id === bottomFace.surfaceId) as Surface;
-  const a = support.controlPoints[0][0], b = support.controlPoints[1][1], sx = finite(b[0]-a[0]), sy = finite(b[1]-a[1]), h = shell.construction.heightMM;
+  const a = support.controlPoints[0][0], b = support.controlPoints[1][1], sx = finite(b[0]-a[0]), sy = finite(b[1]-a[1]);
   check(sx > 0 && sy > 0, 'positive represented original support spans required');
   const lift = (p: Point): Point => [p[0],p[1],finite(finite(opt.slopeX*p[0])+finite(opt.slopeY*p[1])+opt.zInterceptMM)];
   const section: Curve = { ...copyCadData(sourceCircle), id: opt.curveId, controlPoints: sourceCircle.controlPoints.map(lift) }; validateCurve(section);
