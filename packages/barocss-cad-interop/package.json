@@ -489,7 +489,8 @@
     "test:abortable": "node test/abortable-loader.test.mjs",
     "test:integration": "pnpm --filter @barocss/cad build:library && pnpm --filter @barocss/gpu build:library && pnpm build:library && node --test test/cad-integration.test.mjs",
     "test:world:result": "node examples/paired-surface-material-body-world-points-result-verify.mjs",
-    "test:world:preflight": "node examples/paired-surface-material-body-world-points-fixture-preflight.mjs"
+    "test:world:preflight": "node examples/paired-surface-material-body-world-points-fixture-preflight.mjs",
+    "test:world:native": "pnpm build:library && node examples/paired-surface-material-body-world-points-native-run.mjs"
   },
   "dependencies": {
     "@barocss/cad": "workspace:*"
