@@ -58,8 +58,31 @@ function graph(packages) {
   return { rows, edges };
 }
 
-export function createAffectedPlan({ packages, basePackages, changes = [], contents = {}, validBase = true, fullReason = null, head, runId }) {
-  const plan = { version: 1, head, runId, mode: 'full', docsCheckScriptOnly: false, appTests: 'external', runtimeTests: 'manual/pre-release', reasons: [], changedPaths: [...new Set(changes.flatMap((change) => [change.oldPath, change.path]).filter((path) => typeof path === 'string'))].sort(), packages: [], builds: [], docsNeeded: changes.some(({ path, oldPath }) => [path, oldPath].some((p) => p?.startsWith('apps/library-docs/'))) };
+function additiveGpuTests(before, after, changes, fileModes) {
+  const parse = (script) => {
+    if (typeof script !== 'string' || !script.startsWith('node --test ')) return null;
+    const args = script.slice('node --test '.length).split(' ');
+    if (!args.length || new Set(args).size !== args.length || args.some((arg) =>
+      !(safePath(arg) && /^tests\/[A-Za-z0-9_./-]+\.test\.mjs$/.test(arg))
+      && arg !== '../../examples/gpu-scene/primitive-device-receipt-gate.test.mjs')) return null;
+    return args;
+  };
+  const oldArgs = parse(before); const newArgs = parse(after);
+  if (!oldArgs || !newArgs || newArgs.length <= oldArgs.length) return false;
+  let cursor = 0;
+  for (const arg of newArgs) {
+    if (arg === oldArgs[cursor]) { cursor++; continue; }
+    if (oldArgs.includes(arg) || !safePath(arg) || !/^tests\/[A-Za-z0-9_./-]+\.test\.mjs$/.test(arg)) return false;
+    const path = `packages/barocss-gpu/${arg}`;
+    const entries = changes.filter((change) => change.path === path || change.oldPath === path);
+    if (entries.length !== 1 || entries[0].status !== 'A' || entries[0].oldPath
+      || !['100644', '100755'].includes(fileModes[path])) return false;
+  }
+  return cursor === oldArgs.length;
+}
+
+export function createAffectedPlan({ packages, basePackages, changes = [], contents = {}, fileModes = {}, validBase = true, fullReason = null, head, runId }) {
+  const plan = { version: 1, head, runId, mode: 'full', docsCheckScriptOnly: false, gpuTestRegistrationOnly: false, appTests: 'external', runtimeTests: 'manual/pre-release', reasons: [], changedPaths: [...new Set(changes.flatMap((change) => [change.oldPath, change.path]).filter((path) => typeof path === 'string'))].sort(), packages: [], builds: [], docsNeeded: changes.some(({ path, oldPath }) => [path, oldPath].some((p) => p?.startsWith('apps/library-docs/'))) };
   const finish = () => ({ ...plan, planId: digest(plan) });
   try {
     if (!shaPattern.test(head) || !/^\d+$/.test(runId)) throw new Error('invalid run identity');
@@ -80,6 +103,18 @@ export function createAffectedPlan({ packages, basePackages, changes = [], conte
       && typeof docsAfter?.scripts?.['check:docs'] === 'string' && !!docsAfter.scripts['check:docs']
       && docsBefore.scripts['check:docs'] !== docsAfter.scripts['check:docs']
       && canonical(omitDocsCheck(packages)) === canonical(omitDocsCheck(basePackages));
+    // GPU runtime test registration cannot alter another app's lint environment.
+    // Keep the full route; only distinguish a strictly additive, owned argv list.
+    const gpuPath = 'packages/barocss-gpu/package.json';
+    const gpuChanges = changes.filter(({ path, oldPath }) => path === gpuPath || oldPath === gpuPath);
+    const gpuBefore = basePackages.find(({ directory }) => directory === 'packages/barocss-gpu')?.manifest;
+    const gpuAfter = packages.find(({ directory }) => directory === 'packages/barocss-gpu')?.manifest;
+    const omitGpuTest = (items) => manifests(items).map(({ directory, manifest }) => ({ directory,
+      manifest: directory === 'packages/barocss-gpu'
+        ? { ...manifest, scripts: { ...manifest.scripts, test: '<compared separately>' } } : manifest }));
+    plan.gpuTestRegistrationOnly = gpuChanges.length === 1 && gpuChanges[0].status === 'M' && !gpuChanges[0].oldPath
+      && additiveGpuTests(gpuBefore?.scripts?.test, gpuAfter?.scripts?.test, changes, fileModes)
+      && canonical(omitGpuTest(packages)) === canonical(omitGpuTest(basePackages));
     if (canonical(manifests(packages)) !== canonical(manifests(basePackages))) throw new Error('workspace manifest changed');
     const selected = new Set(); let docs = false;
     for (const change of changes) {
@@ -126,7 +161,7 @@ export function createAffectedPlan({ packages, basePackages, changes = [], conte
 }
 
 export function validatePlan(plan) {
-  if (!plan || plan.version !== 1 || !shaPattern.test(plan.head) || !/^\d+$/.test(plan.runId) || !['full', 'packages', 'docs'].includes(plan.mode) || plan.appTests !== 'external' || plan.runtimeTests !== 'manual/pre-release' || typeof plan.docsCheckScriptOnly !== 'boolean' || typeof plan.docsNeeded !== 'boolean' || !Array.isArray(plan.packages) || !Array.isArray(plan.builds)) throw new Error('invalid plan');
+  if (!plan || plan.version !== 1 || !shaPattern.test(plan.head) || !/^\d+$/.test(plan.runId) || !['full', 'packages', 'docs'].includes(plan.mode) || plan.appTests !== 'external' || plan.runtimeTests !== 'manual/pre-release' || typeof plan.docsCheckScriptOnly !== 'boolean' || typeof plan.gpuTestRegistrationOnly !== 'boolean' || typeof plan.docsNeeded !== 'boolean' || !Array.isArray(plan.packages) || !Array.isArray(plan.builds)) throw new Error('invalid plan');
   const { planId, ...body } = plan;
   if (digest(body) !== planId || (plan.mode === 'packages' && !plan.packages.length) || (plan.mode === 'docs' && (!plan.docsNeeded || plan.packages.length))) throw new Error('invalid plan identity or empty selection');
   for (const row of plan.builds) {
@@ -194,7 +229,10 @@ function main() {
       const read = (ref) => { try { return git(['show', `${ref}:${path}`]); } catch { return ''; } };
       contents[path] = { before: read(comparison.base), after: read(comparison.target) };
     }
-    args = { head, runId, ...comparison, changes, contents, validBase: true, packages: workspaceRows(head), basePackages: workspaceRows(comparison.base) };
+    const fileModes = Object.fromEntries(git(['ls-tree', '-r', '-z', head, '--', 'packages/barocss-gpu/tests']).split('\0').filter(Boolean).map((entry) => {
+      const [metadata, path] = entry.split('\t'); return [path, metadata.split(' ')[0]];
+    }));
+    args = { head, runId, ...comparison, changes, contents, fileModes, validBase: true, packages: workspaceRows(head), basePackages: workspaceRows(comparison.base) };
   } catch (error) { args.fullReason = `unavailable comparison: ${error.message}`; }
   const plan = createAffectedPlan(args); validatePlan(plan);
   writeFileSync('affected-ci-plan.json', `${JSON.stringify(plan, null, 2)}\n`);

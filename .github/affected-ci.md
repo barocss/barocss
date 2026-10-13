@@ -84,3 +84,15 @@ or prepare), dependency/configuration changes, and root manifests remain global.
 Concurrent lint, TypeScript or build configuration changes also retain broad lint.
 This is selection scope, not a waiver for the existing CAD-app lint errors exposed
 by a prior overly broad docs-only selection.
+
+The same lint-scope distinction applies to strictly additive GPU runtime test
+registration in `packages/barocss-gpu/package.json`. The existing literal
+`node --test` prefix and every existing argument must stay in order, with no
+duplicates or removals. New arguments must be safe owned `tests/*.test.mjs` paths
+added by the comparison and tracked as regular files in the actual checkout;
+options, shell syntax, symlinks and untracked/missing paths refuse classification.
+Every other workspace manifest field and script must remain identical. The full
+types/lint/build route is retained, including GPU source lint, and concurrent app
+source edits still receive their normal changed-file lint. Root, lifecycle,
+dependency or configuration changes remain conservative. This does not waive the
+66-file CAD lint debt: manual/pre-release full app lint remains unchanged.
