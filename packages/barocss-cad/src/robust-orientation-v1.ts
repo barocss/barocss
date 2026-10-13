@@ -31,6 +31,23 @@ const point = (v: unknown): v is PlanarPoint => {
       typeof fields[k].value === 'number');
 };
 
+const admittedOptions = (v: unknown): OrientationOptions | null => {
+  if (v === null || typeof v !== 'object' || Array.isArray(v)) return null;
+  const proto = Object.getPrototypeOf(v);
+  if (proto !== Object.prototype && proto !== null) return null;
+  const descriptors = Object.getOwnPropertyDescriptors(v);
+  const fields = ['maxAbsCoordinateMM', 'determinantUncertaintyMM2'];
+  if (Reflect.ownKeys(v).length !== 2 || Object.keys(descriptors).length !== 2 ||
+      !fields.every(k => Object.hasOwn(descriptors, k) &&
+        'value' in descriptors[k] && descriptors[k].enumerable &&
+        typeof descriptors[k].value === 'number')) return null;
+  const maxAbsCoordinateMM = descriptors.maxAbsCoordinateMM.value as number;
+  const determinantUncertaintyMM2 = descriptors.determinantUncertaintyMM2.value as number;
+  if (!Number.isFinite(maxAbsCoordinateMM) || maxAbsCoordinateMM <= 0 ||
+      !Number.isFinite(determinantUncertaintyMM2) || determinantUncertaintyMM2 < 0) return null;
+  return { maxAbsCoordinateMM, determinantUncertaintyMM2 };
+};
+
 /**
  * Returns a sign only when an integer determinant is exact or when a
  * conservative floating-point bound excludes zero. Never snaps to zero.
@@ -39,15 +56,13 @@ export function orient2dQualified(
   a: unknown, b: unknown, c: unknown,
   options: OrientationOptions = { maxAbsCoordinateMM: 10000, determinantUncertaintyMM2: 0 },
 ): PredicateEvidence {
-  if (!point(a) || !point(b) || !point(c) ||
-      !options || !Number.isFinite(options.maxAbsCoordinateMM) ||
-      options.maxAbsCoordinateMM <= 0 ||
-      !Number.isFinite(options.determinantUncertaintyMM2) ||
-      options.determinantUncertaintyMM2 < 0)
+  if (!point(a) || !point(b) || !point(c))
     return { status: 'unsupported', reason: 'invalid-input' };
+  const admitted = admittedOptions(options);
+  if (!admitted) return { status: 'unsupported', reason: 'invalid-input' };
   const v = [a.x, a.y, b.x, b.y, c.x, c.y];
   if (!v.every(Number.isFinite)) return { status: 'unsupported', reason: 'non-finite-coordinate' };
-  if (v.some(x => Math.abs(x) > options.maxAbsCoordinateMM))
+  if (v.some(x => Math.abs(x) > admitted.maxAbsCoordinateMM))
     return { status: 'unsupported', reason: 'out-of-range-coordinate' };
 
   if (v.every(Number.isSafeInteger)) {
@@ -65,7 +80,7 @@ export function orient2dQualified(
   const epsilon = Number.EPSILON;
   const magnitude = Math.abs(p) + Math.abs(q) +
     (Math.abs(x1) + Math.abs(y1) + Math.abs(x2) + Math.abs(y2)) * epsilon;
-  const bound = 32 * epsilon * magnitude + options.determinantUncertaintyMM2;
+  const bound = 32 * epsilon * magnitude + admitted.determinantUncertaintyMM2;
   if (!Number.isFinite(bound)) return { status: 'indeterminate', reason: 'overflow-risk' };
   if (Math.abs(det) <= bound) return { status: 'indeterminate', reason: 'within-error-bound' };
   return { status: 'qualified', sign: sign(det) as Exclude<OrientationSign, 'zero'>,
