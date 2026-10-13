@@ -654,6 +654,11 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   };
   const add = () => {try {const next = addLightFields(fields); edit(next); setSelected(next.lights.at(-1)!.nodeId); setInspectorFocus('light');} catch (cause) {report(cause);}};
   const remove = () => {if (light) {const next = {...fields, lights: fields.lights.filter(item => item !== light)}; edit(next); setSelected(next.lights[0]?.nodeId ?? null); setInspectorFocus('light');}};
+  const toggleLight = () => {
+    if (!light || actionBusy) return;
+    edit({...fields, lights: fields.lights.map(item => item.nodeId === light.nodeId
+      ? {...item, enabled: !item.enabled} : item)});
+  };
   const duplicateLight = () => {if (!light || actionBusy || fields.lights.length >= 4) return;
     try {const next = duplicateLightFields(fields, light.nodeId); edit(next); setSelected(next.lights.at(-1)!.nodeId); setInspectorFocus('light'); setNotice('Light copied into the scene draft. Apply to accept it.');}
     catch (cause) {report(cause, 'Light copy refused: ');}
@@ -726,7 +731,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
             {(duplicateReason || removeBodyReason) && <small aria-label="Body command availability">{[...new Set([duplicateReason, removeBodyReason].filter(Boolean))].join(' ')}</small>}
           </div>
       <div role="group" aria-label="Light commands" className="light-command-group" hidden={inspectorFocus !== 'light'}><strong>Light</strong>
-          <Button size="sm" variant="outline" disabled={disabled || fields.lights.length >= 4} onClick={add}><Plus/>Add {kind}</Button> <Button size="sm" variant="outline" disabled={disabled || !light || fields.lights.length >= 4} onClick={duplicateLight}>Duplicate light</Button></div>
+          <Button size="sm" variant="outline" disabled={disabled || fields.lights.length >= 4} onClick={add}><Plus/>Add {kind}</Button> <Button size="sm" variant="outline" disabled={disabled || !light || fields.lights.length >= 4} onClick={duplicateLight}>Duplicate light</Button> <Button size="sm" variant="outline" disabled={disabled || !light} onClick={toggleLight}>{light?.enabled ? "Disable light" : "Enable light"}</Button></div>
       {(inspectorFocus === 'camera' || inspectorFocus === 'scene') && <span className="light-command-note">{inspectorFocus === 'camera' ? 'Edit the authored camera in the inspector. View controls change only the local camera.' : 'Scene title and ambient light are authored with the complete scene.'}</span>}
     </div>
     <div className="app-body" style={{minHeight: 0}}>
