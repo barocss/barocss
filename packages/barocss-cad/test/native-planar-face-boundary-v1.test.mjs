@@ -59,3 +59,14 @@ test('face refuses revoked proxies, reflection traps and array getter without ev
  assert.deepEqual(construct('faceA',array),{status:'refused',reason:'invalid-loop'});
  assert.equal(reads,0);
 });
+
+test('boundary construction snapshots descriptors and never executes hostile coordinate getters',()=>{
+ let reads=0;
+ const guarded=(x,y)=>new Proxy({x,y},{get(){reads++;throw Error('hostile get');}});
+ const r=construct('faceProxy',[guarded(0,0),guarded(4,0),guarded(4,4),guarded(0,4)]);
+ assert.equal(r.status,'qualified');
+ assert.deepEqual(r.vertices[0].pointMM,p(0,0));
+ assert.equal(reads,0);
+ const revoked=Proxy.revocable({x:0,y:0},{});revoked.revoke();
+ assert.equal(construct('faceProxy',[revoked.proxy,p(1,0),p(0,1)]).status,'refused');
+});
