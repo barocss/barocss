@@ -2052,9 +2052,237 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
       proof: 'software only; no GPU pixels, native picker or physical #1573 acceptance'});
   }
 
+  // #1734: 32 direct real derivations, <=12 replacements and four transports per kind.
+  const bodyCommandFlow = [];
+  for (const kind of ['directional', 'point']) {
+    const raw = structuredClone(api.createLightStudy(sourceText, kind));
+    raw.surfaceMaterials[1].material.documentId = raw.surfaceMaterials[0].material.documentId;
+    raw.surfaceMaterials[1].material.uniforms.amount = -0;
+    poseFor(raw, B).rotationXYZW = [-0, 0, 0, -1];
+    const commandSeed = api.prepareRenderNativeLightDocument(raw).document;
+    const seedText = api.serializeRenderNativeLightDocument(commandSeed);
+    const cases = [];
+    const bodyCase = (label, document, bodyId, action, reserved = []) => {
+      cases.push(label); assert(cases.length <= 32, kind + ': direct body helper ceiling');
+      const before = structuredClone(document);
+      try {return api.deriveLightBodyCommand(document, bodyId, action, reserved);}
+      finally {assert.deepEqual(document, before, label + ': caller document immutable');}
+    };
+    const refuseBody = (...args) => {
+      let error; try {bodyCase(...args);} catch (cause) {if (cause instanceof assert.AssertionError) throw cause; error = cause;}
+      assert(error, args[0] + ': real derivation must refuse'); return error;
+    };
+    const copyA = bodyCase('duplicate A', commandSeed, A, 'duplicate');
+    const copyB = bodyCase('duplicate B repeated material/geometry IDs', commandSeed, B, 'duplicate');
+    for (const [result, originalId] of [[copyA, A], [copyB, B]]) {
+      const oldBody = commandSeed.nativeDocument.bodies.find(item => item.id === originalId);
+      const newBody = result.document.nativeDocument.bodies.find(item => item.id === result.selectedBodyId);
+      assert.equal(result.generatedIds.length, 3); assert.equal(new Set(result.generatedIds).size, 3);
+      assert.equal(newBody.geometryId, oldBody.geometryId); assert.notEqual(newBody.assetId, oldBody.assetId);
+      const oldAsset = commandSeed.nativeDocument.assets.find(item => item.id === oldBody.assetId);
+      const newAsset = result.document.nativeDocument.assets.find(item => item.id === newBody.assetId);
+      assert.deepEqual(newAsset, {...oldAsset, id: newBody.assetId, revision: 0});
+      assert.deepEqual(result.document.nativeDocument.assets.slice(0, 2), commandSeed.nativeDocument.assets);
+      assert.deepEqual(poseFor(result.document, result.selectedBodyId), {...poseFor(commandSeed, originalId), bodyId: result.selectedBodyId});
+      const oldMaterial = commandSeed.surfaceMaterials.find(item => item.target.bodyId === originalId).material;
+      const newMaterial = result.document.surfaceMaterials.find(item => item.target.bodyId === result.selectedBodyId).material;
+      assert.deepEqual(newMaterial, {...oldMaterial, documentId: result.generatedIds[2], revision: 0});
+      assert.deepEqual(result.document.lights, commandSeed.lights); assert.deepEqual(result.document.display.camera, commandSeed.display.camera);
+      assert.equal(result.document.revision, commandSeed.revision); assert.equal(result.document.nativeDocument.revision, commandSeed.nativeDocument.revision + 1);
+      const prepared = api.prepareRenderNativeLightDocument(result.document);
+      for (const binding of result.document.surfaceMaterials) {
+        const actual = prepared.entries.find(entry => entry.binding.bodyId === binding.target.bodyId).binding;
+        for (const key of Object.keys(binding.target)) assert.equal(binding.target[key], actual[key], key);
+      }
+      prepareBodyAppearance(api.createRenderNativeLightRequest(result.document));
+    }
+    const empty = api.prepareRenderNativeLightDocument({...commandSeed, display: {...commandSeed.display, poses: []}}).document;
+    assert.deepEqual(bodyCase('duplicate omitted poses', empty, B, 'duplicate').document.display.poses, []);
+    const removedA = bodyCase('remove A orphan asset', commandSeed, A, 'remove');
+    assert.deepEqual(removedA.document.nativeDocument.assets, [commandSeed.nativeDocument.assets[1]]);
+    assert.equal(removedA.selectedBodyId, B);
+    const reorderedCopy = api.prepareRenderNativeLightDocument({...copyB.document,
+      surfaceMaterials: [...copyB.document.surfaceMaterials].reverse()}).document;
+    const removedCopy = bodyCase('remove independent copy with reversed material order', reorderedCopy, copyB.selectedBodyId, 'remove');
+    assert.equal(removedCopy.selectedBodyId, A, 'select the first surviving Inspector row, not the first material');
+    assert.deepEqual(removedCopy.document.surfaceMaterials.map(binding => binding.target.bodyId), [B, A]);
+    assert.deepEqual(removedCopy.document.nativeDocument.assets, commandSeed.nativeDocument.assets);
+    assert.deepEqual(removedCopy.document.display, commandSeed.display);
+    const sourceWithSurfaces = ids => {
+      const surface = sourceText.match(/ {2}@surface #reference_panel \{[\s\S]*?\n {2}\}/)?.[0];
+      assert(surface, 'fixture contains its original Surface declaration');
+      return sourceText.replace(/\}\s*$/, ids.map(id => surface.replace('#reference_panel', '#' + id)).join('\n') + '\n}\n');
+    };
+    const shared = structuredClone(commandSeed), sharedAsset = shared.nativeDocument.assets[0];
+    sharedAsset.source = sourceWithSurfaces(['shared_panel']);
+    shared.nativeDocument.assets = [sharedAsset];
+    Object.assign(shared.nativeDocument.bodies[1], {assetId: sharedAsset.id, geometryId: 'shared_panel'});
+    Object.assign(shared.surfaceMaterials[1].target, {assetId: sharedAsset.id, assetRevision: sharedAsset.revision, geometryId: 'shared_panel'});
+    const sharedResult = bodyCase('remove shared source body', api.prepareRenderNativeLightDocument(shared).document, A, 'remove');
+    assert.deepEqual(sharedResult.document.nativeDocument.assets, [sharedAsset]);
+    const sibling = structuredClone(commandSeed);
+    sibling.nativeDocument.assets[0].source = sourceWithSurfaces(['sibling_panel']);
+    sibling.nativeDocument.bodies.push({...sibling.nativeDocument.bodies[0], id: 'hidden_sibling', geometryId: 'sibling_panel'});
+    const siblingResult = bodyCase('unselected sibling retains asset', api.prepareRenderNativeLightDocument(sibling).document, A, 'remove');
+    assert.deepEqual(siblingResult.document.nativeDocument.assets, sibling.nativeDocument.assets);
+    assert(siblingResult.document.nativeDocument.bodies.some(item => item.id === 'hidden_sibling'));
+    assert.deepEqual(bodyCase('remove omitted poses', empty, A, 'remove').document.display.poses, []);
+    const reservedCopy = bodyCase('reserved IDs survive undo', commandSeed, B, 'duplicate', copyB.reservedIds);
+    assert(reservedCopy.generatedIds.every(id => !copyB.generatedIds.includes(id)));
+    const baselineIds = [...api.lightBodyReservedIds(commandSeed)];
+    const reservations = length => baselineIds.concat(Array.from({length: length - baselineIds.length}, (_, i) => 'reserved_' + i));
+    assert.equal(bodyCase('exact 2048 union', commandSeed, B, 'duplicate', reservations(2045)).reservedIds.length, 2048);
+    assert.equal(bodyCase('remove at reservation limit', commandSeed, B, 'remove', reservations(2048)).reservedIds.length, 2048);
+    const full = bodyCase('four-body capacity reached', copyB.document, A, 'duplicate', copyB.reservedIds);
+    refuseBody('fifth body refused', full.document, A, 'duplicate');
+    const manyBodies = structuredClone(commandSeed);
+    const extraSurfaces = ['unselected_panel_0', 'unselected_panel_1', 'unselected_panel_2'];
+    // Four admitted sources, each with four distinct Surfaces: both inventory caps are reached.
+    for (let i = 2; i < 4; i++) manyBodies.nativeDocument.assets.push({...manyBodies.nativeDocument.assets[0], id: 'unselected_asset_' + i});
+    for (const [index, asset] of manyBodies.nativeDocument.assets.entries()) {
+      asset.source = sourceWithSurfaces(extraSurfaces);
+      const geometries = index < 2 ? extraSurfaces : ['reference_panel', ...extraSurfaces];
+      for (const [j, geometryId] of geometries.entries()) manyBodies.nativeDocument.bodies.push({...manyBodies.nativeDocument.bodies[0],
+        id: 'unselected_' + index + '_' + j, assetId: asset.id, geometryId});
+    }
+    assert.equal(manyBodies.nativeDocument.bodies.length, 16);
+    refuseBody('sixteen bodies and four assets refuse duplicate', api.prepareRenderNativeLightDocument(manyBodies).document, B, 'duplicate');
+    const maximum = structuredClone(commandSeed); maximum.nativeDocument.revision = 2147483647;
+    maximum.surfaceMaterials.forEach(item => {item.target.documentRevision = maximum.nativeDocument.revision;});
+    const maximumDocument = api.prepareRenderNativeLightDocument(maximum).document;
+    refuseBody('native revision max duplicate', maximumDocument, B, 'duplicate');
+    refuseBody('native revision max remove', maximumDocument, B, 'remove');
+    refuseBody('unknown duplicate', commandSeed, 'foreign_body', 'duplicate');
+    refuseBody('unknown remove', commandSeed, 'foreign_body', 'remove');
+    const hidden = api.prepareRenderNativeLightDocument({...commandSeed,
+      display: {...commandSeed.display, visibleBodyIds: [B]}, surfaceMaterials: commandSeed.surfaceMaterials.filter(item => item.target.bodyId === B)}).document;
+    refuseBody('hidden duplicate', hidden, A, 'duplicate'); refuseBody('hidden remove', hidden, A, 'remove');
+    const unbound = api.prepareRenderNativeLightDocument({...commandSeed, surfaceMaterials: commandSeed.surfaceMaterials.filter(item => item.target.bodyId === B)}).document;
+    refuseBody('unbound duplicate', unbound, A, 'duplicate'); refuseBody('unbound remove', unbound, A, 'remove');
+    refuseBody('last editable body', removedA.document, B, 'remove');
+    refuseBody('unknown command', commandSeed, B, 'hide');
+    refuseBody('non-array reservations', commandSeed, B, 'duplicate', null);
+    refuseBody('sparse reservations', commandSeed, B, 'duplicate', new Array(1));
+    let reservationReads = 0; const accessor = [];
+    Object.defineProperty(accessor, '0', {enumerable: true, get() {reservationReads++; return 'forbidden';}});
+    refuseBody('accessor reservations', commandSeed, B, 'duplicate', accessor); assert.equal(reservationReads, 0);
+    const symbolic = []; symbolic[Symbol('extra')] = 'x';
+    refuseBody('symbol reservations', commandSeed, B, 'duplicate', symbolic);
+    refuseBody('invalid reservation ID', commandSeed, B, 'duplicate', ['invalid id']);
+    refuseBody('oversize reservations', commandSeed, B, 'duplicate', reservations(2049));
+    refuseBody('resulting reservation union overflow', commandSeed, B, 'duplicate', reservations(2046));
+    const unsafe = structuredClone(commandSeed); poseFor(unsafe, A).translationMM[0] = 1e-50;
+    const unsafeError = refuseBody('actual posed Float32 admission', api.prepareRenderNativeLightDocument(unsafe).document, B, 'duplicate');
+    assert.match(JSON.stringify(errorTree(unsafeError)), /underflow/i);
+    assert.equal(cases.length, 32); assert.equal(new Set(cases).size, 32); assert.equal(api.serializeRenderNativeLightDocument(commandSeed), seedText);
+
+    let presentations = 0, transports = 0; const commandControls = [];
+    const trackCommands = control => {
+      control.prepare = prepareBodyAppearance; const replace = control.viewer.replace;
+      control.viewer.replace = request => {presentations++; assert(presentations <= 12, kind + ': body command presentation ceiling'); return replace(request);};
+      commandControls.push(control); return control;
+    };
+    const mountCommands = async value => {mounted = await api.mountLightWorkbenchFlow(container, value); return trackCommands(controls.at(-1));};
+    const commandSession = () => flowControllers.at(-1).getSession(), commandSnapshot = () => commandSession().getSnapshot();
+    const commandDraft = () => api.readLightWorkbenchFlowDraft(container);
+    const saveCommands = async () => {transports++; assert(transports <= 4); return saveText();};
+    const selectedCommandBody = () => [...container.querySelectorAll('[aria-label^="Edit body "]')].find(node => node.getAttribute('aria-pressed') === 'true')?.getAttribute('aria-label').slice(10);
+    const maxOuter = api.prepareRenderNativeLightDocument({...commandSeed, revision: 2147483647, lights: {...commandSeed.lights, revision: 2147483647}}).document;
+    let control = await mountCommands(maxOuter);
+    assert(button('Duplicate body').disabled); assert(button('Remove body').disabled); assert.equal(presentations, 0); await mounted.dispose();
+    control = await mountCommands(hidden); assert(button('Duplicate body').disabled); assert(button('Remove body').disabled);
+    await selectBody(B); assert(button('Remove body').disabled, 'Last editable visible material body');
+    assert.equal(presentations, 0); await mounted.dispose();
+    control = await mountCommands(commandSeed); await selectBody(B);
+    const clean = commandSnapshot(); await edit('Body position X (mm)', '1e');
+    assert(button('Duplicate body').disabled); assert(button('Remove body').disabled);
+    const corrective = commandDraft(); await act(async () => {button('Duplicate body').click(); button('Remove body').click();});
+    assert.deepEqual(commandDraft(), corrective); assert.equal(commandSnapshot(), clean); assert.equal(presentations, 0);
+    await click('Discard'); await selectBody(B);
+    await click('Help'); assert(button('Duplicate body').disabled); await click('Help');
+    const staleDuplicate = button('Duplicate body'); await act(async () => {button('Edit body ' + A).click(); staleDuplicate.click();});
+    assert.equal(presentations, 0); assert.equal(commandSnapshot().accepted, clean.accepted); await selectBody(B);
+    assert.equal(await saveCommands(), seedText); // Transport 1: known accepted baseline.
+    const beforeRefusal = commandSnapshot(), beforeRefusalDraft = commandDraft();
+    let release; control.wait = new Promise(resolve => {release = resolve;}); control.refusal = new Error('Controlled body duplicate refusal');
+    await act(async () => {button('Duplicate body').click(); button('Edit body ' + A).click();}); // Replacement 1.
+    assert.equal(selectedCommandBody(), B, 'Pending command fences same-act competing row selection');
+    assert(button('Remove body').disabled); assert(button('Open').disabled); assert(button('Apply').disabled);
+    await act(async () => {release(); await control.wait;}); control.wait = null; control.refusal = null;
+    assert.equal(commandSnapshot().accepted, beforeRefusal.accepted); assert.equal(commandSnapshot().canUndo, beforeRefusal.canUndo);
+    assert.equal(commandSnapshot().canRedo, beforeRefusal.canRedo); assert.equal(commandSnapshot().unsaved, beforeRefusal.unsaved);
+    assert.equal(commandSnapshot().dirty, false); assert.deepEqual(commandDraft(), beforeRefusalDraft); assert.equal(selectedCommandBody(), B);
+    assert(!container.querySelector('[aria-label="Body command recovery"]'));
+    await click('Duplicate body'); // 2.
+    const firstCopy = selectedCommandBody(), firstCopyDoc = commandSnapshot().accepted;
+    assert.notEqual(firstCopy, B); assert.equal(firstCopyDoc.nativeDocument.revision, commandSeed.nativeDocument.revision + 1);
+    assert.equal(firstCopyDoc.revision, commandSeed.revision + 1); assert.equal(commandSnapshot().canUndo, true);
+    assert.deepEqual(poseFor(firstCopyDoc, firstCopy), {...poseFor(commandSeed, B), bodyId: firstCopy});
+    assert.deepEqual(commandSnapshot().viewportCamera, beforeRefusal.viewportCamera);
+    await click('Undo'); // 3: generated IDs remain reserved.
+    assert.equal(commandSnapshot().canUndo, false); assert.equal(commandSnapshot().canRedo, true);
+    control.state = 'lost'; await act(async () => {await new Promise(resolve => setTimeout(resolve, 350));});
+    await click('Remount accepted scene'); assert.equal(control.disposed, 1); control = trackCommands(controls.at(-1));
+    assert.equal(commandSnapshot().canUndo, false); assert.equal(commandSnapshot().canRedo, false); await selectBody(B);
+    await click('Duplicate body'); // 4: a fresh branch must not reuse the removed copy identity.
+    const secondCopy = selectedCommandBody(); assert.notEqual(secondCopy, firstCopy); assert.equal(commandSnapshot().canRedo, false);
+    const savedText = await saveCommands(), saved = api.parseRenderNativeLightDocument(savedText); // Transport 2.
+    const originalMaterial = saved.surfaceMaterials.find(item => item.target.bodyId === B).material;
+    const copiedMaterial = saved.surfaceMaterials.find(item => item.target.bodyId === secondCopy).material;
+    assert.notEqual(originalMaterial.documentId, copiedMaterial.documentId); assert(Object.is(copiedMaterial.uniforms.amount, -0));
+    await click('Remove body'); // 5.
+    assert(!commandSnapshot().accepted.nativeDocument.bodies.some(item => item.id === secondCopy)); assert.notEqual(selectedCommandBody(), secondCopy);
+    await click('Undo'); // 6.
+    assert(commandSnapshot().accepted.nativeDocument.bodies.some(item => item.id === secondCopy));
+    await click('Redo'); // 7.
+    assert(!commandSnapshot().accepted.nativeDocument.bodies.some(item => item.id === secondCopy));
+    await mounted.dispose(); control = await mountCommands(commandSeed);
+    transports++; await click('Open'); assert(button('Duplicate body').disabled);
+    await selectFile(file(savedText)); // Transport 3 / replacement 8, actual fresh chooser.
+    assert.deepEqual(commandSnapshot().accepted, saved); assert.equal(commandSnapshot().canUndo, false);
+    await selectBody(secondCopy); await edit('Uniform amount', '.6'); await edit('Body position X (mm)', '950'); await click('Apply'); // 9.
+    const edited = commandSnapshot().accepted;
+    assert.equal(edited.surfaceMaterials.find(item => item.target.bodyId === secondCopy).material.uniforms.amount, .6);
+    assert.deepEqual(edited.surfaceMaterials.find(item => item.target.bodyId === B).material, originalMaterial);
+    assert.deepEqual(edited.nativeDocument, saved.nativeDocument); assert.equal(poseFor(edited, secondCopy).translationMM[0], 950);
+    assert.deepEqual(edited.lights.lights, saved.lights.lights);
+    const beforeLoss = commandSnapshot(); control.wait = new Promise(resolve => {release = resolve;}); control.refusal = new Error('Controlled lost body remove');
+    await act(async () => button('Remove body').click()); // 10.
+    control.state = 'lost'; await act(async () => {release(); await control.wait;}); control.wait = null;
+    assert.equal(commandSnapshot().accepted, beforeLoss.accepted); assert.equal(commandSnapshot().canUndo, beforeLoss.canUndo);
+    assert.equal(commandSnapshot().canRedo, beforeLoss.canRedo); assert.equal(commandSnapshot().unsaved, beforeLoss.unsaved);
+    assert(commandSnapshot().dirty); assert(container.querySelector('[aria-label="Body command recovery"]'));
+    for (const label of ['Apply', 'Open', 'Import material…', 'Duplicate body', 'Remove body', 'New point', 'New directional', 'Frame all']) assert(button(label).disabled, label + ': recovery fence');
+    assert.equal(commandSession().getSavePayload().text, api.serializeRenderNativeLightDocument(beforeLoss.accepted));
+    assert(!button('Save accepted').disabled);
+    await click('Remount accepted scene'); assert.equal(control.disposed, 1);
+    control = trackCommands(controls.at(-1));
+    assert.equal(commandSnapshot().dirty, false); assert.equal(commandSnapshot().canUndo, false); assert(!container.querySelector('[aria-label="Body command recovery"]'));
+    // This lifetime imported saved copy_2; remove reservations are retained through remount.
+    await selectBody(B); await click('Duplicate body'); // 11.
+    const thirdCopy = selectedCommandBody(); assert.notEqual(thirdCopy, secondCopy);
+    assert.equal(thirdCopy, firstCopy, 'Successful Open resets historical reservations; remount alone did not');
+    const finalText = await saveCommands(), finalDocument = api.parseRenderNativeLightDocument(finalText); // Transport 4.
+    assert.deepEqual(finalDocument, commandSnapshot().accepted); assert.equal(commandSnapshot().unsaved, false);
+    assert(button('Duplicate body').disabled, 'Four assets/bodies at capacity');
+    let releaseStale; control.wait = new Promise(resolve => {releaseStale = resolve;});
+    await act(async () => button('Remove body').click()); // 12: held completion after disposal.
+    await mounted.dispose(); assert.equal(control.disposed, 1);
+    const oldControl = control; control = await mountCommands(commandSeed); const fresh = commandSnapshot(), freshDraft = commandDraft();
+    await act(async () => {releaseStale(); await oldControl.wait;});
+    assert.equal(commandSnapshot(), fresh); assert.deepEqual(commandDraft(), freshDraft); assert.equal(selectedCommandBody(), A);
+    assert.equal(commandSnapshot().canUndo, false); assert.equal(commandSnapshot().dirty, false);
+    assert.equal(presentations, 12); assert.equal(transports, 4);
+    assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+    await mounted.dispose(); assert(commandControls.every(item => item.disposed === 1));
+    bodyCommandFlow.push({kind, helperCases: cases.length, cases, presentations, saveOpenTransports: transports,
+      readyRefusal: true, unavailableRecovery: true, staleCommandCompletion: true,
+      proof: 'actual Native derivations and owned React/session; controlled Viewer/file transport only'});
+  }
+
   console.log(JSON.stringify({result: 'PASS', scope: 'actual React + original codec/session; controlled Viewer, no GPU/physical-file proof', acceptedRevision: last.revision,
     lights: last.lights.lights.length, replacementCalls: controls[0].calls.length, legacyReplacements: legacyControl.calls.length, convertedLegacyRevision: editedLegacy.revision,
-    cameraFlow, bodyFlow, materialFlow, navigationFlow, framingChecks, framingFlow, selectionFlow, materialTransferFlow, rotationFlow,
+    cameraFlow, bodyFlow, materialFlow, navigationFlow, framingChecks, framingFlow, selectionFlow, materialTransferFlow, rotationFlow, bodyCommandFlow,
     downloadsRequested: downloads.length, confirmationPrompts: dialogs.length, disposed: controls.map(value => value.disposed)}));
 } catch (cause) {failed = true; firstError = cause;}
 finally {

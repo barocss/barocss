@@ -670,3 +670,58 @@ and four Save/Open transports per light kind, separately from prior regressions.
 It uses actual scene/pose admission and an independent vector oracle, plus real
 React/session controls with controlled Viewer/file transport. Physical pixels,
 pointer ergonomics and the owner-reported #1573 gizmo gate remain unverified.
+
+### Duplicate and remove Light bodies (#1734)
+
+Choose a visible, material-bound Scene bodies row, then **Duplicate body** or
+**Remove body**. Resolve all scene drafts first. Each command accepts one complete
+scene/history step only after Viewer acknowledgement. The copy has independent
+asset/body/material IDs and the same original source and pose, so it initially
+overlaps its original; the selected copy can then use the existing numeric
+position, scale and rotation controls. Remove selects a surviving editable row,
+and refuses to remove the last editable body. Undo/Redo and Save/fresh Open use
+the same owned scene session. These are display-scene inventory commands, not
+CAD geometry edits or linked material instances.
+
+The app calls the existing qualified Native Duplicate/Remove derivations through
+the same neutral-light geometry/material bridge as the Light codec. Directional
+or point authorship is retained. Native source assets, raw poses, signed zero,
+omitted uniforms and qualified original bindings remain provider-owned; actual
+reconstruction produces new target revisions rather than manually invented pins.
+Existing limits are unchanged. A complete <=2048 identity reservation plan is
+checked before presentation; all three new IDs are reserved together only after
+acknowledgement. Undo, Remove, Discard and accepted-scene remount retain that set.
+Successful Open or explicit New resets it.
+
+Commands start clean. A refused command clears only its own temporary generated
+draft when the same session/accepted identity and exact text remain current and
+ready. Internal draft version may advance; accepted revision/history/saved state
+does not. If loss or cleanup refusal prevents this, the recovery notice fences
+Apply, edits, file import and navigation. Save still reads accepted authorship;
+Discard when ready or explicit accepted-scene remount resolves recovery. Remount
+clears history. No second presentation or claim of renderer rollback is made.
+Stale acknowledgement cannot select a body or reserve IDs in a new lifetime.
+
+The frozen flow budget is at most 32 direct helper cases, 12 new replacement
+attempts and four Save/Open transports per light kind, with earlier regressions
+counted separately. Actual React/codec/session and qualified provider preparation
+remain in use; Viewer/file transport is controlled. Physical GPU, files, device
+recovery and the #1573 owner-reported gizmo gate require separate evidence.
+
+The #1734 runner's per-kind ledger is frozen as follows:
+- 32 named direct derivations, including exact 2048 and overflowing reservation
+  unions, native revision/body limits, independent and shared assets, actual
+  Float32 admission and descriptor-safe reservation refusals
+- Replacement attempts: ready refused Duplicate; Duplicate; Undo; Duplicate
+  after an accepted-scene remount; Remove; Undo; Redo; fresh chooser Open;
+  copied-body material/position Apply; lost Remove; Duplicate after recovery
+  remount; held Remove completed after disposal
+- Transports: baseline accepted Save, copied-scene Save, fresh Open, final Save
+- Seven owned Viewer lifetimes: max-revision refusal fixture, hidden/last-body
+  fixture, primary scene, remount after Undo, fresh Open, loss recovery remount,
+  and fresh owner before the stale command completes
+
+Selection/corrective/Help/chooser and pending guards add no presentations. The
+remount-after-Undo witness proves removed generated IDs remain reserved; the
+fresh Open witness proves reservations reset to the incoming scene. Original
+local-view navigation regressions remain separate from this command ledger.

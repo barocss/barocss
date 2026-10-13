@@ -8,6 +8,8 @@ import type {RenderNativeLightDocument, RenderNativeLightSession,
 import {createNativeLightController} from './native-light-controller';
 import {createNativeLightNavigation} from './native-light-navigation';
 import {deriveNativeLightFramingCamera} from './native-light-framing';
+import {deriveLightBodyCommand, lightBodyReservedIds} from './native-light-bodies';
+import type {LightBodyCommand} from './native-light-bodies';
 import {createNativeSceneBase, createNativeSceneSeed} from './native-scene-seed';
 import {readLightFields, applyLightFields, addLightFields,
   lightFieldsDirty, lightKind, selectedLightMaterial, stageLightMaterialFields, stageLightBodyRotation} from './native-light-fields';
@@ -56,6 +58,9 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
     binding: RenderNativeLightDocument['surfaceMaterials'][number]; bodyId: string; selectionEpoch: number;
     mountEpoch: number; operationEpoch: number; trigger: HTMLButtonElement} | null>(null);
   const replacement = useRef<RenderNativeLightDocument | undefined>(initialDocument);
+  const bodyReservations = useRef<readonly string[]>([]), resetBodyReservations = useRef(true);
+  const bodyCommandTicket = useRef<{session: RenderNativeLightSession; accepted: RenderNativeLightDocument; text: string} | null>(null);
+  const [bodyRecovery, setBodyRecovery] = useState(false);
   const [attempt, setAttempt] = useState(0), [snapshot, setSnapshot] = useState<RenderNativeLightSessionSnapshot | null>(null);
   const [fields, setFields] = useState<LightForm>({kind: kind ?? 'directional', ambient: '.2', lights: [], bodies: [], materials: [],
     camera: {eye: ['', '', ''], target: ['', '', ''], up: ['', '', ''], fovYDegrees: '', near: '', far: ''}});
@@ -91,7 +96,8 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
     mounted.current = true; const started = ++epoch.current;
     const controller = createNativeLightController(), abort = new AbortController();
     let unsubscribe: (() => void) | null = null;
-    sessionRef.current = null; framed.current = null; setChoosingFile(false); setSnapshot(null); setStatus('starting'); setError(null); setNavigating(false);
+    sessionRef.current = null; framed.current = null; bodyCommandTicket.current = null; setBodyRecovery(false);
+    setChoosingFile(false); setSnapshot(null); setStatus('starting'); setError(null); setNavigating(false);
     const live = () => mounted.current && epoch.current === started;
     void (async () => {
       try {
@@ -99,10 +105,12 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
         if (!live() || !canvas.current) return;
         const session = await controller.mount(canvas.current, document, {width: 960, height: 600});
         if (!live() || !session) return;
+        bodyReservations.current = lightBodyReservedIds(session.getSnapshot().accepted, resetBodyReservations.current ? [] : bodyReservations.current);
+        resetBodyReservations.current = false;
         sessionRef.current = session; refresh(session, true);
         navigation.current = createNativeLightNavigation(canvas.current, session, {
           mode: () => modeRef.current,
-          canNavigate: () => live() && sessionRef.current === session && !busyRef.current && !openTicket.current && !materialTicket.current && !helpRef.current,
+          canNavigate: () => live() && sessionRef.current === session && !busyRef.current && !openTicket.current && !materialTicket.current && !helpRef.current && !bodyCommandTicket.current,
           onBusy: value => {navigationBusy.current = value; if (live()) setNavigating(value);},
           onPicked: bodyId => {if (live() && sessionRef.current === session) selectBody(bodyId);},
           onError: cause => {if (live()) {refresh(session); report(cause);}},
@@ -116,7 +124,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
     return () => {
       mounted.current = false; epoch.current++; operationEpoch.current++; openTicket.current = null; materialTicket.current = null; busyRef.current = false; abort.abort(); window.clearInterval(timer);
       navigation.current?.dispose(); navigation.current = null; navigationBusy.current = false;
-      sessionRef.current = null;
+      sessionRef.current = null; bodyCommandTicket.current = null;
       try {controller.dispose();} finally {unsubscribe?.();}
     };
   }, [attempt, kind]);
@@ -155,7 +163,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   }, []);
   const run = async (action: (session: RenderNativeLightSession, stillCurrent: () => boolean) => Promise<boolean>, successNotice = 'Scene accepted.', failurePrefix = '') => {
     const session = sessionRef.current;
-    if (!session || busyRef.current || navigationBusy.current || materialTicket.current) return;
+    if (!session || busyRef.current || navigationBusy.current || materialTicket.current || bodyCommandTicket.current) return;
     busyRef.current = true; setBusy(true); setError(null);
     const started = ++operationEpoch.current, mountEpoch = epoch.current;
     // Operation fencing is separate from the mount lifetime; the session still belongs to this canvas.
@@ -185,7 +193,10 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   }, '');
   const discard = () => {
     const session = sessionRef.current; if (!session || busyRef.current || navigationBusy.current) return;
-    try {session.discardDraft(session.getSnapshot().version); refresh(session, true); setError(null); setNotice('Draft discarded.');} catch (cause) {report(cause);}
+    try {
+      session.discardDraft(session.getSnapshot().version); bodyCommandTicket.current = null; setBodyRecovery(false);
+      refresh(session, true); setError(null); setNotice('Draft discarded.');
+    } catch (cause) {report(cause);}
   };
   const resetView = () => void run(async session => {await session.resetViewportCamera(session.getSnapshot().version); return false;}, '');
   const useView = () => void run(async session => {
@@ -233,7 +244,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   });
   const open = (kind: 'current' | 'legacy-v0' = 'current') => {
     const session = sessionRef.current;
-    if (session && !busyRef.current && !navigationBusy.current && !materialTicket.current && confirmReplace(kind === 'current' ? 'Open' : 'Import legacy Native scene')) {
+    if (session && !busyRef.current && !navigationBusy.current && !materialTicket.current && !bodyCommandTicket.current && confirmReplace(kind === 'current' ? 'Open' : 'Import legacy Native scene')) {
       openTicket.current = {session, snapshot: session.getSnapshot(), fields: formRef.current, kind};
       setChoosingFile(true);
       if (fileInput.current) fileInput.current.value = ''; fileInput.current?.click();
@@ -255,8 +266,10 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
       const authoredText = ticket.kind === 'legacy-v0'
         ? serializeRenderNativeDirectionalLightDocument(upgradeRenderNativeSceneToDirectionalLights(parseRenderNativeSceneDocument(text))) : text;
       const parsed = parseRenderNativeLightDocument(authoredText);
+      const nextReservations = lightBodyReservedIds(parsed);
       const migrated = ticket.kind === 'legacy-v0' || (JSON.parse(text) as {version?: number}).version === 1;
       await session.commitPrepared(session.prepareOpen(serializeRenderNativeLightDocument(parsed), before.version));
+      if (stillCurrent()) bodyReservations.current = nextReservations;
       if (stillCurrent()) setNotice(migrated ? 'Legacy directional scene migrated. Save accepted writes the current light-scene format.' : 'Scene accepted.');
       return true;
     }, '',
@@ -264,7 +277,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   };
   const importMaterial = (trigger: HTMLButtonElement) => {
     const session = sessionRef.current, bodyId = selection.current.bodyId;
-    if (!session || !bodyId || busyRef.current || navigationBusy.current || openTicket.current || materialTicket.current || helpRef.current) return;
+    if (!session || !bodyId || busyRef.current || navigationBusy.current || openTicket.current || materialTicket.current || helpRef.current || bodyCommandTicket.current) return;
     try {
       const current = session.getSnapshot();
       if (current.disposed || current.pending !== null || session.getStatus().state !== 'ready')
@@ -316,7 +329,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   };
   const exportMaterial = () => {
     const session = sessionRef.current, bodyId = selection.current.bodyId;
-    if (!session || !bodyId || busyRef.current || navigationBusy.current || openTicket.current || materialTicket.current || helpRef.current) return;
+    if (!session || !bodyId || busyRef.current || navigationBusy.current || openTicket.current || materialTicket.current || helpRef.current || bodyCommandTicket.current) return;
     const started = epoch.current;
     busyRef.current = true; setBusy(true);
     try {
@@ -356,12 +369,13 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
     setBusy(false); setNotice('Remounting required WebGPU viewport…'); setAttempt(value => value + 1);
   };
   const newWorkspace = (nextKind: LightKind) => {
-    if (busyRef.current || navigationBusy.current || !confirmReplace('New ' + nextKind + ' workspace')) return;
+    if (busyRef.current || navigationBusy.current || bodyCommandTicket.current || !confirmReplace('New ' + nextKind + ' workspace')) return;
     openTicket.current = null; materialTicket.current = null; setChoosingFile(false); replacement.current = undefined;
+    bodyReservations.current = []; resetBodyReservations.current = true;
     setKind(nextKind); setAttempt(value => value + 1); setBusy(false);
     setNotice('Starting a new ' + nextKind + ' workspace…');
   };
-  const edit = (next: LightForm) => {if (!busyRef.current && !navigationBusy.current) {formRef.current = next; setFields(next); setError(null);}};
+  const edit = (next: LightForm) => {if (!busyRef.current && !navigationBusy.current && !bodyCommandTicket.current) {formRef.current = next; setFields(next); setError(null);}};
   const light = fields.lights.find(item => item.nodeId === selected);
   const editLight = (patch: Partial<LightFields>) => {if (light) edit({...fields, lights: fields.lights.map(item => item.nodeId === light.nodeId ? {...item, ...patch} : item)});};
   const editCamera = (patch: Partial<CameraFields>) => edit({...fields, camera: {...fields.camera, ...patch}});
@@ -373,7 +387,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
     return !!body && mounted.current && !!session && session.getStatus().state === 'ready'
       && session.getSnapshot().accepted === snapshot?.accepted && !session.getSnapshot().pending
       && selection.current.bodyId === body.bodyId && selection.current.epoch === rotationSelectionEpoch
-      && !busyRef.current && !navigationBusy.current && !openTicket.current && !materialTicket.current && !helpRef.current;
+      && !busyRef.current && !navigationBusy.current && !openTicket.current && !materialTicket.current && !helpRef.current && !bodyCommandTicket.current;
   };
   const editRotationCommand = (patch: Partial<RotationCommand>) => {
     if (!body || !rotationReady()) return;
@@ -392,6 +406,56 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
       setNotice(next === previous ? 'No rotation change. Authored values retained.' : 'Rotation staged. Apply accepts the complete scene.');
     } catch (cause) {report(cause, 'Rotation refused: ');}
   };
+  const commandBody = (action: LightBodyCommand, bodyId: string, selectedEpoch: number,
+    accepted: RenderNativeLightDocument) => {
+    if (helpRef.current || openTicket.current || materialTicket.current || bodyCommandTicket.current
+      || selection.current.bodyId !== bodyId || selection.current.epoch !== selectedEpoch) return;
+    void run(async (session, stillCurrent) => {
+      const before = session.getSnapshot(), commandFields = formRef.current;
+      if (before.accepted !== accepted || before.disposed || before.pending !== null || session.getStatus().state !== 'ready'
+        || selection.current.bodyId !== bodyId || selection.current.epoch !== selectedEpoch)
+        throw new RenderEditorError('STALE_CANDIDATE', 'Choose the current visible body again.');
+      if (before.dirty || lightFieldsDirty(commandFields, accepted))
+        throw new RenderEditorError('DOCUMENT_INPUT', 'Apply or Discard all scene drafts before changing the body inventory.');
+      // The real derivations reconstruct every qualified material target. Their
+      // complete reservation union is admitted before any session or Viewer mutation.
+      const result = deriveLightBodyCommand(accepted, bodyId, action, bodyReservations.current);
+      if (!stillCurrent() || session.getSnapshot() !== before || formRef.current !== commandFields
+        || selection.current.bodyId !== bodyId || selection.current.epoch !== selectedEpoch)
+        throw new RenderEditorError('STALE_CANDIDATE', 'The scene or selected body changed during the command.');
+      const ticket = {session, accepted, text: serializeRenderNativeLightDocument(result.document)};
+      bodyCommandTicket.current = ticket;
+      try {
+        session.setDraftText(ticket.text, before.version);
+        await session.commitPrepared(session.prepareDraft(session.getSnapshot().version));
+        if (!stillCurrent() || bodyCommandTicket.current !== ticket) return false;
+        // Publish all generated identities together, and only on an acknowledged
+        // command. Undo/removal never free them for a different body later.
+        bodyReservations.current = result.reservedIds;
+        bodyCommandTicket.current = null; setBodyRecovery(false);
+        if (selection.current.bodyId === bodyId && selection.current.epoch === selectedEpoch) selectBody(result.selectedBodyId);
+        setNotice(action === 'duplicate' ? 'Body duplicated at the same pose. Move or rotate the selected copy.' : 'Body removed. Undo restores it.');
+        return true;
+      } catch (cause) {
+        if (!stillCurrent() || bodyCommandTicket.current !== ticket) throw cause;
+        const current = session.getSnapshot();
+        let cleanup: unknown;
+        if (!current.disposed && current.pending === null && current.accepted === ticket.accepted
+          && current.draftText === ticket.text && session.getStatus().state === 'ready') {
+          try {session.discardDraft(current.version); bodyCommandTicket.current = null; setBodyRecovery(false);}
+          catch (failure) {cleanup = failure;}
+        } else cleanup = new RenderEditorError('STALE_CANDIDATE', 'The command draft cannot be cleared in this unavailable or changed owner.');
+        if (cleanup !== undefined) {
+          setBodyRecovery(true); navigation.current?.cancel();
+          const original = normalizeRenderEditorError(cause), detail = normalizeRenderEditorError(cleanup);
+          const error = new RenderEditorError(original.code, original.message + ' Body command recovery required: ' + detail.message);
+          Object.defineProperties(error, {cause: {value: cause}, cleanupCause: {value: cleanup}});
+          throw error;
+        }
+        throw cause;
+      }
+    }, '', 'Body command refused: ');
+  };
   const editBody = (patch: Partial<Pick<BodyFields, 'position' | 'scale'>>) => {
     if (body) edit({...fields, bodies: fields.bodies.map(item => item.bodyId === body.bodyId ? {...item, ...patch} : item)});
   };
@@ -403,7 +467,15 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   };
   const add = () => {try {const next = addLightFields(fields); edit(next); setSelected(next.lights.at(-1)!.nodeId);} catch (cause) {report(cause);}};
   const remove = () => {if (light) {const next = {...fields, lights: fields.lights.filter(item => item !== light)}; edit(next); setSelected(next.lights[0]?.nodeId ?? null);}};
-  const disabled = actionBusy || !snapshot || status !== 'ready';
+  const disabled = actionBusy || bodyRecovery || !snapshot || status !== 'ready';
+  const bodyCommandReason = disabled ? 'An available idle scene is required.' : help || choosingFile ? 'Close Help or the file chooser first.'
+    : dirty ? 'Apply or Discard all scene drafts first.' : !body || !material ? 'Choose a visible body with an existing material.'
+      : snapshot!.accepted.revision >= 2147483647 || snapshot!.accepted.nativeDocument.revision >= 2147483647 ? 'The scene or native document revision is at its limit.' : '';
+  const duplicateReason = bodyCommandReason || (snapshot && (snapshot.accepted.nativeDocument.assets.length >= 4
+    || snapshot.accepted.nativeDocument.bodies.length >= 16 || fields.bodies.length >= 4
+    || snapshot.accepted.display.visibleBodyIds.length >= 4 || snapshot.accepted.surfaceMaterials.length >= 4)
+    ? 'Duplicate would exceed the current body, asset or material capacity.' : bodyReservations.current.length > 2045 ? 'Body identity reservations are full.' : '');
+  const removeBodyReason = bodyCommandReason || (snapshot && snapshot.accepted.surfaceMaterials.length <= 1 ? 'Keep at least one editable body.' : '');
   const rotationDisabled = disabled || help || choosingFile;
   const numberInput = (label: string, value: string, change: (text: string) => void) => <label style={{display: 'grid', gap: 5}}>{label}<input aria-label={label} inputMode="decimal" value={value} disabled={disabled} style={fieldStyle} onChange={event => change(event.target.value)}/></label>;
   if (!kind) return <main className="app-shell" data-testid="light-workbench-choice"><section style={sectionStyle}>
@@ -414,9 +486,9 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   </section></main>;
   return <main className="app-shell" data-testid="light-workbench">
     <header className="app-topbar"><div className="app-brand"><Lightbulb size={18}/><strong>BaroCSS</strong><small>Light workbench · {kind}</small></div><div className="app-topbar-spacer"/>
-      <Button variant="ghost" size="sm" disabled={actionBusy} onClick={() => {if (confirmReplace('Back to materials')) window.location.assign('./material.html');}}>Back to materials</Button>
-      <Button variant="ghost" size="sm" disabled={actionBusy} onClick={() => newWorkspace('directional')}>New directional</Button>
-      <Button variant="ghost" size="sm" disabled={actionBusy} onClick={() => newWorkspace('point')}>New point</Button>
+      <Button variant="ghost" size="sm" disabled={actionBusy || bodyRecovery} onClick={() => {if (!bodyCommandTicket.current && confirmReplace('Back to materials')) window.location.assign('./material.html');}}>Back to materials</Button>
+      <Button variant="ghost" size="sm" disabled={actionBusy || bodyRecovery} onClick={() => newWorkspace('directional')}>New directional</Button>
+      <Button variant="ghost" size="sm" disabled={actionBusy || bodyRecovery} onClick={() => newWorkspace('point')}>New point</Button>
       <Button variant="ghost" size="sm" disabled={actionBusy} onClick={() => {navigation.current?.cancel(); setHelp(value => !value);}}>Help</Button>
       <Button variant="ghost" size="sm" disabled={disabled} title="Explicitly migrate a Native scene into a directional workspace; point workspaces refuse this conversion" onClick={() => open('legacy-v0')}>Import legacy Native scene</Button>
       <Button variant="outline" size="sm" disabled={disabled} onClick={() => open()}><FolderOpen/>Open</Button>
@@ -427,7 +499,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
       <Button size="icon-xs" variant="ghost" aria-label="Undo" disabled={disabled || dirty || !snapshot?.canUndo} onClick={() => history('undo')}><Undo2/></Button>
       <Button size="icon-xs" variant="ghost" aria-label="Redo" disabled={disabled || dirty || !snapshot?.canRedo} onClick={() => history('redo')}><Redo2/></Button>
     </div>
-    {help && <section style={sectionStyle} aria-label="Light help">Choose a directional or point workspace. Each admits zero to four lights plus ambient; mixed lighting and cross-kind Open are refused without replacing your scene. Directions retain raw nonzero XYZ values. Points use final-world scene coordinates and range in scene units, with the GPU's artistic finite-range lighting. Color is linear RGB; ambient/color/intensity range from zero to one. Scene camera edits are authored data: eye, target and clipping planes use scene units, up is dimensionless and vertical FOV is in degrees. Body origin positions use millimetres and scales are dimensionless. An unmodified Canvas click selects an admitted visible body; a miss keeps the current row. Drag beyond 3 CSS pixels to navigate. Body selection keeps each object's corrective fields; rotation, visibility and original CAD source are retained. Body, camera, light and material fields Apply together in one complete transaction and refused fields remain available. Material controls edit only the selected body’s existing embedded binding, even when another binding repeats its material ID. Override supplies a scalar value; clearing Override uses the declared shader default without changing shader source. Import material stages a portable material’s source and overrides only into the selected existing binding after all scene drafts are resolved. Apply accepts it with one scene history entry; Discard restores the accepted material. Export accepted material downloads that binding’s accepted data and never marks the scene saved. Orbit or Pan drags, Shift-drag and wheel zoom change only the local view. Frame selected fits the current body row and Frame all fits visible accepted bodies using conservative control-hull bounds with a 1.2 margin. Framing ignores and preserves corrective drafts; it retains viewing direction and FOV while choosing local clipping planes. It does not edit geometry or guarantee tight Surface or pixel bounds. Scene camera resets that view; Set scene camera explicitly authors it once only when all fields are clean. Escape or lost capture stops queued navigation without undoing acknowledged view updates. Save keeps the accepted authored camera. Open accepts current light scenes of the same kind and migrates supported directional legacy files. Import legacy Native scene explicitly converts V0 to directional authorship; a point workspace refuses it. Save writes the accepted current format. New workspace explicitly ends the old lifetime; remount retains accepted data but clears history. Actual device and physical-file acceptance remain separate.</section>}
+    {help && <section style={sectionStyle} aria-label="Light help">Choose a directional or point workspace. Each admits zero to four lights plus ambient; mixed lighting and cross-kind Open are refused without replacing your scene. Directions retain raw nonzero XYZ values. Points use final-world scene coordinates and range in scene units, with the GPU's artistic finite-range lighting. Color is linear RGB; ambient/color/intensity range from zero to one. Scene camera edits are authored data: eye, target and clipping planes use scene units, up is dimensionless and vertical FOV is in degrees. Body origin positions use millimetres and scales are dimensionless. An unmodified Canvas click selects an admitted visible body; a miss keeps the current row. Drag beyond 3 CSS pixels to navigate. Body selection keeps each object's corrective fields; rotation, visibility and original CAD source are retained. Duplicate body and Remove body require all scene drafts to be resolved and accept one history step. A duplicate has independent source/material identities at the same pose; move or rotate the selected copy. Remove keeps at least one editable body. Undo restores inventory changes. A failed body command may require Discard or accepted-scene remount; no renderer rollback is assumed. Body, camera, light and material fields Apply together in one complete transaction and refused fields remain available. Material controls edit only the selected body’s existing embedded binding, even when another binding repeats its material ID. Override supplies a scalar value; clearing Override uses the declared shader default without changing shader source. Import material stages a portable material’s source and overrides only into the selected existing binding after all scene drafts are resolved. Apply accepts it with one scene history entry; Discard restores the accepted material. Export accepted material downloads that binding’s accepted data and never marks the scene saved. Orbit or Pan drags, Shift-drag and wheel zoom change only the local view. Frame selected fits the current body row and Frame all fits visible accepted bodies using conservative control-hull bounds with a 1.2 margin. Framing ignores and preserves corrective drafts; it retains viewing direction and FOV while choosing local clipping planes. It does not edit geometry or guarantee tight Surface or pixel bounds. Scene camera resets that view; Set scene camera explicitly authors it once only when all fields are clean. Escape or lost capture stops queued navigation without undoing acknowledged view updates. Save keeps the accepted authored camera. Open accepts current light scenes of the same kind and migrates supported directional legacy files. Import legacy Native scene explicitly converts V0 to directional authorship; a point workspace refuses it. Save writes the accepted current format. New workspace explicitly ends the old lifetime; remount retains accepted data but clears history. Actual device and physical-file acceptance remain separate.</section>}
     <div className="app-body" style={{minHeight: 0}}>
       <aside style={{width: 210, flexShrink: 0, borderRight: '1px solid var(--border)', overflow: 'auto'}} aria-label="Light outliner">
         <div style={sectionStyle}><strong>Scene lights</strong><p style={{color: 'var(--muted-foreground)'}}>{fields.lights.length} / 4 {kind}</p>
@@ -435,10 +507,17 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
         {fields.lights.map(item => <button key={item.nodeId} aria-pressed={selected === item.nodeId} disabled={actionBusy} onClick={() => setSelected(item.nodeId)} style={{display: 'block', width: '100%', padding: 14, textAlign: 'left', border: 0, color: 'inherit', background: selected === item.nodeId ? '#243735' : 'transparent'}}>{item.label || item.nodeId}<small style={{display: 'block', opacity: .65}}>{item.nodeId}{item.enabled ? '' : ' · disabled'}</small></button>)}
         <section style={sectionStyle} aria-label="Scene bodies"><strong>Scene bodies</strong><p>Choose a row or click a visible body in the Canvas to edit its display transform and existing material.</p>
           {fields.bodies.map(item => <button key={item.bodyId} aria-label={'Edit body ' + item.bodyId} aria-pressed={selectedBody === item.bodyId} disabled={disabled}
-            onClick={() => selectBody(item.bodyId)} style={{display: 'block', width: '100%', padding: '10px 4px', textAlign: 'left', border: 0, color: 'inherit', background: selectedBody === item.bodyId ? '#243735' : 'transparent'}}>
+            onClick={() => {if (!busyRef.current && !navigationBusy.current && !bodyCommandTicket.current) selectBody(item.bodyId);}} style={{display: 'block', width: '100%', padding: '10px 4px', textAlign: 'left', border: 0, color: 'inherit', background: selectedBody === item.bodyId ? '#243735' : 'transparent'}}>
             {snapshot?.accepted.nativeDocument.bodies.find(body => body.id === item.bodyId)?.name ?? item.bodyId}
             <small style={{display: 'block', opacity: .65}}>{item.bodyId}{snapshot?.accepted.display.visibleBodyIds.includes(item.bodyId) ? '' : ' · Hidden'}</small>
           </button>)}
+          <div style={{display: 'grid', gap: 6, marginTop: 10}}>
+            <Button size="sm" variant="outline" disabled={!!duplicateReason} title={duplicateReason || 'Copy this complete source body and its material independently.'}
+              onClick={() => {if (body && snapshot) commandBody('duplicate', body.bodyId, rotationSelectionEpoch, snapshot.accepted);}}>Duplicate body</Button>
+            <Button size="sm" variant="outline" disabled={!!removeBodyReason} title={removeBodyReason || 'Remove this body with one Undo step.'}
+              onClick={() => {if (body && snapshot) commandBody('remove', body.bodyId, rotationSelectionEpoch, snapshot.accepted);}}>Remove body</Button>
+            {(duplicateReason || removeBodyReason) && <small aria-label="Body command availability">{[...new Set([duplicateReason, removeBodyReason].filter(Boolean))].join(' ')}</small>}
+          </div>
         </section>
       </aside>
       <section style={{flex: 1, minWidth: 0, padding: 20, display: 'flex', flexDirection: 'column', justifyContent: 'center', background: '#0e151b'}} aria-label="Native Surface viewport">
@@ -456,6 +535,8 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
         </div>
         <canvas key={attempt} ref={canvas} tabIndex={0} width={960} height={600} style={{width: '100%', aspectRatio: '8 / 5', objectFit: 'contain', maxHeight: '100%', touchAction: 'none'}} aria-label="Required WebGPU light scene"/>
         {status !== 'ready' && <div role="status" style={{padding: 16, textAlign: 'center'}}>{status === 'starting' ? 'Starting WebGPU…' : 'Presentation unavailable (' + status + '). ' + (snapshot ? 'Accepted data is retained.' : replacement.current ? 'Authored data remains available for retry.' : 'No scene has been accepted in this workspace.')}{status !== 'starting' && <p><Button variant="outline" disabled={actionBusy} onClick={remount}>{snapshot ? 'Remount accepted scene' : replacement.current ? 'Retry authored scene' : 'Retry workspace'}</Button></p>}</div>}
+        {bodyRecovery && <div role="status" aria-label="Body command recovery" style={{padding: 16}}>The body command was not accepted. Save reads accepted data. Discard the command draft when available, or remount accepted authorship; remount clears history. No renderer rollback is assumed.
+          {status === 'ready' && <p><Button variant="outline" disabled={actionBusy} onClick={remount}>Remount accepted scene</Button></p>}</div>}
       </section>
       <aside style={{width: 285, flexShrink: 0, borderLeft: '1px solid var(--border)', overflow: 'auto'}} aria-label="Light inspector">
         {body && <section style={{...sectionStyle, display: 'grid', gap: 14}} aria-label="Body transform">
@@ -540,7 +621,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
           {numberInput('Near clip (scene units)', fields.camera.near, near => editCamera({near}))}
           {numberInput('Far clip (scene units)', fields.camera.far, far => editCamera({far}))}
         </section>
-        <section style={{...sectionStyle, display: 'flex', gap: 8}}><Button disabled={disabled || !dirty} onClick={apply}>Apply</Button><Button variant="outline" disabled={disabled || !dirty} onClick={discard}>Discard</Button></section>
+        <section style={{...sectionStyle, display: 'flex', gap: 8}}><Button disabled={disabled || !dirty} onClick={apply}>Apply</Button><Button variant="outline" disabled={actionBusy || !snapshot || status !== 'ready' || !dirty} onClick={discard}>Discard</Button></section>
       </aside>
     </div>
     <footer className="app-status"><span role={error ? 'alert' : 'status'}>{error ?? (busy ? (snapshot?.pending ?? 'Reading file') + '…' : notice)}</span><span className="app-status-spacer"/><span data-testid="light-accepted-revision">Accepted {snapshot?.accepted.revision ?? '—'}</span><span>WebGPU · {status}</span></footer>
