@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { classifyMarkdown, createAffectedPlan, validateAggregate, resolveComparison } from './affected-ci-plan.mjs';
-import { validateArtifactManifest } from './affected-ci-run.mjs';
+import { validateArtifactManifest, packageCheckCommands, fullCheckCommands, docsValidationScripts } from './affected-ci-run.mjs';
 
 const head = 'a'.repeat(40);
 const runId = '12345';
@@ -370,4 +370,35 @@ test('push comparison rejects missing, zero, non-ancestor, forced and wrong-chec
   assert.throws(() => resolveComparison('push', event, head, () => { throw new Error('not ancestor'); }));
   assert.ok(resolveComparison('push', { ...event, ref: 'refs/heads/release' }, head, () => '').fullReason);
   assert.ok(resolveComparison('workflow_dispatch', {}, head).fullReason);
+});
+
+
+test('full CI keeps type/lint/build phases and excludes every apps workspace from test execution', () => {
+  const rootManifest = { scripts: { check: 'pnpm type-check && pnpm lint && pnpm build:library && pnpm test', test: 'pnpm run -r test' } };
+  assert.deepEqual(fullCheckCommands(rootManifest), [
+    ['type-check'], ['lint'], ['build:library'], ['--recursive', '--filter', '!./apps/**', 'run', 'test'],
+  ]);
+  assert.throws(() => fullCheckCommands({ scripts: { ...rootManifest.scripts, check: rootManifest.scripts.check + ' && extra-gate' } }));
+  assert.throws(() => fullCheckCommands({ scripts: { ...rootManifest.scripts, test: 'pnpm run -r test && extra-gate' } }));
+});
+
+test('affected apps retain compile/lint/build coverage while test commands stay external', () => {
+  const packages = fixtures();
+  packages.push(pkg('@barocss/application', 'apps/application'));
+  const plan = createAffectedPlan(input({ packages, changes: [{status:'M', path:'apps/application/src/app.ts'}] }));
+  assert.equal(plan.mode, 'packages');
+  assert.equal(plan.appTests, 'external');
+  assert.deepEqual(packageCheckCommands(plan.packages[0]).map(([name]) => name), ['type-check', 'lint']);
+  assert(plan.builds.some(({name}) => name === '@barocss/application'));
+  for (const directory of ['apps/render-editor', 'apps/cad-editor', 'apps/library-docs', 'apps/future-app']) {
+    assert(!packageCheckCommands({directory, scripts: checkScripts}).some(([name]) => name === 'test'));
+  }
+});
+
+test('package and non-app example tests remain runnable and docs static checks remain', () => {
+  for (const directory of ['packages/feature', 'packages/barocss-cad', 'examples/cad-preview']) {
+    assert.deepEqual(packageCheckCommands({directory, scripts:checkScripts}).map(([name]) => name), ['type-check', 'lint', 'test']);
+  }
+  assert.deepEqual(docsValidationScripts, ['build', 'check:docs', 'check:api']);
+  for (const script of ['check:cad-impact', 'check:cad-evidence', 'test']) assert(!docsValidationScripts.includes(script));
 });

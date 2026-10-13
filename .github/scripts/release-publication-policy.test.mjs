@@ -43,7 +43,8 @@ test('PR runs checks and only explicit manual true can publish', () => {
   assert.match(pullRequestBuild, /if: github\.event_name == 'pull_request'/);
   assert.match(pullRequestBuild, /docs:build/);
   assert.match(pullRequestTest, /if: github\.event_name == 'pull_request'/);
-  assert.match(pullRequestTest, /run: pnpm test/);
+  assert.ok(pullRequestTest.includes("run: pnpm --recursive --filter '!./apps/**' run test"));
+  assert.doesNotMatch(pullRequestTest, /run: pnpm (?:test|check)(?:\s|$)/);
   assert.match(publish, /run: pnpm build:library/);
   assert.doesNotMatch(publish, /run: pnpm check/);
   assert.doesNotMatch(publish, /docs:build/);
@@ -92,4 +93,15 @@ test('render is published first and all four packages get tags only after public
   assert.match(mainChecker, /verifyReadiness\(comment.body, candidateSha, version\)/);
   assert.match(mainChecker, /verifyRenderEvidence\(renderComment, renderEvidence.slice\('Render: '.length\), candidateSha, version\)/);
   assert.match(mainChecker, /main.protected, true/);
+});
+
+
+test('legacy version validation retains compile, lint, build and non-app package tests', () => {
+  const version = readFileSync('.github/workflows/release.yml', 'utf8');
+  const command = "pnpm type-check && pnpm lint && pnpm build:library && pnpm --recursive --filter '!./apps/**' run test";
+  assert.ok(version.includes('run: ' + command));
+  assert.doesNotMatch(version, /run: pnpm (?:test|check)(?:\s|$)/);
+  assert.match(version, /run: node \.github\/scripts\/check-packages\.mjs/);
+  assert.match(version, /if: github\.repository == 'barocss\/barocss' && github\.ref == 'refs\/heads\/develop'/);
+  assert.match(version, /uses: changesets\/action@v1/);
 });
