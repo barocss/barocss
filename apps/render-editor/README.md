@@ -776,3 +776,15 @@ flow. Existing regressions have separate counters. Controlled jsdom/file/Viewer
 proof is software evidence only; physical chooser, GPU pixels and #1573 remain
 separate gates. Package APIs, parser, schema, limits and the older synchronous
 Native Surface dialog are unchanged.
+
+### Light original control-point editing (#1861)
+
+In either Light workspace, resolve existing scene drafts, select a visible material-bound Surface and choose **Edit control point…**. U row/V column are original control-grid indices, not UV parameters or sampled mesh vertices. XYZ uses source millimetres; weight is the original rational coefficient. The actual source writer admits coordinates within ±1e6 mm and weight from 1e-6 to 1e6, then the entire posed scene still passes its stricter display admission.
+
+Choose a point while its fields are unchanged. Corrective text locks point switching until **Reset fields** or explicit **Apply point**. This command immediately acknowledges one scene/history step; it does not consume other drafts or require another Apply. Exact serialized no-ops retain the raw fields, signs, source and revisions without presenting. A refused command retains the fields; accepted edits close the dialog and use ordinary Undo/Redo and accepted Save/Open. Original source spans, unedited coefficients, other geometry, body poses, material contents and lights remain under existing provider authority.
+
+Any other native body sharing the source asset, even hidden or unselected, makes point editing unavailable. **Duplicate body** creates an independently owned source asset for its selected copy; duplication can itself refuse the current asset/body/display/material capacity, so it is not an unconditional escape. No implicit source clone occurs during point editing.
+
+Submitted Apply point fences Cancel, Escape and outside close synchronously. The existing captured geometry ticket and exact command-draft cleanup own ready-refusal retry, loss/recovery and stale completion. No pixel rollback is promised. This numeric control adds no gizmo or source parser and does not resolve physical report #1573.
+
+Focused software check: `node native-light-workbench-flow.mjs --surface-point` runs only the new actual-provider/React block with controlled Viewers and files. `--surface-point-preflight` checks fixture admission first. Default execution retains the existing regressions and includes the new block. Per kind the budget is 12 edit-helper calls, one separately counted actual duplicate derivation, 6 replacement attempts, 2 Save/Open transports and 3 owned lifetimes. Physical GPU/files remain outside this proof.

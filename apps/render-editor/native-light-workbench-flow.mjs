@@ -72,6 +72,8 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
     }}]});
   const api = await import(pathToFileURL(join(output, 'flow.mjs')).href), {act} = await import('react');
   const sourceText = await readFile(join(app, 'public/reference-panel.barocad'), 'utf8');
+  const surfacePointPreflight = process.argv.includes('--surface-point-preflight');
+  if (!process.argv.includes('--surface-point') && !surfacePointPreflight) {
   const seed = api.createLightStudy(sourceText);
   const original = api.serializeRenderNativeLightDocument(seed);
   const form = api.addLightFields(api.readLightFields(seed));
@@ -2520,6 +2522,226 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
     lights: last.lights.lights.length, replacementCalls: controls[0].calls.length, legacyReplacements: legacyControl.calls.length, convertedLegacyRevision: editedLegacy.revision,
     cameraFlow, bodyFlow, materialFlow, navigationFlow, framingChecks, framingFlow, selectionFlow, materialTransferFlow, rotationFlow, bodyCommandFlow, surfaceImportFlow,
     downloadsRequested: downloads.length, confirmationPrompts: dialogs.length, disposed: controls.map(value => value.disposed)}));
+  }
+
+  // #1861: this block also runs in default CI, independently of all older flow setup.
+  // --surface-point runs only this acceptance; --surface-point-preflight admits fixtures only.
+  const surfacePointFlow = [], pointContainer = document.getElementById('root');
+  const pointButton = name => [...pointContainer.querySelectorAll('button')]
+    .find(node => node.textContent.trim() === name || node.getAttribute('aria-label') === name);
+  const pointClick = async name => {const target = pointButton(name); assert(target && !target.disabled, name); await act(async () => target.click());};
+  const pointDialog = () => document.querySelector('[data-testid="light-point-dialog"]');
+  const pointDialogButton = name => [...pointDialog().querySelectorAll('button')].find(node => node.textContent.trim() === name);
+  const pointDialogClick = async name => {const target = pointDialogButton(name); assert(target && !target.disabled, name); await act(async () => target.click());};
+  const pointInput = label => {const input = document.querySelector(`[aria-label="${label}"]`); assert(input, label); return input;};
+  const pointEdit = async (label, value) => {const input = pointInput(label); assert(!input.disabled, label); await act(async () => {
+    Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value').set.call(input, value);
+    input.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  });};
+  const pointSelect = async (label, value) => {const input = pointInput(label); assert(!input.disabled, label); await act(async () => {
+    input.value = String(value); input.dispatchEvent(new dom.window.Event('change', {bubbles: true}));
+  });};
+  const pointBody = async id => {await pointClick('Edit body ' + id); assert.equal(pointButton('Edit body ' + id).getAttribute('aria-pressed'), 'true');};
+  const pointSnapshot = () => flowControllers.at(-1).getSession().getSnapshot();
+  const pointDraft = () => api.readLightWorkbenchFlowDraft(pointContainer);
+  const pointSavePayload = () => flowControllers.at(-1).getSession().getSavePayload().text;
+  const pointAppearance = request => api.prepareViewerNativeSceneAppearance({version: 1,
+    source: request.source, display: request.display,
+    appearance: {lighting: {ambientStrength: 1, directionalStrength: 0, direction: [0, 0, 1]}, materials: request.materials}}, request.context);
+  const pointErrorTree = (error, depth = 0) => !error || depth > 6 || typeof error !== 'object' ? String(error)
+    : {name: error.name, message: error.message, code: error.code, cause: error.cause === undefined ? null : pointErrorTree(error.cause, depth + 1)};
+  if (!surfacePointPreflight) {navigationDom?.dispose(); navigationDom = api.installLightNavigationFlowDom();}
+  for (const kind of ['directional', 'point']) {
+    const A = 'body_preview_a', B = 'body_preview_b';
+    const declaration = sourceText.match(/ {2}@surface #reference_panel \{[\s\S]*?\n {2}\}/)?.[0];
+    assert(declaration, 'real source Surface declaration');
+    const pointSource = sourceText.replace('version: 0;', 'version: 0; /* retain original comments */')
+      .replace('[-700,-550,-700]', '[-700.00, -550.0, -700.000]')
+      .replace('weights: [[1,1]', 'weights: [[1.00,1]')
+      .replace(/\}\s*$/, declaration.replace('#reference_panel', '#retained_panel') + '\n}\n');
+    const raw = structuredClone(api.createLightStudy(pointSource, kind));
+    raw.surfaceMaterials[1].material.documentId = raw.surfaceMaterials[0].material.documentId;
+    raw.surfaceMaterials[1].material.uniforms.amount = -0;
+    raw.display.poses[1].rotationXYZW = [-0, 0, 0, -1];
+    raw.lights.ambientStrength = -0;
+    raw.lights.lights.push({...raw.lights.lights[0], nodeId: 'retained_fill', label: 'Unedited fill', enabled: false,
+      colorLinearRGB: [.2, .4, .6], intensity: .35,
+      ...(kind === 'directional' ? {directionScene: [-0, 2, -4]} : {positionScene: [-0, 2, -4], rangeScene: 8})});
+    // Distinct source geometry is required. Aliasing one geometry to two bodies is invalid.
+    raw.nativeDocument.bodies.push({...raw.nativeDocument.bodies[0], id: 'hidden_sibling', geometryId: 'retained_panel'});
+    const pointSeed = api.prepareRenderNativeLightDocument(raw).document;
+    const assetFor = (value, bodyId = B) => value.nativeDocument.assets.find(asset => asset.id
+      === value.nativeDocument.bodies.find(body => body.id === bodyId).assetId);
+    const hidden = api.prepareRenderNativeLightDocument({...pointSeed, display: {...pointSeed.display, visibleBodyIds: [A]},
+      surfaceMaterials: pointSeed.surfaceMaterials.filter(binding => binding.target.bodyId === A)}).document;
+    const maxNativeRaw = structuredClone(pointSeed); maxNativeRaw.nativeDocument.revision = 2147483647;
+    maxNativeRaw.surfaceMaterials.forEach(binding => {binding.target.documentRevision = 2147483647;});
+    const maxNative = api.prepareRenderNativeLightDocument(maxNativeRaw).document;
+    const maxAssetRaw = structuredClone(pointSeed); assetFor(maxAssetRaw).revision = 2147483647;
+    maxAssetRaw.surfaceMaterials.find(binding => binding.target.bodyId === B).target.assetRevision = 2147483647;
+    const maxAsset = api.prepareRenderNativeLightDocument(maxAssetRaw).document;
+    for (const value of [pointSeed, hidden, maxNative, maxAsset]) pointAppearance(api.createRenderNativeLightRequest(value));
+    assert.equal(api.readLightSurfacePoints(pointSeed, A).shared, true);
+    const points = api.readLightSurfacePoints(pointSeed, B);
+    assert.equal(points.shared, false); assert.equal(points.rows.length, 2); assert.equal(points.rows[0].length, 2);
+    assert.deepEqual(points.rows[0][0], {pointMM: [-700, -550, -700], weight: 1});
+    if (surfacePointPreflight) {
+      surfacePointFlow.push({kind, admittedFixtures: 4, directEditCalls: 0, presentations: 0, saveOpenTransports: 0, lifetimes: 0});
+      continue;
+    }
+    const originalText = api.serializeRenderNativeLightDocument(pointSeed), cases = [];
+    let presentations = 0, transports = 0, duplicateDerivations = 0; const owned = [], attempts = [];
+    activeSurfaceLedger = {feature: 'control-point', kind, cases, attempts, get duplicateDerivations() {return duplicateDerivations;},
+      get presentations() {return presentations;}, get transports() {return transports;}, get lifetimes() {return owned.length;}};
+    const patch = {uIndex: 0, vIndex: 0, xMM: -0, yMM: -540, zMM: -680, weight: 1.25};
+    const derivePoint = (label, value = pointSeed, bodyId = B, edit = patch, reserved = []) => {
+      cases.push(label); assert(cases.length <= 12, kind + ': direct point helper ceiling');
+      const before = structuredClone(value);
+      try {return api.deriveLightSurfacePointEdit(value, bodyId, edit, reserved);}
+      finally {assert.deepEqual(value, before, label + ': caller authorship immutable');}
+    };
+    const refusePoint = (...args) => {let error; try {derivePoint(...args);} catch (cause) {
+      if (cause instanceof assert.AssertionError) throw cause; error = cause;
+    } assert(error, args[0] + ': actual provider must refuse'); return error;};
+    const changed = derivePoint('four exact scalar spans and signed zero');
+    const expectedSource = pointSource.replace('[-700.00, -550.0, -700.000]', '[-0, -540, -680]')
+      .replace('weights: [[1.00,1]', 'weights: [[1.25,1]');
+    assert.equal(assetFor(changed.document).source, expectedSource, 'Only four selected scalar spans change');
+    assert.deepEqual(changed.document.nativeDocument, {...pointSeed.nativeDocument, revision: pointSeed.nativeDocument.revision + 1,
+      assets: pointSeed.nativeDocument.assets.map(asset => asset.id === assetFor(pointSeed).id
+        ? {...asset, revision: asset.revision + 1, source: expectedSource} : asset)});
+    for (const key of ['revision', 'nativeOptions', 'display', 'lights']) assert.deepEqual(changed.document[key], pointSeed[key], key);
+    assert.deepEqual(changed.document.surfaceMaterials.map(binding => binding.material), pointSeed.surfaceMaterials.map(binding => binding.material));
+    assert.deepEqual(changed.generatedIds, []); assert.equal(changed.selectedBodyId, B);
+    const refreshed = api.prepareRenderNativeLightDocument(changed.document);
+    for (const binding of changed.document.surfaceMaterials) {
+      const actual = refreshed.entries.find(entry => entry.binding.bodyId === binding.target.bodyId).binding;
+      for (const key of Object.keys(binding.target)) assert.equal(binding.target[key], actual[key], key);
+    }
+    assert(Object.is(api.readLightSurfacePoints(changed.document, B).rows[0][0].pointMM[0], -0));
+    assert.equal(api.serializeRenderNativeLightDocument(derivePoint('exact signed no-op preserves source and revisions', changed.document).document),
+      api.serializeRenderNativeLightDocument(changed.document));
+    assert.match(refusePoint('hidden unselected source sibling refuses shared edit', pointSeed, A).message, /shared|Duplicate/i);
+    const beforeDuplicate = structuredClone(pointSeed); duplicateDerivations++;
+    const copy = api.deriveLightBodyCommand(pointSeed, A, 'duplicate');
+    assert.deepEqual(pointSeed, beforeDuplicate); assert.equal(copy.generatedIds.length, 3);
+    const copiedBody = copy.document.nativeDocument.bodies.find(body => body.id === copy.selectedBodyId);
+    assert.notEqual(copiedBody.assetId, assetFor(pointSeed, A).id);
+    assert.equal(copy.document.nativeDocument.bodies.filter(body => body.assetId === copiedBody.assetId).length, 1);
+    assert.equal(api.readLightSurfacePoints(copy.document, copy.selectedBodyId).shared, false);
+    const editedCopy = derivePoint('real duplicate creates editable independent source', copy.document, copy.selectedBodyId, patch, copy.reservedIds);
+    assert.equal(assetFor(editedCopy.document, copy.selectedBodyId).source, expectedSource);
+    assert.deepEqual(editedCopy.document.nativeDocument.assets.slice(0, 2), pointSeed.nativeDocument.assets);
+    assert.deepEqual(editedCopy.document.nativeDocument.bodies.slice(0, 3), pointSeed.nativeDocument.bodies);
+    assert.deepEqual(editedCopy.reservedIds, copy.reservedIds);
+    refusePoint('out-of-grid original index', pointSeed, B, {...patch, uIndex: 2});
+    refusePoint('source millimetre coordinate range', pointSeed, B, {...patch, xMM: 1000001});
+    refusePoint('positive bounded weight', pointSeed, B, {...patch, weight: 0});
+    refusePoint('native revision overflow', maxNative);
+    refusePoint('asset revision overflow', maxAsset);
+    refusePoint('hidden target is not editable', hidden);
+    const forged = structuredClone(pointSeed); forged.surfaceMaterials[1].target.modelId = 'foreign_model';
+    refusePoint('forged original qualified target', forged);
+    const unsafe = refusePoint('real source geometry Float32 underflow', pointSeed, B, {...patch, yMM: 1e-50});
+    assert.match(JSON.stringify(pointErrorTree(unsafe)), /underflow/i);
+    assert.equal(cases.length, 12); assert.equal(new Set(cases).size, 12); assert.equal(duplicateDerivations, 1);
+    assert.equal(api.serializeRenderNativeLightDocument(pointSeed), originalText);
+
+    const mountPoint = async value => {
+      mounted = await api.mountLightWorkbenchFlow(pointContainer, value); const control = controls.at(-1);
+      control.prepare = pointAppearance; const replace = control.viewer.replace;
+      control.viewer.replace = request => {presentations++; attempts.push(request.owner); assert(presentations <= 6, kind + ': point Viewer ceiling'); return replace(request);};
+      owned.push(control); assert(owned.length <= 3, kind + ': point lifetime ceiling'); return control;
+    };
+    const transport = label => {transports++; assert(transports <= 2, label + ': point Save/Open ceiling');};
+    let control = await mountPoint(pointSeed);
+    await pointBody(A); await pointClick('Edit control point…');
+    assert.match(pointDialog().textContent, /shared.*Duplicate body/s); assert.match(pointDialog().textContent, /capacity/);
+    assert(pointDialogButton('Apply point').disabled); await pointDialogClick('Cancel');
+    await pointBody(B); await pointEdit('Ambient strength', '.3'); assert(pointButton('Edit control point…').disabled);
+    await pointClick('Discard');
+    const beforeLightCopy = pointSnapshot(); await pointClick('Duplicate light');
+    assert(pointButton('Edit control point…').disabled); assert.equal(pointSnapshot(), beforeLightCopy); assert.equal(presentations, 0);
+    await pointClick('Discard'); await pointClick('Edit control point…');
+    assert(pointButton('Duplicate light').disabled, 'Point dialog owns command routing');
+    const baseline = pointSnapshot(), baselineDraft = pointDraft();
+    await pointSelect('Control point U row', 1); await pointSelect('Control point V column', 1);
+    assert.equal(pointInput('Control point X in source mm').value, '700');
+    await pointSelect('Control point U row', 0); await pointSelect('Control point V column', 0);
+    assert.equal(pointInput('Control point X in source mm').maxLength, 256);
+    await pointEdit('Control point X in source mm', '1e'); await pointDialogClick('Apply point');
+    assert.equal(pointInput('Control point X in source mm').value, '1e'); assert.match(pointDialog().textContent, /finite decimal/);
+    assert(pointInput('Control point U row').disabled); assert(pointInput('Control point V column').disabled);
+    assert.equal(pointSnapshot(), baseline); assert.equal(presentations, 0);
+    await pointDialogClick('Reset fields'); assert.equal(pointInput('Control point X in source mm').value, '-700');
+    assert(!pointInput('Control point U row').disabled);
+    await pointEdit('Control point X in source mm', '-700.0000'); await pointDialogClick('Apply point');
+    assert.equal(pointInput('Control point X in source mm').value, '-700.0000'); assert.match(pointDialog().textContent, /No source change/);
+    assert.equal(pointSnapshot(), baseline); assert.deepEqual(pointDraft(), baselineDraft); assert.equal(presentations, 0);
+    await pointEdit('Control point X in source mm', '-0.000'); await pointEdit('Control point Y in source mm', '-540.00');
+    await pointEdit('Control point Z in source mm', '-680.000'); await pointEdit('Control point weight', '1.2500');
+    control.refusal = new Error('Controlled ready point refusal'); await pointDialogClick('Apply point'); // 1.
+    assert.equal(presentations, 1); assert.match(pointDialog().textContent, /PRESENTATION_REFUSED/);
+    assert.equal(pointInput('Control point X in source mm').value, '-0.000'); assert.equal(pointInput('Control point weight').value, '1.2500');
+    const refused = pointSnapshot();
+    for (const key of ['accepted', 'canUndo', 'canRedo', 'unsaved']) assert.equal(refused[key], baseline[key], key);
+    assert.equal(refused.dirty, false); assert.deepEqual(pointDraft(), baselineDraft); assert.equal(pointSavePayload(), originalText);
+    assert.equal(pointContainer.querySelector('[aria-label="Body command recovery"]'), null);
+    control.refusal = null; await pointDialogClick('Apply point'); // 2.
+    assert.equal(pointDialog(), null); const accepted = pointSnapshot().accepted;
+    assert.deepEqual(accepted, {...changed.document, revision: pointSeed.revision + 1,
+      lights: {...changed.document.lights, revision: pointSeed.revision + 1}});
+    assert(pointSnapshot().canUndo); assert.equal(pointSnapshot().canRedo, false);
+    assert.deepEqual(control.calls.at(-1), api.createRenderNativeLightRequest(accepted));
+    await pointClick('Edit control point…'); await pointEdit('Control point X in source mm', '-0.0000');
+    const signedBefore = pointSnapshot(); await pointDialogClick('Apply point');
+    assert.equal(pointSnapshot(), signedBefore); assert.equal(presentations, 2);
+    assert.equal(pointInput('Control point X in source mm').value, '-0.0000'); await pointDialogClick('Cancel');
+    await pointClick('Undo'); // 3.
+    assert.deepEqual(pointSnapshot().accepted.nativeDocument, pointSeed.nativeDocument);
+    assert.deepEqual(pointSnapshot().accepted.surfaceMaterials, pointSeed.surfaceMaterials);
+    assert.equal(pointSnapshot().canUndo, false); assert(pointSnapshot().canRedo);
+    await pointClick('Redo'); // 4.
+    assert.deepEqual(pointSnapshot().accepted.nativeDocument, accepted.nativeDocument);
+    assert.deepEqual(pointSnapshot().accepted.surfaceMaterials, accepted.surfaceMaterials); assert.equal(pointSnapshot().canRedo, false);
+    transport('accepted source Save'); await pointClick('Save accepted');
+    const savedText = await downloads.at(-1).blob.text(), saved = api.parseRenderNativeLightDocument(savedText);
+    assert.equal(savedText, api.serializeRenderNativeLightDocument(pointSnapshot().accepted));
+    assert.equal(pointSnapshot().unsaved, false); assert(Object.is(api.readLightSurfacePoints(saved, B).rows[0][0].pointMM[0], -0));
+    await mounted.dispose(); assert.equal(control.disposed, 1); control = await mountPoint(pointSeed);
+    transport('fresh same-kind Open'); await pointClick('Open');
+    const fileInput = pointContainer.querySelector('input[type="file"]'), bytes = new TextEncoder().encode(savedText);
+    Object.defineProperty(fileInput, 'files', {value: [{name: 'original-point.light-scene.json', size: bytes.length,
+      arrayBuffer: async () => bytes.buffer}], configurable: true});
+    await act(async () => fileInput.dispatchEvent(new dom.window.Event('change', {bubbles: true}))); // 5.
+    assert.deepEqual(pointSnapshot().accepted, saved); assert.equal(pointSavePayload(), savedText);
+    assert.equal(pointSnapshot().canUndo, false); assert.equal(pointSnapshot().canRedo, false);
+    await pointBody(B); await pointClick('Edit control point…'); await pointEdit('Control point X in source mm', '12.50');
+    const beforeLoss = pointSnapshot(); let release;
+    control.wait = new Promise(resolve => {release = resolve;}); control.refusal = new Error('Controlled lost point refusal');
+    await act(async () => pointDialogButton('Apply point').click()); // 6: pending loss, disposal, then stale completion.
+    const detachedCancel = pointDialogButton('Cancel'), detachedApply = pointDialogButton('Applying point…');
+    assert(detachedCancel.disabled); assert(detachedApply.disabled); assert(pointButton('Open').disabled);
+    await act(async () => {pointDialog().dispatchEvent(new dom.window.KeyboardEvent('keydown', {key: 'Escape', bubbles: true})); detachedCancel.click();});
+    assert(pointDialog()); assert.equal(pointInput('Control point X in source mm').value, '12.50');
+    control.state = 'lost'; await act(async () => {await new Promise(resolve => setTimeout(resolve, 350));});
+    assert.equal(pointSnapshot().accepted, beforeLoss.accepted); assert(pointSnapshot().dirty);
+    assert.equal(pointSnapshot().canUndo, beforeLoss.canUndo); assert.equal(pointSnapshot().canRedo, beforeLoss.canRedo);
+    assert.equal(pointSavePayload(), savedText, 'Lost pending command retains exact accepted authorship');
+    const stale = control; await mounted.dispose(); assert.equal(stale.disposed, 1);
+    control = await mountPoint(saved); const fresh = pointSnapshot(), freshDraft = pointDraft();
+    await act(async () => {detachedCancel.click(); detachedApply.click(); release(); await stale.wait;});
+    assert.equal(pointSnapshot(), fresh); assert.deepEqual(pointDraft(), freshDraft); assert.equal(pointDialog(), null);
+    assert.equal(pointSavePayload(), savedText); assert.equal(control.calls.length, 0);
+    assert.equal(presentations, 6); assert.equal(transports, 2); assert.equal(owned.length, 3);
+    assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+    await mounted.dispose(); assert(owned.every(value => value.disposed === 1));
+    surfacePointFlow.push({kind, helperCases: cases.length, cases, duplicateDerivations, presentations,
+      saveOpenTransports: transports, lifetimes: owned.length, historyEntries: 1, signedNoOp: true,
+      exactSourceSpans: true, sharedHiddenSibling: true, readyRefusalRetention: true, heldLossAndStaleCompletion: true});
+  }
+  console.log(JSON.stringify({result: 'PASS', scope: surfacePointPreflight ? 'Surface point fixture admission only'
+    : 'Surface control points: actual React/source/codec/session; controlled Viewer and file transport, no GPU or physical files', surfacePointFlow}));
 } catch (cause) {failed = true; firstError = cause; console.error('Original Light flow failure:', cause); console.error('Active Surface ledger:', JSON.stringify(activeSurfaceLedger));}
 finally {
   for (const cleanup of [() => mounted?.dispose(), async () => {
