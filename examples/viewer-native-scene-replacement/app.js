@@ -13,6 +13,7 @@ import {readNativePointScope,querySelectedNativePoint} from './selected-native-p
 import {querySelectedNativeDerivatives} from './selected-native-derivatives.js';
 import {querySelectedNativeCurveLength,NATIVE_CURVE_LENGTH_OPTIONS} from './selected-native-length.js';
 import {querySelectedNativeCurveCurvature} from './selected-native-curvature.js';
+import {querySelectedNativeSurfaceCurvature} from './selected-native-surface-curvature.js';
 import {querySelectedNativeSurfaceArea,NATIVE_SURFACE_AREA_OPTIONS} from './selected-native-area.js';
 import {createNativePointerNavigation} from './pointer-navigation.js';
 import {measureCapturedNativeChord,isCapturedNativeChordPointCurrent} from './captured-native-chord.js';
@@ -51,6 +52,9 @@ const selectedSurfaceAreaOutput=document.querySelector('#selected-native-surface
 const nativeCurveCurvaturePane=document.querySelector('#native-curve-curvature-pane'),nativeCurveCurvatureTarget=document.querySelector('#native-curve-curvature-target');
 const inspectNativeCurveCurvatureButton=document.querySelector('#inspect-native-curve-curvature'),resetNativeCurveCurvatureButton=document.querySelector('#reset-native-curve-curvature');
 const nativeCurveCurvatureOutput=document.querySelector('#native-curve-curvature-output'),nativeCurveCurvatureDetails=document.querySelector('#native-curve-curvature-details');
+const nativeSurfaceCurvaturePane=document.querySelector('#native-surface-curvature-pane'),nativeSurfaceCurvatureTarget=document.querySelector('#native-surface-curvature-target');
+const inspectNativeSurfaceCurvatureButton=document.querySelector('#inspect-native-surface-curvature'),resetNativeSurfaceCurvatureButton=document.querySelector('#reset-native-surface-curvature');
+const nativeSurfaceCurvatureOutput=document.querySelector('#native-surface-curvature-output'),nativeSurfaceCurvatureDetails=document.querySelector('#native-surface-curvature-details');
 const selectedCurveLengthPane=document.querySelector('#selected-native-curve-length-pane'),selectedCurveLengthTarget=document.querySelector('#selected-native-curve-length-target');
 const inspectSelectedCurveLengthButton=document.querySelector('#inspect-selected-native-curve-length'),resetSelectedCurveLengthButton=document.querySelector('#reset-selected-native-curve-length');
 const selectedCurveLengthOutput=document.querySelector('#selected-native-curve-length-output'),selectedCurveLengthDetails=document.querySelector('#selected-native-curve-length-details');
@@ -94,6 +98,7 @@ let nativeAngleFirst=null,nativeAngleVertex=null,nativeAngleReport=null,nativeAn
 let nativeChordFirst=null,nativeChordReport=null,nativeChordEpoch=0,nativeChordDisposed=false;
 let selectedSurfaceAreaScope=null,selectedSurfaceAreaReport=null,selectedSurfaceAreaEpoch=0,selectedSurfaceAreaDisposed=false;
 let nativeCurveCurvatureScope=null,nativeCurveCurvatureReport=null,nativeCurveCurvatureEpoch=0,nativeCurveCurvatureDisposed=false;
+let nativeSurfaceCurvatureScope=null,nativeSurfaceCurvatureReport=null,nativeSurfaceCurvatureEpoch=0,nativeSurfaceCurvatureDisposed=false;
 let selectedCurveLengthScope=null,selectedCurveLengthReport=null,selectedCurveLengthEpoch=0,selectedCurveLengthDisposed=false;
 let selectedDerivativesScope=null,selectedDerivativesReport=null,selectedDerivativesEpoch=0,selectedDerivativesDisposed=false;
 const sources={};
@@ -160,7 +165,7 @@ function discardIGESFile(){check(igesFileOpen&&!disposed&&!running,'IGES file ch
   igesFileOpen.discard();igesFileChoice.value='';display('IGES choice discarded. Accepted geometry and provenance are unchanged.');return igesFileSnapshot();}
 function invalidateIGESFile(){if(!disposed)igesFileOpen?.invalidate();return igesFileSnapshot();}
 function invalidateFileIntents(){invalidateNativeFile();invalidateIGESFile();}
-function sourceAction(callback){invalidateFileIntents();try{const value=callback();invalidateNativeObjectSelection();invalidateNativeNavigation();nativeFileOpen?.clearAccepted();igesFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();clearSelectedCurveLengthContext();clearNativeCurveCurvatureContext();clearSelectedSurfaceAreaContext();clearNativeAngle();inspection.textContent='';render();return value;}catch(error){render();throw error;}}
+function sourceAction(callback){invalidateFileIntents();try{const value=callback();invalidateNativeObjectSelection();invalidateNativeNavigation();nativeFileOpen?.clearAccepted();igesFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();clearSelectedCurveLengthContext();clearNativeCurveCurvatureContext();clearNativeSurfaceCurvatureContext();clearSelectedSurfaceAreaContext();clearNativeAngle();inspection.textContent='';render();return value;}catch(error){render();throw error;}}
 function commitReplacement(candidate){uploads.length=0;draws.length=0;viewer.replaceNativeScene(candidate);return viewer.getState();}
 function replace(candidate){return sourceAction(()=>commitReplacement(candidate===undefined?buildCandidate():candidate));}
 function nativeSourceDownloadSnapshot(){return nativeSourceDownload?clone(nativeSourceDownload.snapshot()):{version:0,pending:false,disposed,enabled:false,report:null,error:null,activeUrls:0,activeAnchors:0,activeTimers:0};}
@@ -390,7 +395,7 @@ function clearNativeCurveCurvatureContext(){
 function refreshNativeCurveCurvature(){
   if(nativeCurveCurvatureDisposed||disposed){inspectNativeCurveCurvatureButton.disabled=true;resetNativeCurveCurvatureButton.disabled=true;return;}
   const next=!nativeCurveCurvatureDisposed&&!disposed&&selectedPointScope?.ref.kind==='curve'?selectedPointScope:null;
-  if(!same(next,nativeCurveCurvatureScope)){clearNativeCurveCurvatureContext();nativeCurveCurvatureScope=clone(next);}
+  if(!same(next,nativeCurveCurvatureScope)){clearNativeCurveCurvatureContext();clearNativeSurfaceCurvatureContext();nativeCurveCurvatureScope=clone(next);}
   const enabled=!!nativeCurveCurvatureScope&&!nativeCurveCurvatureDisposed&&!disposed&&!running;
   inspectNativeCurveCurvatureButton.disabled=!enabled;resetNativeCurveCurvatureButton.disabled=!enabled;
   nativeCurveCurvatureTarget.textContent=nativeCurveCurvatureScope?'Current Curve '+nativeCurveCurvatureScope.ref.curveId
@@ -439,10 +444,83 @@ function resetNativeCurveCurvature(){
 function disposeNativeCurveCurvature(){
   check(arguments.length===0,'Curve curvature disposal takes no arguments.');
   if(nativeCurveCurvatureDisposed)return nativeCurveCurvatureSnapshot();
-  nativeCurveCurvatureDisposed=true;clearNativeCurveCurvatureContext();
+  nativeCurveCurvatureDisposed=true;clearNativeCurveCurvatureContext();clearNativeSurfaceCurvatureContext();
   inspectNativeCurveCurvatureButton.onclick=null;resetNativeCurveCurvatureButton.onclick=null;
   inspectNativeCurveCurvatureButton.disabled=true;resetNativeCurveCurvatureButton.disabled=true;nativeCurveCurvatureTarget.textContent='';
   return nativeCurveCurvatureSnapshot();
+}
+function reportNativeSurfaceCurvatureError(error){
+  if(nativeSurfaceCurvatureDisposed||disposed)return;
+  const describe=value=>value instanceof Error?(value.code!==undefined?'['+value.code+'] ':'')+value.name+': '+value.message:String(value);
+  display(describe(error)+(error?.cause!==undefined?' · cause '+describe(error.cause):''));
+}
+function nativeSurfaceCurvatureSnapshot(){
+  check(arguments.length===0,'Surface curvature snapshot takes no arguments.');
+  return clone({version:0,scope:nativeSurfaceCurvatureScope,report:nativeSurfaceCurvatureReport,
+    enabled:!inspectNativeSurfaceCurvatureButton.disabled,disposed:nativeSurfaceCurvatureDisposed,output:nativeSurfaceCurvatureOutput.textContent});
+}
+function clearNativeSurfaceCurvatureContext(){
+  nativeSurfaceCurvatureEpoch++;nativeSurfaceCurvatureScope=null;nativeSurfaceCurvatureReport=null;
+  nativeSurfaceCurvatureOutput.textContent='';nativeSurfaceCurvatureDetails.textContent='';
+}
+function refreshNativeSurfaceCurvature(){
+  if(nativeSurfaceCurvatureDisposed||disposed){inspectNativeSurfaceCurvatureButton.disabled=true;resetNativeSurfaceCurvatureButton.disabled=true;return;}
+  const next=!nativeSurfaceCurvatureDisposed&&!disposed&&selectedPointScope?.ref.kind==='surface'?selectedPointScope:null;
+  if(!same(next,nativeSurfaceCurvatureScope)){clearNativeSurfaceCurvatureContext();nativeSurfaceCurvatureScope=clone(next);}
+  const enabled=!!nativeSurfaceCurvatureScope&&!nativeSurfaceCurvatureDisposed&&!disposed&&!running;
+  inspectNativeSurfaceCurvatureButton.disabled=!enabled;resetNativeSurfaceCurvatureButton.disabled=!enabled;
+  nativeSurfaceCurvatureTarget.textContent=nativeSurfaceCurvatureScope?'Current Surface '+nativeSurfaceCurvatureScope.ref.surfaceId
+    +' · Model '+nativeSurfaceCurvatureScope.ref.modelId+' · original closed domain '+JSON.stringify(selectedPointDomain(nativeSurfaceCurvatureScope))
+    :'Select an original native Surface.';
+  const pin=clone(nativeSurfaceCurvatureScope),selectionEpoch=selectedPointEpoch,epoch=nativeSurfaceCurvatureEpoch;
+  const guard=event=>{check(!nativeSurfaceCurvatureDisposed&&!disposed,'Surface curvature host is disposed.');
+    check(event.currentTarget?.isConnected&&nativeSurfaceCurvaturePane.contains(event.currentTarget),'This Surface curvature control is detached.');
+    check(selectionEpoch===selectedPointEpoch&&epoch===nativeSurfaceCurvatureEpoch&&same(pin,selectedPointScope)
+      &&same(pin,nativeSurfaceCurvatureScope),'This Surface curvature control is stale.');};
+  inspectNativeSurfaceCurvatureButton.onclick=event=>{try{guard(event);inspectNativeSurfaceCurvature();}catch(error){reportNativeSurfaceCurvatureError(error);}};
+  resetNativeSurfaceCurvatureButton.onclick=event=>{try{guard(event);resetNativeSurfaceCurvature();}catch(error){reportNativeSurfaceCurvatureError(error);}};
+}
+function inspectNativeSurfaceCurvature(){
+  check(arguments.length<=1,'Surface curvature inspection accepts one explicit parameter record.');
+  check(!nativeSurfaceCurvatureDisposed&&!disposed&&!running,'Surface curvature inspection needs an idle live host.');
+  check(nativeSurfaceCurvatureScope?.ref.kind==='surface'&&same(nativeSurfaceCurvatureScope,selectedPointScope),'A current original native Surface must be selected.');
+  const expected=clone(nativeSurfaceCurvatureScope),selectionEpoch=selectedPointEpoch,epoch=nativeSurfaceCurvatureEpoch;
+  const input=arguments.length?arguments[0]:{u:pointDraft(selectedPointInputs.u,'u'),v:pointDraft(selectedPointInputs.v,'v')};
+  const candidate=querySelectedNativeSurfaceCurvature(viewer,expected,input);
+  check(!nativeSurfaceCurvatureDisposed&&!disposed&&!running&&selectionEpoch===selectedPointEpoch&&epoch===nativeSurfaceCurvatureEpoch
+    &&same(expected,nativeSurfaceCurvatureScope)&&same(expected,selectedPointScope),'Current Surface curvature scope changed before report adoption.');
+  const current=pointExpected(readNativePointScope(viewer));
+  check(!nativeSurfaceCurvatureDisposed&&!disposed&&!running&&selectionEpoch===selectedPointEpoch&&epoch===nativeSurfaceCurvatureEpoch
+    &&same(current,expected)&&same(expected,nativeSurfaceCurvatureScope)&&same(expected,selectedPointScope),
+    'Current Surface curvature selection changed before report adoption.');
+  const owned=clone(candidate),returned=clone(candidate),technical=JSON.stringify(owned,null,2),curvature=owned.curvature;
+  const formatted=value=>Object.is(value,-0)?'-0':String(Number(value.toPrecision(12)));
+  const output='Original Surface local curvature at U='+formatted(owned.parameters.u)+' V='+formatted(owned.parameters.v)
+    +': mean '+formatted(curvature.meanCurvaturePerMM)+' 1/mm · Gaussian '
+    +formatted(curvature.gaussianCurvaturePerMM2)+' 1/mm² · principal '
+    +curvature.principalCurvaturesPerMM.map(formatted).join(', ')+' 1/mm';
+  nativeSurfaceCurvatureReport=owned;nativeSurfaceCurvatureOutput.textContent=output;nativeSurfaceCurvatureDetails.textContent=technical;
+  display('Original Surface curvature ready for '+expected.ref.surfaceId+'.');return returned;
+}
+function resetNativeSurfaceCurvature(){
+  check(arguments.length===0,'Reset Surface curvature report takes no arguments.');
+  check(!nativeSurfaceCurvatureDisposed&&!disposed&&!running,'Surface curvature host is disposed or busy.');
+  check(nativeSurfaceCurvatureScope?.ref.kind==='surface'&&same(nativeSurfaceCurvatureScope,selectedPointScope),'A current original native Surface must be selected.');
+  const expected=clone(nativeSurfaceCurvatureScope),selectionEpoch=selectedPointEpoch,epoch=nativeSurfaceCurvatureEpoch;
+  const current=pointExpected(readNativePointScope(viewer));
+  check(!nativeSurfaceCurvatureDisposed&&!disposed&&!running&&selectionEpoch===selectedPointEpoch&&epoch===nativeSurfaceCurvatureEpoch
+    &&same(current,expected)&&same(expected,nativeSurfaceCurvatureScope)&&same(expected,selectedPointScope),'Current Surface curvature scope is stale.');
+  nativeSurfaceCurvatureReport=null;nativeSurfaceCurvatureOutput.textContent='';nativeSurfaceCurvatureDetails.textContent='';
+  display('Surface curvature report reset. Point, derivatives, captured chord, drafts, SDK measurements and File choices remain.');
+  return nativeSurfaceCurvatureSnapshot();
+}
+function disposeNativeSurfaceCurvature(){
+  check(arguments.length===0,'Surface curvature disposal takes no arguments.');
+  if(nativeSurfaceCurvatureDisposed)return nativeSurfaceCurvatureSnapshot();
+  nativeSurfaceCurvatureDisposed=true;clearNativeSurfaceCurvatureContext();
+  inspectNativeSurfaceCurvatureButton.onclick=null;resetNativeSurfaceCurvatureButton.onclick=null;
+  inspectNativeSurfaceCurvatureButton.disabled=true;resetNativeSurfaceCurvatureButton.disabled=true;nativeSurfaceCurvatureTarget.textContent='';
+  return nativeSurfaceCurvatureSnapshot();
 }
 function selectedNativeSurfaceAreaSnapshot(){
   check(arguments.length===0,'Surface area snapshot takes no arguments.');
@@ -669,11 +747,11 @@ function setNativeNavigationEnabled(value){
 }
 function refreshNativeNavigationView(){
   if(nativeNavigationDisposed||disposed||running)return;
-  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshNativeCurveCurvature();refreshSelectedNativeSurfaceArea();renderNativeAngle();renderNativeChord();syncNativeNavigation();syncNativeObjectSelection();syncNativeSelectedFit();display('Native view moved.');
+  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshNativeCurveCurvature();refreshNativeSurfaceCurvature();refreshSelectedNativeSurfaceArea();renderNativeAngle();renderNativeChord();syncNativeNavigation();syncNativeObjectSelection();syncNativeSelectedFit();display('Native view moved.');
 }
 function reportNativeNavigationError(error){
   if(nativeNavigationDisposed||disposed)return;
-  if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshNativeCurveCurvature();refreshSelectedNativeSurfaceArea();renderNativeAngle();renderNativeChord();}
+  if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshNativeCurveCurvature();refreshNativeSurfaceCurvature();refreshSelectedNativeSurfaceArea();renderNativeAngle();renderNativeChord();}
   syncNativeNavigation();syncNativeObjectSelection();syncNativeSelectedFit();display(error instanceof Error?error.message:String(error));
 }
 function nativeKeyboardSnapshot(){
@@ -720,7 +798,7 @@ function nativeKeyboardGuard(event){
 function reportNativeKeyboardError(error){
   if(nativeKeyboardPending)nativeKeyboardPending.failed=true;
   if(nativeKeyboardDisposed||disposed)return;
-  if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshNativeCurveCurvature();refreshSelectedNativeSurfaceArea();renderNativeAngle();renderNativeChord();}
+  if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshNativeCurveCurvature();refreshNativeSurfaceCurvature();refreshSelectedNativeSurfaceArea();renderNativeAngle();renderNativeChord();}
   syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();display(error instanceof Error?error.message:String(error));
 }
 function nativeKeyboardObserver(event){
@@ -728,7 +806,7 @@ function nativeKeyboardObserver(event){
   if(nativeKeyboardDisposed||disposed||pending.failed||!event.defaultPrevented)return;
   try{
     if(event.key==='Escape'){
-      refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshNativeCurveCurvature();refreshSelectedNativeSurfaceArea();renderNativeAngle();renderNativeChord();syncNativeNavigation();
+      refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshNativeCurveCurvature();refreshNativeSurfaceCurvature();refreshSelectedNativeSurfaceArea();renderNativeAngle();renderNativeChord();syncNativeNavigation();
       for(const button of list.querySelectorAll('button[aria-pressed]'))button.setAttribute('aria-pressed','false');
       syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();display('Native selection cleared. Captured chord and SDK measurements remain.');
     }else{refreshNativeNavigationView();syncNativeKeyboard();display('Visible native display geometry fitted.');}
@@ -764,7 +842,7 @@ function syncNativeSelectedFit(){
 }
 function refreshNativeSelectedFitControls(){
   if(nativeSelectedFitDisposed||disposed)return;
-  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshNativeCurveCurvature();refreshSelectedNativeSurfaceArea();renderNativeAngle();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();
+  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshNativeCurveCurvature();refreshNativeSurfaceCurvature();refreshSelectedNativeSurfaceArea();renderNativeAngle();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();
 }
 function reportNativeSelectedFitError(error){
   nativeSelectedFitLastError=error;nativeSelectedFitErrorCount++;
@@ -878,7 +956,7 @@ function nativeObjectLostCapture(event){if(nativeObjectTap?.phase==='pressed'&&n
 function reportNativeObjectSelectionError(error){
   if(nativeObjectSelectionDisposed||disposed)return;
   nativeObjectSelectionLastError=error;nativeObjectSelectionErrorCount++;
-  if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshNativeCurveCurvature();refreshSelectedNativeSurfaceArea();renderNativeAngle();renderNativeChord();}
+  if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshNativeCurveCurvature();refreshNativeSurfaceCurvature();refreshSelectedNativeSurfaceArea();renderNativeAngle();renderNativeChord();}
   syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();display(error instanceof Error?error.message:String(error));
 }
 function nativeObjectSelectionClick(event){
@@ -902,7 +980,7 @@ function nativeObjectSelectionClick(event){
     const acceptedFrame=readNativeObjectSelectionFrame();
     check(tap.epoch===nativeObjectSourceEpoch&&same(expected,acceptedFrame),
       'POSTCOMMIT: Native source or view changed after selection; accepted selection is not rolled back.');
-    refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshNativeCurveCurvature();refreshSelectedNativeSurfaceArea();renderNativeAngle();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();
+    refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshNativeCurveCurvature();refreshNativeSurfaceCurvature();refreshSelectedNativeSurfaceArea();renderNativeAngle();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();
     const selected=viewer.getState().selectedGeometry;
     for(const row of list.children){const button=row.querySelector('button[aria-pressed]'),identity=row.querySelector('small');
       if(button&&identity){const value=JSON.parse(identity.textContent);button.setAttribute('aria-pressed',String(!!selected&&same(selected,value)));}}
@@ -923,7 +1001,7 @@ function disposeNativeObjectSelection(){
 function render(){const state=viewer.getState(),live=!disposed&&state.status!=='context-lost',ready=live&&state.status==='ready';
   const acceptedIGES=igesFileOpen?.snapshot().accepted,importCurrent=matchingIGES(state,acceptedIGES);
   let nativePointScope=null;if(!selectedPointDisposed&&!disposed)try{nativePointScope=readNativePointScope(viewer);}catch{}
-  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshNativeCurveCurvature();refreshSelectedNativeSurfaceArea();renderNativeAngle();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();
+  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshNativeCurveCurvature();refreshNativeSurfaceCurvature();refreshSelectedNativeSurfaceArea();renderNativeAngle();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();
   for(const[id,button]of Object.entries(buttons))button.disabled=id==='dispose'?disposed:!live||running;
   buttons.fit.disabled=!ready||running||!state.visibleGeometry.length;buttons.query.disabled=disposed||running||!state.curves.length||(!live&&!importCurrent);
   list.replaceChildren(...inventory().map(body=>{const item=document.createElement('li'),label=document.createElement('label'),checkbox=document.createElement('input');
@@ -1035,17 +1113,17 @@ async function runProof(){invalidateFileIntents();if(running||disposed||viewer.g
     documentBytes:manifest[0]?.bytes,contextCount:contexts.size,resources:resourceCounts(),limits:result.scope});
     try{await fetch('/result',{method:'POST',body:JSON.stringify(result)});}catch(error){result.recordingError=error.message;}}
   return result;}
-function dispose(){if(disposed)return;disposeNativeCurveCurvature();disposeNativeAngle();disposeSelectedNativeSurfaceArea();disposeSelectedNativeCurveLength();disposeNativeSelectedFit();disposeNativeObjectSelection();disposeNativeKeyboard();nativeNavigationDisposed=true;nativeNavigation?.dispose();selectedDerivativesDisposed=true;clearSelectedDerivativesContext();nativeChordDisposed=true;clearNativeChord();selectedPointDisposed=true;clearSelectedPointContext();igesFileOpen?.dispose();nativeSourceDownload?.dispose();nativeFileOpen?.dispose();viewer.dispose();viewer.dispose();disposed=true;render();const receipt={status:viewer.getState().status,resources:resourceCounts(),glErrors:glErrors(),
+function dispose(){if(disposed)return;disposeNativeSurfaceCurvature();disposeNativeCurveCurvature();disposeNativeAngle();disposeSelectedNativeSurfaceArea();disposeSelectedNativeCurveLength();disposeNativeSelectedFit();disposeNativeObjectSelection();disposeNativeKeyboard();nativeNavigationDisposed=true;nativeNavigation?.dispose();selectedDerivativesDisposed=true;clearSelectedDerivativesContext();nativeChordDisposed=true;clearNativeChord();selectedPointDisposed=true;clearSelectedPointContext();igesFileOpen?.dispose();nativeSourceDownload?.dispose();nativeFileOpen?.dispose();viewer.dispose();viewer.dispose();disposed=true;render();const receipt={status:viewer.getState().status,resources:resourceCounts(),glErrors:glErrors(),
   contextCount:contexts.size,errors:[...errors],warnings:[...warnings]};if(result)result.disposal=receipt;display(receipt);return receipt;}
 try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=await(await fetch('/document.cad-document.json')).arrayBuffer();
   check(bytes.byteLength===manifest[0].bytes&&await sha(bytes)===manifest[0].sha256,'Unchanged original document bytes/hash differ');originalBytes=new Uint8Array(bytes);originalText=new TextDecoder().decode(bytes);
   documentResult=await loadBaroCadDocument(new URL('/document.cad-document.json',location.href).href);
   projection=prepareBaroCadDocumentPrimitiveNativeRefsV2(documentResult,documentOptions);for(const asset of documentResult.document.assets)sources[asset.id]=asset.source;
   viewer=createViewer(canvas,{mmToSceneUnit,background:[.035,.065,.105]});nativeFileOpen=createNativeFileOpen(viewer,{
-    onChange:snapshot=>renderNativeFileControls(snapshot),onAccepted:accepted=>{invalidateNativeObjectSelection();invalidateNativeNavigation();igesFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();clearSelectedCurveLengthContext();clearNativeCurveCurvatureContext();clearSelectedSurfaceAreaContext();clearNativeAngle();inspection.textContent='';render();display('Opened original source '+accepted.name+'.');},
+    onChange:snapshot=>renderNativeFileControls(snapshot),onAccepted:accepted=>{invalidateNativeObjectSelection();invalidateNativeNavigation();igesFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();clearSelectedCurveLengthContext();clearNativeCurveCurvatureContext();clearNativeSurfaceCurvatureContext();clearSelectedSurfaceAreaContext();clearNativeAngle();inspection.textContent='';render();display('Opened original source '+accepted.name+'.');},
     onError:error=>{render();display(error instanceof Error?error.message:String(error));}});
   igesFileOpen=createIGESFileOpen(viewer,{onChange:snapshot=>renderIGESFileControls(snapshot),
-    onAccepted:accepted=>{invalidateNativeObjectSelection();invalidateNativeNavigation();nativeFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();clearSelectedCurveLengthContext();clearNativeCurveCurvatureContext();clearSelectedSurfaceAreaContext();clearNativeAngle();inspection.textContent='';render();display('Opened IGES geometry '+accepted.name+'.');},
+    onAccepted:accepted=>{invalidateNativeObjectSelection();invalidateNativeNavigation();nativeFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();clearSelectedCurveLengthContext();clearNativeCurveCurvatureContext();clearNativeSurfaceCurvatureContext();clearSelectedSurfaceAreaContext();clearNativeAngle();inspection.textContent='';render();display('Opened IGES geometry '+accepted.name+'.');},
     onError:error=>{render();display(error instanceof Error?error.message:String(error));}});
   nativeSourceDownload=createNativeSourceDownload(viewer,canvas,{getAcceptedFile:()=>nativeFileSnapshot().accepted,
     onChange:snapshot=>renderNativeSourceDownloadControls(snapshot),onError:error=>display(error instanceof Error?error.message:String(error))});
@@ -1059,7 +1137,8 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=awa
     nativeKeyboardSnapshot,syncNativeKeyboard,disposeNativeKeyboard,
     createNativePointerNavigation,setNativeNavigationEnabled,syncNativeNavigation,nativeNavigationSnapshot,invalidateNativeNavigation,
     querySelectedNativeSurfaceArea,NATIVE_SURFACE_AREA_OPTIONS,inspectSelectedNativeSurfaceArea,resetSelectedNativeSurfaceArea,selectedNativeSurfaceAreaSnapshot,disposeSelectedNativeSurfaceArea,
-    querySelectedNativeCurveCurvature,inspectNativeCurveCurvature,resetNativeCurveCurvature,nativeCurveCurvatureSnapshot,disposeNativeCurveCurvature,evaluateCurveCurvature,evaluateCurveD2,
+    querySelectedNativeCurveCurvature,inspectNativeCurveCurvature,resetNativeCurveCurvature,nativeCurveCurvatureSnapshot,disposeNativeCurveCurvature,
+    querySelectedNativeSurfaceCurvature,inspectNativeSurfaceCurvature,resetNativeSurfaceCurvature,nativeSurfaceCurvatureSnapshot,disposeNativeSurfaceCurvature,evaluateCurveCurvature,evaluateCurveD2,
     querySelectedNativeCurveLength,NATIVE_CURVE_LENGTH_OPTIONS,inspectSelectedNativeCurveLength,resetSelectedNativeCurveLength,selectedNativeCurveLengthSnapshot,disposeSelectedNativeCurveLength,
     querySelectedNativeDerivatives,inspectSelectedNativeDerivatives,resetSelectedNativeDerivatives,selectedNativeDerivativesSnapshot,evaluateCurveD1,evaluateSurfaceD1,
     measureCapturedNativeAngle,captureNativeAnglePoint,resetNativeAngle,nativeAngleSnapshot,disposeNativeAngle,
