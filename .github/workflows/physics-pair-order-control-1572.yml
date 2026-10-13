@@ -1,0 +1,35 @@
+name: Physics 1572 pair traversal order control
+on:
+  pull_request:
+    branches: [develop]
+    paths:
+      - 'examples/physics-contact-impulse-audit-1572/pair-order-counterfactual.ts'
+      - 'examples/physics-contact-impulse-audit-1572/run-pair-order-counterfactual.mjs'
+      - '.github/workflows/physics-pair-order-control-1572.yml'
+  workflow_dispatch:
+jobs:
+  comparison:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @barocss/physics build:library
+      - run: mkdir -p /tmp/physics1572-pair-order
+      - name: Execute baseline / reversed / alternating pair order controls
+        shell: bash
+        run: |
+          set -euo pipefail
+          node examples/physics-contact-impulse-audit-1572/run-pair-order-counterfactual.mjs | tee /tmp/physics1572-pair-order/results.jsonl
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: physics1572-pair-order-results
+          path: /tmp/physics1572-pair-order/results.jsonl
+          if-no-files-found: ignore
