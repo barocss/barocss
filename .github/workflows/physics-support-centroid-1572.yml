@@ -1,0 +1,34 @@
+name: Physics support centroid audit
+on:
+  pull_request:
+    branches: [develop]
+    paths:
+      - 'examples/physics-contact-impulse-audit-1572/support-centroid.ts'
+      - 'examples/physics-contact-impulse-audit-1572/run-support-centroid.mjs'
+      - '.github/workflows/physics-support-centroid-1572.yml'
+  workflow_dispatch:
+jobs:
+  centroid:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @barocss/physics build:library
+      - run: mkdir -p /tmp/physics1572-centroid
+      - name: Measure selected support centroid points
+        shell: bash
+        run: |
+          set -euo pipefail
+          node examples/physics-contact-impulse-audit-1572/run-support-centroid.mjs | tee /tmp/physics1572-centroid/results.jsonl
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: physics-support-centroid-results
+          path: /tmp/physics1572-centroid/results.jsonl
+          if-no-files-found: ignore
