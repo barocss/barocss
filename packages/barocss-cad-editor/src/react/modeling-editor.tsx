@@ -130,7 +130,7 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
       <Button disabled={busy || draft || !snapshot?.history.canUndo} onClick={() => action(s => s.undo())}>Undo</Button>
       <Button disabled={busy || draft || !snapshot?.history.canRedo} onClick={() => action(s => s.redo())}>Redo</Button>
       <Button disabled={!busy} onClick={() => action(s => s.cancel())}>Cancel computation</Button>
-      {!accepted && !busy && <Button onClick={() => action(s => initialAuthoredText === undefined ? s.example() : s.open(initialAuthoredText))}>Retry model</Button>}
+      {!accepted && !busy && <Button onClick={() => { fileReadEpoch.current++; action(s => initialAuthoredText === undefined ? s.example() : s.open(initialAuthoredText)); }}>Retry model</Button>}
     </div>
     <details style={{ marginTop: 16 }}><summary>Modeling examples</summary>
       <Label htmlFor={`${id}-example`}>Choose an example</Label>
@@ -189,6 +189,7 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
       {accepted && <Label><input type="checkbox" checked={replaceExample} disabled={busy}
         onChange={event => setReplaceExample(event.target.checked)} /> Replace accepted model and discard its history and pending dimensions</Label>}
       <div><Button disabled={busy || (!!accepted && !replaceExample)} onClick={() => action(async s => {
+        fileReadEpoch.current++; // Supersede pending file reads before replacing the accepted example.
         await s.example(example, example === 'horizontal-split' || example === 'chamfer-split' ? splitAxis : undefined); if (!s.getSnapshot().error) setReplaceExample(false);
       })}>Load example</Button></div>
     </details>
