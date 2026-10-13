@@ -10,7 +10,10 @@ type CacheEvent =
  | {kind:'manifold',step:number,pass:number,pointCount:number,fallback:boolean}
  | {kind:'new-point',step:number,pass:number,pointId:string,reused:boolean,
     priorNormalNs:number,priorTangentMagnitudeNs:number}
- | {kind:'commit',step:number,cachedPoints:number};
+ | {kind:'commit',step:number,cachedPoints:number}
+ | {kind:'phase',step:number,pointId:string,phase:'warm'|'solve0'|'solve7',
+    beforeSlipMps:number,afterSlipMps:number,reused?:boolean,
+    normalNs:number,tangentNs:number};
 
 
 // Contact-point tangential relative speed reconstructed from COPIED accepted
@@ -52,6 +55,9 @@ for(const mode of ['OFFSET','YAW'] as const){
   const counters={manifoldPasses:0,fallbackPasses:0,pointFresh:0,pointReused:0,
     priorNormalSumNs:0,priorTangentSumNs:0,framesWithCache:0,peakCachedPoints:0};
   const perStep=new Map<number,{fallbackPasses:number,manifoldPasses:number,fresh:number,reused:number}>();
+  const priorIdentity=new Map<string,boolean>();
+  const phaseStats=new Map<string,{count:number,sumAbsDelta:number,peakAbsDelta:number,sumBefore:number,sumAfter:number,sumTangentNs:number}>();
+  const phaseSamples:unknown[]=[];
   (globalThis as typeof globalThis & {__physics1572Probe?: (event: CacheEvent)=>void}).__physics1572Probe =
     (event:CacheEvent)=>{
       const row=perStep.get(event.step)??{fallbackPasses:0,manifoldPasses:0,fresh:0,reused:0};
@@ -59,6 +65,7 @@ for(const mode of ['OFFSET','YAW'] as const){
         if(event.fallback){counters.fallbackPasses++;row.fallbackPasses++;}
         else{counters.manifoldPasses++;row.manifoldPasses++;}
       }else if(event.kind==='new-point'){
+        priorIdentity.set(event.step+'|'+event.pointId,event.reused);
         if(event.reused){
           counters.pointReused++;row.reused++;
           counters.priorNormalSumNs+=event.priorNormalNs;
@@ -67,6 +74,24 @@ for(const mode of ['OFFSET','YAW'] as const){
       }else if(event.kind==='commit'){
         if(event.cachedPoints>0)counters.framesWithCache++;
         counters.peakCachedPoints=Math.max(counters.peakCachedPoints,event.cachedPoints);
+      }else if(event.kind==='phase'){
+        if(![event.beforeSlipMps,event.afterSlipMps,event.normalNs,event.tangentNs].every(Number.isFinite))
+          throw Error('PHASE_NUMERIC_UNSAFE');
+        const reuse=event.phase==='warm' ? !!event.reused :
+          priorIdentity.get(event.step+'|'+event.pointId);
+        if(reuse===undefined)throw Error('PHASE_IDENTITY_MISSING');
+        const label=event.phase+':'+(reuse?'reused':'fresh');
+        const stats=phaseStats.get(label)??{count:0,sumAbsDelta:0,peakAbsDelta:0,
+          sumBefore:0,sumAfter:0,sumTangentNs:0};
+        const delta=Math.abs(event.afterSlipMps-event.beforeSlipMps);
+        stats.count++;stats.sumAbsDelta+=delta;stats.peakAbsDelta=Math.max(stats.peakAbsDelta,delta);
+        stats.sumBefore+=event.beforeSlipMps;stats.sumAfter+=event.afterSlipMps;
+        stats.sumTangentNs+=event.tangentNs;
+        phaseStats.set(label,stats);
+        if(phaseSamples.length<30 && (event.step<=3||event.step>=680))
+          phaseSamples.push({step:event.step,pointId:event.pointId,phase:event.phase,reused:reuse,
+            before:event.beforeSlipMps,after:event.afterSlipMps,
+            normalNs:event.normalNs,tangentNs:event.tangentNs});
       }
       perStep.set(event.step,row);
     };
@@ -114,6 +139,15 @@ for(const mode of ['OFFSET','YAW'] as const){
     delete (globalThis as typeof globalThis & {__physics1572Probe?: unknown}).__physics1572Probe;
   }
   console.log(JSON.stringify({mode,accepted,firstFailure,counters,samples,transitionSamples,
+    pointPhase:Object.fromEntries([...phaseStats].sort(([a],[b])=>a.localeCompare(b))
+      .map(([label,stat])=>[label,{count:stat.count,
+        meanBeforeSlipMps:stat.sumBefore/stat.count,
+        meanAfterSlipMps:stat.sumAfter/stat.count,
+        meanAbsSlipChangeMps:stat.sumAbsDelta/stat.count,
+        peakAbsSlipChangeMps:stat.peakAbsDelta,
+        meanAccumulatedTangentNs:stat.sumTangentNs/stat.count}])),
+    phaseSamples,
+    phaseInterpretation:'matched point before/after each warmstart or solve call, not causal law proof',
     slipGroups:{
       ...slipGroups,
       freshMeanAbsDeltaMps:slipGroups.freshFrames?slipGroups.freshSumAbsDeltaMps/slipGroups.freshFrames:null,
