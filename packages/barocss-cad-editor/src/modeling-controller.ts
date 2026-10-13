@@ -1,3 +1,4 @@
+import { isModelingCompositionGraph } from './modeling-composition.js';
 import { prepareModelingScene, pickModelingScene } from './modeling-scene.js';
 import type { ModelingDisplayScene, ModelingFaceSelection } from './modeling-scene.js';
 import type { PrismDisplayPort, PrismDisplayCandidate } from './prism-feature-display.js';
@@ -62,12 +63,13 @@ function sourceMatches(reply: Success, taskToken?: string) {
   const { summary } = reply, data = JSON.parse(reply.text);
   // Refuse unsupported ancestry before inspecting any worker display payload,
   // including a forged legacy/convex/two-box summary or hidden chain output.
-  if (Array.isArray(data?.nodes) && data.nodes.some((node: { kind?: string; parent?: { node?: number } }, index: number) => {
+  const composedGraph = isModelingCompositionGraph(data);
+  if (!composedGraph && Array.isArray(data?.nodes) && data.nodes.some((node: { kind?: string; parent?: { node?: number } }, index: number) => {
     const parent = node?.parent?.node;
     return node?.kind === 'difference' && typeof parent === 'number' && Number.isSafeInteger(parent)
       && parent >= 0 && parent < index && data.nodes[parent]?.kind === 'union';
   }))
-    throw new Error('Composed union-slot preview is not available yet.');
+    throw new Error('Composed preview requires the supported eight-node rectangular union-slot ancestry.');
   const circleOutput = (index: number): boolean => {
     const node = data.nodes?.[index], sketch = node?.sketch;
     return node?.kind === 'extrude' && Number.isSafeInteger(sketch) && sketch >= 0 && sketch < index
@@ -76,12 +78,14 @@ function sourceMatches(reply: Success, taskToken?: string) {
   if (!summary || !Number.isSafeInteger(summary.revision) || summary.revision < 0 || typeof summary.documentId !== 'string'
     || !summary.parameters || typeof summary.parameters !== 'object' || Array.isArray(summary.parameters)
     || Object.keys(summary.parameters).length > 16 || !Object.values(summary.parameters).every(Number.isFinite)
-    || !Array.isArray(summary.features) || summary.features.length > 6 || !Array.isArray(summary.outputs) || summary.outputs.length > 8)
+    || !Array.isArray(summary.features) || summary.features.length > (composedGraph ? 8 : 6) || !Array.isArray(summary.outputs) || summary.outputs.length > 8)
     throw new Error('Invalid native model summary.');
   if (summary.source === 'model') {
     if (data?.format !== 'barocss-cad-model' || data.schema !== 1 || data.units !== 'mm' || !same(data.parameters, summary.parameters)
       || !Array.isArray(data.nodes) || !same(data.nodes.map((n: { kind: string }) => n.kind), summary.features.map(f => f.kind))
       || !same(Object.keys(data.outputs), summary.outputs.map(o => o.name)) || reply.compatibility !== undefined) throw new Error('Saved model differs from native summary.');
+    if (composedGraph && !same(summary.features.map(f => f.dependencies), [[], [0], [], [2], [1, 3], [], [5], [4, 6]]))
+      throw new Error('Composed features must retain exact owned dependency indices.');
     const outputNodes = Object.values(data.outputs as Record<string, { node: number }>);
     if (outputNodes.some(output => circleOutput(output.node)) && reply.display?.profile !== 'model-body-faces')
       throw new Error('Authored circle outputs require tagged circle body-face transport.');
@@ -129,6 +133,20 @@ function sourceMatches(reply: Success, taskToken?: string) {
         if (node?.kind !== 'hole' || output.volumeMM3 !== null) throw new Error('Hole outputs have no certified volume and must name an authored hole.');
       } else if (output.family === 'orthogonal-cell') {
         const volume = output.volumeMM3, component = reply.display.components.find(c => c.family === 'orthogonal-cell' && c.role === output.name);
+        const composedOutput = composedGraph && data.outputs[output.name].node === 7;
+        if (composedOutput && component?.family === 'orthogonal-cell' && 'parent' in component.lineage) {
+          const embedded = component.lineage.parent.component;
+          for (const saved of summary.outputs.filter(value => data.outputs[value.name].node === 4)) {
+            const named = reply.display.components.find(value => value.family === 'orthogonal-cell' && value.role === saved.name);
+            if (!named || named.family !== 'orthogonal-cell' || named.solidId !== embedded.solidId
+              || !same(named.qualification, embedded.qualification) || !same(named.lineage, embedded.lineage) || !same(named.mesh, embedded.mesh))
+              throw new Error('Named parent differs from the complete embedded composed authority.');
+          }
+        }
+
+        if (component?.family === 'orthogonal-cell'
+          && (component.qualification.schema === 'barocss-orthogonal-solid-boolean') !== composedOutput)
+          throw new Error('Authored composed output requires its exact composed native-schema transport.');
         if (!['union', 'difference'].includes(node?.kind) || !component || component.family !== 'orthogonal-cell' || component.qualification.operation !== node.kind || !volume || Object.keys(volume).length !== 2
           || volume.denominator !== '1' || volume.numerator !== String(component.qualification.volumeMM3))
           throw new Error('Orthogonal output must retain its authored operation and exact native integer volume.');
@@ -186,7 +204,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
   async function run(kind: 'open' | 'example' | 'apply' | 'suppression' | 'undo' | 'redo', text?: string, example?: CadEditorModelingExample, splitAxis?: CadEditorModelingSplitAxis, finishing?: Record<string, boolean>) {
     idle();
     if (kind === 'example') {
-      if (example !== undefined && !['cut-chamfer', 'intersection', 'horizontal-split', 'two-chamfer', 'chamfer-split', 'derived-split', 'miter-split', 'configurable-finishes', 'mounting-plate', 'union-bracket', 'underside-pocket', 'round-post'].includes(example))
+      if (example !== undefined && !['cut-chamfer', 'intersection', 'horizontal-split', 'two-chamfer', 'chamfer-split', 'derived-split', 'miter-split', 'configurable-finishes', 'mounting-plate', 'union-bracket', 'underside-pocket', 'round-post', 'slotted-bracket'].includes(example))
         throw new Error('Choose an available modeling example.');
       if (splitAxis !== undefined && (example === 'chamfer-split' ? !['x', 'z'].includes(splitAxis)
         : example !== 'horizontal-split' || !['x', 'y', 'z'].includes(splitAxis)))
@@ -247,7 +265,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
         Object.entries(parameters).map(([parameterId, valueMM]) => ({ parameterId, valueMM })),
       );
       const selectedOutput = reply.display.profile === 'model-body-faces'
-        ? replacing ? kind === 'example' && example === 'mounting-plate' ? 'plate' : kind === 'example' && example === 'union-bracket' ? 'bracket' : kind === 'example' && example === 'underside-pocket' ? 'part' : kind === 'example' && example === 'round-post' ? 'post' : undefined
+        ? replacing ? kind === 'example' && example === 'slotted-bracket' ? 'slotted' : kind === 'example' && example === 'mounting-plate' ? 'plate' : kind === 'example' && example === 'union-bracket' ? 'bracket' : kind === 'example' && example === 'underside-pocket' ? 'part' : kind === 'example' && example === 'round-post' ? 'post' : undefined
           : state.display && 'selectedOutput' in state.display ? state.display.selectedOutput : undefined
         : undefined;
       const display = prepareModelingScene(reply.display, aspect(), selectedOutput);

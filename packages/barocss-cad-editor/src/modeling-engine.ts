@@ -1,5 +1,7 @@
 import { cad, tessellateConvexPlanarSolid, tessellateOwnPlateCircularHole, tessellateSurface, tessellateXYCirclePrismShell } from '@barocss/cad';
 import type { CadModelSnapshot } from '@barocss/cad';
+import { isModelingCompositionGraph, preflightModelingComposition, projectModelingComposition } from './modeling-composition.js';
+import type { ModelingUnionDisplayComponent } from './modeling-union.js';
 import { preflightModelingCircle, projectModelingCircle } from './modeling-circle.js';
 import { preflightModelingUnion, projectModelingUnion } from './modeling-union.js';
 import { createPrismFeatureEngine } from './prism-feature-engine.js';
@@ -16,7 +18,7 @@ export interface CadEditorModelingSummary {
 }
 export type CadEditorModelingSplitAxis = 'x' | 'y' | 'z';
 /** The split example ID is retained for compatibility; splitAxis defaults to Z. */
-export type CadEditorModelingExample = 'cut-chamfer' | 'intersection' | 'horizontal-split' | 'two-chamfer' | 'chamfer-split' | 'derived-split' | 'miter-split' | 'configurable-finishes' | 'mounting-plate' | 'union-bracket' | 'underside-pocket' | 'round-post';
+export type CadEditorModelingExample = 'cut-chamfer' | 'intersection' | 'horizontal-split' | 'two-chamfer' | 'chamfer-split' | 'derived-split' | 'miter-split' | 'configurable-finishes' | 'mounting-plate' | 'union-bracket' | 'underside-pocket' | 'round-post' | 'slotted-bracket';
 export type ModelingCommand = { id: number; taskToken?: string } & (
   { kind: 'example'; example?: CadEditorModelingExample; splitAxis?: CadEditorModelingSplitAxis } | { kind: 'open'; text: string; revision?: number }
   | { kind: 'apply'; expectedRevision: number; parameters: Record<string, number> }
@@ -89,6 +91,19 @@ export function createCadEditorUnionBracketModel(): CadModelSnapshot {
   const leg = model.sketch.rectangle({ min: [legMinX, legMinY], max: [model.dimension.add(legMinX, legWidth), 24] }).extrude(legHeight);
   const bracket = base.union(leg);
   return model.build({ base, leg, bracket });
+}
+
+/** Exact eight-node union then slot recipe, retaining both owned named results. */
+export function createCadEditorSlottedBracketModel(): CadModelSnapshot {
+  const model = cad.model(), legWidth = model.parameter('legWidth', 8);
+  const slotX = model.parameter('slotX', 16), slotY = model.parameter('slotY', 2);
+  const slotWidth = model.parameter('slotWidth', 8), slotSpanY = model.parameter('slotSpanY', 4);
+  const base = model.sketch.rectangle({ width: 32, height: 8 }).extrude(8);
+  const leg = model.sketch.rectangle({ min: [-0, 0], max: [legWidth, 24] }).extrude(8);
+  const bracket = base.union(leg);
+  const tool = model.sketch.rectangle({ min: [slotX, slotY],
+    max: [model.dimension.add(slotX, slotWidth), model.dimension.add(slotY, slotSpanY)] }).extrude(8);
+  return model.build({ bracket, slotted: bracket.cut(tool) });
 }
 
 /** Named finishing operations keep exact result-owned selectors and a fixed X split. */
@@ -203,7 +218,7 @@ export function createModelingEngine() {
       if (!command || !Number.isSafeInteger(command.id) || command.id < 1) throw new Error('A current worker request is required.');
       if (command.taskToken !== undefined && (typeof command.taskToken !== 'string' || !/^[A-Za-z0-9_-]{1,48}$/.test(command.taskToken)))
         throw new Error('A bounded current display task token is required.');
-      if (command.kind === 'example' && command.example !== undefined && command.example !== 'cut-chamfer' && command.example !== 'intersection' && command.example !== 'horizontal-split' && command.example !== 'two-chamfer' && command.example !== 'chamfer-split' && command.example !== 'derived-split' && command.example !== 'miter-split' && command.example !== 'configurable-finishes' && command.example !== 'mounting-plate' && command.example !== 'union-bracket' && command.example !== 'underside-pocket' && command.example !== 'round-post')
+      if (command.kind === 'example' && command.example !== undefined && command.example !== 'cut-chamfer' && command.example !== 'intersection' && command.example !== 'horizontal-split' && command.example !== 'two-chamfer' && command.example !== 'chamfer-split' && command.example !== 'derived-split' && command.example !== 'miter-split' && command.example !== 'configurable-finishes' && command.example !== 'mounting-plate' && command.example !== 'union-bracket' && command.example !== 'underside-pocket' && command.example !== 'round-post' && command.example !== 'slotted-bracket')
         throw new Error('Choose an available modeling example.');
       if (command.kind === 'example' && command.splitAxis !== undefined
         && (command.example === 'chamfer-split' ? !['x', 'z'].includes(command.splitAxis)
@@ -244,6 +259,7 @@ export function createModelingEngine() {
       }
       if (source !== 'model') throw new Error('Open a saved model first.');
       const snapshot = command.kind === 'example' ? (command.example === 'intersection' ? createCadEditorIntersectionModel()
+        : command.example === 'slotted-bracket' ? createCadEditorSlottedBracketModel()
         : command.example === 'round-post' ? createCadEditorRoundPostModel()
         : command.example === 'underside-pocket' ? createCadEditorPocketModel()
         : command.example === 'union-bracket' ? createCadEditorUnionBracketModel()
@@ -263,12 +279,13 @@ export function createModelingEngine() {
       const authored = JSON.parse(text) as { nodes: { kind: string; profile?: string; sketch?: number; parent?: { node: number; side: string } }[]; outputs: Record<string, { node: number }> };
       // This saved graph came from the admitted native snapshot. Reject the whole
       // unsupported chain even when only an earlier supported output is named.
-      if (authored.nodes.some((node, index) => {
+      const composedGraph = isModelingCompositionGraph(authored);
+      if (!composedGraph && authored.nodes.some((node, index) => {
         const parent = node.parent?.node;
         return node.kind === 'difference' && typeof parent === 'number' && Number.isSafeInteger(parent)
           && parent >= 0 && parent < index && authored.nodes[parent]?.kind === 'union';
       }))
-        throw new Error('Composed union-slot preview is not available yet; the accepted scene is unchanged.');
+        throw new Error('Composed preview requires the supported eight-node rectangular union-slot ancestry.');
       const circleOutput = (index: number) => {
         const node = authored.nodes[index], sketch = node?.sketch;
         return node?.kind === 'extrude' && Number.isSafeInteger(sketch) && sketch! >= 0 && sketch! < index
@@ -296,10 +313,16 @@ export function createModelingEngine() {
           case 'stored-rational-circle-prism': preflightModelingCircle(body.native); return [name, body] as const;
           case 'orthogonal-cell': {
             const native = body.native;
-            if (native.report.schema !== 'barocss-axis-box-solid-boolean' || !('a' in native))
-              throw new Error('Composed union-slot preview requires a separate native-schema receiver.');
-            preflightModelingUnion(native, operation(name));
-            return [name, { family: body.family, native }] as const;
+            if (native.report.schema === 'barocss-orthogonal-solid-boolean' && 'left' in native) {
+              if (!composedGraph || authored.outputs[name].node !== 7 || operation(name) !== 'difference')
+                throw new Error('Composed native schema must match its exact authored difference result.');
+              preflightModelingComposition(native);
+            } else if (native.report.schema === 'barocss-axis-box-solid-boolean' && 'a' in native) {
+              if (composedGraph && authored.outputs[name].node === 7)
+                throw new Error('Composed output cannot use a two-box native schema.');
+              preflightModelingUnion(native, operation(name));
+            } else throw new Error('Unknown orthogonal native schema.');
+            return [name, body] as const;
           }
           default: { const unsupported: never = body; throw new Error(`Unsupported model body family: ${String(unsupported)}`); }
         }
@@ -340,6 +363,16 @@ export function createModelingEngine() {
             loops: bundle.topology.loops.map(({ id, faceId, role, uses }) => ({ id, faceId, role,
               uses: uses.map(({ id, edgeId, sense, pcurve }) => ({ id, edgeId, sense, pcurveId: pcurve.curve.id, domain: pcurve.domain })) })) }) };
       };
+      const nativeContext = (bodyId: string) => ({ documentId: summary.documentId, bodyId, documentRevision: String(revision),
+        kernelResultRevision: String(revision), topologyRevision: String(revision), taskToken: command.taskToken! });
+      // A named parent and its embedded proof share the identical projected raw samples.
+      // The composed projector verifies all copied parent authority before reuse.
+      const parentComponents = new Map<string, ModelingUnionDisplayComponent>();
+      const namedOrthogonal = new Map<string, ModelingUnionDisplayComponent>();
+      for (const [name, body] of outputs) if (body.family === 'orthogonal-cell' && 'a' in body.native) {
+        const component = projectModelingUnion(body.native, name, nativeContext(body.native.bodies[0].id), tessellateSurface, operation(name));
+        parentComponents.set(body.native.report.evaluationId, component); namedOrthogonal.set(name, component);
+      }
       const display: ModelingDisplayPacket = hasNativeFaces ? { profile: 'model-body-faces', documentId: summary.documentId, revision, taskToken: command.taskToken!,
         components: outputs.map(([name, body]) => body.family === 'convex-planar'
           ? { family: 'convex-planar', component: convex(name, body.native) }
@@ -348,8 +381,8 @@ export function createModelingEngine() {
               tessellateXYCirclePrismShell(body.native.parent.bundle, { meshId: 'modeling_circle_' + name, revision, segmentsPerQuarter: 4 }), name,
               { documentId: summary.documentId, bodyId: body.native.parent.bundle.topology.id, documentRevision: String(revision),
                 kernelResultRevision: String(revision), topologyRevision: String(revision), taskToken: command.taskToken! })
-            : projectModelingUnion(body.native, name, { documentId: summary.documentId, bodyId: body.native.bodies[0].id, documentRevision: String(revision),
-              kernelResultRevision: String(revision), topologyRevision: String(revision), taskToken: command.taskToken! }, tessellateSurface, operation(name))),
+            : 'left' in body.native ? projectModelingComposition(body.native, name, nativeContext(body.native.bodies[0].id),
+              tessellateSurface, parentComponents.get('m4_union')) : namedOrthogonal.get(name)!),
         outcomes: summary.outputs.map(o => ({ role: o.name, solidId: o.solidId, family: o.family!, status: 'solid' })) }
         : { profile: 'model-outputs', documentId: summary.documentId, revision,
           components: outputs.map(([name, body]) => {

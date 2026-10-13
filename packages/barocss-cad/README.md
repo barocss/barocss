@@ -10921,11 +10921,12 @@ Reused model prefixes do not eliminate the native composition provider's actual
 reconstruction of its retained union. Native, cell and shell volume remain exact
 within the admitted integer family; preview is sampled separately.
 
-Composed bracket-slot preview is unavailable in the current editor boundary.
-It refuses before reading native output data or replacing the accepted scene.
-A separate receiver must validate all three original operands and immediate
-parent-panel lineage before using the existing raw face preview path. See #1695
-for the frozen source/native campaign and its measured status.
+The #1751 software editor adapter admits the bounded common-Z0..8 eight-node
+bracket-slot chain through the existing raw face path, validating all three
+original operands and self-contained immediate-parent panel lineage. It retains
+64 panels per body and the complete2 MiB transport limit; unsupported native
+chains still refuse atomically. #1695 remains the provider evidence. CPU preview
+acceptance is separate from the still-OPEN external physical editor/GPU gate.
 
 
 ### Absolute-Z affine extrusion and top-entry pockets

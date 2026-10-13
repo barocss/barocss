@@ -807,11 +807,12 @@ results cannot become a `CadShape`; the error retains their complete native data
 Unchanged model features can be reused, but composed native evaluation still
 reconstructs its retained union. Save/load never imports a geometry cache.
 
-Composed bracket-slot preview is unavailable in the current editor boundary;
-the accepted scene/history remains intact on refusal. A later complete receiver
-must validate three-operand occupancy and parent-panel lineage, without treating
-this result as the old two-box transport. General nested Booleans, round-post
-operations and arbitrary transformed solids remain outside this slice.
+The #1751 software editor adapter accepts the bounded common-Z0..8 eight-node
+bracket-slot preset with complete three-operand occupancy and embedded-parent
+lineage checks. It does not reinterpret this result as old two-box transport;
+unsupported chains retain the accepted scene/history on refusal. General nested
+Booleans, round-post operations and arbitrary transformed solids remain outside
+this slice. Physical editor/GPU acceptance remains an OPEN external gate.
 
 
 ## Start an affine extrusion above or below the sketch plane
