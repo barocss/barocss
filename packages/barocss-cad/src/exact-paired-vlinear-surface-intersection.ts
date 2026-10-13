@@ -8,7 +8,6 @@ import type { ExactPairedVLinearProof, ExactPairedVLinearDerived } from './exact
 
 import type { Curve, Surface, Model, Point } from './types.js';
 import type { CurveD1Result, SurfaceD1Result } from './derivatives.js';
-import type { SectionFraction } from './section-rational-internal.js';
 
 type Asset = { sourceId: string; source: string; surface: Surface };
 export interface ExactPairedVLinearSurfaceIntersectionOptions {
