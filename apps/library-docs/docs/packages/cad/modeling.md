@@ -4,6 +4,22 @@ Use `cad.model()` to author a bounded solid part with named dimensions. Start wi
 
 All dimensions below are **millimetres**. Use a TypeScript-capable workspace/bundler for source package entries; built ESM and declarations are a separate package build. Source adoption does not establish npm publication.
 
+## Resize a constrained plate
+
+<a :href="withBase('/examples/modeling-constrained-profile.ts')" download>Download the complete constrained-profile example</a>
+
+Choose **Resize a constrained plate** (`constrained-plate`) in the existing Modeling picker. Edit **Profile X width** and **Profile Y height**, then Apply. Thickness stays **8 mm**. Fixed corner targets and horizontal/vertical edges determine the rectangular profile; the initial fourth-point seed X=1 is solved to X=0 rather than treated as the finished corner.
+
+<<< ../../public/examples/modeling-constrained-profile.ts
+
+This is the exact [adopted #1835](https://github.com/barocss/barocss/issues/1835) `constrainedPlate` recipe on `c24b659fafe76ac02c5590e6d801d86e1af0cbfd`. Its authored `lockY:0` parameter remains internal to the preset, so the UI exposes only width/height. Generic imported graphs keep their own numeric controls; friendly labels and this filtering require the exact preset graph, constraints, driver set and sole `part` output. The callback owns its points and ordered constraints; this does not add interactive sketch drawing or a constraint-editing panel.
+
+The measured native baseline is fully constrained (rank8, DOF0), with a consistent redundant final fixed-corner constraint. It qualifies a convex Solid with **6144 mm³**, 6 faces, 12 edges and 8 topology vertices. The provider separately measured width40 → **7680 mm³**, a genuine `lockY:1` native `CONFLICT` refusal, and height16 recovery → **4096 mm³** on the still-accepted baseline. Failed candidates do not replace accepted source, geometry or history. The conflict case is a test of the native contract, not a production control exposed by this preset.
+
+Save retains authored points/constraints/parameters, not the solved native mesh or a scene cache. Reopen uses the existing cold loader. Even when the solved shape is rectangular, this constrained profile is not an authored rectangle and does not acquire rectangle-only union/difference/hole shortcuts. The existing exact native admission and convex display limits still apply.
+
+The committed [provider evidence](https://github.com/barocss/barocss/tree/c24b659fafe76ac02c5590e6d801d86e1af0cbfd/packages/barocss-cad/test/modeling-constraints-evidence) includes the genuine **292,980-byte baseline transfer**, SHA256 `194b855ed3e862e76c2468cbbcb0d2f21f7b2eda0a217325fa95a32fee226721`, with **24 display vertices and 12 triangles**. The consumer replays that unchanged baseline preview through the real serializer/CPU receiver. Its provider/Worker responses and every edited-state display are explicitly mocked; they are not newly measured geometry. This consumer runs **zero new native calls**. CPU picking and state tests do not prove browser/GPU pixels or physical file dialogs. **External visual gate OPEN** under [#1865](https://github.com/barocss/barocss/issues/1865).
+
 ## Cut a top-entry pocket
 
 <a :href="withBase('/examples/modeling-top-pocket.ts')" download>Download the complete typed top-entry pocket example</a>

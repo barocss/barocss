@@ -1,0 +1,14 @@
+{
+  "packages/barocss-cad/test/modeling-translation-native.mjs": "eb0da8bab6f209f60bfba374aa83935d1683ed2c476de33c6b69b9975dc03042",
+  "packages/barocss-cad/test/modeling-translation-fixture.mjs": "55fd6fc62daaaf37f6ba42834ca99f23254befd77675ced8fdddc6404c89364f",
+  "packages/barocss-cad/test/modeling-gusset-fixture.mjs": "dfc70b5f60e9244712f4c54aaf138568d3b147ec5968d2dbb4ebec784d62529a",
+  "packages/barocss-cad/test/modeling-constraints-fixture.mjs": "3ebca7d3b06e218422ff3cb1d521e1f8bd9a77be4993fe469ac2e5f102a7a320",
+  "packages/barocss-cad/test/modeling-circle-fixture.mjs": "9d43f3a47491f259707090f7619cc4b58dfa8290f16e73ef7328056102beea61",
+  "packages/barocss-cad/test/stored-circle-prism-solid-fixture.mjs": "4b21c827ae6fee1b3882ca037e00902a1d8301b48d2936b3cce507a8406d6850",
+  "packages/barocss-cad/test/modeling-offset-fixture.mjs": "3fcd712aa2a5024aad7ef3b8df48e398dbeae9c86f80d81eb3aa029acf263170",
+  "packages/barocss-cad/test/modeling-box-cut-fixture.mjs": "0f7d664bf58bddbff99e6ca1182375418da4c500b6b3b3aa4cbf07e9f4ae1861",
+  "packages/barocss-cad/test/modeling-regeneration-fixture.mjs": "924bc3b5dbedc82ff5f48ab51e941c893ad13788a3ddfcc5f69689490598e615",
+  "packages/barocss-cad/test/modeling-intersection-fixture.mjs": "c3f5483214f8304c02825e4e16178fd602931198a36c19c3ed42d9a53cf3cf7c",
+  "packages/barocss-cad/test/modeling-hole-fixture.mjs": "72545fffbba49af62705c4db0298184441019b0e29369e263a856573c7b7cf71",
+  "packages/barocss-cad/scripts/modeling-translation-consumer.mjs": "68ca4e2af6c4b1a51411343728b92c862d5e2406b124fa5969a59ce4b3916758"
+}

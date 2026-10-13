@@ -141,6 +141,18 @@ export function addLightFields(fields: LightForm): LightForm {
     vector: fields.kind === 'point' ? ['0', '1', '2'] : ['1', '1', '1'], range: fields.kind === 'point' ? '10' : '',
     color: ['1', '1', '1'], intensity: '.5'}]};
 }
+/** Duplicate an authored light as a separate staged catalog entry; keep the source row untouched. */
+export function duplicateLightFields(fields: LightForm, nodeId: string): LightForm {
+  const original = fields.lights.find(light => light.nodeId === nodeId);
+  if (!original) throw new RenderEditorError('DOCUMENT_INPUT', 'Select a current light to duplicate.');
+  const added = addLightFields(fields);
+  const fresh = added.lights[added.lights.length - 1]!;
+  const suffix = ' copy', label = original.label + suffix;
+  const duplicated: LightFields = {...original, nodeId: fresh.nodeId,
+    label: label.length <= 128 && new TextEncoder().encode(label).length <= 128 ? label : original.label,
+    vector: [...original.vector], color: [...original.color]};
+  return {...added, lights: [...fields.lights, duplicated]};
+}
 export function lightFieldsDirty(fields: LightForm, accepted: RenderNativeLightDocument): boolean {
   return JSON.stringify(fields) !== JSON.stringify(readLightFields(accepted));
 }

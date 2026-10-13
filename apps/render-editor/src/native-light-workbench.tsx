@@ -4,18 +4,19 @@ import {normalizeRenderEditorError, RenderEditorError, serializeRenderNativeLigh
   prepareRenderNativeLightDocument, parseRenderNativeLightDocument, serializeRenderNativeDirectionalLightDocument, upgradeRenderNativeSceneToDirectionalLights, parseRenderNativeSceneDocument, RENDER_NATIVE_SCENE_LIMITS,
   parseRenderMaterialDocument, serializeRenderMaterialDocument, RENDER_MATERIAL_LIMITS} from '@barocss/render-editor';
 import type {RenderNativeLightDocument, RenderNativeLightSession,
-  RenderNativeLightSessionSnapshot} from '@barocss/render-editor';
+  RenderNativeLightSessionSnapshot, RenderNativeSceneSurfacePolePatch} from '@barocss/render-editor';
 import {createNativeLightController} from './native-light-controller';
 import {createNativeLightNavigation} from './native-light-navigation';
 import {deriveNativeLightFramingCamera} from './native-light-framing';
-import {deriveLightBodyCommand, deriveLightSurfaceAddition, lightBodyReservedIds} from './native-light-bodies';
-import type {LightBodyCommand, LightBodyCommandResult} from './native-light-bodies';
+import {deriveLightBodyCommand, deriveLightSurfaceAddition, deriveLightSurfacePointEdit, readLightSurfacePoints, lightBodyReservedIds} from './native-light-bodies';
+import type {LightBodyCommand, LightBodyCommandResult, LightSurfacePointData} from './native-light-bodies';
 import {createNativeSceneBase, createNativeSceneSeed} from './native-scene-seed';
-import {readLightFields, applyLightFields, addLightFields,
+import {readLightFields, applyLightFields, addLightFields, duplicateLightFields,
   lightFieldsDirty, lightKind, selectedLightMaterial, stageLightMaterialFields, stageLightBodyRotation} from './native-light-fields';
 import type {BodyFields, CameraFields, LightFields, LightForm, LightKind, MaterialUniformFields, LightRotationAxis, LightRotationSpace} from './native-light-fields';
 import {Button} from './components/ui/button';
 import {NativeLightSurfaceAddDialog} from './native-light-surface-add-dialog';
+import {NativeLightSurfacePointDialog} from './native-light-surface-point-dialog';
 
 async function initialScene(signal: AbortSignal, kind: LightKind): Promise<RenderNativeLightDocument> {
   const response = await fetch('./reference-panel.barocad', {signal});
@@ -42,6 +43,7 @@ const fieldStyle = {width: '100%', minWidth: 0, padding: '7px 8px', borderRadius
   border: '1px solid var(--border)', color: 'var(--foreground)', background: '#11181d'};
 const sectionStyle = {padding: 16, borderBottom: '1px solid var(--border)'};
 interface SurfaceTicket {
+  kind: 'add' | 'point'; pointData?: LightSurfacePointData;
   session: RenderNativeLightSession; snapshot: RenderNativeLightSessionSnapshot; fields: LightForm;
   binding: RenderNativeLightDocument['surfaceMaterials'][number]; bodyId: string; selectionEpoch: number;
   mountEpoch: number; operationEpoch: number; trigger: HTMLButtonElement;
@@ -476,7 +478,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
     && formRef.current === ticket.fields && ticket.session.getSnapshot() === ticket.snapshot
     && !ticket.snapshot.disposed && ticket.snapshot.pending === null && ticket.session.getStatus().state === 'ready'
     && ticket.snapshot.accepted.surfaceMaterials.includes(ticket.binding) && !bodyCommandTicket.current;
-  const openSurface = (trigger: HTMLButtonElement, bodyId: string, selectedEpoch: number, accepted: RenderNativeLightDocument) => {
+  const openSurface = (trigger: HTMLButtonElement, bodyId: string, selectedEpoch: number, accepted: RenderNativeLightDocument, action: 'add' | 'point' = 'add') => {
     const session = sessionRef.current;
     if (!session || busyRef.current || navigationBusy.current || openTicket.current || materialTicket.current
       || surfaceTicket.current || bodyCommandTicket.current || helpRef.current) return;
@@ -487,13 +489,14 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
         throw new RenderEditorError('STALE_CANDIDATE', 'Choose the current visible body again.');
       if (current.dirty || lightFieldsDirty(formRef.current, accepted))
         throw new RenderEditorError('DOCUMENT_INPUT', 'Apply or Discard all scene drafts before adding a Surface.');
-      if (accepted.revision >= 2147483647 || accepted.nativeDocument.revision >= 2147483647)
+      if (action === 'add' && (accepted.revision >= 2147483647 || accepted.nativeDocument.revision >= 2147483647))
         throw new RenderEditorError('DOCUMENT_INPUT', 'The scene or native document revision is at its limit.');
       const binding = selectedLightMaterial(accepted, bodyId);
-      const ticket = {session, snapshot: current, fields: formRef.current, binding, bodyId, selectionEpoch: selectedEpoch,
+      const ticket: SurfaceTicket = {kind: action, ...(action === 'point' ? {pointData: readLightSurfacePoints(accepted, bodyId)} : {}),
+        session, snapshot: current, fields: formRef.current, binding, bodyId, selectionEpoch: selectedEpoch,
         mountEpoch: epoch.current, operationEpoch: operationEpoch.current, trigger};
       surfaceTicket.current = ticket; setSurfaceDialog(ticket); setError(null); navigation.current?.cancel();
-    } catch (cause) {report(cause, 'Add Surface refused: ');}
+    } catch (cause) {report(cause, action === 'point' ? 'Control point refused: ' : 'Add Surface refused: ');}
   };
   const addSurface = async (ticket: SurfaceTicket, source: string, surfaceId: string) => {
     if (!surfaceCurrent(ticket)) throw new RenderEditorError('STALE_CANDIDATE', 'Close and reopen Add Surface for the current scene.');
@@ -519,6 +522,29 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
       }
     }, '', 'Add Surface refused: ', ticket);
   };
+  const applySurfacePoint = async (ticket: SurfaceTicket, patch: RenderNativeSceneSurfacePolePatch) => {
+    if (ticket.kind !== 'point' || !surfaceCurrent(ticket)) throw new RenderEditorError('STALE_CANDIDATE', 'Close and reopen the current control point.');
+    return run(async (session, stillCurrent) => {
+      const before = session.getSnapshot();
+      if (!surfaceCurrent(ticket)) throw new RenderEditorError('STALE_CANDIDATE', 'The selected point or scene changed.');
+      const result = deriveLightSurfacePointEdit(before.accepted, ticket.bodyId, patch, bodyReservations.current);
+      if (!surfaceCurrent(ticket) || !stillCurrent()) throw new RenderEditorError('STALE_CANDIDATE', 'The point no longer belongs to this scene.');
+      if (serializeRenderNativeLightDocument(result.document) === serializeRenderNativeLightDocument(before.accepted)) return false;
+      try {
+        const acknowledged = await commitBodyResult(session, before, result, ticket.bodyId, ticket.selectionEpoch, stillCurrent);
+        if (acknowledged) setNotice('Original control point accepted. Undo restores its source.');
+        return acknowledged;
+      } catch (cause) {
+        const after = session.getSnapshot();
+        if (stillCurrent() && surfaceTicket.current === ticket && !bodyCommandTicket.current && !after.disposed
+          && after.pending === null && !after.dirty && after.accepted === before.accepted && session.getStatus().state === 'ready'
+          && after.accepted.surfaceMaterials.includes(ticket.binding) && formRef.current === ticket.fields
+          && selection.current.bodyId === ticket.bodyId && selection.current.epoch === ticket.selectionEpoch)
+          ticket.snapshot = after;
+        throw cause;
+      }
+    }, '', 'Control point refused: ', ticket);
+  };
   const closeSurface = (ticket: SurfaceTicket) => {
     if (surfaceTicket.current !== ticket || busyRef.current) return;
     surfaceTicket.current = null; setSurfaceDialog(null);
@@ -534,10 +560,16 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   };
   const add = () => {try {const next = addLightFields(fields); edit(next); setSelected(next.lights.at(-1)!.nodeId);} catch (cause) {report(cause);}};
   const remove = () => {if (light) {const next = {...fields, lights: fields.lights.filter(item => item !== light)}; edit(next); setSelected(next.lights[0]?.nodeId ?? null);}};
+  const duplicateLight = () => {if (!light || actionBusy || fields.lights.length >= 4) return;
+    try {const next = duplicateLightFields(fields, light.nodeId); edit(next); setSelected(next.lights.at(-1)!.nodeId); setNotice('Light copied into the scene draft. Apply to accept it.');}
+    catch (cause) {report(cause, 'Light copy refused: ');}
+  };
   const disabled = actionBusy || bodyRecovery || !snapshot || status !== 'ready';
   const bodyCommandReason = disabled ? 'An available idle scene is required.' : help || choosingFile ? 'Close Help or the file chooser first.'
     : dirty ? 'Apply or Discard all scene drafts first.' : !body || !material ? 'Choose a visible body with an existing material.'
       : snapshot!.accepted.revision >= 2147483647 || snapshot!.accepted.nativeDocument.revision >= 2147483647 ? 'The scene or native document revision is at its limit.' : '';
+  const pointReason = disabled ? 'An available idle scene is required.' : help || choosingFile ? 'Close Help or the file chooser first.'
+    : dirty ? 'Apply or Discard all scene drafts first.' : !body || !material ? 'Choose a visible body with an existing material.' : '';
   const duplicateReason = bodyCommandReason || (snapshot && (snapshot.accepted.nativeDocument.assets.length >= 4
     || snapshot.accepted.nativeDocument.bodies.length >= 16 || fields.bodies.length >= 4
     || snapshot.accepted.display.visibleBodyIds.length >= 4 || snapshot.accepted.surfaceMaterials.length >= 4)
@@ -570,7 +602,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
     <div className="app-body" style={{minHeight: 0}}>
       <aside style={{width: 210, flexShrink: 0, borderRight: '1px solid var(--border)', overflow: 'auto'}} aria-label="Light outliner">
         <div style={sectionStyle}><strong>Scene lights</strong><p style={{color: 'var(--muted-foreground)'}}>{fields.lights.length} / 4 {kind}</p>
-          <Button size="sm" variant="outline" disabled={disabled || fields.lights.length >= 4} onClick={add}><Plus/>Add {kind}</Button></div>
+          <Button size="sm" variant="outline" disabled={disabled || fields.lights.length >= 4} onClick={add}><Plus/>Add {kind}</Button> <Button size="sm" variant="outline" disabled={disabled || !light || fields.lights.length >= 4} onClick={duplicateLight}>Duplicate light</Button></div>
         {fields.lights.map(item => <button key={item.nodeId} aria-pressed={selected === item.nodeId} disabled={actionBusy} onClick={() => {if (!surfaceTicket.current) setSelected(item.nodeId);}} style={{display: 'block', width: '100%', padding: 14, textAlign: 'left', border: 0, color: 'inherit', background: selected === item.nodeId ? '#243735' : 'transparent'}}>{item.label || item.nodeId}<small style={{display: 'block', opacity: .65}}>{item.nodeId}{item.enabled ? '' : ' · disabled'}</small></button>)}
         <section style={sectionStyle} aria-label="Scene bodies"><strong>Scene bodies</strong><p>Choose a row or click a visible body in the Canvas to edit its display transform and existing material.</p>
           {fields.bodies.map(item => <button key={item.bodyId} aria-label={'Edit body ' + item.bodyId} aria-pressed={selectedBody === item.bodyId} disabled={disabled}
@@ -581,6 +613,8 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
           <div style={{display: 'grid', gap: 6, marginTop: 10}}>
             <Button size="sm" variant="outline" disabled={!!duplicateReason} title={duplicateReason || 'Choose original CAD source and copy this accepted material.'}
               onClick={event => {if (body && snapshot) openSurface(event.currentTarget, body.bodyId, rotationSelectionEpoch, snapshot.accepted);}}>Add Surface…</Button>
+            <Button size="sm" variant="outline" disabled={!!pointReason} title={pointReason || 'Edit one original control-grid coefficient.'}
+              onClick={event => {if (body && snapshot) openSurface(event.currentTarget, body.bodyId, rotationSelectionEpoch, snapshot.accepted, 'point');}}>Edit control point…</Button>
             <Button size="sm" variant="outline" disabled={!!duplicateReason} title={duplicateReason || 'Copy this complete source body and its material independently.'}
               onClick={() => {if (body && snapshot) commandBody('duplicate', body.bodyId, rotationSelectionEpoch, snapshot.accepted);}}>Duplicate body</Button>
             <Button size="sm" variant="outline" disabled={!!removeBodyReason} title={removeBodyReason || 'Remove this body with one Undo step.'}
@@ -694,9 +728,12 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
       </aside>
     </div>
     <footer className="app-status"><span role={error ? 'alert' : 'status'}>{error ?? (busy ? (snapshot?.pending ?? 'Reading file') + '…' : notice)}</span><span className="app-status-spacer"/><span data-testid="light-accepted-revision">Accepted {snapshot?.accepted.revision ?? '—'}</span><span>WebGPU · {status}</span></footer>
-    {surfaceDialog && <NativeLightSurfaceAddDialog isCurrent={() => surfaceCurrent(surfaceDialog)}
+    {surfaceDialog?.kind === 'add' && <NativeLightSurfaceAddDialog isCurrent={() => surfaceCurrent(surfaceDialog)}
       onAdd={(source, surfaceId) => addSurface(surfaceDialog, source, surfaceId)} onClose={() => closeSurface(surfaceDialog)}
       onCloseFocus={() => {if (mounted.current && epoch.current === surfaceDialog.mountEpoch && surfaceDialog.trigger.isConnected) surfaceDialog.trigger.focus({preventScroll: true});}}/>}
+    {surfaceDialog?.kind === 'point' && surfaceDialog.pointData && <NativeLightSurfacePointDialog data={surfaceDialog.pointData}
+      isCurrent={() => surfaceCurrent(surfaceDialog)} onApply={patch => applySurfacePoint(surfaceDialog, patch)}
+      onClose={() => closeSurface(surfaceDialog)} onCloseFocus={() => {if (mounted.current && epoch.current === surfaceDialog.mountEpoch && surfaceDialog.trigger.isConnected) surfaceDialog.trigger.focus({preventScroll: true});}}/>}
     <input ref={fileInput} type="file" accept=".json,application/json" hidden aria-label="Open light scene file" onChange={event => readFile(event.target.files?.[0])}/>
     <input ref={materialInput} type="file" accept=".material.json,.json,application/json" hidden aria-label="Open material file" onChange={event => readMaterialFile(event.target.files?.[0])}/>
   </main>;
