@@ -1,4 +1,3 @@
-import { orient2dExactBinary64V1 } from './exact-binary64-orientation-v1.js';
 import { classifyExactSegmentCrossingV1 } from './exact-segment-crossing-v1.js';
 import type { Binary64PointV1 } from './exact-binary64-orientation-v1.js';
 
