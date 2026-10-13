@@ -1,6 +1,6 @@
 import {validateMeshMaterialBinding} from './mesh-material.js';
 import type {MeshMaterialBinding} from './mesh-material.js';
-import {MESH_LIGHTING as LIGHTING,MESH_SHADERS as SHADERS,meshLightingShaders,applyMeshLighting,materialMeshShaders,applyMeshMaterial} from './mesh-shaders.js';
+import {MESH_LIGHTING as LIGHTING,MESH_SHADERS as SHADERS,applyMeshLighting,materialMeshShaders,applyMeshMaterial} from './mesh-shaders.js';
 import { GPUError } from './renderer.js';
 import type { UpdateResult } from './renderer.js';
 import {requireMeshExecution} from './gpu-compiler.js';
