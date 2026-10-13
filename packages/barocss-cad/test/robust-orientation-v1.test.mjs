@@ -22,6 +22,11 @@ test('qualified orient2d exact, bounded, and refusal behavior', { timeout: 12000
       {status:'exact',sign:'positive',method:'safe-integer-bigint'});
     assert.equal(orient(a,{x:0,y:3},b).sign,'negative');
     assert.equal(orient(a,b,{x:10,y:0}).sign,'zero');
+    assert.deepEqual(orient(a,b,{x:0,y:3},
+      {maxAbsCoordinateMM:10000,determinantUncertaintyMM2:16}),
+      {status:'indeterminate',reason:'within-error-bound'});
+    assert.equal(orient(a,b,{x:0,y:3},
+      {maxAbsCoordinateMM:10000,determinantUncertaintyMM2:14}).status,'exact');
     // Metamorphic invariants: translation must not change exact orientation;
     // swapping two vertices reverses the sign without approximation.
     for (const offset of [-9999, -10, 0, 10, 9990]) {
