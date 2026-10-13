@@ -89,7 +89,7 @@ export function buildModelingTranslation(parentInput: ConvexPlanarSolidResult, o
     parentValidation = at('parent-validation', 'parent', () => { directCalls.parentValidationCount++; return validateConvexPlanarSolid(parent); });
     const originals = parent.request.assets;
     at('admission', 'parent-inventory', () => check(originals.length <= 10 && parent.graph.edges.length <= 24 && parent.graph.vertices.length <= 16
-      && originals.reduce((sum, a) => sum + a.face.topology.loop.uses.length, 0) <= 48, 'BUDGET', 'Direct-prism inventory exceeds10 Faces/48 uses/24 pairs/16 vertices'));
+      && originals.reduce((sum, a) => sum + a.face.topology.loop.uses.length, 0) <= 48, 'BUDGET', 'Qualified convex inventory exceeds10 Faces/48 uses/24 pairs/16 vertices'));
 
     // Include the complete original namespaces, not just the parent's solid ID.
     const originalIds = new Set<string>([parent.request.options.solidId, parent.request.options.resultIdPrefix]);

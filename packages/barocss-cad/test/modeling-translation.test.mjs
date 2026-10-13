@@ -34,6 +34,15 @@ const pureModules = new Set(['modeling', 'cad-document', 'data-copy', 'xy-affine
 const replaced = new Set(), state = { phase: 'closed', calls: [], unexpected: [], translationError: undefined };
 const clone = value => structuredClone(value);
 const marker = 'INERT_TRANSLATION_CONTROL_NOT_GEOMETRY';
+// Selector-routing data only. These four vertices/two edges are deliberately
+// not a closed Solid and never establish native finishing/copy correctness.
+function inertFinishedSolid(solidId) {
+  const vertices = [[0, 0, 8], [32, 0, 8], [0, 24, 8], [32, 24, 8]].map((pointMM, i) => ({ id: 'v' + i, pointMM }));
+  const edges = [[0, 1], [2, 3]].map((pair, i) => ({ id: 'e' + i, vertexIds: pair.map(j => 'v' + j),
+    uses: [0, 1].map(j => ({ sourceId: solidId + '_src' + j, faceId: 'face' + j, surfaceId: 'surface' + j,
+      loopId: 'loop' + j, use: { id: 'use' + i + j, curveId: 'curve' + i + j, pcurveId: 'uv' + i + j } })) }));
+  return { controlOnly: marker, request: { options: { solidId } }, graph: { vertices, edges } };
+}
 function dispatch(binding, args) {
   if (state.phase !== 'mock-native') {
     state.unexpected.push(binding); throw new Error('UNEXPECTED_PROVIDER_ATTEMPT: ' + binding);
@@ -43,8 +52,14 @@ function dispatch(binding, args) {
     solution: { points: clone(args[0].points) }, report: { controlOnly: marker, fullyConstrained: true, degreesOfFreedom: 0 } };
   if (binding === 'buildXYAffineSketchPrism') return call.result = { controlOnly: marker,
     request: { sketch: clone(args[0]), options: clone(args[1]) },
-    solid: { controlOnly: marker, sourceId: args[1].sourceId, solidId: args[1].solidId, authoredOptions: clone(args[1]) },
+    solid: state.finished ? inertFinishedSolid(args[1].solidId)
+      : { controlOnly: marker, sourceId: args[1].sourceId, solidId: args[1].solidId, authoredOptions: clone(args[1]) },
     report: { controlOnly: marker }, lineage: { controlOnly: marker } };
+  if (binding === 'chamferConvexPlanarSolid' && state.finished) {
+    if (state.chamferError) throw state.chamferError;
+    return call.result = { controlOnly: marker, request: { parent: args[0] },
+      split: { negative: { kind: 'solid', solid: inertFinishedSolid(args[3].retainedSolidId) } } };
+  }
   if (binding === 'buildModelingTranslation') {
     if (state.translationError !== undefined) throw state.translationError;
     return call.result = { controlOnly: marker, parent: clone(args[0]), offsetMM: clone(args[1]),
@@ -103,6 +118,10 @@ after(() => {
 function mockNative(action, error) {
   assert.equal(state.phase, 'closed'); state.phase = 'mock-native'; state.translationError = error;
   try { return action(); } finally { state.phase = 'closed'; state.translationError = undefined; }
+}
+function mockFinishing(action, chamferError) {
+  assert.equal(state.finished, undefined); state.finished = true; state.chamferError = chamferError;
+  try { return mockNative(action); } finally { delete state.finished; delete state.chamferError; }
 }
 function refuses(action, code, operation, noProvider = true) {
   const before = state.calls.length; let caught;
@@ -247,7 +266,7 @@ test('rectangle, polygon and constrained direct affine extrusions admit translat
   }
 });
 
-test('circle refusals do not spend the translation slot; Boolean, split, hole and chamfer results are not direct parents', () => {
+test('circle refusals do not spend the slot; Boolean, split, hole and unrelated chamfer graphs refuse', () => {
   const model = createCadModel(), circle = model.sketch.circle({ center: [0, 0], radius: 2 }).extrude(8);
   refuses(() => circle.translate([1, 0, 0]), 'CAPABILITY', 'translate');
   const parent = rectangle(model).extrude(8), right = parent.translate([1, 0, 0]);
@@ -276,7 +295,7 @@ test('a translation is terminal, including as either Boolean operand; refusals l
   assert.equal(snapshot.bodies.right.native, snapshot.evidence[3].native.solid);
 });
 
-test('translation and Boolean/finishing nodes cannot coexist anywhere in either authoring order', () => {
+test('translation cannot coexist with Boolean or unrelated finishing nodes in either authoring order', () => {
   for (const [, operation] of operations) for (const translationFirst of [false, true]) {
     const model = createCadModel(), sketch = rectangle(model), a = sketch.extrude(8), b = sketch.extrude(4);
     if (translationFirst) {
@@ -446,4 +465,103 @@ test('native translation refusals preserve original cause, stage and entity cont
   const recovered = mockNative(() => snapshot.withParameters({ spacing: 64 }));
   assert.deepEqual(recovered.recomputation, { reusedFeatures: [0, 1], evaluatedFeatures: [2] });
   assert.equal(recovered.bodies.left, snapshot.bodies.left); unchanged(snapshot, before);
+});
+
+// #1919 extends ancestry admission only. Every provider below remains trapped.
+function finishedRail({ two = true, named = false } = {}) {
+  const model = createCadModel(), frontDistance = model.parameter('frontDistance', 1), backDistance = model.parameter('backDistance', 2);
+  const spacing = model.parameter('spacing', 48), sketch = rectangle(model), blank = sketch.extrude(8);
+  const front = blank.chamfer(blank.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one(), frontDistance,
+    ...(named ? [{ name: 'front' }] : []));
+  const left = two ? front.chamfer(front.edges({ parallelTo: 'x', at: { y: 24, z: 'max' } }).one(), backDistance,
+    ...(named ? [{ name: 'back' }] : [])) : front;
+  return { model, sketch, blank, front, left, spacing };
+}
+function finishedSnapshot(options) {
+  const f = finishedRail(options), right = f.left.translate([f.model.dimension.add(f.spacing, 0), -0, 0]);
+  return { ...f, right, snapshot: mockFinishing(() => f.model.build({ left: f.left, right })) };
+}
+
+test('finished copy admits one or two exact sequential chamfers without changing node or native bounds', () => {
+  for (const two of [false, true]) {
+    const before = state.calls.length, { snapshot } = finishedSnapshot({ two });
+    const index = two ? 4 : 3, calls = state.calls.slice(before), request = calls.at(-1);
+    assert.deepEqual(snapshot.features.map(f => f.kind), ['sketch', 'extrude', 'chamfer', ...(two ? ['chamfer'] : []), 'translate']);
+    assert.equal(request.binding, 'buildModelingTranslation'); assert.equal(request.args[0], snapshot.bodies.left.native);
+    assert.equal(snapshot.bodies.left.native, snapshot.evidence[index - 1].native.split.negative.solid);
+    assert.equal(snapshot.bodies.right.native, snapshot.evidence[index].native.solid);
+    assert.ok(Object.is(request.args[1][1], -0)); assert.deepEqual(snapshot.recomputation.evaluatedFeatures, Array.from({ length: index + 1 }, (_, i) => i));
+    assert.equal(CadModelLimits.nodes, 6); assert.equal(CadModelLimits.chamfers, 2); frozen(snapshot);
+    const loaded = mockFinishing(() => loadCadModel(snapshot.save())); assert.equal(loaded.save(), snapshot.save());
+    assert.deepEqual(loaded.features, snapshot.features);
+  }
+});
+
+test('finished copy owns its handle/dimensions and rejects malformed requests before append', () => {
+  const f = finishedRail(), other = createCadModel().parameter('foreign', 1);
+  for (const offset of [[other, 0, 0], [{ ...f.spacing }, 0, 0]]) refuses(() => f.left.translate(offset), 'OWNERSHIP');
+  for (const receiver of [{ ...f.left }, f.front, null]) refuses(() => f.left.translate.call(receiver, [1, 0, 0]), 'OWNERSHIP');
+  for (const vector of [[], [0, 0], [0, 0, 0, 0], { x: 0, y: 0, z: 0 }]) refuses(() => f.left.translate(vector), ['INPUT', 'BUDGET']);
+  refuses(() => f.front.translate([1, 0, 0]), 'CAPABILITY');
+  const right = f.left.translate([f.spacing, -0, 0]), snapshot = mockFinishing(() => f.model.build({ left: f.left, right }));
+  assert.equal(snapshot.features.length, 5); assert.equal(snapshot.features[4].dependencies[0], 3);
+});
+
+test('finished copy is final and all rejected new operations leave the accepted graph reusable', () => {
+  const f = finishedRail(), edge = f.left.edges({ parallelTo: 'x' }).one(), right = f.left.translate([f.spacing, 0, 0]);
+  const snapshot = mockFinishing(() => f.model.build({ left: f.left, right })), before = retained(snapshot);
+  for (const action of [() => f.sketch.extrude(2), () => f.model.sketch.rectangle({ width: 1, height: 1 }),
+    () => f.left.translate([1, 0, 0]), () => right.translate([1, 0, 0]), () => f.left.chamfer(edge, 1),
+    () => f.left.split({ axis: 'x', at: 16 }), () => right.edges({ parallelTo: 'x' }),
+    () => f.blank.union(right), () => f.blank.cut(right), () => right.intersect(f.blank)]) refuses(action, 'CAPABILITY');
+  unchanged(snapshot, before);
+  const after = mockFinishing(() => f.model.build({ left: f.left, right })); assert.equal(after.save(), snapshot.save());
+});
+
+test('strict finished-copy codec refuses branches, skipped finishes, extra nodes and native claims before providers', () => {
+  const { snapshot } = finishedSnapshot();
+  const edits = [
+    d => { d.nodes[4].parent.node = 2; }, d => { d.nodes[4].parent.node = 1; },
+    d => { d.nodes[3].parent.node = 1; }, d => { d.nodes[4].parent.side = 'negative'; },
+    d => { d.nodes[4].native = {}; }, d => { d.nodes[4].lineage = {}; },
+    d => { d.nodes.push({ kind: 'extrude', sketch: 0, height: 1 }); },
+    d => { d.nodes.push({ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [1, 1] }); },
+    d => { d.nodes[0] = { kind: 'sketch', profile: 'circle', center: [0, 0], radius: 2 }; },
+    d => { d.nodes[2].parent.side = 'positive'; },
+  ];
+  for (const edit of edits) { const d = JSON.parse(snapshot.save()); edit(d); refuses(() => loadCadModel(signedJson(d)), ['CAPABILITY', 'INPUT']); }
+  const d = JSON.parse(snapshot.save());
+  d.nodes.splice(2, 0, { kind: 'extrude', sketch: 0, height: 1 }); d.nodes[4].parent.node = 3; d.nodes[5].parent.node = 4;
+  d.outputs.left.node = 4; d.outputs.right.node = 5;
+  refuses(() => loadCadModel(signedJson(d)), 'CAPABILITY');
+});
+
+test('finishing configuration still validates both candidates and translates the actual selected parent', () => {
+  const { snapshot } = finishedSnapshot({ named: true });
+  for (const suppression of [{ back: true }, { front: true, back: true }]) {
+    const before = state.calls.length, next = mockFinishing(() => snapshot.withSuppression(suppression)), calls = state.calls.slice(before);
+    assert.equal(calls.filter(c => c.binding === 'chamferConvexPlanarSolid').length, 2);
+    const expected = suppression.front ? next.evidence[1].native.solid : next.evidence[2].native.split.negative.solid;
+    assert.equal(next.bodies.left.native, expected); assert.equal(calls.at(-1).args[0], expected);
+    assert.notEqual(calls.at(-1).args[0], next.evidence[3].native.split.negative.solid);
+    assert.equal(next.evidence[3].configuration.output, 'parent'); frozen(next);
+  }
+  const cause = new Error('INERT invalid finishing geometry, no native geometry proof'), before = state.calls.length;
+  const failure = mockFinishing(() => refuses(() => snapshot.withSuppression({ front: true, back: true }), 'NATIVE', 'chamfer', false), cause);
+  assert.equal(failure.cause, cause); assert.equal(state.calls.slice(before).some(c => c.binding === 'buildModelingTranslation'), false);
+});
+
+test('finished-copy driver edits reuse only the accepted prefix and no-op changes preserve output identity', () => {
+  const { snapshot } = finishedSnapshot(), before = retained(snapshot), count = state.calls.length;
+  const noOp = snapshot.withParameters({ spacing: 48 }); assert.equal(state.calls.length, count);
+  assert.equal(noOp.bodies.left, snapshot.bodies.left); assert.equal(noOp.bodies.right, snapshot.bodies.right);
+  const wider = mockFinishing(() => snapshot.withParameters({ spacing: 64 }));
+  assert.deepEqual(wider.recomputation, { reusedFeatures: [0, 1, 2, 3], evaluatedFeatures: [4] });
+  assert.equal(wider.bodies.left, snapshot.bodies.left);
+  const back = mockFinishing(() => wider.withParameters({ backDistance: 3 }));
+  assert.deepEqual(back.recomputation, { reusedFeatures: [0, 1, 2], evaluatedFeatures: [3, 4] });
+  const front = mockFinishing(() => back.withParameters({ frontDistance: 2 }));
+  assert.deepEqual(front.recomputation, { reusedFeatures: [0, 1], evaluatedFeatures: [2, 3, 4] });
+  const d = JSON.parse(snapshot.save()); assert.deepEqual(modelingNodeParameters(d.nodes[4]), ['spacing']);
+  unchanged(snapshot, before);
 });
