@@ -75,6 +75,16 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
   const seed = api.createLightStudy(sourceText);
   const original = api.serializeRenderNativeLightDocument(seed);
   const form = api.addLightFields(api.readLightFields(seed));
+  // Product light duplication: independent ID, complete exact draft values, cap and no mutation.
+  const copiedFields = api.duplicateLightFields(form, form.lights[0].nodeId);
+  assert.equal(copiedFields.lights.length, form.lights.length + 1);
+  assert.notEqual(copiedFields.lights.at(-1).nodeId, form.lights[0].nodeId);
+  assert.deepEqual(copiedFields.lights.at(-1).vector, form.lights[0].vector);
+  assert.deepEqual(copiedFields.lights.at(-1).color, form.lights[0].color);
+  assert.notStrictEqual(copiedFields.lights.at(-1).vector, form.lights[0].vector);
+  assert.deepEqual(form.lights[0].label, 'Directional 1');
+  assert.throws(() => api.duplicateLightFields(form, 'missing-light'));
+  assert.throws(() => api.duplicateLightFields(api.addLightFields(copiedFields), form.lights[0].nodeId));
   form.lights[1].vector = ['-0', '2', '-4']; form.lights[1].color = ['.3', '.5', '.8'];
   const candidate = api.applyLightFields(seed, form);
   assert(Object.is(candidate.lights.lights[1].directionScene[0], -0));
