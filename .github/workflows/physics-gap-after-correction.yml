@@ -1,0 +1,34 @@
+name: Physics same-pass gap correction
+on:
+  pull_request:
+    branches: [develop]
+    paths:
+      - 'examples/physics-contact-impulse-audit-1572/gap-after-correction.ts'
+      - 'examples/physics-contact-impulse-audit-1572/run-gap-after-correction.mjs'
+      - '.github/workflows/physics-gap-after-correction.yml'
+  workflow_dispatch:
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @barocss/physics build:library
+      - run: mkdir -p /tmp/p1572-gap
+      - name: Compare b0 b1 source face gaps before and after correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          node examples/physics-contact-impulse-audit-1572/run-gap-after-correction.mjs | tee /tmp/p1572-gap/results.jsonl
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: physics1572-gap-after-correction
+          path: /tmp/p1572-gap/results.jsonl
+          if-no-files-found: ignore
