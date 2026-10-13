@@ -46,6 +46,16 @@ test('original Surface curvature is read-only, fully pinned and uses native U/V'
   report.scope.model.name = 'modified';
   assert.equal(state.native.model.name, ref.modelId, 'Returned state must be independent');
 });
+test('input accessors are refused without evaluation or scene mutation', () => {
+  let getterCalls = 0;
+  const parameters = { v: 15 };
+  Object.defineProperty(parameters, 'u', { enumerable: true,
+    get() { getterCalls++; return 2.5; } });
+  const before = structuredClone(state);
+  assert.throws(() => querySelectedNativeSurfaceCurvature(viewer, expected, parameters), RangeError);
+  assert.equal(getterCalls, 0);
+  assert.deepEqual(state, before);
+});
 test('invalid U/V, stale source and selection fail without touching Viewer state', () => {
   const before = structuredClone(state);
   assert.throws(() => querySelectedNativeSurfaceCurvature(viewer, expected, {u: 8, v: 15}));
