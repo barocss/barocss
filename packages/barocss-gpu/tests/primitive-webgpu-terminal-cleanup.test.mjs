@@ -5,6 +5,8 @@ import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 import ts from 'typescript';
 import { PrimitiveBackendError } from '../dist/index.js';
+// Also exercise the original dispose implementation without changing the workspace manifest.
+import './primitive-webgpu-dispose-completeness.test.mjs';
 
 const source = await readFile(new URL('../src/webgpu-primitive-viewport.ts', import.meta.url), 'utf8');
 const file = ts.createSourceFile('webgpu-primitive-viewport.ts', source, ts.ScriptTarget.ES2022, true);

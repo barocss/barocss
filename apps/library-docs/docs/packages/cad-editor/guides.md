@@ -1,5 +1,7 @@
 # Stage, present and accept native edits
 
+**Learning by using the actual UI?** Continue from the [L-bracket union lesson](./l-bracket) to the [composed slotted-bracket lesson](./slotted-bracket). These use current supported presets; the session/React API details below are for developers embedding a CAD Editor.
+
 **Using the local CAD Editor UI rather than embedding a session?** Follow [Model a round post](./round-post) for a real named-dimension exercise, safe file staging and source-qualified native limits. The React/session details below are for developers integrating the editor.
 
 ## Mount the React bridge
