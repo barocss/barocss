@@ -7,13 +7,21 @@ export type NativePlanarLoopQualificationV1 =
   | { readonly status: 'refused'; readonly reason: 'invalid-loop' | 'repeated-vertex' | 'zero-edge' | 'zero-area' | 'self-intersection' | 'non-simple-boundary' }
   | { readonly status: 'unsupported'; readonly reason: string };
 
-const plain = (v: unknown): v is Binary64PointV1 => {
-  if (!v || typeof v !== 'object' || Array.isArray(v)) return false;
-  const proto = Object.getPrototypeOf(v);
-  const d = Object.getOwnPropertyDescriptors(v);
-  return (proto === Object.prototype || proto === null) &&
-    Reflect.ownKeys(v).length === 2 &&
-    ['x','y'].every(k => Object.hasOwn(d,k) && 'value' in d[k] && typeof d[k].value === 'number');
+/** Snapshot only validated own data descriptors; never read an admitted caller point. */
+const snapshot = (v: unknown): Binary64PointV1 | null => {
+  if (!v || typeof v !== 'object') return null;
+  try {
+    if (Array.isArray(v)) return null;
+    const proto = Object.getPrototypeOf(v);
+    if (proto !== Object.prototype && proto !== null) return null;
+    const d = Object.getOwnPropertyDescriptors(v);
+    if (Reflect.ownKeys(d).length !== 2 ||
+        !['x', 'y'].every(k => Object.hasOwn(d, k) && 'value' in d[k] &&
+          d[k].enumerable && typeof d[k].value === 'number')) return null;
+    return { x: d.x.value as number, y: d.y.value as number };
+  } catch {
+    return null;
+  }
 };
 const view = new DataView(new ArrayBuffer(8));
 function parts(n: number): { m: bigint; e: number } {
@@ -25,9 +33,23 @@ function parts(n: number): { m: bigint; e: number } {
 }
 /** A bounded *simple straight polygon boundary* only, not a face or material model. */
 export function qualifyNativePlanarLoopV1(input: unknown): NativePlanarLoopQualificationV1 {
-  if (!Array.isArray(input) || input.length < 3 || input.length > 16 || !input.every(plain))
+  if (!Array.isArray(input) || input.length < 3 || input.length > 16)
     return { status:'refused', reason:'invalid-loop' };
-  const points=input as Binary64PointV1[];
+  const captured: Binary64PointV1[] = [];
+  try {
+    // Array elements may be accessor-backed: snapshot the bounded vertex list as well.
+    const descriptors = Object.getOwnPropertyDescriptors(input);
+    for (let i = 0; i < input.length; i++) {
+      const entry = descriptors[String(i)];
+      if (!entry || !('value' in entry)) return { status:'refused', reason:'invalid-loop' };
+      const point = snapshot(entry.value);
+      if (!point) return { status:'refused', reason:'invalid-loop' };
+      captured.push(point);
+    }
+  } catch {
+    return { status:'refused', reason:'invalid-loop' };
+  }
+  const points = captured;
   if (points.some(p=>!Number.isFinite(p.x)||!Number.isFinite(p.y)||Math.abs(p.x)>10000||Math.abs(p.y)>10000))
     return { status:'unsupported', reason:'non-finite-or-out-of-range' };
   const keys=points.map(p=>String(Object.is(p.x,-0)?0:p.x)+','+String(Object.is(p.y,-0)?0:p.y));
