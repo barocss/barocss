@@ -395,7 +395,7 @@ function clearNativeCurveCurvatureContext(){
 function refreshNativeCurveCurvature(){
   if(nativeCurveCurvatureDisposed||disposed){inspectNativeCurveCurvatureButton.disabled=true;resetNativeCurveCurvatureButton.disabled=true;return;}
   const next=!nativeCurveCurvatureDisposed&&!disposed&&selectedPointScope?.ref.kind==='curve'?selectedPointScope:null;
-  if(!same(next,nativeCurveCurvatureScope)){clearNativeCurveCurvatureContext();clearNativeSurfaceCurvatureContext();nativeCurveCurvatureScope=clone(next);}
+  if(!same(next,nativeCurveCurvatureScope)){clearNativeCurveCurvatureContext();nativeCurveCurvatureScope=clone(next);}
   const enabled=!!nativeCurveCurvatureScope&&!nativeCurveCurvatureDisposed&&!disposed&&!running;
   inspectNativeCurveCurvatureButton.disabled=!enabled;resetNativeCurveCurvatureButton.disabled=!enabled;
   nativeCurveCurvatureTarget.textContent=nativeCurveCurvatureScope?'Current Curve '+nativeCurveCurvatureScope.ref.curveId
@@ -444,7 +444,7 @@ function resetNativeCurveCurvature(){
 function disposeNativeCurveCurvature(){
   check(arguments.length===0,'Curve curvature disposal takes no arguments.');
   if(nativeCurveCurvatureDisposed)return nativeCurveCurvatureSnapshot();
-  nativeCurveCurvatureDisposed=true;clearNativeCurveCurvatureContext();clearNativeSurfaceCurvatureContext();
+  nativeCurveCurvatureDisposed=true;clearNativeCurveCurvatureContext();
   inspectNativeCurveCurvatureButton.onclick=null;resetNativeCurveCurvatureButton.onclick=null;
   inspectNativeCurveCurvatureButton.disabled=true;resetNativeCurveCurvatureButton.disabled=true;nativeCurveCurvatureTarget.textContent='';
   return nativeCurveCurvatureSnapshot();
