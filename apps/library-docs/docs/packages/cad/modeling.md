@@ -4,6 +4,20 @@ Use `cad.model()` to author a bounded solid part with named dimensions. Start wi
 
 All dimensions below are **millimetres**. Use a TypeScript-capable workspace/bundler for source package entries; built ESM and declarations are a separate package build. Source adoption does not establish npm publication.
 
+## Open and space two translated gussets
+
+<a :href="withBase('/examples/modeling-translated-gussets.ts')" download>Download the complete translated-gussets example</a>
+
+The [adopted translation API](https://github.com/barocss/barocss/commit/31ad07d5234326bf68b937c070000e94d2c45501) creates an independently qualified copy of a direct extrusion. This example keeps the original **left** gusset and places **right** 48 mm along X. Each has certified volume **6912 mm³**; the constrained profile is 40 × 24 mm with an inclined edge, extruded 8 mm.
+
+<<< ../../public/examples/modeling-translated-gussets.ts
+
+Call `makeTranslatedGussets()` in a host using `@barocss/cad`, then obtain `initial.save()`. Alternatively, copy the exact [measured baseline saved model](https://github.com/barocss/barocss/blob/31ad07d5234326bf68b937c070000e94d2c45501/packages/barocss-cad/test/modeling-translation-evidence/initial.cad-model.json). In the existing Modeling editor, expand **Save or open a model**, paste the text into **Saved model data**, acknowledge replacement, and choose **Open saved model**. Both convex outputs are displayed together. Edit the generic **spacing** dimension to 64 and Apply to move the copy; **width/height** drive the XY profile, while **offsetY/offsetZ** place the copy in Y/Z. Thickness remains 8 mm. There is no new picker preset.
+
+Only one translation of a direct affine rectangle, polygon or constrained-polygon extrusion is supported, including an admitted extrusion start coordinate. Its result is terminal: do not Boolean, split, hole, chamfer or translate it again, or mix this graph with Boolean/finishing nodes. Circle, hole and orthogonal-cell parents are refused. Coordinates must remain within ±10000 mm and every translated coefficient must be exactly representable; the measured `spacing:0.1` edit refuses rather than rounding. A zero offset still creates a distinct named copy, not a union. Refusal preserves the accepted snapshot. Save stores authored intent; `cad.load(savedText)` rebuilds native geometry.
+
+The [provider evidence](https://github.com/barocss/barocss/tree/31ad07d5234326bf68b937c070000e94d2c45501/packages/barocss-cad/test/modeling-translation-evidence) retains both genuine baseline previews, each 24 vertices/12 triangles. Existing serializer/receiver CPU replay admitted the complete **53,882-byte** pair, preserved each native body/face lineage, converted XYZ once and picked both bodies; four malformed controls retained the prior accepted display. Provider loading and Worker delivery were mocked in that replay. This documentation adds no native calls or adapter changes. Edited-state pixels, React interaction and physical file dialogs remain **unverified**.
+
 ## Resize a constrained plate
 
 <a :href="withBase('/examples/modeling-constrained-profile.ts')" download>Download the complete constrained-profile example</a>
