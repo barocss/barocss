@@ -101,10 +101,12 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
         height: { parameter: 'depth' }, kind: 'extrude', sketch: 2 },
       { kind: 'difference', parent: { node: 1, side: 'solid' }, tool: { node: 3, side: 'solid' } },
     ]) && JSON.stringify(authored?.outputs) === JSON.stringify({ part: { node: 4, side: 'solid' }, plate: { node: 1, side: 'solid' }, tool: { node: 3, side: 'solid' } });
+  const canonicalConstrained = (value: unknown) => JSON.stringify(value, (_key, object) => object && typeof object === 'object' && !Array.isArray(object)
+    ? Object.fromEntries(Object.entries(object).sort(([a], [b]) => a.localeCompare(b))) : object);
   const constrainedPlateDrivers = accepted?.source === 'model'
     && Object.keys(accepted.parameters).sort().join(',') === 'height,lockY,width'
     && Object.is(accepted.parameters.lockY, 0)
-    && JSON.stringify(authored?.nodes) === JSON.stringify([
+    && canonicalConstrained(authored?.nodes) === canonicalConstrained([
       { kind: 'sketch', profile: 'constrained-polygon',
         points: [[-0, 0], [{ parameter: 'width' }, { parameter: 'lockY' }],
           [{ parameter: 'width' }, { parameter: 'height' }], [1, { parameter: 'height' }]],
@@ -115,7 +117,7 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
           { kind: 'fixed', point: 1 },
         ] },
       { kind: 'extrude', sketch: 0, height: 8 },
-    ]) && JSON.stringify(authored?.outputs) === JSON.stringify({ part: { node: 1, side: 'solid' } });
+    ]) && canonicalConstrained(authored?.outputs) === canonicalConstrained({ part: { node: 1, side: 'solid' } });
   const holeModel = accepted?.outputs.some(output => output.family === 'stored-rational-plate-hole') ?? false;
   const circleModel = accepted?.outputs.some(output => output.family === 'stored-rational-circle-prism') ?? false;
   const roundPostDrivers = circleModel && accepted?.source === 'model'
