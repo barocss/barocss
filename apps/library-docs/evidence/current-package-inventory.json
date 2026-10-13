@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "purpose": "Current checkout manifest metadata only; not an API, runtime, publication, or held-lane activation receipt.",
-  "manifestCommit": "6769e292a0ef0da73d88c9f8a0d6ad45456c21cf",
+  "manifestCommit": "340a90fb9cbc6b5e022b0721fa799661f601d257",
   "historicalSourceCommit": "5f5ad866205a21510ac69552e704cc162fa253b5",
   "historicalInventorySha256": "b121aac9620fb8fe966c292710990317bf88b1b3535ea31a31cd787cefe7c2b5",
   "packages": [
@@ -291,7 +291,7 @@
     {
       "slug": "gpu",
       "directory": "packages/barocss-gpu",
-      "manifestSha256": "87e16553950716d916808b175f603dea4150d58f912088e77491c9bfbc64a51f",
+      "manifestSha256": "b2366b977659534063b0fb9846fcebd2975a0b9afb1ba931a6da28b45ebf5807",
       "manifest": {
         "name": "@barocss/gpu",
         "version": "0.0.0",
@@ -324,7 +324,7 @@
           "lint": "eslint src",
           "type-check": "tsc --noEmit",
           "build:library": "tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/index.js",
-          "test": "node --test tests/scene.test.mjs tests/compiler.test.mjs tests/material-lint-regression.test.mjs tests/primitive-readback-lifetime.test.mjs tests/primitive-webgpu-update-preflight.test.mjs tests/primitive-webgpu-bounded-wait.test.mjs tests/primitive-webgpu-device-loss-observer.test.mjs tests/engine-uv-device-loss-cleanup.test.mjs tests/primitive-resource-release.test.mjs tests/primitive-webgpu-resource-release.test.mjs tests/primitive-webgpu-terminal-cleanup.test.mjs tests/primitive-pixel-windows.test.mjs tests/engine-draw-batches.test.mjs tests/engine-webgpu-frame.test.mjs tests/engine-webgpu-geometry.test.mjs tests/engine-webgpu-renderpass.test.mjs tests/engine-webgpu-targets.test.mjs tests/engine-webgpu-uniforms.test.mjs tests/engine-webgpu-scene-geometry.test.mjs tests/engine-webgpu-pipeline.test.mjs ../../examples/gpu-scene/primitive-device-receipt-gate.test.mjs tests/mesh-packet.test.mjs tests/camera.test.mjs tests/gpu-compiler.test.mjs tests/engine-webgpu-canvas-config.test.mjs",
+          "test": "node --test tests/scene.test.mjs tests/compiler.test.mjs tests/material-lint-regression.test.mjs tests/primitive-readback-lifetime.test.mjs tests/primitive-webgpu-update-preflight.test.mjs tests/primitive-webgpu-bounded-wait.test.mjs tests/primitive-webgpu-device-loss-observer.test.mjs tests/engine-uv-device-loss-cleanup.test.mjs tests/primitive-resource-release.test.mjs tests/primitive-webgpu-resource-release.test.mjs tests/primitive-webgpu-terminal-cleanup.test.mjs tests/primitive-pixel-windows.test.mjs tests/engine-draw-batches.test.mjs tests/engine-webgpu-frame.test.mjs tests/engine-webgpu-geometry.test.mjs tests/engine-webgpu-renderpass.test.mjs tests/engine-webgpu-targets.test.mjs tests/engine-webgpu-uniforms.test.mjs tests/engine-webgpu-scene-geometry.test.mjs tests/engine-webgpu-pipeline.test.mjs ../../examples/gpu-scene/primitive-device-receipt-gate.test.mjs tests/mesh-packet.test.mjs tests/camera.test.mjs tests/gpu-compiler.test.mjs tests/engine-webgpu-submit-frame.test.mjs tests/engine-webgpu-one-shot.test.mjs tests/engine-webgpu-present.test.mjs tests/engine-webgpu-canvas-config.test.mjs",
           "test:consumer": "node --test tests/consumer.test.mjs tests/mesh-consumer.test.mjs tests/gpu-compiler-consumer.test.mjs",
           "test:browser": "node --test --test-concurrency=1 tests/browser.test.mjs tests/mesh-browser.test.mjs tests/camera-browser.test.mjs"
         },
@@ -359,7 +359,7 @@
             "lint": "eslint src",
             "type-check": "tsc --noEmit",
             "build:library": "tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/index.js",
-            "test": "node --test tests/scene.test.mjs tests/compiler.test.mjs tests/material-lint-regression.test.mjs tests/primitive-readback-lifetime.test.mjs tests/primitive-webgpu-update-preflight.test.mjs tests/primitive-webgpu-bounded-wait.test.mjs tests/primitive-webgpu-device-loss-observer.test.mjs tests/engine-uv-device-loss-cleanup.test.mjs tests/primitive-resource-release.test.mjs tests/primitive-webgpu-resource-release.test.mjs tests/primitive-webgpu-terminal-cleanup.test.mjs tests/primitive-pixel-windows.test.mjs tests/engine-draw-batches.test.mjs tests/engine-webgpu-frame.test.mjs tests/engine-webgpu-geometry.test.mjs tests/engine-webgpu-renderpass.test.mjs tests/engine-webgpu-targets.test.mjs tests/engine-webgpu-uniforms.test.mjs tests/engine-webgpu-scene-geometry.test.mjs tests/engine-webgpu-pipeline.test.mjs ../../examples/gpu-scene/primitive-device-receipt-gate.test.mjs tests/mesh-packet.test.mjs tests/camera.test.mjs tests/gpu-compiler.test.mjs tests/engine-webgpu-canvas-config.test.mjs",
+            "test": "node --test tests/scene.test.mjs tests/compiler.test.mjs tests/material-lint-regression.test.mjs tests/primitive-readback-lifetime.test.mjs tests/primitive-webgpu-update-preflight.test.mjs tests/primitive-webgpu-bounded-wait.test.mjs tests/primitive-webgpu-device-loss-observer.test.mjs tests/engine-uv-device-loss-cleanup.test.mjs tests/primitive-resource-release.test.mjs tests/primitive-webgpu-resource-release.test.mjs tests/primitive-webgpu-terminal-cleanup.test.mjs tests/primitive-pixel-windows.test.mjs tests/engine-draw-batches.test.mjs tests/engine-webgpu-frame.test.mjs tests/engine-webgpu-geometry.test.mjs tests/engine-webgpu-renderpass.test.mjs tests/engine-webgpu-targets.test.mjs tests/engine-webgpu-uniforms.test.mjs tests/engine-webgpu-scene-geometry.test.mjs tests/engine-webgpu-pipeline.test.mjs ../../examples/gpu-scene/primitive-device-receipt-gate.test.mjs tests/mesh-packet.test.mjs tests/camera.test.mjs tests/gpu-compiler.test.mjs tests/engine-webgpu-submit-frame.test.mjs tests/engine-webgpu-one-shot.test.mjs tests/engine-webgpu-present.test.mjs tests/engine-webgpu-canvas-config.test.mjs",
             "test:consumer": "node --test tests/consumer.test.mjs tests/mesh-consumer.test.mjs tests/gpu-compiler-consumer.test.mjs",
             "test:browser": "node --test --test-concurrency=1 tests/browser.test.mjs tests/mesh-browser.test.mjs tests/camera-browser.test.mjs"
           }

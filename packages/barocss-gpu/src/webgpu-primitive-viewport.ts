@@ -266,7 +266,11 @@ class BackendViewport implements PrimitiveBackendViewport {
         });
         await this.replace(this.cpu, this.width, this.height);
       }
-      catch (cause) { this.dispose(); throw cause; }
+      catch (cause) {
+        try { this.dispose(); }
+        catch (cleanup) { throw wrap('RENDER', 'Viewport initialization and cleanup refused', new AggregateError([cause, cleanup])); }
+        throw cause;
+      }
       finally { this.busy = false; }
     }
   }
@@ -468,9 +472,16 @@ class BackendViewport implements PrimitiveBackendViewport {
   }
   dispose(): void {
     if (this.current.state === 'disposed') return;
-    this.current.state = 'disposed'; this.releaseOwned(); this.currentSelection = null;
-    this.canvas.removeEventListener('webglcontextlost', this.loss); this.gl?.dispose(); this.gl = null;
-    this.context?.unconfigure(); this.device?.destroy();
+    this.current.state = 'disposed'; this.currentSelection = null;
+    const failures: unknown[] = [];
+    try { failures.push(...this.releaseOwned()); } catch (cause) { failures.push(cause); }
+    try { this.canvas.removeEventListener('webglcontextlost', this.loss); } catch (cause) { failures.push(cause); }
+    const gl = this.gl; this.gl = null;
+    try { gl?.dispose(); } catch (cause) { failures.push(cause); }
+    try { this.context?.unconfigure(); } catch (cause) { failures.push(cause); }
+    try { this.device?.destroy(); } catch (cause) { failures.push(cause); }
+    if (failures.length)
+      throw wrap('RENDER', 'Viewport disposal cleanup refused', new AggregateError(failures));
   }
 }
 function canvasElement(input: unknown): asserts input is HTMLCanvasElement {
@@ -490,7 +501,12 @@ export async function mountPrimitiveBackendViewport(canvas: HTMLCanvasElement, i
     if (canvas.width !== width || canvas.height !== height) fail('STATE', 'Host changed canvas dimensions during mount');
     target.width = width; target.height = height;
     const viewport = new BackendViewport(target, prepared, 'webgl2', null, null, '', reason, null);
-    try { await viewport.initialize(); return viewport; } catch (cause) { viewport.dispose(); throw cause; }
+    try { await viewport.initialize(); return viewport; }
+    catch (cause) {
+      try { viewport.dispose(); }
+      catch (cleanup) { throw wrap('RENDER', 'Fallback initialization and cleanup refused', new AggregateError([cause, cleanup])); }
+      throw cause;
+    }
   };
   if (data.backend === 'webgl2') return fallback(canvas, null);
   let device: GPUDeviceHandle | null = null, context: GPUCanvasHandle | null = null;

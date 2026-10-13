@@ -1,4 +1,5 @@
 // Read-only UI + fixture drift guard. Does not run CAD/renderer or verify browser.
+import './check-cad-editor-slotted-bracket.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';

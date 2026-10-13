@@ -758,3 +758,7 @@ keep body rows and focus. The six-field snapshot is copied. Snapshot, Reset
 and local Dispose take no arguments. Local disposal comes first; the new hooks
 read no Viewer after it. Issue1551 records native work, exact source adoption,
 integrated runtime acceptance and release separately.
+
+## Original selected Surface curvature helper (software increment)
+
+`selected-native-surface-curvature.js` exports `querySelectedNativeSurfaceCurvature(viewer, expected, {u,v})`. It verifies a complete current Source0/Model0/mm and selected Surface reference, queries original public `surfaceDomain` and `evaluateSurfaceCurvature` at explicit original U/V values, and rechecks source authority after numerical evaluation and output copying. It does not apply display transforms, change the Viewer state, or claim a Face/Solid orientation or global engineering certificate. The host now exposes an Inspect/Reset Surface curvature panel using the existing original U/V drafts. The completed readout includes signed mean and Gaussian curvature plus ordered principal curvatures and retains the full technical D2 report. Source or selection changes clear its report; edits to parameter drafts alone do not. Actual browser verification and independent integration acceptance remain separate work under #1570.
