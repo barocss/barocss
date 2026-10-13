@@ -19,6 +19,14 @@ Use **INSPECT → Inspect selection** for accepted output details and approximat
 
 This increment changes command organization, not native capability. It adds no sketch drawing, arbitrary feature editing, feature reorder or camera tools. Local React/controller checks cover command selection, draft retention, Apply/Cancel/Escape, history and stale completion. Actual new-layout pixels, resize and visible-face picking remain **unverified** under [#1943](https://github.com/barocss/barocss/issues/1943); earlier feature evidence does not prove this layout.
 
+### Edit an existing extrusion
+
+For example, load **Create a round post**, select **Extrude 01**, then choose **MODIFY → Edit extrusion**. Its **Height · height** field edits the existing named height driver. Type a value and choose **Apply extrusion**; a refused edit retains the accepted model, draft and diagnostic. **Cancel/Escape** discards a current command's pending dimensions. Undo/Redo use the same accepted history.
+
+Only direct named height/start-Z drivers are editable here. Authored literals, omitted start-Z = 0 and derived expressions are read-only; use **Review model dimensions** to edit the model's named drivers. One shared parameter can affect other fields or features, including a pocket's derived start coordinate. This is not an isolated feature edit or an expression-rewriting tool.
+
+Options stay pinned to the feature chosen when the command opens, even if Browser selection changes. Unrelated pending dimensions are shown in the global editor rather than silently applied. A model or output-view change makes older options stale; reopen the command. Stale options cannot apply or discard newer drafts. The [local interaction scope](https://github.com/barocss/barocss/issues/1948) uses retained baseline packets and explicitly mocked edited geometry; physical visual acceptance remains pending.
+
 ## Open and space two translated gussets
 
 <a :href="withBase('/examples/modeling-translated-gussets.ts')" download>Download the complete translated-gussets example</a>

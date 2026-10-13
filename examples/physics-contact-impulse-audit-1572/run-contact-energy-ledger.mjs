@@ -12,29 +12,35 @@ try{
    hooks++;let source=await readFile(args.path,'utf8');
    source=replaceOnce(source,'function publicState(',`
 function __energy1572Body(body:Body){
- return {vel:[...body.velocityMps],omega:[...body.angularVelocityRadps],orientation:[...body.orientation],
+ return {pos:[...body.positionM],vel:[...body.velocityMps],omega:[...body.angularVelocityRadps],orientation:[...body.orientation],
   inverseMass:body.inverseMass,inverseInertiaLocal:[...body.inverseInertiaLocal]};
 }
 `+'function publicState(');
    const warm='                if (prior) warmStartPoint(a, b, point.pointM, hit.normal, impulse);';
    source=replaceOnce(source,warm,`
                 if(prior){
-                  const __observe=a.id==='b0'&&b.id==='b1'&&[1,600,1200].includes(stepIndex+1);
+                  const __observe=((a.id==='b0'&&b.id==='b1')||(a.id==='b1'&&b.id==='b2'))&&(stepIndex+1===1||(stepIndex+1)%120===0||((stepIndex+1)>=680&&(stepIndex+1)<=720));
                   const __before=__observe?[__energy1572Body(a),__energy1572Body(b)]:null;
+                  const __beforeImpulse=__observe?{normalNs:impulse.normalNs,tangentNs:[...impulse.tangentNs]}:null;
                   warmStartPoint(a,b,point.pointM,hit.normal,impulse);
                   if(__before)(globalThis as {__physics1572EnergyProbe?:(event:unknown)=>void}).__physics1572EnergyProbe?.({
                     kind:'warm',step:stepIndex+1,pass,iteration:null,pair:a.id+'/'+b.id,
-                    aBefore:__before[0],bBefore:__before[1],aAfter:__energy1572Body(a),bAfter:__energy1572Body(b)});
+                    aBefore:__before[0],bBefore:__before[1],aAfter:__energy1572Body(a),bAfter:__energy1572Body(b),
+                    pointM:[...point.pointM],normal:[...hit.normal],beforeImpulse:__beforeImpulse,
+                    afterImpulse:{normalNs:impulse.normalNs,tangentNs:[...impulse.tangentNs]}});
                 }
 `);
    const solve='                solvePersistentPoint(a, b, point.pointM, hit.normal, impulse);';
    source=replaceOnce(source,solve,`
-                const __observe=a.id==='b0'&&b.id==='b1'&&[1,600,1200].includes(stepIndex+1);
+                const __observe=((a.id==='b0'&&b.id==='b1')||(a.id==='b1'&&b.id==='b2'))&&(stepIndex+1===1||(stepIndex+1)%120===0||((stepIndex+1)>=680&&(stepIndex+1)<=720));
                 const __before=__observe?[__energy1572Body(a),__energy1572Body(b)]:null;
+                  const __beforeImpulse=__observe?{normalNs:impulse.normalNs,tangentNs:[...impulse.tangentNs]}:null;
 `+solve+`
                 if(__before)(globalThis as {__physics1572EnergyProbe?:(event:unknown)=>void}).__physics1572EnergyProbe?.({
                   kind:'solve',step:stepIndex+1,pass,iteration,pair:a.id+'/'+b.id,
-                  aBefore:__before[0],bBefore:__before[1],aAfter:__energy1572Body(a),bAfter:__energy1572Body(b)});
+                  aBefore:__before[0],bBefore:__before[1],aAfter:__energy1572Body(a),bAfter:__energy1572Body(b),
+                    pointM:[...point.pointM],normal:[...hit.normal],beforeImpulse:__beforeImpulse,
+                    afterImpulse:{normalNs:impulse.normalNs,tangentNs:[...impulse.tangentNs]}});
 `);
    return {contents:source,loader:'ts'};
   });

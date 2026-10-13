@@ -1298,3 +1298,24 @@ staging/replacement consent and the independently selected convex STL export,
 including explicit lost-worker recovery. Feature selection, visible output and
 STL output remain distinct identities. Unsupported creation, Surface, construction,
 feature reordering and camera tools are not advertised by this first shell slice.
+
+### Selected extrusion drivers (#1948)
+
+Select an existing primary-model **Extrude**, then **Modify → Edit extrusion**.
+Height and start-Z fields that directly name a model parameter use the existing
+draft/Apply controller. Literals (including omitted start-Z = 0) and derived
+expressions are read-only. **Review model dimensions** returns to the existing
+global controls; this command does not rewrite expressions or authored literals.
+Named parameters update every use, including other fields and dependent features.
+
+The command pins its feature, accepted generation, controller lifetime and command
+instance; changing Browser selection does not retarget it. Closing/reopening
+options invalidates old callbacks, and controller replacement clears the command.
+Reopen after a model or output-view generation change.
+Unrelated pending dimensions route opening to the global editor. If they appear
+while options are open, local Apply is disabled and Cancel only closes, retaining
+those drafts. A current command's Cancel/Escape discards its drafts normally.
+Successful Apply and Undo/Redo retain the existing admission/history behavior.
+The focused local flow replays genuine round-post baseline geometry with mocked
+provider delivery and edited-state geometry; native edits and physical pixels are
+not newly measured by this UI slice.

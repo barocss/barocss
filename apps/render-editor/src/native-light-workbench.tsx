@@ -49,6 +49,8 @@ interface SurfaceTicket {
   mountEpoch: number; operationEpoch: number; trigger: HTMLButtonElement;
 }
 interface RotationCommand {axis: LightRotationAxis; space: LightRotationSpace; degrees: string}
+type BodyTask = 'overview' | 'move' | 'rotate' | 'scale' | 'material';
+const bodyTasks = {move: 'Move', rotate: 'Rotate', scale: 'Scale', material: 'Material'} as const;
 interface MaterialCopyChoice {
   session: RenderNativeLightSession; accepted: RenderNativeLightDocument;
   sourceBodyId: string; destinationBodyId: string;
@@ -83,6 +85,9 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   const [selected, setSelected] = useState<string | null>(null), [busy, setBusy] = useState(false);
   const [selectedBody, setSelectedBody] = useState<string | null>(null);
   const [inspectorFocus, setInspectorFocus] = useState<'body' | 'light' | 'camera' | 'scene'>('body');
+  const [bodyTask, setBodyTask] = useState<BodyTask>('overview');
+  const inspectorHeading = useRef<HTMLHeadingElement>(null);
+  const bodyTaskButtons = useRef<Partial<Record<Exclude<BodyTask, 'overview'>, HTMLButtonElement>>>({});
   const [materialCopy, setMaterialCopy] = useState<MaterialCopyChoice | null>(null);
   const materialCopyRef = useRef<MaterialCopyChoice | null>(null);
   const [rotationCommands, setRotationCommands] = useState<Map<string, RotationCommand>>(() => new Map());
@@ -100,6 +105,10 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
     if (selection.current.bodyId !== bodyId) {
       selection.current = {bodyId, epoch: selection.current.epoch + 1};
       materialCopyRef.current = null; setMaterialCopy(null);
+      // Switching targets ends only the task context, never any body's draft.
+      // A programmatic/picked selection must not strand focus in hidden inputs.
+      if (document.activeElement?.closest('[data-body-task-field]')) inspectorHeading.current?.focus({preventScroll: true});
+      setBodyTask('overview');
     }
     setSelectedBody(bodyId);
   };
@@ -645,6 +654,11 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   };
   const add = () => {try {const next = addLightFields(fields); edit(next); setSelected(next.lights.at(-1)!.nodeId); setInspectorFocus('light');} catch (cause) {report(cause);}};
   const remove = () => {if (light) {const next = {...fields, lights: fields.lights.filter(item => item !== light)}; edit(next); setSelected(next.lights[0]?.nodeId ?? null); setInspectorFocus('light');}};
+  const toggleLight = () => {
+    if (!light || actionBusy) return;
+    edit({...fields, lights: fields.lights.map(item => item.nodeId === light.nodeId
+      ? {...item, enabled: !item.enabled} : item)});
+  };
   const duplicateLight = () => {if (!light || actionBusy || fields.lights.length >= 4) return;
     try {const next = duplicateLightFields(fields, light.nodeId); edit(next); setSelected(next.lights.at(-1)!.nodeId); setInspectorFocus('light'); setNotice('Light copied into the scene draft. Apply to accept it.');}
     catch (cause) {report(cause, 'Light copy refused: ');}
@@ -666,6 +680,15 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
     if (!session || session.getStatus().state !== 'ready' || busyRef.current || navigationBusy.current
       || helpRef.current || openTicket.current || materialTicket.current || surfaceTicket.current || bodyCommandTicket.current) return;
     setInspectorFocus(focus);
+  };
+  const chooseBodyTask = (task: Exclude<BodyTask, 'overview'>) => {
+    if (rotationDisabled || !body || !rotationReady()) return;
+    setInspectorFocus('body'); setBodyTask(task);
+  };
+  const backToBody = () => {
+    if (rotationDisabled || !rotationReady()) return;
+    if (bodyTask !== 'overview') bodyTaskButtons.current[bodyTask]?.focus({preventScroll: true});
+    setBodyTask('overview');
   };
   const inspectorTarget = inspectorFocus === 'body' ? (snapshot?.accepted.nativeDocument.bodies.find(row => row.id === selectedBody)?.name ?? selectedBody ?? 'No body selected')
     : inspectorFocus === 'light' ? (light?.label || light?.nodeId || 'No light selected')
@@ -708,7 +731,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
             {(duplicateReason || removeBodyReason) && <small aria-label="Body command availability">{[...new Set([duplicateReason, removeBodyReason].filter(Boolean))].join(' ')}</small>}
           </div>
       <div role="group" aria-label="Light commands" className="light-command-group" hidden={inspectorFocus !== 'light'}><strong>Light</strong>
-          <Button size="sm" variant="outline" disabled={disabled || fields.lights.length >= 4} onClick={add}><Plus/>Add {kind}</Button> <Button size="sm" variant="outline" disabled={disabled || !light || fields.lights.length >= 4} onClick={duplicateLight}>Duplicate light</Button></div>
+          <Button size="sm" variant="outline" disabled={disabled || fields.lights.length >= 4} onClick={add}><Plus/>Add {kind}</Button> <Button size="sm" variant="outline" disabled={disabled || !light || fields.lights.length >= 4} onClick={duplicateLight}>Duplicate light</Button> <Button size="sm" variant="outline" disabled={disabled || !light} onClick={toggleLight}>{light?.enabled ? "Disable light" : "Enable light"}</Button></div>
       {(inspectorFocus === 'camera' || inspectorFocus === 'scene') && <span className="light-command-note">{inspectorFocus === 'camera' ? 'Edit the authored camera in the inspector. View controls change only the local camera.' : 'Scene title and ambient light are authored with the complete scene.'}</span>}
     </div>
     <div className="app-body" style={{minHeight: 0}}>
@@ -751,13 +774,32 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
               aria-label={'Inspect ' + focus} aria-pressed={inspectorFocus === focus} disabled={rotationDisabled}
               onClick={() => focusInspector(focus)}>{focus[0].toUpperCase() + focus.slice(1)}</Button>)}
           </div>
-          <h2 id="light-inspector-target">{inspectorTarget}</h2>
+          <h2 id="light-inspector-target" ref={inspectorHeading} tabIndex={-1}>{inspectorTarget}</h2>
           <small>{inspectorFocus === 'body' ? 'Display transform and bound material' : inspectorFocus === 'light' ? 'Selected authored light' : inspectorFocus === 'camera' ? 'Saved camera, separate from local view' : 'Document title and ambient light'}</small>
+          <div className="light-body-tasks" hidden={inspectorFocus !== 'body'}>
+            <div role="group" aria-label="Body editing tasks">
+              {(Object.keys(bodyTasks) as Exclude<BodyTask, 'overview'>[]).map(task => <Button key={task} size="sm" variant="outline"
+                ref={node => {if (node) bodyTaskButtons.current[task] = node; else delete bodyTaskButtons.current[task];}}
+                aria-label={'Edit body ' + bodyTasks[task]} aria-pressed={bodyTask === task} disabled={rotationDisabled || !body}
+                onClick={() => chooseBodyTask(task)}>{bodyTasks[task]}</Button>)}
+            </div>
+            <strong aria-label="Active body task">{bodyTask === 'overview' ? 'Body overview' : bodyTasks[bodyTask]}</strong>
+            <Button size="sm" variant="ghost" hidden={bodyTask === 'overview'} disabled={rotationDisabled} onClick={backToBody}>Back to body overview</Button>
+          </div>
         </header>
         <div className="light-inspector-fields" aria-label="Inspector fields" role="region" aria-labelledby="light-inspector-target">
-        {body && <section style={{...sectionStyle, display: 'grid', gap: 14}} aria-label="Body transform" hidden={inspectorFocus !== 'body'}>
-          <strong>Body transform</strong><small>{body.bodyId}</small>
-          {(['position', 'scale'] as const).map(key => <fieldset key={key} style={{border: 0, margin: 0, padding: 0, minWidth: 0}}>
+        {body && <section style={{...sectionStyle, display: 'grid', gap: 14}} aria-label="Body overview" hidden={inspectorFocus !== 'body' || bodyTask !== 'overview'}>
+          <strong>Selected body</strong><small>{body.bodyId}</small>
+          <p>Choose Move, Rotate, Scale or Material above. Task changes and Back keep every raw draft. Select another body to return to its overview.</p>
+          <Button size="sm" variant="outline" disabled={rotationDisabled || !snapshot?.accepted.display.visibleBodyIds.includes(body.bodyId)
+            || !snapshot?.accepted.surfaceMaterials.some(value => value.target.bodyId === body.bodyId)} onClick={exportSource}>Export accepted CAD source</Button>
+          <small>Complete original asset in native mm, including its other objects. Accepted point edits are included; scene transforms, materials and drafts are not.</small>
+          <Button size="sm" variant="outline" disabled={rotationDisabled} onClick={resetBodyTransform}>Stage reset transform</Button>
+          <small>Replaces this body's position, rotation and scale fields with origin, identity and unit scale. Other drafts stay. Apply accepts the reset.</small>
+        </section>}
+        {body && <section data-body-task-field style={{...sectionStyle, display: 'grid', gap: 14}} aria-label="Body transform" hidden={inspectorFocus !== 'body' || bodyTask === 'overview' || bodyTask === 'material'}>
+          <strong>{bodyTask === 'move' ? 'Move body origin' : bodyTask === 'scale' ? 'Scale body' : 'Rotate body'}</strong><small>{body.bodyId}</small>
+          {(['position', 'scale'] as const).map(key => <fieldset key={key} hidden={bodyTask !== (key === 'position' ? 'move' : 'scale')} style={{border: 0, margin: 0, padding: 0, minWidth: 0}}>
             <legend style={{marginBottom: 7}}>{key === 'position' ? 'Origin position (mm)' : 'Scale (dimensionless)'}</legend>
             <div style={{display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 7}}>{['X', 'Y', 'Z'].map((axis, index) => <div key={axis}>
               {numberInput('Body ' + key + ' ' + axis + (key === 'position' ? ' (mm)' : ''), body[key][index], value => {
@@ -765,7 +807,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
               })}
             </div>)}</div>
           </fieldset>)}
-          <fieldset style={{border: 0, margin: 0, padding: 0, display: 'grid', gap: 8}} disabled={rotationDisabled}>
+          <fieldset hidden={bodyTask !== 'rotate'} style={{border: 0, margin: 0, padding: 0, display: 'grid', gap: 8}} disabled={rotationDisabled}>
             <legend style={{marginBottom: 7}}>Rotate by</legend>
             <div style={{display: 'grid', gridTemplateColumns: '70px minmax(0,1fr)', gap: 7}}>
               <label style={{display: 'grid', gap: 5}}>Axis<select aria-label="Rotation axis" value={rotationCommand.axis} style={fieldStyle} disabled={rotationDisabled}
@@ -786,15 +828,10 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
             </div>
             <small>About the body origin. Position and scale stay fixed. Stage adds to the current draft; Apply accepts it. Zero and full turns keep the original orientation.</small>
           </fieldset>
-          <Button size="sm" variant="outline" disabled={rotationDisabled || !snapshot?.accepted.display.visibleBodyIds.includes(body.bodyId)
-            || !snapshot?.accepted.surfaceMaterials.some(value => value.target.bodyId === body.bodyId)} onClick={exportSource}>Export accepted CAD source</Button>
-          <small>Complete original asset in native mm, including its other objects. Accepted point edits are included; scene transforms, materials and drafts are not.</small>
-          <Button size="sm" variant="outline" disabled={rotationDisabled} onClick={resetBodyTransform}>Stage reset transform</Button>
-          <small>Replaces this body's position, rotation and scale fields with origin, identity and unit scale. Other drafts stay. Apply accepts the reset.</small>
-          <details><summary>Advanced quaternion (read-only)</summary><output aria-label="Body rotation XYZW" style={{overflowWrap: 'anywhere'}}>{body.rotation.join(', ')}</output></details>
+          <details hidden={bodyTask !== 'rotate'}><summary>Advanced quaternion (read-only)</summary><output aria-label="Body rotation XYZW" style={{overflowWrap: 'anywhere'}}>{body.rotation.join(', ')}</output></details>
           <small>Visibility is retained. Display transforms do not edit CAD geometry. Apply accepts every body's draft with camera and light edits.</small>
         </section>}
-        {body && <section style={{...sectionStyle, display: 'grid', gap: 12}} aria-label="Body material" hidden={inspectorFocus !== 'body'}>
+        {body && <section data-body-task-field style={{...sectionStyle, display: 'grid', gap: 12}} aria-label="Body material" hidden={inspectorFocus !== 'body' || bodyTask !== 'material'}>
           <strong>Body material</strong>
           {material ? <>
             <small>{material.documentId} · revision {material.revision} · body {body.bodyId}</small>
@@ -866,6 +903,11 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
         <footer className="light-transaction-bar" aria-label="Whole-scene draft actions">
           <strong>{dirty ? 'Unapplied scene draft' : 'No unapplied changes'}</strong>
           <small>Apply and Discard affect all scene drafts, including hidden sections.</small>
+          {error && <div className="light-draft-routes" aria-label="Body draft correction routes">
+            <small>Keep the reported error in view. Select the body to correct in Scene bodies, then use Move for position, Scale for scale, or Material for uniforms. Light, Camera and Scene fields are under their inspector targets.</small>
+            {(['move', 'scale', 'material'] as const).map(task => <Button key={task} size="sm" variant="outline" disabled={rotationDisabled || !body}
+              aria-label={'Review body ' + bodyTasks[task]} onClick={() => chooseBodyTask(task)}>{bodyTasks[task]}</Button>)}
+          </div>}
           <div><Button disabled={disabled || !dirty} onClick={apply}>Apply</Button><Button variant="outline" disabled={actionBusy || !snapshot || status !== 'ready' || !dirty} onClick={discard}>Discard</Button></div>
         </footer>
       </aside>
