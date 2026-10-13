@@ -62,5 +62,5 @@ export type { PrismDisplayPacket, PrismDisplayComponent, PrismDisplayScene, Pris
 
 export type { ModelingDisplayPacket, ModelingDisplayScene, ModelingFaceSelection, ModelingHoleDisplayComponent } from './modeling-scene.js';
 
-export type { ModelingUnionDisplayComponent, ModelingUnionPanel } from './modeling-union.js';
-export type { ModelingUnionFaceSelection } from './modeling-scene.js';
+export type { ModelingUnionDisplayComponent, ModelingUnionPanel, ModelingOrthogonalDisplayComponent, ModelingOrthogonalPanel } from './modeling-union.js';
+export type { ModelingUnionFaceSelection, ModelingOrthogonalFaceSelection } from './modeling-scene.js';

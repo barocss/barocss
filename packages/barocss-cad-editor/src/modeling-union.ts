@@ -21,7 +21,7 @@ export interface ModelingUnionDisplayComponent {
 }
 type Tessellator = (surface: Surface, options: { countU: number; countV: number; revision: number }) => {
   packet: { positions: number[]; normals: number[]; parameters: number[]; indices: number[] } };
-function check(value: unknown, message: string): asserts value { if (!value) throw new Error('Union display: ' + message); }
+function check(value: unknown, message: string): asserts value { if (!value) throw new Error('Orthogonal display: ' + message); }
 const equal = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 function exact(value: object, fields: string[]): void {
   check(value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length === fields.length
@@ -32,10 +32,10 @@ function safe(value: number): number { check(Number.isSafeInteger(value), 'safe 
 function tuple(v: number[], size: number): void { check(Array.isArray(v) && v.length === size && v.every(Number.isSafeInteger), 'integer tuple required'); }
 function unique(values: string[]): void { values.forEach(id); check(new Set(values).size === values.length, 'duplicate native identities'); }
 /** All outputs call this before any output tessellation, including hidden convex operands. */
-export function preflightModelingUnion(native: Native): void {
+export function preflightModelingUnion(native: Native, operation: 'union' | 'difference' = 'union'): void {
   check(native.panels.length >= 1 && native.panels.length <= 64, 'complete preview requires 1..64 panels; native limit72 is separate');
-  check(native.report.operation === 'union' && native.report.bodyCount === 1 && native.bodies.length === 1
-    && native.report.solid === true && native.report.empty === false, 'one positive-volume union body required');
+  check(['union', 'difference'].includes(operation) && native.report.operation === operation && native.report.bodyCount === 1 && native.bodies.length === 1
+    && native.report.solid === true && native.report.empty === false, 'one positive-volume matching orthogonal body required');
   check(native.report.panelCount === native.panels.length && native.sources.length === native.panels.length
     && native.report.sourceCount === native.panels.length, 'complete native panel/source inventory');
   check(safe(native.report.volumeMM3) > 0 && native.report.volumeMM3 <= 2e12
@@ -71,8 +71,8 @@ export function modelingUnionPanelUV(topology: ModelingUnionPanel['topology']): 
   return [0, 3, 1, 2].flatMap(i => uv.get(vertices[i].id)!);
 }
 /** Worker-only raw surface sampling. No axis conversion and no Boolean revalidation here. */
-export function projectModelingUnion(native: Native, role: string, context: OwnPlateHolePreviewContext, tessellate: Tessellator): ModelingUnionDisplayComponent {
-  preflightModelingUnion(native);
+export function projectModelingUnion(native: Native, role: string, context: OwnPlateHolePreviewContext, tessellate: Tessellator, operation: 'union' | 'difference' = 'union'): ModelingUnionDisplayComponent {
+  preflightModelingUnion(native, operation);
   const panels: ModelingUnionPanel[] = [], chunks: OwnNativeFaceMesh['chunks'] = [];
   for (const panel of native.panels) {
     const source = native.sources.find(s => s.sourceId === panel.sourceId), shell = native.shells.find(s => s.panelIds.includes(panel.id));
@@ -124,7 +124,7 @@ export function validateModelingUnion(component: ModelingUnionDisplayComponent):
   exact(component, ['family', 'role', 'solidId', 'mesh', 'qualification', 'lineage']);
   const { qualification: q, lineage: l, mesh } = component;
   exact(q, ['schema', 'version', 'operation', 'geometryFamily', 'lengthUnit', 'empty', 'solid', 'cellCount', 'occupiedCellCount', 'vertexCount', 'edgeCount', 'panelCount', 'shellCount', 'bodyCount', 'sourceCount', 'volumeMM3', 'areaMM2', 'incidence', 'numericPolicy', 'quality']);
-  check(q.schema === 'barocss-axis-box-solid-boolean' && q.version === 0 && q.operation === 'union' && q.geometryFamily === 'exact-integer-orthogonal-cell-solid-v0'
+  check(q.schema === 'barocss-axis-box-solid-boolean' && q.version === 0 && ['union', 'difference'].includes(q.operation) && q.geometryFamily === 'exact-integer-orthogonal-cell-solid-v0'
     && q.lengthUnit === 'mm' && q.empty === false && q.solid === true && q.bodyCount === 1, 'restricted integer-cell qualification required');
   check(equal(q.quality, { restrictedCellModelEmbeddingCertified: true, restrictedBoundaryManifoldCertified: true, regularizedMaterialCertified: true,
     arbitraryCurvedSolidCertified: false, globalBinary64EvaluationErrorCertified: false, manufacturingToleranceCertified: false,
@@ -147,7 +147,7 @@ export function validateModelingUnion(component: ModelingUnionDisplayComponent):
   for (const cell of l.cells) {
     exact(cell, ['index', 'insideA', 'insideB', 'occupied', 'bodyId', 'emptyRegionId', 'volumeMM3']); tuple(cell.index, 3);
     check(cell.index.every((v, a) => v >= 0 && v + 1 < grid[a].length) && !cells.has(cell.index.join(',')), 'complete unique cell grid'); cells.add(cell.index.join(','));
-    check(typeof cell.insideA === 'boolean' && typeof cell.insideB === 'boolean' && cell.occupied === (cell.insideA || cell.insideB), 'union cell occupancy');
+    check(typeof cell.insideA === 'boolean' && typeof cell.insideB === 'boolean' && cell.occupied === (q.operation === 'union' ? cell.insideA || cell.insideB : cell.insideA && !cell.insideB), 'operation-specific cell occupancy');
     const size = cell.index.map((v, a) => safe(grid[a][v + 1] - grid[a][v])); const value = safe(safe(size[0] * size[1]) * size[2]);
     check(value === cell.volumeMM3 && cell.bodyId === (cell.occupied ? body.id : null), 'native cell volume/body');
     if (cell.occupied) { volume = safe(volume + value); occupied.push(cell.index); }
@@ -251,3 +251,7 @@ export function validateModelingUnion(component: ModelingUnionDisplayComponent):
   check(equal(q.incidence, { allBoundaryTilesAccounted: true, internalFacesCancelled: true, everyEdgeTwoOppositeUses: true, orientedVertexLinksSingleCycles: true,
     cornerCount: l.panels.length * 4, edgeUseCount: l.panels.length * 4, panelEdgeEquation: true }), 'native incidence qualification');
 }
+
+/** Neutral aliases; the original union names remain source-compatible. */
+export type ModelingOrthogonalPanel = ModelingUnionPanel;
+export type ModelingOrthogonalDisplayComponent = ModelingUnionDisplayComponent;

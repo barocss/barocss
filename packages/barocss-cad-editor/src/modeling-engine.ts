@@ -15,7 +15,7 @@ export interface CadEditorModelingSummary {
 }
 export type CadEditorModelingSplitAxis = 'x' | 'y' | 'z';
 /** The split example ID is retained for compatibility; splitAxis defaults to Z. */
-export type CadEditorModelingExample = 'cut-chamfer' | 'intersection' | 'horizontal-split' | 'two-chamfer' | 'chamfer-split' | 'derived-split' | 'miter-split' | 'configurable-finishes' | 'mounting-plate' | 'union-bracket';
+export type CadEditorModelingExample = 'cut-chamfer' | 'intersection' | 'horizontal-split' | 'two-chamfer' | 'chamfer-split' | 'derived-split' | 'miter-split' | 'configurable-finishes' | 'mounting-plate' | 'union-bracket' | 'underside-pocket';
 export type ModelingCommand = { id: number; taskToken?: string } & (
   { kind: 'example'; example?: CadEditorModelingExample; splitAxis?: CadEditorModelingSplitAxis } | { kind: 'open'; text: string; revision?: number }
   | { kind: 'apply'; expectedRevision: number; parameters: Record<string, number> }
@@ -57,6 +57,18 @@ export function createCadEditorMountingPlateModel(): CadModelSnapshot {
   const blank = model.sketch.rectangle({ width, height: depth }).extrude(height);
   const plate = blank.hole({ center: [centerX, centerY], radius });
   return model.build({ blank, plate });
+}
+
+/** Exact adopted underside-pocket recipe; numeric depth enters from Z=0. */
+export function createCadEditorPocketModel(): CadModelSnapshot {
+  const model = cad.model();
+  const toolX = model.parameter('toolX', 8), toolY = model.parameter('toolY', 8);
+  const toolWidth = model.parameter('toolWidth', 16), toolSpanY = model.parameter('toolSpanY', 8), depth = model.parameter('depth', 4);
+  const plate = model.sketch.rectangle({ min: [-0, 0], max: [32, 24] }).extrude(8);
+  const tool = model.sketch.rectangle({ min: [toolX, toolY],
+    max: [model.dimension.add(toolX, toolWidth), model.dimension.add(toolY, toolSpanY)] }).extrude(depth);
+  const part = plate.cut(tool);
+  return model.build({ plate, tool, part });
 }
 
 /** Exact owned rectangular union recipe from the measured provider fixture. */
@@ -181,7 +193,7 @@ export function createModelingEngine() {
       if (!command || !Number.isSafeInteger(command.id) || command.id < 1) throw new Error('A current worker request is required.');
       if (command.taskToken !== undefined && (typeof command.taskToken !== 'string' || !/^[A-Za-z0-9_-]{1,48}$/.test(command.taskToken)))
         throw new Error('A bounded current display task token is required.');
-      if (command.kind === 'example' && command.example !== undefined && command.example !== 'cut-chamfer' && command.example !== 'intersection' && command.example !== 'horizontal-split' && command.example !== 'two-chamfer' && command.example !== 'chamfer-split' && command.example !== 'derived-split' && command.example !== 'miter-split' && command.example !== 'configurable-finishes' && command.example !== 'mounting-plate' && command.example !== 'union-bracket')
+      if (command.kind === 'example' && command.example !== undefined && command.example !== 'cut-chamfer' && command.example !== 'intersection' && command.example !== 'horizontal-split' && command.example !== 'two-chamfer' && command.example !== 'chamfer-split' && command.example !== 'derived-split' && command.example !== 'miter-split' && command.example !== 'configurable-finishes' && command.example !== 'mounting-plate' && command.example !== 'union-bracket' && command.example !== 'underside-pocket')
         throw new Error('Choose an available modeling example.');
       if (command.kind === 'example' && command.splitAxis !== undefined
         && (command.example === 'chamfer-split' ? !['x', 'z'].includes(command.splitAxis)
@@ -222,6 +234,7 @@ export function createModelingEngine() {
       }
       if (source !== 'model') throw new Error('Open a saved model first.');
       const snapshot = command.kind === 'example' ? (command.example === 'intersection' ? createCadEditorIntersectionModel()
+        : command.example === 'underside-pocket' ? createCadEditorPocketModel()
         : command.example === 'union-bracket' ? createCadEditorUnionBracketModel()
         : command.example === 'mounting-plate' ? createCadEditorMountingPlateModel()
         : command.example === 'configurable-finishes' ? createCadEditorConfigurableFinishesModel()
@@ -238,16 +251,24 @@ export function createModelingEngine() {
       // The codec owns canonical key order. Keep initial and reopened display inventories identical.
       const authored = JSON.parse(text) as { nodes: { kind: string }[]; outputs: Record<string, { node: number }> };
       const outputNames = Object.keys(authored.outputs);
-      // Difference shares the union body family, but has no admitted preview. Inspect the
-      // trusted saved output references before reading any output's native payload or summary.
-      if (outputNames.some(name => authored.nodes[authored.outputs[name].node].kind === 'difference'))
-        throw new Error('Authored difference outputs require an unsupported nonconvex preview.');
-      // Admit every output family before reading native summaries or tessellating any output.
-      const outputs = outputNames.map(name => {
-        const body = snapshot.bodies[name];
+      const operation = (name: string): 'union' | 'difference' => {
+        const kind = authored.nodes[authored.outputs[name].node]?.kind;
+        if (kind !== 'union' && kind !== 'difference') throw new Error('Orthogonal output must name its authored operation.');
+        return kind;
+      };
+      // Validate the whole trusted authored inventory before reading any native payload.
+      const inventory = outputNames.map(name => {
+        const body = snapshot.bodies[name], kind = authored.nodes[authored.outputs[name].node]?.kind;
+        if (!body || ((kind === 'union' || kind === 'difference') !== (body.family === 'orthogonal-cell'))
+          || ((kind === 'hole') !== (body.family === 'stored-rational-plate-hole')))
+          throw new Error('Authored output kind differs from its native body family.');
+        return [name, body] as const;
+      });
+      // Complete all preflights, including hidden outputs, before any tessellation.
+      const outputs = inventory.map(([name, body]) => {
         switch (body.family) {
           case 'convex-planar': case 'stored-rational-plate-hole': return [name, body] as const;
-          case 'orthogonal-cell': preflightModelingUnion(body.native); return [name, body] as const;
+          case 'orthogonal-cell': preflightModelingUnion(body.native, operation(name)); return [name, body] as const;
           default: { const unsupported: never = body; throw new Error(`Unsupported model body family: ${String(unsupported)}`); }
         }
       });
@@ -292,7 +313,7 @@ export function createModelingEngine() {
           ? { family: 'convex-planar', component: convex(name, body.native) }
           : body.family === 'stored-rational-plate-hole' ? hole(name, body.native)
             : projectModelingUnion(body.native, name, { documentId: summary.documentId, bodyId: body.native.bodies[0].id, documentRevision: String(revision),
-              kernelResultRevision: String(revision), topologyRevision: String(revision), taskToken: command.taskToken! }, tessellateSurface)),
+              kernelResultRevision: String(revision), topologyRevision: String(revision), taskToken: command.taskToken! }, tessellateSurface, operation(name))),
         outcomes: summary.outputs.map(o => ({ role: o.name, solidId: o.solidId, family: o.family!, status: 'solid' })) }
         : { profile: 'model-outputs', documentId: summary.documentId, revision,
           components: outputs.map(([name, body]) => {

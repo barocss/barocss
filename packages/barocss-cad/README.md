@@ -79,9 +79,13 @@ bodies refuse with their complete native result retained as the error cause.
 The existing `cut(tool,{axis:'x'|'y'})` remains a through-slab **pair**; omitted
 options return one **shape**, while explicit undefined/empty options refuse.
 Save/cold load and atomic dimension edits use the same API and unchanged helpers.
-This provider slice has no difference editor preview: current union/hole scenes
-remain accepted on refusal. See the [bounded authoring contract](CONCISE_API.md#cut-an-underside-recess-or-through-window)
-and [display dependency](https://github.com/barocss/barocss/issues/1119).
+The follow-up editor adapter now supports this bounded pocket/window packet and
+an underside-pocket preset, with complete64-panel admission, exact operation/UV/
+lineage checks and atomic refusal retention. This software scope does not establish
+actual browser/GPU rendering or physical Save/Open acceptance; that external gate
+remains OPEN in [#1653](https://github.com/barocss/barocss/issues/1653). See the
+[bounded authoring contract](CONCISE_API.md#cut-an-underside-recess-or-through-window)
+and [wider display dependency](https://github.com/barocss/barocss/issues/1119).
 
 ## Editable overlap parts
 

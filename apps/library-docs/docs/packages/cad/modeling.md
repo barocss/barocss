@@ -71,6 +71,34 @@ The [adopted two-chamfer source](https://github.com/barocss/barocss/blob/63f7462
 
 Lightweight tracing compares the same nine parameter/rectangle/extrude/edge/chamfer authoring calls and final named output in the editor, this download and the provider fixture. The unchanged 41,471-byte genuine baseline DTO is replayed through the actual controller/CPU scene with a mocked Worker. This establishes transport, output identity and approximate CPU picking, not new native execution or actual sample-worker/browser/GPU execution. Editor browser/GPU and physical file dialogs remain **UNRUN** in this consumer check; live manual deployment is a separate gate.
 
+## Cut an underside pocket or through-window
+
+<a :href="withBase('/examples/modeling-pocket.ts')" download>Download the complete typed underside-pocket example</a>
+
+In the editor's **Model a part** route, choose **Cut an underside pocket** (`underside-pocket`), acknowledge replacement, then load it. The exact `recessedPlate` recipe creates `toolX:8`, `toolY:8`, `toolWidth:16`, `toolSpanY:8`, `depth:4` in that order. A 32 × 24 × 8 mm plate and the rectangular tool both begin at **Z=0**. The tool's upper XY corner uses owned `add` dimensions, and `plate.cut(tool)` returns the retained part. This is an underside-entry recess; it is not a top-entry pocket or a buried cavity. The old two-argument `cut(tool,{axis})` still returns its through-slab pair.
+
+<<< ../../public/examples/modeling-pocket.ts
+
+Edit the tool origin X/Y, X width, Y span and positive Z depth. Baseline depth4 retains **5632 mm³**; depth8 creates a through-window retaining **5120 mm³**. The provider also measured depth6 at5376 mm³. Apply uses the existing atomic parameter transaction, with Undo/Redo and refusal retention. Pending drafts require Apply or Discard before replacing the example. A refused empty or multiple-body candidate keeps the accepted part, saved text and history.
+
+The preset selects `part`. `build({plate,tool,part})` preserves all three authored outputs; canonical saved order is `part,plate,tool`. Generic Open initially selects `tool`; choose `part` to inspect the pocket. This is not view restoration. The chooser changes only the displayed output, without changing dimensions, revision, history or saved outputs. Hidden plate/tool geometry cannot cover the opening, and all outputs are validated before any output tessellation. Files with another output map retain generic chooser wording.
+
+### Material, panels and receiving checks
+
+The `orthogonal-cell` result has exact positive safe-integer volume under its restricted integer-box contract. The adapter binds the trusted authored `difference` node to the same native operation, uses `insideA && !insideB`, and checks complete cell/signed-shell volume conservation with safe-integer products. It does not infer material from an output's name. Empty and multiple-body results are refused. This does not add arbitrary curved Boolean support or manufacturing-tolerance certification.
+
+The complete preview ceiling is **64 panels**, distinct from the provider's72-panel limit. A 65-panel candidate refuses before any output tessellation; no truncation. Baseline has46 panels and the window32. Tool-contributed walls and the pocket ceiling retain `relativeOrientation:-1` against the original cutter faces. Ordered native pcurve cycles, four distinct UV corners, native vertex order, outward material winding and original Source0/model/surface/face lineage are preserved without array repair. Raw `part-xyz` coordinates pass through `[x,z,-y]` exactly once; approximate triangle picks retain generated-panel and contributing-operand identities.
+
+### Evidence and open visual gate
+
+The [adopted provider](https://github.com/barocss/barocss/blob/deced366e75be0f27a02602d7655c555d7f6167e/packages/barocss-cad/test/modeling-box-cut-evidence/verification.json) records its original eight-model campaign. After the unpublished consumer workspace was lost, a separately authorized replacement run generated fresh fixtures with **two model calls, one CPU preparation, one Boolean reconstruction and46 panel tessellations**. Those new baseline/window bytes match the historical transfer hashes. The historical consumer acceptance is not reused for reconstructed source.
+
+The baseline retains actual helper position/normal/index arrays,184 vertices and92 triangles. The helper did not retain sampled UV arrays: replay copies the original native pcurve coefficients with exact identity/order checks and labels the raw packet adapted. The window is a genuine native body with **no retained tessellation**; its CPU projection is explicitly topology-derived. Convex operand fan projection uses a native-validation stub. Controller changed-state geometry is mocked except the exact baseline and the topology-derived depth8 window. These focused receiving-realm tests are not another native campaign.
+
+CPU rays hit the baseline underside ceiling atZ4, the top atZ8 and inward side walls; rays through the window center miss from above and below, while the surrounding rim remains hittable. Malformed UV/cycle/winding, operation/volume mismatch, hidden-output tampering, stale context and cloned authority are refused. Source/emitted type checks and the qualified package-boundary build are separate software gates.
+
+**External visual gate OPEN** in [#1653](https://github.com/barocss/barocss/issues/1653): actual editor browser/GPU/React interactions and physical Save/Open dialogs still need external screen verification. Live Manual verification proves documentation delivery only. The existing [hole](https://github.com/barocss/barocss/issues/1644), [union](https://github.com/barocss/barocss/issues/1647) and [wider renderer](https://github.com/barocss/barocss/issues/1119) gates remain separate.
+
 ## Fuse two rectangular extrusions
 
 <a :href="withBase('/examples/modeling-union.ts')" download>Download the complete typed L-bracket example</a>
@@ -467,6 +495,7 @@ See the [complete typed primary-API example](https://github.com/barocss/barocss/
 | Intersect | Two distinct same-model direct XY extrusions; positive-volume exact convex-planar overlap | Disjoint/touching-only results, same handle, cut-plus-intersection, repeated/nested intersection, union or general Boolean solids |
 | Split | A direct XY extrusion or one/two owned serial chamfers rooted at it; world `axis: 'x'`, `'y'` or `'z'`, or fixed `plane: 'x+y'`, with a finite coordinate/coordinate-sum; each selected side must be nonempty | Arbitrary oblique plane, empty requested side, mixed cut/intersection/split graph, repeated/nested split |
 | Hole | One direct origin-aligned rectangular extrusion with safe-integer width/depth/height, a strictly contained finite centre/radius and successful stored-rational qualification | Tangent/outside holes, nonrectangular or moved parents, repeated holes, mixed chamfer/split/cut/intersection; see the mounting-plate limits below |
+| Rectangular difference | One same-model pair of direct integer rectangular extrusions; underside recess or through-window, one positive-volume result | Empty/multiple bodies, arbitrary curved operands; complete display requires at most64 panels |
 | Union | Two distinct same-model direct authored rectangular XY extrusions with integer corners/sizes; one connected positive-volume integer-cell result, including face joins | Edge-only contact, disconnected bodies, nesting, union edge queries or mixed finishing/Boolean/hole graphs; display additionally requires at most 64 complete panels |
 | Select | One exact cardinal-direction/endpoint-coordinate query on the same body | Zero/multiple matches, handles from another model/body, tolerance or persistent-topology matching |
 | Chamfer | Up to two serial owned cardinal-edge chamfers; second parent/selector from the first result; perpendicular signed-axis adjacent supports and supported endpoints; positive local setback | Sibling/third chamfer, stale selectors, curved or arbitrary-angle chamfer, zero/excessive/touching/nonlocal setback; unmeasured feature combinations |

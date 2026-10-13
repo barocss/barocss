@@ -282,12 +282,12 @@ export function prepareModelingScene(input: ModelingDisplayPacket, aspect = 1, s
         components: [component.component], outcomes: [{ role: outcome.role, solidId: outcome.solidId, status: 'solid' }] }, 'result', aspect);
       convex.set(outcome.role, display); scenes.set(outcome.role, display.scene);
     } else if (component.family === 'orthogonal-cell') {
-      check(component.role === outcome.role && component.solidId === outcome.solidId, 'union output identity required');
+      check(component.role === outcome.role && component.solidId === outcome.solidId, 'orthogonal output identity required');
       validateModelingUnion(component);
       const context = component.mesh.context;
       check(context.documentId === packet.documentId && context.bodyId === component.solidId && context.taskToken === packet.taskToken
         && context.documentRevision === String(packet.revision) && context.kernelResultRevision === String(packet.revision)
-        && context.topologyRevision === String(packet.revision), 'union request/document/revision/body context mismatch');
+        && context.topologyRevision === String(packet.revision), 'orthogonal request/document/revision/body context mismatch');
       const prepared = prepareKernelFacePreview(component.mesh, { displayId: component.role, packetRevision: packet.revision });
       nativeFaces.set(outcome.role, prepared); scenes.set(outcome.role, sceneForNative(component, prepared, aspect));
     } else {
@@ -329,3 +329,5 @@ export function pickModelingScene(display: ModelingDisplayScene, width: number, 
   return structuredClone({ family: 'stored-rational-plate-hole', documentId: authority.packet.documentId, revision: authority.packet.revision,
     role: component.role, solidId: component.solidId, reference: binding.reference, provenance, lineage: component.lineage, triangleIndex: hit.triangleIndex, approximate: true });
 }
+
+export type ModelingOrthogonalFaceSelection = ModelingUnionFaceSelection;

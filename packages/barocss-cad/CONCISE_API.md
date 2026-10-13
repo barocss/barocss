@@ -201,13 +201,14 @@ reuses0/1 and evaluates2/3/4. These are model-feature indices, not total native 
 Refused candidates leave the same previous snapshot and future reuse intact.
 The legacy axis-cut schema and saved fixtures are unchanged.
 
-**Difference preview is unavailable in the editor.** Its current union panel
-adapter does not implicitly admit cut-tool orientation or pocket/window material.
-All difference outputs refuse before native preview access or tessellation, and
-controller downgrade/legacy guards preserve the accepted scene/history. A later
-consumer must verify the complete panel/UV/operand contract and the64-panel
-preview ceiling; the native bound remains72. Native CPU buffers alone are not
-visible rendering proof. The wider display dependency remains
+**A bounded difference software adapter is available in the editor.** The
+underside-pocket preset reuses the orthogonal panel path with explicit authored
+operation, cavity orientation, material occupancy and complete native UV/lineage
+checks. All outputs, including hidden operands, pass admission before sampling;
+the complete preview ceiling is64 panels while the native bound remains72.
+Copied qualification and CPU picking do not prove visible rendering. Actual
+browser/GPU/React and physical-file acceptance remains OPEN in
+[#1653](https://github.com/barocss/barocss/issues/1653); the broader dependency is
 [#1119](https://github.com/barocss/barocss/issues/1119).
 
 ## Keep dimensions related during edits

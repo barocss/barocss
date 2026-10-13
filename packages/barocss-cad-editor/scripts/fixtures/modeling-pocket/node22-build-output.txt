@@ -1,0 +1,43 @@
+Normalized display transcript; ANSI and trailing whitespace removed. Raw log hash is retained in verification.json.
+
+(node:4) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:13) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Checked editor declarations emitted.
+(node:39) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 102 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/assets/prism-feature-worker-BGYD43ee.js    353.98 kB
+dist/assets/split-worker-CxBObjKB.js            613.11 kB
+dist/assets/modeling-worker-DuXqGjc9.js         666.92 kB
+dist/modeling-controller-7FNVSX-a.js            111.82 kB │ gzip:  29.80 kB
+dist/index.js                                   276.94 kB │ gzip:  44.01 kB
+dist/react/index.js                           1,114.10 kB │ gzip: 221.37 kB
+
+[MODULE_LEVEL_DIRECTIVE] The semantics of the module level directive "use client" in "src/react/ui/label.tsx" may not be preserved when bundling.
+   ╭─[ src/react/ui/label.tsx:1:1 ]
+   │
+ 1 │ "use client";
+   │ ──────┬──────
+   │       ╰──────── module level directive may not be preserved
+   │
+   │ Help: For more information, see https://rolldown.rs/in-depth/directives#other-directives
+───╯
+
+[MODULE_LEVEL_DIRECTIVE] The semantics of the module level directive "use client" in "src/react/ui/dialog.tsx" may not be preserved when bundling.
+   ╭─[ src/react/ui/dialog.tsx:1:1 ]
+   │
+ 1 │ "use client";
+   │ ──────┬──────
+   │       ╰──────── module level directive may not be preserved
+   │
+   │ Help: For more information, see https://rolldown.rs/in-depth/directives#other-directives
+───╯
+
+✓ built in 451ms
+Owned editor ESM, declarations and scoped CSS emitted. Main native dependencies remain external; worker dependencies are bundled.

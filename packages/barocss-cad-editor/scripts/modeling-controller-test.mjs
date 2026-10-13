@@ -140,7 +140,7 @@ try {
       }
     }
     worker.send(candidate); await pending;
-    assert.match(guarded.getSnapshot().error, mode.startsWith('legacy') ? /Legacy files cannot author.*difference/ : /difference outputs.*unsupported nonconvex/);
+    assert.match(guarded.getSnapshot().error, mode.startsWith('legacy') ? /Legacy files cannot author.*difference/ : /tagged body-face transport|output family|authored operation/);
     assert.deepEqual(stable(guarded), before); assert.equal(commits, commitCount); assert.equal(worker.terminated, true); checks++;
     // Recovery must reconstruct the previous accepted source, retaining the pending dimension edit.
     pending = guarded.apply(); worker = instances.at(-1);

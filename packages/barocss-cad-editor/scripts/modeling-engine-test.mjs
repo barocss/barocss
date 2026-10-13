@@ -194,7 +194,7 @@ const familyEngine = create();
 const familyBaseline = familyEngine({ id: ++id, kind: 'open', text: JSON.stringify(document) });
 assert.equal(familyBaseline.ok, true);
 const acceptedFamilySnapshot = snapshots.at(-1), familyText = familyBaseline.text, familyDisplay = JSON.stringify(familyBaseline.display), beforeHoleTessellations = tessellations;
-const refusedHole = familyEngine({ id: ++id, kind: 'open', text: JSON.stringify({ ...document, hole: true }) });
+const refusedHole = familyEngine({ id: ++id, kind: 'open', text: JSON.stringify({ ...document, nodes:[...document.nodes,{kind:'hole'}], outputs:{part:{node:2,side:'solid'}}, hole: true }) });
 assert.equal(refusedHole.ok, false); assert.match(refusedHole.message, /current display task token/);
 assert.equal(unsupportedNativeReads, 0); assert.equal(tessellations, beforeHoleTessellations);
 assert.equal(familyBaseline.text, familyText); assert.equal(JSON.stringify(familyBaseline.display), familyDisplay); checks++;
@@ -232,14 +232,14 @@ assert.equal(holeReopened.ok,true);assert.deepEqual(holeReopened.summary,holeRec
 for(const kind of ['convex','hole']) {
  const guarded=create(),baseline=kind==='hole'?guarded({id:++id,kind:'example',example:'mounting-plate',taskToken:'union_guard_hole'}):guarded({id:++id,kind:'open',text:JSON.stringify(document)});
  assert.equal(baseline.ok,true);const accepted=snapshots.at(-1),text=baseline.text,display=JSON.stringify(baseline.display),before=tessellations+holeTessellations;
- const refused=guarded({id:++id,kind:'open',text:JSON.stringify({...document,union:true}),taskToken:'union_refusal'});
+ const refused=guarded({id:++id,kind:'open',text:JSON.stringify({...document,nodes:[...document.nodes,{kind:'union'}],outputs:{other:{node:1,side:'solid'},part:{node:2,side:'solid'}},union:true}),taskToken:'union_refusal'});
  assert.equal(refused.ok,false);assert.match(refused.message,/complete preview requires 1..64 panels/);
  assert.equal(unsupportedNativeReads,0);assert.equal(tessellations+holeTessellations,before);
  assert.equal(baseline.text,text);assert.equal(JSON.stringify(baseline.display),display);checks++;
  const recovered=guarded({id:++id,kind:'apply',expectedRevision:0,parameters:kind==='hole'?{radius:2.5}:{height:6},taskToken:'union_recovery'});
  assert.equal(recovered.ok,true,recovered.message);assert.equal(snapshotEdits.at(-1).snapshot,accepted);assert.equal(recovered.summary.revision,1);checks++;
 }
-// Saved output references reject difference before any native getter, including an earlier union.
+// A malformed difference family is rejected before every native getter, including an earlier union.
 // The loaded snapshot's canonical graph is authoritative even when the incoming text has no difference.
 let differenceSummaryReads = 0;
 for (const acceptedKind of ['convex', 'hole']) for (const firstKind of ['extrude', 'hole', 'union']) {
@@ -257,7 +257,7 @@ for (const acceptedKind of ['convex', 'hole']) for (const firstKind of ['extrude
   ], outputs: { aSupported: { node: firstKind === 'extrude' ? 1 : 4, side: 'solid' }, zDifference: { node: 5, side: 'solid' } } };
   const candidate = snapshot(differenceGraph);
   candidate.bodies = Object.fromEntries(Object.keys(differenceGraph.outputs).map(name => [name, {
-    family: name === 'zDifference' || firstKind === 'union' ? 'orthogonal-cell' : firstKind === 'hole' ? 'stored-rational-plate-hole' : 'convex-planar',
+    family: name === 'zDifference' ? 'convex-planar' : firstKind === 'union' ? 'orthogonal-cell' : firstKind === 'hole' ? 'stored-rational-plate-hole' : 'convex-planar',
     get native() { unsupportedNativeReads++; throw new Error('Difference refusal must precede every native payload getter'); },
   }]));
   for (const property of ['parameters', 'suppression', 'features']) Object.defineProperty(candidate, property, {
@@ -265,7 +265,7 @@ for (const acceptedKind of ['convex', 'hole']) for (const firstKind of ['extrude
   });
   nextLoadedSnapshot = candidate;
   const refused = guarded({ id: ++id, kind: 'open', text: JSON.stringify({ ...document, operation: 'union' }), taskToken: 'difference_refusal' });
-  assert.equal(refused.ok, false); assert.match(refused.message, /difference outputs.*unsupported nonconvex/);
+  assert.equal(refused.ok, false); assert.match(refused.message, /Authored output kind differs/);
   assert.equal(unsupportedNativeReads, 0); assert.equal(differenceSummaryReads, 0); assert.equal(tessellations + holeTessellations, before);
   assert.equal(JSON.stringify(baseline), savedBaseline); checks++;
   const recovered = guarded({ id: ++id, kind: 'apply', expectedRevision: 0,

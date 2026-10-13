@@ -70,10 +70,10 @@ function sourceMatches(reply: Success, taskToken?: string) {
       || !Array.isArray(data.nodes) || !same(data.nodes.map((n: { kind: string }) => n.kind), summary.features.map(f => f.kind))
       || !same(Object.keys(data.outputs), summary.outputs.map(o => o.name)) || reply.compatibility !== undefined) throw new Error('Saved model differs from native summary.');
     const outputKinds = Object.values(data.outputs as Record<string, { node: number }>).map(output => data.nodes[output.node]?.kind);
-    if (outputKinds.includes('difference')) throw new Error('Authored difference outputs require an unsupported nonconvex preview.');
-    if (outputKinds.some(kind => ['hole', 'union'].includes(kind))
+    if (outputKinds.some(kind => ['hole', 'union', 'difference'].includes(kind))
       && reply.display?.profile !== 'model-body-faces') throw new Error(outputKinds.includes('hole')
-        ? 'Authored hole outputs require tagged body-face transport.' : 'Authored union outputs require tagged body-face transport.');
+        ? 'Authored hole outputs require tagged body-face transport.' : outputKinds.includes('difference')
+          ? 'Authored orthogonal outputs require tagged body-face transport.' : 'Authored union outputs require tagged body-face transport.');
     const flags = authoredFinishes(data.nodes, summary.features);
     if (!same(flags, summary.suppression) || (flags === undefined && Object.hasOwn(summary, 'suppression')))
       throw new Error('Saved finishing configuration differs from native summary.');
@@ -107,9 +107,9 @@ function sourceMatches(reply: Success, taskToken?: string) {
         if (node?.kind !== 'hole' || output.volumeMM3 !== null) throw new Error('Hole outputs have no certified volume and must name an authored hole.');
       } else if (output.family === 'orthogonal-cell') {
         const volume = output.volumeMM3, component = reply.display.components.find(c => c.family === 'orthogonal-cell' && c.role === output.name);
-        if (node?.kind !== 'union' || !component || component.family !== 'orthogonal-cell' || !volume || Object.keys(volume).length !== 2
+        if (!['union', 'difference'].includes(node?.kind) || !component || component.family !== 'orthogonal-cell' || component.qualification.operation !== node.kind || !volume || Object.keys(volume).length !== 2
           || volume.denominator !== '1' || volume.numerator !== String(component.qualification.volumeMM3))
-          throw new Error('Union output must retain its authored node and exact native integer volume.');
+          throw new Error('Orthogonal output must retain its authored operation and exact native integer volume.');
       } else {
         const volume = output.volumeMM3;
         if (output.family !== 'convex-planar' || ['hole', 'union', 'difference'].includes(node?.kind) || !volume || Object.keys(volume).length !== 2
@@ -164,7 +164,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
   async function run(kind: 'open' | 'example' | 'apply' | 'suppression' | 'undo' | 'redo', text?: string, example?: CadEditorModelingExample, splitAxis?: CadEditorModelingSplitAxis, finishing?: Record<string, boolean>) {
     idle();
     if (kind === 'example') {
-      if (example !== undefined && !['cut-chamfer', 'intersection', 'horizontal-split', 'two-chamfer', 'chamfer-split', 'derived-split', 'miter-split', 'configurable-finishes', 'mounting-plate', 'union-bracket'].includes(example))
+      if (example !== undefined && !['cut-chamfer', 'intersection', 'horizontal-split', 'two-chamfer', 'chamfer-split', 'derived-split', 'miter-split', 'configurable-finishes', 'mounting-plate', 'union-bracket', 'underside-pocket'].includes(example))
         throw new Error('Choose an available modeling example.');
       if (splitAxis !== undefined && (example === 'chamfer-split' ? !['x', 'z'].includes(splitAxis)
         : example !== 'horizontal-split' || !['x', 'y', 'z'].includes(splitAxis)))
@@ -225,7 +225,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
         Object.entries(parameters).map(([parameterId, valueMM]) => ({ parameterId, valueMM })),
       );
       const selectedOutput = reply.display.profile === 'model-body-faces'
-        ? replacing ? kind === 'example' && example === 'mounting-plate' ? 'plate' : kind === 'example' && example === 'union-bracket' ? 'bracket' : undefined
+        ? replacing ? kind === 'example' && example === 'mounting-plate' ? 'plate' : kind === 'example' && example === 'union-bracket' ? 'bracket' : kind === 'example' && example === 'underside-pocket' ? 'part' : undefined
           : state.display && 'selectedOutput' in state.display ? state.display.selectedOutput : undefined
         : undefined;
       const display = prepareModelingScene(reply.display, aspect(), selectedOutput);
