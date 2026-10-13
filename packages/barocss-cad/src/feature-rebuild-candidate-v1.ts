@@ -61,17 +61,7 @@ export function prepareBooleanExtrusionRebuildV1(
   // If it throws, no result is returned and prior caller state is untouched.
   const ownedEdits = safeEditSnapshot(edits);
   const candidate = updateBooleanExtrusionFeatureGraph(previous, ownedEdits);
-  // Native report separates topology dependencies from extrusion distance
-  // parameter dependencies. Include both in this candidate's impact receipt.
-  const distanceByFeature = new Map(previous.report.distances.map(row => [row.featureId, row.dependencyIds]));
-  const impactReport = {
-    ...previous.report,
-    featureDependencies: previous.report.featureDependencies.map(row => ({
-      ...row,
-      dependencyIds: [...row.dependencyIds, ...(distanceByFeature.get(row.featureId) ?? [])],
-    })),
-  };
-  const impact = planBooleanExtrusionImpactV1(impactReport, {
+  const impact = planBooleanExtrusionImpactV1(previous.report, {
     parameterIds: ownedEdits.parameterEdits.map(edit => edit.parameterId),
     featureIds: [
       ...ownedEdits.faceEdits.map(edit => edit.featureId),

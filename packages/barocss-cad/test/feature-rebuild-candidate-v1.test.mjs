@@ -44,6 +44,11 @@ test('real authored Native graph rebuild generates a separately owned candidate 
   const editsBefore = structuredClone(edits);
   const prepared = prepareBooleanExtrusionRebuildV1(previous, edits);
   const independent = updateBooleanExtrusionFeatureGraph(previous, edits);
+  const { planBooleanExtrusionImpactV1 } = await import('../dist/feature-impact-plan-v1.js');
+  const directImpact = planBooleanExtrusionImpactV1(previous.report, {
+    parameterIds: ['base_height'], featureIds: [],
+  });
+  assert.deepEqual(prepared.impact, directImpact, 'native distance effects belong in core impact analyzer');
   assert.deepEqual(prepared.candidate, independent);
   assert.equal(prepared.priorRevision, 0);
   assert.equal(prepared.candidateRevision, 1);
