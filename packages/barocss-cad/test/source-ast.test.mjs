@@ -109,7 +109,7 @@ test('malicious allocation, declaration growth, byte overflow and deep arrays fa
   assert.throws(() => parseCadAst('@model x{' + Array.from({ length: 17 }, (_, i) => `@curve #a${i}{}`).join('') + '}', 0), (e) => e.code === 'LIMIT');
   assert.throws(() => parseCadAst(' '.repeat(262145), 0), (e) => e.code === 'LIMIT' && e.range.start === 0);
   assert.throws(() => parseCadAst('/*' + '😀'.repeat(65536) + '*/', 0), (e) => e.code === 'LIMIT');
-  assert.throws(() => parseCadAst(null, 0), TypeError); assert.throws(() => parseCadAst('', 3), TypeError);
+  assert.throws(() => parseCadAst(null, 0), TypeError); assert.throws(() => parseCadAst('', 4), TypeError);
 });
 
 test('fresh ASTs own source ranges and nested values independently', () => {
