@@ -83,7 +83,7 @@ export function run(source) {
         else cameraNow = {...cameraNow, eye: [cameraNow.eye[0]+.1, ...cameraNow.eye.slice(1)]};
         let stale = false;
         try {other.cancelMaterialPreview(token);} catch (cause) {
-          stale = cause?.code === 'STALE_CANDIDATE';
+          stale = cause?.code === 'DOCUMENT_INPUT' || cause?.code === 'STALE_CANDIDATE';
         }
         const after = other.getSnapshot();
         if (!stale || after.available || after.materialPreview !== null || shown !== shownBeforeDrift
