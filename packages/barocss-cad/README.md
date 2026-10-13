@@ -11010,3 +11010,33 @@ normalized nor rounded. Up to eight direction constraints fit within the existin
 still refuse: changing this profile height to 1 mm requires a corner at 1/3 mm.
 The original typed cause and earlier usable snapshot are preserved. No solver,
 body family or renderer replacement is involved.
+
+### One exact owned translated copy
+
+The primary `CadShape.translate([dx,dy,dz])` creates a terminal copy of a direct
+affine extrusion. A two-gusset recipe can build `{ left, right: left.translate([spacing,0,0]) }`
+and edit `spacing` without rebuilding the accepted parent sketch or extrusion.
+See the complete [two-gusset example](CONCISE_API.md#two-owned-gussets-with-a-driving-spacing).
+
+Offsets are owned length dimensions in mm. Every target Surface and trim Line
+coefficient is staged with exact stored-binary64 rational arithmetic before any
+target Face is constructed. The complete parent is validated, actual target Faces
+are built with distinct source identities, every directed-use pairing is remapped,
+and the existing convex Solid qualifier proves the full result. Original-to-copy
+Face/Curve/use/edge/vertex lineage and the real native reports are retained.
+Existing raw Curve/Surface affine transforms do not supply this Solid authority.
+
+All sums must be exactly representable and remain within ±10,000 mm. Zero offset
+components bit-copy source coordinates and preserve the separate authored zero
+sign; nonzero exact cancellation produces +0. A zero vector creates a distinct
+coincident body rather than an empty or fused result. Refusals preserve the prior
+snapshot, original cause and future selective reuse.
+
+The first scope allows one direct rectangle/polygon/constrainedPolygon extrusion
+copy, including admitted `from` placement, within six nodes. It remains the
+existing `convex-planar` body family and can be named, saved, reopened, tessellated
+and measured. No translated-parent Boolean, split, chamfer, hole, chaining,
+rotation, mirror, scale or pattern is admitted; graphs mixing translation with
+Boolean/finishing features refuse. Circle and other body families remain outside
+this scope. Native preview packets do not establish a new editor preset or
+browser/GPU/physical acceptance.

@@ -997,3 +997,58 @@ The same exact-or-refuse policy applies. In this example, a height of 1 mm requi
 `sketch`, and the original `XYAffineSketchError` (`REPRESENTABILITY`) in `cause`.
 Contradictory constraints retain native `CONFLICT`; failed edits leave `part` usable.
 No implicit rounding, general angle solver or nonconvex extrusion support is added.
+
+
+## Two owned gussets with a driving spacing
+
+Create one exact translated copy without rewriting the original sketch:
+
+```ts
+import { cad } from '@barocss/cad';
+
+const model = cad.model();
+const width = model.parameter('width', 40);
+const height = model.parameter('height', 24);
+const spacing = model.parameter('spacing', 48);
+const profile = model.sketch.constrainedPolygon(s => {
+  const a = s.point([-0, 0]), b = s.point([width, 0]);
+  const c = s.point([width, height]), d = s.point([1, height]);
+  s.fixed(a); s.fixed(b); s.fixed(c);
+  s.horizontal(c, d); s.parallelTo(d, a, [1, 3]);
+  return [a, b, c, d];
+});
+const left = profile.extrude(8);
+const right = left.translate([spacing, 0, 0]);
+const pair = model.build({ left, right });
+const spread = pair.withParameters({ spacing: 64 });
+const reopened = cad.load(spread.save());
+console.log(reopened.bodies.right.family); // convex-planar
+```
+
+Both baseline bodies occupy 6,912 mm³. The left X bounds are [0,40] mm and
+right X bounds are [48,88] mm; the spacing edit moves only the copy to [64,104].
+Only the translation feature is reevaluated when its offset drivers change.
+
+`translate([dx,dy,dz])` accepts exactly three owned length dimensions in mm,
+including parameters and derived dimensions. It returns a new owned shape and
+leaves the parent unchanged. Every actual plane and trim coefficient is translated
+exactly, all target Faces are reconstructed and the complete convex Solid is
+qualified. Bounds or preview vertices alone cannot establish the result. All
+coefficients must be exactly representable binary64 values within ±10,000 mm;
+otherwise the edit refuses atomically with its original staged cause. For example,
+a 0.1 mm X spacing for this gusset cannot represent every exact coordinate sum.
+
+One translated copy of a direct affine extrusion is supported within the existing
+six-node envelope. Rectangle, convex polygon and constrainedPolygon parents,
+including admitted extrusion placement, use the same convex body contract.
+The copy is a terminal named output: no translation chaining, edge finishing,
+Boolean, hole or split consumes it, and this graph cannot mix translation with
+those operations. Round posts and other body families are refused early. This is
+not a rotation, scale, mirror, pattern or arbitrary B-Rep transform API.
+
+A zero offset creates a distinct owned copy, even though its geometry coincides
+with the parent. A zero component preserves the parent's coordinate bits, while
+the authored offset retains its own signed zero; exact nonzero cancellation uses
++0. Generated target source identities are distinct and complete original-to-copy
+lineage is retained. Existing convex tessellation and named-output mass queries
+remain available; a new editor preset and physical/GPU acceptance are separate.

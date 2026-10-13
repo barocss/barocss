@@ -308,3 +308,24 @@ const gussetProfile = gussetModel.sketch.constrainedPolygon(s => {
 });
 const gussetSnapshot = gussetModel.build({ gusset: gussetProfile.extrude(8) });
 cad.load(gussetSnapshot.withParameters({ width: 48 }).save());
+
+const copyModel = cad.model(), copySpacing = copyModel.parameter('spacing', 48);
+const copySeed = copyModel.sketch.rectangle({ width: 40, height: 24 }).extrude(8);
+const copyShape: CadShape = copySeed.translate([copySpacing, copyModel.dimension.scale(copySpacing, -0.5), -0]);
+const copySnapshot = copyModel.build({ left: copySeed, right: copyShape });
+cad.load(copySnapshot.withParameters({ spacing: 64 }).save());
+const copyEvidence = copySnapshot.evidence.find(item => item.kind === 'translate');
+if (copyEvidence?.kind === 'translate') {
+  const exactCopy: string = copyEvidence.native.solid.certificate.volumeMM3.numerator;
+  void exactCopy;
+}
+// @ts-expect-error Exactly three length components are required.
+copySeed.translate([1, 2]);
+// @ts-expect-error Extra tuple components are not accepted.
+copySeed.translate([1, 2, 3, 4]);
+// @ts-expect-error Offsets are dimensions, not expression strings.
+copySeed.translate(['48mm', 0, 0]);
+// @ts-expect-error No matrix/options overload is exposed.
+copySeed.translate([1, 2, 3], {});
+// @ts-expect-error An explicit offset is required.
+copySeed.translate();
