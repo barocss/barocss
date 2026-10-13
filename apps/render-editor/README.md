@@ -843,3 +843,11 @@ node apps/render-editor/native-light-view-presets-flow.mjs
 This tests the real source-based camera derivation and DOM keyboard transport
 with a controlled async navigation session. It does not certify WebGPU pixels,
 physical keyboard/focus behavior, OS file downloads or integrated acceptance.
+
+### Edit the Light scene title (#1927)
+
+Use **Scene title** beside the accepted heading, then ordinary **Apply** to save it with all other scene drafts. **Discard** restores the accepted title; **Undo/Redo** restores whole-scene authorship. The heading and **Save accepted** keep accepted data until acknowledgement. Save and a fresh same-kind Open preserve the exact admitted title for further editing; the document ID and download filename are not renamed.
+
+The existing Native/Light provider requires non-whitespace text, at most 128 Unicode code points, 256 UTF-16 code units and 512 UTF-8 bytes. Valid text is not trimmed or normalized. Invalid title text remains available for correction and refuses the whole Apply. Exact equal title is a no-op; source/body/material identities, original geometry, poses, camera/local view and light values are retained by a title-only edit. Current pending, dialog/chooser, navigation and lifetime fences apply.
+
+Focused `node native-light-workbench-flow.mjs --scene-title` uses at most eight actual field/codec controls, five controlled Viewer attempts, two Save/Open transports and two lifetimes per kind. Ordinary pointer/IME, physical file persistence and GPU behavior remain separate Tester checks.

@@ -75,9 +75,10 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
   const surfacePointPreflight = process.argv.includes('--surface-point-preflight');
   const bodyResetOnly = process.argv.includes('--body-reset');
   const materialCopyOnly = process.argv.includes('--material-copy');
+  const sceneTitleOnly = process.argv.includes('--scene-title');
   const sourceExportPreflight = process.argv.includes('--source-export-preflight');
   const sourceExportOnly = process.argv.includes('--source-export') || sourceExportPreflight;
-  if (!materialCopyOnly && !sourceExportOnly && !bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight) {
+  if (!sceneTitleOnly && !materialCopyOnly && !sourceExportOnly && !bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight) {
   const seed = api.createLightStudy(sourceText);
   const original = api.serializeRenderNativeLightDocument(seed);
   const form = api.addLightFields(api.readLightFields(seed));
@@ -2536,7 +2537,7 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
   }
 
   // #1901: accepted whole-asset source transport, with no Viewer replacement.
-  if (!materialCopyOnly && (sourceExportOnly || (!bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight))) {
+  if (!sceneTitleOnly && !materialCopyOnly && (sourceExportOnly || (!bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight))) {
     const sourceExportFlow = [], container = document.getElementById('root');
     const button = label => [...container.querySelectorAll('button')].find(node => node.textContent.trim() === label || node.getAttribute('aria-label') === label);
     const click = async label => {const node = button(label); assert(node && !node.disabled, label); await act(async () => node.click());};
@@ -2645,7 +2646,7 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
 
   // #1881: independent focused acceptance, also included by default. --body-reset
   // excludes every older block, including Surface points; there are no file transports.
-  if (!materialCopyOnly && !sourceExportOnly && (bodyResetOnly || (!process.argv.includes('--surface-point') && !surfacePointPreflight))) {
+  if (!sceneTitleOnly && !materialCopyOnly && !sourceExportOnly && (bodyResetOnly || (!process.argv.includes('--surface-point') && !surfacePointPreflight))) {
   const bodyResetFlow = [], resetContainer = document.getElementById('root');
   const resetButton = name => [...resetContainer.querySelectorAll('button')]
     .find(node => node.textContent.trim() === name || node.getAttribute('aria-label') === name);
@@ -2857,7 +2858,7 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
 
   // #1861: this block also runs in default CI, independently of all older flow setup.
   // --surface-point runs only this acceptance; --surface-point-preflight admits fixtures only.
-  if (!materialCopyOnly && !bodyResetOnly && !sourceExportOnly) {
+  if (!sceneTitleOnly && !materialCopyOnly && !bodyResetOnly && !sourceExportOnly) {
   const surfacePointFlow = [], pointContainer = document.getElementById('root');
   const pointButton = name => [...pointContainer.querySelectorAll('button')]
     .find(node => node.textContent.trim() === name || node.getAttribute('aria-label') === name);
@@ -3078,7 +3079,7 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
 
   // #1917: independent actual-provider fixtures; --material-copy excludes every older block.
   // Ten direct copy controls, four Viewer attempts, zero file transports and one lifetime per kind.
-  if (materialCopyOnly || (!sourceExportOnly && !bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight)) {
+  if (!sceneTitleOnly && (materialCopyOnly || (!sourceExportOnly && !bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight))) {
   const materialCopyFlow = [], copyContainer = document.getElementById('root');
   const copyButton = name => [...copyContainer.querySelectorAll('button')]
     .find(node => node.textContent.trim() === name || node.getAttribute('aria-label') === name);
@@ -3288,6 +3289,187 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
       readyRefusalRetainsDraft: true, pendingFence: true, proof: 'actual React/document/provider/session; controlled Viewer, no GPU or physical files'});
   }
   console.log(JSON.stringify({result: 'PASS', scope: 'Accepted material copy: actual React/provider/session; controlled Viewer, zero file transport', materialCopyFlow}));
+  }
+  // #1927: eight direct admission cases, five Viewer attempts, two transports and two lifetimes per kind.
+  // --scene-title runs this new block only; ordinary CI still includes every historical block.
+  if (sceneTitleOnly || (!materialCopyOnly && !sourceExportOnly && !bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight)) {
+  const sceneTitleFlow = [], titleContainer = document.getElementById('root');
+  const titleButton = name => [...titleContainer.querySelectorAll('button')]
+    .find(node => node.textContent.trim() === name || node.getAttribute('aria-label') === name);
+  const titleClick = async name => {const button = titleButton(name); assert(button, name); assert(!button.disabled, name);
+    await act(async () => button.click());};
+  const titleInput = label => {const input = titleContainer.querySelector(`[aria-label="${label}"]`); assert(input, label); return input;};
+  const setTitleInput = (input, value) => {
+    Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value').set.call(input, value);
+    input.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  };
+  const titleEdit = async (label, value) => {const input = titleInput(label); assert(!input.disabled, label);
+    await act(async () => setTitleInput(input, value));};
+  const heading = () => titleContainer.querySelector('.app-document-bar > strong').textContent;
+  const titleAppearance = request => api.prepareViewerNativeSceneAppearance({version: 1, source: request.source, display: request.display,
+    appearance: {lighting: {ambientStrength: 1, directionalStrength: 0, direction: [0, 0, 1]}, materials: request.materials}}, request.context);
+  navigationDom?.dispose(); navigationDom = api.installLightNavigationFlowDom();
+  const originalTimeout = dom.window.setTimeout, titleTimers = [], titleUrlStart = createdUrls.length, titleConfirmation = confirmation;
+  confirmation = true;
+  dom.window.setTimeout = function (callback, delay, ...args) {
+    const id = originalTimeout.call(this, callback, delay, ...args); if (delay === 1000) titleTimers.push(id); return id;
+  };
+  try {
+  for (const kind of ['directional', 'point']) {
+    const importedTitle = '  가져온 e\u0301 🧭  ', editedTitle = '  새 장면 e\u0301 🌌  ';
+    const seed = api.prepareRenderNativeLightDocument({...api.createLightStudy(sourceText, kind), title: importedTitle}).document;
+    const original = api.serializeRenderNativeLightDocument(seed), fields = api.readLightFields(seed), cases = [];
+    const controlsBefore = controls.length, downloadsBefore = downloads.length, choosersBefore = fileChoosers;
+    let presentations = 0, transports = 0, fileReads = 0, releaseTitle;
+    const titleControls = [];
+    activeSurfaceLedger = {feature: 'scene-title', kind, cases, get presentations() {return presentations;},
+      get saveOpenTransports() {return transports;}, get lifetimes() {return controls.length - controlsBefore;}};
+    const admit = (label, nextFields) => {
+      cases.push(label); assert(cases.length <= 8, kind + ': eight direct title cases');
+      const before = structuredClone(nextFields);
+      try {return api.applyLightFields(seed, nextFields);}
+      finally {assert.deepEqual(nextFields, before, label + ': corrective fields immutable');}
+    };
+    assert.equal(fields.title, importedTitle); assert.notEqual(importedTitle.normalize('NFC'), importedTitle);
+    const unchanged = admit('exact imported Unicode/whitespace and codec no-op', fields); // 1.
+    assert.equal(api.lightFieldsDirty(fields, seed), false); assert.deepEqual(unchanged, seed);
+    assert.equal(api.parseRenderNativeLightDocument(api.serializeRenderNativeLightDocument(unchanged)).title, importedTitle);
+    assert.equal(admit('128 ASCII code points', {...fields, title: 'a'.repeat(128)}).title, 'a'.repeat(128)); // 2.
+    const boundary = '🌌'.repeat(128);
+    assert.equal(boundary.length, 256); assert.equal(new TextEncoder().encode(boundary).length, 512);
+    assert.equal(admit('128 astral points / 256 UTF-16 / 512 UTF-8', {...fields, title: boundary}).title, boundary); // 3.
+    for (const [label, title] of [['129 ASCII code points', 'a'.repeat(129)], ['129 astral points', '🌌'.repeat(129)],
+      ['empty title', ''], ['whitespace-only title', ' \t\n\u3000 ']]) { // 4–7.
+      assert.throws(() => admit(label, {...fields, title}), error => error.code === 'DOCUMENT_INPUT' && /title/i.test(error.message));
+    }
+    const combinedFields = structuredClone(fields); combinedFields.title = editedTitle; combinedFields.ambient = '.35';
+    combinedFields.camera.eye[0] = '2'; combinedFields.bodies[0].position[0] = '-850'; combinedFields.lights[0].intensity = '.4';
+    combinedFields.materials.find(row => row.target.bodyId === 'body_preview_b').uniforms[0].value = '.5';
+    const combined = admit('title and all ordinary field groups participate together', combinedFields); // 8.
+    assert.equal(combined.title, editedTitle); assert.equal(combined.lights.ambientStrength, .35);
+    assert.equal(combined.display.camera.eye[0], 2); assert.equal(combined.display.poses[0].translationMM[0], -850);
+    assert.equal(combined.lights.lights[0].intensity, .4);
+    assert.equal(combined.surfaceMaterials[1].material.uniforms.amount, .5);
+    assert.equal(combined.surfaceMaterials[1].material.revision, seed.surfaceMaterials[1].material.revision + 1);
+    assert.deepEqual(combined.nativeDocument, seed.nativeDocument); assert.deepEqual(combined.nativeOptions, seed.nativeOptions);
+    assert.deepEqual(combined.surfaceMaterials.map(binding => binding.target), seed.surfaceMaterials.map(binding => binding.target));
+    assert.equal(cases.length, 8); assert.equal(new Set(cases).size, 8);
+    const mountTitle = async () => {
+      mounted = await api.mountLightWorkbenchFlow(titleContainer, seed);
+      assert(controls.length - controlsBefore <= 2, kind + ': two title lifetimes');
+      const control = controls.at(-1), replace = control.viewer.replace; control.prepare = titleAppearance;
+      control.viewer.replace = request => {presentations++; assert(presentations <= 5, kind + ': five title Viewer attempts'); return replace(request);};
+      titleControls.push({control, replace}); return control;
+    };
+    const session = () => flowControllers.at(-1).getSession(), snapshot = () => session().getSnapshot();
+    const draft = () => api.readLightWorkbenchFlowDraft(titleContainer), saveText = () => session().getSavePayload().text;
+    const revised = (document, revision) => ({...document, revision, lights: {...document.lights, revision}});
+    try {
+      const control = await mountTitle(), baseline = snapshot();
+      assert.equal(titleInput('Scene title').value, importedTitle); assert.equal(titleInput('Scene title').maxLength, 256);
+      assert.equal(heading(), importedTitle); assert.match(titleInput('Scene title').parentElement.textContent, /Apply/);
+      assert(titleButton('Apply').disabled); assert.equal(saveText(), original);
+      await titleClick('Help'); assert(titleInput('Scene title').disabled); await titleClick('Help');
+      await titleClick('Edit control point…'); assert(titleInput('Scene title').disabled);
+      const pointDialog = document.querySelector('[data-testid="light-point-dialog"]'); assert(pointDialog);
+      const cancel = [...pointDialog.querySelectorAll('button')].find(button => button.textContent.trim() === 'Cancel');
+      assert(cancel && !cancel.disabled); await act(async () => cancel.click());
+      const canvas = titleContainer.querySelector('canvas');
+      await act(async () => navigationDom.pointer(canvas, 'pointerdown', 140, 125)); assert(titleInput('Scene title').disabled);
+      await act(async () => {navigationDom.pointer(canvas, 'pointercancel', 140, 125); navigationDom.flushFrames();});
+      assert.equal(snapshot(), baseline); assert.equal(presentations, 0);
+
+      await titleEdit('Scene title', ''); await titleEdit('Ambient strength', '.35');
+      const emptyDraft = draft(); await titleClick('Apply');
+      assert.deepEqual(draft(), emptyDraft); assert.equal(snapshot(), baseline); assert.equal(presentations, 0);
+      assert.equal(heading(), importedTitle); assert.equal(saveText(), original);
+      await titleEdit('Scene title', editedTitle); await titleEdit('Ambient strength', '1e');
+      const invalidOtherDraft = draft(); await titleClick('Apply');
+      assert.deepEqual(draft(), invalidOtherDraft); assert.equal(snapshot(), baseline); assert.equal(presentations, 0);
+      await titleEdit('Ambient strength', '.35'); await titleEdit('Camera eye X', '2');
+      await titleEdit('Body position X (mm)', '-850'); await titleEdit('Intensity', '.4');
+      await titleClick('Edit body body_preview_b'); await titleEdit('Uniform amount', '.5');
+      const combinedDraft = draft(); control.refusal = new Error('Controlled complete title draft refusal');
+      await titleClick('Apply'); // 1: genuine complete candidate, ready Viewer refusal.
+      assert.equal(presentations, 1); assert.match(titleContainer.textContent, /PRESENTATION_REFUSED/);
+      assert.deepEqual(control.calls.at(-1), api.createRenderNativeLightRequest(revised(combined, seed.revision + 1)));
+      assert.deepEqual(draft(), combinedDraft); assert.equal(heading(), importedTitle); assert.equal(saveText(), original);
+      for (const key of ['accepted', 'canUndo', 'canRedo', 'unsaved', 'viewportCamera']) assert.equal(snapshot()[key], baseline[key], key);
+      control.refusal = null; await titleClick('Discard');
+      assert.equal(titleInput('Scene title').value, importedTitle); assert.equal(titleInput('Ambient strength').value, fields.ambient);
+      assert.equal(titleInput('Uniform amount').value, fields.materials[1].uniforms[0].value);
+      await titleEdit('Scene title', editedTitle);
+      const pendingDraft = draft(); control.wait = new Promise(resolve => {releaseTitle = resolve;});
+      await act(async () => titleButton('Apply').click()); // 2: title-only acceptance is held before ACK.
+      assert.equal(snapshot().pending, 'apply'); assert.equal(presentations, 2); assert(titleInput('Scene title').disabled);
+      assert.equal(heading(), importedTitle); assert.equal(saveText(), original); assert.deepEqual(draft(), pendingDraft);
+      for (const label of ['Apply', 'Discard', 'Open', 'Save accepted', 'Undo', 'Redo']) assert(titleButton(label).disabled, label);
+      await act(async () => {titleButton('Apply').click(); titleButton('Discard').click(); releaseTitle(); await control.wait;});
+      control.wait = null; releaseTitle = undefined;
+      const accepted = revised({...seed, title: editedTitle}, seed.revision + 1);
+      assert.deepEqual(snapshot().accepted, accepted, 'Title-only acceptance retains every source, identity, material, pose, camera and light value');
+      assert.equal(snapshot().viewportCamera, baseline.viewportCamera); assert.equal(heading(), editedTitle);
+      assert.equal(titleInput('Scene title').value, editedTitle); assert(snapshot().canUndo); assert.equal(snapshot().canRedo, false);
+      assert.deepEqual(control.calls.at(-1), api.createRenderNativeLightRequest(accepted));
+      await titleEdit('Scene title', 'temporary'); await titleEdit('Scene title', editedTitle);
+      assert(titleButton('Apply').disabled, 'Exact title equality is not an authored change');
+      await titleEdit('Ambient strength', '0.20'); await titleClick('Apply');
+      assert.deepEqual(snapshot().accepted, accepted); assert.equal(presentations, 2);
+      assert.equal(titleInput('Scene title').value, editedTitle); assert.match(titleContainer.textContent, /No authored changes/);
+      await titleClick('Undo'); // 3: exactly one title history entry.
+      assert.deepEqual(snapshot().accepted, revised(seed, seed.revision + 2)); assert.equal(snapshot().canUndo, false); assert(snapshot().canRedo);
+      assert.equal(heading(), importedTitle); assert.equal(titleInput('Scene title').value, importedTitle);
+      await titleClick('Redo'); // 4.
+      const redone = revised({...seed, title: editedTitle}, seed.revision + 3);
+      assert.deepEqual(snapshot().accepted, redone); assert(snapshot().canUndo); assert.equal(snapshot().canRedo, false);
+      assert.equal(heading(), editedTitle); assert.equal(titleInput('Scene title').value, editedTitle);
+      await titleEdit('Scene title', 'unsaved corrective title'); await titleEdit('Ambient strength', '1e');
+      const unsavedDraft = draft(); transports++; await titleClick('Save accepted'); // Transport 1.
+      const savedText = await downloads.at(-1).blob.text();
+      assert.equal(savedText, api.serializeRenderNativeLightDocument(redone)); assert.deepEqual(draft(), unsavedDraft);
+      assert.equal(downloads.at(-1).name, seed.documentId + '.light-scene.json'); assert.equal(heading(), editedTitle);
+      assert.equal(snapshot().unsaved, false); assert.equal(snapshot().accepted.title, editedTitle);
+      const detachedTitle = titleInput('Scene title'), detachedApply = titleButton('Apply'), oldSession = session();
+      await mounted.dispose(); mounted = null; const disposed = oldSession.getSnapshot();
+      await act(async () => {setTitleInput(detachedTitle, 'detached title'); detachedApply.click();});
+      assert.equal(oldSession.getSnapshot(), disposed); assert(disposed.disposed); assert.equal(control.disposed, 1);
+      const reopenedControl = await mountTitle(); transports++; assert(transports <= 2); await titleClick('Open');
+      assert(titleInput('Scene title').disabled, 'Chooser fences title edits');
+      const input = titleContainer.querySelector('input[type="file"]'), bytes = new TextEncoder().encode(savedText);
+      Object.defineProperty(input, 'files', {configurable: true, value: [{name: 'same-kind.light-scene.json', size: bytes.length,
+        arrayBuffer: async () => {fileReads++; return bytes.buffer;}}]});
+      await act(async () => input.dispatchEvent(new dom.window.Event('change', {bubbles: true}))); // Transport 2, Viewer 5.
+      assert.deepEqual(snapshot().accepted, redone); assert.equal(heading(), editedTitle); assert.equal(titleInput('Scene title').value, editedTitle);
+      assert.equal(snapshot().canUndo, false); assert.equal(snapshot().canRedo, false); assert.equal(snapshot().unsaved, false);
+      await titleEdit('Scene title', 'fresh correction'); await titleClick('Discard'); assert.equal(titleInput('Scene title').value, editedTitle);
+      const beforeLoss = snapshot(); reopenedControl.state = 'lost';
+      await act(async () => {await new Promise(resolve => setTimeout(resolve, 350));});
+      assert(titleInput('Scene title').disabled); assert.equal(snapshot(), beforeLoss); assert.equal(saveText(), savedText);
+      assert.equal(presentations, 5); assert.equal(transports, 2); assert.equal(fileReads, 1);
+      assert.equal(controls.length - controlsBefore, 2); assert.equal(downloads.length - downloadsBefore, 1);
+      assert.equal(fileChoosers - choosersBefore, 1); assert.equal(api.serializeRenderNativeLightDocument(seed), original);
+    } finally {
+      for (const cleanup of [async () => {if (releaseTitle) {await act(async () => releaseTitle()); releaseTitle = undefined;}},
+        async () => {const live = mounted; mounted = null; await live?.dispose();},
+        () => {for (const {control, replace} of titleControls) {control.viewer.replace = replace; control.wait = null; control.refusal = null; control.prepare = null;}}]) {
+        try {await cleanup();} catch (cause) {cleanupErrors.push(cause);}
+      }
+    }
+    assert(titleControls.every(({control}) => control.disposed === 1));
+    assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+    sceneTitleFlow.push({kind, helperCases: cases.length, cases, presentations, saveOpenTransports: transports, lifetimes: 2,
+      historyEntries: 1, acceptedOnlySave: true, exactUnicodeWhitespace: true,
+      proof: 'actual React/field/codec/controller/session; controlled Viewer and file transport, no GPU, IME or physical-file proof'});
+  }
+  } finally {
+    for (const cleanup of [() => {confirmation = titleConfirmation; dom.window.setTimeout = originalTimeout;},
+      () => {for (const timer of titleTimers) dom.window.clearTimeout(timer);},
+      () => {for (const url of createdUrls.slice(titleUrlStart)) if (!revokedUrls.includes(url)) URL.revokeObjectURL(url);},
+      () => {navigationDom?.dispose(); navigationDom = null;}]) {
+      try {await cleanup();} catch (cause) {cleanupErrors.push(cause);}
+    }
+  }
+  console.log(JSON.stringify({result: 'PASS', scope: 'Scene titles: bounded actual provider and UI/session flow', sceneTitleFlow}));
   }
 } catch (cause) {failed = true; firstError = cause; console.error('Original Light flow failure:', cause); console.error('Active Surface ledger:', JSON.stringify(activeSurfaceLedger));}
 finally {
