@@ -11,7 +11,7 @@ test('counterclockwise and clockwise square loops qualify',()=>{
 test('reject bow-tie and repeated vertices rather than inventing faces',()=>{
  assert.deepEqual(qualify([p(0,0),p(4,4),p(0,4),p(4,0)]),{status:'refused',reason:'self-intersection'});
  assert.deepEqual(qualify([p(0,0),p(4,0),p(4,4),p(0,0)]),{status:'refused',reason:'repeated-vertex'});
- assert.equal(qualify([p(0,0),p(1,1),p(2,2)]).reason,'zero-area');
+ assert.equal(qualify([p(0,0),p(1,1),p(2,2)]).reason,'non-simple-boundary');
  assert.equal(qualify([p(0,0),p(1,0)]).reason,'invalid-loop');
 });
 test('represented decimals, subnormals, bounds and hostile getter',()=>{
