@@ -3,6 +3,7 @@ import { createCadEditorModelingController } from '../modeling-controller.js';
 import type { CadEditorModelingController, CadEditorModelingSnapshot } from '../modeling-controller.js';
 import type { CadEditorModelingExample, CadEditorModelingSplitAxis } from '../modeling-engine.js';
 import { createPrismFeatureDisplay } from '../prism-feature-display.js';
+import { readModelingFileText } from '../modeling-file.js';
 import { Button } from './ui/button.js';
 import { Input } from './ui/input.js';
 import { Label } from './ui/label.js';
@@ -13,6 +14,7 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
   const id = useId(), viewport = useRef<HTMLDivElement | null>(null);
   const controller = useRef<CadEditorModelingController | null>(null);
   const displayRef = useRef<ReturnType<typeof createPrismFeatureDisplay> | null>(null);
+  const fileInput = useRef<HTMLInputElement | null>(null), fileReadEpoch = useRef(0);
   const [snapshot, setSnapshot] = useState<CadEditorModelingSnapshot | null>(null);
   const [example, setExample] = useState<CadEditorModelingExample>('cut-chamfer');
   const [splitAxis, setSplitAxis] = useState<CadEditorModelingSplitAxis>('z');
@@ -26,8 +28,23 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
     observer.observe(viewport.current);
     const unsubscribe = session.subscribe(() => setSnapshot(session.getSnapshot())); setSnapshot(session.getSnapshot());
     void (initialAuthoredText === undefined ? session.example() : session.open(initialAuthoredText)).catch(cause => setError(String(cause)));
-    return () => { observer.disconnect(); unsubscribe(); session.dispose(); display.dispose(); if (controller.current === session) controller.current = null; if (displayRef.current === display) displayRef.current = null; };
+    return () => { fileReadEpoch.current++; observer.disconnect(); unsubscribe(); session.dispose(); display.dispose(); if (controller.current === session) controller.current = null; if (displayRef.current === display) displayRef.current = null; };
   }, [initialAuthoredText]);
+  const stageModelFile = async (file?: File) => {
+    if (!file || snapshot?.busy) return;
+    const readEpoch = ++fileReadEpoch.current;
+    // A physical file selection never authorizes a model replacement.
+    setConfirmed(false); setError(null);
+    try {
+      const text = await readModelingFileText(file);
+      if (readEpoch !== fileReadEpoch.current || !controller.current) return;
+      setSource(text);
+    } catch (cause) {
+      if (readEpoch === fileReadEpoch.current && controller.current) {
+        setError(`Cannot read model file: ${String(cause)}`);
+      }
+    }
+  };
   const action = (operation: (session: CadEditorModelingController) => unknown) => {
     setError(null); try { if (controller.current) Promise.resolve(operation(controller.current)).catch(cause => setError(String(cause))); }
     catch (cause) { setError(String(cause)); }
@@ -226,8 +243,14 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
     </>}
     <details style={{ marginTop: 24 }}><summary>Save or open a model</summary>
       <p>Save authored dimensions and modeling intent. Native geometry and display caches are rebuilt on open. Supported old files are detected internally; unsupported formats are refused without conversion.</p>
-      <div style={{ display: 'flex', gap: 8 }}>
-        <Button disabled={busy || !snapshot?.authoredText} onClick={() => { setSource(snapshot!.authoredText!); setConfirmed(false); }}>Show saved model</Button>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <input ref={fileInput} type="file" accept=".json,.cad.json,application/json" aria-label="Choose saved model file"
+          style={{ display: 'none' }} onChange={event => {
+            const file = event.target.files?.[0]; event.target.value = '';
+            void stageModelFile(file);
+          }} />
+        <Button type="button" variant="outline" disabled={busy} onClick={() => fileInput.current?.click()}>Choose model file</Button>
+        <Button disabled={busy || !snapshot?.authoredText} onClick={() => { fileReadEpoch.current++; setSource(snapshot!.authoredText!); setConfirmed(false); }}>Show saved model</Button>
         <Button disabled={busy || !snapshot?.authoredText} onClick={() => {
           const url = URL.createObjectURL(new Blob([snapshot!.authoredText!], { type: 'application/json' }));
           const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'part.cad.json'; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -235,11 +258,11 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
       </div>
       <Label htmlFor={`${id}-model`}>Saved model data</Label>
       <textarea id={`${id}-model`} rows={12} spellCheck={false} disabled={busy} maxLength={262144}
-        style={{ width: '100%', fontFamily: 'monospace' }} value={source} onChange={event => { setSource(event.target.value); setConfirmed(false); }} />
+        style={{ width: '100%', fontFamily: 'monospace' }} value={source} onChange={event => { fileReadEpoch.current++; setSource(event.target.value); setConfirmed(false); }} />
       <Label><input type="checkbox" checked={confirmed} disabled={busy} onChange={event => setConfirmed(event.target.checked)} /> Replace accepted model and discard its history and pending dimensions</Label>
       <div><Button disabled={busy || !source.trim() || (!!accepted && !confirmed)}
-        onClick={() => action(async s => { await s.open(source); setConfirmed(false); })}>Open saved model</Button></div>
-      <p>Browser rendering and physical file dialogs need separate device verification.</p>
+        onClick={() => { fileReadEpoch.current++; action(async s => { await s.open(source); setConfirmed(false); }); }}>Open saved model</Button></div>
+      <p>Choose model file stages its UTF-8 text for inspection; it does not replace the accepted model. Review the contents and explicitly confirm Open. Invalid files still go through native validation on Open. Actual file-picker, browser and GPU acceptance require separate device verification.</p>
     </details>
   </section>;
 }
