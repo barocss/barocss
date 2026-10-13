@@ -508,5 +508,15 @@ try {
   session.stage('height', '8'); p = session.apply(); [...timers][0].callback(); await p; assert.match(session.getSnapshot().error, /timed out/); checks++;
   session.dispose(); assert.equal(timers.size, 0);
 } finally { globalThis.setTimeout = originalSet; globalThis.clearTimeout = originalClear; }
+// The new ID crosses the real controller request gate; dedicated top-pocket tests
+// exercise accepted geometry, while this routing control deliberately cancels.
+const topPocketRouting = create();
+const topPocketPending = topPocketRouting.example('top-entry-pocket');
+const topPocketWorker = instances.at(-1);
+assert.equal(topPocketWorker.requests.at(-1).example, 'top-entry-pocket');
+topPocketRouting.cancel(); await topPocketPending; checks++;
+const topPocketRequests = topPocketWorker.requests.length;
+await assert.rejects(topPocketRouting.example('top-entry-pocket-unknown'), /example/);
+assert.equal(topPocketWorker.requests.length, topPocketRequests); topPocketRouting.dispose(); checks++;
 const result = { ok: true, checks, legacyChecks, evidence: 'CPU controller, saved mesh and synthesized graph-shaped DTO; optional saved real legacy replies; no native geometry, browser, GPU or OS files' };
 writeFileSync(resolve(output, 'result.json'), JSON.stringify(result, null, 2)); console.log(JSON.stringify(result));

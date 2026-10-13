@@ -4,6 +4,35 @@ Use `cad.model()` to author a bounded solid part with named dimensions. Start wi
 
 All dimensions below are **millimetres**. Use a TypeScript-capable workspace/bundler for source package entries; built ESM and declarations are a separate package build. Source adoption does not establish npm publication.
 
+## Cut a top-entry pocket
+
+<a :href="withBase('/examples/modeling-top-pocket.ts')" download>Download the complete typed top-entry pocket example</a>
+
+Choose **Cut a top-entry pocket** in **Modeling examples**, acknowledge replacement and load it. Edit **Pocket depth downward from top Z=8**, **Tool Y origin** or **Tool Y span**, then Apply. The plate is 32 × 24 × 8 mm and the cutter's X extent stays 8..24 mm. The owned expression `from = 8 - depth` moves the bottom of the positive-height cutter while its top remains at Z=8. Depth4 leaves a 4 mm floor; depth6 leaves a 2 mm floor; depth8 makes a through-window. The existing underside-entry example still starts both extrusions at Z=0.
+
+```ts
+const model = cad.model(), depth = model.parameter('depth', 4);
+const toolY = model.parameter('toolY', 8), toolSpanY = model.parameter('toolSpanY', 8);
+const plate = model.sketch.rectangle({ min: [-0, 0], max: [32, 24] }).extrude(8);
+const from = model.dimension.add(8, model.dimension.scale(depth, -1));
+const tool = model.sketch.rectangle({ min: [8, toolY],
+  max: [24, model.dimension.add(toolY, toolSpanY)] }).extrude(depth, { from });
+const initial = model.build({ plate, tool, part: plate.cut(tool) });
+const deeper = initial.withParameters({ depth: 6 });
+```
+
+The preset explicitly displays **part**, while **all outputs are validated**, including hidden plate and tool. All three remain authored and saved. Generic Open initially displays **tool**, the last canonical `part,plate,tool` output; choose part to inspect the pocket. That chooser only changes the displayed output. Exact graph, driver and output-map matching gates the friendly top-entry labels; similarly named imported dimensions keep generic labels. Apply/Discard, no-op, refusal, cancellation and Undo/Redo use the existing atomic session.
+
+### Top-entry limits and evidence
+
+The [adopted offset-extrusion provider](https://github.com/barocss/barocss/blob/ba6ccf1d52667564cf69db8763f185aa8c8fab76/packages/barocss-cad/test/modeling-offset-evidence/verification.json) measured part volumes **5632 mm³** at depth4/from4, **5376 mm³** at depth6/from2 and **5120 mm³** at depth8/from0. A full-width through cutter that leaves two bodies is refused; the accepted snapshot survives and can be edited again. Positive extrusion height, exact represented origin arithmetic, integer-box qualification, nonempty single-body material and the existing **64 panels** complete-display limit still apply. Native qualification can refuse otherwise plausible dimensions.
+
+This consumer reuses the unchanged **46 genuine part packets**,184 vertices/92 triangles from the 1,514,483-byte provider transfer (SHA256 `c0a29404b5ffb8dc66eb9e6f8073b9e1545e94f3fe4c055d65ca95a9ca8fd536`). Raw XYZ, UVs, normals and triangle order remain unchanged before the existing single `[x,z,-y]` conversion. The genuine baseline part replay has a top-center ray hit at the Z=4 floor and a bottom ray hit at Z=0.
+
+There are **no retained plate/tool meshes** or depth6/window preview packets in this capture. Full worker/controller tests use explicitly **mocked operand meshes and edited-state display data** alongside the genuine baseline part. Those tests establish software wiring and atomic state, not newly measured three-output native pictures. Production uses the actual existing samplers for all outputs. The consumer makes **zero new native calls**.
+
+**External visual gate OPEN**: actual React interaction, three-output native display, changed-state pixels, device/GPU behavior and physical file dialogs remain separate acceptance work in [#1826](https://github.com/barocss/barocss/issues/1826). CPU replay and the scoped declaration-boundary build do not close that gate.
+
 ## Cut a slot in a bracket
 
 <a :href="withBase('/examples/modeling-composition.ts')" download>Download the complete typed slotted-bracket example</a>
