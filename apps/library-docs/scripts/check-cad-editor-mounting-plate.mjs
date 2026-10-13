@@ -35,7 +35,7 @@ for (const term of ['25,600 mm³','Certified volume unavailable','256 display ve
   'file selection is not model acceptance']) {
   assert.ok(lesson.toLowerCase().includes(term.toLowerCase()), 'Lesson missing: ' + term);
 }
-assert.ok(navigation.includes("['first-model', 'mounting-plate']"));
+assert.ok(navigation.includes("['first-model', 'round-post', 'mounting-plate']"));
 assert.ok(navigation.includes("'mounting-plate': 'Build a mounting plate'"));
 assert.ok(overview.includes('./mounting-plate'));
 console.log('Mounting plate documentation source/label drift PASS (read-only, no browser/native execution)');
