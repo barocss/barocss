@@ -119,3 +119,15 @@ test('exact predicate enumerates a hostile own-key inventory once', () => {
   });
   assert.equal(enumerations, 1, 'one descriptor inventory per admitted input');
 });
+
+test('revoked Proxy arrays and records refuse without throwing during admission', () => {
+  const revokedRecord = Proxy.revocable({ x: 0, y: 0 }, {});
+  revokedRecord.revoke();
+  const revokedArray = Proxy.revocable([0, 0], {});
+  revokedArray.revoke();
+  for (const value of [revokedRecord.proxy, revokedArray.proxy]) {
+    assert.deepEqual(orient(value, p(1, 0), p(0, 1)), {
+      status: 'unsupported', reason: 'invalid-input',
+    });
+  }
+});
