@@ -78,11 +78,12 @@ there is no coefficient healing. Earlier accepted snapshots remain usable.
 Circle cut, union, intersection, split, hole, chamfer and edge queries are not
 admitted. This slice adds no arc sweep, constraint solver or ideal-circle claim.
 
-The editor currently rejects circle outputs before inspecting native payloads or
-preparing a scene, retaining its previous accepted scene and history. A visible
-round-post preset is the next separately tracked consumer step. The existing
-native preview contains genuine face/UV/seam data, but its legacy coordinate
-label must not be treated as a performed coordinate conversion.
+The editor software adapter uses the original native face/UV/seam preview for
+its round-post preset and diameter/height edits, with atomic refusal/history.
+The legacy preview label does not perform a coordinate conversion: the adapter
+sends unchanged authored XYZ to the existing face preparation exactly once.
+Certified volume remains unavailable. Actual browser/GPU/physical-file acceptance
+is the OPEN external gate in [consumer #1683](https://github.com/barocss/barocss/issues/1683).
 
 ## Add a qualified through-hole to a mounting plate
 

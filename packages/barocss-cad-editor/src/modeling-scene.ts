@@ -1,3 +1,5 @@
+import { validateModelingCircle } from './modeling-circle.js';
+import type { ModelingCircleDisplayComponent } from './modeling-circle.js';
 import { validateModelingUnion } from './modeling-union.js';
 import type { ModelingUnionDisplayComponent, ModelingUnionPanel } from './modeling-union.js';
 import type { OwnPlateHolePreviewResult, StoredPlateHoleSolidCertificate } from '@barocss/cad';
@@ -25,8 +27,8 @@ export interface ModelingHoleDisplayComponent {
 }
 export interface ModelingBodyDisplayPacket {
   profile: 'model-body-faces'; documentId: string; revision: number; taskToken: string;
-  components: ({ family: 'convex-planar'; component: PrismDisplayComponent } | ModelingHoleDisplayComponent | ModelingUnionDisplayComponent)[];
-  outcomes: { role: string; solidId: string; family: 'convex-planar' | 'stored-rational-plate-hole' | 'orthogonal-cell'; status: 'solid' }[];
+  components: ({ family: 'convex-planar'; component: PrismDisplayComponent } | ModelingHoleDisplayComponent | ModelingUnionDisplayComponent | ModelingCircleDisplayComponent)[];
+  outcomes: { role: string; solidId: string; family: 'convex-planar' | 'stored-rational-plate-hole' | 'orthogonal-cell' | 'stored-rational-circle-prism'; status: 'solid' }[];
 }
 export type ModelingDisplayPacket = PrismDisplayPacket | ModelingBodyDisplayPacket;
 export interface ModelingBodyDisplayScene { packet: ModelingBodyDisplayPacket; selectedOutput: string; scene: EngineSceneV0; canvasLabel: string }
@@ -41,7 +43,12 @@ export interface ModelingUnionFaceSelection {
   reference: KernelFaceReference; provenance: ModelingUnionPanel; lineage: ModelingUnionDisplayComponent['lineage'];
   triangleIndex: number; approximate: true;
 }
-export type ModelingFaceSelection = PrismFaceSelection | ModelingHoleFaceSelection | ModelingUnionFaceSelection;
+export interface ModelingCircleFaceSelection {
+  family: 'stored-rational-circle-prism'; documentId: string; revision: number; role: string; solidId: string;
+  reference: KernelFaceReference; provenance: ModelingCircleDisplayComponent['preview']['faceRanges'][number];
+  lineage: ModelingCircleDisplayComponent['lineage']; triangleIndex: number; approximate: true;
+}
+export type ModelingFaceSelection = PrismFaceSelection | ModelingHoleFaceSelection | ModelingUnionFaceSelection | ModelingCircleFaceSelection;
 type Accepted = { packet: ModelingBodyDisplayPacket; nativeFaces: Map<string, KernelFacePreview>; convex: Map<string, PrismDisplayScene>; selectedOutput: string };
 // Structured clones and public snapshots carry no receiving-realm prepared authority.
 const accepted = new WeakMap<ModelingDisplayScene, Accepted>();
@@ -281,6 +288,16 @@ export function prepareModelingScene(input: ModelingDisplayPacket, aspect = 1, s
       const display = preparePrismFeatureScene({ profile: 'model-outputs', documentId: packet.documentId, revision: packet.revision,
         components: [component.component], outcomes: [{ role: outcome.role, solidId: outcome.solidId, status: 'solid' }] }, 'result', aspect);
       convex.set(outcome.role, display); scenes.set(outcome.role, display.scene);
+    } else if (component.family === 'stored-rational-circle-prism') {
+      check(component.role === outcome.role && component.solidId === outcome.solidId, 'circle output identity required');
+      validateModelingCircle(component);
+      const context = component.mesh.context;
+      check(context.documentId === packet.documentId && context.bodyId === component.solidId && context.taskToken === packet.taskToken
+        && context.documentRevision === String(packet.revision) && context.kernelResultRevision === String(packet.revision)
+        && context.topologyRevision === String(packet.revision), 'circle request/document/revision/body context mismatch');
+      // Historical packet label is retained; raw authored XYZ enters the existing single rotation.
+      const prepared = prepareKernelFacePreview(component.mesh, { displayId: component.role, packetRevision: packet.revision });
+      nativeFaces.set(outcome.role, prepared); scenes.set(outcome.role, sceneForNative(component, prepared, aspect));
     } else if (component.family === 'orthogonal-cell') {
       check(component.role === outcome.role && component.solidId === outcome.solidId, 'orthogonal output identity required');
       validateModelingUnion(component);
@@ -323,6 +340,11 @@ export function pickModelingScene(display: ModelingDisplayScene, width: number, 
   if (component.family === 'orthogonal-cell') {
     const provenance = component.lineage.panels.find(p => p.id === binding.reference.nativeFaceId)!;
     return structuredClone({ family: 'orthogonal-cell', documentId: authority.packet.documentId, revision: authority.packet.revision,
+      role: component.role, solidId: component.solidId, reference: binding.reference, provenance, lineage: component.lineage, triangleIndex: hit.triangleIndex, approximate: true });
+  }
+  if (component.family === 'stored-rational-circle-prism') {
+    const provenance = component.preview.faceRanges.find(f => f.faceId === binding.reference.nativeFaceId)!;
+    return structuredClone({ family: 'stored-rational-circle-prism', documentId: authority.packet.documentId, revision: authority.packet.revision,
       role: component.role, solidId: component.solidId, reference: binding.reference, provenance, lineage: component.lineage, triangleIndex: hit.triangleIndex, approximate: true });
   }
   const provenance = component.preview.provenance.find(p => p.faceToken === binding.reference.faceToken)!;

@@ -176,7 +176,7 @@ try {
       for (const output of candidate.display.outcomes) output.family = family;
     }
     worker.send(candidate); await pending;
-    assert.match(guarded.getSnapshot().error, mode.startsWith('legacy') ? /Legacy files cannot author primary circle/ : /Authored circle outputs/);
+    assert.match(guarded.getSnapshot().error, mode.startsWith('legacy') ? /Legacy files cannot author primary circle/ : mode === 'tagged-circle' ? /Circle outputs have no certified volume/ : /Authored circle outputs/);
     assert.deepEqual(stable(guarded),before); assert.equal(commits,commitCount); assert.equal(worker.terminated,true); checks++;
     pending = guarded.apply(); worker = instances.at(-1); worker.accept(); await tick(); worker.accept(); await pending;
     assert.equal(guarded.getSnapshot().accepted.parameters.height,7); assert.equal(commits,commitCount+1); guarded.dispose(); checks++;

@@ -60,6 +60,11 @@ function authoredFinishes(nodes: Record<string, unknown>[], features: CadEditorM
 }
 function sourceMatches(reply: Success, taskToken?: string) {
   const { summary } = reply, data = JSON.parse(reply.text);
+  const circleOutput = (index: number): boolean => {
+    const node = data.nodes?.[index], sketch = node?.sketch;
+    return node?.kind === 'extrude' && Number.isSafeInteger(sketch) && sketch >= 0 && sketch < index
+      && data.nodes[sketch]?.kind === 'sketch' && data.nodes[sketch].profile === 'circle';
+  };
   if (!summary || !Number.isSafeInteger(summary.revision) || summary.revision < 0 || typeof summary.documentId !== 'string'
     || !summary.parameters || typeof summary.parameters !== 'object' || Array.isArray(summary.parameters)
     || Object.keys(summary.parameters).length > 16 || !Object.values(summary.parameters).every(Number.isFinite)
@@ -70,11 +75,8 @@ function sourceMatches(reply: Success, taskToken?: string) {
       || !Array.isArray(data.nodes) || !same(data.nodes.map((n: { kind: string }) => n.kind), summary.features.map(f => f.kind))
       || !same(Object.keys(data.outputs), summary.outputs.map(o => o.name)) || reply.compatibility !== undefined) throw new Error('Saved model differs from native summary.');
     const outputNodes = Object.values(data.outputs as Record<string, { node: number }>);
-    if (outputNodes.some(output => {
-      const node = data.nodes[output.node], sketch = node?.sketch;
-      return node?.kind === 'extrude' && Number.isSafeInteger(sketch) && sketch >= 0 && sketch < output.node
-        && data.nodes[sketch]?.kind === 'sketch' && data.nodes[sketch].profile === 'circle';
-    })) throw new Error('Authored circle outputs require the unavailable circle preview adapter.');
+    if (outputNodes.some(output => circleOutput(output.node)) && reply.display?.profile !== 'model-body-faces')
+      throw new Error('Authored circle outputs require tagged circle body-face transport.');
     const outputKinds = Object.values(data.outputs as Record<string, { node: number }>).map(output => data.nodes[output.node]?.kind);
     if (outputKinds.some(kind => ['hole', 'union', 'difference'].includes(kind))
       && reply.display?.profile !== 'model-body-faces') throw new Error(outputKinds.includes('hole')
@@ -110,7 +112,12 @@ function sourceMatches(reply: Success, taskToken?: string) {
       throw new Error('Native body families or display task differ from the current request.');
     for (const output of summary.outputs) {
       const node = data.nodes[data.outputs[output.name]?.node];
-      if (output.family === 'stored-rational-plate-hole') {
+      const circle = circleOutput(data.outputs[output.name]?.node);
+      if (circle !== (output.family === 'stored-rational-circle-prism'))
+        throw new Error('Authored circle outputs require their matching circle body-face family.');
+      if (output.family === 'stored-rational-circle-prism') {
+        if (output.volumeMM3 !== null) throw new Error('Circle outputs have no certified volume.');
+      } else if (output.family === 'stored-rational-plate-hole') {
         if (node?.kind !== 'hole' || output.volumeMM3 !== null) throw new Error('Hole outputs have no certified volume and must name an authored hole.');
       } else if (output.family === 'orthogonal-cell') {
         const volume = output.volumeMM3, component = reply.display.components.find(c => c.family === 'orthogonal-cell' && c.role === output.name);
@@ -171,7 +178,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
   async function run(kind: 'open' | 'example' | 'apply' | 'suppression' | 'undo' | 'redo', text?: string, example?: CadEditorModelingExample, splitAxis?: CadEditorModelingSplitAxis, finishing?: Record<string, boolean>) {
     idle();
     if (kind === 'example') {
-      if (example !== undefined && !['cut-chamfer', 'intersection', 'horizontal-split', 'two-chamfer', 'chamfer-split', 'derived-split', 'miter-split', 'configurable-finishes', 'mounting-plate', 'union-bracket', 'underside-pocket'].includes(example))
+      if (example !== undefined && !['cut-chamfer', 'intersection', 'horizontal-split', 'two-chamfer', 'chamfer-split', 'derived-split', 'miter-split', 'configurable-finishes', 'mounting-plate', 'union-bracket', 'underside-pocket', 'round-post'].includes(example))
         throw new Error('Choose an available modeling example.');
       if (splitAxis !== undefined && (example === 'chamfer-split' ? !['x', 'z'].includes(splitAxis)
         : example !== 'horizontal-split' || !['x', 'y', 'z'].includes(splitAxis)))
@@ -232,7 +239,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
         Object.entries(parameters).map(([parameterId, valueMM]) => ({ parameterId, valueMM })),
       );
       const selectedOutput = reply.display.profile === 'model-body-faces'
-        ? replacing ? kind === 'example' && example === 'mounting-plate' ? 'plate' : kind === 'example' && example === 'union-bracket' ? 'bracket' : kind === 'example' && example === 'underside-pocket' ? 'part' : undefined
+        ? replacing ? kind === 'example' && example === 'mounting-plate' ? 'plate' : kind === 'example' && example === 'union-bracket' ? 'bracket' : kind === 'example' && example === 'underside-pocket' ? 'part' : kind === 'example' && example === 'round-post' ? 'post' : undefined
           : state.display && 'selectedOutput' in state.display ? state.display.selectedOutput : undefined
         : undefined;
       const display = prepareModelingScene(reply.display, aspect(), selectedOutput);

@@ -7,6 +7,7 @@ import { pathToFileURL } from 'node:url';
 const root = resolve(import.meta.dirname, '../../..'), output = resolve(process.env.EVIDENCE_DIR ?? '/tmp/cad-modeling-engine');
 mkdirSync(output, { recursive: true });
 const require = createRequire(resolve(process.env.REPO_DEPS_ROOT ?? root, 'package.json'));
+const circleTransfer = JSON.parse(readFileSync(resolve(import.meta.dirname, 'fixtures/modeling-circle/baseline-native.json'), 'utf8'));
 const holeTransfer = JSON.parse(readFileSync(resolve(import.meta.dirname, 'fixtures/modeling-hole/baseline-native.json'), 'utf8'));
 const packet = JSON.parse(readFileSync(resolve(import.meta.dirname, 'fixtures/convex-display.packet.json'), 'utf8'));
 const legacyDocument = JSON.parse(readFileSync(resolve(root, 'apps/cad-editor/src/fixtures/affine-prism.authored.json'), 'utf8'));
@@ -21,12 +22,12 @@ function sampleBuilder() {
     chamfer(selection, distance, options) { assert.equal(selection.owner, index); return shape(nodes.push({ kind: 'chamfer', parent: index, query: selection.query, distance, ...(options ? {name: options.name, suppressed:false} : {}) }) - 1); },
     index, cut() { const side = { edges() { return { one() { return {}; } }; }, chamfer() { return shape(nodes.push({ kind: 'chamfer' }) - 1); }, index: nodes.push({ kind: 'cut' }) - 1 }; return { positive: side, negative: side }; } });
   const sketch = profile => { const index = nodes.push({ kind: 'sketch', profile }) - 1; return { extrude(height) { return shape(nodes.push({ kind: 'extrude', sketch: index, height }) - 1); } }; };
-  return { dimension: { add(left, right) { return { op: 'add', left, right }; }, scale(value, factor) { return { op: 'scale', value, factor }; } }, parameter(name, value) { parameters[name] = value; return { parameter: name }; }, sketch: { polygon: sketch, rectangle: sketch },
+  return { dimension: { add(left, right) { return { op: 'add', left, right }; }, scale(value, factor) { return { op: 'scale', value, factor }; } }, parameter(name, value) { parameters[name] = value; return { parameter: name }; }, sketch: { polygon: sketch, rectangle: sketch, circle(options) { const index = nodes.push({kind:"sketch",profile:"circle",...options}) - 1; return {extrude(height) {return shape(nodes.push({kind:"extrude",sketch:index,height}) - 1);}};} },
     build(outputs) { return snapshot({ ...document, parameters, nodes, outputs: Object.fromEntries(Object.entries(outputs).map(([name, body]) => [name, { node: body.index, side: body.side ?? 'solid' }])) }); } };
 }
 const snapshots = [], snapshotEdits = [], suppressionEdits = [], loads = [];
 let nextLoadedSnapshot = null;
-let tessellations = 0, rejectTessellation = false, unsupportedNativeReads = 0, holeTessellations = 0, rejectHoleTessellation = false;
+let tessellations = 0, rejectTessellation = false, unsupportedNativeReads = 0, holeTessellations = 0, rejectHoleTessellation = false, circleTessellations = 0, rejectCircleTessellation = false;
 function snapshot(data) {
   const native = { report: { solidId: 'current_solid' }, certificate: { volumeMM3: { numerator: '1', denominator: '1' } }, graph: { vertices: [], edges: [], faces: [], vertexLinks: [] } };
   const body = { family: 'convex-planar', native };
@@ -34,11 +35,12 @@ function snapshot(data) {
   const result = { parameters: data.parameters, suppression:Object.fromEntries(data.nodes.filter(n=>n.name).map(n=>[n.name,n.suppressed])),
     withSuppression(values) { suppressionEdits.push({snapshot:result,values:structuredClone(values)}); if(data.parameters.backY===1) throw new Error('METRIC candidate refused'); return snapshot({...data,nodes:data.nodes.map(n=>n.name&&Object.hasOwn(values,n.name)?{...n,suppressed:values[n.name]}:n)}); },
     recomputation: Object.freeze({ reusedFeatures: Object.freeze([]), evaluatedFeatures: Object.freeze(data.nodes.map((_node, index) => index)) }),
-    features: data.nodes.map((node, index) => ({ kind: node.kind, index, dependencies: [], ...(node.name ? {name:node.name,suppressed:node.suppressed} : {}) })), bodies: Object.fromEntries(Object.keys(data.outputs).map(name => [name, (data.hole || data.unknownFamily || data.union) && name === 'part' ? unsupported : data.nodes.some(n=>n.kind==='hole') ? structuredClone(holeTransfer.bodies[data.nodes[data.outputs[name].node].kind==='hole'?'plate':'blank']) : body])),
+    features: data.nodes.map((node, index) => ({ kind: node.kind, index, dependencies: [], ...(node.name ? {name:node.name,suppressed:node.suppressed} : {}) })), bodies: Object.fromEntries(Object.keys(data.outputs).map(name => [name, (data.hole || data.unknownFamily || data.union) && name === 'part' ? unsupported : data.nodes[data.nodes[data.outputs[name].node]?.sketch]?.profile === 'circle' ? structuredClone(circleTransfer.bodies.post) : data.nodes.some(n=>n.kind==='hole') ? structuredClone(holeTransfer.bodies[data.nodes[data.outputs[name].node].kind==='hole'?'plate':'blank']) : body])),
     save: () => JSON.stringify({ ...data, outputs: Object.fromEntries(Object.entries(data.outputs).sort(([a], [b]) => a.localeCompare(b))) }), withParameters(values) { snapshotEdits.push({ snapshot: result, values: structuredClone(values) }); modelCalls++; if (Object.values(values).some(v => v < 0)) throw new Error('native candidate refused'); return snapshot({ ...data, parameters: { ...data.parameters, ...values } }); } };
   snapshots.push(result); return result;
 }
 globalThis.__modelingCad = { cad: { model: sampleBuilder, load(text) { modelCalls++; const data = JSON.parse(text); if (data.invalid) throw new Error('codec refused'); const result = nextLoadedSnapshot ?? snapshot(data); nextLoadedSnapshot = null; loads.push({ text, snapshot: result }); return result; } },
+  tessellateXYCirclePrismShell(bundle, options) { circleTessellations++; if(rejectCircleTessellation) throw new Error('circle preview sampling refused'); assert.deepEqual(bundle,circleTransfer.bodies.post.native.parent.bundle); assert.equal(options.segmentsPerQuarter,4); const result=structuredClone(circleTransfer.preview); result.packet.surfaceId=options.meshId;result.packet.revision=options.revision;result.report.meshId=options.meshId;result.report.revision=options.revision;return result; },
   tessellateOwnPlateCircularHole(bundle, options) { holeTessellations++; if(rejectHoleTessellation) throw new Error('hole tessellation refused'); assert.deepEqual(bundle,holeTransfer.bodies.plate.native.bundle); assert.equal(options.segmentsPerQuarter,4); const result=structuredClone(holeTransfer.holeMesh); result.mesh.context=structuredClone(options.context); return result; },
   tessellateConvexPlanarSolid(body) { tessellations++; if (rejectTessellation) throw new Error('tessellation refused'); if(body.report.solidId===holeTransfer.bodies.blank.native.report.solidId) return structuredClone(holeTransfer.blankMesh); const { mesh, boundaries, internalDiagonals, report } = structuredClone(packet.components[0]); report.solidId = 'current_solid'; return { mesh, boundaries, internalDiagonals, report }; } };
 globalThis.__modelingLegacy = () => {
@@ -64,7 +66,7 @@ const bundle = await require('esbuild').build({ entryPoints: [resolve(root, 'pac
     build.onResolve({ filter: /^@barocss\/cad$/ }, () => ({ path: 'cad', namespace: 'stub' }));
     build.onResolve({ filter: /^\.\/prism-feature-engine\.js$/ }, () => ({ path: 'legacy', namespace: 'stub' }));
     build.onLoad({ filter: /.*/, namespace: 'stub' }, args => ({ contents: args.path === 'cad'
-      ? 'export const {cad,tessellateConvexPlanarSolid,tessellateOwnPlateCircularHole}=globalThis.__modelingCad;export function tessellateSurface(){throw Error("No panel execution in this guard test");}'
+      ? 'export const {cad,tessellateConvexPlanarSolid,tessellateOwnPlateCircularHole,tessellateXYCirclePrismShell}=globalThis.__modelingCad;export function tessellateSurface(){throw Error("No panel execution in this guard test");}'
       : 'export const createPrismFeatureEngine=globalThis.__modelingLegacy;' }));
   } }] });
 writeFileSync(resolve(output, 'engine.mjs'), bundle.outputFiles[0].text);
@@ -282,9 +284,9 @@ const unusedDifference = { ...document, operation: 'difference', nodes: [
 const convexWithUnusedDifference = create()({ id: ++id, kind: 'open', text: JSON.stringify(unusedDifference) });
 assert.equal(convexWithUnusedDifference.ok, true, convexWithUnusedDifference.message);
 assert.equal(convexWithUnusedDifference.display.profile, 'model-outputs'); checks++;
-// Circle previews and forged family labels refuse before any payload or summary access.
+// A forged family label refuses before any payload or summary access; genuine circle transport follows below.
 let circleSummaryReads = 0;
-for (const acceptedKind of ['convex', 'hole']) for (const family of ['stored-rational-circle-prism', 'convex-planar', 'stored-rational-plate-hole', 'orthogonal-cell']) {
+for (const acceptedKind of ['convex', 'hole']) for (const family of ['convex-planar', 'stored-rational-plate-hole', 'orthogonal-cell']) {
   const guarded = create(), baseline = acceptedKind === 'hole'
     ? guarded({ id: ++id, kind: 'example', example: 'mounting-plate', taskToken: 'circle_guard_hole' })
     : guarded({ id: ++id, kind: 'open', text: JSON.stringify(document) });
@@ -305,12 +307,20 @@ for (const acceptedKind of ['convex', 'hole']) for (const family of ['stored-rat
   nextLoadedSnapshot = candidate;
   // Saved trusted candidate ancestry, not an arbitrary field in the incoming text, is used.
   const refused = guarded({ id: ++id, kind: 'open', text: JSON.stringify({ ...document, profile: 'rectangle' }), taskToken: 'circle_refusal' });
-  assert.equal(refused.ok, false); assert.match(refused.message, family === 'stored-rational-circle-prism' ? /circle preview is not available/ : /Authored output kind differs/);
+  assert.equal(refused.ok, false); assert.match(refused.message, /Authored output kind differs/);
   assert.equal(unsupportedNativeReads, 0); assert.equal(circleSummaryReads, 0); assert.equal(tessellations + holeTessellations, before);
   assert.equal(JSON.stringify(baseline), original); checks++;
   const recovered = guarded({ id: ++id, kind: 'apply', expectedRevision: 0, parameters: acceptedKind === 'hole' ? { radius: 2.5 } : { height: 6 }, taskToken: 'circle_recovery' });
   assert.equal(recovered.ok, true, recovered.message); assert.equal(snapshotEdits.at(-1).snapshot, accepted); checks++;
 }
+// Genuine measured baseline is serialized through the real adapter with fresh display-only context.
+const roundEngine=create(),roundFirst=roundEngine({id:++id,kind:'example',example:'round-post',taskToken:'round_initial'});
+assert.equal(roundFirst.ok,true,roundFirst.message);assert.equal(roundFirst.summary.outputs[0].family,'stored-rational-circle-prism');assert.equal(roundFirst.summary.outputs[0].volumeMM3,null);assert.equal(roundFirst.display.components[0].preview.packet.positions.length/3,98);checks++;
+const beforeRound=JSON.stringify(roundFirst),roundCount=circleTessellations;
+rejectCircleTessellation=true;const roundRefusal=roundEngine({id:++id,kind:'apply',expectedRevision:0,parameters:{height:9},taskToken:'round_refused'});rejectCircleTessellation=false;
+assert.equal(roundRefusal.ok,false);assert.match(roundRefusal.message,/circle preview sampling refused/);assert.equal(JSON.stringify(roundFirst),beforeRound);assert.equal(circleTessellations,roundCount+1);checks++;
+const roundRecovered=roundEngine({id:++id,kind:'apply',expectedRevision:0,parameters:{height:9},taskToken:'round_recovered'});assert.equal(roundRecovered.ok,true,roundRecovered.message);assert.equal(roundRecovered.summary.revision,1);assert.equal(roundRecovered.display.components[0].mesh.context.taskToken,'round_recovered');checks++;
+assert.equal(create()({id:++id,kind:'example',example:'round-post'}).ok,false);checks++;
 const unusedCircle = { ...document, nodes: [
   { kind: 'sketch', profile: 'rectangle', min: [0,0], max: [8,8] }, { kind: 'extrude', sketch: 0, height: 8 },
   { kind: 'sketch', profile: 'circle', center: [2,-3], radius: 4 }, { kind: 'extrude', sketch: 2, height: 6 },

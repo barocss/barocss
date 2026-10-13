@@ -1,6 +1,6 @@
 # Model a part, edit it and reopen it
 
-Use `cad.model()` to author a bounded solid part with named dimensions. Start with a sketch, extrude it, cut it with a through-slab tool, intersect it with another extrusion, fuse two rectangular extrusions, or split it by height, and use supported edge chamfers. You do not choose a document version or author native IDs, revisions or reference records.
+Use `cad.model()` to author a bounded solid part with named dimensions. Start with a polygon, rectangle or owned circle sketch, extrude it, cut it with a through-slab tool, intersect it with another extrusion, fuse two rectangular extrusions, or split it by height, and use supported edge chamfers. You do not choose a document version or author native IDs, revisions or reference records.
 
 All dimensions below are **millimetres**. Use a TypeScript-capable workspace/bundler for source package entries; built ESM and declarations are a separate package build. Source adoption does not establish npm publication.
 
@@ -12,6 +12,48 @@ All dimensions below are **millimetres**. Use a TypeScript-capable workspace/bun
 `rectangle({ width, height })` starts at XY `[0,0]`. Here its `height: depth` is the sketch's Y size, while `extrude(height)` is the solid's positive Z height. `makePlate()` returns an accepted snapshot; its named `bodies.part` output is a frozen `{family,native}` wrapper around the complete native Solid. A build requires at least one named output.
 
 Parameter handles belong to their model. Use them directly wherever a point coordinate or dimension is accepted. A name is safe ASCII matching `[A-Za-z_][A-Za-z0-9_-]{0,47}`, excluding `__proto__`, `prototype` and `constructor`. A finite literal can be used instead of a parameter handle. Owned derived dimensions support bounded `model.dimension.add` and `model.dimension.scale` as described below. General formula strings and sketch constraints remain outside this authoring surface.
+
+## Create and edit a round post
+
+<a :href="withBase('/examples/modeling-circle.ts')" download>Download the complete typed round-post example</a>
+
+Choose **Create a round post** in **Modeling examples**. Acknowledge replacement before loading it; the previous model is retained if loading refuses or is cancelled. **Diameter** and **Extrusion height** are the main fields. **Optional center coordinates** exposes center X/Y. These friendly fields appear only for the actual matching authored recipe; other imported models retain their generic numeric fields.
+
+```ts
+const model = cad.model();
+const centerX = model.parameter('centerX', 2), centerY = model.parameter('centerY', -3);
+const diameter = model.parameter('diameter', 8), height = model.parameter('height', 6);
+const post = model.sketch.circle({
+  center: [centerX, centerY],
+  radius: model.dimension.scale(diameter, 0.5),
+}).extrude(height);
+const initial = model.build({ post });
+const taller = initial.withParameters({ height: 9 });
+const narrower = taller.withParameters({ diameter: 4 });
+const reopened = cad.load(narrower.save());
+```
+
+The center is an XY coordinate and extrusion starts at Z=0. The owned expression `radius = diameter × 0.5` is saved as intent; there is no extra numeric radius parameter or formula text editor. Baseline center `[2,-3]`, diameter8 and height6 has native bounds `[-2,-7,0]..[6,1,6]`. Height9 changes the upper Z bound to9; diameter4 then gives `[0,-5,0]..[4,-1,9]`. These native bounds are separate from the sampled preview's measured position bounds.
+
+Apply commits the numeric batch only after native and display admission. Discard restores accepted fields. Undo/Redo use the same history as the other presets; a no-op adds no revision/history. Save retains the graph, numeric drivers, owned expression and named `post` output, not meshes or native caches. Open rebuilds cold. The explicit preset selects `post`; generic Open still selects the last validated saved output without guessing from its name. All saved outputs are checked, including hidden ones.
+
+### Round-post qualification and visible limits
+
+The output is `{family:'stored-rational-circle-prism', native}`. It contains the original rational circle and three-face parent, the separate stored-boundary certificate and compiled whole-source lineage. It qualifies the **stored rational boundary**, not an ideal mathematical cylinder. **Certified volume is unavailable**. The parent's reference pi-volume/area and the sampled preview's original uncertified geometry/topology flags retain their own meanings; they are not promoted into certified mass values or an empty/zero result.
+
+Circle radius and extrusion height must resolve to0.001..10000 mm, with generated poles inside native bounds. Exact stored cap/UV composition may still refuse otherwise plausible dimensions. The provider's decimal witness center `[.2,.2]`, diameter`.2`, height`.3` refuses with `CadModelError` NATIVE/extrude and the retained exact native GEOMETRY cause. Keep the previous snapshot on refusal; do not round, heal or retry a different chart. Circle shapes cannot enter cut, intersection, union, hole, split, chamfer or edge selection in this slice. Display also retains its own existing scene/Float32 limits and can refuse a natively valid shape.
+
+The editor uses the genuine fixed-k4 native preview: **98 vertices, 64 triangles, three face ranges**, two closed-ring paths and one seam with two opposite uses on the same wall. Cap parameters and wall-panel UVs are the actual retained sampler values. Wall normals are native-midpoint faceted normals; no smooth/periodic claim or new sampling slider is implied. Approximate picks resolve the original cap/wall face and surface in the current request context, not a new CAD edge or certified measurement.
+
+The original preview packet's legacy label is `right-handed-y-up`, but its position/normal arrays are **authored XYZ**. This finite adapter explicitly retains that original packet and its basis, partitions the unchanged face ranges, and sends raw XYZ arrays to the existing native-face preparation. **[x,z,-y] is applied exactly once**, with unchanged UVs and winding. The asymmetric center and height fixture verifies the transform; the old label does not establish a prior conversion. Closed-ring and repeated-seam provenance remain intact. This scope adds no visible edge-overlay system.
+
+### Round-post evidence and remaining external gate
+
+Adopted provider [#1677](https://github.com/barocss/barocss/issues/1677), pinned at [`65508ad8`](https://github.com/barocss/barocss/blob/65508ad878e156ddbc7426f106dd0ea7175c0655/packages/barocss-cad/src/modeling.ts), supplies the exact seven-call authoring recipe and its retained baseline. Consumer [#1683](https://github.com/barocss/barocss/issues/1683) reuses the measured **81,412-byte** native/save/summary/preview transfer, SHA256 `7338e8c36033d6a324760c9fc101d9509b73e89f223246395250c83cee6cc4e8`. Its preview contains genuine UV arrays; no reconstructed UV capture is claimed. The consumer adds no native campaign. The [provider receipt](https://github.com/barocss/barocss/blob/65508ad878e156ddbc7426f106dd0ea7175c0655/packages/barocss-cad/test/modeling-circle-evidence/verification.json) records eight model calls and one baseline preview in its first frozen campaign. They are separate from these CPU checks and do not measure full transitive work or speed savings.
+
+The real worker serializer, receiver and scene/picker are exercised with a mocked Worker/provider replay. Only display identity/revision envelopes are rebound for replay; baseline positions, normals, UVs and ranges are preserved. Changed-state display geometry is explicitly a baseline mock, while parameter/history/refusal behavior is checked through the actual controller. CPU cap/wall rays and malformed range/UV/winding/seam/context controls are not GPU pixel evidence. Source/emitted example types and the scoped declaration-boundary build are recorded separately after execution.
+
+**External visual gate OPEN:** actual editor browser/GPU/React interaction and physical Save/Open require external validation in #1683. Check diameter/height edits, cap and wall picks, refusal retention and reopened output on screen. Live Manual content or CPU rays alone do not complete that gate. Earlier pocket, union and hole visual gates remain separate.
 
 ## 2. Cut and chamfer the actual component
 
@@ -480,7 +522,7 @@ The complete named outputs keep `family:'orthogonal-cell'` with actual native ma
 
 The new saved node kind is `difference`, with parent/tool references. Cold load rebuilds the five-node graph. Depth edits reuse0/1/2 and evaluate3/4; tool XY edits reuse0/1 and evaluate2/3/4. These are model-feature indices, not measured total native savings. The old axis-cut schema and saved fixtures are unchanged.
 
-**The editor currently refuses difference outputs before preview access or tessellation.** Its union-only adapter does not authorize pocket/window preview, inward cut-tool orientation or a forged convex/legacy packet. Previous accepted union/hole/convex scene and history remain intact. The new provider flow includes CPU buffers, but browser/GPU/picking and physical-file display acceptance await a separate consumer under [#1119](https://github.com/barocss/barocss/issues/1119). Do not silently truncate the native72-panel ceiling to the current64-panel preview bound.
+**The editor software adapter now supports the bounded pocket/window workflow through [#1653](https://github.com/barocss/barocss/issues/1653).** It retains inward cut-tool orientation and native lineage, rejects forged convex/legacy packets, and validates every output before display. Complete preview requires at most64 panels; the native72-panel ceiling is not truncated. Actual browser/GPU/React and physical-file acceptance remain the **OPEN external visual gate** in #1653; the broader [#1119](https://github.com/barocss/barocss/issues/1119) renderer scope is not complete.
 
 See the [complete typed primary-API example](https://github.com/barocss/barocss/blob/develop/packages/barocss-cad/CONCISE_API.md#cut-an-underside-recess-or-through-window). This five-node operation cannot mix with other Booleans, holes or chamfers, use an operation result as an operand, or expose convex edge queries. Translated-Z, cylindrical and arbitrary BRep cutters remain outside this scope.
 
@@ -488,10 +530,10 @@ See the [complete typed primary-API example](https://github.com/barocss/barocss/
 
 | Operation | Admitted input | Refused or outside this surface |
 | --- | --- | --- |
-| Sketch | One simple strictly convex XY polygon, 3–8 straight segments; rectangle from `{width,height}` or `{min,max}` | Holes, nonconvex/self-crossing cycles, arcs, numerical sketch constraints |
-| Extrude | Positive +Z height up to 10000 mm; exact affine native prism qualification | Taper, sweep, nonpositive height or nonrepresentable native/chart lift |
+| Sketch | One simple strictly convex XY polygon, 3–8 straight segments; rectangle from `{width,height}` or `{min,max}`; owned circle from `{center,radius}` | Sketch holes, nonconvex/self-crossing cycles, arcs, numerical sketch constraints |
+| Extrude | Positive +Z height up to 10000 mm; exact affine prism or separately qualified stored-rational circle boundary | Taper, sweep, nonpositive height, failed native/chart qualification; circle parents in finishing/Boolean operations |
 | Cut with axis options | Two distinct direct XY extrusions; X or Y through-slab supports; full coverage by the remaining tool supports | Arbitrary cutter, cavity, union, chained cut parent, failed tool coverage |
-| Cut without options | Two distinct direct integer authored rectangular XY extrusions from Z=0; one positive-volume orthogonal-cell result | Empty/multiple bodies, nesting/mixed graphs, top-entry or arbitrary cutters; editor preview unavailable |
+| Cut without options | Two distinct direct integer authored rectangular XY extrusions from Z=0; one positive-volume orthogonal-cell result | Empty/multiple bodies, nesting/mixed graphs, top-entry or arbitrary cutters; complete display requires at most64 panels and external visual acceptance remains OPEN |
 | Intersect | Two distinct same-model direct XY extrusions; positive-volume exact convex-planar overlap | Disjoint/touching-only results, same handle, cut-plus-intersection, repeated/nested intersection, union or general Boolean solids |
 | Split | A direct XY extrusion or one/two owned serial chamfers rooted at it; world `axis: 'x'`, `'y'` or `'z'`, or fixed `plane: 'x+y'`, with a finite coordinate/coordinate-sum; each selected side must be nonempty | Arbitrary oblique plane, empty requested side, mixed cut/intersection/split graph, repeated/nested split |
 | Hole | One direct origin-aligned rectangular extrusion with safe-integer width/depth/height, a strictly contained finite centre/radius and successful stored-rational qualification | Tangent/outside holes, nonrectangular or moved parents, repeated holes, mixed chamfer/split/cut/intersection; see the mounting-plate limits below |

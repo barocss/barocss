@@ -64,3 +64,6 @@ export type { ModelingDisplayPacket, ModelingDisplayScene, ModelingFaceSelection
 
 export type { ModelingUnionDisplayComponent, ModelingUnionPanel, ModelingOrthogonalDisplayComponent, ModelingOrthogonalPanel } from './modeling-union.js';
 export type { ModelingUnionFaceSelection, ModelingOrthogonalFaceSelection } from './modeling-scene.js';
+
+export type { ModelingCircleDisplayComponent, ModelingCircleLineage, ModelingCircleQualification } from './modeling-circle.js';
+export type { ModelingCircleFaceSelection } from './modeling-scene.js';

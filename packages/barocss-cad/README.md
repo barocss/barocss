@@ -58,10 +58,12 @@ original Shell and its separate exact qualification. There is no certified
 ideal-cylinder volume or automatic admission to Boolean/finishing operations.
 Exact decimal trim mismatches refuse atomically with their original cause.
 
-The provider-phase editor guard preserves the prior scene when a circle output
-is opened; visible circle editing is a separate consumer step. See the
-[round-post authoring example](CONCISE_API.md#create-an-editable-round-post)
-and [bounded implementation scope](https://github.com/barocss/barocss/issues/1677).
+The editor software adapter now offers a diameter/height round-post preset with
+the genuine three-face/UV preview and one explicit authored-XYZ conversion.
+Certified volume remains unavailable; actual browser/GPU and physical-file
+acceptance stays OPEN in [consumer #1683](https://github.com/barocss/barocss/issues/1683).
+See the [round-post authoring example](CONCISE_API.md#create-an-editable-round-post)
+and [bounded provider scope](https://github.com/barocss/barocss/issues/1677).
 
 ## Connected rectangular union
 

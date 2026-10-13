@@ -1,5 +1,6 @@
-import { cad, tessellateConvexPlanarSolid, tessellateOwnPlateCircularHole, tessellateSurface } from '@barocss/cad';
+import { cad, tessellateConvexPlanarSolid, tessellateOwnPlateCircularHole, tessellateSurface, tessellateXYCirclePrismShell } from '@barocss/cad';
 import type { CadModelSnapshot } from '@barocss/cad';
+import { preflightModelingCircle, projectModelingCircle } from './modeling-circle.js';
 import { preflightModelingUnion, projectModelingUnion } from './modeling-union.js';
 import { createPrismFeatureEngine } from './prism-feature-engine.js';
 import type { CadEditorPrismFeatureSummary } from './prism-feature-types.js';
@@ -11,11 +12,11 @@ export interface CadEditorModelingSummary {
   parameters: Record<string, number>;
   suppression?: Record<string, boolean>;
   features: { kind: string; index: number; dependencies: number[]; name?: string; suppressed?: boolean }[];
-  outputs: { name: string; solidId: string; family?: 'convex-planar' | 'stored-rational-plate-hole' | 'orthogonal-cell'; volumeMM3: { numerator: string; denominator: string } | null }[];
+  outputs: { name: string; solidId: string; family?: 'convex-planar' | 'stored-rational-plate-hole' | 'orthogonal-cell' | 'stored-rational-circle-prism'; volumeMM3: { numerator: string; denominator: string } | null }[];
 }
 export type CadEditorModelingSplitAxis = 'x' | 'y' | 'z';
 /** The split example ID is retained for compatibility; splitAxis defaults to Z. */
-export type CadEditorModelingExample = 'cut-chamfer' | 'intersection' | 'horizontal-split' | 'two-chamfer' | 'chamfer-split' | 'derived-split' | 'miter-split' | 'configurable-finishes' | 'mounting-plate' | 'union-bracket' | 'underside-pocket';
+export type CadEditorModelingExample = 'cut-chamfer' | 'intersection' | 'horizontal-split' | 'two-chamfer' | 'chamfer-split' | 'derived-split' | 'miter-split' | 'configurable-finishes' | 'mounting-plate' | 'union-bracket' | 'underside-pocket' | 'round-post';
 export type ModelingCommand = { id: number; taskToken?: string } & (
   { kind: 'example'; example?: CadEditorModelingExample; splitAxis?: CadEditorModelingSplitAxis } | { kind: 'open'; text: string; revision?: number }
   | { kind: 'apply'; expectedRevision: number; parameters: Record<string, number> }
@@ -57,6 +58,15 @@ export function createCadEditorMountingPlateModel(): CadModelSnapshot {
   const blank = model.sketch.rectangle({ width, height: depth }).extrude(height);
   const plate = blank.hole({ center: [centerX, centerY], radius });
   return model.build({ blank, plate });
+}
+
+/** Exact owned diameter-driven circle recipe; the provider retains its rational boundary. */
+export function createCadEditorRoundPostModel(): CadModelSnapshot {
+  const model = cad.model();
+  const centerX = model.parameter('centerX', 2), centerY = model.parameter('centerY', -3);
+  const diameter = model.parameter('diameter', 8), height = model.parameter('height', 6);
+  const post = model.sketch.circle({ center: [centerX, centerY], radius: model.dimension.scale(diameter, 0.5) }).extrude(height);
+  return model.build({ post });
 }
 
 /** Exact adopted underside-pocket recipe; numeric depth enters from Z=0. */
@@ -193,7 +203,7 @@ export function createModelingEngine() {
       if (!command || !Number.isSafeInteger(command.id) || command.id < 1) throw new Error('A current worker request is required.');
       if (command.taskToken !== undefined && (typeof command.taskToken !== 'string' || !/^[A-Za-z0-9_-]{1,48}$/.test(command.taskToken)))
         throw new Error('A bounded current display task token is required.');
-      if (command.kind === 'example' && command.example !== undefined && command.example !== 'cut-chamfer' && command.example !== 'intersection' && command.example !== 'horizontal-split' && command.example !== 'two-chamfer' && command.example !== 'chamfer-split' && command.example !== 'derived-split' && command.example !== 'miter-split' && command.example !== 'configurable-finishes' && command.example !== 'mounting-plate' && command.example !== 'union-bracket' && command.example !== 'underside-pocket')
+      if (command.kind === 'example' && command.example !== undefined && command.example !== 'cut-chamfer' && command.example !== 'intersection' && command.example !== 'horizontal-split' && command.example !== 'two-chamfer' && command.example !== 'chamfer-split' && command.example !== 'derived-split' && command.example !== 'miter-split' && command.example !== 'configurable-finishes' && command.example !== 'mounting-plate' && command.example !== 'union-bracket' && command.example !== 'underside-pocket' && command.example !== 'round-post')
         throw new Error('Choose an available modeling example.');
       if (command.kind === 'example' && command.splitAxis !== undefined
         && (command.example === 'chamfer-split' ? !['x', 'z'].includes(command.splitAxis)
@@ -234,6 +244,7 @@ export function createModelingEngine() {
       }
       if (source !== 'model') throw new Error('Open a saved model first.');
       const snapshot = command.kind === 'example' ? (command.example === 'intersection' ? createCadEditorIntersectionModel()
+        : command.example === 'round-post' ? createCadEditorRoundPostModel()
         : command.example === 'underside-pocket' ? createCadEditorPocketModel()
         : command.example === 'union-bracket' ? createCadEditorUnionBracketModel()
         : command.example === 'mounting-plate' ? createCadEditorMountingPlateModel()
@@ -270,14 +281,11 @@ export function createModelingEngine() {
           throw new Error('Authored output kind differs from its native body family.');
         return [name, body] as const;
       });
-      // Reject the complete circle inventory before even an earlier supported native preflight.
-      if (inventory.some(([, body]) => body.family === 'stored-rational-circle-prism'))
-        throw new Error('Stored-rational circle preview is not available yet; the accepted scene is unchanged.');
       // Complete all preflights, including hidden outputs, before any tessellation.
       const outputs = inventory.map(([name, body]) => {
         switch (body.family) {
           case 'convex-planar': case 'stored-rational-plate-hole': return [name, body] as const;
-          case 'stored-rational-circle-prism': throw new Error('Stored-rational circle preview is not available yet.');
+          case 'stored-rational-circle-prism': preflightModelingCircle(body.native); return [name, body] as const;
           case 'orthogonal-cell': preflightModelingUnion(body.native, operation(name)); return [name, body] as const;
           default: { const unsupported: never = body; throw new Error(`Unsupported model body family: ${String(unsupported)}`); }
         }
@@ -290,7 +298,7 @@ export function createModelingEngine() {
         features: snapshot.features.map(f => ({ kind: f.kind, index: f.index, dependencies: [...f.dependencies],
           ...(f.name === undefined ? {} : { name: f.name, suppressed: f.suppressed }) })),
         outputs: outputs.map(([name, body]) => ({ name,
-          solidId: body.family === 'convex-planar' ? body.native.report.solidId : body.family === 'orthogonal-cell' ? body.native.bodies[0].id : body.native.bundle.request.bodyId,
+          solidId: body.family === 'convex-planar' ? body.native.report.solidId : body.family === 'orthogonal-cell' ? body.native.bodies[0].id : body.family === 'stored-rational-circle-prism' ? body.native.parent.bundle.topology.id : body.native.bundle.request.bodyId,
           ...(hasNativeFaces ? { family: body.family } : {}),
           volumeMM3: body.family === 'convex-planar' ? { ...body.native.certificate.volumeMM3 }
             : body.family === 'orthogonal-cell' ? { numerator: String(body.native.report.volumeMM3), denominator: '1' } : null })) };
@@ -322,6 +330,10 @@ export function createModelingEngine() {
         components: outputs.map(([name, body]) => body.family === 'convex-planar'
           ? { family: 'convex-planar', component: convex(name, body.native) }
           : body.family === 'stored-rational-plate-hole' ? hole(name, body.native)
+            : body.family === 'stored-rational-circle-prism' ? projectModelingCircle(body.native,
+              tessellateXYCirclePrismShell(body.native.parent.bundle, { meshId: 'modeling_circle_' + name, revision, segmentsPerQuarter: 4 }), name,
+              { documentId: summary.documentId, bodyId: body.native.parent.bundle.topology.id, documentRevision: String(revision),
+                kernelResultRevision: String(revision), topologyRevision: String(revision), taskToken: command.taskToken! })
             : projectModelingUnion(body.native, name, { documentId: summary.documentId, bodyId: body.native.bodies[0].id, documentRevision: String(revision),
               kernelResultRevision: String(revision), topologyRevision: String(revision), taskToken: command.taskToken! }, tessellateSurface, operation(name))),
         outcomes: summary.outputs.map(o => ({ role: o.name, solidId: o.solidId, family: o.family!, status: 'solid' })) }
