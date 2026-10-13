@@ -5,6 +5,15 @@ import {dirname, resolve, join} from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {build} from 'esbuild';
 import {JSDOM} from 'jsdom';
+/** Local flow observability: preserve every assertion; app runtime tests run outside required CI. */
+const diagnosticStarted = process.hrtime.bigint();
+function phase(name) {
+  const mem = process.memoryUsage();
+  console.log(JSON.stringify({kind: 'render-editor-light-flow-phase', name,
+    elapsedMs: Number((process.hrtime.bigint() - diagnosticStarted) / 1000000n),
+    rssMiB: Math.round(mem.rss / 1048576), heapUsedMiB: Math.round(mem.heapUsed / 1048576)}));
+}
+phase('start');
 const app = dirname(fileURLToPath(import.meta.url)), workspace = resolve(app, '../..');
 const output = join(app, '.generic-light-flow'); await mkdir(output, {recursive: true});
 const dom = new JSDOM('<!doctype html><div id="root"></div>', {url: 'http://localhost/material.html?workbench=lights'});
@@ -52,6 +61,7 @@ globalThis.__lightWorkbenchViewer = async (_canvas, request) => {
   control.viewer = viewer; controls.push(control); if (gate) await gate; return viewer;
 };
 try {
+  phase('bundle-start');
   await build({stdin: {contents: `export * from './apps/render-editor/src/native-light-workbench';
 export * from './apps/render-editor/src/native-light-fields';
 export * from './apps/render-editor/src/native-light-workbench-flow';
@@ -70,7 +80,9 @@ export function createNativeLightController() {const controller = actual(); glob
 export const createNativeDirectionalLightWebGPUViewer = (...args) => globalThis.__lightWorkbenchViewer(...args);
 export const createNativePointLightWebGPUViewer = (...args) => globalThis.__lightWorkbenchViewer(...args);`, resolveDir: workspace}));
     }}]});
+  phase('bundle-complete');
   const api = await import(pathToFileURL(join(output, 'flow.mjs')).href), {act} = await import('react');
+  phase('imports-complete');
   const sourceText = await readFile(join(app, 'public/reference-panel.barocad'), 'utf8');
   const surfacePointPreflight = process.argv.includes('--surface-point-preflight');
   const bodyResetOnly = process.argv.includes('--body-reset');
@@ -2534,6 +2546,7 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
       proof: 'actual source/derivation/React/session with controlled Viewer and file transport'});
   }
 
+  phase('primary-workbench-complete');
   console.log(JSON.stringify({result: 'PASS', scope: 'actual React + original codec/session; controlled Viewer, no GPU/physical-file proof', acceptedRevision: last.revision,
     lights: last.lights.lights.length, replacementCalls: controls[0].calls.length, legacyReplacements: legacyControl.calls.length, convertedLegacyRevision: editedLegacy.revision,
     cameraFlow, bodyFlow, materialFlow, navigationFlow, framingChecks, framingFlow, selectionFlow, materialTransferFlow, rotationFlow, bodyCommandFlow, surfaceImportFlow,
@@ -2645,6 +2658,7 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
         presentations: 0, choosers: 0, lifetimes: 1, acceptedOnly: true, wholeAssetRoundtrip: true, cleanup: true,
         unrelatedDeferredRevocation: priorUrl !== null});
     }
+    phase('source-export-complete');
     console.log(JSON.stringify({result: 'PASS', scope: sourceExportPreflight ? 'Accepted source export actual-provider fixture preflight' : 'Accepted source export actual React/provider; controlled download, no physical file or GPU proof', sourceExportFlow}));
   }
 
@@ -2857,6 +2871,7 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
       unrelatedCorrectiveRetention: true, selectionEpochFence: true, pendingFence: true,
       proof: 'actual React/document/provider/session; controlled Viewer acknowledgement, no GPU or physical files'});
   }
+  phase('body-reset-complete');
   console.log(JSON.stringify({result: 'PASS', scope: 'Body transform reset only: actual React/provider/session; controlled Viewer, zero file transport', bodyResetFlow}));
   }
 
@@ -3077,6 +3092,7 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
       saveOpenTransports: transports, lifetimes: owned.length, historyEntries: 1, signedNoOp: true,
       exactSourceSpans: true, sharedHiddenSibling: true, readyRefusalRetention: true, heldLossAndStaleCompletion: true});
   }
+  phase('surface-point-complete');
   console.log(JSON.stringify({result: 'PASS', scope: surfacePointPreflight ? 'Surface point fixture admission only'
     : 'Surface control points: actual React/source/codec/session; controlled Viewer and file transport, no GPU or physical files', surfacePointFlow}));
   }
@@ -3292,6 +3308,7 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
       historyEntries: 1, privateStageAndNoOpPresentations: 0, sourceRetained: true, staleSelectionFence: true,
       readyRefusalRetainsDraft: true, pendingFence: true, proof: 'actual React/document/provider/session; controlled Viewer, no GPU or physical files'});
   }
+  phase('material-copy-complete');
   console.log(JSON.stringify({result: 'PASS', scope: 'Accepted material copy: actual React/provider/session; controlled Viewer, zero file transport', materialCopyFlow}));
   }
   // #1927: eight direct admission cases, five Viewer attempts, two transports and two lifetimes per kind.
@@ -3473,6 +3490,7 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
       try {await cleanup();} catch (cause) {cleanupErrors.push(cause);}
     }
   }
+  phase('scene-title-complete');
   console.log(JSON.stringify({result: 'PASS', scope: 'Scene titles: bounded actual provider and UI/session flow', sceneTitleFlow}));
   }
   // #1944: twelve UI scenarios per kind, six Viewer replacements, two Save/Open
@@ -3786,6 +3804,7 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
       try {await cleanup();} catch (cause) {cleanupErrors.push(cause);}
     }
   }
+  phase('workspace-focus-complete');
   console.log(JSON.stringify({result: 'PASS', scope: 'Workspace focus: bounded actual React/controller/session flow', sourceLinkedAspectCases: aspectFrames.length, workspaceFocusFlow}));
   }
   }
@@ -4046,10 +4065,12 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
       proof: 'actual React/fields/codec/controller/session; controlled Viewer and DOM, no physical CSS/pointer/file or GPU proof'});
   }
   navigationDom.dispose(); navigationDom = null;
+  phase('body-tasks-complete');
   console.log(JSON.stringify({result: 'PASS', scope: 'Body task commands: bounded actual React/controller/session flow', bodyTaskFlow}));
   }
-} catch (cause) {failed = true; firstError = cause; console.error('Original Light flow failure:', cause); console.error('Active Surface ledger:', JSON.stringify(activeSurfaceLedger));}
+} catch (cause) {phase('test-failure'); failed = true; firstError = cause; console.error('Original Light flow failure:', cause); console.error('Active Surface ledger:', JSON.stringify(activeSurfaceLedger));}
 finally {
+  phase('cleanup-start');
   for (const cleanup of [() => mounted?.dispose(), async () => {
     // Radix restores focus in a deferred task. Keep the original DOM realm alive
     // until that cleanup has dispatched, before restoring global constructors.
@@ -4063,6 +4084,7 @@ finally {
     try {await cleanup();} catch (cause) {cleanupErrors.push(cause);}
   }
 }
+phase('cleanup-complete');
 if (cleanupErrors.length) console.error('Light flow cleanup failures:', cleanupErrors);
 if (failed) throw firstError;
 if (cleanupErrors.length) throw new AggregateError(cleanupErrors, 'Light flow cleanup failed.');
