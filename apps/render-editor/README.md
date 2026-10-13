@@ -846,8 +846,16 @@ physical keyboard/focus behavior, OS file downloads or integrated acceptance.
 
 ### Edit the Light scene title (#1927)
 
-Use **Scene title** beside the accepted heading, then ordinary **Apply** to save it with all other scene drafts. **Discard** restores the accepted title; **Undo/Redo** restores whole-scene authorship. The heading and **Save accepted** keep accepted data until acknowledgement. Save and a fresh same-kind Open preserve the exact admitted title for further editing; the document ID and download filename are not renamed.
+Use **Scene title** in the **Scene** inspector, then ordinary **Apply** to save it with all other scene drafts. **Discard** restores the accepted title; **Undo/Redo** restores whole-scene authorship. The heading and **Save accepted** keep accepted data until acknowledgement. Save and a fresh same-kind Open preserve the exact admitted title for further editing; the document ID and download filename are not renamed.
 
 The existing Native/Light provider requires non-whitespace text, at most 128 Unicode code points, 256 UTF-16 code units and 512 UTF-8 bytes. Valid text is not trimmed or normalized. Invalid title text remains available for correction and refuses the whole Apply. Exact equal title is a no-op; source/body/material identities, original geometry, poses, camera/local view and light values are retained by a title-only edit. Current pending, dialog/chooser, navigation and lifetime fences apply.
 
 Focused `node native-light-workbench-flow.mjs --scene-title` uses at most eight actual field/codec controls, five controlled Viewer attempts, two Save/Open transports and two lifetimes per kind. Ordinary pointer/IME, physical file persistence and GPU behavior remain separate Tester checks.
+
+### Target-focused Light workspace (#1944)
+
+Select a Body or Light to focus its inspector, or use **Body / Light / Camera / Scene** to inspect the retained target. **Scene** contains the title and ambient controls. File, Body, Light and View commands are grouped by purpose; the actual viewport stays mounted while targets change. Camera fields author the saved camera; navigation still changes only the local view.
+
+The fixed **Apply / Discard** bar always affects the complete scene, including drafts in hidden sections. Changing inspector focus never discards or accepts fields. If Apply reports an invalid hidden field, return to that target and correct it, or Discard all drafts. The accepted heading and **Save accepted** remain unchanged until acknowledgement. Existing pending/dialog, file, recovery and selection rules still apply.
+
+Focused local `node native-light-workbench-flow.mjs --workspace-focus` checks real React/session ownership with a controlled Viewer and file transport. Physical layout, ordinary pointer/file behavior and GPU pixels require separate Execute Tester evidence; DOM structure alone does not establish them.

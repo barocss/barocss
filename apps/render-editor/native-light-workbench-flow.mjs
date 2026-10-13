@@ -76,9 +76,10 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
   const bodyResetOnly = process.argv.includes('--body-reset');
   const materialCopyOnly = process.argv.includes('--material-copy');
   const sceneTitleOnly = process.argv.includes('--scene-title');
+  const workspaceFocusOnly = process.argv.includes('--workspace-focus');
   const sourceExportPreflight = process.argv.includes('--source-export-preflight');
   const sourceExportOnly = process.argv.includes('--source-export') || sourceExportPreflight;
-  if (!sceneTitleOnly && !materialCopyOnly && !sourceExportOnly && !bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight) {
+  if (!workspaceFocusOnly && (!sceneTitleOnly && !materialCopyOnly && !sourceExportOnly && !bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight)) {
   const seed = api.createLightStudy(sourceText);
   const original = api.serializeRenderNativeLightDocument(seed);
   const form = api.addLightFields(api.readLightFields(seed));
@@ -2537,7 +2538,7 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
   }
 
   // #1901: accepted whole-asset source transport, with no Viewer replacement.
-  if (!sceneTitleOnly && !materialCopyOnly && (sourceExportOnly || (!bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight))) {
+  if (!workspaceFocusOnly && (!sceneTitleOnly && !materialCopyOnly && (sourceExportOnly || (!bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight)))) {
     const sourceExportFlow = [], container = document.getElementById('root');
     const button = label => [...container.querySelectorAll('button')].find(node => node.textContent.trim() === label || node.getAttribute('aria-label') === label);
     const click = async label => {const node = button(label); assert(node && !node.disabled, label); await act(async () => node.click());};
@@ -2646,7 +2647,7 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
 
   // #1881: independent focused acceptance, also included by default. --body-reset
   // excludes every older block, including Surface points; there are no file transports.
-  if (!sceneTitleOnly && !materialCopyOnly && !sourceExportOnly && (bodyResetOnly || (!process.argv.includes('--surface-point') && !surfacePointPreflight))) {
+  if (!workspaceFocusOnly && (!sceneTitleOnly && !materialCopyOnly && !sourceExportOnly && (bodyResetOnly || (!process.argv.includes('--surface-point') && !surfacePointPreflight)))) {
   const bodyResetFlow = [], resetContainer = document.getElementById('root');
   const resetButton = name => [...resetContainer.querySelectorAll('button')]
     .find(node => node.textContent.trim() === name || node.getAttribute('aria-label') === name);
@@ -2858,7 +2859,7 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
 
   // #1861: this block also runs in default CI, independently of all older flow setup.
   // --surface-point runs only this acceptance; --surface-point-preflight admits fixtures only.
-  if (!sceneTitleOnly && !materialCopyOnly && !bodyResetOnly && !sourceExportOnly) {
+  if (!workspaceFocusOnly && (!sceneTitleOnly && !materialCopyOnly && !bodyResetOnly && !sourceExportOnly)) {
   const surfacePointFlow = [], pointContainer = document.getElementById('root');
   const pointButton = name => [...pointContainer.querySelectorAll('button')]
     .find(node => node.textContent.trim() === name || node.getAttribute('aria-label') === name);
@@ -3079,7 +3080,7 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
 
   // #1917: independent actual-provider fixtures; --material-copy excludes every older block.
   // Ten direct copy controls, four Viewer attempts, zero file transports and one lifetime per kind.
-  if (!sceneTitleOnly && (materialCopyOnly || (!sourceExportOnly && !bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight))) {
+  if (!workspaceFocusOnly && (!sceneTitleOnly && (materialCopyOnly || (!sourceExportOnly && !bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight)))) {
   const materialCopyFlow = [], copyContainer = document.getElementById('root');
   const copyButton = name => [...copyContainer.querySelectorAll('button')]
     .find(node => node.textContent.trim() === name || node.getAttribute('aria-label') === name);
@@ -3292,7 +3293,7 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
   }
   // #1927: eight direct admission cases, five Viewer attempts, two transports and two lifetimes per kind.
   // --scene-title runs this new block only; ordinary CI still includes every historical block.
-  if (sceneTitleOnly || (!materialCopyOnly && !sourceExportOnly && !bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight)) {
+  if (!workspaceFocusOnly && (sceneTitleOnly || (!materialCopyOnly && !sourceExportOnly && !bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight))) {
   const sceneTitleFlow = [], titleContainer = document.getElementById('root');
   const titleButton = name => [...titleContainer.querySelectorAll('button')]
     .find(node => node.textContent.trim() === name || node.getAttribute('aria-label') === name);
@@ -3470,6 +3471,310 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
     }
   }
   console.log(JSON.stringify({result: 'PASS', scope: 'Scene titles: bounded actual provider and UI/session flow', sceneTitleFlow}));
+  }
+  // #1944: twelve UI scenarios per kind, six Viewer replacements, two Save/Open
+  // transports and two lifetimes. --workspace-focus excludes every historical block.
+  if (workspaceFocusOnly || (!sceneTitleOnly && !materialCopyOnly && !sourceExportOnly && !bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight)) {
+  const workspaceFocusFlow = [], focusContainer = document.getElementById('root');
+  // Source-linked layout contract, not a browser layout measurement. The element
+  // and bitmap share the same aspect; the existing pick control checks its center.
+  const layoutCss = await readFile(join(app, 'src/style.css'), 'utf8');
+  assert.match(layoutCss, /\.light-canvas-frame \{[^}]*container-type: size;/);
+  assert.match(layoutCss, /\.light-workspace \.light-canvas-frame canvas \{[^}]*width: min\(100cqw, 160cqh\); height: auto; aspect-ratio: 8 \/ 5; border: 0; padding: 0;/);
+  const aspectFrames = [[960, 300], [400, 600], [640, 400], [1280, 120]];
+  for (const [frameWidth, frameHeight] of aspectFrames) {
+    const width = Math.min(frameWidth, 1.6 * frameHeight), height = width / 1.6;
+    assert(width <= frameWidth && height <= frameHeight);
+    assert.equal(width / height, 8 / 5);
+  }
+  const focusButton = label => [...focusContainer.querySelectorAll('button')]
+    .find(node => node.textContent.trim() === label || node.getAttribute('aria-label') === label);
+  const focusClick = async label => {const button = focusButton(label); assert(button && !button.disabled, label);
+    await act(async () => button.click());};
+  const focusInput = label => {const input = focusContainer.querySelector(`[aria-label="${label}"]`); assert(input, label); return input;};
+  const setFocusInput = (input, value) => {
+    Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value').set.call(input, value);
+    input.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  };
+  const focusEdit = async (label, value) => {const input = focusInput(label);
+    assert(!input.disabled && !input.closest('[hidden]'), label + ': edit the reachable target');
+    await act(async () => setFocusInput(input, value));};
+  const focusTargets = ['body', 'light', 'camera', 'scene'];
+  const inspector = () => focusInput('Light inspector');
+  const focusHeading = () => inspector().querySelector('header h1, header h2, header h3, header [role="heading"]');
+  const activeFocus = () => focusTargets.find(target => focusButton('Inspect ' + target).getAttribute('aria-pressed') === 'true');
+  const selectedFocusBody = () => [...focusContainer.querySelectorAll('[aria-label^="Edit body "]')]
+    .find(node => node.getAttribute('aria-pressed') === 'true')?.getAttribute('aria-label').slice(10);
+  const selectedFocusLight = () => [...focusInput('Light outliner').querySelectorAll('button[aria-pressed]')]
+    .filter(node => !node.getAttribute('aria-label')?.startsWith('Edit body '))
+    .find(node => node.getAttribute('aria-pressed') === 'true');
+  const focusSections = () => [
+    ['body', focusInput('Body transform')], ['body', focusInput('Body material')],
+    ['light', focusInput('Light label').closest('section')], ['camera', focusInput('Scene camera')],
+    ['scene', focusInput('Ambient strength').closest('section')], ['scene', focusInput('Scene title').closest('section')],
+  ];
+  const assertFocus = target => {
+    assert.equal(activeFocus(), target); assert(focusHeading(), 'Inspector has a semantic target heading');
+    const expectedHeading = target === 'body' ? focusButton('Edit body ' + selectedFocusBody()).firstChild.textContent
+      : target === 'light' ? focusInput('Light label').value : target === 'camera' ? 'Authored scene camera' : 'Scene settings';
+    assert.equal(focusHeading().textContent, expectedHeading);
+    for (const [sectionTarget, section] of focusSections()) {
+      assert(section && section.isConnected, sectionTarget + ': fields stay mounted');
+      assert.equal(section.hidden, sectionTarget !== target, sectionTarget + ': explicit hidden state');
+    }
+    assert.equal(focusTargets.filter(value => focusButton('Inspect ' + value).getAttribute('aria-pressed') === 'true').length, 1);
+  };
+  const focusAppearance = request => api.prepareViewerNativeSceneAppearance({version: 1, source: request.source, display: request.display,
+    appearance: {lighting: {ambientStrength: 1, directionalStrength: 0, direction: [0, 0, 1]}, materials: request.materials}}, request.context);
+  navigationDom?.dispose(); navigationDom = api.installLightNavigationFlowDom();
+  // Wide/short 960x300 frame produces a 480x300 Canvas element, without letterboxing.
+  navigationDom.setRect({left: 40, top: 25, width: 480, height: 300});
+  const originalTimeout = dom.window.setTimeout, focusTimers = [], focusUrlStart = createdUrls.length, focusConfirmation = confirmation;
+  confirmation = true;
+  dom.window.setTimeout = function (callback, delay, ...args) {
+    const id = originalTimeout.call(this, callback, delay, ...args); if (delay === 1000) focusTimers.push(id); return id;
+  };
+  try {
+  for (const kind of ['directional', 'point']) {
+    // Reuse the admitted two-body reference scene and its existing amount material.
+    // There is no new CAD source, shader fixture or surrogate authoring state.
+    const seed = api.createLightStudy(sourceText, kind), original = api.serializeRenderNativeLightDocument(seed);
+    const seedFields = api.readLightFields(seed), A = 'body_preview_a', B = 'body_preview_b';
+    const editedTitle = '  Focused e\u0301 scene 🧭  ', vectorLabel = kind === 'point' ? 'Position X' : 'Direction X';
+    const cases = [], focusControls = [], controlsBefore = controls.length, downloadsBefore = downloads.length;
+    const choosersBefore = fileChoosers; let presentations = 0, transports = 0, fileReads = 0, releaseFocus;
+    activeSurfaceLedger = {feature: 'workspace-focus', kind, cases, get presentations() {return presentations;},
+      get saveOpenTransports() {return transports;}, get lifetimes() {return controls.length - controlsBefore;}};
+    const scenario = label => {cases.push(label); assert(cases.length <= 12, kind + ': twelve workspace UI scenarios');};
+    const mountFocus = async () => {
+      mounted = await api.mountLightWorkbenchFlow(focusContainer, seed);
+      assert(controls.length - controlsBefore <= 2, kind + ': two workspace lifetimes');
+      const control = controls.at(-1), replace = control.viewer.replace; control.prepare = focusAppearance;
+      control.viewer.replace = request => {presentations++; assert(presentations <= 6, kind + ': six workspace Viewer attempts'); return replace(request);};
+      focusControls.push({control, replace}); return control;
+    };
+    const controller = () => flowControllers.at(-1), session = () => controller().getSession(), snapshot = () => session().getSnapshot();
+    const draft = () => api.readLightWorkbenchFlowDraft(focusContainer), savePayload = () => session().getSavePayload().text;
+    const acceptedHeading = () => focusContainer.querySelector('.app-document-bar > strong').textContent;
+    const viewedRequest = document => {const request = api.createRenderNativeLightRequest(document), camera = snapshot().viewportCamera;
+      return camera ? {...request, display: {...request.display, camera}} : request;};
+    const revised = (document, revision) => ({...document, revision, lights: {...document.lights, revision}});
+    const go = async target => {
+      const before = snapshot(), beforeDraft = draft(), beforeController = controller(), beforeSession = session();
+      const canvas = focusContainer.querySelector('canvas'), body = selectedFocusBody(), light = selectedFocusLight();
+      const inputs = [...inspector().querySelectorAll('input')], sections = focusSections().map(([, section]) => section);
+      const calls = presentations;
+      await focusClick('Inspect ' + target); assertFocus(target);
+      assert.equal(controller(), beforeController); assert.equal(session(), beforeSession); assert.equal(snapshot(), before);
+      assert.equal(focusContainer.querySelector('canvas'), canvas); assert.equal(canvas.isConnected, true);
+      assert.equal(selectedFocusBody(), body); assert.equal(selectedFocusLight(), light);
+      assert.deepEqual(draft(), beforeDraft); assert.equal(presentations, calls);
+      const currentInputs = [...inspector().querySelectorAll('input')], currentSections = focusSections().map(([, section]) => section);
+      assert.equal(currentInputs.length, inputs.length); assert.equal(currentSections.length, sections.length);
+      inputs.forEach((input, index) => assert.equal(currentInputs[index], input, 'Focus does not remount fields'));
+      sections.forEach((section, index) => assert.equal(currentSections[index], section, 'Focus does not remount sections'));
+    };
+    const assertFocusLocked = async label => {
+      const target = activeFocus(), before = snapshot(), beforeDraft = draft(), body = selectedFocusBody(), light = selectedFocusLight();
+      for (const value of focusTargets) assert(focusButton('Inspect ' + value).disabled, label + ': ' + value);
+      await act(async () => {for (const value of focusTargets) focusButton('Inspect ' + value).click();});
+      assertFocus(target); assert.equal(snapshot(), before); assert.deepEqual(draft(), beforeDraft);
+      assert.equal(selectedFocusBody(), body); assert.equal(selectedFocusLight(), light);
+    };
+    const setCopySource = (input, value) => {input.value = value; input.dispatchEvent(new dom.window.Event('change', {bubbles: true}));};
+    const chooseCopySource = async value => {const input = focusInput('Copy accepted material from body'); assert(!input.disabled);
+      await act(async () => setCopySource(input, value)); assert.equal(input.value, value);};
+    const stageAll = async (invalid = false) => {
+      await go('body'); await focusEdit('Body position X (mm)', invalid ? '1e' : '-0'); await focusEdit('Uniform amount', '-0');
+      await go('light'); await focusEdit(vectorLabel, '-0'); await focusEdit('Intensity', invalid ? '1e' : '.4');
+      await go('camera'); await focusEdit('Camera eye X', invalid ? '1e' : '2');
+      await go('scene'); await focusEdit('Ambient strength', '-0'); await focusEdit('Scene title', invalid ? '' : editedTitle);
+    };
+    try {
+      const control = await mountFocus(), originalSession = session(), originalController = controller();
+      const canvas = focusContainer.querySelector('canvas'), baseline = snapshot();
+      scenario('accessible target sections and stable actual Canvas/controller/session'); // 1.
+      assert(canvas.parentElement.classList.contains('light-canvas-frame'), 'Canvas has a dedicated aspect-preserving frame');
+      assert.equal(canvas.width / canvas.height, 8 / 5);
+      const fieldsRegion = focusInput('Inspector fields'), footer = focusInput('Whole-scene draft actions');
+      assert.equal(inspector().tagName, 'ASIDE'); assert.equal(fieldsRegion.parentElement, inspector());
+      assert.equal(footer.parentElement, inspector()); assert.equal(fieldsRegion.nextElementSibling, footer);
+      assert(!fieldsRegion.contains(footer)); assert(inspector().querySelector('header')?.contains(focusHeading()));
+      assert.match(footer.textContent, /Apply[\s\S]*all scene drafts/i); assert.match(footer.textContent, /Discard[\s\S]*all scene drafts/i);
+      for (const label of ['Apply', 'Discard']) {
+        assert(footer.contains(focusButton(label))); assert.equal(focusButton(label).tagName, 'BUTTON'); assert(focusButton(label).tabIndex >= 0);
+      }
+      for (const label of ['File commands', 'Body commands', 'Light commands']) assert.equal(focusInput(label).getAttribute('role'), 'group');
+      for (const label of ['Open', 'Save accepted', 'Import legacy Native scene']) assert(focusInput('File commands').contains(focusButton(label)), label);
+      for (const label of ['Add Surface…', 'Edit control point…', 'Duplicate body', 'Remove body']) assert(focusInput('Body commands').contains(focusButton(label)), label);
+      for (const label of ['Add ' + kind, 'Duplicate light']) assert(focusInput('Light commands').contains(focusButton(label)), label);
+      assert.equal(focusInput('Viewport navigation').getAttribute('role'), 'toolbar');
+      for (const target of focusTargets) {
+        assert(inspector().querySelector('header').contains(focusButton('Inspect ' + target)));
+        assert.equal(focusButton('Inspect ' + target).tagName, 'BUTTON'); await go(target);
+      }
+      assert.equal(acceptedHeading(), seed.title); assert.equal(snapshot(), baseline); assert.equal(savePayload(), original);
+
+      scenario('inventory and actual Canvas picking retain qualified material-copy fences'); // 2.
+      await focusClick('Edit body ' + A); assertFocus('body'); await chooseCopySource(B);
+      const staleCopy = focusButton('Stage material copy'), staleSource = focusInput('Copy accepted material from body');
+      await go('camera'); await go('body'); assert.equal(staleSource.value, B, 'Focus alone retains the qualified material source');
+      await act(async () => {focusButton('Edit body ' + B).click(); staleCopy.click(); setCopySource(staleSource, B);});
+      assertFocus('body'); assert.equal(selectedFocusBody(), B); assert.equal(focusInput('Copy accepted material from body').value, '');
+      assert(focusButton('Stage material copy').disabled); assert.equal(snapshot(), baseline); assert.equal(savePayload(), original);
+      const entry = api.prepareRenderNativeLightDocument(seed).entries.find(value => value.binding.bodyId === A);
+      assert(entry); control.pickResult = () => ({generation: control.viewer.accepted.generation,
+        ref: {kind: 'surface', modelId: entry.ref.modelId, surfaceId: entry.ref.geometryId}, binding: entry.binding});
+      await go('scene'); await act(async () => {
+        navigationDom.pointer(canvas, 'pointerdown', 280, 175); navigationDom.pointer(canvas, 'pointerup', 280, 175); await Promise.resolve();
+      });
+      assert.deepEqual(control.picks, [[480, 300]], 'Aspect-preserving element center maps to backing center');
+      assert.equal(control.picks.length, 1); assert.equal(selectedFocusBody(), A); assertFocus('body');
+      await focusClick('Edit body ' + B); assertFocus('body');
+      const lightRow = selectedFocusLight(); assert(lightRow && !lightRow.disabled);
+      await act(async () => lightRow.click()); assertFocus('light'); assert.equal(selectedFocusBody(), B);
+      assert.equal(snapshot(), baseline); assert.equal(presentations, 0);
+
+      scenario('local camera navigation fences focus without authoring or remounting'); // 3.
+      const cleanBodyDraft = draft(); await focusClick('Zoom in'); await assertFocusLocked('queued navigation');
+      await act(async () => {navigationDom.flushFrames(); await Promise.resolve();}); // Viewer 1.
+      assert.equal(presentations, 1); assert.equal(snapshot().accepted, baseline.accepted); assert.equal(snapshot().viewDirty, true);
+      assert.equal(snapshot().canUndo, false); assert.equal(snapshot().canRedo, false); assert.equal(savePayload(), original);
+      assert.equal(focusInput('Viewport camera status').textContent, 'User view'); assert.deepEqual(draft(), cleanBodyDraft);
+      for (const target of focusTargets) await go(target);
+
+      scenario('hidden raw signed and invalid drafts remain mounted and block whole-scene Apply'); // 4.
+      await stageAll(true); const invalidDraft = draft(), beforeInvalid = snapshot();
+      await go('light'); await focusClick('Apply');
+      assert.equal(snapshot(), beforeInvalid); assert.deepEqual(draft(), invalidDraft); assert.equal(presentations, 1);
+      assert.equal(focusInput('Scene title').value, ''); assert.equal(focusInput('Body position X (mm)').value, '1e');
+      assert.equal(focusInput('Uniform amount').value, '-0'); assert.equal(focusInput('Ambient strength').value, '-0');
+      assert.equal(focusInput(vectorLabel).value, '-0'); assert.equal(acceptedHeading(), seed.title); assert.equal(savePayload(), original);
+      assert.match(focusContainer.textContent, /Unapplied draft/); assert(focusInput('Copy accepted material from body').disabled);
+      assert(focusButton('Stage material copy').disabled); assert(focusButton('Duplicate body').disabled); assert(focusButton('Remove body').disabled);
+
+      scenario('hidden errors stay reachable and each correction preserves all other drafts'); // 5.
+      for (const [target, label, value] of [['scene', 'Scene title', editedTitle], ['body', 'Body position X (mm)', '-0'], ['camera', 'Camera eye X', '2']]) {
+        await go(target); await focusEdit(label, value); await go(target === 'scene' ? 'camera' : 'scene');
+        const corrective = draft(); await focusClick('Apply');
+        assert.equal(snapshot(), beforeInvalid); assert.deepEqual(draft(), corrective); assert.equal(presentations, 1);
+      }
+      await go('light'); await focusEdit('Intensity', '.4');
+      const candidateFields = structuredClone(seedFields);
+      candidateFields.title = editedTitle; candidateFields.ambient = '-0'; candidateFields.camera.eye[0] = '2';
+      candidateFields.lights[0].vector[0] = '-0'; candidateFields.lights[0].intensity = '.4';
+      candidateFields.bodies.find(value => value.bodyId === B).position[0] = '-0';
+      candidateFields.materials.find(value => value.target.bodyId === B).uniforms[0].value = '-0';
+      const candidate = api.applyLightFields(seed, candidateFields), correctedDraft = draft(), beforeRefusal = snapshot();
+
+      scenario('refused complete-scene ACK retains hidden fields and pending focus ownership'); // 6.
+      control.wait = new Promise(resolve => {releaseFocus = resolve;}); control.refusal = new Error('Controlled workspace focus refusal');
+      await act(async () => focusButton('Apply').click()); // Viewer 2.
+      assert.equal(snapshot().pending, 'apply'); await assertFocusLocked('refused pending Apply');
+      for (const label of ['Apply', 'Discard', 'Open', 'Save accepted', 'Edit body ' + A]) assert(focusButton(label).disabled, label);
+      assert.equal(acceptedHeading(), seed.title); assert.equal(savePayload(), original);
+      await act(async () => {releaseFocus(); await control.wait;}); control.wait = null; releaseFocus = undefined;
+      assert.equal(presentations, 2); assert.match(focusContainer.textContent, /PRESENTATION_REFUSED/); assert.deepEqual(draft(), correctedDraft);
+      for (const key of ['accepted', 'canUndo', 'canRedo', 'unsaved', 'viewportCamera']) assert.equal(snapshot()[key], beforeRefusal[key], key);
+      assert.deepEqual(control.calls.at(-1), viewedRequest(revised(candidate, seed.revision + 1)));
+      control.refusal = null; for (const target of focusTargets) await go(target);
+
+      scenario('accessible fixed-sibling footer Discard restores all hidden scene fields'); // 7.
+      await go('camera'); focusButton('Discard').focus(); assert.equal(document.activeElement, focusButton('Discard'));
+      await focusClick('Discard'); assert.deepEqual(draft(), cleanBodyDraft); assert.equal(savePayload(), original);
+      assert.equal(snapshot().accepted, baseline.accepted); assert.equal(snapshot().canUndo, false); assert.equal(snapshot().canRedo, false);
+      assert.equal(presentations, 2); assert.equal(acceptedHeading(), seed.title);
+
+      scenario('Help and modal ownership refuse focus and preserve material source'); // 8.
+      await go('body'); await chooseCopySource(A); const beforeModal = snapshot(), modalDraft = draft();
+      await focusClick('Help'); await assertFocusLocked('Help'); await focusClick('Help');
+      await focusClick('Add Surface…'); const dialog = document.querySelector('[data-testid="light-add-dialog"]'); assert(dialog);
+      await assertFocusLocked('Add Surface dialog'); assert(focusInput('Copy accepted material from body').disabled);
+      const cancel = [...dialog.querySelectorAll('button')].find(button => button.textContent.trim() === 'Cancel');
+      assert(cancel && !cancel.disabled); await act(async () => cancel.click());
+      assert.equal(snapshot(), beforeModal); assert.deepEqual(draft(), modalDraft); assert.equal(focusInput('Copy accepted material from body').value, A);
+      assert.equal(presentations, 2); assert.equal(fileChoosers, choosersBefore);
+
+      scenario('one held accepted Apply commits every focused and hidden group together'); // 9.
+      await stageAll(); await go('camera'); const pendingDraft = draft();
+      focusButton('Apply').focus(); assert.equal(document.activeElement, focusButton('Apply'));
+      control.wait = new Promise(resolve => {releaseFocus = resolve;});
+      await act(async () => focusButton('Apply').click()); // Viewer 3.
+      assert.equal(snapshot().pending, 'apply'); await assertFocusLocked('accepted pending Apply');
+      assert.equal(acceptedHeading(), seed.title); assert.equal(savePayload(), original); assert.deepEqual(draft(), pendingDraft);
+      await act(async () => {focusButton('Apply').click(); focusButton('Discard').click(); releaseFocus(); await control.wait;});
+      control.wait = null; releaseFocus = undefined;
+      const accepted = revised(candidate, seed.revision + 1);
+      assert.deepEqual(snapshot().accepted, accepted); assert.equal(presentations, 3); assert(snapshot().canUndo); assert.equal(snapshot().canRedo, false);
+      assert.equal(acceptedHeading(), editedTitle); assert.deepEqual(control.calls.at(-1), viewedRequest(accepted));
+      assert.deepEqual(snapshot().accepted.nativeDocument, seed.nativeDocument); assert.deepEqual(snapshot().accepted.nativeOptions, seed.nativeOptions);
+      assert.deepEqual(snapshot().accepted.surfaceMaterials[0], seed.surfaceMaterials[0]);
+      assert(Object.is(snapshot().accepted.lights.ambientStrength, -0)); assert(Object.is(snapshot().accepted.surfaceMaterials[1].material.uniforms.amount, -0));
+      assert.equal(focusInput('Copy accepted material from body').value, '', 'Acceptance invalidates the old qualified source ticket');
+      assert.equal(focusContainer.querySelector('canvas'), canvas); assert.equal(controller(), originalController); assert.equal(session(), originalSession);
+
+      scenario('Undo and Redo expose exactly one whole-scene history entry'); // 10.
+      await go('light'); await focusClick('Undo'); // Viewer 4.
+      assert.deepEqual(snapshot().accepted, revised(seed, seed.revision + 2)); assert.equal(snapshot().canUndo, false); assert(snapshot().canRedo);
+      assert.equal(acceptedHeading(), seed.title); assert.equal(focusInput('Uniform amount').value, seedFields.materials[1].uniforms[0].value);
+      await go('scene'); await focusClick('Redo'); // Viewer 5.
+      const redone = revised(candidate, seed.revision + 3);
+      assert.deepEqual(snapshot().accepted, redone); assert(snapshot().canUndo); assert.equal(snapshot().canRedo, false);
+      assert.equal(acceptedHeading(), editedTitle); assert.equal(focusInput('Uniform amount').value, '-0'); assert.equal(presentations, 5);
+
+      scenario('Save transports only accepted data while hidden invalid corrections survive'); // 11.
+      await focusEdit('Scene title', 'unsaved corrective title'); await go('body'); await focusEdit('Body position X (mm)', '1e'); await go('light');
+      const unsavedDraft = draft(); transports++; assert(transports <= 2); await focusClick('Save accepted');
+      const savedText = await downloads.at(-1).blob.text(); assert.equal(savedText, api.serializeRenderNativeLightDocument(redone));
+      assert.deepEqual(api.parseRenderNativeLightDocument(savedText), redone); assert.deepEqual(draft(), unsavedDraft);
+      assert.equal(downloads.at(-1).name, seed.documentId + '.light-scene.json'); assert.equal(snapshot().unsaved, false);
+      const detachedFocus = focusButton('Inspect scene'), detachedApply = focusButton('Apply'), detachedField = focusInput('Scene title');
+      await mounted.dispose(); mounted = null; const disposed = originalSession.getSnapshot(); assert(disposed.disposed);
+      await act(async () => {detachedFocus.click(); detachedApply.click(); setFocusInput(detachedField, 'late detached correction');});
+      assert.equal(originalSession.getSnapshot(), disposed); assert.equal(control.disposed, 1);
+
+      scenario('fresh Open fences chooser and recovery with exact accepted fields and no history'); // 12.
+      const reopened = await mountFocus(), reopenedCanvas = focusContainer.querySelector('canvas'), reopenedSession = session();
+      assert.notEqual(reopenedCanvas, canvas); assert.notEqual(reopenedSession, originalSession);
+      transports++; assert(transports <= 2); await focusClick('Open'); await assertFocusLocked('Open chooser');
+      const input = focusInput('Open light scene file'), bytes = new TextEncoder().encode(savedText);
+      Object.defineProperty(input, 'files', {configurable: true, value: [{name: 'focused.light-scene.json', size: bytes.length,
+        arrayBuffer: async () => {fileReads++; return bytes.buffer;}}]});
+      await act(async () => input.dispatchEvent(new dom.window.Event('change', {bubbles: true}))); // Transport 2, Viewer 6.
+      assert.deepEqual(snapshot().accepted, redone); assert.equal(savePayload(), savedText); assert.equal(snapshot().canUndo, false);
+      assert.equal(snapshot().canRedo, false); assert.equal(snapshot().unsaved, false); assert.equal(acceptedHeading(), editedTitle);
+      await focusClick('Edit body ' + B); assertFocus('body'); assert.equal(focusInput('Body position X (mm)').value, '-0');
+      assert.equal(focusInput('Uniform amount').value, '-0'); assert.equal(focusInput('Scene title').value, editedTitle);
+      for (const target of focusTargets) await go(target);
+      const beforeLoss = snapshot(), lostDraft = draft(); reopened.state = 'lost';
+      await act(async () => {await new Promise(resolve => setTimeout(resolve, 350));}); await assertFocusLocked('presentation recovery');
+      assert.equal(snapshot(), beforeLoss); assert.deepEqual(draft(), lostDraft); assert.equal(savePayload(), savedText);
+      assert.equal(focusContainer.querySelector('canvas'), reopenedCanvas); assert.equal(session(), reopenedSession);
+      assert.equal(presentations, 6); assert.equal(transports, 2); assert.equal(fileReads, 1);
+      assert.equal(controls.length - controlsBefore, 2); assert.equal(downloads.length - downloadsBefore, 1); assert.equal(fileChoosers - choosersBefore, 1);
+      assert.equal(cases.length, 12); assert.equal(new Set(cases).size, 12); assert.equal(api.serializeRenderNativeLightDocument(seed), original);
+    } finally {
+      for (const cleanup of [async () => {if (releaseFocus) {await act(async () => releaseFocus()); releaseFocus = undefined;}},
+        async () => {const live = mounted; mounted = null; await live?.dispose();},
+        () => {for (const {control, replace} of focusControls) {control.viewer.replace = replace; control.wait = null; control.refusal = null; control.prepare = null;}}]) {
+        try {await cleanup();} catch (cause) {cleanupErrors.push(cause);}
+      }
+    }
+    assert(focusControls.every(({control}) => control.disposed === 1));
+    assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+    workspaceFocusFlow.push({kind, uiScenarios: cases.length, cases, presentations, saveOpenTransports: transports, lifetimes: 2,
+      historyEntries: 1, stableCanvasSession: true, hiddenDraftValidation: true, acceptedOnlySave: true,
+      proof: 'actual React/field/codec/controller/session; controlled Viewer and DOM transport, no physical layout, pointer/file or GPU proof'});
+  }
+  } finally {
+    for (const cleanup of [() => {confirmation = focusConfirmation; dom.window.setTimeout = originalTimeout;},
+      () => {for (const timer of focusTimers) dom.window.clearTimeout(timer);},
+      () => {for (const url of createdUrls.slice(focusUrlStart)) if (!revokedUrls.includes(url)) URL.revokeObjectURL(url);},
+      () => {navigationDom?.dispose(); navigationDom = null;}]) {
+      try {await cleanup();} catch (cause) {cleanupErrors.push(cause);}
+    }
+  }
+  console.log(JSON.stringify({result: 'PASS', scope: 'Workspace focus: bounded actual React/controller/session flow', sourceLinkedAspectCases: aspectFrames.length, workspaceFocusFlow}));
   }
 } catch (cause) {failed = true; firstError = cause; console.error('Original Light flow failure:', cause); console.error('Active Surface ledger:', JSON.stringify(activeSurfaceLedger));}
 finally {

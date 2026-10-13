@@ -8,6 +8,7 @@ import { createHash } from 'node:crypto';
 const app = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const root = resolve(app, '../..');
 const baselineFile = resolve(app, 'evidence/public-api.json');
+const currentFile = resolve(app, 'evidence/current-public-api.json');
 const catalog = JSON.parse(await readFile(resolve(app, 'evidence/package-inventory.json'), 'utf8'));
 const slugs = ['render','gpu','cad','cad-interop','canvas2d','viewer','physics','cad-editor','render-editor'];
 const flags = ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.UseAliasDefinedOutsideCurrentScope;
@@ -43,7 +44,7 @@ async function ensureWorkspaceLinks() {
     catch (error) { if (error.code !== 'EEXIST' || resolve(namespace, await readlink(link)) !== target) throw error; }
   }
 }
-function collect(packages, projectRoot) {
+export function collect(packages, projectRoot) {
   const paths = packages.flatMap(p => p.entries.filter(e => !e.cssOnly).map(e => e.path));
   const options = { target: ts.ScriptTarget.ESNext, module: ts.ModuleKind.ESNext, moduleResolution: ts.ModuleResolutionKind.Bundler, allowJs: true, jsx: ts.JsxEmit.ReactJSX, skipLibCheck: true, noEmit: true };
   const host = ts.createCompilerHost(options);
@@ -133,7 +134,7 @@ function collect(packages, projectRoot) {
     return { key: entry.key, source: relative(projectRoot, entry.path), provenance: entry.provenance, symbols, groups: [...groups].map(([source,names]) => ({ source, names: [...names].sort() })).sort((a,b) => a.source.localeCompare(b.source)) };
   }) }));
 }
-function delta(before, after) {
+export function delta(before, after) {
   const flatten = data => new Map(data.flatMap(p => [ [`${p.name}:manifest`, hash([p.version,p.developmentExports,p.publishConfig])], ...p.entries.flatMap(e => [[`${p.name}${e.key}:entry`, hash([e.source,e.cssOnly || false,e.groups || []])], ...e.symbols.map(s => [`${p.name}${e.key}:${s.name}`,s.digest])]) ]));
   const a = flatten(before), b = flatten(after);
   return { added: [...b.keys()].filter(k => !a.has(k)), removed: [...a.keys()].filter(k => !b.has(k)), changed: [...a.keys()].filter(k => b.has(k) && a.get(k) !== b.get(k)) };
@@ -156,26 +157,86 @@ async function selfTest() {
     console.log(JSON.stringify(result));
   } finally { await rm(directory, { recursive: true, force: true }); }
 }
-if (process.argv.includes('--self-test')) { await selfTest(); }
-else {
-  await ensureWorkspaceLinks();
-  const packages = collect(await Promise.all(catalog.packages.filter(p => slugs.includes(p.slug)).map(entriesFor)), root);
-  const surface = { sourceCommit: catalog.commit, extractor: `TypeScript ${ts.version} public module exports and declarations; not a type-check or runtime execution`, packages };
-  if (process.argv.includes('--write')) {
-    const ownedPackages = catalog.packages.filter(p => slugs.includes(p.slug)).map(p => p.directory);
-    execFileSync('git', ['diff', '--quiet', catalog.commit, '--', ...ownedPackages], { cwd: root });
-    const trackedAtPin = new Set(execFileSync('git', ['ls-tree', '-r', '--name-only', catalog.commit, '--', ...ownedPackages], { cwd: root, encoding: 'utf8' }).trim().split('\n'));
-    for (const p of packages) for (const e of p.entries) {
-      for (const source of [e.source, ...e.symbols.map(s => s.source)]) {
-        if (!trackedAtPin.has(source)) throw new Error(`Declaration not tracked at source pin: ${source}`);
-      }
+export function parseArguments(args) {
+  const modes = ['--check', '--check-historical', '--write', '--write-current', '--self-test'];
+  if (!modes.includes(args[0])) throw new Error('Use --check, --check-historical, --write, --write-current --commit <full SHA>, or --self-test.');
+  if (args[0] === '--write-current') {
+    if (args.length !== 3 || args[1] !== '--commit' || !/^[a-f0-9]{40}$/.test(args[2])) throw new Error('Current API writing requires one immutable full commit SHA.');
+    return { mode: args[0], commit: args[2] };
+  }
+  if (args.length !== 1) throw new Error('Unexpected or conflicting public API arguments.');
+  return { mode: args[0] };
+}
+const ownedPackages = catalog.packages.filter(p => slugs.includes(p.slug));
+function git(args) { return execFileSync('git', args, { cwd: root, encoding: 'utf8', env: { ...process.env, GIT_NO_LAZY_FETCH: '1' } }).trim(); }
+function sourceTrees(commit) {
+  if (!/^[a-f0-9]{40}$/.test(commit) || git(['rev-parse', '--verify', `${commit}^{commit}`]) !== commit) throw new Error('Invalid immutable API source commit.');
+  return Object.fromEntries(ownedPackages.map(p => [p.directory, git(['rev-parse', `${commit}:${p.directory}`])]));
+}
+function assertPinnedWorkingTree(commit) {
+  const trees = sourceTrees(commit);
+  git(['diff', '--quiet', commit, '--', ...ownedPackages.map(p => p.directory)]);
+  return trees;
+}
+function assertTrackedDeclarations(packages, commit) {
+  const tracked = new Set(git(['ls-tree', '-r', '--name-only', commit, '--', ...ownedPackages.map(p => p.directory)]).split('\n'));
+  for (const p of packages) for (const e of p.entries) {
+    for (const source of [e.source, ...e.symbols.map(s => s.source), ...(e.groups || []).map(g => g.source)]) {
+      if (!tracked.has(source)) throw new Error(`Declaration not tracked at source pin: ${source}`);
     }
+  }
+}
+const historicalDigest = text => createHash('sha256').update(text).digest('hex');
+export function validateCurrentBaseline(baseline, historicalText, expectedTrees) {
+  const historical = JSON.parse(historicalText);
+  if (baseline.typescriptVersion !== ts.version) throw new Error('Current API TypeScript version mismatch.');
+  if (baseline.schema !== 'barocss-current-public-api-v1' || !/^[a-f0-9]{40}$/.test(baseline.sourceCommit)) throw new Error('Invalid current API inventory identity.');
+  if (baseline.historicalSourceCommit !== historical.sourceCommit || baseline.historicalSha256 !== historicalDigest(historicalText)) throw new Error('Historical API evidence was changed.');
+  if (JSON.stringify(baseline.packageTrees) !== JSON.stringify(expectedTrees)) throw new Error('Current API source pin/tree mismatch.');
+  if (JSON.stringify(baseline.packages?.map(p => p.slug)) !== JSON.stringify(ownedPackages.map(p => p.slug))) throw new Error('Current API package coverage changed.');
+  for (const p of baseline.packages) for (const e of p.entries) for (const s of e.symbols) {
+    if (s.digest !== hash(s.signatures.map(value => value.trim()))) throw new Error(`Current API signature digest mismatch: ${p.name}:${s.name}`);
+  }
+  if (JSON.stringify(baseline.changesFromHistorical) !== JSON.stringify(delta(historical.packages, baseline.packages))) throw new Error('Historical-to-current API delta mismatch.');
+}
+async function main() {
+  const args = parseArguments(process.argv.slice(2));
+  if (args.mode === '--self-test') { await selfTest(); return; }
+  const historicalText = await readFile(baselineFile, 'utf8');
+  const historical = JSON.parse(historicalText);
+  let baseline, pin, trees;
+  if (args.mode === '--check') {
+    baseline = JSON.parse(await readFile(currentFile, 'utf8'));
+    trees = sourceTrees(baseline.sourceCommit);
+    validateCurrentBaseline(baseline, historicalText, trees);
+    assertTrackedDeclarations(baseline.packages, baseline.sourceCommit);
+    pin = baseline.sourceCommit;
+  } else {
+    pin = args.mode === '--write-current' ? args.commit : catalog.commit;
+    trees = assertPinnedWorkingTree(pin);
+    if (args.mode === '--check-historical' && historical.sourceCommit !== pin) throw new Error('Historical catalog/API source pins differ.');
+  }
+  await ensureWorkspaceLinks();
+  const packages = collect(await Promise.all(ownedPackages.map(entriesFor)), root);
+  const surface = { sourceCommit: pin, extractor: `TypeScript ${ts.version} public module exports and declarations; not a type-check or runtime execution`, packages };
+  if (args.mode === '--write-current') {
+    assertTrackedDeclarations(packages, pin);
+    const current = { schema: 'barocss-current-public-api-v1', typescriptVersion: ts.version, ...surface, packageTrees: trees,
+      historicalSourceCommit: historical.sourceCommit, historicalSha256: historicalDigest(historicalText),
+      changesFromHistorical: delta(historical.packages, packages) };
+    validateCurrentBaseline(current, historicalText, trees);
+    await writeFile(currentFile, JSON.stringify(current, null, 2) + '\n');
+    console.log(JSON.stringify({ status: 'written', evidence: 'evidence/current-public-api.json', sourceCommit: pin, packages: packages.length,
+      changesFromHistorical: Object.fromEntries(Object.entries(current.changesFromHistorical).map(([key, values]) => [key, values.length])) }));
+  } else if (args.mode === '--write') {
+    assertTrackedDeclarations(packages, pin);
     await writeFile(baselineFile, JSON.stringify(surface, null, 2) + '\n');
     console.log(JSON.stringify({ status: 'written', evidence: 'evidence/public-api.json', packages: packages.length }));
-  } else if (process.argv.includes('--check')) {
-    const baseline = JSON.parse(await readFile(baselineFile, 'utf8'));
-    const differences = delta(baseline.packages, surface.packages);
+  } else {
+    const differences = delta((args.mode === '--check' ? baseline : historical).packages, packages);
     if (Object.values(differences).some(items => items.length)) { console.error(JSON.stringify(differences,null,2)); process.exitCode = 1; }
-    else console.log(JSON.stringify({ status: 'matched', packages: packages.length, entries: packages.reduce((n,p) => n+p.entries.length,0), exportedOccurrences: packages.reduce((n,p) => n+p.entries.reduce((m,e) => m+e.symbols.length,0),0), extractor: ts.version }));
-  } else throw new Error('Use --write, --check or --self-test. Review semantic changes before regenerating.');
+    else console.log(JSON.stringify({ status: 'matched', sourceCommit: pin, scope: args.mode === '--check' ? 'current API' : 'historical source snapshot', packages: packages.length,
+      entries: packages.reduce((n,p) => n+p.entries.length,0), exportedOccurrences: packages.reduce((n,p) => n+p.entries.reduce((m,e) => m+e.symbols.length,0),0), extractor: ts.version }));
+  }
 }
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main();
