@@ -23,9 +23,13 @@ function clip(polygon: Vec3[], centre: Vec3, axis: Vec3, limit: number): Vec3[] 
   const result: Vec3[] = [];
   for (let index = 0; index < polygon.length; index++) {
     const current = polygon[index], next = polygon[(index + 1) % polygon.length];
-    const a = dot(sub(current, centre), axis) - limit;
-    const b = dot(sub(next, centre), axis) - limit;
-    const insideA = a <= 1e-9, insideB = b <= 1e-9;
+    // Use the same shifted clipping plane for classification and intersection.
+    // Otherwise a vertex within the tolerance can be classified as inside,
+    // while its crossing is interpolated on a different plane.
+    const toleranceM = 1e-9;
+    const a = dot(sub(current, centre), axis) - limit - toleranceM;
+    const b = dot(sub(next, centre), axis) - limit - toleranceM;
+    const insideA = a <= 0, insideB = b <= 0;
     if (insideA) result.push(current);
     if (insideA !== insideB) result.push(add(current, scale(sub(next, current), a / (a - b))));
   }
