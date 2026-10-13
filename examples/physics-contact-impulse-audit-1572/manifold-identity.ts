@@ -20,6 +20,9 @@ for(const mode of ['OFFSET','YAW'] as const){
   contactMode:'persistent-box-v1',bodies:[floor,cube(0,mode),cube(1,mode),cube(2,mode)]};
  const world=createPhysicsWorld(cfg);
  let previous:string[]|null=null,framesWithContact=0,idTransitions=0,pointCountChanges=0,unmatched=0;
+ let fallbackFrames=0,fallbackStarts=0,previousFallback=false;
+ let slipAtFallbackSum=0,slipAtManifoldSum=0,slipFallbackSamples=0,slipManifoldSamples=0;
+ const fallbackTransitions:unknown[]=[];
  const checkpoints:unknown[]=[];
  try{
   for(let step=1;step<=steps;step++){
@@ -32,6 +35,25 @@ for(const mode of ['OFFSET','YAW'] as const){
    const hit=detect(bodyA,bodyB),points=hit?boxFaceManifold(bodyA,bodyB,hit):null;
    const ids=points?.map(p=>p.id)??[];
    if(hit)framesWithContact++;
+   const fallback=hit!==null && ids.length===0;
+   const contact=state.contacts.find(c=>(c.aId==='b0'&&c.bId==='b1')||(c.aId==='b1'&&c.bId==='b0'));
+   let slipSpeedMps:number|null=null;
+   if(contact){
+     const cross=(u:number[],v:number[])=>[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];
+     const at=(body:typeof a)=>{const arm=contact.pointM.map((value,i)=>value-body.positionM[i]);const angular=cross(body.angularVelocityRadps,arm);return body.velocityMps.map((value,i)=>value+angular[i]);};
+     const va=at(a),vb=at(b),rel=vb.map((value,i)=>value-va[i]),normal=contact.normalAtoB;
+     const normalSpeed=rel.reduce((total,value,i)=>total+value*normal[i],0);
+     slipSpeedMps=Math.hypot(...rel.map((value,i)=>value-normalSpeed*normal[i]));
+   }
+   if(fallback){
+     fallbackFrames++;
+     if(slipSpeedMps!==null){slipAtFallbackSum+=slipSpeedMps;slipFallbackSamples++;}
+   }else if(ids.length && slipSpeedMps!==null){slipAtManifoldSum+=slipSpeedMps;slipManifoldSamples++;}
+   if(fallback&&!previousFallback){
+     fallbackStarts++;
+     fallbackTransitions.push({step,slipSpeedMps,previousIds:previous});
+   }
+   previousFallback=fallback;
    if(previous!==null){
     if(previous.join('|')!==ids.join('|'))idTransitions++;
     if(previous.length!==ids.length)pointCountChanges++;
@@ -42,7 +64,10 @@ for(const mode of ['OFFSET','YAW'] as const){
     pointM:points?.map(p=>p.pointM)??[],producerPenetrationM:hit?.penetration??null});
   }
   console.log(JSON.stringify({mode,steps,framesWithContact,idTransitions,pointCountChanges,
-    newlyAppearingIds:unmatched,checkpoints,
+    newlyAppearingIds:unmatched,fallbackFrames,fallbackStarts,
+    meanSlipFallbackMps:slipFallbackSamples?slipAtFallbackSum/slipFallbackSamples:null,
+    meanSlipManifoldMps:slipManifoldSamples?slipAtManifoldSum/slipManifoldSamples:null,
+    fallbackTransitions:fallbackTransitions.slice(0,24),checkpoints,
     interpretation:'reconstructed IDs from accepted poses only; no private impulse cache observed',
     solverLawChanged:false,physicalGo:false}));
  }finally{world.dispose();}
