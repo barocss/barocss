@@ -29,6 +29,7 @@ export function planBooleanExtrusionImpactV1(
       !Number.isSafeInteger(report.revision) ||
       !Array.isArray(report.parameterOrder) || !Array.isArray(report.featureOrder) ||
       !Array.isArray(report.parameterDependencies) || !Array.isArray(report.featureDependencies) ||
+      !Array.isArray(report.distances) || report.distances.length > 4 ||
       !change || !Array.isArray(change.parameterIds) || !Array.isArray(change.featureIds) ||
       !unique(change.parameterIds) || !unique(change.featureIds) ||
       !unique(report.parameterOrder) || !unique(report.featureOrder))
@@ -66,13 +67,23 @@ export function planBooleanExtrusionImpactV1(
     if (!Array.isArray(deps) || deps.some(x => !parameterSet.has(x) && !featureSet.has(x)))
       throw new TypeError('Unknown feature dependency');
   }
+  // Native featureDependencies contains the topology chain. Extrusion distance
+  // parameter references are recorded separately in the native distances list.
+  const distanceMap = new Map<string, readonly string[]>();
+  for (const distance of report.distances) {
+    if (!distance || !featureSet.has(distance.featureId) || distanceMap.has(distance.featureId) ||
+        !Array.isArray(distance.dependencyIds) || !unique(distance.dependencyIds) ||
+        distance.dependencyIds.some(x => !parameterSet.has(x)))
+      throw new TypeError('Inconsistent native extrusion distance dependency inventory');
+    distanceMap.set(distance.featureId, distance.dependencyIds);
+  }
   // Fixed point prevents dependence on report order; output retains native order.
   changed = true;
   while (changed) {
     changed = false;
     for (const id of report.featureOrder) {
       if (affected.has(id)) continue;
-      if (dependencyMap.get(id)!.some(dep => changedParameters.has(dep) || affected.has(dep))) {
+      if ([...dependencyMap.get(id)!, ...(distanceMap.get(id) ?? [])].some(dep => changedParameters.has(dep) || affected.has(dep))) {
         affected.add(id); changed = true;
       }
     }
