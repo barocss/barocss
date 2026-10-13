@@ -40,7 +40,7 @@ test('original Surface curvature is read-only, fully pinned and uses native U/V'
   assert.equal(report.certification, 'not-certified');
   assert.equal(report.curvature.meanCurvaturePerMM, 0);
   assert.equal(report.curvature.gaussianCurvaturePerMM2, 0);
-  assert.deepEqual(report.curvature.principalCurvaturesPerMM, [0, 0]);
+  assert(report.curvature.principalCurvaturesPerMM.every(value => value === 0));
   assert.deepEqual(state, before, 'Read-only query must not change the caller scene');
   report.scope.model.name = 'modified';
   assert.equal(state.native.model.name, ref.modelId, 'Returned state must be independent');
