@@ -83,7 +83,8 @@ export function allAppLintRequired(plan, config, regression = false) {
   // Current root config imports only registry packages. Unknown/local plugin wiring is conservative.
   return regression || !plan.changedPaths.length || plan.reasons.some((reason) => /unavailable comparison|comparison unavailable/.test(reason))
     || /(?:['"`]\.{1,2}\/|\b(?:import|require)\s*\()/.test(config)
-    || plan.changedPaths.some((path) => !(path === 'apps/library-docs/package.json' && plan.docsCheckScriptOnly === true)
+    || plan.changedPaths.some((path) => !((path === 'apps/library-docs/package.json' && plan.docsCheckScriptOnly === true)
+        || (path === 'packages/barocss-gpu/package.json' && plan.gpuTestRegistrationOnly === true))
       && (/(?:^|\/)(?:package\.json|[^/]*\.config\.[cm]?[jt]s|\.eslintrc[^/]*|tsconfig[^/]*\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|\.npmrc)$/.test(path)
         || /(?:^|\/)(?:build[^/]*\.[cm]?[jt]s|build\/)/.test(path)
         || (!/^(?:apps|packages|examples|\.github|\.ai)\//.test(path) && !/\.md$/.test(path))));

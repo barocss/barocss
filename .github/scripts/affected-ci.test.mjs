@@ -512,3 +512,111 @@ test('docs exception never masks concurrent root dependency lint type or build i
   assert.deepEqual(selectAppLintFiles('apps/render-editor', ['apps/render-editor/src/changed.tsx', 'apps/render-editor/src/old.tsx'], plan.changedPaths), ['apps/render-editor/src/changed.tsx']);
   assert.equal(allAppLintRequired(plan, '', true), true);
 });
+
+function gpuRegistrationInput(name = 'engine-webgpu-submit-frame') {
+  const packages = fixtures();
+  packages.push(pkg('@barocss/gpu', 'packages/barocss-gpu', { scripts: {
+    ...checkScripts,
+    test: 'node --test tests/first.test.mjs ../../examples/gpu-scene/primitive-device-receipt-gate.test.mjs tests/last.test.mjs',
+  } }));
+  const path = `packages/barocss-gpu/tests/${name}.test.mjs`;
+  const args = input({ packages, changes: [
+    { status: 'M', path: 'packages/barocss-gpu/package.json' },
+    { status: 'A', path },
+    { status: 'A', path: `packages/barocss-gpu/src/${name}.ts` },
+  ], fileModes: { [path]: '100644' } });
+  packages.at(-1).manifest.scripts.test = packages.at(-1).manifest.scripts.test.replace(' tests/last', ` tests/${name}.test.mjs tests/last`);
+  return args;
+}
+
+test('GPU additive test registration keeps full checks and unchanged external runtime policy', () => {
+  for (const name of ['engine-webgpu-submit-frame', 'engine-webgpu-one-shot', 'engine-webgpu-canvas-config', 'engine-webgpu-present']) {
+    const plan = createAffectedPlan(gpuRegistrationInput(name));
+    validatePlan(plan);
+    assert.equal(plan.mode, 'full');
+    assert.equal(plan.gpuTestRegistrationOnly, true);
+    assert.equal(plan.docsCheckScriptOnly, false);
+    assert.equal(allAppLintRequired(plan, ''), false);
+    assert.equal(allAppLintRequired(plan, '', true), true);
+    assert.equal(plan.appTests, 'external');
+    assert.equal(plan.runtimeTests, 'manual/pre-release');
+    assert.deepEqual(selectAppLintFiles('apps/cad-editor', ['apps/cad-editor/src/old.ts'], plan.changedPaths), []);
+  }
+});
+
+test('GPU registration rejects removals reordering duplicate args options and shell syntax', () => {
+  for (const mutate of [
+    text => text.replace('tests/first.test.mjs ', ''),
+    text => text.replace('tests/first.test.mjs', 'tests/last.test.mjs').replace(/tests\/last.test.mjs$/, 'tests/first.test.mjs'),
+    text => text + ' tests/first.test.mjs',
+    text => text + ' --test-concurrency=2',
+    text => text + ' && node other.mjs',
+    text => text.replace('node --test', 'node --import hook.mjs --test'),
+    text => text.replace('node --test', 'NODE_OPTIONS=x node --test'),
+    text => text.replace('node --test ', 'node --test\t'),
+    text => text.replace('tests/engine-webgpu-submit-frame.test.mjs', 'tests/../escape.test.mjs'),
+    text => text.replace('tests/engine-webgpu-submit-frame.test.mjs', 'tests/*.test.mjs'),
+    text => text.replace('tests/engine-webgpu-submit-frame.test.mjs', '"tests/engine-webgpu-submit-frame.test.mjs"'),
+    text => text.replace('tests/engine-webgpu-submit-frame.test.mjs', 'tests/$(command).test.mjs'),
+  ]) {
+    const args = gpuRegistrationInput(); args.packages.at(-1).manifest.scripts.test = mutate(args.packages.at(-1).manifest.scripts.test);
+    const plan = createAffectedPlan(args);
+    assert.equal(plan.gpuTestRegistrationOnly, false); assert.equal(allAppLintRequired(plan, ''), true);
+  }
+});
+
+test('GPU registration requires added regular tracked files and trusted unchanged manifest ownership', () => {
+  for (const mutate of [
+    args => { args.fileModes = {}; },
+    ...['120000', '160000', '040000'].map(mode => args => { args.fileModes[args.changes[1].path] = mode; }),
+    ...['M', 'D', 'R100'].map(status => args => { args.changes[1].status = status; }),
+    args => { args.changes[1].oldPath = 'packages/barocss-gpu/tests/old.test.mjs'; },
+    args => { args.changes.push({ ...args.changes[1] }); },
+    ...['A', 'D', 'R100'].map(status => args => { args.changes[0].status = status; }),
+    args => { args.changes[0].oldPath = 'packages/old/package.json'; },
+    args => { args.validBase = false; },
+    args => { args.basePackages = []; },
+    args => { args.basePackages.pop(); },
+    args => { args.fullReason = 'manual or unknown event'; },
+  ]) {
+    const args = gpuRegistrationInput(); mutate(args);
+    const plan = createAffectedPlan(args);
+    assert.equal(plan.gpuTestRegistrationOnly, false); assert.equal(allAppLintRequired(plan, ''), true);
+  }
+  const executable = gpuRegistrationInput(); executable.fileModes[executable.changes[1].path] = '100755';
+  assert.equal(createAffectedPlan(executable).gpuTestRegistrationOnly, true);
+});
+
+test('GPU registration rejects every other manifest field and lifecycle script change', () => {
+  for (const mutate of [
+    ...['prepare', 'preinstall', 'install', 'postinstall', 'lint', 'type-check', 'build', 'test:consumer'].map(key => manifest => { manifest.scripts[key] = 'node changed.mjs'; }),
+    manifest => { manifest.dependencies = { eslint: '^9.0.0' }; },
+    manifest => { manifest.exports = { '.': './other.js' }; },
+    manifest => { manifest.version = '9.0.0'; },
+    manifest => { delete manifest.scripts.test; },
+  ]) {
+    const args = gpuRegistrationInput(); mutate(args.packages.at(-1).manifest);
+    const plan = createAffectedPlan(args);
+    assert.equal(plan.gpuTestRegistrationOnly, false); assert.equal(allAppLintRequired(plan, ''), true);
+  }
+  const drift = gpuRegistrationInput(); drift.packages[0].manifest.scripts.prepare = 'node other.mjs';
+  assert.equal(createAffectedPlan(drift).gpuTestRegistrationOnly, false);
+  const combined = gpuRegistrationInput(); combined.packages.find(row => row.directory === 'apps/library-docs').manifest.scripts['check:docs'] = 'node extra.mjs';
+  combined.changes.push({ status: 'M', path: 'apps/library-docs/package.json' });
+  const plan = createAffectedPlan(combined);
+  assert.equal(plan.gpuTestRegistrationOnly, false); assert.equal(plan.docsCheckScriptOnly, false); assert.equal(allAppLintRequired(plan, ''), true);
+});
+
+test('GPU registration cannot hide concurrent root config or app ownership changes', () => {
+  for (const path of ['package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', '.npmrc', 'eslint.config.mjs',
+    'apps/cad-editor/package.json', 'apps/render-editor/tsconfig.json', 'apps/render-editor/vite.config.ts',
+    'apps/render-editor/scripts/build.mjs', 'packages/barocss-gpu/tsconfig.json', 'tools/lint-plugin.mjs']) {
+    const args = gpuRegistrationInput(); args.changes.push({ status: 'M', path });
+    assert.equal(allAppLintRequired(createAffectedPlan(args), ''), true, path);
+  }
+  const args = gpuRegistrationInput(); args.changes.push({ status: 'M', path: 'apps/render-editor/src/changed.tsx' });
+  const plan = createAffectedPlan(args);
+  assert.equal(allAppLintRequired(plan, ''), false);
+  assert.deepEqual(selectAppLintFiles('apps/render-editor', ['apps/render-editor/src/changed.tsx', 'apps/render-editor/src/old.tsx'], plan.changedPaths), ['apps/render-editor/src/changed.tsx']);
+  assert.equal(allAppLintRequired(plan, "import './local-lint-plugin.mjs'"), true);
+});
