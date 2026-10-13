@@ -77,8 +77,11 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
   const materialCopyOnly = process.argv.includes('--material-copy');
   const sceneTitleOnly = process.argv.includes('--scene-title');
   const workspaceFocusOnly = process.argv.includes('--workspace-focus');
+  const bodyTasksOnly = process.argv.includes('--body-tasks');
   const sourceExportPreflight = process.argv.includes('--source-export-preflight');
   const sourceExportOnly = process.argv.includes('--source-export') || sourceExportPreflight;
+  // The bounded Body-task proof never enters historical suites.
+  if (!bodyTasksOnly) {
   if (!workspaceFocusOnly && (!sceneTitleOnly && !materialCopyOnly && !sourceExportOnly && !bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight)) {
   const seed = api.createLightStudy(sourceText);
   const original = api.serializeRenderNativeLightDocument(seed);
@@ -3496,7 +3499,12 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
     Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value').set.call(input, value);
     input.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
   };
-  const focusEdit = async (label, value) => {const input = focusInput(label);
+  const focusEdit = async (label, value) => {
+    const task = label.startsWith('Body position ') ? 'Move' : label.startsWith('Body scale ') ? 'Scale'
+      : label.startsWith('Body rotation ') || label === 'Rotate by (degrees)' ? 'Rotate'
+        : label.startsWith('Uniform ') ? 'Material' : null;
+    if (task) await focusClick('Edit body ' + task);
+    const input = focusInput(label);
     assert(!input.disabled && !input.closest('[hidden]'), label + ': edit the reachable target');
     await act(async () => setFocusInput(input, value));};
   const focusTargets = ['body', 'light', 'camera', 'scene'];
@@ -3520,7 +3528,10 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
     assert.equal(focusHeading().textContent, expectedHeading);
     for (const [sectionTarget, section] of focusSections()) {
       assert(section && section.isConnected, sectionTarget + ': fields stay mounted');
-      assert.equal(section.hidden, sectionTarget !== target, sectionTarget + ': explicit hidden state');
+      const task = focusInput('Active body task').textContent.trim();
+      const taskHidden = sectionTarget === 'body' && (section.getAttribute('aria-label') === 'Body material'
+        ? task !== 'Material' : !['Move', 'Rotate', 'Scale'].includes(task));
+      assert.equal(section.hidden, sectionTarget !== target || taskHidden, sectionTarget + ': explicit hidden state');
     }
     assert.equal(focusTargets.filter(value => focusButton('Inspect ' + value).getAttribute('aria-pressed') === 'true').length, 1);
   };
@@ -3582,7 +3593,8 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
       assert.equal(selectedFocusBody(), body); assert.equal(selectedFocusLight(), light);
     };
     const setCopySource = (input, value) => {input.value = value; input.dispatchEvent(new dom.window.Event('change', {bubbles: true}));};
-    const chooseCopySource = async value => {const input = focusInput('Copy accepted material from body'); assert(!input.disabled);
+    const chooseCopySource = async value => {await focusClick('Edit body Material');
+      const input = focusInput('Copy accepted material from body'); assert(!input.disabled && !input.closest('[hidden]'));
       await act(async () => setCopySource(input, value)); assert.equal(input.value, value);};
     const stageAll = async (invalid = false) => {
       await go('body'); await focusEdit('Body position X (mm)', invalid ? '1e' : '-0'); await focusEdit('Uniform amount', '-0');
@@ -3775,6 +3787,266 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
     }
   }
   console.log(JSON.stringify({result: 'PASS', scope: 'Workspace focus: bounded actual React/controller/session flow', sourceLinkedAspectCases: aspectFrames.length, workspaceFocusFlow}));
+  }
+  }
+  // #1947: eight actual UI scenarios, four controlled Viewer attempts, zero file
+  // transports and one lifetime per kind. Older budgets are unchanged; only the
+  // #1944 reachable-field helpers account for the explicit Body task context.
+  if (bodyTasksOnly || (!workspaceFocusOnly && !sceneTitleOnly && !materialCopyOnly && !sourceExportOnly
+    && !bodyResetOnly && !process.argv.includes('--surface-point') && !surfacePointPreflight)) {
+  const bodyTaskFlow = [], taskContainer = document.getElementById('root'), tasks = ['Move', 'Rotate', 'Scale', 'Material'];
+  const taskButton = label => [...taskContainer.querySelectorAll('button')]
+    .find(node => node.textContent.trim() === label || node.getAttribute('aria-label') === label);
+  const taskInput = label => {const input = taskContainer.querySelector(`[aria-label="${label}"]`); assert(input, label); return input;};
+  const reachable = node => node.isConnected && !node.closest('[hidden]');
+  const taskClick = async label => {const button = taskButton(label); assert(button && !button.disabled && reachable(button), label);
+    await act(async () => button.click());};
+  const setTaskInput = (input, value) => {
+    Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value').set.call(input, value);
+    input.dispatchEvent(new dom.window.Event('input', {bubbles: true}));
+  };
+  const taskEdit = async (label, value) => {const input = taskInput(label); assert(!input.disabled && reachable(input), label);
+    await act(async () => setTaskInput(input, value));};
+  const taskSelect = async (label, value) => {const input = taskInput(label); assert(!input.disabled && reachable(input), label);
+    await act(async () => {input.value = value; input.dispatchEvent(new dom.window.Event('change', {bubbles: true}));});};
+  const taskCommand = name => taskButton('Edit body ' + name);
+  const selectedBody = () => [...taskInput('Scene bodies').querySelectorAll('button[aria-pressed]')]
+    .find(button => button.getAttribute('aria-pressed') === 'true')?.getAttribute('aria-label').slice(10);
+  const taskSections = () => [
+    ['Body overview', taskInput('Body overview')], ['Move', taskInput('Body position X (mm)').closest('fieldset')],
+    ['Rotate', taskInput('Rotate by (degrees)').closest('fieldset')], ['Scale', taskInput('Body scale X').closest('fieldset')],
+    ['Material', taskInput('Body material')], ['Rotate', taskInput('Body rotation XYZW').closest('details')],
+  ];
+  const activeTask = () => taskInput('Active body task').textContent.trim();
+  const assertTask = expected => {
+    assert.equal(taskButton('Inspect body').getAttribute('aria-pressed'), 'true');
+    assert.equal(activeTask(), expected);
+    assert.equal(taskInput('Light inspector').querySelector('header h2').textContent,
+      taskButton('Edit body ' + selectedBody()).firstChild.textContent, 'Selected body remains clearly labeled');
+    for (const [name, section] of taskSections()) {
+      assert(section?.isConnected, name + ': every task group stays mounted');
+      assert.equal(reachable(section), name === expected, name + ': only the active task is exposed');
+    }
+    for (const name of tasks) {
+      assert(reachable(taskCommand(name)), name + ': visible task command');
+      assert.equal(taskCommand(name).getAttribute('aria-pressed'), String(name === expected));
+    }
+    assert.equal(reachable(taskButton('Back to body overview')), expected !== 'Body overview');
+  };
+  const taskRaw = () => ({fields: api.readLightWorkbenchFlowDraft(taskContainer),
+    axis: taskInput('Rotation axis').value, frame: taskInput('Rotation frame').value,
+    quaternion: taskInput('Body rotation XYZW').textContent});
+  const taskAppearance = request => api.prepareViewerNativeSceneAppearance({version: 1, source: request.source, display: request.display,
+    appearance: {lighting: {ambientStrength: 1, directionalStrength: 0, direction: [0, 0, 1]}, materials: request.materials}}, request.context);
+  navigationDom?.dispose(); navigationDom = api.installLightNavigationFlowDom();
+  for (const kind of ['directional', 'point']) {
+    // The existing two-body seed already includes Surface B's scalar amount material.
+    const seed = api.createLightStudy(sourceText, kind), original = api.serializeRenderNativeLightDocument(seed);
+    const seedFields = api.readLightFields(seed), A = 'body_preview_a', B = 'body_preview_b';
+    const cases = [], controlsBefore = controls.length, controllersBefore = flowControllers.length;
+    const downloadsBefore = downloads.length, choosersBefore = fileChoosers, urlsBefore = createdUrls.length;
+    let presentations = 0, control, replace, releaseTask;
+    activeSurfaceLedger = {feature: 'body-tasks', kind, cases, get presentations() {return presentations;},
+      saveOpenTransports: 0, get lifetimes() {return controls.length - controlsBefore;}};
+    const scenario = label => {cases.push(label); assert(cases.length <= 8, kind + ': eight Body-task UI scenarios');};
+    const controller = () => flowControllers.at(-1), session = () => controller().getSession(), snapshot = () => session().getSnapshot();
+    const saved = () => session().getSavePayload().text;
+    const revised = (document, revision) => ({...document, revision, lights: {...document.lights, revision}});
+    const row = (fields, bodyId) => fields.bodies.find(body => body.bodyId === bodyId);
+    try {
+      mounted = await api.mountLightWorkbenchFlow(taskContainer, seed); control = controls.at(-1); replace = control.viewer.replace;
+      control.prepare = taskAppearance;
+      control.viewer.replace = request => {presentations++; assert(presentations <= 4, kind + ': four Body-task Viewer attempts'); return replace(request);};
+      const originalController = controller(), originalSession = session(), canvas = taskContainer.querySelector('canvas');
+      const baseline = snapshot(), originalView = baseline.viewportCamera;
+      const stable = () => {
+        assert.equal(controller(), originalController); assert.equal(session(), originalSession);
+        assert.equal(taskContainer.querySelector('canvas'), canvas); assert(canvas.isConnected);
+        assert.equal(snapshot().viewportCamera, originalView);
+        assert.equal(controls.length - controlsBefore, 1); assert.equal(flowControllers.length - controllersBefore, 1);
+      };
+      const switchTask = async name => {
+        const before = snapshot(), raw = taskRaw(), body = selectedBody(), calls = presentations;
+        const fields = [...taskInput('Inspector fields').querySelectorAll('input, select, fieldset, details')];
+        await taskClick('Edit body ' + name); assertTask(name); stable();
+        assert.equal(snapshot(), before); assert.deepEqual(taskRaw(), raw); assert.equal(selectedBody(), body); assert.equal(presentations, calls);
+        const afterFields = [...taskInput('Inspector fields').querySelectorAll('input, select, fieldset, details')];
+        assert.equal(afterFields.length, fields.length);
+        fields.forEach((field, index) => assert.equal(afterFields[index], field, 'Task switches preserve the actual mounted controls'));
+      };
+      const back = async name => {
+        const before = snapshot(), raw = taskRaw(), calls = presentations;
+        taskButton('Back to body overview').focus(); await taskClick('Back to body overview');
+        assertTask('Body overview'); assert.equal(document.activeElement, taskCommand(name));
+        assert.equal(snapshot(), before); assert.deepEqual(taskRaw(), raw); assert.equal(presentations, calls); stable();
+      };
+      const selectBody = async bodyId => {const before = snapshot(), calls = presentations;
+        await taskClick('Edit body ' + bodyId); assert.equal(selectedBody(), bodyId);
+        assert.equal(snapshot(), before); assert.equal(presentations, calls); stable();};
+      const locked = async label => {
+        const before = snapshot(), raw = taskRaw(), task = activeTask(), body = selectedBody(), calls = presentations;
+        for (const name of tasks) assert(taskCommand(name).disabled, label + ': ' + name);
+        assert(taskButton('Back to body overview').disabled, label + ': Back');
+        await act(async () => {for (const name of tasks) taskCommand(name).click(); taskButton('Back to body overview').click();});
+        assert.equal(activeTask(), task); assert.equal(selectedBody(), body); assert.equal(snapshot(), before);
+        assert.deepEqual(taskRaw(), raw); assert.equal(presentations, calls); stable();
+      };
+
+      scenario('overview commands, mounted groups and fixed whole-scene footer retain Canvas/session'); // 1.
+      assertTask('Body overview'); assert.equal(selectedBody(), A);
+      const inspector = taskInput('Light inspector'), header = inspector.querySelector('header');
+      const footer = taskInput('Whole-scene draft actions'), fields = taskInput('Inspector fields');
+      assert(header.contains(taskInput('Body editing tasks'))); assert.equal(taskInput('Body editing tasks').getAttribute('role'), 'group');
+      assert.equal(header.querySelector('h2').textContent, 'Surface A');
+      for (const name of tasks) {assert(header.contains(taskCommand(name))); assert.equal(taskCommand(name).tagName, 'BUTTON'); assert(taskCommand(name).tabIndex >= 0);}
+      for (const name of ['Stage reset transform', 'Export accepted CAD source']) assert(taskInput('Body overview').contains(taskButton(name)) && reachable(taskButton(name)));
+      assert.equal(footer.parentElement, inspector); assert.equal(fields.nextElementSibling, footer);
+      assert.match(footer.textContent, /Apply and Discard affect all scene drafts, including hidden sections/);
+      for (const name of ['Apply', 'Discard']) assert(footer.contains(taskButton(name)));
+      assert.equal(saved(), original); assert.equal(presentations, 0); stable();
+
+      scenario('actual point dialog and synchronous Help/navigation ownership fence task routing'); // 2.
+      await selectBody(B); await switchTask('Move');
+      const dialogSnapshot = snapshot(), dialogDraft = taskRaw(), staleTask = taskCommand('Scale');
+      await act(async () => {taskButton('Edit control point…').click(); staleTask.click();});
+      const dialog = document.querySelector('[data-testid="light-point-dialog"]'); assert(dialog);
+      assertTask('Move'); await locked('existing point dialog');
+      assert.equal(taskInput('Body position X (mm)').disabled, true); assert(taskButton('Edit body ' + A).disabled);
+      const pointX = dialog.querySelector('[aria-label="Control point X in source mm"]'); assert(pointX && !pointX.disabled);
+      const cancel = [...dialog.querySelectorAll('button')].find(button => button.textContent.trim() === 'Cancel');
+      assert(cancel && !cancel.disabled); await act(async () => cancel.click());
+      assert.equal(document.querySelector('[data-testid="light-point-dialog"]'), null);
+      assert.equal(snapshot(), dialogSnapshot); assert.deepEqual(taskRaw(), dialogDraft); assertTask('Move');
+      await taskClick('Help'); await locked('Help'); await taskClick('Help');
+      await act(async () => {navigationDom.pointer(canvas, 'pointerdown', 140, 125); taskCommand('Scale').click();});
+      assertTask('Move'); await locked('active navigation');
+      await act(async () => navigationDom.pointer(canvas, 'pointercancel', 140, 125));
+      assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+      assert.equal(snapshot(), baseline); assert.equal(presentations, 0);
+
+      scenario('each task and Back retain exact raw fields, rotation commands and unrelated light edits'); // 3.
+      await taskEdit('Body position X (mm)', '+925.00'); await back('Move');
+      await switchTask('Scale'); await taskEdit('Body scale X', '1.200'); await back('Scale');
+      await switchTask('Rotate'); await taskSelect('Rotation axis', 'x'); await taskSelect('Rotation frame', 'world');
+      await taskEdit('Rotate by (degrees)', '1e');
+      assert.equal(taskInput('Body rotation XYZW').textContent, row(seedFields, B).rotation.join(', ')); await back('Rotate');
+      await switchTask('Material'); await taskEdit('Uniform amount', '.600'); await back('Material');
+      for (const name of tasks) {await switchTask(name); await back(name);}
+      await taskClick('Inspect light'); await taskEdit('Intensity', '.4');
+      const hiddenRaw = taskRaw(), hiddenSnapshot = snapshot();
+      for (const [, section] of taskSections()) assert(!reachable(section));
+      await taskClick('Inspect body'); assertTask('Body overview'); assert.deepEqual(taskRaw(), hiddenRaw); assert.equal(snapshot(), hiddenSnapshot);
+      assert.equal(taskInput('Body position X (mm)').value, '+925.00'); assert.equal(taskInput('Body scale X').value, '1.200');
+      assert.equal(taskInput('Rotate by (degrees)').value, '1e'); assert.equal(taskInput('Uniform amount').value, '.600');
+      assert.equal(taskInput('Intensity').value, '.4'); assert.equal(presentations, 0); stable();
+
+      scenario('actual selection resets overview, preserves per-body drafts and evacuates hidden focus'); // 4.
+      await switchTask('Move'); const bodyField = taskInput('Body position X (mm)'); bodyField.focus();
+      await selectBody(A); assertTask('Body overview');
+      assert.equal(document.activeElement, header.querySelector('h2')); assert(reachable(document.activeElement));
+      await switchTask('Move'); await taskEdit('Body position X (mm)', '-875.00');
+      await switchTask('Rotate'); await taskSelect('Rotation axis', 'z'); await taskSelect('Rotation frame', 'local');
+      await taskEdit('Rotate by (degrees)', '-045.00'); taskInput('Rotate by (degrees)').focus();
+      const oldSelectionTask = taskCommand('Scale');
+      await act(async () => {taskButton('Edit body ' + B).click(); oldSelectionTask.click();});
+      assertTask('Body overview'); assert.equal(selectedBody(), B); assert.equal(document.activeElement, header.querySelector('h2'));
+      assert.equal(taskInput('Body position X (mm)').value, '+925.00'); assert.equal(taskInput('Body scale X').value, '1.200');
+      assert.equal(taskInput('Uniform amount').value, '.600'); assert.equal(taskInput('Rotate by (degrees)').value, '1e');
+      assert.equal(taskInput('Rotation axis').value, 'x'); assert.equal(taskInput('Rotation frame').value, 'world');
+      await switchTask('Rotate'); const sameBodyRaw = taskRaw(); await selectBody(B); assertTask('Rotate'); assert.deepEqual(taskRaw(), sameBodyRaw);
+      await selectBody(A); assertTask('Body overview'); assert.equal(taskInput('Body position X (mm)').value, '-875.00');
+      assert.equal(taskInput('Rotate by (degrees)').value, '-045.00'); assert.equal(taskInput('Rotation axis').value, 'z');
+      await selectBody(B); assertTask('Body overview'); assert.equal(snapshot(), baseline); stable();
+
+      scenario('hidden invalid drafts retain provider errors and visible Move/Scale/Material correction routes'); // 5.
+      for (const [name, label] of [['Move', 'Body position X (mm)'], ['Scale', 'Body scale X'], ['Material', 'Uniform amount']]) {
+        await switchTask(name); await taskEdit(label, '1e');
+      }
+      await selectBody(A); assertTask('Body overview');
+      const beforeInvalid = snapshot(); await taskClick('Apply');
+      assert.equal(snapshot(), beforeInvalid); assert.equal(presentations, 0); assert.equal(saved(), original);
+      assert.match(taskContainer.textContent, /DOCUMENT_INPUT: Body position requires a finite decimal number\./);
+      const routes = taskInput('Body draft correction routes'); assert(reachable(routes)); assert(footer.contains(routes));
+      assert.match(routes.textContent, /Select the body to correct in Scene bodies/);
+      for (const name of ['Move', 'Scale', 'Material']) assert(routes.contains(taskButton('Review body ' + name)) && reachable(taskButton('Review body ' + name)));
+      await selectBody(B); assert.equal(taskInput('Body position X (mm)').value, '1e');
+      for (const [name, label, value, error] of [['Move', 'Body position X (mm)', '+925.00', 'Body position'],
+        ['Scale', 'Body scale X', '1.200', 'Body scale'], ['Material', 'Uniform amount', '.600', 'Uniform amount']]) {
+        assert.match(taskContainer.textContent, new RegExp('DOCUMENT_INPUT: ' + error + ' requires a finite decimal number\\.'));
+        await taskClick('Review body ' + name); assertTask(name); assert.equal(taskInput(label).value, '1e');
+        await taskEdit(label, value); await back(name);
+        if (name !== 'Material') {await taskClick('Apply'); assert.equal(snapshot(), beforeInvalid); assert.equal(presentations, 0);}
+      }
+      assert.equal(taskInput('Intensity').value, '.4'); assert.equal(taskInput('Rotate by (degrees)').value, '1e');
+      await switchTask('Rotate'); await taskEdit('Rotate by (degrees)', '+090.0'); await taskClick('Stage rotation');
+      const candidateFields = structuredClone(seedFields); row(candidateFields, A).position[0] = '-875.00';
+      row(candidateFields, B).position[0] = '+925.00'; row(candidateFields, B).scale[0] = '1.200';
+      candidateFields.materials.find(material => material.target.bodyId === B).uniforms[0].value = '.600'; candidateFields.lights[0].intensity = '.4';
+      const rotatedFields = api.stageLightBodyRotation(seed, candidateFields, B, 'x', 'world', '+090.0');
+      const candidate = api.applyLightFields(seed, rotatedFields);
+      assert.equal(taskInput('Body rotation XYZW').textContent, row(rotatedFields, B).rotation.join(', '));
+      assert.equal(snapshot(), beforeInvalid); assert.equal(presentations, 0);
+
+      scenario('held ready refusal fences same-turn task routing and preserves the complete corrective draft'); // 6.
+      const beforeRefusal = snapshot(), refusedRaw = taskRaw(), pendingCommand = taskCommand('Material');
+      control.wait = new Promise(resolve => {releaseTask = resolve;}); control.refusal = new Error('Controlled Body task ready refusal');
+      await act(async () => {taskButton('Apply').click(); pendingCommand.click(); taskButton('Back to body overview').click();}); // Viewer 1.
+      assert.equal(snapshot().pending, 'apply'); assertTask('Rotate'); await locked('held Apply');
+      for (const name of ['Apply', 'Discard', 'Open', 'Save accepted', 'Edit control point…', 'Edit body ' + A]) assert(taskButton(name).disabled, name);
+      assert.deepEqual(taskRaw(), refusedRaw); assert.equal(saved(), original); assert.equal(snapshot().accepted, baseline.accepted);
+      await act(async () => {releaseTask(); await control.wait;}); control.wait = null; releaseTask = undefined;
+      assert.match(taskContainer.textContent, /PRESENTATION_REFUSED/); assert.deepEqual(taskRaw(), refusedRaw); assertTask('Rotate');
+      for (const key of ['accepted', 'canUndo', 'canRedo', 'unsaved', 'viewportCamera']) assert.equal(snapshot()[key], beforeRefusal[key], key);
+      assert.equal(presentations, 1); assert.deepEqual(control.calls.at(-1), api.createRenderNativeLightRequest(revised(candidate, seed.revision + 1)));
+      control.refusal = null; await back('Rotate'); stable();
+
+      scenario('one whole-scene Apply plus Undo/Redo acknowledges body, material and unrelated light changes together'); // 7.
+      await taskClick('Inspect light'); await taskClick('Apply'); // Viewer 2.
+      const accepted = revised(candidate, seed.revision + 1);
+      assert.deepEqual(snapshot().accepted, accepted); assert(snapshot().canUndo); assert.equal(snapshot().canRedo, false);
+      assert.deepEqual(control.calls.at(-1), api.createRenderNativeLightRequest(accepted)); assert.equal(presentations, 2);
+      assert.deepEqual(accepted.nativeDocument, seed.nativeDocument); assert.deepEqual(accepted.nativeOptions, seed.nativeOptions);
+      assert.deepEqual(accepted.display.camera, seed.display.camera); assert.deepEqual(accepted.surfaceMaterials[0], seed.surfaceMaterials[0]);
+      assert.equal(accepted.lights.lights[0].intensity, .4); assert.equal(accepted.surfaceMaterials[1].material.uniforms.amount, .6);
+      await taskClick('Inspect body'); assertTask('Body overview'); await switchTask('Material');
+      await taskClick('Undo'); // Viewer 3.
+      assert.deepEqual(snapshot().accepted, revised(seed, seed.revision + 2)); assert.equal(snapshot().canUndo, false); assert(snapshot().canRedo);
+      assert.equal(taskInput('Uniform amount').value, seedFields.materials.find(material => material.target.bodyId === B).uniforms[0].value);
+      assert.equal(taskInput('Body rotation XYZW').textContent, row(seedFields, B).rotation.join(', '));
+      await back('Material'); await taskClick('Redo'); // Viewer 4.
+      const redone = revised(candidate, seed.revision + 3);
+      assert.deepEqual(snapshot().accepted, redone); assert(snapshot().canUndo); assert.equal(snapshot().canRedo, false);
+      assert.equal(taskInput('Body rotation XYZW').textContent, row(rotatedFields, B).rotation.join(', '));
+      assert.equal(taskInput('Uniform amount').value, '0.6'); assert.equal(taskInput('Intensity').value, '0.4');
+      assert.equal(presentations, 4); assert.equal(saved(), api.serializeRenderNativeLightDocument(redone)); stable();
+
+      scenario('lost presentation and disposal retain accepted ownership without another lifetime or transport'); // 8.
+      await switchTask('Move'); await taskEdit('Body position X (mm)', '1e');
+      const lossRaw = taskRaw(), beforeLoss = snapshot(); control.state = 'lost';
+      await act(async () => {await new Promise(resolve => setTimeout(resolve, 350));});
+      await locked('lost presentation'); assert.match(taskContainer.textContent, /Presentation unavailable \(lost\)/);
+      assert.equal(snapshot(), beforeLoss); assert.deepEqual(taskRaw(), lossRaw); assert.equal(saved(), api.serializeRenderNativeLightDocument(redone));
+      const detachedTask = taskCommand('Scale'), detachedBack = taskButton('Back to body overview'), detachedApply = taskButton('Apply');
+      await mounted.dispose(); mounted = null; const disposed = originalSession.getSnapshot(); assert(disposed.disposed);
+      await act(async () => {detachedTask.click(); detachedBack.click(); detachedApply.click();});
+      assert.equal(originalSession.getSnapshot(), disposed); assert.equal(control.disposed, 1);
+      assert.equal(presentations, 4); assert.equal(control.calls.length, 4); assert.equal(controls.length - controlsBefore, 1);
+      assert.equal(downloads.length, downloadsBefore); assert.equal(fileChoosers, choosersBefore); assert.equal(createdUrls.length, urlsBefore);
+      assert.equal(cases.length, 8); assert.equal(new Set(cases).size, 8); assert.equal(api.serializeRenderNativeLightDocument(seed), original);
+    } finally {
+      for (const cleanup of [async () => {if (releaseTask) {await act(async () => releaseTask()); releaseTask = undefined;}},
+        async () => {const live = mounted; mounted = null; await live?.dispose();},
+        () => {if (control) {control.viewer.replace = replace; control.wait = null; control.refusal = null; control.prepare = null;}}]) {
+        try {await cleanup();} catch (cause) {cleanupErrors.push(cause);}
+      }
+    }
+    assert.equal(control.disposed, 1); assert.equal(navigationDom.pendingFrames(), 0); assert.equal(navigationDom.captures(), 0);
+    bodyTaskFlow.push({kind, uiScenarios: cases.length, cases, presentations, saveOpenTransports: 0, lifetimes: 1,
+      historyEntries: 1, stableCanvasSession: true, hiddenDraftValidation: true, keyboardFocus: true, actualPointDialogFence: true,
+      proof: 'actual React/fields/codec/controller/session; controlled Viewer and DOM, no physical CSS/pointer/file or GPU proof'});
+  }
+  navigationDom.dispose(); navigationDom = null;
+  console.log(JSON.stringify({result: 'PASS', scope: 'Body task commands: bounded actual React/controller/session flow', bodyTaskFlow}));
   }
 } catch (cause) {failed = true; firstError = cause; console.error('Original Light flow failure:', cause); console.error('Active Surface ledger:', JSON.stringify(activeSurfaceLedger));}
 finally {
