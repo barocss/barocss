@@ -112,7 +112,7 @@ async function startServer() {
     stream.on('data', chunk => { serverOut += chunk.toString(); writeFileSync(join(evidence, 'server.log'), serverOut); });
   for (let attempt = 0; attempt < 100; attempt++) {
     if (server.exitCode !== null) throw Error('Owned Vite exited: ' + server.exitCode);
-    try { if ((await fetch('http://127.0.0.1:' + port)).ok) return; } catch {}
+    try { if ((await fetch('http://127.0.0.1:' + port)).ok) return; } catch { /* Startup may refuse connections before Vite is ready. */ }
     await new Promise(done => setTimeout(done, 200));
   }
   throw Error('Vite did not become ready at owned port ' + port);
@@ -244,13 +244,13 @@ try {
   receipt.result = 'FAILED';
   receipt.failure = { message: String(cause), stack: cause?.stack || null };
   write();
-  try { if (active && !active.isClosed()) await active.screenshot({ path: join(evidence, 'failure.png') }); } catch {}
+  try { if (active && !active.isClosed()) await active.screenshot({ path: join(evidence, 'failure.png') }); } catch { /* Keep the original failure when a diagnostic screenshot is unavailable. */ }
   console.error(cause);
   process.exitCode = 1;
 } finally {
-  try { await coldContext?.close(); } catch {}
-  try { await firstContext?.close(); } catch {}
-  try { await browser?.close(); } catch {}
+  try { await coldContext?.close(); } catch { /* Best-effort cleanup must not replace the recorded result. */ }
+  try { await firstContext?.close(); } catch { /* Best-effort cleanup must not replace the recorded result. */ }
+  try { await browser?.close(); } catch { /* Best-effort cleanup must not replace the recorded result. */ }
   if (server) {
     server.kill('SIGTERM');
     await new Promise(done => { if (server.exitCode !== null) return done(); server.once('exit', done); setTimeout(done, 1500); });
