@@ -15,7 +15,7 @@ let serial = 0;
 export async function loadModules(mode = 'source', mock = true, evidence) {
   const dir = mode === 'source' ? 'src' : 'dist', ext = mode === 'source' ? 'ts' : 'js';
   const key = `barocss1580-${++serial}`;
-  const state = { calls: [], counts: {}, instances: [], mountGate: null, updateGate: null, pickGate: null, readGate: null, nextFailure: null, mountFailure: null, mountPhase: null, disposeFailure: null, picked: undefined };
+  const state = { calls: [], counts: {}, instances: [], mountGate: null, updateGate: null, pickGate: null, selectionLoss: false, readGate: null, nextFailure: null, mountFailure: null, mountPhase: null, disposeFailure: null, picked: undefined };
   globalThis[key] = state;
   const gpu = resolve(root, `packages/barocss-gpu/${dir}/index.${ext}`);
   const frame = resolve(root, `packages/barocss-gpu/${dir}/native-directional-light-webgpu-frame.${ext}`);
@@ -34,7 +34,7 @@ export async function loadModules(mode = 'source', mock = true, evidence) {
         async resize(w,t){h.calls.push(['resize',w,t]);try{prepare(raw,w,t);if(h.updateGate)await h.updateGate.promise;if(h.nextFailure){const error=h.nextFailure;h.nextFailure=null;return {ok:false,error}}width=w;height=t;generation++;return {ok:true}}catch(error){return {ok:false,error}}},
         async readPixels(){h.calls.push(['read']);if(h.readGate)await h.readGate.promise;return new Uint8Array(width*height*4)},
         async pick(x,y){h.calls.push(['pick',x,y]);if(h.pickGate)await h.pickGate.promise;return h.picked===undefined?{generation,ref:raw.frame.scene.entries[0].ref}:h.picked},
-        select(ref){h.calls.push(['select',ref]);selected=ref;return {ok:true}},
+        select(ref){h.calls.push(['select',ref]);selected=ref;if(h.selectionLoss)phase='lost';return {ok:true}},
         dispose(){h.calls.push(['dispose']);phase='disposed';if(h.disposeFailure)throw h.disposeFailure}
       };h.instances.push(instance);return instance;
     }`;
@@ -171,6 +171,13 @@ export async function runFacadeChecks(m) {
   let v = await viewer.createNativeDirectionalLightWebGPUViewer({}, input, dimensions);
   assert.equal(v.accepted.generation,1); frozen(v.originals); independent(v.originals,v.originals);
   good(v.select(input.display.visibleGeometry[1])); assert.equal(state.calls.at(-1)[1].modelId,input.display.visibleGeometry[1].modelId);
+  state.selectionLoss=true;
+  const priorSelection=v.selected;
+  failed(v.select(null),'STATE');
+  assert.deepEqual(v.selected,priorSelection);
+  state.selectionLoss=false; v.dispose();
+  v=await viewer.createNativeDirectionalLightWebGPUViewer({},input,dimensions);
+
   let reentrant;
   const observed=new Proxy(copy(input),{getPrototypeOf(target){reentrant=v.select(null);return Object.getPrototypeOf(target)}});
   good(await v.replace(observed)); failed(reentrant,'BUSY'); v.dispose(); v=await viewer.createNativeDirectionalLightWebGPUViewer({},input,dimensions); good(v.select(input.display.visibleGeometry[1]));

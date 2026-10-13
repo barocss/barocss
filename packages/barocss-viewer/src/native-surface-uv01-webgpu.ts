@@ -131,6 +131,7 @@ export async function createNativeSurfaceUV01WebGPUViewer(canvas: HTMLCanvasElem
           const result = backend.select(selected && selected.kind === 'surface'
             ? { modelId: selected.modelId, geometryId: selected.surfaceId } : null);
           if (!result.ok) throw gpuError(result.error);
+          if (backend.status.state !== 'ready') refuse('STATE', 'WebGPU became unavailable during selection');
           current = candidate;
           return success;
         } catch (cause) { return failure(cause); }
