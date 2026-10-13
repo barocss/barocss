@@ -107,4 +107,6 @@ node apps/library-docs/scripts/check-cad-editor-first-model.mjs
 
 **Unrun for this documentation-only change unless separately recorded:** VitePress production build, fresh Chromium interactions, GPU readback, physical browser download/reopen and release deployment. Those gates cannot be inferred from source inspection or a static checker.
 
+**Next exercise:** [Create a round post](./round-post) to learn diameter-driven circular geometry, inspect a non-certified output, and practise another safe save/reopen cycle.
+
 [CAD Editor overview](./) · [Developer quickstart](./quickstart) · [CAD modeling reference](../cad/modeling)
