@@ -78,6 +78,8 @@ A generic Open initially selects the **last** validated saved output. The canoni
 - The current consumer rejects unsupported edge-only joins and multiple disconnected components. The existence of this exact constrained operation does **not** establish arbitrary curved Boolean union, tolerance healing, general CSG, topology renaming, or manufacturing certification.
 - Browser clicks provide approximate derived face selection. A face hit may report contributing native operand faces but does not certify persistent topology or exact material classification.
 
+**Next, learn a composed cut:** [Cut a through-slot in an L-bracket](./slotted-bracket) uses the distinct built-in `Cut a slot in a bracket` preset. It preserves both the uncut union and the slotted result, instead of inventing an unrestricted Boolean tool.
+
 The developer reference [Fuse two rectangular extrusions](../cad/modeling#fuse-two-rectangular-extrusions) includes the runnable TypeScript source and fixed native provider evidence.
 
 ## Evidence status
