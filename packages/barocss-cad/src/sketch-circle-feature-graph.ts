@@ -1,4 +1,4 @@
-import { check, guard, snapshot, record, identifier, length, definition, admitParameter, admitFeature, resolve, admitJSONText, authoredRoles, applyFeatureOperations, applyParameterOperations } from './circle-graph-internal.js';
+import { check, guard, snapshot, record, identifier, definition, admitParameter, admitFeature, resolve, admitJSONText, authoredRoles, applyFeatureOperations, applyParameterOperations } from './circle-graph-internal.js';
 import { evaluateXYArcSketchDocument, updateXYArcSketchDocument } from './xy-arc-sketch-document.js';
 import type { XYArcSketchDocumentV0, XYArcSketchDocumentEdit, XYArcSketchDocumentResult, XYArcSketchBindings } from './xy-arc-sketch-document.js';
 import { evaluateXYCirclePrismDocument } from './xy-circle-prism-document.js';
