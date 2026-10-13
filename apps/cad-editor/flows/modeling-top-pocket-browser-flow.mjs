@@ -58,10 +58,18 @@ async function source(page) {
   await root.getByRole('button', { name: 'Show saved model' }).click();
   return root.getByLabel('Saved model data').inputValue();
 }
-async function setDepth(page, value) {
+async function waitForVolume(page, expected) {
+  await page.waitForFunction(target => {
+    const root = document.querySelector('section[aria-label="CAD model editor"]');
+    const row = [...(root?.querySelectorAll('dl > div') ?? [])].find(x => x.querySelector('dt')?.textContent === 'part');
+    return row?.querySelector('dd')?.textContent === target
+      && root?.querySelector(':scope > p[role="status"]')?.textContent === 'Accepted model';
+  }, expected, { timeout: 120000 });
+}
+async function setDepth(page, value, expectedVolume) {
   await page.getByLabel('Pocket depth downward from top Z=8 (mm)').fill(String(value));
   await page.getByRole('button', { name: 'Apply dimensions' }).click();
-  await settle(page);
+  await waitForVolume(page, expectedVolume);
 }
 async function attach(page, bytes, name) {
   const input = page.getByRole('button', { name: 'Choose model file' });
@@ -124,15 +132,15 @@ try {
     await page.getByLabel('Choose an example').selectOption('top-entry-pocket');
     await page.getByText('Replace accepted model and discard its history and pending dimensions').locator('input[type="checkbox"]').check();
     await page.getByRole('button', { name: 'Load example' }).click();
-    await settle(page);
-    await page.waitForFunction(() => !!document.querySelector('select[id$="-visible-output"]'));
+    await page.getByLabel('Pocket depth downward from top Z=8 (mm)').waitFor();
+    await waitForVolume(page, '5632 / 1 mm³');
     assert.match(await visible(page), /Visible: part/);
     assert.equal(await partVolume(page), '5632 / 1 mm³');
     const baseline = await source(page);
     assert.deepEqual(Object.keys(JSON.parse(baseline).outputs), ['part', 'plate', 'tool']);
     step('top-pocket-preset', { partVolumeMM3: 5632, selectedOutput: 'part', sourceSHA256: sha(baseline) });
     await screenshot(page, 'baseline');
-    await setDepth(page, 6);
+    await setDepth(page, 6, '5376 / 1 mm³');
     assert.equal(await partVolume(page), '5376 / 1 mm³');
     const edited = await source(page);
     assert.notEqual(edited, baseline);
@@ -140,11 +148,11 @@ try {
     await screenshot(page, 'depth-6');
 
     await page.getByRole('button', { name: 'Undo', exact: true }).click();
-    await settle(page);
+    await waitForVolume(page, '5632 / 1 mm³');
     assert.equal(await source(page), baseline);
     assert.equal(await partVolume(page), '5632 / 1 mm³');
     await page.getByRole('button', { name: 'Redo', exact: true }).click();
-    await settle(page);
+    await waitForVolume(page, '5376 / 1 mm³');
     assert.equal(await source(page), edited);
     assert.equal(await partVolume(page), '5376 / 1 mm³');
     step('undo-redo-exact-source', { undoSHA256: sha(baseline), redoSHA256: sha(edited) });
@@ -182,13 +190,15 @@ try {
     assert.equal(await partVolume(fresh), originalVolume, 'File selection alone cannot replace accepted geometry');
     await fresh.getByText('Replace accepted model and discard its history and pending dimensions').locator('input[type="checkbox"]').check();
     await fresh.getByRole('button', { name: 'Open saved model' }).click();
+    await fresh.getByLabel('Pocket depth downward from top Z=8 (mm)').waitFor();
     await settle(fresh);
+    await fresh.waitForFunction(text => document.querySelector('section[aria-label="CAD model editor"] textarea')?.value === text, edited);
     assert.equal(await source(fresh), edited);
     assert.match(await visible(fresh), /Visible: tool/);
     await fresh.getByLabel('Choose one output to inspect').selectOption('part');
     assert.match(await visible(fresh), /Visible: part/);
     assert.equal(await partVolume(fresh), '5376 / 1 mm³');
-    await setDepth(fresh, 5);
+    await setDepth(fresh, 5, '5504 / 1 mm³');
     assert.equal(await partVolume(fresh), '5504 / 1 mm³');
     await screenshot(fresh, 'cold-reedit-5');
     step('fresh-context-open-reedit', { sourceSHA256: sha(await source(fresh)), partVolumeMM3: 5504 });
