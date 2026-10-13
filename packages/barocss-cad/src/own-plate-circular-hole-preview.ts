@@ -86,7 +86,7 @@ function addPanel(chunk: OwnNativeFaceMeshChunk, surface: Surface, orientation: 
   check(uvs.length===4,'four panel vertices required'); const first=chunk.positionsMM.length/3,start=chunk.indices.length,n=normal(surface,sample,orientation);
   for(const uv of uvs) { chunk.positionsMM.push(...evaluateSurface(surface,...uv)); chunk.normals.push(...n); chunk.parametersUV.push(...uv); }
   for(const local of [[0,1,2],[1,3,2]]) {
-    let [a,b,c]=local.map(i=>first+i); const uv=(i:number)=>chunk.parametersUV.slice(i*2,i*2+2),A=uv(a),B=uv(b),C=uv(c),signed=(B[0]-A[0])*(C[1]-A[1])-(B[1]-A[1])*(C[0]-A[0]);
+    let [,b,c]=local.map(i=>first+i); const a=first+local[0]; const uv=(i:number)=>chunk.parametersUV.slice(i*2,i*2+2),A=uv(a),B=uv(b),C=uv(c),signed=(B[0]-A[0])*(C[1]-A[1])-(B[1]-A[1])*(C[0]-A[0]);
     check(Number.isFinite(signed)&&signed!==0,'native UV triangle is degenerate');
     // First normalize the parameter triangle, then apply actual face sense once.
     if(signed<0)[b,c]=[c,b]; if(orientation==='reverse')[b,c]=[c,b]; triangles(chunk,a,b,c); chunk.indices.push(a,b,c);
