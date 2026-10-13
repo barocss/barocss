@@ -22,6 +22,20 @@ test('qualified orient2d exact, bounded, and refusal behavior', { timeout: 12000
       {status:'exact',sign:'positive',method:'safe-integer-bigint'});
     assert.equal(orient(a,{x:0,y:3},b).sign,'negative');
     assert.equal(orient(a,b,{x:10,y:0}).sign,'zero');
+    // Metamorphic invariants: translation must not change exact orientation;
+    // swapping two vertices reverses the sign without approximation.
+    for (const offset of [-9999, -10, 0, 10, 9990]) {
+      const translate = p => ({x:p.x+offset,y:p.y+offset});
+      const forward = orient(translate(a),translate(b),translate({x:0,y:3}));
+      const reversed = orient(translate(b),translate(a),translate({x:0,y:3}));
+      assert.equal(forward.status,'exact');
+      assert.equal(forward.sign,'positive');
+      assert.equal(reversed.status,'exact');
+      assert.equal(reversed.sign,'negative');
+    }
+    // Repeated identical points have zero determinant even at the boundary.
+    assert.equal(orient({x:10000,y:10000},{x:10000,y:10000},
+      {x:-10000,y:-10000}).sign,'zero');
     const near=orient({x:0,y:0},{x:0.1,y:0},{x:0.1,y:0.1});
     assert.equal(near.status,'qualified');
     assert.equal(near.sign,'positive');
