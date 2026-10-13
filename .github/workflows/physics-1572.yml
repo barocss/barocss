@@ -28,10 +28,24 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/physics-1572-audit
+          failures=0
           for test in entry friction-release gravity-velocity pose-drift fresh-contact public-world-smoke; do
-            pnpm exec esbuild "examples/physics-contact-impulse-audit-1572/${test}.ts" --bundle --platform=node --format=esm --target=node22 --outfile="/tmp/physics-1572-audit/${test}.mjs"
-            node "/tmp/physics-1572-audit/${test}.mjs" | tee "/tmp/physics-1572-audit/${test}.log"
+            if pnpm exec esbuild "examples/physics-contact-impulse-audit-1572/${test}.ts" --bundle --platform=node --format=esm --target=node22 --outfile="/tmp/physics-1572-audit/${test}.mjs" >"/tmp/physics-1572-audit/${test}.build.log" 2>&1; then
+              if node "/tmp/physics-1572-audit/${test}.mjs" >"/tmp/physics-1572-audit/${test}.log" 2>&1; then
+                echo "PASS ${test}"
+              else
+                echo "FAIL runtime ${test}"
+                cat "/tmp/physics-1572-audit/${test}.log"
+                failures=$((failures+1))
+              fi
+            else
+              echo "FAIL bundle ${test}"
+              cat "/tmp/physics-1572-audit/${test}.build.log"
+              failures=$((failures+1))
+            fi
           done
+          echo "Failed audit consumers: ${failures}"
+          test "${failures}" -eq 0
       - name: Preserve audit output
         if: always()
         uses: actions/upload-artifact@v4
