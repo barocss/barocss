@@ -1,6 +1,7 @@
 import {deriveRenderCameraInteraction, RenderEditorError} from '@barocss/render-editor';
 import type {RenderCameraInteraction, RenderNativeLightSession} from '@barocss/render-editor';
 import type {MeshCamera} from '@barocss/gpu';
+import {deriveNativeLightViewPreset, type NativeLightViewPreset} from './native-light-view-presets';
 
 /** Private async DOM transport. Camera math and presentation remain owned public services. */
 export function createNativeLightNavigation(canvas: HTMLCanvasElement, session: RenderNativeLightSession, options: {
@@ -65,6 +66,25 @@ export function createNativeLightNavigation(canvas: HTMLCanvasElement, session: 
       desired = deriveRenderCameraInteraction(desired ?? snapshot.viewportCamera ?? snapshot.accepted.display.camera, interaction);
       queued = true; if (!sending && frame === null) frame = requestAnimationFrame(() => {void flush();}); announce();
     } catch (cause) {refused(cause);}
+  };
+  const selectPreset = (preset: NativeLightViewPreset) => {
+    if (!alive() || active()) return false;
+    const snapshot = session.getSnapshot();
+    if (snapshot.pending !== null || snapshot.disposed || !Number.isInteger(canvas.width)
+      || !Number.isInteger(canvas.height) || canvas.width <= 0 || canvas.height <= 0) return false;
+    const rect = canvas.getBoundingClientRect();
+    if (![rect.left, rect.top, rect.width, rect.height].every(Number.isFinite)
+      || rect.width <= 0 || rect.height <= 0) return false;
+    document = snapshot.accepted; expected = snapshot.version;
+    inputRect = rect;
+    try {
+      desired = deriveNativeLightViewPreset(snapshot.viewportCamera ?? snapshot.accepted.display.camera,
+        preset, canvas.width / canvas.height);
+      queued = true;
+      frame = requestAnimationFrame(() => {void flush();});
+      announce();
+      return true;
+    } catch (cause) {refused(cause); return false;}
   };
   const down = (event: PointerEvent) => {
     if (event.button !== 0 || event.isPrimary === false || event.ctrlKey || event.metaKey || event.altKey
@@ -136,7 +156,15 @@ export function createNativeLightNavigation(canvas: HTMLCanvasElement, session: 
     if (!Number.isFinite(delta)) {refused(new RenderEditorError('DOCUMENT_INPUT', 'Wheel input must be finite.')); return;}
     interact({kind: 'zoom', factor: Math.exp(-Math.max(-1000, Math.min(1000, delta)) * .001)});
   };
-  const key = (event: KeyboardEvent) => {if (drag) drag.eligible = false; if (event.key === 'Escape' && active()) {event.preventDefault(); cancel();}};
+  const key = (event: KeyboardEvent) => {
+    if (drag) drag.eligible = false;
+    if (event.key === 'Escape' && active()) {event.preventDefault(); cancel(); return;}
+    if (event.target !== canvas || canvas.ownerDocument.activeElement !== canvas
+      || event.isComposing || event.repeat || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
+    const preset = event.key === '1' ? 'front' : event.key === '3' ? 'right'
+      : event.key === '7' ? 'top' : null;
+    if (preset && selectPreset(preset)) event.preventDefault();
+  };
   canvas.addEventListener('pointerdown', down); canvas.addEventListener('pointermove', move); canvas.addEventListener('pointerup', up);
   canvas.addEventListener('pointercancel', pointerCancel); canvas.addEventListener('lostpointercapture', lost); canvas.addEventListener('wheel', wheel, {passive: false});
   canvas.addEventListener('keydown', key); canvas.addEventListener('blur', cancel); window.addEventListener('blur', cancel);

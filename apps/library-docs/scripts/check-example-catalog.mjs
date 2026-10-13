@@ -44,7 +44,7 @@ export async function checkExampleCatalog(app = defaultApp, { built = true } = {
   const visualSource = await readFile(resolve(app, 'scripts/snippets/visual.mjs'), 'utf8');
   const builtinKeys = [];
   for (const match of visualSource.matchAll(/\b(scene|curve|surface|material):\s*\{[^\n]*source:\s*`([\s\S]*?)`/g)) {
-    const [_, key, source] = match;
+    const [, key, source] = match;
     require(!builtinKeys.includes(key), `duplicate builtin source ${key}`);
     // These four reviewed literals contain no JS escapes or interpolation.
     require(!source.includes('\\') && !source.includes('${'), `builtin ${key} needs an updated literal reader`);

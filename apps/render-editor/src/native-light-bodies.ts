@@ -143,3 +143,21 @@ export function deriveLightSurfacePointEdit(input: RenderNativeLightDocument, bo
   const document = prepareRenderNativeLightDocument({...derived, version: 2, profile: 'canonical-native-lights', display, lights}).document;
   return Object.freeze({document, selectedBodyId: bodyId, generatedIds: Object.freeze([]), reservedIds: retained});
 }
+
+/** Read the entire accepted original asset; never slice a Surface or bake scene transforms. */
+export function readLightSourceExport(input: RenderNativeLightDocument, bodyId: string): {readonly text: string; readonly filename: string} {
+  const prepared = prepareRenderNativeLightDocument(input), document = prepared.document;
+  const body = document.nativeDocument.bodies.find(value => value.id === bodyId);
+  const entries = prepared.entries.filter(value => value.binding.bodyId === bodyId);
+  check(body && entries.length === 1 && entries[0]!.kind === 'surface' && document.display.visibleBodyIds.includes(bodyId)
+    && document.surfaceMaterials.filter(value => value.target.bodyId === bodyId).length === 1,
+  'Choose one visible qualified material-bound Surface to export its accepted source asset.');
+  const asset = document.nativeDocument.assets.find(value => value.id === body.assetId);
+  check(asset && asset.id === entries[0]!.binding.assetId && asset.revision === entries[0]!.binding.assetRevision,
+    'The accepted original source asset is unavailable.');
+  const bytes = new TextEncoder().encode(asset.source);
+  check(new TextDecoder('utf-8', {fatal: true, ignoreBOM: true}).decode(bytes) === asset.source,
+    'Accepted source cannot be exported losslessly as UTF-8.');
+  // Native IDs are already bounded; the fixed prefix also avoids special device basenames.
+  return Object.freeze({text: asset.source, filename: 'asset-' + asset.id.replace(/[^A-Za-z0-9_-]/g, '_') + '.barocad'});
+}
