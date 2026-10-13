@@ -22,7 +22,7 @@ assert.deepEqual(records.filter(c=>['fixed','horizontal','vertical'].includes(c.
 assert.equal(records.find(c=>c.kind==='extrude').height,8);
 let checks=4;
 const ui=readFileSync(resolve(root,'packages/barocss-cad-editor/src/react/modeling-editor.tsx'),'utf8');
-const fragment=ui.match(/ {2}const canonicalConstrained = ([\s\S]*?);\n {2}const constrainedPlateDrivers = ([\s\S]*?);\n {2}const holeModel/);
+const fragment=ui.match(/ {2}const canonicalConstrained = ([\s\S]*?);\n {2}const constrainedPlateDrivers = ([\s\S]*?);\n {2}const circleModel/);
 assert.ok(fragment,'Actual React classifier initializer');checks++;
 const classifier=new Function('accepted','authored',`const canonicalConstrained = ${fragment[1]}; return ${fragment[2]};`);
 const p=name=>({parameter:name});
