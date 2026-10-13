@@ -28,7 +28,7 @@ function footprint(box:PlanarBox):Vec2[]{
  const c=Math.cos(box.yaw),s=Math.sin(box.yaw);
  return ([[-1,-1],[1,-1],[1,1],[-1,1]] as Vec2[]).map(([u,v])=>{
   const lx=u*box.halfX,lz=v*box.halfZ;
-  return [box.x+c*lx+s*lz,box.z-s*lx+c*lz];
+  return [box.x+c*lx+s*lz,box.z-s*lx+c*lz] as Vec2;
  });
 }
 function polygonArea(poly:Vec2[]):number{
