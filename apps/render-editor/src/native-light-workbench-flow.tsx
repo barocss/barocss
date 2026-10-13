@@ -93,8 +93,8 @@ export function installLightNavigationFlowDom() {
     pendingFrames() {return frames.size;},
     captures() {return [...captures.values()].reduce((sum, ids) => sum + ids.size, 0);},
     setRect(rect: {left: number; top: number; width: number; height: number}) {rectangle = {...rect};},
-    pointer(canvas: HTMLCanvasElement, type: string, x: number, y: number, shift = false) {
-      const event = new MouseEvent(type, {bubbles: true, cancelable: true, button: 0, buttons: type === 'pointerup' ? 0 : 1, clientX: x, clientY: y, shiftKey: shift});
+    pointer(canvas: HTMLCanvasElement, type: string, x: number, y: number, shift = false, modifiers: Pick<MouseEventInit, 'ctrlKey' | 'metaKey' | 'altKey'> = {}) {
+      const event = new MouseEvent(type, {bubbles: true, cancelable: true, button: 0, buttons: type === 'pointerup' ? 0 : 1, clientX: x, clientY: y, shiftKey: shift, ...modifiers});
       Object.defineProperty(event, 'pointerId', {value: 7}); canvas.dispatchEvent(event);
     },
     wheel(canvas: HTMLCanvasElement, deltaY: number, deltaMode = 0) {

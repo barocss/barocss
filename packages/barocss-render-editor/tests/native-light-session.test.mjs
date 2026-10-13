@@ -84,7 +84,7 @@ function control() {
   return backends;
 }
 async function mount(kind, initial = fixtures[kind]) {
-  const backends = control(), canvas = {}, options = {width: 32, height: 32};
+  const backends = control(), canvas = {width: 32, height: 32}, options = {width: 32, height: 32};
   const session = await api.createRenderNativeLightSession(canvas, initial, options);
   assert.equal(backends[kind].factoryCalls.length, 1);
   assert.equal(backends[kinds.find(other => other !== kind)].factoryCalls.length, 0);
@@ -634,6 +634,90 @@ test('focused navigation budget is exactly 12 replacements per kind, separate fr
     assert.equal(navigationCalls[kind], 12, `${kind}: 6 lifecycle + 4 faults/loss + 2 late completions`);
     assert.equal(navigationAuthoringCalls[kind], 10, `${kind}: focused history/Open setup, separately counted`);
   }
+});
+
+// #1654: twelve actual controlled Viewer.pick calls per kind and public root.
+const pickCalls = Object.fromEntries(kinds.map(kind => [kind, 0]));
+for (const kind of kinds) test(`${kind}: qualified asynchronous picks preserve owned authoring and fence every lifetime`, async () => {
+  const attach = async (document = fixtures[kind]) => {
+    const item = await mount(kind, document);
+    const prepared = api.prepareRenderNativeLightDocument(document);
+    const rows = prepared.entries.filter(entry => entry.kind === 'surface');
+    assert.equal(rows.length, 2); assert.equal(rows[0].binding.geometryId, rows[1].binding.geometryId);
+    assert.notEqual(rows[0].ref.modelId, rows[1].ref.modelId, 'Repeated geometry IDs keep distinct original asset namespaces');
+    item.hit = (index = 1) => ({generation: item.backend.viewer.accepted.generation,
+      ref: {kind: 'surface', modelId: rows[index].ref.modelId, surfaceId: rows[index].ref.geometryId}, binding: rows[index].binding});
+    item.behavior = () => item.hit(); item.pixels = [];
+    item.backend.viewer.pick = async (x, y) => {
+      pickCalls[kind]++; assert(pickCalls[kind] <= 12, kind + ': twelve-pick budget');
+      item.pixels.push([x, y]); return item.behavior();
+    };
+    item.backend.viewer.select = () => {assert.fail('Inspector selection must not use a Viewer highlight');};
+    return item;
+  };
+  const item = await attach(), {session, backend} = item;
+  await history(session);
+  await session.navigateViewportCamera({...session.getSnapshot().accepted.display.camera, eye: [0, 2, 5]}, version(session));
+  const save = session.getSavePayload(); session.markSaved(save);
+  session.setDraftText('unfinished body/material/light correction', version(session));
+  const before = session.getSnapshot(), calls = backend.calls.length;
+  let notifications = 0; const unsubscribe = session.subscribe(() => {notifications++;});
+  const retained = () => {
+    assert.equal(session.getSnapshot(), before, 'The query keeps the exact immutable snapshot');
+    assert.equal(session.getSavePayload().text, save.text); assert.equal(backend.calls.length, calls);
+    assert.equal(notifications, 0); assert.equal(session.getSnapshot().viewportCamera, before.viewportCamera);
+  };
+  for (const [x, y] of [[-1, 0], [32, 0], [0, 32], [.5, 0], [NaN, 0], [0, Infinity]])
+    await assert.rejects(session.pickViewportBody(x, y, version(session)), code('DOCUMENT_INPUT'));
+  await assert.rejects(session.pickViewportBody(0, 0, {revision: before.version.revision, generation: before.version.generation - 1}), code('STALE_CANDIDATE'));
+  const canvas = backend.factoryCalls[0].canvas; canvas.width = 31;
+  await assert.rejects(session.pickViewportBody(0, 0, version(session)), code('STALE_CANDIDATE')); canvas.width = 32;
+  assert.equal(item.pixels.length, 0); retained();
+  assert.equal(await session.pickViewportBody(31, 0, version(session)), item.hit().binding.bodyId); retained(); // 1
+  item.behavior = () => item.hit(0);
+  assert.equal(await session.pickViewportBody(0, 31, version(session)), item.hit(0).binding.bodyId); retained(); // 2
+  item.behavior = () => ({generation: backend.viewer.accepted.generation, ref: null, binding: null});
+  assert.equal(await session.pickViewportBody(0, 0, version(session)), null); retained(); // 3
+  item.behavior = () => ({...item.hit(), binding: {...item.hit().binding, assetRevision: item.hit().binding.assetRevision + 1}});
+  await assert.rejects(session.pickViewportBody(1, 2, version(session)), code('PRESENTATION_REFUSED')); retained(); // 4
+  item.behavior = () => ({...item.hit(), generation: backend.viewer.accepted.generation + 1});
+  await assert.rejects(session.pickViewportBody(1, 2, version(session)), code('PRESENTATION_REFUSED')); retained(); // 5
+  const cause = {message: 'controlled pick readback rejection'};
+  item.behavior = () => {throw cause;};
+  await assert.rejects(session.pickViewportBody(1, 2, version(session)), error => code('PRESENTATION_REFUSED')(error) && error.cause === cause); retained(); // 6
+  const gate = deferred(); item.behavior = () => gate.promise;
+  const pending = session.pickViewportBody(2, 3, version(session)); // 7
+  for (const operation of [() => session.setDraftText('competitor', version(session)), () => session.discardDraft(version(session)),
+    () => session.prepareUndo(version(session)), () => session.markSaved(save), unsubscribe]) assert.throws(operation, code('STALE_CANDIDATE'));
+  await assert.rejects(session.navigateViewportCamera(before.accepted.display.camera, version(session)), code('STALE_CANDIDATE'));
+  await assert.rejects(session.pickViewportBody(2, 3, version(session)), code('STALE_CANDIDATE'));
+  gate.resolve(item.hit()); assert.equal(await pending, item.hit().binding.bodyId); retained();
+  session.markSaved(save); assert.equal(session.getSnapshot(), before); unsubscribe(); session.dispose();
+
+  const hidden = await attach({...fixtures[kind], display: {...fixtures[kind].display,
+    visibleBodyIds: [fixtures[kind].surfaceMaterials[0].target.bodyId]}, surfaceMaterials: [fixtures[kind].surfaceMaterials[0]]});
+  const hiddenBefore = hidden.session.getSnapshot();
+  await assert.rejects(hidden.session.pickViewportBody(0, 0, version(hidden.session)), code('PRESENTATION_REFUSED')); // 8
+  assert.equal(hidden.session.getSnapshot(), hiddenBefore); hidden.session.dispose();
+  const stale = await attach(), staleGate = deferred(), staleBefore = stale.session.getSnapshot();
+  stale.behavior = () => staleGate.promise;
+  const stalePick = stale.session.pickViewportBody(0, 0, version(stale.session)); // 9
+  stale.backend.viewer.accepted = {...stale.backend.viewer.accepted, generation: 99}; staleGate.resolve(stale.hit());
+  await assert.rejects(stalePick, code('STALE_CANDIDATE')); assert.equal(stale.session.getSnapshot(), staleBefore); stale.session.dispose();
+  const lost = await attach(), lostGate = deferred(), lostBefore = lost.session.getSnapshot();
+  lost.behavior = () => lostGate.promise;
+  const lostPick = lost.session.pickViewportBody(0, 0, version(lost.session)); // 10
+  lost.backend.state = 'lost'; lostGate.resolve(lost.hit());
+  await assert.rejects(lostPick, code('PRESENTATION_REFUSED')); assert.equal(lost.session.getSnapshot(), lostBefore); lost.session.dispose();
+  for (const reject of [false, true]) {
+    const late = await attach(), lateGate = deferred(), accepted = late.session.getSnapshot().accepted;
+    late.behavior = () => lateGate.promise;
+    const operation = late.session.pickViewportBody(0, 0, version(late.session)); // 11, 12
+    late.session.dispose(); if (reject) lateGate.reject(cause); else lateGate.resolve(late.hit());
+    await assert.rejects(operation, code('DISPOSED')); assert.equal(late.session.getSnapshot().accepted, accepted);
+    assert.equal(late.session.getSnapshot().disposed, true); assert.equal(late.backend.disposed, 1);
+  }
+  assert.equal(pickCalls[kind], 12);
 });
 
 test('legacy V1 uses strict migration; ordinary V0 Open is refused and explicit V0 import remains directional', async () => {

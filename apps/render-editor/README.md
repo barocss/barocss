@@ -579,3 +579,11 @@ reported separately. Actual bounds, pose and camera providers run; Viewer
 acknowledgement, DOM dimensions and files remain controlled. Source review and
 bounded runtime/types/build/lint results are required before software acceptance.
 Physical GPU/browser/device behavior and the unresolved #1573 report remain open.
+
+### Light workbench Canvas selection (#1654)
+
+An unmodified primary left click selects the original visible material-bound body in the existing Inspector. Background keeps the current row. A maximum excursion of at most 3 CSS pixels is a click; crossing it permanently becomes navigation, even if the pointer returns to its origin. Subthreshold jitter sends no camera request; the first navigation update includes the entire accumulated displacement. Shift-drag still pans and never selects; other modifiers, wheel/key interruption, cancellation/capture loss/blur/Escape or changed viewport identity invalidate click selection.
+
+The private input transport maps the current axis-aligned CSS rect to integer top-left backing pixels with `floor`, without clamping outside/invalid points. It checks actual acknowledged backing size and freezes the session/snapshot/generation, rect/backing and lifetime around the real session-owned query. Help, chooser and active/pending work fence input. A pending query keeps authoring controls blocked until it actually settles, even when its gesture is cancelled; stale completion cannot select a new workspace. Same-body hits are local no-ops. Per-body corrective strings, original accepted data, revisions/history/Save identity and local view are retained. No highlight provider, geometry change or new document schema is involved.
+
+`node apps/render-editor/native-light-workbench-flow.mjs` includes exactly ten new actual component pointer sequences per kind, five controlled identity reads and bounded camera updates, separately from prior authoring/navigation/framing regressions. It verifies qualified repeated geometry IDs, backing-pixel mapping, jitter/full-displacement threshold, out-and-back nonclick, modifiers/cancel/bounds, pending refusal/stale lifetimes and capture cleanup. DOM rectangles, pointer capture, RAF and Viewer readback remain controlled boundaries. Physical picking/pixels/device behavior and the owner-reported #1573 arrow defect remain unverified.

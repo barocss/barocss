@@ -24,7 +24,8 @@ const cleanupErrors = [];
 globalThis.__lightWorkbenchViewer = async (_canvas, request) => {
   if (startupFailure) throw startupFailure;
   const gate = startupGate;
-  const control = {initial: request, calls: [], disposed: 0, state: 'ready', wait: null, refusal: null, prepare: null};
+  _canvas.width = 960; _canvas.height = 600;
+  const control = {initial: request, calls: [], picks: [], pickResult: null, disposed: 0, state: 'ready', wait: null, refusal: null, prepare: null};
   const viewer = {accepted: {generation: 1, owner: request.owner},
     get status() {return {backend: 'webgpu', state: control.state, width: 960, height: 600, generation: viewer.accepted.generation};},
     async replace(next) {
@@ -33,7 +34,10 @@ globalThis.__lightWorkbenchViewer = async (_canvas, request) => {
       if (control.wait) await control.wait;
       if (control.refusal) return {ok: false, error: control.refusal};
       viewer.accepted = {generation: viewer.accepted.generation + 1, owner: next.owner}; return {ok: true};
-    }, dispose() {control.disposed++; control.state = 'disposed';},
+    }, async pick(x, y) {control.picks.push([x, y]); return control.pickResult ? control.pickResult(x, y)
+      : {generation: viewer.accepted.generation, ref: null, binding: null};},
+    select() {assert.fail('Inspector selection does not call Viewer.select');},
+    dispose() {control.disposed++; control.state = 'disposed';},
   };
   control.viewer = viewer; controls.push(control); if (gate) await gate; return viewer;
 };
@@ -1409,9 +1413,98 @@ export const createNativePointLightWebGPUViewer = (...args) => globalThis.__ligh
       pendingFrames: navigationDom.pendingFrames(), captures: navigationDom.captures()});
   }
 
+  // #1654: exactly ten new pointer sequences per kind; provider identities are
+  // derived from actual accepted preparation, never screen-space surrogate picks.
+  const selectionFlow = [];
+  for (const kind of ['directional', 'point']) {
+    const pickSeed = api.createLightStudy(sourceText, kind), pickText = api.serializeRenderNativeLightDocument(pickSeed);
+    const entries = api.prepareRenderNativeLightDocument(pickSeed).entries.filter(entry => entry.kind === 'surface');
+    assert.equal(entries.length, 2); assert.equal(entries[0].binding.geometryId, entries[1].binding.geometryId);
+    assert.notEqual(entries[0].ref.modelId, entries[1].ref.modelId);
+    const firstId = entries[0].binding.bodyId, secondId = entries[1].binding.bodyId;
+    navigationDom.setRect({left: 40, top: 25, width: 900, height: 600});
+    mounted = await api.mountLightWorkbenchFlow(container, pickSeed);
+    const pickControl = controls.at(-1), canvas = container.querySelector('canvas');
+    pickControl.prepare = prepareBodyAppearance;
+    const hit = index => ({generation: pickControl.viewer.accepted.generation,
+      ref: {kind: 'surface', modelId: entries[index].ref.modelId, surfaceId: entries[index].ref.geometryId}, binding: entries[index].binding});
+    pickControl.pickResult = () => hit(1);
+    const selected = () => [...container.querySelectorAll('button')].find(node => node.getAttribute('aria-label')?.startsWith('Edit body ')
+      && node.getAttribute('aria-pressed') === 'true').getAttribute('aria-label').slice(10);
+    let sequences = 0;
+    const start = async (x = 140, y = 125, shift = false) => {sequences++; assert(sequences <= 10, kind + ': ten pointer-sequence cap'); await pointer(canvas, 'pointerdown', x, y, shift);};
+    const finish = async (x = 140, y = 125) => pointer(canvas, 'pointerup', x, y);
+    const cleanTransport = () => {assert.equal(navigationDom.captures(), 0); assert.equal(navigationDom.pendingFrames(), 0);};
+    await selectBody(firstId); await edit('Body position X (mm)', '-');
+    await selectBody(secondId); await edit('Body position X (mm)', '1e'); await selectBody(firstId);
+    await edit('Intensity', 'NaN'); await edit('Camera eye X', '');
+    assert.equal(await saveText(), pickText);
+    let releaseNormal; const normalRelease = new Promise(resolve => {releaseNormal = resolve;});
+    pickControl.pickResult = () => normalRelease;
+    await start(); await finish(); // 1: actual UI hit after the normal delayed capture-release event.
+    await pointer(canvas, 'lostpointercapture', 140, 125);
+    assert(button('Open').disabled, 'Normal capture release does not cancel or finish the pending click read');
+    await act(async () => {releaseNormal(hit(1)); await normalRelease;});
+    assert.equal(selected(), secondId); assert.equal(inputValue('Body position X (mm)'), '1e');
+    assert.deepEqual(pickControl.picks, [[106, 100]]); assert.equal(pickControl.calls.length, 0); cleanTransport();
+    await selectBody(firstId); assert.equal(inputValue('Body position X (mm)'), '-'); await selectBody(secondId);
+    pickControl.pickResult = () => ({generation: pickControl.viewer.accepted.generation, ref: null, binding: null});
+    await start(); await pointer(canvas, 'pointermove', 142, 126); assert.equal(navigationDom.pendingFrames(), 0); await finish(142, 126); // 2
+    assert.equal(selected(), secondId); assert.deepEqual(pickControl.picks.at(-1), [108, 101]); assert.equal(pickControl.calls.length, 0); cleanTransport();
+    assert.equal(inputValue('Intensity'), 'NaN'); assert.equal(inputValue('Camera eye X'), ''); assert.equal(await saveText(), pickText);
+
+    await start(); await pointer(canvas, 'pointermove', 142, 126); await pointer(canvas, 'pointermove', 150, 129); await finish(150, 129);
+    await flushNavigation(); // 3: threshold crossing includes the complete +10,+4 movement.
+    assert.equal(pickControl.calls.length, 1); assert.equal(pickControl.picks.length, 2);
+    const movedCamera = interaction(pickSeed.display.camera, 'orbit', 10, 4);
+    assertViewRequest(pickControl.calls[0], pickSeed, movedCamera); cleanTransport();
+    await start(); await pointer(canvas, 'pointermove', 146, 125); await pointer(canvas, 'pointermove', 140, 125); await finish();
+    await flushNavigation(); // 4: maximum excursion exceeded even though the release returned to origin.
+    assert.equal(pickControl.picks.length, 2); assert(pickControl.calls.length <= 2); cleanTransport();
+    const callsAfterDrags = pickControl.calls.length;
+    await start(140, 125, true);
+    await act(async () => navigationDom.pointer(canvas, 'pointerup', 140, 125, false, {ctrlKey: true, altKey: true, metaKey: true})); // 5
+    assert.equal(pickControl.picks.length, 2); assert.equal(pickControl.calls.length, callsAfterDrags); cleanTransport();
+    await start(); await pointer(canvas, 'pointermove', 141, 125); await pointer(canvas, 'pointercancel', 141, 125); await finish(141, 125); // 6
+    assert.equal(pickControl.picks.length, 2); assert.equal(pickControl.calls.length, callsAfterDrags); cleanTransport();
+    await start(40.5, 125); await finish(39.5, 125); // 7: outside backing bounds without a drag or clamping.
+    assert.equal(pickControl.picks.length, 2); assert.equal(pickControl.calls.length, callsAfterDrags); cleanTransport();
+    assert.equal(selected(), secondId); assert.equal(await saveText(), pickText);
+
+    let releasePick; const pickGate = new Promise(resolve => {releasePick = resolve;});
+    pickControl.pickResult = () => pickGate;
+    await start(); await finish(); // 8: pending input is fenced; cancelled/resized completion cannot select A.
+    assert.equal(pickControl.picks.length, 3);
+    for (const name of ['Open', 'Apply', 'Frame all', 'Frame selected', 'Scene camera']) assert(button(name).disabled, 'Pending query fences ' + name);
+    await act(async () => canvas.dispatchEvent(new dom.window.KeyboardEvent('keydown', {key: 'Escape', bubbles: true, cancelable: true})));
+    assert(button('Open').disabled, 'Cancelling input does not pretend the provider query ended');
+    navigationDom.setRect({left: 42, top: 25, width: 900, height: 600});
+    await act(async () => {releasePick(hit(0)); await pickGate;});
+    assert.equal(selected(), secondId); assert(!button('Open').disabled); cleanTransport();
+    navigationDom.setRect({left: 40, top: 25, width: 900, height: 600});
+    pickControl.pickResult = () => {throw new Error('Controlled identity readback failure');};
+    await start(); await finish(); // 9: rejected query retains every field and releases busy.
+    assert(text().includes('PRESENTATION_REFUSED')); assert.equal(selected(), secondId); assert(!button('Open').disabled);
+    assert.equal(inputValue('Body position X (mm)'), '1e'); assert.equal(inputValue('Intensity'), 'NaN');
+    assert.equal(inputValue('Camera eye X'), ''); assert.equal(await saveText(), pickText); cleanTransport();
+
+    let releaseLate; const lateGate = new Promise(resolve => {releaseLate = resolve;}); pickControl.pickResult = () => lateGate;
+    await start(); await finish(); // 10: old lifetime completion cannot select the fresh workspace.
+    await mounted.dispose(); assert.equal(pickControl.disposed, 1); cleanTransport();
+    mounted = await api.mountLightWorkbenchFlow(container, pickSeed); const freshControl = controls.at(-1);
+    assert.equal(selected(), firstId);
+    await act(async () => {releaseLate(hit(1)); await lateGate;});
+    assert.equal(selected(), firstId); assert.equal(freshControl.picks.length, 0); assert.equal(freshControl.calls.length, 0);
+    assert(!button('Open').disabled); assert.equal(await saveText(), pickText); cleanTransport();
+    assert.equal(pickControl.picks.length, 5); assert.equal(pickControl.calls.length, callsAfterDrags);
+    assert.equal(sequences, 10); await mounted.dispose(); assert.equal(freshControl.disposed, 1);
+    selectionFlow.push({kind, pointerSequences: sequences, picks: pickControl.picks, viewReplacements: callsAfterDrags,
+      sourceAndDraftsRetained: true, staleCompletions: 2, captures: navigationDom.captures(), pendingFrames: navigationDom.pendingFrames()});
+  }
+
   console.log(JSON.stringify({result: 'PASS', scope: 'actual React + original codec/session; controlled Viewer, no GPU/physical-file proof', acceptedRevision: last.revision,
     lights: last.lights.lights.length, replacementCalls: controls[0].calls.length, legacyReplacements: legacyControl.calls.length, convertedLegacyRevision: editedLegacy.revision,
-    cameraFlow, bodyFlow, materialFlow, navigationFlow, framingChecks, framingFlow, downloadsRequested: downloads.length, confirmationPrompts: dialogs.length, disposed: controls.map(value => value.disposed)}));
+    cameraFlow, bodyFlow, materialFlow, navigationFlow, framingChecks, framingFlow, selectionFlow, downloadsRequested: downloads.length, confirmationPrompts: dialogs.length, disposed: controls.map(value => value.disposed)}));
 } catch (cause) {failed = true; firstError = cause;}
 finally {
   for (const cleanup of [() => mounted?.dispose(), () => navigationDom?.dispose(), () => dom.window.close(), () => rm(output, {recursive: true, force: true})]) {

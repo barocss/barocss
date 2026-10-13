@@ -36,6 +36,7 @@ export interface RenderNativeLightSession {
   commitPrepared(candidate: RenderNativeLightPreparedCandidate): Promise<void>;
   navigateViewportCamera(camera: MeshCamera, expected: RenderNativeLightSessionVersion): Promise<void>;
   resetViewportCamera(expected: RenderNativeLightSessionVersion): Promise<void>;
+  pickViewportBody(xPixel: number, yPixel: number, expected: RenderNativeLightSessionVersion): Promise<string | null>;
   discardDraft(expected: RenderNativeLightSessionVersion): void;
   getSavePayload(): RenderNativeLightSavePayload;
   markSaved(payload: RenderNativeLightSavePayload): void;
@@ -54,6 +55,17 @@ const encoder = new TextEncoder();
 function sameCamera(a: MeshCamera, b: MeshCamera): boolean {
   return (['eye', 'target', 'up'] as const).every(key => a[key].every((value, index) => Object.is(value, b[key][index])))
     && (['fovYDegrees', 'near', 'far'] as const).every(key => Object.is(a[key], b[key]));
+}
+/** Provider identity records must contain the exact own data pins, without evaluating accessors. */
+function samePins(input: unknown, expected: object): boolean {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return false;
+  const prototype = Object.getPrototypeOf(input);
+  if (prototype !== Object.prototype && prototype !== null) return false;
+  const keys = Reflect.ownKeys(input), pins = Object.entries(expected);
+  return keys.length === pins.length && pins.every(([key, value]) => {
+    const descriptor = Object.getOwnPropertyDescriptor(input, key);
+    return descriptor?.enumerable && 'value' in descriptor && Object.is(descriptor.value, value);
+  });
 }
 function viewed<T extends ViewerNativeDirectionalLightInput | ViewerNativePointLightInput>(request: T, camera: MeshCamera | null): T {
   return camera ? {...request, display: {...request.display, camera}} : request;
@@ -259,6 +271,55 @@ export async function createRenderNativeLightSession(canvas: HTMLCanvasElement,
       },
       navigateViewportCamera: navigate,
       resetViewportCamera: expected => navigate(current.snapshot.accepted.display.camera, expected),
+      async pickViewportBody(xPixel, yPixel, expected) {
+        mutable(); const token = {}; lock = token; const started = epoch, before = current;
+        try {
+          expectedVersion(expected);
+          const status = viewer.status, width = status.width, height = status.height;
+          const check = () => {
+            if (epoch !== started || current.snapshot.disposed) fail('DISPOSED', 'Light session disposed during pick.');
+            if (current !== before || viewer.accepted.generation !== viewerGeneration || viewer.status.generation !== viewerGeneration
+              || !samePins(viewer.accepted.owner, {id: before.snapshot.accepted.documentId, revision: before.snapshot.accepted.revision}))
+              fail('STALE_CANDIDATE', 'Pick no longer belongs to the acknowledged scene.');
+            if (viewer.status.state !== 'ready') throw presentation('Pick requires an available acknowledged scene.');
+            if (viewer.status.width !== width || viewer.status.height !== height || canvas.width !== width || canvas.height !== height)
+              fail('STALE_CANDIDATE', 'Pick backing dimensions changed.');
+          };
+          if (![width, height].every(value => Number.isInteger(value) && value > 0)
+            || !Number.isInteger(xPixel) || !Number.isInteger(yPixel) || xPixel < 0 || yPixel < 0 || xPixel >= width || yPixel >= height)
+            fail('DOCUMENT_INPUT', 'Pick requires a bounded integer top-left backing pixel.');
+          check();
+          const prepared = prepareRenderNativeLightDocument(before.snapshot.accepted);
+          let picked: Awaited<ReturnType<typeof viewer.pick>>;
+          try {picked = await viewer.pick(xPixel, yPixel);} catch (cause) {
+            if (epoch !== started || current.snapshot.disposed) fail('DISPOSED', 'Light session disposed during pick.');
+            throw presentation(cause);
+          }
+          check();
+          // Copy only descriptors: a malformed provider response cannot run an accessor here.
+          let generation: unknown, ref: unknown, binding: unknown;
+          try {
+            if (!picked || typeof picked !== 'object' || Reflect.ownKeys(picked).length !== 3)
+              throw new Error('Exact pick result required.');
+            const values = ['generation', 'ref', 'binding'].map(key => {
+              const descriptor = Object.getOwnPropertyDescriptor(picked, key);
+              if (!descriptor?.enumerable || !('value' in descriptor)) throw new Error('Own pick data required.');
+              return descriptor.value;
+            });
+            [generation, ref, binding] = values;
+            if (generation !== viewerGeneration) throw new Error('Pick generation differs from acknowledged scene.');
+            if (ref === null && binding === null) return null;
+            const matches = prepared.entries.filter(entry => entry.kind === 'surface'
+              && prepared.document.display.visibleBodyIds.includes(entry.binding.bodyId)
+              && samePins(binding, entry.binding)
+              && samePins(ref, {kind: 'surface', modelId: entry.ref.modelId, surfaceId: entry.ref.geometryId})
+              && prepared.materials.some(material => material.target.bodyId === entry.binding.bodyId
+                && material.ref.modelId === entry.ref.modelId && material.ref.surfaceId === entry.ref.geometryId));
+            if (matches.length !== 1) throw new Error('Pick must identify one current visible qualified material-bound body.');
+            return matches[0]!.binding.bodyId;
+          } catch (cause) {throw presentation(cause);}
+        } finally {if (lock === token) lock = null;}
+      },
       discardDraft(expected) {qualify(expected, () => {if (current.snapshot.draftText !== current.text) current = revise(current, current.text);}); notify([...listeners]);},
       getSavePayload() {
         if (current.snapshot.disposed) fail('DISPOSED', 'Light session is disposed.');

@@ -492,3 +492,11 @@ Viewer replacement still prepares and rebuilds a complete candidate. This is not
 a camera-only GPU path or a frame-rate guarantee. The focused source/emitted
 session tests cap new navigation/reset presentations at 12 per light kind; their
 existing authoring regression calls are counted separately.
+
+### Owned Native Light Canvas queries (#1654)
+
+`await session.pickViewportBody(xPixel, yPixel, session.getSnapshot().version)` reads the actual owned directional/point Viewer's identity buffer through its existing `pick`. Coordinates are bounded integer top-left backing pixels. The canvas backing and acknowledged ready Viewer dimensions must match. It returns one visible material-bound original body ID, or `null` for background; it does not call Viewer selection/highlight or present a new frame. All original document/revision/body/asset/revision/model/geometry/frame pins and the complete display reference are qualified, including repeated geometry IDs.
+
+The read holds the existing operation lock and checks the session lifetime, exact accepted state and Viewer generation before/after the await. Concurrent mutation/query, stale generation, changed backing, malformed/foreign/hidden binding, loss or disposal refuses. Accepted snapshot identity, corrective draft, authored revisions/history, save-payload authority and local camera remain unchanged. Disposal can invalidate pending work; cancellation of an app gesture does not cancel an already submitted GPU read. No new public light-kind API family or file schema is introduced.
+
+Finite software verification: `node --test packages/barocss-render-editor/tests/native-light-session.test.mjs` and the same command with `BAROCSS_SESSION_MODE=emitted` each allow twelve new controlled Viewer queries per kind. The query consumes actual codec/request/preparation identity with privately controlled Viewer responses. This does not certify physical GPU identity pixels, browser input or resolve #1573. Historical source-app full-type timeout remains separate from any explicitly pinned declaration-boundary qualification.
