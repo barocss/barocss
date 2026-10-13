@@ -24,7 +24,7 @@ try{
     entryPoints:[resolve('examples/physics-contact-impulse-audit-1572/private-cache-entry.ts')],
     outfile:output,bundle:true,platform:'node',format:'esm',target:'node22',
     plugins:[{name:'private-physics-1572-only',setup(api){
-      api.onLoad({filter:/[\\/]packages[\\/]barocss-physics[\\/]src[\\/]world\\.ts$/},
+      api.onLoad({filter:/world\.ts$/},
         async args=>{
           hooked++;
           let source=await readFile(args.path,'utf8');
