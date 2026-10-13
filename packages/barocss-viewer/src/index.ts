@@ -1198,6 +1198,28 @@ export class Viewer {
     this.appearanceDocument = null;
     this.sceneRequest++;
   }
+  /** First mount of a complete qualified native document and appearance on an unused canvas. */
+  loadNativeSceneAppearance(input: ViewerNativeSceneAppearanceInputV1): void {
+    this.gpuLive(); check(!this.contextLost, 'Cannot mount native appearance after WebGL2 context loss');
+    check(this.renderer === null, 'Initial native appearance requires an unmounted Viewer');
+    const request = this.sceneRequest;
+    const candidate = prepareMountedNativeSceneAppearance(input,
+      { mmToSceneUnit: this.options.mmToSceneUnit, background: this.options.background });
+    this.gpuLive(); check(!this.contextLost, 'Cannot mount native appearance after WebGL2 context loss');
+    check(this.renderer === null && this.sceneRequest === request,
+      'Native appearance preparation changed the initial renderer or source request');
+    const renderer = mountPrimitiveViewport(this.canvas, candidate.prepared.prepared.frame.options);
+    try {
+      const result = renderer.updateFrame(candidate.prepared.prepared.frame);
+      if (!result.ok) throw result.error;
+    } catch (cause) {
+      try { renderer.dispose(); }
+      catch (cleanup) { throw new AggregateError([cause, cleanup], 'Native appearance mount and cleanup failed'); }
+      throw cause;
+    }
+    this.renderer = renderer;
+    this.adoptNativeSceneAppearance(candidate);
+  }
   /** One complete frame update on an already accepted qualified primitive backend. */
   replaceNativeSceneAppearance(input: ViewerNativeSceneAppearanceInputV1): void {
     this.gpuLive(); check(!this.contextLost, 'Cannot replace native appearance after WebGL2 context loss');
@@ -1212,6 +1234,9 @@ export class Viewer {
     check(this.renderer === renderer && this.sceneRequest === request,
       'Native appearance preparation changed the accepted renderer or source request');
     this.primitiveResult(renderer.updateFrame(candidate.prepared.prepared.frame));
+    this.adoptNativeSceneAppearance(candidate);
+  }
+  private adoptNativeSceneAppearance(candidate: ReturnType<typeof prepareMountedNativeSceneAppearance>): void {
     this.packets = candidate.packets; this.curves = candidate.curves;
     this.document = candidate.prepared.source.result; this.documentBodies = candidate.documentBodies;
     this.hiddenGeometry = candidate.hiddenGeometry; this.geometryMotion = candidate.prepared.display.motion;
@@ -2261,25 +2286,31 @@ export class Viewer {
       const pose = curvePose({ modelId: entry.modelId, curveId }, this.geometryMotion);
       const displayed = (pointMM: number[]): Vec3 => displayVertex(pointMM as Vec3,
         pose, this.options.mmToSceneUnit).map(Math.fround) as Vec3;
-      // Reuse the previous endpoint: adjacent sampled segments share one vertex.
+      const view = (position: Vec3): Vec3 => {
+        const offset = subtract(position, this.camera.eye);
+        return [dot(offset, right), dot(offset, up), dot(offset, forward)];
+      };
+      const planes = (position: Vec3): number[] => [
+        position[2] - this.camera.near, this.camera.far - position[2],
+        position[0] + position[2] * tangent * aspect,
+        position[2] * tangent * aspect - position[0],
+        position[1] + position[2] * tangent,
+        position[2] * tangent - position[1],
+      ];
+      // Consecutive segments share one displayed endpoint, camera-space point
+      // and six clipping-plane distances; calculate each unique vertex once.
       let previous = sample.pointsMM.length ? displayed(sample.pointsMM[0]) : null;
+      let previousView = previous === null ? null : view(previous);
+      let previousPlanes = previousView === null ? null : planes(previousView);
       for (let index = 0; index + 1 < sample.pointsMM.length; index++) {
         const a = previous!;
         const b = displayed(sample.pointsMM[index + 1]);
+        const secondView = view(b);
+        const firstPlanes = previousPlanes!;
+        const secondPlanes = planes(secondView);
         previous = b;
-        const view = (position: Vec3): Vec3 => {
-          const offset = subtract(position, this.camera.eye);
-          return [dot(offset, right), dot(offset, up), dot(offset, forward)];
-        };
-        const firstView = view(a), secondView = view(b);
-        const planes = (position: Vec3): number[] => [
-          position[2] - this.camera.near, this.camera.far - position[2],
-          position[0] + position[2] * tangent * aspect,
-          position[2] * tangent * aspect - position[0],
-          position[1] + position[2] * tangent,
-          position[2] * tangent - position[1],
-        ];
-        const firstPlanes = planes(firstView), secondPlanes = planes(secondView);
+        previousView = secondView;
+        previousPlanes = secondPlanes;
         let low = 0, high = 1;
         for (let plane = 0; plane < firstPlanes.length; plane++) {
           const start = firstPlanes[plane], end = secondPlanes[plane];

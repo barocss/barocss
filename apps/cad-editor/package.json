@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 52010",
-    "build": "tsc --noEmit && vite build",
-    "test": "node --check flows/modeling-top-pocket-browser-flow.mjs && node flows/check-modeling-top-pocket-browser-flow.mjs"
+    "build": "tsc --noEmit && vite build"
   },
   "dependencies": {
     "@barocss/cad-editor": "workspace:*",

@@ -1,6 +1,9 @@
 // Deferred *real* browser/physical-file acceptance for #1867.
-// CI checks syntax/source contracts only. Run this script in an eligible
-// Node 22 + Playwright/Chromium + WebGL host; never infer GPU PASS from CI.
+// Local static check: node --check apps/cad-editor/flows/modeling-top-pocket-browser-flow.mjs
+//   && node apps/cad-editor/flows/check-modeling-top-pocket-browser-flow.mjs
+// Device-only: node apps/cad-editor/flows/modeling-top-pocket-browser-flow.mjs --headed
+// Run on an eligible Node 22 + Playwright/Chromium + WebGL host. Application
+// runtime tests are excluded from CI; syntax/source checks are not GPU PASS.
 import assert from 'node:assert/strict';
 import { spawn, execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -27,20 +30,35 @@ const write = () => writeFileSync(join(evidence, 'receipt.json'), JSON.stringify
 let server = null, browser = null, firstContext = null, coldContext = null, active = null;
 let serverOut = '';
 const step = (name, properties = {}) => { receipt.stages.push({ name, ...properties }); write(); };
+const workspace = page => page.getByTestId('modeling-workspace');
+const panel = (page, name) => workspace(page).getByTestId('modeling-panel-' + name);
+async function command(page, group, label, name) {
+  const menu = workspace(page).locator('details.modeling-command-menu').filter({
+    has: page.locator('summary').filter({ hasText: new RegExp('^' + group) })
+  });
+  assert.equal(await menu.count(), 1, 'One actual workspace command group');
+  if (!(await menu.evaluate(element => element.open))) await menu.locator(':scope > summary').click();
+  await menu.getByRole('button', { name: label, exact: true }).click();
+  await panel(page, name).waitFor({ state: 'visible' });
+}
 async function settle(page) {
   await page.waitForFunction(() => {
-    const root = document.querySelector('section[aria-label="CAD model editor"]');
-    const status = root?.querySelector(':scope > p[role="status"]')?.textContent;
+    const root = document.querySelector('[data-testid="modeling-workspace"]');
+    const status = root?.querySelector(':scope > footer.modeling-workspace-status > span')?.textContent;
     return status === 'Accepted model';
   }, null, { timeout: 120000 });
 }
 const partVolume = page => page.evaluate(() => {
-  const root = document.querySelector('section[aria-label="CAD model editor"]');
-  const row = [...(root?.querySelectorAll('dl > div') ?? [])].find(x => x.querySelector('dt')?.textContent === 'part');
+  const root = document.querySelector('[data-testid="modeling-workspace"]');
+  const row = [...(root?.querySelectorAll('[data-testid="modeling-panel-inspect"] dl > div') ?? [])].find(x => x.querySelector('dt')?.textContent === 'part');
   return row?.querySelector('dd')?.textContent ?? null;
 });
-const visible = page => page.locator('section[aria-label="CAD model editor"]').getByRole('status').filter({ hasText: 'Visible:' }).textContent();
+async function visible(page) {
+  await command(page, 'INSPECT', 'Output bodies', 'outputs');
+  return panel(page, 'outputs').getByRole('status').filter({ hasText: 'Visible:' }).textContent();
+}
 async function screenshot(page, stage) {
+  await command(page, 'INSPECT', 'Inspect selection', 'inspect');
   const path = join(evidence, stage + '.png');
   const bytes = await page.screenshot({ path });
   const canvas = await page.locator('section[aria-label="CAD model editor"] canvas').first().evaluate(el => ({
@@ -52,27 +70,27 @@ async function screenshot(page, stage) {
   // Screenshot existence is not a quantitative GPU readback certificate.
 }
 async function source(page) {
-  const root = page.locator('section[aria-label="CAD model editor"]');
-  const details = root.locator('details').filter({ hasText: 'Save or open a model' });
-  if (!(await details.evaluate(element => element.open))) await details.locator('summary').click();
-  await root.getByRole('button', { name: 'Show saved model' }).click();
-  return root.getByLabel('Saved model data').inputValue();
+  await command(page, 'FILE', 'Save or open a model', 'files');
+  await panel(page, 'files').getByRole('button', { name: 'Show saved model' }).click();
+  return panel(page, 'files').getByLabel('Saved model data').inputValue();
 }
 async function waitForVolume(page, expected) {
   await page.waitForFunction(target => {
-    const root = document.querySelector('section[aria-label="CAD model editor"]');
-    const row = [...(root?.querySelectorAll('dl > div') ?? [])].find(x => x.querySelector('dt')?.textContent === 'part');
+    const root = document.querySelector('[data-testid="modeling-workspace"]');
+    const row = [...(root?.querySelectorAll('[data-testid="modeling-panel-inspect"] dl > div') ?? [])].find(x => x.querySelector('dt')?.textContent === 'part');
     return row?.querySelector('dd')?.textContent === target
-      && root?.querySelector(':scope > p[role="status"]')?.textContent === 'Accepted model';
+      && root?.querySelector(':scope > footer.modeling-workspace-status > span')?.textContent === 'Accepted model';
   }, expected, { timeout: 120000 });
 }
 async function setDepth(page, value, expectedVolume) {
+  await command(page, 'MODIFY', 'Edit model dimensions', 'dimensions');
   await page.getByLabel('Pocket depth downward from top Z=8 (mm)').fill(String(value));
   await page.getByRole('button', { name: 'Apply dimensions' }).click();
   await waitForVolume(page, expectedVolume);
 }
 async function attach(page, bytes, name) {
-  const input = page.getByRole('button', { name: 'Choose model file' });
+  await command(page, 'FILE', 'Save or open a model', 'files');
+  const input = panel(page, 'files').getByRole('button', { name: 'Choose model file' });
   const chooser = page.waitForEvent('filechooser');
   await input.click();
   const modal = await chooser;
@@ -128,11 +146,10 @@ try {
     firstContext = await browser.newContext({ viewport: { width: 1440, height: 960 }, acceptDownloads: true });
     const page = await firstContext.newPage();
     await pageSetup(page);
-    await page.getByText('Modeling examples', { exact: true }).click();
+    await command(page, 'CREATE', 'Modeling examples', 'examples');
     await page.getByLabel('Choose an example').selectOption('top-entry-pocket');
-    await page.getByText('Replace accepted model and discard its history and pending dimensions').locator('input[type="checkbox"]').check();
+    await panel(page, 'examples').getByRole('checkbox', { name: 'Replace accepted model and discard its history and pending dimensions', exact: true }).check();
     await page.getByRole('button', { name: 'Load example' }).click();
-    await page.getByLabel('Pocket depth downward from top Z=8 (mm)').waitFor();
     await waitForVolume(page, '5632 / 1 mm³');
     assert.match(await visible(page), /Visible: part/);
     assert.equal(await partVolume(page), '5632 / 1 mm³');
@@ -157,6 +174,7 @@ try {
     assert.equal(await partVolume(page), '5376 / 1 mm³');
     step('undo-redo-exact-source', { undoSHA256: sha(baseline), redoSHA256: sha(edited) });
 
+    await command(page, 'MODIFY', 'Edit model dimensions', 'dimensions');
     await page.getByLabel('Pocket depth downward from top Z=8 (mm)').fill('8');
     await page.getByLabel('Tool Y origin (mm)').fill('0');
     await page.getByLabel('Tool Y span (mm)').fill('24');
@@ -165,9 +183,11 @@ try {
     assert.equal(await partVolume(page), '5376 / 1 mm³');
     assert.equal(await source(page), edited);
     await screenshot(page, 'refused-two-body');
-    await page.getByRole('button', { name: 'Discard draft' }).click();
+    await command(page, 'MODIFY', 'Edit model dimensions', 'dimensions');
+    await workspace(page).getByRole('button', { name: 'Cancel', exact: true }).click();
     step('refused-two-body-retains-accepted-source', { sourceSHA256: sha(edited) });
 
+    await command(page, 'FILE', 'Save or open a model', 'files');
     const downloadPromise = page.waitForEvent('download');
     await page.getByRole('button', { name: 'Download model' }).click();
     const download = await downloadPromise;
@@ -183,19 +203,19 @@ try {
     const fresh = await coldContext.newPage();
     await pageSetup(fresh);
     const originalVolume = await partVolume(fresh);
-    await fresh.getByText('Save or open a model', { exact: true }).click();
+    await command(fresh, 'FILE', 'Save or open a model', 'files');
     await attach(fresh, bytes, 'part.cad.json');
     await fresh.getByLabel('Saved model data').waitFor();
-    await fresh.waitForFunction(text => document.querySelector('section[aria-label="CAD model editor"] textarea')?.value === text, edited);
+    await fresh.waitForFunction(text => document.querySelector('[data-testid="modeling-panel-files"] textarea')?.value === text, edited);
     assert.equal(await partVolume(fresh), originalVolume, 'File selection alone cannot replace accepted geometry');
-    await fresh.getByText('Replace accepted model and discard its history and pending dimensions').locator('input[type="checkbox"]').check();
+    await panel(fresh, 'files').getByRole('checkbox', { name: 'Replace accepted model and discard its history and pending dimensions', exact: true }).check();
     await fresh.getByRole('button', { name: 'Open saved model' }).click();
-    await fresh.getByLabel('Pocket depth downward from top Z=8 (mm)').waitFor();
     await settle(fresh);
-    await fresh.waitForFunction(text => document.querySelector('section[aria-label="CAD model editor"] textarea')?.value === text, edited);
+    await fresh.waitForFunction(text => document.querySelector('[data-testid="modeling-panel-files"] textarea')?.value === text, edited);
     assert.equal(await source(fresh), edited);
     assert.match(await visible(fresh), /Visible: tool/);
-    await fresh.getByLabel('Choose one output to inspect').selectOption('part');
+    await panel(fresh, 'outputs').getByLabel('Choose one output to inspect').selectOption('part');
+    await settle(fresh);
     assert.match(await visible(fresh), /Visible: part/);
     assert.equal(await partVolume(fresh), '5376 / 1 mm³');
     await setDepth(fresh, 5, '5504 / 1 mm³');

@@ -28,6 +28,8 @@ import type { OrthogonalSolidBooleanResult } from './orthogonal-solid-boolean.js
 import { buildModelingBox } from './modeling-box-internal.js';
 import { buildModelingTranslation } from './modeling-translation-internal.js';
 import type { ModelingTranslationResult } from './modeling-translation-internal.js';
+import { buildModelingStl } from './modeling-stl-internal.js';
+import type { ModelingStlResult } from './modeling-stl-internal.js';
 import type { Point } from './types.js';
 import { buildOwnPlateCircularHole } from './own-plate-circular-hole.js';
 import { qualifyStoredPlateHoleSolid } from './stored-plate-hole-solid.js';
@@ -145,6 +147,18 @@ export type CadMassProperties = MassValues & (
   | { readonly family: 'convex-planar'; readonly details: { readonly exact: MassExact; readonly conversionErrors: MassErrors; readonly native: MassReadonly<ConvexPlanarSolidMassResult> } }
   | { readonly family: 'orthogonal-cell'; readonly details: { readonly exact: MassExact; readonly conversionErrors: MassErrors; readonly native: MassReadonly<AxisBoxSolidMassResult> } }
 );
+/** Binary STL facets in authored XYZ. Units and native identity live in details, not STL metadata. */
+export interface CadStlExport {
+  readonly outputName: string;
+  readonly family: 'convex-planar';
+  readonly format: 'binary-stl';
+  readonly lengthUnit: 'mm';
+  readonly bytes: readonly number[];
+  readonly byteLength: number;
+  readonly triangleCount: number;
+  readonly maximumVertexDisplacementMM: number;
+  readonly details: MassReadonly<ModelingStlResult>;
+}
 export interface CadModelSnapshot {
   /** Deep-frozen tagged bodies; native source/topology/certificates remain authoritative. */
   readonly bodies: Readonly<Record<string, CadBody>>;
@@ -158,6 +172,8 @@ export interface CadModelSnapshot {
   readonly evidence: readonly CadModelEvidence[];
   /** Revalidates and measures one named convex or two-box integer-cell output. Curved/composed families refuse. */
   massProperties(outputName: string, options: CadMassPropertiesOptions): CadMassProperties;
+  /** Export one owned convex output. No file side effects; Float32 loss/collapse is explicit. */
+  exportStl(outputName: string): CadStlExport;
   withParameters(edits: Readonly<Record<string, number>>): CadModelSnapshot;
   /** Disabled chamfers still validate; they select their exact parent as output. */
   withSuppression(edits: Readonly<Record<string, boolean>>): CadModelSnapshot;
@@ -311,6 +327,19 @@ function splitParent(nodes: readonly Node[], reference: BodyRef): boolean {
   }
   return false;
 }
+// The finishing-copy extension admits one complete linear prefix, never a
+// general convex family or an unrelated finishing sibling. Direct copies keep
+// their original admission path and serialized records.
+function finishedTranslationPrefix(nodes: readonly Node[], reference: BodyRef): boolean {
+  if (nodes.length < 3 || nodes.length > 4 || reference.side !== 'solid' || reference.node !== nodes.length - 1) return false;
+  if (nodes[0]?.kind !== 'sketch' || nodes[1]?.kind !== 'extrude' || nodes[1].sketch !== 0
+    || !affineExtrusion(nodes, { node: 1, side: 'solid' })) return false;
+  for (let i = 2; i < nodes.length; i++) {
+    const node = nodes[i];
+    if (node.kind !== 'chamfer' || node.parent.node !== i - 1 || node.parent.side !== 'solid') return false;
+  }
+  return true;
+}
 function boxDimensions(nodes: readonly Node[], reference: BodyRef, parameters: Readonly<Record<string, number>>, operation: 'union' | 'cut' = 'union'): { origin: Point; sides: Point } {
   const extrusion = nodes[reference.node];
   demand(reference.side === 'solid' && extrusion.kind === 'extrude', 'CAPABILITY', operation, 'Integer-box Boolean requires direct rectangular extrusions');
@@ -389,7 +418,7 @@ function admit(input: Document): Document {
       if (circleExtrusion(nodes, { node: i, side: 'solid' })) circleMeasure(n.height, d.parameters, 'extrude');
     } else if (n.kind === 'translate') {
       record(n, 'translate', ['kind', 'parent', 'offset']); body(n.parent, i);
-      demand(affineExtrusion(nodes, n.parent), 'CAPABILITY', 'translate', 'Translation requires a direct affine XY extrusion');
+      demand(affineExtrusion(nodes, n.parent) || finishedTranslationPrefix(nodes.slice(0, i), n.parent), 'CAPABILITY', 'translate', 'Translation requires a direct affine extrusion or its complete owned finishing chain');
       list(n.offset, 'translate', 3, 3).forEach(dimension);
     } else if (n.kind === 'cut') {
       record(n, 'cut', ['kind', 'parent', 'tool', 'axis']); body(n.parent, i); body(n.tool, i);
@@ -428,7 +457,10 @@ function admit(input: Document): Document {
       if (Object.hasOwn(q, 'at')) for (const [axis, v] of Object.entries(record(n.edge.at, 'selection'))) { demand(axes.includes(axis as CadAxis), 'INPUT', 'selection', 'Unknown selector axis'); if (v !== 'min' && v !== 'max') dimension(v); }
     }
   }
-  demand(counts.translate <= 1 && (!counts.translate || counts.cut + counts.intersect + counts.split + counts.chamfer + counts.hole + counts.union + counts.difference === 0), 'CAPABILITY', 'translate', 'One terminal translation cannot mix with Boolean or finishing operations');
+  const last = nodes[nodes.length - 1];
+  demand(counts.translate <= 1 && (!counts.translate || counts.cut + counts.intersect + counts.split + counts.hole + counts.union + counts.difference === 0
+    && (!counts.chamfer || last.kind === 'translate' && finishedTranslationPrefix(nodes.slice(0, -1), last.parent))),
+  'CAPABILITY', 'translate', 'One terminal translation permits only its complete owned finishing chain');
   demand(counts.difference <= CadModelLimits.differences && (!counts.difference || composed || counts.cut + counts.intersect + counts.split + counts.chamfer + counts.hole + counts.union === 0), 'CAPABILITY', 'graph', 'Only one exact union-slot chain may mix a difference with another operation');
   demand(counts.union <= CadModelLimits.unions && (!counts.union || counts.cut + counts.intersect + counts.split + counts.chamfer + counts.hole === 0), 'CAPABILITY', 'graph', 'One union cannot be mixed with other Boolean or finishing operations');
   demand(counts.hole <= CadModelLimits.holes && (!counts.hole || counts.cut + counts.intersect + counts.split + counts.chamfer === 0), 'CAPABILITY', 'graph', 'One hole cannot be mixed with cuts, intersections, splits or chamfers');
@@ -460,12 +492,18 @@ export function createCadModel(): CadModel {
   const append = (node: Node) => {
     const operation = node.kind === 'difference' ? 'cut' : node.kind;
     authoring(operation);
+    demand(!nodes.some(n => n.kind === 'translate') || !nodes.some(n => n.kind === 'chamfer'),
+      'CAPABILITY', operation, 'A finished translation is the final authored operation');
     const composed = compositionPrefix([...nodes, node]);
     const limit = node.kind === 'sketch' || node.kind === 'extrude' ? (composed ? CadModelLimits.compositionSketches : CadModelLimits.sketches) : node.kind === 'chamfer' ? CadModelLimits.chamfers : 1;
     demand(nodes.length < (composed ? CadModelLimits.compositionNodes : CadModelLimits.nodes) && nodes.filter(n => n.kind === node.kind).length < limit, 'CAPABILITY', operation, 'Supported operation count exceeded');
     demand(!['cut', 'intersect', 'split'].includes(node.kind) || !nodes.some(n => n.kind === 'cut' || n.kind === 'intersect' || n.kind === 'split'), 'CAPABILITY', operation, 'Only one through-slab cut, intersection or split is supported');
     const translationIncompatible = ['cut', 'intersect', 'split', 'chamfer', 'hole', 'union', 'difference'];
-    demand(node.kind === 'translate' ? !nodes.some(n => translationIncompatible.includes(n.kind)) : !translationIncompatible.includes(node.kind) || !nodes.some(n => n.kind === 'translate'), 'CAPABILITY', operation, 'Translation cannot mix with Boolean or finishing operations');
+    demand(node.kind === 'translate'
+      ? !nodes.some(n => translationIncompatible.includes(n.kind) && n.kind !== 'chamfer')
+        && (!nodes.some(n => n.kind === 'chamfer') || finishedTranslationPrefix(nodes, node.parent))
+      : !translationIncompatible.includes(node.kind) || !nodes.some(n => n.kind === 'translate'),
+    'CAPABILITY', operation, 'Translation permits only its complete owned finishing chain');
     const finishing = ['cut', 'intersect', 'split', 'chamfer'];
     demand(node.kind === 'hole' ? !nodes.some(n => finishing.includes(n.kind)) : !finishing.includes(node.kind) || !nodes.some(n => n.kind === 'hole'), 'CAPABILITY', operation, 'A hole cannot be mixed with convex finishing operations');
     const incompatibleUnion = ['cut', 'intersect', 'split', 'chamfer', 'hole'];
@@ -498,7 +536,7 @@ export function createCadModel(): CadModel {
         authoring('translate');
         demand(this === handle, 'OWNERSHIP', 'translate', 'Translation belongs to this exact owned shape handle');
         demand(arguments.length === 1, 'INPUT', 'translate', 'Translation requires exactly one offset tuple');
-        demand(affineExtrusion(nodes, reference), 'CAPABILITY', 'translate', 'Translation requires a direct affine XY extrusion');
+        demand(affineExtrusion(nodes, reference) || finishedTranslationPrefix(nodes, reference), 'CAPABILITY', 'translate', 'Translation requires a direct affine extrusion or its complete owned finishing chain');
         const vector = list(offset, 'translate', 3, 3).map(value => dimension(value as CadDimension)) as [Dimension, Dimension, Dimension];
         return shape({ node: append({ kind: 'translate', parent: { ...reference }, offset: vector }), side: 'solid' });
       },
@@ -856,6 +894,24 @@ function measureNamedBody(bodies: Readonly<Record<string, CadBody>>, outputName:
   }
 }
 
+function exportNamedStl(bodies: Readonly<Record<string, CadBody>>, outputName: string): CadStlExport {
+  const operation = 'exportStl';
+  name(outputName, operation);
+  demand(Object.hasOwn(bodies, outputName), 'SELECTION', operation, 'Unknown output: ' + outputName);
+  const body = bodies[outputName];
+  demand(body.family === 'convex-planar', 'CAPABILITY', operation, 'Binary STL currently supports only owned convex planar outputs');
+  try {
+    const details = buildModelingStl(body.native);
+    return freeze({ outputName, family: 'convex-planar', format: 'binary-stl', lengthUnit: 'mm',
+      bytes: details.encoding.bytes, byteLength: details.encoding.bytes.length,
+      triangleCount: details.native.report.triangleCount,
+      maximumVertexDisplacementMM: details.encoding.maximumMeasuredDisplacementMM, details });
+  } catch (cause) {
+    if (cause instanceof CadModelError) throw cause;
+    throw new CadModelError('NATIVE', operation, cause instanceof Error ? cause.message : 'Native STL export refused', cause);
+  }
+}
+
 // Separate closure construction prevents retaining the prior evaluation frame or discarded suffix.
 function makeSnapshot(document: Document, key: string, evidence: CadModelEvidence[], values: EvaluatedValue[], bodies: Record<string, CadBody>, recomputation: CadModelSnapshot['recomputation']): CadModelSnapshot {
   freeze(document); freeze(evidence); freeze(values); freeze(bodies); freeze(recomputation);
@@ -864,6 +920,10 @@ function makeSnapshot(document: Document, key: string, evidence: CadModelEvidenc
     bodies, parameters: document.parameters, evidence, recomputation,
     suppression: freeze(Object.fromEntries(document.nodes.flatMap(n => n.kind === 'chamfer' && n.name !== undefined ? [[n.name, n.suppressed]] : []))),
     features: freeze(document.nodes.map((n, index) => ({ kind: n.kind, index, dependencies: deps(n), ...(n.kind === 'chamfer' && n.name !== undefined ? { name: n.name, suppressed: n.suppressed } : {}) }))),
+    exportStl(outputName: string): CadStlExport {
+      demand(arguments.length === 1, 'INPUT', 'exportStl', 'Exactly one output name is required');
+      return exportNamedStl(bodies, outputName);
+    },
     massProperties(outputName: string, options: CadMassPropertiesOptions): CadMassProperties {
       demand(arguments.length === 2, 'INPUT', 'massProperties', 'Exactly an output name and density options are required');
       return measureNamedBody(bodies, outputName, options);

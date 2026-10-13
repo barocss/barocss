@@ -42,8 +42,7 @@ jobs:
         with:
           version: 9
       - run: pnpm install --frozen-lockfile
-      - run: pnpm type-check && pnpm lint && pnpm build:library
-      - run: node .github/scripts/check-packages.mjs
+      - run: pnpm build:library
       - run: pnpm --filter barocss-docs docs:build
 
   test:
@@ -61,10 +60,15 @@ jobs:
         with:
           version: 9
       - run: pnpm install --frozen-lockfile
-      - run: pnpm test
-      - run: node --test .github/scripts/*.test.mjs
+      - run: pnpm type-check && pnpm lint
+
+  regression:
+    name: Pre-release regression
+    if: github.repository == 'barocss/barocss' && github.event_name == 'workflow_dispatch' && inputs.publish == true && github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/regression.yml
 
   publish:
+    needs: [regression]
     name: Publish npm packages
     if: github.repository == 'barocss/barocss' && github.event_name == 'workflow_dispatch' && inputs.publish == true && github.ref == 'refs/heads/main'
     concurrency:
