@@ -313,7 +313,7 @@ for (const acceptedKind of ['convex', 'hole']) for (const family of ['convex-pla
   const recovered = guarded({ id: ++id, kind: 'apply', expectedRevision: 0, parameters: acceptedKind === 'hole' ? { radius: 2.5 } : { height: 6 }, taskToken: 'circle_recovery' });
   assert.equal(recovered.ok, true, recovered.message); assert.equal(snapshotEdits.at(-1).snapshot, accepted); checks++;
 }
-// A complete union-slot graph refuses before every native payload and summary,
+// Unsupported union-slot ancestry refuses before every native payload and summary,
 // even when its composed output is hidden or laundered under an existing family.
 let compositionSummaryReads = 0;
 const compositionNodes = [
@@ -330,13 +330,14 @@ for (const acceptedKind of ['convex','hole','circle']) for (const family of ['co
   assert.equal(baseline.ok,true,baseline.message);
   const accepted=snapshots.at(-1),saved=JSON.stringify(baseline),before=tessellations+holeTessellations+circleTessellations;
   const graph={...document,nodes:structuredClone(compositionNodes),outputs:hidden?{base:{node:1,side:'solid'}}:{base:{node:1,side:'solid'},slot:{node:7,side:'solid'}}};
+  graph.nodes[7].tool.node=3; // Reusing an earlier operand is outside the exact eight-node receiver.
   const candidate=snapshot(graph);
   candidate.bodies=Object.fromEntries(Object.keys(graph.outputs).map(name=>[name,{family,
     get native(){unsupportedNativeReads++;throw Error('Composition must refuse before native access');}}]));
   for(const property of ['parameters','suppression','features'])Object.defineProperty(candidate,property,{get(){compositionSummaryReads++;throw Error('Composition must refuse before summary access');}});
   nextLoadedSnapshot=candidate;
   const refused=guarded({id:++id,kind:'open',text:JSON.stringify({...document,operation:'union'}),taskToken:'composition_refused'});
-  assert.equal(refused.ok,false);assert.match(refused.message,/Composed union-slot preview is not available/);
+  assert.equal(refused.ok,false);assert.match(refused.message,/Composed preview requires the supported eight-node/);
   assert.equal(unsupportedNativeReads,0);assert.equal(compositionSummaryReads,0);
   assert.equal(tessellations+holeTessellations+circleTessellations,before);assert.equal(JSON.stringify(baseline),saved);checks++;
   const recovered=guarded({id:++id,kind:'apply',expectedRevision:0,parameters:acceptedKind==='hole'?{radius:2.5}:{height:9},taskToken:'composition_recovery'});
@@ -349,7 +350,7 @@ forgedSchema.bodies={part:{family:'orthogonal-cell',native:{report:{schema:'baro
   get panels(){composedPayloadReads++;throw Error('Composed panels must not enter the two-box receiver');}}}};
 nextLoadedSnapshot=forgedSchema;
 const schemaRefusal=create()({id:++id,kind:'open',text:JSON.stringify(document),taskToken:'composition_schema'});
-assert.equal(schemaRefusal.ok,false);assert.match(schemaRefusal.message,/separate native-schema receiver/);assert.equal(composedPayloadReads,0);checks++;
+assert.equal(schemaRefusal.ok,false);assert.match(schemaRefusal.message,/Unknown orthogonal native schema|exact authored difference/);assert.equal(composedPayloadReads,0);checks++;
 // Genuine measured baseline is serialized through the real adapter with fresh display-only context.
 const roundEngine=create(),roundFirst=roundEngine({id:++id,kind:'example',example:'round-post',taskToken:'round_initial'});
 assert.equal(roundFirst.ok,true,roundFirst.message);assert.equal(roundFirst.summary.outputs[0].family,'stored-rational-circle-prism');assert.equal(roundFirst.summary.outputs[0].volumeMM3,null);assert.equal(roundFirst.display.components[0].preview.packet.positions.length/3,98);checks++;

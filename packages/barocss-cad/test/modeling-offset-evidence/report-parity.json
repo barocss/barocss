@@ -1,0 +1,93 @@
+{
+  "status": "passed",
+  "nativeCalls": 0,
+  "scope": "actual before/after TypeScript report-construction fragments transpiled and executed with explicitly synthetic reporting inputs; not geometry or whole-native evaluation",
+  "sources": {
+    "before": {
+      "commit": "750d94702fd3bbf4a08ae394ac1de84389ef1d7d",
+      "sourceSHA256": "c1c2498c26d9671277154e086efffcaf05e8d0e4e373f14f048a43f23889ba08",
+      "extractedSHA256": "c322dc03c8b98c208cb58e8a7b4f8d5a0a41413242edfbb13f7859dd6e12e715",
+      "emittedReportCodeSHA256": "21fa3676ac02a0e99c7f1be7115ecfc4cb541144824e8ceecd9136b5f55ed59e"
+    },
+    "after": {
+      "commit": "f0fb81ff3a1915ec79ff04a6c44c60d25bf3e117",
+      "sourceSHA256": "20a7b1206da70582340c38a6f82dc47b0248df5a1c8092099d8b379484395366",
+      "extractedSHA256": "c7e136d687db6dc1a9c1eb2bda433730d3e964b2fb309299442796ae9fcf35e3",
+      "emittedReportCodeSHA256": "c6a0cf526e5dc5252e8f93bc13bac7e4dd43c5d1c3776499656bd306ba7dcd26"
+    }
+  },
+  "cases": [
+    {
+      "orientation": "cw",
+      "mode": "legacy",
+      "reportSHA256": "eeeca1ad90c789a9aaa3446661c0db5e6e5ce3d75e840f86be6ac7a79ea82a47",
+      "exactKeysAndSignedValuesEqual": true
+    },
+    {
+      "orientation": "cw",
+      "mode": "coordinate",
+      "reportSHA256": "fb857325a927d9805a5576057947ae48c7c59379e37e76af2ef18201025352c3",
+      "exactKeysAndSignedValuesEqual": true
+    },
+    {
+      "orientation": "cw",
+      "mode": "-2",
+      "reportSHA256": "2aef6e0ddf9d526a4ea8a33029db194c287888502df80d99b22230f5c8e85ed3",
+      "exactKeysAndSignedValuesEqual": true
+    },
+    {
+      "orientation": "cw",
+      "mode": "-0",
+      "reportSHA256": "da08c5e3d31615494b9ea986868eb43a10c116e5f40068da5576aebc131a957c",
+      "exactKeysAndSignedValuesEqual": true
+    },
+    {
+      "orientation": "cw",
+      "mode": "0",
+      "reportSHA256": "6a02dad2866fc9e577e3df31cb498ddd0fa6e75b5e72e8e9663709cb32b07ab1",
+      "exactKeysAndSignedValuesEqual": true
+    },
+    {
+      "orientation": "cw",
+      "mode": "4",
+      "reportSHA256": "bfa1a800cef7807a07ae5d6dd4b9dbae0424a779a75fc5da705af3929b7f3841",
+      "exactKeysAndSignedValuesEqual": true
+    },
+    {
+      "orientation": "ccw",
+      "mode": "legacy",
+      "reportSHA256": "99b31198fb6b4b7e2a3b448ca2d4fd19873fecf1018defe1f6b0bb7d2b97cdd3",
+      "exactKeysAndSignedValuesEqual": true
+    },
+    {
+      "orientation": "ccw",
+      "mode": "coordinate",
+      "reportSHA256": "08440c30be9eaeb67e798dadac818db9c357840b14e224e809b814bf3c8d63db",
+      "exactKeysAndSignedValuesEqual": true
+    },
+    {
+      "orientation": "ccw",
+      "mode": "-2",
+      "reportSHA256": "eb7397f06420433627840a020b4c768a3bd19f09e8fce40d604edb8b98d6bfce",
+      "exactKeysAndSignedValuesEqual": true
+    },
+    {
+      "orientation": "ccw",
+      "mode": "-0",
+      "reportSHA256": "9479a33a8b683249c9d06a2461c34df8f9973157376a171c9f49f947bd44814f",
+      "exactKeysAndSignedValuesEqual": true
+    },
+    {
+      "orientation": "ccw",
+      "mode": "0",
+      "reportSHA256": "9398c3e19769f1429d305050bb577ad05c764159331734968de33344c8798a9f",
+      "exactKeysAndSignedValuesEqual": true
+    },
+    {
+      "orientation": "ccw",
+      "mode": "4",
+      "reportSHA256": "19e1d768a86943e6b57b599a26d949af08110ddeb2ed854aa92e677bb73cec9c",
+      "exactKeysAndSignedValuesEqual": true
+    }
+  ]
+}

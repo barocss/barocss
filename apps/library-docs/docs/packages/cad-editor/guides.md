@@ -1,5 +1,7 @@
 # Stage, present and accept native edits
 
+**Using the local CAD Editor UI rather than embedding a session?** Follow [Model a round post](./round-post) for a real named-dimension exercise, safe file staging and source-qualified native limits. The React/session details below are for developers integrating the editor.
+
 ## Mount the React bridge
 
 ```tsx

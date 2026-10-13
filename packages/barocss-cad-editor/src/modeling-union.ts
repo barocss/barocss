@@ -22,7 +22,28 @@ export interface ModelingUnionDisplayComponent {
 type Tessellator = (surface: Surface, options: { countU: number; countV: number; revision: number }) => {
   packet: { positions: number[]; normals: number[]; parameters: number[]; indices: number[] } };
 function check(value: unknown, message: string): asserts value { if (!value) throw new Error('Orthogonal display: ' + message); }
-const equal = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+// Transport records have no insertion-order contract; arrays retain their native order.
+// Inspect own data descriptors before reading values so accessors/symbols are never admitted.
+function equal(a: unknown, b: unknown): boolean {
+  if (a === null || b === null) return a === b;
+  if (typeof a !== 'object' || typeof b !== 'object') {
+    return typeof a === typeof b && (typeof a === 'number' ? Number.isFinite(a) && a === b
+      : (typeof a === 'string' || typeof a === 'boolean') && a === b);
+  }
+  if (Array.isArray(a) !== Array.isArray(b)) return false;
+  const ad = Object.getOwnPropertyDescriptors(a), bd = Object.getOwnPropertyDescriptors(b);
+  const ak = Reflect.ownKeys(ad), bk = Reflect.ownKeys(bd);
+  if (ak.length !== bk.length || ak.some(k => typeof k !== 'string' || !Object.hasOwn(bd, k))) return false;
+  if (Array.isArray(a) && Array.isArray(b)) {
+    if (a.length !== b.length || ak.length !== a.length + 1
+      || !ak.every(k => k === 'length' || (typeof k === 'string' && /^(0|[1-9][0-9]*)$/.test(k) && Number(k) < a.length))) return false;
+  }
+  return ak.every(k => {
+    const x = ad[k as string], y = bd[k as string];
+    return Object.hasOwn(x, 'value') && Object.hasOwn(y, 'value') && x.enumerable === y.enumerable
+      && (k === 'length' && Array.isArray(a) ? x.value === y.value : x.enumerable === true && equal(x.value, y.value));
+  });
+}
 function exact(value: object, fields: string[]): void {
   check(value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length === fields.length
     && fields.every(k => Object.hasOwn(value, k)), 'exact copied fields required: ' + fields.join(','));
@@ -159,7 +180,7 @@ export function validateModelingUnion(component: ModelingUnionDisplayComponent):
   check(l.operands.length === 2 && l.operands[0].operand === 'a' && l.operands[1].operand === 'b', 'both original operand bindings required');
   for (const operand of l.operands) {
     exact(operand, ['operand', 'sourceId', 'shellId', 'origin', 'sides', 'faces']); id(operand.sourceId); id(operand.shellId); tuple(operand.origin, 3); tuple(operand.sides, 3);
-    check(operand.sides.every(v => v >= 1 && v <= 10000) && operand.origin.every((v, a) => Math.abs(v) <= 10000 && Math.abs(safe(v + operand.sides[a])) <= 10000) && operand.origin[2] === 0 && operand.faces.length === 6, 'complete rectangular operand'); unique(operand.faces.map(f => f.globalFaceId));
+    check(operand.sides.every(v => v >= 1 && v <= 10000) && operand.origin.every((v, a) => Math.abs(v) <= 10000 && Math.abs(safe(v + operand.sides[a])) <= 10000) && operand.faces.length === 6, 'complete rectangular operand'); unique(operand.faces.map(f => f.globalFaceId));
     const planes = new Set<string>();
     for (const face of operand.faces) {
       exact(face, ['globalFaceId', 'query', 'surface']); query(face.query); check(face.query.sourceId === operand.sourceId && face.query.surfaceId === face.surface.id, 'operand original source query');

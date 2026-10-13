@@ -1,0 +1,34 @@
+{
+  "sourceReviewed": "71e2b1355c31a6d44babd46d19e5cb4a7443075d",
+  "previousBase": "3f1dcd817fc6fa1209d6d68b0ca18a057cb1677e",
+  "newBase": "c9efe8745546a02ab850d27b6cafa740beeb19f7",
+  "rebasedCandidate": "750d94702fd3bbf4a08ae394ac1de84389ef1d7d",
+  "productPaths": [
+    "packages/barocss-cad/src/xy-affine-sketch-prism.ts",
+    "packages/barocss-cad/src/modeling.ts",
+    "packages/barocss-cad/src/index.ts",
+    "packages/barocss-cad/README.md",
+    "packages/barocss-cad/CONCISE_API.md",
+    "packages/barocss-cad/test/modeling-types.ts",
+    "packages/barocss-cad/test/public-api-types.mjs",
+    "packages/barocss-cad/test/modeling-regeneration-helpers.test.mjs",
+    "packages/barocss-cad/test/modeling-offset.test.mjs",
+    "packages/barocss-cad/test/modeling-offset-fixture.mjs",
+    "packages/barocss-cad/test/modeling-offset-native.mjs",
+    "packages/barocss-cad/scripts/modeling-offset-consumer.mjs",
+    "packages/barocss-cad/test/xy-affine-sketch-prism-offset.test.mjs",
+    "packages/barocss-cad-editor/src/modeling-union.ts",
+    "packages/barocss-cad-editor/scripts/modeling-union-scene-test.mjs",
+    "packages/barocss-cad-editor/scripts/modeling-offset-scene-test.mjs"
+  ],
+  "productParity": "all16 paths byte-identical",
+  "interruptedAttempt": "preserved rebase-interruption.json and empty lock; aborted original interrupted operation, froze fixture checkpoint, then normal rebase completed",
+  "nativeWork": "none",
+  "externalRuntimeChanges": [
+    "additive unexported native-extrusion-preview-acceptance-v1.ts",
+    "additive unexported native-extrusion-preview-session-v1.ts",
+    "editor modeling-file.ts and React picker consumer",
+    "GPU webgpu-primitive-viewport.ts outside selected CPU receiving-source closure"
+  ],
+  "scope": "Full package/editor type prerequisites will use reconciled current source; actual bundle inputs will be recorded"
+}

@@ -67,3 +67,5 @@ export type { ModelingUnionFaceSelection, ModelingOrthogonalFaceSelection } from
 
 export type { ModelingCircleDisplayComponent, ModelingCircleLineage, ModelingCircleQualification } from './modeling-circle.js';
 export type { ModelingCircleFaceSelection } from './modeling-scene.js';
+
+export type { ModelingCompositionDisplayComponent, ModelingCompositionPanel } from './modeling-composition.js';

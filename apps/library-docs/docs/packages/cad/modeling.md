@@ -4,6 +4,41 @@ Use `cad.model()` to author a bounded solid part with named dimensions. Start wi
 
 All dimensions below are **millimetres**. Use a TypeScript-capable workspace/bundler for source package entries; built ESM and declarations are a separate package build. Source adoption does not establish npm publication.
 
+## Cut a slot in a bracket
+
+<a :href="withBase('/examples/modeling-composition.ts')" download>Download the complete typed slotted-bracket example</a>
+
+Choose **Cut a slot in a bracket** in **Modeling examples**, acknowledge replacement, then load it. The preset first fuses a32×8×8 base with an8×24×8 leg, then calls `bracket.cut(tool)` on that exact owned union result. **legWidth** edits the leg's X width. **slotX**, **slotY**, **slotWidth** and **slotSpanY** describe the rectangular through-slot. Apply commits the numeric batch only after native and display admission; Discard, Undo/Redo, refusal, cancellation and no-op behavior use the existing modeling session.
+
+```ts
+const model = cad.model(), legWidth = model.parameter('legWidth', 8);
+const slotX = model.parameter('slotX', 16), slotY = model.parameter('slotY', 2);
+const slotWidth = model.parameter('slotWidth', 8), slotSpanY = model.parameter('slotSpanY', 4);
+const base = model.sketch.rectangle({ width: 32, height: 8 }).extrude(8);
+const leg = model.sketch.rectangle({ min: [-0, 0], max: [legWidth, 24] }).extrude(8);
+const bracket = base.union(leg);
+const tool = model.sketch.rectangle({ min: [slotX, slotY],
+  max: [model.dimension.add(slotX, slotWidth), model.dimension.add(slotY, slotSpanY)] }).extrude(8);
+const initial = model.build({ bracket, slotted: bracket.cut(tool) });
+const wider = initial.withParameters({ slotWidth: 12 });
+```
+
+The baseline exact integer-cell volumes are **bracket3072 and slotted2816 mm³**; `slotWidth:12` retains2688 mm³. These are restricted material volumes, not mesh-derived estimates. Empty and disconnected results refuse and leave the previous accepted snapshot usable. The provider's separate native campaign records recovery3328 and cold3200 mm³; the consumer does not resample those edited states.
+
+Both named results remain saved. The preset explicitly selects **slotted**; generic Open selects the last validated saved output, without inferring meaning from its name. Output choice changes only visibility and never removes authoring outputs, numeric drafts or history. Renamed and final-only outputs are supported because the composed result carries its own complete, self-contained parent proof. Save stores authored intent and numeric parameters, not a prepared scene or native cache. Open rebuilds cold; it does not restore a serialized view selection.
+
+### Bracket-slot receiver limits and evidence
+
+This software preview accepts exactly the eight-node rectangular union → third-box difference chain, with a common Z=0..8 slab, at most5 X/Y planes and2 Z planes,16 cells,64 vertices,144 edges and64 complete panels per body. Other native-valid composed graphs remain outside this finite display boundary. The old six-node limits remain for all other modeling graphs. There is no general nested-Boolean renderer and no cap increase or partial preview.
+
+Every named output and embedded parent is checked before acceptance. The receiver binds all three original support inventories, original0/1 contributors surviving through immediate-parent panels, original2 inward slot walls, exact reduced rational UV/XYZ charts, occupied-cell material, safe-integer volume/area and ordered raw triangles. A named parent must equal the embedded authority. The entire copied packet retains its2 MiB, occurrence/depth/string budgets; embedded and named occurrences both count. CPU picking returns actual generated face/source IDs and copied original/immediate-parent lineage in the current request context. It is an approximate sampled-triangle hit, not a new BRep edge.
+
+The [adopted provider](https://github.com/barocss/barocss/blob/4cd5237c400784d8ce51cccbce02a22929832950/packages/barocss-cad/test/modeling-composition-evidence/verification.json) passed eight model calls and44 genuine raw Surface samples. Its2,334,314-byte research transfer includes duplicated evidence and is not a renderer DTO. The consumer separately captured only the missing14 bracket Surfaces from the exact retained body: **zero model calls, zero Boolean reconstructions**,56 vertices/28 triangles. The frozen historical runtime is tested commit `4fa8920a7f00c2bc8e78ae76664f8e957111f28f`; all268 emitted JS hashes were recovered exactly. The first attempt from the later adopted source differed in two unrelated private modules and was preserved before the corrected full-source emit. No emitted JS was hand-edited.
+
+Together the genuine58 raw packets feed the real serializer and CPU receiver. The final compact DTO is measured in the consumer receipt, including the complete parent proof; none of the14 bracket packets is synthetic or borrowed from a signed-zero-different fixture. Raw XYZ, UVs, normals and triangle order are copied unchanged before the existing single `[x,z,-y]` conversion. Native qualification remains distinct from sampled display geometry. Controller changed-state display tests use an explicitly disclosed **baseline mock**; the producer's native edit receipts are separate evidence.
+
+**External visual gate OPEN**: CPU rays through the opening and against material/cavity walls, receiving-realm authority, malformed transport and atomic mocked-worker tests do not establish physical WebGPU pixels, React interaction, device behavior or physical file-picker acceptance. No additional screen QA campaign is included in this software scope.
+
 ## 1. Make a plate
 
 <<< ../../../scripts/snippets/modeling-api.ts#imports
@@ -547,12 +582,12 @@ A dimension being an ordinary integer is not enough to qualify an operation. The
 
 ### Initial resource bounds
 
-`CadModelLimits` exposes these implementation bounds; they are not public version families. All limits apply together, and native operations retain their own tighter geometric/work budgets. Only one cut, intersection or split may appear in the same graph. One hole, one connected union or one rectangular difference may appear instead, without mixing Boolean/finishing operations.
+`CadModelLimits` exposes these implementation bounds; they are not public version families. All limits apply together, and native operations retain their own tighter geometric/work budgets. Only one cut, intersection or split may appear in the same graph. One hole, one connected union or one rectangular difference may appear instead, without mixing Boolean/finishing operations. The explicit eight-node rectangular union → third-box difference chain is the bounded exception described above.
 
 | Resource | Maximum |
 | --- | ---: |
-| Authored operation nodes | 6 |
-| Sketches / extrusions / cuts / intersections / chamfers / splits / holes / unions / differences | 2 / 2 / 1 / 1 / 2 / 1 / 1 / 1 / 1 |
+| Authored operation nodes | 6 normally;8 only for the exact union → slot chain |
+| Sketches / extrusions / cuts / intersections / chamfers / splits / holes / unions / differences | 2 / 2 / 1 / 1 / 2 / 1 / 1 / 1 / 1 normally; the union → slot chain uses3 sketches and3 extrusions |
 | Named parameters / outputs | 16 / 8 |
 | Polygon points | 8 |
 | Authored file UTF-8 bytes | 65536 (64 KiB) |

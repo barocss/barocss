@@ -1,0 +1,21 @@
+Normalized display transcript: ANSI escapes and trailing whitespace removed; raw SHA256 is in verification.json.
+
+(node:4) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/apps/library-docs/scripts/check-modeling-composition.mjs
+  21:1  warning  Unexpected console statement  no-console
+
+/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-cad-editor/scripts/modeling-composition-bracket-preview.mjs
+  90:3  warning  Unexpected console statement  no-console
+
+/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-cad-editor/scripts/modeling-composition-controller-test.mjs
+  33:580  warning  Unexpected console statement  no-console
+
+/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-cad-editor/scripts/modeling-composition-recipes-test.mjs
+  13:395  warning  Unexpected console statement  no-console
+
+/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-cad-editor/scripts/modeling-composition-scene-test.mjs
+  73:162  warning  Unexpected console statement  no-console
+
+✖ 5 problems (0 errors, 5 warnings)
