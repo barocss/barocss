@@ -1,5 +1,7 @@
 # CAD Editor: original native authoring
 
+**Start the [CAD learning path](./learning-path)** for ordered, adoption-aware hands-on exercises.
+
 **New to the editor?** Start with [your first model in the UI](./first-model): load a bounded pocket sample, change its depth, inspect a named output, undo, and save/reopen authored dimensions. No internal graph IDs or code are required.
 
 CAD Editor provides pure editing sessions and reusable React components. Use it to stage native control-point fields, prepare a complete qualified candidate, display it, and then accept the actual native edit.
