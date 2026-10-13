@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {
@@ -8,6 +9,19 @@ import {
 } from '../dist/paired-surface-material-body-world-points-result.js';
 
 const dataFile = name => fileURLToPath(new URL('./paired-surface-material-body-world-points-result-data/' + name, import.meta.url));
+const fixturePins = Object.freeze({
+  'main-result.json': {bytes:562166,sha256:'aa3cbfac04cccd9ef03e89020fc434393115f61cc5c6b6bcd8288b8f4f8e34dd'},
+  'edited-result.json': {bytes:567898,sha256:'22a569a7c56e7f5591472a8470583565988eb5eee3fc8e164835c6484cd41e02'},
+  'main-request.json': {bytes:526647,sha256:'1f9454ff027a5578fbed68ba71511ba2d71f42eb593dc72c07fde22bcb31b276'},
+  'edited-request.json': {bytes:532808,sha256:'3495cea768c5c27b0455fbcdf142e66706d198385897b5eb5084b38f54601f2c'},
+});
+async function pinnedBytes(name) {
+  const bytes = await readFile(dataFile(name));
+  const pin = fixturePins[name];
+  assert.equal(bytes.length, pin.bytes, name + ' byte count');
+  assert.equal(createHash('sha256').update(bytes).digest('hex'), pin.sha256, name + ' SHA-256');
+  return bytes;
+}
 const refuse = (run, code) => assert.throws(run, error => error instanceof ReadError && error.code === code);
 const own = (a, b) => {
   assert.notStrictEqual(a, b);
@@ -39,8 +53,10 @@ const chunks = {chunks:Array.from({length:512},()=>Array(8192).fill(0))};
 refuse(() => read(chunks), 'BUDGET');
 refuse(() => parse('{"request":{},"classifications":[],"proof":{},"report":{"schema":"wrong","version":0}}'), 'SCHEMA');
 
+for (const name of Object.keys(fixturePins)) await pinnedBytes(name);
+
 for (const name of ['main-result.json','edited-result.json']) {
-  const text = await readFile(dataFile(name), 'utf8');
+  const text = (await pinnedBytes(name)).toString('utf8');
   const parsed = parse(text);
   const owned = read(parsed.native);
   assert.equal(parsed.sourceText, text);
