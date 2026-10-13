@@ -27,3 +27,35 @@ test('strict invalid/refusal input does not evaluate host accessor', () => {
   assert.equal(classify(host,p(1,0),p(0,1),p(1,1)).reason,'invalid-input');
   assert.equal(reads,0);
 });
+
+
+test('crossing classification uses descriptor snapshot without property get traps', () => {
+  let reads = 0;
+  const hostile = data => new Proxy(data, {
+    get() { reads++; throw new Error('host coordinate read forbidden'); },
+  });
+  assert.deepEqual(classify(hostile(p(0, 0)), hostile(p(4, 4)),
+    hostile(p(0, 4)), hostile(p(4, 0))), {
+      status: 'classified', relation: 'proper-interior-crossing',
+      method: 'four-exact-binary64-orientations',
+    });
+  assert.equal(reads, 0);
+  const falseGet = new Proxy(p(0, 4), { get() { reads++; return 9999; } });
+  assert.equal(relation(p(0, 0), p(4, 4), falseGet, p(4, 0)),
+    'proper-interior-crossing');
+  assert.equal(reads, 0);
+});
+
+test('crossing admission refuses revoked and throwing reflection Proxies', () => {
+  const revoked = Proxy.revocable(p(0, 0), {});
+  revoked.revoke();
+  const revokedArray = Proxy.revocable([0, 0], {});
+  revokedArray.revoke();
+  const blocked = new Proxy(p(0, 0), {
+    getOwnPropertyDescriptor() { throw new Error('host reflection refused'); },
+  });
+  for (const hostile of [revoked.proxy, revokedArray.proxy, blocked]) {
+    assert.deepEqual(classify(hostile, p(4, 4), p(0, 4), p(4, 0)),
+      { status: 'unsupported', reason: 'invalid-input' });
+  }
+});
