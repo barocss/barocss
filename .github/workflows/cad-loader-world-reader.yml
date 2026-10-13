@@ -1,0 +1,39 @@
+name: CAD Loader World Reader
+
+on:
+  pull_request:
+    branches: [develop]
+    paths:
+      - 'packages/barocss-cad-interop/**'
+      - 'packages/barocss-cad/**'
+      - '.github/workflows/cad-loader-world-reader.yml'
+  workflow_dispatch:
+
+jobs:
+  world-reader:
+    name: Loader CPU and types
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build Native CAD
+        run: pnpm --filter @barocss/cad build:library
+      - name: Build Loader
+        run: pnpm --filter @barocss/cad-interop build:library
+      - name: Loader type checks
+        run: |
+          pnpm --filter @barocss/cad-interop type-check
+          pnpm --filter @barocss/cad-interop exec tsc -p tsconfig.world-reader-contract.json
+          pnpm --filter @barocss/cad-interop exec tsc -p tsconfig.world-reader-physical.json
+      - name: Loader codec tests
+        run: pnpm --filter @barocss/cad-interop exec node examples/paired-surface-material-body-world-points-codec-verify.mjs
+      - name: Original Native fixtures absent from CI
+        run: echo "Original byte-pinned producer fixtures are external; Native whole-result acceptance remains separate."
