@@ -1,5 +1,7 @@
 # CAD Editor: original native authoring
 
+**New to the editor?** Start with [your first model in the UI](./first-model): load a bounded pocket sample, change its depth, inspect a named output, undo, and save/reopen authored dimensions. No internal graph IDs or code are required.
+
 CAD Editor provides pure editing sessions and reusable React components. Use it to stage native control-point fields, prepare a complete qualified candidate, display it, and then accept the actual native edit.
 
 **Checkpoint:** `5f5ad866205a`; version `0.0.0-experimental`. This is a locally public-configured package. Registry publication is not established. Ordinary workspace imports select source through a TypeScript-capable host. Use the existing dependencies and Node 22+. No custom source condition is required. Compiled release maps are separate.
