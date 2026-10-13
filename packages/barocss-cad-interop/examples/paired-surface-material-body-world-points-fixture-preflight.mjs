@@ -42,8 +42,8 @@ for (const prefix of ['main','edited']) {
     const proof=result.proof.queries[index];
     assert.equal(query.queryId,classification.queryId,`${prefix}: classification identity ${index}`);
     assert.equal(query.queryId,proof.queryId,`${prefix}: proof identity ${index}`);
-    assert.deepStrictEqual(query.pointMM,proof.pointExact.map(value => Number(value.numerator)/Number(value.denominator)),`${prefix}: proof XYZ ${index}`);
-    assert.equal(classification.status,proof.classification,`${prefix}: decision ${index}`);
+    assert.ok(proof.pointExact.every((value,axis) => Number(value.numerator)/Number(value.denominator) === query.pointMM[axis]),`${prefix}: proof XYZ ${index}`);
+    assert.deepStrictEqual(classification,proof.classification,`${prefix}: classification proof ${index}`);
     for(const face of classification.boundaryFaces)
       assert.equal(face.parentField,'request.body',`${prefix}: qualified parent ${index}`);
   }
