@@ -38,6 +38,7 @@ export function CadEditorModeling({ initialAuthoredText }: CadEditorModelingProp
     try {
       const text = await readModelingFileText(file);
       if (readEpoch !== fileReadEpoch.current || !controller.current) return;
+      setConfirmed(false); // Consent granted while a read was pending never applies to newly staged bytes.
       setSource(text);
     } catch (cause) {
       if (readEpoch === fileReadEpoch.current && controller.current) {
