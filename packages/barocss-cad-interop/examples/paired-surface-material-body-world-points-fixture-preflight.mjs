@@ -48,6 +48,20 @@ for (const prefix of ['main','edited']) {
       assert.equal(face.parentField,'request.body',`${prefix}: qualified parent ${index}`);
   }
   for(const path of zeroPaths) assert.ok(Object.is(at(request,path),-0),`${prefix}: signed zero ${path.join('.')}`);
+  // Outside-priority is authoritative: later stages must stay absent, not zero-filled.
+  const outsideX = result.proof.queries[13];
+  assert.equal(outsideX.decision,'outside-x');
+  for (const key of ['originalUB','yRoof','y','zRoof','z'])
+    assert.equal(outsideX[key],null,`${prefix}: outside-x ${key}`);
+  const outsideY = result.proof.queries[14];
+  assert.equal(outsideY.decision,'outside-y');
+  assert.notEqual(outsideY.y,null,`${prefix}: outside-y retained Y`);
+  assert.equal(outsideY.zRoof,null,`${prefix}: outside-y missing zRoof`);
+  assert.equal(outsideY.z,null,`${prefix}: outside-y missing Z`);
+  for (const classified of result.classifications) {
+    if(classified.status!=='boundary')
+      assert.equal(classified.boundaryFaces.length,0,`${prefix}: no incident faces outside boundary`);
+  }
   const expected = prefix==='main' ? {inside:1,outside:5,boundary:10}:{inside:3,outside:3,boundary:10};
   for (const [key,count] of Object.entries(expected)) assert.equal(result.classifications.filter(x=>x.status===key).length,count);
 }
