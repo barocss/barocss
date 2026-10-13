@@ -51,7 +51,18 @@ export function qualifyNativePlanarLoopV1(input: unknown): NativePlanarLoopQuali
       const x=classifyExactSegmentCrossingV1(a,b,c,d);
       if(x.status!=='classified')return {status:'unsupported',reason:'segment-classification'};
       if(x.relation==='proper-interior-crossing')return {status:'refused',reason:'self-intersection'};
-      if(x.relation==='boundary-or-collinear')return {status:'refused',reason:'non-simple-boundary'};
+      if(x.relation==='boundary-or-collinear') {
+        // The segment predicate deliberately groups collinear *disjoint* pairs
+        // with boundary contacts. Separated coordinate intervals prove that
+        // these finite segments cannot meet; all remaining ambiguous cases
+        // continue to fail closed.
+        const separated =
+          Math.max(a.x,b.x)<Math.min(c.x,d.x) ||
+          Math.max(c.x,d.x)<Math.min(a.x,b.x) ||
+          Math.max(a.y,b.y)<Math.min(c.y,d.y) ||
+          Math.max(c.y,d.y)<Math.min(a.y,b.y);
+        if(!separated)return {status:'refused',reason:'non-simple-boundary'};
+      }
     }
   }
   const values=points.flatMap(p=>[parts(p.x),parts(p.y)]);
