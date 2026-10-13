@@ -28,6 +28,13 @@ This exact retained sample is **684 bytes / 12 facets**, with authored XYZ bound
 
 Only a named **convex-planar** output is supported. Hole, round-post and orthogonal-cell outputs refuse. Every export revalidates the complete native parent and checks all quantized facets; Float32 collapse refuses without partial STL bytes. Other coordinates can incur nonzero loss. The millimetre convention belongs to the caller/report because STL carries no units metadata, native IDs or UV trims. The checks do not certify watertightness, global topology after quantization, manufacturing tolerance or slicer acceptance. Keep `accepted.save()` for editable CAD Save/Open; STL is an approximate facet handoff. This addition does not establish browser download or viewer acceptance.
 
+#### Download STL from the model editor
+
+After opening the two-gusset saved model in **Model a part**, choose **right · convex-planar** in **STL output**, then **Download STL**. The selector is independent of the visible bodies and selected face. The accepted native snapshot supplies the file; source, history and display stay unchanged. Apply or discard dimension drafts first. This also works for other supported primary convex outputs; hole, circle, orthogonal-cell and legacy outputs are unavailable.
+
+An unavailable worker changes the action to **Recover accepted model and export STL** and explains the rebuild before you click. Recovery checks the accepted source and summary before export; a stale response, cancellation or refusal produces no file. The status reports byte/facet counts and maximum Float32 vertex displacement. Files use authored XYZ, an mm convention and at most40 facets; STL itself has no unit or editable model data. Browser disk persistence and slicer/manufacturing acceptance still require separate verification.
+
+
 ## Resize a constrained plate
 
 <a :href="withBase('/examples/modeling-constrained-profile.ts')" download>Download the complete constrained-profile example</a>
@@ -62,6 +69,7 @@ const deeper = initial.withParameters({ depth: 6 });
 ```
 
 The preset explicitly displays **part**, while **all outputs are validated**, including hidden plate and tool. All three remain authored and saved. Generic Open initially displays **tool**, the last canonical `part,plate,tool` output; choose part to inspect the pocket. That chooser only changes the displayed output. Exact graph, driver and output-map matching gates the friendly top-entry labels; similarly named imported dimensions keep generic labels. Apply/Discard, no-op, refusal, cancellation and Undo/Redo use the existing atomic session.
+
 
 ### Top-entry limits and evidence
 

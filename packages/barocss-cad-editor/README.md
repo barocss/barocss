@@ -1266,3 +1266,11 @@ After building, run `node packages/barocss-cad-editor/scripts/check-build.mjs` t
 check emitted imports, declaration coverage, worker URLs and isolated worker
 startup. This artifact check does not claim native geometry, browser rendering,
 or Save/Open workflow coverage.
+
+### Download a selected accepted convex output as STL
+
+In **Model a part**, choose a named **STL output**, independently of the visible body or selected face, then **Download STL**. Only primary convex outputs are currently supported; legacy, hole, circle and orthogonal-cell outputs are unavailable. Apply or discard dimension drafts first. The worker exports directly from its accepted native snapshot, with revision, output identity and task freshness checks. Model source, history and display are unchanged.
+
+If the worker has been lost, the action explicitly becomes **Recover accepted model and export STL**. It rebuilds the accepted saved source, verifies matching source/summary and admits the recovered display packet without replacing the display or history, then exports. Cancellation or refusal produces no download.
+
+Files use binary STL, an mm convention, authored XYZ coordinates and approximate Float32 facets, at most40 facets/2084 bytes. The status reports the provider's maximum vertex displacement. STL does not store units or editable modeling intent. Browser disk persistence, slicer/manufacturing acceptance and physical UI testing remain separate. The focused tests replay retained genuine left/right gusset bytes with mocked provider/Worker delivery; they do not run native export or establish changed-geometry/GPU results.
