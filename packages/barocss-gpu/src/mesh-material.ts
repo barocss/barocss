@@ -31,7 +31,7 @@ type DiscreteExpression<Input, ExtraCall extends string=never>=
  |Input;
 export type DiscreteMeshMaterialExpression=DiscreteExpression<never>;
 export interface DiscreteMeshMaterialIR {format:'barocss-gpu-discrete-mesh-material';version:0;profile:'mesh-opaque-discrete-fragment-v0';source:string;shaderId:string;uniforms:MeshMaterialUniform[];expression:DiscreteMeshMaterialExpression}
-export interface LoweredDiscreteMeshMaterial extends LoweredMeshMaterial {}
+export type LoweredDiscreteMeshMaterial = LoweredMeshMaterial;
 /** Separate recursive family; existing public expression unions stay intact. */
 type TextureExpression<Input,ExtraCall extends string=never,Extra=never>=
  |Extract<MeshMaterialExpression,{kind:'float'|'color'|'uniform'}>
