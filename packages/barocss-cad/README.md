@@ -11040,3 +11040,20 @@ rotation, mirror, scale or pattern is admitted; graphs mixing translation with
 Boolean/finishing features refuse. Circle and other body families remain outside
 this scope. Native preview packets do not establish a new editor preset or
 browser/GPU/physical acceptance.
+
+### Named convex output to binary STL
+
+The primary `snapshot.exportStl('right')` validates and exports one owned convex
+output, including the translated gusset above. Its immutable byte array preserves
+authored XYZ; the unit convention is millimetres. Byte length, triangle count and
+measured Float32 vertex displacement are directly available, with complete native
+mesh/face lineage and exact loss/encoding details retained separately. See the
+[typed STL example](CONCISE_API.md#export-one-output-as-binary-stl).
+
+This reuses the unchanged convex tessellator and existing exact Float32 loss and
+facet-collapse guards. No file is written by the API. Unsupported rational and
+integer-cell families refuse before native export; no strip certificate is
+invented for a convex mesh. Facet noncollapse/normal alignment are finite encoding
+checks, not global topology, original-Solid orientation, slicer or manufacturing
+acceptance. STL loses native identity, units metadata, UV trims and editability;
+retain the authored `save()` document alongside it.

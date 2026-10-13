@@ -25,7 +25,7 @@ const providers = new Map([
   ['convex-planar-solid-split', 'splitConvexPlanarSolid'], ['model-compiler', 'compileCadModel'],
   ['convex-planar-solid-chamfer', 'chamferConvexPlanarSolid'], ['axis-box-boolean', 'buildAxisBoxSolidBoolean'],
   ['orthogonal-solid-boolean', 'buildOrthogonalSolidBoolean'], ['modeling-box-internal', 'buildModelingBox'],
-  ['modeling-translation-internal', 'buildModelingTranslation'],
+  ['modeling-translation-internal', 'buildModelingTranslation'], ['modeling-stl-internal', 'buildModelingStl'],
   ['own-plate-circular-hole', 'buildOwnPlateCircularHole'], ['stored-plate-hole-solid', 'qualifyStoredPlateHoleSolid'],
   ['convex-planar-solid-mass', 'measureConvexPlanarSolidMass'], ['axis-box-solid-mass', 'measureAxisBoxSolidBooleanMass'],
 ]);
@@ -150,13 +150,13 @@ function document() {
 const checkDocument = (edit, code, operation) => { const d = document(); edit(d); return refuses(() => loadCadModel(signedJson(d)), code, operation); };
 
 // All successes below use facade routing and explicitly non-geometric stubs.
-test('all eighteen provider bindings are isolated; translate retains the existing convex wrapper and snapshot inventory', () => {
+test('all nineteen provider bindings are isolated; translate retains the existing convex wrapper and snapshot inventory', () => {
   const before = state.calls.length, { snapshot } = authored(), calls = state.calls.slice(before), translation = calls.at(-1);
-  assert.equal(replaced.size, 18); assert.equal(inputPaths.length, pureModules.size);
+  assert.equal(replaced.size, 19); assert.equal(inputPaths.length, pureModules.size);
   assert.deepEqual(calls.map(call => call.binding), ['buildXYAffineSketch', 'buildXYAffineSketchPrism', 'buildModelingTranslation']);
   assert.equal(translation.args.length, 3); assert.equal(translation.args[0], snapshot.bodies.left.native);
   assert.deepEqual(translation.args[1], [48, -0, 0]); assert.equal(translation.args[2], 'm2');
-  assert.deepEqual(Object.keys(snapshot).sort(), ['bodies', 'parameters', 'suppression', 'features', 'recomputation', 'evidence', 'withParameters', 'withSuppression', 'massProperties', 'save'].sort());
+  assert.deepEqual(Object.keys(snapshot).sort(), ['bodies', 'parameters', 'suppression', 'features', 'recomputation', 'evidence', 'withParameters', 'withSuppression', 'massProperties', 'exportStl', 'save'].sort());
   assert.equal(snapshot.bodies.right.family, 'convex-planar'); assert.equal(snapshot.bodies.right.native, translation.result.solid);
   assert.equal(snapshot.evidence[2].kind, 'translate'); assert.equal(snapshot.evidence[2].native, translation.result);
   assert.deepEqual(snapshot.evidence[2].native.parent, snapshot.bodies.left.native);

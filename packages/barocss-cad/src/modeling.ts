@@ -28,6 +28,8 @@ import type { OrthogonalSolidBooleanResult } from './orthogonal-solid-boolean.js
 import { buildModelingBox } from './modeling-box-internal.js';
 import { buildModelingTranslation } from './modeling-translation-internal.js';
 import type { ModelingTranslationResult } from './modeling-translation-internal.js';
+import { buildModelingStl } from './modeling-stl-internal.js';
+import type { ModelingStlResult } from './modeling-stl-internal.js';
 import type { Point } from './types.js';
 import { buildOwnPlateCircularHole } from './own-plate-circular-hole.js';
 import { qualifyStoredPlateHoleSolid } from './stored-plate-hole-solid.js';
@@ -145,6 +147,18 @@ export type CadMassProperties = MassValues & (
   | { readonly family: 'convex-planar'; readonly details: { readonly exact: MassExact; readonly conversionErrors: MassErrors; readonly native: MassReadonly<ConvexPlanarSolidMassResult> } }
   | { readonly family: 'orthogonal-cell'; readonly details: { readonly exact: MassExact; readonly conversionErrors: MassErrors; readonly native: MassReadonly<AxisBoxSolidMassResult> } }
 );
+/** Binary STL facets in authored XYZ. Units and native identity live in details, not STL metadata. */
+export interface CadStlExport {
+  readonly outputName: string;
+  readonly family: 'convex-planar';
+  readonly format: 'binary-stl';
+  readonly lengthUnit: 'mm';
+  readonly bytes: readonly number[];
+  readonly byteLength: number;
+  readonly triangleCount: number;
+  readonly maximumVertexDisplacementMM: number;
+  readonly details: MassReadonly<ModelingStlResult>;
+}
 export interface CadModelSnapshot {
   /** Deep-frozen tagged bodies; native source/topology/certificates remain authoritative. */
   readonly bodies: Readonly<Record<string, CadBody>>;
@@ -158,6 +172,8 @@ export interface CadModelSnapshot {
   readonly evidence: readonly CadModelEvidence[];
   /** Revalidates and measures one named convex or two-box integer-cell output. Curved/composed families refuse. */
   massProperties(outputName: string, options: CadMassPropertiesOptions): CadMassProperties;
+  /** Export one owned convex output. No file side effects; Float32 loss/collapse is explicit. */
+  exportStl(outputName: string): CadStlExport;
   withParameters(edits: Readonly<Record<string, number>>): CadModelSnapshot;
   /** Disabled chamfers still validate; they select their exact parent as output. */
   withSuppression(edits: Readonly<Record<string, boolean>>): CadModelSnapshot;
@@ -856,6 +872,24 @@ function measureNamedBody(bodies: Readonly<Record<string, CadBody>>, outputName:
   }
 }
 
+function exportNamedStl(bodies: Readonly<Record<string, CadBody>>, outputName: string): CadStlExport {
+  const operation = 'exportStl';
+  name(outputName, operation);
+  demand(Object.hasOwn(bodies, outputName), 'SELECTION', operation, 'Unknown output: ' + outputName);
+  const body = bodies[outputName];
+  demand(body.family === 'convex-planar', 'CAPABILITY', operation, 'Binary STL currently supports only owned convex planar outputs');
+  try {
+    const details = buildModelingStl(body.native);
+    return freeze({ outputName, family: 'convex-planar', format: 'binary-stl', lengthUnit: 'mm',
+      bytes: details.encoding.bytes, byteLength: details.encoding.bytes.length,
+      triangleCount: details.native.report.triangleCount,
+      maximumVertexDisplacementMM: details.encoding.maximumMeasuredDisplacementMM, details });
+  } catch (cause) {
+    if (cause instanceof CadModelError) throw cause;
+    throw new CadModelError('NATIVE', operation, cause instanceof Error ? cause.message : 'Native STL export refused', cause);
+  }
+}
+
 // Separate closure construction prevents retaining the prior evaluation frame or discarded suffix.
 function makeSnapshot(document: Document, key: string, evidence: CadModelEvidence[], values: EvaluatedValue[], bodies: Record<string, CadBody>, recomputation: CadModelSnapshot['recomputation']): CadModelSnapshot {
   freeze(document); freeze(evidence); freeze(values); freeze(bodies); freeze(recomputation);
@@ -864,6 +898,10 @@ function makeSnapshot(document: Document, key: string, evidence: CadModelEvidenc
     bodies, parameters: document.parameters, evidence, recomputation,
     suppression: freeze(Object.fromEntries(document.nodes.flatMap(n => n.kind === 'chamfer' && n.name !== undefined ? [[n.name, n.suppressed]] : []))),
     features: freeze(document.nodes.map((n, index) => ({ kind: n.kind, index, dependencies: deps(n), ...(n.kind === 'chamfer' && n.name !== undefined ? { name: n.name, suppressed: n.suppressed } : {}) }))),
+    exportStl(outputName: string): CadStlExport {
+      demand(arguments.length === 1, 'INPUT', 'exportStl', 'Exactly one output name is required');
+      return exportNamedStl(bodies, outputName);
+    },
     massProperties(outputName: string, options: CadMassPropertiesOptions): CadMassProperties {
       demand(arguments.length === 2, 'INPUT', 'massProperties', 'Exactly an output name and density options are required');
       return measureNamedBody(bodies, outputName, options);

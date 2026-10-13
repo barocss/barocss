@@ -25,7 +25,7 @@ const providers = new Map([
   ['convex-planar-solid-split', 'splitConvexPlanarSolid'], ['model-compiler', 'compileCadModel'],
   ['convex-planar-solid-chamfer', 'chamferConvexPlanarSolid'], ['axis-box-boolean', 'buildAxisBoxSolidBoolean'],
   ['orthogonal-solid-boolean', 'buildOrthogonalSolidBoolean'], ['modeling-box-internal', 'buildModelingBox'],
-  ['modeling-translation-internal', 'buildModelingTranslation'],
+  ['modeling-translation-internal', 'buildModelingTranslation'], ['modeling-stl-internal', 'buildModelingStl'],
   ['own-plate-circular-hole', 'buildOwnPlateCircularHole'], ['stored-plate-hole-solid', 'qualifyStoredPlateHoleSolid'],
   ['convex-planar-solid-mass', 'measureConvexPlanarSolidMass'], ['axis-box-solid-mass', 'measureAxisBoxSolidBooleanMass'],
 ]);
@@ -158,10 +158,10 @@ function assertRecovered(model) {
 }
 
 // All tests below use only the actual facade plus immutable helper authority.
-test('entry isolates all eighteen providers; successful routing preserves the existing snapshot inventory', () => {
+test('entry isolates all nineteen providers; successful routing preserves the existing snapshot inventory', () => {
   const { snapshot } = authored();
-  assert.equal(replaced.size, 18); assert.equal(inputPaths.length, pureModules.size);
-  assert.deepEqual(Object.keys(snapshot).sort(), ['bodies', 'parameters', 'suppression', 'features', 'recomputation', 'evidence', 'withParameters', 'withSuppression', 'massProperties', 'save'].sort());
+  assert.equal(replaced.size, 19); assert.equal(inputPaths.length, pureModules.size);
+  assert.deepEqual(Object.keys(snapshot).sort(), ['bodies', 'parameters', 'suppression', 'features', 'recomputation', 'evidence', 'withParameters', 'withSuppression', 'massProperties', 'exportStl', 'save'].sort());
   assert.equal(snapshot.bodies.part.family, 'convex-planar'); assert.equal(snapshot.bodies.part.native.controlOnly, marker);
   assert.deepEqual(snapshot.evidence.map(value => value.kind), ['sketch', 'extrude']);
   assert.deepEqual(snapshot.recomputation, { reusedFeatures: [], evaluatedFeatures: [0, 1] }); frozen(snapshot);
