@@ -43,7 +43,7 @@ The authoring engine deliberately refuses operations that cannot be represented 
 
 These are examples of **specific** workflows. They do not mean that every arbitrary Boolean, circular sketch, fillet, assembly or CAD exchange operation exists in this editor. Do not silently heal/round geometry, change operation semantics or substitute a preview mesh for native acceptance.
 
-For source-qualified shapes and useful refusals, see [CAD modeling reference](../cad/modeling) and [capabilities](../cad/capabilities).
+For source-qualified shapes and useful refusals, see [CAD modeling reference](../cad/modeling) and [capabilities](../cad/capabilities). For **two serial chamfers followed by a split**, see the [beveled and parametric split exercise](./beveled-parametric-split): it distinguishes an out-of-range direct `splitAt` from a derived `width × 0.5 + offset` plane, with measured refusal and accepted-state recovery.
 
 ## Why is volume unavailable when a shape appears on screen?
 
