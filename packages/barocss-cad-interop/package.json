@@ -482,7 +482,7 @@
     "build:library": "tsc -p tsconfig.json",
     "type-check": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint src",
-    "test": "pnpm build:library && node --test test/interop.test.mjs && node examples/paired-surface-material-body-world-points-codec-verify.mjs",
+    "test": "pnpm build:library && node --test test/interop.test.mjs && node examples/paired-surface-material-body-world-points-codec-verify.mjs && tsc -p tsconfig.world-reader-contract.json",
     "test:native": "pnpm --filter @barocss/cad build:library && pnpm build:library && node test/native-loader.test.mjs",
     "test:babylon": "pnpm --filter @barocss/cad build:library && pnpm build:library && node test/babylon-loader.test.mjs",
     "test:curve": "node test/curve-loader.test.mjs",
