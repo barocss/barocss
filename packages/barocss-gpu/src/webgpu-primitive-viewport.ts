@@ -366,7 +366,7 @@ class BackendViewport implements PrimitiveBackendViewport {
     let cleanupError: PrimitiveBackendError | undefined;
     try {
       await this.scoped(async () => {
-        readback = { buffer: device.createBuffer({ size: rowBytes * height, usage: MAP_READ | COPY_DST }), unmapped: false, destroyed: false };
+        readback = { buffer: device.createBuffer({ size: rowBytes * height, usage: MAP_READ | COPY_DST }), unmapped: false, destroyed: false, failures: [] };
         this.readback = readback;
         const buffer = readback.buffer;
         const encoder = device.createCommandEncoder();
