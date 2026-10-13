@@ -71,7 +71,7 @@ function native<T>(action: () => T, detail: string): T {
   }
 }
 function referenceIdentity(reference: CadGeometryReferenceV0): Omit<CadGeometryReferenceV0, 'documentRevision' | 'assetRevision'> {
-  return { ...Object.fromEntries(Object.entries(reference).filter(([key]) => key !== 'documentRevision' && key !== 'assetRevision')) } as Omit<CadGeometryReferenceV0, 'documentRevision' | 'assetRevision'>;
+  const { documentRevision: _documentRevision, assetRevision: _assetRevision, ...identity } = reference; return identity;
 }
 function bodyGeometry(document: CadDocumentResult, bodyId: string) {
   const body = document.document.bodies.find(value => value.id === bodyId);
