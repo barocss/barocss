@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 const root = resolve(import.meta.dirname, '../../..');
-const require = createRequire(resolve(process.env.REPO_DEPS_ROOT ?? root,'package.json'));
 const calls = [];
 const record = (kind, detail) => {const index = calls.length;calls.push({kind,...detail});return index;};
 const handle = node => ({node,cut(other){return handle(record('difference',{parent:node,tool:other.node}));}});
