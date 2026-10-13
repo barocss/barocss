@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+const root=resolve(dirname(fileURLToPath(import.meta.url)),'../../..');
+const read=p=>readFileSync(resolve(root,p),'utf8');
+const page=read('apps/library-docs/docs/packages/cad-editor/feature-coverage.md');
+const nav=read('apps/library-docs/docs/.vitepress/config.mts');
+const intro=read('apps/library-docs/docs/packages/cad-editor/index.md');
+const modeling=read('apps/library-docs/docs/packages/cad/modeling.md');
+const ui=read('packages/barocss-cad-editor/src/react/modeling-editor.tsx');
+for(const s of ['Create a round post','Mounting plate with a through-hole','Cut an underside pocket','Fuse an L-bracket'])assert.ok(ui.includes(s)&&page.includes(s),s);
+for(const s of ['stored-rational-circle-prism','stored-rational-plate-hole','orthogonal-cell','convex-planar'])assert.ok(modeling.includes(s)&&page.includes(s),s);
+for(const s of ['UNRUN','Certified volume unavailable','Not established','native','Editor'])assert.ok(page.includes(s),s);
+assert.ok(nav.includes("'feature-coverage': 'Feature coverage matrix'"));
+assert.ok(nav.includes("'browser-evidence', 'feature-coverage'"));
+assert.ok(intro.includes('./feature-coverage'));
+console.log('CAD feature coverage matrix source checks PASS (no device validation)');
