@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { classifyMarkdown, createAffectedPlan, validateAggregate, resolveComparison } from './affected-ci-plan.mjs';
-import { validateArtifactManifest } from './affected-ci-run.mjs';
+import { classifyMarkdown, createAffectedPlan, validateAggregate, resolveComparison, buildOutputDirectory } from './affected-ci-plan.mjs';
+import { validateArtifactManifest, packageCheckCommands, fullCheckCommands, docsValidationScripts } from './affected-ci-run.mjs';
 
 const head = 'a'.repeat(40);
 const runId = '12345';
@@ -70,7 +70,7 @@ function successfulNeeds(plan) {
 }
 
 function artifact(plan) {
-  const directories = plan.builds.map(({ directory }) => `${directory}/dist`);
+  const directories = plan.builds.map(({ outputDirectory }) => outputDirectory);
   return {
     version: 1,
     head: plan.head,
@@ -370,4 +370,60 @@ test('push comparison rejects missing, zero, non-ancestor, forced and wrong-chec
   assert.throws(() => resolveComparison('push', event, head, () => { throw new Error('not ancestor'); }));
   assert.ok(resolveComparison('push', { ...event, ref: 'refs/heads/release' }, head, () => '').fullReason);
   assert.ok(resolveComparison('workflow_dispatch', {}, head).fullReason);
+});
+
+
+test('full CI keeps type/lint/build phases and excludes every apps workspace from test execution', () => {
+  const rootManifest = { scripts: { check: 'pnpm type-check && pnpm lint && pnpm build:library && pnpm test', test: 'pnpm run -r test' } };
+  assert.deepEqual(fullCheckCommands(rootManifest), [
+    ['type-check'], ['lint'], ['build:library'], ['--recursive', '--filter', './apps/**', '--filter', './examples/cad-preview', '--if-present', 'run', 'build'],
+  ]);
+  assert.throws(() => fullCheckCommands({ scripts: { ...rootManifest.scripts, check: rootManifest.scripts.check + ' && extra-gate' } }));
+  assert.throws(() => fullCheckCommands({ scripts: { ...rootManifest.scripts, test: 'pnpm run -r test && extra-gate' } }));
+});
+
+test('affected apps retain compile/lint/build coverage while test commands stay external', () => {
+  const packages = fixtures();
+  packages.push({ ...pkg('@barocss/application', 'apps/application'), outputDirectory: 'apps/application/dist' });
+  const plan = createAffectedPlan(input({ packages, changes: [{status:'M', path:'apps/application/src/app.ts'}] }));
+  assert.equal(plan.mode, 'packages');
+  assert.equal(plan.appTests, 'external');
+  assert.deepEqual(packageCheckCommands(plan.packages[0]).map(([name]) => name), ['type-check', 'lint']);
+  assert(plan.builds.some(({name}) => name === '@barocss/application'));
+  for (const directory of ['apps/render-editor', 'apps/cad-editor', 'apps/library-docs', 'apps/future-app']) {
+    assert(!packageCheckCommands({directory, scripts: checkScripts}).some(([name]) => name === 'test'));
+  }
+});
+
+test('package and non-app example tests stay out of required CI and docs static checks remain', () => {
+  for (const directory of ['packages/feature', 'packages/barocss-cad', 'examples/cad-preview']) {
+    assert.deepEqual(packageCheckCommands({directory, scripts:checkScripts}).map(([name]) => name), ['type-check', 'lint']);
+  }
+  assert.deepEqual(docsValidationScripts, ['build', 'check:docs', 'check:api']);
+  for (const script of ['check:cad-impact', 'check:cad-evidence', 'test']) assert(!docsValidationScripts.includes(script));
+});
+
+
+test('source-derived output directories cover cad-preview and both VitePress apps', () => {
+  assert.equal(buildOutputDirectory('examples/cad-preview', "build:{outDir:'editor-dist'}"), 'examples/cad-preview/editor-dist');
+  for (const directory of ['apps/library-docs', 'apps/barocss-docs']) assert.equal(buildOutputDirectory(directory), `${directory}/docs/.vitepress/dist`);
+  assert.equal(buildOutputDirectory('apps/barocss-site', 'export default {}'), 'apps/barocss-site/dist');
+  for (const config of ["outDir: '../escape'", 'outDir: computed', "outDir:'a',outDir:'b'"]) assert.throws(() => buildOutputDirectory('examples/cad-preview', config));
+  assert.throws(() => buildOutputDirectory('apps/unknown'));
+  const packages = fixtures();
+  packages.push({ ...pkg('@barocss/cad-editor-example', 'examples/cad-preview'), outputDirectory: 'examples/cad-preview/editor-dist' });
+  const plan = createAffectedPlan(input({ packages, changes: [{ status: 'M', path: 'examples/cad-preview/src/entry.ts' }] }));
+  assert.equal(plan.mode, 'packages');
+  const manifest = artifact(plan);
+  assert(manifest.directories.includes('examples/cad-preview/editor-dist'));
+  assert.equal(validateArtifactManifest(manifest, plan), true);
+  const wrong = structuredClone(manifest);
+  wrong.directories = wrong.directories.map((p) => p.replace('editor-dist', 'dist'));
+  assert.throws(() => validateArtifactManifest(wrong, plan));
+});
+
+test('manual regression retains package tests while required full mode has no test command', () => {
+  const root = { scripts: { check: 'pnpm type-check && pnpm lint && pnpm build:library && pnpm test', test: 'pnpm run -r test' } };
+  assert(!fullCheckCommands(root).some((args) => args.includes('test')));
+  assert.deepEqual(fullCheckCommands(root, true).at(-1), ['--recursive', '--filter', '!./apps/**', 'run', 'test']);
 });

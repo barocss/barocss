@@ -22,11 +22,12 @@ jobs:
       - run: pnpm --filter @barocss/physics build:library
       - run: mkdir -p /tmp/p1572-face
       - name: Classify genuine b0/b1 face-eligibility and manifold fallbacks
+        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
           node examples/physics-contact-impulse-audit-1572/run-manifold-fallback-cause.mjs | tee /tmp/p1572-face/results.jsonl
-      - if: always()
+      - if: always() && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: physics1572-manifold-fallback-causes

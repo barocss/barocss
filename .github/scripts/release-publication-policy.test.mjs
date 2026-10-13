@@ -13,7 +13,7 @@ function assertManualOidcPublication(source) {
   assert.match(source, /type: boolean\n {8}default: false/);
   assert.match(source, /^ {2}build:\n {4}name: build/m);
   assert.match(source, /^ {2}test:\n {4}name: test/m);
-  assert.match(source, /if: github\.repository == 'barocss\/barocss' && github\.event_name == 'workflow_dispatch' && inputs\.publish == true && github\.ref == 'refs\/heads\/main'/);
+  assert.equal((source.match(/if: github\.repository == 'barocss\/barocss' && github\.event_name == 'workflow_dispatch' && inputs\.publish == true && github\.ref == 'refs\/heads\/main'/g) ?? []).length, 2, 'both regression and publication retain exact manual gates');
   assert.doesNotMatch(source, /needs: \[build, test\]/);
   assert.match(source, /test "\$GITHUB_ACTOR" = easylogic/);
   assert.match(source, /test "\$GITHUB_SHA" = "\$EXPECTED_MAIN_SHA"/);
@@ -35,7 +35,7 @@ function assertManualOidcPublication(source) {
 test('PR runs checks and only explicit manual true can publish', () => {
   assertManualOidcPublication(release);
   assert.doesNotMatch(ci, / {6}- main\n|^ {2}publish:|^ {2}build:|^ {2}test:/m);
-  const publishJobStart = release.indexOf('  publish:\n    name: Publish npm packages');
+  const publishJobStart = release.indexOf('  publish:\n    needs: [regression]\n    name: Publish npm packages');
   assert.ok(publishJobStart > 0, 'publish job section is missing');
   const pullRequestBuild = release.slice(release.indexOf('  build:'), release.indexOf('  test:'));
   const pullRequestTest = release.slice(release.indexOf('  test:'), publishJobStart);
@@ -43,7 +43,11 @@ test('PR runs checks and only explicit manual true can publish', () => {
   assert.match(pullRequestBuild, /if: github\.event_name == 'pull_request'/);
   assert.match(pullRequestBuild, /docs:build/);
   assert.match(pullRequestTest, /if: github\.event_name == 'pull_request'/);
-  assert.match(pullRequestTest, /run: pnpm test/);
+  assert.match(pullRequestTest, /run: pnpm type-check && pnpm lint/);
+  assert.doesNotMatch(pullRequestTest, /run: .*--test|run: .*run test/);
+  assert.match(release, /uses: \.\/.github\/workflows\/regression\.yml/);
+  assert.match(publish, /needs: \[regression\]/);
+  assert.doesNotMatch(pullRequestTest, /run: pnpm (?:test|check)(?:\s|$)/);
   assert.match(publish, /run: pnpm build:library/);
   assert.doesNotMatch(publish, /run: pnpm check/);
   assert.doesNotMatch(publish, /docs:build/);
@@ -92,4 +96,44 @@ test('render is published first and all four packages get tags only after public
   assert.match(mainChecker, /verifyReadiness\(comment.body, candidateSha, version\)/);
   assert.match(mainChecker, /verifyRenderEvidence\(renderComment, renderEvidence.slice\('Render: '.length\), candidateSha, version\)/);
   assert.match(mainChecker, /main.protected, true/);
+});
+
+
+test('legacy version validation retains compile, lint, build and non-app package tests', () => {
+  const version = readFileSync('.github/workflows/release.yml', 'utf8');
+  const command = "pnpm type-check && pnpm lint && pnpm build:library && pnpm --recursive --filter '!./apps/**' run test";
+  assert.ok(version.includes('run: ' + command));
+  assert.doesNotMatch(version, /run: pnpm (?:test|check)(?:\s|$)/);
+  assert.match(version, /run: node \.github\/scripts\/check-packages\.mjs/);
+  assert.match(version, /if: github\.repository == 'barocss\/barocss' && github\.ref == 'refs\/heads\/develop'/);
+  assert.match(version, /uses: changesets\/action@v1/);
+});
+
+
+test('regression is separately callable and required before either release operation', () => {
+  const regression = readFileSync('.github/workflows/regression.yml', 'utf8');
+  assert.match(regression, /^  workflow_dispatch:/m);
+  assert.match(regression, /^  workflow_call:/m);
+  assert.doesNotMatch(regression, /^  (?:pull_request|push):/m);
+  assert.match(regression, /affected-ci-run.mjs regression/);
+  assert.match(release, /publish:\n    needs: \[regression\]/);
+  const version = readFileSync('.github/workflows/release.yml', 'utf8');
+  assert.match(version, /version:\n    needs: \[regression\]/);
+  assert.match(version, /uses: \.\/.github\/workflows\/regression.yml/);
+});
+
+test('all PR Physics runtime stages are manual-only while their package compilation remains', () => {
+  const paths = readdirSync('.github/workflows').filter((name) => /^physics-.*\.yml$/.test(name));
+  assert.equal(paths.length, 27);
+  for (const name of paths) {
+    const source = readFileSync(`.github/workflows/${name}`, 'utf8');
+    assert.match(source, /workflow_dispatch:/, name);
+    assert.match(source, /pnpm --filter @barocss\/physics build:library/, name);
+    let runtime = 0;
+    for (const step of source.split(/(?=^      - )/m)) if (/\bnode (?:\/tmp|examples\/|["'])/.test(step)) {
+      runtime++;
+      assert.match(step, /if: github.event_name != 'pull_request'/, name);
+    }
+    assert(runtime > 0, name);
+  }
 });
