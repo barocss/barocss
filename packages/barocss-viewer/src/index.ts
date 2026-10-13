@@ -2257,11 +2257,14 @@ export class Viewer {
         curveId: viewerCurveId(entry) })) continue;
       const sample = entry.sample, curveId = viewerCurveId(entry);
       const pose = curvePose({ modelId: entry.modelId, curveId }, this.geometryMotion);
+      const displayed = (pointMM: number[]): Vec3 => displayVertex(pointMM as Vec3,
+        pose, this.options.mmToSceneUnit).map(Math.fround) as Vec3;
+      // Reuse the previous endpoint: adjacent sampled segments share one vertex.
+      let previous = sample.pointsMM.length ? displayed(sample.pointsMM[0]) : null;
       for (let index = 0; index + 1 < sample.pointsMM.length; index++) {
-        const displayed = (pointMM: number[]): Vec3 => displayVertex(pointMM as Vec3,
-          pose, this.options.mmToSceneUnit).map(Math.fround) as Vec3;
-        const a = displayed(sample.pointsMM[index]);
+        const a = previous!;
         const b = displayed(sample.pointsMM[index + 1]);
+        previous = b;
         const view = (position: Vec3): Vec3 => {
           const offset = subtract(position, this.camera.eye);
           return [dot(offset, right), dot(offset, up), dot(offset, forward)];
