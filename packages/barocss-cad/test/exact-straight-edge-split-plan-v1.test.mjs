@@ -30,3 +30,17 @@ test('refuses duplicate/hostile IDs and boundary or degenerate segments',()=>{
  assert.deepEqual(plan('edgeA',p(0,0),p(1,0),'edgeB',p(1,0),p(1,1)),{status:'refused',reason:'not-proper-interior-crossing'});
  assert.deepEqual(plan('edgeA',p(0,0),p(0,0),'edgeB',p(0,1),p(1,0)),{status:'unsupported',reason:'degenerate-segment'});
 });
+
+test('reversing original edge orientation retains exact vertex and reverses subedge endpoints',()=>{
+ const forward=plan('edgeA',p(0,0),p(4,4),'edgeB',p(0,4),p(4,0));
+ const reverse=plan('edgeA',p(4,4),p(0,0),'edgeB',p(0,4),p(4,0));
+ assert.equal(forward.status,'exact');
+ assert.equal(reverse.status,'exact');
+ assert.deepEqual(reverse.intersectionMM,forward.intersectionMM);
+ assert.deepEqual(reverse.subedges[0].startMM,forward.subedges[1].endMM);
+ assert.deepEqual(reverse.subedges[0].endMM,forward.subedges[1].startMM);
+ assert.deepEqual(reverse.subedges[1].startMM,forward.subedges[0].endMM);
+ assert.deepEqual(reverse.subedges[1].endMM,forward.subedges[0].startMM);
+ assert.deepEqual(reverse.subedges[2],forward.subedges[2]);
+ assert.deepEqual(reverse.subedges[3],forward.subedges[3]);
+});
