@@ -85,4 +85,4 @@ See [the measured round-post native fixture and limitations](../cad/modeling#cre
 
 A future browser evidence pass should capture the initial post, taller/narrower accepted view, a refused draft with retained geometry, and a reopened named `post`—each labeled with exact source SHA, expected native state and recorded browser result. This is a verification requirement, not a claim that the screenshots already exist.
 
-[CAD Editor overview](./) · [Editor developer quickstart](./quickstart) · [Native modeling guide](../cad/modeling)
+[Previous: first model lesson](./first-model) · [CAD Editor overview](./) · [Editor developer quickstart](./quickstart) · [Native modeling guide](../cad/modeling)
