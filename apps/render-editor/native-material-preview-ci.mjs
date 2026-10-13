@@ -65,8 +65,38 @@ export function run(source) {
     if (recovered.materialPreview || !recovered.materialDirty || recovered.accepted !== beforeRefusal.accepted
       || views.at(-1).surfaceMaterials.find(item=>item.target.bodyId===body).material.uniforms.amount !== .6)
       throw Error('Cancel retry failed to restore accepted frame and original draft');
-    return {status:'PASS',presentations:views.length,bodyId:body,originalRevision:before.accepted.revision,appliedRevision:accepted.accepted.revision,
-      materialRevision:appliedBinding.material.revision,assertions:['preview isolated','cancel restores pixels-owner candidate','draft preserved','stale token refused','apply single history entry','atomic presenter refusal preserves token','Cancel retry restores accepted presentation']};
+    // Separate qualified host lifetimes: foreign presenter owner and observed camera
+    // must quarantine a displayed preview, never overwrite an unknown frame.
+    const driftCases = [];
+    for (const kind of ['owner', 'camera']) {
+      const other = createNativeSceneHost(original);
+      let foreignOwner = {}, cameraNow = original.display.camera, shown = 0;
+      try {
+        other.setPresenter(() => {foreignOwner = {}; shown++;}, () => foreignOwner, () => cameraNow);
+        other.restoreAccepted();
+        const baseline = other.getSnapshot(), selected = baseline.selectedBodyId;
+        const selectedMaterial = baseline.accepted.surfaceMaterials.find(item => item.target.bodyId === selected).material;
+        other.materialSession.setDraftUniforms({...selectedMaterial.uniforms, amount:.65});
+        const token = other.beginMaterialPreview(), during = other.getSnapshot(), shownBeforeDrift = shown;
+        if (!during.materialPreview || !during.dirty) throw Error('Drift fixture did not enter preview');
+        if (kind === 'owner') foreignOwner = {};
+        else cameraNow = {...cameraNow, eye: [cameraNow.eye[0]+.1, ...cameraNow.eye.slice(1)]};
+        let stale = false;
+        try {other.cancelMaterialPreview(token);} catch (cause) {
+          stale = cause?.code === 'DOCUMENT_INPUT' || cause?.code === 'STALE_CANDIDATE';
+        }
+        const after = other.getSnapshot();
+        if (!stale || after.available || after.materialPreview !== null || shown !== shownBeforeDrift
+          || after.accepted !== baseline.accepted || !after.dirty || after.canUndo !== baseline.canUndo)
+          throw Error('Foreign ' + kind + ' must quarantine without publishing or editing authorship: ' + JSON.stringify({stale,available:after.available,preview:after.materialPreview,shown,shownBeforeDrift,sameAccepted:after.accepted===baseline.accepted,dirty:after.dirty,canUndo:after.canUndo,previousUndo:baseline.canUndo}));
+        let replay = false;
+        try {other.cancelMaterialPreview(token);} catch (cause) {replay = cause?.code === 'STALE_CANDIDATE';}
+        if (!replay) throw Error('Invalidated ' + kind + ' preview token replayed');
+        driftCases.push(kind);
+      } finally {other.dispose();}
+    }
+    return {status:'PASS',driftCases,presentations:views.length,bodyId:body,originalRevision:before.accepted.revision,appliedRevision:accepted.accepted.revision,
+      materialRevision:appliedBinding.material.revision,assertions:['preview isolated','cancel restores pixels-owner candidate','draft preserved','stale token refused','apply single history entry','atomic presenter refusal preserves token','Cancel retry restores accepted presentation','foreign owner quarantined','camera drift quarantined']};
   } finally {host.dispose();}
 }
 `,resolveDir:workspace,sourcefile:'material-preview-ci.ts'},outfile,absWorkingDir:workspace,bundle:true,platform:'node',format:'esm'});

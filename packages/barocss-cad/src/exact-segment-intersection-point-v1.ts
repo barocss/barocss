@@ -1,5 +1,5 @@
-import { classifyExactSegmentCrossingV1 } from './exact-segment-crossing-v1.js';
-import type { Binary64PointV1 } from './exact-binary64-orientation-v1.js';
+import { classifyAdmittedExactSegmentCrossingV1 } from './exact-segment-crossing-v1.js';
+import { snapshotExactSegments } from './exact-segment-snapshot-internal.js';
 
 /** Rational coordinates in millimetres; decimal strings contain exact integers. */
 export interface ExactRationalMMV1 { readonly numerator: string; readonly denominator: string }
@@ -40,13 +40,15 @@ export function intersectProperSegmentsExactBinary64V1(
   a: unknown, b: unknown, c: unknown, d: unknown,
   maxAbsCoordinateMM = 10000,
 ): ExactProperSegmentIntersectionV1 {
-  const classified = classifyExactSegmentCrossingV1(a, b, c, d, maxAbsCoordinateMM);
+  const snapshot = snapshotExactSegments(a, b, c, d, maxAbsCoordinateMM);
+  if (snapshot.reason) return { status: 'unsupported', reason: snapshot.reason };
+  const classified = classifyAdmittedExactSegmentCrossingV1(snapshot.points, maxAbsCoordinateMM);
   if (classified.status === 'unsupported')
     return { status: 'unsupported', reason: classified.reason };
   if (classified.relation !== 'proper-interior-crossing')
     return { status: 'refused', reason: 'not-proper-interior-crossing' };
-  // The classifier admitted these exact owned finite records before any reads.
-  const pts = [a, b, c, d] as Binary64PointV1[];
+  // Never re-read caller objects after validating their own data descriptors.
+  const pts = snapshot.points;
   const values = pts.flatMap(p => [dyadic(p.x), dyadic(p.y)]);
   const common = Math.min(...values.map(value => value.exponent));
   const [ax, ay, bx, by, cx, cy, dx, dy] = values.map(value =>

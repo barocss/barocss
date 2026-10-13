@@ -22,11 +22,12 @@ jobs:
       - run: pnpm --filter @barocss/physics build:library
       - run: mkdir -p /tmp/p1572-clip
       - name: Classify 4 clipping planes and separation filtering
+        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
           node examples/physics-contact-impulse-audit-1572/run-clip-stage-audit.mjs | tee /tmp/p1572-clip/results.jsonl
-      - if: always()
+      - if: always() && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: physics1572-clip-stage-results
