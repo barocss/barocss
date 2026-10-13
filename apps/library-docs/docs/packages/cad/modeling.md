@@ -18,6 +18,16 @@ Only one translation of a direct affine rectangle, polygon or constrained-polygo
 
 The [provider evidence](https://github.com/barocss/barocss/tree/31ad07d5234326bf68b937c070000e94d2c45501/packages/barocss-cad/test/modeling-translation-evidence) retains both genuine baseline previews, each 24 vertices/12 triangles. Existing serializer/receiver CPU replay admitted the complete **53,882-byte** pair, preserved each native body/face lineage, converted XYZ once and picked both bodies; four malformed controls retained the prior accepted display. Provider loading and Worker delivery were mocked in that replay. This documentation adds no native calls or adapter changes. Edited-state pixels, React interaction and physical file dialogs remain **unverified**.
 
+### Export the right gusset as STL
+
+The same download now includes `exportRightGusset(accepted)`, which calls the [adopted named-output API](https://github.com/barocss/barocss/commit/5c6dc223a9b9e6b88bc8134651366b23147bc7c4): `accepted.exportStl('right')`. Convert its immutable `bytes` with `Uint8Array.from(result.bytes)` and pass that array to your host's file-saving API. Importing the example performs no modeling or export; the CAD method itself writes no file or starts a download.
+
+<a :href="withBase('/examples/modeling-translated-gusset-right.stl')" download>Download the measured right-gusset STL sample</a>
+
+This exact retained sample is **684 bytes / 12 facets**, with authored XYZ bounds **[48, 0, 0]–[88, 24, 8] mm** and zero measured vertex displacement for this integer-coordinate specimen. It was exported and cold-rebuilt by [the bounded provider campaign](https://github.com/barocss/barocss/tree/5c6dc223a9b9e6b88bc8134651366b23147bc7c4/packages/barocss-cad/test/modeling-stl-evidence); this guide reuses those bytes without a new geometry run. `outputName`, `byteLength`, `triangleCount` and `maximumVertexDisplacementMM` describe the result. `details.encoding.vertexLosses` preserves original and Float32 coordinates; `details.native` retains native source/face lineage beside the file.
+
+Only a named **convex-planar** output is supported. Hole, round-post and orthogonal-cell outputs refuse. Every export revalidates the complete native parent and checks all quantized facets; Float32 collapse refuses without partial STL bytes. Other coordinates can incur nonzero loss. The millimetre convention belongs to the caller/report because STL carries no units metadata, native IDs or UV trims. The checks do not certify watertightness, global topology after quantization, manufacturing tolerance or slicer acceptance. Keep `accepted.save()` for editable CAD Save/Open; STL is an approximate facet handoff. This addition does not establish browser download or viewer acceptance.
+
 ## Resize a constrained plate
 
 <a :href="withBase('/examples/modeling-constrained-profile.ts')" download>Download the complete constrained-profile example</a>
