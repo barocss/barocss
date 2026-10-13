@@ -26,6 +26,18 @@ The pick holds the same exclusive operation lock and rejects competing mutation/
 
 **Set scene camera** is an app action, not an additional session method: once all fields are clean, it authors the acknowledged local view through one ordinary whole-scene Apply. The [adopted session source](https://github.com/barocss/barocss/blob/ee461c114d34c02fae513b2adff84313e3466109/packages/barocss-render-editor/src/native-light-session.ts) defines the current contracts and preserves provider causes. Software tests do not certify physical GPU/pointer/file behavior.
 
+### Portable material authority
+
+The Light workbench's [body-material transfer](./guides#import-and-export-a-body-material) composes existing APIs rather than adding material-import methods to `RenderNativeLightSession`. Its private selection/staging helpers are not package exports.
+
+| Existing entry | Contract |
+| --- | --- |
+| `parseRenderMaterialDocument(text)`, `prepareRenderMaterialDocument(input)`, `serializeRenderMaterialDocument(document)` | Strict portable shader-source/supplied-uniform qualification and signed-value serialization. Keep original source, omitted overrides and signed zero; parsing is not presentation. |
+| `deriveRenderMaterialAssignment(target, portable)` | Derive a qualified material retaining the destination envelope, ID, title and revision while copying only portable source and supplied uniforms. The caller still owns the full scene body binding. |
+| `createRenderMaterialSession(material)` and `setDraftMaterial(source, uniforms)` | Strictly validate and stage both fields atomically. Read actual dirty state before `prepareDraft()`; preparation provides one next embedded revision, not a Viewer acknowledgement. Dispose temporary sessions in `finally`. |
+
+The app publishes imported fields only after complete scene qualification and performs no separate material commit/history. Its ordinary whole-scene Apply later owns presentation and acceptance; export serializes the accepted binding without marking the scene saved. This is host composition, not a new portable schema, shader editor or global asset link. See the immutable [material document/assignment source](https://github.com/barocss/barocss/blob/f4d66c12781e370d1d6ab0e214cd911079313eba/packages/barocss-render-editor/src/material-document.ts), [material session](https://github.com/barocss/barocss/blob/f4d66c12781e370d1d6ab0e214cd911079313eba/packages/barocss-render-editor/src/material-session.ts) and [transfer limits](./limits#portable-material-transfer-limits).
+
 ## Source document and session
 
 | Method | Input / return | Ownership and errors |
