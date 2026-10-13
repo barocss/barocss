@@ -123,6 +123,8 @@ export async function runNativeGizmoUiFlow(source: string, controls: NativeGizmo
       record.axis = 'x'; record.from = from; record.to = to;
       await pointer('pointermove', from, canvas, 0);
       check(overlay.dataset.hoveredAxis === 'x', 'Actual hover did not choose X');
+      check(mount.querySelector('[data-testid="gizmo-status"]')?.textContent === 'Move X',
+        'Hovered Native X is hidden by the generic transform profile status');
       const beforeNavigation = navigationEvents;
       await pointer('pointerdown', from);
       check(host.getSnapshot().poseGestureActive && overlay.dataset.activeAxis === 'x', 'Actual X acquisition failed');
