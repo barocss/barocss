@@ -203,7 +203,19 @@ export async function runFacadeChecks(m) {
   good(await v.replace(hide)); assert.equal(v.selected,null);
   for(const count of [0,4]) { const lights=copy(input); lights.lights.lights=Array.from({length:count},(_,i)=>({...copy(input.lights.lights[0]),nodeId:'node'+i,enabled:i%2===0})); good(await v.replace(lights)); }
   const f32=copy(input); f32.lights.lights[0].intensity=1e-50; const f32Result=await v.replace(f32); failed(f32Result,'GPU');
-  state.instances.at(-1).setPhase('lost'); assert.equal(v.status.state,'lost'); failed(await v.replace(input),'STATE'); assert.ok(v.accepted);
+  // A completed backend promise must not adopt candidate metadata after device loss.
+  const stable=v.accepted;
+  state.updateGate=deferred(); const interrupted=v.replace(input);
+  state.instances.at(-1).setPhase('lost'); state.updateGate.resolve();
+  failed(await interrupted,'STATE'); state.updateGate=null; assert.equal(v.accepted,stable);
+  failed(await v.replace(input),'STATE');
+  v.dispose(); assert.equal(v.status.state,'disposed');
+  v=await viewer.createNativeDirectionalLightWebGPUViewer({},input,dimensions);
+  const stableResize=v.accepted;
+  state.updateGate=deferred(); const interruptedResize=v.resize(11,11);
+  state.instances.at(-1).setPhase('lost'); state.updateGate.resolve();
+  failed(await interruptedResize,'STATE'); state.updateGate=null; assert.equal(v.accepted,stableResize);
+  failed(await v.replace(input),'STATE');
   v.dispose(); assert.equal(v.selected,null); assert.equal(v.status.state,'disposed'); failed(await v.replace(input),'DISPOSED'); v.dispose();
   v=await viewer.createNativeDirectionalLightWebGPUViewer({},input,dimensions); const retained=v.accepted;
   state.updateGate=deferred(); const late=v.replace(input); v.dispose(); state.updateGate.resolve(); failed(await late,'DISPOSED'); state.updateGate=null; assert.equal(v.accepted,retained); assert.equal(v.selected,null);
