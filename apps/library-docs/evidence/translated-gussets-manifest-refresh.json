@@ -1,0 +1,119 @@
+{
+  "issue": 1712,
+  "consumerDocsIssue": 1885,
+  "renderDocsIssue": 1893,
+  "scope": "Immutable Manual snapshot; no moving develop metadata synchronization",
+  "manifestReferent": "ca388cda0b4c1356f7083c0c8f53dda2d1292459",
+  "pins": {
+    "translatedGussetProvider": "31ad07d5234326bf68b937c070000e94d2c45501",
+    "translatedGussetDocs": "6443cdba4cef53c4eee0d9ff885762b1478872f0",
+    "resetTransform": "68c40b1ef56895e99a04103b21c99d80eea265bc",
+    "renderProse": "ca388cda0b4c1356f7083c0c8f53dda2d1292459"
+  },
+  "renderPageBlobs": {
+    "apps/library-docs/docs/packages/render-editor/guides.md": "2c1ba28fc63612f6b4f77bbd37e42c33b0f9d584",
+    "apps/library-docs/docs/packages/render-editor/limits.md": "baad967952331b83e8a2127910db0636a9a72c3b"
+  },
+  "changedManifestFields": [
+    {
+      "slug": "gpu",
+      "fields": [
+        "scripts"
+      ]
+    },
+    {
+      "slug": "cad-editor",
+      "fields": [
+        "scripts"
+      ]
+    }
+  ],
+  "protectedHashes": {
+    "apps/library-docs/evidence/package-inventory.json": "b121aac9620fb8fe966c292710990317bf88b1b3535ea31a31cd787cefe7c2b5",
+    "apps/library-docs/scripts/inventory.mjs": "71476729968c49f97d09a83b60465a0c47d08ceb84c73ad05e9f7128cd337488"
+  },
+  "inventorySHA256": "c421479eb9c1d5e5cd2c52d46ad9a72b4a2d58c2d99d92f2b6ffb434b159abbc",
+  "testSHA256": "c36c1857e8cd5c06f10d191a3ff6306643b39732cc1730ab7e7926f4da566abb",
+  "testChange": "Unchanged previously reviewed GPU/CAD-editor scripts expected-list entries; all12 controls kept",
+  "manifests": [
+    {
+      "path": "packages/barocss/package.json",
+      "sha256": "ceda889b794e3be24cf52650b3530b6b69a04232b27d98c9a5b3af4e2a588651"
+    },
+    {
+      "path": "packages/barocss-browser/package.json",
+      "sha256": "4a7b27e15a6da3e5b1724a2f616813447b001a85eb3aad03eef63e315646b6cf"
+    },
+    {
+      "path": "packages/barocss-server/package.json",
+      "sha256": "177c618d8b939baf632f18aae0c8d9c19f9be924520b5b54d3159824054306ba"
+    },
+    {
+      "path": "packages/barocss-render/package.json",
+      "sha256": "68206e354dc4e0f21d884cdc129c27ce977571210609598efc2129c9714a8f94"
+    },
+    {
+      "path": "packages/barocss-gpu/package.json",
+      "sha256": "c4cb6db1f0edbd59edcb898a385c495865cd5116b64d8220e65930e6eb8ad6ca"
+    },
+    {
+      "path": "packages/barocss-cad/package.json",
+      "sha256": "7f18887b37ed966cebfa183520064b7833aee5dafee20fd21bfa265bf68ecd22"
+    },
+    {
+      "path": "packages/barocss-cad-interop/package.json",
+      "sha256": "1165e25a296cbfd93fc522f004392aff1a7ba886db138ad61f17aec16ba21867"
+    },
+    {
+      "path": "packages/barocss-canvas2d/package.json",
+      "sha256": "b180d3b2bb1f28a90e62f55ad5f8880a3349dfd7b549d16b76f9cf1cef5a6202"
+    },
+    {
+      "path": "packages/barocss-viewer/package.json",
+      "sha256": "7eae9edcf73be3de63de6dff19822866196d9fd6ce62577ff488e6f5a27e64d6"
+    },
+    {
+      "path": "packages/barocss-physics/package.json",
+      "sha256": "57d436d215a5ce0b31196e549aed6ced97b9ad9f602a99c7704b47c26f3dd56c"
+    },
+    {
+      "path": "packages/barocss-cad-editor/package.json",
+      "sha256": "b354ae099a28e1561869dc9e58db3ac979ae02d9e864732ed91e26f285fd4aec"
+    },
+    {
+      "path": "packages/barocss-render-editor/package.json",
+      "sha256": "7fd0ce7ac93281892cda88738172627cc34d0b9ba4381f5f74e367a2e65ca3c8"
+    }
+  ],
+  "publicAssets": 85,
+  "downloads": 29,
+  "assetInventorySHA256": "174f1077956e1c21f5b1e72f8632383cc9def9d74ab0cb6d565eebd2cfcdb054",
+  "logs": {
+    "inventory-write": {
+      "exitCode": 0,
+      "sha256": "f301fa30442ec69a32af3e43fe78f0486a9edb46beb6fbabf5664237a6480d26",
+      "text": "(node:66) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\nRecorded current manifest metadata at ca388cda0b4c1356f7083c0c8f53dda2d1292459. Review changesFromSourceSnapshot; historical evidence was not rewritten.\n"
+    },
+    "inventory-test": {
+      "exitCode": 0,
+      "sha256": "7e1b040dafc313f84aa555521c92c821e9050a83002186f666a3546cc318dc8f",
+      "text": "(node:103) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\nTAP version 13\n# (node:110) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n# (Use `node --trace-warnings ...` to show where the warning was created)\n# Subtest: all 12 current manifests match; historical source pin and evidence stay separate\nok 1 - all 12 current manifests match; historical source pin and evidence stay separate\n  ---\n  duration_ms: 170.098444\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed version drift\nok 2 - refuses unreviewed version drift\n  ---\n  duration_ms: 93.8993\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed held Render version drift\nok 3 - refuses unreviewed held Render version drift\n  ---\n  duration_ms: 94.778362\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed development exports drift\nok 4 - refuses unreviewed development exports drift\n  ---\n  duration_ms: 82.563346\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed published exports drift\nok 5 - refuses unreviewed published exports drift\n  ---\n  duration_ms: 79.840672\n  type: 'test'\n  ...\n# Subtest: refuses unreviewed dependencies drift\nok 6 - refuses unreviewed dependencies drift\n  ---\n  duration_ms: 87.483858\n  type: 'test'\n  ...\n# Subtest: refuses blind hash refresh and current metadata tampering\nok 7 - refuses blind hash refresh and current metadata tampering\n  ---\n  duration_ms: 80.80023\n  type: 'test'\n  ...\n# Subtest: refuses historical evidence or source pin replacement\nok 8 - refuses historical evidence or source pin replacement\n  ---\n  duration_ms: 10.540835\n  type: 'test'\n  ...\n# Subtest: records exact changed fields including metadata-only held Render\nok 9 - records exact changed fields including metadata-only held Render\n  ---\n  duration_ms: 0.424488\n  type: 'test'\n  ...\n# Subtest: requires an immutable full SHA instead of a moving branch or tag\nok 10 - requires an immutable full SHA instead of a moving branch or tag\n  ---\n  duration_ms: 0.304468\n  type: 'test'\n  ...\n# Subtest: refuses a missing package entry instead of silently reducing coverage\nok 11 - refuses a missing package entry instead of silently reducing coverage\n  ---\n  duration_ms: 81.989192\n  type: 'test'\n  ...\n# Subtest: refuses rewritten historical manifest metadata\nok 12 - refuses rewritten historical manifest metadata\n  ---\n  duration_ms: 13.621306\n  type: 'test'\n  ...\n1..12\n# tests 12\n# suites 0\n# pass 12\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 884.253561\n"
+    },
+    "inventory-check": {
+      "exitCode": 0,
+      "sha256": "8234f895530fe57d5e7cb91ebacf498918a6caace56e7f5fdc9df12964df9731",
+      "text": "(node:359) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\nMatched 12 current manifests at ca388cda0b4c1356f7083c0c8f53dda2d1292459; historical source remains 5f5ad866205a21510ac69552e704cc162fa253b5.\n"
+    },
+    "source-links": {
+      "exitCode": 0,
+      "sha256": "7026b154680c273de51b08b8701795f16fa6975d7a1f15b9be77f36ee0704642",
+      "text": "(node:396) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"remoteCommitAvailable\":false,\"publicDeclarationLinksConverted\":0,\"localProvenancePaths\":0,\"policy\":\"Exact local pin preserved; no moving-branch substitution\"}\n"
+    }
+  },
+  "priorManual": {
+    "source": "2a6726e5d6ac7b526843dbaa11ee7ff305d997ee",
+    "run": 38394230557
+  },
+  "oldCancellation": "Canceled old #1712 ref remains stopped; this is a separate qualified snapshot with no develop rewind.",
+  "remaining": "Workflow/artifact verification pending. No new native/editor build or physical acceptance campaign. Actual Tester evidence is recorded separately at its tested source."
+}
