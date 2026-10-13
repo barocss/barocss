@@ -18,7 +18,7 @@ export interface CadEditorModelingSummary {
 }
 export type CadEditorModelingSplitAxis = 'x' | 'y' | 'z';
 /** The split example ID is retained for compatibility; splitAxis defaults to Z. */
-export type CadEditorModelingExample = 'cut-chamfer' | 'intersection' | 'horizontal-split' | 'two-chamfer' | 'chamfer-split' | 'derived-split' | 'miter-split' | 'configurable-finishes' | 'mounting-plate' | 'union-bracket' | 'underside-pocket' | 'top-entry-pocket' | 'round-post' | 'slotted-bracket';
+export type CadEditorModelingExample = 'cut-chamfer' | 'intersection' | 'horizontal-split' | 'two-chamfer' | 'chamfer-split' | 'derived-split' | 'miter-split' | 'configurable-finishes' | 'mounting-plate' | 'union-bracket' | 'underside-pocket' | 'top-entry-pocket' | 'round-post' | 'slotted-bracket' | 'constrained-plate';
 export type ModelingCommand = { id: number; taskToken?: string } & (
   { kind: 'example'; example?: CadEditorModelingExample; splitAxis?: CadEditorModelingSplitAxis } | { kind: 'open'; text: string; revision?: number }
   | { kind: 'apply'; expectedRevision: number; parameters: Record<string, number> }
@@ -91,6 +91,21 @@ export function createCadEditorTopPocketModel(): CadModelSnapshot {
   const tool = model.sketch.rectangle({ min: [8, toolY], max: [24, model.dimension.add(toolY, toolSpanY)] }).extrude(depth, { from });
   const part = plate.cut(tool);
   return model.build({ plate, tool, part });
+}
+
+/** Fixed/H/V constrained source polygon from the qualified #1835 provider. */
+export function createCadEditorConstrainedPlateModel(): CadModelSnapshot {
+  const model = cad.model(), width = model.parameter('width', 32);
+  const height = model.parameter('height', 24), lockY = model.parameter('lockY', 0);
+  const sketch = model.sketch.constrainedPolygon(s => {
+    const a = s.point([-0, 0]), b = s.point([width, lockY]);
+    const c = s.point([width, height]), d = s.point([1, height]);
+    s.fixed(a); s.fixed(c);
+    s.horizontal(a, b); s.vertical(b, c); s.horizontal(c, d); s.vertical(d, a);
+    s.fixed(b);
+    return [a, b, c, d];
+  });
+  return model.build({ part: sketch.extrude(8) });
 }
 
 /** Exact owned rectangular union recipe from the measured provider fixture. */
@@ -228,7 +243,7 @@ export function createModelingEngine() {
       if (!command || !Number.isSafeInteger(command.id) || command.id < 1) throw new Error('A current worker request is required.');
       if (command.taskToken !== undefined && (typeof command.taskToken !== 'string' || !/^[A-Za-z0-9_-]{1,48}$/.test(command.taskToken)))
         throw new Error('A bounded current display task token is required.');
-      if (command.kind === 'example' && command.example !== undefined && command.example !== 'cut-chamfer' && command.example !== 'intersection' && command.example !== 'horizontal-split' && command.example !== 'two-chamfer' && command.example !== 'chamfer-split' && command.example !== 'derived-split' && command.example !== 'miter-split' && command.example !== 'configurable-finishes' && command.example !== 'mounting-plate' && command.example !== 'union-bracket' && command.example !== 'underside-pocket' && command.example !== 'top-entry-pocket' && command.example !== 'round-post' && command.example !== 'slotted-bracket')
+      if (command.kind === 'example' && command.example !== undefined && command.example !== 'cut-chamfer' && command.example !== 'intersection' && command.example !== 'horizontal-split' && command.example !== 'two-chamfer' && command.example !== 'chamfer-split' && command.example !== 'derived-split' && command.example !== 'miter-split' && command.example !== 'configurable-finishes' && command.example !== 'mounting-plate' && command.example !== 'union-bracket' && command.example !== 'underside-pocket' && command.example !== 'top-entry-pocket' && command.example !== 'round-post' && command.example !== 'slotted-bracket' && command.example !== 'constrained-plate')
         throw new Error('Choose an available modeling example.');
       if (command.kind === 'example' && command.splitAxis !== undefined
         && (command.example === 'chamfer-split' ? !['x', 'z'].includes(command.splitAxis)
@@ -269,6 +284,7 @@ export function createModelingEngine() {
       }
       if (source !== 'model') throw new Error('Open a saved model first.');
       const snapshot = command.kind === 'example' ? (command.example === 'intersection' ? createCadEditorIntersectionModel()
+        : command.example === 'constrained-plate' ? createCadEditorConstrainedPlateModel()
         : command.example === 'slotted-bracket' ? createCadEditorSlottedBracketModel()
         : command.example === 'round-post' ? createCadEditorRoundPostModel()
         : command.example === 'underside-pocket' ? createCadEditorPocketModel()
