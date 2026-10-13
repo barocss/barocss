@@ -103,3 +103,19 @@ test('hostile point reflection traps fail closed as unsupported input', () => {
     });
   }
 });
+
+test('exact predicate enumerates a hostile own-key inventory once', () => {
+  let enumerations = 0;
+  const unstable = new Proxy({ x: 0, y: 0, extra: 1 }, {
+    ownKeys() {
+      enumerations++;
+      // A second enumeration would conceal extra: a single descriptor
+      // snapshot must reject the actually observed unexpected field.
+      return enumerations === 1 ? ['x', 'y', 'extra'] : ['x', 'y'];
+    },
+  });
+  assert.deepEqual(orient(unstable, p(1, 0), p(0, 1)), {
+    status: 'unsupported', reason: 'invalid-input',
+  });
+  assert.equal(enumerations, 1, 'one descriptor inventory per admitted input');
+});
