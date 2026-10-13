@@ -44,10 +44,10 @@ export function resolveAuthoredFaceAfterSplitV1(
     ? {status:'missing',reason:'no-lineage'} : {status:'unsupported',reason:'unqualified-receipt'};
   const entry = matching[0];
   if (!Array.isArray(entry.outcomes)) return {status:'unsupported',reason:'unqualified-receipt'};
-  const survivors = entry.outcomes.filter(o => o.output !== null);
-  if (survivors.some(o => !identity(o.output) || !['negative','positive'].includes(o.side)))
+  const survivors = entry.outcomes.filter((o: SplitEvolutionReceipt['faces'][number]['outcomes'][number]) => o.output !== null);
+  if (survivors.some((o: SplitEvolutionReceipt['faces'][number]['outcomes'][number]) => !identity(o.output) || !['negative','positive'].includes(o.side)))
     return {status:'unsupported',reason:'unqualified-receipt'};
   if (survivors.length === 0) return {status:'missing',reason:'deleted'};
-  if (survivors.length > 1) return {status:'ambiguous',candidates:survivors.map(o => copy(o.output!))};
+  if (survivors.length > 1) return {status:'ambiguous',candidates:survivors.map((o: SplitEvolutionReceipt['faces'][number]['outcomes'][number]) => copy(o.output!))};
   return {status:'resolved',target:copy(survivors[0].output!),side:survivors[0].side};
 }
