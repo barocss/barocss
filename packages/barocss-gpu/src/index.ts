@@ -71,6 +71,8 @@ export type {TriangleGeometryV0,PreparedTriangleGeometry} from './triangle-geome
 
 export {prepareEngineScene,EngineSceneError,EngineSceneDiagnosticCode} from './engine-scene.js';
 export {prepareEngineDrawBatches} from './engine-draw-batches.js';
+export {prepareEngineWebGPUFrame,engineSceneWGSL} from './engine-webgpu-frame.js';
+export type {PreparedEngineWebGPUFrame,EngineWebGPUFrameDraw} from './engine-webgpu-frame.js';
 export type {EngineDrawBatch,EngineDrawBatchPlan} from './engine-draw-batches.js';
 export type {EngineSceneV0,EngineSceneMaterialV0,EngineSceneNodeV0,PreparedEngineSceneNode,PreparedEngineSceneDraw,PreparedEngineScene} from './engine-scene.js';
 
