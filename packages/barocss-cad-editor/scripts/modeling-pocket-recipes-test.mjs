@@ -16,4 +16,19 @@ assert.equal(classify(true,data),true);assert.equal(classify(false,data),false);
 const changes=[d=>d.nodes[0].max[0]=40,d=>d.nodes[2].min[0].parameter='other',d=>d.nodes[2].max[1].right.parameter='toolWidth',d=>d.nodes[3].height.parameter='toolX',d=>d.nodes[4].parent.node=3,d=>d.nodes[4].kind='union'];
 for(const change of changes){const wrong=structuredClone(data);change(wrong);assert.equal(classify(true,wrong),false);}
 for(const change of [d=>d.outputs={part:d.outputs.part},d=>d.outputs={...d.outputs,result:d.outputs.part},d=>d.outputs.plate.node=3,d=>d.outputs.tool.side='negative']){const wrong=structuredClone(data);change(wrong);assert.equal(notice(true,wrong),false);}
-const hash=p=>createHash('sha256').update(readFileSync(p)).digest('hex'),result={ok:true,calls:12,actualUILabelChecks:14,editorSHA256:hash(engine),downloadSHA256:hash(download),providerFixtureSHA256:hash(fixture),nativeCalls:0,scope:'exact editor/download/provider call and output equality, including signed zero'};writeFileSync(resolve(out,'result.json'),JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result));
+// A non-default origin must never receive an underside-Z=0 claim, even if names and graph shape match.
+let originChecks=0;
+for (const [label, mutate] of [
+  ['tool-literal', d=>d.nodes[3].from=4],
+  ['plate-literal', d=>d.nodes[1].from=4],
+  ['both-literal', d=>{d.nodes[1].from=1;d.nodes[3].from=4;}],
+  ['tool-parameter', d=>d.nodes[3].from={parameter:'depth'}],
+  ['plate-expression', d=>d.nodes[1].from={op:'add',left:0,right:4}],
+  ['tool-explicit-zero', d=>d.nodes[3].from=0],
+  ['plate-explicit-zero', d=>d.nodes[1].from=0],
+]) {
+  const imported=structuredClone(data);mutate(imported);
+  assert.equal(classify(true,imported),false,label);originChecks++;
+  assert.equal(notice(classify(true,imported),imported),false,label);originChecks++;
+}
+const hash=p=>createHash('sha256').update(readFileSync(p)).digest('hex'),result={ok:true,calls:12,actualUILabelChecks:14+originChecks,editorSHA256:hash(engine),downloadSHA256:hash(download),providerFixtureSHA256:hash(fixture),nativeCalls:0,scope:'exact editor/download/provider call and output equality, including signed zero'};writeFileSync(resolve(out,'result.json'),JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result));
