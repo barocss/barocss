@@ -15,7 +15,7 @@ let serial = 0;
 export async function loadModules(mode = 'source', mock = true, evidence) {
   const dir = mode === 'source' ? 'src' : 'dist', ext = mode === 'source' ? 'ts' : 'js';
   const key = `barocss1580-${++serial}`;
-  const state = { calls: [], counts: {}, instances: [], mountGate: null, updateGate: null, pickGate: null, readGate: null, nextFailure: null, mountFailure: null, disposeFailure: null, picked: undefined };
+  const state = { calls: [], counts: {}, instances: [], mountGate: null, updateGate: null, pickGate: null, readGate: null, nextFailure: null, mountFailure: null, mountPhase: null, disposeFailure: null, picked: undefined };
   globalThis[key] = state;
   const gpu = resolve(root, `packages/barocss-gpu/${dir}/index.${ext}`);
   const frame = resolve(root, `packages/barocss-gpu/${dir}/native-directional-light-webgpu-frame.${ext}`);
@@ -26,7 +26,7 @@ export async function loadModules(mode = 'source', mock = true, evidence) {
       h.calls.push(['mount',input,options]); prepare(input,options.width,options.height);
       if(h.mountFailure) throw h.mountFailure;
       if(h.mountGate) await h.mountGate.promise;
-      let raw=input, generation=1, selected=null, phase='ready', width=options.width,height=options.height;
+      let raw=input, generation=1, selected=null, phase=h.mountPhase || 'ready', width=options.width,height=options.height;
       const instance={canvas,get originals(){return raw},get selected(){return selected},
         get status(){return {backend:'webgpu',profile:'qualified-surface-authored-directional-webgpu-v0',state:phase,generation,width,height,limits:{},resources:{}}},
         setPhase(value){phase=value},
@@ -230,6 +230,13 @@ export async function runFacadeChecks(m) {
   v.dispose(); assert.equal(v.selected,null); assert.equal(v.status.state,'disposed'); failed(await v.replace(input),'DISPOSED'); v.dispose();
   v=await viewer.createNativeDirectionalLightWebGPUViewer({},input,dimensions); const retained=v.accepted;
   state.updateGate=deferred(); const late=v.replace(input); v.dispose(); state.updateGate.resolve(); failed(await late,'DISPOSED'); state.updateGate=null; assert.equal(v.accepted,retained); assert.equal(v.selected,null);
+  // A mount resolving in a lost state must not expose a live facade.
+  state.mountPhase='lost';
+  try {
+    await assert.rejects(viewer.createNativeDirectionalLightWebGPUViewer({},input,dimensions),
+      error=>err(error,'STATE'));
+    assert.equal(state.instances.at(-1).status.state,'disposed');
+  } finally { state.mountPhase=null; }
   // Constructor failure after successful mount must dispose the newly owned backend.
   state.mountGate=deferred(); const mounting=viewer.createNativeDirectionalLightWebGPUViewer({},input,dimensions);
   Object.freeze=()=>{throw new Error('factory freeze')};
