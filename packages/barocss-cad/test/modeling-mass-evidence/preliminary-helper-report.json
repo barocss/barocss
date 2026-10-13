@@ -1,0 +1,25 @@
+{
+  "issue": 1790,
+  "evidenceKind": "reported helper tool transcript, not retained raw process logs",
+  "nodeVersion": "v24.19.0",
+  "cwd": "/workspace/scratch/1591b2fb2f62/barocss-cad-recovered",
+  "command": "CAD_MODEL_MASS_ENTRY=packages/barocss-cad/src/modeling.ts node --test packages/barocss-cad/test/modeling-mass.test.mjs",
+  "realNativeCalls": 0,
+  "runs": [
+    {
+      "transcriptChunk": "dc6a69",
+      "pass": 13,
+      "fail": 0,
+      "durationMS": 174.904658,
+      "testSHA256": "not captured before test-only strengthening"
+    },
+    {
+      "transcriptChunk": "0e7a28",
+      "pass": 13,
+      "fail": 0,
+      "durationMS": 171.490524,
+      "testSHA256": "604ef35c28ab0fadbcf6156f1895fe9230ac45d510b349b0415a0bce418cbb02"
+    }
+  ],
+  "scope": "supplementary source-only zero-native controls, not required Node22 gates or geometry proof"
+}

@@ -1,0 +1,247 @@
+{
+  "commit": "3e5d88a70716a8c1ddc6a20f57fe82726639a704",
+  "issueScope": "eleven product paths after reviewed test-only inventory correction",
+  "changedPaths": [
+    "packages/barocss-cad/test/modeling-circle-fixture.mjs",
+    "packages/barocss-cad/test/modeling-mass.test.mjs"
+  ],
+  "diff": "diff --git a/packages/barocss-cad/test/modeling-circle-fixture.mjs b/packages/barocss-cad/test/modeling-circle-fixture.mjs\nindex 761a7a38f..da6d53ceb 100644\n--- a/packages/barocss-cad/test/modeling-circle-fixture.mjs\n+++ b/packages/barocss-cad/test/modeling-circle-fixture.mjs\n@@ -62,7 +62,7 @@ export function work(snapshot, reused, evaluated, previous) {\n   exactData(snapshot.recomputation, { reusedFeatures: reused, evaluatedFeatures: evaluated });\n   exactData([...reused, ...evaluated], [0, 1]);\n   exactData(snapshot.features, [{ kind: 'sketch', index: 0, dependencies: [] }, { kind: 'extrude', index: 1, dependencies: [0] }]);\n-  exactData(Object.keys(snapshot).sort(), ['bodies', 'parameters', 'suppression', 'features', 'recomputation', 'evidence', 'withParameters', 'withSuppression', 'save'].sort());\n+  exactData(Object.keys(snapshot).sort(), ['bodies', 'parameters', 'suppression', 'features', 'recomputation', 'evidence', 'withParameters', 'withSuppression', 'massProperties', 'save'].sort());\n   deepFrozen(snapshot); // Includes every public data field, not just bodies.\n   if (previous) {\n     assert.notEqual(snapshot, previous); assert.notEqual(snapshot.parameters, previous.parameters);\ndiff --git a/packages/barocss-cad/test/modeling-mass.test.mjs b/packages/barocss-cad/test/modeling-mass.test.mjs\nindex d0e45f645..fae5de4fa 100644\n--- a/packages/barocss-cad/test/modeling-mass.test.mjs\n+++ b/packages/barocss-cad/test/modeling-mass.test.mjs\n@@ -180,7 +180,9 @@ function unsupportedSnapshot(kind) {\n }\n \n test('actual modeling entry is isolated from every native provider, including transitive compiler imports', () => {\n-  assert.equal(typeof convexSnapshot().massProperties, 'function');\n+  const snapshot = convexSnapshot();\n+  assert.equal(typeof snapshot.massProperties, 'function');\n+  assert.deepEqual(Object.keys(snapshot).sort(), ['bodies', 'parameters', 'suppression', 'features', 'recomputation', 'evidence', 'withParameters', 'withSuppression', 'massProperties', 'save'].sort());\n   assert.equal(replaced.size, 17); assert.equal(inputPaths.length, pureModules.size);\n });\n \n",
+  "nativeProductBytesUnchanged": true,
+  "nativeArtifactBytesUnchanged": true,
+  "nativeReruns": 0,
+  "sourceEmittedInventoryTestsEach": 13,
+  "commands": [
+    {
+      "name": "inventory-source",
+      "command": [
+        "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+        "--test",
+        "test/modeling-mass.test.mjs"
+      ],
+      "cwd": "/workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad",
+      "environment": {
+        "NODE_OPTIONS": "--max-old-space-size=1536",
+        "REPO_DEPS_ROOT": "/workspace/shared/barocss-cad-toolchain",
+        "CAD_MODEL_MASS_ENTRY": "/workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/src/modeling.ts",
+        "EVIDENCE_DIR": "/workspace/shared/cad-1790-validation/inventory-source",
+        "RAYON_NUM_THREADS": "1"
+      },
+      "exitCode": 0,
+      "elapsedSeconds": 0.3146987549989717,
+      "nativeCalls": 0
+    },
+    {
+      "name": "inventory-emitted",
+      "command": [
+        "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+        "--test",
+        "test/modeling-mass.test.mjs"
+      ],
+      "cwd": "/workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad",
+      "environment": {
+        "NODE_OPTIONS": "--max-old-space-size=1536",
+        "REPO_DEPS_ROOT": "/workspace/shared/barocss-cad-toolchain",
+        "CAD_MODEL_MASS_ENTRY": "/workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/dist/modeling.js",
+        "EVIDENCE_DIR": "/workspace/shared/cad-1790-validation/inventory-emitted",
+        "RAYON_NUM_THREADS": "1"
+      },
+      "exitCode": 0,
+      "elapsedSeconds": 0.31471260599937523,
+      "nativeCalls": 0
+    }
+  ],
+  "mockEvidence": {
+    "source": {
+      "receipt": {
+        "issue": 1790,
+        "scope": "Actual modeling facade with isolated inert construction and mass stubs; admission and routing only; no geometric acceptance",
+        "realNativeGeometryCalls": 0,
+        "unexpectedProviderAttempts": [],
+        "inertConstructionCalls": {
+          "buildAxisBoxSolidBoolean": 18,
+          "buildModelingBox": 37,
+          "buildOrthogonalSolidBoolean": 1,
+          "buildOwnPlateCircularHole": 1,
+          "buildXYAffineSketch": 48,
+          "buildXYAffineSketchPrism": 50,
+          "buildXYArc": 1,
+          "buildXYCirclePrismShell": 1,
+          "qualifyStoredCirclePrismSolid": 1,
+          "qualifyStoredPlateHoleSolid": 1
+        },
+        "inertMassCalls": {
+          "measureAxisBoxSolidBooleanMass": 28,
+          "measureConvexPlanarSolidMass": 33
+        },
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "provenance": {
+          "directory": "/workspace/shared/cad-1790-validation/inventory-source/modeling-mass-admission-source",
+          "entry": "/workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/src/modeling.ts",
+          "mode": "source",
+          "testSHA256": "47500b82250b2fd515fce3d5a9196453a453197158ab4d95640ad256a47add9c",
+          "bundle": {
+            "bytes": 67767,
+            "sha256": "c27ef370306c711248fd1256380e7dba68f8c92761f77899e89e2d2c5926b1f9"
+          },
+          "metafile": {
+            "bytes": 8773,
+            "sha256": "8192457a755d881f5068bb15af1d09d3653456ae7d6acb6a569b4878265f2398"
+          },
+          "inputs": {
+            "bytes": 616,
+            "sha256": "9747c08787a55121bbbe60e427909c2c6a7372fd40e8d843c1fe28b5d0859133"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "measureAxisBoxSolidBooleanMass",
+            "measureConvexPlanarSolidMass",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ]
+        }
+      },
+      "files": {
+        "bundle.mjs": {
+          "sha256": "c27ef370306c711248fd1256380e7dba68f8c92761f77899e89e2d2c5926b1f9",
+          "bytes": 67767
+        },
+        "bundle.metafile.json": {
+          "sha256": "8192457a755d881f5068bb15af1d09d3653456ae7d6acb6a569b4878265f2398",
+          "bytes": 8773
+        },
+        "input-hashes.json": {
+          "sha256": "9747c08787a55121bbbe60e427909c2c6a7372fd40e8d843c1fe28b5d0859133",
+          "bytes": 616
+        },
+        "receipt.json": {
+          "sha256": "99bfd9e83a5ee10625c4be17f5003fbd9be8ab3ff197534f1484938d6e9365ae",
+          "bytes": 2086
+        }
+      },
+      "actualImplementationInputHashes": {
+        "src/cad-document.ts": "bb567e240b8a79466ac4fb1c58b1b7c4f8c11f3d34ad01250015c123974b8082",
+        "src/data-copy.ts": "b93cfda57b76535a8774b9099a91cba94fb36e427c336b0c709eac9babe52ed3",
+        "src/modeling-dimension-internal.ts": "145e97209a06d046d268b0fdb9eef26e387f0d24143368e638c5dd128d80fde0",
+        "src/modeling-regeneration-internal.ts": "4617f01e60a0b99d516b493484ebd209e1fc89e51558d99e6d0c6b70f59e4c66",
+        "src/modeling.ts": "a26074a31963551279c1054b4877a5a7817a5d9815e80a0b657c3cb95b3313f5",
+        "src/xy-affine-prism-feature-document-internal.ts": "39947265df50b51cbc94f9a68399de24725aecfb8bfa1e5c7244b3b36c44909f"
+      }
+    },
+    "emitted": {
+      "receipt": {
+        "issue": 1790,
+        "scope": "Actual modeling facade with isolated inert construction and mass stubs; admission and routing only; no geometric acceptance",
+        "realNativeGeometryCalls": 0,
+        "unexpectedProviderAttempts": [],
+        "inertConstructionCalls": {
+          "buildAxisBoxSolidBoolean": 18,
+          "buildModelingBox": 37,
+          "buildOrthogonalSolidBoolean": 1,
+          "buildOwnPlateCircularHole": 1,
+          "buildXYAffineSketch": 48,
+          "buildXYAffineSketchPrism": 50,
+          "buildXYArc": 1,
+          "buildXYCirclePrismShell": 1,
+          "qualifyStoredCirclePrismSolid": 1,
+          "qualifyStoredPlateHoleSolid": 1
+        },
+        "inertMassCalls": {
+          "measureAxisBoxSolidBooleanMass": 28,
+          "measureConvexPlanarSolidMass": 33
+        },
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "provenance": {
+          "directory": "/workspace/shared/cad-1790-validation/inventory-emitted/modeling-mass-admission-emitted",
+          "entry": "/workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/dist/modeling.js",
+          "mode": "emitted",
+          "testSHA256": "47500b82250b2fd515fce3d5a9196453a453197158ab4d95640ad256a47add9c",
+          "bundle": {
+            "bytes": 67831,
+            "sha256": "fb0bff68e6da24e3f6be8d1061022ac25206c417fb9c17ed8882e7d7a689a8c4"
+          },
+          "metafile": {
+            "bytes": 8791,
+            "sha256": "6b04f127a85b84a72a6804db4bb5d5c872b7d8eabdec25b669a0b0fec1abdb4f"
+          },
+          "inputs": {
+            "bytes": 622,
+            "sha256": "c5c313e344e95d8d68d7d64cd408ab8f75d41d9bb1ecbc6eb9f2ecd730b7dc9b"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "measureAxisBoxSolidBooleanMass",
+            "measureConvexPlanarSolidMass",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ]
+        }
+      },
+      "files": {
+        "bundle.mjs": {
+          "sha256": "fb0bff68e6da24e3f6be8d1061022ac25206c417fb9c17ed8882e7d7a689a8c4",
+          "bytes": 67831
+        },
+        "bundle.metafile.json": {
+          "sha256": "6b04f127a85b84a72a6804db4bb5d5c872b7d8eabdec25b669a0b0fec1abdb4f",
+          "bytes": 8791
+        },
+        "input-hashes.json": {
+          "sha256": "c5c313e344e95d8d68d7d64cd408ab8f75d41d9bb1ecbc6eb9f2ecd730b7dc9b",
+          "bytes": 622
+        },
+        "receipt.json": {
+          "sha256": "a10759d4073539ca5c36e21a862e17f66d72e28226aeba142fa75abcebab1875",
+          "bytes": 2090
+        }
+      },
+      "actualImplementationInputHashes": {
+        "dist/cad-document.js": "7a35b2786264f21176f03a07f973f43ca8964e558f48afcc517f21df9e34b1a1",
+        "dist/data-copy.js": "33a46d35f16486d23f2304ae473a35bf463b16ebb0816433fd1d2392944035f7",
+        "dist/modeling-dimension-internal.js": "4b7d37785ea98be7e5ae52c770ee14bb5124a928171233b2852bfe5d96e4a23f",
+        "dist/modeling-regeneration-internal.js": "0060112f924c20516990b51de3dd6064e04328dd58a6d387a838b242361afef6",
+        "dist/modeling.js": "26ffd06d26c2dfa83e5a9286b024eba9f78577a4c77b3bc55de5a29ece922713",
+        "dist/xy-affine-prism-feature-document-internal.js": "900f736cc1be98a83f13ccfaf82977cf61706e5025eded672bd903b7f51e0d27"
+      }
+    }
+  },
+  "originalNativeFixtureInputs": {
+    "nativeTestedProductCommit": "9c85b6fb02ef9e60ee3b41fc59509e5b25087f10",
+    "files": {
+      "packages/barocss-cad/scripts/modeling-mass-consumer.mjs": "199a5ded8e205a2612245c93545f9b02a3a5e765987edc9655415db2600d0ef0",
+      "packages/barocss-cad/test/modeling-mass-fixture.mjs": "acd70b53d36e33108420aa6cac09134884ac9bddad63e62c6d469a0123c5df1a",
+      "packages/barocss-cad/test/modeling-offset-fixture.mjs": "3fcd712aa2a5024aad7ef3b8df48e398dbeae9c86f80d81eb3aa029acf263170",
+      "packages/barocss-cad/test/modeling-intersection-fixture.mjs": "c3f5483214f8304c02825e4e16178fd602931198a36c19c3ed42d9a53cf3cf7c",
+      "packages/barocss-cad/test/modeling-box-cut-fixture.mjs": "0f7d664bf58bddbff99e6ca1182375418da4c500b6b3b3aa4cbf07e9f4ae1861",
+      "packages/barocss-cad/test/modeling-hole-fixture.mjs": "72545fffbba49af62705c4db0298184441019b0e29369e263a856573c7b7cf71",
+      "packages/barocss-cad/test/modeling-regeneration-fixture.mjs": "924bc3b5dbedc82ff5f48ab51e941c893ad13788a3ddfcc5f69689490598e615",
+      "packages/barocss-cad/test/modeling-circle-fixture.mjs": "110c2f1e7bfdada3c79db0b4bb78dca9f7e53ee00ff9a7097e68f2df59ce17fe",
+      "packages/barocss-cad/test/stored-circle-prism-solid-fixture.mjs": "4b21c827ae6fee1b3882ca037e00902a1d8301b48d2936b3cce507a8406d6850",
+      "packages/barocss-cad/test/modeling-mass-native.mjs": "ff80fda623771e3eae1bd0b51d4c59b92817add906be156dc1d254af37cccdd8"
+    },
+    "method": "static relative ESM import traversal from exact native-run fixture/drivers; emitted runtime closure separately hashed"
+  }
+}

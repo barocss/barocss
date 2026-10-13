@@ -17,6 +17,10 @@ import { compileCadModel } from './model-compiler.js';
 import { chamferConvexPlanarSolid } from './convex-planar-solid-chamfer.js';
 import type { ConvexPlanarSolidChamferResult, ConvexPlanarChamferUseReference } from './convex-planar-solid-chamfer.js';
 import type { ConvexPlanarSolidResult, ConvexPlanarSolidGraph } from './convex-planar-solid.js';
+import { measureConvexPlanarSolidMass } from './convex-planar-solid-mass.js';
+import type { ConvexPlanarSolidMassResult, ConvexPlanarSolidMassMeasure } from './convex-planar-solid-mass.js';
+import { measureAxisBoxSolidBooleanMass } from './axis-box-solid-mass.js';
+import type { AxisBoxSolidMassResult, AxisBoxSolidMassMeasure } from './axis-box-solid-mass.js';
 import { buildAxisBoxSolidBoolean } from './axis-box-boolean.js';
 import type { AxisBoxSolidBooleanResult } from './axis-box-boolean.js';
 import { buildOrthogonalSolidBoolean } from './orthogonal-solid-boolean.js';
@@ -103,6 +107,23 @@ export type CadBody = { readonly family: 'convex-planar'; readonly native: Conve
   | { readonly family: 'stored-rational-plate-hole'; readonly native: StoredPlateHoleSolidResult }
   | { readonly family: 'orthogonal-cell'; readonly native: AxisBoxSolidBooleanResult | OrthogonalSolidBooleanResult }
   | { readonly family: 'stored-rational-circle-prism'; readonly native: StoredCirclePrismSolidResult };
+export interface CadMassPropertiesOptions { readonly densityKgPerM3: number }
+type MassReadonly<T> = T extends object ? { readonly [K in keyof T]: MassReadonly<T[K]> } : T;
+type MassExact = MassReadonly<Pick<ConvexPlanarSolidMassMeasure['exact'], 'volumeMM3' | 'massKG' | 'centroidMM' | 'inertiaCentroidKgM2'>>;
+type MassErrors = MassReadonly<Pick<ConvexPlanarSolidMassMeasure['conversionErrors'], 'massKG' | 'centroidMM' | 'inertiaCentroidKgM2'>>;
+interface MassValues {
+  readonly outputName: string;
+  readonly densityKgPerM3: number;
+  readonly volumeMM3: number;
+  readonly massKG: number;
+  readonly centroidMM: readonly [number, number, number];
+  readonly inertiaCentroidKgM2: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]];
+}
+/** Exact supported model properties in authored XYZ; density is caller-declared, not material certification. */
+export type CadMassProperties = MassValues & (
+  | { readonly family: 'convex-planar'; readonly details: { readonly exact: MassExact; readonly conversionErrors: MassErrors; readonly native: MassReadonly<ConvexPlanarSolidMassResult> } }
+  | { readonly family: 'orthogonal-cell'; readonly details: { readonly exact: MassExact; readonly conversionErrors: MassErrors; readonly native: MassReadonly<AxisBoxSolidMassResult> } }
+);
 export interface CadModelSnapshot {
   /** Deep-frozen tagged bodies; native source/topology/certificates remain authoritative. */
   readonly bodies: Readonly<Record<string, CadBody>>;
@@ -114,6 +135,8 @@ export interface CadModelSnapshot {
   readonly recomputation: { readonly reusedFeatures: readonly number[]; readonly evaluatedFeatures: readonly number[] };
   /** Original kernel results. Diagnostic evidence, never a saved cache or editable input. */
   readonly evidence: readonly CadModelEvidence[];
+  /** Revalidates and measures one named convex or two-box integer-cell output. Curved/composed families refuse. */
+  massProperties(outputName: string, options: CadMassPropertiesOptions): CadMassProperties;
   withParameters(edits: Readonly<Record<string, number>>): CadModelSnapshot;
   /** Disabled chamfers still validate; they select their exact parent as output. */
   withSuppression(edits: Readonly<Record<string, boolean>>): CadModelSnapshot;
@@ -639,6 +662,45 @@ function evaluate(input: Document, previous?: EvaluationFrame): CadModelSnapshot
   return makeSnapshot(document, key, evidence, values, bodies, recomputation);
 }
 
+function measureNamedBody(bodies: Readonly<Record<string, CadBody>>, outputName: string, options: CadMassPropertiesOptions): CadMassProperties {
+  const operation = 'massProperties';
+  name(outputName, operation); const settings = record(options, operation, ['densityKgPerM3']), density = settings.densityKgPerM3;
+  demand(typeof density === 'number' && Number.isFinite(density) && density > 0 && density <= 1e6, 'INPUT', operation, 'Positive finite density at most 1000000 kg/m3 required');
+  demand(Object.hasOwn(bodies, outputName), 'SELECTION', operation, 'Unknown output: ' + outputName);
+  const body = bodies[outputName];
+  demand(body.family === 'convex-planar' || body.family === 'orthogonal-cell' && body.native.report.schema === 'barocss-axis-box-solid-boolean',
+    'CAPABILITY', operation, 'Only convex planar and two-box integer-cell outputs have supported mass properties');
+  const project = (measure: ConvexPlanarSolidMassMeasure | AxisBoxSolidMassMeasure) => {
+    const { centroidMM, inertiaCentroidKgM2 } = measure, exact = measure.exact, errors = measure.conversionErrors;
+    demand(measure.volumeMM3 > 0 && measure.massKG > 0 && centroidMM !== null && inertiaCentroidKgM2 !== null &&
+      exact.centroidMM !== null && exact.inertiaCentroidKgM2 !== null && errors.centroidMM !== null && errors.inertiaCentroidKgM2 !== null,
+    'NATIVE', operation, 'A positive nonempty measure with centroid and inertia is required');
+    return { values: { outputName, densityKgPerM3: density, volumeMM3: measure.volumeMM3, massKG: measure.massKG, centroidMM, inertiaCentroidKgM2 },
+      exact: { volumeMM3: exact.volumeMM3, massKG: exact.massKG, centroidMM: exact.centroidMM, inertiaCentroidKgM2: exact.inertiaCentroidKgM2 },
+      conversionErrors: { massKG: errors.massKG, centroidMM: errors.centroidMM, inertiaCentroidKgM2: errors.inertiaCentroidKgM2 } };
+  };
+  try {
+    if (body.family === 'convex-planar') {
+      const native = measureConvexPlanarSolidMass(body.native, { densityKgPerM3: density, maximumFanTriangles: 40 });
+      const result = project(native.measure);
+      return freeze({ ...result.values, family: 'convex-planar', details: { exact: result.exact, conversionErrors: result.conversionErrors, native } });
+    }
+    // The distinct composed schema is refused above, before either mass provider.
+    demand(body.native.report.schema === 'barocss-axis-box-solid-boolean', 'CAPABILITY', operation, 'Two-box native authority required');
+    const parent = body.native as AxisBoxSolidBooleanResult;
+    demand(!parent.report.empty && parent.bodies.length === 1 && parent.report.bodyCount === 1 && parent.report.volumeMM3 > 0,
+      'NATIVE', operation, 'One positive owned integer-cell body is required');
+    const native = measureAxisBoxSolidBooleanMass(parent, { densityKgPerM3: density, maximumCells: 27 });
+    demand(!native.report.empty && native.report.bodyCount === 1 && native.bodies.length === 1 && native.bodies[0].volumeMM3 === native.total.volumeMM3,
+      'NATIVE', operation, 'Complete native mass must describe the same single nonempty body');
+    const result = project(native.total);
+    return freeze({ ...result.values, family: 'orthogonal-cell', details: { exact: result.exact, conversionErrors: result.conversionErrors, native } });
+  } catch (cause) {
+    if (cause instanceof CadModelError) throw cause;
+    throw new CadModelError('NATIVE', operation, cause instanceof Error ? cause.message : 'Native mass evaluation refused', cause);
+  }
+}
+
 // Separate closure construction prevents retaining the prior evaluation frame or discarded suffix.
 function makeSnapshot(document: Document, key: string, evidence: CadModelEvidence[], values: EvaluatedValue[], bodies: Record<string, CadBody>, recomputation: CadModelSnapshot['recomputation']): CadModelSnapshot {
   freeze(document); freeze(evidence); freeze(values); freeze(bodies); freeze(recomputation);
@@ -647,6 +709,10 @@ function makeSnapshot(document: Document, key: string, evidence: CadModelEvidenc
     bodies, parameters: document.parameters, evidence, recomputation,
     suppression: freeze(Object.fromEntries(document.nodes.flatMap(n => n.kind === 'chamfer' && n.name !== undefined ? [[n.name, n.suppressed]] : []))),
     features: freeze(document.nodes.map((n, index) => ({ kind: n.kind, index, dependencies: deps(n), ...(n.kind === 'chamfer' && n.name !== undefined ? { name: n.name, suppressed: n.suppressed } : {}) }))),
+    massProperties(outputName: string, options: CadMassPropertiesOptions): CadMassProperties {
+      demand(arguments.length === 2, 'INPUT', 'massProperties', 'Exactly an output name and density options are required');
+      return measureNamedBody(bodies, outputName, options);
+    },
     withParameters(edits: Readonly<Record<string, number>>): CadModelSnapshot {
       record(edits, 'parameters'); const candidate = copy(document);
       for (const [key, value] of Object.entries(edits)) { name(key, 'parameters'); demand(Object.hasOwn(candidate.parameters, key), 'PARAMETER', 'parameters', 'Unknown parameter: ' + key); length(value, 'parameters'); candidate.parameters[key] = value; }

@@ -229,3 +229,35 @@ const qualifiedOffset: XYAffineSketchPrismOffsetCoordinateSpanResult = buildXYAf
 const actualOffset: number = validateXYAffineSketchPrism(qualifiedOffset).fromMM;
 const sourceTranslation: number = qualifiedOffset.lineage.sourceToBottomTranslationMM[2];
 void actualOffset; void sourceTranslation;
+
+
+import type { CadMassProperties, CadMassPropertiesOptions } from '../src/index.js';
+const densityOptions: CadMassPropertiesOptions = { densityKgPerM3: 2700 };
+const massProperties: CadMassProperties = offsetModel.build({ tool: offsetTool }).massProperties('tool', densityOptions);
+const massKG: number = massProperties.massKG;
+const massCenter: readonly [number, number, number] = massProperties.centroidMM;
+const inertiaEntry: number = massProperties.inertiaCentroidKgM2[0][0];
+const exactVolume: string = massProperties.details.exact.volumeMM3.numerator;
+const massErrorUpper: number = massProperties.details.conversionErrors.massKG.upper;
+if (massProperties.family === 'convex-planar') massProperties.details.native.solid.certificate;
+else if (massProperties.family === 'orthogonal-cell') massProperties.details.native.boolean.panels;
+else { const neverFamily: never = massProperties; void neverFamily; }
+// @ts-expect-error Density options are required.
+cutSnapshot.massProperties('part');
+// @ts-expect-error Explicit undefined is not density options.
+cutSnapshot.massProperties('part', undefined);
+// @ts-expect-error No implicit material or extra density unit.
+cutSnapshot.massProperties('part', { densityKgPerM3: 2700, material: 'aluminium' });
+// @ts-expect-error No caller body or native ID argument.
+cutSnapshot.massProperties(cutSnapshot.bodies.part, densityOptions);
+// @ts-expect-error The public options have no native budget knobs.
+cutSnapshot.massProperties('part', { densityKgPerM3: 2700, maximumCells: 27 });
+// @ts-expect-error No extra arguments.
+cutSnapshot.massProperties('part', densityOptions, true);
+// @ts-expect-error Results are read-only.
+massProperties.massKG = 0;
+// @ts-expect-error Common vectors are read-only.
+massProperties.centroidMM[0] = 0;
+// @ts-expect-error Full native details are read-only too.
+if (massProperties.family === 'convex-planar') massProperties.details.native.solid.request.options.solidId = 'fake';
+void [massKG, massCenter, inertiaEntry, exactVolume, massErrorUpper];

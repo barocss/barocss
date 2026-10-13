@@ -10950,3 +10950,21 @@ bytes; explicit negative zero retains distinct authored/lineage/source bits.
 Circle options and nonzero-Z `hole()` parents refuse before geometry. Existing
 node/operation limits and exact native refusals remain. See the complete
 [primary example and boundaries](./CONCISE_API.md#start-an-affine-extrusion-above-or-below-the-sketch-plane).
+
+### Measure an accepted named output
+
+`accepted.massProperties('part', { densityKgPerM3: 2700 })` provides `volumeMM3`,
+`massKG`, `centroidMM` and `inertiaCentroidKgM2` directly in authored XYZ. Density
+is your uniform material assumption, in kg/m³, positive and at most1,000,000.
+The result is deeply frozen. `details.exact` and `details.conversionErrors`
+retain exact fractions and final binary64 error bounds; `details.native`
+contains the complete original family-specific proof and diagnostics.
+
+The method supports qualified convex-planar outputs and single-body two-box
+integer-cell union/difference outputs. Stored-rational holes/posts and composed
+three-source results refuse before mass evaluation. Each query independently
+revalidates the native parent; it is neither a cached estimate nor a material
+certificate. Unknown output names and invalid options refuse atomically. Native
+refusals retain their original cause, including unrepresentable tiny masses.
+Measurements add no authored features or saved state. See the
+[primary API example](./CONCISE_API.md#measure-weight-and-balance-by-output-name).

@@ -860,3 +860,45 @@ including after a parameter edit; rejected edits retain the accepted snapshot.
 Existing operation and node budgets are unchanged. Offset finishing,
 raised-boss union and composed-chain combinations are not part of this slice's
 measured acceptance matrix.
+
+## Measure weight and balance by output name
+
+```ts
+import { cad } from '@barocss/cad';
+const m = cad.model();
+const plate = m.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const tool = m.sketch.rectangle({ min: [8, 8], max: [24, 16] }).extrude(4, { from: 4 });
+const accepted = m.build({ plate, part: plate.cut(tool) });
+const properties = accepted.massProperties('part', { densityKgPerM3: 2700 });
+const { volumeMM3, massKG, centroidMM, inertiaCentroidKgM2 } = properties;
+const reopened = cad.load(accepted.save());
+const again = reopened.massProperties('part', { densityKgPerM3: 2700 });
+void [volumeMM3, massKG, centroidMM, inertiaCentroidKgM2, again];
+```
+
+The pocket has volume5632mm³, mass0.0152064kg at the declared density, and
+centroid[16,12,42/11]mm. The centroidal inertia tensor uses kg·m² in the original
+authored XYZ frame. Density is a caller assumption, not certified material data.
+The native exact value, nearest binary64 projection and conversion error are
+kept separately: `details.exact`, `details.conversionErrors`, and the complete
+`details.native` result. Narrow `family` to inspect family-specific diagnostics.
+The common centroid and tensor are non-null; only positive single-body outputs
+are supported. All returned data is deeply frozen.
+
+Provide exactly the existing output name and an exact `{ densityKgPerM3 }`
+record. Density must be finite, positive and at most1,000,000kg/m³. Missing,
+undefined, extra-field or accessor options refuse. An unknown safe output name
+uses `SELECTION`; malformed inputs use `INPUT`. Qualified convex-planar bodies
+and the two-box integer-cell schema are supported. Stored-rational hole/circle
+bodies and three-source composed results use `CAPABILITY`, before mass-provider
+work. No ideal circular volume is substituted.
+
+Each call performs real native parent validation and exact integration within
+the existing native bounds, including at most40 convex fan triangles or27
+integer cells. A native refusal uses `NATIVE` and preserves its original typed
+cause. Very small positive density can refuse when a nonzero exact property
+cannot be represented. Rejected measurements preserve the accepted snapshot
+and its later edits. Measuring does not change save bytes, recomputation,
+parameters or finishing configuration; reopening measures a fresh native parent.
+No material database, principal axes, physical pose conversion or measurement UI
+is included in this method.
