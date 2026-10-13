@@ -8,6 +8,6 @@ export function PrismFeatureApp({ version = 0 }: { version?: 0 | 2 }) {
 }
 
 export function ModelingApp() {
-  return <div style={{ height: '100vh', overflow: 'auto' }}><nav aria-label="Workspace navigation"><a href="#/projects">← Projects</a></nav>
-    <CadEditorModeling /></div>;
+  return <div style={{ height: '100dvh', display: 'grid', gridTemplateRows: '24px minmax(0, 1fr)', overflow: 'hidden' }}><nav aria-label="Workspace navigation"><a href="#/projects">← Projects</a></nav>
+    <CadEditorModeling workspace /></div>;
 }

@@ -29,6 +29,19 @@ generation and history move together only after successful display staging.
 Failed edits and interrupted work retain the prior accepted model. UI selection
 uses a local accepted generation even when the kernel reuses native IDs.
 
+In a **named dimension input** of `#/model`, unmodified **Enter** applies all
+pending numeric dimensions using the existing atomic `apply()` operation;
+**Escape** discards them using `discard()`. The shortcut is input-local,
+requires an accepted model, at least one draft, and a nonbusy live controller,
+and ignores key repeat, Alt/Ctrl/Meta/Shift and IME composition (including
+keyCode 229). It never changes geometry directly, bypasses the worker,
+or treats an invalid edit as accepted. The ordinary Apply/Discard buttons
+remain available. The pure keyboard gate has a standalone source test:
+`node packages/barocss-cad-editor/scripts/modeling-dimension-key-test.mjs`.
+The script is not yet registered in recursive package CI while concurrent
+CAD Editor manifest PR #1886 owns that path; actual React/browser/GPU
+interaction remains a separate test gate.
+
 Save copies only accepted authored data. Open detects the new model envelope or
 previously supported legacy prism files internally. Legacy v0/v2 files delegate
 to the original reader and preserve their semantics and original display
@@ -1253,3 +1266,35 @@ After building, run `node packages/barocss-cad-editor/scripts/check-build.mjs` t
 check emitted imports, declaration coverage, worker URLs and isolated worker
 startup. This artifact check does not claim native geometry, browser rendering,
 or Save/Open workflow coverage.
+
+### Download a selected accepted convex output as STL
+
+In **Model a part**, choose a named **STL output**, independently of the visible body or selected face, then **Download STL**. Only primary convex outputs are currently supported; legacy, hole, circle and orthogonal-cell outputs are unavailable. Apply or discard dimension drafts first. The worker exports directly from its accepted native snapshot, with revision, output identity and task freshness checks. Model source, history and display are unchanged.
+
+If the worker has been lost, the action explicitly becomes **Recover accepted model and export STL**. It rebuilds the accepted saved source, verifies matching source/summary and admits the recovered display packet without replacing the display or history, then exports. Cancellation or refusal produces no download.
+
+Files use binary STL, an mm convention, authored XYZ coordinates and approximate Float32 facets, at most40 facets/2084 bytes. The status reports the provider's maximum vertex displacement. STL does not store units or editable modeling intent. Browser disk persistence, slicer/manufacturing acceptance and physical UI testing remain separate. The focused tests replay retained genuine left/right gusset bytes with mocked provider/Worker delivery; they do not run native export or establish changed-geometry/GPU results.
+
+## Primary modeling command workspace (#1943)
+
+`<CadEditorModeling workspace />` uses the command-context layout: persistent
+native viewport, feature/output Browser, grouped commands and a feature-history
+strip. `workspace` is a mount-time layout choice; changing it on the same mounted
+component does not replace its active document or viewport. Omit it to retain the
+existing embedded layout. Neither layout changes the controller, authored codec,
+worker/native limits or accepted-output authority.
+
+Select a feature in the Browser, then **Modify → Edit dimensions** for the exact
+constrained-plate recipe. Other recipes expose **Edit model dimensions** because
+their named parameters may affect multiple features. Successful Apply closes the
+options; a refusal keeps the draft and diagnostic visible. Cancel or unmodified
+Escape discards through the controller. Other drawers preserve pending dimensions
+and offer **Resume dimension edit**. Undo/Redo use existing accepted history;
+Ctrl/Cmd-Z outside text fields follows those same guards.
+
+Create contains the existing example picker. Inspect retains output choices,
+selected native-face provenance and capabilities/limits. File retains saved-model
+staging/replacement consent and the independently selected convex STL export,
+including explicit lost-worker recovery. Feature selection, visible output and
+STL output remain distinct identities. Unsupported creation, Surface, construction,
+feature reordering and camera tools are not advertised by this first shell slice.

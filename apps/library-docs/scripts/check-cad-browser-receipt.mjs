@@ -1,6 +1,6 @@
 // Read-only CLI. Structural checks plus optional physical evidence byte verification.
 import { readFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
+import { resolve } from 'node:path';
 import { validateCadEvidence } from './cad-browser-evidence-validate.mjs';
 import { verifyEvidenceFiles } from './cad-evidence-files.mjs';
 const [file,option,root,...extra] = process.argv.slice(2);

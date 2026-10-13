@@ -1,0 +1,416 @@
+{
+  "issue": 1929,
+  "status": "focused first checks PASS; review/publication pending",
+  "baseCommit": "fe0a780b28a416a0861a553349ff2e46fc6bb295",
+  "productCommit": "791c93aa5af851903fedd42bf8d3dd48287d7eb6",
+  "providerCommit": "f6e19f627c06b44d583cc7d110f91def11a3e508",
+  "sourceHashes": {
+    "apps/library-docs/docs/public/examples/modeling-translated-finished-rail.ts": "e6e48bca52ffa583223d516b44317bf98a7314b52b5258fc7b41be568139ca00",
+    "apps/library-docs/docs/packages/cad/modeling.md": "ee1fd90dc0e0cbec978b95b6e1f8d457cd196b3f92f473e07d5b46737206dda1"
+  },
+  "recipeAndGuide": {
+    "status": "PASS",
+    "recipeCalls": [
+      {
+        "kind": "parameter",
+        "name": "frontDistance",
+        "value": 1
+      },
+      {
+        "kind": "parameter",
+        "name": "backDistance",
+        "value": 2
+      },
+      {
+        "kind": "parameter",
+        "name": "backY",
+        "value": 24
+      },
+      {
+        "kind": "rectangle",
+        "profile": {
+          "width": 32,
+          "height": 24
+        }
+      },
+      {
+        "kind": "extrude",
+        "sketch": 3,
+        "height": 8
+      },
+      {
+        "kind": "edge.one",
+        "parent": 4,
+        "query": {
+          "parallelTo": "x",
+          "at": {
+            "y": 0,
+            "z": "max"
+          }
+        }
+      },
+      {
+        "kind": "chamfer",
+        "parent": 4,
+        "edge": {
+          "parent": 4,
+          "query": {
+            "parallelTo": "x",
+            "at": {
+              "y": 0,
+              "z": "max"
+            }
+          },
+          "id": 5
+        },
+        "distance": {
+          "parameter": "frontDistance"
+        }
+      },
+      {
+        "kind": "edge.one",
+        "parent": 6,
+        "query": {
+          "parallelTo": "x",
+          "at": {
+            "y": {
+              "parameter": "backY"
+            },
+            "z": "max"
+          }
+        }
+      },
+      {
+        "kind": "chamfer",
+        "parent": 6,
+        "edge": {
+          "parent": 6,
+          "query": {
+            "parallelTo": "x",
+            "at": {
+              "y": {
+                "parameter": "backY"
+              },
+              "z": "max"
+            }
+          },
+          "id": 7
+        },
+        "distance": {
+          "parameter": "backDistance"
+        }
+      },
+      {
+        "kind": "parameter",
+        "name": "spacing",
+        "value": 48
+      },
+      {
+        "kind": "translate",
+        "parent": 8,
+        "offset": [
+          {
+            "parameter": "spacing"
+          },
+          0,
+          0
+        ]
+      },
+      {
+        "kind": "build",
+        "outputs": {
+          "left": 8,
+          "right": 10
+        }
+      }
+    ],
+    "modelCallsAtImport": 0,
+    "provider": "f6e19f627c06b44d583cc7d110f91def11a3e508",
+    "providerReceiptSHA256": "52651cbe33711e1616b464a5db8f49ef7805a4436b0292af02adc03ed1f515c9",
+    "sourceHashes": {
+      "apps/library-docs/docs/public/examples/modeling-translated-finished-rail.ts": "e6e48bca52ffa583223d516b44317bf98a7314b52b5258fc7b41be568139ca00",
+      "apps/library-docs/docs/packages/cad/modeling.md": "ee1fd90dc0e0cbec978b95b6e1f8d457cd196b3f92f473e07d5b46737206dda1"
+    },
+    "verifiedDeclarations": 280,
+    "sectionHeading": "copy-a-finished-two-chamfer-rail",
+    "priorGuidePreserved": true,
+    "exportInRunnableExample": false,
+    "scope": "pure call trace/inert import/section checks; no native execution"
+  },
+  "editorReplay": {
+    "result": "PASS",
+    "issue": 1929,
+    "adoptedBase": "fe0a780b28a416a0861a553349ff2e46fc6bb295",
+    "testedHead": "791c93aa5af851903fedd42bf8d3dd48287d7eb6",
+    "cases": [
+      "Open admits both complete genuine finished-rail previews, source-qualified lineage, volumes and one XYZ conversion",
+      "Actual right export route reaches labeled mock refusal with no file result and unchanged accepted session"
+    ],
+    "controllerSessions": 1,
+    "workerInstances": 1,
+    "workerRequests": 2,
+    "workerReplies": 2,
+    "retainedProviderLoads": 1,
+    "retainedPreviewReplays": 2,
+    "mockedExportCalls": 1,
+    "newNativeCalls": 0,
+    "fileResult": null,
+    "exportRefusal": "UNMEASURED_FINISHED_RAIL_STL: #1919 retained transfer has no genuine finished-rail STL bytes; mock export refused without native execution.",
+    "acceptedStateUnchanged": true,
+    "sourceDisplayHistoryGenerationSelectionUnchanged": true,
+    "packetBytes": 81231,
+    "outputs": [
+      {
+        "name": "left",
+        "solidId": "m3_kept",
+        "volumeMM3": 6064,
+        "triangles": 20,
+        "meshVertices": 36,
+        "nativeVertices": 12,
+        "nativeEdges": 18,
+        "faces": 8,
+        "sourceIds": [
+          "m1_b",
+          "m1_t",
+          "m1_w_0",
+          "m1_w_1",
+          "m1_w_2",
+          "m1_w_3",
+          "m2_cap_n",
+          "m3_cap_n"
+        ],
+        "sceneBounds": {
+          "min": [
+            0,
+            0,
+            -24
+          ],
+          "max": [
+            32,
+            8,
+            0
+          ]
+        },
+        "completePreviewSHA256": "ffcb29b0c55220e10462b96881e3b43cdbeadccbe325e1f8a3dee367d4a9cb97",
+        "packetComponentSHA256": "e07383b118d5162fcf086d7c9d977e0b027e2ee015771969789856df99d2398d"
+      },
+      {
+        "name": "right",
+        "solidId": "m4_solid",
+        "volumeMM3": 6064,
+        "triangles": 20,
+        "meshVertices": 36,
+        "nativeVertices": 12,
+        "nativeEdges": 18,
+        "faces": 8,
+        "sourceIds": [
+          "m4_f0_src",
+          "m4_f1_src",
+          "m4_f2_src",
+          "m4_f3_src",
+          "m4_f4_src",
+          "m4_f5_src",
+          "m4_f6_src",
+          "m4_f7_src"
+        ],
+        "sceneBounds": {
+          "min": [
+            48,
+            0,
+            -24
+          ],
+          "max": [
+            80,
+            8,
+            0
+          ]
+        },
+        "completePreviewSHA256": "777be8279e6ce3c8282e04001dda578bc31bae136ff436bcacb79131a270fed9",
+        "packetComponentSHA256": "4722bcfa694be2c3777c3ee2b1be01d3e92519a8d8218135f02cf21eb7730f90"
+      }
+    ],
+    "commandKinds": [
+      "open",
+      "export-stl"
+    ],
+    "replyInventory": [
+      {
+        "id": 1,
+        "ok": true,
+        "fields": [
+          "id",
+          "ok",
+          "text",
+          "summary",
+          "display"
+        ]
+      },
+      {
+        "id": 2,
+        "ok": false,
+        "fields": [
+          "id",
+          "ok",
+          "message"
+        ],
+        "message": "UNMEASURED_FINISHED_RAIL_STL: #1919 retained transfer has no genuine finished-rail STL bytes; mock export refused without native execution."
+      }
+    ],
+    "inputHashesFile": "input-hashes.json",
+    "harnessSHA256": "d2372a9be9c5513bebadabebb34f4835f20fec8c8cec96a921b5d1a63eb5cc5c",
+    "transferSHA256": "ed9867fc2a08cb266bc921b319303e62b7c4bb4d59ed11fc2fa0ad0c2582d943",
+    "limitations": [
+      "Provider load, tessellation, export and Worker transport are mocked; actual adopted engine, controller and CPU receiver run.",
+      "No genuine finished-rail STL bytes exist in this transfer; refusal is deliberately injected and is not a measured native export failure.",
+      "No CAD/native imports or execution, edited geometry, browser UI, GPU pixels, physical Save/Open dialogs or manufacturing verification."
+    ]
+  },
+  "editorReplayInputs": {
+    "transfer": {
+      "path": "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-cad/test/modeling-finished-copy-evidence/baseline-transfer.json",
+      "bytes": 1788302,
+      "sha256": "ed9867fc2a08cb266bc921b319303e62b7c4bb4d59ed11fc2fa0ad0c2582d943"
+    },
+    "authoredTextSHA256": "4407a926f1ec00510a85d33ae16edf6cee745fe19120bdab949dfef1a30aef1c",
+    "bodyDataSHA256": "0ec8cf7f4e8818d31b9fd780a918958ebd57064af352e0325180e3a8cf69e6ea",
+    "evidenceSHA256": "1e37ab0763d871feb17fab03af72669f0b22a76ca96697a210a08fdc6bd7fede",
+    "featureDataSHA256": "7c00f9eaf3b1332d18e0c7cb40056f48b4eae5b09323a30a96d6b1d4a53e1e6b",
+    "sourceHashes": {
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-cad-editor/src/modeling-stl.ts": "72f3a438e7e5b624ed3fbf228416dfe23c3f3e3964f270d0e72499ea6427873d",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-cad-editor/src/modeling-union.ts": "06d8ae40f0d1142ea19e566fa19fa84095af4416f781f6bd47e396f1866cd613",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-cad-editor/src/modeling-composition.ts": "6289f6197d70be4356475cac4dac1130a2639a17576937227bf86a09a4540fc4",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-cad-editor/src/modeling-circle.ts": "ce3fedc7d5bc93d035e7043fe027c3a3353979bdbe929098c6d9604964967bb8",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-cad-editor/src/modeling-engine.ts": "054d6b4075bbf2f5b5f227cdd9c492398dec9de53488208012786c4c9202d98d",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-gpu/src/torus.ts": "a8e509f2a5fc5ef5ac7e4de74ebd701cb7bef14b666204a795ffdfed8710b66e",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-gpu/src/rounded-box.ts": "7b1f5062670e809e004f4a059ef8d9f0b85c6fca52acf04087d5dab26a7db0c2",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-gpu/src/capsule.ts": "1be57524592c7bcb836e00ecc0f6552b861e41fc1928c27d0967e7edddf91580",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-gpu/src/scene-types.ts": "0914e7b3259af9db492e4327d44e441afd1795a034a6f4384c62c8f29b560416",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-gpu/src/scene-front.ts": "a04d59e1a52e949cf338f5907ce68a67c373900ef1d7174a697ffca61f1ccae1",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-gpu/src/gpu-data.ts": "b1e9c9119ae5f8d282e850fde99a31bc36e3a8a693fdf9862f962e771bd5b933",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-gpu/src/camera.ts": "aa235612837edbc819323c385c83bdc504148cb069a973133f6eacde5c8948a8",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-gpu/src/mesh-lighting.ts": "617cc1d58cbf2af06b69c69d46bd987f14aabcd73f3e93a3266b09bb4a443b56",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-gpu/src/mesh-packet.ts": "80ba3cd72221ff4afc957fb52823d8d4636e0cf081a08bcd9866f6b9efcc19c0",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-gpu/src/triangle-geometry.ts": "262cc8a3ac1f380fb665ee08b29114cdbed75fff8e86f7d847b786f5f889df49",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-gpu/src/rotation.ts": "867e617fe81a0c59719a6209f26b0e746f4b080d541ea74025ef5517d267db9c",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-gpu/src/compiler.ts": "4fbea79e1d5d242b4beddd5a09ef0f60bec4b4cccea532134cd91a4067c88699",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-gpu/src/gpu-compiler.ts": "32d48acb92089a90d22e03d60b96324b7c2f05f329ea6f66dadb4fef6d458583",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-gpu/src/mesh-scene-transform.ts": "c8c3ff42e91d79bb9affc453f0b63c672e5e76a634e319f300039717160fca7b",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-gpu/src/engine-scene.ts": "0c9306578039cf39dcf0b4ae62dff6b8d1bd121025317e30cf095e9ac35732ca",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-gpu/src/engine-camera-ray.ts": "028b4a68e8ea5affefee3f81c862df25f4437deda46774bed0ebd0751df29fc0",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-gpu/src/engine-raycast.ts": "ee34709a019fcd73cbe213688087f103f625c43a70963de7edae8c7c0f6ed15a",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-gpu/src/kernel-face-preview.ts": "6f2d59e080b528655353904b31e048728d6edf9bcc83932a5dfa38f481c934c9",
+      "/workspace/shared/cad-1929-validation/gpu-entry.ts": "1b84cc96563be3a7925a599a16719aa16d925192449a5f5e0f783f81c2353827",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-cad-editor/src/prism-feature-lineage.ts": "2362af088e5e01c92f355d8b244c580fda43c52890e4fde2be307f174cfba412",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-cad-editor/src/prism-feature-scene.ts": "17c7e6d9379d58bcc98342d26e36763187a43b30d2d89f2d2a5c940ef3514f08",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-cad-editor/src/modeling-scene.ts": "9ca0608c247e33c7a01f3707323b37e47119c7b0553b6e14f6db10ca1b53796a",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-cad-editor/src/prism-feature-controller.ts": "870435856db2175bfca6dec9c4779d349498113df96f096d6964cb2ab2ee6c02",
+      "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-cad-editor/src/modeling-controller.ts": "e4d41ffd1fdfcd596c894b66f7e70b49d8b1dd7d404d4346a84a30495c07f10d"
+    },
+    "bundleHashes": {
+      "engine": "32e92801c6caea6404df6ac49b8c9818e2d9924db41e12b0a8d55b163bb0bd3d",
+      "receiver": "ad66cb6b262ce34596c10aa21d17678d1c7c9ebe123cec64d707ae22d82bc108"
+    },
+    "harnessSHA256": "d2372a9be9c5513bebadabebb34f4835f20fec8c8cec96a921b5d1a63eb5cc5c",
+    "node": "v22.23.3",
+    "esbuild": "0.28.2"
+  },
+  "types": [
+    {
+      "mode": "source",
+      "exitCode": 0,
+      "seconds": 9.032568091999565
+    },
+    {
+      "mode": "emitted",
+      "exitCode": 0,
+      "seconds": 0.766250836000836
+    }
+  ],
+  "configs": {
+    "source.json": {
+      "compilerOptions": {
+        "strict": true,
+        "noEmit": true,
+        "target": "ES2022",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "skipLibCheck": true,
+        "types": [],
+        "paths": {
+          "@barocss/cad": [
+            "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/packages/barocss-cad/src/index.ts"
+          ]
+        }
+      },
+      "files": [
+        "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/apps/library-docs/docs/public/examples/modeling-translated-finished-rail.ts"
+      ]
+    },
+    "emitted.json": {
+      "compilerOptions": {
+        "strict": true,
+        "noEmit": true,
+        "target": "ES2022",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "skipLibCheck": true,
+        "types": [],
+        "paths": {
+          "@barocss/cad": [
+            "/workspace/shared/cad-1929-validation/cad-dist/index.d.ts"
+          ]
+        }
+      },
+      "files": [
+        "/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer/apps/library-docs/docs/public/examples/modeling-translated-finished-rail.ts"
+      ]
+    }
+  },
+  "declarations": {
+    "count": 280,
+    "authority": "packages/barocss-cad/test/modeling-finished-copy-evidence/verification.json at f6e19f627c06b44d583cc7d110f91def11a3e508",
+    "authoritySHA256": "52651cbe33711e1616b464a5db8f49ef7805a4436b0292af02adc03ed1f515c9",
+    "allCopiedHashesVerified": true
+  },
+  "validationHarnesses": {
+    "check.mjs": {
+      "sha256": "7ca72de2f080461fd255c6faa98b96e48b4b364ed4b7d41c65b95cee3a814f87",
+      "source": "import assert from 'node:assert/strict';\nimport {readFileSync,writeFileSync,mkdirSync,copyFileSync} from 'node:fs';\nimport {resolve} from 'node:path';\nimport {execFileSync} from 'node:child_process';\nimport {createRequire} from 'node:module';\nimport {createHash} from 'node:crypto';\nimport {pathToFileURL} from 'node:url';\nimport {createMarkdownRenderer} from '/workspace/shared/barocss-docs-toolchain/node_modules/vitepress/dist/node/index.js';\nconst root=process.cwd(),out='/workspace/shared/cad-1929-validation',pin='f6e19f627c06b44d583cc7d110f91def11a3e508';\nconst hash=b=>createHash('sha256').update(b).digest('hex');\nconst example='apps/library-docs/docs/public/examples/modeling-translated-finished-rail.ts',guide='apps/library-docs/docs/packages/cad/modeling.md';\nlet modelCalls=0;\nconst cad={model(){modelCalls++;const calls=[],record=(kind,values)=>{const id=calls.length;calls.push({kind,...values});return id;};\n const shape=id=>({id,edges(query){return {one(){return {parent:id,query,id:record('edge.one',{parent:id,query})};}};},\n  chamfer(edge,distance){assert.equal(edge.parent,id);return shape(record('chamfer',{parent:id,edge,distance}));},\n  translate(offset){return shape(record('translate',{parent:id,offset}));}});\n return {parameter(name,value){record('parameter',{name,value});return {parameter:name};},\n  sketch:{rectangle(profile){const id=record('rectangle',{profile});return {extrude(height){return shape(record('extrude',{sketch:id,height}));}};}},\n  build(outputs){record('build',{outputs:Object.fromEntries(Object.entries(outputs).map(([k,v])=>[k,v.id]))});return structuredClone(calls);}};\n}};\nconst require=createRequire('/workspace/shared/barocss-recovery-toolchain/package.json');const source=readFileSync(resolve(root,example),'utf8');assert.ok(!source.includes('exportStl'));\nconst code=require('esbuild').transformSync(source,{loader:'ts',format:'cjs'}).code,module={exports:{}};\nnew Function('require','module','exports',code)(name=>{assert.equal(name,'@barocss/cad');return {cad};},module,module.exports);\nassert.equal(modelCalls,0);const actual=module.exports.makeTranslatedFinishedRail();const {finishedPair}=await import(pathToFileURL(resolve(root,'packages/barocss-cad/test/modeling-finished-copy-fixture.mjs')));const expected=finishedPair(cad).build();assert.deepEqual(actual,expected);assert.ok(Object.is(actual.find(c=>c.kind==='translate').offset[1],-0));assert.equal(actual.filter(c=>c.kind==='chamfer').length,2);\nconst edits=[];const result={};assert.equal(module.exports.spaceFinishedRail({withParameters(v){edits.push(v);return result;}}),result);assert.deepEqual(edits,[{spacing:64}]);\nconst old=execFileSync('git',['show','HEAD:'+guide],{encoding:'utf8'}),text=readFileSync(resolve(root,guide),'utf8');const start=text.indexOf('## Copy a finished two-chamfer rail\\n'),end=text.indexOf('## Resize a constrained plate\\n',start);assert.ok(start>0&&end>start);assert.equal(text.slice(0,start)+text.slice(end),old);\nconst md=await createMarkdownRenderer(resolve(root,'apps/library-docs/docs'));const html=md.render(text.slice(start,end),{path:resolve(root,guide)});assert.match(html,/id=\"copy-a-finished-two-chamfer-rail\"/);for(const term of['6064','5984','no STL exports','Download the typed finished-rail example'])assert.ok(html.includes(term));assert.ok(text.includes(\"withBase('/examples/modeling-translated-finished-rail.ts')\"));assert.ok(text.includes('<<< ../../public/examples/modeling-translated-finished-rail.ts'));writeFileSync(resolve(out,'section.html'),html);\nconst raw=execFileSync('git',['show',pin+':packages/barocss-cad/test/modeling-finished-copy-evidence/verification.json']);assert.equal(hash(raw),'52651cbe33711e1616b464a5db8f49ef7805a4436b0292af02adc03ed1f515c9');const hashes=JSON.parse(raw).emittedDeclarationHashes;assert.equal(Object.keys(hashes).length,280);mkdirSync(resolve(out,'cad-dist'),{recursive:true});for(const[name,digest]of Object.entries(hashes)){const src=resolve('/workspace/shared/cad-1918-validation/cad-dist',name);assert.equal(hash(readFileSync(src)),digest);copyFileSync(src,resolve(out,'cad-dist',name));}\nfor(const[mode,entry]of[['source',resolve(root,'packages/barocss-cad/src/index.ts')],['emitted',resolve(out,'cad-dist/index.d.ts')]])writeFileSync(resolve(out,mode+'.json'),JSON.stringify({compilerOptions:{strict:true,noEmit:true,target:'ES2022',module:'NodeNext',moduleResolution:'NodeNext',skipLibCheck:true,types:[],paths:{'@barocss/cad':[entry]}},files:[resolve(root,example)]},null,2)+'\\n');\nconst resultEvidence={status:'PASS',recipeCalls:actual,modelCallsAtImport:0,provider:pin,providerReceiptSHA256:hash(raw),sourceHashes:{[example]:hash(readFileSync(resolve(root,example))),[guide]:hash(readFileSync(resolve(root,guide)))},verifiedDeclarations:280,declarationHashes:hashes,sectionHeading:'copy-a-finished-two-chamfer-rail',priorGuidePreserved:true,exportInRunnableExample:false,scope:'pure call trace/inert import/section checks; no native execution'};writeFileSync(resolve(out,'checks.json'),JSON.stringify(resultEvidence,null,2)+'\\n');console.log(JSON.stringify({status:'PASS',recipeCalls:actual.length,inert:true,section:true,declarations:280}));\n"
+    },
+    "replay.mjs": {
+      "sha256": "d2372a9be9c5513bebadabebb34f4835f20fec8c8cec96a921b5d1a63eb5cc5c",
+      "source": "// #1929: exactly one CPU controller session, Open plus one refused right STL request.\n// Genuine #1919 bodies/evidence/previews are retained data. Provider and Worker are mocks.\n// No CAD package/native execution, edited geometry, or genuine finished-rail STL is claimed.\nimport assert from 'node:assert/strict';\nimport { createHash } from 'node:crypto';\nimport { execFileSync } from 'node:child_process';\nimport { createRequire } from 'node:module';\nimport { readFileSync, writeFileSync } from 'node:fs';\nimport { resolve } from 'node:path';\nimport { pathToFileURL } from 'node:url';\n\nconst root = '/workspace/scratch/1591b2fb2f62/barocss-composed-bracket-consumer';\nconst out = '/workspace/shared/cad-1929-validation';\nconst adoptedBase = 'fe0a780b28a416a0861a553349ff2e46fc6bb295';\nconst git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();\nconst testedHead = git('rev-parse', 'HEAD');\nassert.equal(testedHead, '791c93aa5af851903fedd42bf8d3dd48287d7eb6');\nassert.equal(git('merge-base', adoptedBase, testedHead), adoptedBase);\nassert.equal(git('diff', adoptedBase, testedHead, '--', 'packages/barocss-cad-editor/src', 'packages/barocss-gpu/src'), '');\nassert.equal(git('branch', '--show-current'), 'v3/finished-rail-manual-1929');\nconst require = createRequire('/workspace/shared/barocss-recovery-toolchain/package.json');\nconst esbuild = require('esbuild');\nconst hash = value => createHash('sha256').update(value).digest('hex');\nconst jsonHash = value => hash(JSON.stringify(value));\nconst transfer = resolve(root, 'packages/barocss-cad/test/modeling-finished-copy-evidence/baseline-transfer.json');\nconst transferBytes = readFileSync(transfer);\nconst transferSHA256 = 'ed9867fc2a08cb266bc921b319303e62b7c4bb4d59ed11fc2fa0ad0c2582d943';\nassert.equal(transferBytes.length, 1788302);\nassert.equal(hash(transferBytes), transferSHA256);\nconst baseline = JSON.parse(transferBytes), authored = JSON.parse(baseline.text);\nconst original = jsonHash(baseline);\nassert.equal(Object.hasOwn(baseline, 'exports'), false, 'No finished-rail STL is present');\nassert.deepEqual(Object.keys(baseline.bodies), ['left', 'right']);\nassert.deepEqual(Object.keys(baseline.previews), ['left', 'right']);\nassert.deepEqual(baseline.features.map(x => x.kind), ['sketch', 'extrude', 'chamfer', 'chamfer', 'translate']);\nassert.deepEqual(baseline.features.map(x => x.dependencies), [[], [0], [1], [2], [3]]);\nassert.deepEqual(baseline.parameters, authored.parameters);\nassert.equal(hash(baseline.text), baseline.summary.authoredSHA256);\n\nconst refusal = 'UNMEASURED_FINISHED_RAIL_STL: #1919 retained transfer has no genuine finished-rail STL bytes; mock export refused without native execution.';\nlet loads = 0, samples = 0, exports = 0, replies = 0, requests = 0, workers = 0, prepares = 0, commits = 0;\nlet lastSnapshot;\nconst sampledOutputs = [], commands = [], replyInventory = [];\nconst forbidden = () => { throw Error('Native execution or expanded replay scope is forbidden in #1929.'); };\nglobalThis.__finishedRailProvider = {\n  cad: { model: forbidden, load(text) {\n    assert.equal(text, baseline.text); assert.equal(++loads, 1);\n    lastSnapshot = { ...structuredClone(baseline), save: () => baseline.text,\n      withParameters: forbidden, withSuppression: forbidden,\n      exportStl(name) { assert.equal(++exports, 1); assert.equal(name, 'right'); throw Error(refusal); } };\n    return lastSnapshot;\n  } },\n  tessellateConvexPlanarSolid(native, options) {\n    assert.deepEqual(options, { maximumFanTriangles: 40 });\n    const name = ['left', 'right'].find(key => baseline.bodies[key].native.report.solidId === native.report.solidId);\n    assert.ok(name); assert.deepEqual(native, baseline.bodies[name].native);\n    assert.ok(++samples <= 2); sampledOutputs.push(name);\n    return structuredClone(baseline.previews[name]);\n  },\n  tessellateSurface: forbidden, tessellateOwnPlateCircularHole: forbidden, tessellateXYCirclePrismShell: forbidden,\n};\nconst source = name => resolve(root, 'packages/barocss-cad-editor/src', name + '.ts');\nconst gpu = resolve(out, 'gpu-entry.ts');\nwriteFileSync(gpu, ['engine-scene', 'engine-camera-ray', 'engine-raycast', 'kernel-face-preview']\n  .map(name => `export * from ${JSON.stringify(resolve(root, 'packages/barocss-gpu/src', name + '.ts'))}`).join('\\n') + '\\n');\nconst sourceHashes = {}, bundleHashes = {};\nasync function bundle(name, contents, plugins, alias = {}) {\n  const built = await esbuild.build({ stdin: { contents, resolveDir: root }, absWorkingDir: root,\n    bundle: true, platform: 'node', format: 'esm', write: false, metafile: true, plugins, alias });\n  for (const input of Object.keys(built.metafile.inputs)) {\n    assert.ok(!/(?:wasm|barocss-cad\\/src\\/)/.test(input), `Native source forbidden: ${input}`);\n    if (input !== '<stdin>' && !input.startsWith('retained:')) {\n      const path = resolve(root, input); sourceHashes[path] = hash(readFileSync(path));\n    }\n  }\n  const file = resolve(out, name + '.mjs');\n  writeFileSync(file, built.outputFiles[0].text); bundleHashes[name] = hash(readFileSync(file));\n  return import(pathToFileURL(file));\n}\nconst engineApi = await bundle('engine', `export * from ${JSON.stringify(source('modeling-engine'))}`, [{\n  name: 'retained-finished-rail-provider', setup(build) {\n    build.onResolve({ filter: /^@barocss\\/cad$/ }, () => ({ path: 'cad', namespace: 'retained' }));\n    build.onResolve({ filter: /^\\.\\/prism-feature-engine\\.js$/ }, () => ({ path: 'legacy', namespace: 'retained' }));\n    build.onLoad({ filter: /.*/, namespace: 'retained' }, args => ({ contents: args.path === 'cad'\n      ? 'export const {cad,tessellateConvexPlanarSolid,tessellateSurface,tessellateOwnPlateCircularHole,tessellateXYCirclePrismShell}=globalThis.__finishedRailProvider'\n      : 'export function createPrismFeatureEngine(){return()=>{throw Error(\"Legacy execution is forbidden in #1929\")}}' }));\n  },\n}]);\nconst api = await bundle('receiver', `export * from ${JSON.stringify(source('modeling-controller'))}`, [{\n  name: 'no-native-receiver', setup(build) { build.onResolve({ filter: /^@barocss\\/cad$/ }, forbidden); },\n}], { '@barocss/gpu': gpu });\n\nconst previousWorker = globalThis.Worker;\nglobalThis.Worker = class {\n  callbacks = new Map(); engine = engineApi.createModelingEngine(); terminated = false;\n  constructor() { assert.equal(++workers, 1); }\n  addEventListener(name, callback) { this.callbacks.set(name, callback); }\n  terminate() { this.terminated = true; }\n  postMessage(command) {\n    assert.equal(this.terminated, false); assert.ok(++requests <= 2);\n    assert.equal(command.kind, requests === 1 ? 'open' : 'export-stl');\n    commands.push(structuredClone(command));\n    const reply = this.engine(structuredClone(command));\n    if (requests === 1) assert.equal(reply.ok, true, reply.message);\n    else { assert.equal(reply.ok, false); assert.equal(reply.message, refusal); assert.equal(Object.hasOwn(reply, 'export'), false); }\n    replyInventory.push({ id: reply.id, ok: reply.ok, fields: Object.keys(reply), ...(reply.ok ? {} : { message: reply.message }) });\n    queueMicrotask(() => { assert.ok(++replies <= 2); this.callbacks.get('message')({ data: structuredClone(reply) }); });\n  }\n};\nconst session = api.createCadEditorModelingController({ async prepare() {\n  prepares++; return { commit() { commits++; }, dispose() {} };\n} });\nconst stable = () => { const state = session.getSnapshot(); delete state.error; return state; };\nconst cases = [], outputDetails = [];\nconst pass = name => { cases.push(name); console.log(JSON.stringify({ case: name, result: 'PASS' })); };\ntry {\n  await session.open(baseline.text);\n  const first = session.getSnapshot();\n  assert.equal(first.error, null); assert.equal(first.workerReady, true); assert.equal(first.busy, false);\n  assert.equal(first.authoredText, baseline.text); assert.equal(first.accepted.source, 'model');\n  assert.deepEqual(first.accepted.features, baseline.features); assert.deepEqual(first.accepted.parameters, baseline.parameters);\n  assert.equal(first.display.packet.profile, 'model-outputs');\n  assert.equal(first.display.packet.components.length, 2); assert.equal(first.display.scene.geometries.length, 2);\n  assert.equal(first.display.scene.nodes.length, 2);\n  assert.deepEqual(first.accepted.outputs.map(value => value.name), ['left', 'right']);\n  assert.equal(new Set(first.accepted.outputs.map(value => value.solidId)).size, 2);\n  assert.ok(first.display.scene.nodes.every(node => node.visible && node.translation.every(value => value === 0)\n    && node.scale.every(value => value === 1)));\n  assert.deepEqual(first.history, { index: 0, count: 1, canUndo: false, canRedo: false });\n  assert.equal(prepares, 1); assert.equal(commits, 1);\n  const packetBytes = Buffer.byteLength(JSON.stringify(first.display.packet)); assert.ok(packetBytes <= 2 * 1024 * 1024);\n  for (const [index, name] of ['left', 'right'].entries()) {\n    const component = first.display.packet.components[index], preview = baseline.previews[name], native = baseline.bodies[name].native;\n    const identity = baseline.outputIdentities[name], geometry = first.display.scene.geometries[index];\n    assert.equal(component.role, name); assert.equal(component.report.solidId, identity.solidId);\n    for (const field of ['mesh', 'boundaries', 'internalDiagonals', 'report']) assert.deepEqual(component[field], preview[field]);\n    assert.deepEqual(component.lineage, { kind: 'model-output', name, solidId: native.report.solidId,\n      graph: { vertices: native.graph.vertices, faces: native.graph.faces,\n        edges: native.graph.edges.map(({ id, vertexIds, uses }) => ({ id, vertexIds, uses })) } });\n    assert.deepEqual(component.mesh.faces.map(face => face.sourceId), identity.sourceIds);\n    assert.deepEqual(component.lineage.graph.faces.map(face => face.sourceId), identity.sourceIds);\n    assert.deepEqual(first.accepted.outputs[index].volumeMM3, { numerator: '6064', denominator: '1' });\n    assert.equal(preview.report.triangleCount, 20); assert.equal(preview.mesh.indices.length, 60);\n    assert.equal(preview.mesh.vertices.length, 36); assert.equal(preview.mesh.faces.length, 8);\n    assert.deepEqual(geometry.indices, preview.mesh.indices);\n    for (let vertex = 0; vertex < preview.mesh.vertices.length; vertex++) {\n      for (const [field, raw] of [['positions', 'positionsMM'], ['normals', 'normals']]) {\n        const [x, y, z] = preview.mesh[raw].slice(vertex * 3, vertex * 3 + 3);\n        assert.deepEqual(geometry[field].slice(vertex * 3, vertex * 3 + 3), [x, z, -y]);\n      }\n    }\n    const bounds = { min: [0, 1, 2].map(axis => Math.min(...geometry.positions.filter((_, i) => i % 3 === axis))),\n      max: [0, 1, 2].map(axis => Math.max(...geometry.positions.filter((_, i) => i % 3 === axis))) };\n    assert.deepEqual(bounds, { min: [index * 48, 0, -24], max: [32 + index * 48, 8, -0] });\n    for (const cap of baseline.summary.retainedBevelCaps) {\n      const expected = cap[name === 'left' ? 'finished' : 'translated'];\n      assert.ok(component.mesh.faces.some(face => face.sourceId === expected.sourceId && face.faceId === expected.faceId));\n    }\n    outputDetails.push({ name, solidId: identity.solidId, volumeMM3: 6064, triangles: 20, meshVertices: 36,\n      nativeVertices: native.graph.vertices.length, nativeEdges: native.graph.edges.length, faces: 8, sourceIds: identity.sourceIds,\n      sceneBounds: bounds, completePreviewSHA256: jsonHash(preview), packetComponentSHA256: jsonHash(component) });\n  }\n  assert.deepEqual(sampledOutputs, ['left', 'right']);\n  pass('Open admits both complete genuine finished-rail previews, source-qualified lineage, volumes and one XYZ conversion');\n  const before = stable(), beforeCalls = [loads, samples, prepares, commits];\n  const result = await session.exportStl('right', first.generation);\n  assert.equal(result, null, 'Unmeasured finished-rail export must produce no file result');\n  const after = session.getSnapshot(); assert.equal(after.error, refusal); assert.equal(after.workerReady, true);\n  assert.deepEqual(stable(), before, 'Accepted source, display, history, selection and generation must be unchanged');\n  assert.deepEqual([loads, samples, prepares, commits], beforeCalls, 'Export cannot reload, resample or replace display');\n  assert.equal(commands[1].outputName, 'right'); assert.equal(commands[1].solidId, baseline.outputIdentities.right.solidId);\n  assert.equal(commands[1].expectedRevision, first.accepted.revision); assert.equal(commands[1].acceptedTaskToken, commands[0].taskToken);\n  assert.notEqual(commands[1].taskToken, commands[0].taskToken);\n  pass('Actual right export route reaches labeled mock refusal with no file result and unchanged accepted session');\n  assert.deepEqual([workers, requests, replies, loads, samples, exports, prepares, commits], [1, 2, 2, 1, 2, 1, 1, 1]);\n  for (const key of Object.keys(baseline)) assert.deepEqual(lastSnapshot[key], baseline[key]);\n  assert.equal(jsonHash(baseline), original); assert.equal(hash(readFileSync(transfer)), transferSHA256);\n  for (const [path, expected] of Object.entries(sourceHashes)) assert.equal(hash(readFileSync(path)), expected);\n  const inputHashes = { transfer: { path: transfer, bytes: transferBytes.length, sha256: transferSHA256 },\n    authoredTextSHA256: hash(baseline.text), bodyDataSHA256: jsonHash(baseline.bodies), evidenceSHA256: jsonHash(baseline.evidence),\n    featureDataSHA256: jsonHash(baseline.features), sourceHashes, bundleHashes,\n    harnessSHA256: hash(readFileSync(new URL(import.meta.url))), node: process.version, esbuild: esbuild.version };\n  writeFileSync(resolve(out, 'input-hashes.json'), JSON.stringify(inputHashes, null, 2) + '\\n');\n  const receipt = { result: 'PASS', issue: 1929, adoptedBase, testedHead, cases, controllerSessions: 1, workerInstances: workers,\n    workerRequests: requests, workerReplies: replies, retainedProviderLoads: loads, retainedPreviewReplays: samples,\n    mockedExportCalls: exports, newNativeCalls: 0, fileResult: null, exportRefusal: refusal,\n    acceptedStateUnchanged: true, sourceDisplayHistoryGenerationSelectionUnchanged: true, packetBytes,\n    outputs: outputDetails, commandKinds: commands.map(command => command.kind), replyInventory,\n    inputHashesFile: 'input-hashes.json', harnessSHA256: inputHashes.harnessSHA256, transferSHA256,\n    limitations: ['Provider load, tessellation, export and Worker transport are mocked; actual adopted engine, controller and CPU receiver run.',\n      'No genuine finished-rail STL bytes exist in this transfer; refusal is deliberately injected and is not a measured native export failure.',\n      'No CAD/native imports or execution, edited geometry, browser UI, GPU pixels, physical Save/Open dialogs or manufacturing verification.'] };\n  writeFileSync(resolve(out, 'result.json'), JSON.stringify(receipt, null, 2) + '\\n');\n  console.log(JSON.stringify(receipt));\n} finally { session.dispose(); globalThis.Worker = previousWorker; delete globalThis.__finishedRailProvider; }\n"
+    }
+  },
+  "logs": {
+    "check-first.log": {
+      "sha256": "0e94292a73b289cd6fce4777501b179aecc6c8dc2c4fdaa53d11bf939d0d1825",
+      "text": "(node:6) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:6) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:6) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"status\":\"PASS\",\"recipeCalls\":12,\"inert\":true,\"section\":true,\"declarations\":280}\n"
+    },
+    "source.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "emitted.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "lint-first.log": {
+      "sha256": "db12ad97221988bf346c55d06788e21a01bb6a683d69266bf732ed4d6d9763c8",
+      "text": "(node:5) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    "replay-first.log": {
+      "sha256": "b075844b1963297adbbe3d2e5020c99c21a25eb4e593616c7732d0adb06fc101",
+      "text": "(node:5) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"case\":\"Open admits both complete genuine finished-rail previews, source-qualified lineage, volumes and one XYZ conversion\",\"result\":\"PASS\"}\n{\"case\":\"Actual right export route reaches labeled mock refusal with no file result and unchanged accepted session\",\"result\":\"PASS\"}\n{\"result\":\"PASS\",\"issue\":1929,\"adoptedBase\":\"fe0a780b28a416a0861a553349ff2e46fc6bb295\",\"testedHead\":\"791c93aa5af851903fedd42bf8d3dd48287d7eb6\",\"cases\":[\"Open admits both complete genuine finished-rail previews, source-qualified lineage, volumes and one XYZ conversion\",\"Actual right export route reaches labeled mock refusal with no file result and unchanged accepted session\"],\"controllerSessions\":1,\"workerInstances\":1,\"workerRequests\":2,\"workerReplies\":2,\"retainedProviderLoads\":1,\"retainedPreviewReplays\":2,\"mockedExportCalls\":1,\"newNativeCalls\":0,\"fileResult\":null,\"exportRefusal\":\"UNMEASURED_FINISHED_RAIL_STL: #1919 retained transfer has no genuine finished-rail STL bytes; mock export refused without native execution.\",\"acceptedStateUnchanged\":true,\"sourceDisplayHistoryGenerationSelectionUnchanged\":true,\"packetBytes\":81231,\"outputs\":[{\"name\":\"left\",\"solidId\":\"m3_kept\",\"volumeMM3\":6064,\"triangles\":20,\"meshVertices\":36,\"nativeVertices\":12,\"nativeEdges\":18,\"faces\":8,\"sourceIds\":[\"m1_b\",\"m1_t\",\"m1_w_0\",\"m1_w_1\",\"m1_w_2\",\"m1_w_3\",\"m2_cap_n\",\"m3_cap_n\"],\"sceneBounds\":{\"min\":[0,0,-24],\"max\":[32,8,0]},\"completePreviewSHA256\":\"ffcb29b0c55220e10462b96881e3b43cdbeadccbe325e1f8a3dee367d4a9cb97\",\"packetComponentSHA256\":\"e07383b118d5162fcf086d7c9d977e0b027e2ee015771969789856df99d2398d\"},{\"name\":\"right\",\"solidId\":\"m4_solid\",\"volumeMM3\":6064,\"triangles\":20,\"meshVertices\":36,\"nativeVertices\":12,\"nativeEdges\":18,\"faces\":8,\"sourceIds\":[\"m4_f0_src\",\"m4_f1_src\",\"m4_f2_src\",\"m4_f3_src\",\"m4_f4_src\",\"m4_f5_src\",\"m4_f6_src\",\"m4_f7_src\"],\"sceneBounds\":{\"min\":[48,0,-24],\"max\":[80,8,0]},\"completePreviewSHA256\":\"777be8279e6ce3c8282e04001dda578bc31bae136ff436bcacb79131a270fed9\",\"packetComponentSHA256\":\"4722bcfa694be2c3777c3ee2b1be01d3e92519a8d8218135f02cf21eb7730f90\"}],\"commandKinds\":[\"open\",\"export-stl\"],\"replyInventory\":[{\"id\":1,\"ok\":true,\"fields\":[\"id\",\"ok\",\"text\",\"summary\",\"display\"]},{\"id\":2,\"ok\":false,\"fields\":[\"id\",\"ok\",\"message\"],\"message\":\"UNMEASURED_FINISHED_RAIL_STL: #1919 retained transfer has no genuine finished-rail STL bytes; mock export refused without native execution.\"}],\"inputHashesFile\":\"input-hashes.json\",\"harnessSHA256\":\"d2372a9be9c5513bebadabebb34f4835f20fec8c8cec96a921b5d1a63eb5cc5c\",\"transferSHA256\":\"ed9867fc2a08cb266bc921b319303e62b7c4bb4d59ed11fc2fa0ad0c2582d943\",\"limitations\":[\"Provider load, tessellation, export and Worker transport are mocked; actual adopted engine, controller and CPU receiver run.\",\"No genuine finished-rail STL bytes exist in this transfer; refusal is deliberately injected and is not a measured native export failure.\",\"No CAD/native imports or execution, edited geometry, browser UI, GPU pixels, physical Save/Open dialogs or manufacturing verification.\"]}\n"
+    }
+  },
+  "priorPublicAssetsUnchanged": 86,
+  "newNativeCalls": 0,
+  "firstFailures": [],
+  "limits": [
+    "No genuine finished-rail STL file/export is measured; actual tagged dispatch is tested with an explicit mock refusal.",
+    "Two baseline previews are genuine retained packets; provider/Worker delivery is mocked.",
+    "Source/emitted check is this one download only. No full local build, edited geometry, GPU pixels or physical file acceptance.",
+    "Manual deployment is deferred for a later batch. No issue closure call."
+  ]
+}

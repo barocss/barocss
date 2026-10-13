@@ -544,3 +544,33 @@ native download → fresh file picker Open → Cut Y 3→4 → second download; 
 replacement cancellation; hidden-route draft retention; viewport resize; context
 loss and explicit fresh-canvas recovery; repeated mount/dispose. Canvas cut grip,
 general-cut capability and commercial completion remain outside this increment.
+
+## Primary CAD command workspace (#1943)
+
+Open `#/model`. The primary route now gives the real viewport a persistent central
+area, with a model/feature Browser and Create / Modify / Inspect / File groups.
+For the representative workflow, choose **Create → Modeling examples → Resize a
+constrained plate**, acknowledge replacement and **Load example**. Select **Sketch
+01**, then **Modify → Edit dimensions**. Stage width `40`, **Apply dimensions**,
+then **Undo**. Accepted native state changes only through the existing controller;
+Cancel/Escape discards, a refused edit retains its draft, and opening a different
+drawer does not silently discard it. Options close only after the current Apply
+succeeds. The viewport and worker remain mounted across these UI operations.
+
+File/STL, output-view choice, finishing configuration, selected-face evidence and
+native limits remain accessible in their command drawers. Direct Curve/Surface,
+Boolean and other retained routes are not converted to this modeling schema.
+
+Local focused runtime check (application tests are local/Execute Tester under the
+current CI policy):
+
+```sh
+node apps/cad-editor/flows/modeling-workspace-flow.mjs
+```
+
+This jsdom flow mounts actual React controls and exercises the real modeling
+serializer/controller/CPU receiver. It explicitly mocks provider, Worker and
+display boundaries, replaying the retained genuine constrained-plate baseline;
+edited geometry is a fixture substitute, not new native evidence. Physical layout,
+GPU pixels, actual file chooser/download and keyboard behavior still need the
+existing Execute Tester on an exact adopted build.
