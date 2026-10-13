@@ -32,7 +32,11 @@ for(const mode of ['OFFSET','YAW'] as const){
  const samples:unknown[]=[];
  host.__p1572ProjectionProbe=e=>{
   const iA=interval(e.a,e.normal),iB=interval(e.b,e.normal);
-  const overlap=Math.min(iA[1],iB[1])-Math.max(iA[0],iB[0]);
+  // SAT computes support-radius overlap rather than geometric interval
+  // intersection width when one interval contains the other.
+  const centreA=(iA[0]+iA[1])/2,centreB=(iB[0]+iB[1])/2;
+  const radiusA=(iA[1]-iA[0])/2,radiusB=(iB[1]-iB[0])/2;
+  const overlap=radiusA+radiusB-Math.abs(centreB-centreA);
   const residual=Math.abs(Math.max(0,overlap)-e.penetrationM);
   if(!Number.isFinite(residual)||residual>1e-9)throw Error('P1572_SAT_INTERVAL_REFERENCE_NO_GO');
   maxResidualM=Math.max(maxResidualM,residual);count++;
