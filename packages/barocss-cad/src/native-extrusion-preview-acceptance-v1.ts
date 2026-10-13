@@ -64,7 +64,7 @@ export function createNativeExtrusionPreviewAcceptanceV1(
   // This accepted state is reconstructed once, then retained as private data.
   // The preview v1 session separately owns its own fully evaluated region.
   let accepted = evaluateBooleanExtrusionFeatureGraph(document, options);
-  const preview = createNativeExtrusionPreviewSessionV1(document, options, featureId);
+  const preview = createNativeExtrusionPreviewSessionV1(accepted.document, accepted.options, featureId);
   if (preview.graphId !== accepted.document.id || preview.acceptedRevision !== accepted.document.revision)
     throw new TypeError('Native preview and acceptance identities differ');
   const graphId = accepted.document.id;
