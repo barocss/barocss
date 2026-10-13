@@ -57,6 +57,20 @@ for (const name of ['main-result.json','edited-result.json']) {
     assert.equal(Object.is(at(parsed.native), -0), true, name + ':' + path.join('.'));
     assert.equal(Object.is(at(owned.native), -0), true, name + ':' + path.join('.'));
   }
+  // The native validator must reject changes to any authoritative saved stage,
+  // qualified boundary reference, or certificate without rewriting the request.
+  if (name === 'main-result.json') {
+    const mutations = [
+      packet => { packet.proof.queries[0].x[0].sign = 0; },
+      packet => { packet.classifications[2].boundaryFaces[0].parentField = 'request.other'; },
+      packet => { packet.report.quality.genericBoolean = true; },
+    ];
+    for (const mutate of mutations) {
+      const packet = structuredClone(parsed.native);
+      mutate(packet);
+      refuse(() => read(packet), 'NATIVE');
+    }
+  }
   assert.equal(parsed.native.request.queries.length, 16);
   assert.equal(parsed.native.report.quality.exactWorldRegionMembershipCertified, true);
   console.log(name + ': parse/read PASS');
