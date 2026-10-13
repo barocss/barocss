@@ -55,7 +55,7 @@ export * from './apps/render-editor/src/native-light-workbench-flow';
 export {deriveNativeLightFramingCamera} from './apps/render-editor/src/native-light-framing';
 export {createNativeSceneBase,createNativeSceneSeed} from './apps/render-editor/src/native-scene-seed';
 export {prepareViewerNativeSceneAppearance} from '@barocss/viewer';
-export {deriveRenderCameraInteraction,createRenderNativeLightRequest,prepareRenderNativeLightDocument,parseRenderNativeLightDocument,serializeRenderNativeLightDocument,serializeRenderNativeSceneDocument,serializeRenderNativeDirectionalLightDocument,parseRenderNativeDirectionalLightDocument,prepareRenderMaterialDocument,parseRenderMaterialDocument,serializeRenderMaterialDocument,deriveRenderMaterialAssignment,RENDER_MATERIAL_LIMITS} from '@barocss/render-editor';`,resolveDir: workspace},
+export {deriveRenderCameraInteraction,createRenderNativeLightRequest,prepareRenderNativeLightDocument,parseRenderNativeLightDocument,serializeRenderNativeLightDocument,serializeRenderNativeSceneDocument,serializeRenderNativeDirectionalLightDocument,parseRenderNativeDirectionalLightDocument,prepareRenderMaterialDocument,parseRenderMaterialDocument,serializeRenderMaterialDocument,deriveRenderMaterialAssignment,RENDER_MATERIAL_LIMITS} from './packages/barocss-render-editor/src/index';`,resolveDir: workspace},
     bundle: true, platform: 'node', format: 'esm', outfile: join(output, 'flow.mjs'),
     external: ['react', 'react-dom', 'react-dom/*', 'lucide-react', 'radix-ui', 'class-variance-authority', 'clsx', 'tailwind-merge'],
     plugins: [{name: 'controlled-viewer-only', setup(builder) {
