@@ -8,7 +8,7 @@ import type {RenderNativeLightDocument, RenderNativeLightSession,
 import {createNativeLightController} from './native-light-controller';
 import {createNativeLightNavigation} from './native-light-navigation';
 import {deriveNativeLightFramingCamera} from './native-light-framing';
-import {deriveLightBodyCommand, deriveLightSurfaceAddition, deriveLightSurfacePointEdit, readLightSurfacePoints, lightBodyReservedIds} from './native-light-bodies';
+import {deriveLightBodyCommand, deriveLightSurfaceAddition, deriveLightSurfacePointEdit, readLightSurfacePoints, readLightSourceExport, lightBodyReservedIds} from './native-light-bodies';
 import type {LightBodyCommand, LightBodyCommandResult, LightSurfacePointData} from './native-light-bodies';
 import {createNativeSceneBase, createNativeSceneSeed} from './native-scene-seed';
 import {readLightFields, applyLightFields, addLightFields, duplicateLightFields,
@@ -399,6 +399,22 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
       && selection.current.bodyId === body.bodyId && selection.current.epoch === rotationSelectionEpoch
       && !busyRef.current && !navigationBusy.current && !openTicket.current && !materialTicket.current && !helpRef.current && !bodyCommandTicket.current && !surfaceTicket.current;
   };
+  const exportSource = () => {
+    if (!body || !rotationReady()) return;
+    const session = sessionRef.current!, started = epoch.current;
+    busyRef.current = true; setBusy(true);
+    try {
+      const payload = readLightSourceExport(session.getSnapshot().accepted, body.bodyId);
+      const url = URL.createObjectURL(new Blob([payload.text], {type: 'text/plain;charset=utf-8'}));
+      try {
+        const link = document.createElement('a');
+        try {link.href = url; link.download = payload.filename; link.hidden = true; document.body.append(link); link.click();}
+        finally {link.remove();}
+      } finally {URL.revokeObjectURL(url);}
+      if (mounted.current && epoch.current === started) {setError(null); setNotice('Accepted whole CAD asset download requested. Scene saved marker and drafts are unchanged.');}
+    } catch (cause) {if (mounted.current && epoch.current === started) report(cause, 'CAD source export refused: ');}
+    finally {if (mounted.current && epoch.current === started && sessionRef.current === session) {busyRef.current = false; setBusy(false);}}
+  };
   const editRotationCommand = (patch: Partial<RotationCommand>) => {
     if (!body || !rotationReady()) return;
     const next = new Map(rotationCommandsRef.current);
@@ -682,6 +698,9 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
             </div>
             <small>About the body origin. Position and scale stay fixed. Stage adds to the current draft; Apply accepts it. Zero and full turns keep the original orientation.</small>
           </fieldset>
+          <Button size="sm" variant="outline" disabled={rotationDisabled || !snapshot?.accepted.display.visibleBodyIds.includes(body.bodyId)
+            || !snapshot?.accepted.surfaceMaterials.some(value => value.target.bodyId === body.bodyId)} onClick={exportSource}>Export accepted CAD source</Button>
+          <small>Complete original asset in native mm, including its other objects. Accepted point edits are included; scene transforms, materials and drafts are not.</small>
           <Button size="sm" variant="outline" disabled={rotationDisabled} onClick={resetBodyTransform}>Stage reset transform</Button>
           <small>Replaces this body's position, rotation and scale fields with origin, identity and unit scale. Other drafts stay. Apply accepts the reset.</small>
           <details><summary>Advanced quaternion (read-only)</summary><output aria-label="Body rotation XYZW" style={{overflowWrap: 'anywhere'}}>{body.rotation.join(', ')}</output></details>
