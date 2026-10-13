@@ -1,5 +1,6 @@
 import { orient2dExactBinary64V1 } from './exact-binary64-orientation-v1.js';
 import { classifyExactSegmentCrossingV1 } from './exact-segment-crossing-v1.js';
+import { snapshotExactSegmentPointsV1 } from './exact-segment-points-v1.js';
 import type { Binary64PointV1 } from './exact-binary64-orientation-v1.js';
 type Relation = 'disjoint' | 'single-point-touch' | 'positive-length-overlap';
 export type ExactCollinearSegmentOverlapV1 =
@@ -9,9 +10,11 @@ export type ExactCollinearSegmentOverlapV1 =
 
 /** Classifies only collinear represented binary64 line segments; returned points are original endpoints. */
 export function classifyCollinearSegmentOverlapV1(a: unknown, b: unknown, c: unknown, d: unknown, maxAbsCoordinateMM = 10000): ExactCollinearSegmentOverlapV1 {
-  const admission = classifyExactSegmentCrossingV1(a, b, c, d, maxAbsCoordinateMM);
+  const snapshot = snapshotExactSegmentPointsV1(a, b, c, d, maxAbsCoordinateMM);
+  if (snapshot.status === 'unsupported') return { status: 'unsupported', reason: snapshot.reason };
+  const [pa, pb, pc, pd] = snapshot.points;
+  const admission = classifyExactSegmentCrossingV1(pa, pb, pc, pd, maxAbsCoordinateMM);
   if (admission.status === 'unsupported') return { status: 'unsupported', reason: admission.reason };
-  const [pa, pb, pc, pd] = [a, b, c, d] as Binary64PointV1[];
   const first = orient2dExactBinary64V1(pa, pb, pc, maxAbsCoordinateMM);
   const second = orient2dExactBinary64V1(pa, pb, pd, maxAbsCoordinateMM);
   if (first.status !== 'exact' || second.status !== 'exact')
