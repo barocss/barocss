@@ -1,0 +1,34 @@
+name: Physics contact correction ledger
+on:
+  pull_request:
+    branches: [develop]
+    paths:
+      - 'examples/physics-contact-impulse-audit-1572/correction-ledger.ts'
+      - 'examples/physics-contact-impulse-audit-1572/run-correction-ledger.mjs'
+      - '.github/workflows/physics-contact-correction-ledger.yml'
+  workflow_dispatch:
+jobs:
+  correction:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @barocss/physics build:library
+      - run: mkdir -p /tmp/p1572-correction
+      - name: Measure b0 b1 per-pass normal position correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          node examples/physics-contact-impulse-audit-1572/run-correction-ledger.mjs | tee /tmp/p1572-correction/results.jsonl
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: physics1572-correction-results
+          path: /tmp/p1572-correction/results.jsonl
+          if-no-files-found: ignore
