@@ -29,3 +29,21 @@ test('refuse noncollinear and malformed with no getter execution',()=>{
  assert.equal(reads,0);
  assert.equal(overlap(p(Infinity,0),p(1,0),p(2,0),p(3,0)).status,'unsupported');
 });
+
+
+test('overlap endpoints come only from captured own descriptors', () => {
+  let reads = 0;
+  const hostile = value => new Proxy(value, {
+    get() { reads++; throw new Error('external getter must not run'); },
+  });
+  const got = overlap(hostile(p(0, 0)), hostile(p(4, 0)),
+    hostile(p(2, 0)), hostile(p(6, 0)));
+  assert.equal(got.status, 'exact');
+  assert.equal(got.relation, 'positive-length-overlap');
+  assert.deepEqual(got.overlapMM, [p(2, 0), p(4, 0)]);
+  assert.equal(reads, 0);
+  const revoked = Proxy.revocable(p(0, 0), {});
+  revoked.revoke();
+  assert.deepEqual(overlap(revoked.proxy, p(4, 0), p(2, 0), p(6, 0)),
+    { status: 'unsupported', reason: 'invalid-input' });
+});
