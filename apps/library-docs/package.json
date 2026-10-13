@@ -9,6 +9,7 @@
     "preview": "vitepress preview docs",
     "check:docs": "node scripts/check-cad-editor-first-model.mjs && node scripts/check-cad-editor-round-post.mjs && node scripts/check-cad-editor-mounting-plate.mjs && node scripts/check-cad-editor-l-bracket.mjs && node scripts/check-cad-learning-path.mjs && node scripts/check-cad-editor-troubleshooting.mjs && node scripts/check-cad-browser-evidence.mjs && node scripts/check-docs.mjs",
     "check:cad-impact": "node --test scripts/cad-impact-map.test.mjs",
+    "check:cad-evidence": "node --test scripts/cad-browser-evidence-validate.test.mjs",
     "check:api": "node scripts/public-api.mjs --check",
     "docs:api": "node scripts/public-api.mjs --write",
     "examples:build": "node scripts/build-examples.mjs"
