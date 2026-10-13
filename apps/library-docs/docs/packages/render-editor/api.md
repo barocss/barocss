@@ -6,6 +6,26 @@
 | `/react` | `src/react.tsx` / `dist/react.js` and declarations |
 | `/style.css` | `src/style.css` / `dist/style.css` |
 
+## Native Light document and session
+
+Use the same unsuffixed API for directional and point workspaces. The catalog's `lights.profile` selects the supported kind; a session keeps that kind for its lifetime. Original native source/TEN/material authority and signed values remain in the document. See the [authoring guide](./guides#author-a-native-light-scene) and [format limits](./limits#native-light-format-and-bounds).
+
+| Entry or method | Contract |
+| --- | --- |
+| `parseRenderNativeLightDocument(text)`, `prepareRenderNativeLightDocument(input)`, `serializeRenderNativeLightDocument(document)` | Parse, qualify and serialize complete original authorship. CPU qualification is not presentation. Use the signed codec for saved values. |
+| `createRenderNativeLightRequest(document)` | Derive the actual original-source/TEN/material/light Viewer request without replacing authority with a sampled mesh. |
+| `await createRenderNativeLightSession(canvas, document, {width, height})` | Create one required-WebGPU owned lifetime. Dispose it on host closure and dispose any late startup result after that closure. |
+| `getSnapshot()`, `getStatus()`, `subscribe(listener)` | Read immutable authoring/view metadata and current presentation availability. `viewportCamera` is an owned local override or `null`; `viewDirty` distinguishes it from accepted authorship. |
+| `setDraftText(text, expectedVersion)`, `prepareDraft(expectedVersion)` | Stage complete corrective text, then prepare against a fresh `getSnapshot().version`. Preparation alone does not present or accept. |
+| `prepareOpen(text, expectedVersion)`, `prepareUndo(expectedVersion)`, `prepareRedo(expectedVersion)`, `await commitPrepared(candidate)` | Use the session-owned single-use transaction. Await acknowledgement; refusals retain accepted authorship. Open resets history; Apply/Undo/Redo keep an active local view. |
+| `await navigateViewportCamera(camera, expectedVersion)`, `await resetViewportCamera(expectedVersion)` | Present a local view or the accepted scene camera without consuming drafts/history. A changed acknowledged view advances session/Viewer generations, not authored revisions. Exact signed-value no-ops make no scene replacement. |
+| `await pickViewportBody(xPixel, yPixel, expectedVersion): Promise<string \| null>` | Read one qualified visible material-bound original body ID, or background `null`, using bounded integer top-left backing pixels. Preserve the exact snapshot and authoring/Save/view identities; do not request highlight or scene replacement. |
+| `discardDraft(expectedVersion)`, `getSavePayload()`, `markSaved(payload)`, `dispose()` | Discard to accepted text; save accepted authorship and acknowledge only the exact issued payload after persistence; explicitly end the owned lifetime. |
+
+The pick holds the same exclusive operation lock and rejects competing mutation/query. It does not add a `pending` snapshot variant or notify a new revision; the app owns its pending-input state. Capture the expected version before the read and recheck host/viewport lifetime before using the returned ID. CSS-to-backing mapping belongs to the host, and the Light workbench keeps its row on a miss. See [selection coordinate and lifecycle limits](./limits#canvas-body-selection-limits).
+
+**Set scene camera** is an app action, not an additional session method: once all fields are clean, it authors the acknowledged local view through one ordinary whole-scene Apply. The [adopted session source](https://github.com/barocss/barocss/blob/ee461c114d34c02fae513b2adff84313e3466109/packages/barocss-render-editor/src/native-light-session.ts) defines the current contracts and preserves provider causes. Software tests do not certify physical GPU/pointer/file behavior.
+
 ## Source document and session
 
 | Method | Input / return | Ownership and errors |

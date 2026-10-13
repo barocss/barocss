@@ -44,6 +44,14 @@ Recoverable refusal retains the last acknowledged camera and accepted/raw state.
 
 Directional and point Viewer replacement currently rebuilds complete candidates/resources. Coalescing bounds concurrent work; it is not a camera-only GPU fast path, measured performance result, smoothness or 60 fps guarantee. The bounded software checks use actual input/math/codec/session behavior with controlled Viewer, DOM geometry, pointer capture and RAF boundaries. Physical browser/GPU/device behavior remains unverified by those checks.
 
+### Canvas body selection limits
+
+The [Canvas selection workflow](./guides#select-a-body-from-the-canvas) queries the currently acknowledged scene through the owned Viewer. Public `pickViewportBody(xPixel, yPixel, expectedVersion)` requires integer top-left backing coordinates, current version, ready status and matching actual/acknowledged backing dimensions. The app maps an in-bounds point from its axis-aligned CSS rectangle with `floor((client - origin) * backing / CSS-size)`; outside, nonfinite or invalid dimensions refuse rather than clamp. This is not the historical Native continuous-CSS triangle picker or Source1 selection API.
+
+A result must match the complete current original document/revision/body/asset/revision/model/geometry/frame binding and display reference, and identify exactly one visible material-bound Surface. Hidden, unbound, malformed, foreign or stale identities refuse. Repeated geometry IDs alone cannot identify a body. The read holds the session operation lock but leaves the exact accepted snapshot, corrective draft, authored revision/history, valid Save payloads and local camera unchanged. It does not call Viewer selection/highlight or request a scene replacement.
+
+The host captures session/lifetime/generation and CSS/backing geometry, then rechecks completion before changing its Inspector row. A miss keeps that row. Active-drag capture loss and explicit cancellation invalidate input; ordinary capture release after pointerup does not invalidate the admitted click. A cancelled in-flight query remains busy until actual completion. Disposal, replacement, loss, changed dimensions or generation cannot update a newer workspace. Controlled identity responses and DOM events verify these software boundaries; they do not establish physical identity-buffer pixels, pointer behavior, device recovery or fixes for #1573/#1332.
+
 ### Evidence boundary
 
 The complete [scene downloads and shared host](./examples#native-light-scene-downloads) expose original authoring data and a bounded source-consumer workflow. Controlled Viewer acknowledgements can verify software transactions; they do not establish actual WebGPU availability, rendered pixels, picking, physical file dialogs/persistence or integrated device recovery. No Native Light screenshot or physical rendering result is asserted here.
