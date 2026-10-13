@@ -548,6 +548,9 @@ export type { ConvexPlanarSolidMeshDiagnosticCode, ConvexPlanarSolidMeshOptions,
 
 export { cad } from './public-api.js';
 
+export { qualifyStoredCirclePrismSolid, validateStoredCirclePrismSolid, StoredCirclePrismSolidError, StoredCirclePrismSolidDiagnosticCode } from './stored-circle-prism-solid.js';
+export type { StoredCirclePrismSolidResult, StoredCirclePrismSolidCertificate, StoredCirclePrismSolidGerm, StoredCirclePrismSolidCorner, StoredCirclePrismSolidVertexLink } from './stored-circle-prism-solid.js';
+
 export { XYAffinePrismFeatureDocumentLimitsV2, evaluateXYAffinePrismFeatureDocumentV2, updateXYAffinePrismFeatureDocumentV2, validateXYAffinePrismFeatureDocumentV2, validateXYAffinePrismFeatureDocumentUpdateV2, serializeXYAffinePrismFeatureDocumentV2, parseXYAffinePrismFeatureDocumentV2 } from './xy-affine-prism-feature-document-v2.js';
 export type { XYAffinePrismNodeV2, XYAffinePrismChamferNodeV2, XYAffinePrismChamferResolutionV2, XYAffinePrismFeatureDocumentV2, XYAffinePrismFeatureWorkV2, XYAffinePrismFeatureResultV2, XYAffinePrismFeatureUpdateV2 } from './xy-affine-prism-feature-document-v2.js';
 

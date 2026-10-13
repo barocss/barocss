@@ -10833,3 +10833,47 @@ Inspector constructor/method call counts while retaining the environment's WebAs
 support. See the campaign/verification JSON for first-failure evidence, actual counters,
 and the explicitly separate incomplete first attempt. No browser, editor Save/Open,
 OS-file, manufacturing, generic feature-graph, or commercial CAD completeness is certified.
+
+### Exact stored-rational capped-circle qualification
+
+`qualifyStoredCirclePrismSolid(parent)` accepts the complete native result of
+`buildXYCirclePrismShell`. It rebuilds that original result, checks its source,
+reports and geometry exactly, and returns an owned, deeply frozen
+`{ parent, world: { source, model }, certificate }`. The original parent remains
+`solid:false`; the separate certificate establishes a single embedded genus-zero
+material boundary for the admitted stored rational coefficients. The six original
+world objects retain their identities and numeric bits in genuinely compiled
+whole-model Source0. UV trim curves remain dimensionless topology sidecars.
+
+The proof checks each positive-weight rational quadrant's regularity and strict
+coordinate monotonicity, its Jordan-ring separation, exact cap pole composition
+inside the finite `[0,1]²` charts, the ring-times-height wall, opposite seam uses,
+and one oriented three-germ vertex-link cycle at each self-loop seam vertex.
+`validateStoredCirclePrismSolid(result)` reconstructs the complete qualification
+and compares all parent, source and proof fields, returning a frozen certificate.
+Neither function trusts imported proof flags or caller-provided counters.
+
+This is a bounded native foundation for round posts and spacers. It does not add
+a circle sketch to `cad.model`, a public modeling body family or an editor adapter.
+The stored rational boundary is not promoted to an ideal cylinder: no certified
+pi-based volume, area or mass is supplied. Existing parent reference measurements
+and sampled preview flags retain their original meanings. Native wall D1 queries
+at the three interior repeated knots still refuse; the proof requires only
+piecewise regularity and never replaces those derivatives.
+
+Exact trim correspondence can refuse a valid sampled parent. For example, center
+`[.2,.2]`, radius `.1`, height `.3` produces a nonzero stored cap-composition
+residual; the qualifier refuses instead of healing coefficients. Diagnostic codes
+are `INPUT`, `OWNED`, `GEOMETRY`, `BUDGET` and `NATIVE`, with original provider
+causes retained. Own-data admission is descriptor-first, recursively exact-field
+checked and bounded before parent reconstruction. Signed-zero data and actual
+native source bits are preserved, including native arithmetic that produces `+0`.
+
+The focused source/emitted controls are
+`test/stored-circle-prism-solid.test.mjs`; the bounded native driver and fresh
+emitted validator are `test/stored-circle-prism-solid-native.mjs` and
+`scripts/stored-circle-prism-solid-consumer.mjs`. See #1655 for the fixed campaign,
+source-derived child-call accounting and its measured evidence status. Existing
+shell preview emits authored XYZ coordinates even though its packet carries the
+legacy Y-up label; a future consumer must establish its coordinate conversion
+explicitly. Qualification and the sampled preview do not certify each other.

@@ -1,0 +1,415 @@
+{
+  "status": "passed",
+  "issue": 1655,
+  "processId": 13,
+  "processInstanceId": "1ead20c3-15b8-43de-9c5f-57233eb9cce2",
+  "sourceProcessId": 5,
+  "sourceProcessInstanceId": "bf1e963c-3940-4df1-9b9e-99d190e10611",
+  "sourceReceipt": {
+    "filename": "source-continuation-flow.json",
+    "sha256": "3201d67555335e14aba612cb616a35cde52cfa4695ebbc1fa0ef709539c8d681"
+  },
+  "originalSourceReceipt": {
+    "filename": "source-flow.json",
+    "sha256": "ff32a7388da44b8b90c3dfa4bf5e83b9e1383dd28763492874a9da41ed336dc6"
+  },
+  "nodeVersion": "v22.23.3",
+  "entrySHA256": "d9d741fc24ddaeb6dd6b831ac59369daa0e842294d2e444da04ec357fa079b92",
+  "sourceEntrySHA256": "6e7d8933b25adc89a4cb24330539a743093b3002ed6891265a06032a9ecb7100",
+  "artifactSHA256": "5e07c884327983a5c7b9901682ff603c33a26387a566f76cd5ef9053352616c1",
+  "wholeResultValidationCalls": 1,
+  "expectedWholeCampaign": {
+    "explicitParentBuilds": 3,
+    "qualificationOrValidationCalls": 6,
+    "previews": 1,
+    "explicitWallD1Attempts": 3,
+    "shellConstructionRoots": 10,
+    "knownSourceCompilations": 14,
+    "sourceDerivedDirectCallSiteAttempts": {
+      "CurveD0": 1464,
+      "SurfaceD0": 556,
+      "CurveD1": 80,
+      "SurfaceD1": 237
+    },
+    "fullTransitiveNativeCoverage": "NOT_MEASURED"
+  },
+  "fullTransitiveNativeCoverage": "NOT_MEASURED",
+  "sourceNativeElapsedMS": 96.9857220000001,
+  "coldNativeElapsedMS": 24.35502999999997,
+  "externalSerialProcessGroupTimeoutRequired": true,
+  "parity": {
+    "certificate": {
+      "arithmetic": {
+        "floatConversions": 0,
+        "floatSearchSteps": 0,
+        "gcdSteps": 1194,
+        "maximumObservedBits": 54,
+        "operations": 10687
+      },
+      "directCounts": {
+        "capPoleCompositions": 18,
+        "capUseCount": 2,
+        "cornerCount": 6,
+        "germCount": 6,
+        "parentReconstructionCalls": 1,
+        "wallUseCount": 4,
+        "wholeModelCompilations": 1
+      },
+      "edgeCount": 3,
+      "edgeUseCount": 6,
+      "embeddedStoredGeometryCertified": true,
+      "eulerCharacteristic": 2,
+      "faceAdjacency": [
+        {
+          "adjacentFaceIds": [
+            "solid1655_A_wall"
+          ],
+          "faceId": "solid1655_A_z_min"
+        },
+        {
+          "adjacentFaceIds": [
+            "solid1655_A_wall"
+          ],
+          "faceId": "solid1655_A_z_max"
+        },
+        {
+          "adjacentFaceIds": [
+            "solid1655_A_z_min",
+            "solid1655_A_z_max",
+            "solid1655_A_wall"
+          ],
+          "faceId": "solid1655_A_wall"
+        }
+      ],
+      "faceCount": 3,
+      "genus": 0,
+      "geometryAuthority": "stored-coefficient-mathematical-model",
+      "kind": "restricted-stored-rational-circle-prism-solid",
+      "lengthUnit": "mm",
+      "loopCount": 3,
+      "materialComponentCount": 1,
+      "planarFaces": [
+        {
+          "faceId": "solid1655_A_z_min",
+          "normalSign": -1,
+          "poleCompositionCount": 9,
+          "useId": "solid1655_A_z_min_use"
+        },
+        {
+          "faceId": "solid1655_A_z_max",
+          "normalSign": 1,
+          "poleCompositionCount": 9,
+          "useId": "solid1655_A_z_max_use"
+        }
+      ],
+      "ringProof": {
+        "bottomEdgeId": "solid1655_A_z_min_edge",
+        "quadrants": [
+          {
+            "derivativeNumeratorsX": [
+              {
+                "denominator": "1",
+                "numerator": "0"
+              },
+              {
+                "denominator": "1",
+                "numerator": "-4"
+              },
+              {
+                "denominator": "1125899906842624",
+                "numerator": "-6369051672525773"
+              }
+            ],
+            "derivativeNumeratorsY": [
+              {
+                "denominator": "1125899906842624",
+                "numerator": "6369051672525773"
+              },
+              {
+                "denominator": "1",
+                "numerator": "4"
+              },
+              {
+                "denominator": "1",
+                "numerator": "0"
+              }
+            ],
+            "index": 0
+          },
+          {
+            "derivativeNumeratorsX": [
+              {
+                "denominator": "1125899906842624",
+                "numerator": "-6369051672525773"
+              },
+              {
+                "denominator": "1",
+                "numerator": "-4"
+              },
+              {
+                "denominator": "1",
+                "numerator": "0"
+              }
+            ],
+            "derivativeNumeratorsY": [
+              {
+                "denominator": "1",
+                "numerator": "0"
+              },
+              {
+                "denominator": "1",
+                "numerator": "-4"
+              },
+              {
+                "denominator": "1125899906842624",
+                "numerator": "-6369051672525773"
+              }
+            ],
+            "index": 1
+          },
+          {
+            "derivativeNumeratorsX": [
+              {
+                "denominator": "1",
+                "numerator": "0"
+              },
+              {
+                "denominator": "1",
+                "numerator": "4"
+              },
+              {
+                "denominator": "1125899906842624",
+                "numerator": "6369051672525773"
+              }
+            ],
+            "derivativeNumeratorsY": [
+              {
+                "denominator": "1125899906842624",
+                "numerator": "-6369051672525773"
+              },
+              {
+                "denominator": "1",
+                "numerator": "-4"
+              },
+              {
+                "denominator": "1",
+                "numerator": "0"
+              }
+            ],
+            "index": 2
+          },
+          {
+            "derivativeNumeratorsX": [
+              {
+                "denominator": "1125899906842624",
+                "numerator": "6369051672525773"
+              },
+              {
+                "denominator": "1",
+                "numerator": "4"
+              },
+              {
+                "denominator": "1",
+                "numerator": "0"
+              }
+            ],
+            "derivativeNumeratorsY": [
+              {
+                "denominator": "1",
+                "numerator": "0"
+              },
+              {
+                "denominator": "1",
+                "numerator": "4"
+              },
+              {
+                "denominator": "1125899906842624",
+                "numerator": "6369051672525773"
+              }
+            ],
+            "index": 3
+          }
+        ],
+        "storedMiddleWeight": 0.7071067811865476,
+        "topEdgeId": "solid1655_A_z_max_edge"
+      },
+      "solid": true,
+      "topologyCertified": true,
+      "version": 0,
+      "vertexCount": 2,
+      "vertexLinks": [
+        {
+          "corners": [
+            {
+              "faceId": "solid1655_A_z_min",
+              "from": {
+                "edgeId": "solid1655_A_z_min_edge",
+                "endpointIndex": 0
+              },
+              "incomingUseId": "solid1655_A_z_min_use",
+              "loopId": "solid1655_A_z_min_loop",
+              "outgoingUseId": "solid1655_A_z_min_use",
+              "to": {
+                "edgeId": "solid1655_A_z_min_edge",
+                "endpointIndex": 1
+              }
+            },
+            {
+              "faceId": "solid1655_A_wall",
+              "from": {
+                "edgeId": "solid1655_A_z_min_edge",
+                "endpointIndex": 1
+              },
+              "incomingUseId": "solid1655_A_wall_bottom_use",
+              "loopId": "solid1655_A_wall_loop",
+              "outgoingUseId": "solid1655_A_wall_right_use",
+              "to": {
+                "edgeId": "solid1655_A_wall_seam_edge",
+                "endpointIndex": 0
+              }
+            },
+            {
+              "faceId": "solid1655_A_wall",
+              "from": {
+                "edgeId": "solid1655_A_wall_seam_edge",
+                "endpointIndex": 0
+              },
+              "incomingUseId": "solid1655_A_wall_left_use",
+              "loopId": "solid1655_A_wall_loop",
+              "outgoingUseId": "solid1655_A_wall_bottom_use",
+              "to": {
+                "edgeId": "solid1655_A_z_min_edge",
+                "endpointIndex": 0
+              }
+            }
+          ],
+          "cycle": [
+            {
+              "edgeId": "solid1655_A_z_min_edge",
+              "endpointIndex": 0
+            },
+            {
+              "edgeId": "solid1655_A_z_min_edge",
+              "endpointIndex": 1
+            },
+            {
+              "edgeId": "solid1655_A_wall_seam_edge",
+              "endpointIndex": 0
+            }
+          ],
+          "germs": [
+            {
+              "edgeId": "solid1655_A_z_min_edge",
+              "endpointIndex": 0
+            },
+            {
+              "edgeId": "solid1655_A_z_min_edge",
+              "endpointIndex": 1
+            },
+            {
+              "edgeId": "solid1655_A_wall_seam_edge",
+              "endpointIndex": 0
+            }
+          ],
+          "vertexId": "solid1655_A_z_min_seam"
+        },
+        {
+          "corners": [
+            {
+              "faceId": "solid1655_A_z_max",
+              "from": {
+                "edgeId": "solid1655_A_z_max_edge",
+                "endpointIndex": 1
+              },
+              "incomingUseId": "solid1655_A_z_max_use",
+              "loopId": "solid1655_A_z_max_loop",
+              "outgoingUseId": "solid1655_A_z_max_use",
+              "to": {
+                "edgeId": "solid1655_A_z_max_edge",
+                "endpointIndex": 0
+              }
+            },
+            {
+              "faceId": "solid1655_A_wall",
+              "from": {
+                "edgeId": "solid1655_A_wall_seam_edge",
+                "endpointIndex": 1
+              },
+              "incomingUseId": "solid1655_A_wall_right_use",
+              "loopId": "solid1655_A_wall_loop",
+              "outgoingUseId": "solid1655_A_wall_top_use",
+              "to": {
+                "edgeId": "solid1655_A_z_max_edge",
+                "endpointIndex": 1
+              }
+            },
+            {
+              "faceId": "solid1655_A_wall",
+              "from": {
+                "edgeId": "solid1655_A_z_max_edge",
+                "endpointIndex": 0
+              },
+              "incomingUseId": "solid1655_A_wall_top_use",
+              "loopId": "solid1655_A_wall_loop",
+              "outgoingUseId": "solid1655_A_wall_left_use",
+              "to": {
+                "edgeId": "solid1655_A_wall_seam_edge",
+                "endpointIndex": 1
+              }
+            }
+          ],
+          "cycle": [
+            {
+              "edgeId": "solid1655_A_z_max_edge",
+              "endpointIndex": 0
+            },
+            {
+              "edgeId": "solid1655_A_wall_seam_edge",
+              "endpointIndex": 1
+            },
+            {
+              "edgeId": "solid1655_A_z_max_edge",
+              "endpointIndex": 1
+            }
+          ],
+          "germs": [
+            {
+              "edgeId": "solid1655_A_z_max_edge",
+              "endpointIndex": 0
+            },
+            {
+              "edgeId": "solid1655_A_z_max_edge",
+              "endpointIndex": 1
+            },
+            {
+              "edgeId": "solid1655_A_wall_seam_edge",
+              "endpointIndex": 1
+            }
+          ],
+          "vertexId": "solid1655_A_z_max_seam"
+        }
+      ],
+      "wallProof": {
+        "faceId": "solid1655_A_wall",
+        "heightMM": 6,
+        "seamEdgeId": "solid1655_A_wall_seam_edge"
+      }
+    },
+    "qualifiedDataSHA256": "c31e873e78ae37d5af549d5bebc1ac7986a7071b1081285dfe1223a67711accb",
+    "originalParentSHA256": "b5d6794e31136218e91b5c2617beae3e7d3be84918841804d20ce88ed4dacbce",
+    "originalProfileSourceSHA256": "d89dbc76242858986b053ae37156b3c21a56c9438346f859776fba069efec112",
+    "worldSourceSHA256": "fad981930091a774d834204cc621106bf48aa19d8631565f809f305fd395564e"
+  },
+  "pending": null,
+  "aggregateNativeElapsedMS": 121.34075200000007,
+  "returnedCertificateArtifact": {
+    "filename": "F.certificate.json",
+    "sha256": "4133fb5a173c8b7e878d27ded1d53f02426ee47c8874187e2c9f97389535b0ea",
+    "bytes": 5193
+  },
+  "returnedCertificateDeepFrozen": true,
+  "parsedInputUnchangedByValidation": true,
+  "returnedCertificateIndependentOfCallerMutation": true,
+  "signedArtifactBytesUnchanged": true,
+  "wholeCampaignQualificationOrValidationCalls": 6
+}

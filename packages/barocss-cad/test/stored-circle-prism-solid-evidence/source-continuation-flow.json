@@ -1,0 +1,2620 @@
+{
+  "status": "passed",
+  "issue": 1655,
+  "processId": 5,
+  "processInstanceId": "bf1e963c-3940-4df1-9b9e-99d190e10611",
+  "mode": "retained-artifact-continuation",
+  "nodeVersion": "v22.23.3",
+  "startedAt": "2026-10-13T05:48:48.972Z",
+  "entrySHA256": "6e7d8933b25adc89a4cb24330539a743093b3002ed6891265a06032a9ecb7100",
+  "calls": {
+    "parentBuilds": 3,
+    "qualifiers": 4,
+    "validators": 1,
+    "previews": 1,
+    "wallD1Attempts": 3
+  },
+  "stages": [
+    {
+      "kind": "wallD1Attempts",
+      "label": "remaining unchanged wall knot D1 u=1",
+      "outcome": "threw",
+      "elapsedMS": 6.814033000000023,
+      "failure": {
+        "name": "Error",
+        "code": null,
+        "message": "First derivative is not defined at an exact C0 interior knot",
+        "stack": "Error: First derivative is not defined at an exact C0 interior knot\n    at basisD1 (file:///workspace/shared/cad-1655-validation/source.mjs:792:42)\n    at evaluateSurfaceD1 (file:///workspace/shared/cad-1655-validation/source.mjs:881:14)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:162:26\n    at stage (file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:49:24)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:161:25\n    at getActual (node:assert:609:5)\n    at Function.throws (node:assert:757:24)\n    at continueRetained (file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:161:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:175:19",
+        "cause": null
+      }
+    },
+    {
+      "kind": "wallD1Attempts",
+      "label": "remaining unchanged wall knot D1 u=2",
+      "outcome": "threw",
+      "elapsedMS": 0.25273999999998864,
+      "failure": {
+        "name": "Error",
+        "code": null,
+        "message": "First derivative is not defined at an exact C0 interior knot",
+        "stack": "Error: First derivative is not defined at an exact C0 interior knot\n    at basisD1 (file:///workspace/shared/cad-1655-validation/source.mjs:792:42)\n    at evaluateSurfaceD1 (file:///workspace/shared/cad-1655-validation/source.mjs:881:14)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:162:26\n    at stage (file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:49:24)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:161:25\n    at getActual (node:assert:609:5)\n    at Function.throws (node:assert:757:24)\n    at continueRetained (file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:161:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:175:19",
+        "cause": null
+      }
+    },
+    {
+      "kind": "wallD1Attempts",
+      "label": "remaining unchanged wall knot D1 u=3",
+      "outcome": "threw",
+      "elapsedMS": 0.10616000000001691,
+      "failure": {
+        "name": "Error",
+        "code": null,
+        "message": "First derivative is not defined at an exact C0 interior knot",
+        "stack": "Error: First derivative is not defined at an exact C0 interior knot\n    at basisD1 (file:///workspace/shared/cad-1655-validation/source.mjs:792:42)\n    at evaluateSurfaceD1 (file:///workspace/shared/cad-1655-validation/source.mjs:881:14)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:162:26\n    at stage (file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:49:24)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:161:25\n    at getActual (node:assert:609:5)\n    at Function.throws (node:assert:757:24)\n    at continueRetained (file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:161:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:175:19",
+        "cause": null
+      }
+    }
+  ],
+  "artifacts": {
+    "A.parent.json": {
+      "bytes": 14658,
+      "scope": "complete actual original native parent; signed binary64 data",
+      "sha256": "0f90e7ce83b688540faedf29e0316040568190df4e715dc26e22025edca140be"
+    },
+    "A.preview.json": {
+      "bytes": 24502,
+      "scope": "genuine existing native packet, face ranges, edge paths/provenance, UV samples and unqualified reports",
+      "sha256": "e4b722c5fe04bc2def27d30106090e95a7d9ab9c01df396066ddb8a25df8915b"
+    },
+    "A.profile.source0": {
+      "bytes": 326,
+      "scope": "unchanged original profile Source0, not whole-model source",
+      "sha256": "d89dbc76242858986b053ae37156b3c21a56c9438346f859776fba069efec112"
+    },
+    "A.qualified.json": {
+      "bytes": 23254,
+      "scope": "whole native qualification result; cold validation artifact, not public authored save format",
+      "sha256": "5e07c884327983a5c7b9901682ff603c33a26387a566f76cd5ef9053352616c1"
+    },
+    "A.world.source0": {
+      "bytes": 1660,
+      "scope": "new whole-model Source0 for the exact original six world objects",
+      "sha256": "fad981930091a774d834204cc621106bf48aa19d8631565f809f305fd395564e"
+    },
+    "B.parent.json": {
+      "bytes": 15286,
+      "scope": "complete actual original native parent; signed binary64 data",
+      "sha256": "7fa9f32516d1235c3802c690150387f670610775f1fbf18b2672293e7eea9c77"
+    },
+    "B.profile.source0": {
+      "bytes": 364,
+      "scope": "unchanged original profile Source0, not whole-model source",
+      "sha256": "6fa9008bc351607cb684ed31879fb6998e169e1b99c59c8ca9dc7a4e079f68d9"
+    },
+    "B.qualified.json": {
+      "bytes": 24376,
+      "scope": "whole native qualification result; cold validation artifact, not public authored save format",
+      "sha256": "e37a88be89c06cb6d1d49490066f8b7fd42ac9a1c75771a69badf4a961721719"
+    },
+    "B.world.source0": {
+      "bytes": 1906,
+      "scope": "new whole-model Source0 for the exact original six world objects",
+      "sha256": "1b412972fd56c7d2449beeb996cdc15fdd9440c2f2cbe67833f873bf2078df42"
+    },
+    "C.parent.json": {
+      "bytes": 16914,
+      "scope": "complete actual original native parent; signed binary64 data",
+      "sha256": "1279e52931bbb708765fb0664f9a92e6ddeaf24a675971b920487a35b931a353"
+    },
+    "C.profile.source0": {
+      "bytes": 465,
+      "scope": "unchanged original profile Source0, not whole-model source",
+      "sha256": "b706c25eb8cbae92963856575201b89d7264c1d92b2c9ceb339d9940e20769e0"
+    }
+  },
+  "transport": {
+    "A.parent.json": {
+      "bytes": 14658,
+      "filename": "stored-circle-prism-solid-A.parent.json",
+      "scope": "complete actual original native parent; signed binary64 data",
+      "sha256": "0f90e7ce83b688540faedf29e0316040568190df4e715dc26e22025edca140be"
+    },
+    "A.preview.json": {
+      "bytes": 24502,
+      "filename": "stored-circle-prism-solid-A.preview.json",
+      "scope": "genuine existing native packet, face ranges, edge paths/provenance, UV samples and unqualified reports",
+      "sha256": "e4b722c5fe04bc2def27d30106090e95a7d9ab9c01df396066ddb8a25df8915b"
+    },
+    "A.profile.source0": {
+      "bytes": 326,
+      "filename": "stored-circle-prism-solid-A.profile.source0",
+      "scope": "unchanged original profile Source0, not whole-model source",
+      "sha256": "d89dbc76242858986b053ae37156b3c21a56c9438346f859776fba069efec112"
+    },
+    "A.qualified.json": {
+      "bytes": 23254,
+      "filename": "stored-circle-prism-solid-A.qualified.json",
+      "scope": "whole native qualification result; cold validation artifact, not public authored save format",
+      "sha256": "5e07c884327983a5c7b9901682ff603c33a26387a566f76cd5ef9053352616c1"
+    },
+    "A.world.source0": {
+      "bytes": 1660,
+      "filename": "stored-circle-prism-solid-A.world.source0",
+      "scope": "new whole-model Source0 for the exact original six world objects",
+      "sha256": "fad981930091a774d834204cc621106bf48aa19d8631565f809f305fd395564e"
+    },
+    "B.parent.json": {
+      "bytes": 15286,
+      "filename": "stored-circle-prism-solid-B.parent.json",
+      "scope": "complete actual original native parent; signed binary64 data",
+      "sha256": "7fa9f32516d1235c3802c690150387f670610775f1fbf18b2672293e7eea9c77"
+    },
+    "B.profile.source0": {
+      "bytes": 364,
+      "filename": "stored-circle-prism-solid-B.profile.source0",
+      "scope": "unchanged original profile Source0, not whole-model source",
+      "sha256": "6fa9008bc351607cb684ed31879fb6998e169e1b99c59c8ca9dc7a4e079f68d9"
+    },
+    "B.qualified.json": {
+      "bytes": 24376,
+      "filename": "stored-circle-prism-solid-B.qualified.json",
+      "scope": "whole native qualification result; cold validation artifact, not public authored save format",
+      "sha256": "e37a88be89c06cb6d1d49490066f8b7fd42ac9a1c75771a69badf4a961721719"
+    },
+    "B.world.source0": {
+      "bytes": 1906,
+      "filename": "stored-circle-prism-solid-B.world.source0",
+      "scope": "new whole-model Source0 for the exact original six world objects",
+      "sha256": "1b412972fd56c7d2449beeb996cdc15fdd9440c2f2cbe67833f873bf2078df42"
+    },
+    "C.parent.json": {
+      "bytes": 16914,
+      "filename": "stored-circle-prism-solid-C.parent.json",
+      "scope": "complete actual original native parent; signed binary64 data",
+      "sha256": "1279e52931bbb708765fb0664f9a92e6ddeaf24a675971b920487a35b931a353"
+    },
+    "C.profile.source0": {
+      "bytes": 465,
+      "filename": "stored-circle-prism-solid-C.profile.source0",
+      "scope": "unchanged original profile Source0, not whole-model source",
+      "sha256": "b706c25eb8cbae92963856575201b89d7264c1d92b2c9ceb339d9940e20769e0"
+    }
+  },
+  "expectedWholeCampaign": {
+    "explicitParentBuilds": 3,
+    "qualificationOrValidationCalls": 6,
+    "previews": 1,
+    "explicitWallD1Attempts": 3,
+    "shellConstructionRoots": 10,
+    "knownSourceCompilations": 14,
+    "sourceDerivedDirectCallSiteAttempts": {
+      "CurveD0": 1464,
+      "SurfaceD0": 556,
+      "CurveD1": 80,
+      "SurfaceD1": 237
+    },
+    "fullTransitiveNativeCoverage": "NOT_MEASURED"
+  },
+  "fullTransitiveNativeCoverage": "NOT_MEASURED",
+  "sourceDerivedExpectedWorkIsNotInstrumented": true,
+  "externalSerialProcessGroupTimeoutRequired": true,
+  "nativeElapsedMS": 96.9857220000001,
+  "originalSourceReceipt": {
+    "filename": "source-flow.json",
+    "sha256": "ff32a7388da44b8b90c3dfa4bf5e83b9e1383dd28763492874a9da41ed336dc6"
+  },
+  "continuationCalls": {
+    "wallD1Attempts": 3
+  },
+  "continuationNativeElapsedMS": 7.172933000000029,
+  "spentCallsFromOriginalReceipt": {
+    "parentBuilds": 3,
+    "qualifiers": 4,
+    "validators": 1,
+    "previews": 1,
+    "wallD1Attempts": 0
+  },
+  "originalNativeElapsedMS": 89.81278900000007,
+  "originalFailure": {
+    "name": "AssertionError",
+    "code": "ERR_ASSERTION",
+    "message": "data\n+ actual - expected\n\n  {\n    max: [\n      6,\n      1,\n+     6.000000000000001\n-     6\n    ],\n    min: [\n      -2,\n      -7,\n      0\n",
+    "stack": "AssertionError [ERR_ASSERTION]: data\n+ actual - expected\n\n  {\n    max: [\n      6,\n      1,\n+     6.000000000000001\n-     6\n    ],\n    min: [\n      -2,\n      -7,\n      0\n\n    at exactData (file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-fixture.mjs:31:10)\n    at provePreview (file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-fixture.mjs:197:44)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:122:18\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)",
+    "cause": null
+  },
+  "AParent": {
+    "boundsMM": {
+      "max": [
+        6,
+        1,
+        6
+      ],
+      "min": [
+        -2,
+        -7,
+        0
+      ]
+    },
+    "originalReport": {
+      "baseFaceReport": {
+        "boundsMM": {
+          "max": [
+            6,
+            1,
+            0
+          ],
+          "min": [
+            -2,
+            -7,
+            0
+          ]
+        },
+        "centerMM": [
+          2,
+          -3
+        ],
+        "edgeCount": 1,
+        "edgeId": "solid1655_A_z_min_edge",
+        "faceId": "solid1655_A_z_min",
+        "geometricValidity": "not-certified",
+        "incidenceValid": true,
+        "limits": {
+          "arrayElements": 64,
+          "authoredIdCharacters": 64,
+          "boundaryToleranceMM": 1e-7,
+          "derivativeComparisonRelative": 1e-9,
+          "derivedIdCharacters": 80,
+          "evaluationComparisonMM": 1e-7,
+          "planeToleranceMM": 1e-7,
+          "recordFields": 12,
+          "snapshotDepth": 10,
+          "snapshotValues": 8192,
+          "stringCharacters": 128
+        },
+        "loopUseCount": 1,
+        "nativeDomain": [
+          0,
+          4
+        ],
+        "nativeObjectCount": 2,
+        "outerLoopId": "solid1655_A_z_min_loop",
+        "pcurveId": "solid1655_A_z_min_uv",
+        "periodic": false,
+        "radiusMM": 4,
+        "referenceDiskAreaMM2": 50.26548245743669,
+        "seamVertexId": "solid1655_A_z_min_seam",
+        "solid": false,
+        "sourceCurveId": "solid1655_A_ring",
+        "surfaceDomain": {
+          "u": [
+            0,
+            1
+          ],
+          "v": [
+            0,
+            1
+          ]
+        },
+        "surfaceId": "solid1655_A_z_min_surface",
+        "topologyCertified": false,
+        "trimFamily": "xy-circle-planar-face-v0",
+        "uvDomain": [
+          0,
+          4
+        ],
+        "vertexCount": 1
+      },
+      "boundsMM": {
+        "max": [
+          6,
+          1,
+          6
+        ],
+        "min": [
+          -2,
+          -7,
+          0
+        ]
+      },
+      "candidateClosedShell": true,
+      "centerMM": [
+        2,
+        -3
+      ],
+      "domains": {
+        "bottomCurve": [
+          0,
+          4
+        ],
+        "bottomSurface": {
+          "u": [
+            0,
+            1
+          ],
+          "v": [
+            0,
+            1
+          ]
+        },
+        "seamCurve": [
+          0,
+          1
+        ],
+        "topCurve": [
+          0,
+          4
+        ],
+        "topSurface": {
+          "u": [
+            0,
+            1
+          ],
+          "v": [
+            0,
+            1
+          ]
+        },
+        "wallSurface": {
+          "u": [
+            0,
+            4
+          ],
+          "v": [
+            0,
+            1
+          ]
+        }
+      },
+      "edgeCount": 3,
+      "edgeIncidence": [
+        {
+          "edgeId": "solid1655_A_z_min_edge",
+          "uses": [
+            {
+              "faceId": "solid1655_A_z_min",
+              "loopId": "solid1655_A_z_min_loop",
+              "sense": "reverse",
+              "useId": "solid1655_A_z_min_use"
+            },
+            {
+              "faceId": "solid1655_A_wall",
+              "loopId": "solid1655_A_wall_loop",
+              "sense": "forward",
+              "useId": "solid1655_A_wall_bottom_use"
+            }
+          ]
+        },
+        {
+          "edgeId": "solid1655_A_z_max_edge",
+          "uses": [
+            {
+              "faceId": "solid1655_A_z_max",
+              "loopId": "solid1655_A_z_max_loop",
+              "sense": "forward",
+              "useId": "solid1655_A_z_max_use"
+            },
+            {
+              "faceId": "solid1655_A_wall",
+              "loopId": "solid1655_A_wall_loop",
+              "sense": "reverse",
+              "useId": "solid1655_A_wall_top_use"
+            }
+          ]
+        },
+        {
+          "edgeId": "solid1655_A_wall_seam_edge",
+          "uses": [
+            {
+              "faceId": "solid1655_A_wall",
+              "loopId": "solid1655_A_wall_loop",
+              "sense": "forward",
+              "useId": "solid1655_A_wall_right_use"
+            },
+            {
+              "faceId": "solid1655_A_wall",
+              "loopId": "solid1655_A_wall_loop",
+              "sense": "reverse",
+              "useId": "solid1655_A_wall_left_use"
+            }
+          ]
+        }
+      ],
+      "edgeUseCount": 6,
+      "faceCount": 3,
+      "geometricValidity": "not-certified",
+      "geometryIds": {
+        "bottomCurveId": "solid1655_A_ring",
+        "bottomSurfaceId": "solid1655_A_z_min_surface",
+        "seamCurveId": "solid1655_A_seam_curve",
+        "topCurveId": "solid1655_A_z_max_curve",
+        "topSurfaceId": "solid1655_A_z_max_surface",
+        "wallSurfaceId": "solid1655_A_wall_surface"
+      },
+      "heightMM": 6,
+      "incidenceValid": true,
+      "limits": {
+        "arrayElements": 128,
+        "authoredIdCharacters": 48,
+        "derivedIdCharacters": 80,
+        "evaluationComparisonMM": 1e-7,
+        "recordFields": 24,
+        "snapshotDepth": 14,
+        "snapshotValues": 32768,
+        "stringCharacters": 128
+      },
+      "loopCount": 3,
+      "loopObservations": [
+        {
+          "closed": true,
+          "faceId": "solid1655_A_z_min",
+          "loopId": "solid1655_A_z_min_loop",
+          "useCount": 1
+        },
+        {
+          "closed": true,
+          "faceId": "solid1655_A_z_max",
+          "loopId": "solid1655_A_z_max_loop",
+          "useCount": 1
+        },
+        {
+          "closed": true,
+          "faceId": "solid1655_A_wall",
+          "loopId": "solid1655_A_wall_loop",
+          "useCount": 4
+        }
+      ],
+      "nativeObjectCount": 6,
+      "normalObservations": [
+        {
+          "faceId": "solid1655_A_z_min",
+          "normal": [
+            0,
+            0,
+            -1
+          ],
+          "pointMM": [
+            2,
+            -3,
+            0
+          ],
+          "surfaceId": "solid1655_A_z_min_surface",
+          "uv": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "faceId": "solid1655_A_z_max",
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "pointMM": [
+            2,
+            -3,
+            6
+          ],
+          "surfaceId": "solid1655_A_z_max_surface",
+          "uv": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "faceId": "solid1655_A_wall",
+          "normal": [
+            0.7071067811865475,
+            0.7071067811865475,
+            0
+          ],
+          "pointMM": [
+            4.828427124746191,
+            -0.17157287525380996,
+            3.0000000000000004
+          ],
+          "surfaceId": "solid1655_A_wall_surface",
+          "uv": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "faceId": "solid1655_A_wall",
+          "normal": [
+            -0.7071067811865475,
+            0.7071067811865475,
+            0
+          ],
+          "pointMM": [
+            -0.8284271247461902,
+            -0.17157287525380996,
+            3.0000000000000004
+          ],
+          "surfaceId": "solid1655_A_wall_surface",
+          "uv": [
+            1.5,
+            0.5
+          ]
+        },
+        {
+          "faceId": "solid1655_A_wall",
+          "normal": [
+            -0.7071067811865475,
+            -0.7071067811865475,
+            0
+          ],
+          "pointMM": [
+            -0.8284271247461901,
+            -5.828427124746191,
+            3.0000000000000004
+          ],
+          "surfaceId": "solid1655_A_wall_surface",
+          "uv": [
+            2.5,
+            0.5
+          ]
+        },
+        {
+          "faceId": "solid1655_A_wall",
+          "normal": [
+            0.7071067811865475,
+            -0.7071067811865475,
+            0
+          ],
+          "pointMM": [
+            4.828427124746191,
+            -5.828427124746191,
+            3.0000000000000004
+          ],
+          "surfaceId": "solid1655_A_wall_surface",
+          "uv": [
+            3.5,
+            0.5
+          ]
+        }
+      ],
+      "periodic": false,
+      "radiusMM": 4,
+      "referenceBoundaryAreaMM2": 251.32741228718345,
+      "referenceLateralAreaMM2": 150.79644737231007,
+      "referenceVolumeMM3": 301.59289474462014,
+      "shellId": "solid1655_A",
+      "solid": false,
+      "sourceCurveId": "solid1655_A_ring",
+      "topologyCertified": false,
+      "trimFamily": "xy-circle-prism-shell-v0",
+      "vertexCount": 2
+    },
+    "referenceValuesAreNotCertifiedMass": true
+  },
+  "BParent": {
+    "boundsMM": {
+      "max": [
+        0.5,
+        0.75,
+        1.5
+      ],
+      "min": [
+        -0.5,
+        -0.25,
+        0
+      ]
+    },
+    "originalReport": {
+      "baseFaceReport": {
+        "boundsMM": {
+          "max": [
+            0.5,
+            0.75,
+            0
+          ],
+          "min": [
+            -0.5,
+            -0.25,
+            0
+          ]
+        },
+        "centerMM": [
+          0,
+          0.25
+        ],
+        "edgeCount": 1,
+        "edgeId": "solid1655_B_z_min_edge",
+        "faceId": "solid1655_B_z_min",
+        "geometricValidity": "not-certified",
+        "incidenceValid": true,
+        "limits": {
+          "arrayElements": 64,
+          "authoredIdCharacters": 64,
+          "boundaryToleranceMM": 1e-7,
+          "derivativeComparisonRelative": 1e-9,
+          "derivedIdCharacters": 80,
+          "evaluationComparisonMM": 1e-7,
+          "planeToleranceMM": 1e-7,
+          "recordFields": 12,
+          "snapshotDepth": 10,
+          "snapshotValues": 8192,
+          "stringCharacters": 128
+        },
+        "loopUseCount": 1,
+        "nativeDomain": [
+          0,
+          4
+        ],
+        "nativeObjectCount": 2,
+        "outerLoopId": "solid1655_B_z_min_loop",
+        "pcurveId": "solid1655_B_z_min_uv",
+        "periodic": false,
+        "radiusMM": 0.5,
+        "referenceDiskAreaMM2": 0.7853981633974483,
+        "seamVertexId": "solid1655_B_z_min_seam",
+        "solid": false,
+        "sourceCurveId": "solid1655_B_ring",
+        "surfaceDomain": {
+          "u": [
+            0,
+            1
+          ],
+          "v": [
+            0,
+            1
+          ]
+        },
+        "surfaceId": "solid1655_B_z_min_surface",
+        "topologyCertified": false,
+        "trimFamily": "xy-circle-planar-face-v0",
+        "uvDomain": [
+          0,
+          4
+        ],
+        "vertexCount": 1
+      },
+      "boundsMM": {
+        "max": [
+          0.5,
+          0.75,
+          1.5
+        ],
+        "min": [
+          -0.5,
+          -0.25,
+          0
+        ]
+      },
+      "candidateClosedShell": true,
+      "centerMM": [
+        0,
+        0.25
+      ],
+      "domains": {
+        "bottomCurve": [
+          0,
+          4
+        ],
+        "bottomSurface": {
+          "u": [
+            0,
+            1
+          ],
+          "v": [
+            0,
+            1
+          ]
+        },
+        "seamCurve": [
+          0,
+          1
+        ],
+        "topCurve": [
+          0,
+          4
+        ],
+        "topSurface": {
+          "u": [
+            0,
+            1
+          ],
+          "v": [
+            0,
+            1
+          ]
+        },
+        "wallSurface": {
+          "u": [
+            0,
+            4
+          ],
+          "v": [
+            0,
+            1
+          ]
+        }
+      },
+      "edgeCount": 3,
+      "edgeIncidence": [
+        {
+          "edgeId": "solid1655_B_z_min_edge",
+          "uses": [
+            {
+              "faceId": "solid1655_B_z_min",
+              "loopId": "solid1655_B_z_min_loop",
+              "sense": "reverse",
+              "useId": "solid1655_B_z_min_use"
+            },
+            {
+              "faceId": "solid1655_B_wall",
+              "loopId": "solid1655_B_wall_loop",
+              "sense": "forward",
+              "useId": "solid1655_B_wall_bottom_use"
+            }
+          ]
+        },
+        {
+          "edgeId": "solid1655_B_z_max_edge",
+          "uses": [
+            {
+              "faceId": "solid1655_B_z_max",
+              "loopId": "solid1655_B_z_max_loop",
+              "sense": "forward",
+              "useId": "solid1655_B_z_max_use"
+            },
+            {
+              "faceId": "solid1655_B_wall",
+              "loopId": "solid1655_B_wall_loop",
+              "sense": "reverse",
+              "useId": "solid1655_B_wall_top_use"
+            }
+          ]
+        },
+        {
+          "edgeId": "solid1655_B_wall_seam_edge",
+          "uses": [
+            {
+              "faceId": "solid1655_B_wall",
+              "loopId": "solid1655_B_wall_loop",
+              "sense": "forward",
+              "useId": "solid1655_B_wall_right_use"
+            },
+            {
+              "faceId": "solid1655_B_wall",
+              "loopId": "solid1655_B_wall_loop",
+              "sense": "reverse",
+              "useId": "solid1655_B_wall_left_use"
+            }
+          ]
+        }
+      ],
+      "edgeUseCount": 6,
+      "faceCount": 3,
+      "geometricValidity": "not-certified",
+      "geometryIds": {
+        "bottomCurveId": "solid1655_B_ring",
+        "bottomSurfaceId": "solid1655_B_z_min_surface",
+        "seamCurveId": "solid1655_B_seam_curve",
+        "topCurveId": "solid1655_B_z_max_curve",
+        "topSurfaceId": "solid1655_B_z_max_surface",
+        "wallSurfaceId": "solid1655_B_wall_surface"
+      },
+      "heightMM": 1.5,
+      "incidenceValid": true,
+      "limits": {
+        "arrayElements": 128,
+        "authoredIdCharacters": 48,
+        "derivedIdCharacters": 80,
+        "evaluationComparisonMM": 1e-7,
+        "recordFields": 24,
+        "snapshotDepth": 14,
+        "snapshotValues": 32768,
+        "stringCharacters": 128
+      },
+      "loopCount": 3,
+      "loopObservations": [
+        {
+          "closed": true,
+          "faceId": "solid1655_B_z_min",
+          "loopId": "solid1655_B_z_min_loop",
+          "useCount": 1
+        },
+        {
+          "closed": true,
+          "faceId": "solid1655_B_z_max",
+          "loopId": "solid1655_B_z_max_loop",
+          "useCount": 1
+        },
+        {
+          "closed": true,
+          "faceId": "solid1655_B_wall",
+          "loopId": "solid1655_B_wall_loop",
+          "useCount": 4
+        }
+      ],
+      "nativeObjectCount": 6,
+      "normalObservations": [
+        {
+          "faceId": "solid1655_B_z_min",
+          "normal": [
+            0,
+            0,
+            -1
+          ],
+          "pointMM": [
+            0,
+            0.25,
+            0
+          ],
+          "surfaceId": "solid1655_B_z_min_surface",
+          "uv": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "faceId": "solid1655_B_z_max",
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "pointMM": [
+            0,
+            0.25,
+            1.5
+          ],
+          "surfaceId": "solid1655_B_z_max_surface",
+          "uv": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "faceId": "solid1655_B_wall",
+          "normal": [
+            0.7071067811865475,
+            0.7071067811865475,
+            0
+          ],
+          "pointMM": [
+            0.35355339059327373,
+            0.6035533905932738,
+            0.7500000000000001
+          ],
+          "surfaceId": "solid1655_B_wall_surface",
+          "uv": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "faceId": "solid1655_B_wall",
+          "normal": [
+            -0.7071067811865475,
+            0.7071067811865475,
+            0
+          ],
+          "pointMM": [
+            -0.35355339059327373,
+            0.6035533905932738,
+            0.7500000000000001
+          ],
+          "surfaceId": "solid1655_B_wall_surface",
+          "uv": [
+            1.5,
+            0.5
+          ]
+        },
+        {
+          "faceId": "solid1655_B_wall",
+          "normal": [
+            -0.7071067811865475,
+            -0.7071067811865475,
+            0
+          ],
+          "pointMM": [
+            -0.35355339059327373,
+            -0.10355339059327377,
+            0.7500000000000001
+          ],
+          "surfaceId": "solid1655_B_wall_surface",
+          "uv": [
+            2.5,
+            0.5
+          ]
+        },
+        {
+          "faceId": "solid1655_B_wall",
+          "normal": [
+            0.7071067811865475,
+            -0.7071067811865475,
+            0
+          ],
+          "pointMM": [
+            0.35355339059327373,
+            -0.10355339059327376,
+            0.7500000000000001
+          ],
+          "surfaceId": "solid1655_B_wall_surface",
+          "uv": [
+            3.5,
+            0.5
+          ]
+        }
+      ],
+      "periodic": false,
+      "radiusMM": 0.5,
+      "referenceBoundaryAreaMM2": 6.283185307179586,
+      "referenceLateralAreaMM2": 4.71238898038469,
+      "referenceVolumeMM3": 1.1780972450961724,
+      "shellId": "solid1655_B",
+      "solid": false,
+      "sourceCurveId": "solid1655_B_ring",
+      "topologyCertified": false,
+      "trimFamily": "xy-circle-prism-shell-v0",
+      "vertexCount": 2
+    },
+    "referenceValuesAreNotCertifiedMass": true
+  },
+  "CParent": {
+    "boundsMM": {
+      "max": [
+        0.30000000000000004,
+        0.30000000000000004,
+        0.3
+      ],
+      "min": [
+        0.1,
+        0.1,
+        0
+      ]
+    },
+    "originalReport": {
+      "baseFaceReport": {
+        "boundsMM": {
+          "max": [
+            0.30000000000000004,
+            0.30000000000000004,
+            0
+          ],
+          "min": [
+            0.1,
+            0.1,
+            0
+          ]
+        },
+        "centerMM": [
+          0.2,
+          0.2
+        ],
+        "edgeCount": 1,
+        "edgeId": "solid1655_C_z_min_edge",
+        "faceId": "solid1655_C_z_min",
+        "geometricValidity": "not-certified",
+        "incidenceValid": true,
+        "limits": {
+          "arrayElements": 64,
+          "authoredIdCharacters": 64,
+          "boundaryToleranceMM": 1e-7,
+          "derivativeComparisonRelative": 1e-9,
+          "derivedIdCharacters": 80,
+          "evaluationComparisonMM": 1e-7,
+          "planeToleranceMM": 1e-7,
+          "recordFields": 12,
+          "snapshotDepth": 10,
+          "snapshotValues": 8192,
+          "stringCharacters": 128
+        },
+        "loopUseCount": 1,
+        "nativeDomain": [
+          0,
+          4
+        ],
+        "nativeObjectCount": 2,
+        "outerLoopId": "solid1655_C_z_min_loop",
+        "pcurveId": "solid1655_C_z_min_uv",
+        "periodic": false,
+        "radiusMM": 0.1,
+        "referenceDiskAreaMM2": 0.031415926535897934,
+        "seamVertexId": "solid1655_C_z_min_seam",
+        "solid": false,
+        "sourceCurveId": "solid1655_C_ring",
+        "surfaceDomain": {
+          "u": [
+            0,
+            1
+          ],
+          "v": [
+            0,
+            1
+          ]
+        },
+        "surfaceId": "solid1655_C_z_min_surface",
+        "topologyCertified": false,
+        "trimFamily": "xy-circle-planar-face-v0",
+        "uvDomain": [
+          0,
+          4
+        ],
+        "vertexCount": 1
+      },
+      "boundsMM": {
+        "max": [
+          0.30000000000000004,
+          0.30000000000000004,
+          0.3
+        ],
+        "min": [
+          0.1,
+          0.1,
+          0
+        ]
+      },
+      "candidateClosedShell": true,
+      "centerMM": [
+        0.2,
+        0.2
+      ],
+      "domains": {
+        "bottomCurve": [
+          0,
+          4
+        ],
+        "bottomSurface": {
+          "u": [
+            0,
+            1
+          ],
+          "v": [
+            0,
+            1
+          ]
+        },
+        "seamCurve": [
+          0,
+          1
+        ],
+        "topCurve": [
+          0,
+          4
+        ],
+        "topSurface": {
+          "u": [
+            0,
+            1
+          ],
+          "v": [
+            0,
+            1
+          ]
+        },
+        "wallSurface": {
+          "u": [
+            0,
+            4
+          ],
+          "v": [
+            0,
+            1
+          ]
+        }
+      },
+      "edgeCount": 3,
+      "edgeIncidence": [
+        {
+          "edgeId": "solid1655_C_z_min_edge",
+          "uses": [
+            {
+              "faceId": "solid1655_C_z_min",
+              "loopId": "solid1655_C_z_min_loop",
+              "sense": "reverse",
+              "useId": "solid1655_C_z_min_use"
+            },
+            {
+              "faceId": "solid1655_C_wall",
+              "loopId": "solid1655_C_wall_loop",
+              "sense": "forward",
+              "useId": "solid1655_C_wall_bottom_use"
+            }
+          ]
+        },
+        {
+          "edgeId": "solid1655_C_z_max_edge",
+          "uses": [
+            {
+              "faceId": "solid1655_C_z_max",
+              "loopId": "solid1655_C_z_max_loop",
+              "sense": "forward",
+              "useId": "solid1655_C_z_max_use"
+            },
+            {
+              "faceId": "solid1655_C_wall",
+              "loopId": "solid1655_C_wall_loop",
+              "sense": "reverse",
+              "useId": "solid1655_C_wall_top_use"
+            }
+          ]
+        },
+        {
+          "edgeId": "solid1655_C_wall_seam_edge",
+          "uses": [
+            {
+              "faceId": "solid1655_C_wall",
+              "loopId": "solid1655_C_wall_loop",
+              "sense": "forward",
+              "useId": "solid1655_C_wall_right_use"
+            },
+            {
+              "faceId": "solid1655_C_wall",
+              "loopId": "solid1655_C_wall_loop",
+              "sense": "reverse",
+              "useId": "solid1655_C_wall_left_use"
+            }
+          ]
+        }
+      ],
+      "edgeUseCount": 6,
+      "faceCount": 3,
+      "geometricValidity": "not-certified",
+      "geometryIds": {
+        "bottomCurveId": "solid1655_C_ring",
+        "bottomSurfaceId": "solid1655_C_z_min_surface",
+        "seamCurveId": "solid1655_C_seam_curve",
+        "topCurveId": "solid1655_C_z_max_curve",
+        "topSurfaceId": "solid1655_C_z_max_surface",
+        "wallSurfaceId": "solid1655_C_wall_surface"
+      },
+      "heightMM": 0.3,
+      "incidenceValid": true,
+      "limits": {
+        "arrayElements": 128,
+        "authoredIdCharacters": 48,
+        "derivedIdCharacters": 80,
+        "evaluationComparisonMM": 1e-7,
+        "recordFields": 24,
+        "snapshotDepth": 14,
+        "snapshotValues": 32768,
+        "stringCharacters": 128
+      },
+      "loopCount": 3,
+      "loopObservations": [
+        {
+          "closed": true,
+          "faceId": "solid1655_C_z_min",
+          "loopId": "solid1655_C_z_min_loop",
+          "useCount": 1
+        },
+        {
+          "closed": true,
+          "faceId": "solid1655_C_z_max",
+          "loopId": "solid1655_C_z_max_loop",
+          "useCount": 1
+        },
+        {
+          "closed": true,
+          "faceId": "solid1655_C_wall",
+          "loopId": "solid1655_C_wall_loop",
+          "useCount": 4
+        }
+      ],
+      "nativeObjectCount": 6,
+      "normalObservations": [
+        {
+          "faceId": "solid1655_C_z_min",
+          "normal": [
+            0,
+            0,
+            -1
+          ],
+          "pointMM": [
+            0.2,
+            0.2,
+            0
+          ],
+          "surfaceId": "solid1655_C_z_min_surface",
+          "uv": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "faceId": "solid1655_C_z_max",
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "pointMM": [
+            0.2,
+            0.2,
+            0.3
+          ],
+          "surfaceId": "solid1655_C_z_max_surface",
+          "uv": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "faceId": "solid1655_C_wall",
+          "normal": [
+            0.7071067811865475,
+            0.7071067811865475,
+            0
+          ],
+          "pointMM": [
+            0.2707106781186548,
+            0.2707106781186548,
+            0.15
+          ],
+          "surfaceId": "solid1655_C_wall_surface",
+          "uv": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "faceId": "solid1655_C_wall",
+          "normal": [
+            -0.7071067811865476,
+            0.7071067811865475,
+            0
+          ],
+          "pointMM": [
+            0.12928932188134526,
+            0.2707106781186548,
+            0.15
+          ],
+          "surfaceId": "solid1655_C_wall_surface",
+          "uv": [
+            1.5,
+            0.5
+          ]
+        },
+        {
+          "faceId": "solid1655_C_wall",
+          "normal": [
+            -0.7071067811865476,
+            -0.7071067811865476,
+            0
+          ],
+          "pointMM": [
+            0.12928932188134526,
+            0.12928932188134526,
+            0.15
+          ],
+          "surfaceId": "solid1655_C_wall_surface",
+          "uv": [
+            2.5,
+            0.5
+          ]
+        },
+        {
+          "faceId": "solid1655_C_wall",
+          "normal": [
+            0.7071067811865475,
+            -0.7071067811865476,
+            0
+          ],
+          "pointMM": [
+            0.2707106781186548,
+            0.12928932188134526,
+            0.15
+          ],
+          "surfaceId": "solid1655_C_wall_surface",
+          "uv": [
+            3.5,
+            0.5
+          ]
+        }
+      ],
+      "periodic": false,
+      "radiusMM": 0.1,
+      "referenceBoundaryAreaMM2": 0.25132741228718347,
+      "referenceLateralAreaMM2": 0.18849555921538758,
+      "referenceVolumeMM3": 0.00942477796076938,
+      "shellId": "solid1655_C",
+      "solid": false,
+      "sourceCurveId": "solid1655_C_ring",
+      "topologyCertified": false,
+      "trimFamily": "xy-circle-prism-shell-v0",
+      "vertexCount": 2
+    },
+    "referenceValuesAreNotCertifiedMass": true
+  },
+  "A": {
+    "certificate": {
+      "arithmetic": {
+        "floatConversions": 0,
+        "floatSearchSteps": 0,
+        "gcdSteps": 1194,
+        "maximumObservedBits": 54,
+        "operations": 10686
+      },
+      "directCounts": {
+        "capPoleCompositions": 18,
+        "capUseCount": 2,
+        "cornerCount": 6,
+        "germCount": 6,
+        "parentReconstructionCalls": 1,
+        "wallUseCount": 4,
+        "wholeModelCompilations": 1
+      },
+      "edgeCount": 3,
+      "edgeUseCount": 6,
+      "embeddedStoredGeometryCertified": true,
+      "eulerCharacteristic": 2,
+      "faceAdjacency": [
+        {
+          "adjacentFaceIds": [
+            "solid1655_A_wall"
+          ],
+          "faceId": "solid1655_A_z_min"
+        },
+        {
+          "adjacentFaceIds": [
+            "solid1655_A_wall"
+          ],
+          "faceId": "solid1655_A_z_max"
+        },
+        {
+          "adjacentFaceIds": [
+            "solid1655_A_z_min",
+            "solid1655_A_z_max",
+            "solid1655_A_wall"
+          ],
+          "faceId": "solid1655_A_wall"
+        }
+      ],
+      "faceCount": 3,
+      "genus": 0,
+      "geometryAuthority": "stored-coefficient-mathematical-model",
+      "kind": "restricted-stored-rational-circle-prism-solid",
+      "lengthUnit": "mm",
+      "loopCount": 3,
+      "materialComponentCount": 1,
+      "planarFaces": [
+        {
+          "faceId": "solid1655_A_z_min",
+          "normalSign": -1,
+          "poleCompositionCount": 9,
+          "useId": "solid1655_A_z_min_use"
+        },
+        {
+          "faceId": "solid1655_A_z_max",
+          "normalSign": 1,
+          "poleCompositionCount": 9,
+          "useId": "solid1655_A_z_max_use"
+        }
+      ],
+      "ringProof": {
+        "bottomEdgeId": "solid1655_A_z_min_edge",
+        "quadrants": [
+          {
+            "derivativeNumeratorsX": [
+              {
+                "denominator": "1",
+                "numerator": "0"
+              },
+              {
+                "denominator": "1",
+                "numerator": "-4"
+              },
+              {
+                "denominator": "1125899906842624",
+                "numerator": "-6369051672525773"
+              }
+            ],
+            "derivativeNumeratorsY": [
+              {
+                "denominator": "1125899906842624",
+                "numerator": "6369051672525773"
+              },
+              {
+                "denominator": "1",
+                "numerator": "4"
+              },
+              {
+                "denominator": "1",
+                "numerator": "0"
+              }
+            ],
+            "index": 0
+          },
+          {
+            "derivativeNumeratorsX": [
+              {
+                "denominator": "1125899906842624",
+                "numerator": "-6369051672525773"
+              },
+              {
+                "denominator": "1",
+                "numerator": "-4"
+              },
+              {
+                "denominator": "1",
+                "numerator": "0"
+              }
+            ],
+            "derivativeNumeratorsY": [
+              {
+                "denominator": "1",
+                "numerator": "0"
+              },
+              {
+                "denominator": "1",
+                "numerator": "-4"
+              },
+              {
+                "denominator": "1125899906842624",
+                "numerator": "-6369051672525773"
+              }
+            ],
+            "index": 1
+          },
+          {
+            "derivativeNumeratorsX": [
+              {
+                "denominator": "1",
+                "numerator": "0"
+              },
+              {
+                "denominator": "1",
+                "numerator": "4"
+              },
+              {
+                "denominator": "1125899906842624",
+                "numerator": "6369051672525773"
+              }
+            ],
+            "derivativeNumeratorsY": [
+              {
+                "denominator": "1125899906842624",
+                "numerator": "-6369051672525773"
+              },
+              {
+                "denominator": "1",
+                "numerator": "-4"
+              },
+              {
+                "denominator": "1",
+                "numerator": "0"
+              }
+            ],
+            "index": 2
+          },
+          {
+            "derivativeNumeratorsX": [
+              {
+                "denominator": "1125899906842624",
+                "numerator": "6369051672525773"
+              },
+              {
+                "denominator": "1",
+                "numerator": "4"
+              },
+              {
+                "denominator": "1",
+                "numerator": "0"
+              }
+            ],
+            "derivativeNumeratorsY": [
+              {
+                "denominator": "1",
+                "numerator": "0"
+              },
+              {
+                "denominator": "1",
+                "numerator": "4"
+              },
+              {
+                "denominator": "1125899906842624",
+                "numerator": "6369051672525773"
+              }
+            ],
+            "index": 3
+          }
+        ],
+        "storedMiddleWeight": 0.7071067811865476,
+        "topEdgeId": "solid1655_A_z_max_edge"
+      },
+      "solid": true,
+      "topologyCertified": true,
+      "version": 0,
+      "vertexCount": 2,
+      "vertexLinks": [
+        {
+          "corners": [
+            {
+              "faceId": "solid1655_A_z_min",
+              "from": {
+                "edgeId": "solid1655_A_z_min_edge",
+                "endpointIndex": 0
+              },
+              "incomingUseId": "solid1655_A_z_min_use",
+              "loopId": "solid1655_A_z_min_loop",
+              "outgoingUseId": "solid1655_A_z_min_use",
+              "to": {
+                "edgeId": "solid1655_A_z_min_edge",
+                "endpointIndex": 1
+              }
+            },
+            {
+              "faceId": "solid1655_A_wall",
+              "from": {
+                "edgeId": "solid1655_A_z_min_edge",
+                "endpointIndex": 1
+              },
+              "incomingUseId": "solid1655_A_wall_bottom_use",
+              "loopId": "solid1655_A_wall_loop",
+              "outgoingUseId": "solid1655_A_wall_right_use",
+              "to": {
+                "edgeId": "solid1655_A_wall_seam_edge",
+                "endpointIndex": 0
+              }
+            },
+            {
+              "faceId": "solid1655_A_wall",
+              "from": {
+                "edgeId": "solid1655_A_wall_seam_edge",
+                "endpointIndex": 0
+              },
+              "incomingUseId": "solid1655_A_wall_left_use",
+              "loopId": "solid1655_A_wall_loop",
+              "outgoingUseId": "solid1655_A_wall_bottom_use",
+              "to": {
+                "edgeId": "solid1655_A_z_min_edge",
+                "endpointIndex": 0
+              }
+            }
+          ],
+          "cycle": [
+            {
+              "edgeId": "solid1655_A_z_min_edge",
+              "endpointIndex": 0
+            },
+            {
+              "edgeId": "solid1655_A_z_min_edge",
+              "endpointIndex": 1
+            },
+            {
+              "edgeId": "solid1655_A_wall_seam_edge",
+              "endpointIndex": 0
+            }
+          ],
+          "germs": [
+            {
+              "edgeId": "solid1655_A_z_min_edge",
+              "endpointIndex": 0
+            },
+            {
+              "edgeId": "solid1655_A_z_min_edge",
+              "endpointIndex": 1
+            },
+            {
+              "edgeId": "solid1655_A_wall_seam_edge",
+              "endpointIndex": 0
+            }
+          ],
+          "vertexId": "solid1655_A_z_min_seam"
+        },
+        {
+          "corners": [
+            {
+              "faceId": "solid1655_A_z_max",
+              "from": {
+                "edgeId": "solid1655_A_z_max_edge",
+                "endpointIndex": 1
+              },
+              "incomingUseId": "solid1655_A_z_max_use",
+              "loopId": "solid1655_A_z_max_loop",
+              "outgoingUseId": "solid1655_A_z_max_use",
+              "to": {
+                "edgeId": "solid1655_A_z_max_edge",
+                "endpointIndex": 0
+              }
+            },
+            {
+              "faceId": "solid1655_A_wall",
+              "from": {
+                "edgeId": "solid1655_A_wall_seam_edge",
+                "endpointIndex": 1
+              },
+              "incomingUseId": "solid1655_A_wall_right_use",
+              "loopId": "solid1655_A_wall_loop",
+              "outgoingUseId": "solid1655_A_wall_top_use",
+              "to": {
+                "edgeId": "solid1655_A_z_max_edge",
+                "endpointIndex": 1
+              }
+            },
+            {
+              "faceId": "solid1655_A_wall",
+              "from": {
+                "edgeId": "solid1655_A_z_max_edge",
+                "endpointIndex": 0
+              },
+              "incomingUseId": "solid1655_A_wall_top_use",
+              "loopId": "solid1655_A_wall_loop",
+              "outgoingUseId": "solid1655_A_wall_left_use",
+              "to": {
+                "edgeId": "solid1655_A_wall_seam_edge",
+                "endpointIndex": 1
+              }
+            }
+          ],
+          "cycle": [
+            {
+              "edgeId": "solid1655_A_z_max_edge",
+              "endpointIndex": 0
+            },
+            {
+              "edgeId": "solid1655_A_wall_seam_edge",
+              "endpointIndex": 1
+            },
+            {
+              "edgeId": "solid1655_A_z_max_edge",
+              "endpointIndex": 1
+            }
+          ],
+          "germs": [
+            {
+              "edgeId": "solid1655_A_z_max_edge",
+              "endpointIndex": 0
+            },
+            {
+              "edgeId": "solid1655_A_z_max_edge",
+              "endpointIndex": 1
+            },
+            {
+              "edgeId": "solid1655_A_wall_seam_edge",
+              "endpointIndex": 1
+            }
+          ],
+          "vertexId": "solid1655_A_z_max_seam"
+        }
+      ],
+      "wallProof": {
+        "faceId": "solid1655_A_wall",
+        "heightMM": 6,
+        "seamEdgeId": "solid1655_A_wall_seam_edge"
+      }
+    },
+    "qualifiedDataSHA256": "c31e873e78ae37d5af549d5bebc1ac7986a7071b1081285dfe1223a67711accb",
+    "originalParentSHA256": "b5d6794e31136218e91b5c2617beae3e7d3be84918841804d20ce88ed4dacbce",
+    "originalProfileSourceSHA256": "d89dbc76242858986b053ae37156b3c21a56c9438346f859776fba069efec112",
+    "worldSourceSHA256": "fad981930091a774d834204cc621106bf48aa19d8631565f809f305fd395564e"
+  },
+  "B": {
+    "certificate": {
+      "arithmetic": {
+        "floatConversions": 0,
+        "floatSearchSteps": 0,
+        "gcdSteps": 1336,
+        "maximumObservedBits": 54,
+        "operations": 10755
+      },
+      "directCounts": {
+        "capPoleCompositions": 18,
+        "capUseCount": 2,
+        "cornerCount": 6,
+        "germCount": 6,
+        "parentReconstructionCalls": 1,
+        "wallUseCount": 4,
+        "wholeModelCompilations": 1
+      },
+      "edgeCount": 3,
+      "edgeUseCount": 6,
+      "embeddedStoredGeometryCertified": true,
+      "eulerCharacteristic": 2,
+      "faceAdjacency": [
+        {
+          "adjacentFaceIds": [
+            "solid1655_B_wall"
+          ],
+          "faceId": "solid1655_B_z_min"
+        },
+        {
+          "adjacentFaceIds": [
+            "solid1655_B_wall"
+          ],
+          "faceId": "solid1655_B_z_max"
+        },
+        {
+          "adjacentFaceIds": [
+            "solid1655_B_z_min",
+            "solid1655_B_z_max",
+            "solid1655_B_wall"
+          ],
+          "faceId": "solid1655_B_wall"
+        }
+      ],
+      "faceCount": 3,
+      "genus": 0,
+      "geometryAuthority": "stored-coefficient-mathematical-model",
+      "kind": "restricted-stored-rational-circle-prism-solid",
+      "lengthUnit": "mm",
+      "loopCount": 3,
+      "materialComponentCount": 1,
+      "planarFaces": [
+        {
+          "faceId": "solid1655_B_z_min",
+          "normalSign": -1,
+          "poleCompositionCount": 9,
+          "useId": "solid1655_B_z_min_use"
+        },
+        {
+          "faceId": "solid1655_B_z_max",
+          "normalSign": 1,
+          "poleCompositionCount": 9,
+          "useId": "solid1655_B_z_max_use"
+        }
+      ],
+      "ringProof": {
+        "bottomEdgeId": "solid1655_B_z_min_edge",
+        "quadrants": [
+          {
+            "derivativeNumeratorsX": [
+              {
+                "denominator": "1",
+                "numerator": "0"
+              },
+              {
+                "denominator": "2",
+                "numerator": "-1"
+              },
+              {
+                "denominator": "9007199254740992",
+                "numerator": "-6369051672525773"
+              }
+            ],
+            "derivativeNumeratorsY": [
+              {
+                "denominator": "9007199254740992",
+                "numerator": "6369051672525773"
+              },
+              {
+                "denominator": "2",
+                "numerator": "1"
+              },
+              {
+                "denominator": "1",
+                "numerator": "0"
+              }
+            ],
+            "index": 0
+          },
+          {
+            "derivativeNumeratorsX": [
+              {
+                "denominator": "9007199254740992",
+                "numerator": "-6369051672525773"
+              },
+              {
+                "denominator": "2",
+                "numerator": "-1"
+              },
+              {
+                "denominator": "1",
+                "numerator": "0"
+              }
+            ],
+            "derivativeNumeratorsY": [
+              {
+                "denominator": "1",
+                "numerator": "0"
+              },
+              {
+                "denominator": "2",
+                "numerator": "-1"
+              },
+              {
+                "denominator": "9007199254740992",
+                "numerator": "-6369051672525773"
+              }
+            ],
+            "index": 1
+          },
+          {
+            "derivativeNumeratorsX": [
+              {
+                "denominator": "1",
+                "numerator": "0"
+              },
+              {
+                "denominator": "2",
+                "numerator": "1"
+              },
+              {
+                "denominator": "9007199254740992",
+                "numerator": "6369051672525773"
+              }
+            ],
+            "derivativeNumeratorsY": [
+              {
+                "denominator": "9007199254740992",
+                "numerator": "-6369051672525773"
+              },
+              {
+                "denominator": "2",
+                "numerator": "-1"
+              },
+              {
+                "denominator": "1",
+                "numerator": "0"
+              }
+            ],
+            "index": 2
+          },
+          {
+            "derivativeNumeratorsX": [
+              {
+                "denominator": "9007199254740992",
+                "numerator": "6369051672525773"
+              },
+              {
+                "denominator": "2",
+                "numerator": "1"
+              },
+              {
+                "denominator": "1",
+                "numerator": "0"
+              }
+            ],
+            "derivativeNumeratorsY": [
+              {
+                "denominator": "1",
+                "numerator": "0"
+              },
+              {
+                "denominator": "2",
+                "numerator": "1"
+              },
+              {
+                "denominator": "9007199254740992",
+                "numerator": "6369051672525773"
+              }
+            ],
+            "index": 3
+          }
+        ],
+        "storedMiddleWeight": 0.7071067811865476,
+        "topEdgeId": "solid1655_B_z_max_edge"
+      },
+      "solid": true,
+      "topologyCertified": true,
+      "version": 0,
+      "vertexCount": 2,
+      "vertexLinks": [
+        {
+          "corners": [
+            {
+              "faceId": "solid1655_B_z_min",
+              "from": {
+                "edgeId": "solid1655_B_z_min_edge",
+                "endpointIndex": 0
+              },
+              "incomingUseId": "solid1655_B_z_min_use",
+              "loopId": "solid1655_B_z_min_loop",
+              "outgoingUseId": "solid1655_B_z_min_use",
+              "to": {
+                "edgeId": "solid1655_B_z_min_edge",
+                "endpointIndex": 1
+              }
+            },
+            {
+              "faceId": "solid1655_B_wall",
+              "from": {
+                "edgeId": "solid1655_B_z_min_edge",
+                "endpointIndex": 1
+              },
+              "incomingUseId": "solid1655_B_wall_bottom_use",
+              "loopId": "solid1655_B_wall_loop",
+              "outgoingUseId": "solid1655_B_wall_right_use",
+              "to": {
+                "edgeId": "solid1655_B_wall_seam_edge",
+                "endpointIndex": 0
+              }
+            },
+            {
+              "faceId": "solid1655_B_wall",
+              "from": {
+                "edgeId": "solid1655_B_wall_seam_edge",
+                "endpointIndex": 0
+              },
+              "incomingUseId": "solid1655_B_wall_left_use",
+              "loopId": "solid1655_B_wall_loop",
+              "outgoingUseId": "solid1655_B_wall_bottom_use",
+              "to": {
+                "edgeId": "solid1655_B_z_min_edge",
+                "endpointIndex": 0
+              }
+            }
+          ],
+          "cycle": [
+            {
+              "edgeId": "solid1655_B_z_min_edge",
+              "endpointIndex": 0
+            },
+            {
+              "edgeId": "solid1655_B_z_min_edge",
+              "endpointIndex": 1
+            },
+            {
+              "edgeId": "solid1655_B_wall_seam_edge",
+              "endpointIndex": 0
+            }
+          ],
+          "germs": [
+            {
+              "edgeId": "solid1655_B_z_min_edge",
+              "endpointIndex": 0
+            },
+            {
+              "edgeId": "solid1655_B_z_min_edge",
+              "endpointIndex": 1
+            },
+            {
+              "edgeId": "solid1655_B_wall_seam_edge",
+              "endpointIndex": 0
+            }
+          ],
+          "vertexId": "solid1655_B_z_min_seam"
+        },
+        {
+          "corners": [
+            {
+              "faceId": "solid1655_B_z_max",
+              "from": {
+                "edgeId": "solid1655_B_z_max_edge",
+                "endpointIndex": 1
+              },
+              "incomingUseId": "solid1655_B_z_max_use",
+              "loopId": "solid1655_B_z_max_loop",
+              "outgoingUseId": "solid1655_B_z_max_use",
+              "to": {
+                "edgeId": "solid1655_B_z_max_edge",
+                "endpointIndex": 0
+              }
+            },
+            {
+              "faceId": "solid1655_B_wall",
+              "from": {
+                "edgeId": "solid1655_B_wall_seam_edge",
+                "endpointIndex": 1
+              },
+              "incomingUseId": "solid1655_B_wall_right_use",
+              "loopId": "solid1655_B_wall_loop",
+              "outgoingUseId": "solid1655_B_wall_top_use",
+              "to": {
+                "edgeId": "solid1655_B_z_max_edge",
+                "endpointIndex": 1
+              }
+            },
+            {
+              "faceId": "solid1655_B_wall",
+              "from": {
+                "edgeId": "solid1655_B_z_max_edge",
+                "endpointIndex": 0
+              },
+              "incomingUseId": "solid1655_B_wall_top_use",
+              "loopId": "solid1655_B_wall_loop",
+              "outgoingUseId": "solid1655_B_wall_left_use",
+              "to": {
+                "edgeId": "solid1655_B_wall_seam_edge",
+                "endpointIndex": 1
+              }
+            }
+          ],
+          "cycle": [
+            {
+              "edgeId": "solid1655_B_z_max_edge",
+              "endpointIndex": 0
+            },
+            {
+              "edgeId": "solid1655_B_wall_seam_edge",
+              "endpointIndex": 1
+            },
+            {
+              "edgeId": "solid1655_B_z_max_edge",
+              "endpointIndex": 1
+            }
+          ],
+          "germs": [
+            {
+              "edgeId": "solid1655_B_z_max_edge",
+              "endpointIndex": 0
+            },
+            {
+              "edgeId": "solid1655_B_z_max_edge",
+              "endpointIndex": 1
+            },
+            {
+              "edgeId": "solid1655_B_wall_seam_edge",
+              "endpointIndex": 1
+            }
+          ],
+          "vertexId": "solid1655_B_z_max_seam"
+        }
+      ],
+      "wallProof": {
+        "faceId": "solid1655_B_wall",
+        "heightMM": 1.5,
+        "seamEdgeId": "solid1655_B_wall_seam_edge"
+      }
+    },
+    "qualifiedDataSHA256": "aa97760f669a0ba822c369264e75eb29367c9d99e3a42ac854d5cb9e79d0a81a",
+    "originalParentSHA256": "75bbb99468410565ba6c2ee3f0777f677f9c92d11c517312a8eef9ddfcfe93b3",
+    "originalProfileSourceSHA256": "6fa9008bc351607cb684ed31879fb6998e169e1b99c59c8ca9dc7a4e079f68d9",
+    "worldSourceSHA256": "1b412972fd56c7d2449beeb996cdc15fdd9440c2f2cbe67833f873bf2078df42"
+  },
+  "CExactWitness": {
+    "values": {
+      "x0": 0.1,
+      "x1": 0.30000000000000004,
+      "u": 0.49999999999999994,
+      "x": 0.2
+    },
+    "residual": {
+      "numerator": "1801439850948197",
+      "denominator": "649037107316853453566312041152512"
+    },
+    "nativeParentValid": true,
+    "exactCapCorrespondence": false
+  },
+  "CRefusal": {
+    "name": "StoredCirclePrismSolidError",
+    "code": "GEOMETRY",
+    "message": "Stored circle-prism Solid: Exact cap pole composition refused",
+    "stack": "StoredCirclePrismSolidError: Stored circle-prism Solid: Exact cap pole composition refused\n    at qualifyStoredCirclePrismSolid (file:///workspace/shared/cad-1655-validation/source.mjs:77019:46)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:94:112\n    at stage (file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:35:24)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:94:37\n    at assert.throws.caught (file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:66:24)\n    at getActual (node:assert:609:5)\n    at Function.throws (node:assert:757:24)\n    at refused (file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:65:10)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:94:18\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)",
+    "cause": {
+      "axis": 1,
+      "faceId": "solid1655_C_z_min",
+      "poleIndex": 0,
+      "residual": {
+        "denominator": "649037107316853453566312041152512",
+        "numerator": "1801439850948197"
+      },
+      "useId": "solid1655_C_z_min_use"
+    }
+  },
+  "DRefusal": {
+    "name": "StoredCirclePrismSolidError",
+    "code": "OWNED",
+    "message": "Stored circle-prism Solid: Complete original parent/source/report/native binding changed",
+    "stack": "StoredCirclePrismSolidError: Stored circle-prism Solid: Complete original parent/source/report/native binding changed\n    at check182 (file:///workspace/shared/cad-1655-validation/source.mjs:76842:18)\n    at qualifyStoredCirclePrismSolid (file:///workspace/shared/cad-1655-validation/source.mjs:76966:3)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:111:112\n    at stage (file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:35:24)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:111:48\n    at assert.throws.caught (file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:66:24)\n    at getActual (node:assert:609:5)\n    at Function.throws (node:assert:757:24)\n    at refused (file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:65:10)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:111:29",
+    "cause": null
+  },
+  "ERefusal": {
+    "name": "StoredCirclePrismSolidError",
+    "code": "OWNED",
+    "message": "Stored circle-prism Solid: Complete owned parent/world/proof/counter bits changed",
+    "stack": "StoredCirclePrismSolidError: Stored circle-prism Solid: Complete owned parent/world/proof/counter bits changed\n    at check182 (file:///workspace/shared/cad-1655-validation/source.mjs:76842:18)\n    at validateStoredCirclePrismSolid (file:///workspace/shared/cad-1655-validation/source.mjs:77095:3)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:116:116\n    at stage (file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:35:24)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:116:48\n    at assert.throws.caught (file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:66:24)\n    at getActual (node:assert:609:5)\n    at Function.throws (node:assert:757:24)\n    at refused (file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:65:10)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:116:29",
+    "cause": null
+  },
+  "preview": {
+    "report": {
+      "areaDifferenceMM2": -3.547861669784652,
+      "areasMM2": {
+        "bottomCap": 48.977411651900375,
+        "topCap": 48.977411651900375,
+        "total": 247.7795506173988,
+        "wall": 149.82472731359803
+      },
+      "boundsMM": {
+        "max": [
+          6,
+          1,
+          6.000000000000001
+        ],
+        "min": [
+          -2,
+          -7,
+          0
+        ]
+      },
+      "candidateClosedShell": true,
+      "chordDeviationByEdge": [
+        {
+          "edgeId": "solid1655_A_z_min_edge",
+          "observedChordDeviationMM": 0.08355694868225931
+        },
+        {
+          "edgeId": "solid1655_A_z_max_edge",
+          "observedChordDeviationMM": 0.08355694868225931
+        }
+      ],
+      "edgePathCount": 3,
+      "edgePathPointCounts": [
+        17,
+        17,
+        2
+      ],
+      "existingGPUOverlayPathBudget": {
+        "maximumPathPoints": 64,
+        "segmentsPerQuarterMaximum": 15,
+        "withinPathBudget": true
+      },
+      "faceCount": 3,
+      "geometricValidity": "not-certified",
+      "kind": "xy-circle-prism-shell-preview",
+      "limits": {
+        "arrayElements": 128,
+        "evaluationComparisonMM": 1e-7,
+        "float32Policy": "positive-outward-world-coordinate-triangles",
+        "maximumCirclePathPoints": 129,
+        "maximumEdgePaths": 3,
+        "maximumTriangles": 512,
+        "maximumVertices": 770,
+        "meshIdCharacters": 64,
+        "recordFields": 24,
+        "segmentsPerQuarter": [
+          2,
+          32
+        ],
+        "snapshotDepth": 14,
+        "snapshotValues": 32768,
+        "stringCharacters": 128
+      },
+      "meshId": "solid1655_A_preview_k4",
+      "native": {
+        "baseFaceReport": {
+          "boundsMM": {
+            "max": [
+              6,
+              1,
+              0
+            ],
+            "min": [
+              -2,
+              -7,
+              0
+            ]
+          },
+          "centerMM": [
+            2,
+            -3
+          ],
+          "edgeCount": 1,
+          "edgeId": "solid1655_A_z_min_edge",
+          "faceId": "solid1655_A_z_min",
+          "geometricValidity": "not-certified",
+          "incidenceValid": true,
+          "limits": {
+            "arrayElements": 64,
+            "authoredIdCharacters": 64,
+            "boundaryToleranceMM": 1e-7,
+            "derivativeComparisonRelative": 1e-9,
+            "derivedIdCharacters": 80,
+            "evaluationComparisonMM": 1e-7,
+            "planeToleranceMM": 1e-7,
+            "recordFields": 12,
+            "snapshotDepth": 10,
+            "snapshotValues": 8192,
+            "stringCharacters": 128
+          },
+          "loopUseCount": 1,
+          "nativeDomain": [
+            0,
+            4
+          ],
+          "nativeObjectCount": 2,
+          "outerLoopId": "solid1655_A_z_min_loop",
+          "pcurveId": "solid1655_A_z_min_uv",
+          "periodic": false,
+          "radiusMM": 4,
+          "referenceDiskAreaMM2": 50.26548245743669,
+          "seamVertexId": "solid1655_A_z_min_seam",
+          "solid": false,
+          "sourceCurveId": "solid1655_A_ring",
+          "surfaceDomain": {
+            "u": [
+              0,
+              1
+            ],
+            "v": [
+              0,
+              1
+            ]
+          },
+          "surfaceId": "solid1655_A_z_min_surface",
+          "topologyCertified": false,
+          "trimFamily": "xy-circle-planar-face-v0",
+          "uvDomain": [
+            0,
+            4
+          ],
+          "vertexCount": 1
+        },
+        "boundsMM": {
+          "max": [
+            6,
+            1,
+            6
+          ],
+          "min": [
+            -2,
+            -7,
+            0
+          ]
+        },
+        "candidateClosedShell": true,
+        "centerMM": [
+          2,
+          -3
+        ],
+        "domains": {
+          "bottomCurve": [
+            0,
+            4
+          ],
+          "bottomSurface": {
+            "u": [
+              0,
+              1
+            ],
+            "v": [
+              0,
+              1
+            ]
+          },
+          "seamCurve": [
+            0,
+            1
+          ],
+          "topCurve": [
+            0,
+            4
+          ],
+          "topSurface": {
+            "u": [
+              0,
+              1
+            ],
+            "v": [
+              0,
+              1
+            ]
+          },
+          "wallSurface": {
+            "u": [
+              0,
+              4
+            ],
+            "v": [
+              0,
+              1
+            ]
+          }
+        },
+        "edgeCount": 3,
+        "edgeIncidence": [
+          {
+            "edgeId": "solid1655_A_z_min_edge",
+            "uses": [
+              {
+                "faceId": "solid1655_A_z_min",
+                "loopId": "solid1655_A_z_min_loop",
+                "sense": "reverse",
+                "useId": "solid1655_A_z_min_use"
+              },
+              {
+                "faceId": "solid1655_A_wall",
+                "loopId": "solid1655_A_wall_loop",
+                "sense": "forward",
+                "useId": "solid1655_A_wall_bottom_use"
+              }
+            ]
+          },
+          {
+            "edgeId": "solid1655_A_z_max_edge",
+            "uses": [
+              {
+                "faceId": "solid1655_A_z_max",
+                "loopId": "solid1655_A_z_max_loop",
+                "sense": "forward",
+                "useId": "solid1655_A_z_max_use"
+              },
+              {
+                "faceId": "solid1655_A_wall",
+                "loopId": "solid1655_A_wall_loop",
+                "sense": "reverse",
+                "useId": "solid1655_A_wall_top_use"
+              }
+            ]
+          },
+          {
+            "edgeId": "solid1655_A_wall_seam_edge",
+            "uses": [
+              {
+                "faceId": "solid1655_A_wall",
+                "loopId": "solid1655_A_wall_loop",
+                "sense": "forward",
+                "useId": "solid1655_A_wall_right_use"
+              },
+              {
+                "faceId": "solid1655_A_wall",
+                "loopId": "solid1655_A_wall_loop",
+                "sense": "reverse",
+                "useId": "solid1655_A_wall_left_use"
+              }
+            ]
+          }
+        ],
+        "edgeUseCount": 6,
+        "faceCount": 3,
+        "geometricValidity": "not-certified",
+        "geometryIds": {
+          "bottomCurveId": "solid1655_A_ring",
+          "bottomSurfaceId": "solid1655_A_z_min_surface",
+          "seamCurveId": "solid1655_A_seam_curve",
+          "topCurveId": "solid1655_A_z_max_curve",
+          "topSurfaceId": "solid1655_A_z_max_surface",
+          "wallSurfaceId": "solid1655_A_wall_surface"
+        },
+        "heightMM": 6,
+        "incidenceValid": true,
+        "limits": {
+          "arrayElements": 128,
+          "authoredIdCharacters": 48,
+          "derivedIdCharacters": 80,
+          "evaluationComparisonMM": 1e-7,
+          "recordFields": 24,
+          "snapshotDepth": 14,
+          "snapshotValues": 32768,
+          "stringCharacters": 128
+        },
+        "loopCount": 3,
+        "loopObservations": [
+          {
+            "closed": true,
+            "faceId": "solid1655_A_z_min",
+            "loopId": "solid1655_A_z_min_loop",
+            "useCount": 1
+          },
+          {
+            "closed": true,
+            "faceId": "solid1655_A_z_max",
+            "loopId": "solid1655_A_z_max_loop",
+            "useCount": 1
+          },
+          {
+            "closed": true,
+            "faceId": "solid1655_A_wall",
+            "loopId": "solid1655_A_wall_loop",
+            "useCount": 4
+          }
+        ],
+        "nativeObjectCount": 6,
+        "normalObservations": [
+          {
+            "faceId": "solid1655_A_z_min",
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "pointMM": [
+              2,
+              -3,
+              0
+            ],
+            "surfaceId": "solid1655_A_z_min_surface",
+            "uv": [
+              0.5,
+              0.5
+            ]
+          },
+          {
+            "faceId": "solid1655_A_z_max",
+            "normal": [
+              0,
+              0,
+              1
+            ],
+            "pointMM": [
+              2,
+              -3,
+              6
+            ],
+            "surfaceId": "solid1655_A_z_max_surface",
+            "uv": [
+              0.5,
+              0.5
+            ]
+          },
+          {
+            "faceId": "solid1655_A_wall",
+            "normal": [
+              0.7071067811865475,
+              0.7071067811865475,
+              0
+            ],
+            "pointMM": [
+              4.828427124746191,
+              -0.17157287525380996,
+              3.0000000000000004
+            ],
+            "surfaceId": "solid1655_A_wall_surface",
+            "uv": [
+              0.5,
+              0.5
+            ]
+          },
+          {
+            "faceId": "solid1655_A_wall",
+            "normal": [
+              -0.7071067811865475,
+              0.7071067811865475,
+              0
+            ],
+            "pointMM": [
+              -0.8284271247461902,
+              -0.17157287525380996,
+              3.0000000000000004
+            ],
+            "surfaceId": "solid1655_A_wall_surface",
+            "uv": [
+              1.5,
+              0.5
+            ]
+          },
+          {
+            "faceId": "solid1655_A_wall",
+            "normal": [
+              -0.7071067811865475,
+              -0.7071067811865475,
+              0
+            ],
+            "pointMM": [
+              -0.8284271247461901,
+              -5.828427124746191,
+              3.0000000000000004
+            ],
+            "surfaceId": "solid1655_A_wall_surface",
+            "uv": [
+              2.5,
+              0.5
+            ]
+          },
+          {
+            "faceId": "solid1655_A_wall",
+            "normal": [
+              0.7071067811865475,
+              -0.7071067811865475,
+              0
+            ],
+            "pointMM": [
+              4.828427124746191,
+              -5.828427124746191,
+              3.0000000000000004
+            ],
+            "surfaceId": "solid1655_A_wall_surface",
+            "uv": [
+              3.5,
+              0.5
+            ]
+          }
+        ],
+        "periodic": false,
+        "radiusMM": 4,
+        "referenceBoundaryAreaMM2": 251.32741228718345,
+        "referenceLateralAreaMM2": 150.79644737231007,
+        "referenceVolumeMM3": 301.59289474462014,
+        "shellId": "solid1655_A",
+        "solid": false,
+        "sourceCurveId": "solid1655_A_ring",
+        "topologyCertified": false,
+        "trimFamily": "xy-circle-prism-shell-v0",
+        "vertexCount": 2
+      },
+      "observedChordDeviationMM": 0.08355694868225931,
+      "observedSurfaceBindingDifferenceMM": 2.220446049250313e-15,
+      "periodic": false,
+      "referenceBoundaryAreaMM2": 251.32741228718345,
+      "revision": 0,
+      "sampling": {
+        "boundaryParameters": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1,
+          1.25,
+          1.5,
+          1.75,
+          2,
+          2.25,
+          2.5,
+          2.75,
+          3,
+          3.25,
+          3.5,
+          3.75
+        ],
+        "kind": "uniform-native-parameter",
+        "segmentsPerQuarter": 4,
+        "wallNormalMethod": "native-midpoint-faceted"
+      },
+      "segmentsPerQuarter": 4,
+      "shellId": "solid1655_A",
+      "solid": false,
+      "sourceCurveId": "solid1655_A_ring",
+      "topologyCertified": false,
+      "triangleCount": 64,
+      "vertexCount": 98
+    },
+    "packetSHA256": "1ed6d43f69c6ea823492e02c56b9d0611be07ca29bcd25c6af3a3d7e75a65566",
+    "completePreviewSHA256": "82cf470cb7889e05a5793218180c84f8cb94b3d3bcf7baa7624f35676dda8ff4",
+    "sampledBoundsMM": {
+      "min": [
+        -2,
+        -7,
+        0
+      ],
+      "max": [
+        6,
+        1,
+        6.000000000000001
+      ]
+    },
+    "exactParentBoundsMM": {
+      "max": [
+        6,
+        1,
+        6
+      ],
+      "min": [
+        -2,
+        -7,
+        0
+      ]
+    },
+    "maximumSampledBoundsDifferenceMM": 8.881784197001252e-16,
+    "observedBasis": "Existing right-handed-y-up label; unchanged authored XYZ positions/normals. A later consumer must choose its basis policy explicitly.",
+    "meshIsSolidProof": false,
+    "rendererOrEditorExecuted": false
+  },
+  "retainedArtifactPreflightPassed": true,
+  "artifactReplayScope": "Pure signed parent/proof/preview replay; no reconstructed geometry and no new whole-result freezing evidence",
+  "originalRuntimeFreezeEvidence": "Original A/B proveQualification completed its deepFrozen assertions before the preserved preview assertion failure",
+  "wallD1Refusals": [
+    {
+      "u": 1,
+      "v": 0.5,
+      "refusal": {
+        "name": "Error",
+        "code": null,
+        "message": "First derivative is not defined at an exact C0 interior knot",
+        "stack": "Error: First derivative is not defined at an exact C0 interior knot\n    at basisD1 (file:///workspace/shared/cad-1655-validation/source.mjs:792:42)\n    at evaluateSurfaceD1 (file:///workspace/shared/cad-1655-validation/source.mjs:881:14)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:162:26\n    at stage (file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:49:24)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:161:25\n    at getActual (node:assert:609:5)\n    at Function.throws (node:assert:757:24)\n    at continueRetained (file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:161:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:175:19",
+        "cause": null
+      }
+    },
+    {
+      "u": 2,
+      "v": 0.5,
+      "refusal": {
+        "name": "Error",
+        "code": null,
+        "message": "First derivative is not defined at an exact C0 interior knot",
+        "stack": "Error: First derivative is not defined at an exact C0 interior knot\n    at basisD1 (file:///workspace/shared/cad-1655-validation/source.mjs:792:42)\n    at evaluateSurfaceD1 (file:///workspace/shared/cad-1655-validation/source.mjs:881:14)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:162:26\n    at stage (file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:49:24)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:161:25\n    at getActual (node:assert:609:5)\n    at Function.throws (node:assert:757:24)\n    at continueRetained (file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:161:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:175:19",
+        "cause": null
+      }
+    },
+    {
+      "u": 3,
+      "v": 0.5,
+      "refusal": {
+        "name": "Error",
+        "code": null,
+        "message": "First derivative is not defined at an exact C0 interior knot",
+        "stack": "Error: First derivative is not defined at an exact C0 interior knot\n    at basisD1 (file:///workspace/shared/cad-1655-validation/source.mjs:792:42)\n    at evaluateSurfaceD1 (file:///workspace/shared/cad-1655-validation/source.mjs:881:14)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:162:26\n    at stage (file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:49:24)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:161:25\n    at getActual (node:assert:609:5)\n    at Function.throws (node:assert:757:24)\n    at continueRetained (file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:161:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///workspace/scratch/1591b2fb2f62/barocss-cad-recovered/packages/barocss-cad/test/stored-circle-prism-solid-native.mjs:175:19",
+        "cause": null
+      }
+    }
+  ],
+  "pending": null,
+  "originalReceiptAndArtifactsUnchanged": true,
+  "knownSourceCompilationsExpectedInSourceHalf": 12,
+  "awaitedColdValidationCalls": 1,
+  "elapsedMS": 142.07261499999998,
+  "finishedAt": "2026-10-13T05:48:49.114Z"
+}
