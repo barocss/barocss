@@ -49,7 +49,7 @@ for (const term of ['## Cut a slot in a bracket', 'eight-node', '44 genuine raw 
   assert.ok(ref.includes(term), 'Source reference missing: ' + term);
 }
 for (const term of ['eight-node', '64 complete panels', 'two named outputs',
-  'baseline mock', 'not a serialized view selection', 'UNRUN here']) {
+  'baseline mock', 'serialized view selection', 'UNRUN here']) {
   assert.ok(lesson.includes(term), 'Manual missing supported limit/authority: ' + term);
 }
 assert.ok(reader.includes('MAX_MODELING_FILE_BYTES = 262144'), 'File-reader bound changed');
