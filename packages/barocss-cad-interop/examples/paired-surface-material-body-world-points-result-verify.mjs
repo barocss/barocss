@@ -8,7 +8,10 @@ import {
   BaroCadPairedSurfaceMaterialBodyWorldPointsReadError as ReadError,
 } from '../dist/paired-surface-material-body-world-points-result.js';
 
-const dataFile = name => fileURLToPath(new URL('./paired-surface-material-body-world-points-result-data/' + name, import.meta.url));
+// Original producer files may be supplied outside the repository; never synthesize them.
+const dataFile = name => process.env.BARO_CAD_WORLD_FIXTURE_DIR
+  ? fileURLToPath(new URL(name, 'file://' + process.env.BARO_CAD_WORLD_FIXTURE_DIR.replace(/\\/$/, '') + '/'))
+  : fileURLToPath(new URL('./paired-surface-material-body-world-points-result-data/' + name, import.meta.url));
 const fixturePins = Object.freeze({
   'main-result.json': {bytes:562166,sha256:'aa3cbfac04cccd9ef03e89020fc434393115f61cc5c6b6bcd8288b8f4f8e34dd'},
   'edited-result.json': {bytes:567898,sha256:'22a569a7c56e7f5591472a8470583565988eb5eee3fc8e164835c6484cd41e02'},
