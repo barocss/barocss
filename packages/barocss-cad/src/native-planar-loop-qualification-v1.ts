@@ -33,10 +33,10 @@ function parts(n: number): { m: bigint; e: number } {
 }
 /** A bounded *simple straight polygon boundary* only, not a face or material model. */
 export function qualifyNativePlanarLoopV1(input: unknown): NativePlanarLoopQualificationV1 {
-  if (!Array.isArray(input) || input.length < 3 || input.length > 16)
-    return { status:'refused', reason:'invalid-loop' };
   const captured: Binary64PointV1[] = [];
   try {
+    if (!Array.isArray(input) || input.length < 3 || input.length > 16)
+      return { status:'refused', reason:'invalid-loop' };
     // Array elements may be accessor-backed: snapshot the bounded vertex list as well.
     const descriptors = Object.getOwnPropertyDescriptors(input);
     for (let i = 0; i < input.length; i++) {
