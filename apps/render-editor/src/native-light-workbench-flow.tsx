@@ -7,7 +7,7 @@ import {prepareCamera} from '@barocss/gpu';
 import type {MeshCamera} from '@barocss/gpu';
 import {prepareSceneTransform, sceneRotation} from '../../../packages/barocss-gpu/src/mesh-scene-transform';
 import {NativeLightWorkbench} from './native-light-workbench';
-export {deriveLightBodyCommand, lightBodyReservedIds} from './native-light-bodies';
+export {deriveLightBodyCommand, deriveLightSurfaceAddition, lightBodyReservedIds} from './native-light-bodies';
 
 /** Real React UI with a privately controlled Viewer in the runner. This does not prove GPU pixels. */
 export async function mountLightWorkbenchFlow(container: HTMLElement, initial?: RenderNativeLightDocument) {

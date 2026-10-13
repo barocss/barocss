@@ -1,4 +1,4 @@
-import {deriveRenderNativeSceneBodyDuplicate, deriveRenderNativeSceneBodyRemoval,
+import {deriveRenderNativeSceneBodyDuplicate, deriveRenderNativeSceneBodyRemoval, deriveRenderNativeSceneSurfaceAddition,
   prepareRenderNativeLightDocument, RenderEditorError, normalizeRenderEditorError} from '@barocss/render-editor';
 import type {RenderNativeLightDocument, RenderNativeSceneDocument} from '@barocss/render-editor';
 
@@ -73,6 +73,34 @@ export function deriveLightBodyCommand(input: RenderNativeLightDocument, bodyId:
     // Caller publishes this owned set only after acknowledgement, never on a refusal.
     const nextReserved = lightBodyReservedIds(document, retained);
     return Object.freeze({document, selectedBodyId, generatedIds, reservedIds: nextReserved});
+  } catch (cause) {
+    const error = normalizeRenderEditorError(cause);
+    if (error !== cause) Object.defineProperty(error, 'cause', {value: cause});
+    throw error;
+  }
+}
+
+/** Reuse original-source addition, explicitly copying only the chosen qualified material binding. */
+export function deriveLightSurfaceAddition(input: RenderNativeLightDocument, bodyId: string,
+  source: string, surfaceId: string, reservedIds: readonly string[] = []): LightBodyCommandResult {
+  try {
+    const prepared = prepareRenderNativeLightDocument(input), original = prepared.document;
+    const entry = prepared.entries.find(value => value.binding.bodyId === bodyId);
+    const bindings = original.surfaceMaterials.filter(value => value.target.bodyId === bodyId);
+    check(entry?.kind === 'surface' && original.display.visibleBodyIds.includes(bodyId) && bindings.length === 1,
+      'Select one visible qualified Surface with an accepted material for the new body.');
+    const retained = lightBodyReservedIds(original, reservedIds);
+    const {lights, ...scene} = original;
+    const legacy: RenderNativeSceneDocument = {...scene, version: 0, profile: 'canonical-native-opaque-scene-v0',
+      display: {...original.display, lighting: {ambientStrength: 1, directionalStrength: 0, direction: [0, 0, 1]}}};
+    const result = deriveRenderNativeSceneSurfaceAddition(legacy, source, surfaceId,
+      {reservedIds: retained, material: bindings[0]!.material});
+    const {lighting: _lighting, ...display} = result.document.display; void _lighting;
+    const document = prepareRenderNativeLightDocument({...result.document, version: 2,
+      profile: 'canonical-native-lights', display, lights}).document;
+    return Object.freeze({document, selectedBodyId: result.bodyId,
+      generatedIds: Object.freeze([result.bodyId, result.assetId, result.materialDocumentId]),
+      reservedIds: lightBodyReservedIds(document, retained)});
   } catch (cause) {
     const error = normalizeRenderEditorError(cause);
     if (error !== cause) Object.defineProperty(error, 'cause', {value: cause});

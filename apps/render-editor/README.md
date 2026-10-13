@@ -725,3 +725,54 @@ Selection/corrective/Help/chooser and pending guards add no presentations. The
 remount-after-Undo witness proves removed generated IDs remain reserved; the
 fresh Open witness proves reservations reset to the incoming scene. Original
 local-view navigation regressions remain separate from this command ledger.
+
+### Add original Surfaces to the Light workbench (#1809)
+
+Select a visible body with an accepted material and resolve every scene draft,
+then choose **Add Surface…**. The private dialog reads an original CAD text file,
+shows its actual model and object inventory, and lets you select a real Surface.
+It preserves the complete source, including unselected geometry and comments.
+Native XYZ uses millimetres with the existing scene scale; it does not convert
+axes. Reported file size is checked before reading, actual buffer length before
+fatal UTF-8 decoding, then the provider checks 65536 UTF-8 bytes and UTF-16 code
+units. Extensions are hints, not validation. A canceled chooser or bad later
+file keeps the previous inspected candidate.
+
+Explicit **Add Surface** copies the selected accepted material into a new
+independent binding, using actual Native source-add and qualification providers.
+Repeated material IDs do not cause another body's binding to be copied. The new
+body starts at its source origin with identity pose; existing omitted identity
+poses stay omitted. One Viewer acknowledgement creates one scene/history step,
+reserves all three new IDs together and selects the new row. Use **Frame selected**
+to find off-screen geometry. Numeric transform/material edits, Undo/Redo and
+accepted Save/fresh Open use the existing session. Source inspection alone does
+not edit or save the scene or move the view.
+
+All competing scene actions wait while the dialog owns its captured scene,
+selection, form and material. Cancel/escape can close a pending file read, whose
+late result is ignored. Once Add is submitted, Cancel/escape/outside-close wait
+for that transaction; they cannot promise to undo a renderer acknowledgement.
+A ready refusal clears only the owned temporary command draft and keeps the
+candidate for retry. Unavailable failure retains the existing recovery fence;
+close the dialog, then Discard when ready or remount accepted authorship. No
+pixel rollback is claimed. Unmount invalidates both read and Add continuations.
+
+The #1809 finite per-kind ledger has 24 actual helper cases, nine replacement
+attempts (ceiling ten), 18 chooser/Save/Open transports and five owned lifetimes:
+- Helpers cover selected/reordered/repeated material identity, full original
+  source, omitted poses, actual qualified target reconstruction, reservation
+  exact/overflow limits, byte/code-unit limits, malformed/curve-only/unknown
+  Surface, hidden/unbound/forged selection, revision/capacity and Float32 refusals
+- Replacements: stale Add disposal, ready refused Add, accepted Add, Undo, Redo,
+  fresh Open, new-body position/material Apply, lost Add, post-recovery Add
+- Transports: ten first-lifetime chooser outcomes; one ready-refusal/retry source;
+  Save; fresh Open; re-edit Save; lost-Add source; held lost/disposed read;
+  recovery source; final Save
+- Lifetimes: initial stale Add, main acceptance, fresh Open, accepted-scene
+  recovery remount, and fresh lifetime after the held read
+
+All authored fixtures are admitted by the real parser before the full scoped
+flow. Existing regressions have separate counters. Controlled jsdom/file/Viewer
+proof is software evidence only; physical chooser, GPU pixels and #1573 remain
+separate gates. Package APIs, parser, schema, limits and the older synchronous
+Native Surface dialog are unchanged.
