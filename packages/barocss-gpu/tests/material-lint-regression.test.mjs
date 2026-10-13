@@ -20,7 +20,7 @@ test('valid material is validated and lowered without changing its source', () =
 // This input variant previously fell through to sample lowering; cover the
 // intended UV lowering path rather than testing only a constant color.
 test('UV material input lowers to the declared interpolant', () => {
-  const source = '@shader #uvtest { @fragment { color: mix(#000000,#FFFFFF,uv_u); } }';
+  const source = '@shader #uvtest { @fragment { color: mix(#000000,#FFFFFF,clamp(uv_u,0,1)); } }';
   const compiled = compileEngineUVMaterial(source);
   assert.equal(compiled.ok, true, JSON.stringify(compiled));
   if (!compiled.ok) return;
