@@ -137,6 +137,6 @@ for(const mode of ['OFFSET','YAW'] as const){
     r.nonFinite===0&&r.maxLinearResidualMps<=1e-10&&r.maxAngularResidualRadps<=1e-10&&r.maxCoulombViolationNs<=1e-10),
   independentPerPointArithmetic:byStep,staticNormalSupportComparison:diagnostic,
   finalX,samples,trackedProductionFilesModified:false,eightDynamicBoxQualified:false,
-  interpretation:'static reaction is only a feasibility baseline; this is an actual dynamic per-point impulse arithmetic comparison, not a certified complete torque law'});
+  interpretation:'static reaction is only a feasibility baseline; this is an actual dynamic per-point impulse arithmetic comparison, not a certified complete torque law'}));
  if(firstFailure)process.exitCode=1;
 }
