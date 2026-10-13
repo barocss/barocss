@@ -40,8 +40,14 @@ for(const mode of ['OFFSET','YAW'] as const){
   const a=e.beforeA,b=e.beforeB;
   const linear=Math.max(norm(minus(minus(e.afterA.v,a.v),scale(j,-a.invMass))),
     norm(minus(minus(e.afterB.v,b.v),scale(j,b.invMass))));
-  const angular=Math.max(norm(minus(minus(e.afterA.w,a.w),inertiaApply(a,j,-1,e.point))),
-    norm(minus(minus(e.afterB.w,b.w),inertiaApply(b,j,1,e.point))));
+  // Fallback applies normal torque BEFORE position correction, then friction
+  // torque using AFTER-correction lever arms; their sum is not the torque
+  // of one combined impulse applied at the original lever arm.
+  const jn=scale(e.normal,e.impulseNormal),jt=e.impulseTangent;
+  const expectedWa=add(inertiaApply(a,jn,-1,e.point),inertiaApply(e.afterA,jt,-1,e.point));
+  const expectedWb=add(inertiaApply(b,jn,1,e.point),inertiaApply(e.afterB,jt,1,e.point));
+  const angular=Math.max(norm(minus(minus(e.afterA.w,a.w),expectedWa)),
+    norm(minus(minus(e.afterB.w,b.w),expectedWb)));
   if(![...j,linear,angular].every(Number.isFinite)||linear>1e-10||angular>1e-10)
     throw Error('FALLBACK_TORQUE_REFERENCE_NO_GO');
   maxLinearResidual=Math.max(maxLinearResidual,linear);
