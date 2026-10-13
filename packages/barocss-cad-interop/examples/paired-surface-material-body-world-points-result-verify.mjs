@@ -31,10 +31,23 @@ const own = (a, b) => {
   assert.notStrictEqual(a, b);
   assert.deepEqual(a, b);
 };
+const parentZeroPaths = [
+  ['a',0,0,0,0],
+  ['a',0,2,0,0,2],
+  ['a',1,0,0,0,2],
+  ['a',1,1,0,0],
+  ['b',0,0,0,0],
+  ['b',0,2,0,0,2],
+  ['b',1,0,0,0,2],
+  ['b',1,1,0,0],
+];
 const negativeZeroPaths = [
+  ...parentZeroPaths.map(([side,model,object,...coords]) =>
+    ['request','body','request',side,'request','section','originalModels',model,'objects',object,'controlPoints',...coords]),
   ['request','queries',9,'pointMM',1],
   ['request','queries',9,'pointMM',2],
 ];
+const getAt = (root, path) => path.reduce((value, segment) => value[segment], root);
 
 refuse(() => parse({}), 'INPUT');
 refuse(() => read([]), 'INPUT');
@@ -58,6 +71,15 @@ refuse(() => read(chunks), 'BUDGET');
 refuse(() => parse('{"request":{},"classifications":[],"proof":{},"report":{"schema":"wrong","version":0}}'), 'SCHEMA');
 
 for (const name of Object.keys(fixturePins)) await pinnedBytes(name);
+// Original requests are association DATA, never admitted as complete Result4.
+for (const [resultName, requestName] of [['main-result.json','main-request.json'],['edited-result.json','edited-request.json']]) {
+  const result = JSON.parse((await pinnedBytes(resultName)).toString('utf8'));
+  const request = JSON.parse((await pinnedBytes(requestName)).toString('utf8'));
+  assert.deepEqual(result.request, request, resultName + ' original request association');
+  for (const path of negativeZeroPaths) {
+    assert.equal(Object.is(getAt(request, path.slice(1)), -0), true, requestName + ':' + path.slice(1).join('.'));
+  }
+}
 
 for (const name of ['main-result.json','edited-result.json']) {
   const text = (await pinnedBytes(name)).toString('utf8');
@@ -73,9 +95,8 @@ for (const name of ['main-result.json','edited-result.json']) {
   own(parsed.validationReport, owned.validationReport);
   assert.notStrictEqual(parsed.native, parsed.validationReport);
   for (const path of negativeZeroPaths) {
-    const at = (root) => path.reduce((current, key) => current[key], root);
-    assert.equal(Object.is(at(parsed.native), -0), true, name + ':' + path.join('.'));
-    assert.equal(Object.is(at(owned.native), -0), true, name + ':' + path.join('.'));
+    assert.equal(Object.is(getAt(parsed.native, path), -0), true, name + ':' + path.join('.'));
+    assert.equal(Object.is(getAt(owned.native, path), -0), true, name + ':' + path.join('.'));
   }
   // The native validator must reject changes to any authoritative saved stage,
   // qualified boundary reference, or certificate without rewriting the request.
