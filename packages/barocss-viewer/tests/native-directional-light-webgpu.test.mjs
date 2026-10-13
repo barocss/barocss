@@ -211,6 +211,17 @@ export async function runFacadeChecks(m) {
   failed(await v.replace(input),'STATE');
   v.dispose(); assert.equal(v.status.state,'disposed');
   v=await viewer.createNativeDirectionalLightWebGPUViewer({},input,dimensions);
+  // Device loss during readback or a pick must reject the stale asynchronous result.
+  state.readGate=deferred(); const interruptedRead=v.readPixels();
+  state.instances.at(-1).setPhase('lost'); state.readGate.resolve();
+  await assert.rejects(interruptedRead,error=>err(error,'STATE')); state.readGate=null;
+  v.dispose();
+  v=await viewer.createNativeDirectionalLightWebGPUViewer({},input,dimensions);
+  state.pickGate=deferred(); const interruptedPick=v.pick(0,0);
+  state.instances.at(-1).setPhase('lost'); state.pickGate.resolve();
+  await assert.rejects(interruptedPick,error=>err(error,'STATE')); state.pickGate=null;
+  v.dispose();
+  v=await viewer.createNativeDirectionalLightWebGPUViewer({},input,dimensions);
   const stableResize=v.accepted;
   state.updateGate=deferred(); const interruptedResize=v.resize(11,11);
   state.instances.at(-1).setPhase('lost'); state.updateGate.resolve();
