@@ -1,0 +1,30 @@
+name: Physics asymmetric contact diagnosis
+on:
+  pull_request:
+    branches: [develop]
+    paths:
+      - 'examples/physics-contact-impulse-audit-1572/asymmetric-contact-diagnostic.ts'
+      - '.github/workflows/physics-asymmetric-contact.yml'
+  workflow_dispatch:
+jobs:
+  contact:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @barocss/physics build:library
+      - run: mkdir -p /tmp/physics-asymmetric
+      - run: pnpm exec esbuild examples/physics-contact-impulse-audit-1572/asymmetric-contact-diagnostic.ts --bundle --platform=node --format=esm --target=node22 --outfile=/tmp/physics-asymmetric/run.mjs
+      - run: node /tmp/physics-asymmetric/run.mjs > /tmp/physics-asymmetric/results.jsonl
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: asymmetric-contact-results
+          path: /tmp/physics-asymmetric/results.jsonl
+          if-no-files-found: ignore
