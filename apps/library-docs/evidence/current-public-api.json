@@ -1,7 +1,7 @@
 {
   "schema": "barocss-current-public-api-v1",
   "typescriptVersion": "5.9.3",
-  "sourceCommit": "44cd254ebe67aa57a763934cbccd3e8771648a10",
+  "sourceCommit": "1f5b8398d764244dbb134d560e241745134981df",
   "extractor": "TypeScript 5.9.3 public module exports and declarations; not a type-check or runtime execution",
   "packages": [
     {
@@ -2633,17 +2633,27 @@
               "name": "mountPrimitiveScene",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 364,
+              "line": 437,
               "signatures": [
                 "export function mountPrimitiveScene(canvas: HTMLCanvasElement, entries: PrimitiveSceneEntry[], options: PrimitiveSceneOptions): PrimitiveSceneRenderer;"
               ],
               "digest": "06688b9eecdd94a2ce4b565e64af2b3ea7b8f5a1910c270986963f929ce12898"
             },
             {
+              "name": "mountPrimitiveSceneFrame",
+              "kind": "FunctionDeclaration",
+              "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
+              "line": 493,
+              "signatures": [
+                "export function mountPrimitiveSceneFrame(canvas: HTMLCanvasElement, input: unknown): PrimitiveSceneRendererV2;"
+              ],
+              "digest": "0c56056970923135a71109817f5383cfa9e11f0c19b4f3fd4ed92cb8cae07131"
+            },
+            {
               "name": "mountPrimitiveSceneV1",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 365,
+              "line": 438,
               "signatures": [
                 "export function mountPrimitiveSceneV1(canvas: HTMLCanvasElement, input: PrimitiveSceneInputV1, options: PrimitiveSceneOptions): PrimitiveSceneRendererV1;"
               ],
@@ -2653,7 +2663,7 @@
               "name": "mountPrimitiveSceneV2",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 366,
+              "line": 439,
               "signatures": [
                 "export function mountPrimitiveSceneV2(canvas: HTMLCanvasElement, input: PrimitiveSceneInputV2, options: PrimitiveSceneOptions): PrimitiveSceneRendererV2;"
               ],
@@ -2663,11 +2673,21 @@
               "name": "mountPrimitiveViewport",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 410,
+              "line": 485,
               "signatures": [
                 "export function mountPrimitiveViewport(canvas: HTMLCanvasElement, options: PrimitiveSceneOptions): PrimitiveViewport;"
               ],
               "digest": "c1b4ef556a9c2732ac7142965feb3b7d5f81d02fdcd02f87db626b6f49099466"
+            },
+            {
+              "name": "mountPrimitiveViewportFrame",
+              "kind": "FunctionDeclaration",
+              "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
+              "line": 498,
+              "signatures": [
+                "export function mountPrimitiveViewportFrame(canvas: HTMLCanvasElement, input: unknown): PrimitiveViewport;"
+              ],
+              "digest": "28cfb5172e5713e174566c6160d92b2675aefd1f91256e71ab9351929c395eb6"
             },
             {
               "name": "mountQualifiedFaceScene",
@@ -4495,7 +4515,7 @@
               "name": "PrimitiveSceneEntry",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 34,
+              "line": 36,
               "signatures": [
                 "export type PrimitiveSceneEntry=\n |{kind:'surface';packet:PreviewPacket;color:RGB;transform?:MeshSceneTransform}\n |{kind:'curve';sample:AdaptiveCurveSamplingResult;basis:'authored-xyz-matches-rhyup';color:RGB;transform?:MeshSceneTransform};"
               ],
@@ -4505,7 +4525,7 @@
               "name": "PrimitiveSceneEntryV1",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 38,
+              "line": 40,
               "signatures": [
                 "export type PrimitiveSceneEntryV1=\n |Extract<PrimitiveSceneEntry,{kind:'surface'}>\n |(Extract<PrimitiveSceneEntry,{kind:'curve'}>&{sampleVersion:0})\n |{kind:'curve';sampleVersion:1;sample:WideAdaptiveCurveSamplingResult;basis:'authored-xyz-matches-rhyup';color:RGB;transform?:MeshSceneTransform}\n |{kind:'curve';sampleVersion:2;sample:UniformCurvePreview;basis:'authored-xyz-matches-rhyup';color:RGB;transform?:MeshSceneTransform}\n |{kind:'curve';sampleVersion:3;sample:SelectedUniformCurvePreview;basis:'authored-xyz-matches-rhyup';color:RGB;transform?:MeshSceneTransform};"
               ],
@@ -4515,7 +4535,7 @@
               "name": "PrimitiveSceneEntryV2",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 47,
+              "line": 49,
               "signatures": [
                 "export type PrimitiveSceneEntryV2=PrimitiveSceneEntryV1&{ref:PrimitiveSceneRef};"
               ],
@@ -4535,7 +4555,7 @@
               "name": "PrimitiveSceneFrameV0",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 52,
+              "line": 54,
               "signatures": [
                 "export interface PrimitiveSceneFrameV0 {version:0;scene:PrimitiveSceneInputV2;options:PrimitiveSceneOptions;particles:ParticleLayerV0|null;materials:PrimitiveSceneMaterial[]}"
               ],
@@ -4545,7 +4565,7 @@
               "name": "PrimitiveSceneFrameV1",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 54,
+              "line": 56,
               "signatures": [
                 "export interface PrimitiveSceneFrameV1 {version:1;scene:PrimitiveSceneInputV2;options:PrimitiveSceneOptions;particles:ParticleLayerV0|null;materials:PrimitiveSceneMaterial[];cloth:ClothLayerV0|null}"
               ],
@@ -4555,7 +4575,7 @@
               "name": "PrimitiveSceneInputV1",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 44,
+              "line": 46,
               "signatures": [
                 "export interface PrimitiveSceneInputV1 {version:1;entries:PrimitiveSceneEntryV1[]}"
               ],
@@ -4565,7 +4585,7 @@
               "name": "PrimitiveSceneInputV2",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 48,
+              "line": 50,
               "signatures": [
                 "export interface PrimitiveSceneInputV2 {version:2;entries:PrimitiveSceneEntryV2[]}"
               ],
@@ -4575,7 +4595,7 @@
               "name": "PrimitiveSceneMaterial",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 50,
+              "line": 52,
               "signatures": [
                 "export interface PrimitiveSceneMaterial {ref:PrimitiveSceneRef;binding:MeshMaterialBinding}"
               ],
@@ -4585,7 +4605,7 @@
               "name": "PrimitiveSceneOptions",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 37,
+              "line": 39,
               "signatures": [
                 "export type PrimitiveSceneOptions=MeshSceneOptions;"
               ],
@@ -4595,7 +4615,7 @@
               "name": "PrimitiveSceneRecoveryError",
               "kind": "ClassDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 23,
+              "line": 25,
               "signatures": [
                 "export class PrimitiveSceneRecoveryError extends AggregateError {\n  readonly code: \"CONTEXT\";\n  constructor(original: unknown, recovery: unknown);\n}"
               ],
@@ -4605,7 +4625,7 @@
               "name": "PrimitiveSceneRef",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 46,
+              "line": 48,
               "signatures": [
                 "export interface PrimitiveSceneRef {modelId:string;geometryId:string}"
               ],
@@ -4615,7 +4635,7 @@
               "name": "PrimitiveSceneRenderer",
               "kind": "ClassDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 339,
+              "line": 410,
               "signatures": [
                 "export class PrimitiveSceneRenderer extends PrimitiveSceneBackend {\n  constructor(canvas: HTMLCanvasElement, entries: PrimitiveSceneEntry[], options: PrimitiveSceneOptions);\n  get entries(): PrimitiveSceneEntry[];\n  update(entries: PrimitiveSceneEntry[], options: PrimitiveSceneOptions): UpdateResult;\n}"
               ],
@@ -4625,7 +4645,7 @@
               "name": "PrimitiveSceneRendererV1",
               "kind": "ClassDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 344,
+              "line": 415,
               "signatures": [
                 "export class PrimitiveSceneRendererV1 extends PrimitiveSceneBackend {\n  constructor(canvas: HTMLCanvasElement, input: PrimitiveSceneInputV1, options: PrimitiveSceneOptions);\n  get entries(): PrimitiveSceneEntryV1[];\n  update(input: PrimitiveSceneInputV1, options: PrimitiveSceneOptions): UpdateResult;\n}"
               ],
@@ -4635,7 +4655,7 @@
               "name": "PrimitiveSceneRendererV2",
               "kind": "ClassDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 349,
+              "line": 420,
               "signatures": [
                 "export class PrimitiveSceneRendererV2 extends PrimitiveSceneBackend {\n  get frameV1(): PrimitiveSceneFrameV1;\n  updateFrameV1(frame: PrimitiveSceneFrameV1): UpdateResult;\n  get clothLayer(): ClothLayerV0|null;\n  setClothLayer(layer: ClothLayerV0|null): UpdateResult;\n  get frame(): PrimitiveSceneFrameV0;\n  updateFrame(frame: PrimitiveSceneFrameV0): UpdateResult;\n  get particleLayer(): ParticleLayerV0|null;\n  setParticleLayer(frame: ParticleLayerV0|null): UpdateResult;\n  get materials(): PrimitiveSceneMaterial[];\n  setMaterial(ref: PrimitiveSceneRef, binding: MeshMaterialBinding|null): UpdateResult;\n  constructor(canvas: HTMLCanvasElement, input: PrimitiveSceneInputV2, options: PrimitiveSceneOptions);\n  get entries(): PrimitiveSceneEntryV2[];\n  update(input: PrimitiveSceneInputV2, options: PrimitiveSceneOptions, particles?: ParticleLayerV0|null): UpdateResult;\n}"
               ],
@@ -4645,7 +4665,7 @@
               "name": "PrimitiveViewport",
               "kind": "ClassDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 387,
+              "line": 462,
               "signatures": [
                 "export class PrimitiveViewport {\n  get frameV1(): PrimitiveSceneFrameV1;\n  updateFrameV1(frame: PrimitiveSceneFrameV1): UpdateResult;\n  get clothLayer(): ClothLayerV0|null;\n  setClothLayer(layer: ClothLayerV0|null): UpdateResult;\n  get frame(): PrimitiveSceneFrameV0;\n  updateFrame(frame: PrimitiveSceneFrameV0): UpdateResult;\n  get particleLayer(): ParticleLayerV0|null;\n  setParticleLayer(frame: ParticleLayerV0|null): UpdateResult;\n  get materials(): PrimitiveSceneMaterial[];\n  setMaterial(ref: PrimitiveSceneRef, binding: MeshMaterialBinding|null): UpdateResult;\n  constructor(canvas: HTMLCanvasElement, options: PrimitiveSceneOptions);\n  get entries(): PrimitiveSceneEntryV2[];\n  get options(): PrimitiveSceneOptions;\n  get bounds(): MeshSceneBounds|null;\n  update(input: PrimitiveSceneInputV2, options: PrimitiveSceneOptions, particles?: ParticleLayerV0|null): UpdateResult;\n  clear(options: PrimitiveSceneOptions): UpdateResult;\n  render(): void;\n  readPixels(): Uint8Array;\n  resize(width?: number, height?: number): void;\n  dispose(): void;\n}"
               ],
@@ -6146,9 +6166,11 @@
                 "mountNativeSurfaceUV01WebGPUViewport",
                 "mountPrimitiveBackendViewport",
                 "mountPrimitiveScene",
+                "mountPrimitiveSceneFrame",
                 "mountPrimitiveSceneV1",
                 "mountPrimitiveSceneV2",
                 "mountPrimitiveViewport",
+                "mountPrimitiveViewportFrame",
                 "mountQualifiedFaceScene",
                 "mountScene",
                 "parseScene",
@@ -6611,9 +6633,11 @@
                 "PrimitiveSceneRendererV2",
                 "PrimitiveViewport",
                 "mountPrimitiveScene",
+                "mountPrimitiveSceneFrame",
                 "mountPrimitiveSceneV1",
                 "mountPrimitiveSceneV2",
-                "mountPrimitiveViewport"
+                "mountPrimitiveViewport",
+                "mountPrimitiveViewportFrame"
               ]
             },
             {
@@ -9180,17 +9204,27 @@
               "name": "mountPrimitiveScene",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 364,
+              "line": 437,
               "signatures": [
                 "export function mountPrimitiveScene(canvas: HTMLCanvasElement, entries: PrimitiveSceneEntry[], options: PrimitiveSceneOptions): PrimitiveSceneRenderer;"
               ],
               "digest": "06688b9eecdd94a2ce4b565e64af2b3ea7b8f5a1910c270986963f929ce12898"
             },
             {
+              "name": "mountPrimitiveSceneFrame",
+              "kind": "FunctionDeclaration",
+              "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
+              "line": 493,
+              "signatures": [
+                "export function mountPrimitiveSceneFrame(canvas: HTMLCanvasElement, input: unknown): PrimitiveSceneRendererV2;"
+              ],
+              "digest": "0c56056970923135a71109817f5383cfa9e11f0c19b4f3fd4ed92cb8cae07131"
+            },
+            {
               "name": "mountPrimitiveSceneV1",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 365,
+              "line": 438,
               "signatures": [
                 "export function mountPrimitiveSceneV1(canvas: HTMLCanvasElement, input: PrimitiveSceneInputV1, options: PrimitiveSceneOptions): PrimitiveSceneRendererV1;"
               ],
@@ -9200,7 +9234,7 @@
               "name": "mountPrimitiveSceneV2",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 366,
+              "line": 439,
               "signatures": [
                 "export function mountPrimitiveSceneV2(canvas: HTMLCanvasElement, input: PrimitiveSceneInputV2, options: PrimitiveSceneOptions): PrimitiveSceneRendererV2;"
               ],
@@ -9210,11 +9244,21 @@
               "name": "mountPrimitiveViewport",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 410,
+              "line": 485,
               "signatures": [
                 "export function mountPrimitiveViewport(canvas: HTMLCanvasElement, options: PrimitiveSceneOptions): PrimitiveViewport;"
               ],
               "digest": "c1b4ef556a9c2732ac7142965feb3b7d5f81d02fdcd02f87db626b6f49099466"
+            },
+            {
+              "name": "mountPrimitiveViewportFrame",
+              "kind": "FunctionDeclaration",
+              "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
+              "line": 498,
+              "signatures": [
+                "export function mountPrimitiveViewportFrame(canvas: HTMLCanvasElement, input: unknown): PrimitiveViewport;"
+              ],
+              "digest": "28cfb5172e5713e174566c6160d92b2675aefd1f91256e71ab9351929c395eb6"
             },
             {
               "name": "mountQualifiedFaceScene",
@@ -11042,7 +11086,7 @@
               "name": "PrimitiveSceneEntry",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 34,
+              "line": 36,
               "signatures": [
                 "export type PrimitiveSceneEntry=\n |{kind:'surface';packet:PreviewPacket;color:RGB;transform?:MeshSceneTransform}\n |{kind:'curve';sample:AdaptiveCurveSamplingResult;basis:'authored-xyz-matches-rhyup';color:RGB;transform?:MeshSceneTransform};"
               ],
@@ -11052,7 +11096,7 @@
               "name": "PrimitiveSceneEntryV1",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 38,
+              "line": 40,
               "signatures": [
                 "export type PrimitiveSceneEntryV1=\n |Extract<PrimitiveSceneEntry,{kind:'surface'}>\n |(Extract<PrimitiveSceneEntry,{kind:'curve'}>&{sampleVersion:0})\n |{kind:'curve';sampleVersion:1;sample:WideAdaptiveCurveSamplingResult;basis:'authored-xyz-matches-rhyup';color:RGB;transform?:MeshSceneTransform}\n |{kind:'curve';sampleVersion:2;sample:UniformCurvePreview;basis:'authored-xyz-matches-rhyup';color:RGB;transform?:MeshSceneTransform}\n |{kind:'curve';sampleVersion:3;sample:SelectedUniformCurvePreview;basis:'authored-xyz-matches-rhyup';color:RGB;transform?:MeshSceneTransform};"
               ],
@@ -11062,7 +11106,7 @@
               "name": "PrimitiveSceneEntryV2",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 47,
+              "line": 49,
               "signatures": [
                 "export type PrimitiveSceneEntryV2=PrimitiveSceneEntryV1&{ref:PrimitiveSceneRef};"
               ],
@@ -11082,7 +11126,7 @@
               "name": "PrimitiveSceneFrameV0",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 52,
+              "line": 54,
               "signatures": [
                 "export interface PrimitiveSceneFrameV0 {version:0;scene:PrimitiveSceneInputV2;options:PrimitiveSceneOptions;particles:ParticleLayerV0|null;materials:PrimitiveSceneMaterial[]}"
               ],
@@ -11092,7 +11136,7 @@
               "name": "PrimitiveSceneFrameV1",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 54,
+              "line": 56,
               "signatures": [
                 "export interface PrimitiveSceneFrameV1 {version:1;scene:PrimitiveSceneInputV2;options:PrimitiveSceneOptions;particles:ParticleLayerV0|null;materials:PrimitiveSceneMaterial[];cloth:ClothLayerV0|null}"
               ],
@@ -11102,7 +11146,7 @@
               "name": "PrimitiveSceneInputV1",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 44,
+              "line": 46,
               "signatures": [
                 "export interface PrimitiveSceneInputV1 {version:1;entries:PrimitiveSceneEntryV1[]}"
               ],
@@ -11112,7 +11156,7 @@
               "name": "PrimitiveSceneInputV2",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 48,
+              "line": 50,
               "signatures": [
                 "export interface PrimitiveSceneInputV2 {version:2;entries:PrimitiveSceneEntryV2[]}"
               ],
@@ -11122,7 +11166,7 @@
               "name": "PrimitiveSceneMaterial",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 50,
+              "line": 52,
               "signatures": [
                 "export interface PrimitiveSceneMaterial {ref:PrimitiveSceneRef;binding:MeshMaterialBinding}"
               ],
@@ -11132,7 +11176,7 @@
               "name": "PrimitiveSceneOptions",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 37,
+              "line": 39,
               "signatures": [
                 "export type PrimitiveSceneOptions=MeshSceneOptions;"
               ],
@@ -11142,7 +11186,7 @@
               "name": "PrimitiveSceneRecoveryError",
               "kind": "ClassDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 23,
+              "line": 25,
               "signatures": [
                 "export class PrimitiveSceneRecoveryError extends AggregateError {\n  readonly code: \"CONTEXT\";\n  constructor(original: unknown, recovery: unknown);\n}"
               ],
@@ -11152,7 +11196,7 @@
               "name": "PrimitiveSceneRef",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 46,
+              "line": 48,
               "signatures": [
                 "export interface PrimitiveSceneRef {modelId:string;geometryId:string}"
               ],
@@ -11162,7 +11206,7 @@
               "name": "PrimitiveSceneRenderer",
               "kind": "ClassDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 339,
+              "line": 410,
               "signatures": [
                 "export class PrimitiveSceneRenderer extends PrimitiveSceneBackend {\n  constructor(canvas: HTMLCanvasElement, entries: PrimitiveSceneEntry[], options: PrimitiveSceneOptions);\n  get entries(): PrimitiveSceneEntry[];\n  update(entries: PrimitiveSceneEntry[], options: PrimitiveSceneOptions): UpdateResult;\n}"
               ],
@@ -11172,7 +11216,7 @@
               "name": "PrimitiveSceneRendererV1",
               "kind": "ClassDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 344,
+              "line": 415,
               "signatures": [
                 "export class PrimitiveSceneRendererV1 extends PrimitiveSceneBackend {\n  constructor(canvas: HTMLCanvasElement, input: PrimitiveSceneInputV1, options: PrimitiveSceneOptions);\n  get entries(): PrimitiveSceneEntryV1[];\n  update(input: PrimitiveSceneInputV1, options: PrimitiveSceneOptions): UpdateResult;\n}"
               ],
@@ -11182,7 +11226,7 @@
               "name": "PrimitiveSceneRendererV2",
               "kind": "ClassDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 349,
+              "line": 420,
               "signatures": [
                 "export class PrimitiveSceneRendererV2 extends PrimitiveSceneBackend {\n  get frameV1(): PrimitiveSceneFrameV1;\n  updateFrameV1(frame: PrimitiveSceneFrameV1): UpdateResult;\n  get clothLayer(): ClothLayerV0|null;\n  setClothLayer(layer: ClothLayerV0|null): UpdateResult;\n  get frame(): PrimitiveSceneFrameV0;\n  updateFrame(frame: PrimitiveSceneFrameV0): UpdateResult;\n  get particleLayer(): ParticleLayerV0|null;\n  setParticleLayer(frame: ParticleLayerV0|null): UpdateResult;\n  get materials(): PrimitiveSceneMaterial[];\n  setMaterial(ref: PrimitiveSceneRef, binding: MeshMaterialBinding|null): UpdateResult;\n  constructor(canvas: HTMLCanvasElement, input: PrimitiveSceneInputV2, options: PrimitiveSceneOptions);\n  get entries(): PrimitiveSceneEntryV2[];\n  update(input: PrimitiveSceneInputV2, options: PrimitiveSceneOptions, particles?: ParticleLayerV0|null): UpdateResult;\n}"
               ],
@@ -11192,7 +11236,7 @@
               "name": "PrimitiveViewport",
               "kind": "ClassDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 387,
+              "line": 462,
               "signatures": [
                 "export class PrimitiveViewport {\n  get frameV1(): PrimitiveSceneFrameV1;\n  updateFrameV1(frame: PrimitiveSceneFrameV1): UpdateResult;\n  get clothLayer(): ClothLayerV0|null;\n  setClothLayer(layer: ClothLayerV0|null): UpdateResult;\n  get frame(): PrimitiveSceneFrameV0;\n  updateFrame(frame: PrimitiveSceneFrameV0): UpdateResult;\n  get particleLayer(): ParticleLayerV0|null;\n  setParticleLayer(frame: ParticleLayerV0|null): UpdateResult;\n  get materials(): PrimitiveSceneMaterial[];\n  setMaterial(ref: PrimitiveSceneRef, binding: MeshMaterialBinding|null): UpdateResult;\n  constructor(canvas: HTMLCanvasElement, options: PrimitiveSceneOptions);\n  get entries(): PrimitiveSceneEntryV2[];\n  get options(): PrimitiveSceneOptions;\n  get bounds(): MeshSceneBounds|null;\n  update(input: PrimitiveSceneInputV2, options: PrimitiveSceneOptions, particles?: ParticleLayerV0|null): UpdateResult;\n  clear(options: PrimitiveSceneOptions): UpdateResult;\n  render(): void;\n  readPixels(): Uint8Array;\n  resize(width?: number, height?: number): void;\n  dispose(): void;\n}"
               ],
@@ -12693,9 +12737,11 @@
                 "mountNativeSurfaceUV01WebGPUViewport",
                 "mountPrimitiveBackendViewport",
                 "mountPrimitiveScene",
+                "mountPrimitiveSceneFrame",
                 "mountPrimitiveSceneV1",
                 "mountPrimitiveSceneV2",
                 "mountPrimitiveViewport",
+                "mountPrimitiveViewportFrame",
                 "mountQualifiedFaceScene",
                 "mountScene",
                 "parseScene",
@@ -13158,9 +13204,11 @@
                 "PrimitiveSceneRendererV2",
                 "PrimitiveViewport",
                 "mountPrimitiveScene",
+                "mountPrimitiveSceneFrame",
                 "mountPrimitiveSceneV1",
                 "mountPrimitiveSceneV2",
-                "mountPrimitiveViewport"
+                "mountPrimitiveViewport",
+                "mountPrimitiveViewportFrame"
               ]
             },
             {
@@ -15226,7 +15274,7 @@
               "name": "CadBody",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 157,
+              "line": 162,
               "signatures": [
                 "export type CadBody = { readonly family: 'convex-planar'; readonly native: ConvexPlanarSolidResult }\n  | { readonly family: 'stored-rational-plate-hole'; readonly native: StoredPlateHoleSolidResult }\n  | { readonly family: 'orthogonal-cell'; readonly native: AxisBoxSolidBooleanResult | OrthogonalSolidBooleanResult }\n  | { readonly family: 'stored-rational-circle-prism'; readonly native: StoredCirclePrismSolidResult };"
               ],
@@ -15276,7 +15324,7 @@
               "name": "CadConstrainedPolygonBuilder",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 112,
+              "line": 117,
               "signatures": [
                 "export interface CadConstrainedPolygonBuilder {\n  point(seed: CadPoint2): CadSketchPoint;\n  fixed(point: CadSketchPoint): void;\n  horizontal(a: CadSketchPoint, b: CadSketchPoint): void;\n  vertical(a: CadSketchPoint, b: CadSketchPoint): void;\n  /** Adjacent owned edge parallel to a finite nonzero authored dimensionless direction. */\n  parallelTo(a: CadSketchPoint, b: CadSketchPoint, direction: readonly [number, number]): void;\n}"
               ],
@@ -15347,7 +15395,7 @@
               "name": "CadCut",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 102,
+              "line": 107,
               "signatures": [
                 "export interface CadCut { readonly negative: CadShape; readonly positive: CadShape }"
               ],
@@ -15881,7 +15929,7 @@
               "name": "CadMassProperties",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 174,
+              "line": 179,
               "signatures": [
                 "export type CadMassProperties = MassValues & (\n  | { readonly family: 'convex-planar'; readonly details: { readonly exact: MassExact; readonly conversionErrors: MassErrors; readonly native: MassReadonly<ConvexPlanarSolidMassResult> } }\n  | { readonly family: 'orthogonal-cell'; readonly details: { readonly exact: MassExact; readonly conversionErrors: MassErrors; readonly native: MassReadonly<AxisBoxSolidMassResult> } }\n);"
               ],
@@ -15891,7 +15939,7 @@
               "name": "CadMassPropertiesOptions",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 161,
+              "line": 166,
               "signatures": [
                 "export interface CadMassPropertiesOptions { readonly densityKgPerM3: number }"
               ],
@@ -15901,7 +15949,7 @@
               "name": "CadModel",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 120,
+              "line": 125,
               "signatures": [
                 "export interface CadModel {\n  parameter(name: string, valueMM: number): CadParameter;\n  readonly dimension: {\n    add(left: CadDimension, right: CadDimension): CadDimensionExpression;\n    scale(value: CadDimension, factor: number): CadDimensionExpression;\n  };\n  readonly sketch: {\n    polygon(points: readonly CadPoint2[]): CadSketch;\n    rectangle(rectangle: CadRectangle): CadSketch;\n    circle(options: { readonly center: CadPoint2; readonly radius: CadDimension }): CadSketch;\n    /** One fully constrained convex cycle; underconstrained or contradictory solves refuse atomically. */\n    constrainedPolygon(callback: (builder: CadConstrainedPolygonBuilder) => readonly CadSketchPoint[]): CadSketch;\n  };\n  /** Evaluates every authored node. Only these explicitly named Solid outputs are exposed. */\n  build(outputs: Readonly<Record<string, CadShape>>): CadModelSnapshot;\n}"
               ],
@@ -15941,7 +15989,7 @@
               "name": "CadModelEvidence",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 136,
+              "line": 141,
               "signatures": [
                 "export type CadModelEvidence =\n  | { readonly kind: 'sketch'; readonly profile?: never; readonly native: XYAffineSketchSuccess }\n  | { readonly kind: 'sketch'; readonly profile: 'circle'; readonly native: XYArcResult }\n  | { readonly kind: 'extrude'; readonly profile?: never; readonly native: XYAffineSketchPrismCoordinateSpanResult | XYAffineSketchPrismOffsetCoordinateSpanResult }\n  | { readonly kind: 'extrude'; readonly profile: 'circle'; readonly native: StoredCirclePrismSolidResult }\n  | { readonly kind: 'translate'; readonly native: ModelingTranslationResult }\n  | { readonly kind: 'rotate'; readonly native: ModelingRotationResult }\n  | { readonly kind: 'mirror'; readonly native: ModelingMirrorResult }\n  | { readonly kind: 'scale'; readonly native: ModelingScaleResult }\n  | { readonly kind: 'linear-pattern'; readonly native: ModelingLinearPatternResult }\n  | { readonly kind: 'circular-pattern'; readonly native: ModelingCircularPatternResult }\n  | { readonly kind: 'cut'; readonly native: ConvexPlanarSlabSubtractionResult }\n  | { readonly kind: 'intersect'; readonly native: ConvexPlanarSolidIntersectionResult }\n  | { readonly kind: 'split'; readonly native: ConvexPlanarSolidSplitResult }\n  | { readonly kind: 'difference'; readonly composition?: never; readonly parents: readonly [ConvexPlanarSolidResult, ConvexPlanarSolidResult]; readonly native: AxisBoxSolidBooleanResult }\n  | { readonly kind: 'difference'; readonly composition: 'union-slot'; readonly parent: AxisBoxSolidBooleanResult; readonly tool: ConvexPlanarSolidResult; readonly native: OrthogonalSolidBooleanResult }\n  | { readonly kind: 'union'; readonly parents: readonly [ConvexPlanarSolidResult, ConvexPlanarSolidResult]; readonly native: AxisBoxSolidBooleanResult }\n  | { readonly kind: 'hole'; readonly parent: ConvexPlanarSolidResult; readonly native: StoredPlateHoleSolidResult }\n  | { readonly kind: 'chamfer'; readonly native: ConvexPlanarSolidChamferResult; readonly configuration?: { readonly name: string; readonly suppressed: boolean; readonly output: 'parent' | 'chamfer-result' } };"
               ],
@@ -15951,7 +15999,7 @@
               "name": "CadModelFeature",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 155,
+              "line": 160,
               "signatures": [
                 "export interface CadModelFeature { readonly kind: CadModelEvidence['kind']; readonly index: number; readonly dependencies: readonly number[]; readonly name?: string; readonly suppressed?: boolean }"
               ],
@@ -16001,7 +16049,7 @@
               "name": "CadModelLimits",
               "kind": "VariableDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 211,
+              "line": 216,
               "signatures": [
                 "export const CadModelLimits: Readonly<{ nodes: 6; sketches: 2; extrusions: 2; compositionNodes: 8; compositionSketches: 3; compositionExtrusions: 3; cuts: 1; intersections: 1; splits: 1; chamfers: 2; holes: 1; unions: 1; differences: 1; parameters: 16; outputs: 8; polygonPoints: 8; polygonConstraints: 16; fileBytes: 65536; inputDepth: 12; lengthMM: 10000; dimensionNodes: 32; dimensionDepth: 6; }>;"
               ],
@@ -16011,7 +16059,7 @@
               "name": "CadModelSnapshot",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 190,
+              "line": 195,
               "signatures": [
                 "export interface CadModelSnapshot {\n  /** Deep-frozen tagged bodies; native source/topology/certificates remain authoritative. */\n  readonly bodies: Readonly<Record<string, CadBody>>;\n  readonly parameters: Readonly<Record<string, number>>;\n  /** Named validated finishing configuration, separate from numeric dimensions. */\n  readonly suppression: Readonly<Record<string, boolean>>;\n  readonly features: readonly CadModelFeature[];\n  /** Accepted model feature work only; native provider internals are not counted. Never saved. */\n  readonly recomputation: { readonly reusedFeatures: readonly number[]; readonly evaluatedFeatures: readonly number[] };\n  /** Original kernel results. Diagnostic evidence, never a saved cache or editable input. */\n  readonly evidence: readonly CadModelEvidence[];\n  /** Revalidates and measures one named convex or two-box integer-cell output. Curved/composed families refuse. */\n  massProperties(outputName: string, options: CadMassPropertiesOptions): CadMassProperties;\n  /** Export one owned convex output. No file side effects; Float32 loss/collapse is explicit. */\n  exportStl(outputName: string): CadStlExport;\n  withParameters(edits: Readonly<Record<string, number>>): CadModelSnapshot;\n  /** Disabled chamfers still validate; they select their exact parent as output. */\n  withSuppression(edits: Readonly<Record<string, boolean>>): CadModelSnapshot;\n  /** Saves only accepted authored state; no native results or meshes. */\n  save(): string;\n}"
               ],
@@ -16061,7 +16109,7 @@
               "name": "CadRectangle",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 109,
+              "line": 114,
               "signatures": [
                 "export type CadRectangle = { readonly min: CadPoint2; readonly max: CadPoint2 } | { readonly width: CadDimension; readonly height: CadDimension };"
               ],
@@ -16124,15 +16172,15 @@
               "source": "packages/barocss-cad/src/modeling.ts",
               "line": 70,
               "signatures": [
-                "export interface CadShape {\n  /** Exact translation of a direct affine extrusion, its finishing chain, or the last owned cardinal rotation. A direct copy may enter the bounded terminal intersection recipe. */\n  translate(offset: readonly [CadDimension, CadDimension, CadDimension]): CadShape;\n  /** Right-handed cardinal rotation about the world origin. Only one terminal translation of this exact owned result may follow. */\n  rotate(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | 180 | 270 | -90 | -180 | -270 }): CadShape;\n  /** Reflect across a cardinal plane through the world origin. The owned copy is terminal; no later features or transforms. */\n  mirror(options: { readonly plane: 'xy' | 'xz' | 'yz' }): CadShape;\n  /** Scale uniformly about the world origin by exactly 0.5 or 2. The owned copy is terminal; no later features or transforms. */\n  scale(options: { readonly factor: 0.5 | 2 }): CadShape;\n  /** Original handle plus two owned copies at positive spacing and twice spacing on one axis. The pattern is terminal. */\n  linearPattern(options: { readonly axis: CadAxis; readonly spacing: CadDimension; readonly count: 3 }): readonly [CadShape, CadShape, CadShape];\n  /** Original handle plus two owned copies at an authored quarter turn and twice that turn about the world origin. The pattern is terminal. */\n  circularPattern(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | -90; readonly count: 3 }): readonly [CadShape, CadShape, CadShape];\n  /** Original handle plus three owned quarter-turn copies. All copies use the same original; the pattern is terminal. */\n  circularPattern(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | -90; readonly count: 4 }): readonly [CadShape, CadShape, CadShape, CadShape];\n  circularPattern(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | -90; readonly count: 3 | 4 }): readonly [CadShape, CadShape, CadShape] | readonly [CadShape, CadShape, CadShape, CadShape];\n  /** One connected union of two distinct direct integer rectangular extrusions. */\n  union(other: CadShape): CadShape;\n  /** One full-thickness stored-rational hole in a direct origin-aligned integer rectangular plate. */\n  hole(options: { readonly center: CadPoint2; readonly radius: CadDimension }): CadShape;\n  /** Positive-volume overlap of direct affine extrusions, or one translated source and the distinct other source in the complete six-node recipe; disjoint/touching parts refuse. */\n  intersect(other: CadShape): CadShape;\n  /** Cardinal or x+y=at split of a direct XY extrusion or its owned chamfer chain; at is a coordinate/sum in mm. */\n  split(options: SplitPlane & { readonly at: CadDimension }): CadSplit;\n  /** One rectangular difference, or one third-box slot in an owned union; actual integer XYZ bounds are used. */\n  cut(tool: CadShape): CadShape;\n  /** Legacy through-slab pair. Options must be provided as an exact axis record. */\n  cut(tool: CadShape, options: { readonly axis: 'x' | 'y' }): CadCut;\n  edges(query: CadEdgeQuery): CadEdgeQueryHandle;\n  /** At most two sequential cardinal chamfers; each selector belongs to its exact parent result. */\n  chamfer(edge: CadEdgeSelection, distance: CadDimension, options?: { readonly name: string }): CadShape;\n}"
+                "export interface CadShape {\n  /** Exact translation of a direct affine extrusion, its finishing chain, or the last owned cardinal rotation. A direct copy may enter the bounded terminal intersection recipe. */\n  translate(offset: readonly [CadDimension, CadDimension, CadDimension]): CadShape;\n  /** Right-handed cardinal rotation about the world origin. Only one terminal translation of this exact owned result may follow. */\n  rotate(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | 180 | 270 | -90 | -180 | -270 }): CadShape;\n  /** Reflect across a cardinal plane through the world origin. The owned copy is terminal; no later features or transforms. */\n  mirror(options: { readonly plane: 'xy' | 'xz' | 'yz' }): CadShape;\n  /** Scale uniformly about the world origin by exactly 0.5 or 2. The owned copy is terminal; no later features or transforms. */\n  scale(options: { readonly factor: 0.5 | 2 }): CadShape;\n  /** Original handle plus one owned copy at positive spacing on one axis. The pattern is terminal. */\n  linearPattern(options: { readonly axis: CadAxis; readonly spacing: CadDimension; readonly count: 2 }): readonly [CadShape, CadShape];\n  /** Original handle plus two owned copies at positive spacing and twice spacing on one axis. The pattern is terminal. */\n  linearPattern(options: { readonly axis: CadAxis; readonly spacing: CadDimension; readonly count: 3 }): readonly [CadShape, CadShape, CadShape];\n  /** Original handle plus three owned copies at positive spacing, twice spacing and three times spacing. The pattern is terminal. */\n  linearPattern(options: { readonly axis: CadAxis; readonly spacing: CadDimension; readonly count: 4 }): readonly [CadShape, CadShape, CadShape, CadShape];\n  linearPattern(options: { readonly axis: CadAxis; readonly spacing: CadDimension; readonly count: 2 | 3 | 4 }): readonly [CadShape, CadShape] | readonly [CadShape, CadShape, CadShape] | readonly [CadShape, CadShape, CadShape, CadShape];\n  /** Original handle plus two owned copies at an authored quarter turn and twice that turn about the world origin. The pattern is terminal. */\n  circularPattern(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | -90; readonly count: 3 }): readonly [CadShape, CadShape, CadShape];\n  /** Original handle plus three owned quarter-turn copies. All copies use the same original; the pattern is terminal. */\n  circularPattern(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | -90; readonly count: 4 }): readonly [CadShape, CadShape, CadShape, CadShape];\n  circularPattern(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | -90; readonly count: 3 | 4 }): readonly [CadShape, CadShape, CadShape] | readonly [CadShape, CadShape, CadShape, CadShape];\n  /** One connected union of two distinct direct integer rectangular extrusions. */\n  union(other: CadShape): CadShape;\n  /** One full-thickness stored-rational hole in a direct origin-aligned integer rectangular plate. */\n  hole(options: { readonly center: CadPoint2; readonly radius: CadDimension }): CadShape;\n  /** Positive-volume overlap of direct affine extrusions, or one translated source and the distinct other source in the complete six-node recipe; disjoint/touching parts refuse. */\n  intersect(other: CadShape): CadShape;\n  /** Cardinal or x+y=at split of a direct XY extrusion or its owned chamfer chain; at is a coordinate/sum in mm. */\n  split(options: SplitPlane & { readonly at: CadDimension }): CadSplit;\n  /** One rectangular difference, or one third-box slot in an owned union; actual integer XYZ bounds are used. */\n  cut(tool: CadShape): CadShape;\n  /** Legacy through-slab pair. Options must be provided as an exact axis record. */\n  cut(tool: CadShape, options: { readonly axis: 'x' | 'y' }): CadCut;\n  edges(query: CadEdgeQuery): CadEdgeQueryHandle;\n  /** At most two sequential cardinal chamfers; each selector belongs to its exact parent result. */\n  chamfer(edge: CadEdgeSelection, distance: CadDimension, options?: { readonly name: string }): CadShape;\n}"
               ],
-              "digest": "2ae9b4d66507fb8b2cac4d6cc449cabf1ac4e30049b51be1fab1abaec2061525"
+              "digest": "8777b18de623ee6f3840afdab63744a935c226157263e408151766493e94ae8a"
             },
             {
               "name": "CadSketch",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 104,
+              "line": 109,
               "signatures": [
                 "export interface CadSketch {\n  extrude(height: CadDimension): CadShape;\n  /** Absolute bottom Z for an affine XY profile; positive height stays a +Z distance. Circle options refuse. */\n  extrude(height: CadDimension, options: { readonly from: CadDimension }): CadShape;\n}"
               ],
@@ -16142,7 +16190,7 @@
               "name": "CadSketchPoint",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 110,
+              "line": 115,
               "signatures": [
                 "export interface CadSketchPoint { readonly kind: 'sketch-point' }"
               ],
@@ -16162,7 +16210,7 @@
               "name": "CadSplit",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 103,
+              "line": 108,
               "signatures": [
                 "export interface CadSplit { readonly negative: CadShape; readonly positive: CadShape }"
               ],
@@ -16172,7 +16220,7 @@
               "name": "CadStlExport",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 179,
+              "line": 184,
               "signatures": [
                 "export interface CadStlExport {\n  readonly outputName: string;\n  readonly family: 'convex-planar';\n  readonly format: 'binary-stl';\n  readonly lengthUnit: 'mm';\n  readonly bytes: readonly number[];\n  readonly byteLength: number;\n  readonly triangleCount: number;\n  readonly maximumVertexDisplacementMM: number;\n  readonly details: MassReadonly<ModelingStlResult>;\n}"
               ],
@@ -55350,13 +55398,13 @@
   ],
   "packageTrees": {
     "packages/barocss-render": "b83e4912e1d1aa658f048ba4b112376785b288fb",
-    "packages/barocss-gpu": "69dcf43877d2a7677d8f010cddff5b4d124e4eb5",
-    "packages/barocss-cad": "d392f60b4b3b906876c8b12c32a9655395e41346",
+    "packages/barocss-gpu": "79fbd3499e48adb0ebf5c6b5d85afab06edd70fd",
+    "packages/barocss-cad": "bef198e62086760c178be5419fdad2017e7b16a6",
     "packages/barocss-cad-interop": "330d0323e1d3891c8a1f882e848aae604ea67b08",
     "packages/barocss-canvas2d": "b029d1925907fbac9a19d6c2f825cbfd91323473",
     "packages/barocss-viewer": "aa7736ed08620fe9b7db2eff4feec5c89f9e502b",
     "packages/barocss-physics": "f3aa5c6e161137cb80fb68f73a517cd6bdc673dd",
-    "packages/barocss-cad-editor": "575f1d73c6e1aeacd6bbc4c7ecce7f5b36abd580",
+    "packages/barocss-cad-editor": "d25c0a34978b5f4bf3b6595643b752446090ff2c",
     "packages/barocss-render-editor": "d1486acf9b983dba6839d2bf303406876244e2e6"
   },
   "historicalSourceCommit": "5f5ad866205a21510ac69552e704cc162fa253b5",
@@ -55479,6 +55527,8 @@
       "@barocss/gpu.:mountNativePointLightWebGPUViewport",
       "@barocss/gpu.:mountNativeSurfaceUV01WebGPUViewport",
       "@barocss/gpu.:mountPrimitiveBackendViewport",
+      "@barocss/gpu.:mountPrimitiveSceneFrame",
+      "@barocss/gpu.:mountPrimitiveViewportFrame",
       "@barocss/gpu.:MultiplicativeAffineSceneAst",
       "@barocss/gpu.:MultiSurfaceWebGPUDiagnosticCode",
       "@barocss/gpu.:MultiSurfaceWebGPUError",
@@ -55768,6 +55818,8 @@
       "@barocss/gpu./source:mountNativePointLightWebGPUViewport",
       "@barocss/gpu./source:mountNativeSurfaceUV01WebGPUViewport",
       "@barocss/gpu./source:mountPrimitiveBackendViewport",
+      "@barocss/gpu./source:mountPrimitiveSceneFrame",
+      "@barocss/gpu./source:mountPrimitiveViewportFrame",
       "@barocss/gpu./source:MultiplicativeAffineSceneAst",
       "@barocss/gpu./source:MultiSurfaceWebGPUDiagnosticCode",
       "@barocss/gpu./source:MultiSurfaceWebGPUError",
