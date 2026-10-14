@@ -1,7 +1,7 @@
 import { checkSerialLineage } from './prism-feature-lineage.js';
 import type { ConvexPlanarSolidMeshResult, ConvexPlanarSolidResult, XYAffinePrismFeatureResult, XYAffinePrismFeatureResultV2 } from '@barocss/cad';
 import { prepareEngineScene, prepareEngineCameraRay, raycastEngineScene } from '@barocss/gpu';
-import type { EngineSceneV0, TriangleGeometryV0 } from '@barocss/gpu';
+import type { EngineSceneV0, TriangleGeometryV0, EngineSceneEdgeOverlayV0 } from '@barocss/gpu';
 
 export type PrismDisplayRole = string;
 export type PrismDisplayView = 'source' | 'result';
@@ -25,7 +25,7 @@ export interface PrismDisplayPacket {
   documentId: string; revision: number; components: PrismDisplayComponent[];
   outcomes: { role: string; solidId: string; status: 'solid' | 'empty' }[];
 }
-export interface PrismDisplayScene { packet: PrismDisplayPacket; view: PrismDisplayView; scene: EngineSceneV0 }
+export interface PrismDisplayScene { packet: PrismDisplayPacket; view: PrismDisplayView; scene: EngineSceneV0; edges?: EngineSceneEdgeOverlayV0 }
 export interface PrismFaceSelection {
   documentId: string; revision: number; role: PrismDisplayRole; solidId: string;
   face: ConvexPlanarSolidMeshResult['mesh']['faces'][number];
@@ -203,7 +203,9 @@ export function preparePrismFeatureScene(packet: PrismDisplayPacket, view: Prism
   const splitFaces = visible.reduce((count, component) => count + component.mesh.faces.length, 0) <= MAX_CONVEX_DRAWS;
   const geometries: TriangleGeometryV0[] = [], materials: EngineSceneV0['materials'] = [], nodes: EngineSceneV0['nodes'] = [];
   const draws = new Map<string, ConvexDraw>();
+  const edgeOwners: EngineSceneEdgeOverlayV0['owners'] = [];
   for (const [componentIndex, component] of visible.entries()) {
+    const ownerRows = new Map<number, EngineSceneEdgeOverlayV0['owners'][number]>();
     const positions = xyz(component.mesh.positionsMM), normals = xyz(component.mesh.normals);
     const uvs = [...component.mesh.parametersUV];
     const faces = splitFaces ? [...component.mesh.faces.entries()] : [[-1, null]] as const;
@@ -228,8 +230,27 @@ export function preparePrismFeatureScene(packet: PrismDisplayPacket, view: Prism
       const node: EngineSceneV0['nodes'][number] = { id: `prism_node_${componentIndex}_${suffix}`, parentId: null, type: 'mesh', geometryId: id, materialId,
         translation: [0, 0, 0], rotationXYZW: [0, 0, 0, 1], scale: [1, 1, 1], visible: true };
       geometries.push(geometry); materials.push(material); nodes.push(node);
+      if (model) {
+        // Every partition fill needs bias, including faces assigned no unique
+        // segment. The opposite incident use must not draw a shared edge twice.
+        const owner = { nodeId: node.id, geometryId: geometry.id, indices: [] as number[] };
+        edgeOwners.push(owner); ownerRows.set(faceIndex, owner);
+      }
       draws.set(id, { componentIndex, faceIndex, originalTriangles, geometry, geometrySnapshot: structuredClone(geometry),
         node, nodeSnapshot: structuredClone(node), material, materialSnapshot: structuredClone(material) });
+    }
+    if (model) {
+      const lineage = component.lineage;
+      check('kind' in lineage && lineage.kind === 'model-output', 'native model edge lineage required');
+      for (const edge of lineage.graph.edges) {
+        // The admission above has already proved exactly two opposite uses,
+        // native endpoints and their original face-expanded mesh indices.
+        const boundary = component.boundaries.find(use => use.solidEdgeId === edge.id);
+        check(boundary, 'native edge boundary missing');
+        const owner = ownerRows.get(splitFaces ? boundary.faceIndex : -1);
+        check(owner, 'native edge fill owner missing');
+        owner.indices.push(...boundary.vertexIndices);
+      }
     }
   }
   const points = geometries.flatMap(g => g.positions);
@@ -245,7 +266,11 @@ export function preparePrismFeatureScene(packet: PrismDisplayPacket, view: Prism
     geometries, materials, nodes };
   // The generic scene supports zero draws: empty material remains a real empty scene.
   prepareEngineScene(scene);
-  const display = { packet: structuredClone(packet), view, scene };
+  const edges: EngineSceneEdgeOverlayV0 | undefined = model ? {
+    format: 'barocss-gpu-engine-scene-edges', version: 0, sceneId: scene.id,
+    color: [0.015, 0.02, 0.025], owners: edgeOwners,
+  } : undefined;
+  const display = { packet: structuredClone(packet), view, scene, ...(edges ? { edges } : {}) };
   convexDraws.set(display, { scene, draws });
   return display;
 }

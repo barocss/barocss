@@ -257,6 +257,7 @@ export type { NativeDirectionalLightWebGPURequest, NativeDirectionalLightWebGPUO
 
 export {mountEngineScene,EngineSceneRenderer} from './engine-scene-renderer.js';
 export type {EngineSceneRendererOptions} from './engine-scene-renderer.js';
+export type {EngineSceneEdgeOverlayV0} from './engine-scene-edges.js';
 
 // CPU-only native point-light catalog and trusted WGSL/ABI upload preparation (#1583).
 export { prepareNativePointLights, NativePointLightsError, NativePointLightsDiagnosticCode } from './native-point-lights.js';

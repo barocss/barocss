@@ -99,7 +99,15 @@ Historical [two-bevel native proof](https://github.com/barocss/barocss/issues/16
 
 ### See and select a bevel face
 
-The viewport gives accepted convex faces distinct fill colors. Click inside a bevel face to inspect its original approximate face and triangle identity. When a model has too many convex faces to show separately, all outputs remain visible with their original plain fill and face picking; bevel color separation is unavailable in that case. Boundary lines are not drawn. [#1990](https://github.com/barocss/barocss/issues/1990) records the focused display and pointer checks; color and picking do not certify exact measurement or manufacturing geometry.
+The viewport gives accepted convex faces distinct fill colors. Click inside a bevel face to inspect its original approximate face and triangle identity. When a model has too many convex faces to show separately, all outputs remain visible with their original plain fill and face picking; bevel color separation is unavailable in that case. [#1990](https://github.com/barocss/barocss/issues/1990) records the focused display and pointer checks; color and picking do not certify exact measurement or manufacturing geometry.
+
+### Read real convex boundary edges
+
+Normal convex model outputs show their admitted native boundary edges over the filled faces, including the plain-fill multi-output fallback. Shared edges are drawn once; face-internal triangulation diagonals are excluded. Click inside a face to retain its original approximate face/triangle identity: the edge overlay does not add an edge-selection command. Camera changes and resizing use the same accepted model and do not trigger native evaluation or create history.
+
+The current WebGL2 overlay is a one-backing-pixel hairline, approximately half a CSS pixel at DPR2. Its shared depth buffer hides ordinary rear edges, with a small fill bias to reduce coincident edge/fill interference. Grazing or nearly coincident surfaces can still show bias artifacts; this is not mathematically exact hidden-line removal. Circle, through-hole, orthogonal-cell and legacy serial displays retain their existing presentation.
+
+[#1995](https://github.com/barocss/barocss/issues/1995) keeps the actual normal-scale DPR2 readability and ordinary bevel-interior picking gates open until device evidence exists. Retained native boundaries and CPU/mock renderer controls establish source/mapping/lifecycle behavior, not successful pixels or manufacturing geometry.
 
 ## Add one through-hole to a rectangular part
 

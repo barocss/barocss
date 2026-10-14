@@ -4352,6 +4352,61 @@ target. Run `node examples/gpu-scene/engine-scene-renderer-flow.mjs --output
 module import, declarations and pre-canvas input admission. It uses no canvas,
 renderer instance, browser or mock GL and does not fulfill graphics acceptance.
 
+### Optional bounded native-edge presentation (#1995)
+
+`mountEngineScene(canvas, scene, options, edges)` and the matching constructor
+accept an optional `EngineSceneEdgeOverlayV0`; `renderer.update(scene, edges)`
+atomically replaces the pair. Omitted or null edges clear the overlay. Resize
+revalidates the accepted, independently copied pair. `EngineSceneV0`, renderer
+options and original triangle-only raycasting are unchanged. The sidecar is
+presentation data, not a native CAD identity certificate.
+
+```ts
+const edges: EngineSceneEdgeOverlayV0 = {
+  format: 'barocss-gpu-engine-scene-edges', version: 0, sceneId: scene.id,
+  color: [0.02, 0.03, 0.04],
+  owners: [{ nodeId: 'body', geometryId: 'body_geometry', indices: [0, 1] }],
+};
+const renderer = mountEngineScene(canvas, scene, { width: 800, height: 600 }, edges);
+```
+
+At most16 owner rows,32 segments per row and256 segments overall are admitted.
+Rows refer to exact current mesh/geometry IDs and the geometry's original full
+position index space. Empty index rows deliberately cover fills for bias but
+allocate no edge resources. Hidden owners, including empty rows, are validated
+and budgeted; hidden rows do not draw or allocate edge resources. Exact own-data
+records and dense arrays are required. Admission rejects extra/accessor fields,
+duplicate owners, invalid index pairs, self/reversed duplicate segments and
+Float32-collapsed local or transformed endpoints. All sidecar data is copied;
+edge index types are selected independently of the triangle index type.
+
+All opaque fills complete first. Every owner fill uses polygonOffset(1,1), then
+nonempty visible rows draw GL.LINES with the existing depth attachment, program,
+position buffers and transforms, LEQUAL, disabled depth writes and lineWidth(1).
+Triangle VAO element bindings remain intact. Depth/polygon/line state is restored
+on draw exits. The width is one backing-buffer pixel, approximately half a CSS
+pixel at DPR2. Fixed fill bias is an approximate raster tolerance: grazing or
+near-coincident surfaces may expose artifacts, not exact hidden-line removal.
+Native GL clipping is used; no clipping-generated contour becomes a CAD edge.
+
+Each renderer frame adds at most16 edge VAOs and16 index buffers, with at most512
+indices/2048 bytes. No extra position/normal/UV buffers, program, texture,
+framebuffer or canvas is added. Accepted-plus-candidate frames may double these
+additions; a host's accepted-plus-preview renderers are a separate multiplier.
+The original no-overlay resource bounds above exclude these optional additions.
+Handles are recorded immediately and cleanup attempts each owned release once.
+Candidate failures retain the accepted pair under the existing rollback contract.
+Cleanup after a successful swap is nonfatal; a thrown driver deletion is a
+release attempt, not proof the driver freed a resource. Context loss remains
+terminal and rollback failure makes graphics unavailable.
+
+`node --test packages/barocss-gpu/tests/engine-scene-edges.test.mjs` compiles the
+current source through esbuild for exactly12 pure admission and10 mocked renderer
+groups. The mock records commands, bindings, lifecycle and resource ownership;
+it does not rasterize pixels. Actual normal-scale DPR2 readability, bevel-interior
+face picking, occlusion and device cleanup require separate retained-geometry
+browser acceptance. This mounted path is WebGL2 only; no WebGPU parity is claimed.
+
 ## Native point-light catalog and WGSL producer (#1583)
 
 `prepareNativePointLights(input)` admits a copied 0–4-light catalog with format

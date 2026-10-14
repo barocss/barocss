@@ -1,10 +1,10 @@
 import { mountEngineScene } from '@barocss/gpu';
-import type { EngineSceneRenderer, EngineSceneV0 } from '@barocss/gpu';
+import type { EngineSceneRenderer, EngineSceneV0, EngineSceneEdgeOverlayV0 } from '@barocss/gpu';
 import { preparePrismFeatureScene } from './prism-feature-scene.js';
 import type { PrismDisplayScene } from './prism-feature-scene.js';
 export interface PrismDisplayCandidate { commit(): void; dispose(): void }
 export interface PrismPreviewDisplayCandidate extends PrismDisplayCandidate { show(): void }
-export interface CadEditorSceneDisplay { scene: EngineSceneV0; canvasLabel?: string }
+export interface CadEditorSceneDisplay { scene: EngineSceneV0; canvasLabel?: string; edges?: EngineSceneEdgeOverlayV0 }
 export interface PrismDisplayPort {
   prepare(display: CadEditorSceneDisplay): Promise<PrismDisplayCandidate>;
   preparePreview?(display: CadEditorSceneDisplay): Promise<PrismPreviewDisplayCandidate>;
@@ -64,7 +64,7 @@ export function createPrismFeatureDisplay(host: HTMLElement, mount: typeof mount
       host.appendChild(canvas);
       await new Promise<void>(resolve => setTimeout(resolve, 0));
       current();
-      item.renderer = mount(canvas, display.scene, viewport);
+      item.renderer = mount(canvas, display.scene, viewport, display.edges);
       current();
       return {
         show() {
@@ -103,7 +103,7 @@ export function createPrismFeatureDisplay(host: HTMLElement, mount: typeof mount
       if (typeof renderer.update !== 'function') throw new Error('Prism display renderer does not support scene updates.');
       // The renderer owns transactional presentation and rollback. Preserve our
       // canvas/ownership on refusal; context loss cannot promise retained pixels.
-      const result = renderer.update(display.scene);
+      const result = renderer.update(display.scene, display.edges);
       if (!result.ok) throw result.error;
     },
     resize() {
