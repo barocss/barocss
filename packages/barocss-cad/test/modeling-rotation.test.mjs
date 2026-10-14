@@ -58,3 +58,14 @@ test('hostile point and spec getters never execute in cardinal mapping',()=>{
  assert.throws(()=>rotate(array,{axis:'x',degrees:90}),RangeError);
  assert.equal(reads,0);
 });
+
+test('cardinal inverse rotations recover finite points exactly',()=>{
+ const original=[0.125,-2.5,Number.MIN_VALUE];
+ for(const axis of ['x','y','z']){
+  const cw=rotate(original,{axis,degrees:90});
+  const restored=rotate(cw,{axis,degrees:270});
+  assert.deepEqual(restored,original);
+  const half=rotate(original,{axis,degrees:180});
+  assert.deepEqual(rotate(half,{axis,degrees:180}),original);
+ }
+});
