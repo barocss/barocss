@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { renderEngineWebGPUCanvasOnce } from '../dist/engine-webgpu-canvas-once.js';
 import './engine-webgpu-checked-once.test.mjs';
+import './engine-webgpu-checked-present.test.mjs';
 
-function original() {
+export function original() {
   const mesh = id => ({id,type:'mesh',parentId:null,translation:[0,0,0],
     rotationXYZW:[0,0,0,1],scale:[1,1,1],visible:true,geometryId:'tri',materialId:'red'});
   return {format:'barocss-gpu-engine-scene',version:0,id:'scene',
@@ -17,23 +18,32 @@ function original() {
     materials:[{id:'red',type:'unlit',colorSpace:'linear',color:[1,0,0]}],
     nodes:[mesh('a'),mesh('b')]};
 }
-function deferred() {
+export function deferred() {
   let resolve, reject;
   const promise = new Promise((yes, no) => { resolve = yes; reject = no; });
   return { promise, resolve, reject };
 }
-function harness(failure = '', options = {}) {
+export function harness(failure = '', options = {}) {
   const events = [], buffers = [], textures = [], error = new Error(failure || 'device failure');
   let attemptBuffers = 0, attemptSubmits = 0, attemptWaits = 0;
+  let presentation = false, presentationPushes = 0, presentationPops = 0;
+  const scopes = [];
   const queueStarted = deferred();
   const fail = stage => { if (failure === stage) throw error; };
   const destination = { destroy() { throw new Error('borrowed Canvas texture destroyed'); } };
   const device = {
     limits:{maxTextureDimension2D:4096},
     destroy() { throw new Error('caller device destroyed'); },
-    pushErrorScope(filter){events.push(['push',filter]);},
-    async popErrorScope(){events.push('pop');return null;},
-    createShaderModule() { attemptBuffers = 0; attemptSubmits = 0; attemptWaits = 0; events.push('shader'); return {
+    pushErrorScope(filter){events.push(['push',filter]);
+      if(presentation && ++presentationPushes === options.presentPushAt)throw options.presentCause;
+      scopes.push(filter);},
+    async popErrorScope(){const filter=scopes.pop();assert.ok(filter);events.push('pop');
+      if(presentation){const index=++presentationPops;
+        if(index===1){options.presentPopStarted?.resolve();await options.presentPopGate?.promise;}
+        if(options.presentRejectPops?.includes(index))throw options.presentCause;
+        return options.presentErrors?.[filter] ?? null;}
+      return null;},
+    createShaderModule() { attemptBuffers = 0; attemptSubmits = 0; attemptWaits = 0; presentation = false; events.push('shader'); return {
       async getCompilationInfo() { fail('shader'); await options.compilation?.promise; return {messages:[]}; },
     }; },
     createBindGroupLayout(){return{};},createPipelineLayout(){return{};},
@@ -62,11 +72,12 @@ function harness(failure = '', options = {}) {
     };},
   };
   const context = {
-    configure(desc){events.push(['configure',desc]);fail('configure');},
+    configure(desc){events.push(['configure',desc]);fail('configure');
+      presentation=true;presentationPushes=0;presentationPops=0;},
     unconfigure(){events.push('unconfigure');if(options.unconfigureError)throw options.unconfigureError;},
     getCurrentTexture(){events.push('backing');fail('backing');return destination;},
   };
-  return {device,context,events,buffers,textures,error,destination,queueStarted,options};
+  return {device,context,events,buffers,textures,error,destination,queueStarted,options,scopes};
 }
 function cleanup(h, buffers, textures, unconfigure) {
   assert.equal(h.events.filter(x => typeof x === 'string' && x.startsWith('destroyBuffer:')).length, buffers);

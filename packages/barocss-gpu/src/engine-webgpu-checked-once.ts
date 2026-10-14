@@ -1,5 +1,6 @@
 import { prepareEngineScene } from './engine-scene.js';
 import { renderEngineWebGPUOnce } from './engine-webgpu-one-shot.js';
+import { withEngineWebGPUErrorScopes } from './engine-webgpu-error-scopes.js';
 import type { EngineSceneV0 } from './engine-scene.js';
 import type { GPUDeviceHandle } from './webgpu-platform.js';
 
@@ -18,29 +19,10 @@ export async function renderCheckedEngineWebGPUOnce(
     throw new RangeError('Engine WebGPU offscreen dimensions exceed bounded device limits');
   if (format !== 'rgba8unorm' && format !== 'bgra8unorm')
     throw new TypeError('Unsupported opaque Engine WebGPU offscreen color format');
-  let pushed = 0, failed = false, original: unknown;
   let frame: Awaited<ReturnType<typeof renderEngineWebGPUOnce>> | undefined;
-  const errors: { message: string }[] = [];
-  try {
-    for (const filter of ['out-of-memory', 'internal', 'validation']) {
-      device.pushErrorScope(filter); pushed++;
-    }
+  return withEngineWebGPUErrorScopes(device, async () => {
     frame = await renderEngineWebGPUOnce(device, source.scene, width, height, format);
     await device.queue.onSubmittedWorkDone();
-  } catch (cause) { failed = true; original = cause; }
-  // Pop every owned scope, including after a partial push or a rejected pop.
-  for (let index = 0; index < pushed; index++) {
-    try {
-      const error = await device.popErrorScope();
-      if (error !== null) errors.push(error);
-    } catch (cause) {
-      if (!failed) { failed = true; original = cause; }
-    }
-  }
-  if (failed || errors.length) {
-    try { frame?.dispose(); } catch { /* Preserve original refusal over cleanup errors. */ }
-    if (failed) throw original;
-    throw new AggregateError(errors, 'Engine WebGPU offscreen error admission refused');
-  }
-  return frame!;
+    return frame;
+  }, () => frame?.dispose(), 'Engine WebGPU offscreen error admission refused');
 }

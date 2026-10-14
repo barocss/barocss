@@ -70,10 +70,11 @@ test('offscreen queue and all scope results are admitted before the first Canvas
   const h=harness(),input=original(),snapshot=structuredClone(input);
   const lease=await renderEngineWebGPUCanvasOnce(h.device,h.context,input,64,64,'bgra8unorm');
   assert.deepEqual(input,snapshot);
-  assert.deepEqual(h.events.filter(x=>Array.isArray(x)&&x[0]==='push'),scopeOrder.map(x=>['push',x]));
-  assert.deepEqual(h.events.filter(x=>Array.isArray(x)&&x[0]==='pop'),[...scopeOrder].reverse().map(x=>['pop',x]));
-  const configure=h.events.indexOf('configure'),lastPop=h.events.findLastIndex(x=>Array.isArray(x)&&x[0]==='pop');
-  assert.ok(h.events.indexOf('completed')<lastPop && lastPop<configure);
+  assert.deepEqual(h.events.filter(x=>Array.isArray(x)&&x[0]==='push'),[...scopeOrder,...scopeOrder].map(x=>['push',x]));
+  const popOrder=[...scopeOrder].reverse();
+  assert.deepEqual(h.events.filter(x=>Array.isArray(x)&&x[0]==='pop'),[...popOrder,...popOrder].map(x=>['pop',x]));
+  const configure=h.events.indexOf('configure'),offscreenPop=h.events.findIndex(x=>Array.isArray(x)&&x[0]==='pop'&&x[1]==='out-of-memory');
+  assert.ok(h.events.indexOf('completed')<offscreenPop && offscreenPop<configure);
   assert.equal(h.events.filter(x=>x==='wait').length,2);
   assert.equal(lease.drawCount,2);assert.equal(lease.geometryCount,1);
   assert.equal(h.events.filter(x=>typeof x==='string'&&x.startsWith('destroy:')).length,0);
