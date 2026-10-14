@@ -699,3 +699,24 @@ Actual React/controller/serializer/receiver paths use controlled Worker, provide
 and renderer boundaries. Retained radius5 geometry is unchanged; edited displays
 are baseline replay. #1966 records the finite tests and pending physical file/UI
 acceptance, independently of the still-open #1960/#1965 camera gates.
+
+## Author an open rectangular tray
+
+New rectangular part32×24×8 → select Extrude01 → MODIFY → Cut rectangular pocket.
+Wall thickness8 and Floor thickness4 match the retained5632mm³ geometric
+benchmark. Preview operation then Apply operation creates a five-node model and
+one structural history step. Use Model dimensions for pocketFloor2 (the retained
+5376mm³ geometry) or pocketWall4/floor2 (3840mm³ arithmetic oracle, not a newly
+measured native result). Accepted source and Save stay unchanged until Apply.
+
+Positive wall/floor values are required initially; later global edits can remove
+walls or floor under native semantics. There is no persisted tray constraint or
+silent clamp. Cancel/Escape and target changes preserve the accepted model.
+Orthogonal-cell STL is unavailable. A blind cavity has a floor, so Top plus the
+current flat color does not itself establish visible depth.
+
+Local flow: `node apps/cad-editor/flows/modeling-pocket-authoring-flow.mjs`.
+The frozen10 groups use real React/controller/serializer/receiver paths with
+explicit provider/Worker/display doubles and unchanged retained baseline packets.
+#1971 keeps actual new-command, edited pixels and physical Save/Open pending;
+it does not complete the older preset's separate #1867 matrix.

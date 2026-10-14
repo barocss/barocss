@@ -1460,3 +1460,26 @@ convex-only STL remains refused. Geometry/provider replay and physical acceptanc
 are separate; edited radius tests retain explicitly mocked baseline geometry.
 Run `node packages/barocss-cad-editor/scripts/modeling-hole-authoring-test.mjs`
 for the finite pure/source and controlled transaction groups, with no native call.
+
+## Selected rectangular pocket (#1971)
+
+Select the accepted Extrude of a sole origin-zero rectangular part, then MODIFY
+→ Cut rectangular pocket. Positive integer Wall thickness and Floor thickness
+append the tool sketch, offset extrusion and difference as one2→5 source
+transaction. Preview/Apply reuse the existing candidate/history authority;
+Cancel/Escape and stale selection/source/lifetime/field callbacks cannot promote
+another command. Pending model dimensions remain separate. The two new drivers
+are pocketWall and pocketFloor, with valid defaults derived from the current
+outer dimensions. The original feature prefix and expressions are preserved.
+
+Initial positivity is a command guard, not a saved constraint: later global
+parameter edits can remove the floor or walls. The UI keeps that warning after
+Apply; provider geometry remains authoritative. No second pocket, fractional
+corner, transformed/Boolean parent or STL expansion follows. Local replay uses
+retained46 top-pocket Surface packets with explicit authored-context/provider
+adaptation; edited displays are baseline mocks. Current flat-color rendering
+may not visibly distinguish a blind cavity. Actual new-command/pixel/file
+acceptance remains separate.
+
+Run `node packages/barocss-cad-editor/scripts/modeling-pocket-authoring-test.mjs`
+for the frozen12 pure and10 controlled transaction groups, without native calls.

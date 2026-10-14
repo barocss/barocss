@@ -4,6 +4,7 @@ export type ModelingStructureTarget = { name: string; solidId: string; node: num
 export type ModelingStructureCommand =
   | { kind: 'add-arm'; target: ModelingStructureTarget; x: number; y: number; width: number; height: number }
   | { kind: 'add-hole'; target: ModelingStructureTarget; x: number; y: number; radius: number }
+  | { kind: 'cut-pocket'; target: ModelingStructureTarget; wall: number; floor: number }
   | { kind: 'union'; targets: [ModelingStructureTarget, ModelingStructureTarget] }
   | { kind: 'cut-slot'; target: ModelingStructureTarget; x: number; y: number; width: number; height: number };
 
@@ -11,6 +12,7 @@ const FILE_BYTES = 65536, HISTORY_BYTES = 8 * 1024 * 1024, LENGTH = 10000;
 const ARM = ['armX', 'armY', 'armWidth', 'armHeight'] as const;
 const SLOT = ['slotX', 'slotY', 'slotWidth', 'slotHeight'] as const;
 const HOLE = ['holeCenterX', 'holeCenterY', 'holeRadius'] as const;
+const POCKET = ['pocketWall', 'pocketFloor'] as const;
 type Data = Record<string, unknown>;
 type Dimension = number | { parameter: string } | { op: 'add'; left: Dimension; right: Dimension }
   | { op: 'scale'; value: Dimension; factor: number };
@@ -84,15 +86,15 @@ function length(value: unknown): number {
   check(typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= LENGTH, 'every dimension and intermediate must be finite within +/-10000 mm.');
   return value;
 }
-function resolveDimension(input: unknown, parameters: Record<string, number>): number {
+function resolveDimension(input: unknown, parameters: Record<string, number>, sourceOnly = false): number {
   let count = 0;
   const visit = (value: unknown, depth: number): number => {
     check(++count <= 32 && depth <= 6, 'dimension exceeds 32 nodes or depth 6.');
-    if (typeof value === 'number') return length(value);
+    if (typeof value === 'number') return sourceOnly ? 0 : length(value);
     const d = record(value);
     if (Object.hasOwn(d, 'parameter')) {
       record(d, ['parameter']); name(d.parameter); check(Object.hasOwn(parameters, d.parameter), 'unknown parameter: ' + d.parameter + '.');
-      return length(parameters[d.parameter]);
+      return sourceOnly ? 0 : length(parameters[d.parameter]);
     }
     if (d.op === 'add') { record(d, ['op', 'left', 'right']); return length(visit(d.left, depth + 1) + visit(d.right, depth + 1)); }
     record(d, ['op', 'value', 'factor']); check(d.op === 'scale' && typeof d.factor === 'number' && Number.isFinite(d.factor), 'only add or finite numeric scale is supported.');
@@ -100,11 +102,11 @@ function resolveDimension(input: unknown, parameters: Record<string, number>): n
   };
   return visit(input, 1);
 }
-function document(text: string): Document {
+function document(text: string, boundedParameters = true): Document {
   modelingSourceBytes(text);
   const d = record(ownData(JSON.parse(text)), ['format', 'schema', 'units', 'parameters', 'nodes', 'outputs']);
   check(d.format === 'barocss-cad-model' && d.schema === 1 && d.units === 'mm', 'a primary model schema1 in mm is required; legacy sources are unsupported.');
-  for (const [key, value] of Object.entries(record(d.parameters))) { name(key); length(value); }
+  for (const [key, value] of Object.entries(record(d.parameters))) { name(key); if (boundedParameters) length(value); }
   const nodes = list(d.nodes, 8); check(nodes.length > 0, 'authored nodes required.'); nodes.forEach(n => record(n));
   const outputs = record(d.outputs); check(Object.keys(outputs).length > 0 && Object.keys(outputs).length <= 8, 'one to eight owned outputs required.');
   for (const [key, value] of Object.entries(outputs)) {
@@ -117,9 +119,9 @@ function document(text: string): Document {
 function ref(value: unknown, node: number): void {
   const r = record(value, ['node', 'side']); check(Object.is(r.node, node) && r.side === 'solid', 'exact owned solid reference required.');
 }
-function point(value: unknown, parameters: Record<string, number>): [number, number] {
+function point(value: unknown, parameters: Record<string, number>, sourceOnly = false): [number, number] {
   const values = list(value, 2); check(values.length === 2, 'two XY coordinates required.');
-  return values.map(v => resolveDimension(v, parameters)) as [number, number];
+  return values.map(v => resolveDimension(v, parameters, sourceOnly)) as [number, number];
 }
 function rectangle(d: Document, sketch: number, extrusion: number): number {
   const s = record(d.nodes[sketch], ['kind', 'profile', 'min', 'max']);
@@ -158,9 +160,44 @@ function holeDimensions(d: Document, x: unknown, y: unknown, radius: unknown): n
     'hole must be strictly contained on all four plate sides.');
   return values;
 }
+function pocketNodes(d: Document): Data[] {
+  const wall = parameter(POCKET[0]), floor = parameter(POCKET[1]);
+  const inset = (value: unknown, driver: Dimension): Dimension => ({ op: 'add', left: value as Dimension, right: { op: 'scale', value: driver, factor: -1 } });
+  const max = list(d.nodes[0].max, 2); check(max.length === 2, 'two outer upper coordinates required.');
+  return [{ kind: 'sketch', profile: 'rectangle', min: [wall, wall], max: max.map(value => inset(value, wall)) },
+    { kind: 'extrude', sketch: 2, from: floor, height: inset(d.nodes[1].height, floor) },
+    { kind: 'difference', parent: { node: 1, side: 'solid' }, tool: { node: 3, side: 'solid' } }];
+}
+/** Warning identity can validate source terms without resolving edited parameters.
+ * Command ownership keeps the strict current-origin check; native geometry remains authoritative. */
+function pocketGraph(d: Document, sourceOnly = false): boolean {
+  if (d.nodes.length !== 5 || d.nodes[4].kind !== 'difference') return false;
+  const s = record(d.nodes[0], ['kind', 'profile', 'min', 'max']), e = record(d.nodes[1], ['kind', 'sketch', 'height']);
+  check(s.kind === 'sketch' && s.profile === 'rectangle' && e.kind === 'extrude' && Object.is(e.sketch, 0), 'the pocket must retain its direct rectangular parent.');
+  check(point(s.min, d.parameters, sourceOnly).every(value => value === 0), 'the pocket must retain its origin-zero rectangular parent.');
+  check(POCKET.every(key => Object.hasOwn(d.parameters, key))
+    && signedJson(d.nodes.slice(2)) === signedJson(pocketNodes(d)), 'the pocket must retain its two named drivers and exact offset difference ancestry.');
+  check(Object.keys(d.outputs).length === 1 && Object.hasOwn(d.outputs, 'part'), 'the pocket requires the sole result named part.');
+  ref(d.outputs.part, 4); return true;
+}
+function pocketPlate(d: Document): [number, number, number] {
+  const height = rectangle(d, 0, 1), min = point(d.nodes[0].min, d.parameters), max = point(d.nodes[0].max, d.parameters);
+  check(min.every(value => value === 0), 'Cut rectangular pocket requires an origin-zero rectangular part.');
+  check(Object.keys(d.outputs).length === 1 && Object.hasOwn(d.outputs, 'part'), 'Cut rectangular pocket requires the sole owned output named part.');
+  ref(d.outputs.part, 1); return [max[0], max[1], height];
+}
+function pocketDimensions(d: Document, wall: unknown, floor: unknown): [number, number] {
+  const values = [length(wall), length(floor)] as [number, number], [w, f] = values;
+  check(values.every(value => Number.isSafeInteger(value) && value >= 1), 'pocket wall and floor must be positive safe integers.');
+  const [x, y, z] = pocketPlate(d);
+  check(length(2 * w) < x && 2 * w < y && f < z, 'pocket must be strictly contained: twice wall < both outer sides and floor < thickness.');
+  check([x - 2 * w, y - 2 * w, z - f].every(value => Number.isSafeInteger(value) && value >= 1 && value <= LENGTH), 'positive integer pocket spans from 1 to 10000 mm required.');
+  return values;
+}
 function ownedGraph(d: Document): number {
   check([2, 3, 4, 5, 8].includes(d.nodes.length), 'only complete 2, 3, 4, 5 or 8-node construction stages are supported; no 6/7-node intermediate.');
   const height = rectangle(d, 0, 1);
+  if (pocketGraph(d)) return height;
   if (d.nodes.length === 3) {
     check(HOLE.every(k => Object.hasOwn(d.parameters, k)) && signedJson(d.nodes[2]) === signedJson(addedHole()),
       'the through-hole must retain its three named drivers and exact parent.');
@@ -223,36 +260,53 @@ function reserve(d: Document, names: readonly string[]): void {
 export function getModelingStructureCapabilities(text: string | null, summary: CadEditorModelingSummary | null): {
   addArm: ModelingStructureTarget | null; addHole: ModelingStructureTarget | null;
   union: [ModelingStructureTarget, ModelingStructureTarget] | null;
-  cutSlot: ModelingStructureTarget | null; reason: string; holeReason: string; sharedThickness: number | null;
+  cutSlot: ModelingStructureTarget | null; cutPocket: ModelingStructureTarget | null;
+  reason: string; holeReason: string; pocketReason: string; sharedThickness: number | null;
+  pocketDefaults: { wall: number; floor: number } | null; pocketAuthored: boolean;
 } {
-  const none = { addArm: null, addHole: null, union: null, cutSlot: null, sharedThickness: null };
+  const none = { addArm: null, addHole: null, union: null, cutSlot: null, cutPocket: null, sharedThickness: null, pocketDefaults: null, pocketAuthored: false };
+  let pocketAuthored = false;
   const message = (cause: unknown): string => cause instanceof Error ? cause.message : String(cause);
   const unavailableHole = 'Add through-hole requires the selected Extrude of one unmodified rectangular part.';
+  const unavailablePocket = 'Cut rectangular pocket requires the selected Extrude of one unmodified rectangular part.';
   try {
     check(text !== null && summary !== null, 'open an accepted primary rectangular part first.');
-    const d = document(text), sharedThickness = ownedGraph(d), targets = accepted(d, summary);
+    const d = document(text, false), targets = accepted(d, summary);
+    pocketAuthored = pocketGraph(d, true);
+    Object.values(d.parameters).forEach(length);
+    const sharedThickness = ownedGraph(d);
+    if (pocketAuthored) return { ...none, pocketAuthored, sharedThickness,
+      reason: 'The complete five-node rectangular pocket is already authored. Edit its existing dimensions.', holeReason: unavailableHole,
+      pocketReason: 'A rectangular pocket is already authored; a second pocket is unsupported. Keep wall and floor positive to retain a tray.' };
     if (d.nodes.length === 2) {
-      let addArm: ModelingStructureTarget | null = null, addHole: ModelingStructureTarget | null = null;
+      let addArm: ModelingStructureTarget | null = null, addHole: ModelingStructureTarget | null = null, cutPocket: ModelingStructureTarget | null = null;
+      let pocketDefaults: { wall: number; floor: number } | null = null;
       let reason = 'Add an arm using the existing thickness term; editing shared thickness changes both bodies.';
       let holeReason = 'Add one through-hole; the prior part output is consumed while its source feature remains in history. Provider and receiver limits still apply.';
+      let pocketReason = 'Cut one rectangular pocket; the prior part output is consumed while its source features remain in history. Provider and receiver limits still apply.';
       try {
         reserve(d, ARM); check(!Object.hasOwn(d.outputs, 'arm'), 'the reserved output name arm is already used.'); addArm = targets[0];
       } catch (cause) { reason = message(cause); }
       try { holePlate(d); reserve(d, HOLE); addHole = targets[0]; } catch (cause) { holeReason = message(cause); }
-      return { ...none, addArm, addHole, sharedThickness, reason, holeReason };
+      try {
+        const [x, y, z] = pocketPlate(d); reserve(d, POCKET);
+        const wall = Math.min(8, Math.floor((Math.min(x, y) - 1) / 2)), floor = Math.min(4, z - 1);
+        pocketDimensions(d, wall, floor); pocketDefaults = { wall, floor }; cutPocket = targets[0];
+      } catch (cause) { pocketReason = message(cause); }
+      return { ...none, addArm, addHole, cutPocket, pocketDefaults, sharedThickness, reason, holeReason, pocketReason };
     }
     if (d.nodes.length === 3) return { ...none, sharedThickness,
       reason: 'The complete three-node through-hole is already authored. Edit its existing dimensions.',
-      holeReason: 'A through-hole is already authored; a second hole is unsupported. Edit its existing dimensions.' };
+      holeReason: 'A through-hole is already authored; a second hole is unsupported. Edit its existing dimensions.', pocketReason: unavailablePocket };
     if (d.nodes.length === 4) return { ...none, union: targets as [ModelingStructureTarget, ModelingStructureTarget], sharedThickness,
-      reason: 'Union consumes both named outputs into part; authored operand features remain in history.', holeReason: unavailableHole };
+      reason: 'Union consumes both named outputs into part; authored operand features remain in history.', holeReason: unavailableHole, pocketReason: unavailablePocket };
     if (d.nodes.length === 5) {
       check(sharedThickness === 8, 'Cut requires resolved thickness exactly 8 mm with omitted from (Z=0..8); shared thickness currently resolves to ' + sharedThickness + ' mm.');
-      reserve(d, SLOT); return { ...none, cutSlot: targets[0], sharedThickness, holeReason: unavailableHole,
+      reserve(d, SLOT); return { ...none, cutSlot: targets[0], sharedThickness, holeReason: unavailableHole, pocketReason: unavailablePocket,
         reason: 'Cut creates one atomic through-slot across the existing 8 mm thickness; provider and receiver limits still apply.' };
     }
-    return { ...none, sharedThickness, reason: 'The complete eight-node union-slot is already authored. Edit its existing dimensions.', holeReason: unavailableHole };
-  } catch (cause) { return { ...none, reason: message(cause), holeReason: message(cause) }; }
+    return { ...none, sharedThickness, reason: 'The complete eight-node union-slot is already authored. Edit its existing dimensions.', holeReason: unavailableHole, pocketReason: unavailablePocket };
+  } catch (cause) { return { ...none, pocketAuthored, reason: message(cause), holeReason: message(cause), pocketReason: message(cause) }; }
 }
 function matchingTarget(input: unknown, expected: ModelingStructureTarget): void {
   const target = record(input, ['name', 'solidId', 'node']);
@@ -264,7 +318,20 @@ export function buildModelingStructure(text: string, summary: CadEditorModelingS
 } {
   const command = record(ownData(input)), capabilities = getModelingStructureCapabilities(text, summary), d = document(text);
   const kind = command.kind;
-  check(kind === 'add-arm' || kind === 'add-hole' || kind === 'union' || kind === 'cut-slot', 'known structural command required.');
+  check(kind === 'add-arm' || kind === 'add-hole' || kind === 'union' || kind === 'cut-slot' || kind === 'cut-pocket', 'known structural command required.');
+  if (kind === 'cut-pocket') {
+    record(command, ['kind', 'target', 'wall', 'floor']);
+    check(capabilities.cutPocket, capabilities.pocketReason); matchingTarget(command.target, capabilities.cutPocket);
+    const values = pocketDimensions(d, command.wall, command.floor); reserve(d, POCKET);
+    POCKET.forEach((key, index) => { d.parameters[key] = values[index]; });
+    d.nodes.push(...pocketNodes(d)); d.outputs = { part: { node: 4, side: 'solid' } };
+    // Check the newly wrapped expressions while preserving the exact prefix.
+    const min = point(d.nodes[2].min, d.parameters), max = point(d.nodes[2].max, d.parameters);
+    const from = resolveDimension(d.nodes[3].from, d.parameters), height = resolveDimension(d.nodes[3].height, d.parameters);
+    length(from + height); check([...min, ...max, from, height].every(Number.isSafeInteger), 'safe-integer pocket coordinates required.');
+    ownedGraph(d);
+    return { text: canonicalModelingText(d), selectedOutput: 'part', consumed: [capabilities.cutPocket.name], kind };
+  }
   if (kind === 'add-hole') {
     record(command, ['kind', 'target', 'x', 'y', 'radius']);
     check(capabilities.addHole, capabilities.holeReason); matchingTarget(command.target, capabilities.addHole);
