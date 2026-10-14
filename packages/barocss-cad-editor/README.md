@@ -1440,3 +1440,23 @@ retained pixels. A new controller starts in Isometric; view is not file content.
 Run `node packages/barocss-cad-editor/scripts/modeling-view-test.mjs` explicitly.
 The finite CPU/display suite uses retained geometry and renderer doubles, with
 zero native evaluation and no physical GPU acceptance claim. See #1965.
+
+## Selected rectangular-plate through-hole (#1966)
+
+Select the accepted Extrude of an origin-zero, omitted-start rectangular part,
+then MODIFY → Add through-hole. The pure structural helper appends one hole and
+three owned drivers: holeCenterX, holeCenterY and holeRadius. Decimal center/radius
+inputs are separate command state; Preview and Apply reuse the existing atomic
+source transaction and full-source history. The sole part output is consumed by
+the result while the original extrusion remains in authored intent. Selecting a
+different feature closes the command; stale source/lifetime/field callbacks cannot
+promote a candidate. Pending model drafts must be reviewed without discard.
+
+This narrow branch requires positive safe-integer plate spans/thickness, an
+interior circle with radius at least0.001 mm, and unoccupied driver names. Native
+exact-UV and receiver limits remain authoritative. No second hole or transformed,
+finished or Boolean parent is admitted. Hole volume/mass are unavailable and
+convex-only STL remains refused. Geometry/provider replay and physical acceptance
+are separate; edited radius tests retain explicitly mocked baseline geometry.
+Run `node packages/barocss-cad-editor/scripts/modeling-hole-authoring-test.mjs`
+for the finite pure/source and controlled transaction groups, with no native call.

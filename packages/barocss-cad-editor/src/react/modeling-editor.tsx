@@ -43,7 +43,7 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
   const workspaceCommandEpoch = useRef(0);
   const structureInstance = useRef(0), structureFieldVersion = useRef(0);
   const [structureTarget, setStructureTarget] = useState<{ session: CadEditorModelingController; text: string; generation: number; instance: number; command: ModelingStructureCommand } | null>(null);
-  const [structureInput, setStructureInput] = useState({ x: '0', y: '0', width: '8', height: '24' });
+  const [structureInput, setStructureInput] = useState({ x: '0', y: '0', width: '8', height: '24', radius: '5' });
   const newPartCommandInstance = useRef(0), newPartOperationEpoch = useRef(0);
   const [newPartTarget, setNewPartTarget] = useState<{ session: CadEditorModelingController; authoredText: string | null; generation: number; instance: number } | null>(null);
   const [newPartInput, setNewPartInput] = useState<RectangularPartInput>({ width: '32', height: '24', thickness: '8' });
@@ -118,7 +118,8 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
     const current = controller.current?.getSnapshot();
     return !!structureTarget && structureTarget.session === controller.current
       && structureTarget.instance === structureInstance.current && !!current && !current.disposed
-      && current.authoredText === structureTarget.text && current.generation === structureTarget.generation;
+      && current.authoredText === structureTarget.text && current.generation === structureTarget.generation
+      && (structureTarget.command.kind !== 'add-hole' || current.selection === structureTarget.command.target.node);
   };
   const structureRenderVersion = structureFieldVersion.current, structureRenderState = fileActionEpoch.current;
   const structureRenderCurrent = () => structureCommandCurrent() && structureRenderVersion === structureFieldVersion.current && structureRenderState === fileActionEpoch.current;
@@ -131,12 +132,14 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
   const structureCommand = (): ModelingStructureCommand => {
     if (!structureTarget) throw Error('Choose a current structural command.');
     if (structureTarget.command.kind === 'union') return structureTarget.command;
+    const decimal = structureTarget.command.kind === 'add-hole';
     const value = (raw: string) => {
-      if (raw.length > 64 || !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(raw.trim())) throw Error('Enter finite integer millimetres.');
+      if (raw.length > 64 || !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(raw.trim())) throw Error(decimal ? 'Enter finite decimal millimetres.' : 'Enter finite integer millimetres.');
       const number = Number(raw);
-      if (!Number.isSafeInteger(number) || Math.abs(number) > 10000 || (number === 0 && /[1-9]/.test(raw.trim().split(/[eE]/)[0]))) throw Error('Use integer millimetres between -10000 and 10000.');
+      if (!(decimal ? Number.isFinite(number) : Number.isSafeInteger(number)) || Math.abs(number) > 10000 || (number === 0 && /[1-9]/.test(raw.trim().split(/[eE]/)[0]))) throw Error(decimal ? 'Use finite millimetres between -10000 and 10000.' : 'Use integer millimetres between -10000 and 10000.');
       return number;
     };
+    if (structureTarget.command.kind === 'add-hole') return { ...structureTarget.command, x: value(structureInput.x), y: value(structureInput.y), radius: value(structureInput.radius) };
     return { ...structureTarget.command, x: value(structureInput.x), y: value(structureInput.y), width: value(structureInput.width), height: value(structureInput.height) };
   };
   const invalidateCommandPreview = () => {
@@ -147,18 +150,20 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
     if (panel !== workspacePanel) invalidateCommandPreview();
     // A same-panel action with no replacement target keeps its live callbacks.
     if ((panel === 'files' || panel === 'dimensions') && workspacePanel === panel) return;
-    if (panel === 'add-arm' || panel === 'union' || panel === 'cut-slot') {
+    if (panel === 'add-arm' || panel === 'union' || panel === 'cut-slot' || panel === 'add-hole') {
       const session = controller.current, current = session?.getSnapshot();
       if (!session || !current?.authoredText || current.busy || current.disposed) return;
       const capabilities = getModelingStructureCapabilities(current.authoredText, current.accepted);
-      const target = panel === 'add-arm' ? capabilities.addArm : panel === 'cut-slot' ? capabilities.cutSlot : capabilities.union;
-      if (!target) { setError(capabilities.reason); return; }
+      const target = panel === 'add-hole' ? capabilities.addHole : panel === 'add-arm' ? capabilities.addArm : panel === 'cut-slot' ? capabilities.cutSlot : capabilities.union;
+      if (!target || (panel === 'add-hole' && current.selection !== capabilities.addHole?.node)) { setError(panel === 'add-hole' ? capabilities.holeReason : capabilities.reason); return; }
       invalidateCommandPreview();
       const command: ModelingStructureCommand = panel === 'union'
         ? { kind: 'union', targets: capabilities.union! }
+        : panel === 'add-hole' ? { kind: 'add-hole', target: capabilities.addHole!, x: 40, y: 20, radius: 5 }
         : { kind: panel, target: panel === 'add-arm' ? capabilities.addArm! : capabilities.cutSlot!, x: panel === 'add-arm' ? 0 : 16, y: panel === 'add-arm' ? 0 : 2, width: 8, height: panel === 'add-arm' ? 24 : 4 };
       setStructureTarget({ session, text: current.authoredText, generation: current.generation, instance: structureInstance.current + 1, command });
-      setStructureInput(panel === 'add-arm' ? { x: '0', y: '0', width: '8', height: '24' } : { x: '16', y: '2', width: '8', height: '4' });
+      setStructureInput(panel === 'add-hole' ? { x: '40', y: '20', width: '8', height: '4', radius: '5' }
+        : panel === 'add-arm' ? { x: '0', y: '0', width: '8', height: '24', radius: '5' } : { x: '16', y: '2', width: '8', height: '4', radius: '5' });
       setError(null);
     }
     if (panel === 'new-part') {
@@ -613,15 +618,17 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
   } catch (cause) { structureValidation = cause instanceof Error ? cause.message : String(cause); }
   const structurePanel = <div>
     <p>Preview evaluates a complete candidate with the native model loader. Apply adds one editable history step; Cancel retains the accepted part.</p>
-    {structureTarget && <><h2>{structureTarget.command.kind === 'add-arm' ? 'Add rectangular arm' : structureTarget.command.kind === 'union' ? 'Union bodies' : 'Cut rectangular through-slot'}</h2>
+    {structureTarget && <><h2>{structureTarget.command.kind === 'add-hole' ? 'Add through-hole' : structureTarget.command.kind === 'add-arm' ? 'Add rectangular arm' : structureTarget.command.kind === 'union' ? 'Union bodies' : 'Cut rectangular through-slot'}</h2>
       <p>Bound accepted outputs: {(structureTarget.command.kind === 'union' ? structureTarget.command.targets : [structureTarget.command.target]).map(target => `${target.name} · ${target.solidId} · feature ${target.node + 1}`).join('; ')}</p>
-      {structureTarget.command.kind === 'union'
+      {structureTarget.command.kind === 'add-hole'
+        ? <p>One through-hole in the selected origin-zero rectangular plate. The part output becomes the holed result; the original extrusion remains in the source and Undo history. Center coordinates and radius may be decimal. Native volume and mass are unavailable, and this hole family cannot export STL. Change holeRadius later with Edit model dimensions.</p>
+        : structureTarget.command.kind === 'union'
         ? <p>Union consumes these two output names into part. Their original feature nodes remain authored and recoverable with Undo.</p>
         : structureTarget.command.kind === 'cut-slot'
           ? <p>The slot tool and subtraction are one atomic operation. Only the existing omitted-start Z=0..8 mm slab is supported. The current output becomes part; this orthogonal result cannot export STL.</p>
           : <p>The arm shares the base extrusion's thickness term. Editing a shared named thickness later changes both bodies. Union can support other integer thicknesses, but the through-slot command requires exactly 8 mm.</p>}
-      {structureTarget.command.kind !== 'union' && (['x', 'y', 'width', 'height'] as const).map(name => <div key={name}>
-        <Label htmlFor={`${id}-structure-${name}`}>{name === 'x' ? 'Min X' : name === 'y' ? 'Min Y' : name === 'width' ? 'Width' : 'Profile height'} (mm)</Label>
+      {structureTarget.command.kind !== 'union' && (structureTarget.command.kind === 'add-hole' ? ['x', 'y', 'radius'] as const : ['x', 'y', 'width', 'height'] as const).map(name => <div key={name}>
+        <Label htmlFor={`${id}-structure-${name}`}>{name === 'radius' ? 'Radius' : name === 'x' ? structureTarget.command.kind === 'add-hole' ? 'Center X' : 'Min X' : name === 'y' ? structureTarget.command.kind === 'add-hole' ? 'Center Y' : 'Min Y' : name === 'width' ? 'Width' : 'Profile height'} (mm)</Label>
         <Input id={`${id}-structure-${name}`} inputMode="decimal" maxLength={64} value={structureInput[name]} disabled={busy || !structureCommandCurrent()}
           onChange={event => {
             if (!structureRenderCurrent() || controller.current?.getSnapshot().busy) return;
@@ -637,7 +644,7 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
     {draft && <p role="status">Model dimensions are pending. Review and apply or cancel them before structural editing; these temporary options do not discard them.</p>}
     {draft && <Button disabled={busy} onClick={() => { if (structureRenderCurrent()) openWorkspacePanel('dimensions'); }}>Review pending dimensions</Button>}
     {structureValidation && <p role="status">{structureValidation}</p>}
-    <p>Integer dimensions may still be refused by native geometry or complete preview limits. Accepted source and history remain unchanged on refusal.</p>
+    <p>{structureTarget?.command.kind === 'add-hole' ? 'Contained hole dimensions' : 'Integer dimensions'} may still be refused by native geometry or complete preview limits. Accepted source and history remain unchanged on refusal.</p>
     <details><summary>Candidate authored source</summary><pre>{structureExpected?.text ?? 'Enter a supported structural command.'}</pre></details>
   </div>;
   const dimensionsPanel = accepted && (<div><h2>Named dimensions</h2>{constrainedPlateDrivers ? (['width', 'height'] as const).map(name => dimensionInput([name, accepted.parameters[name]])) : roundPostDrivers ? <>
@@ -760,19 +767,25 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
     </details>;
   if (workspace) return <ModelingWorkspace snapshot={snapshot} viewport={viewportElement} panel={workspacePanel} error={error}
     onView={changeView}
-    panels={{ 'add-arm': workspacePanel === 'add-arm' ? structurePanel : null, union: workspacePanel === 'union' ? structurePanel : null, 'cut-slot': workspacePanel === 'cut-slot' ? structurePanel : null, 'new-part': newPartPanel, examples: examplesPanel, dimensions: dimensionsPanel, extrusion: extrusionPanel, sketch: sketchPanel, outputs: <>{visibilityPanel}{exportPanel}</>, files: filesPanel,
+    panels={{ 'add-hole': workspacePanel === 'add-hole' ? structurePanel : null, 'add-arm': workspacePanel === 'add-arm' ? structurePanel : null, union: workspacePanel === 'union' ? structurePanel : null, 'cut-slot': workspacePanel === 'cut-slot' ? structurePanel : null, 'new-part': newPartPanel, examples: examplesPanel, dimensions: dimensionsPanel, extrusion: extrusionPanel, sketch: sketchPanel, outputs: <>{visibilityPanel}{exportPanel}</>, files: filesPanel,
       inspect: inspectionPanel, limits: limitsPanel, configuration: finishesPanel }}
     dimensionLabel={constrainedPlateDrivers ? 'Edit dimensions' : 'Edit model dimensions'}
     canEditDimensions={!!accepted && (!constrainedPlateDrivers || snapshot?.selection === null || accepted.features[snapshot?.selection ?? -1]?.kind === 'sketch')}
     canEditSketch={!!selectedSketch} canApplySketch={!!currentSketch?.parameters.length}
     canEditExtrusion={!!selectedExtrusion} canApplyExtrusion={!!currentExtrusion?.parameters.length}
     configurableFinishes={!!configurableFinishes} onPanel={openWorkspacePanel}
-    onSelect={index => action(session => session.select(index, session.getSnapshot().generation))}
+    onSelect={index => {
+      if (workspacePanel === 'add-hole' && !structureRenderLive()) return;
+      action(session => {
+        if (workspacePanel === 'add-hole' && structureTarget?.command.kind === 'add-hole' && index !== structureTarget.command.target.node) openWorkspacePanel(null);
+        session.select(index, session.getSnapshot().generation);
+      });
+    }}
     onApply={applyDimensions} onPreview={previewDimensions}
     previewContext={workspacePanel === 'extrusion' ? pinnedExtrusion?.label ?? 'Extrusion command' : workspacePanel === 'sketch' ? pinnedSketch?.label ?? 'Sketch command' : 'Model dimensions'}
     onCancelDimensions={cancelDimensions} onCancelNewPart={cancelNewPart} onCreatePart={createNewPart}
-    canAddArm={!!structureCapabilities.addArm} canUnion={!!structureCapabilities.union} canCutSlot={!!structureCapabilities.cutSlot}
-    structureReason={structureCapabilities.reason} canPreviewStructure={structureCommandCurrent() && !draft && !!structureExpected}
+    canAddHole={!!structureCapabilities.addHole && snapshot?.selection === structureCapabilities.addHole.node} canAddArm={!!structureCapabilities.addArm} canUnion={!!structureCapabilities.union} canCutSlot={!!structureCapabilities.cutSlot}
+    structureReason={`${structureCapabilities.reason} ${structureCapabilities.holeReason}`} canPreviewStructure={structureCommandCurrent() && !draft && !!structureExpected}
     canApplyStructure={structureCommandCurrent() && !draft && !!structureExpected && snapshot?.preview?.operation === 'structure' && snapshot.preview.status === 'ready'}
     onPreviewStructure={previewStructure} onApplyStructure={applyStructure} onCancelStructure={cancelStructure}
     canCreatePart={!draft && newPartCurrent && !newPartValidation}
