@@ -25,7 +25,7 @@ const providers = new Map([
   ['convex-planar-solid-split', 'splitConvexPlanarSolid'], ['model-compiler', 'compileCadModel'],
   ['convex-planar-solid-chamfer', 'chamferConvexPlanarSolid'], ['axis-box-boolean', 'buildAxisBoxSolidBoolean'],
   ['orthogonal-solid-boolean', 'buildOrthogonalSolidBoolean'], ['modeling-box-internal', 'buildModelingBox'],
-  ['modeling-translation-internal', 'buildModelingTranslation'], ['modeling-rotation-internal', 'buildModelingRotation'], ['modeling-mirror-internal', 'buildModelingMirror'], ['modeling-scale-internal', 'buildModelingScale'], ['modeling-stl-internal', 'buildModelingStl'],
+  ['modeling-translation-internal', 'buildModelingTranslation'], ['modeling-rotation-internal', 'buildModelingRotation'], ['modeling-mirror-internal', 'buildModelingMirror'], ['modeling-scale-internal', 'buildModelingScale'], ['modeling-linear-pattern-internal', 'buildModelingLinearPattern'], ['modeling-stl-internal', 'buildModelingStl'],
   ['own-plate-circular-hole', 'buildOwnPlateCircularHole'], ['stored-plate-hole-solid', 'qualifyStoredPlateHoleSolid'],
   ['convex-planar-solid-mass', 'measureConvexPlanarSolidMass'], ['axis-box-solid-mass', 'measureAxisBoxSolidBooleanMass'],
 ]);
@@ -169,9 +169,9 @@ function document() {
 const checkDocument = (edit, code, operation) => { const d = document(); edit(d); return refuses(() => loadCadModel(signedJson(d)), code, operation); };
 
 // All successes below use facade routing and explicitly non-geometric stubs.
-test('all twenty-two provider bindings are isolated; translate retains the existing convex wrapper and snapshot inventory', () => {
+test('all twenty-three provider bindings are isolated; translate retains the existing convex wrapper and snapshot inventory', () => {
   const before = state.calls.length, { snapshot } = authored(), calls = state.calls.slice(before), translation = calls.at(-1);
-  assert.equal(replaced.size, 22); assert.equal(inputPaths.length, pureModules.size);
+  assert.equal(replaced.size, 23); assert.equal(inputPaths.length, pureModules.size);
   assert.deepEqual(calls.map(call => call.binding), ['buildXYAffineSketch', 'buildXYAffineSketchPrism', 'buildModelingTranslation']);
   assert.equal(translation.args.length, 3); assert.equal(translation.args[0], snapshot.bodies.left.native);
   assert.deepEqual(translation.args[1], [48, -0, 0]); assert.equal(translation.args[2], 'm2');

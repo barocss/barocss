@@ -25,7 +25,7 @@ const providers = new Map([
   ['convex-planar-solid-split', 'splitConvexPlanarSolid'], ['model-compiler', 'compileCadModel'],
   ['convex-planar-solid-chamfer', 'chamferConvexPlanarSolid'], ['axis-box-boolean', 'buildAxisBoxSolidBoolean'],
   ['orthogonal-solid-boolean', 'buildOrthogonalSolidBoolean'], ['modeling-box-internal', 'buildModelingBox'],
-  ['modeling-translation-internal', 'buildModelingTranslation'], ['modeling-rotation-internal', 'buildModelingRotation'], ['modeling-mirror-internal', 'buildModelingMirror'], ['modeling-scale-internal', 'buildModelingScale'], ['modeling-stl-internal', 'buildModelingStl'],
+  ['modeling-translation-internal', 'buildModelingTranslation'], ['modeling-rotation-internal', 'buildModelingRotation'], ['modeling-mirror-internal', 'buildModelingMirror'], ['modeling-scale-internal', 'buildModelingScale'], ['modeling-linear-pattern-internal', 'buildModelingLinearPattern'], ['modeling-stl-internal', 'buildModelingStl'],
   ['own-plate-circular-hole', 'buildOwnPlateCircularHole'], ['stored-plate-hole-solid', 'qualifyStoredPlateHoleSolid'],
   ['convex-planar-solid-mass', 'measureConvexPlanarSolidMass'], ['axis-box-solid-mass', 'measureAxisBoxSolidBooleanMass'],
 ]);
@@ -160,8 +160,8 @@ const doc = (factor=0.5) => ({format:'barocss-cad-model',schema:1,units:'mm',par
 const part = () => {const model=createCadModel();return {model,original:rectangle(model).extrude(8)};};
 function pair(factor=0.5) {const {model,original}=part(),scaled=original.scale(options(factor));return mockNative(()=>model.build({original,scaled}));}
 
-test('all twenty-two facade providers are replaced with direct provenance excluding native implementations',()=>{
-  assert.equal(replaced.size,22);assert.equal(inputPaths.length,pureModules.size);
+test('all twenty-three facade providers are replaced with direct provenance excluding native implementations',()=>{
+  assert.equal(replaced.size,23);assert.equal(inputPaths.length,pureModules.size);
   const start=state.calls.length,snapshot=pair(),calls=state.calls.slice(start);
   assert.deepEqual(calls.map(c=>c.binding),['buildXYAffineSketch','buildXYAffineSketchPrism','buildModelingScale']);
   assert.equal(calls[2].args[0],snapshot.bodies.original.native);assert.deepEqual(calls[2].args[1],{factor:0.5});assert.equal(calls[2].args[2],'m2');
