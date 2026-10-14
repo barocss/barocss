@@ -1341,3 +1341,20 @@ Use existing named-dimension, selected-Extrude, history, file and STL commands
 after creating the part. Local tests reuse genuine 32×24×8 convex body/preview
 bytes with explicitly adapted authored state and mocked provider/display delivery;
 edited geometry and the new physical creation/file workflow need separate evidence.
+
+
+## Selected rectangle sketch coordinates
+
+The Model a part workspace offers **MODIFY → Edit sketch dimensions** for an
+accepted rectangular Sketch. The command pins the selected feature and presents
+Min X / Min Y / Max X / Max Y as signed coordinates. Exact named driver leaves
+are editable and deduplicated; literal values and expressions remain read-only.
+A shared parameter retains its global effect, including downstream features.
+The native provider owns coordinate ordering and geometric admission.
+
+Apply/Cancel use the existing controller and accepted history. Controller,
+source/generation, command-instance and completion guards protect newer work;
+unrelated drafts require global review. Viewport, New part, files and STL remain
+mounted and available. Other profiles retain their existing model-dimension
+controls. No sketch drawing, expression rewrite or live draft geometry is added.
+See #1957 for bounded local controlled-delivery evidence and physical gate status.

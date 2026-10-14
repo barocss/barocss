@@ -3,7 +3,7 @@ import type { KeyboardEvent, MouseEvent, ReactNode } from 'react';
 import { Box, ChevronDown, FileJson, FolderOpen, Info, Layers, Pencil, Redo2, Undo2, X } from 'lucide-react';
 import type { CadEditorModelingSnapshot } from '../modeling-controller.js';
 
-export type ModelingWorkspacePanel = 'new-part' | 'dimensions' | 'extrusion' | 'examples' | 'outputs' | 'files' | 'inspect' | 'limits' | 'configuration';
+export type ModelingWorkspacePanel = 'new-part' | 'sketch' | 'dimensions' | 'extrusion' | 'examples' | 'outputs' | 'files' | 'inspect' | 'limits' | 'configuration';
 export interface ModelingWorkspaceProps {
   snapshot: CadEditorModelingSnapshot | null;
   viewport: ReactNode;
@@ -12,6 +12,8 @@ export interface ModelingWorkspaceProps {
   error: string | null;
   dimensionLabel: string;
   canEditDimensions: boolean;
+  canEditSketch: boolean;
+  canApplySketch: boolean;
   canEditExtrusion: boolean;
   canApplyExtrusion: boolean;
   canCreatePart: boolean;
@@ -28,7 +30,7 @@ export interface ModelingWorkspaceProps {
   onRetry(): void;
 }
 const panelTitles: Record<ModelingWorkspacePanel, string> = {
-  'new-part': 'New rectangular part', dimensions: 'Edit dimensions', extrusion: 'Edit extrusion', examples: 'Modeling examples', outputs: 'Output bodies',
+  'new-part': 'New rectangular part', sketch: 'Edit sketch dimensions', dimensions: 'Edit dimensions', extrusion: 'Edit extrusion', examples: 'Modeling examples', outputs: 'Output bodies',
   files: 'Save or open a model', inspect: 'Inspect selection', limits: 'Capabilities & limits', configuration: 'Rail finishes',
 };
 /** Presentation only. All geometry, drafts, selection and history belong to the existing controller. */
@@ -40,7 +42,7 @@ export function ModelingWorkspace(props: ModelingWorkspaceProps) {
     else optionsHeading.current?.focus();
   }, [panel]);
   const busy = snapshot?.busy ?? false, draft = Object.keys(snapshot?.drafts ?? {}).length > 0;
-  const editingDimensions = panel === 'dimensions' || panel === 'extrusion';
+  const editingDimensions = panel === 'dimensions' || panel === 'extrusion' || panel === 'sketch';
   const features = accepted?.features ?? [];
   const featureLabel = (index: number) => {
     const feature = features[index];
@@ -93,7 +95,7 @@ export function ModelingWorkspace(props: ModelingWorkspaceProps) {
       <div className="modeling-workspace-badge"><Box aria-hidden="true" /><strong>DESIGN</strong><small>Modeling</small></div>
       <div className="modeling-ribbon-content"><div className="modeling-workbench-label">MODEL</div><div className="modeling-command-groups">
         <details className="modeling-command-menu"><summary><FolderOpen aria-hidden="true" /><span>CREATE <ChevronDown aria-hidden="true" /></span></summary><div>{command('new-part', 'New rectangular part', busy)}{command('examples', 'Modeling examples', busy)}<small>Author a rectangular part or load a supported example</small></div></details>
-        <details className="modeling-command-menu"><summary><Pencil aria-hidden="true" /><span>MODIFY <ChevronDown aria-hidden="true" /></span></summary><div>{props.canEditExtrusion && command('extrusion', 'Edit extrusion', busy)}{command('dimensions', props.dimensionLabel, busy || !props.canEditDimensions)}{props.configurableFinishes && command('configuration', 'Rail finishes', busy)}<small>{selected ? featureLabel(selected.index) : 'Model'} selected</small></div></details>
+        <details className="modeling-command-menu"><summary><Pencil aria-hidden="true" /><span>MODIFY <ChevronDown aria-hidden="true" /></span></summary><div>{props.canEditSketch && command('sketch', 'Edit sketch dimensions', busy)}{props.canEditExtrusion && command('extrusion', 'Edit extrusion', busy)}{command('dimensions', props.dimensionLabel, busy || !props.canEditDimensions)}{props.configurableFinishes && command('configuration', 'Rail finishes', busy)}<small>{selected ? featureLabel(selected.index) : 'Model'} selected</small></div></details>
         <details className="modeling-command-menu"><summary><Info aria-hidden="true" /><span>INSPECT <ChevronDown aria-hidden="true" /></span></summary><div>{command('inspect', 'Inspect selection')}{command('outputs', 'Output bodies', !accepted)}{command('limits', 'Capabilities & limits')}</div></details>
         <details className="modeling-command-menu"><summary><FileJson aria-hidden="true" /><span>FILE <ChevronDown aria-hidden="true" /></span></summary><div>{command('files', 'Save or open a model')}{command('outputs', 'Export accepted STL', !accepted)}</div></details>
         <span className="modeling-command-context">{busy ? 'Native operation in progress' : selected ? `${featureLabel(selected.index)} selected` : 'Select a sketch or feature in the Browser'}</span>
@@ -127,13 +129,13 @@ export function ModelingWorkspace(props: ModelingWorkspaceProps) {
             <div key={name} data-testid={`modeling-panel-${name}`} hidden={panel !== name}>{props.panels[name]}</div>)}</div>
           {(editingDimensions || panel === 'new-part') && <footer><span>{panel === 'new-part' ? 'Temporary creation settings · accepted model retained' : draft ? 'Unapplied dimensions · accepted model retained' : 'Edit the existing named dimensions'}</span><div>
             <button type="button" disabled={busy} onClick={panel === 'new-part' ? props.onCancelNewPart : props.onCancelDimensions}>Cancel</button>
-            <button type="button" className="modeling-apply" disabled={busy || (panel === 'new-part' ? !props.canCreatePart : !draft || (panel === 'extrusion' && !props.canApplyExtrusion))} onClick={panel === 'new-part' ? props.onCreatePart : props.onApply}>{panel === 'new-part' ? accepted ? 'Replace current model' : 'Create part' : panel === 'extrusion' ? 'Apply extrusion' : 'Apply dimensions'}</button>
+            <button type="button" className="modeling-apply" disabled={busy || (panel === 'new-part' ? !props.canCreatePart : !draft || (panel === 'extrusion' && !props.canApplyExtrusion) || (panel === 'sketch' && !props.canApplySketch))} onClick={panel === 'new-part' ? props.onCreatePart : props.onApply}>{panel === 'new-part' ? accepted ? 'Replace current model' : 'Create part' : panel === 'extrusion' ? 'Apply extrusion' : panel === 'sketch' ? 'Apply sketch dimensions' : 'Apply dimensions'}</button>
           </div></footer>}
         </aside>
         {(props.error || snapshot?.error) && <div className="modeling-workspace-error" role="alert">{props.error ?? snapshot?.error}</div>}
       </main>
     </div>
-    <div className="modeling-command-status"><span>{panel === 'new-part' ? 'New rectangular part · Enter to create · Esc to cancel' : editingDimensions ? `${panel === 'extrusion' ? 'Edit extrusion' : 'Edit dimensions'} · Enter to apply · Esc to cancel` : selected ? `${featureLabel(selected.index)} · choose Modify or Inspect` : 'Select a feature to choose its next command'}</span>{draft && !editingDimensions && <button type="button" onClick={() => props.onPanel('dimensions')}>Resume dimension edit</button>}</div>
+    <div className="modeling-command-status"><span>{panel === 'new-part' ? 'New rectangular part · Enter to create · Esc to cancel' : editingDimensions ? `${panel === 'extrusion' ? 'Edit extrusion' : panel === 'sketch' ? 'Edit sketch dimensions' : 'Edit dimensions'} · Enter to apply · Esc to cancel` : selected ? `${featureLabel(selected.index)} · choose Modify or Inspect` : 'Select a feature to choose its next command'}</span>{draft && !editingDimensions && <button type="button" onClick={() => props.onPanel('dimensions')}>Resume dimension edit</button>}</div>
     <nav className="modeling-feature-history" aria-label="Feature sequence">{features.map(feature => <button type="button" key={feature.index} data-feature-index={feature.index}
       aria-label={featureLabel(feature.index)} title={`${featureLabel(feature.index)}${feature.name ? ` · ${feature.name}` : ''}`} aria-pressed={snapshot?.selection === feature.index} disabled={busy}
       onClick={() => select(feature.index)}>{feature.kind === 'sketch' ? <Pencil aria-hidden="true" /> : <Box aria-hidden="true" />}</button>)}

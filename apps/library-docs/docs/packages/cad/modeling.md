@@ -29,7 +29,15 @@ After creation, use **MODIFY → Edit model dimensions** for the named profile s
 
 Dimensions must be finite and greater than 0, up to 10000 mm; native exact-representability limits can still refuse a value. This command adds no sketch drawing or live draft-mesh preview. [#1951](https://github.com/barocss/barocss/issues/1951) tracks the focused software and actual new-part/file workflow separately; physical acceptance is pending until its exact-source Tester result.
 
-### Edit an existing extrusion
+### Edit the selected rectangle sketch
+
+Select a rectangle **Sketch** in the Browser, then **MODIFY → Edit sketch dimensions**. The options stay pinned to that sketch even if you select another feature. **Min X**, **Min Y**, **Max X** and **Max Y** are signed profile coordinates in millimetres: for a rectangle away from the origin, a maximum coordinate is not its width. The New rectangular part command's origin-zero sketch exposes its named `width` and `height` here; extrusion `thickness` stays in Edit extrusion or Edit model dimensions.
+
+Direct named drivers are editable, with one field listing every coordinate that shares the name. Changing a named parameter also changes its other uses elsewhere in the model. Literal coordinates and derived expressions remain read-only; use **Review model dimensions** for existing underlying drivers. The native model still decides valid ordering, exact precision, supported bounds and downstream constraints. A refusal keeps the accepted geometry and pending input.
+
+Use **Apply sketch dimensions** (or Enter) to admit the edit, or **Cancel** / Escape to discard this command's permitted pending values. Unrelated pending dimensions must be reviewed in the global editor first; this command does not silently apply or discard them. Other sketch profiles keep their existing model-dimension controls, including the qualified constrained-plate workflow below. This is parameter editing over existing authored intent, not interactive profile drawing or live draft geometry. Local controlled-delivery evidence and eventual physical acceptance are tracked in [#1957](https://github.com/barocss/barocss/issues/1957).
+
+## Edit an existing extrusion
 
 For example, load **Create a round post**, select **Extrude 01**, then choose **MODIFY → Edit extrusion**. Its **Height · height** field edits the existing named height driver. Type a value and choose **Apply extrusion**; a refused edit retains the accepted model, draft and diagnostic. **Cancel/Escape** discards a current command's pending dimensions. Undo/Redo use the same accepted history.
 

@@ -592,3 +592,25 @@ Local focused runtime check: `node apps/cad-editor/flows/modeling-new-part-flow.
 It uses actual React/controller/receiver paths with explicitly mocked delivery and
 baseline geometry reuse, not a new native or physical-browser campaign. Track the
 exact-source creation/file acceptance in [#1951](https://github.com/barocss/barocss/issues/1951).
+
+
+## Selected rectangle Sketch command
+
+On `#/model`, select an accepted rectangle Sketch and choose MODIFY → Edit
+sketch dimensions. Only that profile's direct named Min/Max coordinate drivers
+are shown; sharing remains global. Apply sketch dimensions admits the candidate,
+Cancel/Escape preserves accepted geometry, and unrelated drafts stay in the
+model-dimension editor. Literal/derived terms are read-only. Other profiles keep
+their existing model-dimension controls.
+
+Run the focused local app contract with installed dependencies:
+
+```sh
+node apps/cad-editor/flows/modeling-sketch-command-flow.mjs
+```
+
+The flow uses actual React/controller/serializer/receiver code with a controlled
+provider/Worker/display port and retained #1835 baseline geometry. New authored
+variants and edited displays are mocked, not fresh native/GPU evidence. Exact
+case counts, first failures and physical limits are recorded under
+`flows/fixtures/modeling-sketch-command/verification.json` (#1957).
