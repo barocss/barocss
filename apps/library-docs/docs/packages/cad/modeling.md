@@ -102,6 +102,44 @@ Historical [two-bevel native proof](https://github.com/barocss/barocss/issues/16
 The viewport gives accepted convex faces distinct fill colors. Click inside a bevel face to inspect its original approximate face and triangle identity. When a model has too many convex faces to show separately, all outputs remain visible with their original plain fill and face picking; bevel color separation is unavailable in that case. [#1990](https://github.com/barocss/barocss/issues/1990) records the focused display and pointer checks; color and picking do not certify exact measurement or manufacturing geometry.
 
 
+
+### Split a finished rail into two bodies (#2018)
+
+Create a 32 × 24 × 8 mm rectangular part, apply front bevel 1 and opposite
+bevel 2, then select **Chamfer 02 → MODIFY → Split part**. The fixed axis is
+model X. **Model X split coordinate (mm)** defaults to half the current
+authored width, 16 mm for this rail. Preview, inspect both sides, then Apply.
+Enter requests Preview; Escape or Cancel keeps the accepted source and history.
+Changing the coordinate invalidates a ready preview, so preview again before Apply.
+
+Apply replaces `part` with exactly `negative` (below the coordinate) and
+`positive` (above it), appends one split feature and adds the independent
+`splitAt` driver. Original sketch expressions and both bevel drivers remain
+unchanged. **Edit model dimensions** changes `splitAt` and shared rail dimensions;
+changing width does not recenter the split. Undo/Redo restores the corresponding
+source and output inventory. This five-feature split is terminal.
+
+Only the exact untransformed four-feature editor-owned two-bevel rail with one
+`part` output is accepted. The names `splitAt`, `negative` and `positive` must
+be unused. Decimal coordinates from -10000 to 10000 mm are forwarded without
+rounding or clamping; this input range is not a geometry guarantee. Native
+geometry and complete display admission must accept both positive-volume sides.
+Tangent or outside cuts may refuse, preserving the accepted model and diagnostics.
+Existing Y, miter and centered-derived examples retain their separate semantics.
+The initial structural preview cold-loads the whole candidate; it does not claim
+cached-prefix reuse.
+
+The [native provider evidence](https://github.com/barocss/barocss/issues/1631)
+already records X16/X8 splits and outside refusal. The new
+[normal command](https://github.com/barocss/barocss/issues/2018) has separate
+pure authoring and mounted React/controller tests with explicit provider/display
+doubles. The retained X16 transport keeps its genuine distinct native IDs,
+meshes and lineage unchanged; its authoring-driver context is adapted, and
+changed-coordinate deliveries are mocks. These checks do not establish new
+native evaluation, actual GPU visibility/picking, physical Save/Open or STL.
+A named GPU Tester must still verify both visible/pickable halves and a bounded
+edit/history/file flow before physical acceptance or issue closure.
+
 ### Pattern two, three or four finished rails
 
 On the 32 × 24 × 8 rail with front bevel1 and opposite bevel2, select **Chamfer 02 → CREATE → Linear pattern**. Choose **Total bodies2/3/4** (default3), keep **Pattern spacing40mm**, choose **Preview operation**, then **Apply operation**. Count3 includes the original: output **part** remains on the finished rail, while **railCopy1** and **railCopy2** are separate bodies at one and two +X spacings. No union, mating or assembly constraint is created.

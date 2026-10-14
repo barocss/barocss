@@ -6,6 +6,7 @@ export type ModelingStructureCommand =
   | { kind: 'add-hole'; target: ModelingStructureTarget; x: number; y: number; radius: number }
   | { kind: 'cut-pocket'; target: ModelingStructureTarget; wall: number; floor: number }
   | { kind: 'chamfer'; target: ModelingStructureTarget; distance: number }
+  | { kind: 'split-part'; target: ModelingStructureTarget; at: number }
   | ({ kind: 'rotate-part'; target: ModelingStructureTarget } & CardinalRotation)
   | { kind: 'move-part'; target: ModelingStructureTarget; x: number; y: number; z: number }
   | { kind: 'linear-pattern'; target: ModelingStructureTarget; spacing: number; count?: 2 | 3 | 4 }
@@ -22,6 +23,7 @@ const POCKET = ['pocketWall', 'pocketFloor'] as const;
 const CHAMFER = ['bevelDistance'] as const;
 const OPPOSITE_CHAMFER = ['backBevelDistance'] as const;
 const PLACEMENT = ['placementX', 'placementY', 'placementZ'] as const;
+const SPLIT = ['splitAt'] as const;
 const PATTERN = ['patternSpacing'] as const;
 const PATTERN_COPIES = ['railCopy1', 'railCopy2', 'railCopy3'] as const;
 type CardinalRotation = { axis: 'x' | 'y' | 'z'; angleDegrees: 90 | 180 | 270 | -90 | -180 | -270 };
@@ -32,7 +34,7 @@ type Data = Record<string, unknown>;
 type Dimension = number | { parameter: string } | { op: 'add'; left: Dimension; right: Dimension }
   | { op: 'scale'; value: Dimension; factor: number };
 type Ref = { node: number; side: 'solid' };
-type OutputRef = Ref | { node: number; side: 'instance1' | 'instance2' | 'instance3' };
+type OutputRef = Ref | { node: number; side: 'negative' | 'positive' | 'instance1' | 'instance2' | 'instance3' };
 type Document = { format: 'barocss-cad-model'; schema: 1; units: 'mm'; parameters: Record<string, number>; nodes: Data[]; outputs: Record<string, OutputRef> };
 function check(value: unknown, message: string): asserts value { if (!value) throw new Error('Model structure: ' + message); }
 function record(value: unknown, fields?: readonly string[]): Data {
@@ -255,6 +257,28 @@ function authoredRailPlacement(d: Document): AuthoredRailPlacement {
   const upper = [0, 1, 2].map(axis => coordinate(Math.max(...corners.map(corner => corner[axis])))) as XYZ;
   return { rotation, offset, envelope: { min, max: upper } };
 }
+function splitNode(): Data {
+  return { kind: 'split', parent: { node: 3, side: 'solid' }, axis: 'x', at: parameter(SPLIT[0]) };
+}
+function splitOutputs(): Document['outputs'] {
+  return { negative: { node: 4, side: 'negative' }, positive: { node: 4, side: 'positive' } };
+}
+function reserveSplit(d: Document): void {
+  reserve(d, SPLIT);
+  check(['negative', 'positive'].every(key => !Object.hasOwn(d.parameters, key) && !Object.hasOwn(d.outputs, key)),
+    'The reserved output names negative and positive must be unused.');
+}
+/** Command-local ownership only: other split axes, planes and derived presets remain valid documents. */
+function splitGraph(d: Document): void {
+  check(d.nodes.length === 5 && signedJson(d.nodes[4]) === signedJson(splitNode())
+    && signedJson(d.outputs) === signedJson(splitOutputs()),
+    'Split part requires exactly the owned terminal X split and negative/positive outputs.');
+  check(Object.hasOwn(d.parameters, SPLIT[0]) && !usesParameter(d.nodes.slice(0, 4), SPLIT)
+    && ['negative', 'positive'].every(key => !Object.hasOwn(d.parameters, key)),
+    'The splitAt driver must remain independent of the rail and reserved output names.');
+  authoredRailPlacement({ ...d, nodes: d.nodes.slice(0, 4), outputs: { part: { node: 3, side: 'solid' } } });
+  length(d.parameters[SPLIT[0]]);
+}
 function linearPatternCount(value: unknown): 2 | 3 | 4 {
   check(value === 2 || value === 3 || value === 4, 'Pattern count must be 2, 3 or 4 including the original.');
   return value;
@@ -433,7 +457,7 @@ function ownedGraph(d: Document): number {
 }
 function dependencies(node: Data): number[] {
   return node.kind === 'sketch' ? [] : node.kind === 'extrude' ? [node.sketch as number]
-    : node.kind === 'hole' || node.kind === 'chamfer' || node.kind === 'rotate' || node.kind === 'translate' || node.kind === 'linear-pattern' || node.kind === 'mirror' || node.kind === 'circular-pattern' ? [(node.parent as Ref).node]
+    : node.kind === 'split' || node.kind === 'hole' || node.kind === 'chamfer' || node.kind === 'rotate' || node.kind === 'translate' || node.kind === 'linear-pattern' || node.kind === 'mirror' || node.kind === 'circular-pattern' ? [(node.parent as Ref).node]
       : node.kind === 'union' ? [(node.left as Ref).node, (node.right as Ref).node] : [(node.parent as Ref).node, (node.tool as Ref).node];
 }
 function accepted(d: Document, input: CadEditorModelingSummary): ModelingStructureTarget[] {
@@ -466,6 +490,7 @@ export function getModelingStructureCapabilities(text: string | null, summary: C
   union: [ModelingStructureTarget, ModelingStructureTarget] | null;
   cutSlot: ModelingStructureTarget | null; cutPocket: ModelingStructureTarget | null;
   chamfer: ModelingStructureTarget | null; chamferReason: string;
+  splitPart: ModelingStructureTarget | null; splitReason: string; splitDefaultAt: number | null; splitAuthored: boolean;
   rotatePart: ModelingStructureTarget | null; movePart: ModelingStructureTarget | null;
   placementReason: string; placementAuthored: AuthoredRailPlacement | null;
   linearPattern: ModelingStructureTarget | null; patternReason: string; patternAuthored: boolean;
@@ -499,6 +524,20 @@ export function getModelingStructureCapabilities(text: string | null, summary: C
       placementReason = 'Move the rotated rail once in native model XYZ millimetres. Finite offsets do not guarantee native exact representability.';
     } else placementReason = 'This six-node rail placement is complete. Edit placementX, placementY and placementZ in Model dimensions; another transform is unsupported.';
   } catch (cause) { placementReason = message(cause); }
+  let splitPart: ModelingStructureTarget | null = null, splitDefaultAt: number | null = null, splitAuthored = false;
+  let splitReason = 'Split the finished rail at an absolute model X coordinate into negative and positive bodies. Native geometry and complete display remain authoritative.';
+  try {
+    check(text !== null && summary !== null, 'open an accepted owned two-bevel rectangular rail first.');
+    const d = document(text), targets = accepted(d, summary);
+    if (d.nodes.length === 5 && d.nodes[4].kind === 'split') {
+      splitGraph(d); splitAuthored = true;
+      splitReason = 'This split is complete. Edit splitAt or the shared rail dimensions; the coordinate does not recenter when width changes. Further features and transforms are unsupported.';
+    } else {
+      check(d.nodes.length === 4, 'Split part requires the exact untransformed four-node owned two-bevel rectangular rail.');
+      const rail = authoredRailPlacement(d); reserveSplit(d);
+      splitDefaultAt = rail.envelope.max[0] / 2; splitPart = targets[0];
+    }
+  } catch (cause) { splitReason = message(cause); }
   let linearPattern: ModelingStructureTarget | null = null, patternAuthored = false;
   let patternReason = 'Create two, three or four separate rails along +X with one shared spacing driver. Native exactness, final-coordinate and display limits still apply.';
   try {
@@ -544,7 +583,7 @@ export function getModelingStructureCapabilities(text: string | null, summary: C
   } catch (cause) { circularReason = message(cause); }
   // Keep the older integer-only commands and all their reasons independent.
   const none = { addArm: null, addHole: null, union: null, cutSlot: null, cutPocket: null, sharedThickness: null,
-    pocketDefaults: null, pocketAuthored: false, chamfer, chamferReason, rotatePart, movePart, placementReason, placementAuthored,
+    pocketDefaults: null, pocketAuthored: false, chamfer, chamferReason, splitPart, splitReason, splitDefaultAt, splitAuthored, rotatePart, movePart, placementReason, placementAuthored,
     linearPattern, patternReason, patternAuthored, mirrorPart, mirrorReason, mirrorAuthored, circularPattern, circularReason, circularAuthored };
   let pocketAuthored = false;
   const unavailableHole = 'Add through-hole requires the selected Extrude of one unmodified rectangular part.';
@@ -599,7 +638,14 @@ export function buildModelingStructure(text: string, summary: CadEditorModelingS
   const command = record(ownData(input)), capabilities = getModelingStructureCapabilities(text, summary), d = document(text);
   const kind = command.kind;
   check(kind === 'add-arm' || kind === 'add-hole' || kind === 'union' || kind === 'cut-slot' || kind === 'cut-pocket' || kind === 'chamfer'
-    || kind === 'rotate-part' || kind === 'move-part' || kind === 'linear-pattern' || kind === 'mirror-part' || kind === 'circular-pattern', 'known structural command required.');
+    || kind === 'split-part' || kind === 'rotate-part' || kind === 'move-part' || kind === 'linear-pattern' || kind === 'mirror-part' || kind === 'circular-pattern', 'known structural command required.');
+  if (kind === 'split-part') {
+    record(command, ['kind', 'target', 'at']);
+    check(capabilities.splitPart, capabilities.splitReason); matchingTarget(command.target, capabilities.splitPart);
+    const at = length(command.at); reserveSplit(d);
+    d.parameters[SPLIT[0]] = at; d.nodes.push(splitNode()); d.outputs = splitOutputs();
+    return { text: canonicalModelingText(d), selectedOutput: 'negative', consumed: [capabilities.splitPart.name], kind };
+  }
   if (kind === 'mirror-part') {
     record(command, ['kind', 'target']);
     check(capabilities.mirrorPart, capabilities.mirrorReason); matchingTarget(command.target, capabilities.mirrorPart);
