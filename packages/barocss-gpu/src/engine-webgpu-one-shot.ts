@@ -5,6 +5,7 @@ import { uploadEngineWebGPUGeometry } from './engine-webgpu-geometry.js';
 import { uploadEngineWebGPUUniforms } from './engine-webgpu-uniforms.js';
 import { createEngineWebGPURenderTargets } from './engine-webgpu-targets.js';
 import { submitEngineWebGPURenderPass } from './engine-webgpu-renderpass.js';
+import { EngineWebGPUWaitBudget } from './engine-webgpu-wait-budget.js';
 import type { EngineSceneV0 } from './engine-scene.js';
 import type { EngineWebGPUGeometryBuffers } from './engine-webgpu-geometry.js';
 import type { GPUDeviceHandle } from './webgpu-platform.js';
@@ -14,23 +15,28 @@ import type { GPUDeviceHandle } from './webgpu-platform.js';
  */
 export async function renderEngineWebGPUOnce(
   device: GPUDeviceHandle, input: EngineSceneV0, width: number, height: number,
-  format: 'rgba8unorm' | 'bgra8unorm',
+  format: 'rgba8unorm' | 'bgra8unorm', budget?: EngineWebGPUWaitBudget,
 ) {
   // Admit before allocating any GPU handles. Both views share original authored data.
   const prepared = prepareEngineScene(input);
   const frame = prepareEngineWebGPUFrame(prepared.scene, width, height);
+  const waits = budget ?? new EngineWebGPUWaitBudget();
   const disposals: (() => void)[] = [];
   try {
-    const pipeline = await createEngineWebGPUPipeline(device, format);
+    const pipeline = await createEngineWebGPUPipeline(device, format, waits);
+    waits.check('offscreen resources');
     const targets = createEngineWebGPURenderTargets(device, width, height, format);
     disposals.push(() => targets.dispose());
     const geometry = new Map<string, EngineWebGPUGeometryBuffers>();
     disposals.push(() => { for (const item of geometry.values()) item.dispose(); geometry.clear(); });
     const used = new Set(frame.draws.map(draw => draw.geometryId));
     for (const item of prepared.geometries) {
-      if (used.has(item.geometry.id))
+      if (used.has(item.geometry.id)) {
+        waits.check('geometry upload');
         geometry.set(item.geometry.id, uploadEngineWebGPUGeometry(device, item.geometry));
+      }
     }
+    waits.check('draw uniforms');
     const uniforms = uploadEngineWebGPUUniforms(device, pipeline, frame);
     disposals.push(() => uniforms.dispose());
     const commands = frame.draws.map((draw, index) => {
@@ -40,6 +46,7 @@ export async function renderEngineWebGPUOnce(
         throw new TypeError('Unmatched EngineScene draw resources');
       return { geometry: resource, bindGroup: group.bindGroup };
     });
+    waits.check('offscreen submission');
     const drawCount = submitEngineWebGPURenderPass(device, pipeline, targets.color, targets.depth,
       commands, prepared.scene.background);
     let disposed = false;

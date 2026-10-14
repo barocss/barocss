@@ -51,7 +51,12 @@ export interface ModelingCircleFaceSelection {
   lineage: ModelingCircleDisplayComponent['lineage']; triangleIndex: number; approximate: true;
 }
 export type ModelingFaceSelection = PrismFaceSelection | ModelingHoleFaceSelection | ModelingUnionFaceSelection | ModelingCircleFaceSelection;
-type Accepted = { packet: ModelingBodyDisplayPacket; nativeFaces: Map<string, KernelFacePreview>; convex: Map<string, PrismDisplayScene>; selectedOutput: string };
+type OrthogonalDrawTriangles = ReadonlyMap<string, readonly number[]>;
+type Accepted = { packet: ModelingBodyDisplayPacket; nativeFaces: Map<string, KernelFacePreview>; convex: Map<string, PrismDisplayScene>;
+  orthogonalDraws: Map<string, OrthogonalDrawTriangles>; selectedOutput: string };
+// A new receiving-realm generation for every output preparation, including resize.
+// Refuse exhaustion rather than let an old geometry ID alias a replacement.
+let orthogonalSceneGeneration = 0;
 // Structured clones and public snapshots carry no receiving-realm prepared authority.
 const accepted = new WeakMap<ModelingDisplayScene, Accepted>();
 function check(value: unknown, detail: string): asserts value { if (!value) throw new Error(`Modeling display: ${detail}`); }
@@ -266,6 +271,60 @@ function sceneForNative(component: { role: string }, prepared: KernelFacePreview
   // Native success does not relax EngineScene's actual ±1000/normal/camera/Float32 limits.
   prepareEngineScene(scene); return scene;
 }
+/** Categorical native face directions, not lighting or a new geometry certificate. */
+function sceneForOrthogonal(component: ModelingUnionDisplayComponent | ModelingCompositionDisplayComponent,
+  prepared: KernelFacePreview, aspect: number, orientation: 'isometric' | 'top'): { scene: EngineSceneV0; triangles: OrthogonalDrawTriangles } {
+  const scene = sceneForNative(component, prepared, aspect, orientation), original = scene.geometries[0];
+  check(orthogonalSceneGeneration < Number.MAX_SAFE_INTEGER, 'orthogonal draw identity exhausted');
+  const generation = ++orthogonalSceneGeneration;
+  // Native -X,+X,-Y,+Y,-Z,+Z. The +Z rim and floor deliberately share a shade.
+  const shades = [.62, .86, .72, .94, .52, 1];
+  const groups = Array.from({ length: 6 }, () => ({ indices: [] as number[], triangles: [] as number[] }));
+  const seen = new Set<number>(), count = original.indices.length / 3;
+  check(prepared.faces.length === component.lineage.panels.length, 'complete orthogonal face mapping required');
+  for (const [index, face] of prepared.faces.entries()) {
+    const panel = component.lineage.panels[index], [start, end] = face.indexRange;
+    check(face.reference.nativeFaceId === panel.id && face.reference.faceToken === panel.id
+      && Number.isInteger(panel.axis) && panel.axis >= 0 && panel.axis <= 2 && (panel.sign === -1 || panel.sign === 1),
+    'exact native orthogonal face direction required');
+    check(Number.isSafeInteger(start) && Number.isSafeInteger(end) && start >= 0 && start < end
+      && end <= original.indices.length && start % 3 === 0 && end % 3 === 0, 'orthogonal triangle map range required');
+    const group = groups[panel.axis * 2 + (panel.sign === 1 ? 1 : 0)];
+    for (let offset = start; offset < end; offset += 3) {
+      const triangle = offset / 3;
+      check(!seen.has(triangle), 'duplicate original orthogonal triangle mapping'); seen.add(triangle);
+      // Reuse exact existing vertex indices and triplet winding. No welding,
+      // offsets, face reconstruction or nearest-normal classification.
+      group.indices.push(...original.indices.slice(offset, offset + 3)); group.triangles.push(triangle);
+    }
+  }
+  check(seen.size === count, 'missing original orthogonal triangle mapping');
+  const triangles = new Map<string, readonly number[]>();
+  scene.geometries = []; scene.materials = []; scene.nodes = [];
+  for (const [direction, group] of groups.entries()) {
+    if (group.triangles.length === 0) continue;
+    const id = `orthogonal_${generation}_${direction}`, materialId = `orthogonal_shade_${direction}`;
+    check(!triangles.has(id) && group.indices.length === group.triangles.length * 3, 'unique complete orthogonal draw mapping required');
+    triangles.set(id, Object.freeze(group.triangles));
+    // The full original attributes are shared and frozen with the accepted scene.
+    scene.geometries.push({ ...original, id, indices: group.indices });
+    scene.materials.push({ id: materialId, type: 'unlit', colorSpace: 'linear',
+      color: [.3 * shades[direction], .58 * shades[direction], .8 * shades[direction]] });
+    scene.nodes.push({ id: 'node_' + id, parentId: null, type: 'mesh', geometryId: id, materialId,
+      translation: [0, 0, 0], rotationXYZW: [0, 0, 0, 1], scale: [1, 1, 1], visible: true });
+  }
+  check(scene.nodes.length >= 1 && scene.nodes.length <= 6, 'bounded orthogonal direction draws required');
+  prepareEngineScene(scene); return { scene, triangles };
+}
+function originalOrthogonalTriangle(draws: OrthogonalDrawTriangles | undefined, geometryId: string, local: number,
+  prepared: KernelFacePreview): number {
+  const triangles = draws?.get(geometryId);
+  check(triangles && Number.isSafeInteger(local) && local >= 0 && local < triangles.length, 'picked orthogonal draw mapping missing or local triangle invalid');
+  const original = triangles[local];
+  check(Number.isSafeInteger(original) && original >= 0 && original < prepared.packet.indices.length / 3,
+    'picked original orthogonal triangle outside packet');
+  return original;
+}
 /** Admits every saved output, including hidden bodies; selection changes visibility only. */
 export function prepareModelingScene(input: ModelingDisplayPacket, aspect = 1, selectedOutput?: string, orientation: 'isometric' | 'top' = 'isometric'): ModelingDisplayScene {
   check(orientation === 'isometric' || orientation === 'top', 'unknown camera orientation');
@@ -281,6 +340,7 @@ export function prepareModelingScene(input: ModelingDisplayPacket, aspect = 1, s
   check(Array.isArray(packet.components) && packet.components.length >= 1 && packet.components.length <= 8
     && Array.isArray(packet.outcomes) && packet.outcomes.length === packet.components.length, 'complete bounded output inventory');
   const nativeFaces = new Map<string, KernelFacePreview>(), convex = new Map<string, PrismDisplayScene>(), scenes = new Map<string, EngineSceneV0>();
+  const orthogonalDraws = new Map<string, OrthogonalDrawTriangles>();
   for (const [i, component] of packet.components.entries()) {
     const outcome = packet.outcomes[i]; exact(outcome, ['role', 'solidId', 'family', 'status']);
     check(/^[A-Za-z_][A-Za-z0-9_-]{0,47}$/.test(outcome.role) && !['__proto__', 'prototype', 'constructor'].includes(outcome.role)
@@ -311,7 +371,8 @@ export function prepareModelingScene(input: ModelingDisplayPacket, aspect = 1, s
         && context.documentRevision === String(packet.revision) && context.kernelResultRevision === String(packet.revision)
         && context.topologyRevision === String(packet.revision), 'orthogonal request/document/revision/body context mismatch');
       const prepared = prepareKernelFacePreview(component.mesh, { displayId: component.role, packetRevision: packet.revision });
-      nativeFaces.set(outcome.role, prepared); scenes.set(outcome.role, sceneForNative(component, prepared, aspect, orientation));
+      const presentation = sceneForOrthogonal(component, prepared, aspect, orientation);
+      nativeFaces.set(outcome.role, prepared); scenes.set(outcome.role, presentation.scene); orthogonalDraws.set(outcome.role, presentation.triangles);
     } else {
       check(component.family === 'stored-rational-plate-hole' && component.role === outcome.role && component.solidId === outcome.solidId, 'known native output family/identity required');
       const prepared = admitHole(component, packet); nativeFaces.set(outcome.role, prepared); scenes.set(outcome.role, sceneForNative(component, prepared, aspect, orientation));
@@ -322,7 +383,7 @@ export function prepareModelingScene(input: ModelingDisplayPacket, aspect = 1, s
   check(scene, 'selected output missing from admitted inventory');
   const family = packet.outcomes.find(o => o.role === selected)!.family;
   const display: ModelingBodyDisplayScene = freeze({ packet, selectedOutput: selected, scene, canvasLabel: `Model output ${selected} (${family})` });
-  accepted.set(display, { packet, nativeFaces, convex, selectedOutput: selected }); return display;
+  accepted.set(display, { packet, nativeFaces, convex, orthogonalDraws, selectedOutput: selected }); return display;
 }
 /** Only the original accepted scene can resolve result-scoped copied references. */
 export function resolveModelingFaceReference(display: ModelingDisplayScene, reference: KernelFaceReference): KernelFaceBinding | null {
@@ -338,23 +399,26 @@ export function pickModelingScene(display: ModelingDisplayScene, width: number, 
   const { ray } = prepareEngineCameraRay(display.scene.camera, { format: 'barocss-gpu-engine-camera-ray-request', version: 0,
     pixelOrigin: 'bottom-left', sampling: 'pixel-center', viewportWidth: width, viewportHeight: height, pixelX: x, pixelY: y });
   const hit = raycastEngineScene(display.scene, ray); if (!hit) return null;
-  const binding = prepared.faces.find(f => hit.triangleIndex * 3 >= f.indexRange[0] && hit.triangleIndex * 3 < f.indexRange[1]);
-  check(binding && resolveKernelFaceReference(prepared, binding.reference), 'picked face lacks original prepared authority');
   const component = authority.packet.components.find(c => c.family !== 'convex-planar' && c.role === authority.selectedOutput);
   check(component && component.family !== 'convex-planar', 'selected native component required');
+  const triangleIndex = component.family === 'orthogonal-cell'
+    ? originalOrthogonalTriangle(authority.orthogonalDraws.get(authority.selectedOutput), hit.geometryId, hit.triangleIndex, prepared)
+    : hit.triangleIndex;
+  const binding = prepared.faces.find(f => triangleIndex * 3 >= f.indexRange[0] && triangleIndex * 3 < f.indexRange[1]);
+  check(binding && resolveKernelFaceReference(prepared, binding.reference), 'picked face lacks original prepared authority');
   if (component.family === 'orthogonal-cell') {
     const provenance = component.lineage.panels.find(p => p.id === binding.reference.nativeFaceId)!;
     return structuredClone({ family: 'orthogonal-cell', documentId: authority.packet.documentId, revision: authority.packet.revision,
-      role: component.role, solidId: component.solidId, reference: binding.reference, provenance, lineage: component.lineage, triangleIndex: hit.triangleIndex, approximate: true });
+      role: component.role, solidId: component.solidId, reference: binding.reference, provenance, lineage: component.lineage, triangleIndex, approximate: true });
   }
   if (component.family === 'stored-rational-circle-prism') {
     const provenance = component.preview.faceRanges.find(f => f.faceId === binding.reference.nativeFaceId)!;
     return structuredClone({ family: 'stored-rational-circle-prism', documentId: authority.packet.documentId, revision: authority.packet.revision,
-      role: component.role, solidId: component.solidId, reference: binding.reference, provenance, lineage: component.lineage, triangleIndex: hit.triangleIndex, approximate: true });
+      role: component.role, solidId: component.solidId, reference: binding.reference, provenance, lineage: component.lineage, triangleIndex, approximate: true });
   }
   const provenance = component.preview.provenance.find(p => p.faceToken === binding.reference.faceToken)!;
   return structuredClone({ family: 'stored-rational-plate-hole', documentId: authority.packet.documentId, revision: authority.packet.revision,
-    role: component.role, solidId: component.solidId, reference: binding.reference, provenance, lineage: component.lineage, triangleIndex: hit.triangleIndex, approximate: true });
+    role: component.role, solidId: component.solidId, reference: binding.reference, provenance, lineage: component.lineage, triangleIndex, approximate: true });
 }
 
 export type ModelingOrthogonalFaceSelection = ModelingUnionFaceSelection;
