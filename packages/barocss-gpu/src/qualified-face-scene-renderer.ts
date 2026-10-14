@@ -4,6 +4,45 @@ import {prepareCamera} from './camera.js';
 import {MESH_SHADERS} from './mesh-shaders.js';
 import type {UpdateResult} from './renderer.js';
 import {freezeGpuData} from './gpu-data.js';
+import {mountPrimitiveViewportFrame,preparePrimitiveViewportMountFrame} from './primitive-scene-renderer.js';
+import type {PrimitiveViewport} from './primitive-scene-renderer.js';
+
+interface HandoffOwner {
+  canvas:HTMLCanvasElement;busy:boolean;retired:boolean;
+  live:()=>void;scene:()=>QualifiedFaceSceneV0;retire:()=>void;
+}
+const handoffOwners=new WeakMap<object,HandoffOwner>();
+export type QualifiedFacePrimitiveViewportHandoffResult=
+  |{readonly ok:false;readonly stage:'preflight';readonly error:Error}
+  |{readonly ok:false;readonly stage:'retirement'|'mount';readonly previousScene:QualifiedFaceSceneV0;readonly error:Error}
+  |{readonly ok:true;readonly stage:'ready';readonly previousScene:QualifiedFaceSceneV0;readonly viewport:PrimitiveViewport};
+function handoffFailure(cause:unknown):Error {
+  if(cause instanceof Error)return cause;
+  const error=new QualifiedFaceSceneError('GPU','Qualified Face handoff refused non-Error failure');
+  Object.defineProperty(error,'cause',{value:cause,enumerable:false});return error;
+}
+/** Explicit exclusive-canvas retirement. Atomic cross-family replacement is unsupported. */
+export function handoffQualifiedFaceToPrimitiveViewport(
+  previous:unknown,input:unknown,mode:'atomic'|'dispose-remount',
+):QualifiedFacePrimitiveViewportHandoffResult {
+  const owner=previous!==null&&(typeof previous==='object'||typeof previous==='function')?handoffOwners.get(previous):undefined;
+  const refuse=(error:Error):QualifiedFacePrimitiveViewportHandoffResult=>Object.freeze({ok:false,stage:'preflight',error});
+  if(!owner)return refuse(new QualifiedFaceSceneError('INPUT','Handoff requires an authentic mounted Qualified Face owner from this module'));
+  if(mode!=='dispose-remount')return refuse(new QualifiedFaceSceneError('INPUT','Atomic cross-family handoff is unsupported; explicitly select dispose-remount'));
+  if(owner.retired)return refuse(new QualifiedFaceSceneError('DISPOSED','Qualified Face handoff owner is retired'));
+  if(owner.busy)return refuse(new QualifiedFaceSceneError('INPUT','Qualified Face handoff is already in progress'));
+  owner.busy=true;
+  let stage:'preflight'|'retirement'|'mount'='preflight',previousScene:QualifiedFaceSceneV0|undefined;
+  try {
+    const frame=preparePrimitiveViewportMountFrame(input);owner.live();previousScene=owner.scene();
+    stage='retirement';owner.retired=true;owner.retire();
+    stage='mount';const viewport=mountPrimitiveViewportFrame(owner.canvas,frame);
+    return Object.freeze({ok:true,stage:'ready',previousScene,viewport});
+  }catch(cause){
+    const error=handoffFailure(cause);
+    return stage==='preflight'?refuse(error):Object.freeze({ok:false,stage,previousScene:previousScene!,error});
+  }finally{owner.busy=false;}
+}
 
 type Prepared=ReturnType<typeof resolveQualifiedFaceScene>;
 type Counts={programs:number;shaders:number;vaos:number;buffers:number;framebuffers:number;textures:number;renderbuffers:number};
@@ -33,7 +72,18 @@ export class QualifiedFaceSceneRenderer {
     if(!gl||gl.isContextLost())throw new QualifiedFaceSceneError('CONTEXT','Qualified Face WebGL2 context is unavailable');
     this.gl=gl;canvas.addEventListener('webglcontextlost',this.onLoss);
     let candidate:Target|null=null;
-    try{candidate=this.create(prepared,canvas.width,canvas.height);this.present(candidate);this.accepted=candidate;}
+    try{
+      candidate=this.create(prepared,canvas.width,canvas.height);this.present(candidate);this.accepted=candidate;
+      // Capture the original methods, never an arbitrary caller's lifecycle callbacks.
+      const live=QualifiedFaceSceneRenderer.prototype.live.bind(this),scene=QualifiedFaceSceneRenderer.prototype.getScene.bind(this),retire=QualifiedFaceSceneRenderer.prototype.dispose.bind(this);
+      handoffOwners.set(this,{canvas,busy:false,retired:false,scene,retire,live:()=>{
+        if(typeof HTMLCanvasElement==='undefined'||!(canvas instanceof HTMLCanvasElement))
+          throw new QualifiedFaceSceneError('INPUT','Qualified Face handoff requires a current-realm HTML canvas');
+        live();const target=this.accepted!;
+        if(canvas.width!==target.width||canvas.height!==target.height||gl.drawingBufferWidth!==target.width||gl.drawingBufferHeight!==target.height)
+          throw new QualifiedFaceSceneError('INPUT','Qualified Face handoff requires the accepted canvas backing dimensions');
+      }});
+    }
     catch(error){if(candidate)this.release(candidate);this.dispose();throw gpuFailure(error);}
   }
   /** Full original data remain readable after loss/disposal; each snapshot is independent. */
