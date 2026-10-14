@@ -5554,14 +5554,74 @@
     "Wrong accept-source operation/text and generic apply cannot promote the wrong command candidate."
   ],
   "apiBaseline": {
-    "status": "PENDING two-symbol extraction on public product parent before adoption",
-    "expectedChangedSymbols": [
-      "@barocss/cad-editor.:CadEditorModelingSnapshot",
-      "@barocss/cad-editor.:createCadEditorModelingController"
+    "status": "PASS",
+    "sourceCommit": "5b953c4566c3a8ff57d50d109d46d0611f88340c",
+    "typescriptVersion": "5.9.3",
+    "semanticDelta": {
+      "added": [],
+      "removed": [],
+      "changed": [
+        "@barocss/cad-editor.:CadEditorModelingSnapshot",
+        "@barocss/cad-editor.:createCadEditorModelingController"
+      ],
+      "beforePin": "a257f538adf0f0a4d8ff1620e6a6d91de82e885e",
+      "sourcePin": "5b953c4566c3a8ff57d50d109d46d0611f88340c",
+      "typescript": "5.9.3",
+      "signatures": {
+        "@barocss/cad-editor.:CadEditorModelingSnapshot": {
+          "before": [
+            "export interface CadEditorModelingSnapshot {\n  accepted: CadEditorModelingSummary | null; authoredText: string | null;\n  display: ModelingDisplayScene | null; faceSelection: (ModelingFaceSelection & { generation: number }) | null;\n  drafts: Record<string, string>; selection: number | null; generation: number;\n  busy: boolean; disposed: boolean; error: string | null; workerReady: boolean;\n  preview: { status: 'computing' | 'ready' | 'unchanged' | 'error'; parameters: Record<string, number>; outputs?: CadEditorModelingSummary['outputs']; diagnostic?: ModelingDiagnostic } | null;\n  history: { index: number; count: number; canUndo: boolean; canRedo: boolean };\n}"
+          ],
+          "after": [
+            "export interface CadEditorModelingSnapshot {\n  accepted: CadEditorModelingSummary | null; authoredText: string | null;\n  display: ModelingDisplayScene | null; faceSelection: (ModelingFaceSelection & { generation: number }) | null;\n  drafts: Record<string, string>; selection: number | null; generation: number;\n  busy: boolean; disposed: boolean; error: string | null; workerReady: boolean;\n  preview: { operation?: 'structure' | 'history'; status: 'computing' | 'ready' | 'unchanged' | 'error'; parameters: Record<string, number>; outputs?: CadEditorModelingSummary['outputs']; diagnostic?: ModelingDiagnostic } | null;\n  history: { index: number; count: number; canUndo: boolean; canRedo: boolean };\n}"
+          ]
+        },
+        "@barocss/cad-editor.:createCadEditorModelingController": {
+          "before": [
+            "export function createCadEditorModelingController(displayPort?: PrismDisplayPort, aspect?: () => number): { getSnapshot: () => CadEditorModelingSnapshot; preview: (recover?: boolean) => Promise<void>; clearPreview(): void; subscribe(listener: () => void): () => void; open: (text: string) => Promise<void>; example: (example?: CadEditorModelingExample, splitAxis?: CadEditorModelingSplitAxis) => Promise<void>; apply: () => Promise<void>; configureFinishes: (suppression: Record<string, boolean>) => Promise<void>; undo: () => Promise<void>; redo: () => Promise<void>; exportStl(name: string, generation: number, recover?: boolean): Promise<CadEditorStlExport | null>; viewOutput(name: string, generation: number): Promise<void>; stage(name: string, raw: string): void; discard(): void; select(feature: number, generation: number): void; pick(width: number, height: number, x: number, y: number, generation: number): void; cancel(): void; dispose(): void; };"
+          ],
+          "after": [
+            "export function createCadEditorModelingController(displayPort?: PrismDisplayPort, aspect?: () => number): { getSnapshot: () => CadEditorModelingSnapshot; preview: (recover?: boolean) => Promise<void>; previewStructure(command: ModelingStructureCommand, generation: number, recover?: boolean): Promise<void>; applyStructure(command: ModelingStructureCommand, generation: number): Promise<void>; clearPreview(): void; subscribe(listener: () => void): () => void; open: (text: string) => Promise<void>; example: (example?: CadEditorModelingExample, splitAxis?: CadEditorModelingSplitAxis) => Promise<void>; apply: () => Promise<void>; configureFinishes: (suppression: Record<string, boolean>) => Promise<void>; undo: () => Promise<void>; redo: () => Promise<void>; exportStl(name: string, generation: number, recover?: boolean): Promise<CadEditorStlExport | null>; viewOutput(name: string, generation: number): Promise<void>; stage(name: string, raw: string): void; discard(): void; select(feature: number, generation: number): void; pick(width: number, height: number, x: number, y: number, generation: number): void; cancel(): void; dispose(): void; };"
+          ]
+        }
+      }
+    },
+    "runs": [
+      {
+        "name": "qualified-write",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--write-current",
+          "--commit",
+          "5b953c4566c3a8ff57d50d109d46d0611f88340c"
+        ],
+        "exitCode": 0,
+        "seconds": 5.521164132995182
+      },
+      {
+        "name": "qualified-check",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--check"
+        ],
+        "exitCode": 0,
+        "seconds": 5.078877687003114
+      }
     ],
-    "preserveIncomingRotation": true,
-    "preserveIncomingMirror": true,
-    "extractorTypescriptVersion": "5.9.3 (separate pinned extraction dependency)"
+    "sha256": "9e1f8bd10c8258830fb758aee649ef5e7b552e2b0b16fd808ef791ae316c19c4",
+    "packages": 9,
+    "entries": 75,
+    "exportedOccurrences": 4191,
+    "extractorSHA256": "01a0cf2b03a47e540148033c2a788f15dd1fa77cdab27011ef264e2786b02186",
+    "historicalBaselineSHA256": "fce5dd0d5c8689f7329944111ef522d819d8a72850c0c13df6adc8a2df7158b3",
+    "preservedProviderSignatures": [
+      "CadShape.rotate",
+      "CadShape.mirror",
+      "CadModelEvidence rotate/mirror branches"
+    ],
+    "scope": "Current merged provider source; this extraction is signature evidence, not type checking or native execution. Metadata child changes only this receipt and current-public-api.json."
   },
   "embeddedLogs": {
     "app-noemit-attempt01.log": {
@@ -5643,6 +5703,14 @@
     "transaction-negative-final.log": {
       "sha256": "88e166cf52ffa7a5604c3d7baf0211f6cf23f00770b31e2e4a43fcd18f544b70",
       "text": "{\"name\":\"01 baseline/structural prepare accepted unchanged\",\"result\":\"PASS\",\"replies\":3}\n{\"name\":\"02 promotion producer/zero repeat\",\"result\":\"PASS\",\"replies\":2}\n{\"name\":\"03 Add-to-Union same-map Undo\",\"result\":\"PASS\",\"replies\":3}\n{\"name\":\"04 parameter edit before/after graph\",\"result\":\"PASS\",\"replies\":2}\n{\"name\":\"05 Cut-to-Undo-to-Redo output identity\",\"result\":\"PASS\",\"replies\":8}\n{\"name\":\"06 monotonic revision\",\"result\":\"PASS\",\"replies\":0}\n{\"name\":\"07 failed Undo preserves cursor/redo\",\"result\":\"PASS\",\"replies\":2}\n{\"name\":\"08 redo truncation success only\",\"result\":\"PASS\",\"replies\":4}\n{\"name\":\"09 cross-kind replace\",\"result\":\"PASS\",\"replies\":4}\n{\"name\":\"10 stale base cannot clear new slot\",\"result\":\"PASS\",\"replies\":3}\n{\"name\":\"11 source/output ABA\",\"result\":\"PASS\",\"replies\":1}\n{\"name\":\"12 stale/duplicate discard\",\"result\":\"PASS\",\"replies\":8}\n{\"name\":\"13 cancel/late reply\",\"result\":\"PASS\",\"replies\":1}\n{\"name\":\"14 native/receiver refusal\",\"result\":\"PASS\",\"replies\":5}\n{\"name\":\"15 display prepare/commit refusal\",\"result\":\"PASS\",\"replies\":4}\n{\"name\":\"16 lost accept acknowledgement/recovery\",\"result\":\"PASS\",\"replies\":6}\n{\"name\":\"17 pre-load source budget/post-success-only history changes\",\"result\":\"PASS\",\"replies\":1}\n{\"name\":\"18 accepted save/cold Open reset/legacy unchanged\",\"result\":\"PASS\",\"replies\":3}\n{\"result\":\"PASS\",\"groups\":18,\"counters\":{\"controlledReplies\":60,\"workerReplies\":43,\"directReplies\":17,\"duplicateDeliveries\":0,\"loads\":24,\"parameterEdits\":8,\"convexFans\":17,\"convexValidationMocks\":17,\"rawSurfaceReplays\":692,\"displayPrepares\":6,\"previewPrepares\":12,\"shows\":7,\"commits\":15,\"controllerLifetimes\":2},\"workerLifetimes\":5,\"scriptSHA256\":\"c04b6b0ed5951d4b5bdcc81260a1e942d5547456b910112a9bc138cf6e9ec0c2\",\"runtime\":{\"node\":\"v24.19.0\",\"platform\":\"linux\",\"architecture\":\"x64\"}}\n"
+    },
+    "api/qualified-write.log": {
+      "sha256": "9cf5eff36d87324a59df39163377a38fb74c6f0f0cc7acde03c3ba5f44ffd389",
+      "text": "(node:80) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"status\":\"written\",\"evidence\":\"evidence/current-public-api.json\",\"sourceCommit\":\"5b953c4566c3a8ff57d50d109d46d0611f88340c\",\"packages\":9,\"changesFromHistorical\":{\"added\":1644,\"removed\":0,\"changed\":52}}\n"
+    },
+    "api/qualified-check.log": {
+      "sha256": "d14e0df631b849fe63a2597a8e7b78611897ac730eceb61193c9bc97bd3fc160",
+      "text": "(node:124) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"status\":\"matched\",\"sourceCommit\":\"5b953c4566c3a8ff57d50d109d46d0611f88340c\",\"scope\":\"current API\",\"packages\":9,\"entries\":75,\"exportedOccurrences\":4191,\"extractor\":\"5.9.3\"}\n"
     }
   },
   "limits": [
@@ -5652,5 +5720,6 @@
     "No total process memory or exact native cost claim.",
     "Only one historical boundary build/import smoke; no full monorepo or fresh incoming-provider build.",
     "Manual prose source/render checks passed; new section is not yet deployed."
-  ]
+  ],
+  "publicProductCommit": "5b953c4566c3a8ff57d50d109d46d0611f88340c"
 }
