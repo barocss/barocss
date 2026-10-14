@@ -393,3 +393,8 @@ A host snapshots original pixels through `getImageAsset`, registers independent 
 ### Coverage-area preparation in the sampling consumer
 
 Open `sprite-sampling.html?area=1`. The4×2 opaque Blue/Red/Red/Blue fixture reduces to one purple pixel `[128,0,128,255]` while keeping explicit40×30 Sprite geometry. The host prepares a copied tree and fresh renderer before admission. Scene29 Save/Open preserves the prepared bytes; explicit restored positioning, PNG decoding and disposal use public APIs. The file contains resource bytes and Scene data; preparation recipes remain host state.
+
+
+### International paragraph labels
+
+The browser-text consumer adds Paragraph and restored Reflow controls. Its fixed mixed Hangul/CJK/decomposed-accent/family-emoji paragraph uses prepared24px system-ui, native grapheme boundaries and explicit LTR direction at width120, then restored width240. Scene29 files restore exact original text, line layout and RGBA bytes. A later public paragraph preparation plus GlyphRun.setLayout performs reflow using the current profile. Font, direction and segmentation preparation state are unknown on cold Open. The focused evidence includes an explicitly labelled direct native RTL reference witness and actual glyph screenshots.
