@@ -20,6 +20,7 @@ A feature is usable in the modeling workspace only when its **native provider ac
 | Assembly authoring | Selected native assembly contracts and bounded flows | Separate assembly workspace work exists | Case-specific | **Not established as general assembly/mate support** |
 | General sketch constraints and drag solver | Some exact affine/radius/tangency increments | Specialized driving-sketch work | Case-specific | **Full interactive/global constraint solver unverified** |
 | Arbitrary curved Boolean, fillet and topology naming | General solution not established | Not a generally supported modeling operation | Not generally supported | **Not established** |
+| Binary STL export of a named convex output | Accepted `convex-planar` body, native revalidation and at most 40 Float32 facets | **FILE → Export accepted STL**, explicit **STL output**; [STL versus editable model](./export-stl) | STL is a *separate triangle handoff* with an mm convention, **not** authored Save/Open or native feature-history interchange | **Not freshly run** in this Manual; disk, slicer and device proof remain separate |
 | STEP exchange and production 2D drawings | Commercial-grade target in roadmap | General workflow not established | Not generally supported | **Not established** |
 
 ## What the status labels mean

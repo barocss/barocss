@@ -500,7 +500,9 @@ function inspectNativeSurfaceCurvature(){
     +formatted(curvature.gaussianCurvaturePerMM2)+' 1/mm² · principal '
     +curvature.principalCurvaturesPerMM.map(formatted).join(', ')+' 1/mm';
   nativeSurfaceCurvatureReport=owned;nativeSurfaceCurvatureOutput.textContent=output;nativeSurfaceCurvatureDetails.textContent=technical;
-  display('Original Surface curvature ready for '+expected.ref.surfaceId+'.');return returned;
+  const presentation=viewer.getState().status;
+  display('Original Surface curvature ready for '+expected.ref.surfaceId+'.'
+    +(presentation==='context-lost'?' CPU inspection only; WebGL2 context is lost and GPU presentation remains unavailable.':''));return returned;
 }
 function resetNativeSurfaceCurvature(){
   check(arguments.length===0,'Reset Surface curvature report takes no arguments.');

@@ -4,6 +4,22 @@ Private React/shadcn host for `@barocss/cad-editor`. Menus, project/document rou
 body tree, file picker, genuine download and canonical fixtures live here.
 Reusable editing state, inspector and Viewer bridge live in the package.
 
+## On-demand modeling preview
+
+At `#/model`, use a dimension command, enter pending values and click **Preview dimensions**.
+The viewport shows an unapplied candidate while accepted source and history remain intact.
+Apply accepts that same candidate; Cancel restores the retained accepted viewport. Another
+input invalidates the preview. Lost-worker recovery is explicitly labeled before the click.
+Face picking is disabled during preview, and diagnostics identify editing context without
+inventing an offending feature. Legacy files remain Apply-only.
+
+Run `node apps/cad-editor/flows/modeling-draft-preview-flow.mjs` locally for the focused
+React/controller transaction flow. Its provider, Worker and renderer boundaries are explicit
+doubles; retained genuine baseline geometry is reused for mocked edited states. It is not
+native edited-geometry, GPU-pixel or physical acceptance. App runtime flows stay local;
+CI retains lint, types and builds. [#1959](https://github.com/barocss/barocss/issues/1959)
+tracks the exact source/results and deferred physical gate.
+
 Use the installed Node 22 runtime. No new dependency or browser download is
 required by the focused flow.
 
@@ -574,3 +590,61 @@ display boundaries, replaying the retained genuine constrained-plate baseline;
 edited geometry is a fixture substitute, not new native evidence. Physical layout,
 GPU pixels, actual file chooser/download and keyboard behavior still need the
 existing Execute Tester on an exact adopted build.
+
+### Author a new rectangular part
+
+In `#/model`, **Create → New rectangular part** accepts your width, profile height
+and thickness (32×24×8 mm by default). Inspect the authored source, then choose
+**Replace current model**, or **Create part** if no document is accepted. Existing
+model drafts must first be applied/canceled in their own editor. Replacement is
+explicit and starts a new document history; it does not save the old document.
+Cancel/Escape preserves the current document. Native/display refusal keeps it
+visible and leaves creation settings available for correction.
+
+Edit the resulting named dimensions or select Extrude 01 → Edit extrusion to
+change thickness; existing Apply/Undo/Redo and Save/Open remain available. File
+Download model saves accepted values, so apply desired edits before downloading.
+Local focused runtime check: `node apps/cad-editor/flows/modeling-new-part-flow.mjs`.
+It uses actual React/controller/receiver paths with explicitly mocked delivery and
+baseline geometry reuse, not a new native or physical-browser campaign. Track the
+exact-source creation/file acceptance in [#1951](https://github.com/barocss/barocss/issues/1951).
+
+
+## Selected rectangle Sketch command
+
+On `#/model`, select an accepted rectangle Sketch and choose MODIFY → Edit
+sketch dimensions. Only that profile's direct named Min/Max coordinate drivers
+are shown; sharing remains global. Apply sketch dimensions admits the candidate,
+Cancel/Escape preserves accepted geometry, and unrelated drafts stay in the
+model-dimension editor. Literal/derived terms are read-only. Other profiles keep
+their existing model-dimension controls.
+
+Run the focused local app contract with installed dependencies:
+
+```sh
+node apps/cad-editor/flows/modeling-sketch-command-flow.mjs
+```
+
+The flow uses actual React/controller/serializer/receiver code with a controlled
+provider/Worker/display port and retained #1835 baseline geometry. New authored
+variants and edited displays are mocked, not fresh native/GPU evidence. Exact
+case counts, first failures and physical limits are recorded under
+`flows/fixtures/modeling-sketch-command/verification.json` (#1957).
+
+
+## Accepted versus pending model files
+
+FILE → Save or open a model shows pending dimensions beside their accepted
+values. Download accepted model saves only accepted intent; Review dimensions
+before saving preserves the draft for an explicit Apply/Cancel. Clean documents
+keep Download model. Staged file text is not downloaded or opened implicitly.
+
+Run the bounded local save contract with installed dependencies:
+
+```sh
+node apps/cad-editor/flows/modeling-accepted-save-flow.mjs
+```
+
+This uses actual React/controller state and controlled Blob/anchor/URL APIs to
+check bytes, stale callbacks and owned cleanup. It is not a physical browser
+file-picker/download result; #1958 retains that separate acceptance status.
