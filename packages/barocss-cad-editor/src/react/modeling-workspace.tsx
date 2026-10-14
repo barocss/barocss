@@ -7,6 +7,7 @@ export type ModelingWorkspacePanel = 'add-arm' | 'union' | 'cut-slot' | 'new-par
 export interface ModelingWorkspaceProps {
   snapshot: CadEditorModelingSnapshot | null;
   viewport: ReactNode;
+  onView(orientation: 'isometric' | 'top'): void;
   panels: Record<ModelingWorkspacePanel, ReactNode>;
   panel: ModelingWorkspacePanel | null;
   error: string | null;
@@ -48,6 +49,8 @@ export function ModelingWorkspace(props: ModelingWorkspaceProps) {
     else optionsHeading.current?.focus();
   }, [panel]);
   const busy = snapshot?.busy ?? false, draft = Object.keys(snapshot?.drafts ?? {}).length > 0;
+  const previewActive = snapshot?.preview?.status === 'ready' || snapshot?.preview?.status === 'computing';
+  const viewDisabled = busy || previewActive || !snapshot?.display || snapshot.disposed;
   const editingStructure = panel === 'add-arm' || panel === 'union' || panel === 'cut-slot';
   const editingDimensions = panel === 'dimensions' || panel === 'extrusion' || panel === 'sketch';
   const features = accepted?.features ?? [];
@@ -129,7 +132,17 @@ export function ModelingWorkspace(props: ModelingWorkspaceProps) {
       </aside>
       <main className="modeling-canvas-area" aria-label="Model viewport">
         {props.viewport}
-        <div className="modeling-viewport-caption">{snapshot?.faceSelection ? `Selected ${snapshot.faceSelection.role} face` : 'Native model preview'} · approximate face selection</div>
+        <div data-testid="modeling-view-controls" role="group" aria-label="Model view"
+          style={{ position: 'absolute', zIndex: 2, left: 12, bottom: 12, maxWidth: 'calc(100% - 24px)', padding: '5px 7px', borderRadius: 3, background: '#1e2935ed', color: '#b9cbe0', fontSize: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
+            <span>View: {snapshot?.viewOrientation === 'top' ? 'Top' : 'Isometric'}</span>
+            <button type="button" disabled={viewDisabled} aria-pressed={snapshot?.viewOrientation === 'top'} title="Look down native Z with perspective projection" onClick={() => props.onView('top')}>Top</button>
+            <button type="button" disabled={viewDisabled} aria-pressed={snapshot?.viewOrientation === 'isometric'} title="Restore the isometric perspective orientation" onClick={() => props.onView('isometric')}>Isometric</button>
+            {snapshot?.faceSelection && <span>Selected {snapshot.faceSelection.role} face · approximate</span>}
+          </div>
+          {previewActive && <p style={{ margin: '4px 0 0' }}>Apply or cancel the preview to change view. Choose Top before previewing.</p>}
+          {busy && !previewActive && <p style={{ margin: '4px 0 0' }}>View controls are unavailable while the model is busy.</p>}
+        </div>
         <aside className="modeling-options" data-testid="modeling-options" hidden={panel === null} aria-label={panel ? panelTitles[panel] : 'Command options'}>
           <header><h2 ref={optionsHeading} tabIndex={-1}>{panel === 'dimensions' ? props.dimensionLabel : panel ? panelTitles[panel] : ''}</h2>
             <button type="button" aria-label="Close options" disabled={(editingDimensions || editingStructure || panel === 'new-part') && busy} onClick={() => panel === 'new-part' ? props.onCancelNewPart() : editingStructure ? props.onCancelStructure() : editingDimensions ? props.onCancelDimensions() : props.onPanel(null)}><X aria-hidden="true" /></button></header>

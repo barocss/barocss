@@ -8,8 +8,9 @@ export interface CadEditorSceneDisplay { scene: EngineSceneV0; canvasLabel?: str
 export interface PrismDisplayPort {
   prepare(display: CadEditorSceneDisplay): Promise<PrismDisplayCandidate>;
   preparePreview?(display: CadEditorSceneDisplay): Promise<PrismPreviewDisplayCandidate>;
+  updateScene?(display: CadEditorSceneDisplay): void;
 }
-type Renderer = Pick<EngineSceneRenderer, 'resize' | 'dispose'>;
+type Renderer = Pick<EngineSceneRenderer, 'resize' | 'dispose'> & Partial<Pick<EngineSceneRenderer, 'update'>>;
 interface DisplayItem { canvas: HTMLCanvasElement; renderer: Renderer | null; retired: boolean; removed: boolean }
 /** Retain one accepted canvas and at most one staged or visible candidate. */
 export function createPrismFeatureDisplay(host: HTMLElement, mount: typeof mountEngineScene = mountEngineScene) {
@@ -94,6 +95,17 @@ export function createPrismFeatureDisplay(host: HTMLElement, mount: typeof mount
   return {
     prepare: (display: CadEditorSceneDisplay): Promise<PrismDisplayCandidate> => prepare(display),
     preparePreview: prepare,
+    updateScene(display: CadEditorSceneDisplay) {
+      if (disposed) throw new Error('Prism display disposed.');
+      if (pending || preview) throw new Error('Prism display cannot update while a candidate is pending or visible.');
+      const renderer = accepted?.renderer;
+      if (!renderer) throw new Error('Prism display requires an accepted renderer.');
+      if (typeof renderer.update !== 'function') throw new Error('Prism display renderer does not support scene updates.');
+      // The renderer owns transactional presentation and rollback. Preserve our
+      // canvas/ownership on refusal; context loss cannot promise retained pixels.
+      const result = renderer.update(display.scene);
+      if (!result.ok) throw result.error;
+    },
     resize() {
       const visible = preview ?? accepted;
       if (visible && !disposed) resizeItem(visible);

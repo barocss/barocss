@@ -17,6 +17,7 @@ export interface CadEditorModelingSnapshot {
   display: ModelingDisplayScene | null; faceSelection: (ModelingFaceSelection & { generation: number }) | null;
   drafts: Record<string, string>; selection: number | null; generation: number;
   busy: boolean; disposed: boolean; error: string | null; workerReady: boolean;
+  viewOrientation: 'isometric' | 'top';
   preview: { operation?: 'structure' | 'history'; status: 'computing' | 'ready' | 'unchanged' | 'error'; parameters: Record<string, number>; outputs?: CadEditorModelingSummary['outputs']; diagnostic?: ModelingDiagnostic } | null;
   history: { index: number; count: number; canUndo: boolean; canRedo: boolean };
 }
@@ -200,7 +201,7 @@ function sourceMatches(reply: Success, taskToken?: string) {
 export function createCadEditorModelingController(displayPort?: PrismDisplayPort, aspect: () => number = () => 1) {
   let state: InternalSnapshot = { accepted: null, authoredText: null, display: null, faceSelection: null,
     drafts: {}, selection: null, generation: 0, busy: false, disposed: false, error: null,
-    preview: null, history: { index: -1, count: 0, canUndo: false, canRedo: false } };
+    preview: null, viewOrientation: 'isometric', history: { index: -1, count: 0, canUndo: false, canRedo: false } };
   let worker: Worker | null = null, ready = false, acceptedWorkerToken = '', sequence = 0, epoch = 0, index = -1, draftVersion = 0, workerToken = '';
   let prepared: { reply: PreviewSuccess | SourceSuccess; expectedText?: string; historyTarget?: number; display: ModelingDisplayScene; handle: PrismPreviewDisplayCandidate | null;
     worker: Worker; text: string; generation: number; rawDrafts: Record<string, string>; draftVersion: number } | null = null;
@@ -384,7 +385,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
         ? replacing ? kind === 'example' && example === 'slotted-bracket' ? 'slotted' : kind === 'example' && example === 'mounting-plate' ? 'plate' : kind === 'example' && example === 'union-bracket' ? 'bracket' : kind === 'example' && (example === 'underside-pocket' || example === 'top-entry-pocket') ? 'part' : kind === 'example' && example === 'round-post' ? 'post' : undefined
           : state.display && 'selectedOutput' in state.display ? state.display.selectedOutput : undefined
         : undefined;
-      const display = prepareModelingScene(reply.display, aspect(), selectedOutput);
+      const display = prepareModelingScene(reply.display, aspect(), selectedOutput, state.viewOrientation);
       candidate = displayPort ? await displayPort.prepare(display) : null;
       if (operation !== epoch || state.disposed) { candidate?.dispose(); return; }
       let nextHistory = history, nextIndex = target;
@@ -437,7 +438,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
         const seed = await request({ kind: 'open', text, revision: baseAccepted.revision });
         if (operation !== epoch || state.disposed) return;
         if (!same(seed.summary, baseAccepted) || !same(JSON.parse(seed.text), JSON.parse(text))) throw Error('Reconstruction differs from the accepted model.');
-        prepareModelingScene(seed.display, aspect(), state.display && 'selectedOutput' in state.display ? state.display.selectedOutput : undefined);
+        prepareModelingScene(seed.display, aspect(), state.display && 'selectedOutput' in state.display ? state.display.selectedOutput : undefined, state.viewOrientation);
         ready = true;
       }
       const reply = await request({ kind: 'prepare-preview', workerToken, acceptedTaskToken: acceptedWorkerToken,
@@ -448,7 +449,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
         || reply.summary.revision !== baseAccepted.revision + 1 || !same(reply.summary.parameters, { ...baseAccepted.parameters, ...parameters })) throw Error('Stale or mismatched preview parameters.');
       const prior = JSON.parse(text), expected = { ...prior, parameters: { ...prior.parameters, ...parameters } };
       if (!same(JSON.parse(reply.text), expected)) throw Error('Preview changed immutable authored feature data.');
-      const display = prepareModelingScene(reply.display, aspect(), state.display && 'selectedOutput' in state.display ? state.display.selectedOutput : undefined);
+      const display = prepareModelingScene(reply.display, aspect(), state.display && 'selectedOutput' in state.display ? state.display.selectedOutput : undefined, state.viewOrientation);
       stage = 'display';
       handle = displayPort?.preparePreview ? await displayPort.preparePreview(display) : null;
       if (operation !== epoch || state.disposed) { handle?.dispose(); return; }
@@ -484,7 +485,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
         const seed = await request({ kind: 'open', text, revision: accepted.revision });
         if (operation !== epoch || state.disposed) return;
         if (!same(seed.summary, accepted) || seed.text !== text) throw Error('Reconstruction differs from the accepted model.');
-        prepareModelingScene(seed.display, aspect(), state.display && 'selectedOutput' in state.display ? state.display.selectedOutput : undefined);
+        prepareModelingScene(seed.display, aspect(), state.display && 'selectedOutput' in state.display ? state.display.selectedOutput : undefined, state.viewOrientation);
         ready = true;
       }
       const reply = await request({ kind: 'prepare-source', workerToken, acceptedTaskToken: acceptedWorkerToken,
@@ -497,7 +498,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
       modelingSourceBudget(history.map(row => row.bytes), modelingSourceBytes(text), [modelingSourceBytes(text), expectedBytes, modelingSourceBytes(reply.text)]);
       // Consumed names cannot select a different graph's reused native ID.
       const selectedOutput = reply.summary.outputs.some(output => output.name === 'part') ? 'part' : reply.summary.outputs[0]?.name;
-      const display = prepareModelingScene(reply.display, aspect(), selectedOutput);
+      const display = prepareModelingScene(reply.display, aspect(), selectedOutput, state.viewOrientation);
       stage = 'display';
       handle = displayPort?.preparePreview ? await displayPort.preparePreview(display) : null;
       if (operation !== epoch || state.disposed) { handle?.dispose(); return; }
@@ -556,6 +557,22 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
   }
   return {
     getSnapshot: (): CadEditorModelingSnapshot => clone({ ...state, workerReady: ready }),
+    setView(orientation: 'isometric' | 'top', generation: number) {
+      idle();
+      if ((orientation !== 'isometric' && orientation !== 'top') || generation !== state.generation || !state.accepted || !state.display)
+        throw Error('Choose a current accepted model view.');
+      if (prepared || previewRequest || state.preview?.status === 'ready' || state.preview?.status === 'computing')
+        throw Error('Apply or cancel the preview before changing view. Choose Top before previewing.');
+      if (orientation === state.viewOrientation) return;
+      const display = prepareModelingScene(state.display.packet, aspect(), 'selectedOutput' in state.display ? state.display.selectedOutput : undefined, orientation);
+      // Admission and the renderer's transactional update precede the logical
+      // camera swap. This path sends no Worker request and creates no history.
+      if (displayPort) {
+        if (!displayPort.updateScene) throw Error('This display cannot update its model view.');
+        displayPort.updateScene(display);
+      }
+      state = { ...state, display, viewOrientation: orientation, faceSelection: null }; emit();
+    },
     preview,
     async previewStructure(command: ModelingStructureCommand, generation: number, recover = false) {
       idle();
@@ -593,7 +610,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
           if (!same(seed.summary, accepted) || !same(JSON.parse(seed.text), JSON.parse(state.authoredText!)))
             throw Error('Reconstruction differs from the accepted model.');
           // Admit every recovered output without preparing/committing a renderer replacement.
-          prepareModelingScene(seed.display, aspect(), state.display && 'selectedOutput' in state.display ? state.display.selectedOutput : undefined);
+          prepareModelingScene(seed.display, aspect(), state.display && 'selectedOutput' in state.display ? state.display.selectedOutput : undefined, state.viewOrientation);
           ready = true;
         }
         const reply = await request({ kind: 'export-stl', expectedRevision: accepted.revision,
@@ -620,7 +637,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
       let candidate: PrismDisplayCandidate | null = null;
       state = { ...state, busy: true, error: null }; emit();
       try {
-        const display = prepareModelingScene(packet, aspect(), name);
+        const display = prepareModelingScene(packet, aspect(), name, state.viewOrientation);
         candidate = displayPort ? await displayPort.prepare(display) : null;
         if (operation !== epoch || state.disposed) return;
         candidate?.commit();

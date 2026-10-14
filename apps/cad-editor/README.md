@@ -667,3 +667,17 @@ It uses actual React/controller/serializer/receiver paths with controlled Worker
 provider/native validation and renderer boundaries. Retained geometry/context
 adaptation does not establish newly measured native output, pixels or physical
 files. #1960 records finite counts, first failures and its separate device gate.
+
+## Top and Isometric model views
+
+Use Top beside the viewport to inspect a through-slot from native +Z, or
+Isometric to restore the initial perspective orientation. The selected button
+shows the active local view. Both are perspective views, not orthographic tools.
+Choose the view before Preview; camera changes are disabled during a computation
+or ready preview. Cancel, Apply, Undo/Redo, Open and resize preserve the chosen
+orientation within the current session. Camera changes reuse the mounted canvas
+and retained geometry, with no Worker evaluation, source edit or history entry.
+
+Local focused check: `node apps/cad-editor/flows/modeling-view-flow.mjs`.
+Its controlled renderer does not establish pixels. #1965 tracks the actual-device
+view check; #1960's initial device flow did not visually distinguish the slot.

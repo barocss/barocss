@@ -37,7 +37,8 @@ function check(condition: unknown, detail: string): asserts condition { if (!con
 function exact(value: object, keys: string[]) { check(Object.keys(value).length === keys.length && keys.every(k => Object.hasOwn(value, k)), 'exact copied DTO fields required'); }
 const xyz = (values: number[]) => values.flatMap((value, i) => i % 3 ? [] : [value, values[i + 2], -values[i + 1]]);
 /** Software admission only; no native reconstruction, GPU execution or pixel claim. */
-export function preparePrismFeatureScene(packet: PrismDisplayPacket, view: PrismDisplayView, aspect = 1): PrismDisplayScene {
+export function preparePrismFeatureScene(packet: PrismDisplayPacket, view: PrismDisplayView, aspect = 1, orientation: 'isometric' | 'top' = 'isometric'): PrismDisplayScene {
+  check(orientation === 'isometric' || orientation === 'top', 'unknown camera orientation');
   check(packet && typeof packet.documentId === 'string' && Number.isSafeInteger(packet.revision) && packet.revision >= 0, 'document qualification required');
   const model = packet.profile === 'model-outputs';
   exact(packet, [...(model ? ['profile'] : []), 'documentId', 'revision', 'components', 'outcomes']);
@@ -190,10 +191,10 @@ export function preparePrismFeatureScene(packet: PrismDisplayPacket, view: Prism
   const target = min.map((v, i) => (v + max[i]) / 2) as [number, number, number];
   const radius = Math.max(.001, Math.hypot(...max.map((v, i) => (v - min[i]) / 2)));
   const halfAngle = Math.min(Math.PI / 7.2, Math.atan(Math.tan(Math.PI / 7.2) * aspect));
-  const distance = radius * 1.2 / Math.sin(halfAngle), direction = [1, .75, 1], length = Math.hypot(...direction);
+  const distance = radius * 1.2 / Math.sin(halfAngle), direction = orientation === 'top' ? [0, 1, 0] : [1, .75, 1], length = Math.hypot(...direction);
   const scene: EngineSceneV0 = { format: 'barocss-gpu-engine-scene', version: 0, id: 'prism_feature_scene', coordinateSystem: 'right-handed-y-up', positionUnit: 'scene',
     background: [.025, .035, .05], camera: { eye: direction.map((v, i) => target[i] + v * distance / length) as [number, number, number], target,
-      up: [0, 1, 0], fovYDegrees: 50, near: Math.max(.0001, distance - radius * 1.1), far: distance + radius * 1.1 },
+      up: orientation === 'top' ? [0, 0, -1] : [0, 1, 0], fovYDegrees: 50, near: Math.max(.0001, distance - radius * 1.1), far: distance + radius * 1.1 },
     geometries, materials: [{ id: 'prism_material', type: 'unlit', colorSpace: 'linear', color: [.3, .58, .8] }],
     nodes: visible.map(c => ({ id: `prism_node_${c.role}`, parentId: null, type: 'mesh', geometryId: `prism_geometry_${c.role}`, materialId: 'prism_material',
       translation: [0, 0, 0], rotationXYZW: [0, 0, 0, 1], scale: [1, 1, 1], visible: true })) };

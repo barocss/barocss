@@ -86,6 +86,13 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
     setError(null); try { if (controller.current) Promise.resolve(operation(controller.current)).catch(cause => setError(String(cause))); }
     catch (cause) { setError(String(cause)); }
   };
+  const viewSession = controller.current;
+  const changeView = (orientation: 'isometric' | 'top') => {
+    const current = viewSession?.getSnapshot();
+    if (!viewSession || controller.current !== viewSession || !snapshot || !current
+      || current.generation !== snapshot.generation || current.authoredText !== snapshot.authoredText) return;
+    action(session => session.setView(orientation, snapshot.generation));
+  };
   const extrusionCommandLive = () => extrusionTarget !== null && extrusionTarget.session === controller.current
     && extrusionTarget.instance === extrusionCommandInstance.current;
   const sketchCommandLive = () => sketchTarget !== null && sketchTarget.session === controller.current
@@ -752,6 +759,7 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
       <p>Choose model file stages its UTF-8 text for inspection; it does not replace the accepted model. Review the contents and explicitly confirm Open. Invalid files still go through native validation on Open. Actual file-picker, browser and GPU acceptance require separate device verification.</p>
     </details>;
   if (workspace) return <ModelingWorkspace snapshot={snapshot} viewport={viewportElement} panel={workspacePanel} error={error}
+    onView={changeView}
     panels={{ 'add-arm': workspacePanel === 'add-arm' ? structurePanel : null, union: workspacePanel === 'union' ? structurePanel : null, 'cut-slot': workspacePanel === 'cut-slot' ? structurePanel : null, 'new-part': newPartPanel, examples: examplesPanel, dimensions: dimensionsPanel, extrusion: extrusionPanel, sketch: sketchPanel, outputs: <>{visibilityPanel}{exportPanel}</>, files: filesPanel,
       inspect: inspectionPanel, limits: limitsPanel, configuration: finishesPanel }}
     dimensionLabel={constrainedPlateDrivers ? 'Edit dimensions' : 'Edit model dimensions'}

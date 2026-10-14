@@ -249,17 +249,17 @@ function admitHole(component: ModelingHoleDisplayComponent, packet: ModelingBody
   }
   return prepared;
 }
-function sceneForNative(component: { role: string }, prepared: KernelFacePreview, aspect: number): EngineSceneV0 {
+function sceneForNative(component: { role: string }, prepared: KernelFacePreview, aspect: number, orientation: 'isometric' | 'top'): EngineSceneV0 {
   const geometry: TriangleGeometryV0 = { format: 'barocss-gpu-triangle-geometry', version: 0, id: 'model_geometry_' + component.role,
     coordinateSystem: 'right-handed-y-up', positionUnit: 'scene', winding: 'ccw', positions: [...prepared.packet.positions], normals: [...prepared.packet.normals],
     uvs: [...prepared.packet.parameters], indices: [...prepared.packet.indices] };
   const { min, max } = prepared.packet.bounds, target = min.map((v, i) => (v + max[i]) / 2) as [number, number, number];
   const radius = Math.max(.001, Math.hypot(...max.map((v, i) => (v - min[i]) / 2)));
   const halfAngle = Math.min(Math.PI / 7.2, Math.atan(Math.tan(Math.PI / 7.2) * aspect));
-  const distance = radius * 1.2 / Math.sin(halfAngle), direction = [1, .75, 1], length = Math.hypot(...direction);
+  const distance = radius * 1.2 / Math.sin(halfAngle), direction = orientation === 'top' ? [0, 1, 0] : [1, .75, 1], length = Math.hypot(...direction);
   const scene: EngineSceneV0 = { format: 'barocss-gpu-engine-scene', version: 0, id: 'modeling_body_scene', coordinateSystem: 'right-handed-y-up', positionUnit: 'scene',
     background: [.025, .035, .05], camera: { eye: direction.map((v, i) => target[i] + v * distance / length) as [number, number, number], target,
-      up: [0, 1, 0], fovYDegrees: 50, near: Math.max(.0001, distance - radius * 1.1), far: distance + radius * 1.1 }, geometries: [geometry],
+      up: orientation === 'top' ? [0, 0, -1] : [0, 1, 0], fovYDegrees: 50, near: Math.max(.0001, distance - radius * 1.1), far: distance + radius * 1.1 }, geometries: [geometry],
     materials: [{ id: 'prism_material', type: 'unlit', colorSpace: 'linear', color: [.3, .58, .8] }],
     nodes: [{ id: 'model_node_' + component.role, parentId: null, type: 'mesh', geometryId: geometry.id, materialId: 'prism_material',
       translation: [0, 0, 0], rotationXYZW: [0, 0, 0, 1], scale: [1, 1, 1], visible: true }] };
@@ -267,11 +267,12 @@ function sceneForNative(component: { role: string }, prepared: KernelFacePreview
   prepareEngineScene(scene); return scene;
 }
 /** Admits every saved output, including hidden bodies; selection changes visibility only. */
-export function prepareModelingScene(input: ModelingDisplayPacket, aspect = 1, selectedOutput?: string): ModelingDisplayScene {
+export function prepareModelingScene(input: ModelingDisplayPacket, aspect = 1, selectedOutput?: string, orientation: 'isometric' | 'top' = 'isometric'): ModelingDisplayScene {
+  check(orientation === 'isometric' || orientation === 'top', 'unknown camera orientation');
   const profile = Object.getOwnPropertyDescriptor(input, 'profile');
   check(!profile || 'value' in profile, 'own profile tag required');
   if (profile?.value !== 'model-body-faces') {
-    return preparePrismFeatureScene(input as PrismDisplayPacket, 'result', aspect);
+    return preparePrismFeatureScene(input as PrismDisplayPacket, 'result', aspect, orientation);
   }
   const packet = snapshot(input) as ModelingBodyDisplayPacket;
   exact(packet, ['profile', 'documentId', 'revision', 'taskToken', 'components', 'outcomes']); token(packet.documentId, 48); token(packet.taskToken, 48);
@@ -288,7 +289,7 @@ export function prepareModelingScene(input: ModelingDisplayPacket, aspect = 1, s
       exact(component, ['family', 'component']);
       check(component.component.role === outcome.role && component.component.report.solidId === outcome.solidId, 'convex output identity mismatch');
       const display = preparePrismFeatureScene({ profile: 'model-outputs', documentId: packet.documentId, revision: packet.revision,
-        components: [component.component], outcomes: [{ role: outcome.role, solidId: outcome.solidId, status: 'solid' }] }, 'result', aspect);
+        components: [component.component], outcomes: [{ role: outcome.role, solidId: outcome.solidId, status: 'solid' }] }, 'result', aspect, orientation);
       convex.set(outcome.role, display); scenes.set(outcome.role, display.scene);
     } else if (component.family === 'stored-rational-circle-prism') {
       check(component.role === outcome.role && component.solidId === outcome.solidId, 'circle output identity required');
@@ -299,7 +300,7 @@ export function prepareModelingScene(input: ModelingDisplayPacket, aspect = 1, s
         && context.topologyRevision === String(packet.revision), 'circle request/document/revision/body context mismatch');
       // Historical packet label is retained; raw authored XYZ enters the existing single rotation.
       const prepared = prepareKernelFacePreview(component.mesh, { displayId: component.role, packetRevision: packet.revision });
-      nativeFaces.set(outcome.role, prepared); scenes.set(outcome.role, sceneForNative(component, prepared, aspect));
+      nativeFaces.set(outcome.role, prepared); scenes.set(outcome.role, sceneForNative(component, prepared, aspect, orientation));
     } else if (component.family === 'orthogonal-cell') {
       check(component.role === outcome.role && component.solidId === outcome.solidId, 'orthogonal output identity required');
       if (component.qualification.schema === 'barocss-orthogonal-solid-boolean')
@@ -310,10 +311,10 @@ export function prepareModelingScene(input: ModelingDisplayPacket, aspect = 1, s
         && context.documentRevision === String(packet.revision) && context.kernelResultRevision === String(packet.revision)
         && context.topologyRevision === String(packet.revision), 'orthogonal request/document/revision/body context mismatch');
       const prepared = prepareKernelFacePreview(component.mesh, { displayId: component.role, packetRevision: packet.revision });
-      nativeFaces.set(outcome.role, prepared); scenes.set(outcome.role, sceneForNative(component, prepared, aspect));
+      nativeFaces.set(outcome.role, prepared); scenes.set(outcome.role, sceneForNative(component, prepared, aspect, orientation));
     } else {
       check(component.family === 'stored-rational-plate-hole' && component.role === outcome.role && component.solidId === outcome.solidId, 'known native output family/identity required');
-      const prepared = admitHole(component, packet); nativeFaces.set(outcome.role, prepared); scenes.set(outcome.role, sceneForNative(component, prepared, aspect));
+      const prepared = admitHole(component, packet); nativeFaces.set(outcome.role, prepared); scenes.set(outcome.role, sceneForNative(component, prepared, aspect, orientation));
     }
   }
   check(nativeFaces.size > 0, 'body-face profile requires a supported native face output');

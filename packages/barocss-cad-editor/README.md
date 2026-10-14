@@ -1424,3 +1424,19 @@ Run the pure18 and transaction18 local suites with Node and installed dependenci
 `node packages/barocss-cad-editor/scripts/modeling-structure-test.mjs` and
 `node packages/barocss-cad-editor/scripts/modeling-structure-history-test.mjs`.
 See #1960 for source/runtime provenance and pending actual-device acceptance.
+
+## Local model view orientation
+
+The modeling controller exposes `setView('top' | 'isometric', generation)` and
+`snapshot.viewOrientation`. Top uses native +Z with native X-right/Y-up;
+Isometric preserves the original perspective camera. Both remain perspective.
+The live accepted display updates its existing renderer transactionally, while
+source, dimensions, native identity, generation and history remain unchanged.
+Busy or retained-preview state refuses camera switching. Each later prepared
+scene keeps the session's view, including its native and convex picking camera.
+Renderer loss/rollback errors preserve the prior logical state without promising
+retained pixels. A new controller starts in Isometric; view is not file content.
+
+Run `node packages/barocss-cad-editor/scripts/modeling-view-test.mjs` explicitly.
+The finite CPU/display suite uses retained geometry and renderer doubles, with
+zero native evaluation and no physical GPU acceptance claim. See #1965.

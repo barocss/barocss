@@ -43,6 +43,14 @@ If its worker was lost, **Recover accepted model and preview** explains that acc
 
 The [#1959 contract](https://github.com/barocss/barocss/issues/1959) retains single-candidate native/display ownership, stale-response fences and accepted-only save/history. Local transaction tests use a genuine retained baseline with explicitly mocked provider delivery and edited geometry. The later [bounded device check](https://github.com/barocss/barocss/issues/1959#issuecomment-6158778205) on exact `952d7b6b` observed a 32 × 24 × 8 part previewed at thickness 12, changed Canvas pixels, Cancel restoration, Apply/Undo/Redo, equivalent `12.0` input without history growth, and a zero-thickness refusal retaining the accepted part. The [receipt](https://raw.githubusercontent.com/wiki/barocss/barocss/evidence/gpu-screen-qa-2026-10-14/cad-preview-952d7b6b/receipt.json) distinguishes the retained accepted volume read from hidden Inspector DOM from visible preview pixels and UI-reported candidate volume. It does not measure native call counts, resource bounds, device-loss recovery, files, STL or geometric certification.
 
+## Inspect a model from Top or Isometric
+
+Use **Top** beside the model viewport to look down native Z, with native X to the right and Y upward. **Isometric** restores the initial angled orientation. Both use perspective projection. The selected button shows the current local view; this choice does not edit the model, trigger native evaluation, add history or enter the saved file.
+
+Choose Top **before** preparing a slot preview. View buttons are disabled during computation and while a ready preview is visible. Apply or Cancel restores access. The orientation is retained through Preview, Apply, Cancel, Undo/Redo, output selection, Open and viewport resize in the same session; a new session starts in Isometric. Existing face picking uses the corresponding camera and remains approximate.
+
+The [view-control issue #1965](https://github.com/barocss/barocss/issues/1965) separates local CPU/controlled-renderer checks from actual device acceptance. The [initial L-plate device result at e5b805ac](https://github.com/barocss/barocss/issues/1960#issuecomment-6160251345) verified authoring, reported volumes, Undo/Redo and a real saved-file reopen, but its fixed angled Canvas images did **not** visually distinguish the slot. That visual gate remains open; the new camera control is not evidence that it has passed.
+
 ## Author an L plate and through-slot
 
 Use normal commands to build a simplified integer joining plate. This is a bounded authoring benchmark, not a replica or manufacturing qualification of a commercial bracket.
