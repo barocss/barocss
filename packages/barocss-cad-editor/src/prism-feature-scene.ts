@@ -33,8 +33,25 @@ export interface PrismFaceSelection {
   boundaries: ConvexPlanarSolidMeshResult['boundaries'];
   lineage: PrismDisplayComponent['lineage']; triangleIndex: number; approximate: true;
 }
+type ConvexDraw = { componentIndex: number; faceIndex: number; originalTriangles: readonly number[];
+  geometry: TriangleGeometryV0; geometrySnapshot: TriangleGeometryV0;
+  node: EngineSceneV0['nodes'][number]; nodeSnapshot: EngineSceneV0['nodes'][number];
+  material: EngineSceneV0['materials'][number]; materialSnapshot: EngineSceneV0['materials'][number] };
+const convexDraws = new WeakMap<PrismDisplayScene, { scene: EngineSceneV0; draws: Map<string, ConvexDraw> }>();
+const MAX_CONVEX_DRAWS = 16; // EngineSceneV0 accepts at most 16 geometries.
 function check(condition: unknown, detail: string): asserts condition { if (!condition) throw new Error(`Prism display: ${detail}`); }
 function exact(value: object, keys: string[]) { check(Object.keys(value).length === keys.length && keys.every(k => Object.hasOwn(value, k)), 'exact copied DTO fields required'); }
+function sameSnapshot(current: unknown, snapshot: unknown): boolean {
+  if (Array.isArray(snapshot)) return Array.isArray(current) && current.length === snapshot.length
+    && snapshot.every((value, index) => sameSnapshot(current[index], value));
+  if (snapshot !== null && typeof snapshot === 'object') {
+    if (current === null || typeof current !== 'object' || Array.isArray(current)) return false;
+    const keys = Object.keys(snapshot);
+    return Object.keys(current).length === keys.length && keys.every(key => Object.hasOwn(current, key)
+      && sameSnapshot((current as Record<string, unknown>)[key], (snapshot as Record<string, unknown>)[key]));
+  }
+  return Object.is(current, snapshot);
+}
 const xyz = (values: number[]) => values.flatMap((value, i) => i % 3 ? [] : [value, values[i + 2], -values[i + 1]]);
 /** Software admission only; no native reconstruction, GPU execution or pixel claim. */
 export function preparePrismFeatureScene(packet: PrismDisplayPacket, view: PrismDisplayView, aspect = 1, orientation: 'isometric' | 'top' = 'isometric'): PrismDisplayScene {
@@ -182,9 +199,39 @@ export function preparePrismFeatureScene(packet: PrismDisplayPacket, view: Prism
   const visible = model ? packet.components : packet.components.filter(c => view === 'source' ? c.role === 'source' : c.role !== 'source');
   for (const component of packet.components) if ('kind' in component.lineage && component.lineage.kind === 'serial-part-v2')
     checkSerialLineage(component, packet.components.find(c => c.role === 'source')!);
-  const geometries: TriangleGeometryV0[] = visible.map(c => ({ format: 'barocss-gpu-triangle-geometry', version: 0, id: `prism_geometry_${c.role}`,
-    coordinateSystem: 'right-handed-y-up', positionUnit: 'scene', winding: 'ccw', positions: xyz(c.mesh.positionsMM), normals: xyz(c.mesh.normals),
-    uvs: Array(c.mesh.vertices.length * 2).fill(0), indices: [...c.mesh.indices] }));
+  // Keep every admitted output visible when the face-draw path exceeds the GPU catalog.
+  const splitFaces = visible.reduce((count, component) => count + component.mesh.faces.length, 0) <= MAX_CONVEX_DRAWS;
+  const geometries: TriangleGeometryV0[] = [], materials: EngineSceneV0['materials'] = [], nodes: EngineSceneV0['nodes'] = [];
+  const draws = new Map<string, ConvexDraw>();
+  for (const [componentIndex, component] of visible.entries()) {
+    const positions = xyz(component.mesh.positionsMM), normals = xyz(component.mesh.normals);
+    const uvs = [...component.mesh.parametersUV];
+    const faces = splitFaces ? [...component.mesh.faces.entries()] : [[-1, null]] as const;
+    for (const [faceIndex, face] of faces) {
+      const suffix = faceIndex === -1 ? 'all' : faceIndex;
+      const id = `prism_geometry_${componentIndex}_${suffix}`;
+      const materialId = `prism_material_${componentIndex}_${suffix}`;
+      const originalTriangles = face
+        ? Array.from({ length: face.indexCount / 3 }, (_, i) => face.indexOffset / 3 + i)
+        : Array.from({ length: component.mesh.indices.length / 3 }, (_, i) => i);
+      check(!draws.has(id) && originalTriangles.length > 0 && originalTriangles.every(Number.isSafeInteger),
+        'unique complete convex draw mapping required');
+      const geometry: TriangleGeometryV0 = { format: 'barocss-gpu-triangle-geometry', version: 0, id,
+        coordinateSystem: 'right-handed-y-up', positionUnit: 'scene', winding: 'ccw', positions, normals, uvs,
+        indices: face ? component.mesh.indices.slice(face.indexOffset, face.indexOffset + face.indexCount) : [...component.mesh.indices] };
+      // Axis faces keep directional blue shades. A diagonal face gets a warm shade.
+      const normal = face ? component.mesh.normals.slice(face.vertexOffset * 3, face.vertexOffset * 3 + 3) : [];
+      const axis = normal.findIndex(value => Math.abs(value) > 1 - 1e-6);
+      const shade = !face ? [0.3, 0.58, 0.8] : axis === -1 ? [0.9, 0.57 + (faceIndex % 2) * 0.08, 0.27]
+        : axis === 2 ? [0.28, 0.53, 0.77] : axis === 1 ? [0.39, 0.65, 0.87] : [0.25, 0.47, 0.69];
+      const material: EngineSceneV0['materials'][number] = { id: materialId, type: 'unlit', colorSpace: 'linear', color: shade as [number, number, number] };
+      const node: EngineSceneV0['nodes'][number] = { id: `prism_node_${componentIndex}_${suffix}`, parentId: null, type: 'mesh', geometryId: id, materialId,
+        translation: [0, 0, 0], rotationXYZW: [0, 0, 0, 1], scale: [1, 1, 1], visible: true };
+      geometries.push(geometry); materials.push(material); nodes.push(node);
+      draws.set(id, { componentIndex, faceIndex, originalTriangles, geometry, geometrySnapshot: structuredClone(geometry),
+        node, nodeSnapshot: structuredClone(node), material, materialSnapshot: structuredClone(material) });
+    }
+  }
   const points = geometries.flatMap(g => g.positions);
   const min = [0, 1, 2].map(axis => points.length ? Math.min(...points.filter((_, i) => i % 3 === axis)) : -1);
   const max = [0, 1, 2].map(axis => points.length ? Math.max(...points.filter((_, i) => i % 3 === axis)) : 1);
@@ -195,24 +242,50 @@ export function preparePrismFeatureScene(packet: PrismDisplayPacket, view: Prism
   const scene: EngineSceneV0 = { format: 'barocss-gpu-engine-scene', version: 0, id: 'prism_feature_scene', coordinateSystem: 'right-handed-y-up', positionUnit: 'scene',
     background: [.025, .035, .05], camera: { eye: direction.map((v, i) => target[i] + v * distance / length) as [number, number, number], target,
       up: orientation === 'top' ? [0, 0, -1] : [0, 1, 0], fovYDegrees: 50, near: Math.max(.0001, distance - radius * 1.1), far: distance + radius * 1.1 },
-    geometries, materials: [{ id: 'prism_material', type: 'unlit', colorSpace: 'linear', color: [.3, .58, .8] }],
-    nodes: visible.map(c => ({ id: `prism_node_${c.role}`, parentId: null, type: 'mesh', geometryId: `prism_geometry_${c.role}`, materialId: 'prism_material',
-      translation: [0, 0, 0], rotationXYZW: [0, 0, 0, 1], scale: [1, 1, 1], visible: true })) };
+    geometries, materials, nodes };
   // The generic scene supports zero draws: empty material remains a real empty scene.
   prepareEngineScene(scene);
-  return { packet: structuredClone(packet), view, scene };
+  const display = { packet: structuredClone(packet), view, scene };
+  convexDraws.set(display, { scene, draws });
+  return display;
 }
 export function pickPrismFeatureScene(display: PrismDisplayScene, width: number, height: number, x: number, y: number): PrismFaceSelection | null {
+  const authority = convexDraws.get(display);
+  check(authority && authority.scene === display.scene && authority.draws.size === display.scene.geometries.length
+    && new Set(display.scene.geometries.map(geometry => geometry.id)).size === authority.draws.size
+    && display.scene.geometries.every((geometry, index) => {
+      const draw = authority.draws.get(geometry.id);
+      return draw?.geometry === geometry && sameSnapshot(geometry, draw.geometrySnapshot)
+        && draw.node === display.scene.nodes[index] && sameSnapshot(draw.node, draw.nodeSnapshot)
+        && draw.material === display.scene.materials[index] && sameSnapshot(draw.material, draw.materialSnapshot);
+    }) && display.scene.nodes.length === authority.draws.size && display.scene.materials.length === authority.draws.size,
+  'original convex draw authority required');
   if (!display.scene.geometries.length) return null;
   const { ray } = prepareEngineCameraRay(display.scene.camera, { format: 'barocss-gpu-engine-camera-ray-request', version: 0,
     pixelOrigin: 'bottom-left', sampling: 'pixel-center', viewportWidth: width, viewportHeight: height, pixelX: x, pixelY: y });
   const hit = raycastEngineScene(display.scene, ray); if (!hit) return null;
-  const component = display.packet.components.find(c => `prism_node_${c.role}` === hit.nodeId);
-  check(component, 'picked component missing');
-  const face = component.mesh.faces.find(f => hit.triangleIndex * 3 >= f.indexOffset && hit.triangleIndex * 3 < f.indexOffset + f.indexCount);
-  check(face, 'picked face missing');
+  const draw = authority.draws.get(hit.geometryId);
+  check(draw && display.scene.geometries.includes(draw.geometry)
+    && hit.nodeId === `prism_node_${draw.componentIndex}_${draw.faceIndex === -1 ? 'all' : draw.faceIndex}`
+    && Number.isSafeInteger(hit.triangleIndex) && hit.triangleIndex >= 0 && hit.triangleIndex < draw.originalTriangles.length,
+  'picked convex draw mapping missing or local triangle invalid');
+  const visible = display.packet.profile === 'model-outputs' ? display.packet.components
+    : display.packet.components.filter(candidate => display.view === 'source' ? candidate.role === 'source' : candidate.role !== 'source');
+  const component = visible[draw.componentIndex];
+  check(component && draw.componentIndex >= 0 && draw.componentIndex < visible.length,
+    'picked component missing');
+  const originalTriangle = draw.originalTriangles[hit.triangleIndex];
+  const face = draw.faceIndex === -1
+    ? component.mesh.faces.find(candidate => originalTriangle * 3 >= candidate.indexOffset
+      && originalTriangle * 3 < candidate.indexOffset + candidate.indexCount)
+    : component.mesh.faces[draw.faceIndex];
+  check(face && Number.isSafeInteger(originalTriangle) && originalTriangle >= face.indexOffset / 3
+    && originalTriangle < (face.indexOffset + face.indexCount) / 3
+    && draw.geometry.indices.slice(hit.triangleIndex * 3, hit.triangleIndex * 3 + 3)
+      .every((index, corner) => index === component.mesh.indices[originalTriangle * 3 + corner]),
+  'picked original convex triangle mapping invalid');
   return structuredClone({ documentId: display.packet.documentId, revision: display.packet.revision, role: component.role, solidId: component.report.solidId,
-    face, vertices: component.mesh.indices.slice(hit.triangleIndex * 3, hit.triangleIndex * 3 + 3).map(i => component.mesh.vertices[i]),
+    face, vertices: component.mesh.indices.slice(originalTriangle * 3, originalTriangle * 3 + 3).map(i => component.mesh.vertices[i]),
     boundaries: component.boundaries.filter(b => b.sourceId === face.sourceId && b.faceId === face.faceId), lineage: component.lineage,
-    triangleIndex: hit.triangleIndex, approximate: true });
+    triangleIndex: originalTriangle, approximate: true });
 }

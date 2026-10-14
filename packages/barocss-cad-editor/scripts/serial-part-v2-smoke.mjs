@@ -62,8 +62,10 @@ for(const reply of replies){
  assert.deepEqual(final.lineage.resolution,serial.resolution);
  assert.equal(final.lineage.chamfer.parentEdgeId,serial.resolution.componentEdgeId);
  assert.equal(final.lineage.split.faces.filter(f=>f.side==='negative' && f.output).length,final.mesh.faces.length);
- assert.equal(preparePrismFeatureScene(reply.display,'source').scene.geometries.length,1);
- assert.equal(preparePrismFeatureScene(reply.display,'result').scene.geometries.length,2);
+ assert.equal(preparePrismFeatureScene(reply.display,'source').scene.geometries.length,
+   reply.display.components.find(c=>c.role==='source').mesh.faces.length);
+ assert.equal(preparePrismFeatureScene(reply.display,'result').scene.geometries.length,
+   reply.display.components.filter(c=>c.role!=='source').reduce((count,c)=>count+c.mesh.faces.length,0));
  assert.ok(!reply.text.includes('certificate') && !reply.text.includes('chamferResolution'));
 }
 writeFileSync(resolve(output,'replies.json'),signedJSON(replies));

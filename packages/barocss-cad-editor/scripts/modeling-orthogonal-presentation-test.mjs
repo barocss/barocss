@@ -28,7 +28,7 @@ const ledger = Object.freeze([
   'invalid duplicate absent and local-index mapping refusal',
   'Top and Isometric camera parity',
   'changed aspect picking parity and geometry identity isolation',
-  'prepare preview accepted restore and nonorthogonal byte parity',
+  'prepare preview accepted restore, retained family byte parity and convex triangle parity',
 ]);
 const receipt = { issue: 1974, status: 'started', expectedGroups: ledger.length, ledger, groups: [],
   sourceHashes: Object.fromEntries([scenePath, scriptPath].map(path => [path, hash(readFileSync(resolve(root, path)))])),
@@ -401,7 +401,7 @@ try {
     const candidate = await h.display.prepare(displays.get('slotted')); candidate.commit();
     assert.equal(renderer.disposals, 1); assert.equal(h.children.length, 1); assert.strictEqual(h.renderers.at(-1).scene, displays.get('slotted').scene);
     h.display.dispose(); assert.equal(h.children.length, 0);
-    // Genuine retained nonorthogonal families still use byte-identical scenes.
+    // Retained circle and hole scenes stay byte-identical. Convex faces now use separate draws.
     const circleNative = circleCapture.bodies.post.native, circlePreview = clone(circleCapture.preview);
     circlePreview.packet.surfaceId = circlePreview.report.meshId = 'modeling_circle_post'; circlePreview.packet.revision = circlePreview.report.revision = revision;
     const circle = api.projectModelingCircle(circleNative, circlePreview, 'post', context(circleNative.parent.bundle.topology.id));
@@ -420,12 +420,25 @@ try {
     for (const [packet, role] of [[packetFor([circle]), 'post'], [packetFor([convex, hole]), 'plate'], [packetFor([convex, hole]), 'blank']])
       for (const orientation of ['top', 'isometric']) {
         const display = api.prepareModelingScene(packet, 1.25, role, orientation), prior = api.baselinePrepare(packet, 1.25, role, orientation);
-        assert.equal(JSON.stringify(display), JSON.stringify(prior)); assert.equal(display.scene.geometries.length, 1);
+        if (role === 'blank') {
+          assert.deepEqual(display.packet, prior.packet); assert.deepEqual(display.scene.camera, prior.scene.camera);
+          assert.equal(display.scene.geometries.length, convex.component.mesh.faces.length);
+          assert.deepEqual(display.scene.geometries.flatMap(geometry => geometry.indices), prior.scene.geometries.flatMap(geometry => geometry.indices));
+          for (const geometry of display.scene.geometries) {
+            for (const key of ['positions', 'normals']) assert.deepEqual(geometry[key], prior.scene.geometries[0][key]);
+            assert.deepEqual(geometry.uvs, convex.component.mesh.parametersUV);
+          }
+        } else {
+          assert.equal(JSON.stringify(display), JSON.stringify(prior)); assert.equal(display.scene.geometries.length, 1);
+        }
       }
     const prism = { profile: 'model-outputs', documentId: 'cad_model', revision, components: [convex.component],
       outcomes: [{ role: 'blank', solidId: convex.component.report.solidId, status: 'solid' }] };
-    assert.equal(JSON.stringify(api.prepareModelingScene(prism)), JSON.stringify(api.baselinePrepare(prism)));
-    receipt.observations.push({ nonorthogonalByteParity: ['convex-planar', 'stored-rational-circle-prism', 'stored-rational-plate-hole'], acceptedRestore: true });
+    const prismDisplay = api.prepareModelingScene(prism), prismPrior = api.baselinePrepare(prism);
+    assert.deepEqual(prismDisplay.packet, prismPrior.packet); assert.deepEqual(prismDisplay.scene.camera, prismPrior.scene.camera);
+    assert.equal(prismDisplay.scene.geometries.length, convex.component.mesh.faces.length);
+    assert.deepEqual(prismDisplay.scene.geometries.flatMap(geometry => geometry.indices), prismPrior.scene.geometries.flatMap(geometry => geometry.indices));
+    receipt.observations.push({ nonorthogonalByteParity: ['stored-rational-circle-prism', 'stored-rational-plate-hole'], convexOriginalTriangleParity: true, acceptedRestore: true });
   });
   assert.deepEqual([pocketPacket, composedPacket], packetsBefore); assert.deepEqual(fixtures, fixtureCopies);
   for (const [path, expected] of Object.entries(fixtureHashes)) assert.equal(hash(readFileSync(resolve(root, path))), expected);

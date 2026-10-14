@@ -27,7 +27,7 @@ globalThis.Worker = class {
 };
 const session=create(); let p=session.example('two-chamfer'); const worker=workers.at(-1); worker.send(native); await p;
 assert.equal(session.getSnapshot().error,null); assert.deepEqual(session.getSnapshot().accepted,native.summary);
-assert.equal(session.getSnapshot().display.scene.geometries.length,1);
+assert.equal(session.getSnapshot().display.scene.geometries.length,native.display.components[0].mesh.faces.length);
 const accepted=session.getSnapshot(); session.select(3,accepted.generation);
 let picked=null;
 for(let y=4;y<160&&!picked;y+=8)for(let x=4;x<160&&!picked;x+=8){session.pick(160,160,x,y,accepted.generation);picked=session.getSnapshot().faceSelection;}
