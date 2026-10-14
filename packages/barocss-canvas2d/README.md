@@ -630,3 +630,8 @@ A host snapshots original pixels through `getImageAsset`, registers independent 
 `splitPathSegment(commands, index, t)` copies a validated authored path and replaces one L, Q or C segment with two same-degree segments. The required parameter is strictly between 0 and 1. Coordinates use bounded binary64 de Casteljau interpolation. The result has at most256 commands; M/Z targets and a constant selected segment are unsupported. Source validation, index/parameter errors and derived collapse remain explicit typed refusals. The helper does not change paint, handles, Scene versions or resource registration.
 
 The existing `examples/canvas2d-scene/path-control-editing/index.html?split=1` profile inserts a cubic midpoint and edits the inserted shared anchor through copied public path handles and the existing history adapter. Prepared commands reopen from genuine JSON bytes without subdivision. Its focused evidence stays in the separate `evidence/path-split/` directory. Native author proof and later exact adoption/current Root1254 qualification are separate.
+
+
+### Coverage-area image downsampling
+
+`downsampleImageAsset(asset, width, height)` produces a copied RGBA8 resource for dimensions within the source extent. Shrinking includes every source pixel's footprint coverage, averages encoded RGB with alpha weights and rounds each output channel once. Rounded alpha zero produces zero RGBA. Identity dimensions return an independent exact copy, including hidden RGB. Inputs and outputs are each limited to1MiB; source copy plus output has a2MiB ceiling and no pixel scratch array. Complete shape and dimension validation precedes budgets and copies. Malformed or enlarged requests use INVALID_ASSET; valid oversized assets use ASSET_LIMIT.

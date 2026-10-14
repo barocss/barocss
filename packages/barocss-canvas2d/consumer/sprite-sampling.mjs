@@ -1,12 +1,16 @@
 // @ts-check
-import { createCanvas2D, createDisplayTree, createDisplayTreeFromScene, stringifySceneJSON, extrudeImageAsset, Canvas2DError } from '@barocss/canvas2d';
+import { createCanvas2D, createDisplayTree, createDisplayTreeFromScene, stringifySceneJSON, extrudeImageAsset, downsampleImageAsset, Canvas2DError } from '@barocss/canvas2d';
 import { serializeCanvasDocument, stageCanvasDocument, exportCanvasDocumentPNG } from '@barocss/canvas2d/document';
 
 /** @type {import('@barocss/canvas2d').Canvas2DOptions} */
 const options = { logicalSize: { width: 100, height: 80 }, dpr: 2 };
 const pose = (/** @type {number} */ x, /** @type {number} */ y) =>
   ({ x, y, scaleX: 1, scaleY: 1, rotation: 0 });
-const image = { width: 2, height: 1, pixels: new Uint8Array([
+const areaMode = new URLSearchParams(location.search).get('area') === '1';
+const image = areaMode ? { width: 4, height: 2, pixels: new Uint8Array([
+  0,0,255,255, 255,0,0,255, 255,0,0,255, 0,0,255,255,
+  0,0,255,255, 255,0,0,255, 255,0,0,255, 0,0,255,255,
+]) } : { width: 2, height: 1, pixels: new Uint8Array([
   255, 0, 0, 255, 0, 0, 255, 255,
 ]) };
 let tree = createDisplayTree('SamplingConsumer');
@@ -14,7 +18,8 @@ let back = tree.createRect({ id: 'Back', layer: 0, transform: pose(10, 10),
   width: 70, height: 60, fill: [1, 1, 0, 1] });
 let sprite = tree.createSprite({ id: 'Sprite', layer: 1, transform: pose(20, 20),
   imageId: 'Atlas', width: 40, height: 30, opacity: 1, sampling: 'nearest',
-  anchorX: 0, anchorY: 0, tint: [1, 1, 1] });
+  anchorX: 0, anchorY: 0, tint: [1, 1, 1],
+  ...(areaMode ? { sourceRect: { x: 0, y: 0, width: 4, height: 2 } } : {}) });
 tree.stage.addChild(back); tree.stage.addChild(sprite);
 /** @type {HTMLCanvasElement} */
 let canvas = /** @type {HTMLCanvasElement} */ (document.querySelector('#scene'));
@@ -34,6 +39,7 @@ function copyAsset(asset){return {width:asset.width,height:asset.height,pixels:n
 function active(){if(disposed)throw new Canvas2DError('DISPOSED','host disposed');}
 /** @type {import('@barocss/canvas2d').Scene} */
 let accepted = tree.snapshot(); renderer.updateScene(accepted); renderer.render();
+let downsamplePreparations=0;
 let generation=1, extrusions=0, candidates=0, opens=0, edits=0, saves=0, pngs=0;
 let disposed=false, binds=0, unbinds=0;
 /** @type {string[]} */ let pointerLog = [];
@@ -53,7 +59,7 @@ function pixel(x, y) {
   return [...bytes];
 }
 function observe() {
-  return {generation,disposed,extrusions,candidates,opens,edits,saves,pngs,binds,unbinds,contextId:accepted.contextId,scene:stringifySceneJSON(accepted),treeScene:stringifySceneJSON(tree.snapshot()),sceneVersion: accepted.version, sampling: sprite.data.sampling,
+  return {areaMode,downsamplePreparations,generation,disposed,extrusions,candidates,opens,edits,saves,pngs,binds,unbinds,contextId:accepted.contextId,scene:stringifySceneJSON(accepted),treeScene:stringifySceneJSON(tree.snapshot()),sceneVersion: accepted.version, sampling: sprite.data.sampling,
     spriteData: sprite.data, acceptedSampling: accepted.nodes[1]?.kind === 'image'
       ? accepted.nodes[1].sampling : null,
     assetBytes:[...(hostAssets.get(sprite.data.imageId)?.pixels??[])],
@@ -155,6 +161,21 @@ function extrude(gutter=1,input=image){
   unbind();const old=renderer;canvas.replaceWith(fresh);canvas=fresh;renderer=nextRenderer;hostAssets=snapshots;
   tree=nextTree;sprite=nextSprite;back=nextBack;accepted=tree.snapshot();generation++;extrusions++;pointerLog=[];subscribe();unbind=bind();old.dispose();show('Extruded one-pixel edge gutter');return prepared;
 }
+/** @param {number} [width] @param {number} [height] @param {import('@barocss/canvas2d').ImageAssetInput} [input] */
+function downsample(width=1,height=1,input=image){
+  active();const prepared=downsampleImageAsset(input,width,height);
+  const nextTree=createDisplayTreeFromScene(accepted),nextSprite=nextTree.get('Sprite'),nextBack=nextTree.get('Back');
+  if(nextSprite?.kind!=='sprite'||nextBack?.kind!=='rect')throw new Error('Consumer display objects missing');
+  nextSprite.setImageSource('Downsampled',{x:0,y:0,width:prepared.width,height:prepared.height});nextSprite.setSampling('nearest');nextSprite.setSize(40,30);nextSprite.setPosition(20,20);
+  const fresh=instrument(document.createElement('canvas'));fresh.id='scene';candidates++;
+  const nextRenderer=createCanvas2D(fresh,options),assets=new Map(hostAssets);assets.set('Downsampled',prepared);
+  /** @type {Map<string,import('@barocss/canvas2d').ImageAssetInput>} */ let snapshots;
+  try{for(const[id,asset]of assets)nextRenderer.setImageAsset(id,asset);nextRenderer.updateScene(nextTree.snapshot());nextRenderer.render();active();snapshots=new Map([...assets.keys()].map(id=>[id,registeredAsset(nextRenderer,id)]));}
+  catch(error){nextRenderer.dispose();throw error;}
+  // Admit copied tree, renderer and independent CPU snapshots before swapping.
+  unbind();const old=renderer;canvas.replaceWith(fresh);canvas=fresh;renderer=nextRenderer;hostAssets=snapshots;
+  tree=nextTree;sprite=nextSprite;back=nextBack;accepted=tree.snapshot();generation++;downsamplePreparations++;pointerLog=[];subscribe();unbind=bind();old.dispose();show('Prepared exact area thumbnail');return prepared;
+}
 function edit(){active();sprite.setPosition(8,0);edits++;submit('Moved restored Sprite');}
 async function png(){active();const result=await exportCanvasDocumentPNG(await documentText(),options,()=>instrument(document.createElement('canvas')));const url=URL.createObjectURL(result.blob),link=document.createElement('a');link.href=url;link.download='sprite-sampling.png';link.click();pngs++;setTimeout(()=>URL.revokeObjectURL(url),1000);show('Exported PNG');}
 function dispose(){if(disposed)return;disposed=true;unbind();renderer.dispose();document.querySelectorAll('button').forEach(button=>{button.disabled=true;});openInput.disabled=true;show('Disposed');}
@@ -162,6 +183,7 @@ subscribe(); unbind = bind();
 document.querySelector('#nearest')?.addEventListener('click', () => setSampling('nearest'));
 document.querySelector('#linear')?.addEventListener('click', () => setSampling('linear'));
 document.querySelector('#invalid')?.addEventListener('click', invalid);
+document.querySelector('#downsample')?.addEventListener('click',()=>downsample());
 document.querySelector('#extrude')?.addEventListener('click',()=>extrude());
 document.querySelector('#edit')?.addEventListener('click',edit);
 document.querySelector('#png')?.addEventListener('click',()=>{void png();});
@@ -172,8 +194,9 @@ openInput.addEventListener('change', () => {
   void file.text().then(openText).catch(error => show(`Open failed: ${error.code ?? 'ERROR'}`));
   openInput.value = '';
 });
-Object.assign(window, { __spriteSamplingConsumer: {observe,setSampling,invalid,save,openText,extrude,edit,png,dispose,documentText,contexts,
+Object.assign(window, { __spriteSamplingConsumer: {observe,setSampling,invalid,save,openText,extrude,downsample,edit,png,dispose,documentText,contexts,
   original:()=>copyAsset(image),asset:()=>{const asset=hostAssets.get(sprite.data.imageId);return asset&&copyAsset(asset);},assets:()=>new Map([...hostAssets].map(([id,asset])=>[id,copyAsset(asset)])),tree:()=>tree,
   get renderer(){return renderer;},
   get canvas() { return canvas; } } });
-show('Ready with nearest sampling');
+if(areaMode){const button=document.querySelector('#downsample');if(button instanceof HTMLButtonElement)button.hidden=false;}
+show(areaMode?'Ready with four-column area source':'Ready with nearest sampling');

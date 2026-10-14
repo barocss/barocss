@@ -110,3 +110,5 @@ export { importSVGArcElement } from "./svg.js";
 export { intersectConvexPolygons } from './convex-intersection.js';
 
 export { splitPathSegment } from './path-split.js';
+
+export { downsampleImageAsset } from './image-downsample.js';
