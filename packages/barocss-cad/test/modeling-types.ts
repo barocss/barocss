@@ -365,8 +365,8 @@ flatRail.rotate({ axis: 'x', angleDegrees: 45 });
 flatRail.rotate({ axis: 'x', angleDegrees: 0 });
 // @ts-expect-error Arbitrary axes are not admitted.
 flatRail.rotate({ axis: [1, 0, 0], angleDegrees: 90 });
-// @ts-expect-error The pivot is fixed at the world origin.
-flatRail.rotate({ axis: 'x', angleDegrees: 90, pivot: [0, 0, 0] });
+// @ts-expect-error A pivot requires exactly three length dimensions.
+flatRail.rotate({ axis: 'x', angleDegrees: 90, pivot: [0, 0] });
 // @ts-expect-error Angles are literals, not length dimension handles.
 flatRail.rotate({ axis: 'x', angleDegrees: copySpacing });
 // @ts-expect-error One options record is required.
@@ -656,3 +656,39 @@ const wrongLinearFour: readonly [CadShape, CadShape, CadShape, CadShape] = patte
 linearFourTuple[3] = linearFourOriginal;
 // @ts-expect-error Count two has no third handle.
 linearTwoTuple[2];
+
+
+const pivotModel = cad.model();
+const pivotY = pivotModel.parameter('pivotY', 12);
+const pivotBlank = pivotModel.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const pivotFront = pivotBlank.chamfer(pivotBlank.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one(), 1);
+const pivotOriginal = pivotFront.chamfer(pivotFront.edges({ parallelTo: 'x', at: { y: 24, z: 'max' } }).one(), 2);
+const pivotRotated: CadShape = pivotOriginal.rotate({ axis: 'x', angleDegrees: 90, pivot: [16, pivotY, 4] });
+const pivotPlaced: CadShape = pivotRotated.translate([40, 16, 0]);
+const pivotSnapshot: CadModelSnapshot = pivotModel.build({ original: pivotOriginal, rotated: pivotRotated, placed: pivotPlaced });
+const pivotReopened: CadModelSnapshot = cad.load(pivotSnapshot.withParameters({ pivotY: 20 }).save());
+for (const evidence of pivotSnapshot.evidence) if (evidence.kind === 'rotate') {
+  const canonical: 90 | 180 | 270 = evidence.native.request.spec.degrees;
+  const mappedFace: string = evidence.native.lineage.faces[0].rotated.faceId;
+  if ('pivotMM' in evidence.native.request) {
+    const nativePivot: readonly [number, number, number] = evidence.native.request.pivotMM;
+    void nativePivot;
+  }
+  void [canonical, mappedFace];
+}
+const zeroPivotModel = cad.model();
+const zeroPivotSource = zeroPivotModel.sketch.rectangle({ width: 32, height: 24 }).extrude(8, { from: 3 });
+const explicitZeroPivot: CadShape = zeroPivotSource.rotate({ axis: 'y', angleDegrees: -180, pivot: [-0, 0, -0] });
+void [pivotReopened, explicitZeroPivot];
+// @ts-expect-error Pivot coordinates are lengths, not text.
+pivotOriginal.rotate({ axis: 'x', angleDegrees: 90, pivot: [16, '12', 4] });
+// @ts-expect-error A pivot has exactly three coordinates.
+pivotOriginal.rotate({ axis: 'x', angleDegrees: 90, pivot: [16, 12, 4, 0] });
+// @ts-expect-error The API has no automatic center selection.
+pivotOriginal.rotate({ axis: 'x', angleDegrees: 90, center: 'bounds' });
+// @ts-expect-error Rotation angles remain literals.
+pivotOriginal.rotate({ axis: 'x', angleDegrees: pivotY, pivot: [16, 12, 4] });
+// @ts-expect-error The pivot is an XYZ tuple, not a shape handle.
+pivotOriginal.rotate({ axis: 'x', angleDegrees: 90, pivot: pivotOriginal });
+// @ts-expect-error Circular patterns retain their world-origin contract.
+pivotOriginal.circularPattern({ axis: 'z', angleDegrees: 90, count: 4, pivot: [16, 12, 4] });

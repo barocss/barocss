@@ -102,8 +102,8 @@ type Lineage = {
 };
 
 /** Private evidence for the primary model's one bounded, terminal owned copy. */
-export interface ModelingRotationResult {
-  request: { parent: ConvexPlanarSolidResult; spec: CardinalRotationSpec; prefix: string };
+interface RotationResult<Pivoted extends boolean> {
+  request: { parent: ConvexPlanarSolidResult; spec: CardinalRotationSpec; prefix: string } & (Pivoted extends true ? { pivotMM: Readonly<Point> } : object);
   solid: ConvexPlanarSolidResult;
   lineage: Lineage;
   report: {
@@ -118,11 +118,13 @@ export interface ModelingRotationResult {
     };
     exactWork: ExactWork;
     preservation: {
-      completeParent: true; canonicalSignedPermutation: true; signedCoefficientBits: true;
+      completeParent: true; canonicalSignedPermutation: true;
       basisAndWeightBits: true; directedDomainBits: true; exactParameterMaps: true;
-      bijectiveLineage: true; exactRotatedNormals: true; exactRotatedSupportsAndVertices: true; supportOffsetsUnchanged: true;
+      bijectiveLineage: true; exactRotatedNormals: true; exactRotatedSupportsAndVertices: true;
       exactVolumeUnchanged: true; independentSourceNamespaces: true;
-    };
+    } & (Pivoted extends true ? { exactPivotAffineCoefficients: true; zeroOffsetSignedCoefficientBits: true;
+      nonzeroCancellationPositiveZero: true; derivedVerticesExactRational: true; exactAffineSupportOffsets: true }
+      : { signedCoefficientBits: true; supportOffsetsUnchanged: true });
     numericPolicy: 'exact-rationals-of-stored-binary64-no-welding-no-tolerance-promotion';
     validationScope: 'whole-result-self-consistency-not-authenticity';
     persistentNamingCertified: false;
@@ -130,6 +132,8 @@ export interface ModelingRotationResult {
     dataCharge: 'unchanged-solid-snapshot-ledger-alias-occurrences-not-v8-heap';
   };
 }
+
+export type ModelingRotationResult = RotationResult<false> | RotationResult<true>;
 
 class ModelingRotationError extends Error {
   constructor(readonly code: ConvexPlanarSolidDiagnosticCode, readonly stage: string, readonly entity: string,
@@ -161,8 +165,12 @@ function cardinalSignedMap(spec: CardinalRotationSpec): readonly (readonly [0 | 
   }
 }
 
-/** Reconstruct and qualify one terminal copy about the world origin. */
-export function buildModelingRotation(parentInput: ConvexPlanarSolidResult, canonicalSpecInput: CardinalRotationSpec, prefixInput: string): ModelingRotationResult {
+/** Omitted pivot retains the complete original three-argument path. */
+export function buildModelingRotation(parent: ConvexPlanarSolidResult, spec: CardinalRotationSpec, prefix: string): RotationResult<false>;
+export function buildModelingRotation(parent: ConvexPlanarSolidResult, spec: CardinalRotationSpec, prefix: string, pivotMM: Readonly<Point>): RotationResult<true>;
+/** Reconstruct and qualify one complete origin or exact pivot-affine copy. */
+export function buildModelingRotation(parentInput: ConvexPlanarSolidResult, canonicalSpecInput: CardinalRotationSpec, prefixInput: string, pivotInput?: Readonly<Point>): ModelingRotationResult {
+  const hasPivot = arguments.length > 3;
   const ledger = new SolidSnapshotLedger();
   const rational = new SectionRationalContext((code, detail) => { throw new ConvexPlanarSolidError(code, detail); });
   const directCalls: DirectCalls = { parentValidationCount: 0, initialFaceConstructionCount: 0, targetQualificationCount: 0, retries: 0 };
@@ -170,12 +178,18 @@ export function buildModelingRotation(parentInput: ConvexPlanarSolidResult, cano
   const at = <T>(nextStage: string, nextEntity: string, action: () => T): T => { stage = nextStage; entity = nextEntity; return action(); };
   try {
     // Complete, bounded own-data admission happens before reading the retained parent.
-    const request = ledger.copy({ parent: parentInput, spec: canonicalSpecInput, prefix: prefixInput }, true);
+    const request = ledger.copy(hasPivot
+      ? { parent: parentInput, spec: canonicalSpecInput, prefix: prefixInput, pivotMM: pivotInput }
+      : { parent: parentInput, spec: canonicalSpecInput, prefix: prefixInput }, true);
     const { parent, spec, prefix } = request;
     at('admission', 'spec', () => check(spec !== null && typeof spec === 'object' && !Array.isArray(spec)
       && Object.keys(spec).length === 2 && Object.hasOwn(spec, 'axis') && Object.hasOwn(spec, 'degrees')
       && (spec.axis === 'x' || spec.axis === 'y' || spec.axis === 'z')
       && (spec.degrees === 90 || spec.degrees === 180 || spec.degrees === 270), 'INPUT', 'Canonical world-origin cardinal axis/degrees required'));
+    const pivotMM = 'pivotMM' in request ? request.pivotMM : undefined;
+    if (hasPivot) at('admission', 'pivotMM', () => check(arguments.length === 4 && Array.isArray(pivotMM) && pivotMM.length === 3
+      && pivotMM.every(value => typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= 10000),
+    'INPUT', 'Exactly four arguments and three finite represented pivot coordinates within +/-10000mm required'));
     const signedMap = cardinalSignedMap(spec);
     at('admission', 'prefix', () => id(prefix, 16));
     parentValidation = at('parent-validation', 'parent', () => { directCalls.parentValidationCount++; return validateConvexPlanarSolid(parent); });
@@ -208,12 +222,28 @@ export function buildModelingRotation(parentInput: ConvexPlanarSolidResult, cano
       return result;
     });
 
+    // Offsets remain rational: neither p-R(p) nor an intermediate subtraction
+    // must be binary64 or within the final coefficient coordinate bounds.
+    const pivotOffsets = hasPivot ? at('stage-coefficients', 'pivotMM', () => signedMap.map(([axis, sign], targetAxis) => {
+      const source = rational.from(pivotMM![axis]);
+      return rational.sub(rational.from(pivotMM![targetAxis]), sign === 1 ? source : rational.neg(source));
+    })) : null;
+    const coordinates = hasPivot ? [new Map<number, number>(), new Map<number, number>(), new Map<number, number>()] : null;
     // A signed permutation is already exactly represented. Positive components
     // copy the selected coefficient; negative components use unary negation,
     // including +0/-0. Do not cache numeric keys, which merge the two zero signs.
     const rotatedPoint = (point: Point, location: string): Point => signedMap.map(([axis, sign], targetAxis) =>
       at('stage-coefficients', location + '/' + targetAxis, () => {
-        const value = sign === 1 ? point[axis] : -point[axis];
+        let value = sign === 1 ? point[axis] : -point[axis];
+        if (pivotOffsets !== null && pivotOffsets[targetAxis].n !== 0n) {
+          const cached = coordinates![targetAxis].get(value);
+          if (cached !== undefined) value = cached;
+          else {
+            const source = value;
+            value = rational.exactFloat(rational.add(rational.from(source), pivotOffsets[targetAxis]));
+            coordinates![targetAxis].set(source, value); // Nonzero exact cancellation is +0.
+          }
+        } // Zero affine offset bit-copies the selected signed coefficient.
         check(Number.isFinite(value) && Math.abs(value) <= 10000, 'REPRESENTABILITY', 'Exact target coordinate exceeds +/-10000mm');
         return value;
       })) as Point;
@@ -239,8 +269,9 @@ export function buildModelingRotation(parentInput: ConvexPlanarSolidResult, cano
     const checkPoint = (a: Point, b: Point): void => {
       for (const [targetAxis, [sourceAxis, sign]] of signedMap.entries()) {
         const source = rational.from(a[sourceAxis]), expected = sign === 1 ? source : rational.neg(source);
-        check(rational.compare(expected, rational.from(b[targetAxis])) === 0, 'BINDING', 'Actual target point differs from exact rotated parent');
-        check(Object.is(sign === 1 ? a[sourceAxis] : -a[sourceAxis], b[targetAxis]), 'BINDING', 'Target coordinate differs from signed parent coefficient bits');
+        const transformed = pivotOffsets === null ? expected : rational.add(expected, pivotOffsets[targetAxis]);
+        check(rational.compare(transformed, rational.from(b[targetAxis])) === 0, 'BINDING', 'Actual target point differs from exact rotated parent');
+        if (pivotOffsets === null) check(Object.is(sign === 1 ? a[sourceAxis] : -a[sourceAxis], b[targetAxis]), 'BINDING', 'Target coordinate differs from signed parent coefficient bits');
       }
     };
     for (const [i, original] of originals.entries()) at('face-lineage', original.sourceId, () => {
@@ -346,10 +377,12 @@ export function buildModelingRotation(parentInput: ConvexPlanarSolidResult, cano
           fromEdgeId: globalEdgeMap.get(arc.fromEdgeId), toEdgeId: globalEdgeMap.get(arc.toEdgeId) }; });
         check(same(arcs, next.arcs), 'INCIDENCE', 'Vertex link Face/edge membership changed');
       }
-      const checkExactPoint = (a: ExactPointData, b: ExactPointData): void => {
+      const checkExactPoint = (a: ExactPointData, b: ExactPointData, position = true): void => {
         check(signedMap.every(([sourceAxis, sign], targetAxis) => {
           const source = fraction(a[sourceAxis]);
-          return rational.compare(sign === 1 ? source : rational.neg(source), fraction(b[targetAxis])) === 0;
+          const rotated = sign === 1 ? source : rational.neg(source);
+          const expected = pivotOffsets !== null && position ? rational.add(rotated, pivotOffsets[targetAxis]) : rotated;
+          return rational.compare(expected, fraction(b[targetAxis])) === 0;
         }), 'BINDING', 'Certified exact vector differs from rotated parent');
       };
       for (const support of parent.supports) {
@@ -357,8 +390,15 @@ export function buildModelingRotation(parentInput: ConvexPlanarSolidResult, cano
         check(matches.length === 1 && matches[0].surfaceId === ref.surfaceId, 'COVERAGE', 'Exactly one corresponding target support required');
         const next = matches[0];
         checkExactPoint(support.originMM, next.originMM);
-        checkExactPoint(support.outwardNormal, next.outwardNormal);
-        check(equalFraction(support.offset, next.offset), 'BINDING', 'Exact rotated support offset changed');
+        checkExactPoint(support.outwardNormal, next.outwardNormal, false);
+        if (pivotOffsets !== null) {
+          const displacement = rational.sum(signedMap.map(([axis, sign], targetAxis) => {
+            const original = fraction(support.outwardNormal[axis]);
+            return rational.mul(sign === 1 ? original : rational.neg(original), pivotOffsets[targetAxis]);
+          }));
+          check(rational.compare(rational.add(fraction(support.offset), displacement), fraction(next.offset)) === 0,
+            'BINDING', 'Exact pivot-affine support equation changed');
+        } else check(equalFraction(support.offset, next.offset), 'BINDING', 'Exact rotated support offset changed');
       }
       checkExactPoint(parent.certificate.strictInteriorMM, solid.certificate.strictInteriorMM);
       check(equalFraction(parent.certificate.volumeMM3, solid.certificate.volumeMM3), 'BINDING', 'Certified rational volume changed');
@@ -370,21 +410,25 @@ export function buildModelingRotation(parentInput: ConvexPlanarSolidResult, cano
       }
     });
     const bindingCount = assets.reduce((sum, a) => sum + a.face.bindings.length, 0);
-    const result: ModelingRotationResult = { request, solid, lineage, report: {
+    const result = { request, solid, lineage, report: {
       schema: 'barocss-modeling-rotation', version: 0, lengthUnit: 'mm', solid: true, parentValidation, targetQualification: solid.report,
       directCalls: { ...directCalls },
       initialFaceConstruction: { faceCount: assets.length, sourceCompilationCount: assets.length, bindingObservationCount: bindingCount,
         curveD1Count: bindingCount, pcurveD1Count: bindingCount, surfaceD1Count: bindingCount, totalD1Count: bindingCount * 3,
         scope: 'direct-calls-and-known-parent-loop-work-not-hidden-provider-internals' },
       exactWork: rational.counts(),
-      preservation: { completeParent: true, canonicalSignedPermutation: true, signedCoefficientBits: true, basisAndWeightBits: true,
+      preservation: !hasPivot ? { completeParent: true, canonicalSignedPermutation: true, signedCoefficientBits: true, basisAndWeightBits: true,
         directedDomainBits: true, exactParameterMaps: true, bijectiveLineage: true, exactRotatedNormals: true,
-        exactRotatedSupportsAndVertices: true, supportOffsetsUnchanged: true, exactVolumeUnchanged: true, independentSourceNamespaces: true },
+        exactRotatedSupportsAndVertices: true, supportOffsetsUnchanged: true, exactVolumeUnchanged: true, independentSourceNamespaces: true } : {
+        completeParent: true, canonicalSignedPermutation: true, exactPivotAffineCoefficients: true, zeroOffsetSignedCoefficientBits: true,
+        nonzeroCancellationPositiveZero: true, derivedVerticesExactRational: true, basisAndWeightBits: true, directedDomainBits: true,
+        exactParameterMaps: true, bijectiveLineage: true, exactRotatedNormals: true, exactRotatedSupportsAndVertices: true,
+        exactAffineSupportOffsets: true, exactVolumeUnchanged: true, independentSourceNamespaces: true },
       numericPolicy: 'exact-rationals-of-stored-binary64-no-welding-no-tolerance-promotion', validationScope: 'whole-result-self-consistency-not-authenticity',
       persistentNamingCertified: false,
       limits: { faces: 10, directedUses: 48, pairs: 24, vertices: 16, coordinateAbsMM: 10000, rationalOperations: 200000, integerBits: 8192 },
       dataCharge: 'unchanged-solid-snapshot-ledger-alias-occurrences-not-v8-heap',
-    } };
+    } } as ModelingRotationResult;
     return at('snapshot', 'result', () => ledger.copy(result, true));
   } catch (cause) {
     const code = cause instanceof ConvexPlanarSolidError ? cause.code : 'NATIVE';
