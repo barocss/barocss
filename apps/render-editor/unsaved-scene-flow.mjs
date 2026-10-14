@@ -1,3 +1,5 @@
+// run() replaces __CONFIG__ in the serialized browser callback.
+/* global __CONFIG__:readonly */
 import assert from 'node:assert/strict';
 import { execFile, execFileSync } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -96,7 +98,7 @@ try {
       rows.push({ case: 'contextual-Help-and-stale-navigation-refusal', revision: 16 });
 
       await open().click(); await dialog().waitFor(); const beforeDownloads = downloads;
-      await page.evaluate(() => { const original = URL.createObjectURL; URL.createObjectURL = function(...args) { URL.createObjectURL = original; throw Error('Controlled download preparation failure.'); }; });
+      await page.evaluate(() => { const original = URL.createObjectURL; URL.createObjectURL = function(..._args) { URL.createObjectURL = original; throw Error('Controlled download preparation failure.'); }; });
       await page.getByTestId('unsaved-download').click(); await page.getByTestId('unsaved-error').waitFor();
       check(downloads === beforeDownloads && await dialog().isVisible() && (await page.locator('.app-document-state').textContent()).includes('Not downloaded'), 'Failed download continued or cleared unsaved status.');
       await unchanged(16, initial.hash, route, nativeText); await page.screenshot({ animations: 'disabled', path: config.output + '/download-refusal.png', fullPage: true });

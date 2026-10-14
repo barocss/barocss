@@ -29,7 +29,7 @@ try{
   }
   const [original,edited,reopened]=rows;
   assert.equal(original.document.version,0);assert.equal(edited.document.version,1);assert.equal(reopened.document.version,1);
-  const stable=document=>{const {version,revision,animation,...base}=document;return base;};
+  const stable=document=>{const {version,revision,animation,...base}=document;void version;void revision;void animation;return base;};
   assert.deepEqual(original.scene.objects.map(o=>[o.id,o.type]),[['orb','sphere'],['block','box'],['post','cylinder']]);
   for(const value of [edited,reopened]){
     assert.deepEqual(stable(value.document),stable(original.document),'Complete base Source/camera/identity must stay exact.');

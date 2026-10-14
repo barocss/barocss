@@ -92,7 +92,7 @@ try {
     const presenter = { present(next) { presentations++; displayed = next; return { ok: true }; },
       recover(next) { displayed = next; return { ok: true }; }, dispose() {} };
     const session = api.createRenderMixedSession(original), controller = api.createRenderMixedController(session, presenter), first = session.getSnapshot();
-    session.setDraftSphereSource(null); let state = session.getSnapshot();
+    session.setDraftSphereSource(null); const state = session.getSnapshot();
     assert(state.sphereInputInvalid && state.dirty); assert.equal(state.draft.sceneSource, first.draft.sceneSource);
     const before = presentations; assert.equal(controller.apply().ok, false); assert.equal(presentations, before); assert.equal(session.getSnapshot().accepted, first.accepted);
     session.setDraftCamera(original.camera); session.setDraftDisplay(original.display); session.setDraftTitle(original.title);

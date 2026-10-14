@@ -64,6 +64,7 @@ try {
     stage = `build ${family.name}`;
     const result = await command(`build-${family.name.split('/')[1]}`, 'pnpm', ['--filter', family.name, 'build:library']);
     const { stdoutText, ...details } = result;
+    void stdoutText;
     receipt.builds.push({ package: family.name, ...details });
   }
 
