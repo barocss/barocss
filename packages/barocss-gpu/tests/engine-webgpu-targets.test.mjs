@@ -1,6 +1,7 @@
 /** Structural fake-device tests only, not physical WebGPU texture evidence. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import './engine-webgpu-readback.test.mjs';
 import { createEngineWebGPURenderTargets } from '../dist/engine-webgpu-targets.js';
 
 function mock(failDepth = false) {
