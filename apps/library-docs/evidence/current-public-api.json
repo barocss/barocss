@@ -1,7 +1,7 @@
 {
   "schema": "barocss-current-public-api-v1",
   "typescriptVersion": "5.9.3",
-  "sourceCommit": "e9f2867561183c86adedc173f8b313e7391b74ac",
+  "sourceCommit": "00966188a047c63b19fae50ebbcfc42559d14188",
   "extractor": "TypeScript 5.9.3 public module exports and declarations; not a type-check or runtime execution",
   "packages": [
     {
@@ -55463,7 +55463,7 @@
     "packages/barocss-canvas2d": "b029d1925907fbac9a19d6c2f825cbfd91323473",
     "packages/barocss-viewer": "cb48d4ca378dd7050573ab1f57a1c554449885e5",
     "packages/barocss-physics": "f3aa5c6e161137cb80fb68f73a517cd6bdc673dd",
-    "packages/barocss-cad-editor": "1fc76062be0bd0ddbea0fc6a53c55b91a433064d",
+    "packages/barocss-cad-editor": "8724dd2b6909007412536046f2c8c6891071fc66",
     "packages/barocss-render-editor": "d1486acf9b983dba6839d2bf303406876244e2e6"
   },
   "historicalSourceCommit": "5f5ad866205a21510ac69552e704cc162fa253b5",
