@@ -1,14 +1,14 @@
 import { prepareEngineScene } from './engine-scene.js';
 import { renderCheckedEngineWebGPUOnce } from './engine-webgpu-checked-once.js';
 import { configureEngineWebGPUCanvas } from './engine-webgpu-canvas-config.js';
-import { presentEngineWebGPUColor } from './engine-webgpu-present.js';
+import { presentCheckedEngineWebGPUColor } from './engine-webgpu-checked-present.js';
 import type { EngineSceneV0 } from './engine-scene.js';
 import type { GPUCanvasHandle, GPUDeviceHandle } from './webgpu-platform.js';
 
 const activeContexts = new WeakSet<GPUCanvasHandle>();
 
 /** Private one-shot composition. Caller owns the live device and matching canvas backing.
- * Caller serializes device scopes; no mounted updates, presentation validation or loss observer.
+ * Caller serializes device scopes; no mounted updates, pixel rollback or loss observer.
  */
 export async function renderEngineWebGPUCanvasOnce(
   device: GPUDeviceHandle, context: GPUCanvasHandle, input: EngineSceneV0,
@@ -40,7 +40,7 @@ export async function renderEngineWebGPUCanvasOnce(
   try {
     frame = await renderCheckedEngineWebGPUOnce(device, source.scene, width, height, format);
     canvas = configureEngineWebGPUCanvas(context, device, width, height, format);
-    await presentEngineWebGPUColor(device, context, frame.targets.color, width, height);
+    await presentCheckedEngineWebGPUColor(device, context, frame.targets.color, width, height);
     return Object.freeze({
       drawCount: frame.drawCount, geometryCount: frame.geometryCount,
       dispose(): void {
