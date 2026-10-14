@@ -1,7 +1,7 @@
 {
   "schema": "barocss-current-public-api-v1",
   "typescriptVersion": "5.9.3",
-  "sourceCommit": "af308d82db0aa41b3a0ce73a2200d018615a1510",
+  "sourceCommit": "12505b9a4f9c608603d4bbb6cac67578d88521d2",
   "extractor": "TypeScript 5.9.3 public module exports and declarations; not a type-check or runtime execution",
   "packages": [
     {
@@ -20882,7 +20882,7 @@
               "name": "exportIGES",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-cad/src/iges.ts",
-              "line": 108,
+              "line": 112,
               "signatures": [
                 "export function exportIGES(model: Model, ids: string[]): { iges: string; report: IGESExportReport };"
               ],
@@ -21365,9 +21365,9 @@
               "source": "packages/barocss-cad/src/iges.ts",
               "line": 15,
               "signatures": [
-                "export interface IGESExportReport {\n  format: 'IGES 5.3 ASCII'\n  model: string\n  lengthUnit: 'mm'\n  modelScale: 1\n  geometryLoss: 'none'\n  // IGES carries geometry only. Keep the native source and this full-ID map separately.\n  nativeSourceIncluded: false\n  solid: false\n  objects: IGESObjectReport[]\n  records: { S: number; G: number; D: number; P: number; T: number }\n  timestampPolicy: 'fixed-20000101.000000'\n}"
+                "export interface IGESExportReport {\n  format: 'IGES 5.3 ASCII'\n  model: string\n  lengthUnit: 'mm'\n  modelScale: 1\n  geometryLoss: 'none'\n  // IGES carries geometry only. Keep the native source and this full-ID map separately.\n  nativeSourceIncluded: false\n  solid: false\n  objects: IGESObjectReport[]\n  records: { S: number; G: number; D: number; P: number; T: number }\n  timestampPolicy: 'fixed-20000101.000000'\n  // The Model input has no Face trims or body topology. This loss scope does\n  // not describe a parent Face/Shell/Solid from which a carrier was selected.\n  geometryLossScope: 'selected-raw-curves-and-untrimmed-surfaces'\n  unsupported: ['trimmed-faces', 'topology', 'solid-models']\n}"
               ],
-              "digest": "a14d0b95e3258faad540b75572f0ff1c3a8744d09bb4f631def8db03ae26543d"
+              "digest": "3f789d04c46f68e7f8bec95dfce9475b02eb4ac0ee19263cff156ed413996897"
             },
             {
               "name": "IGESImportDiagnosticCode",
@@ -55523,12 +55523,12 @@
   "packageTrees": {
     "packages/barocss-render": "b83e4912e1d1aa658f048ba4b112376785b288fb",
     "packages/barocss-gpu": "1bd13f5ea8fc0394c85cff12d7a84e1401bfccde",
-    "packages/barocss-cad": "847042bc8a5c9b1a09d79cba9e9560de376f9ff0",
+    "packages/barocss-cad": "58ed6963291909fe6f985b685324d0f89f74a158",
     "packages/barocss-cad-interop": "330d0323e1d3891c8a1f882e848aae604ea67b08",
     "packages/barocss-canvas2d": "b029d1925907fbac9a19d6c2f825cbfd91323473",
     "packages/barocss-viewer": "cb48d4ca378dd7050573ab1f57a1c554449885e5",
     "packages/barocss-physics": "f3aa5c6e161137cb80fb68f73a517cd6bdc673dd",
-    "packages/barocss-cad-editor": "b1f210511f86af2d40f84373da36443e50c49b7c",
+    "packages/barocss-cad-editor": "5c2907def9cc6e72bf493ab5f866a998f99a76f6",
     "packages/barocss-render-editor": "d1486acf9b983dba6839d2bf303406876244e2e6"
   },
   "historicalSourceCommit": "5f5ad866205a21510ac69552e704cc162fa253b5",
@@ -57217,6 +57217,7 @@
       "@barocss/cad.:CadCompileOptions",
       "@barocss/cad.:CadExpression",
       "@barocss/cad.:CadModelIR",
+      "@barocss/cad.:IGESExportReport",
       "@barocss/cad-interop:manifest",
       "@barocss/canvas2d.:entry",
       "@barocss/canvas2d.:BrowserTextPolicy",
