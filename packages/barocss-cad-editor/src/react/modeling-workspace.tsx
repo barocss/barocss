@@ -50,12 +50,18 @@ export function ModelingWorkspace(props: ModelingWorkspaceProps) {
     if (panel === null) workspaceRoot.current?.focus();
     else optionsHeading.current?.focus();
   }, [panel]);
+  useEffect(() => {
+    if (panel !== null && snapshot?.preview?.status === 'error' && document.activeElement === document.body) {
+      optionsHeading.current?.focus();
+    }
+  }, [panel, snapshot?.preview?.status]);
   const busy = snapshot?.busy ?? false, draft = Object.keys(snapshot?.drafts ?? {}).length > 0;
   const previewActive = snapshot?.preview?.status === 'ready' || snapshot?.preview?.status === 'computing';
   const viewDisabled = busy || previewActive || !snapshot?.display || snapshot.disposed;
   const editingStructure = panel === 'split-part' || panel === 'circular-pattern' || panel === 'mirror-part' || panel === 'linear-pattern' || panel === 'rotate-part' || panel === 'move-part' || panel === 'chamfer' || panel === 'cut-pocket' || panel === 'add-hole' || panel === 'add-arm' || panel === 'union' || panel === 'cut-slot';
   const creatingPart = panel === 'new-part' || panel === 'new-circular-part';
   const editingDimensions = panel === 'dimensions' || panel === 'extrusion' || panel === 'sketch';
+  const errorMessage = props.error ?? snapshot?.error;
   const features = accepted?.features ?? [];
   const featureLabel = (index: number) => {
     const feature = features[index];
@@ -163,6 +169,7 @@ export function ModelingWorkspace(props: ModelingWorkspaceProps) {
               <button type="button" disabled={busy} onClick={() => optionsHeading.current?.focus()}>Review editing target</button>
             </div>}
           </div>}
+          {panel && errorMessage && <div className="modeling-workspace-error" role="alert">{errorMessage}</div>}
           {editingStructure && <footer><span>Temporary structural options · accepted model retained</span><div>
             <button type="button" disabled={busy} onClick={props.onCancelStructure}>Cancel</button>
             <button type="button" disabled={busy || !props.canPreviewStructure} onClick={props.onPreviewStructure}>{snapshot?.workerReady ? 'Preview operation' : 'Recover accepted model and preview operation'}</button>
@@ -176,7 +183,7 @@ export function ModelingWorkspace(props: ModelingWorkspaceProps) {
             <button type="button" className="modeling-apply" disabled={busy || (creatingPart ? !props.canCreatePart : !draft || (panel === 'extrusion' && !props.canApplyExtrusion) || (panel === 'sketch' && !props.canApplySketch))} onClick={creatingPart ? props.onCreatePart : props.onApply}>{creatingPart ? accepted ? 'Replace current model' : 'Create part' : panel === 'extrusion' ? 'Apply extrusion' : panel === 'sketch' ? 'Apply sketch dimensions' : 'Apply dimensions'}</button>
           </div></footer>}
         </aside>
-        {(props.error || snapshot?.error) && <div className="modeling-workspace-error" role="alert">{props.error ?? snapshot?.error}</div>}
+        {!panel && errorMessage && <div className="modeling-workspace-error" role="alert">{errorMessage}</div>}
       </main>
     </div>
     <div className="modeling-command-status"><span>{creatingPart && panel ? `${panelTitle(panel)} · Enter to create · Esc to cancel` : editingStructure && panel ? `${panelTitle(panel)} · Preview → Apply · Esc to cancel` : editingDimensions ? `${panel === 'extrusion' ? 'Edit extrusion' : panel === 'sketch' ? 'Edit sketch dimensions' : 'Edit dimensions'} · Enter to apply · Esc to cancel` : selected ? `${featureLabel(selected.index)} · choose Modify or Inspect` : 'Select a feature to choose its next command'}</span>{draft && !editingDimensions && <button type="button" onClick={() => props.onPanel('dimensions')}>Resume dimension edit</button>}</div>
