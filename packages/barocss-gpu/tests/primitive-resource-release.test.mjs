@@ -4,6 +4,7 @@ import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
 import './qualified-face-dispose-completeness.test.mjs';
+import './qualified-face-handoff.test.mjs';
 
 const source = await readFile(new URL('../src/webgpu-primitive-viewport.ts', import.meta.url), 'utf8');
 const parsed = ts.createSourceFile('viewport.ts', source, ts.ScriptTarget.ES2022, true);
