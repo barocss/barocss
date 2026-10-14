@@ -48,6 +48,9 @@ export function App() {
   useEffect(() => { document.documentElement.dataset.theme = theme; viewport.current?.setTheme(theme); try { localStorage.setItem('cad-studio-theme', theme); } catch { /* storage unavailable */ } }, [theme]);
   useEffect(() => { viewport.current?.setAo(ao); }, [ao]);
 
+  // Dev/test hook: the flow test reads the accepted document.
+  useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioDoc: StudioDoc }).__studioDoc = doc; }, [doc]);
+
   const evaluated = useMemo(() => prefixDoc(doc, marker ?? doc.nodes.length), [doc, marker]);
 
   // Evaluate the accepted document whenever it or the rollback marker changes.
@@ -68,6 +71,8 @@ export function App() {
     const dropped = marker !== null ? doc.nodes.length - marker : 0;
     setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]);
     setDoc(next); setMarker(null); setDirty(true); setEditNode(null);
+    // An empty document has no bodies; clear them now so defaults are not computed from the old model.
+    if (!Object.keys(next.outputs).length) { setBodies([]); setSelection(emptySel); }
     if (dropped > 0) setToast({ title: `Removed ${dropped} later feature${dropped > 1 ? 's' : ''}`, hint: 'You added a feature while rolled back. Undo restores them.', detail: '' });
   }, [doc, marker]);
 
@@ -214,7 +219,7 @@ export function App() {
   const gizmo = active?.cmd.id === 'move' && selectedBodies(active.ctx.selection).length === 1 ? (() => {
     const b = bodies[selectedBodies(active.ctx.selection)[0]]; const { min, max } = b.mesh.bounds;
     return { origin: [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2, max[2]] as Vec3, values: [Number(active.values.x), Number(active.values.y), Number(active.values.z)] as Vec3,
-      onDrag: (v: Vec3) => setActive(a => a && { ...a, values: { ...a.values, x: v[0], y: v[1], z: v[2] } }) };
+      onDrag: (v: Vec3) => setActive(a => a && { ...a, values: { ...a.values, x: v[0], y: v[1], z: v[2] }, preview: 'busy' }) };
   })() : null;
 
   const totalNodes = doc.nodes.length; const markerAt = marker ?? totalNodes;
@@ -321,7 +326,7 @@ export function App() {
       </aside>}
       </div>
 
-      {active && <Hud active={active} onChange={values => setActive(a => a && { ...a, values })} onApply={apply} onCancel={cancel} />}
+      {active && <Hud active={active} onChange={(key, value) => setActive(a => a && { ...a, values: { ...a.values, [key]: value }, preview: 'busy' })} onApply={apply} onCancel={cancel} />}
 
       {sketch && !active && <div className="card hint-bar">
         <span className="hint-title"><Icon name={sketch.tool === 'rectangle' ? 'rectangle' : sketch.tool === 'circle' ? 'circle' : 'pentagon'} small />{sketch.tool[0].toUpperCase() + sketch.tool.slice(1)}</span>

@@ -5,7 +5,7 @@ import { Icon, Kbd } from './atoms';
 
 interface Props {
   active: { cmd: Command; values: Values; preview: 'busy' | 'ok' | 'error'; error?: FriendlyError; ctx: Ctx };
-  onChange(values: Values): void; onApply(): void; onCancel(): void;
+  onChange(key: string, value: number | string): void; onApply(): void; onCancel(): void;
 }
 
 /** The floating command HUD: few fields, keyboard-first, with the kernel’s answer inline. */
@@ -21,10 +21,10 @@ export function Hud({ active, onChange, onApply, onCancel }: Props) {
         {fields.map((f, i) => (
           <label key={f.key} className="field"><span>{f.label}</span>
             {f.kind === 'choice'
-              ? <select ref={i === 0 ? el => { first.current = el; } : undefined} value={String(active.values[f.key])} onChange={e => onChange({ ...active.values, [f.key]: e.target.value })}>
+              ? <select ref={i === 0 ? el => { first.current = el; } : undefined} value={String(active.values[f.key])} onChange={e => onChange(f.key, e.target.value)}>
                 {f.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
               : <span className="num"><input ref={i === 0 ? el => { first.current = el; } : undefined} type="number" step={f.kind === 'count' ? 1 : 'any'} min={f.min} max={f.max}
-                value={String(active.values[f.key] ?? '')} onChange={e => onChange({ ...active.values, [f.key]: e.target.value === '' ? '' : Number(e.target.value) })} />
+                value={String(active.values[f.key] ?? '')} onChange={e => onChange(f.key, e.target.value === '' ? '' : Number(e.target.value))} />
                 {f.kind === 'mm' && <em>mm</em>}{f.kind === 'deg' && <em>°</em>}</span>}
           </label>))}
       </div>
