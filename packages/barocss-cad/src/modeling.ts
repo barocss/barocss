@@ -80,6 +80,9 @@ export interface CadShape {
   linearPattern(options: { readonly axis: CadAxis; readonly spacing: CadDimension; readonly count: 3 }): readonly [CadShape, CadShape, CadShape];
   /** Original handle plus two owned copies at an authored quarter turn and twice that turn about the world origin. The pattern is terminal. */
   circularPattern(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | -90; readonly count: 3 }): readonly [CadShape, CadShape, CadShape];
+  /** Original handle plus three owned quarter-turn copies. All copies use the same original; the pattern is terminal. */
+  circularPattern(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | -90; readonly count: 4 }): readonly [CadShape, CadShape, CadShape, CadShape];
+  circularPattern(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | -90; readonly count: 3 | 4 }): readonly [CadShape, CadShape, CadShape] | readonly [CadShape, CadShape, CadShape, CadShape];
   /** One connected union of two distinct direct integer rectangular extrusions. */
   union(other: CadShape): CadShape;
   /** One full-thickness stored-rational hole in a direct origin-aligned integer rectangular plate. */
@@ -208,7 +211,7 @@ export interface CadModelSnapshot {
 export const CadModelLimits = Object.freeze({ nodes: 6, sketches: 2, extrusions: 2, compositionNodes: 8, compositionSketches: 3, compositionExtrusions: 3, cuts: 1, intersections: 1, splits: 1, chamfers: 2, holes: 1, unions: 1, differences: 1, parameters: 16, outputs: 8, polygonPoints: 8, polygonConstraints: 16, fileBytes: 65536, inputDepth: 12, lengthMM: 10000, dimensionNodes: ModelDimensionLimits.nodes, dimensionDepth: ModelDimensionLimits.depth });
 
 type Query = { parallelTo?: CadAxis; at?: Partial<Record<CadAxis, Dimension | 'min' | 'max'>> };
-type BodyRef = { node: number; side: 'solid' | 'negative' | 'positive' | 'instance1' | 'instance2' };
+type BodyRef = { node: number; side: 'solid' | 'negative' | 'positive' | 'instance1' | 'instance2' | 'instance3' };
 type PolygonConstraint = { kind: 'fixed'; point: number } | { kind: 'horizontal' | 'vertical'; points: [number, number] }
   | { kind: 'parallel-to-direction'; points: [number, number]; direction: [number, number] };
 type SketchNode = { kind: 'sketch'; profile: 'polygon'; points: [Dimension, Dimension][] }
@@ -218,9 +221,9 @@ type SketchNode = { kind: 'sketch'; profile: 'polygon'; points: [Dimension, Dime
 type ChamferConfiguration = { name: string; suppressed: boolean } | { name?: never; suppressed?: never };
 type RotationAngle = 90 | 180 | 270 | -90 | -180 | -270;
 type MirrorPlane = 'xy' | 'xz' | 'yz';
-type Node = SketchNode | { kind: 'extrude'; sketch: number; height: Dimension; from?: Dimension } | { kind: 'translate'; parent: BodyRef; offset: [Dimension, Dimension, Dimension] } | { kind: 'rotate'; parent: BodyRef; axis: CadAxis; angleDegrees: RotationAngle } | { kind: 'mirror'; parent: BodyRef; plane: MirrorPlane } | { kind: 'scale'; parent: BodyRef; factor: 0.5 | 2 } | { kind: 'linear-pattern'; parent: BodyRef; axis: CadAxis; spacing: Dimension; count: 3 } | { kind: 'circular-pattern'; parent: BodyRef; axis: CadAxis; angleDegrees: 90 | -90; count: 3 } | { kind: 'cut'; parent: BodyRef; tool: BodyRef; axis: 'x' | 'y' } | { kind: 'intersect'; left: BodyRef; right: BodyRef } | { kind: 'union'; left: BodyRef; right: BodyRef } | { kind: 'difference'; parent: BodyRef; tool: BodyRef } | ({ kind: 'split'; parent: BodyRef; at: Dimension } & SplitPlane) | ({ kind: 'chamfer'; parent: BodyRef; edge: Query; distance: Dimension } & ChamferConfiguration) | { kind: 'hole'; parent: BodyRef; center: [Dimension, Dimension]; radius: Dimension };
+type Node = SketchNode | { kind: 'extrude'; sketch: number; height: Dimension; from?: Dimension } | { kind: 'translate'; parent: BodyRef; offset: [Dimension, Dimension, Dimension] } | { kind: 'rotate'; parent: BodyRef; axis: CadAxis; angleDegrees: RotationAngle } | { kind: 'mirror'; parent: BodyRef; plane: MirrorPlane } | { kind: 'scale'; parent: BodyRef; factor: 0.5 | 2 } | { kind: 'linear-pattern'; parent: BodyRef; axis: CadAxis; spacing: Dimension; count: 3 } | { kind: 'circular-pattern'; parent: BodyRef; axis: CadAxis; angleDegrees: 90 | -90; count: 3 | 4 } | { kind: 'cut'; parent: BodyRef; tool: BodyRef; axis: 'x' | 'y' } | { kind: 'intersect'; left: BodyRef; right: BodyRef } | { kind: 'union'; left: BodyRef; right: BodyRef } | { kind: 'difference'; parent: BodyRef; tool: BodyRef } | ({ kind: 'split'; parent: BodyRef; at: Dimension } & SplitPlane) | ({ kind: 'chamfer'; parent: BodyRef; edge: Query; distance: Dimension } & ChamferConfiguration) | { kind: 'hole'; parent: BodyRef; center: [Dimension, Dimension]; radius: Dimension };
 type Document = { format: 'barocss-cad-model'; schema: 1; units: 'mm'; parameters: Record<string, number>; nodes: Node[]; outputs: Record<string, BodyRef> };
-type EvaluatedValue = CadBody | { negative?: CadBody; positive?: CadBody } | { instance1: CadBody; instance2: CadBody } | undefined;
+type EvaluatedValue = CadBody | { negative?: CadBody; positive?: CadBody } | { instance1: CadBody; instance2: CadBody } | { instance1: CadBody; instance2: CadBody; instance3: CadBody } | undefined;
 // Generated IDs/native options are fixed by this implementation authority plus the keyed graph.
 const evaluationAuthority = Object.freeze({});
 type EvaluationFrame = { readonly authority: object; readonly key: string; readonly document: Document; readonly evidence: CadModelEvidence[]; readonly values: EvaluatedValue[]; readonly parameterNames: readonly (readonly string[])[] };
@@ -465,7 +468,7 @@ function linearPatternSpacing(value: Dimension, parameters: Readonly<Record<stri
   return spacing;
 }
 const circularPatternParentDetail = 'Circular pattern about the world origin requires a direct affine extrusion or its complete owned one/two-chamfer chain; the pattern and its copies are terminal';
-function circularPatternOptions(value: unknown, fields: readonly string[]): { axis: CadAxis; angleDegrees: 90 | -90; count: 3 } {
+function circularPatternOptions(value: unknown, fields: readonly string[]): { axis: CadAxis; angleDegrees: 90 | -90; count: 3 | 4 } {
   let descriptors: PropertyDescriptorMap;
   try {
     demand(value !== null && typeof value === 'object' && !Array.isArray(value), 'INPUT', 'circularPattern', 'Plain own record required');
@@ -484,7 +487,7 @@ function circularPatternOptions(value: unknown, fields: readonly string[]): { ax
   const axis: unknown = descriptors.axis.value, angleDegrees: unknown = descriptors.angleDegrees.value, count: unknown = descriptors.count.value;
   demand(axes.includes(axis as CadAxis), 'CAPABILITY', 'circularPattern', 'Circular pattern requires the cardinal x/y/z axis');
   demand(angleDegrees === 90 || angleDegrees === -90, 'CAPABILITY', 'circularPattern', 'Circular pattern requires an authored angle of 90 or -90 degrees');
-  demand(count === 3, 'CAPABILITY', 'circularPattern', 'Circular pattern requires exactly three instances including the original');
+  demand(count === 3 || count === 4, 'CAPABILITY', 'circularPattern', 'Circular pattern requires three or four instances including the original');
   return { axis: axis as CadAxis, angleDegrees, count };
 }
 function canonicalRotationDegrees(angle: RotationAngle): 90 | 180 | 270 {
@@ -548,7 +551,7 @@ function admit(input: Document): Document {
     const r = record(value, 'body', ['node', 'side']);
     demand(Number.isInteger(r.node) && !Object.is(r.node, -0) && (r.node as number) >= 0 && (r.node as number) < before, 'INPUT', 'body', 'Body must reference an earlier authored operation');
     const source = nodes[r.node as number];
-    demand(source.kind === 'linear-pattern' || source.kind === 'circular-pattern' ? r.side === 'instance1' || r.side === 'instance2' : source.kind === 'cut' || source.kind === 'split' ? r.side === 'negative' || r.side === 'positive' : (source.kind === 'extrude' || source.kind === 'translate' || source.kind === 'rotate' || source.kind === 'mirror' || source.kind === 'scale' || source.kind === 'intersect' || source.kind === 'union' || source.kind === 'difference' || source.kind === 'chamfer' || source.kind === 'hole') && r.side === 'solid', 'INPUT', 'body', 'Body reference kind mismatch');
+    demand(source.kind === 'linear-pattern' || source.kind === 'circular-pattern' ? r.side === 'instance1' || r.side === 'instance2' || source.kind === 'circular-pattern' && source.count === 4 && r.side === 'instance3' : source.kind === 'cut' || source.kind === 'split' ? r.side === 'negative' || r.side === 'positive' : (source.kind === 'extrude' || source.kind === 'translate' || source.kind === 'rotate' || source.kind === 'mirror' || source.kind === 'scale' || source.kind === 'intersect' || source.kind === 'union' || source.kind === 'difference' || source.kind === 'chamfer' || source.kind === 'hole') && r.side === 'solid', 'INPUT', 'body', 'Body reference kind mismatch');
     return r as unknown as BodyRef;
   };
   for (const [i, n] of nodes.entries()) {
@@ -699,6 +702,21 @@ export function createCadModel(): CadModel {
     nodes.push(freeze(node)); return nodes.length - 1;
   };
   const shape = (reference: BodyRef): CadShape => {
+    function circularPattern(this: CadShape, options: { readonly axis: CadAxis; readonly angleDegrees: 90 | -90; readonly count: 3 }): readonly [CadShape, CadShape, CadShape];
+    function circularPattern(this: CadShape, options: { readonly axis: CadAxis; readonly angleDegrees: 90 | -90; readonly count: 4 }): readonly [CadShape, CadShape, CadShape, CadShape];
+    function circularPattern(this: CadShape, options: { readonly axis: CadAxis; readonly angleDegrees: 90 | -90; readonly count: 3 | 4 }): readonly [CadShape, CadShape, CadShape] | readonly [CadShape, CadShape, CadShape, CadShape];
+    function circularPattern(this: CadShape, options: { readonly axis: CadAxis; readonly angleDegrees: 90 | -90; readonly count: 3 | 4 }): readonly [CadShape, CadShape, CadShape] | readonly [CadShape, CadShape, CadShape, CadShape] {
+      authoring('circularPattern');
+      demand(this === handle, 'OWNERSHIP', 'circularPattern', 'Circular pattern belongs to this exact owned shape handle');
+      demand(arguments.length === 1, 'INPUT', 'circularPattern', 'Circular pattern requires exactly one axis, angleDegrees and count record');
+      demand(!nodes.some(n => n.kind === 'linear-pattern' || n.kind === 'circular-pattern'), 'CAPABILITY', 'circularPattern', 'Patterns are terminal; circular pattern after a pattern is unsupported');
+      const authored = circularPatternOptions(options, ['axis', 'angleDegrees', 'count']);
+      demand(rotationParent(nodes, reference), 'CAPABILITY', 'circularPattern', circularPatternParentDetail);
+      const node = append({ kind: 'circular-pattern', parent: { ...reference }, ...authored });
+      if (authored.count === 4)
+        return Object.freeze([handle, shape({ node, side: 'instance1' }), shape({ node, side: 'instance2' }), shape({ node, side: 'instance3' })] as const);
+      return Object.freeze([handle, shape({ node, side: 'instance1' }), shape({ node, side: 'instance2' })] as const);
+    }
     function cut(tool: CadShape): CadShape;
     function cut(tool: CadShape, options: { readonly axis: 'x' | 'y' }): CadCut;
     function cut(tool: CadShape, options?: { readonly axis: 'x' | 'y' }): CadShape | CadCut {
@@ -775,16 +793,7 @@ export function createCadModel(): CadModel {
         const node = append({ kind: 'linear-pattern', parent: { ...reference }, axis: authored.axis, spacing, count: authored.count });
         return Object.freeze([handle, shape({ node, side: 'instance1' }), shape({ node, side: 'instance2' })] as const);
       },
-      circularPattern(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | -90; readonly count: 3 }): readonly [CadShape, CadShape, CadShape] {
-        authoring('circularPattern');
-        demand(this === handle, 'OWNERSHIP', 'circularPattern', 'Circular pattern belongs to this exact owned shape handle');
-        demand(arguments.length === 1, 'INPUT', 'circularPattern', 'Circular pattern requires exactly one axis, angleDegrees and count record');
-        demand(!nodes.some(n => n.kind === 'linear-pattern' || n.kind === 'circular-pattern'), 'CAPABILITY', 'circularPattern', 'Patterns are terminal; circular pattern after a pattern is unsupported');
-        const authored = circularPatternOptions(options, ['axis', 'angleDegrees', 'count']);
-        demand(rotationParent(nodes, reference), 'CAPABILITY', 'circularPattern', circularPatternParentDetail);
-        const node = append({ kind: 'circular-pattern', parent: { ...reference }, ...authored });
-        return Object.freeze([handle, shape({ node, side: 'instance1' }), shape({ node, side: 'instance2' })] as const);
-      },
+      circularPattern,
       hole(options: { readonly center: CadPoint2; readonly radius: CadDimension }): CadShape {
         authoring('hole');
         record(options, 'hole', ['center', 'radius']);
@@ -1051,9 +1060,15 @@ function evaluate(input: Document, previous?: EvaluationFrame): CadModelSnapshot
         evidence.push({ kind: 'linear-pattern', native });
         values.push({ instance1: convex(native.copies[0].solid), instance2: convex(native.copies[1].solid) });
       } else if (node.kind === 'circular-pattern') {
-        const native = buildModelingCircularPattern(solid(node.parent, 'circularPattern'), { axis: node.axis, angleDegrees: node.angleDegrees }, prefix);
-        evidence.push({ kind: 'circular-pattern', native });
-        values.push({ instance1: convex(native.copies[0].solid), instance2: convex(native.copies[1].solid) });
+        if (node.count === 4) {
+          const native = buildModelingCircularPattern(solid(node.parent, 'circularPattern'), { axis: node.axis, angleDegrees: node.angleDegrees, count: 4 }, prefix);
+          evidence.push({ kind: 'circular-pattern', native });
+          values.push({ instance1: convex(native.copies[0].solid), instance2: convex(native.copies[1].solid), instance3: convex(native.copies[2].solid) });
+        } else {
+          const native = buildModelingCircularPattern(solid(node.parent, 'circularPattern'), { axis: node.axis, angleDegrees: node.angleDegrees }, prefix);
+          evidence.push({ kind: 'circular-pattern', native });
+          values.push({ instance1: convex(native.copies[0].solid), instance2: convex(native.copies[1].solid) });
+        }
       } else if (node.kind === 'cut') {
         const tool = solid(node.tool, 'cut'), axis = axes.indexOf(node.axis);
         const support = (sign: number) => {

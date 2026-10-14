@@ -77,7 +77,7 @@ async function harness(entry) {
   const mode = extname(entry) === '.ts' ? 'source' : 'emitted';
   const trapKey = Symbol.for('barocss.circular-pattern-internal.zero-native.' + mode);
   assert.equal(globalThis[trapKey], undefined, 'Never replace another active trap'); keys.push(trapKey);
-  const state = { open: false, calls: [], unexpected: [], validatorError: undefined, secondError: undefined, alterChild: undefined };
+  const state = { open: false, calls: [], unexpected: [], validatorError: undefined, secondError: undefined, thirdError: undefined, alterChild: undefined };
   const dispatch = (binding, args) => {
     if (!state.open) { state.unexpected.push(binding); throw new Error('UNEXPECTED_PROVIDER_ATTEMPT: ' + binding); }
     const call = { binding, args }; state.calls.push(call);
@@ -88,6 +88,7 @@ async function harness(entry) {
     if (binding === 'buildModelingRotation') {
       const instance = state.calls.filter(call => call.binding === binding).length;
       if (instance === 2 && state.secondError) throw state.secondError;
+      if (instance === 3 && state.thirdError) throw state.thirdError;
       call.result = inertChild(...args);
       if (state.alterChild) state.alterChild(call.result, instance);
       return call.result;
@@ -115,7 +116,7 @@ async function harness(entry) {
   assert.deepEqual(actual, [...allowed].sort(), 'Only actual leaf, ledger/proof and rational implementations remain');
   const api = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
   return { mode, state, api, run(action, options = {}) {
-    state.calls = []; state.validatorError = options.validatorError; state.secondError = options.secondError; state.alterChild = options.alterChild;
+    state.calls = []; state.validatorError = options.validatorError; state.secondError = options.secondError; state.thirdError = options.thirdError; state.alterChild = options.alterChild;
     state.open = true;
     try { return action(api.buildModelingCircularPattern); } finally { state.open = false; }
   } };
@@ -244,8 +245,95 @@ for (const control of controls) {
     noChildren(); assert.equal(error.cause,cause); assert.equal(error.report.parentValidation,null);
     assert.deepEqual(error.report.completedChildReports,[]); assert.equal(error.report.exactWork.operations,0);
   });
+  test(mode + ': legacy three-instance data keeps its exact v0 field inventory', () => {
+    const parent=inertParent(),spec={axis:'x',angleDegrees:90},result=run(build=>build(parent,spec,'p'));
+    assert.deepEqual(Object.keys(result).sort(),['copies','report','request']);
+    assert.deepEqual(Object.keys(result.request).sort(),['parent','prefix','spec']);
+    assert.deepEqual(Object.keys(result.request.spec).sort(),['angleDegrees','axis']);
+    assert.deepEqual(Object.keys(result.report).sort(),['childReports','childSpecs','count','dataCharge','directCalls','exactWork','lengthUnit','limits',
+      'numericPolicy','parentValidation','persistentNamingCertified','preflight','preservation','schema','totalNativeCalls','validationScope','version']);
+    assert.deepEqual(Object.keys(result.report),['schema','version','lengthUnit','count','parentValidation','childSpecs','childReports','directCalls',
+      'totalNativeCalls','preflight','exactWork','preservation','limits','numericPolicy','validationScope','persistentNamingCertified','dataCharge']);
+    assert.deepEqual(Object.keys(result.report.preservation),['sameOriginalParent','bothCopiesPreflighted','independentSourceNamespaces','completeQualifiedCopies','originalPreserved']);
+    assert.deepEqual(result.report.preservation,{sameOriginalParent:true,bothCopiesPreflighted:true,independentSourceNamespaces:true,completeQualifiedCopies:true,originalPreserved:true});
+    assert.equal(result.report.schema,'barocss-modeling-circular-pattern');assert.equal(result.report.version,0);assert.equal(result.report.count,3);
+    assert.deepEqual(result.copies,[inertChild(parent,{axis:'x',degrees:90},'p_i1'),inertChild(parent,{axis:'x',degrees:180},'p_i2')]);
+    assert.equal(result.copies.length,2);assert.equal(Object.hasOwn(result.copies,'2'),false);
+    const checkDefined=value=>{if(value!==null&&typeof value==='object')for(const child of Object.values(value)){assert.notEqual(child,undefined);checkDefined(child);}};
+    checkDefined(result);
+  });
+  test(mode + ': four instances route three canonical copies from the same original for all axes and signs', () => {
+    for(const axis of ['x','y','z'])for(const angleDegrees of [90,-90]){
+      const parent=inertParent(2),before=clone(parent),spec={axis,angleDegrees,count:4},result=run(build=>build(parent,spec,'p'));
+      const children=calls('buildModelingRotation'),degrees=angleDegrees===90?[90,180,270]:[270,180,90],specs=degrees.map(degrees=>({axis,degrees}));
+      assert.equal(calls('validateConvexPlanarSolid').length,1);assert.equal(children.length,3);
+      assert.ok(children.every(child=>child.args[0]===children[0].args[0]));assert.notEqual(children[0].args[0],parent);assert.ok(Object.isFrozen(children[0].args[0]));
+      assert.deepEqual(children.map(child=>child.args[1]),specs);assert.deepEqual(result.report.childSpecs,specs);
+      assert.deepEqual(children.map(child=>child.args[2]),['p_i1','p_i2','p_i3']);
+      assert.equal(result.copies.length,3);assert.deepEqual(result.request.spec,spec);assert.deepEqual(parent,before);assert.equal(Object.isFrozen(parent),false);
+      assert.deepEqual(result.report.childReports,result.copies.map(copy=>copy.report));
+      assert.deepEqual(result.report.directCalls,{parentValidationCount:1,rotationCount:3,retries:0});
+      assert.deepEqual(result.report.totalNativeCalls,{parentValidationCount:4,initialFaceConstructionCount:3,targetQualificationCount:3,retries:0});
+      assert.deepEqual(result.report.preflight,{copyCount:3,faceCount:3,surfaceCoordinateCount:36,curveCoordinateCount:54});
+      assert.deepEqual(result.report.preservation,{sameOriginalParent:true,allCopiesPreflighted:true,independentSourceNamespaces:true,completeQualifiedCopies:true,originalPreserved:true});
+      assert.equal(result.report.count,4);assert.equal(Object.hasOwn(result.report.preservation,'bothCopiesPreflighted'),false);
+      assert.deepEqual(result.report.exactWork,{operations:0,gcdSteps:0,floatSearchSteps:0,floatConversions:0,maximumObservedBits:0});
+      for(const [i,child]of result.copies.entries()){
+        assert.deepEqual(child.solid.request.assets[0].face.plane.controlPoints,parent.request.assets[0].face.plane.controlPoints.map(row=>row.map(p=>mapped(p,specs[i]))));
+        assert.deepEqual(child.solid.request.assets[0].face.loop.edges.map(curve=>curve.controlPoints),parent.request.assets[0].face.loop.edges.map(curve=>curve.controlPoints.map(p=>mapped(p,specs[i]))));
+      }
+    }
+  });
+  test(mode + ': all three-copy stored Surface and Curve signs match the independent table', () => {
+    const parent=inertParent();parent.request.assets[0].face.plane.controlPoints[0][0]=[0,-0,-0];parent.request.assets[0].face.loop.edges[0].controlPoints[0]=[0,-0,-0];
+    for(const axis of ['x','y','z'])for(const angleDegrees of [90,-90]){
+      const result=run(build=>build(parent,{axis,angleDegrees,count:4},'p'));
+      for(const [i,copy]of result.copies.entries())for(const point of [copy.solid.request.assets[0].face.plane.controlPoints[0][0],copy.solid.request.assets[0].face.loop.edges[0].controlPoints[0]]){
+        const expected=mapped([0,-0,-0],result.report.childSpecs[i]);point.forEach((value,j)=>assert.ok(Object.is(value,expected[j])));
+      }
+    }
+  });
+  test(mode + ': third-copy namespaces are reserved before the first child constructor', () => {
+    for(const alter of [parent=>{parent.graph.vertices[0].id='p_i3_s_v_0';},parent=>{parent.request.assets[0].face.topology.loop.uses[0].id='p_i3_f0_use_0';}]){
+      const parent=inertParent();alter(parent);
+      const error=refusal(()=>run(build=>build(parent,{axis:'z',angleDegrees:-90,count:4},'p')),'IDENTITY','identity');
+      noChildren();assert.equal(error.report.directCalls.rotationCount,0);
+    }
+  });
+  test(mode + ': four-instance coefficient and budget refusals precede all child constructors', () => {
+    const parent=inertParent();parent.request.assets[0].face.loop.edges.at(-1).controlPoints.at(-1)[2]=10001;
+    refusal(()=>run(build=>build(parent,{axis:'y',angleDegrees:90,count:4},'p')),'REPRESENTABILITY','stage-coefficients');noChildren();
+    const excessive=inertParent();excessive.extra='x'.repeat(262145);
+    refusal(()=>run(build=>build(excessive,{axis:'x',angleDegrees:90,count:4},'p')),'BUDGET','snapshot');assert.equal(state.calls.length,0);
+  });
+  test(mode + ': third-child failure keeps two complete reports and the untouched original cause', () => {
+    const progress={directCalls:{parentValidationCount:1,initialFaceConstructionCount:0,targetQualificationCount:0,retries:0}};
+    const cause=Object.assign(new Error('inert third rotation refusal'),{code:'OWNED',report:progress});const parent=inertParent(),before=clone(parent);
+    const error=refusal(()=>run(build=>build(parent,{axis:'y',angleDegrees:-90,count:4},'p'),{thirdError:cause}),'OWNED','copy-construction');
+    const children=calls('buildModelingRotation');assert.equal(children.length,3);assert.equal(error.cause,cause);assert.equal(error.cause.report,progress);assert.equal(Object.isFrozen(progress),false);
+    assert.equal(error.report.completedChildReports.length,2);assert.equal(error.report.directCalls.rotationCount,3);assert.equal(error.entity,'p_i3');
+    error.report.completedChildReports.forEach((report,i)=>{assert.equal(report,children[i].result.report);assert.ok(Object.isFrozen(report));});assert.deepEqual(parent,before);
+  });
+  test(mode + ': third-copy coefficient, qualification and namespace tampering never return a partial pattern', () => {
+    for(const field of ['surface','curve','qualification','namespace']){
+      const parent=inertParent();parent.request.assets[0].face.plane.controlPoints[0][0]=[0,-0,-0];parent.request.assets[0].face.loop.edges[0].controlPoints[0]=[0,-0,-0];
+      const code=field==='qualification'?'OWNED':field==='namespace'?'IDENTITY':'BINDING';
+      const error=refusal(()=>run(build=>build(parent,{axis:'z',angleDegrees:90,count:4},'p'),{alterChild(child,instance){if(instance===3){
+        if(field==='qualification')child.report.targetQualification.solid=false;
+        else if(field==='namespace')child.solid.graph.edges[0].id='p_i1_s_e_0';
+        else {const face=child.solid.request.assets[0].face,pole=field==='surface'?face.plane.controlPoints[0][0]:face.loop.edges[0].controlPoints[0];pole[0]=-pole[0];}
+      }}}),code,'copy-binding');assert.equal(error.report.completedChildReports.length,3);assert.equal(error.report.directCalls.rotationCount,3);
+    }
+  });
+  test(mode + ': four-instance count getters and hidden or foreign specs refuse before validation', () => {
+    let reads=0;const spec={axis:'x',angleDegrees:90};Object.defineProperty(spec,'count',{enumerable:true,get(){reads++;return 4;}});
+    refusal(()=>run(build=>build(inertParent(),spec,'p')),'INPUT','snapshot');assert.equal(reads,0);assert.equal(state.calls.length,0);
+    const hidden={axis:'x',angleDegrees:90};Object.defineProperty(hidden,'count',{value:4,enumerable:false});
+    const foreign=Object.assign(Object.create({}),{axis:'x',angleDegrees:90,count:4});
+    for(const input of [hidden,foreign]){refusal(()=>run(build=>build(inertParent(),input,'p')),'INPUT','snapshot');assert.equal(state.calls.length,0);}
+  });
   test(mode + ': malformed specs and long prefixes refuse before parent validation', () => {
-    for(const spec of [null,[],{}, {axis:'w',angleDegrees:90},{axis:'x',angleDegrees:180}, {axis:'x',angleDegrees:0},
+    for(const spec of [null,[],{}, {axis:'x',angleDegrees:90,count:3},{axis:'x',angleDegrees:90,count:5},{axis:'x',angleDegrees:90,count:0}, {axis:'w',angleDegrees:90},{axis:'x',angleDegrees:180}, {axis:'x',angleDegrees:0},
       {axis:'x',degrees:90},{axis:'x',angleDegrees:90,extra:true}]) {
       refusal(() => run(build => build(inertParent(),spec,'p')),'INPUT','admission'); assert.equal(state.calls.length,0);
     }
