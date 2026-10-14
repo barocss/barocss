@@ -640,3 +640,14 @@ The existing `examples/canvas2d-scene/path-control-editing/index.html?split=1` p
 ### Browser paragraph preparation
 
 `rasterizeBrowserParagraphText` fits a well-formed Unicode original of1–128 UTF16 units to a declared advance width. Require font, atlasId, maxWidth, lineAdvance, direction (`ltr` or `rtl`) and breakPolicy (`grapheme`); DPR defaults to1 and physical lineAlign toleft. Native Intl.Segmenter supplies grapheme boundaries. LF separates nonblank hard lines; soft wrapping preserves every cluster and space. The helper checks all complete remaining prefixes and selects the greatest fitting endpoint, with at most512 measures and4 draws. No fit or more than4 lines uses ASSET_LIMIT before drawing. Missing Segmenter/browser facilities use UNSUPPORTED_FEATURE. Existing1024×256/1MiB copied atlas and scratch reset limits apply. The result records original UTF16 line ranges, resolved segmenter locale and preparation direction while keeping one whole-label quad. Browser shaping and cluster wrapping remain tied to the prepared host font/profile.
+
+## Two-node browser labels
+
+Open `consumer/diagram.html?labels=1` to edit a separate Unicode label on each existing draggable diagram node. This consumer uses the adopted public single-line browser text provider,16px system-ui/DPR2 and1..32 original UTF16 units per label. Node sizes, connector and clipping remain fixed. A label whose complete padded quad exceeds66x26 logical pixels is refused before display candidate admission. Corrective drafts remain editable.
+
+Each node owns a separate copied atlas. A successful selected-node edit preserves the other label bytes, IDs, positions and connector data. Font readiness is bounded to5s; drag start invalidates a waiting Apply, and late/superseded work cannot be adopted. Cold JSON Open restores bounded saved bytes/layout through fresh public handles without fonts, rasterization or saved-profile inference. Restored edits use the current profile. The fixed H/I default and its original evidence are preserved. Focused proof is separate in `consumer/evidence/diagram-browser-labels/`; native acceptance, exact adoption and broader Root1254 qualification remain distinct.
+
+
+### Diagram document edit controls
+
+In `diagram.html?labels=1`, a successful document Open selects node A and loads both edit drafts from the restored labels. Refused or stale Open keeps the previous edit controls. Stored pixels reopen without font preparation. The fixed H/I default remains a separate example route. Focused correction evidence is in `consumer/evidence/diagram-label-open-reset/`; original browser-label evidence retains its first reset failure.

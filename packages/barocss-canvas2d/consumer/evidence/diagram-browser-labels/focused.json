@@ -1,0 +1,130 @@
+{
+  "status": "PASS",
+  "assertions": 174,
+  "actualHostApplyExtracted": true,
+  "entries": [
+    {
+      "entry": "source",
+      "controlledFacilities": true,
+      "actualBrowser": false,
+      "coldRefusals": 12,
+      "actualApplyPoisonAndBootstrap": true,
+      "actualMoveRenderRollback": true,
+      "actualPartialBindingCleanup": true,
+      "fontWaitThenDragBeforeFirstMove": {
+        "helper": 0,
+        "canvas": 0
+      },
+      "fontLoadThenDrag": {
+        "helper": 0,
+        "canvas": 0
+      },
+      "controlledTimeoutMS": 5,
+      "declaredHostTimeoutMS": 5000,
+      "getterReads": 0,
+      "events": {
+        "loads": 4,
+        "checks": 6,
+        "canvas": 3,
+        "draws": 3,
+        "reads": 3,
+        "measures": 3,
+        "backings": [
+          {
+            "width": 0,
+            "height": 0
+          },
+          {
+            "width": 0,
+            "height": 0
+          },
+          {
+            "width": 0,
+            "height": 0
+          }
+        ]
+      },
+      "providerNumericalSuiteReplayed": false
+    },
+    {
+      "entry": "emitted",
+      "controlledFacilities": true,
+      "actualBrowser": false,
+      "coldRefusals": 12,
+      "actualApplyPoisonAndBootstrap": true,
+      "actualMoveRenderRollback": true,
+      "actualPartialBindingCleanup": true,
+      "fontWaitThenDragBeforeFirstMove": {
+        "helper": 0,
+        "canvas": 0
+      },
+      "fontLoadThenDrag": {
+        "helper": 0,
+        "canvas": 0
+      },
+      "controlledTimeoutMS": 5,
+      "declaredHostTimeoutMS": 5000,
+      "getterReads": 0,
+      "events": {
+        "loads": 4,
+        "checks": 6,
+        "canvas": 3,
+        "draws": 3,
+        "reads": 3,
+        "measures": 3,
+        "backings": [
+          {
+            "width": 0,
+            "height": 0
+          },
+          {
+            "width": 0,
+            "height": 0
+          },
+          {
+            "width": 0,
+            "height": 0
+          }
+        ]
+      },
+      "providerNumericalSuiteReplayed": false
+    }
+  ],
+  "firstFailures": [
+    {
+      "kind": "probe oracle exact floating center comparison",
+      "log": "/tmp/c2d1407-focused-first-failure.txt",
+      "observed": [
+        194.99999999999997,
+        109.99999999999999
+      ],
+      "expected": [
+        195,
+        110
+      ],
+      "repair": "Only independent center comparisons now use the already frozen 1e-10 conversion tolerance. Fields, bytes and topology remain exact."
+    },
+    {
+      "kind": "first scoped JSDoc/narrowing diagnostics",
+      "log": "/tmp/c2d1407-scoped-types.txt",
+      "repair": "Owned host annotations/primitive guards and descriptor type narrowing fixed before browser; intermediate diagnostics retained."
+    }
+  ],
+  "build": {
+    "exit": 0,
+    "log": "/tmp/c2d1407-build.txt",
+    "bundleKiB": 312.1
+  },
+  "types": {
+    "common": {
+      "exit": 0,
+      "log": "/tmp/c2d1407-common-final-ready-types.txt"
+    },
+    "scoped": {
+      "exit": 0,
+      "log": "/tmp/c2d1407-scoped-final-ready-types.txt"
+    }
+  },
+  "successfulPairedProbeRuns": 1,
+  "providerNumericalSuiteReplayed": false
+}
