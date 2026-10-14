@@ -373,3 +373,30 @@ flatRail.rotate({ axis: 'x', angleDegrees: copySpacing });
 flatRail.rotate();
 // @ts-expect-error Extra arguments are not admitted.
 flatRail.rotate({ axis: 'x', angleDegrees: 90 }, true);
+
+
+const mirrorModel = cad.model();
+const mirrorOriginal = mirrorModel.sketch.rectangle({ width: 32, height: 24 }).extrude(8, { from: 3 });
+const mirroredShape: CadShape = mirrorOriginal.mirror({ plane: 'xy' });
+const mirrorSnapshot: CadModelSnapshot = mirrorModel.build({ original: mirrorOriginal, mirrored: mirroredShape });
+const mirrorEvidence = mirrorSnapshot.evidence.find(item => item.kind === 'mirror');
+if (mirrorEvidence?.kind === 'mirror') {
+  const plane: 'xy' | 'xz' | 'yz' = mirrorEvidence.native.request.spec.plane;
+  const determinant: -1 = mirrorEvidence.native.report.determinant;
+  const mappedFace: string = mirrorEvidence.native.lineage.faces[0].mirrored.faceId;
+  void [plane, determinant, mappedFace];
+}
+for (const plane of ['xy', 'xz', 'yz'] as const)
+  cad.model().sketch.rectangle({ width: 32, height: 24 }).extrude(8).mirror({ plane });
+// @ts-expect-error The selected plane must be one of the three cardinal planes.
+mirrorOriginal.mirror({ plane: 'zx' });
+// @ts-expect-error Arbitrary plane normals are not admitted.
+mirrorOriginal.mirror({ normal: [0, 0, 1] });
+// @ts-expect-error The selected plane passes through the world origin.
+mirrorOriginal.mirror({ plane: 'xy', offset: 3 });
+// @ts-expect-error A length dimension cannot name a plane.
+mirrorOriginal.mirror({ plane: copySpacing });
+// @ts-expect-error One own-data options record is required.
+mirrorOriginal.mirror();
+// @ts-expect-error Extra arguments are not admitted.
+mirrorOriginal.mirror({ plane: 'xy' }, true);

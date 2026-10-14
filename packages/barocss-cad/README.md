@@ -11105,3 +11105,47 @@ An admitted parent can still fail native Gram or UV reconstruction under a map.
 The original provider cause and completed-work report remain available. This API
 does not promise success for every parent or map. Mass tensor transformation,
 STL export, general rotation, editor, GPU, and manufacturing proof are separate.
+
+### One owned mirror in a cardinal plane through the world origin
+
+```ts
+import { cad } from '@barocss/cad';
+
+const m = cad.model();
+const blank = m.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const front = blank.chamfer(blank.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one(), 1);
+const finished = front.chamfer(front.edges({ parallelTo: 'x', at: { y: 24, z: 'max' } }).one(), 2);
+const mirrored = finished.mirror({ plane: 'xz' });
+const snapshot = m.build({ original: finished, mirrored });
+const reopened = cad.load(snapshot.save());
+void reopened;
+```
+
+`mirror({ plane })` takes one exact own-data record. The plane must be `'xy'`,
+`'xz'`, or `'yz'`. It passes through the world origin. The active coordinate maps
+are `xy=(x,y,-z)`, `xz=(x,-y,z)`, and `yz=(-x,y,z)`. Positive components copy
+bits. The negative component uses unary negation, including signed zero. Save
+retains the authored plane. No plane offset, pivot, alias, or arbitrary normal is
+admitted.
+
+The parent must be one owned affine rectangle, polygon, or constrained-polygon
+extrusion, with optional `from` placement. Its complete linear chain of one or
+two chamfers is also admitted. Mirror is terminal. Finish the parent first. The
+six-node limit remains. Chained transforms, later features through retained
+handles, unrelated finishing siblings, Boolean, hole, circle, split ancestry,
+and unsupported family mixes refuse.
+
+The operation rebuilds and qualifies an independently owned convex-planar Solid.
+It preserves Surface and trim-Curve pole order, basis, weights, and increasing
+domains. Each Face orientation changes once because reflection has determinant
+`-1`. The native Face builder reverses directed uses, senses, intervals, and
+vertex endpoints. The complete directed topology, paired maps, vertex links,
+and all eight lineage classes are checked. Outward normals and support origins
+reflect. Exact positive volume and support offsets remain unchanged.
+
+The native Face builder regenerates pcurves and checks their whole UV lift.
+Pcurves are not copied or claimed to have identical control-point bits. A valid
+parent can still fail native Gram or UV reconstruction under a reflection. The
+original cause and completed-work report remain available. No success promise
+covers every parent and plane. General reflection, assembly placement, mass
+transformation, STL acceptance, editor, GPU, and manufacturing proof are separate.
