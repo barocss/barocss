@@ -1689,10 +1689,45 @@
     }
   ],
   "apiBaseline": {
-    "status": "pending immutable public product pin",
-    "expectedAdded": [],
-    "expectedRemoved": [],
-    "expectedChanged": [],
+    "status": "PASS",
+    "sourcePin": "728fb54cc4ab2c6f9f32b04c6f14688d137a171b",
+    "publicProductTree": "78636638ce9af0c536ba707ef16cedf6842175d9",
+    "inventorySHA256": "a93e5d4844e1a72149d6618191b7b942efc1ef5175d64358db89c37541f1d7ac",
+    "semanticDelta": {
+      "added": [],
+      "removed": [],
+      "changed": [],
+      "beforePin": "576decad4cba4b5151cb4ea6507800e632e0c8bd",
+      "sourcePin": "728fb54cc4ab2c6f9f32b04c6f14688d137a171b",
+      "typescript": "5.9.3",
+      "signatures": {}
+    },
+    "results": [
+      {
+        "name": "qualified-write",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--write-current",
+          "--commit",
+          "728fb54cc4ab2c6f9f32b04c6f14688d137a171b"
+        ],
+        "exitCode": 0,
+        "seconds": 5.077964313997654
+      },
+      {
+        "name": "qualified-check",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--check"
+        ],
+        "exitCode": 0,
+        "seconds": 4.927305781995528
+      }
+    ],
+    "extractorSHA256": "01a0cf2b03a47e540148033c2a788f15dd1fa77cdab27011ef264e2786b02186",
+    "historicalSHA256": "fce5dd0d5c8689f7329944111ef522d819d8a72850c0c13df6adc8a2df7158b3",
     "meaning": "Current extractor preserves private ModelingStructureCommand alias in controller method signatures. New add-hole input is an additive behavior behind that alias; zero signature digest change does not mean no new behavior. Refresh source-tree/line metadata only unless actual extraction proves otherwise."
   },
   "embeddedLogs": {
@@ -1727,6 +1762,14 @@
     "render-links.log": {
       "sha256": "b0e4b12ecbaf95c67fbdf2992754f7182c31d779af1d7397fad311a39820c8fe",
       "text": "{\"result\":\"PASS\",\"candidate\":\"d4a3bb3abdd4065f1ca78021772905f1a057521e\",\"node\":\"v24.19.0\",\"vitepress\":\"1.6.4\",\"pages\":1,\"emittedHeadingIds\":[\"add-one-through-hole-to-a-rectangular-part\"],\"verifiedCrosslinks\":66}\n"
+    },
+    "api/qualified-write.log": {
+      "sha256": "8a68a4b440cdf653f9e1f9be513b17b053aa12e28cd8308a5d558e316022915d",
+      "text": "(node:19) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"status\":\"written\",\"evidence\":\"evidence/current-public-api.json\",\"sourceCommit\":\"728fb54cc4ab2c6f9f32b04c6f14688d137a171b\",\"packages\":9,\"changesFromHistorical\":{\"added\":1644,\"removed\":0,\"changed\":52}}\n"
+    },
+    "api/qualified-check.log": {
+      "sha256": "73cf7d3183f632a144db9fc32193f0518b21269527dd9546af05751302efea01",
+      "text": "(node:63) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"status\":\"matched\",\"sourceCommit\":\"728fb54cc4ab2c6f9f32b04c6f14688d137a171b\",\"scope\":\"current API\",\"packages\":9,\"entries\":75,\"exportedOccurrences\":4191,\"extractor\":\"5.9.3\"}\n"
     }
   },
   "limits": [
