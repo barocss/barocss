@@ -11308,3 +11308,56 @@ child reports remain available. This operation does not prove that occupied
 regions are disjoint or fuse them into one body. General patterns, persistent
 naming, mass transformation, STL acceptance, editor, GPU, and manufacturing
 proof are separate.
+
+### Four owned instances in a full cardinal circular pattern
+
+```ts
+import { cad } from '@barocss/cad';
+
+const m = cad.model();
+const backDistance = m.parameter('backDistance', 2);
+const blank = m.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const front = blank.chamfer(blank.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one(), 1);
+const finished = front.chamfer(front.edges({ parallelTo: 'x', at: { y: 24, z: 'max' } }).one(), backDistance);
+const [original, quarter, half, threeQuarter] = finished.circularPattern({ axis: 'x', angleDegrees: 90, count: 4 });
+const snapshot = m.build({ original, quarter, half, threeQuarter });
+const edited = snapshot.withParameters({ backDistance: 3 });
+const reopened = cad.load(edited.save());
+void reopened;
+```
+
+`circularPattern({ axis, angleDegrees, count: 4 })` returns a frozen tuple of
+four shapes. The first entry is the exact original handle. The three copies
+come independently from that same original. A positive `90` degree step creates
+`90/180/270` degree copies. A negative `-90` degree step creates
+`270/180/90` degree copies. The axis is `'x'`, `'y'`, or `'z'` through the
+world origin. There is no extra `360` degree copy.
+
+Literal count `3` keeps its three-entry tuple and existing authored and native
+data. Literal count `4` has a four-entry tuple. A count typed as `3 | 4`
+returns the union of those exact tuples; checking its length identifies which
+tuple was returned. Count four alone admits the third copy reference.
+Linear patterns still require count three.
+
+The same direct affine extrusion or complete one/two-chamfer parent chain is
+required. Optional extrusion `from` placement remains part of the original
+coordinates. The six-node limit remains. A single terminal pattern node
+produces every copy. Later features through retained handles, copy selection,
+pattern chains, transform ancestry, and unsupported body families refuse.
+
+Every new identity and all three complete stored Surface and trim-Line
+coefficient sets are checked before the first copy is built. Exact signed
+coordinate permutations preserve the selected binary64 coefficient or negate
+its sign, including signed zero. Each copy uses the unchanged cardinal rotation
+constructor and retains its own complete native qualification and eight-class
+lineage. Native pcurves are regenerated and checked under the existing whole
+UV policy; sampled floating D1 values do not claim bit covariance.
+
+Source parameter edits reuse the unchanged prefix and rebuild all three
+dependent copies. Save retains the authored count and angle sign. A refused
+edit leaves the accepted snapshot unchanged. If the third copy fails, the whole
+pattern refuses and preserves the original cause and the first two completed
+child reports. The unchanged snapshot budgets can refuse a larger result.
+This API does not fuse bodies or certify disjoint occupied regions. Arbitrary
+counts, angles, axes, pivots, persistent naming, mass transformation, STL
+acceptance, editor, GPU, and manufacturing proof are separate.

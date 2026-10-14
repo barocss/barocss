@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "purpose": "Current checkout manifest metadata only; not an API, runtime, publication, or held-lane activation receipt.",
-  "manifestCommit": "340a90fb9cbc6b5e022b0721fa799661f601d257",
+  "manifestCommit": "55a893441ee5da9341bed44252337bda2adac1c8",
   "historicalSourceCommit": "5f5ad866205a21510ac69552e704cc162fa253b5",
   "historicalInventorySha256": "b121aac9620fb8fe966c292710990317bf88b1b3535ea31a31cd787cefe7c2b5",
   "packages": [
@@ -416,7 +416,7 @@
     {
       "slug": "cad-interop",
       "directory": "packages/barocss-cad-interop",
-      "manifestSha256": "1165e25a296cbfd93fc522f004392aff1a7ba886db138ad61f17aec16ba21867",
+      "manifestSha256": "dcd14dd8a4120cc59c495a995a3c428545ecad9208bd1c9221d92af21dce0236",
       "manifest": {
         "name": "@barocss/cad-interop",
         "version": "0.0.0-experimental",
@@ -649,6 +649,10 @@
             "./paired-surface-material-body-result": {
               "types": "./dist/paired-surface-material-body-result.d.ts",
               "import": "./dist/paired-surface-material-body-result.js"
+            },
+            "./paired-surface-material-body-world-points-result": {
+              "types": "./dist/paired-surface-material-body-world-points-result.d.ts",
+              "import": "./dist/paired-surface-material-body-world-points-result.js"
             }
           }
         },
@@ -881,6 +885,10 @@
           "./paired-surface-material-body-result": {
             "types": "./src/paired-surface-material-body-result.ts",
             "import": "./src/paired-surface-material-body-result.ts"
+          },
+          "./paired-surface-material-body-world-points-result": {
+            "types": "./src/paired-surface-material-body-world-points-result.ts",
+            "import": "./src/paired-surface-material-body-world-points-result.ts"
           }
         },
         "files": [
@@ -893,12 +901,15 @@
           "build:library": "tsc -p tsconfig.json",
           "type-check": "tsc -p tsconfig.json --noEmit",
           "lint": "eslint src",
-          "test": "pnpm build:library && node --test test/interop.test.mjs",
+          "test": "pnpm build:library && node --test test/interop.test.mjs && node examples/paired-surface-material-body-world-points-codec-verify.mjs && tsc -p tsconfig.world-reader-contract.json && tsc -p tsconfig.world-reader-physical.json",
           "test:native": "pnpm --filter @barocss/cad build:library && pnpm build:library && node test/native-loader.test.mjs",
           "test:babylon": "pnpm --filter @barocss/cad build:library && pnpm build:library && node test/babylon-loader.test.mjs",
           "test:curve": "node test/curve-loader.test.mjs",
           "test:abortable": "node test/abortable-loader.test.mjs",
-          "test:integration": "pnpm --filter @barocss/cad build:library && pnpm --filter @barocss/gpu build:library && pnpm build:library && node --test test/cad-integration.test.mjs"
+          "test:integration": "pnpm --filter @barocss/cad build:library && pnpm --filter @barocss/gpu build:library && pnpm build:library && node --test test/cad-integration.test.mjs",
+          "test:world:native": "pnpm --filter @barocss/cad build:library && pnpm build:library && node examples/paired-surface-material-body-world-points-native-run.mjs",
+          "test:world:preflight": "node examples/paired-surface-material-body-world-points-fixture-preflight.mjs",
+          "test:world:result": "node examples/paired-surface-material-body-world-points-result-verify.mjs"
         },
         "dependencies": {
           "@barocss/cad": "workspace:*"
@@ -1309,6 +1320,10 @@
               "./paired-surface-material-body-result": {
                 "types": "./dist/paired-surface-material-body-result.d.ts",
                 "import": "./dist/paired-surface-material-body-result.js"
+              },
+              "./paired-surface-material-body-world-points-result": {
+                "types": "./dist/paired-surface-material-body-world-points-result.d.ts",
+                "import": "./dist/paired-surface-material-body-world-points-result.js"
               }
             }
           }
@@ -1681,7 +1696,39 @@
             "./paired-surface-material-body-result": {
               "types": "./src/paired-surface-material-body-result.ts",
               "import": "./src/paired-surface-material-body-result.ts"
+            },
+            "./paired-surface-material-body-world-points-result": {
+              "types": "./src/paired-surface-material-body-world-points-result.ts",
+              "import": "./src/paired-surface-material-body-world-points-result.ts"
             }
+          }
+        },
+        {
+          "field": "scripts",
+          "before": {
+            "build:library": "tsc -p tsconfig.json",
+            "type-check": "tsc -p tsconfig.json --noEmit",
+            "lint": "eslint src",
+            "test": "pnpm build:library && node --test test/interop.test.mjs",
+            "test:native": "pnpm --filter @barocss/cad build:library && pnpm build:library && node test/native-loader.test.mjs",
+            "test:babylon": "pnpm --filter @barocss/cad build:library && pnpm build:library && node test/babylon-loader.test.mjs",
+            "test:curve": "node test/curve-loader.test.mjs",
+            "test:abortable": "node test/abortable-loader.test.mjs",
+            "test:integration": "pnpm --filter @barocss/cad build:library && pnpm --filter @barocss/gpu build:library && pnpm build:library && node --test test/cad-integration.test.mjs"
+          },
+          "after": {
+            "build:library": "tsc -p tsconfig.json",
+            "type-check": "tsc -p tsconfig.json --noEmit",
+            "lint": "eslint src",
+            "test": "pnpm build:library && node --test test/interop.test.mjs && node examples/paired-surface-material-body-world-points-codec-verify.mjs && tsc -p tsconfig.world-reader-contract.json && tsc -p tsconfig.world-reader-physical.json",
+            "test:native": "pnpm --filter @barocss/cad build:library && pnpm build:library && node test/native-loader.test.mjs",
+            "test:babylon": "pnpm --filter @barocss/cad build:library && pnpm build:library && node test/babylon-loader.test.mjs",
+            "test:curve": "node test/curve-loader.test.mjs",
+            "test:abortable": "node test/abortable-loader.test.mjs",
+            "test:integration": "pnpm --filter @barocss/cad build:library && pnpm --filter @barocss/gpu build:library && pnpm build:library && node --test test/cad-integration.test.mjs",
+            "test:world:native": "pnpm --filter @barocss/cad build:library && pnpm build:library && node examples/paired-surface-material-body-world-points-native-run.mjs",
+            "test:world:preflight": "node examples/paired-surface-material-body-world-points-fixture-preflight.mjs",
+            "test:world:result": "node examples/paired-surface-material-body-world-points-result-verify.mjs"
           }
         }
       ]
