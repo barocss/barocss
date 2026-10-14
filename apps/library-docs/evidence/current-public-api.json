@@ -1,7 +1,7 @@
 {
   "schema": "barocss-current-public-api-v1",
   "typescriptVersion": "5.9.3",
-  "sourceCommit": "18f975f4bad4b572235ad0a86254fc69290771ab",
+  "sourceCommit": "56bfd84ab45200f33358d716090eb55378230415",
   "extractor": "TypeScript 5.9.3 public module exports and declarations; not a type-check or runtime execution",
   "packages": [
     {
@@ -21671,6 +21671,66 @@
               "digest": "d05cc66a891825a5de38a5f5a81357b6b5d4a2f9dd475f93840c23036dbcebb7"
             },
             {
+              "name": "KnownSolidFamily",
+              "kind": "TypeAliasDeclaration",
+              "source": "packages/barocss-cad/src/known-solid-qualification.ts",
+              "line": 12,
+              "signatures": [
+                "export type KnownSolidFamily =\n  | 'exact-axis-box-solid-v0'\n  | 'restricted-stored-rational-plate-hole-solid';"
+              ],
+              "digest": "879790209c6a9d6a36cc18483e38aac69d3f15474a3c5acbb52862d9c7fb26f9"
+            },
+            {
+              "name": "KnownSolidQualification",
+              "kind": "TypeAliasDeclaration",
+              "source": "packages/barocss-cad/src/known-solid-qualification.ts",
+              "line": 25,
+              "signatures": [
+                "export type KnownSolidQualification =\n  | {\n      readonly status: 'certified';\n      readonly kind: 'solid';\n      readonly family: KnownSolidFamily;\n      readonly method: 'exact-safe-integer' | 'stored-rational-family-proof';\n      readonly nativeReport: ReturnType<typeof validateAxisBoxSolid> | ReturnType<typeof qualifyStoredPlateHoleSolid>['certificate'];\n    }\n  | {\n      readonly status: 'refused';\n      readonly family: KnownSolidFamily | 'unsupported';\n      readonly requestedKind: KnownTopologyKind | 'unknown';\n      readonly reason: KnownSolidRefusalReason;\n      /** These checks are not certified by this facade after refusal. */\n      readonly notCertifiedChecks: readonly KnownTopologyCheck[];\n      readonly code: string;\n      readonly detail: string;\n    };"
+              ],
+              "digest": "164351fb7146cdf33bcbe44115456e410ace65b2dfea0ebb3c336047dff100fe"
+            },
+            {
+              "name": "KnownSolidRefusalReason",
+              "kind": "TypeAliasDeclaration",
+              "source": "packages/barocss-cad/src/known-solid-qualification.ts",
+              "line": 18,
+              "signatures": [
+                "export type KnownSolidRefusalReason = 'invalid-request' | 'unsupported-kind' | 'unsupported-family' | 'native-validation';"
+              ],
+              "digest": "859863465ddd7d6422e4475309a87187a202bda9088d6c496575a8dfd1486362"
+            },
+            {
+              "name": "KnownSolidRequest",
+              "kind": "TypeAliasDeclaration",
+              "source": "packages/barocss-cad/src/known-solid-qualification.ts",
+              "line": 20,
+              "signatures": [
+                "export type KnownSolidRequest =\n  | { readonly kind?: 'solid'; readonly family: 'exact-axis-box-solid-v0'; readonly source: unknown }\n  | { readonly kind?: 'solid'; readonly family: 'restricted-stored-rational-plate-hole-solid'; readonly source: OwnPlateCircularHoleBundle }\n  | { readonly kind: 'wire' | 'sheet' | 'shell'; readonly source?: unknown; readonly family?: string };"
+              ],
+              "digest": "3618d0127822c5151d8a9ea9d28b94fac46294eb047a41304bd3e5e9fd1f29ad"
+            },
+            {
+              "name": "KnownTopologyCheck",
+              "kind": "TypeAliasDeclaration",
+              "source": "packages/barocss-cad/src/known-solid-qualification.ts",
+              "line": 17,
+              "signatures": [
+                "export type KnownTopologyCheck = 'incidence' | 'orientation' | 'trim' | 'closure';"
+              ],
+              "digest": "d41ab6fa139e81999c2f5e4fa0a666298d395ed1f7c528ca801fdd91a7756377"
+            },
+            {
+              "name": "KnownTopologyKind",
+              "kind": "TypeAliasDeclaration",
+              "source": "packages/barocss-cad/src/known-solid-qualification.ts",
+              "line": 16,
+              "signatures": [
+                "export type KnownTopologyKind = 'wire' | 'sheet' | 'shell' | 'solid';"
+              ],
+              "digest": "4c5c4cb2c001e7278130638e40fccf8a8641c23e8da06f49ff5b1285a5b27e32"
+            },
+            {
               "name": "LinearGeometryPatternDiagnosticCode",
               "kind": "VariableDeclaration",
               "source": "packages/barocss-cad/src/linear-geometry-pattern.ts",
@@ -23824,6 +23884,16 @@
                 "export function qualifyConvexPlanarSolid(assets: ConvexPlanarSolidAsset[], edgePairs: ConvexPlanarSolidEdgePair[], options: ConvexPlanarSolidOptions): ConvexPlanarSolidResult;"
               ],
               "digest": "cb91a971eaa056dbdc26087d1a9be11e780b00747e5a172d21e28fd88fd6806b"
+            },
+            {
+              "name": "qualifyKnownSolid",
+              "kind": "FunctionDeclaration",
+              "source": "packages/barocss-cad/src/known-solid-qualification.ts",
+              "line": 78,
+              "signatures": [
+                "export function qualifyKnownSolid(request: KnownSolidRequest): KnownSolidQualification;"
+              ],
+              "digest": "d296565cf1641c4f446bf3dff60de93b7384c3f335efb70db1bf9804d968d2e1"
             },
             {
               "name": "qualifyRectangularFaceExtrusionBody",
@@ -34759,6 +34829,12 @@
                 "IGESObjectReport",
                 "JoinedCurveReport",
                 "JoinedCurveResult",
+                "KnownSolidFamily",
+                "KnownSolidQualification",
+                "KnownSolidRefusalReason",
+                "KnownSolidRequest",
+                "KnownTopologyCheck",
+                "KnownTopologyKind",
                 "LinearGeometryPatternDiagnosticCode",
                 "LinearGeometryPatternError",
                 "LinearGeometryPatternInstance",
@@ -35787,6 +35863,7 @@
                 "parseXYSketchDocument",
                 "parseZAxisRevolveFeatureDocument",
                 "qualifyConvexPlanarSolid",
+                "qualifyKnownSolid",
                 "qualifyRectangularFaceExtrusionBody",
                 "qualifyStoredCirclePrismSolid",
                 "qualifyStoredPlateHoleSolid",
@@ -36058,6 +36135,18 @@
                 "validateXYPolygonPrismShellWithHole",
                 "validateXYPolygonRegion",
                 "verifyXYAngleArcArtifact"
+              ]
+            },
+            {
+              "source": "packages/barocss-cad/src/known-solid-qualification.ts",
+              "names": [
+                "KnownSolidFamily",
+                "KnownSolidQualification",
+                "KnownSolidRefusalReason",
+                "KnownSolidRequest",
+                "KnownTopologyCheck",
+                "KnownTopologyKind",
+                "qualifyKnownSolid"
               ]
             },
             {
@@ -55523,7 +55612,7 @@
   "packageTrees": {
     "packages/barocss-render": "b83e4912e1d1aa658f048ba4b112376785b288fb",
     "packages/barocss-gpu": "1bd13f5ea8fc0394c85cff12d7a84e1401bfccde",
-    "packages/barocss-cad": "c3e0ffe0a6cf66d62c32bfc1e6e1552d166cc493",
+    "packages/barocss-cad": "f9a96d5e29357b7a953e5b6db91181c9b9148b78",
     "packages/barocss-cad-interop": "330d0323e1d3891c8a1f882e848aae604ea67b08",
     "packages/barocss-canvas2d": "b029d1925907fbac9a19d6c2f825cbfd91323473",
     "packages/barocss-viewer": "cb48d4ca378dd7050573ab1f57a1c554449885e5",
@@ -56298,6 +56387,12 @@
       "@barocss/cad.:insertSourceCurveKnot",
       "@barocss/cad.:insertSourceSurfaceKnot",
       "@barocss/cad.:intersectConvexPlanarSolids",
+      "@barocss/cad.:KnownSolidFamily",
+      "@barocss/cad.:KnownSolidQualification",
+      "@barocss/cad.:KnownSolidRefusalReason",
+      "@barocss/cad.:KnownSolidRequest",
+      "@barocss/cad.:KnownTopologyCheck",
+      "@barocss/cad.:KnownTopologyKind",
       "@barocss/cad.:measureConvexPlanarSolidMass",
       "@barocss/cad.:measureTranslatedSurfaceStripVolume",
       "@barocss/cad.:NativeExtrusionAcceptedV1",
@@ -56407,6 +56502,7 @@
       "@barocss/cad.:QualifiedTranslatedStripBodyReport",
       "@barocss/cad.:QualifiedTranslatedStripBodyResult",
       "@barocss/cad.:qualifyConvexPlanarSolid",
+      "@barocss/cad.:qualifyKnownSolid",
       "@barocss/cad.:qualifyRectangularFaceExtrusionBody",
       "@barocss/cad.:qualifyStoredCirclePrismSolid",
       "@barocss/cad.:RectangularFaceExtrusionBodyDiagnosticCode",
