@@ -484,9 +484,17 @@ export class PrimitiveViewport {
 }
 export function mountPrimitiveViewport(canvas:HTMLCanvasElement,options:PrimitiveSceneOptions):PrimitiveViewport{return new PrimitiveViewport(canvas,options);}
 
-function completeMountCandidate(input:unknown,profile:'qualified-v2'|'viewport-v2'):ReturnType<typeof prepare>{
+function prepareCompleteMountFrame(input:unknown,profile:'qualified-v2'|'viewport-v2'):ReturnType<typeof preparePrimitiveSceneFrame>{
  const prepared=preparePrimitiveSceneFrame(input,profile);
  for(const primitive of prepared.primitives)validateCompleteShaderSource(primitive.entry.kind==='surface'?(primitive.material?materialMeshShaders(prepared.frame.options.lighting,primitive.material):meshLightingShaders(prepared.frame.options.lighting)):LINE_SHADERS);
+ return prepared;
+}
+/** Package-internal CPU admission for explicit retirement; not a trusted mount token. */
+export function preparePrimitiveViewportMountFrame(input:unknown):ReturnType<typeof preparePrimitiveSceneFrame>['frame']{
+ return prepareCompleteMountFrame(input,'viewport-v2').frame;
+}
+function completeMountCandidate(input:unknown,profile:'qualified-v2'|'viewport-v2'):ReturnType<typeof prepare>{
+ const prepared=prepareCompleteMountFrame(input,profile);
  return{primitives:prepared.primitives.map(primitive=>({...primitive})),options:prepared.frame.options};
 }
 /** Mount one complete qualified frame on the existing V2 backend. No bootstrap update. */

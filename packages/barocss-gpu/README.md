@@ -4699,3 +4699,30 @@ Viewer adoption, current integrated validation or publication.
 `examples/gpu-scene/primitive-complete-mount-flow.mjs --output <fresh-directory> --fixture-dir <CPU-preflight-directory>`
 uses saved genuine native/material/frame files for source/emitted factory and
 cold API admission; unsupported Node targets do not instantiate a renderer.
+
+## Explicit QualifiedFace to PrimitiveViewport handoff
+
+`handoffQualifiedFaceToPrimitiveViewport(previous, frame, 'dispose-remount')`
+requires an authentic mounted QualifiedFace owner from the same module and the
+caller's exclusive ownership of its canvas/context. It does not discover or
+coordinate independently mounted legacy renderer families. No other live owner
+may share that canvas. The `atomic` mode refuses without changing the old owner.
+
+Complete frame0/scene2 data and final shader text are admitted before retirement.
+A `preflight` refusal leaves the old owner unchanged. Valid explicit retirement
+captures an independent deeply frozen `previousScene`, disposes the old owner,
+and mounts exactly one complete PrimitiveViewport on the same canvas. `ready`
+returns that viewport. `retirement` failure prevents a new mount; `mount` failure
+leaves the old owner disposed and no accepted successor. Both failures retain
+`previousScene` and original error causes. No prior pixel rollback or automatic
+reopen is promised after retirement. Old original data remain readable through
+`getScene()`; old live methods reject `DISPOSED`. Repeated/reentrant transfer and
+forged/foreign owners refuse. A failed preflight may be corrected and retried.
+
+Existing strict native/material admission, particles:null, 0..4 primitive caps,
+units, IDs, source/F64/UV authority and backing dimensions remain unchanged. The
+candidate is re-admitted by the complete mount factory: two bounded CPU passes,
+no trusted mutable prepared token. Cross-runtime saved material IR differences
+still refuse under the existing validator. This software API does not qualify
+actual same-context pixels, device loss, physical resource reclamation, Viewer
+consumption or other renderer-family transitions.
