@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { configureEngineWebGPUCanvas } from '../dist/engine-webgpu-canvas-config.js';
+// Registered Canvas acceptance also runs the private one-shot composition contract.
+import './engine-webgpu-canvas-once.test.mjs';
 function harness() {
   const events = [], device = { limits: { maxTextureDimension2D: 4096 } };
   const context = {
