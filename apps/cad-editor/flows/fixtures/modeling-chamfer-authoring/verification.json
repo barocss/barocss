@@ -2010,8 +2010,8 @@
   },
   "apiBaseline": {
     "status": "PASS",
-    "sourceCommit": "b650e68f6de67dd3ddfa43bb83d0ea7f9014af35",
-    "sourceTree": "7ee1fe38f46e2d47e033b84be6bbd4b109ef572b",
+    "sourceCommit": "2b04d1201875a7d73c65224fb7533dc581ddf704",
+    "sourceTree": "a6a1af3c346b4501c6ab328ba152ebf28a6a1179",
     "results": [
       {
         "name": "qualified-write",
@@ -2020,10 +2020,10 @@
           "apps/library-docs/scripts/public-api.mjs",
           "--write-current",
           "--commit",
-          "b650e68f6de67dd3ddfa43bb83d0ea7f9014af35"
+          "2b04d1201875a7d73c65224fb7533dc581ddf704"
         ],
         "exitCode": 0,
-        "seconds": 5.379005127004348
+        "seconds": 5.485134246991947
       },
       {
         "name": "qualified-check",
@@ -2033,7 +2033,7 @@
           "--check"
         ],
         "exitCode": 0,
-        "seconds": 4.9270705560047645
+        "seconds": 5.233497371009435
       }
     ],
     "semanticDelta": {
@@ -2041,13 +2041,13 @@
       "removed": [],
       "changed": [],
       "beforePin": "f4c5c08b7142467fa1f377e65c25a6bfb45bdc76",
-      "sourcePin": "b650e68f6de67dd3ddfa43bb83d0ea7f9014af35",
+      "sourcePin": "2b04d1201875a7d73c65224fb7533dc581ddf704",
       "typescript": "5.9.3",
       "signatures": {}
     },
-    "inventorySHA256": "a088565bbb2d78fbae7237f3b4d98890bd32a6cb8dda62f211e7568cb59630a0",
+    "inventorySHA256": "f0351b5337debf28ac0ec1a2c226414df5d26f47782ec0dec8d3637946184776",
     "extractorSHA256": "01a0cf2b03a47e540148033c2a788f15dd1fa77cdab27011ef264e2786b02186",
-    "meaning": "Actual current nine-package extraction/check with TS5.9.3. Zero added/removed/changed exported signature digests. Current circularPattern/linearPattern/scale/mirror/rotation signatures retained. Historical inventory/extractor unchanged."
+    "meaning": "Actual latest source extraction/check after external1981 GPU merge. Zero exported signature changes. First qualified extraction remains retained; no runtime/native/build repetition."
   },
   "embeddedLogs": {
     "package-first-run.log": {
@@ -2089,6 +2089,14 @@
     "api/qualified-check.log": {
       "sha256": "bc1f3eeca646f2f3afbe6b4321c0a91622418a360609342aa7bf28b6ff8c51e5",
       "text": "(node:106) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"status\":\"matched\",\"sourceCommit\":\"b650e68f6de67dd3ddfa43bb83d0ea7f9014af35\",\"scope\":\"current API\",\"packages\":9,\"entries\":75,\"exportedOccurrences\":4191,\"extractor\":\"5.9.3\"}\n"
+    },
+    "api-latest/qualified-write.log": {
+      "sha256": "02facc2705c6796d66aaf1e3a3b3b87f70a2411f58b0027e741aeaecacbd241a",
+      "text": "(node:63) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"status\":\"written\",\"evidence\":\"evidence/current-public-api.json\",\"sourceCommit\":\"2b04d1201875a7d73c65224fb7533dc581ddf704\",\"packages\":9,\"changesFromHistorical\":{\"added\":1644,\"removed\":0,\"changed\":52}}\n"
+    },
+    "api-latest/qualified-check.log": {
+      "sha256": "4c518349ae5c2471ee33e6b9c980453d79e8733e62cce390241fde8c03a91dea",
+      "text": "(node:107) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"status\":\"matched\",\"sourceCommit\":\"2b04d1201875a7d73c65224fb7533dc581ddf704\",\"scope\":\"current API\",\"packages\":9,\"entries\":75,\"exportedOccurrences\":4191,\"extractor\":\"5.9.3\"}\n"
     }
   },
   "limits": [
@@ -2230,5 +2238,108 @@
       "packages/barocss-cad-editor/src/modeling-engine.ts": "2da88536c2baa46184c0e4f00f0857e75586b7aa1ec992cba6d4b68db00749d5"
     },
     "policy": "Exact nine reviewed files replayed;66 incoming lint paths preserved. No repeated runtime qualification for disjoint incoming source."
+  },
+  "previousQualifiedApiBaseline": {
+    "status": "PASS",
+    "sourceCommit": "b650e68f6de67dd3ddfa43bb83d0ea7f9014af35",
+    "sourceTree": "7ee1fe38f46e2d47e033b84be6bbd4b109ef572b",
+    "results": [
+      {
+        "name": "qualified-write",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--write-current",
+          "--commit",
+          "b650e68f6de67dd3ddfa43bb83d0ea7f9014af35"
+        ],
+        "exitCode": 0,
+        "seconds": 5.379005127004348
+      },
+      {
+        "name": "qualified-check",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--check"
+        ],
+        "exitCode": 0,
+        "seconds": 4.9270705560047645
+      }
+    ],
+    "semanticDelta": {
+      "added": [],
+      "removed": [],
+      "changed": [],
+      "beforePin": "f4c5c08b7142467fa1f377e65c25a6bfb45bdc76",
+      "sourcePin": "b650e68f6de67dd3ddfa43bb83d0ea7f9014af35",
+      "typescript": "5.9.3",
+      "signatures": {}
+    },
+    "inventorySHA256": "a088565bbb2d78fbae7237f3b4d98890bd32a6cb8dda62f211e7568cb59630a0",
+    "extractorSHA256": "01a0cf2b03a47e540148033c2a788f15dd1fa77cdab27011ef264e2786b02186",
+    "meaning": "Actual current nine-package extraction/check with TS5.9.3. Zero added/removed/changed exported signature digests. Current circularPattern/linearPattern/scale/mirror/rotation signatures retained. Historical inventory/extractor unchanged."
+  },
+  "latestIntegrationReconciliation": {
+    "previousParent": "d86f39b1b1def3b8785e57c90c5dbd9b6cd3ae5f",
+    "freshParent": "95f4de93e8e6adedd0d2c96ad097fb6b4e2aa7fb",
+    "incomingPaths": [
+      "packages/barocss-gpu/src/engine-webgpu-canvas-once.ts",
+      "packages/barocss-gpu/src/engine-webgpu-context-claim.ts",
+      "packages/barocss-gpu/src/engine-webgpu-device-loss.ts",
+      "packages/barocss-gpu/src/engine-webgpu-readback.ts",
+      "packages/barocss-gpu/src/engine-webgpu-session.ts",
+      "packages/barocss-gpu/src/engine-webgpu-wait-budget.ts",
+      "packages/barocss-gpu/tests/engine-webgpu-canvas-once.test.mjs",
+      "packages/barocss-gpu/tests/engine-webgpu-checked-once.test.mjs",
+      "packages/barocss-gpu/tests/engine-webgpu-device-loss.test.mjs",
+      "packages/barocss-gpu/tests/engine-webgpu-readback.test.mjs",
+      "packages/barocss-gpu/tests/engine-webgpu-session.test.mjs",
+      "packages/barocss-gpu/tests/engine-webgpu-targets.test.mjs"
+    ],
+    "runtimeHashesUnchanged": {
+      "packages/barocss-cad-editor/src/modeling-rectangular-part.ts": "cc377c51a9373878a3e1426107a54dfa95247f0e2bb39014289af820283189ea",
+      "packages/barocss-cad-editor/src/modeling-circular-part.ts": "8a13d11e3af3efa7d83e7ad3743a7db66f1905926df1dfefb661c047eefc892c",
+      "packages/barocss-cad-editor/src/modeling-file.ts": "bc271ddbbcb0d16522c0cd53b41228c89cfaa271426b02e504de3d9467b7dbfb",
+      "packages/barocss-cad-editor/src/modeling-diagnostic.ts": "ddea961e801c563b1347138adc97b58d274c7cd00d0845c4748552ffa9d4a158",
+      "packages/barocss-cad-editor/src/modeling-stl.ts": "72f3a438e7e5b624ed3fbf228416dfe23c3f3e3964f270d0e72499ea6427873d",
+      "packages/barocss-cad-editor/src/modeling-union.ts": "06d8ae40f0d1142ea19e566fa19fa84095af4416f781f6bd47e396f1866cd613",
+      "packages/barocss-cad-editor/src/modeling-composition.ts": "6289f6197d70be4356475cac4dac1130a2639a17576937227bf86a09a4540fc4",
+      "packages/barocss-cad-editor/src/modeling-circle.ts": "ce3fedc7d5bc93d035e7043fe027c3a3353979bdbe929098c6d9604964967bb8",
+      "packages/barocss-gpu/src/torus.ts": "a8e509f2a5fc5ef5ac7e4de74ebd701cb7bef14b666204a795ffdfed8710b66e",
+      "packages/barocss-gpu/src/rounded-box.ts": "7b1f5062670e809e004f4a059ef8d9f0b85c6fca52acf04087d5dab26a7db0c2",
+      "packages/barocss-gpu/src/capsule.ts": "1be57524592c7bcb836e00ecc0f6552b861e41fc1928c27d0967e7edddf91580",
+      "packages/barocss-gpu/src/scene-types.ts": "0914e7b3259af9db492e4327d44e441afd1795a034a6f4384c62c8f29b560416",
+      "packages/barocss-gpu/src/scene-front.ts": "a04d59e1a52e949cf338f5907ce68a67c373900ef1d7174a697ffca61f1ccae1",
+      "packages/barocss-gpu/src/gpu-data.ts": "b1e9c9119ae5f8d282e850fde99a31bc36e3a8a693fdf9862f962e771bd5b933",
+      "packages/barocss-gpu/src/camera.ts": "aa235612837edbc819323c385c83bdc504148cb069a973133f6eacde5c8948a8",
+      "packages/barocss-gpu/src/mesh-lighting.ts": "617cc1d58cbf2af06b69c69d46bd987f14aabcd73f3e93a3266b09bb4a443b56",
+      "packages/barocss-gpu/src/mesh-packet.ts": "80ba3cd72221ff4afc957fb52823d8d4636e0cf081a08bcd9866f6b9efcc19c0",
+      "packages/barocss-gpu/src/triangle-geometry.ts": "262cc8a3ac1f380fb665ee08b29114cdbed75fff8e86f7d847b786f5f889df49",
+      "packages/barocss-gpu/src/rotation.ts": "867e617fe81a0c59719a6209f26b0e746f4b080d541ea74025ef5517d267db9c",
+      "packages/barocss-gpu/src/compiler.ts": "4fbea79e1d5d242b4beddd5a09ef0f60bec4b4cccea532134cd91a4067c88699",
+      "packages/barocss-gpu/src/gpu-compiler.ts": "32d48acb92089a90d22e03d60b96324b7c2f05f329ea6f66dadb4fef6d458583",
+      "packages/barocss-gpu/src/mesh-scene-transform.ts": "c8c3ff42e91d79bb9affc453f0b63c672e5e76a634e319f300039717160fca7b",
+      "packages/barocss-gpu/src/engine-scene.ts": "0c9306578039cf39dcf0b4ae62dff6b8d1bd121025317e30cf095e9ac35732ca",
+      "packages/barocss-gpu/src/engine-camera-ray.ts": "028b4a68e8ea5affefee3f81c862df25f4437deda46774bed0ebd0751df29fc0",
+      "packages/barocss-gpu/src/engine-raycast.ts": "ee34709a019fcd73cbe213688087f103f625c43a70963de7edae8c7c0f6ed15a",
+      "packages/barocss-gpu/src/kernel-face-preview.ts": "6f2d59e080b528655353904b31e048728d6edf9bcc83932a5dfa38f481c934c9",
+      "packages/barocss-cad-editor/src/prism-feature-lineage.ts": "2362af088e5e01c92f355d8b244c580fda43c52890e4fde2be307f174cfba412",
+      "packages/barocss-cad-editor/src/prism-feature-scene.ts": "4fa4da5e825999d5bbc6e4cdbf09511e3c5838f41aeec91a3e56a20d3e603bfb",
+      "packages/barocss-cad-editor/src/modeling-scene.ts": "99540e89626354650b66c11938b9785fe3480fe2ec683305a02c70267dfabbe9",
+      "packages/barocss-cad-editor/src/prism-feature-controller.ts": "870435856db2175bfca6dec9c4779d349498113df96f096d6964cb2ab2ee6c02",
+      "packages/barocss-cad-editor/src/modeling-controller.ts": "83dec8a4a3a6713657a777ecb4000eb7a484454b2689bb07d046faf224c518bb",
+      "packages/barocss-cad-editor/src/modeling-engine.ts": "2da88536c2baa46184c0e4f00f0857e75586b7aa1ec992cba6d4b68db00749d5"
+    },
+    "reviewedMetadata": "4c8c17fe62c88ed5249e0325f485b9f265e708a4",
+    "previousPublicProduct": "b650e68f6de67dd3ddfa43bb83d0ea7f9014af35",
+    "previousUnreferencedMetadata": "e676d50f002a21d7c450dc83764f84cecc836b5d",
+    "casAttempted": false,
+    "reason": "Fresh check found external1981 merge; no ref mutation attempted. Requalify current GPU tree pin only."
+  },
+  "environmentInterruption": {
+    "message": "exec-server transport disconnected before process creation",
+    "verifiedAfter": "HEAD remained b80a3948, no public-api process or api-latest directory",
+    "resolution": "Same local preparation/extraction command retried after read-only state verification; no denied action or uncertain remote mutation."
   }
 }
