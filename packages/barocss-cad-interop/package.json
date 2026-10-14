@@ -230,6 +230,10 @@
       "./paired-surface-material-body-result": {
         "types": "./dist/paired-surface-material-body-result.d.ts",
         "import": "./dist/paired-surface-material-body-result.js"
+      },
+      "./paired-surface-material-body-world-points-result": {
+        "types": "./dist/paired-surface-material-body-world-points-result.d.ts",
+        "import": "./dist/paired-surface-material-body-world-points-result.js"
       }
     }
   },
@@ -462,6 +466,10 @@
     "./paired-surface-material-body-result": {
       "types": "./src/paired-surface-material-body-result.ts",
       "import": "./src/paired-surface-material-body-result.ts"
+    },
+    "./paired-surface-material-body-world-points-result": {
+      "types": "./src/paired-surface-material-body-world-points-result.ts",
+      "import": "./src/paired-surface-material-body-world-points-result.ts"
     }
   },
   "files": [
@@ -474,12 +482,15 @@
     "build:library": "tsc -p tsconfig.json",
     "type-check": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint src",
-    "test": "pnpm build:library && node --test test/interop.test.mjs",
+    "test": "pnpm build:library && node --test test/interop.test.mjs && node examples/paired-surface-material-body-world-points-codec-verify.mjs && tsc -p tsconfig.world-reader-contract.json && tsc -p tsconfig.world-reader-physical.json",
     "test:native": "pnpm --filter @barocss/cad build:library && pnpm build:library && node test/native-loader.test.mjs",
     "test:babylon": "pnpm --filter @barocss/cad build:library && pnpm build:library && node test/babylon-loader.test.mjs",
     "test:curve": "node test/curve-loader.test.mjs",
     "test:abortable": "node test/abortable-loader.test.mjs",
-    "test:integration": "pnpm --filter @barocss/cad build:library && pnpm --filter @barocss/gpu build:library && pnpm build:library && node --test test/cad-integration.test.mjs"
+    "test:integration": "pnpm --filter @barocss/cad build:library && pnpm --filter @barocss/gpu build:library && pnpm build:library && node --test test/cad-integration.test.mjs",
+    "test:world:native": "pnpm --filter @barocss/cad build:library && pnpm build:library && node examples/paired-surface-material-body-world-points-native-run.mjs",
+    "test:world:preflight": "node examples/paired-surface-material-body-world-points-fixture-preflight.mjs",
+    "test:world:result": "node examples/paired-surface-material-body-world-points-result-verify.mjs"
   },
   "dependencies": {
     "@barocss/cad": "workspace:*"
