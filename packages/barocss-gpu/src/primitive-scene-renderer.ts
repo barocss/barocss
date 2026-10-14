@@ -1,3 +1,5 @@
+import {preparePrimitiveSceneFrame} from './primitive-frame-preflight.js';
+import {claimCompleteCanvas,releaseCompleteCanvas,validateCompleteMountTarget,validateCompleteShaderSource,completeMountFailure} from './primitive-complete-mount-internal.js';
 import {prepareParticleLayer} from './particle-layer.js';
 import type {ParticleLayerV0,PreparedParticleLayer} from './particle-layer.js';
 import {prepareClothLayer,CLOTH_SHADERS} from './cloth-layer.js';
@@ -215,14 +217,37 @@ export function prepareCompletePrimitiveFrameData(input:unknown,allowEmpty=false
    return{prepared,materials,particles:frame.particles};
  }
 
+// Factory-owned, ephemeral tokens never escape or become supported caller input.
+const completeMountCandidates=new WeakMap<object,ReturnType<typeof prepare>>();
+
 /** Genuine sampled native Curves and Surface packets share one candidate frame/depth. */
 class PrimitiveSceneBackend {
  private readonly gl:WebGL2RenderingContext;private accepted:Frame|null=null;private disposed=false;private lost=false;private presentationUnavailable=false;
  private readonly onLoss=(event:Event)=>{event.preventDefault();this.lost=true;};
- constructor(private readonly canvas:HTMLCanvasElement,prepared:ReturnType<typeof prepare>){
+ constructor(private readonly canvas:HTMLCanvasElement,prepared:ReturnType<typeof prepare>,private readonly completeMount=false){
+  if(!completeMount){
   this.dimensions(canvas.width,canvas.height);
   const gl=canvas.getContext('webgl2',{alpha:false,antialias:false,depth:true,preserveDrawingBuffer:true});check(gl&&!gl.isContextLost(),'WebGL2 is unavailable');this.gl=gl;canvas.addEventListener('webglcontextlost',this.onLoss);
   let frame:Frame|null=null;try{frame=this.create(prepared.primitives,prepared.options,canvas.width,canvas.height);this.present(frame);this.accepted=frame;}catch(error){if(frame)this.release(frame);this.dispose();throw error;}
+   return;
+  }
+  let frame:Frame|null=null,claimed=false,listenerAttempted=false;
+  try{
+   claimCompleteCanvas(canvas);claimed=true;
+   this.dimensions(canvas.width,canvas.height);
+   const width=canvas.width,height=canvas.height;
+   const gl=canvas.getContext('webgl2',{alpha:false,antialias:false,depth:true,preserveDrawingBuffer:true});check(gl&&!gl.isContextLost(),'WebGL2 is unavailable');this.gl=gl;
+   validateCompleteMountTarget(canvas,gl,width,height);
+   listenerAttempted=true;canvas.addEventListener('webglcontextlost',this.onLoss);
+   frame=this.create(prepared.primitives,prepared.options,width,height);this.present(frame);this.accepted=frame;
+  }catch(primary){
+   const cleanup:unknown[]=[];
+   if(frame)try{this.release(frame);}catch(error){cleanup.push(error);}
+   if(listenerAttempted)try{canvas.removeEventListener('webglcontextlost',this.onLoss);}catch(error){cleanup.push(error);}
+   if(claimed)releaseCompleteCanvas(canvas);
+   this.disposed=true;this.accepted=null;
+   throw completeMountFailure(primary,cleanup);
+  }
  }
  protected get hasPrimitives():boolean{this.live();return this.accepted!.draws.length>0;}
  protected copyEntries():(PrimitiveSceneEntry|PrimitiveSceneEntryV1|PrimitiveSceneEntryV2)[]{this.live();return this.accepted!.draws.map(d=>structuredClone(d.entry));}
@@ -232,12 +257,37 @@ class PrimitiveSceneBackend {
  private dimensions(width:number,height:number){check(Number.isInteger(width)&&Number.isInteger(height)&&width>=1&&height>=1&&width<=4096&&height<=4096&&width*height<=4194304,'Buffer dimensions exceed limits');}
  private checkGL(){const error=this.gl.getError();check(error===this.gl.NO_ERROR,'WebGL2 error 0x'+error.toString(16));check(!this.gl.isContextLost(),'WebGL2 context is lost');}
  private program(source:{vertex:string;fragment:string}):WebGLProgram {
+  if(this.completeMount)return this.completeProgram(source);
   const gl=this.gl,shaders:WebGLShader[]=[];let program:WebGLProgram|null=null,linked=false;
   try{for(const[kind,text]of[[gl.VERTEX_SHADER,source.vertex],[gl.FRAGMENT_SHADER,source.fragment]]as const){const shader=gl.createShader(kind);check(shader,'Cannot allocate primitive shader');shaders.push(shader);gl.shaderSource(shader,text);gl.compileShader(shader);check(gl.getShaderParameter(shader,gl.COMPILE_STATUS),'Primitive shader compile failed: '+gl.getShaderInfoLog(shader));}program=gl.createProgram();check(program,'Cannot allocate primitive program');for(const shader of shaders)gl.attachShader(program,shader);gl.linkProgram(program);check(gl.getProgramParameter(program,gl.LINK_STATUS),'Primitive program link failed: '+gl.getProgramInfoLog(program));linked=true;return program;}
   catch(error){if(program)gl.deleteProgram(program);throw error;}finally{for(const shader of shaders){if(linked&&program)gl.detachShader(program,shader);gl.deleteShader(shader);}}
  }
+ private completeProgram(source:{vertex:string;fragment:string}):WebGLProgram{
+  validateCompleteShaderSource(source);
+  const gl=this.gl,shaders:WebGLShader[]=[],cleanup:unknown[]=[];
+  let program:WebGLProgram|null=null,linked=false,failed=false,primary:unknown;
+  try{
+   for(const[kind,text]of[[gl.VERTEX_SHADER,source.vertex],[gl.FRAGMENT_SHADER,source.fragment]]as const){
+    const shader=gl.createShader(kind);check(shader,'Cannot allocate primitive shader');shaders.push(shader);
+    gl.shaderSource(shader,text);gl.compileShader(shader);check(gl.getShaderParameter(shader,gl.COMPILE_STATUS),'Primitive shader compile failed: '+gl.getShaderInfoLog(shader));
+   }
+   program=gl.createProgram();check(program,'Cannot allocate primitive program');
+   for(const shader of shaders)gl.attachShader(program,shader);
+   gl.linkProgram(program);check(gl.getProgramParameter(program,gl.LINK_STATUS),'Primitive program link failed: '+gl.getProgramInfoLog(program));linked=true;
+   check(!this.lost&&!gl.isContextLost(),'WebGL2 context is lost during program creation');
+  }catch(error){failed=true;primary=error;}
+  const attempt=(action:()=>void)=>{try{action();}catch(error){cleanup.push(error);}};
+  let live=false;attempt(()=>{live=!this.lost&&!gl.isContextLost();});
+  if(live){
+   for(const shader of shaders){if(linked&&program)attempt(()=>gl.detachShader(program!,shader));attempt(()=>gl.deleteShader(shader));}
+   if(failed&&program)attempt(()=>gl.deleteProgram(program));
+  }
+  if(failed)throw completeMountFailure(primary,cleanup);
+  if(cleanup.length){if(live&&program)attempt(()=>gl.deleteProgram(program));throw completeMountFailure(cleanup[0],cleanup.slice(1));}
+  return program!;
+ }
  private create(primitives:Primitive[],options:PrimitiveSceneOptions,width:number,height:number,particles:PreparedParticleLayer|null=null,cloth:PreparedClothLayer|null=null):Frame {
-  this.live();this.dimensions(width,height);this.checkGL();const gl=this.gl,camera=prepareCamera(options.camera,width/height),frame:Frame={particles:null,cloth:null,draws:[],options,programs:[],framebuffer:null,color:null,depth:null,width,height};
+  this.live();this.dimensions(width,height);if(this.completeMount)validateCompleteMountTarget(this.canvas,this.gl,width,height,false);this.checkGL();const gl=this.gl,camera=prepareCamera(options.camera,width/height),frame:Frame={particles:null,cloth:null,draws:[],options,programs:[],framebuffer:null,color:null,depth:null,width,height};
   try{
    if(particles){check(primitives.length>0,'Particles require accepted native geometry');const range=gl.getParameter(gl.ALIASED_POINT_SIZE_RANGE) as Float32Array;check(range.length===2&&range[0]<=6&&range[1]>=6,'Target does not support fixed6px points');}
    if(cloth)check(primitives.length>0,'Cloth requires accepted native geometry');
@@ -271,7 +321,7 @@ class PrimitiveSceneBackend {
    if(frame.cloth){const sheet=frame.cloth,program=sheet.program!;gl.useProgram(program);gl.uniform1f(gl.getUniformLocation(program,'aspect'),width/height);gl.uniform1i(gl.getUniformLocation(program,'defaultCamera'),options.camera===undefined?1:0);gl.uniformMatrix4fv(gl.getUniformLocation(program,'view'),false,camera.view);gl.uniformMatrix4fv(gl.getUniformLocation(program,'projection'),false,camera.projection);gl.bindVertexArray(sheet.vao);gl.drawElements(gl.TRIANGLES,sheet.indices.length,gl.UNSIGNED_SHORT,0);}
    if(frame.particles){const point=frame.particles,program=point.program!;gl.useProgram(program);gl.uniform1f(gl.getUniformLocation(program,'aspect'),width/height);gl.uniform1i(gl.getUniformLocation(program,'defaultCamera'),options.camera===undefined?1:0);gl.uniformMatrix4fv(gl.getUniformLocation(program,'view'),false,camera.view);gl.uniformMatrix4fv(gl.getUniformLocation(program,'projection'),false,camera.projection);gl.bindVertexArray(point.vao);gl.drawArrays(gl.POINTS,0,point.positions.length/3);}
    this.checkGL();return frame;
-  }catch(error){this.release(frame);throw error;}
+  }catch(error){if(this.completeMount){try{this.release(frame);}catch(cleanup){throw completeMountFailure(error,[cleanup]);}}else this.release(frame);throw error;}
  }
  private present(frame:Frame){this.live();const gl=this.gl;gl.disable(gl.SCISSOR_TEST);gl.bindFramebuffer(gl.READ_FRAMEBUFFER,frame.framebuffer);gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER,null);gl.blitFramebuffer(0,0,frame.width,frame.height,0,0,this.canvas.width,this.canvas.height,gl.COLOR_BUFFER_BIT,gl.NEAREST);this.checkGL();gl.bindFramebuffer(gl.FRAMEBUFFER,null);}
  /** Appearance replacement reuses already accepted native geometry, never caller getters. */
@@ -333,8 +383,29 @@ class PrimitiveSceneBackend {
  }
  render():void{this.live();this.dimensions(this.canvas.width,this.canvas.height);this.present(this.accepted!);}
  readPixels():Uint8Array{this.live();this.dimensions(this.canvas.width,this.canvas.height);const gl=this.gl,pixels=new Uint8Array(this.canvas.width*this.canvas.height*4);gl.bindFramebuffer(gl.READ_FRAMEBUFFER,null);gl.pixelStorei(gl.PACK_ALIGNMENT,4);gl.pixelStorei(gl.PACK_ROW_LENGTH,0);gl.pixelStorei(gl.PACK_SKIP_ROWS,0);gl.pixelStorei(gl.PACK_SKIP_PIXELS,0);gl.readPixels(0,0,this.canvas.width,this.canvas.height,gl.RGBA,gl.UNSIGNED_BYTE,pixels);this.checkGL();return pixels;}
- private release(frame:Frame){const gl=this.gl;if(!gl.isContextLost()){if(frame.programs.includes(gl.getParameter(gl.CURRENT_PROGRAM)))gl.useProgram(null);if(frame.draws.some(d=>d.vao&&gl.getParameter(gl.VERTEX_ARRAY_BINDING)===d.vao)||frame.particles?.vao===gl.getParameter(gl.VERTEX_ARRAY_BINDING)||frame.cloth?.vao===gl.getParameter(gl.VERTEX_ARRAY_BINDING))gl.bindVertexArray(null);for(const[target,binding]of[[gl.READ_FRAMEBUFFER,gl.READ_FRAMEBUFFER_BINDING],[gl.DRAW_FRAMEBUFFER,gl.DRAW_FRAMEBUFFER_BINDING]]as const)if(frame.framebuffer&&gl.getParameter(binding)===frame.framebuffer)gl.bindFramebuffer(target,null);}for(const d of frame.draws){for(const b of d.buffers)gl.deleteBuffer(b);if(d.vao)gl.deleteVertexArray(d.vao);}if(frame.particles){if(frame.particles.buffer)gl.deleteBuffer(frame.particles.buffer);if(frame.particles.vao)gl.deleteVertexArray(frame.particles.vao);}if(frame.cloth){for(const buffer of frame.cloth.buffers)gl.deleteBuffer(buffer);if(frame.cloth.vao)gl.deleteVertexArray(frame.cloth.vao);}for(const program of frame.programs)gl.deleteProgram(program);if(frame.framebuffer)gl.deleteFramebuffer(frame.framebuffer);if(frame.depth)gl.deleteRenderbuffer(frame.depth);if(frame.color)gl.deleteTexture(frame.color);}
- dispose():void{if(this.disposed)return;this.disposed=true;this.canvas.removeEventListener('webglcontextlost',this.onLoss);if(this.accepted)this.release(this.accepted);this.accepted=null;}
+ private releaseCompleteFrame(frame:Frame):void{
+  const gl=this.gl;if(this.lost||gl.isContextLost())return;
+  const errors:unknown[]=[],attempt=(action:()=>void)=>{try{action();}catch(error){errors.push(error);}};
+  attempt(()=>{if(frame.programs.includes(gl.getParameter(gl.CURRENT_PROGRAM)))gl.useProgram(null);});
+  attempt(()=>{const vao=gl.getParameter(gl.VERTEX_ARRAY_BINDING);if(frame.draws.some(draw=>draw.vao===vao)||frame.particles?.vao===vao||frame.cloth?.vao===vao)gl.bindVertexArray(null);});
+  for(const[target,binding]of[[gl.READ_FRAMEBUFFER,gl.READ_FRAMEBUFFER_BINDING],[gl.DRAW_FRAMEBUFFER,gl.DRAW_FRAMEBUFFER_BINDING]]as const)attempt(()=>{if(frame.framebuffer&&gl.getParameter(binding)===frame.framebuffer)gl.bindFramebuffer(target,null);});
+  for(const draw of frame.draws){for(const buffer of draw.buffers)attempt(()=>gl.deleteBuffer(buffer));if(draw.vao)attempt(()=>gl.deleteVertexArray(draw.vao));}
+  if(frame.particles){const point=frame.particles;if(point.buffer)attempt(()=>gl.deleteBuffer(point.buffer));if(point.vao)attempt(()=>gl.deleteVertexArray(point.vao));}
+  if(frame.cloth){const sheet=frame.cloth;for(const buffer of sheet.buffers)attempt(()=>gl.deleteBuffer(buffer));if(sheet.vao)attempt(()=>gl.deleteVertexArray(sheet.vao));}
+  for(const program of frame.programs)attempt(()=>gl.deleteProgram(program));
+  if(frame.framebuffer)attempt(()=>gl.deleteFramebuffer(frame.framebuffer));if(frame.depth)attempt(()=>gl.deleteRenderbuffer(frame.depth));if(frame.color)attempt(()=>gl.deleteTexture(frame.color));
+  if(errors.length)throw completeMountFailure(errors[0],errors.slice(1));
+ }
+ private release(frame:Frame){if(this.completeMount){this.releaseCompleteFrame(frame);return;}const gl=this.gl;if(!gl.isContextLost()){if(frame.programs.includes(gl.getParameter(gl.CURRENT_PROGRAM)))gl.useProgram(null);if(frame.draws.some(d=>d.vao&&gl.getParameter(gl.VERTEX_ARRAY_BINDING)===d.vao)||frame.particles?.vao===gl.getParameter(gl.VERTEX_ARRAY_BINDING)||frame.cloth?.vao===gl.getParameter(gl.VERTEX_ARRAY_BINDING))gl.bindVertexArray(null);for(const[target,binding]of[[gl.READ_FRAMEBUFFER,gl.READ_FRAMEBUFFER_BINDING],[gl.DRAW_FRAMEBUFFER,gl.DRAW_FRAMEBUFFER_BINDING]]as const)if(frame.framebuffer&&gl.getParameter(binding)===frame.framebuffer)gl.bindFramebuffer(target,null);}for(const d of frame.draws){for(const b of d.buffers)gl.deleteBuffer(b);if(d.vao)gl.deleteVertexArray(d.vao);}if(frame.particles){if(frame.particles.buffer)gl.deleteBuffer(frame.particles.buffer);if(frame.particles.vao)gl.deleteVertexArray(frame.particles.vao);}if(frame.cloth){for(const buffer of frame.cloth.buffers)gl.deleteBuffer(buffer);if(frame.cloth.vao)gl.deleteVertexArray(frame.cloth.vao);}for(const program of frame.programs)gl.deleteProgram(program);if(frame.framebuffer)gl.deleteFramebuffer(frame.framebuffer);if(frame.depth)gl.deleteRenderbuffer(frame.depth);if(frame.color)gl.deleteTexture(frame.color);}
+ dispose():void{if(this.disposed)return;
+  if(this.completeMount){
+   this.disposed=true;const errors:unknown[]=[];
+   try{this.canvas.removeEventListener('webglcontextlost',this.onLoss);}catch(error){errors.push(error);}
+   if(this.accepted)try{this.release(this.accepted);}catch(error){errors.push(error);}
+   this.accepted=null;releaseCompleteCanvas(this.canvas);
+   if(errors.length)throw completeMountFailure(errors[0],errors.slice(1));return;
+  }
+  this.disposed=true;this.canvas.removeEventListener('webglcontextlost',this.onLoss);if(this.accepted)this.release(this.accepted);this.accepted=null;}
 }
 export class PrimitiveSceneRenderer extends PrimitiveSceneBackend {
  constructor(canvas:HTMLCanvasElement,entries:PrimitiveSceneEntry[],options:PrimitiveSceneOptions){super(canvas,prepare(entries,options));}
@@ -357,7 +428,9 @@ export class PrimitiveSceneRendererV2 extends PrimitiveSceneBackend {
  setParticleLayer(frame:ParticleLayerV0|null):UpdateResult{return this.setParticles(frame);}
  get materials():PrimitiveSceneMaterial[]{return this.copyMaterials();}
  setMaterial(ref:PrimitiveSceneRef,binding:MeshMaterialBinding|null):UpdateResult{return this.setQualifiedMaterial(ref,binding);}
- constructor(canvas:HTMLCanvasElement,input:PrimitiveSceneInputV2,options:PrimitiveSceneOptions){super(canvas,prepareV2(input,options));}
+ constructor(canvas:HTMLCanvasElement,input:PrimitiveSceneInputV2,options:PrimitiveSceneOptions){
+  const complete=completeMountCandidates.get(input);super(canvas,complete??prepareV2(input,options),complete!==undefined);
+ }
  get entries():PrimitiveSceneEntryV2[]{return this.copyEntries() as PrimitiveSceneEntryV2[];}
  update(input:PrimitiveSceneInputV2,options:PrimitiveSceneOptions,particles:ParticleLayerV0|null=null):UpdateResult{return this.updatePrepared(()=>({...prepareV2(input,options),particles:this.prepareSceneParticles(particles)}));}
 }
@@ -377,7 +450,9 @@ class PrimitiveViewportBackend extends PrimitiveSceneBackend {
  setParticleLayer(frame:ParticleLayerV0|null):UpdateResult{return this.setParticles(frame);}
  get materials():PrimitiveSceneMaterial[]{return this.copyMaterials();}
  setMaterial(ref:PrimitiveSceneRef,binding:MeshMaterialBinding|null):UpdateResult{return this.setQualifiedMaterial(ref,binding);}
- constructor(options:PrimitiveSceneOptions,canvas:HTMLCanvasElement){super(canvas,{primitives:[],options:prepareOptions(options)});}
+ constructor(options:PrimitiveSceneOptions,canvas:HTMLCanvasElement){
+  const complete=completeMountCandidates.get(options);super(canvas,complete??{primitives:[],options:prepareOptions(options)},complete!==undefined);
+ }
  get entries():PrimitiveSceneEntryV2[]{return this.copyEntries() as PrimitiveSceneEntryV2[];}
  get empty():boolean{return !this.hasPrimitives;}
  update(input:PrimitiveSceneInputV2,options:PrimitiveSceneOptions,particles:ParticleLayerV0|null=null):UpdateResult{return this.updatePrepared(()=>({...prepareV2(input,options),particles:this.prepareSceneParticles(particles)}));}
@@ -408,3 +483,19 @@ export class PrimitiveViewport {
  dispose():void{this.backend.dispose();}
 }
 export function mountPrimitiveViewport(canvas:HTMLCanvasElement,options:PrimitiveSceneOptions):PrimitiveViewport{return new PrimitiveViewport(canvas,options);}
+
+function completeMountCandidate(input:unknown,profile:'qualified-v2'|'viewport-v2'):ReturnType<typeof prepare>{
+ const prepared=preparePrimitiveSceneFrame(input,profile);
+ for(const primitive of prepared.primitives)validateCompleteShaderSource(primitive.entry.kind==='surface'?(primitive.material?materialMeshShaders(prepared.frame.options.lighting,primitive.material):meshLightingShaders(prepared.frame.options.lighting)):LINE_SHADERS);
+ return{primitives:prepared.primitives.map(primitive=>({...primitive})),options:prepared.frame.options};
+}
+/** Mount one complete qualified frame on the existing V2 backend. No bootstrap update. */
+export function mountPrimitiveSceneFrame(canvas:HTMLCanvasElement,input:unknown):PrimitiveSceneRendererV2{
+ const prepared=completeMountCandidate(input,'qualified-v2'),token={};completeMountCandidates.set(token,prepared);
+ try{return new PrimitiveSceneRendererV2(canvas,token as PrimitiveSceneInputV2,prepared.options);}finally{completeMountCandidates.delete(token);}
+}
+/** Mount a complete qualified or genuine empty frame on the existing Viewport. */
+export function mountPrimitiveViewportFrame(canvas:HTMLCanvasElement,input:unknown):PrimitiveViewport{
+ const prepared=completeMountCandidate(input,'viewport-v2'),token={};completeMountCandidates.set(token,prepared);
+ try{return new PrimitiveViewport(canvas,token as PrimitiveSceneOptions);}finally{completeMountCandidates.delete(token);}
+}

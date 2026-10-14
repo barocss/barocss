@@ -142,6 +142,8 @@ export type { SphereGeometrySourceV0, PreparedSphereGeometry } from './sphere-ge
 export { preparePrimitiveSceneFrame } from './primitive-frame-preflight.js';
 export type { PrimitiveSceneFrameProfile, PrimitiveSceneCpuFrameV0, PreparedPrimitiveSceneFrameEntry, PreparedPrimitiveSceneFrame } from './primitive-frame-preflight.js';
 
+export { mountPrimitiveSceneFrame, mountPrimitiveViewportFrame } from './primitive-scene-renderer.js';
+
 export { prepareTorusGeometry } from './torus-geometry.js';
 export type { TorusGeometrySourceV0, PreparedTorusGeometry } from './torus-geometry.js';
 

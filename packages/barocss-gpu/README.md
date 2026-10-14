@@ -4663,3 +4663,39 @@ Current renderer families do not share a transactional canvas transfer boundary.
 Retain the existing refusal of a second live-family mount. An explicit future
 dispose/remount must stop on cleanup failure; once an old owner is retired, a
 failed new mount cannot promise its old displayed pixels or restore its renderer.
+
+## Complete first-frame mounts
+
+`mountPrimitiveSceneFrame(canvas, frame0)` returns the existing
+`PrimitiveSceneRendererV2`. `mountPrimitiveViewportFrame(canvas, frame0)` returns
+the existing `PrimitiveViewport`, including genuine empty support. Both routes
+re-admit raw complete frame0 through `preparePrimitiveSceneFrame`, with
+particles:null and no cloth. They check trusted final shader text before canvas
+access. The full native geometry, poses, materials, camera and lighting are
+passed to one initial candidate and one presentation. There is no bootstrap
+frame followed by update. Old constructors and mount/update signatures remain.
+
+These routes require a current-realm HTML canvas. A second new complete mount
+on that live canvas refuses; sharing with legacy or other backends is unsupported
+caller ownership. The caller's canvas is not resized or removed. Requested
+dimensions, actual initial backing and real texture/renderbuffer/viewport limits
+are checked before handles. Each trusted shader text is capped at 64KiB in
+UTF16 code units and UTF8 bytes. Later offscreen resize candidates retain their
+existing order, with target caps checked before changing the canvas backing.
+
+Factory instances have a scoped cleanup policy: attempt all live owned resource
+cleanup and listener/claim removal, preserving primary and actual cleanup errors
+in standard AggregateError. Terminal hardware loss skips GL deletion after
+restoration; native invalidation is distinct from delete-call evidence. A failed
+first mount has no accepted frame to roll back and does not promise prior canvas
+pixels. Successful disposal is idempotent. Legacy cleanup and #1334 recovery keep
+their own paths. Later existing particle/cloth methods retain separate profiles.
+
+These entry points are implemented code. Actual shader/device/pixel/presentation,
+allocation failure, loss and cleanup qualification remains a separate #1375
+graphics gate. Source/API admission alone does not establish rendered Open,
+Viewer adoption, current integrated validation or publication.
+
+`examples/gpu-scene/primitive-complete-mount-flow.mjs --output <fresh-directory> --fixture-dir <CPU-preflight-directory>`
+uses saved genuine native/material/frame files for source/emitted factory and
+cold API admission; unsupported Node targets do not instantiate a renderer.
