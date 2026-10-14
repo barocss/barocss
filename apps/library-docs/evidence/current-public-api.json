@@ -1,7 +1,7 @@
 {
   "schema": "barocss-current-public-api-v1",
   "typescriptVersion": "5.9.3",
-  "sourceCommit": "a7be3701731a0318f4ede8decbecfcdde53c80d9",
+  "sourceCommit": "e991c187ce3b7a0f709567d2aa39c8c1f22ea2b5",
   "extractor": "TypeScript 5.9.3 public module exports and declarations; not a type-check or runtime execution",
   "packages": [
     {
@@ -55264,12 +55264,12 @@
   "packageTrees": {
     "packages/barocss-render": "b83e4912e1d1aa658f048ba4b112376785b288fb",
     "packages/barocss-gpu": "2967d567ec26725a4090f2d64ed2b283ac468bef",
-    "packages/barocss-cad": "40308b9b49c2f691e8ddd0698a621437a49d45e6",
+    "packages/barocss-cad": "85bd0b7703ccb5f9d343c23550fb7c9aa8cbc1c5",
     "packages/barocss-cad-interop": "330d0323e1d3891c8a1f882e848aae604ea67b08",
     "packages/barocss-canvas2d": "39853a85709f5c59dba7cdbbab3fd87da48cb54a",
     "packages/barocss-viewer": "aa7736ed08620fe9b7db2eff4feec5c89f9e502b",
     "packages/barocss-physics": "f3aa5c6e161137cb80fb68f73a517cd6bdc673dd",
-    "packages/barocss-cad-editor": "3b4b1dec479d2a3acb3e32afb1f66d37a4534352",
+    "packages/barocss-cad-editor": "db2dde29123da8dc1019cf8d817d61c349c954cf",
     "packages/barocss-render-editor": "d1486acf9b983dba6839d2bf303406876244e2e6"
   },
   "historicalSourceCommit": "5f5ad866205a21510ac69552e704cc162fa253b5",

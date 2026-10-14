@@ -1544,11 +1544,50 @@
     "verifiedFor": "1971 local noEmit only; historical declarations, current-source CI still required"
   },
   "apiBaseline": {
-    "status": "pending immutable public product pin",
-    "expectedAdded": [],
-    "expectedRemoved": [],
-    "expectedChanged": [],
-    "boundary": "Unchanged current-source extractor must retain all incoming provider signatures; historical declaration noEmit is not a current full-provider emit."
+    "status": "qualified on reconciled incoming base",
+    "publicProductCommit": "e991c187ce3b7a0f709567d2aa39c8c1f22ea2b5",
+    "productTree": "1d5035d39d5221e02bbe4cc263894b113825eb2b",
+    "parent": "1fca28ae5746b8af7e3dd4cd95ef1848e0e0001f",
+    "typescript": "5.9.3",
+    "packages": 9,
+    "entries": 76,
+    "exportedOccurrences": 4196,
+    "semanticDelta": {
+      "added": [],
+      "removed": [],
+      "changed": [],
+      "beforePin": "a7be3701731a0318f4ede8decbecfcdde53c80d9",
+      "sourcePin": "e991c187ce3b7a0f709567d2aa39c8c1f22ea2b5",
+      "typescript": "5.9.3",
+      "signatures": {}
+    },
+    "checks": [
+      {
+        "name": "qualified-write",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--write-current",
+          "--commit",
+          "e991c187ce3b7a0f709567d2aa39c8c1f22ea2b5"
+        ],
+        "exitCode": 0,
+        "seconds": 6.085197169013554
+      },
+      {
+        "name": "qualified-check",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--check"
+        ],
+        "exitCode": 0,
+        "seconds": 5.53498365500127
+      }
+    ],
+    "inventorySHA256": "2e5292327f4f6746f51fe19b8202ad023c95f9e3d7ebf1fe94245c2e10e7a329",
+    "manifestInventorySHA256": "5a4b11ec7d2e1c9401426b04de748fd6719c2f7d881a50bd45329877ab03d082",
+    "provenance": "Incoming1988/1991 already preserved the Loader5symbols and added count4 pattern signatures plus the manifest/test repair. This latest qualification adds/removes/changes zero signatures. Incoming manifest inventory and checker test stay byte-identical; all12 current manifest bytes match. Earlier unadopted +5 Loader qualification is retained separately above."
   },
   "embeddedLogs": {
     "package-first-run.log": {
@@ -1582,6 +1621,30 @@
     "render-links.log": {
       "sha256": "547ca50498f15a84c1cd698bde7e33f950a260a9f9a946a0b7093cb7d62d418c",
       "text": "{\"result\":\"PASS\",\"candidate\":\"9e4c186697ff315d36866d91bf11f468490bc381\",\"node\":\"v24.19.0\",\"vitepress\":\"1.6.4\",\"pages\":1,\"emittedHeadingIds\":[\"finish-a-rail-with-two-opposite-bevels\"],\"verifiedCrosslinks\":76}\n"
+    },
+    "api/qualified-write.log": {
+      "sha256": "250159599f84dcb4c9ab3db8f616fd8eb1aa8c01f258bf3c239bf1608daed532",
+      "text": "(node:11) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"status\":\"written\",\"evidence\":\"evidence/current-public-api.json\",\"sourceCommit\":\"1222b11396dce6820e85264085984cffecfc8c58\",\"packages\":9,\"changesFromHistorical\":{\"added\":1650,\"removed\":0,\"changed\":52}}\n"
+    },
+    "api/qualified-check.log": {
+      "sha256": "8d5457eb25bd9985c347ab0fc6705d5bb259d572f24be0f14f0ede40a5070da5",
+      "text": "(node:55) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"status\":\"matched\",\"sourceCommit\":\"1222b11396dce6820e85264085984cffecfc8c58\",\"scope\":\"current API\",\"packages\":9,\"entries\":76,\"exportedOccurrences\":4196,\"extractor\":\"5.9.3\"}\n"
+    },
+    "api/manifest-write.log": {
+      "sha256": "df7d6505c68bb15db08cb2fcd4cab9e32ea07e12f9cbf74e95719e0f11645a96",
+      "text": "(node:78) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\nRecorded current manifest metadata at 1222b11396dce6820e85264085984cffecfc8c58. Review changesFromSourceSnapshot; historical evidence was not rewritten.\n"
+    },
+    "api/manifest-check.log": {
+      "sha256": "f04a72ba8a7cfca48549d7da154324d2c295f2a12f873a9fb335624ef2e94bf7",
+      "text": "(node:115) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\nMatched 12 current manifests at 1222b11396dce6820e85264085984cffecfc8c58; historical source remains 5f5ad866205a21510ac69552e704cc162fa253b5.\n"
+    },
+    "api-latest/qualified-write.log": {
+      "sha256": "bdc4b85b9f0a1932844e8b8aad61d9bb92d93b176a62839144b7d8e35744869e",
+      "text": "(node:81) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"status\":\"written\",\"evidence\":\"evidence/current-public-api.json\",\"sourceCommit\":\"e991c187ce3b7a0f709567d2aa39c8c1f22ea2b5\",\"packages\":9,\"changesFromHistorical\":{\"added\":1650,\"removed\":0,\"changed\":52}}\n"
+    },
+    "api-latest/qualified-check.log": {
+      "sha256": "25df610c5a3f1cc2ef44b224440cde7439fd96386f33699389e414db23237c5f",
+      "text": "(node:147) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"status\":\"matched\",\"sourceCommit\":\"e991c187ce3b7a0f709567d2aa39c8c1f22ea2b5\",\"scope\":\"current API\",\"packages\":9,\"entries\":76,\"exportedOccurrences\":4196,\"extractor\":\"5.9.3\"}\n"
     }
   },
   "limits": [
@@ -1594,5 +1657,174 @@
     "EightMiB retained authored-source and20entry accounting are not total-memory/RSS/GPU claims.",
     "Types use280 hash-verified historical declarations at5c6dc223, not a fresh current provider emit. Current-source CI remains required.",
     "No third bevel, general edge picker, hole/pocket combination, pattern subtraction or provider expansion. #1990 retains separate visible bevel-face/picking uncertainty. No repeated physical Save/Open/STL requested."
-  ]
+  ],
+  "integrationAmendment": {
+    "totalOwnedPaths": 11,
+    "extraMetadataOnlyPath": "apps/library-docs/evidence/current-package-inventory.json",
+    "reason": "Incoming Loader#1954 added its development/publish entry and test scripts. Current manifest metadata would drift without this existing unchanged checker refresh; no historical snapshot changed.",
+    "firstUpload": "Nine matching blobs and exact product tree accepted; first create_commit denied as blob-only authorization, preserved; one identical retry with explicit develop integration authorization succeeded.",
+    "unqualifiedCommands": "Initial read-only combined file dump was truncated before JSON parsing; no upload occurred from it. Subsequent bounded chunks matched every blob. Initial read-only manifest comparison encountered sparse missing kit manifest; sparse materialization of existing kit/browser/server sources completed before unchanged inventory commands.",
+    "finalTotalOwnedPaths": 10,
+    "extraMetadataOnlyPathDisposition": "Historical unadopted qualification only. External1988 supplied the manifest/inventory.test repair before CAS; final replay preserves it exactly and owns no manifest/test path."
+  },
+  "priorFreshBaseQualification": {
+    "status": "qualified",
+    "publicProductCommit": "1222b11396dce6820e85264085984cffecfc8c58",
+    "productTree": "8cfbffeed4eea1328d5ec497247523b71d043bd9",
+    "typescript": "5.9.3",
+    "packages": 9,
+    "entries": 76,
+    "exportedOccurrences": 4196,
+    "semanticDelta": {
+      "added": [
+        "@barocss/cad-interop./paired-surface-material-body-world-points-result:BaroCadPairedSurfaceMaterialBodyWorldPointsDiagnosticCode",
+        "@barocss/cad-interop./paired-surface-material-body-world-points-result:BaroCadPairedSurfaceMaterialBodyWorldPointsReadError",
+        "@barocss/cad-interop./paired-surface-material-body-world-points-result:BaroCadPairedSurfaceMaterialBodyWorldPointsResultRead",
+        "@barocss/cad-interop./paired-surface-material-body-world-points-result:parseBaroCadPairedSurfaceMaterialBodyWorldPointsResult",
+        "@barocss/cad-interop./paired-surface-material-body-world-points-result:readBaroCadPairedSurfaceMaterialBodyWorldPointsResult"
+      ],
+      "removed": [],
+      "changed": [],
+      "beforePin": "2b04d1201875a7d73c65224fb7533dc581ddf704",
+      "sourcePin": "1222b11396dce6820e85264085984cffecfc8c58",
+      "typescript": "5.9.3",
+      "signatures": {}
+    },
+    "manifestDelta": {
+      "changedPackageRecords": [
+        "cad-interop"
+      ],
+      "beforePin": "340a90fb9cbc6b5e022b0721fa799661f601d257",
+      "newPin": "1222b11396dce6820e85264085984cffecfc8c58"
+    },
+    "checks": [
+      {
+        "name": "qualified-write",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--write-current",
+          "--commit",
+          "1222b11396dce6820e85264085984cffecfc8c58"
+        ],
+        "exitCode": 0,
+        "seconds": 5.780268076996435
+      },
+      {
+        "name": "qualified-check",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--check"
+        ],
+        "exitCode": 0,
+        "seconds": 5.178736639005365
+      },
+      {
+        "name": "manifest-write",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/inventory.mjs",
+          "--write",
+          "--commit",
+          "1222b11396dce6820e85264085984cffecfc8c58"
+        ],
+        "exitCode": 0,
+        "seconds": 0.214511064987164
+      },
+      {
+        "name": "manifest-check",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/inventory.mjs",
+          "--check"
+        ],
+        "exitCode": 0,
+        "seconds": 0.16438973898766562
+      }
+    ],
+    "inventorySHA256": "433c028fcd6be49e568444e8bfd4feaecd05537486a8f70a2f27c11bf2d9edf7",
+    "manifestInventorySHA256": "dce75bd05b5a9a288e2a1fe689f4796083e40eb1b11a433e81799ebbb7712329",
+    "provenance": "Five added symbols/one new cad-interop entry and its one manifest record belong exclusively to already-adopted Loader#1954 merge44633eff; #1989 changes zero exported signatures. No removed/changed prior symbols, no Loader/checker implementation edits; historical API/manifest evidence unchanged.",
+    "incomingLoaderSourceHashes": {
+      "packages/barocss-cad-interop/package.json": "dcd14dd8a4120cc59c495a995a3c428545ecad9208bd1c9221d92af21dce0236",
+      "packages/barocss-cad-interop/src/paired-surface-material-body-world-points-result.ts": "69f8dec08909388cf422e064b76c5e1d2f27f8a230ff924b0eda4ae9396769a6",
+      "packages/barocss-cad-interop/src/paired-surface-material-body-world-points-result-json.ts": "a474a41720234940e66b83b96ba73f08c78bd410876b2c6d9cfaf984d518aa1b"
+    }
+  },
+  "latestBaseReconciliation": {
+    "incomingParent": "1fca28ae5746b8af7e3dd4cd95ef1848e0e0001f",
+    "originalParent": "44633efff7658a308c0b7da96690665b7a3547cb",
+    "incomingPaths": [
+      "apps/library-docs/evidence/current-package-inventory.json",
+      "apps/library-docs/evidence/current-public-api.json",
+      "apps/library-docs/scripts/inventory.test.mjs",
+      "apps/render-editor/native-light-workbench-flow.mjs",
+      "apps/render-editor/src/native-light-workbench.tsx",
+      "packages/barocss-cad/CONCISE_API.md",
+      "packages/barocss-cad/README.md",
+      "packages/barocss-cad/src/modeling-circular-pattern-internal.ts",
+      "packages/barocss-cad/src/modeling.ts",
+      "packages/barocss-cad/test/evidence/circular-four-1986/verification.json",
+      "packages/barocss-cad/test/modeling-circular-pattern-four-cold.mjs",
+      "packages/barocss-cad/test/modeling-circular-pattern-four-fixture.mjs",
+      "packages/barocss-cad/test/modeling-circular-pattern-four-native.mjs",
+      "packages/barocss-cad/test/modeling-circular-pattern-four.test.mjs",
+      "packages/barocss-cad/test/modeling-circular-pattern-internal.test.mjs",
+      "packages/barocss-cad/test/modeling-circular-pattern.test.mjs",
+      "packages/barocss-cad/test/modeling-types.ts",
+      "packages/barocss-cad/test/public-api-types.mjs"
+    ],
+    "ownedProductPaths": [
+      "apps/cad-editor/README.md",
+      "apps/cad-editor/flows/fixtures/modeling-opposite-chamfer/verification.json",
+      "apps/cad-editor/flows/modeling-opposite-chamfer-flow.mjs",
+      "apps/library-docs/docs/packages/cad/modeling.md",
+      "packages/barocss-cad-editor/README.md",
+      "packages/barocss-cad-editor/scripts/modeling-opposite-chamfer-test.mjs",
+      "packages/barocss-cad-editor/src/modeling-structure.ts",
+      "packages/barocss-cad-editor/src/react/modeling-editor.tsx",
+      "packages/barocss-cad-editor/src/react/modeling-workspace.tsx"
+    ],
+    "overlap": [],
+    "runtimeBindingsUnchanged": {
+      "packages/barocss-cad-editor/src/modeling-structure.ts": "5ece27f67cc6961f018625f30225d6e6323f7ac7f371804cd48042168805ffcc",
+      "packages/barocss-cad-editor/src/modeling-rectangular-part.ts": "cc377c51a9373878a3e1426107a54dfa95247f0e2bb39014289af820283189ea",
+      "packages/barocss-cad-editor/src/modeling-circular-part.ts": "8a13d11e3af3efa7d83e7ad3743a7db66f1905926df1dfefb661c047eefc892c",
+      "packages/barocss-cad-editor/src/modeling-file.ts": "bc271ddbbcb0d16522c0cd53b41228c89cfaa271426b02e504de3d9467b7dbfb",
+      "packages/barocss-cad-editor/src/modeling-diagnostic.ts": "ddea961e801c563b1347138adc97b58d274c7cd00d0845c4748552ffa9d4a158",
+      "packages/barocss-cad-editor/src/modeling-stl.ts": "72f3a438e7e5b624ed3fbf228416dfe23c3f3e3964f270d0e72499ea6427873d",
+      "packages/barocss-cad-editor/src/modeling-union.ts": "06d8ae40f0d1142ea19e566fa19fa84095af4416f781f6bd47e396f1866cd613",
+      "packages/barocss-cad-editor/src/modeling-composition.ts": "6289f6197d70be4356475cac4dac1130a2639a17576937227bf86a09a4540fc4",
+      "packages/barocss-cad-editor/src/modeling-circle.ts": "ce3fedc7d5bc93d035e7043fe027c3a3353979bdbe929098c6d9604964967bb8",
+      "packages/barocss-gpu/src/torus.ts": "a8e509f2a5fc5ef5ac7e4de74ebd701cb7bef14b666204a795ffdfed8710b66e",
+      "packages/barocss-gpu/src/rounded-box.ts": "7b1f5062670e809e004f4a059ef8d9f0b85c6fca52acf04087d5dab26a7db0c2",
+      "packages/barocss-gpu/src/capsule.ts": "1be57524592c7bcb836e00ecc0f6552b861e41fc1928c27d0967e7edddf91580",
+      "packages/barocss-gpu/src/scene-types.ts": "0914e7b3259af9db492e4327d44e441afd1795a034a6f4384c62c8f29b560416",
+      "packages/barocss-gpu/src/scene-front.ts": "a04d59e1a52e949cf338f5907ce68a67c373900ef1d7174a697ffca61f1ccae1",
+      "packages/barocss-gpu/src/gpu-data.ts": "b1e9c9119ae5f8d282e850fde99a31bc36e3a8a693fdf9862f962e771bd5b933",
+      "packages/barocss-gpu/src/camera.ts": "aa235612837edbc819323c385c83bdc504148cb069a973133f6eacde5c8948a8",
+      "packages/barocss-gpu/src/mesh-lighting.ts": "617cc1d58cbf2af06b69c69d46bd987f14aabcd73f3e93a3266b09bb4a443b56",
+      "packages/barocss-gpu/src/mesh-packet.ts": "80ba3cd72221ff4afc957fb52823d8d4636e0cf081a08bcd9866f6b9efcc19c0",
+      "packages/barocss-gpu/src/triangle-geometry.ts": "262cc8a3ac1f380fb665ee08b29114cdbed75fff8e86f7d847b786f5f889df49",
+      "packages/barocss-gpu/src/rotation.ts": "867e617fe81a0c59719a6209f26b0e746f4b080d541ea74025ef5517d267db9c",
+      "packages/barocss-gpu/src/compiler.ts": "4fbea79e1d5d242b4beddd5a09ef0f60bec4b4cccea532134cd91a4067c88699",
+      "packages/barocss-gpu/src/gpu-compiler.ts": "32d48acb92089a90d22e03d60b96324b7c2f05f329ea6f66dadb4fef6d458583",
+      "packages/barocss-gpu/src/mesh-scene-transform.ts": "c8c3ff42e91d79bb9affc453f0b63c672e5e76a634e319f300039717160fca7b",
+      "packages/barocss-gpu/src/engine-scene.ts": "0c9306578039cf39dcf0b4ae62dff6b8d1bd121025317e30cf095e9ac35732ca",
+      "packages/barocss-gpu/src/engine-camera-ray.ts": "028b4a68e8ea5affefee3f81c862df25f4437deda46774bed0ebd0751df29fc0",
+      "packages/barocss-gpu/src/engine-raycast.ts": "ee34709a019fcd73cbe213688087f103f625c43a70963de7edae8c7c0f6ed15a",
+      "packages/barocss-gpu/src/kernel-face-preview.ts": "6f2d59e080b528655353904b31e048728d6edf9bcc83932a5dfa38f481c934c9",
+      "packages/barocss-cad-editor/src/prism-feature-lineage.ts": "2362af088e5e01c92f355d8b244c580fda43c52890e4fde2be307f174cfba412",
+      "packages/barocss-cad-editor/src/prism-feature-scene.ts": "4fa4da5e825999d5bbc6e4cdbf09511e3c5838f41aeec91a3e56a20d3e603bfb",
+      "packages/barocss-cad-editor/src/modeling-scene.ts": "99540e89626354650b66c11938b9785fe3480fe2ec683305a02c70267dfabbe9",
+      "packages/barocss-cad-editor/src/prism-feature-controller.ts": "870435856db2175bfca6dec9c4779d349498113df96f096d6964cb2ab2ee6c02",
+      "packages/barocss-cad-editor/src/modeling-controller.ts": "83dec8a4a3a6713657a777ecb4000eb7a484454b2689bb07d046faf224c518bb",
+      "packages/barocss-cad-editor/src/modeling-engine.ts": "2da88536c2baa46184c0e4f00f0857e75586b7aa1ec992cba6d4b68db00749d5",
+      "packages/barocss-cad-editor/src/react/modeling-editor.tsx": "afb81e0924f4e3ce02b2143f30c2a5da5ebe3f8ff70ec5f74a8e78cd16544300",
+      "packages/barocss-cad-editor/src/react/modeling-workspace.tsx": "57ad1ffaad1849c5cdc1009eab74e9c86e73856d0bd3b1da0b9346278e02b992"
+    },
+    "uniqueRuntimeBindingCount": 35,
+    "policy": "Original executed product applied unchanged; other runtime imports are byte-identical on incoming base. CAD provider changes are external count4 pattern, outside injected-provider test inputs. No repeated runtime/native/type campaign inferred."
+  }
 }
