@@ -220,7 +220,7 @@ test('exact one-record options refuse malformed keys, accessors and extra argume
 });
 test('only count three, cardinal axes and literal signed quarter turns are admitted',()=>{
   const {original}=part();
-  for(const count of [0,1,2,4,-3,3.1,'3',undefined,NaN,Infinity,{parameter:'count'}])refuses(()=>original.circularPattern({...options(),count}),'CAPABILITY','circularPattern');
+  for(const count of [0,1,2,5,-3,3.1,'3',undefined,NaN,Infinity,{parameter:'count'}])refuses(()=>original.circularPattern({...options(),count}),'CAPABILITY','circularPattern');
   for(const axis of ['', 'w','X','xy',[1,0,0],0,null])refuses(()=>original.circularPattern({...options(),axis}),'CAPABILITY','circularPattern');
   for(const angle of [0,-0,45,180,270,360,-180,-270,90.1,'90',null,undefined,NaN,Infinity,{parameter:'angle'}])refuses(()=>original.circularPattern({...options(),angleDegrees:angle}),'CAPABILITY','circularPattern');
   const model=createCadModel(),shape=rectangle(model).extrude(8),angle=model.parameter('angle',90);

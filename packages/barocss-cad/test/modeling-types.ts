@@ -484,7 +484,7 @@ const circularEdited: CadModelSnapshot = circularSnapshot.withParameters({ heigh
 const circularReopened: CadModelSnapshot = cad.load(circularEdited.save());
 const circularEvidence = circularSnapshot.evidence.find(item => item.kind === 'circular-pattern');
 if (circularEvidence?.kind === 'circular-pattern') {
-  const count: 3 = circularEvidence.native.report.count;
+  const count: 3 | 4 = circularEvidence.native.report.count;
   const step: 90 | -90 = circularEvidence.native.request.spec.angleDegrees;
   const firstMappedFace: string = circularEvidence.native.copies[0].lineage.faces[0].rotated.faceId;
   const secondMappedFace: string = circularEvidence.native.copies[1].lineage.faces[0].rotated.faceId;
@@ -501,8 +501,8 @@ circularTuple[1] = circularOriginal;
 circularSource.circularPattern({ axis: 'x', angleDegrees: 180, count: 3 });
 // @ts-expect-error Arbitrary angles are not part of this exact subset.
 circularSource.circularPattern({ axis: 'x', angleDegrees: 120, count: 3 });
-// @ts-expect-error Count includes exactly the original and two copies.
-circularSource.circularPattern({ axis: 'x', angleDegrees: 90, count: 4 });
+// @ts-expect-error Only original-inclusive counts three and four are admitted.
+circularSource.circularPattern({ axis: 'x', angleDegrees: 90, count: 5 });
 // @ts-expect-error Angles cannot be length parameters.
 circularSource.circularPattern({ axis: 'x', angleDegrees: circularHeight, count: 3 });
 // @ts-expect-error Arbitrary axis vectors are not admitted.
@@ -517,3 +517,41 @@ circularSource.circularPattern({ axis: 'x', angleDegrees: 90 });
 circularSource.circularPattern();
 // @ts-expect-error Extra arguments are not admitted.
 circularSource.circularPattern({ axis: 'x', angleDegrees: 90, count: 3 }, true);
+
+const fullCircularModel = cad.model();
+const fullCircularHeight = fullCircularModel.parameter('height', 8);
+const fullCircularSource = fullCircularModel.sketch.rectangle({ width: 32, height: 24 }).extrude(fullCircularHeight);
+const fullCircularTuple: readonly [CadShape, CadShape, CadShape, CadShape] =
+  fullCircularSource.circularPattern({ axis: 'z', angleDegrees: 90, count: 4 });
+const [fullCircularOriginal, fullCircularQuarter, fullCircularHalf, fullCircularThreeQuarter] = fullCircularTuple;
+const fullCircularSnapshot = fullCircularModel.build({ original: fullCircularOriginal, quarter: fullCircularQuarter,
+  half: fullCircularHalf, threeQuarter: fullCircularThreeQuarter });
+const fullCircularReopened: CadModelSnapshot = cad.load(fullCircularSnapshot.withParameters({ height: 10 }).save());
+const fullCircularEvidence = fullCircularSnapshot.evidence.find(item => item.kind === 'circular-pattern');
+if (fullCircularEvidence?.kind === 'circular-pattern') {
+  const copies = fullCircularEvidence.native.copies;
+  if (copies.length === 3) {
+    const thirdMappedFace: string = copies[2].lineage.faces[0].rotated.faceId;
+    void thirdMappedFace;
+  }
+}
+void fullCircularReopened;
+for (const axis of ['x', 'y', 'z'] as const)
+  for (const angleDegrees of [90, -90] as const)
+    cad.model().sketch.rectangle({ width: 32, height: 24 }).extrude(8).circularPattern({ axis, angleDegrees, count: 4 });
+function circularCountUnion(shape: CadShape, count: 3 | 4) {
+  const tuple: readonly [CadShape, CadShape, CadShape] | readonly [CadShape, CadShape, CadShape, CadShape] =
+    shape.circularPattern({ axis: 'x', angleDegrees: 90, count });
+  if (tuple.length === 4) { const fourth: CadShape = tuple[3]; void fourth; }
+}
+void circularCountUnion;
+// @ts-expect-error Count four returns four handles, not three.
+const wrongCircularThree: readonly [CadShape, CadShape, CadShape] = fullCircularTuple;
+// @ts-expect-error Existing count three still returns exactly three handles.
+const wrongCircularFour: readonly [CadShape, CadShape, CadShape, CadShape] = circularTuple;
+// @ts-expect-error The four-instance tuple is readonly.
+fullCircularTuple[3] = fullCircularOriginal;
+// @ts-expect-error Four instances require the existing quarter-turn step.
+fullCircularSource.circularPattern({ axis: 'z', angleDegrees: 180, count: 4 });
+// @ts-expect-error Linear pattern remains count three.
+fullCircularSource.linearPattern({ axis: 'z', spacing: 40, count: 4 });
