@@ -480,7 +480,7 @@ try {
     assert.match(testid('modeling-browser').querySelector('button[data-feature-index="3"]').textContent, /Chamfer 02/);
     await openPattern(); const before = authority(), requestCount = commands();
     assert.equal(input('Pattern spacing (mm)').value, '40'); assert.equal(input('Pattern spacing (mm)').getAttribute('inputmode'), 'decimal');
-    assert.match(panel('linear-pattern').textContent, /Axis X and total count 3 are fixed/);
+    assert.match(panel('linear-pattern').textContent, /Create 2, 3 or 4 total separate rails along model \+X/);
     assert.ok(panel('linear-pattern').textContent.includes(`part · ${current().accepted.outputs[0].solidId} · feature 4`));
     await assertStale(reactCallback(button('Apply operation')), 'Pre-preview Apply does not evaluate');
     for (const value of ['', ' ', 'NaN', 'Infinity', '0x10', '0', '-0', '-1', '5000.01', '10001', '1e309', '1e-9999']) {

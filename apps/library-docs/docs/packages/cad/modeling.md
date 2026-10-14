@@ -102,13 +102,13 @@ Historical [two-bevel native proof](https://github.com/barocss/barocss/issues/16
 The viewport gives accepted convex faces distinct fill colors. Click inside a bevel face to inspect its original approximate face and triangle identity. When a model has too many convex faces to show separately, all outputs remain visible with their original plain fill and face picking; bevel color separation is unavailable in that case. [#1990](https://github.com/barocss/barocss/issues/1990) records the focused display and pointer checks; color and picking do not certify exact measurement or manufacturing geometry.
 
 
-### Pattern three finished rails
+### Pattern two, three or four finished rails
 
-On the 32 × 24 × 8 rail with front bevel1 and opposite bevel2, select **Chamfer 02 → CREATE → Linear pattern**. Keep **Pattern spacing40mm**, choose **Preview operation**, then **Apply operation**. Count3 includes the original: output **part** remains on the finished rail, while **railCopy1** and **railCopy2** are separate bodies at one and two +X spacings. No union, mating or assembly constraint is created.
+On the 32 × 24 × 8 rail with front bevel1 and opposite bevel2, select **Chamfer 02 → CREATE → Linear pattern**. Choose **Total bodies2/3/4** (default3), keep **Pattern spacing40mm**, choose **Preview operation**, then **Apply operation**. Count3 includes the original: output **part** remains on the finished rail, while **railCopy1** and **railCopy2** are separate bodies at one and two +X spacings. No union, mating or assembly constraint is created.
 
-The command accepts only the exact untransformed four-node owned rail and appends one terminal fifth node. It is an alternative to Rotate/Move. Axis X and count3 are fixed. Edit **patternSpacing** through **Edit model dimensions**; existing width/height/thickness and front/back bevel drivers remain shared by all three bodies. Structural Undo restores the original four-node single-output rail; parameter Undo keeps the five-node pattern. Apply requires a current ready preview, and refusal retains the accepted source, display and history.
+The command accepts only the exact untransformed four-node owned rail and appends one terminal fifth node. It is an alternative to Rotate/Move. Axis X is fixed; count is chosen at creation. Edit **patternSpacing** through **Edit model dimensions**; existing width/height/thickness and front/back bevel drivers remain shared by every body. Structural Undo restores the original four-node single-output rail; parameter Undo keeps the five-node pattern. Apply requires a current ready preview, and refusal retains the accepted source, display and history.
 
-Spacing is a positive finite translation step up to5000mm, with twice-spacing bounded by10000mm. Those are necessary input limits; exact stored coefficients, translated coordinates and display admission can still refuse a value without rounding. Spacing is not a clearance guarantee. Three outputs use the existing whole-body fill fallback within the16-draw budget, retaining original native boundary lines and face authority. Practical edge visibility remains under the separate [boundary-display check](https://github.com/barocss/barocss/issues/1995).
+Spacing is a positive finite translation step, with (count-1)*spacing bounded by10000mm. Those are necessary input limits; exact stored coefficients, translated coordinates and display admission can still refuse a value without rounding. Spacing is not a clearance guarantee. Three outputs use the existing whole-body fill fallback within the16-draw budget, retaining original native boundary lines and face authority. Practical edge visibility remains under the separate [boundary-display check](https://github.com/barocss/barocss/issues/1995).
 
 The [provider's retained native result](https://github.com/barocss/barocss/issues/1973) records6064mm³ per body for front1/back2 at X spacing40. [#2000](https://github.com/barocss/barocss/issues/2000) covers this new normal command. Local source/history tests use explicit provider doubles; three-output CPU display tests reuse unchanged genuine rail geometry with synthetic coincident roles. These are not newly evaluated translated copies or actual screen acceptance. Later device verification is scoped to the new command, spacing edits and history, without another common Save/Open campaign.
 
@@ -983,3 +983,23 @@ Select the last bevel of the editor-owned, untransformed two-bevel rectangular r
 The appended source node is `{kind: "circular-pattern", parent: {node: 3, side: "solid"}, axis: "x", angleDegrees: 90, count: 4}`. Copies reference native `instance1`, `instance2`, and `instance3`; all four bodies share the original blank and bevel dimensions. This five-node graph is terminal: no later feature, arbitrary placement, or additional pattern is offered.
 
 Four eight-face rails use the existing whole-body fallback when the per-face draw budget would be exceeded. This budget rule does not establish actual GPU visibility or successful native evaluation. Pure source/identity checks and Workspace DOM presentation tests are distinct from native command/history and device acceptance. The historical count-four transfer contains four bodies but only original/final-copy previews; missing middle previews must not be synthesized or relabeled as genuine output.
+
+
+### Choose the linear-pattern body count (#2016)
+
+CREATE → Linear pattern now offers **Total bodies (including original)**: 2, 3
+or 4, defaulting to 3. Preview and Apply preserve the original `part` and
+create exactly `railCopy1` through `railCopy{count-1}`. Changing the count
+invalidates a previous preview. Count remains structural after Apply; Undo
+returns to the original rail, while `patternSpacing` and shared source
+dimensions remain editable. Existing count-3 files and helper calls that omit
+count retain their original behavior.
+
+This extends the earlier fixed-three command from #2000. The exact
+untransformed two-bevel rail, positive model-X direction and terminal five-node
+graph restrictions remain. The last copy offset, `(count - 1) * spacing`,
+must be at most 10000 mm. This bounds the authored translation only; native
+exactness, final coordinates and complete display acceptance remain
+authoritative. No arbitrary count, axis, pivot or downstream operation is
+introduced. Native count-2/count-4 qualification is recorded in engine #2009;
+new Editor controlled tests are not physical GPU or native replay evidence.
