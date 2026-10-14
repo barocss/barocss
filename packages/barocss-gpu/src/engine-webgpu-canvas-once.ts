@@ -44,6 +44,7 @@ export async function renderEngineWebGPUCanvasOnce(
     budget.check('Canvas configuration');
     canvas = configureEngineWebGPUCanvas(context, device, width, height, format);
     await presentCheckedEngineWebGPUColor(device, context, frame.targets.color, width, height, budget);
+    budget.check('Canvas lease admission');
     return Object.freeze({
       drawCount: frame.drawCount, geometryCount: frame.geometryCount,
       dispose(): void {

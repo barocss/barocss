@@ -24,6 +24,10 @@ export async function withEngineWebGPUErrorScopes<T>(
       if (!failed) { failed = true; original = cause; }
     }
   }
+  if (!failed && !errors.length) {
+    try { waits.check('error scope admission'); }
+    catch (cause) { failed = true; original = cause; }
+  }
   if (failed || errors.length) {
     try { onRefusal(); } catch { /* Preserve original refusal over cleanup errors. */ }
     if (failed) throw original;

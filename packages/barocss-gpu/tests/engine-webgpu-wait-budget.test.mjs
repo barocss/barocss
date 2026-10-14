@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { EngineWebGPUWaitBudget } from '../dist/engine-webgpu-wait-budget.js';
 import { renderEngineWebGPUCanvasOnce } from '../dist/engine-webgpu-canvas-once.js';
+import { withEngineWebGPUErrorScopes } from '../dist/engine-webgpu-error-scopes.js';
 
 function clock(t) {
   let now=0;const live=new Set();
@@ -45,6 +46,17 @@ test('all stage waits share one operation deadline instead of granting another t
   const second=deferred(),pending=budget.wait(second.promise,'second'),rejected=assert.rejects(pending,timeout);
   c.advance(999);assert.equal(c.live.size,1);c.advance(1);await rejected;
   second.reject(new Error('late ignored'));await flush();assert.equal(c.live.size,0);
+});
+test('time elapsed between the final scope result and operation admission still retires the candidate',async t=>{
+  const c=clock(t),last=deferred(),started=deferred(),budget=new EngineWebGPUWaitBudget();
+  let pops=0,cleanups=0;
+  const device={pushErrorScope(){},popErrorScope(){
+    if(++pops===3){started.resolve();return last.promise;}return Promise.resolve(null);
+  }};
+  const pending=withEngineWebGPUErrorScopes(device,async()=>({candidate:true}),()=>{cleanups++;},'checked',budget);
+  const rejected=assert.rejects(pending,timeout);await started.promise;
+  last.resolve(null);queueMicrotask(()=>c.elapse(10000));await rejected;
+  assert.equal(pops,3);assert.equal(cleanups,1);assert.equal(c.live.size,0);
 });
 
 for(const [stage,key,started,buffers,textures,configured,pops]of[
