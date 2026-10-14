@@ -15,7 +15,7 @@ const refuse = (): never => { throw new RangeError('Finite XYZ and supported car
 function admit(point: Point, spec: CardinalRotationSpec): { point: Point; spec: CardinalRotationSpec } {
   try {
     if (!Array.isArray(point) || Object.getPrototypeOf(point) !== Array.prototype) refuse();
-    const entries: PropertyDescriptorMap = Object.getOwnPropertyDescriptors(point);
+    const entries = Object.getOwnPropertyDescriptors(point) as unknown as Record<string, PropertyDescriptor | undefined>;
     if (Reflect.ownKeys(entries).length !== 4 || !Object.hasOwn(entries, 'length') || entries.length?.value !== 3) refuse();
     const values = [0, 1, 2].map(i => {
       const item = entries[String(i)];
