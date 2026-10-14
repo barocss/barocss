@@ -237,7 +237,7 @@ test('same-model callback fences already-held rotation handles; failed callback 
   const other=part();const otherShape=other.flat.rotate(options());assert.ok(otherShape);
 });
 test('strict codec rejects missing/extra fields, invalid angle, parent and later nodes before evaluation',()=>{
-  const mutations=[d=>delete d.nodes[2].axis,d=>delete d.nodes[2].angleDegrees,d=>d.nodes[2].pivot=[0,0,0],d=>d.nodes[2].angleDegrees=0,
+  const mutations=[d=>delete d.nodes[2].axis,d=>delete d.nodes[2].angleDegrees,d=>d.nodes[2].pivot=[0,0],d=>d.nodes[2].angleDegrees=0,
     d=>d.nodes[2].angleDegrees={parameter:'x'},d=>d.nodes[2].axis='w',d=>d.nodes[2].parent.side='negative',d=>d.nodes[2].parent.node=0,
     d=>d.nodes.push({kind:'extrude',sketch:0,height:4}),d=>d.nodes.push({...d.nodes[2],parent:{node:2,side:'solid'}}),d=>d.nodes[2].kind='affine'];
   for(const edit of mutations){const d=doc();edit(d);refuses(()=>loadCadModel(signedJson(d)));}
