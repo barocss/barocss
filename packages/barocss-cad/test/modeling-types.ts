@@ -400,3 +400,32 @@ mirrorOriginal.mirror({ plane: copySpacing });
 mirrorOriginal.mirror();
 // @ts-expect-error Extra arguments are not admitted.
 mirrorOriginal.mirror({ plane: 'xy' }, true);
+
+
+const scaleModel = cad.model();
+const scaleOriginal = scaleModel.sketch.rectangle({ width: 32, height: 24 }).extrude(8, { from: 3 });
+const scaledShape: CadShape = scaleOriginal.scale({ factor: 2 });
+const scaleSnapshot: CadModelSnapshot = scaleModel.build({ original: scaleOriginal, scaled: scaledShape });
+const scaleEvidence = scaleSnapshot.evidence.find(item => item.kind === 'scale');
+if (scaleEvidence?.kind === 'scale') {
+  const factor: 0.5 | 2 = scaleEvidence.native.request.spec.factor;
+  const determinant: 0.125 | 8 = scaleEvidence.native.report.determinant;
+  const mappedFace: string = scaleEvidence.native.lineage.faces[0].scaled.faceId;
+  void [factor, determinant, mappedFace];
+}
+for (const factor of [0.5, 2] as const)
+  cad.model().sketch.rectangle({ width: 32, height: 24 }).extrude(8).scale({ factor });
+// @ts-expect-error Arbitrary factors are not admitted.
+scaleOriginal.scale({ factor: 1 });
+// @ts-expect-error Negative factors are not admitted.
+scaleOriginal.scale({ factor: -2 });
+// @ts-expect-error Scale is uniform across all XYZ coordinates.
+scaleOriginal.scale({ factor: [2, 1, 1] });
+// @ts-expect-error The pivot is fixed at the world origin.
+scaleOriginal.scale({ factor: 2, pivot: [0, 0, 0] });
+// @ts-expect-error A length dimension cannot be a shape scale factor.
+scaleOriginal.scale({ factor: copySpacing });
+// @ts-expect-error One own-data options record is required.
+scaleOriginal.scale();
+// @ts-expect-error Extra arguments are not admitted.
+scaleOriginal.scale({ factor: 2 }, true);

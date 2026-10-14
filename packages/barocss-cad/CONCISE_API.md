@@ -1197,3 +1197,50 @@ parent can still fail native Gram or UV reconstruction under a reflection. The
 original cause and completed-work report remain available. No success promise
 covers every parent and plane. General reflection, assembly placement, mass
 transformation, STL acceptance, editor, GPU, and manufacturing proof are separate.
+
+### One owned uniform scale about the world origin
+
+```ts
+import { cad } from '@barocss/cad';
+
+const m = cad.model();
+const blank = m.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const front = blank.chamfer(blank.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one(), 1);
+const finished = front.chamfer(front.edges({ parallelTo: 'x', at: { y: 24, z: 'max' } }).one(), 2);
+const scaled = finished.scale({ factor: 0.5 });
+const snapshot = m.build({ original: finished, scaled });
+const reopened = cad.load(snapshot.save());
+void reopened;
+```
+
+`scale({ factor })` takes one exact own-data record. The factor must be `0.5` or
+`2`. It scales all authored XYZ coordinates about the world origin. The result
+is an independently owned convex-planar Solid. No arbitrary factor, axis,
+nonuniform scale, pivot, negative factor, zero, or length dimension is admitted.
+`m.dimension.scale` remains a separate length-expression operation.
+
+The parent must be one owned affine rectangle, polygon, or constrained-polygon
+extrusion, with optional `from` placement. Its complete linear chain of one or
+two chamfers is also admitted. Shape scale is terminal. Finish the parent first.
+The six-node limit remains. Chained transforms, later features through retained
+handles, unrelated finishing siblings, Boolean, hole, circle, split ancestry,
+and unsupported family mixes refuse. Save retains the exact authored factor.
+
+Each target Surface and trim-Curve coefficient must equal the exact rational
+product of its stored binary64 source value and the factor. Signed zero remains
+unchanged. Rounding, odd-subnormal halving, underflow, and coordinates outside
+10000 mm refuse before any target Face is built. The operation preserves pole
+order, basis, knots, weights, domains, Face orientation, directed cycles, and
+paired parameter maps. It checks all eight lineage classes and fresh identities.
+
+For factor `f`, vertices, support origins, and interior points scale by `f`.
+Raw outward normals scale by `f²`. Support offsets and exact positive volume
+scale by `f³`. Native unit normals remain unchanged. Directed tangents scale by
+`f`. Gram terms scale by `f²`; their determinant scales by `f⁴` in exact math.
+
+The native Face builder regenerates pcurves and checks their whole UV lift.
+Pcurves are not copied or claimed to have identical control-point bits. Exact
+coefficients do not guarantee native Gram or UV reconstruction success. The
+original refusal cause and completed-work report remain available. General
+scale, assembly placement, mass transformation, STL acceptance, editor, GPU,
+and manufacturing proof are separate.
