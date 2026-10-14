@@ -10,7 +10,7 @@ export type SketchShape =
   | { kind: 'circle'; c: [number, number]; r: number }
   | { kind: 'polygon'; points: [number, number][]; closed: boolean };
 
-export interface SketchState { planeZ: number; tool: SketchTool; shape: SketchShape | null }
+export interface SketchState { planeZ: number; tool: SketchTool; shape: SketchShape | null; base?: { node: number; side: string } | null }
 export interface Gizmo { origin: Vec3; values: Vec3; onDrag(values: Vec3): void }
 
 export interface ViewportHandle {
@@ -28,6 +28,7 @@ interface Props {
   onCursor(p: Vec3 | null): void;
   onBoxSelect(bodies: number[], additive: boolean): void;
   onContextMenu(at: { x: number; y: number }, hit: { face: FaceRef | null; edge: EdgeRef | null }): void;
+  onDimClick?(key: string): void;
 }
 
 const snap = (v: number) => Math.round(v);
@@ -227,25 +228,40 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     if (sk) {
       const z = sk.planeZ; const P = (u: number, v: number) => cam.project([u, v, z], w, h);
       const label = (x: number, y: number, text: string, key: string) => (
-        <g key={key}><rect x={x - 26} y={y - 11} width={52} height={22} rx={4} className="dim-chip" /><text x={x} y={y + 4} textAnchor="middle" className="dim-text">{text}</text></g>);
+        <g key={'d' + key} className="dim" onPointerDown={e => { e.stopPropagation(); props.onDimClick?.(key); }}>
+          <rect x={x - 26} y={y - 11} width={52} height={22} rx={4} className="dim-chip" /><text x={x} y={y + 4} textAnchor="middle" className="dim-text">{text}</text></g>);
+      const glyph = (a: [number, number], b: [number, number], key: string) => {
+        const kind = a[1] === b[1] ? 'H' : a[0] === b[0] ? 'V' : null; if (!kind) return;
+        const m = P((a[0] + b[0]) / 2, (a[1] + b[1]) / 2);
+        items.push(<g key={'g' + key}><rect x={m[0] - 8} y={m[1] - 26} width={16} height={15} rx={3} className="cons-chip" /><text x={m[0]} y={m[1] - 15} textAnchor="middle" className="cons-text">{kind}</text></g>);
+      };
       const s = sk.shape;
       if (s?.kind === 'rectangle') {
         const [x0, x1] = [Math.min(s.a[0], s.b[0]), Math.max(s.a[0], s.b[0])], [y0, y1] = [Math.min(s.a[1], s.b[1]), Math.max(s.a[1], s.b[1])];
         const pts = [P(x0, y0), P(x1, y0), P(x1, y1), P(x0, y1)];
         items.push(<polygon key="r" points={pts.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-shape" />);
+        pts.forEach((p, i) => items.push(<circle key={'rp' + i} cx={p[0]} cy={p[1]} r={3} className="sk-point" />));
+        if (x1 > x0 && y1 > y0) { glyph([x0, y0], [x1, y0], 'b'); glyph([x1, y0], [x1, y1], 'r'); }
         const top = P((x0 + x1) / 2, y0), side = P(x1, (y0 + y1) / 2);
-        items.push(label(top[0], top[1] + 18, String(x1 - x0), 'w'), label(side[0] + 34, side[1], String(y1 - y0), 'h'));
+        items.push(label(top[0], top[1] + 20, String(x1 - x0), 'width'), label(side[0] + 36, side[1], String(y1 - y0), 'height'));
       } else if (s?.kind === 'circle') {
-        const pts = Array.from({ length: 64 }, (_, i) => P(s.c[0] + s.r * Math.cos(i / 32 * Math.PI), s.c[1] + s.r * Math.sin(i / 32 * Math.PI)));
+        const pts = Array.from({ length: 72 }, (_, i) => P(s.c[0] + s.r * Math.cos(i / 36 * Math.PI), s.c[1] + s.r * Math.sin(i / 36 * Math.PI)));
         items.push(<polygon key="c" points={pts.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-shape" />);
         const cc = P(s.c[0], s.c[1]); items.push(<circle key="cc" cx={cc[0]} cy={cc[1]} r={3} className="sk-point" />);
-        const e = P(s.c[0] + s.r, s.c[1]); items.push(<line key="rl" x1={cc[0]} y1={cc[1]} x2={e[0]} y2={e[1]} className="sk-guide" />, label((cc[0] + e[0]) / 2, (cc[1] + e[1]) / 2 - 16, 'r ' + s.r, 'r'));
+        const e = P(s.c[0] + s.r, s.c[1]); items.push(<line key="rl" x1={cc[0]} y1={cc[1]} x2={e[0]} y2={e[1]} className="sk-guide" />, label((cc[0] + e[0]) / 2, (cc[1] + e[1]) / 2 - 16, 'Ø' + s.r * 2, 'diameter'));
       } else if (s?.kind === 'polygon') {
         const pts = s.points.map(p => P(p[0], p[1])); const cur = sketchDraft.current.cursor;
         const line = s.closed ? pts : cur ? [...pts, P(cur[0], cur[1])] : pts;
         items.push(s.closed ? <polygon key="pg" points={line.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-shape" />
           : <polyline key="pl" points={line.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-shape open" />);
         pts.forEach((p, i) => items.push(<circle key={'p' + i} cx={p[0]} cy={p[1]} r={3.5} className="sk-point" />));
+        const n = s.points.length; for (let i = 0; i < (s.closed ? n : n - 1); i++) glyph(s.points[i], s.points[(i + 1) % n], 'p' + i);
+        if (!s.closed && cur && n) {
+          const last = s.points[n - 1];
+          if (cur[0] === last[0] || cur[1] === last[1]) glyph(last, cur, 'live');
+          const len = Math.hypot(cur[0] - last[0], cur[1] - last[1]); const m = P((cur[0] + last[0]) / 2, (cur[1] + last[1]) / 2);
+          if (len > 0) items.push(label(m[0], m[1] + 20, (Math.round(len * 10) / 10).toString(), 'live-len'));
+        }
       }
       const cur = sketchDraft.current.cursor;
       if (cur) { const p = P(cur[0], cur[1]); items.push(<g key="cur"><line x1={p[0] - 8} y1={p[1]} x2={p[0] + 8} y2={p[1]} className="sk-cursor" /><line x1={p[0]} y1={p[1] - 8} x2={p[0]} y2={p[1] + 8} className="sk-cursor" /></g>); }

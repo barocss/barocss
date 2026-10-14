@@ -10,6 +10,7 @@ import { Icon, Kbd } from './ui/atoms';
 import { Hud } from './ui/Hud';
 import { Palette } from './ui/Palette';
 import { ContextMenu } from './ui/ContextMenu';
+import { SketchPanel, isConvex } from './ui/SketchPanel';
 import { downloadBytes, meshToStl } from './ui/files';
 
 const emptySel: Selection = { faces: [], edges: [], bodies: [] };
@@ -97,7 +98,8 @@ export function App() {
     if (cmd.action === 'sketch') {
       const f = selection.faces[0]; const face = f && bodies[f.body]?.mesh.faces[f.face];
       const planeZ = face && face.kind === 'plane' && face.normal[2] > 0.99 ? Math.round(face.centroid[2]) : 0;
-      setSketch({ planeZ, tool: 'rectangle', shape: null }); setActive(null); setPreviewBodies(null);
+      const base = face && planeZ > 0 ? refOf(bodies[f.body]) : null;
+      setSketch({ planeZ, tool: 'rectangle', shape: null, base }); setActive(null); setPreviewBodies(null);
       viewport.current?.setView('top'); return;
     }
     if (cmd.action === 'measure') { setToast({ title: 'Measure', hint: 'Select a face or an edge; its size appears in the Selection card.', detail: '' }); return; }
@@ -121,14 +123,26 @@ export function App() {
         : s.closed && s.points.length >= 3 ? { kind: 'sketch', profile: 'polygon', points: s.points } : null;
     if (!node) { setToast({ title: 'Finish the profile first', hint: 'Draw a closed rectangle, circle or polygon on the sketch plane.', detail: '' }); return; }
     const planeZ = sketch.planeZ;
+    if (s.kind === 'polygon' && s.closed && !isConvex(s.points)) { setToast({ title: 'Sketch profiles must be convex', hint: 'Move the inward corner out, or build the shape from two boxes and Union them.', detail: '' }); return; }
+    const base = sketch.base ?? null;
     const extrude: Command = {
       id: 'extrude', label: 'Extrude', icon: 'height', group: 'create', available: () => ({ ok: true }),
-      fields: () => [{ key: 'h', label: 'Distance', kind: 'mm', min: 1 }],
-      defaults: () => ({ h: 8 }),
-      build: (c, v) => { const d = withNode(c.doc, node); return withNode(d, { kind: 'extrude', sketch: d.nodes.length - 1, height: Number(v.h), ...(planeZ ? { from: planeZ } : {}) }); },
+      fields: () => [{ key: 'h', label: 'Distance', kind: 'mm', min: 1 },
+        ...(base ? [{ key: 'op', label: 'Operation', kind: 'choice' as const, options: [{ value: 'join', label: 'Join to body' }, { value: 'new', label: 'New body' }, { value: 'cut', label: 'Cut from body' }] }] : [])],
+      defaults: () => ({ h: 8, ...(base ? { op: 'join' } : {}) }),
+      build: (c, v) => {
+        const cut = v.op === 'cut'; const d = withNode(c.doc, node);
+        // A cut extrudes down into the body from the face; join/new extrude up from it.
+        const height = Number(v.h); const from = cut ? planeZ - height : planeZ;
+        let e = withNode(d, { kind: 'extrude', sketch: d.nodes.length - 1, height, ...(from ? { from } : {}) });
+        const tool = { node: e.nodes.length - 1, side: 'solid' as const };
+        if (base && v.op === 'join') e = withNode(e, { kind: 'union', left: base as { node: number; side: 'solid' }, right: tool });
+        if (base && cut) e = withNode(e, { kind: 'difference', parent: base as { node: number; side: 'solid' }, tool });
+        return e;
+      },
     };
     setSketch(null);
-    setActive({ cmd: extrude, values: { h: 8 }, preview: 'busy', ctx: { ...ctx } });
+    setActive({ cmd: extrude, values: extrude.defaults!(ctx), preview: 'busy', ctx: { ...ctx } });
   }, [sketch, ctx]);
 
   const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null }, additive: boolean) => {
@@ -190,7 +204,8 @@ export function App() {
   });
 
   const shownBodies = previewBodies ?? bodies;
-  const shownSelection = previewBodies ? emptySel : selection;
+  const shownSelection = previewBodies || sketch ? emptySel : selection;
+  const ghost = useMemo(() => new Set(sketch ? shownBodies.map((_, i) => i) : []), [sketch, shownBodies]);
   const gizmo = active?.cmd.id === 'move' && selectedBodies(active.ctx.selection).length === 1 ? (() => {
     const b = bodies[selectedBodies(active.ctx.selection)[0]]; const { min, max } = b.mesh.bounds;
     return { origin: [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2, max[2]] as Vec3, values: [Number(active.values.x), Number(active.values.y), Number(active.values.z)] as Vec3,
@@ -204,12 +219,13 @@ export function App() {
 
   return (
     <div className="studio">
-      <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={new Set()} sketch={sketch} gizmo={gizmo}
+      <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo}
         onPick={onPick} onCursor={setCursor} onSketchShape={(shape: SketchShape | null) => setSketch(s => s && { ...s, shape })}
         onBoxSelect={(picked, additive) => { if (active) return; setSelection(prev => {
           const base = additive ? selectedBodies(prev) : [];
           return { faces: [], edges: [], bodies: [...new Set([...base, ...picked])] };
         }); }}
+        onDimClick={key => { const el = document.getElementById('sk-' + key) as HTMLInputElement | null; el?.focus(); el?.select(); }}
         onContextMenu={(at, hit) => {
           if (active || sketch) return;
           const next: Selection = hit.edge ? { faces: [], edges: [hit.edge], bodies: [] } : hit.face ? { faces: [hit.face], edges: [], bodies: [] } : selection;
@@ -270,7 +286,8 @@ export function App() {
         {!bodies.length && !busy && <div className="empty">No bodies yet. Press <Kbd>S</Kbd> to sketch or <Kbd>B</Kbd> for a box.</div>}
       </aside>
 
-      <aside className="card props" aria-label="Selection">
+      {sketch && <SketchPanel sketch={sketch} onShape={shape => setSketch(sk => sk && { ...sk, shape })} />}
+      {!sketch && <aside className="card props" aria-label="Selection">
         {sel1?.kind === 'face' && sel1.face ? (<>
           <div className="card-title">SELECTION · FACE</div>
           <div className="kv">Type <b>{sel1.face.kind === 'plane' ? 'Planar' : 'Curved'}</b></div>
@@ -296,7 +313,7 @@ export function App() {
           const next = { ...doc, nodes: doc.nodes.map((n, i) => i === editNode ? node : n) };
           engine.evaluate(prefixDoc(next, marker ?? next.nodes.length), revision.current++).then(r => { if (!r) return; if (r.ok) commit(next); else setToast(r.error); });
         }} onClose={() => setEditNode(null)} />}
-      </aside>
+      </aside>}
       </div>
 
       {active && <Hud active={active} onChange={values => setActive(a => a && { ...a, values })} onApply={apply} onCancel={cancel} />}
