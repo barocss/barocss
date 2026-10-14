@@ -858,3 +858,52 @@ exactness, final coordinates and complete display acceptance remain
 authoritative. No arbitrary count, axis, pivot or downstream operation is
 introduced. Native count-2/count-4 qualification is recorded in engine #2009;
 new Editor controlled tests are not physical GPU or native replay evidence.
+
+
+### Split a rectangular part into two bodies (#2018, #2022)
+
+Select **Extrude**, the first front **Chamfer**, or **Chamfer 02** on the
+untransformed editor-owned rectangular part, then choose **MODIFY → Split part**.
+No bevel is required. The fixed axis is model X. **Model X split coordinate (mm)**
+defaults to half the resolved authored X width: 16 mm for a 32 mm blank, or
+15.625 mm for a 31.25 mm blank, including an expression-driven width.
+Preview both sides, then Apply. Changing the coordinate invalidates a ready
+preview, so preview again before Apply. Enter requests Preview; Cancel or a
+focused-field Escape discards the candidate without accepting a history step.
+
+Apply replaces `part` with exactly `negative` (below the coordinate) and
+`positive` (above it), appends one split feature and adds the independent
+`splitAt` driver. The split is node 2, 3 or 4 with parent 1, 2 or 3 for a blank,
+one-front-bevel part or two-bevel rail respectively. Original expressions,
+signed zeros and any bevel drivers remain unchanged; a blank acquires no
+artificial bevel parameters. Output identities and lineage come from the native
+provider. **Edit model dimensions** changes `splitAt` and the shared dimensions;
+changing width does not recenter the split. Undo/Redo restores the corresponding
+accepted source and outputs. All three completed split forms are terminal.
+
+Admission requires the complete origin-zero XY rectangle/extrusion pair, omitted
+extrusion `from`, positive finite spans/thickness, and a sole `part` output.
+The optional front bevel must retain its exact unnamed X-parallel Y=0, Z=max
+selector and independent `bevelDistance`; the optional opposite bevel retains
+its original max-Y expression and independent `backBevelDistance`. Aliases,
+foreign/named/suppressed bevels, other profiles, transforms, patterns and Boolean
+parents are not admitted. The names `splitAt`, `negative` and `positive` must
+be unused. Decimal coordinates from -10000 to 10000 mm are forwarded without
+rounding or clamping; this input range is not a geometry guarantee. Native
+geometry and complete display admission must accept both positive-volume sides.
+Tangent or outside cuts may refuse, preserving the accepted model and diagnostics.
+Existing Y, miter and centered-derived examples retain their separate semantics.
+The initial structural preview cold-loads the whole candidate.
+
+Evidence is separated by scope. The [#2018 physical normal-path receipt](https://github.com/barocss/barocss/issues/2018#issuecomment-6171554629)
+records the original two-bevel X16/X8 workflow, picks and file history; its
+[invalid-preview cancellation defect](https://github.com/barocss/barocss/issues/2018#issuecomment-6171514415)
+is tracked separately. The [#2022 extension](https://github.com/barocss/barocss/issues/2022)
+has focused pure and mounted controls checks using explicitly synthetic
+provider/display doubles. They are not native geometry or GPU evidence, and no
+historical m4 mesh is renamed as an m2/m3 result. The new exact blank and
+one-front-bevel X16 cases require separate native/device acceptance: 3072/3072
+and 3064/3064 mm³ are expected arithmetic for the 32 × 24 × 8 mm inputs, not
+measurements made by those controlled tests. Physical visibility/picks and
+essential history remain pending for these new cases; no new STL or broad
+manufacturing claim follows.

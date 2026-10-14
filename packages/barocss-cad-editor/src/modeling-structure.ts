@@ -257,11 +257,24 @@ function authoredRailPlacement(d: Document): AuthoredRailPlacement {
   const upper = [0, 1, 2].map(axis => coordinate(Math.max(...corners.map(corner => corner[axis])))) as XYZ;
   return { rotation, offset, envelope: { min, max: upper } };
 }
-function splitNode(): Data {
-  return { kind: 'split', parent: { node: 3, side: 'solid' }, axis: 'x', at: parameter(SPLIT[0]) };
+/** The three complete, untransformed rectangular stages owned by Split part. */
+function splitPrefix(d: Document): number {
+  check([2, 3, 4].includes(d.nodes.length),
+    'Split part requires an untransformed rectangular part with zero, one or two owned bevels.');
+  if (d.nodes.length === 2) chamferPlate(d);
+  else if (d.nodes.length === 3) {
+    oppositeChamferPlate(d);
+    check(!usesParameter(d.nodes.slice(0, 2), CHAMFER),
+      'The owned bevel driver must remain independent of the rectangular prefix.');
+  } else authoredRailPlacement(d);
+  // Resolve the authored X expression, never a parameter name or display bound.
+  return point(d.nodes[0].max, d.parameters)[0];
 }
-function splitOutputs(): Document['outputs'] {
-  return { negative: { node: 4, side: 'negative' }, positive: { node: 4, side: 'positive' } };
+function splitNode(parent: number): Data {
+  return { kind: 'split', parent: { node: parent, side: 'solid' }, axis: 'x', at: parameter(SPLIT[0]) };
+}
+function splitOutputs(node: number): Document['outputs'] {
+  return { negative: { node, side: 'negative' }, positive: { node, side: 'positive' } };
 }
 function reserveSplit(d: Document): void {
   reserve(d, SPLIT);
@@ -270,13 +283,14 @@ function reserveSplit(d: Document): void {
 }
 /** Command-local ownership only: other split axes, planes and derived presets remain valid documents. */
 function splitGraph(d: Document): void {
-  check(d.nodes.length === 5 && signedJson(d.nodes[4]) === signedJson(splitNode())
-    && signedJson(d.outputs) === signedJson(splitOutputs()),
+  const index = d.nodes.length - 1;
+  check([2, 3, 4].includes(index) && signedJson(d.nodes[index]) === signedJson(splitNode(index - 1))
+    && signedJson(d.outputs) === signedJson(splitOutputs(index)),
     'Split part requires exactly the owned terminal X split and negative/positive outputs.');
-  check(Object.hasOwn(d.parameters, SPLIT[0]) && !usesParameter(d.nodes.slice(0, 4), SPLIT)
+  check(Object.hasOwn(d.parameters, SPLIT[0]) && !usesParameter(d.nodes.slice(0, index), SPLIT)
     && ['negative', 'positive'].every(key => !Object.hasOwn(d.parameters, key)),
-    'The splitAt driver must remain independent of the rail and reserved output names.');
-  authoredRailPlacement({ ...d, nodes: d.nodes.slice(0, 4), outputs: { part: { node: 3, side: 'solid' } } });
+    'The splitAt driver must remain independent of the part and reserved output names.');
+  splitPrefix({ ...d, nodes: d.nodes.slice(0, index), outputs: { part: { node: index - 1, side: 'solid' } } });
   length(d.parameters[SPLIT[0]]);
 }
 function linearPatternCount(value: unknown): 2 | 3 | 4 {
@@ -525,17 +539,16 @@ export function getModelingStructureCapabilities(text: string | null, summary: C
     } else placementReason = 'This six-node rail placement is complete. Edit placementX, placementY and placementZ in Model dimensions; another transform is unsupported.';
   } catch (cause) { placementReason = message(cause); }
   let splitPart: ModelingStructureTarget | null = null, splitDefaultAt: number | null = null, splitAuthored = false;
-  let splitReason = 'Split the finished rail at an absolute model X coordinate into negative and positive bodies. Native geometry and complete display remain authoritative.';
+  let splitReason = 'Split a rectangular part before or after its owned bevels at an absolute model X coordinate into negative and positive bodies. Native geometry and complete display remain authoritative.';
   try {
-    check(text !== null && summary !== null, 'open an accepted owned two-bevel rectangular rail first.');
+    check(text !== null && summary !== null, 'open an accepted owned rectangular part first.');
     const d = document(text), targets = accepted(d, summary);
-    if (d.nodes.length === 5 && d.nodes[4].kind === 'split') {
+    if (d.nodes[d.nodes.length - 1].kind === 'split') {
       splitGraph(d); splitAuthored = true;
-      splitReason = 'This split is complete. Edit splitAt or the shared rail dimensions; the coordinate does not recenter when width changes. Further features and transforms are unsupported.';
+      splitReason = 'This split is complete. Edit splitAt or the shared part dimensions; the coordinate does not recenter when width changes. Further features and transforms are unsupported.';
     } else {
-      check(d.nodes.length === 4, 'Split part requires the exact untransformed four-node owned two-bevel rectangular rail.');
-      const rail = authoredRailPlacement(d); reserveSplit(d);
-      splitDefaultAt = rail.envelope.max[0] / 2; splitPart = targets[0];
+      const width = splitPrefix(d); reserveSplit(d);
+      splitDefaultAt = width / 2; splitPart = targets[0];
     }
   } catch (cause) { splitReason = message(cause); }
   let linearPattern: ModelingStructureTarget | null = null, patternAuthored = false;
@@ -643,7 +656,8 @@ export function buildModelingStructure(text: string, summary: CadEditorModelingS
     record(command, ['kind', 'target', 'at']);
     check(capabilities.splitPart, capabilities.splitReason); matchingTarget(command.target, capabilities.splitPart);
     const at = length(command.at); reserveSplit(d);
-    d.parameters[SPLIT[0]] = at; d.nodes.push(splitNode()); d.outputs = splitOutputs();
+    const index = d.nodes.length;
+    d.parameters[SPLIT[0]] = at; d.nodes.push(splitNode(index - 1)); d.outputs = splitOutputs(index);
     return { text: canonicalModelingText(d), selectedOutput: 'negative', consumed: [capabilities.splitPart.name], kind };
   }
   if (kind === 'mirror-part') {
