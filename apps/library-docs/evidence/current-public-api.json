@@ -1,7 +1,7 @@
 {
   "schema": "barocss-current-public-api-v1",
   "typescriptVersion": "5.9.3",
-  "sourceCommit": "3c857b9fc0d458f82e143bb42ebcfafda0178f04",
+  "sourceCommit": "e63307d2656dd187bb95caad0fc58ebec84e5fe1",
   "extractor": "TypeScript 5.9.3 public module exports and declarations; not a type-check or runtime execution",
   "packages": [
     {
@@ -1960,6 +1960,16 @@
               "digest": "10cf03a163e53e21a016f6d61d162f09ee75a02f290ea43cd154ada675f0a248"
             },
             {
+              "name": "handoffQualifiedFaceToPrimitiveViewport",
+              "kind": "FunctionDeclaration",
+              "source": "packages/barocss-gpu/src/qualified-face-scene-renderer.ts",
+              "line": 25,
+              "signatures": [
+                "export function handoffQualifiedFaceToPrimitiveViewport(previous: unknown, input: unknown, mode: 'atomic'|'dispose-remount'): QualifiedFacePrimitiveViewportHandoffResult;"
+              ],
+              "digest": "265871fbee68fa063b20b1cd81c0a33aa80ff63ca33a941121203f45510caae6"
+            },
+            {
               "name": "KernelFaceBinding",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-gpu/src/kernel-face-preview.ts",
@@ -2643,7 +2653,7 @@
               "name": "mountPrimitiveSceneFrame",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 493,
+              "line": 501,
               "signatures": [
                 "export function mountPrimitiveSceneFrame(canvas: HTMLCanvasElement, input: unknown): PrimitiveSceneRendererV2;"
               ],
@@ -2683,7 +2693,7 @@
               "name": "mountPrimitiveViewportFrame",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 498,
+              "line": 506,
               "signatures": [
                 "export function mountPrimitiveViewportFrame(canvas: HTMLCanvasElement, input: unknown): PrimitiveViewport;"
               ],
@@ -2693,7 +2703,7 @@
               "name": "mountQualifiedFaceScene",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/qualified-face-scene-renderer.ts",
-              "line": 187,
+              "line": 237,
               "signatures": [
                 "export function mountQualifiedFaceScene(canvas: HTMLCanvasElement, scene: unknown): QualifiedFaceSceneRenderer;"
               ],
@@ -4682,6 +4692,16 @@
               "digest": "2ece86843f28872bb9879d665e584a7dc5043514c6ba85ca50ba666f6ea9d838"
             },
             {
+              "name": "QualifiedFacePrimitiveViewportHandoffResult",
+              "kind": "TypeAliasDeclaration",
+              "source": "packages/barocss-gpu/src/qualified-face-scene-renderer.ts",
+              "line": 15,
+              "signatures": [
+                "export type QualifiedFacePrimitiveViewportHandoffResult=\n  |{readonly ok:false;readonly stage:'preflight';readonly error:Error}\n  |{readonly ok:false;readonly stage:'retirement'|'mount';readonly previousScene:QualifiedFaceSceneV0;readonly error:Error}\n  |{readonly ok:true;readonly stage:'ready';readonly previousScene:QualifiedFaceSceneV0;readonly viewport:PrimitiveViewport};"
+              ],
+              "digest": "168364d401e4e283e8ac1422a8505d31d83dfc03c7762db9f0bbafb3f13451a6"
+            },
+            {
               "name": "QualifiedFaceSceneDiagnosticCode",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-gpu/src/qualified-face-scene.ts",
@@ -4705,7 +4725,7 @@
               "name": "QualifiedFaceSceneRenderer",
               "kind": "ClassDeclaration",
               "source": "packages/barocss-gpu/src/qualified-face-scene-renderer.ts",
-              "line": 21,
+              "line": 60,
               "signatures": [
                 "export class QualifiedFaceSceneRenderer {\n  constructor(canvas: HTMLCanvasElement, input: unknown);\n  getScene(): QualifiedFaceSceneV0;\n  updateScene(scene: unknown): UpdateResult;\n  resize(width: number, height: number): UpdateResult;\n  readPixels(): Uint8Array;\n  dispose(): void;\n}"
               ],
@@ -6071,6 +6091,7 @@
                 "PrimitiveSceneRendererV2",
                 "PrimitiveViewport",
                 "QualifiedFaceAssetV0",
+                "QualifiedFacePrimitiveViewportHandoffResult",
                 "QualifiedFaceSceneDiagnosticCode",
                 "QualifiedFaceSceneError",
                 "QualifiedFaceSceneRenderer",
@@ -6141,6 +6162,7 @@
                 "engineSceneWGSL",
                 "evaluateAuthoredMaterial",
                 "evaluateDiscreteAuthoredMaterial",
+                "handoffQualifiedFaceToPrimitiveViewport",
                 "lowerDiscreteMeshMaterial",
                 "lowerEngineUVMaterial",
                 "lowerEngineUVRepeatingMaterial",
@@ -6643,7 +6665,9 @@
             {
               "source": "packages/barocss-gpu/src/qualified-face-scene-renderer.ts",
               "names": [
+                "QualifiedFacePrimitiveViewportHandoffResult",
                 "QualifiedFaceSceneRenderer",
+                "handoffQualifiedFaceToPrimitiveViewport",
                 "mountQualifiedFaceScene"
               ]
             },
@@ -8531,6 +8555,16 @@
               "digest": "10cf03a163e53e21a016f6d61d162f09ee75a02f290ea43cd154ada675f0a248"
             },
             {
+              "name": "handoffQualifiedFaceToPrimitiveViewport",
+              "kind": "FunctionDeclaration",
+              "source": "packages/barocss-gpu/src/qualified-face-scene-renderer.ts",
+              "line": 25,
+              "signatures": [
+                "export function handoffQualifiedFaceToPrimitiveViewport(previous: unknown, input: unknown, mode: 'atomic'|'dispose-remount'): QualifiedFacePrimitiveViewportHandoffResult;"
+              ],
+              "digest": "265871fbee68fa063b20b1cd81c0a33aa80ff63ca33a941121203f45510caae6"
+            },
+            {
               "name": "KernelFaceBinding",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-gpu/src/kernel-face-preview.ts",
@@ -9214,7 +9248,7 @@
               "name": "mountPrimitiveSceneFrame",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 493,
+              "line": 501,
               "signatures": [
                 "export function mountPrimitiveSceneFrame(canvas: HTMLCanvasElement, input: unknown): PrimitiveSceneRendererV2;"
               ],
@@ -9254,7 +9288,7 @@
               "name": "mountPrimitiveViewportFrame",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/primitive-scene-renderer.ts",
-              "line": 498,
+              "line": 506,
               "signatures": [
                 "export function mountPrimitiveViewportFrame(canvas: HTMLCanvasElement, input: unknown): PrimitiveViewport;"
               ],
@@ -9264,7 +9298,7 @@
               "name": "mountQualifiedFaceScene",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/qualified-face-scene-renderer.ts",
-              "line": 187,
+              "line": 237,
               "signatures": [
                 "export function mountQualifiedFaceScene(canvas: HTMLCanvasElement, scene: unknown): QualifiedFaceSceneRenderer;"
               ],
@@ -11253,6 +11287,16 @@
               "digest": "2ece86843f28872bb9879d665e584a7dc5043514c6ba85ca50ba666f6ea9d838"
             },
             {
+              "name": "QualifiedFacePrimitiveViewportHandoffResult",
+              "kind": "TypeAliasDeclaration",
+              "source": "packages/barocss-gpu/src/qualified-face-scene-renderer.ts",
+              "line": 15,
+              "signatures": [
+                "export type QualifiedFacePrimitiveViewportHandoffResult=\n  |{readonly ok:false;readonly stage:'preflight';readonly error:Error}\n  |{readonly ok:false;readonly stage:'retirement'|'mount';readonly previousScene:QualifiedFaceSceneV0;readonly error:Error}\n  |{readonly ok:true;readonly stage:'ready';readonly previousScene:QualifiedFaceSceneV0;readonly viewport:PrimitiveViewport};"
+              ],
+              "digest": "168364d401e4e283e8ac1422a8505d31d83dfc03c7762db9f0bbafb3f13451a6"
+            },
+            {
               "name": "QualifiedFaceSceneDiagnosticCode",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-gpu/src/qualified-face-scene.ts",
@@ -11276,7 +11320,7 @@
               "name": "QualifiedFaceSceneRenderer",
               "kind": "ClassDeclaration",
               "source": "packages/barocss-gpu/src/qualified-face-scene-renderer.ts",
-              "line": 21,
+              "line": 60,
               "signatures": [
                 "export class QualifiedFaceSceneRenderer {\n  constructor(canvas: HTMLCanvasElement, input: unknown);\n  getScene(): QualifiedFaceSceneV0;\n  updateScene(scene: unknown): UpdateResult;\n  resize(width: number, height: number): UpdateResult;\n  readPixels(): Uint8Array;\n  dispose(): void;\n}"
               ],
@@ -12642,6 +12686,7 @@
                 "PrimitiveSceneRendererV2",
                 "PrimitiveViewport",
                 "QualifiedFaceAssetV0",
+                "QualifiedFacePrimitiveViewportHandoffResult",
                 "QualifiedFaceSceneDiagnosticCode",
                 "QualifiedFaceSceneError",
                 "QualifiedFaceSceneRenderer",
@@ -12712,6 +12757,7 @@
                 "engineSceneWGSL",
                 "evaluateAuthoredMaterial",
                 "evaluateDiscreteAuthoredMaterial",
+                "handoffQualifiedFaceToPrimitiveViewport",
                 "lowerDiscreteMeshMaterial",
                 "lowerEngineUVMaterial",
                 "lowerEngineUVRepeatingMaterial",
@@ -13214,7 +13260,9 @@
             {
               "source": "packages/barocss-gpu/src/qualified-face-scene-renderer.ts",
               "names": [
+                "QualifiedFacePrimitiveViewportHandoffResult",
                 "QualifiedFaceSceneRenderer",
+                "handoffQualifiedFaceToPrimitiveViewport",
                 "mountQualifiedFaceScene"
               ]
             },
@@ -55398,7 +55446,7 @@
   ],
   "packageTrees": {
     "packages/barocss-render": "b83e4912e1d1aa658f048ba4b112376785b288fb",
-    "packages/barocss-gpu": "ba36812f7118c6ec2d8fef3fac7b8be46d9a937b",
+    "packages/barocss-gpu": "1bd13f5ea8fc0394c85cff12d7a84e1401bfccde",
     "packages/barocss-cad": "1c81e9bc6c6f8d223031bb99651a34b3d6ec30ae",
     "packages/barocss-cad-interop": "330d0323e1d3891c8a1f882e848aae604ea67b08",
     "packages/barocss-canvas2d": "b029d1925907fbac9a19d6c2f825cbfd91323473",
@@ -55501,6 +55549,7 @@
       "@barocss/gpu.:evaluateDiscreteAuthoredMaterial",
       "@barocss/gpu.:FiniteRepeatAffineSceneAst",
       "@barocss/gpu.:GeneratedAffineSceneAst",
+      "@barocss/gpu.:handoffQualifiedFaceToPrimitiveViewport",
       "@barocss/gpu.:lowerDiscreteMeshMaterial",
       "@barocss/gpu.:LoweredDiscreteMeshMaterial",
       "@barocss/gpu.:LoweredEngineUVMaterial",
@@ -55677,6 +55726,7 @@
       "@barocss/gpu.:PrimitiveSceneCpuFrameV0",
       "@barocss/gpu.:PrimitiveSceneFrameProfile",
       "@barocss/gpu.:PrimitiveSceneRecoveryError",
+      "@barocss/gpu.:QualifiedFacePrimitiveViewportHandoffResult",
       "@barocss/gpu.:RoundedBoxGeometrySourceV0",
       "@barocss/gpu.:SampledEngineTransformClip",
       "@barocss/gpu.:sampleEngineTransformClip",
@@ -55792,6 +55842,7 @@
       "@barocss/gpu./source:evaluateDiscreteAuthoredMaterial",
       "@barocss/gpu./source:FiniteRepeatAffineSceneAst",
       "@barocss/gpu./source:GeneratedAffineSceneAst",
+      "@barocss/gpu./source:handoffQualifiedFaceToPrimitiveViewport",
       "@barocss/gpu./source:lowerDiscreteMeshMaterial",
       "@barocss/gpu./source:LoweredDiscreteMeshMaterial",
       "@barocss/gpu./source:LoweredEngineUVMaterial",
@@ -55968,6 +56019,7 @@
       "@barocss/gpu./source:PrimitiveSceneCpuFrameV0",
       "@barocss/gpu./source:PrimitiveSceneFrameProfile",
       "@barocss/gpu./source:PrimitiveSceneRecoveryError",
+      "@barocss/gpu./source:QualifiedFacePrimitiveViewportHandoffResult",
       "@barocss/gpu./source:RoundedBoxGeometrySourceV0",
       "@barocss/gpu./source:SampledEngineTransformClip",
       "@barocss/gpu./source:sampleEngineTransformClip",
