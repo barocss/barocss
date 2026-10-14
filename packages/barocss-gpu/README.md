@@ -4647,3 +4647,19 @@ Focused software check: build the GPU package, then run
 `node --test --test-concurrency=1 packages/barocss-gpu/tests/native-point-light-webgpu-viewport.test.mjs`
 with the repository-pinned Node22 toolchain. Full old suites, native recompilation,
 cold-file and genuine browser/device campaigns are outside this bounded stage.
+## QualifiedFace disposal and renderer transition limits
+
+`QualifiedFaceSceneRenderer.dispose()` marks the renderer disposed, detaches its
+accepted resource ownership, and attempts listener removal and every owned GL2
+handle deletion even if an earlier operation throws. Failed cleanup throws the
+existing `QualifiedFaceSceneError` with code `GPU` and an `AggregateError` cause
+containing the original failures. Repeated disposal does not retry deletion.
+The original CPU scene remains readable through `getScene()` after disposal.
+Successful-delete counters decrease; a refused delete remains unresolved, so
+cleanup failure is not proof of zero driver allocations.
+
+This is a teardown prerequisite for #1922, not atomic cross-family adoption.
+Current renderer families do not share a transactional canvas transfer boundary.
+Retain the existing refusal of a second live-family mount. An explicit future
+dispose/remount must stop on cleanup failure; once an old owner is retired, a
+failed new mount cannot promise its old displayed pixels or restore its renderer.
