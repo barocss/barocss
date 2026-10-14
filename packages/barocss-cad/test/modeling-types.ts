@@ -441,13 +441,15 @@ const patternEdited: CadModelSnapshot = patternSnapshot.withParameters({ spacing
 const patternReopened: CadModelSnapshot = cad.load(patternEdited.save());
 const patternEvidence = patternSnapshot.evidence.find(item => item.kind === 'linear-pattern');
 if (patternEvidence?.kind === 'linear-pattern') {
-  const count: 3 = patternEvidence.native.report.count;
+  const count: 2 | 3 | 4 = patternEvidence.native.report.count;
   const firstCopy = patternEvidence.native.copies[0];
-  const secondCopy = patternEvidence.native.copies[1];
   const firstMappedFace: string = firstCopy.lineage.faces[0].translated.faceId;
-  const secondMappedFace: string = secondCopy.lineage.faces[0].translated.faceId;
+  if (patternEvidence.native.copies.length === 2) {
+    const secondMappedFace: string = patternEvidence.native.copies[1].lineage.faces[0].translated.faceId;
+    void secondMappedFace;
+  }
   const sameParent: true = patternEvidence.native.report.preservation.sameOriginalParent;
-  void [count, firstMappedFace, secondMappedFace, sameParent];
+  void [count, firstMappedFace, sameParent];
 }
 void patternReopened;
 for (const axis of ['x', 'y', 'z'] as const) {
@@ -458,8 +460,8 @@ for (const axis of ['x', 'y', 'z'] as const) {
 }
 // @ts-expect-error The result is a readonly three-instance tuple.
 patternTuple[1] = patternSource;
-// @ts-expect-error Exactly three instances include the original.
-patternOriginal.linearPattern({ axis: 'x', spacing: 40, count: 2 });
+// @ts-expect-error Count one does not create a pattern copy.
+patternOriginal.linearPattern({ axis: 'x', spacing: 40, count: 1 });
 // @ts-expect-error Arbitrary directions are not admitted.
 patternOriginal.linearPattern({ axis: [1, 0, 0], spacing: 40, count: 3 });
 // @ts-expect-error Spacing is a millimetre length, not a string.
@@ -553,8 +555,8 @@ const wrongCircularFour: readonly [CadShape, CadShape, CadShape, CadShape] = cir
 fullCircularTuple[3] = fullCircularOriginal;
 // @ts-expect-error Four instances require the existing quarter-turn step.
 fullCircularSource.circularPattern({ axis: 'z', angleDegrees: 180, count: 4 });
-// @ts-expect-error Linear pattern remains count three.
-fullCircularSource.linearPattern({ axis: 'z', spacing: 40, count: 4 });
+// @ts-expect-error Linear pattern supports only bounded counts two, three and four.
+fullCircularSource.linearPattern({ axis: 'z', spacing: 40, count: 5 });
 
 
 // A cardinal rotation followed by exact placement keeps both native evidence kinds.
@@ -613,3 +615,44 @@ translatedIntersectionCopy.intersect({});
 translatedIntersectionCopy.intersect();
 // @ts-expect-error There is no intersection options argument.
 translatedIntersectionCopy.intersect(translatedIntersectionTool, { axis: 'x' });
+
+
+const linearFourModel = cad.model();
+const linearFourSpacing = linearFourModel.parameter('spacing', 40);
+const linearFourBlank = linearFourModel.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const linearFourFront = linearFourBlank.chamfer(linearFourBlank.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one(), 1);
+const linearFourFinished = linearFourFront.chamfer(linearFourFront.edges({ parallelTo: 'x', at: { y: 24, z: 'max' } }).one(), 2);
+const linearFourTuple: readonly [CadShape, CadShape, CadShape, CadShape] =
+  linearFourFinished.linearPattern({ axis: 'x', spacing: linearFourSpacing, count: 4 });
+const [linearFourOriginal, linearFourFirst, linearFourSecond, linearFourThird] = linearFourTuple;
+const linearFourSnapshot: CadModelSnapshot = linearFourModel.build({ original: linearFourOriginal,
+  first: linearFourFirst, second: linearFourSecond, third: linearFourThird });
+const linearFourReopened: CadModelSnapshot = cad.load(linearFourSnapshot.withParameters({ spacing: 56 }).save());
+const linearTwoModel = cad.model();
+const linearTwoSource = linearTwoModel.sketch.rectangle({ width: 32, height: 24 }).extrude(8, { from: 3 });
+const linearTwoTuple: readonly [CadShape, CadShape] = linearTwoSource.linearPattern({ axis: 'z', spacing: 6000, count: 2 });
+const linearTwoSnapshot: CadModelSnapshot = linearTwoModel.build({ original: linearTwoTuple[0], raised: linearTwoTuple[1] });
+for (const evidence of linearFourSnapshot.evidence) if (evidence.kind === 'linear-pattern') {
+  const copies = evidence.native.copies;
+  if (copies.length === 3) {
+    const thirdMappedFace: string = copies[2].lineage.faces[0].translated.faceId;
+    void thirdMappedFace;
+  }
+}
+function linearCountUnion(shape: CadShape, count: 2 | 3 | 4) {
+  const tuple: readonly [CadShape, CadShape] | readonly [CadShape, CadShape, CadShape] | readonly [CadShape, CadShape, CadShape, CadShape] =
+    shape.linearPattern({ axis: 'x', spacing: 40, count });
+  if (tuple.length === 4) { const fourth: CadShape = tuple[3]; void fourth; }
+  if (tuple.length === 2) { const second: CadShape = tuple[1]; void second; }
+}
+void [linearFourReopened, linearTwoSnapshot, linearCountUnion];
+// @ts-expect-error Count four returns exactly four handles.
+const wrongLinearThree: readonly [CadShape, CadShape, CadShape] = linearFourTuple;
+// @ts-expect-error Count two returns exactly two handles.
+const wrongLinearTwo: readonly [CadShape, CadShape, CadShape] = linearTwoTuple;
+// @ts-expect-error Count three still returns exactly three handles.
+const wrongLinearFour: readonly [CadShape, CadShape, CadShape, CadShape] = patternTuple;
+// @ts-expect-error The four-instance tuple is readonly.
+linearFourTuple[3] = linearFourOriginal;
+// @ts-expect-error Count two has no third handle.
+linearTwoTuple[2];

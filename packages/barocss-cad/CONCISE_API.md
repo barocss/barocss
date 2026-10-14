@@ -1276,8 +1276,8 @@ two chamfers is also admitted. Finish the parent before adding the pattern.
 One terminal pattern node produces both copies. The six-node limit remains.
 Pattern chains, later features through retained handles, copy edge selection,
 unrelated finishing siblings, transform ancestry, Boolean, hole, circle, and
-split ancestry refuse. Count values other than three and arbitrary directions
-are unsupported.
+split ancestry refuse. Counts two and four are supported in the bounded
+extension below. Other counts and arbitrary directions are unsupported.
 
 Both complete coordinate sets and all new identities are checked before either
 copy is built. Each stored target Surface and trim-Line coefficient must equal
@@ -1515,3 +1515,61 @@ new schema. Disjoint or lower-dimensional contact refuses with `SELECTION` and
 `cause.contactDimension`. Exact representation failures retain the original
 Native cause. Failed edits leave the accepted save, bodies and evidence intact.
 No rounding, fusion, mass, STL, editor, GPU or manufacturing acceptance is added.
+
+### Two or four owned instances in a cardinal linear pattern
+
+```ts
+import { cad } from '@barocss/cad';
+
+const m = cad.model();
+const spacing = m.parameter('spacing', 40);
+const blank = m.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const front = blank.chamfer(blank.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one(), 1);
+const finished = front.chamfer(front.edges({ parallelTo: 'x', at: { y: 24, z: 'max' } }).one(), 2);
+const [original, first, second, third] = finished.linearPattern({ axis: 'x', spacing, count: 4 });
+const snapshot = m.build({ original, first, second, third });
+const edited = snapshot.withParameters({ spacing: 56 });
+const reopened = cad.load(edited.save());
+
+const pairModel = cad.model();
+const pairSource = pairModel.sketch.rectangle({ width: 32, height: 24 }).extrude(8, { from: 3 });
+const [base, raised] = pairSource.linearPattern({ axis: 'z', spacing: 6000, count: 2 });
+const pair = pairModel.build({ base, raised });
+const pairReopened = cad.load(pair.save());
+void [reopened, pairReopened];
+```
+
+Count includes the exact original handle. Literal counts `2`, `3`, and `4`
+return frozen tuples of exactly two, three, and four handles. A count typed as
+`2 | 3 | 4` returns that bounded tuple union; its length can narrow the result.
+Count two constructs one copy at the spacing. Count three keeps its existing
+two copies at one and two times the spacing. Count four constructs three copies
+at one, two, and three times the spacing. Every copy consumes the same original.
+
+The existing source and terminal rules remain: one direct affine rectangle,
+polygon, or constrained-polygon extrusion, including admitted `from` placement,
+or its complete owned one/two-chamfer chain. One terminal pattern node stays
+within the six-node envelope. Copies and retained source handles cannot append
+later features, transforms or patterns. No new body family, Boolean operand,
+negative spacing or arbitrary count is admitted. Circular patterns retain their
+existing counts and angle rules.
+
+Spacing is one positive owned length dimension in mm. Count two checks only the
+single spacing, so the 6000 mm example does not require a doubled offset. Count
+three retains its exact doubled-spacing rule. Count four requires three times
+the represented spacing to be exactly representable and at most 10000 mm.
+All actual target Surface and trim-Line coefficients must also be exactly
+representable within the unchanged coordinate bounds. Every requested offset,
+coefficient set and complete namespace is staged before the first copy is built.
+Each copy then receives independent complete Native qualification. Zero-offset
+coefficient bits and positive zero from nonzero exact cancellation remain intact.
+
+A spacing edit reuses the accepted source prefix and rebuilds all requested
+copies. Refusals preserve accepted bodies, evidence and save bytes. A late child
+failure keeps completed child reports and the original cause, and returns no
+partial pattern. Save/Open retains the authored count. Count three keeps its
+existing Native request, report, identifiers and exact-work contract. Count two
+exposes only its first instance; count four additionally exposes its third.
+Snapshot and rational-work budgets remain unchanged and can refuse larger
+results. No fusion, occupied-region separation, persistent naming, mass, STL,
+editor, GPU or manufacturing acceptance is added.

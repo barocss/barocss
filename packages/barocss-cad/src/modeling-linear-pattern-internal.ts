@@ -10,23 +10,25 @@ import type { Point } from './types.js';
 type ChildReport = ModelingTranslationResult['report'];
 type DirectCalls = { parentValidationCount: number; translationCount: number; retries: 0 };
 type ExactWork = ReturnType<SectionRationalContext['counts']>;
-type Preflight = { copyCount: 2; faceCount: number; surfaceCoordinateCount: number; curveCoordinateCount: number };
+type Count = 2 | 3 | 4;
+type Copies<C extends Count, T> = C extends 2 ? [T] : C extends 3 ? [T, T] : [T, T, T];
+type Preflight<C extends Count> = { copyCount: C extends 2 ? 1 : C extends 3 ? 2 : 3; faceCount: number; surfaceCoordinateCount: number; curveCoordinateCount: number };
 type Progress = { parentValidation: ConvexPlanarSolidReport | null; directCalls: DirectCalls; completedChildReports: ChildReport[]; exactWork: ExactWork };
 type StagedFace = { surfacePoints: Point[][]; curvePoints: Point[][] };
 
-/** Two independently qualified translations of the same original, never a copied certificate. */
-export interface ModelingLinearPatternResult {
-  request: { parent: ConvexPlanarSolidResult; stepMM: Point; prefix: string };
-  copies: [ModelingTranslationResult, ModelingTranslationResult];
+/** Independently qualified translations of the same original, never copied certificates. */
+interface PatternResult<C extends Count> {
+  request: { parent: ConvexPlanarSolidResult; stepMM: Point; prefix: string } & (C extends 3 ? object : { count: C });
+  copies: Copies<C, ModelingTranslationResult>;
   report: {
-    schema: 'barocss-modeling-linear-pattern'; version: 0; lengthUnit: 'mm'; count: 3;
+    schema: 'barocss-modeling-linear-pattern'; version: 0; lengthUnit: 'mm'; count: C;
     parentValidation: ConvexPlanarSolidReport;
-    childReports: [ChildReport, ChildReport];
+    childReports: Copies<C, ChildReport>;
     directCalls: DirectCalls;
     totalNativeCalls: { parentValidationCount: number; initialFaceConstructionCount: number; targetQualificationCount: number; retries: 0 };
-    preflight: Preflight;
+    preflight: Preflight<C>;
     exactWork: ExactWork;
-    preservation: { sameOriginalParent: true; bothCopiesPreflighted: true; independentSourceNamespaces: true; completeQualifiedCopies: true; originalPreserved: true };
+    preservation: { sameOriginalParent: true; independentSourceNamespaces: true; completeQualifiedCopies: true; originalPreserved: true } & (C extends 3 ? { bothCopiesPreflighted: true } : { allCopiesPreflighted: true });
     limits: { faces: 10; directedUses: 48; pairs: 24; vertices: 16; coordinateAbsMM: 10000; rationalOperations: 200000; integerBits: 8192;
       snapshotCumulativeBytes: 50331648; snapshotRetainedBytes: 33554432; snapshotResultBytes: 16777216 };
     numericPolicy: 'exact-rationals-of-stored-binary64-no-welding-no-tolerance-promotion';
@@ -35,6 +37,8 @@ export interface ModelingLinearPatternResult {
     dataCharge: 'unchanged-solid-snapshot-ledger-alias-occurrences-not-v8-heap';
   };
 }
+
+export type ModelingLinearPatternResult = PatternResult<2> | PatternResult<3> | PatternResult<4>;
 
 function freeze(value: unknown): void {
   if (value !== null && typeof value === 'object') { Object.values(value).forEach(freeze); Object.freeze(value); }
@@ -68,8 +72,14 @@ function causeCode(cause: unknown): ConvexPlanarSolidDiagnosticCode {
   return 'NATIVE';
 }
 
-/** Preflight both complete coefficient sets before either unchanged child constructor. */
-export function buildModelingLinearPattern(parentInput: ConvexPlanarSolidResult, stepInput: Point, prefixInput: string): ModelingLinearPatternResult {
+/** Preserve the three-argument count3 request and its exact-work sequence. */
+export function buildModelingLinearPattern(parent: ConvexPlanarSolidResult, stepMM: Point, prefix: string): PatternResult<3>;
+export function buildModelingLinearPattern(parent: ConvexPlanarSolidResult, stepMM: Point, prefix: string, count: 2): PatternResult<2>;
+export function buildModelingLinearPattern(parent: ConvexPlanarSolidResult, stepMM: Point, prefix: string, count: 4): PatternResult<4>;
+export function buildModelingLinearPattern(parent: ConvexPlanarSolidResult, stepMM: Point, prefix: string, count: 2 | 4): PatternResult<2> | PatternResult<4>;
+/** Stage every complete coefficient set and namespace before the first child. */
+export function buildModelingLinearPattern(parentInput: ConvexPlanarSolidResult, stepInput: Point, prefixInput: string, countInput?: 2 | 4): ModelingLinearPatternResult {
+  const authoredCount = arguments.length > 3;
   const ledger = new SolidSnapshotLedger();
   const rational = new SectionRationalContext((code, detail) => { throw new ConvexPlanarSolidError(code, detail); });
   const directCalls: DirectCalls = { parentValidationCount: 0, translationCount: 0, retries: 0 };
@@ -77,7 +87,12 @@ export function buildModelingLinearPattern(parentInput: ConvexPlanarSolidResult,
   let parentValidation: ConvexPlanarSolidReport | null = null, stage = 'snapshot', entity = 'request';
   const at = <T>(nextStage: string, nextEntity: string, action: () => T): T => { stage = nextStage; entity = nextEntity; return action(); };
   try {
-    const request = ledger.copy({ parent: parentInput, stepMM: stepInput, prefix: prefixInput }, true);
+    const request = ledger.copy(authoredCount
+      ? { parent: parentInput, stepMM: stepInput, prefix: prefixInput, count: countInput }
+      : { parent: parentInput, stepMM: stepInput, prefix: prefixInput }, true);
+    if (authoredCount) at('admission', 'count', () => check(arguments.length === 4 && (countInput === 2 || countInput === 4),
+      'INPUT', 'New counts require exactly four arguments with literal count2 or count4'));
+    const count: Count = authoredCount ? countInput as 2 | 4 : 3, copyCount = count - 1;
     const { parent, stepMM, prefix } = request;
     at('admission', 'stepMM', () => check(Array.isArray(stepMM) && stepMM.length === 3
       && stepMM.every(value => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 10000)
@@ -91,14 +106,22 @@ export function buildModelingLinearPattern(parentInput: ConvexPlanarSolidResult,
     at('admission', 'parent-inventory', () => check(originals.length <= 10 && parent.graph.edges.length <= 24
       && parent.graph.vertices.length <= 16 && originals.reduce((sum, asset) => sum + asset.face.topology.loop.uses.length, 0) <= 48,
       'BUDGET', 'Qualified convex inventory exceeds10 Faces/48 uses/24 pairs/16 vertices'));
-    const offsets: [Point, Point] = [stepMM, at('stage-coefficients', 'twice-stepMM', () => stepMM.map(value => {
+    const offsets: Point[] = [stepMM];
+    if (count !== 2) offsets.push(at('stage-coefficients', 'twice-stepMM', () => stepMM.map(value => {
       if (value === 0) return value; // Preserve authored zero signs on unused axes.
       const doubled = value * 2;
       check(Number.isFinite(doubled) && doubled <= 10000
         && rational.compare(rational.mul(rational.from(value), rational.integer(2)), rational.from(doubled)) === 0,
       'REPRESENTABILITY', 'Twice-spacing must be exactly represented within10000mm'); return doubled;
-    }) as Point)];
-    const prefixes: [string, string] = [prefix + '_i1', prefix + '_i2'];
+    }) as Point));
+    if (count === 4) offsets.push(at('stage-coefficients', 'thrice-stepMM', () => stepMM.map(value => {
+      if (value === 0) return value;
+      const tripled = value * 3;
+      check(Number.isFinite(tripled) && tripled <= 10000
+        && rational.compare(rational.mul(rational.from(value), rational.integer(3)), rational.from(tripled)) === 0,
+      'REPRESENTABILITY', 'Thrice-spacing must be exactly represented within10000mm'); return tripled;
+    }) as Point));
+    const prefixes = offsets.map((_, instance) => prefix + '_i' + (instance + 1));
     const parentIds = new Set(namespaces(parent)), allocated = new Set<string>();
     const fresh = (value: string, maximum = 48): string => at('identity', value, () => {
       id(value, maximum); check(!parentIds.has(value) && !allocated.has(value), 'IDENTITY', 'Every pattern namespace must be distinct from the complete parent and both targets');
@@ -119,8 +142,8 @@ export function buildModelingLinearPattern(parentInput: ConvexPlanarSolidResult,
       }
       return planned;
     });
-    const preflight: Preflight = { copyCount: 2, faceCount: originals.length * 2, surfaceCoordinateCount: 0, curveCoordinateCount: 0 };
-    const staged: [StagedFace[], StagedFace[]] = offsets.map((offset, instance) => {
+    const preflight = { copyCount, faceCount: originals.length * copyCount, surfaceCoordinateCount: 0, curveCoordinateCount: 0 };
+    const staged: StagedFace[][] = offsets.map((offset, instance) => {
       const exactOffsets = offset.map(value => rational.from(value));
       const point = (source: Point, location: string, surface: boolean): Point => source.map((value, axis) =>
         at('stage-coefficients', prefixes[instance] + '/' + location + '/' + axis, () => {
@@ -136,7 +159,7 @@ export function buildModelingLinearPattern(parentInput: ConvexPlanarSolidResult,
         surfacePoints: face.plane.controlPoints.map((row, u) => row.map((pole, v) => point(pole, sourceId + '/' + face.plane.id + '/' + u + '/' + v, true))),
         curvePoints: face.loop.edges.map(curve => curve.controlPoints.map((pole, p) => point(pole, sourceId + '/' + curve.id + '/' + p, false))),
       }));
-    }) as [StagedFace[], StagedFace[]];
+    });
     at('snapshot', 'both-copy-preflight', () => ledger.copy(staged, false, true));
     // These delegated boundary charges include aliases. Each unchanged child and
     // native validator also enforces its own ledger; this is not a V8 heap claim.
@@ -166,21 +189,22 @@ export function buildModelingLinearPattern(parentInput: ConvexPlanarSolidResult,
       });
       copies.push(child);
     }
-    const children: [ModelingTranslationResult, ModelingTranslationResult] = [copies[0], copies[1]];
-    const childReports: [ChildReport, ChildReport] = [children[0].report, children[1].report];
+    const childReports = copies.map(child => child.report);
     const sum = (field: 'parentValidationCount' | 'initialFaceConstructionCount' | 'targetQualificationCount'): number =>
       childReports.reduce((total, report) => total + report.directCalls[field], 0);
-    const result: ModelingLinearPatternResult = { request, copies: children, report: {
-      schema: 'barocss-modeling-linear-pattern', version: 0, lengthUnit: 'mm', count: 3, parentValidation, childReports,
+    const result = { request, copies, report: {
+      schema: 'barocss-modeling-linear-pattern', version: 0, lengthUnit: 'mm', count, parentValidation, childReports,
       directCalls: { ...directCalls }, totalNativeCalls: { parentValidationCount: directCalls.parentValidationCount + sum('parentValidationCount'),
         initialFaceConstructionCount: sum('initialFaceConstructionCount'), targetQualificationCount: sum('targetQualificationCount'), retries: 0 },
-      preflight, exactWork: rational.counts(), preservation: { sameOriginalParent: true, bothCopiesPreflighted: true,
+      preflight, exactWork: rational.counts(), preservation: count === 3 ? { sameOriginalParent: true, bothCopiesPreflighted: true,
+        independentSourceNamespaces: true, completeQualifiedCopies: true, originalPreserved: true } : {
+        sameOriginalParent: true, allCopiesPreflighted: true,
         independentSourceNamespaces: true, completeQualifiedCopies: true, originalPreserved: true },
       limits: { faces: 10, directedUses: 48, pairs: 24, vertices: 16, coordinateAbsMM: 10000, rationalOperations: 200000, integerBits: 8192,
         snapshotCumulativeBytes: 50331648, snapshotRetainedBytes: 33554432, snapshotResultBytes: 16777216 },
       numericPolicy: 'exact-rationals-of-stored-binary64-no-welding-no-tolerance-promotion', validationScope: 'whole-result-self-consistency-not-authenticity',
       persistentNamingCertified: false, dataCharge: 'unchanged-solid-snapshot-ledger-alias-occurrences-not-v8-heap',
-    } };
+    } } as ModelingLinearPatternResult;
     return at('snapshot', 'result', () => ledger.copy(result, true));
   } catch (cause) {
     throw new ModelingLinearPatternError(causeCode(cause), stage, entity, cause instanceof Error ? cause.message : 'Native pattern construction refused',

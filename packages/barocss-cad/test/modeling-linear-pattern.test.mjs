@@ -219,7 +219,7 @@ test('exact one-record options refuse malformed keys, accessors and extra argume
 });
 test('only count three and cardinal axes are admitted; positive exactly doubled spacing stays in the existing bound',()=>{
   const {original}=part();
-  for(const count of [0,1,2,4,-3,3.1,'3',undefined,NaN,Infinity,{parameter:'count'}])refuses(()=>original.linearPattern({...options(),count}),'CAPABILITY','linearPattern');
+  for(const count of [0,1,5,6,-3,3.1,'3',undefined,NaN,Infinity,{parameter:'count'}])refuses(()=>original.linearPattern({...options(),count}),'CAPABILITY','linearPattern');
   for(const axis of ['', 'w','X','xy',[1,0,0],0,null])refuses(()=>original.linearPattern({...options(),axis}),'CAPABILITY','linearPattern');
   for(const spacing of [0,-0,-1,-Number.MIN_VALUE,5000.000000000001,10000])refuses(()=>original.linearPattern(options('x',spacing)),'PARAMETER','linearPattern');
   for(const spacing of [Infinity,NaN,10001])refuses(()=>original.linearPattern(options('x',spacing)),'PARAMETER','dimension');
@@ -234,7 +234,7 @@ test('one descriptor snapshot stores actual option values without invoking Proxy
     const tuple=original.linearPattern(proxy),snapshot=mockNative(()=>model.build({original:tuple[0],instance1:tuple[1],instance2:tuple[2]}));
     assert.equal(reads,0);assert.deepEqual(JSON.parse(snapshot.save()).nodes[2],{kind:'linear-pattern',parent:{node:1,side:'solid'},axis:'y',spacing:32,count:3});
   }
-  const {original}=part();let reads=0;const invalid=new Proxy({...options(),count:2},{get(){reads++;return 3;}});refuses(()=>original.linearPattern(invalid),'CAPABILITY');assert.equal(reads,0);assert.ok(original.linearPattern(options()));
+  const {original}=part();let reads=0;const invalid=new Proxy({...options(),count:5},{get(){reads++;return 3;}});refuses(()=>original.linearPattern(invalid),'CAPABILITY');assert.equal(reads,0);assert.ok(original.linearPattern(options()));
 });
 test('the exact receiver and same-model literal, parameter or expression spacing are required',()=>{
   const {model,original}=part(),method=original.linearPattern,other=part();
@@ -312,7 +312,7 @@ test('codec requires strict two-field instance references and rejects unsupporte
   const snapshot=mockNative(()=>loadCadModel(signedJson(doc)));assert.deepEqual(Object.keys(snapshot.bodies).sort(),['instance1','instance2']);
 });
 test('strict authored pattern fields, positive spacing and terminal ancestry reject before any provider',()=>{
-  const changes=[d=>delete d.nodes[2].axis,d=>delete d.nodes[2].spacing,d=>delete d.nodes[2].count,d=>d.nodes[2].count=2,d=>d.nodes[2].count='3',d=>d.nodes[2].axis='xy',
+  const changes=[d=>delete d.nodes[2].axis,d=>delete d.nodes[2].spacing,d=>delete d.nodes[2].count,d=>d.nodes[2].count=5,d=>d.nodes[2].count='3',d=>d.nodes[2].axis='xy',
     d=>d.nodes[2].spacing=0,d=>d.nodes[2].spacing=-0,d=>d.nodes[2].spacing=-1,d=>d.nodes[2].spacing=5001,d=>d.nodes[2].spacing={parameter:'missing'},
     d=>d.nodes[2].native={},d=>d.nodes[2].copies=[],d=>d.nodes[2].report={},d=>d.nodes[2].instance=1,d=>d.nodes[2].kind='pattern',
     d=>d.nodes.push({kind:'extrude',sketch:0,height:4}),d=>d.nodes.push({...d.nodes[2],parent:{node:2,side:'instance1'}}),
