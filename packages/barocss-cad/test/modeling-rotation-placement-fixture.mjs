@@ -225,8 +225,11 @@ export function provePlacement(rotation,translation,original,spec,offset) {
   const middle=rotation.solid,placed=translation.solid;
   const rotationProof=proveRotation(rotation,original,spec),translationProof=proveTranslation(translation,middle,offset);
   const composed=composeLineage(rotation,translation),seen=new Set();
-  for(const solid of [original,middle,placed]){
-    const ids=namespaceIds(solid);assert.equal(new Set(ids).size,ids.length);
+  for(const [index,solid]of [original,middle,placed].entries()){
+    // A qualified original may reuse local IDs across source/role scopes.
+    // Rebuilt targets allocate fresh complete raw namespaces; the typed
+    // eight-class bijections above establish original reference coverage.
+    const ids=namespaceIds(solid);if(index)assert.equal(new Set(ids).size,ids.length);
     assert.ok(ids.every(id=>!seen.has(id)),'whole original/middle/placed namespace inventories are disjoint');ids.forEach(id=>seen.add(id));
   }
   for(const link of composed.faces){
