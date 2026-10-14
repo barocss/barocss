@@ -1610,3 +1610,26 @@ stationary. No rounding of native-refused offsets, assembly copies, arbitrary
 pivot/angle or unsupported ancestry. #1999 tracks the bounded logical tests and
 separate pending actual-device outcome; provider #1994 evidence is not this UI's
 physical acceptance.
+
+### Three-rail linear pattern
+
+Select the exact untransformed second chamfer, then CREATE → Linear pattern.
+The command retains part and adds railCopy1/railCopy2 at one and two +X spacings;
+count3 includes the original. Preview is explicit and Apply only promotes its
+current ready candidate. The independent patternSpacing driver starts at40mm;
+edit it through Model dimensions. Blank and bevel drivers remain shared by all
+three rails. This five-node pattern is terminal and is an alternative to Rotate/Move.
+
+Positive finite spacing up to5000mm is an input bound, not native qualification.
+No rounding is used; stored-coefficient exactness, final coordinates and scene
+budgets can still refuse a candidate. Spacing is a translation step, not a guaranteed
+clearance or collision check. Three outputs use the existing whole-body fill
+fallback and retain native boundary lines and original face picking.
+
+Issue[#2000](https://github.com/barocss/barocss/issues/2000) owns the logical tests
+and later actual-device gate. The focused package script is
+`node packages/barocss-cad-editor/scripts/modeling-linear-pattern-test.mjs`.
+Provider#1973's historical6064mm³-per-body result is separate from this UI: local
+source/controller checks use explicit provider doubles, and display checks use
+unchanged genuine geometry with synthetic coincident role envelopes. They do not
+prove new translated copies, readable pixels or actual native distinct identities.
