@@ -1460,3 +1460,45 @@ convex-only STL remains refused. Geometry/provider replay and physical acceptanc
 are separate; edited radius tests retain explicitly mocked baseline geometry.
 Run `node packages/barocss-cad-editor/scripts/modeling-hole-authoring-test.mjs`
 for the finite pure/source and controlled transaction groups, with no native call.
+
+## Selected rectangular pocket (#1971)
+
+Select the accepted Extrude of a sole origin-zero rectangular part, then MODIFY
+→ Cut rectangular pocket. Positive integer Wall thickness and Floor thickness
+append the tool sketch, offset extrusion and difference as one2→5 source
+transaction. Preview/Apply reuse the existing candidate/history authority;
+Cancel/Escape and stale selection/source/lifetime/field callbacks cannot promote
+another command. Pending model dimensions remain separate. The two new drivers
+are pocketWall and pocketFloor, with valid defaults derived from the current
+outer dimensions. The original feature prefix and expressions are preserved.
+
+Initial positivity is a command guard, not a saved constraint: later global
+parameter edits can remove the floor or walls. The UI keeps that warning after
+Apply; provider geometry remains authoritative. No second pocket, fractional
+corner, transformed/Boolean parent or STL expansion follows. Local replay uses
+retained46 top-pocket Surface packets with explicit authored-context/provider
+adaptation; edited displays are baseline mocks. Current flat-color rendering
+may not visibly distinguish a blind cavity. Actual new-command/pixel/file
+acceptance remains separate.
+
+Run `node packages/barocss-cad-editor/scripts/modeling-pocket-authoring-test.mjs`
+for the frozen12 pure and10 controlled transaction groups, without native calls.
+
+## Orthogonal native-face presentation (#1974)
+
+Qualified orthogonal-cell scenes partition original triangle occurrences into at
+most six exact native axis/sign groups with categorical unlit shades. Positions,
+normals, UVs and each triplet's winding are unchanged. Upward rim and floor share
+the same shade; this does not provide general depth cues or new native authority.
+Private per-output geometry IDs map each draw-local triangle back to its original
+packet triangle and prepared face. Generation-specific IDs prevent alias across
+outputs, replacement and resize. Picking still returns original face references
+and lineage. Other display families retain their existing presentation.
+
+Run the focused local CPU fixture with
+`node packages/barocss-cad-editor/scripts/modeling-orthogonal-presentation-test.mjs`.
+Its ten groups replay 104 unchanged retained Surface packets (46 pocket, 14 union,
+44 composed cut), check exact partition/picking/edge-tie authority, two aspects,
+accepted-view restoration and nonorthogonal parity. The receiving/raycast fault
+doubles are confined to malformed private-map controls. No native calls or GPU
+pixels are established; visible cavity readability remains an actual Tester gate.

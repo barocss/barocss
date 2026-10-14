@@ -3,7 +3,7 @@ import type { KeyboardEvent, MouseEvent, ReactNode } from 'react';
 import { Box, ChevronDown, FileJson, FolderOpen, Info, Layers, Pencil, Redo2, Undo2, X } from 'lucide-react';
 import type { CadEditorModelingSnapshot } from '../modeling-controller.js';
 
-export type ModelingWorkspacePanel = 'add-hole' | 'add-arm' | 'union' | 'cut-slot' | 'new-part' | 'sketch' | 'dimensions' | 'extrusion' | 'examples' | 'outputs' | 'files' | 'inspect' | 'limits' | 'configuration';
+export type ModelingWorkspacePanel = 'cut-pocket' | 'add-hole' | 'add-arm' | 'union' | 'cut-slot' | 'new-part' | 'sketch' | 'dimensions' | 'extrusion' | 'examples' | 'outputs' | 'files' | 'inspect' | 'limits' | 'configuration';
 export interface ModelingWorkspaceProps {
   snapshot: CadEditorModelingSnapshot | null;
   viewport: ReactNode;
@@ -18,7 +18,8 @@ export interface ModelingWorkspaceProps {
   canEditExtrusion: boolean;
   canApplyExtrusion: boolean;
   canCreatePart: boolean;
-  canAddHole: boolean; canAddArm: boolean; canUnion: boolean; canCutSlot: boolean; structureReason: string;
+  modelNotice?: string;
+  canCutPocket: boolean; canAddHole: boolean; canAddArm: boolean; canUnion: boolean; canCutSlot: boolean; structureReason: string;
   canPreviewStructure: boolean; canApplyStructure: boolean;
   onPreviewStructure(): void; onApplyStructure(): void; onCancelStructure(): void;
   configurableFinishes: boolean;
@@ -36,7 +37,7 @@ export interface ModelingWorkspaceProps {
   onRetry(): void;
 }
 const panelTitles: Record<ModelingWorkspacePanel, string> = {
-  'add-hole': 'Add through-hole', 'add-arm': 'Add rectangular arm', union: 'Union bodies', 'cut-slot': 'Cut rectangular through-slot',
+  'cut-pocket': 'Cut rectangular pocket', 'add-hole': 'Add through-hole', 'add-arm': 'Add rectangular arm', union: 'Union bodies', 'cut-slot': 'Cut rectangular through-slot',
   'new-part': 'New rectangular part', sketch: 'Edit sketch dimensions', dimensions: 'Edit dimensions', extrusion: 'Edit extrusion', examples: 'Modeling examples', outputs: 'Output bodies',
   files: 'Save or open a model', inspect: 'Inspect selection', limits: 'Capabilities & limits', configuration: 'Rail finishes',
 };
@@ -51,7 +52,7 @@ export function ModelingWorkspace(props: ModelingWorkspaceProps) {
   const busy = snapshot?.busy ?? false, draft = Object.keys(snapshot?.drafts ?? {}).length > 0;
   const previewActive = snapshot?.preview?.status === 'ready' || snapshot?.preview?.status === 'computing';
   const viewDisabled = busy || previewActive || !snapshot?.display || snapshot.disposed;
-  const editingStructure = panel === 'add-hole' || panel === 'add-arm' || panel === 'union' || panel === 'cut-slot';
+  const editingStructure = panel === 'cut-pocket' || panel === 'add-hole' || panel === 'add-arm' || panel === 'union' || panel === 'cut-slot';
   const editingDimensions = panel === 'dimensions' || panel === 'extrusion' || panel === 'sketch';
   const features = accepted?.features ?? [];
   const featureLabel = (index: number) => {
@@ -106,7 +107,7 @@ export function ModelingWorkspace(props: ModelingWorkspaceProps) {
       <div className="modeling-workspace-badge"><Box aria-hidden="true" /><strong>DESIGN</strong><small>Modeling</small></div>
       <div className="modeling-ribbon-content"><div className="modeling-workbench-label">MODEL</div><div className="modeling-command-groups">
         <details className="modeling-command-menu"><summary><FolderOpen aria-hidden="true" /><span>CREATE <ChevronDown aria-hidden="true" /></span></summary><div>{command('new-part', 'New rectangular part', busy)}{props.canAddArm && command('add-arm', 'Add rectangular arm', busy)}{command('examples', 'Modeling examples', busy)}<small>Author a rectangular part or load a supported example</small></div></details>
-        <details className="modeling-command-menu"><summary><Pencil aria-hidden="true" /><span>MODIFY <ChevronDown aria-hidden="true" /></span></summary><div>{props.canEditSketch && command('sketch', 'Edit sketch dimensions', busy)}{props.canEditExtrusion && command('extrusion', 'Edit extrusion', busy)}{command('dimensions', props.dimensionLabel, busy || !props.canEditDimensions)}{props.canAddHole && command('add-hole', 'Add through-hole', busy)}{props.canUnion && command('union', 'Union bodies', busy)}{props.canCutSlot && command('cut-slot', 'Cut rectangular through-slot', busy)}{props.configurableFinishes && command('configuration', 'Rail finishes', busy)}<small>{selected ? featureLabel(selected.index) : 'Model'} selected</small></div></details>
+        <details className="modeling-command-menu"><summary><Pencil aria-hidden="true" /><span>MODIFY <ChevronDown aria-hidden="true" /></span></summary><div>{props.canEditSketch && command('sketch', 'Edit sketch dimensions', busy)}{props.canEditExtrusion && command('extrusion', 'Edit extrusion', busy)}{command('dimensions', props.dimensionLabel, busy || !props.canEditDimensions)}{props.canAddHole && command('add-hole', 'Add through-hole', busy)}{props.canCutPocket && command('cut-pocket', 'Cut rectangular pocket', busy)}{props.canUnion && command('union', 'Union bodies', busy)}{props.canCutSlot && command('cut-slot', 'Cut rectangular through-slot', busy)}{props.configurableFinishes && command('configuration', 'Rail finishes', busy)}<small>{selected ? featureLabel(selected.index) : 'Model'} selected</small></div></details>
         <details className="modeling-command-menu"><summary><Info aria-hidden="true" /><span>INSPECT <ChevronDown aria-hidden="true" /></span></summary><div>{command('inspect', 'Inspect selection')}{command('outputs', 'Output bodies', !accepted)}{command('limits', 'Capabilities & limits')}</div></details>
         <details className="modeling-command-menu"><summary><FileJson aria-hidden="true" /><span>FILE <ChevronDown aria-hidden="true" /></span></summary><div>{command('files', 'Save or open a model')}{command('outputs', 'Export accepted STL', !accepted)}</div></details>
         <span className="modeling-command-context">{busy ? 'Native operation in progress' : selected ? `${featureLabel(selected.index)} selected` : 'Select a sketch or feature in the Browser'}</span>
@@ -182,6 +183,6 @@ export function ModelingWorkspace(props: ModelingWorkspaceProps) {
       <strong>History {(snapshot?.history.index ?? -1) + 1} / {snapshot?.history.count ?? 0}</strong>
     </nav>
     <footer className="modeling-workspace-status" role="status" aria-live="polite"><span>{busy ? 'Computing native geometry…' : accepted ? snapshot?.preview?.status === 'ready' ? 'Unapplied draft preview visible' : draft ? 'Dimension changes pending' : 'Accepted model' : 'No accepted model'}</span>
-      <span>{selected ? featureLabel(selected.index) : 'Model'} · XYZ · mm</span></footer>
+      {props.modelNotice && <span data-testid="modeling-model-notice">{props.modelNotice}</span>}<span>{selected ? featureLabel(selected.index) : 'Model'} · XYZ · mm</span></footer>
   </section>;
 }
