@@ -13,9 +13,14 @@ export type KnownSolidFamily =
   | 'exact-axis-box-solid-v0'
   | 'restricted-stored-rational-plate-hole-solid';
 
+export type KnownTopologyKind = 'wire' | 'sheet' | 'shell' | 'solid';
+export type KnownTopologyCheck = 'incidence' | 'orientation' | 'trim' | 'closure';
+export type KnownSolidRefusalReason = 'invalid-request' | 'unsupported-kind' | 'unsupported-family' | 'native-validation';
+
 export type KnownSolidRequest =
-  | { readonly family: 'exact-axis-box-solid-v0'; readonly source: unknown }
-  | { readonly family: 'restricted-stored-rational-plate-hole-solid'; readonly source: OwnPlateCircularHoleBundle };
+  | { readonly kind?: 'solid'; readonly family: 'exact-axis-box-solid-v0'; readonly source: unknown }
+  | { readonly kind?: 'solid'; readonly family: 'restricted-stored-rational-plate-hole-solid'; readonly source: OwnPlateCircularHoleBundle }
+  | { readonly kind: 'wire' | 'sheet' | 'shell'; readonly source?: unknown; readonly family?: string };
 
 export type KnownSolidQualification =
   | {
@@ -28,9 +33,32 @@ export type KnownSolidQualification =
   | {
       readonly status: 'refused';
       readonly family: KnownSolidFamily | 'unsupported';
+      readonly requestedKind: KnownTopologyKind | 'unknown';
+      readonly reason: KnownSolidRefusalReason;
+      /** These checks are not certified by this facade after refusal. */
+      readonly notCertifiedChecks: readonly KnownTopologyCheck[];
       readonly code: string;
       readonly detail: string;
     };
+
+const NOT_CERTIFIED_CHECKS = ['incidence', 'orientation', 'trim', 'closure'] as const;
+
+function tag(request: object, key: 'kind' | 'family'): unknown {
+  const field = Object.getOwnPropertyDescriptor(request, key);
+  return field && 'value' in field ? field.value : undefined;
+}
+
+function source(request: object): unknown {
+  const field = Object.getOwnPropertyDescriptor(request, 'source');
+  return field && 'value' in field ? field.value : undefined;
+}
+
+function refused(
+  requestedKind: KnownTopologyKind | 'unknown', family: KnownSolidFamily | 'unsupported',
+  reason: KnownSolidRefusalReason, code: string, detail: string,
+): Extract<KnownSolidQualification, { status: 'refused' }> {
+  return { status: 'refused', requestedKind, family, reason, notCertifiedChecks: [...NOT_CERTIFIED_CHECKS], code, detail };
+}
 
 function diagnostic(error: unknown): { code: string; detail: string } {
   if (error !== null && typeof error === 'object') {
@@ -49,28 +77,40 @@ function diagnostic(error: unknown): { code: string; detail: string } {
  */
 export function qualifyKnownSolid(request: KnownSolidRequest): KnownSolidQualification {
   if (request === null || typeof request !== 'object') {
-    return { status: 'refused', family: 'unsupported', code: 'INVALID_REQUEST', detail: 'Tagged native Solid request required' };
+    return refused('unknown', 'unsupported', 'invalid-request', 'INVALID_REQUEST', 'Tagged native topology request required');
   }
-  if (request.family === 'exact-axis-box-solid-v0') {
+  const kind = tag(request, 'kind');
+  if (kind === 'wire' || kind === 'sheet' || kind === 'shell') {
+    return refused(kind, 'unsupported', 'unsupported-kind', `UNSUPPORTED_${kind.toUpperCase()}`,
+      `${kind} incidence, orientation, trim and closure qualification is not implemented`);
+  }
+  if (kind !== undefined && kind !== 'solid') {
+    return refused('unknown', 'unsupported', 'unsupported-kind', 'UNSUPPORTED_KIND', 'No native validator for requested topology kind');
+  }
+  const family = tag(request, 'family');
+  if (family === 'exact-axis-box-solid-v0') {
     try {
       return {
-        status: 'certified', kind: 'solid', family: request.family,
-        method: 'exact-safe-integer', nativeReport: validateAxisBoxSolid(request.source),
+        status: 'certified', kind: 'solid', family,
+        method: 'exact-safe-integer', nativeReport: validateAxisBoxSolid(source(request)),
       };
     } catch (error) {
-      return { status: 'refused', family: request.family, ...diagnostic(error) };
+      const { code, detail } = diagnostic(error);
+      return refused('solid', family, 'native-validation', code, detail);
     }
   }
-  if (request.family === 'restricted-stored-rational-plate-hole-solid') {
+  if (family === 'restricted-stored-rational-plate-hole-solid') {
     try {
       return {
-        status: 'certified', kind: 'solid', family: request.family,
+        status: 'certified', kind: 'solid', family,
         method: 'stored-rational-family-proof',
-        nativeReport: qualifyStoredPlateHoleSolid(request.source).certificate,
+        nativeReport: qualifyStoredPlateHoleSolid(source(request) as OwnPlateCircularHoleBundle).certificate,
       };
     } catch (error) {
-      return { status: 'refused', family: request.family, ...diagnostic(error) };
+      const { code, detail } = diagnostic(error);
+      return refused('solid', family, 'native-validation', code, detail);
     }
   }
-  return { status: 'refused', family: 'unsupported', code: 'UNSUPPORTED_FAMILY', detail: 'No qualifying native Solid validator for requested family' };
+  return refused('solid', 'unsupported', 'unsupported-family', 'UNSUPPORTED_FAMILY',
+    'No qualifying native Solid validator for requested family');
 }
