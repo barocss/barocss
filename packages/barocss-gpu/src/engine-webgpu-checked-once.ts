@@ -1,6 +1,7 @@
 import { prepareEngineScene } from './engine-scene.js';
 import { renderEngineWebGPUOnce } from './engine-webgpu-one-shot.js';
 import { withEngineWebGPUErrorScopes } from './engine-webgpu-error-scopes.js';
+import { EngineWebGPUWaitBudget } from './engine-webgpu-wait-budget.js';
 import type { EngineSceneV0 } from './engine-scene.js';
 import type { GPUDeviceHandle } from './webgpu-platform.js';
 
@@ -9,7 +10,7 @@ import type { GPUDeviceHandle } from './webgpu-platform.js';
  */
 export async function renderCheckedEngineWebGPUOnce(
   device: GPUDeviceHandle, input: EngineSceneV0, width: number, height: number,
-  format: 'rgba8unorm' | 'bgra8unorm',
+  format: 'rgba8unorm' | 'bgra8unorm', budget?: EngineWebGPUWaitBudget,
 ): Promise<Awaited<ReturnType<typeof renderEngineWebGPUOnce>>> {
   const source = prepareEngineScene(input);
   const limit = device.limits.maxTextureDimension2D;
@@ -19,10 +20,11 @@ export async function renderCheckedEngineWebGPUOnce(
     throw new RangeError('Engine WebGPU offscreen dimensions exceed bounded device limits');
   if (format !== 'rgba8unorm' && format !== 'bgra8unorm')
     throw new TypeError('Unsupported opaque Engine WebGPU offscreen color format');
+  const waits = budget ?? new EngineWebGPUWaitBudget();
   let frame: Awaited<ReturnType<typeof renderEngineWebGPUOnce>> | undefined;
   return withEngineWebGPUErrorScopes(device, async () => {
-    frame = await renderEngineWebGPUOnce(device, source.scene, width, height, format);
-    await device.queue.onSubmittedWorkDone();
+    frame = await renderEngineWebGPUOnce(device, source.scene, width, height, format, waits);
+    await waits.wait(device.queue.onSubmittedWorkDone(), 'offscreen queue');
     return frame;
-  }, () => frame?.dispose(), 'Engine WebGPU offscreen error admission refused');
+  }, () => frame?.dispose(), 'Engine WebGPU offscreen error admission refused', waits);
 }

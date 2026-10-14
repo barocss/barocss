@@ -2,6 +2,7 @@ import { prepareEngineScene } from './engine-scene.js';
 import { renderCheckedEngineWebGPUOnce } from './engine-webgpu-checked-once.js';
 import { configureEngineWebGPUCanvas } from './engine-webgpu-canvas-config.js';
 import { presentCheckedEngineWebGPUColor } from './engine-webgpu-checked-present.js';
+import { EngineWebGPUWaitBudget } from './engine-webgpu-wait-budget.js';
 import type { EngineSceneV0 } from './engine-scene.js';
 import type { GPUCanvasHandle, GPUDeviceHandle } from './webgpu-platform.js';
 
@@ -24,6 +25,7 @@ export async function renderEngineWebGPUCanvasOnce(
   if (format !== 'rgba8unorm' && format !== 'bgra8unorm')
     throw new TypeError('Unsupported opaque Engine WebGPU Canvas color format');
   if (activeContexts.has(context)) throw new TypeError('Engine WebGPU Canvas is already claimed');
+  const budget = new EngineWebGPUWaitBudget();
   activeContexts.add(context);
   let frame: Awaited<ReturnType<typeof renderCheckedEngineWebGPUOnce>> | undefined;
   let canvas: ReturnType<typeof configureEngineWebGPUCanvas> | undefined;
@@ -38,9 +40,11 @@ export async function renderEngineWebGPUCanvasOnce(
     return failures;
   }
   try {
-    frame = await renderCheckedEngineWebGPUOnce(device, source.scene, width, height, format);
+    frame = await renderCheckedEngineWebGPUOnce(device, source.scene, width, height, format, budget);
+    budget.check('Canvas configuration');
     canvas = configureEngineWebGPUCanvas(context, device, width, height, format);
-    await presentCheckedEngineWebGPUColor(device, context, frame.targets.color, width, height);
+    await presentCheckedEngineWebGPUColor(device, context, frame.targets.color, width, height, budget);
+    budget.check('Canvas lease admission');
     return Object.freeze({
       drawCount: frame.drawCount, geometryCount: frame.geometryCount,
       dispose(): void {
