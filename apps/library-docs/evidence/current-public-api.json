@@ -1,7 +1,7 @@
 {
   "schema": "barocss-current-public-api-v1",
   "typescriptVersion": "5.9.3",
-  "sourceCommit": "f8fc6bb7836df1624692fbe39cd181f2247d3f6d",
+  "sourceCommit": "a42a2f1bbe11955fb0a87bf26d7e1b3a2a139d63",
   "extractor": "TypeScript 5.9.3 public module exports and declarations; not a type-check or runtime execution",
   "packages": [
     {
@@ -15182,7 +15182,7 @@
               "name": "CadAxis",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 54,
+              "line": 56,
               "signatures": [
                 "export type CadAxis = 'x' | 'y' | 'z';"
               ],
@@ -15192,7 +15192,7 @@
               "name": "CadBody",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 129,
+              "line": 134,
               "signatures": [
                 "export type CadBody = { readonly family: 'convex-planar'; readonly native: ConvexPlanarSolidResult }\n  | { readonly family: 'stored-rational-plate-hole'; readonly native: StoredPlateHoleSolidResult }\n  | { readonly family: 'orthogonal-cell'; readonly native: AxisBoxSolidBooleanResult | OrthogonalSolidBooleanResult }\n  | { readonly family: 'stored-rational-circle-prism'; readonly native: StoredCirclePrismSolidResult };"
               ],
@@ -15242,7 +15242,7 @@
               "name": "CadConstrainedPolygonBuilder",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 89,
+              "line": 93,
               "signatures": [
                 "export interface CadConstrainedPolygonBuilder {\n  point(seed: CadPoint2): CadSketchPoint;\n  fixed(point: CadSketchPoint): void;\n  horizontal(a: CadSketchPoint, b: CadSketchPoint): void;\n  vertical(a: CadSketchPoint, b: CadSketchPoint): void;\n  /** Adjacent owned edge parallel to a finite nonzero authored dimensionless direction. */\n  parallelTo(a: CadSketchPoint, b: CadSketchPoint, direction: readonly [number, number]): void;\n}"
               ],
@@ -15313,7 +15313,7 @@
               "name": "CadCut",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 79,
+              "line": 83,
               "signatures": [
                 "export interface CadCut { readonly negative: CadShape; readonly positive: CadShape }"
               ],
@@ -15333,7 +15333,7 @@
               "name": "CadDimension",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 52,
+              "line": 54,
               "signatures": [
                 "export type CadDimension = number | CadParameter | CadDimensionExpression;"
               ],
@@ -15343,7 +15343,7 @@
               "name": "CadDimensionExpression",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 51,
+              "line": 53,
               "signatures": [
                 "export interface CadDimensionExpression { readonly kind: 'dimension-expression' }"
               ],
@@ -15677,7 +15677,7 @@
               "name": "CadEdgeQuery",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 56,
+              "line": 58,
               "signatures": [
                 "export interface CadEdgeQuery { readonly parallelTo?: CadAxis; readonly at?: Readonly<Partial<Record<CadAxis, CadDimension | 'min' | 'max'>>> }"
               ],
@@ -15687,7 +15687,7 @@
               "name": "CadEdgeQueryHandle",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 58,
+              "line": 60,
               "signatures": [
                 "export interface CadEdgeQueryHandle { one(): CadEdgeSelection }"
               ],
@@ -15697,7 +15697,7 @@
               "name": "CadEdgeSelection",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 57,
+              "line": 59,
               "signatures": [
                 "export interface CadEdgeSelection { readonly kind: 'edge-selection' }"
               ],
@@ -15847,7 +15847,7 @@
               "name": "CadMassProperties",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 146,
+              "line": 151,
               "signatures": [
                 "export type CadMassProperties = MassValues & (\n  | { readonly family: 'convex-planar'; readonly details: { readonly exact: MassExact; readonly conversionErrors: MassErrors; readonly native: MassReadonly<ConvexPlanarSolidMassResult> } }\n  | { readonly family: 'orthogonal-cell'; readonly details: { readonly exact: MassExact; readonly conversionErrors: MassErrors; readonly native: MassReadonly<AxisBoxSolidMassResult> } }\n);"
               ],
@@ -15857,7 +15857,7 @@
               "name": "CadMassPropertiesOptions",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 133,
+              "line": 138,
               "signatures": [
                 "export interface CadMassPropertiesOptions { readonly densityKgPerM3: number }"
               ],
@@ -15867,7 +15867,7 @@
               "name": "CadModel",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 97,
+              "line": 101,
               "signatures": [
                 "export interface CadModel {\n  parameter(name: string, valueMM: number): CadParameter;\n  readonly dimension: {\n    add(left: CadDimension, right: CadDimension): CadDimensionExpression;\n    scale(value: CadDimension, factor: number): CadDimensionExpression;\n  };\n  readonly sketch: {\n    polygon(points: readonly CadPoint2[]): CadSketch;\n    rectangle(rectangle: CadRectangle): CadSketch;\n    circle(options: { readonly center: CadPoint2; readonly radius: CadDimension }): CadSketch;\n    /** One fully constrained convex cycle; underconstrained or contradictory solves refuse atomically. */\n    constrainedPolygon(callback: (builder: CadConstrainedPolygonBuilder) => readonly CadSketchPoint[]): CadSketch;\n  };\n  /** Evaluates every authored node. Only these explicitly named Solid outputs are exposed. */\n  build(outputs: Readonly<Record<string, CadShape>>): CadModelSnapshot;\n}"
               ],
@@ -15887,7 +15887,7 @@
               "name": "CadModelError",
               "kind": "ClassDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 44,
+              "line": 46,
               "signatures": [
                 "export class CadModelError extends Error {\n  constructor(code: CadModelErrorCode, operation: string, detail: string, cause?: unknown);\n  readonly code: CadModelErrorCode;\n  readonly operation: string;\n}"
               ],
@@ -15897,7 +15897,7 @@
               "name": "CadModelErrorCode",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 43,
+              "line": 45,
               "signatures": [
                 "export type CadModelErrorCode = 'INPUT' | 'PARAMETER' | 'OWNERSHIP' | 'CAPABILITY' | 'SELECTION' | 'FORMAT' | 'BUDGET' | 'NATIVE';"
               ],
@@ -15907,17 +15907,17 @@
               "name": "CadModelEvidence",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 113,
+              "line": 117,
               "signatures": [
-                "export type CadModelEvidence =\n  | { readonly kind: 'sketch'; readonly profile?: never; readonly native: XYAffineSketchSuccess }\n  | { readonly kind: 'sketch'; readonly profile: 'circle'; readonly native: XYArcResult }\n  | { readonly kind: 'extrude'; readonly profile?: never; readonly native: XYAffineSketchPrismCoordinateSpanResult | XYAffineSketchPrismOffsetCoordinateSpanResult }\n  | { readonly kind: 'extrude'; readonly profile: 'circle'; readonly native: StoredCirclePrismSolidResult }\n  | { readonly kind: 'translate'; readonly native: ModelingTranslationResult }\n  | { readonly kind: 'cut'; readonly native: ConvexPlanarSlabSubtractionResult }\n  | { readonly kind: 'intersect'; readonly native: ConvexPlanarSolidIntersectionResult }\n  | { readonly kind: 'split'; readonly native: ConvexPlanarSolidSplitResult }\n  | { readonly kind: 'difference'; readonly composition?: never; readonly parents: readonly [ConvexPlanarSolidResult, ConvexPlanarSolidResult]; readonly native: AxisBoxSolidBooleanResult }\n  | { readonly kind: 'difference'; readonly composition: 'union-slot'; readonly parent: AxisBoxSolidBooleanResult; readonly tool: ConvexPlanarSolidResult; readonly native: OrthogonalSolidBooleanResult }\n  | { readonly kind: 'union'; readonly parents: readonly [ConvexPlanarSolidResult, ConvexPlanarSolidResult]; readonly native: AxisBoxSolidBooleanResult }\n  | { readonly kind: 'hole'; readonly parent: ConvexPlanarSolidResult; readonly native: StoredPlateHoleSolidResult }\n  | { readonly kind: 'chamfer'; readonly native: ConvexPlanarSolidChamferResult; readonly configuration?: { readonly name: string; readonly suppressed: boolean; readonly output: 'parent' | 'chamfer-result' } };"
+                "export type CadModelEvidence =\n  | { readonly kind: 'sketch'; readonly profile?: never; readonly native: XYAffineSketchSuccess }\n  | { readonly kind: 'sketch'; readonly profile: 'circle'; readonly native: XYArcResult }\n  | { readonly kind: 'extrude'; readonly profile?: never; readonly native: XYAffineSketchPrismCoordinateSpanResult | XYAffineSketchPrismOffsetCoordinateSpanResult }\n  | { readonly kind: 'extrude'; readonly profile: 'circle'; readonly native: StoredCirclePrismSolidResult }\n  | { readonly kind: 'translate'; readonly native: ModelingTranslationResult }\n  | { readonly kind: 'rotate'; readonly native: ModelingRotationResult }\n  | { readonly kind: 'cut'; readonly native: ConvexPlanarSlabSubtractionResult }\n  | { readonly kind: 'intersect'; readonly native: ConvexPlanarSolidIntersectionResult }\n  | { readonly kind: 'split'; readonly native: ConvexPlanarSolidSplitResult }\n  | { readonly kind: 'difference'; readonly composition?: never; readonly parents: readonly [ConvexPlanarSolidResult, ConvexPlanarSolidResult]; readonly native: AxisBoxSolidBooleanResult }\n  | { readonly kind: 'difference'; readonly composition: 'union-slot'; readonly parent: AxisBoxSolidBooleanResult; readonly tool: ConvexPlanarSolidResult; readonly native: OrthogonalSolidBooleanResult }\n  | { readonly kind: 'union'; readonly parents: readonly [ConvexPlanarSolidResult, ConvexPlanarSolidResult]; readonly native: AxisBoxSolidBooleanResult }\n  | { readonly kind: 'hole'; readonly parent: ConvexPlanarSolidResult; readonly native: StoredPlateHoleSolidResult }\n  | { readonly kind: 'chamfer'; readonly native: ConvexPlanarSolidChamferResult; readonly configuration?: { readonly name: string; readonly suppressed: boolean; readonly output: 'parent' | 'chamfer-result' } };"
               ],
-              "digest": "d6592cb36ac2b93dc5f528aa97d85dd0e1fe4a074623531f27e12fee0851585c"
+              "digest": "ba66a60dbbdae608d9f3270999d29bef1b6ec5a6887cabbcec4058d33a713bae"
             },
             {
               "name": "CadModelFeature",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 127,
+              "line": 132,
               "signatures": [
                 "export interface CadModelFeature { readonly kind: CadModelEvidence['kind']; readonly index: number; readonly dependencies: readonly number[]; readonly name?: string; readonly suppressed?: boolean }"
               ],
@@ -15967,7 +15967,7 @@
               "name": "CadModelLimits",
               "kind": "VariableDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 183,
+              "line": 188,
               "signatures": [
                 "export const CadModelLimits: Readonly<{ nodes: 6; sketches: 2; extrusions: 2; compositionNodes: 8; compositionSketches: 3; compositionExtrusions: 3; cuts: 1; intersections: 1; splits: 1; chamfers: 2; holes: 1; unions: 1; differences: 1; parameters: 16; outputs: 8; polygonPoints: 8; polygonConstraints: 16; fileBytes: 65536; inputDepth: 12; lengthMM: 10000; dimensionNodes: 32; dimensionDepth: 6; }>;"
               ],
@@ -15977,7 +15977,7 @@
               "name": "CadModelSnapshot",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 162,
+              "line": 167,
               "signatures": [
                 "export interface CadModelSnapshot {\n  /** Deep-frozen tagged bodies; native source/topology/certificates remain authoritative. */\n  readonly bodies: Readonly<Record<string, CadBody>>;\n  readonly parameters: Readonly<Record<string, number>>;\n  /** Named validated finishing configuration, separate from numeric dimensions. */\n  readonly suppression: Readonly<Record<string, boolean>>;\n  readonly features: readonly CadModelFeature[];\n  /** Accepted model feature work only; native provider internals are not counted. Never saved. */\n  readonly recomputation: { readonly reusedFeatures: readonly number[]; readonly evaluatedFeatures: readonly number[] };\n  /** Original kernel results. Diagnostic evidence, never a saved cache or editable input. */\n  readonly evidence: readonly CadModelEvidence[];\n  /** Revalidates and measures one named convex or two-box integer-cell output. Curved/composed families refuse. */\n  massProperties(outputName: string, options: CadMassPropertiesOptions): CadMassProperties;\n  /** Export one owned convex output. No file side effects; Float32 loss/collapse is explicit. */\n  exportStl(outputName: string): CadStlExport;\n  withParameters(edits: Readonly<Record<string, number>>): CadModelSnapshot;\n  /** Disabled chamfers still validate; they select their exact parent as output. */\n  withSuppression(edits: Readonly<Record<string, boolean>>): CadModelSnapshot;\n  /** Saves only accepted authored state; no native results or meshes. */\n  save(): string;\n}"
               ],
@@ -15987,7 +15987,7 @@
               "name": "CadParameter",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 50,
+              "line": 52,
               "signatures": [
                 "export interface CadParameter { readonly name: string }"
               ],
@@ -16007,7 +16007,7 @@
               "name": "CadPoint2",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 53,
+              "line": 55,
               "signatures": [
                 "export type CadPoint2 = readonly [CadDimension, CadDimension];"
               ],
@@ -16027,7 +16027,7 @@
               "name": "CadRectangle",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 86,
+              "line": 90,
               "signatures": [
                 "export type CadRectangle = { readonly min: CadPoint2; readonly max: CadPoint2 } | { readonly width: CadDimension; readonly height: CadDimension };"
               ],
@@ -16088,17 +16088,17 @@
               "name": "CadShape",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 60,
+              "line": 62,
               "signatures": [
-                "export interface CadShape {\n  /** One exact translated copy of a direct affine extrusion; the copy is a terminal named output. */\n  translate(offset: readonly [CadDimension, CadDimension, CadDimension]): CadShape;\n  /** One connected union of two distinct direct integer rectangular extrusions. */\n  union(other: CadShape): CadShape;\n  /** One full-thickness stored-rational hole in a direct origin-aligned integer rectangular plate. */\n  hole(options: { readonly center: CadPoint2; readonly radius: CadDimension }): CadShape;\n  /** Positive-volume overlap of two distinct direct XY extrusions; disjoint/touching parts refuse. */\n  intersect(other: CadShape): CadShape;\n  /** Cardinal or x+y=at split of a direct XY extrusion or its owned chamfer chain; at is a coordinate/sum in mm. */\n  split(options: SplitPlane & { readonly at: CadDimension }): CadSplit;\n  /** One rectangular difference, or one third-box slot in an owned union; actual integer XYZ bounds are used. */\n  cut(tool: CadShape): CadShape;\n  /** Legacy through-slab pair. Options must be provided as an exact axis record. */\n  cut(tool: CadShape, options: { readonly axis: 'x' | 'y' }): CadCut;\n  edges(query: CadEdgeQuery): CadEdgeQueryHandle;\n  /** At most two sequential cardinal chamfers; each selector belongs to its exact parent result. */\n  chamfer(edge: CadEdgeSelection, distance: CadDimension, options?: { readonly name: string }): CadShape;\n}"
+                "export interface CadShape {\n  /** One exact translated copy of a direct affine extrusion; the copy is a terminal named output. */\n  translate(offset: readonly [CadDimension, CadDimension, CadDimension]): CadShape;\n  /** Right-handed cardinal rotation about the world origin. The owned copy is terminal; no later features or transforms. */\n  rotate(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | 180 | 270 | -90 | -180 | -270 }): CadShape;\n  /** One connected union of two distinct direct integer rectangular extrusions. */\n  union(other: CadShape): CadShape;\n  /** One full-thickness stored-rational hole in a direct origin-aligned integer rectangular plate. */\n  hole(options: { readonly center: CadPoint2; readonly radius: CadDimension }): CadShape;\n  /** Positive-volume overlap of two distinct direct XY extrusions; disjoint/touching parts refuse. */\n  intersect(other: CadShape): CadShape;\n  /** Cardinal or x+y=at split of a direct XY extrusion or its owned chamfer chain; at is a coordinate/sum in mm. */\n  split(options: SplitPlane & { readonly at: CadDimension }): CadSplit;\n  /** One rectangular difference, or one third-box slot in an owned union; actual integer XYZ bounds are used. */\n  cut(tool: CadShape): CadShape;\n  /** Legacy through-slab pair. Options must be provided as an exact axis record. */\n  cut(tool: CadShape, options: { readonly axis: 'x' | 'y' }): CadCut;\n  edges(query: CadEdgeQuery): CadEdgeQueryHandle;\n  /** At most two sequential cardinal chamfers; each selector belongs to its exact parent result. */\n  chamfer(edge: CadEdgeSelection, distance: CadDimension, options?: { readonly name: string }): CadShape;\n}"
               ],
-              "digest": "777262f7a387923c9e6381c349771873f35f0540ecb51cdc95d02dc6ce249d8f"
+              "digest": "d92551b9366c5a1873ada4456150cb8e7781763c39634fa24d9b2109120c4639"
             },
             {
               "name": "CadSketch",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 81,
+              "line": 85,
               "signatures": [
                 "export interface CadSketch {\n  extrude(height: CadDimension): CadShape;\n  /** Absolute bottom Z for an affine XY profile; positive height stays a +Z distance. Circle options refuse. */\n  extrude(height: CadDimension, options: { readonly from: CadDimension }): CadShape;\n}"
               ],
@@ -16108,7 +16108,7 @@
               "name": "CadSketchPoint",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 87,
+              "line": 91,
               "signatures": [
                 "export interface CadSketchPoint { readonly kind: 'sketch-point' }"
               ],
@@ -16128,7 +16128,7 @@
               "name": "CadSplit",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 80,
+              "line": 84,
               "signatures": [
                 "export interface CadSplit { readonly negative: CadShape; readonly positive: CadShape }"
               ],
@@ -16138,7 +16138,7 @@
               "name": "CadStlExport",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 151,
+              "line": 156,
               "signatures": [
                 "export interface CadStlExport {\n  readonly outputName: string;\n  readonly family: 'convex-planar';\n  readonly format: 'binary-stl';\n  readonly lengthUnit: 'mm';\n  readonly bytes: readonly number[];\n  readonly byteLength: number;\n  readonly triangleCount: number;\n  readonly maximumVertexDisplacementMM: number;\n  readonly details: MassReadonly<ModelingStlResult>;\n}"
               ],
@@ -55179,7 +55179,7 @@
   "packageTrees": {
     "packages/barocss-render": "b83e4912e1d1aa658f048ba4b112376785b288fb",
     "packages/barocss-gpu": "fbe1fc867735a419a45b1b0ffa075bb801947ce9",
-    "packages/barocss-cad": "d5dd7020aefee2040bd57eb0585ef9d6ea0f6e68",
+    "packages/barocss-cad": "72650502fbb7a47435aedc739ff3efbdaf8fd81b",
     "packages/barocss-cad-interop": "1a2584cfb25826412096512aa71d74f059e5092d",
     "packages/barocss-canvas2d": "39853a85709f5c59dba7cdbbab3fd87da48cb54a",
     "packages/barocss-viewer": "aa7736ed08620fe9b7db2eff4feec5c89f9e502b",
