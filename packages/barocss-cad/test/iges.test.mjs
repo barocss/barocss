@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
 import { exportIGES } from '../dist/index.js'
 
 const curve = {
@@ -78,6 +79,33 @@ test('128 serializes U fastest for asymmetric weights and poles, then U/V domain
   assert.deepEqual(values.slice(34), [2, 5, 7, 11])
   assert.deepEqual(report.objects[0].domainU, [2, 5])
   assert.deepEqual(report.objects[0].domainV, [7, 11])
+})
+
+test('no geometry loss is scoped to selected raw curves and untrimmed surfaces', () => {
+  for (const ids of [['circle'], ['patch'], ['circle', 'patch']]) {
+    const { iges, report } = exportIGES(model, ids)
+    assert.equal(report.geometryLoss, 'none')
+    assert.equal(report.geometryLossScope, 'selected-raw-curves-and-untrimmed-surfaces')
+    assert.deepEqual(report.unsupported, ['trimmed-faces', 'topology', 'solid-models'])
+    assert.equal(report.nativeSourceIncluded, false)
+    assert.equal(report.solid, false)
+    const entities = sections(iges).D.filter((_, index) => index % 2 === 0)
+      .map(row => Number(row.slice(0, 8)))
+    assert.deepEqual(entities, ids.map(id => id === 'circle' ? 126 : 128))
+    // No trim entity or hole was provided to this raw-geometry writer.
+    assert.ok(entities.every(entity => entity !== 142 && entity !== 144))
+  }
+  assert.throws(() => exportIGES({ ...model, objects: [{ kind: 'face', id: 'trimmed' }] }, ['trimmed']), /Unsupported/)
+})
+
+test('additive loss scope preserves existing exchange bytes and legacy report fields', () => {
+  const { iges, report } = exportIGES(model, ['circle', 'patch'])
+  // Captured from the unchanged c0cf5f8618 writer before the report-only edit.
+  assert.equal(createHash('sha256').update(iges).digest('hex'),
+    'a728be4bf57fa01261997796497ea980d6b0316a552654d4c57c648ef6cd3cfc')
+  assert.deepEqual(Object.keys(report).slice(0, -2), ['format', 'model', 'lengthUnit', 'modelScale',
+    'geometryLoss', 'nativeSourceIncluded', 'solid', 'objects', 'records', 'timestampPolicy'])
+  assert.deepEqual(Object.keys(report).slice(-2), ['geometryLossScope', 'unsupported'])
 })
 
 test('selection is explicit, ordered, and full IDs remain in the report', () => {

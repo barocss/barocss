@@ -1,0 +1,1296 @@
+{
+  "schema": "barocss-cad-endpoint-crossing-c1-evidence",
+  "version": 0,
+  "issue": 1657,
+  "status": "bounded-native-flow-passed",
+  "sourceBase": "c0cf5f8618cff5e06dbf2261401235d7e33d736d",
+  "implementationCommit": "179d6e1c",
+  "producerFreeze": {
+    "producerCommit": "319829cc836097ded277fed6d7c7db7912be6976",
+    "implementationCommit": "179d6e1c",
+    "sourceBundleSHA256": "bedf9ad7a8b3fe8f1929f4bf07a7c6976f20b2cf156499972245af8fc0c98e7c",
+    "files": {
+      "packages/barocss-cad/src/own-homogeneous-bernstein-roots.ts": "ee46d84e22c11df01c3e7fe5018625eaa75729db9f33153619136f12656c8457",
+      "packages/barocss-cad/src/section-rational-internal.ts": "f7d31dfc0ed1886a84b8b3e27a1ecd58b951e03b22547d228f6619c494036a07",
+      "packages/barocss-cad/src/own-curve-plane-intersection.ts": "e8f9e4ac0f2fcc29f81f428165de5e3258134ce0c4c54732c629a2704f227ab4",
+      "packages/barocss-cad/test/endpoint-crossing-native.mjs": "d15e065c8e6686bb21c6d8b59cc5d1f75daa0ce7cda7a5bdf689e859aec46e88",
+      "packages/barocss-cad/test/own-homogeneous-bernstein-roots.test.mjs": "14816d874d11697f7ed242c3ade9e1031c6b98893050c5854b38009703cf2006",
+      "packages/barocss-cad/dist/index.js": "c4d94073bcab63ff14a5229b7001ad546d2af3f7eff45677f0fccd8b62148b24"
+    },
+    "emittedFiles": {
+      "packages/barocss-cad/dist/qualified-translated-strip-body.d.ts": "6a770c1df7e6546743e77a60d11b073e6324d2d73ba6b87fcef3e71e95aaf6ed",
+      "packages/barocss-cad/dist/exact-paired-vlinear-surface-intersection.d.ts": "e89289b6c7d20a9e6df9984428b252a21890542483a647af918c302b5080814b",
+      "packages/barocss-cad/dist/curve-wide-adaptive-sampling.d.ts": "fc517589ce96dcf151dc25808718ad0401f4a51a415a4b7485965f53542eb58f",
+      "packages/barocss-cad/dist/exact-paired-vlinear-polynomial-internal.js": "bb6e3e32c096b34fabadbe53926c8e07d4c98f7457963cdd3fd462010c1b0a3c",
+      "packages/barocss-cad/dist/own-convex-planar-face-holes-intersection.js": "af107f07967e1d58ce755268d678225c8ecb6fc6ff0804c60f2f1799a67956f9",
+      "packages/barocss-cad/dist/xy-polygon-planar-face.d.ts": "57c47a1ee090393404a24a8a8eab6a695de1aa4d32549c08bbdc849e6d5ecb26",
+      "packages/barocss-cad/dist/function-quantity-semantics.d.ts": "85a8f41d8b6416b08bc78d5a58a1a5102adc3039ed0e9319a9450b99e0a21371",
+      "packages/barocss-cad/dist/surface-region.js": "db4e777525dd366ce287c0a2567170af96828a5466112a3411c9fb6e613e7593",
+      "packages/barocss-cad/dist/own-cubic-curve-plane-intersection.d.ts": "2f7dc13d7d95278ebc638d45c81da693c3158490b99643c4764a2f1d4c20a8f0",
+      "packages/barocss-cad/dist/feature-impact-plan-v1.js": "222d42030f76353b031f3423d35d6c3f09fd6845a38d6d1ed51dc1c6a875c45e",
+      "packages/barocss-cad/dist/surface-knot-insertion.js": "9fa7b94d90168dfd195343a91ba4d6d7effc4ea31a06464617df74b13c03a30e",
+      "packages/barocss-cad/dist/cad-assembly-instance-point.d.ts": "d0f908377dfa6e48457ff36684953b5846746690b2a28630aa5685b6ee3a3324",
+      "packages/barocss-cad/dist/paired-roof-body-split-proof-internal.js": "8682138a00791a71e371a863295d22789db493b525f2deb33ba2364abc331274",
+      "packages/barocss-cad/dist/modeling-dimension-internal.d.ts": "35ca0efa32e41ff4ed2855b177c7a9c101dad9ad99a88bc33670702b9cd75b36",
+      "packages/barocss-cad/dist/xy-numerical-sketch-admission-internal.d.ts": "d23873413cce6cd0130028a210c1f56b8533728588db7d3f05167338fdd08bd4",
+      "packages/barocss-cad/dist/affine-geometry-transform.js": "3b7568816fa01faf9b88b27406191212a97b873651bd481cdc32d0273f035a86",
+      "packages/barocss-cad/dist/convex-planar-solid-mass.js": "3a2fff239852603242a70ecf0761364d7407b870ef15efa1f52fdfdc5643e681",
+      "packages/barocss-cad/dist/coplanar-face-boolean-extrusion-properties.js": "906f76c37509cb709a2145cb324ec9b2279462e9ba1b13ce7e27f0ec8723fe98",
+      "packages/barocss-cad/dist/paired-surface-b-uv-split-faces-proof-internal.js": "0c5d36917b76d9e2bda0e8e2a421b5a5336aae5c0f1220e28b018195c7d74734",
+      "packages/barocss-cad/dist/curve-wide-plane-intersection.d.ts": "4a19fa5c0ef35f50f82b9a9bfc2804567a1cc07ca53f441bcd67422d998f4326",
+      "packages/barocss-cad/dist/convex-planar-solid-chamfer.d.ts": "2f9276e7aedbcafb556a20d87ed1d78f30113b60e3678af8a9b8e1d3a962ef5b",
+      "packages/barocss-cad/dist/coplanar-face-boolean-mesh-triangulation.d.ts": "5df9630812cb8cc08777a69cfeec3750be6247d5b5fef2ea8bcd8825a70cd247",
+      "packages/barocss-cad/dist/modeling-dimension-internal.js": "4b7d37785ea98be7e5ae52c770ee14bb5124a928171233b2852bfe5d96e4a23f",
+      "packages/barocss-cad/dist/rectangular-face-extrusion-body.d.ts": "b0315063e1c16455f4361a34f756f637fd61ed6143885b351850ebc1d1192258",
+      "packages/barocss-cad/dist/coplanar-face-boolean-mesh.js": "4bd2dd5210d7ea9e9ce5968f2ab419da16a8ff5fdd18ea67e7c154e0811df2d6",
+      "packages/barocss-cad/dist/paired-surface-material-body-world-points.js": "21b483fa2a57708f467944bf1aa41f5572b4356e831f1f0dca9c5c78a203059b",
+      "packages/barocss-cad/dist/own-convex-planar-face-holes-preview.d.ts": "5b403b190c926368dce090324d28d804320faf3b226443bf3c9535800e4cd2e7",
+      "packages/barocss-cad/dist/xy-polygon-prism-document.d.ts": "2d43d8d6c603b78a550ef9d2cb742bf5e2fdf0b50048ac3509e0e1a7adf5da66",
+      "packages/barocss-cad/dist/source-surface-control-net.d.ts": "01936038bec061f7f44361f51ef6a3f072bcd6b015f566a7ff1ed03a063d5bdf",
+      "packages/barocss-cad/dist/construction-types.js": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "packages/barocss-cad/dist/xy-circle-planar-face-preview.js": "c6f0fe703df8dfd210c518d1039eba1ee5a7e9c09b65ef076bf0a8c65ee2065e",
+      "packages/barocss-cad/dist/translated-surface-strip-world-points.d.ts": "da868ba4a9b1838cb135574dbb0396b644432ce61f9a962d3c18f46a55664eab",
+      "packages/barocss-cad/dist/expression-parser.js": "aa0f2e03535b13bbf5b7d0d0e2b90dca44df0dbd8e47b9c352c495f7e24f8ffe",
+      "packages/barocss-cad/dist/native-planar-loop-qualification-v1.js": "c6a2d0fb4875d9187d841bd8afc975bd36d8770cdd3a4bdd3ac30b6d4e58b0fc",
+      "packages/barocss-cad/dist/own-plate-circular-hole-preview.js": "298359ec5405a3d481a9449eb3db3e6843763b97a91e7b1efd2f0173cd205b92",
+      "packages/barocss-cad/dist/coplanar-face-boolean-extrusion.d.ts": "92c712fc0bc86ddb40ab5f8cb2d697363fceaa0e9f508d2e8b4923af58a53e09",
+      "packages/barocss-cad/dist/modeling-regeneration-internal.js": "0060112f924c20516990b51de3dd6064e04328dd58a6d387a838b242361afef6",
+      "packages/barocss-cad/dist/qualified-translated-strip-material-internal.js": "d3335a17549159a7c38a1ba0959f1a3d0f4d7c5d08b1159afcc252af501c07fd",
+      "packages/barocss-cad/dist/workplane-sketch-frame-internal.d.ts": "5dca9887697c21b77db3defbce11d6de0b19439375c4e4efa5ca435f85b4667c",
+      "packages/barocss-cad/dist/parameter-semantics.d.ts": "35398ee1f6ded6643211103599c9186c4917987630c3dfbc2853a10c0c1e65cd",
+      "packages/barocss-cad/dist/cad-document.js": "7a35b2786264f21176f03a07f973f43ca8964e558f48afcc517f21df9e34b1a1",
+      "packages/barocss-cad/dist/exact-straight-edge-split-plan-v1.js": "ee1f5d82bfb2e1546282b51df2431455df8fb02dc238c551e88b17f9d90c2975",
+      "packages/barocss-cad/dist/paired-roof-body-split-proof-internal.d.ts": "8ee6213142affcdea58e2d168f5fe5ec93ba83237d0b75316f3ecbbe70fb4273",
+      "packages/barocss-cad/dist/convex-planar-solid-intersection.js": "526767b961af0b8e733249e56df41643ac4a6cf5bb4d2230822c223ba23aef0a",
+      "packages/barocss-cad/dist/surface-axis-reversal.d.ts": "5cec5a451dae9f242450dcd6b4468c1f77cc6cbf41b22f7abcd751dcdac17373",
+      "packages/barocss-cad/dist/xy-affine-sketch-internal.js": "8a43313e9b5478487bcfe6afe5530d44acb87926ccfd79faf4a15eafd1344762",
+      "packages/barocss-cad/dist/own-convex-loop-clip.d.ts": "3f6c2604d71f2d74c9726c93f2b9c37dd583ff4802d65c96ceb343c5548eadbf",
+      "packages/barocss-cad/dist/cad-assembly-members.d.ts": "537d352d22dde03bc500271d7804db857a502d35636b3e87fe53e149d6fe5e2f",
+      "packages/barocss-cad/dist/circular-geometry-pattern.d.ts": "4a11572c4e08b9f1dbdaa16aff897e714a486195c73b014845ef0e1ed880374a",
+      "packages/barocss-cad/dist/paired-surface-uv-split-faces.d.ts": "8a8a5f42b1a659cbb0df380cb25735a39f28a33aeb195c2f353ba2a09407c068",
+      "packages/barocss-cad/dist/curve-parameterization.js": "50b1448a0055aa03d6ba0be40fea370947dcdc5205394b385bb9fec43251f5b0",
+      "packages/barocss-cad/dist/rectangular-face-extrusion-body.js": "eb156312e294d65809f6f2bdf36b0a4ce776e2ce5f3f8691956571b1220e6147",
+      "packages/barocss-cad/dist/axis-box-solid-feature-document.js": "6d4981d920de26b31fa32301174ad201294fe0b29729a1af512ce90a09b28973",
+      "packages/barocss-cad/dist/curve-knot-insertion.js": "32684911ba7124e5c6ba18d192b1d8de6bb882886f5783655e196112fa4ec418",
+      "packages/barocss-cad/dist/cad-assembly-part-replacement.d.ts": "33728901640e54e09a1627645b69e3701d7f3ad07c5a2ef5918abf90031eeeaa",
+      "packages/barocss-cad/dist/native-extrusion-leaf-probe-v1.d.ts": "db76d9589d52a2280ccb3753cd07bf370d283c7288230c0daf2e8dd15ec812b8",
+      "packages/barocss-cad/dist/own-plate-circular-hole.d.ts": "7d057de4e00111bb43b011910696b9427320472b976bb83ba0ec45fd77ca921f",
+      "packages/barocss-cad/dist/modeling-box-internal.d.ts": "471ef66c2e9d6b123ad6ea904dfa73abd9463ab3c3cc3a27e4a44b3a2110a784",
+      "packages/barocss-cad/dist/exact-surface-band-trim.d.ts": "df42fe9340d8c643ed9c0bcb475f4c4cee08e6b8cb2d24a30a8e95de23279bd9",
+      "packages/barocss-cad/dist/xy-polygon-prism-document.js": "2f33c7db67cc683c0b9b2060335db9c56b5cc9824c43ac39417811de6bf9037a",
+      "packages/barocss-cad/dist/split-face-evolution.js": "b203b288ff04c2714b0f22458b802b40b0bfd605f54cb2da5f5cc0e269aa4862",
+      "packages/barocss-cad/dist/cad-assembly.js": "181753ac066b6a2c44a0237583861b8eca7673b0cf83d4a4f3657067bd6101ba",
+      "packages/barocss-cad/dist/curve-bezier-subdivision-internal.js": "fcc4119471366a0411b2af7e7e77e0fc3d07bc139a683f273ea2c66f74dacfac",
+      "packages/barocss-cad/dist/xy-polygon-region.js": "960d68e5c93ae9084864f18486f1f5c3d1bde77a4b3136fa95ffef29c06060f9",
+      "packages/barocss-cad/dist/math.d.ts": "b73bfab66daa3166ccd9b47ca1d609b7ddc30f548eb70499c673e466f4d8715b",
+      "packages/barocss-cad/dist/xy-circular-numerical-sketch-solver-internal.d.ts": "27ac8f620a9c6e173fa83494ebcf48e10a0d717c90533f7a802a958e322eca45",
+      "packages/barocss-cad/dist/z-axis-revolve-preview.d.ts": "b21bd265a2a33fcfdfa8249c8b19ac40b32bfd0e0ca0936638828dc75a3d567d",
+      "packages/barocss-cad/dist/xy-circular-numerical-sketch-native-internal.d.ts": "c25b15b347e9eb857693f5f6dbd91a392b4d368921d513d229b255fe24953aaf",
+      "packages/barocss-cad/dist/coplanar-face-boolean-mesh.d.ts": "c9e30a9c8c46cf8af34ff06514269e3752f820999ab26f1c72b01d7c9cc28d15",
+      "packages/barocss-cad/dist/stored-plate-hole-solid.js": "96ca0f349e02c5e1cadf106c3b865b52fd1045d279faf54b27401396754cf165",
+      "packages/barocss-cad/dist/native-planar-loop-qualification-v1.d.ts": "081d8d7e5dd630294c665adb94ec9814bee44d7dc7977e8c19e5588d437a24e7",
+      "packages/barocss-cad/dist/native-extrusion-preview-acceptance-v1.d.ts": "da7be2abab7d60e7f57e2b57c611a460ca51481effa6b675005f420e7e04dca1",
+      "packages/barocss-cad/dist/xy-numerical-sketch-solver-internal.d.ts": "7428a7e9f10ea187e675786095f111076913fc20b4953de06f95ebbc1992bf41",
+      "packages/barocss-cad/dist/exact-segment-snapshot-internal.js": "03fb2b2de5531adfc6685481f2366c9131312f6676da4e5e06a837fd5078a264",
+      "packages/barocss-cad/dist/own-cubic-bernstein-roots.js": "da94c51b8de5694d32e498fdaeee90d11b48b65ad7c9a6f5b1be43c904bda62c",
+      "packages/barocss-cad/dist/paired-roof-difference-body-construction-internal.js": "a39652b3562768475ece777b7923afd6ada9cfe6ff83f440b89b03a45981b2a9",
+      "packages/barocss-cad/dist/coplanar-face-boolean-mesh-triangulation.js": "a0ecc1f6d4bb7b5151df94b3e339c7bd5fea3c0e9f3313dfc0b3c251660fb999",
+      "packages/barocss-cad/dist/native-crossing-incidence-graph-v1.js": "199e1039f16fbfdbb64e0eb92699fc59003a8d3d6216f0225967e833e52c82a4",
+      "packages/barocss-cad/dist/convex-planar-solid-intersection-internal.d.ts": "cf077021116c3be4f59d88aa233b3423712edc94b369882d0e0aa951de7702da",
+      "packages/barocss-cad/dist/xy-angle-arc.js": "6a79efc4cc9bc5b6d99c35806b91ee9d0040bec515da05623a6b4c09e256843d",
+      "packages/barocss-cad/dist/curve-wide-plane-intersection.js": "5c3f929a61307d30ccece3291819aaa009e4c6f54a28cbf9bdb6d7edbc78df0f",
+      "packages/barocss-cad/dist/paired-roof-difference-body-proof-internal.d.ts": "92d8a26ad27dbecea769b77cb2b5557ff5f892352007b77f1a75273e9c5337d1",
+      "packages/barocss-cad/dist/stored-plate-hole-point-classification.d.ts": "e1c184a7d0a0be78136c1c47d30f0fdc6e75aaffc41991d62bb7a3c5afdc65c3",
+      "packages/barocss-cad/dist/source-surface-control-net-wide.js": "1dc58fcc356afd252b914af4cc28a80497e95f38fe2c6c6d8886f7b60cd5e715",
+      "packages/barocss-cad/dist/coplanar-face-boolean-extrusion-properties.d.ts": "b802b52e41a3bc09c0b50cb3da440474312090568de19748d86ced4425554330",
+      "packages/barocss-cad/dist/adjacency.d.ts": "b5fe9d08aaea1447ac8233bfff7f63e3744b9364524faaa6766b8173730eefdd",
+      "packages/barocss-cad/dist/surface-axis-reversal.js": "22381919d0cb055ab9be677b2bc9070f2e51874fd6e8d9f95a22aea16d572784",
+      "packages/barocss-cad/dist/cad-document-compatibility.d.ts": "f9d7a56df3c28dcc75e4fdc0ebfea60758a18b4d338f0e8a7ea1662554080634",
+      "packages/barocss-cad/dist/translational-sweep-surface.d.ts": "417650b84a98fd1965f6bccae8bc4a949970e8c6e86347ddb8032057dc5abccc",
+      "packages/barocss-cad/dist/source-line-width-face.js": "306ddd57c1338f33f981003ed7177291aa0cee42721d7ca82187df6567b447ca",
+      "packages/barocss-cad/dist/curve-wide-cubic-plane-intersection.js": "dd2a1ae8f4c4b3b341c85ce8f0a23a141212ed0b103925cea265a7b20cafb477",
+      "packages/barocss-cad/dist/stored-circle-prism-solid.js": "e2b54bea519617984f567438598323ebd16f6fe66446dcbaa17724c29e71c892",
+      "packages/barocss-cad/dist/multispan-vlinear-plane-trim-classification.js": "a8f7efbf01d4db94f8a9911c7d748c92301026b3f6aa9f71a44a8b84266c553d",
+      "packages/barocss-cad/dist/types.js": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "packages/barocss-cad/dist/qualified-strip-binary-stl-encoding-internal.js": "cbc440a2dcd384a3c42e9522b323cca70f4655d4f8b2044a765a45547e0abaef",
+      "packages/barocss-cad/dist/own-homogeneous-bernstein-roots.d.ts": "c59863a2c18800de8ede98831aa3316df4b4915e11a605cefd7998673995cbac",
+      "packages/barocss-cad/dist/convex-planar-face-extrusion.js": "99de8cd5846e9bd79cd76902e27fde61aad4f6e8b76176840cc5c374546651cf",
+      "packages/barocss-cad/dist/surface-interpolation.d.ts": "5f48b3fc54e784ef45ccfccdb718b3a6e0de0edc7f7e58d6828e1cfcad670fda",
+      "packages/barocss-cad/dist/paired-roof-body-split.d.ts": "b4fb8221f3abdab2b14adf11e88b29c982ca0aa9b3d12752327cbb60b9d49828",
+      "packages/barocss-cad/dist/weighted-curve-interpolation.d.ts": "13fe3ae6026468004dc502c535c8bdd3a690eba853ac0c7ad9ab8632aaf0e78b",
+      "packages/barocss-cad/dist/xy-circular-numerical-sketch.js": "f8fd4f5cc1bf4262338bfccee9deb84aba94d0125443e23a525cd21f6683d527",
+      "packages/barocss-cad/dist/modeling-scale-internal.js": "736aedff6f5190d89c487d5a800661b448a25e0436c22f8c535204fc451f211e",
+      "packages/barocss-cad/dist/stored-circle-prism-solid.d.ts": "9d6ed51246c133a3d1586b3a7b99aeab7408e8282e359eff70860c49da8b3873",
+      "packages/barocss-cad/dist/workplane-sketch-document.js": "5c44163f6208ec4719c0b3cb29665911426f31fb89cce8224f4f9afc287a8bd7",
+      "packages/barocss-cad/dist/curve-adaptive-sampling.js": "905e898f133d95aff9881dd1a776610e2de52f14c205fe367aa78832a03d544f",
+      "packages/barocss-cad/dist/local-curvature.js": "1557e9829def32a84f99e63324c288a955154f5a21ad9add15c64f4391d2bed8",
+      "packages/barocss-cad/dist/sketch-circle-feature-graph.js": "f0481cdb925db3465002c84c9c309723c179ded1a7829430faff7a66ea118db8",
+      "packages/barocss-cad/dist/curve-parameter-split.js": "5cdbf518b0906f286905b301e4eb9c2cafc72a27059773972185cd42a80d1186",
+      "packages/barocss-cad/dist/xy-circular-numerical-sketch-admission-internal.js": "4e00fbf5a2bfcca5ad8ecf578a0c1b9bb266a3d065672260ebecb9aeb1041235",
+      "packages/barocss-cad/dist/paired-surface-material-body-proof-internal.js": "60ea425f17084f07cc44603a56012c2b08f12f2f5b713121360bcb3d8150427a",
+      "packages/barocss-cad/dist/box-shell.d.ts": "a233684c49589ceea0d55deeb37beb5b06df4adfeef823bc6cadc6d345d92200",
+      "packages/barocss-cad/dist/coplanar-face-boolean-extrusion-mass.js": "9f3b1a5c69644c6d812ef1c80508a4478604e2eea39e2ed5e6aecd7b15e13e59",
+      "packages/barocss-cad/dist/cad-assembly-instance-point.js": "cc15acaf5cfd77ee287fdbc1e76aba849683d12b9ad059e02284a3bf1ce175aa",
+      "packages/barocss-cad/dist/translated-surface-base-face.js": "2973b47d440332733839eb7ca9e901525bac6a5915f1c06a8af46bd2aff04ea0",
+      "packages/barocss-cad/dist/modeling-linear-pattern-internal.js": "6dabe0be0926e95ac319f016dd63e8bf7c6d3d03cb29642a99cc4c208be808e3",
+      "packages/barocss-cad/dist/paired-surface-uv-face-classification.js": "7ba82e535e9519e2b8340a9f97686604900142b4229b7422a68ea9592e86841b",
+      "packages/barocss-cad/dist/xy-angle-arc-artifact.js": "c50e7a17f1961e31eb500da64e5ce6fca9f0be213807157c16a5d3c2786f1fa5",
+      "packages/barocss-cad/dist/curve-wide-cubic-plane-intersection.d.ts": "1be8a2577b4a4b713e78dc456715c64133cf478c2a61df261ec1a01a25b089a0",
+      "packages/barocss-cad/dist/curve-planar-face-material.js": "6a7c2a418416d141a159f4abe70a019e9cdc5ea715bdad0282ad44a55f0d2052",
+      "packages/barocss-cad/dist/surface-region.d.ts": "f5aa4346a5daf98f1a2af5226678fd7b5e17156edbb76a2afd3943d5fc3af89c",
+      "packages/barocss-cad/dist/multispan-vlinear-plane-trim.js": "b29ab25328030672ca07b2fe4eb2f4408977c7b6599cd0e0a63820f6191c6fd3",
+      "packages/barocss-cad/dist/orthogonal-adjacency.d.ts": "edbc47004bd3e6d26f4477e135f093d1885a8013b8e200492fc6c67b874ba83c",
+      "packages/barocss-cad/dist/translated-strip-interval-boolean.d.ts": "26727ed965f9fbbf5a6e8bf57733048cbbcff72e0847e73a89e4dc0b6852e7ac",
+      "packages/barocss-cad/dist/xy-arc-sketch-document.js": "397d796c75a82e49c175767bf6443faa2372805c116a0f54f2156989a97a3724",
+      "packages/barocss-cad/dist/axis-rectangle-feature-document.js": "de2ffe9e4a0749ba3194f75716482fa14072a278ef91eba22e4ba361ab59ad92",
+      "packages/barocss-cad/dist/own-coincident-plane-clip.js": "b4de9abf185300bcefe8ab43eea4110464a0886b83cedeeee1b5b4cd4a627539",
+      "packages/barocss-cad/dist/iges.js": "fcfac42abf4dc7c4cdbf7b0f8a32223ef35e9ed9fa241ac002b60a7db6101141",
+      "packages/barocss-cad/dist/xy-arc.js": "66a7b08fe35bf6e48d85f06ac79fb488d357d137697e223fd8ab61b034425b0e",
+      "packages/barocss-cad/dist/convex-planar-slab-subtraction.js": "deebfeedb60fbc517202f61e649a4f44f55206f9f71006eff71b72b3c16c0c59",
+      "packages/barocss-cad/dist/extrusion.js": "b20585fc8b63e7a0f8cb916fa3e855c1cc2635e45541e831e1658d5257a926a2",
+      "packages/barocss-cad/dist/model-compiler.js": "28169e8d79f6d069d76c3e52491477c30f416fba88cf1fdc1019cd3e8c1cc751",
+      "packages/barocss-cad/dist/own-convex-planar-face-intersection.d.ts": "4948fdabb23601e780935c2b63c26249cedca0be9d998aa8f110055537f309ab",
+      "packages/barocss-cad/dist/xy-affine-prism-feature-document-v2.d.ts": "01a6eeabcf0de57a7b696a8e4f68964eee4241585b443d044ef2f08afb8ca5f7",
+      "packages/barocss-cad/dist/exact-binary64-orientation-v1.d.ts": "900c68568f1ec2897a0ae1d54ec0afbaab977b186e60fb354386fd954b2af91c",
+      "packages/barocss-cad/dist/extrusion-validation.js": "72e2477f455c63ba446b6cd7228f6fbf5a9b1a548877a8e4b5ea836ccf3a8fac",
+      "packages/barocss-cad/dist/curve-wide-adaptive-sampling.js": "ef8ec5f38d4bbf4793af05ba8573a134b302c2f1f2e2da9ee32e54f8bcbb757a",
+      "packages/barocss-cad/dist/exact-paired-vlinear-surface-intersection.js": "95ab92407bcc94012a25cb56138cffe7c3b9b1aebae9705b4f29df6162b0cf32",
+      "packages/barocss-cad/dist/piecewise-rational-loft.js": "3750c5c25f4d7d2646b9f6056a5367b0675e327ab64744ca7afd08ae50539421",
+      "packages/barocss-cad/dist/boolean-extrusion-feature-graph-serde.d.ts": "76191ceed78458542cffa92b4e35d73aca964a69146b7b71e77a7673cbdf4318",
+      "packages/barocss-cad/dist/xy-affine-sketch-internal.d.ts": "a521818f1c711a68aee7e393443adf37a2bc70cc19715c2fc75d455e13921677",
+      "packages/barocss-cad/dist/source-curve-control-polygon.js": "d889469c32e5f3154d8339656c45beb2206dade1534d3918356d50b03840f5d7",
+      "packages/barocss-cad/dist/qualified-strip-binary-stl.d.ts": "da59c0f4ac7af5a137cf0b84b44d1bae49d1cb7e27f64b68829eeaa0c98bc892",
+      "packages/barocss-cad/dist/convex-planar-slab-subtraction.d.ts": "7bdb05d9bd3f3916e8c8330039028afa83c6f065b6e2defe9b0bf38cee57e7fc",
+      "packages/barocss-cad/dist/paired-roof-difference-body-proof-internal.js": "78a0c5695bda5958ce357d3f1b0e755e071a488b7231760b0e79e5f3466f2f16",
+      "packages/barocss-cad/dist/surface-knot-insertion.d.ts": "4660f6e93ac85b3f887115becdd51dc64282bb9f1febef5c04b92372c7cf6797",
+      "packages/barocss-cad/dist/section-exact-surface-binding.js": "33897022fc5bad1e73746c268b3022b925bf51859596dc23f9fa11607eeef788",
+      "packages/barocss-cad/dist/convex-planar-solid-mass-internal.d.ts": "273f527eb373e653e6251c2094451714579d56b0548bc671276033ad0d8bc22a",
+      "packages/barocss-cad/dist/types.d.ts": "ff9813afdf92d31bc72379e93228ebd381aa90d5950691302b52d20b70804ba9",
+      "packages/barocss-cad/dist/paired-surface-uv-split-faces-proof-internal.d.ts": "152899a16d208e5621a5e40978c2bd2482aa96543738e54f4e526a769ebde06f",
+      "packages/barocss-cad/dist/coplanar-face-boolean-extrusion-mesh.js": "502f0871c64d5c563398432bbf43b54f0fc08fe3d1d0707c3249d0b68c72a108",
+      "packages/barocss-cad/dist/convex-planar-solid-chamfer-internal.js": "8e7e4aaee70f9e6734980bd825602a286bce94c0ca0dd676702a60e199d62e54",
+      "packages/barocss-cad/dist/cad-document-export.js": "6f7e0f0c808fe8658c667121972f5b7f17059274e858a40070dd1cf97baf1e4f",
+      "packages/barocss-cad/dist/packet.d.ts": "e1e73fe1a8694ddfa5991c3cc15cf5ed34a8361ae6741019b708e6a620dd1e22",
+      "packages/barocss-cad/dist/boundary.js": "728147260e9d5c5d9e76d11511191525a2aabb5afca00f71d2c3e46b90b923ce",
+      "packages/barocss-cad/dist/source-surface-control-net.js": "905b690de2e08602f6e8bf80b9199ca71c0767d34b4b999fbba8dacea95f2d6a",
+      "packages/barocss-cad/dist/xy-polygon-planar-face-hole-preview.d.ts": "8c201534447a22a62f5664ba0eb24eccc3ab1b8c8ba29aa2c075e7178d0e93c5",
+      "packages/barocss-cad/dist/curve-reversal.d.ts": "591ca3c3660a63918e7fec3edd8a920374c93cbe9b2fac6b49bf296610480e9a",
+      "packages/barocss-cad/dist/own-convex-planar-face-holes-ray.d.ts": "9d4a5dacfed40bac284d758ed5377400a004b26973ff98b8d3ecaaa910a89f5e",
+      "packages/barocss-cad/dist/extrusion-principal-inertia.js": "30304e082e94240af1164cf54bbf68220300e1cfe92c6f9c172bc827a76b8e9d",
+      "packages/barocss-cad/dist/qualified-translated-strip-body-mesh-domain-internal.d.ts": "b67e8b3ef2ef1c57e88ee362c22e23898917bb6744caec974d28ae30e44cd95c",
+      "packages/barocss-cad/dist/curve-wide-refinement.d.ts": "ed4fd603488a956b9183bc384aba77847c594ac3144fc106395fb77411954614",
+      "packages/barocss-cad/dist/source-line-width-extrusion-graph.d.ts": "842b2a0a6b71af0d3871f3bc3f3de282fe902aeeb766d238ac8b5cc5ae319c2d",
+      "packages/barocss-cad/dist/axis-box-mass-frame.js": "4616a57238758c2171daadb3e109c350149f7dac60f04e28a0c8102be289e00b",
+      "packages/barocss-cad/dist/xy-affine-sketch.js": "fc75bcb3dd4791e966f8fbf567057ae3e057f97645e60310f2b32c07d0e7a9f1",
+      "packages/barocss-cad/dist/paired-surface-material-body-world-points-internal.js": "b157e6cb08d8a5da3c212220a9527954ccc070ba5ff01c248822272dbb151e12",
+      "packages/barocss-cad/dist/xy-polygon-prism-ray-query.js": "73edd1db9480e8f2b95d5534534956c51cc228a71d64340e32e4dd388ae6f02f",
+      "packages/barocss-cad/dist/coplanar-face-boolean-extrusion-mesh.d.ts": "d7d6641769375cfead098996bd204c6a8300d3fd36a18d2c7996ecdbfe818d70",
+      "packages/barocss-cad/dist/xy-polygon-prism-shell-hole-preview.d.ts": "b9a6ca49bcd6ee38cdfba58d46d8da6cde5faa329afa8333e2b67bb9521f3c91",
+      "packages/barocss-cad/dist/local-curvature.d.ts": "47c1387ed3ef11b789bc32126349a100dc70107d23a041032fcdd84c9e09dd85",
+      "packages/barocss-cad/dist/translated-strip-interval-boolean-construction-internal.js": "5e1cfe941640d59dedc8434121838f2380399fd905941d7cab15f11241322fa9",
+      "packages/barocss-cad/dist/section-rational-internal.js": "0cc904f223058aecc7e9e53e268b339161bce78e8edb12bba15752a8c538cb76",
+      "packages/barocss-cad/dist/curve-control-polygon.js": "1ac6a0b7b158139f3b4151b64bef4fb39840524cf25100780ba298ca9accec1f",
+      "packages/barocss-cad/dist/axis-box-principal-inertia.js": "a3738c414bab1a7b25969d1f3fbb372c60bee1f3f0e68b2ba861174b54347cbc",
+      "packages/barocss-cad/dist/own-convex-planar-face-holes.d.ts": "7f2ad033368586a09f3313a4aa5c3f9687c37424443802ac3af50801445f7b42",
+      "packages/barocss-cad/dist/translated-strip-plane-split.js": "14b5892da95a1deeddc610b5c6cef2490e7a608c8ef6d61dd73327c976792366",
+      "packages/barocss-cad/dist/paired-surface-uv-face-classification-internal.js": "a822d89eb2a689a4293dafb7da50a28bd7dba2c9ae988edf0c7e4cd200b359d7",
+      "packages/barocss-cad/dist/source-surface-control-net-wide.d.ts": "e1f3f9d311696e4dc866c5f205afd9115416442e59e8e24be276167822ddaed7",
+      "packages/barocss-cad/dist/xy-circular-numerical-sketch-solver-internal.js": "fc0865b947e6ad8e74959dd629d85843b7c768bd401a56a0471999cdeed761d4",
+      "packages/barocss-cad/dist/axis-box-solid-mass.js": "a48bc35d107f3961d339ed068b224bb6bf30de46d79d8fd11ef90eeb5854f32f",
+      "packages/barocss-cad/dist/translated-surface-base-face.d.ts": "96fee8a050fef2ea0af9f808a91a40a9178d97d7790ea2b9616937dee36767a6",
+      "packages/barocss-cad/dist/xy-affine-sketch.d.ts": "c03c977e07385541c0295d53a9f29164e89ebcb1961f5d25fc09861abf6e1c7b",
+      "packages/barocss-cad/dist/own-convex-planar-face.d.ts": "a4ecb5dbcb53a0799d9b453dd796a0a837761b719a03a657365d112431150f35",
+      "packages/barocss-cad/dist/multispan-vlinear-plane-trim-classification.d.ts": "99da94e6b11f2ccfcc2f1093f66a8d040b74d7adb88418a332861f3fa10ab0c4",
+      "packages/barocss-cad/dist/axis-box-boolean.d.ts": "8d79e95290bac8f54e544877f93245e183a29bfaa4614058c27e28aa31b55f08",
+      "packages/barocss-cad/dist/paired-surface-material-body-world-points-internal.d.ts": "047508e9bdbc718954c6ef57d3e4dc00bbf9ad39cc995b98c9734e18dcfbf9fc",
+      "packages/barocss-cad/dist/axis-rectangle-extrusion.d.ts": "713c2bbf099d6fd78d3443f05b7d8d95c46731803d19f7890f2578f73855d875",
+      "packages/barocss-cad/dist/preview.js": "571acc416e7a05830f47711a3bc91f650146d9d2f5635508647f196d826c117c",
+      "packages/barocss-cad/dist/xy-polygon-prism-shell.d.ts": "0b7583fcda3e7ab0651ad2ee800fc76366436f986ba92df5e671b9938b1aa126",
+      "packages/barocss-cad/dist/xy-polygon-planar-face-hole-preview.js": "20ca4c7a1cf24b31e1181614c5879864ac3559b61c17d959360d54e7509bae58",
+      "packages/barocss-cad/dist/data-copy.js": "33a46d35f16486d23f2304ae473a35bf463b16ebb0816433fd1d2392944035f7",
+      "packages/barocss-cad/dist/qualified-translated-strip-body-mesh.js": "d6ef40c86869d6f31cc476bc41e134f1bce6e97ce9ffa375e6d32176d49c3535",
+      "packages/barocss-cad/dist/split-face-evolution.d.ts": "8edb0c8e35cc00e637deedf3589dcf3544d1e23b1844bb6372e277b98e0412c5",
+      "packages/barocss-cad/dist/nurbs-source-loft-feature-graph.d.ts": "777fb70b7fa67b8fa58c8774773a0d177dd604cc87ca8ab2a949b34064827b6f",
+      "packages/barocss-cad/dist/stored-plate-hole-solid.d.ts": "c399af246c844ab668c2ac1273753c4708c9cb1a28b56eb2ab2aeecf11f9fcc3",
+      "packages/barocss-cad/dist/z-axis-revolved-surface.js": "2a05d520ede941fa022487e393aa519199c424f67887531b90f0f3e09aba4517",
+      "packages/barocss-cad/dist/modeling-scale-internal.d.ts": "a6a4931375db7afa0ee60c9f26f1c704b21a963a607dbf294c580f99e78f58f0",
+      "packages/barocss-cad/dist/own-convex-planar-face-holes-ray.js": "5f166189299f354541b561bce3a8e2cf9beb8c18d37bb81e0d1ec1b31895126a",
+      "packages/barocss-cad/dist/native-planar-face-boundary-v1.js": "6df470f37a10e95bfda8f891a42134cd7135cd883d0de93f76c7580a7787ce0b",
+      "packages/barocss-cad/dist/xy-sketch-document.d.ts": "f1dcd31deb1bb1565f7635a6e00dd85917df30b83aa44f7b469de5264153bdb1",
+      "packages/barocss-cad/dist/axis-box-boolean.js": "4a8c12cb0fcd8dbba06d1fd93eb34fe87937a3db8a8045ff2881369c7d72dcbe",
+      "packages/barocss-cad/dist/paired-roof-difference-body-construction-internal.d.ts": "6eb3d964e90c9e7a44867393e713cb08cfe60de2908f657576600239dbc3c6b9",
+      "packages/barocss-cad/dist/linear-geometry-pattern.d.ts": "4385d586bd49ccabc393ad429a1b44386d9fd6edf123b8a3b7b8048467745f86",
+      "packages/barocss-cad/dist/xy-profile.d.ts": "a6b580248ee8f544af95e4051645954900fd71fbba756e3748a27c80fb4aef8a",
+      "packages/barocss-cad/dist/paired-surface-material-body.d.ts": "02e676d082a90d64bfbf9bf0ff08cc0393930cb7ac73032c4ec73fc167898e4f",
+      "packages/barocss-cad/dist/xy-circle-prism-document.js": "3df8d04d8a510064bffabd63105f4f5ba40a74afdb6f2632b26411d416f58217",
+      "packages/barocss-cad/dist/xy-affine-sketch-prism.d.ts": "553b607d54e54751fb02ea99352d5343f39dcd50bfafbc96001b870da5921cf9",
+      "packages/barocss-cad/dist/curve-interval-extraction.d.ts": "998a8e2baee3c15971dcc8efbb97eae403517926d08e1ae3d15ad255ddef688c",
+      "packages/barocss-cad/dist/second-derivatives.d.ts": "b570f42e9b1bb8aa470c62caff62cfbad89b72b97d0cd82f0af4353b5f1b2592",
+      "packages/barocss-cad/dist/paired-roof-body-split.js": "44a468135d54c8630439f9cbf81752b7f48d7b89d8f9c8bd3d642d1eba88f7e7",
+      "packages/barocss-cad/dist/exact-segment-snapshot-internal.d.ts": "670cba841bbdb231c991fb55fd0ce8f85913bbb6a70576b55d54ea748a9aaf81",
+      "packages/barocss-cad/dist/curve-planar-face-material.d.ts": "dbecb02d0d9a9ed89e901ac9ddc23dedd61fbc1ce8160e7510f7aaf6eee78612",
+      "packages/barocss-cad/dist/modeling-mirror-internal.js": "2b2156acd5470c48731115bf45db268e2cee60a3ccf67f209f0d407196161f54",
+      "packages/barocss-cad/dist/xy-affine-prism-feature-document.d.ts": "0982ed9d1552afb00dabbeb903802bd309a388c5b8c166ef5443a6174137f7b0",
+      "packages/barocss-cad/dist/boolean-extrusion-feature-graph.js": "7b9ab4dfc210480267879674944c588c1b92dc4880629a8448446c8d943ee0f8",
+      "packages/barocss-cad/dist/xy-affine-prism-feature-document-internal.js": "900f736cc1be98a83f13ccfaf82977cf61706e5025eded672bd903b7f51e0d27",
+      "packages/barocss-cad/dist/paired-section-plane-cap.d.ts": "9097c5f5805d111caf31c2c4ea273650ede305ef99f0c368aa98cd42fd657928",
+      "packages/barocss-cad/dist/xy-linear-sketch.d.ts": "e0c61f0e19d385075f96c8bf6159ba9960c3cf073617e47ec665a62702f18df9",
+      "packages/barocss-cad/dist/xy-numerical-sketch.js": "15e1fdda7b39da16234fc88db8e18c3760b6d7247f785c51bf9768fdb26b560e",
+      "packages/barocss-cad/dist/qualified-translated-strip-body-mesh-domain-internal.js": "91e7787a4ee1e0fa04dcbe1b39935b1d43cd6858c4d5d957f59c188543eb8e9b",
+      "packages/barocss-cad/dist/surface-control-net.d.ts": "924a9b061217006c6bc0c9bc41313d6951b20781437ca9224eec3770743ad724",
+      "packages/barocss-cad/dist/known-solid-qualification.d.ts": "1bd135f3ac4729ea18f5e77af9865dcd85403b691b3dd08550e141a97a904b4f",
+      "packages/barocss-cad/dist/xy-numerical-sketch-solver-internal.js": "3f759afb54d9558847021772d7e5a55ca9709488913728d0623d33e5cadfa0b8",
+      "packages/barocss-cad/dist/surface-control-net.js": "b66688766d13d729e2085d69825831dbcf04733739abc40fd6f2e8ca17836296",
+      "packages/barocss-cad/dist/degree-matched-bezier-ruled.d.ts": "a70d703925e40d3bcdabd40f93799c591ce8ea0811e070c05bd5325625ce2e6a",
+      "packages/barocss-cad/dist/coplanar-face-boolean-extrusion-geometry.d.ts": "c692120fe23f73e355e4f6412389f5a454603201803661dfcd0e27d13447d57d",
+      "packages/barocss-cad/dist/translated-strip-interval-boolean-construction-internal.d.ts": "f3da0ece6eb2c52e639c249ffbe7fca4c49e0f6b556d887c29cb4ee284f2ab63",
+      "packages/barocss-cad/dist/vlinear-plane-section.d.ts": "9a5869baf4f1ae3b4a02e4c841b6a10db0a5afe7706ef8ffbd88da2dd43a5a16",
+      "packages/barocss-cad/dist/curve-c0-degree-elevation-internal.d.ts": "f66d60f6cdb8d9f49f2fe78da39381a238c848c82f6a356d15b00b3081ac3662",
+      "packages/barocss-cad/dist/source-knot-aligned-loft.d.ts": "58d4a52aebc82ccd06d550b756179ad3ba1a651ee03560a3210ce9c86c074092",
+      "packages/barocss-cad/dist/curve-parameter-split.d.ts": "6b559f9e01fd6714c0747d06fea032f38f04088c6f8a5289d39d29928c46df72",
+      "packages/barocss-cad/dist/convex-planar-solid-split.js": "cc7d236d18f35eb5b6f4ce29f2c9cee2352340bc155674d8eb769ed1f004cd94",
+      "packages/barocss-cad/dist/translational-sweep-surface.js": "955c7cc0a40f483b637a9d395ab966434dc68c197830cb39a962cddaeba42820",
+      "packages/barocss-cad/dist/vlinear-plane-trim-classification.d.ts": "04265e26c99da1df484ab1d274c30ab7128e34f70088b24686b89c3ee02e6365",
+      "packages/barocss-cad/dist/xy-numerical-sketch-admission-internal.js": "a3951040f900ed9066bd774407dc7a23686ec008c0c94ae5ecb0c97dcdf229c2",
+      "packages/barocss-cad/dist/xy-polygon-planar-face-hole.d.ts": "109f47b4699b0673b1c95f27fbc5ed33b420706db380a965d87eb5f678a29eb9",
+      "packages/barocss-cad/dist/source-surface-degree-elevation.d.ts": "d1a0afd8d0a8282a895995de1630f60ce416a750b97f4f4075a1f1b386418435",
+      "packages/barocss-cad/dist/index.js": "c4d94073bcab63ff14a5229b7001ad546d2af3f7eff45677f0fccd8b62148b24",
+      "packages/barocss-cad/dist/own-convex-planar-face-holes.js": "785d49979c2bdd36eb112264ed0f9eb8cf3b88b627875d4a45ac288c01ac1fed",
+      "packages/barocss-cad/dist/modeling-linear-pattern-internal.d.ts": "5ece7fddddcd2615b3f36092f5cab4ce1733ff386532a2ef2f22ad0bf2c3f1d0",
+      "packages/barocss-cad/dist/surface-parameter-split.d.ts": "83fc0a7be5ca6458503373c5ebeea3a2784739e10e75e668b436877e191af063",
+      "packages/barocss-cad/dist/axis-box-solid-feature-document.d.ts": "045884e4d36e3c13963aa4cf8d413a488cb715e4837a1846bbb3842b6a6fcdbc",
+      "packages/barocss-cad/dist/exact-surface-band-trim.js": "332b49f2653ca4ea2d6fca5eaf8cc49282cfefc129a15bf9f8b8407dff257408",
+      "packages/barocss-cad/dist/qualified-translated-strip-body-mesh.d.ts": "41d13e8567347fe213281e61318c1704661bdcca53cd8002cd8989276e06b937",
+      "packages/barocss-cad/dist/public-api.d.ts": "66bede46ad1a96b0fce4d119d24f19a6cd8bfbcc90c02c86b7af45ff760b1f6e",
+      "packages/barocss-cad/dist/curve-endpoint-continuity.js": "e23ab1ed7d3f03c62c9e6ced18281d7ef4a14a660852b96ff6e6385c871315b3",
+      "packages/barocss-cad/dist/native-extrusion-preview-acceptance-v1.js": "ad3051dde4918695a7d9fb67739e66af17083d128274a98aaf15729b924147c1",
+      "packages/barocss-cad/dist/curve-wide-control-polygon.d.ts": "c6ba8b8319be5e9b16f19c6ff94c123558b4cb907101a8e33be3edcfe232efac",
+      "packages/barocss-cad/dist/curve-interpolation-kernel-internal.d.ts": "9960b425c4f97c0dde79831b2e85e02130a2d561ea688c1429c11ab0a3e6b5e8",
+      "packages/barocss-cad/dist/own-convex-planar-face-holes-intersection.d.ts": "ce180b5f3d475cc0d382eef9cf795f318b40a0b672f9476f115dd90a5ccf32d2",
+      "packages/barocss-cad/dist/xy-polygon-prism-preview.d.ts": "98d2f16481e21b0c3b77e605f21faf4d6617378772eceb7719bb068fa076c1ac",
+      "packages/barocss-cad/dist/source-curve-degree-elevation.d.ts": "3044426282497d1aff3b73116697f53818e5f6a556eb04045b0830744aeda4da",
+      "packages/barocss-cad/dist/known-solid-qualification.js": "a3dedd5fc5c1cb229b9263b7a1c8a33d9d59c1964f44276f87867e485c38752c",
+      "packages/barocss-cad/dist/convex-planar-solid-split.d.ts": "c3a3b3954e45e863224d5239878cd687bd71fbf091108acbf314e233a7d7137f",
+      "packages/barocss-cad/dist/quintic-hermite-curve.js": "9731714d7aad41a4e9dfa46d551272625a7e69e673d63b33236f07c0e4c1b72e",
+      "packages/barocss-cad/dist/xy-polygon-prism-shell-hole-ray-query.js": "84e5e98dc8de58329783632c0c47e64d6320c27d5264d8259c5bb49fa7e86700",
+      "packages/barocss-cad/dist/paired-surface-uv-split-faces.js": "c5f751a9fb1584afd7f0c7bd0cb2c43778ac33cebb64e1b3ee39e5ddd1797440",
+      "packages/barocss-cad/dist/xy-circle-planar-face.js": "f5a0503fc27308eb579f9aff5d209674e182fb52f218db3236fda94817899320",
+      "packages/barocss-cad/dist/source-line-width-face.d.ts": "0367aca837100a06bb8ff78b1ca45435285714b809230befeb276ec9d8aafee3",
+      "packages/barocss-cad/dist/coplanar-face-boolean-arrangement.d.ts": "ef0c7a7962486c122106be91992cf0b6dceba0bb21bead227d3347fc07b74502",
+      "packages/barocss-cad/dist/own-convex-planar-face.js": "edf2bbe6a4a0820c9720b5d62d2d6ec3f6ad39ad33cb22fd1d6436756244ba8d",
+      "packages/barocss-cad/dist/own-coincident-plane-clip.d.ts": "df05955e99432bfb4a308b61e4d08a8847acc3bc52f58d050bf5a2435b24f62c",
+      "packages/barocss-cad/dist/xy-polygon-planar-face.js": "4fef7eb38164810e6962cd7916d12b9d44420cbc4052d319350d1e9a002821ff",
+      "packages/barocss-cad/dist/curve-wide-refinement.js": "c64584b266b2bee83bce58b15335d7e70d236d6b2cb8dce22d67d9f93ae3db18",
+      "packages/barocss-cad/dist/modeling-translation-internal.js": "c38b3503166948d5bb156ec1ed8ad1f121bd0bdde3ca8df3e12488356878f8d5",
+      "packages/barocss-cad/dist/vlinear-plane-section.js": "555e1b334398a846c4ae0cbbb7dae798b93ba919be570a22353b6cdc198398c8",
+      "packages/barocss-cad/dist/circle-graph-internal.js": "c9dec829f694da0c7cdb23105259b7c7e0b475188f0c6eb1601b8168e9bf1b58",
+      "packages/barocss-cad/dist/convex-planar-slab-subtraction-internal.js": "1d64388813763f0cb882cd2dae73b61c2af99d757c994d64b17a48083a22adae",
+      "packages/barocss-cad/dist/cad-assembly.d.ts": "3f23e544d7b60bb9c83eb59496a70799ab697ed9daa28c56fefb8f6f348e474f",
+      "packages/barocss-cad/dist/exact-affine-plane-internal.js": "b3ca6d146035517e50d31873e86f6b53c0205a2ba09bc8e9b8be50b45f1d6439",
+      "packages/barocss-cad/dist/xy-polygon-prism-shell-hole-ray-query.d.ts": "fd9d7da6e4930e3f13c047421ed4377d7f99b9ef1d5deefb226a70acff375d0e",
+      "packages/barocss-cad/dist/weighted-curve-interpolation.js": "f11a2f51ebc77bc2e6d8dd7523fd73b38640de24fdacf9b833bc46b4f8a563aa",
+      "packages/barocss-cad/dist/source-surface-knot-insertion.js": "3280ea2e5444534c9c883d5baa97956e9953a860e3cbe8fb7a3cd20546bcdc01",
+      "packages/barocss-cad/dist/modeling.d.ts": "7594dc7a44ef69bbb105602cbcce18d05fe9a5e1af1e8a35f5b022f632156fe3",
+      "packages/barocss-cad/dist/paired-roof-difference-body-world-points-internal.d.ts": "0b86ffef80c3b68a2b517edc0748262cef37af972dd7aba9d23d31fc6d1bcd25",
+      "packages/barocss-cad/dist/convex-planar-solid-mesh.js": "0969b02c5fd5b46ecb80adb44e2cce6dda20b9388ca2aaa09412cdc9f7671128",
+      "packages/barocss-cad/dist/modeling-rotation-internal.d.ts": "b041d7a274c00765812ae13ae4db1eb2abcf3aac24d5cb8b81d2f568d069fb73",
+      "packages/barocss-cad/dist/curve-bezier-spans.d.ts": "822ab60a30c8356f73a3b109f36a2d62e1f766dfec79607647a555625191e93e",
+      "packages/barocss-cad/dist/expression-parser.d.ts": "c4c1b5d822534da61781cc84023c179b163a91d378b26635d1383f9e2a3cea1a",
+      "packages/barocss-cad/dist/second-derivatives.js": "4ff0505501f88c194f1491afbdc1274b0080338a109661893b54b6d357994eee",
+      "packages/barocss-cad/dist/qualified-translated-strip-body.js": "b6f8f4d548dd0f41c509c788bc733ab9459952d3e9cf2f4c29b24b4af292f743",
+      "packages/barocss-cad/dist/convex-planar-solid-mass.d.ts": "408a7b24a11f41621167cf24b3f02a0fae185e1de053e63ea25b27eb9bcb66a3",
+      "packages/barocss-cad/dist/source-line-width-material-body-graph.d.ts": "81564fa8c8e59ad68f2151e6dfc6440a6aa99875c064cf624d86928f930ed110",
+      "packages/barocss-cad/dist/native-extrusion-leaf-probe-v1.js": "110e810ff21e0a2feabc47a742bc404acb376f7af3006632b96e702b15b7317b",
+      "packages/barocss-cad/dist/curve-c0-degree-elevation-internal.js": "afac7bb8869fcea8d5ebf0044cfb928d9199e45ac0d87bd53cedab3b3a63ac0b",
+      "packages/barocss-cad/dist/curve-control-polygon.d.ts": "986801d0046fd625e78faa194a5db6ccb2c67c8220e1a492299a2815c01d357e",
+      "packages/barocss-cad/dist/quintic-hermite-curve.d.ts": "a87955fbbc564f855de455522deb904d960ef839d1727e6b16043fc4b2fce52d",
+      "packages/barocss-cad/dist/paired-roof-difference-body-world-points-internal.js": "4b71b86b2660f344445174e5d69049d882386e8ddbb9a9364f06fa7e9cfebc84",
+      "packages/barocss-cad/dist/modeling.js": "154985cde7509b068fab505b780fcf74aa6005e38107da00f080ec29457b9ba5",
+      "packages/barocss-cad/dist/source-line-width-extrusion-graph.js": "be85d41f5fc0adf3871b70a8d1f3183e4f9da8f0bef0cf3a4f2e454c10605f3e",
+      "packages/barocss-cad/dist/iges-import.js": "cf5718dd4b6395a0c889bc46b0b887a2120fd925f42fd222e68dc26010811e46",
+      "packages/barocss-cad/dist/face.d.ts": "dacb2d385d35d7db13d8cc7dfeb051da219e35a80c2f14706092f418df4d6d7c",
+      "packages/barocss-cad/dist/source-curve-interval-extraction.js": "cb514930b6c54b24083a5e6a596fc792a3d19c904646f86db520477b8d939cb8",
+      "packages/barocss-cad/dist/source-ast.js": "f8dd3db05bb17557f8c6eeb10d16a02d59e21bddb6fef52d91e3f0bc77622d04",
+      "packages/barocss-cad/dist/closed-exact-patch-shell.d.ts": "67f07556de844cc6f17a3b86a30b4d5bedac64016777d1d533401e204eb5eaa8",
+      "packages/barocss-cad/dist/section-knot-alignment.d.ts": "fc5751f633b8f5b412c58ed448b326da3d723fd09dc1e32ba146107d6e6b8395",
+      "packages/barocss-cad/dist/z-axis-revolve-document.d.ts": "94e1e1f64c75c91969e8aefbdb67337c7d1d9cfe0f0d417930fbbcc095019fe0",
+      "packages/barocss-cad/dist/paired-roof-difference-body.d.ts": "9c8a58a4b09a23003904066df91ce4230b5d2f0067c2028ba94b650b5c161314",
+      "packages/barocss-cad/dist/xy-circle-prism-document.d.ts": "db39bf4a4daf14ab899834de32a369839c1c3897d07b80449ec4da73718bc909",
+      "packages/barocss-cad/dist/curve-adaptive-sampling.d.ts": "feb1455eca6ab9b4dfee9fcb5f32e40e9b740db6c4174c7cff75de17073200ba",
+      "packages/barocss-cad/dist/own-plane-cylinder-clipped.d.ts": "758f6f1d114a72e29bc77da646169ee672ff7d897be66f25a34eb11c283c3ee5",
+      "packages/barocss-cad/dist/xy-polygon-prism-shell-preview.js": "8f75e0b5957d02c55aef6292004bec77f81e23a63c865b684f53fe5d1e201cb0",
+      "packages/barocss-cad/dist/own-curve-plane-intersection.js": "2b102edae6ab6243320d3604c1ec5039b309ba53b8bacb4293fbc33afd32f6de",
+      "packages/barocss-cad/dist/translated-surface-end-faces.d.ts": "0829aa95f878f4c8f331cfbad3fbd91da6d0592b53523ba56dc25cbfe5efc1a4",
+      "packages/barocss-cad/dist/xy-polygon-prism-shell-hole.d.ts": "85d1f48634139a3726cc72fbe5d5c59b6f72b76f2a31354b47423101f047adf4",
+      "packages/barocss-cad/dist/xy-circle-prism-shell-preview.js": "b3ffaabb29599e6f781a43dce3d08d144f0481f6ed69b443197318e66e1a78e6",
+      "packages/barocss-cad/dist/curve-parameterization.d.ts": "5322ca64dcf6e3ddcd1b7d23bdc45dd204bbd20646eec845ff008d76c5ea805c",
+      "packages/barocss-cad/dist/nurbs-source-loft-feature-graph.js": "6b0d9e99ea090980ffb0bc9b859b7d759e2986e6e5454746b21a38c77e139c1c",
+      "packages/barocss-cad/dist/xy-circular-numerical-sketch-native-internal.js": "308830c4dfebeb0a2accab89e063be6aa5396c34490e7c78fcd16193359061d5",
+      "packages/barocss-cad/dist/exact-collinear-segment-overlap-v1.js": "f6baa17167ac3b4be0a9a9ce8997f0025b2b45a14fb7f6a8d5a460a6bc9815df",
+      "packages/barocss-cad/dist/feature-rebuild-candidate-v1.d.ts": "5491db0f29566bb9ff4b4eb8ca4a06ec101c30d41042c248d73243c7c028db7c",
+      "packages/barocss-cad/dist/cad-assembly-members.js": "5e7771adca029a746219c0c21b32e5efe510cb733c9b4df1e1e4908a225df421",
+      "packages/barocss-cad/dist/boolean-extrusion-feature-graph.d.ts": "c566319e4293108c5f2f1ea81563572ac15f84cb138b20c66de33610d5bd0add",
+      "packages/barocss-cad/dist/paired-surface-b-uv-split-faces-proof-internal.d.ts": "cacc19b62032949c4953dfc1c49f88a3bd4c4b75bb05262c9e662036bc034295",
+      "packages/barocss-cad/dist/paired-roof-difference-body.js": "c670bc1170198810dab649ed7f5677290dcb0770e565b38e8eb33f34ff4cc62c",
+      "packages/barocss-cad/dist/axis-box-mass-frame.d.ts": "35df52e4f59f94b6ba3d731c478510037e4866580ad6abba9e0e3be0ecbcdd54",
+      "packages/barocss-cad/dist/bezier-curve-degree-elevation.d.ts": "9fb7a07486c2dc56c511b5336d38831ec9bfb577b41123000f9e2c3aad9db23e",
+      "packages/barocss-cad/dist/own-multispan-curve-plane.d.ts": "c3485d343ef80e59f3153acfc2ff7f595ceb9e70aa6d80954d3c3fae2fe16ba1",
+      "packages/barocss-cad/dist/exact-segment-crossing-v1.d.ts": "9d2330a59826e719b00c5d907629133d2468805de2c7baf2a9c051300389cd80",
+      "packages/barocss-cad/dist/own-homogeneous-bernstein-roots.js": "c9597cacb68d739c9680f75e50c099152cc79c61ea2e1263687839f77ec41d75",
+      "packages/barocss-cad/dist/own-plate-circular-hole-preview.d.ts": "8247ea1da3f3d6d00ab91d7070678b365f0bbd8d12bfe8c78d9e45406b9861f7",
+      "packages/barocss-cad/dist/modeling-circular-pattern-internal.d.ts": "9469891722d1848f87aabdbdd0e848de747704a4210c54aee5eb350e3980a27d",
+      "packages/barocss-cad/dist/curve-interpolation-kernel-internal.js": "59f0b9aa2cf3ad4235c0aecc681947661f05af40fdb9aeef18a2afc394e67648",
+      "packages/barocss-cad/dist/xy-circle-prism-shell.d.ts": "08d2a1e5f5d2e2f3d1c25b9fbefa1f52a14c972f9253f66cf4929e5076a36988",
+      "packages/barocss-cad/dist/axis-box-point-classification.js": "a082c93f3767fa149de3c4f0d94ce7902f783fc8ee0d86c66cd471b0ced261ce",
+      "packages/barocss-cad/dist/z-axis-revolve-document.js": "d96da72422c2591755dc25f119ee1455a812e89a0dba56a4125b8bdc536c526b",
+      "packages/barocss-cad/dist/extrusion.d.ts": "b8d117e0d3052b9581fc0ab2ecec46b5953ff6699f58b053bbb1ac78dda53e66",
+      "packages/barocss-cad/dist/box-shell.js": "9247edcf3cc4644ae7e5e028972b43b7e23d7a26d2b59b6535f2697d847df2f3",
+      "packages/barocss-cad/dist/robust-orientation-v1.d.ts": "25b701c5eef7efd7dac50b94d70b38939a7223f0086f37acd7f2c6c3ebe4a8c5",
+      "packages/barocss-cad/dist/translated-surface-strip-volume.js": "c78ec98069bbede86856a2469423d1383df5dc4e6c982a618d721539bac5c40a",
+      "packages/barocss-cad/dist/cad-document-bounds.d.ts": "c387d67c7ec39728166fc5506b73c352eb87ab763b7f9b20c2234452fc25f4ee",
+      "packages/barocss-cad/dist/construction-types.d.ts": "a1a69ae06ffc35e686bb681f9c6b9e34015481b89ea0eb4d79794ec9b27951e3",
+      "packages/barocss-cad/dist/own-plane-cylinder-intersection.js": "e45a7780f41aefa977d5f68dc0c45060aaff3737a5d6d2b58030ccb95611418a",
+      "packages/barocss-cad/dist/driven-mixed-sketch-lines.js": "5e0fb52af0d1a5a91c8cef458eaf65dfbd77b8941c52c12c3a5b86b08692c451",
+      "packages/barocss-cad/dist/axis-box-point-classification.d.ts": "02b090c5aa496fe33c6768be025992c61af11139209b3a3da70bbce8723177af",
+      "packages/barocss-cad/dist/own-curve-line-intersection.d.ts": "261f141f99f0e5bfebba4bf12241d8766152a117c98f2381e08d9a083ce0808d",
+      "packages/barocss-cad/dist/axis-box-principal-inertia.d.ts": "32e6b18a068eca6dfdbc7f0e68375ccab47706cdc9dc92a72e7ef6d924ac37f6",
+      "packages/barocss-cad/dist/boolean-extrusion-feature-graph-serde.js": "d00b71061813a3ad85707fd7288b2949423db33cb13752a85be609bddb86a312",
+      "packages/barocss-cad/dist/cad-surface-area.js": "c131cdaa39bcd5eec5e1728a486b62a0e96f9be853961e502e503c0007edff9f",
+      "packages/barocss-cad/dist/exact-affine-plane-internal.d.ts": "57afbe0d2aee7831a720910ec791a705e1755f5e81fc9cd31714333431a8c618",
+      "packages/barocss-cad/dist/source-curve-degree-elevation.js": "f34723eb84ed6cf3634c29ce9d0a3f10b86b2c58faab66f633e28febdeab58f3",
+      "packages/barocss-cad/dist/source-curve-adaptive-sampling.js": "e197d228218359174f7b6a5a840e04f27ebd9c5151c14fc9dfd4e368f0ffb092",
+      "packages/barocss-cad/dist/circular-geometry-pattern.js": "db14b9bba9a5f85cb33c1f6fec2ddb432423e986938968d49a3cec0c44bd7184",
+      "packages/barocss-cad/dist/exact-straight-edge-split-plan-v1.d.ts": "f2111c7245150525a6521f5d192a2f484ff60d6ab0b7c6733cfe2faeca9dd283",
+      "packages/barocss-cad/dist/convex-planar-solid.js": "5e397e4ca173cb7f1052ef42f9db09b3a1ab0ee0b84e3957336fc64ff5c37650",
+      "packages/barocss-cad/dist/semantic-model.js": "8400c06402551fcd12c648475a78543aeb83b792522414e914ce21d1e8886be7",
+      "packages/barocss-cad/dist/xy-angle-arc.d.ts": "db8c4a8dd907693cf9e7fd80551046cc6145dd77217189446051a051ae92ee42",
+      "packages/barocss-cad/dist/persistent-face-reference-v1.d.ts": "968828dd57e231190c29e7eb24fcd59989d1fb136141100f00078f064c09669c",
+      "packages/barocss-cad/dist/boolean-extrusion-feature-lifecycle.d.ts": "62b69c4593f44179f4e22073c6dbbd0401c6bb15e77c16ecad80cd268174e145",
+      "packages/barocss-cad/dist/paired-surface-b-uv-split-faces.js": "0043b004aaabe716b84585060aec66f427307e589ad2f29910c9703851234f04",
+      "packages/barocss-cad/dist/modeling-stl-internal.d.ts": "11d7b97f2888fea6d9e3ad2cfa4bbdeba047026a0113ebb038902e674beb7ee1",
+      "packages/barocss-cad/dist/circle-graph-internal.d.ts": "7851d74f425a72947d14ea1e2a61e9c22992af2cffe223f3a038a0a07af0a420",
+      "packages/barocss-cad/dist/three-section-loft.d.ts": "f66f5fbeb3914a7a711d6476ca16549e84211a43200d44d9ee77cd203b8a4cc6",
+      "packages/barocss-cad/dist/driven-sketch-circle-feature-graph.js": "7a9dd81f562ab7e53a83b2c0c2e3901a3ff5078710095aa818d1203d6eca4c38",
+      "packages/barocss-cad/dist/surface-isocurve.js": "c472bac27e40632d06cbb2414e45a7b3e7f562a733535699cf9d50c376ae8d73",
+      "packages/barocss-cad/dist/coplanar-face-boolean-extrusion-geometry.js": "449224f239cf4a7df49d4121a83a9ba880498e4cf240f8d58c00a43407c1d32a",
+      "packages/barocss-cad/dist/driven-mixed-sketch-lines.d.ts": "f6fdd0331679689f606042c50fb15b3b30ba65ecabb0e353844425b01422f5a1",
+      "packages/barocss-cad/dist/own-convex-planar-face-intersection.js": "f893f0857c600d1dc461ac990a201b1ca5983352f715ab7773af658cd753adb6",
+      "packages/barocss-cad/dist/persistent-face-reference-v1.js": "102f0fb657a3c3714973eda918b8607dda340c50beb90fb2b430fd547d7308e5",
+      "packages/barocss-cad/dist/math.js": "0ae19f651ac0335ee10980264932cce3f24e6959eecab6463e1a486121c91d3e",
+      "packages/barocss-cad/dist/xy-affine-prism-feature-document-internal.d.ts": "f7d846770fe514b5564230124e4fc12dac2fc5205e7135b67c3d27346b9f459c",
+      "packages/barocss-cad/dist/axis-rectangle-feature-document.d.ts": "74961967963ee9ab3311907431f6339975639ad621666282db07c9a51ad2b352",
+      "packages/barocss-cad/dist/convex-planar-solid-intersection-internal.js": "a638f447ea0af7cf4f94c0715451aa6a4b6e1ffbea23287554752733845cced4",
+      "packages/barocss-cad/dist/orthogonal-solid-boolean.d.ts": "2825cd40382be8aa87e446c372356d3fdd15a7b7e0917168556d65307d2d2243",
+      "packages/barocss-cad/dist/own-convex-loop-clip.js": "a3584779d063eeede0c0398dfb8f3549428fe1e132263f0a63739af56ea3f62c",
+      "packages/barocss-cad/dist/cad-document-reference.d.ts": "69c931c241e303ab54207aed647b48a7d479307e57fa99836190a108f4b08456",
+      "packages/barocss-cad/dist/xy-polygon-prism-preview.js": "b2600dee266fe199a93669deac37190341584f9b53d83d62f6f605c913db1f35",
+      "packages/barocss-cad/dist/orthogonal-solid-boolean-internal.d.ts": "b8476c838cebb34c81f5c58019435e7256053e8a6d2a8419a942e7b7dffb5395",
+      "packages/barocss-cad/dist/face.js": "4bc5df71bca1c53200d278639a921a3829c63be16f9bb65aaa34eb1b605679d0",
+      "packages/barocss-cad/dist/feature-impact-plan-v1.d.ts": "3986d293892f0ffc982eef9be34c72b0e03280925c1130c162b4843dab3150e0",
+      "packages/barocss-cad/dist/xy-affine-prism-feature-document.js": "4b224fbf53a9e3a0112ed0e92d30262f79f691f12c9196658ccde842a1cbe042",
+      "packages/barocss-cad/dist/own-affine-plane-loop-internal.js": "1f563b1e51e31be233bc7f2b868d2b51ab1120f2e4c78f8a916dc69ec8e411d6",
+      "packages/barocss-cad/dist/cad-assembly-part-replacement.js": "0ab5dc40db3c9feedd612d433abf3945220afae533a25e43157af1f4f8ce7f12",
+      "packages/barocss-cad/dist/source-knot-aligned-loft.js": "4f782225215ac3167cb81101449cd02f6dbde831475b17fb7f02749da0465962",
+      "packages/barocss-cad/dist/surface-bezier-axis-degree-elevation.d.ts": "b8cd4af5c8ee85e9356fcc5650a154bc7d0e2ed541017d47af12dbaf2da2dd4d",
+      "packages/barocss-cad/dist/convex-planar-solid-proof-internal.js": "b5e464d451a324508fae5d86242334cb4161b4bf3ff5f6cc36683fab6eb0cc9c",
+      "packages/barocss-cad/dist/paired-surface-uv-face-classification.d.ts": "5bf1cc02c5613729536c00002a8b7746101962683a97ee32d7e689b8944b0cdd",
+      "packages/barocss-cad/dist/extrusion-validation.d.ts": "6b38d4ce4d85f037ec3d093853d011e3b4df66f31f18cdc4f95467c18fae3ac2",
+      "packages/barocss-cad/dist/derivatives.js": "86fdb439cb6194add50ec0d4f742cf6b361063d63a5dd160422e171607c3690d",
+      "packages/barocss-cad/dist/xy-circle-prism-shell-preview.d.ts": "6eb0872fdc9809a70cb59d945bd0ea1eab2a31d089bcd96620614218fad62a78",
+      "packages/barocss-cad/dist/xy-sketch-document.js": "2d2e4db5774161734a184389a70bc6a13a2cae35ff4d6eff100db9cf18f65555",
+      "packages/barocss-cad/dist/mixed-workplane-sketch-document.js": "db8088344d735ac6e810af87218b49b1f6666e54f9ccc02dcbd030fb041f6bf0",
+      "packages/barocss-cad/dist/exact-segment-intersection-point-v1.js": "9b9824ff84d271aafc22a9578105ced869962452fc2f2fcaaacd8ac3cc843502",
+      "packages/barocss-cad/dist/curve-source.d.ts": "608b53f6ddc6d26f396be0f7b4964f6131faa142ae537e0f69bb8db3e757a126",
+      "packages/barocss-cad/dist/xy-profile.js": "4374b47dc3a6a1ddb86508f3f859fc67f79e269fd5798ee05789689f82c17f19",
+      "packages/barocss-cad/dist/own-curve-plane-intersection.d.ts": "eaa8217af84ab129e192ca8f43c52a1cf47fd69413026ef524c5c8452a7e8a35",
+      "packages/barocss-cad/dist/xy-polygon-prism-hole-document.d.ts": "70f62c99e681994240a669eddd4e79400ae94370d35242df36201788bf239a71",
+      "packages/barocss-cad/dist/multispan-vlinear-plane-section.d.ts": "b2c6d8ab22f02926eb630ff66aced68bb5304515f5fd589a990aec61953a3e7b",
+      "packages/barocss-cad/dist/own-curve-line-intersection.js": "dfa438062ec9e5d79f68442138076a8a163aa77d267fbf1d74c78ec3ec855bc4",
+      "packages/barocss-cad/dist/convex-planar-solid-chamfer-internal.d.ts": "623a526f351dbf1c3cef8a1177563ce9daffd1fe7326d9e0c3357439c1ac79ff",
+      "packages/barocss-cad/dist/rational-ruled-surface.js": "808469a5e4d9cae805187d96e0005d55de6be39ae51683ad7d3e07f96f56015f",
+      "packages/barocss-cad/dist/paired-surface-uv-face-classification-internal.d.ts": "100bb0a7fed7ae7983d6eaea1e9dd757ebd76edf37840206077c3124d1454df0",
+      "packages/barocss-cad/dist/exact-surface-lower-trim.js": "c517dade1e5221ef8e85d98ebcf935a70e025fa1e9dd3e46e9969473b02dfd5f",
+      "packages/barocss-cad/dist/closed-exact-patch-shell.js": "9e434912c325b4d8ae120d2419658f99fae11728e0dfbdddea08c00b58694346",
+      "packages/barocss-cad/dist/paired-surface-uv-split-faces-proof-internal.js": "72a7f354ec5b5a799451c4cd9d4b2b3cd856dd53d3b9a1e0bd1432dd35c4b89c",
+      "packages/barocss-cad/dist/multispan-vlinear-plane-section.js": "c853af3494d59e37193eb8e13aaae69fd638065754f29d106173856e1322a876",
+      "packages/barocss-cad/dist/source-curve-knot-insertion.d.ts": "d5a5e78ce188cd43467ac0144958e15fe7488b066ef0f0ae2bc6fc69d7830812",
+      "packages/barocss-cad/dist/own-plate-circular-hole.js": "4b8ade95bbb3c3eeb12cae493fdb2e5cced0a1cb39e7f8c578c245d5ec5417e8",
+      "packages/barocss-cad/dist/multi-section-loft.d.ts": "9494319f4d8dafd72f9a81b9ede6df5e6817b5fb959d62312656b47c8798fcfe",
+      "packages/barocss-cad/dist/native-extrusion-preview-session-v1.js": "f118a8dc9d3ef553aba27b4acc53cff95fed8a42de19c5147529d71c30773b2c",
+      "packages/barocss-cad/dist/curve-source.js": "bec580f1d5176cd0892e5e628fd885d93a5e7d04d6c595d6155ecf369804008e",
+      "packages/barocss-cad/dist/iges-import.d.ts": "76d56d12e33657cc67fe826279bccb1e0f4824e903ec6e2a37e6c2b4354959d9",
+      "packages/barocss-cad/dist/qualified-strip-binary-stl.js": "754873f87e597db3a405415bde97f842aecf3b5ea1f687e93dcf6eff8f2a1270",
+      "packages/barocss-cad/dist/convex-planar-solid-chamfer.js": "397ffa7d5bf73a10022f3f04102242ca4ccb8ceae4c14bfcf1648b0325965699",
+      "packages/barocss-cad/dist/paired-surface-material-body-world-points.d.ts": "9e2444e223c5ac987e5194565c68f635ac41b4c340e36355894e1e0ceb519d35",
+      "packages/barocss-cad/dist/coplanar-face-boolean.js": "fd7786358ecf98043cf4daaf1742fc536786b87b74737c65803c1c9f0e8647e9",
+      "packages/barocss-cad/dist/source-knot-recipe-loft-graph.d.ts": "e3e436574fb400d10991e9bc8aa1d4c6ca151666f5531ba88f1dc9347fc70103",
+      "packages/barocss-cad/dist/native-crossing-incidence-graph-v1.d.ts": "8094d9fbb04bc856e9ba0c62091b3baec4a63201f32a0c3f3ffda7a251b92f0d",
+      "packages/barocss-cad/dist/xy-polygon-preview.d.ts": "be17763eea6a65c503736fadc9556ed0c42df2b5ae94901cd44571de200bc737",
+      "packages/barocss-cad/dist/cad-curve-arc-length.d.ts": "8514dff15986e3e97d1b186f28f23f7c253ce02cd363d6d30abb302390f4fe1b",
+      "packages/barocss-cad/dist/convex-planar-slab-subtraction-internal.d.ts": "0b321e32ec353087f1f36c65e5dc8065e011a4656e77f2b2993108ff30b360b1",
+      "packages/barocss-cad/dist/iges.d.ts": "e408fd2478b13a468ed44c801199e9528917c08eb5d5bf20ff5e6a605c77a041",
+      "packages/barocss-cad/dist/vlinear-plane-trim.d.ts": "465f0346e58dc74a074b2ac9df7854ba2fc392b7759f95a34ec528fcde505fdc",
+      "packages/barocss-cad/dist/paired-surface-material-body-proof-internal.d.ts": "7380c24c48e61772af4a3999c44049d8e5c599ca951cad8f18562c0568911a26",
+      "packages/barocss-cad/dist/sketch-rectangle-feature-graph.js": "9716b08c4bfce0fb4256a1f1924ee8642d2841b928274786ffbacbf76b6de741",
+      "packages/barocss-cad/dist/own-multispan-curve-plane.js": "64317e524527006404eab5bb3a85e1886d3b56026664055dc748d6e53ea2fd2d",
+      "packages/barocss-cad/dist/curve-wide-reversal.d.ts": "7930d5a2ea410275d40ef34e98da3bda363f010599ad62f4140d2b3d9b890901",
+      "packages/barocss-cad/dist/box-solid.d.ts": "bff8f03a34cbf90cb4d739df4a200efc0feecdc15ff16d1d09b4c36be67b9369",
+      "packages/barocss-cad/dist/driven-sketch-circle-feature-graph.d.ts": "172a24750d10d792eaad97a56331d297e38eccf4dbbcdd62f8e030e20a12b884",
+      "packages/barocss-cad/dist/own-plane-cylinder-intersection.d.ts": "711103f40ffe40ad80691cefed41c7dc11c42e29655d59e8c1857bc023e7aa3b",
+      "packages/barocss-cad/dist/convex-planar-solid-proof-internal.d.ts": "565f0655083f33415a371ce78bc10a0db05efe92eaf815ce72a9cbac873f5f65",
+      "packages/barocss-cad/dist/cad-curve-arc-length.js": "9652e98f9b81ebc187a7aa7eda29ebabf23e4ec1a078e12eb275092ae86730c4",
+      "packages/barocss-cad/dist/curve-wide-control-polygon.js": "0acabcd78122c3666c65ef3d35a866d95375e90bac74488791e38509ebdb57e4",
+      "packages/barocss-cad/dist/bezier-curve-degree-elevation.js": "030e0a0551287ef8a5fb6dc5b2f131c4503b17fdf2674aed5153c6169e49f1d4",
+      "packages/barocss-cad/dist/boolean-extrusion-feature-lifecycle.js": "ff0f79a2b4561691723fb815d7d6d5cb93bd7937212c802d1317e3de244280e6",
+      "packages/barocss-cad/dist/modeling-circular-pattern-internal.js": "b1306c65c0e175026563d7797b1e178595936745a31ef9e0b47ae8323eb17a5d",
+      "packages/barocss-cad/dist/source-curve-adaptive-sampling.d.ts": "be9247a4f092634cf39ccc495724734b06ed49846726770b57c8076f1103feae",
+      "packages/barocss-cad/dist/curve-interval-extraction.js": "629501d9e69c8b3322c7f6d1af9ab2ea072bec674b6021b2cc55e2bb99156675",
+      "packages/barocss-cad/dist/convex-planar-solid-mesh.d.ts": "d03d358a5bb2af5fbf476f86da3575899fa4842aa92188e90af7d82e3891fb13",
+      "packages/barocss-cad/dist/axis-rectangle-extrusion.js": "381a54e3667cd836b41b1811727b29c016c4b6cf30b5680ca758122011c8f736",
+      "packages/barocss-cad/dist/exact-segment-intersection-point-v1.d.ts": "9a109332da2a97c0a1ba579a902b9a4f1cb6960855b98e452679ee3baf0a986a",
+      "packages/barocss-cad/dist/boolean-extrusion-parameter-lifecycle.d.ts": "0ee3c0819482b195f86e41ccaf1e7029ee838a401967fa6e9a8e650feb5cbb81",
+      "packages/barocss-cad/dist/axis-box-solid-mass.d.ts": "b74021fcf733c93ce3c2d768ae62728baa5461e92537724fa732cc77107fcec5",
+      "packages/barocss-cad/dist/translated-surface-strip-volume.d.ts": "5a25b9219f0b1970cad381e7a86868a9757a6912b712e4efddd00580e90c5488",
+      "packages/barocss-cad/dist/vlinear-plane-trim-classification.js": "a588822f2f22d21fe6c6695c065c050c4fd303cef28d0b64345f3f02dbc2c911",
+      "packages/barocss-cad/dist/cad-document-export.d.ts": "15df2d5e78fbefab9ad7dd19e6ac91280cf22721bc8bb1691ce82d2c2da0f678",
+      "packages/barocss-cad/dist/modeling-translation-internal.d.ts": "1c828d96ad5249eaa602d1d31bd51f25c236a477301d283ec6acc8ccbf9d380c",
+      "packages/barocss-cad/dist/coplanar-face-boolean-arrangement.js": "3ee3a7dba5dc671065de2065f9646ca1a73cf44ffb5b7b9ea62d0bbe1d81270c",
+      "packages/barocss-cad/dist/rectangular-extrusion-cube-correspondence-internal.d.ts": "4dea5dbf4771911c3248462616a5697c63ca7f7a7e41ebb90ddd547aad9dd96e",
+      "packages/barocss-cad/dist/derivatives.d.ts": "6de6904883da744d1b49b5f0bae1047e549f72fe6f90d794bf6ebb15291820da",
+      "packages/barocss-cad/dist/own-plane-cylinder-clipped.js": "6fea916f558713fd5ab29eccfe97c80bcbeed6c0c313d35f695a58cfca2914ed",
+      "packages/barocss-cad/dist/xy-polygon-prism-shell-hole.js": "82ac5c05de5e4aa5cb7e3222482c147634d136c811992e01e7a09397f4bed8ec",
+      "packages/barocss-cad/dist/robust-orientation-v1.js": "d8522cc73687f740a66676d845552243178c9d8d99815b2c445dd1cfe512d691",
+      "packages/barocss-cad/dist/source-curve-control-polygon.d.ts": "30c48c440499c4e7619fbaa1eadfecfd6df03843784a067983707495d608e329",
+      "packages/barocss-cad/dist/modeling-regeneration-internal.d.ts": "cbaa0cddb685ab4531da87ef2d9c7653021b047485cd94e1851a6d384e06b5fc",
+      "packages/barocss-cad/dist/curve-interpolation.d.ts": "f4847bf1fab329c0ccf2ed9e78c3e987bfe41684b8c0206c0c7a79ae68258576",
+      "packages/barocss-cad/dist/own-cubic-bernstein-roots.d.ts": "c0e8667568b867a0950d6ab34263a3a05b1dbf53dd52553f15d77996b4fa6488",
+      "packages/barocss-cad/dist/exact-surface-lower-trim.d.ts": "a1d1a2ba3e9e12a63e8dee60616476763ba3e04311d4fc0093eb071833650442",
+      "packages/barocss-cad/dist/curve-knot-insertion.d.ts": "1b10f4d7d17851f169292c293bfa5da24b2590a99641165d22afa14046260f85",
+      "packages/barocss-cad/dist/paired-surface-intersection-branch.d.ts": "8d11575c49bd36e08d95dc5bd1c28a1366e00cd8c68d4cb71b57fed8c3153944",
+      "packages/barocss-cad/dist/translated-surface-strip-world-points.js": "c2d764efd366be91be6a8981a0d6e7b557f86afbe2a13107a3f3934818102f86",
+      "packages/barocss-cad/dist/xy-angle-arc-artifact.d.ts": "249a842224467b25413b5ad7195bad28f85b0ac6e35aefee904cf81820f2b569",
+      "packages/barocss-cad/dist/convex-planar-solid.d.ts": "d8d3a3e63c94e4698ee78d570e25225a5a3a43edbdacaebe7bdc887be2cee489",
+      "packages/barocss-cad/dist/piecewise-rational-loft.d.ts": "43f6c60c680df2d3eeb8e837bebe386be13252d15d23871e0ff2d49544ffaa43",
+      "packages/barocss-cad/dist/paired-roof-difference-body-world-points.d.ts": "2bb2fbec88fabd8ffbd941eae2eedb187b45ca6d5f18ca2353869f71eb131679",
+      "packages/barocss-cad/dist/rational-ruled-surface.d.ts": "e341414eee2f500dd07bbeaa722936997e9e7995cf2845f355d225e2dccd8940",
+      "packages/barocss-cad/dist/modeling-rotation-internal.js": "fc4515e5d01f38ccd485b53c3eeca8755cb562c360af262eeddbb8ce9ad552a2",
+      "packages/barocss-cad/dist/convex-planar-solid-mass-internal.js": "a5e1eda9823a4a4f63a50b91ea87520d7469b33ba6b230ade34088569f3396ed",
+      "packages/barocss-cad/dist/curve-join.js": "ea83de33e81d89dfdae5ca83d0086b02242b083a6607269cd5e4ed62500991a3",
+      "packages/barocss-cad/dist/cad-surface-area.d.ts": "e4f2a044891ec5d440569f949cf6510d5d93a76485b527e6909b915f11cd42e4",
+      "packages/barocss-cad/dist/coplanar-face-boolean.d.ts": "8dc65a6ddd9a7e30d7ef362db39244608b004fdb14d422623097e6455d9da336",
+      "packages/barocss-cad/dist/curve-wide-reversal.js": "f89f2d210be96a78aef943ab5c8b7ea8300172f897d0c337973d16609740fa0b",
+      "packages/barocss-cad/dist/multispan-vlinear-plane-trim.d.ts": "bf801c7c3a84ca275a56c62eef51fcaf145315ea7bd8824fbd15da7f6bd7348a",
+      "packages/barocss-cad/dist/modeling-mirror-internal.d.ts": "91bbf9dfff35ba98cee14599e8ce6ddc835de7ee1803fe3d545436a7fbfb9401",
+      "packages/barocss-cad/dist/qualified-translated-strip-material-internal.d.ts": "758e23b69efcda94e466d274ae2a82d37361f076a18dddc3f717511e756d05fb",
+      "packages/barocss-cad/dist/source-knot-recipe-loft-graph.js": "1bd2e6e19e631f08757ab2c645632d98eb08025f248754eae0db7a40c180c7d7",
+      "packages/barocss-cad/dist/boundary.d.ts": "3610e87b9584881d8d46ccdad9b9800f78b1185b82c48efcb157092b8d1d512e",
+      "packages/barocss-cad/dist/source-ast.d.ts": "12b8e07d3199f2499077fdb38cd6e5383d4ad3fa210842dbc8963de9c7374c09",
+      "packages/barocss-cad/dist/translated-surface-end-faces.js": "f73d8e8c8a3cad81b8aa36a234b5d615b91fe1b3659cefffa38df41d3df01282",
+      "packages/barocss-cad/dist/own-cubic-curve-plane-intersection.js": "5cc1f8a4676a4f5b16263fa4e07b49ee5d28e05c0f66aedbf43d9adf1ab7ce44",
+      "packages/barocss-cad/dist/own-plane-cylinder-intersection-internal.js": "ff90380f199519ddc8155b0d8abbe415bbac9703115813f070583d9d2c678cb9",
+      "packages/barocss-cad/dist/cad-document-bounds.js": "20e5e852b288cc1861609ec264c2739b53ef300e093aa8b363bda725ec67094d",
+      "packages/barocss-cad/dist/compatible-ruled-surface.js": "69d2494c97a472e595adb8681958771bd6e5da9361247feddc5dabb768735b1c",
+      "packages/barocss-cad/dist/native-half-edge-twins-v1.js": "a4035200b8bcf258192dc32c6d9e8da7972639dee4b87c22c415cba7141906fc",
+      "packages/barocss-cad/dist/native-extrusion-preview-session-v1.d.ts": "4e8dd324de8e3189dec9d49a6c1c187dc1bec139ba87ed5839d12604bba9767a",
+      "packages/barocss-cad/dist/xy-affine-prism-feature-document-v2.js": "56b2209ed2ac56d9472da9af00afb3de3dc5a29bfdef64c6821701c9ff125e20",
+      "packages/barocss-cad/dist/stored-plate-hole-point-classification.js": "6807d189ffc11ad64548a20900e3cde5cfc08cb92158ef0874578c5e6b120fb4",
+      "packages/barocss-cad/dist/section-knot-alignment.js": "c16123b9e7dddc1810ad877d5f16199b418b8fab614809c335ba100a70a0e01a",
+      "packages/barocss-cad/dist/source-surface-degree-elevation.js": "5a4ea12aaa1477ecf5e2ca3b1df3d344db5c20753657bd5a06efbfc99f428675",
+      "packages/barocss-cad/dist/xy-polygon-region.d.ts": "b356ef6023b78a902fe15d816a2152bb281547a964ef78321632cd2000b0cee3",
+      "packages/barocss-cad/dist/source-line-width-material-body-graph.js": "611dca97d57ff8bcbe912a87132dfe6bdc6d5eda00f5f09edc437f6e758ad1f7",
+      "packages/barocss-cad/dist/index.d.ts": "d7fbf096a85897652ae3f1ad66f4660c3356857683af35e6812a34d03af39f1e",
+      "packages/barocss-cad/dist/paired-surface-intersection-branch.js": "e3b9496afb23975cae9b669a7a37ea44ef73eb0b699620c45b4c31cf1d88928e",
+      "packages/barocss-cad/dist/lower-model.js": "271059dcfce35392a7554c78e69d722e5e7b2152f929b569e3d3267685eb2e50",
+      "packages/barocss-cad/dist/surface-bezier-axis-degree-elevation.js": "8eeb04e7498c8aecf5ee5428c2349f9f9b34e5f37f30131d5767690e72ac189a",
+      "packages/barocss-cad/dist/xy-polygon-prism-ray-query.d.ts": "c52f1808b1340880066e42d6d262b8463a10c6d16307c40a7dc00a8581add38b",
+      "packages/barocss-cad/dist/surface-parameter-split.js": "2d90437a43b1d138e98de48d58df288cd3973af092d925583da0c9f6be35fd70",
+      "packages/barocss-cad/dist/native-half-edge-twins-v1.d.ts": "8e446ebdf3962900298b7639878cb1ae5754db6ddc1f2375be2ca73d44eff9b9",
+      "packages/barocss-cad/dist/coplanar-face-boolean-extrusion.js": "bb4ecf04538c2e93c096e29b85718dd95f2e63c073e7e74d5997631478288685",
+      "packages/barocss-cad/dist/orthogonal-adjacency.js": "ed6090db341bce5678bb22a8bcafec07191ad869bc207fe1efd2aba0559adcd2",
+      "packages/barocss-cad/dist/qualified-strip-binary-stl-encoding-internal.d.ts": "2a5cdab9062907d9d4b0cbb307a38a00d459dff13a98cd88dd37cb3db77fbd14",
+      "packages/barocss-cad/dist/workplane-sketch-document.d.ts": "d794f205edf53330bfe08a0d5b7d32778f25be5c8fa1648aba8cf5ae93e1be01",
+      "packages/barocss-cad/dist/paired-surface-b-uv-split-faces.d.ts": "282980695802c8a9dc9d19291f2413e98ff31e1eec3b765d20a8c0979397d819",
+      "packages/barocss-cad/dist/exact-segment-crossing-v1.js": "a90665c3f3cecceb7942d311e759508983510e99cca158b606525d4b51df2089",
+      "packages/barocss-cad/dist/section-exact-surface-binding.d.ts": "9b8d6dc14a63422233711ca1cdb36242572650ac891a6089ebd890a6ca44c6c4",
+      "packages/barocss-cad/dist/xy-linear-sketch.js": "66a6a2261feebae7ca9efe77b7b4bfbd759b14456bfc6365e6d223b4c81effe4",
+      "packages/barocss-cad/dist/xy-circle-planar-face.d.ts": "65a366c01979645737d7446a9a3d0b024e2bfe2c9522f70b357f8be157837808",
+      "packages/barocss-cad/dist/source-curve-interval-extraction.d.ts": "76609cb8941e672866b191d09b123f501fad140b23956fa5dee213c7c59ecabe",
+      "packages/barocss-cad/dist/surface-isocurve.d.ts": "b7b2bef9a4ab67fd93dfbd95b59d57b7c6c59828e0a7bfd95eb40a32580158bd",
+      "packages/barocss-cad/dist/xy-numerical-sketch.d.ts": "cbda1fcbeb4362729d3ee7fa24383d41cb0c8a6fbd26723abf8ec4511889e326",
+      "packages/barocss-cad/dist/linear-geometry-pattern.js": "cd0f4f45f774b246ff5cdd60d30fd0bde5a726189cf640ed91c9c1de3545f4ec",
+      "packages/barocss-cad/dist/translated-strip-plane-split.d.ts": "2c04e4ea58ae1d323694fcc9ea846f7680106ef424c1fe3bfc2565e3f0527e6f",
+      "packages/barocss-cad/dist/affine-geometry-transform.d.ts": "a46fe64c97dcf9fe371786f11662a81e0c812504cd83f8b35abd99173c6c51e6",
+      "packages/barocss-cad/dist/xy-affine-sketch-prism.js": "c7d9ef6c5e1bae99414c24f5c9cb5ca15cf8af34b980697c3966e6ffe6962a70",
+      "packages/barocss-cad/dist/exact-boundary-face-adjacency.d.ts": "fc95d0b45c6925f6a9c70ee3f4880b6d89bc0a94b94b886def0684b9e019763d",
+      "packages/barocss-cad/dist/exact-binary64-orientation-v1.js": "c18271471b972056e633eb1afad7e4d31b7f724b3993f5735195355b4ab8987d",
+      "packages/barocss-cad/dist/adjacency.js": "6b67d2215fe9e6236ddd0a6871da03191d8f082821705997c2a2acd5c43ffb70",
+      "packages/barocss-cad/dist/z-axis-revolved-surface.d.ts": "8767fec28fafa6a215b25a4f37a580b827ffe3598da17e53e5d749ea78972dbf",
+      "packages/barocss-cad/dist/modeling-stl-internal.js": "ec64e20375e637fa1a6384b7aa8b64ad64880c63177644df64bb3c283b51e345",
+      "packages/barocss-cad/dist/exact-collinear-segment-overlap-v1.d.ts": "776937a004713709619bdde466f5f2ab3a808d81f8545de9347a4c2c3bb4a841",
+      "packages/barocss-cad/dist/curve-bezier-subdivision-internal.d.ts": "ce00a00d2ae6fbad9a93690087085a0551b80a1da2527b77a47faa6c33ed5160",
+      "packages/barocss-cad/dist/paired-surface-material-body.js": "4f370f6c54b42315a6e0f7e334e555313613e330137054979dce081a89f4ad12",
+      "packages/barocss-cad/dist/cad-document-compatibility.js": "b736e7afaaf904561c5d64e1c67725ac43702f2a6b7c7635e076ec08abfe1754",
+      "packages/barocss-cad/dist/compatible-ruled-surface.d.ts": "f61c480994ab98f5af143c3ab8dee150cccefac858823d0644c56848fd33afa9",
+      "packages/barocss-cad/dist/exact-paired-vlinear-polynomial-internal.d.ts": "414b35c6aed43eaf069baf308384db557a2f827e3f49b4614316828589ef78d6",
+      "packages/barocss-cad/dist/data-copy.d.ts": "3109c0d462f93956b957ba9c58bdeff06898c75c1dca046fdde11c256fa9dbb8",
+      "packages/barocss-cad/dist/packet.js": "2fd8211506d0d5a5a4c49a09a5a10c35bd4e59e0500fb9b59edf4212ca55775f",
+      "packages/barocss-cad/dist/xy-circular-numerical-sketch.d.ts": "ae421b0843e4e1564993fb8ee5beb950f0de563ac318d531243fd0be08bb9112",
+      "packages/barocss-cad/dist/convex-planar-solid-split-internal.d.ts": "06d8d69399d0bd28b17453110a6cf01c27a5e701cd4a8e96045a2cbac4d7833a",
+      "packages/barocss-cad/dist/degree-matched-bezier-ruled.js": "8dc07aa07d018d067b120b8bc4d4858d623293cb0e880a04e6bd03c04b717585",
+      "packages/barocss-cad/dist/xy-polygon-prism-hole-document.js": "091f8660c3d6b3b76bde6ea39fedfc6f50981097c57149bc4cc7129e6a0b4f75",
+      "packages/barocss-cad/dist/cad-document.d.ts": "aca6be869facc0e9f97241f9a57b4a1d29db082ef90afd2e71579a4362d1edbf",
+      "packages/barocss-cad/dist/orthogonal-solid-boolean.js": "7fb6337ed1c43a248470de4757f25aaf16ab260b5f874713c90a063493af9db2",
+      "packages/barocss-cad/dist/box-solid.js": "a9986410281c09c04979e6bdc00b9617887ab5a28fe935731248eba62f5b8cbe",
+      "packages/barocss-cad/dist/lower-model.d.ts": "f2e12efa1f2b31dc5f139ed16a1718ca20e03207dabac7c803abe0ee2f104a69",
+      "packages/barocss-cad/dist/feature-rebuild-candidate-v1.js": "c19c6a1c504f0d2570f5b06ec8116990b0f8fe59092a5e5a3f8964db3ba742b8",
+      "packages/barocss-cad/dist/extrusion-principal-inertia.d.ts": "b7b547bbd5985fb9a16e3adfa4fc8af040f8b0f18ebd1b685014a09a4872e1e2",
+      "packages/barocss-cad/dist/curve-endpoint-continuity.d.ts": "8c3f5f862773b658ff34ffbd23204a29c4cee8f3f0b25a1e476e7adc37c82190",
+      "packages/barocss-cad/dist/mixed-workplane-sketch-document.d.ts": "c1d98acff6abb771ed0f63ec1f293fdc9c1b2952f9a209441031107a405f3aa0",
+      "packages/barocss-cad/dist/xy-arc-sketch-document.d.ts": "5619a11fc0333c4f83c0aa49832089f60012bdef34af320b7b9c76d0eddd3160",
+      "packages/barocss-cad/dist/z-axis-revolve-preview.js": "cb53f633a6302637e8b77ada9a5c20f2bd7118f0b5199f5c593a780e1e00f4ba",
+      "packages/barocss-cad/dist/xy-circle-planar-face-preview.d.ts": "038abd98d969d2804f8c7d2e45f025a83a0ff62765be9108b1bb48c29271dd62",
+      "packages/barocss-cad/dist/rectangular-extrusion-cube-correspondence-internal.js": "2bac1e82ef4f99d108ca7cd5fd00f942c5f98937f22803d40750af6267aa35e0",
+      "packages/barocss-cad/dist/translated-strip-interval-boolean.js": "9c5241a0f92a1b02425a54dd8f0544729dc53c4226db6da4011b7b4cae8d56fb",
+      "packages/barocss-cad/dist/preview.d.ts": "3d16ac409b46ace0a35718e7e1bf1dfc7ee51e9b03677a2100097a6c8d5227a7",
+      "packages/barocss-cad/dist/curve-interpolation.js": "f624eb0f28d168d9a25c1397e128437a4a973c1d3e6c21d1d4fdd577b3e922fd",
+      "packages/barocss-cad/dist/boolean-extrusion-parameter-lifecycle.js": "558e7b9c22590dc44975f9bdad118401a1036e801481aaaa16d8ade8f1744f3e",
+      "packages/barocss-cad/dist/coplanar-face-boolean-extrusion-mass.d.ts": "bf7ac6c4dd7f2d5e1184a14ab265ab5488ee79dceaf3e0a7a087d9b07a819cff",
+      "packages/barocss-cad/dist/multi-section-loft.js": "e53f50879eb136af009236782eda4ef80060ae52baaea6ecc7b47dc9b3ed45c1",
+      "packages/barocss-cad/dist/curve-join.d.ts": "f681fc3c9f0b003a78467a0aecb9dc718278ffec5df598b7dbba5468ab52fbad",
+      "packages/barocss-cad/dist/parameter-semantics.js": "5c141aa62ad7007468f607abf35028d17a76ba31ef7cfda8ce5318cdb25a9c35",
+      "packages/barocss-cad/dist/section-rational-internal.d.ts": "04d219736def2fff9150974948cbadfe4fc98c8a270a751b044f9de23d4d24f2",
+      "packages/barocss-cad/dist/orthogonal-solid-boolean-internal.js": "ba020c8b1b616ef8f1f0ec127bf2bc774ee1fd84a56f096fa71af5b708fffed5",
+      "packages/barocss-cad/dist/curve-reversal.js": "a4646d5f1d3dd63a3577b28bbe9ce780f1ea1ac282affa5b871e342c6f782e7e",
+      "packages/barocss-cad/dist/curve-bezier-spans.js": "212b779117f88c7aad28e3486fafa6c06a26e8a00a872a50edb52997670c7e37",
+      "packages/barocss-cad/dist/model-compiler.d.ts": "366da84cd0963df8fcf2c0b03cbf43085f17a9e2821757db34f25c8e518248a1",
+      "packages/barocss-cad/dist/xy-polygon-prism-shell-hole-preview.js": "741c213bf2d93e911857d180a52c7160d70336213345a50fa3a5c8a34be3bd60",
+      "packages/barocss-cad/dist/source-surface-knot-insertion.d.ts": "11ad8c30154353f6564112915120cc4aa1b47b048b6ec5965bb107cb04ed786a",
+      "packages/barocss-cad/dist/three-section-loft.js": "1f698fd721039ad576d27828ca960f9aa63d6d37f6da2cf3c8cb18c157cf1a40",
+      "packages/barocss-cad/dist/xy-polygon-prism-shell-preview.d.ts": "b5b9bc445ec64fce6a1e7e34147c97b33003b990fd81b9e2444a153e8fd73158",
+      "packages/barocss-cad/dist/modeling-box-internal.js": "64583b5edfb49bb0c310987473a17c3d5ffca0019078e38bfd80257e34854fa9",
+      "packages/barocss-cad/dist/xy-circle-prism-shell.js": "a2d804457638a9935d039d5034cdb04beadf556cb3d053886d902cb96d317e52",
+      "packages/barocss-cad/dist/function-quantity-semantics.js": "239c0e66b84cb9712ef5f2f0fcc8ec12bfef2056cf0388e984ad575ab3ad764f",
+      "packages/barocss-cad/dist/xy-polygon-preview.js": "2d7b5125b1f70c46602beeb57967a46e7cf9f70c387e8c05e29bff042f346c9f",
+      "packages/barocss-cad/dist/cad-document-reference.js": "b8290700d538a5296c1924d1f7a6091f78e2f2b3b237efe03d17e9c307341926",
+      "packages/barocss-cad/dist/own-convex-planar-face-holes-preview.js": "c55c1fc50ec774d4b63972a95187fff84098086dbf83d11e67d320dd4b8d442d",
+      "packages/barocss-cad/dist/xy-polygon-planar-face-hole.js": "1ea11b6493f9751b6f61249ec11caee42df6d2fca5e31ae7e078f4b2f7baa6cf",
+      "packages/barocss-cad/dist/paired-roof-difference-body-world-points.js": "9ad3131296de7f353fad37d52b273803027586ae8bff6357863fda37cd633aa0",
+      "packages/barocss-cad/dist/own-plane-cylinder-intersection-internal.d.ts": "f0f2b826b50fde3c4c0ae4505c10764689ce5465438039f363b83a0a905507ec",
+      "packages/barocss-cad/dist/xy-circular-numerical-sketch-admission-internal.d.ts": "879b770bea0dcc5654f8e5fbcadcac9981bc047f18fedf10f9ae6a141011e00d",
+      "packages/barocss-cad/dist/native-planar-face-boundary-v1.d.ts": "f144b3f09367c9381cb88297951107dc85ce5faa0a43721502b0182accbeb9b0",
+      "packages/barocss-cad/dist/sketch-circle-feature-graph.d.ts": "3e8bd353ce14c91da25f5f7336e504ebe5b02c19e9d506e2e4fa6132073ca3e9",
+      "packages/barocss-cad/dist/vlinear-plane-trim.js": "ee1564b91b2043d6dd54da9d77954ca53d679f7e8b276cb1ddd34e9b98b82954",
+      "packages/barocss-cad/dist/workplane-sketch-frame-internal.js": "fd731301aa5f44d3a651473e6c187d344975293ff6c85205dc9b57d65b722f58",
+      "packages/barocss-cad/dist/source-curve-knot-insertion.js": "1db68fcf9f4ffee47a2718d161e33b59192240d63e1e11ed375879805fca426f",
+      "packages/barocss-cad/dist/own-affine-plane-loop-internal.d.ts": "085a240684cc9629b1fc3c0b3dec225f03f81a23b37913f6346f7d33df18e07e",
+      "packages/barocss-cad/dist/convex-planar-solid-split-internal.js": "7654091986645c00cd0caa2e14f63947c6ea19fc8d55c685002f3bb28c4479d2",
+      "packages/barocss-cad/dist/public-api.js": "4919235a42d56d7f719d1e19741b60f05343c050f03b102276dc8a70e8bb0516",
+      "packages/barocss-cad/dist/paired-section-plane-cap.js": "338a43af29c8082efb5174e5c988d6471d64eaffbd73735c35dcba93946e5885",
+      "packages/barocss-cad/dist/exact-boundary-face-adjacency.js": "6b1daca7c41ea0302e9273b541c68282f7c7b212801de14accba26b7e04585ce",
+      "packages/barocss-cad/dist/convex-planar-face-extrusion.d.ts": "cbcb2fa1cde3bc3a05111cda519a37763207071c6c980f98b1bb3408900b4e1c",
+      "packages/barocss-cad/dist/surface-interpolation.js": "76eb2de0d0a4b25b3c7150d3de1a6a1d8aabee4fcff9c5c4a784d4b9ab9c31f2",
+      "packages/barocss-cad/dist/convex-planar-solid-intersection.d.ts": "741f499f7778c391725d7b3892f4219676ffbcb73c573569c08004a468b64c9f",
+      "packages/barocss-cad/dist/semantic-model.d.ts": "fbcd6249d7e32a29476106b751a10be26ee37b979ea4c6dcce7bd1931b76ce67",
+      "packages/barocss-cad/dist/xy-arc.d.ts": "be70c357c06e1fd1dc6b2561c1a977a0d1a3ea141b9e6d554aea24393e06e616",
+      "packages/barocss-cad/dist/sketch-rectangle-feature-graph.d.ts": "62d291dd79e4db2bb4816d2b38dcf36cb728a1ee09bc264cbe67225e5c08ce3b",
+      "packages/barocss-cad/dist/xy-polygon-prism-shell.js": "b2617930dd3c7a91129d23638001d86769f54669d9a570fc62d3c6913554780d"
+    },
+    "publicCallPlan": {
+      "spentInvalidAdmission": 1,
+      "spentValidBaseline": 1,
+      "remainingFixedSource": 1,
+      "remainingFreshEmitted": 1
+    },
+    "phaseSeconds": 600,
+    "heapMiB": 1536,
+    "freeDiskMiB": 500
+  },
+  "invalidAdmission": {
+    "request": {
+      "curve": {
+        "kind": "curve",
+        "id": "accuracy_c1_curve",
+        "degree": 2,
+        "knots": [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1
+        ],
+        "controlPoints": [
+          [
+            0.25,
+            0.5,
+            2.6
+          ],
+          [
+            0.5,
+            0.5,
+            3.43e-07
+          ],
+          [
+            0.75,
+            0.5,
+            -4.2e-16
+          ]
+        ],
+        "weights": [
+          100000000,
+          100000000,
+          100000000
+        ]
+      },
+      "plane": {
+        "kind": "surface",
+        "id": "accuracy_c1_plane",
+        "degreeU": 1,
+        "degreeV": 1,
+        "knotsU": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "knotsV": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "controlPoints": [
+          [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ]
+          ],
+          [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              1,
+              1,
+              0
+            ]
+          ]
+        ],
+        "weights": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ]
+      },
+      "options": {
+        "evaluationId": "accuracy_c1_model",
+        "pointEventIds": [
+          "accuracy_c1_crossing"
+        ]
+      }
+    },
+    "error": "Weights must be in [1e-6, 1e6]",
+    "process": {
+      "issue": 1657,
+      "scope": "one explicitly frozen pre-fix actual public Curve-plane API call only",
+      "grant": "current user review priority requests reproduce C1; no repeated completed modeling work",
+      "sourcePin": "c0cf5f8618cff5e06dbf2261401235d7e33d736d",
+      "heapMiB": 1536,
+      "seconds": 600,
+      "maximumAPICalls": 1,
+      "sourceBundleSHA256": "e64745c2627681c70cadbeb897ac8890c78ef205c69837ee09a1fadb19bf8535",
+      "driverSHA256": "2faa30a95fa14cbac441a8a99a9857ae027f7cc2013690b2363d3b25f8887473",
+      "status": "failed",
+      "exitCode": 1,
+      "pid": 55802,
+      "wallSeconds": 0.21286066697211936
+    },
+    "returnedGeometry": 0
+  },
+  "validBaseline": {
+    "request": {
+      "curve": {
+        "kind": "curve",
+        "id": "accuracy_c1_curve",
+        "degree": 2,
+        "knots": [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1
+        ],
+        "controlPoints": [
+          [
+            0.25,
+            0.5,
+            260
+          ],
+          [
+            0.5,
+            0.5,
+            3.43e-05
+          ],
+          [
+            0.75,
+            0.5,
+            -4.2e-14
+          ]
+        ],
+        "weights": [
+          1000000,
+          1000000,
+          1000000
+        ]
+      },
+      "plane": {
+        "kind": "surface",
+        "id": "accuracy_c1_plane",
+        "degreeU": 1,
+        "degreeV": 1,
+        "knotsU": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "knotsV": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "controlPoints": [
+          [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ]
+          ],
+          [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              1,
+              1,
+              0
+            ]
+          ]
+        ],
+        "weights": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ]
+      },
+      "options": {
+        "evaluationId": "accuracy_c1_model",
+        "pointEventIds": [
+          "accuracy_c1_crossing"
+        ]
+      }
+    },
+    "kind": "support-disjoint",
+    "eventCount": 0,
+    "process": {
+      "status": "passed",
+      "exitCode": 0,
+      "pid": 19774,
+      "elapsedSeconds": 0.12997554099999997,
+      "actualAPICalls": 1,
+      "driverSHA256": "377281a85b0977bd0b2b53c5c941d39d786c02e549c508e6c4b8f702124cc512",
+      "bundleSHA256": "e64745c2627681c70cadbeb897ac8890c78ef205c69837ee09a1fadb19bf8535"
+    },
+    "bundleSHA256": "e64745c2627681c70cadbeb897ac8890c78ef205c69837ee09a1fadb19bf8535",
+    "resultSHA256": "43bf85e186f58356e92ba24a379324ae2e22a0f6aef8250babcc70e10a0a3b65"
+  },
+  "fixedSource": {
+    "process": {
+      "status": "passed",
+      "exitCode": 0,
+      "pid": 37184,
+      "elapsedSeconds": 0.128043292,
+      "actualPublicRequests": 1,
+      "producerCommit": "319829cc836097ded277fed6d7c7db7912be6976"
+    },
+    "receipt": {
+      "status": "passed",
+      "actualPublicRequests": 1,
+      "parameter": 0.9999999993892743,
+      "bracket": [
+        0.9999999993888196,
+        0.999999999389729
+      ],
+      "residualMM": 7.241160083809388e-18,
+      "curveD1Status": "evaluated",
+      "originalSourceRetained": true,
+      "geometricValidity": "not-certified",
+      "topologyCertified": false,
+      "solid": false,
+      "resultSHA256": "1f24b6b4577d0b8181c55b61099c106b8d280ba405ce3b4bb05f97f056255f85"
+    }
+  },
+  "freshEmitted": {
+    "process": {
+      "status": "passed",
+      "exitCode": 0,
+      "pid": 38012,
+      "elapsedSeconds": 0.185233542,
+      "actualPublicRequests": 1,
+      "producerCommit": "319829cc836097ded277fed6d7c7db7912be6976"
+    },
+    "receipt": {
+      "status": "passed",
+      "actualPublicRequests": 1,
+      "parameter": 0.9999999993892743,
+      "bracket": [
+        0.9999999993888196,
+        0.999999999389729
+      ],
+      "residualMM": 7.241160083809388e-18,
+      "curveD1Status": "evaluated",
+      "originalSourceRetained": true,
+      "geometricValidity": "not-certified",
+      "topologyCertified": false,
+      "solid": false,
+      "resultSHA256": "1f24b6b4577d0b8181c55b61099c106b8d280ba405ce3b4bb05f97f056255f85"
+    }
+  },
+  "result": {
+    "kind": "isolated",
+    "curve": {
+      "kind": "curve",
+      "id": "accuracy_c1_curve",
+      "degree": 2,
+      "knots": [
+        0,
+        0,
+        0,
+        1,
+        1,
+        1
+      ],
+      "controlPoints": [
+        [
+          0.25,
+          0.5,
+          260
+        ],
+        [
+          0.5,
+          0.5,
+          3.43e-05
+        ],
+        [
+          0.75,
+          0.5,
+          -4.2e-14
+        ]
+      ],
+      "weights": [
+        1000000,
+        1000000,
+        1000000
+      ]
+    },
+    "plane": {
+      "kind": "surface",
+      "id": "accuracy_c1_plane",
+      "degreeU": 1,
+      "degreeV": 1,
+      "knotsU": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "knotsV": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "controlPoints": [
+        [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ]
+        ],
+        [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            0
+          ]
+        ]
+      ],
+      "weights": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ]
+    },
+    "options": {
+      "evaluationId": "accuracy_c1_model",
+      "pointEventIds": [
+        "accuracy_c1_crossing"
+      ]
+    },
+    "source": "@model accuracy_c1_model { version:0; length-unit:mm; @curve #accuracy_c1_curve { type:nurbs; degree:2; knots:[0,0,0,1,1,1]; control-points:[[0.25,0.5,260],[0.5,0.5,0.0000343],[0.75,0.5,-0.000000000000042]]; weights:[1000000,1000000,1000000]; } @surface #accuracy_c1_plane { type:nurbs; degree-u:1; degree-v:1; knots-u:[0,0,1,1]; knots-v:[0,0,1,1]; control-points:[[[0,0,0],[0,1,0]],[[1,0,0],[1,1,0]]]; weights:[[1,1],[1,1]]; } }\n",
+    "model": {
+      "name": "accuracy_c1_model",
+      "version": 0,
+      "lengthUnit": "mm",
+      "objects": [
+        {
+          "kind": "curve",
+          "id": "accuracy_c1_curve",
+          "degree": 2,
+          "knots": [
+            0,
+            0,
+            0,
+            1,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              0.25,
+              0.5,
+              260
+            ],
+            [
+              0.5,
+              0.5,
+              3.43e-05
+            ],
+            [
+              0.75,
+              0.5,
+              -4.2e-14
+            ]
+          ],
+          "weights": [
+            1000000,
+            1000000,
+            1000000
+          ]
+        },
+        {
+          "kind": "surface",
+          "id": "accuracy_c1_plane",
+          "degreeU": 1,
+          "degreeV": 1,
+          "knotsU": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "knotsV": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ]
+            ],
+            [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                1,
+                1,
+                0
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        }
+      ]
+    },
+    "sourceVersion": 0,
+    "events": [
+      {
+        "eventId": "accuracy_c1_crossing",
+        "parameter": 0.9999999993892743,
+        "normalizedParameter": 0.9999999993892743,
+        "bracket": [
+          0.9999999993888196,
+          0.999999999389729
+        ],
+        "normalizedBracket": [
+          0.9999999993888196,
+          0.999999999389729
+        ],
+        "iterations": 40,
+        "kind": "crossing",
+        "rootTouch": false,
+        "pointMM": [
+          0.7499999996946373,
+          0.5,
+          -7.241160083809388e-18
+        ],
+        "planeUV": [
+          0.7499999996946373,
+          0.5,
+          0
+        ],
+        "planePointMM": [
+          0.7499999996946373,
+          0.5,
+          0
+        ],
+        "residualMM": 7.241160083809388e-18,
+        "classification": "finite-domain-admitted",
+        "finiteDomainAdmitted": true,
+        "sideObservations": [
+          {
+            "parameter": 0.9999999993888196,
+            "signedDistanceMM": 2.409897941696294e-17
+          },
+          {
+            "parameter": 0.9999999993892743,
+            "signedDistanceMM": -7.241160083809388e-18
+          },
+          {
+            "parameter": 0.999999999389729,
+            "signedDistanceMM": -3.8581192051141785e-17
+          }
+        ],
+        "curveD1": {
+          "status": "evaluated",
+          "value": {
+            "point": [
+              0.7499999996946373,
+              0.5,
+              -7.241160083809388e-18
+            ],
+            "derivative": [
+              0.5000000000000002,
+              0,
+              -6.891757736017352e-05
+            ]
+          }
+        },
+        "semantics": "original-curve-point-at-numerical-root-not-projected-or-sewn"
+      }
+    ],
+    "report": {
+      "family": "own-bezier-curve-affine-plane-surface",
+      "kind": "isolated",
+      "evaluationId": "accuracy_c1_model",
+      "curveId": "accuracy_c1_curve",
+      "planeId": "accuracy_c1_plane",
+      "curveDomain": [
+        0,
+        1
+      ],
+      "curveDegree": 2,
+      "planeAxes": {
+        "originMM": [
+          0,
+          0,
+          0
+        ],
+        "uDirectionMM": [
+          1,
+          0,
+          0
+        ],
+        "vDirectionMM": [
+          0,
+          1,
+          0
+        ],
+        "unitNormal": [
+          0,
+          0,
+          1
+        ],
+        "gram": {
+          "uu": 1,
+          "uv": 0,
+          "vv": 1,
+          "determinant": 1,
+          "unsafeThreshold": 1.4210854715202004e-14
+        },
+        "domains": {
+          "u": [
+            0,
+            1
+          ],
+          "v": [
+            0,
+            1
+          ]
+        }
+      },
+      "equation": {
+        "bernstein": [
+          260000000,
+          34.3,
+          -4.2e-08
+        ],
+        "power": [
+          259999931.39999998,
+          -519999931.4,
+          260000000
+        ],
+        "degree": "quadratic",
+        "discriminant": 4704,
+        "uncertainty": 3842.6141011314357,
+        "endpointCrossingRecovery": {
+          "policy": "exact-stored-binary64-Bernstein-sign-isolation",
+          "originalEndpointSigns": [
+            1,
+            -1
+          ],
+          "bracket": [
+            0.9999999993888196,
+            0.999999999389729
+          ],
+          "iterations": 40,
+          "parameterWidthTarget": 1e-12,
+          "exactWork": {
+            "operations": 24715,
+            "gcdSteps": 18896,
+            "floatSearchSteps": 0,
+            "floatConversions": 0,
+            "maximumObservedBits": 158
+          }
+        }
+      },
+      "supportEventCount": 1,
+      "finiteEventCount": 1,
+      "outsideEventCount": 0,
+      "coincident": {
+        "support": false,
+        "finiteContainment": "not-applicable",
+        "controlPoleUV": [
+          [
+            0.25,
+            0.5,
+            0
+          ],
+          [
+            0.5,
+            0.5,
+            0
+          ],
+          [
+            0.75,
+            0.5,
+            0
+          ]
+        ]
+      },
+      "numericPolicy": {
+        "parameterWidthTarget": 1e-12,
+        "normalizedParameterWidthTarget": 1e-12,
+        "maximumRootSteps": 64,
+        "pointBindingComparisonMM": 1e-07,
+        "uvBoundaryPolicy": "original-estimate-and-bracket-domain-agreement-no-clamp",
+        "gramPolicy": "64-epsilon-scaled-determinant-refusal",
+        "exactParameterDedupOnly": true
+      },
+      "geometricValidity": "not-certified",
+      "topologyCertified": false,
+      "solid": false,
+      "limits": {
+        "maximumEvents": 4,
+        "snapshotValues": 4096,
+        "snapshotDepth": 8,
+        "arrayElements": 64,
+        "recordFields": 16,
+        "authoredIdCharacters": 48
+      }
+    }
+  },
+  "sourceEmittedCompleteEquality": true,
+  "tests": {
+    "sourceEmittedScalarAndIGES": 47,
+    "documentationExamplesPerMode": 24,
+    "build": "passed",
+    "lint": "passed"
+  },
+  "proofBoundary": {
+    "exactScalarStoredCoefficientBracket": true,
+    "exactWorldPoint": false,
+    "generalCubicRoots": false,
+    "topologyCertified": false,
+    "solid": false,
+    "c3c4NumericalPolicy": "unfinished"
+  },
+  "rerun": "Build CAD, then run node test/endpoint-crossing-native.mjs ENTRY NEW_OUTPUT_DIRECTORY in a fresh process; source entry must be a full source index bundle; emitted entry is dist/index.js."
+}

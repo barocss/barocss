@@ -1632,3 +1632,15 @@ displacement; they are not claimed unchanged. Pcurves are regenerated under the
 existing whole UV policy, without sampled cross-copy D1 bit identity. The pivot
 branch retains its original failure cause and completed-work report. No fusion,
 persistent naming, mass, STL, editor, GPU or manufacturing acceptance is added.
+
+
+Raw `exportIGES(model, ids)` reports `geometryLoss:'none'` only for the selected
+raw Curves and untrimmed Surfaces. `geometryLossScope` states that scope;
+`unsupported` lists trimmed Faces, topology and Solid models. This export does
+not preserve a Face hole. Old saved export results without these report fields
+need re-export before strict current-result validation; document bytes stay valid.
+
+Near-endpoint quadratic recovery uses exact signs of the original stored
+Bernstein coefficients only when the old result would be empty despite opposite
+endpoint signs. Its report is scalar bracket evidence. Original native point,
+UV, derivative and source checks remain necessary and retain existing tolerances.
