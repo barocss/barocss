@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { renderEngineWebGPUCanvasOnce } from '../dist/engine-webgpu-canvas-once.js';
+import './engine-webgpu-checked-once.test.mjs';
 
 function original() {
   const mesh = id => ({id,type:'mesh',parentId:null,translation:[0,0,0],
@@ -23,14 +24,16 @@ function deferred() {
 }
 function harness(failure = '', options = {}) {
   const events = [], buffers = [], textures = [], error = new Error(failure || 'device failure');
-  let attemptBuffers = 0, attemptSubmits = 0;
+  let attemptBuffers = 0, attemptSubmits = 0, attemptWaits = 0;
   const queueStarted = deferred();
   const fail = stage => { if (failure === stage) throw error; };
   const destination = { destroy() { throw new Error('borrowed Canvas texture destroyed'); } };
   const device = {
     limits:{maxTextureDimension2D:4096},
     destroy() { throw new Error('caller device destroyed'); },
-    createShaderModule() { attemptBuffers = 0; attemptSubmits = 0; events.push('shader'); return {
+    pushErrorScope(filter){events.push(['push',filter]);},
+    async popErrorScope(){events.push('pop');return null;},
+    createShaderModule() { attemptBuffers = 0; attemptSubmits = 0; attemptWaits = 0; events.push('shader'); return {
       async getCompilationInfo() { fail('shader'); await options.compilation?.promise; return {messages:[]}; },
     }; },
     createBindGroupLayout(){return{};},createPipelineLayout(){return{};},
@@ -48,8 +51,9 @@ function harness(failure = '', options = {}) {
     createBindGroup(){return{};},
     queue:{writeBuffer(){},submit(){events.push('submit');
       if (++attemptSubmits === 2) fail('submit');},
-      async onSubmittedWorkDone(){events.push('wait');queueStarted.resolve();
-        fail('queue');await options.completion?.promise;events.push('completed');}},
+      async onSubmittedWorkDone(){events.push('wait');
+        if (++attemptWaits === 2) { queueStarted.resolve();fail('queue');await options.completion?.promise; }
+        events.push('completed');}},
     createCommandEncoder(){return{
       beginRenderPass(){return{setPipeline(){},setBindGroup(){},setVertexBuffer(){},
         setIndexBuffer(){},drawIndexed(){events.push('draw');},end(){events.push('end');}};},

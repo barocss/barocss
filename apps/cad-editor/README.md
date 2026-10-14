@@ -681,3 +681,21 @@ and retained geometry, with no Worker evaluation, source edit or history entry.
 Local focused check: `node apps/cad-editor/flows/modeling-view-flow.mjs`.
 Its controlled renderer does not establish pixels. #1965 tracks the actual-device
 view check; #1960's initial device flow did not visually distinguish the slot.
+
+## Author a rectangular-plate through-hole
+
+New rectangular part80×40×8 → select Extrude01 → MODIFY → Add through-hole.
+Enter Center X40, Center Y20 and Radius5 mm, then Preview operation and Apply
+operation. The three-node result retains named holeCenterX/holeCenterY/holeRadius
+and full-source Undo/Redo. Edit model dimensions can change holeRadius to2.5.
+Temporary fields accept decimals; they never apply pending model dimensions.
+Cancel/Escape restores the accepted view, and changing the selected feature closes
+the command. The original part output becomes the holed result; its native volume
+and mass are unavailable, and STL is unsupported for this family. Necessary input
+checks do not promise native exact-UV or display admission.
+
+Local focused flow: `node apps/cad-editor/flows/modeling-hole-authoring-flow.mjs`.
+Actual React/controller/serializer/receiver paths use controlled Worker, provider
+and renderer boundaries. Retained radius5 geometry is unchanged; edited displays
+are baseline replay. #1966 records the finite tests and pending physical file/UI
+acceptance, independently of the still-open #1960/#1965 camera gates.

@@ -3,12 +3,14 @@ import type { CadEditorModelingSummary } from './modeling-engine.js';
 export type ModelingStructureTarget = { name: string; solidId: string; node: number };
 export type ModelingStructureCommand =
   | { kind: 'add-arm'; target: ModelingStructureTarget; x: number; y: number; width: number; height: number }
+  | { kind: 'add-hole'; target: ModelingStructureTarget; x: number; y: number; radius: number }
   | { kind: 'union'; targets: [ModelingStructureTarget, ModelingStructureTarget] }
   | { kind: 'cut-slot'; target: ModelingStructureTarget; x: number; y: number; width: number; height: number };
 
 const FILE_BYTES = 65536, HISTORY_BYTES = 8 * 1024 * 1024, LENGTH = 10000;
 const ARM = ['armX', 'armY', 'armWidth', 'armHeight'] as const;
 const SLOT = ['slotX', 'slotY', 'slotWidth', 'slotHeight'] as const;
+const HOLE = ['holeCenterX', 'holeCenterY', 'holeRadius'] as const;
 type Data = Record<string, unknown>;
 type Dimension = number | { parameter: string } | { op: 'add'; left: Dimension; right: Dimension }
   | { op: 'scale'; value: Dimension; factor: number };
@@ -135,9 +137,36 @@ function addedRectangle(names: readonly string[]): Data {
   return { kind: 'sketch', profile: 'rectangle', min: [parameter(x), parameter(y)],
     max: [{ op: 'add', left: parameter(x), right: parameter(width) }, { op: 'add', left: parameter(y), right: parameter(height) }] };
 }
+function addedHole(): Data {
+  return { kind: 'hole', parent: { node: 1, side: 'solid' },
+    center: [parameter(HOLE[0]), parameter(HOLE[1])], radius: parameter(HOLE[2]) };
+}
+function holePlate(d: Document): [number, number] {
+  rectangle(d, 0, 1);
+  const min = point(d.nodes[0].min, d.parameters), max = point(d.nodes[0].max, d.parameters);
+  check(min.every(value => value === 0), 'Add through-hole requires an origin-zero rectangular plate.');
+  check(Object.keys(d.outputs).length === 1 && Object.hasOwn(d.outputs, 'part'), 'Add through-hole requires the sole owned output named part.');
+  ref(d.outputs.part, d.nodes.length - 1);
+  return max;
+}
+function holeDimensions(d: Document, x: unknown, y: unknown, radius: unknown): number[] {
+  const values = [x, y, radius].map(length), [cx, cy, r] = values, [width, height] = holePlate(d);
+  check(r >= 0.001, 'hole radius must be from 0.001 to 10000 mm.');
+  const endpoints = [cx - r, cx + r, cy - r, cy + r].map(length);
+  check(endpoints[0] < cx && cx < endpoints[1] && endpoints[2] < cy && cy < endpoints[3], 'hole endpoints must remain distinguishable from their center.');
+  check(endpoints[0] > 0 && endpoints[1] < width && endpoints[2] > 0 && endpoints[3] < height,
+    'hole must be strictly contained on all four plate sides.');
+  return values;
+}
 function ownedGraph(d: Document): number {
-  check([2, 4, 5, 8].includes(d.nodes.length), 'only complete 2, 4, 5 or 8-node construction stages are supported; no 6/7-node intermediate.');
+  check([2, 3, 4, 5, 8].includes(d.nodes.length), 'only complete 2, 3, 4, 5 or 8-node construction stages are supported; no 6/7-node intermediate.');
   const height = rectangle(d, 0, 1);
+  if (d.nodes.length === 3) {
+    check(HOLE.every(k => Object.hasOwn(d.parameters, k)) && signedJson(d.nodes[2]) === signedJson(addedHole()),
+      'the through-hole must retain its three named drivers and exact parent.');
+    holeDimensions(d, ...HOLE.map(k => d.parameters[k]) as [number, number, number]);
+    return height;
+  }
   if (d.nodes.length >= 4) {
     rectangle(d, 2, 3);
     check(ARM.every(k => Object.hasOwn(d.parameters, k)) && signedJson(d.nodes[2]) === signedJson(addedRectangle(ARM))
@@ -163,7 +192,8 @@ function ownedGraph(d: Document): number {
 }
 function dependencies(node: Data): number[] {
   return node.kind === 'sketch' ? [] : node.kind === 'extrude' ? [node.sketch as number]
-    : node.kind === 'union' ? [(node.left as Ref).node, (node.right as Ref).node] : [(node.parent as Ref).node, (node.tool as Ref).node];
+    : node.kind === 'hole' ? [(node.parent as Ref).node]
+      : node.kind === 'union' ? [(node.left as Ref).node, (node.right as Ref).node] : [(node.parent as Ref).node, (node.tool as Ref).node];
 }
 function accepted(d: Document, input: CadEditorModelingSummary): ModelingStructureTarget[] {
   const s = record(ownData(input));
@@ -187,29 +217,42 @@ function accepted(d: Document, input: CadEditorModelingSummary): ModelingStructu
   }).sort((a, b) => a.node - b.node);
 }
 function reserve(d: Document, names: readonly string[]): void {
-  check(Object.keys(d.parameters).length + names.length <= 16, 'adding four drivers exceeds the 16-parameter limit.');
+  check(Object.keys(d.parameters).length + names.length <= 16, 'adding ' + names.length + ' drivers exceeds the 16-parameter limit.');
   check(names.every(k => !Object.hasOwn(d.parameters, k) && !Object.hasOwn(d.outputs, k)), 'reserved parameter name collision: ' + names.join(', ') + '.');
 }
 export function getModelingStructureCapabilities(text: string | null, summary: CadEditorModelingSummary | null): {
-  addArm: ModelingStructureTarget | null; union: [ModelingStructureTarget, ModelingStructureTarget] | null;
-  cutSlot: ModelingStructureTarget | null; reason: string; sharedThickness: number | null;
+  addArm: ModelingStructureTarget | null; addHole: ModelingStructureTarget | null;
+  union: [ModelingStructureTarget, ModelingStructureTarget] | null;
+  cutSlot: ModelingStructureTarget | null; reason: string; holeReason: string; sharedThickness: number | null;
 } {
-  const none = { addArm: null, union: null, cutSlot: null, sharedThickness: null };
+  const none = { addArm: null, addHole: null, union: null, cutSlot: null, sharedThickness: null };
+  const message = (cause: unknown): string => cause instanceof Error ? cause.message : String(cause);
+  const unavailableHole = 'Add through-hole requires the selected Extrude of one unmodified rectangular part.';
   try {
     check(text !== null && summary !== null, 'open an accepted primary rectangular part first.');
     const d = document(text), sharedThickness = ownedGraph(d), targets = accepted(d, summary);
     if (d.nodes.length === 2) {
-      reserve(d, ARM); check(!Object.hasOwn(d.outputs, 'arm'), 'the reserved output name arm is already used.');
-      return { ...none, addArm: targets[0], sharedThickness, reason: 'Add an arm using the existing thickness term; editing shared thickness changes both bodies.' };
+      let addArm: ModelingStructureTarget | null = null, addHole: ModelingStructureTarget | null = null;
+      let reason = 'Add an arm using the existing thickness term; editing shared thickness changes both bodies.';
+      let holeReason = 'Add one through-hole; the prior part output is consumed while its source feature remains in history. Provider and receiver limits still apply.';
+      try {
+        reserve(d, ARM); check(!Object.hasOwn(d.outputs, 'arm'), 'the reserved output name arm is already used.'); addArm = targets[0];
+      } catch (cause) { reason = message(cause); }
+      try { holePlate(d); reserve(d, HOLE); addHole = targets[0]; } catch (cause) { holeReason = message(cause); }
+      return { ...none, addArm, addHole, sharedThickness, reason, holeReason };
     }
+    if (d.nodes.length === 3) return { ...none, sharedThickness,
+      reason: 'The complete three-node through-hole is already authored. Edit its existing dimensions.',
+      holeReason: 'A through-hole is already authored; a second hole is unsupported. Edit its existing dimensions.' };
     if (d.nodes.length === 4) return { ...none, union: targets as [ModelingStructureTarget, ModelingStructureTarget], sharedThickness,
-      reason: 'Union consumes both named outputs into part; authored operand features remain in history.' };
+      reason: 'Union consumes both named outputs into part; authored operand features remain in history.', holeReason: unavailableHole };
     if (d.nodes.length === 5) {
       check(sharedThickness === 8, 'Cut requires resolved thickness exactly 8 mm with omitted from (Z=0..8); shared thickness currently resolves to ' + sharedThickness + ' mm.');
-      reserve(d, SLOT); return { ...none, cutSlot: targets[0], sharedThickness, reason: 'Cut creates one atomic through-slot across the existing 8 mm thickness; provider and receiver limits still apply.' };
+      reserve(d, SLOT); return { ...none, cutSlot: targets[0], sharedThickness, holeReason: unavailableHole,
+        reason: 'Cut creates one atomic through-slot across the existing 8 mm thickness; provider and receiver limits still apply.' };
     }
-    return { ...none, sharedThickness, reason: 'The complete eight-node union-slot is already authored. Edit its existing dimensions.' };
-  } catch (cause) { return { ...none, reason: cause instanceof Error ? cause.message : String(cause) }; }
+    return { ...none, sharedThickness, reason: 'The complete eight-node union-slot is already authored. Edit its existing dimensions.', holeReason: unavailableHole };
+  } catch (cause) { return { ...none, reason: message(cause), holeReason: message(cause) }; }
 }
 function matchingTarget(input: unknown, expected: ModelingStructureTarget): void {
   const target = record(input, ['name', 'solidId', 'node']);
@@ -221,7 +264,15 @@ export function buildModelingStructure(text: string, summary: CadEditorModelingS
 } {
   const command = record(ownData(input)), capabilities = getModelingStructureCapabilities(text, summary), d = document(text);
   const kind = command.kind;
-  check(kind === 'add-arm' || kind === 'union' || kind === 'cut-slot', 'known structural command required.');
+  check(kind === 'add-arm' || kind === 'add-hole' || kind === 'union' || kind === 'cut-slot', 'known structural command required.');
+  if (kind === 'add-hole') {
+    record(command, ['kind', 'target', 'x', 'y', 'radius']);
+    check(capabilities.addHole, capabilities.holeReason); matchingTarget(command.target, capabilities.addHole);
+    const values = holeDimensions(d, command.x, command.y, command.radius); reserve(d, HOLE);
+    HOLE.forEach((key, index) => { d.parameters[key] = values[index]; });
+    d.nodes.push(addedHole()); d.outputs = { part: { node: 2, side: 'solid' } }; ownedGraph(d);
+    return { text: canonicalModelingText(d), selectedOutput: 'part', consumed: [capabilities.addHole.name], kind };
+  }
   if (kind === 'union') {
     record(command, ['kind', 'targets']); check(capabilities.union, capabilities.reason);
     const targets = list(command.targets, 2); check(targets.length === 2, 'select both current outputs.');
