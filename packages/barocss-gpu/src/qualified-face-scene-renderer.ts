@@ -147,27 +147,41 @@ export class QualifiedFaceSceneRenderer {
     }catch(error){throw gpuFailure(error);}
     finally{gl.bindFramebuffer(gl.READ_FRAMEBUFFER,null);}
   }
-  private release(target:Target):void {
-    const gl=this.gl;
-    if(!gl.isContextLost()){
-      if(target.program&&gl.getParameter(gl.CURRENT_PROGRAM)===target.program)gl.useProgram(null);
-      if(target.draws.some(draw=>draw.vao&&draw.vao===gl.getParameter(gl.VERTEX_ARRAY_BINDING)))gl.bindVertexArray(null);
+  private release(target:Target,finish=false):void {
+    const gl=this.gl,failures:unknown[]=[];
+    const attempt=(operation:()=>void):void=>{
+      try{operation();}catch(error){if(!finish)throw error;failures.push(error);}
+    };
+    let lost=true;
+    attempt(()=>{lost=gl.isContextLost();});
+    if(!lost){
+      attempt(()=>{if(target.program&&gl.getParameter(gl.CURRENT_PROGRAM)===target.program)gl.useProgram(null);});
+      attempt(()=>{if(target.draws.some(draw=>draw.vao&&draw.vao===gl.getParameter(gl.VERTEX_ARRAY_BINDING)))gl.bindVertexArray(null);});
       for(const [binding,parameter]of [[gl.READ_FRAMEBUFFER,gl.READ_FRAMEBUFFER_BINDING],[gl.DRAW_FRAMEBUFFER,gl.DRAW_FRAMEBUFFER_BINDING]]as const)
-        if(target.framebuffer&&gl.getParameter(parameter)===target.framebuffer)gl.bindFramebuffer(binding,null);
+        attempt(()=>{if(target.framebuffer&&gl.getParameter(parameter)===target.framebuffer)gl.bindFramebuffer(binding,null);});
     }
-    this.free('programs',target.program,value=>gl.deleteProgram(value));target.program=null;
+    attempt(()=>this.free('programs',target.program,value=>gl.deleteProgram(value)));target.program=null;
     for(const draw of target.draws){
-      this.free('vaos',draw.vao,value=>gl.deleteVertexArray(value));draw.vao=null;
-      for(const buffer of draw.buffers)this.free('buffers',buffer,value=>gl.deleteBuffer(value));draw.buffers=[];
+      attempt(()=>this.free('vaos',draw.vao,value=>gl.deleteVertexArray(value)));draw.vao=null;
+      for(const buffer of draw.buffers)attempt(()=>this.free('buffers',buffer,value=>gl.deleteBuffer(value)));draw.buffers=[];
     }
     target.draws=[];
-    this.free('framebuffers',target.framebuffer,value=>gl.deleteFramebuffer(value));target.framebuffer=null;
-    this.free('textures',target.color,value=>gl.deleteTexture(value));target.color=null;
-    this.free('renderbuffers',target.depth,value=>gl.deleteRenderbuffer(value));target.depth=null;
+    attempt(()=>this.free('framebuffers',target.framebuffer,value=>gl.deleteFramebuffer(value)));target.framebuffer=null;
+    attempt(()=>this.free('textures',target.color,value=>gl.deleteTexture(value)));target.color=null;
+    attempt(()=>this.free('renderbuffers',target.depth,value=>gl.deleteRenderbuffer(value)));target.depth=null;
+    if(failures.length)throw new AggregateError(failures,'Qualified Face terminal resource cleanup refused');
   }
   dispose():void {
-    if(this.disposed)return;this.disposed=true;this.canvas.removeEventListener('webglcontextlost',this.onLoss);
-    if(this.accepted)this.release(this.accepted);this.accepted=null;
+    if(this.disposed)return;
+    this.disposed=true;
+    const target=this.accepted,failures:unknown[]=[];this.accepted=null;
+    try{this.canvas.removeEventListener('webglcontextlost',this.onLoss);}catch(error){failures.push(error);}
+    if(target){
+      try{this.release(target,true);}
+      catch(error){if(error instanceof AggregateError)failures.push(...error.errors);else failures.push(error);}
+    }
+    if(failures.length)throw new QualifiedFaceSceneError('GPU','Qualified Face disposal cleanup refused',
+      new AggregateError(failures,'Qualified Face terminal cleanup failures'));
   }
 }
 export function mountQualifiedFaceScene(canvas:HTMLCanvasElement,scene:unknown):QualifiedFaceSceneRenderer{return new QualifiedFaceSceneRenderer(canvas,scene);}
