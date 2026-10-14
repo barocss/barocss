@@ -2,7 +2,7 @@
   "schema": "barocss-cad-native-circular-four-verification-v1",
   "status": "passed",
   "issue": 1986,
-  "sourceCommit": "4f93e02a315e0c1d1fd3554ea25c3c1f1ddff7fb",
+  "sourceCommit": "a7be3701731a0318f4ede8decbecfcdde53c80d9",
   "nativeSourceCommit": "4f93e02a315e0c1d1fd3554ea25c3c1f1ddff7fb",
   "scope": "Native Convex Solid cardinal circular pattern, original-inclusive count4: 0/90/180/270 or 0/270/180/90; existing count3 data preserved. No physical Editor/GPU/browser acceptance.",
   "reviews": {
@@ -3403,5 +3403,12 @@
     "Count3 authentic retained baseline save/native/body/evidence equality and fresh freeze proved. Count4 fresh emitted reconstruction full parity and freeze proved.",
     "Count4-only known710compilations/8928bindings/26784D1,returned574/7200/21600; whole incl compatibility3 known845/10602/31806,returned692/8658/25974.148initialFaces+5sketches outside returned convention. Hidden transitive work NOT_MEASURED.",
     "General counts/angles, axis origins, chaining/fusion and physical/manufacturing acceptance remain separate roadmap work."
-  ]
+  ],
+  "postDevelopSourceCheck": {
+    "base": "44633efff7658a308c0b7da96690665b7a3547cb",
+    "checkedFiles": 268,
+    "changed": [],
+    "allNativeSourceInputsUnchanged": true,
+    "note": "Adopted upstream documentation/render-editor lint/interop reader changes. Native CAD input bytes remain identical to reviewed nativeSourceCommit; current API regenerated on latest source."
+  }
 }

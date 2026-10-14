@@ -1,7 +1,7 @@
 {
   "schema": "barocss-current-public-api-v1",
   "typescriptVersion": "5.9.3",
-  "sourceCommit": "4f93e02a315e0c1d1fd3554ea25c3c1f1ddff7fb",
+  "sourceCommit": "a7be3701731a0318f4ede8decbecfcdde53c80d9",
   "extractor": "TypeScript 5.9.3 public module exports and declarations; not a type-check or runtime execution",
   "packages": [
     {
@@ -38049,6 +38049,10 @@
         "./paired-surface-material-body-result": {
           "types": "./src/paired-surface-material-body-result.ts",
           "import": "./src/paired-surface-material-body-result.ts"
+        },
+        "./paired-surface-material-body-world-points-result": {
+          "types": "./src/paired-surface-material-body-world-points-result.ts",
+          "import": "./src/paired-surface-material-body-world-points-result.ts"
         }
       },
       "publishConfig": {
@@ -38279,6 +38283,10 @@
           "./paired-surface-material-body-result": {
             "types": "./dist/paired-surface-material-body-result.d.ts",
             "import": "./dist/paired-surface-material-body-result.js"
+          },
+          "./paired-surface-material-body-world-points-result": {
+            "types": "./dist/paired-surface-material-body-world-points-result.d.ts",
+            "import": "./dist/paired-surface-material-body-world-points-result.js"
           }
         }
       },
@@ -42917,6 +42925,83 @@
                 "BaroCadPairedSurfaceMaterialBodyResultRead",
                 "parseBaroCadPairedSurfaceMaterialBodyResult",
                 "readBaroCadPairedSurfaceMaterialBodyResult"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "./paired-surface-material-body-world-points-result",
+          "source": "packages/barocss-cad-interop/src/paired-surface-material-body-world-points-result.ts",
+          "provenance": "declared development type entry",
+          "symbols": [
+            {
+              "name": "BaroCadPairedSurfaceMaterialBodyWorldPointsDiagnosticCode",
+              "kind": "VariableDeclaration",
+              "source": "packages/barocss-cad-interop/src/paired-surface-material-body-world-points-result-json.ts",
+              "line": 2,
+              "signatures": [
+                "export const BaroCadPairedSurfaceMaterialBodyWorldPointsDiagnosticCode: Readonly<{ readonly INPUT: \"INPUT\"; readonly JSON: \"JSON\"; readonly OWNED: \"OWNED\"; readonly BUDGET: \"BUDGET\"; readonly SCHEMA: \"SCHEMA\"; readonly NATIVE: \"NATIVE\"; }>;",
+                "export type BaroCadPairedSurfaceMaterialBodyWorldPointsDiagnosticCode = typeof BaroCadPairedSurfaceMaterialBodyWorldPointsDiagnosticCode[keyof typeof BaroCadPairedSurfaceMaterialBodyWorldPointsDiagnosticCode];"
+              ],
+              "digest": "77f1766d6c33f648b297df18175c5ca7589f551aa9b1d8056988e49541b3283e"
+            },
+            {
+              "name": "BaroCadPairedSurfaceMaterialBodyWorldPointsReadError",
+              "kind": "ClassDeclaration",
+              "source": "packages/barocss-cad-interop/src/paired-surface-material-body-world-points-result-json.ts",
+              "line": 16,
+              "signatures": [
+                "export class BaroCadPairedSurfaceMaterialBodyWorldPointsReadError extends Error {\n  readonly code: BaroCadPairedSurfaceMaterialBodyWorldPointsDiagnosticCode;\n  constructor(code: BaroCadPairedSurfaceMaterialBodyWorldPointsDiagnosticCode, message: string, cause?: unknown);\n}"
+              ],
+              "digest": "34e8d5774938af31fef86ea1abea7104f4756ee3ddc8a0d8d209d11b8cd6bbb6"
+            },
+            {
+              "name": "BaroCadPairedSurfaceMaterialBodyWorldPointsResultRead",
+              "kind": "InterfaceDeclaration",
+              "source": "packages/barocss-cad-interop/src/paired-surface-material-body-world-points-result.ts",
+              "line": 59,
+              "signatures": [
+                "export interface BaroCadPairedSurfaceMaterialBodyWorldPointsResultRead {\n  native: PairedSurfaceMaterialBodyWorldPointResult;\n  validationReport: PairedSurfaceMaterialBodyWorldPointReport;\n  profile: typeof PROFILE;\n  sourceText: string | null;\n}"
+              ],
+              "digest": "9fa2ceff7b265eb4fef210b30b0c1c05ba0ea6173724e3b1dc935016c2a38109"
+            },
+            {
+              "name": "parseBaroCadPairedSurfaceMaterialBodyWorldPointsResult",
+              "kind": "FunctionDeclaration",
+              "source": "packages/barocss-cad-interop/src/paired-surface-material-body-world-points-result.ts",
+              "line": 98,
+              "signatures": [
+                "export function parseBaroCadPairedSurfaceMaterialBodyWorldPointsResult(text: string): BaroCadPairedSurfaceMaterialBodyWorldPointsResultRead;"
+              ],
+              "digest": "b7d8a754de3c0442f32cf1efcbb4810ab053ee0d3de69e68a386fd44f726531b"
+            },
+            {
+              "name": "readBaroCadPairedSurfaceMaterialBodyWorldPointsResult",
+              "kind": "FunctionDeclaration",
+              "source": "packages/barocss-cad-interop/src/paired-surface-material-body-world-points-result.ts",
+              "line": 106,
+              "signatures": [
+                "export function readBaroCadPairedSurfaceMaterialBodyWorldPointsResult(input: unknown): BaroCadPairedSurfaceMaterialBodyWorldPointsResultRead;"
+              ],
+              "digest": "d2210f8cfa91f70574f2769680f99007f8333a28c74a10283f6d7c002b572464"
+            }
+          ],
+          "groups": [
+            {
+              "source": "packages/barocss-cad-interop/src/paired-surface-material-body-world-points-result-json.ts",
+              "names": [
+                "BaroCadPairedSurfaceMaterialBodyWorldPointsDiagnosticCode",
+                "BaroCadPairedSurfaceMaterialBodyWorldPointsReadError"
+              ]
+            },
+            {
+              "source": "packages/barocss-cad-interop/src/paired-surface-material-body-world-points-result.ts",
+              "names": [
+                "BaroCadPairedSurfaceMaterialBodyWorldPointsDiagnosticCode",
+                "BaroCadPairedSurfaceMaterialBodyWorldPointsReadError",
+                "BaroCadPairedSurfaceMaterialBodyWorldPointsResultRead",
+                "parseBaroCadPairedSurfaceMaterialBodyWorldPointsResult",
+                "readBaroCadPairedSurfaceMaterialBodyWorldPointsResult"
               ]
             }
           ]
@@ -55179,8 +55264,8 @@
   "packageTrees": {
     "packages/barocss-render": "b83e4912e1d1aa658f048ba4b112376785b288fb",
     "packages/barocss-gpu": "2967d567ec26725a4090f2d64ed2b283ac468bef",
-    "packages/barocss-cad": "75dbff8373fb903689618358c90be3f70aa6ee80",
-    "packages/barocss-cad-interop": "1a2584cfb25826412096512aa71d74f059e5092d",
+    "packages/barocss-cad": "40308b9b49c2f691e8ddd0698a621437a49d45e6",
+    "packages/barocss-cad-interop": "330d0323e1d3891c8a1f882e848aae604ea67b08",
     "packages/barocss-canvas2d": "39853a85709f5c59dba7cdbbab3fd87da48cb54a",
     "packages/barocss-viewer": "aa7736ed08620fe9b7db2eff4feec5c89f9e502b",
     "packages/barocss-physics": "f3aa5c6e161137cb80fb68f73a517cd6bdc673dd",
@@ -56503,6 +56588,12 @@
       "@barocss/cad-interop./paired-surface-material-body-result:BaroCadPairedSurfaceMaterialBodyResultRead",
       "@barocss/cad-interop./paired-surface-material-body-result:parseBaroCadPairedSurfaceMaterialBodyResult",
       "@barocss/cad-interop./paired-surface-material-body-result:readBaroCadPairedSurfaceMaterialBodyResult",
+      "@barocss/cad-interop./paired-surface-material-body-world-points-result:entry",
+      "@barocss/cad-interop./paired-surface-material-body-world-points-result:BaroCadPairedSurfaceMaterialBodyWorldPointsDiagnosticCode",
+      "@barocss/cad-interop./paired-surface-material-body-world-points-result:BaroCadPairedSurfaceMaterialBodyWorldPointsReadError",
+      "@barocss/cad-interop./paired-surface-material-body-world-points-result:BaroCadPairedSurfaceMaterialBodyWorldPointsResultRead",
+      "@barocss/cad-interop./paired-surface-material-body-world-points-result:parseBaroCadPairedSurfaceMaterialBodyWorldPointsResult",
+      "@barocss/cad-interop./paired-surface-material-body-world-points-result:readBaroCadPairedSurfaceMaterialBodyWorldPointsResult",
       "@barocss/canvas2d.:applyImageAlphaMask",
       "@barocss/canvas2d.:applyImageAlphaMatte",
       "@barocss/canvas2d.:applyImageColorKey",
