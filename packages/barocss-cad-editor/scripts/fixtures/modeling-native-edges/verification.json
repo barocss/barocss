@@ -1060,6 +1060,21 @@
       "sha256": "14f99c1597215b819f562ef2ea1e25bbcb299e186895ae67c22692e60aca578e",
       "bytes": 549,
       "text": "(node:6) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:6) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"result\":\"PASS\",\"candidate\":\"d56f16eea5b9595f3b62d06ca2754ae10d4a4f52\",\"node\":\"v22.23.3\",\"vitepress\":\"1.6.4\",\"pages\":1,\"emittedHeadingIds\":[\"read-real-convex-boundary-edges\"],\"verifiedCrosslinks\":78}\n"
+    },
+    "api/qualified-write.log": {
+      "sha256": "3ee9dd304d86159d764e51598c3fb99d2c1af1aff98d31f375cd467dc79444c8",
+      "bytes": 376,
+      "text": "(node:8) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"status\":\"written\",\"evidence\":\"evidence/current-public-api.json\",\"sourceCommit\":\"fe153f754f236558d1beca2925ed77242401cb7d\",\"packages\":9,\"changesFromHistorical\":{\"added\":1652,\"removed\":0,\"changed\":52}}\n"
+    },
+    "api/qualified-check.log": {
+      "sha256": "739e196fc75fb14ad9c561573ecccec1794113b6cd40dba6ff4a28ac20be89de",
+      "bytes": 349,
+      "text": "(node:52) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"status\":\"matched\",\"sourceCommit\":\"fe153f754f236558d1beca2925ed77242401cb7d\",\"scope\":\"current API\",\"packages\":9,\"entries\":76,\"exportedOccurrences\":4198,\"extractor\":\"5.9.3\"}\n"
+    },
+    "browser-prepare.log": {
+      "sha256": "7c7ce0c9b307034ba8f51d15ae006afdb1d2f888827a51750c8fb4d4c6ce4ac4",
+      "bytes": 5663,
+      "text": "(node:5) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"issue\":1995,\"status\":\"PREPARED_NOT_EXECUTED\",\"mode\":\"browser-fixture-only\",\"nativeCalls\":0,\"retainedTransport\":[\"packages/barocss-cad-editor/scripts/fixtures/modeling-chamfer-chain/baseline-transport.json\",\"74e9a472c54aaa5d228a23d79b083c9a7c4c539bf5de6a5f274597e5fbfba4af\"],\"retainedTransportSHA256\":\"74e9a472c54aaa5d228a23d79b083c9a7c4c539bf5de6a5f274597e5fbfba4af\",\"geometrySHA256\":{\"positionsMM\":\"55b0bcdae22d8a55f0a58a0a274cc8842bb3d197c371fea4082e3023453454f0\",\"normals\":\"9a84541e78833485db80e3f37de2b6cb93954bcdb187ac1d32f0a304d33f0b45\",\"parametersUV\":\"ea325ca0d168de3a91393b21d6e402012d42b005d2889583a1a342890ae02e70\",\"indices\":\"c58520c78c962e880d1f41efe9abcc5bf7ec34279df3fee00c960c1319785929\"},\"publicGPUIndexSHA256\":\"722bb215c9169a9bb9ce93cea06476098f20e92ed63bb7b84d123dd0cb092b75\",\"scriptSHA256\":\"b9c9ffa571cc7c2aebaa15f9ed191f2b11ab4b1417917389ea647f01ce053949\",\"binding\":{\"sourceHashes\":{\"packages/barocss-cad-editor/src/prism-feature-scene.ts\":\"3b07120623bdba9131f84e37f708e18645df82eec872bd71e1a6ace80b543395\",\"packages/barocss-gpu/src/engine-scene-renderer.ts\":\"1d073c1c69a3934a8be6f8f16995a3d5680b56ad79cc190b4b7a6e3ed858dec7\",\"packages/barocss-gpu/src/engine-scene.ts\":\"0c9306578039cf39dcf0b4ae62dff6b8d1bd121025317e30cf095e9ac35732ca\",\"packages/barocss-gpu/src/kernel-face-preview.ts\":\"6f2d59e080b528655353904b31e048728d6edf9bcc83932a5dfa38f481c934c9\",\"packages/barocss-gpu/src/engine-camera-ray.ts\":\"028b4a68e8ea5affefee3f81c862df25f4437deda46774bed0ebd0751df29fc0\",\"packages/barocss-gpu/src/engine-raycast.ts\":\"ee34709a019fcd73cbe213688087f103f625c43a70963de7edae8c7c0f6ed15a\",\"packages/barocss-gpu/src/gpu-data.ts\":\"b1e9c9119ae5f8d282e850fde99a31bc36e3a8a693fdf9862f962e771bd5b933\",\"packages/barocss-gpu/src/mesh-packet.ts\":\"80ba3cd72221ff4afc957fb52823d8d4636e0cf081a08bcd9866f6b9efcc19c0\",\"packages/barocss-gpu/src/engine-scene-shaders.ts\":\"58e18e046a31e8eb976204ec8564ce8a688e4773d43c3e4761869a13deafba7e\",\"packages/barocss-gpu/src/renderer.ts\":\"7183a11f838f7cc83533b8948ee4e1cd4290dbc809de01244e0716d266890c2e\",\"packages/barocss-gpu/src/engine-scene-edges.ts\":\"7a4f278bc6d6f7bbbff8ec35bbb3db78ffcc690246d895743e27ced600912272\",\"packages/barocss-gpu/src/camera.ts\":\"aa235612837edbc819323c385c83bdc504148cb069a973133f6eacde5c8948a8\",\"packages/barocss-gpu/src/mesh-scene-transform.ts\":\"c8c3ff42e91d79bb9affc453f0b63c672e5e76a634e319f300039717160fca7b\",\"packages/barocss-gpu/src/triangle-geometry.ts\":\"262cc8a3ac1f380fb665ee08b29114cdbed75fff8e86f7d847b786f5f889df49\",\"packages/barocss-cad-editor/src/prism-feature-lineage.ts\":\"2362af088e5e01c92f355d8b244c580fda43c52890e4fde2be307f174cfba412\",\"packages/barocss-gpu/src/mesh-lighting.ts\":\"617cc1d58cbf2af06b69c69d46bd987f14aabcd73f3e93a3266b09bb4a443b56\",\"packages/barocss-gpu/src/scene-front.ts\":\"a04d59e1a52e949cf338f5907ce68a67c373900ef1d7174a697ffca61f1ccae1\",\"packages/barocss-gpu/src/gpu-compiler.ts\":\"32d48acb92089a90d22e03d60b96324b7c2f05f329ea6f66dadb4fef6d458583\",\"packages/barocss-gpu/src/torus.ts\":\"a8e509f2a5fc5ef5ac7e4de74ebd701cb7bef14b666204a795ffdfed8710b66e\",\"packages/barocss-gpu/src/rounded-box.ts\":\"7b1f5062670e809e004f4a059ef8d9f0b85c6fca52acf04087d5dab26a7db0c2\",\"packages/barocss-gpu/src/capsule.ts\":\"1be57524592c7bcb836e00ecc0f6552b861e41fc1928c27d0967e7edddf91580\",\"packages/barocss-gpu/src/scene.ts\":\"db65c6e75fdd88babcdf1f283d068710b133e908375e101b77a07ff8e392aee4\",\"packages/barocss-gpu/src/scene-view.ts\":\"33e27a8d572b6e011dcb681ab6a1d54ab58d87474ca336af7c3ea95b8a8e4d60\",\"packages/barocss-gpu/src/scene-types.ts\":\"0914e7b3259af9db492e4327d44e441afd1795a034a6f4384c62c8f29b560416\",\"packages/barocss-gpu/src/compiler.ts\":\"4fbea79e1d5d242b4beddd5a09ef0f60bec4b4cccea532134cd91a4067c88699\",\"packages/barocss-gpu/src/rotation.ts\":\"867e617fe81a0c59719a6209f26b0e746f4b080d541ea74025ef5517d267db9c\"},\"bundleSHA256\":\"c01d12303ee683d43f1c8028f4573862412a0b118f867c51784ed7c839466c89\",\"facadeSHA256\":\"a023e8b89af8a3c6fd9406b91b8b354fdaac12a572fb70c438bdf179d474577a\",\"entrySHA256\":\"9e362e9f6c906e5fe9a3b33b3e467e2808413d73868d6ff7b8f1f8a299e74256\",\"inputs\":[\"packages/barocss-gpu/src/torus.ts\",\"packages/barocss-gpu/src/rounded-box.ts\",\"packages/barocss-gpu/src/capsule.ts\",\"packages/barocss-gpu/src/scene-types.ts\",\"packages/barocss-gpu/src/scene-front.ts\",\"packages/barocss-gpu/src/gpu-data.ts\",\"packages/barocss-gpu/src/camera.ts\",\"packages/barocss-gpu/src/mesh-lighting.ts\",\"packages/barocss-gpu/src/mesh-packet.ts\",\"packages/barocss-gpu/src/triangle-geometry.ts\",\"packages/barocss-gpu/src/rotation.ts\",\"packages/barocss-gpu/src/compiler.ts\",\"packages/barocss-gpu/src/gpu-compiler.ts\",\"packages/barocss-gpu/src/mesh-scene-transform.ts\",\"packages/barocss-gpu/src/engine-scene.ts\",\"packages/barocss-gpu/src/engine-camera-ray.ts\",\"packages/barocss-gpu/src/engine-raycast.ts\",\"packages/barocss-gpu/src/kernel-face-preview.ts\",\"packages/barocss-gpu/src/scene-view.ts\",\"packages/barocss-gpu/src/scene.ts\",\"packages/barocss-gpu/src/renderer.ts\",\"packages/barocss-gpu/src/engine-scene-edges.ts\",\"packages/barocss-gpu/src/engine-scene-shaders.ts\",\"packages/barocss-gpu/src/engine-scene-renderer.ts\",\"cpu-boundary:gpu-facade\",\"packages/barocss-cad-editor/src/prism-feature-lineage.ts\",\"packages/barocss-cad-editor/src/prism-feature-scene.ts\",\"<stdin>\"]},\"controls\":[\"edge on/off\",\"Top/Isometric\",\"640/480 CSS-pixel width resize\",\"original face hit\",\"dispose\"],\"limits\":\"No server/browser launch, GPU run, pixel/readability pass, clipping campaign or native evaluation is performed by preparation.\"}\n"
     }
   },
   "limits": [
@@ -1071,5 +1086,254 @@
     "Circle, plate-hole, orthogonal-cell and legacy presentation stay unchanged; edge overlay adds no edge-selection command.",
     "Driver cleanup calls are attempted exactly once; a mocked driver deletion refusal is not reported as confirmed resource release.",
     "All existing geometry/source/native lineage is retained; no source/history/worker/camera operation is added by an edge-only draw."
-  ]
+  ],
+  "publicationQualification": {
+    "publicProduct": "fe153f754f236558d1beca2925ed77242401cb7d",
+    "productTree": "5ce2ec0c9faa0a2426f0db91d64b04bac903f041",
+    "latestBase": "87bd189d0ca6945fc3cdd321781546880bb17f08",
+    "replay": {
+      "latestBase": "87bd189d0ca6945fc3cdd321781546880bb17f08",
+      "reviewedCandidate": "4b19aa83e1ec98e4c3c901e0c4176d8d0bd3b2e3",
+      "localProduct": "02b51912b70514adbe516a25b3b10c13ff7eb0ba",
+      "tree": "5ce2ec0c9faa0a2426f0db91d64b04bac903f041",
+      "exactProductPaths": [
+        "apps/library-docs/docs/packages/cad/modeling.md",
+        "packages/barocss-cad-editor/README.md",
+        "packages/barocss-cad-editor/scripts/fixtures/modeling-native-edges/verification.json",
+        "packages/barocss-cad-editor/scripts/modeling-native-edges-test.mjs",
+        "packages/barocss-cad-editor/src/modeling-scene.ts",
+        "packages/barocss-cad-editor/src/prism-feature-display.ts",
+        "packages/barocss-cad-editor/src/prism-feature-scene.ts",
+        "packages/barocss-gpu/README.md",
+        "packages/barocss-gpu/src/engine-scene-edges.ts",
+        "packages/barocss-gpu/src/engine-scene-renderer.ts",
+        "packages/barocss-gpu/src/index.ts",
+        "packages/barocss-gpu/tests/engine-scene-edges.test.mjs"
+      ],
+      "preservedIncomingPaths": [
+        "apps/library-docs/evidence/current-public-api.json",
+        "packages/barocss-cad/CONCISE_API.md",
+        "packages/barocss-cad/README.md",
+        "packages/barocss-cad/src/modeling.ts",
+        "packages/barocss-cad/test/evidence/rotated-placement-1994/verification.json",
+        "packages/barocss-cad/test/modeling-rotation-placement-cold.mjs",
+        "packages/barocss-cad/test/modeling-rotation-placement-fixture.mjs",
+        "packages/barocss-cad/test/modeling-rotation-placement-native.mjs",
+        "packages/barocss-cad/test/modeling-rotation-placement.test.mjs",
+        "packages/barocss-cad/test/modeling-rotation.test.mjs",
+        "packages/barocss-cad/test/modeling-types.ts",
+        "packages/barocss-cad/test/public-api-types.mjs"
+      ],
+      "verifiedRuntimeBindings": {
+        "packages/barocss-cad-editor/src/modeling-scene.ts": "cdaad83c5a16aad5ac0b53f891c65b6cb4fc63fb4fb65d84f7922c3c1f6a47e2",
+        "packages/barocss-cad-editor/src/prism-feature-scene.ts": "3b07120623bdba9131f84e37f708e18645df82eec872bd71e1a6ace80b543395",
+        "packages/barocss-cad-editor/src/prism-feature-display.ts": "1963155fce6b9fd6b9e09f9601685b27b204e3dfca73290e05fadc48242aa9c3",
+        "packages/barocss-cad-editor/src/modeling-union.ts": "06d8ae40f0d1142ea19e566fa19fa84095af4416f781f6bd47e396f1866cd613",
+        "packages/barocss-cad-editor/src/modeling-circle.ts": "ce3fedc7d5bc93d035e7043fe027c3a3353979bdbe929098c6d9604964967bb8",
+        "packages/barocss-gpu/src/kernel-face-preview.ts": "6f2d59e080b528655353904b31e048728d6edf9bcc83932a5dfa38f481c934c9",
+        "packages/barocss-gpu/src/engine-scene.ts": "0c9306578039cf39dcf0b4ae62dff6b8d1bd121025317e30cf095e9ac35732ca",
+        "packages/barocss-gpu/src/engine-camera-ray.ts": "028b4a68e8ea5affefee3f81c862df25f4437deda46774bed0ebd0751df29fc0",
+        "packages/barocss-gpu/src/engine-raycast.ts": "ee34709a019fcd73cbe213688087f103f625c43a70963de7edae8c7c0f6ed15a",
+        "packages/barocss-gpu/src/gpu-data.ts": "b1e9c9119ae5f8d282e850fde99a31bc36e3a8a693fdf9862f962e771bd5b933",
+        "packages/barocss-gpu/src/camera.ts": "aa235612837edbc819323c385c83bdc504148cb069a973133f6eacde5c8948a8",
+        "packages/barocss-gpu/src/mesh-packet.ts": "80ba3cd72221ff4afc957fb52823d8d4636e0cf081a08bcd9866f6b9efcc19c0",
+        "packages/barocss-cad-editor/src/prism-feature-lineage.ts": "2362af088e5e01c92f355d8b244c580fda43c52890e4fde2be307f174cfba412",
+        "packages/barocss-cad-editor/src/modeling-composition.ts": "6289f6197d70be4356475cac4dac1130a2639a17576937227bf86a09a4540fc4",
+        "packages/barocss-gpu/src/triangle-geometry.ts": "262cc8a3ac1f380fb665ee08b29114cdbed75fff8e86f7d847b786f5f889df49",
+        "packages/barocss-gpu/src/mesh-scene-transform.ts": "c8c3ff42e91d79bb9affc453f0b63c672e5e76a634e319f300039717160fca7b",
+        "packages/barocss-gpu/src/scene-front.ts": "a04d59e1a52e949cf338f5907ce68a67c373900ef1d7174a697ffca61f1ccae1",
+        "packages/barocss-gpu/src/torus.ts": "a8e509f2a5fc5ef5ac7e4de74ebd701cb7bef14b666204a795ffdfed8710b66e",
+        "packages/barocss-gpu/src/capsule.ts": "1be57524592c7bcb836e00ecc0f6552b861e41fc1928c27d0967e7edddf91580",
+        "packages/barocss-gpu/src/rounded-box.ts": "7b1f5062670e809e004f4a059ef8d9f0b85c6fca52acf04087d5dab26a7db0c2",
+        "packages/barocss-gpu/src/mesh-lighting.ts": "617cc1d58cbf2af06b69c69d46bd987f14aabcd73f3e93a3266b09bb4a443b56",
+        "packages/barocss-gpu/src/gpu-compiler.ts": "32d48acb92089a90d22e03d60b96324b7c2f05f329ea6f66dadb4fef6d458583",
+        "packages/barocss-gpu/src/scene-types.ts": "0914e7b3259af9db492e4327d44e441afd1795a034a6f4384c62c8f29b560416",
+        "packages/barocss-gpu/src/compiler.ts": "4fbea79e1d5d242b4beddd5a09ef0f60bec4b4cccea532134cd91a4067c88699",
+        "packages/barocss-gpu/src/rotation.ts": "867e617fe81a0c59719a6209f26b0e746f4b080d541ea74025ef5517d267db9c",
+        "packages/barocss-gpu/src/scene.ts": "db65c6e75fdd88babcdf1f283d068710b133e908375e101b77a07ff8e392aee4",
+        "packages/barocss-gpu/src/engine-scene-edges.ts": "7a4f278bc6d6f7bbbff8ec35bbb3db78ffcc690246d895743e27ced600912272",
+        "packages/barocss-gpu/src/engine-scene-renderer.ts": "1d073c1c69a3934a8be6f8f16995a3d5680b56ad79cc190b4b7a6e3ed858dec7",
+        "packages/barocss-gpu/src/renderer.ts": "7183a11f838f7cc83533b8948ee4e1cd4290dbc809de01244e0716d266890c2e",
+        "packages/barocss-gpu/src/scene-view.ts": "33e27a8d572b6e011dcb681ab6a1d54ab58d87474ca336af7c3ea95b8a8e4d60",
+        "packages/barocss-gpu/src/engine-scene-shaders.ts": "58e18e046a31e8eb976204ec8564ce8a688e4773d43c3e4761869a13deafba7e"
+      }
+    },
+    "apiDelta": {
+      "added": [
+        "@barocss/gpu./source:EngineSceneEdgeOverlayV0",
+        "@barocss/gpu.:EngineSceneEdgeOverlayV0"
+      ],
+      "removed": [],
+      "changed": [
+        "@barocss/gpu.:EngineSceneRenderer",
+        "@barocss/gpu.:mountEngineScene",
+        "@barocss/gpu./source:EngineSceneRenderer",
+        "@barocss/gpu./source:mountEngineScene",
+        "@barocss/cad-editor.:PrismDisplayScene"
+      ],
+      "beforePin": "71633818d5883eb0209394d7d38c46474bf5c95c",
+      "sourcePin": "fe153f754f236558d1beca2925ed77242401cb7d",
+      "typescript": "5.9.3",
+      "signatures": {
+        "@barocss/gpu.:EngineSceneRenderer": {
+          "before": [
+            "export class EngineSceneRenderer {\n  constructor(canvas: HTMLCanvasElement, sceneInput: unknown, optionsInput: unknown);\n  getScene(): EngineSceneV0;\n  update(sceneInput: unknown): UpdateResult;\n  resize(width: number, height: number): void;\n  render(): void;\n  readPixels(): Uint8Array;\n  dispose(): void;\n}"
+          ],
+          "after": [
+            "export class EngineSceneRenderer {\n  constructor(canvas: HTMLCanvasElement, sceneInput: unknown, optionsInput: unknown, edgesInput?: unknown);\n  getScene(): EngineSceneV0;\n  update(sceneInput: unknown, edgesInput?: unknown): UpdateResult;\n  resize(width: number, height: number): void;\n  render(): void;\n  readPixels(): Uint8Array;\n  dispose(): void;\n}"
+          ]
+        },
+        "@barocss/gpu.:mountEngineScene": {
+          "before": [
+            "export function mountEngineScene(canvas: HTMLCanvasElement, sceneInput: unknown, optionsInput: unknown): EngineSceneRenderer;"
+          ],
+          "after": [
+            "export function mountEngineScene(canvas: HTMLCanvasElement, sceneInput: unknown, optionsInput: unknown, edgesInput?: unknown): EngineSceneRenderer;"
+          ]
+        },
+        "@barocss/gpu./source:EngineSceneRenderer": {
+          "before": [
+            "export class EngineSceneRenderer {\n  constructor(canvas: HTMLCanvasElement, sceneInput: unknown, optionsInput: unknown);\n  getScene(): EngineSceneV0;\n  update(sceneInput: unknown): UpdateResult;\n  resize(width: number, height: number): void;\n  render(): void;\n  readPixels(): Uint8Array;\n  dispose(): void;\n}"
+          ],
+          "after": [
+            "export class EngineSceneRenderer {\n  constructor(canvas: HTMLCanvasElement, sceneInput: unknown, optionsInput: unknown, edgesInput?: unknown);\n  getScene(): EngineSceneV0;\n  update(sceneInput: unknown, edgesInput?: unknown): UpdateResult;\n  resize(width: number, height: number): void;\n  render(): void;\n  readPixels(): Uint8Array;\n  dispose(): void;\n}"
+          ]
+        },
+        "@barocss/gpu./source:mountEngineScene": {
+          "before": [
+            "export function mountEngineScene(canvas: HTMLCanvasElement, sceneInput: unknown, optionsInput: unknown): EngineSceneRenderer;"
+          ],
+          "after": [
+            "export function mountEngineScene(canvas: HTMLCanvasElement, sceneInput: unknown, optionsInput: unknown, edgesInput?: unknown): EngineSceneRenderer;"
+          ]
+        },
+        "@barocss/cad-editor.:PrismDisplayScene": {
+          "before": [
+            "export interface PrismDisplayScene { packet: PrismDisplayPacket; view: PrismDisplayView; scene: EngineSceneV0 }"
+          ],
+          "after": [
+            "export interface PrismDisplayScene { packet: PrismDisplayPacket; view: PrismDisplayView; scene: EngineSceneV0; edges?: EngineSceneEdgeOverlayV0 }"
+          ]
+        }
+      }
+    },
+    "apiCommands": [
+      {
+        "name": "qualified-write",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--write-current",
+          "--commit",
+          "fe153f754f236558d1beca2925ed77242401cb7d"
+        ],
+        "exitCode": 0,
+        "seconds": 5.73047460700036
+      },
+      {
+        "name": "qualified-check",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--check"
+        ],
+        "exitCode": 0,
+        "seconds": 5.029377099010162
+      }
+    ],
+    "apiSHA256": "485722c2c808f1a2764fba33a5aecad96b3675296324c0cc8c4088eea2fe7610",
+    "extractorSHA256": "01a0cf2b03a47e540148033c2a788f15dd1fa77cdab27011ef264e2786b02186",
+    "historicalAPISHA256": "fce5dd0d5c8689f7329944111ef522d819d8a72850c0c13df6adc8a2df7158b3",
+    "limits": "One new GPU DTO and three changed public symbols only; incoming rotated-placement provider API is preserved. Metadata-only receipt update does not relabel historical executed tests."
+  },
+  "browserPreparation": {
+    "issue": 1995,
+    "status": "PREPARED_NOT_EXECUTED",
+    "mode": "browser-fixture-only",
+    "nativeCalls": 0,
+    "retainedTransport": [
+      "packages/barocss-cad-editor/scripts/fixtures/modeling-chamfer-chain/baseline-transport.json",
+      "74e9a472c54aaa5d228a23d79b083c9a7c4c539bf5de6a5f274597e5fbfba4af"
+    ],
+    "retainedTransportSHA256": "74e9a472c54aaa5d228a23d79b083c9a7c4c539bf5de6a5f274597e5fbfba4af",
+    "geometrySHA256": {
+      "positionsMM": "55b0bcdae22d8a55f0a58a0a274cc8842bb3d197c371fea4082e3023453454f0",
+      "normals": "9a84541e78833485db80e3f37de2b6cb93954bcdb187ac1d32f0a304d33f0b45",
+      "parametersUV": "ea325ca0d168de3a91393b21d6e402012d42b005d2889583a1a342890ae02e70",
+      "indices": "c58520c78c962e880d1f41efe9abcc5bf7ec34279df3fee00c960c1319785929"
+    },
+    "publicGPUIndexSHA256": "722bb215c9169a9bb9ce93cea06476098f20e92ed63bb7b84d123dd0cb092b75",
+    "scriptSHA256": "b9c9ffa571cc7c2aebaa15f9ed191f2b11ab4b1417917389ea647f01ce053949",
+    "binding": {
+      "sourceHashes": {
+        "packages/barocss-cad-editor/src/prism-feature-scene.ts": "3b07120623bdba9131f84e37f708e18645df82eec872bd71e1a6ace80b543395",
+        "packages/barocss-gpu/src/engine-scene-renderer.ts": "1d073c1c69a3934a8be6f8f16995a3d5680b56ad79cc190b4b7a6e3ed858dec7",
+        "packages/barocss-gpu/src/engine-scene.ts": "0c9306578039cf39dcf0b4ae62dff6b8d1bd121025317e30cf095e9ac35732ca",
+        "packages/barocss-gpu/src/kernel-face-preview.ts": "6f2d59e080b528655353904b31e048728d6edf9bcc83932a5dfa38f481c934c9",
+        "packages/barocss-gpu/src/engine-camera-ray.ts": "028b4a68e8ea5affefee3f81c862df25f4437deda46774bed0ebd0751df29fc0",
+        "packages/barocss-gpu/src/engine-raycast.ts": "ee34709a019fcd73cbe213688087f103f625c43a70963de7edae8c7c0f6ed15a",
+        "packages/barocss-gpu/src/gpu-data.ts": "b1e9c9119ae5f8d282e850fde99a31bc36e3a8a693fdf9862f962e771bd5b933",
+        "packages/barocss-gpu/src/mesh-packet.ts": "80ba3cd72221ff4afc957fb52823d8d4636e0cf081a08bcd9866f6b9efcc19c0",
+        "packages/barocss-gpu/src/engine-scene-shaders.ts": "58e18e046a31e8eb976204ec8564ce8a688e4773d43c3e4761869a13deafba7e",
+        "packages/barocss-gpu/src/renderer.ts": "7183a11f838f7cc83533b8948ee4e1cd4290dbc809de01244e0716d266890c2e",
+        "packages/barocss-gpu/src/engine-scene-edges.ts": "7a4f278bc6d6f7bbbff8ec35bbb3db78ffcc690246d895743e27ced600912272",
+        "packages/barocss-gpu/src/camera.ts": "aa235612837edbc819323c385c83bdc504148cb069a973133f6eacde5c8948a8",
+        "packages/barocss-gpu/src/mesh-scene-transform.ts": "c8c3ff42e91d79bb9affc453f0b63c672e5e76a634e319f300039717160fca7b",
+        "packages/barocss-gpu/src/triangle-geometry.ts": "262cc8a3ac1f380fb665ee08b29114cdbed75fff8e86f7d847b786f5f889df49",
+        "packages/barocss-cad-editor/src/prism-feature-lineage.ts": "2362af088e5e01c92f355d8b244c580fda43c52890e4fde2be307f174cfba412",
+        "packages/barocss-gpu/src/mesh-lighting.ts": "617cc1d58cbf2af06b69c69d46bd987f14aabcd73f3e93a3266b09bb4a443b56",
+        "packages/barocss-gpu/src/scene-front.ts": "a04d59e1a52e949cf338f5907ce68a67c373900ef1d7174a697ffca61f1ccae1",
+        "packages/barocss-gpu/src/gpu-compiler.ts": "32d48acb92089a90d22e03d60b96324b7c2f05f329ea6f66dadb4fef6d458583",
+        "packages/barocss-gpu/src/torus.ts": "a8e509f2a5fc5ef5ac7e4de74ebd701cb7bef14b666204a795ffdfed8710b66e",
+        "packages/barocss-gpu/src/rounded-box.ts": "7b1f5062670e809e004f4a059ef8d9f0b85c6fca52acf04087d5dab26a7db0c2",
+        "packages/barocss-gpu/src/capsule.ts": "1be57524592c7bcb836e00ecc0f6552b861e41fc1928c27d0967e7edddf91580",
+        "packages/barocss-gpu/src/scene.ts": "db65c6e75fdd88babcdf1f283d068710b133e908375e101b77a07ff8e392aee4",
+        "packages/barocss-gpu/src/scene-view.ts": "33e27a8d572b6e011dcb681ab6a1d54ab58d87474ca336af7c3ea95b8a8e4d60",
+        "packages/barocss-gpu/src/scene-types.ts": "0914e7b3259af9db492e4327d44e441afd1795a034a6f4384c62c8f29b560416",
+        "packages/barocss-gpu/src/compiler.ts": "4fbea79e1d5d242b4beddd5a09ef0f60bec4b4cccea532134cd91a4067c88699",
+        "packages/barocss-gpu/src/rotation.ts": "867e617fe81a0c59719a6209f26b0e746f4b080d541ea74025ef5517d267db9c"
+      },
+      "bundleSHA256": "c01d12303ee683d43f1c8028f4573862412a0b118f867c51784ed7c839466c89",
+      "facadeSHA256": "a023e8b89af8a3c6fd9406b91b8b354fdaac12a572fb70c438bdf179d474577a",
+      "entrySHA256": "9e362e9f6c906e5fe9a3b33b3e467e2808413d73868d6ff7b8f1f8a299e74256",
+      "inputs": [
+        "packages/barocss-gpu/src/torus.ts",
+        "packages/barocss-gpu/src/rounded-box.ts",
+        "packages/barocss-gpu/src/capsule.ts",
+        "packages/barocss-gpu/src/scene-types.ts",
+        "packages/barocss-gpu/src/scene-front.ts",
+        "packages/barocss-gpu/src/gpu-data.ts",
+        "packages/barocss-gpu/src/camera.ts",
+        "packages/barocss-gpu/src/mesh-lighting.ts",
+        "packages/barocss-gpu/src/mesh-packet.ts",
+        "packages/barocss-gpu/src/triangle-geometry.ts",
+        "packages/barocss-gpu/src/rotation.ts",
+        "packages/barocss-gpu/src/compiler.ts",
+        "packages/barocss-gpu/src/gpu-compiler.ts",
+        "packages/barocss-gpu/src/mesh-scene-transform.ts",
+        "packages/barocss-gpu/src/engine-scene.ts",
+        "packages/barocss-gpu/src/engine-camera-ray.ts",
+        "packages/barocss-gpu/src/engine-raycast.ts",
+        "packages/barocss-gpu/src/kernel-face-preview.ts",
+        "packages/barocss-gpu/src/scene-view.ts",
+        "packages/barocss-gpu/src/scene.ts",
+        "packages/barocss-gpu/src/renderer.ts",
+        "packages/barocss-gpu/src/engine-scene-edges.ts",
+        "packages/barocss-gpu/src/engine-scene-shaders.ts",
+        "packages/barocss-gpu/src/engine-scene-renderer.ts",
+        "cpu-boundary:gpu-facade",
+        "packages/barocss-cad-editor/src/prism-feature-lineage.ts",
+        "packages/barocss-cad-editor/src/prism-feature-scene.ts",
+        "<stdin>"
+      ]
+    },
+    "controls": [
+      "edge on/off",
+      "Top/Isometric",
+      "640/480 CSS-pixel width resize",
+      "original face hit",
+      "dispose"
+    ],
+    "limits": "No server/browser launch, GPU run, pixel/readability pass, clipping campaign or native evaluation is performed by preparation."
+  }
 }
