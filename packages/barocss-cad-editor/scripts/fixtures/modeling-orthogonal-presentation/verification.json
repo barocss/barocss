@@ -1336,6 +1336,35 @@
       "afterHarness": "from pathlib import Path\nimport os,subprocess,time,json,signal,hashlib\nroot=Path('/workspace/shared/cad-orthogonal-presentation-1974');out=Path('/workspace/shared/cad-orthogonal-presentation-validation');h=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()\nnode=Path('/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node');ts=Path('/workspace/shared/barocss-recovery-toolchain/node_modules/typescript/bin/tsc')\nentry=out/'isolated-gpu-types.ts';entry.write_text('\\n'.join('export * from '+json.dumps(str(root/'packages/barocss-gpu/src'/f'{name}.ts'))+';' for name in ['engine-scene','engine-camera-ray','engine-raycast','kernel-face-preview','triangle-geometry'])+'\\n')\nconfig={'compilerOptions':{'target':'ES2022','module':'ESNext','moduleResolution':'Bundler','allowImportingTsExtensions':True,'strict':True,'skipLibCheck':True,'noEmit':True,'lib':['ES2022','DOM','DOM.Iterable'],'types':[],'paths':{'@barocss/cad':['/workspace/shared/cad-1918-validation/cad-dist/index.d.ts'],'@barocss/gpu':[str(entry)]}},'files':[str(root/'packages/barocss-cad-editor/src/modeling-scene.ts')]}\ncfg=out/'tsconfig-isolated.json';cfg.write_text(json.dumps(config,indent=2)+'\\n');cmd=[str(node),str(ts),'-p',str(cfg),'--noEmit','--listFiles'];env=dict(os.environ,NODE_OPTIONS='--max-old-space-size=1536',RAYON_NUM_THREADS='1');start=time.monotonic();log=out/'noemit.log'\nwith log.open('w') as f:\n p=subprocess.Popen(cmd,cwd=root,env=env,stdout=f,stderr=subprocess.STDOUT,start_new_session=True)\n try:code=p.wait(timeout=90)\n except subprocess.TimeoutExpired:\n  os.killpg(p.pid,signal.SIGTERM);time.sleep(.2)\n  try:os.killpg(p.pid,signal.SIGKILL)\n  except ProcessLookupError:pass\n  p.wait();code=124\nfiles=[Path(s) for s in log.read_text().splitlines() if s.startswith('/') and Path(s).is_file()]\nforeign=[str(f) for f in files if '/packages/' in str(f) and not f.is_relative_to(root)]\nassert not foreign,foreign\nr={'command':cmd,'exitCode':code,'seconds':time.monotonic()-start,'config':config,'logSHA256':h(log),'sourceHashes':{str(f.relative_to(root)):h(f) for f in files if f.is_relative_to(root)},'declarationBoundary':{'scope':'Historical measured provider declarations, no native build or runtime','path':'/workspace/shared/cad-1918-validation/cad-dist','receiptSHA256':h(Path('/workspace/shared/cad-pocket-authoring-validation/declarations.json')),'hashes':{f.name:h(f) for f in files if f.is_relative_to('/workspace/shared/cad-1918-validation/cad-dist')}},'toolHashes':{str(f):h(f) for f in [node,ts]},'foreignProductSources':foreign,'remainingProcessGroup':subprocess.getoutput('ps -o pid,pgid,args --no-headers -g '+str(p.pid))}\n(out/'types.json').write_text(json.dumps(r,indent=2)+'\\n');print(json.dumps({'exitCode':code,'seconds':r['seconds'],'sourceFiles':len(r['sourceHashes']),'foreignProductSources':foreign}));print('\\n'.join(s for s in log.read_text().splitlines() if not s.startswith('/')));raise SystemExit(code)\n",
       "beforeBarrel": "export * from \"/workspace/shared/cad-orthogonal-presentation-1974/packages/barocss-gpu/src/engine-scene.ts\";\nexport * from \"/workspace/shared/cad-orthogonal-presentation-1974/packages/barocss-gpu/src/engine-camera-ray.ts\";\nexport * from \"/workspace/shared/cad-orthogonal-presentation-1974/packages/barocss-gpu/src/engine-raycast.ts\";\nexport * from \"/workspace/shared/cad-orthogonal-presentation-1974/packages/barocss-gpu/src/kernel-face-preview.ts\";\n",
       "afterBarrel": "export * from \"/workspace/shared/cad-orthogonal-presentation-1974/packages/barocss-gpu/src/engine-scene.ts\";\nexport * from \"/workspace/shared/cad-orthogonal-presentation-1974/packages/barocss-gpu/src/engine-camera-ray.ts\";\nexport * from \"/workspace/shared/cad-orthogonal-presentation-1974/packages/barocss-gpu/src/engine-raycast.ts\";\nexport * from \"/workspace/shared/cad-orthogonal-presentation-1974/packages/barocss-gpu/src/kernel-face-preview.ts\";\nexport * from \"/workspace/shared/cad-orthogonal-presentation-1974/packages/barocss-gpu/src/triangle-geometry.ts\";\n"
+    },
+    {
+      "kind": "API verification environment",
+      "attempt": "api/attempt-01",
+      "diagnostic": "Foreign own source resolution: @barocss/cad",
+      "inventoryUnchanged": true,
+      "initialState": {
+        "extractorGuard": "Foreign own source resolution: @barocss/cad",
+        "inventoryUnchanged": true,
+        "rootNodeModulesLink": "/workspace/shared/cad-structure-1960/node_modules",
+        "typescript": "/workspace/shared/barocss-cad-toolchain/node_modules/typescript",
+        "reactTypes": "/workspace/shared/barocss-recovery-toolchain/node_modules/@types/react",
+        "extractorSHA256": "01a0cf2b03a47e540148033c2a788f15dd1fa77cdab27011ef264e2786b02186"
+      },
+      "initialResults": [
+        {
+          "name": "qualified-write",
+          "command": [
+            "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+            "apps/library-docs/scripts/public-api.mjs",
+            "--write-current",
+            "--commit",
+            "3c322f7aa69502a2c292641d12e57aefd84de86c"
+          ],
+          "exitCode": 1,
+          "seconds": 0.8162537629978033
+        }
+      ],
+      "correction": "Only isolated checkout node_modules wiring replaced. Existing external packages read-only, exact TS5.9.3/React types retained, @barocss aliases bind this public product tree. Main checkout and extractor unchanged. One corrected write/check passed; no native or build."
     }
   ],
   "embeddedLogs": {
@@ -1358,13 +1387,164 @@
     "render-links.log": {
       "sha256": "816144d1a308cc3b28cad4acad62e34e43f6b4729abdd740c13de6f98fa09aff",
       "text": "(node:94) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:94) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"result\":\"PASS\",\"candidate\":\"63e43a43ef0722e606f94013a75cc8a06ff35840\",\"node\":\"v22.23.3\",\"vitepress\":\"1.6.4\",\"pages\":1,\"emittedHeadingIds\":[\"read-orthogonal-pocket-and-slot-faces\"],\"verifiedCrosslinks\":69}\n"
+    },
+    "api/attempt-01/qualified-write.log": {
+      "sha256": "297b33e7a836d76a4d272ff0181b4b4d123fdeef138ccf5b2b10fd4437bb809e",
+      "text": "(node:21) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\nfile:///workspace/shared/cad-orthogonal-presentation-1974/apps/library-docs/scripts/public-api.mjs:54\n    if (name.startsWith('@barocss/') && resolved && !resolved.resolvedFileName.startsWith(root + '/')) throw new Error(`Foreign own source resolution: ${name}`);\n                                                                                                             ^\n\nError: Foreign own source resolution: @barocss/cad\n    at file:///workspace/shared/cad-orthogonal-presentation-1974/apps/library-docs/scripts/public-api.mjs:54:110\n    at Array.map (<anonymous>)\n    at host.resolveModuleNames (file:///workspace/shared/cad-orthogonal-presentation-1974/apps/library-docs/scripts/public-api.mjs:51:62)\n    at actualResolveModuleNamesWorker (/workspace/shared/barocss-cad-toolchain/node_modules/typescript/lib/typescript.js:126994:142)\n    at resolveModuleNamesWorker (/workspace/shared/barocss-cad-toolchain/node_modules/typescript/lib/typescript.js:127387:20)\n    at resolveNamesReusingOldState (/workspace/shared/barocss-cad-toolchain/node_modules/typescript/lib/typescript.js:127523:14)\n    at resolveModuleNamesReusingOldState (/workspace/shared/barocss-cad-toolchain/node_modules/typescript/lib/typescript.js:127479:12)\n    at processImportedModules (/workspace/shared/barocss-cad-toolchain/node_modules/typescript/lib/typescript.js:128933:118)\n    at findSourceFileWorker (/workspace/shared/barocss-cad-toolchain/node_modules/typescript/lib/typescript.js:128740:7)\n    at findSourceFile (/workspace/shared/barocss-cad-toolchain/node_modules/typescript/lib/typescript.js:128592:20)\n\nNode.js v22.23.3\n"
+    },
+    "api/qualified-write.log": {
+      "sha256": "d38fd6518ae97437530b7eb6fc4d07b3c638ec513b1e98f5e21c92c64f8ac8e7",
+      "text": "(node:6) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"status\":\"written\",\"evidence\":\"evidence/current-public-api.json\",\"sourceCommit\":\"3c322f7aa69502a2c292641d12e57aefd84de86c\",\"packages\":9,\"changesFromHistorical\":{\"added\":1644,\"removed\":0,\"changed\":52}}\n"
+    },
+    "api/qualified-check.log": {
+      "sha256": "41343cfd3f5f0dbf9026bf7b387b3c53faf9f4469012d9046d6d5a544688547e",
+      "text": "(node:50) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"status\":\"matched\",\"sourceCommit\":\"3c322f7aa69502a2c292641d12e57aefd84de86c\",\"scope\":\"current API\",\"packages\":9,\"entries\":75,\"exportedOccurrences\":4191,\"extractor\":\"5.9.3\"}\n"
     }
   },
   "apiBaseline": {
-    "status": "pending public product pin",
-    "expectedAdded": [],
-    "expectedRemoved": [],
-    "expectedChanged": []
+    "status": "qualified unchanged extractor write/check passed",
+    "sourcePin": "3c322f7aa69502a2c292641d12e57aefd84de86c",
+    "semanticDelta": {
+      "added": [],
+      "removed": [],
+      "changed": [],
+      "beforePin": "3becf0c88558774790eab6222a51379d8e397755",
+      "sourcePin": "3c322f7aa69502a2c292641d12e57aefd84de86c",
+      "typescript": "5.9.3",
+      "signatures": {}
+    },
+    "results": [
+      {
+        "name": "qualified-write",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--write-current",
+          "--commit",
+          "3c322f7aa69502a2c292641d12e57aefd84de86c"
+        ],
+        "exitCode": 0,
+        "seconds": 5.6819163850013865
+      },
+      {
+        "name": "qualified-check",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--check"
+        ],
+        "exitCode": 0,
+        "seconds": 5.078763510013232
+      }
+    ],
+    "extractorSHA256": "01a0cf2b03a47e540148033c2a788f15dd1fa77cdab27011ef264e2786b02186",
+    "inventorySHA256": "7037aea0d06424d5e8fb5676805fc5e158c1049fe3a0e9c4ecf4f07f39924f51",
+    "correctedExternalDependencyLinks": {
+      "https-proxy-agent": "/workspace/shared/barocss-recovery-toolchain/node_modules/https-proxy-agent",
+      "@rolldown": "/workspace/shared/barocss-recovery-toolchain/node_modules/@rolldown",
+      "class-variance-authority": "/workspace/shared/barocss-recovery-toolchain/node_modules/class-variance-authority",
+      "whatwg-encoding": "/workspace/shared/barocss-recovery-toolchain/node_modules/whatwg-encoding",
+      "lightningcss-linux-x64-gnu": "/workspace/shared/barocss-recovery-toolchain/node_modules/lightningcss-linux-x64-gnu",
+      "data-urls": "/workspace/shared/barocss-recovery-toolchain/node_modules/data-urls",
+      "nwsapi": "/workspace/shared/barocss-recovery-toolchain/node_modules/nwsapi",
+      "parse5": "/workspace/shared/barocss-recovery-toolchain/node_modules/parse5",
+      "@radix-ui": "/workspace/shared/barocss-recovery-toolchain/node_modules/@radix-ui",
+      "http-proxy-agent": "/workspace/shared/barocss-recovery-toolchain/node_modules/http-proxy-agent",
+      "lightningcss": "/workspace/shared/barocss-recovery-toolchain/node_modules/lightningcss",
+      "scheduler": "/workspace/shared/barocss-recovery-toolchain/node_modules/scheduler",
+      "w3c-xmlserializer": "/workspace/shared/barocss-recovery-toolchain/node_modules/w3c-xmlserializer",
+      "@jridgewell": "/workspace/shared/barocss-recovery-toolchain/node_modules/@jridgewell",
+      "aria-hidden": "/workspace/shared/barocss-recovery-toolchain/node_modules/aria-hidden",
+      "lru-cache": "/workspace/shared/barocss-recovery-toolchain/node_modules/lru-cache",
+      "xmlchars": "/workspace/shared/barocss-recovery-toolchain/node_modules/xmlchars",
+      "undici-types": "/workspace/shared/barocss-recovery-toolchain/node_modules/undici-types",
+      "detect-node-es": "/workspace/shared/barocss-recovery-toolchain/node_modules/detect-node-es",
+      "@oxc-project": "/workspace/shared/barocss-recovery-toolchain/node_modules/@oxc-project",
+      "xml-name-validator": "/workspace/shared/barocss-recovery-toolchain/node_modules/xml-name-validator",
+      "@asamuzakjp": "/workspace/shared/barocss-recovery-toolchain/node_modules/@asamuzakjp",
+      "magic-string": "/workspace/shared/barocss-recovery-toolchain/node_modules/magic-string",
+      "lucide-react": "/workspace/shared/barocss-recovery-toolchain/node_modules/lucide-react",
+      "decimal.js": "/workspace/shared/barocss-recovery-toolchain/node_modules/decimal.js",
+      "debug": "/workspace/shared/barocss-recovery-toolchain/node_modules/debug",
+      "webidl-conversions": "/workspace/shared/barocss-recovery-toolchain/node_modules/webidl-conversions",
+      "globals": "/workspace/shared/barocss-cad-toolchain/node_modules/globals",
+      "punycode": "/workspace/shared/barocss-recovery-toolchain/node_modules/punycode",
+      "use-callback-ref": "/workspace/shared/barocss-recovery-toolchain/node_modules/use-callback-ref",
+      "tr46": "/workspace/shared/barocss-recovery-toolchain/node_modules/tr46",
+      "saxes": "/workspace/shared/barocss-recovery-toolchain/node_modules/saxes",
+      "typescript": "/workspace/shared/barocss-cad-toolchain/node_modules/typescript",
+      "safer-buffer": "/workspace/shared/barocss-recovery-toolchain/node_modules/safer-buffer",
+      "csstype": "/workspace/shared/barocss-recovery-toolchain/node_modules/csstype",
+      "enhanced-resolve": "/workspace/shared/barocss-recovery-toolchain/node_modules/enhanced-resolve",
+      "detect-libc": "/workspace/shared/barocss-recovery-toolchain/node_modules/detect-libc",
+      "typescript-eslint": "/workspace/shared/barocss-cad-toolchain/node_modules/typescript-eslint",
+      "tough-cookie": "/workspace/shared/barocss-recovery-toolchain/node_modules/tough-cookie",
+      ".package-lock.json": "/workspace/shared/barocss-recovery-toolchain/node_modules/.package-lock.json",
+      "ws": "/workspace/shared/barocss-recovery-toolchain/node_modules/ws",
+      "vite": "/workspace/shared/barocss-recovery-toolchain/node_modules/vite",
+      "is-potential-custom-element-name": "/workspace/shared/barocss-recovery-toolchain/node_modules/is-potential-custom-element-name",
+      "clsx": "/workspace/shared/barocss-recovery-toolchain/node_modules/clsx",
+      "@csstools": "/workspace/shared/barocss-recovery-toolchain/node_modules/@csstools",
+      "tldts": "/workspace/shared/barocss-recovery-toolchain/node_modules/tldts",
+      "nanoid": "/workspace/shared/barocss-recovery-toolchain/node_modules/nanoid",
+      "react": "/workspace/shared/barocss-recovery-toolchain/node_modules/react",
+      "jsdom": "/workspace/shared/barocss-recovery-toolchain/node_modules/jsdom",
+      "react-style-singleton": "/workspace/shared/barocss-recovery-toolchain/node_modules/react-style-singleton",
+      "rolldown": "/workspace/shared/barocss-recovery-toolchain/node_modules/rolldown",
+      "symbol-tree": "/workspace/shared/barocss-recovery-toolchain/node_modules/symbol-tree",
+      "@floating-ui": "/workspace/shared/barocss-recovery-toolchain/node_modules/@floating-ui",
+      "tapable": "/workspace/shared/barocss-recovery-toolchain/node_modules/tapable",
+      "@esbuild": "/workspace/shared/barocss-recovery-toolchain/node_modules/@esbuild",
+      "react-dom": "/workspace/shared/barocss-recovery-toolchain/node_modules/react-dom",
+      "lightningcss-linux-x64-musl": "/workspace/shared/barocss-recovery-toolchain/node_modules/lightningcss-linux-x64-musl",
+      "@tailwindcss": "/workspace/shared/barocss-recovery-toolchain/node_modules/@tailwindcss",
+      "tinyglobby": "/workspace/shared/barocss-recovery-toolchain/node_modules/tinyglobby",
+      "tailwindcss": "/workspace/shared/barocss-recovery-toolchain/node_modules/tailwindcss",
+      "radix-ui": "/workspace/shared/barocss-recovery-toolchain/node_modules/radix-ui",
+      "cssstyle": "/workspace/shared/barocss-recovery-toolchain/node_modules/cssstyle",
+      "whatwg-mimetype": "/workspace/shared/barocss-recovery-toolchain/node_modules/whatwg-mimetype",
+      ".bin": "/workspace/shared/barocss-recovery-toolchain/node_modules/.bin",
+      "react-remove-scroll": "/workspace/shared/barocss-recovery-toolchain/node_modules/react-remove-scroll",
+      "use-sidecar": "/workspace/shared/barocss-recovery-toolchain/node_modules/use-sidecar",
+      "node-bin-setup": "/workspace/shared/barocss-recovery-toolchain/node_modules/node-bin-setup",
+      "entities": "/workspace/shared/barocss-recovery-toolchain/node_modules/entities",
+      "picomatch": "/workspace/shared/barocss-recovery-toolchain/node_modules/picomatch",
+      "@typescript-eslint": "/workspace/shared/barocss-cad-toolchain/node_modules/@typescript-eslint",
+      "react-remove-scroll-bar": "/workspace/shared/barocss-recovery-toolchain/node_modules/react-remove-scroll-bar",
+      "get-nonce": "/workspace/shared/barocss-recovery-toolchain/node_modules/get-nonce",
+      "tldts-core": "/workspace/shared/barocss-recovery-toolchain/node_modules/tldts-core",
+      "ms": "/workspace/shared/barocss-recovery-toolchain/node_modules/ms",
+      "jiti": "/workspace/shared/barocss-recovery-toolchain/node_modules/jiti",
+      "esbuild": "/workspace/shared/barocss-recovery-toolchain/node_modules/esbuild",
+      "node": "/workspace/shared/barocss-recovery-toolchain/node_modules/node",
+      "source-map-js": "/workspace/shared/barocss-recovery-toolchain/node_modules/source-map-js",
+      "rrweb-cssom": "/workspace/shared/barocss-recovery-toolchain/node_modules/rrweb-cssom",
+      ".vite-temp": "/workspace/shared/cad-structure-1960/node_modules/.vite-temp",
+      "eslint": "/workspace/shared/barocss-cad-toolchain/node_modules/eslint",
+      "@eslint": "/workspace/shared/barocss-cad-toolchain/node_modules/@eslint",
+      "postcss": "/workspace/shared/barocss-recovery-toolchain/node_modules/postcss",
+      "fdir": "/workspace/shared/barocss-recovery-toolchain/node_modules/fdir",
+      "@eslint-community": "/workspace/shared/barocss-cad-toolchain/node_modules/@eslint-community",
+      "iconv-lite": "/workspace/shared/barocss-recovery-toolchain/node_modules/iconv-lite",
+      "html-encoding-sniffer": "/workspace/shared/barocss-recovery-toolchain/node_modules/html-encoding-sniffer",
+      "tailwind-merge": "/workspace/shared/barocss-recovery-toolchain/node_modules/tailwind-merge",
+      "whatwg-url": "/workspace/shared/barocss-recovery-toolchain/node_modules/whatwg-url",
+      "agent-base": "/workspace/shared/barocss-recovery-toolchain/node_modules/agent-base",
+      "tslib": "/workspace/shared/barocss-recovery-toolchain/node_modules/tslib",
+      "@types": "/workspace/shared/barocss-recovery-toolchain/node_modules/@types",
+      "graceful-fs": "/workspace/shared/barocss-recovery-toolchain/node_modules/graceful-fs",
+      "picocolors": "/workspace/shared/barocss-recovery-toolchain/node_modules/picocolors",
+      "@barocss/cad-editor": "/workspace/shared/cad-orthogonal-presentation-1974/packages/barocss-cad-editor",
+      "@barocss/canvas2d": "/workspace/shared/cad-orthogonal-presentation-1974/packages/barocss-canvas2d",
+      "@barocss/physics": "/workspace/shared/cad-orthogonal-presentation-1974/packages/barocss-physics",
+      "@barocss/cad-interop": "/workspace/shared/cad-orthogonal-presentation-1974/packages/barocss-cad-interop",
+      "@barocss/render-editor": "/workspace/shared/cad-orthogonal-presentation-1974/packages/barocss-render-editor",
+      "@barocss/gpu": "/workspace/shared/cad-orthogonal-presentation-1974/packages/barocss-gpu",
+      "@barocss/render": "/workspace/shared/cad-orthogonal-presentation-1974/packages/barocss-render",
+      "@barocss/viewer": "/workspace/shared/cad-orthogonal-presentation-1974/packages/barocss-viewer",
+      "@barocss/cad": "/workspace/shared/cad-orthogonal-presentation-1974/packages/barocss-cad"
+    },
+    "rootOnlyDelta": "sourceCommit, editor package tree, and ModelingOrthogonalFaceSelection source line360\u2192424; zero exported signature changes"
   },
   "physicalStatus": {
     "orthogonalReadability": "pending combined1971/1974 actual Tester after adoption/CI",
@@ -1381,5 +1561,7 @@
     "Public cloned display objects do not inherit receiving-realm WeakMap authority. Generation IDs isolate outputs, replacements and resize but do not introduce durable cross-result face IDs.",
     "The original ten-group run and lint used the preserved executed fixture; the final public-baseline constant amendment is qualified by exact original baseline bytes without replay.",
     "Older1867 acceptance and wider native/physical/export gates remain independent."
-  ]
+  ],
+  "publicProductCommit": "3c322f7aa69502a2c292641d12e57aefd84de86c",
+  "publicProductTree": "4f9090918284cacb599b9de6903150d593c547e6"
 }
