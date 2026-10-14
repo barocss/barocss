@@ -4,10 +4,9 @@ import { configureEngineWebGPUCanvas } from './engine-webgpu-canvas-config.js';
 import { presentCheckedEngineWebGPUColor } from './engine-webgpu-checked-present.js';
 import { EngineWebGPUWaitBudget } from './engine-webgpu-wait-budget.js';
 import { observeEngineWebGPUDeviceLoss } from './engine-webgpu-device-loss.js';
+import { claimEngineWebGPUContext } from './engine-webgpu-context-claim.js';
 import type { EngineSceneV0 } from './engine-scene.js';
 import type { GPUCanvasHandle, GPUDeviceHandle } from './webgpu-platform.js';
-
-const activeContexts = new WeakSet<GPUCanvasHandle>();
 
 /** Private one-shot composition. Caller owns the live device and matching canvas backing.
  * Caller serializes device scopes; no mounted updates or pixel rollback.
@@ -25,9 +24,8 @@ export async function renderEngineWebGPUCanvasOnce(
     throw new RangeError('Engine WebGPU Canvas dimensions exceed bounded device limits');
   if (format !== 'rgba8unorm' && format !== 'bgra8unorm')
     throw new TypeError('Unsupported opaque Engine WebGPU Canvas color format');
-  if (activeContexts.has(context)) throw new TypeError('Engine WebGPU Canvas is already claimed');
   const budget = new EngineWebGPUWaitBudget();
-  activeContexts.add(context);
+  const releaseClaim = claimEngineWebGPUContext(context);
   let frame: Awaited<ReturnType<typeof renderCheckedEngineWebGPUOnce>> | undefined;
   let canvas: ReturnType<typeof configureEngineWebGPUCanvas> | undefined;
   let disposed = false;
@@ -41,7 +39,7 @@ export async function renderEngineWebGPUCanvasOnce(
     const failures: unknown[] = [];
     try { frame?.dispose(); } catch (cause) { failures.push(cause); }
     try { canvas?.dispose(); } catch (cause) { failures.push(cause); }
-    activeContexts.delete(context);
+    releaseClaim();
     return failures;
   }
   try {

@@ -6,6 +6,7 @@ import './engine-webgpu-checked-once.test.mjs';
 import './engine-webgpu-checked-present.test.mjs';
 import './engine-webgpu-wait-budget.test.mjs';
 import './engine-webgpu-device-loss.test.mjs';
+import './engine-webgpu-session.test.mjs';
 
 export function original() {
   const mesh = id => ({id,type:'mesh',parentId:null,translation:[0,0,0],
