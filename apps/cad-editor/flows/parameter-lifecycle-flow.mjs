@@ -26,7 +26,7 @@ export async function runParameterLifecycleFlow({page,browser,cad,editor,result,
     for(const feature of original.document.features) {
       const current=actual.document.features.find(f=>f.id===feature.id);
       if(feature.kind!=='normal-extrusion')assert.deepEqual(current,feature);
-      else {const {distance,...rest}=feature,{distance:after,...currentRest}=current;assert.deepEqual(currentRest,rest);}
+      else {const {distance,...rest}=feature,{distance:after,...currentRest}=current;void distance;void after;assert.deepEqual(currentRest,rest);}
     }
     const unused=actual.document.parameters.find(p=>p.id==='unused');
     assert.equal(Object.is(unused.definition.valueMM,-0),true);
@@ -48,7 +48,7 @@ export async function runParameterLifecycleFlow({page,browser,cad,editor,result,
   const add=request(before.accepted,[upsert(freshId,literal(3))]);
   const candidate=pure.prepareParameterTransaction(add);assert.equal(candidate.kind,'parameter');
   add.parameterOperations[0].parameter.definition.valueMM=99;candidate.result.document.parameters.length=0;
-  pure.acceptCandidate(candidate.token);let added=pure.getSnapshot();
+  pure.acceptCandidate(candidate.token);const added=pure.getSnapshot();
   assert.equal(added.accepted.document.parameters.at(-1).definition.valueMM,3);
   assert.equal(added.history.count,before.history.count+1);assert.equal(added.displayGeneration,before.displayGeneration);
   assert.equal(added.selectedFeatureId,'leaf_top');observe(added.accepted,[2,3,4,5]);
@@ -118,7 +118,7 @@ export async function runParameterLifecycleFlow({page,browser,cad,editor,result,
   }
   await page.getByTestId('remove-length-base_height').click();old=await snapshot();frame=await display();await page.getByTestId('length-confirm').click();await retained(page,old,frame);assert.equal((await page.evaluate(()=>window.__cadFeatureFlow.error())).cause.code,'PARAMETER');
   await page.getByTestId('repair-enable-design_height').check();await page.getByTestId('repair-definition-design_height').selectOption('offset');await page.getByTestId('repair-parameter-design_height').selectOption(newId);await page.getByTestId('repair-value-design_height').fill('0');
-  old=await snapshot();await page.getByTestId('length-confirm').click();await wait(page,old);await page.getByRole('dialog').waitFor({state:'hidden'});await page.waitForFunction(()=>document.activeElement?.getAttribute('data-testid')==='add-length');let afterBase=await snapshot();observe(afterBase.accepted,[3,4,5,6]);assert.deepEqual(afterBase.accepted.document.parameters.find(p=>p.id==='design_height').definition,offset(newId,0));
+  old=await snapshot();await page.getByTestId('length-confirm').click();await wait(page,old);await page.getByRole('dialog').waitFor({state:'hidden'});await page.waitForFunction(()=>document.activeElement?.getAttribute('data-testid')==='add-length');const afterBase=await snapshot();observe(afterBase.accepted,[3,4,5,6]);assert.deepEqual(afterBase.accepted.document.parameters.find(p=>p.id==='design_height').definition,offset(newId,0));
   await page.getByTestId('remove-length-design_height').click();old=await snapshot();frame=await display();await page.getByTestId('length-confirm').click();await retained(page,old,frame);
   assert.equal((await page.evaluate(()=>window.__cadFeatureFlow.error())).cause.code,'PARAMETER');
   for(const [i,leaf] of leaves(old.accepted).entries()) {
@@ -130,7 +130,7 @@ export async function runParameterLifecycleFlow({page,browser,cad,editor,result,
   });
   assert.ok(layout.headerTop>=layout.top&&layout.footerBottom<=layout.bottom&&layout.bottom<=layout.height);
   await page.screenshot({path:resolve(evidence,prefix+'-parameter-repair-dialog.png')});
-  old=await snapshot();await page.getByTestId('length-confirm').click();await wait(page,old);await page.getByRole('dialog').waitFor({state:'hidden'});let repairedUI=await snapshot();observe(repairedUI.accepted,[3,4,5,6]);assert.deepEqual(repairedUI.accepted.document.parameters.map(p=>p.id),['unused',newId]);assert.equal(repairedUI.displays.length,4);assert.equal(repairedUI.displayGeneration,afterBase.displayGeneration);
+  old=await snapshot();await page.getByTestId('length-confirm').click();await wait(page,old);await page.getByRole('dialog').waitFor({state:'hidden'});const repairedUI=await snapshot();observe(repairedUI.accepted,[3,4,5,6]);assert.deepEqual(repairedUI.accepted.document.parameters.map(p=>p.id),['unused',newId]);assert.equal(repairedUI.displays.length,4);assert.equal(repairedUI.displayGeneration,afterBase.displayGeneration);
   leaves(repairedUI.accepted).forEach((leaf,i)=>assert.deepEqual(leaf.distance,offset(newId,i)));
   await page.getByTestId('edit-length-'+newId).click();await page.getByTestId('length-value').fill('0');old=await snapshot();frame=await display();await page.getByTestId('length-confirm').click();await retained(page,old,frame);assert.equal((await page.evaluate(()=>window.__cadFeatureFlow.error())).cause.code,'PARAMETER');assert.equal(await page.getByTestId('length-value').inputValue(),'0');assert.match(await page.getByRole('alert').last().innerText(),/0\.0001 to 10000 mm/);await page.screenshot({path:resolve(evidence,prefix+'-parameter-native-height-refusal.png')});await page.getByRole('button',{name:'Cancel',exact:true}).click();await page.getByTestId('length-dialog').waitFor({state:'hidden'});assert.deepEqual((await snapshot()).accepted,repairedUI.accepted);
   await page.screenshot({path:resolve(evidence,prefix+'-parameter-repaired.png')});result.events.push({stage:'actual-length-add-remove-explicit-repairs',native:observe(repairedUI.accepted,[3,4,5,6]),display:await display(),actualGpuRefusal:gpuRefused,modalRawAndCancelFocusRetained:true,missingParameterAndFourDistanceRepairRefusals:true,contextualHelpFocusRawRetained:true,browserCompositionEnterDoesNotCommit:true,actualNativeHeightRangeRefusal:true,fixedRepairHeaderActions:layout});
@@ -144,7 +144,7 @@ export async function runParameterLifecycleFlow({page,browser,cad,editor,result,
     await fresh.getByTestId('parameter-value-'+newId).fill('4');old=await snapshot(fresh);await fresh.getByTestId('feature-apply').click();await wait(fresh,old);const reedited=await snapshot(fresh);observe(reedited.accepted,[4,5,6,7]);assert.ok((await display(fresh)).nonBackgroundPixels>0);
     await fresh.screenshot({path:resolve(evidence,prefix+'-parameter-fresh-reedit.png')});result.events.push({stage:'genuine-parameter-download-fresh-reedit',path,native:observe(reedited.accepted,[4,5,6,7]),display:await display(fresh)});
     await fresh.getByTestId('edit-length-'+newId).click();await fresh.getByTestId('length-value').fill('12');await fresh.keyboard.press('Escape');await fresh.getByRole('dialog').waitFor({state:'hidden'});await fresh.waitForFunction(id=>document.activeElement?.getAttribute('data-testid')==='edit-length-'+id,newId);assert.deepEqual((await snapshot(fresh)).accepted,reedited.accepted);
-  } catch(error) {try{await freshContext.pages().at(-1)?.screenshot({path:resolve(evidence,prefix+'-parameter-failure.png')});}catch{}throw error;}
+  } catch(error) {try{await freshContext.pages().at(-1)?.screenshot({path:resolve(evidence,prefix+'-parameter-failure.png')});}catch{/* Keep the original failure if capture fails. */}throw error;}
   finally {await freshContext.close();}
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href) {

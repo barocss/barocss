@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
@@ -48,7 +48,7 @@ export async function runFeatureFanoutFlow({page,browser,cad,editor,result,evide
   assert.equal(all.displays.length,4);assert.equal(allFrame.scene.entries.length,4);assert.equal(allFrame.resourceCounts.vertexArrays,8);assert.equal(allFrame.resourceCounts.buffers,20);assert.ok(allFrame.nonBackgroundPixels>0);
   assert.deepEqual(allFrame.scene.entries.map(e=>e.ref.featureId),leaves.map(f=>f.id));assert.equal(all.generation,opened.generation);assert.deepEqual(all.accepted,opened.accepted);assert.deepEqual(all.history,opened.history);
   result.events.push({stage:'actual-four-qualified-shells',native:observe(all.accepted,2,24),display:allFrame,nestedNativeRegion:true});
-  await page.getByTestId('feature-select-leaf_middle').click();await page.getByTestId('fit-selected-output').click();await page.waitForFunction(i=>window.__cadFeatureFlow.display().readIndex>i,allFrame.readIndex);const fitted=await display();assert.deepEqual((await snapshot()).accepted,all.accepted);
+  await page.getByTestId('feature-select-leaf_middle').click();await page.getByTestId('fit-selected-output').click();await page.waitForFunction(i=>window.__cadFeatureFlow.display().readIndex>i,allFrame.readIndex);await display();assert.deepEqual((await snapshot()).accepted,all.accepted);
   await page.getByTestId('parameter-value-base_height').fill('3');const draft=await snapshot();const captured=await page.evaluate(()=>window.__cadFeatureFlow.session.serializeAccepted());
   await page.getByTestId('output-visible-leaf_middle').click();await wait(page,draft.generation,draft.displayGeneration+1);const hidden=await snapshot();assert.equal(hidden.displays.length,3);assert.deepEqual(hidden.pending,draft.pending);assert.deepEqual(hidden.accepted,draft.accepted);assert.deepEqual(hidden.history,draft.history);assert.equal(hidden.dirty,draft.dirty);
   const hiddenFrame=await display();await page.getByTestId('fit-selected-output').click();await page.waitForFunction(()=>window.__cadFeatureFlow.error()?.context.field==='fit-selected-output');await page.waitForFunction(i=>window.__cadFeatureFlow.display().readIndex>i,hiddenFrame.readIndex);const refusedFit=await display();assert.equal(refusedFit.pixelHash,hiddenFrame.pixelHash);assert.deepEqual(refusedFit.camera,hiddenFrame.camera);
@@ -70,7 +70,7 @@ export async function runFeatureFanoutFlow({page,browser,cad,editor,result,evide
     result.events.push({stage:'genuine-full-fanout-file-roundtrip',path,native:observe(reopened.accepted,4,4),display:frame,differentView:true,allFourNativeLeavesRetained:true});
     // Open genuine native empty leaves, then refuse selected-output framing without changing the camera.
     const emptyText=readFileSync(resolve(evidence,prefix+'-empty.graph.json'),'utf8');await fresh.getByLabel('Open native feature graph file').setInputFiles({name:'empty.graph.json',mimeType:'application/json',buffer:Buffer.from(emptyText)});await wait(fresh,3,3);await fresh.getByTestId('feature-select-extrusion_feature').click();const emptyFrame=await display(fresh);await fresh.getByTestId('fit-selected-output').click();await fresh.waitForFunction(()=>window.__cadFeatureFlow.error()?.context.field==='fit-selected-output');await fresh.waitForFunction(i=>window.__cadFeatureFlow.display().readIndex>i,emptyFrame.readIndex);assert.deepEqual((await display(fresh)).camera,emptyFrame.camera);assert.equal((await display(fresh)).nonBackgroundPixels,0);result.events.push({stage:'actual-empty-selected-output-fit-refusal',display:await display(fresh)});
-  } catch(error) {try{const pages=freshContext.pages();await pages.at(-1)?.screenshot({path:resolve(evidence,prefix+'-fanout-failure.png')});}catch{}throw error;}finally{await freshContext.close();}
+  } catch(error) {try{const pages=freshContext.pages();await pages.at(-1)?.screenshot({path:resolve(evidence,prefix+'-fanout-failure.png')});}catch{/* Keep the original failure if capture fails. */}throw error;}finally{await freshContext.close();}
 }
 
 // The standalone command runs the same existing feature gate and its fanout extension.

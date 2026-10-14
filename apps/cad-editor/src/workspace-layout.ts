@@ -96,7 +96,7 @@ export function useWorkspaceLayout(root:RefObject<HTMLDivElement|null>,session:C
     const gesture=resize.current;if(!gesture)return;
     resize.current=null;setResizing(false);
     if(restore)commit({...current.current,objectsWidth:gesture.originalObjectsWidth,propertiesWidth:gesture.originalPropertiesWidth});
-    try{if(gesture.element.hasPointerCapture(gesture.pointerId))gesture.element.releasePointerCapture(gesture.pointerId);}catch{}
+    try{if(gesture.element.hasPointerCapture(gesture.pointerId))gesture.element.releasePointerCapture(gesture.pointerId);}catch{/* The pointer may already be released. */}
   }
   function resizeCurrent(gesture:ResizeGesture):boolean {
     const bounds=measure(gesture.panel),state=session.getSnapshot(),panels=current.current;

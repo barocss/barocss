@@ -46,7 +46,7 @@ try {
   assert.equal(typeof globalThis.document, 'undefined');
   const sample = cad.parseCadDocument(readFileSync(resolve(repo, 'apps/cad-editor/fixtures/canonical-surface-and-curve.cad-document.json'), 'utf8'));
   const mixedPath = resolve(repo, 'apps/cad-editor/fixtures/source-preserving-surface.cad-document.json');
-  const mixed = cad.parseCadDocument(readFileSync(mixedPath, 'utf8'));
+  cad.parseCadDocument(readFileSync(mixedPath, 'utf8'));
   const nativeSurface = graph => cad.resolveCadGeometryReference(graph,
     cad.createCadGeometryReference(graph, {bodyId: 'surface_body'}).reference).geometry;
   // Independent rational quadratic tensor control for these original clamped 3-by-3 fixtures.
@@ -103,7 +103,7 @@ try {
   server.on('exit', () => { serverExited = true; });
   for (let index = 0; index < 100; index++) {
     if (serverExited) throw new Error('Owned Vite exited before readiness.');
-    try { if ((await fetch('http://127.0.0.1:' + port)).ok) break; } catch {}
+    try { if ((await fetch('http://127.0.0.1:' + port)).ok) break; } catch {/* Retry while the owned server starts. */}
     if (index === 99) throw new Error('Owned Vite readiness timeout.');
     await new Promise(resolve => setTimeout(resolve, 100));
   }
@@ -337,7 +337,7 @@ try {
       await activePage.mouse.up(); mouseHeld = false;
     }
     await activePage.screenshot({path: resolve(evidence, prefix + '-failure.png')});
-  } catch {}
+  } catch {/* Keep the original failure if capture fails. */}
   result.outcome = 'failed'; result.failure = {message: error.message, stack: error.stack}; save();
   console.error(error.stack); process.exitCode = 1;
 } finally {
