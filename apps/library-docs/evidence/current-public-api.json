@@ -1,7 +1,7 @@
 {
   "schema": "barocss-current-public-api-v1",
   "typescriptVersion": "5.9.3",
-  "sourceCommit": "6564350ae9439835c73d2139d2ea9095b3439f4d",
+  "sourceCommit": "d3d57d42422a88142f0a8ab65d09ac45f6ac2e2a",
   "extractor": "TypeScript 5.9.3 public module exports and declarations; not a type-check or runtime execution",
   "packages": [
     {
@@ -51589,7 +51589,7 @@
               "name": "CadEditorModeling",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-cad-editor/src/react/modeling-editor.tsx",
-              "line": 31,
+              "line": 33,
               "signatures": [
                 "export function CadEditorModeling({ initialAuthoredText, workspace: initialWorkspace = false }: CadEditorModelingProps): JSX.Element;"
               ],
@@ -51599,7 +51599,7 @@
               "name": "CadEditorModelingProps",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad-editor/src/react/modeling-editor.tsx",
-              "line": 25,
+              "line": 27,
               "signatures": [
                 "export interface CadEditorModelingProps {\n  initialAuthoredText?: string;\n  /** Mount-time layout choice. Changing this prop does not replace the active document or viewport. */\n  workspace?: boolean;\n}"
               ],
@@ -55179,12 +55179,12 @@
   "packageTrees": {
     "packages/barocss-render": "b83e4912e1d1aa658f048ba4b112376785b288fb",
     "packages/barocss-gpu": "d16b60491bb20628a6b8c987d5134fc6bd7c1bde",
-    "packages/barocss-cad": "b0f97822b7b7da2a4dd26444c5c7bcbe33c78255",
+    "packages/barocss-cad": "6fd20f0a8db671522e1cfe023ddad35647ca26ad",
     "packages/barocss-cad-interop": "1a2584cfb25826412096512aa71d74f059e5092d",
     "packages/barocss-canvas2d": "39853a85709f5c59dba7cdbbab3fd87da48cb54a",
     "packages/barocss-viewer": "aa7736ed08620fe9b7db2eff4feec5c89f9e502b",
     "packages/barocss-physics": "f3aa5c6e161137cb80fb68f73a517cd6bdc673dd",
-    "packages/barocss-cad-editor": "2e7e93e3c12c716b25a41062249fedf02381f553",
+    "packages/barocss-cad-editor": "5af51977495767fe82dd3f1c623505ea45485171",
     "packages/barocss-render-editor": "d1486acf9b983dba6839d2bf303406876244e2e6"
   },
   "historicalSourceCommit": "5f5ad866205a21510ac69552e704cc162fa253b5",

@@ -1085,11 +1085,46 @@
     "verifiedFor": "1971 local noEmit only; historical declarations, current-source CI still required"
   },
   "apiBaseline": {
-    "status": "pending immutable public product source pin",
-    "expectedAdded": [],
-    "expectedRemoved": [],
-    "expectedChanged": [],
-    "meaning": "The new builder and workspace command are private. Preserve adopted provider scale/mirror/rotation/pattern authority. A source tree pin change is not a new exported API claim."
+    "status": "PASS",
+    "publicProductCommit": "d3d57d42422a88142f0a8ab65d09ac45f6ac2e2a",
+    "parent": "f34a841a9d535a3134d0ae43b188d9eb7368f5d7",
+    "productTree": "467549854a50f7cb1e7d532b35bd31e981a7c73b",
+    "inventorySHA256": "96b044c374c50449a917b6cccd798d1863cb25fe5cf5b87a536feb7ca0c14f07",
+    "semanticDelta": {
+      "added": [],
+      "removed": [],
+      "changed": [],
+      "beforePin": "6564350ae9439835c73d2139d2ea9095b3439f4d",
+      "sourcePin": "d3d57d42422a88142f0a8ab65d09ac45f6ac2e2a",
+      "typescript": "5.9.3",
+      "signatures": {}
+    },
+    "calls": [
+      {
+        "name": "qualified-write",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--write-current",
+          "--commit",
+          "d3d57d42422a88142f0a8ab65d09ac45f6ac2e2a"
+        ],
+        "exitCode": 0,
+        "seconds": 6.593969894995098
+      },
+      {
+        "name": "qualified-check",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--check"
+        ],
+        "exitCode": 0,
+        "seconds": 5.631893539000885
+      }
+    ],
+    "extractorUnchanged": true,
+    "meaning": "Exactly zero exported-signature changes relative to the incoming linear-pattern baseline. Provenance changes are sourceCommit, CAD/editor subtree pins and two React declaration line locations (25/31 to27/33). Incoming CAD subtree includes its final provider test/evidence commit after its own public API source pin. Extractor TypeScript5.9.3 resolves current own sources and external React types; no native/build execution."
   },
   "embeddedLogs": {
     "first-attempt.log": {
@@ -1115,6 +1150,14 @@
     "render-links.log": {
       "sha256": "df52211df3138249bcfcc085ca316782e3f466dc3ca28075a248a551c7186b78",
       "text": "(node:5) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:5) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"result\":\"PASS\",\"candidate\":\"8d8f314c5431e308dbe92d16b4be86aa1379a391\",\"node\":\"v22.23.3\",\"vitepress\":\"1.6.4\",\"pages\":1,\"emittedHeadingIds\":[\"create-a-circular-blank\"],\"verifiedCrosslinks\":72}\n"
+    },
+    "api/qualified-write.log": {
+      "sha256": "654ea879335ab534d45474977ddf992dad3738bdb2c618f6ab9acaa2a7b6d701",
+      "text": "(node:61) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"status\":\"written\",\"evidence\":\"evidence/current-public-api.json\",\"sourceCommit\":\"d3d57d42422a88142f0a8ab65d09ac45f6ac2e2a\",\"packages\":9,\"changesFromHistorical\":{\"added\":1644,\"removed\":0,\"changed\":52}}\n"
+    },
+    "api/qualified-check.log": {
+      "sha256": "b39608a9aebbe71e2e3210adfbbb56538c2a0541530b1e510330e69aafbb5f26",
+      "text": "(node:105) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"status\":\"matched\",\"sourceCommit\":\"d3d57d42422a88142f0a8ab65d09ac45f6ac2e2a\",\"scope\":\"current API\",\"packages\":9,\"entries\":75,\"exportedOccurrences\":4191,\"extractor\":\"5.9.3\"}\n"
     }
   },
   "limits": [
@@ -1126,5 +1169,49 @@
     "No certified circular volume or mass, STL, bore, threads, bolt pattern, selected-face drawing, circular Boolean/finishing/transform command or manufacturing acceptance.",
     "Historical280CAD declarations at5c6dc223 qualify local noEmit only, not a fresh current provider emit. Current-source CI remains required.",
     "The separately queued #1971/#1974 physical request is unconfirmed after transport loss; this evidence does not close either gate."
-  ]
+  ],
+  "freshBaseReconciliation": {
+    "base": "f34a841a9d535a3134d0ae43b188d9eb7368f5d7",
+    "originalTestedBase": "1c182d5727b9ca5b5c0c2d60a8254a309374f933",
+    "originalCandidate": "0678fea9b5cc0f2399e466a5f8507790fb13302e",
+    "replayedCandidate": "941d81fd601e9c7c72f4f8f73b324db630413e9b",
+    "tree": "467549854a50f7cb1e7d532b35bd31e981a7c73b",
+    "reviewedPathsExact": [
+      "apps/cad-editor/README.md",
+      "apps/cad-editor/flows/fixtures/modeling-new-circular-part/verification.json",
+      "apps/cad-editor/flows/modeling-new-circular-part-flow.mjs",
+      "apps/library-docs/docs/packages/cad/modeling.md",
+      "packages/barocss-cad-editor/README.md",
+      "packages/barocss-cad-editor/src/modeling-circular-part.ts",
+      "packages/barocss-cad-editor/src/react/modeling-editor.tsx",
+      "packages/barocss-cad-editor/src/react/modeling-workspace.tsx"
+    ],
+    "incomingPaths": [
+      "apps/library-docs/evidence/current-public-api.json",
+      "packages/barocss-cad/CONCISE_API.md",
+      "packages/barocss-cad/README.md",
+      "packages/barocss-cad/src/modeling-linear-pattern-internal.ts",
+      "packages/barocss-cad/src/modeling.ts",
+      "packages/barocss-cad/test/evidence/linear-pattern-1973/verification.json",
+      "packages/barocss-cad/test/modeling-constraints.test.mjs",
+      "packages/barocss-cad/test/modeling-linear-pattern-cold.mjs",
+      "packages/barocss-cad/test/modeling-linear-pattern-fixture.mjs",
+      "packages/barocss-cad/test/modeling-linear-pattern-internal.test.mjs",
+      "packages/barocss-cad/test/modeling-linear-pattern-native.mjs",
+      "packages/barocss-cad/test/modeling-linear-pattern.test.mjs",
+      "packages/barocss-cad/test/modeling-mass.test.mjs",
+      "packages/barocss-cad/test/modeling-mirror.test.mjs",
+      "packages/barocss-cad/test/modeling-offset.test.mjs",
+      "packages/barocss-cad/test/modeling-rotation.test.mjs",
+      "packages/barocss-cad/test/modeling-scale.test.mjs",
+      "packages/barocss-cad/test/modeling-stl.test.mjs",
+      "packages/barocss-cad/test/modeling-translation.test.mjs",
+      "packages/barocss-cad/test/modeling-types.ts",
+      "packages/barocss-cad/test/public-api-types.mjs"
+    ],
+    "reason": "External1976 linear-pattern adds provider branch and current API method/evidence. Circle admission/native circle branch, scalar dimension resolver and editor runtime files are unchanged. No circle scene/receiver protocol expansion is inferred.",
+    "runtimeParity": "All actual runtime source hashes in the first finite campaign still match current checkout; provider mocked, historical declaration boundary retained.",
+    "apiBaselineSHA256": "8371b006596f20500f7abf718fb130ff06c0c79a2183cfc455da73697864189e",
+    "runtimeHashMatches": 43
+  }
 }
