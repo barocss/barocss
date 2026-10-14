@@ -3,7 +3,7 @@ import type { KeyboardEvent, MouseEvent, ReactNode } from 'react';
 import { Box, ChevronDown, FileJson, FolderOpen, Info, Layers, Pencil, Redo2, Undo2, X } from 'lucide-react';
 import type { CadEditorModelingSnapshot } from '../modeling-controller.js';
 
-export type ModelingWorkspacePanel = 'linear-pattern' | 'rotate-part' | 'move-part' | 'chamfer' | 'cut-pocket' | 'add-hole' | 'add-arm' | 'union' | 'cut-slot' | 'new-part' | 'new-circular-part' | 'sketch' | 'dimensions' | 'extrusion' | 'examples' | 'outputs' | 'files' | 'inspect' | 'limits' | 'configuration';
+export type ModelingWorkspacePanel = 'mirror-part' | 'linear-pattern' | 'rotate-part' | 'move-part' | 'chamfer' | 'cut-pocket' | 'add-hole' | 'add-arm' | 'union' | 'cut-slot' | 'new-part' | 'new-circular-part' | 'sketch' | 'dimensions' | 'extrusion' | 'examples' | 'outputs' | 'files' | 'inspect' | 'limits' | 'configuration';
 export interface ModelingWorkspaceProps {
   snapshot: CadEditorModelingSnapshot | null;
   viewport: ReactNode;
@@ -19,7 +19,7 @@ export interface ModelingWorkspaceProps {
   canApplyExtrusion: boolean;
   canCreatePart: boolean;
   modelNotice?: string;
-  canLinearPattern: boolean;
+  canLinearPattern: boolean; canMirrorPart: boolean;
   canRotatePart: boolean; canMovePart: boolean; canChamfer: boolean; canCutPocket: boolean; canAddHole: boolean; canAddArm: boolean; canUnion: boolean; canCutSlot: boolean; structureReason: string;
   canPreviewStructure: boolean; canApplyStructure: boolean;
   onPreviewStructure(): void; onApplyStructure(): void; onCancelStructure(): void;
@@ -38,7 +38,7 @@ export interface ModelingWorkspaceProps {
   onRetry(): void;
 }
 const panelTitles: Record<ModelingWorkspacePanel, string> = {
-  'linear-pattern': 'Linear pattern', 'rotate-part': 'Rotate part', 'move-part': 'Move part', chamfer: 'Chamfer front top edge', 'cut-pocket': 'Cut rectangular pocket', 'add-hole': 'Add through-hole', 'add-arm': 'Add rectangular arm', union: 'Union bodies', 'cut-slot': 'Cut rectangular through-slot',
+  'mirror-part': 'Mirror finished rail', 'linear-pattern': 'Linear pattern', 'rotate-part': 'Rotate part', 'move-part': 'Move part', chamfer: 'Chamfer front top edge', 'cut-pocket': 'Cut rectangular pocket', 'add-hole': 'Add through-hole', 'add-arm': 'Add rectangular arm', union: 'Union bodies', 'cut-slot': 'Cut rectangular through-slot',
   'new-part': 'New rectangular part', 'new-circular-part': 'New circular part', sketch: 'Edit sketch dimensions', dimensions: 'Edit dimensions', extrusion: 'Edit extrusion', examples: 'Modeling examples', outputs: 'Output bodies',
   files: 'Save or open a model', inspect: 'Inspect selection', limits: 'Capabilities & limits', configuration: 'Rail finishes',
 };
@@ -53,7 +53,7 @@ export function ModelingWorkspace(props: ModelingWorkspaceProps) {
   const busy = snapshot?.busy ?? false, draft = Object.keys(snapshot?.drafts ?? {}).length > 0;
   const previewActive = snapshot?.preview?.status === 'ready' || snapshot?.preview?.status === 'computing';
   const viewDisabled = busy || previewActive || !snapshot?.display || snapshot.disposed;
-  const editingStructure = panel === 'linear-pattern' || panel === 'rotate-part' || panel === 'move-part' || panel === 'chamfer' || panel === 'cut-pocket' || panel === 'add-hole' || panel === 'add-arm' || panel === 'union' || panel === 'cut-slot';
+  const editingStructure = panel === 'mirror-part' || panel === 'linear-pattern' || panel === 'rotate-part' || panel === 'move-part' || panel === 'chamfer' || panel === 'cut-pocket' || panel === 'add-hole' || panel === 'add-arm' || panel === 'union' || panel === 'cut-slot';
   const creatingPart = panel === 'new-part' || panel === 'new-circular-part';
   const editingDimensions = panel === 'dimensions' || panel === 'extrusion' || panel === 'sketch';
   const features = accepted?.features ?? [];
@@ -110,7 +110,7 @@ export function ModelingWorkspace(props: ModelingWorkspaceProps) {
     <nav className="modeling-ribbon" aria-label="Modeling commands">
       <div className="modeling-workspace-badge"><Box aria-hidden="true" /><strong>DESIGN</strong><small>Modeling</small></div>
       <div className="modeling-ribbon-content"><div className="modeling-workbench-label">MODEL</div><div className="modeling-command-groups">
-        <details className="modeling-command-menu"><summary><FolderOpen aria-hidden="true" /><span>CREATE <ChevronDown aria-hidden="true" /></span></summary><div>{command('new-part', 'New rectangular part', busy)}{command('new-circular-part', 'New circular part', busy)}{props.canAddArm && command('add-arm', 'Add rectangular arm', busy)}{props.canLinearPattern && command('linear-pattern', 'Linear pattern', busy)}{command('examples', 'Modeling examples', busy)}<small>Author a rectangular or circular part, or load a supported example</small></div></details>
+        <details className="modeling-command-menu"><summary><FolderOpen aria-hidden="true" /><span>CREATE <ChevronDown aria-hidden="true" /></span></summary><div>{command('new-part', 'New rectangular part', busy)}{command('new-circular-part', 'New circular part', busy)}{props.canAddArm && command('add-arm', 'Add rectangular arm', busy)}{props.canMirrorPart && command('mirror-part', 'Mirror finished rail', busy)}{props.canLinearPattern && command('linear-pattern', 'Linear pattern', busy)}{command('examples', 'Modeling examples', busy)}<small>Author a rectangular or circular part, or load a supported example</small></div></details>
         <details className="modeling-command-menu"><summary><Pencil aria-hidden="true" /><span>MODIFY <ChevronDown aria-hidden="true" /></span></summary><div>{props.canEditSketch && command('sketch', 'Edit sketch dimensions', busy)}{props.canEditExtrusion && command('extrusion', 'Edit extrusion', busy)}{command('dimensions', props.dimensionLabel, busy || !props.canEditDimensions)}{props.canRotatePart && command('rotate-part', 'Rotate part', busy)}{props.canMovePart && command('move-part', 'Move part', busy)}{props.canChamfer && command('chamfer', chamferTitle, busy)}{props.canAddHole && command('add-hole', 'Add through-hole', busy)}{props.canCutPocket && command('cut-pocket', 'Cut rectangular pocket', busy)}{props.canUnion && command('union', 'Union bodies', busy)}{props.canCutSlot && command('cut-slot', 'Cut rectangular through-slot', busy)}{props.configurableFinishes && command('configuration', 'Rail finishes', busy)}<small>{selected ? featureLabel(selected.index) : 'Model'} selected</small></div></details>
         <details className="modeling-command-menu"><summary><Info aria-hidden="true" /><span>INSPECT <ChevronDown aria-hidden="true" /></span></summary><div>{command('inspect', 'Inspect selection')}{command('outputs', 'Output bodies', !accepted)}{command('limits', 'Capabilities & limits')}</div></details>
         <details className="modeling-command-menu"><summary><FileJson aria-hidden="true" /><span>FILE <ChevronDown aria-hidden="true" /></span></summary><div>{command('files', 'Save or open a model')}{command('outputs', 'Export accepted STL', !accepted)}</div></details>
