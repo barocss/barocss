@@ -11094,7 +11094,8 @@ or two chamfers is also admitted. Finish the parent first. Its exact rotated
 result may have one terminal translation, as shown below. The six-node limit
 remains. Other transform chains, later features, unrelated finishing
 siblings, Boolean, hole, circle, and split ancestry refuse. No arbitrary axis,
-pivot, angle dimension, zero, full turn, rounding, or angle normalization exists.
+angle dimension, zero, full turn, rounding, or angle normalization exists.
+An exact optional pivot is supported in the bounded extension below.
 
 The operation rebuilds each target Surface and trim Line with exact signed
 coordinate permutations. Positive components copy bits. Negative components use
@@ -11526,3 +11527,59 @@ exposes only its first instance; count four additionally exposes its third.
 Snapshot and rational-work budgets remain unchanged and can refuse larger
 results. No fusion, occupied-region separation, persistent naming, mass, STL,
 editor, GPU or manufacturing acceptance is added.
+
+### Rotate about one exact owned pivot
+
+```ts
+import { cad } from '@barocss/cad';
+
+const m = cad.model();
+const pivotY = m.parameter('pivotY', 12);
+const blank = m.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const front = blank.chamfer(blank.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one(), 1);
+const original = front.chamfer(front.edges({ parallelTo: 'x', at: { y: 24, z: 'max' } }).one(), 2);
+const rotated = original.rotate({ axis: 'x', angleDegrees: 90, pivot: [16, pivotY, 4] });
+const placed = rotated.translate([40, 16, 0]);
+const snapshot = m.build({ original, rotated, placed });
+const edited = snapshot.withParameters({ pivotY: 20 });
+const reopened = cad.load(edited.save());
+void reopened;
+```
+
+`pivot` is an optional dense XYZ tuple of exactly three owned length dimensions
+in authored mm. Coordinates may be numbers, model parameters or owned length
+expressions within the existing coordinate bounds. The axis and six literal
+cardinal angles retain their existing rules. There is no automatic bounds center,
+arbitrary axis, general angle, or pivot for circular patterns.
+
+Omitting `pivot` retains the original world-origin rotation call, authored file,
+Native request and evidence contract. An explicit pivot, including `[0, 0, 0]`
+or signed zero, remains authored data. Save/Open preserves its presence and
+its parameter references. Pivot edits reuse the source prefix and rebuild the
+rotation and any dependent terminal translation; refused edits keep the accepted
+save, bodies and evidence intact.
+
+The admitted sources remain direct affine rectangle, polygon or constrained
+polygon extrusions, including their existing `from` placement, or the complete
+owned chain of one/two chamfers. Only one rotation is admitted. Its exact result
+may receive one terminal translation, as shown above. The two-chamfer example
+uses all six nodes. Other transform chains, patterns, Boolean ancestry, source
+families and later features remain outside this recipe.
+
+The target is computed directly as `R(X) + p - R(p)` with exact rational
+arithmetic on stored binary64 values. All actual Surface and trim-Line poles
+and complete namespaces are checked before the first target Face. Intermediate
+pivot displacement need not fit binary64 or the coordinate bounds; every final
+stored coefficient must be exact and within ±10000 mm. Rounding refuses.
+A zero displacement component copies the signed rotated coefficient bits;
+nonzero exact cancellation produces positive zero. Derived vertices retain
+exact rational positions without an additional zero-sign promise.
+
+The existing Native Face construction and whole Solid qualifier reconstruct
+and qualify the result. All eight lineage classes, pole basis, weights, directed
+cycles, intervals, parameter maps and exact positive volume remain certified.
+Normals follow the signed rotation. Support offsets include the exact pivot
+displacement; they are not claimed unchanged. Pcurves are regenerated under the
+existing whole UV policy, without sampled cross-copy D1 bit identity. The pivot
+branch retains its original failure cause and completed-work report. No fusion,
+persistent naming, mass, STL, editor, GPU or manufacturing acceptance is added.
