@@ -1,7 +1,7 @@
 {
   "schema": "barocss-current-public-api-v1",
   "typescriptVersion": "5.9.3",
-  "sourceCommit": "00966188a047c63b19fae50ebbcfc42559d14188",
+  "sourceCommit": "56b03f1f473e28e3308875fc1026f4fdb06201c6",
   "extractor": "TypeScript 5.9.3 public module exports and declarations; not a type-check or runtime execution",
   "packages": [
     {
@@ -18677,6 +18677,16 @@
               "digest": "068fdc817aeeb055bc0d1f731afdb1f60bf3f5b91335ba74aca26f1bc667fd93"
             },
             {
+              "name": "createNativeExtrusionPreviewAcceptanceV1",
+              "kind": "FunctionDeclaration",
+              "source": "packages/barocss-cad/src/native-extrusion-preview-acceptance-v1.ts",
+              "line": 60,
+              "signatures": [
+                "export function createNativeExtrusionPreviewAcceptanceV1(document: BooleanExtrusionFeatureGraphV0, options: BooleanExtrusionFeatureGraphOptions, featureId: string): NativeExtrusionPreviewAcceptanceSessionV1;"
+              ],
+              "digest": "be2aa11aa681fe7d737c109c8e734fd1919833a7aa64b750d590cbd9c6b73a54"
+            },
+            {
               "name": "CubicCurveAffinePlaneIntersectionDiagnosticCode",
               "kind": "VariableDeclaration",
               "source": "packages/barocss-cad/src/own-cubic-curve-plane-intersection.ts",
@@ -22136,6 +22146,46 @@
                 "export class NativeCurvatureError extends Error {\n  readonly code: NativeCurvatureDiagnosticCode;\n  constructor(code: NativeCurvatureDiagnosticCode, detail: string, cause?: unknown);\n}"
               ],
               "digest": "28144ed7dafa33a97b12ce64579c0a216153bfee68b167aaa92642879d79846f"
+            },
+            {
+              "name": "NativeExtrusionAcceptedV1",
+              "kind": "InterfaceDeclaration",
+              "source": "packages/barocss-cad/src/native-extrusion-preview-acceptance-v1.ts",
+              "line": 25,
+              "signatures": [
+                "export interface NativeExtrusionAcceptedV1 {\n  readonly graphId: string;\n  readonly revision: number;\n  readonly executionMode: 'full-native-rebuild-on-accept';\n  readonly accepted: BooleanExtrusionFeatureGraphResult;\n}"
+              ],
+              "digest": "336b9fba01b643ae593f234d1c96edc26e87355555bba562e04a129d2ac7c974"
+            },
+            {
+              "name": "NativeExtrusionPreparedV1",
+              "kind": "InterfaceDeclaration",
+              "source": "packages/barocss-cad/src/native-extrusion-preview-acceptance-v1.ts",
+              "line": 16,
+              "signatures": [
+                "export interface NativeExtrusionPreparedV1 {\n  readonly token: NativeExtrusionPreviewTicketV1;\n  readonly graphId: string;\n  readonly featureId: string;\n  readonly baseRevision: number;\n  readonly previewDistanceMM: number;\n  /** Caller-owned copy, never the private candidate used for acceptance. */\n  readonly geometry: CoplanarFaceBooleanExtrusionResult;\n}"
+              ],
+              "digest": "e3ddab8af317cff34b524ff0e2f830f9134d3d38b0845d37788deda56242655f"
+            },
+            {
+              "name": "NativeExtrusionPreviewAcceptanceSessionV1",
+              "kind": "InterfaceDeclaration",
+              "source": "packages/barocss-cad/src/native-extrusion-preview-acceptance-v1.ts",
+              "line": 32,
+              "signatures": [
+                "export interface NativeExtrusionPreviewAcceptanceSessionV1 {\n  readonly schema: 'barocss-cad-native-extrusion-preview-acceptance-session';\n  readonly version: 1;\n  readonly graphId: string;\n  readonly featureId: string;\n  getAccepted(): BooleanExtrusionFeatureGraphResult;\n  prepareDistanceMM(distanceMM: number): NativeExtrusionPreparedV1;\n  accept(token: NativeExtrusionPreviewTicketV1): NativeExtrusionAcceptedV1;\n  cancel(token: NativeExtrusionPreviewTicketV1): void;\n  dispose(): void;\n}"
+              ],
+              "digest": "1a6899b0981d90c16a61e1ca9eb37e737f143ef2e3f07c15140b1b51b67da1e3"
+            },
+            {
+              "name": "NativeExtrusionPreviewTicketV1",
+              "kind": "TypeAliasDeclaration",
+              "source": "packages/barocss-cad/src/native-extrusion-preview-acceptance-v1.ts",
+              "line": 15,
+              "signatures": [
+                "export type NativeExtrusionPreviewTicketV1 = Readonly<{ readonly kind: 'native-extrusion-preview-token' }>;"
+              ],
+              "digest": "0126c3bf012e5be51978e62bc840429b670a1b81a67a9bef2523c98b3aba1511"
             },
             {
               "name": "NativeSecondDerivativeDiagnosticCode",
@@ -34751,6 +34801,10 @@
                 "MultiSpanVLinearSurfacePlaneTrimUVResult",
                 "NativeCurvatureDiagnosticCode",
                 "NativeCurvatureError",
+                "NativeExtrusionAcceptedV1",
+                "NativeExtrusionPreparedV1",
+                "NativeExtrusionPreviewAcceptanceSessionV1",
+                "NativeExtrusionPreviewTicketV1",
                 "NativeSecondDerivativeDiagnosticCode",
                 "NativeSecondDerivativeError",
                 "NurbsSourceLoftFeatureGraphDiagnosticCode",
@@ -35615,6 +35669,7 @@
                 "copyPreviewPacket",
                 "createCadDocument",
                 "createCadGeometryReference",
+                "createNativeExtrusionPreviewAcceptanceV1",
                 "curveDomain",
                 "editAxisBoxSolidFeatureDocument",
                 "editAxisRectangleFeatureDocument",
@@ -36162,6 +36217,16 @@
                 "MultiSpanVLinearSurfacePlaneTrimResult",
                 "buildMultiSpanVLinearSurfacePlaneTrimCandidates",
                 "validateMultiSpanVLinearSurfacePlaneTrimCandidates"
+              ]
+            },
+            {
+              "source": "packages/barocss-cad/src/native-extrusion-preview-acceptance-v1.ts",
+              "names": [
+                "NativeExtrusionAcceptedV1",
+                "NativeExtrusionPreparedV1",
+                "NativeExtrusionPreviewAcceptanceSessionV1",
+                "NativeExtrusionPreviewTicketV1",
+                "createNativeExtrusionPreviewAcceptanceV1"
               ]
             },
             {
@@ -55458,12 +55523,12 @@
   "packageTrees": {
     "packages/barocss-render": "b83e4912e1d1aa658f048ba4b112376785b288fb",
     "packages/barocss-gpu": "1bd13f5ea8fc0394c85cff12d7a84e1401bfccde",
-    "packages/barocss-cad": "1c81e9bc6c6f8d223031bb99651a34b3d6ec30ae",
+    "packages/barocss-cad": "6942b3ea021d91b93242bf4b3f20acf77bbe31e1",
     "packages/barocss-cad-interop": "330d0323e1d3891c8a1f882e848aae604ea67b08",
     "packages/barocss-canvas2d": "b029d1925907fbac9a19d6c2f825cbfd91323473",
     "packages/barocss-viewer": "cb48d4ca378dd7050573ab1f57a1c554449885e5",
     "packages/barocss-physics": "f3aa5c6e161137cb80fb68f73a517cd6bdc673dd",
-    "packages/barocss-cad-editor": "8724dd2b6909007412536046f2c8c6891071fc66",
+    "packages/barocss-cad-editor": "7110728ea780d0de4bb8b40fb3eaa09db7635d43",
     "packages/barocss-render-editor": "d1486acf9b983dba6839d2bf303406876244e2e6"
   },
   "historicalSourceCommit": "5f5ad866205a21510ac69552e704cc162fa253b5",
@@ -56192,6 +56257,7 @@
       "@barocss/cad.:ConvexPlanarSolidSupport",
       "@barocss/cad.:ConvexPlanarSolidUseReference",
       "@barocss/cad.:ConvexPlanarSolidVertexReference",
+      "@barocss/cad.:createNativeExtrusionPreviewAcceptanceV1",
       "@barocss/cad.:elevateSourceCurveDegree",
       "@barocss/cad.:elevateSourceSurfaceAxisDegree",
       "@barocss/cad.:evaluateNurbsSourceLoftFeatureGraph",
@@ -56234,6 +56300,10 @@
       "@barocss/cad.:intersectConvexPlanarSolids",
       "@barocss/cad.:measureConvexPlanarSolidMass",
       "@barocss/cad.:measureTranslatedSurfaceStripVolume",
+      "@barocss/cad.:NativeExtrusionAcceptedV1",
+      "@barocss/cad.:NativeExtrusionPreparedV1",
+      "@barocss/cad.:NativeExtrusionPreviewAcceptanceSessionV1",
+      "@barocss/cad.:NativeExtrusionPreviewTicketV1",
       "@barocss/cad.:NurbsSourceLoftFeatureGraphDiagnosticCode",
       "@barocss/cad.:NurbsSourceLoftFeatureGraphEdits",
       "@barocss/cad.:NurbsSourceLoftFeatureGraphError",
