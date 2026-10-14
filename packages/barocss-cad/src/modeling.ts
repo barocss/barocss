@@ -70,8 +70,8 @@ type SplitPlane = { readonly axis: CadAxis; readonly plane?: never } | { readonl
 export interface CadShape {
   /** Exact translation of a direct affine extrusion, its finishing chain, or the last owned cardinal rotation. A direct copy may enter the bounded terminal intersection recipe. */
   translate(offset: readonly [CadDimension, CadDimension, CadDimension]): CadShape;
-  /** Right-handed cardinal rotation about the world origin. Only one terminal translation of this exact owned result may follow. */
-  rotate(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | 180 | 270 | -90 | -180 | -270 }): CadShape;
+  /** Right-handed cardinal rotation about the world origin or an exact owned pivot. Only one terminal translation of this exact owned result may follow. */
+  rotate(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | 180 | 270 | -90 | -180 | -270; readonly pivot?: readonly [CadDimension, CadDimension, CadDimension] }): CadShape;
   /** Reflect across a cardinal plane through the world origin. The owned copy is terminal; no later features or transforms. */
   mirror(options: { readonly plane: 'xy' | 'xz' | 'yz' }): CadShape;
   /** Scale uniformly about the world origin by exactly 0.5 or 2. The owned copy is terminal; no later features or transforms. */
@@ -226,7 +226,7 @@ type SketchNode = { kind: 'sketch'; profile: 'polygon'; points: [Dimension, Dime
 type ChamferConfiguration = { name: string; suppressed: boolean } | { name?: never; suppressed?: never };
 type RotationAngle = 90 | 180 | 270 | -90 | -180 | -270;
 type MirrorPlane = 'xy' | 'xz' | 'yz';
-type Node = SketchNode | { kind: 'extrude'; sketch: number; height: Dimension; from?: Dimension } | { kind: 'translate'; parent: BodyRef; offset: [Dimension, Dimension, Dimension] } | { kind: 'rotate'; parent: BodyRef; axis: CadAxis; angleDegrees: RotationAngle } | { kind: 'mirror'; parent: BodyRef; plane: MirrorPlane } | { kind: 'scale'; parent: BodyRef; factor: 0.5 | 2 } | { kind: 'linear-pattern'; parent: BodyRef; axis: CadAxis; spacing: Dimension; count: 2 | 3 | 4 } | { kind: 'circular-pattern'; parent: BodyRef; axis: CadAxis; angleDegrees: 90 | -90; count: 3 | 4 } | { kind: 'cut'; parent: BodyRef; tool: BodyRef; axis: 'x' | 'y' } | { kind: 'intersect'; left: BodyRef; right: BodyRef } | { kind: 'union'; left: BodyRef; right: BodyRef } | { kind: 'difference'; parent: BodyRef; tool: BodyRef } | ({ kind: 'split'; parent: BodyRef; at: Dimension } & SplitPlane) | ({ kind: 'chamfer'; parent: BodyRef; edge: Query; distance: Dimension } & ChamferConfiguration) | { kind: 'hole'; parent: BodyRef; center: [Dimension, Dimension]; radius: Dimension };
+type Node = SketchNode | { kind: 'extrude'; sketch: number; height: Dimension; from?: Dimension } | { kind: 'translate'; parent: BodyRef; offset: [Dimension, Dimension, Dimension] } | { kind: 'rotate'; parent: BodyRef; axis: CadAxis; angleDegrees: RotationAngle; pivot?: [Dimension, Dimension, Dimension] } | { kind: 'mirror'; parent: BodyRef; plane: MirrorPlane } | { kind: 'scale'; parent: BodyRef; factor: 0.5 | 2 } | { kind: 'linear-pattern'; parent: BodyRef; axis: CadAxis; spacing: Dimension; count: 2 | 3 | 4 } | { kind: 'circular-pattern'; parent: BodyRef; axis: CadAxis; angleDegrees: 90 | -90; count: 3 | 4 } | { kind: 'cut'; parent: BodyRef; tool: BodyRef; axis: 'x' | 'y' } | { kind: 'intersect'; left: BodyRef; right: BodyRef } | { kind: 'union'; left: BodyRef; right: BodyRef } | { kind: 'difference'; parent: BodyRef; tool: BodyRef } | ({ kind: 'split'; parent: BodyRef; at: Dimension } & SplitPlane) | ({ kind: 'chamfer'; parent: BodyRef; edge: Query; distance: Dimension } & ChamferConfiguration) | { kind: 'hole'; parent: BodyRef; center: [Dimension, Dimension]; radius: Dimension };
 type Document = { format: 'barocss-cad-model'; schema: 1; units: 'mm'; parameters: Record<string, number>; nodes: Node[]; outputs: Record<string, BodyRef> };
 type EvaluatedValue = CadBody | { negative?: CadBody; positive?: CadBody } | { instance1: CadBody } | { instance1: CadBody; instance2: CadBody } | { instance1: CadBody; instance2: CadBody; instance3: CadBody } | undefined;
 // Generated IDs/native options are fixed by this implementation authority plus the keyed graph.
@@ -376,7 +376,7 @@ function finishedTranslationPrefix(nodes: readonly Node[], reference: BodyRef): 
   return true;
 }
 const rotationParentDetail = 'Rotation about the world origin requires a direct affine extrusion or its complete owned one/two-chamfer chain; the rotated copy is terminal';
-function rotationOptions(value: unknown, fields: readonly string[]): { axis: CadAxis; angleDegrees: RotationAngle } {
+function rotationOptions(value: unknown, fields: readonly string[]): { axis: CadAxis; angleDegrees: RotationAngle; pivot?: unknown } {
   let descriptors: PropertyDescriptorMap;
   try {
     demand(value !== null && typeof value === 'object' && !Array.isArray(value), 'INPUT', 'rotate', 'Plain own record required');
@@ -391,11 +391,32 @@ function rotationOptions(value: unknown, fields: readonly string[]): { axis: Cad
   const keys = Reflect.ownKeys(descriptors);
   demand(keys.length <= 16 && keys.every(key => typeof key === 'string' && Object.hasOwn(descriptors[key], 'value') && descriptors[key].enumerable),
     'INPUT', 'rotate', 'Enumerable own data fields required; accessors and symbols refused');
-  demand(keys.length === fields.length && fields.every(key => Object.hasOwn(descriptors, key)), 'INPUT', 'rotate', 'Exact fields required: ' + fields.join(', '));
+  const hasPivot = Object.hasOwn(descriptors, 'pivot'), admittedFields = hasPivot ? [...fields, 'pivot'] : fields;
+  demand(keys.length === admittedFields.length && admittedFields.every(key => Object.hasOwn(descriptors, key)), 'INPUT', 'rotate', 'Exact fields required: ' + admittedFields.join(', '));
   const axis: unknown = descriptors.axis.value, angleDegrees: unknown = descriptors.angleDegrees.value;
   demand(axes.includes(axis as CadAxis), 'CAPABILITY', 'rotate', 'World-origin rotation requires the cardinal x/y/z axis');
   demand([90, 180, 270, -90, -180, -270].includes(angleDegrees as number), 'CAPABILITY', 'rotate', 'World-origin rotation requires an authored angle of +/-90, +/-180 or +/-270 degrees');
-  return { axis: axis as CadAxis, angleDegrees: angleDegrees as RotationAngle };
+  return { axis: axis as CadAxis, angleDegrees: angleDegrees as RotationAngle, ...(hasPivot ? { pivot: descriptors.pivot.value as unknown } : {}) };
+}
+/** Retain one dense own-data tuple snapshot, without live indexed Proxy reads. */
+function rotationPivot(value: unknown): [unknown, unknown, unknown] {
+  let descriptors: PropertyDescriptorMap;
+  try {
+    demand(Array.isArray(value) && Object.getPrototypeOf(value) === Array.prototype, 'INPUT', 'rotate', 'Pivot requires an ordinary own data tuple');
+    descriptors = Object.getOwnPropertyDescriptors(value as object);
+  } catch (cause) {
+    if (cause instanceof CadModelError) throw cause;
+    throw new CadModelError('INPUT', 'rotate', 'Pivot could not supply an own data tuple', cause);
+  }
+  demand(Reflect.ownKeys(descriptors).length === 4 && Object.hasOwn(descriptors, 'length')
+    && Object.hasOwn(descriptors.length, 'value') && descriptors.length.value === 3,
+  'INPUT', 'rotate', 'Pivot requires exactly three own dimensions');
+  return [0, 1, 2].map(index => {
+    const descriptor = descriptors[index];
+    demand(descriptor !== undefined && Object.hasOwn(descriptor, 'value') && descriptor.enumerable,
+      'INPUT', 'rotate', 'Pivot requires dense own data dimensions; accessors and symbols refused');
+    return descriptor.value as unknown;
+  }) as [unknown, unknown, unknown];
 }
 function rotationParent(nodes: readonly Node[], reference: BodyRef): boolean {
   if (finishedTranslationPrefix(nodes, reference)) return true;
@@ -627,7 +648,8 @@ function admit(input: Document): Document {
       demand(affineExtrusion(nodes, n.parent) || finishedTranslationPrefix(nodes.slice(0, i), n.parent) || rotatedPlacementPair(nodes), 'CAPABILITY', 'translate', 'Translation requires a direct affine extrusion, its complete finishing chain, or the exact last rotated solid');
       list(n.offset, 'translate', 3, 3).forEach(dimension);
     } else if (n.kind === 'rotate') {
-      rotationOptions(n, ['kind', 'parent', 'axis', 'angleDegrees']); body(n.parent, i);
+      const authored = rotationOptions(n, ['kind', 'parent', 'axis', 'angleDegrees']); body(n.parent, i);
+      if (Object.hasOwn(authored, 'pivot')) rotationPivot(authored.pivot).forEach(dimension);
       demand(rotationParent(nodes.slice(0, i), n.parent), 'CAPABILITY', 'rotate', rotationParentDetail);
     } else if (n.kind === 'mirror') {
       mirrorOptions(n, ['kind', 'parent', 'plane']); body(n.parent, i);
@@ -827,7 +849,7 @@ export function createCadModel(): CadModel {
         const vector = list(offset, 'translate', 3, 3).map(value => dimension(value as CadDimension)) as [Dimension, Dimension, Dimension];
         return shape({ node: append({ kind: 'translate', parent: { ...reference }, offset: vector }), side: 'solid' });
       },
-      rotate(options: { readonly axis: CadAxis; readonly angleDegrees: RotationAngle }): CadShape {
+      rotate(options: { readonly axis: CadAxis; readonly angleDegrees: RotationAngle; readonly pivot?: readonly [CadDimension, CadDimension, CadDimension] }): CadShape {
         authoring('rotate');
         demand(this === handle, 'OWNERSHIP', 'rotate', 'Rotation belongs to this exact owned shape handle');
         demand(arguments.length === 1, 'INPUT', 'rotate', 'World-origin rotation requires exactly one axis and angleDegrees record');
@@ -837,7 +859,10 @@ export function createCadModel(): CadModel {
         demand(!nodes.some(n => n.kind === 'mirror'), 'CAPABILITY', 'rotate', 'World-origin mirrors are terminal; rotation after mirror is unsupported');
         const authored = rotationOptions(options, ['axis', 'angleDegrees']);
         demand(rotationParent(nodes, reference), 'CAPABILITY', 'rotate', rotationParentDetail);
-        return shape({ node: append({ kind: 'rotate', parent: { ...reference }, ...authored }), side: 'solid' });
+        const pivot = Object.hasOwn(authored, 'pivot')
+          ? rotationPivot(authored.pivot).map(value => dimension(value as CadDimension)) as [Dimension, Dimension, Dimension] : undefined;
+        return shape({ node: append({ kind: 'rotate', parent: { ...reference }, axis: authored.axis,
+          angleDegrees: authored.angleDegrees, ...(pivot === undefined ? {} : { pivot }) }), side: 'solid' });
       },
       mirror(options: { readonly plane: MirrorPlane }): CadShape {
         authoring('mirror');
@@ -1121,7 +1146,10 @@ function evaluate(input: Document, previous?: EvaluationFrame): CadModelSnapshot
         const native = buildModelingTranslation(solid(node.parent, 'translate'), offset, prefix);
         evidence.push({ kind: 'translate', native }); values.push(convex(native.solid));
       } else if (node.kind === 'rotate') {
-        const native = buildModelingRotation(solid(node.parent, 'rotate'), { axis: node.axis, degrees: canonicalRotationDegrees(node.angleDegrees) }, prefix);
+        const spec = { axis: node.axis, degrees: canonicalRotationDegrees(node.angleDegrees) };
+        const native = Object.hasOwn(node, 'pivot')
+          ? buildModelingRotation(solid(node.parent, 'rotate'), spec, prefix, node.pivot!.map(number) as Point)
+          : buildModelingRotation(solid(node.parent, 'rotate'), spec, prefix);
         evidence.push({ kind: 'rotate', native }); values.push(convex(native.solid));
       } else if (node.kind === 'mirror') {
         const native = buildModelingMirror(solid(node.parent, 'mirror'), { plane: node.plane }, prefix);

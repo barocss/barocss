@@ -183,7 +183,7 @@ test('exact one-record admission rejects malformed data without consuming a node
   const hostile=Object.create({axis:'x',angleDegrees:90});const revoked=Proxy.revocable(options(),{});revoked.revoke();
   const args=[[],[undefined],[null],[options(),undefined],[[]],[getter],[hidden],[symbol],[hostile],[revoked.proxy],
     [{axis:'x'}],[{angleDegrees:90}],[{axis:'w',angleDegrees:90}],[{axis:[1,0,0],angleDegrees:90}],
-    [{...options(),pivot:[0,0,0]}],[{...options(),degrees:90}]];
+    [{...options(),pivot:[0,0]}],[{...options(),degrees:90}]];
   for(const angleDegrees of [0,-0,360,-360,45,89.99999999999999,NaN,Infinity,'90',{parameter:'angle'}])args.push([options('x',angleDegrees)]);
   for(const value of args)refuses(()=>flat.rotate(...value));assert.equal(reads,0);
   const snapshot=mockNative(()=>model.build({upright:flat.rotate(options())}));assert.deepEqual(JSON.parse(snapshot.save()).nodes.map(n=>n.kind),['sketch','extrude','rotate']);
@@ -237,7 +237,7 @@ test('same-model callback fences already-held rotation handles; failed callback 
   const other=part();const otherShape=other.flat.rotate(options());assert.ok(otherShape);
 });
 test('strict codec rejects missing/extra fields, invalid angle, parent and later nodes before evaluation',()=>{
-  const mutations=[d=>delete d.nodes[2].axis,d=>delete d.nodes[2].angleDegrees,d=>d.nodes[2].pivot=[0,0,0],d=>d.nodes[2].angleDegrees=0,
+  const mutations=[d=>delete d.nodes[2].axis,d=>delete d.nodes[2].angleDegrees,d=>d.nodes[2].pivot=[0,0],d=>d.nodes[2].angleDegrees=0,
     d=>d.nodes[2].angleDegrees={parameter:'x'},d=>d.nodes[2].axis='w',d=>d.nodes[2].parent.side='negative',d=>d.nodes[2].parent.node=0,
     d=>d.nodes.push({kind:'extrude',sketch:0,height:4}),d=>d.nodes.push({...d.nodes[2],parent:{node:2,side:'solid'}}),d=>d.nodes[2].kind='affine'];
   for(const edit of mutations){const d=doc();edit(d);refuses(()=>loadCadModel(signedJson(d)));}
