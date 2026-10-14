@@ -37,11 +37,16 @@ export function App() {
   const [fileName, setFileName] = useState('Bracket-01');
   const [dirty, setDirty] = useState(false);
   const [ortho, setOrtho] = useState(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => { try { return (localStorage.getItem('cad-studio-theme') as 'dark' | 'light') || 'dark'; } catch { return 'dark'; } });
+  const [ao, setAo] = useState(true);
   const [editNode, setEditNode] = useState<number | null>(null);
   const [lastMs, setLastMs] = useState(0);
   const [menu, setMenu] = useState<{ at: { x: number; y: number }; selection: Selection; title: string } | null>(null);
   const revision = useRef(1);
   const fileInput = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { document.documentElement.dataset.theme = theme; viewport.current?.setTheme(theme); try { localStorage.setItem('cad-studio-theme', theme); } catch { /* storage unavailable */ } }, [theme]);
+  useEffect(() => { viewport.current?.setAo(ao); }, [ao]);
 
   const evaluated = useMemo(() => prefixDoc(doc, marker ?? doc.nodes.length), [doc, marker]);
 
@@ -343,6 +348,8 @@ export function App() {
           {(['iso', 'top', 'front', 'right'] as const).map(v => <button key={v} onClick={() => viewport.current?.setView(v)}>{v === 'iso' ? 'Iso' : v[0].toUpperCase() + v.slice(1)}</button>)}
           <button onClick={() => viewport.current?.fit()} title="Frame all (F)"><Icon name="fit_screen" small /></button>
           <button onClick={() => setOrtho(viewport.current?.toggleOrtho() ?? false)} className={ortho ? 'on' : ''}>Ortho</button>
+          <button onClick={() => setAo(v => !v)} className={ao ? 'on' : ''} title="Ambient occlusion">AO</button>
+          <button onClick={() => setTheme(v => v === 'dark' ? 'light' : 'dark')} title="Toggle light / dark" aria-label="Toggle light or dark theme"><Icon name={theme === 'dark' ? 'light_mode' : 'dark_mode'} small /></button>
         </div>
         <span className="chip"><Icon name="adjust" small />Snap 1 mm</span>
         <span className="chip mono">mm</span>

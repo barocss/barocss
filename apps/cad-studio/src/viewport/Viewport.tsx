@@ -2,7 +2,7 @@ import { useEffect, useImperativeHandle, useRef, useState, forwardRef } from 're
 import type { BodyResult } from '../engine/evaluate';
 import type { Vec3 } from '../engine/mesh';
 import { OrbitCamera } from './camera';
-import { Renderer, type EdgeRef, type FaceRef, type ViewState } from './renderer';
+import { Renderer, type EdgeRef, type FaceRef, type ThemeName, type ViewState } from './renderer';
 
 export type SketchTool = 'rectangle' | 'circle' | 'polygon';
 export type SketchShape =
@@ -15,6 +15,7 @@ export interface Gizmo { origin: Vec3; values: Vec3; onDrag(values: Vec3): void 
 
 export interface ViewportHandle {
   fit(): void; setView(name: Parameters<OrbitCamera['setView']>[0]): void; toggleOrtho(): boolean; camera: OrbitCamera;
+  setTheme(name: ThemeName): void; setAo(on: boolean): void;
 }
 
 interface Props {
@@ -83,6 +84,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     fit() { const b = renderer.current?.bounds(); if (b) camera.current.fit(b.min, b.max); request(); },
     setView(name) { camera.current.setView(name); const b = renderer.current?.bounds(); if (b) camera.current.fit(b.min, b.max); request(); },
     toggleOrtho() { camera.current.ortho = !camera.current.ortho; request(); return camera.current.ortho; },
+    setTheme(name) { renderer.current?.setTheme(name); request(); },
+    setAo(on) { if (renderer.current) renderer.current.aoEnabled = on; request(); },
   }));
 
   const local = (e: { clientX: number; clientY: number }) => {
@@ -265,26 +268,6 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       }
       const cur = sketchDraft.current.cursor;
       if (cur) { const p = P(cur[0], cur[1]); items.push(<g key="cur"><line x1={p[0] - 8} y1={p[1]} x2={p[0] + 8} y2={p[1]} className="sk-cursor" /><line x1={p[0]} y1={p[1] - 8} x2={p[0]} y2={p[1] + 8} className="sk-cursor" /></g>); }
-    }
-    // Thick strokes for hovered and selected edges (WebGL lines are 1 px).
-    const edgeStroke = (e: EdgeRef, cls: string, key: string) => {
-      const mesh = props.bodies[e.body]?.mesh; if (!mesh) return;
-      const L = mesh.edgeLines, E = mesh.edgeOfSegment; const parts: string[] = [];
-      for (let s = 0; s < L.length; s += 6) if (E[s / 3] === e.edge) {
-        const p = cam.project([L[s], L[s + 1], L[s + 2]], w, h), q = cam.project([L[s + 3], L[s + 4], L[s + 5]], w, h);
-        parts.push(`M${p[0].toFixed(1)} ${p[1].toFixed(1)}L${q[0].toFixed(1)} ${q[1].toFixed(1)}`);
-      }
-      if (parts.length) items.push(<path key={key} d={parts.join('')} className={cls} />);
-    };
-    if (!sk) {
-      if (hover.current.edge) edgeStroke(hover.current.edge, 'edge-hover', 'eh');
-      props.selection.edges.forEach((e, i) => edgeStroke(e, 'edge-sel', 'es' + i));
-    }
-    const axes = gizmoAxes();
-    if (axes) {
-      const colors = ['#e5534b', '#57b26b', '#4f8ff7'];
-      axes.tips.forEach((t, k) => items.push(<g key={'g' + k}><line x1={axes.p0[0]} y1={axes.p0[1]} x2={t[0]} y2={t[1]} stroke={colors[k]} strokeWidth={3} /><circle cx={t[0]} cy={t[1]} r={7} fill={colors[k]} className="gz-handle" /></g>));
-      items.push(<circle key="go" cx={axes.p0[0]} cy={axes.p0[1]} r={6} fill="#f2f3f5" stroke="#101113" strokeWidth={1.5} />);
     }
     const dr = drag.current;
     if (dr.mode === 'box' && dr.x0 !== undefined) {

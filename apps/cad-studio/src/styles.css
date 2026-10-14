@@ -1,4 +1,4 @@
-:root {
+:root, :root[data-theme='dark'] {
   --bg: #1d1e21; --panel: rgba(36, 37, 41, 0.94); --panel-solid: #242529; --line: #3a3c41; --line-soft: #2f3135;
   --text: #e2e4e8; --text-2: #c9ccd1; --muted: #8a8e96; --accent: #e8c25a; --accent-ink: #1d1e21; --accent-soft: #3b3420;
   --warn: #f08a3c; --warn-soft: #3d2615; --ok: #2f8f5b;
@@ -139,3 +139,22 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .sk-status i { width: 8px; height: 8px; border-radius: 4px; background: currentColor; display: inline-block; }
 .pts { display: grid; grid-template-columns: 22px minmax(0, 1fr) minmax(0, 1fr); gap: 4px 6px; align-items: center; font: 400 11px var(--mono); color: var(--muted); }
 .pts input { height: 24px; width: 100%; padding: 0 6px; border-radius: 4px; border: 1px solid #4a4d53; background: var(--bg); color: var(--text); font: 500 11px var(--mono); }
+
+:root[data-theme='light'] {
+  --bg: #e9edf1; --panel: rgba(255, 255, 255, 0.94); --panel-solid: #ffffff; --line: #cfd5dc; --line-soft: #dde2e7;
+  --text: #1b232c; --text-2: #34404c; --muted: #66717e; --accent: #c9961e; --accent-ink: #ffffff; --accent-soft: #fbf0d4;
+  --warn-soft: #fff1e6; color-scheme: light;
+}
+:root[data-theme='light'] .topbar { background: rgba(247, 248, 250, 0.94); }
+:root[data-theme='light'] .doc-tab, :root[data-theme='light'] .mode, :root[data-theme='light'] .chip, :root[data-theme='light'] .hs, :root[data-theme='light'] .status { background: #eef1f4; }
+:root[data-theme='light'] .mode button.on { background: #ffffff; }
+:root[data-theme='light'] .tool:hover:not(:disabled), :root[data-theme='light'] .ol:hover, :root[data-theme='light'] .views button:hover, :root[data-theme='light'] .ctx-item:hover, :root[data-theme='light'] .palette-list li.cur { background: #e3e8ee; }
+:root[data-theme='light'] .ol.sel, :root[data-theme='light'] .hs.edit { background: var(--accent-soft); color: #7a5a08; }
+:root[data-theme='light'] .kv b { color: var(--text); }
+:root[data-theme='light'] .kbd { background: #f2f4f6; border-color: #c9cfd6; color: #4a5562; }
+:root[data-theme='light'] .field input, :root[data-theme='light'] .field select, :root[data-theme='light'] .pts input, :root[data-theme='light'] .palette-input { background: #ffffff; border-color: #c2c9d1; color: var(--text); }
+:root[data-theme='light'] .hud-error { background: #fff1e6; border-color: #f0b98a; color: #7a3b0a; }
+:root[data-theme='light'] .card { box-shadow: 0 4px 16px rgba(30, 40, 55, 0.14); }
+:root[data-theme='light'] .dim-chip { fill: #ffffff; }
+:root[data-theme='light'] .dim-text { fill: #1b232c; }
+:root[data-theme='light'] .sk-shape { stroke: #1b232c; }
