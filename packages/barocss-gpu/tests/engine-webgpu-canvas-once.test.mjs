@@ -4,6 +4,7 @@ import test from 'node:test';
 import { renderEngineWebGPUCanvasOnce } from '../dist/engine-webgpu-canvas-once.js';
 import './engine-webgpu-checked-once.test.mjs';
 import './engine-webgpu-checked-present.test.mjs';
+import './engine-webgpu-wait-budget.test.mjs';
 
 export function original() {
   const mesh = id => ({id,type:'mesh',parentId:null,translation:[0,0,0],
@@ -26,7 +27,7 @@ export function deferred() {
 export function harness(failure = '', options = {}) {
   const events = [], buffers = [], textures = [], error = new Error(failure || 'device failure');
   let attemptBuffers = 0, attemptSubmits = 0, attemptWaits = 0;
-  let presentation = false, presentationPushes = 0, presentationPops = 0;
+  let presentation = false, presentationPushes = 0, presentationPops = 0, offscreenPops = 0;
   const scopes = [];
   const queueStarted = deferred();
   const fail = stage => { if (failure === stage) throw error; };
@@ -42,12 +43,13 @@ export function harness(failure = '', options = {}) {
         if(index===1){options.presentPopStarted?.resolve();await options.presentPopGate?.promise;}
         if(options.presentRejectPops?.includes(index))throw options.presentCause;
         return options.presentErrors?.[filter] ?? null;}
+      if(++offscreenPops===1){options.offscreenPopStarted?.resolve();await options.offscreenPopGate?.promise;}
       return null;},
-    createShaderModule() { attemptBuffers = 0; attemptSubmits = 0; attemptWaits = 0; presentation = false; events.push('shader'); return {
-      async getCompilationInfo() { fail('shader'); await options.compilation?.promise; return {messages:[]}; },
+    createShaderModule() { attemptBuffers = 0; attemptSubmits = 0; attemptWaits = 0; presentation = false; offscreenPops = 0; events.push('shader'); return {
+      async getCompilationInfo() { fail('shader');options.compilationStarted?.resolve();await options.compilation?.promise;return {messages:[]}; },
     }; },
     createBindGroupLayout(){return{};},createPipelineLayout(){return{};},
-    async createRenderPipelineAsync(){return{};},
+    async createRenderPipelineAsync(){options.pipelineStarted?.resolve();await options.pipeline?.promise;return{};},
     createBuffer(desc) {
       if (attemptBuffers++ === 2) fail('buffer');
       const id = buffers.length, buffer = {destroy(){events.push('destroyBuffer:'+id);}};
@@ -62,6 +64,7 @@ export function harness(failure = '', options = {}) {
     queue:{writeBuffer(){},submit(){events.push('submit');
       if (++attemptSubmits === 2) fail('submit');},
       async onSubmittedWorkDone(){events.push('wait');
+        if(attemptWaits===0){options.renderQueueStarted?.resolve();await options.renderCompletion?.promise;}
         if (++attemptWaits === 2) { queueStarted.resolve();fail('queue');await options.completion?.promise; }
         events.push('completed');}},
     createCommandEncoder(){return{
