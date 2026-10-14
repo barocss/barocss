@@ -102,6 +102,16 @@ Historical [two-bevel native proof](https://github.com/barocss/barocss/issues/16
 The viewport gives accepted convex faces distinct fill colors. Click inside a bevel face to inspect its original approximate face and triangle identity. When a model has too many convex faces to show separately, all outputs remain visible with their original plain fill and face picking; bevel color separation is unavailable in that case. [#1990](https://github.com/barocss/barocss/issues/1990) records the focused display and pointer checks; color and picking do not certify exact measurement or manufacturing geometry.
 
 
+### Pattern three finished rails
+
+On the 32 × 24 × 8 rail with front bevel1 and opposite bevel2, select **Chamfer 02 → CREATE → Linear pattern**. Keep **Pattern spacing40mm**, choose **Preview operation**, then **Apply operation**. Count3 includes the original: output **part** remains on the finished rail, while **railCopy1** and **railCopy2** are separate bodies at one and two +X spacings. No union, mating or assembly constraint is created.
+
+The command accepts only the exact untransformed four-node owned rail and appends one terminal fifth node. It is an alternative to Rotate/Move. Axis X and count3 are fixed. Edit **patternSpacing** through **Edit model dimensions**; existing width/height/thickness and front/back bevel drivers remain shared by all three bodies. Structural Undo restores the original four-node single-output rail; parameter Undo keeps the five-node pattern. Apply requires a current ready preview, and refusal retains the accepted source, display and history.
+
+Spacing is a positive finite translation step up to5000mm, with twice-spacing bounded by10000mm. Those are necessary input limits; exact stored coefficients, translated coordinates and display admission can still refuse a value without rounding. Spacing is not a clearance guarantee. Three outputs use the existing whole-body fill fallback within the16-draw budget, retaining original native boundary lines and face authority. Practical edge visibility remains under the separate [boundary-display check](https://github.com/barocss/barocss/issues/1995).
+
+The [provider's retained native result](https://github.com/barocss/barocss/issues/1973) records6064mm³ per body for front1/back2 at X spacing40. [#2000](https://github.com/barocss/barocss/issues/2000) covers this new normal command. Local source/history tests use explicit provider doubles; three-output CPU display tests reuse unchanged genuine rail geometry with synthetic coincident roles. These are not newly evaluated translated copies or actual screen acceptance. Later device verification is scoped to the new command, spacing edits and history, without another common Save/Open campaign.
+
 ### Orient and place a finished rail
 
 After the two owned top chamfers, select **Chamfer 02 → MODIFY → Rotate part**. Choose **World axis X** and **Cardinal angle +90**, then **Preview operation → Apply operation**. Rotation is about the native XYZ world origin. Select the resulting **Rotate 01 → MODIFY → Move part**, leave native offsets **X40, Y16, Z0** mm, and preview/apply again. The sole `part` output becomes each new result; earlier features remain in source and Undo history. This is one reoriented part, not a set of assembly copies.
