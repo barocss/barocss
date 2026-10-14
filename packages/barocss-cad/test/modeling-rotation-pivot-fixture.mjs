@@ -14,11 +14,11 @@ export { signedData, sha256, dataHash, exactData, deepFrozen, snapshotData, erro
 // Frozen #2015: source7/cold1 public models and exactly two real previews.
 export const DEFAULTS = Object.freeze({ frontDistance: 1, backDistance: 2, backY: 24, pivotY: 12 });
 export const EDITED = Object.freeze({ ...DEFAULTS, pivotY: 20 });
-export const EXPECTED_TOTALS = Object.freeze({ returnedLedgerSourceCompilations: 388, returnedLedgerBindingObservations: 4770,
-  returnedLedgerD1: 14310, knownSourceCompilations: 453, combinedBindingObservations: 5562, knownD1: 16686,
+export const EXPECTED_TOTALS = Object.freeze({ returnedLedgerSourceCompilations: 402, returnedLedgerBindingObservations: 4914,
+  returnedLedgerD1: 14742, knownSourceCompilations: 467, combinedBindingObservations: 5706, knownD1: 17118,
   initialFaceConstructionCount: 60, fullTransitiveNativeCoverage: 'NOT_MEASURED' });
-export const SOURCE_TOTALS = Object.freeze({ returnedLedgerSourceCompilations: 294, returnedLedgerBindingObservations: 3636,
-  returnedLedgerD1: 10908, knownSourceCompilations: 350, combinedBindingObservations: 4320, knownD1: 12960,
+export const SOURCE_TOTALS = Object.freeze({ returnedLedgerSourceCompilations: 308, returnedLedgerBindingObservations: 3780,
+  returnedLedgerD1: 11340, knownSourceCompilations: 364, combinedBindingObservations: 4464, knownD1: 13392,
   initialFaceConstructionCount: 52, fullTransitiveNativeCoverage: 'NOT_MEASURED' });
 export const COLD_TOTALS = Object.freeze({ returnedLedgerSourceCompilations: 94, returnedLedgerBindingObservations: 1134,
   returnedLedgerD1: 3402, knownSourceCompilations: 103, combinedBindingObservations: 1242, knownD1: 3726,

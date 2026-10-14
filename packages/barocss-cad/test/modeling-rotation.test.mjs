@@ -183,7 +183,7 @@ test('exact one-record admission rejects malformed data without consuming a node
   const hostile=Object.create({axis:'x',angleDegrees:90});const revoked=Proxy.revocable(options(),{});revoked.revoke();
   const args=[[],[undefined],[null],[options(),undefined],[[]],[getter],[hidden],[symbol],[hostile],[revoked.proxy],
     [{axis:'x'}],[{angleDegrees:90}],[{axis:'w',angleDegrees:90}],[{axis:[1,0,0],angleDegrees:90}],
-    [{...options(),pivot:[0,0,0]}],[{...options(),degrees:90}]];
+    [{...options(),pivot:[0,0]}],[{...options(),degrees:90}]];
   for(const angleDegrees of [0,-0,360,-360,45,89.99999999999999,NaN,Infinity,'90',{parameter:'angle'}])args.push([options('x',angleDegrees)]);
   for(const value of args)refuses(()=>flat.rotate(...value));assert.equal(reads,0);
   const snapshot=mockNative(()=>model.build({upright:flat.rotate(options())}));assert.deepEqual(JSON.parse(snapshot.save()).nodes.map(n=>n.kind),['sketch','extrude','rotate']);
