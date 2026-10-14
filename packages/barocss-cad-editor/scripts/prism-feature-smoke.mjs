@@ -44,7 +44,9 @@ for (const reply of [start, edited, reopened, second]) {
   assert.equal(source.lineage.sourceId, sketch.sourceId); assert.equal(source.lineage.sketchId, sketch.document.id);
   assert.equal(source.lineage.sourceRevision, sketch.revision); assert.equal(source.lineage.segments.length + 2, source.mesh.faces.length);
   const scenes = ['source', 'result'].map(view => preparePrismFeatureScene(reply.display, view));
-  assert.equal(scenes[0].scene.geometries.length, 1); assert.equal(scenes[1].scene.geometries.length, 2);
+  assert.equal(scenes[0].scene.geometries.length, source.mesh.faces.length);
+  assert.equal(scenes[1].scene.geometries.length, reply.display.components.filter(c => c.role !== 'source')
+    .reduce((count, component) => count + component.mesh.faces.length, 0));
   for (const component of reply.display.components.filter(c => c.role !== 'source')) {
     assert.equal(component.report.solidId, reply.summary.components.find(c => c.role === component.role).solidId);
     assert.equal(component.lineage.faces.length, component.mesh.faces.length);

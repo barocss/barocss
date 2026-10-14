@@ -28,7 +28,7 @@ globalThis.Worker = class {
 };
 const session=create(); let p=session.example('chamfer-split','x'); const worker=workers.at(-1); worker.send(native); await p;
 assert.equal(session.getSnapshot().error,null); assert.deepEqual(session.getSnapshot().accepted,native.summary);
-assert.equal(session.getSnapshot().display.scene.geometries.length,2);
+assert.equal(session.getSnapshot().display.scene.geometries.length,native.display.components.reduce((count,component)=>count+component.mesh.faces.length,0));
 const accepted=session.getSnapshot(); session.select(4,accepted.generation);
 const roles = new Set(), hits = [];
 for(let y=2;y<160&&roles.size<2;y+=4)for(let x=2;x<160&&roles.size<2;x+=4){
@@ -56,5 +56,5 @@ worker.send(tampered);await p;
 assert.ok(session.getSnapshot().error);assert.deepEqual(session.getSnapshot().accepted,beforeTamper.accepted);
 assert.equal(session.getSnapshot().authoredText,native.text);
 session.dispose();
-const result={ok:true,actualNativeTransportReplays:2,sourceTransportSHA256:createHash('sha256').update(bytes).digest('hex'),ranges,hits,checks:['real split kind','native X outputs3032/3032','two distinct CPU geometries','CPU picking of both named outputs','authored reopen','stale selection','simulated refusal retains accepted source/draft','output-side tamper refusal'],evidence:'preserved real provider baseline DTO through actual controller with mocked Worker; no native geometry rerun, browser/GPU, physical file dialog or sample worker execution'};
+const result={ok:true,actualNativeTransportReplays:2,sourceTransportSHA256:createHash('sha256').update(bytes).digest('hex'),ranges,hits,checks:['real split kind','native X outputs3032/3032','per-face CPU geometries for both outputs','CPU picking of both named outputs','authored reopen','stale selection','simulated refusal retains accepted source/draft','output-side tamper refusal'],evidence:'preserved real provider baseline DTO through actual controller with mocked Worker; no native geometry rerun, browser/GPU, physical file dialog or sample worker execution'};
 writeFileSync(resolve(output,'result.json'),JSON.stringify(result,null,2));console.log(JSON.stringify(result));

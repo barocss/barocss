@@ -27,7 +27,9 @@ globalThis.Worker = class {
 };
 const session=create(); let p=session.example('intersection'); const worker=workers.at(-1); worker.send(native); await p;
 assert.equal(session.getSnapshot().error,null); assert.deepEqual(session.getSnapshot().accepted,native.summary);
-assert.equal(session.getSnapshot().display.scene.geometries.length,1);
+const scene = session.getSnapshot().display;
+assert.equal(scene.scene.geometries.length, native.display.components.reduce((sum, component) => sum + component.mesh.faces.length, 0));
+assert.deepEqual(scene.scene.geometries.flatMap(geometry => geometry.indices), native.display.components.flatMap(component => component.mesh.indices));
 const accepted=session.getSnapshot(); session.select(4,accepted.generation);
 let picked=null;
 for(let y=4;y<160&&!picked;y+=8)for(let x=4;x<160&&!picked;x+=8){session.pick(160,160,x,y,accepted.generation);picked=session.getSnapshot().faceSelection;}

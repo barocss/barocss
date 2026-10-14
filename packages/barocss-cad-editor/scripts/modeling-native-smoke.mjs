@@ -32,7 +32,9 @@ function accept(reply, part, other) {
   assert.deepEqual(volume(reply, 'other'), { numerator: String(other), denominator: '1' });
   assert.deepEqual(reply.summary.outputs.map(o => o.name).sort(), ['other', 'part']);
   assert.equal(reply.display.components.length, 2);
-  const scene = preparePrismFeatureScene(reply.display, 'result'); assert.equal(scene.scene.geometries.length, 2);
+  const scene = preparePrismFeatureScene(reply.display, 'result');
+  assert.equal(scene.scene.geometries.length, reply.display.components.reduce((sum, component) => sum + component.mesh.faces.length, 0));
+  assert.deepEqual(scene.scene.geometries.flatMap(geometry => geometry.indices), reply.display.components.flatMap(component => component.mesh.indices));
   const found = new Set();
   for (let y = 2; y < 192 && found.size < 2; y += 4) for (let x = 2; x < 192 && found.size < 2; x += 4) {
     const hit = pickPrismFeatureScene(scene, 192, 192, x, y); if (!hit) continue;

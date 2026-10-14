@@ -40,7 +40,9 @@ const packet = { profile: 'model-body-faces', documentId: 'mounting_plate', revi
 Object.assign(plate.preview.mesh.context, { documentId: packet.documentId, documentRevision: '0', kernelResultRevision: '0', topologyRevision: '0', taskToken: packet.taskToken });
 const before = structuredClone(packet), scene = prepare(packet), blankScene = prepare(packet, 1, 'blank');
 assert.deepEqual(packet, before); assert.equal(scene.selectedOutput, 'plate'); assert.equal(scene.packet.components.length, 2);
-assert.equal(blankScene.selectedOutput, 'blank'); assert.equal(scene.scene.geometries.length, 1); assert.equal(blankScene.scene.geometries.length, 1);
+assert.equal(blankScene.selectedOutput, 'blank'); assert.equal(scene.scene.geometries.length, 1);
+assert.equal(blankScene.scene.geometries.length, blankComponent.mesh.faces.length);
+assert.deepEqual(blankScene.scene.geometries.flatMap(geometry => geometry.indices), blankComponent.mesh.indices);
 assert.match(scene.canvasLabel, /plate.*stored-rational-plate-hole/);
 assert.deepEqual(scene.packet.components[1].preview.mesh.chunks, baseline.holeMesh.mesh.chunks);
 assert.deepEqual(scene.packet.components[1].preview.provenance, baseline.holeMesh.provenance);
@@ -152,7 +154,11 @@ for (const panel of longNormal.components[1].preview.provenance[6].panels) panel
 prepareKernelFacePreview(longNormal.components[1].preview.mesh, { displayId: 'plate', packetRevision: 0 });
 assert.throws(() => prepare(longNormal), error => /unit length within 1e-6/.test(causes(error)));
 const legacyPacket = JSON.parse(readFileSync(resolve(import.meta.dirname, 'fixtures/convex-display.packet.json'), 'utf8'));
-const legacy = prepare(legacyPacket); assert.equal(legacy.scene.geometries.length, 2); assert.deepEqual(legacy.packet, legacyPacket);
+const legacy = prepare(legacyPacket);
+const legacyOutputs = legacyPacket.components.filter(component => component.role !== 'source');
+assert.equal(legacy.scene.geometries.length, legacyOutputs.reduce((sum, component) => sum + component.mesh.faces.length, 0));
+assert.deepEqual(legacy.scene.geometries.flatMap(geometry => geometry.indices), legacyOutputs.flatMap(component => component.mesh.indices));
+assert.deepEqual(legacy.packet, legacyPacket);
 assert.deepEqual(Object.keys(legacy), ['packet', 'view', 'scene']);
 writeFileSync(resolve(output, 'verification.json'), JSON.stringify({ ok: true, fixtureSHA256: sha256, envelopeAdaptation: 'request/document/revision metadata only; mesh arrays, native bodies, provenance and reports unchanged',
   faces: 7, vertices: vertexOffset, triangles: indexOffset / 3, malformedControls: mutations.length, hiddenAdmission: ['blank', 'plate'],

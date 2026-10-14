@@ -95,7 +95,11 @@ The source now has four features, with the original **bevelDistance** and indepe
 
 At construction, both distances must be positive, each below thickness, and their sum below the profile Y span. Later global dimension edits remain native-authoritative and may refuse; the accepted part is retained. Only the exact first-bevel profile is admitted, with a sole part output and unused backBevelDistance name. No third bevel, configured/suppressed imported chain, arbitrary edge selection, hole/pocket combination or pattern subtraction is added.
 
-Historical [two-bevel native proof](https://github.com/barocss/barocss/issues/1625) gives **6064 mm³** at front1/back2 and **5984 mm³** at front1/back3. [#1989](https://github.com/barocss/barocss/issues/1989) reuses the unchanged complete6064 preview with explicitly adapted command-driver context and mocked edited deliveries; the new normal-command device check remains pending. It will cover the second bevel and history without repeating physical Save/Open/STL. The independent #1990 face-readability/picking limit remains open.
+Historical [two-bevel native proof](https://github.com/barocss/barocss/issues/1625) gives **6064 mm³** at front1/back2 and **5984 mm³** at front1/back3. [#1989](https://github.com/barocss/barocss/issues/1989) reuses the unchanged complete6064 preview with explicitly adapted command-driver context and mocked edited deliveries. Its [actual browser check](https://github.com/barocss/barocss/issues/1989#issuecomment-6164731282) confirms the second bevel, distance edit and Undo/Redo without repeating physical Save/Open/STL.
+
+### See and select a bevel face
+
+The viewport gives accepted convex faces distinct fill colors. Click inside a bevel face to inspect its original approximate face and triangle identity. When a model has too many convex faces to show separately, all outputs remain visible with their original plain fill and face picking; bevel color separation is unavailable in that case. Boundary lines are not drawn. [#1990](https://github.com/barocss/barocss/issues/1990) records the focused display and pointer checks; color and picking do not certify exact measurement or manufacturing geometry.
 
 ## Add one through-hole to a rectangular part
 

@@ -481,7 +481,9 @@ try {
   for (const change of changes) { const packet = reply().display; change(packet); assert.throws(() => prepare(packet, 'result')); checks++; }
   const aliases = structuredClone(authored); aliases.outputs.sameBody = { ...aliases.outputs.part };
   const scene = prepare(reply(aliases).display, 'result');
-  assert.equal(scene.scene.geometries.length, 2); assert.notEqual(scene.scene.nodes[0].id, scene.scene.nodes[1].id);
+  assert.equal(scene.scene.geometries.length, scene.packet.components.reduce((sum, component) => sum + component.mesh.faces.length, 0));
+  assert.deepEqual(scene.scene.geometries.flatMap(geometry => geometry.indices), scene.packet.components.flatMap(component => component.mesh.indices));
+  assert.equal(new Set(scene.scene.nodes.map(node => node.id)).size, scene.scene.nodes.length);
   assert.equal(scene.packet.components[0].report.solidId, scene.packet.components[1].report.solidId); checks++;
   let hit = null; for (let y = 4; y < 160 && !hit; y += 8) for (let x = 4; x < 160 && !hit; x += 8) hit = pick(scene, 160, 160, x, y);
   assert.ok(hit && ['part', 'sameBody'].includes(hit.role)); assert.equal(hit.solidId, nativeId); checks++;

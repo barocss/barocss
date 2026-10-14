@@ -1,0 +1,21 @@
+{
+  "issue": 1990,
+  "source": "existing retained native transport; no native evaluation",
+  "packets": [
+    {
+      "path": "packages/barocss-cad-editor/scripts/fixtures/modeling-chamfer-chain/baseline-transport.json",
+      "sha256": "74e9a472c54aaa5d228a23d79b083c9a7c4c539bf5de6a5f274597e5fbfba4af",
+      "outputs": 1,
+      "facesPerOutput": 8,
+      "bevels": 2
+    },
+    {
+      "path": "packages/barocss-cad-editor/scripts/fixtures/modeling-chamfer-split/baseline-transport.json",
+      "sha256": "6ccb5bbbcde6fd531e1700906fbef717132770ae1043498db4c170ab2c7ce4ca",
+      "outputs": 2,
+      "facesPerOutput": 8,
+      "bevels": 2
+    }
+  ],
+  "limit": "No retained one-bevel transport is stored in this focused fixture set. #1984 has separate physical one-bevel UI evidence."
+}

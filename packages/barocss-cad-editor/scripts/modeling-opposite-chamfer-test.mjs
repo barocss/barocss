@@ -351,7 +351,8 @@ try {
   await group(controllerLedger[0], async () => {
     await session.open(initial); assert.equal(state().error, null); assert.equal(state().history.count, 1);
     assert.equal(state().accepted.outputs[0].volumeMM3.numerator, '6128', 'Mocked one-bevel summary, unchanged6064 two-bevel geometry');
-    assert.equal(state().accepted.features.length, 3); assert.equal(state().display.scene.geometries.length, 1);
+    assert.equal(state().accepted.features.length, 3);
+    assert.equal(state().display.scene.geometries.length, state().display.packet.components[0].mesh.faces.length);
     assert.equal(commands.at(-1).text, initial); assert.deepEqual(parse(state().authoredText).nodes, base.nodes);
     session.select(2, state().generation); initialGeneration = state().generation;
     value = { kind: 'chamfer', target: capabilities(state().authoredText, state().accepted).chamfer, distance: 2 };
@@ -451,7 +452,8 @@ try {
     assert.equal(s.accepted.parameters.bevelDistance, 2); assert.equal(s.accepted.features.length, 4); assert.equal(s.accepted.revision, 0);
     assert.deepEqual(s.history, { index: 0, count: 1, canUndo: false, canRedo: false }); assert.deepEqual(s.drafts, {});
     assert.equal(commands.at(-1).text, saved); assert.deepEqual(parse(saved).nodes, chamfer.nodes);
-    assert.deepEqual(s.display.packet.components[0], component); assert.equal(s.display.scene.geometries.length, 1);
+    assert.deepEqual(s.display.packet.components[0], component);
+    assert.equal(s.display.scene.geometries.length, component.mesh.faces.length);
     assert.deepEqual(authority(), accepted); assert.equal(state().drafts.backBevelDistance, '4'); session.discard();
   });
   assert.equal(groups.length, 20); assert.equal(counters.controllers, 2); assert.equal(workers.length, 2);

@@ -392,7 +392,7 @@ export function resolveModelingFaceReference(display: ModelingDisplayScene, refe
   const binding = resolveKernelFaceReference(prepared, reference); return binding ? structuredClone(binding) : null;
 }
 export function pickModelingScene(display: ModelingDisplayScene, width: number, height: number, x: number, y: number): ModelingFaceSelection | null {
-  if (display.packet.profile !== 'model-body-faces') return pickPrismFeatureScene({ packet: display.packet, view: 'result', scene: display.scene }, width, height, x, y);
+  if (display.packet.profile !== 'model-body-faces') return pickPrismFeatureScene(display as PrismDisplayScene, width, height, x, y);
   const authority = accepted.get(display); check(authority, 'original accepted scene required');
   const convex = authority.convex.get(authority.selectedOutput); if (convex) return pickPrismFeatureScene(convex, width, height, x, y);
   const prepared = authority.nativeFaces.get(authority.selectedOutput)!;

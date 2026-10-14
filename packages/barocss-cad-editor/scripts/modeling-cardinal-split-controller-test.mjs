@@ -27,7 +27,9 @@ globalThis.Worker = class {
 };
 const session=create(); let p=session.example('horizontal-split','x'); const worker=workers.at(-1); worker.send(native); await p;
 assert.equal(session.getSnapshot().error,null); assert.deepEqual(session.getSnapshot().accepted,native.summary);
-assert.equal(session.getSnapshot().display.scene.geometries.length,2);
+const scene = session.getSnapshot().display;
+assert.equal(scene.scene.geometries.length, native.display.components.reduce((sum, component) => sum + component.mesh.faces.length, 0));
+assert.deepEqual(scene.scene.geometries.flatMap(geometry => geometry.indices), native.display.components.flatMap(component => component.mesh.indices));
 const accepted=session.getSnapshot(); session.select(2,accepted.generation);
 const roles = new Set(), hits = [];
 for(let y=2;y<160&&roles.size<2;y+=4)for(let x=2;x<160&&roles.size<2;x+=4){
@@ -55,5 +57,5 @@ worker.send(tampered);await p;
 assert.ok(session.getSnapshot().error);assert.deepEqual(session.getSnapshot().accepted,beforeTamper.accepted);
 assert.equal(session.getSnapshot().authoredText,native.text);
 session.dispose();
-const result={ok:true,actualNativeTransportReplays:2,sourceTransportSHA256:createHash('sha256').update(bytes).digest('hex'),ranges,hits,checks:['real split kind','native X outputs4096/3072','two distinct CPU geometries','CPU picking of both named outputs','authored reopen','stale selection','simulated refusal retains accepted source/draft','output-side tamper refusal'],evidence:'preserved real provider baseline DTO through actual controller with mocked Worker; no native geometry rerun, browser/GPU, physical file dialog or sample worker execution'};
+const result={ok:true,actualNativeTransportReplays:2,sourceTransportSHA256:createHash('sha256').update(bytes).digest('hex'),ranges,hits,checks:['real split kind','native X outputs4096/3072','two distinct CPU outputs with complete face draws','CPU picking of both named outputs','authored reopen','stale selection','simulated refusal retains accepted source/draft','output-side tamper refusal'],evidence:'preserved real provider baseline DTO through actual controller with mocked Worker; no native geometry rerun, browser/GPU, physical file dialog or sample worker execution'};
 writeFileSync(resolve(output,'result.json'),JSON.stringify(result,null,2));console.log(JSON.stringify(result));

@@ -317,7 +317,9 @@ try {
   await group(controllerLedger[0], async () => {
     await session.open(initial); assert.equal(state().error, null); assert.equal(state().history.count, 1);
     assert.equal(state().accepted.outputs[0].volumeMM3.numerator, '6144', 'Synthetic blank summary, unchanged6064 geometry');
-    assert.equal(state().display.scene.geometries.length, 1); session.select(1, state().generation); initialGeneration = state().generation;
+    assert.equal(state().display.scene.geometries.length,
+      state().display.packet.components[0].mesh.faces.length);
+    session.select(1, state().generation); initialGeneration = state().generation;
     value = { kind: 'chamfer', target: capabilities(state().authoredText, state().accepted).chamfer, distance: 1 };
   });
   await group(controllerLedger[1], async () => {
