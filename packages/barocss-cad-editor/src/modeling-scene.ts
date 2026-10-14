@@ -6,7 +6,7 @@ import { validateModelingUnion } from './modeling-union.js';
 import type { ModelingUnionDisplayComponent, ModelingUnionPanel } from './modeling-union.js';
 import type { OwnPlateHolePreviewResult, StoredPlateHoleSolidCertificate } from '@barocss/cad';
 import { prepareEngineScene, prepareEngineCameraRay, raycastEngineScene, prepareKernelFacePreview, resolveKernelFaceReference } from '@barocss/gpu';
-import type { EngineSceneV0, TriangleGeometryV0, KernelFacePreview, KernelFaceReference, KernelFaceBinding } from '@barocss/gpu';
+import type { EngineSceneV0, TriangleGeometryV0, KernelFacePreview, KernelFaceReference, KernelFaceBinding, EngineSceneEdgeOverlayV0 } from '@barocss/gpu';
 import { preparePrismFeatureScene, pickPrismFeatureScene } from './prism-feature-scene.js';
 import type { PrismDisplayPacket, PrismDisplayComponent, PrismDisplayScene, PrismFaceSelection } from './prism-feature-scene.js';
 
@@ -33,7 +33,7 @@ export interface ModelingBodyDisplayPacket {
   outcomes: { role: string; solidId: string; family: 'convex-planar' | 'stored-rational-plate-hole' | 'orthogonal-cell' | 'stored-rational-circle-prism'; status: 'solid' }[];
 }
 export type ModelingDisplayPacket = PrismDisplayPacket | ModelingBodyDisplayPacket;
-export interface ModelingBodyDisplayScene { packet: ModelingBodyDisplayPacket; selectedOutput: string; scene: EngineSceneV0; canvasLabel: string }
+export interface ModelingBodyDisplayScene { packet: ModelingBodyDisplayPacket; selectedOutput: string; scene: EngineSceneV0; canvasLabel: string; edges?: EngineSceneEdgeOverlayV0 }
 export type ModelingDisplayScene = PrismDisplayScene | ModelingBodyDisplayScene;
 export interface ModelingHoleFaceSelection {
   family: 'stored-rational-plate-hole'; documentId: string; revision: number; role: string; solidId: string;
@@ -382,7 +382,9 @@ export function prepareModelingScene(input: ModelingDisplayPacket, aspect = 1, s
   const selected = selectedOutput ?? packet.outcomes.at(-1)!.role, scene = scenes.get(selected);
   check(scene, 'selected output missing from admitted inventory');
   const family = packet.outcomes.find(o => o.role === selected)!.family;
-  const display: ModelingBodyDisplayScene = freeze({ packet, selectedOutput: selected, scene, canvasLabel: `Model output ${selected} (${family})` });
+  const edges = convex.get(selected)?.edges;
+  const display: ModelingBodyDisplayScene = freeze({ packet, selectedOutput: selected, scene, canvasLabel: `Model output ${selected} (${family})`,
+    ...(edges ? { edges } : {}) });
   accepted.set(display, { packet, nativeFaces, convex, orthogonalDraws, selectedOutput: selected }); return display;
 }
 /** Only the original accepted scene can resolve result-scoped copied references. */

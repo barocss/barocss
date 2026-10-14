@@ -3,6 +3,8 @@ import type { UpdateResult } from './renderer.js';
 import { ownRecord, copyGpuData, freezeGpuData } from './gpu-data.js';
 import { prepareEngineScene } from './engine-scene.js';
 import type { EngineSceneV0, PreparedEngineScene } from './engine-scene.js';
+import { prepareEngineSceneEdges } from './engine-scene-edges.js';
+import type { PreparedEngineSceneEdges } from './engine-scene-edges.js';
 import type { PreparedTriangleGeometry } from './triangle-geometry.js';
 import { prepareCamera } from './camera.js';
 import { engineSceneShaders, encodeEngineSRGB } from './engine-scene-shaders.js';
@@ -14,9 +16,17 @@ interface GeometryResource {
   geometry: PreparedTriangleGeometry;
   vao: WebGLVertexArrayObject | null;
   buffers: WebGLBuffer[];
+  position: WebGLBuffer | null;
+}
+interface EdgeResource {
+  owner: NonNullable<PreparedEngineSceneEdges>['owners'][number];
+  vao: WebGLVertexArrayObject | null;
+  index: WebGLBuffer | null;
 }
 interface Frame {
   source: PreparedEngineScene;
+  edges: PreparedEngineSceneEdges | null;
+  edgeResources: Map<string, EdgeResource>;
   camera: Camera;
   width: number;
   height: number;
@@ -62,9 +72,9 @@ export class EngineSceneRenderer {
   private unavailable = false;
   private readonly onLoss = (event: Event): void => { event.preventDefault(); this.lost = true; };
 
-  constructor(private readonly canvas: HTMLCanvasElement, sceneInput: unknown, optionsInput: unknown) {
+  constructor(private readonly canvas: HTMLCanvasElement, sceneInput: unknown, optionsInput: unknown, edgesInput?: unknown) {
     // Original source and exact sizes are admitted before touching a canvas/context.
-    const source = prepareEngineScene(sceneInput), size = options(optionsInput);
+    const source = prepareEngineScene(sceneInput), edges = prepareEngineSceneEdges(edgesInput, source), size = options(optionsInput);
     const camera = prepareCamera(source.scene.camera, size.width / size.height);
     requireValue(typeof HTMLCanvasElement !== 'undefined' && canvas instanceof HTMLCanvasElement,
       'Engine renderer requires an HTMLCanvasElement');
@@ -82,7 +92,7 @@ export class EngineSceneRenderer {
     let candidate: Frame | null = null;
     try {
       canvas.addEventListener('webglcontextlost', this.onLoss);
-      candidate = this.create(source, camera, size.width, size.height);
+      candidate = this.create(source, edges, camera, size.width, size.height);
       this.setBacking(size.width, size.height);
       this.present(candidate);
       this.accepted = candidate;
@@ -130,10 +140,10 @@ export class EngineSceneRenderer {
     requireValue(result !== null, 'Engine renderer active uniform is missing: ' + name);
     return result;
   }
-  private create(source: PreparedEngineScene, camera: Camera, width: number, height: number): Frame {
+  private create(source: PreparedEngineScene, edges: PreparedEngineSceneEdges | null, camera: Camera, width: number, height: number): Frame {
     this.live(true); this.check();
     const gl = this.gl;
-    const frame: Frame = { source, camera, width, height, geometries: new Map(), program: null,
+    const frame: Frame = { source, edges, edgeResources: new Map(), camera, width, height, geometries: new Map(), program: null,
       uniforms: null, framebuffer: null, color: null, depth: null };
     const shaders: WebGLShader[] = [];
     try {
@@ -158,7 +168,7 @@ export class EngineSceneRenderer {
 
       for (const draw of source.draws) {
         if (frame.geometries.has(draw.geometryId)) continue;
-        const resource: GeometryResource = { geometry: draw.geometry, vao: null, buffers: [] };
+        const resource: GeometryResource = { geometry: draw.geometry, vao: null, buffers: [], position: null };
         frame.geometries.set(draw.geometryId, resource);
         resource.vao = gl.createVertexArray();
         requireValue(resource.vao, 'Engine renderer cannot allocate vertex array');
@@ -168,6 +178,7 @@ export class EngineSceneRenderer {
           const buffer = gl.createBuffer();
           requireValue(buffer, 'Engine renderer cannot allocate vertex buffer');
           resource.buffers.push(buffer);
+          if (location === 0) resource.position = buffer;
           gl.bindBuffer(gl.ARRAY_BUFFER, buffer); gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
           gl.enableVertexAttribArray(location); gl.vertexAttribPointer(location, components, gl.FLOAT, false, 0, 0);
         }
@@ -175,6 +186,21 @@ export class EngineSceneRenderer {
         requireValue(index, 'Engine renderer cannot allocate index buffer');
         resource.buffers.push(index);
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, draw.geometry.indices, gl.STATIC_DRAW);
+      }
+      for (const owner of edges?.owners ?? []) {
+        if (!owner.node.effectiveVisible || owner.indices.length === 0) continue;
+        const resource: EdgeResource = { owner, vao: null, index: null };
+        frame.edgeResources.set(owner.nodeId, resource);
+        resource.vao = gl.createVertexArray();
+        requireValue(resource.vao, 'Engine renderer cannot allocate edge vertex array');
+        // Bind the new VAO before its EBO; never replace a triangle VAO's EBO.
+        gl.bindVertexArray(resource.vao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, frame.geometries.get(owner.geometryId)!.position);
+        gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+        resource.index = gl.createBuffer();
+        requireValue(resource.index, 'Engine renderer cannot allocate edge index buffer');
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, resource.index);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, owner.indices, gl.STATIC_DRAW);
       }
       gl.bindVertexArray(null); gl.bindBuffer(gl.ARRAY_BUFFER, null);
       // Assign each handle immediately so a later allocation refusal cannot leak it.
@@ -205,36 +231,54 @@ export class EngineSceneRenderer {
     } catch (error) {
       this.release(frame); throw error;
     } finally {
-      for (const shader of shaders) gl.deleteShader(shader);
+      for (const shader of shaders) this.cleanup(() => gl.deleteShader(shader));
     }
   }
   private draw(frame: Frame): void {
     const gl = this.gl;
-    gl.bindFramebuffer(gl.FRAMEBUFFER, frame.framebuffer);
-    gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
-    gl.viewport(0, 0, frame.width, frame.height);
-    gl.disable(gl.BLEND); gl.disable(gl.SCISSOR_TEST); gl.disable(gl.STENCIL_TEST);
-    gl.disable(gl.POLYGON_OFFSET_FILL); gl.disable(gl.RASTERIZER_DISCARD); gl.disable(gl.DITHER);
-    gl.disable(gl.SAMPLE_COVERAGE); gl.disable(gl.SAMPLE_ALPHA_TO_COVERAGE);
-    gl.enable(gl.CULL_FACE); gl.cullFace(gl.BACK); gl.frontFace(gl.CCW);
-    gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LESS); gl.depthMask(true); gl.depthRange(0, 1);
-    gl.colorMask(true, true, true, true);
-    const background = frame.source.scene.background.map(encodeEngineSRGB);
-    gl.clearColor(background[0], background[1], background[2], 1); gl.clearDepth(1);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.useProgram(frame.program);
-    const uniforms = frame.uniforms!;
-    gl.uniformMatrix4fv(uniforms.view, false, frame.camera.view);
-    gl.uniformMatrix4fv(uniforms.projection, false, frame.camera.projection);
-    for (const draw of frame.source.draws) {
-      const resource = frame.geometries.get(draw.geometryId)!;
-      gl.bindVertexArray(resource.vao);
-      gl.uniformMatrix4fv(uniforms.world, false, draw.node.worldMatrixF32);
-      gl.uniform3fv(uniforms.color, draw.material.color);
-      gl.drawElements(gl.TRIANGLES, resource.geometry.indices.length,
-        resource.geometry.indexType === 'uint16' ? gl.UNSIGNED_SHORT : gl.UNSIGNED_INT, 0);
+    try {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, frame.framebuffer);
+      gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
+      gl.viewport(0, 0, frame.width, frame.height);
+      gl.disable(gl.BLEND); gl.disable(gl.SCISSOR_TEST); gl.disable(gl.STENCIL_TEST);
+      gl.disable(gl.POLYGON_OFFSET_FILL); gl.disable(gl.RASTERIZER_DISCARD); gl.disable(gl.DITHER);
+      gl.disable(gl.SAMPLE_COVERAGE); gl.disable(gl.SAMPLE_ALPHA_TO_COVERAGE);
+      gl.enable(gl.CULL_FACE); gl.cullFace(gl.BACK); gl.frontFace(gl.CCW);
+      gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LESS); gl.depthMask(true); gl.depthRange(0, 1);
+      gl.colorMask(true, true, true, true);
+      const background = frame.source.scene.background.map(encodeEngineSRGB);
+      gl.clearColor(background[0], background[1], background[2], 1); gl.clearDepth(1);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.useProgram(frame.program);
+      const uniforms = frame.uniforms!;
+      gl.uniformMatrix4fv(uniforms.view, false, frame.camera.view);
+      gl.uniformMatrix4fv(uniforms.projection, false, frame.camera.projection);
+      const owners = new Set(frame.edges?.owners.map(owner => owner.nodeId));
+      for (const draw of frame.source.draws) {
+        if (owners.has(draw.id)) { gl.enable(gl.POLYGON_OFFSET_FILL); gl.polygonOffset(1, 1); }
+        else gl.disable(gl.POLYGON_OFFSET_FILL);
+        const resource = frame.geometries.get(draw.geometryId)!;
+        gl.bindVertexArray(resource.vao);
+        gl.uniformMatrix4fv(uniforms.world, false, draw.node.worldMatrixF32);
+        gl.uniform3fv(uniforms.color, draw.material.color);
+        gl.drawElements(gl.TRIANGLES, resource.geometry.indices.length,
+          resource.geometry.indexType === 'uint16' ? gl.UNSIGNED_SHORT : gl.UNSIGNED_INT, 0);
+      }
+      gl.disable(gl.POLYGON_OFFSET_FILL);
+      if (frame.edgeResources.size > 0) {
+        gl.depthFunc(gl.LEQUAL); gl.depthMask(false); gl.lineWidth(1);
+        gl.uniform3fv(uniforms.color, frame.edges!.overlay.color);
+        for (const { owner, vao } of frame.edgeResources.values()) {
+          gl.bindVertexArray(vao);
+          gl.uniformMatrix4fv(uniforms.world, false, owner.node.worldMatrixF32);
+          gl.drawElements(gl.LINES, owner.indices.length,
+            owner.indexType === 'uint16' ? gl.UNSIGNED_SHORT : gl.UNSIGNED_INT, 0);
+        }
+      }
+    } finally {
+      gl.disable(gl.POLYGON_OFFSET_FILL); gl.polygonOffset(0, 0);
+      gl.depthFunc(gl.LESS); gl.depthMask(true); gl.lineWidth(1); gl.bindVertexArray(null);
     }
-    gl.bindVertexArray(null);
   }
   private present(frame: Frame): void {
     this.live(true);
@@ -267,17 +311,17 @@ export class EngineSceneRenderer {
       return new AggregateError([error, asError(restore)], 'Engine renderer operation and rollback failed');
     }
   }
-  update(sceneInput: unknown): UpdateResult {
+  update(sceneInput: unknown, edgesInput?: unknown): UpdateResult {
     let candidate: Frame | null = null;
     // Pure admission/live refusal has not modified GL or presentation.
-    let source: PreparedEngineScene, camera: Camera;
+    let source: PreparedEngineScene, edges: PreparedEngineSceneEdges | null, camera: Camera;
     try {
-      this.live(); source = prepareEngineScene(sceneInput);
+      this.live(); source = prepareEngineScene(sceneInput); edges = prepareEngineSceneEdges(edgesInput, source);
       camera = prepareCamera(source.scene.camera, this.accepted!.width / this.accepted!.height);
     } catch (error) { return { ok: false, error: asError(error) }; }
     const prior = this.accepted!;
     try {
-      candidate = this.create(source, camera, prior.width, prior.height); this.present(candidate);
+      candidate = this.create(source, edges, camera, prior.width, prior.height); this.present(candidate);
     } catch (error) {
       if (candidate) this.release(candidate);
       return { ok: false, error: this.rollback(error, prior, false) };
@@ -288,11 +332,11 @@ export class EngineSceneRenderer {
   }
   resize(width: number, height: number): void {
     this.live(true); const size = dimensions(width, height), prior = this.accepted!;
-    const source = prepareEngineScene(prior.source.scene);
+    const source = prepareEngineScene(prior.source.scene), edges = prepareEngineSceneEdges(prior.edges?.overlay, source);
     const camera = prepareCamera(source.scene.camera, size.width / size.height);
     let candidate: Frame | null = null, touchedBacking = false;
     try {
-      candidate = this.create(source, camera, size.width, size.height);
+      candidate = this.create(source, edges, camera, size.width, size.height);
       touchedBacking = true; this.setBacking(size.width, size.height); this.present(candidate);
     } catch (error) {
       if (candidate) this.release(candidate);
@@ -307,25 +351,35 @@ export class EngineSceneRenderer {
   render(): void { this.live(); this.present(this.accepted!); }
   readPixels(): Uint8Array { this.live(); return this.pixels(null, this.accepted!.width, this.accepted!.height); }
 
+  // Cleanup consumes ownership first and attempts each handle once. A driver
+  // cleanup exception must not suppress rollback or undo an already accepted swap.
+  private cleanup(action: () => void): void { try { action(); } catch { /* Best effort, including lost contexts. */ } }
   private release(frame: Frame): void {
-    const gl = this.gl;
-    if (!gl.isContextLost()) {
-      if (frame.program && gl.getParameter(gl.CURRENT_PROGRAM) === frame.program) gl.useProgram(null);
-      const boundVAO = gl.getParameter(gl.VERTEX_ARRAY_BINDING);
-      if ([...frame.geometries.values()].some(resource => resource.vao === boundVAO)) gl.bindVertexArray(null);
-      if (frame.framebuffer && gl.getParameter(gl.READ_FRAMEBUFFER_BINDING) === frame.framebuffer) gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
-      if (frame.framebuffer && gl.getParameter(gl.DRAW_FRAMEBUFFER_BINDING) === frame.framebuffer) gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
-      if (frame.color && gl.getParameter(gl.TEXTURE_BINDING_2D) === frame.color) gl.bindTexture(gl.TEXTURE_2D, null);
-      if (frame.depth && gl.getParameter(gl.RENDERBUFFER_BINDING) === frame.depth) gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+    const gl = this.gl, geometries = [...frame.geometries.values()], edges = [...frame.edgeResources.values()];
+    const { program, framebuffer, color, depth } = frame;
+    frame.geometries.clear(); frame.edgeResources.clear();
+    frame.program = null; frame.framebuffer = null; frame.color = null; frame.depth = null;
+    this.cleanup(() => { if (program && gl.getParameter(gl.CURRENT_PROGRAM) === program) gl.useProgram(null); });
+    this.cleanup(() => {
+      const vao = gl.getParameter(gl.VERTEX_ARRAY_BINDING);
+      if ([...geometries, ...edges].some(resource => resource.vao === vao)) gl.bindVertexArray(null);
+    });
+    this.cleanup(() => { if (framebuffer && gl.getParameter(gl.READ_FRAMEBUFFER_BINDING) === framebuffer) gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null); });
+    this.cleanup(() => { if (framebuffer && gl.getParameter(gl.DRAW_FRAMEBUFFER_BINDING) === framebuffer) gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null); });
+    this.cleanup(() => { if (color && gl.getParameter(gl.TEXTURE_BINDING_2D) === color) gl.bindTexture(gl.TEXTURE_2D, null); });
+    this.cleanup(() => { if (depth && gl.getParameter(gl.RENDERBUFFER_BINDING) === depth) gl.bindRenderbuffer(gl.RENDERBUFFER, null); });
+    for (const resource of geometries) {
+      for (const buffer of resource.buffers) this.cleanup(() => gl.deleteBuffer(buffer));
+      if (resource.vao) this.cleanup(() => gl.deleteVertexArray(resource.vao));
     }
-    for (const resource of frame.geometries.values()) {
-      for (const buffer of resource.buffers) gl.deleteBuffer(buffer);
-      if (resource.vao) gl.deleteVertexArray(resource.vao);
+    for (const resource of edges) {
+      if (resource.index) this.cleanup(() => gl.deleteBuffer(resource.index));
+      if (resource.vao) this.cleanup(() => gl.deleteVertexArray(resource.vao));
     }
-    if (frame.program) gl.deleteProgram(frame.program);
-    if (frame.framebuffer) gl.deleteFramebuffer(frame.framebuffer);
-    if (frame.color) gl.deleteTexture(frame.color);
-    if (frame.depth) gl.deleteRenderbuffer(frame.depth);
+    if (program) this.cleanup(() => gl.deleteProgram(program));
+    if (framebuffer) this.cleanup(() => gl.deleteFramebuffer(framebuffer));
+    if (color) this.cleanup(() => gl.deleteTexture(color));
+    if (depth) this.cleanup(() => gl.deleteRenderbuffer(depth));
   }
   dispose(): void {
     if (this.disposed) return;
@@ -335,6 +389,6 @@ export class EngineSceneRenderer {
     finally { this.accepted = null; activeCanvases.delete(this.canvas); }
   }
 }
-export function mountEngineScene(canvas: HTMLCanvasElement, sceneInput: unknown, optionsInput: unknown): EngineSceneRenderer {
-  return new EngineSceneRenderer(canvas, sceneInput, optionsInput);
+export function mountEngineScene(canvas: HTMLCanvasElement, sceneInput: unknown, optionsInput: unknown, edgesInput?: unknown): EngineSceneRenderer {
+  return new EngineSceneRenderer(canvas, sceneInput, optionsInput, edgesInput);
 }

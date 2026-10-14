@@ -6,6 +6,8 @@ export type ModelingStructureCommand =
   | { kind: 'add-hole'; target: ModelingStructureTarget; x: number; y: number; radius: number }
   | { kind: 'cut-pocket'; target: ModelingStructureTarget; wall: number; floor: number }
   | { kind: 'chamfer'; target: ModelingStructureTarget; distance: number }
+  | ({ kind: 'rotate-part'; target: ModelingStructureTarget } & CardinalRotation)
+  | { kind: 'move-part'; target: ModelingStructureTarget; x: number; y: number; z: number }
   | { kind: 'union'; targets: [ModelingStructureTarget, ModelingStructureTarget] }
   | { kind: 'cut-slot'; target: ModelingStructureTarget; x: number; y: number; width: number; height: number };
 
@@ -16,6 +18,11 @@ const HOLE = ['holeCenterX', 'holeCenterY', 'holeRadius'] as const;
 const POCKET = ['pocketWall', 'pocketFloor'] as const;
 const CHAMFER = ['bevelDistance'] as const;
 const OPPOSITE_CHAMFER = ['backBevelDistance'] as const;
+const PLACEMENT = ['placementX', 'placementY', 'placementZ'] as const;
+type CardinalRotation = { axis: 'x' | 'y' | 'z'; angleDegrees: 90 | 180 | 270 | -90 | -180 | -270 };
+type XYZ = [number, number, number];
+/** Accepted authored coordinates only: neither native bounds nor certified geometry. */
+type AuthoredRailPlacement = { rotation: CardinalRotation | null; offset: XYZ; envelope: { min: XYZ; max: XYZ } };
 type Data = Record<string, unknown>;
 type Dimension = number | { parameter: string } | { op: 'add'; left: Dimension; right: Dimension }
   | { op: 'scale'; value: Dimension; factor: number };
@@ -174,6 +181,66 @@ function oppositeChamferDistance(d: Document, input: unknown): number {
     'Opposite bevel distance must be positive and strictly below thickness; front plus back must be strictly below the rectangular Y span.');
   return distance;
 }
+function cardinalRotation(axis: unknown, angleDegrees: unknown): CardinalRotation {
+  check(axis === 'x' || axis === 'y' || axis === 'z', 'Rotate part requires a cardinal x, y or z axis about the world origin.');
+  check(typeof angleDegrees === 'number' && [90, 180, 270, -90, -180, -270].includes(angleDegrees),
+    'Rotate part requires exactly +/-90, +/-180 or +/-270 degrees about the world origin.');
+  return { axis, angleDegrees: angleDegrees as CardinalRotation['angleDegrees'] };
+}
+function usesParameter(value: unknown, names: readonly string[]): boolean {
+  if (value === null || typeof value !== 'object') return false;
+  if (Array.isArray(value)) return value.some(item => usesParameter(item, names));
+  const data = value as Data;
+  return typeof data.parameter === 'string' && names.includes(data.parameter)
+    || Object.values(data).some(item => usesParameter(item, names));
+}
+function placementNode(): Data {
+  return { kind: 'translate', parent: { node: 4, side: 'solid' }, offset: PLACEMENT.map(parameter) };
+}
+/** Exact #1989-owned rail, optionally followed by its sole rotation and placement. */
+function authoredRailPlacement(d: Document): AuthoredRailPlacement {
+  check([4, 5, 6].includes(d.nodes.length), 'Rotate/Move part requires the exact owned two-bevel rectangular rail, with at most one rotation then one placement.');
+  check(Object.keys(d.outputs).length === 1 && Object.hasOwn(d.outputs, 'part'), 'Rotate/Move part requires the sole owned output named part without aliases.');
+  ref(d.outputs.part, d.nodes.length - 1);
+  check(Object.hasOwn(d.parameters, OPPOSITE_CHAMFER[0]) && signedJson(d.nodes[3]) === signedJson({
+    kind: 'chamfer', parent: { node: 2, side: 'solid' },
+    edge: { parallelTo: 'x', at: { y: list(d.nodes[0].max, 2)[1], z: 'max' } }, distance: parameter(OPPOSITE_CHAMFER[0]),
+  }), 'Rotate/Move part requires the exact unnamed opposite bevel and its original max-Y expression and backBevelDistance driver.');
+  check(!usesParameter(d.nodes.slice(0, 2), [...CHAMFER, ...OPPOSITE_CHAMFER]), 'The owned bevel drivers must remain independent of the rectangular prefix.');
+  const front = { ...d, nodes: d.nodes.slice(0, 3), outputs: { part: { node: 2, side: 'solid' as const } } };
+  oppositeChamferDistance(front, d.parameters[OPPOSITE_CHAMFER[0]]);
+  const max = point(d.nodes[0].max, d.parameters), height = resolveDimension(d.nodes[1].height, d.parameters);
+  let rotation: CardinalRotation | null = null;
+  if (d.nodes.length >= 5) {
+    const node = record(d.nodes[4], ['kind', 'parent', 'axis', 'angleDegrees']);
+    check(node.kind === 'rotate', 'Only the owned rail rotation may follow the two bevels.'); ref(node.parent, 3);
+    rotation = cardinalRotation(node.axis, node.angleDegrees);
+  }
+  let offset: XYZ = [0, 0, 0];
+  if (d.nodes.length === 6) {
+    check(PLACEMENT.every(key => Object.hasOwn(d.parameters, key)) && signedJson(d.nodes[5]) === signedJson(placementNode()),
+      'Move part requires its exact three named placement drivers and owned rotated parent.');
+    check(!usesParameter(d.nodes.slice(0, 5), PLACEMENT), 'The three placement drivers must remain independent of the rail and rotation.');
+    offset = PLACEMENT.map(key => length(d.parameters[key])) as XYZ;
+  }
+  // Cardinal permutation/sign changes avoid trigonometric rounding. This is the
+  // original rectangular envelope, not a mesh measurement or native certificate.
+  const corners: XYZ[] = [];
+  for (const x of [0, max[0]]) for (const y of [0, max[1]]) for (const z of [0, height]) {
+    let corner: XYZ = [x, y, z];
+    const turns = rotation ? ((rotation.angleDegrees / 90) % 4 + 4) % 4 : 0;
+    for (let turn = 0; turn < turns; turn++) {
+      const [a, b, c] = corner;
+      corner = rotation!.axis === 'x' ? [a, -c, b] : rotation!.axis === 'y' ? [c, b, -a] : [-b, a, c];
+    }
+    corners.push(corner.map((value, axis) => value + offset[axis]) as XYZ);
+  }
+  // Normalize derived envelope zeros only; authored source and offset signs stay intact.
+  const coordinate = (value: number): number => value === 0 ? 0 : value;
+  const min = [0, 1, 2].map(axis => coordinate(Math.min(...corners.map(corner => corner[axis])))) as XYZ;
+  const upper = [0, 1, 2].map(axis => coordinate(Math.max(...corners.map(corner => corner[axis])))) as XYZ;
+  return { rotation, offset, envelope: { min, max: upper } };
+}
 function parameter(key: string): { parameter: string } { return { parameter: key }; }
 function addedRectangle(names: readonly string[]): Data {
   const [x, y, width, height] = names;
@@ -270,7 +337,7 @@ function ownedGraph(d: Document): number {
 }
 function dependencies(node: Data): number[] {
   return node.kind === 'sketch' ? [] : node.kind === 'extrude' ? [node.sketch as number]
-    : node.kind === 'hole' || node.kind === 'chamfer' ? [(node.parent as Ref).node]
+    : node.kind === 'hole' || node.kind === 'chamfer' || node.kind === 'rotate' || node.kind === 'translate' ? [(node.parent as Ref).node]
       : node.kind === 'union' ? [(node.left as Ref).node, (node.right as Ref).node] : [(node.parent as Ref).node, (node.tool as Ref).node];
 }
 function accepted(d: Document, input: CadEditorModelingSummary): ModelingStructureTarget[] {
@@ -303,6 +370,8 @@ export function getModelingStructureCapabilities(text: string | null, summary: C
   union: [ModelingStructureTarget, ModelingStructureTarget] | null;
   cutSlot: ModelingStructureTarget | null; cutPocket: ModelingStructureTarget | null;
   chamfer: ModelingStructureTarget | null; chamferReason: string;
+  rotatePart: ModelingStructureTarget | null; movePart: ModelingStructureTarget | null;
+  placementReason: string; placementAuthored: AuthoredRailPlacement | null;
   reason: string; holeReason: string; pocketReason: string; sharedThickness: number | null;
   pocketDefaults: { wall: number; floor: number } | null; pocketAuthored: boolean;
 } {
@@ -318,9 +387,22 @@ export function getModelingStructureCapabilities(text: string | null, summary: C
     } else { chamferPlate(d); reserve(d, CHAMFER); }
     chamfer = targets[0];
   } catch (cause) { chamferReason = message(cause); }
+  let rotatePart: ModelingStructureTarget | null = null, movePart: ModelingStructureTarget | null = null;
+  let placementAuthored: AuthoredRailPlacement | null = null;
+  let placementReason = 'Rotate the owned two-bevel rail about the world origin, then move it in native model XYZ millimetres.';
+  try {
+    check(text !== null && summary !== null, 'open an accepted owned two-bevel rectangular rail first.');
+    const d = document(text), targets = accepted(d, summary);
+    placementAuthored = authoredRailPlacement(d);
+    if (d.nodes.length === 4) rotatePart = targets[0];
+    else if (d.nodes.length === 5) {
+      reserve(d, PLACEMENT); movePart = targets[0];
+      placementReason = 'Move the rotated rail once in native model XYZ millimetres. Finite offsets do not guarantee native exact representability.';
+    } else placementReason = 'This six-node rail placement is complete. Edit placementX, placementY and placementZ in Model dimensions; another transform is unsupported.';
+  } catch (cause) { placementReason = message(cause); }
   // Keep the older integer-only commands and all their reasons independent.
   const none = { addArm: null, addHole: null, union: null, cutSlot: null, cutPocket: null, sharedThickness: null,
-    pocketDefaults: null, pocketAuthored: false, chamfer, chamferReason };
+    pocketDefaults: null, pocketAuthored: false, chamfer, chamferReason, rotatePart, movePart, placementReason, placementAuthored };
   let pocketAuthored = false;
   const unavailableHole = 'Add through-hole requires the selected Extrude of one unmodified rectangular part.';
   const unavailablePocket = 'Cut rectangular pocket requires the selected Extrude of one unmodified rectangular part.';
@@ -373,7 +455,24 @@ export function buildModelingStructure(text: string, summary: CadEditorModelingS
 } {
   const command = record(ownData(input)), capabilities = getModelingStructureCapabilities(text, summary), d = document(text);
   const kind = command.kind;
-  check(kind === 'add-arm' || kind === 'add-hole' || kind === 'union' || kind === 'cut-slot' || kind === 'cut-pocket' || kind === 'chamfer', 'known structural command required.');
+  check(kind === 'add-arm' || kind === 'add-hole' || kind === 'union' || kind === 'cut-slot' || kind === 'cut-pocket' || kind === 'chamfer'
+    || kind === 'rotate-part' || kind === 'move-part', 'known structural command required.');
+  if (kind === 'rotate-part') {
+    record(command, ['kind', 'target', 'axis', 'angleDegrees']);
+    check(capabilities.rotatePart, capabilities.placementReason); matchingTarget(command.target, capabilities.rotatePart);
+    const rotation = cardinalRotation(command.axis, command.angleDegrees);
+    d.nodes.push({ kind: 'rotate', parent: { node: 3, side: 'solid' }, ...rotation });
+    d.outputs = { part: { node: 4, side: 'solid' } };
+    return { text: canonicalModelingText(d), selectedOutput: 'part', consumed: [capabilities.rotatePart.name], kind };
+  }
+  if (kind === 'move-part') {
+    record(command, ['kind', 'target', 'x', 'y', 'z']);
+    check(capabilities.movePart, capabilities.placementReason); matchingTarget(command.target, capabilities.movePart);
+    const values = [command.x, command.y, command.z].map(length); reserve(d, PLACEMENT);
+    PLACEMENT.forEach((key, index) => { d.parameters[key] = values[index]; });
+    d.nodes.push(placementNode()); d.outputs = { part: { node: 5, side: 'solid' } };
+    return { text: canonicalModelingText(d), selectedOutput: 'part', consumed: [capabilities.movePart.name], kind };
+  }
   if (kind === 'chamfer') {
     record(command, ['kind', 'target', 'distance']);
     check(capabilities.chamfer, capabilities.chamferReason); matchingTarget(command.target, capabilities.chamfer);
@@ -445,7 +544,7 @@ export function sameModelingStructure(a: string, b: string): boolean {
       const d = document(text);
       d.parameters = Object.fromEntries(Object.keys(d.parameters).map(key => [key, 0]));
       for (const node of d.nodes) {
-        check(['sketch', 'extrude', 'translate', 'cut', 'intersect', 'union', 'difference', 'split', 'chamfer', 'hole'].includes(node.kind as string), 'unknown authored feature.');
+        check(['sketch', 'extrude', 'translate', 'rotate', 'cut', 'intersect', 'union', 'difference', 'split', 'chamfer', 'hole'].includes(node.kind as string), 'unknown authored feature.');
         if (Object.hasOwn(node, 'suppressed')) {
           record(node, ['kind', 'parent', 'edge', 'distance', 'name', 'suppressed']);
           check(node.kind === 'chamfer' && typeof node.suppressed === 'boolean', 'only named chamfer suppression can vary.'); name(node.name); node.suppressed = false;

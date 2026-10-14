@@ -99,7 +99,26 @@ Historical [two-bevel native proof](https://github.com/barocss/barocss/issues/16
 
 ### See and select a bevel face
 
-The viewport gives accepted convex faces distinct fill colors. Click inside a bevel face to inspect its original approximate face and triangle identity. When a model has too many convex faces to show separately, all outputs remain visible with their original plain fill and face picking; bevel color separation is unavailable in that case. Boundary lines are not drawn. [#1990](https://github.com/barocss/barocss/issues/1990) records the focused display and pointer checks; color and picking do not certify exact measurement or manufacturing geometry.
+The viewport gives accepted convex faces distinct fill colors. Click inside a bevel face to inspect its original approximate face and triangle identity. When a model has too many convex faces to show separately, all outputs remain visible with their original plain fill and face picking; bevel color separation is unavailable in that case. [#1990](https://github.com/barocss/barocss/issues/1990) records the focused display and pointer checks; color and picking do not certify exact measurement or manufacturing geometry.
+
+
+### Orient and place a finished rail
+
+After the two owned top chamfers, select **Chamfer 02 → MODIFY → Rotate part**. Choose **World axis X** and **Cardinal angle +90**, then **Preview operation → Apply operation**. Rotation is about the native XYZ world origin. Select the resulting **Rotate 01 → MODIFY → Move part**, leave native offsets **X40, Y16, Z0** mm, and preview/apply again. The sole `part` output becomes each new result; earlier features remain in source and Undo history. This is one reoriented part, not a set of assembly copies.
+
+The initial command accepts only the exact four-node origin-zero rectangular two-bevel rail, then one cardinal rotation and one translation. Axes X/Y/Z and angles ±90/±180/±270 are available. Move adds independent `placementX`, `placementY`, `placementZ` drivers; use **Edit model dimensions** to re-edit them. Six nodes is terminal: another transform, later feature, arbitrary pivot/angle, circle, hole, pocket, Boolean or pattern ancestry is unavailable. Finite offsets within ±10000 mm are necessary input bounds, not a promise of native acceptance; values are never rounded to fit. Native exact representability can refuse a decimal such as 0.1 while retaining the prior accepted model.
+
+**Inspect selection** and active placement options show **Accepted authored rail coordinates**. For the 32×24×8 rail, X+90 derives envelope [0,-8,0] to [32,0,24]; offsets [40,16,0] derive [40,8,0] to [72,16,24]. This is coordinate feedback computed from admitted accepted source, not certified native bounds. It changes only after Apply and follows Undo/Redo. The camera automatically refits each result, so pure translation can look stationary. No camera, dragging or assembly-placement tool is implied.
+
+The [#1994 provider receipt](https://github.com/barocss/barocss/blob/87bd189d0ca6945fc3cdd321781546880bb17f08/packages/barocss-cad/test/evidence/rotated-placement-1994/verification.json) records its own rotated/placed rail at6064 mm³; its original three-output context differs from this command's single `part`. Local [#1999](https://github.com/barocss/barocss/issues/1999) controls use explicit provider/display doubles and unchanged historical untransformed geometry unless an exact retained-packet handoff is separately verified. New command geometry, real pixels/picking and physical acceptance are pending. CPU source roundtrip controls cover serialization; no repeated physical Save/Open is scheduled without a new codec risk.
+
+### Read real convex boundary edges
+
+Normal convex model outputs show their admitted native boundary edges over the filled faces, including the plain-fill multi-output fallback. Shared edges are drawn once; face-internal triangulation diagonals are excluded. Click inside a face to retain its original approximate face/triangle identity: the edge overlay does not add an edge-selection command. Camera changes and resizing use the same accepted model and do not trigger native evaluation or create history.
+
+The current WebGL2 overlay is a one-backing-pixel hairline, approximately half a CSS pixel at DPR2. Its shared depth buffer hides ordinary rear edges, with a small fill bias to reduce coincident edge/fill interference. Grazing or nearly coincident surfaces can still show bias artifacts; this is not mathematically exact hidden-line removal. Circle, through-hole, orthogonal-cell and legacy serial displays retain their existing presentation.
+
+[#1995](https://github.com/barocss/barocss/issues/1995) keeps the actual normal-scale DPR2 readability and ordinary bevel-interior picking gates open until device evidence exists. Retained native boundaries and CPU/mock renderer controls establish source/mapping/lifecycle behavior, not successful pixels or manufacturing geometry.
 
 ## Add one through-hole to a rectangular part
 

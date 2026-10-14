@@ -1575,6 +1575,38 @@ Accepted convex faces use distinct fill colors so a bevel can be identified in
 the viewport. An ordinary face click reports the original approximate face and
 triangle identity. For a scene that exceeds the 16-draw limit, each output keeps
 its original single-color display and original triangle picking. This fallback
-does not make the bevel face distinct. This display does not draw boundary lines
-or certify exact measurement or manufacturing geometry; [#1990](https://github.com/barocss/barocss/issues/1990)
+does not make the bevel face distinct. This display does not certify exact
+measurement or manufacturing geometry; [#1990](https://github.com/barocss/barocss/issues/1990)
 tracks the screen-level acceptance.
+
+### Native convex boundary lines
+
+Normal convex model outputs also carry a depth-tested boundary overlay. It uses
+one copy of each admitted native solid edge, excluding face-internal tessellation
+diagonals. The original face geometry and face-click authority are unchanged;
+the lines themselves are not separately selectable. Both per-face colors and the
+plain-fill multi-output fallback retain every original boundary and output.
+
+The current WebGL2 view draws one backing-pixel hairlines, approximately half a
+CSS pixel at DPR2. Polygon-offset fill reduces coincident edge/fill interference,
+but grazing or very close surfaces can still show depth-bias artifacts. This is
+not exact hidden-line removal. Circle, hole, orthogonal-cell and legacy serial
+displays do not gain this convex overlay. No native evaluation, source edit or
+history entry is needed for lines. [#1995](https://github.com/barocss/barocss/issues/1995)
+tracks retained-geometry checks and the still-pending actual normal-scale DPR2
+readability/face-picking gate; CPU/mock renderer checks alone do not prove pixels.
+
+### Cardinal rail orientation and placement
+
+Select the owned second chamfer, then MODIFY → Rotate part. A world-origin cardinal
+axis/angle preview appends one rotation; select its result and use Move part for
+three native XYZ offsets. Apply only promotes a ready preview. The sole part output
+is retargeted, with semantic prefix and structural Undo retained. Six nodes is
+terminal; later movement edits placementX/Y/Z through Model dimensions.
+
+Accepted authored rail envelope is source-derived coordinate feedback, not a native
+bounds certificate. The camera refits each scene, so translation can appear
+stationary. No rounding of native-refused offsets, assembly copies, arbitrary
+pivot/angle or unsupported ancestry. #1999 tracks the bounded logical tests and
+separate pending actual-device outcome; provider #1994 evidence is not this UI's
+physical acceptance.

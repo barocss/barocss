@@ -1,7 +1,7 @@
 {
   "schema": "barocss-current-public-api-v1",
   "typescriptVersion": "5.9.3",
-  "sourceCommit": "71633818d5883eb0209394d7d38c46474bf5c95c",
+  "sourceCommit": "6a2f985f383e416250c249cac4237c80f6fb86d2",
   "extractor": "TypeScript 5.9.3 public module exports and declarations; not a type-check or runtime execution",
   "packages": [
     {
@@ -1294,6 +1294,16 @@
               "digest": "ad0d72f54be6341fc96c16d0c468c68bd73848b459a5a810dd2a424c8827de0f"
             },
             {
+              "name": "EngineSceneEdgeOverlayV0",
+              "kind": "InterfaceDeclaration",
+              "source": "packages/barocss-gpu/src/engine-scene-edges.ts",
+              "line": 6,
+              "signatures": [
+                "export interface EngineSceneEdgeOverlayV0 {\n  format: 'barocss-gpu-engine-scene-edges';\n  version: 0;\n  sceneId: string;\n  color: [number, number, number];\n  owners: { nodeId: string; geometryId: string; indices: number[] }[];\n}"
+              ],
+              "digest": "a169db02a97db235687610b3b4d48764179cdfccdfc7d3ba26ba6d8c088cdc65"
+            },
+            {
               "name": "EngineSceneError",
               "kind": "ClassDeclaration",
               "source": "packages/barocss-gpu/src/engine-scene.ts",
@@ -1368,17 +1378,17 @@
               "name": "EngineSceneRenderer",
               "kind": "ClassDeclaration",
               "source": "packages/barocss-gpu/src/engine-scene-renderer.ts",
-              "line": 57,
+              "line": 67,
               "signatures": [
-                "export class EngineSceneRenderer {\n  constructor(canvas: HTMLCanvasElement, sceneInput: unknown, optionsInput: unknown);\n  getScene(): EngineSceneV0;\n  update(sceneInput: unknown): UpdateResult;\n  resize(width: number, height: number): void;\n  render(): void;\n  readPixels(): Uint8Array;\n  dispose(): void;\n}"
+                "export class EngineSceneRenderer {\n  constructor(canvas: HTMLCanvasElement, sceneInput: unknown, optionsInput: unknown, edgesInput?: unknown);\n  getScene(): EngineSceneV0;\n  update(sceneInput: unknown, edgesInput?: unknown): UpdateResult;\n  resize(width: number, height: number): void;\n  render(): void;\n  readPixels(): Uint8Array;\n  dispose(): void;\n}"
               ],
-              "digest": "73160dbe5664a1d8d5d462c5a6968ecca01d7cdcfdda45dbd7788d9ffaf8099e"
+              "digest": "d629e6aa13a5683408c7e18ae5a7fac1f8e7101054895b56ec6325297a5c6d5c"
             },
             {
               "name": "EngineSceneRendererOptions",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-gpu/src/engine-scene-renderer.ts",
-              "line": 10,
+              "line": 12,
               "signatures": [
                 "export interface EngineSceneRendererOptions { width: number; height: number }"
               ],
@@ -2513,11 +2523,11 @@
               "name": "mountEngineScene",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/engine-scene-renderer.ts",
-              "line": 338,
+              "line": 392,
               "signatures": [
-                "export function mountEngineScene(canvas: HTMLCanvasElement, sceneInput: unknown, optionsInput: unknown): EngineSceneRenderer;"
+                "export function mountEngineScene(canvas: HTMLCanvasElement, sceneInput: unknown, optionsInput: unknown, edgesInput?: unknown): EngineSceneRenderer;"
               ],
-              "digest": "1d396115572ae9b07803a1543b940f2f9cc09a04ebebe973d43d6e9ea0e820af"
+              "digest": "cae43e12ba76e4792d2e735fdc08af9238182cf5ac14bc2c087d21c88ccf5d90"
             },
             {
               "name": "mountEngineUVTextureWebGPUViewport",
@@ -5551,6 +5561,12 @@
               ]
             },
             {
+              "source": "packages/barocss-gpu/src/engine-scene-edges.ts",
+              "names": [
+                "EngineSceneEdgeOverlayV0"
+              ]
+            },
+            {
               "source": "packages/barocss-gpu/src/engine-scene-frustum.ts",
               "names": [
                 "EngineSceneFrustumDiagnosticCode",
@@ -5778,6 +5794,7 @@
                 "EngineScaleKeyV0",
                 "EngineScaleTrackV0",
                 "EngineSceneDiagnosticCode",
+                "EngineSceneEdgeOverlayV0",
                 "EngineSceneError",
                 "EngineSceneFrustumDiagnosticCode",
                 "EngineSceneFrustumEntryV0",
@@ -7824,6 +7841,16 @@
               "digest": "ad0d72f54be6341fc96c16d0c468c68bd73848b459a5a810dd2a424c8827de0f"
             },
             {
+              "name": "EngineSceneEdgeOverlayV0",
+              "kind": "InterfaceDeclaration",
+              "source": "packages/barocss-gpu/src/engine-scene-edges.ts",
+              "line": 6,
+              "signatures": [
+                "export interface EngineSceneEdgeOverlayV0 {\n  format: 'barocss-gpu-engine-scene-edges';\n  version: 0;\n  sceneId: string;\n  color: [number, number, number];\n  owners: { nodeId: string; geometryId: string; indices: number[] }[];\n}"
+              ],
+              "digest": "a169db02a97db235687610b3b4d48764179cdfccdfc7d3ba26ba6d8c088cdc65"
+            },
+            {
               "name": "EngineSceneError",
               "kind": "ClassDeclaration",
               "source": "packages/barocss-gpu/src/engine-scene.ts",
@@ -7898,17 +7925,17 @@
               "name": "EngineSceneRenderer",
               "kind": "ClassDeclaration",
               "source": "packages/barocss-gpu/src/engine-scene-renderer.ts",
-              "line": 57,
+              "line": 67,
               "signatures": [
-                "export class EngineSceneRenderer {\n  constructor(canvas: HTMLCanvasElement, sceneInput: unknown, optionsInput: unknown);\n  getScene(): EngineSceneV0;\n  update(sceneInput: unknown): UpdateResult;\n  resize(width: number, height: number): void;\n  render(): void;\n  readPixels(): Uint8Array;\n  dispose(): void;\n}"
+                "export class EngineSceneRenderer {\n  constructor(canvas: HTMLCanvasElement, sceneInput: unknown, optionsInput: unknown, edgesInput?: unknown);\n  getScene(): EngineSceneV0;\n  update(sceneInput: unknown, edgesInput?: unknown): UpdateResult;\n  resize(width: number, height: number): void;\n  render(): void;\n  readPixels(): Uint8Array;\n  dispose(): void;\n}"
               ],
-              "digest": "73160dbe5664a1d8d5d462c5a6968ecca01d7cdcfdda45dbd7788d9ffaf8099e"
+              "digest": "d629e6aa13a5683408c7e18ae5a7fac1f8e7101054895b56ec6325297a5c6d5c"
             },
             {
               "name": "EngineSceneRendererOptions",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-gpu/src/engine-scene-renderer.ts",
-              "line": 10,
+              "line": 12,
               "signatures": [
                 "export interface EngineSceneRendererOptions { width: number; height: number }"
               ],
@@ -9043,11 +9070,11 @@
               "name": "mountEngineScene",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/engine-scene-renderer.ts",
-              "line": 338,
+              "line": 392,
               "signatures": [
-                "export function mountEngineScene(canvas: HTMLCanvasElement, sceneInput: unknown, optionsInput: unknown): EngineSceneRenderer;"
+                "export function mountEngineScene(canvas: HTMLCanvasElement, sceneInput: unknown, optionsInput: unknown, edgesInput?: unknown): EngineSceneRenderer;"
               ],
-              "digest": "1d396115572ae9b07803a1543b940f2f9cc09a04ebebe973d43d6e9ea0e820af"
+              "digest": "cae43e12ba76e4792d2e735fdc08af9238182cf5ac14bc2c087d21c88ccf5d90"
             },
             {
               "name": "mountEngineUVTextureWebGPUViewport",
@@ -12081,6 +12108,12 @@
               ]
             },
             {
+              "source": "packages/barocss-gpu/src/engine-scene-edges.ts",
+              "names": [
+                "EngineSceneEdgeOverlayV0"
+              ]
+            },
+            {
               "source": "packages/barocss-gpu/src/engine-scene-frustum.ts",
               "names": [
                 "EngineSceneFrustumDiagnosticCode",
@@ -12308,6 +12341,7 @@
                 "EngineScaleKeyV0",
                 "EngineScaleTrackV0",
                 "EngineSceneDiagnosticCode",
+                "EngineSceneEdgeOverlayV0",
                 "EngineSceneError",
                 "EngineSceneFrustumDiagnosticCode",
                 "EngineSceneFrustumEntryV0",
@@ -50890,7 +50924,7 @@
               "name": "ModelingOrthogonalFaceSelection",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-cad-editor/src/modeling-scene.ts",
-              "line": 424,
+              "line": 426,
               "signatures": [
                 "export type ModelingOrthogonalFaceSelection = ModelingUnionFaceSelection;"
               ],
@@ -50940,7 +50974,7 @@
               "name": "pickPrismFeatureScene",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-cad-editor/src/prism-feature-scene.ts",
-              "line": 205,
+              "line": 277,
               "signatures": [
                 "export function pickPrismFeatureScene(display: PrismDisplayScene, width: number, height: number, x: number, y: number): PrismFaceSelection | null;"
               ],
@@ -50950,7 +50984,7 @@
               "name": "preparePrismFeatureScene",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-cad-editor/src/prism-feature-scene.ts",
-              "line": 40,
+              "line": 57,
               "signatures": [
                 "export function preparePrismFeatureScene(packet: PrismDisplayPacket, view: PrismDisplayView, aspect?: number, orientation?: 'isometric' | 'top'): PrismDisplayScene;"
               ],
@@ -50982,9 +51016,9 @@
               "source": "packages/barocss-cad-editor/src/prism-feature-scene.ts",
               "line": 28,
               "signatures": [
-                "export interface PrismDisplayScene { packet: PrismDisplayPacket; view: PrismDisplayView; scene: EngineSceneV0 }"
+                "export interface PrismDisplayScene { packet: PrismDisplayPacket; view: PrismDisplayView; scene: EngineSceneV0; edges?: EngineSceneEdgeOverlayV0 }"
               ],
-              "digest": "52638091b32a588a4aee2dd62cc3279deec59d3890a38389aa136260b30362c1"
+              "digest": "6560d1ff6dd8c7b49125cddc8edee0caced37d191c9ffbb430fa9b3fe0e176e6"
             },
             {
               "name": "PrismDisplayView",
@@ -55263,13 +55297,13 @@
   ],
   "packageTrees": {
     "packages/barocss-render": "b83e4912e1d1aa658f048ba4b112376785b288fb",
-    "packages/barocss-gpu": "2967d567ec26725a4090f2d64ed2b283ac468bef",
-    "packages/barocss-cad": "e87b6a179d11b0547b488848fb20b8ee11031718",
+    "packages/barocss-gpu": "f9e7eb09c8201b460f2f07789da92e5906971ff9",
+    "packages/barocss-cad": "3c0d3e6d3c029f17eda7eb8c4efb265de6b0954d",
     "packages/barocss-cad-interop": "330d0323e1d3891c8a1f882e848aae604ea67b08",
     "packages/barocss-canvas2d": "923f3ad3b6931824c86ab71bea40b95bf7fff991",
     "packages/barocss-viewer": "aa7736ed08620fe9b7db2eff4feec5c89f9e502b",
     "packages/barocss-physics": "f3aa5c6e161137cb80fb68f73a517cd6bdc673dd",
-    "packages/barocss-cad-editor": "db2dde29123da8dc1019cf8d817d61c349c954cf",
+    "packages/barocss-cad-editor": "fe8cb4a8cbae73f3bf158d1ef2e279755839c440",
     "packages/barocss-render-editor": "d1486acf9b983dba6839d2bf303406876244e2e6"
   },
   "historicalSourceCommit": "5f5ad866205a21510ac69552e704cc162fa253b5",
@@ -55326,6 +55360,7 @@
       "@barocss/gpu.:EngineMaterialBindingsV0",
       "@barocss/gpu.:EngineMaterialBindingV0",
       "@barocss/gpu.:EngineMaterialSampler",
+      "@barocss/gpu.:EngineSceneEdgeOverlayV0",
       "@barocss/gpu.:EngineSceneRenderer",
       "@barocss/gpu.:EngineSceneRendererOptions",
       "@barocss/gpu.:engineSceneWGSL",
@@ -55614,6 +55649,7 @@
       "@barocss/gpu./source:EngineMaterialBindingsV0",
       "@barocss/gpu./source:EngineMaterialBindingV0",
       "@barocss/gpu./source:EngineMaterialSampler",
+      "@barocss/gpu./source:EngineSceneEdgeOverlayV0",
       "@barocss/gpu./source:EngineSceneRenderer",
       "@barocss/gpu./source:EngineSceneRendererOptions",
       "@barocss/gpu./source:engineSceneWGSL",

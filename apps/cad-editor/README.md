@@ -772,3 +772,19 @@ Local focused flow: `node apps/cad-editor/flows/modeling-opposite-chamfer-flow.m
 Its unchanged historical two-bevel6064 mesh and explicitly mocked deliveries are
 not new physical proof. #1989's reduced device check covers second-bevel visibility,
 native results and history; no repeated physical Save/Open/STL campaign.
+
+## Orient and place the finished rail
+
+After the two normal chamfers, select Chamfer02 → MODIFY → Rotate part → X,+90 →
+Preview operation → Apply operation. Select Rotate01 → Move part → nativeXYZ
+offsets40,16,0 → Preview/Apply. Edit placementX/Y/Z later through Model dimensions;
+Undo/Redo distinguishes the two structural operations from later parameter edits.
+The camera refits, so inspect Accepted authored rail coordinates rather than
+assuming translation must move the part across the screen. Envelope feedback is
+derived from accepted source and is not certified native bounds.
+
+Focused local script: `node apps/cad-editor/flows/modeling-rotated-placement-flow.mjs`
+with the frozen source-hash map recorded by its verification receipt. The flow
+executes actual React/controller/receiver paths with explicitly mocked summaries
+and unchanged historical two-bevel geometry. #1999 actual-device orientation and
+placement checks remain separate; no repeated physical Save/Open campaign.
