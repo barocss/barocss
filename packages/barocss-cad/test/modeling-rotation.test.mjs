@@ -204,7 +204,7 @@ test('borrowed receivers and length dimensions refuse before routing',()=>{
 });
 test('world-origin terminal copy blocks chaining and later features on retained handles',()=>{
   const {model,flat}=part(),upright=flat.rotate(options());
-  for(const shape of [flat,upright]){refuses(()=>shape.rotate(options()));refuses(()=>shape.translate([1,0,0]));refuses(()=>shape.hole({center:[1,1],radius:1}));refuses(()=>shape.split({axis:'z',at:4}));}
+  for(const shape of [flat,upright]){refuses(()=>shape.rotate(options()));if(shape===flat)refuses(()=>shape.translate([1,0,0]));refuses(()=>shape.hole({center:[1,1],radius:1}));refuses(()=>shape.split({axis:'z',at:4}));}
   refuses(()=>model.sketch.rectangle({width:2,height:2}));
   refuses(()=>model.sketch.polygon([[0,0],[2,0],[0,2]]));
   const translated=part().flat.translate([1,0,0]);refuses(()=>translated.rotate(options()));

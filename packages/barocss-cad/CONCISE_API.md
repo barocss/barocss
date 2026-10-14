@@ -1136,8 +1136,9 @@ angle. Native evidence records the canonical positive angle separately.
 
 The parent must be one owned affine rectangle, polygon, or constrained-polygon
 extrusion, with an optional `from` placement. Its complete linear chain of one
-or two chamfers is also admitted. Rotation is terminal. Finish the parent first.
-The six-node limit remains. Transform chains, later features, unrelated finishing
+or two chamfers is also admitted. Finish the parent first. Its exact rotated
+result may have one terminal translation, as shown below. The six-node limit
+remains. Other transform chains, later features, unrelated finishing
 siblings, Boolean, hole, circle, and split ancestry refuse. No arbitrary axis,
 pivot, angle dimension, zero, full turn, rounding, or angle normalization exists.
 
@@ -1409,3 +1410,59 @@ child reports. The unchanged snapshot budgets can refuse a larger result.
 This API does not fuse bodies or certify disjoint occupied regions. Arbitrary
 counts, angles, axes, pivots, persistent naming, mass transformation, STL
 acceptance, editor, GPU, and manufacturing proof are separate.
+
+### Place one owned cardinally rotated Solid
+
+```ts
+import { cad } from '@barocss/cad';
+
+const m = cad.model();
+const offsetX = m.parameter('offsetX', 40);
+const blank = m.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const front = blank.chamfer(blank.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one(), 1);
+const original = front.chamfer(front.edges({ parallelTo: 'x', at: { y: 24, z: 'max' } }).one(), 2);
+const middle = original.rotate({ axis: 'x', angleDegrees: 90 });
+const placed = middle.translate([offsetX, 16, 0]);
+const snapshot = m.build({ original, middle, placed });
+const edited = snapshot.withParameters({ offsetX: 56 });
+const reopened = cad.load(edited.save());
+void reopened;
+```
+
+One cardinal rotation may be followed by one exact translation of that same
+owned rotated result. The rotation and translation must be the last two nodes
+in the complete model. The rotation keeps its existing direct affine extrusion
+or complete one/two-chamfer source requirement. Extrusion `from` placement and
+valid existing affine siblings remain supported. The six-node limit remains;
+the two-chamfer example uses all six nodes.
+
+Only the actual last rotated handle can author this placement. The final
+translation is terminal. Retained original and middle handles cannot append a
+sibling placement or later feature. Translation followed by rotation, repeated
+transforms, other mixed transforms, patterns, unsupported source families,
+unrelated finishing siblings, and later sketch/extrusion nodes after this pair
+refuse. Existing standalone translation graphs remain compatible, including
+their admitted independent sketch/extrusion siblings.
+
+The existing rotation constructor qualifies the complete middle Solid. The
+existing translation constructor consumes that actual result and independently
+qualifies the placed Solid. Stored coordinates follow `R(source) + offset`:
+exact signed permutation, then exact rational addition of represented binary64
+values. Zero offset components keep the rotated coefficient bits, including
+signed zero. Nonzero exact cancellation produces positive zero. Rounding,
+nonfinite values, or coordinates outside 10000 mm in absolute value refuse
+under the unchanged native rules.
+
+Both operations retain their complete eight-class lineage and fresh identities.
+Their two mappings trace the original through the middle to the placed result.
+Native pcurves are regenerated and checked under the existing whole UV policy;
+no cross-copy sampled floating D1 bit identity is claimed. Exact volume stays
+unchanged. No body fusion or occupied-region separation is certified.
+
+Offset edits reuse the source and rotation prefix and rebuild only the final
+translation. Source edits rebuild both dependent transforms. A semantic no-op
+may reuse the full accepted frame. Save retains the existing authored rotation
+and translation records. A refused edit preserves the accepted save, bodies,
+evidence, original provider cause, and completed-work report. No new file
+schema, transform kernel, persistent naming, mass transformation, STL, editor,
+GPU, or manufacturing proof is added.
