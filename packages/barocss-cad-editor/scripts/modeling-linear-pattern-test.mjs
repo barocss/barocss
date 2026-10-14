@@ -230,7 +230,7 @@ await group(pureLedger[5], () => {
   assert.throws(() => build(initial, initialSummary, Object.assign(Object.create({ inherited: true }), patternInput)));
   assert.throws(() => build(initial, initialSummary, { ...patternInput, [Symbol('hidden')]: true }));
   const hidden = { ...patternInput }; Object.defineProperty(hidden, 'secret', { value: true }); assert.throws(() => build(initial, initialSummary, hidden));
-  for (const extra of [{ axis: 'x' }, { count: 3 }, { copies: 2 }, { offset: [] }, { spacingParameter: 'width' }, { extra: true }])
+  for (const extra of [{ axis: 'x' }, { count: 5 }, { copies: 2 }, { offset: [] }, { spacingParameter: 'width' }, { extra: true }])
     assert.throws(() => build(initial, initialSummary, { ...patternInput, ...extra }));
   const target = { ...patternInput.target }; Object.defineProperty(target, 'node', { enumerable: true, get() { getters++; return 3; } });
   assert.throws(() => build(initial, initialSummary, { ...patternInput, target }));

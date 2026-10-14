@@ -789,14 +789,15 @@ executes actual React/controller/receiver paths with explicitly mocked summaries
 and unchanged historical two-bevel geometry. #1999 actual-device orientation and
 placement checks remain separate; no repeated physical Save/Open campaign.
 
-## Pattern three finished rails
+## Pattern two, three or four finished rails
 
 On the untransformed four-node rail, select Chamfer02 → CREATE → **Linear pattern**.
-Keep Pattern spacing40mm → Preview operation → Apply operation. There are three
-total outputs: original part, railCopy1 and railCopy2. Axis+X and count3 are fixed.
+Choose Total bodies2/3/4 (default3), keep Pattern spacing40mm → Preview operation
+→ Apply operation. Outputs are original part and railCopy1 through railCopy{count-1}.
+Axis+X is fixed.
 Use Edit model dimensions for patternSpacing; existing blank and bevel dimensions
 affect every copy. Undo of the structure returns to one output/four nodes; Undo
-of a later spacing edit keeps three outputs/five nodes. Further features and
+of a later spacing edit keeps the selected number of outputs/five nodes. Further features and
 Rotate/Move after the pattern are unavailable.
 
 The three-output display deliberately uses whole-body fills to stay within the
@@ -837,3 +838,23 @@ Select the last bevel of the editor-owned, untransformed two-bevel rectangular r
 The appended source node is `{kind: "circular-pattern", parent: {node: 3, side: "solid"}, axis: "x", angleDegrees: 90, count: 4}`. Copies reference native `instance1`, `instance2`, and `instance3`; all four bodies share the original blank and bevel dimensions. This five-node graph is terminal: no later feature, arbitrary placement, or additional pattern is offered.
 
 Four eight-face rails use the existing whole-body fallback when the per-face draw budget would be exceeded. This budget rule does not establish actual GPU visibility or successful native evaluation. Pure source/identity checks and Workspace DOM presentation tests are distinct from native command/history and device acceptance. The historical count-four transfer contains four bodies but only original/final-copy previews; missing middle previews must not be synthesized or relabeled as genuine output.
+
+
+### Choose the linear-pattern body count (#2016)
+
+CREATE → Linear pattern now offers **Total bodies (including original)**: 2, 3
+or 4, defaulting to 3. Preview and Apply preserve the original `part` and
+create exactly `railCopy1` through `railCopy{count-1}`. Changing the count
+invalidates a previous preview. Count remains structural after Apply; Undo
+returns to the original rail, while `patternSpacing` and shared source
+dimensions remain editable. Existing count-3 files and helper calls that omit
+count retain their original behavior.
+
+This extends the earlier fixed-three command from #2000. The exact
+untransformed two-bevel rail, positive model-X direction and terminal five-node
+graph restrictions remain. The last copy offset, `(count - 1) * spacing`,
+must be at most 10000 mm. This bounds the authored translation only; native
+exactness, final coordinates and complete display acceptance remain
+authoritative. No arbitrary count, axis, pivot or downstream operation is
+introduced. Native count-2/count-4 qualification is recorded in engine #2009;
+new Editor controlled tests are not physical GPU or native replay evidence.

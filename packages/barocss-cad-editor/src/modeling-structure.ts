@@ -8,7 +8,7 @@ export type ModelingStructureCommand =
   | { kind: 'chamfer'; target: ModelingStructureTarget; distance: number }
   | ({ kind: 'rotate-part'; target: ModelingStructureTarget } & CardinalRotation)
   | { kind: 'move-part'; target: ModelingStructureTarget; x: number; y: number; z: number }
-  | { kind: 'linear-pattern'; target: ModelingStructureTarget; spacing: number }
+  | { kind: 'linear-pattern'; target: ModelingStructureTarget; spacing: number; count?: 2 | 3 | 4 }
   | { kind: 'mirror-part'; target: ModelingStructureTarget }
   | { kind: 'circular-pattern'; target: ModelingStructureTarget }
   | { kind: 'union'; targets: [ModelingStructureTarget, ModelingStructureTarget] }
@@ -23,7 +23,7 @@ const CHAMFER = ['bevelDistance'] as const;
 const OPPOSITE_CHAMFER = ['backBevelDistance'] as const;
 const PLACEMENT = ['placementX', 'placementY', 'placementZ'] as const;
 const PATTERN = ['patternSpacing'] as const;
-const PATTERN_COPIES = ['railCopy1', 'railCopy2'] as const;
+const PATTERN_COPIES = ['railCopy1', 'railCopy2', 'railCopy3'] as const;
 type CardinalRotation = { axis: 'x' | 'y' | 'z'; angleDegrees: 90 | 180 | 270 | -90 | -180 | -270 };
 type XYZ = [number, number, number];
 /** Accepted authored coordinates only: neither native bounds nor certified geometry. */
@@ -255,34 +255,41 @@ function authoredRailPlacement(d: Document): AuthoredRailPlacement {
   const upper = [0, 1, 2].map(axis => coordinate(Math.max(...corners.map(corner => corner[axis])))) as XYZ;
   return { rotation, offset, envelope: { min, max: upper } };
 }
-function linearPatternNode(): Data {
-  return { kind: 'linear-pattern', parent: { node: 3, side: 'solid' }, axis: 'x', spacing: parameter(PATTERN[0]), count: 3 };
+function linearPatternCount(value: unknown): 2 | 3 | 4 {
+  check(value === 2 || value === 3 || value === 4, 'Pattern count must be 2, 3 or 4 including the original.');
+  return value;
 }
-function linearPatternOutputs(): Document['outputs'] {
-  return { part: { node: 3, side: 'solid' }, railCopy1: { node: 4, side: 'instance1' }, railCopy2: { node: 4, side: 'instance2' } };
+function linearPatternNode(count: 2 | 3 | 4): Data {
+  return { kind: 'linear-pattern', parent: { node: 3, side: 'solid' }, axis: 'x', spacing: parameter(PATTERN[0]), count };
 }
-function linearPatternSpacing(input: unknown): number {
+function linearPatternOutputs(count: 2 | 3 | 4): Document['outputs'] {
+  const outputs: Document['outputs'] = { part: { node: 3, side: 'solid' } };
+  for (let index = 1; index < count; index++) outputs[PATTERN_COPIES[index - 1]] = { node: 4, side: `instance${index}` as OutputRef['side'] };
+  return outputs;
+}
+function linearPatternSpacing(input: unknown, count: 2 | 3 | 4): number {
   const spacing = length(input);
-  check(spacing > 0 && 2 * spacing <= LENGTH, 'Pattern spacing must be finite and positive, with twice-spacing at most 10000 mm.');
+  check(spacing > 0 && (count - 1) * spacing <= LENGTH, 'Pattern spacing must be finite and positive, with the last offset at most 10000 mm.');
   return spacing;
 }
-function reservePattern(d: Document): void {
+function reservePattern(d: Document, count: 2 | 3 | 4 = 3): void {
   reserve(d, PATTERN);
-  check(PATTERN_COPIES.every(key => !Object.hasOwn(d.parameters, key) && !Object.hasOwn(d.outputs, key)),
-    'The reserved output names railCopy1 and railCopy2 must be unused.');
+  check(PATTERN_COPIES.slice(0, Math.max(2, count - 1)).every(key => !Object.hasOwn(d.parameters, key) && !Object.hasOwn(d.outputs, key)),
+    'The reserved output names railCopy1, railCopy2 and railCopy3 must be unused.');
 }
-/** Only this terminal graph owns instance1/instance2, including during history.
+/** Only the exact count-correlated terminal graph owns its instance references, including during history.
  * Source-only checks preserve parameter edit identity; native acceptance still
  * owns feasibility, exact stored coefficients and final translated coordinates. */
 function linearPatternGraph(d: Document, sourceOnly = false): void {
-  check(d.nodes.length === 5 && signedJson(d.nodes[4]) === signedJson(linearPatternNode())
-    && signedJson(d.outputs) === signedJson(linearPatternOutputs()),
-    'Linear pattern requires exactly the owned +X three-rail graph and its original part plus railCopy1 and railCopy2 outputs.');
+  const count = linearPatternCount(d.nodes[4]?.count);
+  check(d.nodes.length === 5 && signedJson(d.nodes[4]) === signedJson(linearPatternNode(count))
+    && signedJson(d.outputs) === signedJson(linearPatternOutputs(count)),
+    'Linear pattern requires exactly the owned +X count-correlated rail graph and outputs.');
   check(PATTERN.every(key => Object.hasOwn(d.parameters, key))
-    && PATTERN_COPIES.every(key => !Object.hasOwn(d.parameters, key))
+    && PATTERN_COPIES.slice(0, Math.max(2, count - 1)).every(key => !Object.hasOwn(d.parameters, key))
     && !usesParameter(d.nodes.slice(0, 4), PATTERN), 'The patternSpacing driver must be independent of the rail and reserved copy names.');
   const rail = { ...d, nodes: d.nodes.slice(0, 4), outputs: { part: { node: 3, side: 'solid' as const } } };
-  if (!sourceOnly) { authoredRailPlacement(rail); linearPatternSpacing(d.parameters[PATTERN[0]]); return; }
+  if (!sourceOnly) { authoredRailPlacement(rail); linearPatternSpacing(d.parameters[PATTERN[0]], count); return; }
   ownedRailSource(rail);
 }
 
@@ -493,13 +500,13 @@ export function getModelingStructureCapabilities(text: string | null, summary: C
     } else placementReason = 'This six-node rail placement is complete. Edit placementX, placementY and placementZ in Model dimensions; another transform is unsupported.';
   } catch (cause) { placementReason = message(cause); }
   let linearPattern: ModelingStructureTarget | null = null, patternAuthored = false;
-  let patternReason = 'Create three separate rails along +X with one shared spacing driver. Native exactness, final-coordinate and display limits still apply.';
+  let patternReason = 'Create two, three or four separate rails along +X with one shared spacing driver. Native exactness, final-coordinate and display limits still apply.';
   try {
     check(text !== null && summary !== null, 'open an accepted owned two-bevel rectangular rail first.');
     const d = document(text), targets = accepted(d, summary);
     if (d.nodes.length === 5 && d.nodes[4].kind === 'linear-pattern') {
       linearPatternGraph(d); patternAuthored = true;
-      patternReason = 'This three-rail pattern is complete. Edit patternSpacing or the shared rail dimensions; another feature or transform is unsupported.';
+      patternReason = 'This linear pattern is complete. Edit patternSpacing or the shared rail dimensions; another feature or transform is unsupported.';
     } else {
       check(d.nodes.length === 4, 'Linear pattern requires the exact untransformed four-node owned two-bevel rectangular rail.');
       authoredRailPlacement(d); reservePattern(d); linearPattern = targets[0];
@@ -606,10 +613,11 @@ export function buildModelingStructure(text: string, summary: CadEditorModelingS
     return { text: canonicalModelingText(d), selectedOutput: 'radialCopy3', consumed: [], kind };
   }
   if (kind === 'linear-pattern') {
-    record(command, ['kind', 'target', 'spacing']);
+    record(command, Object.hasOwn(command, 'count') ? ['kind', 'target', 'spacing', 'count'] : ['kind', 'target', 'spacing']);
+    const count = Object.hasOwn(command, 'count') ? linearPatternCount(command.count) : 3;
     check(capabilities.linearPattern, capabilities.patternReason); matchingTarget(command.target, capabilities.linearPattern);
-    const spacing = linearPatternSpacing(command.spacing); reservePattern(d);
-    d.parameters[PATTERN[0]] = spacing; d.nodes.push(linearPatternNode()); d.outputs = linearPatternOutputs();
+    const spacing = linearPatternSpacing(command.spacing, count); reservePattern(d, count);
+    d.parameters[PATTERN[0]] = spacing; d.nodes.push(linearPatternNode(count)); d.outputs = linearPatternOutputs(count);
     return { text: canonicalModelingText(d), selectedOutput: 'part', consumed: [], kind };
   }
   if (kind === 'rotate-part') {

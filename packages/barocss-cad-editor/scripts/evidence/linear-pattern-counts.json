@@ -1,0 +1,379 @@
+{
+  "issue": 2016,
+  "productCommit": "00966188a047c63b19fae50ebbcfc42559d14188",
+  "baseCommit": "96356fc44a2a4f0a65a3ef3e3333920bd938e1b7",
+  "node": "v22.23.3",
+  "status": "focused checks passed; physical command acceptance pending",
+  "productHashes": {
+    "apps/cad-editor/README.md": "d8e465fb2e330cec71bb94f2dad889b86decd1e8dbf2482999319c361ab5fbd2",
+    "apps/cad-editor/flows/modeling-linear-pattern-count-flow.mjs": "d33900e2f956e5178f480b9f2db943f866a3b2900d8ce74c729e15d40340117a",
+    "apps/cad-editor/flows/modeling-linear-pattern-flow.mjs": "96f4b2eef559fccec4cd742b1b477ebaae11575d5d7bebcc6aee70ec98749683",
+    "apps/library-docs/docs/packages/cad/modeling.md": "a41c228de17032f409f466095d8e73748bff3955041abae7b2396f55c4bfd41b",
+    "packages/barocss-cad-editor/README.md": "14e57fd0272410bae0cde51076bbf16c2b395a9042964b4ed45f3323b986490d",
+    "packages/barocss-cad-editor/scripts/modeling-linear-pattern-count-test.mjs": "1503021e66cfa289d48670cad1dcbd5a07da79f7cdb086bed79023420d02de65",
+    "packages/barocss-cad-editor/scripts/modeling-linear-pattern-test.mjs": "466c9599580389c5fa58ca3d859192277b34be1cc899568031d77adcaaf816d6",
+    "packages/barocss-cad-editor/src/modeling-structure.ts": "a7845e334ef10025a4157424926b0ef68f6087bce5cec1a909d0deb31628f38d",
+    "packages/barocss-cad-editor/src/react/modeling-editor.tsx": "e01d06fab30606514b1e608dd51b43c148b11cb8769cb4cc7b393a868c9d9c39"
+  },
+  "pure": {
+    "status": "PASS",
+    "issue": 2016,
+    "node": "v22.23.3",
+    "groups": [
+      "Omitted count preserves count3; exact count2/count3/count4 graph and outputs",
+      "Count-correlated last-offset bounds and unrounded decimal forwarding",
+      "Strict own count refuses unsupported values, extra fields and hostile records",
+      "Output inventory must exactly match count, role, side and node",
+      "Count is structural; parameter-only changes preserve history identity",
+      "Count-owned copy names refuse collisions; old count3 unused railCopy3 survives"
+    ],
+    "sourceHashes": {
+      "packages/barocss-cad-editor/scripts/modeling-linear-pattern-count-test.mjs": "1503021e66cfa289d48670cad1dcbd5a07da79f7cdb086bed79023420d02de65",
+      "packages/barocss-cad-editor/src/modeling-structure.ts": "a7845e334ef10025a4157424926b0ef68f6087bce5cec1a909d0deb31628f38d"
+    },
+    "limits": {
+      "pureOnly": true,
+      "nativeCalls": 0,
+      "workerReplies": 0,
+      "gpuCalls": 0
+    }
+  },
+  "mounted": {
+    "status": "PASS",
+    "issue": 2016,
+    "node": "v22.23.3",
+    "groups": [
+      "Default count3, selector keyboard guards/Enter, count invalidation and count ABA stale callbacks",
+      "Count4 preview, Escape Cancel preserves source/history, reopening restores default count3",
+      "Count2 and count4 exact acknowledged Apply; Undo restores original source and output inventory"
+    ],
+    "mountedRoots": 1,
+    "controllerLifetimes": 1,
+    "replies": 13,
+    "authoredContextMocks": 7,
+    "editedStateMocks": 5,
+    "coincidentRoleClones": 10,
+    "nativeCalls": 0,
+    "sourceHashes": {
+      "packages/barocss-cad-editor/src/react/modeling-editor.tsx": "e01d06fab30606514b1e608dd51b43c148b11cb8769cb4cc7b393a868c9d9c39",
+      "packages/barocss-cad-editor/src/react/modeling-workspace.tsx": "71c603ed9c24b711267984b6f773c27fab6e7346b7d5f87dcc1c31fb934f142e",
+      "packages/barocss-cad-editor/src/modeling-structure.ts": "a7845e334ef10025a4157424926b0ef68f6087bce5cec1a909d0deb31628f38d",
+      "packages/barocss-cad-editor/src/modeling-controller.ts": "83dec8a4a3a6713657a777ecb4000eb7a484454b2689bb07d046faf224c518bb",
+      "packages/barocss-cad-editor/src/modeling-scene.ts": "cdaad83c5a16aad5ac0b53f891c65b6cb4fc63fb4fb65d84f7922c3c1f6a47e2",
+      "packages/barocss-cad-editor/src/modeling-file.ts": "bc271ddbbcb0d16522c0cd53b41228c89cfaa271426b02e504de3d9467b7dbfb",
+      "packages/barocss-cad-editor/src/modeling-diagnostic.ts": "ddea961e801c563b1347138adc97b58d274c7cd00d0845c4748552ffa9d4a158",
+      "packages/barocss-cad-editor/src/prism-feature-scene.ts": "3b07120623bdba9131f84e37f708e18645df82eec872bd71e1a6ace80b543395",
+      "packages/barocss-cad-editor/src/modeling-union.ts": "06d8ae40f0d1142ea19e566fa19fa84095af4416f781f6bd47e396f1866cd613",
+      "packages/barocss-cad-editor/src/modeling-composition.ts": "6289f6197d70be4356475cac4dac1130a2639a17576937227bf86a09a4540fc4",
+      "packages/barocss-cad-editor/src/modeling-stl.ts": "72f3a438e7e5b624ed3fbf228416dfe23c3f3e3964f270d0e72499ea6427873d",
+      "packages/barocss-cad-editor/src/modeling-circle.ts": "ce3fedc7d5bc93d035e7043fe027c3a3353979bdbe929098c6d9604964967bb8",
+      "packages/barocss-gpu/src/torus.ts": "a8e509f2a5fc5ef5ac7e4de74ebd701cb7bef14b666204a795ffdfed8710b66e",
+      "packages/barocss-gpu/src/rounded-box.ts": "7b1f5062670e809e004f4a059ef8d9f0b85c6fca52acf04087d5dab26a7db0c2",
+      "packages/barocss-gpu/src/capsule.ts": "1be57524592c7bcb836e00ecc0f6552b861e41fc1928c27d0967e7edddf91580",
+      "packages/barocss-gpu/src/scene-types.ts": "0914e7b3259af9db492e4327d44e441afd1795a034a6f4384c62c8f29b560416",
+      "packages/barocss-gpu/src/scene-front.ts": "a04d59e1a52e949cf338f5907ce68a67c373900ef1d7174a697ffca61f1ccae1",
+      "packages/barocss-gpu/src/gpu-data.ts": "b1e9c9119ae5f8d282e850fde99a31bc36e3a8a693fdf9862f962e771bd5b933",
+      "packages/barocss-gpu/src/camera.ts": "aa235612837edbc819323c385c83bdc504148cb069a973133f6eacde5c8948a8",
+      "packages/barocss-gpu/src/mesh-lighting.ts": "617cc1d58cbf2af06b69c69d46bd987f14aabcd73f3e93a3266b09bb4a443b56",
+      "packages/barocss-gpu/src/mesh-packet.ts": "80ba3cd72221ff4afc957fb52823d8d4636e0cf081a08bcd9866f6b9efcc19c0",
+      "packages/barocss-gpu/src/triangle-geometry.ts": "262cc8a3ac1f380fb665ee08b29114cdbed75fff8e86f7d847b786f5f889df49",
+      "packages/barocss-gpu/src/rotation.ts": "867e617fe81a0c59719a6209f26b0e746f4b080d541ea74025ef5517d267db9c",
+      "packages/barocss-gpu/src/compiler.ts": "4fbea79e1d5d242b4beddd5a09ef0f60bec4b4cccea532134cd91a4067c88699",
+      "packages/barocss-gpu/src/gpu-compiler.ts": "32d48acb92089a90d22e03d60b96324b7c2f05f329ea6f66dadb4fef6d458583",
+      "packages/barocss-gpu/src/mesh-scene-transform.ts": "c8c3ff42e91d79bb9affc453f0b63c672e5e76a634e319f300039717160fca7b",
+      "packages/barocss-gpu/src/engine-scene.ts": "0c9306578039cf39dcf0b4ae62dff6b8d1bd121025317e30cf095e9ac35732ca",
+      "packages/barocss-gpu/src/engine-camera-ray.ts": "028b4a68e8ea5affefee3f81c862df25f4437deda46774bed0ebd0751df29fc0",
+      "packages/barocss-gpu/src/engine-raycast.ts": "ee34709a019fcd73cbe213688087f103f625c43a70963de7edae8c7c0f6ed15a",
+      "packages/barocss-gpu/src/kernel-face-preview.ts": "6f2d59e080b528655353904b31e048728d6edf9bcc83932a5dfa38f481c934c9",
+      "packages/barocss-cad-editor/src/prism-feature-lineage.ts": "2362af088e5e01c92f355d8b244c580fda43c52890e4fde2be307f174cfba412",
+      "packages/barocss-cad-editor/src/prism-feature-controller.ts": "870435856db2175bfca6dec9c4779d349498113df96f096d6964cb2ab2ee6c02",
+      "packages/barocss-cad-editor/src/modeling-dimension-key.ts": "e1cf1b48a026996076981ab31dde2c8167d87e0830d16f00f42a0f9cd07ee610",
+      "packages/barocss-cad-editor/src/modeling-extrusion-command.ts": "8f3bb1243d85a5f482a0ea19ec9112d0edacef80c5ad87136c89d4819e432e5a",
+      "packages/barocss-cad-editor/src/modeling-sketch-command.ts": "55ce2cd85467ae3226c0f437d73d628c38bc1e9e1996bb606a2d441bfebe4806",
+      "packages/barocss-cad-editor/src/modeling-rectangular-part.ts": "cc377c51a9373878a3e1426107a54dfa95247f0e2bb39014289af820283189ea",
+      "packages/barocss-cad-editor/src/modeling-circular-part.ts": "8a13d11e3af3efa7d83e7ad3743a7db66f1905926df1dfefb661c047eefc892c",
+      "packages/barocss-cad-editor/src/lib/utils.ts": "027f5deaaeb7323b2affbab316890d595fb448410888e07409f1110afd7ede0a",
+      "packages/barocss-cad-editor/src/react/ui/button.tsx": "d5ba88f690d54da5f9fdff963ce37945757adf0f9030b2faadfc89cadf627a9b",
+      "packages/barocss-cad-editor/src/react/ui/input.tsx": "7a91c950efb7160da8416c767444e576815acffbae3d8430689841fae6938d79",
+      "packages/barocss-cad-editor/src/react/ui/label.tsx": "00dc875592e46816b6c644144ceeb0aea7747e759e3026eccdd919b7cce98a92"
+    },
+    "fixtureSourceSHA256": "d33900e2f956e5178f480b9f2db943f866a3b2900d8ce74c729e15d40340117a",
+    "submissions": [
+      {
+        "kind": "prepare-source",
+        "operation": "structure",
+        "text": "{\"format\":\"barocss-cad-model\",\"nodes\":[{\"kind\":\"sketch\",\"max\":[{\"parameter\":\"width\"},{\"parameter\":\"height\"}],\"min\":[-0,0],\"profile\":\"rectangle\"},{\"height\":{\"parameter\":\"thickness\"},\"kind\":\"extrude\",\"sketch\":0},{\"distance\":{\"parameter\":\"bevelDistance\"},\"edge\":{\"at\":{\"y\":0,\"z\":\"max\"},\"parallelTo\":\"x\"},\"kind\":\"chamfer\",\"parent\":{\"node\":1,\"side\":\"solid\"}},{\"distance\":{\"parameter\":\"backBevelDistance\"},\"edge\":{\"at\":{\"y\":{\"parameter\":\"height\"},\"z\":\"max\"},\"parallelTo\":\"x\"},\"kind\":\"chamfer\",\"parent\":{\"node\":2,\"side\":\"solid\"}},{\"axis\":\"x\",\"count\":3,\"kind\":\"linear-pattern\",\"parent\":{\"node\":3,\"side\":\"solid\"},\"spacing\":{\"parameter\":\"patternSpacing\"}}],\"outputs\":{\"part\":{\"node\":3,\"side\":\"solid\"},\"railCopy1\":{\"node\":4,\"side\":\"instance1\"},\"railCopy2\":{\"node\":4,\"side\":\"instance2\"}},\"parameters\":{\"backBevelDistance\":2,\"bevelDistance\":1,\"height\":24,\"patternSpacing\":40,\"thickness\":8,\"width\":32},\"schema\":1,\"units\":\"mm\"}\n",
+        "sourceSHA256": "f0150690ecd12d6eff37f274a29f1d2d94b18eb7b008093b65aaf3dd012490c6",
+        "parameters": {
+          "backBevelDistance": 2,
+          "bevelDistance": 1,
+          "height": 24,
+          "patternSpacing": 40,
+          "thickness": 8,
+          "width": 32
+        },
+        "count": 3,
+        "target": {
+          "name": "part",
+          "solidId": "m3_kept",
+          "node": 3
+        }
+      },
+      {
+        "kind": "prepare-source",
+        "operation": "structure",
+        "text": "{\"format\":\"barocss-cad-model\",\"nodes\":[{\"kind\":\"sketch\",\"max\":[{\"parameter\":\"width\"},{\"parameter\":\"height\"}],\"min\":[-0,0],\"profile\":\"rectangle\"},{\"height\":{\"parameter\":\"thickness\"},\"kind\":\"extrude\",\"sketch\":0},{\"distance\":{\"parameter\":\"bevelDistance\"},\"edge\":{\"at\":{\"y\":0,\"z\":\"max\"},\"parallelTo\":\"x\"},\"kind\":\"chamfer\",\"parent\":{\"node\":1,\"side\":\"solid\"}},{\"distance\":{\"parameter\":\"backBevelDistance\"},\"edge\":{\"at\":{\"y\":{\"parameter\":\"height\"},\"z\":\"max\"},\"parallelTo\":\"x\"},\"kind\":\"chamfer\",\"parent\":{\"node\":2,\"side\":\"solid\"}},{\"axis\":\"x\",\"count\":2,\"kind\":\"linear-pattern\",\"parent\":{\"node\":3,\"side\":\"solid\"},\"spacing\":{\"parameter\":\"patternSpacing\"}}],\"outputs\":{\"part\":{\"node\":3,\"side\":\"solid\"},\"railCopy1\":{\"node\":4,\"side\":\"instance1\"}},\"parameters\":{\"backBevelDistance\":2,\"bevelDistance\":1,\"height\":24,\"patternSpacing\":40,\"thickness\":8,\"width\":32},\"schema\":1,\"units\":\"mm\"}\n",
+        "sourceSHA256": "15286d6cc6713aceea0f67c57e227f1e18d8fe5ee6f0798357963974745825bc",
+        "parameters": {
+          "backBevelDistance": 2,
+          "bevelDistance": 1,
+          "height": 24,
+          "patternSpacing": 40,
+          "thickness": 8,
+          "width": 32
+        },
+        "count": 2,
+        "target": {
+          "name": "part",
+          "solidId": "m3_kept",
+          "node": 3
+        }
+      },
+      {
+        "kind": "prepare-source",
+        "operation": "structure",
+        "text": "{\"format\":\"barocss-cad-model\",\"nodes\":[{\"kind\":\"sketch\",\"max\":[{\"parameter\":\"width\"},{\"parameter\":\"height\"}],\"min\":[-0,0],\"profile\":\"rectangle\"},{\"height\":{\"parameter\":\"thickness\"},\"kind\":\"extrude\",\"sketch\":0},{\"distance\":{\"parameter\":\"bevelDistance\"},\"edge\":{\"at\":{\"y\":0,\"z\":\"max\"},\"parallelTo\":\"x\"},\"kind\":\"chamfer\",\"parent\":{\"node\":1,\"side\":\"solid\"}},{\"distance\":{\"parameter\":\"backBevelDistance\"},\"edge\":{\"at\":{\"y\":{\"parameter\":\"height\"},\"z\":\"max\"},\"parallelTo\":\"x\"},\"kind\":\"chamfer\",\"parent\":{\"node\":2,\"side\":\"solid\"}},{\"axis\":\"x\",\"count\":4,\"kind\":\"linear-pattern\",\"parent\":{\"node\":3,\"side\":\"solid\"},\"spacing\":{\"parameter\":\"patternSpacing\"}}],\"outputs\":{\"part\":{\"node\":3,\"side\":\"solid\"},\"railCopy1\":{\"node\":4,\"side\":\"instance1\"},\"railCopy2\":{\"node\":4,\"side\":\"instance2\"},\"railCopy3\":{\"node\":4,\"side\":\"instance3\"}},\"parameters\":{\"backBevelDistance\":2,\"bevelDistance\":1,\"height\":24,\"patternSpacing\":40,\"thickness\":8,\"width\":32},\"schema\":1,\"units\":\"mm\"}\n",
+        "sourceSHA256": "f07c8fb6488caebaa593d40b5e1ea503431dbc6a99f145b84e0d28c2417a0f1a",
+        "parameters": {
+          "backBevelDistance": 2,
+          "bevelDistance": 1,
+          "height": 24,
+          "patternSpacing": 40,
+          "thickness": 8,
+          "width": 32
+        },
+        "count": 4,
+        "target": {
+          "name": "part",
+          "solidId": "m3_kept",
+          "node": 3
+        }
+      },
+      {
+        "kind": "prepare-source",
+        "operation": "structure",
+        "text": "{\"format\":\"barocss-cad-model\",\"nodes\":[{\"kind\":\"sketch\",\"max\":[{\"parameter\":\"width\"},{\"parameter\":\"height\"}],\"min\":[-0,0],\"profile\":\"rectangle\"},{\"height\":{\"parameter\":\"thickness\"},\"kind\":\"extrude\",\"sketch\":0},{\"distance\":{\"parameter\":\"bevelDistance\"},\"edge\":{\"at\":{\"y\":0,\"z\":\"max\"},\"parallelTo\":\"x\"},\"kind\":\"chamfer\",\"parent\":{\"node\":1,\"side\":\"solid\"}},{\"distance\":{\"parameter\":\"backBevelDistance\"},\"edge\":{\"at\":{\"y\":{\"parameter\":\"height\"},\"z\":\"max\"},\"parallelTo\":\"x\"},\"kind\":\"chamfer\",\"parent\":{\"node\":2,\"side\":\"solid\"}},{\"axis\":\"x\",\"count\":2,\"kind\":\"linear-pattern\",\"parent\":{\"node\":3,\"side\":\"solid\"},\"spacing\":{\"parameter\":\"patternSpacing\"}}],\"outputs\":{\"part\":{\"node\":3,\"side\":\"solid\"},\"railCopy1\":{\"node\":4,\"side\":\"instance1\"}},\"parameters\":{\"backBevelDistance\":2,\"bevelDistance\":1,\"height\":24,\"patternSpacing\":40,\"thickness\":8,\"width\":32},\"schema\":1,\"units\":\"mm\"}\n",
+        "sourceSHA256": "15286d6cc6713aceea0f67c57e227f1e18d8fe5ee6f0798357963974745825bc",
+        "parameters": {
+          "backBevelDistance": 2,
+          "bevelDistance": 1,
+          "height": 24,
+          "patternSpacing": 40,
+          "thickness": 8,
+          "width": 32
+        },
+        "count": 2,
+        "target": {
+          "name": "part",
+          "solidId": "m3_kept",
+          "node": 3
+        }
+      },
+      {
+        "kind": "prepare-source",
+        "operation": "structure",
+        "text": "{\"format\":\"barocss-cad-model\",\"nodes\":[{\"kind\":\"sketch\",\"max\":[{\"parameter\":\"width\"},{\"parameter\":\"height\"}],\"min\":[-0,0],\"profile\":\"rectangle\"},{\"height\":{\"parameter\":\"thickness\"},\"kind\":\"extrude\",\"sketch\":0},{\"distance\":{\"parameter\":\"bevelDistance\"},\"edge\":{\"at\":{\"y\":0,\"z\":\"max\"},\"parallelTo\":\"x\"},\"kind\":\"chamfer\",\"parent\":{\"node\":1,\"side\":\"solid\"}},{\"distance\":{\"parameter\":\"backBevelDistance\"},\"edge\":{\"at\":{\"y\":{\"parameter\":\"height\"},\"z\":\"max\"},\"parallelTo\":\"x\"},\"kind\":\"chamfer\",\"parent\":{\"node\":2,\"side\":\"solid\"}},{\"axis\":\"x\",\"count\":4,\"kind\":\"linear-pattern\",\"parent\":{\"node\":3,\"side\":\"solid\"},\"spacing\":{\"parameter\":\"patternSpacing\"}}],\"outputs\":{\"part\":{\"node\":3,\"side\":\"solid\"},\"railCopy1\":{\"node\":4,\"side\":\"instance1\"},\"railCopy2\":{\"node\":4,\"side\":\"instance2\"},\"railCopy3\":{\"node\":4,\"side\":\"instance3\"}},\"parameters\":{\"backBevelDistance\":2,\"bevelDistance\":1,\"height\":24,\"patternSpacing\":40,\"thickness\":8,\"width\":32},\"schema\":1,\"units\":\"mm\"}\n",
+        "sourceSHA256": "f07c8fb6488caebaa593d40b5e1ea503431dbc6a99f145b84e0d28c2417a0f1a",
+        "parameters": {
+          "backBevelDistance": 2,
+          "bevelDistance": 1,
+          "height": 24,
+          "patternSpacing": 40,
+          "thickness": 8,
+          "width": 32
+        },
+        "count": 4,
+        "target": {
+          "name": "part",
+          "solidId": "m3_kept",
+          "node": 3
+        }
+      }
+    ],
+    "fixture": {
+      "path": "packages/barocss-cad-editor/scripts/fixtures/modeling-chamfer-chain/baseline-transport.json",
+      "sha256": "74e9a472c54aaa5d228a23d79b083c9a7c4c539bf5de6a5f274597e5fbfba4af",
+      "bytes": 41471
+    },
+    "boundaries": {
+      "actual": [
+        "React",
+        "controller",
+        "structure helper",
+        "CPU receiver",
+        "DOM events and captured callbacks"
+      ],
+      "controlled": [
+        "Worker/provider summary",
+        "unchanged coincident role/name envelopes with original duplicate native IDs",
+        "display port",
+        "ResizeObserver"
+      ],
+      "unrun": [
+        "native evaluation",
+        "translated copy geometry",
+        "distinct-body post-pattern warning",
+        "GPU pixels",
+        "physical Save/Open",
+        "STL"
+      ]
+    }
+  },
+  "legacyPattern": [
+    {
+      "name": "package",
+      "exitCode": 0,
+      "seconds": 1.8195183649950195,
+      "logSHA256": "e90c5f24e2d03d45b47552c53de081c259633f806f803ed91b21cadf8f4d21ab"
+    },
+    {
+      "name": "react",
+      "exitCode": 0,
+      "seconds": 4.828215471003205,
+      "logSHA256": "e09ac23d84fb3c3616841269a54d20f276337d5db42df2112795911537de54ff"
+    }
+  ],
+  "legacyCounts": {
+    "packageGroups": 28,
+    "packageControlledReplies": 32,
+    "reactGroups": 10,
+    "reactControlledReplies": 29
+  },
+  "otherFamilies": {
+    "circularPureGroups": 13,
+    "circularWorkspaceGroups": 7,
+    "mirrorPureGroups": 12,
+    "mirrorWorkspaceGroups": 6,
+    "logs": {
+      "pure-final.log": "c94653c0e1baf1592245e5346e517dcb4a9df8a083b011df935d42b7559c321d",
+      "workspace-final.log": "6fd71bfc57294e3303c2de4de91e65adce19ba8c993308daf781531b22f216a9",
+      "mirror-pure.log": "2b5cc1745099182f5eef53487cebd48a8636defd0aefad22dce20dc4ab308e47",
+      "mirror-workspace.log": "f9571a1519863679c0c71f45f11cf913058788f7b045cb2b5f655434afb50693"
+    }
+  },
+  "types": {
+    "source": "8d3c761e8862e7cef453f2ec489f6f12f2dec56b",
+    "historicalDeclarationProvider": "5c6dc223a9b9e6b88bc8134651366b23147bc7c4",
+    "historicalDeclarationReceiptSHA256": "cb84c053368fdc9a8dd1af63c824fc36bf40af8413207f9e6f893009b7854090",
+    "declarationCount": 280,
+    "declarationInventorySHA256": "756603cf708877defb06b0d4741af30932aa5683904a03122e09f6cec3858a73",
+    "scope": "Current GPU and CAD editor source; CAD declarations are historical and are not a current provider emit",
+    "results": [
+      {
+        "package": "packages/barocss-cad-editor",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/typescript/bin/tsc",
+          "-p",
+          "/workspace/shared/cad-pattern-counts/packages/barocss-cad-editor/.tsconfig.linear-pattern-check.json",
+          "--noEmit"
+        ],
+        "exitCode": 0,
+        "seconds": 11.95278018899262,
+        "config": {
+          "extends": "./tsconfig.json",
+          "compilerOptions": {
+            "paths": {
+              "@barocss/cad": [
+                "/workspace/shared/cad-1918-validation/cad-dist/index.d.ts"
+              ]
+            }
+          }
+        },
+        "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "originalConfigUnchanged": true,
+        "temporaryRemoved": true,
+        "remainingProcessGroup": ""
+      }
+    ]
+  },
+  "lint": {
+    "errors": 0,
+    "warnings": 11,
+    "warningType": "no-console in test fixtures",
+    "logSHA256": "58a5171412162583b845a1e86adaadd4f0c664797a694e33a756cb306b6a5252"
+  },
+  "api": {
+    "results": [
+      {
+        "name": "qualified-write",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--write-current",
+          "--commit",
+          "00966188a047c63b19fae50ebbcfc42559d14188"
+        ],
+        "exitCode": 0,
+        "seconds": 6.03400431398768
+      },
+      {
+        "name": "qualified-check",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--check"
+        ],
+        "exitCode": 0,
+        "seconds": 5.681603659002576
+      }
+    ],
+    "delta": {
+      "added": [],
+      "removed": [],
+      "changed": [],
+      "beforePin": "e9f2867561183c86adedc173f8b313e7391b74ac",
+      "sourcePin": "00966188a047c63b19fae50ebbcfc42559d14188",
+      "typescript": "5.9.3",
+      "signatures": {}
+    },
+    "packages": 9,
+    "entries": 76,
+    "exportedOccurrences": 4211,
+    "heapCapMB": 1536,
+    "runtimeMemoryClaim": false
+  },
+  "attempts": [
+    {
+      "attempt": 1,
+      "kind": "legacy React assertion stale wording",
+      "result": "failed before group completion: expected Axis X and total count 3 are fixed",
+      "evidenceDirectory": "pattern-regression-first-wording-failure",
+      "fix": "update expected text for intentional new count selector"
+    },
+    {
+      "attempt": 2,
+      "kind": "immutable source race during legacy React rerun",
+      "result": "all groups executed but final source hash guard refused modified source",
+      "expected": "5193e68b106820f5e93715fa008fba74d1609a75b774a7b56d0e9b421727e40a",
+      "actual": "a7845e334ef10025a4157424926b0ef68f6087bce5cec1a909d0deb31628f38d",
+      "cause": "root changed capability hint/comment during in-flight run",
+      "evidence": "recorded tool output; intermediate runner log was overwritten by final rerun, not retained as raw log",
+      "fix": "freeze final stable source and rerun; do not accept race run"
+    }
+  ],
+  "testAuthorNotes": [
+    "Two preliminary pure-fixture assertions were corrected: invalid spacing10001 already exceeds global parameter bound; universal railCopy3 reservation conflicted with compatibility correction. Final tests reran; preliminary raw fixture logs not retained.",
+    "Independent review caught global railCopy3 reservation regression; fixed before acceptance.",
+    "API first attempt refused foreign @barocss/cad resolution through reused dependency links. Restored current-worktree own-package links without weakening guard; successful rerun. Scoped types reran after that link correction."
+  ],
+  "commands": [
+    "FROZEN_SOURCE_HASHES=<pure.sourceHashes> node packages/barocss-cad-editor/scripts/modeling-linear-pattern-count-test.mjs",
+    "FROZEN_SOURCE_HASHES=<mounted.sourceHashes plus mounted fixture SHA> node apps/cad-editor/flows/modeling-linear-pattern-count-flow.mjs"
+  ],
+  "limits": [
+    "No new native evaluation, translated geometry proof, hardware GPU pixels or physical Save/Open for count selector.",
+    "Historical CAD declarations used only for local scoped types; current own GPU/editor source resolved after link repair. Full repository build is delegated to CI and not claimed locally.",
+    "Default3 controlled flow covers shared dimensions/history; new count flow covers count2/count4 Apply and Undo, not full physical files or every lifecycle combination."
+  ]
+}
