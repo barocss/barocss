@@ -952,3 +952,25 @@ The [adopted #1643 provider](https://github.com/barocss/barocss/issues/1643) is 
 Consumer replay uses those actual baseline bytes with a mocked Worker, adapting only request-context envelopes when required. Mesh arrays, native bodies and provenance stay unchanged. Changed-state display tests are explicitly mocked, not newly tessellated native states. This consumer does not run another native model, tessellation or classifier campaign. The documentation checker statically checks the receipt/download and typechecks ten public examples/snippets against source or emitted declarations; it does not execute those examples.
 
 [Consumer #1644](https://github.com/barocss/barocss/issues/1644) tracks software admission, CPU picking, editor source, numeric/history/refusal behavior and the Manual. Actual browser/GPU pixels, real editor interactions and physical file-dialog flows remain **UNRUN** by these checks and an external/open validation gate. The planned editor build uses the provider's hash-verified emitted declaration boundary, while runtime Vite/Worker bundles use actual source. The historical #1642 full-source and diagnostic timeouts remain unpassed; a package-boundary build does not erase them. Manual deployment, registry publication and that external visual gate are separate outcomes.
+
+
+### Mirror a finished rail (bounded handed pair)
+
+From the existing rectangular part, apply the front and opposite top-edge chamfers,
+select the second chamfer in the feature tree, then choose **CREATE → Mirror finished rail**.
+The fixed plane is world **XZ (Y=0)**. **Preview operation** evaluates the whole candidate;
+**Apply operation** is enabled only for the current ready preview. Cancel retains the
+accepted part and history.
+
+The original `part` remains output node 3/`solid`; `mirroredRail` is node 4/`solid`.
+Both outputs share the original blank and bevel dimensions. Select either output for
+inspection and use **Edit model dimensions** to change those shared drivers. This is a
+handed copy, not a rotation or a fused body. There is no plane offset, arbitrary plane,
+independent copy geometry, or transform/feature continuation after the mirror.
+
+Pure source/structure-identity guards and Workspace presentation have focused tests.
+Actual controller history and the complete ModelingEditor mirror workflow are not yet exercised. Native mirrored
+geometry, current receiver integration and device pixels are separate evidence gates;
+those tests must not be inferred from synthetic summary IDs or a DOM-only test. Existing
+native #1962 retained captures can support zero-native replay after their hashes are
+verified. The current implementation issue is [#2008](https://github.com/barocss/barocss/issues/2008).

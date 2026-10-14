@@ -1633,3 +1633,25 @@ Provider#1973's historical6064mm³-per-body result is separate from this UI: loc
 source/controller checks use explicit provider doubles, and display checks use
 unchanged genuine geometry with synthetic coincident role envelopes. They do not
 prove new translated copies, readable pixels or actual native distinct identities.
+
+
+### Mirror a finished rail (bounded handed pair)
+
+From the existing rectangular part, apply the front and opposite top-edge chamfers,
+select the second chamfer in the feature tree, then choose **CREATE → Mirror finished rail**.
+The fixed plane is world **XZ (Y=0)**. **Preview operation** evaluates the whole candidate;
+**Apply operation** is enabled only for the current ready preview. Cancel retains the
+accepted part and history.
+
+The original `part` remains output node 3/`solid`; `mirroredRail` is node 4/`solid`.
+Both outputs share the original blank and bevel dimensions. Select either output for
+inspection and use **Edit model dimensions** to change those shared drivers. This is a
+handed copy, not a rotation or a fused body. There is no plane offset, arbitrary plane,
+independent copy geometry, or transform/feature continuation after the mirror.
+
+Pure source/structure-identity guards and Workspace presentation have focused tests.
+Actual controller history and the complete ModelingEditor mirror workflow are not yet exercised. Native mirrored
+geometry, current receiver integration and device pixels are separate evidence gates;
+those tests must not be inferred from synthetic summary IDs or a DOM-only test. Existing
+native #1962 retained captures can support zero-native replay after their hashes are
+verified. The current implementation issue is [#2008](https://github.com/barocss/barocss/issues/2008).

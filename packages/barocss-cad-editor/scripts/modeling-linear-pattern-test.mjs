@@ -255,9 +255,16 @@ await group(pureLedger[6], () => {
     { kind: 'rotate-part', target: patternInput.target, axis: 'z', angleDegrees: 90 }, { kind: 'move-part', target: patternInput.target, x: 1, y: 2, z: 3 },
     { kind: 'chamfer', target: patternInput.target, distance: 0.5 }]) assert.throws(() => build(patterned.text, summary(patternData), command));
   refused(altered(patternData, d => { d.nodes.push(clone(d.nodes[4])); d.outputs.railCopy2.node = 5; }));
-  const priorFields = ({ linearPattern: _target, patternReason: _reason, patternAuthored: _authored, ...prior }) => prior;
-  for (const value of [blankText, first.text, initial, rotation.text, move.text])
-    assert.deepEqual(priorFields(capabilities(value, summary(parse(value)))), oldApi.getModelingStructureCapabilities(value, summary(parse(value))));
+  // #2008 adds a separate mirror capability; retain parity for every older field.
+  const priorFields = ({ linearPattern: _target, patternReason: _reason, patternAuthored: _authored,
+    mirrorPart: _mirror, mirrorReason: _mirrorReason, mirrorAuthored: _mirrorAuthored, ...prior }) => prior;
+  for (const value of [blankText, first.text, initial, rotation.text, move.text]) {
+    const current = capabilities(value, summary(parse(value)));
+    assert.deepEqual(priorFields(current), oldApi.getModelingStructureCapabilities(value, summary(parse(value))));
+    assert.equal(current.mirrorAuthored, false);
+    if (value === initial) assert.deepEqual(current.mirrorPart, patternInput.target);
+    else assert.equal(current.mirrorPart, null);
+  }
 });
 await group(pureLedger[7], () => {
   for (const [name, ref] of Object.entries(expectedOutputs)) {
