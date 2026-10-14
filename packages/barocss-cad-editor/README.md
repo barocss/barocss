@@ -4,6 +4,38 @@ Pure native CAD editing sessions and reusable React viewport/inspector component
 This locally public-configured ESM package is `0.0.0-experimental`. It has not
 been published to npm.
 
+## Preview pending dimensions before Apply
+
+In the primary modeling workspace, edit a named dimension and choose **Preview dimensions**.
+This explicit action evaluates one native candidate and shows its temporary geometry; accepted
+source, parameter summary, saved bytes and Undo history stay unchanged. **Apply** promotes
+that exact current candidate once, without repeating native evaluation. **Cancel** restores
+the retained accepted canvas and follows the current command's draft-discard behavior.
+Changing another input removes the old preview before staging the next raw value. Preview
+is on demand, never per keystroke. Equivalent numeric input makes no native call or history
+entry. Legacy files retain their existing Apply-only behavior.
+
+A lost Worker offers **Recover accepted model and preview**, which first reconstructs the
+accepted source. Cancel computation terminates synchronous native work; this recovery cost
+is explicit. During visible preview, face picking is disabled so candidate pixels cannot
+create accepted face references. The preview may use a newly fitted camera; Cancel restores
+the accepted canvas and camera without requiring a resize or remount.
+
+The controller keeps one private full candidate and token-bound accept/discard messages.
+Public preview snapshots contain metadata only. The Worker, controller and display each
+have bounded single-candidate ownership; shared immutable native data is released by
+reference, not recursively destroyed. Two retained canvases are not a total GPU-memory
+ceiling because evaluation, transport and resize create temporary allocations.
+
+Preview errors retain bounded provider-reported code/operation/message plus the current
+editing context. The context is not an identified failing feature: a shared parameter can
+affect other operations. No arbitrary native cause, stack or geometry is exposed as a
+new diagnostic authority. Focused local commands are
+`node packages/barocss-cad-editor/scripts/modeling-preview-test.mjs` and
+`node packages/barocss-cad-editor/scripts/modeling-preview-display-test.mjs`.
+See [#1959](https://github.com/barocss/barocss/issues/1959) for the finite software scope;
+new native edited geometry, pixels and physical interaction remain separately unverified.
+
 ## Start with ordinary modeling
 
 Use `CadEditorModeling` from `@barocss/cad-editor/react`, or open the host's

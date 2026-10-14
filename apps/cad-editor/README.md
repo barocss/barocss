@@ -4,6 +4,22 @@ Private React/shadcn host for `@barocss/cad-editor`. Menus, project/document rou
 body tree, file picker, genuine download and canonical fixtures live here.
 Reusable editing state, inspector and Viewer bridge live in the package.
 
+## On-demand modeling preview
+
+At `#/model`, use a dimension command, enter pending values and click **Preview dimensions**.
+The viewport shows an unapplied candidate while accepted source and history remain intact.
+Apply accepts that same candidate; Cancel restores the retained accepted viewport. Another
+input invalidates the preview. Lost-worker recovery is explicitly labeled before the click.
+Face picking is disabled during preview, and diagnostics identify editing context without
+inventing an offending feature. Legacy files remain Apply-only.
+
+Run `node apps/cad-editor/flows/modeling-draft-preview-flow.mjs` locally for the focused
+React/controller transaction flow. Its provider, Worker and renderer boundaries are explicit
+doubles; retained genuine baseline geometry is reused for mocked edited states. It is not
+native edited-geometry, GPU-pixel or physical acceptance. App runtime flows stay local;
+CI retains lint, types and builds. [#1959](https://github.com/barocss/barocss/issues/1959)
+tracks the exact source/results and deferred physical gate.
+
 Use the installed Node 22 runtime. No new dependency or browser download is
 required by the focused flow.
 

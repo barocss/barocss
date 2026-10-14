@@ -21,6 +21,8 @@ export interface ModelingWorkspaceProps {
   onPanel(panel: ModelingWorkspacePanel | null): void;
   onSelect(index: number): void;
   onApply(): void;
+  onPreview(): void;
+  previewContext: string;
   onCancelDimensions(): void;
   onCancelNewPart(): void;
   onCreatePart(): void;
@@ -127,8 +129,19 @@ export function ModelingWorkspace(props: ModelingWorkspaceProps) {
             <button type="button" aria-label="Close options" disabled={(editingDimensions || panel === 'new-part') && busy} onClick={() => panel === 'new-part' ? props.onCancelNewPart() : editingDimensions ? props.onCancelDimensions() : props.onPanel(null)}><X aria-hidden="true" /></button></header>
           <div className="modeling-options-scroll">{(Object.keys(panelTitles) as ModelingWorkspacePanel[]).map(name =>
             <div key={name} data-testid={`modeling-panel-${name}`} hidden={panel !== name}>{props.panels[name]}</div>)}</div>
+          {editingDimensions && accepted?.source === 'legacy' && <p>Legacy files support Apply; reversible preview currently requires a primary model.</p>}
+          {editingDimensions && accepted?.source === 'model' && !snapshot?.workerReady && <p>Recovering before preview reconstructs the accepted model, then evaluates pending dimensions.</p>}
+          {editingDimensions && snapshot?.preview && <div data-testid="modeling-preview-status" role="status">
+            <p>{snapshot.preview.status === 'ready' ? 'Unapplied draft preview. Accepted source and history are retained. Apply or Cancel before selecting a face.' : snapshot.preview.status === 'unchanged' ? 'No geometric changes. Apply clears equivalent input without a history entry.' : snapshot.preview.status === 'computing' ? 'Preparing draft preview… Accepted model retained.' : 'Preview refused; accepted model retained.'}</p>
+            {snapshot.preview.status === 'ready' && snapshot.preview.outputs?.map(output => <p key={output.name}>{output.name} preview volume: {output.volumeMM3 ? `${output.volumeMM3.numerator}/${output.volumeMM3.denominator} mm³` : 'not certified'}</p>)}
+            {snapshot.preview.diagnostic && <div data-testid="modeling-preview-diagnostic">While editing {props.previewContext}: {snapshot.preview.diagnostic.stage}{snapshot.preview.diagnostic.code ? ` · ${snapshot.preview.diagnostic.code}` : ''}{snapshot.preview.diagnostic.operation ? ` · engine operation ${snapshot.preview.diagnostic.operation}` : ''}. {snapshot.preview.diagnostic.message}
+              <p>Editing context is not an identified failing feature; shared dimensions may affect other features.</p>
+              <button type="button" disabled={busy} onClick={() => optionsHeading.current?.focus()}>Review editing target</button>
+            </div>}
+          </div>}
           {(editingDimensions || panel === 'new-part') && <footer><span>{panel === 'new-part' ? 'Temporary creation settings · accepted model retained' : draft ? 'Unapplied dimensions · accepted model retained' : 'Edit the existing named dimensions'}</span><div>
             <button type="button" disabled={busy} onClick={panel === 'new-part' ? props.onCancelNewPart : props.onCancelDimensions}>Cancel</button>
+            {editingDimensions && accepted?.source === 'model' && <button type="button" disabled={busy || !draft || (panel === 'extrusion' && !props.canApplyExtrusion) || (panel === 'sketch' && !props.canApplySketch)} onClick={props.onPreview}>{snapshot?.workerReady ? 'Preview dimensions' : 'Recover accepted model and preview'}</button>}
             <button type="button" className="modeling-apply" disabled={busy || (panel === 'new-part' ? !props.canCreatePart : !draft || (panel === 'extrusion' && !props.canApplyExtrusion) || (panel === 'sketch' && !props.canApplySketch))} onClick={panel === 'new-part' ? props.onCreatePart : props.onApply}>{panel === 'new-part' ? accepted ? 'Replace current model' : 'Create part' : panel === 'extrusion' ? 'Apply extrusion' : panel === 'sketch' ? 'Apply sketch dimensions' : 'Apply dimensions'}</button>
           </div></footer>}
         </aside>
@@ -142,7 +155,7 @@ export function ModelingWorkspace(props: ModelingWorkspaceProps) {
       {features.length > 0 && <span className="modeling-history-end" />}<span>Feature order · read-only</span>
       <strong>History {(snapshot?.history.index ?? -1) + 1} / {snapshot?.history.count ?? 0}</strong>
     </nav>
-    <footer className="modeling-workspace-status" role="status" aria-live="polite"><span>{busy ? 'Computing native geometry…' : accepted ? draft ? 'Dimension changes pending' : 'Accepted model' : 'No accepted model'}</span>
+    <footer className="modeling-workspace-status" role="status" aria-live="polite"><span>{busy ? 'Computing native geometry…' : accepted ? snapshot?.preview?.status === 'ready' ? 'Unapplied draft preview visible' : draft ? 'Dimension changes pending' : 'Accepted model' : 'No accepted model'}</span>
       <span>{selected ? featureLabel(selected.index) : 'Model'} · XYZ · mm</span></footer>
   </section>;
 }

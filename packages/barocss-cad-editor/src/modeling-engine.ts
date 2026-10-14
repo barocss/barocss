@@ -1,5 +1,7 @@
 import { cad, tessellateConvexPlanarSolid, tessellateOwnPlateCircularHole, tessellateSurface, tessellateXYCirclePrismShell } from '@barocss/cad';
 import type { CadModelSnapshot } from '@barocss/cad';
+import { modelingDiagnostic } from './modeling-diagnostic.js';
+import type { ModelingDiagnostic } from './modeling-diagnostic.js';
 import { createModelingStlExport } from './modeling-stl.js';
 import type { CadEditorStlExport } from './modeling-stl.js';
 import { isModelingCompositionGraph, preflightModelingComposition, projectModelingComposition } from './modeling-composition.js';
@@ -21,17 +23,27 @@ export interface CadEditorModelingSummary {
 export type CadEditorModelingSplitAxis = 'x' | 'y' | 'z';
 /** The split example ID is retained for compatibility; splitAxis defaults to Z. */
 export type CadEditorModelingExample = 'cut-chamfer' | 'intersection' | 'horizontal-split' | 'two-chamfer' | 'chamfer-split' | 'derived-split' | 'miter-split' | 'configurable-finishes' | 'mounting-plate' | 'union-bracket' | 'underside-pocket' | 'top-entry-pocket' | 'round-post' | 'slotted-bracket' | 'constrained-plate';
+export interface ModelingPreviewBinding {
+  workerToken: string; acceptedTaskToken: string; expectedRevision: number; candidateToken: string; previewTaskToken: string;
+}
 export type ModelingCommand = { id: number; taskToken?: string } & (
   { kind: 'example'; example?: CadEditorModelingExample; splitAxis?: CadEditorModelingSplitAxis } | { kind: 'open'; text: string; revision?: number }
   | { kind: 'apply'; expectedRevision: number; parameters: Record<string, number> }
+  | { kind: 'prepare-preview'; workerToken: string; acceptedTaskToken: string; expectedRevision: number; candidateToken: string; parameters: Record<string, number> }
+  | { kind: 'accept-preview'; binding: ModelingPreviewBinding; parameters: Record<string, number> }
+  | { kind: 'discard-preview'; binding: ModelingPreviewBinding }
   | { kind: 'suppression'; expectedRevision: number; suppression: Record<string, boolean> }
   | { kind: 'export-stl'; expectedRevision: number; acceptedTaskToken: string; outputName: string; solidId: string }
 );
 export type ModelingDisplayReply = { id: number } & (
   { ok: true; text: string; summary: CadEditorModelingSummary; display: ModelingDisplayPacket; compatibility?: CadEditorPrismFeatureSummary }
-  | { ok: false; message: string }
+  | { ok: false; message: string; diagnostic?: ModelingDiagnostic }
 );
-export type ModelingReply = ModelingDisplayReply | { id: number; ok: true; kind: 'stl-export'; export: CadEditorStlExport };
+export type ModelingPreviewReply = { id: number; ok: true; kind: 'preview'; binding: ModelingPreviewBinding;
+  text: string; summary: CadEditorModelingSummary; display: ModelingDisplayPacket };
+export type ModelingPreviewAcceptedReply = { id: number; ok: true; kind: 'preview-accepted'; binding: ModelingPreviewBinding; revision: number };
+export type ModelingReply = ModelingDisplayReply | ModelingPreviewReply | ModelingPreviewAcceptedReply
+  | { id: number; ok: true; kind: 'preview-discarded' } | { id: number; ok: true; kind: 'stl-export'; export: CadEditorStlExport };
 
 /** The example is ordinary public authoring, never hand-written provider JSON. */
 export function createCadEditorSampleModel(): CadModelSnapshot {
@@ -235,16 +247,108 @@ function legacySummary(summary: CadEditorPrismFeatureSummary): CadEditorModeling
       volumeMM3: c.role === 'second' && summary.serial ? summary.serial.volumes.negative : summary.volumes[c.role] })) };
 }
 
+const previewToken = (value: unknown): value is string => typeof value === 'string' && /^[A-Za-z0-9_-]{1,48}$/.test(value);
+function ownShape(value: unknown, keys: readonly string[]): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype
+    && Reflect.ownKeys(value).length === keys.length && keys.every(key => {
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      return descriptor?.enumerable && Object.hasOwn(descriptor, 'value');
+    });
+}
+function previewBinding(value: unknown): ModelingPreviewBinding {
+  if (!ownShape(value, ['workerToken', 'acceptedTaskToken', 'expectedRevision', 'candidateToken', 'previewTaskToken'])
+    || !previewToken(value.workerToken) || !previewToken(value.acceptedTaskToken)
+    || !previewToken(value.candidateToken) || !previewToken(value.previewTaskToken)
+    || !Number.isSafeInteger(value.expectedRevision) || (value.expectedRevision as number) < 0)
+    throw new Error('A current exact preview binding is required.');
+  return { ...value } as unknown as ModelingPreviewBinding;
+}
+function samePreviewBinding(left: ModelingPreviewBinding, right: ModelingPreviewBinding): boolean {
+  return left.workerToken === right.workerToken && left.acceptedTaskToken === right.acceptedTaskToken
+    && left.expectedRevision === right.expectedRevision && left.candidateToken === right.candidateToken
+    && left.previewTaskToken === right.previewTaskToken;
+}
+function previewParameters(value: unknown, known: Record<string, number>): Record<string, number> {
+  if (!value || typeof value !== 'object' || Object.getPrototypeOf(value) !== Object.prototype
+    || Reflect.ownKeys(value).length > 16) throw new Error('Use a plain normalized parameter map.');
+  const parameters: Record<string, number> = {};
+  for (const name of Reflect.ownKeys(value)) {
+    const descriptor = Object.getOwnPropertyDescriptor(value, name)!;
+    if (typeof name !== 'string' || !Object.hasOwn(known, name) || !descriptor.enumerable
+      || !Object.hasOwn(descriptor, 'value') || typeof descriptor.value !== 'number'
+      || !Number.isFinite(descriptor.value) || Math.abs(descriptor.value) > 10000)
+      throw new Error('Use known parameter names and finite normalized millimetre values.');
+    parameters[name] = descriptor.value;
+  }
+  return parameters;
+}
+function samePreviewParameters(left: Record<string, number>, right: Record<string, number>): boolean {
+  return Object.keys(left).length === Object.keys(right).length
+    && Object.keys(left).every(name => Object.hasOwn(right, name) && Object.is(left[name], right[name]));
+}
+
 /** Worker-only native authority. Public snapshots and full native results never cross the transport. */
 export function createModelingEngine() {
   let accepted: { source: 'model'; snapshot: CadModelSnapshot; revision: number; taskToken?: string }
     | { source: 'legacy'; summary: CadEditorPrismFeatureSummary } | null = null;
+  let workerToken: string | null = null;
+  let candidate: { snapshot: CadModelSnapshot; binding: ModelingPreviewBinding;
+    parameters: Record<string, number>; reply: ModelingPreviewReply } | null = null;
   const legacy = createPrismFeatureEngine();
   return (command: ModelingCommand): ModelingReply => {
+    let stage: ModelingDiagnostic['stage'] = 'input';
+    let preparing: { binding: ModelingPreviewBinding; parameters: Record<string, number> } | null = null;
     try {
+      // Inspect own descriptors before reading request fields, including the envelope.
+      if (!command || typeof command !== 'object' || Object.getPrototypeOf(command) !== Object.prototype
+        || Reflect.ownKeys(command).some(key => {
+          const d = Object.getOwnPropertyDescriptor(command, key)!;
+          return typeof key !== 'string' || !d.enumerable || !Object.hasOwn(d, 'value');
+        })) throw new Error('A plain current worker request is required.');
       if (!command || !Number.isSafeInteger(command.id) || command.id < 1) throw new Error('A current worker request is required.');
       if (command.taskToken !== undefined && (typeof command.taskToken !== 'string' || !/^[A-Za-z0-9_-]{1,48}$/.test(command.taskToken)))
         throw new Error('A bounded current display task token is required.');
+      if (command.kind === 'discard-preview' || command.kind === 'accept-preview') {
+        const keys = ['id', 'kind', 'taskToken', 'binding', ...(command.kind === 'accept-preview' ? ['parameters'] : [])];
+        if (!ownShape(command, keys) || !previewToken(command.taskToken)) throw new Error('A current exact preview request is required.');
+        const binding = previewBinding(command.binding);
+        const current = candidate && samePreviewBinding(candidate.binding, binding)
+          && workerToken === binding.workerToken && accepted?.source === 'model'
+          && accepted.taskToken === binding.acceptedTaskToken && accepted.revision === binding.expectedRevision;
+        if (command.kind === 'discard-preview') {
+          // A stale or replayed discard must never clear a replacement candidate.
+          if (current) candidate = null;
+          return { id: command.id, ok: true, kind: 'preview-discarded' };
+        }
+        if (!current || !candidate || accepted?.source !== 'model') throw new Error('The model preview is stale.');
+        const parameters = previewParameters(command.parameters, accepted.snapshot.parameters);
+        if (!samePreviewParameters(parameters, candidate.parameters)) throw new Error('The preview parameters changed.');
+        const promotion = candidate;
+        accepted = { source: 'model', snapshot: promotion.snapshot, revision: promotion.reply.summary.revision,
+          taskToken: promotion.binding.previewTaskToken };
+        candidate = null;
+        return { id: command.id, ok: true, kind: 'preview-accepted', binding: { ...promotion.binding }, revision: accepted.revision };
+      }
+      if (command.kind === 'prepare-preview') {
+        candidate = null;
+        if (!ownShape(command, ['id', 'kind', 'taskToken', 'workerToken', 'acceptedTaskToken', 'expectedRevision', 'candidateToken', 'parameters'])
+          || !previewToken(command.taskToken)) throw new Error('A current exact preview request is required.');
+        const binding = previewBinding({ workerToken: command.workerToken, acceptedTaskToken: command.acceptedTaskToken,
+          expectedRevision: command.expectedRevision, candidateToken: command.candidateToken, previewTaskToken: command.taskToken });
+        if (accepted?.source !== 'model') throw new Error('Preview is available for primary models only; legacy files remain Apply-only.');
+        if ((workerToken !== null && workerToken !== binding.workerToken) || accepted.taskToken !== binding.acceptedTaskToken
+          || accepted.revision !== binding.expectedRevision || accepted.revision >= Number.MAX_SAFE_INTEGER)
+          throw new Error('The model preview base is stale.');
+        const parameters = previewParameters(command.parameters, accepted.snapshot.parameters);
+        const currentParameters = accepted.snapshot.parameters;
+        if (Object.keys(parameters).every(name => Object.is(parameters[name], currentParameters[name])))
+          throw new Error('The normalized parameters make no geometric change.');
+        workerToken = binding.workerToken;
+        preparing = { binding: Object.freeze(binding), parameters: Object.freeze(parameters) };
+      } else if (command.kind !== 'export-stl') {
+        // Opening, editing, examples and suppression supersede the one private draft slot.
+        candidate = null;
+      }
       if (command.kind === 'export-stl') {
         const keys = ['id', 'kind', 'taskToken', 'expectedRevision', 'acceptedTaskToken', 'outputName', 'solidId'];
         if (Object.getPrototypeOf(command) !== Object.prototype || Reflect.ownKeys(command).length !== keys.length
@@ -301,6 +405,7 @@ export function createModelingEngine() {
         return { id: command.id, ok: true, text: reply.text, summary, display: reply.display, compatibility: reply.summary };
       }
       if (source !== 'model') throw new Error('Open a saved model first.');
+      stage = 'native';
       const snapshot = command.kind === 'example' ? (command.example === 'intersection' ? createCadEditorIntersectionModel()
         : command.example === 'constrained-plate' ? createCadEditorConstrainedPlateModel()
         : command.example === 'slotted-bracket' ? createCadEditorSlottedBracketModel()
@@ -316,10 +421,12 @@ export function createModelingEngine() {
         : command.example === 'horizontal-split' ? (command.splitAxis === 'x' || command.splitAxis === 'y'
           ? createCadEditorCardinalSplitModel(command.splitAxis) : createCadEditorSplitModel()) : command.example === 'two-chamfer' ? createCadEditorChamferChainModel() : createCadEditorSampleModel())
         : command.kind === 'open' ? cad.load(command.text)
-          : accepted?.source === 'model' ? (command.kind === 'suppression' ? accepted.snapshot.withSuppression(command.suppression) : accepted.snapshot.withParameters(command.parameters)) : null;
+          : accepted?.source === 'model' ? (command.kind === 'suppression' ? accepted.snapshot.withSuppression(command.suppression) : accepted.snapshot.withParameters(preparing?.parameters ?? command.parameters)) : null;
       if (!snapshot) throw new Error('Open a saved model first.');
-      const revision = command.kind === 'apply' || command.kind === 'suppression' ? command.expectedRevision + 1 : command.kind === 'open' ? command.revision ?? 0 : 0;
+      const revision = command.kind === 'apply' || command.kind === 'suppression' || command.kind === 'prepare-preview' ? command.expectedRevision + 1 : command.kind === 'open' ? command.revision ?? 0 : 0;
+      stage = 'transport';
       const text = snapshot.save();
+      if (text.length > 262144) throw new Error('Model source exceeds 256 KiB.');
       // The codec owns canonical key order. Keep initial and reopened display inventories identical.
       const authored = JSON.parse(text) as { nodes: { kind: string; profile?: string; sketch?: number; parent?: { node: number; side: string } }[]; outputs: Record<string, { node: number }> };
       // This saved graph came from the admitted native snapshot. Reject the whole
@@ -384,6 +491,8 @@ export function createModelingEngine() {
           ...(hasNativeFaces ? { family: body.family } : {}),
           volumeMM3: body.family === 'convex-planar' ? { ...body.native.certificate.volumeMM3 }
             : body.family === 'orthogonal-cell' ? { numerator: String(body.native.report.volumeMM3), denominator: '1' } : null })) };
+      if (JSON.stringify(summary).length > 262144) throw new Error('Model summary exceeds 256 KiB.');
+      stage = 'native';
       const convex = (name: string, body: Extract<CadModelSnapshot['bodies'][string], { family: 'convex-planar' }>['native']): PrismDisplayComponent => {
         const { mesh, boundaries, internalDiagonals, report } = tessellateConvexPlanarSolid(body, { maximumFanTriangles: 40 });
         return { role: name, mesh, boundaries, internalDiagonals, report,
@@ -434,11 +543,19 @@ export function createModelingEngine() {
             if (body.family !== 'convex-planar') throw new Error('A complete narrowed convex inventory is required.');
             return convex(name, body.native);
           }), outcomes: summary.outputs.map(o => ({ role: o.name, solidId: o.solidId, status: 'solid' })) };
+      stage = 'transport';
       if (JSON.stringify(display).length > 2 * 1024 * 1024) throw new Error('Model display exceeds 2 MiB.');
+      if (preparing) {
+        const reply: ModelingPreviewReply = { id: command.id, ok: true, kind: 'preview', binding: { ...preparing.binding }, text, summary, display };
+        candidate = { snapshot, binding: preparing.binding, parameters: preparing.parameters, reply };
+        return reply;
+      }
       accepted = { source: 'model', snapshot, revision, taskToken: command.taskToken };
       return { id: command.id, ok: true, text, summary, display };
     } catch (cause) {
-      return { id: command?.id, ok: false, message: (cause instanceof Error ? cause.message : 'CAD modeling refused.').slice(0, 2048) };
+      const diagnostic = modelingDiagnostic(cause, stage);
+      const id = command && typeof command === 'object' ? Object.getOwnPropertyDescriptor(command, 'id')?.value : undefined;
+      return { id, ok: false, message: diagnostic.message, diagnostic };
     }
   };
 }

@@ -35,6 +35,14 @@ In **FILE → Save or open a model**, **Download model** saves the accepted auth
 
 The save action uses the current accepted document and refuses stale or busy callbacks. A browser download request does not prove a file reached disk; request/cleanup errors are surfaced separately. The original authored codec and named outputs stay unchanged. Physical file checks for this clarification remain separate from its local controlled-browser-API tests ([#1958](https://github.com/barocss/barocss/issues/1958)).
 
+### Preview pending dimensions before Apply
+
+In **Model a part**, open **Model dimensions**, **Edit sketch dimensions** or **Edit extrusion**, change a value, then choose **Preview dimensions**. The temporary geometry is labeled as an unapplied preview. Accepted model data, saved bytes and history remain unchanged. **Apply** accepts that exact current candidate once; **Cancel** restores the accepted viewport and uses the command's existing draft-discard behavior. Changing another input removes the old preview until you explicitly request a new one. Equivalent numeric input adds no native work or history entry.
+
+If its worker was lost, **Recover accepted model and preview** explains that accepted geometry must first be rebuilt. Face picking is unavailable while draft geometry is visible. Legacy files remain Apply-only. A preview can use a newly fitted camera; Cancel restores the accepted camera. Error details retain bounded engine-reported information and the editing context, which does not prove that the selected feature caused a failure when dimensions are shared.
+
+The [#1959 contract](https://github.com/barocss/barocss/issues/1959) retains single-candidate native/display ownership, stale-response fences and accepted-only save/history. Local transaction tests use a genuine retained baseline with explicitly mocked provider delivery and edited geometry. New native edits, actual pixels and physical interaction remain pending; earlier device evidence does not cover this preview feature.
+
 ## Edit the selected rectangle sketch
 
 Select a rectangle **Sketch** in the Browser, then **MODIFY → Edit sketch dimensions**. The options stay pinned to that sketch even if you select another feature. **Min X**, **Min Y**, **Max X** and **Max Y** are signed profile coordinates in millimetres: for a rectangle away from the origin, a maximum coordinate is not its width. The New rectangular part command's origin-zero sketch exposes its named `width` and `height` here; extrusion `thickness` stays in Edit extrusion or Edit model dimensions.

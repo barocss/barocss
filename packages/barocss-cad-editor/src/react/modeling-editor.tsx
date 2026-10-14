@@ -101,9 +101,14 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
     return newPartCommandLive() && !!current && current.generation === snapshot?.generation
       && current.authoredText === snapshot?.authoredText;
   };
+  const invalidateCommandPreview = () => {
+    const session = controller.current, current = session?.getSnapshot();
+    if (current?.preview) { if (current.busy) session!.cancel(); else session!.clearPreview(); }
+  };
   const openWorkspacePanel = (panel: ModelingWorkspacePanel | null) => {
-    // Reopening the visible File panel must not stale its handlers without a state render.
-    if (panel === 'files' && workspacePanel === 'files') return;
+    if (panel !== workspacePanel) invalidateCommandPreview();
+    // A same-panel action with no replacement target keeps its live callbacks.
+    if ((panel === 'files' || panel === 'dimensions') && workspacePanel === panel) return;
     if (panel === 'new-part') {
       const session = controller.current, current = session?.getSnapshot();
       if (!session || !current || current.busy || current.disposed) return;
@@ -116,6 +121,7 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
       const current = controller.current?.getSnapshot();
       const projection = current && projectSketchCommand(current, current.selection);
       if (!current || current.busy || !projection || !current.authoredText) return;
+      invalidateCommandPreview(); // Even the same panel creates a new pinned command instance.
       if (Object.keys(current.drafts).some(name => !projection.parameters.includes(name))) {
         setError('Other model dimensions are pending. Review all pending dimensions before editing this sketch.');
         workspaceCommandEpoch.current++; extrusionCommandInstance.current++; sketchCommandInstance.current++; newPartCommandInstance.current++; setWorkspacePanel('dimensions'); return;
@@ -128,6 +134,7 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
       const current = controller.current?.getSnapshot();
       const projection = current && projectExtrusionCommand(current, current.selection);
       if (!current || current.busy || !projection || !current.authoredText) return;
+      invalidateCommandPreview(); // Even the same panel creates a new pinned command instance.
       if (Object.keys(current.drafts).some(name => !projection.parameters.includes(name))) {
         setError('Other model dimensions are pending. Review all pending dimensions before editing this extrusion.');
         workspaceCommandEpoch.current++; extrusionCommandInstance.current++; sketchCommandInstance.current++; newPartCommandInstance.current++; setWorkspacePanel('dimensions'); return;
@@ -187,6 +194,20 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
         && !current.disposed && !current.busy && !current.error && !Object.keys(current.drafts).length) {
         extrusionCommandInstance.current++; sketchCommandInstance.current++; setWorkspacePanel(null);
       }
+    });
+  };
+  const previewSession = controller.current, previewRenderEpoch = fileActionEpoch.current, previewCommandEpoch = workspaceCommandEpoch.current;
+  const previewDimensions = () => {
+    const session = controller.current, current = session?.getSnapshot();
+    if (!session || session !== previewSession || !current || current.busy || current.disposed
+      || previewRenderEpoch !== fileActionEpoch.current || previewCommandEpoch !== workspaceCommandEpoch.current
+      || current.generation !== snapshot?.generation || current.authoredText !== snapshot?.authoredText) return;
+    if (workspace && !['dimensions', 'sketch', 'extrusion'].includes(workspacePanel ?? '')) return;
+    if (workspacePanel === 'extrusion' && (!extrusionCommandLive() || !extrusionCommandCurrent(current, extrusionTarget)?.parameters.length)) return;
+    if (workspacePanel === 'sketch' && (!sketchRenderCurrent() || !sketchCommandCurrent(current, sketchTarget)?.parameters.length)) return;
+    setError(null);
+    void session.preview(!current.workerReady).catch(cause => {
+      if (controller.current === session && workspaceCommandEpoch.current === previewCommandEpoch) setError(String(cause));
     });
   };
   const cancelDimensions = () => {
@@ -415,7 +436,7 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
       style={workspace ? undefined : { position: 'relative', width: '100%', height: 400, marginTop: 16, background: '#06090d' }}
       onClick={event => {
         const element = viewport.current, display = displayRef.current;
-        if (!element || !display || !snapshot?.accepted || busy) return;
+        if (!element || !display || !snapshot?.accepted || busy || snapshot.preview?.status === 'ready') return;
         const rect = element.getBoundingClientRect(), size = display.dimensions(); if (!rect.width || !rect.height) return;
         const x = Math.min(size.width - 1, Math.max(0, Math.floor((event.clientX - rect.left) * size.width / rect.width)));
         const y = Math.min(size.height - 1, Math.max(0, size.height - 1 - Math.floor((event.clientY - rect.top) * size.height / rect.height)));
@@ -625,7 +646,9 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
     canEditExtrusion={!!selectedExtrusion} canApplyExtrusion={!!currentExtrusion?.parameters.length}
     configurableFinishes={!!configurableFinishes} onPanel={openWorkspacePanel}
     onSelect={index => action(session => session.select(index, session.getSnapshot().generation))}
-    onApply={applyDimensions} onCancelDimensions={cancelDimensions} onCancelNewPart={cancelNewPart} onCreatePart={createNewPart}
+    onApply={applyDimensions} onPreview={previewDimensions}
+    previewContext={workspacePanel === 'extrusion' ? pinnedExtrusion?.label ?? 'Extrusion command' : workspacePanel === 'sketch' ? pinnedSketch?.label ?? 'Sketch command' : 'Model dimensions'}
+    onCancelDimensions={cancelDimensions} onCancelNewPart={cancelNewPart} onCreatePart={createNewPart}
     canCreatePart={!draft && newPartCurrent && !newPartValidation}
     onCancelComputation={() => { workspaceCommandEpoch.current++; newPartOperationEpoch.current++; action(session => session.cancel()); }}
     onUndo={() => action(session => session.undo())} onRedo={() => action(session => session.redo())}
@@ -635,6 +658,7 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
     <p role="status" aria-live="polite">{busy ? 'Computing native geometry in a dedicated worker… You can cancel.' : accepted ? draft ? 'Dimension changes pending' : 'Accepted model' : 'No accepted model'}</p>
     {(error || snapshot?.error) && <p role="alert">{error ?? snapshot?.error}</p>}
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      {accepted?.source === 'model' && <Button disabled={busy || !draft} onClick={previewDimensions}>{snapshot?.workerReady ? 'Preview dimensions' : 'Recover accepted model and preview'}</Button>}
       <Button disabled={busy || !draft} onClick={() => action(s => s.apply())}>Apply dimensions</Button>
       <Button disabled={busy || !draft} onClick={() => action(s => s.discard())}>Discard draft</Button>
       <Button disabled={busy || draft || !snapshot?.history.canUndo} onClick={() => action(s => s.undo())}>Undo</Button>
@@ -643,6 +667,9 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
       <span style={{ alignSelf: 'center', fontSize: 12, opacity: 0.75 }}>In a dimension field: Enter to apply · Esc to discard</span>
       {!accepted && !busy && <Button onClick={() => { fileReadEpoch.current++; action(s => initialAuthoredText === undefined ? s.example() : s.open(initialAuthoredText)); }}>Retry model</Button>}
     </div>
+    {snapshot?.preview && <p role="status">{snapshot.preview.status === 'ready' ? 'Unapplied draft preview. Apply or Cancel before selecting a face.' : snapshot.preview.status === 'unchanged' ? 'No geometric changes. Apply clears equivalent input without a history entry.' : snapshot.preview.status === 'computing' ? 'Preparing draft preview… Accepted model retained.' : `Preview refused: ${snapshot.preview.diagnostic?.message ?? snapshot.error}`}</p>}
+    {accepted?.source === 'model' && !snapshot?.workerReady && <p>Recovering before preview reconstructs the accepted model, then evaluates pending dimensions.</p>}
+    {accepted?.source === 'legacy' && <p>Legacy files support Apply; reversible preview currently requires a primary model.</p>}
     {examplesPanel}
     {viewportElement}
     {accepted && <>
