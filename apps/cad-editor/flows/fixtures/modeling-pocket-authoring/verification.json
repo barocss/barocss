@@ -1544,11 +1544,45 @@
     "verifiedFor": "1971 local noEmit only; historical declarations, current-source CI still required"
   },
   "apiBaseline": {
-    "status": "pending immutable public product source pin",
-    "expectedAdded": [],
-    "expectedRemoved": [],
-    "expectedChanged": [],
-    "meaning": "The current extractor retains private ModelingStructureCommand by alias name. Adding cut-pocket behavior does not necessarily change that signature digest; zero digest change is not no new behavior. Preserve adopted scale/mirror/rotation signatures and use unchanged current-source extractor."
+    "status": "qualified unchanged extractor write/check passed",
+    "sourcePin": "3becf0c88558774790eab6222a51379d8e397755",
+    "semanticDelta": {
+      "added": [],
+      "removed": [],
+      "changed": [],
+      "beforePin": "f097899e64f0c58f6f20182a29e419d904185130",
+      "sourcePin": "3becf0c88558774790eab6222a51379d8e397755",
+      "typescript": "5.9.3",
+      "signatures": {}
+    },
+    "results": [
+      {
+        "name": "qualified-write",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--write-current",
+          "--commit",
+          "3becf0c88558774790eab6222a51379d8e397755"
+        ],
+        "exitCode": 0,
+        "seconds": 5.730651763005881
+      },
+      {
+        "name": "qualified-check",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--check"
+        ],
+        "exitCode": 0,
+        "seconds": 5.1297661590069765
+      }
+    ],
+    "extractorSHA256": "01a0cf2b03a47e540148033c2a788f15dd1fa77cdab27011ef264e2786b02186",
+    "inventorySHA256": "5dcdbc0bba1b413ca651f27582312471bfba457321941454bed56bf9b18b7a8d",
+    "historicalBaselineUnchanged": true,
+    "meaning": "Zero exported digest change. The private ModelingStructureCommand alias gains cut-pocket behavior; unchanged alias-name signatures do not imply unchanged runtime capability. Current inventory retains scale/mirror/rotation and latest GPU source tree."
   },
   "embeddedLogs": {
     "package/attempt-01.log": {
@@ -1586,6 +1620,14 @@
     "render-links.log": {
       "sha256": "e1ae58e17d1730781f7b7e7b9e6c0a9bf23b3462a668a75109ba2220073170a1",
       "text": "{\"result\":\"PASS\",\"candidate\":\"a278a2b57fccd909b6bf414130c0fa9af4f119a0\",\"node\":\"v24.19.0\",\"vitepress\":\"1.6.4\",\"pages\":1,\"emittedHeadingIds\":[\"author-an-open-rectangular-tray\"],\"verifiedCrosslinks\":67}\n"
+    },
+    "api/qualified-write.log": {
+      "sha256": "969524bf0ddbde993890e288d27eaa3902bf4e965e1d1daba34544fbfc00301b",
+      "text": "(node:22) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"status\":\"written\",\"evidence\":\"evidence/current-public-api.json\",\"sourceCommit\":\"3becf0c88558774790eab6222a51379d8e397755\",\"packages\":9,\"changesFromHistorical\":{\"added\":1644,\"removed\":0,\"changed\":52}}\n"
+    },
+    "api/qualified-check.log": {
+      "sha256": "02deeac9c4882c0ba1b6df1e5772cf47b9107e6e147a0a16053ca50bf819e595",
+      "text": "(node:66) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"status\":\"matched\",\"sourceCommit\":\"3becf0c88558774790eab6222a51379d8e397755\",\"scope\":\"current API\",\"packages\":9,\"entries\":75,\"exportedOccurrences\":4191,\"extractor\":\"5.9.3\"}\n"
     }
   },
   "limits": [
@@ -1598,5 +1640,12 @@
     "Full-source history accounting remains bounded private source slots, not a total runtime RSS guarantee. No controller/history source was changed here.",
     "Flat-color cavity readability is an explicit separate1974 presentation/physical gate; source/admission success does not establish visible depth.",
     "Older preset1867 acceptance remains independent; this new normal command does not close it."
-  ]
+  ],
+  "publicProductCommit": "3becf0c88558774790eab6222a51379d8e397755",
+  "integration": {
+    "baseCommit": "78e84bf55391cc82b9552b3bec84559a2be388bf",
+    "tree": "8836bd219f6b8a35d6d2d1e92fa6c97fe335deac",
+    "reviewedCandidate": "84350d5355865634de2bddbc4aa78176f6d33997",
+    "qualification": "All nine reviewed paths exact. Incoming nine private GPU paths preserved; current-source CI will verify integrated dependencies. No runtime repetition for disjoint incoming paths."
+  }
 }
