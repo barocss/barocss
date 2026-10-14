@@ -220,7 +220,7 @@ export function proveMirror(native, original, spec) {
 export function proveSnapshot(snapshot, parameters = DEFAULTS, variant = 'rail') {
   const document = authoredDocument(parameters, variant);
   assert.equal(snapshot.save(), signedData(document) + '\n'); exactData(snapshot.parameters, document.parameters);
-  exactData(snapshot.suppression, {}); exactData(Object.keys(snapshot.bodies), ['original', 'mirrored']);
+  exactData(snapshot.suppression, {}); exactData(Object.keys(snapshot.bodies).sort(), ['mirrored', 'original']);
   exactData(snapshot.evidence.map(e => e.kind), document.nodes.map(n => n.kind));
   const mirror = snapshot.evidence.at(-1).native, original = snapshot.bodies.original.native, mirrored = snapshot.bodies.mirrored.native;
   for (const body of Object.values(snapshot.bodies)) assert.equal(body.family, 'convex-planar');

@@ -172,7 +172,10 @@ test('all three authored planes retain strict saved values and route unchanged n
   for(const plane of ['xy','xz','yz']){
     const snapshot=pair(plane),saved=JSON.parse(snapshot.save());
     assert.deepEqual(saved.nodes[2],{kind:'mirror',parent:{node:1,side:'solid'},plane});assert.deepEqual(snapshot.evidence[2].native.request.spec,{plane});
-    const cold=mockNative(()=>loadCadModel(snapshot.save()));assert.equal(cold.save(),snapshot.save());assert.deepEqual(cold.bodies,snapshot.bodies);assert.deepEqual(cold.evidence,snapshot.evidence);
+    const cold=mockNative(()=>loadCadModel(snapshot.save()));assert.equal(cold.save(),snapshot.save());
+    assert.deepEqual(Object.keys(snapshot.bodies).sort(),['mirrored','original']);
+    assert.deepEqual(Object.keys(cold.bodies).sort(),['mirrored','original']);
+    assert.deepEqual(cold.bodies,snapshot.bodies);assert.deepEqual(cold.evidence,snapshot.evidence);
   }
 });
 test('one exact own-data plane record refuses malformed data without consuming a node',()=>{
