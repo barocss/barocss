@@ -2152,6 +2152,63 @@
     "docs.log": {
       "sha256": "dd641b114bff1c2f809fc64391c6bb2759d382097c12ead508117481002a0508",
       "text": "(node:6) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:6) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"result\":\"PASS\",\"candidate\":\"2d2e4b2693f7b3b00c976f6056b07b80f42c63c0\",\"node\":\"v22.23.3\",\"vitepress\":\"1.6.4\",\"pages\":1,\"emittedHeadingIds\":[\"orient-and-place-a-finished-rail\"],\"verifiedCrosslinks\":79}\n"
+    },
+    "api/qualified-write.log": {
+      "sha256": "4e7aaa434bf4339ad6ab0f3689b777bff102c0b7e0011f24c5af6f64dd1c8f79",
+      "text": "(node:60) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"status\":\"written\",\"evidence\":\"evidence/current-public-api.json\",\"sourceCommit\":\"6a2f985f383e416250c249cac4237c80f6fb86d2\",\"packages\":9,\"changesFromHistorical\":{\"added\":1652,\"removed\":0,\"changed\":52}}\n"
+    },
+    "api/qualified-check.log": {
+      "sha256": "41ab85df156b35e19cc02fcf00b9bf59f19e63cd709d1cd977d03c3642d1f3c5",
+      "text": "(node:104) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"status\":\"matched\",\"sourceCommit\":\"6a2f985f383e416250c249cac4237c80f6fb86d2\",\"scope\":\"current API\",\"packages\":9,\"entries\":76,\"exportedOccurrences\":4198,\"extractor\":\"5.9.3\"}\n"
     }
+  },
+  "publicationQualification": {
+    "productCommit": "6a2f985f383e416250c249cac4237c80f6fb86d2",
+    "parent": "f4cfed65db7272fa006e8bcd5f84479d83eb39a2",
+    "tree": "35f498ce84f68df8ab0863a12beb901c3f11a959",
+    "reviewedLocalCommit": "b73bc9d1faf2cb492f5faf655492faa7cab0376d",
+    "sameTreeVerified": true,
+    "scope": "Nine reviewed product/test/docs/receipt blobs; no remote branch update yet"
+  },
+  "currentApiQualification": {
+    "sourceCommit": "6a2f985f383e416250c249cac4237c80f6fb86d2",
+    "inventorySHA256": "331f96ce6fcdf899c21cb5afc877a980e21737bfbafbf2693f4dd506112dc1e7",
+    "results": [
+      {
+        "name": "qualified-write",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--write-current",
+          "--commit",
+          "6a2f985f383e416250c249cac4237c80f6fb86d2"
+        ],
+        "exitCode": 0,
+        "seconds": 5.329062303004321
+      },
+      {
+        "name": "qualified-check",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--check"
+        ],
+        "exitCode": 0,
+        "seconds": 4.978482767008245
+      }
+    ],
+    "semanticDelta": {
+      "added": [],
+      "removed": [],
+      "changed": [],
+      "beforePin": "fe153f754f236558d1beca2925ed77242401cb7d",
+      "sourcePin": "6a2f985f383e416250c249cac4237c80f6fb86d2",
+      "typescript": "5.9.3",
+      "signatures": {}
+    },
+    "checkerSHA256": "01a0cf2b03a47e540148033c2a788f15dd1fa77cdab27011ef264e2786b02186",
+    "extractorUnchanged": true,
+    "expected": "Zero normalized exported-signature changes; internal existing structural-command union gains the two reviewed cases; source and package tree pins update",
+    "nativeBuildExecution": false
   }
 }
