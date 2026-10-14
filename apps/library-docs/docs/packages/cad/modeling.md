@@ -177,7 +177,7 @@ Normal convex model outputs show their admitted native boundary edges over the f
 
 The current WebGL2 overlay is a one-backing-pixel hairline, approximately half a CSS pixel at DPR2. Its shared depth buffer hides ordinary rear edges, with a small fill bias to reduce coincident edge/fill interference. Grazing or nearly coincident surfaces can still show bias artifacts; this is not mathematically exact hidden-line removal. Circle, through-hole, orthogonal-cell and legacy serial displays retain their existing presentation.
 
-[#1995](https://github.com/barocss/barocss/issues/1995) keeps the actual normal-scale DPR2 readability and ordinary bevel-interior picking gates open until device evidence exists. Retained native boundaries and CPU/mock renderer controls establish source/mapping/lifecycle behavior, not successful pixels or manufacturing geometry.
+[#1995](https://github.com/barocss/barocss/issues/1995) has retained-geometry Chromium 155/WebGL2 evidence. At source `f4cfed65`, front/bevel edges were readable at normal scale on DPR 1 and 2, and bevel-interior picking returned the same original approximate face/triangle with lines on or off. At later develop `e52aafad`, all 26 relevant renderer/CAD input sources matched those bytes; a separate WebGL2 check covered side/behind-eye clipping, foreground occlusion and complete observed GPU-handle disposal. Near-plane clipping can leave an uncapped opening that exposes rear native edges against the background: shared depth hides them only where surviving fill writes depth. This does not prove exact hidden-line removal, production camera behavior, WebGPU parity or manufacturing geometry.
 
 ## Add one through-hole to a rectangular part
 

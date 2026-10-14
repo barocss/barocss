@@ -1593,8 +1593,14 @@ but grazing or very close surfaces can still show depth-bias artifacts. This is
 not exact hidden-line removal. Circle, hole, orthogonal-cell and legacy serial
 displays do not gain this convex overlay. No native evaluation, source edit or
 history entry is needed for lines. [#1995](https://github.com/barocss/barocss/issues/1995)
-tracks retained-geometry checks and the still-pending actual normal-scale DPR2
-readability/face-picking gate; CPU/mock renderer checks alone do not prove pixels.
+has retained-geometry Chromium 155/WebGL2 evidence: at source `f4cfed65`, normal-scale
+DPR 1 and 2 showed readable front/bevel edges and unchanged bevel-interior face
+picking. At later develop `e52aafad`, all 26 relevant renderer/CAD input sources
+matched those bytes; a separate WebGL2 check covered side/behind-eye clipping,
+foreground occlusion and complete observed GPU-handle disposal. Near-plane clipping
+can leave an uncapped opening that exposes rear native edges against the background:
+shared depth hides them only where surviving fill writes depth. This does not prove
+exact hidden-line removal, production camera behavior or WebGPU parity.
 
 ### Cardinal rail orientation and placement
 
