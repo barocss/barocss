@@ -5,6 +5,7 @@ export type ModelingStructureCommand =
   | { kind: 'add-arm'; target: ModelingStructureTarget; x: number; y: number; width: number; height: number }
   | { kind: 'add-hole'; target: ModelingStructureTarget; x: number; y: number; radius: number }
   | { kind: 'cut-pocket'; target: ModelingStructureTarget; wall: number; floor: number }
+  | { kind: 'chamfer'; target: ModelingStructureTarget; distance: number }
   | { kind: 'union'; targets: [ModelingStructureTarget, ModelingStructureTarget] }
   | { kind: 'cut-slot'; target: ModelingStructureTarget; x: number; y: number; width: number; height: number };
 
@@ -13,6 +14,7 @@ const ARM = ['armX', 'armY', 'armWidth', 'armHeight'] as const;
 const SLOT = ['slotX', 'slotY', 'slotWidth', 'slotHeight'] as const;
 const HOLE = ['holeCenterX', 'holeCenterY', 'holeRadius'] as const;
 const POCKET = ['pocketWall', 'pocketFloor'] as const;
+const CHAMFER = ['bevelDistance'] as const;
 type Data = Record<string, unknown>;
 type Dimension = number | { parameter: string } | { op: 'add'; left: Dimension; right: Dimension }
   | { op: 'scale'; value: Dimension; factor: number };
@@ -133,6 +135,25 @@ function rectangle(d: Document, sketch: number, extrusion: number): number {
   check(spans.every(v => Number.isSafeInteger(v) && v >= 1 && v <= LENGTH), 'positive integer spans and thickness from 1 to 10000 mm required.');
   return height;
 }
+/** Decimal admission belongs only to the first rectangular-edge chamfer. */
+function chamferPlate(d: Document): [number, number] {
+  check(d.nodes.length === 2, 'Chamfer requires one unmodified rectangular part; a second chamfer or other ancestry is unsupported.');
+  const s = record(d.nodes[0], ['kind', 'profile', 'min', 'max']);
+  const e = record(d.nodes[1], ['kind', 'sketch', 'height']);
+  check(s.kind === 'sketch' && s.profile === 'rectangle' && e.kind === 'extrude' && Object.is(e.sketch, 0),
+    'Chamfer requires the direct rectangle/extrude pair with omitted from.');
+  const min = point(s.min, d.parameters), max = point(s.max, d.parameters), height = resolveDimension(e.height, d.parameters);
+  check(min.every(value => value === 0), 'Chamfer requires an origin-zero rectangular part.');
+  check([...max, height].every(value => value > 0 && value <= LENGTH), 'Chamfer requires positive finite rectangular spans and thickness up to 10000 mm.');
+  check(Object.keys(d.outputs).length === 1 && Object.hasOwn(d.outputs, 'part'), 'Chamfer requires the sole owned output named part.');
+  ref(d.outputs.part, 1); return [max[1], height];
+}
+function chamferDistance(d: Document, input: unknown): number {
+  const distance = length(input), [spanY, thickness] = chamferPlate(d);
+  check(distance > 0 && distance < spanY && distance < thickness,
+    'Bevel distance must be positive and strictly below both the rectangular Y span and extrusion thickness.');
+  return distance;
+}
 function parameter(key: string): { parameter: string } { return { parameter: key }; }
 function addedRectangle(names: readonly string[]): Data {
   const [x, y, width, height] = names;
@@ -229,7 +250,7 @@ function ownedGraph(d: Document): number {
 }
 function dependencies(node: Data): number[] {
   return node.kind === 'sketch' ? [] : node.kind === 'extrude' ? [node.sketch as number]
-    : node.kind === 'hole' ? [(node.parent as Ref).node]
+    : node.kind === 'hole' || node.kind === 'chamfer' ? [(node.parent as Ref).node]
       : node.kind === 'union' ? [(node.left as Ref).node, (node.right as Ref).node] : [(node.parent as Ref).node, (node.tool as Ref).node];
 }
 function accepted(d: Document, input: CadEditorModelingSummary): ModelingStructureTarget[] {
@@ -261,12 +282,22 @@ export function getModelingStructureCapabilities(text: string | null, summary: C
   addArm: ModelingStructureTarget | null; addHole: ModelingStructureTarget | null;
   union: [ModelingStructureTarget, ModelingStructureTarget] | null;
   cutSlot: ModelingStructureTarget | null; cutPocket: ModelingStructureTarget | null;
+  chamfer: ModelingStructureTarget | null; chamferReason: string;
   reason: string; holeReason: string; pocketReason: string; sharedThickness: number | null;
   pocketDefaults: { wall: number; floor: number } | null; pocketAuthored: boolean;
 } {
-  const none = { addArm: null, addHole: null, union: null, cutSlot: null, cutPocket: null, sharedThickness: null, pocketDefaults: null, pocketAuthored: false };
-  let pocketAuthored = false;
   const message = (cause: unknown): string => cause instanceof Error ? cause.message : String(cause);
+  let chamfer: ModelingStructureTarget | null = null;
+  let chamferReason = 'Chamfer the X-parallel edge at model Y=0, Z=max. Native geometry and display limits still apply.';
+  try {
+    check(text !== null && summary !== null, 'open an accepted primary rectangular part first.');
+    const d = document(text), targets = accepted(d, summary);
+    chamferPlate(d); reserve(d, CHAMFER); chamfer = targets[0];
+  } catch (cause) { chamferReason = message(cause); }
+  // Keep the older integer-only commands and all their reasons independent.
+  const none = { addArm: null, addHole: null, union: null, cutSlot: null, cutPocket: null, sharedThickness: null,
+    pocketDefaults: null, pocketAuthored: false, chamfer, chamferReason };
+  let pocketAuthored = false;
   const unavailableHole = 'Add through-hole requires the selected Extrude of one unmodified rectangular part.';
   const unavailablePocket = 'Cut rectangular pocket requires the selected Extrude of one unmodified rectangular part.';
   try {
@@ -318,7 +349,17 @@ export function buildModelingStructure(text: string, summary: CadEditorModelingS
 } {
   const command = record(ownData(input)), capabilities = getModelingStructureCapabilities(text, summary), d = document(text);
   const kind = command.kind;
-  check(kind === 'add-arm' || kind === 'add-hole' || kind === 'union' || kind === 'cut-slot' || kind === 'cut-pocket', 'known structural command required.');
+  check(kind === 'add-arm' || kind === 'add-hole' || kind === 'union' || kind === 'cut-slot' || kind === 'cut-pocket' || kind === 'chamfer', 'known structural command required.');
+  if (kind === 'chamfer') {
+    record(command, ['kind', 'target', 'distance']);
+    check(capabilities.chamfer, capabilities.chamferReason); matchingTarget(command.target, capabilities.chamfer);
+    const distance = chamferDistance(d, command.distance); reserve(d, CHAMFER);
+    d.parameters[CHAMFER[0]] = distance;
+    d.nodes.push({ kind: 'chamfer', parent: { node: 1, side: 'solid' },
+      edge: { parallelTo: 'x', at: { y: 0, z: 'max' } }, distance: parameter(CHAMFER[0]) });
+    d.outputs = { part: { node: 2, side: 'solid' } };
+    return { text: canonicalModelingText(d), selectedOutput: 'part', consumed: [capabilities.chamfer.name], kind };
+  }
   if (kind === 'cut-pocket') {
     record(command, ['kind', 'target', 'wall', 'floor']);
     check(capabilities.cutPocket, capabilities.pocketReason); matchingTarget(command.target, capabilities.cutPocket);
