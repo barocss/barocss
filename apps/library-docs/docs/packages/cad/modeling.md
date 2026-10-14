@@ -29,6 +29,17 @@ After creation, use **MODIFY → Edit model dimensions** for the named profile s
 
 Dimensions must be finite and greater than 0, up to 10000 mm; native exact-representability limits can still refuse a value. This command adds no sketch drawing; later dimension edits can use the separate [on-demand preview](#preview-pending-dimensions-before-apply). The [scoped #1951 device check](https://github.com/barocss/barocss/issues/1951#issuecomment-6158477487) on exact `f7db10ea` observed creation at 32 × 24 × 8 / 6144 mm³, width 40 / 7680 mm³, thickness 10 / 9600 mm³ and Undo/Redo. Creation Cancel was checked later against the accepted 9600 mm³ state; that evidence does not cover the newer preview feature.
 
+
+### Create a circular blank
+
+Choose **CREATE → New circular part** and enter **Diameter 17.5** and **Thickness 5** mm. **Authored model source** shows an XY circle centered at [0,0], radius `scale(diameter, 0.5)`, and an extrusion from Z=0 with named thickness. This is a round blank foundation for a hub, without a bore, threads, bolt holes or a side screw.
+
+Use **Replace current model** only after downloading accepted work you need to keep; successful replacement starts History 1 / 1. With no accepted document, choose **Create part**. Creation fields are temporary; **Cancel/Escape** retains the current document, and pending model drafts must first be reviewed in their own editor. Switching rectangular/circular creation never authorizes an old command to replace the new target.
+
+Select **Extrude 01 → MODIFY → Edit extrusion** to change **Height · thickness**. Use **MODIFY → Edit model dimensions** for diameter, including when the circular Sketch is selected. Existing [Preview/Apply](#preview-pending-dimensions-before-apply), Undo/Redo and [accepted-only download](#save-accepted-dimensions-explicitly) use the same model history. Circle-specific sketch drawing and finishing commands are not offered.
+
+Diameter must be 0.002–10000 mm and thickness 0.001–10000 mm; native exact qualification and display limits can still refuse otherwise valid input, retaining the accepted document. Circular volume/mass and STL export remain unavailable. The [#1977 local scope](https://github.com/barocss/barocss/issues/1977) uses retained genuine center[2,-3], diameter8, height6 geometry with explicitly mocked new authored context and edited displays. Actual origin-zero 17.5 × 5 creation, pixels and save/Open remain a separate pending device check.
+
 ### Save accepted dimensions explicitly
 
 In **FILE → Save or open a model**, **Download model** saves the accepted authored model as `part.cad.json`. If dimensions are pending, the panel shows **Accepted (mm)** beside **Pending input**, and the action becomes **Download accepted model**. That file excludes the pending edits and any separately staged file text. **Review dimensions before saving** returns to the existing dimension editor with the draft intact; explicitly Apply there before downloading an updated model. Download never applies or discards dimensions, changes history, or opens a staged file.

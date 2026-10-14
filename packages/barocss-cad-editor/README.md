@@ -1375,6 +1375,28 @@ bytes with explicitly adapted authored state and mocked provider/display deliver
 edited geometry and the new physical creation/file workflow need separate evidence.
 
 
+### New circular part (#1977)
+
+**CREATE → New circular part** authors an XY circle at [0,0] and a +Z extrusion
+with named `diameter` and `thickness`. Defaults are 17.5 × 5 mm; radius is the
+owned expression `scale(diameter, 0.5)` and extrusion start is omitted. Diameter
+must be 0.002–10000 mm and thickness 0.001–10000 mm. These necessary input bounds
+do not guarantee native exact qualification or receiving display admission.
+
+The existing explicit new-document replacement transaction owns Cancel, pending
+model drafts, file consent and completion. Switching creation kind invalidates
+old callbacks; repeated opening of the same current command retains its fields.
+Circle Sketch uses **Edit model dimensions**; selected Extrude edits thickness.
+Preview/Apply and Undo/Redo retain ordinary parameter history. Save exports only
+accepted intent. Circular volume/mass and STL remain unavailable. Bore, threads,
+hole patterns and circular finishing/Boolean/transform commands are not added.
+
+The focused CPU flow reuses the genuine center[2,-3], diameter8, height6 circle
+packet without moving its arrays or rewriting native provenance. Origin-zero
+creation source and edited displays use explicitly mocked provider delivery;
+17.5 × 5 native creation and physical pixels/files remain separately unverified.
+
+
 ## Selected rectangle sketch coordinates
 
 The Model a part workspace offers **MODIFY → Edit sketch dimensions** for an
