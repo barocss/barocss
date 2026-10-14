@@ -22,5 +22,5 @@ for (const page of ['round-post','mounting-plate','l-bracket']) {
   assert.ok(existsSync(resolve(root,base+page+'.md')), 'Missing adopted lesson: '+page);
   assert.ok(course.includes('](./'+page+')'), 'Missing learning path link: '+page);
 }
-for(const x of ['UNRUN','Certified volume unavailable','Choose model file','Open saved model','Dimension changes pending'])assert.ok(course.includes(x));
+for(const x of ['manual-browser-1803','Certified volume unavailable','Choose model file','Open saved model','Dimension changes pending'])assert.ok(course.includes(x));
 console.log('CAD learning-path adoption/link sanity PASS (static only)');

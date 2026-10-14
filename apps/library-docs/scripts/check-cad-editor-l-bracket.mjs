@@ -23,7 +23,7 @@ assert.ok(fileReader.includes('MAX_MODELING_FILE_BYTES = 262144'));
 for (const item of ['3072 mm³','3584 mm³','4608 mm³','legMinX:32','legMinX:40','14 generated panels','base, bracket, leg']) {
   assert.ok(model.includes(item), 'Actual fixture changed: ' + item);
 }
-for (const item of ['3072 mm³','3584 mm³','4608 mm³','legMinX:32','legMinX:40','CONTACT','orthogonal-cell','UNRUN','base,bracket,leg']) {
+for (const item of ['3072 mm³','3584 mm³','4608 mm³','legMinX:32','legMinX:40','CONTACT','orthogonal-cell','manual-browser-1803','base,bracket,leg']) {
   assert.ok(page.includes(item), 'Manual missing source-backed boundary: ' + item);
 }
 const editorPages = nav.match(/p === 'cad-editor' \? \[([^\]]+)\]/)?.[1] ?? '';

@@ -40,7 +40,7 @@ Under **Visible output body** choose **plate** to inspect the hole, or **blank**
 3. Select **Apply dimensions**. Once the status returns to **Accepted model**, inspect `plate` in the viewport.
 4. Use **Undo** to restore the original accepted state and **Redo** to repeat the valid edit. To abandon an unaccepted value, choose **Discard draft**.
 
-This radius change was measured in the existing native provider fixture. It is **not** a newly executed browser/GPU demonstration from this documentation change. The screen's sampled opening is only an approximate view of the native boundary.
+This radius change was measured in the existing native provider fixture and later in a [source-pinned browser/WebGL2 run](./manual-browser-1803). The screen's sampled opening is only an approximate view of the native boundary.
 
 To move the narrowed hole off-center, try the separate accepted parameter batch `centerX: 32.5`, `centerY: 18.75` (mm), then **Apply dimensions**. The native provider fixture accepts this combination after the radius-2.5 edit. Treat it as a subsequent edit, not an instruction to change all dimensions before the first acceptance.
 
@@ -77,6 +77,6 @@ The authoritative details and the executable public TypeScript sample remain in 
 
 **Source-backed here:** preset name, dimensions and named outputs, native provider receipt, accepted parameter edits/refusals, current UI controls, stage-before-Open semantics, and qualified versus sampled geometry distinctions.
 
-**Not rerun in this documentation-only change:** actual browser interaction, rendered GPU pixels, screenshots, OS file dialog, physical download and fresh Open, VitePress production build. These gates remain **UNRUN** until separately executed and recorded. No synthetic screenshot is evidence.
+**Later independent check:** the [source-pinned physical browser receipt](./manual-browser-1803) records actual radius 5→2.5 edits, off-center strict-containment refusal, `blank` versus uncertified `plate`, keyboard focus, WebGL2 readback and original screenshots. The [earlier plate receipt](https://github.com/barocss/barocss/wiki/CAD-Mounting-Plate-Physical-QA-2026-10-14) has its own source pin. The plate-specific physical download and fresh Open were not rerun in this documentation change; the L-bracket file flow was. Site deployment and release remain separate.
 
 [First model: underside pocket](./first-model) · [Round post](./round-post) · [CAD Editor overview](./) · [Advanced modeling API](../cad/modeling)

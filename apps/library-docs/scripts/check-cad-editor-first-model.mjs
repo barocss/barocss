@@ -49,7 +49,7 @@ for (const sourceFact of ['5632 mm³', '5120 mm³', 'Cut an underside pocket']) 
 }
 for (const text of [
   'a published product', 'does not by itself prove', 'not a saved mesh',
-  'neither a top-opening pocket', 'browser', 'UNRUN', 'persistent topological face ID',
+  'neither a top-opening pocket', 'browser', 'manual-browser-1803', 'persistent topological face ID',
 ]) {
   assert.ok(guide.toLowerCase().includes(text.toLowerCase()), `Missing evidence/limit boundary: ${text}`);
 }
