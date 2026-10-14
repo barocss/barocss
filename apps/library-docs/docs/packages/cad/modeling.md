@@ -974,3 +974,12 @@ geometry, current receiver integration and device pixels are separate evidence g
 those tests must not be inferred from synthetic summary IDs or a DOM-only test. Existing
 native #1962 retained captures can support zero-native replay after their hashes are
 verified. The current implementation issue is [#2008](https://github.com/barocss/barocss/issues/2008).
+
+
+### Circular pattern: four finished rails (#2011)
+
+Select the last bevel of the editor-owned, untransformed two-bevel rectangular rail, then choose **CREATE → Circular pattern**. Preview must admit all four outputs before Apply: `part` plus `radialCopy1`, `radialCopy2`, and `radialCopy3`, at 0°, 90°, 180°, and 270° around world X. The axis, world origin, angle increment, and count are fixed.
+
+The appended source node is `{kind: "circular-pattern", parent: {node: 3, side: "solid"}, axis: "x", angleDegrees: 90, count: 4}`. Copies reference native `instance1`, `instance2`, and `instance3`; all four bodies share the original blank and bevel dimensions. This five-node graph is terminal: no later feature, arbitrary placement, or additional pattern is offered.
+
+Four eight-face rails use the existing whole-body fallback when the per-face draw budget would be exceeded. This budget rule does not establish actual GPU visibility or successful native evaluation. Pure source/identity checks and Workspace DOM presentation tests are distinct from native command/history and device acceptance. The historical count-four transfer contains four bodies but only original/final-copy previews; missing middle previews must not be synthesized or relabeled as genuine output.

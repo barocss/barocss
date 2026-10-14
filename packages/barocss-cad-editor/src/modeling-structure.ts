@@ -10,6 +10,7 @@ export type ModelingStructureCommand =
   | { kind: 'move-part'; target: ModelingStructureTarget; x: number; y: number; z: number }
   | { kind: 'linear-pattern'; target: ModelingStructureTarget; spacing: number }
   | { kind: 'mirror-part'; target: ModelingStructureTarget }
+  | { kind: 'circular-pattern'; target: ModelingStructureTarget }
   | { kind: 'union'; targets: [ModelingStructureTarget, ModelingStructureTarget] }
   | { kind: 'cut-slot'; target: ModelingStructureTarget; x: number; y: number; width: number; height: number };
 
@@ -31,7 +32,7 @@ type Data = Record<string, unknown>;
 type Dimension = number | { parameter: string } | { op: 'add'; left: Dimension; right: Dimension }
   | { op: 'scale'; value: Dimension; factor: number };
 type Ref = { node: number; side: 'solid' };
-type OutputRef = Ref | { node: number; side: 'instance1' | 'instance2' };
+type OutputRef = Ref | { node: number; side: 'instance1' | 'instance2' | 'instance3' };
 type Document = { format: 'barocss-cad-model'; schema: 1; units: 'mm'; parameters: Record<string, number>; nodes: Data[]; outputs: Record<string, OutputRef> };
 function check(value: unknown, message: string): asserts value { if (!value) throw new Error('Model structure: ' + message); }
 function record(value: unknown, fields?: readonly string[]): Data {
@@ -127,12 +128,14 @@ function document(text: string, boundedParameters = true): Document {
   for (const [key, value] of Object.entries(outputs)) {
     name(key); const ref = record(value, ['node', 'side']);
     check(Number.isInteger(ref.node) && !Object.is(ref.node, -0) && (ref.node as number) >= 0 && (ref.node as number) < nodes.length
-      && ['solid', 'negative', 'positive', 'instance1', 'instance2'].includes(ref.side as string), 'valid output reference required.');
+      && ['solid', 'negative', 'positive', 'instance1', 'instance2', 'instance3'].includes(ref.side as string), 'valid output reference required.');
   }
-  // Instance references belong only to the complete owned pattern. Validate its
-  // source identity without imposing current dimension feasibility on history.
-  if (nodes.some(node => (node as Data).kind === 'linear-pattern')
-    || Object.values(outputs).some(value => ['instance1', 'instance2'].includes((value as Data).side as string)))
+  // Instance references belong to exactly one terminal owned pattern graph.
+  // History validates identity without imposing current native feasibility.
+  if (nodes.some(node => (node as Data).kind === 'circular-pattern'))
+    circularPatternGraph(d as unknown as Document, true);
+  else if (nodes.some(node => (node as Data).kind === 'linear-pattern')
+    || Object.values(outputs).some(value => ['instance1', 'instance2', 'instance3'].includes((value as Data).side as string)))
     linearPatternGraph(d as unknown as Document, true);
   if (nodes.some(node => (node as Data).kind === 'mirror')) mirrorGraph(d as unknown as Document, true);
   return d as unknown as Document;
@@ -313,6 +316,20 @@ function mirrorGraph(d: Document, sourceOnly = false): void {
   const rail = { ...d, nodes: d.nodes.slice(0, 4), outputs: { part: { node: 3, side: 'solid' as const } } };
   if (sourceOnly) ownedRailSource(rail); else authoredRailPlacement(rail);
 }
+function circularPatternNode(): Data {
+  return { kind: 'circular-pattern', parent: { node: 3, side: 'solid' }, axis: 'x', angleDegrees: 90, count: 4 };
+}
+function circularPatternOutputs(): Document['outputs'] {
+  return { part: { node: 3, side: 'solid' }, radialCopy1: { node: 4, side: 'instance1' }, radialCopy2: { node: 4, side: 'instance2' }, radialCopy3: { node: 4, side: 'instance3' } };
+}
+function circularPatternGraph(d: Document, sourceOnly = false): void {
+  check(d.nodes.length === 5 && signedJson(d.nodes[4]) === signedJson(circularPatternNode())
+    && signedJson(d.outputs) === signedJson(circularPatternOutputs()),
+    'Circular pattern requires exactly the owned rail and three terminal world-X cardinal copies.');
+  check(['radialCopy1', 'radialCopy2', 'radialCopy3'].every(key => !Object.hasOwn(d.parameters, key)), 'Circular copy names must not alias parameters.');
+  const rail = { ...d, nodes: d.nodes.slice(0, 4), outputs: { part: { node: 3, side: 'solid' as const } } };
+  if (sourceOnly) ownedRailSource(rail); else authoredRailPlacement(rail);
+}
 function parameter(key: string): { parameter: string } { return { parameter: key }; }
 function addedRectangle(names: readonly string[]): Data {
   const [x, y, width, height] = names;
@@ -409,7 +426,7 @@ function ownedGraph(d: Document): number {
 }
 function dependencies(node: Data): number[] {
   return node.kind === 'sketch' ? [] : node.kind === 'extrude' ? [node.sketch as number]
-    : node.kind === 'hole' || node.kind === 'chamfer' || node.kind === 'rotate' || node.kind === 'translate' || node.kind === 'linear-pattern' || node.kind === 'mirror' ? [(node.parent as Ref).node]
+    : node.kind === 'hole' || node.kind === 'chamfer' || node.kind === 'rotate' || node.kind === 'translate' || node.kind === 'linear-pattern' || node.kind === 'mirror' || node.kind === 'circular-pattern' ? [(node.parent as Ref).node]
       : node.kind === 'union' ? [(node.left as Ref).node, (node.right as Ref).node] : [(node.parent as Ref).node, (node.tool as Ref).node];
 }
 function accepted(d: Document, input: CadEditorModelingSummary): ModelingStructureTarget[] {
@@ -446,6 +463,7 @@ export function getModelingStructureCapabilities(text: string | null, summary: C
   placementReason: string; placementAuthored: AuthoredRailPlacement | null;
   linearPattern: ModelingStructureTarget | null; patternReason: string; patternAuthored: boolean;
   mirrorPart: ModelingStructureTarget | null; mirrorReason: string; mirrorAuthored: boolean;
+  circularPattern: ModelingStructureTarget | null; circularReason: string; circularAuthored: boolean;
   reason: string; holeReason: string; pocketReason: string; sharedThickness: number | null;
   pocketDefaults: { wall: number; floor: number } | null; pocketAuthored: boolean;
 } {
@@ -502,10 +520,25 @@ export function getModelingStructureCapabilities(text: string | null, summary: C
       mirrorPart = targets[0];
     }
   } catch (cause) { mirrorReason = message(cause); }
+  let circularPattern: ModelingStructureTarget | null = null, circularAuthored = false;
+  let circularReason = 'Keep the original rail and create three cardinal copies around world X.';
+  try {
+    check(text !== null && summary !== null, 'open an accepted owned two-bevel rectangular rail first.');
+    const d = document(text), targets = accepted(d, summary);
+    if (d.nodes.length === 5 && d.nodes[4].kind === 'circular-pattern') {
+      circularPatternGraph(d); circularAuthored = true;
+      circularReason = 'This circular pattern is complete. Four outputs share the original dimensions; further features or transforms are unsupported.';
+    } else {
+      check(d.nodes.length === 4, 'Circular pattern requires the exact untransformed four-node owned two-bevel rail.');
+      authoredRailPlacement(d);
+      check(['radialCopy1', 'radialCopy2', 'radialCopy3'].every(key => !Object.hasOwn(d.parameters, key) && !Object.hasOwn(d.outputs, key)), 'Circular copy names must be unused.');
+      circularPattern = targets[0];
+    }
+  } catch (cause) { circularReason = message(cause); }
   // Keep the older integer-only commands and all their reasons independent.
   const none = { addArm: null, addHole: null, union: null, cutSlot: null, cutPocket: null, sharedThickness: null,
     pocketDefaults: null, pocketAuthored: false, chamfer, chamferReason, rotatePart, movePart, placementReason, placementAuthored,
-    linearPattern, patternReason, patternAuthored, mirrorPart, mirrorReason, mirrorAuthored };
+    linearPattern, patternReason, patternAuthored, mirrorPart, mirrorReason, mirrorAuthored, circularPattern, circularReason, circularAuthored };
   let pocketAuthored = false;
   const unavailableHole = 'Add through-hole requires the selected Extrude of one unmodified rectangular part.';
   const unavailablePocket = 'Cut rectangular pocket requires the selected Extrude of one unmodified rectangular part.';
@@ -559,12 +592,18 @@ export function buildModelingStructure(text: string, summary: CadEditorModelingS
   const command = record(ownData(input)), capabilities = getModelingStructureCapabilities(text, summary), d = document(text);
   const kind = command.kind;
   check(kind === 'add-arm' || kind === 'add-hole' || kind === 'union' || kind === 'cut-slot' || kind === 'cut-pocket' || kind === 'chamfer'
-    || kind === 'rotate-part' || kind === 'move-part' || kind === 'linear-pattern' || kind === 'mirror-part', 'known structural command required.');
+    || kind === 'rotate-part' || kind === 'move-part' || kind === 'linear-pattern' || kind === 'mirror-part' || kind === 'circular-pattern', 'known structural command required.');
   if (kind === 'mirror-part') {
     record(command, ['kind', 'target']);
     check(capabilities.mirrorPart, capabilities.mirrorReason); matchingTarget(command.target, capabilities.mirrorPart);
     d.nodes.push(mirrorNode()); d.outputs = mirrorOutputs();
     return { text: canonicalModelingText(d), selectedOutput: 'mirroredRail', consumed: [], kind };
+  }
+  if (kind === 'circular-pattern') {
+    record(command, ['kind', 'target']);
+    check(capabilities.circularPattern, capabilities.circularReason); matchingTarget(command.target, capabilities.circularPattern);
+    d.nodes.push(circularPatternNode()); d.outputs = circularPatternOutputs();
+    return { text: canonicalModelingText(d), selectedOutput: 'radialCopy3', consumed: [], kind };
   }
   if (kind === 'linear-pattern') {
     record(command, ['kind', 'target', 'spacing']);
@@ -660,7 +699,7 @@ export function sameModelingStructure(a: string, b: string): boolean {
       const d = document(text);
       d.parameters = Object.fromEntries(Object.keys(d.parameters).map(key => [key, 0]));
       for (const node of d.nodes) {
-        check(['sketch', 'extrude', 'translate', 'rotate', 'cut', 'intersect', 'union', 'difference', 'split', 'chamfer', 'hole', 'linear-pattern', 'mirror'].includes(node.kind as string), 'unknown authored feature.');
+        check(['sketch', 'extrude', 'translate', 'rotate', 'cut', 'intersect', 'union', 'difference', 'split', 'chamfer', 'hole', 'linear-pattern', 'mirror', 'circular-pattern'].includes(node.kind as string), 'unknown authored feature.');
         if (Object.hasOwn(node, 'suppressed')) {
           record(node, ['kind', 'parent', 'edge', 'distance', 'name', 'suppressed']);
           check(node.kind === 'chamfer' && typeof node.suppressed === 'boolean', 'only named chamfer suppression can vary.'); name(node.name); node.suppressed = false;

@@ -257,13 +257,16 @@ await group(pureLedger[6], () => {
   refused(altered(patternData, d => { d.nodes.push(clone(d.nodes[4])); d.outputs.railCopy2.node = 5; }));
   // #2008 adds a separate mirror capability; retain parity for every older field.
   const priorFields = ({ linearPattern: _target, patternReason: _reason, patternAuthored: _authored,
-    mirrorPart: _mirror, mirrorReason: _mirrorReason, mirrorAuthored: _mirrorAuthored, ...prior }) => prior;
+    mirrorPart: _mirror, mirrorReason: _mirrorReason, mirrorAuthored: _mirrorAuthored, circularPattern: _circular, circularReason: _circularReason, circularAuthored: _circularAuthored, ...prior }) => prior;
   for (const value of [blankText, first.text, initial, rotation.text, move.text]) {
     const current = capabilities(value, summary(parse(value)));
     assert.deepEqual(priorFields(current), oldApi.getModelingStructureCapabilities(value, summary(parse(value))));
     assert.equal(current.mirrorAuthored, false);
     if (value === initial) assert.deepEqual(current.mirrorPart, patternInput.target);
     else assert.equal(current.mirrorPart, null);
+    if (value === initial) assert.deepEqual(current.circularPattern, patternInput.target);
+    else assert.equal(current.circularPattern, null);
+    assert.equal(current.circularAuthored, false);
   }
 });
 await group(pureLedger[7], () => {
