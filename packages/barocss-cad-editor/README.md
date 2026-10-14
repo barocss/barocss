@@ -1402,3 +1402,25 @@ or discards changes. Download binds controller/source/generation/drafts and File
 context, owns only its anchor/object URL, and reports request/cleanup failures.
 A click is not a persistence guarantee. The codec, history and named outputs are
 unchanged; physical acceptance is tracked separately in #1958.
+
+
+## Owned structural authoring
+
+The primary workspace adds Add rectangular arm, Union bodies and Cut rectangular
+through-slot as bounded semantic commands. Explicit native output identities,
+canonical signed source and controller/command epochs bind every candidate.
+Temporary fields do not stage model dimensions. Preview uses public cad.load;
+Apply promotes its retained snapshot once. Complete source history supports real
+structural Undo/Redo without resetting the document. Failed acceptance leaves
+source, display and history cursor unchanged; uncertain native acknowledgement
+terminates the Worker for verified recovery.
+
+The supported graph progresses 2→4→5→8 features. Cut atomically appends its tool
+and subtraction and requires omitted extrusion starts with height8 (Z0..8).
+Union can support other integer thicknesses, while Cut is unavailable. Output
+consumption is explicit and final-only transport retains its embedded parent.
+No receiver cap, provider family, codec or orthogonal STL support is expanded.
+Run the pure18 and transaction18 local suites with Node and installed dependencies:
+`node packages/barocss-cad-editor/scripts/modeling-structure-test.mjs` and
+`node packages/barocss-cad-editor/scripts/modeling-structure-history-test.mjs`.
+See #1960 for source/runtime provenance and pending actual-device acceptance.

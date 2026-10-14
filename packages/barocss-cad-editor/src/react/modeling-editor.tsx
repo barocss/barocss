@@ -1,3 +1,5 @@
+import { buildModelingStructure, getModelingStructureCapabilities } from '../modeling-structure.js';
+import type { ModelingStructureCommand } from '../modeling-structure.js';
 import { useEffect, useId, useRef, useState } from 'react';
 import { isModelingCompositionGraph } from '../modeling-composition.js';
 import { createCadEditorModelingController } from '../modeling-controller.js';
@@ -39,6 +41,9 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
   const [sketchTarget, setSketchTarget] = useState<(SketchCommandTarget & { session: CadEditorModelingController; instance: number }) | null>(null);
   const sketchCommandInstance = useRef(0);
   const workspaceCommandEpoch = useRef(0);
+  const structureInstance = useRef(0), structureFieldVersion = useRef(0);
+  const [structureTarget, setStructureTarget] = useState<{ session: CadEditorModelingController; text: string; generation: number; instance: number; command: ModelingStructureCommand } | null>(null);
+  const [structureInput, setStructureInput] = useState({ x: '0', y: '0', width: '8', height: '24' });
   const newPartCommandInstance = useRef(0), newPartOperationEpoch = useRef(0);
   const [newPartTarget, setNewPartTarget] = useState<{ session: CadEditorModelingController; authoredText: string | null; generation: number; instance: number } | null>(null);
   const [newPartInput, setNewPartInput] = useState<RectangularPartInput>({ width: '32', height: '24', thickness: '8' });
@@ -50,6 +55,7 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
   const [source, setSource] = useState(''), [confirmed, setConfirmed] = useState(false), [error, setError] = useState<string | null>(null);
   useEffect(() => {
     if (!viewport.current) return;
+    structureInstance.current++; structureFieldVersion.current++; setStructureTarget(null);
     newPartOperationEpoch.current++; newPartCommandInstance.current++; setNewPartTarget(null);
     extrusionCommandInstance.current++; setExtrusionTarget(null); sketchCommandInstance.current++; setSketchTarget(null); setWorkspacePanel(null);
     const display = createPrismFeatureDisplay(viewport.current); displayRef.current = display;
@@ -58,7 +64,7 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
     observer.observe(viewport.current);
     const unsubscribe = session.subscribe(() => { fileActionEpoch.current++; setSnapshot(session.getSnapshot()); }); setSnapshot(session.getSnapshot());
     void (initialAuthoredText === undefined ? session.example() : session.open(initialAuthoredText)).catch(cause => setError(String(cause)));
-    return () => { newPartOperationEpoch.current++; newPartCommandInstance.current++; workspaceCommandEpoch.current++; extrusionCommandInstance.current++; sketchCommandInstance.current++; fileReadEpoch.current++; observer.disconnect(); unsubscribe(); session.dispose(); display.dispose(); if (controller.current === session) controller.current = null; if (displayRef.current === display) displayRef.current = null; };
+    return () => { structureInstance.current++; structureFieldVersion.current++; newPartOperationEpoch.current++; newPartCommandInstance.current++; workspaceCommandEpoch.current++; extrusionCommandInstance.current++; sketchCommandInstance.current++; fileReadEpoch.current++; observer.disconnect(); unsubscribe(); session.dispose(); display.dispose(); if (controller.current === session) controller.current = null; if (displayRef.current === display) displayRef.current = null; };
   }, [initialAuthoredText]);
   const stageModelFile = async (file?: File) => {
     if (!file || snapshot?.busy) return;
@@ -101,6 +107,31 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
     return newPartCommandLive() && !!current && current.generation === snapshot?.generation
       && current.authoredText === snapshot?.authoredText;
   };
+  const structureCommandCurrent = () => {
+    const current = controller.current?.getSnapshot();
+    return !!structureTarget && structureTarget.session === controller.current
+      && structureTarget.instance === structureInstance.current && !!current && !current.disposed
+      && current.authoredText === structureTarget.text && current.generation === structureTarget.generation;
+  };
+  const structureRenderVersion = structureFieldVersion.current, structureRenderState = fileActionEpoch.current;
+  const structureRenderCurrent = () => structureCommandCurrent() && structureRenderVersion === structureFieldVersion.current && structureRenderState === fileActionEpoch.current;
+  const structureRenderLive = () => {
+    const current = controller.current?.getSnapshot();
+    return !!structureTarget && structureTarget.session === controller.current && structureTarget.instance === structureInstance.current
+      && structureRenderVersion === structureFieldVersion.current && structureRenderState === fileActionEpoch.current && !!current && !current.disposed
+      && current.generation === snapshot?.generation && current.authoredText === snapshot?.authoredText;
+  };
+  const structureCommand = (): ModelingStructureCommand => {
+    if (!structureTarget) throw Error('Choose a current structural command.');
+    if (structureTarget.command.kind === 'union') return structureTarget.command;
+    const value = (raw: string) => {
+      if (raw.length > 64 || !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(raw.trim())) throw Error('Enter finite integer millimetres.');
+      const number = Number(raw);
+      if (!Number.isSafeInteger(number) || Math.abs(number) > 10000 || (number === 0 && /[1-9]/.test(raw.trim().split(/[eE]/)[0]))) throw Error('Use integer millimetres between -10000 and 10000.');
+      return number;
+    };
+    return { ...structureTarget.command, x: value(structureInput.x), y: value(structureInput.y), width: value(structureInput.width), height: value(structureInput.height) };
+  };
   const invalidateCommandPreview = () => {
     const session = controller.current, current = session?.getSnapshot();
     if (current?.preview) { if (current.busy) session!.cancel(); else session!.clearPreview(); }
@@ -109,6 +140,20 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
     if (panel !== workspacePanel) invalidateCommandPreview();
     // A same-panel action with no replacement target keeps its live callbacks.
     if ((panel === 'files' || panel === 'dimensions') && workspacePanel === panel) return;
+    if (panel === 'add-arm' || panel === 'union' || panel === 'cut-slot') {
+      const session = controller.current, current = session?.getSnapshot();
+      if (!session || !current?.authoredText || current.busy || current.disposed) return;
+      const capabilities = getModelingStructureCapabilities(current.authoredText, current.accepted);
+      const target = panel === 'add-arm' ? capabilities.addArm : panel === 'cut-slot' ? capabilities.cutSlot : capabilities.union;
+      if (!target) { setError(capabilities.reason); return; }
+      invalidateCommandPreview();
+      const command: ModelingStructureCommand = panel === 'union'
+        ? { kind: 'union', targets: capabilities.union! }
+        : { kind: panel, target: panel === 'add-arm' ? capabilities.addArm! : capabilities.cutSlot!, x: panel === 'add-arm' ? 0 : 16, y: panel === 'add-arm' ? 0 : 2, width: 8, height: panel === 'add-arm' ? 24 : 4 };
+      setStructureTarget({ session, text: current.authoredText, generation: current.generation, instance: structureInstance.current + 1, command });
+      setStructureInput(panel === 'add-arm' ? { x: '0', y: '0', width: '8', height: '24' } : { x: '16', y: '2', width: '8', height: '4' });
+      setError(null);
+    }
     if (panel === 'new-part') {
       const session = controller.current, current = session?.getSnapshot();
       if (!session || !current || current.busy || current.disposed) return;
@@ -124,6 +169,7 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
       invalidateCommandPreview(); // Even the same panel creates a new pinned command instance.
       if (Object.keys(current.drafts).some(name => !projection.parameters.includes(name))) {
         setError('Other model dimensions are pending. Review all pending dimensions before editing this sketch.');
+        structureInstance.current++; structureFieldVersion.current++;
         workspaceCommandEpoch.current++; extrusionCommandInstance.current++; sketchCommandInstance.current++; newPartCommandInstance.current++; setWorkspacePanel('dimensions'); return;
       }
       setError(null);
@@ -137,13 +183,47 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
       invalidateCommandPreview(); // Even the same panel creates a new pinned command instance.
       if (Object.keys(current.drafts).some(name => !projection.parameters.includes(name))) {
         setError('Other model dimensions are pending. Review all pending dimensions before editing this extrusion.');
+        structureInstance.current++; structureFieldVersion.current++;
         workspaceCommandEpoch.current++; extrusionCommandInstance.current++; sketchCommandInstance.current++; newPartCommandInstance.current++; setWorkspacePanel('dimensions'); return;
       }
       setError(null);
       setExtrusionTarget({ index: projection.index, authoredText: current.authoredText, generation: current.generation,
         session: controller.current!, instance: extrusionCommandInstance.current + 1 });
     }
+    structureInstance.current++; structureFieldVersion.current++;
     workspaceCommandEpoch.current++; extrusionCommandInstance.current++; sketchCommandInstance.current++; newPartCommandInstance.current++; setWorkspacePanel(panel);
+  };
+  const cancelStructure = () => {
+    if (!structureRenderLive() || controller.current?.getSnapshot().busy) return;
+    // Temporary structural options never discard unrelated named model drafts.
+    invalidateCommandPreview(); openWorkspacePanel(null);
+  };
+  const previewStructure = () => {
+    const session = controller.current, current = session?.getSnapshot();
+    if (!structureRenderCurrent() || !session || !current || current.busy || Object.keys(current.drafts).length) return;
+    const commandEpoch = workspaceCommandEpoch.current;
+    try {
+      const command = structureCommand();
+      setError(null);
+      void session.previewStructure(command, current.generation, !current.workerReady).catch(cause => {
+        if (controller.current === session && commandEpoch === workspaceCommandEpoch.current) setError(String(cause));
+      });
+    } catch (cause) { setError(String(cause)); }
+  };
+  const applyStructure = () => {
+    const session = controller.current, current = session?.getSnapshot();
+    if (!structureRenderCurrent() || !session || !current || current.busy || Object.keys(current.drafts).length) return;
+    const commandEpoch = workspaceCommandEpoch.current, fieldVersion = structureFieldVersion.current;
+    try {
+      const command = structureCommand(); setError(null);
+      void session.applyStructure(command, current.generation).then(() => {
+        const after = session.getSnapshot();
+        if (controller.current === session && commandEpoch === workspaceCommandEpoch.current && fieldVersion === structureFieldVersion.current
+          && after.generation === current.generation + 1 && !after.busy && !after.error && !after.disposed) openWorkspacePanel(null);
+      }).catch(cause => {
+        if (controller.current === session && commandEpoch === workspaceCommandEpoch.current) setError(String(cause));
+      });
+    } catch (cause) { setError(String(cause)); }
   };
   const cancelNewPart = () => {
     const current = controller.current?.getSnapshot();
@@ -222,6 +302,7 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
   };
   useEffect(() => { setReplaceExample(false); setStlOutput(''); setStlResult(null); }, [snapshot?.generation]);
   const accepted = snapshot?.accepted, busy = snapshot?.busy ?? false, draft = Object.keys(snapshot?.drafts ?? {}).length > 0;
+  const structureCapabilities = getModelingStructureCapabilities(snapshot?.authoredText ?? null, accepted ?? null);
   const selectedExtrusion = projectExtrusionCommand(snapshot, snapshot?.selection ?? null);
   const selectedSketch = projectSketchCommand(snapshot, snapshot?.selection ?? null);
   const currentSketch = sketchCommandLive() ? sketchCommandCurrent(snapshot, sketchTarget) : null;
@@ -519,6 +600,39 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
     {draft && <Button variant="outline" disabled={busy} onClick={() => { if (newPartRenderCurrent()) openWorkspacePanel('dimensions'); }}>Review pending dimensions</Button>}
     <details><summary>Authored model source</summary><pre>{newPartSource || 'Enter valid creation dimensions.'}</pre></details>
   </div>;
+  let structureValidation = '', structureExpected: ReturnType<typeof buildModelingStructure> | null = null;
+  try {
+    if (structureCommandCurrent() && accepted && snapshot?.authoredText) structureExpected = buildModelingStructure(snapshot.authoredText, accepted, structureCommand());
+  } catch (cause) { structureValidation = cause instanceof Error ? cause.message : String(cause); }
+  const structurePanel = <div>
+    <p>Preview evaluates a complete candidate with the native model loader. Apply adds one editable history step; Cancel retains the accepted part.</p>
+    {structureTarget && <><h2>{structureTarget.command.kind === 'add-arm' ? 'Add rectangular arm' : structureTarget.command.kind === 'union' ? 'Union bodies' : 'Cut rectangular through-slot'}</h2>
+      <p>Bound accepted outputs: {(structureTarget.command.kind === 'union' ? structureTarget.command.targets : [structureTarget.command.target]).map(target => `${target.name} · ${target.solidId} · feature ${target.node + 1}`).join('; ')}</p>
+      {structureTarget.command.kind === 'union'
+        ? <p>Union consumes these two output names into part. Their original feature nodes remain authored and recoverable with Undo.</p>
+        : structureTarget.command.kind === 'cut-slot'
+          ? <p>The slot tool and subtraction are one atomic operation. Only the existing omitted-start Z=0..8 mm slab is supported. The current output becomes part; this orthogonal result cannot export STL.</p>
+          : <p>The arm shares the base extrusion's thickness term. Editing a shared named thickness later changes both bodies. Union can support other integer thicknesses, but the through-slot command requires exactly 8 mm.</p>}
+      {structureTarget.command.kind !== 'union' && (['x', 'y', 'width', 'height'] as const).map(name => <div key={name}>
+        <Label htmlFor={`${id}-structure-${name}`}>{name === 'x' ? 'Min X' : name === 'y' ? 'Min Y' : name === 'width' ? 'Width' : 'Profile height'} (mm)</Label>
+        <Input id={`${id}-structure-${name}`} inputMode="decimal" maxLength={64} value={structureInput[name]} disabled={busy || !structureCommandCurrent()}
+          onChange={event => {
+            if (!structureRenderCurrent() || controller.current?.getSnapshot().busy) return;
+            invalidateCommandPreview(); structureFieldVersion.current++;
+            setStructureInput(values => ({ ...values, [name]: event.target.value }));
+          }} onKeyDown={event => {
+            if (!structureRenderCurrent() || event.repeat || event.nativeEvent.isComposing || event.keyCode === 229 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+            if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); cancelStructure(); }
+          }} />
+      </div>)}
+    </>}
+    {!structureCommandCurrent() && <p role="status">The accepted target changed. Reopen the structural command for the current part.</p>}
+    {draft && <p role="status">Model dimensions are pending. Review and apply or cancel them before structural editing; these temporary options do not discard them.</p>}
+    {draft && <Button disabled={busy} onClick={() => { if (structureRenderCurrent()) openWorkspacePanel('dimensions'); }}>Review pending dimensions</Button>}
+    {structureValidation && <p role="status">{structureValidation}</p>}
+    <p>Integer dimensions may still be refused by native geometry or complete preview limits. Accepted source and history remain unchanged on refusal.</p>
+    <details><summary>Candidate authored source</summary><pre>{structureExpected?.text ?? 'Enter a supported structural command.'}</pre></details>
+  </div>;
   const dimensionsPanel = accepted && (<div><h2>Named dimensions</h2>{constrainedPlateDrivers ? (['width', 'height'] as const).map(name => dimensionInput([name, accepted.parameters[name]])) : roundPostDrivers ? <>
           {(['diameter', 'height'] as const).map(name => dimensionInput([name, accepted.parameters[name]]))}
           <details><summary>Optional center coordinates</summary>
@@ -638,7 +752,7 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
       <p>Choose model file stages its UTF-8 text for inspection; it does not replace the accepted model. Review the contents and explicitly confirm Open. Invalid files still go through native validation on Open. Actual file-picker, browser and GPU acceptance require separate device verification.</p>
     </details>;
   if (workspace) return <ModelingWorkspace snapshot={snapshot} viewport={viewportElement} panel={workspacePanel} error={error}
-    panels={{ 'new-part': newPartPanel, examples: examplesPanel, dimensions: dimensionsPanel, extrusion: extrusionPanel, sketch: sketchPanel, outputs: <>{visibilityPanel}{exportPanel}</>, files: filesPanel,
+    panels={{ 'add-arm': workspacePanel === 'add-arm' ? structurePanel : null, union: workspacePanel === 'union' ? structurePanel : null, 'cut-slot': workspacePanel === 'cut-slot' ? structurePanel : null, 'new-part': newPartPanel, examples: examplesPanel, dimensions: dimensionsPanel, extrusion: extrusionPanel, sketch: sketchPanel, outputs: <>{visibilityPanel}{exportPanel}</>, files: filesPanel,
       inspect: inspectionPanel, limits: limitsPanel, configuration: finishesPanel }}
     dimensionLabel={constrainedPlateDrivers ? 'Edit dimensions' : 'Edit model dimensions'}
     canEditDimensions={!!accepted && (!constrainedPlateDrivers || snapshot?.selection === null || accepted.features[snapshot?.selection ?? -1]?.kind === 'sketch')}
@@ -649,6 +763,10 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
     onApply={applyDimensions} onPreview={previewDimensions}
     previewContext={workspacePanel === 'extrusion' ? pinnedExtrusion?.label ?? 'Extrusion command' : workspacePanel === 'sketch' ? pinnedSketch?.label ?? 'Sketch command' : 'Model dimensions'}
     onCancelDimensions={cancelDimensions} onCancelNewPart={cancelNewPart} onCreatePart={createNewPart}
+    canAddArm={!!structureCapabilities.addArm} canUnion={!!structureCapabilities.union} canCutSlot={!!structureCapabilities.cutSlot}
+    structureReason={structureCapabilities.reason} canPreviewStructure={structureCommandCurrent() && !draft && !!structureExpected}
+    canApplyStructure={structureCommandCurrent() && !draft && !!structureExpected && snapshot?.preview?.operation === 'structure' && snapshot.preview.status === 'ready'}
+    onPreviewStructure={previewStructure} onApplyStructure={applyStructure} onCancelStructure={cancelStructure}
     canCreatePart={!draft && newPartCurrent && !newPartValidation}
     onCancelComputation={() => { workspaceCommandEpoch.current++; newPartOperationEpoch.current++; action(session => session.cancel()); }}
     onUndo={() => action(session => session.undo())} onRedo={() => action(session => session.redo())}

@@ -648,3 +648,22 @@ node apps/cad-editor/flows/modeling-accepted-save-flow.mjs
 This uses actual React/controller state and controlled Blob/anchor/URL APIs to
 check bytes, stale callbacks and owned cleanup. It is not a physical browser
 file-picker/download result; #1958 retains that separate acceptance status.
+
+
+## Normal-command L plate authoring
+
+CREATE → New rectangular part (32×8×8), Add rectangular arm (0,0;8×24),
+MODIFY → Union bodies, then Cut rectangular through-slot (16,2;8×4).
+Each structural command has separate temporary fields, explicit output targets,
+Preview operation, Apply operation and Cancel. Preview retains accepted history
+and file bytes. Structural Undo/Redo restores full authored intent. Pending model
+dimensions are never silently applied or discarded; shared thickness is explicit.
+The composed Cut requires an omitted extrusion start and thickness8; unsupported
+coordinates/native topology/complete packet budgets refuse without replacing work.
+
+Run only the focused local app flow (not PR CI runtime tests):
+`node apps/cad-editor/flows/modeling-structure-flow.mjs`.
+It uses actual React/controller/serializer/receiver paths with controlled Worker,
+provider/native validation and renderer boundaries. Retained geometry/context
+adaptation does not establish newly measured native output, pixels or physical
+files. #1960 records finite counts, first failures and its separate device gate.
