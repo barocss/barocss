@@ -1244,3 +1244,56 @@ coefficients do not guarantee native Gram or UV reconstruction success. The
 original refusal cause and completed-work report remain available. General
 scale, assembly placement, mass transformation, STL acceptance, editor, GPU,
 and manufacturing proof are separate.
+
+### Three owned instances in one cardinal linear pattern
+
+```ts
+import { cad } from '@barocss/cad';
+
+const m = cad.model();
+const spacing = m.parameter('spacing', 40);
+const blank = m.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const front = blank.chamfer(blank.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one(), 1);
+const finished = front.chamfer(front.edges({ parallelTo: 'x', at: { y: 24, z: 'max' } }).one(), 2);
+const [original, near, far] = finished.linearPattern({ axis: 'x', spacing, count: 3 });
+const snapshot = m.build({ original, near, far });
+const wider = snapshot.withParameters({ spacing: 48 });
+const reopened = cad.load(wider.save());
+void reopened;
+```
+
+`linearPattern({ axis, spacing, count: 3 })` takes one exact own-data record.
+The axis is `'x'`, `'y'`, or `'z'`. Spacing is a positive millimetre length,
+an owned parameter, or an owned length expression. Count includes the original
+and two copies. The frozen tuple retains the exact original shape handle.
+Both copies use that same original, at one and two times the spacing.
+
+The parent must be one owned affine rectangle, polygon, or constrained-polygon
+extrusion, with optional `from` placement. Its complete linear chain of one or
+two chamfers is also admitted. Finish the parent before adding the pattern.
+One terminal pattern node produces both copies. The six-node limit remains.
+Pattern chains, later features through retained handles, copy edge selection,
+unrelated finishing siblings, transform ancestry, Boolean, hole, circle, and
+split ancestry refuse. Count values other than three and arbitrary directions
+are unsupported.
+
+Both complete coordinate sets and all new identities are checked before either
+copy is built. Each stored target Surface and trim-Line coefficient must equal
+the exact rational sum of its stored binary64 source value and the offset.
+Zero-offset components keep their bits, including signed zero. Exact nonzero
+cancellation produces positive zero. Rounded sums, nonfinite coordinates, and
+absolute coordinates above 10000 mm refuse. Twice the spacing must also be
+exactly represented and at most 10000 mm.
+
+Each copy reuses the unchanged translation constructor. It rebuilds pcurves,
+checks their whole UV lift, and qualifies the complete target Solid with fresh
+identities and all eight lineage classes. The original remains immutable.
+Spacing edits reuse the complete source prefix and rebuild both copies.
+Source edits propagate to both copies. Save retains authored intent and the
+instance references. A refused edit leaves the accepted snapshot unchanged.
+
+A valid parent can still fail native Gram or UV reconstruction. A failure in
+either copy refuses the whole pattern. The original cause and completed-work
+report remain available. General counts, circular patterns, fused bodies,
+persistent naming, mass transformation, STL acceptance, editor, GPU, and
+manufacturing proof are separate.

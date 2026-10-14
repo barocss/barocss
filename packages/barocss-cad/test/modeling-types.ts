@@ -429,3 +429,46 @@ scaleOriginal.scale({ factor: copySpacing });
 scaleOriginal.scale();
 // @ts-expect-error Extra arguments are not admitted.
 scaleOriginal.scale({ factor: 2 }, true);
+
+const patternModel = cad.model();
+const patternSpacing = patternModel.parameter('spacing', 40);
+const patternOriginal = patternModel.sketch.rectangle({ width: 32, height: 24 }).extrude(8, { from: 3 });
+const patternTuple: readonly [CadShape, CadShape, CadShape] =
+  patternOriginal.linearPattern({ axis: 'x', spacing: patternSpacing, count: 3 });
+const [patternSource, patternNear, patternFar] = patternTuple;
+const patternSnapshot: CadModelSnapshot = patternModel.build({ original: patternSource, near: patternNear, far: patternFar });
+const patternEdited: CadModelSnapshot = patternSnapshot.withParameters({ spacing: 48 });
+const patternReopened: CadModelSnapshot = cad.load(patternEdited.save());
+const patternEvidence = patternSnapshot.evidence.find(item => item.kind === 'linear-pattern');
+if (patternEvidence?.kind === 'linear-pattern') {
+  const count: 3 = patternEvidence.native.report.count;
+  const firstCopy = patternEvidence.native.copies[0];
+  const secondCopy = patternEvidence.native.copies[1];
+  const firstMappedFace: string = firstCopy.lineage.faces[0].translated.faceId;
+  const secondMappedFace: string = secondCopy.lineage.faces[0].translated.faceId;
+  const sameParent: true = patternEvidence.native.report.preservation.sameOriginalParent;
+  void [count, firstMappedFace, secondMappedFace, sameParent];
+}
+void patternReopened;
+for (const axis of ['x', 'y', 'z'] as const) {
+  const axisModel = cad.model();
+  axisModel.sketch.rectangle({ width: 32, height: 24 }).extrude(8).linearPattern({
+    axis, spacing: axisModel.dimension.add(axisModel.parameter('spacing', 40), 0), count: 3,
+  });
+}
+// @ts-expect-error The result is a readonly three-instance tuple.
+patternTuple[1] = patternSource;
+// @ts-expect-error Exactly three instances include the original.
+patternOriginal.linearPattern({ axis: 'x', spacing: 40, count: 2 });
+// @ts-expect-error Arbitrary directions are not admitted.
+patternOriginal.linearPattern({ axis: [1, 0, 0], spacing: 40, count: 3 });
+// @ts-expect-error Spacing is a millimetre length, not a string.
+patternOriginal.linearPattern({ axis: 'x', spacing: '40', count: 3 });
+// @ts-expect-error Count is required.
+patternOriginal.linearPattern({ axis: 'x', spacing: 40 });
+// @ts-expect-error There is no pattern pivot option.
+patternOriginal.linearPattern({ axis: 'x', spacing: 40, count: 3, pivot: [0, 0, 0] });
+// @ts-expect-error One own-data options record is required.
+patternOriginal.linearPattern();
+// @ts-expect-error Extra arguments are not admitted.
+patternOriginal.linearPattern({ axis: 'x', spacing: 40, count: 3 }, true);
