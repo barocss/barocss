@@ -164,14 +164,14 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
       invalidateCommandPreview();
       const command: ModelingStructureCommand = panel === 'union'
         ? { kind: 'union', targets: capabilities.union! }
-        : panel === 'chamfer' ? { kind: 'chamfer', target: capabilities.chamfer!, distance: 1 }
+        : panel === 'chamfer' ? { kind: 'chamfer', target: capabilities.chamfer!, distance: capabilities.chamfer!.node === 2 ? 2 : 1 }
         : panel === 'cut-pocket' ? { kind: 'cut-pocket', target: capabilities.cutPocket!, wall: capabilities.pocketDefaults!.wall, floor: capabilities.pocketDefaults!.floor }
         : panel === 'add-hole' ? { kind: 'add-hole', target: capabilities.addHole!, x: 40, y: 20, radius: 5 }
         : { kind: panel, target: panel === 'add-arm' ? capabilities.addArm! : capabilities.cutSlot!, x: panel === 'add-arm' ? 0 : 16, y: panel === 'add-arm' ? 0 : 2, width: 8, height: panel === 'add-arm' ? 24 : 4 };
       setStructureTarget({ session, text: current.authoredText, generation: current.generation, instance: structureInstance.current + 1, command });
       setStructureInput({ ...(panel === 'add-hole' ? { x: '40', y: '20', width: '8', height: '4', radius: '5' }
         : panel === 'add-arm' ? { x: '0', y: '0', width: '8', height: '24', radius: '5' } : { x: '16', y: '2', width: '8', height: '4', radius: '5' }),
-        wall: String(capabilities.pocketDefaults?.wall ?? 8), floor: String(capabilities.pocketDefaults?.floor ?? 4), distance: '1' });
+        wall: String(capabilities.pocketDefaults?.wall ?? 8), floor: String(capabilities.pocketDefaults?.floor ?? 4), distance: panel === 'chamfer' && capabilities.chamfer?.node === 2 ? '2' : '1' });
       setError(null);
     }
     if (panel === 'new-part' || panel === 'new-circular-part') {
@@ -639,10 +639,12 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
   } catch (cause) { structureValidation = cause instanceof Error ? cause.message : String(cause); }
   const structurePanel = <div>
     <p>Preview evaluates a complete candidate with the native model loader. Apply adds one editable history step; Cancel retains the accepted part.</p>
-    {structureTarget && <><h2>{structureTarget.command.kind === 'chamfer' ? 'Chamfer front top edge' : structureTarget.command.kind === 'cut-pocket' ? 'Cut rectangular pocket' : structureTarget.command.kind === 'add-hole' ? 'Add through-hole' : structureTarget.command.kind === 'add-arm' ? 'Add rectangular arm' : structureTarget.command.kind === 'union' ? 'Union bodies' : 'Cut rectangular through-slot'}</h2>
+    {structureTarget && <><h2>{structureTarget.command.kind === 'chamfer' ? structureTarget.command.target.node === 2 ? 'Chamfer opposite top edge' : 'Chamfer front top edge' : structureTarget.command.kind === 'cut-pocket' ? 'Cut rectangular pocket' : structureTarget.command.kind === 'add-hole' ? 'Add through-hole' : structureTarget.command.kind === 'add-arm' ? 'Add rectangular arm' : structureTarget.command.kind === 'union' ? 'Union bodies' : 'Cut rectangular through-slot'}</h2>
       <p>Bound accepted outputs: {(structureTarget.command.kind === 'union' ? structureTarget.command.targets : [structureTarget.command.target]).map(target => `${target.name} · ${target.solidId} · feature ${target.node + 1}`).join('; ')}</p>
       {structureTarget.command.kind === 'chamfer'
-        ? <p>Bevel the model-coordinate X-parallel edge at Y=0, Z=max of the selected rectangular extrusion. This is not a camera-relative target. Decimal distance must be positive and smaller than both the profile Y span and thickness; native exact geometry may still refuse it. The original features remain in source and Undo history. After Apply, select Chamfer 01 and use Edit model dimensions for bevelDistance; shared global edits can invalidate the edge or bevel.</p>
+        ? structureTarget.command.target.node === 2
+          ? <p>Bevel the opposite model-coordinate X-parallel edge at Y=the original profile maximum, Z=max of the selected first chamfer result. The Y target follows the original sketch expression, not a camera direction. Both bevel distances must stay below thickness and their sum below the profile Y span; native exact geometry may still refuse. Apply retains the first bevelDistance and adds independent backBevelDistance. Use Edit model dimensions to edit either driver; shared global dimensions can invalidate either edge or bevel.</p>
+          : <p>Bevel the model-coordinate X-parallel edge at Y=0, Z=max of the selected rectangular extrusion. This is not a camera-relative target. Decimal distance must be positive and smaller than both the profile Y span and thickness; native exact geometry may still refuse it. The original features remain in source and Undo history. After Apply, select Chamfer 01 and use Edit model dimensions for bevelDistance or Chamfer opposite top edge; shared global edits can invalidate the edge or bevel.</p>
         : structureTarget.command.kind === 'cut-pocket'
         ? <p>Cut an open-top rectangular pocket into the selected part. The tool and subtraction are one atomic operation; the original extrusion stays in the source and Undo history. Wall and floor thickness must initially be positive integers. Edit pocketWall and pocketFloor later with Model dimensions; global edits can remove the floor or walls. Native geometry remains authoritative. Orthogonal-cell STL is unavailable, and the current flat-color view may not visibly distinguish cavity depth.</p>
         : structureTarget.command.kind === 'add-hole'

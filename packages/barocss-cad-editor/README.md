@@ -1539,12 +1539,31 @@ The command preserves the original sketch/extrusion and appends one named
 changes. Native exact geometry and complete convex preview admission remain
 responsible for acceptance; a necessary positive distance smaller than Y span and
 thickness is not a success guarantee. Existing integer Boolean/hole/pocket
-profiles are unchanged. No arbitrary edge picker or second bevel is offered.
+profiles are unchanged. The bounded opposite-edge continuation is described below;
+no arbitrary edge picker is offered.
 
 The focused checks are `node packages/barocss-cad-editor/scripts/modeling-chamfer-authoring-test.mjs`
 and the app's `modeling-chamfer-authoring-flow.mjs`. Historical native volumes for
 32×24×8 are6128mm³ at distance1 and6080mm³ at2. The retained CPU preview is a
 separate two-bevel6064mm³ fixture; mocked one-bevel command delivery does not
 establish those pixels. [#1984](https://github.com/barocss/barocss/issues/1984)
-keeps actual one-bevel authoring and visibility pending. Accepted source/round-trip
-controls are local; the unchanged common file path needs no repeated device campaign.
+records the scoped actual one-bevel command/history pass at `a7cbd703`;
+separate bevel-face visibility/picking remains [#1990](https://github.com/barocss/barocss/issues/1990).
+Accepted source/round-trip controls are local; the unchanged file path needs no repeated device campaign.
+
+## Finish both opposite top edges
+
+After the owned first bevel, select **Chamfer 01 → MODIFY → Chamfer opposite top edge**.
+Default distance2 addresses the X-parallel edge at the original profile maximum Y,
+Z=max, on that exact first result. Preview, then Apply the ready candidate. The
+four-node source retains `bevelDistance` and adds independent `backBevelDistance`;
+the copied original maxY expression follows later profile edits. No third bevel
+or configured/imported arbitrary chain is admitted. Authoring requires each
+distance below thickness and their sum below Y span. Later Model dimensions
+edits remain native-authoritative and retain the accepted state on refusal.
+
+The focused package command is `node packages/barocss-cad-editor/scripts/modeling-opposite-chamfer-test.mjs`.
+Historical native front1/back2 gives6064mm³; back3 gives5984. The unchanged genuine
+two-bevel transport is reused with explicitly adapted command parameter context,
+while edited geometry/provider delivery is mocked. [#1989](https://github.com/barocss/barocss/issues/1989)
+keeps actual new-command geometry/history pending; it does not close #1990 picking.
