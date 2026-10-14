@@ -635,3 +635,8 @@ The existing `examples/canvas2d-scene/path-control-editing/index.html?split=1` p
 ### Coverage-area image downsampling
 
 `downsampleImageAsset(asset, width, height)` produces a copied RGBA8 resource for dimensions within the source extent. Shrinking includes every source pixel's footprint coverage, averages encoded RGB with alpha weights and rounds each output channel once. Rounded alpha zero produces zero RGBA. Identity dimensions return an independent exact copy, including hidden RGB. Inputs and outputs are each limited to1MiB; source copy plus output has a2MiB ceiling and no pixel scratch array. Complete shape and dimension validation precedes budgets and copies. Malformed or enlarged requests use INVALID_ASSET; valid oversized assets use ASSET_LIMIT.
+
+
+### Browser paragraph preparation
+
+`rasterizeBrowserParagraphText` fits a well-formed Unicode original of1–128 UTF16 units to a declared advance width. Require font, atlasId, maxWidth, lineAdvance, direction (`ltr` or `rtl`) and breakPolicy (`grapheme`); DPR defaults to1 and physical lineAlign toleft. Native Intl.Segmenter supplies grapheme boundaries. LF separates nonblank hard lines; soft wrapping preserves every cluster and space. The helper checks all complete remaining prefixes and selects the greatest fitting endpoint, with at most512 measures and4 draws. No fit or more than4 lines uses ASSET_LIMIT before drawing. Missing Segmenter/browser facilities use UNSUPPORTED_FEATURE. Existing1024×256/1MiB copied atlas and scratch reset limits apply. The result records original UTF16 line ranges, resolved segmenter locale and preparation direction while keeping one whole-label quad. Browser shaping and cluster wrapping remain tied to the prepared host font/profile.

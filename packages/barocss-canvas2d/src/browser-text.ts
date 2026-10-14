@@ -69,6 +69,86 @@ export type BrowserEllipsizedTextRaster = BrowserTextRaster & {
   visibleTextEnd: number;
 };
 
+export type BrowserParagraphTextOptions = {
+  text: string; font: string; atlasId: string; maxWidth: number; lineAdvance: number;
+  direction: 'ltr' | 'rtl'; breakPolicy: 'grapheme'; dpr?: number;
+  lineAlign?: BrowserMultilineTextAlignment;
+};
+export type BrowserParagraphTextRaster = BrowserMultilineTextRaster & {
+  maxWidth: number; direction: 'ltr' | 'rtl'; breakPolicy: 'grapheme';
+  lineAlign: BrowserMultilineTextAlignment; segmenterLocale: string;
+};
+type ParagraphMode = { maxWidth: number; direction: 'ltr' | 'rtl'; segmenter: Intl.Segmenter; locale: string };
+function paragraphOptionsOf(value: unknown): Required<BrowserParagraphTextOptions> {
+  if (!value || typeof value !== 'object' || Object.getPrototypeOf(value) !== Object.prototype) {
+    invalid('browser paragraph options must be an ordinary data record');
+  }
+  const fields = Object.getOwnPropertyDescriptors(value);
+  for (const key of Reflect.ownKeys(fields)) {
+    if (typeof key !== 'string' || !['text','font','atlasId','maxWidth','lineAdvance','direction','breakPolicy','dpr','lineAlign'].includes(key) ||
+        !fields[key].enumerable || !('value' in fields[key])) invalid('browser paragraph options require declared data fields');
+  }
+  for (const key of ['text','font','atlasId','maxWidth','lineAdvance','direction','breakPolicy']) {
+    if (!Object.hasOwn(fields,key)) invalid(`browser paragraph options require ${key}`);
+  }
+  const text: unknown=fields.text.value, font: unknown=fields.font.value;
+  const direction: unknown=fields.direction.value, breakPolicy: unknown=fields.breakPolicy.value;
+  const dpr: unknown=Object.hasOwn(fields,'dpr')?fields.dpr.value:1;
+  const lineAlign: unknown=Object.hasOwn(fields,'lineAlign')?fields.lineAlign.value:'left';
+  const maxWidth: unknown=fields.maxWidth.value, lineAdvance: unknown=fields.lineAdvance.value;
+  if (typeof text!=='string'||text.length<1||text.length>128||
+      /[\u0000-\u0009\u000B-\u001F\u007F-\u009F\u2028\u2029]/u.test(text)) invalid('browser paragraph needs 1..128 Unicode units with LF hard breaks only');
+  const hardLines=text.split('\n');
+  if(hardLines.length>4||hardLines.some(line=>! /\S/u.test(line))) invalid('browser paragraph needs at most four nonblank hard lines');
+  for(let index=0;index<text.length;index++) {
+    const unit=text.charCodeAt(index);
+    if(unit>=0xD800&&unit<=0xDBFF){const next=text.charCodeAt(index+1);if(!(next>=0xDC00&&next<=0xDFFF))invalid('browser paragraph has an unpaired surrogate');index++;}
+    else if(unit>=0xDC00&&unit<=0xDFFF)invalid('browser paragraph has an unpaired surrogate');
+  }
+  if(typeof font!=='string'||font.trim().length===0||font.length>256||/[\r\n\0]/.test(font))invalid('browser paragraph font is invalid');
+  if(typeof dpr!=='number'||!Number.isFinite(dpr)||dpr<1||dpr>4)invalid('browser paragraph DPR must be in 1..4');
+  if(typeof maxWidth!=='number'||!Number.isFinite(maxWidth)||maxWidth<=0||maxWidth>1e6||
+      typeof lineAdvance!=='number'||!Number.isFinite(lineAdvance)||lineAdvance<=0||lineAdvance>1e6)invalid('browser paragraph width and baseline advance must be positive and finite');
+  if(direction!=='ltr'&&direction!=='rtl')invalid('browser paragraph direction must be ltr or rtl');
+  if(breakPolicy!=='grapheme')invalid('browser paragraph break policy must be grapheme');
+  if(lineAlign!=='left'&&lineAlign!=='center'&&lineAlign!=='right')invalid('browser paragraph alignment is unsupported');
+  return {text,font,atlasId:validateImageAssetId(fields.atlasId.value),maxWidth,lineAdvance,direction,breakPolicy,dpr,lineAlign};
+}
+/** Fit complete native grapheme prefixes; preserve original UTF16 and native base direction. */
+export function rasterizeBrowserParagraphText(options: BrowserParagraphTextOptions): BrowserParagraphTextRaster {
+  const admitted=paragraphOptionsOf(options);
+  if(typeof Intl==='undefined'||typeof Intl.Segmenter!=='function')throw new Canvas2DError('UNSUPPORTED_FEATURE','native grapheme segmentation is unavailable');
+  let segmenter: Intl.Segmenter, locale: string;
+  try { segmenter=new Intl.Segmenter('und',{granularity:'grapheme'});locale=segmenter.resolvedOptions().locale;
+    if(typeof segmenter.segment!=='function'||typeof locale!=='string'||!locale)throw new Error('invalid Segmenter');
+  } catch { throw new Canvas2DError('UNSUPPORTED_FEATURE','native grapheme segmentation could not initialize'); }
+  return rasterize({...admitted,textPolicy:'unicode-single-line',paragraph:{maxWidth:admitted.maxWidth,direction:admitted.direction,segmenter,locale},maxWidth:undefined}) as BrowserParagraphTextRaster;
+}
+function paragraphLines(context: CanvasRenderingContext2D,text:string,mode:ParagraphMode) {
+  const result:{text:string;start:number;end:number;metrics:TextMetrics}[]=[];
+  let offset=0,measures=0;
+  for(const hard of text.split('\n')) {
+    const segments=[...mode.segmenter.segment(hard)],ends:number[]=[];let consumed=0;
+    for(const item of segments){if(item.index!==consumed||!item.segment||item.segment!==hard.slice(consumed,consumed+item.segment.length))throw new Canvas2DError('INVALID_ASSET','native paragraph segmentation is invalid');const end=consumed+item.segment.length,prior=hard.charCodeAt(end-1),next=hard.charCodeAt(end);if(prior>=0xD800&&prior<=0xDBFF&&next>=0xDC00&&next<=0xDFFF)throw new Canvas2DError('INVALID_ASSET','native paragraph segmentation split a surrogate pair');consumed=end;ends.push(consumed);}
+    if(consumed!==hard.length)throw new Canvas2DError('INVALID_ASSET','native paragraph segmentation is incomplete');
+    let cursor=0;
+    while(cursor<hard.length) {
+      if(result.length===4)throw new Canvas2DError('ASSET_LIMIT','browser paragraph exceeds four lines');
+      let selected:{end:number;metrics:TextMetrics}|null=null;
+      for(const end of ends)if(end>cursor) {
+        if(++measures>512)throw new Canvas2DError('ASSET_LIMIT','browser paragraph exceeds its measurement budget');
+        const metrics=context.measureText(hard.slice(cursor,end));
+        if(!Number.isFinite(metrics.width)||metrics.width<0||metrics.width>1e6)throw new Canvas2DError('INVALID_ASSET','browser paragraph advance is invalid');
+        if(metrics.width<=mode.maxWidth)selected={end,metrics};
+      }
+      if(!selected)throw new Canvas2DError('ASSET_LIMIT','browser paragraph has no fitting grapheme prefix');
+      result.push({text:hard.slice(cursor,selected.end),start:offset+cursor,end:offset+selected.end,metrics:selected.metrics});cursor=selected.end;
+    }
+    offset+=hard.length+1;
+  }
+  return result;
+}
+
 function ellipsizedOptionsOf(value: unknown): Required<BrowserTextOptions> & { ellipsisMaxWidth: number } {
   if (!value || typeof value !== 'object' || Object.getPrototypeOf(value) !== Object.prototype) {
     invalid('browser ellipsis options must be an ordinary data record');
@@ -272,7 +352,7 @@ function wrappedLines(context: CanvasRenderingContext2D, text: string, maxWidth:
   return lines;
 }
 
-function rasterize(input: Required<BrowserTextOptions> & { lineAdvance?: number; lineAlign?: BrowserMultilineTextAlignment; maxWidth?: number; ellipsisMaxWidth?: number }): BrowserTextRaster | BrowserMultilineTextRaster | BrowserWrappedTextRaster | BrowserEllipsizedTextRaster {
+function rasterize(input: Required<BrowserTextOptions> & { lineAdvance?: number; lineAlign?: BrowserMultilineTextAlignment; maxWidth?: number; ellipsisMaxWidth?: number; paragraph?: ParagraphMode }): BrowserTextRaster | BrowserMultilineTextRaster | BrowserWrappedTextRaster | BrowserEllipsizedTextRaster | BrowserParagraphTextRaster {
   if (typeof document === 'undefined' || typeof document.createElement !== 'function' ||
       !document.fonts || typeof document.fonts.check !== 'function') {
     throw new Canvas2DError('UNSUPPORTED_FEATURE', 'browser text and font APIs are unavailable');
@@ -308,7 +388,7 @@ function rasterize(input: Required<BrowserTextOptions> & { lineAdvance?: number;
       context!.font = font;
       context!.textAlign = 'left';
       context!.textBaseline = 'alphabetic';
-      context!.direction = 'ltr';
+      context!.direction = input.paragraph?.direction ?? 'ltr';
       context!.fillStyle = '#ffffff';
       context!.globalAlpha = 1;
       context!.globalCompositeOperation = 'source-over';
@@ -319,12 +399,13 @@ function rasterize(input: Required<BrowserTextOptions> & { lineAdvance?: number;
     configure();
     const wrapped = input.maxWidth === undefined ? null : wrappedLines(context, input.text, input.maxWidth);
     const ellipsis = input.ellipsisMaxWidth === undefined ? null : ellipsizedLabel(context, input.text, input.ellipsisMaxWidth);
-    const texts = ellipsis ? [ellipsis.displayText] : wrapped ? wrapped.map(line => line.text) : input.lineAdvance === undefined ? [input.text] : input.text.split('\n');
+    const paragraph = input.paragraph ? paragraphLines(context,input.text,input.paragraph) : null;
+    const texts = paragraph ? paragraph.map(line=>line.text) : ellipsis ? [ellipsis.displayText] : wrapped ? wrapped.map(line => line.text) : input.lineAdvance === undefined ? [input.text] : input.text.split('\n');
     const lines: BrowserMultilineTextLine[] = [];
     const inkEdges: { left: number; right: number }[] = [];
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, advance = 0, textStart = 0;
     for (const [index, text] of texts.entries()) {
-      const measured = ellipsis?.metrics ?? context.measureText(text);
+      const measured = paragraph?.[index].metrics ?? ellipsis?.metrics ?? context.measureText(text);
       const values = [measured.width, measured.actualBoundingBoxLeft, measured.actualBoundingBoxRight,
         measured.actualBoundingBoxAscent, measured.actualBoundingBoxDescent];
       const baseline = index * (input.lineAdvance ?? 0);
@@ -335,11 +416,12 @@ function rasterize(input: Required<BrowserTextOptions> & { lineAdvance?: number;
       }
       inkEdges.push({ left: -measured.actualBoundingBoxLeft, right: measured.actualBoundingBoxRight });
       minY = Math.min(minY, inkTop); maxY = Math.max(maxY, inkBottom); advance = Math.max(advance, measured.width);
-      if (wrapped) textStart = wrapped[index].start;
+      if (paragraph) textStart = paragraph[index].start;
+      else if (wrapped) textStart = wrapped[index].start;
       lines.push({ textStart, textEnd: textStart + text.length, baseline, advance: measured.width });
       textStart += text.length + 1;
     }
-    const alignWidth = input.maxWidth ?? advance;
+    const alignWidth = input.paragraph?.maxWidth ?? input.maxWidth ?? advance;
     const offsets = lines.map(line => input.lineAlign === 'center' ? (alignWidth - line.advance) / 2 :
       input.lineAlign === 'right' ? alignWidth - line.advance : 0);
     for (const [index, ink] of inkEdges.entries()) {
@@ -380,6 +462,7 @@ function rasterize(input: Required<BrowserTextOptions> & { lineAdvance?: number;
       bounds, layout: { atlasId: input.atlasId, text: input.text, baseline: 0, opacity: 1, sampling: 'nearest',
         glyphs: [{ sourceRect: { x: 0, y: 0, width, height }, x: left, y: top,
           width: bounds.width, height: bounds.height, textStart: 0, textEnd: input.text.length }] } };
+    if (paragraph) return {...result,maxWidth:input.paragraph!.maxWidth,lineAdvance:input.lineAdvance!,lines,lineAlign:input.lineAlign!,direction:input.paragraph!.direction,breakPolicy:'grapheme',segmenterLocale:input.paragraph!.locale};
     if (ellipsis) return { ...result, maxWidth: input.ellipsisMaxWidth as number, displayText: ellipsis.displayText,
       truncated: ellipsis.truncated, visibleTextEnd: ellipsis.visibleTextEnd };
     if (input.lineAdvance === undefined) return result;
