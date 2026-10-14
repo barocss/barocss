@@ -1,0 +1,3824 @@
+{
+  "schema": "barocss-cad-translated-intersection-verification-v1",
+  "issue": 2002,
+  "review": {
+    "issue": 2002,
+    "sourceCommit": "27ce79f50d201fb7b6fcd6ecb1baddf6bc4f1624",
+    "apiInventoryPin": "4dbe8866aeca009e5539fee4c981f2d922fbbb5a",
+    "selectedBase": "ae8c664dfb9eb73480be3c71eadb49ef320a0ea7",
+    "review": "Root analytic geometry/accounting plus independent API and control-agent fixture/source/cold reviews PASS; Native providers/evaluation unchanged",
+    "ownedHashes": {
+      "apps/library-docs/evidence/current-public-api.json": "6ba54313a2bf233dc7802124b5bb61b6a3711e671f1a7efb5c7e2666566e3850",
+      "packages/barocss-cad/CONCISE_API.md": "00fb4eb8621e5948bdf4a1be4db97a74b44c43439b4a8dbe0daea2af7edf1f3d",
+      "packages/barocss-cad/README.md": "a20d29e70f619641afb0fd4ead30d9749a6b9ecb771539ab8e93092b0992566a",
+      "packages/barocss-cad/src/modeling.ts": "ad0f86f28fe87c961c5e89ed9ced76672970c3b683ad66a68b8ca335b201706a",
+      "packages/barocss-cad/test/modeling-translated-intersection-cold.mjs": "645cc50c915d42801efc13ff195ceaf5c0e93a6f346da30daa654437e0b455da",
+      "packages/barocss-cad/test/modeling-translated-intersection-fixture.mjs": "ff2906626fef4a4d4ef80c6c13e6a5164ab7a5a281d92dee1522dc338d4debad",
+      "packages/barocss-cad/test/modeling-translated-intersection-native.mjs": "78aa3a43906cb9951a674bbd95048ad3fb4073e4330e78da761194ba31397ffe",
+      "packages/barocss-cad/test/modeling-translated-intersection.test.mjs": "235924a42399aa6361abea7112432c784cb899fc3341f826df94e665f3217a7a",
+      "packages/barocss-cad/test/modeling-types.ts": "ad5000ea9ef5b4f89e49e16a42fd202139725ef462a6b021f7eaa26b5437b413",
+      "packages/barocss-cad/test/public-api-types.mjs": "fa14ec2c5a4a2f009adebbacde100420fa05fab9a2ba64b1bafd042aa17d1101"
+    },
+    "sourceBundleSHA256": "aa9f306125493f36387cfd464558d5bc09a55f974f1a09313169cc86bf65d871",
+    "sourceInputCount": 268,
+    "emittedEntrySHA256": "d9d741fc24ddaeb6dd6b831ac59369daa0e842294d2e444da04ec357fa079b92",
+    "zeroNativeControls": {
+      "source": 222,
+      "emitted": 211,
+      "total": 433,
+      "realNativeCalls": 0
+    },
+    "static": "Node22 build/lint +source/emitted modeling types and22 complete docs examples PASS",
+    "retainedPreGrantCorrections": [
+      "firstsource14/16 fixture-only failure retained; missing argument existing OWNERSHIP preserved, early-translation fixture now references its actual extrusion"
+    ],
+    "grant": "Root grants one serial frozen source5/cold1=6 model evaluations +one overlap16triangle preview. Stop first unexpected failure; no automatic rerun; raw wx results/errors precede oracles",
+    "limits": {
+      "heapMiB": 1536,
+      "freeDiskMiB": 500,
+      "processGroupSeconds": 600
+    },
+    "genuineNativeCallsBeforeGrant": 0,
+    "workBoundary": "Whole-derived325/4014/12042; returned225/2790/8370; failed-derived68/864/2592, never returned/instrumented; hidden transitive NOT_MEASURED"
+  },
+  "nativeProcessGroup": {
+    "issue": 2002,
+    "grant": "Latest human takeover authorizes native implementation and validation; root grants only the frozen source and cold model calls and one preview",
+    "limits": {
+      "heapMiB": 1536,
+      "freeDiskMiB": 500,
+      "processGroupSeconds": 600
+    },
+    "sourceBundleSHA256": "aa9f306125493f36387cfd464558d5bc09a55f974f1a09313169cc86bf65d871",
+    "startedAtUnix": 1791979339.029545,
+    "status": "passed",
+    "processes": [
+      {
+        "mode": "source",
+        "pid": 15935,
+        "exitCode": 0,
+        "elapsedGroupSeconds": 2.912956500018481,
+        "freeDiskBytes": 42814062592
+      },
+      {
+        "mode": "cold",
+        "pid": 15955,
+        "exitCode": 0,
+        "elapsedGroupSeconds": 3.900298750028014,
+        "freeDiskBytes": 42812780544
+      }
+    ],
+    "freeDiskStartBytes": 42819538944,
+    "wallSeconds": 3.900770374981221,
+    "freeDiskEndBytes": 42812780544
+  },
+  "sourceFlow": {
+    "accounting": {
+      "availableTranslationInitialFaces": 21,
+      "fullTransitiveNativeCoverage": "NOT_MEASURED",
+      "knownAvailableBindingObservations": 2214,
+      "knownAvailableD1": 6642,
+      "knownAvailableSourceCompilations": 179,
+      "publicRefusalReportScope": "contact dimensions only; no invented failed-frame ledgers",
+      "returnedLedgerBindingObservations": 1944,
+      "returnedLedgerD1": 5832,
+      "returnedLedgerSourceCompilations": 156,
+      "standaloneSketches": 2
+    },
+    "artifacts": {
+      "01-baseline.snapshot.json": {
+        "bytes": 1254180,
+        "scope": "actual complete result before fixture oracles",
+        "sha256": "d860358bb13fb1390138cdd5712bf7c5839c6e7b06c784b5b8be744c629b187a"
+      },
+      "02-edited.snapshot.json": {
+        "bytes": 1194684,
+        "scope": "actual complete result before fixture oracles",
+        "sha256": "4765bbdc47490d04f920705c1b317a52d2beaf8ca0445d2e04ffae86338093d9"
+      },
+      "03-contact.unexpected.snapshot.json.refusal.json": {
+        "bytes": 234,
+        "scope": "actual complete public error/cause before refusal oracle; failed Native reports are not exposed",
+        "sha256": "65965c78b46faab52dfd9719856b19d36ef28485db9a16cbd49263535c188004"
+      },
+      "04-disjoint.unexpected.snapshot.json.refusal.json": {
+        "bytes": 236,
+        "scope": "actual complete public error/cause before refusal oracle; failed Native reports are not exposed",
+        "sha256": "332e4e8a50be1d5e4a16f79a5ad388dc57bd5e2c65dae85df2db0bcbdbb7de4e"
+      },
+      "05-recovered.snapshot.json": {
+        "bytes": 1254179,
+        "scope": "actual complete result before fixture oracles",
+        "sha256": "be8857062fe317aed12a6136926ec881aab3e016cdb3a2ac185f34e1eed87cf7"
+      },
+      "accepted-edited.cad-model.json": {
+        "bytes": 667,
+        "scope": "accepted state before contact/disjoint refusals",
+        "sha256": "fe0b937b21d556b6c890cdc33acaf9ea2711f4aca4f3469e1de8303517bfdf48"
+      },
+      "after-rejection.accepted.cad-model.json": {
+        "bytes": 667,
+        "scope": "retained accepted save",
+        "sha256": "fe0b937b21d556b6c890cdc33acaf9ea2711f4aca4f3469e1de8303517bfdf48"
+      },
+      "after-rejection.accepted.snapshot.json": {
+        "bytes": 1194684,
+        "scope": "actual accepted full state retained after both public refusals",
+        "sha256": "4765bbdc47490d04f920705c1b317a52d2beaf8ca0445d2e04ffae86338093d9"
+      },
+      "baseline-overlap.preview.json": {
+        "bytes": 128817,
+        "scope": "actual complete result before fixture oracles",
+        "sha256": "1e66c37fb445d75ea674d9ee613abda6157b33b6997326b07acba398ee01ce49"
+      },
+      "baseline.intersection.json": {
+        "bytes": 362027,
+        "scope": "complete actual translated/direct operands, positive outcome, exact lineage and reports",
+        "sha256": "4da476af23c87325a34f6928cd0437c4254de0889003641589df2142dbce1bc3"
+      },
+      "initial.cad-model.json": {
+        "bytes": 666,
+        "scope": "actual authored baseline for cold rebuild",
+        "sha256": "ec1420d560fb2898b825323c951be4ec4119fc091441cd43e27b7aea3f3f744c"
+      }
+    },
+    "baseline": {
+      "authoredSHA256": "ec1420d560fb2898b825323c951be4ec4119fc091441cd43e27b7aea3f3f744c",
+      "bodiesSHA256": "83ce8aa317d9dc3b9096290f61542a93f004ce4d3b27371cd3b952bf1940fb84",
+      "boundsMM": {
+        "original": {
+          "max": [
+            32,
+            32,
+            8
+          ],
+          "min": [
+            0,
+            0,
+            0
+          ]
+        },
+        "overlap": {
+          "max": [
+            40,
+            24,
+            4
+          ],
+          "min": [
+            8,
+            0,
+            0
+          ]
+        },
+        "tool": {
+          "max": [
+            40,
+            24,
+            4
+          ],
+          "min": [
+            8,
+            -8,
+            0
+          ]
+        },
+        "translated": {
+          "max": [
+            40,
+            32,
+            8
+          ],
+          "min": [
+            8,
+            0,
+            0
+          ]
+        }
+      },
+      "evidenceSHA256": "67a98b27d3340a73a2f33e783585ae814ecd5495a14c205ea42131774e3bff2b",
+      "intersection": {
+        "allOutputFacetsAndDirectedEdgesBound": true,
+        "bothActualQualifiedOperands": true,
+        "completeExactSupportIncidence": true,
+        "completeOriginalEdgeIntervals": true,
+        "lineageSHA256": "33f6473f3b23081d08bdf65e9041eaa8551752bb86ee11fbf71322338763999f",
+        "nativeSHA256": "acf489af6aa96cb5649bb9578d9a010352a3052ae4519a09ba5896253b464dda",
+        "nativeWork": {
+          "bindingObservations": 342,
+          "completeFaceReconstructions": 20,
+          "faceCompilations": 27,
+          "newFaceConstructions": 7,
+          "outputQualifications": 1,
+          "parentReconstructions": 2,
+          "retries": 0,
+          "scope": "direct-calls-and-known-parent-loops-not-provider-internals",
+          "sourceCompilations": 27,
+          "totalD1": 1026
+        },
+        "translatedOperandSeedTrace": [
+          {
+            "intersectionFace": {
+              "faceId": "m4_f0_face",
+              "loopId": "m4_f0_loop",
+              "sourceId": "m5_f0",
+              "surfaceId": "m4_f0_surface"
+            },
+            "seedFace": {
+              "evaluationId": "m1_b_m",
+              "faceId": "m1_b_f",
+              "loopId": "m1_b_l",
+              "sourceId": "m1_b",
+              "surfaceId": "m1_b_s"
+            },
+            "translatedOperand": {
+              "faceId": "m4_f0_face",
+              "loopId": "m4_f0_loop",
+              "operand": "left",
+              "sourceId": "m4_f0_src",
+              "surfaceId": "m4_f0_surface"
+            }
+          },
+          {
+            "intersectionFace": {
+              "faceId": "m4_f2_face",
+              "loopId": "m4_f2_loop",
+              "sourceId": "m5_f1",
+              "surfaceId": "m4_f2_surface"
+            },
+            "seedFace": {
+              "evaluationId": "m1_w_0_m",
+              "faceId": "m1_w_0_f",
+              "loopId": "m1_w_0_l",
+              "sourceId": "m1_w_0",
+              "surfaceId": "m1_w_0_s"
+            },
+            "translatedOperand": {
+              "faceId": "m4_f2_face",
+              "loopId": "m4_f2_loop",
+              "operand": "left",
+              "sourceId": "m4_f2_src",
+              "surfaceId": "m4_f2_surface"
+            }
+          },
+          {
+            "intersectionFace": {
+              "faceId": "m4_f3_face",
+              "loopId": "m4_f3_loop",
+              "sourceId": "m5_f2",
+              "surfaceId": "m4_f3_surface"
+            },
+            "seedFace": {
+              "evaluationId": "m1_w_1_m",
+              "faceId": "m1_w_1_f",
+              "loopId": "m1_w_1_l",
+              "sourceId": "m1_w_1",
+              "surfaceId": "m1_w_1_s"
+            },
+            "translatedOperand": {
+              "faceId": "m4_f3_face",
+              "loopId": "m4_f3_loop",
+              "operand": "left",
+              "sourceId": "m4_f3_src",
+              "surfaceId": "m4_f3_surface"
+            }
+          },
+          {
+            "intersectionFace": {
+              "faceId": "m4_f4_face",
+              "loopId": "m4_f4_loop",
+              "sourceId": "m5_f3",
+              "surfaceId": "m4_f4_surface"
+            },
+            "seedFace": {
+              "evaluationId": "m1_w_2_m",
+              "faceId": "m1_w_2_f",
+              "loopId": "m1_w_2_l",
+              "sourceId": "m1_w_2",
+              "surfaceId": "m1_w_2_s"
+            },
+            "translatedOperand": {
+              "faceId": "m4_f4_face",
+              "loopId": "m4_f4_loop",
+              "operand": "left",
+              "sourceId": "m4_f4_src",
+              "surfaceId": "m4_f4_surface"
+            }
+          },
+          {
+            "intersectionFace": {
+              "faceId": "m4_f6_face",
+              "loopId": "m4_f6_loop",
+              "sourceId": "m5_f4",
+              "surfaceId": "m4_f6_surface"
+            },
+            "seedFace": {
+              "evaluationId": "m1_w_4_m",
+              "faceId": "m1_w_4_f",
+              "loopId": "m1_w_4_l",
+              "sourceId": "m1_w_4",
+              "surfaceId": "m1_w_4_s"
+            },
+            "translatedOperand": {
+              "faceId": "m4_f6_face",
+              "loopId": "m4_f6_loop",
+              "operand": "left",
+              "sourceId": "m4_f6_src",
+              "surfaceId": "m4_f6_surface"
+            }
+          }
+        ]
+      },
+      "inventory": [
+        7,
+        15,
+        10
+      ],
+      "snapshotSHA256": "7fd7550f017e604d7efe89bf08182ff54e481025a62db3feca4fb17dc9a931ff",
+      "translation": {
+        "bijectiveLocalAndGlobalLineage": true,
+        "exactCoordinatesNormalsSupportsAndVolume": true,
+        "fullSourceAdoption": true,
+        "lineageSHA256": "252a3f4beddee60384153cf7e7d9fb140a652dd0afbba2f7d5b70b27484ab86a",
+        "nativeSHA256": "c639d7bcea34c0a94028622997879d780c07af82b7b79eda72aa24abfc53b7b2",
+        "preservedDomainWeightAndZeroBits": true,
+        "regeneratedNativePcurves": true
+      },
+      "volumesMM3": {
+        "original": 7168,
+        "overlap": 2944,
+        "tool": 4096,
+        "translated": 7168
+      }
+    },
+    "baselineBodiesSHA256": "83ce8aa317d9dc3b9096290f61542a93f004ce4d3b27371cd3b952bf1940fb84",
+    "baselineEvidenceSHA256": "67a98b27d3340a73a2f33e783585ae814ecd5495a14c205ea42131774e3bff2b",
+    "baselineSnapshotSHA256": "7fd7550f017e604d7efe89bf08182ff54e481025a62db3feca4fb17dc9a931ff",
+    "completedAt": "2026-10-14T12:02:21.921Z",
+    "contact": {
+      "code": "SELECTION",
+      "contactDimension": 2,
+      "noAcceptedReplacement": true,
+      "operation": "intersect",
+      "publicDiagnosticScope": "contact dimension only; failed translation/intersection reports are not exposed"
+    },
+    "cpuBufferPreparations": 0,
+    "disjoint": {
+      "code": "SELECTION",
+      "contactDimension": -1,
+      "noAcceptedReplacement": true,
+      "operation": "intersect",
+      "publicDiagnosticScope": "contact dimension only; failed translation/intersection reports are not exposed"
+    },
+    "edited": {
+      "authoredSHA256": "fe0b937b21d556b6c890cdc33acaf9ea2711f4aca4f3469e1de8303517bfdf48",
+      "bodiesSHA256": "e51e9c6986cad034dab728b31c24cc443b17f867b8c20b4e3e3b168470c970fe",
+      "boundsMM": {
+        "original": {
+          "max": [
+            32,
+            32,
+            8
+          ],
+          "min": [
+            0,
+            0,
+            0
+          ]
+        },
+        "overlap": {
+          "max": [
+            40,
+            24,
+            4
+          ],
+          "min": [
+            16,
+            0,
+            0
+          ]
+        },
+        "tool": {
+          "max": [
+            40,
+            24,
+            4
+          ],
+          "min": [
+            8,
+            -8,
+            0
+          ]
+        },
+        "translated": {
+          "max": [
+            48,
+            32,
+            8
+          ],
+          "min": [
+            16,
+            0,
+            0
+          ]
+        }
+      },
+      "evidenceSHA256": "82167803b82404f2d83b48c7eedc4d9e58eec42e538a42d55cb56bbcbbacb9ec",
+      "intersection": {
+        "allOutputFacetsAndDirectedEdgesBound": true,
+        "bothActualQualifiedOperands": true,
+        "completeExactSupportIncidence": true,
+        "completeOriginalEdgeIntervals": true,
+        "lineageSHA256": "63f122185c3615f4ce799efae162700374c27baf238f071297cf1292016802d7",
+        "nativeSHA256": "a6e6b09b43e39520083624a1ed7a86a8105beb54e243a7883d23d61038c10dc5",
+        "nativeWork": {
+          "bindingObservations": 306,
+          "completeFaceReconstructions": 19,
+          "faceCompilations": 25,
+          "newFaceConstructions": 6,
+          "outputQualifications": 1,
+          "parentReconstructions": 2,
+          "retries": 0,
+          "scope": "direct-calls-and-known-parent-loops-not-provider-internals",
+          "sourceCompilations": 25,
+          "totalD1": 918
+        },
+        "translatedOperandSeedTrace": [
+          {
+            "intersectionFace": {
+              "faceId": "m4_f0_face",
+              "loopId": "m4_f0_loop",
+              "sourceId": "m5_f0",
+              "surfaceId": "m4_f0_surface"
+            },
+            "seedFace": {
+              "evaluationId": "m1_b_m",
+              "faceId": "m1_b_f",
+              "loopId": "m1_b_l",
+              "sourceId": "m1_b",
+              "surfaceId": "m1_b_s"
+            },
+            "translatedOperand": {
+              "faceId": "m4_f0_face",
+              "loopId": "m4_f0_loop",
+              "operand": "left",
+              "sourceId": "m4_f0_src",
+              "surfaceId": "m4_f0_surface"
+            }
+          },
+          {
+            "intersectionFace": {
+              "faceId": "m4_f2_face",
+              "loopId": "m4_f2_loop",
+              "sourceId": "m5_f1",
+              "surfaceId": "m4_f2_surface"
+            },
+            "seedFace": {
+              "evaluationId": "m1_w_0_m",
+              "faceId": "m1_w_0_f",
+              "loopId": "m1_w_0_l",
+              "sourceId": "m1_w_0",
+              "surfaceId": "m1_w_0_s"
+            },
+            "translatedOperand": {
+              "faceId": "m4_f2_face",
+              "loopId": "m4_f2_loop",
+              "operand": "left",
+              "sourceId": "m4_f2_src",
+              "surfaceId": "m4_f2_surface"
+            }
+          },
+          {
+            "intersectionFace": {
+              "faceId": "m4_f6_face",
+              "loopId": "m4_f6_loop",
+              "sourceId": "m5_f2",
+              "surfaceId": "m4_f6_surface"
+            },
+            "seedFace": {
+              "evaluationId": "m1_w_4_m",
+              "faceId": "m1_w_4_f",
+              "loopId": "m1_w_4_l",
+              "sourceId": "m1_w_4",
+              "surfaceId": "m1_w_4_s"
+            },
+            "translatedOperand": {
+              "faceId": "m4_f6_face",
+              "loopId": "m4_f6_loop",
+              "operand": "left",
+              "sourceId": "m4_f6_src",
+              "surfaceId": "m4_f6_surface"
+            }
+          }
+        ]
+      },
+      "inventory": [
+        6,
+        12,
+        8
+      ],
+      "snapshotSHA256": "a7b779678a2c3a3908c16356205dcec003799fc32327fba246ab723310060a9b",
+      "translation": {
+        "bijectiveLocalAndGlobalLineage": true,
+        "exactCoordinatesNormalsSupportsAndVolume": true,
+        "fullSourceAdoption": true,
+        "lineageSHA256": "252a3f4beddee60384153cf7e7d9fb140a652dd0afbba2f7d5b70b27484ab86a",
+        "nativeSHA256": "f8d217a138f7a812c86e2772d543478d96bc6d40412d1f8f23cf316beb8cb53c",
+        "preservedDomainWeightAndZeroBits": true,
+        "regeneratedNativePcurves": true
+      },
+      "volumesMM3": {
+        "original": 7168,
+        "overlap": 2304,
+        "tool": 4096,
+        "translated": 7168
+      }
+    },
+    "entrySHA256": "aa9f306125493f36387cfd464558d5bc09a55f974f1a09313169cc86bf65d871",
+    "expectedWholeCampaign": {
+      "availableTranslationInitialFaces": 28,
+      "coldModelCalls": 1,
+      "cpuBufferPreparations": 0,
+      "disjointRefusals": 1,
+      "exports": 0,
+      "faceContactRefusals": 1,
+      "fullTransitiveNativeCoverage": "NOT_MEASURED",
+      "knownAvailableBindingObservations": 3150,
+      "knownAvailableD1": 9450,
+      "knownAvailableSourceCompilations": 257,
+      "massQueries": 0,
+      "modelCalls": 6,
+      "refusedDerivedBindingObservations": 864,
+      "refusedDerivedD1": 2592,
+      "refusedDerivedSourceCompilations": 68,
+      "refusedWorkScope": "source-derived call paths only; failed public frames expose no complete Native reports",
+      "returnedIntersectionNewFaces": 27,
+      "returnedIntersectionOutputQualifications": 4,
+      "returnedLedgerBindingObservations": 2790,
+      "returnedLedgerD1": 8370,
+      "returnedLedgerSourceCompilations": 225,
+      "sourceDerivedIntersectionParentReconstructions": 12,
+      "sourceDerivedIntersectionRoots": 6,
+      "sourceDerivedTranslationInitialFaces": 42,
+      "sourceDerivedTranslationParentValidations": 6,
+      "sourceDerivedTranslationTargetQualifications": 6,
+      "sourceDerivedTranslations": 6,
+      "sourceModelCalls": 5,
+      "standaloneSketches": 4,
+      "standaloneValidators": 0,
+      "successfulIntersections": 4,
+      "tessellations": 1,
+      "wholeDerivedBindingObservations": 4014,
+      "wholeDerivedD1": 12042,
+      "wholeDerivedSourceCompilations": 325
+    },
+    "exports": 0,
+    "externalSerialProcessGroupTimeoutRequired": true,
+    "fullTransitiveNativeCoverage": "NOT_MEASURED",
+    "groupStartedAtMS": 1791979339330,
+    "issue": 2002,
+    "limits": {
+      "freeDiskMiB": 500,
+      "heapMiB": 1536,
+      "processGroupSeconds": 600
+    },
+    "massQueries": 0,
+    "mode": "source",
+    "modelCalls": 5,
+    "nativeElapsedMS": 1809.0485419999998,
+    "nodeVersion": "v22.22.0",
+    "pending": null,
+    "preview": {
+      "basis": "actual authored XYZ; no conversion",
+      "faces": 7,
+      "outwardTriangleVolumeMM3": 2944,
+      "parentNativeWork": {
+        "bindingObservationCount": 90,
+        "completeFaceReconstructionCount": 7,
+        "curveD1Count": 90,
+        "pcurveD1Count": 90,
+        "retries": 0,
+        "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+        "sourceCompilationCount": 7,
+        "surfaceD1Count": 90,
+        "totalD1Count": 270
+      },
+      "previewSHA256": "94fe10068f6cbae0ddbc31c9b69f73bb431023ccc70d08bd3e8e73fc295af1b3",
+      "triangles": 16,
+      "vertices": 30
+    },
+    "processId": 15935,
+    "processInstanceId": "c74f3ede-d71d-4894-89a9-4e3a7c039d2d",
+    "recovered": {
+      "authoredSHA256": "ec1420d560fb2898b825323c951be4ec4119fc091441cd43e27b7aea3f3f744c",
+      "bodiesSHA256": "83ce8aa317d9dc3b9096290f61542a93f004ce4d3b27371cd3b952bf1940fb84",
+      "boundsMM": {
+        "original": {
+          "max": [
+            32,
+            32,
+            8
+          ],
+          "min": [
+            0,
+            0,
+            0
+          ]
+        },
+        "overlap": {
+          "max": [
+            40,
+            24,
+            4
+          ],
+          "min": [
+            8,
+            0,
+            0
+          ]
+        },
+        "tool": {
+          "max": [
+            40,
+            24,
+            4
+          ],
+          "min": [
+            8,
+            -8,
+            0
+          ]
+        },
+        "translated": {
+          "max": [
+            40,
+            32,
+            8
+          ],
+          "min": [
+            8,
+            0,
+            0
+          ]
+        }
+      },
+      "evidenceSHA256": "67a98b27d3340a73a2f33e783585ae814ecd5495a14c205ea42131774e3bff2b",
+      "intersection": {
+        "allOutputFacetsAndDirectedEdgesBound": true,
+        "bothActualQualifiedOperands": true,
+        "completeExactSupportIncidence": true,
+        "completeOriginalEdgeIntervals": true,
+        "lineageSHA256": "33f6473f3b23081d08bdf65e9041eaa8551752bb86ee11fbf71322338763999f",
+        "nativeSHA256": "acf489af6aa96cb5649bb9578d9a010352a3052ae4519a09ba5896253b464dda",
+        "nativeWork": {
+          "bindingObservations": 342,
+          "completeFaceReconstructions": 20,
+          "faceCompilations": 27,
+          "newFaceConstructions": 7,
+          "outputQualifications": 1,
+          "parentReconstructions": 2,
+          "retries": 0,
+          "scope": "direct-calls-and-known-parent-loops-not-provider-internals",
+          "sourceCompilations": 27,
+          "totalD1": 1026
+        },
+        "translatedOperandSeedTrace": [
+          {
+            "intersectionFace": {
+              "faceId": "m4_f0_face",
+              "loopId": "m4_f0_loop",
+              "sourceId": "m5_f0",
+              "surfaceId": "m4_f0_surface"
+            },
+            "seedFace": {
+              "evaluationId": "m1_b_m",
+              "faceId": "m1_b_f",
+              "loopId": "m1_b_l",
+              "sourceId": "m1_b",
+              "surfaceId": "m1_b_s"
+            },
+            "translatedOperand": {
+              "faceId": "m4_f0_face",
+              "loopId": "m4_f0_loop",
+              "operand": "left",
+              "sourceId": "m4_f0_src",
+              "surfaceId": "m4_f0_surface"
+            }
+          },
+          {
+            "intersectionFace": {
+              "faceId": "m4_f2_face",
+              "loopId": "m4_f2_loop",
+              "sourceId": "m5_f1",
+              "surfaceId": "m4_f2_surface"
+            },
+            "seedFace": {
+              "evaluationId": "m1_w_0_m",
+              "faceId": "m1_w_0_f",
+              "loopId": "m1_w_0_l",
+              "sourceId": "m1_w_0",
+              "surfaceId": "m1_w_0_s"
+            },
+            "translatedOperand": {
+              "faceId": "m4_f2_face",
+              "loopId": "m4_f2_loop",
+              "operand": "left",
+              "sourceId": "m4_f2_src",
+              "surfaceId": "m4_f2_surface"
+            }
+          },
+          {
+            "intersectionFace": {
+              "faceId": "m4_f3_face",
+              "loopId": "m4_f3_loop",
+              "sourceId": "m5_f2",
+              "surfaceId": "m4_f3_surface"
+            },
+            "seedFace": {
+              "evaluationId": "m1_w_1_m",
+              "faceId": "m1_w_1_f",
+              "loopId": "m1_w_1_l",
+              "sourceId": "m1_w_1",
+              "surfaceId": "m1_w_1_s"
+            },
+            "translatedOperand": {
+              "faceId": "m4_f3_face",
+              "loopId": "m4_f3_loop",
+              "operand": "left",
+              "sourceId": "m4_f3_src",
+              "surfaceId": "m4_f3_surface"
+            }
+          },
+          {
+            "intersectionFace": {
+              "faceId": "m4_f4_face",
+              "loopId": "m4_f4_loop",
+              "sourceId": "m5_f3",
+              "surfaceId": "m4_f4_surface"
+            },
+            "seedFace": {
+              "evaluationId": "m1_w_2_m",
+              "faceId": "m1_w_2_f",
+              "loopId": "m1_w_2_l",
+              "sourceId": "m1_w_2",
+              "surfaceId": "m1_w_2_s"
+            },
+            "translatedOperand": {
+              "faceId": "m4_f4_face",
+              "loopId": "m4_f4_loop",
+              "operand": "left",
+              "sourceId": "m4_f4_src",
+              "surfaceId": "m4_f4_surface"
+            }
+          },
+          {
+            "intersectionFace": {
+              "faceId": "m4_f6_face",
+              "loopId": "m4_f6_loop",
+              "sourceId": "m5_f4",
+              "surfaceId": "m4_f6_surface"
+            },
+            "seedFace": {
+              "evaluationId": "m1_w_4_m",
+              "faceId": "m1_w_4_f",
+              "loopId": "m1_w_4_l",
+              "sourceId": "m1_w_4",
+              "surfaceId": "m1_w_4_s"
+            },
+            "translatedOperand": {
+              "faceId": "m4_f6_face",
+              "loopId": "m4_f6_loop",
+              "operand": "left",
+              "sourceId": "m4_f6_src",
+              "surfaceId": "m4_f6_surface"
+            }
+          }
+        ]
+      },
+      "inventory": [
+        7,
+        15,
+        10
+      ],
+      "snapshotSHA256": "bb0c27ac8a938b274807a3d68d3c0ab56e543db51e718ed97ccf12f2b1e13f3a",
+      "translation": {
+        "bijectiveLocalAndGlobalLineage": true,
+        "exactCoordinatesNormalsSupportsAndVolume": true,
+        "fullSourceAdoption": true,
+        "lineageSHA256": "252a3f4beddee60384153cf7e7d9fb140a652dd0afbba2f7d5b70b27484ab86a",
+        "nativeSHA256": "c639d7bcea34c0a94028622997879d780c07af82b7b79eda72aa24abfc53b7b2",
+        "preservedDomainWeightAndZeroBits": true,
+        "regeneratedNativePcurves": true
+      },
+      "volumesMM3": {
+        "original": 7168,
+        "overlap": 2944,
+        "tool": 4096,
+        "translated": 7168
+      }
+    },
+    "refusedSourceDerivedWork": {
+      "bindingObservations": 864,
+      "formula": "each refused offset spends seven-Face translation21/270/810 plus empty intersection13/162/486; two attempts",
+      "scope": "source-derived call paths only; not observed reports or runtime instrumentation",
+      "sourceCompilations": 68,
+      "totalD1": 2592
+    },
+    "returnedLedgers": {
+      "initialFaces": [
+        {
+          "index": 4,
+          "label": "1 translated nonaxis seed offset8 overlap2944",
+          "report": {
+            "bindingObservationCount": 90,
+            "curveD1Count": 90,
+            "faceCount": 7,
+            "pcurveD1Count": 90,
+            "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+            "sourceCompilationCount": 7,
+            "surfaceD1Count": 90,
+            "totalD1Count": 270
+          }
+        },
+        {
+          "index": 4,
+          "label": "2 offset16 overlap2304 inventory7to6",
+          "report": {
+            "bindingObservationCount": 90,
+            "curveD1Count": 90,
+            "faceCount": 7,
+            "pcurveD1Count": 90,
+            "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+            "sourceCompilationCount": 7,
+            "surfaceD1Count": 90,
+            "totalD1Count": 270
+          }
+        },
+        {
+          "index": 4,
+          "label": "5 recoveroffset8 from acceptedoffset16",
+          "report": {
+            "bindingObservationCount": 90,
+            "curveD1Count": 90,
+            "faceCount": 7,
+            "pcurveD1Count": 90,
+            "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+            "sourceCompilationCount": 7,
+            "surfaceD1Count": 90,
+            "totalD1Count": 270
+          }
+        }
+      ],
+      "intersections": [
+        {
+          "index": 5,
+          "label": "1 translated nonaxis seed offset8 overlap2944",
+          "report": {
+            "bindingObservations": 342,
+            "completeFaceReconstructions": 20,
+            "faceCompilations": 27,
+            "newFaceConstructions": 7,
+            "outputQualifications": 1,
+            "parentReconstructions": 2,
+            "retries": 0,
+            "scope": "direct-calls-and-known-parent-loops-not-provider-internals",
+            "sourceCompilations": 27,
+            "totalD1": 1026
+          }
+        },
+        {
+          "index": 5,
+          "label": "2 offset16 overlap2304 inventory7to6",
+          "report": {
+            "bindingObservations": 306,
+            "completeFaceReconstructions": 19,
+            "faceCompilations": 25,
+            "newFaceConstructions": 6,
+            "outputQualifications": 1,
+            "parentReconstructions": 2,
+            "retries": 0,
+            "scope": "direct-calls-and-known-parent-loops-not-provider-internals",
+            "sourceCompilations": 25,
+            "totalD1": 918
+          }
+        },
+        {
+          "index": 5,
+          "label": "5 recoveroffset8 from acceptedoffset16",
+          "report": {
+            "bindingObservations": 342,
+            "completeFaceReconstructions": 20,
+            "faceCompilations": 27,
+            "newFaceConstructions": 7,
+            "outputQualifications": 1,
+            "parentReconstructions": 2,
+            "retries": 0,
+            "scope": "direct-calls-and-known-parent-loops-not-provider-internals",
+            "sourceCompilations": 27,
+            "totalD1": 1026
+          }
+        }
+      ],
+      "parents": [
+        {
+          "index": 4,
+          "label": "1 translated nonaxis seed offset8 overlap2944",
+          "report": {
+            "bindingObservationCount": 90,
+            "completeFaceReconstructionCount": 7,
+            "curveD1Count": 90,
+            "pcurveD1Count": 90,
+            "retries": 0,
+            "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+            "sourceCompilationCount": 7,
+            "surfaceD1Count": 90,
+            "totalD1Count": 270
+          }
+        },
+        {
+          "index": 4,
+          "label": "2 offset16 overlap2304 inventory7to6",
+          "report": {
+            "bindingObservationCount": 90,
+            "completeFaceReconstructionCount": 7,
+            "curveD1Count": 90,
+            "pcurveD1Count": 90,
+            "retries": 0,
+            "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+            "sourceCompilationCount": 7,
+            "surfaceD1Count": 90,
+            "totalD1Count": 270
+          }
+        },
+        {
+          "index": 4,
+          "label": "5 recoveroffset8 from acceptedoffset16",
+          "report": {
+            "bindingObservationCount": 90,
+            "completeFaceReconstructionCount": 7,
+            "curveD1Count": 90,
+            "pcurveD1Count": 90,
+            "retries": 0,
+            "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+            "sourceCompilationCount": 7,
+            "surfaceD1Count": 90,
+            "totalD1Count": 270
+          }
+        }
+      ],
+      "previews": [
+        {
+          "label": "one genuine overlap16triangle preview",
+          "report": {
+            "bindingObservationCount": 90,
+            "completeFaceReconstructionCount": 7,
+            "curveD1Count": 90,
+            "pcurveD1Count": 90,
+            "retries": 0,
+            "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+            "sourceCompilationCount": 7,
+            "surfaceD1Count": 90,
+            "totalD1Count": 270
+          }
+        }
+      ],
+      "prisms": [
+        {
+          "index": 1,
+          "label": "1 translated nonaxis seed offset8 overlap2944",
+          "report": {
+            "bindingObservationCount": 180,
+            "initialFaceConstructionCount": 7,
+            "retries": 0,
+            "sketchReconstructionCount": 1,
+            "solidFaceReconstructionCount": 7,
+            "solidQualificationCount": 1,
+            "sourceCompilationCount": 15,
+            "totalD1Count": 540
+          }
+        },
+        {
+          "index": 3,
+          "label": "1 translated nonaxis seed offset8 overlap2944",
+          "report": {
+            "bindingObservationCount": 144,
+            "initialFaceConstructionCount": 6,
+            "retries": 0,
+            "sketchReconstructionCount": 1,
+            "solidFaceReconstructionCount": 6,
+            "solidQualificationCount": 1,
+            "sourceCompilationCount": 13,
+            "totalD1Count": 432
+          }
+        }
+      ],
+      "sketches": [
+        {
+          "index": 0,
+          "label": "1 translated nonaxis seed offset8 overlap2944",
+          "report": {
+            "degreesOfFreedom": 0,
+            "equationCount": 10,
+            "freeCoordinates": [],
+            "fullyConstrained": true,
+            "limits": {
+              "constraints": 32,
+              "coordinateAbsMM": 10000,
+              "directionAbs": 10000,
+              "floatSearchIterations": 64,
+              "gcdSteps": 200000,
+              "integerBits": 8192,
+              "minimumSegmentMM": 0.001,
+              "points": 16,
+              "rationalOperations": 200000,
+              "referenceLines": 8,
+              "scalarEquations": 64,
+              "segments": 8,
+              "unknowns": 32
+            },
+            "pivotCoordinates": [
+              {
+                "axis": "x",
+                "pointId": "p0"
+              },
+              {
+                "axis": "y",
+                "pointId": "p0"
+              },
+              {
+                "axis": "x",
+                "pointId": "p1"
+              },
+              {
+                "axis": "y",
+                "pointId": "p1"
+              },
+              {
+                "axis": "x",
+                "pointId": "p2"
+              },
+              {
+                "axis": "y",
+                "pointId": "p2"
+              },
+              {
+                "axis": "x",
+                "pointId": "p3"
+              },
+              {
+                "axis": "y",
+                "pointId": "p3"
+              },
+              {
+                "axis": "x",
+                "pointId": "p4"
+              },
+              {
+                "axis": "y",
+                "pointId": "p4"
+              }
+            ],
+            "quality": {
+              "arithmetic": "exact-represented-binary64-rationals",
+              "conflictProvenance": "chronological-nonminimal-contributing-union",
+              "coordinateConversion": "exact-or-refuse",
+              "directionUnit": "dimensionless",
+              "freeVariables": "authored-seeds-in-point-xy-order",
+              "manufacturingToleranceCertified": false,
+              "ownership": "copied-cpu-data-gc-no-renderer-resources",
+              "pivotOrder": "leftmost-in-authored-equation-order",
+              "redundancy": "chronological-zero-rank-increase",
+              "referenceLines": "immutable-authored-constants",
+              "solid": false,
+              "sourceFrame": "authored-xy-z-zero",
+              "topologyCertified": false
+            },
+            "rank": 10,
+            "rationalWork": {
+              "floatConversions": 6,
+              "floatSearchSteps": 378,
+              "gcdSteps": 140,
+              "maximumObservedBits": 1024,
+              "operations": 6534
+            },
+            "redundantConstraintIds": [],
+            "unknownCount": 10
+          }
+        },
+        {
+          "index": 2,
+          "label": "1 translated nonaxis seed offset8 overlap2944",
+          "report": {
+            "degreesOfFreedom": 0,
+            "equationCount": 8,
+            "freeCoordinates": [],
+            "fullyConstrained": true,
+            "limits": {
+              "constraints": 32,
+              "coordinateAbsMM": 10000,
+              "directionAbs": 10000,
+              "floatSearchIterations": 64,
+              "gcdSteps": 200000,
+              "integerBits": 8192,
+              "minimumSegmentMM": 0.001,
+              "points": 16,
+              "rationalOperations": 200000,
+              "referenceLines": 8,
+              "scalarEquations": 64,
+              "segments": 8,
+              "unknowns": 32
+            },
+            "pivotCoordinates": [
+              {
+                "axis": "x",
+                "pointId": "p0"
+              },
+              {
+                "axis": "y",
+                "pointId": "p0"
+              },
+              {
+                "axis": "x",
+                "pointId": "p1"
+              },
+              {
+                "axis": "y",
+                "pointId": "p1"
+              },
+              {
+                "axis": "x",
+                "pointId": "p2"
+              },
+              {
+                "axis": "y",
+                "pointId": "p2"
+              },
+              {
+                "axis": "x",
+                "pointId": "p3"
+              },
+              {
+                "axis": "y",
+                "pointId": "p3"
+              }
+            ],
+            "quality": {
+              "arithmetic": "exact-represented-binary64-rationals",
+              "conflictProvenance": "chronological-nonminimal-contributing-union",
+              "coordinateConversion": "exact-or-refuse",
+              "directionUnit": "dimensionless",
+              "freeVariables": "authored-seeds-in-point-xy-order",
+              "manufacturingToleranceCertified": false,
+              "ownership": "copied-cpu-data-gc-no-renderer-resources",
+              "pivotOrder": "leftmost-in-authored-equation-order",
+              "redundancy": "chronological-zero-rank-increase",
+              "referenceLines": "immutable-authored-constants",
+              "solid": false,
+              "sourceFrame": "authored-xy-z-zero",
+              "topologyCertified": false
+            },
+            "rank": 8,
+            "rationalWork": {
+              "floatConversions": 8,
+              "floatSearchSteps": 504,
+              "gcdSteps": 122,
+              "maximumObservedBits": 1024,
+              "operations": 8138
+            },
+            "redundantConstraintIds": [],
+            "unknownCount": 8
+          }
+        }
+      ],
+      "targets": [
+        {
+          "index": 4,
+          "label": "1 translated nonaxis seed offset8 overlap2944",
+          "report": {
+            "bindingObservationCount": 90,
+            "completeFaceReconstructionCount": 7,
+            "curveD1Count": 90,
+            "pcurveD1Count": 90,
+            "retries": 0,
+            "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+            "sourceCompilationCount": 7,
+            "surfaceD1Count": 90,
+            "totalD1Count": 270
+          }
+        },
+        {
+          "index": 4,
+          "label": "2 offset16 overlap2304 inventory7to6",
+          "report": {
+            "bindingObservationCount": 90,
+            "completeFaceReconstructionCount": 7,
+            "curveD1Count": 90,
+            "pcurveD1Count": 90,
+            "retries": 0,
+            "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+            "sourceCompilationCount": 7,
+            "surfaceD1Count": 90,
+            "totalD1Count": 270
+          }
+        },
+        {
+          "index": 4,
+          "label": "5 recoveroffset8 from acceptedoffset16",
+          "report": {
+            "bindingObservationCount": 90,
+            "completeFaceReconstructionCount": 7,
+            "curveD1Count": 90,
+            "pcurveD1Count": 90,
+            "retries": 0,
+            "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+            "sourceCompilationCount": 7,
+            "surfaceD1Count": 90,
+            "totalD1Count": 270
+          }
+        }
+      ]
+    },
+    "sourceDerivedExpectedWorkIsNotInstrumented": true,
+    "stages": [
+      {
+        "elapsedMS": 521.327917,
+        "kind": "modelCalls",
+        "label": "1 translated nonaxis seed offset8 overlap2944",
+        "outcome": "returned"
+      },
+      {
+        "elapsedMS": 67.15224999999998,
+        "kind": "tessellations",
+        "label": "one genuine overlap16triangle preview",
+        "outcome": "returned"
+      },
+      {
+        "elapsedMS": 348.9045839999999,
+        "kind": "modelCalls",
+        "label": "2 offset16 overlap2304 inventory7to6",
+        "outcome": "returned"
+      },
+      {
+        "elapsedMS": 250.90649999999982,
+        "failure": {
+          "cause": {
+            "contactDimension": 2
+          },
+          "code": "SELECTION",
+          "message": "CAD model intersect: Intersection has no positive-volume Solid (contact dimension 2)",
+          "name": "CadModelError",
+          "operation": "intersect",
+          "stack": "[Accessor diagnostic field]"
+        },
+        "kind": "modelCalls",
+        "label": "3 face contact offset40",
+        "outcome": "threw"
+      },
+      {
+        "elapsedMS": 251.59029099999998,
+        "failure": {
+          "cause": {
+            "contactDimension": -1
+          },
+          "code": "SELECTION",
+          "message": "CAD model intersect: Intersection has no positive-volume Solid (contact dimension -1)",
+          "name": "CadModelError",
+          "operation": "intersect",
+          "stack": "[Accessor diagnostic field]"
+        },
+        "kind": "modelCalls",
+        "label": "4 disjoint offset48",
+        "outcome": "threw"
+      },
+      {
+        "elapsedMS": 369.16700000000014,
+        "kind": "modelCalls",
+        "label": "5 recoveroffset8 from acceptedoffset16",
+        "outcome": "returned"
+      }
+    ],
+    "standaloneValidators": 0,
+    "startedAt": "2026-10-14T12:02:19.330Z",
+    "status": "passed",
+    "tessellations": 1,
+    "timingScope": "stage action and raw persistence; not isolated kernel timing",
+    "wallElapsedMS": 2591.564208,
+    "wholeSourceDerivedWork": {
+      "bindingObservations": 3078,
+      "scope": "available reports plus source-derived refused work; hidden transitive work NOT_MEASURED",
+      "sourceCompilations": 247,
+      "totalD1": 9234
+    }
+  },
+  "coldFlow": {
+    "accounting": {
+      "availableTranslationInitialFaces": 7,
+      "fullTransitiveNativeCoverage": "NOT_MEASURED",
+      "knownAvailableBindingObservations": 936,
+      "knownAvailableD1": 2808,
+      "knownAvailableSourceCompilations": 78,
+      "publicRefusalReportScope": "contact dimensions only; no invented failed-frame ledgers",
+      "returnedLedgerBindingObservations": 846,
+      "returnedLedgerD1": 2538,
+      "returnedLedgerSourceCompilations": 69,
+      "standaloneSketches": 2
+    },
+    "artifacts": {
+      "06-cold.snapshot.json": {
+        "bytes": 1254180,
+        "scope": "actual complete result before fixture oracles",
+        "sha256": "d860358bb13fb1390138cdd5712bf7c5839c6e7b06c784b5b8be744c629b187a"
+      },
+      "cold.cad-model.json": {
+        "bytes": 666,
+        "scope": "actual fresh emitted save",
+        "sha256": "ec1420d560fb2898b825323c951be4ec4119fc091441cd43e27b7aea3f3f744c"
+      }
+    },
+    "baseline": {
+      "authoredSHA256": "ec1420d560fb2898b825323c951be4ec4119fc091441cd43e27b7aea3f3f744c",
+      "bodiesSHA256": "83ce8aa317d9dc3b9096290f61542a93f004ce4d3b27371cd3b952bf1940fb84",
+      "boundsMM": {
+        "original": {
+          "max": [
+            32,
+            32,
+            8
+          ],
+          "min": [
+            0,
+            0,
+            0
+          ]
+        },
+        "overlap": {
+          "max": [
+            40,
+            24,
+            4
+          ],
+          "min": [
+            8,
+            0,
+            0
+          ]
+        },
+        "tool": {
+          "max": [
+            40,
+            24,
+            4
+          ],
+          "min": [
+            8,
+            -8,
+            0
+          ]
+        },
+        "translated": {
+          "max": [
+            40,
+            32,
+            8
+          ],
+          "min": [
+            8,
+            0,
+            0
+          ]
+        }
+      },
+      "evidenceSHA256": "67a98b27d3340a73a2f33e783585ae814ecd5495a14c205ea42131774e3bff2b",
+      "intersection": {
+        "allOutputFacetsAndDirectedEdgesBound": true,
+        "bothActualQualifiedOperands": true,
+        "completeExactSupportIncidence": true,
+        "completeOriginalEdgeIntervals": true,
+        "lineageSHA256": "33f6473f3b23081d08bdf65e9041eaa8551752bb86ee11fbf71322338763999f",
+        "nativeSHA256": "acf489af6aa96cb5649bb9578d9a010352a3052ae4519a09ba5896253b464dda",
+        "nativeWork": {
+          "bindingObservations": 342,
+          "completeFaceReconstructions": 20,
+          "faceCompilations": 27,
+          "newFaceConstructions": 7,
+          "outputQualifications": 1,
+          "parentReconstructions": 2,
+          "retries": 0,
+          "scope": "direct-calls-and-known-parent-loops-not-provider-internals",
+          "sourceCompilations": 27,
+          "totalD1": 1026
+        },
+        "translatedOperandSeedTrace": [
+          {
+            "intersectionFace": {
+              "faceId": "m4_f0_face",
+              "loopId": "m4_f0_loop",
+              "sourceId": "m5_f0",
+              "surfaceId": "m4_f0_surface"
+            },
+            "seedFace": {
+              "evaluationId": "m1_b_m",
+              "faceId": "m1_b_f",
+              "loopId": "m1_b_l",
+              "sourceId": "m1_b",
+              "surfaceId": "m1_b_s"
+            },
+            "translatedOperand": {
+              "faceId": "m4_f0_face",
+              "loopId": "m4_f0_loop",
+              "operand": "left",
+              "sourceId": "m4_f0_src",
+              "surfaceId": "m4_f0_surface"
+            }
+          },
+          {
+            "intersectionFace": {
+              "faceId": "m4_f2_face",
+              "loopId": "m4_f2_loop",
+              "sourceId": "m5_f1",
+              "surfaceId": "m4_f2_surface"
+            },
+            "seedFace": {
+              "evaluationId": "m1_w_0_m",
+              "faceId": "m1_w_0_f",
+              "loopId": "m1_w_0_l",
+              "sourceId": "m1_w_0",
+              "surfaceId": "m1_w_0_s"
+            },
+            "translatedOperand": {
+              "faceId": "m4_f2_face",
+              "loopId": "m4_f2_loop",
+              "operand": "left",
+              "sourceId": "m4_f2_src",
+              "surfaceId": "m4_f2_surface"
+            }
+          },
+          {
+            "intersectionFace": {
+              "faceId": "m4_f3_face",
+              "loopId": "m4_f3_loop",
+              "sourceId": "m5_f2",
+              "surfaceId": "m4_f3_surface"
+            },
+            "seedFace": {
+              "evaluationId": "m1_w_1_m",
+              "faceId": "m1_w_1_f",
+              "loopId": "m1_w_1_l",
+              "sourceId": "m1_w_1",
+              "surfaceId": "m1_w_1_s"
+            },
+            "translatedOperand": {
+              "faceId": "m4_f3_face",
+              "loopId": "m4_f3_loop",
+              "operand": "left",
+              "sourceId": "m4_f3_src",
+              "surfaceId": "m4_f3_surface"
+            }
+          },
+          {
+            "intersectionFace": {
+              "faceId": "m4_f4_face",
+              "loopId": "m4_f4_loop",
+              "sourceId": "m5_f3",
+              "surfaceId": "m4_f4_surface"
+            },
+            "seedFace": {
+              "evaluationId": "m1_w_2_m",
+              "faceId": "m1_w_2_f",
+              "loopId": "m1_w_2_l",
+              "sourceId": "m1_w_2",
+              "surfaceId": "m1_w_2_s"
+            },
+            "translatedOperand": {
+              "faceId": "m4_f4_face",
+              "loopId": "m4_f4_loop",
+              "operand": "left",
+              "sourceId": "m4_f4_src",
+              "surfaceId": "m4_f4_surface"
+            }
+          },
+          {
+            "intersectionFace": {
+              "faceId": "m4_f6_face",
+              "loopId": "m4_f6_loop",
+              "sourceId": "m5_f4",
+              "surfaceId": "m4_f6_surface"
+            },
+            "seedFace": {
+              "evaluationId": "m1_w_4_m",
+              "faceId": "m1_w_4_f",
+              "loopId": "m1_w_4_l",
+              "sourceId": "m1_w_4",
+              "surfaceId": "m1_w_4_s"
+            },
+            "translatedOperand": {
+              "faceId": "m4_f6_face",
+              "loopId": "m4_f6_loop",
+              "operand": "left",
+              "sourceId": "m4_f6_src",
+              "surfaceId": "m4_f6_surface"
+            }
+          }
+        ]
+      },
+      "inventory": [
+        7,
+        15,
+        10
+      ],
+      "snapshotSHA256": "7fd7550f017e604d7efe89bf08182ff54e481025a62db3feca4fb17dc9a931ff",
+      "translation": {
+        "bijectiveLocalAndGlobalLineage": true,
+        "exactCoordinatesNormalsSupportsAndVolume": true,
+        "fullSourceAdoption": true,
+        "lineageSHA256": "252a3f4beddee60384153cf7e7d9fb140a652dd0afbba2f7d5b70b27484ab86a",
+        "nativeSHA256": "c639d7bcea34c0a94028622997879d780c07af82b7b79eda72aa24abfc53b7b2",
+        "preservedDomainWeightAndZeroBits": true,
+        "regeneratedNativePcurves": true
+      },
+      "volumesMM3": {
+        "original": 7168,
+        "overlap": 2944,
+        "tool": 4096,
+        "translated": 7168
+      }
+    },
+    "campaignAccounting": {
+      "availableTranslationInitialFaces": 28,
+      "fullTransitiveNativeCoverage": "NOT_MEASURED",
+      "knownAvailableBindingObservations": 3150,
+      "knownAvailableD1": 9450,
+      "knownAvailableSourceCompilations": 257,
+      "publicRefusalReportScope": "contact dimensions only; no invented failed-frame ledgers",
+      "refusedDerivedBindingObservations": 864,
+      "refusedDerivedD1": 2592,
+      "refusedDerivedSourceCompilations": 68,
+      "refusedWorkScope": "source-derived call paths only; failed public frames expose no complete Native reports",
+      "returnedLedgerBindingObservations": 2790,
+      "returnedLedgerD1": 8370,
+      "returnedLedgerSourceCompilations": 225,
+      "standaloneSketches": 4,
+      "wholeDerivedBindingObservations": 4014,
+      "wholeDerivedD1": 12042,
+      "wholeDerivedSourceCompilations": 325
+    },
+    "campaignModelCalls": 6,
+    "campaignTessellations": 1,
+    "completedAt": "2026-10-14T12:02:22.908Z",
+    "cpuBufferPreparations": 0,
+    "entrySHA256": "d9d741fc24ddaeb6dd6b831ac59369daa0e842294d2e444da04ec357fa079b92",
+    "expectedWholeCampaign": {
+      "availableTranslationInitialFaces": 28,
+      "coldModelCalls": 1,
+      "cpuBufferPreparations": 0,
+      "disjointRefusals": 1,
+      "exports": 0,
+      "faceContactRefusals": 1,
+      "fullTransitiveNativeCoverage": "NOT_MEASURED",
+      "knownAvailableBindingObservations": 3150,
+      "knownAvailableD1": 9450,
+      "knownAvailableSourceCompilations": 257,
+      "massQueries": 0,
+      "modelCalls": 6,
+      "refusedDerivedBindingObservations": 864,
+      "refusedDerivedD1": 2592,
+      "refusedDerivedSourceCompilations": 68,
+      "refusedWorkScope": "source-derived call paths only; failed public frames expose no complete Native reports",
+      "returnedIntersectionNewFaces": 27,
+      "returnedIntersectionOutputQualifications": 4,
+      "returnedLedgerBindingObservations": 2790,
+      "returnedLedgerD1": 8370,
+      "returnedLedgerSourceCompilations": 225,
+      "sourceDerivedIntersectionParentReconstructions": 12,
+      "sourceDerivedIntersectionRoots": 6,
+      "sourceDerivedTranslationInitialFaces": 42,
+      "sourceDerivedTranslationParentValidations": 6,
+      "sourceDerivedTranslationTargetQualifications": 6,
+      "sourceDerivedTranslations": 6,
+      "sourceModelCalls": 5,
+      "standaloneSketches": 4,
+      "standaloneValidators": 0,
+      "successfulIntersections": 4,
+      "tessellations": 1,
+      "wholeDerivedBindingObservations": 4014,
+      "wholeDerivedD1": 12042,
+      "wholeDerivedSourceCompilations": 325
+    },
+    "exports": 0,
+    "externalSerialProcessGroupTimeoutRequired": true,
+    "fullTransitiveNativeCoverage": "NOT_MEASURED",
+    "groupStartedAtMS": 1791979339330,
+    "issue": 2002,
+    "limits": {
+      "freeDiskMiB": 500,
+      "heapMiB": 1536,
+      "processGroupSeconds": 600
+    },
+    "massQueries": 0,
+    "mode": "cold",
+    "modelCalls": 1,
+    "nativeElapsedMS": 529.351666,
+    "nodeVersion": "v22.22.0",
+    "parity": {
+      "bodies": true,
+      "canonicalSave": true,
+      "evidence": true,
+      "freshProcessFullRebuild": true,
+      "fullBaselineSnapshot": true,
+      "parameters": true,
+      "parsedReplayScope": "data only; no parsed-object identity/cache/freeze claim"
+    },
+    "pending": null,
+    "processId": 15955,
+    "processInstanceId": "19807af4-7cbb-46ab-8a6c-94907bad1ffc",
+    "returnedLedgers": {
+      "initialFaces": [
+        {
+          "index": 4,
+          "label": "6 fresh emitted baselinecold overlap2944",
+          "report": {
+            "bindingObservationCount": 90,
+            "curveD1Count": 90,
+            "faceCount": 7,
+            "pcurveD1Count": 90,
+            "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+            "sourceCompilationCount": 7,
+            "surfaceD1Count": 90,
+            "totalD1Count": 270
+          }
+        }
+      ],
+      "intersections": [
+        {
+          "index": 5,
+          "label": "6 fresh emitted baselinecold overlap2944",
+          "report": {
+            "bindingObservations": 342,
+            "completeFaceReconstructions": 20,
+            "faceCompilations": 27,
+            "newFaceConstructions": 7,
+            "outputQualifications": 1,
+            "parentReconstructions": 2,
+            "retries": 0,
+            "scope": "direct-calls-and-known-parent-loops-not-provider-internals",
+            "sourceCompilations": 27,
+            "totalD1": 1026
+          }
+        }
+      ],
+      "parents": [
+        {
+          "index": 4,
+          "label": "6 fresh emitted baselinecold overlap2944",
+          "report": {
+            "bindingObservationCount": 90,
+            "completeFaceReconstructionCount": 7,
+            "curveD1Count": 90,
+            "pcurveD1Count": 90,
+            "retries": 0,
+            "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+            "sourceCompilationCount": 7,
+            "surfaceD1Count": 90,
+            "totalD1Count": 270
+          }
+        }
+      ],
+      "previews": [],
+      "prisms": [
+        {
+          "index": 1,
+          "label": "6 fresh emitted baselinecold overlap2944",
+          "report": {
+            "bindingObservationCount": 180,
+            "initialFaceConstructionCount": 7,
+            "retries": 0,
+            "sketchReconstructionCount": 1,
+            "solidFaceReconstructionCount": 7,
+            "solidQualificationCount": 1,
+            "sourceCompilationCount": 15,
+            "totalD1Count": 540
+          }
+        },
+        {
+          "index": 3,
+          "label": "6 fresh emitted baselinecold overlap2944",
+          "report": {
+            "bindingObservationCount": 144,
+            "initialFaceConstructionCount": 6,
+            "retries": 0,
+            "sketchReconstructionCount": 1,
+            "solidFaceReconstructionCount": 6,
+            "solidQualificationCount": 1,
+            "sourceCompilationCount": 13,
+            "totalD1Count": 432
+          }
+        }
+      ],
+      "sketches": [
+        {
+          "index": 0,
+          "label": "6 fresh emitted baselinecold overlap2944",
+          "report": {
+            "degreesOfFreedom": 0,
+            "equationCount": 10,
+            "freeCoordinates": [],
+            "fullyConstrained": true,
+            "limits": {
+              "constraints": 32,
+              "coordinateAbsMM": 10000,
+              "directionAbs": 10000,
+              "floatSearchIterations": 64,
+              "gcdSteps": 200000,
+              "integerBits": 8192,
+              "minimumSegmentMM": 0.001,
+              "points": 16,
+              "rationalOperations": 200000,
+              "referenceLines": 8,
+              "scalarEquations": 64,
+              "segments": 8,
+              "unknowns": 32
+            },
+            "pivotCoordinates": [
+              {
+                "axis": "x",
+                "pointId": "p0"
+              },
+              {
+                "axis": "y",
+                "pointId": "p0"
+              },
+              {
+                "axis": "x",
+                "pointId": "p1"
+              },
+              {
+                "axis": "y",
+                "pointId": "p1"
+              },
+              {
+                "axis": "x",
+                "pointId": "p2"
+              },
+              {
+                "axis": "y",
+                "pointId": "p2"
+              },
+              {
+                "axis": "x",
+                "pointId": "p3"
+              },
+              {
+                "axis": "y",
+                "pointId": "p3"
+              },
+              {
+                "axis": "x",
+                "pointId": "p4"
+              },
+              {
+                "axis": "y",
+                "pointId": "p4"
+              }
+            ],
+            "quality": {
+              "arithmetic": "exact-represented-binary64-rationals",
+              "conflictProvenance": "chronological-nonminimal-contributing-union",
+              "coordinateConversion": "exact-or-refuse",
+              "directionUnit": "dimensionless",
+              "freeVariables": "authored-seeds-in-point-xy-order",
+              "manufacturingToleranceCertified": false,
+              "ownership": "copied-cpu-data-gc-no-renderer-resources",
+              "pivotOrder": "leftmost-in-authored-equation-order",
+              "redundancy": "chronological-zero-rank-increase",
+              "referenceLines": "immutable-authored-constants",
+              "solid": false,
+              "sourceFrame": "authored-xy-z-zero",
+              "topologyCertified": false
+            },
+            "rank": 10,
+            "rationalWork": {
+              "floatConversions": 6,
+              "floatSearchSteps": 378,
+              "gcdSteps": 140,
+              "maximumObservedBits": 1024,
+              "operations": 6534
+            },
+            "redundantConstraintIds": [],
+            "unknownCount": 10
+          }
+        },
+        {
+          "index": 2,
+          "label": "6 fresh emitted baselinecold overlap2944",
+          "report": {
+            "degreesOfFreedom": 0,
+            "equationCount": 8,
+            "freeCoordinates": [],
+            "fullyConstrained": true,
+            "limits": {
+              "constraints": 32,
+              "coordinateAbsMM": 10000,
+              "directionAbs": 10000,
+              "floatSearchIterations": 64,
+              "gcdSteps": 200000,
+              "integerBits": 8192,
+              "minimumSegmentMM": 0.001,
+              "points": 16,
+              "rationalOperations": 200000,
+              "referenceLines": 8,
+              "scalarEquations": 64,
+              "segments": 8,
+              "unknowns": 32
+            },
+            "pivotCoordinates": [
+              {
+                "axis": "x",
+                "pointId": "p0"
+              },
+              {
+                "axis": "y",
+                "pointId": "p0"
+              },
+              {
+                "axis": "x",
+                "pointId": "p1"
+              },
+              {
+                "axis": "y",
+                "pointId": "p1"
+              },
+              {
+                "axis": "x",
+                "pointId": "p2"
+              },
+              {
+                "axis": "y",
+                "pointId": "p2"
+              },
+              {
+                "axis": "x",
+                "pointId": "p3"
+              },
+              {
+                "axis": "y",
+                "pointId": "p3"
+              }
+            ],
+            "quality": {
+              "arithmetic": "exact-represented-binary64-rationals",
+              "conflictProvenance": "chronological-nonminimal-contributing-union",
+              "coordinateConversion": "exact-or-refuse",
+              "directionUnit": "dimensionless",
+              "freeVariables": "authored-seeds-in-point-xy-order",
+              "manufacturingToleranceCertified": false,
+              "ownership": "copied-cpu-data-gc-no-renderer-resources",
+              "pivotOrder": "leftmost-in-authored-equation-order",
+              "redundancy": "chronological-zero-rank-increase",
+              "referenceLines": "immutable-authored-constants",
+              "solid": false,
+              "sourceFrame": "authored-xy-z-zero",
+              "topologyCertified": false
+            },
+            "rank": 8,
+            "rationalWork": {
+              "floatConversions": 8,
+              "floatSearchSteps": 504,
+              "gcdSteps": 122,
+              "maximumObservedBits": 1024,
+              "operations": 8138
+            },
+            "redundantConstraintIds": [],
+            "unknownCount": 8
+          }
+        }
+      ],
+      "targets": [
+        {
+          "index": 4,
+          "label": "6 fresh emitted baselinecold overlap2944",
+          "report": {
+            "bindingObservationCount": 90,
+            "completeFaceReconstructionCount": 7,
+            "curveD1Count": 90,
+            "pcurveD1Count": 90,
+            "retries": 0,
+            "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+            "sourceCompilationCount": 7,
+            "surfaceD1Count": 90,
+            "totalD1Count": 270
+          }
+        }
+      ]
+    },
+    "sourceDerivedExpectedWorkIsNotInstrumented": true,
+    "sourceFlowSHA256": "f2f103f7bb47b87bb130c4310ac9c0ca65f18a596349b1d32a99f2f2b267951c",
+    "stages": [
+      {
+        "elapsedMS": 529.351666,
+        "kind": "modelCalls",
+        "label": "6 fresh emitted baselinecold overlap2944",
+        "outcome": "returned"
+      }
+    ],
+    "standaloneValidators": 0,
+    "startedAt": "2026-10-14T12:02:21.983Z",
+    "status": "passed",
+    "tessellations": 0,
+    "timingScope": "stage action and raw persistence; not isolated kernel timing",
+    "wallElapsedMS": 924.9077090000001
+  },
+  "sourceInputHashes": {
+    "packages/barocss-cad/src/types.ts": "45d0ca7769db26f04a66f2f3ea515e468fe07ef6a2dee861c0adfbf3dc12bd7b",
+    "packages/barocss-cad/src/math.ts": "e136025c659c171cc1cb4f42591d6d1f87b51d3d9e41e0780ce4eea68e3b5b9e",
+    "packages/barocss-cad/src/iges.ts": "d2dcdad84e7e91f64b7dd7719cca5cfe9efc976f8eebca825679bc847fd011d4",
+    "packages/barocss-cad/src/packet.ts": "85901b7101569dd21790eb097c975880dce0528b462cdefa7529ddc9c8fb2c12",
+    "packages/barocss-cad/src/preview.ts": "0d4ff575bb8334ea8cd55ea52f88144b354a021e286cf536ab65b6ea9aeff0dc",
+    "packages/barocss-cad/src/extrusion-validation.ts": "c46befb2f9466c9656a01f03a069a5acc56e265eba1ea642c722fdd97bb035f7",
+    "packages/barocss-cad/src/extrusion.ts": "4ad04a486022d837d1e05c441756e6dcbf304abd3665c554c093bf27c5fb3db4",
+    "packages/barocss-cad/src/derivatives.ts": "3a1ef78e20a27d461780978df22060c005b2bea6eca0f831f1b16e265e75916b",
+    "packages/barocss-cad/src/boundary.ts": "98db2dc400ce0cec58271fd6e904ece2b71f0cac72361ecfa8e53499458ac18d",
+    "packages/barocss-cad/src/face.ts": "f79aa8b451023fcab7dfee0736c256119e81afa8c4f12dd59abd8204612023f1",
+    "packages/barocss-cad/src/adjacency.ts": "af6416a1260281bc241feb13c291142fd5f2f6cca5e66926bd07746ae770d24a",
+    "packages/barocss-cad/src/orthogonal-adjacency.ts": "fbb1c411a62969ba174e78bc116443684724c3009909a2af4d497cf89064bc3e",
+    "packages/barocss-cad/src/box-shell.ts": "02c76da6f50b1499ba79bbe1ecbc48bd67bb7fe141430aed1b3568c0e447c782",
+    "packages/barocss-cad/src/box-solid.ts": "144f9b56d2b24e3fb4f3ebcc400feb1b8af78a212276853ca018bd4007538c61",
+    "packages/barocss-cad/src/expression-parser.ts": "8332b91fe2b542f6b995af88375ad84d0f25573d04893fa0f3d071820c572eaf",
+    "packages/barocss-cad/src/source-ast.ts": "c157d4ae59bf68b0fdd007ab7b2cf0b8f43a0e5fa7eb35f25f900187cbcc3efc",
+    "packages/barocss-cad/src/data-copy.ts": "b93cfda57b76535a8774b9099a91cba94fb36e427c336b0c709eac9babe52ed3",
+    "packages/barocss-cad/src/parameter-semantics.ts": "1402135428ab95bbeb9c171766ad339eed0b51e21a0cad530a2b4e08f2cdc3e6",
+    "packages/barocss-cad/src/function-quantity-semantics.ts": "a8b9d144d5000fa0bdc38aa1905b17b76d3f7f00ec294471444e8e067bd853a0",
+    "packages/barocss-cad/src/semantic-model.ts": "e80e7dfe6e2bb9ecb475e6d77ff201d3da2711359941006f30ec234311d77e15",
+    "packages/barocss-cad/src/lower-model.ts": "4542b2d463959c1b506ef066cbc2ce51fbe163ba663294e50fd99b61c3c12502",
+    "packages/barocss-cad/src/model-compiler.ts": "bddc67c78a8c709153db29758ed4e2cbe2356642b92415f31368c65451683230",
+    "packages/barocss-cad/src/curve-source.ts": "d463e19cddbbac5635871880b239aa86ba33c1025e8c993e25afc962d91005df",
+    "packages/barocss-cad/src/xy-profile.ts": "96154bedcee737b12e723e9f3942129fdf467f36ae7ce6fdddceaedc24c248ac",
+    "packages/barocss-cad/src/xy-arc.ts": "d51cb2dbbb056efbe523a1fbda69a26d74239585bfe02cabb92f5698783af2f6",
+    "packages/barocss-cad/src/axis-rectangle-extrusion.ts": "cfb138de7f3fafa6f26023e4cf974840ee30711f4bd18d07af111c5b78811719",
+    "packages/barocss-cad/src/axis-rectangle-feature-document.ts": "43c4881922bc963a1a3f58df4a6e941f7ee62330c0b36d939fc12ba90e347589",
+    "packages/barocss-cad/src/xy-linear-sketch.ts": "0ac51220d0d4b813676b5400d2e5dd67508f2cac40f436db5431b619f6f0d265",
+    "packages/barocss-cad/src/xy-polygon-region.ts": "6d4c7caeff49c00b1624555952e86c9588b16536082ac8efd82c8fc4c77c5263",
+    "packages/barocss-cad/src/xy-polygon-preview.ts": "d6796043fb695f19e00b6a76ea4bd1cd90c487d1b4242fba4ef1b32ed74c41b8",
+    "packages/barocss-cad/src/xy-polygon-prism-preview.ts": "a7db3b6e62c5ce4db4911a03bd4cd2641f3a2b8cea7dc70638ca1783a351ca46",
+    "packages/barocss-cad/src/xy-polygon-prism-document.ts": "eb750f645a78b10a5a386df61f2111c185227c60b17bf5ff8342a52a55ce9003",
+    "packages/barocss-cad/src/xy-polygon-planar-face.ts": "1789d5a04d4ba2fd014c6f2aacb53cd86b8df48882887c63acc20b85d219a531",
+    "packages/barocss-cad/src/xy-polygon-prism-shell.ts": "14a681a7e06fa31afd46b084ac3102b99471701ce2c78f7c2067c943f1dd32f5",
+    "packages/barocss-cad/src/xy-polygon-prism-shell-preview.ts": "3c7fc30a1db1649fde356fc7a1974e6e17e785e21751fe629b6f673b5ee698c2",
+    "packages/barocss-cad/src/xy-polygon-prism-ray-query.ts": "28dabed151c69d546f579bc857bb64db387f1adef2f1f098525765e35d9bcfc3",
+    "packages/barocss-cad/src/xy-polygon-planar-face-hole.ts": "a435e518d487abceadfb78493c9f22554262e84a7d5478f8766421ec1651084c",
+    "packages/barocss-cad/src/xy-polygon-planar-face-hole-preview.ts": "7e252e36e1c4eead2285556add38a77f4b9cfa68418b6d75d4656dfbae7830c6",
+    "packages/barocss-cad/src/xy-polygon-prism-shell-hole.ts": "1265ca2edb3624b7c022130291d6055e88a1115fa5cd47bd5d5b5a704cfcecf9",
+    "packages/barocss-cad/src/xy-polygon-prism-shell-hole-preview.ts": "d2b9ccb0b6c10fc9d390d231b6733e218882794bd63048fbafa9396a44262165",
+    "packages/barocss-cad/src/xy-polygon-prism-hole-document.ts": "c71d1f24ac22fbfb8d2e966b9be03deddeee7d6b6fdb5d61f895fdfb6f7389f9",
+    "packages/barocss-cad/src/xy-polygon-prism-shell-hole-ray-query.ts": "41e0ed7bc009017f35c01e897b6f37204eb91804d4108a94416535124f4ca631",
+    "packages/barocss-cad/src/xy-sketch-document.ts": "b8faa4caacd0b88cc7d8b8810e55d9b5b43ac0763879ca56aac73e677885653a",
+    "packages/barocss-cad/src/workplane-sketch-frame-internal.ts": "79dcbfc276f9b50ada82d7c334c12e74b924daa6d3128da8af61f8b2de77f00f",
+    "packages/barocss-cad/src/xy-circle-planar-face.ts": "9aeebb86aa825720d759c9de984e00d094cac4b6717f876fcd85b1171007477d",
+    "packages/barocss-cad/src/xy-circle-prism-shell.ts": "1d102c474665bae525dc0ab60834306cd3d6b03f2840d7f407dd7a7cf422e811",
+    "packages/barocss-cad/src/own-plane-cylinder-intersection-internal.ts": "9af1f323fb5485dadc72b82d9ed54aa42db702e0ceba2aea6e684fd5bdc69a71",
+    "packages/barocss-cad/src/affine-geometry-transform.ts": "9edef51a97b2c046222e63f96c092833d0bd2367502b47fe6821c609b4a9ce67",
+    "packages/barocss-cad/src/workplane-sketch-document.ts": "b16f9761dfb5c96b40ee5f8ebc148b4f0e2e5890ac34aa065d1d8ae2c87aa0a6",
+    "packages/barocss-cad/src/xy-arc-sketch-document.ts": "5e71abbfe33c8abf1cbe977b51cdf0ca61f7cceef8f8a6e705d54ad4d3fee32e",
+    "packages/barocss-cad/src/xy-circle-planar-face-preview.ts": "da312a6566cb313ee8e5c727d0c75d63e1b0b5eed49b56e9097fe87e5001bdbd",
+    "packages/barocss-cad/src/xy-circle-prism-shell-preview.ts": "7078cbec4c7475a20ff47b6515acc4c200e2a01cfb438f0f260f089db0824e8a",
+    "packages/barocss-cad/src/xy-circle-prism-document.ts": "584e0be3eaa73ef87ceffa745bf5d6352b51c7f98a1f3bbd1ca7d4f9980cc6fa",
+    "packages/barocss-cad/src/circle-graph-internal.ts": "32fb66940d6971320c7f625dc3c4500864f5f90095940e721ebfc31fb6a8a260",
+    "packages/barocss-cad/src/sketch-circle-feature-graph.ts": "5cba901527a65590a945442fbac5c7d47d5b03516f147a2f637b46d929d0de6f",
+    "packages/barocss-cad/src/sketch-rectangle-feature-graph.ts": "568e084a6050ba45cbff166a1edff59dffd25f31d6a5fb5e0c768920a3dffc84",
+    "packages/barocss-cad/src/driven-sketch-circle-feature-graph.ts": "b76f3d51b53aabfc5d28a3eee34565041500e879992339ccde7e72d499de8a12",
+    "packages/barocss-cad/src/z-axis-revolved-surface.ts": "0b9983714dca83738f23a2ea653fa4e8c518d939b176e759e9b270d32efec05b",
+    "packages/barocss-cad/src/z-axis-revolve-document.ts": "d0aa6b771e77bc530b83e9d8d52f96aca11102f2c7ed8b5458d23fa702348128",
+    "packages/barocss-cad/src/z-axis-revolve-preview.ts": "34741e469824c4a99ea0366a696aa5594a32029467c86db573aa5a69f99415b5",
+    "packages/barocss-cad/src/compatible-ruled-surface.ts": "7bae7dc717b6e6a777bb28e6d28bd93afd92c84363bd15d1b13e7307f9091d7b",
+    "packages/barocss-cad/src/curve-knot-insertion.ts": "dda51bfd95ae19cce294b751869be01fc5c98ede2f516bceb27ccdbc775fc4eb",
+    "packages/barocss-cad/src/surface-control-net.ts": "4b56f60affd470dd843f5c3a83cd56e6bfa39ec0da44a78f3502fa03cddbd604",
+    "packages/barocss-cad/src/surface-knot-insertion.ts": "6e2bdc8666ec0270ef82c071e7ac6285dc0d260c8ac753c30559c1e8821b8c8a",
+    "packages/barocss-cad/src/surface-isocurve.ts": "d01cc9637a6357f8d20485135d3536b21ff6820667898ef7b0ac6cf248caa564",
+    "packages/barocss-cad/src/surface-parameter-split.ts": "49a1f14f5b90d5ef2d237addb96c67a4fc6e08cdf94d3681e2310d5cb98929bc",
+    "packages/barocss-cad/src/curve-parameter-split.ts": "9783a84c1455a6a35cf41eb22a34b141f8c04776745504ed216a0264233e78c2",
+    "packages/barocss-cad/src/curve-control-polygon.ts": "6d7a59babd88cccf4183ab7945f2b096b75b81fb8ff9a9697ea89b15d62cdff4",
+    "packages/barocss-cad/src/bezier-curve-degree-elevation.ts": "823dad69be5fcab12d3e1d2aec32f48603c8c26bb1c13fa4e92ab11c9216bd07",
+    "packages/barocss-cad/src/surface-bezier-axis-degree-elevation.ts": "0bb5469216752cec5c9d186501b8af8889a630093e1cfdb16ea94d68ff6ea02f",
+    "packages/barocss-cad/src/rational-ruled-surface.ts": "0ce2bf3253853f2df10ca98f2717c8e81dbfd6899e91847b926962dcf3cd9eb0",
+    "packages/barocss-cad/src/degree-matched-bezier-ruled.ts": "13e55d09f49a9d45a835cbb2bf04b8d966ec3d7f46f70afc8a2da610d49c61f4",
+    "packages/barocss-cad/src/own-plate-circular-hole.ts": "69d78c6f6df1c4e997f345c6f6426ccfa8cb59948c9b71e2f251451bbe546fe4",
+    "packages/barocss-cad/src/own-plate-circular-hole-preview.ts": "9681b28cbf75b990067eefcc6b403908729542cba16f15033d67365b4315d5d7",
+    "packages/barocss-cad/src/own-plane-cylinder-intersection.ts": "c3d2ae84478d5ae01b74feb1b786e07a85289ba0c1105d612cdc8c76a781c027",
+    "packages/barocss-cad/src/own-homogeneous-bernstein-roots.ts": "88a5fd85c8b68686607aa181683650c5fc95a721fa9df85f7668b104ab0c27c3",
+    "packages/barocss-cad/src/own-plane-cylinder-clipped.ts": "9e822b505398b1dc636f3ad86f5acdb8d174a1b1ecafba5ff47f17af1147fb18",
+    "packages/barocss-cad/src/own-curve-plane-intersection.ts": "e8f9e4ac0f2fcc29f81f428165de5e3258134ce0c4c54732c629a2704f227ab4",
+    "packages/barocss-cad/src/own-multispan-curve-plane.ts": "824bb8de3e50c7d4f0220c3831cb98f678bd8920825bbfa0085e236a8e004e4c",
+    "packages/barocss-cad/src/curve-adaptive-sampling.ts": "842c576a52f7883aafe1ed47a09edfb1e1d82e22b4be6912bace2ad776493e90",
+    "packages/barocss-cad/src/curve-wide-adaptive-sampling.ts": "15a3e0f498b4e90f78a59f17943db727132a8b43751b594539df48478858a996",
+    "packages/barocss-cad/src/curve-bezier-spans.ts": "3b569e83337c8d0c0aab6d5b8f8f915ce058c684dddc2cddbdb330ae99165992",
+    "packages/barocss-cad/src/curve-wide-plane-intersection.ts": "4ab34916910e3424b1296a2a6987fea217ca67db2e7d288f907119e4f5e12742",
+    "packages/barocss-cad/src/own-coincident-plane-clip.ts": "398db2404b23467a38424e4717dc25ce24486f9b68d00fa4c1d519288273f735",
+    "packages/barocss-cad/src/own-curve-line-intersection.ts": "6849b76be60b0be9e230e5f4be0ede504a7f428179d887d70c8a3a14f91762a7",
+    "packages/barocss-cad/src/section-rational-internal.ts": "f7d31dfc0ed1886a84b8b3e27a1ecd58b951e03b22547d228f6619c494036a07",
+    "packages/barocss-cad/src/exact-affine-plane-internal.ts": "114f7a3dcc10302aa038ac235636398b5210c86525cde52d28a985c220f36bd6",
+    "packages/barocss-cad/src/own-affine-plane-loop-internal.ts": "056af3e68b9a64c7d0848092f69392214743a71b39799f172f5e279e1f68745d",
+    "packages/barocss-cad/src/own-convex-loop-clip.ts": "3f0a6063023f05e332af79266776331fef98b90f80497a4d868a904a7e18d4ad",
+    "packages/barocss-cad/src/own-convex-planar-face.ts": "5fa22ad3709ac4f244e506ecd50c82e3a333371fde117f15c4e1cb0c89972775",
+    "packages/barocss-cad/src/own-convex-planar-face-intersection.ts": "3f7b60f4a98bb3a312e9c7fd1f9a43922ff2f447f31594add2b27049ed5eae5e",
+    "packages/barocss-cad/src/own-convex-planar-face-holes.ts": "e420fbd54ce6e355c8cb0172cc932b0e659488db5ef269cd7bc7ec07a6a1e86b",
+    "packages/barocss-cad/src/own-convex-planar-face-holes-intersection.ts": "abf71709a7166587b09c4b91184f89c7ce35c70bf9f8cccfad4ec8dcda740e33",
+    "packages/barocss-cad/src/own-convex-planar-face-holes-preview.ts": "e01517524d6986aeeeedd8a1d5fd8ae0bef6d90b3a77623556061dbd5e2c5225",
+    "packages/barocss-cad/src/own-convex-planar-face-holes-ray.ts": "f12ed28cfbeef2c5adc95facb6545984318dc5ea81f74eb65e5fe52e0530df4b",
+    "packages/barocss-cad/src/curve-join.ts": "f502d18d9d865773c3af06fb9eb612652d506e8d7acb84ec96198568a97e22f7",
+    "packages/barocss-cad/src/curve-reversal.ts": "b22a5d341de44951b8e2f24ea4441509e615a17c621b03a237fbcdf4ab2a10f0",
+    "packages/barocss-cad/src/curve-interval-extraction.ts": "66e7ce2d087562477d82eaed38333107c61ffa0e70772a7c76a5452e900affb5",
+    "packages/barocss-cad/src/surface-region.ts": "060d20c187336b33730b368c3d78c4b47f974452a45399da163a26e278447020",
+    "packages/barocss-cad/src/curve-wide-refinement.ts": "8ceb92ea790527d808169e4b88c7656fe76d193bfbd55af83b28d6e3b2442d9e",
+    "packages/barocss-cad/src/surface-axis-reversal.ts": "c668d2bce2c6a39295ac123688d25889047fdadfbf50d89c781d313d02e5ed88",
+    "packages/barocss-cad/src/cad-document.ts": "bb567e240b8a79466ac4fb1c58b1b7c4f8c11f3d34ad01250015c123974b8082",
+    "packages/barocss-cad/src/cad-document-reference.ts": "6cd52bba8fcedc8367b91273f4600442abeb934a9490a70141bfd6b08a1f2fea",
+    "packages/barocss-cad/src/cad-document-compatibility.ts": "66bcd6a8d9dc24fb0e0474bf0a2eb04cec2ead1429b8c7c088c9274fbdd82963",
+    "packages/barocss-cad/src/cad-document-export.ts": "b46d64f44743f2a370d6d60aff56a2190aadfb6a989b8b49e851e369fb03d571",
+    "packages/barocss-cad/src/own-cubic-bernstein-roots.ts": "25e171bee888232d8e1268c4fd1a0bc53560a07d82438893c6e367fe1226adb8",
+    "packages/barocss-cad/src/own-cubic-curve-plane-intersection.ts": "c53d14e9bbbe30fea55b20731ffd4a2246367eb96e1ea86744f7c307063ef811",
+    "packages/barocss-cad/src/curve-wide-cubic-plane-intersection.ts": "8e3cd841a8320d6ba45487cf8927586c17ddee124843308b53809edc76a921dc",
+    "packages/barocss-cad/src/curve-wide-control-polygon.ts": "5c176018a934138b5eb49189c8883c39a2c0eaa6830109c91456c118373cf034",
+    "packages/barocss-cad/src/curve-wide-reversal.ts": "5644f725616046b197c26e3022d8be439f164f380f615b9fae02a6b8fdb51c3c",
+    "packages/barocss-cad/src/three-section-loft.ts": "b6edc5339729064919a2f19c2263ef0d5ab16b8991b77c15ab35f4e2ad854d4f",
+    "packages/barocss-cad/src/cad-document-bounds.ts": "cac924347eba47e5b8631642b7fa73e7439793465d1a432b01b75b3c0ab2099b",
+    "packages/barocss-cad/src/cad-curve-arc-length.ts": "a460cecf6831bf24da1008093db5d45e2c3476723aaab043eade58741ef0a1a7",
+    "packages/barocss-cad/src/cad-surface-area.ts": "eb408dd7eba4ffa46cdeda42b3dbb038b9cfee4f0bf5aea07ddeac15bb49abdc",
+    "packages/barocss-cad/src/cad-assembly.ts": "a04d7ebd5c26d1b2527f6e2b95bb3f765219d5d0fc9119fdf8eeccc26f293911",
+    "packages/barocss-cad/src/cad-assembly-instance-point.ts": "2ca8b131525447447b5d7d07bf6a8e9c9ec894fd2c3258c938ce42c362c2e756",
+    "packages/barocss-cad/src/cad-assembly-members.ts": "3a3a83095448790004fd430f43e607a3fb02f60f98a7f4dcd19a8b20497b993b",
+    "packages/barocss-cad/src/cad-assembly-part-replacement.ts": "b2253a429a42dc48a0e611a5bd4e459643c1475166a9ee9fc46c79844ff84273",
+    "packages/barocss-cad/src/coplanar-face-boolean-arrangement.ts": "060d5c7cf03ab089ce3a4f519f3826679983d6b44560fb0873967c97ebdcc92c",
+    "packages/barocss-cad/src/coplanar-face-boolean.ts": "283ccd38b75dd9b60db68b6a63e99e9a130f6db3c4c3973b3d386ebe7a2b41a3",
+    "packages/barocss-cad/src/coplanar-face-boolean-mesh-triangulation.ts": "4b1689fe419356f56d7aafd3c0727face56c1ff4e13f98d84a3df5ef15bb4044",
+    "packages/barocss-cad/src/coplanar-face-boolean-mesh.ts": "e1cd8a854f00df875eee748a57c7d427310c1a09c174222e20dbada0fc1d4417",
+    "packages/barocss-cad/src/coplanar-face-boolean-extrusion-geometry.ts": "825bf1fd2f6e8f1351fc6fa34003ff0e845df4a00809137740b3c6391e03a95e",
+    "packages/barocss-cad/src/coplanar-face-boolean-extrusion.ts": "a7fcd8392b4b39bd24fc9ad537db8b4ca59e81be101d28d03a9365037c5a8cb2",
+    "packages/barocss-cad/src/coplanar-face-boolean-extrusion-mesh.ts": "f640b3c9eb636ab13404d459c547f8150f56eb07f47f423838aa0dd096b54677",
+    "packages/barocss-cad/src/boolean-extrusion-feature-graph.ts": "3c18111c76a430946d820c3363e65fde9264cb5a2f036a5455604d6ea26ac0d3",
+    "packages/barocss-cad/src/boolean-extrusion-feature-graph-serde.ts": "b79ff0a5f01a2d1dfe26480c4d19c266b212fa690d4b53e8abed190dea2923a5",
+    "packages/barocss-cad/src/boolean-extrusion-parameter-lifecycle.ts": "0b8abf9b3af23e4f580f4042cc62569be33be46f4d7625af8a049f973d97b57f",
+    "packages/barocss-cad/src/boolean-extrusion-feature-lifecycle.ts": "cd64b72b7384afc8c278d849aec37ed74bf72e8340b316acf02293c8b3d6d910",
+    "packages/barocss-cad/src/coplanar-face-boolean-extrusion-properties.ts": "2cda70f966efe765f50ff1b80ac8b740589c80bbfc04f3829b9189746fc9d663",
+    "packages/barocss-cad/src/translational-sweep-surface.ts": "0263ddd143453a3bb6bd9653632e6d13eeea205ce42fabe77ae4480707aed68a",
+    "packages/barocss-cad/src/curve-interpolation-kernel-internal.ts": "192b1e906036b93e8393983752c588a6b7681f83ad654e62c7cde2616cf56248",
+    "packages/barocss-cad/src/curve-interpolation.ts": "2ff3bea4ee0f5e0fb350671cb9b088a708295e6c9912e7b517232f281109dd6a",
+    "packages/barocss-cad/src/surface-interpolation.ts": "7bb211a150e57eb96258d1682a0d634acad402b7ceb19efcdd2b87a63f637e6e",
+    "packages/barocss-cad/src/curve-parameterization.ts": "bb23ba72a4d8c5c2b4754656cd01e29c9cd16574ff6bd4775feabbe1ff3673ad",
+    "packages/barocss-cad/src/weighted-curve-interpolation.ts": "fe447bfd7a3c89d1410c5607eb9b3ebd205da00f95345912e9428d6735abae55",
+    "packages/barocss-cad/src/multi-section-loft.ts": "24d4b01ca5aa88112ec41658e43617d3511d3f0d4894fc820ef7a6e0d9439e09",
+    "packages/barocss-cad/src/linear-geometry-pattern.ts": "a78485a79afd788dc8d408d6fae3f1461c43578cebd73489b3981ddb2624adea",
+    "packages/barocss-cad/src/circular-geometry-pattern.ts": "182842a49d4a61d983289644568812e14b3a15d416ee09184d015af2ee347304",
+    "packages/barocss-cad/src/second-derivatives.ts": "bbe72cea3fbe52e84eb41c577d7b69d35c2bf0eb4ec918d5a77c2d99d32cbf45",
+    "packages/barocss-cad/src/local-curvature.ts": "75e39edae0a999f0b057438ba91e6ed1eac98d94f1cb14dd34748eb257ed9c1a",
+    "packages/barocss-cad/src/curve-planar-face-material.ts": "4a392583bd40e655dba1f46dcf9dc2166c83445078b56b6fdad99441ca2bf876",
+    "packages/barocss-cad/src/coplanar-face-boolean-extrusion-mass.ts": "00825a3bbd47c9ba031f50b2dc330601e1a8b54a9499523c9ab2abd7a2a2d7db",
+    "packages/barocss-cad/src/extrusion-principal-inertia.ts": "b66bbbaf40c9af8114a02ebf7f05e26b8fb69b9ff39e5f4fb8b788d2e530d352",
+    "packages/barocss-cad/src/section-knot-alignment.ts": "72ae24dafde9e05d8f75129ab3f8dc8ac37547bd55049a8b5e76745a2d3475f4",
+    "packages/barocss-cad/src/exact-boundary-face-adjacency.ts": "a3ff615a2f92cd9403b81be0ae302a987aeb6c9212f066b4c7a1f4cd779c46c5",
+    "packages/barocss-cad/src/quintic-hermite-curve.ts": "99c74f1a134626aaa572e04096f8212ac5644c692a3cbae16327c8d80ffd219c",
+    "packages/barocss-cad/src/curve-endpoint-continuity.ts": "947843c464260d0a4f032fd661d82a807011964661b53e15920431cc92f8f0ee",
+    "packages/barocss-cad/src/closed-exact-patch-shell.ts": "04f09c3ec8235f6bec0fc4460f4fbf3cc7466172e0646f60b3e2e38acbeaab87",
+    "packages/barocss-cad/src/vlinear-plane-section.ts": "10885a25e09155a09a1e6cee7b5cd2dabceb534fd7b2031b026597d731ef5999",
+    "packages/barocss-cad/src/source-surface-control-net.ts": "28778c0f2886ef8e0e251eb0074784ae0b7d350f30a2b1a8d03459f3cf6c9fbb",
+    "packages/barocss-cad/src/source-surface-control-net-wide.ts": "d5fde8e9e847de7fb132efeef0ee7ad0a9e34552d1e6a04cc60a19c06dc71999",
+    "packages/barocss-cad/src/source-curve-control-polygon.ts": "5cd9d285e83039b68b972c56f27a7f7daef9feadff16c234345cc4daa347dcf2",
+    "packages/barocss-cad/src/piecewise-rational-loft.ts": "6c4a56305ea05e16d3e1b61464d8ee41be825a44c2e0c4db4e915f7962ea87ad",
+    "packages/barocss-cad/src/vlinear-plane-trim.ts": "92f384bb9a260ca93ad2d206434283f032c39c294aaf0a1caedd400697123917",
+    "packages/barocss-cad/src/vlinear-plane-trim-classification.ts": "c79ca3452519833a2b36625cae7f21ca0ae260eca0d2459e4c8ff24c481a25f1",
+    "packages/barocss-cad/src/axis-box-boolean.ts": "6312484c80e0aca50eabd6e3fa7129c10f997c30826326854455f8ef2061bacb",
+    "packages/barocss-cad/src/axis-box-point-classification.ts": "c97488d93625f94298bf81472d24176826f0bc2f8f1d59a2d3a4e00134adb1dd",
+    "packages/barocss-cad/src/axis-box-solid-mass.ts": "daf635569fabb81fcf0c6fd694b4c9a1606021fac97ae21d5b4cb30ed17a1554",
+    "packages/barocss-cad/src/axis-box-principal-inertia.ts": "467207d6de57c1f0b46a9fc6fa149eee96fe65a233b9c240278ec96fb48d1e88",
+    "packages/barocss-cad/src/axis-box-mass-frame.ts": "7f45ca60794f6390c92bfda7b10efa28916f6c923cf8326c5abc52601cb19de2",
+    "packages/barocss-cad/src/axis-box-solid-feature-document.ts": "fe2e59d1e1e5d1885156c8012cca3622d1b5d3a02a4e38bd50c28f6b3ddb1b08",
+    "packages/barocss-cad/src/xy-angle-arc.ts": "27c8865a5008c66fabee9fb52c4e0afc2946c4636c6ca2336e722e404f72d5ce",
+    "packages/barocss-cad/src/mixed-workplane-sketch-document.ts": "7b144f2c1cf92b2f708fde3d12e1ab32295a4d195bcf684363111e8f7d7f7ca8",
+    "packages/barocss-cad/src/driven-mixed-sketch-lines.ts": "edcc535059f697da3d6e9183f02cd2bc90d91de5d1c45780d270eb9a49781eeb",
+    "packages/barocss-cad/src/stored-plate-hole-solid.ts": "568c8b2cfbab817385ade12b33c74b84d28a0ff743d8b6a8351f0b3cfe840ce8",
+    "packages/barocss-cad/src/xy-angle-arc-artifact.ts": "9754b7839c8761875084295a7437393b943dc8086a65a9cc9adaa14f0a4e6002",
+    "packages/barocss-cad/src/stored-plate-hole-point-classification.ts": "6481a3ef97e4a9f4ffe5cdfab7dac9259a2b412f424bc6536943603b79064097",
+    "packages/barocss-cad/src/multispan-vlinear-plane-section.ts": "a19a54595963151c9123aad639a60d684de09bba9ed26ea6896e231e3f2e7329",
+    "packages/barocss-cad/src/multispan-vlinear-plane-trim.ts": "7f9031c5799b4edd1ae69a733c7612916699df6cdcd02ea5addf3a52916f6b37",
+    "packages/barocss-cad/src/multispan-vlinear-plane-trim-classification.ts": "3e7eebd7ac5f933d88a33450dd3c596a3ebc3e699c70285e164d8a84cb7ea626",
+    "packages/barocss-cad/src/paired-section-plane-cap.ts": "81246dc36873fe4d9248209899c0d1580aad2e687875039798308d289d609177",
+    "packages/barocss-cad/src/section-exact-surface-binding.ts": "a20de7573a0291439d7daa215a45e137a15b9627fefd54168d29ada997b8cf5d",
+    "packages/barocss-cad/src/exact-surface-lower-trim.ts": "d53e2275f4c27aa0763c1aad3b23edbae777b0f35a9276c66ec417592506055b",
+    "packages/barocss-cad/src/translated-surface-base-face.ts": "17f04a84518c0a639ce79c213f56f677706f44ca8b90c9df6b86e5e3a4aae50d",
+    "packages/barocss-cad/src/translated-surface-strip-volume.ts": "f037d232c0cad8e932d1ec7fe30c1d4baa7e86e1d3ef21820064a6c5bb3318b3",
+    "packages/barocss-cad/src/translated-surface-end-faces.ts": "e71186d3d8888bf74f72660e8a61234c2aeffc84215e10a17009c50efc7d41aa",
+    "packages/barocss-cad/src/qualified-translated-strip-material-internal.ts": "1ee6be7c5e03838fef41038b0fdace604de5b02e7e31535382f148baddc142c0",
+    "packages/barocss-cad/src/qualified-translated-strip-body.ts": "22c7dbe29697e756f2ca30d5badc67ee382d8b6396b88d048b73f83ee55044fc",
+    "packages/barocss-cad/src/translated-surface-strip-world-points.ts": "edd0b813fc0dc127abb9a981303a5c651cc0b5feff310834e505dae2d16fad29",
+    "packages/barocss-cad/src/nurbs-source-loft-feature-graph.ts": "ab2a434395da9728cc8046676e5d7372259d5e50ff6a5a76194fc2a5d0419456",
+    "packages/barocss-cad/src/exact-surface-band-trim.ts": "b9121a98dcee1ca6f62e1068b0f9590f4963e748dacea06fe54b7fd03a7e0875",
+    "packages/barocss-cad/src/translated-strip-interval-boolean-construction-internal.ts": "ceab4797ec75d92a63ffa73b2ba3340819d830139c6b43211bd52fe44366997f",
+    "packages/barocss-cad/src/translated-strip-interval-boolean.ts": "a9f20121797aa37871322e53d7296a126a3cb8357ef9082c33df768b4711c141",
+    "packages/barocss-cad/src/qualified-translated-strip-body-mesh-domain-internal.ts": "35970ff3a3cad87deb3ff9ab9ac75f4ec9ff9567ebc5c7f3b6a390544cfa3ebe",
+    "packages/barocss-cad/src/qualified-translated-strip-body-mesh.ts": "f7c6c3d134472f11d280b33aca2aa0571eb81b21f5f9b91dcb1ca6e32bc41926",
+    "packages/barocss-cad/src/source-curve-knot-insertion.ts": "e46c6725dba94bdcf5595efbf2ab0a9fea749e7238284e44f3d1f1fd31fac553",
+    "packages/barocss-cad/src/source-surface-knot-insertion.ts": "89df9904c8045fd8bd027848d95002593395cd6216f5f16401efb7a8c62647c1",
+    "packages/barocss-cad/src/source-curve-interval-extraction.ts": "42c1347be0572b64b058e7c812368b2ff083abf9f0a7b72469f33d98957dae4b",
+    "packages/barocss-cad/src/source-knot-aligned-loft.ts": "618f165ff9efe2a9041184528c8bb4ec0c98980298d185c8f9281bb09d7d9f07",
+    "packages/barocss-cad/src/curve-c0-degree-elevation-internal.ts": "b4a401f691199b9be7c0b4dcbd7645d01555e937cf5f0a73829c2eb281c75593",
+    "packages/barocss-cad/src/source-curve-degree-elevation.ts": "b59bcb3ac80a77098bd4e0dc11a42fc5aa2c0a5d9ddc587bd86d7be6eb2c1a34",
+    "packages/barocss-cad/src/source-knot-recipe-loft-graph.ts": "25d8d6d7bcf6663f3937ead473641b060476b51c06687006058193797247ec9e",
+    "packages/barocss-cad/src/source-surface-degree-elevation.ts": "9f05ae3c0f1b9ea7af85bd8606fca636d4240a9a63bef1559830ffbd05b5c9ff",
+    "packages/barocss-cad/src/iges-import.ts": "313fc4ee9aec0cad1bce4eb0fafb3e22cad39146bbeed0ddea883994895ad162",
+    "packages/barocss-cad/src/source-line-width-face.ts": "47fbc8afb33affa24e6cd83b452aeaa79d08aa0cde3e80038933a2dcbe904adc",
+    "packages/barocss-cad/src/convex-planar-face-extrusion.ts": "779af963ff609c8037838e70bd3ec0281c7d2beecba0f601b369c35cbe76a496",
+    "packages/barocss-cad/src/paired-surface-intersection-branch.ts": "5f7c07a28fcd058da794dc4c531643af8cf164b0e57241a0b9bd5256479b56ec",
+    "packages/barocss-cad/src/translated-strip-plane-split.ts": "d23fb1bf85d24549f618fbb8dbe9263189563b45d6d1dec7268a8856075558dd",
+    "packages/barocss-cad/src/source-line-width-extrusion-graph.ts": "ab422a3fc2a4851d11e98f476cd90fa2294c57f78cca640f45439b956b8d6b49",
+    "packages/barocss-cad/src/curve-bezier-subdivision-internal.ts": "e0c3014e3b8ef8e7ef2880f1fbef38781d8ebb824fff854c5408a27f9e688d60",
+    "packages/barocss-cad/src/source-curve-adaptive-sampling.ts": "f5204dd02693a2b12ea4e2b6b6c8b820601d326b697f5608593258f688454d69",
+    "packages/barocss-cad/src/rectangular-extrusion-cube-correspondence-internal.ts": "44a9eaac64d5607514d7207f00bee2abb3a059d15adc7efec99f32b5ae84926a",
+    "packages/barocss-cad/src/rectangular-face-extrusion-body.ts": "85f334af092a344b90f1d5280744b3ba732b203663cb286540b252ef76627e45",
+    "packages/barocss-cad/src/source-line-width-material-body-graph.ts": "6e54e53a20d5c7354026fce3364d3e305e2c5e4677df8396f8756e29c9791107",
+    "packages/barocss-cad/src/exact-paired-vlinear-polynomial-internal.ts": "d51f9f80886c5eb9bc847fbde9f446237033581dc5b6a9579a0c8f4b284aa055",
+    "packages/barocss-cad/src/exact-paired-vlinear-surface-intersection.ts": "d8732fe202a48aa565c18ee6444ac6aa750d67dee32dc4f309234ab1997572ec",
+    "packages/barocss-cad/src/paired-surface-uv-split-faces-proof-internal.ts": "6a624515fa03b006df89d6e535b5b613e9fe60407428bf3169ca5dd0e57b7b95",
+    "packages/barocss-cad/src/paired-surface-uv-split-faces.ts": "cf6025a103cc9634e42a3a97c81c26f97b9249de0dcdabb0ac7d5ca68df1e1bc",
+    "packages/barocss-cad/src/paired-surface-b-uv-split-faces-proof-internal.ts": "c2f4f927356d6d934a12b121c21becf1699a792dedbe808be50f32637d461663",
+    "packages/barocss-cad/src/paired-surface-b-uv-split-faces.ts": "2c4fce989eb9dbc00eaccd7768e09f1cb1b1e0b011b0f983258e1c3fe67a455f",
+    "packages/barocss-cad/src/paired-surface-uv-face-classification-internal.ts": "2d31920203f037e943441a273c12b105c78001c5f4ddb0f4891b5c9ed23e15a7",
+    "packages/barocss-cad/src/paired-surface-uv-face-classification.ts": "2fc02e29f0fcd2973a56da223a2d1260737f7dadfb92f5f83bdbcc5a96992336",
+    "packages/barocss-cad/src/paired-surface-material-body-proof-internal.ts": "6053ad0562e359e82e0b28fe703d8c7ef51dfc3d8c4153cbcbe6dd0f72d32b4c",
+    "packages/barocss-cad/src/paired-surface-material-body.ts": "18bee39cdf9bd7e1d3bb95d39dcce7c3d377eab945a48fa2b29964237876797c",
+    "packages/barocss-cad/src/paired-surface-material-body-world-points-internal.ts": "e5db75d4beeb2032c99de5771f2210d1121ab1050b0c8b48a7bd8b7f16b0cbd9",
+    "packages/barocss-cad/src/paired-surface-material-body-world-points.ts": "47a97b6f9bfc58fffd185c01623db7c0a0098f17503a65426546ee05f5596447",
+    "packages/barocss-cad/src/paired-roof-difference-body-construction-internal.ts": "3dc3dc555723aa2771cfc7b9e6548c571dcabb6cceffd399183cc46545d786bf",
+    "packages/barocss-cad/src/paired-roof-difference-body-proof-internal.ts": "44597d57da992bd01775198305974506d549b84f59a59014913e7239feaf9a6f",
+    "packages/barocss-cad/src/paired-roof-difference-body.ts": "b986077fb4898e2bdca9d4bde0c7a8964a65a8bd22e9b203d3163d8587f0d7c1",
+    "packages/barocss-cad/src/qualified-strip-binary-stl-encoding-internal.ts": "dd13f338e008e68472e4f964aa7bc1396bb02fcd234e51ee81614b63da35b7d5",
+    "packages/barocss-cad/src/qualified-strip-binary-stl.ts": "fb731ab8584b00b86ec8aac15b959ecf60d4f3719edae930a85aaf55aad3d9fa",
+    "packages/barocss-cad/src/paired-roof-body-split-proof-internal.ts": "b1ca2d024f435e6c1a14215287e78e19e16f0ab7486186d99566b5cae2676eba",
+    "packages/barocss-cad/src/paired-roof-body-split.ts": "b37cd7dde760442a1df046601725d7914261c8e1fa67929f133fb7db615494ec",
+    "packages/barocss-cad/src/paired-roof-difference-body-world-points-internal.ts": "88d9531072f17c6ee46682cd5055a015c4f044a8f94c360c07e95feb461a36ee",
+    "packages/barocss-cad/src/paired-roof-difference-body-world-points.ts": "47b6a051f12241bb722f9018b235e2082b9541c665ef5c0669138f7b5645ff43",
+    "packages/barocss-cad/src/xy-affine-sketch-internal.ts": "486cb6f4d8dca70bab5b47b3b0df1bfbff0255163c3887e0ffa4bdf108d3d247",
+    "packages/barocss-cad/src/xy-affine-sketch.ts": "c60d6e8a4af1856f1b0a787d8a5b1ffc9e9b84ffe2705377f129a49302cb6743",
+    "packages/barocss-cad/src/orthogonal-solid-boolean-internal.ts": "c63313a2e248d732c3c2155cc2a3da3ce8b33fcbd8eddc3da15eef0e53d93954",
+    "packages/barocss-cad/src/orthogonal-solid-boolean.ts": "c3ab3fd34d376a191261897d0960bff1e992e2f922d016e0b7063460a8fb7dfb",
+    "packages/barocss-cad/src/xy-numerical-sketch-admission-internal.ts": "76817fe28a5ab0f8176db2f37dfdfb36a5d59369b80db6c9ab2fab9eb9f34c79",
+    "packages/barocss-cad/src/xy-numerical-sketch-solver-internal.ts": "f3bc9a6b62a788064f723fca57a0889e50a36756c32f530f6f5ec6a309f96374",
+    "packages/barocss-cad/src/xy-numerical-sketch.ts": "ecd142f17199deff93b6848fc3db5b6e411cb5d1ad21496c20513b13fc844f4b",
+    "packages/barocss-cad/src/convex-planar-solid-proof-internal.ts": "b551a2ad0fdb1d85907d56e11a2320f8908bbd9ff8d8d91ff74ecdfbd2f5e809",
+    "packages/barocss-cad/src/convex-planar-solid.ts": "e9901730f1957a913910ae795014bca5378cfc0653d99f64e6ba729e2bb1f916",
+    "packages/barocss-cad/src/xy-circular-numerical-sketch-admission-internal.ts": "32755d359715f2f677e60d82de4bd4cbca523a2ff481c0e3571a13899dd99d66",
+    "packages/barocss-cad/src/xy-circular-numerical-sketch-solver-internal.ts": "dbb040e2a56ff6928f395bbdd5f26e65d998ce9e276d2689418916c1208606ce",
+    "packages/barocss-cad/src/xy-circular-numerical-sketch-native-internal.ts": "da1b5c044e5d66a1ceb026590c20c75068276e867ccb79b0d116980fd7362d92",
+    "packages/barocss-cad/src/xy-circular-numerical-sketch.ts": "2765064950a801e52de36b72b98b2ade82344063fb8d358a5c6c2aa723416c15",
+    "packages/barocss-cad/src/convex-planar-solid-split-internal.ts": "43c9c5600f8bbea5c83e0937665b115a7d7a7fbe4752cb17d2a5b98df95cb538",
+    "packages/barocss-cad/src/convex-planar-solid-split.ts": "3d4017ce571223799e9f11cad4452938808c4896259a853dbae57a39ed137f21",
+    "packages/barocss-cad/src/xy-affine-sketch-prism.ts": "20a7b1206da70582340c38a6f82dc47b0248df5a1c8092099d8b379484395366",
+    "packages/barocss-cad/src/convex-planar-solid-intersection-internal.ts": "a0ca4ecea25e4afc6c86a91170315ccfe1f75b971d8e1fe45746e17867bca8e7",
+    "packages/barocss-cad/src/convex-planar-solid-intersection.ts": "a2ce63d456f574e5079f7a160e00ef1f77305eb55160cbe9517769dac2b46cdb",
+    "packages/barocss-cad/src/convex-planar-slab-subtraction-internal.ts": "32b7f53158da5d51e11bf2952450789f50a428d7d7c28478df9bc9680679a4d0",
+    "packages/barocss-cad/src/convex-planar-slab-subtraction.ts": "3e937a7fec5cd01504346663d3775fbbf905805d3d52ce85f07102dd5907b68a",
+    "packages/barocss-cad/src/xy-affine-prism-feature-document-internal.ts": "39947265df50b51cbc94f9a68399de24725aecfb8bfa1e5c7244b3b36c44909f",
+    "packages/barocss-cad/src/convex-planar-solid-chamfer-internal.ts": "11fc43e024c6618dfdb0a35087e730934201c68979fb457a9d336420518537e2",
+    "packages/barocss-cad/src/convex-planar-solid-chamfer.ts": "86799de6dbda363d8c5f7797b77e40ea1150966e02ba50688d45060836b152c5",
+    "packages/barocss-cad/src/xy-affine-prism-feature-document.ts": "463c90642ef4b2a88a97bc3362f01858e16b3fc5049c288fcb98a601dcaccd9f",
+    "packages/barocss-cad/src/convex-planar-solid-mass-internal.ts": "b28eee27520049c449b6a7aefd62061ecf6eddc1c101aba2f64cbec16617da35",
+    "packages/barocss-cad/src/convex-planar-solid-mass.ts": "3b0a009f20c0233be82948d8b0f019beb8a39a601db47ace218b0d1b0efd8eaf",
+    "packages/barocss-cad/src/convex-planar-solid-mesh.ts": "379c1fcc1b66ab11ae7f1be95093095917f3d95b2dfcba43444b247bf42b4b9a",
+    "packages/barocss-cad/src/stored-circle-prism-solid.ts": "02385c3521dd2a829d749cb0a17dc16475cce1eb1acfa672d958d6f5d1cd0dc4",
+    "packages/barocss-cad/src/modeling-box-internal.ts": "bfaf2ce25434d8a5683903ec6d091207e05c7ebec344ec4e7922a65e7f8f323a",
+    "packages/barocss-cad/src/modeling-translation-internal.ts": "ccb694ffbd3350eff6409dc7c2847b58b046cdfe763a5d603f3d4be825a724f9",
+    "packages/barocss-cad/src/modeling-rotation-internal.ts": "6cc0461c1e58cf0211e117e6a3b437f9cd9ce2c9b3b1e51a016d27f9f1878152",
+    "packages/barocss-cad/src/modeling-mirror-internal.ts": "535a4b9de01251f821f7caca6f3a5dd0d3257d26584b6168b61724cda62249f3",
+    "packages/barocss-cad/src/modeling-scale-internal.ts": "db7ad20bbeed06fd0f8cb735ec3ed71024b60035a352a18527552d0dda57bb8d",
+    "packages/barocss-cad/src/modeling-linear-pattern-internal.ts": "0fb5bd6c78cb54e3ca832df066a99755027c05946edd46ae23d3fb350b4b0623",
+    "packages/barocss-cad/src/modeling-circular-pattern-internal.ts": "dbe4c096b11c33bdfc3071ab0082fb4209ec56be65f7b4ac194ec14404b060ff",
+    "packages/barocss-cad/src/modeling-stl-internal.ts": "683aeaeb1d7e8f66457cad37cadf73a4c8398042bc335a565121c77adeaefc9c",
+    "packages/barocss-cad/src/modeling-regeneration-internal.ts": "4617f01e60a0b99d516b493484ebd209e1fc89e51558d99e6d0c6b70f59e4c66",
+    "packages/barocss-cad/src/modeling-dimension-internal.ts": "145e97209a06d046d268b0fdb9eef26e387f0d24143368e638c5dd128d80fde0",
+    "packages/barocss-cad/src/modeling.ts": "ad0f86f28fe87c961c5e89ed9ced76672970c3b683ad66a68b8ca335b201706a",
+    "packages/barocss-cad/src/xy-affine-prism-feature-document-v2.ts": "3c7a16b7c26b04824fca94bc86fac64ad3746737c1097d9d87c2c7b17435dc46",
+    "packages/barocss-cad/src/public-api.ts": "92911a266b8b0abfef6db85e2b02eb6588a09dcef195dadd1512ac1641121534",
+    "packages/barocss-cad/src/index.ts": "8faf936505c85fb0d1ed7b2edf283757ebf90e3235c419d0bf2f058a2e28f8f9"
+  },
+  "zeroNativeControls": {
+    "source": 222,
+    "emitted": 211,
+    "total": 433,
+    "receipts": {
+      "legacy-controls/receipts/modeling-stl-admission-source/receipt.json": {
+        "issue": 1890,
+        "scope": "Actual facade with all providers inert; API admission/projection, no geometry or STL proof",
+        "realNativeGeometryCalls": 0,
+        "unexpectedProviderAttempts": [],
+        "inertExportCalls": 12,
+        "inertConstructionCalls": 41,
+        "provenance": {
+          "directory": "/Users/user/.barocss-ai/v3/evidence-cad-translated-intersection/legacy-controls/receipts/modeling-stl-admission-source",
+          "entry": "/Users/user/.codex/worktrees/cad-cardinal-rotation-1949/barocss/packages/barocss-cad/src/modeling.ts",
+          "mode": "source",
+          "testSHA256": "c4728ab172a26e13c1b52b1bf24f9487571a4cba5271fe553c52fe38d05129d4",
+          "bundle": {
+            "bytes": 108218,
+            "sha256": "a1553eeb5be0fbe9ac017333e25150beaa4a4895c3897b694653bf29634f4375"
+          },
+          "metafile": {
+            "bytes": 11775,
+            "sha256": "64e04d03dea1a1ff46ab188225bc9b36f72d3e1718a7c137f1eda8d6202b24eb"
+          },
+          "inputs": {
+            "bytes": 742,
+            "sha256": "c507d9dddc7269ebd99c2d0c228513f4eb791c2c72b098c7b4b2a399955b703a"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildModelingCircularPattern",
+            "buildModelingLinearPattern",
+            "buildModelingMirror",
+            "buildModelingRotation",
+            "buildModelingScale",
+            "buildModelingStl",
+            "buildModelingTranslation",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "measureAxisBoxSolidBooleanMass",
+            "measureConvexPlanarSolidMass",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ]
+        }
+      },
+      "legacy-controls/receipts/modeling-rotation-admission-emitted/receipt.json": {
+        "issue": 1949,
+        "scope": "Actual modeling facade and unchanged pure helpers; isolated inert providers; admission and routing only, no geometric acceptance",
+        "realNativeGeometryCalls": 0,
+        "unexpectedProviderAttempts": [],
+        "inertProviderCalls": {
+          "buildModelingRotation": 47,
+          "buildXYAffineSketch": 48,
+          "buildXYAffineSketchPrism": 48,
+          "chamferConvexPlanarSolid": 3
+        },
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "provenance": {
+          "directory": "/Users/user/.barocss-ai/v3/evidence-cad-translated-intersection/legacy-controls/receipts/modeling-rotation-admission-emitted",
+          "entry": "/Users/user/.codex/worktrees/cad-cardinal-rotation-1949/barocss/packages/barocss-cad/dist/modeling.js",
+          "mode": "emitted",
+          "testSHA256": "addb56a56b5b43ef89f7d56cc17039b7cb3cca8050bb431299d788f07d727d7d",
+          "virtualEntry": {
+            "bytes": 315,
+            "sha256": "5a5f361a051d7eb3d7e38a82718216c72b03b171c44fe5d3df93c2ea9ffbb011"
+          },
+          "bundle": {
+            "bytes": 108430,
+            "sha256": "79fae7659c1a9f6963aff4e84d1acd419855173f962000a6d6145771281ab6b5"
+          },
+          "metafile": {
+            "bytes": 13189,
+            "sha256": "4ed1a2eb47a2c3cfae773f3989b1263aca0092a87e3a9dfdd38a7aa826f25b24"
+          },
+          "inputs": {
+            "bytes": 748,
+            "sha256": "2e5c7f50dac5681cdb1546d2a0b14073a734bbb0aeaaf4a1db336bf239a42a0c"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildModelingCircularPattern",
+            "buildModelingLinearPattern",
+            "buildModelingMirror",
+            "buildModelingRotation",
+            "buildModelingScale",
+            "buildModelingStl",
+            "buildModelingTranslation",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "measureAxisBoxSolidBooleanMass",
+            "measureConvexPlanarSolidMass",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ]
+        }
+      },
+      "legacy-controls/receipts/modeling-constraints-admission-emitted/receipt.json": {
+        "issue": 1862,
+        "inheritedAdmissionIssue": 1835,
+        "scope": "Actual modeling facade and unchanged pure helpers; isolated inert providers; admission and routing only, no geometric or solver acceptance",
+        "realNativeGeometryCalls": 0,
+        "unexpectedProviderAttempts": [],
+        "inertProviderCalls": {
+          "buildXYAffineSketch": 209,
+          "buildXYAffineSketchPrism": 203,
+          "buildXYArc": 2,
+          "buildXYCirclePrismShell": 2,
+          "qualifyStoredCirclePrismSolid": 2
+        },
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "provenance": {
+          "directory": "/Users/user/.barocss-ai/v3/evidence-cad-translated-intersection/legacy-controls/receipts/modeling-constraints-admission-emitted",
+          "entry": "/Users/user/.codex/worktrees/cad-cardinal-rotation-1949/barocss/packages/barocss-cad/dist/modeling.js",
+          "mode": "emitted",
+          "testSHA256": "522149eb74e1f5d4e80ec52492e461f41c23caeb746d85a7e81a90a29b0450ee",
+          "virtualEntry": {
+            "bytes": 315,
+            "sha256": "5a5f361a051d7eb3d7e38a82718216c72b03b171c44fe5d3df93c2ea9ffbb011"
+          },
+          "bundle": {
+            "bytes": 108574,
+            "sha256": "373471f15965f5fb35d504237b9fbc13dd7d4f0703d781da5a8aa84896738282"
+          },
+          "metafile": {
+            "bytes": 13417,
+            "sha256": "5881a9da8536ece5a0fa293887ced465b5f747e8cbf9eaea67c179a1878de363"
+          },
+          "inputs": {
+            "bytes": 748,
+            "sha256": "2e5c7f50dac5681cdb1546d2a0b14073a734bbb0aeaaf4a1db336bf239a42a0c"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildModelingCircularPattern",
+            "buildModelingLinearPattern",
+            "buildModelingMirror",
+            "buildModelingRotation",
+            "buildModelingScale",
+            "buildModelingStl",
+            "buildModelingTranslation",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "measureAxisBoxSolidBooleanMass",
+            "measureConvexPlanarSolidMass",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ]
+        }
+      },
+      "legacy-controls/receipts/modeling-circular-pattern-admission-source/receipt.json": {
+        "issue": 1979,
+        "scope": "Actual modeling facade and unchanged pure helpers; isolated inert providers; admission and routing only, no geometric acceptance",
+        "realNativeGeometryCalls": 0,
+        "unexpectedProviderAttempts": [],
+        "inertProviderCalls": {
+          "buildModelingCircularPattern": 35,
+          "buildModelingLinearPattern": 1,
+          "buildModelingMirror": 1,
+          "buildModelingRotation": 1,
+          "buildModelingScale": 1,
+          "buildModelingTranslation": 1,
+          "buildXYAffineSketch": 41,
+          "buildXYAffineSketchPrism": 41,
+          "chamferConvexPlanarSolid": 11
+        },
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "provenance": {
+          "directory": "/Users/user/.barocss-ai/v3/evidence-cad-translated-intersection/legacy-controls/receipts/modeling-circular-pattern-admission-source",
+          "entry": "/Users/user/.codex/worktrees/cad-cardinal-rotation-1949/barocss/packages/barocss-cad/src/modeling.ts",
+          "mode": "source",
+          "testSHA256": "ec6bb2025329f336c988ead6f97aeeb038c6903c0d78f8c688a3d14724000c53",
+          "virtualEntry": {
+            "bytes": 314,
+            "sha256": "3deff83021a0eda6ccd16a8a624c9b6f0976c1d4508c408843a9694857e9ad6d"
+          },
+          "bundle": {
+            "bytes": 108928,
+            "sha256": "affe4ea308b297d2f43bc3466eafb93455274d9c78510265c1ff9e351604b66f"
+          },
+          "metafile": {
+            "bytes": 13773,
+            "sha256": "4e9911729ea653632597127963a266b1ad2784d154284fc67f1f119edaeb7483"
+          },
+          "inputs": {
+            "bytes": 742,
+            "sha256": "c507d9dddc7269ebd99c2d0c228513f4eb791c2c72b098c7b4b2a399955b703a"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildModelingCircularPattern",
+            "buildModelingLinearPattern",
+            "buildModelingMirror",
+            "buildModelingRotation",
+            "buildModelingScale",
+            "buildModelingStl",
+            "buildModelingTranslation",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "measureAxisBoxSolidBooleanMass",
+            "measureConvexPlanarSolidMass",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ]
+        }
+      },
+      "legacy-controls/receipts/modeling-rotation-admission-source/receipt.json": {
+        "issue": 1949,
+        "scope": "Actual modeling facade and unchanged pure helpers; isolated inert providers; admission and routing only, no geometric acceptance",
+        "realNativeGeometryCalls": 0,
+        "unexpectedProviderAttempts": [],
+        "inertProviderCalls": {
+          "buildModelingRotation": 47,
+          "buildXYAffineSketch": 48,
+          "buildXYAffineSketchPrism": 48,
+          "chamferConvexPlanarSolid": 3
+        },
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "provenance": {
+          "directory": "/Users/user/.barocss-ai/v3/evidence-cad-translated-intersection/legacy-controls/receipts/modeling-rotation-admission-source",
+          "entry": "/Users/user/.codex/worktrees/cad-cardinal-rotation-1949/barocss/packages/barocss-cad/src/modeling.ts",
+          "mode": "source",
+          "testSHA256": "addb56a56b5b43ef89f7d56cc17039b7cb3cca8050bb431299d788f07d727d7d",
+          "virtualEntry": {
+            "bytes": 314,
+            "sha256": "3deff83021a0eda6ccd16a8a624c9b6f0976c1d4508c408843a9694857e9ad6d"
+          },
+          "bundle": {
+            "bytes": 108544,
+            "sha256": "375889227a7946a36c7d7c3d0c6d9b701a656ce210b08dab887f2f664d2200e0"
+          },
+          "metafile": {
+            "bytes": 13165,
+            "sha256": "412e68f13503d7440048255c4a2f302356f1454396a38e25752595ff6de7e6e2"
+          },
+          "inputs": {
+            "bytes": 742,
+            "sha256": "c507d9dddc7269ebd99c2d0c228513f4eb791c2c72b098c7b4b2a399955b703a"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildModelingCircularPattern",
+            "buildModelingLinearPattern",
+            "buildModelingMirror",
+            "buildModelingRotation",
+            "buildModelingScale",
+            "buildModelingStl",
+            "buildModelingTranslation",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "measureAxisBoxSolidBooleanMass",
+            "measureConvexPlanarSolidMass",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ]
+        }
+      },
+      "legacy-controls/receipts/modeling-rotation-placement-admission-source/receipt.json": {
+        "issue": 1994,
+        "scope": "Actual modeling facade and unchanged pure helpers; isolated inert providers; admission and routing only, no geometric acceptance",
+        "realNativeGeometryCalls": 0,
+        "unexpectedProviderAttempts": [],
+        "inertProviderCalls": {
+          "buildModelingRotation": 48,
+          "buildModelingTranslation": 54,
+          "buildXYAffineSketch": 53,
+          "buildXYAffineSketchPrism": 53,
+          "chamferConvexPlanarSolid": 12
+        },
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "provenance": {
+          "directory": "/Users/user/.barocss-ai/v3/evidence-cad-translated-intersection/legacy-controls/receipts/modeling-rotation-placement-admission-source",
+          "entry": "/Users/user/.codex/worktrees/cad-cardinal-rotation-1949/barocss/packages/barocss-cad/src/modeling.ts",
+          "mode": "source",
+          "testSHA256": "11d2fa9ebd30f62c997986e4f7695293775d352c6b690b9e9ef50f9846bb02eb",
+          "virtualEntry": {
+            "bytes": 314,
+            "sha256": "3deff83021a0eda6ccd16a8a624c9b6f0976c1d4508c408843a9694857e9ad6d"
+          },
+          "bundle": {
+            "bytes": 108976,
+            "sha256": "c017e47439b1d71876d74e239bb52cd166bcc71340be7cbc2d416475dc9efc5e"
+          },
+          "metafile": {
+            "bytes": 13779,
+            "sha256": "3d222042d4d78b958129fb9b32cb358fd179f67c444177ffe6e87f3c85204258"
+          },
+          "inputs": {
+            "bytes": 742,
+            "sha256": "c507d9dddc7269ebd99c2d0c228513f4eb791c2c72b098c7b4b2a399955b703a"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildModelingCircularPattern",
+            "buildModelingLinearPattern",
+            "buildModelingMirror",
+            "buildModelingRotation",
+            "buildModelingScale",
+            "buildModelingStl",
+            "buildModelingTranslation",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "measureAxisBoxSolidBooleanMass",
+            "measureConvexPlanarSolidMass",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ]
+        }
+      },
+      "legacy-controls/receipts/modeling-mass-admission-source/receipt.json": {
+        "issue": 1790,
+        "scope": "Actual modeling facade with isolated inert construction and mass stubs; admission and routing only; no geometric acceptance",
+        "realNativeGeometryCalls": 0,
+        "unexpectedProviderAttempts": [],
+        "inertConstructionCalls": {
+          "buildAxisBoxSolidBoolean": 18,
+          "buildModelingBox": 37,
+          "buildOrthogonalSolidBoolean": 1,
+          "buildOwnPlateCircularHole": 1,
+          "buildXYAffineSketch": 48,
+          "buildXYAffineSketchPrism": 50,
+          "buildXYArc": 1,
+          "buildXYCirclePrismShell": 1,
+          "qualifyStoredCirclePrismSolid": 1,
+          "qualifyStoredPlateHoleSolid": 1
+        },
+        "inertMassCalls": {
+          "measureAxisBoxSolidBooleanMass": 28,
+          "measureConvexPlanarSolidMass": 33
+        },
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "provenance": {
+          "directory": "/Users/user/.barocss-ai/v3/evidence-cad-translated-intersection/legacy-controls/receipts/modeling-mass-admission-source",
+          "entry": "/Users/user/.codex/worktrees/cad-cardinal-rotation-1949/barocss/packages/barocss-cad/src/modeling.ts",
+          "mode": "source",
+          "testSHA256": "4ff0204f72ff53b4ee4a812467166e6ddb3808608776f0763de39e1070ebbb34",
+          "bundle": {
+            "bytes": 108266,
+            "sha256": "b4a87317699bc8c162216eadd5ff6fac5b3d70985ab23571b2d5f53d44518dcd"
+          },
+          "metafile": {
+            "bytes": 11848,
+            "sha256": "4abf924f54925706fecdd7e942c1f0595a526ceca66787937d6395b12abcf63a"
+          },
+          "inputs": {
+            "bytes": 742,
+            "sha256": "c507d9dddc7269ebd99c2d0c228513f4eb791c2c72b098c7b4b2a399955b703a"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildModelingCircularPattern",
+            "buildModelingLinearPattern",
+            "buildModelingMirror",
+            "buildModelingRotation",
+            "buildModelingScale",
+            "buildModelingStl",
+            "buildModelingTranslation",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "measureAxisBoxSolidBooleanMass",
+            "measureConvexPlanarSolidMass",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ]
+        }
+      },
+      "legacy-controls/receipts/modeling-scale-admission-emitted/receipt.json": {
+        "issue": 1967,
+        "scope": "Actual modeling facade and unchanged pure helpers; isolated inert providers; admission and routing only, no geometric acceptance",
+        "realNativeGeometryCalls": 0,
+        "unexpectedProviderAttempts": [],
+        "inertProviderCalls": {
+          "buildModelingScale": 16,
+          "buildXYAffineSketch": 18,
+          "buildXYAffineSketchPrism": 18,
+          "chamferConvexPlanarSolid": 3
+        },
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "provenance": {
+          "directory": "/Users/user/.barocss-ai/v3/evidence-cad-translated-intersection/legacy-controls/receipts/modeling-scale-admission-emitted",
+          "entry": "/Users/user/.codex/worktrees/cad-cardinal-rotation-1949/barocss/packages/barocss-cad/dist/modeling.js",
+          "mode": "emitted",
+          "testSHA256": "7a07dbfeaf1a4d916ac5f19028826932e48dbeb9489d5a90a4744be6d590bd8a",
+          "virtualEntry": {
+            "bytes": 315,
+            "sha256": "5a5f361a051d7eb3d7e38a82718216c72b03b171c44fe5d3df93c2ea9ffbb011"
+          },
+          "bundle": {
+            "bytes": 108286,
+            "sha256": "fcbcaedce9237e992167200e79aa08f5478deb70589409092de34dc9ce61ab03"
+          },
+          "metafile": {
+            "bytes": 12961,
+            "sha256": "74a1f13f8351e156c24b79f40fa99082d4b107b37362dc1b6b4cecd779415b83"
+          },
+          "inputs": {
+            "bytes": 748,
+            "sha256": "2e5c7f50dac5681cdb1546d2a0b14073a734bbb0aeaaf4a1db336bf239a42a0c"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildModelingCircularPattern",
+            "buildModelingLinearPattern",
+            "buildModelingMirror",
+            "buildModelingRotation",
+            "buildModelingScale",
+            "buildModelingStl",
+            "buildModelingTranslation",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "measureAxisBoxSolidBooleanMass",
+            "measureConvexPlanarSolidMass",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ]
+        }
+      },
+      "legacy-controls/receipts/modeling-scale-admission-source/receipt.json": {
+        "issue": 1967,
+        "scope": "Actual modeling facade and unchanged pure helpers; isolated inert providers; admission and routing only, no geometric acceptance",
+        "realNativeGeometryCalls": 0,
+        "unexpectedProviderAttempts": [],
+        "inertProviderCalls": {
+          "buildModelingScale": 16,
+          "buildXYAffineSketch": 18,
+          "buildXYAffineSketchPrism": 18,
+          "chamferConvexPlanarSolid": 3
+        },
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "provenance": {
+          "directory": "/Users/user/.barocss-ai/v3/evidence-cad-translated-intersection/legacy-controls/receipts/modeling-scale-admission-source",
+          "entry": "/Users/user/.codex/worktrees/cad-cardinal-rotation-1949/barocss/packages/barocss-cad/src/modeling.ts",
+          "mode": "source",
+          "testSHA256": "7a07dbfeaf1a4d916ac5f19028826932e48dbeb9489d5a90a4744be6d590bd8a",
+          "virtualEntry": {
+            "bytes": 314,
+            "sha256": "3deff83021a0eda6ccd16a8a624c9b6f0976c1d4508c408843a9694857e9ad6d"
+          },
+          "bundle": {
+            "bytes": 108400,
+            "sha256": "5d9cd2cac3e62c91ff63e885d2edf9a123016a32125a68c442181359dc2eca2a"
+          },
+          "metafile": {
+            "bytes": 12937,
+            "sha256": "5811cf3ad381e7000272f224da4b2286498e160ee0209ef21779043720929988"
+          },
+          "inputs": {
+            "bytes": 742,
+            "sha256": "c507d9dddc7269ebd99c2d0c228513f4eb791c2c72b098c7b4b2a399955b703a"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildModelingCircularPattern",
+            "buildModelingLinearPattern",
+            "buildModelingMirror",
+            "buildModelingRotation",
+            "buildModelingScale",
+            "buildModelingStl",
+            "buildModelingTranslation",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "measureAxisBoxSolidBooleanMass",
+            "measureConvexPlanarSolidMass",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ]
+        }
+      },
+      "legacy-controls/receipts/modeling-circular-pattern-four-admission-emitted/receipt.json": {
+        "issue": 1986,
+        "scope": "Actual modeling facade and unchanged pure helpers; isolated inert providers; admission and routing only, no geometric acceptance",
+        "realNativeGeometryCalls": 0,
+        "unexpectedProviderAttempts": [],
+        "inertProviderCalls": {
+          "buildModelingCircularPattern": 36,
+          "buildModelingLinearPattern": 1,
+          "buildModelingMirror": 1,
+          "buildModelingRotation": 1,
+          "buildModelingScale": 1,
+          "buildModelingTranslation": 1,
+          "buildXYAffineSketch": 42,
+          "buildXYAffineSketchPrism": 42,
+          "chamferConvexPlanarSolid": 11
+        },
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "provenance": {
+          "directory": "/Users/user/.barocss-ai/v3/evidence-cad-translated-intersection/legacy-controls/receipts/modeling-circular-pattern-four-admission-emitted",
+          "entry": "/Users/user/.codex/worktrees/cad-cardinal-rotation-1949/barocss/packages/barocss-cad/dist/modeling.js",
+          "mode": "emitted",
+          "testSHA256": "9741f70994287c50abd81404706a8482e9299202b979ab0882ee49ef0b3628a1",
+          "virtualEntry": {
+            "bytes": 315,
+            "sha256": "5a5f361a051d7eb3d7e38a82718216c72b03b171c44fe5d3df93c2ea9ffbb011"
+          },
+          "bundle": {
+            "bytes": 108934,
+            "sha256": "2ede298f1ac067d85dc8b2b9dfed180e585847656e7b5fd30aab6de2ecead77a"
+          },
+          "metafile": {
+            "bytes": 13812,
+            "sha256": "39805c3f07a70304abe4c682a9ebb0d0aa2e7499e8feb12ed4b0dfcffaa351e8"
+          },
+          "inputs": {
+            "bytes": 748,
+            "sha256": "2e5c7f50dac5681cdb1546d2a0b14073a734bbb0aeaaf4a1db336bf239a42a0c"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildModelingCircularPattern",
+            "buildModelingLinearPattern",
+            "buildModelingMirror",
+            "buildModelingRotation",
+            "buildModelingScale",
+            "buildModelingStl",
+            "buildModelingTranslation",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "measureAxisBoxSolidBooleanMass",
+            "measureConvexPlanarSolidMass",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ]
+        }
+      },
+      "legacy-controls/receipts/modeling-constraints-admission-source/receipt.json": {
+        "issue": 1862,
+        "inheritedAdmissionIssue": 1835,
+        "scope": "Actual modeling facade and unchanged pure helpers; isolated inert providers; admission and routing only, no geometric or solver acceptance",
+        "realNativeGeometryCalls": 0,
+        "unexpectedProviderAttempts": [],
+        "inertProviderCalls": {
+          "buildXYAffineSketch": 209,
+          "buildXYAffineSketchPrism": 203,
+          "buildXYArc": 2,
+          "buildXYCirclePrismShell": 2,
+          "qualifyStoredCirclePrismSolid": 2
+        },
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "provenance": {
+          "directory": "/Users/user/.barocss-ai/v3/evidence-cad-translated-intersection/legacy-controls/receipts/modeling-constraints-admission-source",
+          "entry": "/Users/user/.codex/worktrees/cad-cardinal-rotation-1949/barocss/packages/barocss-cad/src/modeling.ts",
+          "mode": "source",
+          "testSHA256": "522149eb74e1f5d4e80ec52492e461f41c23caeb746d85a7e81a90a29b0450ee",
+          "virtualEntry": {
+            "bytes": 314,
+            "sha256": "3deff83021a0eda6ccd16a8a624c9b6f0976c1d4508c408843a9694857e9ad6d"
+          },
+          "bundle": {
+            "bytes": 108688,
+            "sha256": "983e3f3700b162f6f5dcc1d5d26c8dac220173f83a7bbf00fca8edb2978ef63a"
+          },
+          "metafile": {
+            "bytes": 13393,
+            "sha256": "e6bae66950364bbd281f1ad80cc2c116ab7a334ede48238bb997e72a1f1d8384"
+          },
+          "inputs": {
+            "bytes": 742,
+            "sha256": "c507d9dddc7269ebd99c2d0c228513f4eb791c2c72b098c7b4b2a399955b703a"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildModelingCircularPattern",
+            "buildModelingLinearPattern",
+            "buildModelingMirror",
+            "buildModelingRotation",
+            "buildModelingScale",
+            "buildModelingStl",
+            "buildModelingTranslation",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "measureAxisBoxSolidBooleanMass",
+            "measureConvexPlanarSolidMass",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ]
+        }
+      },
+      "legacy-controls/receipts/modeling-mirror-admission-emitted/receipt.json": {
+        "issue": 1962,
+        "scope": "Actual modeling facade and unchanged pure helpers; isolated inert providers; admission and routing only, no geometric acceptance",
+        "realNativeGeometryCalls": 0,
+        "unexpectedProviderAttempts": [],
+        "inertProviderCalls": {
+          "buildModelingMirror": 18,
+          "buildXYAffineSketch": 20,
+          "buildXYAffineSketchPrism": 20,
+          "chamferConvexPlanarSolid": 3
+        },
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "provenance": {
+          "directory": "/Users/user/.barocss-ai/v3/evidence-cad-translated-intersection/legacy-controls/receipts/modeling-mirror-admission-emitted",
+          "entry": "/Users/user/.codex/worktrees/cad-cardinal-rotation-1949/barocss/packages/barocss-cad/dist/modeling.js",
+          "mode": "emitted",
+          "testSHA256": "0cb98420e9b5abf5356b4f4af321145d0f1bc6bb239e044626231a8c0a37c22e",
+          "virtualEntry": {
+            "bytes": 315,
+            "sha256": "5a5f361a051d7eb3d7e38a82718216c72b03b171c44fe5d3df93c2ea9ffbb011"
+          },
+          "bundle": {
+            "bytes": 108334,
+            "sha256": "86386f333e2763d95e46d156ba3375c7fefd124fa39236240a3fef88465c7a48"
+          },
+          "metafile": {
+            "bytes": 13037,
+            "sha256": "24b5ee60b804a237bbc52d67d6e3e08747934ad4ba01272c1e231fcdc0203ab6"
+          },
+          "inputs": {
+            "bytes": 748,
+            "sha256": "2e5c7f50dac5681cdb1546d2a0b14073a734bbb0aeaaf4a1db336bf239a42a0c"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildModelingCircularPattern",
+            "buildModelingLinearPattern",
+            "buildModelingMirror",
+            "buildModelingRotation",
+            "buildModelingScale",
+            "buildModelingStl",
+            "buildModelingTranslation",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "measureAxisBoxSolidBooleanMass",
+            "measureConvexPlanarSolidMass",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ]
+        }
+      },
+      "legacy-controls/receipts/modeling-rotation-placement-admission-emitted/receipt.json": {
+        "issue": 1994,
+        "scope": "Actual modeling facade and unchanged pure helpers; isolated inert providers; admission and routing only, no geometric acceptance",
+        "realNativeGeometryCalls": 0,
+        "unexpectedProviderAttempts": [],
+        "inertProviderCalls": {
+          "buildModelingRotation": 48,
+          "buildModelingTranslation": 54,
+          "buildXYAffineSketch": 53,
+          "buildXYAffineSketchPrism": 53,
+          "chamferConvexPlanarSolid": 12
+        },
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "provenance": {
+          "directory": "/Users/user/.barocss-ai/v3/evidence-cad-translated-intersection/legacy-controls/receipts/modeling-rotation-placement-admission-emitted",
+          "entry": "/Users/user/.codex/worktrees/cad-cardinal-rotation-1949/barocss/packages/barocss-cad/dist/modeling.js",
+          "mode": "emitted",
+          "testSHA256": "11d2fa9ebd30f62c997986e4f7695293775d352c6b690b9e9ef50f9846bb02eb",
+          "virtualEntry": {
+            "bytes": 315,
+            "sha256": "5a5f361a051d7eb3d7e38a82718216c72b03b171c44fe5d3df93c2ea9ffbb011"
+          },
+          "bundle": {
+            "bytes": 108862,
+            "sha256": "a990ab0cb594b6bc9941a23d0ea1add5fac33656ab8b410634ca5d4bb9baa56c"
+          },
+          "metafile": {
+            "bytes": 13803,
+            "sha256": "7a0f1bf0fc08d0b2d096452421cc486a14252a5e6881f0949d55d740e27dba3d"
+          },
+          "inputs": {
+            "bytes": 748,
+            "sha256": "2e5c7f50dac5681cdb1546d2a0b14073a734bbb0aeaaf4a1db336bf239a42a0c"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildModelingCircularPattern",
+            "buildModelingLinearPattern",
+            "buildModelingMirror",
+            "buildModelingRotation",
+            "buildModelingScale",
+            "buildModelingStl",
+            "buildModelingTranslation",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "measureAxisBoxSolidBooleanMass",
+            "measureConvexPlanarSolidMass",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ]
+        }
+      },
+      "legacy-controls/receipts/modeling-circular-pattern-four-admission-source/receipt.json": {
+        "issue": 1986,
+        "scope": "Actual modeling facade and unchanged pure helpers; isolated inert providers; admission and routing only, no geometric acceptance",
+        "realNativeGeometryCalls": 0,
+        "unexpectedProviderAttempts": [],
+        "inertProviderCalls": {
+          "buildModelingCircularPattern": 36,
+          "buildModelingLinearPattern": 1,
+          "buildModelingMirror": 1,
+          "buildModelingRotation": 1,
+          "buildModelingScale": 1,
+          "buildModelingTranslation": 1,
+          "buildXYAffineSketch": 42,
+          "buildXYAffineSketchPrism": 42,
+          "chamferConvexPlanarSolid": 11
+        },
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "provenance": {
+          "directory": "/Users/user/.barocss-ai/v3/evidence-cad-translated-intersection/legacy-controls/receipts/modeling-circular-pattern-four-admission-source",
+          "entry": "/Users/user/.codex/worktrees/cad-cardinal-rotation-1949/barocss/packages/barocss-cad/src/modeling.ts",
+          "mode": "source",
+          "testSHA256": "9741f70994287c50abd81404706a8482e9299202b979ab0882ee49ef0b3628a1",
+          "virtualEntry": {
+            "bytes": 314,
+            "sha256": "3deff83021a0eda6ccd16a8a624c9b6f0976c1d4508c408843a9694857e9ad6d"
+          },
+          "bundle": {
+            "bytes": 109048,
+            "sha256": "fc4d0aeda55b09779fa242d6e578de7f4f5070aba90566a907b85da9f4c4304d"
+          },
+          "metafile": {
+            "bytes": 13788,
+            "sha256": "a2c22f64308c1b4addaf83c46a194734fb71b9ac4358e9b4914fec288e275557"
+          },
+          "inputs": {
+            "bytes": 742,
+            "sha256": "c507d9dddc7269ebd99c2d0c228513f4eb791c2c72b098c7b4b2a399955b703a"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildModelingCircularPattern",
+            "buildModelingLinearPattern",
+            "buildModelingMirror",
+            "buildModelingRotation",
+            "buildModelingScale",
+            "buildModelingStl",
+            "buildModelingTranslation",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "measureAxisBoxSolidBooleanMass",
+            "measureConvexPlanarSolidMass",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ]
+        }
+      },
+      "legacy-controls/receipts/modeling-linear-pattern-admission-emitted/receipt.json": {
+        "issue": 1973,
+        "scope": "Actual modeling facade and unchanged pure helpers; isolated inert providers; admission and routing only, no geometric acceptance",
+        "realNativeGeometryCalls": 0,
+        "unexpectedProviderAttempts": [],
+        "inertProviderCalls": {
+          "buildModelingLinearPattern": 34,
+          "buildModelingMirror": 1,
+          "buildModelingRotation": 1,
+          "buildModelingScale": 1,
+          "buildModelingTranslation": 1,
+          "buildXYAffineSketch": 34,
+          "buildXYAffineSketchPrism": 34,
+          "chamferConvexPlanarSolid": 11
+        },
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "provenance": {
+          "directory": "/Users/user/.barocss-ai/v3/evidence-cad-translated-intersection/legacy-controls/receipts/modeling-linear-pattern-admission-emitted",
+          "entry": "/Users/user/.codex/worktrees/cad-cardinal-rotation-1949/barocss/packages/barocss-cad/dist/modeling.js",
+          "mode": "emitted",
+          "testSHA256": "806be5fdc34a8ae00fee9a12adb5b5e69456b9ce4c7d6aa3b0f4e866e34c0fad",
+          "virtualEntry": {
+            "bytes": 315,
+            "sha256": "5a5f361a051d7eb3d7e38a82718216c72b03b171c44fe5d3df93c2ea9ffbb011"
+          },
+          "bundle": {
+            "bytes": 108718,
+            "sha256": "cbed128371407df1ad40239f16d05c7fccb96e32101a2aa4adb0e2186f614f8c"
+          },
+          "metafile": {
+            "bytes": 13645,
+            "sha256": "77f3db99c6d1772fe4f520eadf9efe3c0506bf7cccb5bde47fee0f93dc636eed"
+          },
+          "inputs": {
+            "bytes": 748,
+            "sha256": "2e5c7f50dac5681cdb1546d2a0b14073a734bbb0aeaaf4a1db336bf239a42a0c"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildModelingCircularPattern",
+            "buildModelingLinearPattern",
+            "buildModelingMirror",
+            "buildModelingRotation",
+            "buildModelingScale",
+            "buildModelingStl",
+            "buildModelingTranslation",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "measureAxisBoxSolidBooleanMass",
+            "measureConvexPlanarSolidMass",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ]
+        }
+      },
+      "legacy-controls/receipts/modeling-offset-admission-trap/receipt.json": {
+        "expectedThrowingTrapCalls": 1,
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "issue": 1724,
+        "provenance": {
+          "bundle": {
+            "bytes": 352506,
+            "sha256": "5892e34b61a6083528a3f42c331c83f5ec549bde50bd8559742981ca760d17a6"
+          },
+          "directory": "/Users/user/.barocss-ai/v3/evidence-cad-translated-intersection/legacy-controls/receipts/modeling-offset-admission-trap",
+          "metafile": {
+            "bytes": 27238,
+            "sha256": "a5edce133e249d2d5da0ba093aef298b5717d9cc570d8ff1876c48678c3122c2"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildModelingCircularPattern",
+            "buildModelingLinearPattern",
+            "buildModelingMirror",
+            "buildModelingRotation",
+            "buildModelingScale",
+            "buildModelingStl",
+            "buildModelingTranslation",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ],
+          "sourceInputs": {
+            "bytes": 3712,
+            "sha256": "8f946b703dc03891a0c9f4722d0b9f6f7c33248827fe3621dacb0420513219b4"
+          }
+        },
+        "realNativeGeometryCalls": 0,
+        "scope": "isolated source constructor boundary and explicitly inert shape-only stubs; no geometric acceptance",
+        "shapeOnlyStubCalls": [
+          "buildXYAffineSketch",
+          "buildXYAffineSketchPrism",
+          "buildXYAffineSketchPrism",
+          "buildXYAffineSketch",
+          "buildXYAffineSketchPrism",
+          "buildXYAffineSketchPrism",
+          "buildXYAffineSketch",
+          "buildXYAffineSketchPrism",
+          "buildXYAffineSketch",
+          "buildXYAffineSketchPrism",
+          "buildXYAffineSketchPrism",
+          "buildXYAffineSketch",
+          "buildXYAffineSketchPrism",
+          "buildXYAffineSketch",
+          "buildXYAffineSketchPrism",
+          "buildXYAffineSketchPrism",
+          "buildXYAffineSketch",
+          "buildXYAffineSketchPrism",
+          "buildXYAffineSketch",
+          "buildXYAffineSketchPrism",
+          "buildOwnPlateCircularHole",
+          "qualifyStoredPlateHoleSolid"
+        ],
+        "unexpectedProviderAttempts": 0
+      },
+      "legacy-controls/receipts/modeling-circular-pattern-admission-emitted/receipt.json": {
+        "issue": 1979,
+        "scope": "Actual modeling facade and unchanged pure helpers; isolated inert providers; admission and routing only, no geometric acceptance",
+        "realNativeGeometryCalls": 0,
+        "unexpectedProviderAttempts": [],
+        "inertProviderCalls": {
+          "buildModelingCircularPattern": 35,
+          "buildModelingLinearPattern": 1,
+          "buildModelingMirror": 1,
+          "buildModelingRotation": 1,
+          "buildModelingScale": 1,
+          "buildModelingTranslation": 1,
+          "buildXYAffineSketch": 41,
+          "buildXYAffineSketchPrism": 41,
+          "chamferConvexPlanarSolid": 11
+        },
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "provenance": {
+          "directory": "/Users/user/.barocss-ai/v3/evidence-cad-translated-intersection/legacy-controls/receipts/modeling-circular-pattern-admission-emitted",
+          "entry": "/Users/user/.codex/worktrees/cad-cardinal-rotation-1949/barocss/packages/barocss-cad/dist/modeling.js",
+          "mode": "emitted",
+          "testSHA256": "ec6bb2025329f336c988ead6f97aeeb038c6903c0d78f8c688a3d14724000c53",
+          "virtualEntry": {
+            "bytes": 315,
+            "sha256": "5a5f361a051d7eb3d7e38a82718216c72b03b171c44fe5d3df93c2ea9ffbb011"
+          },
+          "bundle": {
+            "bytes": 108814,
+            "sha256": "272533df0bb5a54985baa720774c500ac37d849ba2c4b7259a15d56a24f37565"
+          },
+          "metafile": {
+            "bytes": 13797,
+            "sha256": "b102251ac246b830677218c35c32089677674929bb989484d519495bbc0bc449"
+          },
+          "inputs": {
+            "bytes": 748,
+            "sha256": "2e5c7f50dac5681cdb1546d2a0b14073a734bbb0aeaaf4a1db336bf239a42a0c"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildModelingCircularPattern",
+            "buildModelingLinearPattern",
+            "buildModelingMirror",
+            "buildModelingRotation",
+            "buildModelingScale",
+            "buildModelingStl",
+            "buildModelingTranslation",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "measureAxisBoxSolidBooleanMass",
+            "measureConvexPlanarSolidMass",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ]
+        }
+      },
+      "legacy-controls/receipts/modeling-mass-admission-emitted/receipt.json": {
+        "issue": 1790,
+        "scope": "Actual modeling facade with isolated inert construction and mass stubs; admission and routing only; no geometric acceptance",
+        "realNativeGeometryCalls": 0,
+        "unexpectedProviderAttempts": [],
+        "inertConstructionCalls": {
+          "buildAxisBoxSolidBoolean": 18,
+          "buildModelingBox": 37,
+          "buildOrthogonalSolidBoolean": 1,
+          "buildOwnPlateCircularHole": 1,
+          "buildXYAffineSketch": 48,
+          "buildXYAffineSketchPrism": 50,
+          "buildXYArc": 1,
+          "buildXYCirclePrismShell": 1,
+          "qualifyStoredCirclePrismSolid": 1,
+          "qualifyStoredPlateHoleSolid": 1
+        },
+        "inertMassCalls": {
+          "measureAxisBoxSolidBooleanMass": 28,
+          "measureConvexPlanarSolidMass": 33
+        },
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "provenance": {
+          "directory": "/Users/user/.barocss-ai/v3/evidence-cad-translated-intersection/legacy-controls/receipts/modeling-mass-admission-emitted",
+          "entry": "/Users/user/.codex/worktrees/cad-cardinal-rotation-1949/barocss/packages/barocss-cad/dist/modeling.js",
+          "mode": "emitted",
+          "testSHA256": "4ff0204f72ff53b4ee4a812467166e6ddb3808608776f0763de39e1070ebbb34",
+          "bundle": {
+            "bytes": 108152,
+            "sha256": "90381094a47c041448d30e8c761b697ae47b4f40362203b6f60e8bf9b4f9b4ac"
+          },
+          "metafile": {
+            "bytes": 11866,
+            "sha256": "44792d2232c73b8276773ed8fd4ad19bdfdaf30737f47c890910b7ffb32b39d3"
+          },
+          "inputs": {
+            "bytes": 748,
+            "sha256": "2e5c7f50dac5681cdb1546d2a0b14073a734bbb0aeaaf4a1db336bf239a42a0c"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildModelingCircularPattern",
+            "buildModelingLinearPattern",
+            "buildModelingMirror",
+            "buildModelingRotation",
+            "buildModelingScale",
+            "buildModelingStl",
+            "buildModelingTranslation",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "measureAxisBoxSolidBooleanMass",
+            "measureConvexPlanarSolidMass",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ]
+        }
+      },
+      "legacy-controls/receipts/modeling-translation-admission-emitted/receipt.json": {
+        "issue": 1880,
+        "scope": "Actual modeling facade and unchanged pure helpers; isolated inert providers; admission and routing only, no geometric acceptance",
+        "realNativeGeometryCalls": 0,
+        "unexpectedProviderAttempts": [],
+        "inertProviderCalls": {
+          "buildModelingTranslation": 71,
+          "buildXYAffineSketch": 56,
+          "buildXYAffineSketchPrism": 65,
+          "buildXYArc": 1,
+          "buildXYCirclePrismShell": 1,
+          "chamferConvexPlanarSolid": 26,
+          "qualifyStoredCirclePrismSolid": 1
+        },
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "provenance": {
+          "directory": "/Users/user/.barocss-ai/v3/evidence-cad-translated-intersection/legacy-controls/receipts/modeling-translation-admission-emitted",
+          "entry": "/Users/user/.codex/worktrees/cad-cardinal-rotation-1949/barocss/packages/barocss-cad/dist/modeling.js",
+          "mode": "emitted",
+          "testSHA256": "f9405bb306e440940985e5375bd34b3401ecc1c21a44857aaa9f0b27d84ecb4d",
+          "virtualEntry": {
+            "bytes": 315,
+            "sha256": "5a5f361a051d7eb3d7e38a82718216c72b03b171c44fe5d3df93c2ea9ffbb011"
+          },
+          "bundle": {
+            "bytes": 108574,
+            "sha256": "c423c9c5a276e6ad9659ca84e93945870f3745e2394cb9ffb4702a7158639d12"
+          },
+          "metafile": {
+            "bytes": 13417,
+            "sha256": "e960f6ea79f0a6010623b7ff5f14fe5e6c17e771362147b3f5b2254ef4787e9f"
+          },
+          "inputs": {
+            "bytes": 748,
+            "sha256": "2e5c7f50dac5681cdb1546d2a0b14073a734bbb0aeaaf4a1db336bf239a42a0c"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildModelingCircularPattern",
+            "buildModelingLinearPattern",
+            "buildModelingMirror",
+            "buildModelingRotation",
+            "buildModelingScale",
+            "buildModelingStl",
+            "buildModelingTranslation",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "measureAxisBoxSolidBooleanMass",
+            "measureConvexPlanarSolidMass",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ]
+        }
+      },
+      "legacy-controls/receipts/modeling-mirror-admission-source/receipt.json": {
+        "issue": 1962,
+        "scope": "Actual modeling facade and unchanged pure helpers; isolated inert providers; admission and routing only, no geometric acceptance",
+        "realNativeGeometryCalls": 0,
+        "unexpectedProviderAttempts": [],
+        "inertProviderCalls": {
+          "buildModelingMirror": 18,
+          "buildXYAffineSketch": 20,
+          "buildXYAffineSketchPrism": 20,
+          "chamferConvexPlanarSolid": 3
+        },
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "provenance": {
+          "directory": "/Users/user/.barocss-ai/v3/evidence-cad-translated-intersection/legacy-controls/receipts/modeling-mirror-admission-source",
+          "entry": "/Users/user/.codex/worktrees/cad-cardinal-rotation-1949/barocss/packages/barocss-cad/src/modeling.ts",
+          "mode": "source",
+          "testSHA256": "0cb98420e9b5abf5356b4f4af321145d0f1bc6bb239e044626231a8c0a37c22e",
+          "virtualEntry": {
+            "bytes": 314,
+            "sha256": "3deff83021a0eda6ccd16a8a624c9b6f0976c1d4508c408843a9694857e9ad6d"
+          },
+          "bundle": {
+            "bytes": 108448,
+            "sha256": "3f9ee0dd3dfa08e4e7a8af3570ba38ce08c8b2da03bc1b8c71ceb381a19f15d7"
+          },
+          "metafile": {
+            "bytes": 13013,
+            "sha256": "bcabd05fa86478877c1e55cace013b64423c6a8845f1389c1a061815a11a3002"
+          },
+          "inputs": {
+            "bytes": 742,
+            "sha256": "c507d9dddc7269ebd99c2d0c228513f4eb791c2c72b098c7b4b2a399955b703a"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildModelingCircularPattern",
+            "buildModelingLinearPattern",
+            "buildModelingMirror",
+            "buildModelingRotation",
+            "buildModelingScale",
+            "buildModelingStl",
+            "buildModelingTranslation",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "measureAxisBoxSolidBooleanMass",
+            "measureConvexPlanarSolidMass",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ]
+        }
+      },
+      "legacy-controls/receipts/modeling-stl-admission-emitted/receipt.json": {
+        "issue": 1890,
+        "scope": "Actual facade with all providers inert; API admission/projection, no geometry or STL proof",
+        "realNativeGeometryCalls": 0,
+        "unexpectedProviderAttempts": [],
+        "inertExportCalls": 12,
+        "inertConstructionCalls": 41,
+        "provenance": {
+          "directory": "/Users/user/.barocss-ai/v3/evidence-cad-translated-intersection/legacy-controls/receipts/modeling-stl-admission-emitted",
+          "entry": "/Users/user/.codex/worktrees/cad-cardinal-rotation-1949/barocss/packages/barocss-cad/dist/modeling.js",
+          "mode": "emitted",
+          "testSHA256": "c4728ab172a26e13c1b52b1bf24f9487571a4cba5271fe553c52fe38d05129d4",
+          "bundle": {
+            "bytes": 108104,
+            "sha256": "19b2cdd86959fb6fb40271ff13b1980b6c835ca231ad2cd6b15d0998b60fff45"
+          },
+          "metafile": {
+            "bytes": 11793,
+            "sha256": "bf1f42d5034fabd44b3353b6a417768795803b62a6c59a0c5ad0e990ddfddf8a"
+          },
+          "inputs": {
+            "bytes": 748,
+            "sha256": "2e5c7f50dac5681cdb1546d2a0b14073a734bbb0aeaaf4a1db336bf239a42a0c"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildModelingCircularPattern",
+            "buildModelingLinearPattern",
+            "buildModelingMirror",
+            "buildModelingRotation",
+            "buildModelingScale",
+            "buildModelingStl",
+            "buildModelingTranslation",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "measureAxisBoxSolidBooleanMass",
+            "measureConvexPlanarSolidMass",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ]
+        }
+      },
+      "legacy-controls/receipts/modeling-translation-admission-source/receipt.json": {
+        "issue": 1880,
+        "scope": "Actual modeling facade and unchanged pure helpers; isolated inert providers; admission and routing only, no geometric acceptance",
+        "realNativeGeometryCalls": 0,
+        "unexpectedProviderAttempts": [],
+        "inertProviderCalls": {
+          "buildModelingTranslation": 71,
+          "buildXYAffineSketch": 56,
+          "buildXYAffineSketchPrism": 65,
+          "buildXYArc": 1,
+          "buildXYCirclePrismShell": 1,
+          "chamferConvexPlanarSolid": 26,
+          "qualifyStoredCirclePrismSolid": 1
+        },
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "provenance": {
+          "directory": "/Users/user/.barocss-ai/v3/evidence-cad-translated-intersection/legacy-controls/receipts/modeling-translation-admission-source",
+          "entry": "/Users/user/.codex/worktrees/cad-cardinal-rotation-1949/barocss/packages/barocss-cad/src/modeling.ts",
+          "mode": "source",
+          "testSHA256": "f9405bb306e440940985e5375bd34b3401ecc1c21a44857aaa9f0b27d84ecb4d",
+          "virtualEntry": {
+            "bytes": 314,
+            "sha256": "3deff83021a0eda6ccd16a8a624c9b6f0976c1d4508c408843a9694857e9ad6d"
+          },
+          "bundle": {
+            "bytes": 108688,
+            "sha256": "a3ce830fa75bd8beeb9fdb8a2aef5e9d9c92d303e3bdd7b80ce2035183563c85"
+          },
+          "metafile": {
+            "bytes": 13393,
+            "sha256": "14f281b86e6e20514c5f7e5d3783cd4232bbe06e2a4682aba37864a2a15f18ca"
+          },
+          "inputs": {
+            "bytes": 742,
+            "sha256": "c507d9dddc7269ebd99c2d0c228513f4eb791c2c72b098c7b4b2a399955b703a"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildModelingCircularPattern",
+            "buildModelingLinearPattern",
+            "buildModelingMirror",
+            "buildModelingRotation",
+            "buildModelingScale",
+            "buildModelingStl",
+            "buildModelingTranslation",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "measureAxisBoxSolidBooleanMass",
+            "measureConvexPlanarSolidMass",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ]
+        }
+      },
+      "legacy-controls/receipts/modeling-linear-pattern-admission-source/receipt.json": {
+        "issue": 1973,
+        "scope": "Actual modeling facade and unchanged pure helpers; isolated inert providers; admission and routing only, no geometric acceptance",
+        "realNativeGeometryCalls": 0,
+        "unexpectedProviderAttempts": [],
+        "inertProviderCalls": {
+          "buildModelingLinearPattern": 34,
+          "buildModelingMirror": 1,
+          "buildModelingRotation": 1,
+          "buildModelingScale": 1,
+          "buildModelingTranslation": 1,
+          "buildXYAffineSketch": 34,
+          "buildXYAffineSketchPrism": 34,
+          "chamferConvexPlanarSolid": 11
+        },
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "provenance": {
+          "directory": "/Users/user/.barocss-ai/v3/evidence-cad-translated-intersection/legacy-controls/receipts/modeling-linear-pattern-admission-source",
+          "entry": "/Users/user/.codex/worktrees/cad-cardinal-rotation-1949/barocss/packages/barocss-cad/src/modeling.ts",
+          "mode": "source",
+          "testSHA256": "806be5fdc34a8ae00fee9a12adb5b5e69456b9ce4c7d6aa3b0f4e866e34c0fad",
+          "virtualEntry": {
+            "bytes": 314,
+            "sha256": "3deff83021a0eda6ccd16a8a624c9b6f0976c1d4508c408843a9694857e9ad6d"
+          },
+          "bundle": {
+            "bytes": 108832,
+            "sha256": "6e642d1409e34878e8f564f92fa50fb2cdad6b856fac48ad1f2c30b449132a79"
+          },
+          "metafile": {
+            "bytes": 13621,
+            "sha256": "c71b906b7e134d984bdbcf822d3820b19f9154d22820a0695e064456c7137314"
+          },
+          "inputs": {
+            "bytes": 742,
+            "sha256": "c507d9dddc7269ebd99c2d0c228513f4eb791c2c72b098c7b4b2a399955b703a"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildModelingCircularPattern",
+            "buildModelingLinearPattern",
+            "buildModelingMirror",
+            "buildModelingRotation",
+            "buildModelingScale",
+            "buildModelingStl",
+            "buildModelingTranslation",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "measureAxisBoxSolidBooleanMass",
+            "measureConvexPlanarSolidMass",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ]
+        }
+      },
+      "facade-controls/modeling-translated-intersection-admission-emitted/receipt.json": {
+        "issue": 2002,
+        "scope": "Actual modeling facade and unchanged pure helpers; isolated inert providers; admission and routing only, no geometric acceptance",
+        "realNativeGeometryCalls": 0,
+        "unexpectedProviderAttempts": [],
+        "inertProviderCalls": {
+          "buildModelingTranslation": 33,
+          "buildXYAffineSketch": 50,
+          "buildXYAffineSketchPrism": 51,
+          "intersectConvexPlanarSolids": 33
+        },
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "provenance": {
+          "directory": "/Users/user/.barocss-ai/v3/evidence-cad-translated-intersection/facade-controls/modeling-translated-intersection-admission-emitted",
+          "entry": "/Users/user/.codex/worktrees/cad-cardinal-rotation-1949/barocss/packages/barocss-cad/dist/modeling.js",
+          "mode": "emitted",
+          "testSHA256": "235924a42399aa6361abea7112432c784cb899fc3341f826df94e665f3217a7a",
+          "virtualEntry": {
+            "bytes": 315,
+            "sha256": "5a5f361a051d7eb3d7e38a82718216c72b03b171c44fe5d3df93c2ea9ffbb011"
+          },
+          "bundle": {
+            "bytes": 108982,
+            "sha256": "0ed4185fd8ffd183f4ef0e94afd07e34a8f41150483bf52154ce8cce956bdeeb"
+          },
+          "metafile": {
+            "bytes": 13818,
+            "sha256": "246fbc6420d8f13283dffe54e21c21d086bd3aeab0f66740474fad2d25f06f9b"
+          },
+          "inputs": {
+            "bytes": 748,
+            "sha256": "2e5c7f50dac5681cdb1546d2a0b14073a734bbb0aeaaf4a1db336bf239a42a0c"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildModelingCircularPattern",
+            "buildModelingLinearPattern",
+            "buildModelingMirror",
+            "buildModelingRotation",
+            "buildModelingScale",
+            "buildModelingStl",
+            "buildModelingTranslation",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "measureAxisBoxSolidBooleanMass",
+            "measureConvexPlanarSolidMass",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ],
+          "legacyIntersection": {
+            "originalSHA256": "022559dcc6bc55e414596c7a69326bf4ee8e1520cba37c5bcaf781a0f43e3337",
+            "entrySHA256": "9c04c55d8b34ba9ceb3379a3fd866d49caf35f6a26abef6cfddbbe4f9026777e",
+            "scope": "unchanged two control bodies; only provider entry replaced by trapped actual facade"
+          }
+        }
+      },
+      "facade-controls/modeling-translated-intersection-admission-source/receipt.json": {
+        "issue": 2002,
+        "scope": "Actual modeling facade and unchanged pure helpers; isolated inert providers; admission and routing only, no geometric acceptance",
+        "realNativeGeometryCalls": 0,
+        "unexpectedProviderAttempts": [],
+        "inertProviderCalls": {
+          "buildModelingTranslation": 33,
+          "buildXYAffineSketch": 50,
+          "buildXYAffineSketchPrism": 51,
+          "intersectConvexPlanarSolids": 33
+        },
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "provenance": {
+          "directory": "/Users/user/.barocss-ai/v3/evidence-cad-translated-intersection/facade-controls/modeling-translated-intersection-admission-source",
+          "entry": "/Users/user/.codex/worktrees/cad-cardinal-rotation-1949/barocss/packages/barocss-cad/src/modeling.ts",
+          "mode": "source",
+          "testSHA256": "235924a42399aa6361abea7112432c784cb899fc3341f826df94e665f3217a7a",
+          "virtualEntry": {
+            "bytes": 314,
+            "sha256": "3deff83021a0eda6ccd16a8a624c9b6f0976c1d4508c408843a9694857e9ad6d"
+          },
+          "bundle": {
+            "bytes": 109096,
+            "sha256": "9f04efe0e6f08c56b51670c8383e9ed1485a9c16084f2b4ed7f87c47a4e15346"
+          },
+          "metafile": {
+            "bytes": 13794,
+            "sha256": "804efdfca08c86427fee629919fcb3e8c0001304ae5f3a6706a24ffdb5edbf5a"
+          },
+          "inputs": {
+            "bytes": 742,
+            "sha256": "c507d9dddc7269ebd99c2d0c228513f4eb791c2c72b098c7b4b2a399955b703a"
+          },
+          "replacedProviderBindings": [
+            "buildAxisBoxSolidBoolean",
+            "buildModelingBox",
+            "buildModelingCircularPattern",
+            "buildModelingLinearPattern",
+            "buildModelingMirror",
+            "buildModelingRotation",
+            "buildModelingScale",
+            "buildModelingStl",
+            "buildModelingTranslation",
+            "buildOrthogonalSolidBoolean",
+            "buildOwnPlateCircularHole",
+            "buildXYAffineSketch",
+            "buildXYAffineSketchPrism",
+            "buildXYArc",
+            "buildXYCirclePrismShell",
+            "chamferConvexPlanarSolid",
+            "compileCadModel",
+            "intersectConvexPlanarSolids",
+            "measureAxisBoxSolidBooleanMass",
+            "measureConvexPlanarSolidMass",
+            "qualifyStoredCirclePrismSolid",
+            "qualifyStoredPlateHoleSolid",
+            "splitConvexPlanarSolid",
+            "subtractConvexPlanarSlab"
+          ],
+          "legacyIntersection": {
+            "originalSHA256": "022559dcc6bc55e414596c7a69326bf4ee8e1520cba37c5bcaf781a0f43e3337",
+            "entrySHA256": "9c04c55d8b34ba9ceb3379a3fd866d49caf35f6a26abef6cfddbbe4f9026777e",
+            "scope": "unchanged two control bodies; only provider entry replaced by trapped actual facade"
+          }
+        }
+      }
+    }
+  },
+  "authoredDocuments": {
+    "initial.cad-model.json": "{\"format\":\"barocss-cad-model\",\"nodes\":[{\"kind\":\"sketch\",\"points\":[[0,0],[32,0],[32,16],[16,32],[0,32]],\"profile\":\"polygon\"},{\"height\":8,\"kind\":\"extrude\",\"sketch\":0},{\"kind\":\"sketch\",\"max\":[40,24],\"min\":[8,-8],\"profile\":\"rectangle\"},{\"height\":4,\"kind\":\"extrude\",\"sketch\":2},{\"kind\":\"translate\",\"offset\":[{\"parameter\":\"offsetX\"},0,0],\"parent\":{\"node\":1,\"side\":\"solid\"}},{\"kind\":\"intersect\",\"left\":{\"node\":4,\"side\":\"solid\"},\"right\":{\"node\":3,\"side\":\"solid\"}}],\"outputs\":{\"original\":{\"node\":1,\"side\":\"solid\"},\"overlap\":{\"node\":5,\"side\":\"solid\"},\"tool\":{\"node\":3,\"side\":\"solid\"},\"translated\":{\"node\":4,\"side\":\"solid\"}},\"parameters\":{\"offsetX\":8},\"schema\":1,\"units\":\"mm\"}\n",
+    "accepted-edited.cad-model.json": "{\"format\":\"barocss-cad-model\",\"nodes\":[{\"kind\":\"sketch\",\"points\":[[0,0],[32,0],[32,16],[16,32],[0,32]],\"profile\":\"polygon\"},{\"height\":8,\"kind\":\"extrude\",\"sketch\":0},{\"kind\":\"sketch\",\"max\":[40,24],\"min\":[8,-8],\"profile\":\"rectangle\"},{\"height\":4,\"kind\":\"extrude\",\"sketch\":2},{\"kind\":\"translate\",\"offset\":[{\"parameter\":\"offsetX\"},0,0],\"parent\":{\"node\":1,\"side\":\"solid\"}},{\"kind\":\"intersect\",\"left\":{\"node\":4,\"side\":\"solid\"},\"right\":{\"node\":3,\"side\":\"solid\"}}],\"outputs\":{\"original\":{\"node\":1,\"side\":\"solid\"},\"overlap\":{\"node\":5,\"side\":\"solid\"},\"tool\":{\"node\":3,\"side\":\"solid\"},\"translated\":{\"node\":4,\"side\":\"solid\"}},\"parameters\":{\"offsetX\":16},\"schema\":1,\"units\":\"mm\"}\n",
+    "after-rejection.accepted.cad-model.json": "{\"format\":\"barocss-cad-model\",\"nodes\":[{\"kind\":\"sketch\",\"points\":[[0,0],[32,0],[32,16],[16,32],[0,32]],\"profile\":\"polygon\"},{\"height\":8,\"kind\":\"extrude\",\"sketch\":0},{\"kind\":\"sketch\",\"max\":[40,24],\"min\":[8,-8],\"profile\":\"rectangle\"},{\"height\":4,\"kind\":\"extrude\",\"sketch\":2},{\"kind\":\"translate\",\"offset\":[{\"parameter\":\"offsetX\"},0,0],\"parent\":{\"node\":1,\"side\":\"solid\"}},{\"kind\":\"intersect\",\"left\":{\"node\":4,\"side\":\"solid\"},\"right\":{\"node\":3,\"side\":\"solid\"}}],\"outputs\":{\"original\":{\"node\":1,\"side\":\"solid\"},\"overlap\":{\"node\":5,\"side\":\"solid\"},\"tool\":{\"node\":3,\"side\":\"solid\"},\"translated\":{\"node\":4,\"side\":\"solid\"}},\"parameters\":{\"offsetX\":16},\"schema\":1,\"units\":\"mm\"}\n",
+    "cold.cad-model.json": "{\"format\":\"barocss-cad-model\",\"nodes\":[{\"kind\":\"sketch\",\"points\":[[0,0],[32,0],[32,16],[16,32],[0,32]],\"profile\":\"polygon\"},{\"height\":8,\"kind\":\"extrude\",\"sketch\":0},{\"kind\":\"sketch\",\"max\":[40,24],\"min\":[8,-8],\"profile\":\"rectangle\"},{\"height\":4,\"kind\":\"extrude\",\"sketch\":2},{\"kind\":\"translate\",\"offset\":[{\"parameter\":\"offsetX\"},0,0],\"parent\":{\"node\":1,\"side\":\"solid\"}},{\"kind\":\"intersect\",\"left\":{\"node\":4,\"side\":\"solid\"},\"right\":{\"node\":3,\"side\":\"solid\"}}],\"outputs\":{\"original\":{\"node\":1,\"side\":\"solid\"},\"overlap\":{\"node\":5,\"side\":\"solid\"},\"tool\":{\"node\":3,\"side\":\"solid\"},\"translated\":{\"node\":4,\"side\":\"solid\"}},\"parameters\":{\"offsetX\":8},\"schema\":1,\"units\":\"mm\"}\n"
+  },
+  "actualContactRefusals": {
+    "03-contact.unexpected.snapshot.json.refusal.json": {
+      "cause": {
+        "contactDimension": 2
+      },
+      "code": "SELECTION",
+      "message": "CAD model intersect: Intersection has no positive-volume Solid (contact dimension 2)",
+      "name": "CadModelError",
+      "operation": "intersect",
+      "stack": "[Accessor diagnostic field]"
+    },
+    "04-disjoint.unexpected.snapshot.json.refusal.json": {
+      "cause": {
+        "contactDimension": -1
+      },
+      "code": "SELECTION",
+      "message": "CAD model intersect: Intersection has no positive-volume Solid (contact dimension -1)",
+      "name": "CadModelError",
+      "operation": "intersect",
+      "stack": "[Accessor diagnostic field]"
+    }
+  },
+  "staticChecks": {
+    "build": "PASS",
+    "lint": "PASS",
+    "sourceModelingTypes": "PASS",
+    "emittedModelingTypes": "PASS",
+    "sourceCompleteDocumentationExamples": 22,
+    "emittedCompleteDocumentationExamples": 22,
+    "currentPublicApi": "matched9packages76entries4202occurrences",
+    "currentManifest": "matched12packages"
+  },
+  "scope": "Exact Native model/preview/cold receipts; full hidden transitive work NOT_MEASURED; Editor/GPU/browser/physical/manufacturing unrun; final-head CI and merge recorded in PR/Wiki after this commit"
+}

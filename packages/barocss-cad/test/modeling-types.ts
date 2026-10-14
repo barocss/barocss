@@ -582,3 +582,34 @@ void placementReopened;
 placementMiddle.translate([placementOffsetX, 16]);
 // @ts-expect-error A rotation angle cannot be supplied as a length parameter.
 placementSource.rotate({ axis: 'x', angleDegrees: placementOffsetX });
+
+// A complete six-node translated intersection retains both existing evidence kinds.
+const translatedIntersectionModel = cad.model();
+const translatedIntersectionOffset = translatedIntersectionModel.parameter('offsetX', 8);
+const translatedIntersectionOriginal = translatedIntersectionModel.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const translatedIntersectionTool = translatedIntersectionModel.sketch.rectangle({ min: [16, -8], max: [48, 16] }).extrude(4);
+const translatedIntersectionCopy: CadShape = translatedIntersectionOriginal.translate([translatedIntersectionOffset, 0, 0]);
+const translatedIntersectionResult: CadShape = translatedIntersectionCopy.intersect(translatedIntersectionTool);
+const translatedIntersectionSnapshot: CadModelSnapshot = translatedIntersectionModel.build({ original: translatedIntersectionOriginal,
+  tool: translatedIntersectionTool, translated: translatedIntersectionCopy, overlap: translatedIntersectionResult });
+const translatedIntersectionReopened: CadModelSnapshot = cad.load(translatedIntersectionSnapshot.withParameters({ offsetX: 12 }).save());
+for (const evidence of translatedIntersectionSnapshot.evidence) {
+  if (evidence.kind === 'translate') {
+    const translatedFace: string = evidence.native.lineage.faces[0].translated.faceId;
+    void translatedFace;
+  } else if (evidence.kind === 'intersect') {
+    const operand: 'left' | 'right' = evidence.native.lineage.faces[0].sources[0].operand;
+    if (evidence.native.outcome.kind === 'solid') {
+      const exactVolume: string = evidence.native.outcome.solid.certificate.volumeMM3.numerator;
+      void exactVolume;
+    }
+    void operand;
+  }
+}
+void translatedIntersectionReopened;
+// @ts-expect-error Intersection requires an owned shape handle.
+translatedIntersectionCopy.intersect({});
+// @ts-expect-error Exactly one other shape is required.
+translatedIntersectionCopy.intersect();
+// @ts-expect-error There is no intersection options argument.
+translatedIntersectionCopy.intersect(translatedIntersectionTool, { axis: 'x' });
