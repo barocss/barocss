@@ -162,7 +162,7 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   }, [attempt, kind]);
   useEffect(() => {
     const input = fileInput.current;
-    const cancel = () => {if (!busyRef.current) {openTicket.current = null; setChoosingFile(false); setError(null); setNotice('File selection cancelled.');}};
+    const cancel = () => {if (openTicket.current && !busyRef.current) {openTicket.current = null; setChoosingFile(false); setError(null); setNotice('File selection cancelled.');}};
     input?.addEventListener('cancel', cancel);
     return () => input?.removeEventListener('cancel', cancel);
   }, [kind]);
@@ -277,10 +277,22 @@ export function NativeLightWorkbench({initialDocument}: {initialDocument?: Rende
   });
   const open = (kind: 'current' | 'legacy-v0' = 'current') => {
     const session = sessionRef.current;
-    if (session && !busyRef.current && !navigationBusy.current && !materialTicket.current && !surfaceTicket.current && !bodyCommandTicket.current && confirmReplace(kind === 'current' ? 'Open' : 'Import legacy Native scene')) {
+    if (session && !busyRef.current && !navigationBusy.current && !openTicket.current && !materialTicket.current && !surfaceTicket.current && !bodyCommandTicket.current && confirmReplace(kind === 'current' ? 'Open' : 'Import legacy Native scene')) {
+      const input = fileInput.current;
+      if (!input) {setNotice('File chooser is unavailable. Click Open to retry.'); return;}
       openTicket.current = {session, snapshot: session.getSnapshot(), fields: formRef.current, kind};
       setChoosingFile(true);
-      if (fileInput.current) fileInput.current.value = ''; fileInput.current?.click();
+      input.value = '';
+      try {
+        if (input.showPicker) input.showPicker();
+        else {
+          if (navigator.userActivation && !navigator.userActivation.isActive) throw new DOMException('User activation expired.', 'NotAllowedError');
+          input.click();
+        }
+      } catch {
+        openTicket.current = null; setChoosingFile(false); setError(null);
+        setNotice('File chooser could not open. Click Open to retry.');
+      }
     }
   };
   const readFile = (file: File | undefined) => {
