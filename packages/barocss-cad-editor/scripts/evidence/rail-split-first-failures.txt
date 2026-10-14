@@ -1,0 +1,55 @@
+Issue #2018: preserved first failures
+
+Mounted attempt 1; full log SHA256 ff340c3e8e4f1a62b704eb7e7b28d487af8c46d981ec1778b16306258dbde638
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ undefined
+- 'negative'
+
+    at preview (file:///workspace/shared/cad-rail-split-command/apps/cad-editor/flows/modeling-split-authoring-flow.mjs:381:10)
+    at async file:///workspace/shared/cad-rail-split-command/apps/cad-editor/flows/modeling-split-authoring-flow.mjs:439:3 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: 'negative',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.23.3
+
+Mounted attempt 2; full log SHA256 0d50f94fc41799b058d0eed1e4d1a8106951d187db888ad231fe5739c7604d17
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+17 !== 15
+
+    at file:///workspace/shared/cad-rail-split-command/apps/cad-editor/flows/modeling-split-authoring-flow.mjs:491:10 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 17,
+  expected: 15,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.23.3
+
+Expanded pure regression launch
+/bin/bash: line 80: /workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node: Argument list too long
+
+Worktree recovery
+{
+  "attempt": "worktree creation",
+  "error": "automatic approval review was cancelled",
+  "effect": "Initial add partially registered a locked worktree at exact base with only .git and an index.lock; retry reported path already exists.",
+  "recovery": "Confirmed no git process and empty newly created worktree; removed only its stale index.lock, populated sparse index/files at pinned HEAD, unlocked worktree. Initial clean status verified. Existing worktrees untouched."
+}
