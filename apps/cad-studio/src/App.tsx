@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { EngineClient } from './engine/client';
-import { featureLabel, fmt, prefixDoc, starterDoc, withNode, type ModelNode, type StudioDoc } from './engine/doc';
+import { emptyDoc, featureLabel, fmt, prefixDoc, starterDoc, withNode, type ModelNode, type StudioDoc } from './engine/doc';
 import type { BodyResult } from './engine/evaluate';
 import type { FriendlyError } from './engine/errors';
 import type { Vec3 } from './engine/mesh';
@@ -219,6 +219,7 @@ export function App() {
         {sketch && <button className="finish" onClick={finishSketch}><Icon name="check" />Finish sketch <Kbd>⏎</Kbd></button>}
         <button className="tool" aria-label="Undo" title="Undo (⌘Z)" disabled={!undo.length} onClick={doUndo}><Icon name="undo" /></button>
         <button className="tool" aria-label="Redo" title="Redo (⇧⌘Z)" disabled={!redo.length} onClick={doRedo}><Icon name="redo" /></button>
+        <button className="tool" aria-label="New part" title="New part" onClick={() => { commit(emptyDoc()); setFileName('Untitled'); }}><Icon name="add_box" /></button>
         <button className="tool" aria-label="Open" title="Open .bcad" onClick={() => fileInput.current?.click()}><Icon name="folder_open" /></button>
         <button className="tool" aria-label="Save" title="Save (⌘S)" onClick={save}><Icon name="save" /></button>
         <button className="tool" aria-label="Export STL" title="Export STL" onClick={exportStl}><Icon name="download" /></button>
@@ -243,6 +244,7 @@ export function App() {
           </div>))}
       </nav>
 
+      <div className="right-col">
       <aside className="card outliner" aria-label="Outliner">
         <div className="card-title">OUTLINER <span className="muted">{shownBodies.length} bod{shownBodies.length === 1 ? 'y' : 'ies'}</span></div>
         {bodies.map((b, i) => {
@@ -282,6 +284,7 @@ export function App() {
           engine.evaluate(prefixDoc(next, marker ?? next.nodes.length), revision.current++).then(r => { if (!r) return; if (r.ok) commit(next); else setToast(r.error); });
         }} onClose={() => setEditNode(null)} />}
       </aside>
+      </div>
 
       {active && <Hud active={active} onChange={values => setActive(a => a && { ...a, values })} onApply={apply} onCancel={cancel} />}
 
@@ -302,7 +305,6 @@ export function App() {
       </div>}
 
       <div className="corner-left">
-        <Triad camera={viewport.current?.camera} />
         <span className="mono muted">{busy ? 'Computing…' : `${ortho ? 'Orthographic' : 'Perspective'} · ${shownBodies.length} solid${shownBodies.length === 1 ? '' : 's'} · ${Math.round(lastMs)} ms`}{cursor ? ` · ${cursor.map(v => fmt(Math.round(v * 10) / 10)).join(', ')}` : ''}</span>
       </div>
 
@@ -356,13 +358,4 @@ function NodeEditor({ node, onApply, onClose }: { node: ModelNode; onApply(n: Mo
       {fields.length > 0 && <button className="primary" onClick={() => onApply(draft)}>Apply</button>}
     </div>
   );
-}
-
-function Triad({ camera }: { camera?: ViewportHandle['camera'] }) {
-  const { right, up } = camera ? camera.basis() : { right: [0.6, -0.8, 0] as Vec3, up: [0.3, 0.2, 0.9] as Vec3 };
-  const axes = [[1, 0, 0], [0, 1, 0], [0, 0, 1]].map(a => [a[0] * right[0] + a[1] * right[1] + a[2] * right[2], -(a[0] * up[0] + a[1] * up[1] + a[2] * up[2])]);
-  const colors = ['#e5534b', '#57b26b', '#4f8ff7'];
-  return <svg width="56" height="56" viewBox="-28 -28 56 56" role="img" aria-label="Axis triad">
-    {axes.map(([x, y], k) => <g key={k}><line x1={0} y1={0} x2={x * 20} y2={y * 20} stroke={colors[k]} strokeWidth={2.5} /><text x={x * 25} y={y * 25 + 3} fontSize={9} textAnchor="middle" fill={colors[k]} fontFamily="IBM Plex Mono">{'XYZ'[k]}</text></g>)}
-  </svg>;
 }

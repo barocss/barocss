@@ -52,6 +52,8 @@ function rectangleExtrude(doc: StudioDoc, ref: BodyRef) {
 }
 
 const notYet = (what: string): Command['available'] => () => no(`${what} isn’t available in the kernel yet.`);
+const hasHole = (doc: StudioDoc) => doc.nodes.some(n => n.kind === 'hole');
+const holeConflict = 'A part with a hole can’t also have chamfers, splits, subtractions or intersections yet.';
 
 export const commands: Command[] = [
   {
@@ -115,6 +117,7 @@ export const commands: Command[] = [
   {
     id: 'chamfer', label: 'Chamfer', icon: 'change_history', shortcut: 'C', group: 'modify', keywords: 'bevel edge',
     available: ctx => {
+      if (hasHole(ctx.doc)) return no(holeConflict);
       if (ctx.selection.edges.length !== 1) return no('Select one straight edge to chamfer.');
       const e = ctx.selection.edges[0]; const edge = ctx.bodies[e.body].mesh.edges[e.edge];
       if (!edge.straight || !edge.axis) return no('Chamfer works on straight edges parallel to X, Y or Z.');
@@ -178,7 +181,7 @@ export const commands: Command[] = [
   },
   {
     id: 'split', label: 'Split', icon: 'vertical_split', group: 'modify', keywords: 'cut plane divide',
-    available: ctx => oneBody(ctx) ? ok : no('Select one body to split.'),
+    available: ctx => hasHole(ctx.doc) ? no(holeConflict) : oneBody(ctx) ? ok : no('Select one body to split.'),
     fields: () => [{ key: 'axis', label: 'Normal', kind: 'choice', options: [{ value: 'x', label: 'X' }, { value: 'y', label: 'Y' }, { value: 'z', label: 'Z' }] }, { key: 'at', label: 'At', kind: 'mm' }],
     defaults: ctx => { const b = oneBody(ctx); return { axis: 'x', at: b ? r1((b.mesh.bounds.min[0] + b.mesh.bounds.max[0]) / 2) : 0 }; },
     build: (ctx, v) => withNode(ctx.doc, { kind: 'split', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, at: Number(v.at) }),
@@ -187,7 +190,7 @@ export const commands: Command[] = [
     id: kind, label: kind === 'union' ? 'Union' : kind === 'difference' ? 'Subtract' : 'Intersect',
     icon: kind === 'union' ? 'join_full' : kind === 'difference' ? 'join_left' : 'join_inner',
     shortcut: kind === 'union' ? 'U' : kind === 'difference' ? 'D' : 'I', group: 'combine', keywords: 'boolean combine merge cut',
-    available: ctx => selectedBodies(ctx.selection).length === 2 ? ok : no('Select two bodies (Shift-click the second).'),
+    available: ctx => kind !== 'union' && hasHole(ctx.doc) ? no(holeConflict) : selectedBodies(ctx.selection).length === 2 ? ok : no('Select two bodies (Shift-click the second).'),
     build: ctx => {
       const [a, b] = selectedBodies(ctx.selection).map(i => refOf(ctx.bodies[i]));
       const node: ModelNode = kind === 'difference' ? { kind, parent: a, tool: b } : { kind, left: a, right: b };

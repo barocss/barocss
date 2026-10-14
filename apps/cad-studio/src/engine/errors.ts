@@ -2,6 +2,9 @@
 export interface FriendlyError { title: string; hint: string; detail: string }
 
 const rules: { test: RegExp; title: string; hint: string }[] = [
+  { test: /cannot be mixed/i,
+    title: 'These features can’t be combined in one part yet',
+    hint: 'A part with a hole can’t also have chamfers, splits, subtractions or intersections. Put them in a separate part or remove the hole.' },
   { test: /pole chart|not exactly representable|lift is not exact|exact whole-curve/i,
     title: 'This size isn’t supported yet',
     hint: 'The kernel only accepts sizes that divide the part evenly in binary (for example 64 × 32 with a 4 mm hole). Try a round power-of-two ratio such as 8, 16, 32 or 64 mm.' },

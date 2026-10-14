@@ -55,6 +55,9 @@ test('union of two boxes meshes the orthogonal result', () => {
   assert.equal(r.bodies.length, 1);
   const v = signedVolume(r.bodies[0].mesh);
   assert.ok(Math.abs(v - (40 * 10 * 6 + 10 * 20 * 6)) < 1e-6, String(v));
+  // An L-shaped prism: top, bottom and six sides; six edges on each cap and six verticals.
+  assert.equal(r.bodies[0].mesh.faces.length, 8);
+  assert.equal(r.bodies[0].mesh.edges.length, 18);
 });
 
 test('pattern keeps the parent and adds copies; rollback evaluates a prefix', () => {

@@ -44,7 +44,7 @@ void main(){
 const LINE_VS = `#version 300 es
 layout(location=0) in vec3 aPos; layout(location=1) in float aState;
 uniform mat4 uVP; uniform vec3 uOffset; out float vState;
-void main(){ vState=aState; gl_Position=uVP*vec4(aPos+uOffset,1.0); gl_Position.z-=0.0004*gl_Position.w; }`;
+void main(){ vState=aState; gl_Position=uVP*vec4(aPos+uOffset,1.0); gl_Position.z-=0.00008*gl_Position.w; }`;
 
 const LINE_FS = `#version 300 es
 precision highp float; in float vState; uniform vec4 uColor; out vec4 o;

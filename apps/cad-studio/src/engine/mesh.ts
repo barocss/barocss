@@ -85,7 +85,14 @@ function featureEdges(positions: Float32Array, faceOfVertex: Float32Array, indic
   };
   for (const item of open) {
     const mate = open.find(other => other.face !== item.face && overlaps(item.seg, other.seg));
-    push(item.face, mate ? mate.face : item.face, item.seg);
+    if (mate) {
+      // A seam between two coplanar faces is not a visible edge.
+      if (dot(faces[item.face].normal, faces[mate.face].normal) < Math.cos(Math.PI / 9)) push(item.face, mate.face, item.seg);
+      continue;
+    }
+    // A T-junction inside one face (panels split differently) is not an edge either.
+    if (open.some(other => other !== item && other.face === item.face && overlaps(item.seg, other.seg))) continue;
+    push(item.face, item.face, item.seg);
   }
   const edges: DisplayEdge[] = []; const lines: number[] = []; const segmentEdge: number[] = [];
   for (const [gk, segments] of groups) {
@@ -137,8 +144,11 @@ export function bodyMesh(body: any, revision: number, quality = 8): DisplayMesh 
         positions.slice(v0 * 3, v1 * 3), normals.slice(v0 * 3, v1 * 3), idx);
     }
   } else if (body.family === 'orthogonal-cell') {
+    // The kernel returns grid panels; coplanar panels with the same outward normal form one face.
     const native = body.native;
     const points = new Map<string, Vec3>(native.vertices.map((v: { id: string; pointMM: Vec3 }) => [v.id, v.pointMM]));
+    type PanelGroup = { id: string; normal: Vec3; p: number[]; n: number[]; i: number[] };
+    const groups = new Map<string, PanelGroup>();
     for (const panel of native.panels) {
       if (!panel.bodyId) continue;
       const corners: Vec3[] = panel.vertexIds.map((id: string) => points.get(id)!);
@@ -146,8 +156,12 @@ export function bodyMesh(body: any, revision: number, quality = 8): DisplayMesh 
       let quad = corners;
       const n = cross(sub(quad[1], quad[0]), sub(quad[2], quad[0]));
       if (dot(n, normal) < 0) quad = [quad[0], quad[3], quad[2], quad[1]];
-      addFace(b, panel.id, 'plane', quad.flat(), [...normal, ...normal, ...normal, ...normal], [0, 1, 2, 0, 2, 3]);
+      const key = `${panel.bodyId}:${panel.axis}:${panel.sign}:${quad[0][panel.axis]}`;
+      const g: PanelGroup = groups.get(key) ?? { id: panel.id, normal, p: [], n: [], i: [] };
+      const base = g.p.length / 3; g.p.push(...quad.flat()); g.n.push(...normal, ...normal, ...normal, ...normal);
+      g.i.push(base, base + 1, base + 2, base, base + 2, base + 3); groups.set(key, g);
     }
+    for (const g of groups.values()) addFace(b, g.id, 'plane', g.p, g.n, g.i);
   } else {
     throw new Error('Unsupported body family ' + body.family);
   }

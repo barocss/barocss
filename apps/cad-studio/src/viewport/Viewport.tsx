@@ -222,12 +222,34 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       const cur = sketchDraft.current.cursor;
       if (cur) { const p = P(cur[0], cur[1]); items.push(<g key="cur"><line x1={p[0] - 8} y1={p[1]} x2={p[0] + 8} y2={p[1]} className="sk-cursor" /><line x1={p[0]} y1={p[1] - 8} x2={p[0]} y2={p[1] + 8} className="sk-cursor" /></g>); }
     }
+    // Thick strokes for hovered and selected edges (WebGL lines are 1 px).
+    const edgeStroke = (e: EdgeRef, cls: string, key: string) => {
+      const mesh = props.bodies[e.body]?.mesh; if (!mesh) return;
+      const L = mesh.edgeLines, E = mesh.edgeOfSegment; const parts: string[] = [];
+      for (let s = 0; s < L.length; s += 6) if (E[s / 3] === e.edge) {
+        const p = cam.project([L[s], L[s + 1], L[s + 2]], w, h), q = cam.project([L[s + 3], L[s + 4], L[s + 5]], w, h);
+        parts.push(`M${p[0].toFixed(1)} ${p[1].toFixed(1)}L${q[0].toFixed(1)} ${q[1].toFixed(1)}`);
+      }
+      if (parts.length) items.push(<path key={key} d={parts.join('')} className={cls} />);
+    };
+    if (!sk) {
+      if (hover.current.edge) edgeStroke(hover.current.edge, 'edge-hover', 'eh');
+      props.selection.edges.forEach((e, i) => edgeStroke(e, 'edge-sel', 'es' + i));
+    }
     const axes = gizmoAxes();
     if (axes) {
       const colors = ['#e5534b', '#57b26b', '#4f8ff7'];
       axes.tips.forEach((t, k) => items.push(<g key={'g' + k}><line x1={axes.p0[0]} y1={axes.p0[1]} x2={t[0]} y2={t[1]} stroke={colors[k]} strokeWidth={3} /><circle cx={t[0]} cy={t[1]} r={7} fill={colors[k]} className="gz-handle" /></g>));
       items.push(<circle key="go" cx={axes.p0[0]} cy={axes.p0[1]} r={6} fill="#f2f3f5" stroke="#101113" strokeWidth={1.5} />);
     }
+    // Axis triad, bottom-left, following the camera.
+    const { right, up } = cam.basis(); const tx = 92, ty = h - 64;
+    ['#e5534b', '#57b26b', '#4f8ff7'].forEach((color, k) => {
+      const a: Vec3 = [0, 0, 0]; a[k] = 1;
+      const x = a[0] * right[0] + a[1] * right[1] + a[2] * right[2], y = -(a[0] * up[0] + a[1] * up[1] + a[2] * up[2]);
+      items.push(<g key={'t' + k}><line x1={tx} y1={ty} x2={tx + x * 20} y2={ty + y * 20} stroke={color} strokeWidth={2.5} strokeLinecap="round" />
+        <text x={tx + x * 27} y={ty + y * 27 + 3} fontSize={9} textAnchor="middle" fill={color} fontFamily="IBM Plex Mono">{'XYZ'[k]}</text></g>);
+    });
     return <svg className="vp-overlay" width={w} height={h} aria-hidden="true">{items}</svg>;
   };
 
