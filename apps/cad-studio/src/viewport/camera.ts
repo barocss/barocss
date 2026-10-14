@@ -1,0 +1,116 @@
+// Z-up orbit camera with perspective/orthographic projection. Matrices are column-major (WebGL).
+import type { Vec3 } from '../engine/mesh';
+
+export type Mat4 = Float32Array;
+
+export class OrbitCamera {
+  target: Vec3 = [32, 16, 4];
+  distance = 160;
+  yaw = -Math.PI * 0.32;       // around +Z, from +X
+  pitch = Math.PI * 0.2;       // above the XY plane
+  fovY = (32 * Math.PI) / 180;
+  ortho = false;
+  aspect = 1;
+
+  eye(): Vec3 {
+    const cp = Math.cos(this.pitch);
+    return [this.target[0] + this.distance * cp * Math.cos(this.yaw), this.target[1] + this.distance * cp * Math.sin(this.yaw), this.target[2] + this.distance * Math.sin(this.pitch)];
+  }
+
+  basis() {
+    const e = this.eye();
+    const f = normalize(sub(this.target, e));
+    const r = normalize(cross(f, [0, 0, 1]));
+    const u = cross(r, f);
+    return { eye: e, forward: f, right: r, up: u };
+  }
+
+  view(): Mat4 {
+    const { eye, forward: f, right: r, up: u } = this.basis();
+    return new Float32Array([r[0], u[0], -f[0], 0, r[1], u[1], -f[1], 0, r[2], u[2], -f[2], 0, -dot(r, eye), -dot(u, eye), dot(f, eye), 1]);
+  }
+
+  near() { return Math.max(0.05, this.distance * 0.01); }
+  far() { return this.distance * 40 + 2000; }
+
+  projection(): Mat4 {
+    const n = this.near(), fa = this.far();
+    if (this.ortho) {
+      const h = this.distance * Math.tan(this.fovY / 2), w = h * this.aspect;
+      return new Float32Array([1 / w, 0, 0, 0, 0, 1 / h, 0, 0, 0, 0, -2 / (fa - n), 0, 0, 0, -(fa + n) / (fa - n), 1]);
+    }
+    const t = 1 / Math.tan(this.fovY / 2);
+    return new Float32Array([t / this.aspect, 0, 0, 0, 0, t, 0, 0, 0, 0, (fa + n) / (n - fa), -1, 0, 0, (2 * fa * n) / (n - fa), 0]);
+  }
+
+  viewProjection(): Mat4 { return mul(this.projection(), this.view()); }
+
+  orbit(dx: number, dy: number) {
+    this.yaw -= dx * 0.008;
+    this.pitch = Math.max(-Math.PI / 2 + 0.01, Math.min(Math.PI / 2 - 0.01, this.pitch + dy * 0.008));
+  }
+
+  pan(dx: number, dy: number, viewportHeight: number) {
+    const { right, up } = this.basis();
+    const scale = (2 * this.distance * Math.tan(this.fovY / 2)) / viewportHeight;
+    for (let k = 0; k < 3; k++) this.target[k] += (-dx * right[k] + dy * up[k]) * scale;
+  }
+
+  /** Zoom toward the point under the cursor (ndc in -1..1). */
+  zoom(factor: number, ndcX: number, ndcY: number) {
+    const { right, up } = this.basis();
+    const h = this.distance * Math.tan(this.fovY / 2), w = h * this.aspect;
+    const before = this.distance;
+    this.distance = Math.max(1, Math.min(20000, this.distance * factor));
+    const shift = 1 - this.distance / before;
+    for (let k = 0; k < 3; k++) this.target[k] += (ndcX * w * right[k] + ndcY * h * up[k]) * shift;
+  }
+
+  fit(min: Vec3, max: Vec3) {
+    this.target = [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2, (min[2] + max[2]) / 2];
+    const radius = Math.max(1, Math.hypot(max[0] - min[0], max[1] - min[1], max[2] - min[2]) / 2);
+    this.distance = (radius / Math.sin(this.fovY / 2)) * 1.15 / Math.min(1, this.aspect);
+  }
+
+  setView(name: 'iso' | 'top' | 'front' | 'right' | 'bottom' | 'back' | 'left') {
+    const views = { iso: [-0.32, 0.2], top: [-0.5, 0.4999], bottom: [-0.5, -0.4999], front: [-0.5, 0], back: [0.5, 0], right: [0, 0], left: [1, 0] } as const;
+    const [y, p] = views[name];
+    this.yaw = Math.PI * y; this.pitch = Math.PI * p;
+  }
+
+  /** World-space ray through a pixel. */
+  ray(ndcX: number, ndcY: number): { origin: Vec3; dir: Vec3 } {
+    const { eye, forward, right, up } = this.basis();
+    const h = Math.tan(this.fovY / 2), w = h * this.aspect;
+    if (this.ortho) {
+      const s = this.distance;
+      const origin: Vec3 = [0, 1, 2].map(k => eye[k] + (ndcX * w * right[k] + ndcY * h * up[k]) * s) as Vec3;
+      return { origin, dir: forward };
+    }
+    return { origin: eye, dir: normalize([0, 1, 2].map(k => forward[k] + ndcX * w * right[k] + ndcY * h * up[k]) as Vec3) };
+  }
+
+  /** Project a world point to CSS pixels. */
+  project(p: Vec3, width: number, height: number): [number, number, number] {
+    const m = this.viewProjection();
+    const x = m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12];
+    const y = m[1] * p[0] + m[5] * p[1] + m[9] * p[2] + m[13];
+    const z = m[2] * p[0] + m[6] * p[1] + m[10] * p[2] + m[14];
+    const w = m[3] * p[0] + m[7] * p[1] + m[11] * p[2] + m[15];
+    return [(x / w * 0.5 + 0.5) * width, (1 - (y / w * 0.5 + 0.5)) * height, z / w];
+  }
+}
+
+export function mul(a: Mat4, b: Mat4): Mat4 {
+  const o = new Float32Array(16);
+  for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) {
+    let s = 0; for (let k = 0; k < 4; k++) s += a[k * 4 + r] * b[c * 4 + k];
+    o[c * 4 + r] = s;
+  }
+  return o;
+}
+
+export const sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+export const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+export const cross = (a: Vec3, b: Vec3): Vec3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+export const normalize = (a: Vec3): Vec3 => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
