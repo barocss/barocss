@@ -72,7 +72,7 @@ test('refuses historical evidence or source pin replacement', async t => {
 test('records exact changed fields including metadata-only held Render', () => {
   assert.deepEqual(inventory.packages.filter(p => p.changesFromSourceSnapshot.length).map(p => [p.slug, p.changesFromSourceSnapshot.map(change => change.field)]), [
     ['kit', ['version']], ['browser', ['version']], ['server', ['version']], ['render', ['version']],
-    ['gpu', ['scripts']], ['cad-interop', ['publishConfig', 'exports']],
+    ['gpu', ['scripts']], ['cad-interop', ['publishConfig', 'exports', 'scripts']],
     ['cad-editor', ['scripts']], ['render-editor', ['dependencies']],
   ]);
 });

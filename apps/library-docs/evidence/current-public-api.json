@@ -1,7 +1,7 @@
 {
   "schema": "barocss-current-public-api-v1",
   "typescriptVersion": "5.9.3",
-  "sourceCommit": "2b04d1201875a7d73c65224fb7533dc581ddf704",
+  "sourceCommit": "a7be3701731a0318f4ede8decbecfcdde53c80d9",
   "extractor": "TypeScript 5.9.3 public module exports and declarations; not a type-check or runtime execution",
   "packages": [
     {
@@ -15192,7 +15192,7 @@
               "name": "CadBody",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 154,
+              "line": 157,
               "signatures": [
                 "export type CadBody = { readonly family: 'convex-planar'; readonly native: ConvexPlanarSolidResult }\n  | { readonly family: 'stored-rational-plate-hole'; readonly native: StoredPlateHoleSolidResult }\n  | { readonly family: 'orthogonal-cell'; readonly native: AxisBoxSolidBooleanResult | OrthogonalSolidBooleanResult }\n  | { readonly family: 'stored-rational-circle-prism'; readonly native: StoredCirclePrismSolidResult };"
               ],
@@ -15242,7 +15242,7 @@
               "name": "CadConstrainedPolygonBuilder",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 109,
+              "line": 112,
               "signatures": [
                 "export interface CadConstrainedPolygonBuilder {\n  point(seed: CadPoint2): CadSketchPoint;\n  fixed(point: CadSketchPoint): void;\n  horizontal(a: CadSketchPoint, b: CadSketchPoint): void;\n  vertical(a: CadSketchPoint, b: CadSketchPoint): void;\n  /** Adjacent owned edge parallel to a finite nonzero authored dimensionless direction. */\n  parallelTo(a: CadSketchPoint, b: CadSketchPoint, direction: readonly [number, number]): void;\n}"
               ],
@@ -15313,7 +15313,7 @@
               "name": "CadCut",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 99,
+              "line": 102,
               "signatures": [
                 "export interface CadCut { readonly negative: CadShape; readonly positive: CadShape }"
               ],
@@ -15847,7 +15847,7 @@
               "name": "CadMassProperties",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 171,
+              "line": 174,
               "signatures": [
                 "export type CadMassProperties = MassValues & (\n  | { readonly family: 'convex-planar'; readonly details: { readonly exact: MassExact; readonly conversionErrors: MassErrors; readonly native: MassReadonly<ConvexPlanarSolidMassResult> } }\n  | { readonly family: 'orthogonal-cell'; readonly details: { readonly exact: MassExact; readonly conversionErrors: MassErrors; readonly native: MassReadonly<AxisBoxSolidMassResult> } }\n);"
               ],
@@ -15857,7 +15857,7 @@
               "name": "CadMassPropertiesOptions",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 158,
+              "line": 161,
               "signatures": [
                 "export interface CadMassPropertiesOptions { readonly densityKgPerM3: number }"
               ],
@@ -15867,7 +15867,7 @@
               "name": "CadModel",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 117,
+              "line": 120,
               "signatures": [
                 "export interface CadModel {\n  parameter(name: string, valueMM: number): CadParameter;\n  readonly dimension: {\n    add(left: CadDimension, right: CadDimension): CadDimensionExpression;\n    scale(value: CadDimension, factor: number): CadDimensionExpression;\n  };\n  readonly sketch: {\n    polygon(points: readonly CadPoint2[]): CadSketch;\n    rectangle(rectangle: CadRectangle): CadSketch;\n    circle(options: { readonly center: CadPoint2; readonly radius: CadDimension }): CadSketch;\n    /** One fully constrained convex cycle; underconstrained or contradictory solves refuse atomically. */\n    constrainedPolygon(callback: (builder: CadConstrainedPolygonBuilder) => readonly CadSketchPoint[]): CadSketch;\n  };\n  /** Evaluates every authored node. Only these explicitly named Solid outputs are exposed. */\n  build(outputs: Readonly<Record<string, CadShape>>): CadModelSnapshot;\n}"
               ],
@@ -15907,7 +15907,7 @@
               "name": "CadModelEvidence",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 133,
+              "line": 136,
               "signatures": [
                 "export type CadModelEvidence =\n  | { readonly kind: 'sketch'; readonly profile?: never; readonly native: XYAffineSketchSuccess }\n  | { readonly kind: 'sketch'; readonly profile: 'circle'; readonly native: XYArcResult }\n  | { readonly kind: 'extrude'; readonly profile?: never; readonly native: XYAffineSketchPrismCoordinateSpanResult | XYAffineSketchPrismOffsetCoordinateSpanResult }\n  | { readonly kind: 'extrude'; readonly profile: 'circle'; readonly native: StoredCirclePrismSolidResult }\n  | { readonly kind: 'translate'; readonly native: ModelingTranslationResult }\n  | { readonly kind: 'rotate'; readonly native: ModelingRotationResult }\n  | { readonly kind: 'mirror'; readonly native: ModelingMirrorResult }\n  | { readonly kind: 'scale'; readonly native: ModelingScaleResult }\n  | { readonly kind: 'linear-pattern'; readonly native: ModelingLinearPatternResult }\n  | { readonly kind: 'circular-pattern'; readonly native: ModelingCircularPatternResult }\n  | { readonly kind: 'cut'; readonly native: ConvexPlanarSlabSubtractionResult }\n  | { readonly kind: 'intersect'; readonly native: ConvexPlanarSolidIntersectionResult }\n  | { readonly kind: 'split'; readonly native: ConvexPlanarSolidSplitResult }\n  | { readonly kind: 'difference'; readonly composition?: never; readonly parents: readonly [ConvexPlanarSolidResult, ConvexPlanarSolidResult]; readonly native: AxisBoxSolidBooleanResult }\n  | { readonly kind: 'difference'; readonly composition: 'union-slot'; readonly parent: AxisBoxSolidBooleanResult; readonly tool: ConvexPlanarSolidResult; readonly native: OrthogonalSolidBooleanResult }\n  | { readonly kind: 'union'; readonly parents: readonly [ConvexPlanarSolidResult, ConvexPlanarSolidResult]; readonly native: AxisBoxSolidBooleanResult }\n  | { readonly kind: 'hole'; readonly parent: ConvexPlanarSolidResult; readonly native: StoredPlateHoleSolidResult }\n  | { readonly kind: 'chamfer'; readonly native: ConvexPlanarSolidChamferResult; readonly configuration?: { readonly name: string; readonly suppressed: boolean; readonly output: 'parent' | 'chamfer-result' } };"
               ],
@@ -15917,7 +15917,7 @@
               "name": "CadModelFeature",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 152,
+              "line": 155,
               "signatures": [
                 "export interface CadModelFeature { readonly kind: CadModelEvidence['kind']; readonly index: number; readonly dependencies: readonly number[]; readonly name?: string; readonly suppressed?: boolean }"
               ],
@@ -15967,7 +15967,7 @@
               "name": "CadModelLimits",
               "kind": "VariableDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 208,
+              "line": 211,
               "signatures": [
                 "export const CadModelLimits: Readonly<{ nodes: 6; sketches: 2; extrusions: 2; compositionNodes: 8; compositionSketches: 3; compositionExtrusions: 3; cuts: 1; intersections: 1; splits: 1; chamfers: 2; holes: 1; unions: 1; differences: 1; parameters: 16; outputs: 8; polygonPoints: 8; polygonConstraints: 16; fileBytes: 65536; inputDepth: 12; lengthMM: 10000; dimensionNodes: 32; dimensionDepth: 6; }>;"
               ],
@@ -15977,7 +15977,7 @@
               "name": "CadModelSnapshot",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 187,
+              "line": 190,
               "signatures": [
                 "export interface CadModelSnapshot {\n  /** Deep-frozen tagged bodies; native source/topology/certificates remain authoritative. */\n  readonly bodies: Readonly<Record<string, CadBody>>;\n  readonly parameters: Readonly<Record<string, number>>;\n  /** Named validated finishing configuration, separate from numeric dimensions. */\n  readonly suppression: Readonly<Record<string, boolean>>;\n  readonly features: readonly CadModelFeature[];\n  /** Accepted model feature work only; native provider internals are not counted. Never saved. */\n  readonly recomputation: { readonly reusedFeatures: readonly number[]; readonly evaluatedFeatures: readonly number[] };\n  /** Original kernel results. Diagnostic evidence, never a saved cache or editable input. */\n  readonly evidence: readonly CadModelEvidence[];\n  /** Revalidates and measures one named convex or two-box integer-cell output. Curved/composed families refuse. */\n  massProperties(outputName: string, options: CadMassPropertiesOptions): CadMassProperties;\n  /** Export one owned convex output. No file side effects; Float32 loss/collapse is explicit. */\n  exportStl(outputName: string): CadStlExport;\n  withParameters(edits: Readonly<Record<string, number>>): CadModelSnapshot;\n  /** Disabled chamfers still validate; they select their exact parent as output. */\n  withSuppression(edits: Readonly<Record<string, boolean>>): CadModelSnapshot;\n  /** Saves only accepted authored state; no native results or meshes. */\n  save(): string;\n}"
               ],
@@ -16027,7 +16027,7 @@
               "name": "CadRectangle",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 106,
+              "line": 109,
               "signatures": [
                 "export type CadRectangle = { readonly min: CadPoint2; readonly max: CadPoint2 } | { readonly width: CadDimension; readonly height: CadDimension };"
               ],
@@ -16090,15 +16090,15 @@
               "source": "packages/barocss-cad/src/modeling.ts",
               "line": 70,
               "signatures": [
-                "export interface CadShape {\n  /** One exact translated copy of a direct affine extrusion; the copy is a terminal named output. */\n  translate(offset: readonly [CadDimension, CadDimension, CadDimension]): CadShape;\n  /** Right-handed cardinal rotation about the world origin. The owned copy is terminal; no later features or transforms. */\n  rotate(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | 180 | 270 | -90 | -180 | -270 }): CadShape;\n  /** Reflect across a cardinal plane through the world origin. The owned copy is terminal; no later features or transforms. */\n  mirror(options: { readonly plane: 'xy' | 'xz' | 'yz' }): CadShape;\n  /** Scale uniformly about the world origin by exactly 0.5 or 2. The owned copy is terminal; no later features or transforms. */\n  scale(options: { readonly factor: 0.5 | 2 }): CadShape;\n  /** Original handle plus two owned copies at positive spacing and twice spacing on one axis. The pattern is terminal. */\n  linearPattern(options: { readonly axis: CadAxis; readonly spacing: CadDimension; readonly count: 3 }): readonly [CadShape, CadShape, CadShape];\n  /** Original handle plus two owned copies at an authored quarter turn and twice that turn about the world origin. The pattern is terminal. */\n  circularPattern(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | -90; readonly count: 3 }): readonly [CadShape, CadShape, CadShape];\n  /** One connected union of two distinct direct integer rectangular extrusions. */\n  union(other: CadShape): CadShape;\n  /** One full-thickness stored-rational hole in a direct origin-aligned integer rectangular plate. */\n  hole(options: { readonly center: CadPoint2; readonly radius: CadDimension }): CadShape;\n  /** Positive-volume overlap of two distinct direct XY extrusions; disjoint/touching parts refuse. */\n  intersect(other: CadShape): CadShape;\n  /** Cardinal or x+y=at split of a direct XY extrusion or its owned chamfer chain; at is a coordinate/sum in mm. */\n  split(options: SplitPlane & { readonly at: CadDimension }): CadSplit;\n  /** One rectangular difference, or one third-box slot in an owned union; actual integer XYZ bounds are used. */\n  cut(tool: CadShape): CadShape;\n  /** Legacy through-slab pair. Options must be provided as an exact axis record. */\n  cut(tool: CadShape, options: { readonly axis: 'x' | 'y' }): CadCut;\n  edges(query: CadEdgeQuery): CadEdgeQueryHandle;\n  /** At most two sequential cardinal chamfers; each selector belongs to its exact parent result. */\n  chamfer(edge: CadEdgeSelection, distance: CadDimension, options?: { readonly name: string }): CadShape;\n}"
+                "export interface CadShape {\n  /** One exact translated copy of a direct affine extrusion; the copy is a terminal named output. */\n  translate(offset: readonly [CadDimension, CadDimension, CadDimension]): CadShape;\n  /** Right-handed cardinal rotation about the world origin. The owned copy is terminal; no later features or transforms. */\n  rotate(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | 180 | 270 | -90 | -180 | -270 }): CadShape;\n  /** Reflect across a cardinal plane through the world origin. The owned copy is terminal; no later features or transforms. */\n  mirror(options: { readonly plane: 'xy' | 'xz' | 'yz' }): CadShape;\n  /** Scale uniformly about the world origin by exactly 0.5 or 2. The owned copy is terminal; no later features or transforms. */\n  scale(options: { readonly factor: 0.5 | 2 }): CadShape;\n  /** Original handle plus two owned copies at positive spacing and twice spacing on one axis. The pattern is terminal. */\n  linearPattern(options: { readonly axis: CadAxis; readonly spacing: CadDimension; readonly count: 3 }): readonly [CadShape, CadShape, CadShape];\n  /** Original handle plus two owned copies at an authored quarter turn and twice that turn about the world origin. The pattern is terminal. */\n  circularPattern(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | -90; readonly count: 3 }): readonly [CadShape, CadShape, CadShape];\n  /** Original handle plus three owned quarter-turn copies. All copies use the same original; the pattern is terminal. */\n  circularPattern(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | -90; readonly count: 4 }): readonly [CadShape, CadShape, CadShape, CadShape];\n  circularPattern(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | -90; readonly count: 3 | 4 }): readonly [CadShape, CadShape, CadShape] | readonly [CadShape, CadShape, CadShape, CadShape];\n  /** One connected union of two distinct direct integer rectangular extrusions. */\n  union(other: CadShape): CadShape;\n  /** One full-thickness stored-rational hole in a direct origin-aligned integer rectangular plate. */\n  hole(options: { readonly center: CadPoint2; readonly radius: CadDimension }): CadShape;\n  /** Positive-volume overlap of two distinct direct XY extrusions; disjoint/touching parts refuse. */\n  intersect(other: CadShape): CadShape;\n  /** Cardinal or x+y=at split of a direct XY extrusion or its owned chamfer chain; at is a coordinate/sum in mm. */\n  split(options: SplitPlane & { readonly at: CadDimension }): CadSplit;\n  /** One rectangular difference, or one third-box slot in an owned union; actual integer XYZ bounds are used. */\n  cut(tool: CadShape): CadShape;\n  /** Legacy through-slab pair. Options must be provided as an exact axis record. */\n  cut(tool: CadShape, options: { readonly axis: 'x' | 'y' }): CadCut;\n  edges(query: CadEdgeQuery): CadEdgeQueryHandle;\n  /** At most two sequential cardinal chamfers; each selector belongs to its exact parent result. */\n  chamfer(edge: CadEdgeSelection, distance: CadDimension, options?: { readonly name: string }): CadShape;\n}"
               ],
-              "digest": "d763502898171a609006cfd6715f1b74c062b356c2147f7bc956bdedb12e09f3"
+              "digest": "fd65572c99ae78525bae979abb1edfa8a3b3afce1e49a6dca117da3f85c3e50e"
             },
             {
               "name": "CadSketch",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 101,
+              "line": 104,
               "signatures": [
                 "export interface CadSketch {\n  extrude(height: CadDimension): CadShape;\n  /** Absolute bottom Z for an affine XY profile; positive height stays a +Z distance. Circle options refuse. */\n  extrude(height: CadDimension, options: { readonly from: CadDimension }): CadShape;\n}"
               ],
@@ -16108,7 +16108,7 @@
               "name": "CadSketchPoint",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 107,
+              "line": 110,
               "signatures": [
                 "export interface CadSketchPoint { readonly kind: 'sketch-point' }"
               ],
@@ -16128,7 +16128,7 @@
               "name": "CadSplit",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 100,
+              "line": 103,
               "signatures": [
                 "export interface CadSplit { readonly negative: CadShape; readonly positive: CadShape }"
               ],
@@ -16138,7 +16138,7 @@
               "name": "CadStlExport",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad/src/modeling.ts",
-              "line": 176,
+              "line": 179,
               "signatures": [
                 "export interface CadStlExport {\n  readonly outputName: string;\n  readonly family: 'convex-planar';\n  readonly format: 'binary-stl';\n  readonly lengthUnit: 'mm';\n  readonly bytes: readonly number[];\n  readonly byteLength: number;\n  readonly triangleCount: number;\n  readonly maximumVertexDisplacementMM: number;\n  readonly details: MassReadonly<ModelingStlResult>;\n}"
               ],
@@ -38049,6 +38049,10 @@
         "./paired-surface-material-body-result": {
           "types": "./src/paired-surface-material-body-result.ts",
           "import": "./src/paired-surface-material-body-result.ts"
+        },
+        "./paired-surface-material-body-world-points-result": {
+          "types": "./src/paired-surface-material-body-world-points-result.ts",
+          "import": "./src/paired-surface-material-body-world-points-result.ts"
         }
       },
       "publishConfig": {
@@ -38279,6 +38283,10 @@
           "./paired-surface-material-body-result": {
             "types": "./dist/paired-surface-material-body-result.d.ts",
             "import": "./dist/paired-surface-material-body-result.js"
+          },
+          "./paired-surface-material-body-world-points-result": {
+            "types": "./dist/paired-surface-material-body-world-points-result.d.ts",
+            "import": "./dist/paired-surface-material-body-world-points-result.js"
           }
         }
       },
@@ -42917,6 +42925,83 @@
                 "BaroCadPairedSurfaceMaterialBodyResultRead",
                 "parseBaroCadPairedSurfaceMaterialBodyResult",
                 "readBaroCadPairedSurfaceMaterialBodyResult"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "./paired-surface-material-body-world-points-result",
+          "source": "packages/barocss-cad-interop/src/paired-surface-material-body-world-points-result.ts",
+          "provenance": "declared development type entry",
+          "symbols": [
+            {
+              "name": "BaroCadPairedSurfaceMaterialBodyWorldPointsDiagnosticCode",
+              "kind": "VariableDeclaration",
+              "source": "packages/barocss-cad-interop/src/paired-surface-material-body-world-points-result-json.ts",
+              "line": 2,
+              "signatures": [
+                "export const BaroCadPairedSurfaceMaterialBodyWorldPointsDiagnosticCode: Readonly<{ readonly INPUT: \"INPUT\"; readonly JSON: \"JSON\"; readonly OWNED: \"OWNED\"; readonly BUDGET: \"BUDGET\"; readonly SCHEMA: \"SCHEMA\"; readonly NATIVE: \"NATIVE\"; }>;",
+                "export type BaroCadPairedSurfaceMaterialBodyWorldPointsDiagnosticCode = typeof BaroCadPairedSurfaceMaterialBodyWorldPointsDiagnosticCode[keyof typeof BaroCadPairedSurfaceMaterialBodyWorldPointsDiagnosticCode];"
+              ],
+              "digest": "77f1766d6c33f648b297df18175c5ca7589f551aa9b1d8056988e49541b3283e"
+            },
+            {
+              "name": "BaroCadPairedSurfaceMaterialBodyWorldPointsReadError",
+              "kind": "ClassDeclaration",
+              "source": "packages/barocss-cad-interop/src/paired-surface-material-body-world-points-result-json.ts",
+              "line": 16,
+              "signatures": [
+                "export class BaroCadPairedSurfaceMaterialBodyWorldPointsReadError extends Error {\n  readonly code: BaroCadPairedSurfaceMaterialBodyWorldPointsDiagnosticCode;\n  constructor(code: BaroCadPairedSurfaceMaterialBodyWorldPointsDiagnosticCode, message: string, cause?: unknown);\n}"
+              ],
+              "digest": "34e8d5774938af31fef86ea1abea7104f4756ee3ddc8a0d8d209d11b8cd6bbb6"
+            },
+            {
+              "name": "BaroCadPairedSurfaceMaterialBodyWorldPointsResultRead",
+              "kind": "InterfaceDeclaration",
+              "source": "packages/barocss-cad-interop/src/paired-surface-material-body-world-points-result.ts",
+              "line": 59,
+              "signatures": [
+                "export interface BaroCadPairedSurfaceMaterialBodyWorldPointsResultRead {\n  native: PairedSurfaceMaterialBodyWorldPointResult;\n  validationReport: PairedSurfaceMaterialBodyWorldPointReport;\n  profile: typeof PROFILE;\n  sourceText: string | null;\n}"
+              ],
+              "digest": "9fa2ceff7b265eb4fef210b30b0c1c05ba0ea6173724e3b1dc935016c2a38109"
+            },
+            {
+              "name": "parseBaroCadPairedSurfaceMaterialBodyWorldPointsResult",
+              "kind": "FunctionDeclaration",
+              "source": "packages/barocss-cad-interop/src/paired-surface-material-body-world-points-result.ts",
+              "line": 98,
+              "signatures": [
+                "export function parseBaroCadPairedSurfaceMaterialBodyWorldPointsResult(text: string): BaroCadPairedSurfaceMaterialBodyWorldPointsResultRead;"
+              ],
+              "digest": "b7d8a754de3c0442f32cf1efcbb4810ab053ee0d3de69e68a386fd44f726531b"
+            },
+            {
+              "name": "readBaroCadPairedSurfaceMaterialBodyWorldPointsResult",
+              "kind": "FunctionDeclaration",
+              "source": "packages/barocss-cad-interop/src/paired-surface-material-body-world-points-result.ts",
+              "line": 106,
+              "signatures": [
+                "export function readBaroCadPairedSurfaceMaterialBodyWorldPointsResult(input: unknown): BaroCadPairedSurfaceMaterialBodyWorldPointsResultRead;"
+              ],
+              "digest": "d2210f8cfa91f70574f2769680f99007f8333a28c74a10283f6d7c002b572464"
+            }
+          ],
+          "groups": [
+            {
+              "source": "packages/barocss-cad-interop/src/paired-surface-material-body-world-points-result-json.ts",
+              "names": [
+                "BaroCadPairedSurfaceMaterialBodyWorldPointsDiagnosticCode",
+                "BaroCadPairedSurfaceMaterialBodyWorldPointsReadError"
+              ]
+            },
+            {
+              "source": "packages/barocss-cad-interop/src/paired-surface-material-body-world-points-result.ts",
+              "names": [
+                "BaroCadPairedSurfaceMaterialBodyWorldPointsDiagnosticCode",
+                "BaroCadPairedSurfaceMaterialBodyWorldPointsReadError",
+                "BaroCadPairedSurfaceMaterialBodyWorldPointsResultRead",
+                "parseBaroCadPairedSurfaceMaterialBodyWorldPointsResult",
+                "readBaroCadPairedSurfaceMaterialBodyWorldPointsResult"
               ]
             }
           ]
@@ -55179,8 +55264,8 @@
   "packageTrees": {
     "packages/barocss-render": "b83e4912e1d1aa658f048ba4b112376785b288fb",
     "packages/barocss-gpu": "2967d567ec26725a4090f2d64ed2b283ac468bef",
-    "packages/barocss-cad": "363681d4d97fa77cbdc5cbe659aac388a4e4b8be",
-    "packages/barocss-cad-interop": "1a2584cfb25826412096512aa71d74f059e5092d",
+    "packages/barocss-cad": "40308b9b49c2f691e8ddd0698a621437a49d45e6",
+    "packages/barocss-cad-interop": "330d0323e1d3891c8a1f882e848aae604ea67b08",
     "packages/barocss-canvas2d": "39853a85709f5c59dba7cdbbab3fd87da48cb54a",
     "packages/barocss-viewer": "aa7736ed08620fe9b7db2eff4feec5c89f9e502b",
     "packages/barocss-physics": "f3aa5c6e161137cb80fb68f73a517cd6bdc673dd",
@@ -56503,6 +56588,12 @@
       "@barocss/cad-interop./paired-surface-material-body-result:BaroCadPairedSurfaceMaterialBodyResultRead",
       "@barocss/cad-interop./paired-surface-material-body-result:parseBaroCadPairedSurfaceMaterialBodyResult",
       "@barocss/cad-interop./paired-surface-material-body-result:readBaroCadPairedSurfaceMaterialBodyResult",
+      "@barocss/cad-interop./paired-surface-material-body-world-points-result:entry",
+      "@barocss/cad-interop./paired-surface-material-body-world-points-result:BaroCadPairedSurfaceMaterialBodyWorldPointsDiagnosticCode",
+      "@barocss/cad-interop./paired-surface-material-body-world-points-result:BaroCadPairedSurfaceMaterialBodyWorldPointsReadError",
+      "@barocss/cad-interop./paired-surface-material-body-world-points-result:BaroCadPairedSurfaceMaterialBodyWorldPointsResultRead",
+      "@barocss/cad-interop./paired-surface-material-body-world-points-result:parseBaroCadPairedSurfaceMaterialBodyWorldPointsResult",
+      "@barocss/cad-interop./paired-surface-material-body-world-points-result:readBaroCadPairedSurfaceMaterialBodyWorldPointsResult",
       "@barocss/canvas2d.:applyImageAlphaMask",
       "@barocss/canvas2d.:applyImageAlphaMatte",
       "@barocss/canvas2d.:applyImageColorKey",
