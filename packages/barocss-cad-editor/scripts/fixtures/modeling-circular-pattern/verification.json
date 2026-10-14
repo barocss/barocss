@@ -216,5 +216,44 @@
   },
   "nativeCalls": 0,
   "hardwareGPUCalls": 0,
-  "physicalBrowser": false
+  "physicalBrowser": false,
+  "apiVerification": {
+    "sourceCommit": "78fca5d35e3deacc2e9dab6ad82b9a2c44f8aad1",
+    "nodeHeapLimitMB": 1536,
+    "peakMemoryMeasured": false,
+    "results": [
+      {
+        "name": "qualified-write",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--write-current",
+          "--commit",
+          "78fca5d35e3deacc2e9dab6ad82b9a2c44f8aad1"
+        ],
+        "exitCode": 0,
+        "seconds": 5.9307230499980506
+      },
+      {
+        "name": "qualified-check",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--check"
+        ],
+        "exitCode": 0,
+        "seconds": 4.980911247985205
+      }
+    ],
+    "delta": {
+      "added": [],
+      "removed": [],
+      "changed": [],
+      "beforePin": "042e6bc184fb67ef1252d08c85eb97334a5c1fe5",
+      "sourcePin": "78fca5d35e3deacc2e9dab6ad82b9a2c44f8aad1",
+      "typescript": "5.9.3",
+      "signatures": {}
+    },
+    "priorAttempt": "Missing local copy of exact published product commit refused before extraction; fetched that exact commit and retried unchanged script."
+  }
 }
