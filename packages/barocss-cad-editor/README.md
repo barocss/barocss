@@ -1483,3 +1483,22 @@ acceptance remains separate.
 
 Run `node packages/barocss-cad-editor/scripts/modeling-pocket-authoring-test.mjs`
 for the frozen12 pure and10 controlled transaction groups, without native calls.
+
+## Orthogonal native-face presentation (#1974)
+
+Qualified orthogonal-cell scenes partition original triangle occurrences into at
+most six exact native axis/sign groups with categorical unlit shades. Positions,
+normals, UVs and each triplet's winding are unchanged. Upward rim and floor share
+the same shade; this does not provide general depth cues or new native authority.
+Private per-output geometry IDs map each draw-local triangle back to its original
+packet triangle and prepared face. Generation-specific IDs prevent alias across
+outputs, replacement and resize. Picking still returns original face references
+and lineage. Other display families retain their existing presentation.
+
+Run the focused local CPU fixture with
+`node packages/barocss-cad-editor/scripts/modeling-orthogonal-presentation-test.mjs`.
+Its ten groups replay 104 unchanged retained Surface packets (46 pocket, 14 union,
+44 composed cut), check exact partition/picking/edge-tie authority, two aspects,
+accepted-view restoration and nonorthogonal parity. The receiving/raycast fault
+doubles are confined to malformed private-map controls. No native calls or GPU
+pixels are established; visible cavity readability remains an actual Tester gate.
