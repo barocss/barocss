@@ -1,7 +1,7 @@
 {
   "schema": "barocss-current-public-api-v1",
   "typescriptVersion": "5.9.3",
-  "sourceCommit": "12505b9a4f9c608603d4bbb6cac67578d88521d2",
+  "sourceCommit": "18f975f4bad4b572235ad0a86254fc69290771ab",
   "extractor": "TypeScript 5.9.3 public module exports and declarations; not a type-check or runtime execution",
   "packages": [
     {
@@ -55523,7 +55523,7 @@
   "packageTrees": {
     "packages/barocss-render": "b83e4912e1d1aa658f048ba4b112376785b288fb",
     "packages/barocss-gpu": "1bd13f5ea8fc0394c85cff12d7a84e1401bfccde",
-    "packages/barocss-cad": "58ed6963291909fe6f985b685324d0f89f74a158",
+    "packages/barocss-cad": "c3e0ffe0a6cf66d62c32bfc1e6e1552d166cc493",
     "packages/barocss-cad-interop": "330d0323e1d3891c8a1f882e848aae604ea67b08",
     "packages/barocss-canvas2d": "b029d1925907fbac9a19d6c2f825cbfd91323473",
     "packages/barocss-viewer": "cb48d4ca378dd7050573ab1f57a1c554449885e5",
