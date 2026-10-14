@@ -1,3 +1,5 @@
+// run() replaces __CONFIG__ in the serialized browser callback.
+/* global __CONFIG__:readonly */
 import assert from 'node:assert/strict';
 import {execFile} from 'node:child_process';
 import {execFileSync} from 'node:child_process';
@@ -69,6 +71,6 @@ try{
     check(recovery.notices===0&&recovery.canvas.width===recovery.difference.before.width&&recovery.canvas.height===recovery.difference.before.height&&recovery.difference.count/recovery.difference.totalChannels<=.001&&recovery.difference.probes.every(p=>p.before.every((value,i)=>Math.abs(value-p.after[i])<=1)),'Mixed recovery failed sampled display checks: '+JSON.stringify(recovery));rows.push({case:'loss-restored-fresh-public-renderer',sampledDisplayOnly:true,bitwisePixels:false,recovery});
     await fresh.getByTestId('project-rational_panel').click();await fresh.getByTestId('document-title').filter({hasText:'Sphere and rational panel'}).waitFor();check(await revision()==='0','Second source pair not opened');await fresh.getByRole('button',{name:'Sphere and curved sheet',exact:true}).last().click();await fresh.locator('[data-testid="accepted-revision"][data-revision="10"]').waitFor();check(await scene.inputValue()===source,'Workspace lost original sources');rows.push({case:'two-source-pair-route-retention'});check(!errors.length,'Fresh errors '+errors.join(';'));await fresh.close();return{rows,errors};
   },{saved});receipt.cases.push(freshResult);const reopened=JSON.parse(await readFile(resolve(output,'reopened.render-mixed.json'),'utf8'));assert.equal(reopened.revision,10);assert.equal(reopened.sceneSource,freshResult.rows[0].source);assert.equal(reopened.asset.source,saved.asset.source);const prepared=api.prepareRenderMixedDocument(reopened);assert.equal(prepared.model.objects.length,2);receipt.saved={bytes:Buffer.byteLength(await readFile(resolve(output,'saved.render-mixed.json'),'utf8')),assetRevision:saved.asset.revision,unrenderedOriginalCurve:prepared.model.objects[1].id};receipt.actualGL=true;receipt.ok=true;
-}catch(error){receipt.firstFailure=error.stack??String(error);process.exitCode=1;try{await call('snapshot');await call('screenshot','--filename='+resolve(output,'first-failure.png'));}catch{}}
+}catch(error){receipt.firstFailure=error.stack??String(error);process.exitCode=1;try{await call('snapshot');await call('screenshot','--filename='+resolve(output,'first-failure.png'));}catch{/* Failure capture is best effort. */}}
 finally{try{await call('close');}catch(error){receipt.cleanupFailure=String(error);process.exitCode=1;}await server?.close();await writeFile(resolve(output,'mixed-app-flow.json'),JSON.stringify(receipt,null,2)+'\n');}
 console.log(JSON.stringify(receipt,null,2));

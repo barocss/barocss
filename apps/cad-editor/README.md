@@ -738,3 +738,22 @@ The frozen10 groups use real React/controller/serializer/receiver paths with
 explicit provider/Worker/display doubles and unchanged retained baseline packets.
 #1971 keeps actual new-command, edited pixels and physical Save/Open pending;
 it does not complete the older preset's separate #1867 matrix.
+
+## Chamfer a user-created rectangular part
+
+New rectangular part32×24×8 → select Extrude01 → MODIFY → Chamfer front top edge.
+The fixed edge is X-parallel,Y=0,Z=max in authored coordinates, not camera front.
+Enter Bevel distance1, then Preview operation → Apply operation. Enter previews;
+Escape/Cancel restores the accepted model. Apply needs a current ready preview.
+The three-node result retains the original features and one new history entry.
+Select Chamfer01 → Edit model dimensions to change bevelDistance to2, then use
+Preview/Apply, Undo/Redo and accepted-only Download/Open.
+
+Decimal admission is specific to this finishing command; native exact geometry
+can still refuse. No arbitrary edge picking, second bevel or circular finishing
+is implied. Local focused flow:
+`node apps/cad-editor/flows/modeling-chamfer-authoring-flow.mjs`.
+It replays unchanged genuine two-bevel6064mm³ transport with mocked one-bevel
+command context. Historical single-bevel6128/6080mm³ results are separate from
+that display fixture. #1984 retains the actual-device geometry/history gate;
+local accepted-source/cold-load controls cover the reused file path.

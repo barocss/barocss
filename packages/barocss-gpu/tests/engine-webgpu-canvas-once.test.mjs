@@ -5,6 +5,8 @@ import { renderEngineWebGPUCanvasOnce } from '../dist/engine-webgpu-canvas-once.
 import './engine-webgpu-checked-once.test.mjs';
 import './engine-webgpu-checked-present.test.mjs';
 import './engine-webgpu-wait-budget.test.mjs';
+import './engine-webgpu-device-loss.test.mjs';
+import './engine-webgpu-session.test.mjs';
 
 export function original() {
   const mesh = id => ({id,type:'mesh',parentId:null,translation:[0,0,0],
@@ -30,9 +32,11 @@ export function harness(failure = '', options = {}) {
   let presentation = false, presentationPushes = 0, presentationPops = 0, offscreenPops = 0;
   const scopes = [];
   const queueStarted = deferred();
+  const loss = options.loss ?? deferred();
   const fail = stage => { if (failure === stage) throw error; };
   const destination = { destroy() { throw new Error('borrowed Canvas texture destroyed'); } };
   const device = {
+    lost: loss.promise,
     limits:{maxTextureDimension2D:4096},
     destroy() { throw new Error('caller device destroyed'); },
     pushErrorScope(filter){events.push(['push',filter]);
@@ -80,7 +84,7 @@ export function harness(failure = '', options = {}) {
     unconfigure(){events.push('unconfigure');if(options.unconfigureError)throw options.unconfigureError;},
     getCurrentTexture(){events.push('backing');fail('backing');return destination;},
   };
-  return {device,context,events,buffers,textures,error,destination,queueStarted,options,scopes};
+  return {device,context,events,buffers,textures,error,destination,queueStarted,loss,options,scopes};
 }
 function cleanup(h, buffers, textures, unconfigure) {
   assert.equal(h.events.filter(x => typeof x === 'string' && x.startsWith('destroyBuffer:')).length, buffers);
@@ -117,9 +121,11 @@ test('one admitted original snapshot draws shared geometry and retains owners un
 });
 
 test('caller mutations during shader compilation do not change the admitted draw snapshot', async () => {
-  const compilation = deferred(), h = harness('',{compilation}), source = original();
+  const compilation = deferred(), compilationStarted = deferred();
+  const h = harness('',{compilation,compilationStarted}), source = original();
   const pending = render(h,source);
   source.nodes.length = 0;source.geometries.length = 0;source.materials.length = 0;
+  await compilationStarted.promise;
   const before = h.events.length;
   await assert.rejects(render(h),/already claimed/);assert.equal(h.events.length,before);
   compilation.resolve();
