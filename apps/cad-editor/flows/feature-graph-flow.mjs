@@ -84,7 +84,7 @@ try {
   server=spawn(process.execPath,[vite,'--force','--host','127.0.0.1','--port',String(port)],{cwd:resolve(repo,'apps/cad-editor'),env:{...process.env,...(compiled?{CAD_EDITOR_COMPILED_MAP:runtimeMapPath}:{})},stdio:['ignore','pipe','pipe']});
   let log='';for(const stream of [server.stdout,server.stderr])stream.on('data',b=>{log+=b.toString();writeFileSync(resolve(evidence,prefix+'-server.log'),log);});server.on('exit',()=>{serverExited=true;});
   const url=`http://127.0.0.1:${port}/?flow#/features/cad_boolean_extrusion`,deadline=Date.now()+20000;
-  while(true){assert.equal(serverExited,false);assert.ok(!log.includes('already in use'));if(log.includes(`http://127.0.0.1:${port}/`)){try{if((await fetch(url)).ok)break;}catch{}}assert.ok(Date.now()<deadline);await new Promise(r=>setTimeout(r,100));}
+  while(true){assert.equal(serverExited,false);assert.ok(!log.includes('already in use'));if(log.includes(`http://127.0.0.1:${port}/`)){try{if((await fetch(url)).ok)break;}catch{ /* Retry readiness after the existing ignored connection failure. */ }}assert.ok(Date.now()<deadline);await new Promise(r=>setTimeout(r,100));}
   result.ownedServer={port,pid:server.pid,worktree:repo,url,childListeningConfirmed:true};
   browser=await chromium.launch({headless:!args.includes('--headed'),executablePath});
   context=await browser.newContext({viewport:{width:1440,height:960},deviceScaleFactor:1,acceptDownloads:true});
@@ -184,6 +184,6 @@ try {
   await fresh.evaluate(()=>window.__cadFeatureFlow.setMounted(true));await ready(fresh);assert.deepEqual(await snapshot(fresh),reopened);result.events.push({stage:'unmount-remount',disposed,hostSessionRetained:true});
   assert.deepEqual(result.pageErrors,[]);result.outcome='passed';save();process.stdout.write(JSON.stringify({mode,outcome:'passed',stages:result.events.map(x=>x.stage),evidence:resolve(evidence,prefix+'.json')})+'\n');
 } catch(error) {
-  if(activePage)try{result.failureWindowState=await activePage.evaluate(()=>({error:window.__cadFeatureFlow?.error(),snapshot:window.__cadFeatureFlow?.snapshot(),display:window.__cadFeatureFlow?.display()}));await activePage.screenshot({path:resolve(evidence,prefix+'-failure.png')});}catch{}
+  if(activePage)try{result.failureWindowState=await activePage.evaluate(()=>({error:window.__cadFeatureFlow?.error(),snapshot:window.__cadFeatureFlow?.snapshot(),display:window.__cadFeatureFlow?.display()}));await activePage.screenshot({path:resolve(evidence,prefix+'-failure.png')});}catch{ /* Preserve the original failure if collecting diagnostics also fails. */ }
   result.outcome='failed';result.failure={message:error.message,stack:error.stack};save();process.stderr.write(error.stack+'\n');process.exitCode=1;
 } finally {await freshContext?.close();await context?.close();await browser?.close();if(server&&!serverExited){server.kill('SIGTERM');await new Promise(r=>{server.once('exit',r);setTimeout(r,2000);});}}

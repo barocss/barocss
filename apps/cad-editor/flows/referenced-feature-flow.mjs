@@ -38,7 +38,7 @@ export async function runReferencedFeatureFlow({page,browser,cad,editor,result,e
     const combination=byKind(evaluated,'coplanar-boolean');
     for(const face of evaluated.document.features.filter(f=>f.kind==='face-input')) {
       const starting=face.id==='face_b_feature'?original.document.features.find(f=>f.id===face.id):originalA;
-      const {id,outputSlotId,...source}=face,{id:oldId,outputSlotId:oldSlot,...oldSource}=starting;
+      const {id,outputSlotId,...source}=face; /* Preserve the original destructuring reads and omitted fields. */ void id; void outputSlotId; const {id:oldId,outputSlotId:oldSlot,...oldSource}=starting; /* Preserve the original destructuring reads and omitted fields. */ void oldId; void oldSlot;
       assert.deepEqual(source,oldSource);assert.equal(Object.is(face.loop.edges[0].knots[0],-0),true);
     }
     assert.deepEqual(leaves(evaluated).map(f=>f.id),leaves(original).map(f=>f.id));
@@ -169,7 +169,7 @@ export async function runReferencedFeatureFlow({page,browser,cad,editor,result,e
     await fresh.screenshot({path:resolve(evidence,prefix+'-referenced-fresh-reedit.png')});result.events.push({stage:'genuine-referenced-download-fresh-reedit',path,native:observe(reedited.accepted,4,[3,4,5,6],3),display:await display(fresh)});
     await fresh.getByTestId('replace-feature-'+boolId).click();await fresh.getByTestId('replace-operation').selectOption('difference');await fresh.keyboard.press('Escape');await fresh.getByTestId('replace-dialog').waitFor({state:'hidden'});await fresh.waitForFunction(id=>document.activeElement?.getAttribute('data-testid')==='replace-feature-'+id,boolId);assert.deepEqual((await snapshot(fresh)).accepted,reedited.accepted);
     await fresh.getByTestId('replace-feature-'+faceId).click();await fresh.getByRole('button',{name:'Cancel',exact:true}).click();await fresh.getByTestId('replace-dialog').waitFor({state:'hidden'});await fresh.waitForFunction(id=>document.activeElement?.getAttribute('data-testid')==='replace-feature-'+id,faceId);assert.deepEqual((await snapshot(fresh)).accepted,reedited.accepted);
-  } catch(error) {try{await freshContext.pages().at(-1)?.screenshot({path:resolve(evidence,prefix+'-referenced-failure.png')});}catch{}throw error;}
+  } catch(error) {try{await freshContext.pages().at(-1)?.screenshot({path:resolve(evidence,prefix+'-referenced-failure.png')});}catch{ /* Preserve the original failure if collecting diagnostics also fails. */ }throw error;}
   finally {await freshContext.close();}
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href) {

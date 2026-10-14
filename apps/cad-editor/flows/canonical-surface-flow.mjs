@@ -116,7 +116,7 @@ try {
     assert.equal(serverExited, false, 'The owned Vite server exited.');
     assert.ok(!serverLog.includes('already in use'), 'The port is occupied; do not connect to another Work server.');
     if (serverLog.includes(`http://127.0.0.1:${port}/`)) {
-      try { if ((await fetch(url)).ok) break; } catch {}
+      try { if ((await fetch(url)).ok) break; } catch { /* Retry readiness after the existing ignored connection failure. */ }
     }
     assert.ok(Date.now() < deadline, 'Vite startup timed out.');
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -294,7 +294,7 @@ try {
   process.stdout.write(JSON.stringify({ mode, outcome: result.outcome, stages: result.events.map(event => event.stage), evidence: resolve(evidence, prefix + '.json') }) + '\n');
 } catch (error) {
   if (activePage) {
-    try { result.failureWindowState = await activePage.evaluate(() => ({activeElement:{tag:document.activeElement?.tagName,testId:document.activeElement?.getAttribute('data-testid')},error:window.__cadEditorFlow?.error(),snapshot:window.__cadEditorFlow?.snapshot(),display:window.__cadEditorFlow?.display()})); await activePage.screenshot({path:resolve(evidence,prefix+'-failure.png')}); } catch {}
+    try { result.failureWindowState = await activePage.evaluate(() => ({activeElement:{tag:document.activeElement?.tagName,testId:document.activeElement?.getAttribute('data-testid')},error:window.__cadEditorFlow?.error(),snapshot:window.__cadEditorFlow?.snapshot(),display:window.__cadEditorFlow?.display()})); await activePage.screenshot({path:resolve(evidence,prefix+'-failure.png')}); } catch { /* Preserve the original failure if collecting diagnostics also fails. */ }
   }
   result.outcome = 'failed'; result.failure = { message: error.message, stack: error.stack }; save();
   process.stderr.write(error.stack + '\n'); process.exitCode = 1;

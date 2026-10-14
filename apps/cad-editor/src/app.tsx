@@ -135,12 +135,12 @@ function DirectApp() {
       if(recoveryDecision.current&&slot.raw!==recoveryDecision.current.raw){cancelRecoveryConfirmation();setRecoveryMessage('The recovery copy changed. Review it before trying again.');}
       const request=replacementRef.current;
       if(request?.recovery&&slot.raw!==request.recovery.raw)replacementError(new CadEditorError('STALE','The recovery copy changed.',{field:'document-recovery'}));
-    }catch(cause){if(serial!==recoveryReadSerial.current)return;recoverySlotRef.current=null;setRecoverySlot(null);setRecoveryStatus('failed');setRecoveryMessage('Recovery storage is unavailable. Retry from File.');}
+    }catch{if(serial!==recoveryReadSerial.current)return;recoverySlotRef.current=null;setRecoverySlot(null);setRecoveryStatus('failed');setRecoveryMessage('Recovery storage is unavailable. Retry from File.');}
   }
   useEffect(()=>{
     let channel:BroadcastChannel|null=null;
     const refresh=()=>{void refreshRecovery();};
-    if(typeof BroadcastChannel!=='undefined'){try{channel=new BroadcastChannel(RECOVERY_CHANGE_CHANNEL);channel.onmessage=refresh;}catch{}}
+    if(typeof BroadcastChannel!=='undefined'){try{channel=new BroadcastChannel(RECOVERY_CHANGE_CHANNEL);channel.onmessage=refresh;}catch{ /* Keep recovery refresh available without a broadcast channel. */ }}
     window.addEventListener('focus',refresh);refresh();
     return()=>{recoveryReadSerial.current++;channel?.close();window.removeEventListener('focus',refresh);};
   },[]);
