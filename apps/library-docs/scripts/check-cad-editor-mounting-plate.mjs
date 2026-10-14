@@ -31,7 +31,7 @@ for (const evidence of ['80 × 40 × 8 mm','25600 mm³','256 display vertices an
   assert.ok(reference.includes(evidence), 'Provider-backed reference changed: ' + evidence);
 }
 for (const term of ['25,600 mm³','Certified volume unavailable','256 display vertices',
-  '128 triangles','7 native faces','centerX: 32.5','radius','UNRUN',
+  '128 triangles','7 native faces','centerX: 32.5','radius','manual-browser-1803',
   'file selection is not model acceptance']) {
   assert.ok(lesson.toLowerCase().includes(term.toLowerCase()), 'Lesson missing: ' + term);
 }

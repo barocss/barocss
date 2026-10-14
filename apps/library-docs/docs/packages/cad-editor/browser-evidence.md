@@ -1,6 +1,6 @@
 # CAD Editor browser evidence protocol
 
-This page defines the **minimum evidence required** before any of the CAD lessons can claim actual browser, GPU or physical file acceptance. It does not certify that a browser run has happened.
+This page defines the **minimum evidence required** before any CAD lesson can claim actual browser, GPU or physical file acceptance. A separate [source-pinned manual browser receipt](./manual-browser-1803) records measured runs for the first four lessons; this protocol alone does not certify any run.
 
 ## Execute against a pinned checkout
 

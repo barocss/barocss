@@ -32,10 +32,11 @@ let links = 0, assets = 0, downloads = 0;
 const builtAnchors = new Map();
 for (const page of pages) {
   const text = (await readFile(page, 'utf8')).replace(/```[\s\S]*?```/g, '');
-  // Complete example data uses native download anchors, not documentation routes.
+  // JSON/CSS downloads use native anchors; verify their built bytes match the source.
   for (const match of text.matchAll(/<a\b[^>]*\s(?::href="withBase\('([^'?#]+\.(?:json|css))'\)"|href="([^"?#]+\.(?:json|css))")[^>]*>/g)) {
     const href = match[1] || match[2];
-    if (!href.startsWith('/examples/')) throw new Error(`Unexpected example download: ${href}`);
+    if (!href.startsWith('/examples/') && !href.startsWith('/evidence/cad-editor/manual-1803/'))
+      throw new Error(`Unexpected JSON/CSS download: ${href}`);
     const source = resolve(docs, 'public', `.${href}`);
     const built = resolve(docs, '.vitepress/dist', `.${href}`);
     const [sourceBytes, builtBytes] = await Promise.all([readFile(source), readFile(built)]);

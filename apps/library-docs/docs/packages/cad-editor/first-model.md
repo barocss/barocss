@@ -4,7 +4,7 @@ This is the **UI-first** path through the local CAD Editor. You will load an aut
 
 If you want to **write** CAD from TypeScript rather than use the editor, start with the [modeling API quickstart](../cad/quickstart) and [complete modeling guide](../cad/modeling). If you want to **embed** the reusable editor component, continue to the [session quickstart](./quickstart).
 
-> **Availability:** This is a source-backed walkthrough of the current local `#/model` UI, **not** a published product or independently verified browser tutorial. Existing provider, mocked-Worker and CPU receipts do not establish that these actions have passed a fresh live browser/GPU/file-download run on your machine. Use the local app and report any mismatch.
+> **Availability:** This is a local `#/model` walkthrough, not a published product. A later [physical browser receipt](./manual-browser-1803) measured the depth 4→8, Undo/Redo and GPU frames at one pinned `develop` commit. That run does not establish the result on every device.
 
 ## 1. Start the workspace
 
@@ -38,7 +38,7 @@ Under **Named dimensions**, locate `depth`. Change its numeric value from **4** 
 - Choose **Apply dimensions** and wait for acceptance. At 8 mm the recess reaches the top: this is a **through-window**.
 - Use **Undo** to recover the 4 mm pocket; **Redo** to restore the 8 mm through-window. Undo/Redo are unavailable while draft fields are pending: choose **Apply dimensions** or **Discard draft** first.
 
-**Expected native results from the existing qualified fixture** (not measurements taken from a newly executed browser flow):
+**Expected native results from the qualified fixture**, also reported by the accepted editor model in the [physical browser run](./manual-browser-1803):
 
 | Accepted `depth` | Native interpretation | Retained `part` volume |
 | --- | --- | ---: |
@@ -72,7 +72,7 @@ You can alternatively paste complete saved text directly into **Saved model data
 
 The staging reader enforces **262,144 UTF-8 bytes maximum**, and checks that decoded text is nonempty and within its 262,144-character input limit. A larger file, invalid UTF-8, empty file, or failed file read shows **Cannot read model file** while keeping the previous staged text and the accepted model. A syntactically readable file is **not** necessarily a valid CAD model: it is parsed and qualified only when you explicitly choose **Open saved model**.
 
-Choosing a new file clears the previous replacement acknowledgment. A newer picker selection or user text edit supersedes an older pending read, so late asynchronous file contents cannot silently overwrite the newly staged input. This is a source-supported design contract, not yet a verified cross-browser file-picker test.
+Choosing a new file clears the previous replacement acknowledgment. A newer picker selection or user text edit supersedes an older pending read, so late asynchronous file contents cannot silently overwrite the newly staged input. This is a source-supported design contract; the [measured picker run](./manual-browser-1803) checks malformed UTF-8 and an oversized file in one browser.
 
 `cad.load()` rebuilds authored operations and native geometry; the file is not a saved mesh, screenshot, GPU cache, or display-camera snapshot.
 
@@ -105,7 +105,7 @@ This page tracks the UI labels and behavior in `packages/barocss-cad-editor/src/
 node apps/library-docs/scripts/check-cad-editor-first-model.mjs
 ```
 
-**Unrun for this documentation-only change unless separately recorded:** VitePress production build, fresh Chromium interactions, GPU readback, physical browser download/reopen and release deployment. Those gates cannot be inferred from source inspection or a static checker.
+**Later independent check:** the [source-pinned physical receipt](./manual-browser-1803) records real Chromium interactions, WebGL2 readback, original screenshots, and a physical Download → fresh Open → re-edit of an L-bracket. The first-model depth and Undo/Redo path passed in the browser; its own file roundtrip was not separately rerun. Site deployment and release remain separate.
 
 **Next exercise:** [Create a round post](./round-post) to learn diameter-driven circular geometry, inspect a non-certified output, and practise another safe save/reopen cycle.
 
