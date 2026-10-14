@@ -1,7 +1,7 @@
 {
   "schema": "barocss-current-public-api-v1",
   "typescriptVersion": "5.9.3",
-  "sourceCommit": "e63307d2656dd187bb95caad0fc58ebec84e5fe1",
+  "sourceCommit": "e9f2867561183c86adedc173f8b313e7391b74ac",
   "extractor": "TypeScript 5.9.3 public module exports and declarations; not a type-check or runtime execution",
   "packages": [
     {
@@ -47480,7 +47480,7 @@
               "name": "createViewer",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 2486,
+              "line": 2525,
               "signatures": [
                 "export function createViewer(canvas: HTMLCanvasElement, options: ViewerOptions): Viewer;"
               ],
@@ -47490,7 +47490,7 @@
               "name": "NativeLoadOptions",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 72,
+              "line": 73,
               "signatures": [
                 "export interface NativeLoadOptions { sourceVersion: 0; countU: number; countV: number }"
               ],
@@ -47520,17 +47520,17 @@
               "name": "Viewer",
               "kind": "ClassDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 612,
+              "line": 619,
               "signatures": [
-                "export class Viewer {\n  constructor(canvas: HTMLCanvasElement, options: ViewerOptions);\n  loadMixedDepthScene(input: ViewerMixedDepthInputV0): void;\n  loadQualifiedFaceScene(input: ViewerQualifiedFaceInputV0): void;\n  measureQualifiedFacePoints(first: ViewerQualifiedFacePointInput, second: ViewerQualifiedFacePointInput): ViewerQualifiedFacePointDistance;\n  projectQualifiedFacePoint(input: ViewerQualifiedFacePointInput): ViewerQualifiedFacePointProjection | null;\n  pickQualifiedFace(point: ViewerGeometryPoint): ViewerQualifiedFacePick | null;\n  sampleQualifiedFace(point: ViewerGeometryPoint): ViewerQualifiedFaceNativeSample | null;\n  replaceNativeScene(input: ViewerNativeSceneReplacementV0): void;\n  loadNativeSceneAppearance(input: ViewerNativeSceneAppearanceInputV1): void;\n  replaceNativeSceneAppearance(input: ViewerNativeSceneAppearanceInputV1): void;\n  loadUniformCurvePreview(input: UniformCurvePreview, options: { basis: 'authored-xyz-matches-rhyup' }): void;\n  loadSelectedUniformCurvePreview(input: SelectedUniformCurvePreview, options: { basis: 'authored-xyz-matches-rhyup' }): void;\n  loadShellGraph(input: BooleanExtrusionFeatureGraphResult, options: ViewerShellLoadOptions): void;\n  loadAssembly(input: CadAssemblyResult, options: ViewerAssemblyLoadOptions): void;\n  queryAssemblyInstancePoint(input: ViewerAssemblyPointQuery): ViewerAssemblyPoint;\n  loadNative(source: string, input: NativeLoadOptions | ViewerNativeCurveLoadOptions\n    | ViewerNativeCurveLoadOptionsV1): void;\n  loadModelSet(input: BaroCadModelSetResult): void;\n  loadModelSetUrls(manifest: BaroCadModelSetManifest, options?: BaroCadModelSetLoadOptions): Promise<void>;\n  loadDocument(input: CadDocumentResult, options: BaroCadDocumentPrimitiveOptionsV2): void;\n  loadDocumentUrl(url: string, options: BaroCadDocumentPrimitiveOptionsV2, transport?: BaroCadLoadTransportOptions): Promise<void>;\n  loadNativeUrl(url: string, input: NativeLoadOptions | ViewerNativeCurveLoadOptions\n    | ViewerNativeCurveLoadOptionsV1, transport?: BaroCadLoadTransportOptions): Promise<void>;\n  setPackets(input: ViewerPacket[]): void;\n  clear(): void;\n  setClothFrame(input: ViewerClothFrameV0 | null): void;\n  setFluidFrame(input: ViewerFluidFrameV0 | null): void;\n  setSurfaceMaterial(inputRef: ViewerRef, binding: MeshMaterialBinding | null): void;\n  measureNativeSurfacePoints(firstInput: ViewerNativeSurfaceParameter, secondInput: ViewerNativeSurfaceParameter): ViewerNativeSurfaceMeasurement;\n  applyMotionFrame(input: ViewerPoseFrame, inputBindings: ViewerMotionBinding[], inputOptions: { basis: 'part-xyz-matches-rhyup' }): void;\n  applyGeometryMotionFrame(input: ViewerPoseFrame, inputBindings: ViewerGeometryMotionBinding[], inputOptions: { basis: 'part-xyz-matches-rhyup' }): void;\n  resetMotion(): void;\n  measureNativeCurvePoints(firstInput: ViewerNativeCurveParameter, secondInput: ViewerNativeCurveParameter): ViewerNativeCurveMeasurement;\n  measureNativeSurfaceCurvePoints(surfaceInput: ViewerNativeSurfaceParameter, curveInput: ViewerNativeCurveParameter): ViewerNativeSurfaceCurveMeasurement;\n  measureNativePoints(firstInput: ViewerNativePointInput, secondInput: ViewerNativePointInput): ViewerNativePointDistance;\n  projectNativePoint(input: ViewerNativePointInput): ViewerNativePointProjection | null;\n  setVisibleGeometry(input: ViewerGeometryRef[]): void;\n  fit(): void;\n  fitQualifiedFace(input: ViewerQualifiedFaceFitInput): void;\n  fitGeometry(input: ViewerGeometryRef): void;\n  fitNativeDocumentBody(input: ViewerNativeDocumentFitInput): void;\n  fitNativeDocumentBodies(input: ViewerNativeDocumentBodiesFitInput): void;\n  attachPointerControls(options?: ViewerPointerControlOptions): ViewerPointerControls;\n  attachKeyboardControls(options?: ViewerKeyboardControlOptions): ViewerKeyboardControls;\n  setView(input: MeshCamera): void;\n  orbit(deltaAzimuthRadians: number, deltaElevationRadians: number): void;\n  pan(deltaXScene: number, deltaYScene: number): void;\n  zoom(factor: number): void;\n  pick(xCss: number, yCss: number): ViewerPick | null;\n  pickShell(point: ViewerGeometryPoint): ViewerShellPick | null;\n  pickGeometry(pointInput: ViewerGeometryPoint, optionsInput?: ViewerGeometryPickOptions): ViewerGeometryPick | null;\n  select(input: ViewerRef | null): void;\n  selectGeometry(input: ViewerGeometryRef | null): void;\n  resize(width: number, height: number): void;\n  getState(): ViewerState;\n  readPixels(): Uint8Array;\n  dispose(): void;\n}"
+                "export class Viewer {\n  constructor(canvas: HTMLCanvasElement, options: ViewerOptions);\n  loadMixedDepthScene(input: ViewerMixedDepthInputV0): void;\n  loadQualifiedFaceScene(input: ViewerQualifiedFaceInputV0): void;\n  measureQualifiedFacePoints(first: ViewerQualifiedFacePointInput, second: ViewerQualifiedFacePointInput): ViewerQualifiedFacePointDistance;\n  projectQualifiedFacePoint(input: ViewerQualifiedFacePointInput): ViewerQualifiedFacePointProjection | null;\n  pickQualifiedFace(point: ViewerGeometryPoint): ViewerQualifiedFacePick | null;\n  sampleQualifiedFace(point: ViewerGeometryPoint): ViewerQualifiedFaceNativeSample | null;\n  replaceNativeScene(input: ViewerNativeSceneReplacementV0): void;\n  loadNativeSceneAppearance(input: ViewerNativeSceneAppearanceInputV1): void;\n  replaceNativeSceneAppearance(input: ViewerNativeSceneAppearanceInputV1): void;\n  handoffQualifiedFaceToNativeSceneAppearance(input: ViewerNativeSceneAppearanceInputV1, mode: 'atomic' | 'dispose-remount'): ViewerQualifiedFaceAppearanceHandoffResult;\n  loadUniformCurvePreview(input: UniformCurvePreview, options: { basis: 'authored-xyz-matches-rhyup' }): void;\n  loadSelectedUniformCurvePreview(input: SelectedUniformCurvePreview, options: { basis: 'authored-xyz-matches-rhyup' }): void;\n  loadShellGraph(input: BooleanExtrusionFeatureGraphResult, options: ViewerShellLoadOptions): void;\n  loadAssembly(input: CadAssemblyResult, options: ViewerAssemblyLoadOptions): void;\n  queryAssemblyInstancePoint(input: ViewerAssemblyPointQuery): ViewerAssemblyPoint;\n  loadNative(source: string, input: NativeLoadOptions | ViewerNativeCurveLoadOptions\n    | ViewerNativeCurveLoadOptionsV1): void;\n  loadModelSet(input: BaroCadModelSetResult): void;\n  loadModelSetUrls(manifest: BaroCadModelSetManifest, options?: BaroCadModelSetLoadOptions): Promise<void>;\n  loadDocument(input: CadDocumentResult, options: BaroCadDocumentPrimitiveOptionsV2): void;\n  loadDocumentUrl(url: string, options: BaroCadDocumentPrimitiveOptionsV2, transport?: BaroCadLoadTransportOptions): Promise<void>;\n  loadNativeUrl(url: string, input: NativeLoadOptions | ViewerNativeCurveLoadOptions\n    | ViewerNativeCurveLoadOptionsV1, transport?: BaroCadLoadTransportOptions): Promise<void>;\n  setPackets(input: ViewerPacket[]): void;\n  clear(): void;\n  setClothFrame(input: ViewerClothFrameV0 | null): void;\n  setFluidFrame(input: ViewerFluidFrameV0 | null): void;\n  setSurfaceMaterial(inputRef: ViewerRef, binding: MeshMaterialBinding | null): void;\n  measureNativeSurfacePoints(firstInput: ViewerNativeSurfaceParameter, secondInput: ViewerNativeSurfaceParameter): ViewerNativeSurfaceMeasurement;\n  applyMotionFrame(input: ViewerPoseFrame, inputBindings: ViewerMotionBinding[], inputOptions: { basis: 'part-xyz-matches-rhyup' }): void;\n  applyGeometryMotionFrame(input: ViewerPoseFrame, inputBindings: ViewerGeometryMotionBinding[], inputOptions: { basis: 'part-xyz-matches-rhyup' }): void;\n  resetMotion(): void;\n  measureNativeCurvePoints(firstInput: ViewerNativeCurveParameter, secondInput: ViewerNativeCurveParameter): ViewerNativeCurveMeasurement;\n  measureNativeSurfaceCurvePoints(surfaceInput: ViewerNativeSurfaceParameter, curveInput: ViewerNativeCurveParameter): ViewerNativeSurfaceCurveMeasurement;\n  measureNativePoints(firstInput: ViewerNativePointInput, secondInput: ViewerNativePointInput): ViewerNativePointDistance;\n  projectNativePoint(input: ViewerNativePointInput): ViewerNativePointProjection | null;\n  setVisibleGeometry(input: ViewerGeometryRef[]): void;\n  fit(): void;\n  fitQualifiedFace(input: ViewerQualifiedFaceFitInput): void;\n  fitGeometry(input: ViewerGeometryRef): void;\n  fitNativeDocumentBody(input: ViewerNativeDocumentFitInput): void;\n  fitNativeDocumentBodies(input: ViewerNativeDocumentBodiesFitInput): void;\n  attachPointerControls(options?: ViewerPointerControlOptions): ViewerPointerControls;\n  attachKeyboardControls(options?: ViewerKeyboardControlOptions): ViewerKeyboardControls;\n  setView(input: MeshCamera): void;\n  orbit(deltaAzimuthRadians: number, deltaElevationRadians: number): void;\n  pan(deltaXScene: number, deltaYScene: number): void;\n  zoom(factor: number): void;\n  pick(xCss: number, yCss: number): ViewerPick | null;\n  pickShell(point: ViewerGeometryPoint): ViewerShellPick | null;\n  pickGeometry(pointInput: ViewerGeometryPoint, optionsInput?: ViewerGeometryPickOptions): ViewerGeometryPick | null;\n  select(input: ViewerRef | null): void;\n  selectGeometry(input: ViewerGeometryRef | null): void;\n  resize(width: number, height: number): void;\n  getState(): ViewerState;\n  readPixels(): Uint8Array;\n  dispose(): void;\n}"
               ],
-              "digest": "66063e3d08c6d544e44bc52a2f9e80630fc8adbaf486b4bd294b83f1cfa6ad5e"
+              "digest": "1ecb960a2bd4d78119b10732d0125dcd7476c5ac1d4a8357056d388b6c0d9253"
             },
             {
               "name": "VIEWER_POSE_LIMITS",
               "kind": "VariableDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 116,
+              "line": 123,
               "signatures": [
                 "export const VIEWER_POSE_LIMITS: Readonly<{ durationSeconds: 3600; translationMm: 10000; scaleMin: 0.001; scaleMax: 100; quaternionNormTolerance: 1e-9; }>;"
               ],
@@ -47560,7 +47560,7 @@
               "name": "ViewerAssemblyPoint",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 33,
+              "line": 34,
               "signatures": [
                 "export type ViewerAssemblyPoint = CadAssemblyInstancePointResult;"
               ],
@@ -47570,7 +47570,7 @@
               "name": "ViewerAssemblyPointQuery",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 32,
+              "line": 33,
               "signatures": [
                 "export type ViewerAssemblyPointQuery = CadAssemblyInstancePointQuery;"
               ],
@@ -47590,7 +47590,7 @@
               "name": "ViewerCurveRef",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 156,
+              "line": 163,
               "signatures": [
                 "export interface ViewerCurveRef { modelId: string; curveId: string }"
               ],
@@ -47600,7 +47600,7 @@
               "name": "ViewerDisplayPose",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 123,
+              "line": 130,
               "signatures": [
                 "export interface ViewerDisplayPose { ref: ViewerRef; translationMm: Vec3; rotationXYZW: Quat; scale: Vec3 }"
               ],
@@ -47610,7 +47610,7 @@
               "name": "ViewerDocumentBody",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 219,
+              "line": 226,
               "signatures": [
                 "export interface ViewerDocumentBody {\n  ref: ViewerGeometryRef;\n  binding: BaroCadDocumentPrimitiveBindingV2;\n}"
               ],
@@ -47620,7 +47620,7 @@
               "name": "ViewerFluidFrameV0",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 86,
+              "line": 93,
               "signatures": [
                 "export interface ViewerFluidFrameV0 {\n  version: 0;\n  contextId: string;\n  sceneRevision: string;\n  stepIndex: number;\n  particleCount: 256;\n  positionsM: Float64Array;\n}"
               ],
@@ -47630,7 +47630,7 @@
               "name": "ViewerGeometryDisplayPose",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 131,
+              "line": 138,
               "signatures": [
                 "export interface ViewerGeometryDisplayPose {\n  ref: ViewerGeometryRef; translationMm: Vec3; rotationXYZW: Quat; scale: Vec3\n}"
               ],
@@ -47640,7 +47640,7 @@
               "name": "ViewerGeometryMotionBinding",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 130,
+              "line": 137,
               "signatures": [
                 "export interface ViewerGeometryMotionBinding { contextId: string; targetId: string; ref: ViewerGeometryRef }"
               ],
@@ -47650,7 +47650,7 @@
               "name": "ViewerGeometryMotionState",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 134,
+              "line": 141,
               "signatures": [
                 "export interface ViewerGeometryMotionState {\n  basis: 'part-xyz-matches-rhyup';\n  frame: ViewerPoseFrame;\n  bindings: ViewerGeometryMotionBinding[];\n  displayPoses: ViewerGeometryDisplayPose[];\n}"
               ],
@@ -47660,7 +47660,7 @@
               "name": "ViewerGeometryPick",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 213,
+              "line": 220,
               "signatures": [
                 "export type ViewerGeometryPick =\n  | ({ kind: 'surface' } & ViewerPick)\n  | { kind: 'curve'; ref: ViewerCurveRef; segmentIndex: number;\n      parameterInterval: [number, number]; parameterApprox: number;\n      displayPositionScene: Vec3; nativePointMM: Vec3; depthScene: number;\n      screenDistancePx: number; approximate: true; ambiguous: boolean };"
               ],
@@ -47670,7 +47670,7 @@
               "name": "ViewerGeometryPickOptions",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 209,
+              "line": 216,
               "signatures": [
                 "export interface ViewerGeometryPickOptions {\n  curveTolerancePx?: number;\n  kinds?: Array<'surface' | 'curve'>;\n}"
               ],
@@ -47680,7 +47680,7 @@
               "name": "ViewerGeometryPoint",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 208,
+              "line": 215,
               "signatures": [
                 "export interface ViewerGeometryPoint { xCss: number; yCss: number }"
               ],
@@ -47690,7 +47690,7 @@
               "name": "ViewerGeometryRef",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 81,
+              "line": 88,
               "signatures": [
                 "export type ViewerGeometryRef =\n  | ({ kind: 'surface' } & ViewerRef)\n  | ({ kind: 'curve' } & ViewerCurveRef);"
               ],
@@ -47700,7 +47700,7 @@
               "name": "ViewerKeyboardControlOptions",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 70,
+              "line": 71,
               "signatures": [
                 "export interface ViewerKeyboardControlOptions { onError?: (error: unknown) => void }"
               ],
@@ -47710,7 +47710,7 @@
               "name": "ViewerKeyboardControls",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 71,
+              "line": 72,
               "signatures": [
                 "export interface ViewerKeyboardControls { dispose(): void }"
               ],
@@ -47740,7 +47740,7 @@
               "name": "ViewerMotionBinding",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 108,
+              "line": 115,
               "signatures": [
                 "export interface ViewerMotionBinding { contextId: string; targetId: string; ref: ViewerRef }"
               ],
@@ -47750,7 +47750,7 @@
               "name": "ViewerMotionState",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 124,
+              "line": 131,
               "signatures": [
                 "export interface ViewerMotionState {\n  basis: 'part-xyz-matches-rhyup';\n  frame: ViewerPoseFrame;\n  bindings: ViewerMotionBinding[];\n  displayPoses: ViewerDisplayPose[];\n}"
               ],
@@ -47760,7 +47760,7 @@
               "name": "ViewerNativeCurveLoadOptions",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 73,
+              "line": 74,
               "signatures": [
                 "export interface ViewerNativeCurveLoadOptions extends NativeLoadOptions {\n  curveDisplay: { chordToleranceMM: number; maxSegments: number; maxDepth: number };\n}"
               ],
@@ -47770,7 +47770,7 @@
               "name": "ViewerNativeCurveLoadOptionsV1",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 76,
+              "line": 77,
               "signatures": [
                 "export interface ViewerNativeCurveLoadOptionsV1 extends NativeLoadOptions {\n  curveDisplay: { version: 1; chordToleranceMM: number; maxSegments: number; maxDepth: number };\n}"
               ],
@@ -47780,7 +47780,7 @@
               "name": "ViewerNativeCurveMeasurement",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 159,
+              "line": 166,
               "signatures": [
                 "export interface ViewerNativeCurveMeasurement {\n  first: ViewerNativeCurvePoint;\n  second: ViewerNativeCurvePoint;\n  distanceMM: number;\n  metric: 'straight-chord';\n  space: 'native-authored';\n  certification: 'not-certified';\n}"
               ],
@@ -47790,7 +47790,7 @@
               "name": "ViewerNativeCurveParameter",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 157,
+              "line": 164,
               "signatures": [
                 "export interface ViewerNativeCurveParameter extends ViewerCurveRef { t: number }"
               ],
@@ -47800,7 +47800,7 @@
               "name": "ViewerNativeCurvePoint",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 158,
+              "line": 165,
               "signatures": [
                 "export interface ViewerNativeCurvePoint { ref: ViewerCurveRef; t: number; pointMM: Vec3 }"
               ],
@@ -47880,7 +47880,7 @@
               "name": "ViewerNativeDocumentBodiesFitInput",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 229,
+              "line": 236,
               "signatures": [
                 "export interface ViewerNativeDocumentBodiesFitInput {\n  refs: ViewerGeometryRef[];\n  documentRevision: number;\n}"
               ],
@@ -47890,7 +47890,7 @@
               "name": "ViewerNativeDocumentFitInput",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 224,
+              "line": 231,
               "signatures": [
                 "export interface ViewerNativeDocumentFitInput {\n  ref: ViewerGeometryRef;\n  documentRevision: number;\n}"
               ],
@@ -47900,7 +47900,7 @@
               "name": "ViewerNativePoint",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 178,
+              "line": 185,
               "signatures": [
                 "export type ViewerNativePoint =\n  | ({ kind: 'surface' } & ViewerNativeSurfacePoint)\n  | ({ kind: 'curve' } & ViewerNativeCurvePoint);"
               ],
@@ -47910,7 +47910,7 @@
               "name": "ViewerNativePointDistance",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 181,
+              "line": 188,
               "signatures": [
                 "export interface ViewerNativePointDistance {\n  first: ViewerNativePoint;\n  second: ViewerNativePoint;\n  distanceMM: number;\n  metric: 'straight-line';\n  space: 'native-authored';\n  certification: 'not-certified';\n}"
               ],
@@ -47920,7 +47920,7 @@
               "name": "ViewerNativePointInput",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 175,
+              "line": 182,
               "signatures": [
                 "export type ViewerNativePointInput =\n  | ({ kind: 'surface' } & ViewerNativeSurfaceParameter)\n  | ({ kind: 'curve' } & ViewerNativeCurveParameter);"
               ],
@@ -48000,7 +48000,7 @@
               "name": "ViewerNativePointProjection",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 189,
+              "line": 196,
               "signatures": [
                 "export interface ViewerNativePointProjection {\n  point: ViewerNativePoint;\n  displayPositionScene: Vec3;\n  xCss: number;\n  yCss: number;\n  depthScene: number;\n  approximate: true;\n  occlusion: 'not-tested';\n  documentBody: BaroCadDocumentPrimitiveBindingV2 | null;\n}"
               ],
@@ -48030,7 +48030,7 @@
               "name": "ViewerNativeSceneReplacementV0",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 146,
+              "line": 153,
               "signatures": [
                 "export interface ViewerNativeSceneReplacementV0 {\n  version: 0;\n  source: ViewerNativeSceneSourceV0;\n  display: {\n    motion: { frame: ViewerPoseFrame; bindings: ViewerGeometryMotionBinding[];\n      basis: 'part-xyz-matches-rhyup' } | null;\n    visibleGeometry: ViewerGeometryRef[];\n    camera: MeshCamera | null;\n  };\n}"
               ],
@@ -48040,7 +48040,7 @@
               "name": "ViewerNativeSceneSourceV0",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 140,
+              "line": 147,
               "signatures": [
                 "export type ViewerNativeSceneSourceV0 =\n  | { kind: 'native'; source: string;\n      options: NativeLoadOptions | ViewerNativeCurveLoadOptions | ViewerNativeCurveLoadOptionsV1;\n      basis: 'authored-xyz-matches-rhyup' }\n  | { kind: 'document'; result: CadDocumentResult; options: BaroCadDocumentPrimitiveOptionsV2;\n      bindings: BaroCadDocumentPrimitiveBindingV2[] };"
               ],
@@ -48050,7 +48050,7 @@
               "name": "ViewerNativeSurfaceCurveMeasurement",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 167,
+              "line": 174,
               "signatures": [
                 "export interface ViewerNativeSurfaceCurveMeasurement {\n  surface: ViewerNativeSurfacePoint;\n  curve: ViewerNativeCurvePoint;\n  distanceMM: number;\n  metric: 'straight-line';\n  space: 'native-authored';\n  certification: 'not-certified';\n}"
               ],
@@ -48060,7 +48060,7 @@
               "name": "ViewerNativeSurfaceMeasurement",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 101,
+              "line": 108,
               "signatures": [
                 "export interface ViewerNativeSurfaceMeasurement {\n  first: ViewerNativeSurfacePoint;\n  second: ViewerNativeSurfacePoint;\n  distanceMM: number;\n  space: 'native-authored';\n  certification: 'not-certified';\n}"
               ],
@@ -48070,7 +48070,7 @@
               "name": "ViewerNativeSurfaceParameter",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 94,
+              "line": 101,
               "signatures": [
                 "export interface ViewerNativeSurfaceParameter extends ViewerRef { u: number; v: number }"
               ],
@@ -48080,7 +48080,7 @@
               "name": "ViewerNativeSurfacePoint",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 95,
+              "line": 102,
               "signatures": [
                 "export interface ViewerNativeSurfacePoint {\n  ref: ViewerRef;\n  u: number;\n  v: number;\n  pointMM: Vec3;\n}"
               ],
@@ -48170,7 +48170,7 @@
               "name": "ViewerOptions",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 67,
+              "line": 68,
               "signatures": [
                 "export interface ViewerOptions { mmToSceneUnit: number; background: Vec3; lighting?: MeshLighting }"
               ],
@@ -48180,7 +48180,7 @@
               "name": "ViewerPacket",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 84,
+              "line": 91,
               "signatures": [
                 "export interface ViewerPacket { modelId: string; packet: PreviewPacket }"
               ],
@@ -48190,7 +48190,7 @@
               "name": "ViewerPick",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 199,
+              "line": 206,
               "signatures": [
                 "export interface ViewerPick {\n  ref: ViewerRef;\n  triangleIndex: number;\n  distanceScene: number;\n  positionScene: Vec3;\n  parameterUV: [number, number];\n  approximate: true;\n  ambiguous: boolean;\n}"
               ],
@@ -48200,7 +48200,7 @@
               "name": "ViewerPointerControlOptions",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 68,
+              "line": 69,
               "signatures": [
                 "export interface ViewerPointerControlOptions { onError?: (error: unknown) => void }"
               ],
@@ -48210,7 +48210,7 @@
               "name": "ViewerPointerControls",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 69,
+              "line": 70,
               "signatures": [
                 "export interface ViewerPointerControls { dispose(): void }"
               ],
@@ -48220,7 +48220,7 @@
               "name": "ViewerPose",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 109,
+              "line": 116,
               "signatures": [
                 "export interface ViewerPose {\n  targetId: string;\n  translation?: Vec3;\n  rotation?: Quat;\n  scale?: Vec3;\n}"
               ],
@@ -48230,11 +48230,21 @@
               "name": "ViewerPoseFrame",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 115,
+              "line": 122,
               "signatures": [
                 "export interface ViewerPoseFrame { contextId: string; timeSeconds: number; poses: ViewerPose[] }"
               ],
               "digest": "8e07e3377285a36565237d1f15ee0f1e8d633a90de6b3a1c5f46ebcd1a56539f"
+            },
+            {
+              "name": "ViewerQualifiedFaceAppearanceHandoffResult",
+              "kind": "TypeAliasDeclaration",
+              "source": "packages/barocss-viewer/src/index.ts",
+              "line": 83,
+              "signatures": [
+                "export type ViewerQualifiedFaceAppearanceHandoffResult =\n  | { readonly ok: false; readonly stage: 'preflight'; readonly error: Error }\n  | { readonly ok: false; readonly stage: 'retirement' | 'mount';\n      readonly previousScene: QualifiedFaceSceneV0; readonly error: Error }\n  | { readonly ok: true; readonly stage: 'ready'; readonly previousScene: QualifiedFaceSceneV0 };"
+              ],
+              "digest": "4ac3b5eddc2326a05f2bfe1b8a367365e80a592c7b29cf0fcfe2a838e473500b"
             },
             {
               "name": "ViewerQualifiedFaceFitInput",
@@ -48320,7 +48330,7 @@
               "name": "ViewerRef",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 79,
+              "line": 80,
               "signatures": [
                 "export interface ViewerRef { modelId: string; surfaceId: string }"
               ],
@@ -48370,7 +48380,7 @@
               "name": "ViewerState",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 233,
+              "line": 240,
               "signatures": [
                 "export interface ViewerState {\n  status: 'empty' | 'ready' | 'unavailable' | 'context-lost' | 'disposed';\n  frame: 'right-handed-y-up';\n  sourceUnit: 'mm';\n  mmToSceneUnit: number;\n  lighting: MeshLighting | null;\n  camera: MeshCamera;\n  surfaces: ViewerRef[];\n  curves: ViewerCurveRef[];\n  visibleGeometry: ViewerGeometryRef[];\n  curveSampleVersion: 0 | 1 | 2 | 3 | null;\n  uniformCurve: UniformCurvePreview | null;\n  selectedUniformCurve: SelectedUniformCurvePreview | null;\n  mixedDepth: ViewerMixedDepthState | null;\n  qualifiedFaceScene: QualifiedFaceSceneV0 | null;\n  packets: ViewerPacket[];\n  selected: ViewerRef | null;\n  selectedGeometry: ViewerGeometryRef | null;\n  native: BaroCadNativeResult | null;\n  modelSet: BaroCadModelSetResult | null;\n  document: CadDocumentResult | null;\n  documentBodies: ViewerDocumentBody[];\n  assembly: CadAssemblyResult | null;\n  assemblyInstances: ViewerAssemblyInstanceBinding[];\n  shell: ViewerShellState | null;\n  measurement: ViewerNativeSurfaceMeasurement | null;\n  motion: ViewerMotionState | null;\n  geometryMotion: ViewerGeometryMotionState | null;\n  curveMeasurement: ViewerNativeCurveMeasurement | null;\n  surfaceCurveMeasurement: ViewerNativeSurfaceCurveMeasurement | null;\n  nativeMeasurement: ViewerNativePointDistance | null;\n  fluidFrame: ViewerFluidFrameV0 | null;\n  clothFrame: ViewerClothFrameV0 | null;\n  surfaceMaterial: ViewerSurfaceMaterial | null;\n  surfaceMaterials: ViewerSurfaceMaterial[];\n}"
               ],
@@ -48380,7 +48390,7 @@
               "name": "ViewerSurfaceMaterial",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 80,
+              "line": 81,
               "signatures": [
                 "export interface ViewerSurfaceMaterial { ref: ViewerRef; binding: MeshMaterialBinding }"
               ],
@@ -48478,6 +48488,7 @@
                 "ViewerPointerControls",
                 "ViewerPose",
                 "ViewerPoseFrame",
+                "ViewerQualifiedFaceAppearanceHandoffResult",
                 "ViewerQualifiedFaceFitInput",
                 "ViewerQualifiedFaceInputV0",
                 "ViewerQualifiedFaceNativeSample",
@@ -55450,7 +55461,7 @@
     "packages/barocss-cad": "1c81e9bc6c6f8d223031bb99651a34b3d6ec30ae",
     "packages/barocss-cad-interop": "330d0323e1d3891c8a1f882e848aae604ea67b08",
     "packages/barocss-canvas2d": "b029d1925907fbac9a19d6c2f825cbfd91323473",
-    "packages/barocss-viewer": "aa7736ed08620fe9b7db2eff4feec5c89f9e502b",
+    "packages/barocss-viewer": "cb48d4ca378dd7050573ab1f57a1c554449885e5",
     "packages/barocss-physics": "f3aa5c6e161137cb80fb68f73a517cd6bdc673dd",
     "packages/barocss-cad-editor": "1fc76062be0bd0ddbea0fc6a53c55b91a433064d",
     "packages/barocss-render-editor": "d1486acf9b983dba6839d2bf303406876244e2e6"
@@ -56850,6 +56861,7 @@
       "@barocss/viewer.:ViewerNativeSurfaceUV01Owner",
       "@barocss/viewer.:ViewerNativeSurfaceUV01Pick",
       "@barocss/viewer.:ViewerNativeSurfaceUV01WebGPU",
+      "@barocss/viewer.:ViewerQualifiedFaceAppearanceHandoffResult",
       "@barocss/cad-editor.:CadEditorAssemblyCandidate",
       "@barocss/cad-editor.:CadEditorAssemblyDisplay",
       "@barocss/cad-editor.:CadEditorAssemblyOpenOptions",
