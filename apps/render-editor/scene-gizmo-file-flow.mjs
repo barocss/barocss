@@ -27,7 +27,7 @@ try{
     const compiled=api.compileGpu({kind:'scene',source:document.sceneSource,sourceVersion:1});assert(compiled.ok&&compiled.execution.kind==='sdf');
     rows.push({path,bytes:Buffer.byteLength(text),document,scene:compiled.execution.scene});
   }
-  const [original,edited,reopened]=rows,stable=doc=>{const {sceneSource,revision,...rest}=doc;return rest;};
+  const [original,edited,reopened]=rows,stable=doc=>{const {sceneSource,revision,...rest}=doc;void sceneSource;void revision;return rest;};
   assert.deepEqual(original.scene.objects.map(o=>[o.id,o.type]),[['orb','sphere'],['block','box'],['post','cylinder']]);
   for(const value of [edited,reopened]){
     assert.deepEqual(stable(value.document),stable(original.document));assert(value.document.revision>original.document.revision);

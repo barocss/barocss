@@ -43,7 +43,7 @@ try {
   assert.deepEqual(original.scene.objects.map(object => [object.id, object.type]),
     [['orb', 'sphere'], ['block', 'box'], ['post', 'cylinder']]);
   stage = 'authored object tools';
-  const fields = document => { const { sceneSource, revision, ...rest } = document; return rest; };
+  const fields = document => { const { sceneSource, revision, ...rest } = document; void sceneSource; void revision; return rest; };
   assert.deepEqual(fields(edited.document), fields(original.document));
   assert.deepEqual(fields(reopened.document), fields(original.document));
   assert(edited.document.revision > original.document.revision);
