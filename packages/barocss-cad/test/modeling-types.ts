@@ -344,3 +344,32 @@ copyModel.build({ copy: copySeed }).exportStl('copy', {});
 stlResult.bytes[0] = 1;
 // @ts-expect-error Complete native detail is deeply readonly.
 stlResult.details.native.mesh.positionsMM[0] = 1;
+
+
+const rotationModel = cad.model();
+const flatRail = rotationModel.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const uprightRail: CadShape = flatRail.rotate({ axis: 'x', angleDegrees: 90 });
+const rotationSnapshot: CadModelSnapshot = rotationModel.build({ flat: flatRail, upright: uprightRail });
+const rotationEvidence = rotationSnapshot.evidence.find(item => item.kind === 'rotate');
+if (rotationEvidence?.kind === 'rotate') {
+  const volume: string = rotationEvidence.native.solid.certificate.volumeMM3.numerator;
+  const canonical: 90 | 180 | 270 = rotationEvidence.native.request.spec.degrees;
+  const mappedFace: string = rotationEvidence.native.lineage.faces[0].rotated.faceId;
+  void [volume, canonical, mappedFace];
+}
+for (const axis of ['x', 'y', 'z'] as const) for (const angleDegrees of [90, 180, 270, -90, -180, -270] as const)
+  cad.model().sketch.rectangle({ width: 32, height: 24 }).extrude(8).rotate({ axis, angleDegrees });
+// @ts-expect-error Only the six authored cardinal angles are admitted.
+flatRail.rotate({ axis: 'x', angleDegrees: 45 });
+// @ts-expect-error Zero is not a rotation node.
+flatRail.rotate({ axis: 'x', angleDegrees: 0 });
+// @ts-expect-error Arbitrary axes are not admitted.
+flatRail.rotate({ axis: [1, 0, 0], angleDegrees: 90 });
+// @ts-expect-error The pivot is fixed at the world origin.
+flatRail.rotate({ axis: 'x', angleDegrees: 90, pivot: [0, 0, 0] });
+// @ts-expect-error Angles are literals, not length dimension handles.
+flatRail.rotate({ axis: 'x', angleDegrees: copySpacing });
+// @ts-expect-error One options record is required.
+flatRail.rotate();
+// @ts-expect-error Extra arguments are not admitted.
+flatRail.rotate({ axis: 'x', angleDegrees: 90 }, true);

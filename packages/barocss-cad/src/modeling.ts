@@ -28,6 +28,8 @@ import type { OrthogonalSolidBooleanResult } from './orthogonal-solid-boolean.js
 import { buildModelingBox } from './modeling-box-internal.js';
 import { buildModelingTranslation } from './modeling-translation-internal.js';
 import type { ModelingTranslationResult } from './modeling-translation-internal.js';
+import { buildModelingRotation } from './modeling-rotation-internal.js';
+import type { ModelingRotationResult } from './modeling-rotation-internal.js';
 import { buildModelingStl } from './modeling-stl-internal.js';
 import type { ModelingStlResult } from './modeling-stl-internal.js';
 import type { Point } from './types.js';
@@ -60,6 +62,8 @@ type SplitPlane = { readonly axis: CadAxis; readonly plane?: never } | { readonl
 export interface CadShape {
   /** One exact translated copy of a direct affine extrusion; the copy is a terminal named output. */
   translate(offset: readonly [CadDimension, CadDimension, CadDimension]): CadShape;
+  /** Right-handed cardinal rotation about the world origin. The owned copy is terminal; no later features or transforms. */
+  rotate(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | 180 | 270 | -90 | -180 | -270 }): CadShape;
   /** One connected union of two distinct direct integer rectangular extrusions. */
   union(other: CadShape): CadShape;
   /** One full-thickness stored-rational hole in a direct origin-aligned integer rectangular plate. */
@@ -116,6 +120,7 @@ export type CadModelEvidence =
   | { readonly kind: 'extrude'; readonly profile?: never; readonly native: XYAffineSketchPrismCoordinateSpanResult | XYAffineSketchPrismOffsetCoordinateSpanResult }
   | { readonly kind: 'extrude'; readonly profile: 'circle'; readonly native: StoredCirclePrismSolidResult }
   | { readonly kind: 'translate'; readonly native: ModelingTranslationResult }
+  | { readonly kind: 'rotate'; readonly native: ModelingRotationResult }
   | { readonly kind: 'cut'; readonly native: ConvexPlanarSlabSubtractionResult }
   | { readonly kind: 'intersect'; readonly native: ConvexPlanarSolidIntersectionResult }
   | { readonly kind: 'split'; readonly native: ConvexPlanarSolidSplitResult }
@@ -191,7 +196,8 @@ type SketchNode = { kind: 'sketch'; profile: 'polygon'; points: [Dimension, Dime
   | { kind: 'sketch'; profile: 'rectangle'; min: [Dimension, Dimension]; max: [Dimension, Dimension] }
   | { kind: 'sketch'; profile: 'circle'; center: [Dimension, Dimension]; radius: Dimension };
 type ChamferConfiguration = { name: string; suppressed: boolean } | { name?: never; suppressed?: never };
-type Node = SketchNode | { kind: 'extrude'; sketch: number; height: Dimension; from?: Dimension } | { kind: 'translate'; parent: BodyRef; offset: [Dimension, Dimension, Dimension] } | { kind: 'cut'; parent: BodyRef; tool: BodyRef; axis: 'x' | 'y' } | { kind: 'intersect'; left: BodyRef; right: BodyRef } | { kind: 'union'; left: BodyRef; right: BodyRef } | { kind: 'difference'; parent: BodyRef; tool: BodyRef } | ({ kind: 'split'; parent: BodyRef; at: Dimension } & SplitPlane) | ({ kind: 'chamfer'; parent: BodyRef; edge: Query; distance: Dimension } & ChamferConfiguration) | { kind: 'hole'; parent: BodyRef; center: [Dimension, Dimension]; radius: Dimension };
+type RotationAngle = 90 | 180 | 270 | -90 | -180 | -270;
+type Node = SketchNode | { kind: 'extrude'; sketch: number; height: Dimension; from?: Dimension } | { kind: 'translate'; parent: BodyRef; offset: [Dimension, Dimension, Dimension] } | { kind: 'rotate'; parent: BodyRef; axis: CadAxis; angleDegrees: RotationAngle } | { kind: 'cut'; parent: BodyRef; tool: BodyRef; axis: 'x' | 'y' } | { kind: 'intersect'; left: BodyRef; right: BodyRef } | { kind: 'union'; left: BodyRef; right: BodyRef } | { kind: 'difference'; parent: BodyRef; tool: BodyRef } | ({ kind: 'split'; parent: BodyRef; at: Dimension } & SplitPlane) | ({ kind: 'chamfer'; parent: BodyRef; edge: Query; distance: Dimension } & ChamferConfiguration) | { kind: 'hole'; parent: BodyRef; center: [Dimension, Dimension]; radius: Dimension };
 type Document = { format: 'barocss-cad-model'; schema: 1; units: 'mm'; parameters: Record<string, number>; nodes: Node[]; outputs: Record<string, BodyRef> };
 type EvaluatedValue = CadBody | { negative?: CadBody; positive?: CadBody } | undefined;
 // Generated IDs/native options are fixed by this implementation authority plus the keyed graph.
@@ -340,6 +346,36 @@ function finishedTranslationPrefix(nodes: readonly Node[], reference: BodyRef): 
   }
   return true;
 }
+const rotationParentDetail = 'Rotation about the world origin requires a direct affine extrusion or its complete owned one/two-chamfer chain; the rotated copy is terminal';
+function rotationOptions(value: unknown, fields: readonly string[]): { axis: CadAxis; angleDegrees: RotationAngle } {
+  let descriptors: PropertyDescriptorMap;
+  try {
+    demand(value !== null && typeof value === 'object' && !Array.isArray(value), 'INPUT', 'rotate', 'Plain own record required');
+    const prototype = Object.getPrototypeOf(value);
+    demand(prototype === Object.prototype || prototype === null, 'INPUT', 'rotate', 'Plain record prototype required');
+    // Validate and retain one descriptor snapshot. Proxy reads cannot replace an admitted angle.
+    descriptors = Object.getOwnPropertyDescriptors(value);
+  } catch (cause) {
+    if (cause instanceof CadModelError) throw cause;
+    throw new CadModelError('INPUT', 'rotate', 'Rotation options could not supply an own data record', cause);
+  }
+  const keys = Reflect.ownKeys(descriptors);
+  demand(keys.length <= 16 && keys.every(key => typeof key === 'string' && Object.hasOwn(descriptors[key], 'value') && descriptors[key].enumerable),
+    'INPUT', 'rotate', 'Enumerable own data fields required; accessors and symbols refused');
+  demand(keys.length === fields.length && fields.every(key => Object.hasOwn(descriptors, key)), 'INPUT', 'rotate', 'Exact fields required: ' + fields.join(', '));
+  const axis: unknown = descriptors.axis.value, angleDegrees: unknown = descriptors.angleDegrees.value;
+  demand(axes.includes(axis as CadAxis), 'CAPABILITY', 'rotate', 'World-origin rotation requires the cardinal x/y/z axis');
+  demand([90, 180, 270, -90, -180, -270].includes(angleDegrees as number), 'CAPABILITY', 'rotate', 'World-origin rotation requires an authored angle of +/-90, +/-180 or +/-270 degrees');
+  return { axis: axis as CadAxis, angleDegrees: angleDegrees as RotationAngle };
+}
+function rotationParent(nodes: readonly Node[], reference: BodyRef): boolean {
+  if (finishedTranslationPrefix(nodes, reference)) return true;
+  return affineExtrusion(nodes, reference) && nodes.every(node => node.kind === 'extrude'
+    || node.kind === 'sketch' && node.profile !== 'circle');
+}
+function canonicalRotationDegrees(angle: RotationAngle): 90 | 180 | 270 {
+  return angle === -90 ? 270 : angle === -180 ? 180 : angle === -270 ? 90 : angle;
+}
 function boxDimensions(nodes: readonly Node[], reference: BodyRef, parameters: Readonly<Record<string, number>>, operation: 'union' | 'cut' = 'union'): { origin: Point; sides: Point } {
   const extrusion = nodes[reference.node];
   demand(reference.side === 'solid' && extrusion.kind === 'extrude', 'CAPABILITY', operation, 'Integer-box Boolean requires direct rectangular extrusions');
@@ -390,7 +426,7 @@ function admit(input: Document): Document {
   for (const [key, value] of Object.entries(d.parameters)) { name(key, 'parameters'); length(value, 'parameters'); }
   const dimension = (value: unknown) => { resolvedDimension(value, d.parameters); };
   const point = (value: unknown) => list(value, 'point', 2, 2).forEach(dimension);
-  const counts = { sketch: 0, extrude: 0, cut: 0, intersect: 0, split: 0, chamfer: 0, hole: 0, union: 0, difference: 0, translate: 0 }, featureNames = new Set<string>();
+  const counts = { sketch: 0, extrude: 0, cut: 0, intersect: 0, split: 0, chamfer: 0, hole: 0, union: 0, difference: 0, translate: 0, rotate: 0 }, featureNames = new Set<string>();
   const nodes = list(d.nodes, 'graph', 1, CadModelLimits.compositionNodes) as Node[];
   demand(nodes.length <= CadModelLimits.nodes || compositionPrefix(nodes), 'BUDGET', 'graph', 'Only the exact union-slot chain may exceed six nodes');
   const composed = compositionGraph(nodes);
@@ -398,11 +434,11 @@ function admit(input: Document): Document {
     const r = record(value, 'body', ['node', 'side']);
     demand(Number.isInteger(r.node) && !Object.is(r.node, -0) && (r.node as number) >= 0 && (r.node as number) < before, 'INPUT', 'body', 'Body must reference an earlier authored operation');
     const source = nodes[r.node as number];
-    demand(source.kind === 'cut' || source.kind === 'split' ? r.side === 'negative' || r.side === 'positive' : (source.kind === 'extrude' || source.kind === 'translate' || source.kind === 'intersect' || source.kind === 'union' || source.kind === 'difference' || source.kind === 'chamfer' || source.kind === 'hole') && r.side === 'solid', 'INPUT', 'body', 'Body reference kind mismatch');
+    demand(source.kind === 'cut' || source.kind === 'split' ? r.side === 'negative' || r.side === 'positive' : (source.kind === 'extrude' || source.kind === 'translate' || source.kind === 'rotate' || source.kind === 'intersect' || source.kind === 'union' || source.kind === 'difference' || source.kind === 'chamfer' || source.kind === 'hole') && r.side === 'solid', 'INPUT', 'body', 'Body reference kind mismatch');
     return r as unknown as BodyRef;
   };
   for (const [i, n] of nodes.entries()) {
-    record(n, 'node'); demand(['sketch', 'extrude', 'translate', 'cut', 'intersect', 'split', 'chamfer', 'hole', 'union', 'difference'].includes(n.kind), 'CAPABILITY', 'graph', 'Unknown operation'); counts[n.kind]++;
+    record(n, 'node'); demand(['sketch', 'extrude', 'translate', 'rotate', 'cut', 'intersect', 'split', 'chamfer', 'hole', 'union', 'difference'].includes(n.kind), 'CAPABILITY', 'graph', 'Unknown operation'); counts[n.kind]++;
     if (n.kind === 'sketch') {
       if (n.profile === 'polygon') { record(n, 'sketch', ['kind', 'profile', 'points']); list(n.points, 'polygon', 3, CadModelLimits.polygonPoints).forEach(point); }
       else if (n.profile === 'constrained-polygon') { record(n, 'sketch', ['kind', 'profile', 'points', 'constraints']); list(n.points, 'constrainedPolygon', 3, CadModelLimits.polygonPoints).forEach(point); polygonConstraints(n.constraints, n.points.length); }
@@ -420,6 +456,9 @@ function admit(input: Document): Document {
       record(n, 'translate', ['kind', 'parent', 'offset']); body(n.parent, i);
       demand(affineExtrusion(nodes, n.parent) || finishedTranslationPrefix(nodes.slice(0, i), n.parent), 'CAPABILITY', 'translate', 'Translation requires a direct affine extrusion or its complete owned finishing chain');
       list(n.offset, 'translate', 3, 3).forEach(dimension);
+    } else if (n.kind === 'rotate') {
+      rotationOptions(n, ['kind', 'parent', 'axis', 'angleDegrees']); body(n.parent, i);
+      demand(rotationParent(nodes.slice(0, i), n.parent), 'CAPABILITY', 'rotate', rotationParentDetail);
     } else if (n.kind === 'cut') {
       record(n, 'cut', ['kind', 'parent', 'tool', 'axis']); body(n.parent, i); body(n.tool, i);
       demand((n.axis === 'x' || n.axis === 'y') && affineExtrusion(nodes, n.parent) && affineExtrusion(nodes, n.tool) && n.parent.node !== n.tool.node, 'CAPABILITY', 'cut', 'Cut requires two distinct direct XY extrusions and an x/y through-slab axis');
@@ -458,6 +497,8 @@ function admit(input: Document): Document {
     }
   }
   const last = nodes[nodes.length - 1];
+  demand(counts.rotate <= 1 && (!counts.rotate || last.kind === 'rotate'
+    && rotationParent(nodes.slice(0, -1), last.parent)), 'CAPABILITY', 'rotate', rotationParentDetail);
   demand(counts.translate <= 1 && (!counts.translate || counts.cut + counts.intersect + counts.split + counts.hole + counts.union + counts.difference === 0
     && (!counts.chamfer || last.kind === 'translate' && finishedTranslationPrefix(nodes.slice(0, -1), last.parent))),
   'CAPABILITY', 'translate', 'One terminal translation permits only its complete owned finishing chain');
@@ -492,6 +533,8 @@ export function createCadModel(): CadModel {
   const append = (node: Node) => {
     const operation = node.kind === 'difference' ? 'cut' : node.kind;
     authoring(operation);
+    demand(!nodes.some(n => n.kind === 'rotate'), 'CAPABILITY', operation, 'Rotation about the world origin is terminal; no later authored operation is supported');
+    demand(node.kind !== 'rotate' || rotationParent(nodes, node.parent), 'CAPABILITY', operation, rotationParentDetail);
     demand(!nodes.some(n => n.kind === 'translate') || !nodes.some(n => n.kind === 'chamfer'),
       'CAPABILITY', operation, 'A finished translation is the final authored operation');
     const composed = compositionPrefix([...nodes, node]);
@@ -536,9 +579,18 @@ export function createCadModel(): CadModel {
         authoring('translate');
         demand(this === handle, 'OWNERSHIP', 'translate', 'Translation belongs to this exact owned shape handle');
         demand(arguments.length === 1, 'INPUT', 'translate', 'Translation requires exactly one offset tuple');
+        demand(!nodes.some(n => n.kind === 'rotate'), 'CAPABILITY', 'translate', 'Rotation about the world origin is terminal; translation after rotation is unsupported');
         demand(affineExtrusion(nodes, reference) || finishedTranslationPrefix(nodes, reference), 'CAPABILITY', 'translate', 'Translation requires a direct affine extrusion or its complete owned finishing chain');
         const vector = list(offset, 'translate', 3, 3).map(value => dimension(value as CadDimension)) as [Dimension, Dimension, Dimension];
         return shape({ node: append({ kind: 'translate', parent: { ...reference }, offset: vector }), side: 'solid' });
+      },
+      rotate(options: { readonly axis: CadAxis; readonly angleDegrees: RotationAngle }): CadShape {
+        authoring('rotate');
+        demand(this === handle, 'OWNERSHIP', 'rotate', 'Rotation belongs to this exact owned shape handle');
+        demand(arguments.length === 1, 'INPUT', 'rotate', 'World-origin rotation requires exactly one axis and angleDegrees record');
+        const authored = rotationOptions(options, ['axis', 'angleDegrees']);
+        demand(rotationParent(nodes, reference), 'CAPABILITY', 'rotate', rotationParentDetail);
+        return shape({ node: append({ kind: 'rotate', parent: { ...reference }, ...authored }), side: 'solid' });
       },
       hole(options: { readonly center: CadPoint2; readonly radius: CadDimension }): CadShape {
         authoring('hole');
@@ -570,6 +622,7 @@ export function createCadModel(): CadModel {
       cut,
       edges(query: CadEdgeQuery): CadEdgeQueryHandle {
         authoring('selection');
+        demand(nodes[reference.node].kind !== 'rotate', 'CAPABILITY', 'selection', 'Rotation about the world origin is terminal; rotated copies do not support edge queries');
         demand(!circleExtrusion(nodes, reference) && nodes[reference.node].kind !== 'hole' && nodes[reference.node].kind !== 'union' && nodes[reference.node].kind !== 'difference' && nodes[reference.node].kind !== 'translate', 'CAPABILITY', 'selection', 'This body family is not admitted to convex edge queries');
         const q = record(query, 'selection'); demand(Object.keys(q).every(k => k === 'parallelTo' || k === 'at'), 'INPUT', 'selection', 'Unknown selector field');
         const authored: Query = {};
@@ -580,6 +633,7 @@ export function createCadModel(): CadModel {
       },
       chamfer(edge: CadEdgeSelection, distance: CadDimension, options?: { readonly name: string }): CadShape {
         authoring('chamfer');
+        demand(nodes[reference.node].kind !== 'rotate', 'CAPABILITY', 'chamfer', 'Rotation about the world origin is terminal; rotated copies do not support chamfers');
         demand(!circleExtrusion(nodes, reference), 'CAPABILITY', 'chamfer', 'Circle bodies are not admitted to convex finishing operations');
         demand(nodes[reference.node].kind !== 'translate', 'CAPABILITY', 'chamfer', 'Translated copies are terminal outputs');
         let configuration: ChamferConfiguration = {};
@@ -781,6 +835,9 @@ function evaluate(input: Document, previous?: EvaluationFrame): CadModelSnapshot
         const offset = node.offset.map(number) as Point;
         const native = buildModelingTranslation(solid(node.parent, 'translate'), offset, prefix);
         evidence.push({ kind: 'translate', native }); values.push(convex(native.solid));
+      } else if (node.kind === 'rotate') {
+        const native = buildModelingRotation(solid(node.parent, 'rotate'), { axis: node.axis, degrees: canonicalRotationDegrees(node.angleDegrees) }, prefix);
+        evidence.push({ kind: 'rotate', native }); values.push(convex(native.solid));
       } else if (node.kind === 'cut') {
         const tool = solid(node.tool, 'cut'), axis = axes.indexOf(node.axis);
         const support = (sign: number) => {
