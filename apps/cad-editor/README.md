@@ -614,3 +614,21 @@ provider/Worker/display port and retained #1835 baseline geometry. New authored
 variants and edited displays are mocked, not fresh native/GPU evidence. Exact
 case counts, first failures and physical limits are recorded under
 `flows/fixtures/modeling-sketch-command/verification.json` (#1957).
+
+
+## Accepted versus pending model files
+
+FILE → Save or open a model shows pending dimensions beside their accepted
+values. Download accepted model saves only accepted intent; Review dimensions
+before saving preserves the draft for an explicit Apply/Cancel. Clean documents
+keep Download model. Staged file text is not downloaded or opened implicitly.
+
+Run the bounded local save contract with installed dependencies:
+
+```sh
+node apps/cad-editor/flows/modeling-accepted-save-flow.mjs
+```
+
+This uses actual React/controller state and controlled Blob/anchor/URL APIs to
+check bytes, stale callbacks and owned cleanup. It is not a physical browser
+file-picker/download result; #1958 retains that separate acceptance status.

@@ -31,7 +31,7 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
   const id = useId(), viewport = useRef<HTMLDivElement | null>(null);
   const controller = useRef<CadEditorModelingController | null>(null);
   const displayRef = useRef<ReturnType<typeof createPrismFeatureDisplay> | null>(null);
-  const fileInput = useRef<HTMLInputElement | null>(null), fileReadEpoch = useRef(0);
+  const fileInput = useRef<HTMLInputElement | null>(null), fileReadEpoch = useRef(0), fileActionEpoch = useRef(0);
   const [snapshot, setSnapshot] = useState<CadEditorModelingSnapshot | null>(null);
   const [workspacePanel, setWorkspacePanel] = useState<ModelingWorkspacePanel | null>(null);
   const [extrusionTarget, setExtrusionTarget] = useState<(ExtrusionCommandTarget & { session: CadEditorModelingController; instance: number }) | null>(null);
@@ -56,7 +56,7 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
     const session = createCadEditorModelingController(display, () => display.aspect()); controller.current = session;
     const observer = new ResizeObserver(() => { try { display.resize(); } catch (cause) { setError(String(cause)); } });
     observer.observe(viewport.current);
-    const unsubscribe = session.subscribe(() => setSnapshot(session.getSnapshot())); setSnapshot(session.getSnapshot());
+    const unsubscribe = session.subscribe(() => { fileActionEpoch.current++; setSnapshot(session.getSnapshot()); }); setSnapshot(session.getSnapshot());
     void (initialAuthoredText === undefined ? session.example() : session.open(initialAuthoredText)).catch(cause => setError(String(cause)));
     return () => { newPartOperationEpoch.current++; newPartCommandInstance.current++; workspaceCommandEpoch.current++; extrusionCommandInstance.current++; sketchCommandInstance.current++; fileReadEpoch.current++; observer.disconnect(); unsubscribe(); session.dispose(); display.dispose(); if (controller.current === session) controller.current = null; if (displayRef.current === display) displayRef.current = null; };
   }, [initialAuthoredText]);
@@ -102,6 +102,8 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
       && current.authoredText === snapshot?.authoredText;
   };
   const openWorkspacePanel = (panel: ModelingWorkspacePanel | null) => {
+    // Reopening the visible File panel must not stale its handlers without a state render.
+    if (panel === 'files' && workspacePanel === 'files') return;
     if (panel === 'new-part') {
       const session = controller.current, current = session?.getSnapshot();
       if (!session || !current || current.busy || current.disposed) return;
@@ -554,6 +556,37 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
           : <p>Native Solid {snapshot.faceSelection.solidId}; face {snapshot.faceSelection.face.sourceId}/{snapshot.faceSelection.face.faceId}. Fan diagonals are display-only, not BRep edges. Selection belongs to this accepted model.</p>}
       </details>}
       <p>History {snapshot!.history.index + 1} / {snapshot!.history.count}. Unsupported geometry or ambiguous edge selection is refused; the accepted model stays intact.</p></>;
+  const fileSession = controller.current, fileCommandEpoch = workspaceCommandEpoch.current, fileStateEpoch = fileActionEpoch.current;
+  const currentFileSnapshot = () => {
+    if (!snapshot || !fileSession || controller.current !== fileSession || fileActionEpoch.current !== fileStateEpoch
+      || (workspace && (workspacePanel !== 'files' || workspaceCommandEpoch.current !== fileCommandEpoch))) return null;
+    const current = fileSession.getSnapshot();
+    if (current.busy || current.disposed || !current.authoredText || current.generation !== snapshot.generation
+      || current.authoredText !== snapshot.authoredText
+      || Object.keys(current.drafts).length !== Object.keys(snapshot.drafts).length
+      || Object.entries(snapshot.drafts).some(([name, raw]) => current.drafts[name] !== raw)) return null;
+    return current;
+  };
+  const downloadAcceptedModel = () => {
+    const current = currentFileSnapshot();
+    if (!current) return;
+    setError(null);
+    let anchor: HTMLAnchorElement | undefined, url: string | undefined, requested = false, failure = '';
+    try {
+      anchor = document.createElement('a');
+      url = URL.createObjectURL(new Blob([current.authoredText!], { type: 'application/json' }));
+      anchor.href = url; anchor.download = 'part.cad.json'; document.body.append(anchor);
+      anchor.click(); requested = true;
+    } catch (cause) { failure = `Could not request the accepted model download: ${String(cause)}`; }
+    finally {
+      const cleanupFailures: string[] = [];
+      try { anchor?.remove(); } catch (cause) { cleanupFailures.push(String(cause)); }
+      try { if (url !== undefined) URL.revokeObjectURL(url); } catch (cause) { cleanupFailures.push(String(cause)); }
+      if (cleanupFailures.length) failure += `${failure ? ' ' : ''}${requested ? 'Download was requested, but' : 'Download'} cleanup failed: ${cleanupFailures.join('; ')}`;
+    }
+    // A browser request is not proof that a file was persisted. Never attach errors to a newer document.
+    if (failure && currentFileSnapshot()) setError(failure);
+  };
   const filesPanel = <details open={workspace || undefined} style={{ marginTop: 24 }}><summary>Save or open a model</summary>
       <p>Save authored dimensions and modeling intent. Native geometry and display caches are rebuilt on open. Supported old files are detected internally; unsupported formats are refused without conversion.</p>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -564,10 +597,16 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
           }} />
         <Button type="button" variant="outline" disabled={busy} onClick={() => fileInput.current?.click()}>Choose model file</Button>
         <Button disabled={busy || !snapshot?.authoredText} onClick={() => { fileReadEpoch.current++; setSource(snapshot!.authoredText!); setConfirmed(false); }}>Show saved model</Button>
-        <Button disabled={busy || !snapshot?.authoredText} onClick={() => {
-          const url = URL.createObjectURL(new Blob([snapshot!.authoredText!], { type: 'application/json' }));
-          const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'part.cad.json'; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
-        }}>Download model</Button>
+        <Button disabled={busy || !snapshot?.authoredText} onClick={downloadAcceptedModel}>{draft ? 'Download accepted model' : 'Download model'}</Button>
+      </div>
+      <div data-testid="modeling-save-state">
+        <p>{draft ? 'Pending dimensions are excluded from this download. Apply them first if you want an updated model file.' : 'Download contains the accepted authored model.'} Staged file text below is not included.</p>
+        {draft && <table aria-label="Accepted and pending dimensions"><thead><tr><th>Dimension</th><th>Accepted (mm)</th><th>Pending input</th></tr></thead>
+          <tbody>{Object.entries(snapshot!.drafts).map(([name, raw]) => <tr key={name}><th scope="row">{name}</th>
+            <td>{Object.is(accepted?.parameters[name], -0) ? '-0' : String(accepted?.parameters[name] ?? '—')}</td><td>{raw}</td></tr>)}</tbody></table>}
+        {draft && workspace && <Button variant="outline" disabled={busy} onClick={() => {
+          if (currentFileSnapshot()) openWorkspacePanel('dimensions');
+        }}>Review dimensions before saving</Button>}
       </div>
       <Label htmlFor={`${id}-model`}>Saved model data</Label>
       <textarea id={`${id}-model`} rows={12} spellCheck={false} disabled={busy} maxLength={262144}

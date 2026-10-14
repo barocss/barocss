@@ -1358,3 +1358,15 @@ unrelated drafts require global review. Viewport, New part, files and STL remain
 mounted and available. Other profiles retain their existing model-dimension
 controls. No sketch drawing, expression rewrite or live draft geometry is added.
 See #1957 for bounded local controlled-delivery evidence and physical gate status.
+
+
+## Accepted-only model download
+
+The modeling File panel distinguishes accepted values from pending raw dimension
+input. Download accepted model explicitly excludes drafts and staged file text;
+Review dimensions before saving preserves the draft and focuses the existing
+editor. A clean document retains Download model. Neither action silently applies
+or discards changes. Download binds controller/source/generation/drafts and File
+context, owns only its anchor/object URL, and reports request/cleanup failures.
+A click is not a persistence guarantee. The codec, history and named outputs are
+unchanged; physical acceptance is tracked separately in #1958.

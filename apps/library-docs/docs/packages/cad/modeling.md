@@ -29,7 +29,13 @@ After creation, use **MODIFY → Edit model dimensions** for the named profile s
 
 Dimensions must be finite and greater than 0, up to 10000 mm; native exact-representability limits can still refuse a value. This command adds no sketch drawing or live draft-mesh preview. [#1951](https://github.com/barocss/barocss/issues/1951) tracks the focused software and actual new-part/file workflow separately; physical acceptance is pending until its exact-source Tester result.
 
-### Edit the selected rectangle sketch
+### Save accepted dimensions explicitly
+
+In **FILE → Save or open a model**, **Download model** saves the accepted authored model as `part.cad.json`. If dimensions are pending, the panel shows **Accepted (mm)** beside **Pending input**, and the action becomes **Download accepted model**. That file excludes the pending edits and any separately staged file text. **Review dimensions before saving** returns to the existing dimension editor with the draft intact; explicitly Apply there before downloading an updated model. Download never applies or discards dimensions, changes history, or opens a staged file.
+
+The save action uses the current accepted document and refuses stale or busy callbacks. A browser download request does not prove a file reached disk; request/cleanup errors are surfaced separately. The original authored codec and named outputs stay unchanged. Physical file checks for this clarification remain separate from its local controlled-browser-API tests ([#1958](https://github.com/barocss/barocss/issues/1958)).
+
+## Edit the selected rectangle sketch
 
 Select a rectangle **Sketch** in the Browser, then **MODIFY → Edit sketch dimensions**. The options stay pinned to that sketch even if you select another feature. **Min X**, **Min Y**, **Max X** and **Max Y** are signed profile coordinates in millimetres: for a rectangle away from the origin, a maximum coordinate is not its width. The New rectangular part command's origin-zero sketch exposes its named `width` and `height` here; extrusion `thickness` stays in Edit extrusion or Edit model dimensions.
 
