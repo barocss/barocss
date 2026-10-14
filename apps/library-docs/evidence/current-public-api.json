@@ -1,7 +1,7 @@
 {
   "schema": "barocss-current-public-api-v1",
   "typescriptVersion": "5.9.3",
-  "sourceCommit": "1f5b8398d764244dbb134d560e241745134981df",
+  "sourceCommit": "2587a0595be153f05b36edac8d511a7813d6938e",
   "extractor": "TypeScript 5.9.3 public module exports and declarations; not a type-check or runtime execution",
   "packages": [
     {
@@ -687,7 +687,7 @@
               "name": "compileEngineUVTextureMaterial",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/mesh-material.ts",
-              "line": 475,
+              "line": 485,
               "signatures": [
                 "export function compileEngineUVTextureMaterial(source: string): {ok:true;material:EngineUVTextureMaterialIR}|{ok:false;diagnostics:MeshMaterialDiagnostic[]};"
               ],
@@ -2133,7 +2133,7 @@
               "name": "lowerEngineUVMaterial",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/mesh-material.ts",
-              "line": 439,
+              "line": 449,
               "signatures": [
                 "export function lowerEngineUVMaterial(input: unknown): LoweredEngineUVMaterial;"
               ],
@@ -2143,7 +2143,7 @@
               "name": "lowerEngineUVRepeatingMaterial",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/mesh-material.ts",
-              "line": 443,
+              "line": 453,
               "signatures": [
                 "export function lowerEngineUVRepeatingMaterial(input: unknown): LoweredEngineUVMaterial;"
               ],
@@ -2153,7 +2153,7 @@
               "name": "lowerEngineUVTextureMaterial",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/mesh-material.ts",
-              "line": 494,
+              "line": 504,
               "signatures": [
                 "export function lowerEngineUVTextureMaterial(input: unknown): LoweredEngineUVTextureMaterial;"
               ],
@@ -2183,7 +2183,7 @@
               "name": "lowerMeshMaterial",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/mesh-material.ts",
-              "line": 438,
+              "line": 448,
               "signatures": [
                 "export function lowerMeshMaterial(input: unknown): LoweredMeshMaterial;"
               ],
@@ -2203,7 +2203,7 @@
               "name": "lowerNativeSurfaceUV01Material",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/mesh-material.ts",
-              "line": 447,
+              "line": 457,
               "signatures": [
                 "export function lowerNativeSurfaceUV01Material(input: unknown): LoweredNativeSurfaceUV01Material;"
               ],
@@ -5257,7 +5257,7 @@
               "name": "validateEngineUVMaterialIR",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/mesh-material.ts",
-              "line": 423,
+              "line": 433,
               "signatures": [
                 "export function validateEngineUVMaterialIR(input: unknown): EngineUVMaterialIR;"
               ],
@@ -5267,7 +5267,7 @@
               "name": "validateEngineUVRepeatingMaterialIR",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/mesh-material.ts",
-              "line": 424,
+              "line": 434,
               "signatures": [
                 "export function validateEngineUVRepeatingMaterialIR(input: unknown): EngineUVRepeatingMaterialIR;"
               ],
@@ -5277,7 +5277,7 @@
               "name": "validateEngineUVTextureMaterialIR",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/mesh-material.ts",
-              "line": 485,
+              "line": 495,
               "signatures": [
                 "export function validateEngineUVTextureMaterialIR(input: unknown): EngineUVTextureMaterialIR;"
               ],
@@ -5297,7 +5297,7 @@
               "name": "validateMeshMaterialIR",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/mesh-material.ts",
-              "line": 417,
+              "line": 427,
               "signatures": [
                 "export function validateMeshMaterialIR(input: unknown): MeshMaterialIR;"
               ],
@@ -5317,7 +5317,7 @@
               "name": "validateNativeSurfaceUV01MaterialIR",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/mesh-material.ts",
-              "line": 425,
+              "line": 435,
               "signatures": [
                 "export function validateNativeSurfaceUV01MaterialIR(input: unknown): NativeSurfaceUV01MaterialIR;"
               ],
@@ -7258,7 +7258,7 @@
               "name": "compileEngineUVTextureMaterial",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/mesh-material.ts",
-              "line": 475,
+              "line": 485,
               "signatures": [
                 "export function compileEngineUVTextureMaterial(source: string): {ok:true;material:EngineUVTextureMaterialIR}|{ok:false;diagnostics:MeshMaterialDiagnostic[]};"
               ],
@@ -8704,7 +8704,7 @@
               "name": "lowerEngineUVMaterial",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/mesh-material.ts",
-              "line": 439,
+              "line": 449,
               "signatures": [
                 "export function lowerEngineUVMaterial(input: unknown): LoweredEngineUVMaterial;"
               ],
@@ -8714,7 +8714,7 @@
               "name": "lowerEngineUVRepeatingMaterial",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/mesh-material.ts",
-              "line": 443,
+              "line": 453,
               "signatures": [
                 "export function lowerEngineUVRepeatingMaterial(input: unknown): LoweredEngineUVMaterial;"
               ],
@@ -8724,7 +8724,7 @@
               "name": "lowerEngineUVTextureMaterial",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/mesh-material.ts",
-              "line": 494,
+              "line": 504,
               "signatures": [
                 "export function lowerEngineUVTextureMaterial(input: unknown): LoweredEngineUVTextureMaterial;"
               ],
@@ -8754,7 +8754,7 @@
               "name": "lowerMeshMaterial",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/mesh-material.ts",
-              "line": 438,
+              "line": 448,
               "signatures": [
                 "export function lowerMeshMaterial(input: unknown): LoweredMeshMaterial;"
               ],
@@ -8774,7 +8774,7 @@
               "name": "lowerNativeSurfaceUV01Material",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/mesh-material.ts",
-              "line": 447,
+              "line": 457,
               "signatures": [
                 "export function lowerNativeSurfaceUV01Material(input: unknown): LoweredNativeSurfaceUV01Material;"
               ],
@@ -11828,7 +11828,7 @@
               "name": "validateEngineUVMaterialIR",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/mesh-material.ts",
-              "line": 423,
+              "line": 433,
               "signatures": [
                 "export function validateEngineUVMaterialIR(input: unknown): EngineUVMaterialIR;"
               ],
@@ -11838,7 +11838,7 @@
               "name": "validateEngineUVRepeatingMaterialIR",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/mesh-material.ts",
-              "line": 424,
+              "line": 434,
               "signatures": [
                 "export function validateEngineUVRepeatingMaterialIR(input: unknown): EngineUVRepeatingMaterialIR;"
               ],
@@ -11848,7 +11848,7 @@
               "name": "validateEngineUVTextureMaterialIR",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/mesh-material.ts",
-              "line": 485,
+              "line": 495,
               "signatures": [
                 "export function validateEngineUVTextureMaterialIR(input: unknown): EngineUVTextureMaterialIR;"
               ],
@@ -11868,7 +11868,7 @@
               "name": "validateMeshMaterialIR",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/mesh-material.ts",
-              "line": 417,
+              "line": 427,
               "signatures": [
                 "export function validateMeshMaterialIR(input: unknown): MeshMaterialIR;"
               ],
@@ -11888,7 +11888,7 @@
               "name": "validateNativeSurfaceUV01MaterialIR",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/mesh-material.ts",
-              "line": 425,
+              "line": 435,
               "signatures": [
                 "export function validateNativeSurfaceUV01MaterialIR(input: unknown): NativeSurfaceUV01MaterialIR;"
               ],
@@ -55398,13 +55398,13 @@
   ],
   "packageTrees": {
     "packages/barocss-render": "b83e4912e1d1aa658f048ba4b112376785b288fb",
-    "packages/barocss-gpu": "79fbd3499e48adb0ebf5c6b5d85afab06edd70fd",
-    "packages/barocss-cad": "bef198e62086760c178be5419fdad2017e7b16a6",
+    "packages/barocss-gpu": "ba36812f7118c6ec2d8fef3fac7b8be46d9a937b",
+    "packages/barocss-cad": "1c81e9bc6c6f8d223031bb99651a34b3d6ec30ae",
     "packages/barocss-cad-interop": "330d0323e1d3891c8a1f882e848aae604ea67b08",
     "packages/barocss-canvas2d": "b029d1925907fbac9a19d6c2f825cbfd91323473",
     "packages/barocss-viewer": "aa7736ed08620fe9b7db2eff4feec5c89f9e502b",
     "packages/barocss-physics": "f3aa5c6e161137cb80fb68f73a517cd6bdc673dd",
-    "packages/barocss-cad-editor": "d25c0a34978b5f4bf3b6595643b752446090ff2c",
+    "packages/barocss-cad-editor": "816a3f6bcd7da48c65723b63db6a3f0c089576e1",
     "packages/barocss-render-editor": "d1486acf9b983dba6839d2bf303406876244e2e6"
   },
   "historicalSourceCommit": "5f5ad866205a21510ac69552e704cc162fa253b5",
