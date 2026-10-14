@@ -91,7 +91,7 @@
     }
   ],
   "typeCheck": {
-    "source": "38a6e2e0bb0d2688deac3017471e060f1025c837",
+    "source": "3111084df291576aa21ef79e45bd80bfe81f5ae0",
     "historicalDeclarationProvider": "5c6dc223a9b9e6b88bc8134651366b23147bc7c4",
     "historicalDeclarationReceiptSHA256": "cb84c053368fdc9a8dd1af63c824fc36bf40af8413207f9e6f893009b7854090",
     "declarationCount": 280,
@@ -108,7 +108,7 @@
           "--noEmit"
         ],
         "exitCode": 0,
-        "seconds": 11.898045640991768,
+        "seconds": 11.44657052498951,
         "config": {
           "extends": "./tsconfig.json",
           "compilerOptions": {
@@ -161,5 +161,54 @@
   "physicalBrowser": false,
   "gpuCalls": 0,
   "genuineReplay": "Mac retained mirror transfer hash d0e6b21eefa5addb75dd5c79911e78805394986928cbcd74b1d9526ebff3307c located; upload/materialization/replay not completed at this checkpoint.",
-  "typeCheckWorkingTree": "The type-check source field records base HEAD; it ran the uncommitted mirror source identified by sourceHashes, with the historical CAD declaration provider explicitly recorded."
+  "typeCheckWorkingTree": "Latest type check used local package source resolution at merge checkpoint 3111084df291576aa21ef79e45bd80bfe81f5ae0; historical CAD declarations remain explicitly qualified.",
+  "apiVerification": {
+    "sourceCommit": "042e6bc184fb67ef1252d08c85eb97334a5c1fe5",
+    "nodeHeapLimitMB": 1536,
+    "peakMemoryMeasured": false,
+    "results": [
+      {
+        "name": "qualified-write",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--write-current",
+          "--commit",
+          "042e6bc184fb67ef1252d08c85eb97334a5c1fe5"
+        ],
+        "exitCode": 0,
+        "seconds": 5.683396719978191
+      },
+      {
+        "name": "qualified-check",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--check"
+        ],
+        "exitCode": 0,
+        "seconds": 5.585644304024754
+      }
+    ],
+    "delta": {
+      "added": [
+        "@barocss/gpu./source:mountPrimitiveSceneFrame",
+        "@barocss/gpu./source:mountPrimitiveViewportFrame",
+        "@barocss/gpu.:mountPrimitiveSceneFrame",
+        "@barocss/gpu.:mountPrimitiveViewportFrame"
+      ],
+      "removed": [],
+      "changed": [],
+      "beforePin": "44cd254ebe67aa57a763934cbccd3e8771648a10",
+      "sourcePin": "042e6bc184fb67ef1252d08c85eb97334a5c1fe5",
+      "typescript": "5.9.3",
+      "signatures": {}
+    },
+    "priorAttempts": [
+      "Foreign own-source dependency resolution rejected; local package links corrected before successful extraction.",
+      "500MB Node heap exhausted; user approved extractor-only 1536MB retry."
+    ],
+    "physicalBrowser": false,
+    "nativeCalls": 0
+  }
 }
