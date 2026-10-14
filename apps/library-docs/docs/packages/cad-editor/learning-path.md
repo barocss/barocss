@@ -2,7 +2,7 @@
 
 This learning path is for someone who wants to **make and edit parts in the actual CAD Editor**. Each exercise begins with a real supported preset, changes one parameter, inspects the accepted result, and ends with editable saved data. You do **not** need to choose internal source dialects, author graph IDs, or write TypeScript.
 
-The product is currently a local experimental workspace. A source-backed lesson is **not** evidence that its browser, GPU, file picker, release or manufacturing use has been validated.
+The product is currently a local experimental workspace. The [source-pinned browser receipt](./manual-browser-1803) covers the first four lessons through recorded physical runs. It does not establish release, manufacturing or every device.
 
 ## Start here: your first editable part
 
@@ -14,7 +14,7 @@ You will load a 32 × 24 × 8 mm plate, change underside recess depth from 4 to 
 
 ## Continue with the adopted hands-on lessons
 
-All six lessons below are now included in the accepted `develop` documentation. Their previously adopted provider fixtures support the stated native cases; real browser/GPU/device checks remain separate.
+All six lessons below are included in the accepted `develop` documentation. Their previously adopted provider fixtures support the stated native cases. Separate physical browser/GPU evidence exists for lessons 1–4 at the source commits named in the [manual receipt](./manual-browser-1803); lessons 5–6 have their own evidence boundaries.
 
 | Lesson | What you practise | Open the lesson |
 | --- | --- | --- |
@@ -51,6 +51,6 @@ After you understand the user-facing workflow, take the [typed CAD quickstart](.
 
 ## Verification boundary
 
-**Checked for this course index:** existing `develop` tutorial routes and source-backed language from the prior issue/guide. **UNRUN here:** live browser exercises, screenshots, GPU pixels, fresh file-download/restore, VitePress build and publication. The underlying provider test reports have their own source pins; this learning index does not re-execute them.
+**Verification:** this index points to the [measured browser and file receipt](./manual-browser-1803), with actual screenshots and separate source pins for the round post. A documentation build checks this page's links but cannot rerun native geometry or browser interactions. Publication and product release remain separate.
 
 [CAD Editor overview](./) · [First lesson](./first-model) · [CAD engine capabilities](../cad/capabilities)

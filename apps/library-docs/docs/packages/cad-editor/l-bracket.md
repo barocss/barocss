@@ -84,6 +84,6 @@ The developer reference [Fuse two rectangular extrusions](../cad/modeling#fuse-t
 
 ## Evidence status
 
-**Source inspected:** current modeling preset, accepted numeric fixture and native report, saved output order, and staged-file UI. **Not executed in this documentation change:** Node source-drift script, site build, live Chromium/React interaction, GPU pixels, physical Download → Open and screenshots. These checks remain **UNRUN** until separately measured. A successful Markdown link check is not a substitute for a native or browser acceptance.
+**Source inspected:** current modeling preset, accepted numeric fixture and native report, saved output order, and staged-file UI. A later [physical browser receipt](./manual-browser-1803) records Chrome/WebGL2 frames, accepted volume readouts, face-contact and edge-contact refusal, physical Download → fresh Open → re-edit, and original screenshots at an exact source commit. Its post-Open `legHeight=16` result starts from `legWidth=12`, `legMinY=8`, so it differs from the source fixture that first restores the initial bracket. Site deployment and release remain separate.
 
 [First part](./first-model) · [CAD Editor overview](./) · [Native modeling reference](../cad/modeling)

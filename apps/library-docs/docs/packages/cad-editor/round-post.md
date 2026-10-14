@@ -81,8 +81,6 @@ See [the measured round-post native fixture and limitations](../cad/modeling#cre
 
 **Documented from source:** the `#/model` route; labels `Create a round post`, `Optional center coordinates`, `Diameter`, `Extrusion height`, `Apply dimensions`; staged and accepted history; text-only file chooser; supported native fixture bounds and non-certification.
 
-**Not verified in this documentation change:** a fresh live Chromium run, actual GPU pixels, click/keyboard interaction on a real device, physical Download → picker → Open, or screenshot correctness. Until that independent acceptance is recorded, **do not add synthetic screenshots** or describe a mocked-Worker frame as observed browser output.
-
-A future browser evidence pass should capture the initial post, taller/narrower accepted view, a refused draft with retained geometry, and a reopened named `post`—each labeled with exact source SHA, expected native state and recorded browser result. This is a verification requirement, not a claim that the screenshots already exist.
+The original lesson was source-backed. A later [#1683 physical browser receipt](https://github.com/barocss/barocss/wiki/CAD-Round-Post-Physical-QA-2026-10-14) records Chrome 148/WebGL2 clicks, height 6→9 and diameter 8→4, an accepted `post` with certified volume unavailable, refusal of diameter 0, physical Download → fresh Open → re-edit, five actual screenshots, and retained driver failures. Its source SHA differs from the [#1803 combined manual receipt](./manual-browser-1803), which cites the round-post run without rerunning it.
 
 [Previous: first model lesson](./first-model) · [CAD Editor overview](./) · [Editor developer quickstart](./quickstart) · [Native modeling guide](../cad/modeling)

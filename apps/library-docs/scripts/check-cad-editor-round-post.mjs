@@ -43,15 +43,10 @@ for (const claim of [
   '[-2,-7,0]', '[6,1,6]', '[0,-5,0]', '[4,-1,9]',
   'stored-rational-circle-prism', 'Certified volume unavailable',
   '98 vertices, 64 triangles', 'not a claim of an npm-published',
-  'Not verified in this documentation change:', 'a valid parent for cut',
-  '0.001..10,000 mm', 'UNRUN',
+  'CAD-Round-Post-Physical-QA-2026-10-14', 'a valid parent for cut',
+  '0.001..10,000 mm', 'manual-browser-1803',
 ]) {
-  // Browser evidence is explicitly NOT claimed, so check the actual words rather than numeric-only acceptance.
-  if (claim === 'UNRUN') {
-    assert.ok(lesson.includes('Not verified in this documentation change:'));
-  } else {
-    assert.ok(lesson.includes(claim), `Missing round-post boundary: ${claim}`);
-  }
+  assert.ok(lesson.includes(claim), `Missing round-post boundary: ${claim}`);
 }
 assert.ok(guide.includes('./round-post'), 'Round-post lesson missing from guide entry');
 const overview = read('apps/library-docs/docs/packages/cad-editor/index.md');
