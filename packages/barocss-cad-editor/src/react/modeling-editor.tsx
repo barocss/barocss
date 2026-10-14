@@ -18,6 +18,8 @@ import { projectSketchCommand, sketchCommandCurrent } from '../modeling-sketch-c
 import type { SketchCommandTarget } from '../modeling-sketch-command.js';
 import { createRectangularPartSource } from '../modeling-rectangular-part.js';
 import type { RectangularPartInput } from '../modeling-rectangular-part.js';
+import { createCircularPartSource } from '../modeling-circular-part.js';
+import type { CircularPartInput } from '../modeling-circular-part.js';
 import { Button } from './ui/button.js';
 import { Input } from './ui/input.js';
 import { Label } from './ui/label.js';
@@ -45,8 +47,9 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
   const [structureTarget, setStructureTarget] = useState<{ session: CadEditorModelingController; text: string; generation: number; instance: number; command: ModelingStructureCommand } | null>(null);
   const [structureInput, setStructureInput] = useState({ x: '0', y: '0', width: '8', height: '24', radius: '5', wall: '8', floor: '4' });
   const newPartCommandInstance = useRef(0), newPartOperationEpoch = useRef(0);
-  const [newPartTarget, setNewPartTarget] = useState<{ session: CadEditorModelingController; authoredText: string | null; generation: number; instance: number } | null>(null);
+  const [newPartTarget, setNewPartTarget] = useState<{ session: CadEditorModelingController; authoredText: string | null; generation: number; instance: number; kind: 'rectangle' | 'circle' } | null>(null);
   const [newPartInput, setNewPartInput] = useState<RectangularPartInput>({ width: '32', height: '24', thickness: '8' });
+  const [circularPartInput, setCircularPartInput] = useState<CircularPartInput>({ diameter: '17.5', thickness: '5' });
   const [example, setExample] = useState<CadEditorModelingExample>('cut-chamfer');
   const [splitAxis, setSplitAxis] = useState<CadEditorModelingSplitAxis>('z');
   const [stlOutput, setStlOutput] = useState('');
@@ -169,12 +172,14 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
         wall: String(capabilities.pocketDefaults?.wall ?? 8), floor: String(capabilities.pocketDefaults?.floor ?? 4) });
       setError(null);
     }
-    if (panel === 'new-part') {
+    if (panel === 'new-part' || panel === 'new-circular-part') {
       const session = controller.current, current = session?.getSnapshot();
       if (!session || !current || current.busy || current.disposed) return;
-      if (workspacePanel === 'new-part' && newPartCommandCurrent()) return;
-      setNewPartInput({ width: '32', height: '24', thickness: '8' });
-      setNewPartTarget({ session, authoredText: current.authoredText, generation: current.generation, instance: newPartCommandInstance.current + 1 });
+      if (workspacePanel === panel && newPartCommandCurrent()) return;
+      if (panel === 'new-circular-part') setCircularPartInput({ diameter: '17.5', thickness: '5' });
+      else setNewPartInput({ width: '32', height: '24', thickness: '8' });
+      setNewPartTarget({ session, authoredText: current.authoredText, generation: current.generation,
+        instance: newPartCommandInstance.current + 1, kind: panel === 'new-circular-part' ? 'circle' : 'rectangle' });
       setError(null);
     }
     if (panel === 'sketch') {
@@ -247,11 +252,11 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
     openWorkspacePanel(null);
   };
   const createNewPart = () => {
-    if (workspacePanel !== 'new-part' || !newPartCommandCurrent()) return;
+    if ((workspacePanel !== 'new-part' && workspacePanel !== 'new-circular-part') || !newPartCommandCurrent()) return;
     const session = controller.current!, current = session.getSnapshot();
     if (current.busy || Object.keys(current.drafts).length) return;
     let text: string;
-    try { text = createRectangularPartSource(newPartInput); } catch (cause) { setError(String(cause)); return; }
+    try { text = newPartTarget!.kind === 'circle' ? createCircularPartSource(circularPartInput) : createRectangularPartSource(newPartInput); } catch (cause) { setError(String(cause)); return; }
     const commandEpoch = ++workspaceCommandEpoch.current, generation = current.generation;
     const operationEpoch = ++newPartOperationEpoch.current;
     const fileEpoch = ++fileReadEpoch.current; // Old reads cannot stage bytes into a new document.
@@ -591,16 +596,24 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
         </div>
         <p>Disabled chamfers still validate. Invalid edge selection or geometry is refused without replacing this model.</p>
       </fieldset>;
+  const circularCreation = newPartTarget?.kind === 'circle';
+  const creationPanel = circularCreation ? 'new-circular-part' : 'new-part';
+  const creationName = circularCreation ? 'New circular part' : 'New rectangular part';
   let newPartSource = '', newPartValidation = '';
-  try { newPartSource = createRectangularPartSource(newPartInput); } catch (cause) { newPartValidation = cause instanceof Error ? cause.message : String(cause); }
+  try { newPartSource = circularCreation ? createCircularPartSource(circularPartInput) : createRectangularPartSource(newPartInput); } catch (cause) { newPartValidation = cause instanceof Error ? cause.message : String(cause); }
   const newPartCurrent = newPartCommandCurrent();
   const newPartPanel = <div>
-    <p>Create your own origin-zero rectangular sketch and extrusion. All three sizes become named editable model parameters.</p>
+    <p>{circularCreation ? 'Create your own XY circle centered at [0,0] and extrusion from Z=0. Diameter and thickness become named editable model parameters.' : 'Create your own origin-zero rectangular sketch and extrusion. All three sizes become named editable model parameters.'}</p>
     <p>These are temporary creation settings. The accepted viewport stays unchanged until Create succeeds.</p>
-    {([['width', 'Width'], ['height', 'Profile height'], ['thickness', 'Thickness']] as const).map(([name, label]) => <div key={name} style={{ marginBottom: 16 }}>
-      <Label htmlFor={`${id}-new-part-${name}`}>{label} (mm)</Label>
-      <Input id={`${id}-new-part-${name}`} inputMode="decimal" maxLength={64} value={newPartInput[name]} disabled={busy || !newPartCurrent}
-        onChange={event => { if (workspacePanel === 'new-part' && newPartCommandCurrent() && !controller.current?.getSnapshot().busy) setNewPartInput(values => ({ ...values, [name]: event.target.value })); }}
+    {(circularCreation ? [['diameter', 'Diameter'], ['thickness', 'Thickness']] as const : [['width', 'Width'], ['height', 'Profile height'], ['thickness', 'Thickness']] as const).map(([name, label]) => <div key={name} style={{ marginBottom: 16 }}>
+      <Label htmlFor={`${id}-${creationPanel}-${name}`}>{label} (mm)</Label>
+      <Input id={`${id}-${creationPanel}-${name}`} inputMode="decimal" maxLength={64} value={circularCreation ? circularPartInput[name as keyof CircularPartInput] : newPartInput[name as keyof RectangularPartInput]} disabled={busy || !newPartCurrent}
+        onChange={event => {
+          if (workspacePanel !== creationPanel || !newPartCommandCurrent() || controller.current?.getSnapshot().busy) return;
+          const value = event.target.value;
+          if (circularCreation) setCircularPartInput(values => ({ ...values, [name]: value }));
+          else setNewPartInput(values => ({ ...values, [name]: value }));
+        }}
         onKeyDown={event => {
           if (!newPartCommandLive() || event.repeat || event.nativeEvent.isComposing || event.keyCode === 229
             || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
@@ -610,9 +623,10 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
     </div>)}
     {newPartValidation && <p role="status">{newPartValidation}</p>}
     <p>The native loader may refuse unsupported precision or geometry. A refusal keeps the current document and history.</p>
+    {circularCreation && <p>Diameter: 0.002–10000 mm; thickness: 0.001–10000 mm. Native and display limits can be tighter. Circular volume, mass and STL are unavailable; this command creates a blank without a bore, threads or a hole pattern.</p>}
     {accepted && <p><strong>Replace current model:</strong> creating this part replaces the accepted document and resets its Undo history. Download the accepted model first if you need to keep it. No file is saved automatically.</p>}
     {draft && <p role="status">Existing model dimensions are pending. Apply or cancel them in their own editor before replacing the document. These creation settings do not apply or discard those drafts.</p>}
-    {!newPartCurrent && <p role="status">The target document changed. Reopen New rectangular part before replacing it.</p>}
+    {!newPartCurrent && <p role="status">The target document changed. Reopen {creationName} before replacing it.</p>}
     {draft && <Button variant="outline" disabled={busy} onClick={() => { if (newPartRenderCurrent()) openWorkspacePanel('dimensions'); }}>Review pending dimensions</Button>}
     <details><summary>Authored model source</summary><pre>{newPartSource || 'Enter valid creation dimensions.'}</pre></details>
   </div>;
@@ -773,7 +787,7 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
     </details>;
   if (workspace) return <ModelingWorkspace snapshot={snapshot} viewport={viewportElement} panel={workspacePanel} error={error}
     onView={changeView} modelNotice={pocketNotice ? 'Pocket edits can remove walls or floor · review Model dimensions' : undefined}
-    panels={{ 'cut-pocket': workspacePanel === 'cut-pocket' ? structurePanel : null, 'add-hole': workspacePanel === 'add-hole' ? structurePanel : null, 'add-arm': workspacePanel === 'add-arm' ? structurePanel : null, union: workspacePanel === 'union' ? structurePanel : null, 'cut-slot': workspacePanel === 'cut-slot' ? structurePanel : null, 'new-part': newPartPanel, examples: examplesPanel, dimensions: dimensionsPanel, extrusion: extrusionPanel, sketch: sketchPanel, outputs: <>{visibilityPanel}{exportPanel}</>, files: filesPanel,
+    panels={{ 'cut-pocket': workspacePanel === 'cut-pocket' ? structurePanel : null, 'add-hole': workspacePanel === 'add-hole' ? structurePanel : null, 'add-arm': workspacePanel === 'add-arm' ? structurePanel : null, union: workspacePanel === 'union' ? structurePanel : null, 'cut-slot': workspacePanel === 'cut-slot' ? structurePanel : null, 'new-part': circularCreation ? null : newPartPanel, 'new-circular-part': circularCreation ? newPartPanel : null, examples: examplesPanel, dimensions: dimensionsPanel, extrusion: extrusionPanel, sketch: sketchPanel, outputs: <>{visibilityPanel}{exportPanel}</>, files: filesPanel,
       inspect: inspectionPanel, limits: limitsPanel, configuration: finishesPanel }}
     dimensionLabel={constrainedPlateDrivers ? 'Edit dimensions' : 'Edit model dimensions'}
     canEditDimensions={!!accepted && (!constrainedPlateDrivers || snapshot?.selection === null || accepted.features[snapshot?.selection ?? -1]?.kind === 'sketch')}

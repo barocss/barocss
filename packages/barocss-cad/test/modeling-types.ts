@@ -429,3 +429,91 @@ scaleOriginal.scale({ factor: copySpacing });
 scaleOriginal.scale();
 // @ts-expect-error Extra arguments are not admitted.
 scaleOriginal.scale({ factor: 2 }, true);
+
+const patternModel = cad.model();
+const patternSpacing = patternModel.parameter('spacing', 40);
+const patternOriginal = patternModel.sketch.rectangle({ width: 32, height: 24 }).extrude(8, { from: 3 });
+const patternTuple: readonly [CadShape, CadShape, CadShape] =
+  patternOriginal.linearPattern({ axis: 'x', spacing: patternSpacing, count: 3 });
+const [patternSource, patternNear, patternFar] = patternTuple;
+const patternSnapshot: CadModelSnapshot = patternModel.build({ original: patternSource, near: patternNear, far: patternFar });
+const patternEdited: CadModelSnapshot = patternSnapshot.withParameters({ spacing: 48 });
+const patternReopened: CadModelSnapshot = cad.load(patternEdited.save());
+const patternEvidence = patternSnapshot.evidence.find(item => item.kind === 'linear-pattern');
+if (patternEvidence?.kind === 'linear-pattern') {
+  const count: 3 = patternEvidence.native.report.count;
+  const firstCopy = patternEvidence.native.copies[0];
+  const secondCopy = patternEvidence.native.copies[1];
+  const firstMappedFace: string = firstCopy.lineage.faces[0].translated.faceId;
+  const secondMappedFace: string = secondCopy.lineage.faces[0].translated.faceId;
+  const sameParent: true = patternEvidence.native.report.preservation.sameOriginalParent;
+  void [count, firstMappedFace, secondMappedFace, sameParent];
+}
+void patternReopened;
+for (const axis of ['x', 'y', 'z'] as const) {
+  const axisModel = cad.model();
+  axisModel.sketch.rectangle({ width: 32, height: 24 }).extrude(8).linearPattern({
+    axis, spacing: axisModel.dimension.add(axisModel.parameter('spacing', 40), 0), count: 3,
+  });
+}
+// @ts-expect-error The result is a readonly three-instance tuple.
+patternTuple[1] = patternSource;
+// @ts-expect-error Exactly three instances include the original.
+patternOriginal.linearPattern({ axis: 'x', spacing: 40, count: 2 });
+// @ts-expect-error Arbitrary directions are not admitted.
+patternOriginal.linearPattern({ axis: [1, 0, 0], spacing: 40, count: 3 });
+// @ts-expect-error Spacing is a millimetre length, not a string.
+patternOriginal.linearPattern({ axis: 'x', spacing: '40', count: 3 });
+// @ts-expect-error Count is required.
+patternOriginal.linearPattern({ axis: 'x', spacing: 40 });
+// @ts-expect-error There is no pattern pivot option.
+patternOriginal.linearPattern({ axis: 'x', spacing: 40, count: 3, pivot: [0, 0, 0] });
+// @ts-expect-error One own-data options record is required.
+patternOriginal.linearPattern();
+// @ts-expect-error Extra arguments are not admitted.
+patternOriginal.linearPattern({ axis: 'x', spacing: 40, count: 3 }, true);
+
+const circularModel = cad.model();
+const circularHeight = circularModel.parameter('height', 8);
+const circularSource = circularModel.sketch.rectangle({ width: 32, height: 24 }).extrude(circularHeight, { from: 3 });
+const circularTuple: readonly [CadShape, CadShape, CadShape] =
+  circularSource.circularPattern({ axis: 'y', angleDegrees: -90, count: 3 });
+const [circularOriginal, circularNear, circularFar] = circularTuple;
+const circularSnapshot: CadModelSnapshot = circularModel.build({ original: circularOriginal, near: circularNear, far: circularFar });
+const circularEdited: CadModelSnapshot = circularSnapshot.withParameters({ height: 10 });
+const circularReopened: CadModelSnapshot = cad.load(circularEdited.save());
+const circularEvidence = circularSnapshot.evidence.find(item => item.kind === 'circular-pattern');
+if (circularEvidence?.kind === 'circular-pattern') {
+  const count: 3 = circularEvidence.native.report.count;
+  const step: 90 | -90 = circularEvidence.native.request.spec.angleDegrees;
+  const firstMappedFace: string = circularEvidence.native.copies[0].lineage.faces[0].rotated.faceId;
+  const secondMappedFace: string = circularEvidence.native.copies[1].lineage.faces[0].rotated.faceId;
+  const sameOriginal: true = circularEvidence.native.report.preservation.sameOriginalParent;
+  void [count, step, firstMappedFace, secondMappedFace, sameOriginal];
+}
+void circularReopened;
+for (const axis of ['x', 'y', 'z'] as const)
+  for (const angleDegrees of [90, -90] as const)
+    cad.model().sketch.rectangle({ width: 32, height: 24 }).extrude(8).circularPattern({ axis, angleDegrees, count: 3 });
+// @ts-expect-error The three-instance result is readonly.
+circularTuple[1] = circularOriginal;
+// @ts-expect-error The authored angular step is one positive or negative quarter-turn.
+circularSource.circularPattern({ axis: 'x', angleDegrees: 180, count: 3 });
+// @ts-expect-error Arbitrary angles are not part of this exact subset.
+circularSource.circularPattern({ axis: 'x', angleDegrees: 120, count: 3 });
+// @ts-expect-error Count includes exactly the original and two copies.
+circularSource.circularPattern({ axis: 'x', angleDegrees: 90, count: 4 });
+// @ts-expect-error Angles cannot be length parameters.
+circularSource.circularPattern({ axis: 'x', angleDegrees: circularHeight, count: 3 });
+// @ts-expect-error Arbitrary axis vectors are not admitted.
+circularSource.circularPattern({ axis: [1, 0, 0], angleDegrees: 90, count: 3 });
+// @ts-expect-error The pivot is fixed at the world origin.
+circularSource.circularPattern({ axis: 'x', angleDegrees: 90, count: 3, pivot: [0, 0, 0] });
+// @ts-expect-error There is no linear spacing field.
+circularSource.circularPattern({ axis: 'x', angleDegrees: 90, count: 3, spacing: 40 });
+// @ts-expect-error Count is required.
+circularSource.circularPattern({ axis: 'x', angleDegrees: 90 });
+// @ts-expect-error Exactly one own-data options record is required.
+circularSource.circularPattern();
+// @ts-expect-error Extra arguments are not admitted.
+circularSource.circularPattern({ axis: 'x', angleDegrees: 90, count: 3 }, true);

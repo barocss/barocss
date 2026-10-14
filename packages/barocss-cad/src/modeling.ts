@@ -34,6 +34,10 @@ import { buildModelingMirror } from './modeling-mirror-internal.js';
 import type { ModelingMirrorResult } from './modeling-mirror-internal.js';
 import { buildModelingScale } from './modeling-scale-internal.js';
 import type { ModelingScaleResult } from './modeling-scale-internal.js';
+import { buildModelingLinearPattern } from './modeling-linear-pattern-internal.js';
+import type { ModelingLinearPatternResult } from './modeling-linear-pattern-internal.js';
+import { buildModelingCircularPattern } from './modeling-circular-pattern-internal.js';
+import type { ModelingCircularPatternResult } from './modeling-circular-pattern-internal.js';
 import { buildModelingStl } from './modeling-stl-internal.js';
 import type { ModelingStlResult } from './modeling-stl-internal.js';
 import type { Point } from './types.js';
@@ -72,6 +76,10 @@ export interface CadShape {
   mirror(options: { readonly plane: 'xy' | 'xz' | 'yz' }): CadShape;
   /** Scale uniformly about the world origin by exactly 0.5 or 2. The owned copy is terminal; no later features or transforms. */
   scale(options: { readonly factor: 0.5 | 2 }): CadShape;
+  /** Original handle plus two owned copies at positive spacing and twice spacing on one axis. The pattern is terminal. */
+  linearPattern(options: { readonly axis: CadAxis; readonly spacing: CadDimension; readonly count: 3 }): readonly [CadShape, CadShape, CadShape];
+  /** Original handle plus two owned copies at an authored quarter turn and twice that turn about the world origin. The pattern is terminal. */
+  circularPattern(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | -90; readonly count: 3 }): readonly [CadShape, CadShape, CadShape];
   /** One connected union of two distinct direct integer rectangular extrusions. */
   union(other: CadShape): CadShape;
   /** One full-thickness stored-rational hole in a direct origin-aligned integer rectangular plate. */
@@ -131,6 +139,8 @@ export type CadModelEvidence =
   | { readonly kind: 'rotate'; readonly native: ModelingRotationResult }
   | { readonly kind: 'mirror'; readonly native: ModelingMirrorResult }
   | { readonly kind: 'scale'; readonly native: ModelingScaleResult }
+  | { readonly kind: 'linear-pattern'; readonly native: ModelingLinearPatternResult }
+  | { readonly kind: 'circular-pattern'; readonly native: ModelingCircularPatternResult }
   | { readonly kind: 'cut'; readonly native: ConvexPlanarSlabSubtractionResult }
   | { readonly kind: 'intersect'; readonly native: ConvexPlanarSolidIntersectionResult }
   | { readonly kind: 'split'; readonly native: ConvexPlanarSolidSplitResult }
@@ -198,7 +208,7 @@ export interface CadModelSnapshot {
 export const CadModelLimits = Object.freeze({ nodes: 6, sketches: 2, extrusions: 2, compositionNodes: 8, compositionSketches: 3, compositionExtrusions: 3, cuts: 1, intersections: 1, splits: 1, chamfers: 2, holes: 1, unions: 1, differences: 1, parameters: 16, outputs: 8, polygonPoints: 8, polygonConstraints: 16, fileBytes: 65536, inputDepth: 12, lengthMM: 10000, dimensionNodes: ModelDimensionLimits.nodes, dimensionDepth: ModelDimensionLimits.depth });
 
 type Query = { parallelTo?: CadAxis; at?: Partial<Record<CadAxis, Dimension | 'min' | 'max'>> };
-type BodyRef = { node: number; side: 'solid' | 'negative' | 'positive' };
+type BodyRef = { node: number; side: 'solid' | 'negative' | 'positive' | 'instance1' | 'instance2' };
 type PolygonConstraint = { kind: 'fixed'; point: number } | { kind: 'horizontal' | 'vertical'; points: [number, number] }
   | { kind: 'parallel-to-direction'; points: [number, number]; direction: [number, number] };
 type SketchNode = { kind: 'sketch'; profile: 'polygon'; points: [Dimension, Dimension][] }
@@ -208,9 +218,9 @@ type SketchNode = { kind: 'sketch'; profile: 'polygon'; points: [Dimension, Dime
 type ChamferConfiguration = { name: string; suppressed: boolean } | { name?: never; suppressed?: never };
 type RotationAngle = 90 | 180 | 270 | -90 | -180 | -270;
 type MirrorPlane = 'xy' | 'xz' | 'yz';
-type Node = SketchNode | { kind: 'extrude'; sketch: number; height: Dimension; from?: Dimension } | { kind: 'translate'; parent: BodyRef; offset: [Dimension, Dimension, Dimension] } | { kind: 'rotate'; parent: BodyRef; axis: CadAxis; angleDegrees: RotationAngle } | { kind: 'mirror'; parent: BodyRef; plane: MirrorPlane } | { kind: 'scale'; parent: BodyRef; factor: 0.5 | 2 } | { kind: 'cut'; parent: BodyRef; tool: BodyRef; axis: 'x' | 'y' } | { kind: 'intersect'; left: BodyRef; right: BodyRef } | { kind: 'union'; left: BodyRef; right: BodyRef } | { kind: 'difference'; parent: BodyRef; tool: BodyRef } | ({ kind: 'split'; parent: BodyRef; at: Dimension } & SplitPlane) | ({ kind: 'chamfer'; parent: BodyRef; edge: Query; distance: Dimension } & ChamferConfiguration) | { kind: 'hole'; parent: BodyRef; center: [Dimension, Dimension]; radius: Dimension };
+type Node = SketchNode | { kind: 'extrude'; sketch: number; height: Dimension; from?: Dimension } | { kind: 'translate'; parent: BodyRef; offset: [Dimension, Dimension, Dimension] } | { kind: 'rotate'; parent: BodyRef; axis: CadAxis; angleDegrees: RotationAngle } | { kind: 'mirror'; parent: BodyRef; plane: MirrorPlane } | { kind: 'scale'; parent: BodyRef; factor: 0.5 | 2 } | { kind: 'linear-pattern'; parent: BodyRef; axis: CadAxis; spacing: Dimension; count: 3 } | { kind: 'circular-pattern'; parent: BodyRef; axis: CadAxis; angleDegrees: 90 | -90; count: 3 } | { kind: 'cut'; parent: BodyRef; tool: BodyRef; axis: 'x' | 'y' } | { kind: 'intersect'; left: BodyRef; right: BodyRef } | { kind: 'union'; left: BodyRef; right: BodyRef } | { kind: 'difference'; parent: BodyRef; tool: BodyRef } | ({ kind: 'split'; parent: BodyRef; at: Dimension } & SplitPlane) | ({ kind: 'chamfer'; parent: BodyRef; edge: Query; distance: Dimension } & ChamferConfiguration) | { kind: 'hole'; parent: BodyRef; center: [Dimension, Dimension]; radius: Dimension };
 type Document = { format: 'barocss-cad-model'; schema: 1; units: 'mm'; parameters: Record<string, number>; nodes: Node[]; outputs: Record<string, BodyRef> };
-type EvaluatedValue = CadBody | { negative?: CadBody; positive?: CadBody } | undefined;
+type EvaluatedValue = CadBody | { negative?: CadBody; positive?: CadBody } | { instance1: CadBody; instance2: CadBody } | undefined;
 // Generated IDs/native options are fixed by this implementation authority plus the keyed graph.
 const evaluationAuthority = Object.freeze({});
 type EvaluationFrame = { readonly authority: object; readonly key: string; readonly document: Document; readonly evidence: CadModelEvidence[]; readonly values: EvaluatedValue[]; readonly parameterNames: readonly (readonly string[])[] };
@@ -426,6 +436,57 @@ function scaleOptions(value: unknown, fields: readonly string[]): { factor: 0.5 
   demand(factor === 0.5 || factor === 2, 'CAPABILITY', 'scale', 'World-origin uniform scale requires the exact factor 0.5 or 2');
   return { factor };
 }
+const linearPatternParentDetail = 'Linear pattern requires a direct affine extrusion or its complete owned one/two-chamfer chain; the pattern and its copies are terminal';
+function linearPatternOptions(value: unknown, fields: readonly string[]): { axis: CadAxis; spacing: unknown; count: 3 } {
+  let descriptors: PropertyDescriptorMap;
+  try {
+    demand(value !== null && typeof value === 'object' && !Array.isArray(value), 'INPUT', 'linearPattern', 'Plain own record required');
+    const prototype = Object.getPrototypeOf(value);
+    demand(prototype === Object.prototype || prototype === null, 'INPUT', 'linearPattern', 'Plain record prototype required');
+    // Capture all options once. Proxy reads cannot replace the admitted axis, spacing or count.
+    descriptors = Object.getOwnPropertyDescriptors(value);
+  } catch (cause) {
+    if (cause instanceof CadModelError) throw cause;
+    throw new CadModelError('INPUT', 'linearPattern', 'Linear pattern options could not supply an own data record', cause);
+  }
+  const keys = Reflect.ownKeys(descriptors);
+  demand(keys.length <= 16 && keys.every(key => typeof key === 'string' && Object.hasOwn(descriptors[key], 'value') && descriptors[key].enumerable),
+    'INPUT', 'linearPattern', 'Enumerable own data fields required; accessors and symbols refused');
+  demand(keys.length === fields.length && fields.every(key => Object.hasOwn(descriptors, key)), 'INPUT', 'linearPattern', 'Exact fields required: ' + fields.join(', '));
+  const axis: unknown = descriptors.axis.value, spacing: unknown = descriptors.spacing.value, count: unknown = descriptors.count.value;
+  demand(axes.includes(axis as CadAxis), 'CAPABILITY', 'linearPattern', 'Linear pattern requires the cardinal x/y/z axis');
+  demand(count === 3, 'CAPABILITY', 'linearPattern', 'Linear pattern requires exactly three instances including the original');
+  return { axis: axis as CadAxis, spacing, count };
+}
+function linearPatternSpacing(value: Dimension, parameters: Readonly<Record<string, number>>): number {
+  const spacing = resolvedDimension(value, parameters); length(spacing, 'linearPattern', true);
+  const twice = spacing * 2;
+  demand(Number.isFinite(twice) && twice <= CadModelLimits.lengthMM && twice / 2 === spacing, 'PARAMETER', 'linearPattern', 'Twice pattern spacing must be exactly represented and at most 10000 mm');
+  return spacing;
+}
+const circularPatternParentDetail = 'Circular pattern about the world origin requires a direct affine extrusion or its complete owned one/two-chamfer chain; the pattern and its copies are terminal';
+function circularPatternOptions(value: unknown, fields: readonly string[]): { axis: CadAxis; angleDegrees: 90 | -90; count: 3 } {
+  let descriptors: PropertyDescriptorMap;
+  try {
+    demand(value !== null && typeof value === 'object' && !Array.isArray(value), 'INPUT', 'circularPattern', 'Plain own record required');
+    const prototype = Object.getPrototypeOf(value);
+    demand(prototype === Object.prototype || prototype === null, 'INPUT', 'circularPattern', 'Plain record prototype required');
+    // Capture all options once. Proxy reads cannot replace the admitted axis, angle or count.
+    descriptors = Object.getOwnPropertyDescriptors(value);
+  } catch (cause) {
+    if (cause instanceof CadModelError) throw cause;
+    throw new CadModelError('INPUT', 'circularPattern', 'Circular pattern options could not supply an own data record', cause);
+  }
+  const keys = Reflect.ownKeys(descriptors);
+  demand(keys.length <= 16 && keys.every(key => typeof key === 'string' && Object.hasOwn(descriptors[key], 'value') && descriptors[key].enumerable),
+    'INPUT', 'circularPattern', 'Enumerable own data fields required; accessors and symbols refused');
+  demand(keys.length === fields.length && fields.every(key => Object.hasOwn(descriptors, key)), 'INPUT', 'circularPattern', 'Exact fields required: ' + fields.join(', '));
+  const axis: unknown = descriptors.axis.value, angleDegrees: unknown = descriptors.angleDegrees.value, count: unknown = descriptors.count.value;
+  demand(axes.includes(axis as CadAxis), 'CAPABILITY', 'circularPattern', 'Circular pattern requires the cardinal x/y/z axis');
+  demand(angleDegrees === 90 || angleDegrees === -90, 'CAPABILITY', 'circularPattern', 'Circular pattern requires an authored angle of 90 or -90 degrees');
+  demand(count === 3, 'CAPABILITY', 'circularPattern', 'Circular pattern requires exactly three instances including the original');
+  return { axis: axis as CadAxis, angleDegrees, count };
+}
 function canonicalRotationDegrees(angle: RotationAngle): 90 | 180 | 270 {
   return angle === -90 ? 270 : angle === -180 ? 180 : angle === -270 ? 90 : angle;
 }
@@ -479,7 +540,7 @@ function admit(input: Document): Document {
   for (const [key, value] of Object.entries(d.parameters)) { name(key, 'parameters'); length(value, 'parameters'); }
   const dimension = (value: unknown) => { resolvedDimension(value, d.parameters); };
   const point = (value: unknown) => list(value, 'point', 2, 2).forEach(dimension);
-  const counts = { sketch: 0, extrude: 0, cut: 0, intersect: 0, split: 0, chamfer: 0, hole: 0, union: 0, difference: 0, translate: 0, rotate: 0, mirror: 0, scale: 0 }, featureNames = new Set<string>();
+  const counts = { sketch: 0, extrude: 0, cut: 0, intersect: 0, split: 0, chamfer: 0, hole: 0, union: 0, difference: 0, translate: 0, rotate: 0, mirror: 0, scale: 0, 'linear-pattern': 0, 'circular-pattern': 0 }, featureNames = new Set<string>();
   const nodes = list(d.nodes, 'graph', 1, CadModelLimits.compositionNodes) as Node[];
   demand(nodes.length <= CadModelLimits.nodes || compositionPrefix(nodes), 'BUDGET', 'graph', 'Only the exact union-slot chain may exceed six nodes');
   const composed = compositionGraph(nodes);
@@ -487,11 +548,11 @@ function admit(input: Document): Document {
     const r = record(value, 'body', ['node', 'side']);
     demand(Number.isInteger(r.node) && !Object.is(r.node, -0) && (r.node as number) >= 0 && (r.node as number) < before, 'INPUT', 'body', 'Body must reference an earlier authored operation');
     const source = nodes[r.node as number];
-    demand(source.kind === 'cut' || source.kind === 'split' ? r.side === 'negative' || r.side === 'positive' : (source.kind === 'extrude' || source.kind === 'translate' || source.kind === 'rotate' || source.kind === 'mirror' || source.kind === 'scale' || source.kind === 'intersect' || source.kind === 'union' || source.kind === 'difference' || source.kind === 'chamfer' || source.kind === 'hole') && r.side === 'solid', 'INPUT', 'body', 'Body reference kind mismatch');
+    demand(source.kind === 'linear-pattern' || source.kind === 'circular-pattern' ? r.side === 'instance1' || r.side === 'instance2' : source.kind === 'cut' || source.kind === 'split' ? r.side === 'negative' || r.side === 'positive' : (source.kind === 'extrude' || source.kind === 'translate' || source.kind === 'rotate' || source.kind === 'mirror' || source.kind === 'scale' || source.kind === 'intersect' || source.kind === 'union' || source.kind === 'difference' || source.kind === 'chamfer' || source.kind === 'hole') && r.side === 'solid', 'INPUT', 'body', 'Body reference kind mismatch');
     return r as unknown as BodyRef;
   };
   for (const [i, n] of nodes.entries()) {
-    record(n, 'node'); demand(['sketch', 'extrude', 'translate', 'rotate', 'mirror', 'scale', 'cut', 'intersect', 'split', 'chamfer', 'hole', 'union', 'difference'].includes(n.kind), 'CAPABILITY', 'graph', 'Unknown operation'); counts[n.kind]++;
+    record(n, 'node'); demand(['sketch', 'extrude', 'translate', 'rotate', 'mirror', 'scale', 'linear-pattern', 'circular-pattern', 'cut', 'intersect', 'split', 'chamfer', 'hole', 'union', 'difference'].includes(n.kind), 'CAPABILITY', 'graph', 'Unknown operation'); counts[n.kind]++;
     if (n.kind === 'sketch') {
       if (n.profile === 'polygon') { record(n, 'sketch', ['kind', 'profile', 'points']); list(n.points, 'polygon', 3, CadModelLimits.polygonPoints).forEach(point); }
       else if (n.profile === 'constrained-polygon') { record(n, 'sketch', ['kind', 'profile', 'points', 'constraints']); list(n.points, 'constrainedPolygon', 3, CadModelLimits.polygonPoints).forEach(point); polygonConstraints(n.constraints, n.points.length); }
@@ -518,6 +579,13 @@ function admit(input: Document): Document {
     } else if (n.kind === 'scale') {
       scaleOptions(n, ['kind', 'parent', 'factor']); body(n.parent, i);
       demand(rotationParent(nodes.slice(0, i), n.parent), 'CAPABILITY', 'scale', scaleParentDetail);
+    } else if (n.kind === 'linear-pattern') {
+      linearPatternOptions(n, ['kind', 'parent', 'axis', 'spacing', 'count']); body(n.parent, i);
+      demand(rotationParent(nodes.slice(0, i), n.parent), 'CAPABILITY', 'linearPattern', linearPatternParentDetail);
+      linearPatternSpacing(n.spacing, d.parameters);
+    } else if (n.kind === 'circular-pattern') {
+      circularPatternOptions(n, ['kind', 'parent', 'axis', 'angleDegrees', 'count']); body(n.parent, i);
+      demand(rotationParent(nodes.slice(0, i), n.parent), 'CAPABILITY', 'circularPattern', circularPatternParentDetail);
     } else if (n.kind === 'cut') {
       record(n, 'cut', ['kind', 'parent', 'tool', 'axis']); body(n.parent, i); body(n.tool, i);
       demand((n.axis === 'x' || n.axis === 'y') && affineExtrusion(nodes, n.parent) && affineExtrusion(nodes, n.tool) && n.parent.node !== n.tool.node, 'CAPABILITY', 'cut', 'Cut requires two distinct direct XY extrusions and an x/y through-slab axis');
@@ -556,6 +624,10 @@ function admit(input: Document): Document {
     }
   }
   const last = nodes[nodes.length - 1];
+  demand(counts['circular-pattern'] <= 1 && (!counts['circular-pattern'] || last.kind === 'circular-pattern'
+    && rotationParent(nodes.slice(0, -1), last.parent)), 'CAPABILITY', 'circularPattern', circularPatternParentDetail);
+  demand(counts['linear-pattern'] <= 1 && (!counts['linear-pattern'] || last.kind === 'linear-pattern'
+    && rotationParent(nodes.slice(0, -1), last.parent)), 'CAPABILITY', 'linearPattern', linearPatternParentDetail);
   demand(counts.scale <= 1 && (!counts.scale || last.kind === 'scale'
     && rotationParent(nodes.slice(0, -1), last.parent)), 'CAPABILITY', 'scale', scaleParentDetail);
   demand(counts.mirror <= 1 && (!counts.mirror || last.kind === 'mirror'
@@ -594,8 +666,12 @@ export function createCadModel(): CadModel {
   const point = (value: CadPoint2): [Dimension, Dimension] => { const p = list(value, 'point', 2, 2); return [dimension(p[0] as CadDimension), dimension(p[1] as CadDimension)]; };
   const body = (shape: CadShape): BodyRef => { const s = shapes.get(shape); demand(s?.owner === owner, 'OWNERSHIP', 'body', 'Shape belongs to another model or is not an owned handle'); return { ...s.reference }; };
   const append = (node: Node) => {
-    const operation = node.kind === 'difference' ? 'cut' : node.kind;
+    const operation = node.kind === 'difference' ? 'cut' : node.kind === 'linear-pattern' ? 'linearPattern' : node.kind === 'circular-pattern' ? 'circularPattern' : node.kind;
     authoring(operation);
+    demand(!nodes.some(n => n.kind === 'circular-pattern'), 'CAPABILITY', operation, 'Circular patterns are terminal; no later authored operation is supported');
+    demand(node.kind !== 'circular-pattern' || rotationParent(nodes, node.parent), 'CAPABILITY', operation, circularPatternParentDetail);
+    demand(!nodes.some(n => n.kind === 'linear-pattern'), 'CAPABILITY', operation, 'Linear patterns are terminal; no later authored operation is supported');
+    demand(node.kind !== 'linear-pattern' || rotationParent(nodes, node.parent), 'CAPABILITY', operation, linearPatternParentDetail);
     demand(!nodes.some(n => n.kind === 'scale'), 'CAPABILITY', operation, 'Uniform scale about the world origin is terminal; no later authored operation is supported');
     demand(node.kind !== 'scale' || rotationParent(nodes, node.parent), 'CAPABILITY', operation, scaleParentDetail);
     demand(!nodes.some(n => n.kind === 'mirror'), 'CAPABILITY', operation, 'Mirror across a plane through the world origin is terminal; no later authored operation is supported');
@@ -646,6 +722,8 @@ export function createCadModel(): CadModel {
         authoring('translate');
         demand(this === handle, 'OWNERSHIP', 'translate', 'Translation belongs to this exact owned shape handle');
         demand(arguments.length === 1, 'INPUT', 'translate', 'Translation requires exactly one offset tuple');
+        demand(!nodes.some(n => n.kind === 'linear-pattern'), 'CAPABILITY', 'translate', 'Linear patterns are terminal; translation after pattern is unsupported');
+        demand(!nodes.some(n => n.kind === 'circular-pattern'), 'CAPABILITY', 'translate', 'Circular patterns are terminal; translate after pattern is unsupported');
         demand(!nodes.some(n => n.kind === 'scale'), 'CAPABILITY', 'translate', 'World-origin scaled copies are terminal; translation after scale is unsupported');
         demand(!nodes.some(n => n.kind === 'mirror'), 'CAPABILITY', 'translate', 'World-origin mirrors are terminal; translation after mirror is unsupported');
         demand(!nodes.some(n => n.kind === 'rotate'), 'CAPABILITY', 'translate', 'Rotation about the world origin is terminal; translation after rotation is unsupported');
@@ -657,6 +735,8 @@ export function createCadModel(): CadModel {
         authoring('rotate');
         demand(this === handle, 'OWNERSHIP', 'rotate', 'Rotation belongs to this exact owned shape handle');
         demand(arguments.length === 1, 'INPUT', 'rotate', 'World-origin rotation requires exactly one axis and angleDegrees record');
+        demand(!nodes.some(n => n.kind === 'linear-pattern'), 'CAPABILITY', 'rotate', 'Linear patterns are terminal; rotation after pattern is unsupported');
+        demand(!nodes.some(n => n.kind === 'circular-pattern'), 'CAPABILITY', 'rotate', 'Circular patterns are terminal; rotate after pattern is unsupported');
         demand(!nodes.some(n => n.kind === 'scale'), 'CAPABILITY', 'rotate', 'World-origin scaled copies are terminal; rotation after scale is unsupported');
         demand(!nodes.some(n => n.kind === 'mirror'), 'CAPABILITY', 'rotate', 'World-origin mirrors are terminal; rotation after mirror is unsupported');
         const authored = rotationOptions(options, ['axis', 'angleDegrees']);
@@ -667,6 +747,8 @@ export function createCadModel(): CadModel {
         authoring('mirror');
         demand(this === handle, 'OWNERSHIP', 'mirror', 'Mirror belongs to this exact owned shape handle');
         demand(arguments.length === 1, 'INPUT', 'mirror', 'World-origin mirror requires exactly one plane record');
+        demand(!nodes.some(n => n.kind === 'linear-pattern'), 'CAPABILITY', 'mirror', 'Linear patterns are terminal; mirror after pattern is unsupported');
+        demand(!nodes.some(n => n.kind === 'circular-pattern'), 'CAPABILITY', 'mirror', 'Circular patterns are terminal; mirror after pattern is unsupported');
         demand(!nodes.some(n => n.kind === 'scale'), 'CAPABILITY', 'mirror', 'World-origin scaled copies are terminal; mirror after scale is unsupported');
         const authored = mirrorOptions(options, ['plane']);
         demand(rotationParent(nodes, reference), 'CAPABILITY', 'mirror', mirrorParentDetail);
@@ -676,9 +758,32 @@ export function createCadModel(): CadModel {
         authoring('scale');
         demand(this === handle, 'OWNERSHIP', 'scale', 'Scale belongs to this exact owned shape handle');
         demand(arguments.length === 1, 'INPUT', 'scale', 'World-origin uniform scale requires exactly one factor record');
+        demand(!nodes.some(n => n.kind === 'linear-pattern'), 'CAPABILITY', 'scale', 'Linear patterns are terminal; scale after pattern is unsupported');
+        demand(!nodes.some(n => n.kind === 'circular-pattern'), 'CAPABILITY', 'scale', 'Circular patterns are terminal; scale after pattern is unsupported');
         const authored = scaleOptions(options, ['factor']);
         demand(rotationParent(nodes, reference), 'CAPABILITY', 'scale', scaleParentDetail);
         return shape({ node: append({ kind: 'scale', parent: { ...reference }, ...authored }), side: 'solid' });
+      },
+      linearPattern(options: { readonly axis: CadAxis; readonly spacing: CadDimension; readonly count: 3 }): readonly [CadShape, CadShape, CadShape] {
+        authoring('linearPattern');
+        demand(this === handle, 'OWNERSHIP', 'linearPattern', 'Linear pattern belongs to this exact owned shape handle');
+        demand(arguments.length === 1, 'INPUT', 'linearPattern', 'Linear pattern requires exactly one axis, spacing and count record');
+        demand(!nodes.some(n => n.kind === 'circular-pattern'), 'CAPABILITY', 'linearPattern', 'Circular patterns are terminal; linear pattern after circular pattern is unsupported');
+        const authored = linearPatternOptions(options, ['axis', 'spacing', 'count']);
+        demand(rotationParent(nodes, reference), 'CAPABILITY', 'linearPattern', linearPatternParentDetail);
+        const spacing = dimension(authored.spacing as CadDimension); linearPatternSpacing(spacing, parameters);
+        const node = append({ kind: 'linear-pattern', parent: { ...reference }, axis: authored.axis, spacing, count: authored.count });
+        return Object.freeze([handle, shape({ node, side: 'instance1' }), shape({ node, side: 'instance2' })] as const);
+      },
+      circularPattern(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | -90; readonly count: 3 }): readonly [CadShape, CadShape, CadShape] {
+        authoring('circularPattern');
+        demand(this === handle, 'OWNERSHIP', 'circularPattern', 'Circular pattern belongs to this exact owned shape handle');
+        demand(arguments.length === 1, 'INPUT', 'circularPattern', 'Circular pattern requires exactly one axis, angleDegrees and count record');
+        demand(!nodes.some(n => n.kind === 'linear-pattern' || n.kind === 'circular-pattern'), 'CAPABILITY', 'circularPattern', 'Patterns are terminal; circular pattern after a pattern is unsupported');
+        const authored = circularPatternOptions(options, ['axis', 'angleDegrees', 'count']);
+        demand(rotationParent(nodes, reference), 'CAPABILITY', 'circularPattern', circularPatternParentDetail);
+        const node = append({ kind: 'circular-pattern', parent: { ...reference }, ...authored });
+        return Object.freeze([handle, shape({ node, side: 'instance1' }), shape({ node, side: 'instance2' })] as const);
       },
       hole(options: { readonly center: CadPoint2; readonly radius: CadDimension }): CadShape {
         authoring('hole');
@@ -710,6 +815,8 @@ export function createCadModel(): CadModel {
       cut,
       edges(query: CadEdgeQuery): CadEdgeQueryHandle {
         authoring('selection');
+        demand(nodes[reference.node].kind !== 'linear-pattern', 'CAPABILITY', 'selection', 'Linear pattern copies are terminal; copies do not support edge queries');
+        demand(nodes[reference.node].kind !== 'circular-pattern', 'CAPABILITY', 'selection', 'Circular pattern copies are terminal; copies do not support edge queries');
         demand(nodes[reference.node].kind !== 'scale', 'CAPABILITY', 'selection', 'World-origin scaled copies are terminal; scaled copies do not support edge queries');
         demand(nodes[reference.node].kind !== 'mirror', 'CAPABILITY', 'selection', 'World-origin mirrors are terminal; mirrored copies do not support edge queries');
         demand(nodes[reference.node].kind !== 'rotate', 'CAPABILITY', 'selection', 'Rotation about the world origin is terminal; rotated copies do not support edge queries');
@@ -723,6 +830,8 @@ export function createCadModel(): CadModel {
       },
       chamfer(edge: CadEdgeSelection, distance: CadDimension, options?: { readonly name: string }): CadShape {
         authoring('chamfer');
+        demand(nodes[reference.node].kind !== 'linear-pattern', 'CAPABILITY', 'chamfer', 'Linear pattern copies are terminal; copies do not support chamfers');
+        demand(nodes[reference.node].kind !== 'circular-pattern', 'CAPABILITY', 'chamfer', 'Circular pattern copies are terminal; copies do not support chamfers');
         demand(nodes[reference.node].kind !== 'scale', 'CAPABILITY', 'chamfer', 'World-origin scaled copies are terminal; scaled copies do not support chamfers');
         demand(nodes[reference.node].kind !== 'mirror', 'CAPABILITY', 'chamfer', 'World-origin mirrors are terminal; mirrored copies do not support chamfers');
         demand(nodes[reference.node].kind !== 'rotate', 'CAPABILITY', 'chamfer', 'Rotation about the world origin is terminal; rotated copies do not support chamfers');
@@ -870,7 +979,7 @@ function evaluate(input: Document, previous?: EvaluationFrame): CadModelSnapshot
   const number = (value: Dimension): number => resolvedDimension(value, document.parameters);
   const body = (ref: BodyRef): CadBody => {
     const value = values[ref.node];
-    const result = ref.side === 'solid' ? value as CadBody | undefined : (value as { negative?: CadBody; positive?: CadBody })[ref.side];
+    const result = ref.side === 'solid' ? value as CadBody | undefined : (value as Partial<Record<Exclude<BodyRef['side'], 'solid'>, CadBody>>)[ref.side];
     if (!result && document.nodes[ref.node].kind === 'split') {
       const native = (evidence[ref.node] as Extract<CadModelEvidence, { kind: 'split' }>).native;
       throw new CadModelError('SELECTION', 'split', `Selected ${ref.side} split side is empty (${native.report.status}; section dimension ${native.section.dimension}); it cannot be a Solid output or operation parent`, freeze({ side: ref.side, status: native.report.status, sectionDimension: native.section.dimension }));
@@ -936,6 +1045,15 @@ function evaluate(input: Document, previous?: EvaluationFrame): CadModelSnapshot
       } else if (node.kind === 'scale') {
         const native = buildModelingScale(solid(node.parent, 'scale'), { factor: node.factor }, prefix);
         evidence.push({ kind: 'scale', native }); values.push(convex(native.solid));
+      } else if (node.kind === 'linear-pattern') {
+        const step: Point = [0, 0, 0]; step[axes.indexOf(node.axis)] = linearPatternSpacing(node.spacing, document.parameters);
+        const native = buildModelingLinearPattern(solid(node.parent, 'linearPattern'), step, prefix);
+        evidence.push({ kind: 'linear-pattern', native });
+        values.push({ instance1: convex(native.copies[0].solid), instance2: convex(native.copies[1].solid) });
+      } else if (node.kind === 'circular-pattern') {
+        const native = buildModelingCircularPattern(solid(node.parent, 'circularPattern'), { axis: node.axis, angleDegrees: node.angleDegrees }, prefix);
+        evidence.push({ kind: 'circular-pattern', native });
+        values.push({ instance1: convex(native.copies[0].solid), instance2: convex(native.copies[1].solid) });
       } else if (node.kind === 'cut') {
         const tool = solid(node.tool, 'cut'), axis = axes.indexOf(node.axis);
         const support = (sign: number) => {
@@ -1004,7 +1122,7 @@ function evaluate(input: Document, previous?: EvaluationFrame): CadModelSnapshot
         evidence.push({ kind: 'chamfer', native, ...(node.name === undefined ? {} : { configuration: { name: node.name, suppressed: node.suppressed, output: node.suppressed ? 'parent' as const : 'chamfer-result' as const } }) });
         values.push(node.suppressed ? body(node.parent) : convex(native.split.negative.solid));
       }
-    } catch (cause) { if (cause instanceof CadModelError) throw cause; throw new CadModelError('NATIVE', node.kind === 'difference' ? 'cut' : node.kind, cause instanceof Error ? cause.message : 'Kernel refused operation', cause); }
+    } catch (cause) { if (cause instanceof CadModelError) throw cause; throw new CadModelError('NATIVE', node.kind === 'difference' ? 'cut' : node.kind === 'linear-pattern' ? 'linearPattern' : node.kind === 'circular-pattern' ? 'circularPattern' : node.kind, cause instanceof Error ? cause.message : 'Kernel refused operation', cause); }
   }
   const bodies = Object.fromEntries(Object.entries(document.outputs).map(([key, ref]) => [key, body(ref)]));
   return makeSnapshot(document, key, evidence, values, bodies, recomputation);

@@ -1244,3 +1244,115 @@ coefficients do not guarantee native Gram or UV reconstruction success. The
 original refusal cause and completed-work report remain available. General
 scale, assembly placement, mass transformation, STL acceptance, editor, GPU,
 and manufacturing proof are separate.
+
+### Three owned instances in one cardinal linear pattern
+
+```ts
+import { cad } from '@barocss/cad';
+
+const m = cad.model();
+const spacing = m.parameter('spacing', 40);
+const blank = m.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const front = blank.chamfer(blank.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one(), 1);
+const finished = front.chamfer(front.edges({ parallelTo: 'x', at: { y: 24, z: 'max' } }).one(), 2);
+const [original, near, far] = finished.linearPattern({ axis: 'x', spacing, count: 3 });
+const snapshot = m.build({ original, near, far });
+const wider = snapshot.withParameters({ spacing: 48 });
+const reopened = cad.load(wider.save());
+void reopened;
+```
+
+`linearPattern({ axis, spacing, count: 3 })` takes one exact own-data record.
+The axis is `'x'`, `'y'`, or `'z'`. Spacing is a positive millimetre length,
+an owned parameter, or an owned length expression. Count includes the original
+and two copies. The frozen tuple retains the exact original shape handle.
+Both copies use that same original, at one and two times the spacing.
+
+The parent must be one owned affine rectangle, polygon, or constrained-polygon
+extrusion, with optional `from` placement. Its complete linear chain of one or
+two chamfers is also admitted. Finish the parent before adding the pattern.
+One terminal pattern node produces both copies. The six-node limit remains.
+Pattern chains, later features through retained handles, copy edge selection,
+unrelated finishing siblings, transform ancestry, Boolean, hole, circle, and
+split ancestry refuse. Count values other than three and arbitrary directions
+are unsupported.
+
+Both complete coordinate sets and all new identities are checked before either
+copy is built. Each stored target Surface and trim-Line coefficient must equal
+the exact rational sum of its stored binary64 source value and the offset.
+Zero-offset components keep their bits, including signed zero. Exact nonzero
+cancellation produces positive zero. Rounded sums, nonfinite coordinates, and
+absolute coordinates above 10000 mm refuse. Twice the spacing must also be
+exactly represented and at most 10000 mm.
+
+Each copy reuses the unchanged translation constructor. It rebuilds pcurves,
+checks their whole UV lift, and qualifies the complete target Solid with fresh
+identities and all eight lineage classes. The original remains immutable.
+Spacing edits reuse the complete source prefix and rebuild both copies.
+Source edits propagate to both copies. Save retains authored intent and the
+instance references. A refused edit leaves the accepted snapshot unchanged.
+
+A valid parent can still fail native Gram or UV reconstruction. A failure in
+either copy refuses the whole pattern. The original cause and completed-work
+report remain available. General counts, circular patterns, fused bodies,
+persistent naming, mass transformation, STL acceptance, editor, GPU, and
+manufacturing proof are separate.
+
+### Three owned instances in one cardinal circular pattern
+
+```ts
+import { cad } from '@barocss/cad';
+
+const m = cad.model();
+const backDistance = m.parameter('backDistance', 2);
+const blank = m.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const front = blank.chamfer(blank.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one(), 1);
+const finished = front.chamfer(front.edges({ parallelTo: 'x', at: { y: 24, z: 'max' } }).one(), backDistance);
+const [original, quarter, half] = finished.circularPattern({ axis: 'x', angleDegrees: 90, count: 3 });
+const snapshot = m.build({ original, quarter, half });
+const edited = snapshot.withParameters({ backDistance: 3 });
+const reopened = cad.load(edited.save());
+void reopened;
+```
+
+`circularPattern({ axis, angleDegrees, count: 3 })` takes one exact own-data
+record. The axis is `'x'`, `'y'`, or `'z'`. The authored angle is `90` or
+`-90` degrees. Positive rotation follows the right-hand rule about the selected
+world-origin axis. Count includes the original and two copies. The frozen tuple
+retains the exact original shape handle. Both copies use that same original.
+A positive step produces quarter-turn and half-turn copies. A negative step
+produces negative quarter-turn and half-turn copies. Native child evidence uses
+canonical angles `90/180` or `270/180`; Save retains the authored step sign.
+
+The parent must be one owned affine rectangle, polygon, or constrained-polygon
+extrusion, with optional `from` placement. Its complete linear chain of one or
+two chamfers is also admitted. Finish the parent before adding the pattern.
+One terminal pattern node produces both copies. The six-node limit remains.
+Linear and circular patterns cannot be chained or combined. Later features
+through retained handles, copy edge selection, unrelated finishing siblings,
+transform ancestry, Boolean, hole, circle, and split ancestry refuse.
+There is no arbitrary angle, angle dimension, pivot, direction vector, general
+count, or duplicate closing instance.
+
+All identities and both complete stored coefficient sets are checked before
+either copy is built. Exact signed coordinate permutations use no trigonometry,
+rounding, or angle normalization. Positive components keep their bits; negative
+components use unary negation, including signed zero. Coordinates must remain
+finite and within 10000 mm in absolute value.
+
+Each copy reuses the unchanged cardinal rotation constructor. It regenerates
+pcurves, checks their whole UV lift, and qualifies the complete target Solid.
+Fresh identities and all eight lineage classes are checked. Stored exact
+rotation does not claim bit-identical rotated native samples or regenerated
+pcurves. Exact volume is unchanged; normals, support origins, vertices, and
+interior points rotate. The original remains immutable.
+
+Source parameter edits reuse the unchanged prefix and rebuild both dependent
+copies. A semantic no-op in the same model may reuse the full accepted result.
+Save retains authored intent and instance references. A refused edit leaves the
+accepted snapshot unchanged. If either copy fails native Gram or UV
+reconstruction, the whole pattern refuses. The original cause and completed
+child reports remain available. This operation does not prove that occupied
+regions are disjoint or fuse them into one body. General patterns, persistent
+naming, mass transformation, STL acceptance, editor, GPU, and manufacturing
+proof are separate.

@@ -135,7 +135,7 @@ try {
   server.on('exit', () => { serverExited = true; });
   for (let index = 0; index < 100; index++) {
     if (serverExited) throw new Error('Owned Vite exited before readiness.');
-    try { if ((await fetch('http://127.0.0.1:' + port)).ok) break; } catch {}
+    try { if ((await fetch('http://127.0.0.1:' + port)).ok) break; } catch {/* Retry while the owned server starts. */}
     if (index === 99) throw new Error('Owned Vite readiness timeout.'); await new Promise(resolve => setTimeout(resolve, 100));
   }
   browser = await chromium.launch({executablePath, headless: !args.includes('--headed'), args: ['--enable-unsafe-webgpu']});
@@ -360,7 +360,7 @@ try {
       }); await activePage.mouse.up(); mouseHeld = false;
     }
     await activePage.screenshot({path: resolve(evidence, prefix + '-failure.png')});
-  } catch {}
+  } catch {/* Keep the original failure if capture fails. */}
   result.outcome = 'failed'; result.failure = {message: error.message, stack: error.stack}; save(); console.error(error.stack); process.exitCode = 1;
 } finally {
   await freshContext?.close(); await context?.close(); await browser?.close();

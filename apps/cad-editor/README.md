@@ -610,6 +610,24 @@ baseline geometry reuse, not a new native or physical-browser campaign. Track th
 exact-source creation/file acceptance in [#1951](https://github.com/barocss/barocss/issues/1951).
 
 
+### Author a new circular blank
+
+On `#/model`, **CREATE → New circular part** offers Diameter17.5 / Thickness5 mm.
+Inspect **Authored model source**, then explicitly **Replace current model**
+(or **Create part** when empty). Cancel retains the accepted document; pending
+model drafts must be reviewed first. New circular/rectangular command switches
+invalidate obsolete callbacks without changing the mounted viewport/controller.
+
+Select Extrude01 → Edit extrusion for thickness, or Edit model dimensions for
+diameter. Existing Preview/Apply, Undo/Redo and accepted-only Save/Open apply.
+Diameter0.002–10000 and thickness0.001–10000 are necessary decimal bounds;
+native/display admission can still refuse. No certified circular volume/mass or
+STL export is offered. This is a blank, not a completed bored or threaded hub.
+Local check: `node apps/cad-editor/flows/modeling-new-circular-part-flow.mjs`.
+Its retained center[2,-3]/diameter8/height6 geometry and mocked creation context
+are distinct from the deferred [#1977 physical acceptance](https://github.com/barocss/barocss/issues/1977).
+
+
 ## Selected rectangle Sketch command
 
 On `#/model`, select an accepted rectangle Sketch and choose MODIFY → Edit
