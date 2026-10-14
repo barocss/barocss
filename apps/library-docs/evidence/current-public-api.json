@@ -1,7 +1,7 @@
 {
   "schema": "barocss-current-public-api-v1",
   "typescriptVersion": "5.9.3",
-  "sourceCommit": "4dbe8866aeca009e5539fee4c981f2d922fbbb5a",
+  "sourceCommit": "44cd254ebe67aa57a763934cbccd3e8771648a10",
   "extractor": "TypeScript 5.9.3 public module exports and declarations; not a type-check or runtime execution",
   "packages": [
     {
@@ -2673,7 +2673,7 @@
               "name": "mountQualifiedFaceScene",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/qualified-face-scene-renderer.ts",
-              "line": 173,
+              "line": 187,
               "signatures": [
                 "export function mountQualifiedFaceScene(canvas: HTMLCanvasElement, scene: unknown): QualifiedFaceSceneRenderer;"
               ],
@@ -9220,7 +9220,7 @@
               "name": "mountQualifiedFaceScene",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/qualified-face-scene-renderer.ts",
-              "line": 173,
+              "line": 187,
               "signatures": [
                 "export function mountQualifiedFaceScene(canvas: HTMLCanvasElement, scene: unknown): QualifiedFaceSceneRenderer;"
               ],
@@ -55350,13 +55350,13 @@
   ],
   "packageTrees": {
     "packages/barocss-render": "b83e4912e1d1aa658f048ba4b112376785b288fb",
-    "packages/barocss-gpu": "f9e7eb09c8201b460f2f07789da92e5906971ff9",
-    "packages/barocss-cad": "c3499c91c1ee3d442a6f89308653de454d551b71",
+    "packages/barocss-gpu": "69dcf43877d2a7677d8f010cddff5b4d124e4eb5",
+    "packages/barocss-cad": "d392f60b4b3b906876c8b12c32a9655395e41346",
     "packages/barocss-cad-interop": "330d0323e1d3891c8a1f882e848aae604ea67b08",
     "packages/barocss-canvas2d": "b029d1925907fbac9a19d6c2f825cbfd91323473",
     "packages/barocss-viewer": "aa7736ed08620fe9b7db2eff4feec5c89f9e502b",
     "packages/barocss-physics": "f3aa5c6e161137cb80fb68f73a517cd6bdc673dd",
-    "packages/barocss-cad-editor": "db890455628656f15de38e3defd9222d084b908a",
+    "packages/barocss-cad-editor": "575f1d73c6e1aeacd6bbc4c7ecce7f5b36abd580",
     "packages/barocss-render-editor": "d1486acf9b983dba6839d2bf303406876244e2e6"
   },
   "historicalSourceCommit": "5f5ad866205a21510ac69552e704cc162fa253b5",
