@@ -1,6 +1,7 @@
 import type { GPUDeviceHandle, GPUTextureHandle } from './webgpu-platform.js';
 import type { EngineWebGPUPipeline } from './engine-webgpu-pipeline.js';
 import type { EngineWebGPUGeometryBuffers } from './engine-webgpu-geometry.js';
+import { encodeEngineSRGB } from './engine-scene-shaders.js';
 
 export interface EngineWebGPUDrawCommand {
   readonly geometry: EngineWebGPUGeometryBuffers;
@@ -32,7 +33,8 @@ export function submitEngineWebGPURenderPass(
   const pass = encoder.beginRenderPass({
     colorAttachments: [{
       view: color.createView(),
-      clearValue: { r: background[0], g: background[1], b: background[2], a: 1 },
+      clearValue: { r: encodeEngineSRGB(background[0]), g: encodeEngineSRGB(background[1]),
+        b: encodeEngineSRGB(background[2]), a: 1 },
       loadOp: 'clear', storeOp: 'store',
     }],
     depthStencilAttachment: {
