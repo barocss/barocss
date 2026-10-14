@@ -1110,3 +1110,46 @@ after arbitrary rounding, downstream slicer compatibility or manufacturing
 tolerance. Exact native geometry can still collapse in Float32; such refusal
 retains the original cause and leaves the accepted model and earlier exported
 bytes unchanged. Native/provider details keep their original quality flags.
+
+### One owned cardinal rotation around the world origin
+
+```ts
+import { cad } from '@barocss/cad';
+
+const m = cad.model();
+const blank = m.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const front = blank.chamfer(blank.edges({ parallelTo: 'x', at: { y: 0, z: 'max' } }).one(), 1);
+const finished = front.chamfer(front.edges({ parallelTo: 'x', at: { y: 24, z: 'max' } }).one(), 2);
+const upright = finished.rotate({ axis: 'x', angleDegrees: 90 });
+const snapshot = m.build({ flat: finished, upright });
+const saved = snapshot.save();
+const reopened = cad.load(saved);
+void reopened;
+```
+
+`rotate({ axis, angleDegrees })` takes one exact data record. The axes are
+`'x'`, `'y'`, and `'z'`. The angles are `90`, `180`, `270`, `-90`, `-180`, and
+`-270` degrees. This is an active right-handed XYZ rotation around the world
+origin. X90 maps `(x,y,z)` to `(x,-z,y)`. Y90 maps it to `(z,y,-x)`. Z90 maps it
+to `(-y,x,z)`. Negative angles are explicit aliases. Save retains the authored
+angle. Native evidence records the canonical positive angle separately.
+
+The parent must be one owned affine rectangle, polygon, or constrained-polygon
+extrusion, with an optional `from` placement. Its complete linear chain of one
+or two chamfers is also admitted. Rotation is terminal. Finish the parent first.
+The six-node limit remains. Transform chains, later features, unrelated finishing
+siblings, Boolean, hole, circle, and split ancestry refuse. No arbitrary axis,
+pivot, angle dimension, zero, full turn, rounding, or angle normalization exists.
+
+The operation rebuilds each target Surface and trim Line with exact signed
+coordinate permutations. Positive components copy bits. Negative components use
+unary negation, including signed zero. The native Face builder regenerates
+pcurves and checks their whole lift. Pcurves are not copied or certified as
+bit-identical. The complete target Solid has fresh identities and bijective
+local and global lineage. Its exact volume and support offsets are unchanged.
+Normals and support origins rotate. The parent remains immutable.
+
+An admitted parent can still fail native Gram or UV reconstruction under a map.
+The original provider cause and completed-work report remain available. This API
+does not promise success for every parent or map. Mass tensor transformation,
+STL export, general rotation, editor, GPU, and manufacturing proof are separate.
