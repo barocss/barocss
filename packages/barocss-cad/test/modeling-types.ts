@@ -555,3 +555,30 @@ fullCircularTuple[3] = fullCircularOriginal;
 fullCircularSource.circularPattern({ axis: 'z', angleDegrees: 180, count: 4 });
 // @ts-expect-error Linear pattern remains count three.
 fullCircularSource.linearPattern({ axis: 'z', spacing: 40, count: 4 });
+
+
+// A cardinal rotation followed by exact placement keeps both native evidence kinds.
+const placementModel = cad.model();
+const placementOffsetX = placementModel.parameter('offsetX', 40);
+const placementSource = placementModel.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const placementMiddle: CadShape = placementSource.rotate({ axis: 'x', angleDegrees: 90 });
+const placementFinal: CadShape = placementMiddle.translate([placementOffsetX, 16, 0]);
+const placementSnapshot: CadModelSnapshot = placementModel.build({ original: placementSource,
+  middle: placementMiddle, placed: placementFinal });
+const placementReopened: CadModelSnapshot = cad.load(placementSnapshot.withParameters({ offsetX: 56 }).save());
+for (const evidence of placementSnapshot.evidence) {
+  if (evidence.kind === 'rotate') {
+    const rotatedFace: string = evidence.native.lineage.faces[0].rotated.faceId;
+    const degrees: 90 | 180 | 270 = evidence.native.request.spec.degrees;
+    void [rotatedFace, degrees];
+  } else if (evidence.kind === 'translate') {
+    const volume: string = evidence.native.solid.certificate.volumeMM3.numerator;
+    const parent = evidence.native.request.parent;
+    void [volume, parent];
+  }
+}
+void placementReopened;
+// @ts-expect-error Placement still requires all three length dimensions.
+placementMiddle.translate([placementOffsetX, 16]);
+// @ts-expect-error A rotation angle cannot be supplied as a length parameter.
+placementSource.rotate({ axis: 'x', angleDegrees: placementOffsetX });

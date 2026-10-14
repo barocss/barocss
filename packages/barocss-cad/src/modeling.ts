@@ -68,9 +68,9 @@ export interface CadEdgeSelection { readonly kind: 'edge-selection' }
 export interface CadEdgeQueryHandle { one(): CadEdgeSelection }
 type SplitPlane = { readonly axis: CadAxis; readonly plane?: never } | { readonly plane: 'x+y'; readonly axis?: never };
 export interface CadShape {
-  /** One exact translated copy of a direct affine extrusion; the copy is a terminal named output. */
+  /** Exact translation of a direct affine extrusion, its finishing chain, or the last owned cardinal rotation. Rotated placement is terminal. */
   translate(offset: readonly [CadDimension, CadDimension, CadDimension]): CadShape;
-  /** Right-handed cardinal rotation about the world origin. The owned copy is terminal; no later features or transforms. */
+  /** Right-handed cardinal rotation about the world origin. Only one terminal translation of this exact owned result may follow. */
   rotate(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | 180 | 270 | -90 | -180 | -270 }): CadShape;
   /** Reflect across a cardinal plane through the world origin. The owned copy is terminal; no later features or transforms. */
   mirror(options: { readonly plane: 'xy' | 'xz' | 'yz' }): CadShape;
@@ -397,6 +397,16 @@ function rotationParent(nodes: readonly Node[], reference: BodyRef): boolean {
   return affineExtrusion(nodes, reference) && nodes.every(node => node.kind === 'extrude'
     || node.kind === 'sketch' && node.profile !== 'circle');
 }
+/** The sole mixed transform recipe: an admitted source, then its rotation and terminal placement. */
+function rotatedPlacementPair(nodes: readonly Node[]): boolean {
+  if (nodes.length < 4 || nodes.length > CadModelLimits.nodes) return false;
+  const rotation = nodes[nodes.length - 2], placement = nodes[nodes.length - 1];
+  return rotation?.kind === 'rotate' && placement?.kind === 'translate'
+    && placement.parent?.side === 'solid' && placement.parent.node === nodes.length - 2
+    && rotation.parent?.side === 'solid' && Number.isInteger(rotation.parent.node)
+    && rotation.parent.node >= 0 && rotation.parent.node < nodes.length - 2
+    && rotationParent(nodes.slice(0, -2), rotation.parent);
+}
 const mirrorParentDetail = 'Mirror across a plane through the world origin requires a direct affine extrusion or its complete owned one/two-chamfer chain; the mirrored copy is terminal';
 function mirrorOptions(value: unknown, fields: readonly string[]): { plane: MirrorPlane } {
   let descriptors: PropertyDescriptorMap;
@@ -571,7 +581,7 @@ function admit(input: Document): Document {
       if (circleExtrusion(nodes, { node: i, side: 'solid' })) circleMeasure(n.height, d.parameters, 'extrude');
     } else if (n.kind === 'translate') {
       record(n, 'translate', ['kind', 'parent', 'offset']); body(n.parent, i);
-      demand(affineExtrusion(nodes, n.parent) || finishedTranslationPrefix(nodes.slice(0, i), n.parent), 'CAPABILITY', 'translate', 'Translation requires a direct affine extrusion or its complete owned finishing chain');
+      demand(affineExtrusion(nodes, n.parent) || finishedTranslationPrefix(nodes.slice(0, i), n.parent) || rotatedPlacementPair(nodes), 'CAPABILITY', 'translate', 'Translation requires a direct affine extrusion, its complete finishing chain, or the exact last rotated solid');
       list(n.offset, 'translate', 3, 3).forEach(dimension);
     } else if (n.kind === 'rotate') {
       rotationOptions(n, ['kind', 'parent', 'axis', 'angleDegrees']); body(n.parent, i);
@@ -627,6 +637,7 @@ function admit(input: Document): Document {
     }
   }
   const last = nodes[nodes.length - 1];
+  const placement = rotatedPlacementPair(nodes);
   demand(counts['circular-pattern'] <= 1 && (!counts['circular-pattern'] || last.kind === 'circular-pattern'
     && rotationParent(nodes.slice(0, -1), last.parent)), 'CAPABILITY', 'circularPattern', circularPatternParentDetail);
   demand(counts['linear-pattern'] <= 1 && (!counts['linear-pattern'] || last.kind === 'linear-pattern'
@@ -635,10 +646,10 @@ function admit(input: Document): Document {
     && rotationParent(nodes.slice(0, -1), last.parent)), 'CAPABILITY', 'scale', scaleParentDetail);
   demand(counts.mirror <= 1 && (!counts.mirror || last.kind === 'mirror'
     && rotationParent(nodes.slice(0, -1), last.parent)), 'CAPABILITY', 'mirror', mirrorParentDetail);
-  demand(counts.rotate <= 1 && (!counts.rotate || last.kind === 'rotate'
+  demand(counts.rotate <= 1 && (!counts.rotate || placement || last.kind === 'rotate'
     && rotationParent(nodes.slice(0, -1), last.parent)), 'CAPABILITY', 'rotate', rotationParentDetail);
   demand(counts.translate <= 1 && (!counts.translate || counts.cut + counts.intersect + counts.split + counts.hole + counts.union + counts.difference === 0
-    && (!counts.chamfer || last.kind === 'translate' && finishedTranslationPrefix(nodes.slice(0, -1), last.parent))),
+    && (!counts.chamfer || placement || last.kind === 'translate' && finishedTranslationPrefix(nodes.slice(0, -1), last.parent))),
   'CAPABILITY', 'translate', 'One terminal translation permits only its complete owned finishing chain');
   demand(counts.difference <= CadModelLimits.differences && (!counts.difference || composed || counts.cut + counts.intersect + counts.split + counts.chamfer + counts.hole + counts.union === 0), 'CAPABILITY', 'graph', 'Only one exact union-slot chain may mix a difference with another operation');
   demand(counts.union <= CadModelLimits.unions && (!counts.union || counts.cut + counts.intersect + counts.split + counts.chamfer + counts.hole === 0), 'CAPABILITY', 'graph', 'One union cannot be mixed with other Boolean or finishing operations');
@@ -671,6 +682,7 @@ export function createCadModel(): CadModel {
   const append = (node: Node) => {
     const operation = node.kind === 'difference' ? 'cut' : node.kind === 'linear-pattern' ? 'linearPattern' : node.kind === 'circular-pattern' ? 'circularPattern' : node.kind;
     authoring(operation);
+    const placement = rotatedPlacementPair([...nodes, node]);
     demand(!nodes.some(n => n.kind === 'circular-pattern'), 'CAPABILITY', operation, 'Circular patterns are terminal; no later authored operation is supported');
     demand(node.kind !== 'circular-pattern' || rotationParent(nodes, node.parent), 'CAPABILITY', operation, circularPatternParentDetail);
     demand(!nodes.some(n => n.kind === 'linear-pattern'), 'CAPABILITY', operation, 'Linear patterns are terminal; no later authored operation is supported');
@@ -679,7 +691,7 @@ export function createCadModel(): CadModel {
     demand(node.kind !== 'scale' || rotationParent(nodes, node.parent), 'CAPABILITY', operation, scaleParentDetail);
     demand(!nodes.some(n => n.kind === 'mirror'), 'CAPABILITY', operation, 'Mirror across a plane through the world origin is terminal; no later authored operation is supported');
     demand(node.kind !== 'mirror' || rotationParent(nodes, node.parent), 'CAPABILITY', operation, mirrorParentDetail);
-    demand(!nodes.some(n => n.kind === 'rotate'), 'CAPABILITY', operation, 'Rotation about the world origin is terminal; no later authored operation is supported');
+    demand(!nodes.some(n => n.kind === 'rotate') || placement, 'CAPABILITY', operation, 'Rotation permits only one terminal translation of its exact owned result');
     demand(node.kind !== 'rotate' || rotationParent(nodes, node.parent), 'CAPABILITY', operation, rotationParentDetail);
     demand(!nodes.some(n => n.kind === 'translate') || !nodes.some(n => n.kind === 'chamfer'),
       'CAPABILITY', operation, 'A finished translation is the final authored operation');
@@ -690,7 +702,7 @@ export function createCadModel(): CadModel {
     const translationIncompatible = ['cut', 'intersect', 'split', 'chamfer', 'hole', 'union', 'difference'];
     demand(node.kind === 'translate'
       ? !nodes.some(n => translationIncompatible.includes(n.kind) && n.kind !== 'chamfer')
-        && (!nodes.some(n => n.kind === 'chamfer') || finishedTranslationPrefix(nodes, node.parent))
+        && (!nodes.some(n => n.kind === 'chamfer') || placement || finishedTranslationPrefix(nodes, node.parent))
       : !translationIncompatible.includes(node.kind) || !nodes.some(n => n.kind === 'translate'),
     'CAPABILITY', operation, 'Translation permits only its complete owned finishing chain');
     const finishing = ['cut', 'intersect', 'split', 'chamfer'];
@@ -744,8 +756,10 @@ export function createCadModel(): CadModel {
         demand(!nodes.some(n => n.kind === 'circular-pattern'), 'CAPABILITY', 'translate', 'Circular patterns are terminal; translate after pattern is unsupported');
         demand(!nodes.some(n => n.kind === 'scale'), 'CAPABILITY', 'translate', 'World-origin scaled copies are terminal; translation after scale is unsupported');
         demand(!nodes.some(n => n.kind === 'mirror'), 'CAPABILITY', 'translate', 'World-origin mirrors are terminal; translation after mirror is unsupported');
-        demand(!nodes.some(n => n.kind === 'rotate'), 'CAPABILITY', 'translate', 'Rotation about the world origin is terminal; translation after rotation is unsupported');
-        demand(affineExtrusion(nodes, reference) || finishedTranslationPrefix(nodes, reference), 'CAPABILITY', 'translate', 'Translation requires a direct affine extrusion or its complete owned finishing chain');
+        // The predicate inspects ancestry only; the actual offset is admitted below before append.
+        const placement = rotatedPlacementPair([...nodes, { kind: 'translate', parent: reference, offset: [0, 0, 0] }]);
+        demand(!nodes.some(n => n.kind === 'rotate') || placement, 'CAPABILITY', 'translate', 'Rotation permits only one terminal translation of its exact owned result');
+        demand(affineExtrusion(nodes, reference) || finishedTranslationPrefix(nodes, reference) || placement, 'CAPABILITY', 'translate', 'Translation requires a direct affine extrusion, its complete finishing chain, or the exact last rotated solid');
         const vector = list(offset, 'translate', 3, 3).map(value => dimension(value as CadDimension)) as [Dimension, Dimension, Dimension];
         return shape({ node: append({ kind: 'translate', parent: { ...reference }, offset: vector }), side: 'solid' });
       },
