@@ -26,6 +26,8 @@ interface Props {
   onPick(hit: { face: FaceRef | null; edge: EdgeRef | null; point: Vec3 | null }, additive: boolean): void;
   onSketchShape(shape: SketchShape | null): void;
   onCursor(p: Vec3 | null): void;
+  onBoxSelect(bodies: number[], additive: boolean): void;
+  onContextMenu(at: { x: number; y: number }, hit: { face: FaceRef | null; edge: EdgeRef | null }): void;
 }
 
 const snap = (v: number) => Math.round(v);
@@ -36,7 +38,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   const camera = useRef(new OrbitCamera());
   const frame = useRef(0);
   const hover = useRef<{ face: FaceRef | null; edge: EdgeRef | null }>({ face: null, edge: null });
-  const drag = useRef<{ mode: 'orbit' | 'pan' | 'gizmo' | null; x: number; y: number; axis?: number; start?: Vec3; moved: boolean }>({ mode: null, x: 0, y: 0, moved: false });
+  const drag = useRef<{ mode: 'orbit' | 'pan' | 'gizmo' | 'box' | null; x: number; y: number; axis?: number; start?: Vec3; moved: boolean; x0?: number; y0?: number }>({ mode: null, x: 0, y: 0, moved: false });
   const sketchDraft = useRef<{ cursor: [number, number] | null }>({ cursor: null });
   const [, setTick] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -122,7 +124,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     if (e.button === 2 && !e.shiftKey) drag.current = { mode: 'orbit', x, y, moved: false };
     else if (e.button === 1 || (e.button === 2 && e.shiftKey)) drag.current = { mode: 'pan', x, y, moved: false };
     else if (e.button === 0 && e.altKey) drag.current = { mode: 'orbit', x, y, moved: false };
-    else drag.current = { mode: null, x, y, moved: false };
+    else drag.current = { mode: null, x, y, moved: false, x0: x, y0: y };
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
@@ -137,6 +139,9 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       propsRef.current.gizmo!.onDrag(values); d.moved = true; return;
     }
     const sk = propsRef.current.sketch;
+    if (!sk && e.buttons === 1 && d.x0 !== undefined && (d.mode === 'box' || Math.hypot(x - d.x0, y - d.y0!) > 5)) {
+      d.mode = 'box'; d.x = x; d.y = y; d.moved = true; request(); return;
+    }
     if (sk) {
       const p = planePoint(x, y, w, h, sk.planeZ);
       sketchDraft.current.cursor = p ? [snap(p[0]), snap(p[1])] : null;
@@ -160,8 +165,14 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   const drafting = useRef(false);
   const onPointerUp = (e: React.PointerEvent) => {
     const d = drag.current; drag.current = { mode: null, x: 0, y: 0, moved: false };
-    if (d.mode || d.moved || e.button !== 0) return;
     const { x, y, w, h } = local(e);
+    if (d.mode === 'box') { boxSelect(d.x0!, d.y0!, x, y, e.shiftKey); request(); return; }
+    if (e.button === 2 && d.mode === 'orbit' && !d.moved && !propsRef.current.sketch) {
+      const r = renderer.current!; const edge = r.pickEdge(x, y, camera.current, viewState());
+      const face = edge ? null : r.pickFace(x, y, camera.current, viewState());
+      propsRef.current.onContextMenu({ x: e.clientX, y: e.clientY }, { face, edge }); return;
+    }
+    if (d.mode || d.moved || e.button !== 0) return;
     const sk = propsRef.current.sketch;
     if (sk) {
       const p = planePoint(x, y, w, h, sk.planeZ); if (!p) return;
@@ -183,6 +194,23 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     const r = renderer.current!; const edge = r.pickEdge(x, y, camera.current, viewState());
     const face = edge ? null : r.pickFace(x, y, camera.current, viewState());
     propsRef.current.onPick({ face, edge, point: surfacePoint(x, y, w, h, face) }, e.shiftKey);
+  };
+
+  /** Window selection left→right (fully inside), crossing right→left (touching). */
+  const boxSelect = (x0: number, y0: number, x1: number, y1: number, additive: boolean) => {
+    const c = canvas.current!; const w = c.clientWidth, h = c.clientHeight;
+    const [lx, hx, ly, hy] = [Math.min(x0, x1), Math.max(x0, x1), Math.min(y0, y1), Math.max(y0, y1)];
+    const crossing = x1 < x0; const picked: number[] = [];
+    propsRef.current.bodies.forEach((b, i) => {
+      const P = b.mesh.positions; let inside = 0, total = 0;
+      const step = Math.max(3, Math.floor(P.length / 3 / 400) * 3);
+      for (let k = 0; k < P.length; k += step) {
+        const q = camera.current.project([P[k], P[k + 1], P[k + 2]], w, h); total++;
+        if (q[0] >= lx && q[0] <= hx && q[1] >= ly && q[1] <= hy) inside++;
+      }
+      if (crossing ? inside > 0 : inside === total && total > 0) picked.push(i);
+    });
+    propsRef.current.onBoxSelect(picked, additive);
   };
 
   const onWheel = (e: React.WheelEvent) => {
@@ -241,6 +269,11 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       const colors = ['#e5534b', '#57b26b', '#4f8ff7'];
       axes.tips.forEach((t, k) => items.push(<g key={'g' + k}><line x1={axes.p0[0]} y1={axes.p0[1]} x2={t[0]} y2={t[1]} stroke={colors[k]} strokeWidth={3} /><circle cx={t[0]} cy={t[1]} r={7} fill={colors[k]} className="gz-handle" /></g>));
       items.push(<circle key="go" cx={axes.p0[0]} cy={axes.p0[1]} r={6} fill="#f2f3f5" stroke="#101113" strokeWidth={1.5} />);
+    }
+    const dr = drag.current;
+    if (dr.mode === 'box' && dr.x0 !== undefined) {
+      const crossing = dr.x < dr.x0;
+      items.push(<rect key="box" x={Math.min(dr.x0, dr.x)} y={Math.min(dr.y0!, dr.y)} width={Math.abs(dr.x - dr.x0)} height={Math.abs(dr.y - dr.y0!)} className={crossing ? 'marquee crossing' : 'marquee'} />);
     }
     // Axis triad, bottom-left, following the camera.
     const { right, up } = cam.basis(); const tx = 92, ty = h - 64;

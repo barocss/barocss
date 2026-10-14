@@ -9,6 +9,7 @@ import { Viewport, type SketchShape, type SketchState, type SketchTool, type Vie
 import { Icon, Kbd } from './ui/atoms';
 import { Hud } from './ui/Hud';
 import { Palette } from './ui/Palette';
+import { ContextMenu } from './ui/ContextMenu';
 import { downloadBytes, meshToStl } from './ui/files';
 
 const emptySel: Selection = { faces: [], edges: [], bodies: [] };
@@ -37,6 +38,7 @@ export function App() {
   const [ortho, setOrtho] = useState(false);
   const [editNode, setEditNode] = useState<number | null>(null);
   const [lastMs, setLastMs] = useState(0);
+  const [menu, setMenu] = useState<{ at: { x: number; y: number }; selection: Selection; title: string } | null>(null);
   const revision = useRef(1);
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -203,7 +205,18 @@ export function App() {
   return (
     <div className="studio">
       <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={new Set()} sketch={sketch} gizmo={gizmo}
-        onPick={onPick} onCursor={setCursor} onSketchShape={(shape: SketchShape | null) => setSketch(s => s && { ...s, shape })} />
+        onPick={onPick} onCursor={setCursor} onSketchShape={(shape: SketchShape | null) => setSketch(s => s && { ...s, shape })}
+        onBoxSelect={(picked, additive) => { if (active) return; setSelection(prev => {
+          const base = additive ? selectedBodies(prev) : [];
+          return { faces: [], edges: [], bodies: [...new Set([...base, ...picked])] };
+        }); }}
+        onContextMenu={(at, hit) => {
+          if (active || sketch) return;
+          const next: Selection = hit.edge ? { faces: [], edges: [hit.edge], bodies: [] } : hit.face ? { faces: [hit.face], edges: [], bodies: [] } : selection;
+          if (hit.edge || hit.face) setSelection(next);
+          const title = hit.edge ? 'EDGE' : hit.face ? 'FACE' : selectedBodies(next).length ? `${selectedBodies(next).length} BOD${selectedBodies(next).length > 1 ? 'IES' : 'Y'}` : 'VIEW';
+          setMenu({ at, selection: next, title });
+        }} />
 
       <header className="topbar">
         <span className="brand"><Icon name="deployed_code" className="accent" />barocss</span>
@@ -319,6 +332,14 @@ export function App() {
       </div>
 
       {palette && <Palette ctx={ctx} onRun={start} onClose={() => setPalette(false)} />}
+      {menu && <ContextMenu at={menu.at} title={menu.title} ctx={{ ...ctx, selection: menu.selection }} onClose={() => setMenu(null)}
+        onRun={c => { setMenu(null); start(c); }}
+        actions={[
+          { label: 'Frame all', icon: 'fit_screen', shortcut: 'F', run: () => viewport.current?.fit() },
+          { label: 'Isometric view', icon: 'view_in_ar', run: () => viewport.current?.setView('iso') },
+          { label: 'Top view', icon: 'crop_square', run: () => viewport.current?.setView('top') },
+          { label: 'Clear selection', icon: 'deselect', shortcut: 'Esc', run: () => setSelection(emptySel) },
+        ]} />}
 
       {toast && <div className="toast card" role="alert">
         <Icon name="info" className="accent" />

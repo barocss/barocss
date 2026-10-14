@@ -2,6 +2,9 @@
 export interface FriendlyError { title: string; hint: string; detail: string }
 
 const rules: { test: RegExp; title: string; hint: string }[] = [
+  { test: /terminal translation|finishing chain|terminal rotation/i,
+    title: 'Move and rotate work on a single-body part only',
+    hint: 'The kernel allows one move or quarter-turn as the last step of a part with one body. Do it before adding other bodies, or in a separate part.' },
   { test: /cannot be mixed/i,
     title: 'These features can’t be combined in one part yet',
     hint: 'A part with a hole can’t also have chamfers, splits, subtractions or intersections. Put them in a separate part or remove the hole.' },

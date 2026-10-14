@@ -36,7 +36,7 @@ void main(){
   vec3 c=uBase*(0.18+0.26*hemi+0.58*k+0.10*f)+vec3(0.08)*rim+vec3(0.10)*spec;
   vec3 accent=vec3(0.910,0.761,0.353);
   float sel=max(uBodySel, step(1.5,vState));
-  c=mix(c, accent, sel*0.42);
+  c=mix(c, accent, max(uBodySel*0.22, step(1.5,vState)*0.42));
   c=mix(c, accent, step(0.5,vState)*(1.0-step(1.5,vState))*0.20);
   o=vec4(c, 1.0-uGhost*0.65);
 }`;

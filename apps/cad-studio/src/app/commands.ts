@@ -143,14 +143,14 @@ export const commands: Command[] = [
   { id: 'loft', label: 'Loft', icon: 'filter_list', group: 'create', keywords: 'blend sections', available: notYet('Loft to solid') },
   {
     id: 'move', label: 'Move', icon: 'open_with', shortcut: 'G', group: 'modify', keywords: 'translate position',
-    available: ctx => oneBody(ctx) ? ok : no('Select one body to move.'),
+    available: ctx => ctx.bodies.length > 1 ? no('Move works on a single-body part only (kernel limit).') : oneBody(ctx) ? ok : no('Select one body to move.'),
     fields: () => [{ key: 'x', label: 'ΔX', kind: 'mm' }, { key: 'y', label: 'ΔY', kind: 'mm' }, { key: 'z', label: 'ΔZ', kind: 'mm' }],
     defaults: () => ({ x: 0, y: 0, z: 10 }),
     build: (ctx, v) => withNode(ctx.doc, { kind: 'translate', parent: refOf(oneBody(ctx)!), offset: [Number(v.x), Number(v.y), Number(v.z)] }),
   },
   {
     id: 'rotate', label: 'Rotate', icon: '3d_rotation', shortcut: 'R', group: 'modify', keywords: 'turn spin',
-    available: ctx => oneBody(ctx) ? ok : no('Select one body to rotate.'),
+    available: ctx => ctx.bodies.length > 1 ? no('Rotate works on a single-body part only (kernel limit).') : oneBody(ctx) ? ok : no('Select one body to rotate.'),
     fields: () => [{ key: 'axis', label: 'Axis', kind: 'choice', options: [{ value: 'x', label: 'X' }, { value: 'y', label: 'Y' }, { value: 'z', label: 'Z' }] },
       { key: 'angle', label: 'Angle', kind: 'choice', options: ['90', '180', '270', '-90'].map(a => ({ value: a, label: a + '°' })) }],
     defaults: () => ({ axis: 'z', angle: '90' }),

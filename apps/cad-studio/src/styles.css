@@ -121,3 +121,11 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .toast-hint { color: var(--text-2); line-height: 1.45; }
 .edge-hover { fill: none; stroke: #f0cf73; stroke-width: 2.5; stroke-linecap: round; opacity: 0.85; }
 .edge-sel { fill: none; stroke: #ffd65c; stroke-width: 3.5; stroke-linecap: round; }
+
+.marquee { fill: rgba(79, 143, 247, 0.10); stroke: #4f8ff7; stroke-width: 1; }
+.marquee.crossing { fill: rgba(87, 178, 107, 0.10); stroke: #57b26b; stroke-dasharray: 5 4; }
+.ctx-menu { position: fixed; z-index: 20; width: 224px; padding: 4px; display: flex; flex-direction: column; }
+.ctx-title { padding: 6px 8px 2px; margin: 0; }
+.ctx-item { display: flex; align-items: center; gap: 8px; height: 28px; padding: 0 8px; border: 0; border-radius: 4px; background: transparent; color: var(--text-2); text-align: left; cursor: pointer; }
+.ctx-item:hover, .ctx-item:focus { background: #34363b; color: var(--text); outline: none; }
+.ctx-sep { height: 1px; background: var(--line); margin: 4px 6px; }
