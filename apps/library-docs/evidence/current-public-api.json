@@ -1,7 +1,7 @@
 {
   "schema": "barocss-current-public-api-v1",
   "typescriptVersion": "5.9.3",
-  "sourceCommit": "1e9bb35c7095c8d1a414b67572a015c55ae17606",
+  "sourceCommit": "f8fc6bb7836df1624692fbe39cd181f2247d3f6d",
   "extractor": "TypeScript 5.9.3 public module exports and declarations; not a type-check or runtime execution",
   "packages": [
     {
@@ -2613,7 +2613,7 @@
               "name": "mountPrimitiveBackendViewport",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/webgpu-primitive-viewport.ts",
-              "line": 481,
+              "line": 492,
               "signatures": [
                 "export function mountPrimitiveBackendViewport(canvas: HTMLCanvasElement, input: unknown, options: PrimitiveBackendOptions): Promise<PrimitiveBackendViewport>;"
               ],
@@ -9143,7 +9143,7 @@
               "name": "mountPrimitiveBackendViewport",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-gpu/src/webgpu-primitive-viewport.ts",
-              "line": 481,
+              "line": 492,
               "signatures": [
                 "export function mountPrimitiveBackendViewport(canvas: HTMLCanvasElement, input: unknown, options: PrimitiveBackendOptions): Promise<PrimitiveBackendViewport>;"
               ],
@@ -47212,7 +47212,7 @@
               "name": "createViewer",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-viewer/src/index.ts",
-              "line": 2480,
+              "line": 2486,
               "signatures": [
                 "export function createViewer(canvas: HTMLCanvasElement, options: ViewerOptions): Viewer;"
               ],
@@ -50235,7 +50235,7 @@
               "name": "CadEditorModelingController",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-cad-editor/src/modeling-controller.ts",
-              "line": 391,
+              "line": 543,
               "signatures": [
                 "export type CadEditorModelingController = ReturnType<typeof createCadEditorModelingController>;"
               ],
@@ -50245,17 +50245,17 @@
               "name": "CadEditorModelingSnapshot",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad-editor/src/modeling-controller.ts",
-              "line": 11,
+              "line": 13,
               "signatures": [
-                "export interface CadEditorModelingSnapshot {\n  accepted: CadEditorModelingSummary | null; authoredText: string | null;\n  display: ModelingDisplayScene | null; faceSelection: (ModelingFaceSelection & { generation: number }) | null;\n  drafts: Record<string, string>; selection: number | null; generation: number;\n  busy: boolean; disposed: boolean; error: string | null; workerReady: boolean;\n  history: { index: number; count: number; canUndo: boolean; canRedo: boolean };\n}"
+                "export interface CadEditorModelingSnapshot {\n  accepted: CadEditorModelingSummary | null; authoredText: string | null;\n  display: ModelingDisplayScene | null; faceSelection: (ModelingFaceSelection & { generation: number }) | null;\n  drafts: Record<string, string>; selection: number | null; generation: number;\n  busy: boolean; disposed: boolean; error: string | null; workerReady: boolean;\n  preview: { status: 'computing' | 'ready' | 'unchanged' | 'error'; parameters: Record<string, number>; outputs?: CadEditorModelingSummary['outputs']; diagnostic?: ModelingDiagnostic } | null;\n  history: { index: number; count: number; canUndo: boolean; canRedo: boolean };\n}"
               ],
-              "digest": "9490f10012a2f0b461ec3ba0c0d537ac5dbd34bbad4a7944637ef739a333aef9"
+              "digest": "21f341f2ad87d0c756f0c57d35baab90d35a681a9f4a0c923d22f128915c1d8a"
             },
             {
               "name": "CadEditorModelingSummary",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad-editor/src/modeling-engine.ts",
-              "line": 14,
+              "line": 16,
               "signatures": [
                 "export interface CadEditorModelingSummary {\n  documentId: string; revision: number; source: 'model' | 'legacy';\n  parameters: Record<string, number>;\n  suppression?: Record<string, boolean>;\n  features: { kind: string; index: number; dependencies: number[]; name?: string; suppressed?: boolean }[];\n  outputs: { name: string; solidId: string; family?: 'convex-planar' | 'stored-rational-plate-hole' | 'orthogonal-cell' | 'stored-rational-circle-prism'; volumeMM3: { numerator: string; denominator: string } | null }[];\n}"
               ],
@@ -50655,11 +50655,11 @@
               "name": "createCadEditorModelingController",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-cad-editor/src/modeling-controller.ts",
-              "line": 173,
+              "line": 195,
               "signatures": [
-                "export function createCadEditorModelingController(displayPort?: PrismDisplayPort, aspect?: () => number): { getSnapshot: () => CadEditorModelingSnapshot; subscribe(listener: () => void): () => void; open: (text: string) => Promise<void>; example: (example?: CadEditorModelingExample, splitAxis?: CadEditorModelingSplitAxis) => Promise<void>; apply: () => Promise<void>; configureFinishes: (suppression: Record<string, boolean>) => Promise<void>; undo: () => Promise<void>; redo: () => Promise<void>; exportStl(name: string, generation: number, recover?: boolean): Promise<CadEditorStlExport | null>; viewOutput(name: string, generation: number): Promise<void>; stage(name: string, raw: string): void; discard(): void; select(feature: number, generation: number): void; pick(width: number, height: number, x: number, y: number, generation: number): void; cancel(): void; dispose(): void; };"
+                "export function createCadEditorModelingController(displayPort?: PrismDisplayPort, aspect?: () => number): { getSnapshot: () => CadEditorModelingSnapshot; preview: (recover?: boolean) => Promise<void>; clearPreview(): void; subscribe(listener: () => void): () => void; open: (text: string) => Promise<void>; example: (example?: CadEditorModelingExample, splitAxis?: CadEditorModelingSplitAxis) => Promise<void>; apply: () => Promise<void>; configureFinishes: (suppression: Record<string, boolean>) => Promise<void>; undo: () => Promise<void>; redo: () => Promise<void>; exportStl(name: string, generation: number, recover?: boolean): Promise<CadEditorStlExport | null>; viewOutput(name: string, generation: number): Promise<void>; stage(name: string, raw: string): void; discard(): void; select(feature: number, generation: number): void; pick(width: number, height: number, x: number, y: number, generation: number): void; cancel(): void; dispose(): void; };"
               ],
-              "digest": "25f3c4ce91287920c3e96654142ce88f21357372cbfb5d3192cb65da0b227ea1"
+              "digest": "f78496dc6f6b729d529b4873d9dc0634f76996b3b69d558e8e9fa1a835f9b574"
             },
             {
               "name": "createCadEditorPrismFeatureController",
@@ -51589,7 +51589,7 @@
               "name": "CadEditorModeling",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-cad-editor/src/react/modeling-editor.tsx",
-              "line": 23,
+              "line": 29,
               "signatures": [
                 "export function CadEditorModeling({ initialAuthoredText, workspace: initialWorkspace = false }: CadEditorModelingProps): JSX.Element;"
               ],
@@ -51599,7 +51599,7 @@
               "name": "CadEditorModelingProps",
               "kind": "InterfaceDeclaration",
               "source": "packages/barocss-cad-editor/src/react/modeling-editor.tsx",
-              "line": 17,
+              "line": 23,
               "signatures": [
                 "export interface CadEditorModelingProps {\n  initialAuthoredText?: string;\n  /** Mount-time layout choice. Changing this prop does not replace the active document or viewport. */\n  workspace?: boolean;\n}"
               ],
@@ -55178,13 +55178,13 @@
   ],
   "packageTrees": {
     "packages/barocss-render": "b83e4912e1d1aa658f048ba4b112376785b288fb",
-    "packages/barocss-gpu": "073b119bd66d77345b4ec281f4927ac3e96955f5",
-    "packages/barocss-cad": "597a8f483785a80dff6674bb5bede8ec52ba9b9f",
+    "packages/barocss-gpu": "fbe1fc867735a419a45b1b0ffa075bb801947ce9",
+    "packages/barocss-cad": "d5dd7020aefee2040bd57eb0585ef9d6ea0f6e68",
     "packages/barocss-cad-interop": "1a2584cfb25826412096512aa71d74f059e5092d",
     "packages/barocss-canvas2d": "39853a85709f5c59dba7cdbbab3fd87da48cb54a",
-    "packages/barocss-viewer": "ea7a33d9cd02eaca8e7fee7d3f055cf1b2e6eeb8",
-    "packages/barocss-physics": "c9fc7204aa7ed58137a3abceb6fa98fac688cecc",
-    "packages/barocss-cad-editor": "29c140a51164dcf3a941e42997f7626d1fa26853",
+    "packages/barocss-viewer": "aa7736ed08620fe9b7db2eff4feec5c89f9e502b",
+    "packages/barocss-physics": "f3aa5c6e161137cb80fb68f73a517cd6bdc673dd",
+    "packages/barocss-cad-editor": "3e032a45c4f1ba2ea53f9fe8876ed39f4e779ddf",
     "packages/barocss-render-editor": "d1486acf9b983dba6839d2bf303406876244e2e6"
   },
   "historicalSourceCommit": "5f5ad866205a21510ac69552e704cc162fa253b5",
