@@ -19,9 +19,11 @@ function admit(point: Point, spec: CardinalRotationSpec): { point: Point; spec: 
     if (Reflect.ownKeys(entries).length !== 4 || !Object.hasOwn(entries, 'length') || entries.length?.value !== 3) refuse();
     const values = [0, 1, 2].map(i => {
       const item = entries[String(i)];
-      if (!item || !('value' in item) || !item.enumerable || typeof item.value !== 'number' ||
-          !Number.isFinite(item.value) || Math.abs(item.value) > 10000) refuse();
-      return item.value as number;
+      if (item === undefined) return refuse();
+      const value: unknown = item.value;
+      if (!Object.hasOwn(item, 'value') || !item.enumerable || typeof value !== 'number' ||
+          !Number.isFinite(value) || Math.abs(value) > 10000) return refuse();
+      return value;
     }) as Point;
     if (!spec || typeof spec !== 'object' || Array.isArray(spec) ||
         (Object.getPrototypeOf(spec) !== Object.prototype && Object.getPrototypeOf(spec) !== null)) refuse();
