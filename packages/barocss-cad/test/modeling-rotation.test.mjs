@@ -25,7 +25,7 @@ const providers = new Map([
   ['convex-planar-solid-split', 'splitConvexPlanarSolid'], ['model-compiler', 'compileCadModel'],
   ['convex-planar-solid-chamfer', 'chamferConvexPlanarSolid'], ['axis-box-boolean', 'buildAxisBoxSolidBoolean'],
   ['orthogonal-solid-boolean', 'buildOrthogonalSolidBoolean'], ['modeling-box-internal', 'buildModelingBox'],
-  ['modeling-translation-internal', 'buildModelingTranslation'], ['modeling-rotation-internal', 'buildModelingRotation'], ['modeling-mirror-internal', 'buildModelingMirror'], ['modeling-scale-internal', 'buildModelingScale'], ['modeling-linear-pattern-internal', 'buildModelingLinearPattern'], ['modeling-stl-internal', 'buildModelingStl'],
+  ['modeling-translation-internal', 'buildModelingTranslation'], ['modeling-rotation-internal', 'buildModelingRotation'], ['modeling-mirror-internal', 'buildModelingMirror'], ['modeling-scale-internal', 'buildModelingScale'], ['modeling-linear-pattern-internal', 'buildModelingLinearPattern'], ['modeling-circular-pattern-internal', 'buildModelingCircularPattern'], ['modeling-stl-internal', 'buildModelingStl'],
   ['own-plate-circular-hole', 'buildOwnPlateCircularHole'], ['stored-plate-hole-solid', 'qualifyStoredPlateHoleSolid'],
   ['convex-planar-solid-mass', 'measureConvexPlanarSolidMass'], ['axis-box-solid-mass', 'measureAxisBoxSolidBooleanMass'],
 ]);
@@ -160,8 +160,8 @@ const doc = (axis='x',angleDegrees=90) => ({format:'barocss-cad-model',schema:1,
 const part = () => {const model=createCadModel();return {model,flat:rectangle(model).extrude(8)};};
 function pair(axis,angleDegrees) {const {model,flat}=part(),upright=flat.rotate(options(axis,angleDegrees));return mockNative(()=>model.build({flat,upright}));}
 
-test('all twenty-three facade providers are replaced; direct source provenance excludes native implementations',()=>{
-  assert.equal(replaced.size,23);assert.equal(inputPaths.length,pureModules.size);
+test('all twenty-four facade providers are replaced; direct source provenance excludes native implementations',()=>{
+  assert.equal(replaced.size,24);assert.equal(inputPaths.length,pureModules.size);
   const start=state.calls.length,snapshot=pair('x',90),calls=state.calls.slice(start);
   assert.deepEqual(calls.map(c=>c.binding),['buildXYAffineSketch','buildXYAffineSketchPrism','buildModelingRotation']);
   assert.equal(calls[2].args[0],snapshot.bodies.flat.native);assert.deepEqual(calls[2].args[1],{axis:'x',degrees:90});assert.equal(calls[2].args[2],'m2');

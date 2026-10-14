@@ -25,7 +25,7 @@ const providers = new Map([
   ['convex-planar-solid-split', 'splitConvexPlanarSolid'], ['model-compiler', 'compileCadModel'],
   ['convex-planar-solid-chamfer', 'chamferConvexPlanarSolid'], ['axis-box-boolean', 'buildAxisBoxSolidBoolean'],
   ['orthogonal-solid-boolean', 'buildOrthogonalSolidBoolean'], ['modeling-box-internal', 'buildModelingBox'],
-  ['modeling-translation-internal', 'buildModelingTranslation'], ['modeling-rotation-internal', 'buildModelingRotation'], ['modeling-mirror-internal', 'buildModelingMirror'], ['modeling-scale-internal', 'buildModelingScale'], ['modeling-linear-pattern-internal', 'buildModelingLinearPattern'], ['modeling-stl-internal', 'buildModelingStl'],
+  ['modeling-translation-internal', 'buildModelingTranslation'], ['modeling-rotation-internal', 'buildModelingRotation'], ['modeling-mirror-internal', 'buildModelingMirror'], ['modeling-scale-internal', 'buildModelingScale'], ['modeling-linear-pattern-internal', 'buildModelingLinearPattern'], ['modeling-circular-pattern-internal', 'buildModelingCircularPattern'], ['modeling-stl-internal', 'buildModelingStl'],
   ['own-plate-circular-hole', 'buildOwnPlateCircularHole'], ['stored-plate-hole-solid', 'qualifyStoredPlateHoleSolid'],
   ['convex-planar-solid-mass', 'measureConvexPlanarSolidMass'], ['axis-box-solid-mass', 'measureAxisBoxSolidBooleanMass'],
 ]);
@@ -160,8 +160,8 @@ const doc = (plane='xz') => ({format:'barocss-cad-model',schema:1,units:'mm',par
 const part = () => {const model=createCadModel();return {model,original:rectangle(model).extrude(8)};};
 function pair(plane='xz') {const {model,original}=part(),mirrored=original.mirror(options(plane));return mockNative(()=>model.build({original,mirrored}));}
 
-test('all twenty-three facade providers are replaced with direct provenance excluding native implementations',()=>{
-  assert.equal(replaced.size,23);assert.equal(inputPaths.length,pureModules.size);
+test('all twenty-four facade providers are replaced with direct provenance excluding native implementations',()=>{
+  assert.equal(replaced.size,24);assert.equal(inputPaths.length,pureModules.size);
   const start=state.calls.length,snapshot=pair(),calls=state.calls.slice(start);
   assert.deepEqual(calls.map(c=>c.binding),['buildXYAffineSketch','buildXYAffineSketchPrism','buildModelingMirror']);
   assert.equal(calls[2].args[0],snapshot.bodies.original.native);assert.deepEqual(calls[2].args[1],{plane:'xz'});assert.equal(calls[2].args[2],'m2');
