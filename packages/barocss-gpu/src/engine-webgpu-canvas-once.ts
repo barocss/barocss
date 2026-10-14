@@ -1,5 +1,5 @@
 import { prepareEngineScene } from './engine-scene.js';
-import { renderEngineWebGPUOnce } from './engine-webgpu-one-shot.js';
+import { renderCheckedEngineWebGPUOnce } from './engine-webgpu-checked-once.js';
 import { configureEngineWebGPUCanvas } from './engine-webgpu-canvas-config.js';
 import { presentEngineWebGPUColor } from './engine-webgpu-present.js';
 import type { EngineSceneV0 } from './engine-scene.js';
@@ -8,7 +8,7 @@ import type { GPUCanvasHandle, GPUDeviceHandle } from './webgpu-platform.js';
 const activeContexts = new WeakSet<GPUCanvasHandle>();
 
 /** Private one-shot composition. Caller owns the live device and matching canvas backing.
- * Not a mounted viewport, update transaction, validation scope or device-loss observer.
+ * Caller serializes device scopes; no mounted updates, presentation validation or loss observer.
  */
 export async function renderEngineWebGPUCanvasOnce(
   device: GPUDeviceHandle, context: GPUCanvasHandle, input: EngineSceneV0,
@@ -25,7 +25,7 @@ export async function renderEngineWebGPUCanvasOnce(
     throw new TypeError('Unsupported opaque Engine WebGPU Canvas color format');
   if (activeContexts.has(context)) throw new TypeError('Engine WebGPU Canvas is already claimed');
   activeContexts.add(context);
-  let frame: Awaited<ReturnType<typeof renderEngineWebGPUOnce>> | undefined;
+  let frame: Awaited<ReturnType<typeof renderCheckedEngineWebGPUOnce>> | undefined;
   let canvas: ReturnType<typeof configureEngineWebGPUCanvas> | undefined;
   let disposed = false;
   function release(): unknown[] {
@@ -38,7 +38,7 @@ export async function renderEngineWebGPUCanvasOnce(
     return failures;
   }
   try {
-    frame = await renderEngineWebGPUOnce(device, source.scene, width, height, format);
+    frame = await renderCheckedEngineWebGPUOnce(device, source.scene, width, height, format);
     canvas = configureEngineWebGPUCanvas(context, device, width, height, format);
     await presentEngineWebGPUColor(device, context, frame.targets.color, width, height);
     return Object.freeze({
