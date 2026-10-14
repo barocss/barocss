@@ -1,0 +1,264 @@
+{
+  "status": "PASS",
+  "assertions": 94,
+  "actualBrowser": false,
+  "actualOpenExtracted": true,
+  "entries": [
+    {
+      "entry": "source",
+      "pivotCases": [
+        {
+          "keys": [],
+          "snapshotExact": true,
+          "inputUnchanged": true
+        },
+        {
+          "keys": [
+            "A"
+          ],
+          "snapshotExact": true,
+          "inputUnchanged": true
+        },
+        {
+          "keys": [
+            "B"
+          ],
+          "snapshotExact": true,
+          "inputUnchanged": true
+        },
+        {
+          "keys": [
+            "A",
+            "B"
+          ],
+          "snapshotExact": true,
+          "inputUnchanged": true
+        }
+      ],
+      "pivotRefusals": 6,
+      "opens": [
+        {
+          "label": "success selectedB+two invalid drafts",
+          "candidateCalls": 1,
+          "adoptions": 1,
+          "releases": 0,
+          "selected": "A",
+          "counts": {
+            "ignored": 0,
+            "opens": 1
+          },
+          "helperFontCalls": 0,
+          "controlledFacilities": true
+        },
+        {
+          "label": "parse refusal",
+          "candidateCalls": 0,
+          "adoptions": 0,
+          "releases": 0,
+          "selected": "B",
+          "counts": {
+            "ignored": 0,
+            "opens": 0
+          },
+          "helperFontCalls": 0,
+          "controlledFacilities": true
+        },
+        {
+          "label": "stale after parse",
+          "candidateCalls": 0,
+          "adoptions": 0,
+          "releases": 0,
+          "selected": "B",
+          "counts": {
+            "ignored": 1,
+            "opens": 0
+          },
+          "helperFontCalls": 0,
+          "controlledFacilities": true
+        },
+        {
+          "label": "stale after candidate",
+          "candidateCalls": 1,
+          "adoptions": 0,
+          "releases": 1,
+          "selected": "B",
+          "counts": {
+            "ignored": 1,
+            "opens": 0
+          },
+          "helperFontCalls": 0,
+          "controlledFacilities": true
+        },
+        {
+          "label": "candidate refusal",
+          "candidateCalls": 1,
+          "adoptions": 0,
+          "releases": 0,
+          "selected": "B",
+          "counts": {
+            "ignored": 0,
+            "opens": 0
+          },
+          "helperFontCalls": 0,
+          "controlledFacilities": true
+        },
+        {
+          "label": "disposed entry",
+          "candidateCalls": 0,
+          "adoptions": 0,
+          "releases": 0,
+          "selected": "B",
+          "counts": {
+            "ignored": 0,
+            "opens": 0
+          },
+          "helperFontCalls": 0,
+          "controlledFacilities": true
+        }
+      ],
+      "fontReads": 0,
+      "oldProviderSuiteReplayed": false
+    },
+    {
+      "entry": "emitted",
+      "pivotCases": [
+        {
+          "keys": [],
+          "snapshotExact": true,
+          "inputUnchanged": true
+        },
+        {
+          "keys": [
+            "A"
+          ],
+          "snapshotExact": true,
+          "inputUnchanged": true
+        },
+        {
+          "keys": [
+            "B"
+          ],
+          "snapshotExact": true,
+          "inputUnchanged": true
+        },
+        {
+          "keys": [
+            "A",
+            "B"
+          ],
+          "snapshotExact": true,
+          "inputUnchanged": true
+        }
+      ],
+      "pivotRefusals": 6,
+      "opens": [
+        {
+          "label": "success selectedB+two invalid drafts",
+          "candidateCalls": 1,
+          "adoptions": 1,
+          "releases": 0,
+          "selected": "A",
+          "counts": {
+            "ignored": 0,
+            "opens": 1
+          },
+          "helperFontCalls": 0,
+          "controlledFacilities": true
+        },
+        {
+          "label": "parse refusal",
+          "candidateCalls": 0,
+          "adoptions": 0,
+          "releases": 0,
+          "selected": "B",
+          "counts": {
+            "ignored": 0,
+            "opens": 0
+          },
+          "helperFontCalls": 0,
+          "controlledFacilities": true
+        },
+        {
+          "label": "stale after parse",
+          "candidateCalls": 0,
+          "adoptions": 0,
+          "releases": 0,
+          "selected": "B",
+          "counts": {
+            "ignored": 1,
+            "opens": 0
+          },
+          "helperFontCalls": 0,
+          "controlledFacilities": true
+        },
+        {
+          "label": "stale after candidate",
+          "candidateCalls": 1,
+          "adoptions": 0,
+          "releases": 1,
+          "selected": "B",
+          "counts": {
+            "ignored": 1,
+            "opens": 0
+          },
+          "helperFontCalls": 0,
+          "controlledFacilities": true
+        },
+        {
+          "label": "candidate refusal",
+          "candidateCalls": 1,
+          "adoptions": 0,
+          "releases": 0,
+          "selected": "B",
+          "counts": {
+            "ignored": 0,
+            "opens": 0
+          },
+          "helperFontCalls": 0,
+          "controlledFacilities": true
+        },
+        {
+          "label": "disposed entry",
+          "candidateCalls": 0,
+          "adoptions": 0,
+          "releases": 0,
+          "selected": "B",
+          "counts": {
+            "ignored": 0,
+            "opens": 0
+          },
+          "helperFontCalls": 0,
+          "controlledFacilities": true
+        }
+      ],
+      "fontReads": 0,
+      "oldProviderSuiteReplayed": false
+    }
+  ],
+  "sourceScope": "Only comparison expected tree gets public setPivot(0,0), returned actual copied tree/caller unmodified",
+  "gates": {
+    "affectedBuild": {
+      "exitCode": 0,
+      "log": "/tmp/c2d1410-build.txt"
+    },
+    "commonTypes": {
+      "exitCode": 0,
+      "log": "/tmp/c2d1410-common-types.txt"
+    },
+    "reusedStrictSourceHostAndEmittedTypes": {
+      "exitCode": 0,
+      "log": "/tmp/c2d1410-scoped-types.txt"
+    }
+  },
+  "firstFailures": [
+    {
+      "stage": "firstprobeparse",
+      "log": "/tmp/c2d1410-probe-first.txt",
+      "error": "SyntaxError Unexpected reserved word",
+      "cause": "missing closure on private probe recursive node locator",
+      "publicAPIAssertionsExecuted": false,
+      "repair": "close locator; preserve profile semantics via JSON across controlled VM realms"
+    }
+  ],
+  "original1407": "INCOMPLETE frozen Openreset/explicitzeropivot requirements; original native/runtime proof immutable, not relabeled PASS"
+}

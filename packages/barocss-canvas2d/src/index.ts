@@ -112,3 +112,6 @@ export { intersectConvexPolygons } from './convex-intersection.js';
 export { splitPathSegment } from './path-split.js';
 
 export { downsampleImageAsset } from './image-downsample.js';
+
+export { rasterizeBrowserParagraphText } from './browser-text.js';
+export type { BrowserParagraphTextOptions, BrowserParagraphTextRaster } from './browser-text.js';

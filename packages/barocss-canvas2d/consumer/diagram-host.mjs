@@ -1,6 +1,6 @@
 // @ts-check
 // A fixed diagram host policy, composed from public display handles.
-import { createDisplayTree, createDisplayTreeFromScene, stringifySceneJSON } from '@barocss/canvas2d';
+import { createDisplayTree, createDisplayTreeFromScene, stringifySceneJSON, rasterizeBrowserText as browserRaster } from '@barocss/canvas2d';
 /** @typedef {import('@barocss/canvas2d').Point} Point */
 /** @typedef {'A'|'B'} Key */
 /** @typedef {'H'|'I'} Label */
@@ -102,3 +102,54 @@ export function readDiagram(scene) {
   }
   return bundle;
 }
+
+/** Browser labels are an opt-in host policy; the fixed H/I policy above is unchanged. */
+export const browserLabelIds={A:'DiagramLabelAAtlas',B:'DiagramLabelBAtlas'};
+/** @param {unknown} key @param {unknown} text @returns {{key:Key,text:string}} */
+export function validateBrowserLabel(key,text){
+  if((key!=='A'&&key!=='B')||typeof text!=='string'||text.length<1||text.length>32||! /\S/u.test(text)||/[\u0000-\u001F\u007F-\u009F\u2028\u2029]/u.test(text))throw new DiagramHostError('HOST_LABEL','Use one nonblank label of at most 32 UTF16 units');
+  for(let i=0;i<text.length;i++){const a=text.charCodeAt(i);if(a>=0xD800&&a<=0xDBFF){const b=text.charCodeAt(++i);if(!(b>=0xDC00&&b<=0xDFFF))throw new DiagramHostError('HOST_LABEL','Label has an unpaired surrogate');}else if(a>=0xDC00&&a<=0xDFFF)throw new DiagramHostError('HOST_LABEL','Label has an unpaired surrogate');}
+  return{key,text};
+}
+/** @param {Key} key @param {import('@barocss/canvas2d').GlyphRunLayout} layout @param {import('@barocss/canvas2d').ImageAssetInput} asset */
+export function admitBrowserLabel(key,layout,asset){
+  validateBrowserLabel(key,layout.text);const q=layout.glyphs[0];
+  if(layout.atlasId!==browserLabelIds[key]||layout.baseline!==0||layout.opacity!==1||layout.sampling!=='nearest'||layout.glyphs.length!==1||!q||q.textStart!==0||q.textEnd!==layout.text.length||q.sourceRect.x!==0||q.sourceRect.y!==0||q.sourceRect.width!==asset.width||q.sourceRect.height!==asset.height||q.width!==asset.width/2||q.height!==asset.height/2||![q.x,q.y,q.width,q.height].every(Number.isFinite)||q.width<=0||q.height<=0||q.width>66||q.height>26)throw new DiagramHostError('HOST_LABEL_BOUNDS','Label must fit the box interior');
+}
+/** @param {Map<string,import('@barocss/canvas2d').ImageAssetInput>} assets */
+export function copyBrowserLabelAssets(assets){
+  if(!(assets instanceof Map)||assets.size!==2)throw new DiagramHostError('HOST_DIAGRAM','Two label assets are required');
+  /** @type {Map<string,import('@barocss/canvas2d').ImageAssetInput>} */const copied=new Map();
+  for(const id of Object.values(browserLabelIds)){const a=assets.get(id);if(!a||Object.getPrototypeOf(a)!==Object.prototype)throw new DiagramHostError('HOST_DIAGRAM','Missing ordinary label asset');const d=Object.getOwnPropertyDescriptors(a);if(Reflect.ownKeys(d).length!==3||['width','height','pixels'].some(k=>!d[k]?.enumerable||!('value'in d[k])))throw new DiagramHostError('HOST_DIAGRAM','Label assets require data fields');const w=d.width.value,h=d.height.value,p=d.pixels.value;
+    if(typeof w!=='number'||typeof h!=='number'||!Number.isInteger(w)||w<1||w>132||!Number.isInteger(h)||h<1||h>52||!(p instanceof Uint8Array)||Object.getPrototypeOf(p)!==Uint8Array.prototype||['buffer','byteOffset','byteLength','length'].some(k=>Object.hasOwn(p,k))||!(p.buffer instanceof ArrayBuffer)||p.byteOffset!==0||p.byteLength!==w*h*4||p.buffer.byteLength!==p.byteLength)throw new DiagramHostError('HOST_DIAGRAM','Label asset extent differs');copied.set(id,{width:w,height:h,pixels:new Uint8Array(p)});
+  }return copied;
+}
+/** @param {Bundle} bundle @param {Key} key @param {import('@barocss/canvas2d').GlyphRunLayout} layout */
+export function setBrowserLabel(bundle,key,layout){const q=layout.glyphs[0];bundle.labels[key].setLayout(layout);bundle.labels[key].setPosition(12-q.x,12-q.y);}
+/** @param {Record<Key,import('@barocss/canvas2d').GlyphRunLayout>} layouts @returns {Bundle} */
+export function makeBrowserDiagram(layouts){const scene=makeDiagram().tree.snapshot();const bundle=diagramBundle({...scene,contextId:'BrowserGlyphDiagramConsumer'});for(const key of /** @type {const} */(['A','B']))setBrowserLabel(bundle,key,layouts[key]);return bundle;}
+/** @param {unknown} scene @returns {Bundle} */
+function diagramBundle(scene){const tree=createDisplayTreeFromScene(scene);const handles=['DiagramFrame','Connector','NodeA','NodeB','BoxA','BoxB','LabelA','LabelB'].map(id=>tree.get(id));if(handles.some((h,i)=>!h||h.kind!==['frame','path','container','container','rect','rect','glyphRun','glyphRun'][i])||tree.get('Back')?.kind!=='rect')throw new DiagramHostError('HOST_DIAGRAM','Diagram topology missing');return /** @type {Bundle} */({tree,frame:handles[0],connector:handles[1],nodes:{A:handles[2],B:handles[3]},boxes:{A:handles[4],B:handles[5]},labels:{A:handles[6],B:handles[7]}});}
+/** @param {unknown} scene @param {Map<string,import('@barocss/canvas2d').ImageAssetInput>} assets @returns {Bundle} */
+export function readBrowserDiagram(scene,assets){const bundle=diagramBundle(scene),snapshot=bundle.tree.snapshot();if(snapshot.contextId!=='BrowserGlyphDiagramConsumer'||snapshot.version!==29)throw new DiagramHostError('HOST_DIAGRAM','Wrong browser diagram context');
+  /** @type {Record<Key,import('@barocss/canvas2d').GlyphRunLayout>} */const layouts=/** @type {any} */({});
+  for(const k of /** @type {const} */(['A','B'])){const g=bundle.labels[k];if(g.kind!=='glyphRun'||bundle.nodes[k].kind!=='container'||bundle.boxes[k].kind!=='rect')throw new DiagramHostError('HOST_DIAGRAM','Wrong diagram kinds');const d=g.data,a=assets.get(browserLabelIds[k]);if(!a)throw new DiagramHostError('HOST_DIAGRAM','Missing label asset');layouts[k]={atlasId:d.atlasId,text:d.text,baseline:d.baseline,opacity:d.opacity,sampling:d.sampling,glyphs:d.glyphs};admitBrowserLabel(k,layouts[k],a);}
+  const expected=makeBrowserDiagram(layouts);for(const k of /** @type {const} */(['A','B'])){const p=validatePosition(bundle.nodes[k].data.transform);expected.nodes[k].setPosition(p.x,p.y);const pivot=bundle.labels[k].data.pivot;if(pivot&&pivot.x===0&&pivot.y===0)expected.labels[k].setPivot(0,0);}updateConnector(expected);
+  const actual=bundle.connector.data.commands,derived=expected.connector.data.commands;if(actual.length!==2||actual.some((v,i)=>v.kind!==derived[i].kind||Math.abs(/** @type {Point} */(v).x-/** @type {Point} */(derived[i]).x)>1e-10||Math.abs(/** @type {Point} */(v).y-/** @type {Point} */(derived[i]).y)>1e-10))throw new DiagramHostError('HOST_DIAGRAM','Connector centers differ');expected.connector.setPath({commands:actual,stroke:expected.connector.data.stroke});
+  if(stringifySceneJSON(snapshot)!==stringifySceneJSON(expected.tree.snapshot()))throw new DiagramHostError('HOST_DIAGRAM','Browser diagram fields/order/topology differ');return bundle;
+}
+export class BrowserLabelGate{
+  generation=0;disposed=false;drag=false;
+/** @type {object|null} */session=null;
+  begin(){return ++this.generation;}
+  startDrag(){++this.generation;this.drag=true;}
+  /** @param {number} token @param {object|null} session */valid(token,session){return !this.disposed&&!this.drag&&this.generation===token&&this.session===session;}
+}
+/** @param {Key} key @param {string} text @param {()=>boolean} current @param {number} [timeoutMS] @param {()=>void} [onPrepare] */
+export async function prepareBrowserLabel(key,text,current,timeoutMS=5000,onPrepare=()=>{}){const admitted=validateBrowserLabel(key,text);
+/** @type {ReturnType<typeof setTimeout>|undefined} */let timer;
+  try{const fonts=document.fonts;if(!fonts||typeof fonts.load!=='function'||typeof fonts.check!=='function')throw new DiagramHostError('HOST_FONT','Browser font APIs unavailable');
+    const ready=(async()=>{await fonts.ready;if(!current())return false;await fonts.load('16px system-ui',admitted.text);if(!current())return false;if(!fonts.check('16px system-ui',admitted.text))throw new DiagramHostError('HOST_FONT','Font is not ready');return true;})();
+    const ok=await Promise.race([ready,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new DiagramHostError('HOST_FONT_TIMEOUT','Font readiness exceeded 5s')),timeoutMS);})]);if(!ok||!current())return null;
+    onPrepare();const prepared=browserRaster({text:admitted.text,font:'16px system-ui',atlasId:browserLabelIds[key],dpr:2,textPolicy:'unicode-single-line'});admitBrowserLabel(key,prepared.layout,prepared.asset);return prepared;
+  }finally{clearTimeout(timer);}}

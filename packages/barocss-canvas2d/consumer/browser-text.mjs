@@ -1,16 +1,19 @@
 // @ts-check
-import { createCanvas2D, createDisplayTree, createDisplayTreeFromScene, rasterizeBrowserText, rasterizeBrowserMultilineText, rasterizeBrowserWrappedText, stringifySceneJSON } from '@barocss/canvas2d';
+import { createCanvas2D, createDisplayTree, createDisplayTreeFromScene, rasterizeBrowserText, rasterizeBrowserMultilineText, rasterizeBrowserWrappedText, rasterizeBrowserParagraphText, stringifySceneJSON } from '@barocss/canvas2d';
 import { serializeCanvasDocument, parseCanvasDocument, exportCanvasDocumentPNG } from '@barocss/canvas2d/document';
 /** @typedef {import('@barocss/canvas2d').Point} Point */
-/** @typedef {ReturnType<typeof rasterizeBrowserText>} Prepared */
+/** @typedef {ReturnType<typeof rasterizeBrowserText>|ReturnType<typeof rasterizeBrowserParagraphText>} Prepared */
+/** @typedef {Pick<import('@barocss/canvas2d').BrowserParagraphTextRaster,'maxWidth'|'lineAdvance'|'lineAlign'|'direction'|'breakPolicy'|'segmenterLocale'|'lines'>} ParagraphProfile */
 /** @typedef {{canvas:HTMLCanvasElement,renderer:import('@barocss/canvas2d').Canvas2DRenderer,
  * tree:import('@barocss/canvas2d').DisplayTree,glyph:import('@barocss/canvas2d').GlyphRunHandle,
  * scene:import('@barocss/canvas2d').Scene,asset:import('@barocss/canvas2d').ImageAssetInput,
- * maxWidth:number|null,lineAlign:import('@barocss/canvas2d').BrowserMultilineTextAlignment|null,lineAdvance:number|null,lines:import('@barocss/canvas2d').BrowserMultilineTextLine[]|null, font:string|null,textPolicy:import('@barocss/canvas2d').BrowserTextPolicy|null,rasterDPR:number|null,advance:number|null,generation:number,source:'helper'|'document',unbind:()=>void}} Session */
+ * maxWidth:number|null,lineAlign:import('@barocss/canvas2d').BrowserMultilineTextAlignment|null,lineAdvance:number|null,lines:import('@barocss/canvas2d').BrowserMultilineTextLine[]|null, font:string|null,textPolicy:import('@barocss/canvas2d').BrowserTextPolicy|null,rasterDPR:number|null,advance:number|null,paragraph:ParagraphProfile|null,generation:number,source:'helper'|'document',unbind:()=>void}} Session */
 const options = { logicalSize: { width: 320, height: 144 }, dpr: 2 };
 const atlasId = 'BrowserTextAtlas', font = '24px monospace', unicodeFont = '24px system-ui';
 const unicodeInput = /** @type {HTMLTextAreaElement} */ (document.querySelector('#unicodeText'));
 let unicodeDraft = unicodeInput.value;
+const paragraphInput=/** @type {HTMLTextAreaElement} */(document.querySelector('#paragraphText'));
+let paragraphDraft=paragraphInput.value;
 const pose = (/** @type {number} */ x = 0, /** @type {number} */ y = 0) => ({ x, y, scaleX: 1, scaleY: 1, rotation: 0 });
 let canvas = /** @type {HTMLCanvasElement} */ (document.querySelector('#scene'));
 const status = /** @type {HTMLElement} */ (document.querySelector('#status'));
@@ -26,7 +29,7 @@ let generation = 0, disposed = false, preparing = false;
 /** @type {string[]} */ const pointerLog = [];
 /** @type {(()=>void)[]} */ const hostUnbind = [];
 const counts = { helperCalls: 0, fontPreparations: 0, candidates: 0, accepted: 0, ignored: 0, errors: 0,
-  rendererCreated: 0, rendererDisposed: 0, liveRenderers: 0, binds: 0, unbinds: 0, pointerEvents: 0, pngCanvases: 0 };
+  rendererCreated: 0, rendererDisposed: 0, liveRenderers: 0, binds: 0, unbinds: 0, pointerEvents: 0, pngCanvases: 0, paragraphCalls:0, paragraphRefusals:0 };
 /** @param {unknown} error */
 function codeOf(error) { return error instanceof Error && 'code' in error ? String(error.code) : error instanceof Error ? error.name : String(error); }
 /** @param {Session} s */
@@ -91,7 +94,7 @@ function sample(s, point) {
 function sessionObservation(s) {
   const points = pointsFor(s), actual = s.renderer.getImageAsset(atlasId);
   return { generation: s.generation, source: s.source, text: s.glyph.data.text, version: s.scene.version,
-    maxWidth: s.maxWidth, lineAlign: s.lineAlign, lineAdvance: s.lineAdvance, lines: s.lines, font: s.font, textPolicy: s.textPolicy, rasterDPR: s.rasterDPR, advance: s.advance, layout: layoutOf(s), transform: s.glyph.data.transform,
+    paragraph:s.paragraph&&structuredClone(s.paragraph), maxWidth: s.maxWidth, lineAlign: s.lineAlign, lineAdvance: s.lineAdvance, lines: s.lines, font: s.font, textPolicy: s.textPolicy, rasterDPR: s.rasterDPR, advance: s.advance, layout: layoutOf(s), transform: s.glyph.data.transform,
     bounds: { left: s.glyph.data.glyphs[0].x, top: s.glyph.data.glyphs[0].y,
       width: s.glyph.data.glyphs[0].width, height: s.glyph.data.glyphs[0].height },
     atlas: { width: s.asset.width, height: s.asset.height, byteLength: s.asset.pixels.length }, allBytes: [...s.asset.pixels],
@@ -101,10 +104,10 @@ function sessionObservation(s) {
     contextId: s.scene.contextId, ids: s.tree.stage.children.map(c => c.id), sceneMatchesTree: stringifySceneJSON(s.scene) === stringifySceneJSON(s.tree.snapshot()),
     backing: { width: s.canvas.width, height: s.canvas.height } };
 }
-function observe() { return { disposed, preparing, generation, unicodeDraft, unicodeDraftValue: unicodeInput.value, counts: { ...counts }, failure, saved, opened, png,
+function observe() { return { disposed, preparing, generation, paragraphDraft, paragraphDraftValue:paragraphInput.value, unicodeDraft, unicodeDraftValue: unicodeInput.value, counts: { ...counts }, failure, saved, opened, png,
   pointerLog: [...pointerLog], accepted: session ? sessionObservation(session) : terminal }; }
 function show(/** @type {string} */ message) { status.textContent = message; output.textContent = JSON.stringify(observe(), (key, value) => key === 'allBytes' ? undefined : value, 2);
-  for (const button of Array.from(document.querySelectorAll('button'))) button.disabled = disposed; input.disabled = disposed; unicodeInput.disabled = disposed; }
+  for (const button of Array.from(document.querySelectorAll('button'))) button.disabled = disposed; input.disabled = disposed; unicodeInput.disabled = disposed; paragraphInput.disabled=disposed; }
 function fingerprint() { return session ? JSON.stringify({ scene: stringifySceneJSON(session.scene), view: sessionObservation(session) }) : 'empty'; }
 function current(/** @type {number} */ token) { return !disposed && generation === token; }
 function release(/** @type {import('@barocss/canvas2d').Canvas2DRenderer} */ renderer) { renderer.dispose(); counts.rendererDisposed++; counts.liveRenderers--; }
@@ -127,7 +130,7 @@ function fresh(tree, asset, token, source, prepared, lineAlign = null, textPolic
   const nextCanvas = document.createElement('canvas'); nextCanvas.id = 'scene'; counts.candidates++;
   const renderer = createCanvas2D(nextCanvas, options); counts.rendererCreated++; counts.liveRenderers++;
   try { renderer.setImageAsset(atlasId, asset); const scene = tree.snapshot(); renderer.updateScene(scene); renderer.render();
-    return { canvas: nextCanvas, renderer, tree, glyph, scene, asset, maxWidth: prepared && 'maxWidth' in prepared ? /** @type {import('@barocss/canvas2d').BrowserWrappedTextRaster} */ (prepared).maxWidth : null, lineAlign, lineAdvance: prepared && 'lineAdvance' in prepared ? /** @type {import('@barocss/canvas2d').BrowserMultilineTextRaster} */ (prepared).lineAdvance : null,
+    return { canvas: nextCanvas, renderer, tree, glyph, scene, asset:renderer.getImageAsset(atlasId)??asset, paragraph:prepared&&'breakPolicy'in prepared?(()=>{const p=/** @type {import('@barocss/canvas2d').BrowserParagraphTextRaster} */(prepared);return {maxWidth:p.maxWidth,lineAdvance:p.lineAdvance,lineAlign:p.lineAlign,direction:p.direction,breakPolicy:p.breakPolicy,segmenterLocale:p.segmenterLocale,lines:structuredClone(p.lines)};})():null, maxWidth: prepared && 'maxWidth' in prepared ? /** @type {import('@barocss/canvas2d').BrowserWrappedTextRaster} */ (prepared).maxWidth : null, lineAlign, lineAdvance: prepared && 'lineAdvance' in prepared ? /** @type {import('@barocss/canvas2d').BrowserMultilineTextRaster} */ (prepared).lineAdvance : null,
       lines: prepared && 'lines' in prepared ? /** @type {import('@barocss/canvas2d').BrowserMultilineTextRaster} */ (prepared).lines : null, font: prepared?.font ?? null, textPolicy: prepared ? textPolicy : null,
       rasterDPR: prepared?.dpr ?? null, advance: prepared?.advance ?? null, generation: token, source, unbind: () => {} };
   } catch (error) { release(renderer); throw error; }
@@ -178,6 +181,30 @@ async function restoredUnicodeEdit(text = unicodeInput.value) {
     show('Edited the restored Unicode label');
   } catch (error) { if (current(token)) refuse(error, before, candidates); else counts.ignored++; }
 }
+/** Prepare a current-profile international paragraph; keep the source draft on failure.
+ * @param {string} [text] @param {number} [maxWidth] @param {boolean} [restored] */
+async function editParagraph(text=paragraphInput.value,maxWidth=120,restored=false) {
+  const prior=session;if(disposed||(restored&&!prior))return;paragraphDraft=text;paragraphInput.value=text;
+  const token=++generation,before=fingerprint(),candidates=counts.candidates;preparing=true;show('Preparing current paragraph font');
+  try {counts.fontPreparations++;await document.fonts.ready;await document.fonts.load(unicodeFont,text);
+    if(!current(token)||(restored&&session!==prior)){counts.ignored++;return;}
+    if(!document.fonts.check(unicodeFont,text))throw new Error('Host font unavailable');
+    counts.helperCalls++;counts.paragraphCalls++;
+    const prepared=rasterizeBrowserParagraphText({text,font:unicodeFont,atlasId,dpr:2,maxWidth,lineAdvance:30,direction:'ltr',breakPolicy:'grapheme',lineAlign:'left'});
+    const tree=restored&&prior?createDisplayTreeFromScene(prior.scene):createDisplayTree('BrowserTextConsumer');
+    if(restored){const glyph=tree.get('Label');if(glyph?.kind!=='glyphRun')throw new Error('Label missing');glyph.setLayout(prepared.layout);}
+    else {tree.stage.addChild(tree.createRect({id:'Back',layer:0,transform:pose(),width:320,height:144,fill:[0.125,0.15625,0.21875,1]}));tree.stage.addChild(tree.createGlyphRun({id:'Label',layer:1,transform:pose(24,40),...prepared.layout}));}
+    adopt(fresh(tree,prepared.asset,token,'helper',prepared,'left',null));opened=null;show(restored?'Reflowed restored original paragraph':'Accepted current Unicode paragraph');
+  }catch(error){if(current(token))refuse(error,before,candidates);else counts.ignored++;}
+}
+/** @param {import('@barocss/canvas2d').BrowserParagraphTextOptions} options */
+function rejectParagraph(options) {
+  if(disposed)return;++generation;const before=fingerprint(),candidates=counts.candidates;
+  const field=Object.getOwnPropertyDescriptor(options,'text');if(field&&'value'in field&&typeof field.value==='string'){paragraphDraft=field.value;paragraphInput.value=field.value;}
+  counts.paragraphRefusals++;
+  try{counts.helperCalls++;rasterizeBrowserParagraphText(options);throw new Error('Unexpected paragraph acceptance');}catch(error){return refuse(error,before,candidates);}
+}
+
 /** @param {string} badFont @param {string} text */
 function rejectFont(badFont, text = 'HI') {
   if (disposed) return; ++generation; const before = fingerprint(), candidates = counts.candidates;
@@ -252,7 +279,7 @@ async function exportPNG() { const s = session; if (!s || disposed) return; cons
 }
 function dispose() { if (disposed) return; if (session) { terminal = sessionObservation(session); session.unbind(); release(session.renderer); }
   session = null; disposed = true; preparing = false; generation++; for (const remove of hostUnbind.splice(0)) remove(); show('Disposed renderer and listeners'); }
-const actions = { unicode: () => { void editUnicode(); }, restoredUnicode: () => { void restoredUnicodeEdit(); }, wrapped: () => { void editWrapped('Canvas2D labels fit this panel'); }, restoredWrapped: () => { void restoredEdit(null, 220); }, alignLeft: () => { void editMultiline('Balance\n-$20', 40, 2, 'left'); }, alignCenter: () => { void editMultiline('Balance\n-$20', 40, 2, 'center'); }, alignRight: () => { void editMultiline('Balance\n-$20', 40, 2, 'right'); }, restoredCenter: () => { void restoredEdit('center'); }, multiline: () => { void editMultiline('Balance\n-$20'); }, numeric: () => { void edit('12.5', 2, 'printable-ascii'); }, currency: () => { void edit('-$20', 2, 'printable-ascii'); }, statusLabel: () => { void edit('FPS:60', 1.5, 'printable-ascii'); }, hi: () => { void edit('HI', 2); }, space: () => { void edit('H I', 1.5); },
+const actions = { paragraph:()=>{void editParagraph();},restoredParagraph:()=>{if(session)void editParagraph(session.glyph.data.text,240,true);},unicode: () => { void editUnicode(); }, restoredUnicode: () => { void restoredUnicodeEdit(); }, wrapped: () => { void editWrapped('Canvas2D labels fit this panel'); }, restoredWrapped: () => { void restoredEdit(null, 220); }, alignLeft: () => { void editMultiline('Balance\n-$20', 40, 2, 'left'); }, alignCenter: () => { void editMultiline('Balance\n-$20', 40, 2, 'center'); }, alignRight: () => { void editMultiline('Balance\n-$20', 40, 2, 'right'); }, restoredCenter: () => { void restoredEdit('center'); }, multiline: () => { void editMultiline('Balance\n-$20'); }, numeric: () => { void edit('12.5', 2, 'printable-ascii'); }, currency: () => { void edit('-$20', 2, 'printable-ascii'); }, statusLabel: () => { void edit('FPS:60', 1.5, 'printable-ascii'); }, hi: () => { void edit('HI', 2); }, space: () => { void edit('H I', 1.5); },
   invalid: () => { rejectFont('not a font'); }, oversize: () => { rejectFont('1000px monospace', 'M'.repeat(128)); },
   restored: () => { void restoredEdit(); }, save: () => { void save().catch(error => show(`Save failed: ${codeOf(error)}`)); },
   png: () => { void exportPNG(); }, dispose };
@@ -262,7 +289,7 @@ const onOpen = () => { const file = input.files?.[0]; if (!file || disposed) ret
   void file.text().then(text => { if (!current(token)) { counts.ignored++; return; } return openText(text, token); })
     .catch(error => { if (current(token)) refuse(error, before, candidates); }); input.value = ''; };
 input.addEventListener('change', onOpen); hostUnbind.push(() => input.removeEventListener('change', onOpen));
-Object.defineProperty(window, 'browserTextConsumer', { value: Object.freeze({ observe, edit, editUnicode, restoredUnicodeEdit, editMultiline, editWrapped, rejectWrapped, rejectMultiline, rejectFont, openText, restoredEdit, save, exportPNG, dispose,
+Object.defineProperty(window, 'browserTextConsumer', { value: Object.freeze({ observe, edit, editParagraph, rejectParagraph, editUnicode, restoredUnicodeEdit, editMultiline, editWrapped, rejectWrapped, rejectMultiline, rejectFont, openText, restoredEdit, save, exportPNG, dispose,
   get canvas() { return canvas; }, get tree() { return session?.tree ?? null; }, get renderer() { return session?.renderer ?? null; }, points() { return session ? pointsFor(session) : null; },
   /** @param {Point} point */ pixel(point) { return session ? sample(session, point) : null; },
   documentText() { return session ? serialize(session) : Promise.resolve(null); } }), writable: false, configurable: false });
