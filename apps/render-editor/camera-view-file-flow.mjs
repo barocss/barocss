@@ -31,7 +31,7 @@ try{
     values.push({path,bytes:Buffer.byteLength(text),document,scene:compilation.execution.scene});
   }
   const [original,used,reedited]=values;
-  const stable=document=>{const {camera,revision,...fields}=document;return fields;};
+  const stable=document=>{const {camera,revision,...fields}=document;void camera;void revision;return fields;};
   for(const value of [used,reedited]){
     assert.deepEqual(stable(value.document),stable(original.document));
     assert.equal(value.document.sceneSource,original.document.sceneSource);

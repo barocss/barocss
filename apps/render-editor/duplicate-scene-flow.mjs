@@ -1,3 +1,5 @@
+// run() replaces __CONFIG__ in the serialized browser callback.
+/* global __CONFIG__:readonly */
 import assert from 'node:assert/strict';
 import { execFile, execFileSync } from 'node:child_process';
 import { promisify } from 'node:util';
