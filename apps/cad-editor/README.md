@@ -788,3 +788,21 @@ with the frozen source-hash map recorded by its verification receipt. The flow
 executes actual React/controller/receiver paths with explicitly mocked summaries
 and unchanged historical two-bevel geometry. #1999 actual-device orientation and
 placement checks remain separate; no repeated physical Save/Open campaign.
+
+## Pattern three finished rails
+
+On the untransformed four-node rail, select Chamfer02 → CREATE → **Linear pattern**.
+Keep Pattern spacing40mm → Preview operation → Apply operation. There are three
+total outputs: original part, railCopy1 and railCopy2. Axis+X and count3 are fixed.
+Use Edit model dimensions for patternSpacing; existing blank and bevel dimensions
+affect every copy. Undo of the structure returns to one output/four nodes; Undo
+of a later spacing edit keeps three outputs/five nodes. Further features and
+Rotate/Move after the pattern are unavailable.
+
+The three-output display deliberately uses whole-body fills to stay within the
+16-draw budget, while preserving native boundary lines and original face authority.
+Readable edges and distinct native copies still need the separate actual check.
+`node apps/cad-editor/flows/modeling-linear-pattern-flow.mjs` is the bounded local
+React/controller flow. Its adapted summaries and coincident role envelopes are
+explicit doubles; it does not evaluate native patterns or render real GPU pixels.
+No repeated physical Save/Open campaign is required by this normal-command slice.
