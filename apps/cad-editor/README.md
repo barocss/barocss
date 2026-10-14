@@ -750,10 +750,25 @@ Select Chamfer01 → Edit model dimensions to change bevelDistance to2, then use
 Preview/Apply, Undo/Redo and accepted-only Download/Open.
 
 Decimal admission is specific to this finishing command; native exact geometry
-can still refuse. No arbitrary edge picking, second bevel or circular finishing
-is implied. Local focused flow:
+can still refuse. The bounded opposite-edge continuation is below; no arbitrary
+edge picking or circular finishing is implied. Local focused flow:
 `node apps/cad-editor/flows/modeling-chamfer-authoring-flow.mjs`.
 It replays unchanged genuine two-bevel6064mm³ transport with mocked one-bevel
 command context. Historical single-bevel6128/6080mm³ results are separate from
-that display fixture. #1984 retains the actual-device geometry/history gate;
-local accepted-source/cold-load controls cover the reused file path.
+that display fixture. #1984 records the actual command/history pass at a7cbd703;
+separate bevel-face visibility/picking remains #1990. Local accepted-source/cold-load
+controls cover the reused file path.
+
+## Add the opposite rail bevel
+
+Select the owned first Chamfer → MODIFY → **Chamfer opposite top edge**, distance2,
+Preview operation → Apply operation. The target is X-parallel,Y=original profile
+maximum,Z=max, and the new driver is `backBevelDistance`. Model dimensions can edit
+front/back independently; structural Undo returns to three nodes, whereas Undo
+of a later parameter edit retains the four-node chain. Later invalid shared edits
+are native refusals, preserving the accepted source/history. No third bevel.
+
+Local focused flow: `node apps/cad-editor/flows/modeling-opposite-chamfer-flow.mjs`.
+Its unchanged historical two-bevel6064 mesh and explicitly mocked deliveries are
+not new physical proof. #1989's reduced device check covers second-bevel visibility,
+native results and history; no repeated physical Save/Open/STL campaign.

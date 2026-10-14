@@ -15,6 +15,7 @@ const SLOT = ['slotX', 'slotY', 'slotWidth', 'slotHeight'] as const;
 const HOLE = ['holeCenterX', 'holeCenterY', 'holeRadius'] as const;
 const POCKET = ['pocketWall', 'pocketFloor'] as const;
 const CHAMFER = ['bevelDistance'] as const;
+const OPPOSITE_CHAMFER = ['backBevelDistance'] as const;
 type Data = Record<string, unknown>;
 type Dimension = number | { parameter: string } | { op: 'add'; left: Dimension; right: Dimension }
   | { op: 'scale'; value: Dimension; factor: number };
@@ -135,7 +136,7 @@ function rectangle(d: Document, sketch: number, extrusion: number): number {
   check(spans.every(v => Number.isSafeInteger(v) && v >= 1 && v <= LENGTH), 'positive integer spans and thickness from 1 to 10000 mm required.');
   return height;
 }
-/** Decimal admission belongs only to the first rectangular-edge chamfer. */
+/** Decimal admission belongs only to these bounded rectangular-edge chamfers. */
 function chamferPlate(d: Document): [number, number] {
   check(d.nodes.length === 2, 'Chamfer requires one unmodified rectangular part; a second chamfer or other ancestry is unsupported.');
   const s = record(d.nodes[0], ['kind', 'profile', 'min', 'max']);
@@ -152,6 +153,25 @@ function chamferDistance(d: Document, input: unknown): number {
   const distance = length(input), [spanY, thickness] = chamferPlate(d);
   check(distance > 0 && distance < spanY && distance < thickness,
     'Bevel distance must be positive and strictly below both the rectangular Y span and extrusion thickness.');
+  return distance;
+}
+/** Only the exact first-bevel authoring graph can own the opposite top edge. */
+function oppositeChamferPlate(d: Document): [number, number, number] {
+  check(d.nodes.length === 3, 'Opposite chamfer requires the exact three-node front-bevel part; a third bevel is unsupported.');
+  check(Object.keys(d.outputs).length === 1 && Object.hasOwn(d.outputs, 'part'), 'Opposite chamfer requires the sole owned output named part.');
+  ref(d.outputs.part, 2);
+  check(Object.hasOwn(d.parameters, CHAMFER[0]) && signedJson(d.nodes[2]) === signedJson({
+    kind: 'chamfer', parent: { node: 1, side: 'solid' },
+    edge: { parallelTo: 'x', at: { y: 0, z: 'max' } }, distance: parameter(CHAMFER[0]),
+  }), 'Opposite chamfer requires the exact front bevel with its own bevelDistance driver and X-parallel Y=0, Z=max selector.');
+  const plate = { ...d, nodes: d.nodes.slice(0, 2), outputs: { part: { node: 1, side: 'solid' as const } } };
+  const [spanY, thickness] = chamferPlate(plate), front = chamferDistance(plate, d.parameters[CHAMFER[0]]);
+  return [spanY, thickness, front];
+}
+function oppositeChamferDistance(d: Document, input: unknown): number {
+  const distance = length(input), [spanY, thickness, front] = oppositeChamferPlate(d);
+  check(distance > 0 && distance < thickness && front + distance < spanY,
+    'Opposite bevel distance must be positive and strictly below thickness; front plus back must be strictly below the rectangular Y span.');
   return distance;
 }
 function parameter(key: string): { parameter: string } { return { parameter: key }; }
@@ -292,7 +312,11 @@ export function getModelingStructureCapabilities(text: string | null, summary: C
   try {
     check(text !== null && summary !== null, 'open an accepted primary rectangular part first.');
     const d = document(text), targets = accepted(d, summary);
-    chamferPlate(d); reserve(d, CHAMFER); chamfer = targets[0];
+    if (d.nodes.length === 3) {
+      oppositeChamferPlate(d); reserve(d, OPPOSITE_CHAMFER);
+      chamferReason = 'Chamfer the opposite X-parallel top edge at the original model Y=max, Z=max. Native geometry and display limits still apply.';
+    } else { chamferPlate(d); reserve(d, CHAMFER); }
+    chamfer = targets[0];
   } catch (cause) { chamferReason = message(cause); }
   // Keep the older integer-only commands and all their reasons independent.
   const none = { addArm: null, addHole: null, union: null, cutSlot: null, cutPocket: null, sharedThickness: null,
@@ -353,6 +377,14 @@ export function buildModelingStructure(text: string, summary: CadEditorModelingS
   if (kind === 'chamfer') {
     record(command, ['kind', 'target', 'distance']);
     check(capabilities.chamfer, capabilities.chamferReason); matchingTarget(command.target, capabilities.chamfer);
+    if (capabilities.chamfer.node === 2) {
+      const distance = oppositeChamferDistance(d, command.distance); reserve(d, OPPOSITE_CHAMFER);
+      d.parameters[OPPOSITE_CHAMFER[0]] = distance;
+      d.nodes.push({ kind: 'chamfer', parent: { node: 2, side: 'solid' },
+        edge: { parallelTo: 'x', at: { y: list(d.nodes[0].max, 2)[1], z: 'max' } }, distance: parameter(OPPOSITE_CHAMFER[0]) });
+      d.outputs = { part: { node: 3, side: 'solid' } };
+      return { text: canonicalModelingText(d), selectedOutput: 'part', consumed: [capabilities.chamfer.name], kind };
+    }
     const distance = chamferDistance(d, command.distance); reserve(d, CHAMFER);
     d.parameters[CHAMFER[0]] = distance;
     d.nodes.push({ kind: 'chamfer', parent: { node: 1, side: 'solid' },
