@@ -1003,14 +1003,73 @@
     }
   ],
   "apiBaseline": {
-    "status": "pending exact public product pin and expected three-symbol extraction",
-    "expectedChanged": [
-      "@barocss/cad-editor.:CadEditorModelingSnapshot",
-      "@barocss/cad-editor.:createCadEditorModelingController",
-      "@barocss/cad-editor.:preparePrismFeatureScene"
+    "status": "PASS",
+    "sourcePin": "576decad4cba4b5151cb4ea6507800e632e0c8bd",
+    "inventorySHA256": "8ddd00adeee047bde564f4efed97b684f9cc8361252c5a59693e2b33e519e57e",
+    "semanticDelta": {
+      "added": [],
+      "removed": [],
+      "changed": [
+        "@barocss/cad-editor.:CadEditorModelingSnapshot",
+        "@barocss/cad-editor.:createCadEditorModelingController",
+        "@barocss/cad-editor.:preparePrismFeatureScene"
+      ],
+      "beforePin": "5b953c4566c3a8ff57d50d109d46d0611f88340c",
+      "sourcePin": "576decad4cba4b5151cb4ea6507800e632e0c8bd",
+      "typescript": "5.9.3",
+      "signatures": {
+        "@barocss/cad-editor.:CadEditorModelingSnapshot": {
+          "before": [
+            "export interface CadEditorModelingSnapshot {\n  accepted: CadEditorModelingSummary | null; authoredText: string | null;\n  display: ModelingDisplayScene | null; faceSelection: (ModelingFaceSelection & { generation: number }) | null;\n  drafts: Record<string, string>; selection: number | null; generation: number;\n  busy: boolean; disposed: boolean; error: string | null; workerReady: boolean;\n  preview: { operation?: 'structure' | 'history'; status: 'computing' | 'ready' | 'unchanged' | 'error'; parameters: Record<string, number>; outputs?: CadEditorModelingSummary['outputs']; diagnostic?: ModelingDiagnostic } | null;\n  history: { index: number; count: number; canUndo: boolean; canRedo: boolean };\n}"
+          ],
+          "after": [
+            "export interface CadEditorModelingSnapshot {\n  accepted: CadEditorModelingSummary | null; authoredText: string | null;\n  display: ModelingDisplayScene | null; faceSelection: (ModelingFaceSelection & { generation: number }) | null;\n  drafts: Record<string, string>; selection: number | null; generation: number;\n  busy: boolean; disposed: boolean; error: string | null; workerReady: boolean;\n  viewOrientation: 'isometric' | 'top';\n  preview: { operation?: 'structure' | 'history'; status: 'computing' | 'ready' | 'unchanged' | 'error'; parameters: Record<string, number>; outputs?: CadEditorModelingSummary['outputs']; diagnostic?: ModelingDiagnostic } | null;\n  history: { index: number; count: number; canUndo: boolean; canRedo: boolean };\n}"
+          ]
+        },
+        "@barocss/cad-editor.:createCadEditorModelingController": {
+          "before": [
+            "export function createCadEditorModelingController(displayPort?: PrismDisplayPort, aspect?: () => number): { getSnapshot: () => CadEditorModelingSnapshot; preview: (recover?: boolean) => Promise<void>; previewStructure(command: ModelingStructureCommand, generation: number, recover?: boolean): Promise<void>; applyStructure(command: ModelingStructureCommand, generation: number): Promise<void>; clearPreview(): void; subscribe(listener: () => void): () => void; open: (text: string) => Promise<void>; example: (example?: CadEditorModelingExample, splitAxis?: CadEditorModelingSplitAxis) => Promise<void>; apply: () => Promise<void>; configureFinishes: (suppression: Record<string, boolean>) => Promise<void>; undo: () => Promise<void>; redo: () => Promise<void>; exportStl(name: string, generation: number, recover?: boolean): Promise<CadEditorStlExport | null>; viewOutput(name: string, generation: number): Promise<void>; stage(name: string, raw: string): void; discard(): void; select(feature: number, generation: number): void; pick(width: number, height: number, x: number, y: number, generation: number): void; cancel(): void; dispose(): void; };"
+          ],
+          "after": [
+            "export function createCadEditorModelingController(displayPort?: PrismDisplayPort, aspect?: () => number): { getSnapshot: () => CadEditorModelingSnapshot; setView(orientation: \"isometric\" | \"top\", generation: number): void; preview: (recover?: boolean) => Promise<void>; previewStructure(command: ModelingStructureCommand, generation: number, recover?: boolean): Promise<void>; applyStructure(command: ModelingStructureCommand, generation: number): Promise<void>; clearPreview(): void; subscribe(listener: () => void): () => void; open: (text: string) => Promise<void>; example: (example?: CadEditorModelingExample, splitAxis?: CadEditorModelingSplitAxis) => Promise<void>; apply: () => Promise<void>; configureFinishes: (suppression: Record<string, boolean>) => Promise<void>; undo: () => Promise<void>; redo: () => Promise<void>; exportStl(name: string, generation: number, recover?: boolean): Promise<CadEditorStlExport | null>; viewOutput(name: string, generation: number): Promise<void>; stage(name: string, raw: string): void; discard(): void; select(feature: number, generation: number): void; pick(width: number, height: number, x: number, y: number, generation: number): void; cancel(): void; dispose(): void; };"
+          ]
+        },
+        "@barocss/cad-editor.:preparePrismFeatureScene": {
+          "before": [
+            "export function preparePrismFeatureScene(packet: PrismDisplayPacket, view: PrismDisplayView, aspect?: number): PrismDisplayScene;"
+          ],
+          "after": [
+            "export function preparePrismFeatureScene(packet: PrismDisplayPacket, view: PrismDisplayView, aspect?: number, orientation?: 'isometric' | 'top'): PrismDisplayScene;"
+          ]
+        }
+      }
+    },
+    "checks": [
+      {
+        "name": "qualified-write",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--write-current",
+          "--commit",
+          "576decad4cba4b5151cb4ea6507800e632e0c8bd"
+        ],
+        "exitCode": 0,
+        "seconds": 5.331998595996993
+      },
+      {
+        "name": "qualified-check",
+        "command": [
+          "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "apps/library-docs/scripts/public-api.mjs",
+          "--check"
+        ],
+        "exitCode": 0,
+        "seconds": 5.238896260008914
+      }
     ],
-    "expectedAdded": [],
-    "expectedRemoved": []
+    "extractor": "TypeScript5.9.3 with unchanged extractor and historical API baseline; current source is public product commit, all nine package source trees retained",
+    "currentProviderBoundary": "Actual current rotation/mirror source used for extraction. This is source API evidence, not an emitted-provider/native execution claim."
   },
   "embeddedLogs": {
     "package-attempt01.log": {
@@ -1040,6 +1099,14 @@
     "render-links.log": {
       "sha256": "2a64ce7c93fe3debe5cd01669bbc136da9d5a2092b4bf48ba689c04579026c3b",
       "text": "{\"result\":\"PASS\",\"candidate\":\"eb14c25bd859800b18f4abdb552a7929fb95a8cf\",\"node\":\"v24.19.0\",\"vitepress\":\"1.6.4\",\"pages\":1,\"emittedHeadingIds\":[\"inspect-a-model-from-top-or-isometric\"],\"verifiedCrosslinks\":65}\n"
+    },
+    "api/qualified-write.log": {
+      "sha256": "6009112b63e4f2348c076b288ffe4e298c56bf9a30e3b13db6af4e42a9e58f3c",
+      "text": "(node:63) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"status\":\"written\",\"evidence\":\"evidence/current-public-api.json\",\"sourceCommit\":\"576decad4cba4b5151cb4ea6507800e632e0c8bd\",\"packages\":9,\"changesFromHistorical\":{\"added\":1644,\"removed\":0,\"changed\":52}}\n"
+    },
+    "api/qualified-check.log": {
+      "sha256": "5e6d029883f10451baa13eb66ea66154f23b791a0d065f794ed32803b950a022",
+      "text": "(node:107) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"status\":\"matched\",\"sourceCommit\":\"576decad4cba4b5151cb4ea6507800e632e0c8bd\",\"scope\":\"current API\",\"packages\":9,\"entries\":75,\"exportedOccurrences\":4191,\"extractor\":\"5.9.3\"}\n"
     }
   },
   "limits": [
@@ -1049,5 +1116,6 @@
     "No local package/full-repository build; no unchanged native or old full UI campaign repeated.",
     "The prior #1960 device flow at e5b805ac accepted native authoring/history/files but did not visually distinguish the slot. #1960 stays OPEN pending the separate saved-model Top/Isometric check.",
     "Camera changes retain logical state on renderer refusal. Context loss or failed rollback does not promise preserved pixels."
-  ]
+  ],
+  "publicProductCommit": "576decad4cba4b5151cb4ea6507800e632e0c8bd"
 }

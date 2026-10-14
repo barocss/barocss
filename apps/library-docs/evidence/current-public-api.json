@@ -1,7 +1,7 @@
 {
   "schema": "barocss-current-public-api-v1",
   "typescriptVersion": "5.9.3",
-  "sourceCommit": "5b953c4566c3a8ff57d50d109d46d0611f88340c",
+  "sourceCommit": "576decad4cba4b5151cb4ea6507800e632e0c8bd",
   "extractor": "TypeScript 5.9.3 public module exports and declarations; not a type-check or runtime execution",
   "packages": [
     {
@@ -50235,7 +50235,7 @@
               "name": "CadEditorModelingController",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-cad-editor/src/modeling-controller.ts",
-              "line": 656,
+              "line": 673,
               "signatures": [
                 "export type CadEditorModelingController = ReturnType<typeof createCadEditorModelingController>;"
               ],
@@ -50247,9 +50247,9 @@
               "source": "packages/barocss-cad-editor/src/modeling-controller.ts",
               "line": 15,
               "signatures": [
-                "export interface CadEditorModelingSnapshot {\n  accepted: CadEditorModelingSummary | null; authoredText: string | null;\n  display: ModelingDisplayScene | null; faceSelection: (ModelingFaceSelection & { generation: number }) | null;\n  drafts: Record<string, string>; selection: number | null; generation: number;\n  busy: boolean; disposed: boolean; error: string | null; workerReady: boolean;\n  preview: { operation?: 'structure' | 'history'; status: 'computing' | 'ready' | 'unchanged' | 'error'; parameters: Record<string, number>; outputs?: CadEditorModelingSummary['outputs']; diagnostic?: ModelingDiagnostic } | null;\n  history: { index: number; count: number; canUndo: boolean; canRedo: boolean };\n}"
+                "export interface CadEditorModelingSnapshot {\n  accepted: CadEditorModelingSummary | null; authoredText: string | null;\n  display: ModelingDisplayScene | null; faceSelection: (ModelingFaceSelection & { generation: number }) | null;\n  drafts: Record<string, string>; selection: number | null; generation: number;\n  busy: boolean; disposed: boolean; error: string | null; workerReady: boolean;\n  viewOrientation: 'isometric' | 'top';\n  preview: { operation?: 'structure' | 'history'; status: 'computing' | 'ready' | 'unchanged' | 'error'; parameters: Record<string, number>; outputs?: CadEditorModelingSummary['outputs']; diagnostic?: ModelingDiagnostic } | null;\n  history: { index: number; count: number; canUndo: boolean; canRedo: boolean };\n}"
               ],
-              "digest": "15ccc20b30e149749d3c552d2aad4c135641c1be609554418e30c45508c4ca4d"
+              "digest": "7aa746841277e2621e6a09cfd7c44944cab7a2686a53a1145afae303afd4da59"
             },
             {
               "name": "CadEditorModelingSummary",
@@ -50655,11 +50655,11 @@
               "name": "createCadEditorModelingController",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-cad-editor/src/modeling-controller.ts",
-              "line": 200,
+              "line": 201,
               "signatures": [
-                "export function createCadEditorModelingController(displayPort?: PrismDisplayPort, aspect?: () => number): { getSnapshot: () => CadEditorModelingSnapshot; preview: (recover?: boolean) => Promise<void>; previewStructure(command: ModelingStructureCommand, generation: number, recover?: boolean): Promise<void>; applyStructure(command: ModelingStructureCommand, generation: number): Promise<void>; clearPreview(): void; subscribe(listener: () => void): () => void; open: (text: string) => Promise<void>; example: (example?: CadEditorModelingExample, splitAxis?: CadEditorModelingSplitAxis) => Promise<void>; apply: () => Promise<void>; configureFinishes: (suppression: Record<string, boolean>) => Promise<void>; undo: () => Promise<void>; redo: () => Promise<void>; exportStl(name: string, generation: number, recover?: boolean): Promise<CadEditorStlExport | null>; viewOutput(name: string, generation: number): Promise<void>; stage(name: string, raw: string): void; discard(): void; select(feature: number, generation: number): void; pick(width: number, height: number, x: number, y: number, generation: number): void; cancel(): void; dispose(): void; };"
+                "export function createCadEditorModelingController(displayPort?: PrismDisplayPort, aspect?: () => number): { getSnapshot: () => CadEditorModelingSnapshot; setView(orientation: \"isometric\" | \"top\", generation: number): void; preview: (recover?: boolean) => Promise<void>; previewStructure(command: ModelingStructureCommand, generation: number, recover?: boolean): Promise<void>; applyStructure(command: ModelingStructureCommand, generation: number): Promise<void>; clearPreview(): void; subscribe(listener: () => void): () => void; open: (text: string) => Promise<void>; example: (example?: CadEditorModelingExample, splitAxis?: CadEditorModelingSplitAxis) => Promise<void>; apply: () => Promise<void>; configureFinishes: (suppression: Record<string, boolean>) => Promise<void>; undo: () => Promise<void>; redo: () => Promise<void>; exportStl(name: string, generation: number, recover?: boolean): Promise<CadEditorStlExport | null>; viewOutput(name: string, generation: number): Promise<void>; stage(name: string, raw: string): void; discard(): void; select(feature: number, generation: number): void; pick(width: number, height: number, x: number, y: number, generation: number): void; cancel(): void; dispose(): void; };"
               ],
-              "digest": "d477ad32f39a63d0767bfcb7d6a12859b3826607e3da9ebacbb4026f9296b099"
+              "digest": "a3896b3b8c6153f45a44bf1aa76eb34d17bb7dc0b8ba7cf03233a1b4e4b1899d"
             },
             {
               "name": "createCadEditorPrismFeatureController",
@@ -50805,7 +50805,7 @@
               "name": "ModelingOrthogonalFaceSelection",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-cad-editor/src/modeling-scene.ts",
-              "line": 359,
+              "line": 360,
               "signatures": [
                 "export type ModelingOrthogonalFaceSelection = ModelingUnionFaceSelection;"
               ],
@@ -50855,7 +50855,7 @@
               "name": "pickPrismFeatureScene",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-cad-editor/src/prism-feature-scene.ts",
-              "line": 204,
+              "line": 205,
               "signatures": [
                 "export function pickPrismFeatureScene(display: PrismDisplayScene, width: number, height: number, x: number, y: number): PrismFaceSelection | null;"
               ],
@@ -50867,9 +50867,9 @@
               "source": "packages/barocss-cad-editor/src/prism-feature-scene.ts",
               "line": 40,
               "signatures": [
-                "export function preparePrismFeatureScene(packet: PrismDisplayPacket, view: PrismDisplayView, aspect?: number): PrismDisplayScene;"
+                "export function preparePrismFeatureScene(packet: PrismDisplayPacket, view: PrismDisplayView, aspect?: number, orientation?: 'isometric' | 'top'): PrismDisplayScene;"
               ],
-              "digest": "835b12efe12484f397067f539ede4c4075c7e5e3cbef9aae72a8965fa6cbc722"
+              "digest": "79d39137848b11bd8248c29b3416bd48e5a3c5ed7878ca46e557961a8e252532"
             },
             {
               "name": "PrismDisplayComponent",
@@ -55178,13 +55178,13 @@
   ],
   "packageTrees": {
     "packages/barocss-render": "b83e4912e1d1aa658f048ba4b112376785b288fb",
-    "packages/barocss-gpu": "fbe1fc867735a419a45b1b0ffa075bb801947ce9",
+    "packages/barocss-gpu": "5fdd9480dbef8a1ec1ff635a847c8e8ab437d4c2",
     "packages/barocss-cad": "d8be9c8b130db0da38c1e49736864f0bfc73438c",
     "packages/barocss-cad-interop": "1a2584cfb25826412096512aa71d74f059e5092d",
     "packages/barocss-canvas2d": "39853a85709f5c59dba7cdbbab3fd87da48cb54a",
     "packages/barocss-viewer": "aa7736ed08620fe9b7db2eff4feec5c89f9e502b",
     "packages/barocss-physics": "f3aa5c6e161137cb80fb68f73a517cd6bdc673dd",
-    "packages/barocss-cad-editor": "599f49d851504961779da44f9a991b1b96e1e795",
+    "packages/barocss-cad-editor": "a532b9fc1a0ff18631f708a53a4fc0c795bdb508",
     "packages/barocss-render-editor": "d1486acf9b983dba6839d2bf303406876244e2e6"
   },
   "historicalSourceCommit": "5f5ad866205a21510ac69552e704cc162fa253b5",
