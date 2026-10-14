@@ -16,7 +16,7 @@ function admit(point: Point, spec: CardinalRotationSpec): { point: Point; spec: 
   try {
     if (!Array.isArray(point) || Object.getPrototypeOf(point) !== Array.prototype) refuse();
     const entries = Object.getOwnPropertyDescriptors(point);
-    if (Reflect.ownKeys(entries).length !== 4 || !('value' in entries.length) || entries.length.value !== 3) refuse();
+    if (Reflect.ownKeys(entries).length !== 4 || !Object.hasOwn(entries, 'length') || entries.length?.value !== 3) refuse();
     const values = [0, 1, 2].map(i => {
       const item = entries[String(i)];
       if (!item || !('value' in item) || !item.enumerable || typeof item.value !== 'number' ||
@@ -31,7 +31,7 @@ function admit(point: Point, spec: CardinalRotationSpec): { point: Point; spec: 
     const axis = options.axis.value, degrees = options.degrees.value;
     if ((axis !== 'x' && axis !== 'y' && axis !== 'z') ||
         (degrees !== 90 && degrees !== 180 && degrees !== 270)) refuse();
-    return { point: values, spec: { axis, degrees } };
+    return { point: values, spec: { axis: axis as CardinalRotationAxis, degrees: degrees as CardinalRotationDegrees } };
   } catch {
     return refuse();
   }
