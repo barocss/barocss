@@ -1524,3 +1524,27 @@ Its ten groups replay 104 unchanged retained Surface packets (46 pocket, 14 unio
 accepted-view restoration and nonorthogonal parity. The receiving/raycast fault
 doubles are confined to malformed private-map controls. No native calls or GPU
 pixels are established; visible cavity readability remains an actual Tester gate.
+
+## Author a front top chamfer
+
+Select the Extrude of an unmodified origin-zero rectangular part, then choose
+**MODIFY → Chamfer front top edge**. The target is the model-coordinate
+**X-parallel edge at Y=0, Z=max**, independent of camera orientation. Enter a
+positive decimal bevel distance, **Preview operation**, then **Apply operation**.
+Apply is enabled only for the current ready preview and never starts a hidden
+native evaluation. Enter in this command's field requests Preview; Escape cancels.
+
+The command preserves the original sketch/extrusion and appends one named
+`bevelDistance` chamfer. Select Chamfer and use **Edit model dimensions** for later
+changes. Native exact geometry and complete convex preview admission remain
+responsible for acceptance; a necessary positive distance smaller than Y span and
+thickness is not a success guarantee. Existing integer Boolean/hole/pocket
+profiles are unchanged. No arbitrary edge picker or second bevel is offered.
+
+The focused checks are `node packages/barocss-cad-editor/scripts/modeling-chamfer-authoring-test.mjs`
+and the app's `modeling-chamfer-authoring-flow.mjs`. Historical native volumes for
+32×24×8 are6128mm³ at distance1 and6080mm³ at2. The retained CPU preview is a
+separate two-bevel6064mm³ fixture; mocked one-bevel command delivery does not
+establish those pixels. [#1984](https://github.com/barocss/barocss/issues/1984)
+keeps actual one-bevel authoring and visibility pending. Accepted source/round-trip
+controls are local; the unchanged common file path needs no repeated device campaign.

@@ -32,6 +32,7 @@ function harness(options = {}) {
     owned.push(value);return value;
   }
   const device = {
+    lost: deferred().promise,
     limits:{maxTextureDimension2D:4096},
     destroy(){throw new Error('borrowed device destroyed');},
     pushErrorScope(filter){events.push(['push',filter]);if (++pushes === options.failPush)throw options.cause;stack.push(filter);},
