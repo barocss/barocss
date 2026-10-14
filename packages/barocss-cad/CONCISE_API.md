@@ -1041,10 +1041,11 @@ a 0.1 mm X spacing for this gusset cannot represent every exact coordinate sum.
 One translated copy of a direct affine extrusion or its complete one/two-chamfer
 finishing chain is supported within the existing six-node envelope. Rectangle, convex polygon and constrainedPolygon parents,
 including admitted extrusion placement, use the same convex body contract.
-The copy is a terminal named output: no translation chaining, edge finishing,
-Boolean, hole or split consumes it. Finished-copy graphs must be exactly one
+A direct copy may enter the precise terminal intersection recipe shown below.
+Other translation chaining, edge finishing, Boolean, hole or split operations
+cannot consume it. Finished-copy graphs must be exactly one
 sketch, its extrusion, one/two sequential chamfers, then the translation.
-Unrelated finishing siblings and Boolean mixtures remain unsupported. Round posts and other body families are refused early. This is
+Unrelated finishing siblings and other Boolean mixtures remain unsupported. Round posts and other body families are refused early. This is
 not a rotation, scale, mirror, pattern or arbitrary B-Rep transform API.
 
 For two finished rails, keep the existing edge-selection and copy syntax:
@@ -1466,3 +1467,51 @@ and translation records. A refused edit preserves the accepted save, bodies,
 evidence, original provider cause, and completed-work report. No new file
 schema, transform kernel, persistent naming, mass transformation, STL, editor,
 GPU, or manufacturing proof is added.
+
+### Intersect one translated direct extrusion
+
+```ts
+import { cad } from '@barocss/cad';
+
+const m = cad.model();
+const offsetX = m.parameter('offsetX', 8);
+const original = m.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const tool = m.sketch.rectangle({ min: [16, -8], max: [48, 16] }).extrude(4);
+const translated = original.translate([offsetX, 0, 0]);
+const overlap = translated.intersect(tool);
+const snapshot = m.build({ original, tool, translated, overlap });
+const edited = snapshot.withParameters({ offsetX: 12 });
+const reopened = cad.load(edited.save());
+void reopened;
+```
+
+The complete recipe has exactly six nodes. The first four are two distinct
+sketches and their two direct extrusions. Each extrusion must consume its own
+earlier sketch; both sketches may be authored first. The translation and its
+terminal intersection must be the last two nodes. Either source may be translated. `translated.intersect(tool)` and
+`tool.intersect(translated)` admit the same operand families. The other operand
+must be the distinct second source; the copy cannot intersect its own original.
+
+Rectangle, convex polygon and constrained-polygon sources, including their
+existing extrusion `from` placement, remain editable. A shared sketch, unused
+sketch, extra source, finishing chain, rotation, mirror, scale, pattern, circle,
+repeated translation, another Boolean or later feature does not enter this
+recipe. Existing direct/direct intersection and its admitted chamfer remain
+compatible. Standalone translation siblings and the exact rotation-then-placement
+recipe also retain their existing rules.
+
+The existing translation provider constructs and qualifies the actual translated
+Solid. The existing intersection provider reconstructs both complete operands,
+clips their facets with exact arithmetic, and qualifies the positive-volume
+result. Its lineage identifies the actual left/right operand sources, supporting
+facets and original edge intervals. It retains original Surface coefficients
+and regenerates the final trimmed B-Rep. Intersection lineage is not a copy
+bijection or a persistent naming guarantee.
+
+Offset-only edits reuse both source prefixes and rebuild the translation and
+intersection. Other parameter edits use the existing sequential prefix reuse.
+Save/Open retains the existing translation and intersection records without a
+new schema. Disjoint or lower-dimensional contact refuses with `SELECTION` and
+`cause.contactDimension`. Exact representation failures retain the original
+Native cause. Failed edits leave the accepted save, bodies and evidence intact.
+No rounding, fusion, mass, STL, editor, GPU or manufacturing acceptance is added.

@@ -11013,8 +11013,9 @@ body family or renderer replacement is involved.
 
 ### One exact owned translated copy
 
-The primary `CadShape.translate([dx,dy,dz])` creates a terminal copy of a direct
-affine extrusion or its complete one/two-chamfer finishing chain. A two-gusset recipe can build `{ left, right: left.translate([spacing,0,0]) }`
+The primary `CadShape.translate([dx,dy,dz])` creates an exact copy of a direct
+affine extrusion or its complete one/two-chamfer finishing chain. A direct copy
+may enter the bounded terminal intersection recipe below. A two-gusset recipe can build `{ left, right: left.translate([spacing,0,0]) }`
 and edit `spacing` without rebuilding the accepted parent sketch or extrusion.
 See the complete [two-gusset example](CONCISE_API.md#two-owned-gussets-with-a-driving-spacing).
 
@@ -11040,8 +11041,9 @@ spacing reuses the accepted finishes. Named disabled finishes still validate, an
 the copy consumes the actual selected parent. The native reconstruction and its
 10-Face/48-use/24-edge/16-vertex limits are unchanged. It remains the
 existing `convex-planar` body family and can be named, saved, reopened, tessellated
-and measured. No translated-parent Boolean, split, chamfer, hole, chaining,
-rotation, mirror, scale or pattern is admitted. Boolean mixtures, finishing
+and measured. Only the bounded direct-source intersection recipe below admits
+a translated Boolean operand. Other Boolean, split, chamfer, hole, chaining,
+rotation, mirror, scale or pattern operations cannot consume the copy. Other Boolean mixtures, finishing
 siblings and operations after the finished copy refuse. Circle and other body families remain outside
 this scope. Native preview packets do not establish a new editor preset or
 browser/GPU/physical acceptance.
@@ -11418,3 +11420,51 @@ and translation records. A refused edit preserves the accepted save, bodies,
 evidence, original provider cause, and completed-work report. No new file
 schema, transform kernel, persistent naming, mass transformation, STL, editor,
 GPU, or manufacturing proof is added.
+
+### Intersect one translated direct extrusion
+
+```ts
+import { cad } from '@barocss/cad';
+
+const m = cad.model();
+const offsetX = m.parameter('offsetX', 8);
+const original = m.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const tool = m.sketch.rectangle({ min: [16, -8], max: [48, 16] }).extrude(4);
+const translated = original.translate([offsetX, 0, 0]);
+const overlap = translated.intersect(tool);
+const snapshot = m.build({ original, tool, translated, overlap });
+const edited = snapshot.withParameters({ offsetX: 12 });
+const reopened = cad.load(edited.save());
+void reopened;
+```
+
+The complete recipe has exactly six nodes. The first four are two distinct
+sketches and their two direct extrusions. Each extrusion must consume its own
+earlier sketch; both sketches may be authored first. The translation and its
+terminal intersection must be the last two nodes. Either source may be translated. `translated.intersect(tool)` and
+`tool.intersect(translated)` admit the same operand families. The other operand
+must be the distinct second source; the copy cannot intersect its own original.
+
+Rectangle, convex polygon and constrained-polygon sources, including their
+existing extrusion `from` placement, remain editable. A shared sketch, unused
+sketch, extra source, finishing chain, rotation, mirror, scale, pattern, circle,
+repeated translation, another Boolean or later feature does not enter this
+recipe. Existing direct/direct intersection and its admitted chamfer remain
+compatible. Standalone translation siblings and the exact rotation-then-placement
+recipe also retain their existing rules.
+
+The existing translation provider constructs and qualifies the actual translated
+Solid. The existing intersection provider reconstructs both complete operands,
+clips their facets with exact arithmetic, and qualifies the positive-volume
+result. Its lineage identifies the actual left/right operand sources, supporting
+facets and original edge intervals. It retains original Surface coefficients
+and regenerates the final trimmed B-Rep. Intersection lineage is not a copy
+bijection or a persistent naming guarantee.
+
+Offset-only edits reuse both source prefixes and rebuild the translation and
+intersection. Other parameter edits use the existing sequential prefix reuse.
+Save/Open retains the existing translation and intersection records without a
+new schema. Disjoint or lower-dimensional contact refuses with `SELECTION` and
+`cause.contactDimension`. Exact representation failures retain the original
+Native cause. Failed edits leave the accepted save, bodies and evidence intact.
+No rounding, fusion, mass, STL, editor, GPU or manufacturing acceptance is added.

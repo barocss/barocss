@@ -68,7 +68,7 @@ export interface CadEdgeSelection { readonly kind: 'edge-selection' }
 export interface CadEdgeQueryHandle { one(): CadEdgeSelection }
 type SplitPlane = { readonly axis: CadAxis; readonly plane?: never } | { readonly plane: 'x+y'; readonly axis?: never };
 export interface CadShape {
-  /** Exact translation of a direct affine extrusion, its finishing chain, or the last owned cardinal rotation. Rotated placement is terminal. */
+  /** Exact translation of a direct affine extrusion, its finishing chain, or the last owned cardinal rotation. A direct copy may enter the bounded terminal intersection recipe. */
   translate(offset: readonly [CadDimension, CadDimension, CadDimension]): CadShape;
   /** Right-handed cardinal rotation about the world origin. Only one terminal translation of this exact owned result may follow. */
   rotate(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | 180 | 270 | -90 | -180 | -270 }): CadShape;
@@ -87,7 +87,7 @@ export interface CadShape {
   union(other: CadShape): CadShape;
   /** One full-thickness stored-rational hole in a direct origin-aligned integer rectangular plate. */
   hole(options: { readonly center: CadPoint2; readonly radius: CadDimension }): CadShape;
-  /** Positive-volume overlap of two distinct direct XY extrusions; disjoint/touching parts refuse. */
+  /** Positive-volume overlap of direct affine extrusions, or one translated source and the distinct other source in the complete six-node recipe; disjoint/touching parts refuse. */
   intersect(other: CadShape): CadShape;
   /** Cardinal or x+y=at split of a direct XY extrusion or its owned chamfer chain; at is a coordinate/sum in mm. */
   split(options: SplitPlane & { readonly at: CadDimension }): CadSplit;
@@ -407,6 +407,27 @@ function rotatedPlacementPair(nodes: readonly Node[]): boolean {
     && rotation.parent.node >= 0 && rotation.parent.node < nodes.length - 2
     && rotationParent(nodes.slice(0, -2), rotation.parent);
 }
+/** Two distinct sketch/extrusion sources, one translated copy, then their terminal intersection. */
+function translatedIntersection(nodes: readonly Node[]): boolean {
+  if (nodes.length !== 6) return false;
+  const sources = nodes.slice(0, 4), extrusions: number[] = [], sketches = new Set<number>();
+  for (const [index, node] of sources.entries()) {
+    if (node?.kind === 'sketch') sketches.add(index);
+    else if (node?.kind === 'extrude' && Number.isInteger(node.sketch) && node.sketch >= 0 && node.sketch < index
+      && sources[node.sketch]?.kind === 'sketch' && affineExtrusion(nodes, { node: index, side: 'solid' })) extrusions.push(index);
+    else return false;
+  }
+  if (sketches.size !== 2 || extrusions.length !== 2) return false;
+  const first = nodes[extrusions[0]], second = nodes[extrusions[1]];
+  if (first.kind !== 'extrude' || second.kind !== 'extrude' || first.sketch === second.sketch) return false;
+  const translation = nodes[4], intersection = nodes[5];
+  if (translation?.kind !== 'translate' || intersection?.kind !== 'intersect' || translation.parent?.side !== 'solid'
+    || !extrusions.includes(translation.parent.node)) return false;
+  const other = translation.parent.node === extrusions[0] ? extrusions[1] : extrusions[0];
+  return intersection.left?.side === 'solid' && intersection.right?.side === 'solid'
+    && (intersection.left.node === 4 && intersection.right.node === other
+      || intersection.right.node === 4 && intersection.left.node === other);
+}
 const mirrorParentDetail = 'Mirror across a plane through the world origin requires a direct affine extrusion or its complete owned one/two-chamfer chain; the mirrored copy is terminal';
 function mirrorOptions(value: unknown, fields: readonly string[]): { plane: MirrorPlane } {
   let descriptors: PropertyDescriptorMap;
@@ -614,7 +635,8 @@ function admit(input: Document): Document {
       boxDimensions(nodes, n.left, d.parameters); boxDimensions(nodes, n.right, d.parameters);
     } else if (n.kind === 'intersect') {
       record(n, 'intersect', ['kind', 'left', 'right']); body(n.left, i); body(n.right, i);
-      demand(affineExtrusion(nodes, n.left) && affineExtrusion(nodes, n.right) && n.left.node !== n.right.node, 'CAPABILITY', 'intersect', 'Intersection requires two distinct direct XY extrusions');
+      demand(affineExtrusion(nodes, n.left) && affineExtrusion(nodes, n.right) && n.left.node !== n.right.node
+        || translatedIntersection(nodes), 'CAPABILITY', 'intersect', 'Intersection requires distinct direct XY extrusions or the complete translated-source recipe');
     } else if (n.kind === 'split') {
       splitPlane(n, ['kind', 'parent', 'at']); body(n.parent, i); dimension(n.at);
       demand(splitParent(nodes, n.parent), 'CAPABILITY', 'split', 'Split requires a direct XY extrusion or its owned chamfer chain');
@@ -648,7 +670,7 @@ function admit(input: Document): Document {
     && rotationParent(nodes.slice(0, -1), last.parent)), 'CAPABILITY', 'mirror', mirrorParentDetail);
   demand(counts.rotate <= 1 && (!counts.rotate || placement || last.kind === 'rotate'
     && rotationParent(nodes.slice(0, -1), last.parent)), 'CAPABILITY', 'rotate', rotationParentDetail);
-  demand(counts.translate <= 1 && (!counts.translate || counts.cut + counts.intersect + counts.split + counts.hole + counts.union + counts.difference === 0
+  demand(counts.translate <= 1 && (!counts.translate || translatedIntersection(nodes) || counts.cut + counts.intersect + counts.split + counts.hole + counts.union + counts.difference === 0
     && (!counts.chamfer || placement || last.kind === 'translate' && finishedTranslationPrefix(nodes.slice(0, -1), last.parent))),
   'CAPABILITY', 'translate', 'One terminal translation permits only its complete owned finishing chain');
   demand(counts.difference <= CadModelLimits.differences && (!counts.difference || composed || counts.cut + counts.intersect + counts.split + counts.chamfer + counts.hole + counts.union === 0), 'CAPABILITY', 'graph', 'Only one exact union-slot chain may mix a difference with another operation');
@@ -683,6 +705,8 @@ export function createCadModel(): CadModel {
     const operation = node.kind === 'difference' ? 'cut' : node.kind === 'linear-pattern' ? 'linearPattern' : node.kind === 'circular-pattern' ? 'circularPattern' : node.kind;
     authoring(operation);
     const placement = rotatedPlacementPair([...nodes, node]);
+    const translatedOverlap = translatedIntersection([...nodes, node]);
+    demand(!translatedIntersection(nodes), 'CAPABILITY', operation, 'The translated-source intersection is terminal');
     demand(!nodes.some(n => n.kind === 'circular-pattern'), 'CAPABILITY', operation, 'Circular patterns are terminal; no later authored operation is supported');
     demand(node.kind !== 'circular-pattern' || rotationParent(nodes, node.parent), 'CAPABILITY', operation, circularPatternParentDetail);
     demand(!nodes.some(n => n.kind === 'linear-pattern'), 'CAPABILITY', operation, 'Linear patterns are terminal; no later authored operation is supported');
@@ -703,7 +727,7 @@ export function createCadModel(): CadModel {
     demand(node.kind === 'translate'
       ? !nodes.some(n => translationIncompatible.includes(n.kind) && n.kind !== 'chamfer')
         && (!nodes.some(n => n.kind === 'chamfer') || placement || finishedTranslationPrefix(nodes, node.parent))
-      : !translationIncompatible.includes(node.kind) || !nodes.some(n => n.kind === 'translate'),
+      : !translationIncompatible.includes(node.kind) || !nodes.some(n => n.kind === 'translate') || translatedOverlap,
     'CAPABILITY', operation, 'Translation permits only its complete owned finishing chain');
     const finishing = ['cut', 'intersect', 'split', 'chamfer'];
     demand(node.kind === 'hole' ? !nodes.some(n => finishing.includes(n.kind)) : !finishing.includes(node.kind) || !nodes.some(n => n.kind === 'hole'), 'CAPABILITY', operation, 'A hole cannot be mixed with convex finishing operations');
@@ -832,8 +856,15 @@ export function createCadModel(): CadModel {
       intersect(other: CadShape): CadShape {
         authoring('intersect');
         const right = body(other);
-        demand(affineExtrusion(nodes, reference) && affineExtrusion(nodes, right) && reference.node !== right.node, 'CAPABILITY', 'intersect', 'Intersection requires two distinct direct XY extrusions');
-        return shape({ node: append({ kind: 'intersect', left: { ...reference }, right }), side: 'solid' });
+        const node: Node = { kind: 'intersect', left: { ...reference }, right };
+        const translatedOverlap = translatedIntersection([...nodes, node]);
+        if (translatedOverlap) {
+          demand(this === handle, 'OWNERSHIP', 'intersect', 'Intersection belongs to this exact owned shape handle');
+          demand(arguments.length === 1, 'INPUT', 'intersect', 'Intersection requires exactly one other shape');
+        }
+        demand(affineExtrusion(nodes, reference) && affineExtrusion(nodes, right) && reference.node !== right.node
+          || translatedOverlap, 'CAPABILITY', 'intersect', 'Intersection requires distinct direct XY extrusions or the complete translated-source recipe');
+        return shape({ node: append(node), side: 'solid' });
       },
       cut,
       edges(query: CadEdgeQuery): CadEdgeQueryHandle {
