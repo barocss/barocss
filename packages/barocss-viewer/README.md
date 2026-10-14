@@ -1215,3 +1215,27 @@ appearance state. If GPU submission fails after the temporary renderer is
 created, the renderer is disposed; if that disposal also fails, both errors
 are retained in an `AggregateError`. This is a software implementation
 contract, not a browser/device acceptance certificate.
+
+### Explicit qualified Face to native appearance handoff (#1913)
+
+`viewer.handoffQualifiedFaceToNativeSceneAppearance(input, 'dispose-remount')`
+accepts only the Viewer's current authentic `QualifiedFaceSceneRenderer`. It
+prepares the complete native document, TEN bindings, appearance, camera, and
+one frame before asking GPU to retire the old renderer. The same canvas and
+context must belong exclusively to this Viewer. The GPU provider retires all
+old resources before it creates the new `PrimitiveViewport` and presents the
+complete frame. Viewer accepts the new document only after that result is
+`{ ok: true, stage: 'ready' }`. Selection, unsupported layers, and old Face
+inspection state are cleared on success. A pending older source request is
+invalidated.
+
+`replaceNativeSceneAppearance(input)` keeps its existing mounted V2/Viewport
+rules. Passing `'atomic'` to the handoff method returns a `preflight` refusal;
+there is no atomic cross-family swap. Invalid input or GPU preflight refusal
+leaves the prior Face scene and presentation live. Candidate preparation can
+also throw before GPU retirement. After a `retirement` or `mount` failure, the
+old renderer is permanently disposed. Viewer retains its copied old CPU Face
+scene and the original failure, reports `unavailable`, rejects further GPU
+operations, and permits `dispose()`. Create a fresh Viewer to recover; old
+pixels and automatic rollback are not promised. Other renderer families are
+unsupported. Browser/WebGL2 pixel and device acceptance remains pending.

@@ -16,7 +16,8 @@ import { mountMeshScene, mountPrimitiveScene, mountPrimitiveSceneV1, mountPrimit
   validateMeshCamera, validatePreviewPacket, mountBooleanShellScene, BooleanShellSceneRenderer,
   validateUniformCurvePreview, validateSelectedUniformCurvePreview, mountMixedDepthScene,
   MixedDepthRenderer, MixedDepthError, prepareMixedDepthFrame, mountQualifiedFaceScene,
-  QualifiedFaceSceneRenderer, QualifiedFaceSceneError, prepareQualifiedFaceScene } from '@barocss/gpu';
+  QualifiedFaceSceneRenderer, QualifiedFaceSceneError, prepareQualifiedFaceScene,
+  handoffQualifiedFaceToPrimitiveViewport } from '@barocss/gpu';
 import type { MeshCamera, MeshLighting, PreviewPacket, PrimitiveSceneEntryV1,
   PrimitiveSceneEntryV2, PrimitiveSceneFrameV0, PrimitiveSceneFrameV1, MeshMaterialBinding, ParticleLayerV0, ClothLayerV0,
   UniformCurvePreview, SelectedUniformCurvePreview, QualifiedFaceSceneV0 } from '@barocss/gpu';
@@ -78,6 +79,12 @@ export interface ViewerNativeCurveLoadOptionsV1 extends NativeLoadOptions {
 }
 export interface ViewerRef { modelId: string; surfaceId: string }
 export interface ViewerSurfaceMaterial { ref: ViewerRef; binding: MeshMaterialBinding }
+/** A terminal failure keeps the old CPU scene but has no live presentation. */
+export type ViewerQualifiedFaceAppearanceHandoffResult =
+  | { readonly ok: false; readonly stage: 'preflight'; readonly error: Error }
+  | { readonly ok: false; readonly stage: 'retirement' | 'mount';
+      readonly previousScene: QualifiedFaceSceneV0; readonly error: Error }
+  | { readonly ok: true; readonly stage: 'ready'; readonly previousScene: QualifiedFaceSceneV0 };
 export type ViewerGeometryRef =
   | ({ kind: 'surface' } & ViewerRef)
   | ({ kind: 'curve' } & ViewerCurveRef);
@@ -1235,6 +1242,38 @@ export class Viewer {
       'Native appearance preparation changed the accepted renderer or source request');
     this.primitiveResult(renderer.updateFrame(candidate.prepared.prepared.frame));
     this.adoptNativeSceneAppearance(candidate);
+  }
+  /** Explicit same-canvas QualifiedFace retirement followed by one complete Viewport mount. */
+  handoffQualifiedFaceToNativeSceneAppearance(input: ViewerNativeSceneAppearanceInputV1,
+    mode: 'atomic' | 'dispose-remount'): ViewerQualifiedFaceAppearanceHandoffResult {
+    this.gpuLive(); check(!this.contextLost, 'Cannot hand off native appearance after WebGL2 context loss');
+    const renderer = this.renderer, request = this.sceneRequest;
+    check(renderer instanceof QualifiedFaceSceneRenderer && this.qualifiedFaceScene !== null,
+      'Native appearance handoff requires the current qualified Face renderer');
+    if (mode !== 'dispose-remount') {
+      const refused = handoffQualifiedFaceToPrimitiveViewport(renderer, input, mode);
+      if (refused.ok || refused.stage !== 'preflight')
+        throw new Error('Atomic native appearance handoff violated the GPU refusal contract');
+      return refused;
+    }
+    const candidate = prepareMountedNativeSceneAppearance(input,
+      { mmToSceneUnit: this.options.mmToSceneUnit, background: this.options.background });
+    this.gpuLive(); check(!this.contextLost, 'Cannot hand off native appearance after WebGL2 context loss');
+    check(this.renderer === renderer && this.sceneRequest === request,
+      'Native appearance preparation changed the accepted renderer or source request');
+    const result = handoffQualifiedFaceToPrimitiveViewport(renderer,
+      candidate.prepared.prepared.frame, mode);
+    if (!result.ok) {
+      if (result.stage !== 'preflight') {
+        this.renderer = null;
+        this.presentationUnavailable = true;
+        this.sceneRequest++;
+      }
+      return result;
+    }
+    this.renderer = result.viewport;
+    this.adoptNativeSceneAppearance(candidate);
+    return Object.freeze({ ok: true, stage: 'ready', previousScene: result.previousScene });
   }
   private adoptNativeSceneAppearance(candidate: ReturnType<typeof prepareMountedNativeSceneAppearance>): void {
     this.packets = candidate.packets; this.curves = candidate.curves;
