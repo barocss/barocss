@@ -11578,7 +11578,9 @@ exact rational positions without an additional zero-sign promise.
 The existing Native Face construction and whole Solid qualifier reconstruct
 and qualify the result. All eight lineage classes, pole basis, weights, directed
 cycles, intervals, parameter maps and exact positive volume remain certified.
-Normals follow the signed rotation. Support offsets include the exact pivot
+Certified rational support normals follow the signed rotation. Regenerated
+sampled unit normals retain Native self-consistency. Support offsets include
+the exact pivot
 displacement; they are not claimed unchanged. Pcurves are regenerated under the
 existing whole UV policy, without sampled cross-copy D1 bit identity. The pivot
 branch retains its original failure cause and completed-work report. No fusion,
