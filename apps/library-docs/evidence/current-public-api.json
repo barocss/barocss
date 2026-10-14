@@ -1,7 +1,7 @@
 {
   "schema": "barocss-current-public-api-v1",
   "typescriptVersion": "5.9.3",
-  "sourceCommit": "6a2f985f383e416250c249cac4237c80f6fb86d2",
+  "sourceCommit": "4dbe8866aeca009e5539fee4c981f2d922fbbb5a",
   "extractor": "TypeScript 5.9.3 public module exports and declarations; not a type-check or runtime execution",
   "packages": [
     {
@@ -16124,9 +16124,9 @@
               "source": "packages/barocss-cad/src/modeling.ts",
               "line": 70,
               "signatures": [
-                "export interface CadShape {\n  /** Exact translation of a direct affine extrusion, its finishing chain, or the last owned cardinal rotation. Rotated placement is terminal. */\n  translate(offset: readonly [CadDimension, CadDimension, CadDimension]): CadShape;\n  /** Right-handed cardinal rotation about the world origin. Only one terminal translation of this exact owned result may follow. */\n  rotate(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | 180 | 270 | -90 | -180 | -270 }): CadShape;\n  /** Reflect across a cardinal plane through the world origin. The owned copy is terminal; no later features or transforms. */\n  mirror(options: { readonly plane: 'xy' | 'xz' | 'yz' }): CadShape;\n  /** Scale uniformly about the world origin by exactly 0.5 or 2. The owned copy is terminal; no later features or transforms. */\n  scale(options: { readonly factor: 0.5 | 2 }): CadShape;\n  /** Original handle plus two owned copies at positive spacing and twice spacing on one axis. The pattern is terminal. */\n  linearPattern(options: { readonly axis: CadAxis; readonly spacing: CadDimension; readonly count: 3 }): readonly [CadShape, CadShape, CadShape];\n  /** Original handle plus two owned copies at an authored quarter turn and twice that turn about the world origin. The pattern is terminal. */\n  circularPattern(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | -90; readonly count: 3 }): readonly [CadShape, CadShape, CadShape];\n  /** Original handle plus three owned quarter-turn copies. All copies use the same original; the pattern is terminal. */\n  circularPattern(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | -90; readonly count: 4 }): readonly [CadShape, CadShape, CadShape, CadShape];\n  circularPattern(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | -90; readonly count: 3 | 4 }): readonly [CadShape, CadShape, CadShape] | readonly [CadShape, CadShape, CadShape, CadShape];\n  /** One connected union of two distinct direct integer rectangular extrusions. */\n  union(other: CadShape): CadShape;\n  /** One full-thickness stored-rational hole in a direct origin-aligned integer rectangular plate. */\n  hole(options: { readonly center: CadPoint2; readonly radius: CadDimension }): CadShape;\n  /** Positive-volume overlap of two distinct direct XY extrusions; disjoint/touching parts refuse. */\n  intersect(other: CadShape): CadShape;\n  /** Cardinal or x+y=at split of a direct XY extrusion or its owned chamfer chain; at is a coordinate/sum in mm. */\n  split(options: SplitPlane & { readonly at: CadDimension }): CadSplit;\n  /** One rectangular difference, or one third-box slot in an owned union; actual integer XYZ bounds are used. */\n  cut(tool: CadShape): CadShape;\n  /** Legacy through-slab pair. Options must be provided as an exact axis record. */\n  cut(tool: CadShape, options: { readonly axis: 'x' | 'y' }): CadCut;\n  edges(query: CadEdgeQuery): CadEdgeQueryHandle;\n  /** At most two sequential cardinal chamfers; each selector belongs to its exact parent result. */\n  chamfer(edge: CadEdgeSelection, distance: CadDimension, options?: { readonly name: string }): CadShape;\n}"
+                "export interface CadShape {\n  /** Exact translation of a direct affine extrusion, its finishing chain, or the last owned cardinal rotation. A direct copy may enter the bounded terminal intersection recipe. */\n  translate(offset: readonly [CadDimension, CadDimension, CadDimension]): CadShape;\n  /** Right-handed cardinal rotation about the world origin. Only one terminal translation of this exact owned result may follow. */\n  rotate(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | 180 | 270 | -90 | -180 | -270 }): CadShape;\n  /** Reflect across a cardinal plane through the world origin. The owned copy is terminal; no later features or transforms. */\n  mirror(options: { readonly plane: 'xy' | 'xz' | 'yz' }): CadShape;\n  /** Scale uniformly about the world origin by exactly 0.5 or 2. The owned copy is terminal; no later features or transforms. */\n  scale(options: { readonly factor: 0.5 | 2 }): CadShape;\n  /** Original handle plus two owned copies at positive spacing and twice spacing on one axis. The pattern is terminal. */\n  linearPattern(options: { readonly axis: CadAxis; readonly spacing: CadDimension; readonly count: 3 }): readonly [CadShape, CadShape, CadShape];\n  /** Original handle plus two owned copies at an authored quarter turn and twice that turn about the world origin. The pattern is terminal. */\n  circularPattern(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | -90; readonly count: 3 }): readonly [CadShape, CadShape, CadShape];\n  /** Original handle plus three owned quarter-turn copies. All copies use the same original; the pattern is terminal. */\n  circularPattern(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | -90; readonly count: 4 }): readonly [CadShape, CadShape, CadShape, CadShape];\n  circularPattern(options: { readonly axis: CadAxis; readonly angleDegrees: 90 | -90; readonly count: 3 | 4 }): readonly [CadShape, CadShape, CadShape] | readonly [CadShape, CadShape, CadShape, CadShape];\n  /** One connected union of two distinct direct integer rectangular extrusions. */\n  union(other: CadShape): CadShape;\n  /** One full-thickness stored-rational hole in a direct origin-aligned integer rectangular plate. */\n  hole(options: { readonly center: CadPoint2; readonly radius: CadDimension }): CadShape;\n  /** Positive-volume overlap of direct affine extrusions, or one translated source and the distinct other source in the complete six-node recipe; disjoint/touching parts refuse. */\n  intersect(other: CadShape): CadShape;\n  /** Cardinal or x+y=at split of a direct XY extrusion or its owned chamfer chain; at is a coordinate/sum in mm. */\n  split(options: SplitPlane & { readonly at: CadDimension }): CadSplit;\n  /** One rectangular difference, or one third-box slot in an owned union; actual integer XYZ bounds are used. */\n  cut(tool: CadShape): CadShape;\n  /** Legacy through-slab pair. Options must be provided as an exact axis record. */\n  cut(tool: CadShape, options: { readonly axis: 'x' | 'y' }): CadCut;\n  edges(query: CadEdgeQuery): CadEdgeQueryHandle;\n  /** At most two sequential cardinal chamfers; each selector belongs to its exact parent result. */\n  chamfer(edge: CadEdgeSelection, distance: CadDimension, options?: { readonly name: string }): CadShape;\n}"
               ],
-              "digest": "2063ec72590469fe0341b75d01799c32a74ebb2a7e78c2f80d4d01ffda2ffad5"
+              "digest": "2ae9b4d66507fb8b2cac4d6cc449cabf1ac4e30049b51be1fab1abaec2061525"
             },
             {
               "name": "CadSketch",
@@ -43198,6 +43198,26 @@
               "digest": "04c85398cda8bae0de1bc59f2b3d5b6c26d5a7252327718fc895cc264a257940"
             },
             {
+              "name": "BrowserParagraphTextOptions",
+              "kind": "TypeAliasDeclaration",
+              "source": "packages/barocss-canvas2d/src/browser-text.ts",
+              "line": 72,
+              "signatures": [
+                "export type BrowserParagraphTextOptions = {\n  text: string; font: string; atlasId: string; maxWidth: number; lineAdvance: number;\n  direction: 'ltr' | 'rtl'; breakPolicy: 'grapheme'; dpr?: number;\n  lineAlign?: BrowserMultilineTextAlignment;\n};"
+              ],
+              "digest": "565a1c187e2d4c5a3c1953ebe4039922b2b838e1f3467fdcbc358a272eeefd16"
+            },
+            {
+              "name": "BrowserParagraphTextRaster",
+              "kind": "TypeAliasDeclaration",
+              "source": "packages/barocss-canvas2d/src/browser-text.ts",
+              "line": 77,
+              "signatures": [
+                "export type BrowserParagraphTextRaster = BrowserMultilineTextRaster & {\n  maxWidth: number; direction: 'ltr' | 'rtl'; breakPolicy: 'grapheme';\n  lineAlign: BrowserMultilineTextAlignment; segmenterLocale: string;\n};"
+              ],
+              "digest": "1cd973ef28718485498d6d0c51f8fc41620dce69cd22cb533712ebfd8bfb1f52"
+            },
+            {
               "name": "BrowserTextOptions",
               "kind": "TypeAliasDeclaration",
               "source": "packages/barocss-canvas2d/src/browser-text.ts",
@@ -43506,6 +43526,16 @@
                 "export type DisplayTree = {\n  readonly stage: StageHandle;\n  createContainer(spec: ContainerSpec): ContainerHandle;\n  createSprite(spec: SpriteSpec): SpriteHandle;\n  createPath(spec: PathSpec): PathHandle;\n  createRect(spec: RectSpec): RectHandle;\n  createGlyphRun(spec: GlyphRunSpec): GlyphRunHandle;\n  createFrame(spec: FrameSpec): FrameHandle;\n  createLine(spec: LineSpec): LineHandle;\n  reparentChild(child: DisplayHandle, target: StageHandle | ContainerHandle | FrameHandle, index: number): void;\n  get(id: string): DisplayHandle | null;\n  capturePointer(pointerId: number, handle: DisplayHandle): void;\n  releasePointer(pointerId: number): void;\n  getPointerCapture(pointerId: number): DisplayHandle | null;\n  dispatchPointer(input: PointerInput): void;\n  dispatchHover(input: HoverInput): void;\n  snapshot(): SceneV29;\n};"
               ],
               "digest": "30fa2ac0854a243f8ccb68d2a022b92ebc418550880f783c7838c589e27ade4b"
+            },
+            {
+              "name": "downsampleImageAsset",
+              "kind": "FunctionDeclaration",
+              "source": "packages/barocss-canvas2d/src/image-downsample.ts",
+              "line": 36,
+              "signatures": [
+                "export function downsampleImageAsset(asset: ImageAssetInput, width: number, height: number): ImageAssetInput;"
+              ],
+              "digest": "9d91a388ee41a0fce5cfa49cd2735c22cf306d0cd2abab7a5c361a599fa057de"
             },
             {
               "name": "duplicateSceneSubtree",
@@ -45561,7 +45591,7 @@
               "name": "rasterizeBrowserEllipsizedText",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-canvas2d/src/browser-text.ts",
-              "line": 95,
+              "line": 175,
               "signatures": [
                 "export function rasterizeBrowserEllipsizedText(options: BrowserEllipsizedTextOptions): BrowserEllipsizedTextRaster;"
               ],
@@ -45571,17 +45601,27 @@
               "name": "rasterizeBrowserMultilineText",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-canvas2d/src/browser-text.ts",
-              "line": 240,
+              "line": 320,
               "signatures": [
                 "export function rasterizeBrowserMultilineText(options: BrowserMultilineTextOptions): BrowserMultilineTextRaster;"
               ],
               "digest": "88e7ac4f793b729e28bd19e731491ab052b8600490cfe5a43a8d6204cc83036f"
             },
             {
+              "name": "rasterizeBrowserParagraphText",
+              "kind": "FunctionDeclaration",
+              "source": "packages/barocss-canvas2d/src/browser-text.ts",
+              "line": 118,
+              "signatures": [
+                "export function rasterizeBrowserParagraphText(options: BrowserParagraphTextOptions): BrowserParagraphTextRaster;"
+              ],
+              "digest": "bb291931a5767a5601455e38bcc23aabc1f0225b475f00d4a30d38410aa3a90c"
+            },
+            {
               "name": "rasterizeBrowserText",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-canvas2d/src/browser-text.ts",
-              "line": 234,
+              "line": 314,
               "signatures": [
                 "export function rasterizeBrowserText(options: BrowserTextOptions): BrowserTextRaster;"
               ],
@@ -45591,7 +45631,7 @@
               "name": "rasterizeBrowserWrappedText",
               "kind": "FunctionDeclaration",
               "source": "packages/barocss-canvas2d/src/browser-text.ts",
-              "line": 245,
+              "line": 325,
               "signatures": [
                 "export function rasterizeBrowserWrappedText(options: BrowserWrappedTextOptions): BrowserWrappedTextRaster;"
               ],
@@ -46356,6 +46396,8 @@
                 "BrowserMultilineTextLine",
                 "BrowserMultilineTextOptions",
                 "BrowserMultilineTextRaster",
+                "BrowserParagraphTextOptions",
+                "BrowserParagraphTextRaster",
                 "BrowserTextOptions",
                 "BrowserTextPolicy",
                 "BrowserTextRaster",
@@ -46363,6 +46405,7 @@
                 "BrowserWrappedTextRaster",
                 "rasterizeBrowserEllipsizedText",
                 "rasterizeBrowserMultilineText",
+                "rasterizeBrowserParagraphText",
                 "rasterizeBrowserText",
                 "rasterizeBrowserWrappedText"
               ]
@@ -46476,6 +46519,12 @@
               ]
             },
             {
+              "source": "packages/barocss-canvas2d/src/image-downsample.ts",
+              "names": [
+                "downsampleImageAsset"
+              ]
+            },
+            {
               "source": "packages/barocss-canvas2d/src/image-extrude.ts",
               "names": [
                 "extrudeImageAsset"
@@ -46545,6 +46594,8 @@
                 "BrowserMultilineTextLine",
                 "BrowserMultilineTextOptions",
                 "BrowserMultilineTextRaster",
+                "BrowserParagraphTextOptions",
+                "BrowserParagraphTextRaster",
                 "BrowserTextOptions",
                 "BrowserTextPolicy",
                 "BrowserTextRaster",
@@ -46840,6 +46891,7 @@
                 "createTicker",
                 "cropImageAsset",
                 "decodeImageBlob",
+                "downsampleImageAsset",
                 "duplicateSceneSubtree",
                 "exportSceneGradientSVG",
                 "exportSceneLinearSVG",
@@ -46856,6 +46908,7 @@
                 "parseSceneJSON",
                 "rasterizeBrowserEllipsizedText",
                 "rasterizeBrowserMultilineText",
+                "rasterizeBrowserParagraphText",
                 "rasterizeBrowserText",
                 "rasterizeBrowserWrappedText",
                 "resizeImageAsset",
@@ -55298,12 +55351,12 @@
   "packageTrees": {
     "packages/barocss-render": "b83e4912e1d1aa658f048ba4b112376785b288fb",
     "packages/barocss-gpu": "f9e7eb09c8201b460f2f07789da92e5906971ff9",
-    "packages/barocss-cad": "3c0d3e6d3c029f17eda7eb8c4efb265de6b0954d",
+    "packages/barocss-cad": "c3499c91c1ee3d442a6f89308653de454d551b71",
     "packages/barocss-cad-interop": "330d0323e1d3891c8a1f882e848aae604ea67b08",
-    "packages/barocss-canvas2d": "923f3ad3b6931824c86ab71bea40b95bf7fff991",
+    "packages/barocss-canvas2d": "b029d1925907fbac9a19d6c2f825cbfd91323473",
     "packages/barocss-viewer": "aa7736ed08620fe9b7db2eff4feec5c89f9e502b",
     "packages/barocss-physics": "f3aa5c6e161137cb80fb68f73a517cd6bdc673dd",
-    "packages/barocss-cad-editor": "fe8cb4a8cbae73f3bf158d1ef2e279755839c440",
+    "packages/barocss-cad-editor": "db890455628656f15de38e3defd9222d084b908a",
     "packages/barocss-render-editor": "d1486acf9b983dba6839d2bf303406876244e2e6"
   },
   "historicalSourceCommit": "5f5ad866205a21510ac69552e704cc162fa253b5",
@@ -56636,8 +56689,11 @@
       "@barocss/canvas2d.:applyImageRGBMatrix",
       "@barocss/canvas2d.:BrowserEllipsizedTextOptions",
       "@barocss/canvas2d.:BrowserEllipsizedTextRaster",
+      "@barocss/canvas2d.:BrowserParagraphTextOptions",
+      "@barocss/canvas2d.:BrowserParagraphTextRaster",
       "@barocss/canvas2d.:compositeImageAssets",
       "@barocss/canvas2d.:cropImageAsset",
+      "@barocss/canvas2d.:downsampleImageAsset",
       "@barocss/canvas2d.:duplicateSceneSubtree",
       "@barocss/canvas2d.:exportSceneGradientSVG",
       "@barocss/canvas2d.:exportSceneLinearSVG",
@@ -56653,6 +56709,7 @@
       "@barocss/canvas2d.:outlineImageAsset",
       "@barocss/canvas2d.:padImageAsset",
       "@barocss/canvas2d.:rasterizeBrowserEllipsizedText",
+      "@barocss/canvas2d.:rasterizeBrowserParagraphText",
       "@barocss/canvas2d.:resizeImageAsset",
       "@barocss/canvas2d.:rotateImageAsset",
       "@barocss/canvas2d.:SceneSubtreeDuplicateOptions",
