@@ -727,7 +727,14 @@ U0,U1,V0,V1. Open/nonperiodic flags remain open; there is no solid claim.
 Metadata uses printable ASCII, at most 256 characters per string. Directory
 labels retain the first eight ID characters; the report retains the full ID map.
 Timestamps are fixed at `20000101.000000`. The report includes domains,
-record counts/pointers, selected IDs, format, units, and no geometric loss.
+record counts/pointers, selected IDs, format and units. `geometryLoss:'none'`
+is scoped by `geometryLossScope:'selected-raw-curves-and-untrimmed-surfaces'`.
+The writer accepts selected raw Curve/Surface geometry; trimmed Faces, topology
+and Solid models are explicitly unsupported. A Surface export carries no trim or
+hole ownership. Exchange bytes remain unchanged by this report clarification.
+Old saved `CadDocumentExport` results lacking these report fields fail the strict
+current-result validator; re-export their original document for a current report.
+The source document schema is unchanged.
 Native source/history is separate from exchange bytes. The test harness retains
 source, parsed model, evaluated samples, IGES bytes and SHA-256 provenance.
 
@@ -11585,3 +11592,27 @@ displacement; they are not claimed unchanged. Pcurves are regenerated under the
 existing whole UV policy, without sampled cross-copy D1 bit identity. The pivot
 branch retains its original failure cause and completed-work report. No fusion,
 persistent naming, mass, STL, editor, GPU or manufacturing acceptance is added.
+
+
+## Endpoint crossing recovery in the homogeneous root solver (#1657)
+
+A rounded quadratic power-basis estimate can miss an interior crossing near an
+endpoint. For `[260000000,34.3,-4.2e-8]`, the old solver returned no roots despite
+opposite original Bernstein endpoint signs. Only that false-empty path now uses
+the existing exact rational context to isolate the crossing of the stored binary64
+coefficients. Ordinary successful results and endpoint/tangent refusals retain
+their old arithmetic, order and fields.
+
+The recovery requires a strict interior bracket and midpoint, the requested
+parameter width and at most 64 steps. Unrepresentable bounds refuse. Optional
+`endpointCrossingRecovery` evidence records the exact scalar sign bracket and
+bounded work. It does not certify an exact World point, Surface binding or B-Rep.
+Original Curve-plane residual, derivative, UV and source adoption checks still
+apply; their tolerances and geometry are unchanged.
+
+Run `node --test test/own-homogeneous-bernstein-roots.test.mjs` after build for
+source/emitted scalar controls. The finite actual API driver is
+`node test/endpoint-crossing-native.mjs ENTRY NEW_OUTPUT_DIRECTORY`; use a frozen
+source index bundle or emitted `dist/index.js` in a fresh process for each call.
+Review C2 lost cubic roots remains unconfirmed. C3/C4 exact chart construction,
+common numerical policy and sewing are separate unfinished work under #1657.

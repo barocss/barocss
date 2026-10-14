@@ -24,6 +24,10 @@ export interface IGESExportReport {
   objects: IGESObjectReport[]
   records: { S: number; G: number; D: number; P: number; T: number }
   timestampPolicy: 'fixed-20000101.000000'
+  // The Model input has no Face trims or body topology. This loss scope does
+  // not describe a parent Face/Shell/Solid from which a carrier was selected.
+  geometryLossScope: 'selected-raw-curves-and-untrimmed-surfaces'
+  unsupported: ['trimmed-faces', 'topology', 'solid-models']
 }
 
 function integer(value: number, width: number): string {
@@ -176,5 +180,7 @@ export function exportIGES(model: Model, ids: string[]): { iges: string; report:
   return { iges: [...start, ...globals, ...directories, ...parameters, terminate].join('\n') + '\n',
     report: { format: 'IGES 5.3 ASCII', model: model.name, lengthUnit: 'mm', modelScale: 1,
       geometryLoss: 'none', nativeSourceIncluded: false, solid: false, objects, records,
-      timestampPolicy: 'fixed-20000101.000000' } }
+      timestampPolicy: 'fixed-20000101.000000',
+      geometryLossScope: 'selected-raw-curves-and-untrimmed-surfaces',
+      unsupported: ['trimmed-faces', 'topology', 'solid-models'] } }
 }
