@@ -1,0 +1,553 @@
+{
+  "issue": 1951,
+  "baseCommit": "c0501e6c11f19b2dd5d4dc94401b400ebd8e96ff",
+  "testedSourceCommit": "b1d28e329135c9aa6494bb7b87e6c418633c8685",
+  "productSourceCommit": "0a3d001f71b8637c71774bca4728a503fcb06b64",
+  "scope": "Eight paths: actual CREATE > New rectangular part transaction using existing accepted controller open; no provider, worker, schema, renderer, manifest or workflow change",
+  "sourceHashes": {
+    "apps/cad-editor/README.md": "f53b98382773e90f38716a0d3bc75597f113b0f13bdc4c5b7e7e38b3a2e01465",
+    "apps/cad-editor/flows/modeling-new-part-flow.mjs": "60068e9f5e2ed98c2c5e317eb20d4f94df2e0e21103de0ec8cd67b21e9448a69",
+    "apps/library-docs/docs/packages/cad/modeling.md": "ef1661bf109f53ae2b08756db4d7ac602de8c9b8fd270cccf12f568c5c203c6c",
+    "packages/barocss-cad-editor/README.md": "4cda9db012db33aeb60e63b52a5de7783ade7e3a8798a4a65fcfaf7c1f619a33",
+    "packages/barocss-cad-editor/src/modeling-rectangular-part.ts": "cc377c51a9373878a3e1426107a54dfa95247f0e2bb39014289af820283189ea",
+    "packages/barocss-cad-editor/src/react/modeling-editor.tsx": "68c49f7774c6550e5f47b400e05013de646e34ed0ce807b0f6b65b2710ec7621",
+    "packages/barocss-cad-editor/src/react/modeling-workspace.tsx": "7d092d8414495c6917d3d0243c915b0ab539d3db73da827fc6c733052a5bb517"
+  },
+  "checks": {
+    "focusedFlow": {
+      "status": "PASS",
+      "node": "v24.19.0",
+      "runner": {
+        "executable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "argv": [
+          "/workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-new-part-flow.mjs"
+        ],
+        "command": "\"/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node\" \"/workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-new-part-flow.mjs\""
+      },
+      "groups": [
+        "pinned #1835 convex baseline and real React/controller/serializer/CPU receiver imports",
+        "pure three-driver public source and empty/nonfinite/nonpositive/upper-bound rejection",
+        "CREATE opens local defaults; typing and Cancel preserve accepted source/display/history",
+        "closing and reopening rejects actual callbacks captured from the prior command",
+        "controller B initial refusal exposes Create part without an accepted model",
+        "A-to-B-to-A creates three lifetimes and old-controller callbacks cannot mutate reopened A",
+        "selection and mount-time layout changes preserve creation inputs and controller/display identity",
+        "explicit replacement invokes open once, commits atomically and resets an existing two-entry history",
+        "created part remains editable through existing Extrude and Undo with unchanged authored nodes",
+        "pending global dimensions block creation; review, Cancel and Escape preserve those drafts",
+        "invalid local raw values never stage model fields or dispatch a Worker request",
+        "controlled backend refusal preserves authority and creation values before successful retry",
+        "controlled display refusal keeps accepted source/display/history and retained inputs recover",
+        "busy creation protects close; toolbar cancellation fences a late Worker reply and permits retry",
+        "identical-source generation replacement invalidates captured creation callbacks without discarding drafts",
+        "changed-source replacement stales old creation; old async completion cannot close a newer command",
+        "successful creation clears old staged file bytes and consent while preserving a newly opened File panel",
+        "canceled creation completion cannot clear staged file consent after a newer global Apply",
+        "existing file/STL/global/Extrude controls remain reachable and one viewport disposes once"
+      ],
+      "mountedRoots": 1,
+      "controllerLifetimes": 3,
+      "replies": 21,
+      "providerLoads": 17,
+      "providerEdits": 4,
+      "previewReplays": 19,
+      "nativeCalls": 0,
+      "flowSourceSHA256": "60068e9f5e2ed98c2c5e317eb20d4f94df2e0e21103de0ec8cd67b21e9448a69",
+      "fixture": {
+        "path": "packages/barocss-cad/test/modeling-constraints-evidence/baseline-transfer.json",
+        "sha256": "194b855ed3e862e76c2468cbbcb0d2f21f7b2eda0a217325fa95a32fee226721"
+      },
+      "adaptedDefaultSourceSHA256": "a354312ac37f51e58f8d94614e11bca9d73b1f17410c1a36eb08f8d9090c06ef",
+      "boundary": "Actual mounted React, host controls, modeling controller, engine serializer, receiver and CPU scene. Controlled provider, Worker, ResizeObserver and display port. New three-driver authoring is an adaptation. Every reply reuses genuine #1835 baseline convex geometry. Zero native calls. Edited-state native geometry, WebGPU pixels, physical browser I/O and download acceptance UNRUN.",
+      "productCommit": "0a3d001f71b8637c71774bca4728a503fcb06b64",
+      "flowManifest": {
+        "issue": 1951,
+        "ownedFile": "apps/cad-editor/flows/modeling-new-part-flow.mjs",
+        "ledger": {
+          "groups": 19,
+          "maximumReactRoots": 1,
+          "maximumControllerLifetimes": 3,
+          "maximumWorkerReplies": 24
+        },
+        "actual": {
+          "node": "v24.19.0",
+          "mountedRoots": 1,
+          "controllerLifetimes": 3,
+          "replies": 21,
+          "providerLoads": 17,
+          "providerEdits": 4,
+          "previewReplays": 19,
+          "nativeCalls": 0,
+          "flowSourceSHA256": "60068e9f5e2ed98c2c5e317eb20d4f94df2e0e21103de0ec8cd67b21e9448a69",
+          "adaptedDefaultSourceSHA256": "a354312ac37f51e58f8d94614e11bca9d73b1f17410c1a36eb08f8d9090c06ef"
+        },
+        "runs": [
+          {
+            "receipt": "00-initial-syntax-failure.txt",
+            "outcome": "FAIL",
+            "classification": "Copied harness retained duplicate width alias; fixed before runtime. No product failure established."
+          },
+          {
+            "receipt": "01-syntax-pass.log",
+            "outcome": "PASS",
+            "command": "node --check apps/cad-editor/flows/modeling-new-part-flow.mjs"
+          },
+          {
+            "receipt": "02-runtime-first.log",
+            "outcome": "FAIL",
+            "completedGroups": 14,
+            "classification": "Captured old Cancel closed the panel after identical-source generation replacement. Parent fixed render-state cancellation and review guards."
+          },
+          {
+            "receipt": "03-runtime-second.log",
+            "outcome": "PASS",
+            "completedGroups": 17,
+            "classification": "Same frozen 17-group scope. Stale probes include captured header Close, Enter/Escape and Review pending dimensions. Visible-button selector excludes hidden panels."
+          },
+          {
+            "receipt": "04-file-race-first.log",
+            "outcome": "FAIL",
+            "completedGroups": 16,
+            "classification": "Creation accepted width60 but stale File-panel staged source length628 and replacement consent survived navigation during held display admission. Newly added group17 is RED; disposal group18 not reached."
+          },
+          {
+            "receipt": "05-file-race-second.log",
+            "outcome": "PASS",
+            "completedGroups": 18,
+            "classification": "Same18-group ledger passed after parent cleanup fix; File panel remains visible with stagedTextLength0 and confirmed false."
+          },
+          {
+            "receipt": "06-canceled-file-race-first.log",
+            "outcome": "FAIL",
+            "completedGroups": 17,
+            "classification": "Global Apply admitted after a held creation was canceled. Old creation completion subsequently cleared staged file bytes and consent despite unchanged accepted newer model. New group18 RED; disposal group19 not reached."
+          },
+          {
+            "receipt": "07-canceled-file-race-second.log",
+            "outcome": "PASS",
+            "completedGroups": 19,
+            "classification": "Same19-group ledger passed after parent operation-token fix. Successful creation clears old bytes/consent; canceled creation completion preserves628 staged bytes and consent after a newer global Apply."
+          },
+          {
+            "receipt": "/workspace/shared/cad-1951-validation/final-lint.log",
+            "outcome": "FAIL",
+            "classification": "Inherited unused focusedKey helper found by parent scoped lint; only this unused declaration was removed. Assertions and 19-case ledger unchanged.",
+            "sha256": "9c1c7ef1aa41dc479bb91cbb2a2a9a6423c617782cf35f543a2d67fd007572d4"
+          },
+          {
+            "receipt": "08-final-cleanup.log",
+            "outcome": "PASS",
+            "completedGroups": 19,
+            "classification": "Same19-group flow rerun after deleting only unused focusedKey declaration. No coverage or product changes."
+          }
+        ],
+        "fixture": {
+          "path": "packages/barocss-cad/test/modeling-constraints-evidence/baseline-transfer.json",
+          "sha256": "194b855ed3e862e76c2468cbbcb0d2f21f7b2eda0a217325fa95a32fee226721"
+        },
+        "boundary": "Actual mounted React, host controls, modeling controller, engine serializer, receiver and CPU scene. Controlled provider, Worker, ResizeObserver and display port. New three-driver authoring is an adaptation. Every reply reuses genuine #1835 baseline convex geometry. Zero native calls. Edited-state native geometry, WebGPU pixels, physical browser I/O and download acceptance UNRUN.",
+        "receipts": {
+          "00-initial-syntax-failure.txt": {
+            "bytes": 490,
+            "sha256": "528367b3149b43a7913594dcee95682d0f44bcb31fef02cc3d1999866baec67c"
+          },
+          "01-syntax-pass.log": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "02-runtime-first-source-sha256.txt": {
+            "bytes": 493,
+            "sha256": "8221b6ad25632bfc7d9eeb3ad6f1f0da8afaf1ab6825ece6864b751caaa2b950"
+          },
+          "02-runtime-first.log": {
+            "bytes": 3235,
+            "sha256": "4d0f987ccbb6ec120f935eb84a2a6b7602124bc433964ebd16db3e6b9ec10f36"
+          },
+          "03-runtime-second-source-sha256.txt": {
+            "bytes": 493,
+            "sha256": "de2b88ac6cf4e1d794a6ce520619edcb7bff6ea8fc0dbc52d40c65d6288b7880"
+          },
+          "03-runtime-second.log": {
+            "bytes": 5574,
+            "sha256": "1e6f6aecab25a0035eee4d4d4042d09039dca6162b903b56905c1761dcee7147"
+          },
+          "04-file-race-first-source-sha256.txt": {
+            "bytes": 493,
+            "sha256": "45e34de24d15a281fdb95c47ccf8f0e758fe179b7b683f804ff744ebd23e5726"
+          },
+          "04-file-race-first.log": {
+            "bytes": 5765,
+            "sha256": "e16c32058da844184913fbe3ddd944fe45be2022b40c4e89f3fb8b4c680b0725"
+          },
+          "05-file-race-second-source-sha256.txt": {
+            "bytes": 493,
+            "sha256": "d06b3bfc9c1650f4a81db0cec344239aa724153587bcab43b29fcdf45412427d"
+          },
+          "05-file-race-second.log": {
+            "bytes": 5916,
+            "sha256": "dae1d94a239413c528268a54429f87337e317218e8be614c5dfe7000b0b24923"
+          },
+          "06-canceled-file-race-first-source-sha256.txt": {
+            "bytes": 493,
+            "sha256": "e690c7de462cbf2a749b5513ea106bb0a89bfb392b4da2a48ee46b004b81a836"
+          },
+          "06-canceled-file-race-first.log": {
+            "bytes": 6024,
+            "sha256": "bebb7726d6b76567aad6e0efed71508a2ba235f531ee82224633a028c02072d7"
+          },
+          "07-canceled-file-race-second-source-sha256.txt": {
+            "bytes": 493,
+            "sha256": "6cef9fdceb5319eef668de876ced173c93a669c82c44f78745941739c5c20442"
+          },
+          "07-canceled-file-race-second.log": {
+            "bytes": 6240,
+            "sha256": "339d8d76465d7523914b18aaa3e6b6e230df7f2ebe5d97862faaa7cefdf8e399"
+          },
+          "08-final-cleanup-source-sha256.txt": {
+            "bytes": 493,
+            "sha256": "d62139b9d3ce707f87c8c4e9bdadb0cd7635ac9f87dc0dda6c89ff7c2ab1e071"
+          },
+          "08-final-cleanup.log": {
+            "bytes": 6240,
+            "sha256": "3bfd4b35fc55cf557fee65395fb38c0ee4bb119c0607ef24b99f33a1d0e2519c"
+          }
+        },
+        "status": "PASS",
+        "ledgerAmendment": "Parent authorized File-navigation completion race as group18 scope, then canceled creation plus subsequent global Apply race as group19 scope after the previous ledgers passed. Three controller lifetimes and maximum24 replies unchanged.",
+        "productHead": "0a3d001f71b8637c71774bca4728a503fcb06b64",
+        "command": "node apps/cad-editor/flows/modeling-new-part-flow.mjs"
+      }
+    },
+    "workspaceRegression": {
+      "testedProductCommit": "a88a1290bc1f51884bf398f40a85ba89dddfe63f",
+      "node": "v22.23.3",
+      "result": {
+        "status": "PASS",
+        "groups": [
+          "pinned #1835 geometry and actual React/controller/serializer/receiver imports",
+          "workspace starts with one persistent viewport and closed dimension options",
+          "Browser feature selection opens actual constrained width and height controls",
+          "typing a dimension stages only draft state and preserves the accepted display",
+          "Apply admits a real serialized edit and closes only after accepted display commit",
+          "Undo and Redo retain model history and outside-field keyboard routing",
+          "Cancel and Escape discard drafts while neutral Escape only dismisses options",
+          "provider refusal retains accepted authority, error, editable draft and open options",
+          "pending dimensions survive Inspect/Files/Limits switching, close and reopen",
+          "repeat, IME, modifier and busy keys cannot duplicate Apply or discard work",
+          "stale Apply completion cannot close a different drawer or newer dimension draft",
+          "file/STL/examples/limits remain reachable without remounting the viewport or controller",
+          "unmount while display acceptance is pending disposes once and ignores late completion",
+          "omitted workspace prop preserves the existing embedding and dimension workflow"
+        ],
+        "mountedSessions": 3,
+        "replies": 20,
+        "providerLoads": 4,
+        "providerEdits": 16,
+        "previewReplays": 19,
+        "fixture": {
+          "path": "packages/barocss-cad/test/modeling-constraints-evidence/baseline-transfer.json",
+          "sha256": "194b855ed3e862e76c2468cbbcb0d2f21f7b2eda0a217325fa95a32fee226721"
+        },
+        "boundary": "Actual mounted React and host controls, modeling controller, engine serializer, receiver and CPU scene. Controlled provider, Worker, ResizeObserver and display port. All edited replies reuse genuine #1835 baseline geometry; edited native geometry, WebGPU pixels and physical browser file/download acceptance UNRUN."
+      },
+      "qualification": "Original unchanged #1943 test. Later edits only add new-part completion/file cleanup guards; these were covered by final focused new-part cases."
+    },
+    "extrusionRegression": {
+      "testedProductCommit": "a88a1290bc1f51884bf398f40a85ba89dddfe63f",
+      "node": "v22.23.3",
+      "result": {
+        "status": "PASS",
+        "node": "v22.23.3",
+        "runner": {
+          "executable": "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+          "argv": [
+            "/workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-extrusion-command-flow.mjs"
+          ],
+          "command": "\"/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node\" \"/workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-extrusion-command-flow.mjs\""
+        },
+        "groups": [
+          "pinned genuine circle baseline and actual React/controller/serializer/receiver imports",
+          "pure direct/default/start-Z/deduplicated/literal/derived projection controls",
+          "pure invalid/legacy/unknown-driver guards and source-generation-draft ownership",
+          "one mounted workspace exposes the selected extrusion and unchanged global dimensions",
+          "Cancel and reopen rejects callbacks from the prior command instance",
+          "A-to-B-to-A prop replacement clears commands and rejects prior-controller callbacks",
+          "local stage pins the extrusion despite Browser selection and mount-prop changes",
+          "Apply uses the real controller path and Undo/Redo retain accepted authored history",
+          "Cancel, Escape, no-op Apply and guarded text keys preserve accepted authority",
+          "unrelated global drafts route opening globally and block later local staging or Apply",
+          "controlled refusal retains command and draft then recovers through the same Apply path",
+          "source replacement stales pinned handlers and synthetic literal/derived commands stay read-only",
+          "synthetic direct Start Z and shared driver variants expose only their deduplicated parameters",
+          "identical-source replacement cannot revive an old command or discard newer drafts",
+          "late Apply cannot close another drawer or a newer command epoch",
+          "file/STL/examples/global controls stay reachable with one viewport after replacement",
+          "busy command keys are inert and unmount disposes once before late display completion"
+        ],
+        "mountedSessions": 1,
+        "controllerLifetimes": 3,
+        "replies": 19,
+        "providerLoads": 10,
+        "providerEdits": 9,
+        "previewReplays": 18,
+        "nativeCalls": 0,
+        "fixture": {
+          "path": "packages/barocss-cad/test/modeling-circle-evidence/baseline-transfer.json",
+          "sha256": "7338e8c36033d6a324760c9fc101d9509b73e89f223246395250c83cee6cc4e8"
+        },
+        "syntheticAuthoredVariants": [
+          "direct-start",
+          "deduplicated-driver",
+          "literal-only",
+          "derived-only"
+        ],
+        "boundary": "Actual mounted React, host controls, modeling controller, engine serializer, receiver and CPU scene. Controlled provider, Worker, ResizeObserver and display port. Every edited and synthetic-variant reply reuses genuine round-post baseline geometry. Zero native calls. Edited-state native geometry, WebGPU pixels and physical browser file/download acceptance UNRUN."
+      },
+      "qualification": "Original unchanged #1948 test. Later edits only add new-part completion/file cleanup guards."
+    },
+    "types": {
+      "productCommit": "0a3d001f71b8637c71774bca4728a503fcb06b64",
+      "node": "v22.23.3",
+      "command": [
+        "/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node",
+        "/workspace/shared/barocss-recovery-toolchain/node_modules/typescript/bin/tsc",
+        "-p",
+        "/workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/.tsconfig.workspace-check.json",
+        "--noEmit"
+      ],
+      "exitCode": 0,
+      "seconds": 10.502502162999008,
+      "config": {
+        "extends": "./tsconfig.json",
+        "compilerOptions": {
+          "paths": {
+            "@barocss/cad": [
+              "/workspace/shared/cad-1918-validation/cad-dist/index.d.ts"
+            ]
+          }
+        }
+      },
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalConfigUnchanged": true,
+      "temporaryRemoved": true,
+      "remainingProcessGroup": ""
+    },
+    "lint": {
+      "status": "PASS",
+      "exitCode": 0,
+      "node": "v22.23.3",
+      "errors": 0,
+      "warnings": 6,
+      "qualification": "Six intentional test logging statements; unused helper red retained and removed before final identical flow and lint green."
+    },
+    "guide": {
+      "status": "PASS",
+      "testedCommit": "a88a1290bc1f51884bf398f40a85ba89dddfe63f",
+      "node": "v22.23.3",
+      "vitepress": "1.6.4",
+      "sourceSHA256": "ef1661bf109f53ae2b08756db4d7ac602de8c9b8fd270cccf12f568c5c203c6c",
+      "renderedHTMLSHA256": "4730bed08803c358a4877f59d7fd9a3a7bd658ba0610d7222d9855f69e92ade4",
+      "requiredHeading": "create-your-own-rectangular-part",
+      "localLinks": 58,
+      "qualification": "Actual section renderer/link checks, not a full Manual build or deployment; guide bytes unchanged since rendered checkpoint."
+    }
+  },
+  "declarationBoundary": {
+    "provider": "5c6dc223a9b9e6b88bc8134651366b23147bc7c4",
+    "receiptPath": "packages/barocss-cad/test/modeling-stl-evidence/verification.json",
+    "receiptSHA256": "cb84c053368fdc9a8dd1af63c824fc36bf40af8413207f9e6f893009b7854090",
+    "count": 280,
+    "allMatch": true,
+    "qualification": "Reused unchanged #1890 emitted CAD public declaration boundary, not a fresh current full-source emit. Temporary actual-app config overrides only @barocss/cad; original config is restored."
+  },
+  "retainedGeometry": {
+    "scope": "Pure retained-data comparison only; no native or tessellation calls",
+    "rectangleOutput": "plate",
+    "constrainedOutput": "part",
+    "wholeNativeBodyObjectIsAndOrderedKeysEqual": true,
+    "artifacts": {
+      "rectangle": {
+        "path": "packages/barocss-cad/test/modeling-mass-evidence/01-baseline.snapshot.json",
+        "bytes": 1479178,
+        "sha256": "47c5ed6211fa3783d24fd5c90979353ba52d207f241f092397de39345156e64f"
+      },
+      "constrained": {
+        "path": "packages/barocss-cad/test/modeling-constraints-evidence/01-baseline.snapshot.json",
+        "bytes": 187691,
+        "sha256": "86cad47507a8b8d1f628b43be6e251610cb60dc10b7079998e0e815a528f1d8a"
+      },
+      "preview": {
+        "path": "packages/barocss-cad/test/modeling-constraints-evidence/baseline.preview.json",
+        "bytes": 102735,
+        "sha256": "fb47ac950baedaa33e0770e37bd236024799d38e2ae71747520547b7f3573392"
+      }
+    },
+    "newAuthoredCommandNativeEvaluation": "UNRUN",
+    "previewWholeParentExactlyMatchesRectangleBody": true,
+    "previewCounts": {
+      "faces": 6,
+      "triangles": 12,
+      "vertices": 24
+    }
+  },
+  "failureHistory": [
+    "Initial fixture syntax duplicate alias corrected before runtime; exact first result retained.",
+    "Initial unchanged workspace/extrusion regressions selected a hidden New part Cancel button and failed. Shared active footer corrected the ambiguity; unchanged original assertions then passed14/17 groups at a88a1290.",
+    "Captured old Cancel after same-source generation replacement closed a new document command; render generation/source fence corrected. First14 groups before red and later17-group green retained.",
+    "Successful New part with File-panel navigation retained628 staged bytes and checked replacement consent. Document cleanup separated from panel closing; actual held-completion red and18-group green retained.",
+    "Canceled held creation followed by newer global Apply was mistaken for creation success and cleared file state. Separate operation token invalidates cancel/lifecycle completion; red and19-group green retained.",
+    "Final scoped lint found one unused fixture helper. Only unused declaration removed; final identical19-group flow and lint0errors/6warnings passed."
+  ],
+  "commands": {
+    "flow": "REPO_DEPS_ROOT=/workspace/shared/barocss-recovery-toolchain node apps/cad-editor/flows/modeling-new-part-flow.mjs",
+    "workspaceRegression": "REPO_DEPS_ROOT=/workspace/shared/barocss-recovery-toolchain node apps/cad-editor/flows/modeling-workspace-flow.mjs",
+    "extrusionRegression": "REPO_DEPS_ROOT=/workspace/shared/barocss-recovery-toolchain node apps/cad-editor/flows/modeling-extrusion-command-flow.mjs",
+    "lint": "eslint packages/barocss-cad-editor/src/modeling-rectangular-part.ts packages/barocss-cad-editor/src/react/modeling-editor.tsx packages/barocss-cad-editor/src/react/modeling-workspace.tsx apps/cad-editor/flows/modeling-new-part-flow.mjs"
+  },
+  "preservation": {
+    "originalWorkspaceFlowSHA256": "3541e544401092e04f969dce6cf2f1a6293d30d9a46c15c63a9dae4eb3ded717",
+    "originalExtrusionFlowSHA256": "a8616e606cf69ab71c0ba1682ab21a20639105df418fa6c777cdf0f57e7cdfbd",
+    "controllerWorkerRendererSchemaManifestCSSChanged": false,
+    "newPublicExport": false,
+    "fullLocalBuild": "UNRUN by scope; CI owns lint/types/build"
+  },
+  "limits": [
+    "The actual React/controller/serializer/receiver and CPU scene are exercised with controlled provider/Worker/display ports. New three-driver authored documents and edited snapshots are adaptations, not measured native results.",
+    "All geometry replays use genuine retained baseline native body and preview; edited-state native geometry, GPU pixels and physical new-part Save/Open remain UNRUN.",
+    "Backend exact representability remains authoritative after local positive finite <=10000mm field validation.",
+    "Existing #1943/#1948 physical receipts linked in the guide cover their older adopted pin only, not this new command.",
+    "Manual deployment and exact adopted CI are pending, not local qualification results."
+  ],
+  "logs": {
+    "flow/00-initial-syntax-failure.txt": {
+      "bytes": 490,
+      "sha256": "528367b3149b43a7913594dcee95682d0f44bcb31fef02cc3d1999866baec67c",
+      "text": "Command: node --check apps/cad-editor/flows/modeling-new-part-flow.mjs\nNode: v24.19.0\nInitial source generation retained an obsolete width helper from the copied workspace harness.\nSyntaxError: Identifier 'width' has already been declared\nLocation: apps/cad-editor/flows/modeling-new-part-flow.mjs:248\nClassification: test harness error; no runtime cases executed and no product failure established.\nCorrection: remove the obsolete Profile X/Profile Y input aliases from the copied prefix.\n"
+    },
+    "flow/01-syntax-pass.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "flow/02-runtime-first-source-sha256.txt": {
+      "bytes": 493,
+      "sha256": "8221b6ad25632bfc7d9eeb3ad6f1f0da8afaf1ab6825ece6864b751caaa2b950",
+      "text": "668a0c70134c6b909096f9d6d3d91d2219c676d0c6ba2997d6a5fab309b822ed  apps/cad-editor/flows/modeling-new-part-flow.mjs\ncc377c51a9373878a3e1426107a54dfa95247f0e2bb39014289af820283189ea  packages/barocss-cad-editor/src/modeling-rectangular-part.ts\n308d98780c914c123975f9b4a37112cd39d7a6923a15a33d5c327a508331186d  packages/barocss-cad-editor/src/react/modeling-editor.tsx\n76eacdebd1261abad9fb59a6f0e9c55c4be512c0f865fc3b1ad922d58d8a7a4e  packages/barocss-cad-editor/src/react/modeling-workspace.tsx\n"
+    },
+    "flow/02-runtime-first.log": {
+      "bytes": 3235,
+      "sha256": "4d0f987ccbb6ec120f935eb84a2a6b7602124bc433964ebd16db3e6b9ec10f36",
+      "text": "{\"group\":1,\"name\":\"pinned #1835 convex baseline and real React/controller/serializer/CPU receiver imports\",\"status\":\"PASS\"}\n{\"control\":\"adapted-public-source\",\"sha256\":\"a354312ac37f51e58f8d94614e11bca9d73b1f17410c1a36eb08f8d9090c06ef\",\"parsed\":{\"format\":\"barocss-cad-model\",\"schema\":1,\"units\":\"mm\",\"parameters\":{\"width\":32,\"height\":24,\"thickness\":8},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[{\"parameter\":\"width\"},{\"parameter\":\"height\"}]},{\"kind\":\"extrude\",\"sketch\":0,\"height\":{\"parameter\":\"thickness\"}}],\"outputs\":{\"part\":{\"node\":1,\"side\":\"solid\"}}},\"nativeMeasured\":false}\n{\"group\":2,\"name\":\"pure three-driver public source and empty/nonfinite/nonpositive/upper-bound rejection\",\"status\":\"PASS\"}\n{\"group\":3,\"name\":\"CREATE opens local defaults; typing and Cancel preserve accepted source/display/history\",\"status\":\"PASS\"}\n{\"group\":4,\"name\":\"closing and reopening rejects actual callbacks captured from the prior command\",\"status\":\"PASS\"}\n{\"group\":5,\"name\":\"controller B initial refusal exposes Create part without an accepted model\",\"status\":\"PASS\"}\n{\"group\":6,\"name\":\"A-to-B-to-A creates three lifetimes and old-controller callbacks cannot mutate reopened A\",\"status\":\"PASS\"}\n{\"group\":7,\"name\":\"selection and mount-time layout changes preserve creation inputs and controller/display identity\",\"status\":\"PASS\"}\n{\"group\":8,\"name\":\"explicit replacement invokes open once, commits atomically and resets an existing two-entry history\",\"status\":\"PASS\"}\n{\"group\":9,\"name\":\"created part remains editable through existing Extrude and Undo with unchanged authored nodes\",\"status\":\"PASS\"}\n{\"group\":10,\"name\":\"pending global dimensions block creation; review, Cancel and Escape preserve those drafts\",\"status\":\"PASS\"}\n{\"group\":11,\"name\":\"invalid local raw values never stage model fields or dispatch a Worker request\",\"status\":\"PASS\"}\n{\"group\":12,\"name\":\"controlled backend refusal preserves authority and creation values before successful retry\",\"status\":\"PASS\"}\n{\"group\":13,\"name\":\"controlled display refusal keeps accepted source/display/history and retained inputs recover\",\"status\":\"PASS\"}\n{\"group\":14,\"name\":\"busy creation protects close; toolbar cancellation fences a late Worker reply and permits retry\",\"status\":\"PASS\"}\nnode:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Options must be visible\n    at assertPanel (file:///workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-new-part-flow.mjs:241:10)\n    at assertStale (file:///workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-new-part-flow.mjs:288:3)\n    at async file:///workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-new-part-flow.mjs:477:5\n    at async group (file:///workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-new-part-flow.mjs:32:3)\n    at async file:///workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-new-part-flow.mjs:473:3 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v24.19.0\n"
+    },
+    "flow/03-runtime-second-source-sha256.txt": {
+      "bytes": 493,
+      "sha256": "de2b88ac6cf4e1d794a6ce520619edcb7bff6ea8fc0dbc52d40c65d6288b7880",
+      "text": "f4d1b552958f3d09e750586904a4e46cbb3076888162917ef43e41a4fb6561b0  apps/cad-editor/flows/modeling-new-part-flow.mjs\ncc377c51a9373878a3e1426107a54dfa95247f0e2bb39014289af820283189ea  packages/barocss-cad-editor/src/modeling-rectangular-part.ts\n8d40f4a3b6432b2220c1fd33f50904b52a01755216ddbcf38db5c9648b86fb23  packages/barocss-cad-editor/src/react/modeling-editor.tsx\n7d092d8414495c6917d3d0243c915b0ab539d3db73da827fc6c733052a5bb517  packages/barocss-cad-editor/src/react/modeling-workspace.tsx\n"
+    },
+    "flow/03-runtime-second.log": {
+      "bytes": 5574,
+      "sha256": "1e6f6aecab25a0035eee4d4d4042d09039dca6162b903b56905c1761dcee7147",
+      "text": "{\"group\":1,\"name\":\"pinned #1835 convex baseline and real React/controller/serializer/CPU receiver imports\",\"status\":\"PASS\"}\n{\"control\":\"adapted-public-source\",\"sha256\":\"a354312ac37f51e58f8d94614e11bca9d73b1f17410c1a36eb08f8d9090c06ef\",\"parsed\":{\"format\":\"barocss-cad-model\",\"schema\":1,\"units\":\"mm\",\"parameters\":{\"width\":32,\"height\":24,\"thickness\":8},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[{\"parameter\":\"width\"},{\"parameter\":\"height\"}]},{\"kind\":\"extrude\",\"sketch\":0,\"height\":{\"parameter\":\"thickness\"}}],\"outputs\":{\"part\":{\"node\":1,\"side\":\"solid\"}}},\"nativeMeasured\":false}\n{\"group\":2,\"name\":\"pure three-driver public source and empty/nonfinite/nonpositive/upper-bound rejection\",\"status\":\"PASS\"}\n{\"group\":3,\"name\":\"CREATE opens local defaults; typing and Cancel preserve accepted source/display/history\",\"status\":\"PASS\"}\n{\"group\":4,\"name\":\"closing and reopening rejects actual callbacks captured from the prior command\",\"status\":\"PASS\"}\n{\"group\":5,\"name\":\"controller B initial refusal exposes Create part without an accepted model\",\"status\":\"PASS\"}\n{\"group\":6,\"name\":\"A-to-B-to-A creates three lifetimes and old-controller callbacks cannot mutate reopened A\",\"status\":\"PASS\"}\n{\"group\":7,\"name\":\"selection and mount-time layout changes preserve creation inputs and controller/display identity\",\"status\":\"PASS\"}\n{\"group\":8,\"name\":\"explicit replacement invokes open once, commits atomically and resets an existing two-entry history\",\"status\":\"PASS\"}\n{\"group\":9,\"name\":\"created part remains editable through existing Extrude and Undo with unchanged authored nodes\",\"status\":\"PASS\"}\n{\"group\":10,\"name\":\"pending global dimensions block creation; review, Cancel and Escape preserve those drafts\",\"status\":\"PASS\"}\n{\"group\":11,\"name\":\"invalid local raw values never stage model fields or dispatch a Worker request\",\"status\":\"PASS\"}\n{\"group\":12,\"name\":\"controlled backend refusal preserves authority and creation values before successful retry\",\"status\":\"PASS\"}\n{\"group\":13,\"name\":\"controlled display refusal keeps accepted source/display/history and retained inputs recover\",\"status\":\"PASS\"}\n{\"group\":14,\"name\":\"busy creation protects close; toolbar cancellation fences a late Worker reply and permits retry\",\"status\":\"PASS\"}\n{\"group\":15,\"name\":\"identical-source generation replacement invalidates captured creation callbacks without discarding drafts\",\"status\":\"PASS\"}\n{\"group\":16,\"name\":\"changed-source replacement stales old creation; old async completion cannot close a newer command\",\"status\":\"PASS\"}\n{\"group\":17,\"name\":\"existing file/STL/global/Extrude controls remain reachable and one viewport disposes once\",\"status\":\"PASS\"}\n{\"status\":\"PASS\",\"node\":\"v24.19.0\",\"runner\":{\"executable\":\"/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node\",\"argv\":[\"/workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-new-part-flow.mjs\"],\"command\":\"\\\"/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node\\\" \\\"/workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-new-part-flow.mjs\\\"\"},\"groups\":[\"pinned #1835 convex baseline and real React/controller/serializer/CPU receiver imports\",\"pure three-driver public source and empty/nonfinite/nonpositive/upper-bound rejection\",\"CREATE opens local defaults; typing and Cancel preserve accepted source/display/history\",\"closing and reopening rejects actual callbacks captured from the prior command\",\"controller B initial refusal exposes Create part without an accepted model\",\"A-to-B-to-A creates three lifetimes and old-controller callbacks cannot mutate reopened A\",\"selection and mount-time layout changes preserve creation inputs and controller/display identity\",\"explicit replacement invokes open once, commits atomically and resets an existing two-entry history\",\"created part remains editable through existing Extrude and Undo with unchanged authored nodes\",\"pending global dimensions block creation; review, Cancel and Escape preserve those drafts\",\"invalid local raw values never stage model fields or dispatch a Worker request\",\"controlled backend refusal preserves authority and creation values before successful retry\",\"controlled display refusal keeps accepted source/display/history and retained inputs recover\",\"busy creation protects close; toolbar cancellation fences a late Worker reply and permits retry\",\"identical-source generation replacement invalidates captured creation callbacks without discarding drafts\",\"changed-source replacement stales old creation; old async completion cannot close a newer command\",\"existing file/STL/global/Extrude controls remain reachable and one viewport disposes once\"],\"mountedRoots\":1,\"controllerLifetimes\":3,\"replies\":17,\"providerLoads\":14,\"providerEdits\":3,\"previewReplays\":15,\"nativeCalls\":0,\"flowSourceSHA256\":\"f4d1b552958f3d09e750586904a4e46cbb3076888162917ef43e41a4fb6561b0\",\"fixture\":{\"path\":\"packages/barocss-cad/test/modeling-constraints-evidence/baseline-transfer.json\",\"sha256\":\"194b855ed3e862e76c2468cbbcb0d2f21f7b2eda0a217325fa95a32fee226721\"},\"adaptedDefaultSourceSHA256\":\"a354312ac37f51e58f8d94614e11bca9d73b1f17410c1a36eb08f8d9090c06ef\",\"boundary\":\"Actual mounted React, host controls, modeling controller, engine serializer, receiver and CPU scene. Controlled provider, Worker, ResizeObserver and display port. New three-driver authoring is an adaptation. Every reply reuses genuine #1835 baseline convex geometry. Zero native calls. Edited-state native geometry, WebGPU pixels, physical browser I/O and download acceptance UNRUN.\"}\n"
+    },
+    "flow/04-file-race-first-source-sha256.txt": {
+      "bytes": 493,
+      "sha256": "45e34de24d15a281fdb95c47ccf8f0e758fe179b7b683f804ff744ebd23e5726",
+      "text": "cc5739be204e537e25364b7c5c43f3df857024f13a4ed997f3c0826aa0945250  apps/cad-editor/flows/modeling-new-part-flow.mjs\ncc377c51a9373878a3e1426107a54dfa95247f0e2bb39014289af820283189ea  packages/barocss-cad-editor/src/modeling-rectangular-part.ts\n8d40f4a3b6432b2220c1fd33f50904b52a01755216ddbcf38db5c9648b86fb23  packages/barocss-cad-editor/src/react/modeling-editor.tsx\n7d092d8414495c6917d3d0243c915b0ab539d3db73da827fc6c733052a5bb517  packages/barocss-cad-editor/src/react/modeling-workspace.tsx\n"
+    },
+    "flow/04-file-race-first.log": {
+      "bytes": 5765,
+      "sha256": "e16c32058da844184913fbe3ddd944fe45be2022b40c4e89f3fb8b4c680b0725",
+      "text": "{\"group\":1,\"name\":\"pinned #1835 convex baseline and real React/controller/serializer/CPU receiver imports\",\"status\":\"PASS\"}\n{\"control\":\"adapted-public-source\",\"sha256\":\"a354312ac37f51e58f8d94614e11bca9d73b1f17410c1a36eb08f8d9090c06ef\",\"parsed\":{\"format\":\"barocss-cad-model\",\"schema\":1,\"units\":\"mm\",\"parameters\":{\"width\":32,\"height\":24,\"thickness\":8},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[{\"parameter\":\"width\"},{\"parameter\":\"height\"}]},{\"kind\":\"extrude\",\"sketch\":0,\"height\":{\"parameter\":\"thickness\"}}],\"outputs\":{\"part\":{\"node\":1,\"side\":\"solid\"}}},\"nativeMeasured\":false}\n{\"group\":2,\"name\":\"pure three-driver public source and empty/nonfinite/nonpositive/upper-bound rejection\",\"status\":\"PASS\"}\n{\"group\":3,\"name\":\"CREATE opens local defaults; typing and Cancel preserve accepted source/display/history\",\"status\":\"PASS\"}\n{\"group\":4,\"name\":\"closing and reopening rejects actual callbacks captured from the prior command\",\"status\":\"PASS\"}\n{\"group\":5,\"name\":\"controller B initial refusal exposes Create part without an accepted model\",\"status\":\"PASS\"}\n{\"group\":6,\"name\":\"A-to-B-to-A creates three lifetimes and old-controller callbacks cannot mutate reopened A\",\"status\":\"PASS\"}\n{\"group\":7,\"name\":\"selection and mount-time layout changes preserve creation inputs and controller/display identity\",\"status\":\"PASS\"}\n{\"group\":8,\"name\":\"explicit replacement invokes open once, commits atomically and resets an existing two-entry history\",\"status\":\"PASS\"}\n{\"group\":9,\"name\":\"created part remains editable through existing Extrude and Undo with unchanged authored nodes\",\"status\":\"PASS\"}\n{\"group\":10,\"name\":\"pending global dimensions block creation; review, Cancel and Escape preserve those drafts\",\"status\":\"PASS\"}\n{\"group\":11,\"name\":\"invalid local raw values never stage model fields or dispatch a Worker request\",\"status\":\"PASS\"}\n{\"group\":12,\"name\":\"controlled backend refusal preserves authority and creation values before successful retry\",\"status\":\"PASS\"}\n{\"group\":13,\"name\":\"controlled display refusal keeps accepted source/display/history and retained inputs recover\",\"status\":\"PASS\"}\n{\"group\":14,\"name\":\"busy creation protects close; toolbar cancellation fences a late Worker reply and permits retry\",\"status\":\"PASS\"}\n{\"group\":15,\"name\":\"identical-source generation replacement invalidates captured creation callbacks without discarding drafts\",\"status\":\"PASS\"}\n{\"group\":16,\"name\":\"changed-source replacement stales old creation; old async completion cannot close a newer command\",\"status\":\"PASS\"}\n{\"control\":\"file-panel-after-creation\",\"visible\":true,\"stagedTextLength\":628,\"confirmed\":true}\n{\"group\":17,\"name\":\"successful creation clears old staged file bytes and consent while preserving a newly opened File panel\",\"status\":\"FAIL\",\"replies\":18,\"providerLoads\":15,\"providerEdits\":3,\"previewReplays\":16,\"nativeCalls\":0,\"error\":\"AssertionError [ERR_ASSERTION]: Successful creation must clear the prior document staged file bytes\\n+ actual - expected\\n\\n+ '{\\\"format\\\":\\\"barocss-cad-model\\\",\\\"nodes\\\":[{\\\"constraints\\\":[{\\\"kind\\\":\\\"fixed\\\",\\\"point\\\":0},{\\\"kind\\\":\\\"fixed\\\",\\\"point\\\":2},{\\\"kind\\\":\\\"horizontal\\\",\\\"points\\\":[0,1]},{\\\"kind\\\":\\\"vertical\\\",\\\"points\\\":[1,2]},{\\\"kind\\\":\\\"horizontal\\\",\\\"points\\\":[2,3]},{\\\"kind\\\":\\\"vertical\\\",\\\"points\\\":[3,0]},{\\\"kind\\\":\\\"fixed\\\",\\\"point\\\":1}],\\\"kind\\\":\\\"sketch\\\",\\\"points\\\":[[-0,0],[{\\\"parameter\\\":\\\"width\\\"},{\\\"parameter\\\":\\\"lockY\\\"}],[{\\\"parameter\\\":\\\"width\\\"},{\\\"parameter\\\":\\\"height\\\"}],[1,{\\\"parameter\\\":\\\"height\\\"}]],\\\"profile\\\":\\\"constrained-polygon\\\"},{\\\"height\\\":8,\\\"kind\\\":\\\"extrude\\\",\\\"sketch\\\":0}],\\\"outputs\\\":{\\\"part\\\":{\\\"node\\\":1,\\\"side\\\":\\\"solid\\\"}},\\\"parameters\\\":{\\\"height\\\":24,\\\"lockY\\\":0,\\\"width\\\":32},\\\"schema\\\":1,\\\"units\\\":\\\"mm\\\"}\\\\n'\\n- ''\\n\"}\nnode:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Successful creation must clear the prior document staged file bytes\n+ actual - expected\n\n+ '{\"format\":\"barocss-cad-model\",\"nodes\":[{\"constraints\":[{\"kind\":\"fixed\",\"point\":0},{\"kind\":\"fixed\",\"point\":2},{\"kind\":\"horizontal\",\"points\":[0,1]},{\"kind\":\"vertical\",\"points\":[1,2]},{\"kind\":\"horizontal\",\"points\":[2,3]},{\"kind\":\"vertical\",\"points\":[3,0]},{\"kind\":\"fixed\",\"point\":1}],\"kind\":\"sketch\",\"points\":[[-0,0],[{\"parameter\":\"width\"},{\"parameter\":\"lockY\"}],[{\"parameter\":\"width\"},{\"parameter\":\"height\"}],[1,{\"parameter\":\"height\"}]],\"profile\":\"constrained-polygon\"},{\"height\":8,\"kind\":\"extrude\",\"sketch\":0}],\"outputs\":{\"part\":{\"node\":1,\"side\":\"solid\"}},\"parameters\":{\"height\":24,\"lockY\":0,\"width\":32},\"schema\":1,\"units\":\"mm\"}\\n'\n- ''\n\n    at file:///workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-new-part-flow.mjs:525:12\n    at async group (file:///workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-new-part-flow.mjs:33:9)\n    at async file:///workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-new-part-flow.mjs:506:3 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: '{\"format\":\"barocss-cad-model\",\"nodes\":[{\"constraints\":[{\"kind\":\"fixed\",\"point\":0},{\"kind\":\"fixed\",\"point\":2},{\"kind\":\"horizontal\",\"points\":[0,1]},{\"kind\":\"vertical\",\"points\":[1,2]},{\"kind\":\"horizontal\",\"points\":[2,3]},{\"kind\":\"vertical\",\"points\":[3,0]},{\"kind\":\"fixed\",\"point\":1}],\"kind\":\"sketch\",\"points\":[[-0,0],[{\"parameter\":\"width\"},{\"parameter\":\"lockY\"}],[{\"parameter\":\"width\"},{\"parameter\":\"height\"}],[1,{\"parameter\":\"height\"}]],\"profile\":\"constrained-polygon\"},{\"height\":8,\"kind\":\"extrude\",\"sketch\":0}],\"outputs\":{\"part\":{\"node\":1,\"side\":\"solid\"}},\"parameters\":{\"height\":24,\"lockY\":0,\"width\":32},\"schema\":1,\"units\":\"mm\"}\\n',\n  expected: '',\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v24.19.0\n"
+    },
+    "flow/05-file-race-second-source-sha256.txt": {
+      "bytes": 493,
+      "sha256": "d06b3bfc9c1650f4a81db0cec344239aa724153587bcab43b29fcdf45412427d",
+      "text": "cc5739be204e537e25364b7c5c43f3df857024f13a4ed997f3c0826aa0945250  apps/cad-editor/flows/modeling-new-part-flow.mjs\ncc377c51a9373878a3e1426107a54dfa95247f0e2bb39014289af820283189ea  packages/barocss-cad-editor/src/modeling-rectangular-part.ts\n634f20f40d5dd9e009a034b2fef0eb7d5ef4b8fc1ac81c81b220d886d0919865  packages/barocss-cad-editor/src/react/modeling-editor.tsx\n7d092d8414495c6917d3d0243c915b0ab539d3db73da827fc6c733052a5bb517  packages/barocss-cad-editor/src/react/modeling-workspace.tsx\n"
+    },
+    "flow/05-file-race-second.log": {
+      "bytes": 5916,
+      "sha256": "dae1d94a239413c528268a54429f87337e317218e8be614c5dfe7000b0b24923",
+      "text": "{\"group\":1,\"name\":\"pinned #1835 convex baseline and real React/controller/serializer/CPU receiver imports\",\"status\":\"PASS\"}\n{\"control\":\"adapted-public-source\",\"sha256\":\"a354312ac37f51e58f8d94614e11bca9d73b1f17410c1a36eb08f8d9090c06ef\",\"parsed\":{\"format\":\"barocss-cad-model\",\"schema\":1,\"units\":\"mm\",\"parameters\":{\"width\":32,\"height\":24,\"thickness\":8},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[{\"parameter\":\"width\"},{\"parameter\":\"height\"}]},{\"kind\":\"extrude\",\"sketch\":0,\"height\":{\"parameter\":\"thickness\"}}],\"outputs\":{\"part\":{\"node\":1,\"side\":\"solid\"}}},\"nativeMeasured\":false}\n{\"group\":2,\"name\":\"pure three-driver public source and empty/nonfinite/nonpositive/upper-bound rejection\",\"status\":\"PASS\"}\n{\"group\":3,\"name\":\"CREATE opens local defaults; typing and Cancel preserve accepted source/display/history\",\"status\":\"PASS\"}\n{\"group\":4,\"name\":\"closing and reopening rejects actual callbacks captured from the prior command\",\"status\":\"PASS\"}\n{\"group\":5,\"name\":\"controller B initial refusal exposes Create part without an accepted model\",\"status\":\"PASS\"}\n{\"group\":6,\"name\":\"A-to-B-to-A creates three lifetimes and old-controller callbacks cannot mutate reopened A\",\"status\":\"PASS\"}\n{\"group\":7,\"name\":\"selection and mount-time layout changes preserve creation inputs and controller/display identity\",\"status\":\"PASS\"}\n{\"group\":8,\"name\":\"explicit replacement invokes open once, commits atomically and resets an existing two-entry history\",\"status\":\"PASS\"}\n{\"group\":9,\"name\":\"created part remains editable through existing Extrude and Undo with unchanged authored nodes\",\"status\":\"PASS\"}\n{\"group\":10,\"name\":\"pending global dimensions block creation; review, Cancel and Escape preserve those drafts\",\"status\":\"PASS\"}\n{\"group\":11,\"name\":\"invalid local raw values never stage model fields or dispatch a Worker request\",\"status\":\"PASS\"}\n{\"group\":12,\"name\":\"controlled backend refusal preserves authority and creation values before successful retry\",\"status\":\"PASS\"}\n{\"group\":13,\"name\":\"controlled display refusal keeps accepted source/display/history and retained inputs recover\",\"status\":\"PASS\"}\n{\"group\":14,\"name\":\"busy creation protects close; toolbar cancellation fences a late Worker reply and permits retry\",\"status\":\"PASS\"}\n{\"group\":15,\"name\":\"identical-source generation replacement invalidates captured creation callbacks without discarding drafts\",\"status\":\"PASS\"}\n{\"group\":16,\"name\":\"changed-source replacement stales old creation; old async completion cannot close a newer command\",\"status\":\"PASS\"}\n{\"control\":\"file-panel-after-creation\",\"visible\":true,\"stagedTextLength\":0,\"confirmed\":false}\n{\"group\":17,\"name\":\"successful creation clears old staged file bytes and consent while preserving a newly opened File panel\",\"status\":\"PASS\"}\n{\"group\":18,\"name\":\"existing file/STL/global/Extrude controls remain reachable and one viewport disposes once\",\"status\":\"PASS\"}\n{\"status\":\"PASS\",\"node\":\"v24.19.0\",\"runner\":{\"executable\":\"/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node\",\"argv\":[\"/workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-new-part-flow.mjs\"],\"command\":\"\\\"/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node\\\" \\\"/workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-new-part-flow.mjs\\\"\"},\"groups\":[\"pinned #1835 convex baseline and real React/controller/serializer/CPU receiver imports\",\"pure three-driver public source and empty/nonfinite/nonpositive/upper-bound rejection\",\"CREATE opens local defaults; typing and Cancel preserve accepted source/display/history\",\"closing and reopening rejects actual callbacks captured from the prior command\",\"controller B initial refusal exposes Create part without an accepted model\",\"A-to-B-to-A creates three lifetimes and old-controller callbacks cannot mutate reopened A\",\"selection and mount-time layout changes preserve creation inputs and controller/display identity\",\"explicit replacement invokes open once, commits atomically and resets an existing two-entry history\",\"created part remains editable through existing Extrude and Undo with unchanged authored nodes\",\"pending global dimensions block creation; review, Cancel and Escape preserve those drafts\",\"invalid local raw values never stage model fields or dispatch a Worker request\",\"controlled backend refusal preserves authority and creation values before successful retry\",\"controlled display refusal keeps accepted source/display/history and retained inputs recover\",\"busy creation protects close; toolbar cancellation fences a late Worker reply and permits retry\",\"identical-source generation replacement invalidates captured creation callbacks without discarding drafts\",\"changed-source replacement stales old creation; old async completion cannot close a newer command\",\"successful creation clears old staged file bytes and consent while preserving a newly opened File panel\",\"existing file/STL/global/Extrude controls remain reachable and one viewport disposes once\"],\"mountedRoots\":1,\"controllerLifetimes\":3,\"replies\":18,\"providerLoads\":15,\"providerEdits\":3,\"previewReplays\":16,\"nativeCalls\":0,\"flowSourceSHA256\":\"cc5739be204e537e25364b7c5c43f3df857024f13a4ed997f3c0826aa0945250\",\"fixture\":{\"path\":\"packages/barocss-cad/test/modeling-constraints-evidence/baseline-transfer.json\",\"sha256\":\"194b855ed3e862e76c2468cbbcb0d2f21f7b2eda0a217325fa95a32fee226721\"},\"adaptedDefaultSourceSHA256\":\"a354312ac37f51e58f8d94614e11bca9d73b1f17410c1a36eb08f8d9090c06ef\",\"boundary\":\"Actual mounted React, host controls, modeling controller, engine serializer, receiver and CPU scene. Controlled provider, Worker, ResizeObserver and display port. New three-driver authoring is an adaptation. Every reply reuses genuine #1835 baseline convex geometry. Zero native calls. Edited-state native geometry, WebGPU pixels, physical browser I/O and download acceptance UNRUN.\"}\n"
+    },
+    "flow/06-canceled-file-race-first-source-sha256.txt": {
+      "bytes": 493,
+      "sha256": "e690c7de462cbf2a749b5513ea106bb0a89bfb392b4da2a48ee46b004b81a836",
+      "text": "d56e6d71796677bfd8e7727c7629d59925addd009bd8d061d8ff856c19ca55ac  apps/cad-editor/flows/modeling-new-part-flow.mjs\ncc377c51a9373878a3e1426107a54dfa95247f0e2bb39014289af820283189ea  packages/barocss-cad-editor/src/modeling-rectangular-part.ts\n634f20f40d5dd9e009a034b2fef0eb7d5ef4b8fc1ac81c81b220d886d0919865  packages/barocss-cad-editor/src/react/modeling-editor.tsx\n7d092d8414495c6917d3d0243c915b0ab539d3db73da827fc6c733052a5bb517  packages/barocss-cad-editor/src/react/modeling-workspace.tsx\n"
+    },
+    "flow/06-canceled-file-race-first.log": {
+      "bytes": 6024,
+      "sha256": "bebb7726d6b76567aad6e0efed71508a2ba235f531ee82224633a028c02072d7",
+      "text": "{\"group\":1,\"name\":\"pinned #1835 convex baseline and real React/controller/serializer/CPU receiver imports\",\"status\":\"PASS\"}\n{\"control\":\"adapted-public-source\",\"sha256\":\"a354312ac37f51e58f8d94614e11bca9d73b1f17410c1a36eb08f8d9090c06ef\",\"parsed\":{\"format\":\"barocss-cad-model\",\"schema\":1,\"units\":\"mm\",\"parameters\":{\"width\":32,\"height\":24,\"thickness\":8},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[{\"parameter\":\"width\"},{\"parameter\":\"height\"}]},{\"kind\":\"extrude\",\"sketch\":0,\"height\":{\"parameter\":\"thickness\"}}],\"outputs\":{\"part\":{\"node\":1,\"side\":\"solid\"}}},\"nativeMeasured\":false}\n{\"group\":2,\"name\":\"pure three-driver public source and empty/nonfinite/nonpositive/upper-bound rejection\",\"status\":\"PASS\"}\n{\"group\":3,\"name\":\"CREATE opens local defaults; typing and Cancel preserve accepted source/display/history\",\"status\":\"PASS\"}\n{\"group\":4,\"name\":\"closing and reopening rejects actual callbacks captured from the prior command\",\"status\":\"PASS\"}\n{\"group\":5,\"name\":\"controller B initial refusal exposes Create part without an accepted model\",\"status\":\"PASS\"}\n{\"group\":6,\"name\":\"A-to-B-to-A creates three lifetimes and old-controller callbacks cannot mutate reopened A\",\"status\":\"PASS\"}\n{\"group\":7,\"name\":\"selection and mount-time layout changes preserve creation inputs and controller/display identity\",\"status\":\"PASS\"}\n{\"group\":8,\"name\":\"explicit replacement invokes open once, commits atomically and resets an existing two-entry history\",\"status\":\"PASS\"}\n{\"group\":9,\"name\":\"created part remains editable through existing Extrude and Undo with unchanged authored nodes\",\"status\":\"PASS\"}\n{\"group\":10,\"name\":\"pending global dimensions block creation; review, Cancel and Escape preserve those drafts\",\"status\":\"PASS\"}\n{\"group\":11,\"name\":\"invalid local raw values never stage model fields or dispatch a Worker request\",\"status\":\"PASS\"}\n{\"group\":12,\"name\":\"controlled backend refusal preserves authority and creation values before successful retry\",\"status\":\"PASS\"}\n{\"group\":13,\"name\":\"controlled display refusal keeps accepted source/display/history and retained inputs recover\",\"status\":\"PASS\"}\n{\"group\":14,\"name\":\"busy creation protects close; toolbar cancellation fences a late Worker reply and permits retry\",\"status\":\"PASS\"}\n{\"group\":15,\"name\":\"identical-source generation replacement invalidates captured creation callbacks without discarding drafts\",\"status\":\"PASS\"}\n{\"group\":16,\"name\":\"changed-source replacement stales old creation; old async completion cannot close a newer command\",\"status\":\"PASS\"}\n{\"control\":\"file-panel-after-creation\",\"visible\":true,\"stagedTextLength\":0,\"confirmed\":false}\n{\"group\":17,\"name\":\"successful creation clears old staged file bytes and consent while preserving a newly opened File panel\",\"status\":\"PASS\"}\n{\"control\":\"canceled-creation-after-global-apply\",\"visible\":true,\"stagedTextLength\":0,\"confirmed\":false}\n{\"group\":18,\"name\":\"canceled creation completion cannot clear staged file consent after a newer global Apply\",\"status\":\"FAIL\",\"replies\":21,\"providerLoads\":17,\"providerEdits\":4,\"previewReplays\":19,\"nativeCalls\":0,\"error\":\"AssertionError [ERR_ASSERTION]: Canceled creation must not clear staged file bytes after another operation admits\\n+ actual - expected\\n\\n+ ''\\n- '{\\\"format\\\":\\\"barocss-cad-model\\\",\\\"nodes\\\":[{\\\"constraints\\\":[{\\\"kind\\\":\\\"fixed\\\",\\\"point\\\":0},{\\\"kind\\\":\\\"fixed\\\",\\\"point\\\":2},{\\\"kind\\\":\\\"horizontal\\\",\\\"points\\\":[0,1]},{\\\"kind\\\":\\\"vertical\\\",\\\"points\\\":[1,2]},{\\\"kind\\\":\\\"horizontal\\\",\\\"points\\\":[2,3]},{\\\"kind\\\":\\\"vertical\\\",\\\"points\\\":[3,0]},{\\\"kind\\\":\\\"fixed\\\",\\\"point\\\":1}],\\\"kind\\\":\\\"sketch\\\",\\\"points\\\":[[-0,0],[{\\\"parameter\\\":\\\"width\\\"},{\\\"parameter\\\":\\\"lockY\\\"}],[{\\\"parameter\\\":\\\"width\\\"},{\\\"parameter\\\":\\\"height\\\"}],[1,{\\\"parameter\\\":\\\"height\\\"}]],\\\"profile\\\":\\\"constrained-polygon\\\"},{\\\"height\\\":8,\\\"kind\\\":\\\"extrude\\\",\\\"sketch\\\":0}],\\\"outputs\\\":{\\\"part\\\":{\\\"node\\\":1,\\\"side\\\":\\\"solid\\\"}},\\\"parameters\\\":{\\\"height\\\":24,\\\"lockY\\\":0,\\\"width\\\":32},\\\"schema\\\":1,\\\"units\\\":\\\"mm\\\"}\\\\n'\\n\"}\nnode:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Canceled creation must not clear staged file bytes after another operation admits\n+ actual - expected\n\n+ ''\n- '{\"format\":\"barocss-cad-model\",\"nodes\":[{\"constraints\":[{\"kind\":\"fixed\",\"point\":0},{\"kind\":\"fixed\",\"point\":2},{\"kind\":\"horizontal\",\"points\":[0,1]},{\"kind\":\"vertical\",\"points\":[1,2]},{\"kind\":\"horizontal\",\"points\":[2,3]},{\"kind\":\"vertical\",\"points\":[3,0]},{\"kind\":\"fixed\",\"point\":1}],\"kind\":\"sketch\",\"points\":[[-0,0],[{\"parameter\":\"width\"},{\"parameter\":\"lockY\"}],[{\"parameter\":\"width\"},{\"parameter\":\"height\"}],[1,{\"parameter\":\"height\"}]],\"profile\":\"constrained-polygon\"},{\"height\":8,\"kind\":\"extrude\",\"sketch\":0}],\"outputs\":{\"part\":{\"node\":1,\"side\":\"solid\"}},\"parameters\":{\"height\":24,\"lockY\":0,\"width\":32},\"schema\":1,\"units\":\"mm\"}\\n'\n\n    at file:///workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-new-part-flow.mjs:551:12\n    at async group (file:///workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-new-part-flow.mjs:33:9)\n    at async file:///workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-new-part-flow.mjs:529:3 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: '',\n  expected: '{\"format\":\"barocss-cad-model\",\"nodes\":[{\"constraints\":[{\"kind\":\"fixed\",\"point\":0},{\"kind\":\"fixed\",\"point\":2},{\"kind\":\"horizontal\",\"points\":[0,1]},{\"kind\":\"vertical\",\"points\":[1,2]},{\"kind\":\"horizontal\",\"points\":[2,3]},{\"kind\":\"vertical\",\"points\":[3,0]},{\"kind\":\"fixed\",\"point\":1}],\"kind\":\"sketch\",\"points\":[[-0,0],[{\"parameter\":\"width\"},{\"parameter\":\"lockY\"}],[{\"parameter\":\"width\"},{\"parameter\":\"height\"}],[1,{\"parameter\":\"height\"}]],\"profile\":\"constrained-polygon\"},{\"height\":8,\"kind\":\"extrude\",\"sketch\":0}],\"outputs\":{\"part\":{\"node\":1,\"side\":\"solid\"}},\"parameters\":{\"height\":24,\"lockY\":0,\"width\":32},\"schema\":1,\"units\":\"mm\"}\\n',\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v24.19.0\n"
+    },
+    "flow/07-canceled-file-race-second-source-sha256.txt": {
+      "bytes": 493,
+      "sha256": "6cef9fdceb5319eef668de876ced173c93a669c82c44f78745941739c5c20442",
+      "text": "d56e6d71796677bfd8e7727c7629d59925addd009bd8d061d8ff856c19ca55ac  apps/cad-editor/flows/modeling-new-part-flow.mjs\ncc377c51a9373878a3e1426107a54dfa95247f0e2bb39014289af820283189ea  packages/barocss-cad-editor/src/modeling-rectangular-part.ts\n68c49f7774c6550e5f47b400e05013de646e34ed0ce807b0f6b65b2710ec7621  packages/barocss-cad-editor/src/react/modeling-editor.tsx\n7d092d8414495c6917d3d0243c915b0ab539d3db73da827fc6c733052a5bb517  packages/barocss-cad-editor/src/react/modeling-workspace.tsx\n"
+    },
+    "flow/07-canceled-file-race-second.log": {
+      "bytes": 6240,
+      "sha256": "339d8d76465d7523914b18aaa3e6b6e230df7f2ebe5d97862faaa7cefdf8e399",
+      "text": "{\"group\":1,\"name\":\"pinned #1835 convex baseline and real React/controller/serializer/CPU receiver imports\",\"status\":\"PASS\"}\n{\"control\":\"adapted-public-source\",\"sha256\":\"a354312ac37f51e58f8d94614e11bca9d73b1f17410c1a36eb08f8d9090c06ef\",\"parsed\":{\"format\":\"barocss-cad-model\",\"schema\":1,\"units\":\"mm\",\"parameters\":{\"width\":32,\"height\":24,\"thickness\":8},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[{\"parameter\":\"width\"},{\"parameter\":\"height\"}]},{\"kind\":\"extrude\",\"sketch\":0,\"height\":{\"parameter\":\"thickness\"}}],\"outputs\":{\"part\":{\"node\":1,\"side\":\"solid\"}}},\"nativeMeasured\":false}\n{\"group\":2,\"name\":\"pure three-driver public source and empty/nonfinite/nonpositive/upper-bound rejection\",\"status\":\"PASS\"}\n{\"group\":3,\"name\":\"CREATE opens local defaults; typing and Cancel preserve accepted source/display/history\",\"status\":\"PASS\"}\n{\"group\":4,\"name\":\"closing and reopening rejects actual callbacks captured from the prior command\",\"status\":\"PASS\"}\n{\"group\":5,\"name\":\"controller B initial refusal exposes Create part without an accepted model\",\"status\":\"PASS\"}\n{\"group\":6,\"name\":\"A-to-B-to-A creates three lifetimes and old-controller callbacks cannot mutate reopened A\",\"status\":\"PASS\"}\n{\"group\":7,\"name\":\"selection and mount-time layout changes preserve creation inputs and controller/display identity\",\"status\":\"PASS\"}\n{\"group\":8,\"name\":\"explicit replacement invokes open once, commits atomically and resets an existing two-entry history\",\"status\":\"PASS\"}\n{\"group\":9,\"name\":\"created part remains editable through existing Extrude and Undo with unchanged authored nodes\",\"status\":\"PASS\"}\n{\"group\":10,\"name\":\"pending global dimensions block creation; review, Cancel and Escape preserve those drafts\",\"status\":\"PASS\"}\n{\"group\":11,\"name\":\"invalid local raw values never stage model fields or dispatch a Worker request\",\"status\":\"PASS\"}\n{\"group\":12,\"name\":\"controlled backend refusal preserves authority and creation values before successful retry\",\"status\":\"PASS\"}\n{\"group\":13,\"name\":\"controlled display refusal keeps accepted source/display/history and retained inputs recover\",\"status\":\"PASS\"}\n{\"group\":14,\"name\":\"busy creation protects close; toolbar cancellation fences a late Worker reply and permits retry\",\"status\":\"PASS\"}\n{\"group\":15,\"name\":\"identical-source generation replacement invalidates captured creation callbacks without discarding drafts\",\"status\":\"PASS\"}\n{\"group\":16,\"name\":\"changed-source replacement stales old creation; old async completion cannot close a newer command\",\"status\":\"PASS\"}\n{\"control\":\"file-panel-after-creation\",\"visible\":true,\"stagedTextLength\":0,\"confirmed\":false}\n{\"group\":17,\"name\":\"successful creation clears old staged file bytes and consent while preserving a newly opened File panel\",\"status\":\"PASS\"}\n{\"control\":\"canceled-creation-after-global-apply\",\"visible\":true,\"stagedTextLength\":628,\"confirmed\":true}\n{\"group\":18,\"name\":\"canceled creation completion cannot clear staged file consent after a newer global Apply\",\"status\":\"PASS\"}\n{\"group\":19,\"name\":\"existing file/STL/global/Extrude controls remain reachable and one viewport disposes once\",\"status\":\"PASS\"}\n{\"status\":\"PASS\",\"node\":\"v24.19.0\",\"runner\":{\"executable\":\"/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node\",\"argv\":[\"/workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-new-part-flow.mjs\"],\"command\":\"\\\"/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node\\\" \\\"/workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-new-part-flow.mjs\\\"\"},\"groups\":[\"pinned #1835 convex baseline and real React/controller/serializer/CPU receiver imports\",\"pure three-driver public source and empty/nonfinite/nonpositive/upper-bound rejection\",\"CREATE opens local defaults; typing and Cancel preserve accepted source/display/history\",\"closing and reopening rejects actual callbacks captured from the prior command\",\"controller B initial refusal exposes Create part without an accepted model\",\"A-to-B-to-A creates three lifetimes and old-controller callbacks cannot mutate reopened A\",\"selection and mount-time layout changes preserve creation inputs and controller/display identity\",\"explicit replacement invokes open once, commits atomically and resets an existing two-entry history\",\"created part remains editable through existing Extrude and Undo with unchanged authored nodes\",\"pending global dimensions block creation; review, Cancel and Escape preserve those drafts\",\"invalid local raw values never stage model fields or dispatch a Worker request\",\"controlled backend refusal preserves authority and creation values before successful retry\",\"controlled display refusal keeps accepted source/display/history and retained inputs recover\",\"busy creation protects close; toolbar cancellation fences a late Worker reply and permits retry\",\"identical-source generation replacement invalidates captured creation callbacks without discarding drafts\",\"changed-source replacement stales old creation; old async completion cannot close a newer command\",\"successful creation clears old staged file bytes and consent while preserving a newly opened File panel\",\"canceled creation completion cannot clear staged file consent after a newer global Apply\",\"existing file/STL/global/Extrude controls remain reachable and one viewport disposes once\"],\"mountedRoots\":1,\"controllerLifetimes\":3,\"replies\":21,\"providerLoads\":17,\"providerEdits\":4,\"previewReplays\":19,\"nativeCalls\":0,\"flowSourceSHA256\":\"d56e6d71796677bfd8e7727c7629d59925addd009bd8d061d8ff856c19ca55ac\",\"fixture\":{\"path\":\"packages/barocss-cad/test/modeling-constraints-evidence/baseline-transfer.json\",\"sha256\":\"194b855ed3e862e76c2468cbbcb0d2f21f7b2eda0a217325fa95a32fee226721\"},\"adaptedDefaultSourceSHA256\":\"a354312ac37f51e58f8d94614e11bca9d73b1f17410c1a36eb08f8d9090c06ef\",\"boundary\":\"Actual mounted React, host controls, modeling controller, engine serializer, receiver and CPU scene. Controlled provider, Worker, ResizeObserver and display port. New three-driver authoring is an adaptation. Every reply reuses genuine #1835 baseline convex geometry. Zero native calls. Edited-state native geometry, WebGPU pixels, physical browser I/O and download acceptance UNRUN.\"}\n"
+    },
+    "flow/08-final-cleanup-source-sha256.txt": {
+      "bytes": 493,
+      "sha256": "d62139b9d3ce707f87c8c4e9bdadb0cd7635ac9f87dc0dda6c89ff7c2ab1e071",
+      "text": "60068e9f5e2ed98c2c5e317eb20d4f94df2e0e21103de0ec8cd67b21e9448a69  apps/cad-editor/flows/modeling-new-part-flow.mjs\ncc377c51a9373878a3e1426107a54dfa95247f0e2bb39014289af820283189ea  packages/barocss-cad-editor/src/modeling-rectangular-part.ts\n68c49f7774c6550e5f47b400e05013de646e34ed0ce807b0f6b65b2710ec7621  packages/barocss-cad-editor/src/react/modeling-editor.tsx\n7d092d8414495c6917d3d0243c915b0ab539d3db73da827fc6c733052a5bb517  packages/barocss-cad-editor/src/react/modeling-workspace.tsx\n"
+    },
+    "flow/08-final-cleanup.log": {
+      "bytes": 6240,
+      "sha256": "3bfd4b35fc55cf557fee65395fb38c0ee4bb119c0607ef24b99f33a1d0e2519c",
+      "text": "{\"group\":1,\"name\":\"pinned #1835 convex baseline and real React/controller/serializer/CPU receiver imports\",\"status\":\"PASS\"}\n{\"control\":\"adapted-public-source\",\"sha256\":\"a354312ac37f51e58f8d94614e11bca9d73b1f17410c1a36eb08f8d9090c06ef\",\"parsed\":{\"format\":\"barocss-cad-model\",\"schema\":1,\"units\":\"mm\",\"parameters\":{\"width\":32,\"height\":24,\"thickness\":8},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[{\"parameter\":\"width\"},{\"parameter\":\"height\"}]},{\"kind\":\"extrude\",\"sketch\":0,\"height\":{\"parameter\":\"thickness\"}}],\"outputs\":{\"part\":{\"node\":1,\"side\":\"solid\"}}},\"nativeMeasured\":false}\n{\"group\":2,\"name\":\"pure three-driver public source and empty/nonfinite/nonpositive/upper-bound rejection\",\"status\":\"PASS\"}\n{\"group\":3,\"name\":\"CREATE opens local defaults; typing and Cancel preserve accepted source/display/history\",\"status\":\"PASS\"}\n{\"group\":4,\"name\":\"closing and reopening rejects actual callbacks captured from the prior command\",\"status\":\"PASS\"}\n{\"group\":5,\"name\":\"controller B initial refusal exposes Create part without an accepted model\",\"status\":\"PASS\"}\n{\"group\":6,\"name\":\"A-to-B-to-A creates three lifetimes and old-controller callbacks cannot mutate reopened A\",\"status\":\"PASS\"}\n{\"group\":7,\"name\":\"selection and mount-time layout changes preserve creation inputs and controller/display identity\",\"status\":\"PASS\"}\n{\"group\":8,\"name\":\"explicit replacement invokes open once, commits atomically and resets an existing two-entry history\",\"status\":\"PASS\"}\n{\"group\":9,\"name\":\"created part remains editable through existing Extrude and Undo with unchanged authored nodes\",\"status\":\"PASS\"}\n{\"group\":10,\"name\":\"pending global dimensions block creation; review, Cancel and Escape preserve those drafts\",\"status\":\"PASS\"}\n{\"group\":11,\"name\":\"invalid local raw values never stage model fields or dispatch a Worker request\",\"status\":\"PASS\"}\n{\"group\":12,\"name\":\"controlled backend refusal preserves authority and creation values before successful retry\",\"status\":\"PASS\"}\n{\"group\":13,\"name\":\"controlled display refusal keeps accepted source/display/history and retained inputs recover\",\"status\":\"PASS\"}\n{\"group\":14,\"name\":\"busy creation protects close; toolbar cancellation fences a late Worker reply and permits retry\",\"status\":\"PASS\"}\n{\"group\":15,\"name\":\"identical-source generation replacement invalidates captured creation callbacks without discarding drafts\",\"status\":\"PASS\"}\n{\"group\":16,\"name\":\"changed-source replacement stales old creation; old async completion cannot close a newer command\",\"status\":\"PASS\"}\n{\"control\":\"file-panel-after-creation\",\"visible\":true,\"stagedTextLength\":0,\"confirmed\":false}\n{\"group\":17,\"name\":\"successful creation clears old staged file bytes and consent while preserving a newly opened File panel\",\"status\":\"PASS\"}\n{\"control\":\"canceled-creation-after-global-apply\",\"visible\":true,\"stagedTextLength\":628,\"confirmed\":true}\n{\"group\":18,\"name\":\"canceled creation completion cannot clear staged file consent after a newer global Apply\",\"status\":\"PASS\"}\n{\"group\":19,\"name\":\"existing file/STL/global/Extrude controls remain reachable and one viewport disposes once\",\"status\":\"PASS\"}\n{\"status\":\"PASS\",\"node\":\"v24.19.0\",\"runner\":{\"executable\":\"/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node\",\"argv\":[\"/workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-new-part-flow.mjs\"],\"command\":\"\\\"/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node\\\" \\\"/workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-new-part-flow.mjs\\\"\"},\"groups\":[\"pinned #1835 convex baseline and real React/controller/serializer/CPU receiver imports\",\"pure three-driver public source and empty/nonfinite/nonpositive/upper-bound rejection\",\"CREATE opens local defaults; typing and Cancel preserve accepted source/display/history\",\"closing and reopening rejects actual callbacks captured from the prior command\",\"controller B initial refusal exposes Create part without an accepted model\",\"A-to-B-to-A creates three lifetimes and old-controller callbacks cannot mutate reopened A\",\"selection and mount-time layout changes preserve creation inputs and controller/display identity\",\"explicit replacement invokes open once, commits atomically and resets an existing two-entry history\",\"created part remains editable through existing Extrude and Undo with unchanged authored nodes\",\"pending global dimensions block creation; review, Cancel and Escape preserve those drafts\",\"invalid local raw values never stage model fields or dispatch a Worker request\",\"controlled backend refusal preserves authority and creation values before successful retry\",\"controlled display refusal keeps accepted source/display/history and retained inputs recover\",\"busy creation protects close; toolbar cancellation fences a late Worker reply and permits retry\",\"identical-source generation replacement invalidates captured creation callbacks without discarding drafts\",\"changed-source replacement stales old creation; old async completion cannot close a newer command\",\"successful creation clears old staged file bytes and consent while preserving a newly opened File panel\",\"canceled creation completion cannot clear staged file consent after a newer global Apply\",\"existing file/STL/global/Extrude controls remain reachable and one viewport disposes once\"],\"mountedRoots\":1,\"controllerLifetimes\":3,\"replies\":21,\"providerLoads\":17,\"providerEdits\":4,\"previewReplays\":19,\"nativeCalls\":0,\"flowSourceSHA256\":\"60068e9f5e2ed98c2c5e317eb20d4f94df2e0e21103de0ec8cd67b21e9448a69\",\"fixture\":{\"path\":\"packages/barocss-cad/test/modeling-constraints-evidence/baseline-transfer.json\",\"sha256\":\"194b855ed3e862e76c2468cbbcb0d2f21f7b2eda0a217325fa95a32fee226721\"},\"adaptedDefaultSourceSHA256\":\"a354312ac37f51e58f8d94614e11bca9d73b1f17410c1a36eb08f8d9090c06ef\",\"boundary\":\"Actual mounted React, host controls, modeling controller, engine serializer, receiver and CPU scene. Controlled provider, Worker, ResizeObserver and display port. New three-driver authoring is an adaptation. Every reply reuses genuine #1835 baseline convex geometry. Zero native calls. Edited-state native geometry, WebGPU pixels, physical browser I/O and download acceptance UNRUN.\"}\n"
+    },
+    "validation/app-noemit-file-cleanup.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "validation/app-noemit.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "validation/extrusion-regression-footer.log": {
+      "bytes": 5220,
+      "sha256": "9c56a7e54c65200278e19d8772824740d4ec4a6ebda63a40103c4f9ceb1ba559",
+      "text": "(node:26) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"group\":1,\"name\":\"pinned genuine circle baseline and actual React/controller/serializer/receiver imports\",\"status\":\"PASS\"}\n{\"group\":2,\"name\":\"pure direct/default/start-Z/deduplicated/literal/derived projection controls\",\"status\":\"PASS\"}\n{\"group\":3,\"name\":\"pure invalid/legacy/unknown-driver guards and source-generation-draft ownership\",\"status\":\"PASS\"}\n{\"group\":4,\"name\":\"one mounted workspace exposes the selected extrusion and unchanged global dimensions\",\"status\":\"PASS\"}\n{\"control\":\"command-instance-reopen\",\"draftBefore\":{\"height\":\"18\"},\"draftAfterOldCancel\":{\"height\":\"18\"},\"panelStillOpen\":true}\n{\"group\":5,\"name\":\"Cancel and reopen rejects callbacks from the prior command instance\",\"status\":\"PASS\"}\n{\"control\":\"controller-lifetime-ABA\",\"clearedForB\":true,\"clearedForA\":true,\"mountedRoots\":1,\"controllerLifetimes\":3,\"stageBefore\":{\"height\":\"18\"},\"stageAfter\":{\"height\":\"18\"}}\n{\"group\":6,\"name\":\"A-to-B-to-A prop replacement clears commands and rejects prior-controller callbacks\",\"status\":\"PASS\"}\n{\"group\":7,\"name\":\"local stage pins the extrusion despite Browser selection and mount-prop changes\",\"status\":\"PASS\"}\n{\"group\":8,\"name\":\"Apply uses the real controller path and Undo/Redo retain accepted authored history\",\"status\":\"PASS\"}\n{\"group\":9,\"name\":\"Cancel, Escape, no-op Apply and guarded text keys preserve accepted authority\",\"status\":\"PASS\"}\n{\"group\":10,\"name\":\"unrelated global drafts route opening globally and block later local staging or Apply\",\"status\":\"PASS\"}\n{\"group\":11,\"name\":\"controlled refusal retains command and draft then recovers through the same Apply path\",\"status\":\"PASS\"}\n{\"group\":12,\"name\":\"source replacement stales pinned handlers and synthetic literal/derived commands stay read-only\",\"status\":\"PASS\"}\n{\"group\":13,\"name\":\"synthetic direct Start Z and shared driver variants expose only their deduplicated parameters\",\"status\":\"PASS\"}\n{\"group\":14,\"name\":\"identical-source replacement cannot revive an old command or discard newer drafts\",\"status\":\"PASS\"}\n{\"group\":15,\"name\":\"late Apply cannot close another drawer or a newer command epoch\",\"status\":\"PASS\"}\n{\"group\":16,\"name\":\"file/STL/examples/global controls stay reachable with one viewport after replacement\",\"status\":\"PASS\"}\n{\"group\":17,\"name\":\"busy command keys are inert and unmount disposes once before late display completion\",\"status\":\"PASS\"}\n{\"status\":\"PASS\",\"node\":\"v22.23.3\",\"runner\":{\"executable\":\"/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node\",\"argv\":[\"/workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-extrusion-command-flow.mjs\"],\"command\":\"\\\"/workspace/shared/barocss-recovery-toolchain/node_modules/node/bin/node\\\" \\\"/workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-extrusion-command-flow.mjs\\\"\"},\"groups\":[\"pinned genuine circle baseline and actual React/controller/serializer/receiver imports\",\"pure direct/default/start-Z/deduplicated/literal/derived projection controls\",\"pure invalid/legacy/unknown-driver guards and source-generation-draft ownership\",\"one mounted workspace exposes the selected extrusion and unchanged global dimensions\",\"Cancel and reopen rejects callbacks from the prior command instance\",\"A-to-B-to-A prop replacement clears commands and rejects prior-controller callbacks\",\"local stage pins the extrusion despite Browser selection and mount-prop changes\",\"Apply uses the real controller path and Undo/Redo retain accepted authored history\",\"Cancel, Escape, no-op Apply and guarded text keys preserve accepted authority\",\"unrelated global drafts route opening globally and block later local staging or Apply\",\"controlled refusal retains command and draft then recovers through the same Apply path\",\"source replacement stales pinned handlers and synthetic literal/derived commands stay read-only\",\"synthetic direct Start Z and shared driver variants expose only their deduplicated parameters\",\"identical-source replacement cannot revive an old command or discard newer drafts\",\"late Apply cannot close another drawer or a newer command epoch\",\"file/STL/examples/global controls stay reachable with one viewport after replacement\",\"busy command keys are inert and unmount disposes once before late display completion\"],\"mountedSessions\":1,\"controllerLifetimes\":3,\"replies\":19,\"providerLoads\":10,\"providerEdits\":9,\"previewReplays\":18,\"nativeCalls\":0,\"fixture\":{\"path\":\"packages/barocss-cad/test/modeling-circle-evidence/baseline-transfer.json\",\"sha256\":\"7338e8c36033d6a324760c9fc101d9509b73e89f223246395250c83cee6cc4e8\"},\"syntheticAuthoredVariants\":[\"direct-start\",\"deduplicated-driver\",\"literal-only\",\"derived-only\"],\"boundary\":\"Actual mounted React, host controls, modeling controller, engine serializer, receiver and CPU scene. Controlled provider, Worker, ResizeObserver and display port. Every edited and synthetic-variant reply reuses genuine round-post baseline geometry. Zero native calls. Edited-state native geometry, WebGPU pixels and physical browser file/download acceptance UNRUN.\"}\n"
+    },
+    "validation/extrusion-regression.log": {
+      "bytes": 1559,
+      "sha256": "994957232534be0cd752fcf1e08faa50f2833d9504d40d3fe775d56d983f3139",
+      "text": "(node:25) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"group\":1,\"name\":\"pinned genuine circle baseline and actual React/controller/serializer/receiver imports\",\"status\":\"PASS\"}\n{\"group\":2,\"name\":\"pure direct/default/start-Z/deduplicated/literal/derived projection controls\",\"status\":\"PASS\"}\n{\"group\":3,\"name\":\"pure invalid/legacy/unknown-driver guards and source-generation-draft ownership\",\"status\":\"PASS\"}\n{\"group\":4,\"name\":\"one mounted workspace exposes the selected extrusion and unchanged global dimensions\",\"status\":\"PASS\"}\nnode:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Temporary options must close\n\ntrue !== false\n\n    at assertClosed (file:///workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-extrusion-command-flow.mjs:256:35)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-extrusion-command-flow.mjs:377:36\n    at async group (file:///workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-extrusion-command-flow.mjs:29:3)\n    at async file:///workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-extrusion-command-flow.mjs:373:3 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: true,\n  expected: false,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.23.3\n"
+    },
+    "validation/final-lint-green.log": {
+      "bytes": 682,
+      "sha256": "552bf43de6ade8015daa768207eacfd8df7ef75975ecc12158c51033cbb3f811",
+      "text": "(node:5) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n\n/workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-new-part-flow.mjs\n   34:5  warning  Unexpected console statement  no-console\n   38:3  warning  Unexpected console statement  no-console\n  333:5  warning  Unexpected console statement  no-console\n  519:5  warning  Unexpected console statement  no-console\n  545:5  warning  Unexpected console statement  no-console\n  581:1  warning  Unexpected console statement  no-console\n\n\u2716 6 problems (0 errors, 6 warnings)\n\n"
+    },
+    "validation/final-lint.log": {
+      "bytes": 896,
+      "sha256": "9c1c7ef1aa41dc479bb91cbb2a2a9a6423c617782cf35f543a2d67fd007572d4",
+      "text": "(node:5) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n\n/workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-new-part-flow.mjs\n   34:5  warning  Unexpected console statement                     no-console\n   38:3  warning  Unexpected console statement                     no-console\n  224:7  error    'focusedKey' is assigned a value but never used  @typescript-eslint/no-unused-vars\n  337:5  warning  Unexpected console statement                     no-console\n  523:5  warning  Unexpected console statement                     no-console\n  549:5  warning  Unexpected console statement                     no-console\n  585:1  warning  Unexpected console statement                     no-console\n\n\u2716 7 problems (1 error, 6 warnings)\n\n"
+    },
+    "validation/product-lint.log": {
+      "bytes": 174,
+      "sha256": "db12ad97221988bf346c55d06788e21a01bb6a683d69266bf732ed4d6d9763c8",
+      "text": "(node:5) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    "validation/render-links.log": {
+      "bytes": 550,
+      "sha256": "03bf84d6fbd1b7e0f87a09eb05cd50fa3ecd49627445e262660765e355238b90",
+      "text": "(node:6) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:6) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"result\":\"PASS\",\"candidate\":\"a88a1290bc1f51884bf398f40a85ba89dddfe63f\",\"node\":\"v22.23.3\",\"vitepress\":\"1.6.4\",\"pages\":1,\"emittedHeadingIds\":[\"create-your-own-rectangular-part\"],\"verifiedCrosslinks\":58}\n"
+    },
+    "validation/workspace-regression-footer.log": {
+      "bytes": 3558,
+      "sha256": "cdc3e97af297ec745cfd80dfe5eea8049d13c2fd4e47ca7931042677a4b2b06e",
+      "text": "(node:5) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"group\":1,\"name\":\"pinned #1835 geometry and actual React/controller/serializer/receiver imports\",\"status\":\"PASS\"}\n{\"group\":2,\"name\":\"workspace starts with one persistent viewport and closed dimension options\",\"status\":\"PASS\"}\n{\"group\":3,\"name\":\"Browser feature selection opens actual constrained width and height controls\",\"status\":\"PASS\"}\n{\"group\":4,\"name\":\"typing a dimension stages only draft state and preserves the accepted display\",\"status\":\"PASS\"}\n{\"group\":5,\"name\":\"Apply admits a real serialized edit and closes only after accepted display commit\",\"status\":\"PASS\"}\n{\"group\":6,\"name\":\"Undo and Redo retain model history and outside-field keyboard routing\",\"status\":\"PASS\"}\n{\"group\":7,\"name\":\"Cancel and Escape discard drafts while neutral Escape only dismisses options\",\"status\":\"PASS\"}\n{\"group\":8,\"name\":\"provider refusal retains accepted authority, error, editable draft and open options\",\"status\":\"PASS\"}\n{\"group\":9,\"name\":\"pending dimensions survive Inspect/Files/Limits switching, close and reopen\",\"status\":\"PASS\"}\n{\"group\":10,\"name\":\"repeat, IME, modifier and busy keys cannot duplicate Apply or discard work\",\"status\":\"PASS\"}\n{\"group\":11,\"name\":\"stale Apply completion cannot close a different drawer or newer dimension draft\",\"status\":\"PASS\"}\n{\"group\":12,\"name\":\"file/STL/examples/limits remain reachable without remounting the viewport or controller\",\"status\":\"PASS\"}\n{\"group\":13,\"name\":\"unmount while display acceptance is pending disposes once and ignores late completion\",\"status\":\"PASS\"}\n{\"group\":14,\"name\":\"omitted workspace prop preserves the existing embedding and dimension workflow\",\"status\":\"PASS\"}\n{\"status\":\"PASS\",\"groups\":[\"pinned #1835 geometry and actual React/controller/serializer/receiver imports\",\"workspace starts with one persistent viewport and closed dimension options\",\"Browser feature selection opens actual constrained width and height controls\",\"typing a dimension stages only draft state and preserves the accepted display\",\"Apply admits a real serialized edit and closes only after accepted display commit\",\"Undo and Redo retain model history and outside-field keyboard routing\",\"Cancel and Escape discard drafts while neutral Escape only dismisses options\",\"provider refusal retains accepted authority, error, editable draft and open options\",\"pending dimensions survive Inspect/Files/Limits switching, close and reopen\",\"repeat, IME, modifier and busy keys cannot duplicate Apply or discard work\",\"stale Apply completion cannot close a different drawer or newer dimension draft\",\"file/STL/examples/limits remain reachable without remounting the viewport or controller\",\"unmount while display acceptance is pending disposes once and ignores late completion\",\"omitted workspace prop preserves the existing embedding and dimension workflow\"],\"mountedSessions\":3,\"replies\":20,\"providerLoads\":4,\"providerEdits\":16,\"previewReplays\":19,\"fixture\":{\"path\":\"packages/barocss-cad/test/modeling-constraints-evidence/baseline-transfer.json\",\"sha256\":\"194b855ed3e862e76c2468cbbcb0d2f21f7b2eda0a217325fa95a32fee226721\"},\"boundary\":\"Actual mounted React and host controls, modeling controller, engine serializer, receiver and CPU scene. Controlled provider, Worker, ResizeObserver and display port. All edited replies reuse genuine #1835 baseline geometry; edited native geometry, WebGPU pixels and physical browser file/download acceptance UNRUN.\"}\n"
+    },
+    "validation/workspace-regression.log": {
+      "bytes": 1624,
+      "sha256": "1a9ff3c539cd00bb1a497ea973c222826324e02f869b3bbc8e22fcc2657fcc73",
+      "text": "(node:5) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n{\"group\":1,\"name\":\"pinned #1835 geometry and actual React/controller/serializer/receiver imports\",\"status\":\"PASS\"}\n{\"group\":2,\"name\":\"workspace starts with one persistent viewport and closed dimension options\",\"status\":\"PASS\"}\n{\"group\":3,\"name\":\"Browser feature selection opens actual constrained width and height controls\",\"status\":\"PASS\"}\n{\"group\":4,\"name\":\"typing a dimension stages only draft state and preserves the accepted display\",\"status\":\"PASS\"}\n{\"group\":5,\"name\":\"Apply admits a real serialized edit and closes only after accepted display commit\",\"status\":\"PASS\"}\nnode:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Temporary options must close\n\ntrue !== false\n\n    at assertClosed (file:///workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-workspace-flow.mjs:227:35)\n    at file:///workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-workspace-flow.mjs:328:36\n    at async group (file:///workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-workspace-flow.mjs:29:3)\n    at async file:///workspace/scratch/1591b2fb2f62/barocss-modeling-workspace-1943/apps/cad-editor/flows/modeling-workspace-flow.mjs:313:3 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: true,\n  expected: false,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.23.3\n"
+    }
+  }
+}

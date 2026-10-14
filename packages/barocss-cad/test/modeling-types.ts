@@ -344,3 +344,88 @@ copyModel.build({ copy: copySeed }).exportStl('copy', {});
 stlResult.bytes[0] = 1;
 // @ts-expect-error Complete native detail is deeply readonly.
 stlResult.details.native.mesh.positionsMM[0] = 1;
+
+
+const rotationModel = cad.model();
+const flatRail = rotationModel.sketch.rectangle({ width: 32, height: 24 }).extrude(8);
+const uprightRail: CadShape = flatRail.rotate({ axis: 'x', angleDegrees: 90 });
+const rotationSnapshot: CadModelSnapshot = rotationModel.build({ flat: flatRail, upright: uprightRail });
+const rotationEvidence = rotationSnapshot.evidence.find(item => item.kind === 'rotate');
+if (rotationEvidence?.kind === 'rotate') {
+  const volume: string = rotationEvidence.native.solid.certificate.volumeMM3.numerator;
+  const canonical: 90 | 180 | 270 = rotationEvidence.native.request.spec.degrees;
+  const mappedFace: string = rotationEvidence.native.lineage.faces[0].rotated.faceId;
+  void [volume, canonical, mappedFace];
+}
+for (const axis of ['x', 'y', 'z'] as const) for (const angleDegrees of [90, 180, 270, -90, -180, -270] as const)
+  cad.model().sketch.rectangle({ width: 32, height: 24 }).extrude(8).rotate({ axis, angleDegrees });
+// @ts-expect-error Only the six authored cardinal angles are admitted.
+flatRail.rotate({ axis: 'x', angleDegrees: 45 });
+// @ts-expect-error Zero is not a rotation node.
+flatRail.rotate({ axis: 'x', angleDegrees: 0 });
+// @ts-expect-error Arbitrary axes are not admitted.
+flatRail.rotate({ axis: [1, 0, 0], angleDegrees: 90 });
+// @ts-expect-error The pivot is fixed at the world origin.
+flatRail.rotate({ axis: 'x', angleDegrees: 90, pivot: [0, 0, 0] });
+// @ts-expect-error Angles are literals, not length dimension handles.
+flatRail.rotate({ axis: 'x', angleDegrees: copySpacing });
+// @ts-expect-error One options record is required.
+flatRail.rotate();
+// @ts-expect-error Extra arguments are not admitted.
+flatRail.rotate({ axis: 'x', angleDegrees: 90 }, true);
+
+
+const mirrorModel = cad.model();
+const mirrorOriginal = mirrorModel.sketch.rectangle({ width: 32, height: 24 }).extrude(8, { from: 3 });
+const mirroredShape: CadShape = mirrorOriginal.mirror({ plane: 'xy' });
+const mirrorSnapshot: CadModelSnapshot = mirrorModel.build({ original: mirrorOriginal, mirrored: mirroredShape });
+const mirrorEvidence = mirrorSnapshot.evidence.find(item => item.kind === 'mirror');
+if (mirrorEvidence?.kind === 'mirror') {
+  const plane: 'xy' | 'xz' | 'yz' = mirrorEvidence.native.request.spec.plane;
+  const determinant: -1 = mirrorEvidence.native.report.determinant;
+  const mappedFace: string = mirrorEvidence.native.lineage.faces[0].mirrored.faceId;
+  void [plane, determinant, mappedFace];
+}
+for (const plane of ['xy', 'xz', 'yz'] as const)
+  cad.model().sketch.rectangle({ width: 32, height: 24 }).extrude(8).mirror({ plane });
+// @ts-expect-error The selected plane must be one of the three cardinal planes.
+mirrorOriginal.mirror({ plane: 'zx' });
+// @ts-expect-error Arbitrary plane normals are not admitted.
+mirrorOriginal.mirror({ normal: [0, 0, 1] });
+// @ts-expect-error The selected plane passes through the world origin.
+mirrorOriginal.mirror({ plane: 'xy', offset: 3 });
+// @ts-expect-error A length dimension cannot name a plane.
+mirrorOriginal.mirror({ plane: copySpacing });
+// @ts-expect-error One own-data options record is required.
+mirrorOriginal.mirror();
+// @ts-expect-error Extra arguments are not admitted.
+mirrorOriginal.mirror({ plane: 'xy' }, true);
+
+
+const scaleModel = cad.model();
+const scaleOriginal = scaleModel.sketch.rectangle({ width: 32, height: 24 }).extrude(8, { from: 3 });
+const scaledShape: CadShape = scaleOriginal.scale({ factor: 2 });
+const scaleSnapshot: CadModelSnapshot = scaleModel.build({ original: scaleOriginal, scaled: scaledShape });
+const scaleEvidence = scaleSnapshot.evidence.find(item => item.kind === 'scale');
+if (scaleEvidence?.kind === 'scale') {
+  const factor: 0.5 | 2 = scaleEvidence.native.request.spec.factor;
+  const determinant: 0.125 | 8 = scaleEvidence.native.report.determinant;
+  const mappedFace: string = scaleEvidence.native.lineage.faces[0].scaled.faceId;
+  void [factor, determinant, mappedFace];
+}
+for (const factor of [0.5, 2] as const)
+  cad.model().sketch.rectangle({ width: 32, height: 24 }).extrude(8).scale({ factor });
+// @ts-expect-error Arbitrary factors are not admitted.
+scaleOriginal.scale({ factor: 1 });
+// @ts-expect-error Negative factors are not admitted.
+scaleOriginal.scale({ factor: -2 });
+// @ts-expect-error Scale is uniform across all XYZ coordinates.
+scaleOriginal.scale({ factor: [2, 1, 1] });
+// @ts-expect-error The pivot is fixed at the world origin.
+scaleOriginal.scale({ factor: 2, pivot: [0, 0, 0] });
+// @ts-expect-error A length dimension cannot be a shape scale factor.
+scaleOriginal.scale({ factor: copySpacing });
+// @ts-expect-error One own-data options record is required.
+scaleOriginal.scale();
+// @ts-expect-error Extra arguments are not admitted.
+scaleOriginal.scale({ factor: 2 }, true);

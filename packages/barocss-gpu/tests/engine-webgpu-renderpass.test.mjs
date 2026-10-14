@@ -51,3 +51,21 @@ test('malformed draw and background refuse before any device call',()=>{
   assert.throws(()=>submitEngineWebGPURenderPass(m.device,m.pipeline,m.color,m.depth,[],[-1,0,0]),TypeError);
   assert.deepEqual(m.calls,[]);
 });
+
+test('original linear background is encoded into the same sRGB target as the material shader',()=>{
+  const m=mock(),background=[.25,.5,.75],original=[...background];
+  submitEngineWebGPURenderPass(m.device,m.pipeline,m.color,m.depth,[],background);
+  const clear=m.calls.find(x=>x[0]==='begin')[1].colorAttachments[0].clearValue;
+  // Declared transfer-function values, independent of the implementation's helper.
+  const expected=[.5370987304831942,.7353569830524495,.8808250210902997];
+  for(const [index,channel]of['r','g','b'].entries())assert.ok(Math.abs(clear[channel]-expected[index])<1e-15);
+  assert.equal(clear.a,1);assert.deepEqual(background,original);
+});
+test('black, transfer breakpoint and white preserve opaque clear semantics without mutating source',()=>{
+  const m=mock(),background=Object.freeze([0,.0031308,1]);
+  submitEngineWebGPURenderPass(m.device,m.pipeline,m.color,m.depth,[],background);
+  const clear=m.calls.find(x=>x[0]==='begin')[1].colorAttachments[0].clearValue;
+  assert.equal(clear.r,0);assert.ok(Math.abs(clear.g-.040449936)<1e-15);
+  assert.ok(Math.abs(clear.b-1)<1e-15);assert.equal(clear.a,1);
+  assert.deepEqual(background,[0,.0031308,1]);
+});

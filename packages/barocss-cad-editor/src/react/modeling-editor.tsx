@@ -1,3 +1,5 @@
+import { buildModelingStructure, getModelingStructureCapabilities } from '../modeling-structure.js';
+import type { ModelingStructureCommand } from '../modeling-structure.js';
 import { useEffect, useId, useRef, useState } from 'react';
 import { isModelingCompositionGraph } from '../modeling-composition.js';
 import { createCadEditorModelingController } from '../modeling-controller.js';
@@ -12,6 +14,10 @@ import type { ModelingWorkspacePanel } from './modeling-workspace.js';
 import { modelingDimensionCommand } from '../modeling-dimension-key.js';
 import { extrusionCommandCurrent, projectExtrusionCommand } from '../modeling-extrusion-command.js';
 import type { ExtrusionCommandTarget } from '../modeling-extrusion-command.js';
+import { projectSketchCommand, sketchCommandCurrent } from '../modeling-sketch-command.js';
+import type { SketchCommandTarget } from '../modeling-sketch-command.js';
+import { createRectangularPartSource } from '../modeling-rectangular-part.js';
+import type { RectangularPartInput } from '../modeling-rectangular-part.js';
 import { Button } from './ui/button.js';
 import { Input } from './ui/input.js';
 import { Label } from './ui/label.js';
@@ -27,12 +33,20 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
   const id = useId(), viewport = useRef<HTMLDivElement | null>(null);
   const controller = useRef<CadEditorModelingController | null>(null);
   const displayRef = useRef<ReturnType<typeof createPrismFeatureDisplay> | null>(null);
-  const fileInput = useRef<HTMLInputElement | null>(null), fileReadEpoch = useRef(0);
+  const fileInput = useRef<HTMLInputElement | null>(null), fileReadEpoch = useRef(0), fileActionEpoch = useRef(0);
   const [snapshot, setSnapshot] = useState<CadEditorModelingSnapshot | null>(null);
   const [workspacePanel, setWorkspacePanel] = useState<ModelingWorkspacePanel | null>(null);
   const [extrusionTarget, setExtrusionTarget] = useState<(ExtrusionCommandTarget & { session: CadEditorModelingController; instance: number }) | null>(null);
   const extrusionCommandInstance = useRef(0);
+  const [sketchTarget, setSketchTarget] = useState<(SketchCommandTarget & { session: CadEditorModelingController; instance: number }) | null>(null);
+  const sketchCommandInstance = useRef(0);
   const workspaceCommandEpoch = useRef(0);
+  const structureInstance = useRef(0), structureFieldVersion = useRef(0);
+  const [structureTarget, setStructureTarget] = useState<{ session: CadEditorModelingController; text: string; generation: number; instance: number; command: ModelingStructureCommand } | null>(null);
+  const [structureInput, setStructureInput] = useState({ x: '0', y: '0', width: '8', height: '24', radius: '5', wall: '8', floor: '4' });
+  const newPartCommandInstance = useRef(0), newPartOperationEpoch = useRef(0);
+  const [newPartTarget, setNewPartTarget] = useState<{ session: CadEditorModelingController; authoredText: string | null; generation: number; instance: number } | null>(null);
+  const [newPartInput, setNewPartInput] = useState<RectangularPartInput>({ width: '32', height: '24', thickness: '8' });
   const [example, setExample] = useState<CadEditorModelingExample>('cut-chamfer');
   const [splitAxis, setSplitAxis] = useState<CadEditorModelingSplitAxis>('z');
   const [stlOutput, setStlOutput] = useState('');
@@ -41,14 +55,16 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
   const [source, setSource] = useState(''), [confirmed, setConfirmed] = useState(false), [error, setError] = useState<string | null>(null);
   useEffect(() => {
     if (!viewport.current) return;
-    extrusionCommandInstance.current++; setExtrusionTarget(null); setWorkspacePanel(null);
+    structureInstance.current++; structureFieldVersion.current++; setStructureTarget(null);
+    newPartOperationEpoch.current++; newPartCommandInstance.current++; setNewPartTarget(null);
+    extrusionCommandInstance.current++; setExtrusionTarget(null); sketchCommandInstance.current++; setSketchTarget(null); setWorkspacePanel(null);
     const display = createPrismFeatureDisplay(viewport.current); displayRef.current = display;
     const session = createCadEditorModelingController(display, () => display.aspect()); controller.current = session;
     const observer = new ResizeObserver(() => { try { display.resize(); } catch (cause) { setError(String(cause)); } });
     observer.observe(viewport.current);
-    const unsubscribe = session.subscribe(() => setSnapshot(session.getSnapshot())); setSnapshot(session.getSnapshot());
+    const unsubscribe = session.subscribe(() => { fileActionEpoch.current++; setSnapshot(session.getSnapshot()); }); setSnapshot(session.getSnapshot());
     void (initialAuthoredText === undefined ? session.example() : session.open(initialAuthoredText)).catch(cause => setError(String(cause)));
-    return () => { workspaceCommandEpoch.current++; extrusionCommandInstance.current++; fileReadEpoch.current++; observer.disconnect(); unsubscribe(); session.dispose(); display.dispose(); if (controller.current === session) controller.current = null; if (displayRef.current === display) displayRef.current = null; };
+    return () => { structureInstance.current++; structureFieldVersion.current++; newPartOperationEpoch.current++; newPartCommandInstance.current++; workspaceCommandEpoch.current++; extrusionCommandInstance.current++; sketchCommandInstance.current++; fileReadEpoch.current++; observer.disconnect(); unsubscribe(); session.dispose(); display.dispose(); if (controller.current === session) controller.current = null; if (displayRef.current === display) displayRef.current = null; };
   }, [initialAuthoredText]);
   const stageModelFile = async (file?: File) => {
     if (!file || snapshot?.busy) return;
@@ -70,50 +86,245 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
     setError(null); try { if (controller.current) Promise.resolve(operation(controller.current)).catch(cause => setError(String(cause))); }
     catch (cause) { setError(String(cause)); }
   };
+  const viewSession = controller.current;
+  const changeView = (orientation: 'isometric' | 'top') => {
+    const current = viewSession?.getSnapshot();
+    if (!viewSession || controller.current !== viewSession || !snapshot || !current
+      || current.generation !== snapshot.generation || current.authoredText !== snapshot.authoredText) return;
+    action(session => session.setView(orientation, snapshot.generation));
+  };
   const extrusionCommandLive = () => extrusionTarget !== null && extrusionTarget.session === controller.current
     && extrusionTarget.instance === extrusionCommandInstance.current;
+  const sketchCommandLive = () => sketchTarget !== null && sketchTarget.session === controller.current
+    && sketchTarget.instance === sketchCommandInstance.current;
+  const sketchRenderCurrent = () => {
+    const current = controller.current?.getSnapshot();
+    return sketchCommandLive() && !!current && current.generation === snapshot?.generation
+      && current.authoredText === snapshot?.authoredText;
+  };
+  const newPartCommandLive = () => newPartTarget !== null && newPartTarget.session === controller.current
+    && newPartTarget.instance === newPartCommandInstance.current;
+  const newPartCommandCurrent = () => {
+    const current = controller.current?.getSnapshot();
+    return newPartCommandLive() && !!current && !current.disposed && current.authoredText === newPartTarget!.authoredText
+      && current.generation === newPartTarget!.generation;
+  };
+  const newPartRenderCurrent = () => {
+    const current = controller.current?.getSnapshot();
+    return newPartCommandLive() && !!current && current.generation === snapshot?.generation
+      && current.authoredText === snapshot?.authoredText;
+  };
+  const structureCommandCurrent = () => {
+    const current = controller.current?.getSnapshot();
+    return !!structureTarget && structureTarget.session === controller.current
+      && structureTarget.instance === structureInstance.current && !!current && !current.disposed
+      && current.authoredText === structureTarget.text && current.generation === structureTarget.generation
+      && (!['add-hole', 'cut-pocket'].includes(structureTarget.command.kind) || (structureTarget.command.kind !== 'union' && current.selection === structureTarget.command.target.node));
+  };
+  const structureRenderVersion = structureFieldVersion.current, structureRenderState = fileActionEpoch.current;
+  const structureRenderCurrent = () => structureCommandCurrent() && structureRenderVersion === structureFieldVersion.current && structureRenderState === fileActionEpoch.current;
+  const structureRenderLive = () => {
+    const current = controller.current?.getSnapshot();
+    return !!structureTarget && structureTarget.session === controller.current && structureTarget.instance === structureInstance.current
+      && structureRenderVersion === structureFieldVersion.current && structureRenderState === fileActionEpoch.current && !!current && !current.disposed
+      && current.generation === snapshot?.generation && current.authoredText === snapshot?.authoredText;
+  };
+  const structureCommand = (): ModelingStructureCommand => {
+    if (!structureTarget) throw Error('Choose a current structural command.');
+    if (structureTarget.command.kind === 'union') return structureTarget.command;
+    const decimal = structureTarget.command.kind === 'add-hole';
+    const value = (raw: string) => {
+      if (raw.length > 64 || !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(raw.trim())) throw Error(decimal ? 'Enter finite decimal millimetres.' : 'Enter finite integer millimetres.');
+      const number = Number(raw);
+      if (!(decimal ? Number.isFinite(number) : Number.isSafeInteger(number)) || Math.abs(number) > 10000 || (number === 0 && /[1-9]/.test(raw.trim().split(/[eE]/)[0]))) throw Error(decimal ? 'Use finite millimetres between -10000 and 10000.' : 'Use integer millimetres between -10000 and 10000.');
+      return number;
+    };
+    if (structureTarget.command.kind === 'cut-pocket') return { ...structureTarget.command, wall: value(structureInput.wall), floor: value(structureInput.floor) };
+    if (structureTarget.command.kind === 'add-hole') return { ...structureTarget.command, x: value(structureInput.x), y: value(structureInput.y), radius: value(structureInput.radius) };
+    return { ...structureTarget.command, x: value(structureInput.x), y: value(structureInput.y), width: value(structureInput.width), height: value(structureInput.height) };
+  };
+  const invalidateCommandPreview = () => {
+    const session = controller.current, current = session?.getSnapshot();
+    if (current?.preview) { if (current.busy) session!.cancel(); else session!.clearPreview(); }
+  };
   const openWorkspacePanel = (panel: ModelingWorkspacePanel | null) => {
+    if (panel !== workspacePanel) invalidateCommandPreview();
+    // A same-panel action with no replacement target keeps its live callbacks.
+    if ((panel === 'files' || panel === 'dimensions') && workspacePanel === panel) return;
+    if (panel === 'add-arm' || panel === 'union' || panel === 'cut-slot' || panel === 'add-hole' || panel === 'cut-pocket') {
+      const session = controller.current, current = session?.getSnapshot();
+      if (!session || !current?.authoredText || current.busy || current.disposed) return;
+      const capabilities = getModelingStructureCapabilities(current.authoredText, current.accepted);
+      const target = panel === 'cut-pocket' ? capabilities.cutPocket : panel === 'add-hole' ? capabilities.addHole : panel === 'add-arm' ? capabilities.addArm : panel === 'cut-slot' ? capabilities.cutSlot : capabilities.union;
+      if (!target || ((panel === 'add-hole' || panel === 'cut-pocket') && current.selection !== (panel === 'add-hole' ? capabilities.addHole : capabilities.cutPocket)?.node)) { setError(panel === 'cut-pocket' ? capabilities.pocketReason : panel === 'add-hole' ? capabilities.holeReason : capabilities.reason); return; }
+      invalidateCommandPreview();
+      const command: ModelingStructureCommand = panel === 'union'
+        ? { kind: 'union', targets: capabilities.union! }
+        : panel === 'cut-pocket' ? { kind: 'cut-pocket', target: capabilities.cutPocket!, wall: capabilities.pocketDefaults!.wall, floor: capabilities.pocketDefaults!.floor }
+        : panel === 'add-hole' ? { kind: 'add-hole', target: capabilities.addHole!, x: 40, y: 20, radius: 5 }
+        : { kind: panel, target: panel === 'add-arm' ? capabilities.addArm! : capabilities.cutSlot!, x: panel === 'add-arm' ? 0 : 16, y: panel === 'add-arm' ? 0 : 2, width: 8, height: panel === 'add-arm' ? 24 : 4 };
+      setStructureTarget({ session, text: current.authoredText, generation: current.generation, instance: structureInstance.current + 1, command });
+      setStructureInput({ ...(panel === 'add-hole' ? { x: '40', y: '20', width: '8', height: '4', radius: '5' }
+        : panel === 'add-arm' ? { x: '0', y: '0', width: '8', height: '24', radius: '5' } : { x: '16', y: '2', width: '8', height: '4', radius: '5' }),
+        wall: String(capabilities.pocketDefaults?.wall ?? 8), floor: String(capabilities.pocketDefaults?.floor ?? 4) });
+      setError(null);
+    }
+    if (panel === 'new-part') {
+      const session = controller.current, current = session?.getSnapshot();
+      if (!session || !current || current.busy || current.disposed) return;
+      if (workspacePanel === 'new-part' && newPartCommandCurrent()) return;
+      setNewPartInput({ width: '32', height: '24', thickness: '8' });
+      setNewPartTarget({ session, authoredText: current.authoredText, generation: current.generation, instance: newPartCommandInstance.current + 1 });
+      setError(null);
+    }
+    if (panel === 'sketch') {
+      const current = controller.current?.getSnapshot();
+      const projection = current && projectSketchCommand(current, current.selection);
+      if (!current || current.busy || !projection || !current.authoredText) return;
+      invalidateCommandPreview(); // Even the same panel creates a new pinned command instance.
+      if (Object.keys(current.drafts).some(name => !projection.parameters.includes(name))) {
+        setError('Other model dimensions are pending. Review all pending dimensions before editing this sketch.');
+        structureInstance.current++; structureFieldVersion.current++;
+        workspaceCommandEpoch.current++; extrusionCommandInstance.current++; sketchCommandInstance.current++; newPartCommandInstance.current++; setWorkspacePanel('dimensions'); return;
+      }
+      setError(null);
+      setSketchTarget({ index: projection.index, authoredText: current.authoredText, generation: current.generation,
+        session: controller.current!, instance: sketchCommandInstance.current + 1 });
+    }
     if (panel === 'extrusion') {
       const current = controller.current?.getSnapshot();
       const projection = current && projectExtrusionCommand(current, current.selection);
       if (!current || current.busy || !projection || !current.authoredText) return;
+      invalidateCommandPreview(); // Even the same panel creates a new pinned command instance.
       if (Object.keys(current.drafts).some(name => !projection.parameters.includes(name))) {
         setError('Other model dimensions are pending. Review all pending dimensions before editing this extrusion.');
-        workspaceCommandEpoch.current++; extrusionCommandInstance.current++; setWorkspacePanel('dimensions'); return;
+        structureInstance.current++; structureFieldVersion.current++;
+        workspaceCommandEpoch.current++; extrusionCommandInstance.current++; sketchCommandInstance.current++; newPartCommandInstance.current++; setWorkspacePanel('dimensions'); return;
       }
       setError(null);
       setExtrusionTarget({ index: projection.index, authoredText: current.authoredText, generation: current.generation,
         session: controller.current!, instance: extrusionCommandInstance.current + 1 });
     }
-    workspaceCommandEpoch.current++; extrusionCommandInstance.current++; setWorkspacePanel(panel);
+    structureInstance.current++; structureFieldVersion.current++;
+    workspaceCommandEpoch.current++; extrusionCommandInstance.current++; sketchCommandInstance.current++; newPartCommandInstance.current++; setWorkspacePanel(panel);
+  };
+  const cancelStructure = () => {
+    if (!structureRenderLive() || controller.current?.getSnapshot().busy) return;
+    // Temporary structural options never discard unrelated named model drafts.
+    invalidateCommandPreview(); openWorkspacePanel(null);
+  };
+  const previewStructure = () => {
+    const session = controller.current, current = session?.getSnapshot();
+    if (!structureRenderCurrent() || !session || !current || current.busy || Object.keys(current.drafts).length) return;
+    const commandEpoch = workspaceCommandEpoch.current;
+    try {
+      const command = structureCommand();
+      setError(null);
+      void session.previewStructure(command, current.generation, !current.workerReady).catch(cause => {
+        if (controller.current === session && commandEpoch === workspaceCommandEpoch.current) setError(String(cause));
+      });
+    } catch (cause) { setError(String(cause)); }
+  };
+  const applyStructure = () => {
+    const session = controller.current, current = session?.getSnapshot();
+    if (!structureRenderCurrent() || !session || !current || current.busy || Object.keys(current.drafts).length) return;
+    const commandEpoch = workspaceCommandEpoch.current, fieldVersion = structureFieldVersion.current;
+    try {
+      const command = structureCommand(); setError(null);
+      void session.applyStructure(command, current.generation).then(() => {
+        const after = session.getSnapshot();
+        if (controller.current === session && commandEpoch === workspaceCommandEpoch.current && fieldVersion === structureFieldVersion.current
+          && after.generation === current.generation + 1 && !after.busy && !after.error && !after.disposed) openWorkspacePanel(null);
+      }).catch(cause => {
+        if (controller.current === session && commandEpoch === workspaceCommandEpoch.current) setError(String(cause));
+      });
+    } catch (cause) { setError(String(cause)); }
+  };
+  const cancelNewPart = () => {
+    const current = controller.current?.getSnapshot();
+    // Only the currently rendered close action may dismiss stale document options.
+    if (!newPartRenderCurrent() || !current || current.busy) return;
+    openWorkspacePanel(null);
+  };
+  const createNewPart = () => {
+    if (workspacePanel !== 'new-part' || !newPartCommandCurrent()) return;
+    const session = controller.current!, current = session.getSnapshot();
+    if (current.busy || Object.keys(current.drafts).length) return;
+    let text: string;
+    try { text = createRectangularPartSource(newPartInput); } catch (cause) { setError(String(cause)); return; }
+    const commandEpoch = ++workspaceCommandEpoch.current, generation = current.generation;
+    const operationEpoch = ++newPartOperationEpoch.current;
+    const fileEpoch = ++fileReadEpoch.current; // Old reads cannot stage bytes into a new document.
+    action(async active => {
+      if (active !== session) return;
+      await active.open(text);
+      const after = active.getSnapshot();
+      const replaced = operationEpoch === newPartOperationEpoch.current && controller.current === active
+        && after.generation === generation + 1
+        && !after.busy && !after.error && !after.disposed;
+      // Document replacement invalidates old file consent even if the user opened another panel.
+      // A newer explicit file action owns its own staged text and must not be cleared here.
+      if (replaced && fileReadEpoch.current === fileEpoch) { setSource(''); setConfirmed(false); }
+      if (replaced && commandEpoch === workspaceCommandEpoch.current && newPartCommandLive()) {
+        openWorkspacePanel(null);
+      }
+    });
   };
   const applyDimensions = () => {
     if (workspacePanel === 'extrusion' && !extrusionCommandLive()) return;
+    if (workspacePanel === 'sketch' && (!sketchRenderCurrent() || !sketchCommandCurrent(controller.current?.getSnapshot() ?? null, sketchTarget))) return;
     const commandEpoch = ++workspaceCommandEpoch.current;
     action(async session => {
       if (workspacePanel === 'extrusion') {
         const projection = extrusionCommandCurrent(session.getSnapshot(), extrusionTarget);
         if (!projection?.parameters.length) throw Error('This extrusion command is stale or other dimensions are pending. Reopen it or review model dimensions.');
       }
+      if (workspacePanel === 'sketch') {
+        const projection = sketchCommandCurrent(session.getSnapshot(), sketchTarget);
+        if (!projection?.parameters.length) throw Error('This sketch command is stale or other dimensions are pending. Reopen it or review model dimensions.');
+      }
       await session.apply();
       const current = session.getSnapshot();
       if (workspace && controller.current === session && commandEpoch === workspaceCommandEpoch.current
         && !current.disposed && !current.busy && !current.error && !Object.keys(current.drafts).length) {
-        extrusionCommandInstance.current++; setWorkspacePanel(null);
+        extrusionCommandInstance.current++; sketchCommandInstance.current++; setWorkspacePanel(null);
       }
+    });
+  };
+  const previewSession = controller.current, previewRenderEpoch = fileActionEpoch.current, previewCommandEpoch = workspaceCommandEpoch.current;
+  const previewDimensions = () => {
+    const session = controller.current, current = session?.getSnapshot();
+    if (!session || session !== previewSession || !current || current.busy || current.disposed
+      || previewRenderEpoch !== fileActionEpoch.current || previewCommandEpoch !== workspaceCommandEpoch.current
+      || current.generation !== snapshot?.generation || current.authoredText !== snapshot?.authoredText) return;
+    if (workspace && !['dimensions', 'sketch', 'extrusion'].includes(workspacePanel ?? '')) return;
+    if (workspacePanel === 'extrusion' && (!extrusionCommandLive() || !extrusionCommandCurrent(current, extrusionTarget)?.parameters.length)) return;
+    if (workspacePanel === 'sketch' && (!sketchRenderCurrent() || !sketchCommandCurrent(current, sketchTarget)?.parameters.length)) return;
+    setError(null);
+    void session.preview(!current.workerReady).catch(cause => {
+      if (controller.current === session && workspaceCommandEpoch.current === previewCommandEpoch) setError(String(cause));
     });
   };
   const cancelDimensions = () => {
     if (workspacePanel === 'extrusion' && !extrusionCommandLive()) return;
+    if (workspacePanel === 'sketch' && !sketchRenderCurrent()) return;
     action(session => {
       // A stale command never discards a newer model's drafts or hidden unrelated fields.
-      if (workspacePanel !== 'extrusion' || extrusionCommandCurrent(session.getSnapshot(), extrusionTarget)) session.discard();
+      if (workspacePanel === 'sketch' ? sketchCommandCurrent(session.getSnapshot(), sketchTarget)
+        : workspacePanel !== 'extrusion' || extrusionCommandCurrent(session.getSnapshot(), extrusionTarget)) session.discard();
       openWorkspacePanel(null);
     });
   };
   useEffect(() => { setReplaceExample(false); setStlOutput(''); setStlResult(null); }, [snapshot?.generation]);
   const accepted = snapshot?.accepted, busy = snapshot?.busy ?? false, draft = Object.keys(snapshot?.drafts ?? {}).length > 0;
+  const structureCapabilities = getModelingStructureCapabilities(snapshot?.authoredText ?? null, accepted ?? null);
+  const pocketNotice = structureCapabilities.pocketAuthored ? 'Global parameter edits can remove the tray floor or walls. Keep pocketFloor and pocketWall positive to retain a tray; native geometry remains authoritative.' : null;
   const selectedExtrusion = projectExtrusionCommand(snapshot, snapshot?.selection ?? null);
+  const selectedSketch = projectSketchCommand(snapshot, snapshot?.selection ?? null);
+  const currentSketch = sketchCommandLive() ? sketchCommandCurrent(snapshot, sketchTarget) : null;
+  const sketchSourceCurrent = sketchCommandLive() && !!snapshot && !!sketchTarget && snapshot.authoredText === sketchTarget.authoredText
+    && snapshot.generation === sketchTarget.generation;
+  const pinnedSketch = sketchSourceCurrent ? projectSketchCommand(snapshot, sketchTarget!.index) : null;
   const currentExtrusion = extrusionCommandLive() ? extrusionCommandCurrent(snapshot, extrusionTarget) : null;
   const extrusionSourceCurrent = extrusionCommandLive() && !!snapshot && !!extrusionTarget && snapshot.authoredText === extrusionTarget.authoredText
     && snapshot.generation === extrusionTarget.generation;
@@ -216,23 +427,24 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
   const configurableFinishes = accepted?.source === 'model' && accepted.suppression !== undefined
     && Object.keys(accepted.suppression).length === 2 && ['frontFinish', 'backFinish'].every(name => Object.hasOwn(accepted.suppression!, name))
     && accepted.features.filter(feature => feature.name !== undefined).every(feature => feature.kind === 'chamfer');
-  const dimensionInput = ([name, value]: [string, number], extrusionLabel?: string) => <div key={name} style={{ marginBottom: 16 }}>
-          <Label htmlFor={`${id}-${extrusionLabel ? 'extrusion-' : ''}${name}`}>{extrusionLabel ?? (constrainedPlateDrivers && name === 'width' ? 'Profile X width' : constrainedPlateDrivers && name === 'height' ? 'Profile Y height' : topPocketDrivers && name === 'depth' ? 'Pocket depth downward from top Z=8' : topPocketDrivers && name === 'toolY' ? 'Tool Y origin' : topPocketDrivers && name === 'toolSpanY' ? 'Tool Y span' : slotDrivers && name === 'legWidth' ? 'legWidth · leg X width' : slotDrivers && name === 'slotX' ? 'slotX · slot origin X' : slotDrivers && name === 'slotY' ? 'slotY · slot origin Y' : slotDrivers && name === 'slotWidth' ? 'slotWidth · slot X width' : slotDrivers && name === 'slotSpanY' ? 'slotSpanY · slot Y span' : roundPostDrivers && name === 'diameter' ? 'Diameter' : roundPostDrivers && name === 'height' ? 'Extrusion height' : roundPostDrivers && name === 'centerX' ? 'Center X' : roundPostDrivers && name === 'centerY' ? 'Center Y' : pocketDrivers && name === 'toolX' ? 'toolX · tool origin X' : pocketDrivers && name === 'toolY' ? 'toolY · tool origin Y' : pocketDrivers && name === 'toolWidth' ? 'toolWidth · tool X width' : pocketDrivers && name === 'toolSpanY' ? 'toolSpanY · tool Y span' : pocketDrivers && name === 'depth' ? 'depth · positive Z depth from underside Z=0' : unionDrivers && name === 'legMinX' ? 'legMinX · leg origin X' : unionDrivers && name === 'legMinY' ? 'legMinY · leg origin Y' : unionDrivers && name === 'legWidth' ? 'legWidth · leg X width' : unionDrivers && name === 'legHeight' ? 'legHeight · extrusion height' : (chamferChain || configurableFinishes) && name === 'backY' ? 'backY · edge-selection Y coordinate' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'frontDistance' ? 'frontDistance · front bevel distance' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'backDistance' ? 'backDistance · back bevel distance' : chamferSplit && name === 'splitAt' ? 'splitAt · selected-axis split coordinate' : derivedSplit && name === 'width' ? 'width · rail X size' : derivedSplit && name === 'offset' ? 'offset · X displacement from center' : miterSplit && name === 'cutPosition' ? 'cutPosition · X + Y threshold' : name)} (mm)</Label>
-          <Input id={`${id}-${extrusionLabel ? 'extrusion-' : ''}${name}`} disabled={busy || (!!extrusionLabel && !currentExtrusion)} inputMode="decimal"
+  const dimensionInput = ([name, value]: [string, number], extrusionLabel?: string, command: 'extrusion' | 'sketch' = 'extrusion') => <div key={name} style={{ marginBottom: 16 }}>
+          <Label htmlFor={`${id}-${extrusionLabel ? `${command}-` : ''}${name}`}>{extrusionLabel ?? (constrainedPlateDrivers && name === 'width' ? 'Profile X width' : constrainedPlateDrivers && name === 'height' ? 'Profile Y height' : topPocketDrivers && name === 'depth' ? 'Pocket depth downward from top Z=8' : topPocketDrivers && name === 'toolY' ? 'Tool Y origin' : topPocketDrivers && name === 'toolSpanY' ? 'Tool Y span' : slotDrivers && name === 'legWidth' ? 'legWidth · leg X width' : slotDrivers && name === 'slotX' ? 'slotX · slot origin X' : slotDrivers && name === 'slotY' ? 'slotY · slot origin Y' : slotDrivers && name === 'slotWidth' ? 'slotWidth · slot X width' : slotDrivers && name === 'slotSpanY' ? 'slotSpanY · slot Y span' : roundPostDrivers && name === 'diameter' ? 'Diameter' : roundPostDrivers && name === 'height' ? 'Extrusion height' : roundPostDrivers && name === 'centerX' ? 'Center X' : roundPostDrivers && name === 'centerY' ? 'Center Y' : pocketDrivers && name === 'toolX' ? 'toolX · tool origin X' : pocketDrivers && name === 'toolY' ? 'toolY · tool origin Y' : pocketDrivers && name === 'toolWidth' ? 'toolWidth · tool X width' : pocketDrivers && name === 'toolSpanY' ? 'toolSpanY · tool Y span' : pocketDrivers && name === 'depth' ? 'depth · positive Z depth from underside Z=0' : unionDrivers && name === 'legMinX' ? 'legMinX · leg origin X' : unionDrivers && name === 'legMinY' ? 'legMinY · leg origin Y' : unionDrivers && name === 'legWidth' ? 'legWidth · leg X width' : unionDrivers && name === 'legHeight' ? 'legHeight · extrusion height' : (chamferChain || configurableFinishes) && name === 'backY' ? 'backY · edge-selection Y coordinate' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'frontDistance' ? 'frontDistance · front bevel distance' : (chamferChain || chamferSplit || derivedSplit || configurableFinishes) && name === 'backDistance' ? 'backDistance · back bevel distance' : chamferSplit && name === 'splitAt' ? 'splitAt · selected-axis split coordinate' : derivedSplit && name === 'width' ? 'width · rail X size' : derivedSplit && name === 'offset' ? 'offset · X displacement from center' : miterSplit && name === 'cutPosition' ? 'cutPosition · X + Y threshold' : name)} (mm)</Label>
+          <Input id={`${id}-${extrusionLabel ? `${command}-` : ''}${name}`} disabled={busy || (!!extrusionLabel && !(command === 'sketch' ? currentSketch : currentExtrusion))} inputMode="decimal"
             value={Object.hasOwn(snapshot?.drafts ?? {}, name) ? snapshot!.drafts[name] : Object.is(value, -0) ? '-0' : String(value)}
             onChange={event => {
-              if (extrusionLabel && !extrusionCommandLive()) return;
+              if (extrusionLabel && (command === 'sketch' ? !sketchRenderCurrent() : !extrusionCommandLive())) return;
               action(s => {
-              if (extrusionLabel && (workspacePanel !== 'extrusion' || !extrusionCommandCurrent(s.getSnapshot(), extrusionTarget)?.parameters.includes(name)))
-                throw Error('Reopen the extrusion command before changing this driver. Pending model dimensions are retained.');
+              if (extrusionLabel && (workspacePanel !== command || !(command === 'sketch'
+                ? sketchCommandCurrent(s.getSnapshot(), sketchTarget) : extrusionCommandCurrent(s.getSnapshot(), extrusionTarget))?.parameters.includes(name)))
+                throw Error(`Reopen the ${command} command before changing this driver. Pending model dimensions are retained.`);
               s.stage(name, event.target.value);
               });
             }}
             onKeyDown={event => {
-              if (extrusionLabel && (workspacePanel !== 'extrusion' || !extrusionCommandLive())) return;
+              if (extrusionLabel && (workspacePanel !== command || (command === 'sketch' ? !sketchRenderCurrent() : !extrusionCommandLive()))) return;
               const current = controller.current?.getSnapshot();
               if (!current) return;
-              const command = modelingDimensionCommand({
+              const keyCommand = modelingDimensionCommand({
                 key: event.key, repeat: event.repeat, isComposing: event.nativeEvent.isComposing,
                 keyCode: event.keyCode, altKey: event.altKey, ctrlKey: event.ctrlKey,
                 metaKey: event.metaKey, shiftKey: event.shiftKey,
@@ -244,10 +456,10 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
                 && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey && !current.busy && !current.disposed) {
                 event.preventDefault(); event.stopPropagation(); cancelDimensions(); return;
               }
-              if (command === null) return;
+              if (keyCommand === null) return;
               event.preventDefault(); event.stopPropagation();
-              if (workspace) { if (command === 'apply') applyDimensions(); else cancelDimensions(); }
-              else action(s => command === 'apply' ? s.apply() : s.discard());
+              if (workspace) { if (keyCommand === 'apply') applyDimensions(); else cancelDimensions(); }
+              else action(s => keyCommand === 'apply' ? s.apply() : s.discard());
             }} />
         </div>;
   const examplesPanel = <details open={workspace || undefined} style={{ marginTop: 16 }}><summary>Modeling examples</summary>
@@ -321,7 +533,7 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
       style={workspace ? undefined : { position: 'relative', width: '100%', height: 400, marginTop: 16, background: '#06090d' }}
       onClick={event => {
         const element = viewport.current, display = displayRef.current;
-        if (!element || !display || !snapshot?.accepted || busy) return;
+        if (!element || !display || !snapshot?.accepted || busy || snapshot.preview?.status === 'ready') return;
         const rect = element.getBoundingClientRect(), size = display.dimensions(); if (!rect.width || !rect.height) return;
         const x = Math.min(size.width - 1, Math.max(0, Math.floor((event.clientX - rect.left) * size.width / rect.width)));
         const y = Math.min(size.height - 1, Math.max(0, size.height - 1 - Math.floor((event.clientY - rect.top) * size.height / rect.height)));
@@ -379,7 +591,69 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
         </div>
         <p>Disabled chamfers still validate. Invalid edge selection or geometry is refused without replacing this model.</p>
       </fieldset>;
-  const dimensionsPanel = accepted && (<div><h2>Named dimensions</h2>{constrainedPlateDrivers ? (['width', 'height'] as const).map(name => dimensionInput([name, accepted.parameters[name]])) : roundPostDrivers ? <>
+  let newPartSource = '', newPartValidation = '';
+  try { newPartSource = createRectangularPartSource(newPartInput); } catch (cause) { newPartValidation = cause instanceof Error ? cause.message : String(cause); }
+  const newPartCurrent = newPartCommandCurrent();
+  const newPartPanel = <div>
+    <p>Create your own origin-zero rectangular sketch and extrusion. All three sizes become named editable model parameters.</p>
+    <p>These are temporary creation settings. The accepted viewport stays unchanged until Create succeeds.</p>
+    {([['width', 'Width'], ['height', 'Profile height'], ['thickness', 'Thickness']] as const).map(([name, label]) => <div key={name} style={{ marginBottom: 16 }}>
+      <Label htmlFor={`${id}-new-part-${name}`}>{label} (mm)</Label>
+      <Input id={`${id}-new-part-${name}`} inputMode="decimal" maxLength={64} value={newPartInput[name]} disabled={busy || !newPartCurrent}
+        onChange={event => { if (workspacePanel === 'new-part' && newPartCommandCurrent() && !controller.current?.getSnapshot().busy) setNewPartInput(values => ({ ...values, [name]: event.target.value })); }}
+        onKeyDown={event => {
+          if (!newPartCommandLive() || event.repeat || event.nativeEvent.isComposing || event.keyCode === 229
+            || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+          if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); cancelNewPart(); }
+          else if (event.key === 'Enter') { event.preventDefault(); event.stopPropagation(); createNewPart(); }
+        }} />
+    </div>)}
+    {newPartValidation && <p role="status">{newPartValidation}</p>}
+    <p>The native loader may refuse unsupported precision or geometry. A refusal keeps the current document and history.</p>
+    {accepted && <p><strong>Replace current model:</strong> creating this part replaces the accepted document and resets its Undo history. Download the accepted model first if you need to keep it. No file is saved automatically.</p>}
+    {draft && <p role="status">Existing model dimensions are pending. Apply or cancel them in their own editor before replacing the document. These creation settings do not apply or discard those drafts.</p>}
+    {!newPartCurrent && <p role="status">The target document changed. Reopen New rectangular part before replacing it.</p>}
+    {draft && <Button variant="outline" disabled={busy} onClick={() => { if (newPartRenderCurrent()) openWorkspacePanel('dimensions'); }}>Review pending dimensions</Button>}
+    <details><summary>Authored model source</summary><pre>{newPartSource || 'Enter valid creation dimensions.'}</pre></details>
+  </div>;
+  let structureValidation = '', structureExpected: ReturnType<typeof buildModelingStructure> | null = null;
+  try {
+    if (structureCommandCurrent() && accepted && snapshot?.authoredText) structureExpected = buildModelingStructure(snapshot.authoredText, accepted, structureCommand());
+  } catch (cause) { structureValidation = cause instanceof Error ? cause.message : String(cause); }
+  const structurePanel = <div>
+    <p>Preview evaluates a complete candidate with the native model loader. Apply adds one editable history step; Cancel retains the accepted part.</p>
+    {structureTarget && <><h2>{structureTarget.command.kind === 'cut-pocket' ? 'Cut rectangular pocket' : structureTarget.command.kind === 'add-hole' ? 'Add through-hole' : structureTarget.command.kind === 'add-arm' ? 'Add rectangular arm' : structureTarget.command.kind === 'union' ? 'Union bodies' : 'Cut rectangular through-slot'}</h2>
+      <p>Bound accepted outputs: {(structureTarget.command.kind === 'union' ? structureTarget.command.targets : [structureTarget.command.target]).map(target => `${target.name} · ${target.solidId} · feature ${target.node + 1}`).join('; ')}</p>
+      {structureTarget.command.kind === 'cut-pocket'
+        ? <p>Cut an open-top rectangular pocket into the selected part. The tool and subtraction are one atomic operation; the original extrusion stays in the source and Undo history. Wall and floor thickness must initially be positive integers. Edit pocketWall and pocketFloor later with Model dimensions; global edits can remove the floor or walls. Native geometry remains authoritative. Orthogonal-cell STL is unavailable, and the current flat-color view may not visibly distinguish cavity depth.</p>
+        : structureTarget.command.kind === 'add-hole'
+        ? <p>One through-hole in the selected origin-zero rectangular plate. The part output becomes the holed result; the original extrusion remains in the source and Undo history. Center coordinates and radius may be decimal. Native volume and mass are unavailable, and this hole family cannot export STL. Change holeRadius later with Edit model dimensions.</p>
+        : structureTarget.command.kind === 'union'
+        ? <p>Union consumes these two output names into part. Their original feature nodes remain authored and recoverable with Undo.</p>
+        : structureTarget.command.kind === 'cut-slot'
+          ? <p>The slot tool and subtraction are one atomic operation. Only the existing omitted-start Z=0..8 mm slab is supported. The current output becomes part; this orthogonal result cannot export STL.</p>
+          : <p>The arm shares the base extrusion's thickness term. Editing a shared named thickness later changes both bodies. Union can support other integer thicknesses, but the through-slot command requires exactly 8 mm.</p>}
+      {structureTarget.command.kind !== 'union' && (structureTarget.command.kind === 'cut-pocket' ? ['wall', 'floor'] as const : structureTarget.command.kind === 'add-hole' ? ['x', 'y', 'radius'] as const : ['x', 'y', 'width', 'height'] as const).map(name => <div key={name}>
+        <Label htmlFor={`${id}-structure-${name}`}>{name === 'wall' ? 'Wall thickness' : name === 'floor' ? 'Floor thickness' : name === 'radius' ? 'Radius' : name === 'x' ? structureTarget.command.kind === 'add-hole' ? 'Center X' : 'Min X' : name === 'y' ? structureTarget.command.kind === 'add-hole' ? 'Center Y' : 'Min Y' : name === 'width' ? 'Width' : 'Profile height'} (mm)</Label>
+        <Input id={`${id}-structure-${name}`} inputMode="decimal" maxLength={64} value={structureInput[name]} disabled={busy || !structureCommandCurrent()}
+          onChange={event => {
+            if (!structureRenderCurrent() || controller.current?.getSnapshot().busy) return;
+            invalidateCommandPreview(); structureFieldVersion.current++;
+            setStructureInput(values => ({ ...values, [name]: event.target.value }));
+          }} onKeyDown={event => {
+            if (!structureRenderCurrent() || event.repeat || event.nativeEvent.isComposing || event.keyCode === 229 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+            if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); cancelStructure(); }
+          }} />
+      </div>)}
+    </>}
+    {!structureCommandCurrent() && <p role="status">The accepted target changed. Reopen the structural command for the current part.</p>}
+    {draft && <p role="status">Model dimensions are pending. Review and apply or cancel them before structural editing; these temporary options do not discard them.</p>}
+    {draft && <Button disabled={busy} onClick={() => { if (structureRenderCurrent()) openWorkspacePanel('dimensions'); }}>Review pending dimensions</Button>}
+    {structureValidation && <p role="status">{structureValidation}</p>}
+    <p>{structureTarget?.command.kind === 'add-hole' ? 'Contained hole dimensions' : 'Integer dimensions'} may still be refused by native geometry or complete preview limits. Accepted source and history remain unchanged on refusal.</p>
+    <details><summary>Candidate authored source</summary><pre>{structureExpected?.text ?? 'Enter a supported structural command.'}</pre></details>
+  </div>;
+  const dimensionsPanel = accepted && (<div><h2>Named dimensions</h2>{pocketNotice && <p data-testid="modeling-pocket-warning">{pocketNotice}</p>}{constrainedPlateDrivers ? (['width', 'height'] as const).map(name => dimensionInput([name, accepted.parameters[name]])) : roundPostDrivers ? <>
           {(['diameter', 'height'] as const).map(name => dimensionInput([name, accepted.parameters[name]]))}
           <details><summary>Optional center coordinates</summary>
             {(['centerX', 'centerY'] as const).map(name => dimensionInput([name, accepted.parameters[name]]))}
@@ -402,7 +676,25 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
     </> : <p role="status">This extrusion command is stale because the accepted model or output view changed. Reopen Edit extrusion for the current selection. Pending dimensions are retained.</p>}
     <Button variant="outline" disabled={busy} onClick={() => openWorkspacePanel('dimensions')}>Review model dimensions</Button>
   </div>;
-  const inspectionPanel = accepted && <>{snapshot?.selection !== null && snapshot?.selection !== undefined && accepted.features[snapshot.selection] && <>
+  const sketchPanel = accepted && <div>
+    {pinnedSketch ? <>
+      <h2>{pinnedSketch.label} · rectangle</h2>
+      <p>Editing this pinned sketch. Browser selection does not retarget these options.</p>
+      <p>Min and Max are signed profile coordinates in mm, not width or height. The native model validates their ordering and supported bounds.</p>
+      <p>Changes update each named model parameter wherever it is used, including other coordinates and dependent features.</p>
+      {pinnedSketch.fields.filter(field => field.kind !== 'parameter').map(field => <p key={field.label}>
+        <strong>{field.label}: </strong>{field.kind === 'literal'
+          ? `${Object.is(field.value, -0) ? '-0' : field.value} mm · read-only authored value`
+          : 'Derived expression · read-only; use Edit model dimensions'}
+      </p>)}
+      {pinnedSketch.parameters.map(name => dimensionInput([name, accepted.parameters[name]],
+        `${pinnedSketch.fields.filter(field => field.kind === 'parameter' && field.parameter === name).map(field => field.label).join(' / ')} · ${name}`, 'sketch'))}
+      {!pinnedSketch.parameters.length && <p>No editable sketch drivers. Literal coordinates and expressions cannot be rewritten here.</p>}
+      {!currentSketch && <p role="status">Other model dimensions are pending. This command cannot apply or discard them. Review model dimensions; Cancel only closes these options.</p>}
+    </> : <p role="status">This sketch command is stale because the accepted model or output view changed. Reopen Edit sketch dimensions for the current selection. Pending dimensions are retained.</p>}
+    <Button variant="outline" disabled={busy} onClick={() => { if (sketchRenderCurrent()) openWorkspacePanel('dimensions'); }}>Review model dimensions</Button>
+  </div>;
+  const inspectionPanel = accepted && <>{pocketNotice && <p>{pocketNotice}</p>}{snapshot?.selection !== null && snapshot?.selection !== undefined && accepted.features[snapshot.selection] && <>
     <h2>Selected feature</h2><p>{accepted.features[snapshot.selection].kind} · step {snapshot.selection + 1}
       {accepted.features[snapshot.selection].name ? ` · ${accepted.features[snapshot.selection].name}` : ''}</p>
     <p>{accepted.features[snapshot.selection].dependencies.length
@@ -419,6 +711,37 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
           : <p>Native Solid {snapshot.faceSelection.solidId}; face {snapshot.faceSelection.face.sourceId}/{snapshot.faceSelection.face.faceId}. Fan diagonals are display-only, not BRep edges. Selection belongs to this accepted model.</p>}
       </details>}
       <p>History {snapshot!.history.index + 1} / {snapshot!.history.count}. Unsupported geometry or ambiguous edge selection is refused; the accepted model stays intact.</p></>;
+  const fileSession = controller.current, fileCommandEpoch = workspaceCommandEpoch.current, fileStateEpoch = fileActionEpoch.current;
+  const currentFileSnapshot = () => {
+    if (!snapshot || !fileSession || controller.current !== fileSession || fileActionEpoch.current !== fileStateEpoch
+      || (workspace && (workspacePanel !== 'files' || workspaceCommandEpoch.current !== fileCommandEpoch))) return null;
+    const current = fileSession.getSnapshot();
+    if (current.busy || current.disposed || !current.authoredText || current.generation !== snapshot.generation
+      || current.authoredText !== snapshot.authoredText
+      || Object.keys(current.drafts).length !== Object.keys(snapshot.drafts).length
+      || Object.entries(snapshot.drafts).some(([name, raw]) => current.drafts[name] !== raw)) return null;
+    return current;
+  };
+  const downloadAcceptedModel = () => {
+    const current = currentFileSnapshot();
+    if (!current) return;
+    setError(null);
+    let anchor: HTMLAnchorElement | undefined, url: string | undefined, requested = false, failure = '';
+    try {
+      anchor = document.createElement('a');
+      url = URL.createObjectURL(new Blob([current.authoredText!], { type: 'application/json' }));
+      anchor.href = url; anchor.download = 'part.cad.json'; document.body.append(anchor);
+      anchor.click(); requested = true;
+    } catch (cause) { failure = `Could not request the accepted model download: ${String(cause)}`; }
+    finally {
+      const cleanupFailures: string[] = [];
+      try { anchor?.remove(); } catch (cause) { cleanupFailures.push(String(cause)); }
+      try { if (url !== undefined) URL.revokeObjectURL(url); } catch (cause) { cleanupFailures.push(String(cause)); }
+      if (cleanupFailures.length) failure += `${failure ? ' ' : ''}${requested ? 'Download was requested, but' : 'Download'} cleanup failed: ${cleanupFailures.join('; ')}`;
+    }
+    // A browser request is not proof that a file was persisted. Never attach errors to a newer document.
+    if (failure && currentFileSnapshot()) setError(failure);
+  };
   const filesPanel = <details open={workspace || undefined} style={{ marginTop: 24 }}><summary>Save or open a model</summary>
       <p>Save authored dimensions and modeling intent. Native geometry and display caches are rebuilt on open. Supported old files are detected internally; unsupported formats are refused without conversion.</p>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -429,10 +752,16 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
           }} />
         <Button type="button" variant="outline" disabled={busy} onClick={() => fileInput.current?.click()}>Choose model file</Button>
         <Button disabled={busy || !snapshot?.authoredText} onClick={() => { fileReadEpoch.current++; setSource(snapshot!.authoredText!); setConfirmed(false); }}>Show saved model</Button>
-        <Button disabled={busy || !snapshot?.authoredText} onClick={() => {
-          const url = URL.createObjectURL(new Blob([snapshot!.authoredText!], { type: 'application/json' }));
-          const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'part.cad.json'; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
-        }}>Download model</Button>
+        <Button disabled={busy || !snapshot?.authoredText} onClick={downloadAcceptedModel}>{draft ? 'Download accepted model' : 'Download model'}</Button>
+      </div>
+      <div data-testid="modeling-save-state">
+        <p>{draft ? 'Pending dimensions are excluded from this download. Apply them first if you want an updated model file.' : 'Download contains the accepted authored model.'} Staged file text below is not included.</p>
+        {draft && <table aria-label="Accepted and pending dimensions"><thead><tr><th>Dimension</th><th>Accepted (mm)</th><th>Pending input</th></tr></thead>
+          <tbody>{Object.entries(snapshot!.drafts).map(([name, raw]) => <tr key={name}><th scope="row">{name}</th>
+            <td>{Object.is(accepted?.parameters[name], -0) ? '-0' : String(accepted?.parameters[name] ?? '—')}</td><td>{raw}</td></tr>)}</tbody></table>}
+        {draft && workspace && <Button variant="outline" disabled={busy} onClick={() => {
+          if (currentFileSnapshot()) openWorkspacePanel('dimensions');
+        }}>Review dimensions before saving</Button>}
       </div>
       <Label htmlFor={`${id}-model`}>Saved model data</Label>
       <textarea id={`${id}-model`} rows={12} spellCheck={false} disabled={busy} maxLength={262144}
@@ -443,15 +772,30 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
       <p>Choose model file stages its UTF-8 text for inspection; it does not replace the accepted model. Review the contents and explicitly confirm Open. Invalid files still go through native validation on Open. Actual file-picker, browser and GPU acceptance require separate device verification.</p>
     </details>;
   if (workspace) return <ModelingWorkspace snapshot={snapshot} viewport={viewportElement} panel={workspacePanel} error={error}
-    panels={{ examples: examplesPanel, dimensions: dimensionsPanel, extrusion: extrusionPanel, outputs: <>{visibilityPanel}{exportPanel}</>, files: filesPanel,
+    onView={changeView} modelNotice={pocketNotice ? 'Pocket edits can remove walls or floor · review Model dimensions' : undefined}
+    panels={{ 'cut-pocket': workspacePanel === 'cut-pocket' ? structurePanel : null, 'add-hole': workspacePanel === 'add-hole' ? structurePanel : null, 'add-arm': workspacePanel === 'add-arm' ? structurePanel : null, union: workspacePanel === 'union' ? structurePanel : null, 'cut-slot': workspacePanel === 'cut-slot' ? structurePanel : null, 'new-part': newPartPanel, examples: examplesPanel, dimensions: dimensionsPanel, extrusion: extrusionPanel, sketch: sketchPanel, outputs: <>{visibilityPanel}{exportPanel}</>, files: filesPanel,
       inspect: inspectionPanel, limits: limitsPanel, configuration: finishesPanel }}
     dimensionLabel={constrainedPlateDrivers ? 'Edit dimensions' : 'Edit model dimensions'}
     canEditDimensions={!!accepted && (!constrainedPlateDrivers || snapshot?.selection === null || accepted.features[snapshot?.selection ?? -1]?.kind === 'sketch')}
+    canEditSketch={!!selectedSketch} canApplySketch={!!currentSketch?.parameters.length}
     canEditExtrusion={!!selectedExtrusion} canApplyExtrusion={!!currentExtrusion?.parameters.length}
     configurableFinishes={!!configurableFinishes} onPanel={openWorkspacePanel}
-    onSelect={index => action(session => session.select(index, session.getSnapshot().generation))}
-    onApply={applyDimensions} onCancelDimensions={cancelDimensions}
-    onCancelComputation={() => action(session => session.cancel())}
+    onSelect={index => {
+      if ((workspacePanel === 'add-hole' || workspacePanel === 'cut-pocket') && !structureRenderLive()) return;
+      action(session => {
+        if ((workspacePanel === 'add-hole' || workspacePanel === 'cut-pocket') && (structureTarget?.command.kind === 'add-hole' || structureTarget?.command.kind === 'cut-pocket') && index !== structureTarget.command.target.node) openWorkspacePanel(null);
+        session.select(index, session.getSnapshot().generation);
+      });
+    }}
+    onApply={applyDimensions} onPreview={previewDimensions}
+    previewContext={workspacePanel === 'extrusion' ? pinnedExtrusion?.label ?? 'Extrusion command' : workspacePanel === 'sketch' ? pinnedSketch?.label ?? 'Sketch command' : 'Model dimensions'}
+    onCancelDimensions={cancelDimensions} onCancelNewPart={cancelNewPart} onCreatePart={createNewPart}
+    canCutPocket={!!structureCapabilities.cutPocket && snapshot?.selection === structureCapabilities.cutPocket.node} canAddHole={!!structureCapabilities.addHole && snapshot?.selection === structureCapabilities.addHole.node} canAddArm={!!structureCapabilities.addArm} canUnion={!!structureCapabilities.union} canCutSlot={!!structureCapabilities.cutSlot}
+    structureReason={`${structureCapabilities.reason} ${structureCapabilities.holeReason} ${structureCapabilities.pocketReason}`} canPreviewStructure={structureCommandCurrent() && !draft && !!structureExpected}
+    canApplyStructure={structureCommandCurrent() && !draft && !!structureExpected && snapshot?.preview?.operation === 'structure' && snapshot.preview.status === 'ready'}
+    onPreviewStructure={previewStructure} onApplyStructure={applyStructure} onCancelStructure={cancelStructure}
+    canCreatePart={!draft && newPartCurrent && !newPartValidation}
+    onCancelComputation={() => { workspaceCommandEpoch.current++; newPartOperationEpoch.current++; action(session => session.cancel()); }}
     onUndo={() => action(session => session.undo())} onRedo={() => action(session => session.redo())}
     onRetry={() => { fileReadEpoch.current++; action(session => initialAuthoredText === undefined ? session.example() : session.open(initialAuthoredText)); }} />;
   return <section className="barocss-cad-editor" aria-label="CAD model editor" style={{ padding: 24, overflow: 'auto', height: '100%' }}>
@@ -459,6 +803,7 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
     <p role="status" aria-live="polite">{busy ? 'Computing native geometry in a dedicated worker… You can cancel.' : accepted ? draft ? 'Dimension changes pending' : 'Accepted model' : 'No accepted model'}</p>
     {(error || snapshot?.error) && <p role="alert">{error ?? snapshot?.error}</p>}
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      {accepted?.source === 'model' && <Button disabled={busy || !draft} onClick={previewDimensions}>{snapshot?.workerReady ? 'Preview dimensions' : 'Recover accepted model and preview'}</Button>}
       <Button disabled={busy || !draft} onClick={() => action(s => s.apply())}>Apply dimensions</Button>
       <Button disabled={busy || !draft} onClick={() => action(s => s.discard())}>Discard draft</Button>
       <Button disabled={busy || draft || !snapshot?.history.canUndo} onClick={() => action(s => s.undo())}>Undo</Button>
@@ -467,6 +812,9 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
       <span style={{ alignSelf: 'center', fontSize: 12, opacity: 0.75 }}>In a dimension field: Enter to apply · Esc to discard</span>
       {!accepted && !busy && <Button onClick={() => { fileReadEpoch.current++; action(s => initialAuthoredText === undefined ? s.example() : s.open(initialAuthoredText)); }}>Retry model</Button>}
     </div>
+    {snapshot?.preview && <p role="status">{snapshot.preview.status === 'ready' ? 'Unapplied draft preview. Apply or Cancel before selecting a face.' : snapshot.preview.status === 'unchanged' ? 'No geometric changes. Apply clears equivalent input without a history entry.' : snapshot.preview.status === 'computing' ? 'Preparing draft preview… Accepted model retained.' : `Preview refused: ${snapshot.preview.diagnostic?.message ?? snapshot.error}`}</p>}
+    {accepted?.source === 'model' && !snapshot?.workerReady && <p>Recovering before preview reconstructs the accepted model, then evaluates pending dimensions.</p>}
+    {accepted?.source === 'legacy' && <p>Legacy files support Apply; reversible preview currently requires a primary model.</p>}
     {examplesPanel}
     {viewportElement}
     {accepted && <>

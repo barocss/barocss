@@ -4,6 +4,38 @@ Pure native CAD editing sessions and reusable React viewport/inspector component
 This locally public-configured ESM package is `0.0.0-experimental`. It has not
 been published to npm.
 
+## Preview pending dimensions before Apply
+
+In the primary modeling workspace, edit a named dimension and choose **Preview dimensions**.
+This explicit action evaluates one native candidate and shows its temporary geometry; accepted
+source, parameter summary, saved bytes and Undo history stay unchanged. **Apply** promotes
+that exact current candidate once, without repeating native evaluation. **Cancel** restores
+the retained accepted canvas and follows the current command's draft-discard behavior.
+Changing another input removes the old preview before staging the next raw value. Preview
+is on demand, never per keystroke. Equivalent numeric input makes no native call or history
+entry. Legacy files retain their existing Apply-only behavior.
+
+A lost Worker offers **Recover accepted model and preview**, which first reconstructs the
+accepted source. Cancel computation terminates synchronous native work; this recovery cost
+is explicit. During visible preview, face picking is disabled so candidate pixels cannot
+create accepted face references. The preview may use a newly fitted camera; Cancel restores
+the accepted canvas and camera without requiring a resize or remount.
+
+The controller keeps one private full candidate and token-bound accept/discard messages.
+Public preview snapshots contain metadata only. The Worker, controller and display each
+have bounded single-candidate ownership; shared immutable native data is released by
+reference, not recursively destroyed. Two retained canvases are not a total GPU-memory
+ceiling because evaluation, transport and resize create temporary allocations.
+
+Preview errors retain bounded provider-reported code/operation/message plus the current
+editing context. The context is not an identified failing feature: a shared parameter can
+affect other operations. No arbitrary native cause, stack or geometry is exposed as a
+new diagnostic authority. Focused local commands are
+`node packages/barocss-cad-editor/scripts/modeling-preview-test.mjs` and
+`node packages/barocss-cad-editor/scripts/modeling-preview-display-test.mjs`.
+See [#1959](https://github.com/barocss/barocss/issues/1959) for the finite software scope;
+new native edited geometry, pixels and physical interaction remain separately unverified.
+
 ## Start with ordinary modeling
 
 Use `CadEditorModeling` from `@barocss/cad-editor/react`, or open the host's
@@ -1319,3 +1351,135 @@ Successful Apply and Undo/Redo retain the existing admission/history behavior.
 The focused local flow replays genuine round-post baseline geometry with mocked
 provider delivery and edited-state geometry; native edits and physical pixels are
 not newly measured by this UI slice.
+
+### New rectangular part (#1951)
+
+**Create → New rectangular part** authors a public model document from width,
+profile height and thickness. Its rectangle starts at XY [0,0] and extrudes from
+Z=0; all three sizes are named parameters. The private source builder validates
+positive finite decimal input ≤10000 mm, while the existing native loader owns
+geometry and representability. No model, mesh or worker protocol is invented.
+
+Temporary creation fields do not stage edits on the current model. Pending model
+drafts block replacement and can be reviewed in their existing editor. The
+explicit **Replace current model** action warns that accepted work should be
+downloaded first and that successful creation resets document history. Cancel
+preserves accepted state and existing drafts. Source/generation/controller and
+command-instance guards reject stale callbacks. Refusal or canceled computation
+retains the accepted viewport/history; only successfully admitted replacement
+closes options. The viewport and controller remain mounted.
+
+Use existing named-dimension, selected-Extrude, history, file and STL commands
+after creating the part. Local tests reuse genuine 32×24×8 convex body/preview
+bytes with explicitly adapted authored state and mocked provider/display delivery;
+edited geometry and the new physical creation/file workflow need separate evidence.
+
+
+## Selected rectangle sketch coordinates
+
+The Model a part workspace offers **MODIFY → Edit sketch dimensions** for an
+accepted rectangular Sketch. The command pins the selected feature and presents
+Min X / Min Y / Max X / Max Y as signed coordinates. Exact named driver leaves
+are editable and deduplicated; literal values and expressions remain read-only.
+A shared parameter retains its global effect, including downstream features.
+The native provider owns coordinate ordering and geometric admission.
+
+Apply/Cancel use the existing controller and accepted history. Controller,
+source/generation, command-instance and completion guards protect newer work;
+unrelated drafts require global review. Viewport, New part, files and STL remain
+mounted and available. Other profiles retain their existing model-dimension
+controls. No sketch drawing, expression rewrite or live draft geometry is added.
+See #1957 for bounded local controlled-delivery evidence and physical gate status.
+
+
+## Accepted-only model download
+
+The modeling File panel distinguishes accepted values from pending raw dimension
+input. Download accepted model explicitly excludes drafts and staged file text;
+Review dimensions before saving preserves the draft and focuses the existing
+editor. A clean document retains Download model. Neither action silently applies
+or discards changes. Download binds controller/source/generation/drafts and File
+context, owns only its anchor/object URL, and reports request/cleanup failures.
+A click is not a persistence guarantee. The codec, history and named outputs are
+unchanged; physical acceptance is tracked separately in #1958.
+
+
+## Owned structural authoring
+
+The primary workspace adds Add rectangular arm, Union bodies and Cut rectangular
+through-slot as bounded semantic commands. Explicit native output identities,
+canonical signed source and controller/command epochs bind every candidate.
+Temporary fields do not stage model dimensions. Preview uses public cad.load;
+Apply promotes its retained snapshot once. Complete source history supports real
+structural Undo/Redo without resetting the document. Failed acceptance leaves
+source, display and history cursor unchanged; uncertain native acknowledgement
+terminates the Worker for verified recovery.
+
+The supported graph progresses 2→4→5→8 features. Cut atomically appends its tool
+and subtraction and requires omitted extrusion starts with height8 (Z0..8).
+Union can support other integer thicknesses, while Cut is unavailable. Output
+consumption is explicit and final-only transport retains its embedded parent.
+No receiver cap, provider family, codec or orthogonal STL support is expanded.
+Run the pure18 and transaction18 local suites with Node and installed dependencies:
+`node packages/barocss-cad-editor/scripts/modeling-structure-test.mjs` and
+`node packages/barocss-cad-editor/scripts/modeling-structure-history-test.mjs`.
+See #1960 for source/runtime provenance and pending actual-device acceptance.
+
+## Local model view orientation
+
+The modeling controller exposes `setView('top' | 'isometric', generation)` and
+`snapshot.viewOrientation`. Top uses native +Z with native X-right/Y-up;
+Isometric preserves the original perspective camera. Both remain perspective.
+The live accepted display updates its existing renderer transactionally, while
+source, dimensions, native identity, generation and history remain unchanged.
+Busy or retained-preview state refuses camera switching. Each later prepared
+scene keeps the session's view, including its native and convex picking camera.
+Renderer loss/rollback errors preserve the prior logical state without promising
+retained pixels. A new controller starts in Isometric; view is not file content.
+
+Run `node packages/barocss-cad-editor/scripts/modeling-view-test.mjs` explicitly.
+The finite CPU/display suite uses retained geometry and renderer doubles, with
+zero native evaluation and no physical GPU acceptance claim. See #1965.
+
+## Selected rectangular-plate through-hole (#1966)
+
+Select the accepted Extrude of an origin-zero, omitted-start rectangular part,
+then MODIFY → Add through-hole. The pure structural helper appends one hole and
+three owned drivers: holeCenterX, holeCenterY and holeRadius. Decimal center/radius
+inputs are separate command state; Preview and Apply reuse the existing atomic
+source transaction and full-source history. The sole part output is consumed by
+the result while the original extrusion remains in authored intent. Selecting a
+different feature closes the command; stale source/lifetime/field callbacks cannot
+promote a candidate. Pending model drafts must be reviewed without discard.
+
+This narrow branch requires positive safe-integer plate spans/thickness, an
+interior circle with radius at least0.001 mm, and unoccupied driver names. Native
+exact-UV and receiver limits remain authoritative. No second hole or transformed,
+finished or Boolean parent is admitted. Hole volume/mass are unavailable and
+convex-only STL remains refused. Geometry/provider replay and physical acceptance
+are separate; edited radius tests retain explicitly mocked baseline geometry.
+Run `node packages/barocss-cad-editor/scripts/modeling-hole-authoring-test.mjs`
+for the finite pure/source and controlled transaction groups, with no native call.
+
+## Selected rectangular pocket (#1971)
+
+Select the accepted Extrude of a sole origin-zero rectangular part, then MODIFY
+→ Cut rectangular pocket. Positive integer Wall thickness and Floor thickness
+append the tool sketch, offset extrusion and difference as one2→5 source
+transaction. Preview/Apply reuse the existing candidate/history authority;
+Cancel/Escape and stale selection/source/lifetime/field callbacks cannot promote
+another command. Pending model dimensions remain separate. The two new drivers
+are pocketWall and pocketFloor, with valid defaults derived from the current
+outer dimensions. The original feature prefix and expressions are preserved.
+
+Initial positivity is a command guard, not a saved constraint: later global
+parameter edits can remove the floor or walls. The UI keeps that warning after
+Apply; provider geometry remains authoritative. No second pocket, fractional
+corner, transformed/Boolean parent or STL expansion follows. Local replay uses
+retained46 top-pocket Surface packets with explicit authored-context/provider
+adaptation; edited displays are baseline mocks. Current flat-color rendering
+may not visibly distinguish a blind cavity. Actual new-command/pixel/file
+acceptance remains separate.
+
+Run `node packages/barocss-cad-editor/scripts/modeling-pocket-authoring-test.mjs`
+for the frozen12 pure and10 controlled transaction groups, without native calls.

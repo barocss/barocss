@@ -1,0 +1,1801 @@
+{
+  "schema": "barocss-cad-cardinal-rotation-verification-v1",
+  "issue": 1949,
+  "sourceCommit": "a42a2f1bbe11955fb0a87bf26d7e1b3a2a139d63",
+  "scope": "Native exact cardinal rotated B-Rep, finite models/previews, fresh emitted coldload; no Editor/GPU/physical/render/STL/mass acceptance",
+  "reviews": {
+    "issue": 1949,
+    "review": "Three separate path owners; strict API, native source, finite fixture; source/emitted14pure tests plus inventory90pass; types/docs/lint/build passed",
+    "sha256": {
+      "src/modeling.ts": "70ff75c47c9636df9d7f52bd4019869a801437209734f661e1ec2f72d5651b7c",
+      "src/modeling-rotation-internal.ts": "6cc0461c1e58cf0211e117e6a3b437f9cd9ce2c9b3b1e51a016d27f9f1878152",
+      "test/modeling-rotation.test.mjs": "a6eefdf9d0d3812b325336b17cda37c6f65e8b4d734eaeb6806e00712212de18",
+      "test/modeling-rotation-fixture.mjs": "9d98087a57025ec256ba45625aaa527ce4de7dd114ad56facd1815768e93a64f",
+      "test/modeling-rotation-native.mjs": "77cdbe8014b1aba9ad0d57989b644ba4b563f958557abc2ef59c510e1076835f",
+      "test/modeling-rotation-cold.mjs": "30f1839d4d59c47bf30ea1e2d746167e168b72bfb9df6c073b59680d4d26e34a"
+    }
+  },
+  "campaign": {
+    "source-flow.json": {
+      "accounting": {
+        "combinedBindingObservations": 3654,
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "initialFaceConstructionCount": 36,
+        "knownD1": 10962,
+        "knownSourceCompilations": 299,
+        "returnedLedgerBindingObservations": 3186,
+        "returnedLedgerD1": 9558,
+        "returnedLedgerSourceCompilations": 260
+      },
+      "artifacts": {
+        "01-baseline.snapshot.json": {
+          "bytes": 1357613,
+          "scope": "actual complete result before fixture oracles",
+          "sha256": "392ec9479e1c9481e3db35cf3fc55cdf203154cc31eaf7603f92db8ba3b01b3a"
+        },
+        "02-edited.snapshot.json": {
+          "bytes": 1357274,
+          "scope": "actual complete result before fixture oracles",
+          "sha256": "bf5e8a3df225fa4630296b9f4b3fb46fec27940ba60e24c937d21b56d4086b78"
+        },
+        "03-selection.unexpected.snapshot.json.refusal.json": {
+          "bytes": 185,
+          "scope": "original thrown error and complete cause before any refusal oracle",
+          "sha256": "05cfa3726179056cf0ce05d00d503986b62815e47e3c699d58d92fc313ca0714"
+        },
+        "04-recovered.snapshot.json": {
+          "bytes": 1357612,
+          "scope": "actual complete result before fixture oracles",
+          "sha256": "df983e8710f428f1fbb03fbfa203d7ce8d5c6885c633ec4ec39f599d00ad8a68"
+        },
+        "05-rectangle.snapshot.json": {
+          "bytes": 481067,
+          "scope": "actual complete result before fixture oracles",
+          "sha256": "3946a2085314ae485ee1827fe8d019ef380965cc5008806742e738da46c55425"
+        },
+        "06-gusset.snapshot.json": {
+          "bytes": 485292,
+          "scope": "actual complete result before fixture oracles",
+          "sha256": "0e2d71589aa0e6340f97697193a31fb3dae6891c98ce9004eb5988fe201f3627"
+        },
+        "accepted-edited.cad-model.json": {
+          "bytes": 703,
+          "scope": "accepted state before refused selection edit",
+          "sha256": "daa7e51ee8cb56137c0b58ca595168feef5bda50d3a7e2e5834222341841eb59"
+        },
+        "after-rejection.accepted.cad-model.json": {
+          "bytes": 703,
+          "scope": "preserved accepted save",
+          "sha256": "daa7e51ee8cb56137c0b58ca595168feef5bda50d3a7e2e5834222341841eb59"
+        },
+        "after-rejection.accepted.snapshot.json": {
+          "bytes": 1357274,
+          "scope": "accepted save,body and evidence unchanged after refusal",
+          "sha256": "bf5e8a3df225fa4630296b9f4b3fb46fec27940ba60e24c937d21b56d4086b78"
+        },
+        "baseline-flat.preview.json": {
+          "bytes": 158839,
+          "scope": "actual complete result before fixture oracles",
+          "sha256": "3c0300ffe55110ac31af60eff63963c45db5baa44fada6b4bd5c9970a8bc5dbe"
+        },
+        "baseline-transfer.json": {
+          "bytes": 1787282,
+          "scope": "complete native two-output packet and actual previews",
+          "sha256": "add9b8a5b475993d8a2df2f074554e3b2590d18683db4e09faeb9142cb399976"
+        },
+        "baseline-upright.preview.json": {
+          "bytes": 160421,
+          "scope": "actual complete result before fixture oracles",
+          "sha256": "c9eb1783100acd141e3417127d8645257698465f78066277e685b7924a971bd3"
+        },
+        "baseline.rotation.json": {
+          "bytes": 307059,
+          "scope": "complete parent,target,lineage and reports",
+          "sha256": "e892b42534a02ca1efaba0861a5d4a36bfaf0bf41baa2a4eb4c8500a2b427cb3"
+        },
+        "initial.cad-model.json": {
+          "bytes": 703,
+          "scope": "actual authored baseline for cold reconstruction",
+          "sha256": "cd4c018bbc942e4a56124fd1a8c7fe98ef5616b947d69493f4e7cc32fa518c55"
+        }
+      },
+      "baseline": {
+        "authoredSHA256": "cd4c018bbc942e4a56124fd1a8c7fe98ef5616b947d69493f4e7cc32fa518c55",
+        "bodiesSHA256": "6d50f4043e499ef6086124940eb93d29b9e369e586910b493e56efcd26a4fab1",
+        "boundsMM": {
+          "flat": {
+            "max": [
+              32,
+              24,
+              8
+            ],
+            "min": [
+              0,
+              0,
+              0
+            ]
+          },
+          "upright": {
+            "max": [
+              32,
+              0,
+              24
+            ],
+            "min": [
+              0,
+              -8,
+              0
+            ]
+          }
+        },
+        "caps": [
+          {
+            "parent": {
+              "faceId": "m2_n_f6_face",
+              "loopId": "m2_n_f6_loop",
+              "sourceId": "m2_cap_n",
+              "surfaceId": "m2_ch_s"
+            },
+            "rotated": {
+              "evaluationId": "m4_f6_model",
+              "faceId": "m4_f6_face",
+              "loopId": "m4_f6_loop",
+              "sourceId": "m4_f6_src",
+              "surfaceId": "m4_f6_surface"
+            }
+          },
+          {
+            "parent": {
+              "faceId": "m3_n_f7_face",
+              "loopId": "m3_n_f7_loop",
+              "sourceId": "m3_cap_n",
+              "surfaceId": "m3_ch_s"
+            },
+            "rotated": {
+              "evaluationId": "m4_f7_model",
+              "faceId": "m4_f7_face",
+              "loopId": "m4_f7_loop",
+              "sourceId": "m4_f7_src",
+              "surfaceId": "m4_f7_surface"
+            }
+          }
+        ],
+        "evidenceSHA256": "9ad6eeae7333bd287e9f7acb933e6a1b07e0eaa72728bd8db8e5d121ec00f491",
+        "independentlyRotatedParentBoundsMM": {
+          "max": [
+            32,
+            0,
+            24
+          ],
+          "min": [
+            0,
+            -8,
+            0
+          ]
+        },
+        "rotation": {
+          "bijectiveLocalAndGlobalLineage": true,
+          "exactCoordinatesNormalsSupportsAndVolume": true,
+          "fullSourceAdoption": true,
+          "lineageSHA256": "bd466a04b6326398d07878ef02552ee09d8a19e213f8aabc5ec640a3b107f1fd",
+          "nativeSHA256": "dd73ebdcbf5d0de55aea8e9dfcd290fe2cc5addee255fdc8d988de81f55d8c3c",
+          "preservedBasisWeightDomainAndSignedCoefficientBits": true,
+          "regeneratedNativePcurves": true
+        },
+        "snapshotSHA256": "4552607ae882b52eecb53a574509847c60a9ce0fe160fe4f19a5e5cbf272bc18",
+        "volumesMM3": {
+          "flat": 6064,
+          "upright": 6064
+        }
+      },
+      "baselineBodiesSHA256": "6d50f4043e499ef6086124940eb93d29b9e369e586910b493e56efcd26a4fab1",
+      "baselineEvidenceSHA256": "9ad6eeae7333bd287e9f7acb933e6a1b07e0eaa72728bd8db8e5d121ec00f491",
+      "baselineSnapshotSHA256": "4552607ae882b52eecb53a574509847c60a9ce0fe160fe4f19a5e5cbf272bc18",
+      "completedAt": "2026-10-14T02:28:40.048Z",
+      "cpuBufferPreparations": 0,
+      "edited": {
+        "authoredSHA256": "daa7e51ee8cb56137c0b58ca595168feef5bda50d3a7e2e5834222341841eb59",
+        "bodiesSHA256": "b0cfd96d112498480c389d8f9cc3ab95920d92871a1aeb8d8a72f573d64f41dd",
+        "boundsMM": {
+          "flat": {
+            "max": [
+              32,
+              24,
+              8
+            ],
+            "min": [
+              0,
+              0,
+              0
+            ]
+          },
+          "upright": {
+            "max": [
+              32,
+              0,
+              24
+            ],
+            "min": [
+              0,
+              -8,
+              0
+            ]
+          }
+        },
+        "caps": [
+          {
+            "parent": {
+              "faceId": "m2_n_f6_face",
+              "loopId": "m2_n_f6_loop",
+              "sourceId": "m2_cap_n",
+              "surfaceId": "m2_ch_s"
+            },
+            "rotated": {
+              "evaluationId": "m4_f6_model",
+              "faceId": "m4_f6_face",
+              "loopId": "m4_f6_loop",
+              "sourceId": "m4_f6_src",
+              "surfaceId": "m4_f6_surface"
+            }
+          },
+          {
+            "parent": {
+              "faceId": "m3_n_f7_face",
+              "loopId": "m3_n_f7_loop",
+              "sourceId": "m3_cap_n",
+              "surfaceId": "m3_ch_s"
+            },
+            "rotated": {
+              "evaluationId": "m4_f7_model",
+              "faceId": "m4_f7_face",
+              "loopId": "m4_f7_loop",
+              "sourceId": "m4_f7_src",
+              "surfaceId": "m4_f7_surface"
+            }
+          }
+        ],
+        "evidenceSHA256": "b2521619c12003635a58ee94d6e28b2556cf11e76721d9a70c2db18b134f4e89",
+        "independentlyRotatedParentBoundsMM": {
+          "max": [
+            32,
+            0,
+            24
+          ],
+          "min": [
+            0,
+            -8,
+            0
+          ]
+        },
+        "rotation": {
+          "bijectiveLocalAndGlobalLineage": true,
+          "exactCoordinatesNormalsSupportsAndVolume": true,
+          "fullSourceAdoption": true,
+          "lineageSHA256": "bd466a04b6326398d07878ef02552ee09d8a19e213f8aabc5ec640a3b107f1fd",
+          "nativeSHA256": "4bd5976ee5247de21c4d2595ae8eba1478501418cf9fc07e2f326635dbbc3aa9",
+          "preservedBasisWeightDomainAndSignedCoefficientBits": true,
+          "regeneratedNativePcurves": true
+        },
+        "snapshotSHA256": "6fab7d578219eb63bb983b46e319186a616ff07ffc30e891aa3386af5ac74f1d",
+        "volumesMM3": {
+          "flat": 5984,
+          "upright": 5984
+        }
+      },
+      "entrySHA256": "8b14026b298f3e8585f1455e254360a1c490a76c3da58305b0de53cb4ee3832c",
+      "expectedWholeCampaign": {
+        "coldModelCalls": 1,
+        "combinedBindingObservations": 4896,
+        "cpuBufferPreparations": 0,
+        "exports": 0,
+        "firstChamfers": 2,
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "initialTargetFaces": 44,
+        "knownD1": 14688,
+        "knownSourceCompilations": 402,
+        "massQueries": 0,
+        "modelCalls": 7,
+        "parentValidations": 6,
+        "prisms": 4,
+        "returnedLedgerBindingObservations": 4320,
+        "returnedLedgerD1": 12960,
+        "returnedLedgerSourceCompilations": 354,
+        "secondChamfers": 4,
+        "selectionRefusals": 1,
+        "sourceModelCalls": 6,
+        "standaloneValidators": 0,
+        "targetQualifications": 6,
+        "tessellations": 2
+      },
+      "exports": 0,
+      "externalSerialProcessGroupTimeoutRequired": true,
+      "fullTransitiveNativeCoverage": "NOT_MEASURED",
+      "groupStartedAtMS": 1791944916850,
+      "gusset": {
+        "authoredSHA256": "ebbf762b9bf37021ed12dcf5ac101de32363a11371727072e304df36eca19f82",
+        "bodiesSHA256": "e9f07292ab33cf86cad9d0092d6a5cb38822ba7eee719e1d4a2aa5ecb31076d2",
+        "boundsMM": {
+          "flat": {
+            "max": [
+              40,
+              24,
+              8
+            ],
+            "min": [
+              0,
+              0,
+              0
+            ]
+          },
+          "upright": {
+            "max": [
+              24,
+              0,
+              8
+            ],
+            "min": [
+              0,
+              -40,
+              0
+            ]
+          }
+        },
+        "caps": [],
+        "evidenceSHA256": "1f8ba9092b62c74c1cc9b5e48470e9139d04ca4bcc4fcd9e1c9b81199b066683",
+        "independentlyRotatedParentBoundsMM": {
+          "max": [
+            24,
+            0,
+            8
+          ],
+          "min": [
+            0,
+            -40,
+            0
+          ]
+        },
+        "rotation": {
+          "bijectiveLocalAndGlobalLineage": true,
+          "exactCoordinatesNormalsSupportsAndVolume": true,
+          "fullSourceAdoption": true,
+          "lineageSHA256": "44e121104a7ee16f17fdfb7492badc792b7a7057fd53d2c5f5a93fb0fbc8cf67",
+          "nativeSHA256": "0bc7ccb0f45f8925ee8880371c1e24bfefbeca6bd28930aaa96c1f75aca1704d",
+          "preservedBasisWeightDomainAndSignedCoefficientBits": true,
+          "regeneratedNativePcurves": true
+        },
+        "snapshotSHA256": "5aee76219a12f0bd7b3fd49f4b6ab76e9f7d1ca7dbedc41bea66f5820aca1dc4",
+        "volumesMM3": {
+          "flat": 6912,
+          "upright": 6912
+        }
+      },
+      "issue": 1949,
+      "limits": {
+        "freeDiskMiB": 500,
+        "heapMiB": 1536,
+        "processGroupSeconds": 600
+      },
+      "massQueries": 0,
+      "mode": "source",
+      "modelCalls": 6,
+      "nativeElapsedMS": 2283.7822939999996,
+      "nodeVersion": "v22.22.0",
+      "pending": null,
+      "previews": {
+        "flat": {
+          "basis": "actual authored XYZ; no conversion",
+          "faces": 8,
+          "outwardTriangleVolumeMM3": 6064,
+          "parentNativeWork": {
+            "bindingObservationCount": 108,
+            "completeFaceReconstructionCount": 8,
+            "curveD1Count": 108,
+            "pcurveD1Count": 108,
+            "retries": 0,
+            "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+            "sourceCompilationCount": 8,
+            "surfaceD1Count": 108,
+            "totalD1Count": 324
+          },
+          "previewSHA256": "64428708d5e851547e5f61997f8d94c28eb76d9c7c30c377079ba89af7bf8452",
+          "triangles": 20,
+          "vertices": 36
+        },
+        "upright": {
+          "basis": "actual authored XYZ; no conversion",
+          "faces": 8,
+          "outwardTriangleVolumeMM3": 6064,
+          "parentNativeWork": {
+            "bindingObservationCount": 108,
+            "completeFaceReconstructionCount": 8,
+            "curveD1Count": 108,
+            "pcurveD1Count": 108,
+            "retries": 0,
+            "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+            "sourceCompilationCount": 8,
+            "surfaceD1Count": 108,
+            "totalD1Count": 324
+          },
+          "previewSHA256": "47a84547bbc5f72afdd057e2e75ec127d831a71aff99fb478cc225e6b69d7c82",
+          "triangles": 20,
+          "vertices": 36
+        }
+      },
+      "processId": 39483,
+      "processInstanceId": "26ee9bd5-0757-4cda-a8bf-2d8d4268435e",
+      "recovered": {
+        "authoredSHA256": "cd4c018bbc942e4a56124fd1a8c7fe98ef5616b947d69493f4e7cc32fa518c55",
+        "bodiesSHA256": "6d50f4043e499ef6086124940eb93d29b9e369e586910b493e56efcd26a4fab1",
+        "boundsMM": {
+          "flat": {
+            "max": [
+              32,
+              24,
+              8
+            ],
+            "min": [
+              0,
+              0,
+              0
+            ]
+          },
+          "upright": {
+            "max": [
+              32,
+              0,
+              24
+            ],
+            "min": [
+              0,
+              -8,
+              0
+            ]
+          }
+        },
+        "caps": [
+          {
+            "parent": {
+              "faceId": "m2_n_f6_face",
+              "loopId": "m2_n_f6_loop",
+              "sourceId": "m2_cap_n",
+              "surfaceId": "m2_ch_s"
+            },
+            "rotated": {
+              "evaluationId": "m4_f6_model",
+              "faceId": "m4_f6_face",
+              "loopId": "m4_f6_loop",
+              "sourceId": "m4_f6_src",
+              "surfaceId": "m4_f6_surface"
+            }
+          },
+          {
+            "parent": {
+              "faceId": "m3_n_f7_face",
+              "loopId": "m3_n_f7_loop",
+              "sourceId": "m3_cap_n",
+              "surfaceId": "m3_ch_s"
+            },
+            "rotated": {
+              "evaluationId": "m4_f7_model",
+              "faceId": "m4_f7_face",
+              "loopId": "m4_f7_loop",
+              "sourceId": "m4_f7_src",
+              "surfaceId": "m4_f7_surface"
+            }
+          }
+        ],
+        "evidenceSHA256": "9ad6eeae7333bd287e9f7acb933e6a1b07e0eaa72728bd8db8e5d121ec00f491",
+        "independentlyRotatedParentBoundsMM": {
+          "max": [
+            32,
+            0,
+            24
+          ],
+          "min": [
+            0,
+            -8,
+            0
+          ]
+        },
+        "rotation": {
+          "bijectiveLocalAndGlobalLineage": true,
+          "exactCoordinatesNormalsSupportsAndVolume": true,
+          "fullSourceAdoption": true,
+          "lineageSHA256": "bd466a04b6326398d07878ef02552ee09d8a19e213f8aabc5ec640a3b107f1fd",
+          "nativeSHA256": "dd73ebdcbf5d0de55aea8e9dfcd290fe2cc5addee255fdc8d988de81f55d8c3c",
+          "preservedBasisWeightDomainAndSignedCoefficientBits": true,
+          "regeneratedNativePcurves": true
+        },
+        "snapshotSHA256": "ac02b327da2d0b54b6b4af620dcb1a297fe53102bca2f98ff7e196f94477f36a",
+        "volumesMM3": {
+          "flat": 6064,
+          "upright": 6064
+        }
+      },
+      "rectangle": {
+        "authoredSHA256": "b31cf7a79f2a79a559019b12c9bdfd56f8f16ec18b2d3d7f74f6838d3ce57d93",
+        "bodiesSHA256": "88339f82eb16c16c8cfbef8692d754486969972b611d0b0e819060e403692f9b",
+        "boundsMM": {
+          "flat": {
+            "max": [
+              32,
+              24,
+              8
+            ],
+            "min": [
+              0,
+              0,
+              0
+            ]
+          },
+          "upright": {
+            "max": [
+              0,
+              24,
+              0
+            ],
+            "min": [
+              -32,
+              0,
+              -8
+            ]
+          }
+        },
+        "caps": [],
+        "evidenceSHA256": "1d59d08d661f386500c6dc0ee2ec906871b422ba3678293f8e64e2d18f0090dd",
+        "independentlyRotatedParentBoundsMM": {
+          "max": [
+            0,
+            24,
+            0
+          ],
+          "min": [
+            -32,
+            0,
+            -8
+          ]
+        },
+        "rotation": {
+          "bijectiveLocalAndGlobalLineage": true,
+          "exactCoordinatesNormalsSupportsAndVolume": true,
+          "fullSourceAdoption": true,
+          "lineageSHA256": "44e121104a7ee16f17fdfb7492badc792b7a7057fd53d2c5f5a93fb0fbc8cf67",
+          "nativeSHA256": "5587d869f2421d360008f45f8f39577b2276de96069579b4a82c83f2472b4349",
+          "preservedBasisWeightDomainAndSignedCoefficientBits": true,
+          "regeneratedNativePcurves": true
+        },
+        "snapshotSHA256": "68bb727c912e6e4d6f075fbfd04395506b7213935cd897c91b8b6c1f61f658cb",
+        "volumesMM3": {
+          "flat": 6144,
+          "upright": 6144
+        }
+      },
+      "returnedLedgers": {
+        "firstChamfers": [
+          {
+            "index": 2,
+            "label": "1 front1/back2 rail X90",
+            "report": {
+              "bindingObservations": 360,
+              "completeFaceReconstructions": 18,
+              "cutterCompilations": 1,
+              "faceCompilations": 30,
+              "newFaceConstructions": 12,
+              "outputQualifications": 2,
+              "parentReconstructions": 1,
+              "retries": 0,
+              "scope": "direct-calls-and-known-parent-loops-not-provider-internals",
+              "totalD1": 1080,
+              "totalSourceCompilations": 31
+            }
+          }
+        ],
+        "initialFaces": [
+          {
+            "index": 4,
+            "label": "1 front1/back2 rail X90",
+            "report": {
+              "bindingObservationCount": 108,
+              "curveD1Count": 108,
+              "faceCount": 8,
+              "pcurveD1Count": 108,
+              "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+              "sourceCompilationCount": 8,
+              "surfaceD1Count": 108,
+              "totalD1Count": 324
+            }
+          },
+          {
+            "index": 4,
+            "label": "2 backDistance3 from accepted baseline",
+            "report": {
+              "bindingObservationCount": 108,
+              "curveD1Count": 108,
+              "faceCount": 8,
+              "pcurveD1Count": 108,
+              "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+              "sourceCompilationCount": 8,
+              "surfaceD1Count": 108,
+              "totalD1Count": 324
+            }
+          },
+          {
+            "index": 4,
+            "label": "4 backDistance2 from accepted edit",
+            "report": {
+              "bindingObservationCount": 108,
+              "curveD1Count": 108,
+              "faceCount": 8,
+              "pcurveD1Count": 108,
+              "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+              "sourceCompilationCount": 8,
+              "surfaceD1Count": 108,
+              "totalD1Count": 324
+            }
+          },
+          {
+            "index": 2,
+            "label": "5 independent rectangle Y180",
+            "report": {
+              "bindingObservationCount": 72,
+              "curveD1Count": 72,
+              "faceCount": 6,
+              "pcurveD1Count": 72,
+              "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+              "sourceCompilationCount": 6,
+              "surfaceD1Count": 72,
+              "totalD1Count": 216
+            }
+          },
+          {
+            "index": 2,
+            "label": "6 independent constrained gusset Z270",
+            "report": {
+              "bindingObservationCount": 72,
+              "curveD1Count": 72,
+              "faceCount": 6,
+              "pcurveD1Count": 72,
+              "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+              "sourceCompilationCount": 6,
+              "surfaceD1Count": 72,
+              "totalD1Count": 216
+            }
+          }
+        ],
+        "parents": [
+          {
+            "index": 4,
+            "label": "1 front1/back2 rail X90",
+            "report": {
+              "bindingObservationCount": 108,
+              "completeFaceReconstructionCount": 8,
+              "curveD1Count": 108,
+              "pcurveD1Count": 108,
+              "retries": 0,
+              "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+              "sourceCompilationCount": 8,
+              "surfaceD1Count": 108,
+              "totalD1Count": 324
+            }
+          },
+          {
+            "index": 4,
+            "label": "2 backDistance3 from accepted baseline",
+            "report": {
+              "bindingObservationCount": 108,
+              "completeFaceReconstructionCount": 8,
+              "curveD1Count": 108,
+              "pcurveD1Count": 108,
+              "retries": 0,
+              "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+              "sourceCompilationCount": 8,
+              "surfaceD1Count": 108,
+              "totalD1Count": 324
+            }
+          },
+          {
+            "index": 4,
+            "label": "4 backDistance2 from accepted edit",
+            "report": {
+              "bindingObservationCount": 108,
+              "completeFaceReconstructionCount": 8,
+              "curveD1Count": 108,
+              "pcurveD1Count": 108,
+              "retries": 0,
+              "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+              "sourceCompilationCount": 8,
+              "surfaceD1Count": 108,
+              "totalD1Count": 324
+            }
+          },
+          {
+            "index": 2,
+            "label": "5 independent rectangle Y180",
+            "report": {
+              "bindingObservationCount": 72,
+              "completeFaceReconstructionCount": 6,
+              "curveD1Count": 72,
+              "pcurveD1Count": 72,
+              "retries": 0,
+              "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+              "sourceCompilationCount": 6,
+              "surfaceD1Count": 72,
+              "totalD1Count": 216
+            }
+          },
+          {
+            "index": 2,
+            "label": "6 independent constrained gusset Z270",
+            "report": {
+              "bindingObservationCount": 72,
+              "completeFaceReconstructionCount": 6,
+              "curveD1Count": 72,
+              "pcurveD1Count": 72,
+              "retries": 0,
+              "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+              "sourceCompilationCount": 6,
+              "surfaceD1Count": 72,
+              "totalD1Count": 216
+            }
+          }
+        ],
+        "previews": [
+          {
+            "label": "flat genuine20 triangle preview",
+            "report": {
+              "bindingObservationCount": 108,
+              "completeFaceReconstructionCount": 8,
+              "curveD1Count": 108,
+              "pcurveD1Count": 108,
+              "retries": 0,
+              "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+              "sourceCompilationCount": 8,
+              "surfaceD1Count": 108,
+              "totalD1Count": 324
+            }
+          },
+          {
+            "label": "upright genuine20 triangle preview",
+            "report": {
+              "bindingObservationCount": 108,
+              "completeFaceReconstructionCount": 8,
+              "curveD1Count": 108,
+              "pcurveD1Count": 108,
+              "retries": 0,
+              "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+              "sourceCompilationCount": 8,
+              "surfaceD1Count": 108,
+              "totalD1Count": 324
+            }
+          }
+        ],
+        "prisms": [
+          {
+            "index": 1,
+            "label": "1 front1/back2 rail X90",
+            "report": {
+              "bindingObservationCount": 144,
+              "initialFaceConstructionCount": 6,
+              "retries": 0,
+              "sketchReconstructionCount": 1,
+              "solidFaceReconstructionCount": 6,
+              "solidQualificationCount": 1,
+              "sourceCompilationCount": 13,
+              "totalD1Count": 432
+            }
+          },
+          {
+            "index": 1,
+            "label": "5 independent rectangle Y180",
+            "report": {
+              "bindingObservationCount": 144,
+              "initialFaceConstructionCount": 6,
+              "retries": 0,
+              "sketchReconstructionCount": 1,
+              "solidFaceReconstructionCount": 6,
+              "solidQualificationCount": 1,
+              "sourceCompilationCount": 13,
+              "totalD1Count": 432
+            }
+          },
+          {
+            "index": 1,
+            "label": "6 independent constrained gusset Z270",
+            "report": {
+              "bindingObservationCount": 144,
+              "initialFaceConstructionCount": 6,
+              "retries": 0,
+              "sketchReconstructionCount": 1,
+              "solidFaceReconstructionCount": 6,
+              "solidQualificationCount": 1,
+              "sourceCompilationCount": 13,
+              "totalD1Count": 432
+            }
+          }
+        ],
+        "secondChamfers": [
+          {
+            "index": 3,
+            "label": "1 front1/back2 rail X90",
+            "report": {
+              "bindingObservations": 414,
+              "completeFaceReconstructions": 20,
+              "cutterCompilations": 1,
+              "faceCompilations": 33,
+              "newFaceConstructions": 13,
+              "outputQualifications": 2,
+              "parentReconstructions": 1,
+              "retries": 0,
+              "scope": "direct-calls-and-known-parent-loops-not-provider-internals",
+              "totalD1": 1242,
+              "totalSourceCompilations": 34
+            }
+          },
+          {
+            "index": 3,
+            "label": "2 backDistance3 from accepted baseline",
+            "report": {
+              "bindingObservations": 414,
+              "completeFaceReconstructions": 20,
+              "cutterCompilations": 1,
+              "faceCompilations": 33,
+              "newFaceConstructions": 13,
+              "outputQualifications": 2,
+              "parentReconstructions": 1,
+              "retries": 0,
+              "scope": "direct-calls-and-known-parent-loops-not-provider-internals",
+              "totalD1": 1242,
+              "totalSourceCompilations": 34
+            }
+          },
+          {
+            "index": 3,
+            "label": "4 backDistance2 from accepted edit",
+            "report": {
+              "bindingObservations": 414,
+              "completeFaceReconstructions": 20,
+              "cutterCompilations": 1,
+              "faceCompilations": 33,
+              "newFaceConstructions": 13,
+              "outputQualifications": 2,
+              "parentReconstructions": 1,
+              "retries": 0,
+              "scope": "direct-calls-and-known-parent-loops-not-provider-internals",
+              "totalD1": 1242,
+              "totalSourceCompilations": 34
+            }
+          }
+        ],
+        "sketches": [
+          {
+            "index": 0,
+            "label": "1 front1/back2 rail X90",
+            "report": {
+              "degreesOfFreedom": 0,
+              "equationCount": 8,
+              "freeCoordinates": [],
+              "fullyConstrained": true,
+              "limits": {
+                "constraints": 32,
+                "coordinateAbsMM": 10000,
+                "directionAbs": 10000,
+                "floatSearchIterations": 64,
+                "gcdSteps": 200000,
+                "integerBits": 8192,
+                "minimumSegmentMM": 0.001,
+                "points": 16,
+                "rationalOperations": 200000,
+                "referenceLines": 8,
+                "scalarEquations": 64,
+                "segments": 8,
+                "unknowns": 32
+              },
+              "pivotCoordinates": [
+                {
+                  "axis": "x",
+                  "pointId": "p0"
+                },
+                {
+                  "axis": "y",
+                  "pointId": "p0"
+                },
+                {
+                  "axis": "x",
+                  "pointId": "p1"
+                },
+                {
+                  "axis": "y",
+                  "pointId": "p1"
+                },
+                {
+                  "axis": "x",
+                  "pointId": "p2"
+                },
+                {
+                  "axis": "y",
+                  "pointId": "p2"
+                },
+                {
+                  "axis": "x",
+                  "pointId": "p3"
+                },
+                {
+                  "axis": "y",
+                  "pointId": "p3"
+                }
+              ],
+              "quality": {
+                "arithmetic": "exact-represented-binary64-rationals",
+                "conflictProvenance": "chronological-nonminimal-contributing-union",
+                "coordinateConversion": "exact-or-refuse",
+                "directionUnit": "dimensionless",
+                "freeVariables": "authored-seeds-in-point-xy-order",
+                "manufacturingToleranceCertified": false,
+                "ownership": "copied-cpu-data-gc-no-renderer-resources",
+                "pivotOrder": "leftmost-in-authored-equation-order",
+                "redundancy": "chronological-zero-rank-increase",
+                "referenceLines": "immutable-authored-constants",
+                "solid": false,
+                "sourceFrame": "authored-xy-z-zero",
+                "topologyCertified": false
+              },
+              "rank": 8,
+              "rationalWork": {
+                "floatConversions": 4,
+                "floatSearchSteps": 252,
+                "gcdSteps": 110,
+                "maximumObservedBits": 1024,
+                "operations": 4504
+              },
+              "redundantConstraintIds": [],
+              "unknownCount": 8
+            }
+          },
+          {
+            "index": 0,
+            "label": "5 independent rectangle Y180",
+            "report": {
+              "degreesOfFreedom": 0,
+              "equationCount": 8,
+              "freeCoordinates": [],
+              "fullyConstrained": true,
+              "limits": {
+                "constraints": 32,
+                "coordinateAbsMM": 10000,
+                "directionAbs": 10000,
+                "floatSearchIterations": 64,
+                "gcdSteps": 200000,
+                "integerBits": 8192,
+                "minimumSegmentMM": 0.001,
+                "points": 16,
+                "rationalOperations": 200000,
+                "referenceLines": 8,
+                "scalarEquations": 64,
+                "segments": 8,
+                "unknowns": 32
+              },
+              "pivotCoordinates": [
+                {
+                  "axis": "x",
+                  "pointId": "p0"
+                },
+                {
+                  "axis": "y",
+                  "pointId": "p0"
+                },
+                {
+                  "axis": "x",
+                  "pointId": "p1"
+                },
+                {
+                  "axis": "y",
+                  "pointId": "p1"
+                },
+                {
+                  "axis": "x",
+                  "pointId": "p2"
+                },
+                {
+                  "axis": "y",
+                  "pointId": "p2"
+                },
+                {
+                  "axis": "x",
+                  "pointId": "p3"
+                },
+                {
+                  "axis": "y",
+                  "pointId": "p3"
+                }
+              ],
+              "quality": {
+                "arithmetic": "exact-represented-binary64-rationals",
+                "conflictProvenance": "chronological-nonminimal-contributing-union",
+                "coordinateConversion": "exact-or-refuse",
+                "directionUnit": "dimensionless",
+                "freeVariables": "authored-seeds-in-point-xy-order",
+                "manufacturingToleranceCertified": false,
+                "ownership": "copied-cpu-data-gc-no-renderer-resources",
+                "pivotOrder": "leftmost-in-authored-equation-order",
+                "redundancy": "chronological-zero-rank-increase",
+                "referenceLines": "immutable-authored-constants",
+                "solid": false,
+                "sourceFrame": "authored-xy-z-zero",
+                "topologyCertified": false
+              },
+              "rank": 8,
+              "rationalWork": {
+                "floatConversions": 4,
+                "floatSearchSteps": 252,
+                "gcdSteps": 110,
+                "maximumObservedBits": 1024,
+                "operations": 4504
+              },
+              "redundantConstraintIds": [],
+              "unknownCount": 8
+            }
+          },
+          {
+            "index": 0,
+            "label": "6 independent constrained gusset Z270",
+            "report": {
+              "degreesOfFreedom": 0,
+              "equationCount": 8,
+              "freeCoordinates": [],
+              "fullyConstrained": true,
+              "limits": {
+                "constraints": 32,
+                "coordinateAbsMM": 10000,
+                "directionAbs": 10000,
+                "floatSearchIterations": 64,
+                "gcdSteps": 200000,
+                "integerBits": 8192,
+                "minimumSegmentMM": 0.001,
+                "points": 16,
+                "rationalOperations": 200000,
+                "referenceLines": 8,
+                "scalarEquations": 64,
+                "segments": 8,
+                "unknowns": 32
+              },
+              "pivotCoordinates": [
+                {
+                  "axis": "x",
+                  "pointId": "p0"
+                },
+                {
+                  "axis": "y",
+                  "pointId": "p0"
+                },
+                {
+                  "axis": "x",
+                  "pointId": "p1"
+                },
+                {
+                  "axis": "y",
+                  "pointId": "p1"
+                },
+                {
+                  "axis": "x",
+                  "pointId": "p2"
+                },
+                {
+                  "axis": "y",
+                  "pointId": "p2"
+                },
+                {
+                  "axis": "x",
+                  "pointId": "p3"
+                },
+                {
+                  "axis": "y",
+                  "pointId": "p3"
+                }
+              ],
+              "quality": {
+                "arithmetic": "exact-represented-binary64-rationals",
+                "conflictProvenance": "chronological-nonminimal-contributing-union",
+                "coordinateConversion": "exact-or-refuse",
+                "directionUnit": "dimensionless",
+                "freeVariables": "authored-seeds-in-point-xy-order",
+                "manufacturingToleranceCertified": false,
+                "ownership": "copied-cpu-data-gc-no-renderer-resources",
+                "pivotOrder": "leftmost-in-authored-equation-order",
+                "redundancy": "chronological-zero-rank-increase",
+                "referenceLines": "immutable-authored-constants",
+                "solid": false,
+                "sourceFrame": "authored-xy-z-zero",
+                "topologyCertified": false
+              },
+              "rank": 8,
+              "rationalWork": {
+                "floatConversions": 5,
+                "floatSearchSteps": 315,
+                "gcdSteps": 169,
+                "maximumObservedBits": 1024,
+                "operations": 5813
+              },
+              "redundantConstraintIds": [],
+              "unknownCount": 8
+            }
+          }
+        ],
+        "targets": [
+          {
+            "index": 4,
+            "label": "1 front1/back2 rail X90",
+            "report": {
+              "bindingObservationCount": 108,
+              "completeFaceReconstructionCount": 8,
+              "curveD1Count": 108,
+              "pcurveD1Count": 108,
+              "retries": 0,
+              "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+              "sourceCompilationCount": 8,
+              "surfaceD1Count": 108,
+              "totalD1Count": 324
+            }
+          },
+          {
+            "index": 4,
+            "label": "2 backDistance3 from accepted baseline",
+            "report": {
+              "bindingObservationCount": 108,
+              "completeFaceReconstructionCount": 8,
+              "curveD1Count": 108,
+              "pcurveD1Count": 108,
+              "retries": 0,
+              "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+              "sourceCompilationCount": 8,
+              "surfaceD1Count": 108,
+              "totalD1Count": 324
+            }
+          },
+          {
+            "index": 4,
+            "label": "4 backDistance2 from accepted edit",
+            "report": {
+              "bindingObservationCount": 108,
+              "completeFaceReconstructionCount": 8,
+              "curveD1Count": 108,
+              "pcurveD1Count": 108,
+              "retries": 0,
+              "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+              "sourceCompilationCount": 8,
+              "surfaceD1Count": 108,
+              "totalD1Count": 324
+            }
+          },
+          {
+            "index": 2,
+            "label": "5 independent rectangle Y180",
+            "report": {
+              "bindingObservationCount": 72,
+              "completeFaceReconstructionCount": 6,
+              "curveD1Count": 72,
+              "pcurveD1Count": 72,
+              "retries": 0,
+              "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+              "sourceCompilationCount": 6,
+              "surfaceD1Count": 72,
+              "totalD1Count": 216
+            }
+          },
+          {
+            "index": 2,
+            "label": "6 independent constrained gusset Z270",
+            "report": {
+              "bindingObservationCount": 72,
+              "completeFaceReconstructionCount": 6,
+              "curveD1Count": 72,
+              "pcurveD1Count": 72,
+              "retries": 0,
+              "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+              "sourceCompilationCount": 6,
+              "surfaceD1Count": 72,
+              "totalD1Count": 216
+            }
+          }
+        ]
+      },
+      "selection": {
+        "code": "SELECTION",
+        "matched": 0,
+        "noNewNativeGeometry": true,
+        "operation": "chamfer"
+      },
+      "sourceDerivedExpectedWorkIsNotInstrumented": true,
+      "stages": [
+        {
+          "elapsedMS": 818.721,
+          "kind": "modelCalls",
+          "label": "1 front1/back2 rail X90",
+          "outcome": "returned"
+        },
+        {
+          "elapsedMS": 81.565875,
+          "kind": "tessellations",
+          "label": "flat genuine20 triangle preview",
+          "outcome": "returned"
+        },
+        {
+          "elapsedMS": 79.62654199999997,
+          "kind": "tessellations",
+          "label": "upright genuine20 triangle preview",
+          "outcome": "returned"
+        },
+        {
+          "elapsedMS": 464.232125,
+          "kind": "modelCalls",
+          "label": "2 backDistance3 from accepted baseline",
+          "outcome": "returned"
+        },
+        {
+          "elapsedMS": 1.1579589999998916,
+          "failure": {
+            "cause": null,
+            "code": "SELECTION",
+            "message": "CAD model chamfer: Expected exactly one edge; matched 0",
+            "name": "CadModelError",
+            "operation": "chamfer",
+            "stack": "[Accessor diagnostic field]"
+          },
+          "kind": "modelCalls",
+          "label": "3 backY0 selection refusal before second chamfer provider",
+          "outcome": "threw"
+        },
+        {
+          "elapsedMS": 490.851459,
+          "kind": "modelCalls",
+          "label": "4 backDistance2 from accepted edit",
+          "outcome": "returned"
+        },
+        {
+          "elapsedMS": 179.74887499999977,
+          "kind": "modelCalls",
+          "label": "5 independent rectangle Y180",
+          "outcome": "returned"
+        },
+        {
+          "elapsedMS": 167.87845900000002,
+          "kind": "modelCalls",
+          "label": "6 independent constrained gusset Z270",
+          "outcome": "returned"
+        }
+      ],
+      "standaloneValidators": 0,
+      "startedAt": "2026-10-14T02:28:36.850Z",
+      "status": "passed",
+      "tessellations": 2,
+      "timingScope": "stage action plus artifact persistence; not isolated kernel timing",
+      "wallElapsedMS": 3198.718334
+    },
+    "cold-flow.json": {
+      "accounting": {
+        "combinedBindingObservations": 1242,
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "initialFaceConstructionCount": 8,
+        "knownD1": 3726,
+        "knownSourceCompilations": 103,
+        "returnedLedgerBindingObservations": 1134,
+        "returnedLedgerD1": 3402,
+        "returnedLedgerSourceCompilations": 94
+      },
+      "artifacts": {
+        "07-cold.snapshot.json": {
+          "bytes": 1357613,
+          "scope": "actual complete result before fixture oracles",
+          "sha256": "392ec9479e1c9481e3db35cf3fc55cdf203154cc31eaf7603f92db8ba3b01b3a"
+        },
+        "cold.cad-model.json": {
+          "bytes": 703,
+          "scope": "actual fresh emitted baseline save",
+          "sha256": "cd4c018bbc942e4a56124fd1a8c7fe98ef5616b947d69493f4e7cc32fa518c55"
+        }
+      },
+      "baseline": {
+        "authoredSHA256": "cd4c018bbc942e4a56124fd1a8c7fe98ef5616b947d69493f4e7cc32fa518c55",
+        "bodiesSHA256": "6d50f4043e499ef6086124940eb93d29b9e369e586910b493e56efcd26a4fab1",
+        "boundsMM": {
+          "flat": {
+            "max": [
+              32,
+              24,
+              8
+            ],
+            "min": [
+              0,
+              0,
+              0
+            ]
+          },
+          "upright": {
+            "max": [
+              32,
+              0,
+              24
+            ],
+            "min": [
+              0,
+              -8,
+              0
+            ]
+          }
+        },
+        "caps": [
+          {
+            "parent": {
+              "faceId": "m2_n_f6_face",
+              "loopId": "m2_n_f6_loop",
+              "sourceId": "m2_cap_n",
+              "surfaceId": "m2_ch_s"
+            },
+            "rotated": {
+              "evaluationId": "m4_f6_model",
+              "faceId": "m4_f6_face",
+              "loopId": "m4_f6_loop",
+              "sourceId": "m4_f6_src",
+              "surfaceId": "m4_f6_surface"
+            }
+          },
+          {
+            "parent": {
+              "faceId": "m3_n_f7_face",
+              "loopId": "m3_n_f7_loop",
+              "sourceId": "m3_cap_n",
+              "surfaceId": "m3_ch_s"
+            },
+            "rotated": {
+              "evaluationId": "m4_f7_model",
+              "faceId": "m4_f7_face",
+              "loopId": "m4_f7_loop",
+              "sourceId": "m4_f7_src",
+              "surfaceId": "m4_f7_surface"
+            }
+          }
+        ],
+        "evidenceSHA256": "9ad6eeae7333bd287e9f7acb933e6a1b07e0eaa72728bd8db8e5d121ec00f491",
+        "independentlyRotatedParentBoundsMM": {
+          "max": [
+            32,
+            0,
+            24
+          ],
+          "min": [
+            0,
+            -8,
+            0
+          ]
+        },
+        "rotation": {
+          "bijectiveLocalAndGlobalLineage": true,
+          "exactCoordinatesNormalsSupportsAndVolume": true,
+          "fullSourceAdoption": true,
+          "lineageSHA256": "bd466a04b6326398d07878ef02552ee09d8a19e213f8aabc5ec640a3b107f1fd",
+          "nativeSHA256": "dd73ebdcbf5d0de55aea8e9dfcd290fe2cc5addee255fdc8d988de81f55d8c3c",
+          "preservedBasisWeightDomainAndSignedCoefficientBits": true,
+          "regeneratedNativePcurves": true
+        },
+        "snapshotSHA256": "4552607ae882b52eecb53a574509847c60a9ce0fe160fe4f19a5e5cbf272bc18",
+        "volumesMM3": {
+          "flat": 6064,
+          "upright": 6064
+        }
+      },
+      "campaignAccounting": {
+        "combinedBindingObservations": 4896,
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "initialFaceConstructionCount": 44,
+        "knownD1": 14688,
+        "knownSourceCompilations": 402,
+        "returnedLedgerBindingObservations": 4320,
+        "returnedLedgerD1": 12960,
+        "returnedLedgerSourceCompilations": 354
+      },
+      "campaignModelCalls": 7,
+      "campaignTessellations": 2,
+      "completedAt": "2026-10-14T02:28:41.291Z",
+      "cpuBufferPreparations": 0,
+      "entrySHA256": "d9d741fc24ddaeb6dd6b831ac59369daa0e842294d2e444da04ec357fa079b92",
+      "expectedWholeCampaign": {
+        "coldModelCalls": 1,
+        "combinedBindingObservations": 4896,
+        "cpuBufferPreparations": 0,
+        "exports": 0,
+        "firstChamfers": 2,
+        "fullTransitiveNativeCoverage": "NOT_MEASURED",
+        "initialTargetFaces": 44,
+        "knownD1": 14688,
+        "knownSourceCompilations": 402,
+        "massQueries": 0,
+        "modelCalls": 7,
+        "parentValidations": 6,
+        "prisms": 4,
+        "returnedLedgerBindingObservations": 4320,
+        "returnedLedgerD1": 12960,
+        "returnedLedgerSourceCompilations": 354,
+        "secondChamfers": 4,
+        "selectionRefusals": 1,
+        "sourceModelCalls": 6,
+        "standaloneValidators": 0,
+        "targetQualifications": 6,
+        "tessellations": 2
+      },
+      "exports": 0,
+      "externalSerialProcessGroupTimeoutRequired": true,
+      "fullTransitiveNativeCoverage": "NOT_MEASURED",
+      "groupStartedAtMS": 1791944916850,
+      "issue": 1949,
+      "limits": {
+        "freeDiskMiB": 500,
+        "heapMiB": 1536,
+        "processGroupSeconds": 600
+      },
+      "massQueries": 0,
+      "mode": "cold",
+      "modelCalls": 1,
+      "nativeElapsedMS": 779.217459,
+      "nodeVersion": "v22.22.0",
+      "parity": {
+        "bodies": true,
+        "canonicalSave": true,
+        "evidence": true,
+        "freshProcessFullRebuild": true,
+        "fullBaselineSnapshot": true,
+        "parameters": true,
+        "parsedReplayScope": "data equality only; no process identity or freeze claim"
+      },
+      "pending": null,
+      "processId": 39545,
+      "processInstanceId": "f8d42b3f-c5a0-4398-87e2-b94ddec16b3d",
+      "returnedLedgers": {
+        "firstChamfers": [
+          {
+            "index": 2,
+            "label": "7 fresh emitted original baseline cold load",
+            "report": {
+              "bindingObservations": 360,
+              "completeFaceReconstructions": 18,
+              "cutterCompilations": 1,
+              "faceCompilations": 30,
+              "newFaceConstructions": 12,
+              "outputQualifications": 2,
+              "parentReconstructions": 1,
+              "retries": 0,
+              "scope": "direct-calls-and-known-parent-loops-not-provider-internals",
+              "totalD1": 1080,
+              "totalSourceCompilations": 31
+            }
+          }
+        ],
+        "initialFaces": [
+          {
+            "index": 4,
+            "label": "7 fresh emitted original baseline cold load",
+            "report": {
+              "bindingObservationCount": 108,
+              "curveD1Count": 108,
+              "faceCount": 8,
+              "pcurveD1Count": 108,
+              "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+              "sourceCompilationCount": 8,
+              "surfaceD1Count": 108,
+              "totalD1Count": 324
+            }
+          }
+        ],
+        "parents": [
+          {
+            "index": 4,
+            "label": "7 fresh emitted original baseline cold load",
+            "report": {
+              "bindingObservationCount": 108,
+              "completeFaceReconstructionCount": 8,
+              "curveD1Count": 108,
+              "pcurveD1Count": 108,
+              "retries": 0,
+              "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+              "sourceCompilationCount": 8,
+              "surfaceD1Count": 108,
+              "totalD1Count": 324
+            }
+          }
+        ],
+        "previews": [],
+        "prisms": [
+          {
+            "index": 1,
+            "label": "7 fresh emitted original baseline cold load",
+            "report": {
+              "bindingObservationCount": 144,
+              "initialFaceConstructionCount": 6,
+              "retries": 0,
+              "sketchReconstructionCount": 1,
+              "solidFaceReconstructionCount": 6,
+              "solidQualificationCount": 1,
+              "sourceCompilationCount": 13,
+              "totalD1Count": 432
+            }
+          }
+        ],
+        "secondChamfers": [
+          {
+            "index": 3,
+            "label": "7 fresh emitted original baseline cold load",
+            "report": {
+              "bindingObservations": 414,
+              "completeFaceReconstructions": 20,
+              "cutterCompilations": 1,
+              "faceCompilations": 33,
+              "newFaceConstructions": 13,
+              "outputQualifications": 2,
+              "parentReconstructions": 1,
+              "retries": 0,
+              "scope": "direct-calls-and-known-parent-loops-not-provider-internals",
+              "totalD1": 1242,
+              "totalSourceCompilations": 34
+            }
+          }
+        ],
+        "sketches": [
+          {
+            "index": 0,
+            "label": "7 fresh emitted original baseline cold load",
+            "report": {
+              "degreesOfFreedom": 0,
+              "equationCount": 8,
+              "freeCoordinates": [],
+              "fullyConstrained": true,
+              "limits": {
+                "constraints": 32,
+                "coordinateAbsMM": 10000,
+                "directionAbs": 10000,
+                "floatSearchIterations": 64,
+                "gcdSteps": 200000,
+                "integerBits": 8192,
+                "minimumSegmentMM": 0.001,
+                "points": 16,
+                "rationalOperations": 200000,
+                "referenceLines": 8,
+                "scalarEquations": 64,
+                "segments": 8,
+                "unknowns": 32
+              },
+              "pivotCoordinates": [
+                {
+                  "axis": "x",
+                  "pointId": "p0"
+                },
+                {
+                  "axis": "y",
+                  "pointId": "p0"
+                },
+                {
+                  "axis": "x",
+                  "pointId": "p1"
+                },
+                {
+                  "axis": "y",
+                  "pointId": "p1"
+                },
+                {
+                  "axis": "x",
+                  "pointId": "p2"
+                },
+                {
+                  "axis": "y",
+                  "pointId": "p2"
+                },
+                {
+                  "axis": "x",
+                  "pointId": "p3"
+                },
+                {
+                  "axis": "y",
+                  "pointId": "p3"
+                }
+              ],
+              "quality": {
+                "arithmetic": "exact-represented-binary64-rationals",
+                "conflictProvenance": "chronological-nonminimal-contributing-union",
+                "coordinateConversion": "exact-or-refuse",
+                "directionUnit": "dimensionless",
+                "freeVariables": "authored-seeds-in-point-xy-order",
+                "manufacturingToleranceCertified": false,
+                "ownership": "copied-cpu-data-gc-no-renderer-resources",
+                "pivotOrder": "leftmost-in-authored-equation-order",
+                "redundancy": "chronological-zero-rank-increase",
+                "referenceLines": "immutable-authored-constants",
+                "solid": false,
+                "sourceFrame": "authored-xy-z-zero",
+                "topologyCertified": false
+              },
+              "rank": 8,
+              "rationalWork": {
+                "floatConversions": 4,
+                "floatSearchSteps": 252,
+                "gcdSteps": 110,
+                "maximumObservedBits": 1024,
+                "operations": 4504
+              },
+              "redundantConstraintIds": [],
+              "unknownCount": 8
+            }
+          }
+        ],
+        "targets": [
+          {
+            "index": 4,
+            "label": "7 fresh emitted original baseline cold load",
+            "report": {
+              "bindingObservationCount": 108,
+              "completeFaceReconstructionCount": 8,
+              "curveD1Count": 108,
+              "pcurveD1Count": 108,
+              "retries": 0,
+              "scope": "direct-calls-and-known-parent-loop-work-not-hidden-provider-internals",
+              "sourceCompilationCount": 8,
+              "surfaceD1Count": 108,
+              "totalD1Count": 324
+            }
+          }
+        ]
+      },
+      "sourceDerivedExpectedWorkIsNotInstrumented": true,
+      "sourceFlowSHA256": "195a934e29dd223f35c7d822896377644cffa064405127e9a8b4ef1fc3b923a2",
+      "stages": [
+        {
+          "elapsedMS": 779.217459,
+          "kind": "modelCalls",
+          "label": "7 fresh emitted original baseline cold load",
+          "outcome": "returned"
+        }
+      ],
+      "standaloneValidators": 0,
+      "startedAt": "2026-10-14T02:28:40.134Z",
+      "status": "passed",
+      "tessellations": 0,
+      "timingScope": "stage action plus artifact persistence; not isolated kernel timing",
+      "wallElapsedMS": 1157.635333
+    },
+    "root-process-group.json": {
+      "issue": 1949,
+      "grant": "Latest human takeover authorizes native implementation and validation; root grants exactly seven model evaluations and two previews",
+      "limits": {
+        "heapMiB": 1536,
+        "freeDiskMiB": 500,
+        "processGroupSeconds": 600
+      },
+      "sourceBundleSHA256": "8b14026b298f3e8585f1455e254360a1c490a76c3da58305b0de53cb4ee3832c",
+      "startedAtUnix": 1791944916.554317,
+      "status": "passed",
+      "processes": [
+        {
+          "mode": "source",
+          "pid": 39483,
+          "exitCode": 0,
+          "elapsedGroupSeconds": 3.5428497079992667,
+          "freeDiskBytes": 56500469760
+        },
+        {
+          "mode": "cold",
+          "pid": 39545,
+          "exitCode": 0,
+          "elapsedGroupSeconds": 4.753578082949389,
+          "freeDiskBytes": 56499048448
+        }
+      ],
+      "freeDiskStartBytes": 56511459328,
+      "wallSeconds": 4.753984957991634,
+      "freeDiskEndBytes": 56499048448
+    }
+  },
+  "rawArtifacts": {
+    "baseline.rotation.json": {
+      "bytes": 307059,
+      "sha256": "e892b42534a02ca1efaba0861a5d4a36bfaf0bf41baa2a4eb4c8500a2b427cb3"
+    },
+    "cold.cad-model.json": {
+      "bytes": 703,
+      "sha256": "cd4c018bbc942e4a56124fd1a8c7fe98ef5616b947d69493f4e7cc32fa518c55"
+    },
+    "source.stdout": {
+      "bytes": 333,
+      "sha256": "b61b6c86fb6473b324fab58d91493711910d115484ab4098077c17c2d24b6c21"
+    },
+    "02-edited.snapshot.json": {
+      "bytes": 1357274,
+      "sha256": "bf5e8a3df225fa4630296b9f4b3fb46fec27940ba60e24c937d21b56d4086b78"
+    },
+    "after-rejection.accepted.cad-model.json": {
+      "bytes": 703,
+      "sha256": "daa7e51ee8cb56137c0b58ca595168feef5bda50d3a7e2e5834222341841eb59"
+    },
+    "cold.stdout": {
+      "bytes": 339,
+      "sha256": "18f59a09fb0379bde2336e64cda09b406350101db016cce16aa43d381bb9a417"
+    },
+    "03-selection.unexpected.snapshot.json.refusal.json": {
+      "bytes": 185,
+      "sha256": "05cfa3726179056cf0ce05d00d503986b62815e47e3c699d58d92fc313ca0714"
+    },
+    "cold.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "root-process-group.json": {
+      "bytes": 863,
+      "sha256": "b5b7d3416c74e724a4f181cb029df9272376b99834d51354f1da4d9ba1b9398c"
+    },
+    "source-flow.json": {
+      "bytes": 24961,
+      "sha256": "195a934e29dd223f35c7d822896377644cffa064405127e9a8b4ef1fc3b923a2"
+    },
+    "source.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "baseline-upright.preview.json": {
+      "bytes": 160421,
+      "sha256": "c9eb1783100acd141e3417127d8645257698465f78066277e685b7924a971bd3"
+    },
+    "accepted-edited.cad-model.json": {
+      "bytes": 703,
+      "sha256": "daa7e51ee8cb56137c0b58ca595168feef5bda50d3a7e2e5834222341841eb59"
+    },
+    "cold-flow.json": {
+      "bytes": 7800,
+      "sha256": "f3ff644c34082796eb4f598d0af40cf474efc5749616acfb8af8c8af1a93c8eb"
+    },
+    "06-gusset.snapshot.json": {
+      "bytes": 485292,
+      "sha256": "0e2d71589aa0e6340f97697193a31fb3dae6891c98ce9004eb5988fe201f3627"
+    },
+    "04-recovered.snapshot.json": {
+      "bytes": 1357612,
+      "sha256": "df983e8710f428f1fbb03fbfa203d7ce8d5c6885c633ec4ec39f599d00ad8a68"
+    },
+    "after-rejection.accepted.snapshot.json": {
+      "bytes": 1357274,
+      "sha256": "bf5e8a3df225fa4630296b9f4b3fb46fec27940ba60e24c937d21b56d4086b78"
+    },
+    "initial.cad-model.json": {
+      "bytes": 703,
+      "sha256": "cd4c018bbc942e4a56124fd1a8c7fe98ef5616b947d69493f4e7cc32fa518c55"
+    },
+    "baseline-flat.preview.json": {
+      "bytes": 158839,
+      "sha256": "3c0300ffe55110ac31af60eff63963c45db5baa44fada6b4bd5c9970a8bc5dbe"
+    },
+    "07-cold.snapshot.json": {
+      "bytes": 1357613,
+      "sha256": "392ec9479e1c9481e3db35cf3fc55cdf203154cc31eaf7603f92db8ba3b01b3a"
+    },
+    "05-rectangle.snapshot.json": {
+      "bytes": 481067,
+      "sha256": "3946a2085314ae485ee1827fe8d019ef380965cc5008806742e738da46c55425"
+    },
+    "01-baseline.snapshot.json": {
+      "bytes": 1357613,
+      "sha256": "392ec9479e1c9481e3db35cf3fc55cdf203154cc31eaf7603f92db8ba3b01b3a"
+    },
+    "baseline-transfer.json": {
+      "bytes": 1787282,
+      "sha256": "add9b8a5b475993d8a2df2f074554e3b2590d18683db4e09faeb9142cb399976"
+    }
+  },
+  "notes": [
+    "Source-index.mjs bundles current source without provider substitution; cold uses checked emitted public index in separate process.",
+    "Native outputs were stored before oracles; one expected selection refusal; no retries.",
+    "Reported402 compilations/4896 bindings/14688 D1 are source-derived known work; hidden transitive provider work remains NOT_MEASURED.",
+    "Foundation commit CI is not this implementation CI; finalPRhead checks required."
+  ],
+  "toolchain": {
+    "node": "22.22.0",
+    "nativeInitialEmitTypeScript": "5.9.2",
+    "lockTypeScript": "5.9.3",
+    "lockBuildAfterCampaign": "passed",
+    "nativeCampaignWasNotRerun": true
+  },
+  "emittedIndexSHA256AfterLockBuild": "d9d741fc24ddaeb6dd6b831ac59369daa0e842294d2e444da04ec357fa079b92"
+}

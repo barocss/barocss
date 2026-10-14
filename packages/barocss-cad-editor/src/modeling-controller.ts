@@ -1,10 +1,14 @@
+import { buildModelingStructure, canonicalModelingText, modelingSourceBytes, modelingSourceBudget } from './modeling-structure.js';
+import type { ModelingStructureCommand } from './modeling-structure.js';
+import { admitModelingDiagnostic, modelingDiagnostic } from './modeling-diagnostic.js';
+import type { ModelingDiagnostic } from './modeling-diagnostic.js';
 import { validateModelingStlExport } from './modeling-stl.js';
 import type { CadEditorStlExport, ModelingStlBinding } from './modeling-stl.js';
 import { isModelingCompositionGraph } from './modeling-composition.js';
 import { prepareModelingScene, pickModelingScene } from './modeling-scene.js';
 import type { ModelingDisplayScene, ModelingFaceSelection } from './modeling-scene.js';
-import type { PrismDisplayPort, PrismDisplayCandidate } from './prism-feature-display.js';
-import type { CadEditorModelingExample, CadEditorModelingSplitAxis, CadEditorModelingSummary, ModelingCommand, ModelingReply, ModelingDisplayReply } from './modeling-engine.js';
+import type { PrismDisplayPort, PrismDisplayCandidate, PrismPreviewDisplayCandidate } from './prism-feature-display.js';
+import type { CadEditorModelingExample, CadEditorModelingSplitAxis, CadEditorModelingSummary, ModelingCommand, ModelingReply, ModelingDisplayReply, ModelingPreviewBinding, ModelingPreviewReply, ModelingPreviewAcceptedReply, ModelingSourcePreviewReply } from './modeling-engine.js';
 import { validatePrismFeatureNativeReply } from './prism-feature-controller.js';
 import type { CadEditorPrismFeatureSummary } from './prism-feature-types.js';
 
@@ -13,15 +17,39 @@ export interface CadEditorModelingSnapshot {
   display: ModelingDisplayScene | null; faceSelection: (ModelingFaceSelection & { generation: number }) | null;
   drafts: Record<string, string>; selection: number | null; generation: number;
   busy: boolean; disposed: boolean; error: string | null; workerReady: boolean;
+  viewOrientation: 'isometric' | 'top';
+  preview: { operation?: 'structure' | 'history'; status: 'computing' | 'ready' | 'unchanged' | 'error'; parameters: Record<string, number>; outputs?: CadEditorModelingSummary['outputs']; diagnostic?: ModelingDiagnostic } | null;
   history: { index: number; count: number; canUndo: boolean; canRedo: boolean };
 }
 type Success = Extract<ModelingDisplayReply, { ok: true }>;
 type ExportSuccess = Extract<ModelingReply, { kind: 'stl-export' }>;
 type InternalSnapshot = Omit<CadEditorModelingSnapshot, 'workerReady'>;
 type Payload = ModelingCommand extends infer C ? C extends ModelingCommand ? Omit<C, 'id'> : never : never;
-type DisplayPayload = Exclude<Payload, { kind: 'export-stl' }>;
+type DisplayPayload = Exclude<Payload, { kind: 'export-stl' | 'prepare-preview' | 'accept-preview' | 'discard-preview' | 'prepare-source' | 'accept-source' }>;
+type PreviewSuccess = Extract<ModelingPreviewReply, { ok: true }>;
+type SourceSuccess = ModelingSourcePreviewReply;
+type SourcePayload = Extract<Payload, { kind: 'prepare-source' }>;
+type AcceptSourcePayload = Extract<Payload, { kind: 'accept-source' }>;
+type PreviewAck = Extract<ModelingPreviewAcceptedReply, { ok: true }>;
+type RequestSuccess = Success | ExportSuccess | PreviewSuccess | SourceSuccess | PreviewAck;
+type PreviewPayload = Extract<Payload, { kind: 'prepare-preview' }>;
+type AcceptPreviewPayload = Extract<Payload, { kind: 'accept-preview' }>;
 type ExportPayload = Extract<Payload, { kind: 'export-stl' }>;
 const FILE_LIMIT = 262144, HISTORY_BYTES = 8 * 1024 * 1024;
+class ModelingRequestError extends Error {
+  constructor(message: string, readonly diagnostic?: ModelingDiagnostic) { super(message); }
+}
+function previewBinding(value: unknown): asserts value is ModelingPreviewBinding {
+  if (!value || Object.getPrototypeOf(value) !== Object.prototype) throw Error('Invalid preview binding.');
+  const keys = ['workerToken', 'acceptedTaskToken', 'expectedRevision', 'candidateToken', 'previewTaskToken'];
+  if (Reflect.ownKeys(value).length !== keys.length) throw Error('Invalid preview binding.');
+  for (const key of keys) {
+    const d = Object.getOwnPropertyDescriptor(value, key);
+    if (!d?.enumerable || !Object.hasOwn(d, 'value') || (key === 'expectedRevision'
+      ? !Number.isSafeInteger(d.value) || d.value < 0
+      : typeof d.value !== 'string' || !/^[A-Za-z0-9_-]{1,48}$/.test(d.value))) throw Error('Invalid preview binding.');
+  }
+}
 const clone = <T>(value: T): T => structuredClone(value);
 function same(a: unknown, b: unknown): boolean {
   if (Object.is(a, b)) return true;
@@ -173,30 +201,80 @@ function sourceMatches(reply: Success, taskToken?: string) {
 export function createCadEditorModelingController(displayPort?: PrismDisplayPort, aspect: () => number = () => 1) {
   let state: InternalSnapshot = { accepted: null, authoredText: null, display: null, faceSelection: null,
     drafts: {}, selection: null, generation: 0, busy: false, disposed: false, error: null,
-    history: { index: -1, count: 0, canUndo: false, canRedo: false } };
-  let worker: Worker | null = null, ready = false, acceptedWorkerToken = '', sequence = 0, epoch = 0, index = -1;
-  let history: { parameters: Record<string, number>; suppression?: Record<string, boolean>; bytes: number }[] = [];
-  let pending: { id: number; taskToken: string; binding?: ModelingStlBinding; resolve: (reply: Success | ExportSuccess) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> } | null = null;
+    preview: null, viewOrientation: 'isometric', history: { index: -1, count: 0, canUndo: false, canRedo: false } };
+  let worker: Worker | null = null, ready = false, acceptedWorkerToken = '', sequence = 0, epoch = 0, index = -1, draftVersion = 0, workerToken = '';
+  let prepared: { reply: PreviewSuccess | SourceSuccess; expectedText?: string; historyTarget?: number; display: ModelingDisplayScene; handle: PrismPreviewDisplayCandidate | null;
+    worker: Worker; text: string; generation: number; rawDrafts: Record<string, string>; draftVersion: number } | null = null;
+  let previewRequest: { binding: ModelingPreviewBinding; worker: Worker; discarded: boolean } | null = null;
+  let history: { text?: string; parameters: Record<string, number>; suppression?: Record<string, boolean>; bytes: number }[] = [];
+  let pending: { id: number; taskToken: string; binding?: ModelingStlBinding; kind: Payload['kind']; previewBinding?: ModelingPreviewBinding; resolve: (reply: RequestSuccess) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> } | null = null;
   const listeners = new Set<() => void>();
   const emit = () => { for (const listener of listeners) { try { listener(); } catch { /* Subscriber isolation. */ } } };
   const live = () => { if (state.disposed) throw new Error('The modeling session is disposed.'); };
   const idle = () => { live(); if (state.busy) throw new Error('A native operation is in progress.'); };
+  const clearPreview = (notifyWorker = true) => {
+    const changed = state.preview !== null;
+    const prior = prepared; prepared = null;
+    // Restore accepted visibility before any asynchronous Worker cleanup.
+    try { prior?.handle?.dispose(); } catch { /* Owned cleanup cannot mutate accepted history. */ }
+    state = { ...state, preview: null };
+    const request = previewRequest; previewRequest = null;
+    if (notifyWorker && request && !request.discarded && worker === request.worker) {
+      request.discarded = true;
+      try { worker.postMessage({ id: ++sequence, taskToken: globalThis.crypto.randomUUID(), kind: 'discard-preview', binding: request.binding }); }
+      catch { stop('Could not discard the native preview.'); }
+    }
+    return changed;
+  };
   const stop = (message: string) => {
-    worker?.terminate(); worker = null; ready = false; acceptedWorkerToken = '';
+    clearPreview(false);
+    worker?.terminate(); worker = null; ready = false; acceptedWorkerToken = ''; workerToken = '';
     if (pending) { const prior = pending; pending = null; clearTimeout(prior.timer); prior.reject(new Error(message)); }
   };
   function request(payload: DisplayPayload): Promise<Success>;
   function request(payload: ExportPayload): Promise<ExportSuccess>;
-  function request(payload: Payload): Promise<Success | ExportSuccess> { return new Promise((resolve, reject) => {
+  function request(payload: PreviewPayload): Promise<PreviewSuccess>;
+  function request(payload: AcceptPreviewPayload): Promise<PreviewAck>;
+  function request(payload: SourcePayload): Promise<SourceSuccess>;
+  function request(payload: AcceptSourcePayload): Promise<PreviewAck>;
+  function request(payload: Payload): Promise<RequestSuccess> { return new Promise((resolve, reject) => {
     if (!worker) {
-      const instance = new Worker(new URL('./modeling-worker.ts', import.meta.url), { type: 'module' }); worker = instance;
+      const instance = new Worker(new URL('./modeling-worker.ts', import.meta.url), { type: 'module' }); worker = instance; workerToken = globalThis.crypto.randomUUID();
       instance.addEventListener('message', event => {
         if (worker !== instance || !pending) return;
         const reply = (event as MessageEvent<ModelingReply>).data;
         if (!reply || reply.id !== pending.id) return;
         const prior = pending; pending = null; clearTimeout(prior.timer);
-        if (reply.ok === false && typeof reply.message === 'string') { prior.reject(new Error(reply.message.slice(0, 2048))); return; }
+        if (reply.ok === false && typeof reply.message === 'string') {
+          try { prior.reject(new ModelingRequestError(reply.message.slice(0, 2048), reply.diagnostic === undefined ? undefined : admitModelingDiagnostic(reply.diagnostic))); }
+          catch { stop('Invalid native diagnostic.'); prior.reject(new Error('Invalid native diagnostic.')); }
+          return;
+        }
         try {
+          if (prior.kind === 'accept-preview' || prior.kind === 'accept-source') {
+            if (reply.ok !== true || !('kind' in reply) || reply.kind !== 'preview-accepted'
+              || Object.getPrototypeOf(reply) !== Object.prototype || Reflect.ownKeys(reply).length !== 5) throw Error('Invalid preview acceptance reply.');
+            previewBinding(reply.binding);
+            if (!same(reply.binding, prior.previewBinding) || reply.revision !== reply.binding.expectedRevision + 1) throw Error('Stale preview acceptance reply.');
+            prior.resolve(reply); return;
+          }
+          if (prior.kind === 'prepare-preview') {
+            if (reply.ok !== true || !('kind' in reply) || reply.kind !== 'preview'
+              || Object.getPrototypeOf(reply) !== Object.prototype || Reflect.ownKeys(reply).length !== 7) throw Error('Invalid preview reply.');
+            previewBinding(reply.binding);
+            if (!same(reply.binding, prior.previewBinding) || typeof reply.text !== 'string' || reply.text.length > FILE_LIMIT
+              || new TextEncoder().encode(reply.text).length > FILE_LIMIT || JSON.stringify(reply.summary).length > FILE_LIMIT) throw Error('Invalid preview reply.');
+            sourceMatches(reply, prior.taskToken); prior.resolve(reply); return;
+          }
+          if (prior.kind === 'prepare-source') {
+            if (reply.ok !== true || !('kind' in reply) || reply.kind !== 'source-preview'
+              || Object.getPrototypeOf(reply) !== Object.prototype || Reflect.ownKeys(reply).length !== 8
+              || !['structure', 'history'].includes(reply.operation)) throw Error('Invalid structural candidate reply.');
+            previewBinding(reply.binding); modelingSourceBytes(reply.text);
+            if (!same(reply.binding, prior.previewBinding) || JSON.stringify(reply.summary).length > FILE_LIMIT)
+              throw Error('Invalid structural candidate binding.');
+            sourceMatches(reply, prior.taskToken); prior.resolve(reply); return;
+          }
           if (prior.binding) {
             if (reply.ok !== true || !('kind' in reply) || reply.kind !== 'stl-export'
               || Object.getPrototypeOf(reply) !== Object.prototype || Reflect.ownKeys(reply).length !== 4)
@@ -217,11 +295,29 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
       instance.addEventListener('error', fail); instance.addEventListener('messageerror', fail);
     }
     const id = ++sequence, taskToken = globalThis.crypto.randomUUID();
-    pending = { id, taskToken, ...(payload.kind === 'export-stl' ? { binding: { outputName: payload.outputName, solidId: payload.solidId, revision: payload.expectedRevision, acceptedTaskToken: payload.acceptedTaskToken, requestTaskToken: taskToken } } : {}), resolve, reject, timer: setTimeout(() => stop('Native operation timed out. Accepted model is retained.'), 120000) };
+    const candidateBinding = (payload.kind === 'prepare-preview' || payload.kind === 'prepare-source') ? { workerToken: payload.workerToken, acceptedTaskToken: payload.acceptedTaskToken, expectedRevision: payload.expectedRevision, candidateToken: payload.candidateToken, previewTaskToken: taskToken } : (payload.kind === 'accept-preview' || payload.kind === 'accept-source') ? payload.binding : undefined;
+    if (payload.kind === 'prepare-preview' || payload.kind === 'prepare-source') previewRequest = { binding: candidateBinding!, worker: worker!, discarded: false };
+    pending = { id, taskToken, kind: payload.kind, ...(candidateBinding ? { previewBinding: candidateBinding } : {}), ...(payload.kind === 'export-stl' ? { binding: { outputName: payload.outputName, solidId: payload.solidId, revision: payload.expectedRevision, acceptedTaskToken: payload.acceptedTaskToken, requestTaskToken: taskToken } } : {}), resolve, reject, timer: setTimeout(() => stop('Native operation timed out. Accepted model is retained.'), 120000) };
     try { worker.postMessage({ ...payload, id, taskToken }); } catch { stop('Could not send the model to its native worker.'); }
   }); }
   async function run(kind: 'open' | 'example' | 'apply' | 'suppression' | 'undo' | 'redo', text?: string, example?: CadEditorModelingExample, splitAxis?: CadEditorModelingSplitAxis, finishing?: Record<string, boolean>) {
     idle();
+    if (kind === 'apply' && prepared) {
+      if (prepared.reply.kind !== 'preview') throw Error('Use the current structural command to apply its preview.');
+      return acceptPreview();
+    }
+    if ((kind === 'undo' || kind === 'redo') && state.accepted?.source === 'model') {
+      if (Object.keys(state.drafts).length) throw Error('Apply or discard dimensions before Undo/Redo.');
+      const target = index + (kind === 'undo' ? -1 : 1), text = history[target]?.text;
+      if (!text) throw Error('This history direction is unavailable.');
+      const current = JSON.parse(state.authoredText!), row = history[target];
+      const expected = { ...current, parameters: row.parameters,
+        nodes: current.nodes.map((node: Record<string, unknown>) => typeof node.name === 'string' && Object.hasOwn(row.suppression ?? {}, node.name)
+          ? { ...node, suppressed: row.suppression![node.name] } : node) };
+      // The existing fast path is safe only if its exact result is the recorded graph.
+      if (canonicalModelingText(expected) !== text) return prepareSource(text, 'history', undefined, target, true);
+    }
+    if (clearPreview()) emit();
     if (kind === 'example') {
       if (example !== undefined && !['cut-chamfer', 'intersection', 'horizontal-split', 'two-chamfer', 'chamfer-split', 'derived-split', 'miter-split', 'configurable-finishes', 'mounting-plate', 'union-bracket', 'underside-pocket', 'top-entry-pocket', 'round-post', 'slotted-bracket', 'constrained-plate'].includes(example))
         throw new Error('Choose an available modeling example.');
@@ -266,6 +362,8 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
           : { kind: 'apply', expectedRevision: state.accepted!.revision, parameters });
       if (operation !== epoch || state.disposed) return;
       nativeCandidate = true; const candidateWorker = worker;
+      if ((kind === 'undo' || kind === 'redo') && reply.summary.source === 'model' && reply.text !== history[target].text)
+        throw Error('History result differs from the exact recorded source.');
       if (kind === 'open' && !same(JSON.parse(text!), JSON.parse(reply.text))) throw new Error('Opened result differs from requested authored data.');
       if (!replacing && (reply.summary.documentId !== state.accepted!.documentId || reply.summary.source !== state.accepted!.source
         || reply.summary.revision !== state.accepted!.revision + 1
@@ -287,19 +385,19 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
         ? replacing ? kind === 'example' && example === 'slotted-bracket' ? 'slotted' : kind === 'example' && example === 'mounting-plate' ? 'plate' : kind === 'example' && example === 'union-bracket' ? 'bracket' : kind === 'example' && (example === 'underside-pocket' || example === 'top-entry-pocket') ? 'part' : kind === 'example' && example === 'round-post' ? 'post' : undefined
           : state.display && 'selectedOutput' in state.display ? state.display.selectedOutput : undefined
         : undefined;
-      const display = prepareModelingScene(reply.display, aspect(), selectedOutput);
+      const display = prepareModelingScene(reply.display, aspect(), selectedOutput, state.viewOrientation);
       candidate = displayPort ? await displayPort.prepare(display) : null;
       if (operation !== epoch || state.disposed) { candidate?.dispose(); return; }
       let nextHistory = history, nextIndex = target;
       if (replacing || kind === 'apply' || kind === 'suppression') {
         nextHistory = replacing ? [] : history.slice(0, index + 1);
-        nextHistory.push({ parameters: clone(reply.summary.parameters),
+        nextHistory.push({ ...(reply.summary.source === 'model' ? { text: reply.text } : {}), parameters: clone(reply.summary.parameters),
           ...(reply.summary.suppression === undefined ? {} : { suppression: clone(reply.summary.suppression) }), bytes: new TextEncoder().encode(reply.text).length });
-        while (nextHistory.length > 20 || nextHistory.reduce((sum, h) => sum + h.bytes, 0) > HISTORY_BYTES) nextHistory.shift();
+        while (nextHistory.length > 20 || nextHistory.reduce((sum, h) => sum + h.bytes, new TextEncoder().encode(reply.text).length) > HISTORY_BYTES) nextHistory.shift();
         nextIndex = nextHistory.length - 1;
       }
       const nextState: InternalSnapshot = { ...state, accepted: clone(reply.summary), authoredText: reply.text, display,
-        drafts: {}, faceSelection: null, selection: !replacing && state.selection !== null && state.selection < reply.summary.features.length ? state.selection : null,
+        drafts: {}, preview: null, faceSelection: null, selection: !replacing && state.selection !== null && state.selection < reply.summary.features.length ? state.selection : null,
         generation: state.generation + 1, busy: false, error: null,
         history: { index: nextIndex, count: nextHistory.length, canUndo: nextIndex > 0, canRedo: nextIndex + 1 < nextHistory.length } };
       if (!candidateWorker || worker !== candidateWorker) throw new Error('Native worker was lost before display acceptance.');
@@ -311,8 +409,188 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
     }
     candidate?.dispose(); emit();
   }
+  function currentPrepared(value: NonNullable<typeof prepared>): boolean {
+    return value === prepared && worker === value.worker && value.generation === state.generation
+      && value.text === state.authoredText && value.draftVersion === draftVersion && same(value.rawDrafts, state.drafts)
+      && value.reply.binding.workerToken === workerToken && value.reply.binding.acceptedTaskToken === acceptedWorkerToken
+      && value.reply.binding.expectedRevision === state.accepted?.revision;
+  }
+  async function preview(recover = false): Promise<void> {
+    idle(); clearPreview();
+    if (state.accepted?.source !== 'model' || !state.authoredText) throw Error('Preview currently supports primary models. Use Apply for legacy models.');
+    if (!Object.keys(state.drafts).length) throw Error('Change a dimension before previewing.');
+    const baseAccepted = state.accepted;
+    const rawDrafts = clone(state.drafts), generation = state.generation, text = state.authoredText, version = draftVersion;
+    let parameters: Record<string, number>;
+    try { parameters = Object.fromEntries(Object.entries(rawDrafts).map(([name, raw]) => [name, scalar(raw)] as const).filter(([name, value]) => !Object.is(baseAccepted.parameters[name], value))); }
+    catch (cause) { state = { ...state, preview: { status: 'error', parameters: {}, diagnostic: modelingDiagnostic(cause, 'input') }, error: cause instanceof Error ? cause.message : 'Invalid pending dimensions.' }; emit(); return; }
+    if (!Object.keys(parameters).length) { state = { ...state, preview: { status: 'unchanged', parameters }, error: null }; emit(); return; }
+    if (!ready && !recover) throw Error('Recover the accepted model explicitly before previewing.');
+    if (displayPort && !displayPort.preparePreview) throw Error('This display does not support reversible previews. Apply remains available.');
+    const expectedText = canonicalModelingText({ ...JSON.parse(text), parameters: { ...baseAccepted.parameters, ...parameters } });
+    const expectedBytes = modelingSourceBytes(expectedText);
+    modelingSourceBudget(history.map(row => row.bytes), modelingSourceBytes(text), [modelingSourceBytes(text), expectedBytes, expectedBytes]);
+    const operation = ++epoch; let handle: PrismPreviewDisplayCandidate | null = null;
+    state = { ...state, busy: true, error: null, preview: { status: 'computing', parameters } }; emit();
+    let stage: ModelingDiagnostic['stage'] = 'transport';
+    try {
+      if (!ready) {
+        const seed = await request({ kind: 'open', text, revision: baseAccepted.revision });
+        if (operation !== epoch || state.disposed) return;
+        if (!same(seed.summary, baseAccepted) || !same(JSON.parse(seed.text), JSON.parse(text))) throw Error('Reconstruction differs from the accepted model.');
+        prepareModelingScene(seed.display, aspect(), state.display && 'selectedOutput' in state.display ? state.display.selectedOutput : undefined, state.viewOrientation);
+        ready = true;
+      }
+      const reply = await request({ kind: 'prepare-preview', workerToken, acceptedTaskToken: acceptedWorkerToken,
+        candidateToken: globalThis.crypto.randomUUID(), expectedRevision: baseAccepted.revision, parameters });
+      if (operation !== epoch || state.disposed) return;
+      stage = 'transport';
+      if (reply.summary.source !== 'model' || reply.summary.documentId !== baseAccepted.documentId
+        || reply.summary.revision !== baseAccepted.revision + 1 || !same(reply.summary.parameters, { ...baseAccepted.parameters, ...parameters })) throw Error('Stale or mismatched preview parameters.');
+      const prior = JSON.parse(text), expected = { ...prior, parameters: { ...prior.parameters, ...parameters } };
+      if (!same(JSON.parse(reply.text), expected)) throw Error('Preview changed immutable authored feature data.');
+      const display = prepareModelingScene(reply.display, aspect(), state.display && 'selectedOutput' in state.display ? state.display.selectedOutput : undefined, state.viewOrientation);
+      stage = 'display';
+      handle = displayPort?.preparePreview ? await displayPort.preparePreview(display) : null;
+      if (operation !== epoch || state.disposed) { handle?.dispose(); return; }
+      if (!worker || generation !== state.generation || version !== draftVersion || text !== state.authoredText || !same(rawDrafts, state.drafts)) throw Error('Preview target changed.');
+      handle?.show();
+      prepared = { reply, expectedText, display, handle, worker, text, generation, rawDrafts, draftVersion: version }; handle = null;
+      state = { ...state, busy: false, error: null, preview: { status: 'ready', parameters, outputs: clone(reply.summary.outputs) } }; emit();
+    } catch (cause) {
+      try { handle?.dispose(); } catch { /* Candidate cleanup cannot alter accepted state. */ }
+      if (operation !== epoch || state.disposed) return;
+      clearPreview();
+      if (!ready) stop('Accepted-model preview recovery refused.');
+      const diagnostic = cause instanceof ModelingRequestError && cause.diagnostic ? cause.diagnostic : modelingDiagnostic(cause, stage);
+      state = { ...state, busy: false, error: diagnostic.message, preview: { status: 'error', parameters, diagnostic } }; emit();
+    }
+  }
+  async function prepareSource(expectedText: string, operationKind: 'structure' | 'history', command?: ModelingStructureCommand, historyTarget?: number, recover = false): Promise<void> {
+    idle();
+    const accepted = state.accepted, text = state.authoredText;
+    if (accepted?.source !== 'model' || !text || Object.keys(state.drafts).length)
+      throw Error('Structural operations require an accepted primary model with no pending dimensions.');
+    const expectedBytes = modelingSourceBytes(expectedText);
+    if (canonicalModelingText(JSON.parse(expectedText)) !== expectedText) throw Error('Use exact canonical structural intent.');
+    modelingSourceBudget(history.map(row => row.bytes), modelingSourceBytes(text), [modelingSourceBytes(text), expectedBytes, expectedBytes]);
+    if (!ready && !recover) throw Error('Recover the accepted model explicitly before structural preview.');
+    if (displayPort && !displayPort.preparePreview) throw Error('This display does not support reversible structural previews.');
+    clearPreview();
+    const operation = ++epoch, generation = state.generation, version = draftVersion;
+    let handle: PrismPreviewDisplayCandidate | null = null, stage: ModelingDiagnostic['stage'] = 'transport';
+    state = { ...state, busy: true, error: null, preview: { status: 'computing', operation: operationKind, parameters: {} } }; emit();
+    try {
+      if (!ready) {
+        const seed = await request({ kind: 'open', text, revision: accepted.revision });
+        if (operation !== epoch || state.disposed) return;
+        if (!same(seed.summary, accepted) || seed.text !== text) throw Error('Reconstruction differs from the accepted model.');
+        prepareModelingScene(seed.display, aspect(), state.display && 'selectedOutput' in state.display ? state.display.selectedOutput : undefined, state.viewOrientation);
+        ready = true;
+      }
+      const reply = await request({ kind: 'prepare-source', workerToken, acceptedTaskToken: acceptedWorkerToken,
+        candidateToken: globalThis.crypto.randomUUID(), expectedRevision: accepted.revision, baseText: text,
+        operation: operationKind, text: expectedText, ...(command ? { command } : {}) });
+      if (operation !== epoch || state.disposed) return;
+      if (reply.operation !== operationKind || reply.text !== expectedText || reply.summary.source !== 'model'
+        || reply.summary.documentId !== accepted.documentId || reply.summary.revision !== accepted.revision + 1)
+        throw Error('Structural candidate differs from the exact target source.');
+      modelingSourceBudget(history.map(row => row.bytes), modelingSourceBytes(text), [modelingSourceBytes(text), expectedBytes, modelingSourceBytes(reply.text)]);
+      // Consumed names cannot select a different graph's reused native ID.
+      const selectedOutput = reply.summary.outputs.some(output => output.name === 'part') ? 'part' : reply.summary.outputs[0]?.name;
+      const display = prepareModelingScene(reply.display, aspect(), selectedOutput, state.viewOrientation);
+      stage = 'display';
+      handle = displayPort?.preparePreview ? await displayPort.preparePreview(display) : null;
+      if (operation !== epoch || state.disposed) { handle?.dispose(); return; }
+      if (!worker || generation !== state.generation || text !== state.authoredText || version !== draftVersion || Object.keys(state.drafts).length)
+        throw Error('Structural target changed.');
+      // History restores prepare off-screen and atomically promote; authoring previews are visible.
+      if (operationKind === 'structure') handle?.show();
+      prepared = { reply, expectedText, historyTarget, display, handle, worker, text, generation, rawDrafts: {}, draftVersion: version }; handle = null;
+      state = { ...state, busy: false, error: null, preview: { status: 'ready', operation: operationKind, parameters: {}, outputs: clone(reply.summary.outputs) } };
+      if (operationKind === 'history') await acceptPreview(); else emit();
+    } catch (cause) {
+      try { handle?.dispose(); } catch { /* Owned candidate cleanup preserves accepted authority. */ }
+      if (operation !== epoch || state.disposed) return;
+      clearPreview();
+      if (!ready) stop('Accepted-model structural recovery refused.');
+      const diagnostic = cause instanceof ModelingRequestError && cause.diagnostic ? cause.diagnostic : modelingDiagnostic(cause, stage);
+      state = { ...state, busy: false, error: diagnostic.message, preview: { status: 'error', operation: operationKind, parameters: {}, diagnostic } }; emit();
+    }
+  }
+  async function acceptPreview(): Promise<void> {
+    const value = prepared;
+    if (!value || !currentPrepared(value)) { clearPreview(); throw Error('Preview is stale. Preview the current dimensions again.'); }
+    const reply = value.reply;
+    // Prepare all source/history allocations before native acceptance can occur.
+    const nextHistory = value.historyTarget === undefined ? history.slice(0, index + 1) : history.slice();
+    if (value.historyTarget === undefined) {
+      nextHistory.push({ ...(reply.summary.source === 'model' ? { text: reply.text } : {}), parameters: clone(reply.summary.parameters),
+        ...(reply.summary.suppression === undefined ? {} : { suppression: clone(reply.summary.suppression) }), bytes: new TextEncoder().encode(reply.text).length });
+      while (nextHistory.length > 20 || nextHistory.reduce((sum, row) => sum + row.bytes, new TextEncoder().encode(reply.text).length) > HISTORY_BYTES) nextHistory.shift();
+    }
+    const nextIndex = value.historyTarget ?? nextHistory.length - 1;
+    modelingSourceBudget(nextHistory.map(row => row.bytes), new TextEncoder().encode(reply.text).length, [modelingSourceBytes(value.text), new TextEncoder().encode(reply.text).length, value.expectedText ? modelingSourceBytes(value.expectedText) : 0]);
+    const nextState: InternalSnapshot = { ...state, accepted: clone(reply.summary), authoredText: reply.text, display: value.display,
+      drafts: {}, preview: null, faceSelection: null, selection: reply.kind === 'source-preview' ? null : state.selection,
+      generation: state.generation + 1, busy: false, error: null,
+      history: { index: nextIndex, count: nextHistory.length, canUndo: nextIndex > 0, canRedo: nextIndex + 1 < nextHistory.length } };
+    const operation = ++epoch;
+    state = { ...state, busy: true, error: null }; emit();
+    try {
+      const ack = reply.kind === 'source-preview'
+        ? await request({ kind: 'accept-source', binding: reply.binding, operation: reply.operation, text: value.expectedText! })
+        : await request({ kind: 'accept-preview', binding: reply.binding, parameters: state.preview!.parameters });
+      if (operation !== epoch || state.disposed) return;
+      if (!currentPrepared(value) || !same(ack.binding, reply.binding)) throw Error('Preview acceptance is stale.');
+      value.handle?.commit(); // Strong display guarantee: failures occur before its ownership swap.
+      prepared = null; previewRequest = null; acceptedWorkerToken = reply.binding.previewTaskToken;
+      history = nextHistory; index = nextIndex; state = nextState; draftVersion++; ready = true;
+      try { value.handle?.dispose(); } catch { /* Post-promotion cleanup is not an acceptance failure. */ }
+      emit();
+    } catch (cause) {
+      if (operation !== epoch || state.disposed) return;
+      // Native acceptance may have happened even if its acknowledgement was lost.
+      stop('Preview acceptance refused; recover the accepted model before continuing.');
+      state = { ...state, busy: false, error: cause instanceof Error ? cause.message : 'Preview acceptance refused.', preview: null }; emit();
+    }
+  }
   return {
     getSnapshot: (): CadEditorModelingSnapshot => clone({ ...state, workerReady: ready }),
+    setView(orientation: 'isometric' | 'top', generation: number) {
+      idle();
+      if ((orientation !== 'isometric' && orientation !== 'top') || generation !== state.generation || !state.accepted || !state.display)
+        throw Error('Choose a current accepted model view.');
+      if (prepared || previewRequest || state.preview?.status === 'ready' || state.preview?.status === 'computing')
+        throw Error('Apply or cancel the preview before changing view. Choose Top before previewing.');
+      if (orientation === state.viewOrientation) return;
+      const display = prepareModelingScene(state.display.packet, aspect(), 'selectedOutput' in state.display ? state.display.selectedOutput : undefined, orientation);
+      // Admission and the renderer's transactional update precede the logical
+      // camera swap. This path sends no Worker request and creates no history.
+      if (displayPort) {
+        if (!displayPort.updateScene) throw Error('This display cannot update its model view.');
+        displayPort.updateScene(display);
+      }
+      state = { ...state, display, viewOrientation: orientation, faceSelection: null }; emit();
+    },
+    preview,
+    async previewStructure(command: ModelingStructureCommand, generation: number, recover = false) {
+      idle();
+      if (generation !== state.generation || !state.authoredText || !state.accepted) throw Error('The structural command is stale.');
+      if (Object.keys(state.drafts).length) throw Error('Apply or cancel pending model dimensions before changing features.');
+      const expected = buildModelingStructure(state.authoredText, state.accepted, command);
+      return prepareSource(expected.text, 'structure', clone(command), undefined, recover);
+    },
+    async applyStructure(command: ModelingStructureCommand, generation: number) {
+      idle();
+      if (generation !== state.generation || !state.authoredText || !state.accepted || Object.keys(state.drafts).length)
+        throw Error('The structural command is stale or dimensions are pending.');
+      const expected = buildModelingStructure(state.authoredText, state.accepted, command);
+      if (!prepared || prepared.reply.kind !== 'source-preview' || prepared.reply.operation !== 'structure'
+        || prepared.expectedText !== expected.text || !currentPrepared(prepared)) throw Error('Preview the current structural command before Apply.');
+      return acceptPreview();
+    },
+    clearPreview() { idle(); clearPreview(); emit(); },
     subscribe(listener: () => void) { live(); listeners.add(listener); return () => { listeners.delete(listener); }; },
     open: (text: string) => run('open', text), example: (example?: CadEditorModelingExample, splitAxis?: CadEditorModelingSplitAxis) => run('example', undefined, example, splitAxis), apply: () => run('apply'),
     configureFinishes: (suppression: Record<string, boolean>) => run('suppression', undefined, undefined, undefined, suppression), undo: () => run('undo'), redo: () => run('redo'),
@@ -332,7 +610,7 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
           if (!same(seed.summary, accepted) || !same(JSON.parse(seed.text), JSON.parse(state.authoredText!)))
             throw Error('Reconstruction differs from the accepted model.');
           // Admit every recovered output without preparing/committing a renderer replacement.
-          prepareModelingScene(seed.display, aspect(), state.display && 'selectedOutput' in state.display ? state.display.selectedOutput : undefined);
+          prepareModelingScene(seed.display, aspect(), state.display && 'selectedOutput' in state.display ? state.display.selectedOutput : undefined, state.viewOrientation);
           ready = true;
         }
         const reply = await request({ kind: 'export-stl', expectedRevision: accepted.revision,
@@ -354,11 +632,12 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
         || generation !== state.generation || !state.accepted?.outputs.some(output => output.name === name))
         throw new Error('Choose a current named output body.');
       if (state.display.selectedOutput === name) return;
+      clearPreview();
       const operation = ++epoch, packet = state.display.packet;
       let candidate: PrismDisplayCandidate | null = null;
       state = { ...state, busy: true, error: null }; emit();
       try {
-        const display = prepareModelingScene(packet, aspect(), name);
+        const display = prepareModelingScene(packet, aspect(), name, state.viewOrientation);
         candidate = displayPort ? await displayPort.prepare(display) : null;
         if (operation !== epoch || state.disposed) return;
         candidate?.commit();
@@ -372,15 +651,18 @@ export function createCadEditorModelingController(displayPort?: PrismDisplayPort
     stage(name: string, raw: string) {
       idle(); if (!state.accepted || !Object.hasOwn(state.accepted.parameters, name) || typeof raw !== 'string' || raw.length > 128)
         throw new Error('Choose a named dimension and bounded decimal input.');
+      clearPreview(); draftVersion++;
       state = { ...state, drafts: { ...state.drafts, [name]: raw }, error: null }; emit();
     },
-    discard() { idle(); state = { ...state, drafts: {}, error: null }; emit(); },
+    discard() { idle(); clearPreview(); draftVersion++; state = { ...state, drafts: {}, error: null }; emit(); },
     select(feature: number, generation: number) {
       idle(); if (generation !== state.generation || !state.accepted?.features.some(f => f.index === feature)) throw new Error('Feature selection is stale.');
+      if (prepared?.reply.kind === 'source-preview') clearPreview();
       state = { ...state, selection: feature }; emit();
     },
     pick(width: number, height: number, x: number, y: number, generation: number) {
-      idle(); if (!state.display || generation !== state.generation) throw new Error('Display selection is stale.');
+      idle(); if (prepared) throw Error('Apply or cancel the preview before selecting a face.');
+      if (!state.display || generation !== state.generation) throw new Error('Display selection is stale.');
       const picked = pickModelingScene(state.display, width, height, x, y);
       state = { ...state, faceSelection: picked ? { ...picked, generation } : null }; emit();
     },
