@@ -1548,7 +1548,7 @@ and the app's `modeling-chamfer-authoring-flow.mjs`. Historical native volumes f
 separate two-bevel6064mm³ fixture; mocked one-bevel command delivery does not
 establish those pixels. [#1984](https://github.com/barocss/barocss/issues/1984)
 records the scoped actual one-bevel command/history pass at `a7cbd703`;
-separate bevel-face visibility/picking remains [#1990](https://github.com/barocss/barocss/issues/1990).
+separate bevel-face visibility/picking is tracked by [#1990](https://github.com/barocss/barocss/issues/1990).
 Accepted source/round-trip controls are local; the unchanged file path needs no repeated device campaign.
 
 ## Finish both opposite top edges
@@ -1565,5 +1565,16 @@ edits remain native-authoritative and retain the accepted state on refusal.
 The focused package command is `node packages/barocss-cad-editor/scripts/modeling-opposite-chamfer-test.mjs`.
 Historical native front1/back2 gives6064mm³; back3 gives5984. The unchanged genuine
 two-bevel transport is reused with explicitly adapted command parameter context,
-while edited geometry/provider delivery is mocked. [#1989](https://github.com/barocss/barocss/issues/1989)
-keeps actual new-command geometry/history pending; it does not close #1990 picking.
+while edited geometry/provider delivery is mocked. The
+[#1989 physical result](https://github.com/barocss/barocss/issues/1989#issuecomment-6164731282)
+records the second command, dimension edit and history on actual WebGL2.
+
+### Convex bevel face display
+
+Accepted convex faces use distinct fill colors so a bevel can be identified in
+the viewport. An ordinary face click reports the original approximate face and
+triangle identity. For a scene that exceeds the 16-draw limit, each output keeps
+its original single-color display and original triangle picking. This fallback
+does not make the bevel face distinct. This display does not draw boundary lines
+or certify exact measurement or manufacturing geometry; [#1990](https://github.com/barocss/barocss/issues/1990)
+tracks the screen-level acceptance.

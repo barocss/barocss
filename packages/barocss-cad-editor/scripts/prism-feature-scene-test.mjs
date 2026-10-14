@@ -12,13 +12,17 @@ writeFileSync(resolve(output, 'scene.mjs'), bundle.outputFiles[0].text);
 const { preparePrismFeatureScene: prepare, pickPrismFeatureScene: pick } = await import(pathToFileURL(resolve(output, 'scene.mjs')));
 const packet = JSON.parse(readFileSync(resolve(import.meta.dirname, 'fixtures/convex-display.packet.json'), 'utf8'));
 const source = prepare(packet, 'source'), result = prepare(packet, 'result');
-assert.equal(source.scene.geometries.length, 1); assert.equal(result.scene.geometries.length, 2);
+assert.equal(source.scene.geometries.length, packet.components[0].mesh.faces.length);
+assert.equal(result.scene.geometries.length, packet.components.slice(1).reduce((count, component) => count + component.mesh.faces.length, 0));
 assert.ok(source.packet.components[0].mesh.faces.length > 6);
 assert.ok(packet.components.some(c => c.mesh.faces.some(f => f.orientation === 'reverse')));
 for (const [i, component] of packet.components.slice(1).entries()) {
-  assert.deepEqual(result.scene.geometries[i].indices, component.mesh.indices);
-  assert.deepEqual(result.scene.geometries[i].positions, component.mesh.positionsMM.flatMap((v, i, a) => i % 3 ? [] : [v, a[i + 2], -a[i + 1]]));
-  assert.deepEqual(result.scene.geometries[i].normals, component.mesh.normals.flatMap((v, i, a) => i % 3 ? [] : [v, a[i + 2], -a[i + 1]]));
+  for (const [faceIndex, face] of component.mesh.faces.entries()) {
+    const geometry = result.scene.geometries.find(g => g.id === `prism_geometry_${i}_${faceIndex}`);
+    assert.deepEqual(geometry.indices, component.mesh.indices.slice(face.indexOffset, face.indexOffset + face.indexCount));
+    assert.deepEqual(geometry.positions, component.mesh.positionsMM.flatMap((v, i, a) => i % 3 ? [] : [v, a[i + 2], -a[i + 1]]));
+    assert.deepEqual(geometry.normals, component.mesh.normals.flatMap((v, i, a) => i % 3 ? [] : [v, a[i + 2], -a[i + 1]]));
+  }
 }
 const changes = [p => p.components[0].mesh.indices[0] = 999, p => p.components[0].mesh.normals[0] = NaN,
   p => p.components[0].mesh.faces[0].vertexOffset++, p => p.components[0].boundaries[0].faceIndex = 100,
