@@ -45,7 +45,7 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
   const workspaceCommandEpoch = useRef(0);
   const structureInstance = useRef(0), structureFieldVersion = useRef(0);
   const [structureTarget, setStructureTarget] = useState<{ session: CadEditorModelingController; text: string; generation: number; instance: number; command: ModelingStructureCommand } | null>(null);
-  const [structureInput, setStructureInput] = useState({ x: '0', y: '0', width: '8', height: '24', radius: '5', wall: '8', floor: '4', distance: '1', z: '0', axis: 'x', angleDegrees: '90', spacing: '40' });
+  const [structureInput, setStructureInput] = useState({ x: '0', y: '0', width: '8', height: '24', radius: '5', wall: '8', floor: '4', distance: '1', z: '0', axis: 'x', angleDegrees: '90', spacing: '40', count: '3' });
   const newPartCommandInstance = useRef(0), newPartOperationEpoch = useRef(0);
   const [newPartTarget, setNewPartTarget] = useState<{ session: CadEditorModelingController; authoredText: string | null; generation: number; instance: number; kind: 'rectangle' | 'circle' } | null>(null);
   const [newPartInput, setNewPartInput] = useState<RectangularPartInput>({ width: '32', height: '24', thickness: '8' });
@@ -146,7 +146,10 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
       if (!['x', 'y', 'z'].includes(structureInput.axis) || !['90', '-90', '180', '-180', '270', '-270'].includes(structureInput.angleDegrees)) throw Error('Choose a cardinal axis and angle.');
       return { ...structureTarget.command, axis: structureInput.axis as 'x' | 'y' | 'z', angleDegrees: Number(structureInput.angleDegrees) as 90 | -90 | 180 | -180 | 270 | -270 };
     }
-    if (structureTarget.command.kind === 'linear-pattern') return { ...structureTarget.command, spacing: value(structureInput.spacing) };
+    if (structureTarget.command.kind === 'linear-pattern') {
+      if (!['2', '3', '4'].includes(structureInput.count)) throw Error('Choose 2, 3 or 4 total bodies.');
+      return { ...structureTarget.command, spacing: value(structureInput.spacing), count: Number(structureInput.count) as 2 | 3 | 4 };
+    }
     if (structureTarget.command.kind === 'move-part') return { ...structureTarget.command, x: value(structureInput.x), y: value(structureInput.y), z: value(structureInput.z) };
     if (structureTarget.command.kind === 'chamfer') return { ...structureTarget.command, distance: value(structureInput.distance) };
     if (structureTarget.command.kind === 'cut-pocket') return { ...structureTarget.command, wall: value(structureInput.wall), floor: value(structureInput.floor) };
@@ -183,7 +186,7 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
       setStructureTarget({ session, text: current.authoredText, generation: current.generation, instance: structureInstance.current + 1, command });
       setStructureInput({ ...(panel === 'move-part' ? { x: '40', y: '16', width: '8', height: '4', radius: '5' } : panel === 'add-hole' ? { x: '40', y: '20', width: '8', height: '4', radius: '5' }
         : panel === 'add-arm' ? { x: '0', y: '0', width: '8', height: '24', radius: '5' } : { x: '16', y: '2', width: '8', height: '4', radius: '5' }),
-        wall: String(capabilities.pocketDefaults?.wall ?? 8), floor: String(capabilities.pocketDefaults?.floor ?? 4), distance: panel === 'chamfer' && capabilities.chamfer?.node === 2 ? '2' : '1', z: '0', axis: 'x', angleDegrees: '90', spacing: '40' });
+        wall: String(capabilities.pocketDefaults?.wall ?? 8), floor: String(capabilities.pocketDefaults?.floor ?? 4), distance: panel === 'chamfer' && capabilities.chamfer?.node === 2 ? '2' : '1', z: '0', axis: 'x', angleDegrees: '90', spacing: '40', count: '3' });
       setError(null);
     }
     if (panel === 'new-part' || panel === 'new-circular-part') {
@@ -658,7 +661,7 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
   </section>;
   const circularNotice = structureCapabilities.circularAuthored && <p data-testid="modeling-circular-pattern-warning">Four rails share the original dimensions at 0, 90, 180 and 270 degrees around world X. This pattern is terminal; select outputs for inspection or edit shared Model dimensions.</p>;
   const mirrorNotice = structureCapabilities.mirrorAuthored && <p data-testid="modeling-mirror-warning">The original part and its world-XZ handed copy share all source dimensions. This pair is terminal; select either output for inspection and use Model dimensions to edit the shared blank or bevels.</p>;
-  const patternNotice = structureCapabilities.patternAuthored && <p data-testid="modeling-pattern-warning">Three separate rail outputs share the original geometry dimensions. Edit patternSpacing to change the +X offsets; front/back bevel and blank dimensions affect every copy. The five-node pattern is terminal. Three-output display uses plain fills with native boundary lines; the lines are not separately selectable.</p>;
+  const patternNotice = structureCapabilities.patternAuthored && <p data-testid="modeling-pattern-warning">The separate rail outputs share the original geometry dimensions. Edit patternSpacing to change the +X offsets; front/back bevel and blank dimensions affect every copy. The five-node pattern is terminal. Multi-output display may use plain fills with native boundary lines; the lines are not separately selectable.</p>;
   const structurePanel = <div>
     <p>Preview evaluates a complete candidate with the native model loader. Apply adds one editable history step; Cancel retains the accepted part.</p>
     {structureTarget && <><h2>{structureTarget.command.kind === 'circular-pattern' ? 'Circular pattern' : structureTarget.command.kind === 'mirror-part' ? 'Mirror finished rail' : structureTarget.command.kind === 'linear-pattern' ? 'Linear pattern' : structureTarget.command.kind === 'rotate-part' ? 'Rotate part' : structureTarget.command.kind === 'move-part' ? 'Move part' : structureTarget.command.kind === 'chamfer' ? structureTarget.command.target.node === 2 ? 'Chamfer opposite top edge' : 'Chamfer front top edge' : structureTarget.command.kind === 'cut-pocket' ? 'Cut rectangular pocket' : structureTarget.command.kind === 'add-hole' ? 'Add through-hole' : structureTarget.command.kind === 'add-arm' ? 'Add rectangular arm' : structureTarget.command.kind === 'union' ? 'Union bodies' : 'Cut rectangular through-slot'}</h2>
@@ -668,7 +671,7 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
         : structureTarget.command.kind === 'mirror-part'
         ? <p>Keep part and add mirroredRail across the world XZ plane (Y=0). Both outputs share the original blank and bevel dimensions. The copy reverses handedness; it is not a rotation. Plane and origin are fixed, with no offset or later transform. Preview must succeed before Apply.</p>
         : structureTarget.command.kind === 'linear-pattern'
-        ? <p>Create three total separate rails along model +X: original part plus railCopy1 and railCopy2. Axis X and total count 3 are fixed. Pattern spacing is positive, at most 5000 mm; copies are offset by one and two spacings. Apply keeps the original part and adds the independent patternSpacing driver. Parent geometry dimensions remain shared. Native exactness and final-coordinate limits may still refuse the candidate. This is terminal and cannot continue a rotated or placed rail.</p>
+        ? <p>Create 2, 3 or 4 total separate rails along model +X, including the original part. Count is fixed after Apply. Positive pattern spacing places each copy one spacing after the previous; the final offset must not exceed 10000 mm. Apply keeps the original part and adds the independent patternSpacing driver. Parent geometry dimensions remain shared. Native exactness and final-coordinate limits may still refuse the candidate. This is terminal and cannot continue a rotated or placed rail.</p>
         : structureTarget.command.kind === 'rotate-part'
         ? <p>Rotate the selected finished two-bevel rail around the native XYZ world origin. Only cardinal angles are supported. The sole part output changes to the rotated result; original features remain in source and Undo history. Apply requires a ready preview.</p>
         : structureTarget.command.kind === 'move-part'
@@ -686,6 +689,18 @@ export function CadEditorModeling({ initialAuthoredText, workspace: initialWorks
         : structureTarget.command.kind === 'cut-slot'
           ? <p>The slot tool and subtraction are one atomic operation. Only the existing omitted-start Z=0..8 mm slab is supported. The current output becomes part; this orthogonal result cannot export STL.</p>
           : <p>The arm shares the base extrusion's thickness term. Editing a shared named thickness later changes both bodies. Union can support other integer thicknesses, but the through-slot command requires exactly 8 mm.</p>}
+      {structureTarget.command.kind === 'linear-pattern' && <div>
+        <Label htmlFor={`${id}-structure-count`}>Total bodies (including original)</Label>
+        <select id={`${id}-structure-count`} value={structureInput.count} disabled={busy || !structureCommandCurrent()}
+          onChange={event => { if (!structureRenderCurrent() || controller.current?.getSnapshot().busy) return; invalidateCommandPreview(); structureFieldVersion.current++; setStructureInput(values => ({ ...values, count: event.target.value })); }}
+          onKeyDown={event => {
+            if (!structureRenderCurrent() || event.repeat || event.nativeEvent.isComposing || event.keyCode === 229 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+            if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); cancelStructure(); }
+            else if (event.key === 'Enter') { event.preventDefault(); event.stopPropagation(); previewStructure(); }
+          }}>
+          {[2, 3, 4].map(count => <option key={count} value={count}>{count}</option>)}
+        </select>
+      </div>}
       {structureTarget.command.kind === 'rotate-part' && (['axis', 'angleDegrees'] as const).map(name => <div key={name}>
         <Label htmlFor={`${id}-structure-${name}`}>{name === 'axis' ? 'World axis' : 'Cardinal angle (degrees)'}</Label>
         <select id={`${id}-structure-${name}`} value={structureInput[name]} disabled={busy || !structureCommandCurrent()}

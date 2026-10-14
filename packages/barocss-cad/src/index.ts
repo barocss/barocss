@@ -228,6 +228,9 @@ export type { BooleanExtrusionParameterOperation, BooleanExtrusionParameterTrans
 export { transactBooleanExtrusionFeatureGraphFeatures } from './boolean-extrusion-feature-lifecycle.js';
 export type { BooleanExtrusionFeatureOperation, BooleanExtrusionFeatureTransaction } from './boolean-extrusion-feature-lifecycle.js';
 
+export { createNativeExtrusionPreviewAcceptanceV1 } from './native-extrusion-preview-acceptance-v1.js';
+export type { NativeExtrusionPreviewTicketV1, NativeExtrusionPreparedV1, NativeExtrusionAcceptedV1, NativeExtrusionPreviewAcceptanceSessionV1 } from './native-extrusion-preview-acceptance-v1.js';
+
 export { measureCoplanarFaceBooleanExtrusion, validateCoplanarFaceBooleanExtrusionProperties, CoplanarFaceBooleanExtrusionPropertiesError, CoplanarFaceBooleanExtrusionPropertiesDiagnosticCode } from './coplanar-face-boolean-extrusion-properties.js';
 export type { CoplanarFaceBooleanExtrusionPropertiesOptions, CoplanarFaceBooleanExtrusionPropertiesComponent, CoplanarFaceBooleanExtrusionPropertiesReport, CoplanarFaceBooleanExtrusionPropertiesResult } from './coplanar-face-boolean-extrusion-properties.js';
 
