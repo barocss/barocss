@@ -134,6 +134,13 @@ test('planes and cylinders of any axis: cross holes, side holes, pins and bars (
   // The cross hole's wall goes along X: its surface's extrusion direction is the X axis.
   const cross = evaluateCadPart(cases[0][1]).outputs[0].brep.faces.find(f => f.name.startsWith('h.side0'));
   const [[p0, p1]] = cross.surface.controlPoints; assert.ok(Math.abs(Math.abs(p1[0] - p0[0]) - Math.hypot(p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])) < 1e-9);
+  // A top-edge chamfer on a body with a hole: fine away from the hole, refused where the slanted
+  // chamfer plane would cut the hole wall (an ellipse).
+  const holed = x => D([...plate, { id: 'h', kind: 'hole', target: 'e', center: [x, 10], radius: 2 }, { id: 'c', kind: 'chamfer', target: 'h', edges: ['e.side3|e.top'], distance: 2 }]);
+  const chamfered = evaluateCadPart(holed(30)).outputs[0];
+  assert.equal(checkBrep(chamfered.brep).valid, true);
+  assert.ok(Math.abs(chamfered.massProperties(1).volumeMM3 - (8000 - 40 * pi - 40)) < 3e-4 * 8000);
+  refused(holed(3), 'CAPABILITY', /cut a curved face at an angle/);
   // A missed side hole is refused by name.
   refused(D([...plate, { id: 'h', kind: 'hole', target: 'e', axis: 'x', center: [50, 5], radius: 2 }]), 'SELECTION', /along x misses the target/);
 });
