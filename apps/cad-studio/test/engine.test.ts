@@ -255,6 +255,21 @@ test('shell after a fillet: a tray with a rounded foot, its hollow rounded by th
   assert.match(!refused.ok ? refused.error.title : '', /opening after the shell/);
 });
 
+test('shell a plate with a boss on it, open at the boss top: one hollow through both', () => {
+  let doc = withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 40] });
+  doc = withNode(doc, { kind: 'extrude', sketch: 0, height: 6 });
+  doc = withNode(doc, { kind: 'sketch', profile: 'rectangle', min: [20, 10], max: [40, 30] });
+  doc = withNode(doc, { kind: 'extrude', sketch: 2, height: 10, from: 6 });
+  doc = withNode(doc, { kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } });
+  doc = withNode(doc, { kind: 'shell', parent: { node: 4, side: 'solid' }, thickness: 2, open: ['n3.top'] });
+  const r = evaluateDoc(doc, 1);
+  assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+  assert.ok(Math.abs(r.bodies[0].volumeMM3! - (18400 - (56 * 36 * 2 + 16 * 16 * 12))) < 1e-6);
+  const ledge = evaluateDoc({ ...doc, nodes: [...doc.nodes.slice(0, -1), { kind: 'shell', parent: { node: 4, side: 'solid' }, thickness: 2, open: ['n1.top'] }] }, 2);
+  assert.equal(ledge.ok, false);
+  assert.match(!ledge.ok ? ledge.error.title : '', /top, the bottom or a side/);
+});
+
 test('loft: a square to a smaller square above is a frustum, exact; the top comes from the drawn sketch', () => {
   const bottom = { kind: 'sketch' as const, profile: 'rectangle' as const, min: [0, 0] as [number, number], max: [20, 20] as [number, number] };
   const top = loftTop(bottom, 'scaled', 0.5);
