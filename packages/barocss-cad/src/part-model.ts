@@ -448,6 +448,14 @@ function finishEdges(part: Part, names: string[], size: number, kind: 'chamfer' 
     else if (straight && kind === 'chamfer') wedges.push(e!);
     else general.push(name);
   }
+  // A vertical edge meeting another finished edge at a vertex goes with it (their corner is one blend).
+  if (general.length || wedges.length) {
+    const ends = [...general.map(n => byName.get(n)!), ...wedges].flatMap(e => [e.curve.controlPoints[0], e.curve.controlPoints[e.curve.controlPoints.length - 1]]);
+    for (let i = vertical.length - 1; i >= 0; i--) {
+      const c = vertical[i], tol = 1e-9 * Math.max(1, Math.abs(c.x), Math.abs(c.y), Math.abs(c.z0), Math.abs(c.z1));
+      if (ends.some(p => Math.abs(p[0] - c.x) <= tol && Math.abs(p[1] - c.y) <= tol && (Math.abs(p[2] - c.z0) <= tol || Math.abs(p[2] - c.z1) <= tol))) { general.push(c.name); vertical.splice(i, 1); }
+    }
+  }
   let solid = part.solid;
   if (vertical.length) solid = { kind: 'upright', solid: cornerFinish((solid as Extract<Solid, { kind: 'upright' }>).solid, vertical, size, kind, at, fail) };
   for (const e of wedges) solid = wedgeChamfer(solid, brep, e, size, at, fail);

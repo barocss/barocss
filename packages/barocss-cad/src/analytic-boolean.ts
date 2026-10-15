@@ -22,7 +22,7 @@ import { circleOf, polesOf } from './brep-tessellate.js';
 import { booleanCurveRegions, curveFaceRegions, intersectSegments, segAt as segAtAny, locateInRegion, paramOf as paramOfCurve, regionArea, regionInteriorPoint, segIntegral, segReverse, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
 import { nameEdges } from './prismatic-solid.js';
 import { baseName } from './polyhedral-boolean.js';
-import { evaluateCurve, evaluateSurface, curveDomain, surfaceDomain, surfaceEvaluator } from './math.js';
+import { evaluateCurve, evaluateSurface, curveDomain, curveEvaluator, surfaceDomain, surfaceEvaluator } from './math.js';
 import { chainCurve, intersectPatches, SurfaceIntersectionError } from './surface-intersection.js';
 import { triangulatePolygonWithHoles } from './brep-tessellate.js';
 import { linearToleranceMM } from './numeric-policy.js';
@@ -43,16 +43,17 @@ type Cylinder = { kind: 'cylinder'; c: P3; a: P3; e1: P3; e2: P3; r: number; s: 
  * Any other smooth surface patch: domain coordinates (ku·u, kv·v), scaled to arc length, with ku < 0 for
  * a reversed face so loops run counter-clockwise in the domain. Points map back by Newton projection.
  */
-type Nurbs = { kind: 'nurbs'; S: Surface; ev: (u: number, v: number) => P3; ku: number; kv: number; U: [number, number]; V: [number, number]; sense: 1 | -1; grid: { p: XY; x: P3 }[]; last: { p: XY }; size: number;
+type Nurbs = { kind: 'nurbs'; S: Surface; ev: (u: number, v: number) => P3; ku: number; kv: number; U: [number, number]; V: [number, number]; sense: 1 | -1; grid: { p: XY; x: P3; pole?: boolean }[]; last: { p: XY }; size: number;
   /** Domain sides collapsed to a point: `along` is the free coordinate (0: x, 1: y), `at` the fixed one (scaled). */
   poles: { along: 0 | 1; at: number; point: P3 }[] };
 type Surf = Plane | Cylinder | Nurbs;
 function nurbsOf(S: Surface, sense: 1 | -1): Nurbs {
   const { u: U, v: V } = surfaceDomain(S), at = surfaceEvaluator(S);
   let Lu = 0, Lv = 0; for (let i = 0; i < 8; i++) { const a = U[0] + (U[1] - U[0]) * (i + 0.5) / 8, b = V[0] + (V[1] - V[0]) * (i + 0.5) / 8; for (let k = 0; k < 8; k++) { Lu += len(sub(at(U[0] + (U[1] - U[0]) * (k + 1) / 8, b), at(U[0] + (U[1] - U[0]) * k / 8, b))) / 8; Lv += len(sub(at(a, V[0] + (V[1] - V[0]) * (k + 1) / 8), at(a, V[0] + (V[1] - V[0]) * k / 8))) / 8; } }
-  const ku = sense * (Lu || 1) / (U[1] - U[0]), kv = (Lv || 1) / (V[1] - V[0]), grid: { p: XY; x: P3 }[] = [];
+  const ku = sense * (Lu || 1) / (U[1] - U[0]), kv = (Lv || 1) / (V[1] - V[0]), grid: { p: XY; x: P3; pole?: boolean }[] = [];
   for (let i = 0; i <= 24; i++) for (let j = 0; j <= 24; j++) { const a = U[0] + (U[1] - U[0]) * i / 24, b = V[0] + (V[1] - V[0]) * j / 24; grid.push({ p: [a, b], x: at(a, b) }); }
   const poles = polesOf(S).map(q => ({ along: q.along, at: q.along === 0 ? q.at * kv : q.at * ku, point: q.point as P3 }));
+  for (const g of grid) g.pole = poles.some(o => len(sub(o.point, g.x)) <= 1e-12 * (Math.max(Lu, Lv) + 1));
   return { kind: 'nurbs', S, ev: at, ku, kv, U: [U[0], U[1]], V: [V[0], V[1]], sense, grid, last: { p: [(U[0] + U[1]) / 2, (V[0] + V[1]) / 2] }, size: Math.max(Lu, Lv), poles };
 }
 /**
@@ -80,7 +81,7 @@ function nurbsParam(s: Nurbs, x: P3, hint?: { p: XY }): XY {
   if (near(p) > 1e-9 * s.size) {
     // (Grid points at a pole are skipped: their free parameter is arbitrary.)
     let best = s.grid[0], d = Infinity;
-    for (const g of s.grid) { if (s.poles.some(o => o.point === g.x || len(sub(o.point, g.x)) <= 1e-12 * (s.size + 1))) continue; const e = (g.x[0] - x[0]) ** 2 + (g.x[1] - x[1]) ** 2 + (g.x[2] - x[2]) ** 2; if (e < d) { d = e; best = g; } }
+    for (const g of s.grid) { if (g.pole) continue; const e = (g.x[0] - x[0]) ** 2 + (g.x[1] - x[1]) ** 2 + (g.x[2] - x[2]) ** 2; if (e < d) { d = e; best = g; } }
     const q = newton(best.p); if (near(q) < near(p)) p = q;
   }
   from.p = p; if (hint) s.last.p = p;
@@ -177,7 +178,7 @@ function curve3(c: Curve, forward: boolean): Curve3 {
   const [t0, t1] = curveDomain(c), p = evaluateCurve(c, t0), q = evaluateCurve(c, t1);
   if (c.degree === 1 && c.controlPoints.length === 2) return forward ? { kind: 'line', p, q } : { kind: 'line', p: q, q: p };
   const k = circleOf(c);
-  if (!k) return { kind: 'param', at: t => evaluateCurve(c, t), t0: forward ? t0 : t1, t1: forward ? t1 : t0 };
+  if (!k) { const at = curveEvaluator(c); return { kind: 'param', at, t0: forward ? t0 : t1, t1: forward ? t1 : t0 }; }
   // The turning direction from the circle's own frame (robust for a full turn, where start = end).
   const total = k.spans.reduce((s, x) => s + x.phi, 0), n = scale(cross(k.e1, k.e2), k.sign);
   const from = forward ? p : q;
@@ -230,20 +231,31 @@ function tabulated(s: Nurbs, g: (x: number) => XY, at3: (x: number) => P3, t0: n
   const exact = memo(g), N = 128, span = t1 - t0;
   let table: { p: XY[]; d: XY[] } | null | false = null;
   const build = () => {
-    const p: XY[] = [], d: XY[] = [];
+    const p: XY[] = [], d: (XY | null)[] = [];
     for (let i = 0; i <= N; i++) {
       const x = t0 + span * i / N, q = exact(x), P = at3(x);
-      if (s.poles.some(o => len(sub(P, o.point)) <= 1e-6 * (s.size + 1))) return false;
+      p.push(q);
+      // At a pole the map's derivative comes from the neighbouring samples (below).
+      if (s.poles.some(o => len(sub(P, o.point)) <= 1e-6 * (s.size + 1))) { d.push(null); continue; }
       const h = 1e-6 * span, xa = Math.max(Math.min(t0, t1), Math.min(Math.max(t0, t1), x - h)), xb = Math.max(Math.min(t0, t1), Math.min(Math.max(t0, t1), x + h));
       const dP = scale(sub(at3(xb), at3(xa)), 1 / (xb - xa));
       const u = q[0] / s.ku, v = q[1] / s.kv, hu = 1e-7 * (s.U[1] - s.U[0]), hv = 1e-7 * (s.V[1] - s.V[0]);
       const ua = u + hu <= s.U[1] ? u + hu : u - hu, va = v + hv <= s.V[1] ? v + hv : v - hv, Q = s.ev(u, v);
       const Su = scale(sub(s.ev(ua, v), Q), 1 / (ua - u)), Sv = scale(sub(s.ev(u, va), Q), 1 / (va - v));
       const g11 = dot(Su, Su), g12 = dot(Su, Sv), g22 = dot(Sv, Sv), det = g11 * g22 - g12 * g12, r1 = dot(Su, dP), r2 = dot(Sv, dP);
-      if (!(det > 1e-24 * (g11 + g22) ** 2)) return false;
-      p.push(q); d.push([(r1 * g22 - r2 * g12) / det * s.ku, (g11 * r2 - g12 * r1) / det * s.kv]);
+      if (!(det > 1e-24 * (g11 + g22) ** 2)) { d.push(null); continue; }
+      d.push([(r1 * g22 - r2 * g12) / det * s.ku, (g11 * r2 - g12 * r1) / det * s.kv]);
     }
-    return { p, d };
+    // Second-order one-sided (or central) differences where the Jacobian is singular.
+    const h = span / N, out: XY[] = [];
+    for (let i = 0; i <= N; i++) {
+      const di = d[i]; if (di) { out.push(di); continue; }
+      const diff = (a: XY, b: XY, c: XY, k: number): XY => [(-3 * a[0] + 4 * b[0] - c[0]) / (2 * h * k), (-3 * a[1] + 4 * b[1] - c[1]) / (2 * h * k)];
+      if (i + 2 <= N && (i === 0 || i < N / 2)) out.push(diff(p[i], p[i + 1], p[i + 2], 1));
+      else if (i - 2 >= 0) out.push(diff(p[i], p[i - 1], p[i - 2], -1));
+      else return false;
+    }
+    return { p, d: out };
   };
   return x => {
     if (table === null) table = build();
@@ -352,7 +364,8 @@ function intervals(f: GFace, k: Probe, tol: number): [number, number][] {
       }
       ranges.push([start, k.hi]);
     } else ranges.push([k.lo, k.hi]);
-    const pieces = ranges.map(([a, b]) => ({ kind: 'curve' as const, f: (x: number) => to2(f, at(x)), t0: a, t1: b }));
+    // (On a general face the probe's domain map is tabulated like any curve's.)
+    const pieces = ranges.map(([a, b]) => f.surf.kind === 'nurbs' ? { ...(curve2(f, { kind: 'param', at, t0: a, t1: b }, tol) as Extract<CurveSegment2, { kind: 'curve' }>), t0: a, t1: b } : { kind: 'curve' as const, f: (x: number) => to2(f, at(x)), t0: a, t1: b });
     params.push(...ranges.flat());
     const rings = [f.region.outer, ...f.region.holes];
     for (const pr of pieces) for (const ring of rings) for (const g of ring) for (const x of intersectSegments(pr, g, tol)) params.push(pr.t0 + (pr.t1 - pr.t0) * paramOfCurve(pr, x));
@@ -831,7 +844,8 @@ function fitWith(k: Extract<Curve3, { kind: 'param' }>, id: string, p: P3, q: P3
     }
     knots.push(1, 1, 1, 1);
     const curve: Curve = { kind: 'curve', id, degree: 3, knots, controlPoints: cp, weights: cp.map(() => 1) };
-    let err = 0; for (let i = 0; i < n; i++) for (const f of [0.25, 0.5, 0.75]) err = Math.max(err, len(sub(evaluateCurve(curve, (i + f) / n), at((i + f) / n))));
+    const ev = curveEvaluator(curve);
+    let err = 0; for (let i = 0; i < n; i++) for (const f of [0.25, 0.5, 0.75]) err = Math.max(err, len(sub(ev((i + f) / n), at((i + f) / n))));
     return { curve, error: err };
   }
 }

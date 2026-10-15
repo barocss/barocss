@@ -107,7 +107,10 @@ export function intersectPatches(A: Patch, B: Patch, options: {
       const pts = t.map(c => c.x), min = [0, 1, 2].map(k => Math.min(...pts.map(p => p[k]))) as Point, max = [0, 1, 2].map(k => Math.max(...pts.map(p => p[k]))) as Point;
       out.push({ pts, uv: t.map(c => c.p), min, max });
     } return out; };
-  const TA = tris(GA), TB = tris(GB);
+  // Only triangles within the other patch's box can cross it.
+  const boxOf = (T: { min: Point; max: Point }[]) => T.reduce((m, t) => ({ min: [0, 1, 2].map(k => Math.min(m.min[k], t.min[k])) as Point, max: [0, 1, 2].map(k => Math.max(m.max[k], t.max[k])) as Point }), { min: [Infinity, Infinity, Infinity] as Point, max: [-Infinity, -Infinity, -Infinity] as Point });
+  const within = (t: { min: Point; max: Point }, b: { min: Point; max: Point }) => [0, 1, 2].every(k => t.max[k] >= b.min[k] - tol && t.min[k] <= b.max[k] + tol);
+  const allA = tris(GA), allB = tris(GB), bA = boxOf(allA), bB = boxOf(allB), TA = allA.filter(t => within(t, bB)), TB = allB.filter(t => within(t, bA));
   const seeds: { pa: XY; pb: XY; x: Point }[] = [];
   for (const a of TA) for (const b of TB) {
     if (a.max[0] < b.min[0] - tol || b.max[0] < a.min[0] - tol || a.max[1] < b.min[1] - tol || b.max[1] < a.min[1] - tol || a.max[2] < b.min[2] - tol || b.max[2] < a.min[2] - tol) continue;

@@ -55,3 +55,28 @@ test('concave edges gain material; tangent chains are finished whole; what canno
   refuses(() => finishBrepEdges(ell, ['nope'], 1, 'fillet', 'f'), /SELECTION: no edge named nope/);
   refuses(() => finishBrepEdges(slot, [slot.edges.find(e => /side0/.test(e.name) && /side1/.test(e.name)).name], 1, 'fillet', 'f'), /meet tangentially/);
 });
+
+test('three fillets meeting at a corner round it with a sphere; all twelve edges of a box give the rounded box', () => {
+  const box = prism(rect(0, 0, 20, 10), 6, 'e');
+  const rounded = (a, b, c, r) => (a - 2 * r) * (b - 2 * r) * (c - 2 * r) + 2 * r * ((a - 2 * r) * (b - 2 * r) + (b - 2 * r) * (c - 2 * r) + (a - 2 * r) * (c - 2 * r)) + pi * r * r * (a + b + c - 6 * r) + 4 / 3 * pi * r ** 3;
+  // One corner (x = 20, y = 0, z = 6): its three edges. The corner cube by grid, the edge strips exactly.
+  const r = 2, inside = (x, y, z) => {
+    const dx = 20 - x, dy = y, dz = 6 - z;
+    if (dx < r && dy < r && dz < r) return (r - dx) ** 2 + (r - dy) ** 2 + (r - dz) ** 2 <= r * r;
+    const cut = (a, b) => a < r && b < r && (r - a) ** 2 + (r - b) ** 2 > r * r;
+    return !(cut(dy, dz) || cut(dx, dz) || cut(dx, dy));
+  };
+  let removed = 0; const n = 160, h = 1.5 * r / n;
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) for (let k = 0; k < n; k++) if (!inside(20 - (i + .5) * h, (j + .5) * h, 6 - (k + .5) * h)) removed++;
+  const expected = 1200 - removed * h ** 3 - corner(r) * ((20 - 1.5 * r) + (10 - 1.5 * r) + (6 - 1.5 * r));
+  const one = finishBrepEdges(box, ['e.side0|e.top', 'e.side1|e.top', 'e.side0|e.side1'], r, 'fillet', 'f');
+  assert.equal(checkBrep(one).valid, true);
+  assert.ok(watertight(one));
+  assert.ok(near(volume(one), expected, 1e-4), `${volume(one)} vs ${expected}`);
+  assert.ok(one.faces.some(f => f.name.startsWith('f.face') && f.surface.degreeU === 2 && f.surface.degreeV === 2), 'a spherical corner face');
+  const all = finishBrepEdges(box, box.edges.map(e => e.name), 1, 'fillet', 'f');
+  assert.equal(checkBrep(all).valid, true);
+  assert.ok(watertight(all));
+  assert.ok(near(volume(all), rounded(20, 10, 6, 1), 1e-4), String(volume(all)));
+  assert.equal(all.faces.length, 6 + 12 + 16, 'six flats, twelve cylinders, eight corner spheres (two halves each)');
+});

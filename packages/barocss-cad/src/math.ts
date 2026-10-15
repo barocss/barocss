@@ -212,6 +212,12 @@ export function evaluateSurface(surface: Surface, u: number, v: number): Point {
   return surfacePoint(surface, u, v);
 }
 
+/** An evaluator for one curve, validated once (the same points as evaluateCurve). */
+export function curveEvaluator(curve: Curve): (t: number) => Point {
+  validateCurve(curve);
+  return t => curvePoint(curve, t);
+}
+
 /** An evaluator for one surface, validated once (for callers that evaluate it many times). */
 export function surfaceEvaluator(surface: Surface): (u: number, v: number) => Point {
   validateSurface(surface);

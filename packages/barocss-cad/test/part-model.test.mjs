@@ -99,6 +99,12 @@ test('fillets and chamfers on any straight or circular edge: rolling-ball tools 
     assert.ok(close(volume(o), expected, 1e-4), `${name}: ${volume(o)} vs ${expected}`);
     assert.ok(o.brep.faces.some(f => f.name.startsWith('f.face')), `${name}: the finishing face is named by its feature`);
   }
+  // Every edge of an upright box in one fillet: the vertical ones join the rest, corners become spheres.
+  const allNames = evaluateCadPart(D(box)).outputs[0].brep.edges.map(e => e.name);
+  const roundBox = evaluateCadPart(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges: allNames, radius: 1 }])).outputs[0];
+  const rounded = (a, b, c, r) => (a - 2 * r) * (b - 2 * r) * (c - 2 * r) + 2 * r * ((a - 2 * r) * (b - 2 * r) + (b - 2 * r) * (c - 2 * r) + (a - 2 * r) * (c - 2 * r)) + pi * r * r * (a + b + c - 6 * r) + 4 / 3 * pi * r ** 3;
+  assert.equal(checkBrep(roundBox.brep).valid, true);
+  assert.ok(close(volume(roundBox), rounded(20, 10, 5, 1), 1e-4), String(volume(roundBox)));
   // Two top edges of a box meeting at a corner: the fillets meet in their mitre (the same body as both tools removed).
   const mitre = evaluateCadPart(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges: ['e.side0|e.top', 'e.side1|e.top'], radius: 2 }])).outputs[0];
   assert.equal(checkBrep(mitre.brep).valid, true);

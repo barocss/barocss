@@ -13,7 +13,7 @@
 //
 // Two finished edges meeting at a corner meet in their mitre (the intersection of the two surfaces);
 // other edges (between curved faces, or where the faces meet tangentially) are refused with the reason.
-import { BrepError, type Brep } from './brep-core.js';
+import { BrepError, buildBrep, lineCurve, type Brep } from './brep-core.js';
 import { booleanAnalytic, faceGeometry, type FaceGeometry } from './analytic-boolean.js';
 import { brepFromPrismatic, prismaticFromProfile } from './prismatic-solid.js';
 import { revolveProfile } from './revolve.js';
@@ -88,7 +88,30 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
     if (Math.abs(total - 2 * Math.PI) <= 1e-9) { closedCircle.add(list[0].id); for (const e of list.slice(1)) skip.add(e.id); }
   }
 
-  const convexTools: Brep[] = [], concaveTools: Brep[] = [];
+  const convexTools: Brep[] = [], concaveTools: Brep[] = [], cornerTools: Brep[] = [];
+  // Corner blends: where three filleted straight edges between three planes meet at a convex vertex,
+  // the rolling ball rounds the corner with a sphere about the point r from all three planes. Each
+  // edge's tool then stops at the plane through that centre square to the edge (where its cylinder
+  // touches the sphere), and a corner tool (the cone from the centre to the vertex, less the ball)
+  // fills the corner.
+  const trims = new Map<string, number[]>();
+  if (kind === 'fillet') for (const [v, incident] of atVertex) {
+    const here = incident.filter(e => chain.has(e.id) && !skip.has(e.id));
+    if (here.length !== 3 || !here.every(e => e.curve.degree === 1 && e.curve.controlPoints.length === 2)) continue;
+    const fids = [...new Set(here.flatMap(facesOf))];
+    if (fids.length !== 3 || !fids.every(f => geom(f).kind === 'plane')) continue;
+    const V = body.vertices.find(x => x.id === v)!.point;
+    if (!here.every(e => convexAt(intoFaces(e, usesOf.get(e.id)!, ends(e)[0].x, ends(e)[0].out)))) continue;
+    const ns = fids.map(f => (geom(f) as Extract<FaceGeometry, { kind: 'plane' }>).n), C = solve3(ns, ns.map(n => dot(n, V) - size));
+    if (!C) continue;
+    const outs = here.map(e => ends(e).find(x => x.v === v)!.out), setbacks = outs.map(d => dot(sub(C, V), d));
+    here.forEach((e, k) => {
+      const L = len(sub(ends(e)[1].x, ends(e)[0].x));
+      if (!(setbacks[k] > 0) || setbacks[k] >= L) refuse('PARAMETER', `edge ${e.name}: a fillet of ${size} mm does not fit (the corner needs ${+setbacks[k].toFixed(6)} mm of a ${+L.toFixed(6)} mm edge)`);
+      const t = trims.get(e.id) ?? [0, 0]; t[ends(e)[0].v === v ? 0 : 1] = setbacks[k]; trims.set(e.id, t);
+    });
+    cornerTools.push(cornerTool(V, C, outs, size, id));
+  }
   for (const e of chain.values()) {
     if (skip.has(e.id)) continue;
     const uses = usesOf.get(e.id) ?? [];
@@ -123,15 +146,95 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
     const convex = convexAt(intoFaces(e, uses, E0.x, E0.out));
     const run = convex ? reach : reach.map((_, i) => sharedCorner[i] || blocked[i] ? 1 : 0);
     const curve = e.curve, straight = curve.degree === 1 && curve.controlPoints.length === 2;
-    const tool = straight ? straightTool(e, uses, E0.x, E1.x, run, size, kind, id) : arcTool(e, uses, E0.x, closedCircle.has(e.id) ? E0.x : E1.x, run, size, kind, id, tol);
+    const trim = trims.get(e.id), runs = trim ? run.map((r, i) => trim[i] ? 0 : r) : run;
+    const tool = straight ? straightTool(e, uses, E0.x, E1.x, runs, size, kind, id, trim) : arcTool(e, uses, E0.x, closedCircle.has(e.id) ? E0.x : E1.x, run, size, kind, id, tol);
     (tool.convex ? convexTools : concaveTools).push(tool.brep);
   }
-  // The tools are joined first (along a tangent chain their end faces meet and vanish), then applied once.
-  const unite = (tools: Brep[]) => tools.reduce((acc, t) => booleanAnalytic(acc, t, 'union', { id: `${id}_tools` }));
+  // Tools that share a face or volume (a tangent chain's pieces, mitred tools) are joined by Booleans;
+  // the joined groups touch at most along lines (a corner blend's trimmed tools), so they are applied
+  // together, as one B-rep of several bodies; the corner tools (apart from each other) after them.
   let out = body;
-  if (convexTools.length) out = booleanAnalytic(out, unite(convexTools), 'difference', { id });
-  if (concaveTools.length) out = booleanAnalytic(out, unite(concaveTools), 'union', { id });
+  const apply = (tools: Brep[], op: 'difference' | 'union') => { if (tools.length) out = booleanAnalytic(out, combine(joinTouching(tools, id), id), op, { id }); };
+  apply(convexTools, 'difference');
+  apply(cornerTools, 'difference');
+  apply(concaveTools, 'union');
   return out;
+}
+
+/** Tools meeting over a face or a volume, joined: bounding boxes overlapping in at least two directions. */
+function joinTouching(tools: Brep[], id: string): Brep[] {
+  // (Edges bound a tool tightly; a surface's control net only loosely.)
+  const tight = (b: Brep) => { const lo: Point = [Infinity, Infinity, Infinity], hi: Point = [-Infinity, -Infinity, -Infinity];
+    for (const e of b.edges) for (const q of e.curve.controlPoints) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], q[k]); hi[k] = Math.max(hi[k], q[k]); }
+    return { lo, hi }; };
+  const boxes = tools.map(tight), size = Math.max(1, ...boxes.flatMap(b => [...b.lo, ...b.hi].map(Math.abs))), eps = 1e-7 * size;
+  const meet = (a: { lo: Point; hi: Point }, b: { lo: Point; hi: Point }) => {
+    const over = [0, 1, 2].map(k => Math.min(a.hi[k], b.hi[k]) - Math.max(a.lo[k], b.lo[k]));
+    return over.every(o => o >= -eps) && over.filter(o => o > eps).length >= 2;
+  };
+  const root = tools.map((_, i) => i), find = (x: number): number => root[x] === x ? x : (root[x] = find(root[x]));
+  for (let i = 0; i < tools.length; i++) for (let j = i + 1; j < tools.length; j++) if (meet(boxes[i], boxes[j])) root[find(i)] = find(j);
+  const members = new Map<number, Brep[]>(); tools.forEach((t, i) => members.set(find(i), [...(members.get(find(i)) ?? []), t]));
+  return [...members.values()].map(list => list.reduce((acc, t) => booleanAnalytic(acc, t, 'union', { id: `${id}_tools` })));
+}
+
+/** Several B-reps apart from each other (or touching along lines) as one B-rep of several bodies. */
+function combine(breps: Brep[], id: string): Brep {
+  if (breps.length === 1) return breps[0];
+  const parts = breps.map((b, k) => {
+    const p = (x: string) => `${id}_${k}_${x}`;
+    return {
+      bodies: b.bodies.map(x => ({ ...x, id: p(x.id), shells: x.shells.map(p) })), shells: b.shells.map(x => ({ ...x, id: p(x.id), body: p(x.body), faces: x.faces.map(p) })),
+      faces: b.faces.map(x => ({ ...x, id: p(x.id), shell: p(x.shell), loops: x.loops.map(p) })), loops: b.loops.map(x => ({ ...x, id: p(x.id), face: p(x.face), coedges: x.coedges.map(p) })),
+      coedges: b.coedges.map(x => ({ ...x, id: p(x.id), edge: p(x.edge), loop: p(x.loop), next: p(x.next), prev: p(x.prev), twin: x.twin === null ? null : p(x.twin) })),
+      edges: b.edges.map(x => ({ ...x, id: p(x.id), vertices: [p(x.vertices[0]), p(x.vertices[1])] as [string, string] })), vertices: b.vertices.map(x => ({ ...x, id: p(x.id) })),
+    };
+  });
+  return { ...breps[0], bodies: parts.flatMap(x => x.bodies), shells: parts.flatMap(x => x.shells), faces: parts.flatMap(x => x.faces), loops: parts.flatMap(x => x.loops), coedges: parts.flatMap(x => x.coedges), edges: parts.flatMap(x => x.edges), vertices: parts.flatMap(x => x.vertices) };
+}
+
+/** x with rows·x = b (3 × 3), or null when singular. */
+function solve3(rows: Point[], b: number[]): Point | null {
+  const det = dot(rows[0], cross(rows[1], rows[2]));
+  if (Math.abs(det) < 1e-12) return null;
+  const c0 = cross(rows[1], rows[2]), c1 = cross(rows[2], rows[0]), c2 = cross(rows[0], rows[1]);
+  return scale(add(add(scale(c0, b[0]), scale(c1, b[1])), scale(c2, b[2])), 1 / det);
+}
+
+/**
+ * The corner tool of three fillets meeting at V: the cone from the ball's centre C bounded by the planes
+ * through C square to the three edges (leaving V along `outs`), capped well beyond V, less the ball.
+ */
+function cornerTool(V: Point, C: Point, outs: Point[], r: number, id: string): Brep {
+  const rays = [[0, 1, 2], [1, 2, 0], [2, 0, 1]].map(([i, j, k]) => { const u = unit(cross(outs[i], outs[j])); return dot(u, outs[k]) < 0 ? u : scale(u, -1); });
+  const reach = 4 * (len(sub(V, C)) + r), pts: Point[] = [C, ...rays.map(u => add(C, scale(u, reach)))];
+  const cone = tetrahedron(pts, `${id}.tool`);
+  // The ball about an axis through the cone towards V (its pole is the corner's apex, its seams lie in no
+  // plane of the cone).
+  const axis = unit(sub(V, C)), any = unit(add(outs[0], scale(outs[1], 0.37))), e1 = unit(sub(any, scale(axis, dot(any, axis)))), e3 = cross(e1, axis);
+  const ball = revolveProfile({ id: `${id}_b`, profile: [{ kind: 'arc', start: [0, -r], center: [0, 0], direction: 'ccw' }, { kind: 'line', start: [0, r] }], axis: { origin: [0, 0], direction: [0, 1] }, angleDegrees: 360 });
+  const placed = transformBrep(ball, { matrix: [e1[0], axis[0], e3[0], e1[1], axis[1], e3[1], e1[2], axis[2], e3[2]], offset: [C[0], C[1], C[2]] });
+  return booleanAnalytic(cone, { ...placed, faces: placed.faces.map(f => ({ ...f, name: `${id}.face` })) }, 'difference', { id: `${id}_c` });
+}
+
+/** A tetrahedron as a planar B-rep, faces pointing out. */
+function tetrahedron(p: Point[], name: string): Brep {
+  const faces = [[0, 1, 2], [0, 1, 3], [0, 2, 3], [1, 2, 3]].map(f => {
+    const opposite = p[[0, 1, 2, 3].find(i => !f.includes(i))!], n = cross(sub(p[f[1]], p[f[0]]), sub(p[f[2]], p[f[0]]));
+    return dot(n, sub(opposite, p[f[0]])) > 0 ? [f[0], f[2], f[1]] : f;
+  });
+  const plane = (ids: number[]) => {
+    const q = ids.map(i => p[i]), n = unit(cross(sub(q[1], q[0]), sub(q[2], q[0]))), e1 = unit(sub(q[1], q[0])), e2 = cross(n, e1);
+    const uv = q.map(x => [dot(sub(x, q[0]), e1), dot(sub(x, q[0]), e2)]), pad = 1 + Math.max(...uv.flat().map(Math.abs));
+    const at = (u: number, v: number): Point => add(q[0], add(scale(e1, u), scale(e2, v)));
+    return { kind: 'surface' as const, id: 'tf', degreeU: 1, degreeV: 1, knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1], controlPoints: [[at(-pad, -pad), at(-pad, pad)], [at(pad, -pad), at(pad, pad)]], weights: [[1, 1], [1, 1]] };
+  };
+  const edgeIds = new Map<string, { id: string; v: [number, number] }>();
+  const use = (i: number, j: number) => { const k = i < j ? `${i}-${j}` : `${j}-${i}`; let e = edgeIds.get(k); if (!e) { e = { id: 'te' + edgeIds.size, v: i < j ? [i, j] : [j, i] }; edgeIds.set(k, e); } return { edge: e.id, sense: (e.v[0] === i ? 'forward' : 'reversed') as 'forward' | 'reversed' }; };
+  const faceInputs = faces.map((ids, fi) => ({ id: 'tf' + fi, name, surface: plane(ids), sense: 'forward' as const, loops: [{ kind: 'outer' as const, uses: ids.map((v, k) => use(v, ids[(k + 1) % 3])) }] }));
+  return buildBrep({ source: { family: 'corner-tool', id: 'corner' }, vertices: p.map((x, i) => ({ id: 'tv' + i, point: x })),
+    edges: [...edgeIds.values()].map(e => ({ id: e.id, curve: lineCurve(e.id, p[e.v[0]], p[e.v[1]]), vertices: ['tv' + e.v[0], 'tv' + e.v[1]] as [string, string] })),
+    bodies: [{ id: 'corner', kind: 'solid', shells: [{ id: 's', closed: true, faces: faceInputs }] }] });
 }
 
 /** Outward normal of a face's surface at a point of it (planes and cylinders). */
@@ -198,7 +301,7 @@ function named(tool: Brep, id: string, marker: Point | null): Brep {
   return { ...tool, faces: tool.faces.map((f, i) => ({ ...f, name: d[i] <= least + 1e-9 * size ? `${id}.face` : `${id}.tool` })) };
 }
 
-function straightTool(e: Brep['edges'][number], uses: Use[], P: Point, Q: Point, reach: number[], size: number, kind: EdgeFinishKind, id: string): { brep: Brep; convex: boolean } {
+function straightTool(e: Brep['edges'][number], uses: Use[], P: Point, Q: Point, reach: number[], size: number, kind: EdgeFinishKind, id: string, trim: number[] = [0, 0]): { brep: Brep; convex: boolean } {
   const along = unit(sub(Q, P)), sides = intoFaces(e, uses, P, along), L = len(sub(Q, P));
   if (dot(sides[0].w, sides[1].w) < -1 + 1e-9) refuse('SELECTION', `edge ${e.name}: its faces meet tangentially; there is no corner to finish`);
   if (!uses.every(u => u.geometry.kind === 'plane')) refuse('CAPABILITY', `edge ${e.name}: straight edges can be finished between two planes only (yet)`);
@@ -207,14 +310,15 @@ function straightTool(e: Brep['edges'][number], uses: Use[], P: Point, Q: Point,
   const t = finishSize(sides, size, kind), g = Math.max(t, size) * 0.5;
   const profile = cornerProfile([0, 0], to2(sides[0].w), to2(sides[1].w), size, kind, g, e.name ?? e.id);
   // The section's extent past each end: enough to clear a cap face leaning back over the tool.
-  const extent = (t + 2 * g) * 2, zq = dot(sub(Q, P), z), ext0 = reach[0] * extent, ext1 = reach[1] * extent;
+  // (A corner blend takes over the last stretch before a vertex: there the tool is cut back by `trim`.)
+  const extent = (t + 2 * g) * 2, zq = dot(sub(Q, P), z), ext0 = reach[0] * extent - trim[0], ext1 = reach[1] * extent - trim[1];
   const [z0, z1] = zq > 0 ? [-ext0, L + ext1] : [-L - ext1, ext0];
   const prism = brepFromPrismatic(prismaticFromProfile({ outer: profile, heightMM: z1 - z0, fromMM: z0, tag: `${id}_t` }), { id: `${id}_t` });
   const tool = transformBrep(prism, { matrix: [u[0], v[0], z[0], u[1], v[1], z[1], u[2], v[2], z[2]], offset: [P[0], P[1], P[2]] });
   // A point of the finishing surface: on the bisector, between the corner and the fillet's centre.
   const alpha = Math.acos(Math.max(-1, Math.min(1, dot(sides[0].w, sides[1].w)))), bis = unit(add(sides[0].w, sides[1].w));
   const depth = kind === 'fillet' ? size / Math.sin(alpha / 2) - size : t * Math.cos(alpha / 2);
-  const marker = add(add(P, scale(along, L / 2)), scale(bis, depth));
+  const marker = add(add(P, scale(along, trim[0] + (L - trim[0] - trim[1]) / 2)), scale(bis, depth));
   return { brep: named(tool, id, marker), convex: convexAt(sides) };
 }
 
