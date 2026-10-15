@@ -72,12 +72,13 @@ test('pattern keeps the parent and adds copies; rollback evaluates a prefix', ()
 });
 
 test('kernel refusals come back as plain-language errors', () => {
-  const doc = withNode(rectanglePart(100, 60, 5), { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [6, 6], radius: 3 });
-  const r = evaluateDoc(doc, 1);
+  // Ø6 on 100 × 60 was refused before numeric policy v1; it now evaluates. A hole touching the edge still refuses.
+  assert.equal(evaluateDoc(withNode(rectanglePart(100, 60, 5), { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [6, 6], radius: 3 }), 1).ok, true);
+  const r = evaluateDoc(withNode(rectanglePart(100, 60, 5), { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [2, 30], radius: 4 }), 1);
   assert.equal(r.ok, false);
   if (!r.ok) {
-    assert.match(r.error.title, /size isn’t supported/);
-    assert.match(r.error.detail, /pole chart/);
+    assert.match(r.error.title, /must stay inside the face/);
+    assert.match(r.error.detail, /contained circular hole/);
   }
 });
 

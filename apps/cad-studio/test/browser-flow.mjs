@@ -74,15 +74,18 @@ try {
     await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
   });
 
-  await check('unsupported size explains itself', async () => {
+  await check('any hole size works; a hole outside the face explains itself', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
     await field('Width X').fill('100'); await field('Depth Y').fill('60'); await field('Height Z').fill('5'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
     await page.waitForFunction(() => /Extrude 5/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
     await page.click('.views button:text-is("Top")'); await page.waitForTimeout(300);
     const [cx, cy] = await canvasCenter(); await page.mouse.move(cx, cy); await page.mouse.click(cx, cy);
+    // Ø6 on 100 × 60 used to be refused (non-dyadic chart parameters); numeric policy v1 certifies it.
     await press('h'); await hudReady(); await field('Diameter').fill('6'); await field('Centre X').fill('6'); await field('Centre Y').fill('6');
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 });
+    await field('Centre X').fill('2'); await field('Diameter').fill('8');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'refused', null, { timeout: 15000 });
-    assert.match(await page.locator('.hud-error').innerText(), /size isn’t supported/);
+    assert.match(await page.locator('.hud-error').innerText(), /must stay inside the face/);
     await press('Escape');
   });
 
