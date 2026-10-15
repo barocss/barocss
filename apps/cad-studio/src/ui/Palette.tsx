@@ -20,7 +20,8 @@ export function Palette({ ctx, onRun, onClose }: { ctx: Ctx; onRun(c: Command): 
             onKeyDown={e => {
               if (e.key === 'ArrowDown') { e.preventDefault(); setCursor(c => Math.min(list.length - 1, c + 1)); }
               if (e.key === 'ArrowUp') { e.preventDefault(); setCursor(c => Math.max(0, c - 1)); }
-              if (e.key === 'Enter' && list[cursor]) { e.preventDefault(); onRun(list[cursor].c); }
+              // Handled here: the window's Enter (finish sketch / apply) must not see it once the command starts.
+              if (e.key === 'Enter' && list[cursor]) { e.preventDefault(); e.stopPropagation(); onRun(list[cursor].c); }
               if (e.key === 'Escape') onClose();
             }} /><Kbd>Esc</Kbd></label>
         <ul className="palette-list" role="listbox">

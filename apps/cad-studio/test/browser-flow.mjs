@@ -236,6 +236,18 @@ try {
     await iso();
   });
 
+  await check('revolve a circle sketch into a torus from the palette', async () => {
+    await page.click('[aria-label="New part"]'); await press(' '); await page.locator('.palette input').fill('revolve'); await press('Enter');
+    const [cx, cy] = await canvasCenter();
+    await clickAt(cx + 160, cy - 40); await page.mouse.move(cx + 190, cy - 40); await page.mouse.move(cx + 200, cy - 40); await page.mouse.click(cx + 200, cy - 40);
+    await press('Enter'); await hudReady();
+    assert.equal(await field('Make').inputValue(), 'revolve-y');
+    await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    const d = await doc(); assert.equal(d.nodes[0].profile, 'circle'); assert.equal(d.nodes[1].kind, 'revolve'); assert.equal(d.nodes[1].axis, 'y');
+    assert.match(await history(), /Revolve 360°/); await iso();
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await press(' '); await page.locator('.palette input').fill('shell');
     assert.match(await page.locator('.palette-list').innerText(), /isn’t available in the kernel yet/);

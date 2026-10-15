@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateDoc } from '../src/engine/evaluate';
-import { cylinderPart, leafBodies, prefixDoc, rectanglePart, starterDoc, withNode } from '../src/engine/doc';
+import { cylinderPart, emptyDoc, featureLabel, leafBodies, prefixDoc, rectanglePart, starterDoc, withNode } from '../src/engine/doc';
 import type { DisplayMesh } from '../src/engine/mesh';
 
 // Signed volume of a closed, outward-wound triangle mesh.
@@ -143,6 +143,32 @@ test('a side hole drilled across a round boss (quartic trims) and through a plat
   const t = evaluateDoc(turned, 2);
   assert.ok(t.ok, JSON.stringify(!t.ok && t.error));
   assert.ok(t.bodies[0].volumeMM3! < 8000);
+});
+
+test('revolve: a circle sketch turns into a torus, cut by a box; a profile on the axis is refused plainly', () => {
+  let doc = withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [20, 10], radius: 4 });
+  doc = withNode(doc, { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 360 });
+  const r = evaluateDoc(doc, 1);
+  assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+  const torus = 2 * Math.PI ** 2 * 20 * 16;
+  assert.ok(Math.abs(r.bodies[0].volumeMM3! - torus) < 1e-9 * torus, String(r.bodies[0].volumeMM3));
+  assert.equal(r.bodies[0].family, 'curved');
+  assert.ok(r.bodies[0].mesh.faces.every(f => f.kind === 'curved'));
+  // The display mesh (8 segments per quarter) is a regular grid inscribed in the torus.
+  assert.ok(Math.abs(signedVolume(r.bodies[0].mesh) - torus) < 2e-2 * torus, String(signedVolume(r.bodies[0].mesh)));
+  // Cut away everything above z = 0 with a box: half the torus stays.
+  doc = withNode(doc, { kind: 'sketch', profile: 'rectangle', min: [-40, -20], max: [40, 40] });
+  doc = withNode(doc, { kind: 'extrude', sketch: 2, height: 30 });
+  doc = withNode(doc, { kind: 'difference', parent: { node: 1, side: 'solid' }, tool: { node: 3, side: 'solid' } });
+  const cut = evaluateDoc(doc, 2);
+  assert.ok(cut.ok, JSON.stringify(!cut.ok && cut.error));
+  assert.equal(cut.bodies.length, 1);
+  assert.ok(Math.abs(cut.bodies[0].volumeMM3! - torus / 2) < 3e-3 * torus, String(cut.bodies[0].volumeMM3));
+  assert.ok(cut.bodies[0].mesh.faces.some(f => f.kind === 'plane'), 'the cut leaves flat faces');
+  assert.equal(featureLabel(doc.nodes[1], 1, doc.nodes), 'Revolve 360°');
+  const onAxis = evaluateDoc(withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [5, 5] }), { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 360 }), 3);
+  assert.equal(onAxis.ok, false);
+  if (!onAxis.ok) assert.match(onAxis.error.title, /revolve axis/);
 });
 
 test('a slot sketch extrudes as one line + arc body with two curved faces and exact mass', async () => {

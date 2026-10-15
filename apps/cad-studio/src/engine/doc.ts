@@ -14,6 +14,8 @@ export type SketchNode =
 
 export type ModelNode = SketchNode
   | { kind: 'extrude'; sketch: number; height: Dim; from?: Dim }
+  /** The sketch turned about its X or Y axis (through `origin`, default the sketch origin) towards +Z. */
+  | { kind: 'revolve'; sketch: number; axis: 'x' | 'y'; origin?: [Dim, Dim]; angleDegrees: number }
   | { kind: 'translate'; parent: BodyRef; offset: [Dim, Dim, Dim] }
   | { kind: 'rotate'; parent: BodyRef; axis: Axis; angleDegrees: number }
   | { kind: 'mirror'; parent: BodyRef; plane: 'xy' | 'xz' | 'yz' }
@@ -46,7 +48,7 @@ export const isSolidNode = (node: ModelNode) => node.kind !== 'sketch';
 export function parentsOf(node: ModelNode): number[] {
   switch (node.kind) {
     case 'sketch': return [];
-    case 'extrude': return [node.sketch];
+    case 'extrude': case 'revolve': return [node.sketch];
     case 'union': case 'intersect': return [node.left.node, node.right.node];
     case 'difference': return [node.parent.node, node.tool.node];
     default: return [node.parent.node];
@@ -59,7 +61,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
   // side is consumed on its own.
   const consumed = new Set<string>();
   nodes.forEach(node => {
-    if (node.kind === 'sketch' || node.kind === 'extrude') return;
+    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve') return;
     const refs = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : [node.parent];
     refs.forEach(r => consumed.add(r.side === 'solid' ? String(r.node) : `${r.node}_${r.side}`));
   });
@@ -96,6 +98,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
       const kind = s && s.kind === 'sketch' && s.profile === 'circle' ? 'Cylinder' : 'Extrude';
       return `${kind} ${n(node.height)}`;
     }
+    case 'revolve': return `Revolve ${node.angleDegrees}°`;
     case 'hole': return `Hole Ø${typeof node.radius === 'number' ? fmt(node.radius * 2) : node.radius.parameter}`;
     case 'chamfer': return `Chamfer ${n(node.distance)}`;
     case 'fillet': return `Fillet R${n(node.radius)}`;

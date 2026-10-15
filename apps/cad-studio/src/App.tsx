@@ -147,7 +147,7 @@ export function App() {
       const f = selection.faces[0]; const face = f && bodies[f.body]?.mesh.faces[f.face];
       const planeZ = face && face.kind === 'plane' && face.normal[2] > 0.99 ? Math.round(face.centroid[2]) : 0;
       const base = face && planeZ > 0 ? refOf(bodies[f.body]) : null;
-      setSketch({ planeZ, tool: 'rectangle', shape: null, base }); setActive(null); setPreviewBodies(null);
+      setSketch({ planeZ, tool: cmd.id === 'revolve' ? 'circle' : 'rectangle', shape: null, base, ...(cmd.id === 'revolve' ? { make: 'revolve-y' as const } : {}) }); setActive(null); setPreviewBodies(null);
       const [min, max] = sketchRegion(base && f ? [bodies[f.body]] : bodies);
       viewport.current?.frameSketch(min, max, planeZ, SKETCH_INSETS); return;
     }
@@ -179,14 +179,19 @@ export function App() {
     const base = sketch.base ?? null;
     const extrude: Command = {
       id: 'extrude', label: 'Extrude', icon: 'height', group: 'create', available: () => ({ ok: true }),
-      fields: () => [{ key: 'h', label: 'Distance', kind: 'mm', min: 1 },
+      fields: () => [{ key: 'make', label: 'Make', kind: 'choice', options: [{ value: 'extrude', label: 'Extrude' }, { value: 'revolve-y', label: 'Revolve about Y' }, { value: 'revolve-x', label: 'Revolve about X' }] },
+        { key: 'h', label: 'Distance', kind: 'mm', min: 1 }, { key: 'deg', label: 'Revolve angle', kind: 'deg', min: 1, max: 360, step: 15 },
         ...(base ? [{ key: 'op', label: 'Operation', kind: 'choice' as const, options: [{ value: 'join', label: 'Join to body' }, { value: 'new', label: 'New body' }, { value: 'cut', label: 'Cut from body' }] }] : [])],
-      defaults: () => ({ h: 8, ...(base ? { op: 'join' } : {}) }),
+      defaults: () => ({ make: sketch.make ?? 'extrude', h: 8, deg: 360, ...(base ? { op: 'join' } : {}) }),
       build: (c, v) => {
         const cut = v.op === 'cut'; const d = withNode(c.doc, node);
-        // A cut extrudes down into the body from the face; join/new extrude up from it.
+        // A cut extrudes down into the body from the face; join/new extrude up from it. A revolve turns
+        // the profile about the sketch axis (the sketch plane is lifted onto the face afterwards).
         const height = Number(v.h); const from = cut ? planeZ - height : planeZ;
-        let e = withNode(d, { kind: 'extrude', sketch: d.nodes.length - 1, height, ...(from ? { from } : {}) });
+        let e = String(v.make).startsWith('revolve')
+          ? withNode(d, { kind: 'revolve', sketch: d.nodes.length - 1, axis: v.make === 'revolve-x' ? 'x' : 'y', angleDegrees: Number(v.deg) })
+          : withNode(d, { kind: 'extrude', sketch: d.nodes.length - 1, height, ...(from ? { from } : {}) });
+        if (String(v.make).startsWith('revolve') && planeZ) e = withNode(e, { kind: 'translate', parent: { node: e.nodes.length - 1, side: 'solid' }, offset: [0, 0, planeZ] });
         const tool = { node: e.nodes.length - 1, side: 'solid' as const };
         if (base && v.op === 'join') e = withNode(e, { kind: 'union', left: base as { node: number; side: 'solid' }, right: tool });
         if (base && cut) e = withNode(e, { kind: 'difference', parent: base as { node: number; side: 'solid' }, tool });
@@ -422,7 +427,7 @@ export function App() {
 }
 
 function iconFor(n: ModelNode) {
-  return ({ extrude: 'height', hole: 'radio_button_checked', chamfer: 'change_history', fillet: 'rounded_corner', union: 'join_full', difference: 'join_left', intersect: 'join_inner',
+  return ({ extrude: 'height', revolve: 'autorenew', hole: 'radio_button_checked', chamfer: 'change_history', fillet: 'rounded_corner', union: 'join_full', difference: 'join_left', intersect: 'join_inner',
     translate: 'open_with', rotate: '3d_rotation', mirror: 'flip', scale: 'open_in_full', 'linear-pattern': 'view_week', 'circular-pattern': 'motion_photos_on', split: 'vertical_split', sketch: 'draw' } as Record<string, string>)[n.kind] ?? 'category';
 }
 
@@ -434,7 +439,7 @@ function NodeEditor({ node, onApply, onClose }: { node: ModelNode; onApply(n: Mo
   if ('height' in draft) fields.push({ label: 'Distance', get: n => num((n as { height: number }).height), set: (n, v) => ({ ...n, height: v }) as ModelNode });
   if ('from' in draft) fields.push({ label: 'Start Z', get: n => num((n as { from: number }).from), set: (n, v) => ({ ...n, from: v }) as ModelNode });
   if (draft.kind === 'fillet') fields.push({ label: 'Radius', get: n => num((n as { radius: number }).radius), set: (n, v) => ({ ...n, radius: v }) as ModelNode });
-  if (draft.kind === 'rotate') fields.push({ label: 'Angle °', get: n => num((n as { angleDegrees: number }).angleDegrees), set: (n, v) => ({ ...n, angleDegrees: v }) as ModelNode });
+  if (draft.kind === 'rotate' || draft.kind === 'revolve') fields.push({ label: 'Angle °', get: n => num((n as { angleDegrees: number }).angleDegrees), set: (n, v) => ({ ...n, angleDegrees: v }) as ModelNode });
   if ('radius' in draft && draft.kind === 'hole') fields.push({ label: 'Diameter', get: n => num((n as { radius: number }).radius) * 2, set: (n, v) => ({ ...n, radius: v / 2 }) as ModelNode });
   if ('center' in draft && draft.kind === 'hole') ['X', 'Y'].forEach((a, k) => fields.push({ label: 'Centre ' + a, get: n => num((n as { center: number[] }).center[k]), set: (n, v) => { const c = [...(n as { center: number[] }).center]; c[k] = v; return { ...n, center: c } as ModelNode; } }));
   if ('distance' in draft) fields.push({ label: 'Distance', get: n => num((n as { distance: number }).distance), set: (n, v) => ({ ...n, distance: v }) as ModelNode });

@@ -154,7 +154,8 @@ export const commands: Command[] = [
   },
   { id: 'shell', label: 'Shell', icon: 'inventory_2', group: 'modify', keywords: 'hollow wall thickness', available: notYet('Shell') },
   { id: 'draft', label: 'Draft', icon: 'signal_cellular_0_bar', group: 'modify', keywords: 'taper angle', available: notYet('Draft') },
-  { id: 'revolve', label: 'Revolve', icon: 'autorenew', group: 'create', keywords: 'lathe turn', available: notYet('Revolve to solid') },
+  // Sketch a profile beside the axis; finishing it offers the revolve (about the sketch's Y axis by default).
+  { id: 'revolve', label: 'Revolve', icon: 'autorenew', group: 'create', keywords: 'lathe turn torus ring', available: () => ok, action: 'sketch' },
   { id: 'loft', label: 'Loft', icon: 'filter_list', group: 'create', keywords: 'blend sections', available: notYet('Loft to solid') },
   {
     id: 'move', label: 'Move', icon: 'open_with', shortcut: 'G', group: 'modify', keywords: 'translate position',
