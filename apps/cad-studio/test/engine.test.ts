@@ -145,7 +145,7 @@ test('a side hole drilled across a round boss (quartic trims) and through a plat
   assert.ok(t.bodies[0].volumeMM3! < 8000);
 });
 
-test('revolve: a circle sketch turns into a torus, cut by a box; a profile on the axis is refused plainly', () => {
+test('revolve: a circle sketch turns into a torus, cut by a box; a profile along the axis is solid, one across it refused', () => {
   let doc = withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [20, 10], radius: 4 });
   doc = withNode(doc, { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 360 });
   const r = evaluateDoc(doc, 1);
@@ -166,9 +166,22 @@ test('revolve: a circle sketch turns into a torus, cut by a box; a profile on th
   assert.ok(Math.abs(cut.bodies[0].volumeMM3! - torus / 2) < 3e-3 * torus, String(cut.bodies[0].volumeMM3));
   assert.ok(cut.bodies[0].mesh.faces.some(f => f.kind === 'plane'), 'the cut leaves flat faces');
   assert.equal(featureLabel(doc.nodes[1], 1, doc.nodes), 'Revolve 360°');
+  // A half disc beside the axis turns into a sphere (poles), which a box then cuts.
+  let ball = withNode(emptyDoc(), { kind: 'sketch', profile: 'loop', segments: [{ kind: 'arc', start: [0, -6], center: [0, 0], direction: 'ccw' }, { kind: 'line', start: [0, 6] }] });
+  ball = withNode(ball, { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 360 });
+  const sphere = evaluateDoc(ball, 5);
+  assert.ok(sphere.ok && Math.abs(sphere.bodies[0].volumeMM3! - 288 * Math.PI) < 1e-9 * 288 * Math.PI, JSON.stringify(sphere.ok ? sphere.bodies[0].volumeMM3 : sphere.error));
+  ball = withNode(ball, { kind: 'sketch', profile: 'rectangle', min: [-10, -10], max: [10, 10] });
+  ball = withNode(ball, { kind: 'extrude', sketch: 2, height: 10, from: 3 });
+  ball = withNode(ball, { kind: 'difference', parent: { node: 1, side: 'solid' }, tool: { node: 3, side: 'solid' } });
+  const capped = evaluateDoc(ball, 6), cap = Math.PI * 9 * (18 - 3) / 3;
+  assert.ok(capped.ok && Math.abs(capped.bodies[0].volumeMM3! - (288 * Math.PI - cap)) < 3e-3 * 288 * Math.PI, JSON.stringify(capped.ok ? capped.bodies[0].volumeMM3 : capped.error));
+  // A profile along the axis turns into a solid (a cylinder with disc ends); one across it is refused.
   const onAxis = evaluateDoc(withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [5, 5] }), { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 360 }), 3);
-  assert.equal(onAxis.ok, false);
-  if (!onAxis.ok) assert.match(onAxis.error.title, /revolve axis/);
+  assert.ok(onAxis.ok && Math.abs(onAxis.bodies[0].volumeMM3! - Math.PI * 125) < 1e-9 * Math.PI * 125, JSON.stringify(onAxis.ok ? onAxis.bodies[0].volumeMM3 : onAxis.error));
+  const across = evaluateDoc(withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [-2, 0], max: [5, 5] }), { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 360 }), 4);
+  assert.equal(across.ok, false);
+  if (!across.ok) assert.match(across.error.title, /can’t turn about this axis/);
 });
 
 test('a slot sketch extrudes as one line + arc body with two curved faces and exact mass', async () => {
