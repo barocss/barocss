@@ -148,7 +148,10 @@ export function intersectPatches(A: Patch, B: Patch, options: {
             const m = (lo + hi) / 2, g = add(x, scale(sub(next.x, x), m)), r = onBoth(A, B, project(A, g, pa), project(B, g, pb), { o: g, n: t });
             if (r && inside(A, r.pa) && inside(B, r.pb)) { lo = m; last = r; } else hi = m;
           }
-          if (len(sub(last.x, x)) > tol) { pts.push(last.x); uvA.push(last.pa); uvB.push(last.pb); tans.push(scale(unit(cross(normalOf(A, last.pa), normalOf(B, last.pb))), dir)); }
+          // The end lies exactly on the edge: a point closer than the step tolerance replaces the last one.
+          const endTan = scale(unit(cross(normalOf(A, last.pa), normalOf(B, last.pb))), dir);
+          if (len(sub(last.x, x)) > tol) { pts.push(last.x); uvA.push(last.pa); uvB.push(last.pb); tans.push(endTan); }
+          else if (last.x !== x) { pts[pts.length - 1] = last.x; uvA[uvA.length - 1] = last.pa; uvB[uvB.length - 1] = last.pb; tans[tans.length - 1] = endTan; }
           break;
         }
         // Closing on the start.

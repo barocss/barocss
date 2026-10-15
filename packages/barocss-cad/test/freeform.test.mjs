@@ -118,8 +118,15 @@ test('freeform Booleans: tori and cones against planes, cylinders and each other
   }
   // Union and intersection of the crossed tori add up to both tori.
   assert.ok(near(volumes.get('torus ∪ crossed torus') + volumes.get('torus ∩ crossed torus'), 2 * TORUS, 2e-3));
-  // Seams of the two inputs crossing in one plane (edges of both meeting at a point) are refused.
-  assert.throws(() => booleanAnalytic(torus(), transformBrep(torus('u'), { matrix: [1, 0, 0, 0, 0, -1, 0, 1, 0], offset: [3, 0, 0] }), 'intersection'), e => e instanceof BrepError && /touch along an edge or at a vertex/.test(e.message));
+  // Seams of the two inputs crossing in one plane (edges of both meeting the intersection at one point).
+  const seams = transformBrep(torus('u'), { matrix: [1, 0, 0, 0, 0, -1, 0, 1, 0], offset: [3, 0, 0] }), vol = {};
+  for (const op of ['intersection', 'difference', 'union']) {
+    const r = booleanAnalytic(torus(), seams, op), report = checkBrep(r);
+    assert.equal(report.valid, true, `seams crossing, ${op}: ${report.issues}`);
+    assert.ok(mesh(r, 16).watertight, `seams crossing, ${op}: watertight`);
+    vol[op] = brepMassProperties(r, 1000, { segmentsPerQuarter: 32 }).volumeMM3;
+  }
+  assert.ok(near(vol.intersection + vol.difference, TORUS, 2e-3) && near(vol.intersection + vol.union, 2 * TORUS, 2e-3), JSON.stringify(vol));
 });
 
 test('part model: a revolved body is curved, keeps its closed-form mass and takes Booleans', () => {
