@@ -574,3 +574,7 @@ export { booleanPolygons, planarArrangementCounts, PlanarArrangementError } from
 export type { PolygonWithHoles, PlanarBooleanOperation } from './planar-arrangement.js';
 export { booleanPolyhedra } from './polyhedral-boolean.js';
 export type { PolyhedralBooleanOperation } from './polyhedral-boolean.js';
+export { booleanCurveRegions, curveArrangementVertices, CurvedArrangementError, regionArea as curveRegionArea } from './curved-arrangement.js';
+export type { CurveSegment2, CurveRegion2, CurveBooleanOperation } from './curved-arrangement.js';
+export { prismaticExtrude, prismaticFromProfile, booleanPrismatic, prismaticVolume, prismaticContains, brepFromPrismatic, PrismaticSolidError } from './prismatic-solid.js';
+export type { PrismaticSolid, PrismaticSlab, PrismaticBooleanOperation } from './prismatic-solid.js';
