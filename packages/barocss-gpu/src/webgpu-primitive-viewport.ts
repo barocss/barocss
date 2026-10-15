@@ -280,10 +280,14 @@ class BackendViewport implements PrimitiveBackendViewport {
     let result: T | undefined, original: unknown, failed = false;
     try { result = await operation(); } catch (cause) { failed = true; original = cause; }
     const errors: ({ message: string } | null)[] = [];
-    for (let index = 0; index < 3; index++) {
-      try { errors.push(await bounded(device.popErrorScope(), 'Device error scope')); }
-      catch (cause) { if (!failed) { failed = true; original = cause; } }
-    }
+    // Pop all three scopes now (LIFO) and wait for them under one shared deadline, not 3 × 10 s.
+    const pops = [0, 1, 2].map(() => device.popErrorScope());
+    try {
+      for (const settled of await bounded(Promise.allSettled(pops), 'Device error scope')) {
+        if (settled.status === 'fulfilled') errors.push(settled.value);
+        else if (!failed) { failed = true; original = settled.reason; }
+      }
+    } catch (cause) { if (!failed) { failed = true; original = cause; } }
     if (failed) throw original;
     const actual = errors.find(error => error !== null);
     if (actual) throw wrap('RENDER', 'Actual GPU error: ' + actual.message, actual);

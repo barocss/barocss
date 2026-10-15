@@ -8,6 +8,7 @@ import type { PrimitiveSceneRef } from './primitive-scene-renderer.js';
 import type { UpdateResult } from './renderer.js';
 import type { GPUBufferHandle, GPUTextureHandle, GPUPipelineHandle, GPUDeviceHandle,
   GPUPlatformHandle, GPUCanvasHandle } from './webgpu-platform.js';
+import { webgpuViewportCanvasClaims as claims } from './webgpu-canvas-claims.js';
 
 export interface MultiSurfaceWebGPUViewport {
   readonly canvas: HTMLCanvasElement;
@@ -22,7 +23,6 @@ export interface MultiSurfaceWebGPUViewport {
   dispose(): void;
 }
 
-const claims = new WeakSet<HTMLCanvasElement>();
 const WAIT_MS = 10000, COPY_DST = 8, VERTEX = 32, INDEX = 16, UNIFORM = 64, MAP_READ = 1;
 const TEXTURE_COPY_SRC = 1, TEXTURE_COPY_DST = 2, RENDER_ATTACHMENT = 16;
 const requirements: MultiSurfaceWebGPULimits = {
@@ -386,7 +386,7 @@ export async function mountMultiSurfaceWebGPUViewport(canvas: HTMLCanvasElement,
   const dimensions = validateMultiSurfaceWebGPUOptions(options);
   const prepared = prepareMultiSurfaceWebGPUFrame(input, dimensions.width, dimensions.height);
   if (typeof HTMLCanvasElement === 'undefined' || !(canvas instanceof HTMLCanvasElement)) fail('INPUT', 'Actual current-realm HTMLCanvasElement required');
-  if (claims.has(canvas)) fail('STATE', 'Canvas already claimed by this WebGPU route');
+  if (claims.has(canvas)) fail('STATE', 'Canvas already claimed by a WebGPU viewport');
   const oldWidth = canvas.width, oldHeight = canvas.height;
   claims.add(canvas);
   let device: GPUDeviceHandle | null = null, context: GPUCanvasHandle | null = null, viewport: MultiSurfaceViewport | null = null;

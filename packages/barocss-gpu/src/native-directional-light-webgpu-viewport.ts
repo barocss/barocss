@@ -11,6 +11,7 @@ import { NativeDirectionalLightWebGPUError } from './native-directional-light-we
 import type { NativeDirectionalLightWebGPUDiagnosticCode, NativeDirectionalLightWebGPUOptions,
   NativeDirectionalLightWebGPULimits, NativeDirectionalLightWebGPUStatus, NativeDirectionalLightWebGPUPick,
   NativeDirectionalLightWebGPUViewport } from './native-directional-light-webgpu-frame.js';
+import { webgpuViewportCanvasClaims as claims } from './webgpu-canvas-claims.js';
 
 function reflect<T>(action: () => T): T {
   try { return action(); } catch (cause) { throw new NativeDirectionalLightWebGPUError('INPUT', 'Own data reflection refused', cause); }
@@ -67,7 +68,6 @@ function assertCandidateLimits(candidate: PreparedNativeDirectionalLightWebGPUFr
   }
 }
 
-const claims = new WeakSet<HTMLCanvasElement>();
 const WAIT_MS = 10000, COPY_DST = 8, VERTEX = 32, INDEX = 16, UNIFORM = 64, MAP_READ = 1;
 const TEXTURE_COPY_SRC = 1, TEXTURE_COPY_DST = 2, RENDER_ATTACHMENT = 16;
 // Render-target cost is rgba8unorm(8) + r32uint(4), distinct from packed storage(4+4).
@@ -491,7 +491,7 @@ export async function mountNativeDirectionalLightWebGPUViewport(canvas: HTMLCanv
   const dimensions = validateNativeDirectionalLightWebGPUOptions(options);
   const prepared = prepare(input, dimensions.width, dimensions.height);
   if (typeof HTMLCanvasElement === 'undefined' || !(canvas instanceof HTMLCanvasElement)) fail('INPUT', 'Actual current-realm HTMLCanvasElement required');
-  if (claims.has(canvas)) fail('STATE', 'Canvas already claimed by this WebGPU route');
+  if (claims.has(canvas)) fail('STATE', 'Canvas already claimed by a WebGPU viewport');
   const oldWidth = canvas.width, oldHeight = canvas.height;
   claims.add(canvas);
   let device: GPUDeviceHandle | null = null, context: GPUCanvasHandle | null = null, viewport: NativeDirectionalViewport | null = null;

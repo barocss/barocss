@@ -10,7 +10,9 @@ struct Draw { world: mat4x4<f32>, color: vec4<f32> }
 struct VertexOut { @builtin(position) position: vec4<f32> }
 @vertex fn vertexMain(@location(0) position: vec3<f32>) -> VertexOut {
   var out: VertexOut;
-  out.position = camera.projection * camera.view * draw.world * vec4<f32>(position, 1.0);
+  // The shared camera projection is OpenGL-style (clip z in -w..w); WebGPU clips z to 0..w.
+  let clip = camera.projection * camera.view * draw.world * vec4<f32>(position, 1.0);
+  out.position = vec4<f32>(clip.xy, (clip.z + clip.w) * 0.5, clip.w);
   return out;
 }
 fn encodeSRGB(color: vec3<f32>) -> vec3<f32> {

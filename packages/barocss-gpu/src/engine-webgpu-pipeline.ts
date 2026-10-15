@@ -36,7 +36,7 @@ export async function createEngineWebGPUPipeline(
       attributes: [{ shaderLocation: 0, format: 'float32x3', offset: 0 }],
     }] },
     fragment: { module, entryPoint: 'fragmentMain', targets: [{ format }] },
-    primitive: { topology: 'triangle-list', frontFace: 'ccw', cullMode: 'none' },
+    primitive: { topology: 'triangle-list', frontFace: 'ccw', cullMode: 'back' }, // same as the WebGL EngineScene path
     depthStencil: { format: 'depth24plus', depthWriteEnabled: true, depthCompare: 'less' },
     multisample: { count: 1 },
   }), 'pipeline creation');
