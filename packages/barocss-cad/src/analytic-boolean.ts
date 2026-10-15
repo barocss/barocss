@@ -381,10 +381,16 @@ function intervals(f: GFace, k: Probe, tol: number): [number, number][] {
   } else {
     const e2 = cross(k.n, k.e1); at = t => add(k.c, add(scale(k.e1, k.r * Math.cos(t)), scale(e2, k.r * Math.sin(t))));
     param = x => { const d = sub(x, k.c); let t = Math.atan2(dot(d, e2), dot(d, k.e1)); while (t < k.lo) t += TWO_PI; while (t >= k.lo + TWO_PI) t -= TWO_PI; return t; };
-    const arc: Curve3 = { kind: 'arc', c: k.c, n: k.n, r: k.r, u: unit(sub(at(k.lo), k.c)), sweep: Math.PI };
-    const arc2: Curve3 = { ...arc, u: unit(sub(at(k.lo + Math.PI), k.c)) };
+    // On a cylinder the probe's halves end a quarter turn either side of the face's centre: a point on
+    // the domain's seam (θ = ref ± π) maps to either side of it, and a half starting there could land on
+    // the wrong side whole (missing where the circle crosses the face).
+    let s0 = k.lo;
+    if (f.surf.kind === 'cylinder') { const c = f.surf; s0 = param(add(k.c, add(scale(c.e1, Math.cos(c.ref)), scale(c.e2, Math.sin(c.ref))))) - Math.PI / 2; }
+    const norm = (t: number) => { while (t < k.lo) t += TWO_PI; while (t >= k.lo + TWO_PI) t -= TWO_PI; return t; };
+    const arc: Curve3 = { kind: 'arc', c: k.c, n: k.n, r: k.r, u: unit(sub(at(s0), k.c)), sweep: Math.PI };
+    const arc2: Curve3 = { ...arc, u: unit(sub(at(s0 + Math.PI), k.c)) };
     probe = [curve2(f, arc, tol), curve2(f, arc2, tol)];
-    params.push(k.lo, k.lo + Math.PI, k.lo + TWO_PI);
+    params.push(k.lo, norm(s0), norm(s0 + Math.PI), k.lo + TWO_PI);
   }
   const rings = [f.region.outer, ...f.region.holes];
   for (const pr of probe) for (const ring of rings) for (const g of ring) for (const x of intersectSegments(pr, g, tol)) params.push(param(to3(f, x)));
@@ -878,7 +884,9 @@ function stitch(pieces: Piece[], id: string, tol: number): Brep {
   const edges: { id: string; k: Curve3; v: [number, number]; mid: P3 }[] = [], between = new Map<string, number[]>();
   const edgeOf = (k: Curve3, a: number, b: number) => {
     const mid = midOf(k), key = Math.min(a, b) + ':' + Math.max(a, b), list = between.get(key) ?? [];
-    let e = list.find(i => len(sub(edges[i].mid, mid)) <= 10 * tol);
+    // The same curve from either face: a parametric piece's midpoint depends on the face that
+    // parametrized it, so it is looked for on the other copy rather than compared.
+    let e = list.find(i => len(sub(edges[i].mid, mid)) <= 10 * tol || onCurve(edges[i].k, mid, 10 * tol) !== null);
     if (e === undefined) { e = edges.length; edges.push({ id: `${id}_e${e}`, k, v: [a, b], mid }); list.push(e); between.set(key, list); }
     return { edge: edges[e].id, sense: (edges[e].v[0] === a ? 'forward' : 'reversed') as 'forward' | 'reversed', index: e };
   };

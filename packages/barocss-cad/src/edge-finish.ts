@@ -112,6 +112,11 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
     });
     cornerTools.push(cornerTool(V, C, outs, size, id));
   }
+  // Corner blends at both ends of one edge must leave some of it between them.
+  for (const [eid, [t0, t1]] of trims) {
+    const e = body.edges.find(x => x.id === eid)!, [E0, E1] = ends(e), L = len(sub(E1.x, E0.x));
+    if (t0 + t1 >= L - tol) refuse('PARAMETER', `edge ${e.name}: a fillet of ${size} mm is too large (the corners at its ends need ${+(t0 + t1).toFixed(6)} mm of a ${+L.toFixed(6)} mm edge)`);
+  }
   for (const e of chain.values()) {
     if (skip.has(e.id)) continue;
     const uses = usesOf.get(e.id) ?? [];
