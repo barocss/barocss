@@ -145,6 +145,35 @@ test('a side hole drilled across a round boss (quartic trims) and through a plat
   assert.ok(t.bodies[0].volumeMM3! < 8000);
 });
 
+test('fillets and chamfers on any edge: a box top edge, a hole rim picked by one arc, a chamfered rim', () => {
+  const corner = (r: number) => r * r * (1 - Math.PI / 4), k = (10 - 3 * Math.PI) / (12 - 3 * Math.PI);
+  const box = rectanglePart(20, 10, 5);
+  const top = evaluateDoc(withNode(box, { kind: 'fillet', parent: { node: 1, side: 'solid' }, edges: ['n1.side0|n1.top'], radius: 2 }), 1);
+  assert.ok(top.ok, JSON.stringify(!top.ok && top.error));
+  assert.ok(Math.abs(top.bodies[0].volumeMM3! - (1000 - corner(2) * 20)) < 1e-4 * 1000, String(top.bodies[0].volumeMM3));
+  assert.ok(top.bodies[0].mesh.faces.some(f => f.kind === 'curved' && /n2\.face/.test(f.name)), 'the fillet face is named by its feature');
+  // The starter plate's hole: its rim is two arcs; either one names the whole circle.
+  const plate = starterDoc(), probe = evaluateDoc(plate, 2);
+  assert.ok(probe.ok);
+  const rim = probe.ok && probe.bodies[0].mesh.edges.find(e => !e.straight && e.names.some(n => /n1\.top/.test(n) && /n2\./.test(n)))!;
+  assert.ok(rim, 'a rim arc');
+  const base = 64 * 32 * 8 - Math.PI * 16 * 8;
+  const filleted = evaluateDoc(withNode(plate, { kind: 'fillet', parent: { node: 2, side: 'solid' }, edges: rim.names, radius: 1 }), 3);
+  assert.ok(filleted.ok, JSON.stringify(!filleted.ok && filleted.error));
+  assert.ok(Math.abs(filleted.bodies[0].volumeMM3! - (base - 2 * Math.PI * (4 + k) * corner(1))) < 1e-4 * base, String(filleted.bodies[0].volumeMM3));
+  const chamfered = evaluateDoc(withNode(plate, { kind: 'chamfer', parent: { node: 2, side: 'solid' }, edges: rim.names, distance: 1 }), 4);
+  assert.ok(chamfered.ok, JSON.stringify(!chamfered.ok && chamfered.error));
+  assert.ok(Math.abs(chamfered.bodies[0].volumeMM3! - (base - 2 * Math.PI * (4 + 1 / 3) * 0.5)) < 1e-4 * base, String(chamfered.bodies[0].volumeMM3));
+  // A fillet as large as a boss is refused in plain words.
+  let boss = withNode(rectanglePart(20, 20, 4), { kind: 'sketch', profile: 'circle', center: [10, 10], radius: 3 });
+  boss = withNode(boss, { kind: 'extrude', sketch: 2, height: 5, from: 4 });
+  boss = withNode(boss, { kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } });
+  const bossRim = (() => { const r = evaluateDoc(boss, 5); return r.ok ? r.bodies[0].mesh.edges.find(e => !e.straight && e.names.some(n => /n3\.top/.test(n)))!.names : []; })();
+  const full = evaluateDoc(withNode(boss, { kind: 'fillet', parent: { node: 4, side: 'solid' }, edges: bossRim, radius: 3 }), 6);
+  assert.equal(full.ok, false);
+  if (!full.ok) assert.match(full.error.title, /as large as the circle/);
+});
+
 test('revolve: a circle sketch turns into a torus, cut by a box; a profile along the axis is solid, one across it refused', () => {
   let doc = withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [20, 10], radius: 4 });
   doc = withNode(doc, { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 360 });

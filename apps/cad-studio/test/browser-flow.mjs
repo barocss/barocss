@@ -248,11 +248,24 @@ try {
     assert.match(await history(), /Revolve 360°/); await iso();
   });
 
+  await check('fillet a box top edge from the palette', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    const ext = (await doc()).nodes.length - 1, edge = `n${ext}.side0|n${ext}.top`;
+    assert.ok(await page.evaluate(n => window.__studioSelectEdge(n), edge), 'the edge exists');
+    await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
+    await field('Radius').fill('4'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /Fillet R4/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 20000 });
+    const d = await doc(), last = d.nodes[d.nodes.length - 1];
+    assert.equal(last.kind, 'fillet'); assert.deepEqual(last.edges, [edge]);
+    assert.match(await outliner(), /1 body/); await iso();
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await press(' '); await page.locator('.palette input').fill('shell');
     assert.match(await page.locator('.palette-list').innerText(), /isn’t available in the kernel yet/);
     await page.locator('.palette input').fill('fillet');
-    assert.match(await page.locator('.palette-list').innerText(), /Select vertical edges/);
+    assert.match(await page.locator('.palette-list').innerText(), /Select edges of one body to round/);
     await press('Escape'); await page.click('[aria-label="Toggle light or dark theme"]');
     assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'light');
   });

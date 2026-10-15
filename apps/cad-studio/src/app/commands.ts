@@ -52,7 +52,6 @@ function holeAxis(n: readonly number[]): { axis: Axis; side: 'min' | 'max' } | n
 /** A hole's centre coordinates per axis (the kernel's order). */
 const HOLE_PLANE: Record<Axis, [Axis, Axis]> = { z: ['x', 'y'], x: ['y', 'z'], y: ['x', 'z'] };
 const notYet = (what: string): Command['available'] => () => no(`${what} isn’t available in the kernel yet.`);
-const uprightReason = 'This body was turned about X or Y (or chamfered along a top edge); fillets need an upright body.';
 /** The selected edges, when they all belong to one body. */
 function edgesOfOneBody(ctx: Ctx) {
   const sel = ctx.selection.edges; if (!sel.length || sel.some(e => e.body !== sel[0].body)) return null;
@@ -125,8 +124,7 @@ export const commands: Command[] = [
     id: 'chamfer', label: 'Chamfer', icon: 'change_history', shortcut: 'C', group: 'modify', keywords: 'bevel edge',
     available: ctx => {
       const sel = edgesOfOneBody(ctx);
-      if (!sel) return no('Select straight edges of one body to chamfer (Shift-click for more).');
-      if (!sel.edges.every(e => e.straight)) return no('Chamfer works on straight edges.');
+      if (!sel) return no('Select edges of one body to chamfer (Shift-click for more).');
       return ok;
     },
     fields: () => [{ key: 'distance', label: 'Distance', kind: 'mm', min: 0.1 }],
@@ -140,9 +138,7 @@ export const commands: Command[] = [
     id: 'fillet', label: 'Fillet', icon: 'rounded_corner', shortcut: 'F', group: 'modify', keywords: 'round edge blend',
     available: ctx => {
       const sel = edgesOfOneBody(ctx);
-      if (!sel) return no('Select vertical edges of one body to round (Shift-click for more).');
-      if (!sel.edges.every(e => e.straight && e.axis === 'z')) return no('Fillets round vertical edges (corners seen from above) for now.');
-      if (sel.body.family !== 'upright') return no(uprightReason);
+      if (!sel) return no('Select edges of one body to round (Shift-click for more).');
       return ok;
     },
     fields: () => [{ key: 'radius', label: 'Radius', kind: 'mm', min: 0.1 }],

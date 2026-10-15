@@ -88,6 +88,14 @@ export function App() {
 
   // Dev/test hook: the flow test reads the accepted document.
   useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioDoc: StudioDoc }).__studioDoc = doc; }, [doc]);
+  // Dev/test hook: select an edge by its persistent name (picking a thin edge on a canvas is not reproducible).
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    (window as unknown as { __studioSelectEdge: (name: string) => boolean }).__studioSelectEdge = name => {
+      for (const [b, body] of bodies.entries()) { const i = body.mesh.edges.findIndex(e => e.names.includes(name)); if (i >= 0) { setSelection({ faces: [], edges: [{ body: b, edge: i }], bodies: [] }); return true; } }
+      return false;
+    };
+  }, [bodies]);
 
   const evaluated = useMemo(() => prefixDoc(doc, marker ?? doc.nodes.length), [doc, marker]);
 
