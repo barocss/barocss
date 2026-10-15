@@ -19,7 +19,7 @@ const rules: { test: RegExp; title: string; hint: string }[] = [
     hint: 'Use a bend radius larger than the section’s reach towards the side it bends to.' },
   { test: /shell works on bodies extruded from one section/i,
     title: 'Shell needs a plain extruded body',
-    hint: 'Shell a body made by one extrude (its edges may be rounded or chamfered first), before rotating it about X or Y or joining it to others; then add the rest.' },
+    hint: 'Shell a body made by one extrude (its edges may be rounded or chamfered, and it may be moved, turned, mirrored or scaled) before joining it to others; then add the rest.' },
   { test: /borders an open face/i,
     title: 'Round the opening after the shell',
     hint: 'An edge of the face you open is rounded or chamfered. Shell first, then finish the opening’s edges.' },
