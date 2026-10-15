@@ -108,6 +108,9 @@ export function intersectPatches(A: Patch, B: Patch, options: {
   const seeds: { pa: XY; pb: XY; x: Point }[] = [];
   for (const a of TA) for (const b of TB) {
     if (a.max[0] < b.min[0] - tol || b.max[0] < a.min[0] - tol || a.max[1] < b.min[1] - tol || b.max[1] < a.min[1] - tol || a.max[2] < b.min[2] - tol || b.max[2] < a.min[2] - tol) continue;
+    // Facets nearly parallel are a tangency or one surface twice: no curve to trace there.
+    const na = cross(sub(a.pts[1], a.pts[0]), sub(a.pts[2], a.pts[0])), nb = cross(sub(b.pts[1], b.pts[0]), sub(b.pts[2], b.pts[0]));
+    if (len(cross(na, nb)) <= 1e-4 * len(na) * len(nb)) continue;
     for (const x of triangleCrossings(a.pts, b.pts)) {
       const s = onBoth(A, B, project(A, x, a.uv[0]), project(B, x, b.uv[0]));
       if (s && len(sub(A.at(s.pa), B.at(s.pb))) <= tol && inside(A, s.pa, 1e-9) && inside(B, s.pb, 1e-9)) seeds.push(s);
@@ -117,13 +120,17 @@ export function intersectPatches(A: Patch, B: Patch, options: {
   const covered = (x: Point) => chains.some(c => c.points.some((p, i) => { if (len(sub(p, x)) <= 2 * h) return true; const q = c.points[i + 1]; if (!q) return false; const d = sub(q, p), t = Math.max(0, Math.min(1, dot(sub(x, p), d) / (dot(d, d) || 1))); return len(sub(add(p, scale(d, t)), x)) <= h; }));
   for (const seed of seeds) {
     if (covered(seed.x) || options.skip?.(seed.x)) continue;
-    if (len(cross(normalOf(A, seed.pa), normalOf(B, seed.pb))) < 1e-6) continue; // tangent contact: not traced
+    // Tangent contact (normals within about 0.006°, above the differencing noise at a domain edge): not traced.
+    if (len(cross(normalOf(A, seed.pa), normalOf(B, seed.pb))) < 1e-4) continue;
     const march = (dir: 1 | -1) => {
       const pts: Point[] = [seed.x], tans: Point[] = [], uvA: XY[] = [seed.pa], uvB: XY[] = [seed.pb];
       let closed = false;
       for (let k = 0; k < 20000; k++) {
         spend();
-        const pa = uvA[uvA.length - 1], pb = uvB[uvB.length - 1], x = pts[pts.length - 1], t = scale(unit(cross(normalOf(A, pa), normalOf(B, pb))), dir);
+        const pa = uvA[uvA.length - 1], pb = uvB[uvB.length - 1], x = pts[pts.length - 1], c = cross(normalOf(A, pa), normalOf(B, pb));
+        // The surfaces turn tangent: the curve ends here (its direction is undefined).
+        if (len(c) < 1e-4) break;
+        const t = scale(unit(c), dir);
         tans.push(t);
         // Predictor, then corrector on both surfaces and the plane through the prediction normal to t.
         let step = h, next: ReturnType<typeof onBoth> = null;

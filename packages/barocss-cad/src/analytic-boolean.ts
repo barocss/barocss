@@ -421,6 +421,31 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
         lo[0] = Math.max(lo[0], Math.min(...u)); hi[0] = Math.min(hi[0], Math.max(...u)); lo[1] = Math.max(lo[1], Math.min(...v)); hi[1] = Math.min(hi[1], Math.max(...v)); }
       return [lo, hi]; };
     const diag = Math.min(len(sub(fa.max, fa.min)), len(sub(fb.max, fb.min)));
+    // Two general faces on one surface (a torus and its copy turned about its axis) meet everywhere they
+    // overlap: each face's boundary, where it runs inside the other face, cuts that face; nothing is marched.
+    if (A.kind === 'nurbs' && B.kind === 'nurbs') {
+      const onOther = (f: GFace, g: Nurbs) => {
+        const [lo, hi] = box(f); let hits = 0;
+        for (let i = 0; i < 5; i++) for (let j = 0; j < 5; j++) {
+          const x = to3(f, [lo[0] + (hi[0] - lo[0]) * (i + 0.5) / 5, lo[1] + (hi[1] - lo[1]) * (j + 0.5) / 5]), q = nurbsParam(g, x);
+          const inner = q[0] > g.U[0] + 1e-9 * (g.U[1] - g.U[0]) && q[0] < g.U[1] - 1e-9 * (g.U[1] - g.U[0]) && q[1] > g.V[0] + 1e-9 * (g.V[1] - g.V[0]) && q[1] < g.V[1] - 1e-9 * (g.V[1] - g.V[0]);
+          if (!inner) continue;
+          if (len(sub(g.ev(q[0], q[1]), x)) > tol) return false;
+          hits++;
+        }
+        return hits > 0;
+      };
+      if (onOther(fa, B) && onOther(fb, A)) {
+        for (const [g, into] of [[fb, fa], [fa, fb]] as const) for (const ring of [g.region.outer, ...g.region.holes]) for (const seg of ring) {
+          // (A boundary only partly on it, or along that face's own boundary, adds nothing.)
+          const k = curve3Of(g, seg);
+          if (![0, 0.1, 0.3, 0.5, 0.7, 0.9, 1].every(u => offSurface(into, pointOf(k, u)) <= tol)) continue;
+          if ([0.25, 0.5, 0.75].every(u => locateInRegion(to2(into, pointOf(k, u)), into.region, 10 * tol) === 'boundary')) continue;
+          into.cuts.push(curve2(into, k, tol));
+        }
+        return;
+      }
+    }
     // An edge of a general face lying on the other surface (a seam in a cutting plane) is part of the
     // intersection as it is: a cut of the other face; the march then skips seeds on it.
     const along: Curve3[] = [];

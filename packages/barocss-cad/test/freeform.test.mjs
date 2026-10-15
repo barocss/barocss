@@ -138,3 +138,26 @@ test('part model: a revolved body is curved, keeps its closed-form mass and take
   const half = evaluateCadPart(D([ring, { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 90 }])).outputs[0];
   assert.ok(near(half.massProperties(1000).volumeMM3, TORUS / 4, 1e-12));
 });
+
+test('freeform faces on one surface: copies, turned copies and overlapping partial turns', () => {
+  const rotY = (b, deg) => { const c = Math.cos(deg * pi / 180), s = Math.sin(deg * pi / 180); return transformBrep(b, { matrix: [c, 0, s, 0, 1, 0, -s, 0, c] }); };
+  const half = id => revolveProfile({ id, profile: circle(6, 0, 2), axis: yAxis, angleDegrees: 180 });
+  const cases = [
+    ['torus ∪ its copy', torus('a'), torus('b'), 'union', TORUS],
+    ['torus ∩ its copy', torus('a'), torus('b'), 'intersection', TORUS],
+    ['torus ∪ a copy turned about its axis', torus('a'), rotY(torus('b'), 30), 'union', TORUS],
+    ['torus − a copy turned about its axis (nothing left)', torus('a'), rotY(torus('b'), 30), 'difference', 0],
+    ['half tori overlapping by a quarter: union', half('a'), rotY(half('b'), -90), 'union', TORUS * 3 / 4],
+    ['half tori overlapping by a quarter: intersection', half('a'), rotY(half('b'), -90), 'intersection', TORUS / 4],
+    ['half tori overlapping by a quarter: difference', half('a'), rotY(half('b'), -90), 'difference', TORUS / 4],
+    ['sphere ∪ a turned copy', sphere(), rotY(sphere(), 45), 'union', 4 / 3 * pi * 125],
+  ];
+  for (const [name, a, b, op, expected] of cases) {
+    const r = booleanAnalytic(a, b, op), report = checkBrep(r);
+    assert.equal(report.valid, true, `${name}: ${report.issues}`);
+    if (expected === 0) { assert.equal(r.faces.length, 0, name); continue; }
+    assert.ok(mesh(r, 16).watertight, `${name}: watertight`);
+    const v = brepMassProperties(r, 1000, { segmentsPerQuarter: 32 }).volumeMM3;
+    assert.ok(near(v, expected, 2e-3), `${name}: ${v} vs ${expected}`);
+  }
+});
