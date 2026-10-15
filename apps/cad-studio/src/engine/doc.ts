@@ -30,7 +30,7 @@ export type ModelNode = SketchNode
   /** The sketch swept along straight runs and bends (from the sketch plane up +Z). */
   | { kind: 'sweep'; sketch: number; path: ({ kind: 'straight'; length: Dim } | { kind: 'bend'; radius: Dim; angleDegrees: number; toward: 'x' | '-x' | 'y' | '-y' })[] }
   /** A ruled loft through sketches at increasing heights (each section's edges to the next one's). */
-  | { kind: 'loft'; sections: { sketch: number; z: Dim }[] }
+  | { kind: 'loft'; sections: { sketch: number; z: Dim }[]; smooth?: boolean }
   /** A body read from a STEP file (the file's text is kept in the document). */
   | { kind: 'import'; name: string; step: string }
   /** Hollowed to walls `thickness` thick, the named faces removed (none: a closed hollow). */
@@ -145,7 +145,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'split': return `Split ${node.axis.toUpperCase()}=${n(node.at)}`;
     case 'shell': return `Shell ${n(node.thickness)}`;
     case 'import': return `Import ${node.name}`;
-    case 'loft': return `Loft ${node.sections.length} sections`;
+    case 'loft': return `Loft ${node.sections.length} sections${node.smooth ? ' · smooth' : ''}`;
     case 'sweep': return `Pipe ${node.path.length === 1 ? '1 step' : `${node.path.length} steps`}`;
   }
   return `Feature ${index + 1}`;

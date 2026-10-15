@@ -197,8 +197,9 @@ export function App() {
         { key: 'bend', label: 'Pipe bend radius', kind: 'mm', min: 0.1 }, { key: 'toward', label: 'Pipe bends toward', kind: 'choice', options: [{ value: 'x', label: '+X' }, { value: '-x', label: '−X' }, { value: 'y', label: '+Y' }, { value: '-y', label: '−Y' }] },
         { key: 'top', label: 'Loft top', kind: 'choice', options: [{ value: 'scaled', label: 'Same shape' }, { value: 'circle', label: 'Circle' }, { value: 'rectangle', label: 'Rectangle' }] },
         { key: 'scale', label: 'Loft top size (%)', kind: 'count', min: 5, max: 400 },
+        { key: 'mid', label: 'Loft middle size (%)', kind: 'count', min: 0, max: 400 },
         ...(base ? [{ key: 'op', label: 'Operation', kind: 'choice' as const, options: [{ value: 'join', label: 'Join to body' }, { value: 'new', label: 'New body' }, { value: 'cut', label: 'Cut from body' }] }] : [])],
-      defaults: () => ({ make: sketch.make ?? 'extrude', h: 8, draft: 0, deg: 360, bend: 20, toward: 'x', top: 'scaled', scale: 50, ...(base ? { op: 'join' } : {}) }),
+      defaults: () => ({ make: sketch.make ?? 'extrude', h: 8, draft: 0, deg: 360, bend: 20, toward: 'x', top: 'scaled', scale: 50, mid: 0, ...(base ? { op: 'join' } : {}) }),
       build: (c, v) => {
         const cut = v.op === 'cut'; const d = withNode(c.doc, node);
         // A cut extrudes down into the body from the face; join/new extrude up from it. A revolve turns
@@ -207,8 +208,13 @@ export function App() {
         // A pipe: a run of Distance, a bend of the radius and the revolve angle (90° by default), a run again.
         // A loft: the drawn profile at the sketch plane, a top section Distance above (up, or down into the body for a cut).
         let e = v.make === 'loft'
-          ? (() => { const t = withNode(d, loftTop(node as SketchNode, v.top as 'scaled', Number(v.scale) / 100)), s = d.nodes.length - 1, z1 = cut ? planeZ - height : planeZ + height;
-            return withNode(t, { kind: 'loft', sections: cut ? [{ sketch: s + 1, z: z1 }, { sketch: s, z: planeZ }] : [{ sketch: s, z: planeZ }, { sketch: s + 1, z: z1 }] }); })()
+          ? (() => {
+            // A middle size (not 0) adds the drawn shape scaled half way up, and the loft runs smoothly through it.
+            const s = d.nodes.length - 1, z1 = cut ? planeZ - height : planeZ + height, mid = Number(v.mid) / 100;
+            let t = withNode(d, loftTop(node as SketchNode, v.top as 'scaled', Number(v.scale) / 100));
+            if (mid > 0) t = withNode(t, loftTop(node as SketchNode, 'scaled', mid));
+            const secs = [{ sketch: s, z: planeZ }, ...(mid > 0 ? [{ sketch: s + 2, z: (planeZ + z1) / 2 }] : []), { sketch: s + 1, z: z1 }];
+            return withNode(t, { kind: 'loft', sections: cut ? [...secs].reverse() : secs, ...(mid > 0 ? { smooth: true } : {}) }); })()
           : v.make === 'pipe'
           ? withNode(d, { kind: 'sweep', sketch: d.nodes.length - 1, path: [{ kind: 'straight', length: height }, { kind: 'bend', radius: Number(v.bend), angleDegrees: Number(v.deg) >= 360 ? 90 : Number(v.deg), toward: v.toward as 'x' }, { kind: 'straight', length: height }] })
           : String(v.make).startsWith('revolve')

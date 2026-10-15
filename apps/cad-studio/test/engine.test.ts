@@ -270,6 +270,18 @@ test('shell a plate with a boss on it, open at the boss top: one hollow through 
   assert.match(!ledge.ok ? ledge.error.title : '', /top, the bottom or a side/);
 });
 
+test('smooth loft: a square bulging to a wider middle and back, through three sections', () => {
+  const sq = (h: number) => ({ kind: 'sketch' as const, profile: 'rectangle' as const, min: [10 - h, 10 - h] as [number, number], max: [10 + h, 10 + h] as [number, number] });
+  let doc = withNode(withNode(withNode(emptyDoc(), sq(10)), sq(5)), sq(14));
+  doc = withNode(doc, { kind: 'loft', smooth: true, sections: [{ sketch: 0, z: 0 }, { sketch: 2, z: 6 }, { sketch: 1, z: 12 }] });
+  const r = evaluateDoc(doc, 1);
+  assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+  // More than the ruled loft through the same sections: the side bulges smoothly.
+  const ruled = evaluateDoc({ ...doc, nodes: [...doc.nodes.slice(0, -1), { kind: 'loft', sections: [{ sketch: 0, z: 0 }, { sketch: 2, z: 6 }, { sketch: 1, z: 12 }] }] }, 2);
+  assert.ok(ruled.ok && r.bodies[0].volumeMM3! > ruled.bodies[0].volumeMM3!);
+  assert.equal(featureLabel(doc.nodes[3], 3, doc.nodes), 'Loft 3 sections · smooth');
+});
+
 test('shell a revolved cup open at the top: exact, its walls 2 thick', () => {
   let doc = withNode(emptyDoc(), { kind: 'sketch', profile: 'polygon', points: [[0, 0], [20, 0], [20, 30], [0, 30]] });
   doc = withNode(doc, { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 360 });
