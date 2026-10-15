@@ -28,16 +28,23 @@ export function solveHomogeneousBernsteinEquation(e:HomogeneousBernsteinEquation
   const measure=(t:number)=>bernstein(e,t,label);
   // Keep the original638 quadratic arithmetic and ordering policy.
   if(e.bernstein.every(x=>x>0)||e.bernstein.every(x=>x<0)){e.exclusionPolicy='strict-Bernstein-sign-control-hull-exclusion';return[];}
-  if(e.degree==='zero'||e.degree==='constant')return[];const [a,b,c]=e.power,estimated:number[]=[];
-  if(e.bernstein[0]===0){estimated.push(0);if(a!==0)estimated.push(finite(-b/a));}
-  else if(e.bernstein.at(-1)===0){estimated.push(1);if(a!==0)estimated.push(finite(c/a));}
-  else if(e.degree==='linear')estimated.push(finite(-c/b));
-  else {const d=e.discriminant!;if(d < -e.uncertainty)return[];check(d>e.uncertainty,'unresolved interior tangent/discriminant ambiguity');const q=finite(-.5*(b+(b>=0?1:-1)*Math.sqrt(d)));check(q!==0,'stable quadratic root denominator not representable');estimated.push(finite(q/a),finite(c/q));}
-  for(const t of estimated)check(t!==0||e.bernstein[0]===0,'interior root rounded to quarter start');for(const t of estimated)check(t!==1||e.bernstein.at(-1)===0,'interior root rounded to quarter end');
-  const ordered=[...new Set(estimated.filter(t=>t>=0&&t<=1))].sort((x,y)=>x-y);check(ordered.length<=2,'quadratic root count');
-  return ordered.map((estimate,index)=>{if(estimate===0||estimate===1){const tangent=e.bernstein.length===3&&e.bernstein[1]===0;return{t:estimate,bracket:[estimate,estimate] as [number,number],iterations:0,touch:tangent};}
-    let lo=index>0?midpoint(ordered[index-1],estimate):0,hi=index+1<ordered.length?midpoint(estimate,ordered[index+1]):1;
-    check(lo<estimate&&estimate<hi,'distinct root ordering not representable');let fl=measure(lo),fh=measure(hi);check(fl!==0&&fh!==0&&Math.sign(fl)!==Math.sign(fh),'root bracket sign/order unresolved');const sign=Math.sign(fl);let iterations=0;
+  if(e.degree==='zero'||e.degree==='constant')return[];
+  // Bracket-based isolation (no closed-form estimate is filtered, so a root that rounds just past 0 or 1
+  // cannot vanish): split [0,1] at the quadratic's vertex, where f is monotone on each piece, and refine
+  // every piece whose end values change sign. Endpoint zeros are exact roots of the coefficients.
+  const [a,b]=e.power,f0=e.bernstein[0],fN=e.bernstein.at(-1)!,quadratic=e.degree==='quadratic';
+  if(quadratic&&f0!==0&&fN!==0){const d=e.discriminant!;if(d < -e.uncertainty)return[];check(d>e.uncertainty,'unresolved interior tangent/discriminant ambiguity');}
+  const vertex=quadratic?finite(-b/(2*a)):Number.NaN,cuts=[0,...(vertex>0&&vertex<1?[vertex]:[]),1];
+  const endpoint=(t:0|1):HomogeneousBernsteinRoot=>({t,bracket:[t,t],iterations:0,touch:e.bernstein.length===3&&e.bernstein[1]===0});
+  const roots:HomogeneousBernsteinRoot[]=[];if(f0===0)roots.push(endpoint(0));
+  for(let k=0;k+1<cuts.length;k++){
+    let lo=cuts[k],hi=cuts[k+1],fl=lo===0?f0:measure(lo),fh=hi===1?fN:measure(hi);
+    check(!(lo===vertex&&lo>0&&fl===0)&&!(hi===vertex&&hi<1&&fh===0),'unresolved interior tangent/discriminant ambiguity');
+    if(fl===0||fh===0||Math.sign(fl)===Math.sign(fh))continue;
+    const sign=Math.sign(fl);let iterations=0;
     while(hi-lo>WIDTH&&iterations<64){const mid=midpoint(lo,hi);check(mid>lo&&mid<hi,'root midpoint not representable');const fm=measure(mid);if(fm===0){const left=midpoint(lo,mid),right=midpoint(mid,hi);check(left>lo&&left<mid&&right>mid&&right<hi,'zero-root bracket not representable');const l=measure(left),r=measure(right);check((l===0||Math.sign(l)===sign)&&(r===0||Math.sign(r)!==sign),'zero-root bracket order unresolved');lo=left;hi=right;fl=l;fh=r;}else if(Math.sign(fm)===sign){lo=mid;fl=fm;}else{hi=mid;fh=fm;}iterations++;}
-    check(hi-lo<=WIDTH&&lo>0&&hi<1,'root bracket width/quarter ordering unresolved');return{t:midpoint(lo,hi),bracket:[lo,hi] as [number,number],iterations,touch:false};});
+    const t=midpoint(lo,hi);check(hi-lo<=WIDTH&&lo>=0&&hi<=1&&t>0&&t<1,'root bracket width/quarter ordering unresolved');roots.push({t,bracket:[lo,hi],iterations,touch:false});
+  }
+  if(fN===0)roots.push(endpoint(1));
+  check(roots.length<=2,'quadratic root count');return roots;
 }
