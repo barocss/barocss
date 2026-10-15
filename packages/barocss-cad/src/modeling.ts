@@ -191,19 +191,20 @@ export type CadMassProperties = MassValues & (
   /** Closed-form Green's-theorem moments in binary64; no exact rational certificate. */
   | { readonly family: 'extruded-profile'; readonly details: { readonly native: ExtrudedProfileMass } }
 );
-/** Binary STL facets in authored XYZ. Units and native identity live in details, not STL metadata. */
-export interface CadStlExport {
+/** Binary STL facets in authored XYZ. Units and native identity live in details, not STL metadata. Narrow `family` before reading details. */
+export type CadStlExport = {
   readonly outputName: string;
-  readonly family: 'convex-planar' | 'extruded-profile';
   readonly format: 'binary-stl';
   readonly lengthUnit: 'mm';
   readonly bytes: readonly number[];
   readonly byteLength: number;
   readonly triangleCount: number;
   readonly maximumVertexDisplacementMM: number;
-  /** Convex outputs carry the native writer result; extruded profiles carry their chord tessellation policy. */
-  readonly details: MassReadonly<ModelingStlResult> | { readonly segmentsPerQuarter: number; readonly chordToleranceMM: number };
-}
+} & (
+  | { readonly family: 'convex-planar'; readonly details: MassReadonly<ModelingStlResult> }
+  /** Chord tessellation of the arcs; maximumVertexDisplacementMM is its chord tolerance. */
+  | { readonly family: 'extruded-profile'; readonly details: { readonly segmentsPerQuarter: number; readonly chordToleranceMM: number } }
+);
 export interface CadModelSnapshot {
   /** Deep-frozen tagged bodies; native source/topology/certificates remain authoritative. */
   readonly bodies: Readonly<Record<string, CadBody>>;

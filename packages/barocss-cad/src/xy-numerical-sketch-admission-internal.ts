@@ -74,7 +74,7 @@ export function admit(input: unknown): XYNumericalSketchDocumentV0 {
   const ref = (v: unknown, set: Set<string>, p: string) => { const s = identifier(v, p); check(set.has(s), 'REFERENCE', 'Unresolved reference #' + s, p); return s; };
   const points = list(d.points, 2, 16, '$.points').map((v, i) => { const p = '$.points[' + i + ']', a = record(v, ['id', 'position'], p); return { id: unique(a.id, p), position: xy(a.position, p) }; });
   const pointIds = new Set(points.map(p => p.id));
-  const segments = list(d.segments, 1, 8, '$.segments').map((v, i) => {
+  const segments = list(d.segments, 1, 16, '$.segments').map((v, i) => {
     const p = '$.segments[' + i + ']', a = record(v, ['id', 'startPointId', 'endPointId'], p);
     const startPointId = ref(a.startPointId, pointIds, p), endPointId = ref(a.endPointId, pointIds, p);
     check(startPointId !== endPointId, 'REFERENCE', 'Distinct endpoint IDs required', p);
@@ -84,7 +84,7 @@ export function admit(input: unknown): XYNumericalSketchDocumentV0 {
   const constraints = list(d.constraints, 0, 32, '$.constraints').map((v, i): XYNumericalSketchConstraint => {
     const p = '$.constraints[' + i + ']'; check(v !== null && typeof v === 'object' && !Array.isArray(v), 'INVALID_DOCUMENT', 'Constraint record required', p);
     const k = (v as Record<string, unknown>).kind;
-    const fields = k === 'fixed' ? ['pointId', 'target'] : k === 'coincident' ? ['pointA', 'pointB'] : k === 'horizontal' || k === 'vertical' ? ['segmentId'] : k === 'length' ? ['segmentId', 'lengthMM'] : k === 'signed-angle' ? ['segmentA', 'segmentB', 'angleRad'] : null;
+    const fields = k === 'fixed' ? ['pointId', 'target'] : k === 'coincident' ? ['pointA', 'pointB'] : k === 'horizontal' || k === 'vertical' ? ['segmentId'] : k === 'length' ? ['segmentId', 'lengthMM'] : k === 'signed-angle' ? ['segmentA', 'segmentB', 'angleRad'] : k === 'equal-length' ? ['segmentA', 'segmentB'] : null;
     check(fields !== null, 'UNSUPPORTED', 'Unsupported constraint kind', p);
     const a = record(v, ['id', 'kind', ...fields], p), name = unique(a.id, p);
     rows += k === 'fixed' || k === 'coincident' ? 2 : 1; check(rows <= 64, 'LIMIT', 'At most 64 scalar residuals', p);
@@ -92,6 +92,7 @@ export function admit(input: unknown): XYNumericalSketchDocumentV0 {
     if (k === 'coincident') return { id: name, kind: k, pointA: ref(a.pointA, pointIds, p), pointB: ref(a.pointB, pointIds, p) };
     if (k === 'horizontal' || k === 'vertical') return { id: name, kind: k, segmentId: ref(a.segmentId, segmentIds, p) };
     if (k === 'length') { check(typeof a.lengthMM === 'number' && a.lengthMM >= .001 && a.lengthMM <= 20000 * Math.SQRT2, 'UNSUPPORTED', 'Length must be [0.001,20000sqrt(2)] mm', p); return { id: name, kind: k, segmentId: ref(a.segmentId, segmentIds, p), lengthMM: a.lengthMM }; }
+    if (k === 'equal-length') { const segmentA = ref(a.segmentA, segmentIds, p), segmentB = ref(a.segmentB, segmentIds, p); check(segmentA !== segmentB, 'REFERENCE', 'Two distinct segments required', p); return { id: name, kind: k, segmentA, segmentB }; }
     check(typeof a.angleRad === 'number' && a.angleRad > -Math.PI && a.angleRad <= Math.PI, 'UNSUPPORTED', 'Signed angle must be (-pi,pi] radians', p);
     return { id: name, kind: 'signed-angle', segmentA: ref(a.segmentA, segmentIds, p), segmentB: ref(a.segmentB, segmentIds, p), angleRad: a.angleRad };
   });

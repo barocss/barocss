@@ -1,7 +1,7 @@
 import { check, XYNumericalSketchError } from './xy-numerical-sketch-admission-internal.js';
 import type { XYNumericalSketchDocumentV0, XYNumericalSketchPoint, XYNumericalSketchReport, XYNumericalSketchResidual } from './xy-numerical-sketch.js';
 
-export const limits = Object.freeze({ points: 16, segments: 8, constraints: 32, scalarResiduals: 64, unknowns: 32, branchGuards: 16,
+export const limits = Object.freeze({ points: 16, segments: 16, constraints: 32, scalarResiduals: 64, unknowns: 32, branchGuards: 16,
   coordinateAbsMM: 10000, minimumSegmentMM: .001, iterations: 100, evaluations: 1200 });
 export const tolerances = Object.freeze({ linearMM: 1e-7, angularRad: 1e-9, rankRelative: 1e-10 });
 export function wrap(angle: number): number { const a = Math.atan2(Math.sin(angle), Math.cos(angle)); return a === -Math.PI ? Math.PI : a; }
@@ -52,7 +52,11 @@ export function evaluate(d: XYNumericalSketchDocumentV0, x: number[]): { jacobia
   for (const c of d.constraints) {
     if (c.kind === 'fixed') { const a = point(c.pointId); for (let k = 0; k < 2; k++) add(c.id, k === 0 ? 'x' : 'y', x[a + k], c.target[k], 'mm', [[a + k, 1]]); }
     else if (c.kind === 'coincident') { const a = point(c.pointA), b = point(c.pointB); for (let k = 0; k < 2; k++) add(c.id, k === 0 ? 'dx' : 'dy', x[b + k] - x[a + k], 0, 'mm', [[b + k, 1], [a + k, -1]]); }
-    else if (c.kind === 'signed-angle') {
+    else if (c.kind === 'equal-length') {
+      const a = segment(c.segmentA), b = segment(c.segmentB), la = Math.hypot(a.dx, a.dy), lb = Math.hypot(b.dx, b.dy);
+      add(c.id, 'equal-length', la - lb, 0, 'mm', [[a.a, -a.dx / la], [a.a + 1, -a.dy / la], [a.b, a.dx / la], [a.b + 1, a.dy / la],
+        [b.a, b.dx / lb], [b.a + 1, b.dy / lb], [b.b, -b.dx / lb], [b.b + 1, -b.dy / lb]]);
+    } else if (c.kind === 'signed-angle') {
       const a = segment(c.segmentA), b = segment(c.segmentB), aa = a.dx * a.dx + a.dy * a.dy, bb = b.dx * b.dx + b.dy * b.dy;
       add(c.id, 'signed-angle', wrap(Math.atan2(b.dy, b.dx) - Math.atan2(a.dy, a.dx)), c.angleRad, 'rad',
         [[a.a, -a.dy / aa], [a.a + 1, a.dx / aa], [a.b, a.dy / aa], [a.b + 1, -a.dx / aa], [b.a, b.dy / bb], [b.a + 1, -b.dx / bb], [b.b, -b.dy / bb], [b.b + 1, b.dx / bb]]);

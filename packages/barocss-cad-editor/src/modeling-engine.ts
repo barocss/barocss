@@ -521,6 +521,7 @@ export function createModelingEngine() {
         switch (body.family) {
           case 'convex-planar': case 'stored-rational-plate-hole': return [name, body] as const;
           case 'stored-rational-circle-prism': preflightModelingCircle(body.native); return [name, body] as const;
+          case 'extruded-profile': throw new Error('Line + arc profile bodies are not displayed by this editor yet.');
           case 'orthogonal-cell': {
             const native = body.native;
             if (native.report.schema === 'barocss-orthogonal-solid-boolean' && 'left' in native) {
