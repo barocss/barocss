@@ -17,6 +17,7 @@
 // of the other solid, or inside / outside by ray parity, retried on a degenerate ray), kept by the
 // operation's rule, split at shared vertices and stitched into shells; negative shells are cavities.
 // Works in binary64 with the numeric policy's tolerance at the inputs' scale.
+import { revolutionOf, profileCrossings, onPatch, type Revolution } from './surface-revolution.js';
 import { BrepError, buildBrep, checkBrep, lineCurve, type Brep, type BrepFace } from './brep-core.js';
 import { circleOf, polesOf } from './brep-tessellate.js';
 import { booleanCurveRegions, curveFaceRegions, intersectSegments, segAt as segAtAny, locateInRegion, paramOf as paramOfCurve, regionArea, regionInteriorPoint, segIntegral, segReverse, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
@@ -43,7 +44,7 @@ type Cylinder = { kind: 'cylinder'; c: P3; a: P3; e1: P3; e2: P3; r: number; s: 
  * Any other smooth surface patch: domain coordinates (ku·u, kv·v), scaled to arc length, with ku < 0 for
  * a reversed face so loops run counter-clockwise in the domain. Points map back by Newton projection.
  */
-type Nurbs = { kind: 'nurbs'; S: Surface; ev: (u: number, v: number) => P3; ku: number; kv: number; U: [number, number]; V: [number, number]; sense: 1 | -1; grid: { p: XY; x: P3; pole?: boolean }[]; last: { p: XY }; size: number;
+type Nurbs = { kind: 'nurbs'; S: Surface; rev?: Revolution | null; ev: (u: number, v: number) => P3; ku: number; kv: number; U: [number, number]; V: [number, number]; sense: 1 | -1; grid: { p: XY; x: P3; pole?: boolean }[]; last: { p: XY }; size: number;
   /** Domain sides collapsed to a point: `along` is the free coordinate (0: x, 1: y), `at` the fixed one (scaled). */
   poles: { along: 0 | 1; at: number; point: P3 }[] };
 type Surf = Plane | Cylinder | Nurbs;
@@ -261,7 +262,7 @@ function tabulated(s: Nurbs, g: (x: number) => XY, at3: (x: number) => P3, t0: n
   };
   return x => {
     if (table === null) table = build();
-    if (table === false) return exact(x);
+    if (table === false || !(span !== 0)) return exact(x);
     const f = (x - t0) / span * N, i = Math.min(N - 1, Math.max(0, Math.floor(f))), u = f - i;
     if (u === 0) return table.p[i];
     if (i === N - 1 && u === 1) return table.p[N];
@@ -344,7 +345,7 @@ function facesOf(brep: Brep, solid: 0 | 1, tol: number): GFace[] {
 // ---- intersections ---------------------------------------------------------------------------------
 /** Parameter intervals of a curve (line: t along d from p; circle: φ from the frame's e1) inside a face. */
 type Probe = { kind: 'line'; p: P3; d: P3; lo: number; hi: number } | { kind: 'circle'; c: P3; n: P3; e1: P3; r: number; lo: number } | { kind: 'param'; at: (t: number) => P3; lo: number; hi: number };
-function intervals(f: GFace, k: Probe, tol: number): [number, number][] {
+function intervals(f: GFace, k: Probe, tol: number, strict = false): [number, number][] {
   const params: number[] = [];
   let probe: CurveSegment2[], param: (x: P3) => number, at: (t: number) => P3;
   if (k.kind === 'param') {
@@ -371,7 +372,7 @@ function intervals(f: GFace, k: Probe, tol: number): [number, number][] {
     params.push(...ranges.flat());
     const rings = [f.region.outer, ...f.region.holes];
     for (const pr of pieces) for (const ring of rings) for (const g of ring) for (const x of intersectSegments(pr, g, tol)) params.push(pr.t0 + (pr.t1 - pr.t0) * paramOfCurve(pr, x));
-    return insideIntervals(f, params, at, tol);
+    return insideIntervals(f, params, at, tol, strict);
   }
   if (k.kind === 'line') {
     at = t => add(k.p, scale(k.d, t)); param = x => dot(sub(x, k.p), k.d) / dot(k.d, k.d);
@@ -397,12 +398,15 @@ function intervals(f: GFace, k: Probe, tol: number): [number, number][] {
   return insideIntervals(f, params, at, tol);
 }
 /** Sorted parameters → the intervals between them whose middles lie in the face. */
-function insideIntervals(f: GFace, params: number[], at: (t: number) => P3, tol: number): [number, number][] {
+function insideIntervals(f: GFace, params: number[], at: (t: number) => P3, tol: number, strict = false): [number, number][] {
   params.sort((a, b) => a - b);
   const out: [number, number][] = [];
   for (let i = 0; i + 1 < params.length; i++) {
     const a = params[i], b = params[i + 1]; if (b - a <= 1e-12 * Math.max(1, Math.abs(a))) continue;
-    if (locateInRegion(to2(f, at((a + b) / 2)), f.region, tol) === 'out') continue;
+    const x = at((a + b) / 2);
+    if (locateInRegion(to2(f, x), f.region, tol) === 'out') continue;
+    // On a general patch a point off it projects onto its edge: only points on the patch count.
+    if (strict && f.surf.kind === 'nurbs' && len(sub(to3(f, to2(f, x)), x)) > 10 * tol) continue;
     if (out.length && Math.abs(out[out.length - 1][1] - a) <= 1e-12 * Math.max(1, Math.abs(a))) out[out.length - 1][1] = b; else out.push([a, b]);
   }
   return out;
@@ -472,7 +476,7 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
     // intersection as it is: a cut of the other face; the march then skips seeds on it.
     const along: Curve3[] = [];
     for (const [f, g] of [[fa, fb], [fb, fa]] as const) if (f.surf.kind === 'nurbs') for (const ring of [f.region.outer, ...f.region.holes]) for (const seg of ring) {
-      const k = curve3Of(f, seg);
+      const k = exactly(curve3Of(f, seg), tol);
       if ([0, 0.2, 0.4, 0.6, 0.8, 1].every(u => offSurface(g, pointOf(k, u)) <= tol)) { g.cuts.push(curve2(g, k, tol)); along.push(k); }
     }
     const onAlong = (x: P3) => along.some(k => onCurve(k, x, 10 * tol) !== null || len(sub(x, startOf(k))) <= 10 * tol || len(sub(x, endOf(k))) <= 10 * tol);
@@ -486,6 +490,105 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
       paramCuts(chainCurve(chain, { A: PA, B: PB }), 0, 1);
     }
   };
+  // Surfaces of revolution (cones, spheres, tori) meeting a plane square to their axis or through it,
+  // a sphere meeting any plane, and coaxial ones meeting each other: exact circles, lines and arcs.
+  /** Whether the meridian point (ρ, h) is at an end of a patch's profile. */
+  function atProfileEdge(R: Revolution, rho: number, h: number): boolean {
+    if (!R.patch) return false;
+    const pr = R.profile, P = R.patch;
+    if (pr.kind === 'line') { const L = Math.hypot(pr.q[0] - pr.p[0], pr.q[1] - pr.p[1]), s = ((rho - pr.p[0]) * (pr.q[0] - pr.p[0]) + (h - pr.p[1]) * (pr.q[1] - pr.p[1])) / (L * L); return Math.abs(s - P.s0) * L <= 10 * tol || Math.abs(s - P.s1) * L <= 10 * tol; }
+    const a = Math.atan2(h - pr.c[1], rho - pr.c[0]), near = (x: number) => Math.abs(((a - x) % TWO_PI + 3 * Math.PI) % TWO_PI - Math.PI) * pr.r <= 10 * tol;
+    return near(P.s0) || near(P.s1);
+  }
+  function revolutionCuts(): boolean {
+    const revOf = (S: Surf): Revolution | null => S.kind === 'cylinder' ? { c: S.c, a: S.a, e1: S.e1, e2: S.e2, profile: { kind: 'line', p: [S.r, -span], q: [S.r, span] } } : S.kind === 'nurbs' ? (S.rev === undefined ? (S.rev = revolutionOf(S.S, S.size + 1)) : S.rev) : null;
+    // A curve's parameter ranges on both patches of revolution (off a patch its map into the domain
+    // jumps); the faces' own intervals are found within them.
+    const onPatches = (at: (t: number) => P3, lo: number, hi: number): [number, number][] => {
+      const revs = [A, B].map(S => S.kind === 'nurbs' ? S.rev : null).filter((x): x is Revolution => !!x && !!x.patch);
+      const inside = (t: number) => revs.every(R => onPatch(R, at(t), 1e-12));
+      const N = 256, out: [number, number][] = []; let start: number | null = inside(lo) ? lo : null, prev = start !== null;
+      for (let i = 1; i <= N; i++) {
+        const t = lo + (hi - lo) * i / N, now = inside(t);
+        if (now !== prev) { let a = lo + (hi - lo) * (i - 1) / N, b = t; for (let k = 0; k < 60; k++) { const m = (a + b) / 2; if (inside(m) === prev) a = m; else b = m; } const x = (a + b) / 2; if (now) start = x; else { out.push([start!, x]); start = null; } }
+        prev = now;
+      }
+      if (start !== null) out.push([start, hi]);
+      return out.filter(([a, b]) => b - a > 1e-9 * Math.max(1, hi - lo));
+    };
+    const piece = (at: (t: number) => P3, lo: number, hi: number, make: (a: number, b: number) => Curve3) => {
+      for (const [l, h] of onPatches(at, lo, hi)) for (const [a, b] of overlaps(intervals(fa, { kind: 'param', at, lo: l, hi: h }, tol, true), intervals(fb, { kind: 'param', at, lo: l, hi: h }, tol, true))) if (len(sub(at(b), at(a))) > tol || b - a > 1e-6) addCut(make(a, b));
+    };
+    const arcAround = (centre: P3, n: P3, e1: P3, r: number) => {
+      if (r <= tol) return;
+      const e2 = cross(n, e1), at = (t: number) => add(centre, add(scale(e1, r * Math.cos(t)), scale(e2, r * Math.sin(t))));
+      piece(at, 0, TWO_PI, (a, b) => ({ kind: 'arc', c: centre, n, r, u: unit(sub(at(a), centre)), sweep: b - a }));
+    };
+    const circle = (centre: P3, n: P3, r: number) => arcAround(centre, n, unit(Math.abs(n[0]) < 0.9 ? cross([1, 0, 0], n) : cross([0, 1, 0], n)), r);
+    // A face's own edges lying on the other surface are cuts of the other (as the general path has it).
+    const edgesOn = (g: GFace, into: GFace) => {
+      for (const ring of [g.region.outer, ...g.region.holes]) for (const seg of ring) {
+        const k = exactly(curve3Of(g, seg), tol);
+        if (![0, 0.2, 0.4, 0.6, 0.8, 1].every(u => offSurface(into, pointOf(k, u)) <= tol)) continue;
+        if ([0.25, 0.5, 0.75].every(u => locateInRegion(to2(into, pointOf(k, u)), into.region, 10 * tol) === 'boundary')) continue;
+        into.cuts.push(curve2(into, k, tol));
+      }
+    };
+    const withPlane = (P: Plane, R: Revolution): boolean => {
+      const fp = P === A ? fa : fb, fr = P === A ? fb : fa;
+      const along = dot(P.n, R.a);
+      if (Math.abs(Math.abs(along) - 1) <= 1e-12) {
+        // Square to the axis: circles where the profile reaches the plane's height.
+        const h0 = dot(sub(P.o, R.c), R.a), pr = R.profile;
+        // (A circle where the profile only touches the plane — a fillet's tangent edge — is no cut.)
+        const rs = pr.kind === 'line' ? (Math.abs(pr.q[1] - pr.p[1]) < 1e-12 ? [] : [pr.p[0] + (pr.q[0] - pr.p[0]) * (h0 - pr.p[1]) / (pr.q[1] - pr.p[1])])
+          : (() => { const dh = h0 - pr.c[1], w = pr.r * pr.r - dh * dh; return w <= 4 * tol * pr.r ? [] : [pr.c[0] - Math.sqrt(w), pr.c[0] + Math.sqrt(w)]; })();
+        // A circle along the patch's own edge (its rim in the plane): that edge is the cut.
+        if (rs.some(r => atProfileEdge(R, r, h0))) edgesOn(fr, fp);
+        for (const r of rs) if (r > tol && !atProfileEdge(R, r, h0)) circle(add(R.c, scale(R.a, h0)), R.a, r);
+        return true;
+      }
+      const dAxis = dot(sub(R.c, P.o), P.n);
+      if (Math.abs(along) <= 1e-12 && Math.abs(dAxis) <= tol) {
+        // Through the axis: the profile on the two meridians in the plane.
+        const m0 = unit(cross(R.a, P.n)), pr = R.profile;
+        // A meridian along a patch's own edge (a seam in the cutting plane) is left to the general path.
+        const edgeAngle = (S: Surf) => { if (S.kind !== 'nurbs' || !S.rev?.patch) return false; const pa = S.rev.patch, th = (m: P3) => Math.atan2(dot(m, S.rev!.e2), dot(m, S.rev!.e1)), near = (x: number, y: number) => Math.abs(((x - y) % TWO_PI + 3 * Math.PI) % TWO_PI - Math.PI) < 1e-9; return [m0, scale(m0, -1)].some(m => near(th(m), pa.th0) || near(th(m), pa.th0 + pa.span)); };
+        if (edgeAngle(A) || edgeAngle(B)) return false;
+        for (const m of [m0, scale(m0, -1)]) {
+          const pt = (rho: number, h: number): P3 => add(R.c, add(scale(R.a, h), scale(m, rho)));
+          if (pr.kind === 'line') { const at = (t: number) => pt(pr.p[0] + (pr.q[0] - pr.p[0]) * t, pr.p[1] + (pr.q[1] - pr.p[1]) * t); piece(at, -0.01, 1.01, (a, b) => ({ kind: 'line', p: at(a), q: at(b) })); }
+          else {
+            // The arc in the plane: about its centre, CCW about the normal m × a.
+            arcAround(pt(pr.c[0], pr.c[1]), unit(cross(m, R.a)), m, pr.r);
+          }
+        }
+        return true;
+      }
+      // A sphere and any plane: a circle.
+      if (R.profile.kind === 'arc' && Math.abs(R.profile.c[0]) <= tol) {
+        const C = add(R.c, scale(R.a, R.profile.c[1])), d = dot(sub(C, P.o), P.n), w = R.profile.r ** 2 - d * d;
+        if (w > tol * tol) circle(sub(C, scale(P.n, d)), P.n, Math.sqrt(w));
+        return true;
+      }
+      return false;
+    };
+    const RA = revOf(A), RB = revOf(B);
+    if (A.kind === 'plane' && RB) return withPlane(A, RB);
+    if (B.kind === 'plane' && RA) return withPlane(B, RA);
+    if (RA && RB && len(cross(RA.a, RB.a)) <= 1e-12 && len(cross(sub(RB.c, RA.c), RA.a)) <= tol) {
+      // Coaxial: circles where the profiles cross (B's profile in A's meridian coordinates).
+      const flip = dot(RA.a, RB.a) < 0 ? -1 : 1, dh = dot(sub(RB.c, RA.c), RA.a), mapB = (p: [number, number]): [number, number] => [p[0], dh + flip * p[1]];
+      const pb = RB.profile.kind === 'line' ? { kind: 'line' as const, p: mapB(RB.profile.p), q: mapB(RB.profile.q) } : { kind: 'arc' as const, c: mapB(RB.profile.c), r: RB.profile.r };
+      if (pb.kind === RA.profile.kind && (pb.kind === 'arc' ? Math.hypot(pb.c[0] - (RA.profile as typeof pb).c[0], pb.c[1] - (RA.profile as typeof pb).c[1]) <= tol && Math.abs(pb.r - (RA.profile as typeof pb).r) <= tol : false)) return false;
+      const crossings = profileCrossings(RA.profile, pb, tol), edge = ([rho, h]: [number, number]) => atProfileEdge(RA, rho, h) || atProfileEdge(RB, rho, (h - dh) * flip);
+      if (crossings.some(edge)) { edgesOn(fa, fb); edgesOn(fb, fa); }
+      for (const c of crossings) if (!edge(c)) circle(add(RA.c, scale(RA.a, c[1])), RA.a, c[0]);
+      return true;
+    }
+    return false;
+  }
+  if ((A.kind === 'nurbs' || B.kind === 'nurbs') && revolutionCuts()) return;
   if (A.kind === 'nurbs' || B.kind === 'nurbs') { march(); return; }
   if (A.kind === 'plane' && B.kind === 'plane') {
     const D = cross(A.n, B.n);
@@ -591,6 +694,24 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
 }
 
 /** Distance from x to a face's (untrimmed) surface. */
+/** A parametric curve that is a segment or a circular arc, as one (exact domain maps, fast arrangements). */
+function exactly(k: Curve3, tol: number): Curve3 {
+  if (k.kind !== 'param') return k;
+  const P = Array.from({ length: 17 }, (_, i) => paramAt(k, i / 16)), a = P[0], b = P[16], m = P[8];
+  const ab = sub(b, a), l = len(ab);
+  if (l > tol && P.every(p => len(cross(sub(p, a), ab)) / l <= tol)) return { kind: 'line', p: a, q: b };
+  // The circle through its ends and middle (a closed curve through a quarter instead).
+  const q = len(sub(b, a)) <= tol ? P[4] : b, u = sub(m, a), v = sub(q, a), n = cross(u, v), nn = dot(n, n);
+  if (nn <= tol * tol * tol * tol) return k;
+  const c = add(a, scale(add(scale(cross(n, u), dot(v, v)), scale(cross(v, n), dot(u, u))), 1 / (2 * nn))), r = len(sub(a, c));
+  if (!P.every(p => Math.abs(len(sub(p, c)) - r) <= tol && Math.abs(dot(sub(p, c), unit(n))) <= tol)) return k;
+  // CCW about the normal from the start through the curve.
+  const N = unit(n), U = unit(sub(a, c)), V = cross(N, U), ang = (p: P3) => { const d = sub(p, c); return Math.atan2(dot(d, V), dot(d, U)); };
+  let sweep = ((ang(b) % TWO_PI) + TWO_PI) % TWO_PI; const mid = ((ang(P[8]) % TWO_PI) + TWO_PI) % TWO_PI;
+  if (sweep <= tol / r || mid > sweep) sweep = len(sub(b, a)) <= tol ? TWO_PI : sweep;
+  if (mid > sweep) return k;
+  return { kind: 'arc', c, n: N, r, u: U, sweep };
+}
 function offSurface(g: { surf: Surf }, x: P3): number {
   const s = g.surf;
   if (s.kind === 'plane') return Math.abs(dot(s.n, sub(x, s.o)));
