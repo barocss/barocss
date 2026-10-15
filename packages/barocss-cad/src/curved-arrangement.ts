@@ -44,7 +44,8 @@ export const regionArea = (r: CurveRegion2) => ringArea(r.outer) + r.holes.reduc
 export function sampleRing(ring: readonly CurveSegment2[], step = Math.PI / 36): XY[] {
   return ring.flatMap(s => { const n = s.kind === 'line' ? 1 : Math.max(2, Math.ceil(Math.abs(s.sweep) / step)); return Array.from({ length: n }, (_, k) => segAt(s, k / n)); });
 }
-const pip = (p: XY, poly: readonly XY[]) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const a = poly[i], b = poly[j]; if ((a[1] > p[1]) !== (b[1] > p[1]) && p[0] < (b[0] - a[0]) * (p[1] - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; };
+/** Even–odd point in a polygon (sampled rings). */
+export const pointInPolygon = (p: XY, poly: readonly XY[]) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const a = poly[i], b = poly[j]; if ((a[1] > p[1]) !== (b[1] > p[1]) && p[0] < (b[0] - a[0]) * (p[1] - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; };
 
 /** Parameter u ∈ [0, 1] of a point known to lie on the segment's carrier (line or circle). */
 export function paramOf(s: CurveSegment2, p: XY): number {
@@ -175,7 +176,7 @@ function regions(arr: ReturnType<typeof arrange>, polygonCount: number) {
   const faceOfCycle = cycles.map((c, i) => {
     if (areas[i] > 0) return i;
     const p = points[half[c[0]].from], mine = comp(c); let best = -1, bestArea = Infinity;
-    cycles.forEach((o, k) => { if (areas[k] > 0 && comp(o) !== mine && areas[k] < bestArea && pip(p, sampled[k])) { bestArea = areas[k]; best = k; } });
+    cycles.forEach((o, k) => { if (areas[k] > 0 && comp(o) !== mine && areas[k] < bestArea && pointInPolygon(p, sampled[k])) { bestArea = areas[k]; best = k; } });
     return best;
   });
   const faceOfHalf = half.map(h => faceOfCycle[h.face]), winding = new Map<number, number[]>([[-1, Array(polygonCount).fill(0)]]), queue = [-1];
@@ -232,7 +233,7 @@ export function booleanCurveRegions(a: readonly (readonly CurveSegment2[])[], b:
   for (const hole of traced.filter(r => ringArea(r) <= 0)) {
     const probe = sampleRing(hole);
     let best = -1, bestArea = Infinity;
-    outers.forEach((o, k) => { const ar = ringArea(o.outer); if (ar < bestArea && probe.some(p => pip(p, o.sample)) && pip(segAt(hole[0], 0.5), o.sample)) { bestArea = ar; best = k; } });
+    outers.forEach((o, k) => { const ar = ringArea(o.outer); if (ar < bestArea && probe.some(p => pointInPolygon(p, o.sample)) && pointInPolygon(segAt(hole[0], 0.5), o.sample)) { bestArea = ar; best = k; } });
     if (best < 0) throw new CurvedArrangementError('a result hole has no enclosing ring');
     outers[best].holes.push(hole);
   }

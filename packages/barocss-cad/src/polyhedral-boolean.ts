@@ -19,6 +19,7 @@ import { buildBrep, checkBrep, lineCurve, BrepError, type Brep } from './brep-co
 import { arrangementRegions, exactPoint2, exactToXY, type ExactPoint2 } from './planar-arrangement.js';
 import { triangulatePolygonWithHoles } from './brep-tessellate.js';
 import { nameEdges } from './prismatic-solid.js';
+import { binary64Dyadic } from './dyadic.js';
 import type { Point, Surface } from './types.js';
 
 export type PolyhedralBooleanOperation = 'union' | 'intersection' | 'difference';
@@ -28,13 +29,9 @@ type Q = { n: bigint; d: bigint };
 const babs = (a: bigint) => a < 0n ? -a : a;
 const bgcd = (a: bigint, b: bigint): bigint => { a = babs(a); b = babs(b); while (b) [a, b] = [b, a % b]; return a; };
 const q = (n: bigint, d = 1n): Q => { if (d < 0n) { n = -n; d = -d; } const g = bgcd(n, d) || 1n; return { n: n / g, d: d / g }; };
-const view = new DataView(new ArrayBuffer(8));
 function qf(v: number): Q {
   if (!Number.isFinite(v)) throw new BrepError('INPUT', 'finite coordinates required');
-  if (v === 0) return { n: 0n, d: 1n };
-  view.setFloat64(0, v); const bits = view.getBigUint64(0), exp = Number((bits >> 52n) & 2047n), frac = bits & 0xfffffffffffffn;
-  const m = exp === 0 ? frac : frac | (1n << 52n), e = (exp === 0 ? 1 : exp) - 1075, s = bits >> 63n ? -m : m;
-  return e >= 0 ? { n: s << BigInt(e), d: 1n } : q(s, 1n << BigInt(-e));
+  const { m, k } = binary64Dyadic(v); return q(m, 1n << BigInt(k));
 }
 const add = (a: Q, b: Q) => q(a.n * b.d + b.n * a.d, a.d * b.d), sub = (a: Q, b: Q) => q(a.n * b.d - b.n * a.d, a.d * b.d);
 const mul = (a: Q, b: Q) => q(a.n * b.n, a.d * b.d), div = (a: Q, b: Q) => q(a.n * b.d, a.d * b.n);

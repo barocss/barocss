@@ -24,6 +24,7 @@ import { tessellateBrep } from './brep-tessellate.js';
 import { prismaticMassProperties, brepMassProperties, SolidMassError, type SolidMassProperties } from './solid-mass.js';
 import { ExtrudedProfileError, type ProfileSegmentInput } from './extruded-profile-solid.js';
 import type { Point } from './types.js';
+import { add, cross, dot, scale, sub, unit } from './vec3.js';
 
 export type CadPartDim = number | { readonly parameter: string };
 export type CadPartAxis = 'x' | 'y' | 'z';
@@ -487,13 +488,13 @@ function wedgeChamfer(solid: Solid, source: Brep, edge: Brep['edges'][number], d
   const uses = source.coedges.filter(c => c.edge === edge.id);
   if (uses.length !== 2) fail('SELECTION', `edge ${edge.name} does not join exactly two faces`);
   const faceOf = (loopId: string) => source.faces.find(f => f.loops.includes(loopId))!;
-  const P = edge.curve.controlPoints[0], Q = edge.curve.controlPoints[1], e = norm(sub(Q, P));
+  const P = edge.curve.controlPoints[0], Q = edge.curve.controlPoints[1], e = unit(sub(Q, P));
   const sides = uses.map(c => {
     const f = faceOf(c.loop), s = f.surface;
     if (!(s.degreeU === 1 && s.degreeV === 1)) fail('CAPABILITY', `edge ${edge.name}: chamfers along horizontal edges need planar faces`);
-    const [[p00, p01], [p10]] = s.controlPoints as Point[][], n0 = cross(sub(p10, p00), sub(p01, p00)), n = norm(f.sense === 'forward' ? n0 : [-n0[0], -n0[1], -n0[2]]);
+    const [[p00, p01], [p10]] = s.controlPoints as Point[][], n0 = cross(sub(p10, p00), sub(p01, p00)), n = unit(f.sense === 'forward' ? n0 : [-n0[0], -n0[1], -n0[2]]);
     const dir: Point = c.sense === 'forward' ? e : [-e[0], -e[1], -e[2]];
-    return { n, w: norm(cross(n, dir)) }; // w: into the face, perpendicular to the edge
+    return { n, w: unit(cross(n, dir)) }; // w: into the face, perpendicular to the edge
   });
   const [s1, s2] = sides, convex = dot(s2.w, s1.n) < 0;
   const corner = (X: Point) => {
@@ -508,12 +509,6 @@ function wedgeChamfer(solid: Solid, source: Brep, edge: Brep['edges'][number], d
   try { return { kind: 'brep', brep: booleanAnalytic(body, wedge, convex ? 'difference' : 'union', { id: at }) }; }
   catch (cause) { if (cause instanceof BrepError && /not supported yet/.test(cause.message)) fail('CAPABILITY', `edge ${edge.name}: the chamfer would cut a curved face at an angle (not supported yet)`); throw cause; }
 }
-const sub = (a: readonly number[], b: readonly number[]): Point => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const add = (a: readonly number[], b: readonly number[]): Point => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
-const scale = (a: readonly number[], k: number): Point => [a[0] * k, a[1] * k, a[2] * k];
-const cross = (a: readonly number[], b: readonly number[]): Point => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-const dot = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const norm = (a: readonly number[]): Point => { const l = Math.hypot(a[0], a[1], a[2]); return [a[0] / l, a[1] / l, a[2] / l]; };
 
 /** A triangular prism between triangles T0 and T1 (corresponding corners), faces pointing out. */
 function prismBrep(T0: Point[], T1: Point[], name: string): Brep {
@@ -523,7 +518,7 @@ function prismBrep(T0: Point[], T1: Point[], name: string): Brep {
   if (dot(cross(sub(b, a), sub(c, a)), sub(A, a)) > 0) { [b, c] = [c, b]; [B, C] = [C, B]; }
   const pts = [a, b, c, A, B, C];
   const faces = [[0, 1, 2], [3, 5, 4], [0, 3, 4, 1], [1, 4, 5, 2], [2, 5, 3, 0]];
-  const plane = (ids: number[]) => { const p = ids.map(i => pts[i]), n = norm(cross(sub(p[1], p[0]), sub(p[2], p[0]))), e1 = norm(sub(p[1], p[0])), e2 = cross(n, e1);
+  const plane = (ids: number[]) => { const p = ids.map(i => pts[i]), n = unit(cross(sub(p[1], p[0]), sub(p[2], p[0]))), e1 = unit(sub(p[1], p[0])), e2 = cross(n, e1);
     const uv = p.map(q => [dot(sub(q, p[0]), e1), dot(sub(q, p[0]), e2)]), u0 = Math.min(...uv.map(x => x[0])) - 1, u1 = Math.max(...uv.map(x => x[0])) + 1, v0 = Math.min(...uv.map(x => x[1])) - 1, v1 = Math.max(...uv.map(x => x[1])) + 1;
     const pt = (u: number, v: number): Point => add(p[0], add(scale(e1, u), scale(e2, v)));
     return { kind: 'surface' as const, id: 'w', degreeU: 1, degreeV: 1, knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1], controlPoints: [[pt(u0, v0), pt(u0, v1)], [pt(u1, v0), pt(u1, v1)]], weights: [[1, 1], [1, 1]] };

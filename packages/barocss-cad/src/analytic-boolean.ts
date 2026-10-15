@@ -20,18 +20,12 @@ import { nameEdges } from './prismatic-solid.js';
 import { baseName } from './polyhedral-boolean.js';
 import { evaluateCurve, evaluateSurface, curveDomain, surfaceDomain } from './math.js';
 import { linearToleranceMM } from './numeric-policy.js';
+import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
 import type { Curve, Point, Surface } from './types.js';
 
 export type AnalyticBooleanOperation = 'union' | 'intersection' | 'difference';
 
 type P3 = Point;
-const sub = (a: P3, b: P3): P3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const add = (a: P3, b: P3): P3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
-const mul = (a: P3, k: number): P3 => [a[0] * k, a[1] * k, a[2] * k];
-const dot = (a: P3, b: P3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const cross = (a: P3, b: P3): P3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-const len = (a: P3) => Math.hypot(a[0], a[1], a[2]);
-const unit = (a: P3): P3 => mul(a, 1 / (len(a) || 1));
 const TWO_PI = 2 * Math.PI;
 
 // ---- surfaces and face domains ------------------------------------------------------------------
@@ -44,10 +38,10 @@ interface GFace {
 }
 /** A 3D curve piece: a segment, or an arc about c in the plane ⊥ n from u through `sweep` (≥ 0, CCW about n). */
 type Curve3 = { kind: 'line'; p: P3; q: P3 } | { kind: 'arc'; c: P3; n: P3; r: number; u: P3; sweep: number };
-const arcAt = (k: Extract<Curve3, { kind: 'arc' }>, phi: number): P3 => add(k.c, add(mul(k.u, k.r * Math.cos(phi)), mul(cross(k.n, k.u), k.r * Math.sin(phi))));
+const arcAt = (k: Extract<Curve3, { kind: 'arc' }>, phi: number): P3 => add(k.c, add(scale(k.u, k.r * Math.cos(phi)), scale(cross(k.n, k.u), k.r * Math.sin(phi))));
 
 function canonicalFrame(axis: P3): { a: P3; e1: P3; e2: P3 } {
-  const big = [0, 1, 2].reduce((m, i) => Math.abs(axis[i]) > Math.abs(axis[m]) ? i : m, 0), a = unit(axis[big] > 0 ? axis : mul(axis, -1));
+  const big = [0, 1, 2].reduce((m, i) => Math.abs(axis[i]) > Math.abs(axis[m]) ? i : m, 0), a = unit(axis[big] > 0 ? axis : scale(axis, -1));
   let e1: P3 = [1 - a[0] * a[0], -a[0] * a[1], -a[0] * a[2]];
   if (len(e1) < 0.5) e1 = [-a[1] * a[0], 1 - a[1] * a[1], -a[1] * a[2]];
   e1 = unit(e1); return { a, e1, e2: cross(a, e1) };
@@ -62,23 +56,23 @@ function to2(f: { surf: Surf }, x: P3): XY {
 }
 function to3(f: { surf: Surf }, p: XY): P3 {
   const s = f.surf;
-  if (s.kind === 'plane') return add(s.o, add(mul(s.e1, p[0]), mul(s.e2, p[1])));
+  if (s.kind === 'plane') return add(s.o, add(scale(s.e1, p[0]), scale(s.e2, p[1])));
   const th = p[0] / (s.s * s.r);
-  return add(add(s.c, mul(s.a, p[1])), add(mul(s.e1, s.r * Math.cos(th)), mul(s.e2, s.r * Math.sin(th))));
+  return add(add(s.c, scale(s.a, p[1])), add(scale(s.e1, s.r * Math.cos(th)), scale(s.e2, s.r * Math.sin(th))));
 }
 /** Outward normal of the face's material at x. */
 function normalOut(f: GFace, x: P3): P3 {
   const s = f.surf;
-  if (s.kind === 'plane') return mul(s.n, f.out);
-  const d = sub(x, s.c), radial = unit(sub(d, mul(s.a, dot(d, s.a))));
-  return mul(radial, s.s * f.out);
+  if (s.kind === 'plane') return scale(s.n, f.out);
+  const d = sub(x, s.c), radial = unit(sub(d, scale(s.a, dot(d, s.a))));
+  return scale(radial, s.s * f.out);
 }
 
 function surfaceOf(face: BrepFace, tol: number): Surf {
   const S = face.surface, sign = face.sense === 'forward' ? 1 : -1, [u0, u1] = surfaceDomain(S).u, [v0, v1] = surfaceDomain(S).v;
   const centre = evaluateSurface(S, (u0 + u1) / 2, (v0 + v1) / 2), du = 1e-6 * (u1 - u0), dv = 1e-6 * (v1 - v0);
   const nParam = unit(cross(sub(evaluateSurface(S, (u0 + u1) / 2 + du, (v0 + v1) / 2), centre), sub(evaluateSurface(S, (u0 + u1) / 2, (v0 + v1) / 2 + dv), centre)));
-  const outward = mul(nParam, sign);
+  const outward = scale(nParam, sign);
   if (S.degreeU === 1 && S.degreeV === 1 && S.controlPoints.length === 2 && S.controlPoints[0].length === 2) {
     const [[p00], [p10]] = S.controlPoints as P3[][], e1 = unit(sub(p10, p00)), n = outward, e2 = cross(n, e1);
     const p11 = S.controlPoints[1][1] as P3;
@@ -92,7 +86,7 @@ function surfaceOf(face: BrepFace, tol: number): Surf {
     if (circle && len(axis) > 0) {
       const { a, e1, e2 } = canonicalFrame(axis), cplane = unit(cross(sub(base.controlPoints[0] as P3, circle.c), sub(base.controlPoints[2] as P3, circle.c)));
       if (Math.abs(Math.abs(dot(cplane, a)) - 1) > 1e-9) throw new BrepError('GEOMETRY', `analytic Boolean: face ${face.id} is an oblique (elliptic) extrusion`);
-      const d = sub(centre, circle.c), radial = unit(sub(d, mul(a, dot(d, a))));
+      const d = sub(centre, circle.c), radial = unit(sub(d, scale(a, dot(d, a))));
       return { kind: 'cylinder', c: circle.c, a, e1, e2, r: circle.r, s: dot(outward, radial) > 0 ? 1 : -1, ref: Math.atan2(dot(d, e2), dot(d, e1)) };
     }
   }
@@ -109,7 +103,7 @@ function curve3(c: Curve, forward: boolean): Curve3 {
   let n = unit(cross(sub(p, k.c), sub(mid, k.c)));
   if (len(cross(sub(p, k.c), sub(mid, k.c))) < 1e-12 * k.r * k.r) n = unit(cross(sub(mid, k.c), sub(q, k.c)));
   const from = forward ? p : q;
-  return { kind: 'arc', c: k.c, n: forward ? n : mul(n, -1), r: k.r, u: unit(sub(from, k.c)), sweep: total };
+  return { kind: 'arc', c: k.c, n: forward ? n : scale(n, -1), r: k.r, u: unit(sub(from, k.c)), sweep: total };
 }
 /** A 3D curve in a face's 2D domain. */
 function curve2(f: { surf: Surf }, k: Curve3, tol: number, tag?: string): CurveSegment2 {
@@ -136,14 +130,14 @@ function curve3Of(f: { surf: Surf }, g: CurveSegment2): Curve3 {
   const s = f.surf;
   if (s.kind === 'plane') {
     if (g.kind === 'line') return { kind: 'line', p: to3(f, g.a), q: to3(f, g.b) };
-    return { kind: 'arc', c: to3(f, g.c), n: mul(s.n, Math.sign(g.sweep)), r: g.r, u: unit(add(mul(s.e1, Math.cos(g.t0)), mul(s.e2, Math.sin(g.t0)))), sweep: Math.abs(g.sweep) };
+    return { kind: 'arc', c: to3(f, g.c), n: scale(s.n, Math.sign(g.sweep)), r: g.r, u: unit(add(scale(s.e1, Math.cos(g.t0)), scale(s.e2, Math.sin(g.t0)))), sweep: Math.abs(g.sweep) };
   }
   if (g.kind !== 'line') throw new BrepError('GEOMETRY', 'analytic Boolean: a curved segment in a cylinder domain');
   // Cylinder boundaries are horizontal (cross-section arcs) or vertical (generators) in (U, V); vertices
   // merged within tolerance can tilt them slightly, so the dominant direction decides.
   if (Math.abs(g.b[0] - g.a[0]) > Math.abs(g.b[1] - g.a[1])) {
-    const th0 = g.a[0] / (s.s * s.r), th1 = g.b[0] / (s.s * s.r), c = add(s.c, mul(s.a, (g.a[1] + g.b[1]) / 2));
-    return { kind: 'arc', c, n: mul(s.a, Math.sign(th1 - th0)), r: s.r, u: unit(add(mul(s.e1, Math.cos(th0)), mul(s.e2, Math.sin(th0)))), sweep: Math.abs(th1 - th0) };
+    const th0 = g.a[0] / (s.s * s.r), th1 = g.b[0] / (s.s * s.r), c = add(s.c, scale(s.a, (g.a[1] + g.b[1]) / 2));
+    return { kind: 'arc', c, n: scale(s.a, Math.sign(th1 - th0)), r: s.r, u: unit(add(scale(s.e1, Math.cos(th0)), scale(s.e2, Math.sin(th0)))), sweep: Math.abs(th1 - th0) };
   }
   const u = (g.a[0] + g.b[0]) / 2;
   return { kind: 'line', p: to3(f, [u, g.a[1]]), q: to3(f, [u, g.b[1]]) };
@@ -168,12 +162,12 @@ function intervals(f: GFace, k: { kind: 'line'; p: P3; d: P3; lo: number; hi: nu
   const params: number[] = [];
   let probe: CurveSegment2[], param: (x: P3) => number, at: (t: number) => P3;
   if (k.kind === 'line') {
-    at = t => add(k.p, mul(k.d, t)); param = x => dot(sub(x, k.p), k.d) / dot(k.d, k.d);
+    at = t => add(k.p, scale(k.d, t)); param = x => dot(sub(x, k.p), k.d) / dot(k.d, k.d);
     const a = to2(f, at(k.lo)), b = to2(f, at(k.hi));
     probe = [{ kind: 'line', a, b: f.surf.kind === 'cylinder' ? [a[0], b[1]] : b }];
     params.push(k.lo, k.hi);
   } else {
-    const e2 = cross(k.n, k.e1); at = t => add(k.c, add(mul(k.e1, k.r * Math.cos(t)), mul(e2, k.r * Math.sin(t))));
+    const e2 = cross(k.n, k.e1); at = t => add(k.c, add(scale(k.e1, k.r * Math.cos(t)), scale(e2, k.r * Math.sin(t))));
     param = x => { const d = sub(x, k.c); let t = Math.atan2(dot(d, e2), dot(d, k.e1)); while (t < k.lo) t += TWO_PI; while (t >= k.lo + TWO_PI) t -= TWO_PI; return t; };
     const arc: Curve3 = { kind: 'arc', c: k.c, n: k.n, r: k.r, u: unit(sub(at(k.lo), k.c)), sweep: Math.PI };
     const arc2: Curve3 = { ...arc, u: unit(sub(at(k.lo + Math.PI), k.c)) };
@@ -200,12 +194,12 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
   const addCut = (k: Curve3) => { fa.cuts.push(curve2(fa, k, tol)); fb.cuts.push(curve2(fb, k, tol)); };
   const lineCuts = (p: P3, d: P3) => {
     for (const [lo, hi] of overlaps(intervals(fa, { kind: 'line', p, d, lo: -span, hi: span }, tol), intervals(fb, { kind: 'line', p, d, lo: -span, hi: span }, tol)))
-      if ((hi - lo) * len(d) > tol) addCut({ kind: 'line', p: add(p, mul(d, lo)), q: add(p, mul(d, hi)) });
+      if ((hi - lo) * len(d) > tol) addCut({ kind: 'line', p: add(p, scale(d, lo)), q: add(p, scale(d, hi)) });
   };
   const circleCuts = (c: P3, n: P3, e1: P3, r: number, lo: number) => {
     const k = { kind: 'circle' as const, c, n, e1, r, lo };
     for (const [a, b] of overlaps(intervals(fa, k, tol), intervals(fb, k, tol))) if ((b - a) * r > tol) {
-      const e2 = cross(n, e1), u = unit(add(mul(e1, Math.cos(a)), mul(e2, Math.sin(a))));
+      const e2 = cross(n, e1), u = unit(add(scale(e1, Math.cos(a)), scale(e2, Math.sin(a))));
       addCut({ kind: 'arc', c, n, r, u, sweep: b - a });
     }
   };
@@ -215,7 +209,7 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
     const D = cross(A.n, B.n);
     if (len(D) < 1e-12) { if (Math.abs(dot(A.n, sub(B.o, A.o))) <= tol) { same(fb, fa); same(fa, fb); } return; }
     const det = dot(D, D), da = dot(A.n, A.o), db = dot(B.n, B.o);
-    lineCuts(mul(add(mul(cross(B.n, D), da), mul(cross(D, A.n), db)), 1 / det), unit(D));
+    lineCuts(scale(add(scale(cross(B.n, D), da), scale(cross(D, A.n), db)), 1 / det), unit(D));
     return;
   }
   if (A.kind === 'cylinder' && B.kind === 'cylinder') {
@@ -225,11 +219,11 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
       if (gap >= A.r + B.r - tol) return;
       throw new Refused('cylinders with crossing axes intersect in a curve that is neither a line nor a circle (not supported yet)');
     }
-    const d = sub(B.c, A.c), dPerp = sub(d, mul(A.a, dot(d, A.a))), D = len(dPerp);
+    const d = sub(B.c, A.c), dPerp = sub(d, scale(A.a, dot(d, A.a))), D = len(dPerp);
     if (D <= tol && Math.abs(A.r - B.r) <= tol) { same(fb, fa); same(fa, fb); return; }
     if (D <= tol || D > A.r + B.r + tol || D < Math.abs(A.r - B.r) - tol) return;
-    const x = (D * D + A.r * A.r - B.r * B.r) / (2 * D), h = Math.sqrt(Math.max(0, A.r * A.r - x * x)), ux = mul(dPerp, 1 / D), uy = cross(A.a, ux);
-    for (const sgn of h > tol ? [-1, 1] : [0]) lineCuts(add(A.c, add(mul(ux, x), mul(uy, sgn * h))), A.a);
+    const x = (D * D + A.r * A.r - B.r * B.r) / (2 * D), h = Math.sqrt(Math.max(0, A.r * A.r - x * x)), ux = scale(dPerp, 1 / D), uy = cross(A.a, ux);
+    for (const sgn of h > tol ? [-1, 1] : [0]) lineCuts(add(A.c, add(scale(ux, x), scale(uy, sgn * h))), A.a);
     return;
   }
   const [P, C] = (A.kind === 'plane' ? [A, B] : [B, A]) as [Plane, Cylinder];
@@ -237,12 +231,12 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
   if (Math.abs(along) <= 1e-12) {
     const delta = dot(P.n, sub(C.c, P.o));
     if (Math.abs(delta) > C.r + tol) return;
-    const foot = sub(C.c, mul(P.n, delta)), w = cross(C.a, P.n), h = Math.sqrt(Math.max(0, C.r * C.r - delta * delta));
-    for (const sgn of h > tol ? [-1, 1] : [0]) lineCuts(add(foot, mul(w, sgn * h)), C.a);
+    const foot = sub(C.c, scale(P.n, delta)), w = cross(C.a, P.n), h = Math.sqrt(Math.max(0, C.r * C.r - delta * delta));
+    for (const sgn of h > tol ? [-1, 1] : [0]) lineCuts(add(foot, scale(w, sgn * h)), C.a);
     return;
   }
   if (Math.abs(Math.abs(along) - 1) <= 1e-12) {
-    const h0 = (dot(P.n, P.o) - dot(P.n, C.c)) / along, centre = add(C.c, mul(C.a, h0));
+    const h0 = (dot(P.n, P.o) - dot(P.n, C.c)) / along, centre = add(C.c, scale(C.a, h0));
     circleCuts(centre, C.a, C.e1, C.r, C.ref - Math.PI);
     return;
   }
@@ -255,7 +249,7 @@ const RAYS: P3[] = [[0.5377, 0.3138, 0.7832], [-0.2961, 0.8573, 0.4213], [0.6993
 function classify(x: P3, normal: P3 | null, faces: readonly GFace[], tol: number): Where {
   if (normal) for (const g of faces) {
     if (![0, 1, 2].every(k => x[k] >= g.min[k] - 10 * tol && x[k] <= g.max[k] + 10 * tol)) continue;
-    const s = g.surf, dist = s.kind === 'plane' ? Math.abs(dot(s.n, sub(x, s.o))) : (() => { const d = sub(x, s.c); return Math.abs(len(sub(d, mul(s.a, dot(d, s.a)))) - s.r); })();
+    const s = g.surf, dist = s.kind === 'plane' ? Math.abs(dot(s.n, sub(x, s.o))) : (() => { const d = sub(x, s.c); return Math.abs(len(sub(d, scale(s.a, dot(d, s.a)))) - s.r); })();
     if (dist > 10 * tol || locateInRegion(to2(g, x), g.region, 10 * tol) === 'out') continue;
     return dot(normal, normalOut(g, x)) > 0 ? 'same' : 'opposite';
   }
@@ -267,7 +261,7 @@ function classify(x: P3, normal: P3 | null, faces: readonly GFace[], tol: number
         const den = dot(s.n, dir); if (Math.abs(den) < 1e-9) { if (Math.abs(dot(s.n, sub(x, s.o))) <= 10 * tol && locateInRegion(to2(g, x), g.region, 10 * tol) !== 'out') bad = true; continue; }
         hits.push(dot(s.n, sub(s.o, x)) / den);
       } else {
-        const w = sub(x, s.c), wp = sub(w, mul(s.a, dot(w, s.a))), dp = sub(dir, mul(s.a, dot(dir, s.a)));
+        const w = sub(x, s.c), wp = sub(w, scale(s.a, dot(w, s.a))), dp = sub(dir, scale(s.a, dot(dir, s.a)));
         const A = dot(dp, dp), B = 2 * dot(wp, dp), C = dot(wp, wp) - s.r * s.r;
         if (A < 1e-12) { if (Math.abs(C) <= 10 * tol * s.r) bad = true; continue; }
         const disc = B * B - 4 * A * C; if (disc < 0) continue;
@@ -276,7 +270,7 @@ function classify(x: P3, normal: P3 | null, faces: readonly GFace[], tol: number
       }
       for (const t of hits) {
         if (t < -10 * tol) continue;
-        const where = locateInRegion(to2(g, add(x, mul(dir, t))), g.region, 10 * tol);
+        const where = locateInRegion(to2(g, add(x, scale(dir, t))), g.region, 10 * tol);
         // A hit at the origin only matters inside the face (outside it, the ray just starts on its plane).
         if (t <= 10 * tol) { if (where !== 'out') bad = true; continue; }
         if (where === 'boundary') bad = true; else if (where === 'in') count++;
@@ -335,11 +329,11 @@ class PointSet3 {
 }
 const startOf = (k: Curve3): P3 => k.kind === 'line' ? k.p : arcAt(k, 0);
 const endOf = (k: Curve3): P3 => k.kind === 'line' ? k.q : arcAt(k, k.sweep);
-const midOf = (k: Curve3): P3 => k.kind === 'line' ? mul(add(k.p, k.q), 0.5) : arcAt(k, k.sweep / 2);
+const midOf = (k: Curve3): P3 => k.kind === 'line' ? scale(add(k.p, k.q), 0.5) : arcAt(k, k.sweep / 2);
 /** Parameter in [0, 1] of a point on the curve, or null when it is not on it (within eps). */
 function onCurve(k: Curve3, x: P3, eps: number): number | null {
-  if (k.kind === 'line') { const d = sub(k.q, k.p), t = dot(sub(x, k.p), d) / dot(d, d); return t > 0 && t < 1 && len(sub(add(k.p, mul(d, t)), x)) <= eps ? t : null; }
-  const d = sub(x, k.c), h = dot(d, k.n), inPlane = sub(d, mul(k.n, h));
+  if (k.kind === 'line') { const d = sub(k.q, k.p), t = dot(sub(x, k.p), d) / dot(d, d); return t > 0 && t < 1 && len(sub(add(k.p, scale(d, t)), x)) <= eps ? t : null; }
+  const d = sub(x, k.c), h = dot(d, k.n), inPlane = sub(d, scale(k.n, h));
   if (Math.abs(h) > eps || Math.abs(len(inPlane) - k.r) > eps) return null;
   let phi = Math.atan2(dot(inPlane, cross(k.n, k.u)), dot(inPlane, k.u)); if (phi < 0) phi += TWO_PI;
   const t = phi / k.sweep; return t > 0 && t < 1 && phi * k.r > eps && (k.sweep - phi) * k.r > eps ? t : null;
@@ -347,7 +341,7 @@ function onCurve(k: Curve3, x: P3, eps: number): number | null {
 function part(k: Curve3, t0: number, t1: number, p: P3, q: P3): Curve3 {
   if (k.kind === 'line') return { kind: 'line', p, q };
   const e2 = cross(k.n, k.u), phi = k.sweep * t0;
-  return { ...k, u: unit(add(mul(k.u, Math.cos(phi)), mul(e2, Math.sin(phi)))), sweep: k.sweep * (t1 - t0) };
+  return { ...k, u: unit(add(scale(k.u, Math.cos(phi)), scale(e2, Math.sin(phi)))), sweep: k.sweep * (t1 - t0) };
 }
 /** A curve as a NURBS edge: lines degree 1; arcs rational quadratic in spans of at most a quarter turn. */
 function nurbs(k: Curve3, id: string, p: P3, q: P3): Curve {
@@ -355,7 +349,7 @@ function nurbs(k: Curve3, id: string, p: P3, q: P3): Curve {
   const spans = Math.max(1, Math.ceil(k.sweep / (Math.PI / 2) - 1e-12)), dt = k.sweep / spans, w = Math.cos(dt / 2);
   const cp: P3[] = [p], wt = [1], knots = [0, 0, 0];
   for (let s = 0; s < spans; s++) {
-    const mid = arcAt(k, dt * (s + 0.5)), ctr = add(k.c, mul(unit(sub(mid, k.c)), k.r / w));
+    const mid = arcAt(k, dt * (s + 0.5)), ctr = add(k.c, scale(unit(sub(mid, k.c)), k.r / w));
     cp.push(ctr, s === spans - 1 ? q : arcAt(k, dt * (s + 1))); wt.push(w, 1);
     if (s < spans - 1) knots.push((s + 1) / spans, (s + 1) / spans);
   }
@@ -434,10 +428,10 @@ function stitch(pieces: Piece[], id: string, tol: number): Brep {
     }
     // An arc of the cylinder from the smallest to the largest θ (CCW about a) extruded along a: ∂u × ∂v is radial.
     const th0 = Math.min(u0, u1) / (s.s * s.r), th1 = Math.max(u0, u1) / (s.s * s.r), lo = Math.min(th0, th1), hi = Math.max(th0, th1);
-    const base: Curve3 = { kind: 'arc', c: add(s.c, mul(s.a, v0)), n: s.a, r: s.r, u: unit(add(mul(s.e1, Math.cos(lo)), mul(s.e2, Math.sin(lo)))), sweep: Math.max(hi - lo, 1e-9) };
+    const base: Curve3 = { kind: 'arc', c: add(s.c, scale(s.a, v0)), n: s.a, r: s.r, u: unit(add(scale(s.e1, Math.cos(lo)), scale(s.e2, Math.sin(lo)))), sweep: Math.max(hi - lo, 1e-9) };
     const curve = nurbs(base, `${id}_b${pi}`, arcAt(base, 0), arcAt(base, base.sweep));
     return { surface: { kind: 'surface', id: `${id}_s${pi}`, degreeU: curve.degree, degreeV: 1, knotsU: [...curve.knots], knotsV: [0, 0, 1, 1],
-      controlPoints: curve.controlPoints.map(q => [q, add(q, mul(s.a, v1 - v0))]), weights: curve.weights.map(w => [w, w]) }, sense: s.s * p.out > 0 ? 'forward' : 'reversed' };
+      controlPoints: curve.controlPoints.map(q => [q, add(q, scale(s.a, v1 - v0))]), weights: curve.weights.map(w => [w, w]) }, sense: s.s * p.out > 0 ? 'forward' : 'reversed' };
   };
   const result = buildBrep({ source: { family: 'analytic-boolean', id },
     vertices: P.map((x, i) => ({ id: `${id}_v${i}`, point: x })),

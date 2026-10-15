@@ -9,6 +9,7 @@
 import { evaluateCurve, evaluateSurface, curveDomain, surfaceDomain, validateCurve, validateSurface } from './math.js';
 import { CadNumericPolicy } from './numeric-policy.js';
 import type { Curve, Point, Surface } from './types.js';
+import { cross, dot, sub } from './vec3.js';
 
 export interface BrepVertex { readonly id: string; readonly point: Point; readonly toleranceMM: number }
 /** An edge runs along `curve` over its whole domain, from vertices[0] (domain start) to vertices[1] (domain end). */
@@ -52,9 +53,6 @@ export class BrepError extends Error {
 }
 
 const distance = (a: Point, b: Point) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
-const sub = (a: Point, b: Point): Point => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const cross = (a: Point, b: Point): Point => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-const dot = (a: Point, b: Point) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 /** ∂S/∂u × ∂S/∂v at the middle of the surface domain (central differences). */
 export function surfaceNormalAtCentre(surface: Surface): Point {
   const { u, v } = surfaceDomain(surface), um = (u[0] + u[1]) / 2, vm = (v[0] + v[1]) / 2, hu = (u[1] - u[0]) * 1e-4, hv = (v[1] - v[0]) * 1e-4;

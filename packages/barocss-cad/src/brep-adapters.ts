@@ -11,11 +11,11 @@ import type { StoredCirclePrismSolidResult } from './stored-circle-prism-solid.j
 import type { AxisBoxSolidBooleanResult } from './axis-box-boolean.js';
 import type { OrthogonalSolidBooleanResult } from './orthogonal-solid-boolean.js';
 import type { Curve, Point, Surface } from './types.js';
+import { dot } from './vec3.js';
 
 type Sense = 'forward' | 'reversed';
 const sense = (s: string): Sense => s === 'forward' ? 'forward' : 'reversed';
 const same = (a: Point, b: Point) => a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
-const dot = (a: Point, b: Point) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 /** Sense from a loop's sampled vector area (works for faces sweeping less than a full turn). */
 const senseFromLoop = (surface: Surface, uses: readonly { curve: Curve; sense: Sense }[]): Sense => dot(loopVectorArea(uses), surfaceNormalAtCentre(surface)) >= 0 ? 'forward' : 'reversed';
 /** A pcurve is kept only when it shares the edge curve's domain (the checker then verifies it lies on the edge). */

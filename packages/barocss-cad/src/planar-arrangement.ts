@@ -13,6 +13,7 @@
 //
 // Points are homogeneous integers (x, y, w), w > 0. Every point is either an input binary64 point or
 // the intersection of two input segments, so bit sizes stay bounded and every predicate is exact.
+import { binary64Dyadic } from './dyadic.js';
 
 export type XY = [number, number];
 export interface PolygonWithHoles { readonly outer: readonly XY[]; readonly holes: readonly (readonly XY[])[] }
@@ -23,16 +24,10 @@ type H = { x: bigint; y: bigint; w: bigint };
 const abs = (a: bigint) => a < 0n ? -a : a;
 const gcd = (a: bigint, b: bigint): bigint => { a = abs(a); b = abs(b); while (b) { [a, b] = [b, a % b]; } return a; };
 function normal(p: H): H { if (p.w < 0n) p = { x: -p.x, y: -p.y, w: -p.w }; const g = gcd(gcd(p.x, p.y), p.w) || 1n; return { x: p.x / g, y: p.y / g, w: p.w / g }; }
-const view = new DataView(new ArrayBuffer(8));
 /** An exact binary64 as n / 2^k. */
 function dyadic(v: number): [bigint, number] {
   if (!Number.isFinite(v)) throw new PlanarArrangementError('finite coordinates required');
-  if (v === 0) return [0n, 0];
-  view.setFloat64(0, v); const bits = view.getBigUint64(0), exp = Number((bits >> 52n) & 2047n), frac = bits & 0xfffffffffffffn;
-  let m = exp === 0 ? frac : frac | (1n << 52n), e = (exp === 0 ? 1 : exp) - 1075;
-  while (m && !(m & 1n) && e < 0) { m >>= 1n; e++; }
-  if (bits >> 63n) m = -m;
-  return e >= 0 ? [m << BigInt(e), 0] : [m, -e];
+  const { m, k } = binary64Dyadic(v); return [m, k];
 }
 function fromXY([x, y]: XY): H { const [nx, kx] = dyadic(x), [ny, ky] = dyadic(y), k = Math.max(kx, ky); return normal({ x: nx << BigInt(k - kx), y: ny << BigInt(k - ky), w: 1n << BigInt(k) }); }
 const key = (p: H) => `${p.x}/${p.y}/${p.w}`;

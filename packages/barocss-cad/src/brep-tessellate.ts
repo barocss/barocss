@@ -15,6 +15,7 @@
 import { BrepError, type Brep, type BrepCoedge } from './brep-core.js';
 import { evaluateCurve, curveDomain } from './math.js';
 import type { Curve, Point, Surface } from './types.js';
+import { cross, dot, sub, unit } from './vec3.js';
 
 export interface BrepMeshFace { readonly faceId: string; readonly kind: 'planar' | 'ruled' | 'trimmed'; readonly vertexOffset: number; readonly vertexCount: number; readonly indexOffset: number; readonly indexCount: number }
 export interface BrepMeshEdge { readonly edgeId: string; readonly pointsMM: Float64Array }
@@ -22,10 +23,6 @@ export interface BrepMesh { readonly positionsMM: Float64Array; readonly normals
 export interface BrepTessellationOptions { readonly segmentsPerQuarter?: number }
 
 type XY = [number, number];
-const sub = (a: Point, b: Point): Point => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const cross = (a: Point, b: Point): Point => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-const dot = (a: Point, b: Point) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const unit = (a: Point): Point => { const l = Math.hypot(...a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
 const isLine = (c: Curve) => c.degree === 1 && c.controlPoints.length === 2;
 
 /**

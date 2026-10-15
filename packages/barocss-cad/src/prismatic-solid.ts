@@ -20,7 +20,7 @@
 // names are the tag, or `tag#k` when one tag names several faces (k by position); edge names join
 // the names of their two faces.
 import {
-  booleanCurveRegions, curveArrangementVertices, curveTolerance, paramOf, regionArea, regionInteriorPoint, sampleRing, segAt, segDistance, segEnd, segReverse, segStart,
+  booleanCurveRegions, curveArrangementVertices, pointInPolygon, curveTolerance, paramOf, regionArea, regionInteriorPoint, sampleRing, segAt, segDistance, segEnd, segReverse, segStart,
   type CurveRegion2, type CurveSegment2, type XY,
 } from './curved-arrangement.js';
 import { BrepError, buildBrep, lineCurve, type Brep, type BrepFaceInput, type BrepLoopInput } from './brep-core.js';
@@ -120,8 +120,7 @@ export function booleanPrismatic(a: PrismaticSolid, b: PrismaticSolid, operation
 
 export const prismaticVolume = (s: PrismaticSolid) => s.slabs.reduce((v, x) => v + x.regions.reduce((a, r) => a + regionArea(r), 0) * (x.z1 - x.z0), 0);
 
-const pip = (p: XY, poly: readonly XY[]) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const a = poly[i], b = poly[j]; if ((a[1] > p[1]) !== (b[1] > p[1]) && p[0] < (b[0] - a[0]) * (p[1] - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; };
-export const inRegion = (p: XY, r: CurveRegion2) => pip(p, sampleRing(r.outer, Math.PI / 720)) && !r.holes.some(h => pip(p, sampleRing(h, Math.PI / 720)));
+export const inRegion = (p: XY, r: CurveRegion2) => pointInPolygon(p, sampleRing(r.outer, Math.PI / 720)) && !r.holes.some(h => pointInPolygon(p, sampleRing(h, Math.PI / 720)));
 /** Whether a point is inside the solid (boundary points either way). */
 export function prismaticContains(s: PrismaticSolid, p: Point): boolean {
   const slab = s.slabs.find(x => x.z0 <= p[2] && p[2] <= x.z1);
