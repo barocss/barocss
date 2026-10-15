@@ -3,9 +3,11 @@
 // types and no fixed node, Boolean or finishing-operation counts.
 //
 //   representation   a body stays a Z-prismatic solid (lines, arcs; Booleans slab-wise, curved walls)
-//                    while every operation keeps it upright; otherwise it is a general B-rep, whose
-//                    Booleans are the exact planar-polyhedron Booleans (curved non-upright Booleans
-//                    are refused with the reason, never approximated)
+//                    while every operation keeps it upright; otherwise it is a general B-rep. Its
+//                    Booleans are the exact planar-polyhedron Booleans for planar bodies, and the
+//                    plane + cylinder Booleans (any axis: cross holes, pins along X) otherwise; cases
+//                    those cannot represent (ellipses, crossing cylinders that meet) are refused with
+//                    the reason, never approximated
 //   names            features have stable ids; faces are named `<feature>.<role>` (`e1.side0`,
 //                    `e1.top`, `h2.side0`, `c3.face`), kept through every later feature, `#k` when one
 //                    name is split; copies are `@k` (patterns) and `@m` (kept mirrors); an edge is named
@@ -16,6 +18,7 @@ import { BrepError, buildBrep, lineCurve, type Brep } from './brep-core.js';
 import { brepFromPrismatic, booleanPrismatic, prismaticFromProfile, prismaticVolume, transformPrismatic, PrismaticSolidError, type PrismaticSolid } from './prismatic-solid.js';
 import { booleanCurveRegions, curveTolerance, sampleRing, segEnd, CurvedArrangementError, type CurveSegment2, type XY } from './curved-arrangement.js';
 import { booleanPolyhedra } from './polyhedral-boolean.js';
+import { booleanAnalytic } from './analytic-boolean.js';
 import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js';
 import { tessellateBrep } from './brep-tessellate.js';
 import { prismaticMassProperties, brepMassProperties, SolidMassError, type SolidMassProperties } from './solid-mass.js';
@@ -36,8 +39,11 @@ export type CadPartFeature = Base & (
   /** Along +Z from `from` (default 0); a negative height extrudes downward. */
   | { readonly kind: 'extrude'; readonly sketch: string; readonly height: CadPartDim; readonly from?: CadPartDim }
   | { readonly kind: 'union' | 'difference' | 'intersect'; readonly target: string; readonly tool: string }
-  /** A vertical hole down from the target's top: through, or `depth` deep. */
-  | { readonly kind: 'hole'; readonly target: string; readonly center: CadPartPoint2; readonly radius: CadPartDim; readonly depth?: CadPartDim }
+  /**
+   * A hole along `axis` (default z) through the target, or `depth` deep from its `side` (default max:
+   * the top for z). `center` is in the other two coordinates in order: z → [x, y], x → [y, z], y → [x, z].
+   */
+  | { readonly kind: 'hole'; readonly target: string; readonly center: CadPartPoint2; readonly radius: CadPartDim; readonly depth?: CadPartDim; readonly axis?: CadPartAxis; readonly side?: 'min' | 'max' }
   | { readonly kind: 'translate'; readonly target: string; readonly offset: CadPartPoint3 }
   /** About Z by any angle; about X or Y by multiples of 90°. */
   | { readonly kind: 'rotate'; readonly target: string; readonly axis: CadPartAxis; readonly angleDegrees: number; readonly pivot?: CadPartPoint3 }
@@ -288,14 +294,21 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     }
     case 'hole': {
       const target = solids(f.target, 'target'), c = xy(f.center as CadPartPoint2, 'center'), r = dim(f.radius as CadPartDim, 'radius', true);
-      const depth = f.depth === undefined ? null : dim(f.depth as CadPartDim, 'depth', true);
+      const depth = f.depth === undefined ? null : dim(f.depth as CadPartDim, 'depth', true), axis = f.axis === undefined ? 'z' : axisOf(f.axis);
+      const side = f.side === undefined ? 'max' : f.side;
+      if (side !== 'min' && side !== 'max') fail('INPUT', 'side must be min or max');
       return () => many(target.map(p => {
-        if (p.solid.kind !== 'upright') fail('CAPABILITY', 'holes need an upright (Z-prismatic) target; this body was rotated about X or Y or chamfered along a horizontal edge');
-        const box = bounds(p.solid), top = box.max[2], bottom = depth === null ? box.min[2] - 1 : top - depth;
-        const tool = prismaticFromProfile({ outer: [{ kind: 'arc', start: [c[0] + r, c[1]], center: c, direction: 'ccw' }], heightMM: top + 1 - bottom, fromMM: bottom, tag: at });
-        const before = (p.solid as Extract<Solid, { kind: 'upright' }>).solid, out = booleanPrismatic(before, tool, 'difference');
-        if (prismaticVolume(before) - prismaticVolume(out) <= 1e-9 * prismaticVolume(before)) fail('SELECTION', `the hole at (${c[0]}, ${c[1]}) misses the target`);
-        return { kind: 'upright', solid: out };
+        // The tool: a cylinder along local z over [h0, h1], centred at local (c1, c2), turned onto the axis
+        // by a cyclic permutation (x: local x, y, z → world y, z, x; y: → world z, x, y).
+        const box = bounds(p.solid), k = 'xyz'.indexOf(axis), hi = box.max[k], lo = box.min[k];
+        const [h0, h1] = depth === null ? [lo - 1, hi + 1] : side === 'max' ? [hi - depth, hi + 1] : [lo - 1, lo + depth];
+        const local: XY = axis === 'y' ? [c[1], c[0]] : c;
+        const cylinder = prismaticFromProfile({ outer: [{ kind: 'arc', start: [local[0] + r, local[1]], center: local, direction: 'ccw' }], heightMM: h1 - h0, fromMM: h0, tag: at });
+        const tool: Solid = axis === 'z' ? { kind: 'upright', solid: cylinder }
+          : { kind: 'brep', brep: transformBrep(brepFromPrismatic(cylinder, { id: at + '_tool' }), { matrix: axis === 'x' ? [0, 0, 1, 1, 0, 0, 0, 1, 0] : [0, 1, 0, 0, 0, 1, 1, 0, 0] }) };
+        const out = boolean(p.solid, tool, 'difference', at);
+        if (volumeOfSolid(p.solid) - volumeOfSolid(out) <= 1e-6 * volumeOfSolid(p.solid)) fail('SELECTION', `the hole at (${c[0]}, ${c[1]}) along ${axis} misses the target`);
+        return out;
       }));
     }
     case 'translate': {
@@ -374,10 +387,16 @@ function boolean(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection'
   if (a.kind === 'upright' && b.kind === 'upright') return { kind: 'upright', solid: booleanPrismatic(a.solid, b.solid, op) };
   const A = a.kind === 'upright' ? (lineOnly(a.solid) ? brepFromPrismatic(a.solid, { id: at + '_a' }) : null) : a.brep;
   const B = b.kind === 'upright' ? (lineOnly(b.solid) ? brepFromPrismatic(b.solid, { id: at + '_b' }) : null) : b.brep;
-  if (!A || !B || !planarBrep(A) || !planarBrep(B)) throw new CadPartError('CAPABILITY', at, 'Booleans between a curved body and a body that is not upright (rotated about X or Y, or chamfered along a horizontal edge) are not supported yet');
-  const result = booleanPolyhedra(A, B, op, { id: at });
-  return { kind: 'brep', brep: result };
+  if (A && B && planarBrep(A) && planarBrep(B)) return { kind: 'brep', brep: booleanPolyhedra(A, B, op, { id: at }) };
+  // Planes and cylinders of any axis.
+  const toBrep = (s: Solid) => s.kind === 'upright' ? brepFromPrismatic(s.solid, { id: at + '_in' }) : s.brep;
+  try { return { kind: 'brep', brep: booleanAnalytic(toBrep(a), toBrep(b), op, { id: at }) }; }
+  catch (cause) {
+    if (cause instanceof BrepError && /not supported yet/.test(cause.message)) throw new CadPartError('CAPABILITY', at, cause.message.replace(/^B-rep: analytic Boolean: /, ''));
+    throw cause;
+  }
 }
+const volumeOfSolid = (s: Solid) => s.kind === 'upright' ? prismaticVolume(s.solid) : s.brep.bodies.length ? brepMassProperties(s.brep, 1, { segmentsPerQuarter: 8 }).volumeMM3 : 0;
 
 function affine(s: Solid, m: BrepAffine['matrix'], o: readonly number[], rename?: (n: string) => string): Solid {
   // Upright solids stay upright when XY maps by a similarity and Z only scales and shifts.
@@ -485,8 +504,9 @@ function wedgeChamfer(solid: Solid, source: Brep, edge: Brep['edges'][number], d
   const grow = convex ? d : 0, T0 = corner(sub(P, scale(e, grow))), T1 = corner(add(Q, scale(e, grow)));
   const wedge = prismBrep(T0, T1, `${at}.face`);
   const body = solid.kind === 'upright' ? brepFromPrismatic(solid.solid) : solid.brep;
-  if (!planarBrep(body)) fail('CAPABILITY', `edge ${edge.name}: chamfers along horizontal edges need a body with planar faces`);
-  return { kind: 'brep', brep: booleanPolyhedra(body, wedge, convex ? 'difference' : 'union', { id: at }) };
+  if (planarBrep(body)) return { kind: 'brep', brep: booleanPolyhedra(body, wedge, convex ? 'difference' : 'union', { id: at }) };
+  try { return { kind: 'brep', brep: booleanAnalytic(body, wedge, convex ? 'difference' : 'union', { id: at }) }; }
+  catch (cause) { if (cause instanceof BrepError && /not supported yet/.test(cause.message)) fail('CAPABILITY', `edge ${edge.name}: the chamfer would cut a curved face at an angle (not supported yet)`); throw cause; }
 }
 const sub = (a: readonly number[], b: readonly number[]): Point => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const add = (a: readonly number[], b: readonly number[]): Point => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];

@@ -587,3 +587,6 @@ export { prismaticMassProperties, brepMassProperties, SolidMassError } from './s
 export type { SolidMassProperties } from './solid-mass.js';
 export { evaluateCadPart, loadCadPart, emptyCadPart, CadPartError, CadPartLimits } from './part-model.js';
 export type { CadPartDocument, CadPartFeature, CadPartSnapshot, CadPartOutput, CadPartDim, CadPartAxis, CadPartLoopSegment, CadPartErrorCode } from './part-model.js';
+export { booleanAnalytic } from './analytic-boolean.js';
+export type { AnalyticBooleanOperation } from './analytic-boolean.js';
+export { curveFaceRegions, locateInRegion, regionInteriorPoint } from './curved-arrangement.js';

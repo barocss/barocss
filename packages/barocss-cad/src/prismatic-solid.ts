@@ -20,7 +20,7 @@
 // names are the tag, or `tag#k` when one tag names several faces (k by position); edge names join
 // the names of their two faces.
 import {
-  booleanCurveRegions, curveArrangementVertices, curveTolerance, paramOf, regionArea, sampleRing, segAt, segDistance, segEnd, segReverse, segStart,
+  booleanCurveRegions, curveArrangementVertices, curveTolerance, paramOf, regionArea, regionInteriorPoint, sampleRing, segAt, segDistance, segEnd, segReverse, segStart,
   type CurveRegion2, type CurveSegment2, type XY,
 } from './curved-arrangement.js';
 import { BrepError, buildBrep, lineCurve, type Brep, type BrepFaceInput, type BrepLoopInput } from './brep-core.js';
@@ -361,28 +361,8 @@ export function nameEdges(edges: { curve: Curve; name?: string }[]): void {
   for (const [base, list] of groups) if (list.length > 1) [...list].sort((a, b) => byPosition(mid(a.curve), mid(b.curve))).forEach((e, k) => { e.name = `${base}#${k + 1}`; });
 }
 
-/**
- * A point strictly inside a region: on a few horizontal lines through it, the exact crossings with
- * its lines and arcs (no sampling, so tangent cusps cannot fold the boundary), and the middle of the
- * widest inside interval.
- */
 function interiorPoint(region: CurveRegion2): XY {
-  const rings = [region.outer, ...region.holes];
-  let y0 = Infinity, y1 = -Infinity;
-  const extent = (g: CurveSegment2): XY[] => g.kind === 'line' ? [g.a, g.b]
-    : [segStart(g), segEnd(g), ...([[g.c[0], g.c[1] - g.r], [g.c[0], g.c[1] + g.r]] as XY[]).filter(p => { const u = paramOf(g, p); return u >= 0 && u <= 1; })];
-  for (const ring of rings) for (const g of ring) for (const p of extent(g)) { y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); }
-  let best: XY | null = null, width = -1;
-  for (const f of [0.5, 0.3819660112501051, 0.6180339887498949, 0.2360679774997897, 0.7639320225002103]) {
-    const y = y0 + (y1 - y0) * f, xs: number[] = [];
-    for (const ring of rings) for (const g of ring) {
-      if (g.kind === 'line') { if ((g.a[1] > y) !== (g.b[1] > y)) xs.push(g.a[0] + (g.b[0] - g.a[0]) * (y - g.a[1]) / (g.b[1] - g.a[1])); continue; }
-      const h2 = g.r * g.r - (y - g.c[1]) ** 2; if (h2 <= 0) continue;
-      for (const x of [g.c[0] - Math.sqrt(h2), g.c[0] + Math.sqrt(h2)]) { const u = paramOf(g, [x, y]); if (u >= 0 && u < 1) xs.push(x); }
-    }
-    xs.sort((a, b) => a - b);
-    for (let k = 0; k + 1 < xs.length; k += 2) if (xs[k + 1] - xs[k] > width) { width = xs[k + 1] - xs[k]; best = [(xs[k] + xs[k + 1]) / 2, y]; }
-  }
-  if (!best) throw new BrepError('GEOMETRY', 'a region has no interior');
-  return best;
+  const p = regionInteriorPoint(region);
+  if (!p) throw new BrepError('GEOMETRY', 'a region has no interior');
+  return p;
 }

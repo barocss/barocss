@@ -84,8 +84,9 @@ test('refusals name the feature and the reason', () => {
   refused(D([...plate, { id: 'h', kind: 'hole', target: 'a', center: [50, 50], radius: 1 }]), 'SELECTION', /misses the target/);
   refused(D([...plate, { id: 'f', kind: 'fillet', target: 'a', edges: ['a.side0|a.side1'], radius: 20 }]), 'PARAMETER', /too large/);
   refused(D([...plate, { id: 'f', kind: 'fillet', target: 'a', edges: ['a.side0|a.top'], radius: 1 }]), 'CAPABILITY', /only vertical edges can be filleted/);
-  refused(D([circle('c', 0, 0, 3), extrude('p', 'c', 20), { id: 'r', kind: 'rotate', target: 'p', axis: 'y', angleDegrees: 90 }, rect('s', -5, -5, 5, 5), extrude('a', 's', 5), { id: 'd', kind: 'difference', target: 'a', tool: 'r' }]),
-    'CAPABILITY', /curved body and a body that is not upright/);
+  // A cylinder along X through a cylinder along Z: the walls meet in a quartic.
+  refused(D([circle('c', 0, 0, 3), extrude('p', 'c', 20, -10), { id: 'r', kind: 'rotate', target: 'p', axis: 'y', angleDegrees: 90 }, circle('k', 0, 0, 5), extrude('a', 'k', 6, -3), { id: 'd', kind: 'difference', target: 'a', tool: 'r' }]),
+    'CAPABILITY', /crossing axes/);
   refused(D([...plate, { id: 'r', kind: 'rotate', target: 'a', axis: 'x', angleDegrees: 45 }]), 'CAPABILITY', /multiples of 90/);
   refused(D([...plate, { id: 'x', kind: 'split', target: 'a', axis: 'z', at: 9 }]), 'SELECTION', /does not cross/);
   refused(D([rect('s', 0, 0, { parameter: 'w' }, 10)]), 'PARAMETER', /unknown parameter w/);
@@ -107,4 +108,32 @@ test('mass properties: closed form for upright bodies agrees with mesh integrati
   const stl = o.exportStl({ segmentsPerQuarter: 8 }), view = new DataView(stl.buffer, stl.byteOffset), n = view.getUint32(80, true);
   assert.equal(stl.length, 84 + 50 * n);
   assert.equal(n, tessellateBrep(o.brep, { segmentsPerQuarter: 8 }).indices.length / 3);
+});
+
+test('planes and cylinders of any axis: cross holes, side holes, pins and bars (brep-core step 7)', () => {
+  const plate = [rect('s', 0, 0, 40, 20), extrude('e', 's', 10)];
+  const cases = [
+    // A hole along X through the plate's side, and one along Y; blind from either side.
+    ['cross hole along x', D([...plate, { id: 'h', kind: 'hole', target: 'e', axis: 'x', center: [10, 5], radius: 3 }]), 8000 - 9 * pi * 40],
+    ['cross hole along y', D([...plate, { id: 'h', kind: 'hole', target: 'e', axis: 'y', center: [20, 5], radius: 3 }]), 8000 - 9 * pi * 20],
+    ['blind side hole from x min', D([...plate, { id: 'h', kind: 'hole', target: 'e', axis: 'x', side: 'min', center: [10, 5], radius: 2, depth: 15 }]), 8000 - 4 * pi * 15],
+    ['vertical and side holes that miss each other', D([...plate, { id: 'v', kind: 'hole', target: 'e', center: [30, 10], radius: 3 }, { id: 'h', kind: 'hole', target: 'v', axis: 'x', center: [4, 5], radius: 2 }]), 8000 - 9 * pi * 10 - 4 * pi * 40],
+    // A pin along X half sunk into the top face, and a rotated bar through an upright cylinder.
+    ['pin along x on the top', D([...plate, circle('c', 10, 10, 3), extrude('p', 'c', 50, -5), { id: 'r', kind: 'rotate', target: 'p', axis: 'y', angleDegrees: 90, pivot: [10, 10, 10] }, { id: 'u', kind: 'union', target: 'e', tool: 'r' }]), 8000 + 9 * pi * 50 - 9 * pi / 2 * 40],
+    ['bar through a cylinder wall', D([circle('c', 0, 0, 10), extrude('k', 'c', 20), rect('b', -20, -3, 20, 3), extrude('bar', 'b', 4, 5), { id: 'u', kind: 'union', target: 'k', tool: 'bar' }]),
+      2000 * pi + 960 - 4 * 2 * (3 * Math.sqrt(91) + 100 * Math.asin(0.3))],
+  ];
+  for (const [name, doc, expected] of cases) {
+    const o = evaluateCadPart(doc).outputs[0], m = o.massProperties(1), report = checkBrep(o.brep);
+    assert.equal(report.valid, true, `${name}: ${report.issues}`);
+    assert.equal(m.method, o.representation === 'upright' ? 'closed-form' : 'tessellated', name);
+    assert.ok(Math.abs(m.volumeMM3 - expected) < 3e-4 * expected, `${name}: ${m.volumeMM3} vs ${expected}`);
+    assert.ok(o.brep.faces.every(f => f.name) && o.brep.edges.every(e => e.name), name);
+    assert.ok(o.brep.faces.some(f => f.name.startsWith(name.includes('pin') ? 'p.side0' : name.includes('bar') ? 'k.side0' : 'h.side0')), `${name}: the cylinder wall keeps its feature name`);
+  }
+  // The cross hole's wall goes along X: its surface's extrusion direction is the X axis.
+  const cross = evaluateCadPart(cases[0][1]).outputs[0].brep.faces.find(f => f.name.startsWith('h.side0'));
+  const [[p0, p1]] = cross.surface.controlPoints; assert.ok(Math.abs(Math.abs(p1[0] - p0[0]) - Math.hypot(p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])) < 1e-9);
+  // A missed side hole is refused by name.
+  refused(D([...plate, { id: 'h', kind: 'hole', target: 'e', axis: 'x', center: [50, 5], radius: 2 }]), 'SELECTION', /along x misses the target/);
 });

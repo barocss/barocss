@@ -62,7 +62,8 @@ export function segDistance(s: CurveSegment2, p: XY): number {
   const q = segAt(s, Math.min(1, Math.max(0, paramOf(s, p)))); return Math.hypot(q[0] - p[0], q[1] - p[1]);
 }
 /** Intersection points of two segments (crossings, tangencies, endpoints touching, overlap ends). */
-function intersect(s: CurveSegment2, t: CurveSegment2, eps: number): XY[] {
+/** Points shared by two segments (crossings, tangencies, touching ends, overlap ends) within eps. */
+export function intersectSegments(s: CurveSegment2, t: CurveSegment2, eps: number): XY[] {
   const out: XY[] = [], on = (x: CurveSegment2, p: XY) => segDistance(x, p) <= eps;
   const push = (p: XY) => { if (on(s, p) && on(t, p)) out.push(p); };
   const ends = () => { for (const p of [segStart(s), segEnd(s), segStart(t), segEnd(t)]) push(p); };
@@ -120,7 +121,7 @@ function arrange(rings: readonly { polygon: number; ring: readonly CurveSegment2
   const boxes = pieces.map(p => box(p.seg));
   for (let i = 0; i < pieces.length; i++) for (let j = i + 1; j < pieces.length; j++) {
     const a = boxes[i], b = boxes[j]; if (a[2] < b[0] || b[2] < a[0] || a[3] < b[1] || b[3] < a[1]) continue;
-    for (const p of intersect(pieces[i].seg, pieces[j].seg, eps)) { cuts[i].push(p); cuts[j].push(p); }
+    for (const p of intersectSegments(pieces[i].seg, pieces[j].seg, eps)) { cuts[i].push(p); cuts[j].push(p); }
   }
   // Coincident pieces share endpoints and a midpoint (within tolerance).
   const edges: Edge[] = [], edgesBetween = new Map<string, number[]>();
@@ -187,7 +188,7 @@ function regions(arr: ReturnType<typeof arrange>, polygonCount: number) {
       winding.set(other, w.map((x, p) => x - (e.count.get(p) ?? 0) * (fwd ? 1 : -1))); queue.push(other);
     }
   }
-  return { faceOfHalf, winding };
+  return { faceOfHalf, winding, faceOfCycle, areas };
 }
 
 /** Merges consecutive pieces of one line or one circle (same direction). */
@@ -262,4 +263,74 @@ export function regionMoments(region: CurveRegion2): [number, number, number, nu
     }
   }
   return m;
+}
+
+/**
+ * A region split by cut segments: the faces of the arrangement of its rings (polygon 0) and the cuts
+ * (no winding) that lie inside it, each as outer ring + holes. Cuts outside the region are ignored.
+ */
+export function curveFaceRegions(rings: readonly (readonly CurveSegment2[])[], cuts: readonly CurveSegment2[], tolerance?: number): CurveRegion2[] {
+  const arr = arrange([...rings.map(ring => ({ polygon: 0, ring })), ...cuts.map(c => ({ polygon: -1, ring: [c] }))], tolerance);
+  const { winding, faceOfCycle, areas } = regions(arr, 1), { cycles, segOfHalf } = arr, out = new Map<number, CurveRegion2 & { holes: CurveSegment2[][] }>();
+  cycles.forEach((c, i) => {
+    const f = faceOfCycle[i]; if (f < 0 || !(winding.get(f)?.[0])) return;
+    const ring = c.map(segOfHalf);
+    if (areas[i] > 0 && f === i) out.set(f, { outer: ring, holes: [...(out.get(f)?.holes ?? [])] });
+    else { const r = out.get(f) ?? { outer: [], holes: [] }; r.holes.push(ring); out.set(f, r); }
+  });
+  return [...out.values()].filter(r => r.outer.length);
+}
+
+/** Exact horizontal-line crossings of a ring set at height y (lines and arcs, half-open rule). */
+function crossingsAt(rings: readonly (readonly CurveSegment2[])[], y: number): number[] {
+  const xs: number[] = [];
+  // One vertex evaluated on two arcs can differ in the last bits (sin π ≠ −sin(−π)): heights within
+  // rounding of the line count as on it, so both sides of a vertex agree.
+  const near = 1e-12 * (1 + Math.abs(y)), above = (v: number) => v > y + near;
+  const line = (a: XY, b: XY) => { if (above(a[1]) !== above(b[1])) xs.push(a[0] + (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1])); };
+  for (const ring of rings) for (const g of ring) {
+    if (g.kind === 'line') { line(g.a, g.b); continue; }
+    // Split the arc where it turns in y (its top and bottom) into y-monotone pieces.
+    const cuts = [0, 1];
+    for (const t of [Math.PI / 2, -Math.PI / 2]) { const u = paramOf(g, [g.c[0] + g.r * Math.cos(t), g.c[1] + g.r * Math.sin(t)]); if (u > 0 && u < 1) cuts.push(u); }
+    cuts.sort((a, b) => a - b);
+    for (let k = 0; k + 1 < cuts.length; k++) {
+      const a = segAt(g, cuts[k]), b = segAt(g, cuts[k + 1]);
+      if (above(a[1]) === above(b[1])) continue;
+      const h = Math.sqrt(Math.max(0, g.r * g.r - (y - g.c[1]) ** 2)), mid = segAt(g, (cuts[k] + cuts[k + 1]) / 2);
+      // On a monotone piece the crossing is on the side of the centre where the piece lies.
+      xs.push(mid[0] >= g.c[0] ? g.c[0] + h : g.c[0] - h);
+    }
+  }
+  return xs;
+}
+/** Whether p is inside the region (boundary points: `boundary`, decided by tolerance). */
+export function locateInRegion(p: XY, region: CurveRegion2, tolerance: number): 'in' | 'out' | 'boundary' {
+  const rings = [region.outer, ...region.holes];
+  for (const ring of rings) for (const g of ring) if (segDistance(g, p) <= tolerance) return 'boundary';
+  return crossingsAt(rings, p[1]).filter(x => x > p[0]).length % 2 === 1 ? 'in' : 'out';
+}
+/**
+ * A point strictly inside a region: on a few horizontal lines through it, the exact crossings with
+ * its lines and arcs (no sampling, so tangent cusps cannot fold the boundary), and the middle of the
+ * widest inside interval.
+ */
+export function regionInteriorPoint(region: CurveRegion2): XY | null {
+  const rings = [region.outer, ...region.holes];
+  let y0 = Infinity, y1 = -Infinity;
+  const extent = (g: CurveSegment2): XY[] => g.kind === 'line' ? [g.a, g.b]
+    : [segStart(g), segEnd(g), ...([[g.c[0], g.c[1] - g.r], [g.c[0], g.c[1] + g.r]] as XY[]).filter(p => { const u = paramOf(g, p); return u >= 0 && u <= 1; })];
+  for (const ring of rings) for (const g of ring) for (const p of extent(g)) { y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); }
+  // Candidates: the middles of the inside intervals on several lines; the one farthest from the boundary
+  // wins (a line along an edge or through a vertex gives a candidate on the boundary, never chosen).
+  let best: XY | null = null, clearance = -1;
+  for (const f of [0.5, 0.3819660112501051, 0.6180339887498949, 0.2360679774997897, 0.7639320225002103, 0.1458980337503155, 0.8541019662496845, 0.0901699437494742, 0.9098300562505258]) {
+    const y = y0 + (y1 - y0) * f, xs = crossingsAt(rings, y).sort((a, b) => a - b);
+    for (let k = 0; k + 1 < xs.length; k += 2) {
+      const p: XY = [(xs[k] + xs[k + 1]) / 2, y];
+      let d = Infinity; for (const ring of rings) for (const g of ring) d = Math.min(d, segDistance(g, p));
+      if (d > clearance) { clearance = d; best = p; }
+    }
+  }
+  return best;
 }
