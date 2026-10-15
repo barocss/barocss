@@ -857,7 +857,9 @@ function fitPieces(k: Curve3, tol: number, depth = 0): Curve3[] {
 }
 
 function stitch(pieces: Piece[], id: string, tol: number): Brep {
-  const set = new PointSet3(tol);
+  // Vertices merge a little more loosely than curves are fitted: an edge meeting a surface it touches
+  // (a double root, as where a fillet meets a sloping side) lands within √ε of its true point.
+  const set = new PointSet3(20 * tol);
   // A closed curve (a full circle as one edge) starts and ends at one vertex: split it in halves.
   const open = (k: Curve3): Curve3[] => {
     if (len(sub(startOf(k), endOf(k))) > tol) return [k];

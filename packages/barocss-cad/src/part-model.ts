@@ -22,6 +22,7 @@ import { booleanCurveRegions, curveTolerance, sampleRing, segEnd, CurvedArrangem
 import { booleanPolyhedra } from './polyhedral-boolean.js';
 import { booleanAnalytic } from './analytic-boolean.js';
 import { finishBrepEdges } from './edge-finish.js';
+import { draftedExtrusion } from './drafted-extrusion.js';
 import { revolveProfile, revolveMassProperties } from './revolve.js';
 import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js';
 import { tessellateBrep } from './brep-tessellate.js';
@@ -42,7 +43,8 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'sketch'; readonly profile: 'polygon'; readonly points: readonly CadPartPoint2[] }
   | { readonly kind: 'sketch'; readonly profile: 'loop'; readonly segments: readonly CadPartLoopSegment[] }
   /** Along +Z from `from` (default 0); a negative height extrudes downward. */
-  | { readonly kind: 'extrude'; readonly sketch: string; readonly height: CadPartDim; readonly from?: CadPartDim }
+  /** `draft` (degrees, |θ| < 89) leans every wall into the material away from the sketch plane. */
+  | { readonly kind: 'extrude'; readonly sketch: string; readonly height: CadPartDim; readonly from?: CadPartDim; readonly draft?: number }
   /** About an axis in the sketch plane (through `origin`, along X or Y), by angleDegrees (default 360). */
   | { readonly kind: 'revolve'; readonly sketch: string; readonly axis: { readonly origin: CadPartPoint2; readonly direction: 'x' | 'y' }; readonly angleDegrees?: number }
   | { readonly kind: 'union' | 'difference' | 'intersect'; readonly target: string; readonly tool: string }
@@ -290,7 +292,17 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       const h = dim(f.height as CadPartDim, 'height'), from = f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from');
       if (h === 0) fail('PARAMETER', 'height must not be zero');
       const outer = (sketch as Extract<Result, { kind: 'sketch' }>).outer;
-      return () => one({ kind: 'upright', solid: prismaticFromProfile({ outer, heightMM: Math.abs(h), fromMM: h > 0 ? from : from + h, tag: at }) });
+      const draft = f.draft === undefined ? 0 : f.draft as unknown;
+      if (typeof draft !== 'number' || !Number.isFinite(draft) || !(Math.abs(draft) < 89)) fail('INPUT', 'draft must be a number of degrees below 89 in size');
+      if (draft === 0) return () => one({ kind: 'upright', solid: prismaticFromProfile({ outer, heightMM: Math.abs(h), fromMM: h > 0 ? from : from + h, tag: at }) });
+      // Built upwards from the sketch plane, then turned over for a downward extrude (the walls lean
+      // away from the sketch plane either way).
+      return () => {
+        let brep: Brep;
+        try { brep = draftedExtrusion({ profile: outer, z0: 0, z1: Math.abs(h), draftDegrees: draft as number, tag: at, id: at }); }
+        catch (cause) { if (cause instanceof BrepError) fail(/not supported yet/.test(cause.message) ? 'CAPABILITY' : 'PARAMETER', cause.message.replace(/^B-rep: drafted extrusion: /, '')); throw cause; }
+        return one({ kind: 'brep', brep: transformBrep(brep!, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, h > 0 ? 1 : -1], offset: [0, 0, from] }) });
+      };
     }
     case 'revolve': {
       const sketch = ref(f.sketch, 'sketch').result;

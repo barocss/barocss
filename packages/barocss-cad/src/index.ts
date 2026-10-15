@@ -593,6 +593,8 @@ export { curveFaceRegions, locateInRegion, regionInteriorPoint } from './curved-
 export { revolveProfile, revolveMassProperties } from './revolve.js';
 export type { RevolveInput } from './revolve.js';
 export { finishBrepEdges } from './edge-finish.js';
+export { draftedExtrusion } from './drafted-extrusion.js';
+export type { DraftedExtrusionInput } from './drafted-extrusion.js';
 export type { EdgeFinishKind } from './edge-finish.js';
 export { faceGeometry } from './analytic-boolean.js';
 export type { FaceGeometry } from './analytic-boolean.js';
