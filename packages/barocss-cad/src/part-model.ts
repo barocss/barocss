@@ -23,6 +23,7 @@ import { booleanPolyhedra } from './polyhedral-boolean.js';
 import { booleanAnalytic } from './analytic-boolean.js';
 import { finishBrepEdges } from './edge-finish.js';
 import { draftedExtrusion } from './drafted-extrusion.js';
+import { exportStep } from './step.js';
 import { revolveProfile, revolveMassProperties } from './revolve.js';
 import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js';
 import { tessellateBrep } from './brep-tessellate.js';
@@ -90,6 +91,8 @@ export interface CadPartOutput {
   massProperties(densityKgPerM3: number): SolidMassProperties;
   /** Binary STL (little-endian, 80-byte header) of the display tessellation. */
   exportStl(options?: { readonly segmentsPerQuarter?: number }): Uint8Array;
+  /** STEP AP214 (exact B-rep: planes, B-spline surfaces and curves) of this output. */
+  exportStep(options?: { readonly name?: string }): string;
 }
 export interface CadPartSnapshot {
   readonly document: CadPartDocument;
@@ -627,6 +630,7 @@ function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
     id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length,
     massProperties(density: number) { return part.mass ? part.mass(density) : part.solid.kind === 'upright' ? prismaticMassProperties(part.solid.solid, density) : brepMassProperties(brep, density, { segmentsPerQuarter: 32 }); },
     exportStl(options: { readonly segmentsPerQuarter?: number } = {}) { return stl(brep, options.segmentsPerQuarter ?? 16); },
+    exportStep(options: { readonly name?: string } = {}) { return exportStep(brep, { name: options.name ?? id }); },
   });
 }
 function stl(brep: Brep, segmentsPerQuarter: number): Uint8Array {
