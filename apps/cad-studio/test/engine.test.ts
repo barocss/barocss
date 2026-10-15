@@ -116,9 +116,46 @@ test('the numerical solver keeps H/V edges, honours locked lengths and reports D
   const rect: [number, number][] = [[0, 0], [40, 0], [40, 20], [0, 20]];
   const free = solveOutline(rect, {});
   assert.ok(free.ok); assert.equal(free.dof, 2);
-  const locked = solveOutline(rect, { 0: 50, 1: 25 });
+  const locked = solveOutline(rect, { lengths: { 0: 50, 1: 25 } });
   assert.ok(locked.ok); assert.equal(locked.dof, 0);
   assert.deepEqual(locked.points, [[0, 0], [50, 0], [50, 25], [0, 25]]);
-  const conflict = solveOutline(rect, { 0: 50, 2: 30 });
+  const conflict = solveOutline(rect, { lengths: { 0: 50, 2: 30 } });
   assert.equal(conflict.ok, false);
+});
+
+test('arcs in the solver: tangent joints snap exact, a radius lock holds, DOF counts the centre', async () => {
+  const { solveOutline, bulgeThrough, arcOf, inferTangents } = await import('../src/sketch/profile');
+  // A 40 x 20 plate whose right side is a rough bulging arc drawn by hand (not tangent to anything).
+  const points: [number, number][] = [[0, 0], [40, 0], [40, 20], [0, 20]];
+  const bulges = [0, bulgeThrough([40, 0], [40, 20], [47, 10]), 0, 0];
+  const free = solveOutline(points, {}, bulges);
+  assert.ok(free.ok);
+  // 4 points + 1 centre = 10 unknowns; anchor 2, H 2, V 1, equal radii 1 → 4 DOF.
+  assert.equal(free.dof, 4);
+  // Lock the radius to 10 and make both joints tangent: the arc becomes a semicircle bulging +x.
+  assert.deepEqual(inferTangents(points, bulges), []);
+  const locked = solveOutline(points, { radii: { 1: 10 }, tangents: [1, 2], lengths: { 0: 40 } }, bulges);
+  assert.ok(locked.ok, !locked.ok ? locked.reason : '');
+  const arc = arcOf(locked.points[1], locked.points[2], locked.bulges[1]);
+  assert.ok(Math.abs(arc.radius - 10) < 1e-6, String(arc.radius));
+  assert.ok(Math.abs(Math.abs(arc.sweep) - Math.PI) < 1e-6, String(arc.sweep));
+  assert.deepEqual(locked.points, [[0, 0], [40, 0], [40, 20], [0, 20]]);
+  // anchor 2 + H 2 + V 1 + equal radii 1 + radius 1 + tangents 2 + length 1 = 10 = unknowns.
+  assert.equal(locked.dof, 0);
+});
+
+test('closing an outline infers near-tangent arc joints and settles them exact', async () => {
+  const { settleShape } = await import('../src/sketch/settle');
+  const { arcOf } = await import('../src/sketch/profile');
+  // Arc from (40,0) to (40,20) nearly tangent to the bottom and top edges (bulge ≈ 1 = semicircle).
+  const open = { kind: 'polygon' as const, points: [[0, 0], [40, 0], [40, 20], [0, 20]] as [number, number][], closed: false, bulges: [0, 0.97, 0, 0] };
+  const r = settleShape({ ...open, closed: true }, open);
+  assert.equal(r.error, null);
+  const s = r.shape as typeof open & { tangents: number[] };
+  assert.deepEqual(s.tangents, [1, 2]);
+  const arc = arcOf(s.points[1], s.points[2], s.bulges[1]);
+  assert.ok(Math.abs(Math.abs(arc.sweep) - Math.PI) < 1e-6);
+  // An edit that cannot hold is undone: lock the bottom edge at 40 and the arc radius at 3 (chord is 20).
+  const bad = settleShape({ ...s, lengths: { 0: 40, 3: 20 }, radii: { 1: 3 } }, s);
+  assert.ok(bad.error); assert.equal(bad.shape, s);
 });

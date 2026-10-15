@@ -10,7 +10,9 @@ export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'slot';
 export type SketchShape =
   | { kind: 'rectangle'; a: [number, number]; b: [number, number] }
   | { kind: 'circle'; c: [number, number]; r: number }
-  | { kind: 'polygon'; points: [number, number][]; closed: boolean; bulges?: number[]; pending?: boolean; lengths?: Record<number, number> }
+  | { kind: 'polygon'; points: [number, number][]; closed: boolean; bulges?: number[]; pending?: boolean;
+      /** Locked edge lengths and arc radii by segment index; tangent joints by point index. */
+      lengths?: Record<number, number>; radii?: Record<number, number>; tangents?: number[] }
   | { kind: 'slot'; a: [number, number]; b: [number, number]; r: number };
 
 export interface SketchState { planeZ: number; tool: SketchTool; shape: SketchShape | null; base?: { node: number; side: string } | null }
@@ -294,6 +296,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
         items.push(s.closed ? <polygon key="pg" points={line.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-shape" />
           : <polyline key="pl" points={line.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-shape open" />);
         pts.forEach((p, i) => items.push(<circle key={'p' + i} cx={p[0]} cy={p[1]} r={3.5} className="sk-point" />));
+        (s.tangents ?? []).forEach(j => { const p = pts[j]; if (p) items.push(<g key={'tg' + j}><rect x={p[0] + 6} y={p[1] - 22} width={16} height={15} rx={3} className="cons-chip" /><text x={p[0] + 14} y={p[1] - 11} textAnchor="middle" className="cons-text">T</text></g>); });
         const n = s.points.length;
         for (let i = 0; i < (s.closed ? n : n - 1); i++) {
           const a = s.points[i], b = s.points[(i + 1) % n], bulge = s.bulges?.[i] ?? 0;

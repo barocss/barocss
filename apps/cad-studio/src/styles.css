@@ -166,3 +166,7 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 :root[data-theme='light'] .sk-status { background: #e3f3e8; color: #1f6b3a; }
 :root[data-theme='light'] .sk-status.open { background: #fbefd2; color: #7a5300; }
 :root[data-theme='light'] .vp-overlay .dim:hover .dim-chip { fill: #fbefd2; }
+.tangents { display: flex; flex-wrap: wrap; gap: 6px; }
+.tangents .chip { height: 24px; padding: 0 9px; border-radius: 12px; border: 1px solid #4a4d53; background: transparent; color: var(--muted); font: 500 11px var(--mono); cursor: pointer; }
+.tangents .chip.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+:root[data-theme='light'] .tangents .chip { border-color: #c9ccd2; }

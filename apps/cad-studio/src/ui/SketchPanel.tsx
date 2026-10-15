@@ -1,39 +1,41 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import type { SketchShape, SketchState } from '../viewport/Viewport';
-import { arcOf, inferredHV, radiusToBulge, solveOutline, type P2 } from '../sketch/profile';
+import { arcOf, canBeTangent, inferredHV, radiusToBulge, solveOutline, type P2 } from '../sketch/profile';
 
 type Polygon = Extract<SketchShape, { kind: 'polygon' }>;
 
 /**
- * Numbers drive the profile. Straight outlines are solved by the kernel's numerical sketch solver:
- * point 1 is anchored, drawn H/V edges stay H/V and typed edge lengths become locked dimensions.
+ * Numbers drive the profile. Closed outlines are solved by the kernel's numerical sketch solver:
+ * point 1 is anchored, drawn H/V edges stay H/V, typed lengths and radii become locked dimensions and
+ * tangent joints stay tangent. The app settles every edit (see sketch/settle.ts) and reports `error`.
  */
-export function SketchPanel({ sketch, onShape }: { sketch: SketchState; onShape(shape: SketchShape | null): void }) {
+export function SketchPanel({ sketch, error, onShape }: { sketch: SketchState; error: string | null; onShape(shape: SketchShape | null): void }) {
   const s = sketch.shape;
-  const [solveError, setSolveError] = useState<string | null>(null);
   const num = (id: string, label: string, value: number, set: (v: number) => void, min?: number) => (
     <label className="field" key={id}><span>{label}</span>
       <span className="num"><input id={'sk-' + id} type="number" step="any" min={min} value={round(value)}
         onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v)) set(v); }} /><em>mm</em></span></label>);
-  const straight = s?.kind === 'polygon' && !(s.bulges ?? []).some(Boolean);
-  const solved = useMemo(() => s?.kind === 'polygon' && s.closed && straight && s.points.length <= 8 ? solveOutline(s.points as P2[], s.lengths ?? {}) : null, [s, straight]);
+  const solved = useMemo(() => s?.kind === 'polygon' && s.closed && !s.pending
+    ? solveOutline(s.points as P2[], { lengths: s.lengths, radii: s.radii, tangents: s.tangents }, s.bulges) : null, [s]);
   const status = statusOf(s, solved);
   const constraints = s ? inferred(s) : [];
 
-  const setLength = (poly: Polygon, i: number, value: number | null) => {
-    const lengths = { ...(poly.lengths ?? {}) };
-    if (value === null) delete lengths[i]; else lengths[i] = value;
-    if (value === null) { setSolveError(null); onShape({ ...poly, lengths }); return; }
-    const result = solveOutline(poly.points as P2[], lengths);
-    if (!result.ok) { setSolveError(result.reason); return; }
-    setSolveError(null); onShape({ ...poly, points: result.points, lengths });
+  const lock = (poly: Polygon, key: 'lengths' | 'radii', i: number, value: number | null) => {
+    const next = { ...(poly[key] ?? {}) };
+    if (value === null) delete next[i]; else next[i] = value;
+    onShape({ ...poly, [key]: next });
   };
-  const setRadius = (poly: Polygon, i: number, r: number) => {
+  /** An open chain has no solve yet: its arc radius reshapes the bulge directly. */
+  const bendOpenArc = (poly: Polygon, i: number, r: number) => {
     const n = poly.points.length, bulges = [...(poly.bulges ?? poly.points.map(() => 0))];
     const b = radiusToBulge(poly.points[i] as P2, poly.points[(i + 1) % n] as P2, r, Math.sign(bulges[i]));
-    if (b === null) { setSolveError('An arc radius must be at least half its chord'); return; }
+    if (b === null) return;
     bulges[i] = Math.abs(bulges[i]) > 1 ? 1 / b : b; // keep a major arc major
-    setSolveError(null); onShape({ ...poly, bulges });
+    onShape({ ...poly, bulges });
+  };
+  const toggleTangent = (poly: Polygon, j: number) => {
+    const t = poly.tangents ?? [];
+    onShape({ ...poly, tangents: t.includes(j) ? t.filter(x => x !== j) : [...t, j].sort((a, b) => a - b) });
   };
 
   return (
@@ -41,7 +43,7 @@ export function SketchPanel({ sketch, onShape }: { sketch: SketchState; onShape(
       <div className="card-title">SKETCH · Z {sketch.planeZ}{sketch.base ? ' · on face' : ''}</div>
       {!s && <div className="empty">Pick a tool on the left and click on the plane. Points snap to 1 mm.</div>}
       {s && <div className={'sk-status' + (status.warn ? ' open' : '')} role="status"><i />{status.text}</div>}
-      {solveError && <div className="sk-status open" role="alert"><i />{solveError}</div>}
+      {error && <div className="sk-status open" role="alert"><i />{error}</div>}
       {s?.kind === 'rectangle' && (() => {
         const x0 = Math.min(s.a[0], s.b[0]), y0 = Math.min(s.a[1], s.b[1]), w = Math.abs(s.b[0] - s.a[0]), h = Math.abs(s.b[1] - s.a[1]);
         const put = (nx: number, ny: number, nw: number, nh: number) => onShape({ kind: 'rectangle', a: [nx, ny], b: [nx + nw, ny + nh] });
@@ -66,7 +68,7 @@ export function SketchPanel({ sketch, onShape }: { sketch: SketchState; onShape(
         {s.points.map((p, i) => {
           const n = s.points.length, b = s.bulges?.[i] ?? 0, hasEdge = s.closed || i < n - 1;
           const q = s.points[(i + 1) % n], edge = b ? arcOf(p as P2, q as P2, b).radius : Math.hypot(q[0] - p[0], q[1] - p[1]);
-          const locked = s.lengths?.[i] !== undefined;
+          const locked = (b ? s.radii?.[i] : s.lengths?.[i]) !== undefined;
           return [
             <span key={'n' + i}>{i + 1}</span>,
             ...[0, 1].map(k => <input key={i + '_' + k} type="number" step="any" aria-label={`Point ${i + 1} ${'XY'[k]}`} value={round(p[k])}
@@ -77,20 +79,28 @@ export function SketchPanel({ sketch, onShape }: { sketch: SketchState; onShape(
               }} />),
             hasEdge ? <span key={'e' + i} className="edge-cell">{b ? <em>R</em> : null}
               <input id={'sk-' + (b ? 'rad' : 'len') + i} type="number" step="any" min={0.5} className={locked ? 'locked' : ''} value={round(edge)}
-                aria-label={b ? `Arc ${i + 1} radius` : `Edge ${i + 1} length`} title={b ? 'Arc radius' : locked ? 'Locked length · clear to unlock' : 'Type a length (or press Enter) to lock it'}
+                aria-label={b ? `Arc ${i + 1} radius` : `Edge ${i + 1} length`}
+                title={locked ? `Locked ${b ? 'radius' : 'length'} · clear to unlock` : `Type a ${b ? 'radius' : 'length'} (or press Enter) to lock it`}
                 onKeyDown={e => {
                   // Enter locks the value as shown instead of finishing the sketch.
-                  if (e.key !== 'Enter' || b || !s.closed || !straight) return;
-                  e.preventDefault(); e.stopPropagation(); setLength(s, i, Number(e.currentTarget.value));
+                  if (e.key !== 'Enter' || !s.closed) return;
+                  e.preventDefault(); e.stopPropagation(); lock(s, b ? 'radii' : 'lengths', i, Number(e.currentTarget.value));
                 }}
                 onChange={e => {
-                  if (e.target.value === '' && !b) { setLength(s, i, null); return; }
+                  if (e.target.value === '') { if (s.closed) lock(s, b ? 'radii' : 'lengths', i, null); return; }
                   const v = Number(e.target.value); if (!Number.isFinite(v) || v <= 0) return;
-                  if (b) setRadius(s, i, v); else if (s.closed && straight) setLength(s, i, v);
+                  if (s.closed) lock(s, b ? 'radii' : 'lengths', i, v); else if (b) bendOpenArc(s, i, v);
                 }} /></span> : <span key={'e' + i} />,
           ];
         })}
       </div>}
+      {s?.kind === 'polygon' && s.closed && !s.pending && s.points.some((_, j) => canBeTangent(s.points as P2[], s.bulges, j)) && <>
+        <div className="card-title" style={{ marginTop: 10 }}>TANGENCY</div>
+        <div className="tangents" role="group" aria-label="Tangent joints">
+          {s.points.map((_, j) => canBeTangent(s.points as P2[], s.bulges, j) && (
+            <button key={j} type="button" className={'chip' + (s.tangents?.includes(j) ? ' on' : '')} aria-pressed={!!s.tangents?.includes(j)}
+              aria-label={`Tangent at point ${j + 1}`} onClick={() => toggleTangent(s, j)}>T · {j + 1}</button>))}
+        </div></>}
       {constraints.length > 0 && <>
         <div className="card-title" style={{ marginTop: 10 }}>CONSTRAINTS · {constraints.length}</div>
         {constraints.map((c, i) => <div className="kv" key={i}>{c.label}<b>{c.detail}</b></div>)}
@@ -106,12 +116,10 @@ function statusOf(s: SketchShape | null, solved: ReturnType<typeof solveOutline>
   if (s.kind !== 'polygon') return { text: 'Fully defined · every value is dimensioned', warn: false };
   if (!s.closed) return { text: s.pending ? 'Move to bend the arc, click to place it' : 'Open profile · click the first point to close', warn: true };
   if (s.pending) return { text: 'Move to bend the closing arc, click to place it', warn: true };
-  const curved = (s.bulges ?? []).some(Boolean);
-  if (curved) return { text: 'Line + arc outline · arcs keep their radius', warn: false };
-  if (!solved) return { text: 'Outline has more than 8 points · the solver is skipped', warn: true };
+  if (!solved) return { text: 'Outline closed', warn: false };
   if (!solved.ok) return { text: solved.reason, warn: true };
-  const concave = !isConvex(s.points);
-  const tail = concave ? ' · concave, extrudes as a line + arc solid' : '';
+  const curved = (s.bulges ?? []).some(Boolean);
+  const tail = curved ? ' · line + arc outline' : !isConvex(s.points) ? ' · concave, extrudes as a line + arc solid' : '';
   return solved.dof === 0 ? { text: 'Fully defined' + tail, warn: false }
     : { text: `Under-defined · ${solved.dof} DOF left — type edge lengths to lock them${tail}`, warn: true };
 }
@@ -123,10 +131,12 @@ function inferred(s: SketchShape) {
   const out: { label: string; detail: string }[] = [];
   const straightEdges = s.points.map((_, i) => !(s.bulges?.[i] ?? 0));
   if (s.closed) out.push({ label: 'Anchor', detail: 'point 1' });
-  const n = s.points.length, { h, v } = inferredHV(s.points as P2[]);
+  const n = s.points.length, { h, v } = inferredHV(s.points as P2[], s.bulges);
   for (const i of h) if ((s.closed || i < n - 1) && straightEdges[i]) out.push({ label: 'Horizontal', detail: `edge ${i + 1}` });
   for (const i of v) if ((s.closed || i < n - 1) && straightEdges[i]) out.push({ label: 'Vertical', detail: `edge ${i + 1}` });
   for (const [i, l] of Object.entries(s.lengths ?? {})) out.push({ label: 'Length', detail: `edge ${Number(i) + 1} = ${round(l)}` });
+  for (const [i, r] of Object.entries(s.radii ?? {})) out.push({ label: 'Radius', detail: `arc ${Number(i) + 1} = R${round(r)}` });
+  for (const j of s.tangents ?? []) out.push({ label: 'Tangent', detail: `point ${j + 1}` });
   s.bulges?.forEach((b, i) => { if (b) out.push({ label: 'Arc', detail: `edge ${i + 1} ${b > 0 ? 'ccw' : 'cw'}` }); });
   return out;
 }

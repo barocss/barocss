@@ -13,6 +13,7 @@ import { ContextMenu } from './ui/ContextMenu';
 import { SketchPanel, isConvex } from './ui/SketchPanel';
 import { downloadBytes, meshToStl } from './ui/files';
 import { outlineSegments, slotSegments, type P2 } from './sketch/profile';
+import { settleShape } from './sketch/settle';
 
 const TOOLS: { tool: SketchTool; key: string; label: string; icon: string; hint: string }[] = [
   { tool: 'rectangle', key: 'R', label: 'Rectangle', icon: 'rectangle', hint: 'Click two corners' },
@@ -45,6 +46,14 @@ export function App() {
   const [active, setActive] = useState<Active | null>(null);
   const [previewBodies, setPreviewBodies] = useState<BodyResult[] | null>(null);
   const [sketch, setSketch] = useState<SketchState | null>(null);
+  const [sketchError, setSketchError] = useState<string | null>(null);
+  const sketchRef = useRef(sketch); sketchRef.current = sketch;
+  /** Every profile edit (viewport or panel) is settled against its constraints before it is shown. */
+  const updateShape = useCallback((shape: SketchShape | null) => {
+    const r = settleShape(shape, sketchRef.current?.shape ?? null);
+    setSketchError(r.error); setSketch(s => s && { ...s, shape: r.shape });
+  }, []);
+  useEffect(() => { if (!sketch) setSketchError(null); }, [sketch]);
   const [palette, setPalette] = useState(false);
   const [cursor, setCursor] = useState<Vec3 | null>(null);
   const [toast, setToast] = useState<FriendlyError | null>(null);
@@ -247,7 +256,7 @@ export function App() {
   return (
     <div className="studio">
       <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo}
-        onPick={onPick} onCursor={setCursor} onSketchShape={(shape: SketchShape | null) => setSketch(s => s && { ...s, shape })}
+        onPick={onPick} onCursor={setCursor} onSketchShape={updateShape}
         onBoxSelect={(picked, additive) => { if (active) return; setSelection(prev => {
           const base = additive ? selectedBodies(prev) : [];
           return { faces: [], edges: [], bodies: [...new Set([...base, ...picked])] };
@@ -313,7 +322,7 @@ export function App() {
         {!bodies.length && !busy && <div className="empty">No bodies yet. Press <Kbd>S</Kbd> to sketch or <Kbd>B</Kbd> for a box.</div>}
       </aside>
 
-      {sketch && <SketchPanel sketch={sketch} onShape={shape => setSketch(sk => sk && { ...sk, shape })} />}
+      {sketch && <SketchPanel sketch={sketch} error={sketchError} onShape={updateShape} />}
       {!sketch && <aside className="card props" aria-label="Selection">
         {sel1?.kind === 'face' && sel1.face ? (<>
           <div className="card-title">SELECTION · FACE</div>

@@ -136,10 +136,32 @@ try {
     await clickAt(cx - 150, cy - 80); await clickAt(cx + 150, cy - 80); await clickAt(cx + 150, cy + 80);
     await press('a'); await clickAt(cx + 50, cy + 80); await page.mouse.move(cx + 100, cy + 60); await page.mouse.move(cx + 100, cy + 40); await page.mouse.click(cx + 100, cy + 40);
     await press('l'); await clickAt(cx - 150, cy + 80); await clickAt(cx - 150, cy - 80);
-    assert.match(await status(), /Line \+ arc/); await snap('outline-sketch');
+    assert.match(await status(), /line \+ arc/i); await snap('outline-sketch');
     await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     const d = await doc(); assert.equal(d.nodes[0].profile, 'loop'); assert.equal(d.nodes[0].segments.filter(x => x.kind === 'arc').length, 1); await iso();
+  });
+
+  await check('arc tangency is inferred, a radius lock holds it', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('l');
+    const [cx, cy] = await canvasCenter();
+    await clickAt(cx - 150, cy + 80); await clickAt(cx + 100, cy + 80);
+    await press('a'); await clickAt(cx + 100, cy - 80); await page.mouse.move(cx + 170, cy - 10); await page.mouse.move(cx + 180, cy); await page.mouse.click(cx + 180, cy);
+    await press('l'); await clickAt(cx - 150, cy - 80); await clickAt(cx - 150, cy + 80);
+    const pressed = () => page.locator('.tangents .chip[aria-pressed=true]').allInnerTexts();
+    assert.deepEqual(await pressed(), ['T · 2', 'T · 3']);
+    const r0 = Number(await page.inputValue('#sk-rad1')), target = Math.round(r0) + 4;
+    await page.fill('#sk-rad1', String(target));
+    assert.equal(Number(await page.inputValue('#sk-rad1')), target);
+    assert.equal(await page.locator('.sk-panel [role=alert]').count(), 0);
+    assert.match(await page.locator('.sk-panel').innerText(), new RegExp('arc 2 = R' + target));
+    // Tangent + radius: the straight edges moved apart to 2R.
+    assert.equal(Math.abs(Number(await page.inputValue('[aria-label="Point 3 Y"]')) - Number(await page.inputValue('[aria-label="Point 2 Y"]'))), 2 * target);
+    await snap('tangent-radius');
+    await page.click('[aria-label="Tangent at point 3"]'); assert.deepEqual(await pressed(), ['T · 2']);
+    await page.locator('#sk-rad1').evaluate(e => e.blur()); await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    const d = await doc(); assert.equal(d.nodes[0].profile, 'loop'); await iso();
   });
 
   await check('command palette and light theme', async () => {
