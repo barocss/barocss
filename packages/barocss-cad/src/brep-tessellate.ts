@@ -210,6 +210,37 @@ export function tessellateBrep(brep: Brep, options: BrepTessellationOptions = {}
     const frame = cylinderFrame(face.surface); if (!frame || railsOf(face, loops, coedges, edges) !== undefined) continue;
     trimmed.set(face.id, frame);
   }
+  const refined = new Set<string>(), gridded = new Set<string>(), rows = 2 * perQuarter;
+  // Straight rails of a curved ruled face (a loft's side): sampled as finely as its other rail, or a
+  // quarter turn's worth when both are straight (a twisted side), so the strip can follow the surface.
+  for (const face of brep.faces) {
+    if (planar(face.surface) || trimmed.has(face.id) || flat(face.surface)) continue;
+    const rails = railsOf(face, loops, coedges, edges); if (rails === undefined) continue;
+    const ids = rails.map(r => coedges.get(loops.get(face.loops.find(l => loops.get(l)!.kind === 'outer')!)!.coedges[r])!.edge);
+    const frame = ruledFrame(face.surface), outer = loops.get(face.loops.find(l => loops.get(l)!.kind === 'outer')!)!.coedges.map(c => coedges.get(c)!.edge);
+    // A twisted side (its normal turns along its rulings) is also cut into rows: its two straight
+    // sides sampled at the rows, so its neighbours share those points.
+    const sideIds = outer.filter((_, i) => i !== rails[0] && i !== rails[1]);
+    if (outer.length === 4 && frame.twisted() && sideIds.every(id => isLine(edges.get(id)!.curve) && (!refined.has(id) || params.get(id)!.length === rows + 1))) {
+      for (const id of sideIds) { const [t0, t1] = curveDomain(edges.get(id)!.curve); params.set(id, Array.from({ length: rows + 1 }, (_, j) => j === rows ? t1 : t0 + (t1 - t0) * j / rows)); refined.add(id); }
+      gridded.add(face.id);
+    }
+    ids.forEach((id, k) => {
+      const e = edges.get(id)!, o = edges.get(ids[1 - k])!; if (!isLine(e.curve) || refined.has(id)) return;
+      const [t0, t1] = curveDomain(e.curve), a = e.curve.controlPoints[0] as Point, d = sub(e.curve.controlPoints[1] as Point, a), dd = dot(d, d);
+      refined.add(id);
+      if (!isLine(o.curve)) {
+        // At the other rail's samples' parameters across, so that both rails pair point for point.
+        const there = params.get(o.id)!.map(t => evaluateCurve(o.curve, t)), io = frame.isoOf(there), ie = frame.isoOf([a, add3(a, d)]);
+        if (io >= 0 && ie >= 0 && (io >> 1) === (ie >> 1) && io !== ie) {
+          const ts = there.map(p => frame.project(io, p)[0]).map(u => frame.point(ie, u)).map(p => t0 + (t1 - t0) * dot(sub(p, a), d) / dd).sort((x, y) => x - y);
+          ts[0] = t0; ts[ts.length - 1] = t1; params.set(id, ts); return;
+        }
+      }
+      const n = Math.max(params.get(id)!.length - 1, isLine(o.curve) ? 2 * perQuarter : params.get(o.id)!.length - 1);
+      params.set(id, Array.from({ length: n + 1 }, (_, j) => j === n ? t1 : t0 + (t1 - t0) * j / n));
+    });
+  }
   const samples = new Map(brep.edges.map(e => [e.id, params.get(e.id)!.map(t => evaluateCurve(e.curve, t))]));
   const along = (c: BrepCoedge) => { const s = samples.get(c.edge)!; return c.sense === 'forward' ? s : [...s].reverse(); };
   /** A loop as one ring of points (each coedge without its last point). */
@@ -263,10 +294,24 @@ export function tessellateBrep(brep: Brep, options: BrepTessellationOptions = {}
     const chain = (from: number, to: number) => { const out: Point[] = []; for (let i = (from + 1) % count; i !== to; i = (i + 1) % count) out.push(...along(sides[i]).slice(0, -1)); return out.slice(1); };
     const right = chain(r1, r2), left = chain(r2, r1);
     const pts = [...A, ...B, ...right, ...left], tris: [number, number, number][] = [];
-    // Zipper the two sides (A runs with the loop; B was reversed to run the same way).
+    // Zipper the two sides (A runs with the loop; B was reversed to run the same way), pairing the
+    // points by their parameter across the rails when the face is a ruled patch between two of its
+    // iso-lines (so the strip follows its rulings), else by their share of each side.
     let i = 0, j = 0; const n = A.length - 1, m = B.length - 1, b0 = A.length;
+    const ruled = ruledFrame(face.surface), across = ruled.across(A, B), fa = (k: number) => across ? across.a[k] : k / n, fb = (k: number) => across ? across.b[k] : k / m;
+    if (gridded.has(face.id) && across && n === m && right.length === rows - 1 && left.length === rows - 1 && across.a.every((x: number, k: number) => Math.abs(x - across.b[k]) <= 1e-9)) {
+      // A twisted side with its rails paired point for point: rows between them on the surface (its
+      // straight sides were sampled at the rows), so it is followed across as well as along.
+      const r0 = b0 + B.length, l0 = r0 + right.length, base = l0 + left.length;
+      const index = (k: number, r: number) => r === 0 ? k : r === rows ? b0 + k : k === n ? r0 + r - 1 : k === 0 ? l0 + rows - 1 - r : base + (r - 1) * (n - 1) + k - 1;
+      const inner: Point[] = [];
+      for (let r = 1; r < rows; r++) for (let k = 1; k < n; k++) inner.push(ruled.between(across, k, r / rows));
+      const all = [...A, ...B, ...right, ...left, ...inner], cells: [number, number, number][] = [];
+      for (let r = 0; r < rows; r++) for (let k = 0; k < n; k++) cells.push([index(k, r), index(k + 1, r), index(k, r + 1)], [index(k + 1, r), index(k + 1, r + 1), index(k, r + 1)]);
+      emit(face.id, 'ruled', all, cells, null); continue;
+    }
     while (i < n || j < m) {
-      const advanceA = j >= m || (i < n && (i + 1) / n <= (j + 1) / m);
+      const advanceA = j >= m || (i < n && fa(i + 1) <= fb(j + 1));
       if (advanceA) { tris.push([i, i + 1, b0 + j]); i++; } else { tris.push([i, b0 + j + 1, b0 + j]); j++; }
     }
     // Side chains: the end triangle on each straight side becomes a fan over the chain's points.
@@ -285,6 +330,54 @@ export function tessellateBrep(brep: Brep, options: BrepTessellationOptions = {}
   };
 }
 
+/** All control points in one plane. */
+function flat(S: Surface): boolean {
+  const P = S.controlPoints.flat(), o = P[0], size = Math.max(1, ...P.map(p => Math.hypot(...sub(p, o))));
+  let n: Point = [0, 0, 0];
+  for (let i = 1; i < P.length && Math.hypot(...n) < 1e-9 * size * size; i++) for (let j = i + 1; j < P.length; j++) { const c = cross(sub(P[i], o), sub(P[j], o)); if (Math.hypot(...c) > Math.hypot(...n)) n = c; }
+  const l = Math.hypot(...n);
+  return l > 0 && P.every(p => Math.abs(dot(sub(p, o), n)) / l <= 1e-9 * size);
+}
+
+const add3 = (a: Point, b: Point): Point => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+/**
+ * A surface's four boundary iso-lines (v = v0, v = v1, u = u0, u = u1), points projected onto them, and
+ * for rails on opposite ones (a ruled patch's) each rail point's share of the way along them, with the
+ * surface between paired points.
+ */
+function ruledFrame(S: Surface) {
+  const at = surfaceEvaluator(S), d = surfaceDomain(S), size = Math.max(1, ...S.controlPoints.flat().map(p => Math.hypot(...p))), tol = 1e-7 * size;
+  const isos = [{ along: d.u, fix: d.v[0] }, { along: d.u, fix: d.v[1] }, { along: d.v, fix: d.u[0] }, { along: d.v, fix: d.u[1] }];
+  const point = (i: number, t: number): Point => i < 2 ? at(t, isos[i].fix) : at(isos[i].fix, t);
+  const project = (i: number, p: Point): [number, number] => {
+    const [t0, t1] = isos[i].along, N = 64; let best = t0, dist = Infinity;
+    for (let k = 0; k <= N; k++) { const t = t0 + (t1 - t0) * k / N, e = Math.hypot(...sub(point(i, t), p)); if (e < dist) { dist = e; best = t; } }
+    let lo = Math.max(t0, best - (t1 - t0) / N), hi = Math.min(t1, best + (t1 - t0) / N);
+    for (let it = 0; it < 60; it++) { const a = lo + (hi - lo) * 0.382, b = lo + (hi - lo) * 0.618; if (Math.hypot(...sub(point(i, a), p)) < Math.hypot(...sub(point(i, b), p))) hi = b; else lo = a; }
+    const t = (lo + hi) / 2; return [t, Math.hypot(...sub(point(i, t), p))];
+  };
+  const isoOf = (R: readonly Point[]) => isos.findIndex((_, i) => [R[0], R[R.length >> 1], R[R.length - 1]].every(p => project(i, p)[1] <= tol));
+  const across = (A: readonly Point[], B: readonly Point[]) => {
+    const ia = isoOf(A), ib = isoOf(B);
+    if (ia < 0 || ib < 0 || (ia >> 1) !== (ib >> 1) || ia === ib) return null;
+    const ta = A.map(p => project(ia, p)[0]), tb = B.map(p => project(ib, p)[0]), sa = ta[ta.length - 1] - ta[0], sb = tb[tb.length - 1] - tb[0];
+    if (sa === 0 || sb === 0) return null;
+    return { ia, ib, ta, a: ta.map(x => (x - ta[0]) / sa), b: tb.map(x => (x - tb[0]) / sb) };
+  };
+  /** The surface a share `f` of the way from rail A's k-th point to rail B's (paired at one parameter). */
+  const between = (x: NonNullable<ReturnType<typeof across>>, k: number, f: number): Point => {
+    const fix = isos[x.ia].fix + (isos[x.ib].fix - isos[x.ia].fix) * f;
+    return x.ia < 2 ? at(x.ta[k], fix) : at(fix, x.ta[k]);
+  };
+  /** The normal turns along the rulings (the v-lines): not a plane, cylinder or cone (not developable). */
+  const twisted = () => {
+    const normal = (u: number, v: number): Point => { const hu = 1e-6 * (d.u[1] - d.u[0]), hv = 1e-6 * (d.v[1] - d.v[0]) * (v > (d.v[0] + d.v[1]) / 2 ? -1 : 1), p = at(u, v), n = cross(sub(at(u + hu, v), p), sub(at(u, v + hv), p)); return unit(hv < 0 ? [-n[0], -n[1], -n[2]] : n); };
+    for (let k = 0; k <= 8; k++) { const u = d.u[0] + (d.u[1] - d.u[0]) * (0.05 + 0.9 * k / 8); if (Math.hypot(...sub(normal(u, d.v[0]), normal(u, d.v[1]))) > 1e-4) return true; }
+    return false;
+  };
+  return { isoOf, project, point, across, between, twisted };
+}
+
 /** Two rails facing each other with straight sides between them (each one line or a chain of lines). */
 function railsOf(face: Brep['faces'][number], loops: Map<string, Brep['loops'][number]>, coedges: Map<string, BrepCoedge>, edges: Map<string, Brep['edges'][number]>): [number, number] | undefined {
   const outerId = face.loops.find(l => loops.get(l)!.kind === 'outer')!, inner = face.loops.length - 1;
@@ -301,7 +394,9 @@ function cylinderFrame(S: Surface): CylinderFrame | null {
   if (S.degreeV !== 1 || S.controlPoints[0]?.length !== 2) return null;
   const base: Curve = { kind: 'curve', id: 'base', degree: S.degreeU, knots: S.knotsU, controlPoints: S.controlPoints.map(r => r[0]), weights: S.weights.map(w => w[0]) };
   const circle = circleOf(base); if (!circle) return null;
-  const axis = sub(S.controlPoints[0][1], S.controlPoints[0][0]);
+  const axis = sub(S.controlPoints[0][1], S.controlPoints[0][0]), size = Math.max(1, circle.r, Math.hypot(...axis));
+  // An extrusion only when every row moves by the same vector (a loft between circles is not one).
+  if (!S.controlPoints.every((r, i) => Math.hypot(...sub(sub(r[1], r[0]), axis)) <= 1e-9 * size && S.weights[i][0] === S.weights[i][1])) return null;
   const big = [0, 1, 2].reduce((m, i) => Math.abs(axis[i]) > Math.abs(axis[m]) ? i : m, 0), a = unit(axis[big] > 0 ? axis : [-axis[0], -axis[1], -axis[2]]);
   if (Math.abs(Math.abs(dot(cross(circle.e1, circle.e2), a)) - 1) > 1e-9) return null;
   const e1 = circle.e1, e2 = circle.e2, c = circle.c, r = circle.r;

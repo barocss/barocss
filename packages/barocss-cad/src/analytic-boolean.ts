@@ -162,7 +162,9 @@ function surfaceOf(face: BrepFace, tol: number): Surf {
     const base: Curve = { kind: 'curve', id: 'base', degree: S.degreeU, knots: S.knotsU, controlPoints: S.controlPoints.map(r => r[0]), weights: S.weights.map(w => w[0]) };
     const circle = circleOf(base);
     const axis = sub(S.controlPoints[0][1] as P3, S.controlPoints[0][0] as P3);
-    if (circle && len(axis) > 0) {
+    // An extrusion only when every row moves by the same vector (a loft between circles is not one).
+    const translate = S.controlPoints.every((r, i) => len(sub(sub(r[1] as P3, r[0] as P3), axis)) <= tol && S.weights[i][0] === S.weights[i][1]);
+    if (circle && len(axis) > 0 && translate) {
       const { a, e1, e2 } = canonicalFrame(axis), cplane = unit(cross(sub(base.controlPoints[0] as P3, circle.c), sub(base.controlPoints[2] as P3, circle.c)));
       // A circle swept along its axis is a cylinder; any other sweep (a cone, an oblique extrusion) is general.
       if (Math.abs(Math.abs(dot(cplane, a)) - 1) > 1e-9) return nurbsOf(S, sign as 1 | -1);

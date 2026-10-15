@@ -29,6 +29,7 @@ import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js
 import { tessellateBrep } from './brep-tessellate.js';
 import { combineMassProperties, prismaticMassProperties, brepMassProperties, SolidMassError, type SolidMassProperties } from './solid-mass.js';
 import { glueAtSharedFace } from './brep-glue.js';
+import { loftSolid } from './loft.js';
 import { ExtrudedProfileError, buildProfileLoop, type ProfileSegmentInput } from './extruded-profile-solid.js';
 import type { Point } from './types.js';
 import { add, cross, dot, scale, sub, unit } from './vec3.js';
@@ -73,6 +74,12 @@ export type CadPartFeature = Base & (
    * last ended.
    */
   | { readonly kind: 'sweep'; readonly sketch: string; readonly path: readonly CadPartSweepStep[] }
+  /**
+   * A ruled loft through sketches placed at increasing heights: each section's edges joined by straight
+   * rulings to the next one's (edge counts are evened out by halving the longest edges). Faces
+   * `${id}.bottom`, `.top`, `.side${i}` (two sections) or `.s${k}.side${i}`.
+   */
+  | { readonly kind: 'loft'; readonly sections: readonly CadPartLoftSection[] }
   /** A body read from a STEP file (its text); its faces keep their names, prefixed `${id}.`. */
   | { readonly kind: 'import'; readonly step: string }
   /** Hollowed to walls `thickness` thick; `open` names the faces removed (the top of a box, a side). */
@@ -86,6 +93,7 @@ export interface CadPartDocument {
   readonly parameters: Readonly<Record<string, number>>;
   readonly features: readonly CadPartFeature[];
 }
+export interface CadPartLoftSection { readonly sketch: string; readonly z: CadPartDim }
 export type CadPartSweepStep = { readonly kind: 'straight'; readonly length: CadPartDim } | { readonly kind: 'bend'; readonly radius: CadPartDim; readonly angleDegrees: number; readonly toward: 'x' | '-x' | 'y' | '-y' };
 export type CadPartErrorCode = 'FORMAT' | 'INPUT' | 'PARAMETER' | 'REFERENCE' | 'SELECTION' | 'CAPABILITY' | 'GEOMETRY';
 export class CadPartError extends Error {
@@ -417,6 +425,18 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       });
       const outer = (sketch as Extract<Result, { kind: 'sketch' }>).outer;
       return () => { const { brep, mass } = sweepBrep(outer, steps, at, fail); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass }] }; };
+    }
+    case 'loft': {
+      const list = f.sections as unknown;
+      if (!Array.isArray(list) || list.length < 2 || list.length > CadPartLimits.copies) fail('INPUT', 'sections must list 2 to 64 sections');
+      const sections = (list as unknown[]).map((sec, i) => {
+        if (!isRecord(sec) || typeof sec.sketch !== 'string') return fail('INPUT', `sections[${i}] must name a sketch`);
+        const sketch = ref(sec.sketch, 'sketch').result;
+        if (sketch.kind !== 'sketch') fail('REFERENCE', `${sec.sketch} is not a sketch`);
+        return { profile: (sketch as Extract<Result, { kind: 'sketch' }>).outer, z: dim(sec.z as CadPartDim, `sections[${i}].z`) };
+      });
+      sections.forEach((s, i) => { if (i && !(s.z > sections[i - 1].z)) fail('PARAMETER', `sections[${i}] must lie above sections[${i - 1}] (z ${s.z} ≤ ${sections[i - 1].z})`); });
+      return () => { const { brep, mass } = loftSolid({ id: at, name: at, sections }); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass }] }; };
     }
     case 'import': {
       if (typeof f.step !== 'string' || !f.step.length) fail('INPUT', 'step must be the text of a STEP file');

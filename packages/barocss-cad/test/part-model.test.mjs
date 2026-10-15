@@ -175,6 +175,48 @@ test('sweep: a profile along straight runs and bends, exact mass, joined into on
   refused(sweep(tube, [{ kind: 'twist' }]), 'INPUT', /straight or bend/);
 });
 
+test('loft: ruled sections at heights, exact volumes, quadrature mass, watertight meshes', () => {
+  const poly = (id, points) => ({ id, kind: 'sketch', profile: 'polygon', points });
+  const loft = (...sections) => ({ id: 'L', kind: 'loft', sections: sections.map(([sketch, z]) => ({ sketch, z })) });
+  const a = 10 * Math.SQRT2 - 10;
+  const cases = [
+    ['a square frustum', [rect('a', -10, -10, 10, 10), rect('b', -5, -5, 5, 5), loft(['a', 0], ['b', 12])], 4 * (400 + 100 + 200)],
+    ['a cone frustum', [circle('a', 0, 0, 10), circle('b', 0, 0, 4), loft(['a', 0], ['b', 6])], 2 * pi * (100 + 16 + 40)],
+    ['an oblique cylinder', [circle('a', 0, 0, 5), circle('b', 7, 3, 5), loft(['a', 0], ['b', 10])], 250 * pi],
+    // Corners to corners of a square turned 45°: twisted sides; the section at λ is a square on (10 + aλ, 10 − 10λ).
+    ['a twisted square', [rect('a', -10, -10, 10, 10), poly('b', [[10 * Math.SQRT2, 0], [0, 10 * Math.SQRT2], [-10 * Math.SQRT2, 0], [0, -10 * Math.SQRT2]]), loft(['a', 0], ['b', 10])], 20 * (100 + 10 * a + a * a / 3 + 100 / 3)],
+    ['a square to a circle', [rect('a', -10, -10, 10, 10), circle('b', 0, 0, 6), loft(['a', 0], ['b', 15])], null],
+    ['three sections', [circle('a', 0, 0, 8), rect('b', -6, -6, 6, 6), circle('c', 0, 0, 3), loft(['a', 0], ['b', 10], ['c', 18])], null],
+    ['a triangle to a hexagon (edges halved to match)', [poly('a', [[10, 0], [-5, 8.66], [-5, -8.66]]), poly('b', [0, 1, 2, 3, 4, 5].map(k => [6 * Math.cos(k * pi / 3), 6 * Math.sin(k * pi / 3)])), loft(['a', 0], ['b', 8])], null],
+  ];
+  for (const [name, features, exact] of cases) {
+    const o = evaluateCadPart(D(features)).outputs.at(-1), report = checkBrep(o.brep);
+    assert.equal(report.valid, true, `${name}: ${report.issues}`);
+    assert.deepEqual(report.topology.map(t => t.genus), [0], name);
+    const m = o.massProperties(1000);
+    assert.equal(m.method, 'quadrature', name);
+    if (exact !== null) assert.ok(close(m.volumeMM3, exact, 1e-12), `${name}: ${m.volumeMM3} vs ${exact}`);
+    // The quadrature agrees with the body's own fine mesh, which is watertight.
+    const mesh = brepMassProperties(o.brep, 1000, { segmentsPerQuarter: 64 });
+    assert.ok(Math.abs(mesh.volumeMM3 - m.volumeMM3) < 3e-4 * m.volumeMM3, `${name}: mesh ${mesh.volumeMM3} vs ${m.volumeMM3}`);
+    assert.ok(Math.hypot(...m.centroidMM.map((c, k) => c - mesh.centroidMM[k])) < 1e-3 * Math.cbrt(m.volumeMM3), `${name}: centroid`);
+    for (let i = 0; i < 3; i++) assert.ok(Math.abs(m.inertiaCentroidKgM2[i][i] - mesh.inertiaCentroidKgM2[i][i]) < 1e-3 * m.inertiaCentroidKgM2[i][i], `${name}: inertia ${i}`);
+    const t = tessellateBrep(o.brep, { segmentsPerQuarter: 8 }), p = t.positionsMM, key = i => `${p[3 * i]},${p[3 * i + 1]},${p[3 * i + 2]}`, directed = new Set();
+    for (let k = 0; k < t.indices.length; k += 3) for (let e = 0; e < 3; e++) directed.add(key(t.indices[k + e]) + '>' + key(t.indices[k + (e + 1) % 3]));
+    for (const d of directed) { const [x, y] = d.split('>'); assert.ok(directed.has(y + '>' + x), `${name}: open ${d}`); }
+  }
+  // Names: the caps, the sides by section span, the seams by the faces they part.
+  const named = evaluateCadPart(D(cases[5][1])).outputs[0].brep;
+  assert.deepEqual(named.faces.map(f => f.name).filter(n => !/side/.test(n)), ['L.bottom', 'L.top']);
+  assert.ok(named.edges.some(e => e.name === 'L.s0.side0|L.s1.side0'));
+  // A loft takes Booleans: a hole down a cone whose circles start at one point (not a cylinder).
+  const holed = evaluateCadPart(D([circle('a', 0, 0, 10), circle('b', 6, 0, 4), loft(['a', 0], ['b', 6]), { id: 'h', kind: 'hole', target: 'L', center: [5, 0], radius: 1.5 }])).outputs.at(-1);
+  assert.equal(checkBrep(holed.brep).valid, true);
+  assert.ok(Math.abs(volume(holed) - (2 * pi * (100 + 16 + 40) - 2.25 * pi * 6)) < 2e-3 * volume(holed), String(volume(holed)));
+  refused(D([circle('a', 0, 0, 5), loft(['a', 0])]), 'INPUT', /2 to 64 sections/);
+  refused(D([circle('a', 0, 0, 5), circle('b', 0, 0, 3), loft(['a', 4], ['b', 4])]), 'PARAMETER', /must lie above/);
+});
+
 test('refusals name the feature and the reason', () => {
   const plate = [rect('s', 0, 0, 10, 10), extrude('a', 's', 5)];
   refused(D([extrude('a', 's', 5), rect('s', 0, 0, 10, 10)]), 'REFERENCE', /^a: sketch: no earlier feature s/);

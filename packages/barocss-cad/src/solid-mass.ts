@@ -11,12 +11,13 @@ export interface SolidMassProperties {
   readonly volumeMM3: number; readonly massKG: number; readonly centroidMM: Point;
   /** About the centroid in kg·m², products of inertia stored as −∫xy dm. */
   readonly inertiaCentroidKgM2: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]];
-  readonly method: 'closed-form' | 'planar-exact' | 'tessellated';
+  /** `quadrature`: Gauss quadrature exact across and to rounding along smooth (rational) edges. */
+  readonly method: 'closed-form' | 'planar-exact' | 'tessellated' | 'quadrature';
 }
 export class SolidMassError extends Error { constructor(detail: string) { super('Mass properties: ' + detail); this.name = 'SolidMassError'; } }
 
 /** From volume integrals [V, ∫x, ∫y, ∫z, ∫x², ∫y², ∫z², ∫xy, ∫xz, ∫yz] in mm-powers. */
-function fromIntegrals(I: number[], density: number, method: SolidMassProperties['method']): SolidMassProperties {
+export function solidMassFromIntegrals(I: readonly number[], density: number, method: SolidMassProperties['method']): SolidMassProperties {
   if (!(typeof density === 'number' && Number.isFinite(density) && density > 0)) throw new SolidMassError('a positive finite density is required');
   const [V, X, Y, Z, XX, YY, ZZ, XY, XZ, YZ] = I;
   if (!(V > 0)) throw new SolidMassError('the solid has no positive volume');
@@ -36,7 +37,7 @@ export function prismaticMassProperties(solid: PrismaticSolid, densityKgPerM3: n
       I[0] += A * h; I[1] += Sx * h; I[2] += Sy * h; I[3] += A * h2; I[4] += Sxx * h; I[5] += Syy * h; I[6] += A * h3; I[7] += Sxy * h; I[8] += Sx * h2; I[9] += Sy * h2;
     }
   }
-  return fromIntegrals(I, densityKgPerM3, 'closed-form');
+  return solidMassFromIntegrals(I, densityKgPerM3, 'closed-form');
 }
 
 /** Tetrahedra from the origin over the watertight tessellation (divergence theorem). */
@@ -52,7 +53,7 @@ export function brepMassProperties(brep: Brep, densityKgPerM3: number, options: 
     I[0] += D / 6; I[1] += D / 24 * s[0]; I[2] += D / 24 * s[1]; I[3] += D / 24 * s[2];
     I[4] += second(0, 0); I[5] += second(1, 1); I[6] += second(2, 2); I[7] += second(0, 1); I[8] += second(0, 2); I[9] += second(1, 2);
   }
-  return fromIntegrals(I, densityKgPerM3, curved ? 'tessellated' : 'planar-exact');
+  return solidMassFromIntegrals(I, densityKgPerM3, curved ? 'tessellated' : 'planar-exact');
 }
 
 /**
