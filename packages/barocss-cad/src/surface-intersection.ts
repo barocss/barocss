@@ -99,6 +99,9 @@ export function intersectPatches(A: Patch, B: Patch, options: {
   const gridOf = (P: Patch) => { const [[u0, v0], [u1, v1]] = P.box, pts: { p: XY; x: Point }[][] = [];
     for (let i = 0; i <= n; i++) { const row: { p: XY; x: Point }[] = []; for (let j = 0; j <= n; j++) { const p: XY = [u0 + (u1 - u0) * i / n, v0 + (v1 - v0) * j / n]; row.push({ p, x: P.at(p) }); } pts.push(row); } return pts; };
   const GA = gridOf(A), GB = gridOf(B);
+  // No chain is longer than a few times both patches' size.
+  const extent = (G: { x: Point }[][]) => { let m = 0; for (const row of G) for (const c of row) m = Math.max(m, len(sub(c.x, G[0][0].x))); return m; };
+  const maxSteps = Math.min(20000, Math.ceil(8 * (extent(GA) + extent(GB)) / h) + 100);
   const tris = (G: { p: XY; x: Point }[][]) => { const out: { pts: Point[]; uv: XY[]; min: Point; max: Point }[] = [];
     for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) for (const t of [[G[i][j], G[i + 1][j], G[i + 1][j + 1]], [G[i][j], G[i + 1][j + 1], G[i][j + 1]]]) {
       const pts = t.map(c => c.x), min = [0, 1, 2].map(k => Math.min(...pts.map(p => p[k]))) as Point, max = [0, 1, 2].map(k => Math.max(...pts.map(p => p[k]))) as Point;
@@ -125,7 +128,7 @@ export function intersectPatches(A: Patch, B: Patch, options: {
     const march = (dir: 1 | -1) => {
       const pts: Point[] = [seed.x], tans: Point[] = [], uvA: XY[] = [seed.pa], uvB: XY[] = [seed.pb];
       let closed = false;
-      for (let k = 0; k < 20000; k++) {
+      for (let k = 0; k < maxSteps; k++) {
         spend();
         const pa = uvA[uvA.length - 1], pb = uvB[uvB.length - 1], x = pts[pts.length - 1], c = cross(normalOf(A, pa), normalOf(B, pb));
         // The surfaces turn tangent: the curve ends here (its direction is undefined).
@@ -156,6 +159,8 @@ export function intersectPatches(A: Patch, B: Patch, options: {
         }
         // Closing on the start.
         if (k > 3 && len(sub(next.x, pts[0])) < step * 0.75 && dot(sub(pts[0], x), t) > 0) { closed = true; break; }
+        // Running back over itself (circling a tangency): the curve ends there.
+        if (k > 8 && pts.slice(1, -8).some(p => len(sub(next.x, p)) < step * 0.5)) break;
         pts.push(next.x); uvA.push(next.pa); uvB.push(next.pb);
       }
       if (tans.length < pts.length) tans.push(tans[tans.length - 1] ?? [1, 0, 0]);

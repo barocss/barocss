@@ -410,8 +410,9 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
   };
   const same = (g: GFace, into: GFace) => { for (const ring of [g.region.outer, ...g.region.holes]) for (const seg of ring) into.cuts.push(curve2(into, curve3Of(g, seg), tol)); };
   const A = fa.surf, B = fb.surf;
-  if (A.kind === 'nurbs' || B.kind === 'nurbs') {
-    // General surfaces: march the intersection over both faces' domain boxes, then clip as any curve.
+  // General surfaces (and degenerate cylinder pairs): march the intersection over both faces' domain
+  // boxes, then clip as any curve.
+  const march = (): void => {
     const box = (f: GFace): [XY, XY] => { const xs: number[] = [], ys: number[] = [];
       for (const ring of [f.region.outer, ...f.region.holes]) for (const g of ring) for (let i = 0; i <= 8; i++) { const q = segAtAny(g, i / 8); xs.push(q[0]); ys.push(q[1]); }
       const mx = (Math.max(...xs) - Math.min(...xs)) * 0.02 + tol, my = (Math.max(...ys) - Math.min(...ys)) * 0.02 + tol;
@@ -463,8 +464,8 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
       if (along.length && chain.points.every(onAlong)) continue;
       paramCuts(chainCurve(chain, { A: PA, B: PB }), 0, 1);
     }
-    return;
-  }
+  };
+  if (A.kind === 'nurbs' || B.kind === 'nurbs') { march(); return; }
   if (A.kind === 'plane' && B.kind === 'plane') {
     const D = cross(A.n, B.n);
     if (len(D) < 1e-12) { if (Math.abs(dot(A.n, sub(B.o, A.o))) <= tol) { same(fb, fa); same(fa, fb); } return; }
@@ -479,6 +480,16 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
       // for every θ, the curve is two closed branches.
       const w = cross(A.a, B.a), gap = Math.abs(dot(sub(B.c, A.c), unit(w)));
       if (gap >= A.r + B.r - tol) return;
+      if (Math.abs(A.r - B.r) <= tol && gap <= tol) {
+        // Equal radii, axes meeting at O (two fillets meeting in a mitre): the points equally far from both
+        // axes lie on the planes through O normal to a₁ − a₂ and a₁ + a₂ — two ellipses, on either cylinder.
+        const d = sub(B.c, A.c), k = dot(A.a, B.a), sa = (dot(d, A.a) - k * dot(d, B.a)) / (1 - k * k), O = add(A.c, scale(A.a, sa));
+        for (const n of [unit(sub(A.a, B.a)), unit(add(A.a, B.a))]) {
+          const along = dot(n, A.a), dP = dot(n, O);
+          paramCuts(th => { const base = add(A.c, scale(add(scale(A.e1, Math.cos(th)), scale(A.e2, Math.sin(th))), A.r)); return add(base, scale(A.a, (dP - dot(n, base)) / along)); }, A.ref - Math.PI, A.ref + Math.PI);
+        }
+        return;
+      }
       const [S, L] = A.r <= B.r ? [A, B] : [B, A], dPerp = sub(S.a, scale(L.a, dot(S.a, L.a))), qa = dot(dPerp, dPerp);
       const coeff = (th: number) => { const q = add(sub(S.c, L.c), add(scale(S.e1, S.r * Math.cos(th)), scale(S.e2, S.r * Math.sin(th)))), wp = sub(q, scale(L.a, dot(q, L.a))); return { q, b: dot(wp, dPerp), c: dot(wp, wp) - L.r * L.r }; };
       const disc = (th: number) => { const { b, c } = coeff(th); return b * b - qa * c; }, N = 720, margin = 1e-6 * L.r * L.r * qa;
@@ -500,10 +511,10 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
           let lo = at(i - 1), hi = at(i + 1);
           for (let it = 0; it < 100; it++) { const m1 = hi - (hi - lo) * 0.6180339887, m2 = lo + (hi - lo) * 0.6180339887; if (disc(m1) < disc(m2)) hi = m2; else lo = m1; }
           const th = (lo + hi) / 2;
-          if (Math.abs(disc(th)) > 1e-14 * L.r ** 4 * qa + 1e-300) throw new Refused('crossing cylinders that touch tangentially (not supported yet)');
+          if (Math.abs(disc(th)) > 1e-14 * L.r ** 4 * qa + 1e-300) { march(); return; }
           if (!doubles.some(z => Math.abs(z - th) < 1e-6)) doubles.push(th);
         }
-        if (!doubles.length || doubles.length % 2) throw new Refused('crossing cylinders meet in curves with branch points (not supported yet)');
+        if (!doubles.length || doubles.length % 2) { march(); return; }
         doubles.sort((a, b) => a - b);
         const sigma = (th: number) => { let k = 0; const t = ((th - (S.ref - Math.PI)) % TWO_PI + TWO_PI) % TWO_PI + S.ref - Math.PI; for (const z of doubles) if (z < t) k++; return k % 2 ? -1 : 1; };
         for (const sign of [-1, 1]) paramCuts(th => {
@@ -518,12 +529,12 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
       const zeros: number[] = [];
       for (let i = 0; i < N; i++) {
         const a0 = ds[i], a1 = ds[(i + 1) % N]; if ((a0 > 0) === (a1 > 0)) continue;
-        if (Math.min(Math.abs(a0), Math.abs(a1)) < margin && Math.abs(a0 - a1) < 2 * margin) throw new Refused('crossing cylinders that touch tangentially (not supported yet)');
+        if (Math.min(Math.abs(a0), Math.abs(a1)) < margin && Math.abs(a0 - a1) < 2 * margin) { march(); return; }
         let lo = S.ref - Math.PI + TWO_PI * i / N, hi = lo + TWO_PI / N; const up = a0 < a1;
         for (let it = 0; it < 80; it++) { const m = (lo + hi) / 2; if ((disc(m) > 0) === up) hi = m; else lo = m; }
         zeros.push((lo + hi) / 2);
       }
-      if (zeros.length < 2 || zeros.length % 2) throw new Refused('crossing cylinders meet in curves with branch points (not supported yet)');
+      if (zeros.length < 2 || zeros.length % 2) { march(); return; }
       // Pair rising and falling zeros (disc > 0 between them, wrapping around the turn).
       const firstUp = disc(zeros[0] + 1e-6) > 0, ordered = firstUp ? zeros : [...zeros.slice(1), zeros[0] + TWO_PI];
       for (let k = 0; k < ordered.length; k += 2) {
@@ -643,6 +654,19 @@ function rayHits(s: Nurbs, x: P3, dir: P3, tol: number): number[] | null {
 // ---- the Boolean -------------------------------------------------------------------------------------
 interface Piece { face: GFace; region: CurveRegion2; out: 1 | -1; key: P3 }
 
+/**
+ * The analytic form of a B-rep face's surface: a plane (point and outward normal), a circular
+ * cylinder (axis point, unit axis, radius; `out` +1 when the outward normal points away from the axis),
+ * or `other` for any other surface.
+ */
+export type FaceGeometry = { readonly kind: 'plane'; readonly o: P3; readonly n: P3 } | { readonly kind: 'cylinder'; readonly c: P3; readonly a: P3; readonly r: number; readonly out: 1 | -1 } | { readonly kind: 'other' };
+export function faceGeometry(face: BrepFace, scaleMM = 1): FaceGeometry {
+  const s = surfaceOf(face, linearToleranceMM(scaleMM) * 10);
+  if (s.kind === 'plane') return { kind: 'plane', o: s.o, n: s.n };
+  if (s.kind === 'cylinder') return { kind: 'cylinder', c: s.c, a: s.a, r: s.r, out: s.s };
+  return { kind: 'other' };
+}
+
 export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOperation, options: { readonly id?: string } = {}): Brep {
   const id = options.id ?? `analytic-${operation}`;
   let scale = 1; for (const br of [a, b]) for (const v of br.vertices) for (const x of v.point) scale = Math.max(scale, Math.abs(x));
@@ -650,6 +674,9 @@ export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOper
   const A = facesOf(a, 0, tol), B = facesOf(b, 1, tol);
   // 1. Cuts.
   for (const fa of A) for (const fb of B) if (boxesMeet(fa, fb, tol)) cutPair(fa, fb, tol, span);
+  // A cut running along a face's own boundary (two finished edges meeting in a mitre already edged
+  // there) adds nothing but slivers.
+  for (const f of [...A, ...B]) f.cuts = f.cuts.filter(g => ![0.2, 0.5, 0.8].every(u => locateInRegion(segAtAny(g, u), f.region, 10 * tol) === 'boundary'));
   // 2–3. Pieces and their classes.
   const pieces: (Piece & { where: Where })[] = [];
   for (const f of [...A, ...B]) {

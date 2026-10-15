@@ -20,6 +20,7 @@ import { brepFromPrismatic, booleanPrismatic, prismaticFromProfile, prismaticVol
 import { booleanCurveRegions, curveTolerance, sampleRing, segEnd, CurvedArrangementError, type CurveSegment2, type XY } from './curved-arrangement.js';
 import { booleanPolyhedra } from './polyhedral-boolean.js';
 import { booleanAnalytic } from './analytic-boolean.js';
+import { finishBrepEdges } from './edge-finish.js';
 import { revolveProfile, revolveMassProperties } from './revolve.js';
 import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js';
 import { tessellateBrep } from './brep-tessellate.js';
@@ -433,27 +434,41 @@ function rotate(s: Solid, axis: CadPartAxis, deg: number, pivot: Point, rename?:
 
 // ---- chamfers and fillets ------------------------------------------------------------------------------
 function finishEdges(part: Part, names: string[], size: number, kind: 'chamfer' | 'fillet', at: string, fail: Tools['fail']): Solid {
+  // Vertical corners of an upright body keep it upright (its section is finished exactly); straight
+  // chamfers elsewhere cut a wedge; every other edge (sloping or curved, on any body) gets a rolling-ball
+  // tool (finishBrepEdges).
   const brep = brepOf(part, 'target'), byName = new Map(brep.edges.map(e => [e.name, e]));
-  const vertical: { x: number; y: number; z0: number; z1: number; name: string }[] = [], other: Brep["edges"][number][] = [];
+  const vertical: { x: number; y: number; z0: number; z1: number; name: string }[] = [], wedges: Brep['edges'][number][] = [], general: string[] = [];
   for (const name of names) {
     const e = byName.get(name);
     if (!e) fail('SELECTION', `no edge named ${name}; edges: ${brep.edges.slice(0, 12).map(x => x.name).join(', ')}${brep.edges.length > 12 ? ', …' : ''}`);
     const p = e!.curve.controlPoints, a = p[0], b = p[p.length - 1], straight = e!.curve.degree === 1 && p.length === 2;
-    if (!straight) fail('CAPABILITY', `edge ${name} is curved; only straight edges can be ${kind === 'chamfer' ? 'chamfered' : 'filleted'}`);
     const tol = 1e-9 * Math.max(1, ...a.map(Math.abs), ...b.map(Math.abs));
-    if (Math.abs(a[0] - b[0]) <= tol && Math.abs(a[1] - b[1]) <= tol) vertical.push({ x: a[0], y: a[1], z0: Math.min(a[2], b[2]), z1: Math.max(a[2], b[2]), name: name });
-    else other.push(e!);
+    if (straight && part.solid.kind === 'upright' && Math.abs(a[0] - b[0]) <= tol && Math.abs(a[1] - b[1]) <= tol && uprightCorner(part.solid.solid, a[0], a[1], tol)) vertical.push({ x: a[0], y: a[1], z0: Math.min(a[2], b[2]), z1: Math.max(a[2], b[2]), name: name });
+    else if (straight && kind === 'chamfer') wedges.push(e!);
+    else general.push(name);
   }
   let solid = part.solid;
-  if (vertical.length) {
-    if (solid.kind !== 'upright') fail('CAPABILITY', 'vertical-edge finishes need an upright (Z-prismatic) body');
-    solid = { kind: 'upright', solid: cornerFinish((solid as Extract<Solid, { kind: 'upright' }>).solid, vertical, size, kind, at, fail) };
-  }
-  if (other.length) {
-    if (kind === 'fillet') fail('CAPABILITY', `only vertical edges can be filleted yet (${other.map(e => e.name).join(', ')})`);
-    for (const e of other) solid = wedgeChamfer(solid, brep, e, size, at, fail);
+  if (vertical.length) solid = { kind: 'upright', solid: cornerFinish((solid as Extract<Solid, { kind: 'upright' }>).solid, vertical, size, kind, at, fail) };
+  for (const e of wedges) solid = wedgeChamfer(solid, brep, e, size, at, fail);
+  if (general.length) {
+    const body = solid.kind === 'upright' ? brepFromPrismatic(solid.solid) : solid.brep;
+    try { solid = { kind: 'brep', brep: finishBrepEdges(body, general, size, kind, at) }; }
+    catch (cause) {
+      const m = cause instanceof BrepError ? /^B-rep: (SELECTION|CAPABILITY|PARAMETER): (.*)$/s.exec(cause.message) : null;
+      if (m) fail(m[1] as CadPartErrorCode, m[2]);
+      if (cause instanceof BrepError && /not supported yet/.test(cause.message)) fail('CAPABILITY', cause.message.replace(/^B-rep: analytic Boolean: /, ''));
+      throw cause;
+    }
   }
   return solid;
+}
+/** Whether (x, y) is a corner between two straight walls in some slab of an upright body. */
+function uprightCorner(solid: PrismaticSolid, x: number, y: number, tol: number): boolean {
+  return solid.slabs.some(slab => slab.regions.some(r => [r.outer, ...r.holes].some(ring => ring.some((s, i) => {
+    const n = ring[(i + 1) % ring.length], p = segEnd(s);
+    return Math.hypot(p[0] - x, p[1] - y) <= Math.max(tol, 1e-9) && s.kind === 'line' && n.kind === 'line';
+  }))));
 }
 
 /** Chamfer or round the ring corners at the selected vertical edges, in every slab the edge spans. */

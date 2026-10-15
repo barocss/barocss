@@ -592,3 +592,7 @@ export type { AnalyticBooleanOperation } from './analytic-boolean.js';
 export { curveFaceRegions, locateInRegion, regionInteriorPoint } from './curved-arrangement.js';
 export { revolveProfile, revolveMassProperties } from './revolve.js';
 export type { RevolveInput } from './revolve.js';
+export { finishBrepEdges } from './edge-finish.js';
+export type { EdgeFinishKind } from './edge-finish.js';
+export { faceGeometry } from './analytic-boolean.js';
+export type { FaceGeometry } from './analytic-boolean.js';

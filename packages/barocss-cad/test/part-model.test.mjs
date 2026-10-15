@@ -77,13 +77,43 @@ test('references, parts and outputs', () => {
   assert.deepEqual(evaluateCadPart(emptyCadPart()).outputs, []);
 });
 
+test('fillets and chamfers on any straight or circular edge: rolling-ball tools with exact volumes', () => {
+  const k = (10 - 3 * pi) / (12 - 3 * pi), corner = r => r * r * (1 - pi / 4); // the corner region and its centroid offset
+  const box = [rect('s', 0, 0, 20, 10), extrude('e', 's', 5)];
+  const plate = [rect('p', 0, 0, 40, 40), { id: 'e', kind: 'extrude', sketch: 'p', height: 8 }, circle('c', 20, 20, 6)];
+  const holed = [...plate, { id: 'h', kind: 'hole', target: 'e', center: [20, 20], radius: 6 }];
+  const bossed = [...plate, extrude('b', 'c', 10, 8), { id: 'u', kind: 'union', target: 'e', tool: 'b' }];
+  const cases = [
+    ['a top edge', D([...box, { id: 'f', kind: 'fillet', target: 'e', edges: ['e.side0|e.top'], radius: 2 }]), 1000 - corner(2) * 20],
+    ['a chamfered hole rim (one arc names the whole circle)', D([...holed, { id: 'f', kind: 'chamfer', target: 'h', edges: ['e.top|h.side0#1'], distance: 1 }]), 12800 - 288 * pi - 2 * pi * (6 + 1 / 3) * 0.5],
+    ['a filleted hole rim', D([...holed, { id: 'f', kind: 'fillet', target: 'h', edges: ['e.top|h.side0#1'], radius: 2 }]), 12800 - 288 * pi - 2 * pi * (6 + k * 2) * corner(2)],
+    ['a boss foot (concave: material added)', D([...bossed, { id: 'f', kind: 'fillet', target: 'u', edges: ['b.side0#1|e.top'], radius: 2 }]), 12800 + 360 * pi + 2 * pi * (6 + k * 2) * corner(2)],
+    ['a boss top rim', D([...bossed, { id: 'f', kind: 'fillet', target: 'u', edges: ['b.side0#1|b.top'], radius: 2 }]), 12800 + 360 * pi - 2 * pi * (6 - k * 2) * corner(2)],
+    ['a rounded box top: one edge names the chain through the corner arcs', D([rect('s', 0, 0, 30, 20), extrude('e', 's', 8), { id: 'v', kind: 'fillet', target: 'e', edges: ['e.side0|e.side1', 'e.side1|e.side2', 'e.side2|e.side3', 'e.side0|e.side3'], radius: 4 }, { id: 'f', kind: 'fillet', target: 'v', edges: ['e.side0|e.top'], radius: 2 }]),
+      4800 - 4 * (16 - 4 * pi) * 8 - corner(2) * (2 * 22 + 2 * 12) - 4 * (pi / 2) * (4 - k * 2) * corner(2)],
+  ];
+  for (const [name, doc, expected] of cases) {
+    const o = evaluateCadPart(doc).outputs[0], report = checkBrep(o.brep);
+    assert.equal(report.valid, true, `${name}: ${report.issues}`);
+    assert.equal(o.representation, 'curved', name);
+    assert.ok(close(volume(o), expected, 1e-4), `${name}: ${volume(o)} vs ${expected}`);
+    assert.ok(o.brep.faces.some(f => f.name.startsWith('f.face')), `${name}: the finishing face is named by its feature`);
+  }
+  // Two top edges of a box meeting at a corner: the fillets meet in their mitre (the same body as both tools removed).
+  const mitre = evaluateCadPart(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges: ['e.side0|e.top', 'e.side1|e.top'], radius: 2 }])).outputs[0];
+  assert.equal(checkBrep(mitre.brep).valid, true);
+  assert.ok(volume(mitre) < 1000 - corner(2) * 30 + 1 && volume(mitre) > 1000 - corner(2) * 30 - 1, String(volume(mitre)));
+});
+
 test('refusals name the feature and the reason', () => {
   const plate = [rect('s', 0, 0, 10, 10), extrude('a', 's', 5)];
   refused(D([extrude('a', 's', 5), rect('s', 0, 0, 10, 10)]), 'REFERENCE', /^a: sketch: no earlier feature s/);
   refused(D([...plate, { id: 'f', kind: 'fillet', target: 'a', edges: ['nope'], radius: 1 }]), 'SELECTION', /no edge named nope; edges: a\.bottom\|a\.side0/);
   refused(D([...plate, { id: 'h', kind: 'hole', target: 'a', center: [50, 50], radius: 1 }]), 'SELECTION', /misses the target/);
   refused(D([...plate, { id: 'f', kind: 'fillet', target: 'a', edges: ['a.side0|a.side1'], radius: 20 }]), 'PARAMETER', /too large/);
-  refused(D([...plate, { id: 'f', kind: 'fillet', target: 'a', edges: ['a.side0|a.top'], radius: 1 }]), 'CAPABILITY', /only vertical edges can be filleted/);
+  const ell = [{ id: 'l', kind: 'sketch', profile: 'polygon', points: [[0, 0], [30, 0], [30, 5], [5, 5], [5, 20], [0, 20]] }, extrude('a', 'l', 4)];
+  refused(D([...ell, { id: 'f', kind: 'fillet', target: 'a', edges: ['a.side2|a.top', 'a.side3|a.top'], radius: 1 }]), 'CAPABILITY', /inside corner of their face/);
+  refused(D([...plate, circle('c', 5, 5, 3), extrude('b', 'c', 4, 5), { id: 'u', kind: 'union', target: 'a', tool: 'b' }, { id: 'f', kind: 'fillet', target: 'u', edges: ['b.side0#1|b.top'], radius: 3 }]), 'PARAMETER', /full round/);
   refused(D([...plate, { id: 'r', kind: 'rotate', target: 'a', axis: 'x', angleDegrees: 45 }]), 'CAPABILITY', /multiples of 90/);
   refused(D([...plate, { id: 'x', kind: 'split', target: 'a', axis: 'z', at: 9 }]), 'SELECTION', /does not cross/);
   refused(D([rect('s', 0, 0, { parameter: 'w' }, 10)]), 'PARAMETER', /unknown parameter w/);
