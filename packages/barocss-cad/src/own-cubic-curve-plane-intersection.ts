@@ -5,6 +5,7 @@ import { solveCubicBernsteinRoots, CubicBernsteinRootError } from './own-cubic-b
 import type { CubicBernsteinRootEvidence } from './own-cubic-bernstein-roots.js';
 import { adopt } from './own-plane-cylinder-intersection-internal.js';
 import { copyCadData } from './data-copy.js';
+import { linearToleranceMM, geometryScaleMM } from './numeric-policy.js';
 import type { Curve, Surface, Model, Point } from './types.js';
 
 export const CubicCurveAffinePlaneIntersectionDiagnosticCode = Object.freeze({
@@ -36,7 +37,7 @@ export interface CubicCurveAffinePlaneIntersectionReport {
     planeDegree: [1, 1]; planeControlGrid: [2, 2]; planeEqualWeights: true; coordinateAbsMM: 10000;
     weightRange: [1e-6, 1e6]; positive: true; clamped: true; nonperiodic: true };
   numericPolicy: { parameterWidthTarget: 1e-12; normalizedParameterWidthTarget: number; maximumRootSteps: 64;
-    maximumScalarEvaluations: 1024; pointBindingComparisonMM: 1e-7;
+    maximumScalarEvaluations: 1024; pointBindingComparisonMM: number;
     criticalBracketPolicy: 'derivative-control-hull-lipschitz-plus64-epsilon-exclusion';
     nearZeroMidpointPolicy: 'represented-quarter-points-with-safely-opposite-ordered-signs-or-refusal';
     uvBoundaryPolicy: 'original-estimate-and-bracket-domain-agreement-no-clamp';
@@ -179,7 +180,7 @@ export function intersectCubicBezierCurveWithAffinePlaneSurface(curveInput: Curv
       planeDegree: [1, 1], planeControlGrid: [2, 2], planeEqualWeights: true, coordinateAbsMM: 10000,
       weightRange: [1e-6, 1e6], positive: true, clamped: true, nonperiodic: true },
     numericPolicy: { parameterWidthTarget: 1e-12, normalizedParameterWidthTarget: normalizedTarget, maximumRootSteps: 64,
-      maximumScalarEvaluations: 1024, pointBindingComparisonMM: 1e-7,
+      maximumScalarEvaluations: 1024, pointBindingComparisonMM: linearToleranceMM(geometryScaleMM(c.controlPoints, p.controlPoints.flat())),
       criticalBracketPolicy: 'derivative-control-hull-lipschitz-plus64-epsilon-exclusion',
       nearZeroMidpointPolicy: 'represented-quarter-points-with-safely-opposite-ordered-signs-or-refusal',
       uvBoundaryPolicy: 'original-estimate-and-bracket-domain-agreement-no-clamp', gramPolicy: '64-epsilon-scaled-determinant-refusal', exactParameterDedupOnly: true },

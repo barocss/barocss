@@ -7,8 +7,18 @@ export const CadNumericPolicy = Object.freeze({
   version: 1 as const,
   /** Modeling coordinate range for authored and stored geometry. */
   coordinateAbsMM: 10000,
+  /** Geometry / interchange coordinate range accepted by math validation (validateCurve, IGES import). */
+  geometryCoordinateAbsMM: 1000000,
   /** Absolute linear comparison floor for native geometry bindings. */
   linearToleranceMM: 1e-7,
+  /**
+   * Scale-relative part of the linear tolerance: a 1e-12 parameter bracket on geometry of size S moves
+   * points by ~1e-12·S, so comparisons use max(linearToleranceMM, relativeLinearTolerance·S). Equal to the
+   * floor for S ≤ 10000 mm (the modeling range), so modeling results are unchanged.
+   */
+  relativeLinearTolerance: 1e-11,
+  /** Comparison for dimensionless chart (UV) bindings; numerically the same as the mm floor, kept apart by meaning. */
+  uvBindingTolerance: 1e-7,
   /** Normalized parameter bracket width for root refinement. */
   parameterWidth: 1e-12,
   /**
@@ -30,4 +40,15 @@ export function chartRoundingBoundMM(axisU: readonly number[], domainU: readonly
   const reach = (domain: readonly [number, number]) => HALF_ULP * Math.max(Math.abs(domain[0]), Math.abs(domain[1])) / (domain[1] - domain[0]);
   const ru = reach(domainU), rv = reach(domainV);
   return [0, 1, 2].map(i => 2 * (ru * Math.abs(axisU[i]) + rv * Math.abs(axisV[i])) * (1 + 2 ** -40)) as [number, number, number];
+}
+
+/** Linear comparison tolerance for geometry whose coordinates reach `scaleMM` (see relativeLinearTolerance). */
+export function linearToleranceMM(scaleMM: number): number {
+  return Math.max(CadNumericPolicy.linearToleranceMM, CadNumericPolicy.relativeLinearTolerance * Math.abs(scaleMM));
+}
+/** Largest absolute coordinate over point lists (curve poles, surface poles, …). */
+export function geometryScaleMM(...pointLists: readonly (readonly (readonly number[])[])[]): number {
+  let scale = 0;
+  for (const list of pointLists) for (const point of list) for (const value of point) scale = Math.max(scale, Math.abs(value));
+  return scale;
 }
