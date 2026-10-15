@@ -565,3 +565,8 @@ export { checkBrep, assertValidBrep, buildBrep, coedgeVertices, lineCurve, BrepE
 export type { Brep, BrepBody, BrepShell, BrepFace, BrepLoop, BrepCoedge, BrepEdge, BrepVertex, BrepCheckReport, BrepBodyTopology, BrepBuildInput, BrepFaceInput, BrepLoopInput, BrepShellInput } from './brep-core.js';
 export { brepFromBody, brepFromConvexPlanar, brepFromExtrudedProfile, brepFromPlateHole, brepFromCirclePrism, brepFromOrthogonalCells } from './brep-adapters.js';
 export type { BrepInputBody } from './brep-adapters.js';
+export { BrepEditor, BrepEulerError } from './brep-euler.js';
+export { extrudeProfileWithHoles } from './brep-sweep.js';
+export type { ProfileWithHolesInput } from './brep-sweep.js';
+export { tessellateBrep, triangulatePolygonWithHoles } from './brep-tessellate.js';
+export type { BrepMesh, BrepMeshFace, BrepMeshEdge, BrepTessellationOptions } from './brep-tessellate.js';

@@ -75,9 +75,11 @@ const dist = (a: XY, b: XY) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 const TAU = Math.PI * 2;
 
 /** Admits and normalises a loop: closed, simple, counter-clockwise. */
-export function buildProfileLoop(input: readonly ProfileSegmentInput[]): ProfileLoop {
+/** `maximumSegments` lets B-rep builders (no fixed caps) raise the stored-solid budget of 64. */
+export function buildProfileLoop(input: readonly ProfileSegmentInput[], options: { readonly maximumSegments?: number } = {}): ProfileLoop {
+  const budget = options.maximumSegments ?? ExtrudedProfileLimits.segments;
   if (!Array.isArray(input)) fail('INPUT', 'Segments must be an array');
-  if (input.length < 1 || input.length > ExtrudedProfileLimits.segments) fail('BUDGET', `A loop needs 1..${ExtrudedProfileLimits.segments} segments`);
+  if (input.length < 1 || input.length > budget) fail('BUDGET', `A loop needs 1..${budget} segments`);
   const raw = input.map((s, i) => {
     if (!s || typeof s !== 'object') fail('INPUT', `Segment ${i} must be an object`);
     if (s.kind === 'line') return { kind: 'line' as const, start: xy(s.start, `segments[${i}].start`) };
@@ -187,7 +189,7 @@ function checkSimple(loop: readonly ProfileSegment[], tol: number) {
 }
 
 /** Exact rational quadratic NURBS for an arc, spans ≤ 90°; degree-1 for a line. */
-function segmentCurve(s: ProfileSegment, z: number, id: string): Curve {
+export function segmentCurve(s: ProfileSegment, z: number, id: string): Curve {
   if (s.kind === 'line') return { kind: 'curve', id, degree: 1, knots: [0, 0, 1, 1], controlPoints: [[s.start[0], s.start[1], z], [s.end[0], s.end[1], z]], weights: [1, 1] };
   const spans = Math.max(1, Math.ceil(Math.abs(s.sweep) / (Math.PI / 2) - 1e-12));
   const dt = s.sweep / spans, w = Math.cos(Math.abs(dt) / 2);
@@ -206,12 +208,12 @@ function segmentCurve(s: ProfileSegment, z: number, id: string): Curve {
   return { kind: 'curve', id, degree: 2, knots, controlPoints: cp, weights: wt };
 }
 
-function extrudedSurface(curve: Curve, z0: number, z1: number, id: string): Surface {
+export function extrudedSurface(curve: Curve, z0: number, z1: number, id: string): Surface {
   return { kind: 'surface', id, degreeU: curve.degree, degreeV: 1, knotsU: [...curve.knots], knotsV: [0, 0, 1, 1],
     controlPoints: curve.controlPoints.map(p => [[p[0], p[1], z0], [p[0], p[1], z1]]), weights: curve.weights.map(w => [w, w]) };
 }
 
-function capSurface(bounds: { min: XY; max: XY }, z: number, id: string, up: boolean): Surface {
+export function capSurface(bounds: { min: XY; max: XY }, z: number, id: string, up: boolean): Surface {
   const [x0, y0] = bounds.min, [x1, y1] = bounds.max;
   // U along X, V along Y; swap for the bottom so the parametric normal points outward (−Z).
   const grid: Point[][] = up ? [[[x0, y0, z], [x0, y1, z]], [[x1, y0, z], [x1, y1, z]]] : [[[x0, y0, z], [x1, y0, z]], [[x0, y1, z], [x1, y1, z]]];
