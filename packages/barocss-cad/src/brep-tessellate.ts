@@ -9,9 +9,13 @@
 //   trimmed cylinders  any other face on a circular cylinder (holes, notches, ellipse and quartic
 //                      trims): its loops triangulated in (r·θ, height) from the shared edge samples,
 //                      then interior edges wider than one angular step bisected conformingly
-//   other faces        refused for now (BrepError GEOMETRY)
+//   other surfaces     any smooth patch without poles (tori, cones, general NURBS): its loops
+//                      triangulated in its arc-length scaled (u, v) domain, grid points one angular
+//                      step apart inserted Delaunay-wise, then interior edges across which the normal
+//                      turns by more than 1.5 steps bisected conformingly
+//   other faces        refused (BrepError GEOMETRY): poles, seams inside one face, edges off the surface
 import { BrepError, type Brep, type BrepCoedge } from './brep-core.js';
-import { evaluateCurve, curveDomain } from './math.js';
+import { evaluateCurve, curveDomain, evaluateSurface, surfaceDomain, surfaceEvaluator } from './math.js';
 import type { Curve, Point, Surface } from './types.js';
 import { cross, dot, sub, unit } from './vec3.js';
 
@@ -250,7 +254,11 @@ export function tessellateBrep(brep: Brep, options: BrepTessellationOptions = {}
     }
     const sides = loops.get(outerId)!.coedges.map(id => coedges.get(id)!), count = sides.length;
     const rails = railsOf(face, loops, coedges, edges);
-    if (rails === undefined) throw new BrepError('GEOMETRY', `face ${face.id}: only planar and ruled faces (two rails, straight sides) can be tessellated yet`);
+    if (rails === undefined) {
+      // Any other parametric surface without a seam: triangulated in its (u, v) domain.
+      if (innerIds.length === 0 && sides.length < 3 || !isSmoothPatch(face.surface)) throw new BrepError('GEOMETRY', `face ${face.id}: a surface with a pole or a single-edge loop cannot be tessellated yet`);
+      const { pts, tris } = surfaceTriangles(face, [ring(outerId), ...innerIds.map(ring)], Math.PI / 2 / perQuarter); emit(face.id, 'trimmed', pts, tris, null); continue;
+    }
     const [r1, r2] = rails, A = along(sides[r1]), B = [...along(sides[r2])].reverse();
     const chain = (from: number, to: number) => { const out: Point[] = []; for (let i = (from + 1) % count; i !== to; i = (i + 1) % count) out.push(...along(sides[i]).slice(0, -1)); return out.slice(1); };
     const right = chain(r1, r2), left = chain(r2, r1);
@@ -395,3 +403,182 @@ function cylinderTriangles(face: Brep['faces'][number], frame0: CylinderFrame, p
   // Wound for the outward normal.
   return { pts, tris: tris.map(([a, b, c]) => (outward !== flip) ? [a, b, c] : [a, c, b]) };
 }
+
+/** A surface whose (u, v) → point map is usable for trimmed triangulation (no collapsed rows: poles). */
+function isSmoothPatch(S: Surface): boolean {
+  const { u, v } = surfaceDomain(S);
+  for (let i = 0; i <= 4; i++) for (let j = 0; j <= 4; j++) {
+    const a = u[0] + (u[1] - u[0]) * i / 4, b = v[0] + (v[1] - v[0]) * j / 4, h = 1e-6;
+    const p = evaluateSurface(S, a, b), pu = evaluateSurface(S, inward(a, u, h), b), pv = evaluateSurface(S, a, inward(b, v, h));
+    const du = sub(pu, p), dv = sub(pv, p);
+    if (Math.hypot(...cross(du, dv)) <= 1e-14 * (Math.hypot(...du) + Math.hypot(...dv)) ** 2) return false;
+  }
+  return true;
+}
+
+/**
+ * A trimmed face on any smooth parametric surface: boundary samples (the shared edge samples) are
+ * inverted to (u, v) by Newton's method, ear-clipped there (narrowest first, in a domain scaled to
+ * arc length), and refined by longest-edge bisection until the surface normals across every interior
+ * edge differ by at most one angular step. Boundary edges are never split.
+ */
+function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: number): { pts: Point[]; tris: [number, number, number][] } {
+  const S = face.surface, { u: U, v: V } = surfaceDomain(S), at = surfaceEvaluator(S);
+  // Arc-length scale of each direction.
+  let Lu = 0, Lv = 0; for (let i = 0; i < 8; i++) { const a = U[0] + (U[1] - U[0]) * (i + 0.5) / 8, b = V[0] + (V[1] - V[0]) * (i + 0.5) / 8; Lu += Math.hypot(...sub(at(U[1], b), at(U[0], b))) / 8; Lv += Math.hypot(...sub(at(a, V[1]), at(a, V[0]))) / 8; }
+  const ku = (Lu || 1) / (U[1] - U[0]), kv = (Lv || 1) / (V[1] - V[0]);
+  const N = 24, grid: { a: number; b: number; p: Point }[] = [];
+  for (let i = 0; i <= N; i++) for (let j = 0; j <= N; j++) { const a = U[0] + (U[1] - U[0]) * i / N, b = V[0] + (V[1] - V[0]) * j / N; grid.push({ a, b, p: at(a, b) }); }
+  const invert = (p: Point): XY => {
+    let best = grid[0], bd = Infinity; for (const g of grid) { const d = (g.p[0] - p[0]) ** 2 + (g.p[1] - p[1]) ** 2 + (g.p[2] - p[2]) ** 2; if (d < bd) { bd = d; best = g; } }
+    let a = best.a, b = best.b;
+    for (let it = 0; it < 40; it++) {
+      const h = 1e-7, ia = inward(a, U, h), ib = inward(b, V, h), q = at(a, b), qa = at(ia, b), qb = at(a, ib), da = ia - a, db = ib - b;
+      const Su = scale3(sub(qa, q), 1 / da), Sv = scale3(sub(qb, q), 1 / db), r = sub(p, q);
+      const g11 = dot(Su, Su), g12 = dot(Su, Sv), g22 = dot(Sv, Sv), r1 = dot(r, Su), r2 = dot(r, Sv), det = g11 * g22 - g12 * g12;
+      if (Math.abs(det) < 1e-300) break;
+      const stepA = (r1 * g22 - r2 * g12) / det, stepB = (g11 * r2 - g12 * r1) / det;
+      a = Math.min(U[1], Math.max(U[0], a + stepA)); b = Math.min(V[1], Math.max(V[0], b + stepB));
+      if (Math.abs(stepA) < 1e-14 * (U[1] - U[0]) && Math.abs(stepB) < 1e-14 * (V[1] - V[0])) break;
+    }
+    return [a, b];
+  };
+  const pts: Point[] = rings.flat(), uv: XY[] = pts.map(invert), flat = (q: XY): XY => [q[0] * ku, q[1] * kv];
+  // The boundary must lie on the surface (a curve off it would be projected, not tessellated).
+  const off3 = 1e-5 * (Lu + Lv) + 1e-6;
+  pts.forEach((p, i) => { const q = at(uv[i][0], uv[i][1]); if (Math.hypot(q[0] - p[0], q[1] - p[1], q[2] - p[2]) > off3) throw new BrepError('GEOMETRY', `tessellation: an edge of face ${face.id} does not lie on its surface`); });
+  let area = 0; const outerN = rings[0].length;
+  for (let i = 0; i < outerN; i++) { const a = flat(uv[i]), b = flat(uv[(i + 1) % outerN]); area += a[0] * b[1] - b[0] * a[1]; }
+  const flip = area < 0, mirror = (q: XY): XY => flip ? [-q[0], q[1]] : q;
+  let off = 0; const ringsUV = rings.map(r => { const out = uv.slice(off, off + r.length).map(q => mirror(flat(q))); off += r.length; return out; });
+  const size = (a: XY, b: XY, c: XY) => Math.max(Math.hypot(a[0] - b[0], a[1] - b[1]), Math.hypot(b[0] - c[0], b[1] - c[1]), Math.hypot(c[0] - a[0], c[1] - a[1]));
+  const tris = triangulatePolygonWithHoles(ringsUV[0], ringsUV.slice(1), size).map(t => [...t] as [number, number, number]);
+  // One-sided differences stepping inward, signed so the normal is always along Su × Sv.
+  const normal = (q: XY): Point => { const h = 1e-6, p = at(q[0], q[1]), a = inward(q[0], U, h), b = inward(q[1], V, h); return unit3(scale3(cross(sub(at(a, q[1]), p), sub(at(q[0], b), p)), Math.sign(a - q[0]) * Math.sign(b - q[1]))); };
+  const nrm: Point[] = uv.map(normal), cosStep = Math.cos(1.5 * step);
+  const key = (a: number, b: number) => a < b ? a * 1e7 + b : b * 1e7 + a, around = new Map<number, Set<number>>();
+  const link = (t: number) => { const [a, b, c] = tris[t]; for (const [x, y] of [[a, b], [b, c], [c, a]]) { const k = key(x, y); if (!around.has(k)) around.set(k, new Set()); around.get(k)!.add(t); } };
+  const unlink = (t: number) => { const [a, b, c] = tris[t]; for (const [x, y] of [[a, b], [b, c], [c, a]]) around.get(key(x, y))?.delete(t); };
+  tris.forEach((_, t) => link(t));
+  const len2 = (a: number, b: number) => Math.hypot((uv[a][0] - uv[b][0]) * ku, (uv[a][1] - uv[b][1]) * kv) + 1e-15 * (a + b) / (a * b + 1);
+  const widest = (t: number): [number, number] => { const [a, b, c] = tris[t]; return ([[a, b], [b, c], [c, a]] as [number, number][]).reduce((m, e) => len2(e[0], e[1]) > len2(m[0], m[1]) ? e : m); };
+  // Bent: an interior edge across which the normal turns by more than 1.5 steps (boundary chords are
+  // already one step long and cannot be split).
+  const interior = (x: number, y: number) => (around.get(key(x, y))?.size ?? 0) === 2;
+  const bent = (t: number) => { const [a, b, c] = tris[t]; return ([[a, b], [b, c], [c, a]] as [number, number][]).some(([x, y]) => interior(x, y) && dot(nrm[x], nrm[y]) < cosStep); };
+  const across = (t: number, a: number, b: number) => [...(around.get(key(a, b)) ?? [])].find(x => x !== t);
+  const bisect = (a: number, b: number) => {
+    const m = pts.length, mid: XY = [(uv[a][0] + uv[b][0]) / 2, (uv[a][1] + uv[b][1]) / 2];
+    pts.push(at(mid[0], mid[1])); uv.push(mid); nrm.push(normal(mid));
+    for (const t of [...around.get(key(a, b))!]) {
+      const tri = tris[t], i = tri.indexOf(a), j = tri.indexOf(b), c = tri[3 - i - j];
+      unlink(t); const [x, y] = (j === (i + 1) % 3) ? [a, b] : [b, a];
+      tris[t] = [x, m, c]; link(t); tris.push([m, y, c]); link(tris.length - 1);
+    }
+  };
+  // Lawson flips to the Delaunay triangulation (in the arc-length scaled domain) of the ear-clipped
+  // polygon: ears along a nearly straight boundary are slivers spanning long chords, which no
+  // bisection of interior edges would otherwise remove.
+  const P2 = (i: number) => mirror(flat(uv[i]));
+  const orient = (a: number, b: number, c: number) => { const A = P2(a), B = P2(b), C = P2(c); return (B[0] - A[0]) * (C[1] - A[1]) - (B[1] - A[1]) * (C[0] - A[0]); };
+  const incircle = (a: number, b: number, c: number, d: number) => {
+    const [A, B, C, D] = [a, b, c, d].map(P2), r = [A, B, C].map(q => [q[0] - D[0], q[1] - D[1]]);
+    return r.reduce((acc, q, i) => { const s1 = r[(i + 1) % 3], s2 = r[(i + 2) % 3]; return acc + (q[0] * q[0] + q[1] * q[1]) * (s1[0] * s2[1] - s1[1] * s2[0]); }, 0) / 3;
+  };
+  const flipAll = () => {
+    for (let pass = 0, changed = true; changed && pass < 50; pass++) {
+      changed = false;
+      for (let t = 0; t < tris.length; t++) for (let e = 0; e < 3; e++) {
+        const tri = tris[t], x = tri[e], y = tri[(e + 1) % 3], c = tri[(e + 2) % 3], o = across(t, x, y);
+        if (o === undefined) continue;
+        const d = tris[o].find(v => v !== x && v !== y)!, scale2 = len2(x, y) ** 2 * len2(x, y) ** 2;
+        if (incircle(x, y, c, d) <= 1e-9 * scale2 || orient(c, x, d) <= 1e-12 * len2(c, d) ** 2 || orient(d, y, c) <= 1e-12 * len2(c, d) ** 2) continue;
+        unlink(t); unlink(o); tris[t] = [c, x, d]; tris[o] = [d, y, c]; link(t); link(o); changed = true; break;
+      }
+    }
+  };
+  const refine = () => {
+    for (let t = 0, guard = 0; t < tris.length && guard < 2e5; guard++) {
+      if (!bent(t)) { t++; continue; }
+      let cur = t, [x, y] = widest(t);
+      for (let depth = 0; depth < 1000; depth++) { const next = across(cur, x, y); if (next === undefined) break; const [p, q] = widest(next); if (key(p, q) === key(x, y)) break; cur = next; [x, y] = [p, q]; }
+      if (across(cur, x, y) === undefined) {
+        // The longest-edge path ends on the boundary: split the most bent interior edge of t itself.
+        const [a, b, c] = tris[t], edges = ([[a, b], [b, c], [c, a]] as [number, number][]).filter(([p, q]) => interior(p, q));
+        [x, y] = edges.reduce((m, e) => dot(nrm[e[0]], nrm[e[1]]) < dot(nrm[m[0]], nrm[m[1]]) ? e : m);
+      }
+      bisect(x, y);
+    }
+  };
+  // Interior points on a grid about one angular step apart (by the surface's turning along each
+  // direction), inserted Delaunay-wise: a regular mesh, which bisection alone would over-refine.
+  const turning = (along: 0 | 1) => {
+    let worst = 0;
+    for (let j = 0; j <= 8; j++) {
+      let acc = 0; const q = (k: number): XY => along === 0 ? [U[0] + (U[1] - U[0]) * k / 8, V[0] + (V[1] - V[0]) * j / 8] : [U[0] + (U[1] - U[0]) * j / 8, V[0] + (V[1] - V[0]) * k / 8];
+      for (let i = 0; i < 8; i++) acc += Math.acos(Math.min(1, Math.max(-1, dot(normal(q(i)), normal(q(i + 1))))));
+      worst = Math.max(worst, acc);
+    }
+    return worst;
+  };
+  const nu = Math.min(256, Math.ceil(turning(0) / step)), nv = Math.min(256, Math.ceil(turning(1) / step));
+  const boundary: [XY, XY][] = []; off = 0;
+  for (const r of ringsUV) { for (let i = 0; i < r.length; i++) boundary.push([r[i], r[(i + 1) % r.length]]); off += r.length; }
+  const cell = Math.min(Math.abs((U[1] - U[0]) * ku) / Math.max(nu, 1), Math.abs((V[1] - V[0]) * kv) / Math.max(nv, 1));
+  const orientP = (a: number, b: number, P: XY) => { const A = P2(a), B = P2(b); return (B[0] - A[0]) * (P[1] - A[1]) - (B[1] - A[1]) * (P[0] - A[0]); };
+  const legalize = (t: number, x: number, y: number): void => {
+    const o = across(t, x, y); if (o === undefined) return;
+    const m = tris[t].find(v => v !== x && v !== y)!, d = tris[o].find(v => v !== x && v !== y)!;
+    if (incircle(x, y, m, d) <= 1e-9 * len2(x, y) ** 4) return;
+    unlink(t); unlink(o); tris[t] = [m, x, d]; tris[o] = [d, y, m]; link(t); link(o);
+    legalize(t, x, d); legalize(o, d, y);
+  };
+  let last = 0;
+  const locate = (P: XY): { t: number; edge: number } | null => {
+    const test = (t: number) => { const tri = tris[t]; let edge = -1;
+      for (let e = 0; e < 3; e++) { const o = orientP(tri[e], tri[(e + 1) % 3], P), scale = len2(tri[e], tri[(e + 1) % 3]); if (o < -1e-9 * scale * scale) return -2; if (o <= 1e-9 * scale * scale) edge = e; }
+      return edge; };
+    // Walk from the last triangle; fall back to a scan (the region need not be convex).
+    let t = last;
+    for (let k = 0; k < 4 * tris.length; k++) {
+      const r = test(t); if (r !== -2) return { t, edge: r };
+      const tri = tris[t]; let moved = false;
+      for (let e = 0; e < 3 && !moved; e++) if (orientP(tri[e], tri[(e + 1) % 3], P) < 0) { const o = across(t, tri[e], tri[(e + 1) % 3]); if (o !== undefined) { t = o; moved = true; } }
+      if (!moved) break;
+    }
+    for (let k = 0; k < tris.length; k++) { const r = test(k); if (r !== -2) return { t: k, edge: r }; }
+    return null;
+  };
+  if (nu > 1 || nv > 1) for (let i = 1; i < nu; i++) for (let j = 1; j < nv; j++) {
+    const q: XY = [U[0] + (U[1] - U[0]) * i / nu, V[0] + (V[1] - V[0]) * j / nv], P = mirror(flat(q));
+    let inside = false, near = Infinity;
+    for (const [A, B] of boundary) {
+      if ((A[1] > P[1]) !== (B[1] > P[1]) && P[0] < A[0] + (B[0] - A[0]) * (P[1] - A[1]) / (B[1] - A[1])) inside = !inside;
+      const dx = B[0] - A[0], dy = B[1] - A[1], f = Math.max(0, Math.min(1, ((P[0] - A[0]) * dx + (P[1] - A[1]) * dy) / (dx * dx + dy * dy || 1)));
+      near = Math.min(near, Math.hypot(A[0] + dx * f - P[0], A[1] + dy * f - P[1]));
+    }
+    if (!inside || near < 0.5 * cell) continue;
+    const at3 = locate(P); if (!at3) continue;
+    const m = pts.length; pts.push(at(q[0], q[1])); uv.push(q); nrm.push(normal(q));
+    const t = at3.t, [a, b, c] = tris[t]; last = t;
+    if (at3.edge < 0) {
+      unlink(t); tris[t] = [a, b, m]; link(t); tris.push([b, c, m]); link(tris.length - 1); tris.push([c, a, m]); link(tris.length - 1);
+      legalize(t, a, b); legalize(tris.length - 2, b, c); legalize(tris.length - 1, c, a);
+    } else {
+      const x = tris[t][at3.edge], y = tris[t][(at3.edge + 1) % 3], c2 = tris[t][(at3.edge + 2) % 3], o = across(t, x, y);
+      if (o === undefined) { pts.pop(); uv.pop(); nrm.pop(); continue; }
+      const d = tris[o].find(v => v !== x && v !== y)!;
+      unlink(t); unlink(o); tris[t] = [x, m, c2]; tris[o] = [y, m, d]; link(t); link(o);
+      tris.push([m, y, c2]); link(tris.length - 1); tris.push([m, x, d]); link(tris.length - 1);
+      legalize(t, c2, x); legalize(tris.length - 2, y, c2); legalize(o, d, y); legalize(tris.length - 1, x, d);
+    }
+  }
+  refine(); flipAll(); refine();
+  // Counter-clockwise in (u, v) is along Su × Sv; wound for the outward normal.
+  const keep = (face.sense === 'forward') !== flip;
+  return { pts, tris: tris.map(([a, b, c]) => keep ? [a, b, c] : [a, c, b]) };
+}
+const scale3 = (a: Point, k: number): Point => [a[0] * k, a[1] * k, a[2] * k];
+const unit3 = (a: Point): Point => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
+/** x + h·(span) inside [lo, hi], or x − h·(span) at the upper end. */
+const inward = (x: number, [lo, hi]: readonly [number, number], h: number) => x + h * (hi - lo) <= hi ? x + h * (hi - lo) : x - h * (hi - lo);

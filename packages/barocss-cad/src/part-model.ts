@@ -5,9 +5,10 @@
 //   representation   a body stays a Z-prismatic solid (lines, arcs; Booleans slab-wise, curved walls)
 //                    while every operation keeps it upright; otherwise it is a general B-rep. Its
 //                    Booleans are the exact planar-polyhedron Booleans for planar bodies, and the
-//                    plane + cylinder Booleans (any axis: cross holes, pins along X) otherwise; cases
-//                    those cannot represent (ellipses, crossing cylinders that meet) are refused with
-//                    the reason, never approximated
+//                    analytic Booleans otherwise: planes and cylinders of any axis exactly, and any
+//                    other surface (revolved tori and cones) by intersection curves traced onto both
+//                    surfaces; configurations they cannot represent (inputs touching along an edge or
+//                    at a point, profiles touching the revolve axis) are refused with the reason
 //   names            features have stable ids; faces are named `<feature>.<role>` (`e1.side0`,
 //                    `e1.top`, `h2.side0`, `c3.face`), kept through every later feature, `#k` when one
 //                    name is split; copies are `@k` (patterns) and `@m` (kept mirrors); an edge is named
@@ -19,6 +20,7 @@ import { brepFromPrismatic, booleanPrismatic, prismaticFromProfile, prismaticVol
 import { booleanCurveRegions, curveTolerance, sampleRing, segEnd, CurvedArrangementError, type CurveSegment2, type XY } from './curved-arrangement.js';
 import { booleanPolyhedra } from './polyhedral-boolean.js';
 import { booleanAnalytic } from './analytic-boolean.js';
+import { revolveProfile, revolveMassProperties } from './revolve.js';
 import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js';
 import { tessellateBrep } from './brep-tessellate.js';
 import { prismaticMassProperties, brepMassProperties, SolidMassError, type SolidMassProperties } from './solid-mass.js';
@@ -39,6 +41,8 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'sketch'; readonly profile: 'loop'; readonly segments: readonly CadPartLoopSegment[] }
   /** Along +Z from `from` (default 0); a negative height extrudes downward. */
   | { readonly kind: 'extrude'; readonly sketch: string; readonly height: CadPartDim; readonly from?: CadPartDim }
+  /** About an axis in the sketch plane (through `origin`, along X or Y), by angleDegrees (default 360). */
+  | { readonly kind: 'revolve'; readonly sketch: string; readonly axis: { readonly origin: CadPartPoint2; readonly direction: 'x' | 'y' }; readonly angleDegrees?: number }
   | { readonly kind: 'union' | 'difference' | 'intersect'; readonly target: string; readonly tool: string }
   /**
    * A hole along `axis` (default z) through the target, or `depth` deep from its `side` (default max:
@@ -99,7 +103,7 @@ export const CadPartLimits = Object.freeze({ features: 512, parameters: 256, poi
 
 // ---- representation ------------------------------------------------------------------------------
 type Solid = { readonly kind: 'upright'; readonly solid: PrismaticSolid } | { readonly kind: 'brep'; readonly brep: Brep };
-interface Part { readonly solid: Solid; brep?: Brep }
+interface Part { readonly solid: Solid; brep?: Brep; readonly mass?: (density: number) => SolidMassProperties }
 type Result = { readonly kind: 'sketch'; readonly outer: readonly ProfileSegmentInput[] } | { readonly kind: 'solid'; readonly parts: readonly Part[] };
 
 const empty = (s: Solid) => s.kind === 'upright' ? !s.solid.slabs.length : !s.brep.bodies.length;
@@ -283,6 +287,16 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       if (h === 0) fail('PARAMETER', 'height must not be zero');
       const outer = (sketch as Extract<Result, { kind: 'sketch' }>).outer;
       return () => one({ kind: 'upright', solid: prismaticFromProfile({ outer, heightMM: Math.abs(h), fromMM: h > 0 ? from : from + h, tag: at }) });
+    }
+    case 'revolve': {
+      const sketch = ref(f.sketch, 'sketch').result;
+      if (sketch.kind !== 'sketch') fail('REFERENCE', `${f.sketch} is not a sketch`);
+      const ax = f.axis as { origin?: CadPartPoint2; direction?: unknown } | undefined;
+      if (!isRecord(ax) || (ax.direction !== 'x' && ax.direction !== 'y')) fail('INPUT', 'axis must be { origin: [x, y], direction: "x" | "y" }');
+      const origin = xy(ax!.origin, 'axis origin'), deg = f.angleDegrees === undefined ? 360 : f.angleDegrees as number;
+      if (typeof deg !== 'number' || !(deg > 0 && deg <= 360)) fail('INPUT', 'angleDegrees must be in (0, 360]');
+      const input = { id: at, profile: (sketch as Extract<Result, { kind: 'sketch' }>).outer, axis: { origin, direction: (ax!.direction === 'x' ? [1, 0] : [0, 1]) as XY }, angleDegrees: deg };
+      return () => ({ kind: 'solid', parts: [{ solid: { kind: 'brep', brep: revolveProfile(input) }, mass: (density: number) => revolveMassProperties(input, density) }] });
     }
     case 'union': case 'difference': case 'intersect': {
       const target = solids(f.target, 'target'), tool = solids(f.tool, 'tool'), op = f.kind === 'intersect' ? 'intersection' : f.kind;
@@ -539,7 +553,7 @@ function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   const brep = brepOf(part, id.replace('/', '_'));
   return Object.freeze({
     id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length,
-    massProperties(density: number) { return part.solid.kind === 'upright' ? prismaticMassProperties(part.solid.solid, density) : brepMassProperties(brep, density); },
+    massProperties(density: number) { return part.mass ? part.mass(density) : part.solid.kind === 'upright' ? prismaticMassProperties(part.solid.solid, density) : brepMassProperties(brep, density, { segmentsPerQuarter: 32 }); },
     exportStl(options: { readonly segmentsPerQuarter?: number } = {}) { return stl(brep, options.segmentsPerQuarter ?? 16); },
   });
 }

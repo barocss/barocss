@@ -590,3 +590,5 @@ export type { CadPartDocument, CadPartFeature, CadPartSnapshot, CadPartOutput, C
 export { booleanAnalytic } from './analytic-boolean.js';
 export type { AnalyticBooleanOperation } from './analytic-boolean.js';
 export { curveFaceRegions, locateInRegion, regionInteriorPoint } from './curved-arrangement.js';
+export { revolveProfile, revolveMassProperties } from './revolve.js';
+export type { RevolveInput } from './revolve.js';
