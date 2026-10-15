@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { SketchShape, SketchState } from '../viewport/Viewport';
-import { arcOf, canBeTangent, inferredHV, radiusToBulge, solveOutline, type P2 } from '../sketch/profile';
+import { arcOf, arcPairs, canBeTangent, inferredHV, radiusToBulge, samePair, solveOutline, type ArcPair, type P2 } from '../sketch/profile';
 
 type Polygon = Extract<SketchShape, { kind: 'polygon' }>;
 
@@ -16,7 +16,7 @@ export function SketchPanel({ sketch, error, onShape }: { sketch: SketchState; e
       <span className="num"><input id={'sk-' + id} type="number" step="any" min={min} value={round(value)}
         onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v)) set(v); }} /><em>mm</em></span></label>);
   const solved = useMemo(() => s?.kind === 'polygon' && s.closed && !s.pending
-    ? solveOutline(s.points as P2[], { lengths: s.lengths, radii: s.radii, tangents: s.tangents }, s.bulges) : null, [s]);
+    ? solveOutline(s.points as P2[], { lengths: s.lengths, radii: s.radii, tangents: s.tangents, equalRadii: s.equalRadii, concentric: s.concentric }, s.bulges) : null, [s]);
   const status = statusOf(s, solved);
   const constraints = s ? inferred(s) : [];
 
@@ -32,6 +32,10 @@ export function SketchPanel({ sketch, error, onShape }: { sketch: SketchState; e
     if (b === null) return;
     bulges[i] = Math.abs(bulges[i]) > 1 ? 1 / b : b; // keep a major arc major
     onShape({ ...poly, bulges });
+  };
+  const togglePair = (poly: Polygon, key: 'equalRadii' | 'concentric', pair: ArcPair) => {
+    const list = poly[key] ?? [];
+    onShape({ ...poly, [key]: list.some(p => samePair(p, pair)) ? list.filter(p => !samePair(p, pair)) : [...list, pair] });
   };
   const toggleTangent = (poly: Polygon, j: number) => {
     const t = poly.tangents ?? [];
@@ -101,6 +105,19 @@ export function SketchPanel({ sketch, error, onShape }: { sketch: SketchState; e
             <button key={j} type="button" className={'chip' + (s.tangents?.includes(j) ? ' on' : '')} aria-pressed={!!s.tangents?.includes(j)}
               aria-label={`Tangent at point ${j + 1}`} onClick={() => toggleTangent(s, j)}>T · {j + 1}</button>))}
         </div></>}
+      {s?.kind === 'polygon' && s.closed && !s.pending && arcPairs(s.bulges).length > 0 && <>
+        <div className="card-title" style={{ marginTop: 10 }}>ARC PAIRS</div>
+        <div className="arc-pairs" role="group" aria-label="Arc pairs">
+          {arcPairs(s.bulges).map(pair => {
+            const on = (key: 'equalRadii' | 'concentric') => !!s[key]?.some(p => samePair(p, pair));
+            const name = `arcs ${pair[0] + 1} and ${pair[1] + 1}`;
+            return <div className="arc-pair" key={pair.join('_')}><span>Arc {pair[0] + 1} · Arc {pair[1] + 1}</span>
+              <button type="button" className={'chip' + (on('equalRadii') ? ' on' : '')} aria-pressed={on('equalRadii')} aria-label={`Equal radius for ${name}`}
+                title="Same radius" onClick={() => togglePair(s, 'equalRadii', pair)}>= R</button>
+              <button type="button" className={'chip' + (on('concentric') ? ' on' : '')} aria-pressed={on('concentric')} aria-label={`Concentric ${name}`}
+                title="Same centre" onClick={() => togglePair(s, 'concentric', pair)}>◎</button></div>;
+          })}
+        </div></>}
       {constraints.length > 0 && <>
         <div className="card-title" style={{ marginTop: 10 }}>CONSTRAINTS · {constraints.length}</div>
         {constraints.map((c, i) => <div className="kv" key={i}>{c.label}<b>{c.detail}</b></div>)}
@@ -137,6 +154,8 @@ function inferred(s: SketchShape) {
   for (const [i, l] of Object.entries(s.lengths ?? {})) out.push({ label: 'Length', detail: `edge ${Number(i) + 1} = ${round(l)}` });
   for (const [i, r] of Object.entries(s.radii ?? {})) out.push({ label: 'Radius', detail: `arc ${Number(i) + 1} = R${round(r)}` });
   for (const j of s.tangents ?? []) out.push({ label: 'Tangent', detail: `point ${j + 1}` });
+  for (const [a, b] of s.equalRadii ?? []) out.push({ label: 'Equal radius', detail: `arc ${a + 1} = arc ${b + 1}` });
+  for (const [a, b] of s.concentric ?? []) out.push({ label: 'Concentric', detail: `arc ${a + 1} · arc ${b + 1}` });
   s.bulges?.forEach((b, i) => { if (b) out.push({ label: 'Arc', detail: `edge ${i + 1} ${b > 0 ? 'ccw' : 'cw'}` }); });
   return out;
 }

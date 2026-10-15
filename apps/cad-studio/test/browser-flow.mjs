@@ -164,6 +164,33 @@ try {
     const d = await doc(); assert.equal(d.nodes[0].profile, 'loop'); await iso();
   });
 
+  await check('concentric arcs hold, a collapsing equal radius is refused', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('l');
+    const [cx, cy] = await canvasCenter();
+    const arcTo = async (ex, ey, tx, ty) => { await press('a'); await clickAt(ex, ey); await page.mouse.move(tx - 6, ty); await page.mouse.move(tx, ty); await page.mouse.click(tx, ty); };
+    await clickAt(cx + 150, cy + 90);
+    await arcTo(cx, cy - 60, cx + 106, cy - 16);
+    await press('l'); await clickAt(cx, cy);
+    await arcTo(cx + 60, cy + 90, cx + 42, cy + 48);
+    await press('l'); await clickAt(cx + 150, cy + 90);
+    const concentric = page.locator('[aria-label="Concentric arcs 1 and 3"]');
+    if (await concentric.getAttribute('aria-pressed') !== 'true') await concentric.click();
+    assert.equal(await concentric.getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.locator('.sk-panel [role=alert]').count(), 0);
+    assert.match(await page.locator('.sk-panel').innerText(), /Concentric\s*arc 1 · arc 3/);
+    await snap('concentric');
+    await page.click('[aria-label="Equal radius for arcs 1 and 3"]');
+    assert.equal(await page.getAttribute('[aria-label="Equal radius for arcs 1 and 3"]', 'aria-pressed'), 'false');
+    assert.ok(await page.locator('.sk-panel [role=alert]').count() > 0);
+    await page.locator('canvas').focus().catch(() => {}); await page.evaluate(() => document.activeElement?.blur());
+    await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    const arcs = (await doc()).nodes[0].segments.filter(x => x.kind === 'arc');
+    assert.equal(arcs.length, 2);
+    assert.ok(Math.hypot(arcs[0].center[0] - arcs[1].center[0], arcs[0].center[1] - arcs[1].center[1]) < 1e-5, JSON.stringify(arcs));
+    await iso();
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await press(' '); await page.locator('.palette input').fill('fillet');
     assert.match(await page.locator('.palette-list').innerText(), /isn’t available in the kernel yet/);

@@ -12,7 +12,9 @@ export type SketchShape =
   | { kind: 'circle'; c: [number, number]; r: number }
   | { kind: 'polygon'; points: [number, number][]; closed: boolean; bulges?: number[]; pending?: boolean;
       /** Locked edge lengths and arc radii by segment index; tangent joints by point index. */
-      lengths?: Record<number, number>; radii?: Record<number, number>; tangents?: number[] }
+      lengths?: Record<number, number>; radii?: Record<number, number>; tangents?: number[];
+      /** Arc pairs [lower, higher segment index] with the same radius / the same centre. */
+      equalRadii?: [number, number][]; concentric?: [number, number][] }
   | { kind: 'slot'; a: [number, number]; b: [number, number]; r: number };
 
 export interface SketchState { planeZ: number; tool: SketchTool; shape: SketchShape | null; base?: { node: number; side: string } | null }
@@ -304,6 +306,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
             const arc = arcOf(a, b, bulge), t = arc.start + arc.sweep / 2, m = P(arc.center[0] + arc.radius * Math.cos(t), arc.center[1] + arc.radius * Math.sin(t));
             const cc = P(arc.center[0], arc.center[1]); items.push(<circle key={'ac' + i} cx={cc[0]} cy={cc[1]} r={2} className="sk-point" />);
             if (s.closed && !s.pending) items.push(label(m[0], m[1] - 18, 'R' + fmtLen(arc.radius), 'rad' + i));
+            if ((s.equalRadii ?? []).some(p => p.includes(i))) items.push(<g key={'eq' + i}><rect x={m[0] + 30} y={m[1] - 26} width={16} height={15} rx={3} className="cons-chip" /><text x={m[0] + 38} y={m[1] - 15} textAnchor="middle" className="cons-text">=</text></g>);
+            if ((s.concentric ?? []).some(p => p.includes(i))) items.push(<circle key={'oc' + i} cx={cc[0]} cy={cc[1]} r={6} className="sk-guide" fill="none" />);
             continue;
           }
           glyph(a, b, 'p' + i);

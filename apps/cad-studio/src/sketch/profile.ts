@@ -86,7 +86,13 @@ export function sampleSlot(a: P2, b: P2, r: number, perQuarter = 12): P2[] {
 // centre point plus two radius segments (centre → start, centre → end) held equal; tangency is a
 // ±90° angle between a line and a radius (0° / 180° between two radii); a radius lock is a length.
 
-export interface OutlineConstraints { lengths?: Record<number, number>; radii?: Record<number, number>; tangents?: number[] }
+/** Arc pairs are [lower segment index, higher segment index]. */
+export type ArcPair = [number, number];
+export interface OutlineConstraints {
+  lengths?: Record<number, number>; radii?: Record<number, number>; tangents?: number[];
+  /** Same radius (radius segments held equal) and same centre (centre points coincident). */
+  equalRadii?: ArcPair[]; concentric?: ArcPair[];
+}
 export interface SolveReport { ok: true; dof: number; rank: number; points: P2[]; bulges: number[] }
 export type SolveResult = SolveReport | { ok: false; reason: string };
 
@@ -125,6 +131,23 @@ export function inferTangents(points: P2[], bulges: number[] | undefined, tolera
   if (!bulges?.some(Boolean)) return [];
   return points.flatMap((_, j) => { const t = tangentTarget(points, bulges, j); return t && t.deviation <= toleranceRad ? [j] : []; });
 }
+/** Every pair of arcs in an outline, lower index first. */
+export function arcPairs(bulges: number[] | undefined): ArcPair[] {
+  const arcs = (bulges ?? []).flatMap((b, i) => b ? [i] : []);
+  return arcs.flatMap((a, k) => arcs.slice(k + 1).map(b => [a, b] as ArcPair));
+}
+export const samePair = (p: ArcPair, q: ArcPair) => p[0] === q[0] && p[1] === q[1];
+/** Arc pairs drawn with nearly the same radius (within 3 % or 0.5 mm) or centre (within 5 % of the radius or 1.5 mm). */
+export function inferArcRelations(points: P2[], bulges: number[] | undefined): { equalRadii: ArcPair[]; concentric: ArcPair[] } {
+  const n = points.length, arc = (i: number) => arcOf(points[i], points[(i + 1) % n], bulges![i]);
+  const equalRadii: ArcPair[] = [], concentric: ArcPair[] = [];
+  for (const [a, b] of arcPairs(bulges)) {
+    const A = arc(a), B = arc(b), r = Math.min(A.radius, B.radius);
+    if (Math.abs(A.radius - B.radius) <= Math.max(0.5, 0.03 * r)) equalRadii.push([a, b]);
+    if (Math.hypot(A.center[0] - B.center[0], A.center[1] - B.center[1]) <= Math.max(1.5, 0.05 * r)) concentric.push([a, b]);
+  }
+  return { equalRadii, concentric };
+}
 export const canBeTangent = (points: P2[], bulges: number[] | undefined, j: number) => !!bulges && tangentTarget(points, bulges, j) !== null;
 
 /**
@@ -149,6 +172,8 @@ export function solveOutline(points: P2[], c: OutlineConstraints = {}, bulgesIn?
     ...Object.entries(c.lengths ?? {}).filter(([i]) => !bulges[+i]).map(([i, lengthMM]): Constraint => ({ id: 'l' + i, kind: 'length', segmentId: 's' + i, lengthMM })),
     ...arcs.map((i): Constraint => ({ id: 'e' + i, kind: 'equal-length', segmentA: 'ra' + i, segmentB: 'rb' + i })),
     ...Object.entries(c.radii ?? {}).filter(([i]) => bulges[+i]).map(([i, lengthMM]): Constraint => ({ id: 'r' + i, kind: 'length', segmentId: 'ra' + i, lengthMM })),
+    ...(c.equalRadii ?? []).filter(([a, b]) => bulges[a] && bulges[b]).map(([a, b]): Constraint => ({ id: `q${a}_${b}`, kind: 'equal-length', segmentA: 'ra' + a, segmentB: 'ra' + b })),
+    ...(c.concentric ?? []).filter(([a, b]) => bulges[a] && bulges[b]).map(([a, b]): Constraint => ({ id: `o${a}_${b}`, kind: 'coincident', pointA: 'c' + a, pointB: 'c' + b })),
     ...(c.tangents ?? []).flatMap((j): Constraint[] => {
       const t = tangentTarget(points, bulges, j); return t ? [{ id: 't' + j, kind: 'signed-angle', segmentA: t.a, segmentB: t.b, angleRad: t.target }] : [];
     }),

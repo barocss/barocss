@@ -170,3 +170,9 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .tangents .chip { height: 24px; padding: 0 9px; border-radius: 12px; border: 1px solid #4a4d53; background: transparent; color: var(--muted); font: 500 11px var(--mono); cursor: pointer; }
 .tangents .chip.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 :root[data-theme='light'] .tangents .chip { border-color: #c9ccd2; }
+.arc-pairs { display: flex; flex-direction: column; gap: 6px; }
+.arc-pair { display: flex; align-items: center; gap: 6px; font: 400 11px var(--mono); color: var(--muted); }
+.arc-pair span { flex: 1; }
+.arc-pair .chip { height: 24px; min-width: 40px; padding: 0 9px; border-radius: 12px; border: 1px solid #4a4d53; background: transparent; color: var(--muted); font: 500 11px var(--mono); cursor: pointer; }
+.arc-pair .chip.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+:root[data-theme='light'] .arc-pair .chip { border-color: #c9ccd2; }

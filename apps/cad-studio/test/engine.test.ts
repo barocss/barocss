@@ -159,3 +159,45 @@ test('closing an outline infers near-tangent arc joints and settles them exact',
   const bad = settleShape({ ...s, lengths: { 0: 40, 3: 20 }, radii: { 1: 3 } }, s);
   assert.ok(bad.error); assert.equal(bad.shape, s);
 });
+
+test('equal radius and concentric arc pairs', async () => {
+  const { solveOutline, bulgeThrough, arcOf, inferArcRelations } = await import('../src/sketch/profile');
+  // Two hand-drawn end arcs of different radius (≈10.64 and ≈10.42).
+  const points: [number, number][] = [[0, 0], [40, 0], [40, 20], [0, 20]];
+  const bulges = [0, bulgeThrough([40, 0], [40, 20], [47, 10]), 0, bulgeThrough([0, 20], [0, 0], [-7.5, 10])];
+  const free = solveOutline(points, {}, bulges), equal = solveOutline(points, { equalRadii: [[1, 3]] }, bulges);
+  assert.ok(free.ok && equal.ok);
+  assert.equal(equal.dof, free.dof - 1);
+  const r = (s: typeof equal, i: number) => s.ok ? arcOf(s.points[i], s.points[(i + 1) % 4], s.bulges[i]).radius : NaN;
+  assert.ok(Math.abs(r(equal, 1) - r(equal, 3)) < 1e-6, `${r(equal, 1)} vs ${r(equal, 3)}`);
+  assert.deepEqual(inferArcRelations(points, bulges).equalRadii, [[1, 3]]);
+
+  // An annular sector drawn with the inner arc's centre 1.3 mm off the outer one.
+  const ring: [number, number][] = [[30, 0], [0, 30], [0, 15], [15, 0]];
+  const ringBulges = [bulgeThrough([30, 0], [0, 30], [21.2132, 21.2132]), 0, bulgeThrough([0, 15], [15, 0], [10.9, 10.9]), 0];
+  const before = [0, 2].map(i => arcOf(ring[i], ring[(i + 1) % 4], ringBulges[i]).center);
+  assert.ok(Math.hypot(before[0][0] - before[1][0], before[0][1] - before[1][1]) > 0.5);
+  assert.deepEqual(inferArcRelations(ring, ringBulges).concentric, [[0, 2]]);
+  const solved = solveOutline(ring, { concentric: [[0, 2]] }, ringBulges);
+  assert.ok(solved.ok, !solved.ok ? solved.reason : '');
+  const after = [0, 2].map(i => arcOf(solved.points[i], solved.points[(i + 1) % 4], solved.bulges[i]).center);
+  assert.ok(Math.hypot(after[0][0] - after[1][0], after[0][1] - after[1][1]) < 1e-5, JSON.stringify(after));
+  // Concentric and equal radius together collapse the ring: the solver refuses instead of producing it.
+  assert.equal(solveOutline(ring, { concentric: [[0, 2]], equalRadii: [[0, 2]] }, ringBulges).ok, false);
+});
+
+test('closing infers equal radii and shared centres; a loop with them still extrudes', async () => {
+  const { settleShape } = await import('../src/sketch/settle');
+  const { outlineSegments, bulgeThrough } = await import('../src/sketch/profile');
+  const open = { kind: 'polygon' as const, points: [[30, 0], [0, 30], [0, 15], [15, 0]] as [number, number][], closed: false,
+    bulges: [bulgeThrough([30, 0], [0, 30], [21.2132, 21.2132]), 0, bulgeThrough([0, 15], [15, 0], [10.9, 10.9]), 0] };
+  const r = settleShape({ ...open, closed: true }, open);
+  assert.equal(r.error, null);
+  const s = r.shape as typeof open & { concentric: [number, number][] };
+  assert.deepEqual(s.concentric, [[0, 2]]);
+  const doc = withNode(withNode(prefixDoc({ format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} }, 0),
+    { kind: 'sketch', profile: 'loop', segments: outlineSegments(s.points, s.bulges) }), { kind: 'extrude', sketch: 0, height: 6 });
+  const e = evaluateDoc(doc, 1);
+  assert.ok(e.ok, JSON.stringify(!e.ok && e.error));
+  assert.equal(e.bodies[0].mesh.faces.filter(f => f.kind === 'curved').length, 2);
+});
