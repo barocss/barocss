@@ -16,8 +16,9 @@
 //                    survives parameter edits that keep the topology.
 //   references       `id` (all parts of a feature) or `id/k` (part k: the sides of a split)
 import { BrepError, buildBrep, lineCurve, type Brep } from './brep-core.js';
-import { brepFromPrismatic, booleanPrismatic, prismaticFromProfile, prismaticVolume, transformPrismatic, PrismaticSolidError, type PrismaticSolid } from './prismatic-solid.js';
-import { booleanCurveRegions, curveTolerance, sampleRing, segEnd, CurvedArrangementError, type CurveSegment2, type XY } from './curved-arrangement.js';
+import { brepFromPrismatic, booleanPrismatic, prismaticExtrude, prismaticFromProfile, prismaticVolume, transformPrismatic, PrismaticSolidError, type PrismaticSolid } from './prismatic-solid.js';
+import { erodeSection } from './section-offset.js';
+import { booleanCurveRegions, curveTolerance, sampleRing, segEnd, CurvedArrangementError, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
 import { booleanPolyhedra } from './polyhedral-boolean.js';
 import { booleanAnalytic } from './analytic-boolean.js';
 import { finishBrepEdges } from './edge-finish.js';
@@ -62,6 +63,8 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'circular-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly angleDegrees: number; readonly count: number; readonly pivot?: CadPartPoint3 }
   /** Parts /0 (below `at`) and /1 (above). */
   | { readonly kind: 'split'; readonly target: string; readonly axis: CadPartAxis; readonly at: CadPartDim }
+  /** Hollowed to walls `thickness` thick; `open` names the faces removed (the top of a box, a side). */
+  | { readonly kind: 'shell'; readonly target: string; readonly thickness: CadPartDim; readonly open?: readonly string[] }
   | { readonly kind: 'chamfer'; readonly target: string; readonly edges: readonly string[]; readonly distance: CadPartDim }
   /** Vertical edges of upright bodies. */
   | { readonly kind: 'fillet'; readonly target: string; readonly edges: readonly string[]; readonly radius: CadPartDim }
@@ -371,6 +374,13 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         return acc;
       }));
     }
+    case 'shell': {
+      const target = solids(f.target, 'target'), t = dim(f.thickness as CadPartDim, 'thickness', true);
+      const open = f.open === undefined ? [] : f.open as unknown;
+      if (!Array.isArray(open) || open.length > CadPartLimits.edges || !open.every(x => typeof x === 'string')) fail('INPUT', 'open must list up to 64 face names');
+      if (target.length !== 1) fail('REFERENCE', 'shell one part at a time (name it as id/k)');
+      return () => one(shellPart(target[0], t, open as string[], at, fail));
+    }
     case 'split': {
       const target = solids(f.target, 'target'), axis = axisOf(f.axis), cut = dim(f.at as CadPartDim, 'at');
       if (target.length !== 1) fail('REFERENCE', 'split one part at a time (name it as id/k)');
@@ -430,6 +440,33 @@ function rotate(s: Solid, axis: CadPartAxis, deg: number, pivot: Point, rename?:
   } else m = quarterTurn(axis, deg);
   const mp = [m[0] * pivot[0] + m[1] * pivot[1] + m[2] * pivot[2], m[3] * pivot[0] + m[4] * pivot[1] + m[5] * pivot[2], m[6] * pivot[0] + m[7] * pivot[1] + m[8] * pivot[2]];
   return affine(s, m, [pivot[0] - mp[0], pivot[1] - mp[1], pivot[2] - mp[2]], rename);
+}
+
+// ---- shell -----------------------------------------------------------------------------------------------
+/**
+ * An upright body of one section, hollowed: the section eroded by the thickness (exact for lines and
+ * arcs), extruded from the thickness above the bottom to below the top (or through an open top or
+ * bottom), and taken away; open side walls let the hollow run through them.
+ */
+function shellPart(part: Part, t: number, open: string[], at: string, fail: Tools['fail']): Solid {
+  if (part.solid.kind !== 'upright') fail('CAPABILITY', 'shell works on bodies extruded from one section (before turning them about X or Y, or finishing their top edges) yet');
+  const solid = (part.solid as Extract<Solid, { kind: 'upright' }>).solid;
+  if (solid.slabs.length !== 1) fail('CAPABILITY', 'shell works on bodies extruded from one section yet (this one changes section along its height)');
+  const slab = solid.slabs[0], rings = slab.regions.flatMap(r => [r.outer, ...r.holes]), tol = curveTolerance(rings);
+  const sides = new Set(rings.flatMap(r => r.map(g => g.tag).filter((x): x is string => !!x)));
+  const capAt = (z: number) => (solid.caps ?? []).filter(c => Math.abs(c.z - z) <= tol).map(c => c.tag);
+  const tops = new Set(capAt(slab.z1)), bottoms = new Set(capAt(slab.z0));
+  for (const name of open) if (!sides.has(name) && !tops.has(name) && !bottoms.has(name)) fail('SELECTION', `no face named ${name} to open; faces: ${[...tops, ...bottoms, ...sides].slice(0, 12).join(', ')}`);
+  const openTop = open.some(n => tops.has(n)), openBottom = open.some(n => bottoms.has(n)), openSides = new Set(open.filter(n => sides.has(n)));
+  let inner: CurveRegion2[] = [];
+  try { inner = erodeSection(slab.regions, t, tag => !!tag && openSides.has(tag), tag => `${at}.in.${tag ?? 'wall'}`, tol); }
+  catch (cause) { if (cause instanceof Error && /only straight walls/.test(cause.message)) fail('CAPABILITY', cause.message); throw cause; }
+  if (!inner.length) fail('PARAMETER', `a wall of ${t} mm leaves no hollow inside this section`);
+  const z0 = openBottom ? slab.z0 - 1 : slab.z0 + t, z1 = openTop ? slab.z1 + 1 : slab.z1 - t;
+  if (!(z1 > z0 + tol)) fail('PARAMETER', `a wall of ${t} mm leaves no hollow between the top and the bottom`);
+  const hollow = prismaticExtrude(inner.flatMap(r => [r.outer, ...r.holes]), z0, z1);
+  const tagged = { ...hollow, caps: [{ z: z0, regions: inner, tag: `${at}.floor` }, { z: z1, regions: inner, tag: `${at}.ceiling` }] };
+  return { kind: 'upright', solid: booleanPrismatic(solid, tagged, 'difference') };
 }
 
 // ---- chamfers and fillets ------------------------------------------------------------------------------

@@ -111,6 +111,33 @@ test('fillets and chamfers on any straight or circular edge: rolling-ball tools 
   assert.ok(volume(mitre) < 1000 - corner(2) * 30 + 1 && volume(mitre) > 1000 - corner(2) * 30 - 1, String(volume(mitre)));
 });
 
+test('shell: the section eroded exactly, open faces removed, the result still upright', () => {
+  const box = [rect('s', 0, 0, 40, 30), extrude('e', 's', 20)];
+  const ell = [{ id: 's', kind: 'sketch', profile: 'polygon', points: [[0, 0], [30, 0], [30, 10], [10, 10], [10, 30], [0, 30]] }, extrude('e', 's', 10)];
+  const slot = [{ id: 's', kind: 'sketch', profile: 'loop', segments: [{ kind: 'line', start: [0, -4] }, { kind: 'arc', start: [20, -4], center: [20, 0], direction: 'ccw' }, { kind: 'line', start: [20, 4] }, { kind: 'arc', start: [0, 4], center: [0, 0], direction: 'ccw' }] }, extrude('e', 's', 6)];
+  const shell = (target, thickness, open) => ({ id: 'sh', kind: 'shell', target, thickness, ...(open ? { open } : {}) });
+  const cases = [
+    ['an open box', D([...box, shell('e', 2, ['e.top'])]), 24000 - 36 * 26 * 18],
+    ['a closed box (a cavity)', D([...box, shell('e', 2)]), 24000 - 36 * 26 * 16],
+    ['open top and front', D([...box, shell('e', 2, ['e.top', 'e.side0'])]), 24000 - 36 * 28 * 18],
+    ['a tube (top and bottom open)', D([...box, shell('e', 2, ['e.top', 'e.bottom'])]), 24000 - 36 * 26 * 20],
+    // The L's inside corner leaves the hollow a round notch: (4 − π) beyond the two arms.
+    ['an L (round at its inside corner)', D([...ell, shell('e', 2, ['e.top'])]), 5000 - (26 * 6 + 6 * 20 + 4 - pi) * 8],
+    ['a slot (arcs offset)', D([...slot, shell('e', 1.5, ['e.top'])]), (160 + 16 * pi) * 6 - (20 * 5 + pi * 2.5 * 2.5) * 4.5],
+    ['a box with a screw hole (a tube stays round it)', D([...box, { id: 'h', kind: 'hole', target: 'e', center: [20, 15], radius: 3 }, shell('h', 2, ['e.top'])]), 24000 - pi * 9 * 20 - (36 * 26 - pi * 25) * 18],
+  ];
+  for (const [name, doc, expected] of cases) {
+    const o = evaluateCadPart(doc).outputs[0];
+    assert.equal(o.representation, 'upright', name);
+    assert.equal(checkBrep(o.brep).valid, true, name);
+    assert.ok(close(volume(o), expected, 1e-12), `${name}: ${volume(o)} vs ${expected}`);
+    assert.ok(o.brep.faces.some(f => f.name.startsWith('sh.in.')), `${name}: inner walls are named after the faces they face`);
+  }
+  refused(D([...box, shell('e', 20, ['e.top'])]), 'PARAMETER', /leaves no hollow/);
+  refused(D([...box, shell('e', 2, ['nope'])]), 'SELECTION', /no face named nope/);
+  refused(D([...slot, shell('e', 1, ['e.top', 'e.side1'])]), 'CAPABILITY', /only straight walls can be left open/);
+});
+
 test('refusals name the feature and the reason', () => {
   const plate = [rect('s', 0, 0, 10, 10), extrude('a', 's', 5)];
   refused(D([extrude('a', 's', 5), rect('s', 0, 0, 10, 10)]), 'REFERENCE', /^a: sketch: no earlier feature s/);
