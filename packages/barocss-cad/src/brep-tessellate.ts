@@ -256,7 +256,7 @@ export function tessellateBrep(brep: Brep, options: BrepTessellationOptions = {}
     const rails = railsOf(face, loops, coedges, edges);
     if (rails === undefined) {
       // Any other parametric surface without a seam: triangulated in its (u, v) domain.
-      if (innerIds.length === 0 && sides.length < 3 || !isSmoothPatch(face.surface)) throw new BrepError('GEOMETRY', `face ${face.id}: a surface with a pole or a single-edge loop cannot be tessellated yet`);
+      if (ring(outerId).length < 3 || !isSmoothPatch(face.surface)) throw new BrepError('GEOMETRY', `face ${face.id}: a singular surface or a degenerate loop cannot be tessellated`);
       const { pts, tris } = surfaceTriangles(face, [ring(outerId), ...innerIds.map(ring)], Math.PI / 2 / perQuarter); emit(face.id, 'trimmed', pts, tris, null); continue;
     }
     const [r1, r2] = rails, A = along(sides[r1]), B = [...along(sides[r2])].reverse();
@@ -404,10 +404,21 @@ function cylinderTriangles(face: Brep['faces'][number], frame0: CylinderFrame, p
   return { pts, tris: tris.map(([a, b, c]) => (outward !== flip) ? [a, b, c] : [a, c, b]) };
 }
 
-/** A surface whose (u, v) → point map is usable for trimmed triangulation (no collapsed rows: poles). */
+/** Sides of a patch's domain that collapse to one point (poles): `along` is the coordinate that varies. */
+export function polesOf(S: Surface): { along: 0 | 1; at: number; point: Point }[] {
+  const { u, v } = surfaceDomain(S), at = surfaceEvaluator(S), out: { along: 0 | 1; at: number; point: Point }[] = [];
+  let size = 0; for (const row of S.controlPoints) for (const p of row) size = Math.max(size, Math.abs(p[0]), Math.abs(p[1]), Math.abs(p[2]));
+  const same = (pts: Point[]) => pts.every(p => Math.hypot(p[0] - pts[0][0], p[1] - pts[0][1], p[2] - pts[0][2]) <= 1e-12 * Math.max(1, size));
+  for (const b of v) { const pts = [0, 0.3, 0.7, 1].map(f => at(u[0] + (u[1] - u[0]) * f, b)); if (same(pts)) out.push({ along: 0, at: b, point: pts[0] }); }
+  for (const a of u) { const pts = [0, 0.3, 0.7, 1].map(f => at(a, v[0] + (v[1] - v[0]) * f)); if (same(pts)) out.push({ along: 1, at: a, point: pts[0] }); }
+  return out;
+}
+
+/** A surface whose (u, v) → point map is usable for trimmed triangulation (regular but at its poles). */
 function isSmoothPatch(S: Surface): boolean {
-  const { u, v } = surfaceDomain(S);
+  const { u, v } = surfaceDomain(S), poles = polesOf(S);
   for (let i = 0; i <= 4; i++) for (let j = 0; j <= 4; j++) {
+    if (poles.some(q => q.along === 0 ? j === (q.at === v[0] ? 0 : 4) : i === (q.at === u[0] ? 0 : 4))) continue;
     const a = u[0] + (u[1] - u[0]) * i / 4, b = v[0] + (v[1] - v[0]) * j / 4, h = 1e-6;
     const p = evaluateSurface(S, a, b), pu = evaluateSurface(S, inward(a, u, h), b), pv = evaluateSurface(S, a, inward(b, v, h));
     const du = sub(pu, p), dv = sub(pv, p);
@@ -429,9 +440,9 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
   const ku = (Lu || 1) / (U[1] - U[0]), kv = (Lv || 1) / (V[1] - V[0]);
   const N = 24, grid: { a: number; b: number; p: Point }[] = [];
   for (let i = 0; i <= N; i++) for (let j = 0; j <= N; j++) { const a = U[0] + (U[1] - U[0]) * i / N, b = V[0] + (V[1] - V[0]) * j / N; grid.push({ a, b, p: at(a, b) }); }
-  const invert = (p: Point): XY => {
-    let best = grid[0], bd = Infinity; for (const g of grid) { const d = (g.p[0] - p[0]) ** 2 + (g.p[1] - p[1]) ** 2 + (g.p[2] - p[2]) ** 2; if (d < bd) { bd = d; best = g; } }
-    let a = best.a, b = best.b;
+  const polar = new Set(polesOf(S).flatMap(q => grid.filter(g => q.along === 0 ? g.b === q.at : g.a === q.at)));
+  const newton = (start: { a: number; b: number }, p: Point): XY => {
+    let a = start.a, b = start.b;
     for (let it = 0; it < 40; it++) {
       const h = 1e-7, ia = inward(a, U, h), ib = inward(b, V, h), q = at(a, b), qa = at(ia, b), qb = at(a, ib), da = ia - a, db = ib - b;
       const Su = scale3(sub(qa, q), 1 / da), Sv = scale3(sub(qb, q), 1 / db), r = sub(p, q);
@@ -443,7 +454,31 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
     }
     return [a, b];
   };
-  const pts: Point[] = rings.flat(), uv: XY[] = pts.map(invert), flat = (q: XY): XY => [q[0] * ku, q[1] * kv];
+  // From the nearest grid points off the poles (a pole's parameters say nothing about the free one).
+  const invert = (p: Point): XY => {
+    const near = grid.filter(g => !polar.has(g)).map(g => ({ g, d: (g.p[0] - p[0]) ** 2 + (g.p[1] - p[1]) ** 2 + (g.p[2] - p[2]) ** 2 })).sort((x, y) => x.d - y.d);
+    let best: XY = [near[0].g.a, near[0].g.b], bd = Infinity;
+    for (const { g } of near.slice(0, 4)) { const q = newton(g, p), e = at(q[0], q[1]), d = Math.hypot(e[0] - p[0], e[1] - p[1], e[2] - p[2]); if (d < bd) { bd = d; best = q; } if (d <= 1e-12 * (Lu + Lv + 1)) break; }
+    return best;
+  };
+  // A boundary point at a pole stands for a whole side of the domain: it becomes that side's two ends
+  // (at its neighbours' free coordinate), so the domain polygon stays a polygon; the triangles on that
+  // side collapse in space and are dropped at the end.
+  const poles = polesOf(S), atPole = (p: Point) => poles.find(q => Math.hypot(p[0] - q.point[0], p[1] - q.point[1], p[2] - q.point[2]) <= 1e-9 * (Lu + Lv + 1));
+  const pts: Point[] = [], uv: XY[] = [], ringSizes: number[] = [];
+  for (const r of rings) {
+    const base = r.map(invert), before = pts.length;
+    r.forEach((p, i) => {
+      const q = atPole(p);
+      if (!q) { pts.push(p); uv.push(base[i]); return; }
+      const free = (k: number) => base[(k + r.length) % r.length][q.along];
+      const end = (f: number): XY => q.along === 0 ? [f, q.at] : [q.at, f];
+      pts.push(q.point, q.point); uv.push(end(free(i - 1)), end(free(i + 1)));
+    });
+    ringSizes.push(pts.length - before);
+  }
+  rings = []; { let o = 0; for (const n of ringSizes) { rings.push(pts.slice(o, o + n)); o += n; } }
+  const flat = (q: XY): XY => [q[0] * ku, q[1] * kv];
   // The boundary must lie on the surface (a curve off it would be projected, not tessellated).
   const off3 = 1e-5 * (Lu + Lv) + 1e-6;
   pts.forEach((p, i) => { const q = at(uv[i][0], uv[i][1]); if (Math.hypot(q[0] - p[0], q[1] - p[1], q[2] - p[2]) > off3) throw new BrepError('GEOMETRY', `tessellation: an edge of face ${face.id} does not lie on its surface`); });
@@ -454,7 +489,9 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
   const size = (a: XY, b: XY, c: XY) => Math.max(Math.hypot(a[0] - b[0], a[1] - b[1]), Math.hypot(b[0] - c[0], b[1] - c[1]), Math.hypot(c[0] - a[0], c[1] - a[1]));
   const tris = triangulatePolygonWithHoles(ringsUV[0], ringsUV.slice(1), size).map(t => [...t] as [number, number, number]);
   // One-sided differences stepping inward, signed so the normal is always along Su × Sv.
-  const normal = (q: XY): Point => { const h = 1e-6, p = at(q[0], q[1]), a = inward(q[0], U, h), b = inward(q[1], V, h); return unit3(scale3(cross(sub(at(a, q[1]), p), sub(at(q[0], b), p)), Math.sign(a - q[0]) * Math.sign(b - q[1]))); };
+  const normalAt = (q: XY): Point => { const h = 1e-6, p = at(q[0], q[1]), a = inward(q[0], U, h), b = inward(q[1], V, h); return scale3(cross(sub(at(a, q[1]), p), sub(at(q[0], b), p)), Math.sign(a - q[0]) * Math.sign(b - q[1])); };
+  // At a pole the normal is the limit from inside the domain.
+  const normal = (q: XY): Point => { const n = normalAt(q); if (Math.hypot(...n) > 1e-20 * (Lu + Lv + 1) ** 2) return unit3(n); return unit3(normalAt([inward(q[0], U, 1e-5), inward(q[1], V, 1e-5)])); };
   const nrm: Point[] = uv.map(normal), cosStep = Math.cos(1.5 * step);
   const key = (a: number, b: number) => a < b ? a * 1e7 + b : b * 1e7 + a, around = new Map<number, Set<number>>();
   const link = (t: number) => { const [a, b, c] = tris[t]; for (const [x, y] of [[a, b], [b, c], [c, a]]) { const k = key(x, y); if (!around.has(k)) around.set(k, new Set()); around.get(k)!.add(t); } };
@@ -465,7 +502,10 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
   // Bent: an interior edge across which the normal turns by more than 1.5 steps (boundary chords are
   // already one step long and cannot be split).
   const interior = (x: number, y: number) => (around.get(key(x, y))?.size ?? 0) === 2;
-  const bent = (t: number) => { const [a, b, c] = tris[t]; return ([[a, b], [b, c], [c, a]] as [number, number][]).some(([x, y]) => interior(x, y) && dot(nrm[x], nrm[y]) < cosStep); };
+  // Edges at a pole are left out: its normal depends on the direction it is approached from (a cone tip).
+  const polePoint = new Set(poles.map(q => q.point)), atPoleIdx = (i: number) => polePoint.has(pts[i]);
+  // (A flat triangle is left too: bisecting it only makes flat triangles.)
+  const bent = (t: number) => { const [a, b, c] = tris[t]; return !flat3(t) && ([[a, b], [b, c], [c, a]] as [number, number][]).some(([x, y]) => interior(x, y) && !atPoleIdx(x) && !atPoleIdx(y) && dot(nrm[x], nrm[y]) < cosStep); };
   const across = (t: number, a: number, b: number) => [...(around.get(key(a, b)) ?? [])].find(x => x !== t);
   const bisect = (a: number, b: number) => {
     const m = pts.length, mid: XY = [(uv[a][0] + uv[b][0]) / 2, (uv[a][1] + uv[b][1]) / 2];
@@ -485,6 +525,7 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
     const [A, B, C, D] = [a, b, c, d].map(P2), r = [A, B, C].map(q => [q[0] - D[0], q[1] - D[1]]);
     return r.reduce((acc, q, i) => { const s1 = r[(i + 1) % 3], s2 = r[(i + 2) % 3]; return acc + (q[0] * q[0] + q[1] * q[1]) * (s1[0] * s2[1] - s1[1] * s2[0]); }, 0) / 3;
   };
+  const flat3 = (t: number) => { const [a, b, c] = tris[t], l = Math.max(len2(a, b), len2(b, c), len2(c, a)); return Math.abs(orient(a, b, c)) <= 1e-9 * l * l; };
   const flipAll = () => {
     for (let pass = 0, changed = true; changed && pass < 50; pass++) {
       changed = false;
@@ -492,7 +533,8 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
         const tri = tris[t], x = tri[e], y = tri[(e + 1) % 3], c = tri[(e + 2) % 3], o = across(t, x, y);
         if (o === undefined) continue;
         const d = tris[o].find(v => v !== x && v !== y)!, scale2 = len2(x, y) ** 2 * len2(x, y) ** 2;
-        if (incircle(x, y, c, d) <= 1e-9 * scale2 || orient(c, x, d) <= 1e-12 * len2(c, d) ** 2 || orient(d, y, c) <= 1e-12 * len2(c, d) ** 2) continue;
+        // A flat triangle (three boundary points in a line) has no circumcircle: flip it whenever it can be.
+        if (!flat3(t) && incircle(x, y, c, d) <= 1e-9 * scale2 || orient(c, x, d) <= 1e-12 * len2(c, d) ** 2 || orient(d, y, c) <= 1e-12 * len2(c, d) ** 2) continue;
         unlink(t); unlink(o); tris[t] = [c, x, d]; tris[o] = [d, y, c]; link(t); link(o); changed = true; break;
       }
     }
@@ -575,8 +617,8 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
   }
   refine(); flipAll(); refine();
   // Counter-clockwise in (u, v) is along Su × Sv; wound for the outward normal.
-  const keep = (face.sense === 'forward') !== flip;
-  return { pts, tris: tris.map(([a, b, c]) => keep ? [a, b, c] : [a, c, b]) };
+  const keep = (face.sense === 'forward') !== flip, same = (a: number, b: number) => pts[a] === pts[b];
+  return { pts, tris: tris.filter(([a, b, c]) => !same(a, b) && !same(b, c) && !same(c, a)).map(([a, b, c]) => keep ? [a, b, c] : [a, c, b]) };
 }
 const scale3 = (a: Point, k: number): Point => [a[0] * k, a[1] * k, a[2] * k];
 const unit3 = (a: Point): Point => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };

@@ -11,6 +11,8 @@ const yAxis = { origin: [0, 0], direction: [0, 1] };
 /** Torus about the y axis: tube radius 2 about the circle of radius 6 in the xz plane. */
 const torus = (id = 't') => revolveProfile({ id, profile: circle(6, 0, 2), axis: yAxis, angleDegrees: 360 });
 const TORUS = 2 * pi * pi * 6 * 4;
+const sphere = (R = 5) => revolveProfile({ id: 's', profile: [{ kind: 'arc', start: [0, -R], center: [0, 0], direction: 'ccw' }, { kind: 'line', start: [0, R] }], axis: yAxis, angleDegrees: 360 });
+const cap = (R, h) => pi * h * h * (3 * R - h) / 3;
 /** Ring cone: the triangle (2, 0), (6, 0), (2, 6) about the y axis. */
 const cone = () => revolveProfile({ id: 'k', profile: [{ kind: 'line', start: [2, 0] }, { kind: 'line', start: [6, 0] }, { kind: 'line', start: [2, 6] }], axis: yAxis, angleDegrees: 360 });
 function mesh(brep, q) {
@@ -42,6 +44,11 @@ test('revolved solids: exact rational surfaces, closed-form mass, watertight reg
     ['tube (rectangle, cylinders and annuli)', revolveProfile({ id: 'r', profile: rect(2, 0, 6, 4), axis: yAxis, angleDegrees: 360 }), pi * 32 * 4],
     ['half torus', revolveProfile({ id: 'h', profile: circle(6, 0, 2), axis: yAxis, angleDegrees: 180 }), TORUS / 2],
     ['270° cone', revolveProfile({ id: 'c', profile: [{ kind: 'line', start: [2, 0] }, { kind: 'line', start: [6, 0] }, { kind: 'line', start: [2, 6] }], axis: yAxis, angleDegrees: 270 }), pi * 1.5 * (160 / 3) * 0.75],
+    ['sphere (poles)', sphere(), 4 / 3 * pi * 125],
+    ['sphere wedge (poles shared by the caps)', revolveProfile({ id: 'w', profile: [{ kind: 'arc', start: [0, -5], center: [0, 0], direction: 'ccw' }, { kind: 'line', start: [0, 5] }], axis: yAxis, angleDegrees: 90 }), pi * 125 / 3],
+    ['solid cone (a tip)', revolveProfile({ id: 'k', profile: [{ kind: 'line', start: [0, 0] }, { kind: 'line', start: [4, 0] }, { kind: 'line', start: [0, 6] }], axis: yAxis, angleDegrees: 360 }), pi * 16 * 2],
+    ['solid cylinder (discs)', revolveProfile({ id: 'd', profile: rect(0, 0, 3, 5), axis: yAxis, angleDegrees: 360 }), pi * 45],
+    ['pinched wedge, partial turn', revolveProfile({ id: 'p', profile: [{ kind: 'line', start: [0, 0] }, { kind: 'line', start: [4, 2] }, { kind: 'line', start: [4, 6] }], axis: yAxis, angleDegrees: 90 }), null],
     ['axis along x, offset origin', revolveProfile({ id: 'x', profile: rect(0, 3, 5, 4), axis: { origin: [0, 1], direction: [1, 0] }, angleDegrees: 90 }), pi * (9 - 4) * 5 / 4],
   ];
   for (const [name, brep, expected] of cases) {
@@ -50,15 +57,21 @@ test('revolved solids: exact rational surfaces, closed-form mass, watertight reg
     assert.ok(brep.faces.every(f => f.name), `${name}: named faces`);
     const m = mesh(brep, 32);
     assert.ok(m.watertight, `${name}: watertight`);
-    assert.ok(near(m.volume, expected, 2e-3), `${name}: mesh ${m.volume} vs ${expected}`);
+    if (expected !== null) assert.ok(near(m.volume, expected, 2e-3), `${name}: mesh ${m.volume} vs ${expected}`);
   }
+  const pinch = { profile: [{ kind: 'line', start: [0, 0] }, { kind: 'line', start: [4, 2] }, { kind: 'line', start: [4, 6] }], axis: yAxis, angleDegrees: 90 };
+  assert.ok(near(mesh(revolveProfile(pinch), 32).volume, revolveMassProperties(pinch, 1000).volumeMM3, 2e-3));
+  // A cone tip needs no refinement: its normal there depends on the direction it is approached from.
+  assert.ok(mesh(revolveProfile({ profile: [{ kind: 'line', start: [0, 0] }, { kind: 'line', start: [4, 0] }, { kind: 'line', start: [0, 6] }], axis: yAxis, angleDegrees: 360 }), 32).triangles < 1000);
   const input = { id: 't', profile: circle(6, 0, 2), axis: yAxis, angleDegrees: 360 };
   const mass = revolveMassProperties(input, 1000);
   assert.ok(near(mass.volumeMM3, TORUS, 1e-12), `closed-form torus volume ${mass.volumeMM3}`);
   // A torus tessellates as a regular grid: 2 × 64 × 64 triangles at 16 segments per quarter.
   assert.equal(mesh(torus(), 16).triangles, 8192);
-  assert.throws(() => revolveProfile({ profile: rect(0, 0, 4, 4), axis: yAxis, angleDegrees: 360 }), e => e instanceof BrepError && /touches the axis/.test(e.message));
-  assert.throws(() => revolveProfile({ profile: rect(-2, 0, 4, 4), axis: yAxis, angleDegrees: 360 }), e => e instanceof BrepError && /touches the axis|crosses the axis/.test(e.message));
+  // The profile may not cross the axis, touch it inside a segment, or pinch a full turn to a point.
+  assert.throws(() => revolveProfile({ profile: rect(-2, 0, 4, 4), axis: yAxis, angleDegrees: 360 }), e => e instanceof BrepError && /crosses the axis/.test(e.message));
+  assert.throws(() => revolveProfile({ profile: [{ kind: 'arc', start: [2, 5], center: [2, 3], direction: 'ccw' }], axis: yAxis, angleDegrees: 360 }), e => e instanceof BrepError && /touches the axis between its vertices/.test(e.message));
+  assert.throws(() => revolveProfile({ profile: [{ kind: 'line', start: [0, 0] }, { kind: 'line', start: [4, 2] }, { kind: 'line', start: [4, 6] }], axis: yAxis, angleDegrees: 360 }), e => e instanceof BrepError && /pinch/.test(e.message));
   assert.throws(() => revolveProfile({ profile: rect(2, 0, 4, 4), axis: yAxis, angleDegrees: 0 }), e => e instanceof BrepError && /angle/.test(e.message));
 });
 
@@ -86,6 +99,11 @@ test('freeform Booleans: tori and cones against planes, cylinders and each other
     ['cone − slot box', cone(), box([-10, -1, -10], [10, 1, 10]), 'difference', pi * 1.5 * (w(16 / 3) - w(2)), 1e-3, 1],
     ['cone − tilted torus (general × general)', cone(), tilted, 'difference', grid((x, y, z) => coneIn(x, y, z) && !tiltedIn(x, y, z)), 5e-3, 1],
     ['torus ∩ crossed torus', torus(), crossed, 'intersection', null, 0, 2],
+    ['sphere ∩ half space (a cap off the poles)', sphere(), box([-9, -9, 2], [9, 9, 9]), 'intersection', cap(5, 3), 2e-3, 1],
+    ['sphere − half space (a cap at a pole)', sphere(), box([-9, 2, -9], [9, 9, 9]), 'difference', 4 / 3 * pi * 125 - cap(5, 3), 2e-3, 1],
+    ['sphere − bore through both poles (napkin ring)', sphere(), transformBrep(prism(circle(0, 0, 1.5), -9, 9, 'c'), { matrix: [0, 1, 0, 0, 0, 1, 1, 0, 0] }), 'difference', pi / 6 * (2 * Math.sqrt(25 - 2.25)) ** 3, 2e-3, 1],
+    ['box ∪ sphere sunk into it', box([-6, -8, -6], [6, -3, 6]), sphere(), 'union', 720 + 4 / 3 * pi * 125 - cap(5, 2), 2e-3, 1],
+    ['solid cone with its tip cut off', revolveProfile({ id: 'k', profile: [{ kind: 'line', start: [0, 0] }, { kind: 'line', start: [4, 0] }, { kind: 'line', start: [0, 6] }], axis: yAxis, angleDegrees: 360 }), box([-9, 3, -9], [9, 9, 9]), 'difference', pi * 16 * 2 - pi * 4, 2e-3, 1],
     ['torus ∪ crossed torus', torus(), crossed, 'union', grid((x, y, z) => (Math.hypot(x, z) - 6) ** 2 + y * y <= 4 || crossedIn(x, y, z)), 5e-3, 1],
   ];
   const volumes = new Map();

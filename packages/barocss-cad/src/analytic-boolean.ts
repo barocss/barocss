@@ -18,7 +18,7 @@
 // operation's rule, split at shared vertices and stitched into shells; negative shells are cavities.
 // Works in binary64 with the numeric policy's tolerance at the inputs' scale.
 import { BrepError, buildBrep, checkBrep, lineCurve, type Brep, type BrepFace } from './brep-core.js';
-import { circleOf } from './brep-tessellate.js';
+import { circleOf, polesOf } from './brep-tessellate.js';
 import { booleanCurveRegions, curveFaceRegions, intersectSegments, segAt as segAtAny, locateInRegion, paramOf as paramOfCurve, regionArea, regionInteriorPoint, segIntegral, segReverse, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
 import { nameEdges } from './prismatic-solid.js';
 import { baseName } from './polyhedral-boolean.js';
@@ -43,21 +43,24 @@ type Cylinder = { kind: 'cylinder'; c: P3; a: P3; e1: P3; e2: P3; r: number; s: 
  * Any other smooth surface patch: domain coordinates (ku·u, kv·v), scaled to arc length, with ku < 0 for
  * a reversed face so loops run counter-clockwise in the domain. Points map back by Newton projection.
  */
-type Nurbs = { kind: 'nurbs'; S: Surface; ev: (u: number, v: number) => P3; ku: number; kv: number; U: [number, number]; V: [number, number]; sense: 1 | -1; grid: { p: XY; x: P3 }[]; last: { p: XY }; size: number };
+type Nurbs = { kind: 'nurbs'; S: Surface; ev: (u: number, v: number) => P3; ku: number; kv: number; U: [number, number]; V: [number, number]; sense: 1 | -1; grid: { p: XY; x: P3 }[]; last: { p: XY }; size: number;
+  /** Domain sides collapsed to a point: `along` is the free coordinate (0: x, 1: y), `at` the fixed one (scaled). */
+  poles: { along: 0 | 1; at: number; point: P3 }[] };
 type Surf = Plane | Cylinder | Nurbs;
 function nurbsOf(S: Surface, sense: 1 | -1): Nurbs {
   const { u: U, v: V } = surfaceDomain(S), at = surfaceEvaluator(S);
   let Lu = 0, Lv = 0; for (let i = 0; i < 8; i++) { const a = U[0] + (U[1] - U[0]) * (i + 0.5) / 8, b = V[0] + (V[1] - V[0]) * (i + 0.5) / 8; for (let k = 0; k < 8; k++) { Lu += len(sub(at(U[0] + (U[1] - U[0]) * (k + 1) / 8, b), at(U[0] + (U[1] - U[0]) * k / 8, b))) / 8; Lv += len(sub(at(a, V[0] + (V[1] - V[0]) * (k + 1) / 8), at(a, V[0] + (V[1] - V[0]) * k / 8))) / 8; } }
   const ku = sense * (Lu || 1) / (U[1] - U[0]), kv = (Lv || 1) / (V[1] - V[0]), grid: { p: XY; x: P3 }[] = [];
   for (let i = 0; i <= 24; i++) for (let j = 0; j <= 24; j++) { const a = U[0] + (U[1] - U[0]) * i / 24, b = V[0] + (V[1] - V[0]) * j / 24; grid.push({ p: [a, b], x: at(a, b) }); }
-  return { kind: 'nurbs', S, ev: at, ku, kv, U: [U[0], U[1]], V: [V[0], V[1]], sense, grid, last: { p: [(U[0] + U[1]) / 2, (V[0] + V[1]) / 2] }, size: Math.max(Lu, Lv) };
+  const poles = polesOf(S).map(q => ({ along: q.along, at: q.along === 0 ? q.at * kv : q.at * ku, point: q.point as P3 }));
+  return { kind: 'nurbs', S, ev: at, ku, kv, U: [U[0], U[1]], V: [V[0], V[1]], sense, grid, last: { p: [(U[0] + U[1]) / 2, (V[0] + V[1]) / 2] }, size: Math.max(Lu, Lv), poles };
 }
 /**
  * Surface parameters of the point of a NURBS patch nearest x. Newton from the last answer; a point it
  * puts on the surface is accepted at once (the parameters of a surface point are unique), anything
  * else is retried from the nearest grid point.
  */
-function nurbsParam(s: Nurbs, x: P3): XY {
+function nurbsParam(s: Nurbs, x: P3, hint?: { p: XY }): XY {
   const newton = (start: XY): XY => {
     let a = start[0], b = start[1];
     for (let it = 0; it < 30; it++) {
@@ -72,13 +75,15 @@ function nurbsParam(s: Nurbs, x: P3): XY {
     return [a, b];
   };
   const near = (p: XY) => len(sub(s.ev(p[0], p[1]), x));
-  let p = newton(s.last.p);
+  const from = hint ?? s.last;
+  let p = newton(from.p);
   if (near(p) > 1e-9 * s.size) {
+    // (Grid points at a pole are skipped: their free parameter is arbitrary.)
     let best = s.grid[0], d = Infinity;
-    for (const g of s.grid) { const e = (g.x[0] - x[0]) ** 2 + (g.x[1] - x[1]) ** 2 + (g.x[2] - x[2]) ** 2; if (e < d) { d = e; best = g; } }
+    for (const g of s.grid) { if (s.poles.some(o => o.point === g.x || len(sub(o.point, g.x)) <= 1e-12 * (s.size + 1))) continue; const e = (g.x[0] - x[0]) ** 2 + (g.x[1] - x[1]) ** 2 + (g.x[2] - x[2]) ** 2; if (e < d) { d = e; best = g; } }
     const q = newton(best.p); if (near(q) < near(p)) p = q;
   }
-  s.last.p = p;
+  from.p = p; if (hint) s.last.p = p;
   return p;
 }
 const nurbsNormal = (s: Nurbs, p: XY): P3 => {
@@ -104,10 +109,10 @@ function canonicalFrame(axis: P3): { a: P3; e1: P3; e2: P3 } {
 }
 /** x in [−π, π). */
 const wrap = (x: number) => ((x + Math.PI) % TWO_PI + TWO_PI) % TWO_PI - Math.PI;
-function to2(f: { surf: Surf }, x: P3): XY {
+function to2(f: { surf: Surf }, x: P3, hint?: { p: XY }): XY {
   const s = f.surf;
   if (s.kind === 'plane') { const d = sub(x, s.o); return [dot(d, s.e1), dot(d, s.e2)]; }
-  if (s.kind === 'nurbs') { const p = nurbsParam(s, x); return [p[0] * s.ku, p[1] * s.kv]; }
+  if (s.kind === 'nurbs') { const p = nurbsParam(s, x, hint); return [p[0] * s.ku, p[1] * s.kv]; }
   const d = sub(x, s.c), th = Math.atan2(dot(d, s.e2), dot(d, s.e1));
   return [s.s * s.r * (s.ref + wrap(th - s.ref)), dot(d, s.a)];
 }
@@ -182,12 +187,23 @@ function curve3(c: Curve, forward: boolean): Curve3 {
 function curve2(f: { surf: Surf }, k: Curve3, tol: number, tag?: string): CurveSegment2 {
   const t = tag === undefined ? {} : { tag };
   const s = f.surf;
-  if (k.kind === 'param') return { kind: 'curve', f: memo(x => to2(f, k.at(x))), t0: k.t0, t1: k.t1, src: k.at, ...t };
-  // On a general surface every boundary is a curve in the domain.
+  // On a general surface every boundary is a curve in the domain; at a pole it takes the free
+  // coordinate it arrives with (the pole is a whole side of the domain).
   if (s.kind === 'nurbs') {
-    const at3 = k.kind === 'line' ? (x: number) => add(k.p, scale(sub(k.q, k.p), x)) : (x: number) => arcAt(k, x);
-    return { kind: 'curve', f: memo(x => to2(f, at3(x))), t0: 0, t1: k.kind === 'line' ? 1 : k.sweep, src: at3, ...t };
+    const at3 = k.kind === 'param' ? k.at : k.kind === 'line' ? (x: number) => add(k.p, scale(sub(k.q, k.p), x)) : (x: number) => arcAt(k, x);
+    const t0 = k.kind === 'param' ? k.t0 : 0, t1 = k.kind === 'param' ? k.t1 : k.kind === 'line' ? 1 : k.sweep, span = t1 - t0;
+    // Projections warm-start from this curve's last one (nearby: searches along a curve are local).
+    const hint = { p: nurbsParam(s, at3((t0 + t1) / 2)) };
+    const g = (x: number): XY => {
+      const P = at3(x), q = s.poles.find(o => len(sub(P, o.point)) <= 1e-9 * (s.size + 1));
+      if (!q) return to2(f, P, hint);
+      // The limit along the curve: extrapolated from two points a little inside it.
+      const toward = Math.abs(x - t0) < Math.abs(x - t1) ? 1 : -1, n1 = to2(f, at3(x + toward * 1e-3 * span), hint), n2 = to2(f, at3(x + toward * 2e-3 * span), hint);
+      return q.along === 0 ? [2 * n1[0] - n2[0], q.at] : [q.at, 2 * n1[1] - n2[1]];
+    };
+    return { kind: 'curve', f: tabulated(s, g, at3, t0, t1), t0, t1, src: at3, ...t };
   }
+  if (k.kind === 'param') return { kind: 'curve', f: memo(x => to2(f, k.at(x))), t0: k.t0, t1: k.t1, src: k.at, ...t };
   if (k.kind === 'line') {
     const a = to2(f, k.p), b = to2(f, k.q);
     if (s.kind === 'cylinder' && Math.abs(a[0] - b[0]) > Math.max(tol, 1e-9 * s.r)) throw new BrepError('GEOMETRY', 'analytic Boolean: a straight edge on a cylinder runs across its axis direction');
@@ -203,6 +219,42 @@ function curve2(f: { surf: Surf }, k: Curve3, tol: number, tag?: string): CurveS
   if (Math.abs(Math.abs(along) - 1) > 1e-9) throw new BrepError('GEOMETRY', 'analytic Boolean: an arc on a cylinder is not a cross-section circle');
   const a = to2(f, start);
   return { kind: 'line', a, b: [a[0] + s.s * s.r * k.sweep * Math.sign(along), a[1]], ...t };
+}
+/**
+ * A curve's map into a general patch's domain, tabulated once at 129 exact projections with exact
+ * derivatives (the surface Jacobian's pseudo-inverse applied to the curve's tangent) and evaluated by
+ * cubic Hermite interpolation: about (span / 128)⁴ off, far below tolerance, where every exact
+ * evaluation would cost a Newton projection. Curves through a pole (a singular map) stay exact.
+ */
+function tabulated(s: Nurbs, g: (x: number) => XY, at3: (x: number) => P3, t0: number, t1: number): (x: number) => XY {
+  const exact = memo(g), N = 128, span = t1 - t0;
+  let table: { p: XY[]; d: XY[] } | null | false = null;
+  const build = () => {
+    const p: XY[] = [], d: XY[] = [];
+    for (let i = 0; i <= N; i++) {
+      const x = t0 + span * i / N, q = exact(x), P = at3(x);
+      if (s.poles.some(o => len(sub(P, o.point)) <= 1e-6 * (s.size + 1))) return false;
+      const h = 1e-6 * span, xa = Math.max(Math.min(t0, t1), Math.min(Math.max(t0, t1), x - h)), xb = Math.max(Math.min(t0, t1), Math.min(Math.max(t0, t1), x + h));
+      const dP = scale(sub(at3(xb), at3(xa)), 1 / (xb - xa));
+      const u = q[0] / s.ku, v = q[1] / s.kv, hu = 1e-7 * (s.U[1] - s.U[0]), hv = 1e-7 * (s.V[1] - s.V[0]);
+      const ua = u + hu <= s.U[1] ? u + hu : u - hu, va = v + hv <= s.V[1] ? v + hv : v - hv, Q = s.ev(u, v);
+      const Su = scale(sub(s.ev(ua, v), Q), 1 / (ua - u)), Sv = scale(sub(s.ev(u, va), Q), 1 / (va - v));
+      const g11 = dot(Su, Su), g12 = dot(Su, Sv), g22 = dot(Sv, Sv), det = g11 * g22 - g12 * g12, r1 = dot(Su, dP), r2 = dot(Sv, dP);
+      if (!(det > 1e-24 * (g11 + g22) ** 2)) return false;
+      p.push(q); d.push([(r1 * g22 - r2 * g12) / det * s.ku, (g11 * r2 - g12 * r1) / det * s.kv]);
+    }
+    return { p, d };
+  };
+  return x => {
+    if (table === null) table = build();
+    if (table === false) return exact(x);
+    const f = (x - t0) / span * N, i = Math.min(N - 1, Math.max(0, Math.floor(f))), u = f - i;
+    if (u === 0) return table.p[i];
+    if (i === N - 1 && u === 1) return table.p[N];
+    const u2 = u * u, u3 = u2 * u, h = span / N, a = table.p[i], b = table.p[i + 1], da = table.d[i], db = table.d[i + 1];
+    const h00 = 2 * u3 - 3 * u2 + 1, h10 = (u3 - 2 * u2 + u) * h, h01 = -2 * u3 + 3 * u2, h11 = (u3 - u2) * h;
+    return [a[0] * h00 + da[0] * h10 + b[0] * h01 + db[0] * h11, a[1] * h00 + da[1] * h10 + b[1] * h01 + db[1] * h11];
+  };
 }
 /** A curve's domain map, remembered per parameter (each one costs a surface projection on a general surface). */
 function memo(g: (x: number) => XY): (x: number) => XY {
@@ -260,9 +312,17 @@ function facesOf(brep: Brep, solid: 0 | 1, tol: number): GFace[] {
       }
       return g2;
     };
-    const rings = ordered.map(lid => loops.get(lid)!.coedges.map(cid => { const c = coedges.get(cid)!; return map(curve3(edges.get(c.edge)!.curve, c.sense === 'forward'), c.edge); }));
+    let rings = ordered.map(lid => loops.get(lid)!.coedges.map(cid => { const c = coedges.get(cid)!; return map(curve3(edges.get(c.edge)!.curve, c.sense === 'forward'), c.edge); }));
+    // A loop through a pole jumps along that side of the domain: the side joins the two ends.
+    if (surf.kind === 'nurbs' && surf.poles.length) rings = rings.map(ring => ring.flatMap((seg, i) => {
+      const a = segAtAny(seg, 1), b = segAtAny(ring[(i + 1) % ring.length], 0);
+      return Math.hypot(a[0] - b[0], a[1] - b[1]) > tol ? [seg, { kind: 'line' as const, a, b }] : [seg];
+    }));
     const min: P3 = [Infinity, Infinity, Infinity], max: P3 = [-Infinity, -Infinity, -Infinity];
     for (const lid of ordered) for (const cid of loops.get(lid)!.coedges) for (const p of edges.get(coedges.get(cid)!.edge)!.curve.controlPoints) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], p[k]); max[k] = Math.max(max[k], p[k]); }
+    // A general patch bulges past its edges (a hemisphere bounded by two meridians in one plane): its
+    // control net bounds it.
+    if (surf.kind === 'nurbs') for (const row of face.surface.controlPoints) for (const p of row) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], p[k]); max[k] = Math.max(max[k], p[k]); }
     return { solid, surf, region: { outer: rings[0], holes: rings.slice(1) }, out: 1 as const, min, max, ...(face.name === undefined ? {} : { name: baseName(face.name) }), cuts: [] };
   });
 }
@@ -739,7 +799,9 @@ function stitch(pieces: Piece[], id: string, tol: number): Brep {
     if (k.kind === 'param') { const m = (k.t0 + k.t1) / 2; return [{ ...k, t1: m }, { ...k, t0: m }]; }
     return [k];
   };
-  const rings = pieces.map(p => [p.region.outer, ...p.region.holes].map(r => r.flatMap(g => open(curve3Of(p.face, g)).flatMap(k => fitPieces(k, tol / 4)))));
+  // Curves of no length (a domain side at a pole) are not edges.
+  const point = (k: Curve3) => [0.25, 0.5, 0.75, 1].every(u => len(sub(pointOf(k, u), startOf(k))) <= tol);
+  const rings = pieces.map(p => [p.region.outer, ...p.region.holes].map(r => r.flatMap(g => { const k = curve3Of(p.face, g); return point(k) ? [] : open(k).flatMap(x => fitPieces(x, tol / 4)); })));
   for (const ps of rings) for (const ring of ps) for (const k of ring) { set.add(startOf(k)); set.add(endOf(k)); }
   const P = set.points;
   // Split at every vertex lying on a curve (T-junctions between neighbouring pieces).

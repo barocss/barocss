@@ -141,7 +141,7 @@ export function intersectPatches(A: Patch, B: Patch, options: {
             const m = (lo + hi) / 2, g = add(x, scale(sub(next.x, x), m)), r = onBoth(A, B, project(A, g, pa), project(B, g, pb), { o: g, n: t });
             if (r && inside(A, r.pa) && inside(B, r.pb)) { lo = m; last = r; } else hi = m;
           }
-          if (len(sub(last.x, x)) > tol) { pts.push(last.x); uvA.push(last.pa); uvB.push(last.pb); tans.push(t); }
+          if (len(sub(last.x, x)) > tol) { pts.push(last.x); uvA.push(last.pa); uvB.push(last.pb); tans.push(scale(unit(cross(normalOf(A, last.pa), normalOf(B, last.pb))), dir)); }
           break;
         }
         // Closing on the start.
@@ -162,28 +162,42 @@ export function intersectPatches(A: Patch, B: Patch, options: {
 
 /**
  * A chain as a C¹ curve on t ∈ [0, 1] (cubic Hermite between consecutive points, by chord length).
- * With the two patches, each point is corrected onto both of them (in the plane through the Hermite
- * point normal to the curve), so the curve is the intersection itself, not an interpolant of it.
+ * With the two patches, every chain step is first subdivided in four by points corrected onto both
+ * surfaces (in the plane normal to the curve), with their tangents: the interpolant then deviates
+ * from the intersection by about (step / 4)⁴ κ³ / 384, far below tolerance, at no cost per evaluation.
  */
 export function chainCurve(chain: IntersectionChain, on?: { readonly A: Patch; readonly B: Patch }): (t: number) => Point {
   const close = <T>(xs: readonly T[]) => chain.closed ? [...xs, xs[0]] : [...xs];
-  const pts = close(chain.points), tans = close(chain.tangents), uvA = close(chain.uvA), uvB = close(chain.uvB);
+  let pts = close(chain.points), tans = close(chain.tangents);
+  const hermite = (P: Point[], T: Point[], i: number, d: number, u: number): { x: Point; dx: Point } => {
+    const u2 = u * u, u3 = u2 * u;
+    const h00 = 2 * u3 - 3 * u2 + 1, h10 = u3 - 2 * u2 + u, h01 = -2 * u3 + 3 * u2, h11 = u3 - u2;
+    const g00 = 6 * u2 - 6 * u, g10 = 3 * u2 - 4 * u + 1, g01 = -6 * u2 + 6 * u, g11 = 3 * u2 - 2 * u;
+    return { x: add(add(scale(P[i], h00), scale(T[i], h10 * d)), add(scale(P[i + 1], h01), scale(T[i + 1], h11 * d))),
+      dx: add(add(scale(P[i], g00 / d), scale(T[i], g10)), add(scale(P[i + 1], g01 / d), scale(T[i + 1], g11))) };
+  };
+  if (on) {
+    const uvA = close(chain.uvA), uvB = close(chain.uvB), P: Point[] = [pts[0]], T: Point[] = [tans[0]];
+    for (let i = 0; i + 1 < pts.length; i++) {
+      const d = len(sub(pts[i + 1], pts[i])) || 1;
+      for (let j = 1; j < 4; j++) {
+        const { x, dx } = hermite(pts, tans, i, d, j / 4), k = j < 2 ? i : i + 1, dir = unit(dx);
+        const r = onBoth(on.A, on.B, project(on.A, x, uvA[k]), project(on.B, x, uvB[k]), { o: x, n: dir });
+        if (r && len(sub(r.x, x)) < d / 4) {
+          const t = unit(cross(normalOf(on.A, r.pa), normalOf(on.B, r.pb)));
+          P.push(r.x); T.push(dot(t, dir) < 0 ? scale(t, -1) : t);
+        }
+      }
+      P.push(pts[i + 1]); T.push(tans[i + 1]);
+    }
+    pts = P; tans = T;
+  }
   const s = [0]; for (let i = 1; i < pts.length; i++) s.push(s[i - 1] + len(sub(pts[i], pts[i - 1])));
-  const L = s[s.length - 1] || 1, seen = new Map<number, Point>();
+  const L = s[s.length - 1] || 1;
   return t => {
-    const hit = seen.get(t); if (hit) return hit;
     const target = Math.min(1, Math.max(0, t)) * L;
     let i = 0, hi = pts.length - 2; while (i < hi) { const m = (i + hi + 1) >> 1; if (s[m] <= target) i = m; else hi = m - 1; }
-    const d = s[i + 1] - s[i] || 1, u = (target - s[i]) / d, u2 = u * u, u3 = u2 * u;
-    const h00 = 2 * u3 - 3 * u2 + 1, h10 = u3 - 2 * u2 + u, h01 = -2 * u3 + 3 * u2, h11 = u3 - u2;
-    let x = add(add(scale(pts[i], h00), scale(tans[i], h10 * d)), add(scale(pts[i + 1], h01), scale(tans[i + 1], h11 * d)));
-    if (on && u > 0 && u < 1) {
-      const g00 = 6 * u2 - 6 * u, g10 = 3 * u2 - 4 * u + 1, g01 = -6 * u2 + 6 * u, g11 = 3 * u2 - 2 * u;
-      const dir = unit(add(add(scale(pts[i], g00 / d), scale(tans[i], g10)), add(scale(pts[i + 1], g01 / d), scale(tans[i + 1], g11))));
-      const k = u < 0.5 ? i : i + 1, r = onBoth(on.A, on.B, project(on.A, x, uvA[k]), project(on.B, x, uvB[k]), { o: x, n: dir });
-      if (r && len(sub(r.x, x)) < d) x = r.x;
-    }
-    if (seen.size < 1 << 16) seen.set(t, x);
-    return x;
+    const d = s[i + 1] - s[i] || 1;
+    return hermite(pts, tans, i, d, (target - s[i]) / d).x;
   };
 }
