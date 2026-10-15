@@ -47,11 +47,21 @@ export function generalShell(body: Brep, t: number, open: ReadonlySet<string>, i
       const ring = (uses: ReturnType<typeof usesOf>[number]['uses']): CurveSegment2[] => uses.map(u => {
         const c = u.curve, { s, m, e } = ends(u);
         if (c.degree === 1 && c.controlPoints.length === 2) return { kind: 'line', a: to2(s), b: to2(e) };
+        // An arc, exact or fitted (a Boolean's curve on a curved face): the circle through its ends and middle, if it lies on it.
         const circ = circleOf(c);
-        if (!circ) return refuse(`face ${name} is bounded by a curve that is not a line or an arc`);
-        const c2 = to2(circ.c), ang = (p: Point) => { const q = to2(p); return Math.atan2(q[1] - c2[1], q[0] - c2[0]); };
+        let c2: XY, r: number;
+        if (circ) { c2 = to2(circ.c); r = circ.r; }
+        else {
+          const [A, B, C] = [to2(s), to2(m), to2(e)], d = 2 * (A[0] * (B[1] - C[1]) + B[0] * (C[1] - A[1]) + C[0] * (A[1] - B[1]));
+          if (Math.abs(d) < 1e-12 * size * size) return refuse(`face ${name} is bounded by a curve that is not a line or an arc`);
+          const aa = A[0] ** 2 + A[1] ** 2, bb = B[0] ** 2 + B[1] ** 2, cc = C[0] ** 2 + C[1] ** 2;
+          c2 = [(aa * (B[1] - C[1]) + bb * (C[1] - A[1]) + cc * (A[1] - B[1])) / d, (aa * (C[0] - B[0]) + bb * (A[0] - C[0]) + cc * (B[0] - A[0])) / d]; r = Math.hypot(A[0] - c2[0], A[1] - c2[1]);
+          const [t0, t1] = curveDomain(c);
+          for (let i = 1; i < 16; i++) { const q = to2(evaluateCurve(c, t0 + (t1 - t0) * i / 16)); if (Math.abs(Math.hypot(q[0] - c2[0], q[1] - c2[1]) - r) > 1e-6 * size) return refuse(`face ${name} is bounded by a curve that is not a line or an arc`); }
+        }
+        const ang = (p: Point) => { const q = to2(p); return Math.atan2(q[1] - c2[1], q[0] - c2[0]); };
         const a0 = ang(s), ccw = wrap(ang(e) - a0) || TAU, viaM = wrap(ang(m) - a0);
-        return { kind: 'arc', c: c2, r: circ.r, t0: a0, sweep: viaM < ccw ? ccw : ccw - TAU };
+        return { kind: 'arc', c: c2, r, t0: a0, sweep: viaM < ccw ? ccw : ccw - TAU };
       });
       const L = usesOf(f);
       P.regions.push({ outer: ring(L.find(l => l.outer)!.uses), holes: L.filter(l => !l.outer).map(l => ring(l.uses)) });
@@ -77,7 +87,7 @@ export function generalShell(body: Brep, t: number, open: ReadonlySet<string>, i
       C.rects.push({ th0: gaps[0].start, span: TAU - gaps[0].size, z0: Math.min(...hs), z1: Math.max(...hs) });
       return;
     }
-    refuse(`face ${name} is not a plane or a cylinder (shell of such bodies is not supported yet)`);
+    refuse(`face ${name} is not a plane or a cylinder (shell of bodies with cones, spheres, tori or freeform faces joined to others is not supported yet)`);
   });
   planes.forEach((P, k) => {
     const grown = growSection(booleanCurveRegions(P.regions.flatMap(r => [r.outer, ...r.holes]), [], 'union', tol), t, tol), { n, e1, e2, o } = P;
