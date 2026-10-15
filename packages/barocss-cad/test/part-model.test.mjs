@@ -285,17 +285,18 @@ test('shell any body of planes and cylinders: the wall as a slab per face, never
   refused(D([...bracket, { id: 'sh', kind: 'shell', target: 'u', thickness: 1, open: ['nope'] }]), 'SELECTION', /no face named nope/);
 });
 
-test('shell bodies with cones joined to others: slabs turned about their axes', () => {
+test('shell bodies with cones and tori joined to others: slabs turned about their axes', () => {
   const plate = [rect('s', 0, 0, 60, 40), extrude('e', 's', 8)];
   const cases = [
-    // A cone frustum stood on a plate; a drafted round boss.
+    // A cone frustum stood on a plate; a drafted round boss; a torus ring half sunk in a plate.
     ['a cone on a plate', [...plate, { id: 'p', kind: 'sketch', profile: 'polygon', points: [[0, 0], [12, 0], [7, 14], [0, 14]] }, { id: 'v', kind: 'revolve', sketch: 'p', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }, { id: 'r', kind: 'rotate', target: 'v', axis: 'x', angleDegrees: 90 }, { id: 't', kind: 'translate', target: 'r', offset: [30, 20, 6] }, { id: 'u', kind: 'union', target: 'e', tool: 't' }], 1.5],
     ['a drafted boss', [...plate, circle('c', 30, 20, 8), { ...extrude('b', 'c', 10, 8), draft: 10 }, { id: 'u', kind: 'union', target: 'e', tool: 'b' }], 1.5],
+    ['a torus ring in a plate', [...plate, circle('c', 12, 0, 3), { id: 'v', kind: 'revolve', sketch: 'c', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }, { id: 'r', kind: 'rotate', target: 'v', axis: 'x', angleDegrees: 90 }, { id: 't', kind: 'translate', target: 'r', offset: [30, 20, 8] }, { id: 'u', kind: 'union', target: 'e', tool: 't' }], 1],
   ];
   for (const [name, features, t] of cases) {
     const body = evaluateCadPart(D(features)).outputs.at(-1), o = evaluateCadPart(D([...features, { id: 'sh', kind: 'shell', target: 'u', thickness: t }])).outputs.at(-1), report = checkBrep(o.brep);
     assert.equal(report.valid, true, `${name}: ${report.issues}`);
-    // One cavity throughout (the plate's hollow runs up into the cone, the boss).
+    // One cavity throughout (the plate's hollow runs up into the cone, the boss, the ring).
     assert.deepEqual(report.topology.map(x => x.shells), [2], name);
     assert.ok(volume(o) > 0.2 * volume(body) && volume(o) < 0.6 * volume(body), `${name}: ${volume(o)} of ${volume(body)}`);
   }

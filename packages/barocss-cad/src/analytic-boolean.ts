@@ -831,8 +831,8 @@ export function faceGeometry(face: BrepFace, scaleMM = 1): FaceGeometry {
 }
 
 /**
- * `exactEdges`: edges that are an exact curve's map onto a general face, lying on a circle, are made that
- * arc (for Booleans of exact pieces, such as a shell's slabs).
+ * Edges that are an exact curve's map onto a general face and lie on a circle are made that arc
+ * (`exactEdges: false` keeps them fitted).
  */
 export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOperation, options: { readonly id?: string; readonly exactEdges?: boolean } = {}): Brep {
   const id = options.id ?? `analytic-${operation}`;
@@ -868,7 +868,7 @@ export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOper
   const reverse = (ring: readonly CurveSegment2[]) => [...ring].reverse().map(segReverse);
   const kept: Piece[] = pieces.flatMap(p => { const k = keep(p); if (!k) return [];
     return [{ face: p.face, out: k === 'flip' ? -1 : 1, key: p.key, region: k === 'flip' ? { outer: reverse(p.region.outer), holes: p.region.holes.map(reverse) } : p.region }]; });
-  return stitch(mergePieces(kept, tol), id, tol, options.exactEdges === true);
+  return stitch(mergePieces(kept, tol), id, tol, options.exactEdges !== false);
 }
 
 // ---- merging ----------------------------------------------------------------------------------------
@@ -1029,6 +1029,14 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false): B
   const rings = pieces.map(p => [p.region.outer, ...p.region.holes].map(r => r.flatMap(g => { const k = curve3Of(p.face, g); return point(k) ? [] : open(exactEdges && k.kind === 'param' && k.exact ? exactly(k, tol * 1e-3) : k).flatMap(x => fitPieces(x, tol / 4)); })));
   for (const ps of rings) for (const ring of ps) for (const k of ring) { set.add(startOf(k)); set.add(endOf(k)); }
   const P = set.points;
+  // Consecutive pieces of one ring meet at one vertex: a traced curve's end lands within its tracing
+  // tolerance of the exact curve it meets, more loosely than vertices merge.
+  const alias = P.map((_, i) => i), canon = (i: number): number => { while (alias[i] !== i) i = alias[i] = alias[alias[i]]; return i; };
+  for (const ps of rings) for (const ring of ps) ring.forEach((k, i) => {
+    const n = ring[(i + 1) % ring.length], a = canon(set.find(endOf(k))), b = canon(set.find(startOf(n)));
+    if (a !== b && len(sub(P[a], P[b])) <= 100 * tol) alias[b] = a;
+  });
+  const vertexOf = (x: P3) => canon(set.find(x));
   // Split at every vertex lying on a curve (T-junctions between neighbouring pieces).
   const edges: { id: string; k: Curve3; v: [number, number]; mid: P3 }[] = [], between = new Map<string, number[]>();
   const edgeOf = (k: Curve3, a: number, b: number) => {
@@ -1040,8 +1048,8 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false): B
     return { edge: edges[e].id, sense: (edges[e].v[0] === a ? 'forward' : 'reversed') as 'forward' | 'reversed', index: e };
   };
   const loops = rings.map(ps => ps.map(ring => ring.flatMap(k => {
-    const a = set.find(startOf(k)), b = set.find(endOf(k)), stops = [{ t: 0, v: a }];
-    P.forEach((x, v) => { if (v === a || v === b) return; const t = onCurve(k, x, tol); if (t !== null) stops.push({ t, v }); });
+    const a = vertexOf(startOf(k)), b = vertexOf(endOf(k)), stops = [{ t: 0, v: a }];
+    P.forEach((x, v) => { if (v === a || v === b || alias[v] !== v) return; const t = onCurve(k, x, tol); if (t !== null) stops.push({ t, v }); });
     stops.sort((x, y) => x.t - y.t); stops.push({ t: 1, v: b });
     const out: ReturnType<typeof edgeOf>[] = [];
     for (let i = 0; i + 1 < stops.length; i++) if (stops[i].v !== stops[i + 1].v) out.push(edgeOf(part(k, stops[i].t, stops[i + 1].t, P[stops[i].v], P[stops[i + 1].v]), stops[i].v, stops[i + 1].v));
