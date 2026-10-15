@@ -84,9 +84,6 @@ test('refusals name the feature and the reason', () => {
   refused(D([...plate, { id: 'h', kind: 'hole', target: 'a', center: [50, 50], radius: 1 }]), 'SELECTION', /misses the target/);
   refused(D([...plate, { id: 'f', kind: 'fillet', target: 'a', edges: ['a.side0|a.side1'], radius: 20 }]), 'PARAMETER', /too large/);
   refused(D([...plate, { id: 'f', kind: 'fillet', target: 'a', edges: ['a.side0|a.top'], radius: 1 }]), 'CAPABILITY', /only vertical edges can be filleted/);
-  // Crossing cylinders of equal radius meet in curves that cross themselves.
-  refused(D([circle('c', 0, 0, 5), extrude('p', 'c', 20, -10), { id: 'r', kind: 'rotate', target: 'p', axis: 'y', angleDegrees: 90 }, circle('k', 0, 0, 5), extrude('a', 'k', 6, -3), { id: 'd', kind: 'difference', target: 'a', tool: 'r' }]),
-    'CAPABILITY', /equal radius/);
   refused(D([...plate, { id: 'r', kind: 'rotate', target: 'a', axis: 'x', angleDegrees: 45 }]), 'CAPABILITY', /multiples of 90/);
   refused(D([...plate, { id: 'x', kind: 'split', target: 'a', axis: 'z', at: 9 }]), 'SELECTION', /does not cross/);
   refused(D([rect('s', 0, 0, { parameter: 'w' }, 10)]), 'PARAMETER', /unknown parameter w/);

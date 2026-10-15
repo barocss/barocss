@@ -77,8 +77,14 @@ test('ellipses, quartics, seams and merged faces (brep-core step 8)', () => {
   assert.ok(Math.abs(vol(drilled) - (250 * pi - crossed)) < 2e-4 * 250 * pi, String(vol(drilled)));
   const grazed = booleanAnalytic(big, cylinder('x', [4.5, 0], 2, -10, 10), 'difference'); ok('partly through', grazed);
   assert.ok(vol(grazed) < 250 * pi && vol(grazed) > 250 * pi - 40 * pi);
-  // Equal radii: the curves cross themselves — refused.
-  assert.throws(() => booleanAnalytic(big, cylinder('x', [0, 0], 5, -10, 10), 'difference'), e => e instanceof BrepError && /equal radius/.test(e.message));
+  // Equal radii with meeting axes: two ellipses crossing each other (the Steinmetz solid, 16r³/3). The
+  // difference touches itself at two points and comes out as two bodies.
+  const other = cylinder('x', [0, 0], 5, -10, 10), steinmetz = 16 * 125 / 3, tall = cylinder('z', [0, 0], 5, -10, 10);
+  const SI = booleanAnalytic(tall, other, 'intersection'), SU = booleanAnalytic(tall, other, 'union'), SD = booleanAnalytic(tall, other, 'difference');
+  for (const [n, b] of [['SI', SI], ['SU', SU], ['SD', SD]]) ok(n, b);
+  assert.ok(Math.abs(vol(SI) - steinmetz) < 2e-4 * steinmetz, String(vol(SI)));
+  assert.ok(Math.abs(vol(SU) - (1000 * pi - steinmetz)) < 2e-4 * 1000 * pi && Math.abs(vol(SD) - (500 * pi - steinmetz)) < 2e-4 * 500 * pi);
+  assert.equal(SD.bodies.length, 2);
   // Crossing cylinders that stay apart; contact along a line is not a solid.
   const apart = booleanAnalytic(cylinder('z', [0, 0], 2, 0, 10), cylinder('x', [8, 5], 2, -10, 10), 'union');
   assert.equal(checkBrep(apart).valid, true); assert.equal(apart.bodies.length, 2);

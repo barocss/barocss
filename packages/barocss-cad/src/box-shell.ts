@@ -3,6 +3,7 @@ import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
 import type { FaceBundle } from './face.js';
 import type { Point, Surface, Curve } from './types.js';
 import type { QualifiedEdgeReference, RectangleAdjacencyFace, RectangleAdjacencyVertex, RectangleAdjacencyUse } from './adjacency.js';
+import { cross, sub } from './vec3.js';
 
 type Six<T> = [T,T,T,T,T,T];
 type Eight<T> = [T,T,T,T,T,T,T,T];
@@ -55,8 +56,6 @@ function same(a: unknown,b: unknown): boolean {
   const aa=a as Record<string,unknown>,bb=b as Record<string,unknown>,keys=Object.keys(aa);
   return keys.length===Object.keys(bb).length && keys.every(key=>Object.hasOwn(bb,key) && same(aa[key],bb[key]));
 }
-const sub = (a: number[],b: number[]) => a.map((x,k)=>x-b[k]);
-const cross = (a: number[],b: number[]) => [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
 function corners(origin: unknown,sides: unknown): Point[] {
   const o=tuple(origin,3),s=tuple(sides,3);
   requireValue(o.every(x=>typeof x==='number' && Number.isInteger(x)) && s.every(x=>typeof x==='number' && Number.isInteger(x) && x>=1 && x<=10000),'integer origin and sides1..10000 required');

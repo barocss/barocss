@@ -287,8 +287,7 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
       // for every θ, the curve is two closed branches.
       const w = cross(A.a, B.a), gap = Math.abs(dot(sub(B.c, A.c), unit(w)));
       if (gap >= A.r + B.r - tol) return;
-      if (Math.abs(A.r - B.r) <= tol) throw new Refused('crossing cylinders of equal radius meet in curves with branch points (not supported yet)');
-      const [S, L] = A.r < B.r ? [A, B] : [B, A], dPerp = sub(S.a, scale(L.a, dot(S.a, L.a))), qa = dot(dPerp, dPerp);
+      const [S, L] = A.r <= B.r ? [A, B] : [B, A], dPerp = sub(S.a, scale(L.a, dot(S.a, L.a))), qa = dot(dPerp, dPerp);
       const coeff = (th: number) => { const q = add(sub(S.c, L.c), add(scale(S.e1, S.r * Math.cos(th)), scale(S.e2, S.r * Math.sin(th)))), wp = sub(q, scale(L.a, dot(q, L.a))); return { q, b: dot(wp, dPerp), c: dot(wp, wp) - L.r * L.r }; };
       const disc = (th: number) => { const { b, c } = coeff(th); return b * b - qa * c; }, N = 720, margin = 1e-6 * L.r * L.r * qa;
       const ds = Array.from({ length: N }, (_, i) => disc(S.ref - Math.PI + TWO_PI * i / N));
@@ -297,6 +296,28 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
       if (Math.min(...ds) > margin) {
         // The smaller cylinder passes right through: two closed branches over the whole turn.
         for (const sign of [-1, 1]) paramCuts(th => point(th, sign), S.ref - Math.PI, S.ref + Math.PI);
+        return;
+      }
+      if (!ds.some(v => v < -margin)) {
+        // The quadratic's discriminant only touches zero (equal radii with meeting axes: two ellipses
+        // crossing each other). At each double zero the signed root changes sign, so the two branches
+        // ±σ(θ)·√disc are smooth closed curves; they cross at the double zeros.
+        const at = (i: number) => S.ref - Math.PI + TWO_PI * i / N, doubles: number[] = [];
+        for (let i = 0; i < N; i++) {
+          if (!(ds[i] <= ds[(i - 1 + N) % N] && ds[i] <= ds[(i + 1) % N] && ds[i] <= margin)) continue;
+          let lo = at(i - 1), hi = at(i + 1);
+          for (let it = 0; it < 100; it++) { const m1 = hi - (hi - lo) * 0.6180339887, m2 = lo + (hi - lo) * 0.6180339887; if (disc(m1) < disc(m2)) hi = m2; else lo = m1; }
+          const th = (lo + hi) / 2;
+          if (Math.abs(disc(th)) > 1e-14 * L.r ** 4 * qa + 1e-300) throw new Refused('crossing cylinders that touch tangentially (not supported yet)');
+          if (!doubles.some(z => Math.abs(z - th) < 1e-6)) doubles.push(th);
+        }
+        if (!doubles.length || doubles.length % 2) throw new Refused('crossing cylinders meet in curves with branch points (not supported yet)');
+        doubles.sort((a, b) => a - b);
+        const sigma = (th: number) => { let k = 0; const t = ((th - (S.ref - Math.PI)) % TWO_PI + TWO_PI) % TWO_PI + S.ref - Math.PI; for (const z of doubles) if (z < t) k++; return k % 2 ? -1 : 1; };
+        for (const sign of [-1, 1]) paramCuts(th => {
+          const { q, b, c } = coeff(th), t = (-b + sign * sigma(th) * Math.sqrt(Math.max(0, b * b - qa * c))) / qa;
+          return add(add(L.c, q), scale(S.a, t));
+        }, S.ref - Math.PI, S.ref + Math.PI);
         return;
       }
       // It passes partly through: one closed loop per angular interval where the quadratic has roots. With
@@ -579,6 +600,15 @@ function stitch(pieces: Piece[], id: string, tol: number): Brep {
     for (let i = 0; i + 1 < stops.length; i++) if (stops[i].v !== stops[i + 1].v) out.push(edgeOf(part(k, stops[i].t, stops[i + 1].t, P[stops[i].v], P[stops[i + 1].v]), stops[i].v, stops[i + 1].v));
     return out;
   })));
+  // Vertices: one per disc of faces around a point (two solids touching at a point keep two vertices).
+  const vroot = new Map<string, string>(), vfind = (x: string): string => { let r = x; while (vroot.has(r) && vroot.get(r) !== r) r = vroot.get(r)!; return r; };
+  const endsOf = (u: { index: number; sense: string }) => { const v = edges[u.index].v; return u.sense === 'forward' ? [v[0], v[1]] : [v[1], v[0]]; };
+  for (const ls of loops) for (const ring of ls) ring.forEach((u, k) => {
+    const n = ring[(k + 1) % ring.length], a = `${endsOf(u)[1]}|${u.index}`, b = `${endsOf(n)[0]}|${n.index}`, ra = vfind(a), rb = vfind(b);
+    if (ra !== rb) vroot.set(ra, rb);
+  });
+  const vertexIds = new Map<string, string>(), vertexList: { id: string; point: P3 }[] = [];
+  const vertexAt = (p: number, e: number) => { const r = vfind(`${p}|${e}`); let v = vertexIds.get(r); if (!v) { v = `${id}_v${vertexList.length}`; vertexIds.set(r, v); vertexList.push({ id: v, point: P[p] }); } return v; };
   // Every edge is used once in each direction.
   const uses = new Map<number, { piece: number; sense: string }[]>();
   loops.forEach((ls, pi) => ls.flat().forEach(u => uses.set(u.index, [...(uses.get(u.index) ?? []), { piece: pi, sense: u.sense }])));
@@ -617,7 +647,7 @@ function stitch(pieces: Piece[], id: string, tol: number): Brep {
     if (list.length === 1) { faceNames[list[0]] = n; continue; }
     [...list].sort((x, y) => { const a = pieces[x].key, b = pieces[y].key; return a[0] - b[0] || a[1] - b[1] || a[2] - b[2]; }).forEach((i, k) => { faceNames[i] = `${n}#${k + 1}`; });
   }
-  const edgeList = edges.map(e => ({ id: e.id, curve: nurbs(e.k, e.id, P[e.v[0]], P[e.v[1]], tol / 4), vertices: [`${id}_v${e.v[0]}`, `${id}_v${e.v[1]}`] as [string, string],
+  const edgeList = edges.map(e => ({ id: e.id, curve: nurbs(e.k, e.id, P[e.v[0]], P[e.v[1]], tol / 4), vertices: [vertexAt(e.v[0], edges.indexOf(e)), vertexAt(e.v[1], edges.indexOf(e))] as [string, string],
     name: [...new Set((uses.get(edges.indexOf(e)) ?? []).map(u => faceNames[u.piece]))].sort().join('|') }));
   nameEdges(edgeList);
   const surface = (pi: number): { surface: Surface; sense: 'forward' | 'reversed' } => {
@@ -638,7 +668,7 @@ function stitch(pieces: Piece[], id: string, tol: number): Brep {
       controlPoints: curve.controlPoints.map(q => [q, add(q, scale(s.a, v1 - v0))]), weights: curve.weights.map(w => [w, w]) }, sense: s.s * p.out > 0 ? 'forward' : 'reversed' };
   };
   const result = buildBrep({ source: { family: 'analytic-boolean', id },
-    vertices: P.map((x, i) => ({ id: `${id}_v${i}`, point: x })),
+    vertices: vertexList,
     edges: edgeList.filter((_, i) => uses.has(i)),
     bodies: bodies.map((bd, k) => ({ id: `${id}_body${k}`, kind: 'solid' as const, shells: [bd.outer, ...bd.cavities].map((g, si) => ({ id: 's' + si, closed: true,
       faces: g.members.map(pi => ({ id: 'f' + pi, name: faceNames[pi], ...surface(pi), loops: loops[pi].map((uses2, li) => ({ kind: li === 0 ? 'outer' as const : 'inner' as const, uses: uses2.map(u => ({ edge: u.edge, sense: u.sense })) })) })) })) })),
