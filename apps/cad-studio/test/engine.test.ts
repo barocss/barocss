@@ -270,6 +270,15 @@ test('shell a plate with a boss on it, open at the boss top: one hollow through 
   assert.match(!ledge.ok ? ledge.error.title : '', /top, the bottom or a side/);
 });
 
+test('shell a revolved cup open at the top: exact, its walls 2 thick', () => {
+  let doc = withNode(emptyDoc(), { kind: 'sketch', profile: 'polygon', points: [[0, 0], [20, 0], [20, 30], [0, 30]] });
+  doc = withNode(doc, { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 360 });
+  doc = withNode(doc, { kind: 'shell', parent: { node: 1, side: 'solid' }, thickness: 2, open: ['n1.side2'] });
+  const r = evaluateDoc(doc, 1);
+  assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+  assert.ok(Math.abs(r.bodies[0].volumeMM3! - Math.PI * (12000 - 324 * 28)) < 1e-6 * r.bodies[0].volumeMM3!, String(r.bodies[0].volumeMM3));
+});
+
 test('loft: a square to a smaller square above is a frustum, exact; the top comes from the drawn sketch', () => {
   const bottom = { kind: 'sketch' as const, profile: 'rectangle' as const, min: [0, 0] as [number, number], max: [20, 20] as [number, number] };
   const top = loftTop(bottom, 'scaled', 0.5);
