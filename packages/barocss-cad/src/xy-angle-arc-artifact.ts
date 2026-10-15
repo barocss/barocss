@@ -4,6 +4,7 @@ import { compileCadModel } from './model-compiler.js';
 import { evaluateCurve } from './math.js';
 import { evaluateCurveD1 } from './derivatives.js';
 import type { Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const XYAngleArcArtifactDiagnosticCode = Object.freeze({ INPUT: 'INPUT', REQUEST: 'REQUEST', SOURCE: 'SOURCE', BINDING: 'BINDING', STRUCTURE: 'STRUCTURE', ASSOCIATION: 'ASSOCIATION', OBSERVATION: 'OBSERVATION', BUDGET: 'BUDGET', OWNED: 'OWNED', CODEC: 'CODEC', VERSION: 'VERSION' } as const);
 type Code = typeof XYAngleArcArtifactDiagnosticCode[keyof typeof XYAngleArcArtifactDiagnosticCode];
@@ -40,10 +41,6 @@ function snapshot<T>(input: T): T {
   }; return copy(input, 0) as T;
 }
 function record(v: unknown, keys: string[], code: Code): Record<string, unknown> { check(v !== null && typeof v === 'object' && !Array.isArray(v), code, 'Record required'); const r = v as Record<string, unknown>; check(Object.keys(r).length === keys.length && keys.every(k => Object.hasOwn(r, k)), code, 'Exact fields required: ' + keys.join(',')); return r; }
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((v, i) => same(v, b[i]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>; return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(k => Object.hasOwn(y, k) && same(x[k], y[k])); } return Object.is(a, b);
-}
 /** Only these named numeric fields permit bounded association. All other leaves are exact. */
 function fieldRule(path: string): XYAngleArcArtifactFieldRule {
   const rule: XYAngleArcArtifactFieldRule = { path, rule: 'exact', unit: 'identity', absoluteTolerance: 0 };

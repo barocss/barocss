@@ -3,6 +3,7 @@ import { evaluateBooleanExtrusionFeatureGraph, validateBooleanExtrusionFeatureGr
 import type { BooleanExtrusionFeatureGraphResult, BooleanExtrusionFeatureGraphV0 } from './boolean-extrusion-feature-graph.js';
 import { definition } from './circle-graph-internal.js';
 import { copyCadData } from './data-copy.js';
+import { same } from './structural-equality.js';
 
 export type BooleanExtrusionFeatureOperation = { kind: 'upsert'; feature: BooleanExtrusionFeatureGraphV0['features'][number] } | { kind: 'remove'; featureId: string };
 export interface BooleanExtrusionFeatureTransaction { expectedRevision: number; revision: number; featureOperations: BooleanExtrusionFeatureOperation[] }
@@ -52,11 +53,6 @@ function id(value: unknown, context: Context, maximum = 48): string {
 function revision(value: unknown, path: string): number {
   check(typeof value === 'number' && Number.isInteger(value) && !Object.is(value, -0) && value >= 0 && value <= 1000000000,
     CODE.REVISION, 'unsigned stable revision0..1000000000 required', { path }); return value;
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, i) => same(value, b[i]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>;
-    return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key])); } return Object.is(a, b);
 }
 function startingIdentities(previous: BooleanExtrusionFeatureGraphResult): Set<string> {
   const reserved = new Set<string>(), collect = (value: unknown): void => {

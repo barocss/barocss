@@ -7,6 +7,7 @@ import { prepareCurvePlaneAxesTrusted } from './own-curve-plane-intersection.js'
 import { SectionRationalContext } from './section-rational-internal.js';
 import type { SectionRational, SectionFraction } from './section-rational-internal.js';
 import type { Curve, Surface, Point, Model } from './types.js';
+import { same } from './structural-equality.js';
 
 export const MultiSpanVLinearSurfacePlaneSectionDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', SOURCE: 'SOURCE', SUPPORT: 'SUPPORT', CROSSING: 'CROSSING', CHART: 'CHART', REPRESENTABILITY: 'REPRESENTABILITY', BINDING: 'BINDING', NATIVE: 'NATIVE', OWNED: 'OWNED' } as const);
 export type MultiSpanVLinearSurfacePlaneSectionDiagnosticCode = typeof MultiSpanVLinearSurfacePlaneSectionDiagnosticCode[keyof typeof MultiSpanVLinearSurfacePlaneSectionDiagnosticCode];
@@ -90,11 +91,6 @@ function snapshot(input: unknown, owned = false): unknown {
     ancestors.delete(value); return result;
   };
   try { return copy(input, 0); } catch (cause) { if (cause instanceof MultiSpanVLinearSurfacePlaneSectionError) throw cause; throw new MultiSpanVLinearSurfacePlaneSectionError(code, 'Own snapshot failed', cause); }
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => same(value, b[index]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>; return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key])); }
-  return Object.is(a, b);
 }
 function asset(input: unknown): MultiSpanVLinearSurfacePlaneSectionAsset {
   const data = record(input, ['sourceId', 'source', 'surface']); id(data.sourceId); check(typeof data.source === 'string', CODE.INPUT, 'An actual original Source0 string is required');

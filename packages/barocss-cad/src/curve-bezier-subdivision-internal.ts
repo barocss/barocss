@@ -5,6 +5,7 @@ import { curveDomain, validateCurve } from './math.js';
 import { curveDecimal } from './curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Model, Point } from './types.js';
+import { same } from './structural-equality.js';
 
 type PoleMap = { refinedPoleIndex: number; childPoleIndex: number };
 type KnotMap = { childKnotIndex: number; refinedKnotIndex: number | null; value: number;
@@ -20,15 +21,6 @@ export interface BezierSubdivisionResult {
 const LABEL = 'Bezier subdivision';
 function check(value: boolean, detail: string): asserts value {
   if (!value) throw new Error((LABEL + ': ' + detail).slice(0, 1024));
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) &&
-    a.length === b.length && a.every((value, index) => same(value, b[index]));
-  if (a !== null && b !== null && typeof a === 'object' && typeof b === 'object') {
-    const x = a as Record<string, unknown>, y = b as Record<string, unknown>;
-    return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key]));
-  }
-  return Object.is(a, b);
 }
 function id(value: string): void {
   check(typeof value === 'string' && value.length <= 48 && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(value), 'A bounded reserved ASCII identity is required');

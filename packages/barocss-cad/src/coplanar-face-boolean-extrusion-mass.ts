@@ -4,6 +4,7 @@ import type { CoplanarFaceBooleanExtrusionResult } from './coplanar-face-boolean
 import { evaluateSurface } from './math.js';
 import { copyCadData } from './data-copy.js';
 import type { Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const CoplanarFaceBooleanExtrusionMassDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', BUDGET: 'BUDGET', NATIVE: 'NATIVE', REPRESENTABILITY: 'REPRESENTABILITY', OWNED: 'OWNED',
@@ -144,12 +145,6 @@ function record(value: unknown, fields: string[], code: CoplanarFaceBooleanExtru
   check(value !== null && typeof value === 'object' && !Array.isArray(value), code, 'An own record is required');
   const data = value as Record<string, unknown>;
   check(Object.keys(data).length === fields.length && fields.every(field => Object.hasOwn(data, field)), code, 'Exact own fields are required'); return data;
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => same(value, b[index]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>;
-    return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key])); }
-  return Object.is(a, b);
 }
 function basis(component: CoplanarFaceBooleanExtrusionPropertiesComponent, translation: Point): PhysicalBasis {
   const unitX = unit(component.supportD1.du), unitNormal = unit(cross(component.supportD1.du, component.supportD1.dv));

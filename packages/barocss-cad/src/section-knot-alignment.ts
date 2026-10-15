@@ -6,6 +6,7 @@ import type { RationalRuledSurfaceResult, RationalRuledSurfaceReport } from './r
 import { adopt } from './own-plane-cylinder-intersection-internal.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Model } from './types.js';
+import { same } from './structural-equality.js';
 
 export const SectionKnotAlignmentDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', BASIS: 'BASIS', BUDGET: 'BUDGET', NATIVE: 'NATIVE', BINDING: 'BINDING', OWNED: 'OWNED',
@@ -97,12 +98,6 @@ function record(value: unknown, fields: string[], code: SectionKnotAlignmentDiag
 }
 function id(value: unknown, maximum = 48): string {
   check(typeof value === 'string' && value.length <= maximum && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(value), CODE.IDENTITY, 'A bounded ASCII identifier is required'); return value;
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => same(value, b[index]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>;
-    return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key])); }
-  return Object.is(a, b);
 }
 function admitCurve(input: unknown): Curve {
   const data = record(snapshot(input, CODE.INPUT), ['kind', 'id', 'degree', 'knots', 'controlPoints', 'weights']);

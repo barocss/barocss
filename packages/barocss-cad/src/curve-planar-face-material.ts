@@ -12,6 +12,7 @@ import type { CurvePlanePointEvent } from './own-multispan-curve-plane.js';
 import { evaluateCurve } from './math.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const CurvePlanarFaceMaterialDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', BUDGET: 'BUDGET', UNSUPPORTED: 'UNSUPPORTED', NATIVE: 'NATIVE',
@@ -127,14 +128,6 @@ function record(value: unknown, fields: string[], code: CurvePlanarFaceMaterialD
 function id(value: unknown, maximum = 48): string {
   check(typeof value === 'string' && value.length <= maximum && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(value), CODE.INPUT, 'A bounded ASCII native identifier is required');
   return value;
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => same(value, b[index]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') {
-    const x = a as Record<string, unknown>, y = b as Record<string, unknown>;
-    return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key]));
-  }
-  return Object.is(a, b);
 }
 function boundedPoints(points: unknown): void {
   check(Array.isArray(points) && points.every(point => Array.isArray(point) && point.length === 3

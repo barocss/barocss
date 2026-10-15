@@ -8,6 +8,7 @@ import { compileCadModel } from './model-compiler.js';
 import { curveDecimal } from './curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Model, Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const CurveIntervalExtractionDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', INTERVAL: 'INTERVAL', IDENTITY: 'IDENTITY',
@@ -169,16 +170,6 @@ function id(value: unknown): string {
   requireValue(typeof value === 'string' && value.length <= 48 && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(value),
     CODE.IDENTITY, 'ASCII ID1..48 required');
   return value;
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b)
-    && a.length === b.length && a.every((value, index) => same(value, b[index]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') {
-    const left = a as Record<string, unknown>, right = b as Record<string, unknown>;
-    return Object.keys(left).length === Object.keys(right).length
-      && Object.keys(left).every(key => Object.hasOwn(right, key) && same(left[key], right[key]));
-  }
-  return Object.is(a, b);
 }
 function native<T>(operation: () => T, detail: string, code: CurveIntervalExtractionDiagnosticCode = CODE.NATIVE): T {
   try { return operation(); } catch (cause) {

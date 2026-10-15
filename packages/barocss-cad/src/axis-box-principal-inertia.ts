@@ -2,6 +2,7 @@ import { validateAxisBoxSolidBooleanMass } from './axis-box-solid-mass.js';
 import type { AxisBoxSolidMassResult, AxisBoxSolidMassMeasure } from './axis-box-solid-mass.js';
 import { copyCadData } from './data-copy.js';
 import type { Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const AxisBoxSolidPrincipalInertiaDiagnosticCode = Object.freeze({ INPUT: 'INPUT', BUDGET: 'BUDGET', MASS: 'MASS', SELECTION: 'SELECTION', REPRESENTABILITY: 'REPRESENTABILITY', OWNED: 'OWNED' } as const);
 export type AxisBoxSolidPrincipalInertiaDiagnosticCode = typeof AxisBoxSolidPrincipalInertiaDiagnosticCode[keyof typeof AxisBoxSolidPrincipalInertiaDiagnosticCode];
@@ -68,7 +69,6 @@ function snapshot(input: unknown, owned = false): unknown {
   }; try { return copy(input, 0); } catch (cause) { if (cause instanceof AxisBoxSolidPrincipalInertiaError) throw cause; throw new AxisBoxSolidPrincipalInertiaError(code, 'Own snapshot failed', cause); }
 }
 function record(input: unknown, fields: string[], code: AxisBoxSolidPrincipalInertiaDiagnosticCode = CODE.INPUT): Record<string, unknown> { check(input !== null && typeof input === 'object' && !Array.isArray(input), code, 'An own record is required'); const data = input as Record<string, unknown>; check(Object.keys(data).length === fields.length && fields.every(field => Object.hasOwn(data, field)), code, 'Exact own fields are required'); return data; }
-function same(a: unknown, b: unknown): boolean { if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => same(value, b[index])); if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>; return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key])); } return Object.is(a, b); }
 
 /** Local static adaptation of the established bounded Jacobi method; no prism DTO or constructor is used. */
 function analyzeTensor(original: Matrix, scale: number, options: AxisBoxSolidPrincipalInertiaOptions): { principal: Principal; rotationTrace: Rotation[]; residuals: Residuals; clusters: Cluster[]; finalOffDiagonal: number } {

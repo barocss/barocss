@@ -5,6 +5,7 @@ import type { SectionFraction, SectionRational } from './section-rational-intern
 import { compileCadModel } from './model-compiler.js';
 import { curveDecimal } from './curve-source.js';
 import type { Curve, Surface, Model, Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const StoredCirclePrismSolidDiagnosticCode = { INPUT: 'INPUT', OWNED: 'OWNED', GEOMETRY: 'GEOMETRY', BUDGET: 'BUDGET', NATIVE: 'NATIVE' } as const;
 type Code = typeof StoredCirclePrismSolidDiagnosticCode[keyof typeof StoredCirclePrismSolidDiagnosticCode];
@@ -30,11 +31,6 @@ export interface StoredCirclePrismSolidResult { parent: XYCirclePrismShellResult
 const C = StoredCirclePrismSolidDiagnosticCode;
 function check(ok: boolean, code: Code, detail: string): asserts ok { if (!ok) throw new StoredCirclePrismSolidError(code, detail); }
 function native<T>(fn: () => T, detail: string): T { try { return fn(); } catch (cause) { throw new StoredCirclePrismSolidError(C.NATIVE, detail, cause); } }
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((v, i) => same(v, b[i]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>; return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(k => Object.hasOwn(y, k) && same(x[k], y[k])); }
-  return Object.is(a, b);
-}
 function freeze<T>(value: T): T { if (value && typeof value === 'object') { for (const item of Object.values(value)) freeze(item); Object.freeze(value); } return value; }
 /** Descriptor-first copy counts occurrences; an ancestor set rejects cycles without rejecting aliases. */
 function snapshot<T>(input: T): T {

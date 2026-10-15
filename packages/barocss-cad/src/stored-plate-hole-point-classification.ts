@@ -3,6 +3,7 @@ import type { StoredPlateHoleSolidResult } from './stored-plate-hole-solid.js';
 import { SectionRationalContext } from './section-rational-internal.js';
 import type { SectionRational, SectionFraction } from './section-rational-internal.js';
 import type { Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const StoredPlateHolePointDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', SOLID: 'SOLID', ARITHMETIC: 'ARITHMETIC', OWNED: 'OWNED', CODEC: 'CODEC', VERSION: 'VERSION' } as const);
 type Code = typeof StoredPlateHolePointDiagnosticCode[keyof typeof StoredPlateHolePointDiagnosticCode];
@@ -55,10 +56,6 @@ function snapshot<T>(input: T): T {
   }; return copy(input, 0) as T;
 }
 function record(v: unknown, keys: string[], code: Code = C.INPUT): Record<string, unknown> { check(v !== null && typeof v === 'object' && !Array.isArray(v), code, 'Record required'); const r = v as Record<string, unknown>; check(Object.keys(r).length === keys.length && keys.every(k => Object.hasOwn(r, k)), code, 'Exact fields required: ' + keys.join(',')); return r; }
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((v, i) => same(v, b[i]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>; return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(k => Object.hasOwn(y, k) && same(x[k], y[k])); } return Object.is(a, b);
-}
 function id(v: unknown): string { check(typeof v === 'string' && v.length <= 48 && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(v), C.IDENTITY, 'ASCII identifier1..48 required'); return v; }
 /** Exact material predicates on the qualified stored ring x height product. */
 export function classifyStoredPlateHoleSolidPoints(solidInput: StoredPlateHoleSolidResult, queriesInput: StoredPlateHolePointQuery[], optionsInput: StoredPlateHolePointOptions): StoredPlateHolePointResult {

@@ -2,6 +2,7 @@ import { reverseCurveGeometryTrusted, CurveReversalError } from './curve-reversa
 import type { CurveReversalOptions, CurveReversalProvenance, CurveReversalObservation, CurveReversalGuardObservation } from './curve-reversal.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Model } from './types.js';
+import { same } from './structural-equality.js';
 
 export const WideCurveReversalDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', DOMAIN: 'DOMAIN', REPRESENTABILITY: 'REPRESENTABILITY',
@@ -100,16 +101,6 @@ function id(value: unknown): string {
   check(typeof value === 'string' && value.length <= 48 && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(value),
     CODE.IDENTITY, 'ASCII original/derived Curve ID1..48 required');
   return value;
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b)
-    && a.length === b.length && a.every((value, index) => same(value, b[index]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') {
-    const left = a as Record<string, unknown>, right = b as Record<string, unknown>;
-    return Object.keys(left).length === Object.keys(right).length
-      && Object.keys(left).every(key => Object.hasOwn(right, key) && same(left[key], right[key]));
-  }
-  return Object.is(a, b);
 }
 
 /** Wide admission around the unchanged trusted reflection, coefficient and native source operation. */

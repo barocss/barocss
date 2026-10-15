@@ -5,6 +5,7 @@ import {classifyPairedSurfaceUVQueriesTrusted} from './paired-surface-uv-face-cl
 import type {PairedSurfaceUVSplitFacesResult} from './paired-surface-uv-split-faces.js';
 import type {PairedSurfaceBUVSplitFacesResult} from './paired-surface-b-uv-split-faces.js';
 import type {SectionFraction} from './section-rational-internal.js';
+import { same } from './structural-equality.js';
 type F=SectionFraction;
 type Asset=0|1;
 type Region='below-cut'|'above-cut';
@@ -155,14 +156,6 @@ function snapshot(state: ErrorContext, input: unknown, owned = false): unknown {
     return result;
   };
   return copy(input, 0);
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((v, i) => same(v, b[i]));
-  if (a !== null && b !== null && typeof a === 'object' && typeof b === 'object') {
-    const x = a as Record<string, unknown>, y = b as Record<string, unknown>;
-    return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key]));
-  }
-  return Object.is(a, b);
 }
 function id(state: ErrorContext, value: unknown, maximum = 48): asserts value is string {
   check(state, typeof value === 'string' && value.length <= maximum && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(value),

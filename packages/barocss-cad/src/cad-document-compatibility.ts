@@ -3,6 +3,7 @@ import type { CadDocumentResult } from './cad-document.js';
 import { compileCadModel } from './model-compiler.js';
 import { copyCadData } from './data-copy.js';
 import type { Model } from './types.js';
+import { same } from './structural-equality.js';
 
 export const CadDocumentCompatibilityDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', FORMAT: 'FORMAT', VERSION: 'VERSION', PROFILE: 'PROFILE', IDENTITY: 'IDENTITY',
@@ -121,16 +122,6 @@ function record(value: unknown, fields: string[], code: CadDocumentCompatibility
   check(Object.keys(data).length === fields.length && fields.every(field => Object.hasOwn(data, field)),
     code, 'exact fields required: ' + fields.join(','));
   return data;
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b)
-    && a.length === b.length && a.every((value, index) => same(value, b[index]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') {
-    const left = a as Record<string, unknown>, right = b as Record<string, unknown>;
-    return Object.keys(left).length === Object.keys(right).length
-      && Object.keys(left).every(key => Object.hasOwn(right, key) && same(left[key], right[key]));
-  }
-  return Object.is(a, b);
 }
 function matrix(): CadDocumentCompatibilityEntry[] {
   const supported: CadDocumentCompatibilityEntry[] = [

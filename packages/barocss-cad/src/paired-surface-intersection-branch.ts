@@ -4,6 +4,7 @@ import { compileCadModel } from './model-compiler.js';
 import { validateSurface, surfaceDomain, evaluateSurface } from './math.js';
 import { evaluateSurfaceD1 } from './derivatives.js';
 import type { SurfaceD1Result } from './derivatives.js';
+import { same } from './structural-equality.js';
 
 type Two<T> = [T,T];
 type Three<T> = [T,T,T];
@@ -291,16 +292,6 @@ function snapshot(state: ErrorContext, input: unknown, owned = false): unknown {
     return result;
   };
   return copy(input, 0);
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) &&
-    a.length === b.length && a.every((value, index) => same(value, b[index]));
-  if (a !== null && b !== null && typeof a === 'object' && typeof b === 'object') {
-    const x = a as Record<string, unknown>, y = b as Record<string, unknown>;
-    return Object.keys(x).length === Object.keys(y).length &&
-      Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key]));
-  }
-  return Object.is(a, b);
 }
 function identifier(state: ErrorContext, value: unknown): asserts value is string {
   check(state, typeof value === 'string' && value.length <= 48 && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(value),

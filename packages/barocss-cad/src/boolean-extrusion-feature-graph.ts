@@ -9,6 +9,7 @@ import type { CoplanarFaceBooleanExtrusionOptions, CoplanarFaceBooleanExtrusionR
 import { validateCurve, validateSurface } from './math.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Surface } from './types.js';
+import { same } from './structural-equality.js';
 
 export const BooleanExtrusionFeatureGraphDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', PARAMETER: 'PARAMETER', DEPENDENCY: 'DEPENDENCY',
   REVISION: 'REVISION', BUDGET: 'BUDGET', NATIVE: 'NATIVE', REPRESENTABILITY: 'REPRESENTABILITY', JSON: 'JSON', OWNED: 'OWNED' } as const);
@@ -125,11 +126,6 @@ function revision(value: unknown, path: string): number {
 }
 function boundedInteger(value: unknown, maximum: number, context: Context, minimum = 0): number {
   check(typeof value === 'number' && Number.isInteger(value) && value >= minimum && value <= maximum, CODE.BUDGET, 'integer native work/output bound required', context); return value;
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, i) => same(value, b[i]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>;
-    return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key])); } return Object.is(a, b);
 }
 function admitDefinition(input: unknown, context: Context): BooleanExtrusionLengthDefinition {
   const admitted = helper(() => definition(input, LABEL, context.path ?? '$'), CODE.PARAMETER, 'actual original typed length definition admission', context);

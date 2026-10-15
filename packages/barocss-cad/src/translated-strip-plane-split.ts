@@ -23,6 +23,7 @@ import type { PairedSectionPlaneCapOptions } from './paired-section-plane-cap.js
 import type { TranslatedSurfaceBaseFaceOptions } from './translated-surface-base-face.js';
 import type { TranslatedSurfaceEndFacesOptions } from './translated-surface-end-faces.js';
 import type { TranslatedSurfaceStripVolumeOptions } from './translated-surface-strip-volume.js';
+import { same } from './structural-equality.js';
 
 type Two<T> = [T,T];
 type Size = {utf16:number;utf8:number};
@@ -288,14 +289,6 @@ function snapshot(state: Context, input: unknown, owned = false): unknown {
     return result;
   };
   return copy(input, 0);
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((v, i) => same(v, b[i]));
-  if (a !== null && b !== null && typeof a === 'object' && typeof b === 'object') {
-    const x = a as Record<string, unknown>, y = b as Record<string, unknown>;
-    return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key]));
-  }
-  return Object.is(a, b);
 }
 function id(state: Context, value: unknown, maximum = 48): asserts value is string {
   check(state, typeof value === 'string' && value.length <= maximum && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(value),

@@ -4,6 +4,7 @@ import type { CadDocumentResult } from './cad-document.js';
 import { validateCurve, curveDomain, evaluateCurve } from './math.js';
 import { evaluateCurveD1 } from './derivatives.js';
 import type { Curve, Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const CadCurveArcLengthDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', REFERENCE: 'REFERENCE', STALE: 'STALE', INTERVAL: 'INTERVAL', REPRESENTABILITY: 'REPRESENTABILITY',
@@ -121,16 +122,6 @@ function record(value: unknown, fields: string[], code: CadCurveArcLengthDiagnos
   const data = value as Record<string, unknown>;
   check(Object.keys(data).length === fields.length && fields.every(field => Object.hasOwn(data, field)),
     code, 'exact fields required: ' + fields.join(',')); return data;
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b)
-    && a.length === b.length && a.every((value, index) => same(value, b[index]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') {
-    const left = a as Record<string, unknown>, right = b as Record<string, unknown>;
-    return Object.keys(left).length === Object.keys(right).length
-      && Object.keys(left).every(key => Object.hasOwn(right, key) && same(left[key], right[key]));
-  }
-  return Object.is(a, b);
 }
 function options(input: CadCurveArcLengthOptions, domain: [number, number]): CadCurveArcLengthOptions {
   const o = record(snapshot(input, 'options'), ['interval', 'absoluteToleranceMM', 'relativeTolerance', 'maximumEvaluations', 'maximumSubdivisions', 'maximumDepth']);

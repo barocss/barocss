@@ -8,6 +8,7 @@ import type { SurfaceD1Result } from './derivatives.js';
 import { curveDecimal } from './curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { Surface, Model, Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const SourceSurfaceControlNetWideDiagnosticCode = Object.freeze({ INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', SOURCE: 'SOURCE', TARGET: 'TARGET', BINDING: 'BINDING', BUDGET: 'BUDGET', NATIVE: 'NATIVE', OWNED: 'OWNED' } as const);
 export type SourceSurfaceControlNetWideDiagnosticCode = typeof SourceSurfaceControlNetWideDiagnosticCode[keyof typeof SourceSurfaceControlNetWideDiagnosticCode];
@@ -48,7 +49,6 @@ function snapshot(input: unknown, owned = false): unknown {
     else result = Object.fromEntries((keys as string[]).map(key => [key, copy(descriptors[key].value, depth + 1)])); ancestors.delete(value); return result;
   }; try { return copy(input, 0); } catch (cause) { if (cause instanceof SourceSurfaceControlNetWideError) throw cause; throw new SourceSurfaceControlNetWideError(code, 'Own snapshot failed', cause); }
 }
-function same(a: unknown, b: unknown): boolean { if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => same(value, b[index])); if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>; return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key])); } return Object.is(a, b); }
 function bytes(source: string): number { check(source.length <= 262144, CODE.BUDGET, 'Source UTF-16 limit exceeded'); let count = 0; for (let i = 0; i < source.length; i++) { const code = source.charCodeAt(i), next = source.charCodeAt(i + 1); if (code < 128) count++; else if (code < 2048) count += 2; else if (code >= 0xd800 && code <= 0xdbff && next >= 0xdc00 && next <= 0xdfff) { count += 4; i++; } else count += 3; check(count <= 262144, CODE.BUDGET, 'Source UTF-8 limit exceeded'); } return count; }
 function compile(source: string, stage: string): Extract<CadCompileResult, { ok: true }> { let result: CadCompileResult; try { result = compileCadModel(source, { sourceVersion: 0 }); } catch (cause) { throw new SourceSurfaceControlNetWideError(CODE.SOURCE, 'Actual ' + stage + ' Source0 compiler failed', cause); } if (!result.ok) throw new SourceSurfaceControlNetWideError(CODE.SOURCE, 'Actual ' + stage + ' whole Source0 compilation refused', result); return result; }
 function value(surface: Surface, uIndex: number, vIndex: number, field: SurfacePoleField): number { return field === 'weight' ? surface.weights[uIndex][vIndex] : surface.controlPoints[uIndex][vIndex][field === 'xMM' ? 0 : field === 'yMM' ? 1 : 2]; }

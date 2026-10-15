@@ -4,6 +4,7 @@ import { SectionRationalContext } from './section-rational-internal.js';
 import type { SectionRational, SectionFraction } from './section-rational-internal.js';
 import type { Point } from './types.js';
 import { chartRoundingBoundMM } from './numeric-policy.js';
+import { same } from './structural-equality.js';
 
 export const StoredPlateHoleSolidDiagnosticCode = { INPUT: 'INPUT', NATIVE: 'NATIVE', GEOMETRY: 'GEOMETRY', TOPOLOGY: 'TOPOLOGY', BUDGET: 'BUDGET', OWNED: 'OWNED', CODEC: 'CODEC', VERSION: 'VERSION' } as const;
 type Code = typeof StoredPlateHoleSolidDiagnosticCode[keyof typeof StoredPlateHoleSolidDiagnosticCode];
@@ -48,10 +49,6 @@ function snapshot<T>(input: T): T {
   }; return copy(input, 0) as T;
 }
 function record(value: unknown, keys: string[], code: Code): Record<string, unknown> { check(value !== null && typeof value === 'object' && !Array.isArray(value), code, 'Record required'); const r = value as Record<string, unknown>; check(Object.keys(r).length === keys.length && keys.every(k => Object.hasOwn(r, k)), code, 'Exact fields required: ' + keys.join(',')); return r; }
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((v, i) => same(v, b[i]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>; return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(k => Object.hasOwn(y, k) && same(x[k], y[k])); } return Object.is(a, b);
-}
 /** Certifies this stored family; all native provider evaluation/refusal semantics stay unchanged. */
 export function qualifyStoredPlateHoleSolid(input: OwnPlateCircularHoleBundle): StoredPlateHoleSolidResult {
   const bundle = snapshot(input);

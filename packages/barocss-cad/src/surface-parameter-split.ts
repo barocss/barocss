@@ -5,6 +5,7 @@ import { compileCadModel } from './model-compiler.js';
 import { curveDecimal, requireCurveValue } from './curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { Surface, Model, Point } from './types.js';
+import { same as sameData } from './structural-equality.js';
 
 export interface SurfaceParameterSplitOptions { axis: 'u' | 'v'; parameter: number; lowerSurfaceId: string; upperSurfaceId: string }
 export interface SurfaceSplitPoleMapping { refinedUIndex: number; refinedVIndex: number; childUIndex: number; childVIndex: number }
@@ -75,14 +76,6 @@ function record(input: unknown, fields: string[]): Record<string, unknown> {
   const value = input as Record<string, unknown>; check(Object.keys(value).length === fields.length && fields.every(key => Object.hasOwn(value, key)), 'exact fields required: ' + fields.join(',')); return value;
 }
 function id(input: unknown): string { check(typeof input === 'string' && input.length <= 48 && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(input), 'ASCII ID1..48 required'); return input; }
-function sameData(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, i) => sameData(value, b[i]));
-  if (a !== null && b !== null && typeof a === 'object' && typeof b === 'object') {
-    const left = a as Record<string, unknown>, right = b as Record<string, unknown>;
-    return Object.keys(left).length === Object.keys(right).length && Object.keys(left).every(key => Object.hasOwn(right, key) && sameData(left[key], right[key]));
-  }
-  return Object.is(a, b);
-}
 function admit(input: unknown): Surface {
   const data = record(input, ['kind', 'id', 'degreeU', 'degreeV', 'knotsU', 'knotsV', 'controlPoints', 'weights']);
   check(data.kind === 'surface', 'original Surface required'); id(data.id);

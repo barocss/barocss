@@ -4,6 +4,7 @@ import type { SurfaceD1Result } from './derivatives.js';
 import { compileCadModel } from './model-compiler.js';
 import { curveDecimal } from './curve-source.js';
 import type { Curve, Surface, Model, Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const PiecewiseRationalLoftDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', BASIS: 'BASIS', STATIONS: 'STATIONS', NATIVE: 'NATIVE', REPRESENTABILITY: 'REPRESENTABILITY', SOURCE: 'SOURCE', OWNED: 'OWNED' } as const);
 export type PiecewiseRationalLoftDiagnosticCode = typeof PiecewiseRationalLoftDiagnosticCode[keyof typeof PiecewiseRationalLoftDiagnosticCode];
@@ -48,7 +49,6 @@ function snapshot(input: unknown, owned = false): unknown {
     else result = Object.fromEntries((keys as string[]).map(key => [key, copy(descriptors[key].value, depth + 1)])); ancestors.delete(value); return result;
   }; try { return copy(input, 0); } catch (cause) { if (cause instanceof PiecewiseRationalLoftError) throw cause; throw new PiecewiseRationalLoftError(code, 'Own snapshot failed', cause); }
 }
-function same(a: unknown, b: unknown): boolean { if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => same(value, b[index])); if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>; return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key])); } return Object.is(a, b); }
 function finite(value: number): number { check(Number.isFinite(value), CODE.REPRESENTABILITY, 'Finite native homogeneous observation arithmetic is required'); return value; }
 function distance(a: Point, b: Point): number { return finite(Math.hypot(...a.map((value, axis) => finite(value - b[axis])))); }
 

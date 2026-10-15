@@ -2,6 +2,7 @@ import { validateVLinearSurfacePlaneTrimCandidates } from './vlinear-plane-trim.
 import type { VLinearSurfacePlaneTrimResult } from './vlinear-plane-trim.js';
 import { SectionRationalContext } from './section-rational-internal.js';
 import type { SectionRational, SectionFraction } from './section-rational-internal.js';
+import { same } from './structural-equality.js';
 
 export const VLinearSurfacePlaneTrimUVDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', TRIM: 'TRIM', BINDING: 'BINDING', OWNED: 'OWNED' } as const);
 export type VLinearSurfacePlaneTrimUVDiagnosticCode = typeof VLinearSurfacePlaneTrimUVDiagnosticCode[keyof typeof VLinearSurfacePlaneTrimUVDiagnosticCode];
@@ -63,10 +64,6 @@ function snapshot(input: unknown, owned = false): unknown {
     ancestors.delete(value); return result;
   };
   try { return copy(input, 0); } catch (cause) { if (cause instanceof VLinearSurfacePlaneTrimUVError) throw cause; throw new VLinearSurfacePlaneTrimUVError(code, 'Own snapshot failed', cause); }
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => same(value, b[index]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>; return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key])); } return Object.is(a, b);
 }
 /** Collect complete copied source/model/topology/child identity contexts, including split helper receipts. */
 function contexts(input: unknown): Set<string> {

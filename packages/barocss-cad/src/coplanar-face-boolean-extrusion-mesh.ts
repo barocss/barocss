@@ -7,6 +7,7 @@ import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
 import type { CurveD1Result, SurfaceD1Result } from './derivatives.js';
 import { curveDomain, surfaceDomain } from './math.js';
 import type { Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const CoplanarFaceBooleanExtrusionMeshDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET',
   NATIVE: 'NATIVE', REPRESENTABILITY: 'REPRESENTABILITY', BINDING: 'BINDING', INCIDENCE: 'INCIDENCE', COVERAGE: 'COVERAGE', OWNED: 'OWNED' } as const);
@@ -124,12 +125,6 @@ function record(input: unknown, fields: string[], code: CoplanarFaceBooleanExtru
   check(input !== null && typeof input === 'object' && !Array.isArray(input), code, 'own record required');
   const data = input as Record<string, unknown>;
   check(Object.keys(data).length === fields.length && fields.every(field => Object.hasOwn(data, field)), code, 'exact fields required: ' + fields.join(',')); return data;
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, i) => same(value, b[i]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>;
-    return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key])); }
-  return Object.is(a, b);
 }
 function id(value: unknown, maximum = 48): string {
   check(typeof value === 'string' && value.length <= maximum && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(value), CODE.IDENTITY, 'ASCII ID1..' + maximum + ' required'); return value;

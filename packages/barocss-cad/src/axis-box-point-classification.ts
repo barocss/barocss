@@ -1,6 +1,7 @@
 import { validateAxisBoxSolidBoolean } from './axis-box-boolean.js';
 import type { AxisBoxSolidBooleanResult } from './axis-box-boolean.js';
 import type { Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const AxisBoxSolidBooleanPointDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', BOOLEAN: 'BOOLEAN', BINDING: 'BINDING', OWNED: 'OWNED' } as const);
 export type AxisBoxSolidBooleanPointDiagnosticCode = typeof AxisBoxSolidBooleanPointDiagnosticCode[keyof typeof AxisBoxSolidBooleanPointDiagnosticCode];
@@ -50,7 +51,6 @@ function snapshot(input: unknown, owned = false): unknown {
     else result = Object.fromEntries((keys as string[]).map(key => [key, copy(descriptors[key].value, depth + 1)])); ancestors.delete(value); return result;
   }; try { return copy(input, 0); } catch (cause) { if (cause instanceof AxisBoxSolidBooleanPointError) throw cause; throw new AxisBoxSolidBooleanPointError(code, 'Own snapshot failed', cause); }
 }
-function same(a: unknown, b: unknown): boolean { if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => same(value, b[index])); if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>; return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key])); } return Object.is(a, b); }
 function contexts(input: unknown): Set<string> { const values = new Set<string>(); const visit = (value: unknown, key = '') => { if (typeof value === 'string') { if (key === 'id' || key === 'name' || /Ids?$/.test(key) || key === 'resultIdPrefix') values.add(value); } else if (Array.isArray(value)) value.forEach(item => visit(item, key)); else if (value && typeof value === 'object') for (const [field, item] of Object.entries(value)) visit(item, field); }; visit(input); return values; }
 function axisPosition(axis: AxisPosition['axis'], coordinate: number, planes: number[]): AxisPosition {
   const count = planes.length - 1;

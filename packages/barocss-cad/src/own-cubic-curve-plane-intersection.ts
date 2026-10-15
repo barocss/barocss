@@ -7,6 +7,7 @@ import { adopt } from './own-plane-cylinder-intersection-internal.js';
 import { copyCadData } from './data-copy.js';
 import { linearToleranceMM, geometryScaleMM } from './numeric-policy.js';
 import type { Curve, Surface, Model, Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const CubicCurveAffinePlaneIntersectionDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', REPRESENTABILITY: 'REPRESENTABILITY', BUDGET: 'BUDGET',
@@ -116,16 +117,6 @@ function id(value: unknown): string {
   check(typeof value === 'string' && value.length <= 48 && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(value),
     CODE.IDENTITY, 'ASCII original/context/event ID1..48 required');
   return value;
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b)
-    && a.length === b.length && a.every((value, index) => same(value, b[index]));
-  if (a && b && typeof a === 'object' && typeof b === 'object') {
-    const left = a as Record<string, unknown>, right = b as Record<string, unknown>;
-    return Object.keys(left).length === Object.keys(right).length
-      && Object.keys(left).every(key => Object.hasOwn(right, key) && same(left[key], right[key]));
-  }
-  return Object.is(a, b);
 }
 
 /** Own bounded cubic support roots with the exact shared original Curve/Plane binding policy. */

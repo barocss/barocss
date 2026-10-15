@@ -9,6 +9,7 @@ import { transformNativeGeometryAffine, validateAffineGeometryTransform, mapPoin
 import type { CadAffineMatrix3x4, AffineGeometryTransformResult } from './affine-geometry-transform.js';
 import type { XYPoint } from './xy-profile.js';
 import type { Curve, Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const MixedWorkplaneSketchDocumentDiagnosticCode = Object.freeze({ INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', FRAME: 'FRAME', BINDING: 'BINDING', BUDGET: 'BUDGET', LOCAL: 'LOCAL', ARC: 'ARC', AFFINE: 'AFFINE', CODEC: 'CODEC', OWNED: 'OWNED' } as const);
 export type MixedWorkplaneSketchDocumentDiagnosticCode = typeof MixedWorkplaneSketchDocumentDiagnosticCode[keyof typeof MixedWorkplaneSketchDocumentDiagnosticCode];
@@ -47,7 +48,6 @@ function snapshot(input: unknown, owned = false): unknown {
     else result = Object.fromEntries((keys as string[]).map(key => [key, copy(descriptors[key].value, depth + 1)])); ancestors.delete(value); return result;
   }; try { return copy(input, 0); } catch (cause) { if (cause instanceof MixedWorkplaneSketchDocumentError) throw cause; throw new MixedWorkplaneSketchDocumentError(code, 'Own snapshot failed', cause); }
 }
-function same(a: unknown, b: unknown): boolean { if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => same(value, b[index])); if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>; return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key])); } return Object.is(a, b); }
 function bytes(text: string): number { let count = 0; for (let i = 0; i < text.length; i++) { const c = text.charCodeAt(i), next = text.charCodeAt(i + 1); if (c < 128) count++; else if (c < 2048) count += 2; else if (c >= 0xd800 && c <= 0xdbff && next >= 0xdc00 && next <= 0xdfff) { count += 4; i++; } else count += 3; } return count; }
 function identifier(value: unknown, maximum: number): string { check(typeof value === 'string' && value.length <= maximum && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(value), CODE.IDENTITY, 'A bounded ASCII identifier is required'); return value; }
 function profileMetadata(input: unknown): { intent: MixedWorkplaneSketchProfileIntent; ids: string[]; points: number } {

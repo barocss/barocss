@@ -10,6 +10,7 @@ import type { FaceIds, FaceBundle } from './face.js';
 import type { ExactBoundaryFaceAdjacencyAsset, ExactBoundaryFaceAdjacencyPair } from './exact-boundary-face-adjacency.js';
 import type { SurfaceBoundary } from './boundary.js';
 import { adopt as adoptSourceModel } from './own-plane-cylinder-intersection-internal.js';
+import { same } from './structural-equality.js';
 
 export const ConvexPlanarFaceExtrusionDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', PROFILE: 'PROFILE', DISTANCE: 'DISTANCE',
@@ -205,18 +206,6 @@ function snapshot(input: unknown, owned = false): unknown {
     return result;
   };
   return copy(input, 0);
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) {
-    return Array.isArray(a) && Array.isArray(b) && a.length === b.length &&
-      a.every((value, index) => same(value, b[index]));
-  }
-  if (a !== null && b !== null && typeof a === 'object' && typeof b === 'object') {
-    const left = a as Record<string, unknown>, right = b as Record<string, unknown>;
-    return Object.keys(left).length === Object.keys(right).length &&
-      Object.keys(left).every(key => Object.hasOwn(right, key) && same(left[key], right[key]));
-  }
-  return Object.is(a, b);
 }
 function sourceSize(source: string): Size {
   const size = { utf16: source.length, utf8: new TextEncoder().encode(source).length };

@@ -8,6 +8,7 @@ import { validateCurve, curveDomain, evaluateCurve } from './math.js';
 import { evaluateCurveD1 } from './derivatives.js';
 import type { CurveD1Result } from './derivatives.js';
 import type { Curve, Model, Point } from './types.js';
+import { same } from './structural-equality.js';
 
 export const SourceCurveKnotInsertionDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', SOURCE: 'SOURCE',
@@ -202,18 +203,6 @@ function snapshot(input: unknown, owned = false): unknown {
     return result;
   };
   return copy(input, 0);
-}
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b)) {
-    return Array.isArray(a) && Array.isArray(b) && a.length === b.length &&
-      a.every((value, index) => same(value, b[index]));
-  }
-  if (a !== null && b !== null && typeof a === 'object' && typeof b === 'object') {
-    const left = a as Record<string, unknown>, right = b as Record<string, unknown>;
-    return Object.keys(left).length === Object.keys(right).length &&
-      Object.keys(left).every(key => Object.hasOwn(right, key) && same(left[key], right[key]));
-  }
-  return Object.is(a, b);
 }
 function sourceSize(source: string): Size {
   const size = { utf16: source.length, utf8: new TextEncoder().encode(source).length };
