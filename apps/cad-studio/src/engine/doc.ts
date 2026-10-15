@@ -1,11 +1,10 @@
-// The studio document is the kernel's own saved model format, kept as plain data.
-// Every command appends or edits nodes; the worker evaluates it with `cad.load`.
+// The studio document: plain data, one node per feature. Every command appends or edits nodes; the
+// worker evaluates it on the kernel's B-rep part model (node i is feature `n<i>`, see part.ts).
 
 export type Axis = 'x' | 'y' | 'z';
 export type Dim = number | { parameter: string };
 export type Side = 'solid' | 'negative' | 'positive' | 'instance1' | 'instance2' | 'instance3';
 export interface BodyRef { node: number; side: Side }
-export interface EdgeQuery { parallelTo?: Axis; at?: Partial<Record<Axis, Dim | 'min' | 'max'>> }
 
 export type SketchNode =
   | { kind: 'sketch'; profile: 'rectangle'; min: [Dim, Dim]; max: [Dim, Dim] }
@@ -16,16 +15,18 @@ export type SketchNode =
 export type ModelNode = SketchNode
   | { kind: 'extrude'; sketch: number; height: Dim; from?: Dim }
   | { kind: 'translate'; parent: BodyRef; offset: [Dim, Dim, Dim] }
-  | { kind: 'rotate'; parent: BodyRef; axis: Axis; angleDegrees: 90 | 180 | 270 | -90 | -180 | -270 }
+  | { kind: 'rotate'; parent: BodyRef; axis: Axis; angleDegrees: number }
   | { kind: 'mirror'; parent: BodyRef; plane: 'xy' | 'xz' | 'yz' }
-  | { kind: 'scale'; parent: BodyRef; factor: 0.5 | 2 }
-  | { kind: 'linear-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: 2 | 3 | 4 }
-  | { kind: 'circular-pattern'; parent: BodyRef; axis: Axis; angleDegrees: 90 | -90; count: 3 | 4 }
+  | { kind: 'scale'; parent: BodyRef; factor: number }
+  | { kind: 'linear-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number }
+  | { kind: 'circular-pattern'; parent: BodyRef; axis: Axis; angleDegrees: number; count: number }
   | { kind: 'union'; left: BodyRef; right: BodyRef }
   | { kind: 'intersect'; left: BodyRef; right: BodyRef }
   | { kind: 'difference'; parent: BodyRef; tool: BodyRef }
   | { kind: 'split'; parent: BodyRef; at: Dim; axis: Axis }
-  | { kind: 'chamfer'; parent: BodyRef; edge: EdgeQuery; distance: Dim; name?: string; suppressed?: boolean }
+  /** Edges by their persistent B-rep names (they follow the features, so edits keep the selection). */
+  | { kind: 'chamfer'; parent: BodyRef; edges: string[]; distance: Dim }
+  | { kind: 'fillet'; parent: BodyRef; edges: string[]; radius: Dim }
   | { kind: 'hole'; parent: BodyRef; center: [Dim, Dim]; radius: Dim };
 
 export interface StudioDoc {
@@ -53,18 +54,19 @@ export function parentsOf(node: ModelNode): number[] {
 
 /** Solid nodes that no later solid node consumes: the visible bodies of a model prefix. */
 export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
-  // Patterns and mirrors add copies and keep their parent; every other operation consumes it.
-  const keepsParent = (node: ModelNode) => node.kind === 'extrude' || node.kind === 'linear-pattern'
-    || node.kind === 'circular-pattern' || node.kind === 'mirror';
-  const consumed = new Set<number>();
-  nodes.forEach(node => { if (!keepsParent(node)) parentsOf(node).forEach(index => consumed.add(index)); });
+  // Every operation consumes what it acts on (patterns and kept mirrors include the original); a split
+  // side is consumed on its own.
+  const consumed = new Set<string>();
+  nodes.forEach(node => {
+    if (node.kind === 'sketch' || node.kind === 'extrude') return;
+    const refs = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : [node.parent];
+    refs.forEach(r => consumed.add(r.side === 'solid' ? String(r.node) : `${r.node}_${r.side}`));
+  });
   const refs: BodyRef[] = [];
   nodes.forEach((node, index) => {
-    if (!isSolidNode(node) || consumed.has(index)) return;
-    if (node.kind === 'split') refs.push({ node: index, side: 'negative' }, { node: index, side: 'positive' });
-    else if (node.kind === 'linear-pattern' || node.kind === 'circular-pattern') {
-      for (let i = 1; i < node.count && i <= 3; i++) refs.push({ node: index, side: `instance${i}` as Side });
-    } else refs.push({ node: index, side: 'solid' });
+    if (!isSolidNode(node) || consumed.has(String(index))) return;
+    if (node.kind === 'split') (['negative', 'positive'] as const).forEach(side => { if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
+    else refs.push({ node: index, side: 'solid' });
   });
   return refs;
 }
@@ -95,6 +97,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     }
     case 'hole': return `Hole Ø${typeof node.radius === 'number' ? fmt(node.radius * 2) : node.radius.parameter}`;
     case 'chamfer': return `Chamfer ${n(node.distance)}`;
+    case 'fillet': return `Fillet R${n(node.radius)}`;
     case 'union': return 'Union';
     case 'intersect': return 'Intersect';
     case 'difference': return 'Subtract';

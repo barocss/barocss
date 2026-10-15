@@ -1,12 +1,14 @@
-// Turns any kernel body into one display mesh through the kernel's shared B-rep: brepFromBody, then
-// tessellateBrep (watertight, one sampling per edge). Faces are B-rep faces (coplanar neighbours shown
-// as one face); edges are the real B-rep edges, minus seams and smooth (tangent) joints.
-import { brepFromBody, tessellateBrep } from '@barocss/cad';
+// Turns a kernel B-rep into one display mesh: tessellateBrep (watertight, one sampling per edge).
+// Display faces are B-rep faces, with coplanar neighbours and the pieces of one named face (`x#1`,
+// `x#2`: a cylinder wall in halves) shown as one face; display edges are the real B-rep edges minus
+// seams and smooth (tangent) joints, with connected pieces between the same two faces joined. Faces and
+// edges carry their persistent B-rep names, which features use to refer to them.
+import { tessellateBrep, type Brep } from '@barocss/cad';
 
 export type Vec3 = [number, number, number];
 
-export interface DisplayFace { index: number; id: string; kind: 'plane' | 'curved'; normal: Vec3; centroid: Vec3; areaMM2: number }
-export interface DisplayEdge { index: number; faces: [number, number]; a: Vec3; b: Vec3; straight: boolean; axis: 'x' | 'y' | 'z' | null }
+export interface DisplayFace { index: number; id: string; name: string; kind: 'plane' | 'curved'; normal: Vec3; centroid: Vec3; areaMM2: number }
+export interface DisplayEdge { index: number; faces: [number, number]; a: Vec3; b: Vec3; straight: boolean; axis: 'x' | 'y' | 'z' | null; names: string[] }
 export interface DisplayMesh {
   positions: Float32Array; normals: Float32Array; faceOfVertex: Float32Array; indices: Uint32Array;
   faces: DisplayFace[]; edgeLines: Float32Array; edgeOfSegment: Float32Array; edges: DisplayEdge[];
@@ -17,7 +19,7 @@ interface Builder { p: number[]; n: number[]; f: number[]; i: number[]; faces: D
 
 const newBuilder = (): Builder => ({ p: [], n: [], f: [], i: [], faces: [] });
 
-function addFace(b: Builder, id: string, kind: DisplayFace['kind'], positions: ArrayLike<number>, normals: ArrayLike<number> | null, indices: ArrayLike<number>) {
+function addFace(b: Builder, id: string, name: string, kind: DisplayFace['kind'], positions: ArrayLike<number>, normals: ArrayLike<number> | null, indices: ArrayLike<number>) {
   const faceIndex = b.faces.length, base = b.p.length / 3, count = positions.length / 3;
   for (let v = 0; v < count; v++) { b.p.push(positions[v * 3], positions[v * 3 + 1], positions[v * 3 + 2]); b.f.push(faceIndex); }
   let area = 0; const centroid: Vec3 = [0, 0, 0]; const normal: Vec3 = [0, 0, 0];
@@ -34,12 +36,14 @@ function addFace(b: Builder, id: string, kind: DisplayFace['kind'], positions: A
     const src = normals ?? faceNormals; const nv = norm([src[v * 3], src[v * 3 + 1], src[v * 3 + 2]]);
     b.n.push(nv[0], nv[1], nv[2]);
   }
-  b.faces.push({ index: faceIndex, id, kind, normal: norm(normal), centroid: area > 0 ? centroid.map(x => x / area) as Vec3 : vec(positions, 0), areaMM2: area });
+  b.faces.push({ index: faceIndex, id, name, kind, normal: norm(normal), centroid: area > 0 ? centroid.map(x => x / area) as Vec3 : vec(positions, 0), areaMM2: area });
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function bodyMesh(body: any, _revision: number, quality = 8): DisplayMesh {
-  const brep = brepFromBody(body), mesh = tessellateBrep(brep, { segmentsPerQuarter: quality });
+const baseName = (name: string | undefined) => (name ?? '').replace(/#\d+$/, '');
+
+export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMesh {
+  const mesh = tessellateBrep(brep, { segmentsPerQuarter: quality });
+  const nameOf = new Map(brep.faces.map(f => [f.id, f.name ?? f.id]));
   const P = mesh.positionsMM, N = mesh.normals;
   const meshFace = new Map(mesh.faces.map(f => [f.faceId, f]));
   const loopFace = new Map(brep.loops.map(l => [l.id, l.face]));
@@ -55,7 +59,8 @@ export function bodyMesh(body: any, _revision: number, quality = 8): DisplayMesh
     return dot(pa[0], pb[0]) > 1 - 1e-9 && Math.abs(pa[1] - pb[1]) < 1e-6 * Math.max(1, Math.abs(pa[1]));
   };
   const parent = new Map(brep.faces.map(f => [f.id, f.id])), find = (f: string): string => { while (parent.get(f) !== f) f = parent.get(f)!; return f; };
-  for (const [, fs] of facesOfEdge) if (fs.length === 2 && fs[0] !== fs[1] && coplanar(fs[0], fs[1])) parent.set(find(fs[0]), find(fs[1]));
+  const sameNamed = (a: string, b: string) => baseName(nameOf.get(a)) !== '' && baseName(nameOf.get(a)) === baseName(nameOf.get(b));
+  for (const [, fs] of facesOfEdge) if (fs.length === 2 && fs[0] !== fs[1] && (coplanar(fs[0], fs[1]) || sameNamed(fs[0], fs[1]))) parent.set(find(fs[0]), find(fs[1]));
   const groups = new Map<string, string[]>();
   for (const f of brep.faces) { const r = find(f.id); groups.set(r, [...(groups.get(r) ?? []), f.id]); }
 
@@ -68,7 +73,8 @@ export function bodyMesh(body: any, _revision: number, quality = 8): DisplayMesh
       for (let k = f.indexOffset; k < f.indexOffset + f.indexCount; k++) idx.push(mesh.indices[k] - f.vertexOffset + base);
       displayOf.set(id, b.faces.length);
     }
-    addFace(b, root, meshFace.get(root)!.kind === 'planar' ? 'plane' : 'curved', pos, nor, idx);
+    const names = [...new Set(members.map(m => baseName(nameOf.get(m))))];
+    addFace(b, root, names.length === 1 ? names[0] : members.map(m => nameOf.get(m)!).join('+'), meshFace.get(root)!.kind === 'planar' ? 'plane' : 'curved', pos, nor, idx);
   }
 
   // Vertex normal of a B-rep face at a position, to hide smooth (tangent) joints.
@@ -78,7 +84,7 @@ export function bodyMesh(body: any, _revision: number, quality = 8): DisplayMesh
     return null;
   };
   const edges: DisplayEdge[] = [], lines: number[] = [], segmentEdge: number[] = [];
-  const curves = new Map(brep.edges.map(e => [e.id, e.curve]));
+  const curves = new Map(brep.edges.map(e => [e.id, e.curve])), edgeName = new Map(brep.edges.map(e => [e.id, e.name ?? e.id]));
   for (const e of mesh.edges) {
     const fs = facesOfEdge.get(e.edgeId) ?? [], pts: Vec3[] = [];
     for (let k = 0; k < e.pointsMM.length; k += 3) pts.push([e.pointsMM[k], e.pointsMM[k + 1], e.pointsMM[k + 2]]);
@@ -87,17 +93,28 @@ export function bodyMesh(body: any, _revision: number, quality = 8): DisplayMesh
     if (na && nb && dot(na, nb) > Math.cos(Math.PI / 9)) continue; // tangent joint
     const curve = curves.get(e.edgeId)!, straight = curve.degree === 1 && curve.controlPoints.length === 2;
     const a = pts[0], z = pts[pts.length - 1], dir = norm(sub(z, a)), fa = displayOf.get(fs[0])!, fb = displayOf.get(fs[1])!;
-    // Collinear straight pieces between the same two faces (grid vertices split them) show as one edge.
-    const mate = straight ? edges.find(d => d.straight && ((d.faces[0] === fa && d.faces[1] === fb) || (d.faces[0] === fb && d.faces[1] === fa))
-      && len(cross(norm(sub(d.b, d.a)), dir)) < 1e-9 && len(cross(sub(a, d.a), dir)) < 1e-6) : undefined;
+    // Pieces between the same two faces show as one edge: collinear straight pieces (grid vertices split
+    // them), and curved pieces joined end to end (a circle in halves).
+    const pair = (d: DisplayEdge) => (d.faces[0] === fa && d.faces[1] === fb) || (d.faces[0] === fb && d.faces[1] === fa);
+    const near = (p: Vec3, q: Vec3) => len(sub(p, q)) < 1e-6 * Math.max(1, len(p));
+    const mate = straight ? edges.find(d => d.straight && pair(d) && len(cross(norm(sub(d.b, d.a)), dir)) < 1e-9 && len(cross(sub(a, d.a), dir)) < 1e-6)
+      : edges.find(d => !d.straight && pair(d) && (near(d.a, a) || near(d.a, z) || near(d.b, a) || near(d.b, z)));
     if (mate) {
-      const ext = [mate.a, mate.b, a, z], d0 = norm(sub(mate.b, mate.a)), t = ext.map(p => dot(sub(p, mate.a), d0));
-      mate.a = ext[t.indexOf(Math.min(...t))]; mate.b = ext[t.indexOf(Math.max(...t))];
-      lines.push(...a, ...z); segmentEdge.push(mate.index, mate.index); continue;
+      if (straight) {
+        const ext = [mate.a, mate.b, a, z], d0 = norm(sub(mate.b, mate.a)), t = ext.map(p => dot(sub(p, mate.a), d0));
+        mate.a = ext[t.indexOf(Math.min(...t))]; mate.b = ext[t.indexOf(Math.max(...t))];
+      } else {
+        // Keep the chain's two free ends (a closed chain has none left; its ends then coincide).
+        const ends = [mate.a, mate.b, a, z].filter((p, k, all) => all.filter(q => near(p, q)).length === 1);
+        if (ends.length === 2) [mate.a, mate.b] = ends; else mate.b = mate.a;
+      }
+      mate.names.push(edgeName.get(e.edgeId)!);
+      for (let k = 0; k + 1 < pts.length; k++) { lines.push(...pts[k], ...pts[k + 1]); segmentEdge.push(mate.index, mate.index); }
+      continue;
     }
     const axis = straight ? (['x', 'y', 'z'] as const).find((_, k) => Math.abs(Math.abs(dir[k]) - 1) < 1e-9) ?? null : null;
     const index = edges.length;
-    edges.push({ index, faces: [fa, fb], a, b: z, straight, axis });
+    edges.push({ index, faces: [fa, fb], a, b: z, straight, axis, names: [edgeName.get(e.edgeId)!] });
     for (let k = 0; k + 1 < pts.length; k++) { lines.push(...pts[k], ...pts[k + 1]); segmentEdge.push(index, index); }
   }
   const positions = new Float32Array(b.p), normals = new Float32Array(b.n), faceOfVertex = new Float32Array(b.f), indices = new Uint32Array(b.i);

@@ -60,26 +60,56 @@ test('union of two boxes meshes the orthogonal result', () => {
   assert.equal(r.bodies[0].mesh.edges.length, 18);
 });
 
-test('pattern keeps the parent and adds copies; rollback evaluates a prefix', () => {
+test('a pattern is one output holding the original and its copies; rollback evaluates a prefix', () => {
   let doc = rectanglePart(20, 10, 5);
   doc = withNode(doc, { kind: 'linear-pattern', parent: { node: 1, side: 'solid' }, axis: 'x', spacing: 30, count: 3 });
   const r = evaluateDoc(doc, 1);
   assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
-  assert.equal(r.bodies.length, 3);
+  assert.equal(r.bodies.length, 1);
+  assert.ok(Math.abs(signedVolume(r.bodies[0].mesh) - 3000) < 1e-6);
+  assert.equal(r.bodies[0].mesh.bounds.max[0], 80);
   const rolled = evaluateDoc(prefixDoc(doc, 2), 2);
   assert.ok(rolled.ok);
   assert.equal(rolled.bodies.length, 1);
 });
 
 test('kernel refusals come back as plain-language errors', () => {
-  // Ø6 on 100 × 60 was refused before numeric policy v1; it now evaluates. A hole touching the edge still refuses.
-  assert.equal(evaluateDoc(withNode(rectanglePart(100, 60, 5), { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [6, 6], radius: 3 }), 1).ok, true);
-  const r = evaluateDoc(withNode(rectanglePart(100, 60, 5), { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [2, 30], radius: 4 }), 1);
+  // A hole crossing the plate's edge is a notch; one that misses the plate is refused.
+  const notch = evaluateDoc(withNode(rectanglePart(100, 60, 5), { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [2, 30], radius: 4 }), 1);
+  assert.ok(notch.ok && notch.bodies[0].volumeMM3! < 30000);
+  const r = evaluateDoc(withNode(rectanglePart(100, 60, 5), { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [200, 30], radius: 4 }), 1);
   assert.equal(r.ok, false);
   if (!r.ok) {
-    assert.match(r.error.title, /must stay inside the face/);
-    assert.match(r.error.detail, /contained circular hole/);
+    assert.match(r.error.title, /misses the body/);
+    assert.match(r.error.detail, /misses the target/);
   }
+});
+
+test('B-rep part model: Boolean chains, holes on results, and name-based fillets that survive edits', () => {
+  // Plate ∪ boss ∪ second boss, a hole through the result, then the plate's corner rounded by name.
+  let doc = rectanglePart(60, 40, 8);
+  doc = withNode(doc, { kind: 'sketch', profile: 'circle', center: [15, 20], radius: 6 });
+  doc = withNode(doc, { kind: 'extrude', sketch: 2, height: 10, from: 8 });
+  doc = withNode(doc, { kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } });
+  doc = withNode(doc, { kind: 'sketch', profile: 'rectangle', min: [35, 10], max: [50, 30] });
+  doc = withNode(doc, { kind: 'extrude', sketch: 5, height: 6, from: 8 });
+  doc = withNode(doc, { kind: 'union', left: { node: 4, side: 'solid' }, right: { node: 6, side: 'solid' } });
+  doc = withNode(doc, { kind: 'hole', parent: { node: 7, side: 'solid' }, center: [15, 20], radius: 3 });
+  const before = evaluateDoc(doc, 1);
+  assert.ok(before.ok, JSON.stringify(!before.ok && before.error));
+  const mesh = before.bodies[0].mesh, corner = mesh.edges.find(e => e.axis === 'z' && e.a[0] === 60 && e.a[1] === 0)!;
+  assert.deepEqual(corner.names, ['n1.side0|n1.side1']);
+  assert.ok(mesh.faces.some(f => f.name === 'n8.side0' && f.kind === 'curved'), 'the hole wall is one named face');
+  doc = withNode(doc, { kind: 'fillet', parent: { node: 8, side: 'solid' }, edges: corner.names, radius: 5 });
+  const filleted = evaluateDoc(doc, 2);
+  assert.ok(filleted.ok, JSON.stringify(!filleted.ok && filleted.error));
+  const exact = 60 * 40 * 8 + Math.PI * 36 * 10 + 15 * 20 * 6 - Math.PI * 9 * 18 - (25 - 25 * Math.PI / 4) * 8;
+  assert.ok(Math.abs(filleted.bodies[0].volumeMM3! - exact) < 1e-6, String(filleted.bodies[0].volumeMM3));
+  // A wider, thicker plate: the fillet still finds its edge by name.
+  const edited = { ...doc, nodes: doc.nodes.map((n, i) => i === 0 ? { ...n, max: [90, 40] } : i === 1 ? { ...n, height: 12 } : n) as typeof doc.nodes };
+  const after = evaluateDoc(edited, 3);
+  assert.ok(after.ok, JSON.stringify(!after.ok && after.error));
+  assert.ok(after.bodies[0].mesh.faces.some(f => f.name === 'n9.face'));
 });
 
 test('a slot sketch extrudes as one line + arc body with two curved faces and exact mass', async () => {
@@ -89,14 +119,15 @@ test('a slot sketch extrudes as one line + arc body with two curved faces and ex
   const r = evaluateDoc(doc, 1);
   assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
   const [body] = r.bodies;
-  assert.equal(body.family, 'extruded-profile');
+  assert.equal(body.family, 'upright');
   assert.equal(body.mesh.faces.length, 6);
   assert.equal(body.mesh.faces.filter(f => f.kind === 'curved').length, 2);
   const exact = (480 + Math.PI * 36) * 5;
   assert.ok(Math.abs(body.volumeMM3! - exact) < 1e-8);
   assert.ok(Math.abs(signedVolume(body.mesh) - exact) / exact < 5e-3);
   // Tangent line/arc joints draw no seam: only the two cap outlines remain (as straight runs and arc polylines).
-  assert.ok(body.mesh.edges.every(e => e.faces.includes(0) || e.faces.includes(1)));
+  const cap = (f: number) => body.mesh.faces[f].kind === 'plane' && Math.abs(body.mesh.faces[f].normal[2]) > 0.99;
+  assert.ok(body.mesh.edges.every(e => e.faces.some(cap)));
 });
 
 test('a concave outline with an arc notch becomes a loop body; straight convex outlines stay polygons', async () => {

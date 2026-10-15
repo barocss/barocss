@@ -74,7 +74,7 @@ try {
     await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
   });
 
-  await check('any hole size works; a hole outside the face explains itself', async () => {
+  await check('any hole size works; a hole off the body explains itself', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
     await field('Width X').fill('100'); await field('Depth Y').fill('60'); await field('Height Z').fill('5'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
     await page.waitForFunction(() => /Extrude 5/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
@@ -83,9 +83,12 @@ try {
     // Ø6 on 100 × 60 used to be refused (non-dyadic chart parameters); numeric policy v1 certifies it.
     await press('h'); await hudReady(); await field('Diameter').fill('6'); await field('Centre X').fill('6'); await field('Centre Y').fill('6');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 });
+    // Crossing the edge makes a notch (B-rep part model); missing the plate is refused with the reason.
     await field('Centre X').fill('2'); await field('Diameter').fill('8');
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 });
+    await field('Centre X').fill('300');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'refused', null, { timeout: 15000 });
-    assert.match(await page.locator('.hud-error').innerText(), /must stay inside the face/);
+    assert.match(await page.locator('.hud-error').innerText(), /misses the body/);
     await press('Escape');
   });
 
@@ -95,7 +98,30 @@ try {
     await page.locator('.outliner .ol').first().click();
     const [cx, cy] = await canvasCenter(); await page.mouse.click(cx, cy + 300, { button: 'right' });
     await page.locator('.ctx-item', { hasText: 'Linear pattern' }).click(); await hudReady(); await page.waitForTimeout(400); await press('Enter');
+    // The pattern is one feature result holding the original and its copies.
+    await page.waitForFunction(() => /Pattern ×3/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.match(await outliner(), /1 body/);
+  });
+
+  await check('Boolean chains and a hole on the result (no feature limits)', async () => {
+    await page.click('[aria-label="New part"]');
+    for (const [x, y] of [[0, 0], [24, 8], [48, 0]]) {
+      await press('b'); await hudReady(); await field('At X').fill(String(x)); await field('At Y').fill(String(y)); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+      await page.waitForTimeout(300);
+    }
     await page.waitForFunction(() => /3 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    for (let k = 0; k < 2; k++) {
+      const rows = page.locator('.outliner .ol'); await rows.nth(0).click(); await rows.nth(1).click({ modifiers: ['Shift'] });
+      await press('u'); await page.waitForFunction(n => document.querySelectorAll('.outliner .ol').length === n, 2 - k, { timeout: 15000 });
+    }
+    assert.match(await outliner(), /1 body/);
+    await page.click('.views button:text-is("Top")'); await page.waitForTimeout(300);
+    const [cx, cy] = await canvasCenter(); await page.mouse.move(cx, cy); await page.mouse.click(cx, cy);
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props')?.textContent ?? ''));
+    await press('h'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
+    await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(400);
   });
 
   const doc = () => page.evaluate(() => window.__studioDoc);
@@ -197,8 +223,10 @@ try {
   });
 
   await check('command palette and light theme', async () => {
-    await press('Escape'); await press(' '); await page.locator('.palette input').fill('fillet');
+    await press('Escape'); await press(' '); await page.locator('.palette input').fill('shell');
     assert.match(await page.locator('.palette-list').innerText(), /isn’t available in the kernel yet/);
+    await page.locator('.palette input').fill('fillet');
+    assert.match(await page.locator('.palette-list').innerText(), /Select vertical edges/);
     await press('Escape'); await page.click('[aria-label="Toggle light or dark theme"]');
     assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'light');
   });
