@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { EngineClient } from './engine/client';
-import { emptyDoc, featureLabel, fmt, prefixDoc, starterDoc, withNode, type ModelNode, type StudioDoc } from './engine/doc';
+import { emptyDoc, featureLabel, fmt, loftTop, prefixDoc, starterDoc, withNode, type ModelNode, type SketchNode, type StudioDoc } from './engine/doc';
 import type { BodyResult } from './engine/evaluate';
 import type { FriendlyError } from './engine/errors';
 import type { Vec3 } from './engine/mesh';
@@ -159,8 +159,8 @@ export function App() {
       const f = selection.faces[0]; const face = f && bodies[f.body]?.mesh.faces[f.face];
       const planeZ = face && face.kind === 'plane' && face.normal[2] > 0.99 ? Math.round(face.centroid[2]) : 0;
       const base = face && planeZ > 0 ? refOf(bodies[f.body]) : null;
-      const make = cmd.id === 'revolve' ? 'revolve-y' as const : cmd.id === 'pipe' ? 'pipe' as const : undefined;
-      setSketch({ planeZ, tool: make ? 'circle' : 'rectangle', shape: null, base, ...(make ? { make } : {}) }); setActive(null); setPreviewBodies(null);
+      const make = cmd.id === 'revolve' ? 'revolve-y' as const : cmd.id === 'pipe' ? 'pipe' as const : cmd.id === 'loft' ? 'loft' as const : undefined;
+      setSketch({ planeZ, tool: make && make !== 'loft' ? 'circle' : 'rectangle', shape: null, base, ...(make ? { make } : {}) }); setActive(null); setPreviewBodies(null);
       const [min, max] = sketchRegion(base && f ? [bodies[f.body]] : bodies);
       viewport.current?.frameSketch(min, max, planeZ, SKETCH_INSETS); return;
     }
@@ -192,18 +192,24 @@ export function App() {
     const base = sketch.base ?? null;
     const extrude: Command = {
       id: 'extrude', label: 'Extrude', icon: 'height', group: 'create', available: () => ({ ok: true }),
-      fields: () => [{ key: 'make', label: 'Make', kind: 'choice', options: [{ value: 'extrude', label: 'Extrude' }, { value: 'revolve-y', label: 'Revolve about Y' }, { value: 'revolve-x', label: 'Revolve about X' }, { value: 'pipe', label: 'Pipe (run, bend, run)' }] },
+      fields: () => [{ key: 'make', label: 'Make', kind: 'choice', options: [{ value: 'extrude', label: 'Extrude' }, { value: 'revolve-y', label: 'Revolve about Y' }, { value: 'revolve-x', label: 'Revolve about X' }, { value: 'pipe', label: 'Pipe (run, bend, run)' }, { value: 'loft', label: 'Loft to a top section' }] },
         { key: 'h', label: 'Distance', kind: 'mm', min: 1 }, { key: 'draft', label: 'Draft', kind: 'deg', min: -60, max: 60, step: 1 }, { key: 'deg', label: 'Revolve angle', kind: 'deg', min: 1, max: 360, step: 15 },
         { key: 'bend', label: 'Pipe bend radius', kind: 'mm', min: 0.1 }, { key: 'toward', label: 'Pipe bends toward', kind: 'choice', options: [{ value: 'x', label: '+X' }, { value: '-x', label: '−X' }, { value: 'y', label: '+Y' }, { value: '-y', label: '−Y' }] },
+        { key: 'top', label: 'Loft top', kind: 'choice', options: [{ value: 'scaled', label: 'Same shape' }, { value: 'circle', label: 'Circle' }, { value: 'rectangle', label: 'Rectangle' }] },
+        { key: 'scale', label: 'Loft top size (%)', kind: 'count', min: 5, max: 400 },
         ...(base ? [{ key: 'op', label: 'Operation', kind: 'choice' as const, options: [{ value: 'join', label: 'Join to body' }, { value: 'new', label: 'New body' }, { value: 'cut', label: 'Cut from body' }] }] : [])],
-      defaults: () => ({ make: sketch.make ?? 'extrude', h: 8, draft: 0, deg: 360, bend: 20, toward: 'x', ...(base ? { op: 'join' } : {}) }),
+      defaults: () => ({ make: sketch.make ?? 'extrude', h: 8, draft: 0, deg: 360, bend: 20, toward: 'x', top: 'scaled', scale: 50, ...(base ? { op: 'join' } : {}) }),
       build: (c, v) => {
         const cut = v.op === 'cut'; const d = withNode(c.doc, node);
         // A cut extrudes down into the body from the face; join/new extrude up from it. A revolve turns
         // the profile about the sketch axis (the sketch plane is lifted onto the face afterwards).
         const height = Number(v.h); const from = cut ? planeZ - height : planeZ;
         // A pipe: a run of Distance, a bend of the radius and the revolve angle (90° by default), a run again.
-        let e = v.make === 'pipe'
+        // A loft: the drawn profile at the sketch plane, a top section Distance above (up, or down into the body for a cut).
+        let e = v.make === 'loft'
+          ? (() => { const t = withNode(d, loftTop(node as SketchNode, v.top as 'scaled', Number(v.scale) / 100)), s = d.nodes.length - 1, z1 = cut ? planeZ - height : planeZ + height;
+            return withNode(t, { kind: 'loft', sections: cut ? [{ sketch: s + 1, z: z1 }, { sketch: s, z: planeZ }] : [{ sketch: s, z: planeZ }, { sketch: s + 1, z: z1 }] }); })()
+          : v.make === 'pipe'
           ? withNode(d, { kind: 'sweep', sketch: d.nodes.length - 1, path: [{ kind: 'straight', length: height }, { kind: 'bend', radius: Number(v.bend), angleDegrees: Number(v.deg) >= 360 ? 90 : Number(v.deg), toward: v.toward as 'x' }, { kind: 'straight', length: height }] })
           : String(v.make).startsWith('revolve')
           ? withNode(d, { kind: 'revolve', sketch: d.nodes.length - 1, axis: v.make === 'revolve-x' ? 'x' : 'y', angleDegrees: Number(v.deg) })
@@ -458,7 +464,7 @@ export function App() {
 }
 
 function iconFor(n: ModelNode) {
-  return ({ extrude: 'height', revolve: 'autorenew', shell: 'inventory_2', import: 'file_open', sweep: 'conversion_path', hole: 'radio_button_checked', chamfer: 'change_history', fillet: 'rounded_corner', union: 'join_full', difference: 'join_left', intersect: 'join_inner',
+  return ({ extrude: 'height', revolve: 'autorenew', shell: 'inventory_2', import: 'file_open', sweep: 'conversion_path', loft: 'filter_list', hole: 'radio_button_checked', chamfer: 'change_history', fillet: 'rounded_corner', union: 'join_full', difference: 'join_left', intersect: 'join_inner',
     translate: 'open_with', rotate: '3d_rotation', mirror: 'flip', scale: 'open_in_full', 'linear-pattern': 'view_week', 'circular-pattern': 'motion_photos_on', split: 'vertical_split', sketch: 'draw' } as Record<string, string>)[n.kind] ?? 'category';
 }
 

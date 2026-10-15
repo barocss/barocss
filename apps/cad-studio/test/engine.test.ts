@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateDoc, stepFor } from '../src/engine/evaluate';
 import { importStep, checkBrep, brepMassProperties } from '@barocss/cad';
-import { cylinderPart, emptyDoc, featureLabel, leafBodies, prefixDoc, rectanglePart, starterDoc, withNode } from '../src/engine/doc';
+import { cylinderPart, emptyDoc, featureLabel, leafBodies, loftTop, prefixDoc, rectanglePart, starterDoc, withNode } from '../src/engine/doc';
 import type { DisplayMesh } from '../src/engine/mesh';
 
 // Signed volume of a closed, outward-wound triangle mesh.
@@ -235,6 +235,23 @@ test('pipe: a circle swept along a run, a bend and a run, with exact mass', () =
   assert.equal(featureLabel(doc.nodes[1], 1, doc.nodes), 'Pipe 3 steps');
   const tight = evaluateDoc(withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [0, 0], radius: 2 }), { kind: 'sweep', sketch: 0, path: [{ kind: 'bend', radius: 1, angleDegrees: 90, toward: 'x' }] }), 2);
   assert.equal(tight.ok, false);
+});
+
+test('loft: a square to a smaller square above is a frustum, exact; the top comes from the drawn sketch', () => {
+  const bottom = { kind: 'sketch' as const, profile: 'rectangle' as const, min: [0, 0] as [number, number], max: [20, 20] as [number, number] };
+  const top = loftTop(bottom, 'scaled', 0.5);
+  assert.deepEqual(top, { kind: 'sketch', profile: 'rectangle', min: [5, 5], max: [15, 15] });
+  assert.deepEqual(loftTop(bottom, 'circle', 0.5), { kind: 'sketch', profile: 'circle', center: [10, 10], radius: 5 });
+  let doc = withNode(withNode(emptyDoc(), bottom), top);
+  doc = withNode(doc, { kind: 'loft', sections: [{ sketch: 0, z: 0 }, { sketch: 1, z: 12 }] });
+  const r = evaluateDoc(doc, 1), exact = 12 / 3 * (400 + 100 + 200);
+  assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+  assert.equal(r.bodies.length, 1);
+  assert.ok(Math.abs(r.bodies[0].volumeMM3! - exact) < 1e-9 * exact, String(r.bodies[0].volumeMM3));
+  assert.equal(featureLabel(doc.nodes[2], 2, doc.nodes), 'Loft 2 sections');
+  const flat = evaluateDoc(withNode(withNode(withNode(emptyDoc(), bottom), top), { kind: 'loft', sections: [{ sketch: 0, z: 4 }, { sketch: 1, z: 4 }] }), 2);
+  assert.equal(flat.ok, false);
+  assert.match(!flat.ok ? flat.error.title : '', /climb/);
 });
 
 test('revolve: a circle sketch turns into a torus, cut by a box; a profile along the axis is solid, one across it refused', () => {

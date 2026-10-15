@@ -26,6 +26,7 @@ export function featureOf(node: ModelNode, index: number): CadPartFeature {
     case 'circular-pattern': return { ...at, kind: 'circular-pattern', target: ref(node.parent), axis: node.axis, angleDegrees: node.angleDegrees, count: node.count };
     case 'split': return { ...at, kind: 'split', target: ref(node.parent), axis: node.axis, at: node.at };
     case 'sweep': return { ...at, kind: 'sweep', sketch: id(node.sketch), path: node.path };
+    case 'loft': return { ...at, kind: 'loft', sections: node.sections.map(s => ({ sketch: id(s.sketch), z: s.z })) };
     case 'import': return { ...at, kind: 'import', step: node.step };
     case 'shell': return { ...at, kind: 'shell', target: ref(node.parent), thickness: node.thickness, open: node.open };
     case 'chamfer': return { ...at, kind: 'chamfer', target: ref(node.parent), edges: node.edges, distance: node.distance };

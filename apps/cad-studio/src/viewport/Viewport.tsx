@@ -18,7 +18,7 @@ export type SketchShape =
   | { kind: 'slot'; a: [number, number]; b: [number, number]; r: number };
 
 export interface SketchState { planeZ: number; tool: SketchTool; shape: SketchShape | null; base?: { node: number; side: string } | null; /** What the finished profile makes by default. */ make?: Make }
-export type Make = 'extrude' | 'revolve-y' | 'revolve-x' | 'pipe';
+export type Make = 'extrude' | 'revolve-y' | 'revolve-x' | 'pipe' | 'loft';
 export interface Gizmo { origin: Vec3; values: Vec3; onDrag(values: Vec3): void }
 
 export interface ViewportHandle {

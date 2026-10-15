@@ -259,6 +259,18 @@ try {
     const last = (await doc()).nodes.at(-1); assert.equal(last.kind, 'sweep'); assert.equal(last.path[1].kind, 'bend'); await iso();
   });
 
+  await check('loft a rectangle to a circle from the palette', async () => {
+    await page.click('[aria-label="New part"]'); await press(' '); await page.locator('.palette input').fill('loft'); await press('Enter');
+    const [cx, cy] = await canvasCenter();
+    await clickAt(cx - 60, cy - 60); await page.mouse.move(cx + 30, cy + 30); await page.mouse.move(cx + 60, cy + 60); await page.mouse.click(cx + 60, cy + 60);
+    await press('Enter'); await hudReady();
+    assert.equal(await field('Make').inputValue(), 'loft');
+    await field('Loft top').selectOption('circle'); await hudReady(); await page.waitForTimeout(300);
+    await page.locator('.hud button', { hasText: 'Apply' }).click();
+    await page.waitForFunction(() => /Loft 2 sections/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 20000 });
+    const d = await doc(), last = d.nodes.at(-1); assert.equal(last.kind, 'loft'); assert.equal(d.nodes[last.sections[1].sketch].profile, 'circle'); await iso();
+  });
+
   await check('fillet a box top edge from the palette', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });

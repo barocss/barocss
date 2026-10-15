@@ -29,6 +29,8 @@ export type ModelNode = SketchNode
   | { kind: 'split'; parent: BodyRef; at: Dim; axis: Axis }
   /** The sketch swept along straight runs and bends (from the sketch plane up +Z). */
   | { kind: 'sweep'; sketch: number; path: ({ kind: 'straight'; length: Dim } | { kind: 'bend'; radius: Dim; angleDegrees: number; toward: 'x' | '-x' | 'y' | '-y' })[] }
+  /** A ruled loft through sketches at increasing heights (each section's edges to the next one's). */
+  | { kind: 'loft'; sections: { sketch: number; z: Dim }[] }
   /** A body read from a STEP file (the file's text is kept in the document). */
   | { kind: 'import'; name: string; step: string }
   /** Hollowed to walls `thickness` thick, the named faces removed (none: a closed hollow). */
@@ -56,6 +58,7 @@ export function parentsOf(node: ModelNode): number[] {
   switch (node.kind) {
     case 'sketch': return [];
     case 'extrude': case 'revolve': case 'sweep': return [node.sketch];
+    case 'loft': return node.sections.map(s => s.sketch);
     case 'import': return [];
     case 'union': case 'intersect': return [node.left.node, node.right.node];
     case 'difference': return [node.parent.node, node.tool.node];
@@ -69,7 +72,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
   // side is consumed on its own.
   const consumed = new Set<string>();
   nodes.forEach(node => {
-    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'import') return;
+    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import') return;
     const refs = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : [node.parent];
     refs.forEach(r => consumed.add(r.side === 'solid' ? String(r.node) : `${r.node}_${r.side}`));
   });
@@ -97,6 +100,26 @@ export function withNode(doc: StudioDoc, node: ModelNode): StudioDoc {
   return prefixDoc(next, next.nodes.length);
 }
 
+/**
+ * A loft's top section from a drawn (numeric) sketch: the same shape, a circle or a rectangle, sized
+ * `scale` times the sketch about the centre of its outline's box.
+ */
+export function loftTop(sketch: SketchNode, shape: 'scaled' | 'circle' | 'rectangle', scale: number): SketchNode {
+  const pts: [number, number][] = sketch.profile === 'rectangle' ? [sketch.min, sketch.max].map(p => p.map(Number) as [number, number])
+    : sketch.profile === 'circle' ? [[Number(sketch.center[0]) - Number(sketch.radius), Number(sketch.center[1]) - Number(sketch.radius)], [Number(sketch.center[0]) + Number(sketch.radius), Number(sketch.center[1]) + Number(sketch.radius)]]
+      : sketch.profile === 'polygon' ? sketch.points.map(p => p.map(Number) as [number, number]) : sketch.segments.map(g => g.start.map(Number) as [number, number]);
+  const lo = [Math.min(...pts.map(p => p[0])), Math.min(...pts.map(p => p[1]))], hi = [Math.max(...pts.map(p => p[0])), Math.max(...pts.map(p => p[1]))];
+  const c: [number, number] = [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2], at = (p: readonly Dim[]): [number, number] => [c[0] + (Number(p[0]) - c[0]) * scale, c[1] + (Number(p[1]) - c[1]) * scale];
+  if (shape === 'circle') return { kind: 'sketch', profile: 'circle', center: c, radius: Math.min(hi[0] - lo[0], hi[1] - lo[1]) / 2 * scale };
+  if (shape === 'rectangle') return { kind: 'sketch', profile: 'rectangle', min: at(lo), max: at(hi) };
+  switch (sketch.profile) {
+    case 'rectangle': return { ...sketch, min: at(sketch.min), max: at(sketch.max) };
+    case 'circle': return { ...sketch, center: at(sketch.center), radius: Number(sketch.radius) * scale };
+    case 'polygon': return { ...sketch, points: sketch.points.map(at) };
+    case 'loop': return { ...sketch, segments: sketch.segments.map(g => g.kind === 'line' ? { ...g, start: at(g.start) } : { ...g, start: at(g.start), center: at(g.center) }) };
+  }
+}
+
 export function featureLabel(node: ModelNode, index: number, nodes: readonly ModelNode[]): string {
   const n = (v: Dim) => typeof v === 'number' ? fmt(v) : v.parameter;
   switch (node.kind) {
@@ -122,6 +145,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'split': return `Split ${node.axis.toUpperCase()}=${n(node.at)}`;
     case 'shell': return `Shell ${n(node.thickness)}`;
     case 'import': return `Import ${node.name}`;
+    case 'loft': return `Loft ${node.sections.length} sections`;
     case 'sweep': return `Pipe ${node.path.length === 1 ? '1 step' : `${node.path.length} steps`}`;
   }
   return `Feature ${index + 1}`;
