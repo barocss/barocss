@@ -273,6 +273,13 @@ try {
     assert.equal(last.kind, 'shell'); assert.deepEqual(last.open, [`n${ext}.top`]); await iso();
   });
 
+  await check('export the part as STEP', async () => {
+    const [download] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export STEP"]')]);
+    assert.match(download.suggestedFilename(), /\.step$/);
+    const path = await download.path(), text = (await import('node:fs')).readFileSync(path, 'utf8');
+    assert.match(text, /^ISO-10303-21;/); assert.match(text, /MANIFOLD_SOLID_BREP|BREP_WITH_VOIDS/); assert.match(text, /AUTOMOTIVE_DESIGN/);
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await press(' '); await page.locator('.palette input').fill('loft');
     assert.match(await page.locator('.palette-list').innerText(), /isn’t available in the kernel yet/);

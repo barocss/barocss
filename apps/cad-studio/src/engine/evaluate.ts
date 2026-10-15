@@ -1,4 +1,4 @@
-import { evaluateCadPart, type CadPartSnapshot } from '@barocss/cad';
+import { evaluateCadPart, type CadPartSnapshot, exportStep } from '@barocss/cad';
 import { bodyMesh, type DisplayMesh } from './mesh';
 import { friendly, type FriendlyError } from './errors';
 import { bodyKeyOf, toPartDocument } from './part';
@@ -36,6 +36,15 @@ export function evaluateDoc(doc: StudioDoc, revision: number, quality = 8): Eval
   } catch (cause) {
     return { ok: false, revision, error: friendly(cause instanceof Error ? cause.message : String(cause)), ms: performance.now() - t0 };
   }
+}
+
+/** The whole part (every visible body) as one STEP file, or the reason it cannot be written. */
+export function stepFor(doc: StudioDoc, name: string): { text: string } | { error: string } {
+  try {
+    const outputs = snapshotOf(doc).outputs;
+    if (!outputs.length) return { error: 'There is no body to export.' };
+    return { text: exportStep(outputs.map(o => o.brep), { name }) };
+  } catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
 }
 
 export function stlFor(doc: StudioDoc, key: string): Uint8Array | null {

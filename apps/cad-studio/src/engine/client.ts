@@ -24,6 +24,14 @@ export class EngineClient {
     });
   }
 
+  step(doc: StudioDoc, name: string): Promise<{ text: string } | { error: string }> {
+    const id = this.next++;
+    return new Promise(resolve => {
+      this.pending.set(id, data => resolve((data as { step: { text: string } | { error: string } }).step));
+      this.worker.postMessage({ type: 'step', id, doc, name });
+    });
+  }
+
   stl(doc: StudioDoc, key: string): Promise<Uint8Array | null> {
     const id = this.next++;
     return new Promise(resolve => {

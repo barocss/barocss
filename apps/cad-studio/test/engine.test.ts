@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc } from '../src/engine/evaluate';
+import { evaluateDoc, stepFor } from '../src/engine/evaluate';
+import { importStep, checkBrep, brepMassProperties } from '@barocss/cad';
 import { cylinderPart, emptyDoc, featureLabel, leafBodies, prefixDoc, rectanglePart, starterDoc, withNode } from '../src/engine/doc';
 import type { DisplayMesh } from '../src/engine/mesh';
 
@@ -194,6 +195,20 @@ test('extrude with draft: the walls lean in, the volume is exact, the label show
   assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
   assert.ok(Math.abs(r.bodies[0].volumeMM3! - exact) < 1e-6 * exact, String(r.bodies[0].volumeMM3));
   assert.equal(featureLabel(doc.nodes[1], 1, doc.nodes), 'Extrude 10 · 5°');
+});
+
+test('STEP export of the whole part: every body in one exact file that reads back', () => {
+  let doc = starterDoc();
+  doc = withNode(doc, { kind: 'linear-pattern', parent: { node: 2, side: 'solid' }, axis: 'x', spacing: 80, count: 2 });
+  const r = stepFor(doc, 'plate');
+  assert.ok('text' in r, JSON.stringify(r));
+  if (!('text' in r)) return;
+  assert.equal((r.text.match(/MANIFOLD_SOLID_BREP/g) ?? []).length, 2);
+  assert.match(r.text, /FILE_NAME\('plate\.step'/);
+  const back = importStep(r.text), plate = 64 * 32 * 8 - Math.PI * 16 * 8;
+  assert.equal(checkBrep(back).valid, true);
+  assert.ok(Math.abs(brepMassProperties(back, 1000, { segmentsPerQuarter: 32 }).volumeMM3 - 2 * plate) < 1e-3 * plate);
+  assert.ok('error' in stepFor(emptyDoc(), 'empty'));
 });
 
 test('revolve: a circle sketch turns into a torus, cut by a box; a profile along the axis is solid, one across it refused', () => {

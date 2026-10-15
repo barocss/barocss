@@ -248,6 +248,11 @@ export function App() {
       setTimeout(() => viewport.current?.fit(), 300);
     } catch (e) { setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); }
   };
+  const exportStepFile = async () => {
+    const r = await engine.step(evaluated, fileName);
+    if ('text' in r) downloadBytes(new TextEncoder().encode(r.text), `${fileName}.step`, 'model/step');
+    else setToast({ title: 'Could not write STEP', hint: 'Fix the model’s errors first, then export again.', detail: r.error });
+  };
   const exportStl = async () => {
     for (const body of bodies) {
       const kernel = await engine.stl(evaluated, body.key);
@@ -323,6 +328,7 @@ export function App() {
         <button className="tool" aria-label="Open" title="Open .bcad" onClick={() => fileInput.current?.click()}><Icon name="folder_open" /></button>
         <button className="tool" aria-label="Save" title="Save (⌘S)" onClick={save}><Icon name="save" /></button>
         <button className="tool" aria-label="Export STL" title="Export STL" onClick={exportStl}><Icon name="download" /></button>
+        <button className="tool" aria-label="Export STEP" title="Export STEP (exact solid for other CAD)" onClick={exportStepFile}><Icon name="deployed_code_update" /></button>
         <input ref={fileInput} type="file" accept=".bcad,.json" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
       </header>
 
