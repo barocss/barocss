@@ -99,7 +99,7 @@ interface GFace {
 /** A 3D curve piece: a segment, or an arc about c in the plane ⊥ n from u through `sweep` (≥ 0, CCW about n). */
 type Curve3 = { kind: 'line'; p: P3; q: P3 } | { kind: 'arc'; c: P3; n: P3; r: number; u: P3; sweep: number }
   /** A smooth curve on the parameter range t0 → t1 (either order). */
-  | { kind: 'param'; at: (t: number) => P3; t0: number; t1: number };
+  | { kind: 'param'; at: (t: number) => P3; t0: number; t1: number; /** `at` is an exact curve (a line or arc's map onto a general face), not a fit. */ exact?: boolean };
 const paramAt = (k: Extract<Curve3, { kind: 'param' }>, u: number) => k.at(k.t0 + (k.t1 - k.t0) * u);
 const arcAt = (k: Extract<Curve3, { kind: 'arc' }>, phi: number): P3 => add(k.c, add(scale(k.u, k.r * Math.cos(phi)), scale(cross(k.n, k.u), k.r * Math.sin(phi))));
 
@@ -205,7 +205,7 @@ function curve2(f: { surf: Surf }, k: Curve3, tol: number, tag?: string): CurveS
       const toward = Math.abs(x - t0) < Math.abs(x - t1) ? 1 : -1, n1 = to2(f, at3(x + toward * 1e-3 * span), hint), n2 = to2(f, at3(x + toward * 2e-3 * span), hint);
       return q.along === 0 ? [2 * n1[0] - n2[0], q.at] : [q.at, 2 * n1[1] - n2[1]];
     };
-    return { kind: 'curve', f: tabulated(s, g, at3, t0, t1), t0, t1, src: at3, ...t };
+    return { kind: 'curve', f: tabulated(s, g, at3, t0, t1), t0, t1, src: at3, ...t, ...(k.kind !== 'param' || k.exact ? { exact: true } : {}) } as CurveSegment2;
   }
   if (k.kind === 'param') return { kind: 'curve', f: memo(x => to2(f, k.at(x))), t0: k.t0, t1: k.t1, src: k.at, ...t };
   if (k.kind === 'line') {
@@ -279,7 +279,7 @@ function memo(g: (x: number) => XY): (x: number) => XY {
 /** A 2D segment of a face's domain as a 3D curve. */
 function curve3Of(f: { surf: Surf }, g: CurveSegment2): Curve3 {
   const s = f.surf;
-  if (g.kind === 'curve') { const src = g.src as ((t: number) => P3) | undefined; return { kind: 'param', at: src ?? (x => to3(f, g.f(x))), t0: g.t0, t1: g.t1 }; }
+  if (g.kind === 'curve') { const src = g.src as ((t: number) => P3) | undefined; return { kind: 'param', at: src ?? (x => to3(f, g.f(x))), t0: g.t0, t1: g.t1, ...(src && (g as { exact?: boolean }).exact ? { exact: true } : {}) }; }
   if (s.kind === 'nurbs') { const seg = g; return { kind: 'param', at: x => to3(f, segAtAny(seg, x)), t0: 0, t1: 1 }; }
   if (s.kind === 'plane') {
     if (g.kind === 'line') return { kind: 'line', p: to3(f, g.a), q: to3(f, g.b) };
@@ -694,7 +694,25 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
 }
 
 /** Distance from x to a face's (untrimmed) surface. */
-/** A parametric curve that is a segment or a circular arc, as one (exact domain maps, fast arrangements). */
+/** Distance in a domain from a point to a line or arc cut. */
+function cutDistance(g: CurveSegment2, p: XY): number {
+  if (g.kind === 'line') { const d = [g.b[0] - g.a[0], g.b[1] - g.a[1]], l2 = d[0] * d[0] + d[1] * d[1], t = l2 ? Math.max(0, Math.min(1, ((p[0] - g.a[0]) * d[0] + (p[1] - g.a[1]) * d[1]) / l2)) : 0; return Math.hypot(p[0] - g.a[0] - d[0] * t, p[1] - g.a[1] - d[1] * t); }
+  if (g.kind === 'arc') {
+    const a = Math.atan2(p[1] - g.c[1], p[0] - g.c[0]), lo = Math.min(g.t0, g.t0 + g.sweep), rel = ((a - lo) % TWO_PI + TWO_PI) % TWO_PI;
+    if (rel <= Math.abs(g.sweep)) return Math.abs(Math.hypot(p[0] - g.c[0], p[1] - g.c[1]) - g.r);
+    const e = [segAtAny(g, 0), segAtAny(g, 1)]; return Math.min(...e.map(q => Math.hypot(q[0] - p[0], q[1] - p[1])));
+  }
+  return Infinity;
+}
+function dedupeCuts(cuts: CurveSegment2[], tol: number): CurveSegment2[] {
+  const exact = cuts.filter(g => g.kind !== 'curve'), eps = 10 * tol, at = (g: CurveSegment2, u: number) => segAtAny(g, u);
+  const same = (g: CurveSegment2, h: CurveSegment2) => { const d = (x: XY, y: XY) => Math.hypot(x[0] - y[0], x[1] - y[1]) <= eps; return d(at(g, 0.5), at(h, 0.5)) && ((d(at(g, 0), at(h, 0)) && d(at(g, 1), at(h, 1))) || (d(at(g, 0), at(h, 1)) && d(at(g, 1), at(h, 0)))); };
+  return cuts.filter((g, i) => {
+    if (g.kind === 'curve') return !exact.length || ![0.1, 0.3, 0.5, 0.7, 0.9].every(u => { const p = at(g, u); return exact.some(e => cutDistance(e, p) <= eps); });
+    return !cuts.slice(0, i).some(h => h.kind !== 'curve' && same(h, g));
+  });
+}
+/** A parametric curve that is a segment or a circular arc (to within `tol`), as one (exact domain maps, fast arrangements). */
 function exactly(k: Curve3, tol: number): Curve3 {
   if (k.kind !== 'param') return k;
   const P = Array.from({ length: 17 }, (_, i) => paramAt(k, i / 16)), a = P[0], b = P[16], m = P[8];
@@ -710,7 +728,10 @@ function exactly(k: Curve3, tol: number): Curve3 {
   let sweep = ((ang(b) % TWO_PI) + TWO_PI) % TWO_PI; const mid = ((ang(P[8]) % TWO_PI) + TWO_PI) % TWO_PI;
   if (sweep <= tol / r || mid > sweep) sweep = len(sub(b, a)) <= tol ? TWO_PI : sweep;
   if (mid > sweep) return k;
-  return { kind: 'arc', c, n: N, r, u: U, sweep };
+  const arc: Curve3 = { kind: 'arc', c, n: N, r, u: U, sweep };
+  // Its ends where the curve's are (a curve closing on itself only through its whole turn).
+  if (len(sub(arcAt(arc, sweep), b)) > tol || len(sub(arcAt(arc, sweep / 2), paramAt(k, 0.5))) > tol) return k;
+  return arc;
 }
 function offSurface(g: { surf: Surf }, x: P3): number {
   const s = g.surf;
@@ -809,7 +830,11 @@ export function faceGeometry(face: BrepFace, scaleMM = 1): FaceGeometry {
   return { kind: 'other' };
 }
 
-export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOperation, options: { readonly id?: string } = {}): Brep {
+/**
+ * `exactEdges`: edges that are an exact curve's map onto a general face, lying on a circle, are made that
+ * arc (for Booleans of exact pieces, such as a shell's slabs).
+ */
+export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOperation, options: { readonly id?: string; readonly exactEdges?: boolean } = {}): Brep {
   const id = options.id ?? `analytic-${operation}`;
   let scale = 1; for (const br of [a, b]) for (const v of br.vertices) for (const x of v.point) scale = Math.max(scale, Math.abs(x));
   const tol = linearToleranceMM(scale) * 10, span = 4 * scale + 1;
@@ -819,6 +844,9 @@ export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOper
   // A cut running along a face's own boundary (two finished edges meeting in a mitre already edged
   // there) adds nothing but slivers.
   for (const f of [...A, ...B]) f.cuts = f.cuts.filter(g => ![0.2, 0.5, 0.8].every(u => locateInRegion(segAtAny(g, u), f.region, 10 * tol) === 'boundary'));
+  // A cut made twice (a face's edge on the other surface, and a coplanar face's boundary) is kept once,
+  // the exact copy (a line or an arc) over a fitted one.
+  for (const f of [...A, ...B]) f.cuts = dedupeCuts(f.cuts, tol);
   // 2–3. Pieces and their classes.
   const pieces: (Piece & { where: Where })[] = [];
   for (const f of [...A, ...B]) {
@@ -840,7 +868,7 @@ export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOper
   const reverse = (ring: readonly CurveSegment2[]) => [...ring].reverse().map(segReverse);
   const kept: Piece[] = pieces.flatMap(p => { const k = keep(p); if (!k) return [];
     return [{ face: p.face, out: k === 'flip' ? -1 : 1, key: p.key, region: k === 'flip' ? { outer: reverse(p.region.outer), holes: p.region.holes.map(reverse) } : p.region }]; });
-  return stitch(mergePieces(kept, tol), id, tol);
+  return stitch(mergePieces(kept, tol), id, tol, options.exactEdges === true);
 }
 
 // ---- merging ----------------------------------------------------------------------------------------
@@ -985,7 +1013,7 @@ function fitPieces(k: Curve3, tol: number, depth = 0): Curve3[] {
   return [...fitPieces({ ...k, t1: m }, tol, depth + 1), ...fitPieces({ ...k, t0: m }, tol, depth + 1)];
 }
 
-function stitch(pieces: Piece[], id: string, tol: number): Brep {
+function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false): Brep {
   // Vertices merge a little more loosely than curves are fitted: an edge meeting a surface it touches
   // (a double root, as where a fillet meets a sloping side) lands within √ε of its true point.
   const set = new PointSet3(20 * tol);
@@ -998,7 +1026,7 @@ function stitch(pieces: Piece[], id: string, tol: number): Brep {
   };
   // Curves of no length (a domain side at a pole) are not edges.
   const point = (k: Curve3) => [0.25, 0.5, 0.75, 1].every(u => len(sub(pointOf(k, u), startOf(k))) <= tol);
-  const rings = pieces.map(p => [p.region.outer, ...p.region.holes].map(r => r.flatMap(g => { const k = curve3Of(p.face, g); return point(k) ? [] : open(k).flatMap(x => fitPieces(x, tol / 4)); })));
+  const rings = pieces.map(p => [p.region.outer, ...p.region.holes].map(r => r.flatMap(g => { const k = curve3Of(p.face, g); return point(k) ? [] : open(exactEdges && k.kind === 'param' && k.exact ? exactly(k, tol * 1e-3) : k).flatMap(x => fitPieces(x, tol / 4)); })));
   for (const ps of rings) for (const ring of ps) for (const k of ring) { set.add(startOf(k)); set.add(endOf(k)); }
   const P = set.points;
   // Split at every vertex lying on a curve (T-junctions between neighbouring pieces).
