@@ -125,6 +125,26 @@ test('side holes along X and Y, and a pin along X joined to the plate (plane + c
   assert.ok(body.mesh.faces.some(f => f.name === 'n2.side0' && f.kind === 'curved'), 'the cross hole wall is one named face');
 });
 
+test('a side hole drilled across a round boss (quartic trims) and through a plate turned 30°', () => {
+  let doc = rectanglePart(60, 30, 10);
+  doc = withNode(doc, { kind: 'sketch', profile: 'circle', center: [30, 15], radius: 8 });
+  doc = withNode(doc, { kind: 'extrude', sketch: 2, height: 14, from: 10 });
+  doc = withNode(doc, { kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } });
+  doc = withNode(doc, { kind: 'hole', parent: { node: 4, side: 'solid' }, center: [15, 18], radius: 3, axis: 'x' });
+  const r = evaluateDoc(doc, 1);
+  assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+  // Removed: the x-cylinder (r 3) inside the boss (r 8): ∫ 2√(9 − y²) · 2√(64 − y²) dy over |y| ≤ 3.
+  let crossed = 0; for (let i = 0, n = 4000; i < n; i++) { const y = -3 + 6 * (i + 0.5) / n; crossed += 2 * Math.sqrt(9 - y * y) * 2 * Math.sqrt(64 - y * y) * 6 / n; }
+  const exact = 60 * 30 * 10 + Math.PI * 64 * 14 - crossed;
+  assert.ok(Math.abs(r.bodies[0].volumeMM3! - exact) < 3e-4 * exact, String(r.bodies[0].volumeMM3));
+  let turned = rectanglePart(40, 20, 10);
+  turned = withNode(turned, { kind: 'rotate', parent: { node: 1, side: 'solid' }, axis: 'z', angleDegrees: 30 });
+  turned = withNode(turned, { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [10, 5], radius: 2, axis: 'x' });
+  const t = evaluateDoc(turned, 2);
+  assert.ok(t.ok, JSON.stringify(!t.ok && t.error));
+  assert.ok(t.bodies[0].volumeMM3! < 8000);
+});
+
 test('a slot sketch extrudes as one line + arc body with two curved faces and exact mass', async () => {
   const { slotSegments } = await import('../src/sketch/profile');
   const doc = withNode(withNode(prefixDoc({ format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} }, 0),
