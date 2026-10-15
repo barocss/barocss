@@ -41,6 +41,14 @@ export class ExactAffinePlane {
     return d;
   }
   coplanar(point: Point): void { this.displacement(point); }
+  /** Exact rational UV rounded once to the nearest binary64: exact whenever the UV is representable. */
+  pointToNearestUV(point: Point): Point {
+    const q = this.rational, d = this.displacement(point), du = this.dot(d, this.u), dv = this.dot(d, this.v);
+    const u = q.div(q.sub(q.mul(du, this.vv), q.mul(dv, this.uv)), this.determinant);
+    const v = q.div(q.sub(q.mul(dv, this.uu), q.mul(du, this.uv)), this.determinant);
+    const parameter = (knots: number[], fraction: SectionRational) => q.nearest(q.add(q.from(knots[1]), q.mul(q.sub(q.from(knots[2]), q.from(knots[1])), fraction)));
+    return [parameter(this.surface.knotsU, u), parameter(this.surface.knotsV, v), 0];
+  }
   /** Strict producer construction check, separate from approximate query projection. */
   pointToUV(point: Point): Point {
     const q = this.rational, d = this.displacement(point), du = this.dot(d, this.u), dv = this.dot(d, this.v);

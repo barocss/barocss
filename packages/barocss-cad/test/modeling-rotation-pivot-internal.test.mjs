@@ -17,7 +17,7 @@ const { build } = require('esbuild');
 const entries = process.env.CAD_MODEL_ROTATION_PIVOT_INTERNAL_ENTRY
   ? [resolve(process.env.CAD_MODEL_ROTATION_PIVOT_INTERNAL_ENTRY)]
   : ['../src/modeling-rotation-internal.ts', '../dist/modeling-rotation-internal.js'].map(path => fileURLToPath(new URL(path, import.meta.url)));
-const allowed = new Set(['modeling-rotation-internal', 'convex-planar-solid-proof-internal', 'section-rational-internal']);
+const allowed = new Set(['modeling-rotation-internal', 'convex-planar-solid-proof-internal', 'section-rational-internal', 'numeric-policy']);
 const providers = new Map([['convex-planar-solid', ['validateConvexPlanarSolid', 'qualifyConvexPlanarSolid']], ['own-convex-planar-face', ['buildConvexPlanarFace']]]);
 const marker = 'INERT_PIVOT_LEAF_CONTROL_NOT_GEOMETRY';
 const clone = value => structuredClone(value);

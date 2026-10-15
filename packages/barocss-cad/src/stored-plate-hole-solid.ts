@@ -3,6 +3,7 @@ import type { OwnPlateCircularHoleBundle, OwnPlateCircularHoleReport } from './o
 import { SectionRationalContext } from './section-rational-internal.js';
 import type { SectionRational, SectionFraction } from './section-rational-internal.js';
 import type { Point } from './types.js';
+import { chartRoundingBoundMM } from './numeric-policy.js';
 
 export const StoredPlateHoleSolidDiagnosticCode = { INPUT: 'INPUT', NATIVE: 'NATIVE', GEOMETRY: 'GEOMETRY', TOPOLOGY: 'TOPOLOGY', BUDGET: 'BUDGET', OWNED: 'OWNED', CODEC: 'CODEC', VERSION: 'VERSION' } as const;
 type Code = typeof StoredPlateHoleSolidDiagnosticCode[keyof typeof StoredPlateHoleSolidDiagnosticCode];
@@ -21,6 +22,8 @@ export interface StoredPlateHoleSolidCertificate {
   ringProof: { bottomEdgeId: string; topEdgeId: string; storedMiddleWeight: number; quadrants: { index: number; derivativeNumeratorsX: SectionFraction[]; derivativeNumeratorsY: SectionFraction[] }[] };
   wallProof: { faceId: string; seamEdgeId: string; heightMM: number };
   vertexLinks: StoredPlateHoleSolidVertexLink[]; faceAdjacency: { faceId: string; adjacentFaceIds: string[] }[]; weightedEuler: 0;
+  /** Present only when some stored pole was not exact and was certified within one chart rounding (CadNumericPolicy). */
+  pcurveLift?: { policy: 'exact-or-one-rounding-certified-v1'; certifiedPoles: number; maximumDeviationMM: number };
   directCounts: { parentValidationCalls: 1; planarUseCount: number; planarPoleCompositions: number; wallUseCount: 4; cornerCount: 30; germCount: 30; rational: ReturnType<SectionRationalContext['counts']> };
 }
 export interface StoredPlateHoleSolidResult { bundle: OwnPlateCircularHoleBundle; parentReport: OwnPlateCircularHoleReport; certificate: StoredPlateHoleSolidCertificate }
@@ -86,7 +89,7 @@ export function qualifyStoredPlateHoleSolid(input: OwnPlateCircularHoleBundle): 
   }
   // Positive weights put each quadrant inside its pole hull. Strict interior
   // monotonicity separates quadrants; their only shared points are adjacent ends.
-  const planarFaces: StoredPlateHoleSolidCertificate['planarFaces'] = []; let planarUseCount = 0, planarPoleCompositions = 0;
+  const planarFaces: StoredPlateHoleSolidCertificate['planarFaces'] = []; let planarUseCount = 0, planarPoleCompositions = 0, certifiedPoles = 0, maximumDeviationMM = 0;
   for (const face of faces.filter(f => f.role !== 'hole-wall')) {
     const s = face.surface;
     check(s.degreeU === 1 && s.degreeV === 1 && same(s.knotsU, [0, 0, 1, 1]) && same(s.knotsV, [0, 0, 1, 1]) && s.controlPoints.length === 2 && s.controlPoints.every(row => row.length === 2) && s.weights.every(row => row.every(w => w === 1)), C.GEOMETRY, 'Canonical affine2x2 support required');
@@ -104,7 +107,14 @@ export function qualifyStoredPlateHoleSolid(input: OwnPlateCircularHoleBundle): 
     for (const use of loops.flatMap(l => l.uses)) {
       const e = edgeMap.get(use.edgeId)!, c = use.pcurve.curve;
       check(c.degree === e.curve.degree && same(c.knots, e.curve.knots) && same(c.weights, e.curve.weights) && c.controlPoints.length === e.curve.controlPoints.length && same(use.pcurve.domain, e.sourceParameterRange), C.GEOMETRY, 'Original planar Edge/pcurve basis and domain agreement required');
-      for (const [j, p] of c.controlPoints.entries()) { check(equal(q.from(p[2]), zero), C.GEOMETRY, 'UV must remain dimensionless planar'); for (let i = 0; i < 3; i++) check(equal(q.add(o[i], q.add(q.mul(a[i], q.from(p[0])), q.mul(b[i], q.from(p[1])))), q.from(e.curve.controlPoints[j][i])), C.GEOMETRY, 'Exact whole-curve stored pole chart composition refused'); poles++; }
+      for (const [j, p] of c.controlPoints.entries()) { check(equal(q.from(p[2]), zero), C.GEOMETRY, 'UV must remain dimensionless planar'); const lifted = [0, 1, 2].map(i => q.add(o[i], q.add(q.mul(a[i], q.from(p[0])), q.mul(b[i], q.from(p[1]))))), pole = [0, 1, 2].map(i => q.from(e.curve.controlPoints[j][i]));
+        if (!lifted.every((v, i) => equal(v, pole[i]))) {
+          // CadNumericPolicy.chartParameters: exact 3D poles, dimensionless UV poles rounded once.
+          const bound = chartRoundingBoundMM(a.map(v => q.nearest(v)), [0, 1], b.map(v => q.nearest(v)), [0, 1]), deviation = lifted.map((v, i) => q.abs(q.sub(v, pole[i])));
+          check(deviation.every((v, i) => q.compare(v, q.from(bound[i])) <= 0), C.GEOMETRY, 'Stored pole chart composition exceeds one chart rounding');
+          certifiedPoles++; maximumDeviationMM = Math.max(maximumDeviationMM, ...deviation.map(v => q.upward(v)));
+        }
+        poles++; }
       planarUseCount++; useIds.push(use.id);
     }
     planarPoleCompositions += poles; planarFaces.push({ faceId: face.id, normalAxis: axis, normalSign: sign, useIds, poleCompositionCount: poles });
@@ -123,6 +133,7 @@ export function qualifyStoredPlateHoleSolid(input: OwnPlateCircularHoleBundle): 
   const { vertexLinks, faceAdjacency } = topologyProof(bundle);
   const weightedEuler = t.vertices.length - t.edges.length + faces.reduce((n, f) => n + 1 - f.innerLoopIds.length, 0); check(weightedEuler === 0, C.TOPOLOGY, 'Annular caps require genus-one weighted Euler0');
   const certificate: StoredPlateHoleSolidCertificate = { kind: 'restricted-stored-rational-plate-hole-solid', version: 0, lengthUnit: 'mm', geometryAuthority: 'stored-coefficient-mathematical-model', solid: true, topologyCertified: true, embeddedStoredGeometryCertified: true, materialComponentCount: 1, genus: 1, faceCount: 7, vertexCount: 10, edgeCount: 15, loopCount: 9, edgeUseCount: 30, planarFaces, ringProof: { bottomEdgeId: bottom.id, topEdgeId: top.id, storedMiddleWeight: ring.weights[1], quadrants }, wallProof: { faceId: wall.id, seamEdgeId: seam.id, heightMM: r.thicknessMM }, vertexLinks, faceAdjacency, weightedEuler: 0, directCounts: { parentValidationCalls: 1, planarUseCount, planarPoleCompositions, wallUseCount: 4, cornerCount: 30, germCount: 30, rational: q.counts() } };
+  if (certifiedPoles > 0) certificate.pcurveLift = { policy: 'exact-or-one-rounding-certified-v1', certifiedPoles, maximumDeviationMM };
   return snapshot({ bundle, parentReport, certificate });
 }
 function topologyProof(bundle: OwnPlateCircularHoleBundle): Pick<StoredPlateHoleSolidCertificate, 'vertexLinks' | 'faceAdjacency'> {

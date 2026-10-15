@@ -34,6 +34,8 @@ export interface ConvexPlanarSolidReport {
   validationScope: 'whole-result-self-consistency-not-authenticity'; childReportsUnchanged: true; persistentNamingCertified: false;
   limits: { faces: 12; directedUses: 64; pairs: 32; vertices: 32; supportPredicates: 384; coefficientProofs: 64; fanTriangles: 40; queryPoints: 64; queryPredicates: 768; rationalOperations: 200000; gcdSteps: 200000; integerBits: 8192; inputValues: 524288; resultValues: 786432; inputDepth: 24; resultDepth: 32; arrayElements: 4096; recordFields: 64; stringCharacters: 262144; inputStringCharacters: 4194304; resultStringCharacters: 8388608; inputBytes: 8388608; resultBytes: 16777216; cumulativeSnapshotBytes: 50331648; retainedInputAndResultBytes: 33554432 };
   dataCharge: 'alias-occurrence-counted-serialized-json-utf8-not-v8-heap';
+  /** Present only when some stored pcurve pole was not exact and was certified within one chart rounding (CadNumericPolicy). */
+  pcurveLift?: { policy: 'exact-or-one-rounding-certified-v1'; certifiedPoles: number; maximumDeviationMM: number };
 }
 export interface ConvexPlanarSolidResult {
   request: { assets: ConvexPlanarSolidAsset[]; edgePairs: ConvexPlanarSolidEdgePair[]; options: ConvexPlanarSolidOptions };
@@ -135,6 +137,7 @@ function build(request: ConvexPlanarSolidResult['request'], proof: SolidProof): 
     limits: { faces: 12, directedUses: 64, pairs: 32, vertices: 32, supportPredicates: 384, coefficientProofs: 64, fanTriangles: 40, queryPoints: 64, queryPredicates: 768, rationalOperations: 200000, gcdSteps: 200000, integerBits: 8192, inputValues: 524288, resultValues: 786432, inputDepth: 24, resultDepth: 32, arrayElements: 4096, recordFields: 64, stringCharacters: 262144, inputStringCharacters: 4194304, resultStringCharacters: 8388608, inputBytes: 8388608, resultBytes: 16777216, cumulativeSnapshotBytes: 50331648, retainedInputAndResultBytes: 33554432 }, dataCharge: 'alias-occurrence-counted-serialized-json-utf8-not-v8-heap',
   };
   const result: ConvexPlanarSolidResult = { request, graph: { vertices, edges, faces, vertexLinks }, supports: supports.map((s, i) => ({ sourceId: assets[i].sourceId, faceId: faces[i].faceId, surfaceId: faces[i].surfaceId, originMM: proof.text(s.origin), outwardNormal: proof.text(s.normal), offset: r.text(proof.dot(s.normal, s.origin)) })), certificate: { family: 'exact-stored-affine-convex-polyhedron-v0', solid: true, boundary: 'complete-convex-hull-facets', vertexRank: 3, volumeMM3: r.text(r.div(volume6, r.integer(6))), strictInteriorMM: proof.text(interior), incidence: { connected: true, oppositeEdgeUses: true, vertexLinksSingleCycles: true, eulerCharacteristic: 2 } }, report };
+  if (proof.certifiedLifts > 0) report.pcurveLift = { policy: 'exact-or-one-rounding-certified-v1', certifiedPoles: proof.certifiedLifts, maximumDeviationMM: proof.maximumLiftDeviationMM };
   // Serialization arithmetic is part of root exact work as well.
   result.report.exactWork = { supportPredicates: proof.supportPredicates, coefficientProofs: proof.coefficientProofs, fanTriangles: proof.fanTriangles, ...r.counts() }; return result;
 }
