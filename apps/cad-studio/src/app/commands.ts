@@ -162,6 +162,8 @@ export const commands: Command[] = [
   { id: 'draft', label: 'Draft', icon: 'signal_cellular_0_bar', group: 'modify', keywords: 'taper angle', available: notYet('Draft') },
   // Sketch a profile beside the axis; finishing it offers the revolve (about the sketch's Y axis by default).
   { id: 'revolve', label: 'Revolve', icon: 'autorenew', group: 'create', keywords: 'lathe turn torus ring', available: () => ok, action: 'sketch' },
+  // Sketch a section; finishing it sweeps it along a run, a bend and a run.
+  { id: 'pipe', label: 'Pipe', icon: 'conversion_path', group: 'create', keywords: 'sweep tube bend path rail handle', available: () => ok, action: 'sketch' },
   { id: 'loft', label: 'Loft', icon: 'filter_list', group: 'create', keywords: 'blend sections', available: notYet('Loft to solid') },
   {
     id: 'move', label: 'Move', icon: 'open_with', shortcut: 'G', group: 'modify', keywords: 'translate position',

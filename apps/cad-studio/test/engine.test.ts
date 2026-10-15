@@ -226,6 +226,17 @@ test('STEP export of the whole part: every body in one exact file that reads bac
   assert.ok('error' in stepFor(emptyDoc(), 'empty'));
 });
 
+test('pipe: a circle swept along a run, a bend and a run, with exact mass', () => {
+  let doc = withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [0, 0], radius: 2 });
+  doc = withNode(doc, { kind: 'sweep', sketch: 0, path: [{ kind: 'straight', length: 10 }, { kind: 'bend', radius: 8, angleDegrees: 90, toward: 'x' }, { kind: 'straight', length: 10 }] });
+  const r = evaluateDoc(doc, 1), exact = 4 * Math.PI * (20 + 4 * Math.PI);
+  assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+  assert.ok(Math.abs(r.bodies[0].volumeMM3! - exact) < 1e-9 * exact, String(r.bodies[0].volumeMM3));
+  assert.equal(featureLabel(doc.nodes[1], 1, doc.nodes), 'Pipe 3 steps');
+  const tight = evaluateDoc(withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [0, 0], radius: 2 }), { kind: 'sweep', sketch: 0, path: [{ kind: 'bend', radius: 1, angleDegrees: 90, toward: 'x' }] }), 2);
+  assert.equal(tight.ok, false);
+});
+
 test('revolve: a circle sketch turns into a torus, cut by a box; a profile along the axis is solid, one across it refused', () => {
   let doc = withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [20, 10], radius: 4 });
   doc = withNode(doc, { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 360 });

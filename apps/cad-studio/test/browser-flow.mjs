@@ -248,6 +248,17 @@ try {
     assert.match(await history(), /Revolve 360°/); await iso();
   });
 
+  await check('sweep a circle into a bent pipe from the palette', async () => {
+    await page.click('[aria-label="New part"]'); await press(' '); await page.locator('.palette input').fill('pipe'); await press('Enter');
+    const [cx, cy] = await canvasCenter();
+    await clickAt(cx, cy); await page.mouse.move(cx + 20, cy); await page.mouse.move(cx + 30, cy); await page.mouse.click(cx + 30, cy);
+    await press('Enter'); await hudReady();
+    assert.equal(await field('Make').inputValue(), 'pipe');
+    await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /Pipe 3 steps/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 20000 });
+    const last = (await doc()).nodes.at(-1); assert.equal(last.kind, 'sweep'); assert.equal(last.path[1].kind, 'bend'); await iso();
+  });
+
   await check('fillet a box top edge from the palette', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });

@@ -27,6 +27,8 @@ export type ModelNode = SketchNode
   | { kind: 'intersect'; left: BodyRef; right: BodyRef }
   | { kind: 'difference'; parent: BodyRef; tool: BodyRef }
   | { kind: 'split'; parent: BodyRef; at: Dim; axis: Axis }
+  /** The sketch swept along straight runs and bends (from the sketch plane up +Z). */
+  | { kind: 'sweep'; sketch: number; path: ({ kind: 'straight'; length: Dim } | { kind: 'bend'; radius: Dim; angleDegrees: number; toward: 'x' | '-x' | 'y' | '-y' })[] }
   /** A body read from a STEP file (the file's text is kept in the document). */
   | { kind: 'import'; name: string; step: string }
   /** Hollowed to walls `thickness` thick, the named faces removed (none: a closed hollow). */
@@ -53,7 +55,7 @@ export const isSolidNode = (node: ModelNode) => node.kind !== 'sketch';
 export function parentsOf(node: ModelNode): number[] {
   switch (node.kind) {
     case 'sketch': return [];
-    case 'extrude': case 'revolve': return [node.sketch];
+    case 'extrude': case 'revolve': case 'sweep': return [node.sketch];
     case 'import': return [];
     case 'union': case 'intersect': return [node.left.node, node.right.node];
     case 'difference': return [node.parent.node, node.tool.node];
@@ -67,7 +69,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
   // side is consumed on its own.
   const consumed = new Set<string>();
   nodes.forEach(node => {
-    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'import') return;
+    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'import') return;
     const refs = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : [node.parent];
     refs.forEach(r => consumed.add(r.side === 'solid' ? String(r.node) : `${r.node}_${r.side}`));
   });
@@ -120,6 +122,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'split': return `Split ${node.axis.toUpperCase()}=${n(node.at)}`;
     case 'shell': return `Shell ${n(node.thickness)}`;
     case 'import': return `Import ${node.name}`;
+    case 'sweep': return `Pipe ${node.path.length === 1 ? '1 step' : `${node.path.length} steps`}`;
   }
   return `Feature ${index + 1}`;
 }
