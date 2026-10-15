@@ -14,25 +14,31 @@
 //                   into two wedges; vertices are split per disc of faces; vertical edges meeting only
 //                   each other are joined; components become shells; negative shells are cavities of
 //                   the smallest shell around them
+//
+// Persistent names: ring segments carry tags (kept through every 2D Boolean) that name the walls on
+// them, and a solid carries its cap sources (the authored tops and bottoms) that name the caps. Face
+// names are the tag, or `tag#k` when one tag names several faces (k by position); edge names join
+// the names of their two faces.
 import {
   booleanCurveRegions, curveArrangementVertices, curveTolerance, paramOf, regionArea, sampleRing, segAt, segDistance, segEnd, segReverse, segStart,
   type CurveRegion2, type CurveSegment2, type XY,
 } from './curved-arrangement.js';
 import { BrepError, buildBrep, lineCurve, type Brep, type BrepFaceInput, type BrepLoopInput } from './brep-core.js';
 import { buildProfileLoop, capSurface, extrudedSurface, segmentCurve, type ProfileSegment, type ProfileSegmentInput } from './extruded-profile-solid.js';
-import { triangulatePolygonWithHoles } from './brep-tessellate.js';
 import type { Curve, Point, Surface } from './types.js';
 
 export interface PrismaticSlab { readonly z0: number; readonly z1: number; readonly regions: readonly CurveRegion2[] }
+/** An authored top or bottom: caps of the solid at height z inside these regions take its tag. */
+export interface PrismaticCapSource { readonly z: number; readonly regions: readonly CurveRegion2[]; readonly tag: string }
 /** Slabs sorted by height, disjoint in Z; adjacent slabs with equal sections are merged. */
-export interface PrismaticSolid { readonly kind: 'prismatic-solid'; readonly slabs: readonly PrismaticSlab[] }
+export interface PrismaticSolid { readonly kind: 'prismatic-solid'; readonly slabs: readonly PrismaticSlab[]; readonly caps?: readonly PrismaticCapSource[] }
 export type PrismaticBooleanOperation = 'union' | 'intersection' | 'difference';
 export class PrismaticSolidError extends Error { constructor(detail: string) { super('Prismatic solid: ' + detail); this.name = 'PrismaticSolidError'; } }
 
 const ringsOf = (regions: readonly CurveRegion2[]) => regions.flatMap(r => [r.outer, ...r.holes]);
 const allRings = (slabs: readonly PrismaticSlab[]) => slabs.flatMap(s => ringsOf(s.regions));
 
-function normalize(slabs: readonly PrismaticSlab[], tolerance: number): PrismaticSolid {
+function normalize(slabs: readonly PrismaticSlab[], tolerance: number, caps: readonly PrismaticCapSource[] = []): PrismaticSolid {
   const sorted = slabs.filter(s => s.regions.length).sort((a, b) => a.z0 - b.z0), out: PrismaticSlab[] = [];
   for (const s of sorted) {
     if (!(Number.isFinite(s.z0) && Number.isFinite(s.z1) && s.z1 > s.z0)) throw new PrismaticSolidError('every slab needs finite z0 < z1');
@@ -41,7 +47,8 @@ function normalize(slabs: readonly PrismaticSlab[], tolerance: number): Prismati
     if (prev && prev.z1 === s.z0 && !booleanCurveRegions(ringsOf(prev.regions), ringsOf(s.regions), 'xor', tolerance).length) { out[out.length - 1] = { ...prev, z1: s.z1 }; continue; }
     out.push(s);
   }
-  return { kind: 'prismatic-solid', slabs: out };
+  const levels = new Set(out.flatMap(x => [x.z0, x.z1])), kept = caps.filter(c => levels.has(c.z));
+  return { kind: 'prismatic-solid', slabs: out, ...(kept.length ? { caps: kept } : {}) };
 }
 
 /** Closed rings (material on the left; self-overlap counts once) swept from z0 to z1. */
@@ -50,17 +57,52 @@ export function prismaticExtrude(rings: readonly (readonly CurveSegment2[])[], z
   return normalize([{ z0, z1, regions: booleanCurveRegions(rings, [], 'union', tol) }], tol);
 }
 
-const toCurve2 = (s: ProfileSegment): CurveSegment2 => s.kind === 'line' ? { kind: 'line', a: s.start, b: s.end } : { kind: 'arc', c: s.center, r: s.radiusMM, t0: s.startAngle, sweep: s.sweep };
+const toCurve2 = (s: ProfileSegment, tag?: string): CurveSegment2 => {
+  const t = tag === undefined ? {} : { tag };
+  return s.kind === 'line' ? { kind: 'line', a: s.start, b: s.end, ...t } : { kind: 'arc', c: s.center, r: s.radiusMM, t0: s.startAngle, sweep: s.sweep, ...t };
+};
 const reverseRing = (ring: readonly CurveSegment2[]) => [...ring].reverse().map(segReverse);
 
-/** A line + arc profile with holes (the extruded-profile input format) extruded upward. */
-export function prismaticFromProfile(input: { readonly outer: readonly ProfileSegmentInput[]; readonly holes?: readonly (readonly ProfileSegmentInput[])[]; readonly heightMM: number; readonly fromMM?: number }): PrismaticSolid {
-  const budget = { maximumSegments: 1024 }, z0 = input.fromMM ?? 0;
-  const outer = buildProfileLoop(input.outer, budget).segments.map(toCurve2);
-  const holes = (input.holes ?? []).map(h => reverseRing(buildProfileLoop(h, budget).segments.map(toCurve2)));
+/**
+ * A line + arc profile with holes (the extruded-profile input format) extruded upward. With a `tag`,
+ * walls are named `tag.side<i>` (i: the authored segment) and `tag.hole<h>.side<i>`, caps `tag.top`
+ * and `tag.bottom`.
+ */
+export function prismaticFromProfile(input: { readonly outer: readonly ProfileSegmentInput[]; readonly holes?: readonly (readonly ProfileSegmentInput[])[]; readonly heightMM: number; readonly fromMM?: number; readonly tag?: string }): PrismaticSolid {
+  const budget = { maximumSegments: 1024 }, z0 = input.fromMM ?? 0, z1 = z0 + input.heightMM, tag = input.tag;
+  // A clockwise authored loop is reversed; segment k then runs along authored segment n − 1 − k.
+  const loop = (segments: readonly ProfileSegmentInput[], prefix: string) => {
+    const built = buildProfileLoop(segments, budget), n = built.segments.length;
+    return built.segments.map((s, k) => toCurve2(s, tag === undefined ? undefined : `${prefix}.side${built.reversed ? n - 1 - k : k}`));
+  };
+  const outer = loop(input.outer, String(tag)), holes = (input.holes ?? []).map((h, i) => loop(h, `${tag}.hole${i}`));
   // The outer boundary minus the holes (holes may touch or cross it; the difference is exact either way).
-  const tol = curveTolerance([outer, ...holes]);
-  return normalize([{ z0, z1: z0 + input.heightMM, regions: booleanCurveRegions([outer], holes.map(reverseRing), 'difference', tol) }], tol);
+  const tol = curveTolerance([outer, ...holes]), regions = booleanCurveRegions([outer], holes, 'difference', tol);
+  const caps = tag === undefined ? [] : [{ z: z0, regions, tag: tag + '.bottom' }, { z: z1, regions, tag: tag + '.top' }];
+  return normalize([{ z0, z1, regions }], tol, caps);
+}
+
+/**
+ * The solid under x' = M·x + t (M a similarity: rotation or reflection times a scale s), z' = zScale·z
+ * + zOffset (|zScale| = s keeps cylinders round; any nonzero value is accepted for planar walls).
+ * `retag` renames every tag (pattern copies).
+ */
+export function transformPrismatic(solid: PrismaticSolid, transform: { readonly matrix: readonly [number, number, number, number]; readonly offset?: readonly [number, number]; readonly zScale?: number; readonly zOffset?: number; readonly retag?: (tag: string) => string }): PrismaticSolid {
+  const [a, b, c, d] = transform.matrix, [tx, ty] = transform.offset ?? [0, 0], zs = transform.zScale ?? 1, zo = transform.zOffset ?? 0, det = a * d - b * c;
+  const scale = Math.sqrt(Math.abs(det));
+  if (!(scale > 0) || Math.abs(a * a + c * c - scale * scale) > 1e-12 * scale * scale || Math.abs(b * b + d * d - scale * scale) > 1e-12 * scale * scale || Math.abs(a * b + c * d) > 1e-12 * scale * scale || !(zs !== 0 && Number.isFinite(zs)))
+    throw new PrismaticSolidError('the transform must be a similarity in XY with a nonzero Z scale');
+  const map = (p: XY): XY => [a * p[0] + b * p[1] + tx, c * p[0] + d * p[1] + ty];
+  const retag = <T extends { tag?: string }>(x: T): T => transform.retag && x.tag !== undefined ? { ...x, tag: transform.retag(x.tag) } : x;
+  const seg = (s: CurveSegment2): CurveSegment2 => retag(s.kind === 'line' ? { ...s, a: map(s.a), b: map(s.b) }
+    : { ...s, c: map(s.c), r: s.r * scale, t0: Math.atan2(c * Math.cos(s.t0) + d * Math.sin(s.t0), a * Math.cos(s.t0) + b * Math.sin(s.t0)), sweep: s.sweep * Math.sign(det) });
+  // A reflection reverses ring orientation; reverse the rings so material stays on the left.
+  const ring = (r: readonly CurveSegment2[]) => det > 0 ? r.map(seg) : reverseRing(r.map(seg));
+  const region = (r: CurveRegion2): CurveRegion2 => ({ outer: ring(r.outer), holes: r.holes.map(ring) });
+  const z = (v: number) => zs * v + zo;
+  const slabs = solid.slabs.map(s => ({ z0: Math.min(z(s.z0), z(s.z1)), z1: Math.max(z(s.z0), z(s.z1)), regions: s.regions.map(region) }));
+  const caps = (solid.caps ?? []).map(cp => ({ z: z(cp.z), regions: cp.regions.map(region), tag: transform.retag ? transform.retag(cp.tag) : cp.tag }));
+  return normalize(slabs, curveTolerance(allRings(slabs)), caps);
 }
 
 /** Slab-wise Boolean: split at every level of either solid, 2D Boolean of each pair of sections. */
@@ -73,13 +115,13 @@ export function booleanPrismatic(a: PrismaticSolid, b: PrismaticSolid, operation
     if (!A.length && !B.length) continue;
     out.push({ z0: levels[i], z1: levels[i + 1], regions: booleanCurveRegions(A, B, operation, tol) });
   }
-  return normalize(out, tol);
+  return normalize(out, tol, [...(a.caps ?? []), ...(b.caps ?? [])]);
 }
 
 export const prismaticVolume = (s: PrismaticSolid) => s.slabs.reduce((v, x) => v + x.regions.reduce((a, r) => a + regionArea(r), 0) * (x.z1 - x.z0), 0);
 
 const pip = (p: XY, poly: readonly XY[]) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const a = poly[i], b = poly[j]; if ((a[1] > p[1]) !== (b[1] > p[1]) && p[0] < (b[0] - a[0]) * (p[1] - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; };
-const inRegion = (p: XY, r: CurveRegion2) => pip(p, sampleRing(r.outer, Math.PI / 720)) && !r.holes.some(h => pip(p, sampleRing(h, Math.PI / 720)));
+export const inRegion = (p: XY, r: CurveRegion2) => pip(p, sampleRing(r.outer, Math.PI / 720)) && !r.holes.some(h => pip(p, sampleRing(h, Math.PI / 720)));
 /** Whether a point is inside the solid (boundary points either way). */
 export function prismaticContains(s: PrismaticSolid, p: Point): boolean {
   const slab = s.slabs.find(x => x.z0 <= p[2] && p[2] <= x.z1);
@@ -108,7 +150,7 @@ const profileSegment = (s: CurveSegment2, start: XY, end: XY): ProfileSegment =>
 type Tag = 'lowerWall' | 'upperWall' | 'upFace' | 'downFace' | 'strut';
 /** pcurve is null for struts until their final extent is known (u is their wall parameter). */
 interface Use { key: string; sense: 'forward' | 'reversed'; pcurve: Curve | null; u?: number; face: number; tag: Tag; start: string; end: string; startRoot?: string; endRoot?: string }
-interface FaceDraft { id: string; surface: Surface; sense: 'forward' | 'reversed'; loops: { kind: 'outer' | 'inner'; uses: Use[] }[]; volume: number; cap?: { region: CurveRegion2; z: number }; wall?: { za: number; zb: number } }
+interface FaceDraft { id: string; surface: Surface; sense: 'forward' | 'reversed'; loops: { kind: 'outer' | 'inner'; uses: Use[] }[]; volume: number; cap?: { region: CurveRegion2; z: number }; wall?: { za: number; zb: number }; base: string; key: Point; name?: string }
 
 /** The solid as a B-rep: walls on extruded lines and arcs, planar caps, pcurves on every coedge. */
 export function brepFromPrismatic(solid: PrismaticSolid, options: { readonly id?: string } = {}): Brep {
@@ -142,11 +184,11 @@ export function brepFromPrismatic(solid: PrismaticSolid, options: { readonly id?
     const stops = [{ u: 0, v: a }];
     P.forEach((p, v) => { if (v === a || v === b || segDistance(s, p) > tol) return; const u = paramOf(s, p); if (u > 0 && u < 1) stops.push({ u, v }); });
     stops.sort((x, y) => x.u - y.u); stops.push({ u: 1, v: b });
-    const out: { piece: number; forward: boolean }[] = [];
+    const out: { piece: number; forward: boolean; tag?: string }[] = [];
     for (let k = 0; k + 1 < stops.length; k++) {
       const s0 = stops[k], s1 = stops[k + 1]; if (s0.v === s1.v) continue;
-      const sub: CurveSegment2 = s.kind === 'line' ? { kind: 'line', a: P[s0.v], b: P[s1.v] } : { ...s, t0: s.t0 + s.sweep * s0.u, sweep: s.sweep * (s1.u - s0.u) };
-      out.push(piece(sub, s0.v, s1.v));
+      const sub: CurveSegment2 = s.kind === 'line' ? { ...s, a: P[s0.v], b: P[s1.v] } : { ...s, t0: s.t0 + s.sweep * s0.u, sweep: s.sweep * (s1.u - s0.u) };
+      out.push({ ...piece(sub, s0.v, s1.v), tag: s.tag });
     }
     return out;
   });
@@ -161,16 +203,16 @@ export function brepFromPrismatic(solid: PrismaticSolid, options: { readonly id?
   };
   // Walls: one cell per piece per slab; cells of one piece and side in adjacent slabs form one face.
   const struts = new Map<string, { p: number; lo: number; hi: number }>();
-  const cells = new Map<string, { si: number; k: number; forward: boolean; sStart: string; sEnd: string; pStart: number; pEnd: number; tag: string }[]>();
+  const cells = new Map<string, { si: number; k: number; forward: boolean; sStart: string; sEnd: string; pStart: number; pEnd: number; cell: string; tag?: string }[]>();
   slabs.forEach((slab, si) => {
     const iLo = levels.indexOf(slab.z0), iHi = levels.indexOf(slab.z1);
     slab.regions.forEach((region, ri) => [region.outer, ...region.holes].forEach((ring, gi) => {
       const parts = split(ring), n = parts.length;
       const startOf = (j: number) => parts[j % n].forward ? pieces[parts[j % n].piece].lo : pieces[parts[j % n].piece].hi;
       const strut = (j: number) => { const key = `s${si}_${ri}_${gi}_${j % n}`; struts.set(key, { p: startOf(j), lo: iLo, hi: iHi }); return key; };
-      parts.forEach(({ piece: k, forward }, j) => {
+      parts.forEach(({ piece: k, forward, tag }, j) => {
         const list = cells.get(k + ':' + forward) ?? [];
-        list.push({ si, k, forward, sStart: strut(j), sEnd: strut(j + 1), pStart: startOf(j), pEnd: startOf(j + 1), tag: `${si}_${ri}_${gi}_${j}` });
+        list.push({ si, k, forward, sStart: strut(j), sEnd: strut(j + 1), pStart: startOf(j), pEnd: startOf(j + 1), cell: `${si}_${ri}_${gi}_${j}`, tag });
         cells.set(k + ':' + forward, list);
       });
     }));
@@ -181,7 +223,7 @@ export function brepFromPrismatic(solid: PrismaticSolid, options: { readonly id?
     for (const c of list) { const last = runs[runs.length - 1]; if (last && last[last.length - 1].si === c.si - 1 && slabs[c.si - 1].z1 === slabs[c.si].z0) last.push(c); else runs.push([c]); }
     for (const run of runs) {
       const { k, forward } = run[0], za = slabs[run[0].si].z0, zb = slabs[run[run.length - 1].si].z1, iLo = levels.indexOf(za), iHi = levels.indexOf(zb);
-      const f = faces.length, uEnd = forward ? 1 : 0, uStart = 1 - uEnd, fid = `${id}_w${run[0].tag}`;
+      const f = faces.length, uEnd = forward ? 1 : 0, uStart = 1 - uEnd, fid = `${id}_w${run[0].cell}`, mid = segAt(pieces[k].seg, 0.5);
       const strutUse = (key: string, up: boolean, u: number): Use => { const st = struts.get(key)!, lo = vtx(st.p, st.lo), hi = vtx(st.p, st.hi); return { key, sense: up ? 'forward' : 'reversed', pcurve: null, u, face: f, tag: 'strut', start: up ? lo : hi, end: up ? hi : lo }; };
       const loop: Use[] = [
         hUse(k, forward, iLo, f, 'upperWall', pc([0, 0, 0], [1, 0, 0])),
@@ -189,7 +231,8 @@ export function brepFromPrismatic(solid: PrismaticSolid, options: { readonly id?
         hUse(k, !forward, iHi, f, 'lowerWall', pc([0, 1, 0], [1, 1, 0])),
         ...[...run].reverse().map(c => strutUse(c.sStart, false, uStart)),
       ];
-      faces.push({ id: fid, surface: extrudedSurface(curveOf(k, za, fid), za, zb, fid), sense: forward ? 'forward' : 'reversed', loops: [{ kind: 'outer', uses: loop }], volume: 0, wall: { za, zb } });
+      faces.push({ id: fid, surface: extrudedSurface(curveOf(k, za, fid), za, zb, fid), sense: forward ? 'forward' : 'reversed', loops: [{ kind: 'outer', uses: loop }], volume: 0, wall: { za, zb },
+        base: run[0].tag ?? `${id}.wall`, key: [mid[0], mid[1], (za + zb) / 2] });
     }
   }
   caps.forEach((c, level) => {
@@ -205,7 +248,10 @@ export function brepFromPrismatic(solid: PrismaticSolid, options: { readonly id?
         const e = curveOf(k, z, 'p');
         return hUse(k, forward, level, f, up ? 'upFace' : 'downFace', { ...e, id: 'pcurve', controlPoints: e.controlPoints.map(uv) });
       }) }));
-      faces.push({ id: fid, surface: capSurface({ min: [x0, y0], max: [x1, y1] }, z, fid, up), sense: 'forward', loops, volume: (up ? 1 : -1) * regionArea(region) * z, cap: { region, z } });
+      // The cap's name: the authored top or bottom at this height that contains it.
+      const q = interiorPoint(region), source = (solid.caps ?? []).find(cp => Math.abs(cp.z - z) <= tol && cp.regions.some(r => inRegion(q, r)));
+      faces.push({ id: fid, surface: capSurface({ min: [x0, y0], max: [x1, y1] }, z, fid, up), sense: 'forward', loops, volume: (up ? 1 : -1) * regionArea(region) * z, cap: { region, z },
+        base: source?.tag ?? `${id}.${up ? 'top' : 'bottom'}`, key: [q[0], q[1], z] });
     });
   });
 
@@ -259,15 +305,18 @@ export function brepFromPrismatic(solid: PrismaticSolid, options: { readonly id?
     if (!vid) { vid = `${id}_v${vertices.length}`; vertexIds.set(root, vid); const [p, level] = v.split('_').map(Number); vertices.push({ id: vid, point: [P[p][0], P[p][1], levels[level]] }); }
     return vid;
   };
-  const edgeIds = new Map<string, string>(), edges: { id: string; curve: Curve; vertices: [string, string] }[] = [];
+  nameFaces(faces);
+  const edgeIds = new Map<string, string>(), edges: { id: string; curve: Curve; vertices: [string, string]; name?: string }[] = [];
+  const edgeBase = (list: Use[]) => [...new Set(list.map(u => faces[u.face].name!))].sort().join('|');
   for (const [key, list] of finalUses) {
     const fwd = list.find(u => u.sense === 'forward')!, eid = `${id}_e${edges.length}`;
     edgeIds.set(key, eid);
     let curve: Curve;
     if (key.startsWith('s')) { const s = struts.get(key)!; curve = lineCurve(eid, [P[s.p][0], P[s.p][1], levels[s.lo]], [P[s.p][0], P[s.p][1], levels[s.hi]]); }
     else { const [k, level] = key.slice(1).replace(/[ab]$/, '').split('_').map(Number); curve = curveOf(k, levels[level], eid); }
-    edges.push({ id: eid, curve, vertices: [vertexOf(fwd.start, fwd.startRoot!), vertexOf(fwd.end, fwd.endRoot!)] });
+    edges.push({ id: eid, curve, vertices: [vertexOf(fwd.start, fwd.startRoot!), vertexOf(fwd.end, fwd.endRoot!)], name: edgeBase(list) });
   }
+  nameEdges(edges);
 
   // 4d. Shells: faces connected through edges. Positive shells are bodies; negative ones are cavities.
   const froot = faces.map((_, i) => i), ff = (i: number): number => { while (froot[i] !== i) i = froot[i] = froot[froot[i]]; return i; };
@@ -285,7 +334,7 @@ export function brepFromPrismatic(solid: PrismaticSolid, options: { readonly id?
     if (best < 0) throw new BrepError('TOPOLOGY', 'a cavity shell lies in no body');
     bodies[best].cavities.push(cavity);
   }
-  const faceInput = (i: number): BrepFaceInput => ({ id: faces[i].id, surface: faces[i].surface, sense: faces[i].sense,
+  const faceInput = (i: number): BrepFaceInput => ({ id: faces[i].id, name: faces[i].name, surface: faces[i].surface, sense: faces[i].sense,
     loops: faces[i].loops.map((l): BrepLoopInput => ({ kind: l.kind, uses: l.uses.map(u => ({ edge: edgeIds.get(u.key)!, sense: u.sense, pcurve: u.pcurve! })) })) });
   return buildBrep({
     source: { family: 'prismatic-solid', id }, vertices, edges,
@@ -294,13 +343,46 @@ export function brepFromPrismatic(solid: PrismaticSolid, options: { readonly id?
   });
 }
 
-/** A point strictly inside a region: the centroid of its largest triangle. */
-function interiorPoint(region: CurveRegion2): XY {
-  const outer = sampleRing(region.outer), holes = region.holes.map(h => sampleRing(h)), pts = [...outer, ...holes.flat()];
-  let best: XY = pts[0], area = -1;
-  for (const [a, b, c] of triangulatePolygonWithHoles(outer, holes)) {
-    const A = pts[a], B = pts[b], C = pts[c], s = Math.abs((B[0] - A[0]) * (C[1] - A[1]) - (B[1] - A[1]) * (C[0] - A[0]));
-    if (s > area) { area = s; best = [(A[0] + B[0] + C[0]) / 3, (A[1] + B[1] + C[1]) / 3]; }
+const byPosition = (a: Point, b: Point) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2];
+/** Unique names: a base used once is the name; a base used k > 1 times is `base#1` … `base#k` by position. */
+function nameFaces(faces: { base: string; key: Point; name?: string }[]): void {
+  const groups = new Map<string, typeof faces>();
+  for (const f of faces) groups.set(f.base, [...(groups.get(f.base) ?? []), f]);
+  for (const [base, list] of groups) {
+    if (list.length === 1) { list[0].name = base; continue; }
+    [...list].sort((a, b) => byPosition(a.key, b.key)).forEach((f, k) => { f.name = `${base}#${k + 1}`; });
   }
+}
+/** Edge names from their face names; several edges between the same two faces are numbered by midpoint. */
+export function nameEdges(edges: { curve: Curve; name?: string }[]): void {
+  const groups = new Map<string, typeof edges>();
+  for (const e of edges) groups.set(e.name!, [...(groups.get(e.name!) ?? []), e]);
+  const mid = (c: Curve): Point => { const p = c.controlPoints, a = p[0], b = p[p.length - 1], m = p[Math.floor(p.length / 2)]; return [(a[0] + b[0] + m[0]) / 3, (a[1] + b[1] + m[1]) / 3, (a[2] + b[2] + m[2]) / 3]; };
+  for (const [base, list] of groups) if (list.length > 1) [...list].sort((a, b) => byPosition(mid(a.curve), mid(b.curve))).forEach((e, k) => { e.name = `${base}#${k + 1}`; });
+}
+
+/**
+ * A point strictly inside a region: on a few horizontal lines through it, the exact crossings with
+ * its lines and arcs (no sampling, so tangent cusps cannot fold the boundary), and the middle of the
+ * widest inside interval.
+ */
+function interiorPoint(region: CurveRegion2): XY {
+  const rings = [region.outer, ...region.holes];
+  let y0 = Infinity, y1 = -Infinity;
+  const extent = (g: CurveSegment2): XY[] => g.kind === 'line' ? [g.a, g.b]
+    : [segStart(g), segEnd(g), ...([[g.c[0], g.c[1] - g.r], [g.c[0], g.c[1] + g.r]] as XY[]).filter(p => { const u = paramOf(g, p); return u >= 0 && u <= 1; })];
+  for (const ring of rings) for (const g of ring) for (const p of extent(g)) { y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); }
+  let best: XY | null = null, width = -1;
+  for (const f of [0.5, 0.3819660112501051, 0.6180339887498949, 0.2360679774997897, 0.7639320225002103]) {
+    const y = y0 + (y1 - y0) * f, xs: number[] = [];
+    for (const ring of rings) for (const g of ring) {
+      if (g.kind === 'line') { if ((g.a[1] > y) !== (g.b[1] > y)) xs.push(g.a[0] + (g.b[0] - g.a[0]) * (y - g.a[1]) / (g.b[1] - g.a[1])); continue; }
+      const h2 = g.r * g.r - (y - g.c[1]) ** 2; if (h2 <= 0) continue;
+      for (const x of [g.c[0] - Math.sqrt(h2), g.c[0] + Math.sqrt(h2)]) { const u = paramOf(g, [x, y]); if (u >= 0 && u < 1) xs.push(x); }
+    }
+    xs.sort((a, b) => a - b);
+    for (let k = 0; k + 1 < xs.length; k += 2) if (xs[k + 1] - xs[k] > width) { width = xs[k + 1] - xs[k]; best = [(xs[k] + xs[k + 1]) / 2, y]; }
+  }
+  if (!best) throw new BrepError('GEOMETRY', 'a region has no interior');
   return best;
 }

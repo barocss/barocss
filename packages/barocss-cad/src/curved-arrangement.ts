@@ -10,10 +10,13 @@
 import { linearToleranceMM } from './numeric-policy.js';
 
 export type XY = [number, number];
-/** A line from a to b, or an arc about c with radius r from angle t0 through the signed sweep. */
+/**
+ * A line from a to b, or an arc about c with radius r from angle t0 through the signed sweep. `tag`
+ * (optional) names where the segment came from; pieces of it keep the tag through every Boolean.
+ */
 export type CurveSegment2 =
-  | { readonly kind: 'line'; readonly a: XY; readonly b: XY }
-  | { readonly kind: 'arc'; readonly c: XY; readonly r: number; readonly t0: number; readonly sweep: number };
+  | { readonly kind: 'line'; readonly a: XY; readonly b: XY; readonly tag?: string }
+  | { readonly kind: 'arc'; readonly c: XY; readonly r: number; readonly t0: number; readonly sweep: number; readonly tag?: string };
 /** A region: closed rings (material on the left: outer counter-clockwise, holes clockwise). */
 export type CurveRegion2 = { readonly outer: readonly CurveSegment2[]; readonly holes: readonly (readonly CurveSegment2[])[] };
 export type CurveBooleanOperation = 'union' | 'intersection' | 'difference' | 'xor';
@@ -24,10 +27,10 @@ export const segStart = (s: CurveSegment2): XY => s.kind === 'line' ? s.a : [s.c
 export const segEnd = (s: CurveSegment2): XY => s.kind === 'line' ? s.b : [s.c[0] + s.r * Math.cos(s.t0 + s.sweep), s.c[1] + s.r * Math.sin(s.t0 + s.sweep)];
 export const segAt = (s: CurveSegment2, u: number): XY => s.kind === 'line' ? [s.a[0] + (s.b[0] - s.a[0]) * u, s.a[1] + (s.b[1] - s.a[1]) * u] : [s.c[0] + s.r * Math.cos(s.t0 + s.sweep * u), s.c[1] + s.r * Math.sin(s.t0 + s.sweep * u)];
 /** The same piece traversed the other way. */
-export const segReverse = (s: CurveSegment2): CurveSegment2 => s.kind === 'line' ? { kind: 'line', a: s.b, b: s.a } : { ...s, t0: s.t0 + s.sweep, sweep: -s.sweep };
+export const segReverse = (s: CurveSegment2): CurveSegment2 => s.kind === 'line' ? { ...s, a: s.b, b: s.a } : { ...s, t0: s.t0 + s.sweep, sweep: -s.sweep };
 /** The sub-piece between parameters u0 < u1. */
 function segPart(s: CurveSegment2, u0: number, u1: number, a: XY, b: XY): CurveSegment2 {
-  return s.kind === 'line' ? { kind: 'line', a, b } : { ...s, t0: s.t0 + s.sweep * u0, sweep: s.sweep * (u1 - u0) };
+  return s.kind === 'line' ? { ...s, a, b } : { ...s, t0: s.t0 + s.sweep * u0, sweep: s.sweep * (u1 - u0) };
 }
 /** Area contribution ½∮(x dy − y dx) of a segment. */
 export function segArea(s: CurveSegment2): number {
@@ -88,7 +91,8 @@ function intersect(s: CurveSegment2, t: CurveSegment2, eps: number): XY[] {
 }
 
 type Piece = { seg: CurveSegment2; polygon: number };
-interface Edge { u: number; v: number; seg: CurveSegment2; count: Map<number, number> } // seg runs u → v
+// seg runs u → v. Pieces are added in input order, so a piece shared by both operands keeps the first one's tag.
+interface Edge { u: number; v: number; seg: CurveSegment2; count: Map<number, number> }
 interface Half { from: number; to: number; edge: number; twin: number; next: number; face: number }
 
 /** Arcs over half a turn are split in two, so no piece starts and ends at one vertex. */
@@ -189,6 +193,7 @@ function regions(arr: ReturnType<typeof arrange>, polygonCount: number) {
 /** Merges consecutive pieces of one line or one circle (same direction). */
 function simplify(ring: CurveSegment2[], eps: number): CurveSegment2[] {
   const sameCarrier = (s: CurveSegment2, t: CurveSegment2) => {
+    if (s.tag !== t.tag) return false;
     if (s.kind === 'line' && t.kind === 'line') { const d1 = [s.b[0] - s.a[0], s.b[1] - s.a[1]], d2 = [t.b[0] - t.a[0], t.b[1] - t.a[1]]; return Math.abs(d1[0] * d2[1] - d1[1] * d2[0]) <= 1e-12 * Math.hypot(...d1) * Math.hypot(...d2) && d1[0] * d2[0] + d1[1] * d2[1] > 0; }
     if (s.kind === 'arc' && t.kind === 'arc') return Math.hypot(s.c[0] - t.c[0], s.c[1] - t.c[1]) <= eps && Math.abs(s.r - t.r) <= eps && Math.sign(s.sweep) === Math.sign(t.sweep);
     return false;
@@ -199,7 +204,7 @@ function simplify(ring: CurveSegment2[], eps: number): CurveSegment2[] {
     for (let i = 0; i < out.length && out.length > 1; i++) {
       const s = out[i], t = out[(i + 1) % out.length];
       if (!sameCarrier(s, t)) continue;
-      const merged: CurveSegment2 = s.kind === 'line' ? { kind: 'line', a: s.a, b: (t as typeof s).b } : { ...s, sweep: s.sweep + (t as typeof s).sweep };
+      const merged: CurveSegment2 = s.kind === 'line' ? { ...s, b: (t as typeof s).b } : { ...s, sweep: s.sweep + (t as typeof s).sweep };
       if (merged.kind === 'arc' && Math.abs(merged.sweep) > Math.PI + 1e-12) continue; // arcs stay within half a turn
       out.splice(i, 1, merged); out.splice((i + 1) % (out.length), 1); changed = true; break;
     }
@@ -231,4 +236,30 @@ export function booleanCurveRegions(a: readonly (readonly CurveSegment2[])[], b:
     outers[best].holes.push(hole);
   }
   return outers.map(o => ({ outer: o.outer, holes: o.holes }));
+}
+
+// Gauss–Legendre nodes / weights on [0, 1] (8 points: exact for polynomials of degree ≤ 15).
+const GL = (() => {
+  const x = [0.1834346424956498, 0.5255324099163290, 0.7966664774136267, 0.9602898564975363], w = [0.3626837833783620, 0.3137066458778873, 0.2223810344533745, 0.1012285362903763];
+  return [...x.map((v, i) => [(1 - v) / 2, w[i] / 2]), ...x.map((v, i) => [(1 + v) / 2, w[i] / 2])] as [number, number][];
+})();
+/**
+ * Area moments of a region by Green's theorem: [∫dA, ∫x, ∫y, ∫x², ∫y², ∫xy]. Lines are integrated
+ * exactly; arcs by Gauss–Legendre on pieces of at most 1/16 turn (error far below binary64 rounding).
+ */
+export function regionMoments(region: CurveRegion2): [number, number, number, number, number, number] {
+  const m: [number, number, number, number, number, number] = [0, 0, 0, 0, 0, 0];
+  const add = (x: number, y: number, dx: number, dy: number, w: number) => {
+    m[0] += w * (x * dy - y * dx) / 2; m[1] += w * x * x * dy / 2; m[2] -= w * y * y * dx / 2;
+    m[3] += w * x * x * x * dy / 3; m[4] -= w * y * y * y * dx / 3; m[5] += w * x * x * y * dy / 2;
+  };
+  for (const ring of [region.outer, ...region.holes]) for (const s of ring) {
+    if (s.kind === 'line') { const dx = s.b[0] - s.a[0], dy = s.b[1] - s.a[1]; for (const [u, w] of GL) add(s.a[0] + dx * u, s.a[1] + dy * u, dx, dy, w); continue; }
+    const pieces = Math.max(1, Math.ceil(Math.abs(s.sweep) / (Math.PI / 8)));
+    for (let k = 0; k < pieces; k++) for (const [u, w] of GL) {
+      const t = s.t0 + s.sweep * (k + u) / pieces, dt = s.sweep / pieces;
+      add(s.c[0] + s.r * Math.cos(t), s.c[1] + s.r * Math.sin(t), -s.r * Math.sin(t) * dt, s.r * Math.cos(t) * dt, w);
+    }
+  }
+  return m;
 }

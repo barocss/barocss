@@ -12,7 +12,7 @@ import type { Curve, Point, Surface } from './types.js';
 
 export interface BrepVertex { readonly id: string; readonly point: Point; readonly toleranceMM: number }
 /** An edge runs along `curve` over its whole domain, from vertices[0] (domain start) to vertices[1] (domain end). */
-export interface BrepEdge { readonly id: string; readonly curve: Curve; readonly vertices: readonly [string, string]; readonly toleranceMM: number }
+export interface BrepEdge { readonly id: string; readonly curve: Curve; readonly vertices: readonly [string, string]; readonly toleranceMM: number; readonly name?: string }
 /**
  * One use of an edge by a loop. `forward` traverses the edge from vertices[0] to vertices[1].
  * `pcurve` (optional) is the edge in the face's (u, v) parameter space, as a curve with z = 0 and the
@@ -24,7 +24,8 @@ export interface BrepCoedge {
 }
 export interface BrepLoop { readonly id: string; readonly face: string; readonly kind: 'outer' | 'inner'; readonly coedges: readonly string[] }
 /** `sense: 'forward'` means the outward normal is ∂S/∂u × ∂S/∂v. */
-export interface BrepFace { readonly id: string; readonly shell: string; readonly surface: Surface; readonly sense: 'forward' | 'reversed'; readonly loops: readonly string[] }
+/** `name` (optional) is a persistent name: it follows the authored feature that made the face, not its id. */
+export interface BrepFace { readonly id: string; readonly shell: string; readonly surface: Surface; readonly sense: 'forward' | 'reversed'; readonly loops: readonly string[]; readonly name?: string }
 export interface BrepShell { readonly id: string; readonly body: string; readonly faces: readonly string[]; readonly closed: boolean }
 export interface BrepBody { readonly id: string; readonly kind: 'solid' | 'sheet'; readonly shells: readonly string[] }
 export interface Brep {
@@ -91,6 +92,11 @@ export function checkBrep(brep: Brep, options: { readonly pcurveSamples?: number
   const need = <T>(map: Map<string, T>, id: string | null, what: string): T | undefined => { const v = id === null ? undefined : map.get(id); if (!v) add('reference', `${what} → missing ${id}`); return v; };
   let maximumVertexGapMM = 0, maximumPcurveGapMM = 0;
 
+  // Persistent names, where present, are unique among faces and among edges.
+  for (const list of [brep.faces, brep.edges] as const) {
+    const seen = new Set<string>();
+    for (const x of list) if (x.name !== undefined) { if (seen.has(x.name)) add('naming', `name ${x.name} is used twice`); seen.add(x.name); }
+  }
   for (const b of brep.bodies) for (const s of b.shells) { const shell = need(shells, s, `body ${b.id}`); if (shell && shell.body !== b.id) add('reference', `shell ${s} does not point back to body ${b.id}`); }
   for (const s of brep.shells) {
     need(bodies, s.body, `shell ${s.id}`);
@@ -226,12 +232,12 @@ export function assertValidBrep(brep: Brep): BrepCheckReport {
 // pairs twins by edge and fills tolerances.
 
 export interface BrepLoopInput { readonly kind: 'outer' | 'inner'; readonly uses: readonly { readonly edge: string; readonly sense: 'forward' | 'reversed'; readonly pcurve?: Curve | null }[] }
-export interface BrepFaceInput { readonly id: string; readonly surface: Surface; readonly sense: 'forward' | 'reversed'; readonly loops: readonly BrepLoopInput[] }
+export interface BrepFaceInput { readonly id: string; readonly surface: Surface; readonly sense: 'forward' | 'reversed'; readonly loops: readonly BrepLoopInput[]; readonly name?: string }
 export interface BrepShellInput { readonly id: string; readonly faces: readonly BrepFaceInput[]; readonly closed: boolean }
 export interface BrepBuildInput {
   readonly source: Brep['source'];
   readonly vertices: readonly { readonly id: string; readonly point: Point }[];
-  readonly edges: readonly { readonly id: string; readonly curve: Curve; readonly vertices: readonly [string, string] }[];
+  readonly edges: readonly { readonly id: string; readonly curve: Curve; readonly vertices: readonly [string, string]; readonly name?: string }[];
   readonly bodies: readonly { readonly id: string; readonly kind: 'solid' | 'sheet'; readonly shells: readonly BrepShellInput[] }[];
   /** Entity tolerance; defaults to CadNumericPolicy.linearToleranceMM at the geometry's scale. */
   readonly toleranceMM?: number;
@@ -255,7 +261,7 @@ export function buildBrep(input: BrepBuildInput): Brep {
           l.uses.forEach((u, ci) => mutable.push({ id: ids[ci], edge: u.edge, sense: u.sense, loop: loopId, next: ids[(ci + 1) % ids.length], prev: ids[(ci - 1 + ids.length) % ids.length], twin: null, pcurve: u.pcurve ?? null }));
           loops.push({ id: loopId, face: faceId, kind: l.kind, coedges: ids });
         });
-        faces.push({ id: faceId, shell: shellId, surface: f.surface, sense: f.sense, loops: loopIds });
+        faces.push({ id: faceId, shell: shellId, surface: f.surface, sense: f.sense, loops: loopIds, ...(f.name === undefined ? {} : { name: f.name }) });
       }
       shells.push({ id: shellId, body: b.id, faces: faceIds, closed: s.closed });
     }
@@ -268,7 +274,7 @@ export function buildBrep(input: BrepBuildInput): Brep {
   coedges.push(...mutable);
   return {
     format: 'barocss-brep', version: 0, lengthUnit: 'mm', source: input.source, bodies, shells, faces, loops, coedges,
-    edges: input.edges.map(e => ({ id: e.id, curve: e.curve, vertices: [e.vertices[0], e.vertices[1]] as const, toleranceMM: tol })),
+    edges: input.edges.map(e => ({ id: e.id, curve: e.curve, vertices: [e.vertices[0], e.vertices[1]] as const, toleranceMM: tol, ...(e.name === undefined ? {} : { name: e.name }) })),
     vertices: input.vertices.map(v => ({ id: v.id, point: [v.point[0], v.point[1], v.point[2]] as Point, toleranceMM: tol })),
   };
 }

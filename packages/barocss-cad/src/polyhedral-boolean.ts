@@ -12,10 +12,13 @@
 //      between neighbouring pieces are split, and the pieces are stitched into shells; shells with
 //      negative volume are cavities of the smallest shell containing them.
 //
-// Pieces are kept as separate faces (no coplanar merging yet); the result is a valid B-rep.
+// Pieces are kept as separate faces (no coplanar merging yet); the result is a valid B-rep. Each piece
+// keeps its input face's persistent name (numbered `#k` when a name is split), and edges are named by
+// their two faces, as for prismatic solids.
 import { buildBrep, checkBrep, lineCurve, BrepError, type Brep } from './brep-core.js';
 import { arrangementRegions, exactPoint2, exactToXY, type ExactPoint2 } from './planar-arrangement.js';
 import { triangulatePolygonWithHoles } from './brep-tessellate.js';
+import { nameEdges } from './prismatic-solid.js';
 import type { Point, Surface } from './types.js';
 
 export type PolyhedralBooleanOperation = 'union' | 'intersection' | 'difference';
@@ -50,8 +53,10 @@ const vnum = (a: V): Point => [num(a[0]), num(a[1]), num(a[2])];
 // ---- faces -------------------------------------------------------------------------------------
 interface PFace {
   solid: 0 | 1; rings: V[][]; normal: V; offset: Q; axis: 0 | 1 | 2; i: 0 | 1 | 2; j: 0 | 1 | 2;
-  min: Point; max: Point; cuts: [V, V][]; coplanar: number[];
+  min: Point; max: Point; cuts: [V, V][]; coplanar: number[]; name?: string;
 }
+/** A persistent name without its `#k` piece number. */
+export const baseName = (name: string) => name.replace(/#\d+$/, '');
 function facesOf(brep: Brep, solid: 0 | 1): PFace[] {
   const edges = new Map(brep.edges.map(e => [e.id, e])), coedges = new Map(brep.coedges.map(c => [c.id, c])), loops = new Map(brep.loops.map(l => [l.id, l]));
   const vertices = new Map(brep.vertices.map(v => [v.id, v.point]));
@@ -71,7 +76,7 @@ function facesOf(brep: Brep, solid: 0 | 1): PFace[] {
     const mag = normal.map(x => Math.abs(num(x))), axis = (mag[0] >= mag[1] && mag[0] >= mag[2] ? 0 : mag[1] >= mag[2] ? 1 : 2) as 0 | 1 | 2;
     let i = ((axis + 1) % 3) as 0 | 1 | 2, j = ((axis + 2) % 3) as 0 | 1 | 2; if (sgn(normal[axis]) < 0) [i, j] = [j, i];
     const flat = rings.flat().map(vnum), min = [0, 1, 2].map(k => Math.min(...flat.map(p => p[k]))) as Point, max = [0, 1, 2].map(k => Math.max(...flat.map(p => p[k]))) as Point;
-    return { solid, rings, normal, offset: vdot(normal, ring[0]), axis, i, j, min, max, cuts: [], coplanar: [] };
+    return { solid, rings, normal, offset: vdot(normal, ring[0]), axis, i, j, min, max, cuts: [], coplanar: [], ...(f.name === undefined ? {} : { name: baseName(f.name) }) };
   });
 }
 const to2 = (f: PFace, p: V): ExactPoint2 => exactPoint2(p[f.i].n, p[f.i].d, p[f.j].n, p[f.j].d);
@@ -183,14 +188,14 @@ export function booleanPolyhedra(a: Brep, b: Brep, operation: PolyhedralBooleanO
     if (fromA) return w === 'out' || w === 'opposite' ? 'keep' : null;
     return w === 'in' ? 'flip' : null;
   };
-  const kept = pieces.flatMap(p => { const k = keep(p); return k ? [{ ...p, loops: k === 'flip' ? p.loops.map(l => [...l].reverse()) : p.loops, normal: k === 'flip' ? vscale(p.face.normal, { n: -1n, d: 1n }) : p.face.normal }] : []; });
+  const kept = pieces.flatMap(p => { const k = keep(p); return k ? [{ ...p, name: p.face.name, loops: k === 'flip' ? p.loops.map(l => [...l].reverse()) : p.loops, normal: k === 'flip' ? vscale(p.face.normal, { n: -1n, d: 1n }) : p.face.normal }] : []; });
   const result = stitch(kept, options.id ?? `boolean-${operation}`), report = checkBrep(result);
   // Solids that touch only along an edge or at a vertex give a non-manifold result; refuse it plainly.
   if (!report.valid) throw new BrepError('TOPOLOGY', `polyhedral Boolean: the result is not a manifold solid (the inputs touch along an edge or at a vertex): ${report.issues[0]}`, report);
   return result;
 }
 
-function stitch(faces: { loops: V[][]; normal: V }[], id: string): Brep {
+function stitch(faces: { loops: V[][]; normal: V; name?: string }[], id: string): Brep {
   // Global vertices; split every loop edge at the vertices lying on it (T-junctions between pieces).
   const vertex = new Map<string, V>();
   for (const f of faces) for (const l of f.loops) for (const p of l) vertex.set(vkey(p), p);
@@ -236,11 +241,24 @@ function stitch(faces: { loops: V[][]; normal: V }[], id: string): Brep {
     bodies[best].cavities.push(c);
   }
   const points = new Map([...vertex.entries()].map(([k, p]) => [vertexIds.get(k)!, vnum(p)]));
+  // Names: the piece's face name (numbered by position when repeated), edges by their two faces.
+  const centre = (fi: number): Point => { const p = loopsOf[fi][0].map(vnum), n = p.length; return [0, 1, 2].map(k => p.reduce((s, x) => s + x[k], 0) / n) as Point; };
+  const faceNames: string[] = [], counts = new Map<string, number[]>();
+  faces.forEach((f, fi) => { const b = f.name ?? `${id}.face`; counts.set(b, [...(counts.get(b) ?? []), fi]); });
+  for (const [b, list] of counts) {
+    if (list.length === 1) { faceNames[list[0]] = b; continue; }
+    const keyed = list.map(fi => ({ fi, c: centre(fi) })).sort((x, y) => x.c[0] - y.c[0] || x.c[1] - y.c[1] || x.c[2] - y.c[2]);
+    keyed.forEach(({ fi }, k) => { faceNames[fi] = `${b}#${k + 1}`; });
+  }
+  const facesOfEdge = new Map<string, number[]>();
+  faceUses.forEach((ls, fi) => ls.flat().forEach(u => facesOfEdge.set(u.edge, [...(facesOfEdge.get(u.edge) ?? []), fi])));
+  const edgeList = [...edgeIds.values()].map(e => ({ id: e.id, curve: lineCurve(e.id, points.get(e.v[0])!, points.get(e.v[1])!), vertices: e.v, name: [...new Set((facesOfEdge.get(e.id) ?? []).map(fi => faceNames[fi]))].sort().join('|') }));
+  nameEdges(edgeList);
   return buildBrep({ source: { family: 'polyhedral-boolean', id },
     vertices: [...points.entries()].map(([vid2, p]) => ({ id: vid2, point: p })),
-    edges: [...edgeIds.values()].map(e => ({ id: e.id, curve: lineCurve(e.id, points.get(e.v[0])!, points.get(e.v[1])!), vertices: e.v })),
+    edges: edgeList,
     bodies: bodies.map(bd => ({ id: bd.id, kind: 'solid' as const, shells: [bd.outer, ...bd.cavities].map((g, si) => ({ id: 's' + si, closed: true,
-      faces: g.members.map(fi => ({ id: 'f' + fi, surface: planeSurface('p' + fi, faces[fi].normal, loopsOf[fi].flat().map(vnum)), sense: 'forward' as const,
+      faces: g.members.map(fi => ({ id: 'f' + fi, name: faceNames[fi], surface: planeSurface('p' + fi, faces[fi].normal, loopsOf[fi].flat().map(vnum)), sense: 'forward' as const,
         loops: faceUses[fi].map((uses, li) => ({ kind: li === 0 ? 'outer' as const : 'inner' as const, uses })) })) })) })) });
 }
 function frame(normal: V): { axis: 0 | 1 | 2; i: 0 | 1 | 2; j: 0 | 1 | 2 } {

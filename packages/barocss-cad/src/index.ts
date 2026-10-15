@@ -578,3 +578,12 @@ export { booleanCurveRegions, curveArrangementVertices, CurvedArrangementError, 
 export type { CurveSegment2, CurveRegion2, CurveBooleanOperation } from './curved-arrangement.js';
 export { prismaticExtrude, prismaticFromProfile, booleanPrismatic, prismaticVolume, prismaticContains, brepFromPrismatic, PrismaticSolidError } from './prismatic-solid.js';
 export type { PrismaticSolid, PrismaticSlab, PrismaticBooleanOperation } from './prismatic-solid.js';
+export { regionMoments } from './curved-arrangement.js';
+export { transformPrismatic } from './prismatic-solid.js';
+export type { PrismaticCapSource } from './prismatic-solid.js';
+export { transformBrep, quarterTurn } from './brep-transform.js';
+export type { BrepAffine } from './brep-transform.js';
+export { prismaticMassProperties, brepMassProperties, SolidMassError } from './solid-mass.js';
+export type { SolidMassProperties } from './solid-mass.js';
+export { evaluateCadPart, loadCadPart, emptyCadPart, CadPartError, CadPartLimits } from './part-model.js';
+export type { CadPartDocument, CadPartFeature, CadPartSnapshot, CadPartOutput, CadPartDim, CadPartAxis, CadPartLoopSegment, CadPartErrorCode } from './part-model.js';
