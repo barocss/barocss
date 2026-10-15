@@ -1,8 +1,7 @@
-// Turns each kernel body family into one display mesh: triangles with a face index per vertex,
-// face records for selection, and feature edges (polylines between faces) for line rendering.
-import {
-  tessellateConvexPlanarSolid, tessellateOwnPlateCircularHole, tessellateXYCirclePrismShell, tessellateExtrudedProfileSolid,
-} from '@barocss/cad';
+// Turns any kernel body into one display mesh through the kernel's shared B-rep: brepFromBody, then
+// tessellateBrep (watertight, one sampling per edge). Faces are B-rep faces (coplanar neighbours shown
+// as one face); edges are the real B-rep edges, minus seams and smooth (tangent) joints.
+import { brepFromBody, tessellateBrep } from '@barocss/cad';
 
 export type Vec3 = [number, number, number];
 
@@ -38,143 +37,73 @@ function addFace(b: Builder, id: string, kind: DisplayFace['kind'], positions: A
   b.faces.push({ index: faceIndex, id, kind, normal: norm(normal), centroid: area > 0 ? centroid.map(x => x / area) as Vec3 : vec(positions, 0), areaMM2: area });
 }
 
-function finish(b: Builder): DisplayMesh {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function bodyMesh(body: any, _revision: number, quality = 8): DisplayMesh {
+  const brep = brepFromBody(body), mesh = tessellateBrep(brep, { segmentsPerQuarter: quality });
+  const P = mesh.positionsMM, N = mesh.normals;
+  const meshFace = new Map(mesh.faces.map(f => [f.faceId, f]));
+  const loopFace = new Map(brep.loops.map(l => [l.id, l.face]));
+  const facesOfEdge = new Map<string, string[]>();
+  for (const c of brep.coedges) facesOfEdge.set(c.edge, [...(facesOfEdge.get(c.edge) ?? []), loopFace.get(c.loop)!]);
+  // Plane of a planar face (unit normal, offset) for merging coplanar neighbours.
+  const planeOf = (id: string): [Vec3, number] | null => {
+    const f = meshFace.get(id)!; if (f.kind !== 'planar') return null;
+    const v = f.vertexOffset * 3, n: Vec3 = [N[v], N[v + 1], N[v + 2]]; return [n, n[0] * P[v] + n[1] * P[v + 1] + n[2] * P[v + 2]];
+  };
+  const coplanar = (a: string, b: string) => {
+    const pa = planeOf(a), pb = planeOf(b); if (!pa || !pb) return false;
+    return dot(pa[0], pb[0]) > 1 - 1e-9 && Math.abs(pa[1] - pb[1]) < 1e-6 * Math.max(1, Math.abs(pa[1]));
+  };
+  const parent = new Map(brep.faces.map(f => [f.id, f.id])), find = (f: string): string => { while (parent.get(f) !== f) f = parent.get(f)!; return f; };
+  for (const [, fs] of facesOfEdge) if (fs.length === 2 && fs[0] !== fs[1] && coplanar(fs[0], fs[1])) parent.set(find(fs[0]), find(fs[1]));
+  const groups = new Map<string, string[]>();
+  for (const f of brep.faces) { const r = find(f.id); groups.set(r, [...(groups.get(r) ?? []), f.id]); }
+
+  const b = newBuilder(), displayOf = new Map<string, number>();
+  for (const [root, members] of groups) {
+    const pos: number[] = [], nor: number[] = [], idx: number[] = [];
+    for (const id of members) {
+      const f = meshFace.get(id)!, base = pos.length / 3;
+      for (let k = f.vertexOffset * 3; k < (f.vertexOffset + f.vertexCount) * 3; k++) { pos.push(P[k]); nor.push(N[k]); }
+      for (let k = f.indexOffset; k < f.indexOffset + f.indexCount; k++) idx.push(mesh.indices[k] - f.vertexOffset + base);
+      displayOf.set(id, b.faces.length);
+    }
+    addFace(b, root, meshFace.get(root)!.kind === 'planar' ? 'plane' : 'curved', pos, nor, idx);
+  }
+
+  // Vertex normal of a B-rep face at a position, to hide smooth (tangent) joints.
+  const normalAt = (faceId: string, p: Vec3): Vec3 | null => {
+    const f = meshFace.get(faceId)!;
+    for (let v = f.vertexOffset; v < f.vertexOffset + f.vertexCount; v++) if (P[v * 3] === p[0] && P[v * 3 + 1] === p[1] && P[v * 3 + 2] === p[2]) return [N[v * 3], N[v * 3 + 1], N[v * 3 + 2]];
+    return null;
+  };
+  const edges: DisplayEdge[] = [], lines: number[] = [], segmentEdge: number[] = [];
+  const curves = new Map(brep.edges.map(e => [e.id, e.curve]));
+  for (const e of mesh.edges) {
+    const fs = facesOfEdge.get(e.edgeId) ?? [], pts: Vec3[] = [];
+    for (let k = 0; k < e.pointsMM.length; k += 3) pts.push([e.pointsMM[k], e.pointsMM[k + 1], e.pointsMM[k + 2]]);
+    if (fs.length !== 2 || find(fs[0]) === find(fs[1])) continue; // a seam, or between merged coplanar faces
+    const mid = pts[Math.floor(pts.length / 2)], na = normalAt(fs[0], mid), nb = normalAt(fs[1], mid);
+    if (na && nb && dot(na, nb) > Math.cos(Math.PI / 9)) continue; // tangent joint
+    const curve = curves.get(e.edgeId)!, straight = curve.degree === 1 && curve.controlPoints.length === 2;
+    const a = pts[0], z = pts[pts.length - 1], dir = norm(sub(z, a)), fa = displayOf.get(fs[0])!, fb = displayOf.get(fs[1])!;
+    // Collinear straight pieces between the same two faces (grid vertices split them) show as one edge.
+    const mate = straight ? edges.find(d => d.straight && ((d.faces[0] === fa && d.faces[1] === fb) || (d.faces[0] === fb && d.faces[1] === fa))
+      && len(cross(norm(sub(d.b, d.a)), dir)) < 1e-9 && len(cross(sub(a, d.a), dir)) < 1e-6) : undefined;
+    if (mate) {
+      const ext = [mate.a, mate.b, a, z], d0 = norm(sub(mate.b, mate.a)), t = ext.map(p => dot(sub(p, mate.a), d0));
+      mate.a = ext[t.indexOf(Math.min(...t))]; mate.b = ext[t.indexOf(Math.max(...t))];
+      lines.push(...a, ...z); segmentEdge.push(mate.index, mate.index); continue;
+    }
+    const axis = straight ? (['x', 'y', 'z'] as const).find((_, k) => Math.abs(Math.abs(dir[k]) - 1) < 1e-9) ?? null : null;
+    const index = edges.length;
+    edges.push({ index, faces: [fa, fb], a, b: z, straight, axis });
+    for (let k = 0; k + 1 < pts.length; k++) { lines.push(...pts[k], ...pts[k + 1]); segmentEdge.push(index, index); }
+  }
   const positions = new Float32Array(b.p), normals = new Float32Array(b.n), faceOfVertex = new Float32Array(b.f), indices = new Uint32Array(b.i);
   const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
   for (let v = 0; v < positions.length; v += 3) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], positions[v + k]); max[k] = Math.max(max[k], positions[v + k]); }
-  const { edges, lines, segmentEdge } = featureEdges(positions, faceOfVertex, indices, b.faces);
-  return { positions, normals, faceOfVertex, indices, faces: b.faces, edgeLines: lines, edgeOfSegment: segmentEdge, edges, bounds: { min, max } };
-}
-
-/** Edges where two different faces meet at a crease, or open boundaries; merged into straight runs. */
-function featureEdges(positions: Float32Array, faceOfVertex: Float32Array, indices: Uint32Array, faces: DisplayFace[]) {
-  const key = (v: number) => `${Math.round(positions[v * 3] * 1e4)},${Math.round(positions[v * 3 + 1] * 1e4)},${Math.round(positions[v * 3 + 2] * 1e4)}`;
-  const weld = new Map<string, number>(); const welded: number[] = [];
-  for (let v = 0; v < positions.length / 3; v++) { const k = key(v); if (!weld.has(k)) weld.set(k, v); welded.push(weld.get(k)!); }
-  const map = new Map<string, { a: number; b: number; faces: number[]; normals: Vec3[] }>();
-  for (let t = 0; t < indices.length; t += 3) {
-    const tri = [indices[t], indices[t + 1], indices[t + 2]];
-    const n = norm(cross(sub(vec(positions, tri[1]), vec(positions, tri[0])), sub(vec(positions, tri[2]), vec(positions, tri[0]))));
-    const face = faceOfVertex[tri[0]];
-    for (let e = 0; e < 3; e++) {
-      const a = welded[tri[e]], b = welded[tri[(e + 1) % 3]]; const k = a < b ? `${a}_${b}` : `${b}_${a}`;
-      const rec = map.get(k) ?? { a: Math.min(a, b), b: Math.max(a, b), faces: [], normals: [] };
-      rec.faces.push(face); rec.normals.push(n); map.set(k, rec);
-    }
-  }
-  const groups = new Map<string, Vec3[][]>();
-  const push = (fa: number, fb: number, seg: Vec3[]) => {
-    const gk = fa < fb ? `${fa}_${fb}` : `${fb}_${fa}`;
-    const list = groups.get(gk) ?? []; list.push(seg); groups.set(gk, list);
-  };
-  // Open boundary segments: kernel previews can leave T-junctions (one face splits an edge the
-  // neighbour keeps whole), so pair them with a collinear, overlapping boundary of another face.
-  const open: { face: number; seg: Vec3[] }[] = [];
-  for (const rec of map.values()) {
-    const seg = [vec(positions, rec.a), vec(positions, rec.b)];
-    if (rec.faces.length === 1) { open.push({ face: rec.faces[0], seg }); continue; }
-    if (rec.faces.length !== 2 || rec.faces[0] === rec.faces[1]) continue;
-    if (dot(rec.normals[0], rec.normals[1]) < Math.cos(Math.PI / 9)) push(rec.faces[0], rec.faces[1], seg);
-  }
-  const overlaps = (s: Vec3[], t: Vec3[]) => {
-    const d = norm(sub(s[1], s[0])), l = len(sub(s[1], s[0]));
-    if (Math.abs(Math.abs(dot(norm(sub(t[1], t[0])), d)) - 1) > 1e-6) return false;
-    if (len(cross(sub(t[0], s[0]), d)) > 1e-4 || len(cross(sub(t[1], s[0]), d)) > 1e-4) return false;
-    const a = dot(sub(t[0], s[0]), d), b = dot(sub(t[1], s[0]), d);
-    return Math.max(a, b) > 1e-6 && Math.min(a, b) < l - 1e-6;
-  };
-  for (const item of open) {
-    const mate = open.find(other => other.face !== item.face && overlaps(item.seg, other.seg));
-    if (mate) {
-      // A seam between two coplanar faces is not a visible edge.
-      if (dot(faces[item.face].normal, faces[mate.face].normal) < Math.cos(Math.PI / 9)) push(item.face, mate.face, item.seg);
-      continue;
-    }
-    // A T-junction inside one face (panels split differently) is not an edge either.
-    if (open.some(other => other !== item && other.face === item.face && overlaps(item.seg, other.seg))) continue;
-    push(item.face, item.face, item.seg);
-  }
-  const edges: DisplayEdge[] = []; const lines: number[] = []; const segmentEdge: number[] = [];
-  for (const [gk, segments] of groups) {
-    const [fa, fb] = gk.split('_').map(Number) as [number, number];
-    const index = edges.length;
-    const dir = norm(sub(segments[0][1], segments[0][0]));
-    const straight = segments.every(([a, b]) => Math.abs(Math.abs(dot(norm(sub(b, a)), dir)) - 1) < 1e-6
-      && len(cross(sub(a, segments[0][0]), dir)) < 1e-4);
-    let a = segments[0][0], b = segments[0][1];
-    if (straight) {
-      let lo = Infinity, hi = -Infinity;
-      for (const s of segments) for (const p of s) { const d = dot(sub(p, segments[0][0]), dir); if (d < lo) { lo = d; a = p; } if (d > hi) { hi = d; b = p; } }
-    }
-    const axis = straight ? (['x', 'y', 'z'] as const).find((_, k) => Math.abs(Math.abs(dir[k]) - 1) < 1e-6) ?? null : null;
-    edges.push({ index, faces: [fa, fb], a, b, straight, axis });
-    for (const [p, q] of segments) { lines.push(...p, ...q); segmentEdge.push(index, index); }
-  }
-  void faces;
-  return { edges, lines: new Float32Array(lines), segmentEdge: new Float32Array(segmentEdge) };
-}
-
-const context = (bodyId: string, revision: number) => ({ documentId: 'cad_studio', bodyId, documentRevision: String(revision),
-  kernelResultRevision: String(revision), topologyRevision: String(revision), taskToken: 'studio_' + revision });
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function bodyMesh(body: any, revision: number, quality = 8): DisplayMesh {
-  const b = newBuilder();
-  if (body.family === 'convex-planar') {
-    const { mesh } = tessellateConvexPlanarSolid(body.native, { maximumFanTriangles: 40 });
-    for (const face of mesh.faces) {
-      const v0 = face.vertexOffset, vc = face.vertexCount;
-      const pos = mesh.positionsMM.slice(v0 * 3, (v0 + vc) * 3), nor = mesh.normals.slice(v0 * 3, (v0 + vc) * 3);
-      const idx = mesh.indices.slice(face.indexOffset, face.indexOffset + face.indexCount).map((i: number) => i - v0);
-      addFace(b, face.faceId, 'plane', pos, nor, idx);
-    }
-  } else if (body.family === 'stored-rational-plate-hole') {
-    const preview = tessellateOwnPlateCircularHole(body.native.bundle, { context: context(body.native.bundle.request.bodyId, revision), segmentsPerQuarter: quality });
-    for (const chunk of preview.mesh.chunks) {
-      const curved = /hole|wall/i.test(chunk.nativeFaceId);
-      addFace(b, chunk.nativeFaceId, curved ? 'curved' : 'plane', chunk.positionsMM, chunk.normals, chunk.indices);
-    }
-  } else if (body.family === 'stored-rational-circle-prism') {
-    const shell = tessellateXYCirclePrismShell(body.native.parent.bundle, { meshId: 'studio_circle', revision, segmentsPerQuarter: quality });
-    const { positions, normals, indices } = shell.packet;
-    for (const range of shell.faceRanges) {
-      const [v0, v1] = range.vertexRange, [i0, i1] = range.indexRange;
-      const idx = indices.slice(i0, i1).map((i: number) => i - v0);
-      addFace(b, range.faceId, range.role === 'wall' ? 'curved' : 'plane',
-        positions.slice(v0 * 3, v1 * 3), normals.slice(v0 * 3, v1 * 3), idx);
-    }
-  } else if (body.family === 'extruded-profile') {
-    // Line + arc profile: planar caps, flat line sides and one smooth cylinder face per arc.
-    const mesh = tessellateExtrudedProfileSolid(body.native, { segmentsPerQuarter: quality });
-    for (const face of mesh.faces) {
-      const v0 = face.vertexOffset, vc = face.vertexCount;
-      const idx = mesh.indices.slice(face.indexOffset, face.indexOffset + face.indexCount).map((i: number) => i - v0);
-      addFace(b, face.faceId, face.kind === 'cylinder' ? 'curved' : 'plane',
-        mesh.positionsMM.slice(v0 * 3, (v0 + vc) * 3), mesh.normals.slice(v0 * 3, (v0 + vc) * 3), idx);
-    }
-  } else if (body.family === 'orthogonal-cell') {
-    // The kernel returns grid panels; coplanar panels with the same outward normal form one face.
-    const native = body.native;
-    const points = new Map<string, Vec3>(native.vertices.map((v: { id: string; pointMM: Vec3 }) => [v.id, v.pointMM]));
-    type PanelGroup = { id: string; normal: Vec3; p: number[]; n: number[]; i: number[] };
-    const groups = new Map<string, PanelGroup>();
-    for (const panel of native.panels) {
-      if (!panel.bodyId) continue;
-      const corners: Vec3[] = panel.vertexIds.map((id: string) => points.get(id)!);
-      const normal: Vec3 = [0, 0, 0]; normal[panel.axis] = panel.sign;
-      let quad = corners;
-      const n = cross(sub(quad[1], quad[0]), sub(quad[2], quad[0]));
-      if (dot(n, normal) < 0) quad = [quad[0], quad[3], quad[2], quad[1]];
-      const key = `${panel.bodyId}:${panel.axis}:${panel.sign}:${quad[0][panel.axis]}`;
-      const g: PanelGroup = groups.get(key) ?? { id: panel.id, normal, p: [], n: [], i: [] };
-      const base = g.p.length / 3; g.p.push(...quad.flat()); g.n.push(...normal, ...normal, ...normal, ...normal);
-      g.i.push(base, base + 1, base + 2, base, base + 2, base + 3); groups.set(key, g);
-    }
-    for (const g of groups.values()) addFace(b, g.id, 'plane', g.p, g.n, g.i);
-  } else {
-    throw new Error('Unsupported body family ' + body.family);
-  }
-  return finish(b);
+  return { positions, normals, faceOfVertex, indices, faces: b.faces, edgeLines: new Float32Array(lines), edgeOfSegment: new Float32Array(segmentEdge), edges, bounds: { min, max } };
 }
 
 const vec = (a: ArrayLike<number>, i: number): Vec3 => [a[i * 3], a[i * 3 + 1], a[i * 3 + 2]];
