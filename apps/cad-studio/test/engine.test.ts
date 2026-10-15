@@ -197,6 +197,21 @@ test('extrude with draft: the walls lean in, the volume is exact, the label show
   assert.equal(featureLabel(doc.nodes[1], 1, doc.nodes), 'Extrude 10 · 5°');
 });
 
+test('a STEP file opens as a body: its faces named, features work on it', () => {
+  const text = stepFor(rectanglePart(40, 30, 10), 'plate');
+  assert.ok('text' in text);
+  if (!('text' in text)) return;
+  let doc = withNode(emptyDoc(), { kind: 'import', name: 'plate', step: text.text });
+  doc = withNode(doc, { kind: 'hole', parent: { node: 0, side: 'solid' }, center: [20, 15], radius: 4 });
+  const r = evaluateDoc(doc, 1);
+  assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+  assert.ok(Math.abs(r.bodies[0].volumeMM3! - (12000 - Math.PI * 160)) < 2e-4 * 12000, String(r.bodies[0].volumeMM3));
+  assert.ok(r.bodies[0].mesh.faces.some(f => /^n0\.n1\.top$/.test(f.name)), r.bodies[0].mesh.faces.map(f => f.name).join(' '));
+  assert.equal(featureLabel(doc.nodes[0], 0, doc.nodes), 'Import plate');
+  const bad = evaluateDoc(withNode(emptyDoc(), { kind: 'import', name: 'x', step: 'not a step file' }), 2);
+  assert.equal(bad.ok, false);
+});
+
 test('STEP export of the whole part: every body in one exact file that reads back', () => {
   let doc = starterDoc();
   doc = withNode(doc, { kind: 'linear-pattern', parent: { node: 2, side: 'solid' }, axis: 'x', spacing: 80, count: 2 });

@@ -27,6 +27,8 @@ export type ModelNode = SketchNode
   | { kind: 'intersect'; left: BodyRef; right: BodyRef }
   | { kind: 'difference'; parent: BodyRef; tool: BodyRef }
   | { kind: 'split'; parent: BodyRef; at: Dim; axis: Axis }
+  /** A body read from a STEP file (the file's text is kept in the document). */
+  | { kind: 'import'; name: string; step: string }
   /** Hollowed to walls `thickness` thick, the named faces removed (none: a closed hollow). */
   | { kind: 'shell'; parent: BodyRef; thickness: Dim; open: string[] }
   /** Edges by their persistent B-rep names (they follow the features, so edits keep the selection). */
@@ -52,6 +54,7 @@ export function parentsOf(node: ModelNode): number[] {
   switch (node.kind) {
     case 'sketch': return [];
     case 'extrude': case 'revolve': return [node.sketch];
+    case 'import': return [];
     case 'union': case 'intersect': return [node.left.node, node.right.node];
     case 'difference': return [node.parent.node, node.tool.node];
     default: return [node.parent.node];
@@ -64,7 +67,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
   // side is consumed on its own.
   const consumed = new Set<string>();
   nodes.forEach(node => {
-    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve') return;
+    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'import') return;
     const refs = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : [node.parent];
     refs.forEach(r => consumed.add(r.side === 'solid' ? String(r.node) : `${r.node}_${r.side}`));
   });
@@ -116,6 +119,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'circular-pattern': return `Circular ×${node.count}`;
     case 'split': return `Split ${node.axis.toUpperCase()}=${n(node.at)}`;
     case 'shell': return `Shell ${n(node.thickness)}`;
+    case 'import': return `Import ${node.name}`;
   }
   return `Feature ${index + 1}`;
 }

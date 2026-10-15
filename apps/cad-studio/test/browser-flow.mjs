@@ -280,6 +280,14 @@ try {
     assert.match(text, /^ISO-10303-21;/); assert.match(text, /MANIFOLD_SOLID_BREP|BREP_WITH_VOIDS/); assert.match(text, /AUTOMOTIVE_DESIGN/);
   });
 
+  await check('open a STEP file as a new part', async () => {
+    const { holedBoxStep } = await import('../../../packages/barocss-cad/test/step-fixtures.mjs');
+    const file = join(out, 'holed-box.step'); (await import('node:fs')).writeFileSync(file, holedBoxStep());
+    await page.locator('input[type=file]').setInputFiles(file);
+    await page.waitForFunction(() => /Import holed-box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 });
+    assert.match(await outliner(), /1 body/); await iso();
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await press(' '); await page.locator('.palette input').fill('loft');
     assert.match(await page.locator('.palette-list').innerText(), /isn’t available in the kernel yet/);

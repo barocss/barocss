@@ -242,6 +242,12 @@ export function App() {
   const save = () => { downloadBytes(new TextEncoder().encode(JSON.stringify(doc, null, 2)), `${fileName}.bcad`, 'application/json'); setDirty(false); };
   const open = async (file: File) => {
     try {
+      // A STEP file starts a new part from its solids.
+      if (/\.(step|stp)$/i.test(file.name)) {
+        const name = file.name.replace(/\.(step|stp)$/i, ''), next = withNode(emptyDoc(), { kind: 'import', name, step: await file.text() });
+        commit(next); setFileName(name); setDirty(true); setTimeout(() => viewport.current?.fit(), 300);
+        return;
+      }
       const parsed = JSON.parse(await file.text()) as StudioDoc;
       if (parsed.format !== 'barocss-cad-model' || !Array.isArray(parsed.nodes)) throw new Error('Not a BaroCSS model file.');
       commit({ ...parsed, outputs: prefixDoc(parsed, parsed.nodes.length).outputs }); setFileName(file.name.replace(/\.(bcad|json)$/, '')); setDirty(false);
@@ -325,11 +331,11 @@ export function App() {
         <button className="tool" aria-label="Undo" title="Undo (⌘Z)" disabled={!undo.length} onClick={doUndo}><Icon name="undo" /></button>
         <button className="tool" aria-label="Redo" title="Redo (⇧⌘Z)" disabled={!redo.length} onClick={doRedo}><Icon name="redo" /></button>
         <button className="tool" aria-label="New part" title="New part" onClick={() => { commit(emptyDoc()); setFileName('Untitled'); }}><Icon name="add_box" /></button>
-        <button className="tool" aria-label="Open" title="Open .bcad" onClick={() => fileInput.current?.click()}><Icon name="folder_open" /></button>
+        <button className="tool" aria-label="Open" title="Open a .bcad model or a STEP file" onClick={() => fileInput.current?.click()}><Icon name="folder_open" /></button>
         <button className="tool" aria-label="Save" title="Save (⌘S)" onClick={save}><Icon name="save" /></button>
         <button className="tool" aria-label="Export STL" title="Export STL" onClick={exportStl}><Icon name="download" /></button>
         <button className="tool" aria-label="Export STEP" title="Export STEP (exact solid for other CAD)" onClick={exportStepFile}><Icon name="deployed_code_update" /></button>
-        <input ref={fileInput} type="file" accept=".bcad,.json" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
+        <input ref={fileInput} type="file" accept=".bcad,.json,.step,.stp" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
       </header>
 
       <nav className="card toolbar" aria-label="Tools">
@@ -447,7 +453,7 @@ export function App() {
 }
 
 function iconFor(n: ModelNode) {
-  return ({ extrude: 'height', revolve: 'autorenew', shell: 'inventory_2', hole: 'radio_button_checked', chamfer: 'change_history', fillet: 'rounded_corner', union: 'join_full', difference: 'join_left', intersect: 'join_inner',
+  return ({ extrude: 'height', revolve: 'autorenew', shell: 'inventory_2', import: 'file_open', hole: 'radio_button_checked', chamfer: 'change_history', fillet: 'rounded_corner', union: 'join_full', difference: 'join_left', intersect: 'join_inner',
     translate: 'open_with', rotate: '3d_rotation', mirror: 'flip', scale: 'open_in_full', 'linear-pattern': 'view_week', 'circular-pattern': 'motion_photos_on', split: 'vertical_split', sketch: 'draw' } as Record<string, string>)[n.kind] ?? 'category';
 }
 
