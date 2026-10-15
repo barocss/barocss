@@ -7,7 +7,8 @@
 //                  A's loops are now the top loops
 //   4. through     kfmrh(plug, B) → each plug's loop becomes a ring of B; genus = number of holes
 import { BrepEditor } from './brep-euler.js';
-import type { Brep } from './brep-core.js';
+import { mergeBreps, type Brep } from './brep-core.js';
+import { booleanPolygons, type PlanarBooleanOperation, type PolygonWithHoles } from './planar-arrangement.js';
 import { buildProfileLoop, segmentCurve, extrudedSurface, capSurface, ExtrudedProfileError } from './extruded-profile-solid.js';
 import type { ProfileSegment, ProfileSegmentInput, XY } from './extruded-profile-solid.js';
 import type { Curve, Point } from './types.js';
@@ -106,4 +107,16 @@ export function extrudeProfileWithHoles(input: ProfileWithHolesInput): Brep {
   ed.setSurface(faceA, capSurface(outerLoop.boundsMM, z1, `${id}_top`, true), 'forward');
   ed.setSurface(faceB, capSurface(outerLoop.boundsMM, z0, `${id}_bottom`, false), 'forward');
   return ed.toBrep({ family: 'profile-with-holes', id });
+}
+
+/**
+ * Boolean of two prisms over the same height: the planar Boolean of their profiles (exact arrangement,
+ * touching and shared edges included), each resulting region extruded with its holes. Several
+ * disconnected regions give several bodies in one B-rep.
+ */
+export function extrudePolygonBoolean(a: readonly PolygonWithHoles[], b: readonly PolygonWithHoles[], operation: PlanarBooleanOperation,
+  options: { readonly heightMM: number; readonly fromMM?: number; readonly id?: string }): { brep: Brep; regions: PolygonWithHoles[] } {
+  const id = options.id ?? 'boolean', regions = booleanPolygons(a, b, operation), lines = (ring: readonly XY[]) => ring.map(start => ({ kind: 'line' as const, start: [start[0], start[1]] as XY }));
+  const breps = regions.map((r, k) => extrudeProfileWithHoles({ id: `${id}${k}`, outer: lines(r.outer), holes: r.holes.map(lines), heightMM: options.heightMM, fromMM: options.fromMM }));
+  return { brep: mergeBreps(breps, { family: 'polygon-boolean', id }), regions };
 }

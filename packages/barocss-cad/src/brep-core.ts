@@ -275,3 +275,10 @@ export function buildBrep(input: BrepBuildInput): Brep {
 
 /** A straight edge curve between two points, domain [0, 1]. */
 export const lineCurve = (id: string, a: Point, b: Point): Curve => ({ kind: 'curve', id, degree: 1, knots: [0, 0, 1, 1], controlPoints: [[...a] as Point, [...b] as Point], weights: [1, 1] });
+
+/** Several B-reps (with disjoint ids) as one B-rep holding all of their bodies. */
+export function mergeBreps(breps: readonly Brep[], source: Brep['source']): Brep {
+  return { format: 'barocss-brep', version: 0, lengthUnit: 'mm', source,
+    bodies: breps.flatMap(b => b.bodies), shells: breps.flatMap(b => b.shells), faces: breps.flatMap(b => b.faces), loops: breps.flatMap(b => b.loops),
+    coedges: breps.flatMap(b => b.coedges), edges: breps.flatMap(b => b.edges), vertices: breps.flatMap(b => b.vertices) };
+}
