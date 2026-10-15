@@ -85,6 +85,11 @@ function arrange(polygons: readonly PolygonWithHoles[]) {
       hs.forEach((a, i) => { const b = hs[(i + 1) % hs.length]; if (!same(a, b)) segs.push({ a, b, polygon: pi }); });
     }
   });
+  return arrangeSegments(segs, polygons.length);
+}
+
+/** The core arrangement. Segments of polygon −1 split faces without changing any winding (cuts). */
+function arrangeSegments(segs: Seg[], polygonCount: number) {
   // 1. Split points per segment.
   const cuts = segs.map(() => [] as H[]);
   const box = (s: Seg) => { const [ax, ay] = toXY(s.a), [bx, by] = toXY(s.b); return [Math.min(ax, bx), Math.min(ay, by), Math.max(ax, bx), Math.max(ay, by)]; };
@@ -110,7 +115,7 @@ function arrange(polygons: readonly PolygonWithHoles[]) {
       const u = vid(pts[k]), v = vid(pts[k + 1]); if (u === v) continue;
       const lo = Math.min(u, v), hi = Math.max(u, v), ek = lo + ':' + hi;
       let e = edgeOf.get(ek); if (e === undefined) { e = edges.length; edges.push({ u: lo, v: hi, count: new Map() }); edgeOf.set(ek, e); }
-      const c = edges[e].count; c.set(s.polygon, (c.get(s.polygon) ?? 0) + (u === lo ? 1 : -1));
+      if (s.polygon >= 0) { const c = edges[e].count; c.set(s.polygon, (c.get(s.polygon) ?? 0) + (u === lo ? 1 : -1)); }
     }
   });
   // 3. Half-edges around vertices, faces on the left.
@@ -126,7 +131,7 @@ function arrange(polygons: readonly PolygonWithHoles[]) {
   }
   const cycles: number[][] = [];
   half.forEach((h, i) => { if (h.face >= 0) return; const c: number[] = []; let g = i; do { half[g].face = cycles.length; c.push(g); g = half[g].next; } while (g !== i && c.length <= half.length); cycles.push(c); });
-  return { points, edges, half, cycles, polygons: polygons.length };
+  return { points, edges, half, cycles, polygons: polygonCount };
 }
 
 /** Exact orientation of a cycle: at its lowest-then-leftmost vertex (weakly simple cycles). */
@@ -235,4 +240,32 @@ export function booleanPolygons(a: readonly PolygonWithHoles[], b: readonly Poly
 export function planarArrangementCounts(polygons: readonly PolygonWithHoles[]): { vertices: number; edges: number; boundedFaces: number } {
   const arr = arrange(polygons), { winding } = facesWithWindings(arr);
   return { vertices: arr.points.length, edges: arr.edges.length, boundedFaces: winding.size - 1 };
+}
+
+// ---- Exact entry point for B-rep face splitting (polyhedral Booleans) ----------------------------
+export type ExactPoint2 = H;
+/** An exact rational point (xn / xd, yn / yd), denominators nonzero. */
+export function exactPoint2(xn: bigint, xd: bigint, yn: bigint, yd: bigint): ExactPoint2 { return normal({ x: xn * yd, y: yn * xd, w: xd * yd }); }
+export const exactPoint2FromXY = fromXY;
+export const exactOrient2 = orient;
+export const exactSame2 = same;
+export const exactToXY = toXY;
+export interface ExactRegion { readonly outer: readonly ExactPoint2[]; readonly holes: readonly (readonly ExactPoint2[])[]; readonly winding: readonly number[] }
+/**
+ * Bounded faces of the arrangement of exact rings (each tagged with a polygon index; outer rings
+ * counter-clockwise, holes clockwise) and extra cut segments, with every polygon's winding.
+ */
+export function arrangementRegions(rings: readonly { readonly polygon: number; readonly ring: readonly ExactPoint2[] }[], cuts: readonly (readonly [ExactPoint2, ExactPoint2])[], polygonCount: number): ExactRegion[] {
+  const segs: Seg[] = [];
+  for (const { polygon, ring } of rings) ring.forEach((a, i) => { const b = ring[(i + 1) % ring.length]; if (!same(a, b)) segs.push({ a, b, polygon }); });
+  for (const [a, b] of cuts) if (!same(a, b)) segs.push({ a, b, polygon: -1 });
+  const arr = arrangeSegments(segs, polygonCount), { faceOfHalf, winding } = facesWithWindings(arr), { points, half, cycles } = arr;
+  const holes = new Map<number, number[][]>();
+  cycles.forEach((c, i) => { const f = faceOfHalf[c[0]]; if (f !== i && f >= 0) holes.set(f, [...(holes.get(f) ?? []), c]); });
+  const out: ExactRegion[] = [];
+  for (const [f, w] of winding) {
+    if (f < 0) continue;
+    out.push({ outer: cycles[f].map(h => points[half[h].from]), holes: (holes.get(f) ?? []).map(c => c.map(h => points[half[h].from])), winding: w });
+  }
+  return out;
 }

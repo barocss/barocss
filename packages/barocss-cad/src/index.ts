@@ -572,3 +572,5 @@ export { tessellateBrep, triangulatePolygonWithHoles } from './brep-tessellate.j
 export type { BrepMesh, BrepMeshFace, BrepMeshEdge, BrepTessellationOptions } from './brep-tessellate.js';
 export { booleanPolygons, planarArrangementCounts, PlanarArrangementError } from './planar-arrangement.js';
 export type { PolygonWithHoles, PlanarBooleanOperation } from './planar-arrangement.js';
+export { booleanPolyhedra } from './polyhedral-boolean.js';
+export type { PolyhedralBooleanOperation } from './polyhedral-boolean.js';
