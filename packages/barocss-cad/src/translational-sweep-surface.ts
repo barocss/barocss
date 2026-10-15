@@ -1,3 +1,4 @@
+import { CadNumericPolicy } from './numeric-policy.js';
 import { validateCurve, validateSurface, curveDomain, surfaceDomain, evaluateCurve, evaluateSurface } from './math.js';
 import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
 import type { CurveD1Result, SurfaceD1Result } from './derivatives.js';
@@ -60,7 +61,7 @@ export interface TranslationalSweepReport {
 export interface TranslationalSweepResult { profile: Curve; rail: Curve; options: TranslationalSweepOptions; surface: Surface;
   source: string; sourceVersion: 0; model: Model; provenance: TranslationalSweepProvenance; report: TranslationalSweepReport }
 
-const CODE = TranslationalSweepDiagnosticCode, TOLERANCE = 1e-7;
+const CODE = TranslationalSweepDiagnosticCode, TOLERANCE = CadNumericPolicy.linearToleranceMM;
 function check(condition: boolean, code: TranslationalSweepDiagnosticCode, detail: string): asserts condition {
   if (!condition) throw new TranslationalSweepError(code, detail);
 }

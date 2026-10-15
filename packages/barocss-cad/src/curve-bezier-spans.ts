@@ -1,3 +1,4 @@
+import { CadNumericPolicy } from './numeric-policy.js';
 import { validateCurve, curveDomain, evaluateCurve } from './math.js';
 import { evaluateCurveD1 } from './derivatives.js';
 import { extractCurveBezierSpanTrusted, WideAdaptiveCurveSamplingError } from './curve-wide-adaptive-sampling.js';
@@ -68,7 +69,7 @@ export interface CurveBezierSpanExtractionResult {
 }
 
 const CODE = CurveBezierSpanExtractionDiagnosticCode;
-const EPS = 64 * Number.EPSILON, POINT_TOLERANCE = 1e-7, D1_TOLERANCE = 1e-7;
+const EPS = 64 * Number.EPSILON, POINT_TOLERANCE = CadNumericPolicy.linearToleranceMM, D1_TOLERANCE = CadNumericPolicy.relativeComparison;
 function check(condition: boolean, code: CurveBezierSpanExtractionDiagnosticCode, detail: string): asserts condition {
   if (!condition) throw new CurveBezierSpanExtractionError(code, detail);
 }

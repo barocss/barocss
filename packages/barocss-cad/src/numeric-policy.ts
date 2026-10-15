@@ -19,6 +19,8 @@ export const CadNumericPolicy = Object.freeze({
   relativeLinearTolerance: 1e-11,
   /** Comparison for dimensionless chart (UV) bindings; numerically the same as the mm floor, kept apart by meaning. */
   uvBindingTolerance: 1e-7,
+  /** Dimensionless relative comparison (derivatives, chains: value · max(1, scale)). */
+  relativeComparison: 1e-7,
   /** Normalized parameter bracket width for root refinement. */
   parameterWidth: 1e-12,
   /**

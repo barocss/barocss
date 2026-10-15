@@ -1,3 +1,4 @@
+import { CadNumericPolicy } from './numeric-policy.js';
 import { buildXYArc } from './xy-arc.js';
 import { curveDecimal, requireCurveValue } from './curve-source.js';
 import { compileCadModel } from './model-compiler.js';
@@ -29,7 +30,7 @@ export interface ZAxisRevolvedSurfaceResult {
   construction: ZAxisRevolvedSurfaceConstruction; report: ZAxisRevolvedSurfaceReport;
 }
 const LABEL = 'Z-axis revolved surface';
-const OBSERVATION_MM = 1e-7;
+const OBSERVATION_MM = CadNumericPolicy.linearToleranceMM;
 function check(condition: boolean, detail: string): asserts condition { requireCurveValue(condition, detail, LABEL); }
 function snapshot(input: unknown): unknown {
   let remaining = 1024;

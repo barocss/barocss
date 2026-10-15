@@ -1,3 +1,4 @@
+import { CadNumericPolicy } from './numeric-policy.js';
 import { validateCurve, validateSurface, curveDomain, surfaceDomain, evaluateCurve, evaluateSurface } from './math.js';
 import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
 import type { CurveD1Result, SurfaceD1Result } from './derivatives.js';
@@ -56,7 +57,7 @@ export interface AffineGeometryTransformReport {
 export interface AffineGeometryTransformResult { original: Curve | Surface; matrix: CadAffineMatrix3x4; options: AffineGeometryTransformOptions; geometry: Curve | Surface;
   source: string; sourceVersion: 0; model: Model; report: AffineGeometryTransformReport }
 
-const CODE = AffineGeometryTransformDiagnosticCode, TOLERANCE = 1e-7;
+const CODE = AffineGeometryTransformDiagnosticCode, TOLERANCE = CadNumericPolicy.linearToleranceMM;
 function check(condition: boolean, code: AffineGeometryTransformDiagnosticCode, detail: string, cause?: unknown): asserts condition {
   if (!condition) throw new AffineGeometryTransformError(code, detail, cause);
 }

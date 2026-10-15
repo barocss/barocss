@@ -1,3 +1,4 @@
+import { CadNumericPolicy } from './numeric-policy.js';
 import { validateCurve, curveDomain, evaluateCurve } from './math.js';
 import { evaluateCurveD1 } from './derivatives.js';
 import type { CurveD1Result } from './derivatives.js';
@@ -111,8 +112,8 @@ export interface ExtractedCurveIntervalResult {
   report: ExtractedCurveIntervalReport;
 }
 
-const POINT_TOLERANCE = 1e-7;
-const D1_TOLERANCE = 1e-7;
+const POINT_TOLERANCE = CadNumericPolicy.linearToleranceMM;
+const D1_TOLERANCE = CadNumericPolicy.relativeComparison;
 const CODE = CurveIntervalExtractionDiagnosticCode;
 function requireValue(condition: boolean, code: CurveIntervalExtractionDiagnosticCode, detail: string): asserts condition {
   if (!condition) throw new CurveIntervalExtractionError(code, detail);

@@ -1,3 +1,4 @@
+import { CadNumericPolicy } from './numeric-policy.js';
 import { validateCurve, curveDomain, evaluateCurve, evaluateSurface } from './math.js';
 import { evaluateCurveD1 } from './derivatives.js';
 import { splitCurveAtParameter } from './curve-parameter-split.js';
@@ -55,7 +56,7 @@ export interface CurveAffinePlaneIntersectionResult {
   extraction:{parameter:number;result:CurveParameterSplitResult}[];spans:CurveAffinePlaneSpan[];events:CurvePlanePointEvent[];
   report:CurveAffinePlaneIntersectionReport;
 }
-const LABEL='Own multi-span Curve-plane intersection',TOL=1e-7;
+const LABEL='Own multi-span Curve-plane intersection',TOL=CadNumericPolicy.linearToleranceMM;
 function check(c:boolean,detail:string):asserts c {if(!c)throw new Error((LABEL+': '+detail).slice(0,1024));}
 function finite(n:number):number {check(Number.isFinite(n),'finite native homogeneous/Gram arithmetic required');return n;}
 function snapshot(input:unknown,results=false):unknown {

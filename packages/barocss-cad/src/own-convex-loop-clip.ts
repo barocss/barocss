@@ -1,3 +1,4 @@
+import { CadNumericPolicy } from './numeric-policy.js';
 import { admitConvexNativeLineLoop } from './own-affine-plane-loop-internal.js';
 import { validateCurve, curveDomain, evaluateCurve, evaluateSurface } from './math.js';
 import { evaluateCurveD1 } from './derivatives.js';
@@ -60,7 +61,7 @@ export interface ConvexLineLoopClipResult {
   edgeResults:CoplanarCurveLineIntersectionResult[];spans:ConvexLoopClipSpan[];contacts:ConvexLoopClipContact[];pieces:ConvexLoopClipPiece[];
   outsideIntervals:{spanId:string;domain:[number,number];midpoint:number;halfspaces:number[]}[];report:ConvexLineLoopClipReport;
 }
-const LABEL='Own convex native Line loop clip',TOL=1e-7;
+const LABEL='Own convex native Line loop clip',TOL=CadNumericPolicy.linearToleranceMM;
 function check(c:boolean,detail:string):asserts c {if(!c)throw new Error((LABEL+': '+detail).slice(0,1024));}
 function finite(n:number):number {check(Number.isFinite(n),'finite native homogeneous/Gram arithmetic required');return n;}
 function snapshot(input:unknown,results=false):unknown {

@@ -1,3 +1,4 @@
+import { CadNumericPolicy } from './numeric-policy.js';
 import { buildInterpolatingCurve, CurveInterpolationError } from './curve-interpolation.js';
 import type { CurveInterpolationResult } from './curve-interpolation.js';
 import { validateCurve, validateSurface, curveDomain, surfaceDomain, evaluateCurve, evaluateSurface } from './math.js';
@@ -64,7 +65,7 @@ export interface MultiSectionLoftReport {
 export interface MultiSectionLoftResult { sections: Curve[]; parametersV: number[]; options: MultiSectionLoftOptions; surface: Surface;
   source: string; sourceVersion: 0; model: Model; provenance: MultiSectionLoftProvenance; report: MultiSectionLoftReport }
 
-const CODE = MultiSectionLoftDiagnosticCode, TOLERANCE = 1e-7;
+const CODE = MultiSectionLoftDiagnosticCode, TOLERANCE = CadNumericPolicy.linearToleranceMM;
 type Context = { poleIndex?: number | null; cause?: unknown };
 function check(condition: boolean, code: MultiSectionLoftDiagnosticCode, detail: string, context: Context = {}): asserts condition {
   if (!condition) throw new MultiSectionLoftError(code, detail, context);

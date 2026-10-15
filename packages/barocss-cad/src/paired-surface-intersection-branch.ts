@@ -1,3 +1,4 @@
+import { CadNumericPolicy } from './numeric-policy.js';
 import type { Surface, Model, Point } from './types.js';
 import { compileCadModel } from './model-compiler.js';
 import { validateSurface, surfaceDomain, evaluateSurface } from './math.js';
@@ -211,7 +212,7 @@ export interface PairedSurfaceIntersectionBranchResult { // exact4
 }
 
 const CODE = PairedSurfaceIntersectionBranchDiagnosticCode;
-const TOLERANCE = 1e-7;
+const TOLERANCE = CadNumericPolicy.linearToleranceMM;
 function counts(): DirectCounts {
   return { sourceCompilationCount: 0, selectedSurfaceValidationCount: 0, surfaceDomainCount: 0,
     stationStartCount: 0, stationCompletionCount: 0, correctionSolveCount: 0, acceptedCorrectionCount: 0,

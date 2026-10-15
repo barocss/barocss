@@ -1,3 +1,4 @@
+import { CadNumericPolicy } from './numeric-policy.js';
 import { validateSurface, surfaceDomain, evaluateSurface } from './math.js';
 import { evaluateSurfaceD1 } from './derivatives.js';
 import type { SurfaceD1Result } from './derivatives.js';
@@ -70,8 +71,8 @@ export interface ReversedSurfaceAxisResult {
   originalSource:string;originalModel:Model;provenance:SurfaceAxisReversalProvenance;report:ReversedSurfaceAxisReport;
 }
 
-const POINT_TOLERANCE = 1e-7;
-const D1_TOLERANCE = 1e-7;
+const POINT_TOLERANCE = CadNumericPolicy.linearToleranceMM;
+const D1_TOLERANCE = CadNumericPolicy.relativeComparison;
 const CODE = SurfaceAxisReversalDiagnosticCode;
 function requireValue(condition: boolean, code: SurfaceAxisReversalDiagnosticCode, detail: string): asserts condition {
   if (!condition) throw new SurfaceAxisReversalError(code, detail);

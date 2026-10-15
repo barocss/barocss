@@ -1,3 +1,4 @@
+import { CadNumericPolicy } from './numeric-policy.js';
 import { validateCurve, curveDomain, evaluateCurve } from './math.js';
 import { evaluateCurveD1 } from './derivatives.js';
 import type { CurveD1Result } from './derivatives.js';
@@ -104,7 +105,7 @@ export interface WideAdaptiveCurveSamplingResult {
 }
 
 const CODE = WideAdaptiveCurveSamplingDiagnosticCode;
-const EPS = 64 * Number.EPSILON, POINT_TOLERANCE = 1e-7, D1_TOLERANCE = 1e-7;
+const EPS = 64 * Number.EPSILON, POINT_TOLERANCE = CadNumericPolicy.linearToleranceMM, D1_TOLERANCE = CadNumericPolicy.relativeComparison;
 function check(condition: boolean, code: WideAdaptiveCurveSamplingDiagnosticCode, detail: string): asserts condition {
   if (!condition) throw new WideAdaptiveCurveSamplingError(code, detail);
 }

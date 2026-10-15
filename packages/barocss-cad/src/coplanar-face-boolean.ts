@@ -1,3 +1,4 @@
+import { CadNumericPolicy } from './numeric-policy.js';
 import { validateConvexPlanarFace } from './own-convex-planar-face.js';
 import type { ConvexPlanarFaceResult } from './own-convex-planar-face.js';
 import { buildAffinePlaneAxes, mapAffinePlanePointToUV, admitConvexNativeLineLoop } from './own-affine-plane-loop-internal.js';
@@ -99,7 +100,7 @@ export interface CoplanarFaceBooleanResult {
 }
 
 const CODE = CoplanarFaceBooleanDiagnosticCode;
-const POINT_TOLERANCE = 1e-7, D1_TOLERANCE = 1e-7;
+const POINT_TOLERANCE = CadNumericPolicy.linearToleranceMM, D1_TOLERANCE = CadNumericPolicy.relativeComparison;
 function check(condition: boolean, code: CoplanarFaceBooleanDiagnosticCode, detail: string): asserts condition {
   if (!condition) throw new CoplanarFaceBooleanError(code, detail);
 }

@@ -1,3 +1,4 @@
+import { CadNumericPolicy } from './numeric-policy.js';
 import { validateCoplanarFaceBoolean } from './coplanar-face-boolean.js';
 import type { CoplanarFaceBooleanResult, CoplanarFaceBooleanContributor } from './coplanar-face-boolean.js';
 import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
@@ -87,7 +88,7 @@ export interface CoplanarFaceBooleanExtrusionResult {
   sources: { id: string; source: string; sourceVersion: 0; model: Model; objectIds: string[] }[]; report: CoplanarFaceBooleanExtrusionReport;
 }
 
-const CODE = CoplanarFaceBooleanExtrusionDiagnosticCode, TOLERANCE = 1e-7;
+const CODE = CoplanarFaceBooleanExtrusionDiagnosticCode, TOLERANCE = CadNumericPolicy.linearToleranceMM;
 function check(condition: boolean, code: CoplanarFaceBooleanExtrusionDiagnosticCode, detail: string): asserts condition {
   if (!condition) throw new CoplanarFaceBooleanExtrusionError(code, detail);
 }

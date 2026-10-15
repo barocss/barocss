@@ -1,3 +1,4 @@
+import { CadNumericPolicy, linearToleranceMM, geometryScaleMM } from './numeric-policy.js';
 import { validateCurve, curveDomain, evaluateCurve } from './math.js';
 import { compileCurveSource, requireCurveValue } from './curve-source.js';
 import { copyCadData } from './data-copy.js';
@@ -20,7 +21,7 @@ export interface CurveKnotInsertionReport {
   observations: { parameter: number; originalPointMM: Point; refinedPointMM: Point; differenceMM: number }[];
   maximumObservedDifferenceMM: number; guardedKnots: { original: number[]; refined: number[] };
   geometricValidity: 'not-certified'; topologyCertified: false; solid: false;
-  limits: { maximumPoles: 16; maximumDegree: 3; maximumInsertions: 3; authoredIdCharacters: 48; snapshotValues: 1024; snapshotDepth: 6; arrayElements: 64; recordFields: 8; stringCharacters: 128; observationComparisonMM: 1e-7 };
+  limits: { maximumPoles: 16; maximumDegree: 3; maximumInsertions: 3; authoredIdCharacters: 48; snapshotValues: 1024; snapshotDepth: 6; arrayElements: 64; recordFields: 8; stringCharacters: 128; observationComparisonMM: number };
 }
 export interface CurveKnotInsertionResult { original: Curve; refined: Curve; source: string; sourceVersion: 0; model: Model; provenance: CurveKnotInsertionProvenance; report: CurveKnotInsertionReport }
 const LABEL = 'Curve knot insertion';
@@ -126,7 +127,7 @@ export function insertCurveKnotCoefficientsTrusted(original: Curve, knot: number
   const candidate: Curve = { kind: 'curve', id: original.id, degree: original.degree, knots: knots.map(k => k.value),
     controlPoints: poles.map(entry => entry.originalIndex !== null ? copyCadData(original.controlPoints[entry.originalIndex]) : [entry.h[0] / entry.h[3], entry.h[1] / entry.h[3], entry.h[2] / entry.h[3]] as Point),
     weights: poles.map(entry => entry.originalIndex !== null ? original.weights[entry.originalIndex] : entry.h[3]) };
-  check(candidate.controlPoints.every(p => p.every(n => Number.isFinite(n) && Math.abs(n) <= 10000)), 'generated Cartesian coefficients exceed native family range');
+  check(candidate.controlPoints.every(p => p.every(n => Number.isFinite(n) && Math.abs(n) <= CadNumericPolicy.geometryCoordinateAbsMM)), 'generated Cartesian coefficients exceed native family range');
   validateCurve(candidate); check(sameData(curveDomain(candidate), domain), 'original parameter endpoint bits must remain');
   const unchangedPoles = poles.flatMap((entry, i) => entry.originalIndex === null ? [] : [{ originalPoleIndex: entry.originalIndex, refinedPoleIndex: i }]);
   const unchangedKnots = knots.flatMap((entry, i) => entry.originalIndex === null ? [] : [{ originalKnotIndex: entry.originalIndex, refinedKnotIndex: i }]);
@@ -141,7 +142,9 @@ export function insertCurveKnot(input: Curve, options: CurveKnotInsertionOptions
     check(typeof data.degree === 'number' && Number.isInteger(data.degree) && data.degree >= 1 && data.degree <= 3, 'degree1..3 required');
     check(Array.isArray(data.controlPoints) && data.controlPoints.length >= 2 && data.controlPoints.length <= 16, 'initial poles2..16 required');
     const original = data as unknown as Curve; validateCurve(original);
-    check(original.controlPoints.every(p => p.every(n => Math.abs(n) <= 10000)), 'original XYZ coordinates within±10000mm required');
+    check(original.controlPoints.every(p => p.every(n => Math.abs(n) <= CadNumericPolicy.geometryCoordinateAbsMM)), 'original XYZ coordinates within the geometry range ±' + CadNumericPolicy.geometryCoordinateAbsMM + 'mm required');
+    // CadNumericPolicy: observations use this curve's linear tolerance (1e-7 mm within the modeling range).
+    const observationTolerance = linearToleranceMM(geometryScaleMM(original.controlPoints));
     const domain = curveDomain(original), knot = settings.knot, insertions = settings.insertions;
     check(typeof knot === 'number' && Number.isFinite(knot) && knot > domain[0] && knot < domain[1], 'finite strictly interior knot in original units required');
     check(typeof insertions === 'number' && Number.isInteger(insertions) && insertions >= 1 && insertions <= 3, 'explicit integer insertion count1..3 required');
@@ -157,7 +160,7 @@ export function insertCurveKnot(input: Curve, options: CurveKnotInsertionOptions
     const parameters = [...new Set([...samples(original), ...samples(refined)])].sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
     const observations = parameters.map(parameter => {
       const originalPointMM = evaluateCurve(original, parameter), refinedPointMM = evaluateCurve(refined, parameter), differenceMM = Math.hypot(...refinedPointMM.map((n, i) => n - originalPointMM[i]));
-      check(Number.isFinite(differenceMM) && differenceMM <= 1e-7, 'local original/refined point observation exceeds1e-7mm');
+      check(Number.isFinite(differenceMM) && differenceMM <= observationTolerance, 'local original/refined point observation exceeds ' + observationTolerance + 'mm');
       return { parameter, originalPointMM, refinedPointMM, differenceMM };
     });
     return copyCadData({ original, refined, source: compiled.source, sourceVersion: 0, model: compiled.model,
@@ -166,7 +169,7 @@ export function insertCurveKnot(input: Curve, options: CurveKnotInsertionOptions
         originalMultiplicity, refinedMultiplicity: refined.knots.filter(k => k === knot).length, observations, maximumObservedDifferenceMM: Math.max(...observations.map(o => o.differenceMM)),
         guardedKnots: { original: guardKnots(original.knots, original.degree, ...domain), refined: guardKnots(refined.knots, refined.degree, ...domain) },
         geometricValidity: 'not-certified', topologyCertified: false, solid: false,
-        limits: { maximumPoles: 16, maximumDegree: 3, maximumInsertions: 3, authoredIdCharacters: 48, snapshotValues: 1024, snapshotDepth: 6, arrayElements: 64, recordFields: 8, stringCharacters: 128, observationComparisonMM: 1e-7 } } });
+        limits: { maximumPoles: 16, maximumDegree: 3, maximumInsertions: 3, authoredIdCharacters: 48, snapshotValues: 1024, snapshotDepth: 6, arrayElements: 64, recordFields: 8, stringCharacters: 128, observationComparisonMM: observationTolerance } } });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'invalid original curve/insertion options';
     throw new Error((message.startsWith(LABEL) ? message : LABEL + ': ' + message).slice(0, 1024), { cause: error });

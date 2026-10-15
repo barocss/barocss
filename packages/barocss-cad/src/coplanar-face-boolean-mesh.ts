@@ -1,3 +1,4 @@
+import { CadNumericPolicy } from './numeric-policy.js';
 import { validateCoplanarFaceBoolean } from './coplanar-face-boolean.js';
 import type { CoplanarFaceBooleanResult, CoplanarFaceBooleanContributor } from './coplanar-face-boolean.js';
 import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
@@ -87,7 +88,7 @@ export interface CoplanarFaceBooleanMeshResult {
   boundaryPaths: CoplanarFaceBooleanMeshBoundaryPath[]; triangulation: CoplanarFaceBooleanMeshTriangulation; report: CoplanarFaceBooleanMeshReport;
 }
 
-const CODE = CoplanarFaceBooleanMeshDiagnosticCode, TOLERANCE = 1e-7;
+const CODE = CoplanarFaceBooleanMeshDiagnosticCode, TOLERANCE = CadNumericPolicy.linearToleranceMM;
 function check(condition: boolean, code: CoplanarFaceBooleanMeshDiagnosticCode, detail: string): asserts condition {
   if (!condition) throw new CoplanarFaceBooleanMeshError(code, detail);
 }

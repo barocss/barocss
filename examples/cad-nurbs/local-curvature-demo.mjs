@@ -283,7 +283,7 @@ const c1Surface = surface('c1_surface', 2, 1, c1.controlPoints.map(p => [[...p],
 c1Surface.knotsU = [...c1.knots];
 derivativeReject('actual_d2_surface_c1_u', c1Surface, {u: 1, v: 3.5}, 'CONTINUITY');
 derivativeReject('actual_d2_invalid_query', circle, {parameter: Infinity}, 'INPUT');
-derivativeReject('actual_d2_input_bounds', {...circle, controlPoints: [[10001, 0, 0], ...circle.controlPoints.slice(1)]}, {parameter: 2}, 'INPUT');
+derivativeReject('actual_d2_input_bounds', {...circle, controlPoints: [[1000001, 0, 0], ...circle.controlPoints.slice(1)]}, {parameter: 2}, 'INPUT');
 derivativeReject('actual_d2_invalid_native', {...circle, weights: [1, 0, 1]}, {parameter: 2}, 'NATIVE');
 let getterCalls = 0;
 const getter = {...circle}; Object.defineProperty(getter, 'degree', {enumerable: true, get() { getterCalls++; return 2; }});
