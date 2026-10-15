@@ -176,3 +176,4 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .arc-pair .chip { height: 24px; min-width: 40px; padding: 0 9px; border-radius: 12px; border: 1px solid #4a4d53; background: transparent; color: var(--muted); font: 500 11px var(--mono); cursor: pointer; }
 .arc-pair .chip.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 :root[data-theme='light'] .arc-pair .chip { border-color: #c9ccd2; }
+.vp-overlay .dim.live { pointer-events: none; }

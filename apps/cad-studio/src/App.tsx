@@ -22,6 +22,19 @@ const TOOLS: { tool: SketchTool; key: string; label: string; icon: string; hint:
   { tool: 'arc', key: 'A', label: 'Arc', icon: 'line_curve', hint: 'Click the arc end, move to bend it, click to place · L back to lines' },
   { tool: 'slot', key: 'O', label: 'Slot', icon: 'pill', hint: 'Click both centres, then the width' },
 ];
+/** Floating panels over the viewport while sketching: toolbar on the left, sketch panel on the right (CSS px). */
+const SKETCH_INSETS = { left: 64, right: 272 };
+/**
+ * What the sketch camera frames: the bodies' XY extent (at least 60 mm, so the 1 mm snap stays usable),
+ * or a 120 × 80 mm working area with the origin near the lower left when the part is empty.
+ */
+function sketchRegion(bodies: BodyResult[]): [[number, number], [number, number]] {
+  if (!bodies.length) return [[-20, -20], [100, 60]];
+  const min: [number, number] = [Infinity, Infinity], max: [number, number] = [-Infinity, -Infinity];
+  for (const b of bodies) for (const k of [0, 1]) { min[k] = Math.min(min[k], b.mesh.bounds.min[k]); max[k] = Math.max(max[k], b.mesh.bounds.max[k]); }
+  for (const k of [0, 1]) { const c = (min[k] + max[k]) / 2, half = Math.max(30, (max[k] - min[k]) / 2); min[k] = c - half; max[k] = c + half; }
+  return [min, max];
+}
 /** Line and arc tools share one open chain; switching between them keeps it. */
 const switchTool = (s: SketchState, tool: SketchTool): SketchState => {
   const chain = s.shape?.kind === 'polygon' && (tool === 'polygon' || tool === 'arc') && (s.tool === 'polygon' || s.tool === 'arc');
@@ -47,10 +60,12 @@ export function App() {
   const [previewBodies, setPreviewBodies] = useState<BodyResult[] | null>(null);
   const [sketch, setSketch] = useState<SketchState | null>(null);
   const [sketchError, setSketchError] = useState<string | null>(null);
-  const sketchRef = useRef(sketch); sketchRef.current = sketch;
+  // The last shape handed to the sketch, ahead of React's batched re-render (rapid pointer events).
+  const liveShape = useRef<SketchShape | null>(null);
+  useEffect(() => { liveShape.current = sketch?.shape ?? null; }, [sketch?.shape]);
   /** Every profile edit (viewport or panel) is settled against its constraints before it is shown. */
   const updateShape = useCallback((shape: SketchShape | null) => {
-    const r = settleShape(shape, sketchRef.current?.shape ?? null);
+    const r = settleShape(shape, liveShape.current); liveShape.current = r.shape;
     setSketchError(r.error); setSketch(s => s && { ...s, shape: r.shape });
   }, []);
   useEffect(() => { if (!sketch) setSketchError(null); }, [sketch]);
@@ -133,7 +148,8 @@ export function App() {
       const planeZ = face && face.kind === 'plane' && face.normal[2] > 0.99 ? Math.round(face.centroid[2]) : 0;
       const base = face && planeZ > 0 ? refOf(bodies[f.body]) : null;
       setSketch({ planeZ, tool: 'rectangle', shape: null, base }); setActive(null); setPreviewBodies(null);
-      viewport.current?.setView('top'); return;
+      const [min, max] = sketchRegion(base && f ? [bodies[f.body]] : bodies);
+      viewport.current?.frameSketch(min, max, planeZ, SKETCH_INSETS); return;
     }
     if (cmd.action === 'measure') { setToast({ title: 'Measure', hint: 'Select a face or an edge; its size appears in the Selection card.', detail: '' }); return; }
     if (!cmd.fields) {

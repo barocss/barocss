@@ -117,17 +117,19 @@ try {
     const [cx, cy] = await canvasCenter();
     for (const [dx, dy] of [[-150, -80], [150, -80], [150, 80], [-150, 80], [-150, -80]]) await clickAt(cx + dx, cy + dy);
     assert.match(await status(), /2 DOF/);
-    await page.fill('#sk-len0', '48'); assert.match(await status(), /1 DOF/);
-    await page.fill('#sk-len1', '20'); assert.match(await status(), /Fully defined/);
-    assert.equal(await page.inputValue('#sk-len2'), '48'); assert.equal(await page.inputValue('#sk-len3'), '20');
+    // Lock lengths that differ from the drawing (an unchanged value fires no edit).
+    const W = Math.round(Number(await page.inputValue('#sk-len0'))) + 6, Hh = Math.round(Number(await page.inputValue('#sk-len1'))) + 3;
+    await page.fill('#sk-len0', String(W)); assert.match(await status(), /1 DOF/);
+    await page.fill('#sk-len1', String(Hh)); assert.match(await status(), /Fully defined/);
+    assert.equal(await page.inputValue('#sk-len2'), String(W)); assert.equal(await page.inputValue('#sk-len3'), String(Hh));
     await page.fill('#sk-len1', ''); assert.match(await status(), /1 DOF/);
     await page.focus('#sk-len1'); await press('Enter'); assert.match(await status(), /Fully defined/); await snap('fully-defined');
-    await page.fill('#sk-len2', '30'); assert.match(await page.locator('.sk-panel [role=alert]').innerText(), /conflict/);
+    await page.fill('#sk-len2', String(W + 9)); assert.match(await page.locator('.sk-panel [role=alert]').innerText(), /conflict/);
     await page.locator('#sk-len2').evaluate(e => e.blur()); await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     const d = await doc(); assert.equal(d.nodes[0].profile, 'polygon');
     const xs = d.nodes[0].points.map(p => p[0]), ys = d.nodes[0].points.map(p => p[1]);
-    assert.equal(Math.max(...xs) - Math.min(...xs), 48); assert.equal(Math.max(...ys) - Math.min(...ys), 20);
+    assert.equal(Math.max(...xs) - Math.min(...xs), W); assert.equal(Math.max(...ys) - Math.min(...ys), Hh);
   });
 
   await check('arc notch outline extrudes as one body', async () => {

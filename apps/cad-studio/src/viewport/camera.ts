@@ -72,6 +72,20 @@ export class OrbitCamera {
     this.distance = (radius / Math.sin(this.fovY / 2)) * 1.15 / Math.min(1, this.aspect);
   }
 
+  /**
+   * Frames a rectangle of the plane z (call after setView) so it fits the free part of the viewport:
+   * `insetLeft` / `insetRight` are the fractions of the width covered by floating panels.
+   */
+  frameRect(min: [number, number], max: [number, number], z: number, insetLeft = 0, insetRight = 0, margin = 1.2) {
+    const free = Math.max(0.3, 1 - insetLeft - insetRight), t = Math.tan(this.fovY / 2);
+    const spanX = Math.max(1, max[0] - min[0]) * margin, spanY = Math.max(1, max[1] - min[1]) * margin;
+    this.distance = Math.max(spanY / (2 * t), spanX / (2 * t * this.aspect * free));
+    this.target = [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2, z];
+    // Shift so the rectangle's centre lands in the middle of the free band, not of the canvas.
+    const { right } = this.basis(), halfWidth = this.distance * t * this.aspect, ndc = insetLeft - insetRight;
+    for (let k = 0; k < 3; k++) this.target[k] -= right[k] * ndc * halfWidth;
+  }
+
   setView(name: 'iso' | 'top' | 'front' | 'right' | 'bottom' | 'back' | 'left') {
     const views = { iso: [-0.32, 0.2], top: [-0.5, 0.4999], bottom: [-0.5, -0.4999], front: [-0.5, 0], back: [0.5, 0], right: [0, 0], left: [1, 0] } as const;
     const [y, p] = views[name];

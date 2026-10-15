@@ -22,6 +22,8 @@ export interface Gizmo { origin: Vec3; values: Vec3; onDrag(values: Vec3): void 
 
 export interface ViewportHandle {
   fit(): void; setView(name: Parameters<OrbitCamera['setView']>[0]): void; toggleOrtho(): boolean; camera: OrbitCamera;
+  /** Top view onto plane z, framing the XY rectangle in the area not covered by `insets` (CSS px). */
+  frameSketch(min: [number, number], max: [number, number], z: number, insets?: { left: number; right: number }): void;
   setTheme(name: ThemeName): void; setAo(on: boolean): void;
 }
 
@@ -52,6 +54,11 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   const [, setTick] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const propsRef = useRef(props); propsRef.current = props;
+  // Pointer events can arrive before React re-renders with the shape we just emitted, so handlers read
+  // the latest emitted shape; a new shape from the app (panel edit, solver settle) replaces it.
+  const liveShape = useRef<SketchShape | null>(props.sketch?.shape ?? null), seenShape = useRef(props.sketch?.shape);
+  if (props.sketch?.shape !== seenShape.current) { seenShape.current = props.sketch?.shape; liveShape.current = props.sketch?.shape ?? null; }
+  const emit = (shape: SketchShape | null) => { liveShape.current = shape; propsRef.current.onSketchShape(shape); };
   const fitted = useRef(false);
 
   const viewState = (): ViewState => ({
@@ -90,6 +97,11 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     camera: camera.current,
     fit() { const b = renderer.current?.bounds(); if (b) camera.current.fit(b.min, b.max); request(); },
     setView(name) { camera.current.setView(name); const b = renderer.current?.bounds(); if (b) camera.current.fit(b.min, b.max); request(); },
+    frameSketch(min, max, z, insets = { left: 0, right: 0 }) {
+      const w = Math.max(1, canvas.current!.clientWidth), h = Math.max(1, canvas.current!.clientHeight);
+      camera.current.aspect = w / h; camera.current.setView('top');
+      camera.current.frameRect(min, max, z, insets.left / w, insets.right / w); request();
+    },
     toggleOrtho() { camera.current.ortho = !camera.current.ortho; request(); return camera.current.ortho; },
     setTheme(name) { renderer.current?.setTheme(name); request(); },
     setAo(on) { if (renderer.current) renderer.current.aoEnabled = on; request(); },
@@ -157,21 +169,21 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       const p = planePoint(x, y, w, h, sk.planeZ);
       sketchDraft.current.cursor = p ? [snap(p[0]), snap(p[1])] : null;
       propsRef.current.onCursor(p ? [snap(p[0]), snap(p[1]), sk.planeZ] : null);
-      const s = sk.shape; const c = sketchDraft.current.cursor;
+      const s = liveShape.current; const c = sketchDraft.current.cursor;
       if (s && c) {
-        if (s.kind === 'rectangle' && drafting.current) propsRef.current.onSketchShape({ ...s, b: c });
-        if (s.kind === 'circle' && drafting.current) propsRef.current.onSketchShape({ ...s, r: Math.max(1, Math.round(Math.hypot(c[0] - s.c[0], c[1] - s.c[1]))) });
+        if (s.kind === 'rectangle' && drafting.current) emit({ ...s, b: c });
+        if (s.kind === 'circle' && drafting.current) emit({ ...s, r: Math.max(1, Math.round(Math.hypot(c[0] - s.c[0], c[1] - s.c[1]))) });
         if (s.kind === 'slot' && drafting.current) {
-          if (slotStage.current === 1) propsRef.current.onSketchShape({ ...s, b: c });
+          if (slotStage.current === 1) emit({ ...s, b: c });
           else {
             const l = Math.hypot(s.b[0] - s.a[0], s.b[1] - s.a[1]) || 1;
             const off = Math.abs((c[0] - s.a[0]) * (s.b[1] - s.a[1]) - (c[1] - s.a[1]) * (s.b[0] - s.a[0])) / l;
-            propsRef.current.onSketchShape({ ...s, r: Math.max(0.5, Math.round(off * 2) / 2) });
+            emit({ ...s, r: Math.max(0.5, Math.round(off * 2) / 2) });
           }
         }
         if (s.kind === 'polygon' && s.pending && p) {
           const n = s.points.length, i = s.closed ? n - 1 : n - 2;
-          if (i >= 0) { const bulges = [...(s.bulges ?? s.points.map(() => 0))]; bulges[i] = bulgeThrough(s.points[i], s.points[(i + 1) % n], [p[0], p[1]]); propsRef.current.onSketchShape({ ...s, bulges }); }
+          if (i >= 0) { const bulges = [...(s.bulges ?? s.points.map(() => 0))]; bulges[i] = bulgeThrough(s.points[i], s.points[(i + 1) % n], [p[0], p[1]]); emit({ ...s, bulges }); }
         }
       }
       request(); return;
@@ -201,26 +213,26 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     if (sk) {
       const p = planePoint(x, y, w, h, sk.planeZ); if (!p) return;
       const c: [number, number] = [snap(p[0]), snap(p[1])];
-      const s = sk.shape;
+      const s = liveShape.current;
       if (sk.tool === 'rectangle') {
-        if (!drafting.current) { drafting.current = true; propsRef.current.onSketchShape({ kind: 'rectangle', a: c, b: c }); }
-        else { drafting.current = false; if (s && s.kind === 'rectangle') propsRef.current.onSketchShape({ ...s, b: c }); }
+        if (!drafting.current) { drafting.current = true; emit({ kind: 'rectangle', a: c, b: c }); }
+        else { drafting.current = false; if (s && s.kind === 'rectangle') emit({ ...s, b: c }); }
       } else if (sk.tool === 'circle') {
-        if (!drafting.current) { drafting.current = true; propsRef.current.onSketchShape({ kind: 'circle', c, r: 1 }); }
+        if (!drafting.current) { drafting.current = true; emit({ kind: 'circle', c, r: 1 }); }
         else drafting.current = false;
       } else if (sk.tool === 'slot') {
-        if (!drafting.current) { drafting.current = true; slotStage.current = 1; propsRef.current.onSketchShape({ kind: 'slot', a: c, b: c, r: 0 }); }
-        else if (slotStage.current === 1) { if (s?.kind === 'slot' && (s.b[0] !== s.a[0] || s.b[1] !== s.a[1])) { slotStage.current = 2; propsRef.current.onSketchShape({ ...s, b: c, r: 1 }); } }
+        if (!drafting.current) { drafting.current = true; slotStage.current = 1; emit({ kind: 'slot', a: c, b: c, r: 0 }); }
+        else if (slotStage.current === 1) { if (s?.kind === 'slot' && (s.b[0] !== s.a[0] || s.b[1] !== s.a[1])) { slotStage.current = 2; emit({ ...s, b: c, r: 1 }); } }
         else { drafting.current = false; slotStage.current = 0; }
       } else {
         // Line (polygon) and arc tools share one open chain; an arc's bulge follows the cursor until the next click.
         const open = s && s.kind === 'polygon' && !s.closed ? s : null;
-        if (s?.kind === 'polygon' && s.pending) { propsRef.current.onSketchShape({ ...s, pending: false }); return; }
+        if (s?.kind === 'polygon' && s.pending) { emit({ ...s, pending: false }); return; }
         const pts = open ? open.points : [], bulges = open?.bulges ?? pts.map(() => 0);
         const arc = sk.tool === 'arc' && pts.length > 0;
         const closing = pts.length >= 2 && pts[0][0] === c[0] && pts[0][1] === c[1];
-        if (closing && (pts.length >= 3 || arc || bulges.some(Boolean))) propsRef.current.onSketchShape({ kind: 'polygon', points: pts, closed: true, bulges, pending: arc });
-        else if (!closing) propsRef.current.onSketchShape({ kind: 'polygon', points: [...pts, c], closed: false, bulges: [...bulges, 0], pending: arc });
+        if (closing && (pts.length >= 3 || arc || bulges.some(Boolean))) emit({ kind: 'polygon', points: pts, closed: true, bulges, pending: arc });
+        else if (!closing) emit({ kind: 'polygon', points: [...pts, c], closed: false, bulges: [...bulges, 0], pending: arc });
       }
       return;
     }
@@ -260,7 +272,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     if (sk) {
       const z = sk.planeZ; const P = (u: number, v: number) => cam.project([u, v, z], w, h);
       const label = (x: number, y: number, text: string, key: string) => (
-        <g key={'d' + key} className="dim" onPointerDown={e => { e.stopPropagation(); e.preventDefault(); props.onDimClick?.(key); }}>
+        <g key={'d' + key} className={key.startsWith('live') ? 'dim live' : 'dim'} onPointerDown={e => { if (key.startsWith('live')) return; e.stopPropagation(); e.preventDefault(); props.onDimClick?.(key); }}>
           <rect x={x - 26} y={y - 11} width={52} height={22} rx={4} className="dim-chip" /><text x={x} y={y + 4} textAnchor="middle" className="dim-text">{text}</text></g>);
       const glyph = (a: [number, number], b: [number, number], key: string) => {
         const kind = a[1] === b[1] ? 'H' : a[0] === b[0] ? 'V' : null; if (!kind) return;
