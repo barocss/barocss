@@ -15,20 +15,20 @@
 //                    by its two faces. Chamfers and fillets select edges by these names, so a selection
 //                    survives parameter edits that keep the topology.
 //   references       `id` (all parts of a feature) or `id/k` (part k: the sides of a split)
-import { BrepError, buildBrep, lineCurve, type Brep } from './brep-core.js';
+import { BrepError, buildBrep, lineCurve, mergeBreps, type Brep } from './brep-core.js';
 import { brepFromPrismatic, booleanPrismatic, prismaticExtrude, prismaticFromProfile, prismaticVolume, transformPrismatic, PrismaticSolidError, type PrismaticSolid } from './prismatic-solid.js';
 import { erodeSection } from './section-offset.js';
-import { booleanCurveRegions, curveTolerance, sampleRing, segEnd, CurvedArrangementError, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
+import { booleanCurveRegions, curveTolerance, regionMoments, sampleRing, segEnd, segReverse, CurvedArrangementError, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
 import { booleanPolyhedra } from './polyhedral-boolean.js';
 import { booleanAnalytic, faceGeometry } from './analytic-boolean.js';
 import { finishBrepEdges } from './edge-finish.js';
 import { draftedExtrusion } from './drafted-extrusion.js';
 import { exportStep, importStep } from './step.js';
-import { revolveProfile, revolveMassProperties } from './revolve.js';
+import { revolveProfile, revolveMassProperties, type RevolveInput } from './revolve.js';
 import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js';
 import { tessellateBrep } from './brep-tessellate.js';
 import { combineMassProperties, prismaticMassProperties, brepMassProperties, SolidMassError, type SolidMassProperties } from './solid-mass.js';
-import { glueAtSharedFace } from './brep-glue.js';
+import { glueAtSharedFace, withCavities } from './brep-glue.js';
 import { loftSolid } from './loft.js';
 import { ExtrudedProfileError, buildProfileLoop, type ProfileSegmentInput } from './extruded-profile-solid.js';
 import type { Point } from './types.js';
@@ -137,7 +137,11 @@ interface Part {
   readonly solid: Solid; brep?: Brep; readonly mass?: (density: number) => SolidMassProperties;
   readonly history?: { readonly base: PrismaticSolid; readonly finishes: readonly Finish[] };
   readonly moved?: { readonly from: Part; readonly m: BrepAffine['matrix']; readonly o: Point };
+  /** How a revolved or swept body was made (shell erodes its section and makes it again). */
+  readonly revolved?: RevolveInput;
+  readonly swept?: { readonly profile: readonly ProfileSegmentInput[]; readonly steps: readonly SweepStep[] };
 }
+type SweepStep = { kind: 'straight'; length: number } | { kind: 'bend'; radius: number; angle: number; toward: 'x' | '-x' | 'y' | '-y' };
 type Result = { readonly kind: 'sketch'; readonly outer: readonly ProfileSegmentInput[] } | { readonly kind: 'solid'; readonly parts: readonly Part[] };
 
 const empty = (s: Solid) => s.kind === 'upright' ? !s.solid.slabs.length : !s.brep.bodies.length;
@@ -340,7 +344,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       const origin = xy(ax!.origin, 'axis origin'), deg = f.angleDegrees === undefined ? 360 : f.angleDegrees as number;
       if (typeof deg !== 'number' || !(deg > 0 && deg <= 360)) fail('INPUT', 'angleDegrees must be in (0, 360]');
       const input = { id: at, profile: (sketch as Extract<Result, { kind: 'sketch' }>).outer, axis: { origin, direction: (ax!.direction === 'x' ? [1, 0] : [0, 1]) as XY }, angleDegrees: deg };
-      return () => ({ kind: 'solid', parts: [{ solid: { kind: 'brep', brep: revolveProfile(input) }, mass: (density: number) => revolveMassProperties(input, density) }] });
+      return () => ({ kind: 'solid', parts: [{ solid: { kind: 'brep', brep: revolveProfile(input) }, mass: (density: number) => revolveMassProperties(input, density), revolved: input }] });
     }
     case 'union': case 'difference': case 'intersect': {
       const target = solids(f.target, 'target'), tool = solids(f.tool, 'tool'), op = f.kind === 'intersect' ? 'intersection' : f.kind;
@@ -429,7 +433,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         return fail('INPUT', `path[${i}].kind must be straight or bend`);
       });
       const outer = (sketch as Extract<Result, { kind: 'sketch' }>).outer;
-      return () => { const { brep, mass } = sweepBrep(outer, steps, at, fail); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass }] }; };
+      return () => { const { brep, mass } = sweepBrep(outer, steps, at, fail); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass, swept: { profile: outer, steps } }] }; };
     }
     case 'loft': {
       const list = f.sections as unknown;
@@ -460,7 +464,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       const open = f.open === undefined ? [] : f.open as unknown;
       if (!Array.isArray(open) || open.length > CadPartLimits.edges || !open.every(x => typeof x === 'string')) fail('INPUT', 'open must list up to 64 face names');
       if (target.length !== 1) fail('REFERENCE', 'shell one part at a time (name it as id/k)');
-      return () => one(shellPart(target[0], t, open as string[], at, fail));
+      return () => ({ kind: 'solid', parts: [shellOf(target[0], t, open as string[], at, fail)] });
     }
     case 'split': {
       const target = solids(f.target, 'target'), axis = axisOf(f.axis), cut = dim(f.at as CadPartDim, 'at');
@@ -556,9 +560,9 @@ function rotate(s: Solid, axis: CadPartAxis, deg: number, pivot: Point, rename?:
  * plane, a radius to its side), each placed where the last one ended; the pieces meet in whole
  * cross-sections and are joined.
  */
-function sweepBrep(profile: readonly ProfileSegmentInput[], steps: ({ kind: 'straight'; length: number } | { kind: 'bend'; radius: number; angle: number; toward: 'x' | '-x' | 'y' | '-y' })[], at: string, fail: Tools['fail']): { brep: Brep; mass: (density: number) => SolidMassProperties } {
-  // The path runs through the profile's centroid: the profile is moved there, the body back.
-  const centre = buildProfileLoop(profile, { maximumSegments: 1024 }).centroidMM;
+function sweepBrep(profile: readonly ProfileSegmentInput[], steps: readonly SweepStep[], at: string, fail: Tools['fail'], through?: XY): { brep: Brep; mass: (density: number) => SolidMassProperties } {
+  // The path runs through the profile's centroid (or a given point): the profile is moved there, the body back.
+  const centre = through ?? buildProfileLoop(profile, { maximumSegments: 1024 }).centroidMM;
   const outer: ProfileSegmentInput[] = profile.map(g => g.kind === 'line' ? { kind: 'line', start: [g.start[0] - centre[0], g.start[1] - centre[1]] } : { ...g, start: [g.start[0] - centre[0], g.start[1] - centre[1]], center: [g.center[0] - centre[0], g.center[1] - centre[1]] });
   let o: Point = [centre[0], centre[1], 0], x: Point = [1, 0, 0], y: Point = [0, 1, 0], z: Point = [0, 0, 1];
   // (Ids are identifiers; the pieces' faces are named `${at}.s${k}.…`.)
@@ -604,14 +608,24 @@ function sweepBrep(profile: readonly ProfileSegmentInput[], steps: ({ kind: 'str
  * arcs), extruded from the thickness above the bottom to below the top (or through an open top or
  * bottom), and taken away; open side walls let the hollow run through them.
  */
+/** The shell of a part, by how it was made (its mass exact when that can be). */
+function shellOf(part: Part, t: number, open: string[], at: string, fail: Tools['fail']): Part {
+  if (part.solid.kind !== 'upright') {
+    if (part.revolved) return shellRevolved(part, part.revolved, t, open, at, fail);
+    if (part.swept) return shellSwept(part, part.swept, t, open, at, fail);
+    // A moved copy: the original's shell, moved (a scaled copy's with the wall scaled back).
+    if (!part.history && part.moved) {
+      const { from, m, o } = part.moved, k = Math.cbrt(Math.abs(m[0] * (m[4] * m[8] - m[5] * m[7]) - m[1] * (m[3] * m[8] - m[5] * m[6]) + m[2] * (m[3] * m[7] - m[4] * m[6])));
+      const inner = shellOf(from, t / k, open, at, fail);
+      return { solid: affine(inner.solid, m, o), ...(inner.mass ? { mass: (d: number) => movedMass(inner.mass!(d), m, o) } : {}) };
+    }
+  }
+  return { solid: shellPart(part, t, open, at, fail) };
+}
+
 function shellPart(part: Part, t: number, open: string[], at: string, fail: Tools['fail']): Solid {
   if (part.solid.kind === 'upright') { const h = hollowOf(part.solid.solid, t, open, at, fail); return { kind: 'upright', solid: booleanPrismatic(part.solid.solid, h.hollow, 'difference') }; }
-  // A moved copy: the original's shell, moved (a scaled copy's with the wall scaled back).
-  if (!part.history && part.moved) {
-    const { from, m, o } = part.moved, k = Math.cbrt(Math.abs(m[0] * (m[4] * m[8] - m[5] * m[7]) - m[1] * (m[3] * m[8] - m[5] * m[6]) + m[2] * (m[3] * m[7] - m[4] * m[6])));
-    return affine(shellPart(from, t / k, open, at, fail), m, o);
-  }
-  if (!part.history) fail('CAPABILITY', 'shell works on bodies extruded from one section, with their edges finished or not, and moved or not (before combining them) yet');
+  if (!part.history) fail('CAPABILITY', 'shell works on bodies extruded (from one section or stacked ones), revolved a full turn or swept, with their edges finished or not, and moved or not (before combining curved bodies) yet');
   // A finished body: its hollow is the base's hollow with the same finishes, offset by the wall — a
   // rolling ball of radius r less the wall rounds the offset of a convex edge rounded r (sharp when r
   // is not more than the wall); an equal chamfer d on a corner of angle α becomes d + t(1 − 1/sin(α/2))/cos(α/2).
@@ -650,6 +664,99 @@ function shellPart(part: Part, t: number, open: string[], at: string, fail: Tool
   // (Ids are identifiers; the hollow's finished faces are named `${at}.in.${finish}.…`.)
   const inner = hollow.solid.kind === 'brep' ? { kind: 'brep' as const, brep: transformBrep(hollow.solid.brep, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1], offset: [0, 0, 0] }, n => n.split(`${at}_in_`).join(`${at}.in.`)) } : hollow.solid;
   return boolean(part.solid, inner, 'difference', at);
+}
+
+/** A body less hollows inside it: masses and moments subtracted (inertia via the origin). */
+function massLess(outer: SolidMassProperties, inner: readonly SolidMassProperties[]): SolidMassProperties {
+  const about = (p: SolidMassProperties) => { const c = p.centroidMM.map(x => x * 1e-3), cc = c[0] ** 2 + c[1] ** 2 + c[2] ** 2; return p.inertiaCentroidKgM2.map((row, i) => row.map((v, j) => v + p.massKG * ((i === j ? cc : 0) - c[i] * c[j]))); };
+  const m = outer.massKG - inner.reduce((a, p) => a + p.massKG, 0), V = outer.volumeMM3 - inner.reduce((a, p) => a + p.volumeMM3, 0);
+  const c = [0, 1, 2].map(i => (outer.massKG * outer.centroidMM[i] - inner.reduce((a, p) => a + p.massKG * p.centroidMM[i], 0)) / m) as Point;
+  const T = about(outer); for (const p of inner) about(p).forEach((row, i) => row.forEach((v, j) => { T[i][j] -= v; }));
+  const cm = c.map(x => x * 1e-3), cc = cm[0] ** 2 + cm[1] ** 2 + cm[2] ** 2;
+  const I = T.map((row, i) => row.map((v, j) => v - m * ((i === j ? cc : 0) - cm[i] * cm[j]))) as [[number, number, number], [number, number, number], [number, number, number]];
+  return { volumeMM3: V, massKG: m, centroidMM: c, inertiaCentroidKgM2: I, method: outer.method };
+}
+/** A ring of section segments as profile segments (each from its start). */
+const profileOfRing = (ring: readonly CurveSegment2[]): ProfileSegmentInput[] => ring.map(g => {
+  if (g.kind === 'line') return { kind: 'line', start: [g.a[0], g.a[1]] };
+  if (g.kind === 'arc') return { kind: 'arc', start: [g.c[0] + g.r * Math.cos(g.t0), g.c[1] + g.r * Math.sin(g.t0)], center: [g.c[0], g.c[1]], direction: g.sweep > 0 ? 'ccw' : 'cw' };
+  throw new CadPartError('CAPABILITY', 'shell', 'a section with curves other than lines and arcs');
+});
+/** A profile's segments as a tagged section ring (`side<i>`, as the body's faces are named), and the loop. */
+type LineArc = Extract<CurveSegment2, { kind: 'line' } | { kind: 'arc' }>;
+function sectionRing(profile: readonly ProfileSegmentInput[]): LineArc[] {
+  const built = buildProfileLoop(profile, { maximumSegments: 1024 }).segments;
+  // A single circle is two halves (side0, side1), as the revolved body has it.
+  const loop = built.length > 1 ? built : (() => { const a = built[0] as Extract<typeof built[number], { kind: 'arc' }>; return [{ ...a, sweep: a.sweep / 2 }, { ...a, startAngle: a.startAngle + a.sweep / 2, sweep: a.sweep / 2 }]; })();
+  return loop.map((g, i): LineArc => g.kind === 'line' ? { kind: 'line', a: g.start, b: g.end, tag: `side${i}` } : { kind: 'arc', c: g.center, r: g.radiusMM, t0: g.startAngle, sweep: g.sweep, tag: `side${i}` });
+}
+const ringsOfRegions = (rs: readonly CurveRegion2[]) => rs.flatMap(r => [r.outer, ...r.holes]);
+const renamed = (b: Brep, from: string, to: string) => transformBrep(b, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1], offset: [0, 0, 0] }, n => n.split(from).join(to));
+
+/**
+ * A body turned a full turn, hollowed: every point's nearest wall lies in its own meridian plane, so
+ * the hollow is the meridian section (with its mirror across the axis) eroded, turned again — exact,
+ * its mass the body's less the hollow's part inside it (also turned: closed form).
+ */
+function shellRevolved(part: Part, input: RevolveInput, t: number, open: string[], at: string, fail: Tools['fail']): Part {
+  if (input.angleDegrees !== 360) fail('CAPABILITY', 'shell works on bodies turned a full turn yet (this one stops at its start and end faces)');
+  const id = input.id!, ring = sectionRing(input.profile), tags = new Set(ring.map(g => g.tag!)), tol = curveTolerance([ring]);
+  const openTags = new Set(open.map(n => { const tag = n.startsWith(id + '.') ? n.slice(id.length + 1).replace(/#\d+$/, '') : ''; if (!tags.has(tag)) fail('SELECTION', `no face named ${n} to open; faces: ${[...tags].map(x => `${id}.${x}`).slice(0, 12).join(', ')}`); return tag; }));
+  // The axis, its side the profile is on, and the mirror across it.
+  const [dx, dy] = input.axis.direction, dl = Math.hypot(dx, dy), d: XY = [dx / dl, dy / dl], A = input.axis.origin, nrm: XY = [-d[1], d[0]];
+  const side = Math.sign(ring.reduce((acc, g) => { const p = g.kind === 'line' ? g.a : [g.c[0] + g.r * Math.cos(g.t0 + g.sweep / 2), g.c[1] + g.r * Math.sin(g.t0 + g.sweep / 2)]; return acc + (p[0] - A[0]) * nrm[0] + (p[1] - A[1]) * nrm[1]; }, 0)) || 1;
+  const refl = (p: readonly number[]): XY => { const v = [p[0] - A[0], p[1] - A[1]], u = v[0] * d[0] + v[1] * d[1]; return [A[0] + 2 * u * d[0] - v[0], A[1] + 2 * u * d[1] - v[1]]; };
+  const phi = Math.atan2(d[1], d[0]);
+  const mirror: LineArc[] = [...ring].reverse().map((g): LineArc => g.kind === 'line' ? { kind: 'line', a: refl(g.b), b: refl(g.a), tag: g.tag } : { kind: 'arc', c: refl(g.c), r: g.r, t0: 2 * phi - g.t0 - g.sweep, sweep: g.sweep, tag: g.tag });
+  const whole = booleanCurveRegions([ring], [mirror], 'union', tol);
+  let inner: CurveRegion2[] = [];
+  try { inner = erodeSection(whole, t, tag => !!tag && openTags.has(tag), () => 'wall', tol); }
+  catch (cause) { if (cause instanceof Error && /only straight walls/.test(cause.message)) fail('CAPABILITY', cause.message); throw cause; }
+  // The profile's half of it.
+  const L = 4 * Math.max(1, ...ring.flatMap(g => g.kind === 'line' ? [...g.a, ...g.b].map(Math.abs) : [Math.abs(g.c[0]) + g.r, Math.abs(g.c[1]) + g.r]), Math.abs(A[0]), Math.abs(A[1]));
+  const at2 = (u: number, w: number): XY => [A[0] + u * d[0] + w * side * nrm[0], A[1] + u * d[1] + w * side * nrm[1]];
+  const corners = [at2(-L, 0), at2(L, 0), at2(L, L), at2(-L, L)], halfPlane: CurveSegment2[] = corners.map((p, k) => ({ kind: 'line', a: p, b: corners[(k + 1) % 4] }));
+  const area = (rs: CurveRegion2[]) => rs.reduce((a, r) => a + regionMoments(r)[0], 0);
+  const orient = (ring: readonly CurveSegment2[]): CurveSegment2[] => area([{ outer: ring, holes: [] }]) < 0 ? [...ring].reverse().map(segReverse) : [...ring];
+  const half = booleanCurveRegions(ringsOfRegions(inner), [orient(halfPlane)], 'intersection', tol);
+  if (!half.length || area(half) <= tol * tol) fail('PARAMETER', `a wall of ${t} mm leaves no hollow inside this body`);
+  if (half.some(r => r.holes.length)) fail('CAPABILITY', 'shell of a revolved body whose hollow section has islands is not supported yet');
+  const pieces = half.map((r, k) => ({ id: `${at}_in${k}`, profile: profileOfRing(r.outer), axis: input.axis, angleDegrees: 360 }));
+  const hollow = mergeBreps(pieces.map(pc => renamed(revolveProfile(pc), `${at}_in`, `${at}.in`)), { family: 'revolve', id: `${at}_hollow` });
+  // The hollow inside the body: the eroded half within the profile (an opening runs out past it).
+  const inside = booleanCurveRegions(ringsOfRegions(half), [orient(ring)], 'intersection', tol).map((r, k) => ({ id: `${at}_m${k}`, profile: profileOfRing(r.outer), axis: input.axis, angleDegrees: 360 }));
+  // Nothing opened: the hollow lies inside, apart from the walls — a cavity, no Boolean needed.
+  const solid: Solid = openTags.size ? boolean(part.solid, { kind: 'brep', brep: hollow }, 'difference', at) : { kind: 'brep', brep: withCavities(brepOf(part, 'target'), hollow, { family: 'shell', id: at }) };
+  return { solid, mass: d => massLess(revolveMassProperties(input, d), inside.map(pc => revolveMassProperties(pc, d))) };
+}
+
+/**
+ * A swept body hollowed: its walls' normals lie in the path's cross-sections, so the hollow is the
+ * section eroded, swept along the same path (through the same point) — run out past an open end,
+ * started a wall's thickness into a closed one (on a straight run); exact, mass included.
+ */
+function shellSwept(part: Part, swept: NonNullable<Part['swept']>, t: number, open: string[], at: string, fail: Tools['fail']): Part {
+  const steps = [...swept.steps], last = steps.length - 1, brep = brepOf(part, 'target');
+  const names = new Set(brep.faces.map(f => f.name ?? '')), startName = [`${at}`].length ? [...names].find(n => /\.s0\.(bottom|start)$/.test(n)) : undefined, endName = [...names].find(n => new RegExp(`\\.s${last}\\.(top|end)$`).test(n));
+  for (const n of open) if (n !== startName && n !== endName) fail(names.has(n) ? 'CAPABILITY' : 'SELECTION', names.has(n) ? `only a swept body's end faces can be opened yet (${startName}, ${endName})` : `no face named ${n} to open; faces: ${[startName, endName].join(', ')}`);
+  const openStart = !!startName && open.includes(startName), openEnd = !!endName && open.includes(endName);
+  const ring = sectionRing(swept.profile), tol = curveTolerance([ring]), centre = buildProfileLoop(swept.profile, { maximumSegments: 1024 }).centroidMM;
+  const inner = erodeSection([{ outer: ring, holes: [] }], t, () => false, () => 'wall', tol);
+  if (!inner.length) fail('PARAMETER', `a wall of ${t} mm leaves no hollow inside this section`);
+  if (inner.length > 1 || inner[0].holes.length) fail('CAPABILITY', 'shell of a swept body whose hollow section falls apart is not supported yet');
+  const profile = profileOfRing(inner[0].outer);
+  // Its ends: a closed end on a straight run starts the hollow a wall into it.
+  const trim = (k: number) => { const st = steps[k]; if (st.kind !== 'straight' || !(st.length > t)) fail('CAPABILITY', 'a closed end of a swept body must be a straight run longer than the wall yet (open it, or start with a run)'); return st.length - t; };
+  const inside = steps.map(s => ({ ...s }));
+  let lift = 0;
+  if (!openStart) { inside[0] = { kind: 'straight', length: trim(0) }; lift = t; }
+  if (!openEnd) { const k = last; const base = inside[k] as SweepStep; if (k === 0 && !openStart) { if (!(base.kind === 'straight' && base.length > t)) fail('CAPABILITY', 'the run is too short for both closed ends'); inside[0] = { kind: 'straight', length: (base as { length: number }).length - t }; } else inside[k] = { kind: 'straight', length: trim(k) }; }
+  const run = 1 + t, path: SweepStep[] = [...(openStart ? [{ kind: 'straight' as const, length: run }] : []), ...inside, ...(openEnd ? [{ kind: 'straight' as const, length: run }] : [])];
+  const shift = openStart ? -run : lift;
+  const made = sweepBrep(profile, path, `${at}_in`, fail, centre), hollow = transformBrep(renamed(made.brep, `${at}_in`, `${at}.in`), { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1], offset: [0, 0, shift] });
+  const within = sweepBrep(profile, inside, `${at}_m`, fail, centre);
+  const solid: Solid = openStart || openEnd ? boolean(part.solid, { kind: 'brep', brep: hollow }, 'difference', at) : { kind: 'brep', brep: withCavities(brep, hollow, { family: 'shell', id: at }) };
+  return { solid, mass: d => { const m = within.mass(d); return massLess(part.mass!(d), [movedMass(m, [1, 0, 0, 0, 1, 0, 0, 0, 1], [0, 0, lift])]); } };
 }
 
 /**

@@ -200,6 +200,36 @@ test('shell stepped bodies: a boss on a plate, an overhang; the hollow at z is t
   refused(D([...boss, { id: 'sh', kind: 'shell', target: 'u', thickness: 2, open: ['p.top'] }]), 'CAPABILITY', /a step between sections/);
 });
 
+test('shell revolved and swept bodies: the section eroded and made again, exact with closed-form mass', () => {
+  const cup = [{ id: 'p', kind: 'sketch', profile: 'polygon', points: [[0, 0], [20, 0], [20, 30], [0, 30]] }, { id: 'r', kind: 'revolve', sketch: 'p', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }];
+  const ring = [circle('c', 20, 0, 5), { id: 'r', kind: 'revolve', sketch: 'c', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }];
+  const pipe = [circle('c', 0, 0, 3), { id: 'w', kind: 'sweep', sketch: 'c', path: [{ kind: 'straight', length: 10 }, { kind: 'bend', radius: 20, angleDegrees: 90, toward: 'x' }, { kind: 'straight', length: 10 }] }];
+  const L = 20 + 10 * pi, shell = (body, target, thickness, open) => D([...body, { id: 'sh', kind: 'shell', target, thickness, ...(open ? { open } : {}) }]);
+  const cases = [
+    // The cup's wall (side1) and floor (side0) 2 thick; open at the top (side2).
+    ['a cup open at the top', shell(cup, 'r', 2, ['r.side2']), pi * (400 * 30 - 18 * 18 * 28), [1, 0]],
+    ['a closed cup (a cavity)', shell(cup, 'r', 2), pi * (400 * 30 - 18 * 18 * 26), [2, 0]],
+    ['a torus hollowed 1 thick', shell(ring, 'r', 1), 2 * pi * pi * 20 * (25 - 16), [2, 2]],
+    ['a pipe open at both ends', shell(pipe, 'w', 1, ['w.s0.bottom', 'w.s2.top']), pi * (9 - 4) * L, [1, 1]],
+    ['a pipe closed at both ends', shell(pipe, 'w', 1), pi * (9 * L - 4 * (L - 2)), [2, 0]],
+  ];
+  for (const [name, doc, exact, [shells, genus]] of cases) {
+    const o = evaluateCadPart(doc).outputs.at(-1), report = checkBrep(o.brep), m = o.massProperties(1000);
+    assert.equal(report.valid, true, `${name}: ${report.issues}`);
+    assert.deepEqual(report.topology.map(t => [t.shells, t.genus]), [[shells, genus]], name);
+    assert.equal(m.method, 'closed-form', name);
+    assert.ok(close(m.volumeMM3, exact, 1e-10), `${name}: ${m.volumeMM3} vs ${exact}`);
+    const mesh = brepMassProperties(o.brep, 1000, { segmentsPerQuarter: 32 });
+    assert.ok(Math.abs(mesh.volumeMM3 - m.volumeMM3) < 1e-3 * m.volumeMM3 && Math.hypot(...m.centroidMM.map((c, k) => c - mesh.centroidMM[k])) < 1e-2, `${name}: mesh`);
+    for (let i = 0; i < 3; i++) assert.ok(Math.abs(m.inertiaCentroidKgM2[i][i] - mesh.inertiaCentroidKgM2[i][i]) < 2e-3 * m.inertiaCentroidKgM2[i][i], `${name}: inertia ${i}`);
+  }
+  assert.ok(evaluateCadPart(cases[0][1]).outputs.at(-1).brep.faces.some(f => /^sh\.in\d*\.side/.test(f.name)));
+  refused(shell([cup[0], { ...cup[1], angleDegrees: 180 }], 'r', 2), 'CAPABILITY', /a full turn/);
+  refused(shell(pipe, 'w', 1, ['w.s1.side0']), 'CAPABILITY', /end faces/);
+  refused(shell([circle('c', 0, 0, 3), { id: 'w', kind: 'sweep', sketch: 'c', path: [{ kind: 'bend', radius: 20, angleDegrees: 90, toward: 'x' }] }], 'w', 1), 'CAPABILITY', /straight run/);
+  refused(shell(cup, 'r', 2, ['r.side7']), 'SELECTION', /no face named r\.side7/);
+});
+
 test('moved parts keep their exact mass: a loft turned about X and scaled', () => {
   const loft = [rect('a', 0, 0, 20, 10), circle('b', 10, 5, 3), { id: 'L', kind: 'loft', sections: [{ sketch: 'a', z: 0 }, { sketch: 'b', z: 12 }] }];
   const at = evaluateCadPart(D(loft)).outputs[0].massProperties(1000);

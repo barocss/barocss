@@ -3,7 +3,7 @@
 // the solids otherwise lie apart (each on its side of the face's plane, as consecutive pieces of a
 // sweep do); the caller makes sure of that. Returns null when the faces do not match exactly, for the
 // caller to fall back to a Boolean union.
-import { buildBrep, type Brep, type BrepFace, type BrepLoopInput } from './brep-core.js';
+import { BrepError, buildBrep, type Brep, type BrepFace, type BrepLoopInput } from './brep-core.js';
 import { faceGeometry } from './analytic-boolean.js';
 import { evaluateCurve } from './math.js';
 import { dot, len, sub } from './vec3.js';
@@ -79,4 +79,26 @@ export function glueAtSharedFace(a: Brep, b: Brep, source: Brep['source']): Brep
     edges: [...keep(a, ia, () => false), ...keep(b, ib, e => edge.has(e))],
     bodies: [{ id: a.bodies[0].id, kind: 'solid', shells: [{ id: ia(a.shells[0].id), faces, closed: true }] }],
   });
+}
+
+/**
+ * A solid with cavities: `outer`'s one body, and every shell of `inner` (bodies strictly inside it,
+ * apart from its boundary and each other) as voids, faces turned inside out.
+ */
+export function withCavities(outer: Brep, inner: Brep, source: Brep['source']): Brep {
+  if (outer.bodies.length !== 1) throw new BrepError('INPUT', 'cavities: the outer B-rep must be one body');
+  const inputs = (x: Brep, id: (s: string) => string, flip: boolean) => {
+    const loops = new Map(x.loops.map(l => [l.id, l])), coedges = new Map(x.coedges.map(c => [c.id, c]));
+    return x.shells.map(sh => ({ id: id(sh.id), closed: true, faces: sh.faces.map(fid => {
+      const f = x.faces.find(q => q.id === fid)!;
+      return { id: id(f.id), surface: f.surface, sense: (flip ? (f.sense === 'forward' ? 'reversed' : 'forward') : f.sense) as 'forward' | 'reversed', ...(f.name === undefined ? {} : { name: f.name }),
+        loops: f.loops.map((lid): BrepLoopInput => { const l = loops.get(lid)!, uses = l.coedges.map(cid => { const c = coedges.get(cid)!; return { edge: id(c.edge), sense: c.sense, pcurve: c.pcurve }; });
+          return { kind: l.kind, uses: flip ? [...uses].reverse().map(u => ({ edge: u.edge, sense: (u.sense === 'forward' ? 'reversed' : 'forward') as 'forward' | 'reversed', pcurve: null })) : uses }; }) };
+    }) }));
+  };
+  const ia = (s: string) => `a.${s}`, ib = (s: string) => `b.${s}`;
+  const verts = (x: Brep, id: (s: string) => string) => x.vertices.map(v => ({ id: id(v.id), point: v.point }));
+  const edgs = (x: Brep, id: (s: string) => string) => x.edges.map(e => ({ id: id(e.id), curve: e.curve, vertices: [id(e.vertices[0]), id(e.vertices[1])] as [string, string], ...(e.name === undefined ? {} : { name: e.name }) }));
+  return buildBrep({ source, vertices: [...verts(outer, ia), ...verts(inner, ib)], edges: [...edgs(outer, ia), ...edgs(inner, ib)],
+    bodies: [{ id: outer.bodies[0].id, kind: 'solid', shells: [...inputs(outer, ia, false), ...inputs(inner, ib, true)] }] });
 }
