@@ -179,7 +179,25 @@ test('shell after fillets and chamfers: the hollow takes the same finishes, offs
   assert.ok(close(trayOf([{ id: 'm', kind: 'mirror', target: 'f', plane: 'xz' }], 'm'), still, 1e-9));
   const big = evaluateCadPart(D([...box, { id: 'k', kind: 'scale', target: 'e', factor: 2 }, { id: 'sh', kind: 'shell', target: 'k', thickness: 4, open: ['e.top'] }])).outputs.at(-1);
   assert.ok(close(volume(big), 8 * (48000 - 56 * 36 * 18), 1e-12));
-  refused(D([...box, rect('t', 70, 0, 80, 10), extrude('b', 't', 5), { id: 'u', kind: 'union', target: 'e', tool: 'b' }, { id: 'f', kind: 'fillet', target: 'u', edges: ['e.side0|e.top'], radius: 3 }, { id: 'sh', kind: 'shell', target: 'f', thickness: 2 }]), 'CAPABILITY', /shell works on bodies extruded from one section/);
+  refused(D([...box, rect('t', 70, 0, 80, 10), extrude('b', 't', 5), { id: 'u', kind: 'union', target: 'e', tool: 'b' }, { id: 'f', kind: 'fillet', target: 'u', edges: ['e.side0|e.top'], radius: 3 }, { id: 'sh', kind: 'shell', target: 'f', thickness: 2 }]), 'CAPABILITY', /extruded from one section/);
+});
+
+test('shell stepped bodies: a boss on a plate, an overhang; the hollow at z is the sections within the wall of z, eroded', () => {
+  const boss = [rect('s', 0, 0, 60, 40), extrude('p', 's', 6), rect('b', 20, 10, 40, 30), extrude('q', 'b', 10, 6), { id: 'u', kind: 'union', target: 'p', tool: 'q' }];
+  const tee = [rect('s', 20, 10, 40, 30), extrude('p', 's', 10), rect('b', 0, 0, 60, 40), extrude('q', 'b', 6, 10), { id: 'u', kind: 'union', target: 'p', tool: 'q' }];
+  const shell = (body, open) => evaluateCadPart(D([...body, { id: 'sh', kind: 'shell', target: 'u', thickness: 2, ...(open ? { open } : {}) }])).outputs.at(-1);
+  // Boss closed: the plate's hollow 56 × 36 from 2 to 4, then the boss's 16 × 16 from 4 (within the wall of the step) to 14.
+  const cases = [['a boss, closed', shell(boss), 18400 - (56 * 36 * 2 + 16 * 16 * 10), 2], ['a boss open at its top', shell(boss, ['q.top']), 18400 - (56 * 36 * 2 + 16 * 16 * 12), 1],
+    ['an overhang, closed', shell(tee), 18400 - (16 * 16 * 10 + 56 * 36 * 2), 2]];
+  for (const [name, o, exact, shells] of cases) {
+    const report = checkBrep(o.brep);
+    assert.equal(report.valid, true, `${name}: ${report.issues}`);
+    assert.equal(o.representation, 'upright', name);
+    assert.deepEqual(report.topology.map(t => t.shells), [shells], name);
+    assert.ok(close(volume(o), exact, 1e-12), `${name}: ${volume(o)} vs ${exact}`);
+  }
+  assert.ok(['sh.floor', 'sh.step1', 'sh.in.q.side0', 'sh.in.p.side0'].every(n => cases[1][1].brep.faces.some(f => f.name === n)));
+  refused(D([...boss, { id: 'sh', kind: 'shell', target: 'u', thickness: 2, open: ['p.top'] }]), 'CAPABILITY', /a step between sections/);
 });
 
 test('moved parts keep their exact mass: a loft turned about X and scaled', () => {

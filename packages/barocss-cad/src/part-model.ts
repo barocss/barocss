@@ -615,7 +615,9 @@ function shellPart(part: Part, t: number, open: string[], at: string, fail: Tool
   // A finished body: its hollow is the base's hollow with the same finishes, offset by the wall — a
   // rolling ball of radius r less the wall rounds the offset of a convex edge rounded r (sharp when r
   // is not more than the wall); an equal chamfer d on a corner of angle α becomes d + t(1 − 1/sin(α/2))/cos(α/2).
-  const { base, finishes } = part.history!, h = hollowOf(base, t, open, at, fail);
+  const { base, finishes } = part.history!;
+  if (base.slabs.length !== 1) fail('CAPABILITY', 'shell after finishing edges works on bodies extruded from one section yet');
+  const h = hollowOf(base, t, open, at, fail);
   // Walls split in parts (a full circle's halves) keep their `#k` inside.
   const face = (n: string) => { const w = n.replace(/#\d+$/, ''); return h.sides.has(w) ? `${at}.in.${n}` : h.tops.has(n) ? `${at}.ceiling` : h.bottoms.has(n) ? `${at}.floor` : null; };
   const outer = brepOf(part, 'target'), faces = new Map(outer.faces.map(f => [f.name, f]));
@@ -650,24 +652,47 @@ function shellPart(part: Part, t: number, open: string[], at: string, fail: Tool
   return boolean(part.solid, inner, 'difference', at);
 }
 
-/** The hollow of an upright body of one section (its section eroded, through any open faces), and its faces' names. */
+/**
+ * The hollow of an upright body (one section, or sections stacked): a point is hollow when it is at
+ * least the wall from every wall at its height and at the heights within the wall above and below it
+ * — the section at z is the intersection of the sections over [z − t, z + t], eroded (exact for lines
+ * and arcs); offset walls and ledges meet sharply, as offset faces do. It runs on through open faces.
+ */
 function hollowOf(solid: PrismaticSolid, t: number, open: string[], at: string, fail: Tools['fail']): { hollow: PrismaticSolid; sides: Set<string>; tops: Set<string>; bottoms: Set<string> } {
-  if (solid.slabs.length !== 1) fail('CAPABILITY', 'shell works on bodies extruded from one section yet (this one changes section along its height)');
-  const slab = solid.slabs[0], rings = slab.regions.flatMap(r => [r.outer, ...r.holes]), tol = curveTolerance(rings);
+  const slabs = [...solid.slabs].sort((a, b) => a.z0 - b.z0), rings = slabs.flatMap(s => s.regions.flatMap(r => [r.outer, ...r.holes])), tol = curveTolerance(rings);
+  for (let k = 1; k < slabs.length; k++) if (slabs[k].z0 > slabs[k - 1].z1 + tol) fail('CAPABILITY', 'shell works on one body at a time (this one has pieces apart along its height)');
+  const zmin = slabs[0].z0, zmax = slabs[slabs.length - 1].z1;
   const sides = new Set(rings.flatMap(r => r.map(g => g.tag).filter((x): x is string => !!x)));
   const capAt = (z: number) => (solid.caps ?? []).filter(c => Math.abs(c.z - z) <= tol).map(c => c.tag);
-  const tops = new Set(capAt(slab.z1)), bottoms = new Set(capAt(slab.z0));
-  for (const name of open) if (!sides.has(name) && !tops.has(name) && !bottoms.has(name)) fail('SELECTION', `no face named ${name} to open; faces: ${[...tops, ...bottoms, ...sides].slice(0, 12).join(', ')}`);
+  const tops = new Set(capAt(zmax)), bottoms = new Set(capAt(zmin)), ledges = new Set((solid.caps ?? []).map(c => c.tag).filter(x => !tops.has(x) && !bottoms.has(x)));
+  for (const name of open) {
+    if (ledges.has(name)) fail('CAPABILITY', `${name} is a step between sections: only the top, the bottom and sides can be opened yet`);
+    if (!sides.has(name) && !tops.has(name) && !bottoms.has(name)) fail('SELECTION', `no face named ${name} to open; faces: ${[...tops, ...bottoms, ...sides].slice(0, 12).join(', ')}`);
+  }
   const openTop = open.some(n => tops.has(n)), openBottom = open.some(n => bottoms.has(n)), openSides = new Set(open.filter(n => sides.has(n)));
-  let inner: CurveRegion2[] = [];
-  try { inner = erodeSection(slab.regions, t, tag => !!tag && openSides.has(tag), tag => `${at}.in.${tag ?? 'wall'}`, tol); }
-  catch (cause) { if (cause instanceof Error && /only straight walls/.test(cause.message)) fail('CAPABILITY', cause.message); throw cause; }
-  if (!inner.length) fail('PARAMETER', `a wall of ${t} mm leaves no hollow inside this section`);
-  const z0 = openBottom ? slab.z0 - 1 : slab.z0 + t, z1 = openTop ? slab.z1 + 1 : slab.z1 - t;
-  if (!(z1 > z0 + tol)) fail('PARAMETER', `a wall of ${t} mm leaves no hollow between the top and the bottom`);
-  const hollow = prismaticExtrude(inner.flatMap(r => [r.outer, ...r.holes]), z0, z1);
-  const tagged = { ...hollow, caps: [{ z: z0, regions: inner, tag: `${at}.floor` }, { z: z1, regions: inner, tag: `${at}.ceiling` }] };
-  return { hollow: tagged, sides, tops, bottoms };
+  const lo = openBottom ? zmin - 1 : zmin + t, hi = openTop ? zmax + 1 : zmax - t;
+  if (!(hi > lo + tol)) fail('PARAMETER', `a wall of ${t} mm leaves no hollow between the top and the bottom`);
+  // Heights where the window [z − t, z + t] takes in another section.
+  const cuts = [...new Set([lo, hi, ...slabs.slice(1).flatMap(s => [s.z0 - t, s.z0 + t])].filter(z => z >= lo - tol && z <= hi + tol))].sort((a, b) => a - b);
+  const pieces: { z0: number; z1: number; regions: CurveRegion2[] }[] = [];
+  for (let k = 0; k + 1 < cuts.length; k++) {
+    const z0 = cuts[k], z1 = cuts[k + 1]; if (z1 - z0 <= tol) continue;
+    const m = (z0 + z1) / 2, inWindow = slabs.filter(s => s.z0 < m + t - tol && s.z1 > m - t + tol);
+    if (!inWindow.length) continue;
+    let section: CurveRegion2[] = inWindow[0].regions as CurveRegion2[];
+    for (const s of inWindow.slice(1)) section = booleanCurveRegions(section.flatMap(r => [r.outer, ...r.holes]), s.regions.flatMap(r => [r.outer, ...r.holes]), 'intersection', tol);
+    let inner: CurveRegion2[] = [];
+    try { inner = section.length ? erodeSection(section, t, tag => !!tag && openSides.has(tag), tag => `${at}.in.${tag ?? 'wall'}`, tol) : []; }
+    catch (cause) { if (cause instanceof Error && /only straight walls/.test(cause.message)) fail('CAPABILITY', cause.message); throw cause; }
+    if (inner.length) pieces.push({ z0, z1, regions: inner });
+  }
+  if (!pieces.length) fail('PARAMETER', `a wall of ${t} mm leaves no hollow inside this body`);
+  let hollow = prismaticExtrude(pieces[0].regions.flatMap(r => [r.outer, ...r.holes]), pieces[0].z0, pieces[0].z1);
+  for (const p of pieces.slice(1)) hollow = booleanPrismatic(hollow, prismaticExtrude(p.regions.flatMap(r => [r.outer, ...r.holes]), p.z0, p.z1), 'union');
+  // Its floor and ceiling, and the steps between (the offset ledges), are named after the shell.
+  const levels = [...new Set(hollow.slabs.flatMap(s => [s.z0, s.z1]))].sort((a, b) => a - b), all = pieces.flatMap(p => p.regions);
+  const caps = levels.map((z, k) => ({ z, regions: all, tag: k === 0 ? `${at}.floor` : k === levels.length - 1 ? `${at}.ceiling` : `${at}.step${k}` }));
+  return { hollow: { ...hollow, caps }, sides, tops, bottoms };
 }
 
 // ---- chamfers and fillets ------------------------------------------------------------------------------
