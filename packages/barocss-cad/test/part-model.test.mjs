@@ -257,6 +257,34 @@ test('shell revolved and swept bodies: the section eroded and made again, exact 
   refused(shell(cup, 'r', 2, ['r.side7']), 'SELECTION', /no face named r\.side7/);
 });
 
+test('shell any body of planes and cylinders: the wall as a slab per face, never thinner than the wall', () => {
+  const box = [rect('s', 0, 0, 60, 40), extrude('e', 's', 20)];
+  const bracket = [rect('s', 0, 0, 40, 30), extrude('e', 's', 5), rect('w', 0, 0, 40, 20), extrude('f', 'w', 5), { id: 'r', kind: 'rotate', target: 'f', axis: 'x', angleDegrees: 90 }, { id: 't', kind: 'translate', target: 'r', offset: [0, 5, 0] }, { id: 'u', kind: 'union', target: 'e', tool: 't' }];
+  const hole = [...box, circle('c', 20, 10, 5), extrude('b', 'c', 80, -10), { id: 'r', kind: 'rotate', target: 'b', axis: 'y', angleDegrees: 90 }, { id: 't', kind: 'translate', target: 'r', offset: [0, 0, 30] }, { id: 'u', kind: 'difference', target: 'e', tool: 't' }];
+  const boss = [...box, circle('c', 20, 10, 6), extrude('b', 'c', 20), { id: 'r', kind: 'rotate', target: 'b', axis: 'y', angleDegrees: 90 }, { id: 't', kind: 'translate', target: 'r', offset: [50, 0, 30] }, { id: 'u', kind: 'union', target: 'e', tool: 't' }];
+  const shell = (body, t, open) => evaluateCadPart(D([...body, { id: 'sh', kind: 'shell', target: 'u', thickness: t, ...(open ? { open } : {}) }])).outputs.at(-1);
+  // An L bracket (two plates joined after a turn about X): its section inset by the wall, corners sharp.
+  const cases = [
+    ['an L bracket, closed', shell(bracket, 1), 9000 - 38 * (28 * 3 + 3 * 15), 2, 1e-12],
+    ['an L bracket open at its plate end', shell(bracket, 1, ['e.side1']), null, 1, null],
+    // A box with a hole along X: the hollow is the box inset less the hole grown by the wall.
+    ['a box with a hole through it', shell(hole, 1.5), (48000 - 1500 * pi) - (57 * 37 * 17 - pi * 6.5 * 6.5 * 57), 2, 2e-4],
+    ['a box with a round boss on its side', shell(boss, 1.5), null, 2, null],
+    ['the boss open at its end', shell(boss, 1.5, ['b.top']), null, 1, null],
+  ];
+  for (const [name, o, exact, shells, rel] of cases) {
+    const report = checkBrep(o.brep);
+    assert.equal(report.valid, true, `${name}: ${report.issues}`);
+    assert.equal(report.topology.length, 1, name);
+    assert.equal(report.topology[0].shells, shells, name);
+    if (exact !== null && rel !== null) assert.ok(Math.abs(volume(o) - exact) <= rel * exact, `${name}: ${volume(o)} vs ${exact}`);
+  }
+  // Opening the plate's end runs the hollow out through it: more taken away than closed.
+  assert.ok(volume(cases[1][1]) < volume(cases[0][1]));
+  refused(D([...box, rect('a', 10, 10, 30, 30), circle('b', 20, 20, 5), { id: 'L', kind: 'loft', sections: [{ sketch: 'a', z: 20 }, { sketch: 'b', z: 30 }] }, { id: 'u', kind: 'union', target: 'e', tool: 'L' }, { id: 'sh', kind: 'shell', target: 'u', thickness: 2 }]), 'CAPABILITY', /not a plane or a cylinder/);
+  refused(D([...bracket, { id: 'sh', kind: 'shell', target: 'u', thickness: 1, open: ['nope'] }]), 'SELECTION', /no face named nope/);
+});
+
 test('moved parts keep their exact mass: a loft turned about X and scaled', () => {
   const loft = [rect('a', 0, 0, 20, 10), circle('b', 10, 5, 3), { id: 'L', kind: 'loft', sections: [{ sketch: 'a', z: 0 }, { sketch: 'b', z: 12 }] }];
   const at = evaluateCadPart(D(loft)).outputs[0].massProperties(1000);

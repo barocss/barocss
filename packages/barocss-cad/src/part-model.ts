@@ -30,6 +30,7 @@ import { tessellateBrep } from './brep-tessellate.js';
 import { combineMassProperties, prismaticMassProperties, brepMassProperties, SolidMassError, type SolidMassProperties } from './solid-mass.js';
 import { glueAtSharedFace, withCavities } from './brep-glue.js';
 import { loftSolid } from './loft.js';
+import { generalShell } from './general-shell.js';
 import { ExtrudedProfileError, buildProfileLoop, type ProfileSegmentInput } from './extruded-profile-solid.js';
 import type { Point } from './types.js';
 import { add, cross, dot, scale, sub, unit } from './vec3.js';
@@ -627,7 +628,18 @@ function shellOf(part: Part, t: number, open: string[], at: string, fail: Tools[
 
 function shellPart(part: Part, t: number, open: string[], at: string, fail: Tools['fail']): Solid {
   if (part.solid.kind === 'upright') { const h = hollowOf(part.solid.solid, t, open, at, fail); return { kind: 'upright', solid: booleanPrismatic(part.solid.solid, h.hollow, 'difference') }; }
-  if (!part.history) fail('CAPABILITY', 'shell works on bodies extruded (from one section or stacked ones), revolved a full turn or swept, with their edges finished or not, and moved or not (before combining curved bodies) yet');
+  if (!part.history) {
+    // Any other body of planes and cylinders: its wall as the union of a slab per face.
+    const body = brepOf(part, 'target'), names = new Set(body.faces.map(f => f.name ?? ''));
+    for (const n of open) if (!names.has(n)) fail('SELECTION', `no face named ${n} to open; faces: ${[...names].slice(0, 12).join(', ')}`);
+    try { return { kind: 'brep', brep: generalShell(body, t, new Set(open), at) }; }
+    catch (cause) {
+      const m = cause instanceof BrepError ? /CAPABILITY: (.*)$/s.exec(cause.message) : null;
+      if (m) fail('CAPABILITY', m[1]);
+      if (cause instanceof BrepError && /not supported yet/.test(cause.message)) fail('CAPABILITY', cause.message.replace(/^B-rep: analytic Boolean: /, ''));
+      throw cause;
+    }
+  }
   // A finished body: its hollow is the base's hollow with the same finishes, offset by the wall — a
   // rolling ball of radius r less the wall rounds the offset of a convex edge rounded r (sharp when r
   // is not more than the wall); an equal chamfer d on a corner of angle α becomes d + t(1 − 1/sin(α/2))/cos(α/2).

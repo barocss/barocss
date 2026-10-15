@@ -585,6 +585,7 @@ export { transformBrep, quarterTurn } from './brep-transform.js';
 export type { BrepAffine } from './brep-transform.js';
 export { prismaticMassProperties, brepMassProperties, combineMassProperties, solidMassFromIntegrals, SolidMassError } from './solid-mass.js';
 export { loftSolid, type LoftInput, type LoftSectionInput } from './loft.js';
+export { generalShell } from './general-shell.js';
 export type { SolidMassProperties } from './solid-mass.js';
 export { evaluateCadPart, loadCadPart, emptyCadPart, CadPartError, CadPartLimits } from './part-model.js';
 export type { CadPartDocument, CadPartFeature, CadPartSnapshot, CadPartOutput, CadPartDim, CadPartAxis, CadPartLoopSegment, CadPartErrorCode, CadPartLoftSection, CadPartSweepStep } from './part-model.js';

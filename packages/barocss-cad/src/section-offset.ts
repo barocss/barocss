@@ -65,3 +65,19 @@ export function erodeSection(regions: readonly CurveRegion2[], t: number, open: 
   for (const s of swept) reach = reach.length ? booleanCurveRegions(ringsOf(reach), ringsOf(booleanCurveRegions(s, [], 'union', tol)), 'union', tol) : booleanCurveRegions(s, [], 'union', tol);
   return booleanCurveRegions(ringsOf(base), ringsOf(reach), 'difference', tol);
 }
+
+/** The section's regions grown by `t` (every point within t of them): the section and its boundary swept by a disc. */
+export function growSection(regions: readonly CurveRegion2[], t: number, tol: number): CurveRegion2[] {
+  let out: CurveRegion2[] = booleanCurveRegions(ringsOf(regions), [], 'union', tol);
+  for (const ring of ringsOf(regions)) for (const g of ring) {
+    let shape: CurveSegment2[][];
+    if (g.kind === 'line') shape = [capsule(g.a, g.b, t, g.tag ?? '')];
+    else if (g.kind === 'arc') {
+      if (Math.abs(g.sweep) >= TAU - 1e-12) shape = g.r - t > 1e-12 * g.r ? [circle(g.c, g.r + t, ''), [{ kind: 'arc', c: g.c, r: g.r - t, t0: 0, sweep: -TAU }]] : [circle(g.c, g.r + t, '')];
+      else { out = booleanCurveRegions(ringsOf(out), [circle(startOf(g), t, ''), ], 'union', tol); out = booleanCurveRegions(ringsOf(out), [circle(endOf(g), t, '')], 'union', tol); shape = [band(g, t, '')]; }
+    } else throw new Error('only line and arc sections can be grown');
+    out = booleanCurveRegions(ringsOf(out), ringsOf(booleanCurveRegions(shape, [], 'union', tol)), 'union', tol);
+  }
+  return out;
+}
+
