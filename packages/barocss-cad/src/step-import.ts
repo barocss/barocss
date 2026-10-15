@@ -3,7 +3,9 @@
 //
 //   surfaces   PLANE; CYLINDRICAL, CONICAL, SPHERICAL and TOROIDAL_SURFACE as exact rational patches of
 //              revolution over the face's extent (the profile — line or arc — turned through the face's
-//              angles); B-spline surfaces (rational or not) as they are
+//              angles); B-spline surfaces (rational or not) as they are; SURFACE_OF_LINEAR_EXTRUSION
+//              (σ = C(u) + v·V) and SURFACE_OF_REVOLUTION (C(v) turned u about the axis, C in a plane
+//              through it) of a B-spline curve or a conic, as exact patches over the face's extent
 //   curves     LINE; CIRCLE and ELLIPSE as rational quadratic arcs; B-spline curves; SURFACE_CURVE,
 //              SEAM_CURVE and TRIMMED_CURVE by their 3D curve
 //   seams      a face going once round its axis (a cylinder's wall bounded by two circles and a seam
@@ -11,8 +13,7 @@
 //              so in their other faces' loops too), and the halves meet along a new edge
 //   closed     an edge starting and ending at one vertex is split in two
 //
-// Other entities (surfaces of revolution or extrusion, offset surfaces, vertex loops, faces with a
-// seam and holes) are refused by name.
+// Other entities (offset surfaces, vertex loops, faces with a seam and holes) are refused by name.
 import { BrepError, buildBrep, type Brep } from './brep-core.js';
 import { curveDomain, evaluateCurve } from './math.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
@@ -69,7 +70,14 @@ const wrap = (a: number) => ((a % TAU) + TAU) % TAU;
 interface Frame { o: Point; x: Point; y: Point; z: Point }
 /** An edge's geometry, in its own direction: a line, a conic over an angle range, or a B-spline. */
 type Geo = { kind: 'line'; p: Point; q: Point } | { kind: 'conic'; f: Frame; a: number; b: number; t0: number; sweep: number } | { kind: 'curve'; c: Curve };
-type SurfDef = { kind: 'plane'; f: Frame } | { kind: 'cylinder'; f: Frame; r: number } | { kind: 'cone'; f: Frame; r: number; tan: number } | { kind: 'sphere'; f: Frame; r: number } | { kind: 'torus'; f: Frame; R: number; r: number } | { kind: 'bspline'; s: Surface };
+/** A swept curve: a B-spline over its whole domain, or a conic (param: its angle). */
+type Swept = { kind: 'curve'; c: Curve } | { kind: 'conic'; f: Frame; a: number; b: number };
+type SurfDef = { kind: 'plane'; f: Frame } | { kind: 'cylinder'; f: Frame; r: number } | { kind: 'cone'; f: Frame; r: number; tan: number } | { kind: 'sphere'; f: Frame; r: number } | { kind: 'torus'; f: Frame; R: number; r: number } | { kind: 'bspline'; s: Surface }
+  /** σ(u, v) = C(u) + v·d. */
+  | { kind: 'extrusion'; swept: Swept; d: Point }
+  /** C(v) turned u about f.z through f.o; C lies in the half-plane of f.x (and f.z). */
+  | { kind: 'revolution'; swept: Swept; f: Frame };
+type Analytic = Exclude<SurfDef, { kind: 'plane' } | { kind: 'bspline' } | { kind: 'extrusion' } | { kind: 'revolution' }>;
 
 const conicAt = (g: Extract<Geo, { kind: 'conic' }>, t: number): Point => add(g.f.o, add(scale(g.f.x, g.a * Math.cos(t)), scale(g.f.y, g.b * Math.sin(t))));
 function geoAt(g: Geo, u: number): Point {
@@ -103,16 +111,77 @@ function reverseCurve(c: Curve): Curve {
 
 /** A surface's natural coordinates of a point (u: angle about the axis; v: height or latitude). */
 function natural(sd: SurfDef, p: Point): [number, number] {
-  if (sd.kind === 'plane' || sd.kind === 'bspline') return [0, 0];
+  if (sd.kind === 'plane' || sd.kind === 'bspline' || sd.kind === 'extrusion') return [0, 0];
+  if (sd.kind === 'revolution') { const d = sub(p, sd.f.o); return [Math.atan2(dot(d, sd.f.y), dot(d, sd.f.x)), dot(d, sd.f.z)]; }
   const d = sub(p, sd.f.o), u = Math.atan2(dot(d, sd.f.y), dot(d, sd.f.x)), h = dot(d, sd.f.z), rho = Math.hypot(dot(d, sd.f.x), dot(d, sd.f.y));
   if (sd.kind === 'cylinder' || sd.kind === 'cone') return [u, h];
   if (sd.kind === 'sphere') return [u, Math.atan2(h, rho)];
   return [u, Math.atan2(h, rho - sd.R)];
 }
-const periodic = (sd: SurfDef) => sd.kind === 'cylinder' || sd.kind === 'cone' || sd.kind === 'sphere' || sd.kind === 'torus';
+const periodic = (sd: SurfDef) => sd.kind === 'cylinder' || sd.kind === 'cone' || sd.kind === 'sphere' || sd.kind === 'torus' || sd.kind === 'revolution';
+
+// Swept curves.
+const sweptAt = (w: Swept, t: number): Point => w.kind === 'curve' ? evaluateCurve(w.c, t) : add(w.f.o, add(scale(w.f.x, w.a * Math.cos(t)), scale(w.f.y, w.b * Math.sin(t))));
+/** The swept curve as NURBS: a B-spline whole, a conic from angle t0 to t1. */
+const sweptCurve = (w: Swept, t0: number, t1: number): Curve => w.kind === 'curve' ? w.c : conicCurve({ kind: 'conic', f: w.f, a: w.a, b: w.b, t0, sweep: t1 - t0 }, 'w');
+/** The parameter of the swept curve's point nearest by `dist` (sampled, then refined by golden sections). */
+function nearestOn(w: Swept, dist: (x: Point) => number): number {
+  const [t0, t1] = w.kind === 'curve' ? curveDomain(w.c) : [-Math.PI, Math.PI], N = 128;
+  let best = t0, d = Infinity;
+  for (let k = 0; k <= N; k++) { const t = t0 + (t1 - t0) * k / N, e = dist(sweptAt(w, t)); if (e < d) { d = e; best = t; } }
+  let lo = best - (t1 - t0) / N, hi = best + (t1 - t0) / N;
+  if (w.kind === 'curve') { lo = Math.max(t0, lo); hi = Math.min(t1, hi); }
+  for (let it = 0; it < 80; it++) { const a = lo + (hi - lo) * 0.381966, b = lo + (hi - lo) * 0.618034; if (dist(sweptAt(w, a)) < dist(sweptAt(w, b))) hi = b; else lo = a; }
+  return (lo + hi) / 2;
+}
+/** Where a point of a surface swept by a curve lies: the curve's parameter there and the sweep's (height along d, or angle). */
+function sweptCoords(sd: Extract<SurfDef, { kind: 'extrusion' } | { kind: 'revolution' }>, p: Point): [number, number] {
+  if (sd.kind === 'extrusion') {
+    const d = sd.d, t = nearestOn(sd.swept, x => { const w = sub(p, x); return len(sub(w, scale(d, dot(w, d)))); });
+    return [t, dot(sub(p, sweptAt(sd.swept, t)), d)];
+  }
+  const f = sd.f, q = sub(p, f.o), h = dot(q, f.z), rho = Math.hypot(dot(q, f.x), dot(q, f.y)), m = add(f.o, add(scale(f.x, rho), scale(f.z, h)));
+  return [nearestOn(sd.swept, x => len(sub(x, m))), Math.atan2(dot(q, f.y), dot(q, f.x))];
+}
+/** The smallest arc holding these angles (by the widest gap between them): its start and span. */
+function arcHolding(angles: number[]): { start: number; span: number; ties: boolean } {
+  const a = [...new Set(angles.map(wrap))].sort((x, y) => x - y);
+  const gaps = a.map((x, i) => ({ size: i ? x - a[i - 1] : x + TAU - a[a.length - 1], start: x })).sort((x, y) => y.size - x.size);
+  return { start: gaps[0].start, span: TAU - gaps[0].size, ties: gaps.length > 1 && gaps[0].size - gaps[1].size < 1e-6 };
+}
+/** A surface swept by a curve over the face's extent (its points `pts`), parametrized as STEP has it. */
+function sweptPatch(sd: Extract<SurfDef, { kind: 'extrusion' } | { kind: 'revolution' }>, pts: readonly Point[], id: string, name: string): Surface {
+  const coords = pts.map(p => sweptCoords(sd, p)), w = sd.swept;
+  // The swept curve: a B-spline whole; a conic over the arc holding the face (a little more).
+  let K: Curve;
+  if (w.kind === 'curve') K = w.c;
+  else { const h = arcHolding(coords.map(c => c[0])), m = Math.min(1e-3, (TAU - h.span) / 4); if (h.span > TAU - 1e-6) refuse(`a face once round a swept circle is not supported yet (${name})`); K = sweptCurve(w, h.start - m, h.start + h.span + m); }
+  const cps = K.controlPoints as Point[];
+  if (sd.kind === 'extrusion') {
+    const vs = coords.map(c => c[1]), lo = Math.min(...vs), hi = Math.max(...vs), pad = Math.max(1e-6, 0.01 * (hi - lo)), v0 = lo - pad, v1 = hi + pad;
+    return { kind: 'surface', id, degreeU: K.degree, degreeV: 1, knotsU: [...K.knots], knotsV: [0, 0, 1, 1], controlPoints: cps.map(P => [add(P, scale(sd.d, v0)), add(P, scale(sd.d, v1))]), weights: K.weights.map(x => [x, x]) };
+  }
+  const h = arcHolding(coords.map(c => c[1]));
+  if (h.ties) refuse(`a face of revolution bounded by two meridians only is not supported yet (${name})`);
+  if (h.span > TAU - 1e-6) refuse(`a face of revolution going once round without a seam is not supported (${name})`);
+  const m = Math.min(1e-3, (TAU - h.span) / 4), f = sd.f;
+  const ring = conicCurve({ kind: 'conic', f: { o: [0, 0, 0], x: [1, 0, 0], y: [0, 1, 0], z: [0, 0, 1] }, a: 1, b: 1, t0: h.start - m, sweep: h.span + 2 * m }, 'r');
+  // Each control point turns on its own circle: its radial part along the ring's (cos, sin)/w points.
+  const at = (r: Point, P: Point): Point => { const q = sub(P, f.o), x = dot(q, f.x), z = dot(q, f.z); return add(f.o, add(scale(f.z, z), add(scale(f.x, x * r[0]), scale(f.y, x * r[1])))); };
+  return { kind: 'surface', id, degreeU: 2, degreeV: K.degree, knotsU: ring.knots, knotsV: [...K.knots], controlPoints: ring.controlPoints.map(r => cps.map(P => at(r as Point, P))), weights: ring.weights.map(wu => K.weights.map(wv => wu * wv)) };
+}
+/** A geometry turned by `angle` about the axis through o along z. */
+function turned(g: Geo, o: Point, z: Point, angle: number): Geo {
+  const c = Math.cos(angle), sn = Math.sin(angle);
+  const vec = (v: Point): Point => add(add(scale(v, c), scale(cross(z, v), sn)), scale(z, dot(z, v) * (1 - c)));
+  const pt = (p: Point): Point => add(o, vec(sub(p, o)));
+  if (g.kind === 'line') return { kind: 'line', p: pt(g.p), q: pt(g.q) };
+  if (g.kind === 'conic') return { ...g, f: { o: pt(g.f.o), x: vec(g.f.x), y: vec(g.f.y), z: vec(g.f.z) } };
+  return { kind: 'curve', c: { ...g.c, controlPoints: g.c.controlPoints.map(p => pt(p as Point)) } };
+}
 
 /** The profile of a surface of revolution between v0 and v1, as (ρ, h) control points, weights and knots. */
-function profileOf(sd: Exclude<SurfDef, { kind: 'plane' } | { kind: 'bspline' }>, v0: number, v1: number): { pts: [number, number][]; w: number[]; knots: number[]; degree: number } {
+function profileOf(sd: Analytic, v0: number, v1: number): { pts: [number, number][]; w: number[]; knots: number[]; degree: number } {
   if (sd.kind === 'cylinder') return { pts: [[sd.r, v0], [sd.r, v1]], w: [1, 1], knots: [0, 0, 1, 1], degree: 1 };
   if (sd.kind === 'cone') return { pts: [[sd.r + v0 * sd.tan, v0], [sd.r + v1 * sd.tan, v1]], w: [1, 1], knots: [0, 0, 1, 1], degree: 1 };
   const [c, r] = sd.kind === 'sphere' ? [0, sd.r] : [sd.R, sd.r];
@@ -120,7 +189,7 @@ function profileOf(sd: Exclude<SurfDef, { kind: 'plane' } | { kind: 'bspline' }>
   return { pts: arc.controlPoints.map(p => [p[0], p[1]] as [number, number]), w: arc.weights, knots: arc.knots, degree: 2 };
 }
 /** The patch of a surface of revolution over angles [u0, u1] and profile [v0, v1]. */
-function revolutionPatch(sd: Exclude<SurfDef, { kind: 'plane' } | { kind: 'bspline' }>, u0: number, u1: number, v0: number, v1: number, id: string): Surface {
+function revolutionPatch(sd: Analytic, u0: number, u1: number, v0: number, v1: number, id: string): Surface {
   const ring = conicCurve({ kind: 'conic', f: { o: [0, 0, 0], x: [1, 0, 0], y: [0, 1, 0], z: [0, 0, 1] }, a: 1, b: 1, t0: u0, sweep: u1 - u0 }, 'r'), prof = profileOf(sd, v0, v1), f = sd.f;
   const at = (ring2: Point, rho: number, h: number): Point => add(f.o, add(scale(f.x, rho * ring2[0]), add(scale(f.y, rho * ring2[1]), scale(f.z, h))));
   return { kind: 'surface', id, degreeU: 2, degreeV: prof.degree, knotsU: ring.knots, knotsV: prof.knots,
@@ -129,7 +198,7 @@ function revolutionPatch(sd: Exclude<SurfDef, { kind: 'plane' } | { kind: 'bspli
 /** The surface's own outward normal at a point (for the face's sense). */
 function naturalNormal(sd: SurfDef, p: Point): Point {
   if (sd.kind === 'plane') return sd.f.z;
-  if (sd.kind === 'bspline') return [0, 0, 0];
+  if (sd.kind === 'bspline' || sd.kind === 'extrusion' || sd.kind === 'revolution') return [0, 0, 0];
   const d = sub(p, sd.f.o), h = dot(d, sd.f.z), radial = unit(sub(d, scale(sd.f.z, h)));
   if (sd.kind === 'cylinder') return radial;
   if (sd.kind === 'cone') return unit(sub(radial, scale(sd.f.z, sd.tan)));
@@ -174,14 +243,27 @@ export function importStep(source: string, options: { readonly id?: string } = {
       if (Math.abs(sweep) <= 1e-12) sweep = same ? TAU : -TAU; // a closed edge goes once round
       return { kind: 'conic', f, a: ra, b: rb, t0, sweep };
     }
+    const c = bsplineOf(e);
+    if (!c) return refuse(`${e.type} curves are not supported yet`);
+    return { kind: 'curve', c: same ? c : reverseCurve(c) };
+  };
+  function bsplineOf(e: Entity): Curve | null {
     let c: Curve | null = null;
     if (e.type === 'B_SPLINE_CURVE_WITH_KNOTS') { const g = e.args; c = { kind: 'curve', id: 'c', degree: num(g[1]), controlPoints: list(g[2]).map(pointOf), knots: expand(list(g[7]).map(num), list(g[6]).map(num)), weights: list(g[2]).map(() => 1) }; }
     else if (e.type === 'COMPLEX' && part(e, 'B_SPLINE_CURVE')) {
       const bc = part(e, 'B_SPLINE_CURVE')!.args, kn = part(e, 'B_SPLINE_CURVE_WITH_KNOTS')!.args, w = part(e, 'RATIONAL_B_SPLINE_CURVE');
       c = { kind: 'curve', id: 'c', degree: num(bc[0]), controlPoints: list(bc[1]).map(pointOf), knots: expand(list(kn[1]).map(num), list(kn[0]).map(num)), weights: w ? list(w.args[0]).map(num) : list(bc[1]).map(() => 1) };
     }
-    if (!c) return refuse(`${e.type} curves are not supported yet`);
-    return { kind: 'curve', c: same ? c : reverseCurve(c) };
+    return c;
+  }
+  /** A swept curve; a line gives an analytic surface instead (a plane, cylinder or cone), or null. */
+  const sweptOf = (raw: Entity): Swept | { line: Point; dir: Point } => {
+    const e = curveEntity(raw);
+    if (e.type === 'LINE') return { line: pointOf(e.args[1]), dir: dirOf(get(e.args[2]).args[1]) };
+    if (e.type === 'CIRCLE' || e.type === 'ELLIPSE') { const ra = num(e.args[2]); return { kind: 'conic', f: frameOf(e.args[1]), a: ra, b: e.type === 'ELLIPSE' ? num(e.args[3]) : ra }; }
+    const c = bsplineOf(e);
+    if (!c) return refuse(`surfaces swept by ${e.type} curves are not supported yet`);
+    return { kind: 'curve', c };
   };
   const edgeOf = (v: Value): IEdge => {
     const n = refNo(v), eid = `${id}_e${n}`; let x = edges.get(eid); if (x) return x;
@@ -205,6 +287,32 @@ export function importStep(source: string, options: { readonly id?: string } = {
     if (e.type === 'COMPLEX' && part(e, 'B_SPLINE_SURFACE')) {
       const bs = part(e, 'B_SPLINE_SURFACE')!.args, kn = part(e, 'B_SPLINE_SURFACE_WITH_KNOTS')!.args, w = part(e, 'RATIONAL_B_SPLINE_SURFACE'), rows = list(bs[2]).map(r => list(r).map(pointOf));
       return { kind: 'bspline', s: { kind: 'surface', id: 's', degreeU: num(bs[0]), degreeV: num(bs[1]), controlPoints: rows, knotsU: expand(list(kn[2]).map(num), list(kn[0]).map(num)), knotsV: expand(list(kn[3]).map(num), list(kn[1]).map(num)), weights: w ? list(w.args[0]).map(r => list(r).map(num)) : rows.map(r => r.map(() => 1)) } };
+    }
+    if (e.type === 'SURFACE_OF_LINEAR_EXTRUSION') {
+      const vec = get(e.args[2]), d = scale(dirOf(vec.args[1]), 1), w = sweptOf(get(e.args[1]));
+      // σ = C(u) + v·V with V the vector (its magnitude scales v only: the patch spans the face).
+      if ('line' in w) { const x = unit(w.dir), z = unit(cross(x, d)); if (!(len(cross(x, d)) > 1e-9)) refuse('an extrusion of a line along itself'); return { kind: 'plane', f: { o: w.line, x, y: cross(z, x), z } }; }
+      return { kind: 'extrusion', swept: w, d };
+    }
+    if (e.type === 'SURFACE_OF_REVOLUTION') {
+      const ax = get(e.args[2]), o = pointOf(ax.args[1]), z = ax.args[2] === null ? [0, 0, 1] as Point : dirOf(ax.args[2]), w = sweptOf(get(e.args[1]));
+      // The meridian the curve lies in: from its points off the axis.
+      const probe: Point[] = 'line' in w ? [w.line, add(w.line, w.dir)] : w.kind === 'curve' ? w.c.controlPoints as Point[] : [0, 1, 2, 3].map(k => sweptAt(w, k * Math.PI / 2));
+      const radial = (p: Point) => { const q = sub(p, o); return sub(q, scale(z, dot(q, z))); };
+      const far = probe.map(radial).reduce((m, r) => len(r) > len(m) ? r : m, [0, 0, 0] as Point);
+      if (!(len(far) > 1e-9)) refuse('a surface of revolution of a curve on its axis');
+      const x = unit(far), y = cross(z, x), size = Math.max(1, ...probe.map(p => len(sub(p, o))));
+      if (probe.some(p => Math.abs(dot(radial(p), y)) > 1e-7 * size)) refuse('a surface of revolution of a curve off a plane through its axis is not supported yet');
+      const f: Frame = { o, x, y, z };
+      if ('line' in w) {
+        // A line turned about the axis: a cylinder (parallel) or a cone.
+        const dir = dot(w.dir, z) < 0 ? scale(w.dir, -1) : w.dir, along = dot(dir, z), q = sub(w.line, o);
+        if (Math.abs(along) < 1e-9) refuse('a surface of revolution of a line square to its axis (a plane ring) is not supported yet');
+        const t = -dot(q, z) / along, foot = add(w.line, scale(dir, t)), r = dot(sub(foot, o), x), slope = dot(dir, x) / along;
+        const fr: Frame = { o, x, y, z };
+        return Math.abs(slope) < 1e-12 ? { kind: 'cylinder', f: fr, r } : { kind: 'cone', f: fr, r, tan: slope };
+      }
+      return { kind: 'revolution', swept: w, f };
     }
     return refuse(`${e.type} surfaces are not supported yet`);
   };
@@ -290,7 +398,12 @@ export function importStep(source: string, options: { readonly id?: string } = {
     // The new edge along the cut, from P1 to P2: a generator, or an arc of the profile (sphere, torus).
     const p1 = points.get(P1)!, p2 = points.get(P2)!, sid = `${f.id}_cut`;
     let geo: Geo;
-    if (sd.kind === 'cylinder' || sd.kind === 'cone') geo = { kind: 'line', p: p1, q: p2 };
+    if (sd.kind === 'revolution') {
+      // The seam turned half round: its ends turn onto P1 and P2.
+      const sg = edges.get(seam)!, forward = seamFrom(sPlus) === sg.v[0], g = turned(sg.geo, sd.f.o, sd.f.z, Math.PI);
+      geo = forward ? g : g.kind === 'line' ? { kind: 'line', p: g.q, q: g.p } : g.kind === 'conic' ? { ...g, t0: g.t0 + g.sweep, sweep: -g.sweep } : { kind: 'curve', c: reverseCurve(g.c) };
+      if (len(sub(geoAt(geo, 0), p1)) > 1e-6 * Math.max(1, len(p1)) || len(sub(geoAt(geo, 1), p2)) > 1e-6 * Math.max(1, len(p2))) refuse(`a face of revolution whose seam does not turn onto its opposite side is not supported yet (${f.name || f.id})`);
+    } else if (sd.kind === 'cylinder' || sd.kind === 'cone') geo = { kind: 'line', p: p1, q: p2 };
     else {
       const s = sd as Extract<SurfDef, { kind: 'sphere' } | { kind: 'torus' }>, e1 = add(scale(s.f.x, Math.cos(cut)), scale(s.f.y, Math.sin(cut))), centre = s.kind === 'sphere' ? s.f.o : add(s.f.o, scale(e1, s.R)), r = s.r;
       const fr: Frame = { o: centre, x: e1, y: s.f.z, z: cross(e1, s.f.z) }, ang = (p: Point) => Math.atan2(dot(sub(p, centre), fr.y), dot(sub(p, centre), fr.x));
@@ -322,6 +435,8 @@ export function importStep(source: string, options: { readonly id?: string } = {
     const sd = f.sd, pts = boundaryOf(f), sid = `${f.id}_s`;
     let surface: Surface;
     if (sd.kind === 'bspline') return { surface: { ...sd.s, id: sid }, sense: f.same ? 'forward' : 'reversed' };
+    // Swept surfaces are parametrized as STEP has them, so the face's sense is its own.
+    if (sd.kind === 'extrusion' || sd.kind === 'revolution') return { surface: sweptPatch(sd, pts, sid, f.name || f.id), sense: f.same ? 'forward' : 'reversed' };
     if (sd.kind === 'plane') {
       const p = sd.f, uv = pts.map(q => [dot(sub(q, p.o), p.x), dot(sub(q, p.o), p.y)]);
       const pad = 1 + 0.01 * Math.max(1, ...uv.flat().map(Math.abs)), u0 = Math.min(...uv.map(q => q[0])) - pad, u1 = Math.max(...uv.map(q => q[0])) + pad, v0 = Math.min(...uv.map(q => q[1])) - pad, v1 = Math.max(...uv.map(q => q[1])) + pad;
@@ -330,7 +445,7 @@ export function importStep(source: string, options: { readonly id?: string } = {
     } else {
       // Angles: the smallest arc holding every boundary point (by the widest gap between them).
       const nat = pts.map(p => natural(sd, p)), angles = [...new Set(nat.map(q => wrap(q[0])))].sort((a, b) => a - b);
-      const gaps = angles.map((a, i) => ({ size: (i ? a - angles[i - 1] : a + TAU - angles[angles.length - 1]), start: a })).sort((x, y) => y.size - x.size);
+      const gaps = angles.map((a, i) => ({ size: (i ? a - angles[i - 1] : a + TAU - angles[angles.length - 1]), start: a })).sort((x, y) => y.size - x.size), an = sd as Analytic;
       const vs = nat.map(q => q[1]), vlo = Math.min(...vs), vhi = Math.max(...vs), dv = Math.max(1e-6, (vhi - vlo) * 0.01);
       let v0 = vlo - dv, v1 = vhi + dv;
       if (sd.kind === 'sphere') { v0 = Math.max(-Math.PI / 2, v0); v1 = Math.min(Math.PI / 2, v1); }
@@ -340,12 +455,12 @@ export function importStep(source: string, options: { readonly id?: string } = {
       if (gaps.length > 1 && gaps[0].size - gaps[1].size < 1e-6) {
         let area: Point = [0, 0, 0];
         for (const ring of loopPoints(f)) for (let i = 0; i < ring.length; i++) area = add(area, scale(cross(ring[i], ring[(i + 1) % ring.length]), 0.5));
-        const score = (g: { size: number; start: number }) => { const mid = g.start + (TAU - g.size) / 2, vm = (vlo + vhi) / 2, probe = revolutionPatch(sd, mid - 1e-3, mid + 1e-3, vm - 1e-3, vm + 1e-3, 'probe'), P = probe.controlPoints[1][Math.floor(probe.controlPoints[1].length / 2)] as Point; return dot(area, naturalNormal(sd, P)) * (f.same ? 1 : -1); };
+        const score = (g: { size: number; start: number }) => { const mid = g.start + (TAU - g.size) / 2, vm = (vlo + vhi) / 2, probe = revolutionPatch(an, mid - 1e-3, mid + 1e-3, vm - 1e-3, vm + 1e-3, 'probe'), P = probe.controlPoints[1][Math.floor(probe.controlPoints[1].length / 2)] as Point; return dot(area, naturalNormal(sd, P)) * (f.same ? 1 : -1); };
         if (score(gaps[1]) > score(gaps[0])) pick = gaps[1];
       }
       const span = TAU - pick.size, margin = Math.min(1e-3, pick.size / 4);
       if (span > TAU - 1e-6) refuse(`a face going once round its axis without a seam is not supported (${f.name || f.id})`);
-      surface = revolutionPatch(sd, pick.start - margin, pick.start + span + margin, v0, v1, sid);
+      surface = revolutionPatch(an, pick.start - margin, pick.start + span + margin, v0, v1, sid);
     }
     // The face's sense: its surface's outward normal (or the reverse) against the patch's own.
     const S = surface, P = S.controlPoints as Point[][], m = Math.floor(P.length / 2), n2 = Math.floor(P[0].length / 2);

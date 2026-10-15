@@ -83,3 +83,47 @@ export function sphereStep(r = 5) {
   const f = w.face([w.outer(w.loop(w.oe(seam, true), w.oe(seam, false)))], w.e(`SPHERICAL_SURFACE('',${w.ax([0, 0, 0])},${r}.)`), true, 'ball');
   return w.finish([f], 'sphere');
 }
+
+const bezier = (w, cps) => w.e(`B_SPLINE_CURVE_WITH_KNOTS('',${cps.length - 1},(${cps.map(w.pt).join(',')}),.UNSPECIFIED.,.F.,.F.,(${cps.length},${cps.length}),(0.,1.),.UNSPECIFIED.)`);
+
+/**
+ * A prism h tall over (0,0) (10,0) (10,8), then a parabola (quadratic Bézier through control (5,12))
+ * back to (0,8): its curved side a SURFACE_OF_LINEAR_EXTRUSION of the bottom curve. Area 80 + 40/3.
+ */
+export function extrudedSideStep(h = 5) {
+  const w = writer(), B = [[0, 0], [10, 0], [10, 8], [0, 8]];
+  const vb = B.map(([x, y]) => w.vtx([x, y, 0])), vt = B.map(([x, y]) => w.vtx([x, y, h]));
+  const line3 = (a, b) => { const d = b.map((x, k) => x - a[k]), l = Math.hypot(...d); return w.line(a, d.map(x => x / l)); };
+  const P = (k, z) => [...B[k], z];
+  const curveB = z => bezier(w, [[10, 8, z], [5, 12, z], [0, 8, z]]);
+  const bottomCurve = curveB(0);
+  const along = (k, z, vs) => k === 2 ? w.edge(vs[2], vs[3], k === 2 && z === 0 ? bottomCurve : curveB(z)) : w.edge(vs[k], vs[(k + 1) % 4], line3(P(k, z), P((k + 1) % 4, z)));
+  const eb = [0, 1, 2, 3].map(k => along(k, 0, vb)), et = [0, 1, 2, 3].map(k => along(k, h, vt)), up = [0, 1, 2, 3].map(k => w.edge(vb[k], vt[k], line3(P(k, 0), P(k, h))));
+  const plane = (o, z, x) => w.e(`PLANE('',${w.ax(o, z, x)})`);
+  const side = k => w.outer(w.loop(w.oe(eb[k], true), w.oe(up[(k + 1) % 4], true), w.oe(et[k], false), w.oe(up[k], false)));
+  const faces = [
+    w.face([w.outer(w.loop(w.oe(eb[3], false), w.oe(eb[2], false), w.oe(eb[1], false), w.oe(eb[0], false)))], plane([0, 0, 0], [0, 0, -1], [1, 0, 0]), true, 'bottom'),
+    w.face([w.outer(w.loop(w.oe(et[0], true), w.oe(et[1], true), w.oe(et[2], true), w.oe(et[3], true)))], plane([0, 0, h], [0, 0, 1], [1, 0, 0]), true, 'top'),
+    w.face([side(0)], plane([0, 0, 0], [0, -1, 0], [1, 0, 0]), true, 'front'),
+    w.face([side(1)], plane([10, 0, 0], [1, 0, 0], [0, 1, 0]), true, 'right'),
+    // σ(u, v) = C(u) + v·(0, 0, 1): C runs from (10, 8) to (0, 8), so C′ × V points out (+y).
+    w.face([side(2)], w.e(`SURFACE_OF_LINEAR_EXTRUSION('',${bottomCurve},${w.e(`VECTOR('',${w.dir([0, 0, 1])},${h}.)`)})`), true, 'curved'),
+    w.face([side(3)], plane([0, 8, 0], [-1, 0, 0], [0, -1, 0]), true, 'left'),
+  ];
+  return w.finish(faces, 'extruded side');
+}
+
+/**
+ * A vase: the quadratic profile (ρ, h) = (3, 0) → (6, 3) → (5, 6) in the XZ plane turned once about
+ * Z, as a SURFACE_OF_REVOLUTION bounded by two circles and the profile as its seam (used twice).
+ */
+export function revolvedProfileStep() {
+  const w = writer(), v0 = w.vtx([3, 0, 0]), v1 = w.vtx([5, 0, 6]);
+  const c0 = w.edge(v0, v0, w.e(`CIRCLE('',${w.ax([0, 0, 0])},3.)`)), c1 = w.edge(v1, v1, w.e(`CIRCLE('',${w.ax([0, 0, 6])},5.)`));
+  const profile = bezier(w, [[3, 0, 0], [6, 0, 3], [5, 0, 6]]), seam = w.edge(v0, v1, w.e(`SEAM_CURVE('',${profile},(),.PCURVE_S1.)`));
+  const axis = w.e(`AXIS1_PLACEMENT('',${w.pt([0, 0, 0])},${w.dir([0, 0, 1])})`);
+  const wall = w.face([w.outer(w.loop(w.oe(c0, true), w.oe(seam, true), w.oe(c1, false), w.oe(seam, false)))], w.e(`SURFACE_OF_REVOLUTION('',${profile},${axis})`), true, 'wall');
+  const top = w.face([w.outer(w.loop(w.oe(c1, true)))], w.e(`PLANE('',${w.ax([0, 0, 6])})`), true, 'top');
+  const bottom = w.face([w.outer(w.loop(w.oe(c0, false)))], w.e(`PLANE('',${w.ax([0, 0, 0])})`), false, 'bottom');
+  return w.finish([wall, top, bottom], 'vase');
+}
