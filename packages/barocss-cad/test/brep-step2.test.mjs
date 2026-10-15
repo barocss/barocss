@@ -88,10 +88,12 @@ test('planar triangulation with many holes covers exactly the face area', () => 
 test('faces the tessellator cannot handle yet are refused, not guessed', () => {
   const brep = structuredClone(extrudeProfileWithHoles({ outer: slot(0, 40, 0, 6), heightMM: 5 }));
   const curved = brep.faces.find(f => f.surface.degreeU === 2);
-  // A wall whose straight side becomes a curve: three curved sides, no pair of rails.
+  // A wall whose straight side becomes a curve: three curved sides, no pair of rails…
   const loop = brep.loops.find(l => l.id === curved.loops[0]), straight = loop.coedges.map(id => brep.coedges.find(c => c.id === id)).find(c => brep.edges.find(e => e.id === c.edge).curve.degree === 1);
   const edge = brep.edges.find(e => e.id === straight.edge), [a, b] = edge.curve.controlPoints;
   edge.curve = { ...edge.curve, degree: 2, knots: [0, 0, 0, 1, 1, 1], controlPoints: [a, [(a[0] + b[0]) / 2 + 1, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2], b], weights: [1, 1, 1] };
+  // …on a surface that is no longer a circular cylinder (a pole moved off the circle).
+  curved.surface = { ...curved.surface, controlPoints: curved.surface.controlPoints.map((row, i) => i === 1 ? row.map(p => [p[0] + 2, p[1], p[2]]) : row) };
   assert.throws(() => tessellateBrep(brep), e => e instanceof BrepError && /planar and ruled/.test(e.message));
   const broken = structuredClone(extrudeProfileWithHoles({ outer: slot(0, 40, 0, 6), heightMM: 5 }));
   broken.loops[0].coedges.splice(1, 0, 'extra');

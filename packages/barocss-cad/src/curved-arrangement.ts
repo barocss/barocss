@@ -7,6 +7,10 @@
 //
 // Tolerance: eps = CadNumericPolicy linear tolerance at the input scale. Points within eps are one
 // vertex. Two carriers whose gap stays within eps across their near-touch are tangent: one vertex.
+//
+// Besides lines and arcs, a segment may be any smooth parametric curve (an ellipse, a sinusoid in a
+// cylinder's domain, a quartic intersection): its crossings come from polylines refined by Newton's
+// method, its area and crossings with a horizontal line by Gauss–Legendre and bisection.
 import { linearToleranceMM } from './numeric-policy.js';
 
 export type XY = [number, number];
@@ -16,25 +20,49 @@ export type XY = [number, number];
  */
 export type CurveSegment2 =
   | { readonly kind: 'line'; readonly a: XY; readonly b: XY; readonly tag?: string }
-  | { readonly kind: 'arc'; readonly c: XY; readonly r: number; readonly t0: number; readonly sweep: number; readonly tag?: string };
+  | { readonly kind: 'arc'; readonly c: XY; readonly r: number; readonly t0: number; readonly sweep: number; readonly tag?: string }
+  /** f over t0 → t1 (either order); `src` (optional) is the same curve in 3D, on the same parameter. */
+  | { readonly kind: 'curve'; readonly f: (t: number) => XY; readonly t0: number; readonly t1: number; readonly tag?: string; readonly src?: (t: number) => readonly [number, number, number] };
 /** A region: closed rings (material on the left: outer counter-clockwise, holes clockwise). */
 export type CurveRegion2 = { readonly outer: readonly CurveSegment2[]; readonly holes: readonly (readonly CurveSegment2[])[] };
 export type CurveBooleanOperation = 'union' | 'intersection' | 'difference' | 'xor';
 export class CurvedArrangementError extends Error { constructor(detail: string) { super('Curved arrangement: ' + detail); this.name = 'CurvedArrangementError'; } }
 
 const TWO_PI = 2 * Math.PI;
-export const segStart = (s: CurveSegment2): XY => s.kind === 'line' ? s.a : [s.c[0] + s.r * Math.cos(s.t0), s.c[1] + s.r * Math.sin(s.t0)];
-export const segEnd = (s: CurveSegment2): XY => s.kind === 'line' ? s.b : [s.c[0] + s.r * Math.cos(s.t0 + s.sweep), s.c[1] + s.r * Math.sin(s.t0 + s.sweep)];
-export const segAt = (s: CurveSegment2, u: number): XY => s.kind === 'line' ? [s.a[0] + (s.b[0] - s.a[0]) * u, s.a[1] + (s.b[1] - s.a[1]) * u] : [s.c[0] + s.r * Math.cos(s.t0 + s.sweep * u), s.c[1] + s.r * Math.sin(s.t0 + s.sweep * u)];
+type ParamCurve = Extract<CurveSegment2, { kind: 'curve' }>;
+const curveT = (s: ParamCurve, u: number) => s.t0 + (s.t1 - s.t0) * u;
+export const segStart = (s: CurveSegment2): XY => s.kind === 'line' ? s.a : s.kind === 'curve' ? s.f(s.t0) : [s.c[0] + s.r * Math.cos(s.t0), s.c[1] + s.r * Math.sin(s.t0)];
+export const segEnd = (s: CurveSegment2): XY => s.kind === 'line' ? s.b : s.kind === 'curve' ? s.f(s.t1) : [s.c[0] + s.r * Math.cos(s.t0 + s.sweep), s.c[1] + s.r * Math.sin(s.t0 + s.sweep)];
+export const segAt = (s: CurveSegment2, u: number): XY => s.kind === 'line' ? [s.a[0] + (s.b[0] - s.a[0]) * u, s.a[1] + (s.b[1] - s.a[1]) * u]
+  : s.kind === 'curve' ? s.f(curveT(s, u)) : [s.c[0] + s.r * Math.cos(s.t0 + s.sweep * u), s.c[1] + s.r * Math.sin(s.t0 + s.sweep * u)];
 /** The same piece traversed the other way. */
-export const segReverse = (s: CurveSegment2): CurveSegment2 => s.kind === 'line' ? { ...s, a: s.b, b: s.a } : { ...s, t0: s.t0 + s.sweep, sweep: -s.sweep };
+export const segReverse = (s: CurveSegment2): CurveSegment2 => s.kind === 'line' ? { ...s, a: s.b, b: s.a } : s.kind === 'curve' ? { ...s, t0: s.t1, t1: s.t0 } : { ...s, t0: s.t0 + s.sweep, sweep: -s.sweep };
 /** The sub-piece between parameters u0 < u1. */
 function segPart(s: CurveSegment2, u0: number, u1: number, a: XY, b: XY): CurveSegment2 {
-  return s.kind === 'line' ? { ...s, a, b } : { ...s, t0: s.t0 + s.sweep * u0, sweep: s.sweep * (u1 - u0) };
+  return s.kind === 'line' ? { ...s, a, b } : s.kind === 'curve' ? { ...s, t0: curveT(s, u0), t1: curveT(s, u1) } : { ...s, t0: s.t0 + s.sweep * u0, sweep: s.sweep * (u1 - u0) };
 }
+// Gauss–Legendre on [0, 1] (8 points).
+const GL8 = (() => {
+  const x = [0.1834346424956498, 0.5255324099163290, 0.7966664774136267, 0.9602898564975363], w = [0.3626837833783620, 0.3137066458778873, 0.2223810344533745, 0.1012285362903763];
+  return [...x.map((v, i) => [(1 - v) / 2, w[i] / 2]), ...x.map((v, i) => [(1 + v) / 2, w[i] / 2])] as [number, number][];
+})();
+/** ∫ g(point, derivative) du over [0, 1] of a segment (16 pieces × 8 points). */
+export function segIntegral(s: CurveSegment2, g: (p: XY, d: XY) => number): number { return integrate(s, g); }
+function integrate(s: CurveSegment2, g: (p: XY, d: XY) => number): number {
+  let acc = 0; const pieces = 16, h = 1e-6;
+  for (let k = 0; k < pieces; k++) for (const [x, w] of GL8) {
+    const u = (k + x) / pieces, p = segAt(s, u), a = segAt(s, Math.max(0, u - h)), b = segAt(s, Math.min(1, u + h)), du = Math.min(1, u + h) - Math.max(0, u - h);
+    acc += g(p, [(b[0] - a[0]) / du, (b[1] - a[1]) / du]) * w / pieces;
+  }
+  return acc;
+}
+/** Points along a parametric curve's polyline (n pieces, both ends included). */
+const polyline = (s: CurveSegment2, n: number) => Array.from({ length: n + 1 }, (_, k) => segAt(s, k / n));
+const CURVE_SAMPLES = 64;
 /** Area contribution ½∮(x dy − y dx) of a segment. */
 export function segArea(s: CurveSegment2): number {
   if (s.kind === 'line') return (s.a[0] * s.b[1] - s.b[0] * s.a[1]) / 2;
+  if (s.kind === 'curve') return integrate(s, (p, d) => (p[0] * d[1] - p[1] * d[0]) / 2);
   const t1 = s.t0 + s.sweep;
   return (s.r * s.r * s.sweep + s.c[0] * s.r * (Math.sin(t1) - Math.sin(s.t0)) - s.c[1] * s.r * (Math.cos(t1) - Math.cos(s.t0))) / 2;
 }
@@ -42,13 +70,21 @@ export const ringArea = (ring: readonly CurveSegment2[]) => ring.reduce((a, s) =
 export const regionArea = (r: CurveRegion2) => ringArea(r.outer) + r.holes.reduce((a, h) => a + ringArea(h), 0);
 /** Points along a ring (arcs every ≤ 5°), end points excluded. */
 export function sampleRing(ring: readonly CurveSegment2[], step = Math.PI / 36): XY[] {
-  return ring.flatMap(s => { const n = s.kind === 'line' ? 1 : Math.max(2, Math.ceil(Math.abs(s.sweep) / step)); return Array.from({ length: n }, (_, k) => segAt(s, k / n)); });
+  return ring.flatMap(s => { const n = s.kind === 'line' ? 1 : s.kind === 'curve' ? CURVE_SAMPLES : Math.max(2, Math.ceil(Math.abs(s.sweep) / step)); return Array.from({ length: n }, (_, k) => segAt(s, k / n)); });
 }
 /** Even–odd point in a polygon (sampled rings). */
 export const pointInPolygon = (p: XY, poly: readonly XY[]) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const a = poly[i], b = poly[j]; if ((a[1] > p[1]) !== (b[1] > p[1]) && p[0] < (b[0] - a[0]) * (p[1] - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; };
 
 /** Parameter u ∈ [0, 1] of a point known to lie on the segment's carrier (line or circle). */
 export function paramOf(s: CurveSegment2, p: XY): number {
+  if (s.kind === 'curve') {
+    // Nearest polyline sample, then golden-section search on the squared distance around it.
+    const d2 = (u: number) => { const q = segAt(s, u); return (q[0] - p[0]) ** 2 + (q[1] - p[1]) ** 2; };
+    let best = 0, bd = Infinity; for (let k = 0; k <= CURVE_SAMPLES; k++) { const v = d2(k / CURVE_SAMPLES); if (v < bd) { bd = v; best = k; } }
+    let lo = Math.max(0, (best - 1) / CURVE_SAMPLES), hi = Math.min(1, (best + 1) / CURVE_SAMPLES);
+    for (let i = 0; i < 60; i++) { const m1 = hi - (hi - lo) * 0.6180339887, m2 = lo + (hi - lo) * 0.6180339887; if (d2(m1) < d2(m2)) hi = m2; else lo = m1; }
+    return (lo + hi) / 2;
+  }
   if (s.kind === 'line') { const d = [s.b[0] - s.a[0], s.b[1] - s.a[1]], l2 = d[0] * d[0] + d[1] * d[1]; return ((p[0] - s.a[0]) * d[0] + (p[1] - s.a[1]) * d[1]) / l2; }
   // Angle from the start along the sweep direction in [0, 2π); past the end it is the nearer of the
   // two readings (slightly before the start or slightly after the end).
@@ -68,6 +104,30 @@ export function intersectSegments(s: CurveSegment2, t: CurveSegment2, eps: numbe
   const out: XY[] = [], on = (x: CurveSegment2, p: XY) => segDistance(x, p) <= eps;
   const push = (p: XY) => { if (on(s, p) && on(t, p)) out.push(p); };
   const ends = () => { for (const p of [segStart(s), segEnd(s), segStart(t), segEnd(t)]) push(p); };
+  if (s.kind === 'curve' || t.kind === 'curve') {
+    // Polyline crossings refined by Newton's method on A(u) − B(v) = 0.
+    const n = (x: CurveSegment2) => x.kind === 'line' ? 1 : x.kind === 'curve' ? CURVE_SAMPLES : Math.max(4, Math.ceil(Math.abs(x.sweep) / (Math.PI / 32)));
+    const ns = n(s), nt = n(t), A = polyline(s, ns), B = polyline(t, nt);
+    for (let i = 0; i < ns; i++) for (let j = 0; j < nt; j++) {
+      const p = A[i], q = A[i + 1], r = B[j], w = B[j + 1], d1 = [q[0] - p[0], q[1] - p[1]], d2 = [w[0] - r[0], w[1] - r[1]], den = d1[0] * d2[1] - d1[1] * d2[0];
+      if (Math.abs(den) < 1e-300) continue;
+      const e = [r[0] - p[0], r[1] - p[1]], a = (e[0] * d2[1] - e[1] * d2[0]) / den, b = (e[0] * d1[1] - e[1] * d1[0]) / den;
+      if (a < -0.25 || a > 1.25 || b < -0.25 || b > 1.25) continue;
+      let u = (i + Math.min(1, Math.max(0, a))) / ns, v = (j + Math.min(1, Math.max(0, b))) / nt;
+      for (let it = 0; it < 30; it++) {
+        const P = segAt(s, u), Q = segAt(t, v), F = [P[0] - Q[0], P[1] - Q[1]], h = 1e-7;
+        const Pu = segAt(s, Math.min(1, u + h)), Qv = segAt(t, Math.min(1, v + h)), hu = Math.min(1, u + h) - u || -h, hv = Math.min(1, v + h) - v || -h;
+        const J = [(Pu[0] - P[0]) / hu, -(Qv[0] - Q[0]) / hv, (Pu[1] - P[1]) / hu, -(Qv[1] - Q[1]) / hv], det = J[0] * J[3] - J[1] * J[2];
+        if (Math.abs(det) < 1e-300) break;
+        const du = (F[0] * J[3] - F[1] * J[1]) / det, dv = (J[0] * F[1] - J[2] * F[0]) / det;
+        u = Math.min(1, Math.max(0, u - du)); v = Math.min(1, Math.max(0, v - dv));
+        if (Math.abs(du) < 1e-15 && Math.abs(dv) < 1e-15) break;
+      }
+      const P = segAt(s, u), Q = segAt(t, v);
+      if (Math.hypot(P[0] - Q[0], P[1] - Q[1]) <= eps) { const m: XY = [(P[0] + Q[0]) / 2, (P[1] + Q[1]) / 2]; if (!out.some(o => Math.hypot(o[0] - m[0], o[1] - m[1]) <= eps)) push(m); }
+    }
+    ends(); return out;
+  }
   if (s.kind === 'line' && t.kind === 'line') {
     const d1 = [s.b[0] - s.a[0], s.b[1] - s.a[1]], d2 = [t.b[0] - t.a[0], t.b[1] - t.a[1]], den = d1[0] * d2[1] - d1[1] * d2[0];
     const len = Math.hypot(...d1) * Math.hypot(...d2);
@@ -98,11 +158,16 @@ interface Edge { u: number; v: number; seg: CurveSegment2; count: Map<number, nu
 interface Half { from: number; to: number; edge: number; twin: number; next: number; face: number }
 
 /** Arcs over half a turn are split in two, so no piece starts and ends at one vertex. */
-const halves = (s: CurveSegment2): CurveSegment2[] => s.kind === 'arc' && Math.abs(s.sweep) > Math.PI ? [{ ...s, sweep: s.sweep / 2 }, { ...s, t0: s.t0 + s.sweep / 2, sweep: s.sweep / 2 }] : [s];
+const halves = (s: CurveSegment2): CurveSegment2[] => {
+  if (s.kind === 'arc' && Math.abs(s.sweep) > Math.PI) return [{ ...s, sweep: s.sweep / 2 }, { ...s, t0: s.t0 + s.sweep / 2, sweep: s.sweep / 2 }];
+  // A closed parametric curve becomes two pieces.
+  if (s.kind === 'curve') { const a = segStart(s), b = segEnd(s); if (Math.hypot(a[0] - b[0], a[1] - b[1]) <= 1e-9 * (1 + Math.abs(a[0]) + Math.abs(a[1]))) { const m = (s.t0 + s.t1) / 2; return [{ ...s, t1: m }, { ...s, t0: m }]; } }
+  return [s];
+};
 /** The arrangement tolerance for a set of rings. */
 export function curveTolerance(rings: readonly (readonly CurveSegment2[])[]): number {
   let scale = 0;
-  for (const ring of rings) for (const s of ring) for (const q of s.kind === 'line' ? [s.a, s.b] : [[Math.abs(s.c[0]) + s.r, Math.abs(s.c[1]) + s.r] as XY]) scale = Math.max(scale, Math.abs(q[0]), Math.abs(q[1]));
+  for (const ring of rings) for (const s of ring) for (const q of s.kind === 'line' ? [s.a, s.b] : s.kind === 'curve' ? polyline(s, 8) : [[Math.abs(s.c[0]) + s.r, Math.abs(s.c[1]) + s.r] as XY]) scale = Math.max(scale, Math.abs(q[0]), Math.abs(q[1]));
   return linearToleranceMM(scale);
 }
 
@@ -118,7 +183,7 @@ function arrange(rings: readonly { polygon: number; ring: readonly CurveSegment2
     const v = points.length; points.push(p); const k = gx + ',' + gy; grid.set(k, [...(grid.get(k) ?? []), v]); return v;
   };
   const cuts = pieces.map(p => [segStart(p.seg), segEnd(p.seg)]);
-  const box = (s: CurveSegment2) => { const pts = s.kind === 'line' ? [s.a, s.b] : [segStart(s), segEnd(s), [s.c[0] - s.r, s.c[1] - s.r] as XY, [s.c[0] + s.r, s.c[1] + s.r] as XY]; return [Math.min(...pts.map(p => p[0])) - eps, Math.min(...pts.map(p => p[1])) - eps, Math.max(...pts.map(p => p[0])) + eps, Math.max(...pts.map(p => p[1])) + eps]; };
+  const box = (s: CurveSegment2) => { const pts = s.kind === 'line' ? [s.a, s.b] : s.kind === 'curve' ? polyline(s, CURVE_SAMPLES) : [segStart(s), segEnd(s), [s.c[0] - s.r, s.c[1] - s.r] as XY, [s.c[0] + s.r, s.c[1] + s.r] as XY]; return [Math.min(...pts.map(p => p[0])) - eps, Math.min(...pts.map(p => p[1])) - eps, Math.max(...pts.map(p => p[0])) + eps, Math.max(...pts.map(p => p[1])) + eps]; };
   const boxes = pieces.map(p => box(p.seg));
   for (let i = 0; i < pieces.length; i++) for (let j = i + 1; j < pieces.length; j++) {
     const a = boxes[i], b = boxes[j]; if (a[2] < b[0] || b[2] < a[0] || a[3] < b[1] || b[3] < a[1]) continue;
@@ -148,6 +213,10 @@ function arrange(rings: readonly { polygon: number; ring: readonly CurveSegment2
     // Angles in (−π + 1e−12, π + 1e−12] so a direction along −x has one reading.
     const norm = (a: number) => a <= -Math.PI + 1e-12 ? a + TWO_PI : a;
     if (s.kind === 'line') return { angle: norm(Math.atan2(s.b[1] - s.a[1], s.b[0] - s.a[0])), curvature: 0 };
+    if (s.kind === 'curve') {
+      const d = 1e-4, p0 = segAt(s, 0), p1 = segAt(s, d), p2 = segAt(s, 2 * d), v = [(p1[0] - p0[0]) / d, (p1[1] - p0[1]) / d], a = [(p2[0] - 2 * p1[0] + p0[0]) / (d * d), (p2[1] - 2 * p1[1] + p0[1]) / (d * d)];
+      return { angle: norm(Math.atan2(v[1], v[0])), curvature: (v[0] * a[1] - v[1] * a[0]) / Math.hypot(v[0], v[1]) ** 3 };
+    }
     const t = s.t0, dir = Math.sign(s.sweep);
     return { angle: norm(Math.atan2(Math.cos(t) * dir, -Math.sin(t) * dir)), curvature: dir / s.r };
   };
@@ -198,6 +267,7 @@ function simplify(ring: CurveSegment2[], eps: number): CurveSegment2[] {
     if (s.tag !== t.tag) return false;
     if (s.kind === 'line' && t.kind === 'line') { const d1 = [s.b[0] - s.a[0], s.b[1] - s.a[1]], d2 = [t.b[0] - t.a[0], t.b[1] - t.a[1]]; return Math.abs(d1[0] * d2[1] - d1[1] * d2[0]) <= 1e-12 * Math.hypot(...d1) * Math.hypot(...d2) && d1[0] * d2[0] + d1[1] * d2[1] > 0; }
     if (s.kind === 'arc' && t.kind === 'arc') return Math.hypot(s.c[0] - t.c[0], s.c[1] - t.c[1]) <= eps && Math.abs(s.r - t.r) <= eps && Math.sign(s.sweep) === Math.sign(t.sweep);
+    if (s.kind === 'curve' && t.kind === 'curve') return s.f === t.f && s.t1 === t.t0 && Math.sign(s.t1 - s.t0) === Math.sign(t.t1 - t.t0);
     return false;
   };
   const out = [...ring];
@@ -206,8 +276,9 @@ function simplify(ring: CurveSegment2[], eps: number): CurveSegment2[] {
     for (let i = 0; i < out.length && out.length > 1; i++) {
       const s = out[i], t = out[(i + 1) % out.length];
       if (!sameCarrier(s, t)) continue;
-      const merged: CurveSegment2 = s.kind === 'line' ? { ...s, b: (t as typeof s).b } : { ...s, sweep: s.sweep + (t as typeof s).sweep };
+      const merged: CurveSegment2 = s.kind === 'line' ? { ...s, b: (t as typeof s).b } : s.kind === 'curve' ? { ...s, t1: (t as typeof s).t1 } : { ...s, sweep: s.sweep + (t as typeof s).sweep };
       if (merged.kind === 'arc' && Math.abs(merged.sweep) > Math.PI + 1e-12) continue; // arcs stay within half a turn
+      if (merged.kind === 'curve' && halves(merged).length > 1) continue; // no closed single pieces
       out.splice(i, 1, merged); out.splice((i + 1) % (out.length), 1); changed = true; break;
     }
   }
@@ -257,6 +328,7 @@ export function regionMoments(region: CurveRegion2): [number, number, number, nu
   };
   for (const ring of [region.outer, ...region.holes]) for (const s of ring) {
     if (s.kind === 'line') { const dx = s.b[0] - s.a[0], dy = s.b[1] - s.a[1]; for (const [u, w] of GL) add(s.a[0] + dx * u, s.a[1] + dy * u, dx, dy, w); continue; }
+    if (s.kind === 'curve') { for (let k = 0; k < 16; k++) for (const [u, w] of GL) { const x = (k + u) / 16, p = segAt(s, x), a = segAt(s, Math.max(0, x - 1e-6)), b = segAt(s, Math.min(1, x + 1e-6)), du = Math.min(1, x + 1e-6) - Math.max(0, x - 1e-6); add(p[0], p[1], (b[0] - a[0]) / du / 16, (b[1] - a[1]) / du / 16, w); } continue; }
     const pieces = Math.max(1, Math.ceil(Math.abs(s.sweep) / (Math.PI / 8)));
     for (let k = 0; k < pieces; k++) for (const [u, w] of GL) {
       const t = s.t0 + s.sweep * (k + u) / pieces, dt = s.sweep / pieces;
@@ -282,28 +354,35 @@ export function curveFaceRegions(rings: readonly (readonly CurveSegment2[])[], c
   return [...out.values()].filter(r => r.outer.length);
 }
 
-/** Exact horizontal-line crossings of a ring set at height y (lines and arcs, half-open rule). */
+/**
+ * Horizontal-line crossings of a ring set at height y (half-open rule). A vertex shared by two
+ * segments is read once (the previous segment's end), so both sides agree on which side of the
+ * line it lies even when the two segments reach it through slightly different parameters.
+ */
 function crossingsAt(rings: readonly (readonly CurveSegment2[])[], y: number): number[] {
   const xs: number[] = [];
-  // One vertex evaluated on two arcs can differ in the last bits (sin π ≠ −sin(−π)): heights within
-  // rounding of the line count as on it, so both sides of a vertex agree.
   const near = 1e-12 * (1 + Math.abs(y)), above = (v: number) => v > y + near;
-  const line = (a: XY, b: XY) => { if (above(a[1]) !== above(b[1])) xs.push(a[0] + (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1])); };
-  for (const ring of rings) for (const g of ring) {
-    if (g.kind === 'line') { line(g.a, g.b); continue; }
-    // Split the arc where it turns in y (its top and bottom) into y-monotone pieces.
-    const cuts = [0, 1];
-    for (const t of [Math.PI / 2, -Math.PI / 2]) { const u = paramOf(g, [g.c[0] + g.r * Math.cos(t), g.c[1] + g.r * Math.sin(t)]); if (u > 0 && u < 1) cuts.push(u); }
-    cuts.sort((a, b) => a - b);
-    for (let k = 0; k + 1 < cuts.length; k++) {
-      const a = segAt(g, cuts[k]), b = segAt(g, cuts[k + 1]);
+  for (const ring of rings) for (let si = 0; si < ring.length; si++) {
+    const g = ring[si], start = segEnd(ring[(si - 1 + ring.length) % ring.length]);
+    // The segment as points at parameters, its first point replaced by the shared vertex.
+    const us = g.kind === 'line' ? [0, 1] : g.kind === 'curve' ? Array.from({ length: CURVE_SAMPLES * 2 + 1 }, (_, k) => k / (CURVE_SAMPLES * 2)) : arcCuts(g);
+    const at = (u: number): XY => u === 0 ? start : segAt(g, u);
+    for (let k = 0; k + 1 < us.length; k++) {
+      let lo = us[k], hi = us[k + 1]; const a = at(lo), b = at(hi);
       if (above(a[1]) === above(b[1])) continue;
-      const h = Math.sqrt(Math.max(0, g.r * g.r - (y - g.c[1]) ** 2)), mid = segAt(g, (cuts[k] + cuts[k + 1]) / 2);
-      // On a monotone piece the crossing is on the side of the centre where the piece lies.
-      xs.push(mid[0] >= g.c[0] ? g.c[0] + h : g.c[0] - h);
+      if (g.kind === 'line') { xs.push(a[0] + (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1])); continue; }
+      const aAbove = above(a[1]);
+      for (let i = 0; i < 60; i++) { const m = (lo + hi) / 2; if (above(segAt(g, m)[1]) === aAbove) lo = m; else hi = m; }
+      xs.push(segAt(g, (lo + hi) / 2)[0]);
     }
   }
   return xs;
+}
+/** An arc's parameters at its ends and where it turns in y (its top and bottom): y-monotone pieces. */
+function arcCuts(g: Extract<CurveSegment2, { kind: 'arc' }>): number[] {
+  const cuts = [0, 1];
+  for (const t of [Math.PI / 2, -Math.PI / 2]) { const u = paramOf(g, [g.c[0] + g.r * Math.cos(t), g.c[1] + g.r * Math.sin(t)]); if (u > 0 && u < 1) cuts.push(u); }
+  return cuts.sort((a, b) => a - b);
 }
 /** Whether p is inside the region (boundary points: `boundary`, decided by tolerance). */
 export function locateInRegion(p: XY, region: CurveRegion2, tolerance: number): 'in' | 'out' | 'boundary' {
@@ -319,7 +398,7 @@ export function locateInRegion(p: XY, region: CurveRegion2, tolerance: number): 
 export function regionInteriorPoint(region: CurveRegion2): XY | null {
   const rings = [region.outer, ...region.holes];
   let y0 = Infinity, y1 = -Infinity;
-  const extent = (g: CurveSegment2): XY[] => g.kind === 'line' ? [g.a, g.b]
+  const extent = (g: CurveSegment2): XY[] => g.kind === 'line' ? [g.a, g.b] : g.kind === 'curve' ? polyline(g, CURVE_SAMPLES)
     : [segStart(g), segEnd(g), ...([[g.c[0], g.c[1] - g.r], [g.c[0], g.c[1] + g.r]] as XY[]).filter(p => { const u = paramOf(g, p); return u >= 0 && u <= 1; })];
   for (const ring of rings) for (const g of ring) for (const p of extent(g)) { y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); }
   // Candidates: the middles of the inside intervals on several lines; the one farthest from the boundary

@@ -6,11 +6,9 @@
 //   ruled faces        two rails joined by straight sides, each side one line or a chain of collinear
 //                      lines (extruded sides, cylinder walls with a seam, walls spanning several
 //                      levels): triangle strip between the rails, fans over the side chains
-//   trimmed cylinders  any other face on a circular cylinder (holes, notches, L-shapes in its domain):
-//                      boundaries mapped to (r·θ, height), where they are horizontal and vertical; cut
-//                      into cells at every boundary sample's θ and triangulated cell by cell. Edges of
-//                      such faces first get samples at every vertex θ and height of the face, so the
-//                      cells meet the neighbouring faces' samples exactly (watertight)
+//   trimmed cylinders  any other face on a circular cylinder (holes, notches, ellipse and quartic
+//                      trims): its loops triangulated in (r·θ, height) from the shared edge samples,
+//                      then interior edges wider than one angular step bisected conformingly
 //   other faces        refused for now (BrepError GEOMETRY)
 import { BrepError, type Brep, type BrepCoedge } from './brep-core.js';
 import { evaluateCurve, curveDomain } from './math.js';
@@ -93,7 +91,7 @@ function edgeParameters(curve: Curve, perQuarter: number): number[] {
  * overlapping chords) are cut off as degenerate triangles, so every boundary segment stays in the
  * mesh. Orientation tests use a tolerance relative to the polygon's size.
  */
-export function triangulatePolygonWithHoles(outer: readonly XY[], holes: readonly (readonly XY[])[]): [number, number, number][] {
+export function triangulatePolygonWithHoles(outer: readonly XY[], holes: readonly (readonly XY[])[], earCost?: (a: XY, b: XY, c: XY) => number): [number, number, number][] {
   const pts: XY[] = [...outer, ...holes.flat()];
   let ring = outer.map((_, i) => i), offset = outer.length;
   const holeRings = holes.map(h => { const r = h.map((_, i) => offset + i); offset += h.length; return r; });
@@ -166,7 +164,9 @@ export function triangulatePolygonWithHoles(outer: readonly XY[], holes: readonl
   let guard = 0;
   while (ring.length > 3 && guard++ < 100000) {
     let clipped = false;
-    for (let k = 0; k < ring.length; k++) {
+    // With a cost, ears are tried cheapest first (e.g. narrowest in one direction); otherwise in order.
+    const order = earCost ? ring.map((_, k) => ({ k, cost: earCost(pts[ring[(k - 1 + ring.length) % ring.length]], pts[ring[k]], pts[ring[(k + 1) % ring.length]]) })).sort((x, y) => x.cost - y.cost).map(x => x.k) : ring.map((_, k) => k);
+    for (const k of order) {
       const ia = ring[(k - 1 + ring.length) % ring.length], ib = ring[k], ic = ring[(k + 1) % ring.length], a = pts[ia], b = pts[ib], c = pts[ic];
       if (cr(a, b, c) <= eps) continue;
       let blocked = false;
@@ -199,45 +199,12 @@ function planar(surface: Surface): { origin: Point; normal: Point; e1: Point; e2
 export function tessellateBrep(brep: Brep, options: BrepTessellationOptions = {}): BrepMesh {
   const perQuarter = Math.max(1, Math.min(64, Math.floor(options.segmentsPerQuarter ?? 8)));
   const edges = new Map(brep.edges.map(e => [e.id, e])), loops = new Map(brep.loops.map(l => [l.id, l])), coedges = new Map(brep.coedges.map(c => [c.id, c]));
-  // Trimmed cylinder faces: every edge of such a face gets samples at every sample θ (arcs) and every
-  // vertex height (generators) of the face, repeated until no edge changes (edges are shared).
+  // Faces on a cylinder that are not two rails with straight sides: triangulated in their (r·θ, height) domain.
   const trimmed = new Map<string, CylinderFrame>(), params = new Map(brep.edges.map(e => [e.id, edgeParameters(e.curve, perQuarter)]));
-  const faceEdges = new Map<string, string[]>();
   for (const face of brep.faces) {
     if (planar(face.surface)) continue;
     const frame = cylinderFrame(face.surface); if (!frame || railsOf(face, loops, coedges, edges) !== undefined) continue;
-    trimmed.set(face.id, frame); faceEdges.set(face.id, face.loops.flatMap(l => loops.get(l)!.coedges.map(c => coedges.get(c)!.edge)));
-  }
-  const circles = new Map<string, NonNullable<ReturnType<typeof circleOf>>>();
-  for (let round = 0, changed = trimmed.size > 0; changed && round < 16; round++) {
-    changed = false;
-    for (const [faceId, frame] of trimmed) {
-      const ids = faceEdges.get(faceId)!, us: number[] = [], vs: number[] = [];
-      for (const id of ids) {
-        const c = edges.get(id)!.curve, ts = params.get(id)!;
-        for (const t of [ts[0], ts[ts.length - 1]]) vs.push(frame.uv(evaluateCurve(c, t))[1]);
-        if (!isLine(c)) for (const t of ts) us.push(frame.uv(evaluateCurve(c, t))[0]);
-      }
-      for (const id of ids) {
-        const c = edges.get(id)!.curve, ts = params.get(id)!, [t0, t1] = curveDomain(c), more: number[] = [];
-        if (isLine(c)) {
-          const v0 = frame.uv(evaluateCurve(c, t0))[1], v1 = frame.uv(evaluateCurve(c, t1))[1], have = ts.map(t => v0 + (v1 - v0) * (t - t0) / (t1 - t0));
-          for (const v of vs) { const t = (v - v0) / (v1 - v0); if (t > 1e-9 && t < 1 - 1e-9 && !have.some(h => Math.abs(h - v) <= 1e-9 * Math.max(1, Math.abs(v)))) more.push(t0 + (t1 - t0) * t); }
-        } else {
-          let circle = circles.get(id); if (!circle) { circle = circleOf(c) ?? undefined; if (circle) circles.set(id, circle); }
-          if (!circle) continue;
-          const have = ts.map(t => frame.uv(evaluateCurve(c, t))[0]);
-          for (const u of us) { if (have.some(h => Math.abs(h - u) <= 1e-9 * Math.max(1, Math.abs(u)))) continue; const t = arcParameterAt(c, circle, u / frame.r); if (t !== null && t > t0 + 1e-12 && t < t1 - 1e-12) more.push(t); }
-        }
-        if (more.length) {
-          // Values found through different vertices of one height or angle differ by rounding: keep one.
-          const all = [...ts, ...more].sort((a, b) => a - b), gap = 1e-9 * (t1 - t0), clean = [all[0]];
-          for (const t of all) if (t - clean[clean.length - 1] > gap) clean.push(t);
-          clean[clean.length - 1] = t1;
-          if (clean.length !== ts.length) { params.set(id, clean); changed = true; }
-        }
-      }
-    }
+    trimmed.set(face.id, frame);
   }
   const samples = new Map(brep.edges.map(e => [e.id, params.get(e.id)!.map(t => evaluateCurve(e.curve, t))]));
   const along = (c: BrepCoedge) => { const s = samples.get(c.edge)!; return c.sense === 'forward' ? s : [...s].reverse(); };
@@ -274,7 +241,13 @@ export function tessellateBrep(brep: Brep, options: BrepTessellationOptions = {}
       continue;
     }
     const frame = trimmed.get(face.id);
-    if (frame) { const { pts, tris } = cylinderCells(face, frame, [ring(outerId), ...innerIds.map(ring)]); emit(face.id, 'trimmed', pts, tris, null); continue; }
+    if (frame) {
+      // Per coedge, so a full-turn wall's seam (an edge used twice) can be told apart.
+      const ids = [outerId, ...innerIds], used = ids.flatMap(l => loops.get(l)!.coedges.map(c => coedges.get(c)!.edge));
+      const seam = new Set(used.filter((e, i) => used.indexOf(e) !== i));
+      const parts = ids.map(l => loops.get(l)!.coedges.map(c => { const co = coedges.get(c)!; return { points: along(co).slice(0, -1), seam: seam.has(co.edge) }; }));
+      const { pts, tris } = cylinderTriangles(face, frame, parts, Math.PI / 2 / perQuarter); emit(face.id, 'trimmed', pts, tris, null); continue;
+    }
     const sides = loops.get(outerId)!.coedges.map(id => coedges.get(id)!), count = sides.length;
     const rails = railsOf(face, loops, coedges, edges);
     if (rails === undefined) throw new BrepError('GEOMETRY', `face ${face.id}: only planar and ruled faces (two rails, straight sides) can be tessellated yet`);
@@ -313,7 +286,8 @@ function railsOf(face: Brep['faces'][number], loops: Map<string, Brep['loops'][n
   return undefined;
 }
 
-interface CylinderFrame { c: Point; a: Point; e1: Point; e2: Point; r: number; ref: number; outwardRadial: boolean; uv(p: Point): XY; at(u: number, v: number): Point }
+/** sameU: one tolerance for "the same θ column" in the sample pre-pass and in the cells. */
+interface CylinderFrame { c: Point; a: Point; e1: Point; e2: Point; r: number; ref: number; outwardRadial: boolean; sameU: number; uv(p: Point): XY; at(u: number, v: number): Point }
 /** A surface that extrudes a circular arc along its axis, with (U, V) = (r·θ unwrapped about the face centre, height). */
 function cylinderFrame(S: Surface): CylinderFrame | null {
   if (S.degreeV !== 1 || S.controlPoints[0]?.length !== 2) return null;
@@ -329,7 +303,7 @@ function cylinderFrame(S: Surface): CylinderFrame | null {
   const du = evaluateSurfaceLocal(S, (u0 + u1) / 2 + 1e-6 * (u1 - u0), 0.5), dv = evaluateSurfaceLocal(S, (u0 + u1) / 2, 0.5 + 1e-6);
   const nParam = cross(sub(du, mid), sub(dv, mid));
   const wrap = (x: number) => ((x + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
-  return { c, a, e1, e2, r, ref, outwardRadial: dot(nParam, radial) > 0,
+  return { c, a, e1, e2, r, ref, outwardRadial: dot(nParam, radial) > 0, sameU: 1e-11 * Math.max(1, r),
     uv: p => { const q = sub(p, c); return [r * (ref + wrap(Math.atan2(dot(q, e2), dot(q, e1)) - ref)), dot(q, a)]; },
     at: (u, v) => { const t = u / r; return [c[0] + a[0] * v + r * (Math.cos(t) * e1[0] + Math.sin(t) * e2[0]), c[1] + a[1] * v + r * (Math.cos(t) * e1[1] + Math.sin(t) * e2[1]), c[2] + a[2] * v + r * (Math.cos(t) * e1[2] + Math.sin(t) * e2[2])]; } };
 }
@@ -339,56 +313,85 @@ function evaluateSurfaceLocal(S: Surface, u: number, v: number): Point {
   const p = evaluateCurve(row(0), u), q = evaluateCurve(row(1), u), [v0, v1] = [S.knotsV[0], S.knotsV[S.knotsV.length - 1]], t = (v - v0) / (v1 - v0);
   return [p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t, p[2] + (q[2] - p[2]) * t];
 }
-/** The parameter of a circular-arc edge at absolute frame angle θ, or null outside the arc. */
-function arcParameterAt(curve: Curve, circle: NonNullable<ReturnType<typeof circleOf>>, theta: number): number | null {
-  const total = circle.spans.reduce((a, s) => a + s.phi, 0);
-  let beta = (theta - circle.a0) * circle.sign; beta = ((beta % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-  if (beta > total) return null;
-  let acc = 0, s = 0; while (s < circle.spans.length - 1 && acc + circle.spans[s].phi < beta) acc += circle.spans[s++].phi;
-  const sp = circle.spans[s], tau = (Math.tan((beta - acc - sp.phi / 2) / 2) / Math.tan(sp.phi / 4) + 1) / 2;
-  return sp.k0 + (sp.k1 - sp.k0) * Math.min(1, Math.max(0, tau));
-}
-
-/** Cells between consecutive boundary θ values, each triangulated in (U, V); boundary points are kept exactly. */
-function cylinderCells(face: Brep['faces'][number], frame: CylinderFrame, rings: Point[][]): { pts: Point[]; tris: [number, number, number][] } {
-  const boundary = rings.flat(), uvs = boundary.map(p => frame.uv(p));
-  let scale = 1; for (const [u, v] of uvs) scale = Math.max(scale, Math.abs(u), Math.abs(v));
-  const eps = 1e-9 * scale;
-  // Column lines: the distinct U of the boundary points (merged within eps).
-  const sortedU = uvs.map(x => x[0]).sort((a, b) => a - b), Us: number[] = [];
-  for (const u of sortedU) if (!Us.length || u - Us[Us.length - 1] > eps) Us.push(u);
-  const col = (u: number) => { let lo = 0, hi = Us.length - 1; while (lo < hi) { const m = (lo + hi) >> 1; if (Us[m] < u - eps) lo = m + 1; else hi = m; } return lo; };
-  const segs: { k0: number; k1: number; v: number }[] = [];
-  let off = 0;
-  for (const ring of rings) {
-    for (let i = 0; i < ring.length; i++) {
-      const a = uvs[off + i], b = uvs[off + (i + 1) % ring.length], ka = col(a[0]), kb = col(b[0]);
-      if (ka !== kb && Math.abs(a[1] - b[1]) > eps * 1e3)
-        throw new BrepError('GEOMETRY', `face ${face.id}: only planar and ruled faces, and cylinders trimmed along generators and cross-section circles, can be tessellated yet`);
-      if (ka !== kb) segs.push({ k0: Math.min(ka, kb), k1: Math.max(ka, kb), v: (a[1] + b[1]) / 2 });
+/**
+ * A trimmed cylinder face: its loops (the shared edge samples) triangulated in (r·θ, height), then
+ * every interior edge spanning more than one angular step is bisected (with both triangles beside
+ * it, so the mesh stays conforming). Boundary edges are never split: the face meets its neighbours
+ * exactly at the shared edge samples.
+ */
+function cylinderTriangles(face: Brep['faces'][number], frame0: CylinderFrame, parts: { points: Point[]; seam: boolean }[][], step: number): { pts: Point[]; tris: [number, number, number][] } {
+  const rings = parts.map(r => r.flatMap(c => c.points)), pts: Point[] = rings.flat(), outward = frame0.outwardRadial === (face.sense === 'forward');
+  // A full-turn wall: its domain is centred opposite the seam; the seam going up lies on the right
+  // when loops run counter-clockwise in (U, V) (outward radial), and points on the domain's edges take
+  // the side of their neighbours along their coedge.
+  let frame = frame0, uv: XY[];
+  if (parts.some(r => r.some(c => c.seam))) {
+    const p0 = parts.flat().find(c => c.seam)!.points[0], d = sub(p0, frame0.c), ref = Math.atan2(dot(d, frame0.e2), dot(d, frame0.e1)) + Math.PI, r = frame0.r;
+    const wrap = (x: number) => ((x + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
+    frame = { ...frame0, ref, uv: p => { const q = sub(p, frame0.c); return [r * (ref + wrap(Math.atan2(dot(q, frame0.e2), dot(q, frame0.e1)) - ref)), dot(q, frame0.a)]; } };
+    const lo = r * (ref - Math.PI), hi = r * (ref + Math.PI), edge = (u: number) => Math.abs(u - lo) < 1e-9 * r || Math.abs(u - hi) < 1e-9 * r;
+    uv = parts.flatMap(ring => ring.flatMap((c, ci) => {
+      const local = c.points.map(p => frame.uv(p));
+      if (c.seam) {
+        const next = ring[(ci + 1) % ring.length].points[0], up = frame.uv(next)[1] > local[0][1], right = up === outward;
+        return local.map(([, v]) => [right ? hi : lo, v] as XY);
+      }
+      return local.map((q, i) => {
+        if (!edge(q[0])) return q;
+        const n = local.find((x, j) => j !== i && !edge(x[0])) ?? frame.uv(ring[(ci + 1) % ring.length].points[0]);
+        return [Math.abs(n[0] - lo) < Math.abs(n[0] - hi) ? lo : hi, q[1]] as XY;
+      });
+    }));
+  } else uv = pts.map(p => frame.uv(p));
+  // Rings run counter-clockwise about the outward normal; in (U, V) that is counter-clockwise when the
+  // outward normal is radial. Otherwise mirror U for the triangulation.
+  let area = 0; const outerN = rings[0].length;
+  for (let i = 0; i < outerN; i++) { const a = uv[i], b = uv[(i + 1) % outerN]; area += a[0] * b[1] - b[0] * a[1]; }
+  const flip = area < 0, flat = (q: XY): XY => flip ? [-q[0], q[1]] : q;
+  // Ears narrowest in U first: a zipper of strips across the face, not slivers spanning its width (and
+  // samples along a straight run are never convex ears, so no zero-area triangles).
+  let off = 0; const ringsUV = rings.map(r => { const out = uv.slice(off, off + r.length).map(flat); off += r.length; return out; });
+  const uWidth = (a: XY, b: XY, c: XY) => Math.max(a[0], b[0], c[0]) - Math.min(a[0], b[0], c[0]);
+  const tris = triangulatePolygonWithHoles(ringsUV[0], ringsUV.slice(1), uWidth).map(t => [...t] as [number, number, number]);
+  const key = (a: number, b: number) => a < b ? a * 1e7 + b : b * 1e7 + a;
+  const around = new Map<number, Set<number>>();
+  const link = (t: number) => { const [a, b, c] = tris[t]; for (const [x, y] of [[a, b], [b, c], [c, a]]) { const k = key(x, y); if (!around.has(k)) around.set(k, new Set()); around.get(k)!.add(t); } };
+  const unlink = (t: number) => { const [a, b, c] = tris[t]; for (const [x, y] of [[a, b], [b, c], [c, a]]) around.get(key(x, y))?.delete(t); };
+  tris.forEach((_, t) => link(t));
+  // Rivara's longest-edge bisection (LEPP): to refine a triangle wider (in U) than one angular step,
+  // follow neighbours across widest edges until two triangles share their widest edge, bisect it in
+  // both, and repeat. Terminates; boundary chords (at most one step) are never the edge split.
+  // Lengths in (U, V/20): the surface is straight along V, so triangles may be long that way (an
+  // affine metric keeps Rivara's termination); ties are broken by index.
+  const span = frame.r * step, width = (a: number, b: number) => Math.hypot(uv[a][0] - uv[b][0], (uv[a][1] - uv[b][1]) / 20) + 1e-15 * (a + b) / (a * b + 1);
+  const widest = (t: number): [number, number] => { const [a, b, c] = tris[t]; return ([[a, b], [b, c], [c, a]] as [number, number][]).reduce((m, e) => width(e[0], e[1]) > width(m[0], m[1]) ? e : m); };
+  const across = (t: number, a: number, b: number) => [...(around.get(key(a, b)) ?? [])].find(x => x !== t);
+  const bisect = (a: number, b: number) => {
+    const m = pts.length, mid: XY = [(uv[a][0] + uv[b][0]) / 2, (uv[a][1] + uv[b][1]) / 2];
+    pts.push(frame.at(mid[0], mid[1])); uv.push(mid);
+    for (const t of [...around.get(key(a, b))!]) {
+      const tri = tris[t], i = tri.indexOf(a), j = tri.indexOf(b), c = tri[3 - i - j];
+      unlink(t);
+      // Keep the winding: (x, y, c) with (x, y) in the triangle's own order.
+      const [x, y] = (j === (i + 1) % 3) ? [a, b] : [b, a];
+      tris[t] = [x, m, c]; link(t); tris.push([m, y, c]); link(tris.length - 1);
     }
-    off += ring.length;
-  }
-  // Nodes: boundary points by (column, V); interior nodes are added on demand.
-  const pts: Point[] = [], nodes = new Map<number, { v: number; i: number }[]>();
-  const node = (k: number, v: number, p?: Point) => {
-    const list = nodes.get(k) ?? []; let n = list.find(x => Math.abs(x.v - v) <= eps);
-    if (!n) { n = { v, i: pts.length }; pts.push(p ?? frame.at(Us[k], v)); list.push(n); nodes.set(k, list); }
-    return n.i;
   };
-  uvs.forEach((x, i) => node(col(x[0]), x[1], boundary[i]));
-  const cells: { k: number; v0: number; v1: number }[] = [];
-  for (let k = 0; k + 1 < Us.length; k++) {
-    const vs = segs.filter(s => s.k0 <= k && s.k1 >= k + 1).map(s => s.v).sort((a, b) => a - b);
-    if (vs.length % 2) throw new BrepError('GEOMETRY', `face ${face.id}: its cylinder domain does not close`);
-    for (let j = 0; j < vs.length; j += 2) if (vs[j + 1] - vs[j] > eps) { cells.push({ k, v0: vs[j], v1: vs[j + 1] }); node(k, vs[j]); node(k, vs[j + 1]); node(k + 1, vs[j]); node(k + 1, vs[j + 1]); }
+  for (let t = 0, guard = 0; t < tris.length && guard < 1e6; guard++) {
+    const [a, b] = widest(t), [p0, p1, p2] = tris[t];
+    if (Math.max(uv[p0][0], uv[p1][0], uv[p2][0]) - Math.min(uv[p0][0], uv[p1][0], uv[p2][0]) <= span) { t++; continue; }
+    // The longest-edge propagation path from t.
+    let cur = t, [x, y] = [a, b];
+    for (let depth = 0; depth < 1000; depth++) {
+      const next = across(cur, x, y);
+      if (next === undefined) break; // a boundary edge (cannot happen when wider than a step)
+      const [p, q] = widest(next);
+      if (key(p, q) === key(x, y)) break;
+      cur = next; [x, y] = [p, q];
+    }
+    if (across(cur, x, y) === undefined) { t++; continue; }
+    bisect(x, y);
   }
-  const tris: [number, number, number][] = [];
-  for (const { k, v0, v1 } of cells) {
-    const side = (kk: number, up: boolean) => (nodes.get(kk) ?? []).filter(n => n.v > v0 + eps && n.v < v1 - eps).sort((x, y) => up ? x.v - y.v : y.v - x.v).map(n => n.i);
-    const ring = [node(k, v0), node(k + 1, v0), ...side(k + 1, true), node(k + 1, v1), node(k, v1), ...side(k, false)];
-    const flat = ring.map(i => { const q = frame.uv(pts[i]); return [Math.abs(q[0] - Us[k]) < Math.abs(q[0] - Us[k + 1]) ? Us[k] : Us[k + 1], q[1]] as XY; });
-    for (const [a, b, c] of triangulatePolygonWithHoles(flat, [])) tris.push(frame.outwardRadial === (face.sense === 'forward') ? [ring[a], ring[b], ring[c]] : [ring[a], ring[c], ring[b]]);
-  }
-  return { pts, tris };
+  // Wound for the outward normal.
+  return { pts, tris: tris.map(([a, b, c]) => (outward !== flip) ? [a, b, c] : [a, c, b]) };
 }

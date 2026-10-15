@@ -84,9 +84,9 @@ test('refusals name the feature and the reason', () => {
   refused(D([...plate, { id: 'h', kind: 'hole', target: 'a', center: [50, 50], radius: 1 }]), 'SELECTION', /misses the target/);
   refused(D([...plate, { id: 'f', kind: 'fillet', target: 'a', edges: ['a.side0|a.side1'], radius: 20 }]), 'PARAMETER', /too large/);
   refused(D([...plate, { id: 'f', kind: 'fillet', target: 'a', edges: ['a.side0|a.top'], radius: 1 }]), 'CAPABILITY', /only vertical edges can be filleted/);
-  // A cylinder along X through a cylinder along Z: the walls meet in a quartic.
-  refused(D([circle('c', 0, 0, 3), extrude('p', 'c', 20, -10), { id: 'r', kind: 'rotate', target: 'p', axis: 'y', angleDegrees: 90 }, circle('k', 0, 0, 5), extrude('a', 'k', 6, -3), { id: 'd', kind: 'difference', target: 'a', tool: 'r' }]),
-    'CAPABILITY', /crossing axes/);
+  // Crossing cylinders of equal radius meet in curves that cross themselves.
+  refused(D([circle('c', 0, 0, 5), extrude('p', 'c', 20, -10), { id: 'r', kind: 'rotate', target: 'p', axis: 'y', angleDegrees: 90 }, circle('k', 0, 0, 5), extrude('a', 'k', 6, -3), { id: 'd', kind: 'difference', target: 'a', tool: 'r' }]),
+    'CAPABILITY', /equal radius/);
   refused(D([...plate, { id: 'r', kind: 'rotate', target: 'a', axis: 'x', angleDegrees: 45 }]), 'CAPABILITY', /multiples of 90/);
   refused(D([...plate, { id: 'x', kind: 'split', target: 'a', axis: 'z', at: 9 }]), 'SELECTION', /does not cross/);
   refused(D([rect('s', 0, 0, { parameter: 'w' }, 10)]), 'PARAMETER', /unknown parameter w/);
@@ -134,13 +134,34 @@ test('planes and cylinders of any axis: cross holes, side holes, pins and bars (
   // The cross hole's wall goes along X: its surface's extrusion direction is the X axis.
   const cross = evaluateCadPart(cases[0][1]).outputs[0].brep.faces.find(f => f.name.startsWith('h.side0'));
   const [[p0, p1]] = cross.surface.controlPoints; assert.ok(Math.abs(Math.abs(p1[0] - p0[0]) - Math.hypot(p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])) < 1e-9);
-  // A top-edge chamfer on a body with a hole: fine away from the hole, refused where the slanted
-  // chamfer plane would cut the hole wall (an ellipse).
+  // A top-edge chamfer on a body with a hole, away from it and cutting into it (the slanted chamfer
+  // plane meets the hole wall in an ellipse).
   const holed = x => D([...plate, { id: 'h', kind: 'hole', target: 'e', center: [x, 10], radius: 2 }, { id: 'c', kind: 'chamfer', target: 'h', edges: ['e.side3|e.top'], distance: 2 }]);
   const chamfered = evaluateCadPart(holed(30)).outputs[0];
   assert.equal(checkBrep(chamfered.brep).valid, true);
   assert.ok(Math.abs(chamfered.massProperties(1).volumeMM3 - (8000 - 40 * pi - 40)) < 3e-4 * 8000);
-  refused(holed(3), 'CAPABILITY', /cut a curved face at an angle/);
+  // Next to the hole the wedge (legs 2, along y) and the hole overlap: ∫ (2 − x)·2√(4 − (x − 3)²) over 1 ≤ x ≤ 2.
+  let overlap = 0; for (let i = 0, n = 4000; i < n; i++) { const x = 1 + (i + 0.5) / n; overlap += (2 - x) * 2 * Math.sqrt(Math.max(0, 4 - (x - 3) ** 2)) / n; }
+  const near = evaluateCadPart(holed(3)).outputs[0];
+  assert.equal(checkBrep(near.brep).valid, true);
+  assert.ok(Math.abs(near.massProperties(1).volumeMM3 - (8000 - 40 * pi - 40 + overlap)) < 3e-4 * 8000, String(near.massProperties(1).volumeMM3));
   // A missed side hole is refused by name.
   refused(D([...plate, { id: 'h', kind: 'hole', target: 'e', axis: 'x', center: [50, 5], radius: 2 }]), 'SELECTION', /along x misses the target/);
+});
+
+test('ellipse and quartic trims: slanted bodies, cross-drilled bosses, partial piercings (brep-core step 8)', () => {
+  const plate = [rect('s', 0, 0, 40, 20), extrude('e', 's', 10)];
+  // A boss on the plate, cross-drilled along x right through its axis (a quartic on both walls).
+  const boss = D([...plate, circle('c', 20, 10, 6), extrude('b', 'c', 12, 10), { id: 'u', kind: 'union', target: 'e', tool: 'b' }, { id: 'x', kind: 'hole', target: 'u', axis: 'x', center: [10, 16], radius: 2 }]);
+  const o = evaluateCadPart(boss).outputs[0];
+  assert.equal(checkBrep(o.brep).valid, true);
+  // Removed: the x-cylinder (r 2) inside the boss (r 6): ∫ 2√(4 − y²) · 2√(36 − y²) dy over |y| ≤ 2.
+  let crossed = 0; for (let i = 0, n = 4000; i < n; i++) { const y = -2 + 4 * (i + 0.5) / n; crossed += 2 * Math.sqrt(4 - y * y) * 2 * Math.sqrt(36 - y * y) * 4 / n; }
+  const expected = 8000 + 36 * pi * 12 - crossed;
+  assert.ok(Math.abs(o.massProperties(1).volumeMM3 - expected) < 3e-4 * expected, `${o.massProperties(1).volumeMM3} vs ${expected}`);
+  assert.ok(o.brep.faces.some(f => f.name === 'x.side0#1' || f.name === 'x.side0') && o.brep.faces.some(f => f.name.startsWith('b.side0')));
+  // A plate turned 30° about z with a hole along x through it (ellipses on the hole wall).
+  const turned = evaluateCadPart(D([...plate, { id: 'r', kind: 'rotate', target: 'e', axis: 'z', angleDegrees: 30, pivot: [20, 10, 0] }, { id: 'h', kind: 'hole', target: 'r', axis: 'x', center: [10, 5], radius: 2 }])).outputs[0];
+  assert.equal(checkBrep(turned.brep).valid, true);
+  assert.ok(turned.massProperties(1).volumeMM3 < 8000 && turned.massProperties(1).volumeMM3 > 8000 - 4 * pi * 60);
 });

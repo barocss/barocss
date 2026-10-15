@@ -94,7 +94,7 @@ export function transformPrismatic(solid: PrismaticSolid, transform: { readonly 
     throw new PrismaticSolidError('the transform must be a similarity in XY with a nonzero Z scale');
   const map = (p: XY): XY => [a * p[0] + b * p[1] + tx, c * p[0] + d * p[1] + ty];
   const retag = <T extends { tag?: string }>(x: T): T => transform.retag && x.tag !== undefined ? { ...x, tag: transform.retag(x.tag) } : x;
-  const seg = (s: CurveSegment2): CurveSegment2 => retag(s.kind === 'line' ? { ...s, a: map(s.a), b: map(s.b) }
+  const seg = (s: CurveSegment2): CurveSegment2 => s.kind === 'curve' ? noCurves() : retag(s.kind === 'line' ? { ...s, a: map(s.a), b: map(s.b) }
     : { ...s, c: map(s.c), r: s.r * scale, t0: Math.atan2(c * Math.cos(s.t0) + d * Math.sin(s.t0), a * Math.cos(s.t0) + b * Math.sin(s.t0)), sweep: s.sweep * Math.sign(det) });
   // A reflection reverses ring orientation; reverse the rings so material stays on the left.
   const ring = (r: readonly CurveSegment2[]) => det > 0 ? r.map(seg) : reverseRing(r.map(seg));
@@ -142,7 +142,9 @@ class PointSet {
   }
 }
 
-const profileSegment = (s: CurveSegment2, start: XY, end: XY): ProfileSegment => s.kind === 'line'
+/** Prismatic sections are lines and arcs only. */
+const noCurves = (): never => { throw new PrismaticSolidError('prismatic sections are made of lines and arcs'); };
+const profileSegment = (s: CurveSegment2, start: XY, end: XY): ProfileSegment => s.kind === 'curve' ? noCurves() : s.kind === 'line'
   ? { kind: 'line', start, end, lengthMM: Math.hypot(end[0] - start[0], end[1] - start[1]) }
   : { kind: 'arc', start, end, center: s.c, radiusMM: s.r, startAngle: s.t0, sweep: s.sweep, lengthMM: Math.abs(s.sweep) * s.r };
 
@@ -186,7 +188,7 @@ export function brepFromPrismatic(solid: PrismaticSolid, options: { readonly id?
     const out: { piece: number; forward: boolean; tag?: string }[] = [];
     for (let k = 0; k + 1 < stops.length; k++) {
       const s0 = stops[k], s1 = stops[k + 1]; if (s0.v === s1.v) continue;
-      const sub: CurveSegment2 = s.kind === 'line' ? { ...s, a: P[s0.v], b: P[s1.v] } : { ...s, t0: s.t0 + s.sweep * s0.u, sweep: s.sweep * (s1.u - s0.u) };
+      const sub: CurveSegment2 = s.kind === 'line' ? { ...s, a: P[s0.v], b: P[s1.v] } : s.kind === 'arc' ? { ...s, t0: s.t0 + s.sweep * s0.u, sweep: s.sweep * (s1.u - s0.u) } : noCurves();
       out.push({ ...piece(sub, s0.v, s1.v), tag: s.tag });
     }
     return out;

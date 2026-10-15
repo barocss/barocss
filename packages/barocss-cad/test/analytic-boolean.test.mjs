@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { booleanAnalytic, brepFromPrismatic, prismaticFromProfile, transformBrep, quarterTurn, checkBrep, tessellateBrep, brepMassProperties, BrepError } from '../dist/index.js';
+import { booleanAnalytic, brepFromBody, cad, brepFromPrismatic, prismaticFromProfile, transformBrep, quarterTurn, checkBrep, tessellateBrep, brepMassProperties, BrepError } from '../dist/index.js';
 
 const mulberry = seed => () => { seed = (seed + 0x6D2B79F5) >>> 0; let t = seed; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 const rect = (x0, y0, x1, y1) => [{ kind: 'line', start: [x0, y0] }, { kind: 'line', start: [x1, y0] }, { kind: 'line', start: [x1, y1] }, { kind: 'line', start: [x0, y1] }];
@@ -60,15 +60,32 @@ test('planes and cylinders of any axis: exact cases', () => {
   assert.ok(Math.abs(v - (2000 * pi + 240 - overlap)) < 2e-4 * v, String(v));
 });
 
-test('refusals: ellipses and crossing cylinders; contact along a line is not a solid', () => {
-  // A plane at 45° to a cylinder's axis (a box turned about z, against a cylinder along x).
-  const turned = transformBrep(box([-5, -5, -5], [5, 5, 5]), { matrix: [Math.SQRT1_2, -Math.SQRT1_2, 0, Math.SQRT1_2, Math.SQRT1_2, 0, 0, 0, 1] });
-  assert.throws(() => booleanAnalytic(turned, cylinder('x', [0, 0], 2, -10, 10), 'difference'), e => e instanceof BrepError && /at an angle \(an ellipse/.test(e.message));
-  assert.throws(() => booleanAnalytic(cylinder('z', [0, 0], 5, -5, 5), cylinder('x', [0, 0], 2, -10, 10), 'difference'), e => /crossing axes/.test(e.message));
-  // Crossing cylinders that stay apart are fine.
+test('ellipses, quartics, seams and merged faces (brep-core step 8)', () => {
+  const vol = b => brepMassProperties(b, 1, { segmentsPerQuarter: 64 }).volumeMM3, ok = (name, b) => { assert.equal(checkBrep(b).valid, true, name); for (const q of [4, 16]) assert.ok(mesh(b, q).watertight, `${name} watertight ${q}`); };
+  // A cube turned 45° about z, minus a cylinder along x: the box planes meet it in ellipses.
+  const turned = transformBrep(box([-5, -5, -5], [5, 5, 5]), { matrix: [Math.SQRT1_2, -Math.SQRT1_2, 0, Math.SQRT1_2, Math.SQRT1_2, 0, 0, 0, 1] }), bar = cylinder('x', [0, 0], 2, -10, 10);
+  const U = booleanAnalytic(turned, bar, 'union'), I = booleanAnalytic(turned, bar, 'intersection'), Dd = booleanAnalytic(turned, bar, 'difference');
+  for (const [n, b] of [['U', U], ['I', I], ['D', Dd]]) ok(n, b);
+  assert.ok(Math.abs(vol(U) + vol(I) - 1000 - 80 * pi) < 1e-3 * 1000 && Math.abs(vol(Dd) + vol(I) - 1000) < 1e-3 * 1000);
+  // The cylinder inside the turned cube: |x| ≤ 5√2 − |y|·… exactly ∫ over the bar's section of the cube's width along x.
+  let inside = 0; for (let i = 0, n = 2000; i < n; i++) for (let j = 0, m = 200; j < m; j++) { const y = -2 + 4 * (i + 0.5) / n, z = -2 + 4 * (j + 0.5) / m; if (y * y + z * z <= 4) inside += 2 * (5 * Math.SQRT2 - Math.abs(y)) * (4 / n) * (4 / m); }
+  assert.ok(Math.abs(vol(I) - inside) < 2e-3 * inside, `${vol(I)} vs ${inside}`);
+  // A small cylinder right through a larger crossing one (two quartic loops), and one partly through (one loop).
+  const big = cylinder('z', [0, 0], 5, -5, 5);
+  const drilled = booleanAnalytic(big, cylinder('x', [0, 0], 2, -10, 10), 'difference'); ok('drilled', drilled);
+  let crossed = 0; for (let i = 0, n = 4000; i < n; i++) { const y = -2 + 4 * (i + 0.5) / n; crossed += 2 * Math.sqrt(4 - y * y) * 2 * Math.sqrt(25 - y * y) * 4 / n; }
+  assert.ok(Math.abs(vol(drilled) - (250 * pi - crossed)) < 2e-4 * 250 * pi, String(vol(drilled)));
+  const grazed = booleanAnalytic(big, cylinder('x', [4.5, 0], 2, -10, 10), 'difference'); ok('partly through', grazed);
+  assert.ok(vol(grazed) < 250 * pi && vol(grazed) > 250 * pi - 40 * pi);
+  // Equal radii: the curves cross themselves — refused.
+  assert.throws(() => booleanAnalytic(big, cylinder('x', [0, 0], 5, -10, 10), 'difference'), e => e instanceof BrepError && /equal radius/.test(e.message));
+  // Crossing cylinders that stay apart; contact along a line is not a solid.
   const apart = booleanAnalytic(cylinder('z', [0, 0], 2, 0, 10), cylinder('x', [8, 5], 2, -10, 10), 'union');
   assert.equal(checkBrep(apart).valid, true); assert.equal(apart.bodies.length, 2);
   assert.throws(() => booleanAnalytic(box([0, 0, 0], [10, 10, 5]), box([10, 0, 5], [20, 10, 10]), 'union'), e => e instanceof BrepError && e.code === 'TOPOLOGY' && /not a manifold/.test(e.message));
+  // Coplanar neighbours are one face: two overlapping slabs of one height give 1 top, 1 bottom, 8 sides.
+  const slabs = booleanAnalytic(box([0, 0, 0], [10, 10, 5]), box([5, 5, 0], [15, 15, 5], 'B'), 'union');
+  assert.equal(slabs.faces.length, 10); assert.ok(slabs.faces.some(f => f.name === 'b.top'));
   // A quarter turn keeps every face recognisable (exact entries).
   assert.equal(checkBrep(transformBrep(cylinder('z', [1, 2], 3, 0, 5), { matrix: quarterTurn('x', 90) })).valid, true);
 });
@@ -117,4 +134,15 @@ test('random boxes and cylinders along x, y and z: valid watertight results, vol
     checked++;
   }
   assert.ok(checked >= 25, `${checked} checked, ${refused} refused`);
+});
+
+test('full-turn walls with a seam (schema-1 cylinders) are accepted', () => {
+  const m = cad.model(), c = m.sketch.circle({ center: [0, 0], radius: 5 }).extrude(10), seamed = brepFromBody(m.build({ c }).bodies.c);
+  const vol = b => brepMassProperties(b, 1, { segmentsPerQuarter: 64 }).volumeMM3;
+  const strip = 2 * (Math.sqrt(24) + 25 * Math.asin(0.2));
+  for (const [name, b, op, expected] of [['through a slot', box([-10, -1, 3], [10, 1, 6]), 'difference', 250 * pi - strip * 3], ['a block on top', box([-2, -2, 8], [2, 2, 14]), 'union', 250 * pi + 64], ['a slice', box([-10, -10, 2], [10, 10, 5]), 'intersection', 75 * pi]]) {
+    const r = booleanAnalytic(seamed, b, op);
+    assert.equal(checkBrep(r).valid, true, name); assert.ok(mesh(r, 16).watertight, name);
+    assert.ok(Math.abs(vol(r) - expected) < 2e-4 * expected, `${name}: ${vol(r)} vs ${expected}`);
+  }
 });
