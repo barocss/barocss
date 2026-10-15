@@ -138,6 +138,43 @@ test('shell: the section eroded exactly, open faces removed, the result still up
   refused(D([...slot, shell('e', 1, ['e.top', 'e.side1'])]), 'CAPABILITY', /only straight walls can be left open/);
 });
 
+test('sweep: a profile along straight runs and bends, exact mass, joined into one solid', () => {
+  const tube = circle('s', 0, 0, 2), bar = { id: 's', kind: 'sketch', profile: 'rectangle', min: [-1, -2], max: [3, 2] }, A = 4 * pi;
+  const sweep = (sketch, path) => D([sketch, { id: 'w', kind: 'sweep', sketch: 's', path }]);
+  const straight = length => ({ kind: 'straight', length }), bend = (radius, angleDegrees, toward) => ({ kind: 'bend', radius, angleDegrees, toward });
+  const cases = [
+    ['a pipe with a 90° bend', sweep(tube, [straight(10), bend(8, 90, 'x'), straight(10)]), A * (20 + 4 * pi), 0],
+    ['a U bend', sweep(tube, [straight(5), bend(6, 180, '-y'), straight(5)]), A * (10 + 6 * pi), 0],
+    ['bends in two planes', sweep(tube, [straight(4), bend(6, 90, 'x'), bend(6, 90, 'y'), straight(4)]), A * (8 + 6 * pi), 0],
+    // The path runs through the section's centroid wherever the section is drawn.
+    ['a bar drawn off the origin', sweep(bar, [straight(3), bend(6, 90, 'x')]), 16 * (3 + 6 * pi / 2), 0],
+    ['a ring of four bends (it closes on itself)', sweep(tube, [1, 2, 3, 4].map(() => bend(8, 90, 'x'))), A * 16 * pi, 1],
+  ];
+  for (const [name, doc, expected, genus] of cases) {
+    const o = evaluateCadPart(doc).outputs[0], report = checkBrep(o.brep);
+    assert.equal(report.valid, true, `${name}: ${report.issues}`);
+    assert.deepEqual(report.topology.map(t => t.genus), [genus], name);
+    const m = o.massProperties(1000);
+    assert.equal(m.method, 'closed-form', name);
+    assert.ok(close(m.volumeMM3, expected, 1e-12), `${name}: ${m.volumeMM3} vs ${expected}`);
+    // The closed form agrees with the body's own fine mesh.
+    const mesh = brepMassProperties(o.brep, 1000, { segmentsPerQuarter: 64 });
+    assert.ok(Math.hypot(...m.centroidMM.map((c, k) => c - mesh.centroidMM[k])) < 1e-3, `${name}: centroid`);
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) assert.ok(Math.abs(m.inertiaCentroidKgM2[i][j] - mesh.inertiaCentroidKgM2[i][j]) < 1e-3 * m.inertiaCentroidKgM2[i][i] + 1e-14, `${name}: inertia ${i}${j}`);
+  }
+  // Consecutive pieces are glued in their shared section (a seam named by the sides it parts); a
+  // section off the origin that a Boolean union of the pieces could not join.
+  const off = evaluateCadPart(sweep(circle('s', 3.2, -1.7, 6), [straight(8), bend(20, 90, 'x'), bend(15, 45, 'y'), straight(8)])).outputs[0];
+  assert.equal(checkBrep(off.brep).valid, true);
+  assert.ok(off.brep.edges.some(e => e.name === 'w.s0.side0#1|w.s1.side1'), off.brep.edges.map(e => e.name).join(' '));
+  // A glued pipe takes further Booleans: united with a mounting plate it stands on.
+  const plated = evaluateCadPart(D([circle('s', 0, 0, 3), { id: 'w', kind: 'sweep', sketch: 's', path: [straight(8), bend(20, 90, 'x'), straight(8)] }, rect('r', -10, -10, 10, 10), extrude('p', 'r', 4, -4), { id: 'u', kind: 'union', target: 'w', tool: 'p' }])).outputs.at(-1);
+  assert.equal(checkBrep(plated.brep).valid, true);
+  assert.ok(close(plated.massProperties(1000).volumeMM3, 9 * pi * (16 + 10 * pi) + 1600, 1e-3));
+  refused(sweep(tube, [bend(1, 90, 'x')]), 'PARAMETER', /reaches the bend's axis/);
+  refused(sweep(tube, [{ kind: 'twist' }]), 'INPUT', /straight or bend/);
+});
+
 test('refusals name the feature and the reason', () => {
   const plate = [rect('s', 0, 0, 10, 10), extrude('a', 's', 5)];
   refused(D([extrude('a', 's', 5), rect('s', 0, 0, 10, 10)]), 'REFERENCE', /^a: sketch: no earlier feature s/);

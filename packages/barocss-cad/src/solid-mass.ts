@@ -54,3 +54,25 @@ export function brepMassProperties(brep: Brep, densityKgPerM3: number, options: 
   }
   return fromIntegrals(I, densityKgPerM3, curved ? 'tessellated' : 'planar-exact');
 }
+
+/**
+ * Mass properties of a body made of pieces that meet only in faces, each given in its own frame and
+ * placed by a rotation (its columns: the frame's axes in world) and an offset (mm): masses add, centroids
+ * average, each inertia turns with its piece (R I Rᵀ) and moves to the common centroid (parallel axes).
+ */
+export function combineMassProperties(parts: readonly { readonly props: SolidMassProperties; readonly axes: readonly [Point, Point, Point]; readonly offset: Point }[]): SolidMassProperties {
+  if (!parts.length) throw new SolidMassError('no pieces to combine');
+  const world = parts.map(({ props, axes, offset }) => {
+    const R = [0, 1, 2].map(i => [axes[0][i], axes[1][i], axes[2][i]]), c = props.centroidMM;
+    const centroid = [0, 1, 2].map(i => offset[i] + R[i][0] * c[0] + R[i][1] * c[1] + R[i][2] * c[2]) as Point;
+    const I = props.inertiaCentroidKgM2, turned = [0, 1, 2].map(i => [0, 1, 2].map(j => { let v = 0; for (let p = 0; p < 3; p++) for (let q = 0; q < 3; q++) v += R[i][p] * I[p][q] * R[j][q]; return v; }));
+    return { m: props.massKG, v: props.volumeMM3, centroid, I: turned };
+  });
+  const M = world.reduce((a, w) => a + w.m, 0), V = world.reduce((a, w) => a + w.v, 0);
+  const C = [0, 1, 2].map(k => world.reduce((a, w) => a + w.m * w.centroid[k], 0) / M) as Point;
+  const I = [0, 1, 2].map(i => [0, 1, 2].map(j => world.reduce((a, w) => {
+    const d = [0, 1, 2].map(k => (w.centroid[k] - C[k]) * 1e-3), dd = d[0] * d[0] + d[1] * d[1] + d[2] * d[2];
+    return a + w.I[i][j] + w.m * ((i === j ? dd : 0) - d[i] * d[j]);
+  }, 0))) as [[number, number, number], [number, number, number], [number, number, number]];
+  return { volumeMM3: V, massKG: M, centroidMM: C, inertiaCentroidKgM2: I, method: 'closed-form' };
+}

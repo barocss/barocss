@@ -27,8 +27,9 @@ import { exportStep, importStep } from './step.js';
 import { revolveProfile, revolveMassProperties } from './revolve.js';
 import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js';
 import { tessellateBrep } from './brep-tessellate.js';
-import { prismaticMassProperties, brepMassProperties, SolidMassError, type SolidMassProperties } from './solid-mass.js';
-import { ExtrudedProfileError, type ProfileSegmentInput } from './extruded-profile-solid.js';
+import { combineMassProperties, prismaticMassProperties, brepMassProperties, SolidMassError, type SolidMassProperties } from './solid-mass.js';
+import { glueAtSharedFace } from './brep-glue.js';
+import { ExtrudedProfileError, buildProfileLoop, type ProfileSegmentInput } from './extruded-profile-solid.js';
 import type { Point } from './types.js';
 import { add, cross, dot, scale, sub, unit } from './vec3.js';
 
@@ -66,6 +67,12 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'circular-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly angleDegrees: number; readonly count: number; readonly pivot?: CadPartPoint3 }
   /** Parts /0 (below `at`) and /1 (above). */
   | { readonly kind: 'split'; readonly target: string; readonly axis: CadPartAxis; readonly at: CadPartDim }
+  /**
+   * The sketch's profile swept along a path through its centroid, from the sketch plane up +Z: straight
+   * runs and bends of a radius (to the path) towards ±X or ±Y (as a pipe is bent), each from where the
+   * last ended.
+   */
+  | { readonly kind: 'sweep'; readonly sketch: string; readonly path: readonly CadPartSweepStep[] }
   /** A body read from a STEP file (its text); its faces keep their names, prefixed `${id}.`. */
   | { readonly kind: 'import'; readonly step: string }
   /** Hollowed to walls `thickness` thick; `open` names the faces removed (the top of a box, a side). */
@@ -79,6 +86,7 @@ export interface CadPartDocument {
   readonly parameters: Readonly<Record<string, number>>;
   readonly features: readonly CadPartFeature[];
 }
+export type CadPartSweepStep = { readonly kind: 'straight'; readonly length: CadPartDim } | { readonly kind: 'bend'; readonly radius: CadPartDim; readonly angleDegrees: number; readonly toward: 'x' | '-x' | 'y' | '-y' };
 export type CadPartErrorCode = 'FORMAT' | 'INPUT' | 'PARAMETER' | 'REFERENCE' | 'SELECTION' | 'CAPABILITY' | 'GEOMETRY';
 export class CadPartError extends Error {
   constructor(readonly code: CadPartErrorCode, readonly feature: string | null, detail: string) { super(`${feature ? feature + ': ' : ''}${detail}`.slice(0, 1024)); this.name = 'CadPartError'; }
@@ -391,6 +399,25 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         return acc;
       }));
     }
+    case 'sweep': {
+      const sketch = ref(f.sketch, 'sketch').result;
+      if (sketch.kind !== 'sketch') fail('REFERENCE', `${f.sketch} is not a sketch`);
+      const path = f.path as unknown;
+      if (!Array.isArray(path) || !path.length || path.length > CadPartLimits.copies) fail('INPUT', 'path must list 1 to 64 steps');
+      const steps = (path as unknown[]).map((st, i): { kind: 'straight'; length: number } | { kind: 'bend'; radius: number; angle: number; toward: 'x' | '-x' | 'y' | '-y' } => {
+        if (!isRecord(st)) return fail('INPUT', `path[${i}] must be a step`);
+        if (st.kind === 'straight') return { kind: 'straight', length: dim(st.length as CadPartDim, `path[${i}].length`, true) };
+        if (st.kind === 'bend') {
+          const a = st.angleDegrees, toward = st.toward;
+          if (typeof a !== 'number' || !(a > 0 && a <= 180)) fail('INPUT', `path[${i}].angleDegrees must be in (0, 180]`);
+          if (toward !== 'x' && toward !== '-x' && toward !== 'y' && toward !== '-y') fail('INPUT', `path[${i}].toward must be x, -x, y or -y`);
+          return { kind: 'bend', radius: dim(st.radius as CadPartDim, `path[${i}].radius`, true), angle: a as number, toward: toward as 'x' | '-x' | 'y' | '-y' };
+        }
+        return fail('INPUT', `path[${i}].kind must be straight or bend`);
+      });
+      const outer = (sketch as Extract<Result, { kind: 'sketch' }>).outer;
+      return () => { const { brep, mass } = sweepBrep(outer, steps, at, fail); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass }] }; };
+    }
     case 'import': {
       if (typeof f.step !== 'string' || !f.step.length) fail('INPUT', 'step must be the text of a STEP file');
       if ((f.step as string).length > CadPartLimits.fileBytes) fail('INPUT', `the STEP file is larger than ${CadPartLimits.fileBytes} bytes`);
@@ -469,6 +496,54 @@ function rotate(s: Solid, axis: CadPartAxis, deg: number, pivot: Point, rename?:
   } else m = quarterTurn(axis, deg);
   const mp = [m[0] * pivot[0] + m[1] * pivot[1] + m[2] * pivot[2], m[3] * pivot[0] + m[4] * pivot[1] + m[5] * pivot[2], m[6] * pivot[0] + m[7] * pivot[1] + m[8] * pivot[2]];
   return affine(s, m, [pivot[0] - mp[0], pivot[1] - mp[1], pivot[2] - mp[2]], rename);
+}
+
+// ---- sweep -----------------------------------------------------------------------------------------------
+/**
+ * A profile swept along straight runs (extrusions) and bends (revolutions about an axis in the profile's
+ * plane, a radius to its side), each placed where the last one ended; the pieces meet in whole
+ * cross-sections and are joined.
+ */
+function sweepBrep(profile: readonly ProfileSegmentInput[], steps: ({ kind: 'straight'; length: number } | { kind: 'bend'; radius: number; angle: number; toward: 'x' | '-x' | 'y' | '-y' })[], at: string, fail: Tools['fail']): { brep: Brep; mass: (density: number) => SolidMassProperties } {
+  // The path runs through the profile's centroid: the profile is moved there, the body back.
+  const centre = buildProfileLoop(profile, { maximumSegments: 1024 }).centroidMM;
+  const outer: ProfileSegmentInput[] = profile.map(g => g.kind === 'line' ? { kind: 'line', start: [g.start[0] - centre[0], g.start[1] - centre[1]] } : { ...g, start: [g.start[0] - centre[0], g.start[1] - centre[1]], center: [g.center[0] - centre[0], g.center[1] - centre[1]] });
+  let o: Point = [centre[0], centre[1], 0], x: Point = [1, 0, 0], y: Point = [0, 1, 0], z: Point = [0, 0, 1];
+  // (Ids are identifiers; the pieces' faces are named `${at}.s${k}.…`.)
+  const place = (b: Brep, k: number): Brep => transformBrep(b, { matrix: [x[0], y[0], z[0], x[1], y[1], z[1], x[2], y[2], z[2]], offset: [o[0], o[1], o[2]] }, n => n.split(`${at}_s${k}`).join(`${at}.s${k}`));
+  const rot = (v: Point, d: Point, t: number): Point => add(add(scale(v, Math.cos(t)), scale(cross(d, v), Math.sin(t))), scale(d, dot(d, v) * (1 - Math.cos(t))));
+  // Each piece's mass in closed form, in its own frame (the pieces meet only in cross-sections).
+  const pieces: Brep[] = [], masses: { local: (density: number) => SolidMassProperties; axes: [Point, Point, Point]; offset: Point }[] = [];
+  steps.forEach((st, k) => {
+    const tag = `${at}_s${k}`;
+    if (st.kind === 'straight') {
+      const prism = prismaticFromProfile({ outer, heightMM: st.length, tag });
+      masses.push({ local: d => prismaticMassProperties(prism, d), axes: [x, y, z], offset: o });
+      pieces.push(place(brepFromPrismatic(prism, { id: tag }), k));
+      o = add(o, scale(z, st.length));
+      return;
+    }
+    // The bend axis lies in the profile's plane, `radius` towards the side, square to that side.
+    const side = st.toward, sx = side === 'x' ? 1 : side === '-x' ? -1 : 0, sy = side === 'y' ? 1 : side === '-y' ? -1 : 0;
+    const origin: XY = [sx * st.radius, sy * st.radius], direction: XY = sx ? [0, 1] : [1, 0];
+    let turned: Brep;
+    try { turned = revolveProfile({ id: tag, profile: outer, axis: { origin, direction }, angleDegrees: st.angle }); }
+    catch (cause) { if (cause instanceof BrepError && /axis/.test(cause.message)) fail('PARAMETER', `bend ${k}: the profile reaches the bend's axis (use a radius larger than the profile's reach towards ${side})`); throw cause; }
+    pieces.push(place(turned!, k));
+    const input = { id: tag, profile: outer, axis: { origin, direction }, angleDegrees: st.angle };
+    masses.push({ local: d => revolveMassProperties(input, d), axes: [x, y, z], offset: o });
+    // The frame turns about the axis by the bend's angle (z towards the side).
+    const sideDir = sx ? scale(x, sx) : scale(y, sy), d = unit(cross(z, sideDir)), A = add(o, scale(sideDir, st.radius)), t = st.angle * Math.PI / 180;
+    o = add(A, rot(sub(o, A), d, t)); x = rot(x, d, t); y = rot(y, d, t); z = rot(z, d, t);
+  });
+  // Consecutive pieces meet in a cross-section, each on its side of its plane: they are glued there,
+  // exactly, unless pieces further apart may touch (then they are united by a Boolean).
+  const box = (b: Brep) => { const lo: Point = [Infinity, Infinity, Infinity], hi: Point = [-Infinity, -Infinity, -Infinity]; for (const f of b.faces) for (const row of f.surface.controlPoints) for (const p of row) for (let i = 0; i < 3; i++) { lo[i] = Math.min(lo[i], p[i]); hi[i] = Math.max(hi[i], p[i]); } return { lo, hi }; };
+  const boxes = pieces.map(box), apart = (i: number, j: number) => [0, 1, 2].some(k => boxes[i].hi[k] < boxes[j].lo[k] - 1e-6 || boxes[j].hi[k] < boxes[i].lo[k] - 1e-6);
+  const separate = pieces.every((_, i) => pieces.every((__, j) => j <= i + 1 || apart(i, j)));
+  let body = pieces[0];
+  for (const p of pieces.slice(1)) body = (separate ? glueAtSharedFace(body, p, { family: 'sweep', id: at }) : null) ?? booleanAnalytic(body, p, 'union', { id: at });
+  return { brep: body, mass: d => combineMassProperties(masses.map(m => ({ props: m.local(d), axes: m.axes, offset: m.offset }))) };
 }
 
 // ---- shell -----------------------------------------------------------------------------------------------
