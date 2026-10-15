@@ -282,6 +282,21 @@ test('smooth loft: a square bulging to a wider middle and back, through three se
   assert.equal(featureLabel(doc.nodes[3], 3, doc.nodes), 'Loft 3 sections · smooth');
 });
 
+test('shell a box with a round boss turned out of its side: one wall throughout, open at the boss end', () => {
+  let doc = withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 40] });
+  doc = withNode(doc, { kind: 'extrude', sketch: 0, height: 20 });
+  doc = withNode(doc, { kind: 'sketch', profile: 'circle', center: [20, 10], radius: 6 });
+  doc = withNode(doc, { kind: 'extrude', sketch: 2, height: 20 });
+  doc = withNode(doc, { kind: 'rotate', parent: { node: 3, side: 'solid' }, axis: 'y', angleDegrees: 90 });
+  doc = withNode(doc, { kind: 'translate', parent: { node: 4, side: 'solid' }, offset: [50, 0, 30] });
+  doc = withNode(doc, { kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 5, side: 'solid' } });
+  doc = withNode(doc, { kind: 'shell', parent: { node: 6, side: 'solid' }, thickness: 1.5, open: ['n3.top'] });
+  const r = evaluateDoc(doc, 1);
+  assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+  const solid = 48000 + Math.PI * 36 * 10;
+  assert.ok(r.bodies[0].volumeMM3! > 0.2 * solid && r.bodies[0].volumeMM3! < 0.5 * solid, String(r.bodies[0].volumeMM3));
+});
+
 test('shell a revolved cup open at the top: exact, its walls 2 thick', () => {
   let doc = withNode(emptyDoc(), { kind: 'sketch', profile: 'polygon', points: [[0, 0], [20, 0], [20, 30], [0, 30]] });
   doc = withNode(doc, { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 360 });
