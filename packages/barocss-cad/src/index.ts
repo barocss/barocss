@@ -561,3 +561,7 @@ export { CadModelError, CadModelLimits } from './modeling.js';
 export type { CadModel, CadModelSnapshot, CadStlExport, CadMassPropertiesOptions, CadMassProperties, CadModelFeature, CadModelEvidence, CadBody, CadModelErrorCode, CadParameter, CadDimensionExpression, CadDimension, CadPoint2, CadAxis, CadEdgeQuery, CadEdgeSelection, CadEdgeQueryHandle, CadShape, CadCut, CadSplit, CadSketch, CadSketchPoint, CadConstrainedPolygonBuilder, CadRectangle, CadLoopSegment } from './modeling.js';
 export * from './extruded-profile-solid.js';
 export { CadNumericPolicy, chartRoundingBoundMM } from './numeric-policy.js';
+export { checkBrep, assertValidBrep, buildBrep, coedgeVertices, lineCurve, BrepError } from './brep-core.js';
+export type { Brep, BrepBody, BrepShell, BrepFace, BrepLoop, BrepCoedge, BrepEdge, BrepVertex, BrepCheckReport, BrepBodyTopology, BrepBuildInput, BrepFaceInput, BrepLoopInput, BrepShellInput } from './brep-core.js';
+export { brepFromBody, brepFromConvexPlanar, brepFromExtrudedProfile, brepFromPlateHole, brepFromCirclePrism, brepFromOrthogonalCells } from './brep-adapters.js';
+export type { BrepInputBody } from './brep-adapters.js';
