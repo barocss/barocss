@@ -23,7 +23,7 @@ import { booleanPolyhedra } from './polyhedral-boolean.js';
 import { booleanAnalytic } from './analytic-boolean.js';
 import { finishBrepEdges } from './edge-finish.js';
 import { draftedExtrusion } from './drafted-extrusion.js';
-import { exportStep } from './step.js';
+import { exportStep, importStep } from './step.js';
 import { revolveProfile, revolveMassProperties } from './revolve.js';
 import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js';
 import { tessellateBrep } from './brep-tessellate.js';
@@ -66,6 +66,8 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'circular-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly angleDegrees: number; readonly count: number; readonly pivot?: CadPartPoint3 }
   /** Parts /0 (below `at`) and /1 (above). */
   | { readonly kind: 'split'; readonly target: string; readonly axis: CadPartAxis; readonly at: CadPartDim }
+  /** A body read from a STEP file (its text); its faces keep their names, prefixed `${id}.`. */
+  | { readonly kind: 'import'; readonly step: string }
   /** Hollowed to walls `thickness` thick; `open` names the faces removed (the top of a box, a side). */
   | { readonly kind: 'shell'; readonly target: string; readonly thickness: CadPartDim; readonly open?: readonly string[] }
   | { readonly kind: 'chamfer'; readonly target: string; readonly edges: readonly string[]; readonly distance: CadPartDim }
@@ -388,6 +390,18 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         for (let k = 1; k < count; k++) acc = boolean(acc, rotate(p.solid, axis, deg * k, pivot, n => `${n}@${k}`), 'union', at);
         return acc;
       }));
+    }
+    case 'import': {
+      if (typeof f.step !== 'string' || !f.step.length) fail('INPUT', 'step must be the text of a STEP file');
+      if ((f.step as string).length > CadPartLimits.fileBytes) fail('INPUT', `the STEP file is larger than ${CadPartLimits.fileBytes} bytes`);
+      return () => {
+        let brep: Brep;
+        try { brep = importStep(f.step as string, { id: at }); }
+        catch (cause) { if (cause instanceof BrepError) fail(/not supported/.test(cause.message) ? 'CAPABILITY' : 'INPUT', cause.message.replace(/^B-rep: STEP: /, '')); throw cause; }
+        // Names in this part: the feature id before each face name (an edge's two names alike).
+        const named = { ...brep!, faces: brep!.faces.map((x, i) => x.name ? x : { ...x, name: `face${i}` }) };
+        return one({ kind: 'brep', brep: transformBrep(named, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] }, n => n.split('|').map(p => `${at}.${p}`).join('|')) });
+      };
     }
     case 'shell': {
       const target = solids(f.target, 'target'), t = dim(f.thickness as CadPartDim, 'thickness', true);
