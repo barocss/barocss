@@ -237,6 +237,24 @@ test('pipe: a circle swept along a run, a bend and a run, with exact mass', () =
   assert.equal(tight.ok, false);
 });
 
+test('shell after a fillet: a tray with a rounded foot, its hollow rounded by the radius less the wall', () => {
+  let doc = withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 40] });
+  doc = withNode(doc, { kind: 'extrude', sketch: 0, height: 20 });
+  doc = withNode(doc, { kind: 'fillet', parent: { node: 1, side: 'solid' }, edges: [0, 1, 2, 3].map(i => `n1.bottom|n1.side${i}`), radius: 4 });
+  doc = withNode(doc, { kind: 'shell', parent: { node: 2, side: 'solid' }, thickness: 2, open: ['n1.top'] });
+  const r = evaluateDoc(doc, 1);
+  assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+  // About what a fillet r takes along a rectangle's foot (its corner section times the perimeter; the
+  // mitres at the corners change it by a fraction of a percent).
+  const a = (r: number) => r * r * (1 - Math.PI / 4);
+  const v = r.bodies[0].volumeMM3!, outer = 48000 - a(4) * 200, inner = 56 * 36 * 18 - a(2) * 184;
+  assert.ok(Math.abs(v - (outer - inner)) < 0.01 * v, `${v} vs about ${outer - inner}`);
+  const refused = evaluateDoc(withNode(withNode(withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 40] }), { kind: 'extrude', sketch: 0, height: 20 }),
+    { kind: 'fillet', parent: { node: 1, side: 'solid' }, edges: ['n1.side0|n1.top'], radius: 3 }), { kind: 'shell', parent: { node: 2, side: 'solid' }, thickness: 2, open: ['n1.top'] }), 2);
+  assert.equal(refused.ok, false);
+  assert.match(!refused.ok ? refused.error.title : '', /opening after the shell/);
+});
+
 test('loft: a square to a smaller square above is a frustum, exact; the top comes from the drawn sketch', () => {
   const bottom = { kind: 'sketch' as const, profile: 'rectangle' as const, min: [0, 0] as [number, number], max: [20, 20] as [number, number] };
   const top = loftTop(bottom, 'scaled', 0.5);
