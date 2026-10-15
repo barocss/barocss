@@ -3,12 +3,15 @@ import type { BodyResult } from '../engine/evaluate';
 import type { Vec3 } from '../engine/mesh';
 import { OrbitCamera } from './camera';
 import { Renderer, type EdgeRef, type FaceRef, type ThemeName, type ViewState } from './renderer';
+import { bulgeThrough, arcOf, sampleOutline, sampleSlot, type P2 } from '../sketch/profile';
 
-export type SketchTool = 'rectangle' | 'circle' | 'polygon';
+export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'slot';
+/** Polygon segment i runs from point i to i+1; bulges[i] ≠ 0 makes it an arc. `pending`: the newest arc follows the cursor. */
 export type SketchShape =
   | { kind: 'rectangle'; a: [number, number]; b: [number, number] }
   | { kind: 'circle'; c: [number, number]; r: number }
-  | { kind: 'polygon'; points: [number, number][]; closed: boolean };
+  | { kind: 'polygon'; points: [number, number][]; closed: boolean; bulges?: number[]; pending?: boolean; lengths?: Record<number, number> }
+  | { kind: 'slot'; a: [number, number]; b: [number, number]; r: number };
 
 export interface SketchState { planeZ: number; tool: SketchTool; shape: SketchShape | null; base?: { node: number; side: string } | null }
 export interface Gizmo { origin: Vec3; values: Vec3; onDrag(values: Vec3): void }
@@ -154,6 +157,18 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       if (s && c) {
         if (s.kind === 'rectangle' && drafting.current) propsRef.current.onSketchShape({ ...s, b: c });
         if (s.kind === 'circle' && drafting.current) propsRef.current.onSketchShape({ ...s, r: Math.max(1, Math.round(Math.hypot(c[0] - s.c[0], c[1] - s.c[1]))) });
+        if (s.kind === 'slot' && drafting.current) {
+          if (slotStage.current === 1) propsRef.current.onSketchShape({ ...s, b: c });
+          else {
+            const l = Math.hypot(s.b[0] - s.a[0], s.b[1] - s.a[1]) || 1;
+            const off = Math.abs((c[0] - s.a[0]) * (s.b[1] - s.a[1]) - (c[1] - s.a[1]) * (s.b[0] - s.a[0])) / l;
+            propsRef.current.onSketchShape({ ...s, r: Math.max(0.5, Math.round(off * 2) / 2) });
+          }
+        }
+        if (s.kind === 'polygon' && s.pending && p) {
+          const n = s.points.length, i = s.closed ? n - 1 : n - 2;
+          if (i >= 0) { const bulges = [...(s.bulges ?? s.points.map(() => 0))]; bulges[i] = bulgeThrough(s.points[i], s.points[(i + 1) % n], [p[0], p[1]]); propsRef.current.onSketchShape({ ...s, bulges }); }
+        }
       }
       request(); return;
     }
@@ -167,6 +182,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   };
 
   const drafting = useRef(false);
+  const slotStage = useRef(0);
   const onPointerUp = (e: React.PointerEvent) => {
     const d = drag.current; drag.current = { mode: null, x: 0, y: 0, moved: false };
     const { x, y, w, h } = local(e);
@@ -188,10 +204,19 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       } else if (sk.tool === 'circle') {
         if (!drafting.current) { drafting.current = true; propsRef.current.onSketchShape({ kind: 'circle', c, r: 1 }); }
         else drafting.current = false;
+      } else if (sk.tool === 'slot') {
+        if (!drafting.current) { drafting.current = true; slotStage.current = 1; propsRef.current.onSketchShape({ kind: 'slot', a: c, b: c, r: 0 }); }
+        else if (slotStage.current === 1) { if (s?.kind === 'slot' && (s.b[0] !== s.a[0] || s.b[1] !== s.a[1])) { slotStage.current = 2; propsRef.current.onSketchShape({ ...s, b: c, r: 1 }); } }
+        else { drafting.current = false; slotStage.current = 0; }
       } else {
-        const pts = s && s.kind === 'polygon' && !s.closed ? s.points : [];
-        if (pts.length >= 3 && pts[0][0] === c[0] && pts[0][1] === c[1]) propsRef.current.onSketchShape({ kind: 'polygon', points: pts, closed: true });
-        else propsRef.current.onSketchShape({ kind: 'polygon', points: [...pts, c], closed: false });
+        // Line (polygon) and arc tools share one open chain; an arc's bulge follows the cursor until the next click.
+        const open = s && s.kind === 'polygon' && !s.closed ? s : null;
+        if (s?.kind === 'polygon' && s.pending) { propsRef.current.onSketchShape({ ...s, pending: false }); return; }
+        const pts = open ? open.points : [], bulges = open?.bulges ?? pts.map(() => 0);
+        const arc = sk.tool === 'arc' && pts.length > 0;
+        const closing = pts.length >= 2 && pts[0][0] === c[0] && pts[0][1] === c[1];
+        if (closing && (pts.length >= 3 || arc || bulges.some(Boolean))) propsRef.current.onSketchShape({ kind: 'polygon', points: pts, closed: true, bulges, pending: arc });
+        else if (!closing) propsRef.current.onSketchShape({ kind: 'polygon', points: [...pts, c], closed: false, bulges: [...bulges, 0], pending: arc });
       }
       return;
     }
@@ -231,7 +256,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     if (sk) {
       const z = sk.planeZ; const P = (u: number, v: number) => cam.project([u, v, z], w, h);
       const label = (x: number, y: number, text: string, key: string) => (
-        <g key={'d' + key} className="dim" onPointerDown={e => { e.stopPropagation(); props.onDimClick?.(key); }}>
+        <g key={'d' + key} className="dim" onPointerDown={e => { e.stopPropagation(); e.preventDefault(); props.onDimClick?.(key); }}>
           <rect x={x - 26} y={y - 11} width={52} height={22} rx={4} className="dim-chip" /><text x={x} y={y + 4} textAnchor="middle" className="dim-text">{text}</text></g>);
       const glyph = (a: [number, number], b: [number, number], key: string) => {
         const kind = a[1] === b[1] ? 'H' : a[0] === b[0] ? 'V' : null; if (!kind) return;
@@ -252,14 +277,36 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
         items.push(<polygon key="c" points={pts.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-shape" />);
         const cc = P(s.c[0], s.c[1]); items.push(<circle key="cc" cx={cc[0]} cy={cc[1]} r={3} className="sk-point" />);
         const e = P(s.c[0] + s.r, s.c[1]); items.push(<line key="rl" x1={cc[0]} y1={cc[1]} x2={e[0]} y2={e[1]} className="sk-guide" />, label((cc[0] + e[0]) / 2, (cc[1] + e[1]) / 2 - 16, 'Ø' + s.r * 2, 'diameter'));
+      } else if (s?.kind === 'slot') {
+        const ring = s.r > 0 ? sampleSlot(s.a, s.b, s.r).map(p => P(p[0], p[1])) : [P(s.a[0], s.a[1]), P(s.b[0], s.b[1])];
+        items.push(s.r > 0 ? <polygon key="sl" points={ring.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-shape" />
+          : <polyline key="sl" points={ring.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-shape open" />);
+        const a = P(s.a[0], s.a[1]), b = P(s.b[0], s.b[1]);
+        items.push(<line key="slc" x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} className="sk-guide" />,
+          <circle key="sa" cx={a[0]} cy={a[1]} r={3} className="sk-point" />, <circle key="sb" cx={b[0]} cy={b[1]} r={3} className="sk-point" />);
+        const l = Math.hypot(s.b[0] - s.a[0], s.b[1] - s.a[1]);
+        if (l > 0) items.push(label((a[0] + b[0]) / 2, (a[1] + b[1]) / 2 - 18, fmtLen(l), 'slot-length'));
+        if (s.r > 0) { const e = P(s.b[0], s.b[1] + s.r); items.push(label(e[0] + 34, e[1], 'W ' + fmtLen(s.r * 2), 'slot-width')); }
       } else if (s?.kind === 'polygon') {
         const pts = s.points.map(p => P(p[0], p[1])); const cur = sketchDraft.current.cursor;
-        const line = s.closed ? pts : cur ? [...pts, P(cur[0], cur[1])] : pts;
+        const ring = sampleOutline(s.points as P2[], s.bulges, s.closed).map(p => P(p[0], p[1]));
+        const line = s.closed || s.pending ? ring : cur ? [...ring, P(cur[0], cur[1])] : ring;
         items.push(s.closed ? <polygon key="pg" points={line.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-shape" />
           : <polyline key="pl" points={line.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-shape open" />);
         pts.forEach((p, i) => items.push(<circle key={'p' + i} cx={p[0]} cy={p[1]} r={3.5} className="sk-point" />));
-        const n = s.points.length; for (let i = 0; i < (s.closed ? n : n - 1); i++) glyph(s.points[i], s.points[(i + 1) % n], 'p' + i);
-        if (!s.closed && cur && n) {
+        const n = s.points.length;
+        for (let i = 0; i < (s.closed ? n : n - 1); i++) {
+          const a = s.points[i], b = s.points[(i + 1) % n], bulge = s.bulges?.[i] ?? 0;
+          if (bulge) {
+            const arc = arcOf(a, b, bulge), t = arc.start + arc.sweep / 2, m = P(arc.center[0] + arc.radius * Math.cos(t), arc.center[1] + arc.radius * Math.sin(t));
+            const cc = P(arc.center[0], arc.center[1]); items.push(<circle key={'ac' + i} cx={cc[0]} cy={cc[1]} r={2} className="sk-point" />);
+            if (s.closed && !s.pending) items.push(label(m[0], m[1] - 18, 'R' + fmtLen(arc.radius), 'rad' + i));
+            continue;
+          }
+          glyph(a, b, 'p' + i);
+          if (s.closed && !s.pending) { const m = P((a[0] + b[0]) / 2, (a[1] + b[1]) / 2); items.push(label(m[0], m[1] + 20, fmtLen(Math.hypot(b[0] - a[0], b[1] - a[1])), 'len' + i)); }
+        }
+        if (!s.closed && !s.pending && cur && n) {
           const last = s.points[n - 1];
           if (cur[0] === last[0] || cur[1] === last[1]) glyph(last, cur, 'live');
           const len = Math.hypot(cur[0] - last[0], cur[1] - last[1]); const m = P((cur[0] + last[0]) / 2, (cur[1] + last[1]) / 2);
@@ -294,3 +341,5 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     </div>
   );
 });
+
+const fmtLen = (v: number) => String(Math.round(v * 10) / 10);

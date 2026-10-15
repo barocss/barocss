@@ -53,6 +53,9 @@ function rectangleExtrude(doc: StudioDoc, ref: BodyRef) {
 
 const notYet = (what: string): Command['available'] => () => no(`${what} isn’t available in the kernel yet.`);
 const hasHole = (doc: StudioDoc) => doc.nodes.some(n => n.kind === 'hole');
+const CURVED = new Set(['extruded-profile', 'stored-rational-circle-prism']);
+const curvedReason = 'This body has a curved or concave profile; the kernel only moves, patterns, splits and chamfers flat convex bodies so far.';
+const curvedSelected = (ctx: Ctx) => selectedBodies(ctx.selection).some(i => CURVED.has(ctx.bodies[i]?.family));
 const holeConflict = 'A part with a hole can’t also have chamfers, splits, subtractions or intersections yet.';
 
 export const commands: Command[] = [
@@ -75,7 +78,7 @@ export const commands: Command[] = [
     },
     build: (ctx, v) => {
       const x = Number(v.x), y = Number(v.y), z = Number(v.z);
-      let doc = withNode(ctx.doc, { kind: 'sketch', profile: 'rectangle', min: [x, y], max: [x + Number(v.w), y + Number(v.d)] });
+      const doc = withNode(ctx.doc, { kind: 'sketch', profile: 'rectangle', min: [x, y], max: [x + Number(v.w), y + Number(v.d)] });
       return withNode(doc, { kind: 'extrude', sketch: doc.nodes.length - 1, height: Number(v.h), ...(z ? { from: z } : {}) });
     },
   },
@@ -119,6 +122,7 @@ export const commands: Command[] = [
     available: ctx => {
       if (hasHole(ctx.doc)) return no(holeConflict);
       if (ctx.selection.edges.length !== 1) return no('Select one straight edge to chamfer.');
+      if (curvedSelected(ctx)) return no(curvedReason);
       const e = ctx.selection.edges[0]; const edge = ctx.bodies[e.body].mesh.edges[e.edge];
       if (!edge.straight || !edge.axis) return no('Chamfer works on straight edges parallel to X, Y or Z.');
       return ok;
@@ -143,14 +147,14 @@ export const commands: Command[] = [
   { id: 'loft', label: 'Loft', icon: 'filter_list', group: 'create', keywords: 'blend sections', available: notYet('Loft to solid') },
   {
     id: 'move', label: 'Move', icon: 'open_with', shortcut: 'G', group: 'modify', keywords: 'translate position',
-    available: ctx => ctx.bodies.length > 1 ? no('Move works on a single-body part only (kernel limit).') : oneBody(ctx) ? ok : no('Select one body to move.'),
+    available: ctx => ctx.bodies.length > 1 ? no('Move works on a single-body part only (kernel limit).') : curvedSelected(ctx) ? no(curvedReason) : oneBody(ctx) ? ok : no('Select one body to move.'),
     fields: () => [{ key: 'x', label: 'ΔX', kind: 'mm' }, { key: 'y', label: 'ΔY', kind: 'mm' }, { key: 'z', label: 'ΔZ', kind: 'mm' }],
     defaults: () => ({ x: 0, y: 0, z: 10 }),
     build: (ctx, v) => withNode(ctx.doc, { kind: 'translate', parent: refOf(oneBody(ctx)!), offset: [Number(v.x), Number(v.y), Number(v.z)] }),
   },
   {
     id: 'rotate', label: 'Rotate', icon: '3d_rotation', shortcut: 'R', group: 'modify', keywords: 'turn spin',
-    available: ctx => ctx.bodies.length > 1 ? no('Rotate works on a single-body part only (kernel limit).') : oneBody(ctx) ? ok : no('Select one body to rotate.'),
+    available: ctx => ctx.bodies.length > 1 ? no('Rotate works on a single-body part only (kernel limit).') : curvedSelected(ctx) ? no(curvedReason) : oneBody(ctx) ? ok : no('Select one body to rotate.'),
     fields: () => [{ key: 'axis', label: 'Axis', kind: 'choice', options: [{ value: 'x', label: 'X' }, { value: 'y', label: 'Y' }, { value: 'z', label: 'Z' }] },
       { key: 'angle', label: 'Angle', kind: 'choice', options: ['90', '180', '270', '-90'].map(a => ({ value: a, label: a + '°' })) }],
     defaults: () => ({ axis: 'z', angle: '90' }),
@@ -158,14 +162,14 @@ export const commands: Command[] = [
   },
   {
     id: 'mirror', label: 'Mirror', icon: 'flip', shortcut: 'M', group: 'pattern', keywords: 'symmetry reflect',
-    available: ctx => oneBody(ctx) ? ok : no('Select one body to mirror.'),
+    available: ctx => curvedSelected(ctx) ? no(curvedReason) : oneBody(ctx) ? ok : no('Select one body to mirror.'),
     fields: () => [{ key: 'plane', label: 'Plane', kind: 'choice', options: [{ value: 'yz', label: 'YZ' }, { value: 'xz', label: 'XZ' }, { value: 'xy', label: 'XY' }] }],
     defaults: () => ({ plane: 'yz' }),
     build: (ctx, v) => withNode(ctx.doc, { kind: 'mirror', parent: refOf(oneBody(ctx)!), plane: v.plane as 'yz' }),
   },
   {
     id: 'linear-pattern', label: 'Linear pattern', icon: 'view_week', shortcut: 'P', group: 'pattern', keywords: 'array repeat copy',
-    available: ctx => oneBody(ctx) ? ok : no('Select one body to pattern.'),
+    available: ctx => curvedSelected(ctx) ? no(curvedReason) : oneBody(ctx) ? ok : no('Select one body to pattern.'),
     fields: () => [{ key: 'axis', label: 'Direction', kind: 'choice', options: [{ value: 'x', label: 'X' }, { value: 'y', label: 'Y' }, { value: 'z', label: 'Z' }] },
       { key: 'spacing', label: 'Spacing', kind: 'mm', min: 1 }, { key: 'count', label: 'Count', kind: 'count', min: 2, max: 4 }],
     defaults: ctx => { const b = oneBody(ctx); return { axis: 'x', spacing: b ? r1(b.mesh.bounds.max[0] - b.mesh.bounds.min[0] + 8) : 20, count: 3 }; },
@@ -173,7 +177,7 @@ export const commands: Command[] = [
   },
   {
     id: 'circular-pattern', label: 'Circular pattern', icon: 'motion_photos_on', group: 'pattern', keywords: 'polar array',
-    available: ctx => oneBody(ctx) ? ok : no('Select one body to pattern.'),
+    available: ctx => curvedSelected(ctx) ? no(curvedReason) : oneBody(ctx) ? ok : no('Select one body to pattern.'),
     fields: () => [{ key: 'axis', label: 'Axis', kind: 'choice', options: [{ value: 'z', label: 'Z' }, { value: 'x', label: 'X' }, { value: 'y', label: 'Y' }] },
       { key: 'count', label: 'Count', kind: 'count', min: 3, max: 4 }],
     defaults: () => ({ axis: 'z', count: 4 }),
@@ -181,7 +185,7 @@ export const commands: Command[] = [
   },
   {
     id: 'split', label: 'Split', icon: 'vertical_split', group: 'modify', keywords: 'cut plane divide',
-    available: ctx => hasHole(ctx.doc) ? no(holeConflict) : oneBody(ctx) ? ok : no('Select one body to split.'),
+    available: ctx => hasHole(ctx.doc) ? no(holeConflict) : curvedSelected(ctx) ? no(curvedReason) : oneBody(ctx) ? ok : no('Select one body to split.'),
     fields: () => [{ key: 'axis', label: 'Normal', kind: 'choice', options: [{ value: 'x', label: 'X' }, { value: 'y', label: 'Y' }, { value: 'z', label: 'Z' }] }, { key: 'at', label: 'At', kind: 'mm' }],
     defaults: ctx => { const b = oneBody(ctx); return { axis: 'x', at: b ? r1((b.mesh.bounds.min[0] + b.mesh.bounds.max[0]) / 2) : 0 }; },
     build: (ctx, v) => withNode(ctx.doc, { kind: 'split', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, at: Number(v.at) }),

@@ -1,7 +1,7 @@
 // Turns each kernel body family into one display mesh: triangles with a face index per vertex,
 // face records for selection, and feature edges (polylines between faces) for line rendering.
 import {
-  tessellateConvexPlanarSolid, tessellateOwnPlateCircularHole, tessellateXYCirclePrismShell,
+  tessellateConvexPlanarSolid, tessellateOwnPlateCircularHole, tessellateXYCirclePrismShell, tessellateExtrudedProfileSolid,
 } from '@barocss/cad';
 
 export type Vec3 = [number, number, number];
@@ -142,6 +142,15 @@ export function bodyMesh(body: any, revision: number, quality = 8): DisplayMesh 
       const idx = indices.slice(i0, i1).map((i: number) => i - v0);
       addFace(b, range.faceId, range.role === 'wall' ? 'curved' : 'plane',
         positions.slice(v0 * 3, v1 * 3), normals.slice(v0 * 3, v1 * 3), idx);
+    }
+  } else if (body.family === 'extruded-profile') {
+    // Line + arc profile: planar caps, flat line sides and one smooth cylinder face per arc.
+    const mesh = tessellateExtrudedProfileSolid(body.native, { segmentsPerQuarter: quality });
+    for (const face of mesh.faces) {
+      const v0 = face.vertexOffset, vc = face.vertexCount;
+      const idx = mesh.indices.slice(face.indexOffset, face.indexOffset + face.indexCount).map((i: number) => i - v0);
+      addFace(b, face.faceId, face.kind === 'cylinder' ? 'curved' : 'plane',
+        mesh.positionsMM.slice(v0 * 3, (v0 + vc) * 3), mesh.normals.slice(v0 * 3, (v0 + vc) * 3), idx);
     }
   } else if (body.family === 'orthogonal-cell') {
     // The kernel returns grid panels; coplanar panels with the same outward normal form one face.

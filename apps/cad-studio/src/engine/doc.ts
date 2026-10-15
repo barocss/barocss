@@ -10,7 +10,8 @@ export interface EdgeQuery { parallelTo?: Axis; at?: Partial<Record<Axis, Dim | 
 export type SketchNode =
   | { kind: 'sketch'; profile: 'rectangle'; min: [Dim, Dim]; max: [Dim, Dim] }
   | { kind: 'sketch'; profile: 'circle'; center: [Dim, Dim]; radius: Dim }
-  | { kind: 'sketch'; profile: 'polygon'; points: [Dim, Dim][] };
+  | { kind: 'sketch'; profile: 'polygon'; points: [Dim, Dim][] }
+  | { kind: 'sketch'; profile: 'loop'; segments: ({ kind: 'line'; start: [Dim, Dim] } | { kind: 'arc'; start: [Dim, Dim]; center: [Dim, Dim]; direction: 'ccw' | 'cw' })[] };
 
 export type ModelNode = SketchNode
   | { kind: 'extrude'; sketch: number; height: Dim; from?: Dim }
@@ -86,7 +87,7 @@ export function withNode(doc: StudioDoc, node: ModelNode): StudioDoc {
 export function featureLabel(node: ModelNode, index: number, nodes: readonly ModelNode[]): string {
   const n = (v: Dim) => typeof v === 'number' ? fmt(v) : v.parameter;
   switch (node.kind) {
-    case 'sketch': return node.profile === 'rectangle' ? `Sketch · rectangle` : node.profile === 'circle' ? `Sketch · circle` : `Sketch · polygon`;
+    case 'sketch': return `Sketch · ${node.profile === 'loop' ? 'outline' : node.profile}`;
     case 'extrude': {
       const s = nodes[node.sketch];
       const kind = s && s.kind === 'sketch' && s.profile === 'circle' ? 'Cylinder' : 'Extrude';

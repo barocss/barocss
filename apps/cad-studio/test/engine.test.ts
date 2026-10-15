@@ -80,3 +80,45 @@ test('kernel refusals come back as plain-language errors', () => {
     assert.match(r.error.detail, /pole chart/);
   }
 });
+
+test('a slot sketch extrudes as one line + arc body with two curved faces and exact mass', async () => {
+  const { slotSegments } = await import('../src/sketch/profile');
+  const doc = withNode(withNode(prefixDoc({ format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} }, 0),
+    { kind: 'sketch', profile: 'loop', segments: slotSegments([0, 0], [40, 0], 6) }), { kind: 'extrude', sketch: 0, height: 5 });
+  const r = evaluateDoc(doc, 1);
+  assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+  const [body] = r.bodies;
+  assert.equal(body.family, 'extruded-profile');
+  assert.equal(body.mesh.faces.length, 6);
+  assert.equal(body.mesh.faces.filter(f => f.kind === 'curved').length, 2);
+  const exact = (480 + Math.PI * 36) * 5;
+  assert.ok(Math.abs(body.volumeMM3! - exact) < 1e-8);
+  assert.ok(Math.abs(signedVolume(body.mesh) - exact) / exact < 5e-3);
+  // Tangent line/arc joints draw no seam: only the two cap outlines remain (as straight runs and arc polylines).
+  assert.ok(body.mesh.edges.every(e => e.faces.includes(0) || e.faces.includes(1)));
+});
+
+test('a concave outline with an arc notch becomes a loop body; straight convex outlines stay polygons', async () => {
+  const { outlineSegments, bulgeThrough } = await import('../src/sketch/profile');
+  const points: [number, number][] = [[0, 0], [40, 0], [40, 20], [25, 20], [15, 20], [0, 20]];
+  const bulges = [0, 0, 0, bulgeThrough([25, 20], [15, 20], [20, 15]), 0, 0];
+  const segments = outlineSegments(points, bulges);
+  assert.deepEqual(segments[3], { kind: 'arc', start: [25, 20], center: [20, 20], direction: 'cw' });
+  const doc = withNode(withNode(prefixDoc({ format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} }, 0),
+    { kind: 'sketch', profile: 'loop', segments }), { kind: 'extrude', sketch: 0, height: 4 });
+  const r = evaluateDoc(doc, 1);
+  assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+  assert.ok(Math.abs(r.bodies[0].volumeMM3! - (800 - Math.PI * 12.5) * 4) < 1e-8);
+});
+
+test('the numerical solver keeps H/V edges, honours locked lengths and reports DOF', async () => {
+  const { solveOutline } = await import('../src/sketch/profile');
+  const rect: [number, number][] = [[0, 0], [40, 0], [40, 20], [0, 20]];
+  const free = solveOutline(rect, {});
+  assert.ok(free.ok); assert.equal(free.dof, 2);
+  const locked = solveOutline(rect, { 0: 50, 1: 25 });
+  assert.ok(locked.ok); assert.equal(locked.dof, 0);
+  assert.deepEqual(locked.points, [[0, 0], [50, 0], [50, 25], [0, 25]]);
+  const conflict = solveOutline(rect, { 0: 50, 2: 30 });
+  assert.equal(conflict.ok, false);
+});

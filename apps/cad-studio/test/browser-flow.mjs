@@ -95,6 +95,51 @@ try {
     await page.waitForFunction(() => /3 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
   });
 
+  const doc = () => page.evaluate(() => window.__studioDoc);
+  const clickAt = async (x, y) => { await page.mouse.move(x - 4, y); await page.mouse.move(x, y); await page.mouse.click(x, y); };
+  const status = () => page.locator('.sk-status').first().innerText();
+
+  await check('slot sketch extrudes as a curved body', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('o');
+    const [cx, cy] = await canvasCenter();
+    await clickAt(cx - 120, cy); await clickAt(cx + 120, cy); await page.mouse.move(cx + 120, cy + 20); await page.mouse.move(cx + 120, cy + 40); await page.mouse.click(cx + 120, cy + 40);
+    assert.match(await status(), /Slot/);
+    await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    const d = await doc(); assert.equal(d.nodes[0].profile, 'loop'); assert.deepEqual(d.nodes[0].segments.map(x => x.kind), ['line', 'arc', 'line', 'arc']);
+    await page.locator('.outliner .ol').first().click(); assert.match(await page.locator('.props').innerText(), /Faces\s*6/);
+  });
+
+  await check('solver locks typed lengths until fully defined', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('l');
+    const [cx, cy] = await canvasCenter();
+    for (const [dx, dy] of [[-150, -80], [150, -80], [150, 80], [-150, 80], [-150, -80]]) await clickAt(cx + dx, cy + dy);
+    assert.match(await status(), /2 DOF/);
+    await page.fill('#sk-len0', '48'); assert.match(await status(), /1 DOF/);
+    await page.fill('#sk-len1', '20'); assert.match(await status(), /Fully defined/);
+    assert.equal(await page.inputValue('#sk-len2'), '48'); assert.equal(await page.inputValue('#sk-len3'), '20');
+    await page.fill('#sk-len1', ''); assert.match(await status(), /1 DOF/);
+    await page.focus('#sk-len1'); await press('Enter'); assert.match(await status(), /Fully defined/);
+    await page.fill('#sk-len2', '30'); assert.match(await page.locator('.sk-panel [role=alert]').innerText(), /conflict/);
+    await page.locator('#sk-len2').evaluate(e => e.blur()); await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    const d = await doc(); assert.equal(d.nodes[0].profile, 'polygon');
+    const xs = d.nodes[0].points.map(p => p[0]), ys = d.nodes[0].points.map(p => p[1]);
+    assert.equal(Math.max(...xs) - Math.min(...xs), 48); assert.equal(Math.max(...ys) - Math.min(...ys), 20);
+  });
+
+  await check('arc notch outline extrudes as one body', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('l');
+    const [cx, cy] = await canvasCenter();
+    await clickAt(cx - 150, cy - 80); await clickAt(cx + 150, cy - 80); await clickAt(cx + 150, cy + 80);
+    await press('a'); await clickAt(cx + 50, cy + 80); await page.mouse.move(cx + 100, cy + 60); await page.mouse.move(cx + 100, cy + 40); await page.mouse.click(cx + 100, cy + 40);
+    await press('l'); await clickAt(cx - 150, cy + 80); await clickAt(cx - 150, cy - 80);
+    assert.match(await status(), /Line \+ arc/);
+    await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    const d = await doc(); assert.equal(d.nodes[0].profile, 'loop'); assert.equal(d.nodes[0].segments.filter(x => x.kind === 'arc').length, 1);
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await press(' '); await page.locator('.palette input').fill('fillet');
     assert.match(await page.locator('.palette-list').innerText(), /isn’t available in the kernel yet/);

@@ -12,6 +12,20 @@ import { Palette } from './ui/Palette';
 import { ContextMenu } from './ui/ContextMenu';
 import { SketchPanel, isConvex } from './ui/SketchPanel';
 import { downloadBytes, meshToStl } from './ui/files';
+import { outlineSegments, slotSegments, type P2 } from './sketch/profile';
+
+const TOOLS: { tool: SketchTool; key: string; label: string; icon: string; hint: string }[] = [
+  { tool: 'rectangle', key: 'R', label: 'Rectangle', icon: 'rectangle', hint: 'Click two corners' },
+  { tool: 'circle', key: 'C', label: 'Circle', icon: 'circle', hint: 'Click centre, then radius' },
+  { tool: 'polygon', key: 'L', label: 'Line', icon: 'polyline', hint: 'Click points, click the first point to close · A switches to arcs' },
+  { tool: 'arc', key: 'A', label: 'Arc', icon: 'line_curve', hint: 'Click the arc end, move to bend it, click to place · L back to lines' },
+  { tool: 'slot', key: 'O', label: 'Slot', icon: 'pill', hint: 'Click both centres, then the width' },
+];
+/** Line and arc tools share one open chain; switching between them keeps it. */
+const switchTool = (s: SketchState, tool: SketchTool): SketchState => {
+  const chain = s.shape?.kind === 'polygon' && (tool === 'polygon' || tool === 'arc') && (s.tool === 'polygon' || s.tool === 'arc');
+  return { ...s, tool, shape: chain && s.shape?.kind === 'polygon' ? { ...s.shape, pending: false } : null };
+};
 
 const emptySel: Selection = { faces: [], edges: [], bodies: [] };
 
@@ -130,10 +144,13 @@ export function App() {
       ? (Math.abs(s.a[0] - s.b[0]) < 1 || Math.abs(s.a[1] - s.b[1]) < 1 ? null
         : { kind: 'sketch', profile: 'rectangle', min: [Math.min(s.a[0], s.b[0]), Math.min(s.a[1], s.b[1])], max: [Math.max(s.a[0], s.b[0]), Math.max(s.a[1], s.b[1])] })
       : s.kind === 'circle' ? { kind: 'sketch', profile: 'circle', center: s.c, radius: s.r }
-        : s.closed && s.points.length >= 3 ? { kind: 'sketch', profile: 'polygon', points: s.points } : null;
-    if (!node) { setToast({ title: 'Finish the profile first', hint: 'Draw a closed rectangle, circle or polygon on the sketch plane.', detail: '' }); return; }
+        : s.kind === 'slot' ? (s.r > 0 && (s.a[0] !== s.b[0] || s.a[1] !== s.b[1]) ? { kind: 'sketch', profile: 'loop', segments: slotSegments(s.a, s.b, s.r) } : null)
+          : !s.closed || s.pending ? null
+            // Straight convex outlines keep the polygon path (all features); concave or curved ones become a line + arc loop.
+            : !(s.bulges ?? []).some(Boolean) && s.points.length >= 3 && s.points.length <= 8 && isConvex(s.points) ? { kind: 'sketch', profile: 'polygon', points: s.points }
+              : { kind: 'sketch', profile: 'loop', segments: outlineSegments(s.points as P2[], s.bulges) };
+    if (!node) { setToast({ title: 'Finish the profile first', hint: 'Draw a closed rectangle, circle, slot or outline on the sketch plane.', detail: '' }); return; }
     const planeZ = sketch.planeZ;
-    if (s.kind === 'polygon' && s.closed && !isConvex(s.points)) { setToast({ title: 'Sketch profiles must be convex', hint: 'Move the inward corner out, or build the shape from two boxes and Union them.', detail: '' }); return; }
     const base = sketch.base ?? null;
     const extrude: Command = {
       id: 'extrude', label: 'Extrude', icon: 'height', group: 'create', available: () => ({ ok: true }),
@@ -204,7 +221,7 @@ export function App() {
       if (e.key === 'Enter' && !palette) { if (sketch) { e.preventDefault(); finishSketch(); } else if (active) { e.preventDefault(); apply(); } return; }
       if (typing || palette) return;
       if (e.key === ' ') { e.preventDefault(); setPalette(true); return; }
-      if (sketch) { const t = ({ r: 'rectangle', c: 'circle', p: 'polygon' } as Record<string, SketchTool>)[e.key.toLowerCase()]; if (t) setSketch(s => s && { ...s, tool: t, shape: null }); return; }
+      if (sketch) { const t = TOOLS.find(x => x.key.toLowerCase() === e.key.toLowerCase() || (x.tool === 'polygon' && e.key.toLowerCase() === 'p'))?.tool; if (t) setSketch(s => s && switchTool(s, t)); return; }
       if (e.key.toLowerCase() === 'f' && !e.shiftKey) { viewport.current?.fit(); return; }
       const cmd = commands.find(c => c.shortcut && c.shortcut.toLowerCase() === (e.shiftKey ? 'shift ' : '') + e.key.toLowerCase());
       if (cmd && !active) { e.preventDefault(); start(cmd); }
@@ -267,9 +284,9 @@ export function App() {
 
       <nav className="card toolbar" aria-label="Tools">
         {sketch ? (<>
-          {(['rectangle', 'circle', 'polygon'] as SketchTool[]).map(t => (
-            <button key={t} className={'tool' + (sketch.tool === t ? ' on' : '')} title={`${t[0].toUpperCase() + t.slice(1)} (${t[0].toUpperCase()})`} aria-label={t}
-              onClick={() => setSketch(s => s && { ...s, tool: t, shape: null })}><Icon name={t === 'rectangle' ? 'rectangle' : t === 'circle' ? 'circle' : 'pentagon'} /></button>))}
+          {TOOLS.map(t => (
+            <button key={t.tool} className={'tool' + (sketch.tool === t.tool ? ' on' : '')} title={`${t.label} (${t.key})`} aria-label={t.label}
+              onClick={() => setSketch(s => s && switchTool(s, t.tool))}><Icon name={t.icon} /></button>))}
           <div className="sep" />
           <button className="tool" title="Clear profile" aria-label="Clear profile" onClick={() => setSketch(s => s && { ...s, shape: null })}><Icon name="ink_eraser" /></button>
         </>) : (['create', 'modify', 'pattern', 'combine', 'inspect'] as const).map((g, gi) => (
@@ -329,9 +346,8 @@ export function App() {
       {active && <Hud active={active} onChange={(key, value) => setActive(a => a && { ...a, values: { ...a.values, [key]: value }, preview: 'busy' })} onApply={apply} onCancel={cancel} />}
 
       {sketch && !active && <div className="card hint-bar">
-        <span className="hint-title"><Icon name={sketch.tool === 'rectangle' ? 'rectangle' : sketch.tool === 'circle' ? 'circle' : 'pentagon'} small />{sketch.tool[0].toUpperCase() + sketch.tool.slice(1)}</span>
-        <span>{sketch.tool === 'rectangle' ? 'Click two corners' : sketch.tool === 'circle' ? 'Click centre, then radius' : 'Click points, click the first point to close'}</span>
-        <span><Kbd>R</Kbd> <Kbd>C</Kbd> <Kbd>P</Kbd> tools</span><span><Kbd>Enter</Kbd> finish → extrude</span><span><Kbd>Esc</Kbd> exit</span>
+        {(() => { const t = TOOLS.find(x => x.tool === sketch.tool)!; return <><span className="hint-title"><Icon name={t.icon} small />{t.label}</span><span>{t.hint}</span></>; })()}
+        <span>{TOOLS.map(t => <Kbd key={t.key}>{t.key}</Kbd>)} tools</span><span><Kbd>Enter</Kbd> finish → extrude</span><span><Kbd>Esc</Kbd> exit</span>
       </div>}
 
       {!sketch && !active && <div className="card history" aria-label="History">
