@@ -138,6 +138,33 @@ test('shell: the section eroded exactly, open faces removed, the result still up
   refused(D([...slot, shell('e', 1, ['e.top', 'e.side1'])]), 'CAPABILITY', /only straight walls can be left open/);
 });
 
+test('smooth loft through three or more sections: C1 sides through every section, quadrature mass', () => {
+  const sq = (id, h) => rect(id, -h, -h, h, h), loft = secs => ({ id: 'L', kind: 'loft', smooth: true, sections: secs.map(([sketch, z]) => ({ sketch, z })) });
+  // Sections changing linearly: the smooth sides are the ruled ones — a frustum exactly.
+  const frustum = evaluateCadPart(D([sq('a', 10), sq('b', 7.5), sq('c', 5), loft([['a', 0], ['b', 6], ['c', 12]])])).outputs[0];
+  assert.ok(close(frustum.massProperties(1000).volumeMM3, 2800, 1e-12));
+  for (const [name, f] of [['a circle, a square, a circle', [circle('a', 0, 0, 8), sq('b', 5), circle('c', 0, 0, 4), loft([['a', 0], ['b', 8], ['c', 14]])]],
+    ['a vase of four circles', [circle('a', 0, 0, 6), circle('b', 0, 0, 10), circle('c', 0, 0, 5), circle('d', 0, 0, 7), loft([['a', 0], ['b', 6], ['c', 14], ['d', 20]])]]]) {
+    const o = evaluateCadPart(D(f)).outputs[0], report = checkBrep(o.brep), m = o.massProperties(1000);
+    assert.equal(report.valid, true, `${name}: ${report.issues}`);
+    assert.equal(m.method, 'quadrature');
+    // One side per edge from the bottom to the top, through every section.
+    assert.equal(o.brep.faces.filter(x => /side/.test(x.name)).length, o.brep.edges.filter(e => /bottom/.test(e.name)).length, name);
+    const mesh = brepMassProperties(o.brep, 1000, { segmentsPerQuarter: 64 });
+    assert.ok(Math.abs(mesh.volumeMM3 - m.volumeMM3) < 3e-4 * m.volumeMM3, `${name}: ${mesh.volumeMM3} vs ${m.volumeMM3}`);
+    assert.ok(Math.hypot(...m.centroidMM.map((c, k) => c - mesh.centroidMM[k])) < 1e-2, `${name}: centroid`);
+    const t = tessellateBrep(o.brep, { segmentsPerQuarter: 8 }), p = t.positionsMM, key = i => `${p[3 * i]},${p[3 * i + 1]},${p[3 * i + 2]}`, directed = new Set();
+    for (let k = 0; k < t.indices.length; k += 3) for (let e = 0; e < 3; e++) directed.add(key(t.indices[k + e]) + '>' + key(t.indices[k + (e + 1) % 3]));
+    for (const d of directed) { const [x, y] = d.split('>'); assert.ok(directed.has(y + '>' + x), `${name}: open ${d}`); }
+  }
+  // The vase's side is smooth across its middle sections: its radius' slope agrees from below and above.
+  const vase = evaluateCadPart(D([circle('a', 0, 0, 6), circle('b', 0, 0, 10), circle('c', 0, 0, 5), loft([['a', 0], ['b', 6], ['c', 14]])])).outputs[0].brep.faces.find(x => x.name === 'L.side0').surface;
+  const P = vase.controlPoints[0], W = vase.weights[0], at = k => [P[k][0], P[k][2]];
+  // Bézier spans meet at the section (index 3): the control points either side are collinear with it.
+  const [a, b, c] = [at(2), at(3), at(4)];
+  assert.ok(Math.abs((b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0])) < 1e-9 && W[3] === 1);
+});
+
 test('shell after fillets and chamfers: the hollow takes the same finishes, offset by the wall', () => {
   const box = [rect('s', 0, 0, 60, 40), extrude('e', 's', 20)];
   const bottom = [0, 1, 2, 3].map(i => `e.bottom|e.side${i}`), top = [0, 1, 2, 3].map(i => `e.side${i}|e.top`), vertical = ['e.side0|e.side1', 'e.side1|e.side2', 'e.side2|e.side3', 'e.side0|e.side3'];

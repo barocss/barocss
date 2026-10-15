@@ -19,8 +19,10 @@ interface Bezier { readonly p: readonly XY[]; readonly w: readonly number[] }
 export interface LoftSectionInput { readonly profile: readonly ProfileSegmentInput[]; readonly z: number }
 export interface LoftInput {
   readonly id: string; readonly sections: readonly LoftSectionInput[];
-  /** Names faces `${name}.bottom`, `.top` and `.side${i}` (two sections) or `.s${k}.side${i}`. */
+  /** Names faces `${name}.bottom`, `.top` and `.side${i}` (two sections, or smooth) or `.s${k}.side${i}`. */
   readonly name: string;
+  /** Through three or more sections: one smooth (C1) side per edge instead of a ruled side per span. */
+  readonly smooth?: boolean;
 }
 
 const startOf = (q: Piece): XY => q.kind === 'line' ? q.a : [q.c[0] + q.r * Math.cos(q.t0), q.c[1] + q.r * Math.sin(q.t0)];
@@ -91,6 +93,7 @@ export function loftSolid(input: LoftInput): { brep: Brep; mass: (densityKgPerM3
   const scale = Math.max(1, ...sections.flat().map(q => Math.max(...startOf(q).map(Math.abs))), ...z.map(Math.abs)), tol = 1e-9 * scale;
   // Each piece as a Bézier ending exactly where the next one starts (its vertex).
   const piece = (k: number, i: number): Bezier => { const b = bezier(sections[k][i]); return { p: [...b.p.slice(0, -1), startOf(sections[k][(i + 1) % n])], w: b.w }; };
+  if (input.smooth && K >= 2) return smoothLoft(sections.map((p, k) => p.map((_, i) => piece(k, i))), z, id, nm);
   const sideName = (k: number, i: number) => K === 1 ? `${nm}.side${i}` : `${nm}.s${k}.side${i}`;
   const vid = (k: number, i: number) => `v${k}_${i % n}`, rid = (k: number, i: number) => `r${k}_${i % n}`, lid = (k: number, i: number) => `l${k}_${i % n}`;
   const vertices = sections.flatMap((p, k) => p.map((q, i) => ({ id: vid(k, i), point: [...startOf(q), z[k]] as Point })));
@@ -138,6 +141,71 @@ export function loftSolid(input: LoftInput): { brep: Brep; mass: (densityKgPerM3
       });
       I[0] += wl * A; I[1] += wl * Sx; I[2] += wl * Sy; I[3] += wl * zz * A; I[4] += wl * Sxx; I[5] += wl * Syy; I[6] += wl * zz * zz * A; I[7] += wl * Sxy; I[8] += wl * zz * Sx; I[9] += wl * zz * Sy;
     });
+  }
+  return { brep, mass: density => solidMassFromIntegrals(I, density, 'quadrature') };
+}
+
+/**
+ * A smooth loft: each edge's pieces through the sections joined by a cubic in v, C1 — non-uniform
+ * Catmull–Rom tangents on the homogeneous control points (so it passes through every section exactly),
+ * as Bézier spans (triple knots). Adjacent sides share their columns, so their edges are exact. The
+ * mass is the divergence theorem over the sides (Gauss quadrature on each span) and the caps (exact
+ * section moments).
+ */
+function smoothLoft(rows: Bezier[][], z: number[], id: string, nm: string): { brep: Brep; mass: (densityKgPerM3: number) => SolidMassProperties } {
+  const K = rows.length - 1, n = rows[0].length, v = z.map(x => (x - z[0]) / (z[K] - z[0]));
+  type H = [number, number, number, number];
+  const hom = (p: XY, zz: number, w: number): H => [p[0] * w, p[1] * w, zz * w, w];
+  // Per edge i: its pieces raised to one degree (a line among arcs becomes quadratic, straight still).
+  const columns = Array.from({ length: n }, (_, i) => {
+    const deg = Math.max(...rows.map(r => r[i].p.length - 1)), pcs = rows.map(r => deg === 2 ? quadratic(r[i], 1) : r[i]);
+    // cols[j] = the j-th control point through the sections, homogeneous.
+    return Array.from({ length: deg + 1 }, (_, j) => pcs.map((b, k) => hom(b.p[j], z[k], b.w[j])));
+  });
+  const spline = (H: H[]): H[] => {
+    const T = H.map((_, k) => { const a = Math.max(0, k - 1), b = Math.min(K, k + 1); return H[b].map((x, c) => (x - H[a][c]) / (v[b] - v[a])) as H; });
+    const out: H[] = [H[0]];
+    for (let k = 0; k < K; k++) { const d = (v[k + 1] - v[k]) / 3; out.push(H[k].map((x, c) => x + T[k][c] * d) as H, H[k + 1].map((x, c) => x - T[k + 1][c] * d) as H, H[k + 1]); }
+    return out;
+  };
+  const knotsV = [0, 0, 0, 0, ...v.slice(1, K).flatMap(x => [x, x, x]), 1, 1, 1, 1];
+  const nets = columns.map(cols => cols.map(spline));
+  for (const net of nets) for (const col of net) for (const h of col) if (!(h[3] > 0)) throw new BrepError('GEOMETRY', 'loft: the sections are too far apart for a smooth side (a weight turned negative)');
+  const point = (h: H): Point => [h[0] / h[3], h[1] / h[3], h[2] / h[3]];
+  const curveOf = (col: H[], cid: string): Curve => ({ kind: 'curve', id: cid, degree: 3, knots: [...knotsV], controlPoints: col.map(point), weights: col.map(h => h[3]) });
+  const side = (i: number) => `${nm}.side${i}`;
+  const vertices = rows.flatMap((r, k) => k === 0 || k === K ? r.map((b, i) => ({ id: `v${k}_${i}`, point: [b.p[0][0], b.p[0][1], z[k]] as Point })) : []);
+  const edges: { id: string; curve: Curve; vertices: [string, string]; name?: string }[] = [];
+  for (const k of [0, K]) rows[k].forEach((b, i) => edges.push({ id: `r${k}_${i}`, curve: curve3(b, z[k], `r${k}_${i}`), vertices: [`v${k}_${i}`, `v${k}_${(i + 1) % n}`], name: [k ? `${nm}.top` : `${nm}.bottom`, side(i)].sort().join('|') }));
+  nets.forEach((net, i) => edges.push({ id: `c${i}`, curve: curveOf(net[0], `c${i}`), vertices: [`v0_${i}`, `v${K}_${i}`], name: [side((i + n - 1) % n), side(i)].sort().join('|') }));
+  const faces: BrepFaceInput[] = nets.map((net, i) => ({ id: `f${i}`, sense: 'forward' as const, name: side(i),
+    surface: { kind: 'surface' as const, id: `f${i}`, degreeU: net.length - 1, degreeV: 3, knotsU: net.length === 2 ? [0, 0, 1, 1] : [0, 0, 0, 1, 1, 1], knotsV: [...knotsV], controlPoints: net.map(col => col.map(point)), weights: net.map(col => col.map(h => h[3])) },
+    loops: [{ kind: 'outer' as const, uses: [{ edge: `r0_${i}`, sense: 'forward' as const }, { edge: `c${(i + 1) % n}`, sense: 'forward' as const }, { edge: `r${K}_${i}`, sense: 'reversed' as const }, { edge: `c${i}`, sense: 'reversed' as const }] }] }));
+  const bounds = (r: Bezier[]) => { const pts = r.flatMap(b => b.p); return { min: [Math.min(...pts.map(q => q[0])) - 1, Math.min(...pts.map(q => q[1])) - 1] as XY, max: [Math.max(...pts.map(q => q[0])) + 1, Math.max(...pts.map(q => q[1])) + 1] as XY }; };
+  faces.push({ id: 'bottom', surface: capSurface(bounds(rows[0]), z[0], 'bottom', false), sense: 'forward', name: `${nm}.bottom`, loops: [{ kind: 'outer', uses: Array.from({ length: n }, (_, j) => ({ edge: `r0_${n - 1 - j}`, sense: 'reversed' as const })) }] });
+  faces.push({ id: 'top', surface: capSurface(bounds(rows[K]), z[K], 'top', true), sense: 'forward', name: `${nm}.top`, loops: [{ kind: 'outer', uses: Array.from({ length: n }, (_, j) => ({ edge: `r${K}_${j}`, sense: 'forward' as const })) }] });
+  const brep = buildBrep({ source: { family: 'loft', id }, vertices, edges, bodies: [{ id, kind: 'solid', shells: [{ id: `${id}.shell`, faces, closed: true }] }] });
+
+  // ∫f dV = ∮ g n_z dA with ∂g/∂z = f, for f in [1, x, y, z, x², y², z², xy, xz, yz].
+  const gOf = (x: number, y: number, zz: number) => [zz, x * zz, y * zz, zz * zz / 2, x * x * zz, y * y * zz, zz ** 3 / 3, x * y * zz, x * zz * zz / 2, y * zz * zz / 2];
+  const I = Array(10).fill(0) as number[], G = gauss(16);
+  const bern = (d: number, t: number): [number[], number[]] => d === 1 ? [[1 - t, t], [-1, 1]] : d === 2 ? [[(1 - t) ** 2, 2 * t * (1 - t), t * t], [-2 * (1 - t), 2 - 4 * t, 2 * t]] : [[(1 - t) ** 3, 3 * t * (1 - t) ** 2, 3 * t * t * (1 - t), t ** 3], [-3 * (1 - t) ** 2, 3 * (1 - t) ** 2 - 6 * t * (1 - t), 6 * t * (1 - t) - 3 * t * t, 3 * t * t]];
+  for (const net of nets) for (let k = 0; k < K; k++) {
+    const dv = v[k + 1] - v[k], du = net.length - 1;
+    G.x.forEach((a, ia) => G.x.forEach((b, ib) => {
+      const [Bu, dBu] = bern(du, a), [Bv, dBv] = bern(3, b), N = [0, 0, 0, 0], Nu = [0, 0, 0, 0], Nv = [0, 0, 0, 0];
+      for (let j = 0; j <= du; j++) for (let m = 0; m < 4; m++) { const h = net[j][3 * k + m]; for (let c = 0; c < 4; c++) { N[c] += Bu[j] * Bv[m] * h[c]; Nu[c] += dBu[j] * Bv[m] * h[c]; Nv[c] += Bu[j] * dBv[m] * h[c] / dv; } }
+      const P = [N[0] / N[3], N[1] / N[3], N[2] / N[3]], Su = [0, 1, 2].map(c => (Nu[c] - P[c] * Nu[3]) / N[3]), Sv = [0, 1, 2].map(c => (Nv[c] - P[c] * Nv[3]) / N[3]);
+      const nz = Su[0] * Sv[1] - Su[1] * Sv[0], wgt = G.w[ia] * G.w[ib] * dv, g = gOf(P[0], P[1], P[2]);
+      for (let q = 0; q < 10; q++) I[q] += wgt * g[q] * nz;
+    }));
+  }
+  // The caps: down at the bottom, up at the top (section moments by Green's theorem).
+  for (const [k, sign] of [[0, -1], [K, 1]] as const) {
+    let A = 0, Sx = 0, Sy = 0, Sxx = 0, Syy = 0, Sxy = 0;
+    for (const b of rows[k]) G24.x.forEach((t, j) => { const [p, d] = at(b, t), w = G24.w[j], [x, y] = p; A += w * x * d[1]; Sx += w * x * x / 2 * d[1]; Sy -= w * y * y / 2 * d[0]; Sxx += w * x ** 3 / 3 * d[1]; Syy -= w * y ** 3 / 3 * d[0]; Sxy += w * x * x * y / 2 * d[1]; });
+    const zc = z[k], m = [zc * A, zc * Sx, zc * Sy, zc * zc / 2 * A, zc * Sxx, zc * Syy, zc ** 3 / 3 * A, zc * Sxy, zc * zc / 2 * Sx, zc * zc / 2 * Sy];
+    for (let q = 0; q < 10; q++) I[q] += sign * m[q];
   }
   return { brep, mass: density => solidMassFromIntegrals(I, density, 'quadrature') };
 }

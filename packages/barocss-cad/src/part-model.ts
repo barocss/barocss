@@ -77,9 +77,10 @@ export type CadPartFeature = Base & (
   /**
    * A ruled loft through sketches placed at increasing heights: each section's edges joined by straight
    * rulings to the next one's (edge counts are evened out by halving the longest edges). Faces
-   * `${id}.bottom`, `.top`, `.side${i}` (two sections) or `.s${k}.side${i}`.
+   * `${id}.bottom`, `.top`, `.side${i}` (two sections) or `.s${k}.side${i}`. `smooth` (three or more
+   * sections): one smooth side per edge through them all (C1), named `.side${i}`.
    */
-  | { readonly kind: 'loft'; readonly sections: readonly CadPartLoftSection[] }
+  | { readonly kind: 'loft'; readonly sections: readonly CadPartLoftSection[]; readonly smooth?: boolean }
   /** A body read from a STEP file (its text); its faces keep their names, prefixed `${id}.`. */
   | { readonly kind: 'import'; readonly step: string }
   /** Hollowed to walls `thickness` thick; `open` names the faces removed (the top of a box, a side). */
@@ -445,7 +446,8 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         return { profile: (sketch as Extract<Result, { kind: 'sketch' }>).outer, z: dim(sec.z as CadPartDim, `sections[${i}].z`) };
       });
       sections.forEach((s, i) => { if (i && !(s.z > sections[i - 1].z)) fail('PARAMETER', `sections[${i}] must lie above sections[${i - 1}] (z ${s.z} ≤ ${sections[i - 1].z})`); });
-      return () => { const { brep, mass } = loftSolid({ id: at, name: at, sections }); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass }] }; };
+      if (f.smooth !== undefined && typeof f.smooth !== 'boolean') fail('INPUT', 'smooth must be true or false');
+      return () => { const { brep, mass } = loftSolid({ id: at, name: at, sections, smooth: f.smooth === true }); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass }] }; };
     }
     case 'import': {
       if (typeof f.step !== 'string' || !f.step.length) fail('INPUT', 'step must be the text of a STEP file');
