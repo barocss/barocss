@@ -281,8 +281,24 @@ test('shell any body of planes and cylinders: the wall as a slab per face, never
   }
   // Opening the plate's end runs the hollow out through it: more taken away than closed.
   assert.ok(volume(cases[1][1]) < volume(cases[0][1]));
-  refused(D([...box, rect('a', 10, 10, 30, 30), circle('b', 20, 20, 5), { id: 'L', kind: 'loft', sections: [{ sketch: 'a', z: 20 }, { sketch: 'b', z: 30 }] }, { id: 'u', kind: 'union', target: 'e', tool: 'L' }, { id: 'sh', kind: 'shell', target: 'u', thickness: 2 }]), 'CAPABILITY', /not a plane or a cylinder/);
+  refused(D([...box, rect('a', 10, 10, 30, 30), circle('b', 20, 20, 5), { id: 'L', kind: 'loft', sections: [{ sketch: 'a', z: 20 }, { sketch: 'b', z: 30 }] }, { id: 'u', kind: 'union', target: 'e', tool: 'L' }, { id: 'sh', kind: 'shell', target: 'u', thickness: 2 }]), 'CAPABILITY', /not a plane, a cylinder or a surface of revolution/);
   refused(D([...bracket, { id: 'sh', kind: 'shell', target: 'u', thickness: 1, open: ['nope'] }]), 'SELECTION', /no face named nope/);
+});
+
+test('shell bodies with cones joined to others: slabs turned about their axes', () => {
+  const plate = [rect('s', 0, 0, 60, 40), extrude('e', 's', 8)];
+  const cases = [
+    // A cone frustum stood on a plate; a drafted round boss.
+    ['a cone on a plate', [...plate, { id: 'p', kind: 'sketch', profile: 'polygon', points: [[0, 0], [12, 0], [7, 14], [0, 14]] }, { id: 'v', kind: 'revolve', sketch: 'p', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }, { id: 'r', kind: 'rotate', target: 'v', axis: 'x', angleDegrees: 90 }, { id: 't', kind: 'translate', target: 'r', offset: [30, 20, 6] }, { id: 'u', kind: 'union', target: 'e', tool: 't' }], 1.5],
+    ['a drafted boss', [...plate, circle('c', 30, 20, 8), { ...extrude('b', 'c', 10, 8), draft: 10 }, { id: 'u', kind: 'union', target: 'e', tool: 'b' }], 1.5],
+  ];
+  for (const [name, features, t] of cases) {
+    const body = evaluateCadPart(D(features)).outputs.at(-1), o = evaluateCadPart(D([...features, { id: 'sh', kind: 'shell', target: 'u', thickness: t }])).outputs.at(-1), report = checkBrep(o.brep);
+    assert.equal(report.valid, true, `${name}: ${report.issues}`);
+    // One cavity throughout (the plate's hollow runs up into the cone, the boss).
+    assert.deepEqual(report.topology.map(x => x.shells), [2], name);
+    assert.ok(volume(o) > 0.2 * volume(body) && volume(o) < 0.6 * volume(body), `${name}: ${volume(o)} of ${volume(body)}`);
+  }
 });
 
 test('moved parts keep their exact mass: a loft turned about X and scaled', () => {

@@ -11,11 +11,12 @@
 import { BrepError, type Brep, type BrepFace } from './brep-core.js';
 import { booleanAnalytic, faceGeometry } from './analytic-boolean.js';
 import { circleOf } from './brep-tessellate.js';
-import { curveDomain, evaluateCurve } from './math.js';
+import { curveDomain, evaluateCurve, evaluateSurface } from './math.js';
 import { brepFromPrismatic, prismaticExtrude } from './prismatic-solid.js';
 import { growSection } from './section-offset.js';
 import { transformBrep } from './brep-transform.js';
 import { revolveProfile } from './revolve.js';
+import { revolutionOf, type Revolution } from './surface-revolution.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
 import { booleanCurveRegions, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
 import type { Curve, Point } from './types.js';
@@ -31,7 +32,7 @@ export function generalShell(body: Brep, t: number, open: ReadonlySet<string>, i
   /** A face's loops as point chains, each coedge as its curve in its direction. */
   const usesOf = (f: BrepFace) => f.loops.map(lid => { const l = loops.get(lid)!; return { outer: l.kind === 'outer', uses: l.coedges.map(cid => { const c = coedges.get(cid)!; return { curve: edges.get(c.edge)!.curve, forward: c.sense === 'forward' }; }) }; });
   const ends = (u: { curve: Curve; forward: boolean }) => { const [t0, t1] = curveDomain(u.curve), a = evaluateCurve(u.curve, t0), b = evaluateCurve(u.curve, t1), m = evaluateCurve(u.curve, (t0 + t1) / 2); return u.forward ? { s: a, m, e: b } : { s: b, m, e: a }; };
-  const slabs: Brep[] = [];
+  const slabs: Brep[] = [], revolutions: { R: Revolution; face: BrepFace; name: string }[] = [];
   // Faces on one plane (or one cylinder) — a face split by an earlier Boolean — share one slab.
   const planes: { n: Point; o: Point; e1: Point; e2: Point; regions: CurveRegion2[] }[] = [];
   const cylinders: { c: Point; a: Point; r: number; out: number; e1: Point; e2: Point; rects: { th0: number; span: number; z0: number; z1: number }[]; name: string }[] = [];
@@ -63,8 +64,24 @@ export function generalShell(body: Brep, t: number, open: ReadonlySet<string>, i
         const a0 = ang(s), ccw = wrap(ang(e) - a0) || TAU, viaM = wrap(ang(m) - a0);
         return { kind: 'arc', c: c2, r, t0: a0, sweep: viaM < ccw ? ccw : ccw - TAU };
       });
+      // Neighbouring arcs on one circle (a circle a Boolean fitted in pieces) share its centre and
+      // radius exactly, so the ring closes.
+      const unify = (rg: CurveSegment2[]): CurveSegment2[] => {
+        const out = rg.map(g => ({ ...g }));
+        for (let i = 0; i < out.length; i++) {
+          const g = out[i]; if (g.kind !== 'arc') continue;
+          const run = [i]; for (let j = i + 1; j < out.length; j++) { const h = out[j]; if (h.kind === 'arc' && Math.hypot(h.c[0] - g.c[0], h.c[1] - g.c[1]) < 1e-5 * size && Math.abs(h.r - g.r) < 1e-5 * size) run.push(j); else break; }
+          if (run.length < 2) continue;
+          const arcs = run.map(j => out[j] as Extract<CurveSegment2, { kind: 'arc' }>), c: XY = [arcs.reduce((x, a) => x + a.c[0], 0) / arcs.length, arcs.reduce((x, a) => x + a.c[1], 0) / arcs.length], r = arcs.reduce((x, a) => x + a.r, 0) / arcs.length;
+          const ang = (p: XY) => Math.atan2(p[1] - c[1], p[0] - c[0]);
+          const ends = arcs.map(a => [[a.c[0] + a.r * Math.cos(a.t0), a.c[1] + a.r * Math.sin(a.t0)] as XY, [a.c[0] + a.r * Math.cos(a.t0 + a.sweep), a.c[1] + a.r * Math.sin(a.t0 + a.sweep)] as XY]);
+          run.forEach((j, k) => { const a = arcs[k], t0 = ang(ends[k][0]), t1 = k + 1 < run.length ? ang(ends[k + 1][0]) : ang(ends[k][1]), d = ((t1 - t0) % TAU + TAU) % TAU; out[j] = { ...a, c, r, t0, sweep: a.sweep >= 0 ? (d || TAU) : -(((t0 - t1) % TAU + TAU) % TAU || TAU) }; });
+          i = run[run.length - 1];
+        }
+        return out;
+      };
       const L = usesOf(f);
-      P.regions.push({ outer: ring(L.find(l => l.outer)!.uses), holes: L.filter(l => !l.outer).map(l => ring(l.uses)) });
+      P.regions.push({ outer: unify(ring(L.find(l => l.outer)!.uses)), holes: L.filter(l => !l.outer).map(l => unify(ring(l.uses))) });
       return;
     }
     if (g.kind === 'cylinder') {
@@ -87,7 +104,9 @@ export function generalShell(body: Brep, t: number, open: ReadonlySet<string>, i
       C.rects.push({ th0: gaps[0].start, span: TAU - gaps[0].size, z0: Math.min(...hs), z1: Math.max(...hs) });
       return;
     }
-    refuse(`face ${name} is not a plane or a cylinder (shell of bodies with cones, spheres, tori or freeform faces joined to others is not supported yet)`);
+    const rev = revolutionOf(f.surface, size);
+    if (!rev) return refuse(`face ${name} is not a plane, a cylinder or a surface of revolution (shell of bodies with freeform faces joined to others is not supported yet)`);
+    revolutions.push({ R: rev, face: f, name });
   });
   planes.forEach((P, k) => {
     const grown = growSection(booleanCurveRegions(P.regions.flatMap(r => [r.outer, ...r.holes]), [], 'union', tol), t, tol), { n, e1, e2, o } = P;
@@ -111,8 +130,70 @@ export function generalShell(body: Brep, t: number, open: ReadonlySet<string>, i
       slabs.push(transformBrep(ring, { matrix: [X[0], a[0], Zw[0], X[1], a[1], Zw[1], X[2], a[2], Zw[2]], offset: [C.c[0], C.c[1], C.c[2]] }));
     });
   });
+  revolutions.forEach((x, k) => slabs.push(...revolutionSlab(x.R, x.face, x.name, usesOf(x.face).flatMap(l => l.uses), t, out, size, `${id}_v${k}`)));
   if (!slabs.length) refuse('every face is opened');
   let wall = slabs[0];
-  for (const s of slabs.slice(1)) wall = booleanAnalytic(wall, s, 'union', { id: `${id}_wall` });
-  return booleanAnalytic(body, wall, 'intersection', { id });
+  for (const s of slabs.slice(1)) wall = booleanAnalytic(wall, s, 'union', { id: `${id}_wall`, exactEdges: true });
+  return booleanAnalytic(body, wall, 'intersection', { id, exactEdges: true });
+}
+
+/**
+ * The slab of a face on a surface of revolution: its meridian strip — around a line profile a
+ * quadrilateral from the wall inside to the reach outside, grown along it by the wall; around an arc an
+ * annular sector, grown in angle — turned over the face's angles, grown by the wall over the smallest
+ * radius. Every edge of the face must be a circle about the axis or a meridian.
+ */
+function revolutionSlab(R: Revolution, f: BrepFace, name: string, uses: { curve: Curve }[], t: number, out: number, size: number, id: string): Brep[] {
+  const { c, a, e1, e2 } = R, tol = 1e-9 * size;
+  const angle = (p: Point) => { const d = sub(p, c); return Math.atan2(dot(d, e2), dot(d, e1)); };
+  const mer = (p: Point): XY => { const d = sub(p, c), h = dot(d, a); return [len(sub(d, scale(a, h))), h]; };
+  const pts: Point[] = [];
+  for (const u of uses) {
+    const [t0, t1] = curveDomain(u.curve), P = [0, 0.25, 0.5, 0.75, 1].map(x => evaluateCurve(u.curve, t0 + (t1 - t0) * x)), M = P.map(mer);
+    const circle = M.every(m => Math.hypot(m[0] - M[0][0], m[1] - M[0][1]) < 1e-6 * size);
+    const meridian = P.every(p => mer(p)[0] < 1e-9 * size || Math.abs(wrap(angle(p) - angle(P[2]) + Math.PI) - Math.PI) < 1e-6);
+    if (!circle && !meridian) refuse(`face ${name} (a surface of revolution) is trimmed by a curve other than its circles and meridians (not supported yet)`);
+    pts.push(...P);
+  }
+  // The outward side in the meridian plane, from the face's normal at its middle.
+  const S = f.surface, u0 = S.knotsU[0], u1 = S.knotsU[S.knotsU.length - 1], v0 = S.knotsV[0], v1 = S.knotsV[S.knotsV.length - 1], um = (u0 + u1) / 2, vm = (v0 + v1) / 2;
+  const P0 = evaluateSurface(S, um, vm), Pu = evaluateSurface(S, um + 1e-6 * (u1 - u0), vm), Pv = evaluateSurface(S, um, vm + 1e-6 * (v1 - v0));
+  const N = scale(cross(sub(Pu, P0), sub(Pv, P0)), f.sense === 'forward' ? 1 : -1), m0 = mer(P0), radial = unit(sub(sub(P0, c), scale(a, dot(sub(P0, c), a))));
+  const nm: XY = [dot(N, radial), dot(N, a)], M = pts.map(mer);
+  let ring: CurveSegment2[];
+  if (R.profile.kind === 'line') {
+    const { p, q } = R.profile, L = Math.hypot(q[0] - p[0], q[1] - p[1]), d: XY = [(q[0] - p[0]) / L, (q[1] - p[1]) / L];
+    let nu: XY = [-d[1], d[0]]; if (nu[0] * nm[0] + nu[1] * nm[1] < 0) nu = [d[1], -d[0]];
+    const ss = M.map(m => (m[0] - p[0]) * d[0] + (m[1] - p[1]) * d[1]), s0 = Math.min(...ss) - t, s1 = Math.max(...ss) + t;
+    const at = (sv: number, w: number): XY => [p[0] + d[0] * sv + nu[0] * w, p[1] + d[1] * sv + nu[1] * w];
+    const quad = [at(s0, -t), at(s1, -t), at(s1, out), at(s0, out)];
+    ring = quad.map((x, i) => ({ kind: 'line', a: x, b: quad[(i + 1) % 4] }));
+  } else {
+    const { c: C, r } = R.profile, convex = (m0[0] - C[0]) * nm[0] + (m0[1] - C[1]) * nm[1] > 0;
+    const ri = convex ? Math.max(r - t, 0) : Math.max(r - out, 0), ro = convex ? r + out : r + t;
+    const phis = [...new Set(M.map(m => wrap(Math.atan2(m[1] - C[1], m[0] - C[0]))))].sort((x, y) => x - y);
+    const gaps = phis.map((x, i) => ({ size: i ? x - phis[i - 1] : x + TAU - phis[phis.length - 1], start: x })).sort((x, y) => y.size - x.size);
+    const dphi = t / Math.max(ri, r / 4), f0 = gaps[0].start - dphi, sweep = Math.min(TAU - 1e-6, TAU - gaps[0].size + 2 * dphi), f1 = f0 + sweep;
+    const pt = (rr: number, ph: number): XY => [C[0] + rr * Math.cos(ph), C[1] + rr * Math.sin(ph)];
+    ring = ri > 1e-9 * r ? [{ kind: 'arc', c: C, r: ro, t0: f0, sweep }, { kind: 'line', a: pt(ro, f1), b: pt(ri, f1) }, { kind: 'arc', c: C, r: ri, t0: f1, sweep: -sweep }, { kind: 'line', a: pt(ri, f0), b: pt(ro, f0) }]
+      : [{ kind: 'arc', c: C, r: ro, t0: f0, sweep }, { kind: 'line', a: pt(ro, f1), b: C }, { kind: 'line', a: C, b: pt(ro, f0) }];
+  }
+  // Counter-clockwise, then only the side of the axis the face is on (ρ ≥ 0).
+  const end = (g: CurveSegment2, k: 0 | 1): XY => g.kind === 'line' ? (k ? g.b : g.a) : g.kind === 'arc' ? [g.c[0] + g.r * Math.cos(g.t0 + k * g.sweep), g.c[1] + g.r * Math.sin(g.t0 + k * g.sweep)] : [0, 0];
+  const area = ring.reduce((acc, g) => { const A = end(g, 0), B = end(g, 1); return acc + (A[0] * B[1] - B[0] * A[1]) / 2 + (g.kind === 'arc' ? g.r * g.r * (g.sweep - Math.sin(g.sweep)) / 2 : 0); }, 0);
+  if (area < 0) ring = [...ring].reverse().map(g => g.kind === 'line' ? { ...g, a: g.b, b: g.a } : g.kind === 'arc' ? { ...g, t0: g.t0 + g.sweep, sweep: -g.sweep } : g);
+  const big = 4 * size + 10, half: CurveSegment2[] = [[0, -big], [big, -big], [big, big], [0, big]].map((x, i, arr) => ({ kind: 'line', a: x as XY, b: arr[(i + 1) % 4] as XY }));
+  const regions = booleanCurveRegions([ring], [half], 'intersection', tol);
+  const angs = [...new Set(pts.map(p => wrap(angle(p))))].sort((x, y) => x - y);
+  const gaps = angs.map((x, i) => ({ size: i ? x - angs[i - 1] : x + TAU - angs[angs.length - 1], start: x })).sort((x, y) => y.size - x.size);
+  return regions.map((reg, j) => {
+    const rmin = Math.min(...reg.outer.flatMap(g => g.kind === 'line' ? [g.a[0], g.b[0]] : g.kind === 'arc' ? [Math.max(0, g.c[0] - g.r)] : [0]));
+    const dth = rmin > 1e-6 * size ? t / rmin : TAU, span = TAU - gaps[0].size + 2 * dth, full = span >= TAU - 1e-9, start = full ? 0 : gaps[0].start - dth;
+    const profile = reg.outer.map(g => g.kind === 'line' ? { kind: 'line' as const, start: [g.a[0], g.a[1]] as XY } : g.kind === 'arc' ? { kind: 'arc' as const, start: end(g, 0), center: g.c as XY, direction: (g.sweep > 0 ? 'ccw' : 'cw') as 'ccw' | 'cw' } : refuse('a slab profile with a free curve'));
+    const sid = `${id}_${j}`, turned = revolveProfile({ id: sid, profile, axis: { origin: [0, 0], direction: [0, 1] }, angleDegrees: full ? 360 : span * 180 / Math.PI });
+    const endFace = turned.faces.find(x => x.name === `${sid}.end`), q = endFace ? scale(add(endFace.surface.controlPoints[0][0] as Point, endFace.surface.controlPoints[1][1] as Point), 0.5) : null;
+    const towards = q && Math.abs(wrap(Math.atan2(q[2], q[0])) - wrap(span)) > Math.abs(wrap(Math.atan2(q[2], q[0])) - wrap(-span)) ? -1 : 1;
+    const X = add(scale(e1, Math.cos(start)), scale(e2, Math.sin(start))), Zw = scale(add(scale(e1, -Math.sin(start)), scale(e2, Math.cos(start))), towards);
+    return transformBrep(turned, { matrix: [X[0], a[0], Zw[0], X[1], a[1], Zw[1], X[2], a[2], Zw[2]], offset: [c[0], c[1], c[2]] });
+  });
 }
