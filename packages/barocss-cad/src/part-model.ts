@@ -132,7 +132,12 @@ export const CadPartLimits = Object.freeze({ features: 512, parameters: 256, poi
 type Solid = { readonly kind: 'upright'; readonly solid: PrismaticSolid } | { readonly kind: 'brep'; readonly brep: Brep };
 /** `history`: an upright body of one section and the edge finishes applied to it since (for shell). */
 interface Finish { readonly kind: 'chamfer' | 'fillet'; readonly edges: readonly string[]; readonly size: number; readonly id: string }
-interface Part { readonly solid: Solid; brep?: Brep; readonly mass?: (density: number) => SolidMassProperties; readonly history?: { readonly base: PrismaticSolid; readonly finishes: readonly Finish[] } }
+/** `moved`: the part this one is a moved (turned, mirrored, uniformly scaled) copy of, for shell. */
+interface Part {
+  readonly solid: Solid; brep?: Brep; readonly mass?: (density: number) => SolidMassProperties;
+  readonly history?: { readonly base: PrismaticSolid; readonly finishes: readonly Finish[] };
+  readonly moved?: { readonly from: Part; readonly m: BrepAffine['matrix']; readonly o: Point };
+}
 type Result = { readonly kind: 'sketch'; readonly outer: readonly ProfileSegmentInput[] } | { readonly kind: 'solid'; readonly parts: readonly Part[] };
 
 const empty = (s: Solid) => s.kind === 'upright' ? !s.solid.slabs.length : !s.brep.bodies.length;
@@ -367,27 +372,25 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     }
     case 'translate': {
       const target = solids(f.target, 'target'), o = xyz(f.offset as CadPartPoint3, 'offset');
-      return () => many(target.map(p => affine(p.solid, [1, 0, 0, 0, 1, 0, 0, 0, 1], o)));
+      return () => moveAll(target, [1, 0, 0, 0, 1, 0, 0, 0, 1], o);
     }
     case 'rotate': {
       const target = solids(f.target, 'target'), axis = axisOf(f.axis), deg = f.angleDegrees as number, pivot = f.pivot === undefined ? [0, 0, 0] as Point : xyz(f.pivot as CadPartPoint3, 'pivot');
       if (typeof deg !== 'number' || !Number.isFinite(deg) || Math.abs(deg) > 3600) fail('INPUT', 'angleDegrees must be a finite number of degrees');
       if (axis !== 'z' && Math.round(deg / 90) * 90 !== deg) fail('CAPABILITY', 'rotations about X or Y must be multiples of 90°');
-      return () => many(target.map(p => rotate(p.solid, axis, deg, pivot)));
+      return () => { const { m, o } = rotation(axis, deg, pivot); return moveAll(target, m, o); };
     }
     case 'mirror': {
       const target = solids(f.target, 'target'), plane = f.plane;
       if (plane !== 'xy' && plane !== 'xz' && plane !== 'yz') fail('INPUT', 'plane must be xy, xz or yz');
       const m: BrepAffine['matrix'] = plane === 'xy' ? [1, 0, 0, 0, 1, 0, 0, 0, -1] : plane === 'xz' ? [1, 0, 0, 0, -1, 0, 0, 0, 1] : [-1, 0, 0, 0, 1, 0, 0, 0, 1];
-      return () => many(target.map(p => {
-        const mirrored = affine(p.solid, m, [0, 0, 0], f.keep ? (n => n + '@m') : undefined);
-        return f.keep ? boolean(p.solid, mirrored, 'union', at) : mirrored;
-      }));
+      if (!f.keep) return () => moveAll(target, m, [0, 0, 0]);
+      return () => many(target.map(p => boolean(p.solid, affine(p.solid, m, [0, 0, 0], n => n + '@m'), 'union', at)));
     }
     case 'scale': {
       const target = solids(f.target, 'target'), k = f.factor as number, pivot = f.pivot === undefined ? [0, 0, 0] as Point : xyz(f.pivot as CadPartPoint3, 'pivot');
       if (typeof k !== 'number' || !(k > 0 && k <= 1000 && Number.isFinite(k))) fail('INPUT', 'factor must be a positive number at most 1000');
-      return () => many(target.map(p => affine(p.solid, [k, 0, 0, 0, k, 0, 0, 0, k], [pivot[0] * (1 - k), pivot[1] * (1 - k), pivot[2] * (1 - k)])));
+      return () => moveAll(target, [k, 0, 0, 0, k, 0, 0, 0, k], [pivot[0] * (1 - k), pivot[1] * (1 - k), pivot[2] * (1 - k)]);
     }
     case 'linear-pattern': {
       const target = solids(f.target, 'target'), axis = axisOf(f.axis), spacing = dim(f.spacing as CadPartDim, 'spacing'), count = integer(f.count, 'count', 1, CadPartLimits.copies);
@@ -515,7 +518,24 @@ function affine(s: Solid, m: BrepAffine['matrix'], o: readonly number[], rename?
   const brep = s.kind === 'upright' ? brepFromPrismatic(s.solid) : s.brep;
   return { kind: 'brep', brep: transformBrep(brep, { matrix: m, offset: [o[0], o[1], o[2]] }, rename) };
 }
-function rotate(s: Solid, axis: CadPartAxis, deg: number, pivot: Point, rename?: (n: string) => string): Solid {
+/**
+ * Parts moved by x ↦ m·x + o (m a rotation or reflection times a uniform scale): each remembers what it
+ * was moved from, and its mass moves with it (exact when the original's was).
+ */
+function moveAll(parts: readonly Part[], m: BrepAffine['matrix'], o: Point): Result {
+  return { kind: 'solid', parts: parts.map((p): Part => {
+    const exact = p.mass ?? (p.solid.kind === 'upright' ? ((s: PrismaticSolid) => (d: number) => prismaticMassProperties(s, d))(p.solid.solid) : undefined);
+    return { solid: affine(p.solid, m, o), moved: { from: p, m, o }, ...(exact ? { mass: (d: number) => movedMass(exact(d), m, o) } : {}) };
+  }) };
+}
+function movedMass(p: SolidMassProperties, m: BrepAffine['matrix'], o: Point): SolidMassProperties {
+  const k = Math.cbrt(Math.abs(m[0] * (m[4] * m[8] - m[5] * m[7]) - m[1] * (m[3] * m[8] - m[5] * m[6]) + m[2] * (m[3] * m[7] - m[4] * m[6]))), R = m.map(x => x / k);
+  const c = p.centroidMM, I = p.inertiaCentroidKgM2, k5 = k ** 5;
+  const RIRt = [0, 1, 2].map(i => [0, 1, 2].map(j => { let sum = 0; for (let a = 0; a < 3; a++) for (let b = 0; b < 3; b++) sum += R[3 * i + a] * I[a][b] * R[3 * j + b]; return sum * k5; })) as [[number, number, number], [number, number, number], [number, number, number]];
+  return { volumeMM3: p.volumeMM3 * k ** 3, massKG: p.massKG * k ** 3, method: p.method, inertiaCentroidKgM2: RIRt,
+    centroidMM: [0, 1, 2].map(i => m[3 * i] * c[0] + m[3 * i + 1] * c[1] + m[3 * i + 2] * c[2] + o[i]) as Point };
+}
+function rotation(axis: CadPartAxis, deg: number, pivot: Point): { m: BrepAffine['matrix']; o: Point } {
   let m: BrepAffine['matrix'];
   if (axis === 'z') {
     const quarter = Math.round(deg / 90) * 90 === deg;
@@ -523,7 +543,11 @@ function rotate(s: Solid, axis: CadPartAxis, deg: number, pivot: Point, rename?:
     else { const r = deg * Math.PI / 180, c = Math.cos(r), sn = Math.sin(r); m = [c, -sn, 0, sn, c, 0, 0, 0, 1]; }
   } else m = quarterTurn(axis, deg);
   const mp = [m[0] * pivot[0] + m[1] * pivot[1] + m[2] * pivot[2], m[3] * pivot[0] + m[4] * pivot[1] + m[5] * pivot[2], m[6] * pivot[0] + m[7] * pivot[1] + m[8] * pivot[2]];
-  return affine(s, m, [pivot[0] - mp[0], pivot[1] - mp[1], pivot[2] - mp[2]], rename);
+  return { m, o: [pivot[0] - mp[0], pivot[1] - mp[1], pivot[2] - mp[2]] };
+}
+function rotate(s: Solid, axis: CadPartAxis, deg: number, pivot: Point, rename?: (n: string) => string): Solid {
+  const { m, o } = rotation(axis, deg, pivot);
+  return affine(s, m, o, rename);
 }
 
 // ---- sweep -----------------------------------------------------------------------------------------------
@@ -582,7 +606,12 @@ function sweepBrep(profile: readonly ProfileSegmentInput[], steps: ({ kind: 'str
  */
 function shellPart(part: Part, t: number, open: string[], at: string, fail: Tools['fail']): Solid {
   if (part.solid.kind === 'upright') { const h = hollowOf(part.solid.solid, t, open, at, fail); return { kind: 'upright', solid: booleanPrismatic(part.solid.solid, h.hollow, 'difference') }; }
-  if (!part.history) fail('CAPABILITY', 'shell works on bodies extruded from one section, with their edges finished or not (before turning them about X or Y or combining them) yet');
+  // A moved copy: the original's shell, moved (a scaled copy's with the wall scaled back).
+  if (!part.history && part.moved) {
+    const { from, m, o } = part.moved, k = Math.cbrt(Math.abs(m[0] * (m[4] * m[8] - m[5] * m[7]) - m[1] * (m[3] * m[8] - m[5] * m[6]) + m[2] * (m[3] * m[7] - m[4] * m[6])));
+    return affine(shellPart(from, t / k, open, at, fail), m, o);
+  }
+  if (!part.history) fail('CAPABILITY', 'shell works on bodies extruded from one section, with their edges finished or not, and moved or not (before combining them) yet');
   // A finished body: its hollow is the base's hollow with the same finishes, offset by the wall — a
   // rolling ball of radius r less the wall rounds the offset of a convex edge rounded r (sharp when r
   // is not more than the wall); an equal chamfer d on a corner of angle α becomes d + t(1 − 1/sin(α/2))/cos(α/2).

@@ -172,7 +172,28 @@ test('shell after fillets and chamfers: the hollow takes the same finishes, offs
   const named = evaluateCadPart(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges: bottom, radius: 4 }, { id: 'sh', kind: 'shell', target: 'f', thickness: 2, open: ['e.top'] }])).outputs.at(-1);
   assert.ok(named.brep.faces.some(f => /^sh\.in\.f\./.test(f.name)), named.brep.faces.map(f => f.name).join(' '));
   refused(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges: top, radius: 3 }, { id: 'sh', kind: 'shell', target: 'f', thickness: 2, open: ['e.top'] }]), 'CAPABILITY', /borders an open face/);
-  refused(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges: top, radius: 3 }, { id: 'r', kind: 'rotate', target: 'f', axis: 'z', angleDegrees: 90 }, { id: 'sh', kind: 'shell', target: 'r', thickness: 2 }]), 'CAPABILITY', /shell works on bodies extruded from one section/);
+  // A moved copy is shelled as its original, then moved (a scaled one with the wall scaled back).
+  const trayOf = (more, target) => volume(evaluateCadPart(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges: bottom, radius: 4 }, ...more, { id: 'sh', kind: 'shell', target, thickness: 2, open: ['e.top'] }])).outputs.at(-1));
+  const still = trayOf([], 'f');
+  assert.ok(close(trayOf([{ id: 'r', kind: 'rotate', target: 'f', axis: 'y', angleDegrees: 90 }, { id: 't', kind: 'translate', target: 'r', offset: [5, 6, 7] }], 't'), still, 1e-9));
+  assert.ok(close(trayOf([{ id: 'm', kind: 'mirror', target: 'f', plane: 'xz' }], 'm'), still, 1e-9));
+  const big = evaluateCadPart(D([...box, { id: 'k', kind: 'scale', target: 'e', factor: 2 }, { id: 'sh', kind: 'shell', target: 'k', thickness: 4, open: ['e.top'] }])).outputs.at(-1);
+  assert.ok(close(volume(big), 8 * (48000 - 56 * 36 * 18), 1e-12));
+  refused(D([...box, rect('t', 70, 0, 80, 10), extrude('b', 't', 5), { id: 'u', kind: 'union', target: 'e', tool: 'b' }, { id: 'f', kind: 'fillet', target: 'u', edges: ['e.side0|e.top'], radius: 3 }, { id: 'sh', kind: 'shell', target: 'f', thickness: 2 }]), 'CAPABILITY', /shell works on bodies extruded from one section/);
+});
+
+test('moved parts keep their exact mass: a loft turned about X and scaled', () => {
+  const loft = [rect('a', 0, 0, 20, 10), circle('b', 10, 5, 3), { id: 'L', kind: 'loft', sections: [{ sketch: 'a', z: 0 }, { sketch: 'b', z: 12 }] }];
+  const at = evaluateCadPart(D(loft)).outputs[0].massProperties(1000);
+  const o = evaluateCadPart(D([...loft, { id: 'r', kind: 'rotate', target: 'L', axis: 'x', angleDegrees: 90, pivot: [1, 2, 3] }, { id: 'k', kind: 'scale', target: 'r', factor: 1.5 }])).outputs[0], m = o.massProperties(1000);
+  assert.equal(m.method, 'quadrature');
+  assert.ok(close(m.volumeMM3, at.volumeMM3 * 1.5 ** 3, 1e-12));
+  // x ↦ 1.5·(R(x − p) + p): the centroid moves so, the inertia turns (y and z swap) and grows 1.5⁵.
+  const p = [1, 2, 3], c = at.centroidMM, turned = [c[0] - p[0], -(c[2] - p[2]), c[1] - p[1]].map((x, i) => 1.5 * (x + p[i]));
+  assert.ok(Math.hypot(...m.centroidMM.map((x, i) => x - turned[i])) < 1e-9);
+  assert.ok(close(m.inertiaCentroidKgM2[1][1], at.inertiaCentroidKgM2[2][2] * 1.5 ** 5, 1e-9) && close(m.inertiaCentroidKgM2[2][2], at.inertiaCentroidKgM2[1][1] * 1.5 ** 5, 1e-9));
+  const mesh = brepMassProperties(o.brep, 1000, { segmentsPerQuarter: 64 });
+  assert.ok(Math.abs(mesh.volumeMM3 - m.volumeMM3) < 3e-4 * m.volumeMM3);
 });
 
 test('box edges filleted in loops at any size and place: mitres where two meet, a clear refusal where they cannot fit', () => {
