@@ -19,7 +19,7 @@ const { build } = require('esbuild');
 const trapKey = Symbol.for('barocss.modeling-translation.admission-trap');
 assert.equal(globalThis[trapKey], undefined, 'Never replace another active trap');
 const providers = new Map([
-  ['xy-arc', 'buildXYArc'], ['xy-circle-prism-shell', 'buildXYCirclePrismShell'], ['stored-circle-prism-solid', 'qualifyStoredCirclePrismSolid'],
+  ['xy-arc', 'buildXYArc'], ['xy-circle-prism-shell', 'buildXYCirclePrismShell'], ['stored-circle-prism-solid', 'qualifyStoredCirclePrismSolid'], ['modeling-profile-internal', 'runModelingProfile'],
   ['xy-affine-sketch', 'buildXYAffineSketch'], ['xy-affine-sketch-prism', 'buildXYAffineSketchPrism'],
   ['convex-planar-slab-subtraction', 'subtractConvexPlanarSlab'], ['convex-planar-solid-intersection', 'intersectConvexPlanarSolids'],
   ['convex-planar-solid-split', 'splitConvexPlanarSolid'], ['model-compiler', 'compileCadModel'],
@@ -169,9 +169,9 @@ function document() {
 const checkDocument = (edit, code, operation) => { const d = document(); edit(d); return refuses(() => loadCadModel(signedJson(d)), code, operation); };
 
 // All successes below use facade routing and explicitly non-geometric stubs.
-test('all twenty-four provider bindings are isolated; translate retains the existing convex wrapper and snapshot inventory', () => {
+test('all twenty-five provider bindings are isolated; translate retains the existing convex wrapper and snapshot inventory', () => {
   const before = state.calls.length, { snapshot } = authored(), calls = state.calls.slice(before), translation = calls.at(-1);
-  assert.equal(replaced.size, 24); assert.equal(inputPaths.length, pureModules.size);
+  assert.equal(replaced.size, 25); assert.equal(inputPaths.length, pureModules.size);
   assert.deepEqual(calls.map(call => call.binding), ['buildXYAffineSketch', 'buildXYAffineSketchPrism', 'buildModelingTranslation']);
   assert.equal(translation.args.length, 3); assert.equal(translation.args[0], snapshot.bodies.left.native);
   assert.deepEqual(translation.args[1], [48, -0, 0]); assert.equal(translation.args[2], 'm2');

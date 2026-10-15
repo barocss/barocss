@@ -20,7 +20,7 @@ const { build } = require('esbuild');
 const trapKey = Symbol.for('barocss.modeling-mass.admission-trap');
 assert.equal(globalThis[trapKey], undefined, 'The isolated trap must not replace an existing run');
 const providers = new Map([
-  ['xy-arc', 'buildXYArc'], ['xy-circle-prism-shell', 'buildXYCirclePrismShell'], ['stored-circle-prism-solid', 'qualifyStoredCirclePrismSolid'],
+  ['xy-arc', 'buildXYArc'], ['xy-circle-prism-shell', 'buildXYCirclePrismShell'], ['stored-circle-prism-solid', 'qualifyStoredCirclePrismSolid'], ['modeling-profile-internal', 'runModelingProfile'],
   ['xy-affine-sketch', 'buildXYAffineSketch'], ['xy-affine-sketch-prism', 'buildXYAffineSketchPrism'],
   ['convex-planar-slab-subtraction', 'subtractConvexPlanarSlab'], ['convex-planar-solid-intersection', 'intersectConvexPlanarSolids'],
   ['convex-planar-solid-split', 'splitConvexPlanarSolid'], ['model-compiler', 'compileCadModel'],
@@ -184,7 +184,7 @@ test('actual modeling entry is isolated from every native provider, including tr
   const snapshot = convexSnapshot();
   assert.equal(typeof snapshot.massProperties, 'function');
   assert.deepEqual(Object.keys(snapshot).sort(), ['bodies', 'parameters', 'suppression', 'features', 'recomputation', 'evidence', 'withParameters', 'withSuppression', 'massProperties', 'exportStl', 'save'].sort());
-  assert.equal(replaced.size, 24); assert.equal(inputPaths.length, pureModules.size);
+  assert.equal(replaced.size, 25); assert.equal(inputPaths.length, pureModules.size);
 });
 
 test('exact two-argument admission refuses before any provider or value getter', () => {

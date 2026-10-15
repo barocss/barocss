@@ -19,7 +19,7 @@ const { build } = require('esbuild');
 const trapKey = Symbol.for('barocss.modeling-rotation.admission-trap');
 assert.equal(globalThis[trapKey], undefined, 'Never replace another active trap');
 const providers = new Map([
-  ['xy-arc', 'buildXYArc'], ['xy-circle-prism-shell', 'buildXYCirclePrismShell'], ['stored-circle-prism-solid', 'qualifyStoredCirclePrismSolid'],
+  ['xy-arc', 'buildXYArc'], ['xy-circle-prism-shell', 'buildXYCirclePrismShell'], ['stored-circle-prism-solid', 'qualifyStoredCirclePrismSolid'], ['modeling-profile-internal', 'runModelingProfile'],
   ['xy-affine-sketch', 'buildXYAffineSketch'], ['xy-affine-sketch-prism', 'buildXYAffineSketchPrism'],
   ['convex-planar-slab-subtraction', 'subtractConvexPlanarSlab'], ['convex-planar-solid-intersection', 'intersectConvexPlanarSolids'],
   ['convex-planar-solid-split', 'splitConvexPlanarSolid'], ['model-compiler', 'compileCadModel'],
@@ -160,8 +160,8 @@ const doc = (axis='x',angleDegrees=90) => ({format:'barocss-cad-model',schema:1,
 const part = () => {const model=createCadModel();return {model,flat:rectangle(model).extrude(8)};};
 function pair(axis,angleDegrees) {const {model,flat}=part(),upright=flat.rotate(options(axis,angleDegrees));return mockNative(()=>model.build({flat,upright}));}
 
-test('all twenty-four facade providers are replaced; direct source provenance excludes native implementations',()=>{
-  assert.equal(replaced.size,24);assert.equal(inputPaths.length,pureModules.size);
+test('all twenty-five facade providers are replaced; direct source provenance excludes native implementations',()=>{
+  assert.equal(replaced.size, 25);assert.equal(inputPaths.length,pureModules.size);
   const start=state.calls.length,snapshot=pair('x',90),calls=state.calls.slice(start);
   assert.deepEqual(calls.map(c=>c.binding),['buildXYAffineSketch','buildXYAffineSketchPrism','buildModelingRotation']);
   assert.equal(calls[2].args[0],snapshot.bodies.flat.native);assert.deepEqual(calls[2].args[1],{axis:'x',degrees:90});assert.equal(calls[2].args[2],'m2');

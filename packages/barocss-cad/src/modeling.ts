@@ -3,6 +3,8 @@ import type { XYArcResult } from './xy-arc.js';
 import { buildXYCirclePrismShell } from './xy-circle-prism-shell.js';
 import { qualifyStoredCirclePrismSolid } from './stored-circle-prism-solid.js';
 import type { StoredCirclePrismSolidResult } from './stored-circle-prism-solid.js';
+import { runModelingProfile } from './modeling-profile-internal.js';
+import type { ProfileLoop, ProfileSegmentInput, ExtrudedProfileSolidResult, ExtrudedProfileMass } from './extruded-profile-solid.js';
 import { buildXYAffineSketch } from './xy-affine-sketch.js';
 import type { XYAffineSketchSuccess, XYAffineSketchConstraint, XYAffineSketchReferenceLine } from './xy-affine-sketch.js';
 import { buildXYAffineSketchPrism } from './xy-affine-sketch-prism.js';
@@ -111,6 +113,8 @@ export interface CadSketch {
   /** Absolute bottom Z for an affine XY profile; positive height stays a +Z distance. Circle options refuse. */
   extrude(height: CadDimension, options: { readonly from: CadDimension }): CadShape;
 }
+export type CadLoopSegment = { readonly kind: 'line'; readonly start: CadPoint2 }
+  | { readonly kind: 'arc'; readonly start: CadPoint2; readonly center: CadPoint2; readonly direction: 'ccw' | 'cw' };
 export type CadRectangle = { readonly min: CadPoint2; readonly max: CadPoint2 } | { readonly width: CadDimension; readonly height: CadDimension };
 export interface CadSketchPoint { readonly kind: 'sketch-point' }
 /** Handles belong only to this synchronous polygon callback. Fixed targets follow their authored seeds. */
@@ -132,6 +136,8 @@ export interface CadModel {
     polygon(points: readonly CadPoint2[]): CadSketch;
     rectangle(rectangle: CadRectangle): CadSketch;
     circle(options: { readonly center: CadPoint2; readonly radius: CadDimension }): CadSketch;
+    /** One closed simple loop of lines and circular arcs; each segment runs from its start to the next start. */
+    loop(segments: readonly CadLoopSegment[]): CadSketch;
     /** One fully constrained convex cycle; underconstrained or contradictory solves refuse atomically. */
     constrainedPolygon(callback: (builder: CadConstrainedPolygonBuilder) => readonly CadSketchPoint[]): CadSketch;
   };
@@ -141,8 +147,10 @@ export interface CadModel {
 export type CadModelEvidence =
   | { readonly kind: 'sketch'; readonly profile?: never; readonly native: XYAffineSketchSuccess }
   | { readonly kind: 'sketch'; readonly profile: 'circle'; readonly native: XYArcResult }
+  | { readonly kind: 'sketch'; readonly profile: 'loop'; readonly native: ProfileLoop }
   | { readonly kind: 'extrude'; readonly profile?: never; readonly native: XYAffineSketchPrismCoordinateSpanResult | XYAffineSketchPrismOffsetCoordinateSpanResult }
   | { readonly kind: 'extrude'; readonly profile: 'circle'; readonly native: StoredCirclePrismSolidResult }
+  | { readonly kind: 'extrude'; readonly profile: 'loop'; readonly native: ExtrudedProfileSolidResult }
   | { readonly kind: 'translate'; readonly native: ModelingTranslationResult }
   | { readonly kind: 'rotate'; readonly native: ModelingRotationResult }
   | { readonly kind: 'mirror'; readonly native: ModelingMirrorResult }
@@ -162,7 +170,8 @@ export interface CadModelFeature { readonly kind: CadModelEvidence['kind']; read
 export type CadBody = { readonly family: 'convex-planar'; readonly native: ConvexPlanarSolidResult }
   | { readonly family: 'stored-rational-plate-hole'; readonly native: StoredPlateHoleSolidResult }
   | { readonly family: 'orthogonal-cell'; readonly native: AxisBoxSolidBooleanResult | OrthogonalSolidBooleanResult }
-  | { readonly family: 'stored-rational-circle-prism'; readonly native: StoredCirclePrismSolidResult };
+  | { readonly family: 'stored-rational-circle-prism'; readonly native: StoredCirclePrismSolidResult }
+  | { readonly family: 'extruded-profile'; readonly native: ExtrudedProfileSolidResult };
 export interface CadMassPropertiesOptions { readonly densityKgPerM3: number }
 type MassReadonly<T> = T extends object ? { readonly [K in keyof T]: MassReadonly<T[K]> } : T;
 type MassExact = MassReadonly<Pick<ConvexPlanarSolidMassMeasure['exact'], 'volumeMM3' | 'massKG' | 'centroidMM' | 'inertiaCentroidKgM2'>>;
@@ -179,18 +188,21 @@ interface MassValues {
 export type CadMassProperties = MassValues & (
   | { readonly family: 'convex-planar'; readonly details: { readonly exact: MassExact; readonly conversionErrors: MassErrors; readonly native: MassReadonly<ConvexPlanarSolidMassResult> } }
   | { readonly family: 'orthogonal-cell'; readonly details: { readonly exact: MassExact; readonly conversionErrors: MassErrors; readonly native: MassReadonly<AxisBoxSolidMassResult> } }
+  /** Closed-form Green's-theorem moments in binary64; no exact rational certificate. */
+  | { readonly family: 'extruded-profile'; readonly details: { readonly native: ExtrudedProfileMass } }
 );
 /** Binary STL facets in authored XYZ. Units and native identity live in details, not STL metadata. */
 export interface CadStlExport {
   readonly outputName: string;
-  readonly family: 'convex-planar';
+  readonly family: 'convex-planar' | 'extruded-profile';
   readonly format: 'binary-stl';
   readonly lengthUnit: 'mm';
   readonly bytes: readonly number[];
   readonly byteLength: number;
   readonly triangleCount: number;
   readonly maximumVertexDisplacementMM: number;
-  readonly details: MassReadonly<ModelingStlResult>;
+  /** Convex outputs carry the native writer result; extruded profiles carry their chord tessellation policy. */
+  readonly details: MassReadonly<ModelingStlResult> | { readonly segmentsPerQuarter: number; readonly chordToleranceMM: number };
 }
 export interface CadModelSnapshot {
   /** Deep-frozen tagged bodies; native source/topology/certificates remain authoritative. */
@@ -213,7 +225,7 @@ export interface CadModelSnapshot {
   /** Saves only accepted authored state; no native results or meshes. */
   save(): string;
 }
-export const CadModelLimits = Object.freeze({ nodes: 6, sketches: 2, extrusions: 2, compositionNodes: 8, compositionSketches: 3, compositionExtrusions: 3, cuts: 1, intersections: 1, splits: 1, chamfers: 2, holes: 1, unions: 1, differences: 1, parameters: 16, outputs: 8, polygonPoints: 8, polygonConstraints: 16, fileBytes: 65536, inputDepth: 12, lengthMM: 10000, dimensionNodes: ModelDimensionLimits.nodes, dimensionDepth: ModelDimensionLimits.depth });
+export const CadModelLimits = Object.freeze({ nodes: 6, sketches: 2, extrusions: 2, compositionNodes: 8, compositionSketches: 3, compositionExtrusions: 3, cuts: 1, intersections: 1, splits: 1, chamfers: 2, holes: 1, unions: 1, differences: 1, parameters: 16, outputs: 8, polygonPoints: 8, polygonConstraints: 16, loopSegments: 32, fileBytes: 65536, inputDepth: 12, lengthMM: 10000, dimensionNodes: ModelDimensionLimits.nodes, dimensionDepth: ModelDimensionLimits.depth });
 
 type Query = { parallelTo?: CadAxis; at?: Partial<Record<CadAxis, Dimension | 'min' | 'max'>> };
 type BodyRef = { node: number; side: 'solid' | 'negative' | 'positive' | 'instance1' | 'instance2' | 'instance3' };
@@ -222,7 +234,9 @@ type PolygonConstraint = { kind: 'fixed'; point: number } | { kind: 'horizontal'
 type SketchNode = { kind: 'sketch'; profile: 'polygon'; points: [Dimension, Dimension][] }
   | { kind: 'sketch'; profile: 'constrained-polygon'; points: [Dimension, Dimension][]; constraints: PolygonConstraint[] }
   | { kind: 'sketch'; profile: 'rectangle'; min: [Dimension, Dimension]; max: [Dimension, Dimension] }
-  | { kind: 'sketch'; profile: 'circle'; center: [Dimension, Dimension]; radius: Dimension };
+  | { kind: 'sketch'; profile: 'circle'; center: [Dimension, Dimension]; radius: Dimension }
+  | { kind: 'sketch'; profile: 'loop'; segments: LoopSegment[] };
+type LoopSegment = { kind: 'line'; start: [Dimension, Dimension] } | { kind: 'arc'; start: [Dimension, Dimension]; center: [Dimension, Dimension]; direction: 'ccw' | 'cw' };
 type ChamferConfiguration = { name: string; suppressed: boolean } | { name?: never; suppressed?: never };
 type RotationAngle = 90 | 180 | 270 | -90 | -180 | -270;
 type MirrorPlane = 'xy' | 'xz' | 'yz';
@@ -338,8 +352,34 @@ function circleExtrusion(nodes: readonly Node[], reference: BodyRef): boolean {
   const sketch = nodes[node.sketch];
   return sketch?.kind === 'sketch' && sketch.profile === 'circle';
 }
+function loopExtrusion(nodes: readonly Node[], reference: BodyRef): boolean {
+  const node = nodes[reference.node];
+  if (node?.kind !== 'extrude') return false;
+  const sketch = nodes[node.sketch];
+  return sketch?.kind === 'sketch' && sketch.profile === 'loop';
+}
+/** Circle and line+arc profiles are curved bodies: they are not admitted to convex/affine operations. */
+function curvedExtrusion(nodes: readonly Node[], reference: BodyRef): boolean { return circleExtrusion(nodes, reference) || loopExtrusion(nodes, reference); }
 function affineExtrusion(nodes: readonly Node[], reference: BodyRef): boolean {
-  return reference.side === 'solid' && nodes[reference.node]?.kind === 'extrude' && !circleExtrusion(nodes, reference);
+  return reference.side === 'solid' && nodes[reference.node]?.kind === 'extrude' && !curvedExtrusion(nodes, reference);
+}
+/** Authored loop segments: exact records with points, then the closed profile itself, so refusals happen at admission. */
+function loopSegments(value: unknown, point: (value: unknown) => void): void {
+  for (const segment of list(value, 'loop', 1, CadModelLimits.loopSegments)) {
+    const r = record(segment, 'loop');
+    if (r.kind === 'arc') { record(r, 'loop', ['kind', 'start', 'center', 'direction']); point(r.start); point(r.center); demand(r.direction === 'ccw' || r.direction === 'cw', 'INPUT', 'loop', 'Arc direction must be ccw or cw'); }
+    else { record(r, 'loop', ['kind', 'start']); demand(r.kind === 'line', 'CAPABILITY', 'loop', 'Loop segments are lines or circular arcs'); point(r.start); }
+  }
+}
+function loopProfile(segments: readonly LoopSegment[], parameters: Readonly<Record<string, number>>): ProfileLoop {
+  const xy = (p: readonly Dimension[]): [number, number] => [resolvedDimension(p[0], parameters), resolvedDimension(p[1], parameters)];
+  const input: ProfileSegmentInput[] = segments.map(s => s.kind === 'arc' ? { kind: 'arc', start: xy(s.start), center: xy(s.center), direction: s.direction } : { kind: 'line', start: xy(s.start) });
+  try { return runModelingProfile({ operation: 'loop', segments: input }); }
+  catch (cause) {
+    const code = cause instanceof Error && cause.name === 'ExtrudedProfileError' ? (cause as Error & { code: string }).code : undefined;
+    if (code !== undefined) throw new CadModelError(code === 'BUDGET' ? 'BUDGET' : code === 'INPUT' ? 'PARAMETER' : 'CAPABILITY', 'loop', cause instanceof Error ? cause.message : 'Profile refused', cause);
+    throw cause;
+  }
 }
 function circleMeasure(value: Dimension, parameters: Readonly<Record<string, number>>, operation: string): number {
   const result = resolvedDimension(value, parameters);
@@ -421,7 +461,7 @@ function rotationPivot(value: unknown): [unknown, unknown, unknown] {
 function rotationParent(nodes: readonly Node[], reference: BodyRef): boolean {
   if (finishedTranslationPrefix(nodes, reference)) return true;
   return affineExtrusion(nodes, reference) && nodes.every(node => node.kind === 'extrude'
-    || node.kind === 'sketch' && node.profile !== 'circle');
+    || node.kind === 'sketch' && node.profile !== 'circle' && node.profile !== 'loop');
 }
 /** The sole mixed transform recipe: an admitted source, then its rotation and terminal placement. */
 function rotatedPlacementPair(nodes: readonly Node[]): boolean {
@@ -634,6 +674,7 @@ function admit(input: Document): Document {
       if (n.profile === 'polygon') { record(n, 'sketch', ['kind', 'profile', 'points']); list(n.points, 'polygon', 3, CadModelLimits.polygonPoints).forEach(point); }
       else if (n.profile === 'constrained-polygon') { record(n, 'sketch', ['kind', 'profile', 'points', 'constraints']); list(n.points, 'constrainedPolygon', 3, CadModelLimits.polygonPoints).forEach(point); polygonConstraints(n.constraints, n.points.length); }
       else if (n.profile === 'circle') { record(n, 'sketch', ['kind', 'profile', 'center', 'radius']); point(n.center); circleProfile(n.center, n.radius, d.parameters); }
+      else if (n.profile === 'loop') { record(n, 'sketch', ['kind', 'profile', 'segments']); loopSegments(n.segments, point); loopProfile(n.segments, d.parameters); }
       else { record(n, 'sketch', ['kind', 'profile', 'min', 'max']); demand(n.profile === 'rectangle', 'CAPABILITY', 'sketch', 'Only convex XY polygons and rectangles supported'); point(n.min); point(n.max); }
     } else if (n.kind === 'extrude') {
       const placed = Object.hasOwn(n, 'from');
@@ -642,7 +683,7 @@ function admit(input: Document): Document {
         demand(!circleExtrusion(nodes, { node: i, side: 'solid' }), 'CAPABILITY', 'extrude', 'Extrusion placement options require an affine XY profile');
         offsetRange(n.from!, n.height, d.parameters);
       }
-      if (circleExtrusion(nodes, { node: i, side: 'solid' })) circleMeasure(n.height, d.parameters, 'extrude');
+      if (curvedExtrusion(nodes, { node: i, side: 'solid' })) circleMeasure(n.height, d.parameters, 'extrude');
     } else if (n.kind === 'translate') {
       record(n, 'translate', ['kind', 'parent', 'offset']); body(n.parent, i);
       demand(affineExtrusion(nodes, n.parent) || finishedTranslationPrefix(nodes.slice(0, i), n.parent) || rotatedPlacementPair(nodes), 'CAPABILITY', 'translate', 'Translation requires a direct affine extrusion, its complete finishing chain, or the exact last rotated solid');
@@ -695,7 +736,7 @@ function admit(input: Document): Document {
         featureNames.add(n.name);
       }
       body(n.parent, i); dimension(n.distance);
-      demand(!circleExtrusion(nodes, n.parent), 'CAPABILITY', 'chamfer', 'Circle bodies are not admitted to convex finishing operations');
+      demand(!curvedExtrusion(nodes, n.parent), 'CAPABILITY', 'chamfer', 'Circle and arc-profile bodies are not admitted to convex finishing operations');
       demand(counts.chamfer === 1 || (counts.chamfer === 2 && nodes[n.parent.node].kind === 'chamfer'), 'CAPABILITY', 'chamfer', 'At most two sequential chamfers in one chain are supported');
       const q = record(n.edge, 'selection'); demand(Object.keys(q).every(k => k === 'parallelTo' || k === 'at'), 'INPUT', 'selection', 'Unknown selector field');
       if (Object.hasOwn(q, 'parallelTo')) demand(axes.includes(n.edge.parallelTo!), 'INPUT', 'selection', 'Cardinal selector direction required');
@@ -929,7 +970,7 @@ export function createCadModel(): CadModel {
         demand(nodes[reference.node].kind !== 'scale', 'CAPABILITY', 'selection', 'World-origin scaled copies are terminal; scaled copies do not support edge queries');
         demand(nodes[reference.node].kind !== 'mirror', 'CAPABILITY', 'selection', 'World-origin mirrors are terminal; mirrored copies do not support edge queries');
         demand(nodes[reference.node].kind !== 'rotate', 'CAPABILITY', 'selection', 'Rotation about the world origin is terminal; rotated copies do not support edge queries');
-        demand(!circleExtrusion(nodes, reference) && nodes[reference.node].kind !== 'hole' && nodes[reference.node].kind !== 'union' && nodes[reference.node].kind !== 'difference' && nodes[reference.node].kind !== 'translate', 'CAPABILITY', 'selection', 'This body family is not admitted to convex edge queries');
+        demand(!curvedExtrusion(nodes, reference) && nodes[reference.node].kind !== 'hole' && nodes[reference.node].kind !== 'union' && nodes[reference.node].kind !== 'difference' && nodes[reference.node].kind !== 'translate', 'CAPABILITY', 'selection', 'This body family is not admitted to convex edge queries');
         const q = record(query, 'selection'); demand(Object.keys(q).every(k => k === 'parallelTo' || k === 'at'), 'INPUT', 'selection', 'Unknown selector field');
         const authored: Query = {};
         if (Object.hasOwn(q, 'parallelTo')) { demand(axes.includes(query.parallelTo!), 'INPUT', 'selection', 'Cardinal direction required'); authored.parallelTo = query.parallelTo; }
@@ -944,7 +985,7 @@ export function createCadModel(): CadModel {
         demand(nodes[reference.node].kind !== 'scale', 'CAPABILITY', 'chamfer', 'World-origin scaled copies are terminal; scaled copies do not support chamfers');
         demand(nodes[reference.node].kind !== 'mirror', 'CAPABILITY', 'chamfer', 'World-origin mirrors are terminal; mirrored copies do not support chamfers');
         demand(nodes[reference.node].kind !== 'rotate', 'CAPABILITY', 'chamfer', 'Rotation about the world origin is terminal; rotated copies do not support chamfers');
-        demand(!circleExtrusion(nodes, reference), 'CAPABILITY', 'chamfer', 'Circle bodies are not admitted to convex finishing operations');
+        demand(!curvedExtrusion(nodes, reference), 'CAPABILITY', 'chamfer', 'Circle and arc-profile bodies are not admitted to convex finishing operations');
         demand(nodes[reference.node].kind !== 'translate', 'CAPABILITY', 'chamfer', 'Translated copies are terminal outputs');
         let configuration: ChamferConfiguration = {};
         if (options !== undefined) {
@@ -974,7 +1015,7 @@ export function createCadModel(): CadModel {
         const from = dimension(fields.from as CadDimension); offsetRange(from, authored, parameters);
         return shape({ node: append({ kind: 'extrude', sketch: index, height: authored, from }), side: 'solid' });
       }
-      if (node.profile === 'circle') circleMeasure(authored, parameters, 'extrude');
+      if (node.profile === 'circle' || node.profile === 'loop') circleMeasure(authored, parameters, 'extrude');
       return shape({ node: append({ kind: 'extrude', sketch: index, height: authored }), side: 'solid' });
     }
     return Object.freeze({ extrude });
@@ -1043,6 +1084,15 @@ export function createCadModel(): CadModel {
     sketch: Object.freeze({
       constrainedPolygon,
       circle(options: { readonly center: CadPoint2; readonly radius: CadDimension }): CadSketch { authoring('circle'); record(options, 'circle', ['center', 'radius']); const center = point(options.center), radius = dimension(options.radius); circleProfile(center, radius, parameters); return sketch({ kind: 'sketch', profile: 'circle', center, radius }); },
+      loop(segments: readonly CadLoopSegment[]): CadSketch {
+        authoring('loop');
+        const authored = list(segments, 'loop', 1, CadModelLimits.loopSegments).map((segment): LoopSegment => {
+          const r = record(segment, 'loop');
+          if (r.kind === 'arc') { record(r, 'loop', ['kind', 'start', 'center', 'direction']); demand(r.direction === 'ccw' || r.direction === 'cw', 'INPUT', 'loop', 'Arc direction must be ccw or cw'); return { kind: 'arc', start: point(r.start as CadPoint2), center: point(r.center as CadPoint2), direction: r.direction }; }
+          record(r, 'loop', ['kind', 'start']); demand(r.kind === 'line', 'CAPABILITY', 'loop', 'Loop segments are lines or circular arcs'); return { kind: 'line', start: point(r.start as CadPoint2) };
+        });
+        loopProfile(authored, parameters); return sketch({ kind: 'sketch', profile: 'loop', segments: authored });
+      },
       polygon(points: readonly CadPoint2[]): CadSketch { authoring('polygon'); return sketch({ kind: 'sketch', profile: 'polygon', points: list(points, 'polygon', 3, 8).map(p => point(p as CadPoint2)) }); },
       rectangle(input: CadRectangle): CadSketch { authoring('rectangle'); const r = record(input, 'rectangle'); if (Object.hasOwn(r, 'width')) { record(r, 'rectangle', ['width', 'height']); return sketch({ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [dimension(r.width as CadDimension), dimension(r.height as CadDimension)] }); } record(r, 'rectangle', ['min', 'max']); return sketch({ kind: 'sketch', profile: 'rectangle', min: point(r.min as CadPoint2), max: point(r.max as CadPoint2) }); },
     }),
@@ -1113,6 +1163,7 @@ function evaluate(input: Document, previous?: EvaluationFrame): CadModelSnapshot
           const native = buildXYArc({ kind: 'circle', id: prefix + '_curve', center: [number(node.center[0]), number(node.center[1])], radius: number(node.radius) });
           evidence.push({ kind: 'sketch', profile: 'circle', native }); values.push(undefined); continue;
         }
+        if (node.profile === 'loop') { evidence.push({ kind: 'sketch', profile: 'loop', native: loopProfile(node.segments, document.parameters) }); values.push(undefined); continue; }
         let points: [number, number][];
         if (node.profile === 'polygon' || node.profile === 'constrained-polygon') points = node.points.map(p => [number(p[0]), number(p[1])]);
         else { const min = node.min.map(number), max = node.max.map(number); demand(min.every((v, i) => v < max[i]), 'PARAMETER', 'rectangle', 'Rectangle min must be strictly below max on each axis'); points = [[min[0], min[1]], [max[0], min[1]], [max[0], max[1]], [min[0], max[1]]]; }
@@ -1136,6 +1187,10 @@ function evaluate(input: Document, previous?: EvaluationFrame): CadModelSnapshot
           const parent = buildXYCirclePrismShell({ kind: 'circle', id: sketch.native.curve.id, center: sketch.native.report.centerMM, radius: sketch.native.report.radiusMM }, { shellId: prefix + '_shell', heightMM: height });
           const native = qualifyStoredCirclePrismSolid(parent);
           evidence.push({ kind: 'extrude', profile: 'circle', native }); values.push({ family: 'stored-rational-circle-prism', native }); continue;
+        }
+        if (sketch.profile === 'loop') {
+          const native = runModelingProfile({ operation: 'solid', loop: sketch.native, id: prefix + '_solid', heightMM: height, ...(Object.hasOwn(node, 'from') ? { fromMM: number(node.from!) } : {}) });
+          evidence.push({ kind: 'extrude', profile: 'loop', native }); values.push({ family: 'extruded-profile', native }); continue;
         }
         const points = sketch.native.solution.points.map(p => p.position), min = [0, 1].map(a => Math.min(...points.map(p => p[a]))), max = [0, 1].map(a => Math.max(...points.map(p => p[a])));
         const native = buildXYAffineSketchPrism(sketch.native, { sourceId: 'm' + node.sketch + '_src', sourceRevision: 0, orderedSegmentIds: sketch.native.document.segments.map(s => s.id), heightMM: height, capChart: { originXY: min as [number, number], spanXY: [max[0] - min[0], max[1] - min[1]] }, chartPolicy: { version: 1, kind: 'coordinate-span' }, solidId: prefix + '_solid', resultIdPrefix: prefix,
@@ -1261,8 +1316,8 @@ function measureNamedBody(bodies: Readonly<Record<string, CadBody>>, outputName:
   demand(typeof density === 'number' && Number.isFinite(density) && density > 0 && density <= 1e6, 'INPUT', operation, 'Positive finite density at most 1000000 kg/m3 required');
   demand(Object.hasOwn(bodies, outputName), 'SELECTION', operation, 'Unknown output: ' + outputName);
   const body = bodies[outputName];
-  demand(body.family === 'convex-planar' || body.family === 'orthogonal-cell' && body.native.report.schema === 'barocss-axis-box-solid-boolean',
-    'CAPABILITY', operation, 'Only convex planar and two-box integer-cell outputs have supported mass properties');
+  demand(body.family === 'convex-planar' || body.family === 'extruded-profile' || body.family === 'orthogonal-cell' && body.native.report.schema === 'barocss-axis-box-solid-boolean',
+    'CAPABILITY', operation, 'Only convex planar, extruded line+arc profile and two-box integer-cell outputs have supported mass properties');
   const project = (measure: ConvexPlanarSolidMassMeasure | AxisBoxSolidMassMeasure) => {
     const { centroidMM, inertiaCentroidKgM2 } = measure, exact = measure.exact, errors = measure.conversionErrors;
     demand(measure.volumeMM3 > 0 && measure.massKG > 0 && centroidMM !== null && inertiaCentroidKgM2 !== null &&
@@ -1273,6 +1328,10 @@ function measureNamedBody(bodies: Readonly<Record<string, CadBody>>, outputName:
       conversionErrors: { massKG: errors.massKG, centroidMM: errors.centroidMM, inertiaCentroidKgM2: errors.inertiaCentroidKgM2 } };
   };
   try {
+    if (body.family === 'extruded-profile') {
+      const native = runModelingProfile({ operation: 'mass', solid: body.native, densityKgPerM3: density });
+      return freeze({ outputName, densityKgPerM3: density, volumeMM3: native.volumeMM3, massKG: native.massKG, centroidMM: native.centroidMM as [number, number, number], inertiaCentroidKgM2: native.inertiaCentroidKgM2, family: 'extruded-profile', details: { native } });
+    }
     if (body.family === 'convex-planar') {
       const native = measureConvexPlanarSolidMass(body.native, { densityKgPerM3: density, maximumFanTriangles: 40 });
       const result = project(native.measure);
@@ -1299,8 +1358,16 @@ function exportNamedStl(bodies: Readonly<Record<string, CadBody>>, outputName: s
   name(outputName, operation);
   demand(Object.hasOwn(bodies, outputName), 'SELECTION', operation, 'Unknown output: ' + outputName);
   const body = bodies[outputName];
-  demand(body.family === 'convex-planar', 'CAPABILITY', operation, 'Binary STL currently supports only owned convex planar outputs');
+  demand(body.family === 'convex-planar' || body.family === 'extruded-profile', 'CAPABILITY', operation, 'Binary STL currently supports only owned convex planar and extruded line+arc profile outputs');
   try {
+    if (body.family === 'extruded-profile') {
+      const segmentsPerQuarter = 16, bytes = runModelingProfile({ operation: 'stl', solid: body.native, segmentsPerQuarter });
+      const radii = body.native.profile.segments.flatMap(s => s.kind === 'arc' ? [s.radiusMM] : []);
+      const chordToleranceMM = Math.max(0, ...radii.map(r => r * (1 - Math.cos(Math.PI / 4 / segmentsPerQuarter))));
+      return freeze({ outputName, family: 'extruded-profile', format: 'binary-stl', lengthUnit: 'mm', bytes: Array.from(bytes), byteLength: bytes.length,
+        triangleCount: new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(80, true),
+        maximumVertexDisplacementMM: chordToleranceMM, details: { segmentsPerQuarter, chordToleranceMM } });
+    }
     const details = buildModelingStl(body.native);
     return freeze({ outputName, family: 'convex-planar', format: 'binary-stl', lengthUnit: 'mm',
       bytes: details.encoding.bytes, byteLength: details.encoding.bytes.length,

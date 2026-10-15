@@ -19,7 +19,7 @@ const { build } = require('esbuild');
 const trapKey = Symbol.for('barocss.modeling-constraints.admission-trap');
 assert.equal(globalThis[trapKey], undefined, 'Never replace another active trap');
 const providers = new Map([
-  ['xy-arc', 'buildXYArc'], ['xy-circle-prism-shell', 'buildXYCirclePrismShell'], ['stored-circle-prism-solid', 'qualifyStoredCirclePrismSolid'],
+  ['xy-arc', 'buildXYArc'], ['xy-circle-prism-shell', 'buildXYCirclePrismShell'], ['stored-circle-prism-solid', 'qualifyStoredCirclePrismSolid'], ['modeling-profile-internal', 'runModelingProfile'],
   ['xy-affine-sketch', 'buildXYAffineSketch'], ['xy-affine-sketch-prism', 'buildXYAffineSketchPrism'],
   ['convex-planar-slab-subtraction', 'subtractConvexPlanarSlab'], ['convex-planar-solid-intersection', 'intersectConvexPlanarSolids'],
   ['convex-planar-solid-split', 'splitConvexPlanarSolid'], ['model-compiler', 'compileCadModel'],
@@ -158,9 +158,9 @@ function assertRecovered(model) {
 }
 
 // All tests below use only the actual facade plus immutable helper authority.
-test('entry isolates all twenty-four providers; successful routing preserves the existing snapshot inventory', () => {
+test('entry isolates all twenty-five providers; successful routing preserves the existing snapshot inventory', () => {
   const { snapshot } = authored();
-  assert.equal(replaced.size, 24); assert.equal(inputPaths.length, pureModules.size);
+  assert.equal(replaced.size, 25); assert.equal(inputPaths.length, pureModules.size);
   assert.deepEqual(Object.keys(snapshot).sort(), ['bodies', 'parameters', 'suppression', 'features', 'recomputation', 'evidence', 'withParameters', 'withSuppression', 'massProperties', 'exportStl', 'save'].sort());
   assert.equal(snapshot.bodies.part.family, 'convex-planar'); assert.equal(snapshot.bodies.part.native.controlOnly, marker);
   assert.deepEqual(snapshot.evidence.map(value => value.kind), ['sketch', 'extrude']);

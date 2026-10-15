@@ -19,7 +19,7 @@ const { build } = require('esbuild');
 const trapKey = Symbol.for('barocss.modeling-rotation-placement.admission-trap');
 assert.equal(globalThis[trapKey], undefined, 'Never replace another active trap');
 const providers = new Map([
-  ['xy-arc', 'buildXYArc'], ['xy-circle-prism-shell', 'buildXYCirclePrismShell'], ['stored-circle-prism-solid', 'qualifyStoredCirclePrismSolid'],
+  ['xy-arc', 'buildXYArc'], ['xy-circle-prism-shell', 'buildXYCirclePrismShell'], ['stored-circle-prism-solid', 'qualifyStoredCirclePrismSolid'], ['modeling-profile-internal', 'runModelingProfile'],
   ['xy-affine-sketch', 'buildXYAffineSketch'], ['xy-affine-sketch-prism', 'buildXYAffineSketchPrism'],
   ['convex-planar-slab-subtraction', 'subtractConvexPlanarSlab'], ['convex-planar-solid-intersection', 'intersectConvexPlanarSolids'],
   ['convex-planar-solid-split', 'splitConvexPlanarSolid'], ['model-compiler', 'compileCadModel'],
@@ -188,9 +188,9 @@ function rejectDocument(edit, code) {
   const data = document(); edit(data); return refuses(() => loadCadModel(signedJson(data)), code);
 }
 
-test('all24 providers are trapped; one complete pair routes translation from the actual rotation result', () => {
+test('all25 providers are trapped; one complete pair routes translation from the actual rotation result', () => {
   const start = state.calls.length, { snapshot } = placed(), calls = state.calls.slice(start);
-  assert.equal(replaced.size, 24); assert.equal(inputPaths.length, pureModules.size);
+  assert.equal(replaced.size, 25); assert.equal(inputPaths.length, pureModules.size);
   assert.deepEqual(calls.map(call => call.binding), ['buildXYAffineSketch', 'buildXYAffineSketchPrism', 'buildModelingRotation', 'buildModelingTranslation']);
   assert.equal(calls[2].args[0], snapshot.bodies.original.native);
   assert.equal(calls[3].args[0], calls[2].result.solid);

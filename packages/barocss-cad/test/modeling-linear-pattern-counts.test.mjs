@@ -19,7 +19,7 @@ const { build } = require('esbuild');
 const trapKey = Symbol.for('barocss.modeling-linear-pattern-counts.admission-trap');
 assert.equal(globalThis[trapKey], undefined, 'Never replace another active trap');
 const providers = new Map([
-  ['xy-arc', 'buildXYArc'], ['xy-circle-prism-shell', 'buildXYCirclePrismShell'], ['stored-circle-prism-solid', 'qualifyStoredCirclePrismSolid'],
+  ['xy-arc', 'buildXYArc'], ['xy-circle-prism-shell', 'buildXYCirclePrismShell'], ['stored-circle-prism-solid', 'qualifyStoredCirclePrismSolid'], ['modeling-profile-internal', 'runModelingProfile'],
   ['xy-affine-sketch', 'buildXYAffineSketch'], ['xy-affine-sketch-prism', 'buildXYAffineSketchPrism'],
   ['convex-planar-slab-subtraction', 'subtractConvexPlanarSlab'], ['convex-planar-solid-intersection', 'intersectConvexPlanarSolids'],
   ['convex-planar-solid-split', 'splitConvexPlanarSolid'], ['model-compiler', 'compileCadModel'],
@@ -182,10 +182,10 @@ function document(count = 4) {
     { kind: 'linear-pattern', parent: { node: 1, side: 'solid' }, axis: 'x', spacing: 40, count },
   ], outputs: Object.fromEntries(labels(count).map(name => [name, { node: name === 'original' ? 1 : 2, side: name === 'original' ? 'solid' : name }])) };
 }
-test('all24 providers are isolated; exact frozen tuple count and provider arity are preserved', () => {
+test('all25 providers are isolated; exact frozen tuple count and provider arity are preserved', () => {
   for (const count of [2, 3, 4]) {
     const start = state.calls.length, { original, tuple, snapshot } = patterned(count), calls = state.calls.slice(start), final = calls.at(-1);
-    assert.equal(replaced.size, 24); assert.equal(inputPaths.length, pureModules.size);
+    assert.equal(replaced.size, 25); assert.equal(inputPaths.length, pureModules.size);
     assert.equal(tuple.length, count); assert.ok(Object.isFrozen(tuple)); assert.equal(tuple[0], original); assert.equal(new Set(tuple).size, count);
     assert.deepEqual(calls.map(call => call.binding), ['buildXYAffineSketch', 'buildXYAffineSketchPrism', 'buildModelingLinearPattern']);
     assert.equal(final.args.length, count === 3 ? 3 : 4); if (count !== 3) assert.equal(final.args[3], count);

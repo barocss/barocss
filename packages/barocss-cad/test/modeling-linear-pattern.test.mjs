@@ -19,7 +19,7 @@ const { build } = require('esbuild');
 const trapKey = Symbol.for('barocss.modeling-linear-pattern.admission-trap');
 assert.equal(globalThis[trapKey], undefined, 'Never replace another active trap');
 const providers = new Map([
-  ['xy-arc', 'buildXYArc'], ['xy-circle-prism-shell', 'buildXYCirclePrismShell'], ['stored-circle-prism-solid', 'qualifyStoredCirclePrismSolid'],
+  ['xy-arc', 'buildXYArc'], ['xy-circle-prism-shell', 'buildXYCirclePrismShell'], ['stored-circle-prism-solid', 'qualifyStoredCirclePrismSolid'], ['modeling-profile-internal', 'runModelingProfile'],
   ['xy-affine-sketch', 'buildXYAffineSketch'], ['xy-affine-sketch-prism', 'buildXYAffineSketchPrism'],
   ['convex-planar-slab-subtraction', 'subtractConvexPlanarSlab'], ['convex-planar-solid-intersection', 'intersectConvexPlanarSolids'],
   ['convex-planar-solid-split', 'splitConvexPlanarSolid'], ['model-compiler', 'compileCadModel'],
@@ -181,9 +181,9 @@ function checkDocument(edit) {const doc=authoredDocument();edit(doc);return refu
 
 // These tests execute the real facade with inert native bindings. They make no
 // geometry, lineage, native preflight, or kernel qualification claim.
-test('all twenty-four provider bindings are isolated and one terminal node returns the exact original handle plus two copies',()=>{
+test('all twenty-five provider bindings are isolated and one terminal node returns the exact original handle plus two copies',()=>{
   const begin=state.calls.length,{original,tuple,snapshot}=patterned(),calls=state.calls.slice(begin),native=calls.at(-1).result;
-  assert.equal(replaced.size,24);assert.equal(inputPaths.length,pureModules.size);
+  assert.equal(replaced.size, 25);assert.equal(inputPaths.length,pureModules.size);
   assert.deepEqual(calls.map(call=>call.binding),['buildXYAffineSketch','buildXYAffineSketchPrism','buildModelingLinearPattern']);
   assert.ok(Object.isFrozen(tuple));assert.equal(tuple.length,3);assert.equal(tuple[0],original);assert.notEqual(tuple[1],original);assert.notEqual(tuple[2],original);assert.notEqual(tuple[1],tuple[2]);
   assert.equal(calls.at(-1).args[0],snapshot.bodies.original.native);assert.deepEqual(calls.at(-1).args[1],[40,0,0]);assert.equal(calls.at(-1).args[2],'m2');
