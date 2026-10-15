@@ -13,7 +13,8 @@
 //              so in their other faces' loops too), and the halves meet along a new edge
 //   closed     an edge starting and ending at one vertex is split in two
 //
-// Other entities (offset surfaces, vertex loops, faces with a seam and holes) are refused by name.
+// A face once round with holes is cut where no hole is. Other entities (offset surfaces, vertex loops,
+// holes across a seam) are refused by name.
 import { BrepError, buildBrep, type Brep } from './brep-core.js';
 import { curveDomain, evaluateCurve } from './math.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
@@ -358,13 +359,24 @@ export function importStep(source: string, options: { readonly id?: string } = {
   // Seams: a face once round its axis is cut in two at the opposite angle.
   for (const f of [...faces]) {
     if (!periodic(f.sd)) continue;
-    const loop = f.loops.find(l => { const ids = l.uses.map(u => u.edge); return ids.some((x, i) => ids.indexOf(x) !== i); });
-    if (!loop) continue;
-    if (f.loops.length > 1) refuse(`a face going once round its axis with holes in it is not supported yet (${f.name || f.id})`);
+    const li = f.loops.findIndex(l => { const ids = l.uses.map(u => u.edge); return ids.some((x, i) => ids.indexOf(x) !== i); });
+    if (li < 0) continue;
+    const loop = f.loops[li], holes = f.loops.filter((_, k) => k !== li);
     const ids = loop.uses.map(u => u.edge), seam = ids.find((x, i) => ids.indexOf(x) !== i)!, i1 = ids.indexOf(seam), i2 = ids.lastIndexOf(seam);
     const n = loop.uses.length, rot = [...loop.uses.slice(i1), ...loop.uses.slice(0, i1)], j = (i2 - i1 + n) % n;
     const sPlus = rot[0], c1 = rot.slice(1, j), c2 = rot.slice(j + 1);
-    const sd = f.sd, seamAngle = natural(sd, geoAt(edges.get(seam)!.geo, 0.5))[0], cut = seamAngle + Math.PI;
+    const sd = f.sd, seamAngle = natural(sd, geoAt(edges.get(seam)!.geo, 0.5))[0];
+    // The cut goes half round from the seam, or where it is clearest of the face's holes.
+    const extents = holes.map(h => arcHolding(h.uses.flatMap(us => Array.from({ length: 9 }, (_, i) => natural(sd, geoAt(edges.get(us.edge)!.geo, i / 8))[0]))));
+    const inside = (a: number, x: { start: number; span: number }) => wrap(a - x.start) <= x.span;
+    if (extents.some(x => inside(seamAngle, x))) refuse(`a hole across the seam of a face once round its axis is not supported yet (${f.name || f.id})`);
+    const clearance = (a: number) => Math.min(wrap(a - seamAngle), wrap(seamAngle - a), ...extents.map(x => inside(a, x) ? -1 : Math.min(wrap(x.start - a), wrap(a - x.start - x.span))));
+    let cut = seamAngle + Math.PI;
+    if (extents.length && extents.some(x => inside(cut, x) || clearance(cut) < 1e-3)) {
+      let best = -Infinity;
+      for (let k = 1; k < 720; k++) { const a = seamAngle + TAU * k / 720, c = clearance(a); if (c > best) { best = c; cut = a; } }
+      if (!(best > 1e-6)) refuse(`the holes of a face once round its axis leave no room to cut it (${f.name || f.id})`);
+    }
     // Where a chain crosses the cut angle (by bisection on the edge holding it): a vertex there.
     const meet = (chain: IUse[]): string | null => {
       if (!chain.length) return null; // the chain is a point (a pole)
@@ -390,7 +402,7 @@ export function importStep(source: string, options: { readonly id?: string } = {
     const Q1 = seamFrom(sPlus), Q2 = seamTo(sPlus);
     const P2 = meet(c1) ?? Q2, P1 = meet(c2) ?? Q1;
     // The chains again (split edges replaced), each cut at its new vertex.
-    const fresh1 = f.loops[0].uses, s1 = fresh1.findIndex(u => u.edge === seam && u.fwd === sPlus.fwd);
+    const fresh1 = f.loops[li].uses, s1 = fresh1.findIndex(u => u.edge === seam && u.fwd === sPlus.fwd);
     const R = [...fresh1.slice(s1), ...fresh1.slice(0, s1)], jj = R.findIndex((u, i) => i > 0 && u.edge === seam);
     const C1 = R.slice(1, jj), C2 = R.slice(jj + 1);
     const cutAt = (chain: IUse[], P: string) => { const at = chain.findIndex(u => seamFrom(u) === P); return at < 0 ? [chain, []] : [chain.slice(0, at), chain.slice(at)]; };
@@ -399,8 +411,8 @@ export function importStep(source: string, options: { readonly id?: string } = {
     const p1 = points.get(P1)!, p2 = points.get(P2)!, sid = `${f.id}_cut`;
     let geo: Geo;
     if (sd.kind === 'revolution') {
-      // The seam turned half round: its ends turn onto P1 and P2.
-      const sg = edges.get(seam)!, forward = seamFrom(sPlus) === sg.v[0], g = turned(sg.geo, sd.f.o, sd.f.z, Math.PI);
+      // The seam turned onto the cut: its ends turn onto P1 and P2.
+      const sg = edges.get(seam)!, forward = seamFrom(sPlus) === sg.v[0], g = turned(sg.geo, sd.f.o, sd.f.z, cut - seamAngle);
       geo = forward ? g : g.kind === 'line' ? { kind: 'line', p: g.q, q: g.p } : g.kind === 'conic' ? { ...g, t0: g.t0 + g.sweep, sweep: -g.sweep } : { kind: 'curve', c: reverseCurve(g.c) };
       if (len(sub(geoAt(geo, 0), p1)) > 1e-6 * Math.max(1, len(p1)) || len(sub(geoAt(geo, 1), p2)) > 1e-6 * Math.max(1, len(p2))) refuse(`a face of revolution whose seam does not turn onto its opposite side is not supported yet (${f.name || f.id})`);
     } else if (sd.kind === 'cylinder' || sd.kind === 'cone') geo = { kind: 'line', p: p1, q: p2 };
@@ -416,6 +428,11 @@ export function importStep(source: string, options: { readonly id?: string } = {
     // The halves are named as any face split in two: name#1, name#2.
     const half = (uses: IUse[], suffix: string, k: number): IFace => ({ ...f, id: `${f.id}${suffix}`, loops: [{ outer: true, uses }], ...(f.name ? { name: `${f.name}#${k}` } : {}) });
     const A = half([R[0], ...C1a, { edge: sid, fwd: false }, ...C2b], '_a', 1), B = half([{ edge: sid, fwd: true }, ...C1b, R[jj], ...C2a], '_b', 2);
+    // Each hole goes with the half on its side of the cut (the half from the seam towards A's chain).
+    if (holes.length) {
+      const relCut = wrap(cut - seamAngle), probe = [...C1a, ...C2b][0], aLow = probe ? wrap(natural(sd, geoAt(edges.get(probe.edge)!.geo, 0.5))[0] - seamAngle) < relCut : true;
+      holes.forEach((h, k) => { const x = extents[k], mid = x.start + x.span / 2, low = wrap(mid - seamAngle) < relCut; (low === aLow ? A : B).loops.push({ outer: false, uses: h.uses }); });
+    }
     faces.splice(faces.indexOf(f), 1, A, B);
     for (const b of bodies) for (const sh of b.shells) { const at = sh.faces.indexOf(f); if (at >= 0) sh.faces.splice(at, 1, A, B); }
   }

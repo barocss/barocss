@@ -49,13 +49,15 @@ test('several bodies go into one STEP product; unsupported input is refused with
 });
 
 test('STEP from other systems: analytic surfaces, closed circles, seams and poles become seamless patches', async () => {
-  const { cylinderStep, holedBoxStep, frustumStep, sphereStep, extrudedSideStep, revolvedProfileStep } = await import('./step-fixtures.mjs');
+  const { cylinderStep, holedBoxStep, frustumStep, sphereStep, extrudedSideStep, revolvedProfileStep, pocketedCylinderStep } = await import('./step-fixtures.mjs');
   const pi = Math.PI, near = (a, b, rel) => Math.abs(a - b) <= rel * Math.abs(b), r1 = 10 - 6 * Math.tan(pi / 6);
   const cases = [
     ['a cylinder (closed circles, a wall with a seam)', cylinderStep(), pi * 250, ['bottom', 'top', 'wall#1', 'wall#2']],
     ['a box with a through hole (the wall faces inwards)', holedBoxStep(), 12000 - 160 * pi, ['back', 'bottom', 'front', 'hole#1', 'hole#2', 'left', 'right', 'top']],
     ['a cone frustum (CONICAL_SURFACE)', frustumStep(), pi * 2 * (100 + 10 * r1 + r1 * r1), ['bottom', 'cone#1', 'cone#2', 'top']],
     ['a sphere (a seam from pole to pole)', sphereStep(), 4 / 3 * pi * 125, ['ball#1', 'ball#2']],
+    // A wall once round with a hole in it (a pocket's mouth across the angle opposite its seam): cut where the hole is not.
+    ['a cylinder with a pocket in its side', pocketedCylinderStep(), 250 * pi - pi / 6 * 16 * 2, ['bottom', 'ceiling', 'floor', 'pocket', 'side a', 'side b', 'top', 'wall#1', 'wall#2']],
     // A parabolic side (SURFACE_OF_LINEAR_EXTRUSION of a B-spline): the parabola adds 2/3 of its triangle.
     ['a prism with an extruded B-spline side', extrudedSideStep(), (80 + 40 / 3) * 5, ['bottom', 'curved', 'front', 'left', 'right', 'top']],
     // A B-spline profile turned once (SURFACE_OF_REVOLUTION with the profile as its seam): π∫ρ² dh.
@@ -85,6 +87,8 @@ test('STEP from other systems: analytic surfaces, closed circles, seams and pole
   // What cannot be read yet is refused by name.
   assert.throws(() => evaluateCadPart(D([{ id: 'i', kind: 'import', step: "ISO-10303-21;\nDATA;\n#1=OFFSET_SURFACE('',#5,1.,.F.);\n#2=MANIFOLD_SOLID_BREP('',#3);\n#3=CLOSED_SHELL('',(#4));\n#4=ADVANCED_FACE('',(),#1,.T.);\nENDSEC;" }])),
     e => e.code === 'CAPABILITY' && /OFFSET_SURFACE surfaces are not supported yet/.test(e.message));
+  // A hole across the seam itself is not cut yet.
+  assert.throws(() => importStep(pocketedCylinderStep(5, 10, 340, 380)), e => e instanceof BrepError && /across the seam/.test(e.message));
   // A profile off the plane through its axis is not turned yet.
   assert.throws(() => importStep(revolvedProfileStep().replace("CARTESIAN_POINT('',(6.,0.,3.))", "CARTESIAN_POINT('',(6.,1.5,3.))")), e => e instanceof BrepError && /off a plane through its axis/.test(e.message));
 });

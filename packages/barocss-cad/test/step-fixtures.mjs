@@ -127,3 +127,34 @@ export function revolvedProfileStep() {
   const bottom = w.face([w.outer(w.loop(w.oe(c0, false)))], w.e(`PLANE('',${w.ax([0, 0, 0])})`), false, 'bottom');
   return w.finish([wall, top, bottom], 'vase');
 }
+
+/**
+ * A cylinder r × h with a pocket in its side: angles a0 to a1, heights z0 to z1, depth d — the wall a
+ * face once round with the pocket's mouth as a hole in it (across the angle opposite the seam).
+ */
+export function pocketedCylinderStep(r = 5, h = 10, a0 = 150, a1 = 210, z0 = 4, z1 = 6, d = 2) {
+  const w = writer(), ri = r - d, A0 = a0 * Math.PI / 180, A1 = a1 * Math.PI / 180;
+  const at = (rr, a, z) => [rr * Math.cos(a), rr * Math.sin(a), z];
+  const v0 = w.vtx([r, 0, 0]), v1 = w.vtx([r, 0, h]);
+  const c0 = w.edge(v0, v0, w.e(`CIRCLE('',${w.ax([0, 0, 0])},${r}.)`)), c1 = w.edge(v1, v1, w.e(`CIRCLE('',${w.ax([0, 0, h])},${r}.)`));
+  const seam = w.edge(v0, v1, w.e(`SEAM_CURVE('',${w.line([r, 0, 0], [0, 0, 1])},(),.PCURVE_S1.)`));
+  const V = {}; for (const rr of [ri, r]) for (const a of [A0, A1]) for (const z of [z0, z1]) V[`${rr},${a},${z}`] = w.vtx(at(rr, a, z));
+  const vx = (rr, a, z) => V[`${rr},${a},${z}`];
+  const arc = (rr, z) => w.edge(vx(rr, A0, z), vx(rr, A1, z), w.e(`CIRCLE('',${w.ax([0, 0, z])},${rr}.)`));
+  const up = (rr, a) => w.edge(vx(rr, a, z0), vx(rr, a, z1), w.line(at(rr, a, z0), [0, 0, 1]));
+  const out = (a, z) => w.edge(vx(ri, a, z), vx(r, a, z), w.line(at(ri, a, z), [Math.cos(a), Math.sin(a), 0]));
+  const o0 = arc(r, z0), o1 = arc(r, z1), i0 = arc(ri, z0), i1 = arc(ri, z1), uo0 = up(r, A0), uo1 = up(r, A1), ui0 = up(ri, A0), ui1 = up(ri, A1);
+  const l00 = out(A0, z0), l01 = out(A0, z1), l10 = out(A1, z0), l11 = out(A1, z1);
+  const plane = (o, z, x) => w.e(`PLANE('',${w.ax(o, z, x)})`), t = a => [-Math.sin(a), Math.cos(a), 0], rad = a => [Math.cos(a), Math.sin(a), 0];
+  const faces = [
+    w.face([w.outer(w.loop(w.oe(c0, true), w.oe(seam, true), w.oe(c1, false), w.oe(seam, false))), w.inner(w.loop(w.oe(uo0, true), w.oe(o1, true), w.oe(uo1, false), w.oe(o0, false)))], w.e(`CYLINDRICAL_SURFACE('',${w.ax([0, 0, 0])},${r}.)`), true, 'wall'),
+    w.face([w.outer(w.loop(w.oe(c1, true)))], plane([0, 0, h], [0, 0, 1], [1, 0, 0]), true, 'top'),
+    w.face([w.outer(w.loop(w.oe(c0, false)))], plane([0, 0, 0], [0, 0, 1], [1, 0, 0]), false, 'bottom'),
+    w.face([w.outer(w.loop(w.oe(i0, true), w.oe(ui1, true), w.oe(i1, false), w.oe(ui0, false)))], w.e(`CYLINDRICAL_SURFACE('',${w.ax([0, 0, 0])},${ri}.)`), true, 'pocket'),
+    w.face([w.outer(w.loop(w.oe(l00, true), w.oe(o0, true), w.oe(l10, false), w.oe(i0, false)))], plane([0, 0, z0], [0, 0, 1], [1, 0, 0]), true, 'floor'),
+    w.face([w.outer(w.loop(w.oe(i1, true), w.oe(l11, true), w.oe(o1, false), w.oe(l01, false)))], plane([0, 0, z1], [0, 0, -1], [1, 0, 0]), true, 'ceiling'),
+    w.face([w.outer(w.loop(w.oe(ui0, true), w.oe(l01, true), w.oe(uo0, false), w.oe(l00, false)))], plane(at(0, A0, 0), t(A0), rad(A0)), true, 'side a'),
+    w.face([w.outer(w.loop(w.oe(l10, true), w.oe(uo1, true), w.oe(l11, false), w.oe(ui1, false)))], plane(at(0, A1, 0), t(A1).map(x => -x), rad(A1)), true, 'side b'),
+  ];
+  return w.finish(faces, 'pocketed cylinder');
+}
