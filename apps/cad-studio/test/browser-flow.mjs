@@ -124,6 +124,20 @@ try {
     await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(400);
   });
 
+  await check('side hole into the front face', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.click('.views button:text-is("Front")'); await press('f'); await page.waitForTimeout(400);
+    const [cx, cy] = await canvasCenter(); await page.mouse.move(cx, cy); await page.mouse.click(cx, cy);
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props')?.textContent ?? ''));
+    await press('h'); await hudReady();
+    assert.ok(await field('Centre Z').count(), 'a front-face hole is placed in X and Z');
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
+    await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    const d = await page.evaluate(() => window.__studioDoc); assert.equal(d.nodes[d.nodes.length - 1].axis, 'y');
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(400);
+  });
+
   const doc = () => page.evaluate(() => window.__studioDoc);
   const clickAt = async (x, y) => { await page.mouse.move(x - 4, y); await page.mouse.move(x, y); await page.mouse.click(x, y); };
   const status = () => page.locator('.sk-status').first().innerText();

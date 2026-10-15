@@ -27,7 +27,8 @@ export type ModelNode = SketchNode
   /** Edges by their persistent B-rep names (they follow the features, so edits keep the selection). */
   | { kind: 'chamfer'; parent: BodyRef; edges: string[]; distance: Dim }
   | { kind: 'fillet'; parent: BodyRef; edges: string[]; radius: Dim }
-  | { kind: 'hole'; parent: BodyRef; center: [Dim, Dim]; radius: Dim };
+  /** Along `axis` (default z) through the body; `side` is the face it was picked on (default max). */
+  | { kind: 'hole'; parent: BodyRef; center: [Dim, Dim]; radius: Dim; axis?: Axis; side?: 'min' | 'max'; depth?: Dim };
 
 export interface StudioDoc {
   format: 'barocss-cad-model';

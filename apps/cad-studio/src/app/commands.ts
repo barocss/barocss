@@ -44,8 +44,15 @@ function oneBody(ctx: Ctx) {
   return list.length === 1 ? ctx.bodies[list[0]] : null;
 }
 
+/** The hole axis and entry side of a face normal along ±X, ±Y or ±Z. */
+function holeAxis(n: readonly number[]): { axis: Axis; side: 'min' | 'max' } | null {
+  const k = [0, 1, 2].find(i => Math.abs(Math.abs(n[i]) - 1) < 1e-6);
+  return k === undefined ? null : { axis: (['x', 'y', 'z'] as const)[k], side: n[k] > 0 ? 'max' : 'min' };
+}
+/** A hole's centre coordinates per axis (the kernel's order). */
+const HOLE_PLANE: Record<Axis, [Axis, Axis]> = { z: ['x', 'y'], x: ['y', 'z'], y: ['x', 'z'] };
 const notYet = (what: string): Command['available'] => () => no(`${what} isn’t available in the kernel yet.`);
-const uprightReason = 'This body was turned about X or Y (or chamfered along a top edge); holes and fillets need an upright body.';
+const uprightReason = 'This body was turned about X or Y (or chamfered along a top edge); fillets need an upright body.';
 /** The selected edges, when they all belong to one body. */
 function edgesOfOneBody(ctx: Ctx) {
   const sel = ctx.selection.edges; if (!sel.length || sel.some(e => e.body !== sel[0].body)) return null;
@@ -92,24 +99,26 @@ export const commands: Command[] = [
     },
   },
   {
-    id: 'hole', label: 'Hole', icon: 'radio_button_checked', shortcut: 'H', group: 'create', keywords: 'drill bore through',
+    id: 'hole', label: 'Hole', icon: 'radio_button_checked', shortcut: 'H', group: 'create', keywords: 'drill bore through side cross',
     available: ctx => {
-      const f = ctx.selection.faces[0];
-      if (ctx.selection.faces.length !== 1) return no('Select the top face where the hole goes.');
-      const body = ctx.bodies[f.body]; const face = body.mesh.faces[f.face];
-      if (face.kind !== 'plane' || face.normal[2] < 0.99) return no('Holes go through a top face (facing +Z).');
-      if (body.family !== 'upright') return no(uprightReason);
+      if (ctx.selection.faces.length !== 1) return no('Select the flat face where the hole goes in.');
+      const f = ctx.selection.faces[0], face = ctx.bodies[f.body].mesh.faces[f.face];
+      if (face.kind !== 'plane' || !holeAxis(face.normal)) return no('Holes go into a flat face facing ±X, ±Y or ±Z.');
       return ok;
     },
-    fields: () => [{ key: 'd', label: 'Diameter', kind: 'mm', min: 0.5 }, { key: 'x', label: 'Centre X', kind: 'mm' }, { key: 'y', label: 'Centre Y', kind: 'mm' }],
+    fields: ctx => {
+      const f = ctx.selection.faces[0], { axis } = holeAxis(ctx.bodies[f.body].mesh.faces[f.face].normal)!, [a, b] = HOLE_PLANE[axis];
+      return [{ key: 'd', label: 'Diameter', kind: 'mm', min: 0.5 }, { key: 'x', label: 'Centre ' + a.toUpperCase(), kind: 'mm' }, { key: 'y', label: 'Centre ' + b.toUpperCase(), kind: 'mm' }];
+    },
     defaults: ctx => {
       const f = ctx.selection.faces[0]; const face = ctx.bodies[f.body].mesh.faces[f.face];
-      const p = ctx.pick ?? face.centroid;
-      return { d: 8, x: r1(p[0]), y: r1(p[1]) };
+      const p = ctx.pick ?? face.centroid, [a, b] = HOLE_PLANE[holeAxis(face.normal)!.axis].map(k => 'xyz'.indexOf(k));
+      return { d: 8, x: r1(p[a]), y: r1(p[b]) };
     },
     build: (ctx, v) => {
-      const ref = refOf(ctx.bodies[ctx.selection.faces[0].body]);
-      return withNode(ctx.doc, { kind: 'hole', parent: ref, center: [Number(v.x), Number(v.y)], radius: Number(v.d) / 2 });
+      const f = ctx.selection.faces[0], body = ctx.bodies[f.body], { axis, side } = holeAxis(body.mesh.faces[f.face].normal)!;
+      // Through by default; the side is kept so a later depth edit drills in from the picked face.
+      return withNode(ctx.doc, { kind: 'hole', parent: refOf(body), center: [Number(v.x), Number(v.y)], radius: Number(v.d) / 2, ...(axis === 'z' ? {} : { axis }), ...(side === 'min' ? { side } : {}) });
     },
   },
   {

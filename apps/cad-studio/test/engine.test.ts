@@ -112,6 +112,19 @@ test('B-rep part model: Boolean chains, holes on results, and name-based fillets
   assert.ok(after.bodies[0].mesh.faces.some(f => f.name === 'n9.face'));
 });
 
+test('side holes along X and Y, and a pin along X joined to the plate (plane + cylinder Booleans)', () => {
+  let doc = rectanglePart(60, 30, 12);
+  doc = withNode(doc, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [15, 6], radius: 3, axis: 'x' });
+  doc = withNode(doc, { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [45, 6], radius: 2, axis: 'y', side: 'min', depth: 10 });
+  const r = evaluateDoc(doc, 1);
+  assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+  const [body] = r.bodies, exact = 60 * 30 * 12 - Math.PI * 9 * 60 - Math.PI * 4 * 10;
+  assert.equal(body.family, 'curved');
+  assert.ok(Math.abs(body.volumeMM3! - exact) < 2e-4 * exact, String(body.volumeMM3));
+  assert.ok(Math.abs(signedVolume(body.mesh) - exact) / exact < 5e-3);
+  assert.ok(body.mesh.faces.some(f => f.name === 'n2.side0' && f.kind === 'curved'), 'the cross hole wall is one named face');
+});
+
 test('a slot sketch extrudes as one line + arc body with two curved faces and exact mass', async () => {
   const { slotSegments } = await import('../src/sketch/profile');
   const doc = withNode(withNode(prefixDoc({ format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} }, 0),
