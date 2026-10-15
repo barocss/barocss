@@ -13,7 +13,8 @@ export type SketchNode =
   | { kind: 'sketch'; profile: 'loop'; segments: ({ kind: 'line'; start: [Dim, Dim] } | { kind: 'arc'; start: [Dim, Dim]; center: [Dim, Dim]; direction: 'ccw' | 'cw' })[] };
 
 export type ModelNode = SketchNode
-  | { kind: 'extrude'; sketch: number; height: Dim; from?: Dim }
+  /** `draft` (degrees) leans the walls into the material away from the sketch plane. */
+  | { kind: 'extrude'; sketch: number; height: Dim; from?: Dim; draft?: number }
   /** The sketch turned about its X or Y axis (through `origin`, default the sketch origin) towards +Z. */
   | { kind: 'revolve'; sketch: number; axis: 'x' | 'y'; origin?: [Dim, Dim]; angleDegrees: number }
   | { kind: 'translate'; parent: BodyRef; offset: [Dim, Dim, Dim] }
@@ -98,7 +99,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'extrude': {
       const s = nodes[node.sketch];
       const kind = s && s.kind === 'sketch' && s.profile === 'circle' ? 'Cylinder' : 'Extrude';
-      return `${kind} ${n(node.height)}`;
+      return `${kind} ${n(node.height)}${node.draft ? ` · ${node.draft}°` : ''}`;
     }
     case 'revolve': return `Revolve ${node.angleDegrees}°`;
     case 'hole': return `Hole Ø${typeof node.radius === 'number' ? fmt(node.radius * 2) : node.radius.parameter}`;

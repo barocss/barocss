@@ -187,6 +187,15 @@ test('shell: an open box from its top face, exact and still upright; a too-thick
   if (!thick.ok) assert.match(thick.error.title, /too thick/);
 });
 
+test('extrude with draft: the walls lean in, the volume is exact, the label shows the angle', () => {
+  let doc = withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] });
+  doc = withNode(doc, { kind: 'extrude', sketch: 0, height: 10, draft: 5 });
+  const r = evaluateDoc(doc, 1), d = 10 * Math.tan(5 * Math.PI / 180), exact = 10 * (1200 - 70 * d + 4 * d * d / 3);
+  assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+  assert.ok(Math.abs(r.bodies[0].volumeMM3! - exact) < 1e-6 * exact, String(r.bodies[0].volumeMM3));
+  assert.equal(featureLabel(doc.nodes[1], 1, doc.nodes), 'Extrude 10 · 5°');
+});
+
 test('revolve: a circle sketch turns into a torus, cut by a box; a profile along the axis is solid, one across it refused', () => {
   let doc = withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [20, 10], radius: 4 });
   doc = withNode(doc, { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 360 });

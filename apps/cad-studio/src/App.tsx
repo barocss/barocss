@@ -192,9 +192,9 @@ export function App() {
     const extrude: Command = {
       id: 'extrude', label: 'Extrude', icon: 'height', group: 'create', available: () => ({ ok: true }),
       fields: () => [{ key: 'make', label: 'Make', kind: 'choice', options: [{ value: 'extrude', label: 'Extrude' }, { value: 'revolve-y', label: 'Revolve about Y' }, { value: 'revolve-x', label: 'Revolve about X' }] },
-        { key: 'h', label: 'Distance', kind: 'mm', min: 1 }, { key: 'deg', label: 'Revolve angle', kind: 'deg', min: 1, max: 360, step: 15 },
+        { key: 'h', label: 'Distance', kind: 'mm', min: 1 }, { key: 'draft', label: 'Draft', kind: 'deg', min: -60, max: 60, step: 1 }, { key: 'deg', label: 'Revolve angle', kind: 'deg', min: 1, max: 360, step: 15 },
         ...(base ? [{ key: 'op', label: 'Operation', kind: 'choice' as const, options: [{ value: 'join', label: 'Join to body' }, { value: 'new', label: 'New body' }, { value: 'cut', label: 'Cut from body' }] }] : [])],
-      defaults: () => ({ make: sketch.make ?? 'extrude', h: 8, deg: 360, ...(base ? { op: 'join' } : {}) }),
+      defaults: () => ({ make: sketch.make ?? 'extrude', h: 8, draft: 0, deg: 360, ...(base ? { op: 'join' } : {}) }),
       build: (c, v) => {
         const cut = v.op === 'cut'; const d = withNode(c.doc, node);
         // A cut extrudes down into the body from the face; join/new extrude up from it. A revolve turns
@@ -202,7 +202,9 @@ export function App() {
         const height = Number(v.h); const from = cut ? planeZ - height : planeZ;
         let e = String(v.make).startsWith('revolve')
           ? withNode(d, { kind: 'revolve', sketch: d.nodes.length - 1, axis: v.make === 'revolve-x' ? 'x' : 'y', angleDegrees: Number(v.deg) })
-          : withNode(d, { kind: 'extrude', sketch: d.nodes.length - 1, height, ...(from ? { from } : {}) });
+          // With a draft a cut goes down from the face, so its walls lean in away from the opening.
+          : Number(v.draft) && cut ? withNode(d, { kind: 'extrude', sketch: d.nodes.length - 1, height: -height, ...(planeZ ? { from: planeZ } : {}), draft: Number(v.draft) })
+          : withNode(d, { kind: 'extrude', sketch: d.nodes.length - 1, height, ...(from ? { from } : {}), ...(Number(v.draft) ? { draft: Number(v.draft) } : {}) });
         if (String(v.make).startsWith('revolve') && planeZ) e = withNode(e, { kind: 'translate', parent: { node: e.nodes.length - 1, side: 'solid' }, offset: [0, 0, planeZ] });
         const tool = { node: e.nodes.length - 1, side: 'solid' as const };
         if (base && v.op === 'join') e = withNode(e, { kind: 'union', left: base as { node: number; side: 'solid' }, right: tool });
@@ -449,6 +451,7 @@ function NodeEditor({ node, onApply, onClose }: { node: ModelNode; onApply(n: Mo
   const fields: { label: string; get(n: ModelNode): number; set(n: ModelNode, v: number): ModelNode }[] = [];
   const num = (v: unknown) => typeof v === 'number' ? v : NaN;
   if ('height' in draft) fields.push({ label: 'Distance', get: n => num((n as { height: number }).height), set: (n, v) => ({ ...n, height: v }) as ModelNode });
+  if (draft.kind === 'extrude') fields.push({ label: 'Draft °', get: n => (n as { draft?: number }).draft ?? 0, set: (n, v) => ({ ...n, draft: v }) as ModelNode });
   if ('from' in draft) fields.push({ label: 'Start Z', get: n => num((n as { from: number }).from), set: (n, v) => ({ ...n, from: v }) as ModelNode });
   if (draft.kind === 'fillet') fields.push({ label: 'Radius', get: n => num((n as { radius: number }).radius), set: (n, v) => ({ ...n, radius: v }) as ModelNode });
   if (draft.kind === 'shell') fields.push({ label: 'Wall', get: n => num((n as { thickness: number }).thickness), set: (n, v) => ({ ...n, thickness: v }) as ModelNode });
