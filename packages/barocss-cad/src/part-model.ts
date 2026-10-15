@@ -20,7 +20,7 @@ import { brepFromPrismatic, booleanPrismatic, prismaticExtrude, prismaticFromPro
 import { erodeSection } from './section-offset.js';
 import { booleanCurveRegions, curveTolerance, sampleRing, segEnd, CurvedArrangementError, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
 import { booleanPolyhedra } from './polyhedral-boolean.js';
-import { booleanAnalytic } from './analytic-boolean.js';
+import { booleanAnalytic, faceGeometry } from './analytic-boolean.js';
 import { finishBrepEdges } from './edge-finish.js';
 import { draftedExtrusion } from './drafted-extrusion.js';
 import { exportStep, importStep } from './step.js';
@@ -130,7 +130,9 @@ export const CadPartLimits = Object.freeze({ features: 512, parameters: 256, poi
 
 // ---- representation ------------------------------------------------------------------------------
 type Solid = { readonly kind: 'upright'; readonly solid: PrismaticSolid } | { readonly kind: 'brep'; readonly brep: Brep };
-interface Part { readonly solid: Solid; brep?: Brep; readonly mass?: (density: number) => SolidMassProperties }
+/** `history`: an upright body of one section and the edge finishes applied to it since (for shell). */
+interface Finish { readonly kind: 'chamfer' | 'fillet'; readonly edges: readonly string[]; readonly size: number; readonly id: string }
+interface Part { readonly solid: Solid; brep?: Brep; readonly mass?: (density: number) => SolidMassProperties; readonly history?: { readonly base: PrismaticSolid; readonly finishes: readonly Finish[] } }
 type Result = { readonly kind: 'sketch'; readonly outer: readonly ProfileSegmentInput[] } | { readonly kind: 'solid'; readonly parts: readonly Part[] };
 
 const empty = (s: Solid) => s.kind === 'upright' ? !s.solid.slabs.length : !s.brep.bodies.length;
@@ -471,7 +473,13 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       const target = solids(f.target, 'target'), size = dim((f.kind === 'chamfer' ? f.distance : f.radius) as CadPartDim, f.kind === 'chamfer' ? 'distance' : 'radius', true);
       if (!Array.isArray(f.edges) || !f.edges.length || f.edges.length > CadPartLimits.edges || !f.edges.every(e => typeof e === 'string')) fail('INPUT', 'edges must list 1 to 64 edge names');
       if (target.length !== 1) fail('REFERENCE', 'finish one part at a time (name it as id/k)');
-      return () => one(finishEdges(target[0], f.edges as string[], size, f.kind as 'chamfer' | 'fillet', at, fail));
+      return () => {
+        const t = target[0], kind = f.kind as 'chamfer' | 'fillet', solid = finishEdges(t, f.edges as string[], size, kind, at, fail);
+        // A body that left the upright family keeps how it was made, so that it can still be shelled.
+        const base = t.solid.kind === 'upright' ? t.solid.solid : t.history?.base, before = t.solid.kind === 'upright' ? [] : t.history?.finishes ?? [];
+        const history = solid.kind === 'brep' && base ? { base, finishes: [...before, { kind, edges: f.edges as string[], size, id: at }] } : undefined;
+        return { kind: 'solid', parts: [{ solid, ...(history ? { history } : {}) }] };
+      };
     }
   }
   return fail('INPUT', `unknown feature kind ${String((f as { kind?: unknown }).kind)}`);
@@ -573,8 +581,48 @@ function sweepBrep(profile: readonly ProfileSegmentInput[], steps: ({ kind: 'str
  * bottom), and taken away; open side walls let the hollow run through them.
  */
 function shellPart(part: Part, t: number, open: string[], at: string, fail: Tools['fail']): Solid {
-  if (part.solid.kind !== 'upright') fail('CAPABILITY', 'shell works on bodies extruded from one section (before turning them about X or Y, or finishing their top edges) yet');
-  const solid = (part.solid as Extract<Solid, { kind: 'upright' }>).solid;
+  if (part.solid.kind === 'upright') { const h = hollowOf(part.solid.solid, t, open, at, fail); return { kind: 'upright', solid: booleanPrismatic(part.solid.solid, h.hollow, 'difference') }; }
+  if (!part.history) fail('CAPABILITY', 'shell works on bodies extruded from one section, with their edges finished or not (before turning them about X or Y or combining them) yet');
+  // A finished body: its hollow is the base's hollow with the same finishes, offset by the wall — a
+  // rolling ball of radius r less the wall rounds the offset of a convex edge rounded r (sharp when r
+  // is not more than the wall); an equal chamfer d on a corner of angle α becomes d + t(1 − 1/sin(α/2))/cos(α/2).
+  const { base, finishes } = part.history!, h = hollowOf(base, t, open, at, fail);
+  // Walls split in parts (a full circle's halves) keep their `#k` inside.
+  const face = (n: string) => { const w = n.replace(/#\d+$/, ''); return h.sides.has(w) ? `${at}.in.${n}` : h.tops.has(n) ? `${at}.ceiling` : h.bottoms.has(n) ? `${at}.floor` : null; };
+  const outer = brepOf(part, 'target'), faces = new Map(outer.faces.map(f => [f.name, f]));
+  let hollow: Part = { solid: { kind: 'upright', solid: h.hollow } };
+  for (const fin of finishes) {
+    // Edges by their offset size (a chamfer's depends on each corner's angle).
+    const jobs = new Map<number, string[]>();
+    for (const name of fin.edges) {
+      let size = fin.size - t;
+      const parts = name.split('|');
+      if (parts.some(n => open.includes(n))) fail('CAPABILITY', `${name} borders an open face: finish the opening's edges after the shell`);
+      const mapped = parts.map(face);
+      if (mapped.some(n => n === null)) fail('CAPABILITY', `${fin.id} finishes ${name}, an edge made by an earlier finish: shell before that finish`);
+      if (fin.kind === 'chamfer') {
+        // The corner's angle from the faces' normals there (a cap meets a wall square).
+        const g = parts.map(n => { try { return faces.has(n) ? faceGeometry(faces.get(n)!) : { kind: 'other' as const }; } catch { return { kind: 'other' as const }; } });
+        const alpha = g[0].kind === 'plane' && g[1].kind === 'plane' ? Math.PI - Math.acos(Math.max(-1, Math.min(1, dot(g[0].n, g[1].n)))) : Math.PI / 2;
+        size = fin.size + t * (1 - 1 / Math.sin(alpha / 2)) / Math.cos(alpha / 2);
+      }
+      if (!(size > 1e-9)) continue;
+      const key = Math.round(size * 1e9) / 1e9;
+      jobs.set(key, [...(jobs.get(key) ?? []), (mapped as string[]).sort().join('|')]);
+    }
+    [...jobs].forEach(([size, edges], k) => {
+      const known = new Set(brepOf(hollow, `${at}_hollow`).edges.map(e => e.name)), missing = edges.find(e => !known.has(e));
+      if (missing) fail('CAPABILITY', `the wall rounds the inside corner of ${missing} already: shell inside corners finished by ${fin.id} is not supported yet`);
+      hollow = { solid: finishEdges(hollow, edges, size, fin.kind, `${at}_in_${fin.id}${k ? `_${k}` : ''}`, fail) };
+    });
+  }
+  // (Ids are identifiers; the hollow's finished faces are named `${at}.in.${finish}.…`.)
+  const inner = hollow.solid.kind === 'brep' ? { kind: 'brep' as const, brep: transformBrep(hollow.solid.brep, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1], offset: [0, 0, 0] }, n => n.split(`${at}_in_`).join(`${at}.in.`)) } : hollow.solid;
+  return boolean(part.solid, inner, 'difference', at);
+}
+
+/** The hollow of an upright body of one section (its section eroded, through any open faces), and its faces' names. */
+function hollowOf(solid: PrismaticSolid, t: number, open: string[], at: string, fail: Tools['fail']): { hollow: PrismaticSolid; sides: Set<string>; tops: Set<string>; bottoms: Set<string> } {
   if (solid.slabs.length !== 1) fail('CAPABILITY', 'shell works on bodies extruded from one section yet (this one changes section along its height)');
   const slab = solid.slabs[0], rings = slab.regions.flatMap(r => [r.outer, ...r.holes]), tol = curveTolerance(rings);
   const sides = new Set(rings.flatMap(r => r.map(g => g.tag).filter((x): x is string => !!x)));
@@ -590,7 +638,7 @@ function shellPart(part: Part, t: number, open: string[], at: string, fail: Tool
   if (!(z1 > z0 + tol)) fail('PARAMETER', `a wall of ${t} mm leaves no hollow between the top and the bottom`);
   const hollow = prismaticExtrude(inner.flatMap(r => [r.outer, ...r.holes]), z0, z1);
   const tagged = { ...hollow, caps: [{ z: z0, regions: inner, tag: `${at}.floor` }, { z: z1, regions: inner, tag: `${at}.ceiling` }] };
-  return { kind: 'upright', solid: booleanPrismatic(solid, tagged, 'difference') };
+  return { hollow: tagged, sides, tops, bottoms };
 }
 
 // ---- chamfers and fillets ------------------------------------------------------------------------------

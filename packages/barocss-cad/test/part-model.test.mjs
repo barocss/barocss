@@ -138,6 +138,55 @@ test('shell: the section eroded exactly, open faces removed, the result still up
   refused(D([...slot, shell('e', 1, ['e.top', 'e.side1'])]), 'CAPABILITY', /only straight walls can be left open/);
 });
 
+test('shell after fillets and chamfers: the hollow takes the same finishes, offset by the wall', () => {
+  const box = [rect('s', 0, 0, 60, 40), extrude('e', 's', 20)];
+  const bottom = [0, 1, 2, 3].map(i => `e.bottom|e.side${i}`), top = [0, 1, 2, 3].map(i => `e.side${i}|e.top`), vertical = ['e.side0|e.side1', 'e.side1|e.side2', 'e.side2|e.side3', 'e.side0|e.side3'];
+  // A rounded rectangle's area, and what a fillet r takes along its foot: the corner section r²(1 − π/4)
+  // along the straight walls, and about the corners by Pappus (its centroid x̄ in from the walls).
+  const rounded = (w, d, R) => w * d - (4 - pi) * R * R;
+  const foot = (w, d, R, r) => r * r * (1 - pi / 4) * (2 * (w - 2 * R) + 2 * (d - 2 * R) + 2 * pi * (R - r * (10 - 3 * pi) / (3 * (4 - pi))));
+  // A box with every edge rounded r.
+  const roundBox = (a, b, c, r) => (a - 2 * r) * (b - 2 * r) * (c - 2 * r) + 2 * r * ((a - 2 * r) * (b - 2 * r) + (a - 2 * r) * (c - 2 * r) + (b - 2 * r) * (c - 2 * r)) + pi * r * r * (a + b + c - 6 * r) + 4 / 3 * pi * r ** 3;
+  // Equal chamfers d mitred round a rectangle's foot.
+  const chamfered = (w, d, h, c) => w * d * h - (c * c / 2 * 2 * (w + d) - 4 * c ** 3 / 3);
+  const c2 = 3 - (2 - Math.SQRT2) * 1.5;
+  const cases = [
+    ['a tray: corners rounded 6, the foot 4, open at the top', [{ id: 'v', kind: 'fillet', target: 'e', edges: vertical, radius: 6 }, { id: 'f', kind: 'fillet', target: 'v', edges: bottom, radius: 4 }, { id: 'sh', kind: 'shell', target: 'f', thickness: 2, open: ['e.top'] }],
+      rounded(60, 40, 6) * 20 - foot(60, 40, 6, 4) - (rounded(56, 36, 4) * 18 - foot(56, 36, 4, 2)), 1, 2e-4],
+    ['a closed rounded box (a cavity inside)', [{ id: 'f', kind: 'fillet', target: 'e', edges: [...bottom, ...top, ...vertical], radius: 5 }, { id: 'sh', kind: 'shell', target: 'f', thickness: 2 }],
+      roundBox(60, 40, 20, 5) - roundBox(56, 36, 16, 3), 2, 2e-4],
+    // A chamfer d on a square corner becomes d − (2 − √2)·t inside.
+    ['a chamfered foot, open at the top', [{ id: 'c', kind: 'chamfer', target: 'e', edges: bottom, distance: 3 }, { id: 'sh', kind: 'shell', target: 'c', thickness: 1.5, open: ['e.top'] }],
+      chamfered(60, 40, 20, 3) - chamfered(57, 37, 18.5, c2), 1, 1e-9],
+  ];
+  for (const [name, features, exact, shells, rel] of cases) {
+    const o = evaluateCadPart(D([...box, ...features])).outputs.at(-1), report = checkBrep(o.brep);
+    assert.equal(report.valid, true, `${name}: ${report.issues}`);
+    assert.deepEqual(report.topology.map(t => t.shells), [shells], name);
+    assert.ok(Math.abs(volume(o) - exact) <= rel * exact, `${name}: ${volume(o)} vs ${exact}`);
+  }
+  // A fillet no larger than the wall leaves the inside sharp; the inner faces are named after the shell.
+  const sharp = evaluateCadPart(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges: bottom, radius: 1 }, { id: 'sh', kind: 'shell', target: 'f', thickness: 2, open: ['e.top'] }])).outputs.at(-1);
+  assert.equal(checkBrep(sharp.brep).valid, true);
+  assert.ok(sharp.brep.faces.some(f => f.name === 'sh.floor') && sharp.brep.faces.some(f => f.name === 'sh.in.e.side0'));
+  const named = evaluateCadPart(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges: bottom, radius: 4 }, { id: 'sh', kind: 'shell', target: 'f', thickness: 2, open: ['e.top'] }])).outputs.at(-1);
+  assert.ok(named.brep.faces.some(f => /^sh\.in\.f\./.test(f.name)), named.brep.faces.map(f => f.name).join(' '));
+  refused(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges: top, radius: 3 }, { id: 'sh', kind: 'shell', target: 'f', thickness: 2, open: ['e.top'] }]), 'CAPABILITY', /borders an open face/);
+  refused(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges: top, radius: 3 }, { id: 'r', kind: 'rotate', target: 'f', axis: 'z', angleDegrees: 90 }, { id: 'sh', kind: 'shell', target: 'r', thickness: 2 }]), 'CAPABILITY', /shell works on bodies extruded from one section/);
+});
+
+test('box edges filleted in loops at any size and place: mitres where two meet, a clear refusal where they cannot fit', () => {
+  for (const [w, d, h] of [[60, 40, 20], [100, 37, 13], [20, 20, 20]]) for (const r of [0.5, 2, 3]) {
+    const box = [rect('s', 0, 0, w, d), extrude('e', 's', h)];
+    for (const edges of [['e.bottom|e.side0', 'e.bottom|e.side1'], [0, 1, 2, 3].map(i => `e.side${i}|e.top`)]) {
+      const o = evaluateCadPart(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges, radius: r }])).outputs[0];
+      assert.equal(checkBrep(o.brep).valid, true, `${w}×${d}×${h} r${r} ${edges}`);
+    }
+  }
+  const small = [rect('s', 0, 0, 10, 10), extrude('e', 's', 5)], all = evaluateCadPart(D(small)).outputs[0].brep.edges.map(e => e.name);
+  refused(D([...small, { id: 'f', kind: 'fillet', target: 'e', edges: all, radius: 3 }]), 'PARAMETER', /too large/);
+});
+
 test('sweep: a profile along straight runs and bends, exact mass, joined into one solid', () => {
   const tube = circle('s', 0, 0, 2), bar = { id: 's', kind: 'sketch', profile: 'rectangle', min: [-1, -2], max: [3, 2] }, A = 4 * pi;
   const sweep = (sketch, path) => D([sketch, { id: 'w', kind: 'sweep', sketch: 's', path }]);
