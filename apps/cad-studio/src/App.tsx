@@ -88,11 +88,15 @@ export function App() {
 
   // Dev/test hook: the flow test reads the accepted document.
   useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioDoc: StudioDoc }).__studioDoc = doc; }, [doc]);
-  // Dev/test hook: select an edge by its persistent name (picking a thin edge on a canvas is not reproducible).
+  // Dev/test hooks: select an edge or a face by its persistent name (canvas picks are not reproducible).
   useEffect(() => {
     if (!import.meta.env.DEV) return;
     (window as unknown as { __studioSelectEdge: (name: string) => boolean }).__studioSelectEdge = name => {
       for (const [b, body] of bodies.entries()) { const i = body.mesh.edges.findIndex(e => e.names.includes(name)); if (i >= 0) { setSelection({ faces: [], edges: [{ body: b, edge: i }], bodies: [] }); return true; } }
+      return false;
+    };
+    (window as unknown as { __studioSelectFace: (name: string) => boolean }).__studioSelectFace = name => {
+      for (const [b, body] of bodies.entries()) { const i = body.mesh.faces.findIndex(f => f.name.split('+').includes(name)); if (i >= 0) { setSelection({ faces: [{ body: b, face: i }], edges: [], bodies: [] }); return true; } }
       return false;
     };
   }, [bodies]);
@@ -435,7 +439,7 @@ export function App() {
 }
 
 function iconFor(n: ModelNode) {
-  return ({ extrude: 'height', revolve: 'autorenew', hole: 'radio_button_checked', chamfer: 'change_history', fillet: 'rounded_corner', union: 'join_full', difference: 'join_left', intersect: 'join_inner',
+  return ({ extrude: 'height', revolve: 'autorenew', shell: 'inventory_2', hole: 'radio_button_checked', chamfer: 'change_history', fillet: 'rounded_corner', union: 'join_full', difference: 'join_left', intersect: 'join_inner',
     translate: 'open_with', rotate: '3d_rotation', mirror: 'flip', scale: 'open_in_full', 'linear-pattern': 'view_week', 'circular-pattern': 'motion_photos_on', split: 'vertical_split', sketch: 'draw' } as Record<string, string>)[n.kind] ?? 'category';
 }
 
@@ -447,6 +451,7 @@ function NodeEditor({ node, onApply, onClose }: { node: ModelNode; onApply(n: Mo
   if ('height' in draft) fields.push({ label: 'Distance', get: n => num((n as { height: number }).height), set: (n, v) => ({ ...n, height: v }) as ModelNode });
   if ('from' in draft) fields.push({ label: 'Start Z', get: n => num((n as { from: number }).from), set: (n, v) => ({ ...n, from: v }) as ModelNode });
   if (draft.kind === 'fillet') fields.push({ label: 'Radius', get: n => num((n as { radius: number }).radius), set: (n, v) => ({ ...n, radius: v }) as ModelNode });
+  if (draft.kind === 'shell') fields.push({ label: 'Wall', get: n => num((n as { thickness: number }).thickness), set: (n, v) => ({ ...n, thickness: v }) as ModelNode });
   if (draft.kind === 'rotate' || draft.kind === 'revolve') fields.push({ label: 'Angle °', get: n => num((n as { angleDegrees: number }).angleDegrees), set: (n, v) => ({ ...n, angleDegrees: v }) as ModelNode });
   if ('radius' in draft && draft.kind === 'hole') fields.push({ label: 'Diameter', get: n => num((n as { radius: number }).radius) * 2, set: (n, v) => ({ ...n, radius: v / 2 }) as ModelNode });
   if ('center' in draft && draft.kind === 'hole') ['X', 'Y'].forEach((a, k) => fields.push({ label: 'Centre ' + a, get: n => num((n as { center: number[] }).center[k]), set: (n, v) => { const c = [...(n as { center: number[] }).center]; c[k] = v; return { ...n, center: c } as ModelNode; } }));

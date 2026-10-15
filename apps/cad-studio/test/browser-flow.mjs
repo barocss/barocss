@@ -261,8 +261,20 @@ try {
     assert.match(await outliner(), /1 body/); await iso();
   });
 
+  await check('shell a box open at the top from the palette', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    const ext = (await doc()).nodes.length - 1;
+    assert.ok(await page.evaluate(n => window.__studioSelectFace(n), `n${ext}.top`), 'the top face exists');
+    await press(' '); await page.locator('.palette input').fill('shell'); await press('Enter'); await hudReady();
+    await field('Wall').fill('2'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /Shell 2/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 20000 });
+    const last = (await doc()).nodes.at(-1);
+    assert.equal(last.kind, 'shell'); assert.deepEqual(last.open, [`n${ext}.top`]); await iso();
+  });
+
   await check('command palette and light theme', async () => {
-    await press('Escape'); await press(' '); await page.locator('.palette input').fill('shell');
+    await press('Escape'); await press(' '); await page.locator('.palette input').fill('loft');
     assert.match(await page.locator('.palette-list').innerText(), /isn’t available in the kernel yet/);
     await page.locator('.palette input').fill('fillet');
     assert.match(await page.locator('.palette-list').innerText(), /Select edges of one body to round/);

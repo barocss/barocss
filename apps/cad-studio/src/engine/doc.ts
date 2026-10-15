@@ -26,6 +26,8 @@ export type ModelNode = SketchNode
   | { kind: 'intersect'; left: BodyRef; right: BodyRef }
   | { kind: 'difference'; parent: BodyRef; tool: BodyRef }
   | { kind: 'split'; parent: BodyRef; at: Dim; axis: Axis }
+  /** Hollowed to walls `thickness` thick, the named faces removed (none: a closed hollow). */
+  | { kind: 'shell'; parent: BodyRef; thickness: Dim; open: string[] }
   /** Edges by their persistent B-rep names (they follow the features, so edits keep the selection). */
   | { kind: 'chamfer'; parent: BodyRef; edges: string[]; distance: Dim }
   | { kind: 'fillet'; parent: BodyRef; edges: string[]; radius: Dim }
@@ -112,6 +114,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'linear-pattern': return `Pattern ×${node.count}`;
     case 'circular-pattern': return `Circular ×${node.count}`;
     case 'split': return `Split ${node.axis.toUpperCase()}=${n(node.at)}`;
+    case 'shell': return `Shell ${n(node.thickness)}`;
   }
   return `Feature ${index + 1}`;
 }

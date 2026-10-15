@@ -148,7 +148,17 @@ export const commands: Command[] = [
       return withNode(ctx.doc, { kind: 'fillet', parent: refOf(body), edges: edges.flatMap(e => e.names), radius: Number(v.radius) });
     },
   },
-  { id: 'shell', label: 'Shell', icon: 'inventory_2', group: 'modify', keywords: 'hollow wall thickness', available: notYet('Shell') },
+  {
+    id: 'shell', label: 'Shell', icon: 'inventory_2', group: 'modify', keywords: 'hollow wall thickness case enclosure',
+    available: ctx => selectedBodies(ctx.selection).length === 1 ? ok : no('Select the faces to open (Shift-click for more), or a body to hollow closed.'),
+    fields: () => [{ key: 't', label: 'Wall', kind: 'mm', min: 0.1 }],
+    defaults: () => ({ t: 2 }),
+    build: (ctx, v) => {
+      const body = ctx.bodies[selectedBodies(ctx.selection)[0]];
+      const open = [...new Set(ctx.selection.faces.filter(f => f.body === ctx.bodies.indexOf(body)).flatMap(f => body.mesh.faces[f.face].name.split('+')))];
+      return withNode(ctx.doc, { kind: 'shell', parent: refOf(body), thickness: Number(v.t), open });
+    },
+  },
   { id: 'draft', label: 'Draft', icon: 'signal_cellular_0_bar', group: 'modify', keywords: 'taper angle', available: notYet('Draft') },
   // Sketch a profile beside the axis; finishing it offers the revolve (about the sketch's Y axis by default).
   { id: 'revolve', label: 'Revolve', icon: 'autorenew', group: 'create', keywords: 'lathe turn torus ring', available: () => ok, action: 'sketch' },

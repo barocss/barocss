@@ -174,6 +174,19 @@ test('fillets and chamfers on any edge: a box top edge, a hole rim picked by one
   if (!full.ok) assert.match(full.error.title, /as large as the circle/);
 });
 
+test('shell: an open box from its top face, exact and still upright; a too-thick wall is refused plainly', () => {
+  const box = rectanglePart(40, 30, 20);
+  const r = evaluateDoc(withNode(box, { kind: 'shell', parent: { node: 1, side: 'solid' }, thickness: 2, open: ['n1.top'] }), 1);
+  assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+  assert.equal(r.bodies[0].family, 'upright');
+  assert.ok(Math.abs(r.bodies[0].volumeMM3! - (24000 - 36 * 26 * 18)) < 1e-6, String(r.bodies[0].volumeMM3));
+  assert.ok(r.bodies[0].mesh.faces.some(f => /n2\.in\./.test(f.name)), 'inner walls are named');
+  assert.equal(featureLabel(withNode(box, { kind: 'shell', parent: { node: 1, side: 'solid' }, thickness: 2, open: [] }).nodes[2], 2, []), 'Shell 2');
+  const thick = evaluateDoc(withNode(box, { kind: 'shell', parent: { node: 1, side: 'solid' }, thickness: 20, open: ['n1.top'] }), 2);
+  assert.equal(thick.ok, false);
+  if (!thick.ok) assert.match(thick.error.title, /too thick/);
+});
+
 test('revolve: a circle sketch turns into a torus, cut by a box; a profile along the axis is solid, one across it refused', () => {
   let doc = withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [20, 10], radius: 4 });
   doc = withNode(doc, { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 360 });
