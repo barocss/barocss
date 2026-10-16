@@ -1,5 +1,6 @@
 import type { EvalResult } from './evaluate';
 import type { StudioDoc } from './doc';
+import type { DrawingResult } from '../drawing/project';
 
 /** One worker; the newest evaluation wins and stale replies are dropped. */
 export class EngineClient {
@@ -38,6 +39,15 @@ export class EngineClient {
     return new Promise(resolve => {
       this.pending.set(id, data => resolve((data as { step: { text: string } | { error: string } }).step));
       this.worker.postMessage({ type: 'step', id, doc, name });
+    });
+  }
+
+  /** The part's drawing views (hidden-line projections), never dropped as stale. */
+  drawing(doc: StudioDoc): Promise<DrawingResult> {
+    const id = this.next++;
+    return new Promise(resolve => {
+      this.pending.set(id, data => resolve((data as { drawing: DrawingResult }).drawing));
+      this.worker.postMessage({ type: 'drawing', id, doc });
     });
   }
 
