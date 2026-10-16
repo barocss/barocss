@@ -211,3 +211,12 @@ The edit applies the readable-retained-face presentation principle of [#1990](ht
 ![Clevis face-region target](34-clevis-face-regions.png)
 
 Input SHA256 a7b5ffadcda6ab27c4416f37398eb1e389ed4f6a9dd4583b6e36430dafb4740e. The earlier superseded reference was not used for this published result. Independent review caught a footer covering the near-ear bottom corner; final text was moved and the corner restored against the reviewed input. CAD geometry and GPU visual reviews accepted qualitative continuity, not pixel/mesh equality, exact normals, axis, picking or engine execution. Current published count33 (01–28,30–34);29 remains withheld.
+
+
+## 35 — Opaque circular particle layer and native shared depth
+[#850](https://github.com/barocss/barocss/issues/850) grounds a bounded caller-owned particle display layer, distinct from water surfaces or 3D sphere meshes. Six illustrative circular screen-facing sprites appear in A. Adding an opaque native Surface in B leaves three front disks complete, hides two rear disks entirely and clips one rear disk at the Surface edge. Submitted particles need not all remain visible.
+
+This is a qualitative target design, not a source fixture, actual256-particle flow, fluid state, unit conversion, collision, simulation step, GL buffer or device measurement. The issue is closed/completed but that status does not turn this generated illustration into execution evidence. GPU displays caller positions; it does not advance the Physics solver. No water reconstruction, transparency, textures, PBR, shadow or arbitrary-count support is implied.
+![Opaque point sprites and shared depth](35-opaque-particle-shared-depth.png)
+
+Independent visual review checked disk/plane occlusion and corrected a rear-disk position mismatch between panels. Small generated radius/placement/tone drift remains: fixed screen-size is feature intent, not exact pixel preservation. The comparison is not geometry, sampling, count-budget, performance or common-context validation. Current published count34 (01–28,30–35), with29 still withheld.
