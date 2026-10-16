@@ -1,5 +1,4 @@
-import {mountScene, type SceneRenderer} from '@barocss/gpu';
-import type {MeshCamera} from '@barocss/gpu';
+import {showScene, type MeshCamera, type SceneView, type Viewer} from '@barocss/gpu';
 import type {RenderSceneDocument} from './document.js';
 import type {RenderEditorPreparedCandidate} from './session.js';
 import type {PresentationResult, RenderEditorPresenter} from './controller.js';
@@ -9,30 +8,39 @@ export interface SceneViewportObjectPick {sceneName: string; sourceVersion: 1; o
 export interface SceneViewportPickPoint {xCss: number; yCss: number}
 export interface SceneViewportPresenter extends RenderEditorPresenter {
   resize(width: number, height: number): void;
-  readPixels(): Uint8Array;
+  /** The shown frame, RGBA rows top to bottom. */
+  readPixels(): Promise<Uint8Array>;
   pickObject(point: SceneViewportPickPoint, document: RenderSceneDocument, camera: MeshCamera): SceneViewportObjectPick | null;
 }
 
-/** One owned source1 renderer. No canvas, input or clock is constructed by the pure root. */
-export function createSceneViewportPresenter(canvas: HTMLCanvasElement, onUnavailable?: (error: Error) => void): SceneViewportPresenter {
-  let renderer: SceneRenderer<1> | null = null;
+/** Look through a document camera (the viewer fits its own clip planes). */
+export function applySceneCamera(viewer: Viewer, camera: MeshCamera): void {
+  Object.assign(viewer.camera, {projection: 'perspective', position: [...camera.eye], target: [...camera.target], up: [...camera.up], fovY: camera.fovYDegrees});
+  viewer.requestRender();
+}
+
+/**
+ * One scene on a viewer (the @barocss/gpu WebGPU viewer, made by the caller with autoResize false and
+ * no controls). Presentations change the shown source and camera together or refuse and keep the last.
+ * The viewer replaces a lost device itself, so the preview does not become unavailable on a loss.
+ */
+export function createSceneViewportPresenter(viewer: Viewer): SceneViewportPresenter {
+  let view: SceneView | null = null;
   let shown: RenderSceneDocument | null = null;
   let disposed = false;
   const errorOf = (error: unknown) => error instanceof Error ? error : new Error('Viewport failed.');
   const sameCamera = (a: MeshCamera, b: MeshCamera) => (['eye', 'target', 'up'] as const).every(field => a[field].every((value, index) => Object.is(value, b[field][index])))
     && Object.is(a.fovYDegrees, b.fovYDegrees) && Object.is(a.near, b.near) && Object.is(a.far, b.far);
-  const live = () => { try { renderer!.readPixels(); return true; } catch { return false; } };
+  const live = () => !disposed && view !== null && viewer.ready;
   const refused = (error: unknown, recovered = live()): PresentationResult => ({ok: false, error: errorOf(error), recovered});
-  const onLoss = (event: Event) => {
-    event.preventDefault();
-    // Old GL handles must be released during loss, before a restored context exists.
-    renderer?.dispose(); renderer = null; shown = null;
-    onUnavailable?.(new Error('The preview was lost. Restore the preview to continue.'));
+  const show = (source: string): {ok: true} | {ok: false; error: Error} => {
+    if (!view) return {ok: false, error: new Error('The viewport is unavailable.')};
+    const result = view.update(source);
+    return result.ok ? result : {ok: false, error: new Error(result.diagnostics.map(d => d.message).join('; ') || 'The scene source was refused.')};
   };
-  canvas.addEventListener('webglcontextlost', onLoss);
   return {
     present(candidate: RenderEditorPreparedCandidate, previous: RenderSceneDocument) {
-      if (disposed || !renderer) return refused(new Error('The viewport is unavailable.'), false);
+      if (disposed || !view) return refused(new Error('The viewport is unavailable.'), false);
       try {
         if (!shown || previous.sceneSource !== shown.sceneSource || !sameCamera(previous.camera, shown.camera)) {
           return refused(new Error('Presentation rollback must name the actual displayed source and camera.'), live());
@@ -41,48 +49,47 @@ export function createSceneViewportPresenter(canvas: HTMLCanvasElement, onUnavai
           return refused(new Error('Source-only presentation must preserve the actual viewport camera.'), live());
         }
         if (candidate.mode === 'camera') {
-          if (!shown || shown.sceneSource !== candidate.document.sceneSource || shown.sourceVersion !== candidate.document.sourceVersion) {
+          if (shown.sceneSource !== candidate.document.sceneSource || shown.sourceVersion !== candidate.document.sourceVersion) {
             return refused(new Error('Camera-only presentation cannot replace the displayed scene source.'), live());
           }
-          const result = renderer.setCamera(candidate.document.camera);
-          if (result.ok) shown = candidate.document;
-          return result.ok ? result : refused(result.error);
+          applySceneCamera(viewer, candidate.document.camera);
+          shown = candidate.document;
+          return {ok: true};
         }
-        const source = renderer.update(candidate.document.sceneSource);
+        // A refused source leaves the shown scene as it was.
+        const source = show(candidate.document.sceneSource);
         if (!source.ok) return refused(source.error);
-        if (candidate.mode === 'source') { shown = Object.freeze({...candidate.document, camera: shown?.camera ?? previous.camera}); return {ok: true}; }
-        const camera = renderer.setCamera(candidate.document.camera);
-        if (camera.ok) { shown = candidate.document; return {ok: true}; }
-        // update and setCamera are separate GPU transactions. Compensate explicitly.
-        const sourceBack = renderer.update(previous.sceneSource);
-        const cameraBack = renderer.setCamera(previous.camera);
-        const recovered = sourceBack.ok && cameraBack.ok && live();
-        shown = recovered ? previous : null;
-        return refused(camera.error, recovered);
+        if (candidate.mode === 'source') { shown = Object.freeze({...candidate.document, camera: shown.camera}); return {ok: true}; }
+        applySceneCamera(viewer, candidate.document.camera);
+        shown = candidate.document;
+        return {ok: true};
       } catch (error) { shown = null; return refused(error, false); }
     },
     recover(document) {
       if (disposed) return refused(new Error('The viewport is disposed.'), false);
-      renderer?.dispose(); renderer = null; shown = null;
-      try { renderer = mountScene(canvas, document.sceneSource, document.camera, {sourceVersion: 1}); shown = document; return {ok: true}; }
-      catch (error) { return refused(error, false); }
+      view?.dispose(); view = null; shown = null;
+      try {
+        view = showScene(viewer, document.sceneSource, {fit: false});
+        applySceneCamera(viewer, document.camera);
+        shown = document;
+        return {ok: true};
+      } catch (error) { return refused(error, false); }
     },
-    resize(width, height) { if (disposed || !renderer) return; try { renderer.resize(width, height); } catch (error) { if (!live()) onUnavailable?.(errorOf(error)); throw error; } },
-    readPixels() { if (!renderer) throw new Error('The viewport is unavailable.'); return renderer.readPixels(); },
+    resize(width, height) { if (disposed) return; viewer.setSize(width, height); },
+    async readPixels() {
+      if (!live()) throw new Error('The viewport is unavailable.');
+      return (await viewer.capture()).data;
+    },
     pickObject(point, expected, camera) {
-      if (disposed || !renderer || !shown) throw new Error('The viewport is unavailable.');
+      if (disposed || !view || !shown) throw new Error('The viewport is unavailable.');
       if (shown.documentId !== expected.documentId || shown.revision !== expected.revision || shown.version !== expected.version
         || shown.sourceVersion !== expected.sourceVersion || shown.sceneSource !== expected.sceneSource || !sameCamera(shown.camera, camera)) {
         throw new Error('The applied scene does not match the displayed frame.');
       }
-      // The current merged provider can lack #1095. Refuse instead of guessing a hit.
-      const active = renderer as SceneRenderer<1> & {pickObject?: (point: SceneViewportPickPoint) => SceneViewportObjectPick | null};
-      if (typeof active.pickObject !== 'function') throw new Error('Canvas selection is unavailable in this renderer.');
-      const document = shown;
-      const result = active.pickObject(point);
-      if (disposed || renderer !== active || shown !== document) throw new Error('The displayed scene changed during selection.');
-      return result;
+      const hit = viewer.raycast(point.xCss, point.yCss);
+      if (!hit?.mesh.name || view.meshes.get(hit.mesh.name) !== hit.mesh) return null;
+      return {sceneName: view.result.ir.name, sourceVersion: 1, objectId: hit.mesh.name, approximate: true};
     },
-    dispose() { if (disposed) return; disposed = true; canvas.removeEventListener('webglcontextlost', onLoss); renderer?.dispose(); renderer = null; shown = null; }
+    dispose() { if (disposed) return; disposed = true; view?.dispose(); view = null; shown = null; viewer.dispose(); }
   };
 }

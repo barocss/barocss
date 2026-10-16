@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode} from 'react';
-import type {MeshCamera} from '@barocss/gpu';
+import {createViewer, type MeshCamera} from '@barocss/gpu';
 import type {RenderEditorController, RenderEditorActionResult} from './controller.js';
 import type {RenderEditorError} from './errors.js';
 import {normalizeRenderEditorError} from './errors.js';
@@ -50,7 +50,11 @@ export function SceneViewport({controller, onError, onCameraHelp, onObjectSelect
     || (['fovYDegrees','near','far'] as const).some(field => !Object.is(snapshot.draftCamera[field], snapshot.accepted.camera[field]));
   useEffect(() => {
     const canvas = ref.current!; setCanvasElement(canvas);
-    const presenter = createSceneViewportPresenter(canvas, error => controller.presentationUnavailable(error));
+    let cleanup: (() => void) | null = null, live = true;
+    // The preview draws with the @barocss/gpu viewer (WebGPU), made before the presenter attaches.
+    createViewer(canvas, {controls: false, autoResize: false, pixelRatio: Math.min(window.devicePixelRatio || 1, 2)}).then(viewer => {
+    if (!live) { viewer.dispose(); return; }
+    const presenter = createSceneViewportPresenter(viewer);
     let observer: ResizeObserver | null = null;
     const dispose = presenter.dispose;
     presenter.dispose = () => { observer?.disconnect(); dispose(); };
@@ -86,7 +90,9 @@ export function SceneViewport({controller, onError, onCameraHelp, onObjectSelect
     };
     observer = new ResizeObserver(resize);
     observer.observe(canvas); resize();
-    return () => {canvas.removeEventListener('pointerdown',captureNavigation);canvas.removeEventListener('pointerup',releaseNavigation);canvas.removeEventListener('pointercancel',releaseNavigation);canvas.removeEventListener('lostpointercapture',releaseNavigation);canvas.removeEventListener('blur',blurNavigation);surface.removeEventListener('keydown',framingKey,true);navigationPointer.current=null;selection.current?.dispose();selection.current=null; input.current?.dispose(); input.current = null; observer.disconnect(); controller.detachPresenter(presenter); };
+    cleanup = () => {canvas.removeEventListener('pointerdown',captureNavigation);canvas.removeEventListener('pointerup',releaseNavigation);canvas.removeEventListener('pointercancel',releaseNavigation);canvas.removeEventListener('lostpointercapture',releaseNavigation);canvas.removeEventListener('blur',blurNavigation);surface.removeEventListener('keydown',framingKey,true);navigationPointer.current=null;selection.current?.dispose();selection.current=null; input.current?.dispose(); input.current = null; observer.disconnect(); controller.detachPresenter(presenter); };
+    }, cause => controller.presentationUnavailable(cause instanceof Error ? cause : new Error('WebGPU is not available in this browser.')));
+    return () => { live = false; cleanup?.(); };
   }, [controller]);
   useEffect(() => { if(navigationDisabled){selection.current?.reset();input.current?.reset();} }, [navigationDisabled]);
   frameCommand.current=(scope)=>{

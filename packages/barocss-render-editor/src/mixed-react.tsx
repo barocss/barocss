@@ -1,9 +1,9 @@
 import {useEffect,useId,useMemo,useRef,useState,useSyncExternalStore} from 'react';
 import type {ReactNode} from 'react';
-import type {MeshCamera} from '@barocss/gpu';
 import {RenderMixedDocumentError,type RenderMixedDocumentDisplayV1} from './mixed-document.js';
 import type {RenderMixedController,RenderMixedActionResult} from './mixed-controller.js';
 import {createMixedViewportPresenter} from './mixed-viewport.js';
+import {createViewer} from '@barocss/gpu';
 import {prepareRenderNativeSourceImport} from './native-source-import.js';
 import {NativeSurfacePosition} from './native-surface-position.js';
 import {NativeSurfacePointInspector} from './native-surface-point-inspector.js';
@@ -31,12 +31,17 @@ export function MixedSceneViewport({controller,onError,onCameraHelp}:RenderMixed
   const input=useRef<ReturnType<typeof createMixedCameraInput>|null>(null),errorHandler=useRef(onError);
   errorHandler.current=onError;
   useEffect(()=>{
-    const element=canvas.current!,presenter=createMixedViewportPresenter(element,error=>controller.presentationUnavailable(error));
+    const element=canvas.current!;let cleanup:(()=>void)|null=null,live=true;
+    createViewer(element,{controls:false,autoResize:false,pixelRatio:Math.min(window.devicePixelRatio||1,2)}).then(viewer=>{
+    if(!live){viewer.dispose();return;}
+    const presenter=createMixedViewportPresenter(viewer);
     let observer:ResizeObserver|null=null;const dispose=presenter.dispose;presenter.dispose=()=>{observer?.disconnect();dispose();};
     result(controller.attachPresenter(presenter),onError);
     input.current=createMixedCameraInput(element,controller,{mode:()=>modeRef.current,onError:error=>errorHandler.current?.(error)});
     const resize=()=>{input.current?.reset();const rect=element.getBoundingClientRect(),ratio=Math.min(window.devicePixelRatio||1,2);let width=Math.max(1,Math.round(rect.width*ratio)),height=Math.max(1,Math.round(rect.height*ratio));const scale=Math.min(1,1024/width,1024/height,Math.sqrt(1048576/(width*height)));width=Math.max(1,Math.floor(width*scale));height=Math.max(1,Math.floor(height*scale));const next=presenter.resize(width,height);if(!next.ok&&!next.retained)controller.presentationUnavailable(next.error);};
-    observer=new ResizeObserver(resize);observer.observe(element);resize();return()=>{input.current?.dispose();input.current=null;observer?.disconnect();controller.detachPresenter(presenter);};
+    observer=new ResizeObserver(resize);observer.observe(element);resize();cleanup=()=>{input.current?.dispose();input.current=null;observer?.disconnect();controller.detachPresenter(presenter);};
+    },cause=>controller.presentationUnavailable(cause instanceof Error?cause:new Error('WebGPU is not available in this browser.')));
+    return()=>{live=false;cleanup?.();};
   },[controller]);
   const changeMode=(next:'orbit'|'pan')=>{input.current?.reset();modeRef.current=next;setMode(next);};
   const pending=Boolean(view.cameraPreview),unavailable=view.presentedRevision===null||view.disposed;

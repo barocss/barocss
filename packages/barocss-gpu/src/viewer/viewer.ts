@@ -253,6 +253,8 @@ export interface ViewerOptions {
   camera?: Partial<Pick<Camera, 'projection' | 'position' | 'target' | 'up' | 'fovY'>>;
   /** A ground grid (default none). */
   grid?: boolean | GridOptions;
+  /** Follow the canvas's CSS size (default true); false: the application sets the backing size with setSize. */
+  autoResize?: boolean;
   /** GPU errors the browser reports outside any check (default: console.error). */
   onError?: (message: string) => void;
 }
@@ -365,11 +367,11 @@ export class Viewer {
       const opts = typeof options.controls === 'object' ? options.controls : {};
       (v as { controls: OrbitControls | null }).controls = new OrbitControls(canvas, () => v.camera, () => v.requestRender(), { pointAt: (x, y) => v.pointAt(x, y), ...opts });
     }
-    if (typeof ResizeObserver !== 'undefined') {
+    if (options.autoResize !== false && typeof ResizeObserver !== 'undefined') {
       v.resizeObserver = new ResizeObserver(() => v.resize());
       v.resizeObserver.observe(canvas);
     }
-    v.resize();
+    if (options.autoResize !== false) v.resize();
     return v;
   }
 
@@ -696,6 +698,18 @@ export class Viewer {
     if (this.canvas.width !== w || this.canvas.height !== h) { this.canvas.width = w; this.canvas.height = h; }
     this.requestRender();
   }
+
+  /** Set the canvas backing size in device pixels (with autoResize false; capped at the device's texture size). */
+  setSize(width: number, height: number): void {
+    const max = this.device?.limits.maxTextureDimension2D ?? 8192;
+    if (!(width >= 1 && height >= 1)) throw new RangeError('A backing size is at least 1 × 1');
+    const w = Math.min(max, Math.round(width)), h = Math.min(max, Math.round(height));
+    if (this.canvas.width !== w || this.canvas.height !== h) { this.canvas.width = w; this.canvas.height = h; }
+    this.requestRender();
+  }
+
+  /** Whether the viewer can draw: not disposed and not replacing a lost device. */
+  get ready(): boolean { return !this.disposed && !this.recovering; }
 
   /** Draw on the next animation frame (several requests make one frame). */
   requestRender(): void {
