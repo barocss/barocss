@@ -121,7 +121,15 @@ shapes (X: dashed references kept with the sketch, never sent to the kernel); sk
 the CAD set; right-click a history step to edit, edit its sketch, roll back or delete it; the sketch hint bar at
 the top; the rail hidden in Drawing.
 
-Verified at the last commit of the pass: unit 164/164, type-check and lint clean, browser flow 62/62 (WebGPU).
+Then: double-click picks a whole body and F frames what is picked; **standard fasteners stage 1** (#2094): a
+catalogue (`src/app/fasteners.ts`, ISO 4017/4762/4032/7089 nominal sizes M3–M12 with sources), simple shapes,
+a cosmetic thread kept with the part and shown in the Body panel (no helical geometry), placement that takes a
+round hole's axis and rim, editing size/length in place (a multi-step shape remembers `made.nodes`), one history
+entry per part. Stages 2–4 of #2094 (verified size/length tables with versions, explicit assembly placement,
+real threads) are not started; nothing was posted to the issue.
+
+Verified at the last commit of the pass: unit 167/167, type-check and lint clean, browser flow 64/64 (WebGPU),
+QA probe 70/73 before its helper fix (the three remaining were the helper; U4x/U5x pass after it).
 The flow takes `FLOW_ONLY=<regex>` to run the first step and the matching ones. The QA probe
 (`test/qa/ui-probe.mjs`) was brought to the new flows (shape labels, Finish then E, Mirror's default plane);
 note that it hot-reloads if sources change while it runs, and its cases depend on the ones before them.
