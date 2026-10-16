@@ -1,0 +1,1316 @@
+[
+  {
+    "id": "U01",
+    "name": "starter plate properties vs hand values",
+    "ok": true,
+    "expected": {
+      "volume": 15982,
+      "mass": 43.2,
+      "faces": 7,
+      "bounds": [
+        64,
+        32,
+        8
+      ]
+    },
+    "actual": {
+      "volume": 15982,
+      "mass": 43.2,
+      "faces": 7,
+      "bounds": [
+        64,
+        32,
+        8
+      ]
+    },
+    "screenshot": "test/qa/screenshots/U01-starter-plate-properties-vs-hand-values.jpg"
+  },
+  {
+    "id": "U02",
+    "name": "measure top↔bottom face and the top face area",
+    "ok": true,
+    "expected": {
+      "topArea": 1997.73,
+      "normalDistance": 8
+    },
+    "actual": {
+      "topArea": 1998.06,
+      "normalDistance": 8
+    },
+    "note": "area is from the display mesh (polygonal hole), within 0.6 mm²",
+    "screenshot": "test/qa/screenshots/U02-measure-top-bottom-face-and-the-top-face-area.jpg"
+  },
+  {
+    "id": "U03",
+    "name": "measure the hole rim edge: radius 4, length 8π",
+    "ok": true,
+    "expected": "Arc · Length 25.13 · Radius 4",
+    "actual": {
+      "panel": "SELECTION · EDGE Type Arc Length 25.13 mm Radius 4 mm BODY Bounds 64 × 32 × 8 Volume 15982 mm³ Mass 43.2 g Material Aluminium 6061 Steel (mild) Stainless 304 Brass Titanium Ti-6Al-4V ABS PLA Nylon PA1",
+      "hooks": [
+        true
+      ],
+      "nodes": 3
+    },
+    "screenshot": "test/qa/screenshots/U03-measure-the-hole-rim-edge-radius-4-length-8-.jpg"
+  },
+  {
+    "id": "U10",
+    "name": "box HUD Width X = \"0\"",
+    "ok": true,
+    "expected": "refused, /greater than zero|positive|Enter a value/i",
+    "actual": {
+      "status": "refused",
+      "error": "Sizes must be greater than zero Every width, depth, height and radius needs a positive value. Kernel detail",
+      "applyDisabled": true
+    },
+    "screenshot": "test/qa/screenshots/U10-box-hud-width-x-0-.jpg"
+  },
+  {
+    "id": "U11",
+    "name": "box HUD Width X = \"-5\"",
+    "ok": true,
+    "expected": "refused, /greater than zero|positive|range/i",
+    "actual": {
+      "status": "refused",
+      "error": "Sizes must be greater than zero Every width, depth, height and radius needs a positive value. Kernel detail",
+      "applyDisabled": true
+    },
+    "screenshot": "test/qa/screenshots/U11-box-hud-width-x-5-.jpg"
+  },
+  {
+    "id": "U12",
+    "name": "box HUD Height Z = \"1000000\"",
+    "ok": true,
+    "expected": "refused, /range/i",
+    "actual": {
+      "status": "refused",
+      "error": "The value is out of range Lengths are limited to ±10000 mm. Kernel detail",
+      "applyDisabled": true
+    },
+    "screenshot": "test/qa/screenshots/U12-box-hud-height-z-1000000-.jpg"
+  },
+  {
+    "id": "U13",
+    "name": "box HUD Height Z = \"\"",
+    "ok": true,
+    "expected": "refused, /Enter a value/i",
+    "actual": {
+      "status": "refused",
+      "error": "Enter a value Height Z is empty.",
+      "applyDisabled": true
+    },
+    "screenshot": "test/qa/screenshots/U13-box-hud-height-z-.jpg"
+  },
+  {
+    "id": "U14",
+    "name": "box HUD Height Z = \"0.0001\"",
+    "ok": true,
+    "expected": "a 32×32×0.0001 preview or a reasoned refusal",
+    "actual": {
+      "status": "preview",
+      "error": "",
+      "applyDisabled": false
+    },
+    "screenshot": "test/qa/screenshots/U14-box-hud-height-z-0-0001-.jpg"
+  },
+  {
+    "id": "U20",
+    "name": "64×32×8 box + Ø8 hole through the top face at (32,16)",
+    "ok": true,
+    "expected": {
+      "volume": 15982,
+      "faces": 7
+    },
+    "actual": {
+      "volume": 15982,
+      "mass": 43.2,
+      "faces": 7,
+      "bounds": [
+        64,
+        32,
+        8
+      ]
+    },
+    "screenshot": "test/qa/screenshots/U20-64-32-8-box-8-hole-through-the-top-face-at-32-16-.jpg"
+  },
+  {
+    "id": "U21",
+    "name": "feature editor: plate width 64 → 80, hole kept, volume follows",
+    "ok": true,
+    "expected": {
+      "volume": 20078,
+      "bounds": [
+        80,
+        32,
+        8
+      ]
+    },
+    "actual": {
+      "volume": 20078,
+      "mass": 54.2,
+      "faces": 7,
+      "bounds": [
+        80,
+        32,
+        8
+      ]
+    },
+    "screenshot": "test/qa/screenshots/U21-feature-editor-plate-width-64-80-hole-kept-volume-.jpg"
+  },
+  {
+    "id": "U22",
+    "name": "feature editor: width 20 puts the hole off the plate → explained refusal, model kept",
+    "ok": true,
+    "expected": "toast \"The hole misses the body\", document unchanged (80)",
+    "actual": {
+      "toast": "info The hole misses the body Move the centre onto the body (a hole may run off an edge as a notch, but it must cut something). Details close",
+      "width": 80
+    },
+    "screenshot": "test/qa/screenshots/U22-feature-editor-width-20-puts-the-hole-off-the-plat.jpg"
+  },
+  {
+    "id": "U23",
+    "name": "feature editor: hole diameter typed negative",
+    "ok": true,
+    "expected": "refused: sizes must be greater than zero; radius stays 4",
+    "actual": {
+      "toast": "info Sizes must be greater than zero Every width, depth, height and radius needs a positive value. Details close",
+      "radius": 4
+    },
+    "screenshot": "test/qa/screenshots/U23-feature-editor-hole-diameter-typed-negative.jpg"
+  },
+  {
+    "id": "U24",
+    "name": "undo/redo restores exact volumes",
+    "ok": true,
+    "expected": {
+      "undone": 15982,
+      "redone": 20078
+    },
+    "actual": {
+      "before": 20078,
+      "undone": 15982,
+      "redone": 20078
+    },
+    "screenshot": "test/qa/screenshots/U24-undo-redo-restores-exact-volumes.jpg"
+  },
+  {
+    "id": "U30",
+    "name": "fillet 20 on a 16-high box top edge",
+    "ok": false,
+    "expected": "refused: \"The chamfer or fillet is too large\" (wall is 16)",
+    "actual": {
+      "selected": true,
+      "status": "preview",
+      "error": "",
+      "applied": {
+        "volume": 13651,
+        "mass": 36.9,
+        "faces": 6,
+        "bounds": [
+          32,
+          31.6,
+          16
+        ]
+      }
+    },
+    "screenshot": "test/qa/screenshots/U30-fillet-20-on-a-16-high-box-top-edge.jpg"
+  },
+  {
+    "id": "U31",
+    "name": "chamfer 20 on a 16-high box top edge",
+    "ok": false,
+    "expected": "refused: \"The chamfer or fillet is too large\" (wall is 16)",
+    "actual": {
+      "selected": true,
+      "status": "preview",
+      "error": "",
+      "applied": {
+        "volume": 10240,
+        "mass": 27.6,
+        "faces": 6,
+        "bounds": [
+          32,
+          28,
+          16
+        ]
+      }
+    },
+    "screenshot": "test/qa/screenshots/U31-chamfer-20-on-a-16-high-box-top-edge.jpg"
+  },
+  {
+    "id": "U32",
+    "name": "fillet 4 on a 16-high box top edge",
+    "ok": true,
+    "expected": {
+      "volume": 16274
+    },
+    "actual": {
+      "status": "preview",
+      "volume": 16274,
+      "mass": 43.9,
+      "faces": 7,
+      "bounds": [
+        32,
+        32,
+        16
+      ]
+    },
+    "screenshot": "test/qa/screenshots/U32-fillet-4-on-a-16-high-box-top-edge.jpg"
+  },
+  {
+    "id": "U40",
+    "name": "one sketch: 40×20 rectangle with a Ø10 circle inside → plate with a hole",
+    "ok": true,
+    "expected": {
+      "volume": 3607
+    },
+    "actual": {
+      "finished": true,
+      "status": "preview",
+      "volume": 3607,
+      "mass": 9.7,
+      "faces": 7,
+      "bounds": [
+        40,
+        20,
+        5
+      ]
+    },
+    "screenshot": "test/qa/screenshots/U40-one-sketch-40-20-rectangle-with-a-10-circle-inside.jpg"
+  },
+  {
+    "id": "U41",
+    "name": "one sketch: rectangle + circle overlapping its TOP edge (centre 20,19)",
+    "ok": false,
+    "expected": {
+      "volume": 4246,
+      "why": "two overlapping closed shapes should merge (or be refused); a notch would be 3754"
+    },
+    "actual": {
+      "finished": true,
+      "status": "preview",
+      "volume": 3754,
+      "mass": 10.1,
+      "faces": 8,
+      "bounds": [
+        40,
+        20,
+        5
+      ],
+      "nodes": [
+        "sketch holes:1",
+        "extrude"
+      ]
+    },
+    "screenshot": "test/qa/screenshots/U41-one-sketch-rectangle-circle-overlapping-its-top-ed.jpg"
+  },
+  {
+    "id": "U42",
+    "name": "one sketch: rectangle + circle overlapping its RIGHT edge (centre 38,10)",
+    "ok": true,
+    "expected": {
+      "volume": 4099,
+      "compare": "U41 is the same situation on another edge"
+    },
+    "actual": {
+      "finished": true,
+      "status": "preview",
+      "volume": 4099,
+      "mass": 11.1,
+      "faces": 8,
+      "bounds": [
+        43,
+        20,
+        5
+      ]
+    },
+    "screenshot": "test/qa/screenshots/U42-one-sketch-rectangle-circle-overlapping-its-right-.jpg"
+  },
+  {
+    "id": "U43",
+    "name": "one sketch: two overlapping rectangles (0,0 10×10 and 5,5 10×10)",
+    "ok": false,
+    "expected": {
+      "volume": 875,
+      "area": 175
+    },
+    "actual": {
+      "finished": true,
+      "status": "preview",
+      "volume": 375,
+      "mass": 1,
+      "faces": 8,
+      "bounds": [
+        10,
+        10,
+        5
+      ]
+    },
+    "screenshot": "test/qa/screenshots/U43-one-sketch-two-overlapping-rectangles-0-0-10-10-an.jpg"
+  },
+  {
+    "id": "U44",
+    "name": "one sketch: circle Ø20 then a rectangle overlapping it (each first point inside the other)",
+    "ok": false,
+    "expected": "one merged body (circle ∪ rectangle) or a reasoned refusal",
+    "actual": {
+      "finished": false,
+      "toast": "",
+      "sketchStillOpen": true
+    },
+    "consoleErrors": [
+      "pageerror: TypeError: Cannot read properties of undefined (reading 'node')"
+    ],
+    "screenshot": "test/qa/screenshots/U44-one-sketch-circle-20-then-a-rectangle-overlapping-.jpg"
+  },
+  {
+    "id": "U50",
+    "name": "sketch on the front face, cut through-all 20×10 window on a 32×32×16 box",
+    "ok": true,
+    "expected": {
+      "volume": 9984
+    },
+    "actual": {
+      "volume": 9984,
+      "mass": 27,
+      "faces": 10,
+      "bounds": [
+        32,
+        32,
+        16
+      ]
+    },
+    "screenshot": "test/qa/screenshots/U50-sketch-on-the-front-face-cut-through-all-20-10-win.jpg"
+  },
+  {
+    "id": "U51",
+    "name": "sketch on XZ plane offset 5: circle Ø10 at (10,8) extruded 12",
+    "ok": true,
+    "expected": {
+      "volume": 942,
+      "bounds": [
+        10,
+        12,
+        10
+      ],
+      "plane": "origin y −5, normal −Y"
+    },
+    "actual": {
+      "finished": true,
+      "status": "preview",
+      "volume": 942,
+      "mass": 2.5,
+      "faces": 3,
+      "bounds": [
+        10,
+        12,
+        10
+      ],
+      "plane": {
+        "origin": [
+          0,
+          -5,
+          0
+        ],
+        "normal": [
+          0,
+          -1,
+          0
+        ],
+        "xAxis": [
+          1,
+          0,
+          0
+        ]
+      }
+    },
+    "screenshot": "test/qa/screenshots/U51-sketch-on-xz-plane-offset-5-circle-10-at-10-8-extr.jpg"
+  },
+  {
+    "id": "U52",
+    "name": "sketch on a 30° plane: 30×20 rectangle extruded 8 (volume is area × height)",
+    "ok": true,
+    "expected": {
+      "volume": 4800,
+      "faces": 6
+    },
+    "actual": {
+      "finished": true,
+      "status": "preview",
+      "volume": 4800,
+      "mass": 13,
+      "faces": 6,
+      "bounds": [
+        30,
+        21.32,
+        16.93
+      ]
+    },
+    "screenshot": "test/qa/screenshots/U52-sketch-on-a-30-plane-30-20-rectangle-extruded-8-vo.jpg"
+  },
+  {
+    "id": "U53",
+    "name": "chamfer a box edge, then sketch on the sloped chamfer face and extrude",
+    "ok": true,
+    "expected": {
+      "volume": 15540,
+      "before": 15360
+    },
+    "actual": {
+      "selectedFace": true,
+      "faceName": "n2.face",
+      "faceNormal": "0, -0.71, 0.71",
+      "sketch": "SKETCH · 45° tilted plane · on face",
+      "finished": true,
+      "status": "preview",
+      "volume": 15540,
+      "mass": 42,
+      "faces": 13,
+      "bounds": [
+        32,
+        36.71,
+        16
+      ]
+    },
+    "screenshot": "test/qa/screenshots/U53-chamfer-a-box-edge-then-sketch-on-the-sloped-chamf.jpg"
+  },
+  {
+    "id": "U55",
+    "name": "fresh box: chamfer 8, select only the chamfer face, press H",
+    "ok": true,
+    "expected": "Hole can’t run here · Holes go into a flat face facing ±X, ±Y or ±Z",
+    "actual": {
+      "selected": true,
+      "panel": "SELECTION · FACE Type Planar Normal 0, -0.71, 0.71 Area 362.04 mm² BODY Bounds 32 × 32 × 1",
+      "toolbarTitle": "Hole (H) — Holes go into a flat face facing ±X, ±Y or ±Z.",
+      "toast": "info Hole can’t run here Holes go into a flat face facing ±X, ±Y or ±Z. close"
+    },
+    "screenshot": "test/qa/screenshots/U55-fresh-box-chamfer-8-select-only-the-chamfer-face-p.jpg"
+  },
+  {
+    "id": "U56",
+    "name": "measure the angle between the top face and a side face of a box",
+    "ok": true,
+    "expected": "Angle 90°, Distance 0 (they share an edge)",
+    "actual": "MEASURE close From Planar face Area 200 mm² To Planar face Area 50 mm² BETWEEN Distance 0 mm Angle 90° ΔX ΔY ΔZ 0, 0, 0 Click again to start over. Esc done",
+    "screenshot": "test/qa/screenshots/U56-measure-the-angle-between-the-top-face-and-a-side-.jpg"
+  },
+  {
+    "id": "U57",
+    "name": "mirror YZ of a box at x 5..15, then split the result at X=0",
+    "ok": true,
+    "expected": {
+      "mirror": {
+        "volume": 2000,
+        "bounds": [
+          30,
+          10,
+          10
+        ]
+      },
+      "splitAt0": "two bodies of 1000, or a refusal (the plane lies in the gap)"
+    },
+    "actual": {
+      "mirror": {
+        "volume": 2000,
+        "mass": 5.4,
+        "faces": 12,
+        "bounds": [
+          30,
+          10,
+          10
+        ]
+      },
+      "split": {
+        "status": "preview",
+        "error": "",
+        "bodies": "2"
+      }
+    },
+    "screenshot": "test/qa/screenshots/U57-mirror-yz-of-a-box-at-x-5-15-then-split-the-result.jpg"
+  },
+  {
+    "id": "U58",
+    "name": "cylinder (Y) r8 h24: volume, faces",
+    "ok": true,
+    "expected": {
+      "volume": 4825,
+      "faces": 3
+    },
+    "actual": {
+      "volume": 4825,
+      "mass": 13,
+      "faces": 3,
+      "bounds": [
+        16,
+        16,
+        24
+      ]
+    },
+    "screenshot": "test/qa/screenshots/U58-cylinder-y-r8-h24-volume-faces.jpg"
+  },
+  {
+    "id": "U59",
+    "name": "sketch snapping: corners drawn with the mouse land on whole millimetres",
+    "ok": true,
+    "expected": "integer corner coordinates (Snap 1 mm)",
+    "actual": {
+      "min": [
+        44,
+        15
+      ],
+      "max": [
+        61,
+        25
+      ]
+    },
+    "screenshot": "test/qa/screenshots/U59-sketch-snapping-corners-drawn-with-the-mouse-land-.jpg"
+  },
+  {
+    "id": "U60",
+    "name": "revolve rectangle (10..20, 0..10) about Y, 360° → tube",
+    "ok": true,
+    "expected": {
+      "volume": 9425
+    },
+    "actual": {
+      "status": "preview",
+      "error": "",
+      "volume": 9425,
+      "mass": 25.4,
+      "faces": 4,
+      "bounds": [
+        40,
+        10,
+        40
+      ]
+    },
+    "screenshot": "test/qa/screenshots/U60-revolve-rectangle-10-20-0-10-about-y-360-tube.jpg"
+  },
+  {
+    "id": "U61",
+    "name": "revolve with angle typed 0 in the HUD",
+    "ok": true,
+    "expected": "refused with a plain reason (angle must be 1–360°)",
+    "actual": {
+      "status": "refused",
+      "error": "The angle must be between 1° and 360° Enter an angle greater than 0°; 360° makes a full turn. Kernel detail"
+    },
+    "screenshot": "test/qa/screenshots/U61-revolve-with-angle-typed-0-in-the-hud.jpg"
+  },
+  {
+    "id": "U62",
+    "name": "extrude with a 60° draft that closes the walls",
+    "ok": true,
+    "expected": "refused with a plain reason (draft too steep for this height)",
+    "actual": {
+      "status": "refused",
+      "error": "The draft is too steep for this height Use a smaller draft angle or a lower distance, so the walls do not meet before the top. Kernel detail"
+    },
+    "screenshot": "test/qa/screenshots/U62-extrude-with-a-60-draft-that-closes-the-walls.jpg"
+  },
+  {
+    "id": "U63",
+    "name": "pipe: circle Ø10, run 8, bend R20 90°, run 8",
+    "ok": true,
+    "expected": {
+      "volume": 3724
+    },
+    "actual": {
+      "status": "preview",
+      "volume": 3724,
+      "mass": 10.1,
+      "faces": 6,
+      "bounds": [
+        33,
+        10,
+        33
+      ],
+      "path": [
+        {
+          "kind": "straight",
+          "length": 8
+        },
+        {
+          "kind": "bend",
+          "radius": 20,
+          "angleDegrees": 90,
+          "toward": "x"
+        },
+        {
+          "kind": "straight",
+          "length": 8
+        }
+      ]
+    },
+    "screenshot": "test/qa/screenshots/U63-pipe-circle-10-run-8-bend-r20-90-run-8.jpg"
+  },
+  {
+    "id": "U64",
+    "name": "pipe HUD: the default Angle reads 360° but the bend is built as 90°",
+    "ok": true,
+    "expected": "the HUD shows the bend angle that is built",
+    "actual": {
+      "hudAngle": "90",
+      "builtBendAngle": 90
+    },
+    "screenshot": "test/qa/screenshots/U64-pipe-hud-the-default-angle-reads-360-but-the-bend-.jpg"
+  },
+  {
+    "id": "U65",
+    "name": "loft 20×20 → 50% square over 10 (frustum)",
+    "ok": true,
+    "expected": {
+      "volume": 2333
+    },
+    "actual": {
+      "status": "preview",
+      "volume": 2333,
+      "mass": 6.3,
+      "faces": 6,
+      "bounds": [
+        20,
+        20,
+        10
+      ]
+    },
+    "screenshot": "test/qa/screenshots/U65-loft-20-20-50-square-over-10-frustum-.jpg"
+  },
+  {
+    "id": "U66",
+    "name": "shell 2 open top on 32×32×16, then the Wall typed 8 (no hollow)",
+    "ok": true,
+    "expected": {
+      "volume": 5408,
+      "wall16": "refused: too thick"
+    },
+    "actual": {
+      "volume": 5408,
+      "mass": 14.6,
+      "faces": 11,
+      "bounds": [
+        32,
+        32,
+        16
+      ],
+      "wall16": {
+        "status": "refused",
+        "error": "The wall is too thick Use a thinner wall: it must leave room inside the body. Kernel detail"
+      }
+    },
+    "screenshot": "test/qa/screenshots/U66-shell-2-open-top-on-32-32-16-then-the-wall-typed-8.jpg"
+  },
+  {
+    "id": "U67",
+    "name": "linear pattern ×3 with spacing smaller than the body (overlapping copies)",
+    "ok": true,
+    "expected": {
+      "volume": 8192,
+      "bounds": [
+        32,
+        16,
+        16
+      ]
+    },
+    "actual": {
+      "status": "preview",
+      "volume": 8192,
+      "mass": 22.1,
+      "faces": 6,
+      "bounds": [
+        32,
+        16,
+        16
+      ]
+    },
+    "screenshot": "test/qa/screenshots/U67-linear-pattern-3-with-spacing-smaller-than-the-bod.jpg"
+  },
+  {
+    "id": "U68",
+    "name": "Boolean chain: A∪B, then −C, then ∩D; volumes at each step",
+    "ok": true,
+    "expected": {
+      "volume": 3000,
+      "bodies": 1
+    },
+    "actual": {
+      "volume": 3000,
+      "mass": 8.1,
+      "faces": 10,
+      "bounds": [
+        30,
+        20,
+        6
+      ],
+      "bodies": "1",
+      "history": "HISTORY height Extrude 10 height Extrude 10 height Extrude 20 height Extrude 6 join_full Union join_left Subtract join_inner Intersect"
+    },
+    "screenshot": "test/qa/screenshots/U68-boolean-chain-a-b-then-c-then-d-volumes-at-each-st.jpg"
+  },
+  {
+    "id": "U69",
+    "name": "union of two boxes touching only along an edge",
+    "ok": false,
+    "expected": "refused: \"The bodies only touch along an edge or a point\"",
+    "actual": {
+      "lastFeature": "union",
+      "outliner": "OUTLINER 1 body deployed_code Union",
+      "toast": ""
+    },
+    "screenshot": "test/qa/screenshots/U69-union-of-two-boxes-touching-only-along-an-edge.jpg"
+  },
+  {
+    "id": "U70",
+    "name": "STEP export of a torus, reopened: same volume",
+    "ok": false,
+    "expected": {
+      "volume": 14804,
+      "original": {
+        "volume": 14804,
+        "mass": 40,
+        "faces": 2,
+        "bounds": [
+          70,
+          10,
+          70
+        ]
+      }
+    },
+    "actual": {
+      "reopened": {
+        "volume": 14795,
+        "mass": 39.9,
+        "faces": 2,
+        "bounds": [
+          70,
+          10,
+          70
+        ]
+      },
+      "file": "test/qa/screenshots/Untitled.step"
+    },
+    "screenshot": "test/qa/screenshots/U70-step-export-of-a-torus-reopened-same-volume.jpg"
+  },
+  {
+    "id": "U71",
+    "name": "STEP export of two separate bodies, reopened: still two bodies",
+    "ok": false,
+    "expected": {
+      "bodies": 2,
+      "solidsInFile": 2
+    },
+    "actual": {
+      "bodies": "1",
+      "solidsInFile": 2,
+      "outliner": "OUTLINER 1 body deployed_code Import Untitled"
+    },
+    "screenshot": "test/qa/screenshots/U71-step-export-of-two-separate-bodies-reopened-still-.jpg"
+  },
+  {
+    "id": "U72",
+    "name": "STL export of the starter plate: binary size and volume",
+    "ok": true,
+    "expected": {
+      "volume": 16384,
+      "bytes": "84 + 50·n"
+    },
+    "actual": {
+      "triangles": 12,
+      "bytes": 684,
+      "volume": 16384,
+      "file": "test/qa/screenshots/Untitled-b1.stl"
+    },
+    "screenshot": "test/qa/screenshots/U72-stl-export-of-the-starter-plate-binary-size-and-vo.jpg"
+  },
+  {
+    "id": "U73",
+    "name": ".bcad save then open: same document and volume",
+    "ok": true,
+    "expected": {
+      "volume": 16384,
+      "dirty": false
+    },
+    "actual": {
+      "volume": 16384,
+      "sameNodes": true,
+      "dirtyDot": false
+    },
+    "screenshot": "test/qa/screenshots/U73--bcad-save-then-open-same-document-and-volume.jpg"
+  },
+  {
+    "id": "U74",
+    "name": "open a broken .bcad (not JSON) and a .step that is not STEP",
+    "ok": true,
+    "expected": "both refused with a reason; a bad STEP does not leave a broken Import feature",
+    "actual": {
+      "bcadToast": "info Could not open this file Expected property name or '}' in JSON at position 2 (line 1 column 3) close",
+      "stepToast": "info Could not open this file The kernel can’t read it as STEP: no DATA section. Your part is unchanged. Details close",
+      "nodesBefore": 2,
+      "nodesAfter": 2,
+      "lastKind": "extrude"
+    },
+    "screenshot": "test/qa/screenshots/U74-open-a-broken-bcad-not-json-and-a-step-that-is-not.jpg"
+  },
+  {
+    "id": "U80",
+    "name": "autosave recovery after reload restores the same document",
+    "ok": true,
+    "expected": "2 bodies, same nodes",
+    "actual": {
+      "same": true,
+      "bodies": "2"
+    },
+    "screenshot": "test/qa/screenshots/U80-autosave-recovery-after-reload-restores-the-same-d.jpg"
+  },
+  {
+    "id": "U81",
+    "name": "recovery offer after a crash-free reload with a sketch in progress",
+    "ok": true,
+    "expected": "informational: an unfinished sketch is not part of the recovery copy",
+    "actual": {
+      "offered": true,
+      "nodes": 4
+    },
+    "screenshot": "test/qa/screenshots/U81-recovery-offer-after-a-crash-free-reload-with-a-sk.jpg"
+  },
+  {
+    "id": "U82",
+    "name": "adding a feature while rolled back drops later features (toast) and undo restores them",
+    "ok": true,
+    "expected": "toast \"Removed 1 later feature\", undo back to 4 nodes",
+    "actual": {
+      "rolled": true,
+      "toast": "info Removed 1 later feature You added a feature while rolled back. Undo restores them. close",
+      "nodesAfterAdd": 4,
+      "nodesAfterUndo": 4
+    },
+    "screenshot": "test/qa/screenshots/U82-adding-a-feature-while-rolled-back-drops-later-fea.jpg"
+  },
+  {
+    "id": "U83",
+    "name": "there is a way to delete a feature from the history",
+    "ok": false,
+    "expected": "a Delete/Remove feature action (history context menu, Del key, palette or editor)",
+    "actual": {
+      "contextMenu": [],
+      "palette": "",
+      "editorButtons": "Apply"
+    },
+    "screenshot": "test/qa/screenshots/U83-there-is-a-way-to-delete-a-feature-from-the-histor.jpg"
+  },
+  {
+    "id": "U84",
+    "name": "rapid undo/redo while the kernel is computing ends in a consistent state",
+    "ok": true,
+    "expected": {
+      "bodies": 2,
+      "nodes": 4
+    },
+    "actual": {
+      "outlinerBodies": 2,
+      "corner": "Perspective · 2 solids · 1 ms"
+    },
+    "screenshot": "test/qa/screenshots/U84-rapid-undo-redo-while-the-kernel-is-computing-ends.jpg"
+  },
+  {
+    "id": "U90",
+    "name": "insert bracket.bcad as an instance, rotate 45°, STEP holds part + instance",
+    "ok": true,
+    "expected": {
+      "solids": 2
+    },
+    "actual": {
+      "solids": 2,
+      "panel": "PART INSTANCE Name Bodies 1 Volume 2160 mm³ POSITION · MM X Y Z ROTATION · ° (X, THEN Y, THEN Z) X Y Z Duplicate Hide Fix in place Remove"
+    },
+    "screenshot": "test/qa/screenshots/U90-insert-bracket-bcad-as-an-instance-rotate-45-step-.jpg"
+  },
+  {
+    "id": "UM1",
+    "name": "[assembly-mates] pin seated in the starter plate hole (base face + instance face)",
+    "ok": true,
+    "expected": [
+      32,
+      16,
+      8
+    ],
+    "actual": {
+      "errors": [
+        "",
+        ""
+      ],
+      "position": [
+        32,
+        16,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "mates": 2
+    },
+    "screenshot": "test/qa/screenshots/UM1--assembly-mates-pin-seated-in-the-starter-plate-ho.jpg"
+  },
+  {
+    "id": "UM2",
+    "name": "[assembly-mates] edit the base plate (8 → 20 thick): the pin follows; Undo brings both back",
+    "ok": true,
+    "expected": {
+      "afterEdit": 20,
+      "afterUndo": {
+        "plate": 8,
+        "pinZ": 8
+      }
+    },
+    "actual": {
+      "afterEdit": [
+        32,
+        16,
+        20
+      ],
+      "afterUndo": {
+        "plate": 8,
+        "pin": [
+          32,
+          16,
+          8
+        ]
+      },
+      "editorHiddenWhileInstanceSelected": true
+    },
+    "screenshot": "test/qa/screenshots/UM2--assembly-mates-edit-the-base-plate-8-20-thick-the.jpg"
+  },
+  {
+    "id": "UM3",
+    "name": "[assembly-mates] roll the hole back: the concentric mate reports its missing face",
+    "ok": true,
+    "expected": "Concentric 2 flagged: one of its faces is no longer on the part",
+    "actual": [
+      "Base part · Top face → pin · Bottom face",
+      "One of its faces is no longer on the part (a feature was edited or removed)."
+    ],
+    "screenshot": "test/qa/screenshots/UM3--assembly-mates-roll-the-hole-back-the-concentric-.jpg"
+  },
+  {
+    "id": "UM4",
+    "name": "[assembly-mates] a third, conflicting mate is refused; delete a mate; flip",
+    "ok": true,
+    "expected": {
+      "third": "refused: Conflicts with…",
+      "flip": "rotation X 180",
+      "afterDelete": [
+        "concentric"
+      ]
+    },
+    "actual": {
+      "third": "Can’t mate these faces Conflicts with Coincident 1: it already sets which way a face of pin parallel to this one points, and this mate would turn them 180° from there.",
+      "flipped": {
+        "p": [
+          32,
+          16,
+          8
+        ],
+        "r": [
+          180,
+          0,
+          0
+        ]
+      },
+      "afterDelete": [
+        "concentric"
+      ]
+    },
+    "screenshot": "test/qa/screenshots/UM4--assembly-mates-a-third-conflicting-mate-is-refuse.jpg"
+  },
+  {
+    "id": "UM5",
+    "name": "[assembly-mates] remove the instance: its mates go with it",
+    "ok": true,
+    "expected": "no instances, no mates",
+    "actual": {
+      "instances": 0,
+      "mates": []
+    },
+    "screenshot": "test/qa/screenshots/UM5--assembly-mates-remove-the-instance-its-mates-go-w.jpg"
+  },
+  {
+    "id": "UM6",
+    "name": "[assembly-mates] block flush on a 45° chamfer face of the base (needs a 45° turn about X)",
+    "ok": false,
+    "expected": "the block lies on the chamfer, or the mate is refused with the reason",
+    "actual": {
+      "mateError": "",
+      "rotation": [
+        44.99999999745556,
+        0,
+        0
+      ],
+      "position": [
+        60,
+        -5,
+        5
+      ],
+      "toast": "info Only quarter turns about X and Y Rotate about X or Y by 90°, 180° or 270°. About Z any angle works. Details close",
+      "instancePanel": "PART INSTANCE Name Bodies … POSITION · MM X Y Z ROTATION · ° (X, THEN Y, THEN Z) X Y Z Duplicate Hide Fix in place Remov",
+      "mates": 1
+    },
+    "screenshot": "test/qa/screenshots/UM6--assembly-mates-block-flush-on-a-45-chamfer-face-o.jpg"
+  },
+  {
+    "id": "UC1",
+    "name": "[sketch-constraints] ⌘Z while sketching undoes the last constraint, not the whole sketch",
+    "ok": false,
+    "expected": "still sketching (the width lock undone or kept); the box feature untouched",
+    "actual": {
+      "before": {
+        "nodes": 2,
+        "sketching": 1
+      },
+      "after": {
+        "nodes": 0,
+        "sketching": 0,
+        "len0": null
+      }
+    },
+    "screenshot": "test/qa/screenshots/UC1--sketch-constraints-z-while-sketching-undoes-the-l.jpg"
+  },
+  {
+    "id": "UC2",
+    "name": "[sketch-constraints] dimension editor in the viewport: 0, text and Escape",
+    "ok": true,
+    "expected": {
+      "zero": "refused: A dimension must be greater than 0",
+      "escape": "closes the editor only, value unchanged, still sketching"
+    },
+    "actual": {
+      "zero": "A dimension must be greater than 0",
+      "w0": "39",
+      "editorOpen": 1,
+      "afterEsc": {
+        "len0": "39",
+        "sketching": 1
+      }
+    },
+    "screenshot": "test/qa/screenshots/UC2--sketch-constraints-dimension-editor-in-the-viewpo.jpg"
+  },
+  {
+    "id": "UC3",
+    "name": "[sketch-constraints] after Finish, the driving dimensions can be edited again",
+    "ok": false,
+    "expected": "the feature editor offers the sketch’s 60 and 25 (or the sketch can be reopened)",
+    "actual": {
+      "editor": "",
+      "sketchNode": {
+        "kind": "sketch",
+        "profile": "polygon",
+        "points": [
+          [
+            34,
+            30
+          ],
+          [
+            73,
+            30
+          ],
+          [
+            73,
+            10
+          ],
+          [
+            34,
+            10
+          ]
+        ],
+        "regions": [
+          [
+            {
+              "kind": "line",
+              "start": [
+                34,
+                30
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                94,
+                30
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                94,
+                5
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                34,
+                5
+              ]
+            }
+          ]
+        ]
+      }
+    },
+    "screenshot": "test/qa/screenshots/UC3--sketch-constraints-after-finish-the-driving-dimen.jpg"
+  },
+  {
+    "id": "UD1",
+    "name": "[drawing] starter plate sheet: 1:1, hole hidden twice in front, dimensions 64 and Ø8 by clicks",
+    "ok": true,
+    "expected": {
+      "scale": 1,
+      "hiddenFront": 2,
+      "dims": [
+        "64",
+        "Ø8"
+      ]
+    },
+    "actual": {
+      "scale": 1,
+      "hidden": {
+        "front": 2,
+        "top": 0,
+        "right": 2,
+        "iso": 7
+      },
+      "dims": [
+        {
+          "id": "d1",
+          "text": "64",
+          "value": 64
+        },
+        {
+          "id": "d2",
+          "text": "Ø8",
+          "value": 8.000000000000002
+        }
+      ]
+    },
+    "screenshot": "test/qa/screenshots/UD1--drawing-starter-plate-sheet-1-1-hole-hidden-twice.jpg"
+  },
+  {
+    "id": "UD2",
+    "name": "[drawing] refusals: same point twice; Ø on a hole seen edge-on (front view); a dimension in the iso view",
+    "ok": true,
+    "expected": "each refused with a reason in the hint; still 2 dimensions",
+    "actual": {
+      "same": "Pick a different point.\nV D O R tools",
+      "edgeOn": "Click a circle or an arc.\nV D O R tools",
+      "iso": "Dimensions go on the front, top and right views.\nV D O R tools",
+      "dims": 2
+    },
+    "screenshot": "test/qa/screenshots/UD2--drawing-refusals-same-point-twice-on-a-hole-seen-.jpg"
+  },
+  {
+    "id": "UD3",
+    "name": "[drawing] ⌘Z removes the last dimension and stays in Drawing; Delete removes a selected one",
+    "ok": true,
+    "expected": {
+      "afterUndo": 1,
+      "afterRedoThenDelete": 1
+    },
+    "actual": {
+      "afterUndo": {
+        "dims": 1,
+        "inDrawing": true
+      },
+      "afterDelete": 1
+    },
+    "screenshot": "test/qa/screenshots/UD3--drawing-z-removes-the-last-dimension-and-stays-in.jpg"
+  },
+  {
+    "id": "UD4",
+    "name": "[drawing] A3 at 10:1 does not fit → warned; first angle puts the top view below the front",
+    "ok": true,
+    "expected": {
+      "warning": "views do not fit at 10:1",
+      "firstAngle": "top below front",
+      "autoA3": "2:1"
+    },
+    "actual": {
+      "warned": true,
+      "frontY": 288.1940060528983,
+      "topY": 542.1203703703704,
+      "scale": 2
+    },
+    "screenshot": "test/qa/screenshots/UD4--drawing-a3-at-10-1-does-not-fit-warned-first-angl.jpg"
+  },
+  {
+    "id": "UD5",
+    "name": "[drawing] title, sheet and dimensions survive Save → Open and an autosave recovery",
+    "ok": true,
+    "expected": "identical drawing settings after Open and after Restore",
+    "actual": {
+      "before": {
+        "sheet": "A3",
+        "projection": "first",
+        "hidden": true,
+        "dimensions": [
+          {
+            "id": "d2",
+            "view": "top",
+            "kind": "diameter",
+            "edge": "n1.bottom|n2.side0#2",
+            "near": [
+              32,
+              16,
+              0
+            ],
+            "place": [
+              52.00000217264673,
+              39.99999913995917
+            ]
+          }
+        ],
+        "title": "QA bracket"
+      },
+      "openedSame": true,
+      "recoveredSame": true
+    },
+    "screenshot": "test/qa/screenshots/UD5--drawing-title-sheet-and-dimensions-survive-save-o.jpg"
+  },
+  {
+    "id": "UD6",
+    "name": "[drawing] a placed part instance appears on the sheet",
+    "ok": true,
+    "expected": "the block drawn beside the plate",
+    "actual": {
+      "sheetChanged": true,
+      "instances": 1
+    },
+    "screenshot": "test/qa/screenshots/UD6--drawing-a-placed-part-instance-appears-on-the-she.jpg"
+  },
+  {
+    "id": "UD7",
+    "name": "[drawing] an empty part says there is nothing to draw",
+    "ok": false,
+    "expected": "\"There is no body to draw.\" and no toast about model errors",
+    "actual": {
+      "toast": "info Could not draw the part Fix the model’s errors first, then open the drawing again. Details close",
+      "panel": "arrow_selector_tool straighten radio_button_unchecked line_end_circle fit_screen There is no body to draw. SHEET Size A4"
+    },
+    "screenshot": "test/qa/screenshots/UD7--drawing-an-empty-part-says-there-is-nothing-to-dr.jpg"
+  },
+  {
+    "id": "UD8",
+    "name": "[drawing] a mated instance moves and the sheet follows; the Centre lines box hides the chain lines",
+    "ok": true,
+    "expected": "block lifted to z 8, sheet redrawn; chain lines on then off",
+    "actual": {
+      "mateError": "",
+      "z": 8,
+      "sheetChanged": true,
+      "chainOn": 4,
+      "chainOff": 0
+    },
+    "screenshot": "test/qa/screenshots/UD8--drawing-a-mated-instance-moves-and-the-sheet-foll.jpg"
+  }
+]

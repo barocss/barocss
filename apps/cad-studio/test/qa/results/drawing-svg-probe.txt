@@ -1,0 +1,22 @@
+{"id":"SV1","area":"[drawing]","name":"front view outline: 4 visible lines making the 64 × 8 rectangle","ok":true,"expected":"4 visible lines, corners (0,0)…(64,8) at 1:1","actual":{"visible":4,"scale":1}}
+{"id":"SV2","area":"[drawing]","name":"front view hole: 2 dashed hidden lines at x 28 and 36, z 0…8","ok":true,"expected":"x=28 and x=36 dashed (3 1.5), 0.35","actual":[[107.559,126.862,107.559,118.862],[99.559,126.862,99.559,118.862]]}
+{"id":"SV3","area":"[drawing]","name":"right view hole: hidden at y 12 and 20 (right view looks along −X: its horizontal runs along −Y?)","ok":true,"expected":"two hidden lines at Y = 12 and 20","actual":{"count":2,"viewRight":[0,1,0],"origin":[175.5,126.86190426597634]}}
+{"id":"SV4","area":"[drawing]","name":"top view: the hole drawn as a full circle R4 (visible), no hidden lines","ok":true,"actual":{"circleEdges":4,"svgArcPaths":2,"counts":{"line:visible":4,"path:visible":2,"line:center":2}}}
+{"id":"SV5","area":"[drawing]","name":"centre mark on the hole in the top view: a cross at (32,16), arms 4 + 2.5 mm each side","ok":true,"expected":"horizontal (25.5,16)–(38.5,16) and vertical (32,9.5)–(32,22.5)","actual":[[97.059,74,110.059,74],[103.559,67.5,103.559,80.5]]}
+{"id":"SV6","area":"[drawing]","name":"centreline of the hole in the front view: vertical at x 32 from z −2.5 to 10.5","ok":true,"actual":[[103.559,129.362,103.559,116.362]]}
+{"id":"SV7","area":"[drawing]","name":"isometric: no hidden and no centre lines","ok":true,"actual":{"line:visible":9,"path:visible":2}}
+{"id":"SV8","area":"[drawing]","name":"title block texts: title, SCALE 1:1, UNITS mm, SHEET A4, THIRD ANGLE","ok":true,"actual":["TITLE","QA","barocss cad-studio","SCALE","1:1","UNITS","mm","DATE","2026-10-16","SHEET","A4","THIRD ANGLE","FRONT","TOP","RIGHT","ISOMETRIC"]}
+{"id":"SV9","area":"[drawing]","name":"PDF: as many stroked paths as SVG lines + polylines + paths, same dash patterns","ok":true,"expected":{"strokes":55,"dashes":["","3 1.5","8 1.5 1.5 1.5"]},"actual":{"strokes":55,"dashes":["","3 1.5","8 1.5 1.5 1.5"]}}
+{"id":"SV10","area":"[drawing]","name":"SVG prints at true size: width 297mm height 210mm, viewBox 0 0 297 210; front outline 64 sheet-mm wide at 1:1","ok":true,"actual":{"header":true,"horizontalWidths":[64,64]}}
+{"id":"SV11","area":"[drawing]","name":"hidden lines off: no dashed 0.35 strokes in SVG or PDF","ok":true,"actual":{"svgHidden":false,"pdfHidden":false}}
+{"id":"SV12","area":"[drawing]","name":"centre lines off: no chain strokes","ok":true,"actual":{"chain":0}}
+{"id":"SV13","area":"[drawing]","name":"side hole along X (Ø4 at y10, z5 through 20×20×10): round with a cross in the right view, centrelines in front and top","ok":true,"expected":"right: cross; front: z=5 from x 0 to 20 plus 2.5 sheet mm each end; top: one centreline","actual":{"right":2,"front":[[86.716,124.495,131.716,124.495]],"top":1}}
+{"id":"SV14","area":"[drawing]","name":"fillet R4 on a vertical edge: an arc, but no centre mark (not a whole circle)","ok":true,"actual":{"line:visible":4,"path:visible":1}}
+{"id":"SV15","area":"[drawing]","name":"Ø16 boss on the starter plate: one cross per centre, sized by the largest circle","ok":true,"expected":"2 crosses (hole and boss); boss arms 8 + 2.5","actual":[[97.059,69,110.059,69],[103.559,62.5,103.559,75.5],[73.059,69,94.059,69],[83.559,58.5,83.559,79.5]]}
+{"id":"SV16","area":"[drawing]","name":"a long title stays inside the 120 mm title block","ok":false,"expected":"text ends before the projection symbol at x 232","actual":{"start":169,"estimatedEnd":325,"blockRight":287}}
+{"id":"SV17","area":"[drawing]","name":"placed instance drawn beside the plate: top view extents reach x 110, its edges named inst1/…","ok":true,"expected":"top max x 110; block outline in the front view","actual":{"topMax":[110,32],"instEdges":8}}
+{"id":"SV18","area":"[drawing]","name":"linear dimension from the plate corner to the instance corner reads 36","ok":true,"expected":["36","after moving the block to x 120: 56"],"actual":["36","56"]}
+{"id":"SV19","area":"[drawing]","name":"instance in front of the plate hides the plate behind it (block at y −20 covering x 10…20)","ok":true,"expected":"plate top edge not visible over x 10…20","actual":[[0,10],[20,64]]}
+{"id":"SV20","area":"[drawing]","name":"a hidden instance is left off the sheet","ok":true,"actual":[64,32]}
+
+19/20 as expected; findings: SV16

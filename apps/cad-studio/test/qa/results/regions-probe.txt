@@ -1,0 +1,7 @@
+{"name":"two circles r10, centres 12 apart","role":"hole","expected":2694.3,"kernel":[1123.5],"mesh":[1119.32],"bodies":1,"faces":[4]}
+{"name":"two circles r10, centres 25 apart (disjoint)","role":"region","expected":3141.59,"kernel":[3141.59],"mesh":[3121.45],"bodies":1,"faces":[6]}
+{"name":"rect 40x20 + circle r5 at (42,10) over the right edge","role":"region","expected":4293.61,"kernel":[4293.61],"mesh":[4291.99],"bodies":1,"faces":[8]}
+{"name":"rect 40x20 + circle r5 at (20,21) over the top edge","role":"region","expected":4246.01,"kernel":[4246.01],"mesh":[4244.59],"bodies":1,"faces":[8]}
+{"name":"rect 40x20 then circle r5 at (20,19) (classified HOLE)","role":"hole","expected":4246.01,"kernel":[3753.99],"mesh":[3755.41],"bodies":1,"faces":[8]}
+{"name":"two rectangles overlapping","role":"hole","expected":875,"kernel":[375],"mesh":[375],"bodies":1,"faces":[8]}
+{"name":"circle then rect overlapping it","threw":"TypeError: Cannot read properties of undefined (reading 'node')"}
