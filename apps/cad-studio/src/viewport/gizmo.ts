@@ -31,9 +31,14 @@ export interface FeatureHandle {
    * as the value; dragging it round sweeps the angle, `toValue` getting the degrees swept.
    */
   arc?: { centre: Vec3; axis: Vec3; from: Vec3 };
+  /**
+   * Two values at once (a hole's centre on its face): a puck at `at` dragged in the plane of `dir` and
+   * `dir2`; mm along `dir` go to `toValue`, along `dir2` to `toValue2` from `value2`.
+   */
+  plane?: { dir2: Vec3; value2: number; toValue2(start: number, mm: number): number };
   toValue(start: number, mm: number): number;
   format(value: number): string;
-  onDrag(value: number, done: boolean): void;
+  onDrag(value: number, done: boolean, value2?: number): void;
 }
 export type GizmoHit = { kind: 'move' | 'turn'; axis: Axis3 } | { kind: 'plane'; axes: [Axis3, Axis3] } | { kind: 'handle'; index: number } | { kind: 'scale'; axis: Axis3 | null };
 /** Screen projection, the camera's forward direction, and `size`: world mm that make the gizmo's full size on screen there. */
@@ -75,6 +80,7 @@ function turn(v: Vec3, k: Vec3, a: number): Vec3 {
 }
 /** A handle in screen space: an arrow (from, to), or an arc's points ending at its tip. */
 export function handleLayout(h: FeatureHandle, P: Projector): { from: XY; to: XY; points?: XY[] } {
+  if (h.plane) { const o = P.project(h.at); return { from: o, to: o }; }
   if (h.arc) {
     const { centre: c, axis: k0, from: f } = h.arc, l = Math.hypot(...k0) || 1, k: Vec3 = [k0[0] / l, k0[1] / l, k0[2] / l], r0: Vec3 = [f[0] - c[0], f[1] - c[1], f[2] - c[2]];
     const n = Math.max(2, Math.ceil(Math.abs(h.value) / 6)), points = Array.from({ length: n + 1 }, (_, i) => P.project(at(c, [[turn(r0, k, h.value * Math.PI / 180 * i / n), 1]])));
@@ -101,7 +107,7 @@ export function hitTest(p: XY, g: TransformGizmo | null, handles: readonly Featu
     for (const r of L.arcs) consider({ kind: 'turn', axis: r.axis }, polyDist(p, r.points) + 0.5, 7);
     for (const c of L.cubes) consider({ kind: 'scale', axis: c.axis }, Math.max(Math.abs(p[0] - c.at[0]), Math.abs(p[1] - c.at[1])) - (c.axis === null ? 2 : 0), 8);
   }
-  handles.forEach((h, index) => { const l = handleLayout(h, P); consider({ kind: 'handle', index }, Math.min(l.points ? polyDist(p, l.points) : segDist(p, l.from, l.to), Math.hypot(p[0] - l.to[0], p[1] - l.to[1]) - 4), 8); });
+  handles.forEach((h, index) => { const l = handleLayout(h, P); if (h.plane) { consider({ kind: 'handle', index }, Math.hypot(p[0] - l.to[0], p[1] - l.to[1]) - 6, 8); return; } consider({ kind: 'handle', index }, Math.min(l.points ? polyDist(p, l.points) : segDist(p, l.from, l.to), Math.hypot(p[0] - l.to[0], p[1] - l.to[1]) - 4), 8); });
   return best;
 }
 
@@ -113,7 +119,11 @@ export function dragAlong(from: XY, to: XY, origin: Vec3, dir: Vec3, P: Projecto
 }
 /** mm moved along two world axes for a screen drag on their plane square (the drag split between their images). */
 export function dragPlane(from: XY, to: XY, origin: Vec3, axes: [Axis3, Axis3], P: Projector): [number, number] {
-  const o = P.project(origin), ea = P.project(at(origin, [[unitAxis(axes[0]), P.size]])), eb = P.project(at(origin, [[unitAxis(axes[1]), P.size]]));
+  return dragIn(from, to, origin, unitAxis(axes[0]), unitAxis(axes[1]), P);
+}
+/** mm moved along two world directions (a plane through `origin`) for a screen drag. */
+export function dragIn(from: XY, to: XY, origin: Vec3, u: Vec3, v: Vec3, P: Projector): [number, number] {
+  const o = P.project(origin), ea = P.project(at(origin, [[u, P.size]])), eb = P.project(at(origin, [[v, P.size]]));
   const ax = ea[0] - o[0], ay = ea[1] - o[1], bx = eb[0] - o[0], by = eb[1] - o[1], det = ax * by - ay * bx, dx = to[0] - from[0], dy = to[1] - from[1];
   if (Math.abs(det) < 16) return [0, 0]; // the plane seen edge-on
   return [(dx * by - dy * bx) / det * P.size, (ax * dy - ay * dx) / det * P.size];

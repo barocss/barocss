@@ -1,8 +1,10 @@
 // Commands are driven by the current selection. Each one says whether it applies (and why not),
 // which fields its HUD shows, and how it changes the document.
 import { profileCommands } from './profileCommands';
+import { primitives } from './primitives';
 import { withNode, type Axis, type BodyRef, type ModelNode, type Side, type StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
+import type { DisplayEdge } from '../engine/mesh';
 
 export interface FaceSel { body: number; face: number }
 export interface EdgeSel { body: number; edge: number }
@@ -36,6 +38,11 @@ export interface Command {
   onPick?(ctx: Ctx, values: Values, hit: { face: FaceSel | null; edge: EdgeSel | null }): Values | { error: string } | null;
   /** What it works on, shown at the top of its HUD: each pick done or still to make. */
   steps?(ctx: Ctx, values: Values): { label: string; text: string; done: boolean }[];
+  /**
+   * A new shape placed with the pointer before it is sized: the values that stand it at `point` (on the
+   * ground or an upward face). Starting it puts it under the pointer; a click (or a drop from the rail) sets it.
+   */
+  place?(values: Values, point: [number, number, number]): Values;
   /** Values that follow others (a move's Δ and the position it lands at): `changed` are the keys just set. */
   derive?(ctx: Ctx, values: Values, changed: readonly string[]): Values;
 }
@@ -53,11 +60,35 @@ export interface HandleSpec {
   key: string; at: [number, number, number]; dir: [number, number, number]; scale?: number; step?: number; min?: number; max?: number;
   /** An angle handle: an arc about `axis` through `centre` from `from` (then `at` and `dir` are unused). */
   arc?: { centre: [number, number, number]; axis: [number, number, number]; from: [number, number, number] };
+  /** A puck that drags `key` along `dir` and `pair.key` along `pair.dir` at once (a centre on a face). */
+  pair?: { key: string; dir: [number, number, number] };
 }
 
 export function refOf(body: BodyResult): BodyRef {
   const m = /^b(\d+)(?:_(.+))?$/.exec(body.key);
   return { node: Number(m?.[1] ?? 0), side: (m?.[2] ?? 'solid') as Side };
+}
+
+/**
+ * A selection carried onto newly evaluated bodies: each face, edge and body to the one of the same body
+ * key and persistent name (dropped when it is gone). Picked sketches are document nodes and stay.
+ */
+export function carrySelection(sel: Selection, from: readonly BodyResult[], to: readonly BodyResult[]): Selection {
+  if (from === to) return sel;
+  const index = new Map(to.map((b, i) => [b.key, i]));
+  const faces = sel.faces.flatMap(f => {
+    const b = from[f.body], face = b?.mesh.faces[f.face], i = b ? index.get(b.key) : undefined; if (!face || i === undefined) return [];
+    const names = face.name.split('+'), hit = to[i].mesh.faces.find(g => g.name.split('+').some(n => names.includes(n)));
+    return hit ? [{ body: i, face: hit.index }] : [];
+  });
+  const edges = sel.edges.flatMap(e => {
+    const b = from[e.body], edge = b?.mesh.edges[e.edge], i = b ? index.get(b.key) : undefined; if (!edge || i === undefined) return [];
+    const hit = to[i].mesh.edges.find(g => g.names.some(n => edge.names.includes(n)));
+    return hit ? [{ body: i, edge: hit.index }] : [];
+  });
+  const bodies = sel.bodies.flatMap(k => { const i = from[k] ? index.get(from[k].key) : undefined; return i === undefined ? [] : [i]; });
+  const out: Selection = { faces, edges, bodies, ...(sel.sketches ? { sketches: sel.sketches } : {}) };
+  return JSON.stringify(out) === JSON.stringify(sel) ? sel : out;
 }
 
 export function selectedBodies(sel: Selection): number[] {
@@ -102,32 +133,50 @@ const unit3 = (v: readonly number[]): [number, number, number] => { const l = Ma
  * (a chamfer: d) from the edge, φ the angle between the faces inside the body, and must stay on it.
  */
 function edgeHandle(ctx: Ctx, key: string, size: number, kind: 'fillet' | 'chamfer'): HandleSpec[] {
-  const sel = edgesOfOneBody(ctx), e = sel?.edges[0]; if (!sel || !e) return [];
-  const mesh = sel.body.mesh, n = e.faces.map(f => mesh.faces[f]?.normal).filter((x): x is [number, number, number] => !!x);
-  if (n.length !== 2) return [];
-  const out = unit3([n[0][0] + n[1][0], n[0][1] + n[1][1], n[0][2] + n[1][2]]);
-  const half = (Math.PI - Math.acos(Math.max(-1, Math.min(1, n[0][0] * n[1][0] + n[0][1] * n[1][1] + n[0][2] * n[1][2])))) / 2;
-  const mid = [0, 1, 2].map(k => (e.a[k] + e.b[k]) / 2) as [number, number, number], along = unit3([e.b[0] - e.a[0], e.b[1] - e.a[1], e.b[2] - e.a[2]]);
-  // How far each face reaches away from the edge (across it, in the face).
-  const reach = e.faces.map((f, k) => {
-    const nn = n[k], t = unit3([along[1] * nn[2] - along[2] * nn[1], along[2] * nn[0] - along[0] * nn[2], along[0] * nn[1] - along[1] * nn[0]]);
-    let far = 0, near = 0;
-    for (let v = 0; v < mesh.faceOfVertex.length; v++) if (mesh.faceOfVertex[v] === f) {
-      const d = (mesh.positions[v * 3] - mid[0]) * t[0] + (mesh.positions[v * 3 + 1] - mid[1]) * t[1] + (mesh.positions[v * 3 + 2] - mid[2]) * t[2];
-      far = Math.max(far, d); near = Math.min(near, d);
-    }
-    return Math.max(far, -near);
-  });
-  const room = Math.min(...reach), max = kind === 'fillet' ? room * Math.tan(half) : room;
-  const at = [0, 1, 2].map(k => mid[k] + out[k] * Math.max(0, size)) as [number, number, number];
-  return [{ key, at, dir: out, min: 0.1, step: 0.5, ...(max > 0.1 ? { max: Math.floor(max / 0.5) * 0.5 } : {}) }];
+  const sel = edgesOfOneBody(ctx); if (!sel?.edges.length) return [];
+  const mesh = sel.body.mesh, normals = (e: DisplayEdge) => e.faces.map(f => mesh.faces[f]?.normal).filter((x): x is [number, number, number] => !!x);
+  // The largest size each edge takes: what its two faces leave either side of it (the smallest over the edges).
+  const limit = (e: DisplayEdge) => {
+    const n = normals(e); if (n.length !== 2) return Infinity;
+    const half = (Math.PI - Math.acos(Math.max(-1, Math.min(1, n[0][0] * n[1][0] + n[0][1] * n[1][1] + n[0][2] * n[1][2])))) / 2;
+    const mid = [0, 1, 2].map(k => (e.a[k] + e.b[k]) / 2), along = unit3([e.b[0] - e.a[0], e.b[1] - e.a[1], e.b[2] - e.a[2]]);
+    // How far each face reaches away from the edge (across it, in the face).
+    const reach = e.faces.map((f, k) => {
+      const nn = n[k], t = unit3([along[1] * nn[2] - along[2] * nn[1], along[2] * nn[0] - along[0] * nn[2], along[0] * nn[1] - along[1] * nn[0]]);
+      let far = 0, near = 0;
+      for (let v = 0; v < mesh.faceOfVertex.length; v++) if (mesh.faceOfVertex[v] === f) {
+        const d = (mesh.positions[v * 3] - mid[0]) * t[0] + (mesh.positions[v * 3 + 1] - mid[1]) * t[1] + (mesh.positions[v * 3 + 2] - mid[2]) * t[2];
+        far = Math.max(far, d); near = Math.min(near, d);
+      }
+      return Math.max(far, -near);
+    });
+    const room = Math.min(...reach);
+    return kind === 'fillet' ? room * Math.tan(half) : room;
+  };
+  const e = sel.edges[0], n = normals(e); if (n.length !== 2) return [];
+  const max = Math.min(...sel.edges.map(limit)), out = unit3([n[0][0] + n[1][0], n[0][1] + n[1][1], n[0][2] + n[1][2]]);
+  const mid = [0, 1, 2].map(k => (e.a[k] + e.b[k]) / 2), at = [0, 1, 2].map(k => mid[k] + out[k] * Math.max(0, size)) as [number, number, number];
+  return [{ key, at, dir: out, min: 0.1, step: 0.5, ...(max > 0.1 && Number.isFinite(max) ? { max: Math.floor(max / 0.5) * 0.5 } : {}) }];
 }
 
-function edgesOfOneBody(ctx: Ctx) {
-  const sel = ctx.selection.edges; if (!sel.length || sel.some(e => e.body !== sel[0].body)) return null;
-  const body = ctx.bodies[sel[0].body];
-  return { body, edges: sel.map(e => body.mesh.edges[e.edge]) };
+/** The edges a fillet or chamfer works on: the picked edges, or every edge round the picked faces (of one body). */
+function edgesOfOneBody(ctx: Ctx): { body: BodyResult; edges: DisplayEdge[] } | null {
+  const { edges: sel, faces } = ctx.selection;
+  if (sel.length) {
+    if (sel.some(e => e.body !== sel[0].body)) return null;
+    const body = ctx.bodies[sel[0].body];
+    return { body, edges: sel.map(e => body.mesh.edges[e.edge]) };
+  }
+  if (!faces.length || faces.some(f => f.body !== faces[0].body)) return null;
+  const body = ctx.bodies[faces[0].body], picked = new Set(faces.map(f => f.face));
+  const edges = body?.mesh.edges.filter(e => picked.has(e.faces[0]) || picked.has(e.faces[1])) ?? [];
+  return edges.length ? { body, edges } : null;
 }
+
+const edgeSteps = (ctx: Ctx) => {
+  const sel = edgesOfOneBody(ctx), n = sel?.edges.length ?? 0, faces = ctx.selection.edges.length ? 0 : ctx.selection.faces.length;
+  return [{ label: 'Edges', text: !n ? 'pick edges or a face' : `${n} edge${n === 1 ? '' : 's'}${faces ? ` round the picked face${faces === 1 ? '' : 's'}` : ''}`, done: n > 0 }];
+};
 
 export const commands: Command[] = [
   {
@@ -148,6 +197,8 @@ export const commands: Command[] = [
       const right = ctx.bodies.reduce((m, b) => Math.max(m, b.mesh.bounds.max[0]), -Infinity);
       return { w: 32, d: 32, h: 16, x: Number.isFinite(right) ? r1(right + 16) : 0, y: 0, z: 0 };
     },
+    // Centred on the pointer.
+    place: (v, [px, py, pz]) => ({ ...v, x: r1(px - Number(v.w) / 2), y: r1(py - Number(v.d) / 2), z: pz }),
     // Width, depth and height: an arrow on the +X, +Y and +Z faces.
     handles: (_, v) => {
       const [w, d, h, x, y, z] = ['w', 'd', 'h', 'x', 'y', 'z'].map(k => Number(v[k]));
@@ -168,11 +219,13 @@ export const commands: Command[] = [
       const right = ctx.bodies.reduce((m, b) => Math.max(m, b.mesh.bounds.max[0]), -Infinity);
       return { r: 8, h: 24, x: Number.isFinite(right) ? r1(right + 24) : 0, y: 16, z: 0 };
     },
+    place: (v, [x, y, z]) => ({ ...v, x, y, z }),
     build: (ctx, v) => {
       const doc = withNode(ctx.doc, { kind: 'sketch', profile: 'circle', center: [Number(v.x), Number(v.y)], radius: Number(v.r) });
       return withNode(doc, { kind: 'extrude', sketch: doc.nodes.length - 1, height: Number(v.h), ...(Number(v.z) ? { from: Number(v.z) } : {}) });
     },
   },
+  ...primitives,
   {
     id: 'hole', label: 'Hole', icon: 'cad-hole', hint: 'A round hole into a flat face, through or to a depth', shortcut: 'H', group: 'create', keywords: 'drill bore through side cross',
     available: ctx => {
@@ -190,12 +243,13 @@ export const commands: Command[] = [
       const p = ctx.pick ?? face.centroid, [a, b] = HOLE_PLANE[holeAxis(face.normal)!.axis].map(k => 'xyz'.indexOf(k));
       return { d: 8, x: r1(p[a]), y: r1(p[b]) };
     },
-    // The diameter, at the rim along the face's first axis.
+    // The centre (a puck that slides it on the face) and the diameter, at the rim along the face's first axis.
     handles: (ctx, v) => {
       const f = ctx.selection.faces[0], face = ctx.bodies[f.body].mesh.faces[f.face], h = holeAxis(face.normal); if (!h) return [];
       const [a, b] = HOLE_PLANE[h.axis].map(k => 'xyz'.indexOf(k)), at: [number, number, number] = [...face.centroid] as [number, number, number], dir: [number, number, number] = [0, 0, 0];
       at[a] = Number(v.x) + Number(v.d) / 2; at[b] = Number(v.y); dir[a] = 1;
-      return [{ key: 'd', at, dir, scale: 2, min: 0.5, step: 0.5 }];
+      const centre: [number, number, number] = [...at], dir2: [number, number, number] = [0, 0, 0]; centre[a] = Number(v.x); dir2[b] = 1;
+      return [{ key: 'x', at: centre, dir: [...dir], pair: { key: 'y', dir: dir2 } }, { key: 'd', at, dir, scale: 2, min: 0.5, step: 0.5 }];
     },
     build: (ctx, v) => {
       const f = ctx.selection.faces[0], body = ctx.bodies[f.body], { axis, side } = holeAxis(body.mesh.faces[f.face].normal)!;
@@ -204,14 +258,15 @@ export const commands: Command[] = [
     },
   },
   {
-    id: 'chamfer', label: 'Chamfer', icon: 'cad-chamfer', hint: 'Cut the picked edges at 45°', shortcut: 'C', group: 'modify', keywords: 'bevel edge',
+    id: 'chamfer', label: 'Chamfer', icon: 'cad-chamfer', hint: 'Cut the picked edges at 45° (a picked face: all its edges)', shortcut: 'C', group: 'modify', keywords: 'bevel edge',
     available: ctx => {
       const sel = edgesOfOneBody(ctx);
-      if (!sel) return no('Select edges of one body to chamfer (Shift-click for more).');
+      if (!sel) return no('Select edges of one body to chamfer (Shift-click for more), or a face for all its edges.');
       return ok;
     },
     fields: () => [{ key: 'distance', label: 'Distance', kind: 'mm', min: 0.1 }],
     defaults: () => ({ distance: 2 }),
+    steps: edgeSteps,
     handles: (ctx, v) => edgeHandle(ctx, 'distance', Number(v.distance), 'chamfer'),
     build: (ctx, v) => {
       const { body, edges } = edgesOfOneBody(ctx)!;
@@ -219,14 +274,15 @@ export const commands: Command[] = [
     },
   },
   {
-    id: 'fillet', label: 'Fillet', icon: 'cad-fillet', hint: 'Round the picked edges', shortcut: 'F', group: 'modify', keywords: 'round edge blend',
+    id: 'fillet', label: 'Fillet', icon: 'cad-fillet', hint: 'Round the picked edges (a picked face: all its edges)', shortcut: 'F', group: 'modify', keywords: 'round edge blend',
     available: ctx => {
       const sel = edgesOfOneBody(ctx);
-      if (!sel) return no('Select edges of one body to round (Shift-click for more).');
+      if (!sel) return no('Select edges of one body to round (Shift-click for more), or a face for all its edges.');
       return ok;
     },
     fields: () => [{ key: 'radius', label: 'Radius', kind: 'mm', min: 0.1 }],
     defaults: () => ({ radius: 3 }),
+    steps: edgeSteps,
     handles: (ctx, v) => edgeHandle(ctx, 'radius', Number(v.radius), 'fillet'),
     build: (ctx, v) => {
       const { body, edges } = edgesOfOneBody(ctx)!;

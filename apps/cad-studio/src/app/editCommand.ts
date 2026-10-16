@@ -1,11 +1,12 @@
 // Editing a feature already in the part by dragging: the feature's own dimensions (the feature editor's
 // fields, app/editFields.ts) as a command, with arrows in the viewport where they act. Selecting a body
 // shows them; dragging one opens the edit with the usual preview, limits and Apply.
-import { featureLabel, type ModelNode, type SketchNode } from '../engine/doc';
+import { featureLabel, parentsOf, type ModelNode, type SketchNode } from '../engine/doc';
 import { toWorld } from '../sketch/plane';
 import { editFields } from './editFields';
 import { planeOf } from './profiles';
-import type { Command, Ctx, Field, HandleSpec, Values } from './commands';
+import type { Command, Ctx, Field, HandleSpec, Selection, Values } from './commands';
+import type { BodyResult } from '../engine/evaluate';
 
 type V3 = [number, number, number];
 const ok = { ok: true as const };
@@ -46,6 +47,22 @@ function extrudeHandles(nodes: readonly ModelNode[], index: number): HandleSpec[
   return out;
 }
 
+/** A hole's centre (a puck on its face) and diameter (an arrow at the rim), where it goes in. */
+function holeHandles(ctx: Ctx, nodes: readonly ModelNode[], index: number): HandleSpec[] {
+  const h = nodes[index] as Extract<ModelNode, { kind: 'hole' }>, axis = h.axis ?? 'z', k = 'xyz'.indexOf(axis);
+  const [a, b] = ({ z: [0, 1], x: [1, 2], y: [0, 2] } as const)[axis], c = h.center.map(num), r = num(h.radius);
+  if (![...c, r].every(Number.isFinite)) return [];
+  // The entry face's level: the end of the bore on the hole's side (its wall's vertices).
+  const mesh = ctx.bodies.find(x => x.key === `b${index}`)?.mesh; if (!mesh) return [];
+  const own = new Set(mesh.faces.flatMap(f => f.name.split('+').some(s => s.startsWith(`n${index}.`)) ? [f.index] : []));
+  let level = h.side === 'min' ? Infinity : -Infinity;
+  for (let v = 0; v < mesh.faceOfVertex.length; v++) if (own.has(mesh.faceOfVertex[v])) level = h.side === 'min' ? Math.min(level, mesh.positions[v * 3 + k]) : Math.max(level, mesh.positions[v * 3 + k]);
+  if (!Number.isFinite(level)) return [];
+  const point = (u: number, w: number): V3 => { const p: V3 = [0, 0, 0]; p[a] = u; p[b] = w; p[k] = level; return p; };
+  const unit = (i: number): V3 => { const d: V3 = [0, 0, 0]; d[i] = 1; return d; };
+  return [{ key: 'c0', at: point(c[0], c[1]), dir: unit(a), pair: { key: 'c1', dir: unit(b) } }, { key: 'dia', at: point(c[0] + r, c[1]), dir: unit(a), scale: 2, min: 0.5, step: 0.5 }];
+}
+
 /** The edit of feature `index`, or null when it has no dimension to drag. */
 export function editCommand(index: number, nodes: readonly ModelNode[]): Command | null {
   const node = nodes[index]; if (!node) return null;
@@ -60,6 +77,7 @@ export function editCommand(index: number, nodes: readonly ModelNode[]): Command
     handles: (ctx, v) => {
       const now = edited(ctx.doc.nodes, index, v), n = now[index];
       if (n.kind === 'extrude') return extrudeHandles(now, index);
+      if (n.kind === 'hole') return holeHandles(ctx, now, index);
       // A fillet or chamfer: on its round (or cut) face, out of the body; out is larger.
       if (n.kind === 'fillet' || n.kind === 'chamfer') {
         const body = ctx.bodies.find(b => b.key === `b${index}`), face = body?.mesh.faces.find(f => f.name.split('+').some(s => s.startsWith(`n${index}.`)));
@@ -69,4 +87,29 @@ export function editCommand(index: number, nodes: readonly ModelNode[]): Command
       return [];
     },
   };
+}
+
+/** Nodes that place a body elsewhere: a feature before one is no longer where its own dimensions say. */
+const PLACING = new Set(['translate', 'rotate', 'scale', 'mirror', 'linear-pattern', 'circular-pattern']);
+/**
+ * The feature a picked face or edge belongs to (the newest one its persistent names come from: a hole's
+ * wall, the box's top), so picking it edits that feature, and not only the body's last one. Null when
+ * nothing is picked that way, or a move, turn, scale, mirror or pattern since then has placed it elsewhere.
+ */
+export function featureOfPick(sel: Selection, bodies: readonly BodyResult[], nodes: readonly ModelNode[]): number | null {
+  const face = sel.faces.length === 1 && !sel.edges.length ? bodies[sel.faces[0].body]?.mesh.faces[sel.faces[0].face] : undefined;
+  const edge = sel.edges.length === 1 && !sel.faces.length ? bodies[sel.edges[0].body]?.mesh.edges[sel.edges[0].edge] : undefined;
+  const body = bodies[(face ? sel.faces[0] : sel.edges[0])?.body ?? -1];
+  const names = face ? face.name.split('+') : edge ? edge.names.flatMap(n => n.split('|')) : [];
+  const owners = names.flatMap(n => { const m = /^n(\d+)\./.exec(n); return m ? [Number(m[1])] : []; });
+  if (!body || !owners.length) return null;
+  const owner = Math.max(...owners), top = Number(/^b(\d+)/.exec(body.key)?.[1] ?? NaN);
+  // The path from the body's node down to the owner: nothing on it may have placed the body.
+  const placed = (i: number, seen = new Set<number>()): boolean | null => {
+    if (i === owner) return false;
+    if (seen.has(i) || !nodes[i]) return null; seen.add(i);
+    for (const p of parentsOf(nodes[i])) { const r = placed(p, seen); if (r !== null) return r || PLACING.has(nodes[i].kind); }
+    return null;
+  };
+  return Number.isFinite(top) && placed(top) === false ? owner : null;
 }

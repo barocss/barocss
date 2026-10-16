@@ -1,61 +1,186 @@
-// CAD command icons as small line drawings (24 × 24, the current colour), drawn the way CAD tools show
-// them: the shape the command makes, with the changed part in a second weight. `Icon` uses one of these
-// when its name starts with `cad-`.
+// CAD command icons, drawn to one system so they read as a set: a 24 × 24 grid, 1.5 strokes in the current
+// colour, solids in one isometric view (built from model coordinates by `iso`, so every block, cylinder
+// and prism shares its angles and proportions) and shaded in three tones (top lightest, then right, then
+// left), with the part the command makes or changes in the accent colour (`--icon-ac`). No dashes: at
+// rail size they break up; construction lines are lighter strokes instead. `Icon` uses these for `cad-` names.
 import type { ReactNode } from 'react';
 
-const P = (d: string, extra: Record<string, string | number> = {}) => <path d={d} {...extra} />;
-const accent = { strokeWidth: 2.1 };
-const dash = { strokeDasharray: '2 1.6' };
-const fill = { fill: 'currentColor', fillOpacity: 0.22, stroke: 'none' };
+type V3 = [number, number, number];
+type XY = [number, number];
+const K = 8.5, OY = 12;
+/** Model (x, y, z) in units of a cube's side (0…1 fills the icon) to icon coordinates. */
+const iso = ([x, y, z]: V3): XY => [12 + (x - y) * 0.866 * K, OY + (x + y) * 0.5 * K - z * K];
+const f1 = (v: number) => String(Math.round(v * 100) / 100);
+const d = (pts: XY[], close = true) => 'M' + pts.map(p => f1(p[0]) + ' ' + f1(p[1])).join('L') + (close ? 'Z' : '');
+const isoPath = (pts: V3[], close = true) => d(pts.map(iso), close);
+
+const TONE = { top: 0.34, right: 0.2, left: 0.1 } as const;
+// Faces are opaque (the current colour mixed into the icon's background, `--icon-bg`), so what is behind
+// them is hidden as on a solid, and lines never show through.
+const BG = 'var(--icon-bg, #242529)';
+const tone = (p: number) => ({ fill: `color-mix(in srgb, currentColor ${Math.round(p * 100)}%, ${BG})` });
+const acTone = { fill: `color-mix(in srgb, var(--icon-ac) 55%, ${BG})` };
+const dark = { fill: `color-mix(in srgb, ${BG} 45%, #000)` };
+/** A filled face, no outline. `ac`: in the accent colour. */
+const toneOf = tone;
+const face = (path: string, t: number, ac = false, key?: string | number) => <path key={key} d={path} style={ac ? acTone : toneOf(t)} stroke="none" />;
+const line = (path: string, key?: string | number) => <path key={key} d={path} />;
+const ac = (path: string, key?: string | number) => <path key={key} d={path} className="ac" />;
+const ghost = (path: string, key?: string | number) => <path key={key} d={path} strokeOpacity={0.45} strokeWidth={1.1} />;
+/** An arrow head at `tip` pointing away from `from` (filled, accent by default). */
+function head(from: XY, tip: XY, size = 3.4, accent = true): ReactNode {
+  const l = Math.hypot(tip[0] - from[0], tip[1] - from[1]) || 1, u: XY = [(tip[0] - from[0]) / l, (tip[1] - from[1]) / l], n: XY = [-u[1], u[0]];
+  const b: XY = [tip[0] - u[0] * size, tip[1] - u[1] * size], w = size * 0.62;
+  return <path d={d([tip, [b[0] + n[0] * w, b[1] + n[1] * w], [b[0] - n[0] * w, b[1] - n[1] * w]])} className={accent ? 'acf ac' : undefined} fill={accent ? undefined : 'currentColor'} strokeWidth={1} />;
+}
+
+/**
+ * A prism: a profile in the model's XZ plane (x right, z up; counter-clockwise; arcs already sampled)
+ * pulled along Y from y0 to y1. Draws the side faces turned to the view, the near cap (y1), and the edges:
+ * the cap's outline, the far ends of the seen faces and the runs along Y at silhouette and sharp corners.
+ * `accent(i)`: the side face from point i to i + 1 in the accent colour.
+ */
+function prism(pts: XY[], y0 = 0, y1 = 1, opts: { accent?: (i: number) => boolean; capAccent?: boolean } = {}): ReactNode[] {
+  const n = pts.length, out: ReactNode[] = [];
+  // Outward normal of edge a→b (counter-clockwise in x, z): (dz, −dx); seen when it leans to the viewer (+x, +z).
+  const sides = pts.map((a, i) => {
+    const b = pts[(i + 1) % n], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, nx = (b[1] - a[1]) / l, nz = -(b[0] - a[0]) / l;
+    return { i, a, b, nx, nz, seen: nx + nz > 1e-6, depth: a[0] + b[0] + a[1] + b[1] };
+  });
+  for (const s of sides.filter(x => x.seen).sort((p, q) => p.depth - q.depth)) {
+    const tone = TONE.left + (TONE.top - TONE.left) * Math.max(0, s.nz) + (TONE.right - TONE.left) * Math.max(0, s.nx);
+    out.push(face(isoPath([[s.a[0], y0, s.a[1]], [s.b[0], y0, s.b[1]], [s.b[0], y1, s.b[1]], [s.a[0], y1, s.a[1]]]), tone, opts.accent?.(s.i) ?? false, 'f' + s.i));
+  }
+  const cap = pts.map(p => [p[0], y1, p[1]] as V3);
+  out.push(face(isoPath(cap), TONE.left, !!opts.capAccent, 'cap'), line(isoPath(cap), 'capl'));
+  const far = sides.filter(x => x.seen).map(x => isoPath([[x.a[0], y0, x.a[1]], [x.b[0], y0, x.b[1]]], false)).join('');
+  const turn = (k: number) => {
+    const p = pts[(k - 1 + n) % n], c = pts[k], q = pts[(k + 1) % n];
+    let t = Math.abs(Math.atan2(q[1] - c[1], q[0] - c[0]) - Math.atan2(c[1] - p[1], c[0] - p[0])); if (t > Math.PI) t = 2 * Math.PI - t;
+    return t;
+  };
+  const runs = pts.map((c, k) => { const was = sides[(k - 1 + n) % n].seen, is = sides[k].seen; return was !== is || (was && is && turn(k) > 0.35) ? isoPath([[c[0], y0, c[1]], [c[0], y1, c[1]]], false) : ''; }).join('');
+  out.push(line(far + runs, 'edges'));
+  return out;
+}
+/** An arc in the profile plane, sampled (degrees, counter-clockwise from +x). */
+const arc = (c: XY, r: number, from: number, to: number, steps = 8): XY[] => Array.from({ length: steps + 1 }, (_, i) => { const a = (from + (to - from) * i / steps) * Math.PI / 180; return [c[0] + r * Math.cos(a), c[1] + r * Math.sin(a)]; });
+
+/** A horizontal circle (centre in model x, y, at height z) as an iso ellipse. */
+function ellipse(c: V3, r: number, extra: Record<string, unknown> = {}, key?: string): ReactNode {
+  const [x, y] = iso(c);
+  return <ellipse key={key} cx={f1(x)} cy={f1(y)} rx={f1(1.2247 * r * K)} ry={f1(0.7071 * r * K)} {...extra} />;
+}
+/** An upright cylinder (or a cone's frustum: top radius `rt`) about (c, c) from z0 to z1. */
+function cylinder(c: number, r: number, z0: number, z1: number, rt = r, opts: { bore?: number; accentTop?: boolean } = {}): ReactNode[] {
+  const [bx, by] = iso([c, c, z0]), [tx, ty] = iso([c, c, z1]), rx = 1.2247 * K, ry = 0.7071 * K;
+  const wall = `M${f1(tx - rt * rx)} ${f1(ty)}L${f1(bx - r * rx)} ${f1(by)}A${f1(r * rx)} ${f1(r * ry)} 0 0 0 ${f1(bx + r * rx)} ${f1(by)}L${f1(tx + rt * rx)} ${f1(ty)}` + (rt > 0 ? `A${f1(rt * rx)} ${f1(rt * ry)} 0 0 1 ${f1(tx - rt * rx)} ${f1(ty)}Z` : 'Z');
+  const outline = `M${f1(tx - rt * rx)} ${f1(ty)}L${f1(bx - r * rx)} ${f1(by)}A${f1(r * rx)} ${f1(r * ry)} 0 0 0 ${f1(bx + r * rx)} ${f1(by)}L${f1(tx + rt * rx)} ${f1(ty)}`;
+  const out: ReactNode[] = [face(wall, TONE.right, false, 'w'), line(outline, 'wl')];
+  if (rt > 0) {
+    out.push(ellipse([c, c, z1], rt, { style: opts.accentTop ? acTone : tone(TONE.top), stroke: 'none' }, 'tf'), ellipse([c, c, z1], rt, {}, 'tl'));
+    if (opts.bore) out.push(ellipse([c, c, z1], opts.bore, { style: dark }, 'b'));
+  }
+  return out;
+}
+
+/** The unit block's three seen faces and edges, between (x0, y0, z0) and (x1, y1, z1). */
+const block = (x0: number, y0: number, z0: number, x1: number, y1: number, z1: number, opts: { accent?: (i: number) => boolean } = {}) =>
+  prism([[x0, z0], [x1, z0], [x1, z1], [x0, z1]], y0, y1, opts);
+
+// Flat (2D) parts share these: a 1.5 stroke, round ends, filled heads.
+const arrow = (from: XY, to: XY, accent = true): ReactNode[] => [accent ? ac(d([from, to], false), 's') : line(d([from, to], false), 's'), <g key="h">{head(from, to, 3.6, accent)}</g>];
+
+// Booleans: two circles r 6.5 at x 9 and 15 meeting at x 12, y 12 ± 5.77.
+const BA = 'M12 6.23A6.5 6.5 0 1 0 12 17.77';
+const circles = [<circle key="a" cx="9" cy="12" r="6.5" />, <circle key="b" cx="15" cy="12" r="6.5" />];
 
 export const CAD_ICONS: Record<string, ReactNode> = {
-  // A pencil over a profile.
-  'cad-sketch': <>{P('M4 18h9M4 18V9', dash)}{P('M14.5 5.5l4 4L10 18H6v-4z')}{P('M12.5 7.5l4 4')}</>,
-  // A profile pulled up into a block, the arrow showing the pull.
-  'cad-extrude': <>{P('M4 17l6 3 10-5-6-3z', fill)}{P('M4 17l6 3 10-5-6-3z')}{P('M4 17V11M10 20v-6M20 15V9', dash)}{P('M4 11l6 3 10-5', dash)}{P('M12 12V3M9.5 5.5L12 3l2.5 2.5', accent)}</>,
-  // A half profile turned about an axis.
-  'cad-revolve': <>{P('M12 3v18', dash)}{P('M12 6h4v8h-4', fill)}{P('M12 6h4v8h-4')}{P('M6.5 16.5a7 3 0 0 0 11 0', accent)}{P('M16.6 14.6l.9 1.9-2 .5', accent)}</>,
+  // A pencil drawing a profile on a plane.
+  'cad-sketch': <>{face(isoPath([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]]), 0.12)}{ghost(isoPath([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]]))}
+    {ac(isoPath([[0.2, 0.25, 0], [0.75, 0.25, 0], [0.75, 0.75, 0], [0.2, 0.75, 0]]))}
+    <path d="M13.2 13.8l6.6-6.6 2.2 2.2-6.6 6.6-3 .8z" style={tone(0.34)} /><path d="M18.4 8.6l2.2 2.2" /></>,
+  // A profile pulled up into a block: the new block in the accent colour, the pull arrow.
+  'cad-extrude': <>{face(isoPath([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]]), 0.1)}{ghost(isoPath([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]]))}
+    {prism([[0.15, 0], [0.85, 0], [0.85, 0.55], [0.15, 0.55]], 0.15, 0.85, { accent: () => true, capAccent: true })}
+    {arrow(iso([0.5, 0.5, 0.55]), [12, 1.6])}</>,
+  // A profile beside an axis, and the turn round the axis it is swept through.
+  'cad-revolve': <>{ghost('M8 2.5V21.5')}{face('M10.5 5.5h4l2.5 3v7l-2.5 3h-4z', TONE.right)}{line('M10.5 5.5h4l2.5 3v7l-2.5 3h-4z')}
+    {ac('M8 9.2c-3.6 0-5.4 1-5.4 2.8s1.8 2.8 5.4 2.8c1.2 0 2.2-.1 3-.3')}<g>{head([9.6, 14.6], [13.2, 14.1])}</g></>,
   // A round section carried along a bent path.
-  'cad-sweep': <>{P('M4 20c0-8 4-12 12-12h4', dash)}{P('M4 20c0-8 4-12 12-12', accent)}<ellipse cx="18" cy="8" rx="2" ry="3.2" /><ellipse cx="4" cy="20" rx="2.6" ry="1.4" /></>,
-  // Two sections joined: a square below, a circle above.
-  'cad-loft': <><ellipse cx="12" cy="6" rx="4.5" ry="1.8" />{P('M4 17l8 3 8-3-8-3z', fill)}{P('M4 17l8 3 8-3-8-3z')}{P('M7.5 6.3L4 17M16.5 6.3L20 17', accent)}</>,
-  // A block with a round opening going down into it.
-  'cad-hole': <>{P('M3 9l9-4 9 4-9 4z')}{P('M3 9v8l9 4 9-4V9M12 13v8')}<ellipse cx="12" cy="9" rx="3.4" ry="1.5" {...accent} />{P('M8.6 9v5M15.4 9v5', dash)}</>,
-  // A corner rounded.
-  'cad-fillet': <>{P('M4 20V9a5 5 0 0 1 5-5h11', accent)}{P('M4 20h16V4', dash)}</>,
-  // A corner cut off at 45°.
-  'cad-chamfer': <>{P('M4 20V10l6-6h10', accent)}{P('M4 20h16V4', dash)}{P('M4 10h6V4', { ...dash, strokeOpacity: 0.6 })}</>,
-  // A box hollowed with its top open.
-  'cad-shell': <>{P('M3 9l9-4 9 4v8l-9 4-9-4z')}{P('M6 9.4l6-2.6 6 2.6-6 2.6z', fill)}{P('M6 9.4l6-2.6 6 2.6-6 2.6z', accent)}{P('M12 12v9')}</>,
-  // A wall leaning away from its pull direction.
-  'cad-draft': <>{P('M6 20L9 5h6l3 15z', fill)}{P('M6 20L9 5h6l3 15z')}{P('M12 21V3', dash)}{P('M9 5L7.4 13', accent)}</>,
-  // Arrows in four directions.
-  'cad-move': <>{P('M12 3v18M3 12h18')}{P('M9.5 5.5L12 3l2.5 2.5M9.5 18.5L12 21l2.5-2.5M5.5 9.5L3 12l2.5 2.5M18.5 9.5L21 12l-2.5 2.5', accent)}</>,
+  'cad-sweep': <>{ac('M4.5 19.5V13a7 7 0 0 1 7-7h8')}{line('M2.5 19.5V13a9 9 0 0 1 9-9h8M6.5 19.5V13a5 5 0 0 1 5-5h8')}
+    <ellipse cx="4.5" cy="19.5" rx="2" ry="0.9" style={tone(0.34)} /><ellipse cx="19.5" cy="6" rx="0.9" ry="2" /></>,
+  // A square section blended into a round one above it.
+  'cad-loft': (() => {
+    const l = iso([0, 1, -0.2]), b = iso([1, 1, -0.2]), r = iso([1, 0, -0.2]), t = iso([0, 0, -0.2]), [cx, cy] = iso([0.5, 0.5, 1.05]), rx = 4.4, ry = 2.5;
+    const body = `M${f1(l[0])} ${f1(l[1])}L${f1(b[0])} ${f1(b[1])}L${f1(r[0])} ${f1(r[1])}L${f1(cx + rx)} ${f1(cy)}A${rx} ${ry} 0 0 0 ${f1(cx - rx)} ${f1(cy)}Z`;
+    return <>{ghost(d([l, t, r], false))}{face(`M${f1(l[0])} ${f1(l[1])}L${f1(b[0])} ${f1(b[1])}L${f1(cx)} ${f1(cy + ry)}A${rx} ${ry} 0 0 1 ${f1(cx - rx)} ${f1(cy)}Z`, TONE.left)}
+      {face(`M${f1(b[0])} ${f1(b[1])}L${f1(r[0])} ${f1(r[1])}L${f1(cx + rx)} ${f1(cy)}A${rx} ${ry} 0 0 1 ${f1(cx)} ${f1(cy + ry)}Z`, TONE.right)}
+      {line(body.replace(/A[^Z]*Z$/, '') + `M${f1(b[0])} ${f1(b[1])}L${f1(cx)} ${f1(cy + ry)}`)}
+      <ellipse cx={f1(cx)} cy={f1(cy)} rx={rx} ry={ry} style={acTone} className="ac" /></>;
+  })(),
+  // A plate with a round hole in its top.
+  'cad-hole': <>{block(0, 0, 0, 1, 1, 0.6)}<g transform="translate(0 3.4)">{ellipse([0.5, 0.5, 0.6], 0.24, { style: dark })}{ellipse([0.5, 0.5, 0.6], 0.24, { className: 'ac' })}</g></>,
+  // A block with its front top edge rounded.
+  'cad-fillet': <>{prism([[0, 0], [1, 0], ...arc([0.5, 0.5], 0.5, 0, 90), [0, 1]], 0, 1, { accent: i => i >= 2 && i < 10 })}{ac(isoPath(arc([0.5, 0.5], 0.5, 0, 90).map(p => [p[0], 1, p[1]] as V3), false))}</>,
+  // A block with its front top edge cut at 45°.
+  'cad-chamfer': <>{prism([[0, 0], [1, 0], [1, 0.55], [0.55, 1], [0, 1]], 0, 1, { accent: i => i === 2 })}{ac(isoPath([[1, 1, 0.55], [0.55, 1, 1]], false))}</>,
+  // A block hollowed to thin walls, open at the top.
+  'cad-shell': (() => {
+    const t = 0.17, u = 1 - t, o: V3[] = [[0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]], i: V3[] = [[t, t, 1], [u, t, 1], [u, u, 1], [t, u, 1]];
+    return <><clipPath id="cad-shell-open"><path d={isoPath(i)} /></clipPath>
+      <g clipPath="url(#cad-shell-open)">{face(isoPath([[t, t, t], [t, t, 1], [t, u, 1], [t, u, t]]), TONE.right * 0.7)}{face(isoPath([[t, t, t], [t, t, 1], [u, t, 1], [u, t, t]]), TONE.left)}
+      {face(isoPath([[t, t, t], [u, t, t], [u, u, t], [t, u, t]]), TONE.top * 0.7)}
+      {line(isoPath([[t, t, 1], [t, t, t]], false) + isoPath([[u, t, t], [t, t, t], [t, u, t]], false))}</g>
+      <path d={isoPath(o) + isoPath(i)} fillRule="evenodd" style={acTone} stroke="none" />
+      {face(isoPath([[1, 0, 1], [1, 1, 1], [1, 1, 0], [1, 0, 0]]), TONE.right)}{face(isoPath([[0, 1, 1], [1, 1, 1], [1, 1, 0], [0, 1, 0]]), TONE.left)}
+      {line(isoPath([[0, 0, 1], [1, 0, 1], [1, 0, 0], [1, 1, 0], [0, 1, 0], [0, 1, 1]]) + isoPath([[1, 1, 1], [1, 1, 0]], false))}{ac(isoPath(i))}</>;
+  })(),
+  // Walls leaning in from a pull direction.
+  'cad-draft': <>{prism([[0.05, 0], [0.95, 0], [0.75, 1], [0.25, 1]], 0, 1, { accent: i => i === 1 })}{ghost(d([iso([0.95, 1, 0]), iso([0.95, 1, 1.05])], false))}</>,
+  // Four arrows from a centre.
+  'cad-move': <>{line('M12 3.5v17M3.5 12h17')}<g>{head([12, 8], [12, 2.5], 3.6, false)}{head([12, 16], [12, 21.5], 3.6, false)}{head([8, 12], [2.5, 12], 3.6, false)}{head([16, 12], [21.5, 12], 3.6, false)}</g><circle cx="12" cy="12" r="2.2" className="acf ac" /></>,
   // A turn about a centre.
-  'cad-rotate': <>{P('M19 12a7 7 0 1 1-2.05-4.95', accent)}{P('M17.5 3.5v4h-4', accent)}<circle cx="12" cy="12" r="1.4" {...fill} fillOpacity={1} /></>,
-  // A small square grown into a large one from a corner.
-  'cad-scale': <>{P('M4 20V9h11v11z', dash)}{P('M4 20v-5h5v5z', fill)}{P('M4 20v-5h5v5z')}{P('M10 14l9-9M14 5h5v5', accent)}</>,
-  // A shape and its reflection across a dashed plane.
-  'cad-mirror': <>{P('M12 3v18', dash)}{P('M9 7L4 17h5z', fill)}{P('M9 7L4 17h5z')}{P('M15 7l5 10h-5z', accent)}</>,
-  // Three copies in a row.
-  'cad-pattern-linear': <>{P('M3 9h5v6H3z', fill)}{P('M3 9h5v6H3z')}{P('M10 9h5v6h-5zM17 9h4v6h-4', accent)}{P('M3 19h18M18.5 17.5L21 19l-2.5 1.5')}</>,
+  'cad-rotate': <>{ac('M19.2 9.5A7.5 7.5 0 1 0 19.5 13')}<g>{head([18, 6.8], [19.6, 10.2], 3.8)}</g><circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none" /></>,
+  // A small square grown into a large one along the diagonal.
+  'cad-scale': <>{face('M3.5 11.5h9v9h-9z', TONE.right)}{line('M3.5 11.5h9v9h-9z')}{ghost('M3.5 3.5h17v17')}{arrow([9, 15], [19.5, 4.5])}</>,
+  // A shape and its mirror image across a plane.
+  'cad-mirror': <>{ac('M12 2.5v19')}{face('M9.5 6.5v11h-6z', TONE.right)}{line('M9.5 6.5v11h-6z')}{ghost('M14.5 6.5v11h6z')}</>,
+  // Copies in a row along an arrow.
+  'cad-pattern-linear': <>{[3, 9.5, 16].map((x, k) => <rect key={x} x={x} y="5.5" width="5" height="5" rx="1" className={k === 0 ? 'ac' : undefined} style={k ? tone(0.2) : acTone} strokeOpacity={k ? 0.6 : 1} />)}
+    {arrow([3, 16.5], [21.5, 16.5], false)}</>,
   // Copies round an axis.
-  'cad-pattern-circular': <><circle cx="12" cy="12" r="7" {...dash} /><circle cx="12" cy="5" r="2" {...fill} fillOpacity={0.6} /><circle cx="12" cy="5" r="2" /><circle cx="18.1" cy="15.5" r="2" {...accent} /><circle cx="5.9" cy="15.5" r="2" {...accent} /></>,
-  // A block cut in two by a plane.
-  'cad-split': <>{P('M3 9l9-4 9 4v8l-9 4-9-4z')}{P('M12 3v19', accent)}{P('M7.5 7v12M16.5 7v12', dash)}</>,
-  // A ruler.
-  'cad-measure': <>{P('M3 15l12-12 6 6-12 12z')}{P('M7 11l2 2M10 8l1.5 1.5M13 5l2 2M5.5 12.5l1 1M8.5 9.5l1 1', accent)}</>,
-  // A block.
-  'cad-box': <>{P('M3 8l9-4 9 4v9l-9 4-9-4z')}{P('M3 8l9 4 9-4M12 12v9')}{P('M3 8l9-4 9 4-9 4z', fill)}</>,
-  // A cylinder.
-  'cad-cylinder': <><ellipse cx="12" cy="6" rx="7" ry="2.6" />{P('M5 6v12a7 2.6 0 0 0 14 0V6')}<ellipse cx="12" cy="6" rx="7" ry="2.6" {...fill} /></>,
-  // Booleans: two overlapping rings with the kept region shaded.
-  'cad-union': <>{P('M9 5a7 7 0 1 0 0 14 7 7 0 0 0 6-3.4A7 7 0 1 0 15 8.4 7 7 0 0 0 9 5z', fill)}<circle cx="9" cy="12" r="7" /><circle cx="15" cy="12" r="7" /></>,
-  'cad-subtract': <>{P('M9 5a7 7 0 1 0 0 14 7 7 0 0 0 3-.68A7 7 0 0 1 12 5.68 7 7 0 0 0 9 5z', fill)}<circle cx="9" cy="12" r="7" /><circle cx="15" cy="12" r="7" {...dash} /></>,
-  'cad-intersect': <>{P('M12 5.68a7 7 0 0 1 0 12.64 7 7 0 0 1 0-12.64z', { ...fill, fillOpacity: 0.55 })}<circle cx="9" cy="12" r="7" {...dash} /><circle cx="15" cy="12" r="7" {...dash} /></>,
+  'cad-pattern-circular': <>{ghost('M12 4.5a7.5 7.5 0 1 1-.01 0')}<circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none" />
+    {[0, 90, 180, 270].map((a, k) => { const r = a * Math.PI / 180, x = 12 + 7.5 * Math.sin(r), y = 12 - 7.5 * Math.cos(r); return <rect key={a} x={f1(x - 2.3)} y={f1(y - 2.3)} width="4.6" height="4.6" rx="1" className={k === 0 ? 'ac' : undefined} style={k ? tone(0.2) : acTone} strokeOpacity={k ? 0.6 : 1} />; })}</>,
+  // A block cut in two by a plane between the halves.
+  'cad-split': <>{block(0, 0, 0, 1, 0.42, 1)}{face(isoPath([[-0.1, 0.5, -0.12], [1.1, 0.5, -0.12], [1.1, 0.5, 1.12], [-0.1, 0.5, 1.12]]), 0, true)}{ac(isoPath([[-0.1, 0.5, -0.12], [1.1, 0.5, -0.12], [1.1, 0.5, 1.12], [-0.1, 0.5, 1.12]]))}{block(0, 0.58, 0, 1, 1, 1)}</>,
+  // A rule with ticks.
+  'cad-measure': <>{face('M2.8 15.6L15.6 2.8l5.6 5.6L8.4 21.2z', TONE.right)}{line('M2.8 15.6L15.6 2.8l5.6 5.6L8.4 21.2z')}{ac('M6.2 12.2l2.2 2.2M9 9.4l1.5 1.5M11.8 6.6l2.2 2.2M14.6 3.8l1.5 1.5')}</>,
+  // Primitive solids.
+  'cad-box': <>{block(0, 0, 0, 1, 1, 1)}</>,
+  'cad-cylinder': <>{cylinder(0.5, 0.5, -0.05, 0.95)}</>,
+  'cad-sphere': <><circle cx="12" cy="12" r="8.5" style={tone(TONE.right)} /><path d="M3.5 12a8.5 3.2 0 0 0 17 0" strokeOpacity={0.55} /><ellipse cx="9" cy="8.6" rx="2.6" ry="1.8" style={tone(0.3)} stroke="none" /><circle cx="12" cy="12" r="8.5" /></>,
+  'cad-cone': <>{cylinder(0.5, 0.52, -0.08, 1.05, 0)}</>,
+  'cad-torus': <><ellipse cx="12" cy="12.5" rx="9.5" ry="5.5" style={tone(TONE.right)} /><ellipse cx="12" cy="11.6" rx="4.2" ry="2.1" style={dark} />
+    <path d="M7.8 11.6a4.2 2.1 0 0 0 8.4 0" strokeOpacity={0.6} /><ellipse cx="12" cy="12.5" rx="9.5" ry="5.5" /></>,
+  'cad-tube': <>{cylinder(0.5, 0.5, -0.05, 0.95, 0.5, { bore: 0.27 })}</>,
+  'cad-wedge': <>{prism([[0, 0], [1, 0], [0, 1]])}</>,
+  'cad-prism': <>{(() => {
+    // A hexagonal prism, axis up: the top hexagon, then the three faces toward the view.
+    const h = Array.from({ length: 6 }, (_, k) => { const a = (k * 60 + 30) * Math.PI / 180; return [0.5 + 0.55 * Math.cos(a), 0.5 + 0.55 * Math.sin(a)] as XY; });
+    const top = h.map(([x, y]) => [x, y, 1] as V3), bottom = h.map(([x, y]) => [x, y, 0] as V3), out: ReactNode[] = [];
+    [5, 0, 1].forEach(k => { const j = (k + 1) % 6, q = [bottom[k], bottom[j], top[j], top[k]]; out.push(face(isoPath(q), k === 5 ? TONE.right : k === 0 ? (TONE.right + TONE.left) / 2 : TONE.left, false, 'p' + k)); });
+    out.push(face(isoPath(top), TONE.top, false, 'top'), line(isoPath(top), 'tl'), line(isoPath([bottom[5], bottom[0], bottom[1], bottom[2]], false), 'bl'));
+    out.push(line([5, 0, 1, 2].map(k => isoPath([bottom[k], top[k]], false)).join(''), 'v'));
+    return out;
+  })()}</>,
+  // Booleans: the result shaded in the accent colour.
+  'cad-union': <><path d={BA + 'A6.5 6.5 0 1 0 12 6.23Z'} style={acTone} stroke="none" /><path d={BA + 'A6.5 6.5 0 1 0 12 6.23'} /></>,
+  'cad-subtract': <><path d={BA + 'A6.5 6.5 0 0 1 12 6.23Z'} style={acTone} stroke="none" /><path d={BA + 'A6.5 6.5 0 0 1 12 6.23'} />{ghost('M12 6.23A6.5 6.5 0 1 1 12 17.77')}</>,
+  'cad-intersect': <><path d="M12 6.23A6.5 6.5 0 0 0 12 17.77A6.5 6.5 0 0 0 12 6.23Z" style={acTone} stroke="none" />{circles.map(c => <g key={c.key} strokeOpacity={0.5}>{c}</g>)}<path d="M12 6.23A6.5 6.5 0 0 0 12 17.77A6.5 6.5 0 0 0 12 6.23Z" /></>,
 };
 
 export function CadIcon({ name, small }: { name: string; small?: boolean }) {
   const s = small ? 16 : 20;
-  return <svg className="cad-icon" width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{CAD_ICONS[name]}</svg>;
+  return <svg className="cad-icon" width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{CAD_ICONS[name]}</svg>;
 }

@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { EngineClient } from './engine/client';
 import { placedDoc, type PartInstance } from './engine/doc';
-import { emptyDoc, featureLabel, fmt, prefixDoc, starterDoc, withNode, type ModelNode, type SketchNode, type StudioDoc } from './engine/doc';
+import { emptyDoc, featureLabel, fmt, parentsOf, prefixDoc, starterDoc, withNode, type ModelNode, type SketchNode, type StudioDoc } from './engine/doc';
 import type { BodyResult } from './engine/evaluate';
 import type { FriendlyError } from './engine/errors';
 import type { Vec3 } from './engine/mesh';
-import { commands, patchValues, refOf, selectedBodies, shownFields, type Command, type Ctx, type Selection, type Values } from './app/commands';
+import { carrySelection, commands, patchValues, refOf, selectedBodies, shownFields, type Command, type Ctx, type Selection, type Values } from './app/commands';
 import { measureBetween, measureItem, type MeasurePick } from './app/measure';
 import { editFields } from './app/editFields';
-import { Viewport, type FeatureHandle, type SketchAnchor, type SketchShape, type SketchState, type SketchTool, type TransformGizmo, type ViewportHandle } from './viewport/Viewport';
+import { DRAG_TYPE, Viewport, type FeatureHandle, type Spot, type SketchAnchor, type SketchShape, type SketchState, type SketchTool, type TransformGizmo, type ViewportHandle } from './viewport/Viewport';
 import { Icon, Kbd } from './ui/atoms';
 import { Hud } from './ui/Hud';
 import { Palette } from './ui/Palette';
@@ -23,12 +23,13 @@ import { DrawingWorkspace } from './ui/DrawingWorkspace';
 import { ChatPanel } from './ui/ChatPanel';
 import { TooltipLayer } from './ui/Tooltip';
 import { resolveNames, type NameSelection } from './chat/tools';
-import { deleteFeature } from './chat/features';
+import { bodyNodes, deleteFeature, deleteFeatures } from './chat/features';
 import { defaultDrawing, readDrawing, type DrawingSettings } from './drawing/types';
 import { MatePanel } from './ui/MatePanel';
 import { useAssembly } from './assembly/useAssembly';
 import { pickedSketches, planeOf, profileRings, unusedSketches } from './app/profiles';
-import { editCommand } from './app/editCommand';
+import { extrudeProfile } from './app/profileCommands';
+import { editCommand, featureOfPick } from './app/editCommand';
 import { gizmoAxes, movedInstance, previewMatrix, turnedInstance, type InstanceDrag } from './assembly/drag';
 import type { Mate } from './assembly/mates';
 import { directDisplay, directIGES, emptyDirect, importSource, type DirectGeometry } from './engine/direct';
@@ -77,7 +78,8 @@ const switchTool = (s: SketchState, tool: SketchTool): SketchState => {
 
 const emptySel: Selection = { faces: [], edges: [], bodies: [] };
 
-interface Active { cmd: Command; values: Values; preview: 'busy' | 'ok' | 'error'; error?: FriendlyError; ctx: Ctx }
+/** `placing`: a new shape that follows the pointer until a click (or a drop from the rail) stands it there. */
+interface Active { cmd: Command; values: Values; preview: 'busy' | 'ok' | 'error'; error?: FriendlyError; ctx: Ctx; placing?: boolean }
 
 export function App() {
   const engine = useMemo(() => new EngineClient(), []);
@@ -175,7 +177,7 @@ export function App() {
       return false;
     };
     (window as unknown as { __studioSelectFace: (name: string) => boolean }).__studioSelectFace = name => {
-      for (const [b, body] of bodies.entries()) { const i = body.mesh.faces.findIndex(f => f.name.split('+').includes(name)); if (i >= 0) { setSelection({ faces: [{ body: b, face: i }], edges: [], bodies: [] }); return true; } }
+      for (const [b, body] of bodies.entries()) { const i = body.mesh.faces.findIndex(f => f.name.split('+').includes(name)); if (i >= 0) { setInstanceSel([]); setDirectSel([]); setSelection({ faces: [{ body: b, face: i }], edges: [], bodies: [] }); return true; } }
       return false;
     };
     // A click on a named face, as the viewport reports it (measure picks go through it).
@@ -201,10 +203,10 @@ export function App() {
       if (!live || !result) return;
       setBusy(false); setLastMs(result.ms);
       if (result.ok) {
-        // (The same bodies again — a preview that became the part — keep what is selected on them.)
-        const prev = bodiesRef.current, same = prev.length === result.bodies.length && result.bodies.every((b, i) => b.key === prev[i].key && b.mesh.faces.length === prev[i].mesh.faces.length && b.mesh.edges.length === prev[i].mesh.edges.length);
+        // What is selected stays selected where it still is: faces, edges and bodies by their persistent names.
+        const prev = bodiesRef.current;
         setBodies(result.bodies);
-        if (chatSelection.current) setSelection(resolveNames(result.bodies, chatSelection.current).selection); else if (!same) setSelection(emptySel);
+        if (chatSelection.current) setSelection(resolveNames(result.bodies, chatSelection.current).selection); else setSelection(sel => carrySelection(sel, prev, result.bodies));
         chatSelection.current = null;
       }
       else setToast(result.error);
@@ -410,11 +412,31 @@ export function App() {
     }
     // A profile seen straight on (just after sketching on it) is turned to an angle, so its pull shows.
     if (['extrude', 'revolve', 'pipe', 'loft'].includes(cmd.id)) {
-      const [i] = pickedSketches(evaluated.nodes, selection.sketches), n = i !== undefined ? planeOf(evaluated.nodes[i] as SketchNode).normal : null, cam = viewport.current?.camera;
+      const [i] = pickedSketches(evaluated.nodes, selection.sketches), face = cmd.id === 'extrude' ? extrudeProfile(ctx) : null;
+      const n = face ? planeOf(face.node).normal : i !== undefined ? planeOf(evaluated.nodes[i] as SketchNode).normal : null, cam = viewport.current?.camera;
       if (n && cam) { const f = cam.basis().forward; if (Math.abs(f[0] * n[0] + f[1] * n[1] + f[2] * n[2]) > 0.95) viewport.current?.setView('iso'); }
     }
-    setActive({ cmd, values: cmd.defaults?.(ctx) ?? {}, preview: 'busy', ctx: { ...ctx } });
+    setActive({ cmd, values: cmd.defaults?.(ctx) ?? {}, preview: 'busy', ctx: { ...ctx }, ...(cmd.place ? { placing: true } : {}) });
   }, [ctx, selection, bodies, engine, commit, evaluated.nodes]);
+
+  // Placing a new shape: it follows the pointer over the ground and upward faces; a click or a drop sets
+  // it there. Dragging a shape's button from the rail onto the viewport starts it as the drag comes in.
+  const dragCmd = useRef<string | null>(null);
+  const onSpot = useCallback((spot: Spot | null, done: boolean) => {
+    const dragged = dragCmd.current ? commands.find(c => c.id === dragCmd.current) : undefined;
+    if (done) dragCmd.current = null;
+    setActive(a => {
+      let cur = a;
+      if (!cur?.placing) {
+        if (cur || !dragged?.place || !dragged.available(ctx).ok) return a;
+        cur = { cmd: dragged, values: dragged.defaults?.(ctx) ?? {}, preview: 'busy', ctx: { ...ctx }, placing: true };
+      }
+      if (!spot || !cur.cmd.place) return done ? { ...cur, placing: false } : cur;
+      const placed = cur.cmd.place(cur.values, spot.point), same = Object.keys(placed).every(k => placed[k] === cur.values[k]);
+      if (same) return done ? { ...cur, placing: false } : cur;
+      return { ...cur, values: patchValues(cur.cmd, cur.ctx, cur.values, placed), preview: 'busy', ...(done ? { placing: false } : {}) };
+    });
+  }, [ctx]);
 
   /** Moves the sketch to another plane (its shapes keep their plane coordinates) and faces it. */
   const placeSketch = useCallback((kind: SketchAnchor['kind'], offset: number, angle = 0) => {
@@ -527,9 +549,36 @@ export function App() {
       if (r.droppedDimensions) setToast({ title: `Removed ${r.droppedDimensions} drawing dimension${r.droppedDimensions > 1 ? 's' : ''}`, hint: `They measured ${label}. Undo restores them.`, detail: '' });
     });
   };
+  /**
+   * Delete (the key): picked sketches; a picked face or edge of a feature added to a body (a hole, a
+   * fillet …) takes that feature; picked bodies, or a face of what a body was first made as, take the body
+   * with all it was built from.
+   */
+  const deleteSelection = () => {
+    if (marker !== null) { setToast({ title: 'Roll forward to delete', hint: 'Features are deleted from the whole history: roll forward to the end first.', detail: '' }); return; }
+    const nodes = doc.nodes, body = (k: number) => bodies[k] ? bodyNodes(nodes, refOf(bodies[k]).node) : [];
+    let indices: number[] = [], what = '';
+    if (selection.sketches?.length) { indices = selection.sketches; what = indices.length === 1 ? `Sketch ${indices[0] + 1}` : `${indices.length} sketches`; }
+    else if (selection.bodies.length) { indices = [...new Set(selection.bodies.flatMap(body))]; what = selection.bodies.length === 1 ? 'the body' : `${selection.bodies.length} bodies`; }
+    else if (selection.faces.length || selection.edges.length) {
+      const owner = featureOfPick(selection, bodies, nodes), k = (selection.faces[0] ?? selection.edges[0]).body;
+      const base = owner !== null && parentsOf(nodes[owner]).every(p => nodes[p]?.kind === 'sketch');
+      if (owner === null || base) { indices = body(k); what = 'the body'; } else { indices = [owner]; what = featureLabel(nodes[owner], owner, nodes); }
+    }
+    if (!indices.length) return;
+    const r = deleteFeatures(doc, indices);
+    if ('error' in r) { setToast({ title: `Cannot delete ${what}`, hint: r.error, detail: '' }); return; }
+    engine.evaluate(prefixDoc(r.doc, r.doc.nodes.length), revision.current++).then(e => {
+      if (!e) return;
+      if (!e.ok) { setToast({ ...e.error, title: `Cannot delete ${what}: ${e.error.title}` }); return; }
+      setSelection(emptySel); commit(r.doc);
+      if (r.droppedDimensions) setToast({ title: `Removed ${r.droppedDimensions} drawing dimension${r.droppedDimensions > 1 ? 's' : ''}`, hint: `They measured ${what}. Undo restores them.`, detail: '' });
+    });
+  };
   // A new or opened part replaces the document: an open sketch or tool would carry the old part's shapes
   // and face references into it, so they close first (U4).
-  const replaceDoc = (next: StudioDoc) => { cancel(); commit(next); };
+  // (What was picked in the old part goes too: instances, direct-edit faces, measurements.)
+  const replaceDoc = (next: StudioDoc) => { cancel(); setSelection(emptySel); setInstanceSel([]); setDirectSel([]); setMeasure(null); setEditNode(null); commit(next); };
   const save = () => { downloadBytes(new TextEncoder().encode(JSON.stringify(doc, null, 2)), `${fileName}.bcad`, 'application/json'); setDirty(false); clearRecovery(); };
   const open = async (file: File) => {
     try {
@@ -590,6 +639,7 @@ export function App() {
       const numberBox = e.target instanceof HTMLInputElement && e.target.type === 'number' && !e.target.classList.contains('dim-edit');
       if (palette || (typing && !(sketch && numberBox && !e.metaKey && !e.ctrlKey && !e.altKey && /^[a-z]$/i.test(e.key)))) return;
       if (e.key === ' ') { e.preventDefault(); setPalette(true); return; }
+      if ((e.key === 'Delete' || e.key === 'Backspace') && !sketch && !active && !measure) { e.preventDefault(); deleteSelection(); return; }
       if (sketch) {
         const t = TOOLS.find(x => x.key.toLowerCase() === e.key.toLowerCase() || (x.tool === 'polygon' && e.key.toLowerCase() === 'p'))?.tool;
         if (t) { if (typing) { e.preventDefault(); (e.target as HTMLElement).blur(); } setSketch(s => s && switchTool(s, t)); }
@@ -604,6 +654,8 @@ export function App() {
   });
 
   const shownBodies = bodyDrag ? bodies : previewBodies ?? bodies;
+  // (While placing, the pointer looks through the shape being placed: the preview's new bodies.)
+  const placeSkip = useMemo(() => { const have = new Set(bodies.map(b => b.key)); return new Set((previewBodies ?? []).filter(b => !have.has(b.key)).map(b => b.key)); }, [bodies, previewBodies]);
   // Mate faces show while a mate is being added, or while one is selected in the shown mates list.
   const mateFaces = !!assembly.draft || (!!assembly.selected && instanceSel.length === 1);
   const shownSelection = previewBodies || sketch ? emptySel : mateFaces ? { faces: assembly.highlight.faces, edges: [], bodies: [] } : measure ? { faces: measure.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: measure.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
@@ -656,18 +708,29 @@ export function App() {
   // dimensions as handles: dragging one starts editing that feature.
   const idleEdit = useMemo(() => {
     if (active || sketch || rendering || drawing || measure || assembly.draft || instanceSel.length) return null;
-    const one = selectedBodies(selection), index = editNode ?? (one.length === 1 && bodies[one[0]] ? refOf(bodies[one[0]]).node : null);
+    // The feature open in the editor, else the one the picked face or edge comes from, else the body's last.
+    const one = selectedBodies(selection), index = editNode ?? featureOfPick(selection, bodies, evaluated.nodes) ?? (one.length === 1 && bodies[one[0]] ? refOf(bodies[one[0]]).node : null);
     return index === null || (marker !== null && index >= marker) ? null : editCommand(index, evaluated.nodes);
   }, [active, sketch, rendering, drawing, measure, assembly.draft, instanceSel.length, selection, editNode, bodies, evaluated.nodes, marker]);
   const handleCmd = active?.cmd ?? idleEdit, handleValues = active ? active.values : idleEdit?.defaults?.(ctx) ?? {}, handleCtx = active?.ctx ?? ctx;
   const handles: FeatureHandle[] = handleCmd?.handles && !sketch ? handleCmd.handles(handleCtx, handleValues).flatMap(h => {
-    const field = (handleCmd.fields?.(handleCtx, handleValues) ?? []).find(f => f.key === h.key), value = Number(handleValues[h.key]);
+    const fields = handleCmd.fields?.(handleCtx, handleValues) ?? [], field = fields.find(f => f.key === h.key), value = Number(handleValues[h.key]);
     if (!field || !Number.isFinite(value)) return [];
-    const step = h.step ?? 1;
-    return [{ id: h.key, at: h.at, dir: h.dir, label: field.label, value, ...(h.arc ? { arc: h.arc } : {}),
-      toValue: (start: number, mm: number) => Math.min(h.max ?? Infinity, Math.max(h.min ?? -Infinity, Math.round((start + mm * (h.scale ?? 1)) / step) * step)),
+    const step = h.step ?? 1, snap = (start: number, mm: number) => Math.min(h.max ?? Infinity, Math.max(h.min ?? -Infinity, Math.round((start + mm * (h.scale ?? 1)) / step) * step));
+    const pair = h.pair, value2 = pair ? Number(handleValues[pair.key]) : NaN;
+    if (pair && !Number.isFinite(value2)) return [];
+    return [{ id: pair ? `${h.key}+${pair.key}` : h.key, at: h.at, dir: h.dir, label: pair ? field.label.replace(/ \w$/, '') : field.label, value, ...(h.arc ? { arc: h.arc } : {}),
+      ...(pair ? { plane: { dir2: pair.dir, value2, toValue2: snap } } : {}),
+      toValue: snap,
       format: (v: number) => h.arc ? `${fmt(v)}°` : `${fmt(v)} mm`,
-      onDrag: (v: number, done: boolean) => {
+      onDrag: (v: number, done: boolean, v2?: number) => {
+        if (pair) {
+          // (Both coordinates at once; a refused spot shows as the preview's error, no wall.)
+          handleDrag.current = null;
+          const patch = { [h.key]: v, [pair.key]: v2 ?? value2 };
+          setActive(a => a ? (a.values[h.key] === patch[h.key] && a.values[pair.key] === patch[pair.key] ? a : { ...a, values: patchValues(a.cmd, a.ctx, a.values, patch), preview: 'busy' }) : { cmd: handleCmd, values: patchValues(handleCmd, handleCtx, handleValues, patch), preview: 'busy', ctx: { ...handleCtx } });
+          return;
+        }
         let hd = handleDrag.current;
         if (!hd || hd.key !== h.key || !hd.dragging) hd = handleDrag.current = { key: h.key, lastOk: value, wall: 0, dragging: true };
         // Past the side where a value failed: held at the last good one.
@@ -717,6 +780,7 @@ export function App() {
     <div className="studio">
       <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo ?? instGizmo} handles={handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
         direct={directShown} directSelection={directSel} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
+        placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPick={onPick} onCursor={setCursor} onSketchShape={updateShape}
         onBoxSelect={(picked, additive) => { if (active) return; setSelection(prev => {
           const base = additive ? selectedBodies(prev) : [];
@@ -785,7 +849,9 @@ export function App() {
             {commands.filter(c => c.group === g).map(c => {
               const a = c.available(ctx);
               return <button key={c.id} className={'tool' + (active?.cmd.id === c.id ? ' on' : '') + (a.ok ? '' : ' off')} aria-label={c.label}
-                data-tip={c.label} data-tip-key={c.shortcut ?? ''} data-tip-desc={c.hint ?? ''} data-tip-off={a.ok ? '' : a.reason} onClick={() => start(c)}><Icon name={c.icon} /></button>;
+                data-tip={c.label} data-tip-key={c.shortcut ?? ''} data-tip-desc={c.hint ?? ''} data-tip-off={a.ok ? '' : a.reason} onClick={() => start(c)}
+                {...(c.place && a.ok ? { draggable: true, onDragStart: (e: React.DragEvent) => { e.dataTransfer.setData(DRAG_TYPE, c.id); e.dataTransfer.effectAllowed = 'copy'; dragCmd.current = c.id; },
+                  onDragEnd: (e: React.DragEvent) => { if (dragCmd.current && e.dataTransfer.dropEffect === 'none') { dragCmd.current = null; setActive(x => x?.placing && x.cmd.id === c.id ? null : x); setPreviewBodies(null); } } } : {})}><Icon name={c.icon} /></button>;
             })}
           </div>))}
       </nav>

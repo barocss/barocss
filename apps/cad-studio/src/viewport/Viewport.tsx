@@ -13,7 +13,7 @@ import type { SketchRule } from '../sketch/terms';
 import { hvOf, isSettled, type SketchPick } from '../sketch/rules';
 import { pickSketch } from '../sketch/select';
 import { drivingKeys, sketchMarks } from '../ui/SketchMarks';
-import { dragAbout, dragAlong, dragPlane, dragScale, dragTurn, GIZMO_PX, hitTest, snapTo, type FeatureHandle, type GizmoHit, type Projector, type TransformGizmo } from './gizmo';
+import { dragAbout, dragAlong, dragIn, dragPlane, dragScale, dragTurn, GIZMO_PX, hitTest, snapTo, type FeatureHandle, type GizmoHit, type Projector, type TransformGizmo } from './gizmo';
 import { gizmoMarks } from './GizmoMarks';
 
 /** `select` picks outline points and edges for constraints; `dimension` adds and edits dimensions. */
@@ -59,6 +59,9 @@ export interface ViewportHandle {
   readonly backend: 'webgpu' | 'webgl2' | null;
 }
 
+/** Where a new shape stands: a point on the ground or on an upward face, and that surface's normal. */
+export interface Spot { point: Vec3; normal: Vec3 }
+
 interface Props {
   bodies: BodyResult[];
   selection: { faces: FaceRef[]; edges: EdgeRef[]; bodies: number[] };
@@ -67,6 +70,14 @@ interface Props {
   /** Move / turn handles on the selection (see viewport/gizmo.ts), and arrows that drag one feature dimension. */
   gizmo: TransformGizmo | null;
   handles?: FeatureHandle[];
+  /**
+   * Placing a new shape: where it would stand under the pointer (an upward flat face, else the ground)
+   * goes to `onSpot` as it moves, and `done` on a click or a drop (a command dragged from the rail).
+   * `placeSkip`: keys of the bodies being placed (the preview), looked through.
+   */
+  placing?: boolean;
+  placeSkip?: ReadonlySet<string>;
+  onSpot?(spot: Spot | null, done: boolean): void;
   onPick(hit: { face: FaceRef | null; edge: EdgeRef | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: FaceRef }, additive: boolean): void;
   /** `fresh`: a new shape starts (the current one, if closed, is kept beside it). */
   onSketchShape(shape: SketchShape | null, fresh?: boolean): void;
@@ -113,7 +124,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   const hover = useRef<{ face: FaceRef | null; edge: EdgeRef | null }>({ face: null, edge: null });
   const drag = useRef<{ mode: 'orbit' | 'pan' | 'gizmo' | 'box' | null; x: number; y: number; moved: boolean; x0?: number; y0?: number;
     /** A gizmo drag: what was hit, the pointer's start and last points, and what it means so far. */
-    hit?: GizmoHit; from?: [number, number]; last?: [number, number]; turned?: number; delta?: Vec3; degrees?: number; value?: number; start?: number; origin?: Vec3; factor?: number }>({ mode: null, x: 0, y: 0, moved: false });
+    hit?: GizmoHit; from?: [number, number]; last?: [number, number]; turned?: number; delta?: Vec3; degrees?: number; value?: number; start?: number; value2?: number; start2?: number; origin?: Vec3; factor?: number }>({ mode: null, x: 0, y: 0, moved: false });
   /** The gizmo handle under the pointer, drawn brighter. */
   const gizmoHot = useRef<GizmoHit | null>(null);
   const sketchDraft = useRef<{ cursor: [number, number] | null; hover?: SketchPick | null }>({ cursor: null });
@@ -241,6 +252,24 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     return { project, forward, size: GIZMO_PX / perMm };
   };
   const sk0 = () => propsRef.current.sketch;
+  /** Where a shape being placed stands under a pixel (to 1 mm): an upward face, else the plane last stood on, else the ground. */
+  const lastSpot = useRef<Spot | null>(null);
+  const spotAt = (x: number, y: number, w: number, h: number): Spot | null => {
+    const r = renderer.current; if (!r) return null;
+    const p = propsRef.current, face = r.pickFace(x, y, camera.current, viewState());
+    const body = face ? p.bodies[face.body] : undefined, f = body?.mesh.faces[face!.face];
+    const mm = (v: number) => Math.round(v);
+    let spot: Spot | null = null;
+    if (f && body && !p.placeSkip?.has(body.key)) {
+      if (f.kind === 'plane' && f.normal[2] > 0.99) { const q = surfacePoint(x, y, w, h, face); if (q) spot = { point: [mm(q[0]), mm(q[1]), Math.round(q[2] * 1000) / 1000], normal: [0, 0, 1] }; }
+    } else if (f && lastSpot.current) {
+      // Over the shape itself: stay on the surface it stands on (no jumping between it and what is behind).
+      const q = planePoint(x, y, w, h, lastSpot.current.point[2]); if (q) spot = { point: [mm(q[0]), mm(q[1]), lastSpot.current.point[2]], normal: lastSpot.current.normal };
+    }
+    if (!spot) { const q = planePoint(x, y, w, h, 0); if (q) spot = { point: [mm(q[0]), mm(q[1]), 0], normal: [0, 0, 1] }; }
+    lastSpot.current = spot;
+    return spot;
+  };
   /** The finished sketch under a canvas point: within 6 px of an outline, or inside a main loop. */
   const profileAt = (x: number, y: number, w: number, h: number): number | null => {
     const list = propsRef.current.profiles; if (!list?.length) return null;
@@ -265,6 +294,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     if (hit.kind === 'handle') {
       const hd = p.handles?.[hit.index]; if (!hd) return;
       // An arc adds up the angle swept round its centre step by step; an arrow measures mm along it.
+      if (hd.plane) { const [u, v] = dragIn(d.from!, [x, y], hd.at, hd.dir, hd.plane.dir2, P); d.value = hd.toValue(d.start!, u); d.value2 = hd.plane.toValue2(d.start2!, v); hd.onDrag(d.value, done, d.value2); return; }
       if (hd.arc) { d.turned = (d.turned ?? 0) + dragAbout(d.last!, [x, y], hd.arc.centre, hd.arc.axis, P); d.last = [x, y]; d.value = hd.toValue(d.start!, d.turned); }
       else d.value = hd.toValue(d.start!, dragAlong(d.from!, [x, y], hd.at, hd.dir, P));
       hd.onDrag(d.value, done); return;
@@ -293,8 +323,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     const { x, y } = local(e);
     const hit = e.button === 0 && !propsRef.current.sketch ? gizmoHit(x, y) : null;
     if (hit) {
-      const start = hit.kind === 'handle' ? propsRef.current.handles![hit.index].value : undefined;
-      drag.current = { mode: 'gizmo', x, y, moved: false, hit, from: [x, y], last: [x, y], turned: 0, start, origin: propsRef.current.gizmo ? [...propsRef.current.gizmo.origin] as Vec3 : undefined };
+      const hd = hit.kind === 'handle' ? propsRef.current.handles![hit.index] : undefined;
+      drag.current = { mode: 'gizmo', x, y, moved: false, hit, from: [x, y], last: [x, y], turned: 0, start: hd?.value, start2: hd?.plane?.value2, origin: propsRef.current.gizmo ? [...propsRef.current.gizmo.origin] as Vec3 : undefined };
       return;
     }
     if (e.button === 2 && !e.shiftKey) drag.current = { mode: 'orbit', x, y, moved: false };
@@ -342,6 +372,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       }
       request(); return;
     }
+    if (propsRef.current.placing && !d.mode) { propsRef.current.onSpot?.(spotAt(x, y, w, h), false); return; }
     const { face, edge } = pickAt(r, x, y);
     const prev = hover.current;
     const next = { face: edge ? null : face, edge };
@@ -362,6 +393,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       propsRef.current.onContextMenu({ x: e.clientX, y: e.clientY }, { face, edge }); return;
     }
     if (d.mode || d.moved || e.button !== 0) return;
+    if (propsRef.current.placing) { propsRef.current.onSpot?.(spotAt(x, y, w, h), true); return; }
     const sk = propsRef.current.sketch;
     if (sk) {
       const p = sketchPoint(x, y, w, h, sk.plane); if (!p) return;
@@ -542,7 +574,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     // The gizmo and feature handles, and while one is dragged what the drag means.
     if (props.gizmo || props.handles?.length) {
       const g = drag.current.mode === 'gizmo' ? drag.current : null, hit = g?.hit;
-      const readout = !g || !hit ? null : { at: [g.x, g.y] as [number, number], text: hit.kind === 'handle' ? (props.handles?.[hit.index] ? `${props.handles[hit.index].label} ${props.handles[hit.index].format(g.value ?? g.start ?? 0)}` : '')
+      const readout = !g || !hit ? null : { at: [g.x, g.y] as [number, number], text: hit.kind === 'handle' ? (props.handles?.[hit.index] ? `${props.handles[hit.index].label} ${props.handles[hit.index].format(g.value ?? g.start ?? 0)}${props.handles[hit.index].plane ? ', ' + props.handles[hit.index].format(g.value2 ?? g.start2 ?? 0) : ''}` : '')
         : hit.kind === 'move' ? `Δ${'XYZ'[hit.axis]} ${fmtLen(g.delta?.[hit.axis] ?? 0)} mm`
         : hit.kind === 'plane' ? hit.axes.map(a => `Δ${'XYZ'[a]} ${fmtLen(g.delta?.[a] ?? 0)}`).join('  ') + ' mm'
         : hit.kind === 'scale' ? `× ${String(Math.round((g.factor ?? 1) * 100) / 100)}` : `${'XYZ'[hit.axis]} ${fmtLen(g.degrees ?? 0)}°` };
@@ -560,7 +592,9 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   };
 
   return (
-    <div className="viewport" data-renderer={backend ?? undefined}>
+    <div className="viewport" data-renderer={backend ?? undefined}
+      onDragOver={e => { if (!e.dataTransfer.types.includes(DRAG_TYPE)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; const l = local(e); propsRef.current.onSpot?.(spotAt(l.x, l.y, l.w, l.h), false); }}
+      onDrop={e => { if (!e.dataTransfer.types.includes(DRAG_TYPE)) return; e.preventDefault(); const l = local(e); propsRef.current.onSpot?.(spotAt(l.x, l.y, l.w, l.h), true); }}>
       <canvas ref={canvas} className="vp-canvas" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}
         onWheel={onWheel} onContextMenu={e => e.preventDefault()} aria-label="3D viewport. Right-drag to orbit, middle-drag to pan, wheel to zoom." />
       {overlay()}
@@ -569,4 +603,6 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   );
 });
 
+/** The drag-and-drop type of a command dragged from the rail (its id is the data). */
+export const DRAG_TYPE = 'application/x-cad-command';
 const fmtLen = (v: number) => String(Math.round(v * 10) / 10);

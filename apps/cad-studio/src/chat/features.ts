@@ -190,3 +190,31 @@ export function deleteFeature(doc: StudioDoc, index: number): { doc: StudioDoc; 
   if (doc.render) out.render = { ...doc.render, appearances: renameKeys(doc.render.appearances, removed, map), animation: { ...doc.render.animation, tracks: renameKeys(doc.render.animation.tracks, removed, map) } };
   return { doc: prefixDoc(out, next.length), removed: [...removed].sort((a, b) => a - b), droppedDimensions };
 }
+
+/**
+ * The nodes that make a body (`top`, its node) and nothing else uses: deleting them all removes the body
+ * and the features and sketches only it was built from.
+ */
+export function bodyNodes(nodes: readonly ModelNode[], top: number): number[] {
+  const users = (i: number) => nodes.flatMap((n, k) => parentsOf(n).includes(i) ? [k] : []);
+  if (!nodes[top] || users(top).length) return [];
+  const set = new Set([top]);
+  for (let grew = true; grew;) {
+    grew = false;
+    for (const i of [...set]) for (const p of parentsOf(nodes[i])) if (!set.has(p) && users(p).every(k => set.has(k))) { set.add(p); grew = true; }
+  }
+  return [...set].sort((a, b) => b - a);
+}
+/** The document without these features, deleted last first (so earlier indices hold), or why one cannot go. */
+export function deleteFeatures(doc: StudioDoc, indices: readonly number[]): { doc: StudioDoc; droppedDimensions: number } | { error: string } {
+  let cur = doc, dropped = 0;
+  const left = new Set(indices);
+  for (const i of [...indices].sort((a, b) => b - a)) {
+    if (!left.has(i)) continue;
+    const r = deleteFeature(cur, i);
+    if ('error' in r) return r;
+    r.removed.forEach(k => left.delete(k));
+    cur = r.doc; dropped += r.droppedDimensions;
+  }
+  return { doc: cur, droppedDimensions: dropped };
+}

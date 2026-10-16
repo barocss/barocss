@@ -1,6 +1,7 @@
 // End-to-end flow in a real Chromium: starts the Vite dev server, drives the studio like a user,
 // asserts on visible state and writes a screenshot per step.
-//   PW_DIR=/path/to/node_modules/playwright [CHROME=/path/to/chrome] [FLOW_RENDERER=webgpu|webgl2] node test/browser-flow.mjs [out-dir]
+//   PW_DIR=/path/to/node_modules/playwright [CHROME=/path/to/chrome] [FLOW_RENDERER=webgpu|webgl2] [FLOW_ONLY=regex] node test/browser-flow.mjs [out-dir]
+// FLOW_ONLY runs the first step and the steps whose names match (for steps that start from a new part).
 // The viewport draws with WebGPU when the browser has it; FLOW_RENDERER=webgl2 runs the WebGL2 fallback.
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
@@ -32,6 +33,7 @@ const results = [];
 let step = 0;
 async function check(name, fn) {
   step++;
+  if (process.env.FLOW_ONLY && step > 1 && !new RegExp(process.env.FLOW_ONLY, 'i').test(name)) return;
   try { await fn(); results.push({ step, name, ok: true }); }
   catch (e) { results.push({ step, name, ok: false, error: String(e.message ?? e).split('\n')[0] }); }
   await page.screenshot({ path: join(out, `${String(step).padStart(2, '0')}-${name.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.png`) });
@@ -1148,6 +1150,87 @@ try {
     assert.deepEqual([Math.abs(turned.angleDegrees), turned.pivot.length], [45, 3]);
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? '') && !/error/i.test(document.querySelector('.toast')?.textContent ?? ''), null, { timeout: 15000 });
     await snap('rotate-x-45');
+  });
+
+  await check('Extrude a picked face: E pulls the box top up, joined to the box', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    // (Once the new box is evaluated: new bodies clear what was picked on the old ones.)
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /Extrude 16/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await press('e'); await hudReady();
+    await page.waitForFunction(() => /Extrude/.test(document.querySelector('.hud')?.textContent ?? '') && /picked face/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForSelector('[data-handle="h"]', { timeout: 5000 });
+    await field('Distance').fill('5'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'union', null, { timeout: 15000 });
+    const nodes = (await doc()).nodes;
+    assert.deepEqual(nodes.map(n => n.kind), ['sketch', 'extrude', 'sketch', 'extrude', 'union']);
+    assert.deepEqual([nodes[2].on, nodes[3].height], [{ node: 1, side: 'solid' }, 5]);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    await snap('extrude-face');
+  });
+
+  await check('Hole: drag its centre puck on the face, then round the bottom face’s edges with Fillet', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /Extrude 16/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await press('h'); await hudReady();
+    await page.waitForSelector('[data-handle="x+y"]', { timeout: 5000 });
+    const before = await page.evaluate(() => [...document.querySelectorAll('.hud input')].map(i => Number(i.value)));
+    const svg = await page.locator('.vp-overlay').boundingBox();
+    const c = await page.evaluate(() => { const e = document.querySelector('[data-handle="x+y"] circle:nth-of-type(2)'); return [Number(e.getAttribute('cx')), Number(e.getAttribute('cy'))]; });
+    await page.mouse.move(svg.x + c[0], svg.y + c[1]); await page.mouse.down();
+    await page.mouse.move(svg.x + c[0] + 40, svg.y + c[1], { steps: 8 }); await page.mouse.up();
+    await page.waitForFunction(b => { const v = [...document.querySelectorAll('.hud input')].map(i => Number(i.value)); return v[1] !== b[1] && v[2] !== b[2]; }, before, { timeout: 5000 });
+    await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 15000 });
+    const hole = (await doc()).nodes.at(-1);
+    assert.notDeepEqual(hole.center, [before[1], before[2]], 'the centre moved with the puck');
+    await snap('hole-puck');
+    // A face picked for Fillet rounds every edge round it: the bottom's four and the hole's rim.
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.bottom')));
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
+    await page.waitForFunction(() => /5 edges round the picked face/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 5000 });
+    await field('Radius').fill('2'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'fillet', null, { timeout: 20000 });
+    // (The rim is a circle in halves: one edge, two names.)
+    const names = (await doc()).nodes.at(-1).edges;
+    assert.equal(names.filter(n => /^n1\.bottom\|n1\.side\d$/.test(n)).length, 4); assert.ok(names.some(n => n.includes('n2.')), names.join(' '));
+  });
+
+  await check('primitives: a sphere and a hex prism from the palette', async () => {
+    await page.click('[aria-label="New part"]');
+    for (const [name, kind] of [['sphere', 'revolve'], ['polygon prism', 'extrude']]) {
+      await press(' '); await page.locator('.palette input').fill(name); await press('Enter'); await hudReady(); await press('Enter');
+      await page.waitForFunction(k => window.__studioDoc.nodes.at(-1)?.kind === k, kind, { timeout: 15000 });
+    }
+    await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    await snap('primitives');
+  });
+
+  await check('place shapes with the pointer: a click for a box, a drag from the rail for a cylinder; Delete removes one', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    const vp = await page.locator('canvas').boundingBox(), at = (fx, fy) => [vp.x + vp.width * fx, vp.y + vp.height * fy];
+    await press('b'); await hudReady();
+    const start = await page.evaluate(() => [...document.querySelectorAll('.hud input')].map(i => Number(i.value)));
+    const [px, py] = at(0.4, 0.6); await page.mouse.move(px, py, { steps: 4 }); await page.waitForTimeout(150);
+    await page.waitForFunction(s => { const v = [...document.querySelectorAll('.hud input')].map(i => Number(i.value)); return v[3] !== s[3] || v[4] !== s[4]; }, start, { timeout: 5000 });
+    await page.mouse.click(px, py);
+    await page.waitForFunction(() => /placed/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 5000 });
+    await hudReady(); await page.waitForTimeout(250); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    // The cylinder dragged from its rail button onto the ground beside the box.
+    await page.dragAndDrop('[aria-label="Cylinder"]', 'canvas', { targetPosition: { x: vp.width * 0.7, y: vp.height * 0.45 } });
+    await page.waitForFunction(() => /Cylinder/.test(document.querySelector('.hud')?.textContent ?? '') && /placed/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 5000 });
+    await hudReady(); await page.waitForTimeout(250); await press('Enter');
+    await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    await snap('placed');
+    // Pick the cylinder in the outliner and press Delete: its sketch and extrude go.
+    await page.locator('.outliner .ol').nth(1).click(); await press('Delete');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? '') && window.__studioDoc.nodes.length === 2, null, { timeout: 15000 });
   });
 
   await check('command palette and light theme', async () => {

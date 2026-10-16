@@ -5,7 +5,7 @@ import type { FriendlyError } from '../engine/errors';
 import { Icon, Kbd } from './atoms';
 
 interface Props {
-  active: { cmd: Command; values: Values; preview: 'busy' | 'ok' | 'error'; error?: FriendlyError; ctx: Ctx };
+  active: { cmd: Command; values: Values; preview: 'busy' | 'ok' | 'error'; error?: FriendlyError; ctx: Ctx; placing?: boolean };
   onChange(key: string, value: number | string): void; onApply(): void; onCancel(): void;
 }
 
@@ -18,6 +18,8 @@ export function Hud({ active, onChange, onApply, onCancel }: Props) {
     <div className="card hud" role="dialog" aria-label={active.cmd.label}>
       <div className="hud-title"><Icon name={active.cmd.icon} small className="accent" />{active.cmd.label}
         <span className="grow" /><span className={'status ' + active.preview}>{active.preview === 'busy' ? 'evaluating…' : active.preview === 'ok' ? 'preview' : 'refused'}</span></div>
+      {active.cmd.place && <div className="hud-steps"><div className={'hud-step' + (active.placing ? '' : ' done')}>
+        <Icon name={active.placing ? 'radio_button_unchecked' : 'check_circle'} small /><b>Place</b><span>{active.placing ? 'click where it goes (on the ground or a top face)' : 'placed — drag its arrows to size it'}</span></div></div>}
       {active.cmd.steps && <div className="hud-steps">
         {active.cmd.steps(active.ctx, active.values).map(s => <div key={s.label} className={'hud-step' + (s.done ? ' done' : '')}>
           <Icon name={s.done ? 'check_circle' : 'radio_button_unchecked'} small /><b>{s.label}</b><span>{s.text}</span></div>)}

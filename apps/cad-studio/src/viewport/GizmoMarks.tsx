@@ -49,6 +49,15 @@ export function gizmoMarks(g: TransformGizmo | null, handles: readonly FeatureHa
   }
   handles.forEach((h, index) => {
     const { from, to, points } = handleLayout(h, P), on = same(hot, { kind: 'handle', index });
+    if (h.plane) {
+      // A puck with four arrow heads along its two directions on screen.
+      const tips = [h.dir, h.plane.dir2].flatMap(d => { const e = P.project([h.at[0] + d[0] * P.size, h.at[1] + d[1] * P.size, h.at[2] + d[2] * P.size]), l = Math.hypot(e[0] - to[0], e[1] - to[1]) || 1, u: XY = [(e[0] - to[0]) / l, (e[1] - to[1]) / l]; return [u, [-u[0], -u[1]] as XY]; });
+      const r = on ? 8 : 7;
+      items.push(<g key={'gh' + h.id} className={'gizmo-handle puck' + (on ? ' hot' : '')} data-handle={h.id}>
+        <circle cx={to[0]} cy={to[1]} r={r + 1.5} fill="#000" fillOpacity={0.35} stroke="none" /><circle cx={to[0]} cy={to[1]} r={r} />
+        {tips.map((u, k) => <polygon key={k} points={pts(cone([to[0] + u[0] * r, to[1] + u[1] * r], [to[0] + u[0] * (r + 9), to[1] + u[1] * (r + 9)], 8, 3.5))} />)}</g>);
+      return;
+    }
     if (points) {
       const prev = points[Math.max(0, points.length - 3)], tip = cone(prev, to, on ? 13 : 11, on ? 5 : 4);
       items.push(<g key={'gh' + h.id} className={'gizmo-handle' + (on ? ' hot' : '')} data-handle={h.id}>
