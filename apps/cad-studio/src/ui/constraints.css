@@ -38,3 +38,4 @@
 :root[data-theme='light'] .cons-tools button { border-color: #c9ccd2; }
 /* The mono face has no ∥ / ⊥ glyphs: symbols use the system face. */
 .vp-overlay .cons-glyph .cons-text, .cons-tools button b { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; }
+.cons-tools.cons-dims { grid-template-columns: repeat(3, minmax(0, 1fr)); }

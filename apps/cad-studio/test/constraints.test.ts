@@ -170,3 +170,30 @@ test('Select / Dimension turn a rectangle into an outline with its H/V edges; wi
   const back = startPicking({ plane: xyPlane(), tool: 'circle', shape: null, done: [{ kind: 'circle', c: [0, 0], r: 5 }, rect] }, 'select');
   assert.deepEqual(back.shape, outline); assert.deepEqual(back.done, [{ kind: 'circle', c: [0, 0], r: 5 }]);
 });
+
+test('horizontal and vertical distances between points, also when the points line up', async () => {
+  const { pointDimensionKeys, dimensionValue, dimensionLabel } = await import('../src/sketch/rules');
+  // A quadrilateral whose points 2 and 4 share neither X nor Y.
+  let s = close([[0, 0], [40, 0], [36, 21], [3, 23]]);
+  assert.deepEqual(pointDimensionKeys(3, 1), { dist: 'dist1_3', dx: 'dx1_3', dy: 'dy1_3' });
+  assert.equal(dimensionLabel(s, 'dx1_3'), 'Horizontal distance point 2 – point 4');
+  assert.equal(dimensionValue(s, 'dx1_3'), 37); assert.equal(dimensionValue(s, 'dy1_3'), 23);
+  const before = dof(s);
+  const h = commitDimension(s, 'dx1_3', 30); assert.ok(h.ok, !h.ok ? h.reason : ''); s = h.shape;
+  assert.ok(Math.abs(Math.abs(s.points[1][0] - s.points[3][0]) - 30) < 1e-6, JSON.stringify(s.points));
+  assert.equal(dof(s), before - 1);
+  const v = commitDimension(s, 'dy1_3', 15); assert.ok(v.ok, !v.ok ? v.reason : ''); s = v.shape;
+  assert.ok(Math.abs(Math.abs(s.points[1][1] - s.points[3][1]) - 15) < 1e-6);
+  assert.deepEqual(constraintEntries(s).filter(c => c.id.startsWith('rule')).map(c => c.label + ' ' + c.detail),
+    ['Horizontal distance point 2 – point 4 = 30', 'Vertical distance point 2 – point 4 = 15']);
+  // Points 1 and 2 lie on one horizontal edge: their vertical distance is 0 there, and a horizontal one is the edge length again (redundant once locked).
+  const rect = close([[0, 0], [40, 0], [40, 20], [0, 20]]);
+  const w = commitDimension(rect, 'dx0_2', 55); assert.ok(w.ok, !w.ok ? w.reason : '');
+  assert.equal(len(w.shape, 0), 55);
+  const again = commitDimension(w.shape, 'len0', 55);
+  assert.match(!again.ok ? again.reason : '', /over-define/);
+  // Points straight above each other (dx 0 as drawn) take a horizontal distance without collapsing.
+  const tall = close([[0, 0], [30, 0], [30, 20], [0, 20]]);
+  const apart = commitDimension(removeConstraint(tall, 'v:1'), 'dx1_2', 12); assert.ok(apart.ok, !apart.ok ? apart.reason : '');
+  assert.ok(Math.abs(Math.abs(apart.shape.points[2][0] - apart.shape.points[1][0]) - 12) < 1e-6, JSON.stringify(apart.shape.points));
+});
