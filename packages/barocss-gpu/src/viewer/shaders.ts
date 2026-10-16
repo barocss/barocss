@@ -138,6 +138,13 @@ fn brdf(n: vec3f, v: vec3f, l: vec3f, base: vec3f, metallic: f32, a: f32) -> vec
 }
 
 @fragment fn fsUnlit(in: VOut) -> @location(0) vec4f { return vec4f(in.color.rgb * in.color.a, in.color.a); }
+// A shadow catcher: only the shadow of the casting light, in the material colour, as dark as its opacity.
+@fragment fn fsShadow(in: VOut) -> @location(0) vec4f {
+  var lit = 1.0;
+  if (frame.counts.w > 0u) { lit = shadowAt(in.world, normalize(in.normal)); }
+  let a = (1.0 - lit) * in.color.a;
+  return vec4f(in.color.rgb * a, a);
+}
 `;
 
 /** Lines as screen-space quads, one instance per segment: width in device pixels (object.params.x). */
@@ -212,8 +219,10 @@ fn axisLine(x: f32) -> f32 { return 1.0 - min(abs(x) / max(fwidth(x), 1e-6) / 1.
   let fade = (1.0 - smoothstep(frame.grid.z * 0.4, frame.grid.z, dist)) * smoothstep(0.02, 0.25, abs(dot(normalize(dir), up)));
   var color = frame.gridColor.rgb;
   var k = max(minor * 0.45, major) * frame.gridColor.a;
-  if (ax > 0.0) { color = mix(color, vec3f(0.75, 0.12, 0.10), ax); k = max(k, ax * 0.9); }
-  if (ay > 0.0) { color = mix(color, vec3f(0.15, 0.55, 0.12), ay); k = max(k, ay * 0.9); }
+  // Axes a little stronger than the grid's major lines.
+  let axisAlpha = clamp(frame.gridColor.a * 2.0, 0.0, 0.9);
+  if (ax > 0.0) { color = mix(color, vec3f(0.75, 0.12, 0.10), ax); k = max(k, ax * axisAlpha); }
+  if (ay > 0.0) { color = mix(color, vec3f(0.15, 0.55, 0.12), ay); k = max(k, ay * axisAlpha); }
   k *= fade;
   let clip = frame.viewProj * vec4f(hit, 1.0);
   var o: GFrag;

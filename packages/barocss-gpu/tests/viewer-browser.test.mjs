@@ -248,7 +248,12 @@ test('viewer renders, picks, orbits, resizes and recovers in WebGPU', { timeout:
       const occluded = { foot: [pixel(plain, foot), pixel(ao, foot)], open: [pixel(plain, open), pixel(ao, open)], top: pixel(ao, [2, 1]), bottom: pixel(ao, [2, ao.height - 1]) };
       viewer.lights = [{ kind: 'directional', direction: [0.3, -0.8, -1], intensity: 1.5, castShadow: true }];
       window.shadowShot = ao;
-      return { on, noCaster, noReceiver, occluded };
+      // A shadow catcher instead of the ground: only the shadow shows over the background.
+      ground.material = { shadowOnly: true, opacity: 0.6, color: '#000000' };
+      viewer.environment = {}; viewer.setBackground('#808080');
+      const caught = await viewer.capture();
+      const catcher = { inside: pixel(caught, screen([0.5, -1.8, -1])), outside: pixel(caught, screen([0.5, -3.5, -1])) };
+      return { on, noCaster, noReceiver, occluded, catcher };
     });
     t.diagnostic(`shadow ${JSON.stringify(shadow)}`);
     if (process.env.VIEWER_SHOTS) {
@@ -261,6 +266,8 @@ test('viewer renders, picks, orbits, resizes and recovers in WebGPU', { timeout:
     assert.ok(Math.abs(o.open[1][0] - o.open[0][0]) <= 3, `no occlusion on open ground: ${o.open}`);
     // (The ground covers the bottom of the view; the top row is the gradient's top colour.)
     assert.ok(Math.abs(o.top[0] - 0x10) <= 2 && Math.abs(o.top[1] - 0x20) <= 2 && Math.abs(o.top[2] - 0x40) <= 2, `gradient top ${o.top}`);
+    assert.deepEqual(shadow.catcher.outside, [128, 128, 128, 255], 'the catcher is invisible outside the shadow');
+    assert.ok(shadow.catcher.inside[0] < 80, `the catcher shows the shadow: ${shadow.catcher.inside}`);
     for (const k of ['noCaster', 'noReceiver']) assert.ok(Math.abs(shadow[k].inside[0] - shadow[k].outside[0]) < 12, `${k}: ${shadow[k].inside} vs ${shadow[k].outside}`);
 
     // The ground grid: lines on the plane, coloured axes, empty cells show the background, a box hides it.

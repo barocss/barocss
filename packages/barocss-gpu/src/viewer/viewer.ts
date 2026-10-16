@@ -29,6 +29,11 @@ export interface Material {
   doubleSided?: boolean;
   /** Width of lines in CSS pixels (default 1). */
   lineWidth?: number;
+  /**
+   * A shadow catcher: draws nothing but the shadow of the shadow-casting light, in the colour (default
+   * black) and as dark as the opacity — a ground under a model, say.
+   */
+  shadowOnly?: boolean;
 }
 export interface AddMeshOptions {
   material?: Material; transform?: ArrayLike<number>; visible?: boolean; pickable?: boolean; name?: string;
@@ -98,7 +103,7 @@ export class Mesh {
   set material(m: Material) { this._material = materialOf({ ...this._material, ...m }); this.touch(); }
   get visible(): boolean { return this._visible; }
   set visible(v: boolean) { this._visible = v; this.owner.requestRender(); }
-  get transparent(): boolean { return this._material.opacity < 1; }
+  get transparent(): boolean { return this._material.opacity < 1 || this._material.shadowOnly; }
   get receiveShadow(): boolean { return this._receiveShadow; }
   set receiveShadow(v: boolean) { this._receiveShadow = v; this.touch(); }
   /** A selection outline around the visible part of the mesh (sRGB colour), or null. */
@@ -126,8 +131,8 @@ export class Mesh {
 
 function materialOf(m: Material = {}): Required<Omit<Material, 'color'>> & { color: Vec3 } {
   return {
-    color: parseColor(m.color, [0.8, 0.8, 0.8]), opacity: Math.min(1, Math.max(0, m.opacity ?? 1)),
-    metallic: m.metallic ?? 0, roughness: m.roughness ?? 0.55, emissive: m.emissive ?? 0, unlit: m.unlit ?? false, doubleSided: m.doubleSided ?? false, lineWidth: m.lineWidth ?? 1,
+    color: parseColor(m.color, m.shadowOnly ? [0, 0, 0] : [0.8, 0.8, 0.8]), opacity: Math.min(1, Math.max(0, m.opacity ?? 1)),
+    metallic: m.metallic ?? 0, roughness: m.roughness ?? 0.55, emissive: m.emissive ?? 0, unlit: m.unlit ?? false, doubleSided: m.doubleSided ?? false, lineWidth: m.lineWidth ?? 1, shadowOnly: m.shadowOnly ?? false,
   };
 }
 
@@ -193,7 +198,7 @@ export interface LineHit {
 
 export interface FrameStats { frames: number; drawCalls: number; culled: number; triangles: number; lines: number; deviceLosses: number; cpuMs: number }
 
-type PipelineKey = 'lit' | 'lit2' | 'unlit' | 'unlit2' | 'litT' | 'lit2T' | 'unlitT' | 'unlit2T' | 'line' | 'lineT' | 'pick' | 'pick2' | 'mask' | 'mask2' | 'shadow' | 'grid' | 'output';
+type PipelineKey = 'lit' | 'lit2' | 'unlit' | 'unlit2' | 'litT' | 'lit2T' | 'unlitT' | 'unlit2T' | 'line' | 'lineT' | 'pick' | 'pick2' | 'mask' | 'mask2' | 'shadow' | 'catcher' | 'grid' | 'output';
 /** The scene target: linear, half float (blendable and multisampled everywhere). */
 const SCENE_FORMAT = 'rgba16float';
 
@@ -342,6 +347,13 @@ export class Viewer {
         multisample: ms,
       }));
     }
+    jobs.push(make('catcher', {
+      vertex: vertex(modules.surface, true),
+      fragment: { module: modules.surface, entryPoint: 'fsShadow', targets: [{ format: SCENE_FORMAT, blend }] },
+      primitive: { topology: 'triangle-list', cullMode: 'none' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: false, depthCompare: 'greater-equal' },
+      multisample: ms,
+    }));
     for (const t of [false, true]) jobs.push(make(t ? 'lineT' : 'line', {
       vertex: {
         module: modules.line, entryPoint: 'vs',
@@ -564,6 +576,7 @@ export class Viewer {
     if (pick === 'mask') return (two ? 'mask2' : 'mask');
     if (pick) return (two ? 'pick2' : 'pick');
     if (m.geometry.topology === 'lines') return (t ? 'lineT' : 'line');
+    if (mat.shadowOnly) return 'catcher';
     return `${mat.unlit ? 'unlit' : 'lit'}${two}${t}` as PipelineKey;
   }
 
