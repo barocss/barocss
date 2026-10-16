@@ -38,6 +38,10 @@ test('errors: a too-steep draft and a zero angle name their cause', async () => 
   const { friendly } = await import('../src/engine/errors');
   assert.equal(friendly('n1: the draft closes a straight wall before the top (steeper than the profile allows)').title, 'The draft is too steep for this height');
   assert.equal(friendly('n1: angleDegrees must be in (0, 360]').title, 'The angle must be between 1° and 360°');
+  // A suspected touch from the curved-face Boolean says it may be an unsupported overlap; the exact
+  // upright check stays certain.
+  assert.equal(friendly('n5: B-rep: analytic Boolean: the result is not a manifold solid (edge 2 has 3 uses; the inputs touch along an edge or at a vertex)').title, 'These bodies could not be joined into one solid');
+  assert.equal(friendly('n4: the bodies touch along an edge or at a vertex only; the result is not a manifold solid').title, 'The bodies only touch along an edge or a point');
 });
 
 test('measure: between two bodies, the closest points span the gap', () => {
