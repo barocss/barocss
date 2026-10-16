@@ -4029,98 +4029,12 @@ mount and driver cleanup remain UNRUN until permitted device acceptance. #1579
 stays open for that stage; editor integration and overall default readiness remain
 separate. No release/publication claim follows from these software checks.
 
-## General engine renderer — implementation stage, graphics acceptance pending
+## General engine renderer — retired
 
-`mountEngineScene(canvas, originalScene, {width, height})` implements a separate
-opaque unlit engine-scene0 WebGL2 path. Sizes are explicit integers1..2048.
-The caller owns and exclusively assigns a real HTML canvas. Complete original
-scene, exact options and camera admission precede canvas/context allocation.
-The renderer exposes `getScene`, `render`, `update`, `resize`, `readPixels` and
-idempotent `dispose`, without a clock or DOM/layout changes.
-
-Geometry buffers are shared by geometry ID within each complete frame, with
-actual Uint16/Uint32 index dispatch and per-object world matrices. Candidate
-updates rebuild resources from original source, then stage common-depth colour
-targets before presentation and commit. Materials/background use explicit
-linear RGB to standard sRGB encoding. Alpha is opaque; texture and lighting
-profiles are separate. Original Number geometry, UVs, local poses and IDs remain
-distinct from derived Float32 arrays and GPU resources.
-
-The implementation admits at most16 used geometry resources and32 visible
-meshes; existing source scene budgets remain enforced. Logical steady GPU bytes
-are bounded by45,088,768 and complete accepted-plus-candidate by90,177,536.
-Resource handles are bounded by84 steady and170 including candidate/transient
-shaders. These counts are a code contract, not measured driver memory.
-
-Invalid CPU edits refuse without touching the accepted frame. Live GPU staging
-failures attempt rollback; dual operation/rollback errors are retained together
-and make graphics unavailable. Source getters retain frozen independent copies
-after context loss or rollback failure until disposal. Context loss is terminal.
-External backing changes require explicit resize and have no retained-pixel
-promise. Readback is owned bottom-left RGBA bytes, separate from CSS/DPR.
-
-**Actual shader compilation, pixels, resource transactions and lifecycle have
-not been browser verified.** #1183 graphics acceptance remains blocked by the
-recorded administrator-policy refusal on the original authorized browser
-target. Run `node examples/gpu-scene/engine-scene-renderer-flow.mjs --output
-<fresh-directory>` after the GPU build only for genuine source/emitted public
-module import, declarations and pre-canvas input admission. It uses no canvas,
-renderer instance, browser or mock GL and does not fulfill graphics acceptance.
-
-### Optional bounded native-edge presentation (#1995)
-
-`mountEngineScene(canvas, scene, options, edges)` and the matching constructor
-accept an optional `EngineSceneEdgeOverlayV0`; `renderer.update(scene, edges)`
-atomically replaces the pair. Omitted or null edges clear the overlay. Resize
-revalidates the accepted, independently copied pair. `EngineSceneV0`, renderer
-options and original triangle-only raycasting are unchanged. The sidecar is
-presentation data, not a native CAD identity certificate.
-
-```ts
-const edges: EngineSceneEdgeOverlayV0 = {
-  format: 'barocss-gpu-engine-scene-edges', version: 0, sceneId: scene.id,
-  color: [0.02, 0.03, 0.04],
-  owners: [{ nodeId: 'body', geometryId: 'body_geometry', indices: [0, 1] }],
-};
-const renderer = mountEngineScene(canvas, scene, { width: 800, height: 600 }, edges);
-```
-
-At most16 owner rows,32 segments per row and256 segments overall are admitted.
-Rows refer to exact current mesh/geometry IDs and the geometry's original full
-position index space. Empty index rows deliberately cover fills for bias but
-allocate no edge resources. Hidden owners, including empty rows, are validated
-and budgeted; hidden rows do not draw or allocate edge resources. Exact own-data
-records and dense arrays are required. Admission rejects extra/accessor fields,
-duplicate owners, invalid index pairs, self/reversed duplicate segments and
-Float32-collapsed local or transformed endpoints. All sidecar data is copied;
-edge index types are selected independently of the triangle index type.
-
-All opaque fills complete first. Every owner fill uses polygonOffset(1,1), then
-nonempty visible rows draw GL.LINES with the existing depth attachment, program,
-position buffers and transforms, LEQUAL, disabled depth writes and lineWidth(1).
-Triangle VAO element bindings remain intact. Depth/polygon/line state is restored
-on draw exits. The width is one backing-buffer pixel, approximately half a CSS
-pixel at DPR2. Fixed fill bias is an approximate raster tolerance: grazing or
-near-coincident surfaces may expose artifacts, not exact hidden-line removal.
-Native GL clipping is used; no clipping-generated contour becomes a CAD edge.
-
-Each renderer frame adds at most16 edge VAOs and16 index buffers, with at most512
-indices/2048 bytes. No extra position/normal/UV buffers, program, texture,
-framebuffer or canvas is added. Accepted-plus-candidate frames may double these
-additions; a host's accepted-plus-preview renderers are a separate multiplier.
-The original no-overlay resource bounds above exclude these optional additions.
-Handles are recorded immediately and cleanup attempts each owned release once.
-Candidate failures retain the accepted pair under the existing rollback contract.
-Cleanup after a successful swap is nonfatal; a thrown driver deletion is a
-release attempt, not proof the driver freed a resource. Context loss remains
-terminal and rollback failure makes graphics unavailable.
-
-`node --test packages/barocss-gpu/tests/engine-scene-edges.test.mjs` compiles the
-current source through esbuild for exactly12 pure admission and10 mocked renderer
-groups. The mock records commands, bindings, lifecycle and resource ownership;
-it does not rasterize pixels. Actual normal-scale DPR2 readability, bevel-interior
-face picking, occlusion and device cleanup require separate retained-geometry
-browser acceptance. This mounted path is WebGL2 only; no WebGPU parity is claimed.
+`mountEngineScene` and `EngineSceneRenderer` (a WebGL2 renderer for prepared
+engine scenes, with an optional native-edge overlay) were removed with the
+unpublished CAD editor, their only consumer. `prepareEngineScene` and the engine
+data helpers remain; the Viewer (`@barocss/gpu/viewer`) is the renderer.
 
 ## Native point-light catalog and WGSL producer (#1583)
 
