@@ -341,6 +341,8 @@ export type { DrivenMixedSketchLinesSegmentBinding, DrivenMixedSketchLinesDocume
 
 export { qualifyStoredPlateHoleSolid, validateStoredPlateHoleSolid, serializeStoredPlateHoleSolid, parseStoredPlateHoleSolid, StoredPlateHoleSolidError, StoredPlateHoleSolidDiagnosticCode } from './stored-plate-hole-solid.js';
 export type { StoredPlateHoleSolidGerm, StoredPlateHoleSolidCorner, StoredPlateHoleSolidVertexLink, StoredPlateHoleSolidCertificate, StoredPlateHoleSolidResult } from './stored-plate-hole-solid.js';
+export { qualifyKnownSolid } from './known-solid-qualification.js';
+export type { KnownSolidFamily, KnownSolidRequest, KnownSolidQualification, KnownTopologyKind, KnownTopologyCheck, KnownSolidRefusalReason } from './known-solid-qualification.js';
 
 export { verifyXYAngleArcArtifact, validateXYAngleArcArtifactVerification, serializeXYAngleArcArtifact, parseXYAngleArcArtifact, XYAngleArcArtifactError, XYAngleArcArtifactDiagnosticCode } from './xy-angle-arc-artifact.js';
 export type { XYAngleArcArtifactFieldRule, XYAngleArcArtifactReport, XYAngleArcArtifactVerification } from './xy-angle-arc-artifact.js';
