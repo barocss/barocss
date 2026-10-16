@@ -18,7 +18,7 @@ Use [GPU compositions](./composition-examples) for style precedence, local rotat
 
 ## Typed parameters, repeats and conditions
 
-[Open Generated scene](/examples/language#generated-scene) and read [the complete Source2 input](./generated-scene). Compare equality, stable repeat IDs and a third stud at the common origin. The separate profile supplies frozen source/AST/scene/shader data; an application Canvas2D view draws diagnostic local boxes while the shader text remains unexecuted.
+[Open Generated scene](/examples/language#generated-scene) and read [the complete Source2 input](./generated-scene). Compare equality, stable repeat IDs and a third stud at the common origin. The separate profile supplies frozen source/AST/scene/shader data; an application 2D canvas view draws diagnostic local boxes while the shader text remains unexecuted.
 
 ## Inspect material color without a display
 
@@ -26,7 +26,7 @@ Use the [public CPU evaluation example](./cpu-material-evaluation) to inspect li
 
 ### Discrete threshold palette
 
-[Select a color at an exact threshold](./discrete-material) in the [CPU language example](/examples/language#discrete-material). The separate discrete material profile chooses dark or light colors across .5. Canvas2D displays three public CPU reference values and the current color; lowered GLSL remains unexecuted text.
+[Select a color at an exact threshold](./discrete-material) in the [CPU language example](/examples/language#discrete-material). The separate discrete material profile chooses dark or light colors across .5. An application 2D canvas displays three public CPU reference values and the current color; lowered GLSL remains unexecuted text.
 
 ## Run the portal
 

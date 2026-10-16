@@ -34,10 +34,10 @@ async function mutateJson(path, mutate) {
   await writeFile(path, JSON.stringify(json, null, 2) + '\n');
 }
 
-test('all 10 current manifests match; historical source pin and evidence stay separate', async () => {
+test('all 9 current manifests match; historical source pin and evidence stay separate', async () => {
   const result = await checkCurrentInventory();
-  assert.equal(result.packages.length, 10);
-  assert.deepEqual(result.retired, ['cad-editor', 'render-editor']);
+  assert.equal(result.packages.length, 9);
+  assert.deepEqual(result.retired, ['canvas2d', 'cad-editor', 'render-editor']);
   assert.equal(result.historicalSourceCommit, sourceCommit);
   assert.notEqual(result.manifestCommit, sourceCommit);
   assert.deepEqual(result, createCurrentInventory(root, historicalBytes, result.manifestCommit));

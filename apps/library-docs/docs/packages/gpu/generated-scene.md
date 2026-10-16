@@ -4,7 +4,7 @@
 
 ![Five selected Scene2 records displayed as application diagnostic boxes](/examples/generated-scene.jpg)
 
-The actual image shows the three-stud variant with the marker included: one plate and four sphere records produce five diagnostic boxes. Sphere boxes use ±radius local corners. This is an application Canvas2D wireframe, not primitive surfaces, shader output or a GPU-rendered scene.
+The actual image shows the three-stud variant with the marker included: one plate and four sphere records produce five diagnostic boxes. Sphere boxes use ±radius local corners. This is an application 2D canvas wireframe, not primitive surfaces, shader output or a GPU-rendered scene.
 
 This guide uses experimental `@barocss/gpu` version `0.0.0` at fixed source profile `4dcb0ebb67ac25f94a9f9e0b84d921f54ab468e8`. Its public entry is `compileGeneratedAffineSceneSource`, with profile `source2-typed-mixed-generation-v0`. Use the matching TypeScript-capable consumer. The older [scene language](./language) and [composition examples](./composition-examples) keep their separate `5f5ad866` Source0/1 scope. Source availability does not establish publication or renderer admission.
 
@@ -83,7 +83,7 @@ The CPU source flow and recorded development-browser example admitted the initia
 
 A quantity mismatch produced `TYPE`, repeat count 33 produced `RANGE`, and a negative marker radius under a false predicate produced delegated `SCENE`. The complete displayed accepted report remained unchanged after these refusals. A separately valid torus source compiled successfully but refused in this application's box/sphere-only diagnostic display; it retained the same accepted report. Reset restored the initial ready view.
 
-The selected CPU checks compared whole Scene2 and shader values, fresh frozen copies and exact public token slices. Those checks and the Canvas2D image do not execute shader text or qualify a GPU backend. No public bounds or native geometry output is supplied by the diagnostic drawing.
+The selected CPU checks compared whole Scene2 and shader values, fresh frozen copies and exact public token slices. Those checks and the 2D canvas image do not execute shader text or qualify a GPU backend. No public bounds or native geometry output is supplied by the diagnostic drawing.
 
 ## Preserve authored intent and read selected data
 
@@ -178,7 +178,7 @@ This public compiler throws `SceneParameterSourceError` on refusal; it does not 
 
 ## Interpret the diagnostic boxes
 
-The live example needs browser Canvas2D. Its display uses only box and sphere rows from the actual selected Scene2 coefficients. A box's local half-extents are half its size. A sphere row uses a cube with half-extents equal to its radius: that cube is a diagnostic surrogate, not a rendered sphere.
+The live example needs a browser 2D canvas context. Its display uses only box and sphere rows from the actual selected Scene2 coefficients. A box's local half-extents are half its size. A sphere row uses a cube with half-extents equal to its radius: that cube is a diagnostic surrogate, not a rendered sphere.
 
 For each row, the application constructs eight local corners and twelve edges. It applies `scaleXYZ`, local X/Y/Z rotations in degrees, then translation. It projects the transformed XYZ to `x + .45*z` and `y + .25*z`, using a fixed origin `(160,132)` and 35 logical pixels per scene unit. The logical viewport is 320×210, with a fixed backing scale of 2 and a 640×420 bitmap. That scale is supplied by the example; it does not measure the device pixel ratio. The program's colors identify the records in this oblique wireframe.
 

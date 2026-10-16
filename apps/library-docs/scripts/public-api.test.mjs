@@ -14,10 +14,10 @@ const baseline = JSON.parse(await readFile(resolve(app, 'evidence/current-public
 const clone = () => structuredClone(baseline);
 const validate = value => validateCurrentBaseline(value, historicalText, baseline.packageTrees);
 
-test('current inventory preserves historical bytes and every seven-package entry', () => {
+test('current inventory preserves historical bytes and every six-package entry', () => {
   validate(baseline);
   assert.equal(baseline.historicalSha256, createHash('sha256').update(historicalText).digest('hex'));
-  assert.equal(baseline.packages.length, 7);
+  assert.equal(baseline.packages.length, 6);
   assert.deepEqual(delta(baseline.packages, structuredClone(baseline.packages)), { added: [], removed: [], changed: [] });
 });
 test('all current source trees are genuine trees at the exact recorded commit', () => {

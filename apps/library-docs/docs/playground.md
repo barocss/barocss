@@ -20,7 +20,6 @@ Choose a sample, read its complete input and inspect its actual result. Edit one
 - [CAD language practice](/packages/cad/language-examples): weights, typed parameters, extrusion and original Curve domains.
 - [GPU compositions](/packages/gpu/composition-examples) and [material functions](/packages/gpu/function-examples): complete scene and expression inputs.
 - [Neon plasma](/packages/gpu/advanced-shader) and [caustics](/packages/gpu/caustics-shader): layered UV fields with explicit host phase controls.
-- [Unicode labels](/packages/canvas2d/unicode-labels), [diagram labels](/packages/canvas2d/diagram-labels) and [path controls](/packages/canvas2d/path-editing): public Canvas2D operations, semantic data and persistence.
 - [Viewer examples](/packages/viewer/examples) and [Physics examples](/packages/physics/examples): direct API lifecycle and explicit actions.
 
 Read [Use the interactive examples](/concepts/run-examples) for units, input selection and accepted-state behavior. A browser host does not automatically create a multi-library workflow. The integrated view specifically follows native CAD geometry, a sampled packet and GPU display; language exercises can use display fixtures while retaining their own learning purpose.

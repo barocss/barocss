@@ -4,10 +4,10 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { exampleCatalog, exampleHref } from '../docs/.vitepress/example-catalog.mjs';
 
 const defaultApp = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const modules = ['visual', 'advanced-shader', 'unicode-label', 'diagram-label', 'path-edit', 'svg-export', 'radial-svg-export', 'reusable-shader', 'cad-quantity-functions', 'discrete-material', 'svg-arc-import', 'viewer-display-pose', 'cad-adaptive-sampling', 'generated-scene'];
-const galleryFiles = ['cad', 'scene', 'materials', 'viewer', 'canvas2d', 'physics', 'cad-language', 'gpu-compositions'];
-const standaloneFiles = ['advanced-shader', 'caustics-shader', 'weave-shader', 'contour-shader', 'halftone-shader', 'unicode-label', 'diagram-label', 'path-edit', 'svg-export', 'radial-svg-export', 'reusable-shader', 'cad-quantity-functions', 'discrete-material', 'svg-arc-import', 'viewer-display-pose', 'cad-adaptive-sampling', 'generated-scene'];
-const libraries = new Set(['cad', 'gpu', 'canvas2d', 'viewer', 'physics']);
+const modules = ['visual', 'advanced-shader', 'reusable-shader', 'cad-quantity-functions', 'discrete-material', 'viewer-display-pose', 'cad-adaptive-sampling', 'generated-scene'];
+const galleryFiles = ['cad', 'scene', 'materials', 'viewer', 'physics', 'cad-language', 'gpu-compositions'];
+const standaloneFiles = ['advanced-shader', 'caustics-shader', 'weave-shader', 'contour-shader', 'halftone-shader', 'reusable-shader', 'cad-quantity-functions', 'discrete-material', 'viewer-display-pose', 'cad-adaptive-sampling', 'generated-scene'];
+const libraries = new Set(['cad', 'gpu', 'viewer', 'physics']);
 const categories = new Set(['api', 'language', 'integration']);
 const fields = new Set(['label', 'anchor', 'library', 'category', 'guide', 'summary', 'libraries', 'language']);
 const require = (condition, message) => { if (!condition) throw new Error(`Example catalog: ${message}`); };
@@ -26,7 +26,7 @@ export async function checkExampleCatalog(app = defaultApp, { built = true } = {
     }
   }
   const keys = Object.keys(exampleCatalog), runtimeKeys = Object.keys(runtime);
-  require(keys.length === 45 && runtimeKeys.length === 45, 'expected the 45 current presets');
+  require(keys.length === 38 && runtimeKeys.length === 38, 'expected the 38 current presets');
   require(keys.every(key => Object.hasOwn(runtime, key)) && runtimeKeys.every(key => Object.hasOwn(exampleCatalog, key)), 'runtime/catalog coverage differs');
 
   const authored = {};
@@ -52,7 +52,7 @@ export async function checkExampleCatalog(app = defaultApp, { built = true } = {
     builtinKeys.push(key);
   }
   require(builtinKeys.length === 4, 'expected four original visual source literals');
-  require(Object.keys(authored).length + builtinKeys.length === 45, 'authored source coverage differs');
+  require(Object.keys(authored).length + builtinKeys.length === 38, 'authored source coverage differs');
   for (const [key, preset] of Object.entries(authored)) {
     require(Object.hasOwn(runtime, key), `authored preset missing at runtime: ${key}`);
     require(runtime[key].source === preset.source, `generated source differs: ${key}`);
@@ -107,7 +107,7 @@ export async function checkExampleCatalog(app = defaultApp, { built = true } = {
     await builtAnchor('/playground', entry.anchor);
     counts[entry.category]++;
   }
-  return { presets: keys.length, uniqueAnchors: anchors.size, authoredSources: 45, categories: counts,
+  return { presets: keys.length, uniqueAnchors: anchors.size, authoredSources: 38, categories: counts,
     generatedModules: modules.length, builtAnchorsChecked: built, execution: 'Preset metadata and links only; no public API calls or gallery execution' };
 }
 

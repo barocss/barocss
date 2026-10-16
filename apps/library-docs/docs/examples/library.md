@@ -11,11 +11,10 @@ Choose a primary library to see its API tasks, language exercises and integrated
 
 - CAD tasks inspect native geometry, typed parameters and original domains.
 - GPU tasks edit scenes and bounded material expressions.
-- Canvas2D tasks edit retained shapes, prepare labels and preserve document data.
 - Viewer tasks load and inspect native source through the view's public operations.
 - Physics tasks advance copied world state by explicit fixed steps.
 
-A sample can also use a secondary library. Its purpose states whether the exercise teaches that handoff or focuses on a source language or one API. The CAD curve and Physics diagrams use the browser's Canvas2D context; that host drawing does not call the BaroCSS Canvas2D package.
+A sample can also use a secondary library. Its purpose states whether the exercise teaches that handoff or focuses on a source language or one API. The CAD curve and Physics diagrams are drawn by the page host on the browser's 2D canvas context, not by a BaroCSS renderer.
 
 <VisualExamples category="library" />
 

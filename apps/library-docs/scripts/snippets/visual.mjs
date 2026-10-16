@@ -1,4 +1,4 @@
-/* global createViewerExample: readonly, createCanvas2DExample: readonly, createPhysicsExample: readonly */
+/* global createViewerExample: readonly, createPhysicsExample: readonly */
 // Build-time host bindings inserted by gallery-input.mjs at the host-factory marker.
 import { compileCadModel, evaluateCurve, curveDomain, evaluateSurface, tessellateSurface } from '@barocss/cad';
 import { createViewer, showScene, bindingShader, compileMeshMaterial, validateMeshMaterialBinding, SceneViewError } from '@barocss/gpu';
@@ -86,7 +86,6 @@ export async function createExample(canvas,key,source){
  const preset=presets[key];if(!preset)throw Error('Unknown example');
  const kind=preset.kind;
  if(kind==='viewer')return createViewerExample(canvas,source);
- if(kind==='canvas2d')return createCanvas2DExample(canvas,source);
  if(kind==='physics')return createPhysicsExample(canvas,source);
  if(kind==='scene'){
   const viewer=await createViewer(canvas,{camera});

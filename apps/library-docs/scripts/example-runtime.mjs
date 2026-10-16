@@ -11,8 +11,9 @@ export const root = resolve(app, '../..');
 // The commit whose package sources the examples bundle: the WebGPU viewer core (@barocss/gpu/viewer,
 // the async @barocss/viewer). A workspace that matches it bundles in place; otherwise its Git snapshot.
 export const pin = 'e532fc3037f9c1e13819b61d63de06164c50128f';
-// cad-editor and render-editor are retired (folded into apps/cad-studio) and absent at the pin.
-const names = ['gpu', 'cad', 'cad-interop', 'canvas2d', 'viewer', 'physics'];
+// cad-editor and render-editor are retired (folded into apps/cad-studio) and canvas2d was
+// deleted; none of them is part of the pinned package list.
+const names = ['gpu', 'cad', 'cad-interop', 'viewer', 'physics'];
 const sourcePaths = names.flatMap(name => [`packages/barocss-${name}/package.json`, `packages/barocss-${name}/src`]);
 const cache = resolve(app, 'docs/.vitepress/cache/source-pin');
 const snapshot = resolve(cache, pin);

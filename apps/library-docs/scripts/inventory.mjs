@@ -9,8 +9,9 @@ const app = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const root = resolve(app, '../..');
 export const sourceCommit = '5f5ad866205a21510ac69552e704cc162fa253b5';
 const slugs = ['kit', 'browser', 'server', 'render', 'gpu', 'cad', 'cad-interop', 'canvas2d', 'viewer', 'physics', 'cad-editor', 'render-editor'];
-// Deleted after their features moved to apps/cad-studio; their historical records stay checked.
-export const retiredSlugs = Object.freeze(['cad-editor', 'render-editor']);
+// Deleted unpublished packages: the editors moved to apps/cad-studio and canvas2d (its own
+// WebGL2 2D renderer) was dropped. Their historical records stay checked.
+export const retiredSlugs = Object.freeze(['canvas2d', 'cad-editor', 'render-editor']);
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const git = (cwd, ...args) => execFileSync('git', args, { cwd });
 

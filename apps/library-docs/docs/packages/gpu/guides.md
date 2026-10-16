@@ -19,7 +19,7 @@ The camera is viewer state, not scene source: `viewer.camera` (position, target,
 
 ## Compile typed generation before displaying it
 
-The [generated scene guide](./generated-scene) preserves complete authored Source2, typed values, repeat IDs and conditional decisions alongside its selected scene. Re-find public token ranges after every accepted source edit. Its Canvas2D diagnostic host stages a drawing before adoption; no Source2 `showScene` support, shader execution or public bounds result is implied. `showScene` above shows Source0/1 only.
+The [generated scene guide](./generated-scene) preserves complete authored Source2, typed values, repeat IDs and conditional decisions alongside its selected scene. Re-find public token ranges after every accepted source edit. Its 2D canvas diagnostic host stages a drawing before adoption; no Source2 `showScene` support, shader execution or public bounds result is implied. `showScene` above shows Source0/1 only.
 
 ## Display a CAD Surface
 

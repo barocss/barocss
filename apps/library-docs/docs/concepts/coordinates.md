@@ -20,7 +20,7 @@ The Source0 Surface preview contract preserves authored XYZ and declares Y-up. T
 
 Only the separate native face mesh `part-xyz` display adapter maps `(x, y, z)` to `(x, z, -y)`. Do not apply this mapping to every CAD packet. Do not relabel old data as a new frame.
 
-Canvas2D uses logical pixels with X right and Y down. Physics profiles declare their own dimensions and units; check the selected public profile. Do not assume a single up axis or length scale for all packages.
+Physics profiles declare their own dimensions and units; check the selected public profile. Do not assume a single up axis or length scale for all packages.
 
 ## Verify the transfer
 

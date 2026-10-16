@@ -6,7 +6,7 @@ Open [the manually stepped sphere](/playground#physics-step). Use Advance 1, Adv
 
 ![A manually stepped sphere state projected by the host](/examples/physics-step.png)
 
-The picture is a host Canvas2D XY projection of actual Physics state. It is not a GPU renderer or the BaroCSS Canvas2D package. The orange circle uses copied current position/radius; the dashed circle is the initial pose. Y=0 is a reference line, not a floor collider. Z is shown numerically rather than rendered as depth.
+The picture is a host 2D canvas XY projection of actual Physics state. It is not drawn by a BaroCSS renderer. The orange circle uses copied current position/radius; the dashed circle is the initial pose. Y=0 is a reference line, not a floor collider. Z is shown numerically rather than rendered as depth.
 
 ## Advance a rigid world explicitly
 

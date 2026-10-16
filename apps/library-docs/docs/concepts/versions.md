@@ -2,9 +2,9 @@
 
 The [catalog](/packages/), API guidance and original examples use local Integration source commit `5f5ad866205a21510ac69552e704cc162fa253b5` from 10 October 2026 as their baseline. The catalog records package versions and export maps at that commit.
 
-Newer task guides state their own execution profile. For example, [Unicode labels](/packages/canvas2d/unicode-labels), [diagram labels](/packages/canvas2d/diagram-labels) and [path control editing](/packages/canvas2d/path-editing) use separate fixed source profiles. Read the selected guide's profile before using its APIs. Unless another profile is stated, the version and export-map statements on this page describe the catalog baseline.
+Newer task guides state their own execution profile. For example, [Viewer display pose](/packages/viewer/display-pose), [CAD quantity functions](/packages/cad/quantity-functions) and [CAD adaptive sampling](/packages/cad/adaptive-curve-sampling) use separate fixed source profiles. Read the selected guide's profile before using its APIs. Unless another profile is stated, the version and export-map statements on this page describe the catalog baseline.
 
-[Linear SVG export](/packages/canvas2d/svg-export) uses `@barocss/canvas2d` version `0.0.0-experimental` at fixed source `572ca35de6581b634c11919de9a1881bf5a72d28`. Its public root entry adds `exportSceneLinearSVG`; the source-default root and `@barocss/canvas2d/document` entries remain the matching execution paths. This separate profile does not update baseline API evidence or earlier examples. The legacy SVG exporter and solid-only importer keep their own contracts; gradient display export does not establish gradient import, parity or publication.
+The unpublished `@barocss/canvas2d` package was removed; its task guides and examples are no longer part of this manual.
 
 ## Choose an execution path
 

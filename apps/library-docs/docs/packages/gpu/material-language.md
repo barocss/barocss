@@ -12,7 +12,7 @@ Read [CPU material evaluation](./cpu-material-evaluation) to inspect a compiled 
 
 For authored `@fn` expressions, use [the reusable easing and palette guide](./reusable-shader) with its separate `363f583c` source profile. It adds bounded float/color-return declarations before locals; this page's older grammar, complete programs and public mesh contract retain their stated source snapshot.
 
-Read [Discrete threshold selection](./discrete-material) for the separate newer `select()` profile. Its strict `<` comparison, equality branch and public CPU RGB evaluation use a Canvas2D display; `bindingShader` and `materialShader` on this page do not accept that IR.
+Read [Discrete threshold selection](./discrete-material) for the separate newer `select()` profile. Its strict `<` comparison, equality branch and public CPU RGB evaluation use an application 2D canvas display; `bindingShader` and `materialShader` on this page do not accept that IR.
 
 ## Procedural UV plasma
 
