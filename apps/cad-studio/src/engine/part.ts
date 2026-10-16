@@ -24,7 +24,7 @@ export function featureOf(node: ModelNode, index: number): CadPartFeature {
     case 'mirror': return { ...at, kind: 'mirror', target: ref(node.parent), plane: node.plane, keep: true };
     case 'scale': return { ...at, kind: 'scale', target: ref(node.parent), factor: node.factor, ...(node.pivot ? { pivot: node.pivot } : {}) };
     case 'linear-pattern': return { ...at, kind: 'linear-pattern', target: ref(node.parent), axis: node.axis, spacing: node.spacing, count: node.count };
-    case 'circular-pattern': return { ...at, kind: 'circular-pattern', target: ref(node.parent), axis: node.axis, angleDegrees: node.angleDegrees, count: node.count };
+    case 'circular-pattern': return { ...at, kind: 'circular-pattern', target: ref(node.parent), axis: node.axis, angleDegrees: node.angleDegrees, count: node.count, ...(node.pivot ? { pivot: node.pivot } : {}) };
     case 'split': return { ...at, kind: 'split', target: ref(node.parent), axis: node.axis, at: node.at };
     case 'sweep': return { ...at, kind: 'sweep', sketch: id(node.sketch), path: node.path };
     case 'loft': return { ...at, kind: 'loft', sections: node.sections.map(s => ({ sketch: id(s.sketch), z: s.z })), ...(node.smooth ? { smooth: true } : {}) };

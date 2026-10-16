@@ -45,7 +45,8 @@ export type ModelNode = SketchNode
   /** About `pivot` (none: the origin). */
   | { kind: 'scale'; parent: BodyRef; factor: number; pivot?: [Dim, Dim, Dim] }
   | { kind: 'linear-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number }
-  | { kind: 'circular-pattern'; parent: BodyRef; axis: Axis; angleDegrees: number; count: number }
+  /** About `axis` through `pivot` (default the origin). */
+  | { kind: 'circular-pattern'; parent: BodyRef; axis: Axis; angleDegrees: number; count: number; pivot?: [Dim, Dim, Dim] }
   | { kind: 'union'; left: BodyRef; right: BodyRef }
   | { kind: 'intersect'; left: BodyRef; right: BodyRef }
   | { kind: 'difference'; parent: BodyRef; tool: BodyRef }

@@ -752,7 +752,7 @@ export function App() {
     return [{ id: pair ? `${h.key}+${pair.key}` : h.key, at: h.at, dir: h.dir, label: pair ? field.label.replace(/ \w$/, '') : field.label, value, ...(h.arc ? { arc: h.arc } : {}),
       ...(pair ? { plane: { dir2: pair.dir, value2, toValue2: snap } } : {}),
       toValue: snap,
-      format: (v: number) => h.arc ? `${fmt(v)}°` : `${fmt(v)} mm`,
+      format: (v: number) => h.arc ? `${fmt(v)}°` : h.unit !== undefined ? `${fmt(v)}${h.unit ? ' ' + h.unit : ''}` : `${fmt(v)} mm`,
       onDrag: (v: number, done: boolean, v2?: number) => {
         if (pair) {
           // (Both coordinates at once; a refused spot shows as the preview's error, no wall.)

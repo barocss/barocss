@@ -61,6 +61,8 @@ export interface HandleSpec {
   key: string; at: [number, number, number]; dir: [number, number, number]; scale?: number; step?: number; min?: number; max?: number;
   /** An angle handle: an arc about `axis` through `centre` from `from` (then `at` and `dir` are unused). */
   arc?: { centre: [number, number, number]; axis: [number, number, number]; from: [number, number, number] };
+  /** What its readout counts in (default mm; an arc's degrees). */
+  unit?: string;
   /** A puck that drags `key` along `dir` and `pair.key` along `pair.dir` at once (a centre on a face). */
   pair?: { key: string; dir: [number, number, number] };
 }
@@ -371,22 +373,53 @@ const allCommands: Command[] = [
     fields: () => [{ key: 'axis', label: 'Direction', kind: 'choice', options: [{ value: 'x', label: 'X' }, { value: 'y', label: 'Y' }, { value: 'z', label: 'Z' }] },
       { key: 'spacing', label: 'Spacing', kind: 'mm', min: 1 }, { key: 'count', label: 'Count', kind: 'count', min: 2, max: 24 }],
     defaults: ctx => { const b = oneBody(ctx); return { axis: 'x', spacing: b ? r1(b.mesh.bounds.max[0] - b.mesh.bounds.min[0] + 8) : 20, count: 3 }; },
+    // Spacing: an arrow at the second copy; count: one past the last (each spacing dragged adds a copy).
+    handles: (ctx, v) => {
+      const b = oneBody(ctx); if (!b) return [];
+      const k = 'xyz'.indexOf(String(v.axis)), s = Number(v.spacing), n = Number(v.count), { min, max } = b.mesh.bounds, c = centreOf(b);
+      const dir: [number, number, number] = [0, 0, 0]; dir[k] = 1;
+      const at = (d: number): [number, number, number] => { const p = [...c] as [number, number, number]; p[k] = d; return p; };
+      return [{ key: 'spacing', at: at(c[k] + s), dir, min: 1 }, { key: 'count', at: at(max[k] + s * (n - 1)), dir, scale: 1 / Math.max(1, s), min: 2, max: 24, unit: '' }].filter(() => max[k] > min[k] - 1);
+    },
     build: (ctx, v) => withNode(ctx.doc, { kind: 'linear-pattern', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, spacing: Number(v.spacing), count: Number(v.count) }),
   },
   {
     id: 'circular-pattern', label: 'Circular pattern', icon: 'cad-pattern-circular', hint: 'Copies of a body round an axis', group: 'pattern', keywords: 'polar array',
     available: ctx => oneBody(ctx) ? ok : no('Select one body to pattern.'),
     fields: () => [{ key: 'axis', label: 'Axis', kind: 'choice', options: [{ value: 'z', label: 'Z' }, { value: 'x', label: 'X' }, { value: 'y', label: 'Y' }] },
-      { key: 'count', label: 'Count', kind: 'count', min: 2, max: 36 }],
-    defaults: () => ({ axis: 'z', count: 4 }),
-    // Evenly around a full turn about Z; about X or Y the kernel steps by quarter turns.
-    build: (ctx, v) => withNode(ctx.doc, { kind: 'circular-pattern', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, angleDegrees: v.axis === 'z' ? 360 / Number(v.count) : 90, count: v.axis === 'z' ? Number(v.count) : Math.min(4, Number(v.count)) }),
+      { key: 'count', label: 'Count', kind: 'count', min: 2, max: 36 },
+      { key: 'span', label: 'Spread over', kind: 'deg', min: 1, max: 360, step: 5, when: v => v.axis === 'z' },
+      { key: 'px', label: 'Axis at X', kind: 'mm', when: v => v.axis === 'z' }, { key: 'py', label: 'Axis at Y', kind: 'mm', when: v => v.axis === 'z' }],
+    defaults: () => ({ axis: 'z', count: 4, span: 360, px: 0, py: 0 }),
+    // About Z: a puck moves the axis, an arc spreads the copies (a full turn shares it evenly; less, from
+    // the first copy to the last). About X or Y the kernel steps by quarter turns.
+    handles: (ctx, v) => {
+      const b = oneBody(ctx); if (!b || v.axis !== 'z') return [];
+      const c = centreOf(b), centre: [number, number, number] = [Number(v.px), Number(v.py), c[2]];
+      const out: HandleSpec[] = [{ key: 'px', at: centre, dir: [1, 0, 0], pair: { key: 'py', dir: [0, 1, 0] } }];
+      if (Math.hypot(c[0] - centre[0], c[1] - centre[1]) > 1) out.push({ key: 'span', at: c, dir: [0, 0, 1], min: 1, max: 360, step: 5, arc: { centre, axis: [0, 0, 1], from: c } });
+      return out;
+    },
+    build: (ctx, v) => {
+      const n = Number(v.count), span = Number(v.span ?? 360), pivot: [number, number, number] = [Number(v.px ?? 0), Number(v.py ?? 0), 0];
+      return withNode(ctx.doc, v.axis === 'z'
+        ? { kind: 'circular-pattern', parent: refOf(oneBody(ctx)!), axis: 'z', angleDegrees: Math.round((span >= 360 ? 360 / n : span / (n - 1)) * 1e6) / 1e6, count: n, ...(pivot[0] || pivot[1] ? { pivot } : {}) }
+        : { kind: 'circular-pattern', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, angleDegrees: 90, count: Math.min(4, n) });
+    },
   },
   {
     id: 'split', label: 'Split', icon: 'cad-split', hint: 'Cut a body in two along a plane', group: 'modify', keywords: 'cut plane divide',
     available: ctx => oneBody(ctx) ? ok : no('Select one body to split.'),
     fields: () => [{ key: 'axis', label: 'Normal', kind: 'choice', options: [{ value: 'x', label: 'X' }, { value: 'y', label: 'Y' }, { value: 'z', label: 'Z' }] }, { key: 'at', label: 'At', kind: 'mm' }],
     defaults: ctx => { const b = oneBody(ctx); return { axis: 'x', at: b ? r1((b.mesh.bounds.min[0] + b.mesh.bounds.max[0]) / 2) : 0 }; },
+    // (A new normal starts the plane through the body's middle along it.)
+    derive: (ctx, v, changed) => { const b = oneBody(ctx); if (!b || !changed.includes('axis')) return v; const k = 'xyz'.indexOf(String(v.axis)); return { ...v, at: r1((b.mesh.bounds.min[k] + b.mesh.bounds.max[k]) / 2) }; },
+    // The cutting plane: an arrow through the body's middle along the normal, held inside the body.
+    handles: (ctx, v) => {
+      const b = oneBody(ctx); if (!b) return [];
+      const k = 'xyz'.indexOf(String(v.axis)), at = centreOf(b), dir: [number, number, number] = [0, 0, 0]; dir[k] = 1; at[k] = Number(v.at);
+      return [{ key: 'at', at, dir, min: Math.ceil((b.mesh.bounds.min[k] + 0.5) * 2) / 2, max: Math.floor((b.mesh.bounds.max[k] - 0.5) * 2) / 2, step: 0.5 }];
+    },
     build: (ctx, v) => withNode(ctx.doc, { kind: 'split', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, at: Number(v.at) }),
   },
   ...(['union', 'difference', 'intersect'] as const).map((kind): Command => ({

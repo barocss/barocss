@@ -4,7 +4,7 @@
 import { dropStaleMade, featureLabel, parentsOf, type ModelNode, type SketchNode } from '../engine/doc';
 import { toWorld } from '../sketch/plane';
 import { editFields } from './editFields';
-import { planeOf } from './profiles';
+import { planeOf, profileMiddle } from './profiles';
 import { commands, type Command, type Ctx, type Field, type HandleSpec, type Selection, type Values } from './commands';
 import type { BodyResult } from '../engine/evaluate';
 
@@ -47,6 +47,40 @@ function extrudeHandles(nodes: readonly ModelNode[], index: number): HandleSpec[
   return out;
 }
 
+/** The box round the bodies feature `index` made (a split's two halves together). */
+function madeBounds(ctx: Ctx, index: number): { min: V3; max: V3 } | null {
+  const own = ctx.bodies.filter(b => b.key === `b${index}` || b.key.startsWith(`b${index}_`));
+  if (!own.length) return null;
+  const min = [0, 1, 2].map(k => Math.min(...own.map(b => b.mesh.bounds.min[k]))) as V3, max = [0, 1, 2].map(k => Math.max(...own.map(b => b.mesh.bounds.max[k]))) as V3;
+  return { min, max };
+}
+/** A split's plane (an arrow along its normal, kept inside the body) and a row's spacing and count. */
+function placedHandles(ctx: Ctx, nodes: readonly ModelNode[], index: number): HandleSpec[] {
+  const n = nodes[index], was = ctx.doc.nodes[index], box = madeBounds(ctx, index); if (!box) return [];
+  if (n.kind === 'split') {
+    const k = 'xyz'.indexOf(n.axis), at = [0, 1, 2].map(i => (box.min[i] + box.max[i]) / 2) as V3, dir: V3 = [0, 0, 0]; dir[k] = 1; at[k] = num(n.at);
+    return [{ key: 'at', at, dir, min: Math.ceil((box.min[k] + 0.5) * 2) / 2, max: Math.floor((box.max[k] - 0.5) * 2) / 2, step: 0.5 }];
+  }
+  if (n.kind !== 'linear-pattern' || was?.kind !== 'linear-pattern') return [];
+  // The first copy's extent: the row's, less the spacing of the copies after it (as it stands now).
+  const k = 'xyz'.indexOf(n.axis), s0 = num(was.spacing), n0 = was.count, len = box.max[k] - box.min[k] - s0 * (n0 - 1);
+  if (was.axis !== n.axis || !(len > 0)) return [];
+  const s = num(n.spacing), count = n.count, c = [0, 1, 2].map(i => (box.min[i] + box.max[i]) / 2) as V3, dir: V3 = [0, 0, 0]; dir[k] = 1;
+  const at = (d: number): V3 => { const p = [...c] as V3; p[k] = d; return p; };
+  return [{ key: 'spacing', at: at(box.min[k] + len / 2 + s), dir, min: 1 }, { key: 'count', at: at(box.min[k] + len + s * (count - 1)), dir, scale: 1 / Math.max(1, s), min: 2, max: 24, unit: '' }];
+}
+/** A revolve's angle: an arc about its axis from the profile's middle. */
+function revolveHandles(nodes: readonly ModelNode[], index: number): HandleSpec[] {
+  const r = nodes[index] as Extract<ModelNode, { kind: 'revolve' }>, sk = nodes[r.sketch] as SketchNode | undefined;
+  if (!sk || sk.kind !== 'sketch') return [];
+  const plane = planeOf(sk), o: [number, number] = r.origin ? [num(r.origin[0]), num(r.origin[1])] : [0, 0];
+  const d0: [number, number] = r.dir ?? (r.axis === 'x' ? [1, 0] : [0, 1]), l = Math.hypot(d0[0], d0[1]) || 1, d: [number, number] = [d0[0] / l, d0[1] / l], m = profileMiddle(sk);
+  const t = (m[0] - o[0]) * d[0] + (m[1] - o[1]) * d[1], foot: [number, number] = [o[0] + d[0] * t, o[1] + d[1] * t];
+  const centre = toWorld(plane, foot), from = toWorld(plane, m), tip = toWorld(plane, [foot[0] + d[0], foot[1] + d[1]]), axis: V3 = [tip[0] - centre[0], tip[1] - centre[1], tip[2] - centre[2]];
+  if (Math.hypot(from[0] - centre[0], from[1] - centre[1], from[2] - centre[2]) < 1e-6) return [];
+  return [{ key: 'deg', at: from, dir: axis, min: 1, max: 360, step: 15, arc: { centre, axis, from } }];
+}
+
 /** A hole's centre (a puck on its face) and diameter (an arrow at the rim), where it goes in. */
 function holeHandles(ctx: Ctx, nodes: readonly ModelNode[], index: number): HandleSpec[] {
   const h = nodes[index] as Extract<ModelNode, { kind: 'hole' }>, axis = h.axis ?? 'z', k = 'xyz'.indexOf(axis);
@@ -60,7 +94,14 @@ function holeHandles(ctx: Ctx, nodes: readonly ModelNode[], index: number): Hand
   if (!Number.isFinite(level)) return [];
   const point = (u: number, w: number): V3 => { const p: V3 = [0, 0, 0]; p[a] = u; p[b] = w; p[k] = level; return p; };
   const unit = (i: number): V3 => { const d: V3 = [0, 0, 0]; d[i] = 1; return d; };
-  return [{ key: 'c0', at: point(c[0], c[1]), dir: unit(a), pair: { key: 'c1', dir: unit(b) } }, { key: 'dia', at: point(c[0] + r, c[1]), dir: unit(a), scale: 2, min: 0.5, step: 0.5 }];
+  const out: HandleSpec[] = [{ key: 'c0', at: point(c[0], c[1]), dir: unit(a), pair: { key: 'c1', dir: unit(b) } }, { key: 'dia', at: point(c[0] + r, c[1]), dir: unit(a), scale: 2, min: 0.5, step: 0.5 }];
+  // A blind hole's depth: an arrow down the bore from where it goes in; deeper is further in.
+  if (h.depth !== undefined) {
+    const depth = num(h.depth), was = ctx.doc.nodes[index], d0 = was?.kind === 'hole' ? num(was.depth ?? NaN) : NaN, inward = h.side === 'min' ? 1 : -1, down: V3 = [0, 0, 0]; down[k] = inward;
+    // (The bore's end now is the start level plus the depth it has; the arrow sits at the depth being dragged.)
+    if (Number.isFinite(depth + d0)) { const p = point(c[0], c[1]); p[k] = level + inward * depth; out.push({ key: 'depth', at: p, dir: down, min: 0.5, step: 0.5 }); }
+  }
+  return out;
 }
 
 /**
@@ -98,6 +139,8 @@ export function editCommand(index: number, nodes: readonly ModelNode[]): Command
       const now = edited(ctx.doc.nodes, index, v), n = now[index];
       if (n.kind === 'extrude') return extrudeHandles(now, index);
       if (n.kind === 'hole') return holeHandles(ctx, now, index);
+      if (n.kind === 'split' || n.kind === 'linear-pattern') return placedHandles(ctx, now, index);
+      if (n.kind === 'revolve') return revolveHandles(now, index);
       // A shell's wall: on its largest inside face, into the hollow; further in is thicker.
       if (n.kind === 'shell') {
         const was = ctx.doc.nodes[index], t0 = was?.kind === 'shell' ? num(was.thickness) : NaN, t = num(n.thickness);
