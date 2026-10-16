@@ -16,7 +16,8 @@ export async function chatStatus(base = '/api/chat'): Promise<ChatStatus> {
   try {
     const res = await fetch(`${base}/status`);
     if (!res.ok) return { enabled: false, reason: OFF };
-    return await res.json() as ChatStatus;
+    const status = await res.json() as ChatStatus;
+    return status.enabled ? status : { ...status, reason: status.reason ?? OFF };
   } catch { return { enabled: false, reason: OFF }; }
 }
 
