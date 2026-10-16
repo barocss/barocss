@@ -532,6 +532,119 @@ try {
     const f = await download('Export STEP'); const solids = (readFileSync(f, 'utf8').match(/MANIFOLD_SOLID_BREP/g) ?? []).length;
     return { ok: solids === 2, expected: { solids: 2 }, actual: { solids, panel: panel.replace(/\s+/g, ' ').slice(0, 200) } };
   });
+
+  // ===================================================================== merged at 2d9c79bc: constraints and mates
+  const pinFile = join(out, 'pin.bcad');
+  writeFileSync(pinFile, JSON.stringify({ format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [{ kind: 'sketch', profile: 'circle', center: [0, 0], radius: 4 }, { kind: 'extrude', sketch: 0, height: 20 }], outputs: { b1: { node: 1, side: 'solid' } } }));
+  const blockFile = join(out, 'block.bcad');
+  writeFileSync(blockFile, JSON.stringify({ format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10] }, { kind: 'extrude', sketch: 0, height: 4 }], outputs: { b1: { node: 1, side: 'solid' } } }));
+  const insert = async (f) => { const n = ((await doc()).instances ?? []).length; await page.setInputFiles('input[aria-label="Part file"]', f); await page.waitForFunction(k => (window.__studioDoc.instances ?? []).length === k + 1, n); await page.waitForSelector('[aria-label="Instance"]'); await page.waitForTimeout(800); return (await doc()).instances.at(-1).id; };
+  const addMate = async (picks, kind) => {
+    await page.click('[aria-label="Mates"] button:text-is("Add mate")');
+    if (kind) await page.selectOption('[aria-label="Mate type"]', kind);
+    for (const [part, face] of picks) { if (part === 'base') await page.evaluate(n => window.__studioPickFace(n), face); else await page.evaluate(([i, n]) => window.__studioPickInstanceFace(i, n), [part, face]); await page.waitForTimeout(200); }
+    await page.waitForTimeout(500);
+    return (await page.locator('[aria-label="Mate refused"]').innerText().catch(() => '')).replace(/\s+/g, ' ');
+  };
+  const instPos = async id => (await doc()).instances.find(i => i.id === id);
+
+  await probe('UM1', '[assembly-mates] pin seated in the starter plate hole (base face + instance face)', async () => {
+    await newPart(); await page.goto(url); await idle();   // fresh starter plate
+    await page.evaluate(() => localStorage.clear());
+    const pin = await insert(pinFile);
+    const e1 = await addMate([['base', 'n1.top'], [pin, 'n1.bottom']]);
+    const e2 = await addMate([['base', 'n2.side0'], [pin, 'n1.side0']]);
+    await page.waitForTimeout(500); const p = await instPos(pin);
+    return { ok: !e1 && !e2 && JSON.stringify(p.position) === '[32,16,8]', expected: [32, 16, 8], actual: { errors: [e1, e2], position: p.position, rotation: p.rotation, mates: (await doc()).mates?.length } };
+  });
+  await probe('UM2', '[assembly-mates] edit the base plate (8 → 20 thick): the pin follows; Undo brings both back', async () => {
+    await page.click('[aria-label="Mates"] button:text-is("Cancel")').catch(() => {}); await press('Escape');
+    // (While an instance is selected the feature editor is hidden: clear it with a click on empty space.)
+    await page.locator('.history .hs', { hasText: 'Extrude 8' }).click(); await page.waitForTimeout(200);
+    const hiddenEditor = !(await page.locator('.node-editor').count());
+    await page.mouse.click(250, 160); await page.waitForTimeout(200);
+    await page.locator('.history .hs', { hasText: 'Extrude 8' }).click();
+    const ed = l => page.locator('.node-editor .field', { has: page.locator(`span:text-is("${l}")`) }).locator('input');
+    await ed('Distance').fill('20'); await page.locator('.node-editor button', { hasText: 'Apply' }).click(); await idle(); await page.waitForTimeout(1500);
+    const pin = (await doc()).instances[0].id, after = (await instPos(pin)).position;
+    await press('Escape'); await page.evaluate(() => document.activeElement?.blur()); await press('Meta+z'); await idle(); await page.waitForTimeout(1500);
+    const undone = (await instPos(pin)).position, h = (await doc()).nodes[1].height;
+    return { ok: after[2] === 20 && undone[2] === 8 && h === 8, expected: { afterEdit: 20, afterUndo: { plate: 8, pinZ: 8 } }, actual: { afterEdit: after, afterUndo: { plate: h, pin: undone }, editorHiddenWhileInstanceSelected: hiddenEditor } };
+  });
+  await probe('UM3', '[assembly-mates] roll the hole back: the concentric mate reports its missing face', async () => {
+    await press('Escape');
+    await page.locator('.history .hs', { hasText: 'Extrude 8' }).dblclick(); await idle(); await page.waitForTimeout(1500);
+    await page.locator('.ol.instance').first().click(); await page.waitForTimeout(300);
+    const titles = await page.locator('.ol.mate').evaluateAll(els => els.map(e => e.getAttribute('title')));
+    await page.click('[aria-label="Roll forward to the end"]'); await idle(); await page.waitForTimeout(800);
+    return { ok: titles.some(t => /no longer on the part/.test(t ?? '')), expected: 'Concentric 2 flagged: one of its faces is no longer on the part', actual: titles };
+  });
+  await probe('UM4', '[assembly-mates] a third, conflicting mate is refused; delete a mate; flip', async () => {
+    const pin = (await doc()).instances[0].id;
+    await page.locator('.ol.instance').first().click();
+    const e = await addMate([['base', 'n1.top'], [pin, 'n1.top']]);
+    await page.click('[aria-label="Mates"] button:text-is("Cancel")').catch(() => {});
+    await page.locator('.ol.mate', { hasText: 'Coincident 1' }).click();
+    await page.click('[aria-label="Edit mate flip"]'); await page.waitForTimeout(800);
+    const flipped = await instPos(pin);
+    await page.click('[aria-label="Mates"] button:text-is("Delete mate")'); await page.waitForTimeout(500);
+    const left = (await doc()).mates.map(m => m.kind);
+    return { ok: /Conflicts/.test(e) && flipped.rotation[0] === 180 && JSON.stringify(left) === '["concentric"]', expected: { third: 'refused: Conflicts with…', flip: 'rotation X 180', afterDelete: ['concentric'] }, actual: { third: e, flipped: { p: flipped.position, r: flipped.rotation }, afterDelete: left } };
+  });
+  await probe('UM5', '[assembly-mates] remove the instance: its mates go with it', async () => {
+    await page.locator('.ol.instance').first().click(); await page.click('[aria-label="Instance"] button:text-is("Remove")'); await page.waitForTimeout(400);
+    const d = await doc();
+    return { ok: !(d.instances ?? []).length && !(d.mates ?? []).length, expected: 'no instances, no mates', actual: { instances: (d.instances ?? []).length, mates: d.mates } };
+  });
+  await probe('UM6', '[assembly-mates] block flush on a 45° chamfer face of the base (needs a 45° turn about X)', async () => {
+    await newPart(); await makeBox(40, 40, 20, 0, 0, 0);
+    await page.evaluate(() => window.__studioSelectEdge('n1.side0|n1.top'));
+    await press(' '); await page.locator('.palette input').fill('chamfer'); await press('Enter'); await hudReady(); await setField('Distance', 10); await press('Enter'); await idle(); await page.waitForTimeout(400);
+    const blk = await insert(blockFile);
+    const e = await addMate([['base', 'n2.face'], [blk, 'n1.bottom']]);
+    await page.waitForTimeout(1500);
+    const toast = (await page.locator('.toast[role=alert]').innerText().catch(() => '')).replace(/\s+/g, ' ');
+    const i = await instPos(blk), shown = await page.evaluate(() => document.querySelectorAll('.ol.instance').length);
+    const vol = await page.locator('[aria-label="Instance"]').innerText().catch(() => '');
+    return { ok: !!e || (!toast && /Bodies\s*1/.test(vol)), expected: 'the block lies on the chamfer, or the mate is refused with the reason', actual: { mateError: e, rotation: i.rotation, position: i.position, toast, instancePanel: vol.replace(/\s+/g, ' ').slice(0, 120), mates: (await doc()).mates?.length } };
+  });
+
+  // ---- sketch constraints (line-tool outline) ----
+  const drawQuad = async () => {
+    await press('s'); await press('l'); const [cx, cy] = await canvasCenter();
+    for (const [dx, dy] of [[-150, -80], [150, -80], [150, 80], [-150, 80], [-150, -80]]) await clickAt(cx + dx, cy + dy);
+  };
+  await probe('UC1', '[sketch-constraints] ⌘Z while sketching undoes the last constraint, not the whole sketch', async () => {
+    await newPart(); await makeBox(10, 10, 10, 100, 0, 0);
+    await drawQuad();
+    await page.fill('#sk-len0', '60'); await page.evaluate(() => document.activeElement?.blur());
+    const before = { nodes: (await doc()).nodes.length, sketching: await page.locator('.sk-panel').count() };
+    await press('Meta+z'); await page.waitForTimeout(800); await idle();
+    const after = { nodes: (await doc()).nodes.length, sketching: await page.locator('.sk-panel').count(), len0: await page.inputValue('#sk-len0').catch(() => null) };
+    return { ok: after.sketching === 1, expected: 'still sketching (the width lock undone or kept); the box feature untouched', actual: { before, after } };
+  });
+  await probe('UC2', '[sketch-constraints] dimension editor in the viewport: 0, text and Escape', async () => {
+    await newPart(); await drawQuad();
+    await press('d'); const r = await page.evaluate(() => { const o = document.querySelector('.vp-overlay').getBoundingClientRect(); return document.querySelector('.vp-overlay polygon.sk-shape:not(.done)').getAttribute('points').trim().split(/\s+/).map(p => { const [x, y] = p.split(',').map(Number); return [x + o.left, y + o.top]; }); });
+    const mid = [(r[0][0] + r[1][0]) / 2, (r[0][1] + r[1][1]) / 2]; await clickAt(mid[0], mid[1]);
+    await page.locator('.dim-edit').fill('0'); await page.locator('.dim-edit').press('Enter'); await page.waitForTimeout(300);
+    const zero = (await page.locator('.sk-panel [role=alert]').innerText().catch(() => '')).replace(/\s+/g, ' ');
+    const w0 = await page.inputValue('#sk-len0');
+    await clickAt(mid[0], mid[1]); const editorOpen = await page.locator('.dim-edit').count();
+    if (editorOpen) { await page.locator('.dim-edit').fill('77'); await page.locator('.dim-edit').press('Escape'); }
+    await page.waitForTimeout(300);
+    const afterEsc = { len0: await page.inputValue('#sk-len0'), sketching: await page.locator('.sk-panel').count() };
+    return { ok: /greater than 0/.test(zero) && afterEsc.len0 === w0 && afterEsc.sketching === 1, expected: { zero: 'refused: A dimension must be greater than 0', escape: 'closes the editor only, value unchanged, still sketching' }, actual: { zero, w0, editorOpen, afterEsc } };
+  });
+  await probe('UC3', '[sketch-constraints] after Finish, the driving dimensions can be edited again', async () => {
+    await newPart(); await drawQuad();
+    await page.fill('#sk-len0', '60'); await page.fill('#sk-len1', '25'); await page.evaluate(() => document.activeElement?.blur());
+    await press('Enter'); await hudReady(); await press('Enter'); await idle();
+    await page.locator('.history .hs').first().click();
+    const editor = (await page.locator('.node-editor').innerText().catch(() => '')).replace(/\s+/g, ' ');
+    const node = (await doc()).nodes[0];
+    return { ok: /Width|Length|60/.test(editor), expected: 'the feature editor offers the sketch’s 60 and 25 (or the sketch can be reopened)', actual: { editor: editor.slice(0, 160), sketchNode: node } };
+  });
 } finally {
   writeFileSync(join(out, 'ui-probe.json'), JSON.stringify(rows, null, 2));
   await browser.close(); await server.close();

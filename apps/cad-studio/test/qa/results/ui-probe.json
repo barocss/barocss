@@ -923,8 +923,210 @@
     },
     "actual": {
       "solids": 2,
-      "panel": "PART INSTANCE Name Bodies 1 Volume 2160 mm³ POSITION · MM X Y Z ROTATION · ° (X, THEN Y, THEN Z) X Y Z Duplicate Hide Remove"
+      "panel": "PART INSTANCE Name Bodies 1 Volume 2160 mm³ POSITION · MM X Y Z ROTATION · ° (X, THEN Y, THEN Z) X Y Z Duplicate Hide Fix in place Remove"
     },
     "screenshot": "test/qa/screenshots/U90-insert-bracket-bcad-as-an-instance-rotate-45-step-.jpg"
+  },
+  {
+    "id": "UM1",
+    "name": "[assembly-mates] pin seated in the starter plate hole (base face + instance face)",
+    "ok": true,
+    "expected": [
+      32,
+      16,
+      8
+    ],
+    "actual": {
+      "errors": [
+        "",
+        ""
+      ],
+      "position": [
+        32,
+        16,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "mates": 2
+    },
+    "screenshot": "test/qa/screenshots/UM1--assembly-mates-pin-seated-in-the-starter-plate-ho.jpg"
+  },
+  {
+    "id": "UM2",
+    "name": "[assembly-mates] edit the base plate (8 → 20 thick): the pin follows; Undo brings both back",
+    "ok": true,
+    "expected": {
+      "afterEdit": 20,
+      "afterUndo": {
+        "plate": 8,
+        "pinZ": 8
+      }
+    },
+    "actual": {
+      "afterEdit": [
+        32,
+        16,
+        20
+      ],
+      "afterUndo": {
+        "plate": 8,
+        "pin": [
+          32,
+          16,
+          8
+        ]
+      },
+      "editorHiddenWhileInstanceSelected": true
+    },
+    "screenshot": "test/qa/screenshots/UM2--assembly-mates-edit-the-base-plate-8-20-thick-the.jpg"
+  },
+  {
+    "id": "UM3",
+    "name": "[assembly-mates] roll the hole back: the concentric mate reports its missing face",
+    "ok": true,
+    "expected": "Concentric 2 flagged: one of its faces is no longer on the part",
+    "actual": [
+      "Base part · Top face → pin · Bottom face",
+      "One of its faces is no longer on the part (a feature was edited or removed)."
+    ],
+    "screenshot": "test/qa/screenshots/UM3--assembly-mates-roll-the-hole-back-the-concentric-.jpg"
+  },
+  {
+    "id": "UM4",
+    "name": "[assembly-mates] a third, conflicting mate is refused; delete a mate; flip",
+    "ok": true,
+    "expected": {
+      "third": "refused: Conflicts with…",
+      "flip": "rotation X 180",
+      "afterDelete": [
+        "concentric"
+      ]
+    },
+    "actual": {
+      "third": "Can’t mate these faces Conflicts with Coincident 1: it already sets which way a face of pin parallel to this one points, and this mate would turn them 180° from there.",
+      "flipped": {
+        "p": [
+          32,
+          16,
+          8
+        ],
+        "r": [
+          180,
+          0,
+          0
+        ]
+      },
+      "afterDelete": [
+        "concentric"
+      ]
+    },
+    "screenshot": "test/qa/screenshots/UM4--assembly-mates-a-third-conflicting-mate-is-refuse.jpg"
+  },
+  {
+    "id": "UM5",
+    "name": "[assembly-mates] remove the instance: its mates go with it",
+    "ok": true,
+    "expected": "no instances, no mates",
+    "actual": {
+      "instances": 0,
+      "mates": []
+    },
+    "screenshot": "test/qa/screenshots/UM5--assembly-mates-remove-the-instance-its-mates-go-w.jpg"
+  },
+  {
+    "id": "UM6",
+    "name": "[assembly-mates] block flush on a 45° chamfer face of the base (needs a 45° turn about X)",
+    "ok": false,
+    "expected": "the block lies on the chamfer, or the mate is refused with the reason",
+    "actual": {
+      "mateError": "",
+      "rotation": [
+        44.99999999745556,
+        0,
+        0
+      ],
+      "position": [
+        60,
+        -5,
+        5
+      ],
+      "toast": "info Only quarter turns about X and Y Rotate about X or Y by 90°, 180° or 270°. About Z any angle works. Details close",
+      "instancePanel": "PART INSTANCE Name Bodies … POSITION · MM X Y Z ROTATION · ° (X, THEN Y, THEN Z) X Y Z Duplicate Hide Fix in place Remov",
+      "mates": 1
+    },
+    "screenshot": "test/qa/screenshots/UM6--assembly-mates-block-flush-on-a-45-chamfer-face-o.jpg"
+  },
+  {
+    "id": "UC1",
+    "name": "[sketch-constraints] ⌘Z while sketching undoes the last constraint, not the whole sketch",
+    "ok": false,
+    "expected": "still sketching (the width lock undone or kept); the box feature untouched",
+    "actual": {
+      "before": {
+        "nodes": 2,
+        "sketching": 1
+      },
+      "after": {
+        "nodes": 0,
+        "sketching": 0,
+        "len0": null
+      }
+    },
+    "screenshot": "test/qa/screenshots/UC1--sketch-constraints-z-while-sketching-undoes-the-l.jpg"
+  },
+  {
+    "id": "UC2",
+    "name": "[sketch-constraints] dimension editor in the viewport: 0, text and Escape",
+    "ok": true,
+    "expected": {
+      "zero": "refused: A dimension must be greater than 0",
+      "escape": "closes the editor only, value unchanged, still sketching"
+    },
+    "actual": {
+      "zero": "A dimension must be greater than 0",
+      "w0": "39",
+      "editorOpen": 1,
+      "afterEsc": {
+        "len0": "39",
+        "sketching": 1
+      }
+    },
+    "screenshot": "test/qa/screenshots/UC2--sketch-constraints-dimension-editor-in-the-viewpo.jpg"
+  },
+  {
+    "id": "UC3",
+    "name": "[sketch-constraints] after Finish, the driving dimensions can be edited again",
+    "ok": false,
+    "expected": "the feature editor offers the sketch’s 60 and 25 (or the sketch can be reopened)",
+    "actual": {
+      "editor": "",
+      "sketchNode": {
+        "kind": "sketch",
+        "profile": "polygon",
+        "points": [
+          [
+            34,
+            30
+          ],
+          [
+            94,
+            30
+          ],
+          [
+            94,
+            5
+          ],
+          [
+            34,
+            5
+          ]
+        ]
+      }
+    },
+    "screenshot": "test/qa/screenshots/UC3--sketch-constraints-after-finish-the-driving-dimen.jpg"
   }
 ]

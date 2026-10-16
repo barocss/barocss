@@ -1,6 +1,13 @@
 # cad-studio QA report — 2026-10-16
 
-Tester session on branch `claude/studio-tester-412a82` (based on `1ff129f2`, the integration tip).
+Tester session on branch `claude/studio-tester-412a82`.
+
+- First pass: on `1ff129f2`.
+- Second pass: merged with the integration tip `2d9c79bc` (sketch constraints and assembly mates);
+  every probe was re-run there.
+
+Every finding below carries an area tag for routing: **[sketch-constraints]**,
+**[assembly-mates]**, **[drawing]** (none found) or **[core]** (everything else).
 I ran the real app in headless Chrome with WebGPU (`--enable-unsafe-webgpu`; the viewport reported
 `data-renderer="webgpu"`) and checked every result against numbers computed by hand. I did not change
 any product code.
@@ -14,7 +21,8 @@ cd apps/cad-studio
 node test/qa/run-engine-probe.mjs                     # engine-probe.ts
 node test/qa/run-engine-probe.mjs regions-probe.ts    # overlapping shapes in one sketch
 node test/qa/run-engine-probe.mjs detail-probe.ts     # fillet/chamfer sizes, edge-touch union, hole/region classification
-# Real app (Vite on :52044 + Chromium, 51 cases, ~8 min). Optional 2nd arg: a case-id regex, e.g. 'U4|U69'.
+node test/qa/run-engine-probe.mjs constraints-mates-probe.ts   # sketch constraints + mates (35 cases)
+# Real app (Vite on :52044 + Chromium, 60 cases, ~10 min). Optional 2nd arg: a case-id regex, e.g. 'U4|U69'.
 PW_DIR=/Users/user/.npm/_npx/e41f203b7505f1fb/node_modules/playwright \
 CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
 node test/qa/ui-probe.mjs /tmp/cad-studio-qa
@@ -23,7 +31,13 @@ node test/qa/ui-probe.mjs /tmp/cad-studio-qa
 The raw outputs of the final run are in `test/qa/results/`. Screenshots for the findings are in
 `test/qa/screenshots/`, named by case id; `results/ui-probe.json` names every case's screenshot.
 
-Final run: **UI 36/51 cases as expected**, **engine 116/126 as expected**. The cases that were not
+Final run on `2d9c79bc`:
+
+- UI: **42/60** cases as expected.
+- Engine: **116/126** as expected.
+- Constraints and mates engine probe: **32/35** as expected.
+
+All 15 first-pass findings still reproduce on the new tip. The cases that were not
 as expected are the findings below. Where a mismatch came from my own expected value, I fixed the
 probe and did not report it.
 
@@ -34,7 +48,13 @@ probe and did not report it.
 Severity labels: **wrong geometry**, **crash**, **refusal without reason**, **UX**. "Data" marks a
 number that is a little off where the shape itself is right.
 
-### W1 — wrong geometry: overlapping shapes in one sketch become a cut or a bump, depending on where the second shape is
+W1 and C1 are in the sketch *profile* builder (`src/sketch/loops.ts`), not in the constraint code, so
+they are tagged [core]. The sketch-constraints session touches neighbouring files.
+
+The new findings from the second pass (A1–A2, S1–S2, X1) are in the next section; they rank
+between W4 and R1 in severity.
+
+### W1 [core] — wrong geometry: overlapping shapes in one sketch become a cut or a bump, depending on where the second shape is
 
 When two closed shapes in one sketch overlap and neither contains the other, the result depends on
 which shape's *first outline point* falls inside the other. The user gets a silent subtraction
@@ -60,7 +80,7 @@ Suspected code:
 - The kernel also accepts a `holes` loop that crosses the outer loop and cuts a notch (engine case
   E15). Nothing validates that a hole lies inside its region.
 
-### W2 — wrong geometry: a fillet or chamfer bigger than the wall is accepted and distorts the body
+### W2 [core] — wrong geometry: a fillet or chamfer bigger than the wall is accepted and distorts the body
 
 Steps: make a box of 32×32×16 (`B`, then type the values). Select the top front edge
 (`n1.side0|n1.top`). Open the palette, run fillet, set Radius 20 and press Enter. The HUD says
@@ -82,7 +102,7 @@ exceed the **edge length** (around line 118). It does not check the size against
 two faces across the edge**, here the 16 mm side wall. `errors.ts` already maps
 `too large for walls`, but this path never raises it.
 
-### W3 — wrong geometry (non-manifold): a union of bodies that touch only along an edge or at a corner is accepted as one body
+### W3 [core] — wrong geometry (non-manifold): a union of bodies that touch only along an edge or at a corner is accepted as one body
 
 Steps: make box A at (0,0,0) and box B at (10,10,0), both 10³. Select both bodies and press `U`.
 
@@ -95,7 +115,7 @@ Steps: make box A at (0,0,0) and box B at (10,10,0), both 10³. Select both bodi
 - Suspected code: the upright (Z-prismatic) Boolean path in `packages/barocss-cad/src/part-model.ts`.
   It does not run the manifold check that the analytic and polyhedral Booleans run.
 
-### W4 — wrong geometry: the Pipe HUD shows Angle 360° but builds a 90° bend
+### W4 [core] — wrong geometry: the Pipe HUD shows Angle 360° but builds a 90° bend
 
 Steps: open the palette, choose **pipe**, draw a circle and Finish. The HUD shows **Angle 360°** and
 Apply makes `angleDegrees: 90` (U64). If the user types 360 on purpose, the bend is also 90°.
@@ -106,7 +126,7 @@ Values below 360 are honoured; 180 works.
   and `Number(v.deg) >= 360 ? 90 : …` replaces it.
 - Expected: a pipe default of 90°, and the angle shown is the angle built.
 
-### C1 — crash: Finish sketch throws when each shape's first point lies inside the other shape
+### C1 [core] — crash: Finish sketch throws when each shape's first point lies inside the other shape
 
 Steps: press `S`. Draw a circle and type Centre 0/0, Diameter 20. Blur the field, press `R`, draw a
 rectangle and type Corner 5/−3, Width 15, Height 6. Click **Finish sketch**.
@@ -118,7 +138,7 @@ rectangle and type Corner 5/−3, Width 15, Height 6. Click **Finish sketch**.
 - Cause: both shapes get depth 1, so `outers` is empty and `main` is undefined.
 - Screenshot: `screenshots/U44-…jpg`.
 
-### R1 — refusal without reason and data loss: opening a file that is not STEP replaces the current part
+### R1 [core] — refusal without reason and data loss: opening a file that is not STEP replaces the current part
 
 Steps: with a part open, use Open to load `garbage.step` (its content is `hello`).
 
@@ -132,7 +152,7 @@ Steps: with a part open, use Open to load `garbage.step` (its content is `hello`
 - Suspected code: `src/App.tsx` `open()`. The STEP branch calls `commit()` before anything is
   evaluated. `src/engine/errors.ts` has no rule for STEP parse errors.
 
-### R2 — refusal without reason: an extrude draft too steep for its height
+### R2 [core] — refusal without reason: an extrude draft too steep for its height
 
 Steps: sketch a 10×10 rectangle, Finish, then set Distance 20 and Draft 60°.
 
@@ -143,7 +163,7 @@ Steps: sketch a 10×10 rectangle, Finish, then set Distance 20 and Draft 60°.
   steep for this height".
 - Screenshot: `screenshots/U62-…jpg`.
 
-### R3 — refusal without reason: revolve angle 0
+### R3 [core] — refusal without reason: revolve angle 0
 
 The HUD field has `min=1`, but typing `0` is not blocked. The refusal is generic: "The kernel could
 not build this", with detail `angleDegrees must be in (0, 360]` (U61, R08).
@@ -152,7 +172,7 @@ not build this", with detail `angleDegrees must be in (0, 360]` (U61, R08).
   `missing` check).
 - Screenshot: `screenshots/U61-…jpg`.
 
-### D1 — data: reopening an exported STEP changes the volume of curved bodies
+### D1 [core] — data: reopening an exported STEP changes the volume of curved bodies
 
 The exporter writes exact rational B-splines (`step-dump.ts` shows a torus as
 `RATIONAL_B_SPLINE_SURFACE` with weights √2/2). The face counts survive the round trip, but the
@@ -173,7 +193,7 @@ Suspected code: the mass properties of imported NURBS faces, probably integrated
 (`packages/barocss-cad/src/solid-mass.ts` `segmentsPerQuarter`) rather than the exact surfaces that
 were read.
 
-### D2 — data/UX: a STEP file with two solids reopens as one body
+### D2 [core] — data/UX: a STEP file with two solids reopens as one body
 
 Steps: export two separate boxes. The file holds 2 `MANIFOLD_SOLID_BREP`. Open it again.
 
@@ -183,7 +203,7 @@ Steps: export two separate boxes. The file holds 2 `MANIFOLD_SOLID_BREP`. Open i
 - Suspected code: the `import` feature in `src/engine/part.ts` and the kernel import (one output per
   file).
 
-### D3 — data: the measured arc length uses the display polyline
+### D3 [core] — data: the measured arc length uses the display polyline
 
 Select the starter hole's rim edge. The panel shows *Arc · Radius 4 mm* (exact) but **Length
 25.09 mm**, against 8π = 25.13 mm (−0.16 %) (U03). `src/app/measure.ts` `measureItem` sums segment
@@ -191,7 +211,7 @@ lengths; once it knows the radius and sweep it could report r·θ.
 
 Screenshot: `screenshots/U03-…jpg`.
 
-### D4 — data: fillet volume is slightly off at large radii
+### D4 [core] — data: fillet volume is slightly off at large radii
 
 On a 32×32×16 box with one top edge filleted, compared with exact (r² − πr²/4)·32:
 
@@ -204,7 +224,7 @@ On a 32×32×16 box with one top edge filleted, compared with exact (r² − πr
 The UI rounds to whole mm³, so a user sees 14836 where 14839 is right (F06). This is small, but
 chamfers, shells, holes and extrudes are exact to 1e-9 here, so fillets stand out.
 
-### U1 — UX: there is no way to delete a feature
+### U1 [core] — UX: there is no way to delete a feature
 
 None of these offer delete or remove (U83):
 - the History chip's context menu (it has no right-click menu at all)
@@ -217,7 +237,7 @@ The only way out is to roll back and add a new feature, which discards *every* l
 
 Screenshot: `screenshots/U83-…jpg`.
 
-### U2 — UX: the "Removed N later features" toast counts sketch nodes
+### U2 [core] — UX: the "Removed N later features" toast counts sketch nodes
 
 Steps: build box A and box B, double-click A's chip to roll back, then add box C. The toast says
 **"Removed 2 later features"**, but the History bar showed one (Extrude 8); the hidden sketch node is
@@ -227,7 +247,7 @@ Code: `src/App.tsx` `commit()`, `dropped = doc.nodes.length - marker`.
 
 Screenshot: `screenshots/U82-…jpg`.
 
-### U3 — UX: after typing a dimension, tool keys are swallowed and the next click draws the wrong shape
+### U3 [core] — UX: after typing a dimension, tool keys are swallowed and the next click draws the wrong shape
 
 After typing in a sketch panel field (for example Height), focus stays in the field. Pressing `C`
 does nothing, and the next click on the canvas starts another **rectangle**. The panel then shows a
@@ -237,6 +257,133 @@ A user who types and then presses a tool key gets a stray shape. Blurring the di
 Enter, or letting tool keys work from number fields, would avoid this.
 
 Screenshot: `screenshots/U40-firstrun-focus-kept-in-field.jpg`.
+
+---
+
+## Second pass — sketch constraints and assembly mates (`2d9c79bc`)
+
+### A1 [assembly-mates] — wrong placement: a mate that needs a non-90° turn about X or Y is accepted, then the instance cannot be built
+
+Steps:
+1. Make a box of 40×40×20 and chamfer its top front edge by 10. This gives a 45° face, `n2.face`.
+2. Insert `block.bcad`, a 10×10×4 box.
+3. Click **Add mate**. Pick the chamfer face, then the block's bottom face.
+
+Expected: the block lies on the chamfer, or the mate is refused with a reason.
+
+Actual:
+- The mate is **accepted** with no refusal. The solver sets rotation
+  **[44.99999999745556, 0, 0]**; Euler angles are not cleaned here.
+- Evaluating the placed part then fails. The only message is an unrelated toast: "Only quarter turns
+  about X and Y · Rotate about X or Y by 90°, 180° or 270°".
+- The instance panel shows "Bodies …" forever, and the block is not drawn (UM6).
+- The same happens for a block flush on the top of a 30°-tilted extrude (engine M10).
+
+Screenshot: `screenshots/UM6-…jpg`.
+
+Cause: `src/assembly/mates.ts` `solveAssembly` produces any rotation. But
+`src/engine/doc.ts` `placedDoc` applies it as kernel `rotate` features, and the kernel only allows
+X/Y multiples of 90°. Either the mate should refuse with that reason, or placedDoc needs a general
+rotation.
+
+### A2 [core] — UX: the feature editor is hidden while a part instance is selected
+
+With an instance selected (always the case right after Add mate), clicking a History chip highlights
+it, but no editor opens. The Selection panel holding the editor is hidden because
+`!instanceSel.length` is false. The user has to click empty space first (UM2).
+
+Code: `src/App.tsx`, the Selection aside condition.
+
+Screenshot: `screenshots/UM2-…jpg`. In it the chip `Extrude 8` is highlighted and no editor shows.
+
+### S1 [core] — UX/data loss: ⌘Z while sketching throws the sketch away and undoes the feature before it
+
+Steps:
+1. Make a box.
+2. Press `S`, then `L`, and draw a closed 4-point outline.
+3. Type a width of 60, then press **⌘Z**, as you would to undo that dimension.
+
+Expected: the last sketch edit (or constraint) is undone and the sketch stays open.
+
+Actual:
+- The sketch closes and is **discarded**.
+- The **box feature is undone too**: the document goes from 2 nodes to 0 (UC1).
+
+Redo brings the box back, but the sketch is lost. With explicit constraints and dimensions, undoing
+inside a sketch is now a natural thing to try.
+
+Code: `src/App.tsx`. `doUndo()` calls `cancel()` and pops the document undo stack. The sketch has no
+undo history of its own.
+
+Screenshot: `screenshots/UC1-…jpg`.
+
+### S2 [sketch-constraints] — UX: constraints and driving dimensions are dropped when the sketch is finished
+
+Steps: draw a line-tool outline, type width 60 and height 25 (fully defined), then finish and extrude.
+
+Actual:
+- The sketch node keeps only the solved points:
+  `{"profile":"polygon","points":[[34,30],[94,30],[94,5],[34,5]]}`.
+- `hv`, `lengths`, `rules` and the distance dimensions are gone (engine K18).
+- Clicking the feature in History offers no dimensions (UC3), and the sketch cannot be reopened.
+
+So a driving dimension drives only until Finish; the part is not parametric in it afterwards.
+
+Code: `src/sketch/loops.ts` `shapeNode` / `profileOf`, and `src/app/editFields.ts`, which has
+`sketchFields` only for rectangles and circles.
+
+Screenshot: `screenshots/UC3-…jpg`.
+
+### X1 [assembly-mates] — information only: interference is not checked
+
+These are accepted without a warning (engine M05, M11). Most CAD tools allow this, so it is listed
+only as a decision to confirm:
+- a distance mate of −5 mm sinks the pin 5 mm into the plate;
+- a concentric Ø12 pin goes into the Ø8 hole.
+
+### Sketch constraints that work
+
+Engine K01–K23 and UI UC2, plus the flow test's own constraint step:
+
+- **Line-tool rectangle.** It closes with H/V kept and 2 DOF. Fixing point 3 makes it fully
+  defined; removing the fix gives 2 DOF again.
+- **Refused as already implied, each with the plain "already implied … would over-define" reason:**
+  - parallel on edges that are already horizontal;
+  - perpendicular on edges that are already H and V;
+  - equal on opposite rectangle edges;
+  - a diagonal of exactly 65 on a 60 × 25 rectangle;
+  - a top edge of 60 when the bottom is 60;
+  - vertical on edge 4 after 2 ∥ 4 and 1 ⊥ 2.
+- **Refused as conflicts, each with a reason:**
+  - vertical on a horizontal edge ("remove that constraint first");
+  - a diagonal of 70;
+  - a length on a fixed, fully defined outline.
+- **Refused dimensions:** 0 and −5 ("must be greater than 0"); 1e6 (the solver range).
+- **Refused selections:** equal on a line and an arc; a point on the centre of its own arc; a 14-gon
+  with 3 point distances (the solver limit, with a reason).
+- **Removing:** removing a dimension frees exactly one DOF and leaves the shape as it is. Removing
+  the first of two rules keeps the second.
+- **Viewport dimension editor:** 0 is refused inline. Escape closes the editor and leaves the value
+  and the sketch as they were.
+
+### Assembly mates that work
+
+Engine M01–M12 and UI UM1–UM5:
+
+- **Pin in the starter hole.** Coincident + concentric picked in the real app puts it at
+  **(32, 16, 8)**.
+- **Re-solve after the base changes.** Editing the plate from 8 to 20 thick moves the pin to
+  **z = 20**, and ⌘Z puts both back to 8 (UM2).
+- **Missing face.** Rolling the hole feature back flags "Concentric 2" with "One of its faces is no
+  longer on the part" (UM3).
+- **Conflict.** A third mate, pin top on plate top, is refused with "Conflicts with Coincident 1 … 180°".
+- **Flip.** Flipping the flush mate turns the pin 180° about X, so it hangs through the plate:
+  z −12…8.
+- **Delete.** Deleting a mate keeps the other one (UM4).
+- **Remove the instance.** Its mates are removed with it (UM5).
+- **Loops.** Two instances placed by each other are both refused with "It closes a loop" (M08).
+- **Stability.** A solved assembly stays put when solved again (M12).
+- **Flow test.** It covers a grounded part, distance edits, and following a moved fixed part.
 
 ---
 
@@ -320,4 +467,4 @@ to 1e-4 relative or better).
 - Inferred constraints beyond what U59 and the closed outline settle.
 - The WebGL2 fallback renderer.
 - Render workspace visuals.
-- Assembly mates and drawings, which other sessions are still building.
+- 2D drawings ([drawing]): not merged into the tip yet.
