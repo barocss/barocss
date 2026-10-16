@@ -10,7 +10,7 @@ import type { BaroCadDocumentPrimitiveBindingV2, BaroCadDocumentPrimitiveOptions
 import { loadBaroCadModelSet, prepareBaroCadModelSetPrimitiveNativeRefsV2 } from '@barocss/cad-interop/model-set';
 import type { BaroCadModelSetLoadOptions, BaroCadModelSetManifest,
   BaroCadModelSetResult } from '@barocss/cad-interop/model-set';
-import { prepareMesh, validateMeshCamera, validatePreviewPacket, validateMeshMaterialBinding,
+import { prepareMesh, validateMeshCamera, validatePreviewPacket, validateMeshMaterialBinding, prepareClothLayer,
   validateUniformCurvePreview, validateSelectedUniformCurvePreview, prepareMixedDepthFrame, resolveMixedDepthFrame,
   prepareQualifiedFaceScene, resolveQualifiedFaceScene, prepareBooleanShellBuffers } from '@barocss/gpu';
 import type { MeshCamera, MeshLighting, PreviewPacket, PrimitiveSceneEntryV1,
@@ -1360,6 +1360,8 @@ export class Viewer {
     check(this.drawn === 'qualified', 'Cloth layer requires a qualified GPU scene');
     const candidate = prepareViewerClothFrame(input, this.options.mmToSceneUnit, this.clothFrame);
     if (candidate.unchanged) return;
+    // The layer's own admission: finite, non-degenerate triangles that survive Float32.
+    prepareClothLayer(candidate.layer, this.clothLayer);
     this.redrawScene({ clothLayer: candidate.layer });
     this.clothFrame = candidate.frame; this.clothLayer = candidate.layer;
   }

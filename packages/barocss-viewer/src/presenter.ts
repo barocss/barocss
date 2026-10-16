@@ -50,8 +50,9 @@ export function itemsOf(entries: readonly (PrimitiveSceneEntryV1 | PrimitiveScen
     const ref = 'ref' in entry ? entry.ref : null, name = ref ? refKey(ref) : undefined;
     if (entry.kind === 'surface') {
       const shader = ref ? shaders.get(refKey(ref)) : undefined;
+      // A material gives the colour itself (the palette colour would tint it).
       return { kind: 'triangles', positions: entry.packet.positions, normals: entry.packet.normals, indices: entry.packet.indices,
-        color: entry.color as Vec3, mm: true, pose: entry.transform ?? null, ...(shader ? { shader } : {}), name };
+        color: shader ? [1, 1, 1] : entry.color as Vec3, mm: true, pose: entry.transform ?? null, ...(shader ? { shader } : {}), name };
     }
     return { kind: 'lines', positions: entry.sample.pointsMM.flat(), color: entry.color as Vec3, mm: true, pose: entry.transform ?? null, name };
   });

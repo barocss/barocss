@@ -32,7 +32,8 @@ export {compileEngineUVMaterial,validateEngineUVMaterialIR,lowerEngineUVMaterial
 export type {EngineUVMaterialExpression,EngineUVMaterialIR,LoweredEngineUVMaterial} from './mesh-material.js';
 
 export type {ParticleLayerV0} from './particle-layer.js';
-export type {ClothLayerV0} from './cloth-layer.js';
+export {prepareClothLayer} from './cloth-layer.js';
+export type {ClothLayerV0,PreparedClothLayer} from './cloth-layer.js';
 
 export {prepareCoplanarBooleanBuffers} from './coplanar-boolean-buffers.js';
 export type {CoplanarBooleanBufferOptions,PreparedCoplanarBooleanBuffers} from './coplanar-boolean-buffers.js';
