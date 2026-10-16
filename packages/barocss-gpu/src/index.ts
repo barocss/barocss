@@ -71,8 +71,6 @@ export type {TriangleGeometryV0,PreparedTriangleGeometry} from './triangle-geome
 
 export {prepareEngineScene,EngineSceneError,EngineSceneDiagnosticCode} from './engine-scene.js';
 export {prepareEngineDrawBatches} from './engine-draw-batches.js';
-export {prepareEngineWebGPUFrame,engineSceneWGSL} from './engine-webgpu-frame.js';
-export type {PreparedEngineWebGPUFrame,EngineWebGPUFrameDraw} from './engine-webgpu-frame.js';
 export type {EngineDrawBatch,EngineDrawBatchPlan} from './engine-draw-batches.js';
 export type {EngineSceneV0,EngineSceneMaterialV0,EngineSceneNodeV0,PreparedEngineSceneNode,PreparedEngineSceneDraw,PreparedEngineScene} from './engine-scene.js';
 
@@ -209,8 +207,6 @@ export type { EngineMaterialSampler, EngineUVTextureMaterialExpression, EngineUV
 
 export { lowerMeshMaterialWGSL } from './mesh-material-wgsl.js';
 export type { LoweredMeshMaterialWGSL } from './mesh-material-wgsl.js';
-export { prepareWebGPUPrimitiveFrame, mountPrimitiveBackendViewport, PrimitiveBackendError, PrimitiveBackendDiagnosticCode } from './webgpu-primitive-viewport.js';
-export type { PreparedWebGPUPrimitiveFrame, PrimitiveBackendMode, PrimitiveBackendOptions, PrimitiveBackendViewport, PrimitiveBackendStatus, PrimitiveBackendPick, PrimitiveBackendLimits } from './webgpu-primitive-viewport.js';
 
 export { prepareEngineUVTextureMaterialBindings, EngineUVTextureMaterialBindingsError, EngineUVTextureMaterialBindingsDiagnosticCode } from './engine-uv-texture-material-bindings.js';
 export type { EngineUVTextureMaterialBindingV0, EngineUVTextureMaterialBindingsV0, EngineUVTextureMaterialSamplerBinding, PreparedEngineUVTextureMaterialBindings } from './engine-uv-texture-material-bindings.js';
@@ -221,19 +217,11 @@ export type { LoweredEngineUVTextureMaterialWGSL } from './engine-uv-texture-mat
 export { lowerEngineUVTextureProgramWGSL } from './engine-uv-texture-program-wgsl.js';
 export type { LoweredEngineUVTextureProgramWGSL } from './engine-uv-texture-program-wgsl.js';
 
-export { mountEngineUVTextureWebGPUViewport } from './engine-uv-webgpu-viewport.js';
-export type { EngineUVTextureWebGPUViewport } from './engine-uv-webgpu-viewport.js';
-export { EngineUVWebGPUError, EngineUVWebGPUDiagnosticCode } from './engine-uv-webgpu-frame.js';
-export type { EngineUVWebGPUOptions, EngineUVWebGPUOriginals, EngineUVWebGPURef, EngineUVWebGPUStatus, EngineUVWebGPUResources } from './engine-uv-webgpu-frame.js';
 
 // Trusted WGSL expression for original native Surface normalized UV01.
 export { lowerNativeSurfaceUV01MaterialWGSL } from './native-surface-uv01-material-wgsl.js';
 export type { LoweredNativeSurfaceUV01MaterialWGSL } from './native-surface-uv01-material-wgsl.js';
 
-export { mountMultiSurfaceWebGPUViewport } from './multi-surface-webgpu-viewport.js';
-export type { MultiSurfaceWebGPUViewport } from './multi-surface-webgpu-viewport.js';
-export { MultiSurfaceWebGPUError, MultiSurfaceWebGPUDiagnosticCode } from './multi-surface-webgpu-frame.js';
-export type { MultiSurfaceWebGPUOptions, MultiSurfaceWebGPUStatus, MultiSurfaceWebGPUResources, MultiSurfaceWebGPULimits, MultiSurfaceWebGPUPick } from './multi-surface-webgpu-frame.js';
 
 // Complete trusted WebGPU program for original native Surface normalized UV01.
 export { lowerNativeSurfaceUV01ProgramWGSL } from './native-surface-uv01-program-wgsl.js';

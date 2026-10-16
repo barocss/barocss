@@ -1,5 +1,43 @@
 # @barocss/gpu (experimental v0)
 
+## Viewer (`@barocss/gpu/viewer`)
+
+One WebGPU renderer for a canvas: the package's rendering core. It owns one device and canvas context,
+keeps geometry in long-lived buffers, draws on demand (one frame per animation frame), follows the
+canvas size and pixel ratio, and replaces a lost device and re-uploads the scene.
+
+```js
+import { createViewer, translation } from '@barocss/gpu/viewer';
+
+const viewer = await createViewer(canvas, { background: { top: '#2e3035', bottom: '#18191b' }, grid: true });
+const box = viewer.add({ positions, normals, indices, faces }, { material: { color: '#c0c4cc', roughness: 0.5 } });
+viewer.add({ positions: edgeSegments, topology: 'lines' }, { material: { color: '#111111', unlit: true, lineWidth: 1.5 } });
+viewer.lights = [{ kind: 'directional', direction: [-0.4, 0.6, -1], castShadow: true }];
+viewer.environment = { ambientOcclusion: { strength: 1 } };
+viewer.fit();
+
+const hit = viewer.raycast(x, y);       // mesh, triangle, face id, instance, point — at once on the CPU
+const gpuHit = await viewer.pick(x, y); // the same from the GPU's id and depth targets
+box.outline = '#e8c25a';                // a selection outline around the visible part
+```
+
+- Camera: perspective (infinite far) or orthographic, reversed [0, 1] depth, clip planes fitted to the
+  scene, `fit()`, rays; orbit, pan and zoom to the point under the cursor (`controls: false` to drive the
+  camera yourself).
+- Materials: metal–roughness with directional, point and spot lights and a hemisphere ambient; unlit;
+  vertex colours; colour maps (`createTexture`, mipmaps, `Material.map` with `uvs`); transparency drawn
+  back to front; shadow catchers (`shadowOnly`).
+- Lines: screen-space width (`lineWidth`), segment ids (`edges`) and `pickLine()`.
+- Scene: instancing (`instances`: a transform and colour each, one draw), frustum culling, directional
+  shadows (shadow map, PCF), ambient occlusion, gradient or transparent background, ground grid, 4×MSAA,
+  exposure and ACES tone mapping in a linear half-float pipeline.
+- Tests: `tests/viewer-core.test.mjs` (Node) and `tests/viewer-browser.test.mjs` (Chrome's WebGPU,
+  `CHROME` and `PW_DIR`, `VIEWER_ADAPTER=swiftshader` for the software adapter).
+
+The single-canvas WebGPU viewports that preceded it (`mountPrimitiveBackendViewport`,
+`mountEngineUVTextureWebGPUViewport`, `mountMultiSurfaceWebGPUViewport` and the unused `engine-webgpu-*`
+runtime) were removed; the remaining `mount*` entry points move onto the viewer next.
+
 ## Complete integer-box Boolean CPU buffers
 
 `prepareAxisBoxBooleanBuffers(result, {basis:'authored-xyz-matches-rhyup',
@@ -3257,141 +3295,6 @@ After the affected GPU build, run the one source/emitted/IR/text/file/cold flow:
 node examples/gpu-scene/engine-uv-texture-material-flow.mjs --output /absolute/fresh-directory
 ```
 
-## Opt-in WebGPU primitive backend (#1512)
-
-This API uses the existing complete original native frame and legacy Material
-IR. Native code, builds and source/file flows are separate from actual GPU
-qualification. The required same-target browser access is currently denied by
-administrator policy; real WebGPU/device/screen qualification is pending. The
-preserved WebGL2 APIs remain available and their default selection is unchanged.
-
-The first admitted profile is frame version `0`, qualified scene version `2`,
-exactly one Surface, `particles: null`, explicit existing camera and zero or one
-matching legacy Mesh material. Optional existing MeshLighting is supported.
-Prepare the genuine packet from original CAD source, retain its qualified
-`{modelId, geometryId}` reference, and pass the complete frame:
-
-```ts
-// frame is the complete original {version, scene, options, particles, materials}.
-const prepared = prepareWebGPUPrimitiveFrame(frame, canvas.width, canvas.height);
-const viewport = await mountPrimitiveBackendViewport(canvas, frame, {
-  backend: 'webgpu',
-  fallbackCanvas: null,
-});
-viewport.status;
-await viewport.updateFrame(editedOriginalFrame);
-await viewport.resize(512, 512);
-const rgba = await viewport.readPixels();
-const hit = await viewport.pick(256, 256);
-viewport.select(hit.ref);
-viewport.select(null);
-viewport.dispose();
-```
-
-The renderer re-admits complete original frames; `prepared` is CPU data, never
-a trusted runtime shortcut. Geometry-parameter changes supply a freshly derived
-packet from the original CAD source. Camera, light, pose and material-uniform
-changes use the same complete frame contract. Curves, multiple Surfaces,
-particles, cloth, EngineUV/nativeUV/discrete/texture materials, multi-light
-catalogs and other profiles refuse before device work. Nothing is silently
-omitted. Existing native limits are 4096 vertices, 7938 triangles and 16 material
-uniforms.
-
-`lowerMeshMaterialWGSL(input)` reconstructs the complete unchanged legacy
-MeshMaterialIR and returns exactly `format`, `version`, `profile`, `material`,
-`expression`, `declarations`, `uniformLayout`, `uniformByteLength`. Format is
-`barocss-gpu-mesh-material-wgsl`, version `0`, profile
-`mesh-opaque-fragment-wgsl-v0`. The material parameter block is always 64 bytes,
-four vec4 slots. Layout records retain `name`, `type`, `min`, `max`, `default`,
-plus `index`, `byteOffset`, `access`; source order determines offset `4*i`.
-Trusted accesses use generated material slot/component expressions, never
-caller names as WGSL symbols. Executed Float32 coefficients/defaults/bounds that become
-nonfinite or underflow refuse `MeshMaterialError` with `RANGE`. Existing
-compiler budgets and old public IR types remain unchanged.
-
-`prepareWebGPUPrimitiveFrame(input, width, height)` calls common native frame
-admission and returns exactly `format`, `version`, `profile`, `frame`, `wgsl`,
-`frameUniforms`, `materialUniforms`. Format is
-`barocss-gpu-webgpu-primitive-frame`, version `0`, profile
-`qualified-surface-v0`. Metadata is fresh frozen ordinary data; independently
-owned Float32 views remain mutable. Frame uniforms contain view/projection/light/
-style in 160 bytes; material uniforms use 64 bytes. Original source, native F64
-control/knots/weights/mm and qualified IDs stay separate from display F32
-positions/world normals/U16 indices and resolved uniform values. Prepared
-geometry already includes the display transform; no second mm conversion occurs.
-
-Existing right-handed camera data is retained. The OpenGL clip-depth interval
-−1..1 becomes WebGPU 0..1 only through `(z+w)/2`. Rendering is one indexed
-triangle list, no culling/blending, `depth24plus` with `less`, group0 binding0
-for frame uniforms and binding1 for material uniforms. Existing power2.2 color
-decode/output encoding and single-directional/ambient response are preserved.
-No CPU/GPU numerical equality or native texture pairing is promised.
-
-Options have exactly `backend: 'webgpu' | 'webgl2' | 'auto'` and
-`fallbackCanvas: HTMLCanvasElement | null`. A supplied fallback canvas must be a
-distinct current-realm canvas. `auto` attempts WebGPU and uses startup fallback
-only for an admitted profile's capability/initialization failure. Before WebGPU
-context acquisition the original fresh canvas may use WebGL2; after acquisition
-only the explicit fresh fallback canvas can be used. No host canvas is created
-silently, and an acquired WebGPU canvas is never switched to WebGL2.
-
-The facade exposes copied `frame` and `selected`, actual `canvas`, and status
-with exactly `backend`, `state`, `generation`, `fallbackReason`, `limits`.
-States are `ready`, `lost`, `disposed`, `failed`. Limits are actual numeric
-`maxTextureDimension2D`, `maxBufferSize`, `maxUniformBufferBindingSize`,
-`maxColorAttachments`, `maxColorAttachmentBytesPerSample`, `maxVertexBuffers`,
-`maxVertexAttributes`, `maxBindGroups`, `maxVertexBufferArrayStride`, or `null`
-for the fallback. No device or GPU handle is public.
-
-`readPixels()` returns fresh canonical RGBA in top-left row order, converting
-BGRA or preserved WebGL2 bottom-left rows. WebGPU `pick(x,y)` requires bounded
-integer canvas pixels and reads the real depth-matched identity attachment;
-identity zero is a miss. Its result is exactly `{generation, ref}`. WebGL2
-fallback picking explicitly refuses `UNSUPPORTED`. `select(ref|null)` accepts
-only the admitted qualified reference; selecting a reference does not certify
-a physical hit. No bounds-based hit substitution is provided.
-
-Only one asynchronous operation may be pending. Overlapping mutations,
-readbacks and selection refuse `BUSY`; candidate snapshots precede the first
-await. Accepted generation advances only after submission/presentation/error
-checks. Candidate failure retains accepted resources; failed presentation
-attempts accepted-color recovery, whose failure is terminal. Resize commits
-backing dimensions with presentation and restores prior dimensions/color after
-refusal when needed. The 10-second wait timeout is terminal and prevents scope/
-resource reuse; late completion releases owned candidates. Queue completion
-alone is not screen evidence.
-
-Device loss is terminal `lost`, retaining the CPU frame and cleaning owned
-resources. There is no automatic device-loss-time fallback. `dispose()` is
-idempotent and destroys owned buffers/textures/device, unconfigures the owned
-context and clears references. Preserved WebGL2 errors retain their actual
-causes. Errors use `PrimitiveBackendError` and codes `INPUT`, `PROFILE`, `BUDGET`,
-`UNSUPPORTED`, `INIT`, `DEVICE_LOST`, `RENDER`, `STATE`, `BUSY`; messages are
-bounded to 1024 characters. Local errors have no fabricated cause; reflection
-and inherited provider failures retain actual causes.
-
-Canvas sides are at most 1024 and total pixels at most 1048576. Actual device
-limits must admit dimensions 1024, buffer 4194304, uniform binding 160, two color
-attachments/eight bytes per sample, two vertex buffers/attributes, one bind group
-and stride12. Accepted plus candidate use at most 11 owned buffers, six textures
-and two pipeline/module/group references, including one serial readback buffer.
-Per-frame geometry/uniform logical buffers are at most 146156 bytes; readback is
-at most 4194304 bytes with 256-byte padded rows. Shader text is capped at 64KiB.
-These are bounded logical allocations, not measured driver memory.
-
-The one source/emitted/original-frame/WGSL/file/cold flow is:
-
-```sh
-node examples/gpu-scene/webgpu-primitive-vertical-flow.mjs --output /absolute/fresh-directory
-```
-
-That CPU flow does not qualify shader execution. Actual adapter/device limits,
-WGSL compilation, same-scene WebGPU/WebGL2 pixels, screen/console, updates,
-physical hit/miss, startup fallback and cleanup require the separately authorized
-real GPU phase. Device-loss proof, integration, consumer display and publication
-remain separate stages. The denied original browser target must not be bypassed
-through another browser/tool/origin/port.
-
 ## Authored EngineUV sampler and texture resource join (CPU, #1184)
 
 `prepareEngineUVTextureMaterialBindings(sceneInput, textureInput, materialInput)`
@@ -3728,147 +3631,6 @@ unchanged package source inputs and local CAD dependency resolution, then one
 fresh Node.js22 child reconstructs source before regenerating the program. Source qualification
 does not complete #1184's real graphics gate.
 
-## Authored unlit EngineUV WebGPU viewport (#1184)
-
-`mountEngineUVTextureWebGPUViewport(canvas, sceneInput, textureInput,
-materialInput, optionsInput)` uses complete original scene0 and both original
-texture/Material companions. It requires WebGPU; no generic fallback is
-available. Options have exactly `{width, height}`, integers1..1024 and at most
-1048576 pixels:
-
-```ts
-const viewport = await mountEngineUVTextureWebGPUViewport(
-  canvas, originalScene, originalTextures, originalMaterials,
-  { width: 256, height: 256 },
-);
-viewport.status;
-viewport.originals;
-await viewport.updateFrame(editedScene, editedTextures, editedMaterials);
-const rgba = await viewport.readPixels();
-const hit = await viewport.pick(128, 128);
-viewport.select(hit.ref);
-viewport.select(null);
-viewport.dispose();
-```
-
-This is staging/runtime implementation. The native source/API/file flow does
-not prove actual modules, devices, programs or graphics. Actual generic GPU
-screen/pixel/lifecycle qualification remains UNRUN; no mock GPU or declaration
-of a graphics pass follows from source verification. The preserved #1512 native
-Surface profile and its manual evidence do not qualify this generic profile.
-
-Options are admitted first, then one complete original authored join runs
-synchronously before the first await. All hidden/unused source data is admitted;
-every visible draw requires an authored Material binding or `REFERENCE` refusal.
-An empty visible set is valid. Each authored entry then uses the actual complete
-program lowerer once: the join's two source reconstructions plus one program
-reconstruction, at most24 across eight entries. Caller WGSL, prepared shortcuts,
-injected devices/platforms, shaderId caches and partial frames are unsupported.
-
-The `originals` getter returns exactly `scene`, `textureBindings`,
-`materialBindings`, as fresh deep-frozen ordinary copies including original
-signed zeros. `selected` returns a copied frozen `{sceneId, nodeId, geometryId}`
-or null. IDs retain their respective source namespaces; sampler/shader/material
-IDs are not pick identity. No packed arrays or GPU handles escape.
-
-Status has exactly `backend`, `profile`, `state`, `generation`, `width`, `height`,
-`limits`, `resources`. Backend is `webgpu`, profile
-`engine-opaque-unlit-uv-texture-program-wgsl-v0`; states are `ready`, `lost`,
-`failed`, `disposed`. Limits and logical resource records are copied/frozen.
-Mount generation is1; successful update/resize advances once. Reads, picks and
-selection do not advance it.
-
-`updateFrame(scene, textures, materials)` and `resize(width, height)` return
-promises of the existing `UpdateResult`; `select(ref|null)` returns it directly.
-Refusals retain actual errors. Mount/read/pick reject `EngineUVWebGPUError`.
-Pixels are fresh tight RGBA in top-left order. `pick(x,y)` takes bounded integer
-backing pixels and reads the real depth-matched uint identity attachment, returning
-exactly `{generation, ref}`. Token0 is background; nonzero tokens map current
-draw order to actual scene/node/geometry references. Unknown tokens use `RENDER`.
-The host converts CSS coordinates; no pointer listener or bounds-hit proxy is
-added. Selection requires an accepted visible reference; null clears, and exact
-references remain selected only while visible after commit.
-
-Only one asynchronous operation may be pending; overlapping mutation/read/pick/
-selection refuses `BUSY`. External canvas backing changes use `STATE`;
-lost/failed/disposed operations also use `STATE`. Original candidate snapshots
-precede awaits. Upload and render happen offscreen, then same-format presentation
-and queue/error-scope completion precede atomic originals/resources/map/size/
-generation commit. Early failure releases its candidate and retains accepted
-state. Presentation failure restores old size/color when healthy; failed recovery
-is terminal and retains actual causes. Ten-second wait timeouts invalidate the
-operation epoch and clean late results. Device loss is terminal `lost`; disposal
-is idempotent, invalidates pending work and cleans owned resources/context/device.
-There is no automatic fallback or loss-time backend switch.
-
-Programs reuse position slot0/stride12 and UV slot1/stride8, frame128, material64,
-draw80 and three bind groups. Original scene-unit world/camera Float32 matrices
-are packed explicitly little-endian, with uint draw identity and three zero
-padding lanes. There is no normal, tint, light, native mm or UV/V remap; the
-program performs the one GL clip-depth conversion. Image rows are copied unchanged
-to rgba8unorm, nearest/clamp/level0, with the one explicit standard sampled sRGB
-decode. Authored linear color and original linear background use standard
-piecewise sRGB output encoding once, alpha1. No legacy display gamma2.2 is added.
-Canvas/offscreen color use rgba8unorm; RGBA-to-BGRA raw copies are not used.
-
-All admitted unique geometries, textures and authored materials are allocated,
-including unused ones; only visible draws get draw buffers. A candidate shares
-its source geometry/texture IDs internally, without cross-generation caching.
-Fixed sampler/layout ownership is device-scoped; pipelines/modules/groups are
-released as references and buffers/textures destroyed. Existing scene/catalog/
-source limits remain, including16 geometries/32 materials/64 nodes/32 meshes,
-524288 vertex work, 11534336 CPU geometry bytes, eight textures/4194304 byte
-channels, eight authored entries/128 uniforms and source64KiB. Each shader is
-capped at64KiB and aggregate shaders at512KiB UTF16/UTF8.
-
-Resource ledger has exactly `geometryBytes`, `textureBytes`, `uniformBytes`,
-`colorIdentityBytes`, `depthTexels`, `depthBudgetBytes`, `chargedBytes`,
-`readbackBytes`, `buffers`, `textures`, `bindGroups`, `pipelines`.
-`colorIdentityBytes` is8WH; `depthTexels` isWH; `depthBudgetBytes` is4WH, a
-conservative accounting charge, **not physical depth24plus storage**.
-`chargedBytes` sums geometry/texture/uniform/color-identity bytes plus that
-depth charge and is at most33554432. Accepted plus candidate plus the larger
-padded readback is at most67108864 before device mutation. Readback uses
-256-byte row pitch and at most4194304 bytes; pick uses256 scratch bytes.
-Buffers are at most89, textures11, bind groups48 and pipelines8 per candidate.
-Driver overhead, browser swap resources and physical memory remain unmeasured.
-
-Thirteen actual positive integer limits are checked and rechecked for each
-candidate: `maxTextureDimension2D`, `maxBufferSize`,
-`maxUniformBufferBindingSize`, `maxColorAttachments`,
-`maxColorAttachmentBytesPerSample`, `maxVertexBuffers`, `maxVertexAttributes`,
-`maxBindGroups`, `maxVertexBufferArrayStride`, `maxSampledTexturesPerShaderStage`,
-`maxSamplersPerShaderStage`, `maxUniformBuffersPerShaderStage`,
-`maxBindingsPerBindGroup`. They must admit the actual candidate dimensions/
-largest buffers/readback, 128-byte uniforms, two attachments/eight sample bytes,
-two vertex buffers/attributes, three groups/stride12, one texture/sampler,
-two uniforms per stage and two bindings per group. No dynamic-offset alignment
-is assumed.
-
-`EngineUVWebGPUError` uses `INPUT`, `VERSION`, `BUDGET`, `REFERENCE`, `UNIFORM`,
-`MATERIAL`, `TEXTURE`, `SCENE`, `CAMERA`, `REPRESENTATION`, `UNSUPPORTED`, `INIT`,
-`DEVICE_LOST`, `RENDER`, `STATE`, `BUSY`. Messages are bounded to1024 characters;
-raw reflection preserves an own exact cause even when undefined, while local
-guards have none. Actual join errors/codes remain causes. Program `RANGE` maps
-to `REPRESENTATION`, `BUDGET` to `BUDGET`, other program errors to `MATERIAL`;
-camera failures use `CAMERA`. Private preparation/packing helpers are not public
-exports. All earlier public exports/providers remain unchanged.
-
-Use Node.js22 and the preceding scoped `tsc`/browser ESM `esbuild` recipe with
-explicit local CAD alias before the one new source/private-preflight/direct-
-emitted/refusal/original-file/fresh-child qualifier:
-
-```sh
-node examples/gpu-scene/engine-uv-webgpu-runtime-flow.mjs --output /absolute/fresh-directory
-```
-
-That source gate supplies implementation/evidence only. Actual device modules,
-pipelines, quarter-texel pixels, physical picking, updates/refusal retention,
-device loss, browser/screen/live console, consumer and publication require
-separate real acceptance. Existing denied-target restrictions and protected
-servers/tabs remain; no alternate-origin/tool/port proof is proposed.
-
-
 ## Native Surface UV01 material WGSL source
 
 `lowerNativeSurfaceUV01MaterialWGSL(originalIR)` revalidates the complete native
@@ -3895,59 +3657,6 @@ node examples/gpu-scene/native-surface-uv01-wgsl-flow.mjs --output /absolute/fre
 
 Actual native UV01 WebGPU program/frame/render/pixels, consumer display and
 publication require separate receipts.
-
-## Multiple original Surface WebGPU viewport (#1553)
-
-`mountMultiSurfaceWebGPUViewport(canvas, completeFrame, { width, height })`
-selects required WebGPU for **1..4 original qualified Surfaces** and0..4 legacy
-MeshMaterial bindings. Use complete common frame0, scene2, explicit camera and
-`particles:null`. Existing global MeshLighting is optional. Curve, empty,
-particle, cloth, EngineUV, nativeUV01, texture and light-entity profiles are not
-admitted by this route. Existing single-Surface and WebGL APIs keep their contracts.
-
-Each full `(modelId,geometryId)` pair is distinct, including shared native geometry
-IDs under different model aliases. GPU retains independently copied native
-packets/parameters/poses/material CSS and Number coefficients. Existing common
-preflight applies native-mm/display transforms once. Private position/normal/U16
-execution bytes and camera160/material64 blocks are explicitly little-endian.
-Caller source-document/TEN relationships remain the caller's authority.
-
-One shared rgba8unorm/r32uint/depth24plus target draws entries in admitted order.
-Tokens1..N map full refs;0 is background. Native gamma2.2, inherited singleton
-lighting and direct background clear are preserved. Actual canvas configuration
-admits fixedRGBA8; no preferred-format assumption or automatic fallback is used.
-
-The returned viewport exposes `canvas`, fresh frozen `frame`, copied `selected`
-and eight-field `status`. Async `updateFrame`, `resize`, `readPixels` and `pick`
-allow one pending operation. `pick(x,y)` reads a top-left backing pixel and returns
-`{generation,ref}` from the actual identity attachment. `select(ref|null)` only
-changes metadata; it does not highlight or increment generation. Candidate updates
-retain a still-present full selection; validation refusals preserve accepted state.
-Failed presentation attempts restore accepted pixels; failed recovery is terminal.
-
-Dimensions1..1024/product1048576, per-program64KiB and signed ordinary
-`{frame,programs}`2MiB limits are bounded separately from upload charges. Status
-resources are eleven logical fields: per-entry5buffers/224uniformbytes, N pipelines
-and bindgroups, three shared textures, padded index/readback storage and logical
-4-byte depth charge. Candidate32MiB and overlap/readback64MiB are caps, not measured
-physical memory or driver-private allocation certificates. Required device limits
-are the nine named fields; private prepared data is not a public input shortcut.
-
-`MultiSurfaceWebGPUError` has INPUT/PROFILE/BUDGET/REPRESENTATION/UNSUPPORTED/INIT/
-DEVICE_LOST/RENDER/STATE/BUSY codes and bounded messages. Actual causes are retained.
-Device loss is terminal lost; timeout/recovery/cleanup failures are terminal failed.
-Each device await is capped at10s; epoch cancellation prevents late commits.
-`dispose()` invalidates waits, attempts every owned cleanup and releases this route's
-canvas claim. First disposal reports cleanup failures; repeated disposal is a no-op.
-No foreign device/context is released.
-
-Native source/API/file/cold qualification uses
-`node examples/gpu-scene/multi-surface-webgpu-flow.mjs --output ABS_FRESH` after
-`build:library` with Node22. This flow checks original native source reconstruction,
-trusted source/program/packing/identity/resource contracts and public emitted exports.
-It uses no fake GPU. Actual shader compilation/device/pixels/shared-depth picking,
-update retention/file remount/loss/driver cleanup and consumer adoption require
-separate genuine browser receipts. Native code is not publication or release.
 
 ## Complete native Surface UV01 WebGPU program source
 

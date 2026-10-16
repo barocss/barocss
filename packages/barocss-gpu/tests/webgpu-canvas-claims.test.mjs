@@ -5,7 +5,7 @@ import { readFile, readdir } from 'node:fs/promises';
 
 test('viewport routes claim canvases through the shared set, never a private one', async () => {
   const dir = new URL('../src/', import.meta.url), names = (await readdir(dir)).filter(n => /webgpu-viewport\.ts$/.test(n));
-  assert.ok(names.length >= 4, names.join());
+  assert.ok(names.length >= 3, names.join());
   for (const name of names) {
     const source = await readFile(new URL(name, dir), 'utf8');
     if (!/claims\.(has|add)\(canvas\)/.test(source)) continue;
