@@ -1,21 +1,30 @@
 # @barocss/viewer
 
-Experimental WebGL2 viewer for bounded BaroCAD Surface and sampled Curve previews. It uses the public
-`@barocss/gpu` scene backend and `@barocss/cad-interop/native` loader. The viewer
-does not evaluate NURBS for selection and does not change the native CAD model.
+Experimental viewer for bounded BaroCAD Surface and sampled Curve previews. It draws
+through the `@barocss/gpu` viewer core (WebGPU) and uses the public `@barocss/gpu`
+data APIs and the `@barocss/cad-interop/native` loader. The viewer does not evaluate
+NURBS for selection and does not change the native CAD model.
 
 ```js
 import { createViewer } from '@barocss/viewer';
 
-const viewer = createViewer(canvas, {
+const viewer = await createViewer(canvas, {
   mmToSceneUnit: 0.001, background: [0.04, 0.06, 0.1]
 });
 viewer.loadNative(sourceText, { sourceVersion: 0, countU: 8, countV: 8 });
 viewer.orbit(0.3, 0.1);
 const hit = viewer.pick(120, 80); // canvas-local CSS pixels
 if (hit) viewer.select(hit.ref);
+const rgba = await viewer.readPixels(); // RGBA rows from the top, once the frame is on screen
 viewer.dispose();
 ```
+
+`createViewer` is asynchronous: it resolves once the WebGPU device and canvas
+context exist. Each accepted change redraws the complete frame on the core; the
+Viewer keeps CPU state, picking and measurement itself. `readPixels()` returns a
+Promise of tightly packed RGBA bytes, rows from the top. There is no WebGL2
+context and no context-loss state: `getState().status` is `ready`, `empty` or
+`disposed` (the core replaces a lost device and re-uploads the scene itself).
 
 For canvas camera input, call `const controls = viewer.attachPointerControls({
 onError })` and later `controls.dispose()`. Primary drag orbits; Shift+primary
@@ -40,13 +49,12 @@ focused key flow beside its existing buttons and pointer controls.
 `viewer.clear()` explicitly returns the caller canvas to a real blank GPU
 frame. It clears displayed objects, native/model-set source, selection, poses
 and measurements, while keeping the accepted camera, scale, background and
-lighting. `getState().status` becomes `empty`, and `readPixels()` returns
+lighting. `getState().status` becomes `empty`, and `await readPixels()` returns
 the background after this explicit clear. Empty camera changes, resize and
 null selection remain usable. An older pending `loadNativeUrl` result is
 refused after a successful clear; the caller still owns network cancellation.
 Later native, packet or qualified model-set loads use their usual validation.
-The fresh Viewer retains its earlier no-renderer state until a load or clear.
-The runnable `examples/viewer-clear` exercises this lifecycle in WebGL2.
+The runnable `examples/viewer-clear` exercises this lifecycle.
 
 For the bounded fluid display, load one qualified native Surface through
 `loadModelSet` or `loadDocument`, then pass an actual Physics state through
@@ -63,17 +71,17 @@ viewer.setFluidFrame(null); // clear particles only
 ```
 
 `ViewerFluidFrameV0` requires exactly 256 finite `Float64Array` XYZ metre
-positions. Viewer copies them and converts each coordinate once with
-`1000 * mmToSceneUnit` before calling GPU's public shared-depth particle API.
+positions. Viewer copies them, converts each coordinate once with
+`1000 * mmToSceneUnit` and draws them as points with the native geometry.
 `getState().fluidFrame` returns a copy. Camera, selection, pose and visible
-Surface changes present native geometry and particles in one GPU frame. Hiding
+Surface changes redraw native geometry and particles in one frame. Hiding
 the sole Surface while particles remain is refused. A new context needs an
 explicit layer clear or successful scene replacement. Resize retains the
 layer; Viewer clear and successful replacement remove it. This first profile
 does not admit legacy `loadNative`, raw packets, Curves, more than one Surface,
 or a second canvas. The Surface is display geometry, not a certified fluid
 collision obstacle. `examples/viewer-fluid-scene` exercises the actual Physics
-and native Surface path in Chromium WebGL2.
+and native Surface path.
 
 ## Selected native assembly instances
 
@@ -137,12 +145,8 @@ This first assembly profile refuses material commands and non-null fluid/cloth
 frames. Successful generation resets earlier layers; failed replacement retains
 them. A successful assembly load supersedes older pending Viewer source URL
 loads. Later successful native/model-set/document/packet loads or clear drop
-assembly metadata. Context loss retains copied assembly data for CPU queries
-while GPU operations refuse; disposal clears assembly/bindings/authored poses
-and rejects later queries. Assembly context loss retires the owned renderer
-while the context is lost, before caller restoration. Restoration keeps the
-copied CPU assembly but does not resume GPU operations; use a fresh Viewer.
-Native 32-instance capacity is separate from the
+assembly metadata. Disposal clears assembly/bindings/authored poses and rejects
+later queries. Native 32-instance capacity is separate from the
 four-instance display limit. Editing, mates, exploded poses, multi-highlight,
 Shell composition and physical certification are separate scopes.
 `examples/viewer-assembly-scene` demonstrates selected hierarchy and read-only
@@ -190,14 +194,13 @@ complete accepted native/derived state, pixels and resources.
 
 Only one total qualified visible Surface and no Curves are admitted. Materials
 and the existing 256-particle layer can coexist. Camera, selection, display
-pose, fit and retain-visible updates carry a complete GPU FrameV1; native poses
+pose, fit and retain-visible updates redraw the complete frame; native poses
 move only native geometry while cloth stays in scene coordinates. Dedicated
 material/particle updates and resize retain cloth. Hiding the sole Surface
 requires clearing cloth first. Successful native/packet/source replacement or
 Viewer clear drops cloth; failed, aborted or superseded loads retain it.
-Context loss retains copied cloth metadata for inspection, but refuses layer
-updates and clear. Dispose clears Viewer metadata and GPU resources; the caller
-still owns its canvas and Physics world.
+Dispose clears Viewer metadata and GPU resources; the caller still owns its
+canvas and Physics world.
 
 Cloth has no native CAD reference, pick hit, measurement or native bounds.
 Native picking ignores cloth occlusion: a visually covered Surface can still
@@ -228,14 +231,14 @@ bound, or `null` when zero or multiple Surfaces are bound. The profile accepts
 through `loadModelSet` or `loadDocument`. Distinct aliases may keep the same
 original Surface ID. Curves retain their line appearance and selection.
 Legacy `loadNative` and raw packets refuse material binding. Camera, fit and
-display pose changes retain it through GPU's complete-frame update, including
-an accepted fluid layer. Selecting the bound Surface or hiding it requires an
-explicit clear of that Surface's material first. An unbound Surface may be
-selected or hidden while other Surfaces remain bound. Particle-only updates
-retain all accepted materials in the one-Surface fluid profile.
-Successful scene replacement and Viewer clear remove it; failed requests keep
-the accepted binding and pixels. `examples/viewer-surface-material` runs the
-actual native/compiled-material/Physics path in Chromium WebGL2;
+display pose changes retain it, including an accepted fluid layer. Selecting
+the bound Surface or hiding it requires an explicit clear of that Surface's
+material first. An unbound Surface may be selected or hidden while other
+Surfaces remain bound. Particle-only updates retain all accepted materials in
+the one-Surface fluid profile. The binding is drawn as a shader material on the
+core (`bindingShader`). Successful scene replacement and Viewer clear remove it;
+failed requests keep the accepted binding. `examples/viewer-surface-material`
+runs the actual native/compiled-material/Physics path;
 `examples/viewer-multi-material` checks separate bindings on two qualified
 source0 models.
 
@@ -335,7 +338,7 @@ unknown refs throw without changing Viewer state. The caller owns any DOM
 labels, source/revision checks and label removal after a scene change. Native
 measurements remain authored XYZ/mm and do not change when projected.
 `examples/viewer-document` places two caller-owned labels over the actual
-WebGL scene.
+Viewer scene.
 
 For one visible current CAD document body, `viewer.fitNativeDocumentBody({
 ref, documentRevision })` uses the public CAD original control-pole bounds
@@ -375,10 +378,10 @@ For explicit Surface mesh lighting, pass an optional GPU `MeshLighting` value
 at creation: `lighting:{ambientStrength:0.12,directionalStrength:0.78,
 direction:[0.8,0.4,-0.7]}`. Each strength is in 0..1 and their sum is at most
 1; the finite nonzero direction is in renderer-world Y-up coordinates.
-`getState().lighting` returns a copy or `null`. Omitting lighting preserves the
-previous shader and pixels. Curve lines remain unlit in Surface-only, mixed
-and wide v1 primitive scenes. Lighting never changes original CAD geometry or
-native measurements.
+`getState().lighting` returns a copy or `null`. Omitting lighting uses the default
+light (ambient 0.35, directional 0.65 from `[-0.6,0.8,1]`). Curve lines remain
+unlit in Surface-only, mixed and wide v1 primitive scenes. Lighting never changes
+original CAD geometry or native measurements.
 
 To display genuine native Curve samples in the same scene, opt in during load:
 
@@ -398,15 +401,14 @@ viewer.loadNative(wideSourceText, { sourceVersion: 0, countU: 8, countV: 8,
 // getState().curveSampleVersion is 1; unversioned Curve display reports 0.
 ```
 
-The v1 sample uses GPU's versioned primitive scene. `curveSampleVersion` is
-`null` when no Curve is displayed. The unversioned v0 call keeps its original
-GPU path and 1024-segment request limit. Both profiles retain the same
-approximate picking, selection and caller-owned Motion display behavior;
+`curveSampleVersion` is `null` when no Curve is displayed. The unversioned v0
+call keeps its 1024-segment request limit. Both profiles draw as lines and retain
+the same approximate picking, selection and caller-owned Motion display behavior;
 native source, knots and measurements remain in authored millimetres.
 
 The original three-field load still renders only Surfaces. With `curveDisplay`,
-Loader's complete native sampling result goes to GPU's mixed primitive scene;
-Curves are not fabricated as Surface packets. `getState().curves` lists the
+Loader's complete native sampling result is drawn as Curve lines; Curves are not
+fabricated as Surface packets. `getState().curves` lists the
 qualified displayed Curve IDs. Curve-only source0 Models can be displayed and
 fitted. `getState().packets` and `surfaces` remain Surface-only. `select` and
 `pick` remain Surface-only, including in a mixed scene.
@@ -521,8 +523,8 @@ a certified dimension.
 
 `getState().packets` contains copied, unscaled preview packets for native or
 generic input.
-The current GPU scene backend requires distinct original `surfaceId` values
-across all entries, including entries from different models.
+Unqualified packet input (`loadNative` and `setPackets`) requires distinct original
+`surfaceId` values across all entries, including entries from different models.
 Native Surface packets keep authored right-handed Y-up millimetres, surface IDs,
 and original U/V parameter values. `mmToSceneUnit` converts each display XYZ
 once. The generic `setPackets` entry has `{modelId, packet}` and no claimed
@@ -559,12 +561,11 @@ and ambiguity. Visible opaque Surfaces still occlude Curves when `'surface'`
 is excluded. Filters do not change visibility, poses, camera or selection;
 `pick(xCss,yCss)` remains Surface-only.
 
-Limits: one canvas and WebGL2 context; 1..4 total displayed Surface/Curve
+Limits: one canvas; 1..4 total displayed Surface/Curve
 objects; Surface packets at most 4096 total vertices and 24576 indices,
 v0 sampled Curves at most 4096 total points and 4092 segments, or v1 at most
 16388 total points and 16384 segments with a 4092-segment Loader request per
-Curve; source text at
-most 65536 characters; native grid
+Curve; source text at most 65536 characters; native grid
 counts 2..17; canvas at most 4096 pixels per side and 4194304 pixels total.
 `resize(width, height)` takes intrinsic pixel dimensions; it never multiplies
 them by device pixel ratio.
@@ -572,9 +573,24 @@ Only `.barocad` source version 0 and preview packet version 0 are supported.
 Unversioned Curve display uses the v0/16-pole profile; explicit display
 version 1 accepts the native wide/64-pole profile. The caller owns the
 canvas and source text; `dispose()` releases only viewer-owned GPU resources.
-After WebGL context loss, `getState().status` reports `context-lost`; dispose and
-create a new Viewer to render again.
 No npm publication or release is implied by the public package metadata.
+
+## Tests
+
+```sh
+CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+PW_DIR=/path/to/node_modules/playwright \
+node --test packages/barocss-viewer/tests/viewer-browser.test.mjs \
+  packages/barocss-viewer/tests/viewer-native-browser.test.mjs
+```
+
+Both tests bundle the workspace source with esbuild and run in Chrome's WebGPU
+(`VIEWER_ADAPTER=swiftshader` selects the software adapter).
+`viewer-browser.test.mjs` draws, picks, selects, resizes and clears a native
+source with Curves and a qualified material; `viewer-native-browser.test.mjs`
+draws and picks the directional-light, point-light and UV01 viewers from the
+examples' original CAD documents, and the native appearance with a material.
+They skip without `CHROME` and `PW_DIR` or a WebGPU adapter.
 
 ## Workspace development and explicit compiled checkpoints
 
@@ -590,17 +606,15 @@ workspace dependencies. The cloth example server has a separately labelled
 compiled proof mode and records its actual input graph. Ordinary source mode
 uses normal package resolution with no source aliases or custom condition.
 
-
 ## Selected native Shell graph
 
 `loadShellGraph(graph, { basis: 'authored-xyz-matches-rhyup', entries })` displays zero through four current normal-extrusion graph leaves. Each entry supplies an exact `ref` (`graphId`, `graphRevision`, `featureId`, `outputSlotId`), bounded public native `mesh` options, RGB `color` and `edges: null` or `{ color }`. Viewer validates the complete current graph and uses the existing public Loader derivation to produce each original native mesh. It does not accept a foreign cached mesh as graph authority.
 
 `getState().shell` copies `{ graph, scene, boundsScene }`. The native graph keeps authored intent and original embedded native source, not the original JSON whitespace. Derived display bounds are not certified native bounds. Zero selected entries and selected genuine empty leaves both have null bounds and empty status; their copied provenance differs. They retain the prior camera. Filled candidates fit their complete display bounds before one atomic same-canvas presentation. A failure keeps the accepted scene/camera/pixels. Existing successful loads and Clear replace Shell mode only after their GPU candidate succeeds.
 
-Shell mode supports view/orbit/pan/zoom, attached camera controls, fit, resize and readPixels. Fit refuses when no filled bounds exist. Shell selection is unavailable. The separate `pickShell` query below inspects filled display triangles. Primitive picking, non-null selection, visibility, individual/document fit, native primitive measurements/projection, assembly point queries, motion and Surface materials refuse. Null selection and null fluid/cloth frames are live no-ops; non-null simulation layers refuse. Primitive lists and bindings stay empty. Context loss retains copied CPU Shell data, retires its owned Shell backend while GL is lost, and refuses GPU operations; Dispose clears Shell state and releases the backend. No automatic context restoration, Solid/topology certification, hidden-line certification, assembly placement or editor transaction is implied.
+Shell mode supports view/orbit/pan/zoom, attached camera controls, fit, resize and readPixels. Fit refuses when no filled bounds exist. Shell selection is unavailable. The separate `pickShell` query below inspects filled display triangles. Primitive picking, non-null selection, visibility, individual/document fit, native primitive measurements/projection, assembly point queries, motion and Surface materials refuse. Null selection and null fluid/cloth frames are live no-ops; non-null simulation layers refuse. Primitive lists and bindings stay empty. Dispose clears Shell state. No Solid/topology certification, hidden-line certification, assembly placement or editor transaction is implied.
 
 See `examples/viewer-shell-scene` for the original authored graph consumer and bounded actual verification flow. Native implementation and separate local Integration acceptance are distinct.
-
 
 ## Single original Curve uniform preview
 
@@ -608,9 +622,7 @@ See `examples/viewer-shell-scene` for the original authored graph consumer and b
 
 `getState().uniformCurve` returns an independent copy; `curveSampleVersion` is2. Original source/model/Curve IDs and Float64 observations remain separate from lowered Float32 display data. Viewer keeps its existing original-ID profile and refuses wider GPU IDs rather than aliasing them. This command accepts exactly one Curve, counts2..129, degree1..5/poles2..64/source64KiB. The independently available selected full-Model DTO1/sampleVersion3 is outside this command.
 
-Fit, approximate screen picking, selection, visibility, geometry display pose and camera controls use the observed points. Native Curve measurements and native-point projection use the original current Curve and public CAD evaluation. Counts do not certify global approximation error, extrema, topology or exact raster/native picking. A new generation is admitted as one complete GPU candidate before copied state changes. A refusal keeps the old source/camera/pixels; successful replacement and Clear reset the old mode/layers. Uniform context loss keeps CPU provenance, retires the owned backend while GL is lost, and refuses GPU use after caller restoration until a fresh Viewer is made. Dispose clears this mode and remains idempotent.
-
-See `examples/viewer-uniform-curve-scene` for original saved Source0 files and the bounded Viewer consumer. Native implementation, actual author verification and separate local Integration are recorded separately.
+Fit, approximate screen picking, selection, visibility, geometry display pose and camera controls use the observed points. Native Curve measurements and native-point projection use the original current Curve and public CAD evaluation. Counts do not certify global approximation error, extrema, topology or exact raster/native picking. A refusal keeps the old source/camera/pixels; successful replacement and Clear reset the old mode/layers. Dispose clears this mode and remains idempotent.
 
 ## Original native scene with initial display settings
 
@@ -618,8 +630,7 @@ See `examples/viewer-uniform-curve-scene` for original saved Source0 files and t
 
 The exact `display` record has `motion`, `visibleGeometry` and `camera`. Motion is null or `{ frame, bindings, basis: 'part-xyz-matches-rhyup' }` using the existing complete Geometry Motion contract for every admitted object, including hidden ones. Visibility is a unique subset of the1..4 admitted refs. An explicit camera is copied; null fits visible posed observations and refuses if all are hidden. An all-hidden candidate with a valid explicit camera keeps admitted native inventory. Native source and measurement coordinates remain original-local; display transforms apply mmToSceneUnit once.
 
-One qualified GPU candidate succeeds before CPU state commits. Failed source/settings/allocation keep the prior source, display state, pixels and layers. Accepted replacement clears prior selection, measurements, materials and simulation modes. This first input does not restore appearance, model-set packets, assembly, Shell, uniform or SDF modes. A separate accepted generation and Clear reset its lifecycle ownership. Context loss keeps copied CPU authority and retires its backend while GL is lost; caller restoration does not remount it. Dispose clears this replacement generation's authority and inventory. See `examples/viewer-native-scene-replacement` for original file and display-setting verification. Render Editor Save/Open acceptance remains a separate consumer result.
-
+The scene is drawn before CPU state commits. Failed source/settings keep the prior source, display state, pixels and layers. Accepted replacement clears prior selection, measurements, materials and simulation modes. This first input does not restore appearance, model-set packets, assembly, Shell, uniform or SDF modes. A separate accepted generation and Clear reset its lifecycle ownership. Dispose clears this replacement generation's authority and inventory. See `examples/viewer-native-scene-replacement` for original file and display-setting verification. Render Editor Save/Open acceptance remains a separate consumer result.
 
 ### Selected uniform Curve with the complete original model
 
@@ -641,17 +652,12 @@ pose/picking use only the displayed selected Curve; hidden selected native
 projection returns null after ref/domain validation. Approximate Curve picks
 evaluate the original Curve at their estimated parameter.
 
-Admission validates/reconstructs the complete source, prepares the selected
-GPU candidate and commits CPU state only after presentation. A refusal keeps
-the previous complete frame/source/layers. Success clears other source modes
-and layers and advances the request generation. Other successful loads and
-Clear reset DTO1; failed loads retain it. Context loss retires owned handles
-and retains CPU source/native queries, with sticky GPU refusal after caller
-restoration. Dispose clears this mode's source, inventory and measurements.
-No automatic context recreation, retained-object rendering or material/
-particle/cloth co-display is promised. See the independent selected-source
-example under `examples/viewer-selected-uniform-curve-scene`.
-
+Admission validates/reconstructs the complete source and draws the selected
+Curve before CPU state commits. A refusal keeps the previous complete
+frame/source/layers. Success clears other source modes and layers and advances
+the request generation. Other successful loads and Clear reset DTO1; failed loads
+retain it. Dispose clears this mode's source, inventory and measurements. No
+retained-object rendering or material/particle/cloth co-display is promised.
 
 ### Original Sphere and native Surface with shared depth
 
@@ -659,15 +665,15 @@ example under `examples/viewer-selected-uniform-curve-scene`.
 complete original `sphereSource` (Source1), complete original `nativeSource`
 (Source0/mm), existing three-field `native` options, selected original Surface
 ref, Surface RGB, `nativeTranslateScene`, explicit camera and authored XYZ basis.
-Only that Surface and the single Sphere are drawn. Public Loader rebuilds the
-Surface packet from the complete original CAD model; a supplied foreign packet
-is not accepted as native authority.
+Only that Surface and the single Sphere are drawn, sharing one depth buffer; the
+Sphere is tessellated from its compiled Source1 radius, translation and colour.
+Public Loader rebuilds the Surface packet from the complete original CAD model; a
+supplied foreign packet is not accepted as native authority.
 
 Native positions become `positionMM * mmToSceneUnit + nativeTranslateScene`.
 The translation is in scene units. The original Sphere already uses scene units
-and receives neither this scale nor translation. Source1-derived background
-and shading apply to the mixed mode; Viewer background/lighting configuration
-remains for other modes. `getState().mixedDepth` copies the complete original
+and receives neither this scale nor translation. The mixed mode draws with the
+Viewer background and lighting. `getState().mixedDepth` copies the complete original
 native result and accepted public mixed frame, including the exact Sphere text.
 Existing native Surface/Curve/mixed-point measurements can inspect all retained
 original CAD objects, including CPU-only objects that are not drawn.
@@ -675,23 +681,12 @@ original CAD objects, including CPU-only objects that are not drawn.
 An explicit camera is required. Initial fit, primitive picking/projection/
 selection, visibility, motion, materials, particles and cloth operations refuse
 in this mode. The profile supports one Sphere and one Surface, at most289
-Surface vertices/512triangles and1024 backing pixels per axis. Camera-inside,
-Sphere clipping and travel limits come from the public GPU profile.
+Surface vertices/512triangles and1024 backing pixels per axis.
 
-View/orbit/pan/zoom update the complete mixed frame and commit only on success.
-Resize checks the provider's structured result. Cross-mode failure restores an
-old mixed frame through public `updateFrame(getFrame())`; no private GPU target
-or nonexistent `render()` is used. If recovery also fails, CPU authority stays,
-but status is `unavailable` and GPU operations refuse. This status differs from
-an actual `context-lost` event and requires a fresh Viewer. Available Clear
-stages an empty primitive viewport before removing mixed metadata. Context
-loss retires owned handles during loss and retains copied CPU data under sticky
-GPU refusal. Dispose clears mixed source/inventory/measurements.
-
-The bounded example is `examples/viewer-mixed-depth-scene`. A mixed framebuffer
-is derived display; it does not certify native CAD intersection, full SDF
-accuracy, parent topology, Physics, editor persistence or publication.
-
+View/orbit/pan/zoom redraw the complete mixed frame. Clear draws an empty scene
+before removing mixed metadata. Dispose clears mixed source/inventory/measurements.
+A mixed frame is derived display; it does not certify native CAD intersection,
+SDF accuracy, parent topology, Physics, editor persistence or publication.
 
 ## Independent original Face assets
 
@@ -713,13 +708,9 @@ Legacy `fitGeometry`, primitive picking, selection, visibility, motion and simul
 material layers also refuse. Callers can inspect each copied asset with
 public CAD APIs under its explicit `sourceId`.
 
-Camera changes and resize check complete GPU transaction results. CPU state
-and URL generation commit after successful presentation. Failed recovery
-retains CPU authority and reports `unavailable`; retained pixels are not
-guaranteed in that status. Clear stages an empty primitive viewport. Actual
-context loss retires the owned backend while the context is lost, retains
-CPU copies and keeps GPU operations blocked after caller restoration.
-Dispose clears the Face scene. The bounded original-file consumer is
+Camera changes and resize redraw the complete Face scene; CPU state and URL
+generation commit after a successful draw. Clear draws an empty scene. Dispose
+clears the Face scene. The bounded original-file consumer is
 `examples/viewer-qualified-face-scene`.
 
 ### Pinned native point distances across Face assets
@@ -739,9 +730,8 @@ length. Same-source pairs are supported.
 
 This query writes no measurement, selection, camera or GPU state. A changed
 original source rejects an old content pin. Camera, color and sampling changes
-keep unchanged source pins valid. Retained CPU authority remains queryable
-after context loss or presentation failure; GPU operations stay blocked.
-Clear, a successful mode replacement and Dispose remove this query scope.
+keep unchanged source pins valid. Clear, a successful mode replacement and Dispose
+remove this query scope.
 
 ### Project qualified points for caller-owned labels
 
@@ -760,26 +750,24 @@ This analytic camera projection is approximate. It does not read GPU depth or
 test occlusion. A projected label can lie behind another Face. The result says
 `approximate: true` and `occlusion: 'not-tested'`; it does not certify a native
 screen hit. The SDK writes no label, measurement or GPU state. Projection
-refuses context loss or unavailable presentation, including after caller
-restoration. CPU native measurement remains available under retained authority.
+refuses after disposal.
 
 The example owns numbered point labels and a native-mm chord label. Labels
 follow accepted camera/CSS changes and disappear for offscreen or stale points,
-Clear, mode changes, unavailable display and Dispose. Its Help explains the
+Clear, mode changes and Dispose. Its Help explains the
 projection limit separately from concise visible label text.
-
 
 ## Current qualified Shell screen inspection
 
 `pickShell({xCss,yCss})` returns null or an independent `ViewerShellPick` with full original graph/feature/output-slot `ref`, local derived `triangleIndex`, `displayPositionScene`, positive prepared-camera `depthScene`, `approximate: true` and `ambiguous`. Use it only against the current Shell scene and view. It does not select, highlight, edit or write Viewer/GPU state. Requery after scene, camera, backing or CSS changes.
 
-Input is exactly two own enumerable plain data fields. Coordinates and positive canvas CSS dimensions are finite in0..4096 (dimensions must exceed zero). Right/bottom boundaries are admitted; outside coordinates, Proxy/accessor inputs, wrong mode, unavailable presentation, sticky context loss and disposal refuse. Valid off-geometry, zero-selected and genuine-empty queries return null. The caller must supply coordinates in the axis-aligned canvas bounding box.
+Input is exactly two own enumerable plain data fields. Coordinates and positive canvas CSS dimensions are finite in0..4096 (dimensions must exceed zero). Right/bottom boundaries are admitted; outside coordinates, Proxy/accessor inputs, wrong mode and disposal refuse. Valid off-geometry, zero-selected and genuine-empty queries return null. The caller must supply coordinates in the axis-aligned canvas bounding box.
 
 The query prepares the original native mesh through the public GPU buffer API, scales mm once, and intersects the actual lowered Float32 filled triangles. Public Float32 view/projection matrices are multiplied/inverted in CPU binary64. Row-scaled partial pivot ratio<=1e-12, inverse residual>1e-7 or homogeneous relative w<=1e-12 refuse. Two-sided segment intersections skip relative determinant<=1e-12; barycentric and near/far boundaries are strict without epsilon or clamp. This is an approximate display query, not shader arithmetic, raster-edge/Depth24/polygon-offset equivalence, native UV or topology precision. True edge previews are not queried.
 
 Within one leaf the exact nearest depth wins; exact depth equality uses the lower local triangle index. Distinct leaves within1e-6 scene units of the GLOBAL nearest depth form the ambiguous set, without chaining. ASCII graphId, numeric revision, ASCII featureId and outputSlotId choose one copied result. That result may be slightly farther within the stated ambiguity tolerance. Same-leaf shared edges alone do not make leaf identity ambiguous.
 
-At most four complete buffer preparations and1152 triangle tests run per query. These counts do not certify latency or allocation limits. The existing `examples/viewer-shell-scene` Inspect mode marks a current original source row and shows the full tuple. Accepted source/view/backing/CSS changes clear the row; failed loads retain it. Context loss retains CPU graph provenance but refuses this screen query even after caller restoration. Dispose removes host observers and clears authority.
+At most four complete buffer preparations and1152 triangle tests run per query. These counts do not certify latency or allocation limits. The existing `examples/viewer-shell-scene` Inspect mode marks a current original source row and shows the full tuple. Accepted source/view/backing/CSS changes clear the row; failed loads retain it. Dispose removes host observers and clears authority.
 
 ## Current qualified Face screen inspection
 
@@ -801,30 +789,28 @@ native UV, BRep topology, native precision or raster/Depth24 equivalence.
 
 Input requires exact plain own xCss/yCss data and finite coordinates0..4096.
 Actual CSS dimensions must be positive and at most4096. Inclusive right/bottom
-boundaries are admitted; outside/accessor/Proxy/wrong-mode/unavailable/lost or
-disposed queries refuse. A valid miss returns null. Within a source, exact
+boundaries are admitted; outside/accessor/Proxy/wrong-mode or disposed queries
+refuse. A valid miss returns null. Within a source, exact
 nearest depth wins and exact-depth ties use lower triangleIndex. Distinct
 sources within1e-6 scene units of the GLOBAL minimum are ambiguous; ASCII
 sourceId chooses a copied result, possibly slightly farther within that
 tolerance. No tolerance chaining or same-source ambiguity is used.
 
 At most six17×17 surfaces produce1734 vertices/3072 triangle tests per query.
-Complete source/mesh reconstruction is not a latency certificate. Retained CPU
-source data after loss/unavailability remains available to native queries, but
-this screen observation refuses, including after sticky context restoration.
-The caller owns current row/epoch invalidation and any approximate labels.
+Complete source/mesh reconstruction is not a latency certificate. The caller owns
+current row/epoch invalidation and any approximate labels.
 
 ### Qualified Face whole display fit (#1189)
 
 `fit()` frames every current qualified Face display triangle, including offscreen assets. It rebuilds validated original Face Surfaces through public tessellation/mesh conversion and unions the actual Float32 Scene positions. Native mm scale and Scene translation apply once. Unshown Curves and original control hulls do not determine these bounds. This is sampled display framing, not a native Surface extremum or CAD bounds certificate.
 
-The existing camera convention uses a bounds-centred target, direction `[1,1,1]`, FOV45°, radius floor0.01, padding1.3 and current backing aspect. The complete camera/Scene update commits only after presentation succeeds. An admitted Scene may produce an illegal fit camera; refusal preserves accepted authority. Failed presentation recovery follows sticky `unavailable` with CPU authority retained and no pixel rollback promise. Camera-only fit does not advance content requests or abort held URL loads. Legacy `fitGeometry`, selection, visibility and motion remain unsupported in this mode. Loss/sticky restore/unavailable/disposal refuse framing.
+The existing camera convention uses a bounds-centred target, direction `[1,1,1]`, FOV45°, radius floor0.01, padding1.3 and current backing aspect. An admitted Scene may produce an illegal fit camera; refusal preserves accepted authority. Camera-only fit does not advance content requests or abort held URL loads. Legacy `fitGeometry`, selection, visibility and motion remain unsupported in this mode. Disposal refuses framing.
 
 ### Frame one source-pinned qualified Face (#1195)
 
 `fitQualifiedFace({sourceId,expectedSource,faceId,modelId,surfaceId})` frames one current asset's sampled Float32 display vertices. All five pin fields must exactly match a current complete source-owned Face. The input is plain own data; accessors, extra fields, Proxy, missing and stale pins refuse. The whole2..6 scene is revalidated before computing the target bounds. Other assets stay drawn and retained; they may be outside the new view. There is no selection/highlight/visibility change.
 
-The camera and checked complete-scene update follow `fit()`. Native source/Models/IDs and measurements stay unchanged. Camera-only framing does not supersede held URL loads. Recoverable failures preserve accepted authority; unavailable recovery and actual context loss follow existing GPU refusal rules. Dispose invalidates authority. Bounds are sampled display bounds, not native Surface extrema/control hull/BRep/Solid bounds.
+The camera and complete-scene redraw follow `fit()`. Native source/Models/IDs and measurements stay unchanged. Camera-only framing does not supersede held URL loads. Recoverable failures preserve accepted authority. Dispose invalidates authority. Bounds are sampled display bounds, not native Surface extrema/control hull/BRep/Solid bounds.
 
 ### Original Surface evaluation at approximate screen parameters (#1203)
 
@@ -832,32 +818,9 @@ The camera and checked complete-scene update follow `fit()`. Native source/Model
 
 The display-triangle intersection and evaluated native point are separate. `displayToNativeDistanceScene` is their local Scene difference, not a global error bound. This is not a certified native ray hit or pixel identity. Exact represented vertex weights copy original parameters; other samples use checked interpolation with no UV normalization or domain clamp. Unsafe math/native-domain refusals remain errors.
 
-The query changes no Viewer/GPU/measurement/request state. It uses the existing screen input, nearest/tie, clipping and lifecycle rules. Loss, unavailable presentation, sticky restoration, wrong mode and disposal refuse a screen sample. Manual native parameter queries retain their separate CPU authority.
+The query changes no Viewer/GPU/measurement/request state. It uses the existing screen input, nearest/tie, clipping and lifecycle rules. Wrong mode and disposal refuse a screen sample. Manual native parameter queries retain their separate CPU authority.
 
 Approximate screen-selected U/V may vary with Float32 scaling and camera rounding. Native evaluation at a fixed original U/V remains original geometry; inferred parameters are not an invariant accuracy certificate.
-
-
-### Primitive accepted-presentation recovery
-
-Primitive transaction results preserve the original candidate error when
-accepted-frame recovery succeeds. If that recovery also fails, the public
-GPU `PrimitiveSceneRecoveryError` carries `code: 'CONTEXT'` and the unchanged
-`errors: [original, recovery]` pair. Viewer throws that same error and reports
-`unavailable` while retaining accepted CPU native source, camera and query
-authority. This status does not certify hardware context loss. Actual canvas
-context loss keeps the existing `context-lost` priority.
-
-Further GPU actions, including Open and Fit, refuse until a fresh Viewer.
-CPU native inspection can remain available. Failed recovery has no pixel
-rollback promise. Dispose still releases resources when the actual GL
-context is live. Ordinary validation or recovered candidate errors do not
-set this unavailable state.
-
-This guard covers result-returning primitive scene, complete-frame, clear,
-particle/cloth layer and material transactions. Primitive resize, readback
-throws and renderer-mount recovery keep their existing public contracts.
-Other Mesh, Shell, Mixed and qualified Face recovery rules remain separate.
-
 
 ### Pure native scene and appearance preparation
 
@@ -890,41 +853,36 @@ Plain owned inputs are bounded and reject getters, hidden fields, symbols,
 cycles and Proxy inputs. Provider document, native sample, material and camera
 limits also apply. Errors and causes from public providers remain intact.
 Returned execution buffers are independently mutable; they do not authorize a
-future backend. Re-admit `prepared.frame` through an actual supported mount or
-update operation. Bounds describe derived F32 display data.
+later draw. Re-admit the original input through `loadNativeSceneAppearance` or
+`replaceNativeSceneAppearance`. Bounds describe derived F32 display data.
 
-This function does not mount or present a frame, commit source or appearance,
-change Viewer lighting, cancel a pending request, or prove rendered file Open.
-The complete first-frame mount and full #1369 transaction remain separate.
+This function does not draw a frame, commit source or appearance, change Viewer
+lighting, cancel a pending request, or prove rendered file Open.
 
-
-## Replace appearance on an accepted native backend
+## Replace appearance on an accepted native scene
 
 `viewer.replaceNativeSceneAppearance(input)` accepts the existing doc-only
 `ViewerNativeSceneAppearanceInputV1`. It replaces complete original document
 authority, TEN body bindings, poses, visibility, explicit camera, Surface
-materials and lighting with one complete frame update. The Viewer supplies its
+materials and lighting with one complete frame. The Viewer supplies its
 existing construction scale/background to the pure preparation function.
 
-This method requires an already accepted `PrimitiveSceneRendererV2` or
-`PrimitiveViewport`. V2 requires a nonempty visible candidate; Viewport accepts
-empty or nonempty candidates. A fresh Viewer or another backend refuses before
-GPU work. The method does not mount, switch backends or bootstrap an empty
-scene. Existing `replaceNativeScene` version0 remains a separate operation.
+This method requires an already drawn qualified scene: a model set, document,
+assembly, uniform Curve, native scene replacement, earlier appearance or a
+cleared scene. A fresh Viewer or a Shell, mixed-depth or qualified-Face scene
+refuses before drawing. Existing `replaceNativeScene` version0 remains a separate
+operation.
 
 Preparation copies the complete original document and reconstructs all admitted
 Surface packets, Curve sample0/1 and native body bindings, including hidden
-geometry. Material targets must be visible candidate Surfaces. It re-admits the
-canonical frame through the actual public `updateFrame`; derived execution
+geometry. Material targets must be visible candidate Surfaces. Derived execution
 buffers are not a trusted backend token or original CAD authority.
 
-Accepted CPU state changes only after successful presentation. The operation
-clears selections, four SDK measurements and simulation layers, and supersedes
-a previously eligible URL only after acceptance. A refused or recoverable
-candidate retains prior CPU source, pins, camera, materials, light and URL
-eligibility. Existing recovery errors and causes pass through; fatal recovery
-reports unavailable presentation while retained CPU provenance remains. No
-pixel retention is promised after fatal recovery.
+Accepted CPU state changes only after the frame is drawn. The operation clears
+selections, four SDK measurements and simulation layers, and supersedes a
+previously eligible URL only after acceptance. A refused candidate retains prior
+CPU source, pins, camera, materials, light and URL eligibility; provider errors
+and causes pass through.
 
 `getState().lighting` reports a copied accepted explicit light after this
 operation. Later primitive view, fit, pose, selection, visibility, material,
@@ -941,17 +899,19 @@ palette bookkeeping. Existing bound Surface selection and hide restrictions
 still apply. Constructor option ownership and admission remain unchanged.
 
 The bounded example adds an explicit scene-and-appearance action on its
-previously accepted native backend. Host File intent has its own policy; this
-SDK URL rule does not redefine it. Complete first material mount, arbitrary
-backend transitions and authored Render file Open remain separate requirements.
+previously accepted native scene. Host File intent has its own policy; this SDK
+URL rule does not redefine it. Authored Render file Open remains a separate
+requirement.
 
 ## Explicit async native-document authored directional lights (WebGPU)
 
 `createNativeDirectionalLightWebGPUViewer(canvas, input, { width, height })`
-returns a Promise of `ViewerNativeDirectionalLightWebGPU`. This additive path
-requires WebGPU; `createViewer`, the existing synchronous Viewer and Render
-Editor APIs, and all provider implementations are unchanged. There is no automatic
-fallback or injected device/prepared-token API.
+returns a Promise of `ViewerNativeDirectionalLightWebGPU`. It draws on the
+`@barocss/gpu` viewer core like `createViewer`: each enabled authored light
+becomes a core directional light pointing toward it, with its authored
+linear-RGB colour (converted for the core) and intensity, and the catalog's
+ambient strength a flat ambient. There is no
+injected device or prepared-token API.
 
 The exact version-0 input format is
 `barocss-viewer-native-directional-light-input`, with `owner`, original document
@@ -974,7 +934,8 @@ the two. The 0..4 light catalog includes disabled entries and supports ambient
 plus authored directional lights only.
 
 The facade exposes `canvas`, independent frozen `originals`, immutable `accepted`,
-`selected`, actual GPU `status`, and:
+`selected`, `status` (`ViewerWebGPUStatus`: `{backend:'webgpu', state:'ready' |
+'disposed', generation, width, height}`), and:
 
 - `replace(input)` and `resize(width, height)`: asynchronous `UpdateResult`
 - `readPixels()`: asynchronous Uint8Array, top-left backing-pixel order
@@ -985,31 +946,25 @@ The facade exposes `canvas`, independent frozen `originals`, immutable `accepted
 
 `accepted` contains exactly owner, document identity/revision, complete inventory,
 visibleGeometry, per-ref bindings, and presented generation. It remains readable
-after disposal or device loss as retained metadata; status does not promise
-retained pixels when unavailable. Picking is rendered attachment selection, not
+after disposal as retained metadata. Picking is rendered attachment selection, not
 CAD-exact intersection, UV or topology certification. Selection survives reorder
 by full pair and clears when hidden/removed or disposed.
 
-The wrapper locks before synchronous preparation and until presentation/adoption;
-competing operations refuse BUSY. A candidate prebuilds all observations and maps
-before calling the real `mountNativeDirectionalLightWebGPUViewport` or
-`updateFrame`. Adoption after successful presentation uses prebuilt references.
-CPU/recoverable GPU failure retains prior accepted metadata and selection. There
-is no second Viewer rollback or automatic remount. `ViewerNativeDirectionalLightError`
-uses INPUT, BUDGET, OWNER, SOURCE, GPU, BUSY, STATE or DISPOSED; nested provider
-causes retain original diagnostics, and combined construction/cleanup failures
-retain both causes.
+The wrapper locks before synchronous preparation and until the frame is drawn
+and adopted; competing operations refuse BUSY. A candidate prebuilds all
+observations and maps before drawing. CPU failure retains prior accepted
+metadata and selection. `ViewerNativeDirectionalLightError` uses INPUT, BUDGET,
+OWNER, SOURCE, GPU, BUSY, STATE or DISPOSED; nested provider causes retain
+original diagnostics.
 
 Raw own-data admission is bounded to 327680 visits, depth32, arrays4096,
 records64, strings/keys262144 UTF16/UTF8 units and signed representation4MiB.
 The complete retained ordinary projection is separately streamed under12MiB,
 1048576 visits and depth64. Provider caps may be stricter. One appearance
 admission runs per candidate; it reconstructs source once and runs common frame
-admission once, or twice when visibility is a subset. The actual GPU boundary
-then runs its own common admission and authored WGSL-program preparation. Its
-private neutral CPU singleton is omitted entirely from the GPU frame: it is
-never an extra rendered light. Original packets and poses are forwarded so the
-GPU applies pose/unit conversion exactly once.
+admission once, or twice when visibility is a subset. Its private neutral CPU
+singleton light is never drawn. Original packets and poses are forwarded so the
+drawing applies pose/unit conversion exactly once.
 
 ### Standalone light-editing and original-file example
 
@@ -1020,10 +975,6 @@ pnpm exec vite examples/viewer-native-directional-lights --host 127.0.0.1 --port
 # Open http://127.0.0.1:4180/
 pnpm exec vite build examples/viewer-native-directional-lights --outDir /tmp/1580-light-example-dist
 ```
-
-The equivalent direct `node node_modules/vite/bin/vite.js` commands were checked:
-the example bundle built and HTML/app/controller HTTP entries returned200. These
-are static checks, not real-browser/WebGPU acceptance.
 
 The example includes two genuine Source0 Surface assets with the same Surface ID,
 distinct native geometry/poses, raw compiled material originals, a red+X light,
@@ -1043,32 +994,18 @@ example codec is not a global Interop/Render codec or a replacement for the
 original IGES route. Pagehide/dispose removes listeners and download resources;
 a late initial factory result is immediately disposed without adoption.
 
-### Bounded software verification and remaining acceptance
-
-```sh
-NODE_OPTIONS=--max-old-space-size=2048 node --test --test-concurrency=1 packages/barocss-viewer/tests/native-directional-light-webgpu.test.mjs
-NODE_OPTIONS=--max-old-space-size=2048 node examples/viewer-native-directional-lights/qualify.mjs
-```
-
-Run the affected CAD, Interop, GPU and Viewer builds before the qualifier. It
-checks real source and emitted providers, exact public declarations, the complete
-original-file cold reconstruction in a fresh process, raw signed/full-pair joins,
-refusal retention, async locks/lifetime, controller editing/file flows, and
-repeatable software DOM wiring. Private import mocks and the explicit software
-platform exercise calls and lifecycle; neither is evidence of physical rendering.
-
-Actual WGSL compilation, colored-light device pixels, physical canvas picking,
-resize/refusal pixel retention, browser file selection/download/open and driver
-loss/cleanup remain **UNRUN, externally owned**. Broader rendered and async Editor
-acceptance remains pending. Software completion does not change default readiness,
-merge, deployment, npm publication or release status.
+`tests/viewer-native-browser.test.mjs` (see Tests above) draws this example's
+seed document and checks lit pixels, picking, a replacement with the lights off
+and a resize.
 
 ## Original-document native UV01 WebGPU Viewer (#1581)
 
 `await createNativeSurfaceUV01WebGPUViewer(canvas, input, { width, height })`
-adds an explicit required-WebGPU route. It does not change `createViewer`,
-Editor behavior, or the authored-directional-light route. It reuses the #1574
-native UV01 viewport and the existing canonical document/TEN admission.
+adds an explicit WebGPU route on the viewer core. It does not change `createViewer`,
+Editor behavior, or the authored-directional-light route. Each visible Surface is
+drawn with its UV01 material as a core shader material (`uv01Shader`) over the
+geometry's native UV01 coordinates, lit by the singleton `MeshLighting`, and it
+reuses the existing canonical document/TEN admission.
 
 The version0 input has exactly `format: 'barocss-viewer-native-surface-uv01-input'`,
 `version`, `owner: { id, revision }`, `source`, `display`, `materials`, `lighting`,
@@ -1092,15 +1029,14 @@ all ten TEN fields remain unchanged. Missing, duplicate, hidden and foreign
 material targets refuse. Repeated SurfaceIDs are joined by the complete
 asset-derived display model alias and SurfaceID, preserving original TEN modelId.
 
-The frozen async facade exposes `originals`, `accepted`, `selected`, actual
-backend `status`, and `replace`, `resize`, `readPixels`, `pick`, `select`,
+The frozen async facade exposes `originals`, `accepted`, `selected`, `status`
+(`ViewerWebGPUStatus`), and `replace`, `resize`, `readPixels`, `pick`, `select`,
 `dispose`. Await replacement/resize; accepted originals, TEN, generation and
-selection adopt together only after successful presentation. Recoverable refusal
-retains prior metadata. Pending operations refuse competitors with `BUSY`;
-dispose invalidates pending work. Device loss remains terminal/unavailable even
-when retained metadata is readable. Pick uses backing-pixel coordinates and
-returns `{ generation, ref, binding }`, with null ref/binding for background;
-it is attachment identity, not exact CAD intersection/UV evidence.
+selection adopt together only after a successful draw. Refusal retains prior
+metadata. Pending operations refuse competitors with `BUSY`; dispose invalidates
+pending work. Pick uses backing-pixel coordinates and returns
+`{ generation, ref, binding }`, with null ref/binding for background; it is
+attachment identity, not exact CAD intersection/UV evidence.
 
 `ViewerNativeSurfaceUV01Error` codes are INPUT, BUDGET, OWNER, SOURCE, MATERIAL,
 GPU, BUSY, STATE and DISPOSED; nested provider diagnostics remain exact causes.
@@ -1122,25 +1058,13 @@ domains, poses and UV01 materials. Edit a material and Apply, select/pick a
 Surface to inspect all TEN fields, then Dispose. There is no Save/Open workflow.
 The example also disposes a mount that resolves after pagehide/disposal.
 
-Focused software checks (Node22/pnpm9):
-
-```sh
-node --test packages/barocss-viewer/tests/native-surface-uv01-webgpu.test.mjs
-node examples/viewer-native-surface-uv01/qualify.mjs
-```
-
-The qualifier requires emitted Viewer/GPU/CAD/Interop outputs and at least
-500000000 free disk bytes. It checks source/emitted original-source joining,
-public declarations and the example bundle. Controlled-backend tests establish
-awaited transactions and ownership, not hardware rendering. Existing #1574 and
-#1580 unchanged provider proofs are reused. Actual WebGPU compilation, pixels,
-physical picking and browser/driver lifetime remain externally owned UNRUN;
-no default-readiness, Editor adoption or full producer-suite claim follows.
+`tests/viewer-native-browser.test.mjs` draws and picks this example's seed
+document in Chrome's WebGPU.
 
 ## Native point-light WebGPU bridge (#1621)
 
-`createNativePointLightWebGPUViewer(canvas, input, {width, height})` is an additive,
-required-WebGPU consumer of the existing point-light viewport. It joins the actual
+`createNativePointLightWebGPUViewer(canvas, input, {width, height})` is an additive
+WebGPU consumer on the viewer core. It joins the actual
 original CAD document and all ten source-binding fields with current visible
 Surfaces, raw material bindings, poses and camera. Existing Viewer, directional
 and UV APIs are unchanged. This bridge does not add an Editor panel or a file codec.
@@ -1159,28 +1083,30 @@ RGB, intensity and `rangeScene`, plus ambient strength. Positions already use
 final-world scene units (finite components ±1e6); range is 0.001–1e6. RGB,
 intensity and ambient are 0–1. Disabled entries are validated too. No native pose,
 mm conversion, normalization or camera transform is applied to light positions
-or ranges. The GPU owns its existing artistic finite-range law and float32
-admission; no inverse-square, photometric or PBR claim follows.
+or ranges. Each enabled light becomes a core point light with its range. The core
+has inverse-square falloff and the authored catalog does not, so the Viewer
+scales each intensity by the squared distance from the light to the camera
+target: a light is as bright as authored at the target. No photometric or PBR
+claim follows.
 
 The facade exposes fresh frozen `originals`, accepted original document/TEN
-metadata, full-pair `selected`, actual backend `status`, async `replace`, `resize`,
-`readPixels`, `pick`, synchronous `select`, and idempotent `dispose`. Pick returns
-`{generation,ref,binding}` with the complete accepted binding; background has null
-ref/binding. This is rendered attachment selection, not CAD-exact intersection.
+metadata, full-pair `selected`, `status` (`ViewerWebGPUStatus`), async `replace`,
+`resize`, `readPixels`, `pick`, synchronous `select`, and idempotent `dispose`.
+Pick returns `{generation,ref,binding}` with the complete accepted binding;
+background has null ref/binding. This is rendered attachment selection, not
+CAD-exact intersection.
 
 Preparation snapshots ordinary own data synchronously, rejects getters and
 foreign/hidden/cyclic data, and applies the bounded 4 MiB signed-input/12 MiB
 retained-projection limits. Existing source admission runs once per candidate;
-its neutral singleton lighting is private CPU admission only and is absent from
-the actual GPU request. Original packet poses/mm conversion occur in the GPU
-once. Materials retain original source and supplied overrides, including omissions.
+its neutral singleton lighting is private CPU admission only and is never drawn.
+Original packet poses/mm conversion occur once in the drawing. Materials retain
+original source and supplied overrides, including omissions.
 
-One operation lock spans preparation and GPU waits. Candidate metadata is built
-before presentation and adopted only after success. Refusal keeps accepted data;
-loss/disposal prevents late adoption and successful stale reads. Retained original
-metadata does not promise retained pixels when status is unavailable. Recovery
-requires explicit remount. A pending initial factory has no cancellation handle;
-its caller must dispose a late returned facade if the caller has gone away.
+One operation lock spans preparation and drawing. Candidate metadata is built
+before drawing and adopted only after success. Refusal keeps accepted data;
+disposal prevents late adoption. A pending initial factory has no cancellation
+handle; its caller must dispose a late returned facade if the caller has gone away.
 
 Runtime additions: `createNativePointLightWebGPUViewer`,
 `ViewerNativePointLightError`. Type-only additions: `ViewerNativePointLightCode`,
@@ -1189,53 +1115,27 @@ Runtime additions: `createNativePointLightWebGPUViewer`,
 `ViewerNativePointLightWebGPU`. Error codes are INPUT, BUDGET, OWNER, SOURCE, GPU,
 BUSY, STATE and DISPOSED; original provider causes are retained.
 
-Focused check (Node 22, existing dependencies):
-`node --test --test-concurrency=1 packages/barocss-viewer/tests/native-point-light-webgpu.test.mjs`.
-After the Viewer declaration/JavaScript build, set `VIEWER_TEST_MODE=dist` for the
-same emitted-Viewer check with original dependency sources. Tests reuse genuine
-source fixtures, actual appearance and point frame/program providers, a private
-controlled mount, and a deterministic software GPU platform. They do not prove
-physical GPU compilation, light pixels, browser picking, files or driver recovery.
-Those gates remain UNRUN under #1584/#1445/#1512/#1254/#674.
-
+`tests/viewer-native-browser.test.mjs` draws and picks the point-light viewer.
 
 ### Initial native scene appearance mount
 
-On a fresh, unmounted Viewer, `viewer.loadNativeSceneAppearance(input)` uses
-the same qualified `ViewerNativeSceneAppearanceInputV1` as
+On a fresh Viewer that has drawn nothing, `viewer.loadNativeSceneAppearance(input)`
+uses the same qualified `ViewerNativeSceneAppearanceInputV1` as
 `replaceNativeSceneAppearance`. It prepares the complete original document,
 TEN pins, poses, visible Surfaces/Curves, materials, explicit camera and
-lighting before acquiring a temporary GPU viewport. It submits one complete
-frame, and adopts the prepared CPU authority only after success.
-
-This first-mount path refuses an already mounted renderer (including an empty
-viewport). Use `replaceNativeSceneAppearance` for supported mounted V2 or
-Viewport modes. A failed candidate does not accept partial document or
-appearance state. If GPU submission fails after the temporary renderer is
-created, the renderer is disposed; if that disposal also fails, both errors
-are retained in an `AggregateError`. This is a software implementation
-contract, not a browser/device acceptance certificate.
+lighting, draws one complete frame, and adopts the prepared CPU authority.
+Once anything has been drawn (including a cleared scene) it refuses; use
+`replaceNativeSceneAppearance` instead. A failed candidate does not accept
+partial document or appearance state.
 
 ### Explicit qualified Face to native appearance handoff (#1913)
 
 `viewer.handoffQualifiedFaceToNativeSceneAppearance(input, 'dispose-remount')`
-accepts only the Viewer's current authentic `QualifiedFaceSceneRenderer`. It
-prepares the complete native document, TEN bindings, appearance, camera, and
-one frame before asking GPU to retire the old renderer. The same canvas and
-context must belong exclusively to this Viewer. The GPU provider retires all
-old resources before it creates the new `PrimitiveViewport` and presents the
-complete frame. Viewer accepts the new document only after that result is
-`{ ok: true, stage: 'ready' }`. Selection, unsupported layers, and old Face
-inspection state are cleared on success. A pending older source request is
-invalidated.
-
-`replaceNativeSceneAppearance(input)` keeps its existing mounted V2/Viewport
-rules. Passing `'atomic'` to the handoff method returns a `preflight` refusal;
-there is no atomic cross-family swap. Invalid input or GPU preflight refusal
-leaves the prior Face scene and presentation live. Candidate preparation can
-also throw before GPU retirement. After a `retirement` or `mount` failure, the
-old renderer is permanently disposed. Viewer retains its copied old CPU Face
-scene and the original failure, reports `unavailable`, rejects further GPU
-operations, and permits `dispose()`. Create a fresh Viewer to recover; old
-pixels and automatic rollback are not promised. Other renderer families are
-unsupported. Browser/WebGL2 pixel and device acceptance remains pending.
+accepts only the Viewer's current qualified Face scene. It prepares the complete
+native document, TEN bindings, appearance and camera, then draws that frame on
+the same canvas and returns `{ ok: true, stage: 'ready', previousScene }`.
+Selection, unsupported layers and old Face inspection state are cleared on
+success, and a pending older source request is invalidated. A preparation error
+returns `{ ok: false, stage: 'preflight', error }` and leaves the Face scene
+drawn. Passing `'atomic'` always returns a `preflight` refusal before anything
+changes; there is no atomic swap.

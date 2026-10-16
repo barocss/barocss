@@ -223,10 +223,7 @@ export { prepareNativeDirectionalLightProgramWGSL, NativeDirectionalLightProgram
 export type { NativeDirectionalLightProgramWGSLCode, NativeDirectionalLightProgramWGSLRequest, NativeDirectionalLightProgramWGSLSlot, NativeDirectionalLightProgramWGSLExecution, NativeDirectionalLightProgramWGSLABI, NativeDirectionalLightProgramWGSLProgram, NativeDirectionalLightProgramWGSLUniforms, PreparedNativeDirectionalLightProgramWGSL } from './native-directional-light-program-wgsl.js';
 
 export { NativeDirectionalLightWebGPUError, NativeDirectionalLightWebGPUDiagnosticCode } from './native-directional-light-webgpu-frame.js';
-export type { NativeDirectionalLightWebGPURequest, NativeDirectionalLightWebGPUOptions,
-  NativeDirectionalLightWebGPUViewport, NativeDirectionalLightWebGPUStatus, NativeDirectionalLightWebGPULimits,
-  NativeDirectionalLightWebGPUResources, NativeDirectionalLightWebGPUPick,
-  NativeDirectionalLightWebGPUFrameOptions } from './native-directional-light-webgpu-frame.js';
+export type { NativeDirectionalLightWebGPURequest, NativeDirectionalLightWebGPUFrameOptions } from './native-directional-light-webgpu-frame.js';
 
 
 // CPU-only native point-light catalog and trusted WGSL/ABI upload preparation (#1583).
@@ -235,12 +232,9 @@ export type { NativePointLightV0, NativePointLightsV0, NativePointLightExecution
 export { prepareNativePointLightProgramWGSL, NativePointLightProgramWGSLError } from './native-point-light-program-wgsl.js';
 export type { NativePointLightProgramWGSLCode, NativePointLightProgramWGSLRequest, NativePointLightProgramWGSLSlot, NativePointLightProgramWGSLExecution, NativePointLightProgramWGSLABI, NativePointLightProgramWGSLProgram, NativePointLightProgramWGSLUniforms, PreparedNativePointLightProgramWGSL } from './native-point-light-program-wgsl.js';
 
-// Explicit required-WebGPU runtime for world-scene native point lights (#1584).
+// The native point-light request: a frame and its light catalog (drawn by @barocss/viewer).
 export { NativePointLightWebGPUError, NativePointLightWebGPUDiagnosticCode } from './native-point-light-webgpu-frame.js';
-export type { NativePointLightWebGPURequest, NativePointLightWebGPUOptions,
-  NativePointLightWebGPUViewport, NativePointLightWebGPUStatus, NativePointLightWebGPULimits,
-  NativePointLightWebGPUResources, NativePointLightWebGPUPick,
-  NativePointLightWebGPUFrameOptions } from './native-point-light-webgpu-frame.js';
+export type { NativePointLightWebGPURequest, NativePointLightWebGPUFrameOptions } from './native-point-light-webgpu-frame.js';
 
 
 // The unified WebGPU viewer: one device and canvas context, persistent buffers, on-demand frames,

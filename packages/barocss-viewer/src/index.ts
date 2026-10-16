@@ -235,7 +235,7 @@ export interface ViewerNativeDocumentBodiesFitInput {
   documentRevision: number;
 }
 export interface ViewerState {
-  status: 'empty' | 'ready' | 'unavailable' | 'context-lost' | 'disposed';
+  status: 'empty' | 'ready' | 'disposed';
   frame: 'right-handed-y-up';
   sourceUnit: 'mm';
   mmToSceneUnit: number;
