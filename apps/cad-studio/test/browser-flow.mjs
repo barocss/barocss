@@ -1359,6 +1359,17 @@ try {
     await page.waitForFunction(() => /2 selected/.test(document.querySelector('.props[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 });
   });
 
+  await check('arrow keys nudge a body (one move for the run); copy and paste a body', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    await page.locator('.outliner .ol').first().click();
+    for (const k of ['ArrowRight', 'ArrowRight', 'ArrowRight', 'Shift+ArrowUp']) { await press(k); await page.waitForTimeout(120); }
+    await page.waitForFunction(() => JSON.stringify(window.__studioDoc.nodes.at(-1)?.offset) === '[3,10,0]', null, { timeout: 10000 });
+    assert.equal((await doc()).nodes.length, 3, 'one move for the run');
+    await idle(); await press('Meta+c'); await press('Meta+v');
+    await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

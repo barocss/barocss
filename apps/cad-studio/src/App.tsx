@@ -24,7 +24,7 @@ import { DrawingWorkspace } from './ui/DrawingWorkspace';
 import { ChatPanel } from './ui/ChatPanel';
 import { TooltipLayer } from './ui/Tooltip';
 import { resolveNames, type NameSelection } from './chat/tools';
-import { bodyNodes, deleteFeature, deleteFeatures } from './chat/features';
+import { bodyNodes, deleteFeature, deleteFeatures, duplicateBody } from './chat/features';
 import { defaultDrawing, readDrawing, type DrawingSettings } from './drawing/types';
 import { MatePanel } from './ui/MatePanel';
 import { useAssembly } from './assembly/useAssembly';
@@ -602,6 +602,22 @@ export function App() {
       if (r.droppedDimensions) setToast({ title: `Removed ${r.droppedDimensions} drawing dimension${r.droppedDimensions > 1 ? 's' : ''}`, hint: `They measured ${label}. Undo restores them.`, detail: '' });
     });
   };
+  /** Copied body (⌘C) and how many copies were pasted (⌘V). */
+  const clipboard = useRef<{ key: string; pastes: number } | null>(null);
+  /**
+   * Arrow keys move the picked body: a move of its own, added once and then grown while the body's newest
+   * feature is that move (one history step for a run of nudges).
+   */
+  const nudge = (index: number, key: string, step: number) => {
+    const b = bodies[index], ref = refOf(b), top = evaluated.nodes[ref.node];
+    const d: [number, number, number] = [key === 'ArrowRight' ? step : key === 'ArrowLeft' ? -step : 0, key === 'ArrowUp' ? step : key === 'ArrowDown' ? -step : 0, key === 'PageUp' ? step : key === 'PageDown' ? -step : 0];
+    const grow = top?.kind === 'translate' && ref.node === evaluated.nodes.length - 1 && marker === null;
+    const next: StudioDoc = grow
+      ? { ...doc, nodes: doc.nodes.map((n, i) => i === ref.node && n.kind === 'translate' ? { ...n, offset: n.offset.map((v, k) => Math.round((Number(v) + d[k]) * 1000) / 1000) as [number, number, number] } : n) }
+      : withNode(evaluated, { kind: 'translate', parent: ref, offset: d });
+    chatSelection.current = { faces: [], edges: [], bodies: [grow ? b.key : `b${next.nodes.length - 1}`] };
+    commit(next);
+  };
   /**
    * Interference: for each pair of the picked bodies (all, when fewer than two are picked) whose boxes
    * overlap, the kernel's intersection of the two; a positive volume is a clash.
@@ -712,6 +728,14 @@ export function App() {
       }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') { e.preventDefault(); save(); return; }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'd' && !active && !sketch) { e.preventDefault(); start(commands.find(c => c.id === 'duplicate')!); return; }
+      // Copy a body, paste copies of it beside (each paste a little further on).
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'c' && !active && !sketch && !typing) { const one = selectedBodies(selection); if (one.length === 1 && bodies[one[0]]) { clipboard.current = { key: bodies[one[0]].key, pastes: 0 }; setToast({ title: 'Copied', hint: `${bodyName(doc, bodies[one[0]])} — ⌘V pastes a copy beside it.`, detail: '' }); } return; }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'v' && !active && !sketch && !typing && clipboard.current) {
+        const src = bodies.find(b => b.key === clipboard.current!.key); if (!src) return;
+        e.preventDefault(); const k = ++clipboard.current.pastes, w = src.mesh.bounds.max[0] - src.mesh.bounds.min[0] + 10;
+        const r = duplicateBody(evaluated, refOf(src), [Math.round(w * k), 0, 0]);
+        chatSelection.current = { faces: [], edges: [], bodies: [`b${r.top}`] }; commit(r.doc); return;
+      }
       if (drawing) return; // (the Drawing workspace has its own keys)
       if (e.key === 'Escape') { if (palette) setPalette(false); else if (sketch && !active && (sketch.picked?.length || sketch.editDim)) setSketch(s => s && { ...s, picked: [], editDim: null }); else if (active || sketch) cancel(); else if (assembly.draft) assembly.cancel(); else if (measure) setMeasure(null); else setSelection(emptySel); return; }
       if (e.key === 'Enter' && !palette) { if (sketch) { e.preventDefault(); finishSketch(); } else if (active) { e.preventDefault(); apply(); } return; }
@@ -719,6 +743,8 @@ export function App() {
       const numberBox = e.target instanceof HTMLInputElement && e.target.type === 'number' && !e.target.classList.contains('dim-edit');
       if (palette || (typing && !(sketch && numberBox && !e.metaKey && !e.ctrlKey && !e.altKey && /^[a-z]$/i.test(e.key)))) return;
       if (e.key === ' ') { e.preventDefault(); setPalette(true); return; }
+      // Nudge the picked body: arrows 1 mm along X and Y (Shift: 10 mm), Page Up / Down along Z.
+      if (/^(Arrow(Left|Right|Up|Down)|PageUp|PageDown)$/.test(e.key) && !active && !sketch && !measure) { const one = selectedBodies(selection); if (one.length === 1 && bodies[one[0]]) { e.preventDefault(); nudge(one[0], e.key, e.shiftKey ? 10 : 1); return; } }
       if (e.key === '?') { e.preventDefault(); setHelp(true); return; }
       if ((e.key === 'Delete' || e.key === 'Backspace') && !sketch && !active && !measure) { e.preventDefault(); deleteSelection(); return; }
       if (sketch) {
