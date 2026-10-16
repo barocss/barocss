@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { APPEARANCES, anglesOf, directionFrom, type Appearance, type Hex, type RenderLight, type RenderSettings } from '../engine/render';
+import { useEffect, useState } from 'react';
+import { compileGpu, materialShader } from '@barocss/gpu';
+import { APPEARANCES, MATERIAL_TEMPLATE, SCENE_TEMPLATE, anglesOf, directionFrom, type Appearance, type Hex, type RenderLight, type RenderSettings } from '../engine/render';
 import { Icon } from './atoms';
 
 /**
@@ -17,7 +18,7 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
   /** False when the viewport draws without WebGPU (no rendering). */
   available: boolean;
 }) {
-  const [tab, setTab] = useState<'look' | 'lights' | 'scene'>('look');
+  const [tab, setTab] = useState<'look' | 'lights' | 'scene' | 'source'>('look');
   const current: Appearance = selectedKeys.length ? render.appearances[selectedKeys[0]] ?? render.defaultAppearance : render.defaultAppearance;
   const setLook = (patch: Partial<Appearance>) => {
     const next = { ...current, ...patch };
@@ -47,7 +48,7 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
         <button className="tool tiny" aria-label="Export image" title="Export the view as a PNG" disabled={!available} onClick={onExport}><Icon name="photo_camera" small /></button></div>
       {!available && <div className="empty">Rendering needs a browser with WebGPU. The view below is the modelling look.</div>}
       <div className="tabs" role="tablist">
-        {(['look', 'lights', 'scene'] as const).map(t => <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>{t === 'look' ? 'Appearance' : t === 'lights' ? 'Lights' : 'Scene'}</button>)}
+        {(['look', 'lights', 'scene', 'source'] as const).map(t => <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>{t === 'look' ? 'Appearance' : t === 'lights' ? 'Lights' : t === 'scene' ? 'Scene' : 'Source'}</button>)}
       </div>
 
       {tab === 'look' && <div className="render-section">
@@ -61,6 +62,11 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
         {slider('Metallic', current.metallic, v => setLook({ metallic: v }))}
         {slider('Roughness', current.roughness, v => setLook({ roughness: v }))}
         {slider('Opacity', current.opacity, v => setLook({ opacity: v }), 0.05)}
+        <label className="field"><span>Shader</span>
+          <select aria-label="Shader material" value={current.shader ?? ''} onChange={e => setLook({ shader: e.target.value || undefined })}>
+            <option value="">None</option>
+            {Object.keys(render.materials).map(n => <option key={n} value={n}>{n}</option>)}
+          </select></label>
         {selectedKeys.some(k => render.appearances[k]) && <button className="ghost" onClick={clearLook}>Use the default appearance</button>}
       </div>}
 
@@ -90,6 +96,8 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
         </div>
       </div>}
 
+      {tab === 'source' && <SourceTab render={render} onChange={onChange} />}
+
       {tab === 'scene' && <div className="render-section">
         {color('Top', env.top, v => setEnv({ top: v }))}
         {color('Bottom', env.bottom, v => setEnv({ bottom: v }))}
@@ -114,3 +122,53 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
 
 /** #rgb as #rrggbb (the colour input wants six digits). */
 const full = (h: Hex) => h.length === 4 ? `#${h[1]}${h[1]}${h[2]}${h[2]}${h[3]}${h[3]}` : h;
+
+/** The scene's sources: props as a CSS-shaped scene, and authored @shader materials by name. Drafts apply when they compile. */
+function SourceTab({ render, onChange }: { render: RenderSettings; onChange(next: RenderSettings): void }) {
+  const [scene, setScene] = useState(render.scene);
+  const [sceneError, setSceneError] = useState<string | null>(null);
+  const [drafts, setDrafts] = useState<Record<string, string>>(render.materials);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  useEffect(() => { setScene(render.scene); setDrafts(render.materials); }, [render.scene, render.materials]);
+  const applyScene = () => {
+    if (!scene.trim()) { setSceneError(null); onChange({ ...render, scene: '' }); return; }
+    const r = compileGpu({ kind: 'scene', source: scene, ...(/\bversion\s*:\s*1\s*;/.test(scene) ? { sourceVersion: 1 as const } : {}) });
+    if (!r.ok) { setSceneError(r.diagnostics.map(d => d.message).join('\n')); return; }
+    setSceneError(null); onChange({ ...render, scene });
+  };
+  const applyMaterial = (name: string) => {
+    const r = materialShader(drafts[name] ?? '');
+    if (!r.ok) { setErrors(e => ({ ...e, [name]: r.diagnostics.map(d => d.message).join('\n') })); return; }
+    setErrors(e => { const n = { ...e }; delete n[name]; return n; });
+    onChange({ ...render, materials: { ...render.materials, [name]: drafts[name] } });
+  };
+  const addMaterial = () => {
+    let n = 1; while (render.materials[`material${n}`]) n++;
+    onChange({ ...render, materials: { ...render.materials, [`material${n}`]: MATERIAL_TEMPLATE } });
+  };
+  const removeMaterial = (name: string) => {
+    const materials = { ...render.materials }; delete materials[name];
+    // Bodies that used it go back to no shader.
+    const strip = (a: Appearance) => a.shader === name ? { ...a, shader: undefined } : a;
+    onChange({ ...render, materials, defaultAppearance: strip(render.defaultAppearance), appearances: Object.fromEntries(Object.entries(render.appearances).map(([k, a]) => [k, strip(a)])) });
+  };
+  return <div className="render-section">
+    <div className="card-title">PROPS · CSS SCENE</div>
+    <textarea className="code" aria-label="Props source" spellCheck={false} rows={7} value={scene} placeholder="@scene props { version: 0; box #plinth; }" onChange={e => setScene(e.target.value)} />
+    {sceneError && <div className="diag" role="alert">{sceneError}</div>}
+    <label className="field"><span>Unit</span><span className="num"><input type="number" step="any" min={0.001} aria-label="Props scale" value={render.sceneScale}
+      onChange={e => { const v = Number(e.target.value); if (v > 0) onChange({ ...render, sceneScale: v }); }} /><em>mm</em></span></label>
+    <div className="row-actions">
+      <button className="primary" disabled={scene === render.scene} onClick={applyScene}>Apply props</button>
+      {!scene && <button className="ghost" onClick={() => setScene(SCENE_TEMPLATE)}>Example</button>}
+    </div>
+    <div className="card-title" style={{ marginTop: 10 }}>MATERIALS · @SHADER</div>
+    {Object.keys(render.materials).map(name => <div className="light" key={name}>
+      <div className="card-title">{name}<button className="tool tiny" aria-label={`Remove material ${name}`} onClick={() => removeMaterial(name)}>×</button></div>
+      <textarea className="code" aria-label={`Material ${name} source`} spellCheck={false} rows={5} value={drafts[name] ?? ''} onChange={e => setDrafts(d => ({ ...d, [name]: e.target.value }))} />
+      {errors[name] && <div className="diag" role="alert">{errors[name]}</div>}
+      <button className="ghost" disabled={drafts[name] === render.materials[name]} onClick={() => applyMaterial(name)}>Apply {name}</button>
+    </div>)}
+    <button className="ghost" onClick={addMaterial}>Add material</button>
+  </div>;
+}

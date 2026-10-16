@@ -4,7 +4,8 @@
 // selected bodies an outline; ghost bodies are see-through. Picking is on the CPU (synchronous for hover).
 // With render settings (the Render workspace) bodies take their appearances, and the lights, environment
 // and ground come from the settings instead of the theme's modelling look.
-import { createViewer, translation, type Geometry, type Light, type Mesh, type Viewer } from '@barocss/gpu/viewer';
+import { createViewer, multiply, rotation, translation, type Geometry, type Light, type Mesh, type Viewer } from '@barocss/gpu/viewer';
+import { materialShader, showScene, type MaterialShaderResult, type SceneView } from '@barocss/gpu';
 import type { BodyResult } from '../engine/evaluate';
 import { appearanceOf, type RenderSettings } from '../engine/render';
 import type { Vec3 } from '../engine/mesh';
@@ -29,6 +30,9 @@ export class GpuRenderer implements ViewRenderer {
   /** A shadow catcher under the bodies (the ground their shadow falls on). */
   private ground: Mesh | null = null;
   private settings: RenderSettings | null = null;
+  /** The props scene (render settings' CSS source), and what it was made from. */
+  private props: { view: SceneView; source: string; scale: number } | null = null;
+  private shaders = new Map<string, MaterialShaderResult>();
   private view: ViewState | null = null;
 
   private constructor(readonly canvas: HTMLCanvasElement, private readonly viewer: Viewer) {}
@@ -64,6 +68,7 @@ export class GpuRenderer implements ViewRenderer {
       this.paint(b, new Map());
     }
     if (this.ground) { this.ground.material = { opacity: env ? 0.55 : t.shadow }; this.ground.visible = env ? env.ground : true; }
+    this.showProps();
     this.viewer.requestRender();
   }
 
@@ -72,7 +77,7 @@ export class GpuRenderer implements ViewRenderer {
     this.bodies = results.map(result => {
       const m = result.mesh, I = m.indices, faces = new Uint32Array(I.length / 3);
       for (let t = 0; t < faces.length; t++) faces[t] = m.faceOfVertex[I[3 * t]];
-      const surfaceGeometry = this.viewer.createGeometry({ positions: m.positions, normals: m.normals, indices: I, faces });
+      const surfaceGeometry = this.viewer.createGeometry({ positions: m.positions, normals: m.normals, uvs: boxUVs(m.positions, m.normals, m.bounds), indices: I, faces });
       const surface = this.viewer.add(surfaceGeometry, { material: { color: '#ffffff', roughness: 0.62 } });
       const geometries = [surfaceGeometry];
       let edges: Mesh | null = null;
@@ -95,6 +100,35 @@ export class GpuRenderer implements ViewRenderer {
         { material: { shadowOnly: true, opacity: this.theme.shadow }, pickable: false, castShadow: false });
     }
     this.applyLook();
+  }
+
+  /**
+   * The props of the render settings: their CSS scene, Y up, turned into the part's Z-up world at
+   * sceneScale mm to the unit. A source that does not compile keeps the props shown before.
+   */
+  private showProps(): void {
+    const r = this.settings, source = r?.scene.trim() ?? '';
+    if (!r || !source) { this.props?.view.dispose(); this.props = null; return; }
+    if (this.props && this.props.source === source && this.props.scale === r.sceneScale) return;
+    const k = r.sceneScale, place = multiply(rotation([1, 0, 0], Math.PI / 2), Float64Array.from([k, 0, 0, 0, 0, k, 0, 0, 0, 0, k, 0, 0, 0, 0, 1]));
+    if (this.props && this.props.scale === r.sceneScale) {
+      if (this.props.view.update(source).ok) this.props.source = source;
+      return;
+    }
+    try {
+      const view = showScene(this.viewer, source, { fit: false, background: false, transform: place });
+      this.props?.view.dispose();
+      this.props = { view, source, scale: k };
+    } catch { /* A refused source: the panel shows its diagnostics. */ }
+  }
+
+  /** A material's shader (compiled once per source), or nothing when it does not compile. */
+  private shaderOf(name: string | undefined) {
+    const source = name ? this.settings?.materials[name] : undefined;
+    if (!source) return null;
+    let compiled = this.shaders.get(source);
+    if (!compiled) { compiled = materialShader(source); this.shaders.set(source, compiled); }
+    return compiled.ok ? compiled.shader : null;
   }
 
   /** Face colours: the theme's base, mixed with the accent for hovered (1) and selected (2) faces. */
@@ -134,8 +168,8 @@ export class GpuRenderer implements ViewRenderer {
       const ghost = view.ghostBodies.has(bi), offset = view.offsets.get(bi) ?? [0, 0, 0];
       const look = this.settings ? appearanceOf(this.settings, b.result.key) : null;
       b.surface.material = look
-        ? { color: look.color, metallic: look.metallic, roughness: look.roughness, opacity: ghost ? Math.min(0.35, look.opacity) : look.opacity }
-        : { color: '#ffffff', metallic: 0, roughness: 0.62, opacity: ghost ? 0.35 : 1 };
+        ? { color: look.color, metallic: look.metallic, roughness: look.roughness, opacity: ghost ? Math.min(0.35, look.opacity) : look.opacity, shader: this.shaderOf(look.shader) }
+        : { color: '#ffffff', metallic: 0, roughness: 0.62, opacity: ghost ? 0.35 : 1, shader: null };
       b.surface.pickable = !ghost;
       b.surface.outline = view.selectedBodies.includes(bi) ? ACCENT : null;
       for (const mesh of [b.surface, b.edges, b.highlight]) if (mesh) mesh.transform = translation(offset);
@@ -218,4 +252,15 @@ export class GpuRenderer implements ViewRenderer {
   }
 
   dispose(): void { this.viewer.dispose(); }
+}
+
+/** Texture coordinates by box projection: each vertex across the body's box on its face's two other axes. */
+function boxUVs(P: Float32Array, N: Float32Array, b: { min: Vec3; max: Vec3 }): Float32Array {
+  const uv = new Float32Array((P.length / 3) * 2), span = [0, 1, 2].map(k => Math.max(1e-9, b.max[k] - b.min[k]));
+  for (let v = 0; v < P.length / 3; v++) {
+    const n = [Math.abs(N[3 * v]), Math.abs(N[3 * v + 1]), Math.abs(N[3 * v + 2])], k = n[0] >= n[1] && n[0] >= n[2] ? 0 : n[1] >= n[2] ? 1 : 2;
+    const [a, c] = k === 0 ? [1, 2] : k === 1 ? [0, 2] : [0, 1];
+    uv[2 * v] = (P[3 * v + a] - b.min[a]) / span[a]; uv[2 * v + 1] = (P[3 * v + c] - b.min[c]) / span[c];
+  }
+  return uv;
 }

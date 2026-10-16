@@ -382,8 +382,26 @@ try {
       await page.click('[aria-label="Export image"]');
       assert.match((await download).suggestedFilename(), /\.png$/);
     }
+    // Props from a CSS scene, and an authored @shader material on the body.
+    await page.click('.render-panel [role="tab"]:text-is("Source")');
+    await page.click('.render-panel button:text-is("Example")');
+    await page.click('.render-panel button:text-is("Apply props")');
+    await page.click('.render-panel button:text-is("Add material")');
+    await page.fill('[aria-label="Material material1 source"]', '@shader #red { @fragment { color: #ff0000; } }');
+    await page.click('.render-panel button:text-is("Apply material1")');
+    await page.fill('[aria-label="Material material1 source"]', '@shader #bad { @fragment { color: nope; } }');
+    await page.click('.render-panel button:text-is("Apply material1")');
+    await page.waitForSelector('.render-panel .diag');
+    await page.click('.render-panel [role="tab"]:text-is("Appearance")');
+    await page.selectOption('[aria-label="Appearance preset"]', 'plastic-white');
+    await page.selectOption('[aria-label="Shader material"]', 'material1');
+    const shaded = await page.evaluate(() => window.__studioDoc.render);
+    assert.match(shaded.scene, /#plinth/);
+    assert.match(shaded.materials.material1, /#ff0000/, 'the refused draft did not replace the applied source');
+    assert.equal(Object.values(shaded.appearances)[0].shader, 'material1');
     // Undo takes the saved view back; Model returns to the modelling look.
-    await press('Meta+z');
+    await page.evaluate(() => document.activeElement?.blur());
+    for (let k = 0; k < 6; k++) await press('Meta+z');
     await page.waitForFunction(() => !window.__studioDoc.render?.camera);
     await page.click('.mode button:text-is("Model")');
     await page.waitForSelector('[aria-label="Selection"]');

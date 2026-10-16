@@ -3,7 +3,11 @@
 // light travels (world, Z up).
 
 export type Hex = `#${string}`;
-export interface Appearance { color: Hex; metallic: number; roughness: number; opacity: number }
+export interface Appearance {
+  color: Hex; metallic: number; roughness: number; opacity: number;
+  /** A material of the settings by name: its authored shader colours the surface (times the colour). */
+  shader?: string;
+}
 export type RenderLight =
   | { kind: 'directional'; direction: [number, number, number]; color: Hex; intensity: number; castShadow: boolean }
   | { kind: 'point'; position: [number, number, number]; color: Hex; intensity: number; range: number }
@@ -29,7 +33,17 @@ export interface RenderSettings {
   lights: RenderLight[];
   environment: RenderEnvironment;
   camera: RenderCamera | null;
+  /** Authored @shader materials by name. */
+  materials: Record<string, string>;
+  /** Props: a CSS-shaped scene source (Y up) placed in the part's Z-up world, sceneScale mm to its unit. */
+  scene: string;
+  sceneScale: number;
 }
+
+/** A material to start from: a mix of two colours by a uniform. */
+export const MATERIAL_TEMPLATE = '@shader #paint {\n  @uniform amount: float(0, 1, .35);\n  @fragment { color: mix(#d0643c, #3c78b4, amount); }\n}\n';
+/** Props to start from: a plinth under the part (Y up: its Z turns to −Y in the part's world). */
+export const SCENE_TEMPLATE = '@scene props {\n  version: 0;\n  box #plinth;\n}\n#plinth { size: 9 .4 6; translate: 3.2 -.25 -1.6; color: #6d727a; }\n';
 
 /** Appearance presets: the look of common materials. */
 export const APPEARANCES: readonly { id: string; label: string; appearance: Appearance }[] = [
@@ -54,6 +68,9 @@ export const defaultRender = (): RenderSettings => ({
   ],
   environment: { top: '#3a3f47', bottom: '#15171a', ambient: 0.6, exposure: 1, toneMapping: 'aces', occlusion: true, ground: true, grid: false, edges: false },
   camera: null,
+  materials: {},
+  scene: '',
+  sceneScale: 10,
 });
 
 const HEX = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
@@ -65,7 +82,8 @@ const obj = (v: unknown): Record<string, unknown> => v && typeof v === 'object' 
 
 export function readAppearance(v: unknown, fallback: Appearance): Appearance {
   const o = obj(v);
-  return { color: hex(o.color, fallback.color), metallic: num(o.metallic, 0, 1, fallback.metallic), roughness: num(o.roughness, 0, 1, fallback.roughness), opacity: num(o.opacity, 0.05, 1, fallback.opacity) };
+  return { color: hex(o.color, fallback.color), metallic: num(o.metallic, 0, 1, fallback.metallic), roughness: num(o.roughness, 0, 1, fallback.roughness), opacity: num(o.opacity, 0.05, 1, fallback.opacity),
+    ...(typeof o.shader === 'string' && o.shader ? { shader: o.shader } : {}) };
 }
 
 /** Render settings from a saved document (anything missing or out of range takes the default). */
@@ -91,6 +109,9 @@ export function readRender(v: unknown): RenderSettings {
       toneMapping: env.toneMapping === 'none' ? 'none' : 'aces',
       occlusion: env.occlusion !== false, ground: env.ground !== false, grid: env.grid === true, edges: env.edges === true,
     },
+    materials: Object.fromEntries(Object.entries(obj(o.materials)).filter((e): e is [string, string] => typeof e[1] === 'string' && e[1].length <= 65536).slice(0, 32)),
+    scene: typeof o.scene === 'string' && o.scene.length <= 65536 ? o.scene : '',
+    sceneScale: num(o.sceneScale, 1e-3, 1e4, 10),
     camera: cam ? { target: vec(cam.target, [0, 0, 0]), distance: num(cam.distance, 1e-3, 1e6, 160), yaw: num(cam.yaw, -1e3, 1e3, 0), pitch: num(cam.pitch, -1.57, 1.57, 0.4), fovY: num(cam.fovY, 0.05, 2.5, 0.56), ortho: cam.ortho === true } : null,
   };
 }
