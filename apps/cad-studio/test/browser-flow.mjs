@@ -564,6 +564,12 @@ try {
     await page.locator('input[aria-label="Model file"]').setInputFiles(file);
     await page.waitForFunction(() => /Import holed-box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 });
     assert.match(await outliner(), /1 body/); await iso();
+    // A .step file the kernel cannot read is refused with its reason, and the open part stays.
+    const garbage = join(out, 'garbage.step'); (await import('node:fs')).writeFileSync(garbage, 'hello');
+    const before = (await doc()).nodes.length;
+    await page.locator('input[aria-label="Model file"]').setInputFiles(garbage);
+    await page.waitForFunction(() => /Could not open this file/.test(document.body.textContent ?? ''), null, { timeout: 20000 });
+    assert.equal((await doc()).nodes.length, before); assert.match(await outliner(), /Import holed-box/);
   });
 
   await check('measure between two faces of a box', async () => {
