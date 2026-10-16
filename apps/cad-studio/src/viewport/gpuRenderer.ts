@@ -2,8 +2,11 @@
 // the viewport keeps its own camera, pointer handling and overlays. Bodies are lit meshes with their edges
 // as lines; hovered and selected faces are vertex colours, hovered and selected edges a wider line on top,
 // selected bodies an outline; ghost bodies are see-through. Picking is on the CPU (synchronous for hover).
+// With render settings (the Render workspace) bodies take their appearances, and the lights, environment
+// and ground come from the settings instead of the theme's modelling look.
 import { createViewer, translation, type Geometry, type Light, type Mesh, type Viewer } from '@barocss/gpu/viewer';
 import type { BodyResult } from '../engine/evaluate';
+import { appearanceOf, type RenderSettings } from '../engine/render';
 import type { Vec3 } from '../engine/mesh';
 import type { OrbitCamera } from './camera';
 import type { EdgeRef, FaceRef, ThemeName, ViewRenderer, ViewState } from './renderer';
@@ -25,6 +28,8 @@ export class GpuRenderer implements ViewRenderer {
   private bodies: Body[] = [];
   /** A shadow catcher under the bodies (the ground their shadow falls on). */
   private ground: Mesh | null = null;
+  private settings: RenderSettings | null = null;
+  private view: ViewState | null = null;
 
   private constructor(readonly canvas: HTMLCanvasElement, private readonly viewer: Viewer) {}
 
@@ -38,14 +43,28 @@ export class GpuRenderer implements ViewRenderer {
   }
 
   setTheme(name: ThemeName): void {
-    const t = this.theme = THEMES[name];
-    this.viewer.setBackground({ top: t.bgTop, bottom: t.bgBottom });
-    this.viewer.grid = { visible: true, cell: 10, major: 5, color: t.grid, opacity: t.gridOpacity };
+    this.theme = THEMES[name];
+    this.applyLook();
+  }
+
+  /** Render settings (the Render workspace), or null for the modelling look. */
+  setRender(settings: RenderSettings | null): void {
+    this.settings = settings;
+    this.applyLook();
+    if (this.view) this.setState(this.view);
+  }
+
+  /** Background, grid, edges and ground of the modelling look or of the render settings. */
+  private applyLook(): void {
+    const t = this.theme, r = this.settings, env = r?.environment;
+    this.viewer.setBackground(env ? { top: env.top, bottom: env.bottom } : { top: t.bgTop, bottom: t.bgBottom });
+    this.viewer.grid = { visible: env ? env.grid : true, cell: 10, major: 5, color: t.grid, opacity: t.gridOpacity };
     for (const b of this.bodies) {
-      if (b.edges) b.edges.material = { color: t.edge };
+      if (b.edges) { b.edges.material = { color: t.edge }; b.edges.visible = env ? env.edges : true; }
       this.paint(b, new Map());
     }
-    if (this.ground) this.ground.material = { opacity: t.shadow };
+    if (this.ground) { this.ground.material = { opacity: env ? 0.55 : t.shadow }; this.ground.visible = env ? env.ground : true; }
+    this.viewer.requestRender();
   }
 
   setBodies(results: BodyResult[]): void {
@@ -75,17 +94,21 @@ export class GpuRenderer implements ViewRenderer {
       this.ground = this.viewer.add({ positions: [cx - r, cy - r, z, cx + r, cy - r, z, cx + r, cy + r, z, cx - r, cy + r, z], normals: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1], indices: [0, 1, 2, 0, 2, 3] },
         { material: { shadowOnly: true, opacity: this.theme.shadow }, pickable: false, castShadow: false });
     }
+    this.applyLook();
   }
 
   /** Face colours: the theme's base, mixed with the accent for hovered (1) and selected (2) faces. */
   private paint(b: Body, faceState: Map<number, number>): void {
     const m = b.result.mesh, n = m.positions.length / 3, colors = new Float32Array(n * 3);
-    const shade = [this.theme.base, mix(this.theme.base, ACCENT, 0.2), mix(this.theme.base, ACCENT, 0.42)];
+    // (Rendering: the appearance is the material colour, so faces are white unless picked.)
+    const base: Vec3 = this.settings ? [1, 1, 1] : this.theme.base;
+    const shade = [base, mix(base, ACCENT, 0.2), mix(base, ACCENT, 0.42)];
     for (let v = 0; v < n; v++) colors.set(shade[faceState.get(m.faceOfVertex[v]) ?? 0], v * 3);
     b.surface.geometry.setColors(colors);
   }
 
   setState(view: ViewState): void {
+    this.view = view;
     this.bodies.forEach((b, bi) => {
       const faceState = new Map<number, number>();
       if (view.hoverFace?.body === bi) faceState.set(view.hoverFace.face, 1);
@@ -109,7 +132,10 @@ export class GpuRenderer implements ViewRenderer {
         b.highlight = this.viewer.add(g, { material: { color: '#ffffff', unlit: true, lineWidth: view.selectedEdges.length ? 2.6 : 2.2 }, pickable: false, castShadow: false });
       }
       const ghost = view.ghostBodies.has(bi), offset = view.offsets.get(bi) ?? [0, 0, 0];
-      b.surface.material = { opacity: ghost ? 0.35 : 1 };
+      const look = this.settings ? appearanceOf(this.settings, b.result.key) : null;
+      b.surface.material = look
+        ? { color: look.color, metallic: look.metallic, roughness: look.roughness, opacity: ghost ? Math.min(0.35, look.opacity) : look.opacity }
+        : { color: '#ffffff', metallic: 0, roughness: 0.62, opacity: ghost ? 0.35 : 1 };
       b.surface.pickable = !ghost;
       b.surface.outline = view.selectedBodies.includes(bi) ? ACCENT : null;
       for (const mesh of [b.surface, b.edges, b.highlight]) if (mesh) mesh.transform = translation(offset);
@@ -138,9 +164,19 @@ export class GpuRenderer implements ViewRenderer {
     const v = this.viewer, w = this.canvas.clientWidth, h = this.canvas.clientHeight;
     camera.aspect = w / Math.max(1, h);
     Object.assign(v.camera, { position: camera.eye(), target: [...camera.target], up: [0, 0, 1], fovY: (camera.fovY * 180) / Math.PI, projection: camera.ortho ? 'orthographic' : 'perspective' });
-    v.lights = this.lights(camera);
     const b = this.bounds(), size = b ? Math.hypot(b.max[0] - b.min[0], b.max[1] - b.min[1], b.max[2] - b.min[2]) : 50;
-    v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: 0.4, ambientOcclusion: this.aoEnabled ? { radius: Math.max(1, size * 0.045), strength: this.theme.ao } : false };
+    const r = this.settings;
+    if (r) {
+      // The settings' lights; the first directional one that casts a shadow casts it on the ground.
+      v.lights = r.lights.map((l): Light => l.kind === 'directional' ? { ...l }
+        : l.kind === 'point' ? { kind: 'point', position: l.position, color: l.color, intensity: l.intensity * size * size * 0.05, range: l.range }
+          : { kind: 'spot', position: l.position, direction: l.direction, color: l.color, intensity: l.intensity * size * size * 0.05, range: l.range, angle: l.angle, penumbra: l.penumbra });
+      const e = r.environment;
+      v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: e.ambient, exposure: e.exposure, toneMapping: e.toneMapping, ambientOcclusion: e.occlusion ? { radius: Math.max(1, size * 0.045), strength: 0.9 } : false };
+    } else {
+      v.lights = this.lights(camera);
+      v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: 0.4, ambientOcclusion: this.aoEnabled ? { radius: Math.max(1, size * 0.045), strength: this.theme.ao } : false };
+    }
     v.resize();
     v.render();
   }
@@ -172,6 +208,13 @@ export class GpuRenderer implements ViewRenderer {
     const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
     for (const b of this.bodies) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], b.result.mesh.bounds.min[k]); max[k] = Math.max(max[k], b.result.mesh.bounds.max[k]); }
     return { min, max };
+  }
+
+  /** The frame as drawn, as a PNG. */
+  async capture(): Promise<Blob> {
+    const img = await this.viewer.capture(), c = new OffscreenCanvas(img.width, img.height);
+    c.getContext('2d')!.putImageData(new ImageData(new Uint8ClampedArray(img.data), img.width, img.height), 0, 0);
+    return c.convertToBlob({ type: 'image/png' });
   }
 
   dispose(): void { this.viewer.dispose(); }

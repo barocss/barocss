@@ -27,6 +27,10 @@ export interface ViewRenderer {
   pickEdge(x: number, y: number, camera: OrbitCamera, view: ViewState, radius?: number): EdgeRef | null;
   bounds(): { min: Vec3; max: Vec3 } | null;
   dispose?(): void;
+  /** Render settings (the Render workspace; WebGPU only). */
+  setRender?(settings: import('../engine/render').RenderSettings | null): void;
+  /** The frame as a PNG (WebGPU only). */
+  capture?(): Promise<Blob>;
 }
 
 interface Theme { amb: number; bgTop: number[]; bgBottom: number[]; grid: number[]; gridAlpha: number[]; base: number[]; edge: number[]; shadow: number; ao: number }

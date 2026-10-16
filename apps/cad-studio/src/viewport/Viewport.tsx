@@ -4,6 +4,7 @@ import type { Vec3 } from '../engine/mesh';
 import { OrbitCamera } from './camera';
 import { Renderer, type EdgeRef, type FaceRef, type ThemeName, type ViewRenderer, type ViewState } from './renderer';
 import { GpuRenderer } from './gpuRenderer';
+import type { RenderCamera, RenderSettings } from '../engine/render';
 import { bulgeThrough, arcOf, sampleOutline, sampleSlot, type P2 } from '../sketch/profile';
 
 export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'slot';
@@ -27,6 +28,13 @@ export interface ViewportHandle {
   /** Top view onto plane z, framing the XY rectangle in the area not covered by `insets` (CSS px). */
   frameSketch(min: [number, number], max: [number, number], z: number, insets?: { left: number; right: number }): void;
   setTheme(name: ThemeName): void; setAo(on: boolean): void;
+  /** The frame as a PNG (WebGPU only). */
+  capture(): Promise<Blob | null>;
+  /** The camera as render settings keep it, and back. */
+  getCamera(): RenderCamera;
+  setCamera(c: RenderCamera): void;
+  /** Which renderer draws: WebGPU, the WebGL2 fallback, or none yet. */
+  readonly backend: 'webgpu' | 'webgl2' | null;
 }
 
 interface Props {
@@ -43,6 +51,8 @@ interface Props {
   onDimClick?(key: string): void;
   /** A measured distance: a dimension line between the closest points. */
   measureLine?: { a: Vec3; b: Vec3; label: string } | null;
+  /** Render settings (the Render workspace), or null for the modelling look. */
+  render?: RenderSettings | null;
 }
 
 const snap = (v: number) => Math.round(v);
@@ -108,6 +118,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
 
   useEffect(() => { renderer.current?.setState(viewState()); request(); }, [props.selection, props.ghost]);
   useEffect(() => { request(); }, [props.sketch, props.gizmo]);
+  useEffect(() => { renderer.current?.setRender?.(props.render ?? null); request(); }, [props.render, backend]);
 
   useImperativeHandle(ref, () => ({
     camera: camera.current,
@@ -121,6 +132,10 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     toggleOrtho() { camera.current.ortho = !camera.current.ortho; request(); return camera.current.ortho; },
     setTheme(name) { theme.current = name; renderer.current?.setTheme(name); request(); },
     setAo(on) { ao.current = on; if (renderer.current) renderer.current.aoEnabled = on; request(); },
+    capture() { return renderer.current?.capture ? renderer.current.capture() : Promise.resolve(null); },
+    getCamera() { const c = camera.current; return { target: [...c.target] as [number, number, number], distance: c.distance, yaw: c.yaw, pitch: c.pitch, fovY: c.fovY, ortho: c.ortho }; },
+    setCamera(v) { const c = camera.current; c.target = [...v.target] as Vec3; c.distance = v.distance; c.yaw = v.yaw; c.pitch = v.pitch; c.fovY = v.fovY; c.ortho = v.ortho; request(); },
+    get backend() { return backend; },
   }));
 
   const local = (e: { clientX: number; clientY: number }) => {
