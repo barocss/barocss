@@ -7,7 +7,7 @@ import {
   buildAlignedRationalRuledSurface, buildTranslationalSweepSurface, compileCadModel, editSourceCurveControlPolygon, editSourceSurfaceControlNetWide,
   elevateSourceSurfaceAxisDegree, extractSourceCurveInterval, extractSurfaceIsoCurve, extractSurfaceRegion, insertSourceCurveKnot,
   insertSourceSurfaceKnot, joinCurves, reverseCurveWide, reverseSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter,
-  tessellateSurface, curveDomain, surfaceDomain, evaluateCurveCurvature, evaluateSurfaceCurvature, exportIGES, type Curve, type Model, type Surface,
+  tessellateSurface, curveDomain, surfaceDomain, evaluateCurveCurvature, evaluateSurfaceCurvature, exportIGES, transformNativeGeometryAffine, type CadAffineMatrix3x4, type Curve, type Model, type Surface,
 } from '@barocss/cad';
 
 export interface DirectObject { id: string; name: string; source: string; geometry: string; hidden?: boolean }
@@ -142,6 +142,40 @@ export const directOps = {
     }
     throw last;
   },
+  /** Move, turn or scale objects in place: each to a new source with its transformed geometry. */
+  transform(d: DirectGeometry, ids: string[], matrixOf: (centre: [number, number, number]) => CadAffineMatrix3x4) {
+    let next = d;
+    for (const id of ids) {
+      const o = object(next, id), g = geometryOf(next, o), r = transformNativeGeometryAffine(g, matrixOf(centreOf(g)), { geometryId: fresh(usedIds(next), 'moved'), maximumObservations: 64 });
+      const key = fresh(new Set(Object.keys(next.sources)), 'src');
+      next = { sources: { ...next.sources, [key]: r.source }, objects: next.objects.map(x => x.id === id ? { ...x, source: key, geometry: r.geometry.id } : x) };
+    }
+    return next;
+  },
+  move(d: DirectGeometry, ids: string[], by: [number, number, number]) {
+    return directOps.transform(d, ids, () => [1, 0, 0, by[0], 0, 1, 0, by[1], 0, 0, 1, by[2]]);
+  },
+  /** About each object's centre (its control points' box). */
+  rotate(d: DirectGeometry, ids: string[], axis: 'x' | 'y' | 'z', degrees: number) {
+    // (Exact at multiples of 90°: a contribution of 1e-17 would only blur the transform.)
+    const a = (degrees * Math.PI) / 180, snap = (x: number) => Math.abs(x) < 1e-12 ? 0 : Math.abs(Math.abs(x) - 1) < 1e-12 ? Math.sign(x) : x;
+    const c = snap(Math.cos(a)), s = snap(Math.sin(a));
+    const R = axis === 'x' ? [1, 0, 0, 0, c, -s, 0, s, c] : axis === 'y' ? [c, 0, s, 0, 1, 0, -s, 0, c] : [c, -s, 0, s, c, 0, 0, 0, 1];
+    return directOps.transform(d, ids, p => aboutCentre(R, p));
+  },
+  scale(d: DirectGeometry, ids: string[], k: number) {
+    if (!(k > 0)) throw new Error('A scale is a positive factor.');
+    return directOps.transform(d, ids, p => aboutCentre([k, 0, 0, 0, k, 0, 0, 0, k], p));
+  },
+  duplicate(d: DirectGeometry, ids: string[]) {
+    const used = usedIds(d);
+    return { ...d, objects: [...d.objects, ...ids.map(id => { const o = object(d, id); return { ...o, id: fresh(used, 'obj'), name: `${o.name} copy`, hidden: false }; })] };
+  },
+  rename(d: DirectGeometry, id: string, name: string) {
+    const n = name.trim();
+    if (!n) throw new Error('A name is needed.');
+    return { ...d, objects: d.objects.map(o => o.id === id ? { ...o, name: n } : o) };
+  },
   sweep(d: DirectGeometry, profile: string, rail: string) {
     const r = buildTranslationalSweepSurface(curveOf(d, profile), curveOf(d, rail), { surfaceId: fresh(usedIds(d), 'swept'), maximumObservations: 961 });
     return add(d, [], r.source, [{ geometry: r.surface.id, name: 'Swept surface' }]);
@@ -220,4 +254,17 @@ export function directIGES(d: DirectGeometry, name = 'barocss_part'): string {
   const objects = visible.map(o => ({ ...geometryOf(d, o), id: o.id }));
   const model: Model = { name: name.replace(/[^A-Za-z0-9_]/g, '_').replace(/^[^A-Za-z_]/, '_').slice(0, 64) || 'part', version: 0, lengthUnit: 'mm', objects };
   return exportIGES(model, objects.map(o => o.id)).iges;
+}
+
+/** The centre of a curve's or surface's control points' box. */
+function centreOf(g: Curve | Surface): [number, number, number] {
+  const pts = g.kind === 'curve' ? g.controlPoints : g.controlPoints.flat();
+  const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+  for (const p of pts) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], p[k]); hi[k] = Math.max(hi[k], p[k]); }
+  return [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, (lo[2] + hi[2]) / 2];
+}
+/** A 3×3 linear map about a point, as a row-major 3×4 affine matrix. */
+function aboutCentre(R: number[], c: [number, number, number]): CadAffineMatrix3x4 {
+  const t = [0, 1, 2].map(r => c[r] - (R[3 * r] * c[0] + R[3 * r + 1] * c[1] + R[3 * r + 2] * c[2]));
+  return [R[0], R[1], R[2], t[0], R[3], R[4], R[5], t[1], R[6], R[7], R[8], t[2]];
 }

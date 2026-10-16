@@ -91,3 +91,22 @@ test('direct geometry: lengths, curvature and IGES', () => {
   assert.match(iges, /^.{72}S {6}1/m);
   assert.equal((iges.match(/^ +12[68] /gm) ?? []).length >= 4, true, 'entity 126 curves and 128 surfaces');
 });
+
+test('direct geometry: move, rotate and scale in place; duplicate and rename', () => {
+  let d = importSource(emptyDirect(), STUDY, 'study');
+  const top = byName(d, 'top');
+  d = directOps.move(d, [top], [0, 0, 5]);
+  let g = geometryOf(d, d.objects.find(o => o.id === top)!);
+  assert.ok(g.kind === 'curve'); assert.deepEqual(g.controlPoints, [[0, 0, 15], [20, 0, 15]]);
+  d = directOps.rotate(d, [top], 'z', 90);
+  g = geometryOf(d, d.objects.find(o => o.id === top)!);
+  assert.ok(g.kind === 'curve' && Math.abs(g.controlPoints[0][0] - 10) < 1e-9 && Math.abs(g.controlPoints[0][1] + 10) < 1e-9, JSON.stringify(g.controlPoints));
+  d = directOps.scale(d, [top], 0.5);
+  g = geometryOf(d, d.objects.find(o => o.id === top)!);
+  assert.ok(g.kind === 'curve' && Math.abs(Math.hypot(g.controlPoints[1][1] - g.controlPoints[0][1], g.controlPoints[1][0] - g.controlPoints[0][0]) - 10) < 1e-9);
+  d = directOps.duplicate(d, [top]);
+  assert.equal(d.objects.at(-1)!.name, 'study · top copy');
+  d = directOps.rename(d, d.objects.at(-1)!.id, 'rail');
+  assert.equal(d.objects.at(-1)!.name, 'rail');
+  assert.throws(() => directOps.scale(d, [top], 0), /positive/);
+});

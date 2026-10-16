@@ -27,7 +27,10 @@ export function DirectPanel({ direct, selected, onChange, onError, onHide }: {
     <aside className="card props direct-panel" aria-label="Direct geometry">
       <div className="card-title">{one ? (g?.kind === 'surface' ? 'SURFACE' : 'CURVE') : `${objs.length} OBJECTS`}
         <button className="ghost tiny" onClick={() => onHide(selected)}>Hide</button></div>
-      {objs.map(o => <div key={o.id} className="kv">Name <b>{o.name}</b></div>)}
+      {one ? <Rename key={one.id} name={one.name} onRename={n => run(() => directOps.rename(direct, one.id, n))} />
+        : objs.map(o => <div key={o.id} className="kv">Name <b>{o.name}</b></div>)}
+      <Transform onMove={by => run(() => directOps.move(direct, selected, by))} onRotate={(axis, deg) => run(() => directOps.rotate(direct, selected, axis, deg))}
+        onScale={k => run(() => directOps.scale(direct, selected, k))} onDuplicate={() => run(() => directOps.duplicate(direct, selected), added)} />
       {one && g?.kind === 'curve' && <CurveTools id={one.id} direct={direct} run={run} added={added} />}
       {one && g?.kind === 'surface' && <SurfaceTools id={one.id} direct={direct} run={run} added={added} />}
       {objs.length === 2 && curves && <div className="render-section">
@@ -141,4 +144,26 @@ function SurfacePoint({ id, direct, u, v }: { id: string; direct: DirectGeometry
     <NumberField label="v" value={at[1]} onChange={x => setAt([at[0], x])} />
     <Analysis run={() => { const a = analyzeSurface(direct, id, at[0], at[1]); return [['Point', a.point.map(x => fmtNum(x, 3)).join(', ')], ['Normal', a.normal.map(x => fmtNum(x, 4)).join(', ')], ['Mean curvature', `${fmtNum(a.mean, 6)} /mm`], ['Gaussian', `${fmtNum(a.gaussian, 8)} /mm²`]]; }} />
   </>;
+}
+
+function Rename({ name, onRename }: { name: string; onRename(n: string): void }) {
+  const [text, setText] = useState(name);
+  return <label className="field"><span>Name</span><input aria-label="Object name" value={text} onChange={e => setText(e.target.value)}
+    onBlur={() => { if (text.trim() && text !== name) onRename(text); }} onKeyDown={e => { if (e.key === 'Enter' && text.trim() && text !== name) onRename(text); }} /></label>;
+}
+
+/** Move by a vector, turn about an axis through the centre, scale about the centre, or duplicate. */
+function Transform({ onMove, onRotate, onScale, onDuplicate }: { onMove(by: [number, number, number]): void; onRotate(axis: 'x' | 'y' | 'z', deg: number): void; onScale(k: number): void; onDuplicate(): void }) {
+  const [by, setBy] = useState<[number, number, number]>([0, 0, 10]);
+  const [axis, setAxis] = useState<'x' | 'y' | 'z'>('z'), [deg, setDeg] = useState(90), [k, setK] = useState(2);
+  return <div className="render-section">
+    <div className="card-title" style={{ marginTop: 8 }}>TRANSFORM</div>
+    {(['ΔX', 'ΔY', 'ΔZ'] as const).map((l, i) => <NumberField key={l} label={l} value={by[i]} onChange={x => setBy(b => b.map((y, j) => j === i ? x : y) as typeof b)} />)}
+    <button className="ghost" onClick={() => onMove(by)}>Move</button>
+    <label className="field"><span>Axis</span><select aria-label="Rotation axis" value={axis} onChange={e => setAxis(e.target.value as 'x' | 'y' | 'z')}><option value="x">X</option><option value="y">Y</option><option value="z">Z</option></select></label>
+    <NumberField label="Angle °" value={deg} onChange={setDeg} />
+    <button className="ghost" onClick={() => onRotate(axis, deg)}>Rotate</button>
+    <NumberField label="Factor" value={k} onChange={setK} />
+    <div className="row-actions"><button className="ghost" onClick={() => onScale(k)}>Scale</button><button className="ghost" onClick={onDuplicate}>Duplicate</button></div>
+  </div>;
 }

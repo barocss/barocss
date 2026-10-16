@@ -439,6 +439,13 @@ try {
     await page.click('.direct-panel button:text-is("Ruled surface")');
     await page.waitForSelector('[role="alert"], .toast');
     await press('Escape');
+    // Move, rename and duplicate a curve.
+    await page.locator('.ol.direct', { hasText: 'top' }).click();
+    await page.click('.direct-panel button:text-is("Move")');
+    await page.fill('[aria-label="Object name"]', 'rail'); await press('Enter');
+    await page.click('.direct-panel button:text-is("Duplicate")');
+    const moved = await page.evaluate(() => window.__studioDoc.direct.objects.filter(o => o.name.startsWith('rail')).map(o => o.name));
+    assert.deepEqual(moved, ['rail', 'rail copy']);
     // The visible curves and surfaces as IGES.
     const download = page.waitForEvent('download');
     await page.click('[aria-label="Export IGES"]');
