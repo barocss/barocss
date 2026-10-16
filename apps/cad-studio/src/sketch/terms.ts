@@ -19,7 +19,9 @@ export type SketchRule =
   /** A point on the centre of an arc (segment `arc`). */
   | { kind: 'coincident'; point: number; arc: number }
   /** A driving distance between two points: straight, or along the sketch's X (`dx`) or Y (`dy`) axis. */
-  | { kind: 'distance' | 'dx' | 'dy'; a: number; b: number; value: number };
+  | { kind: 'distance' | 'dx' | 'dy'; a: number; b: number; value: number }
+  /** A driving angle in degrees between two straight edges (at their shared point when they meet). */
+  | { kind: 'angle'; a: number; b: number; value: number };
 
 const angle = (v: P2) => Math.atan2(v[1], v[0]);
 const wrap = (a: number) => { const w = Math.atan2(Math.sin(a), Math.cos(a)); return w === -Math.PI ? Math.PI : w; };
@@ -29,6 +31,20 @@ const nearest = (current: number, options: number[]) => options.reduce((best, o)
 export function ruleAngle(kind: 'parallel' | 'perpendicular', points: readonly P2[], a: number, b: number): number {
   const n = points.length, dir = (i: number): P2 => [points[(i + 1) % n][0] - points[i][0], points[(i + 1) % n][1] - points[i][1]];
   return nearest(wrap(angle(dir(b)) - angle(dir(a))), kind === 'parallel' ? [0, Math.PI] : [Math.PI / 2, -Math.PI / 2]);
+}
+
+/**
+ * The angle between straight edges a and b as a user reads it: when they share a point, between the edges
+ * going out from it; otherwise between their drawn directions. `degrees` is in [0, 180], `sign` the turn
+ * from a to b, and `flip` how many half turns (−1, 0, 1) the drawn directions add to it.
+ */
+export function edgeAngle(points: readonly P2[], a: number, b: number): { degrees: number; sign: number; flip: number } {
+  const n = points.length, dir = (i: number): P2 => [points[(i + 1) % n][0] - points[i][0], points[(i + 1) % n][1] - points[i][1]];
+  // From the shared point, an edge that ends there runs backwards.
+  const fa = (a + 1) % n === b ? 1 : 0, fb = !fa && (b + 1) % n === a ? 1 : 0;
+  const u = dir(a), w = dir(b), su: P2 = fa ? [-u[0], -u[1]] : u, sw: P2 = fb ? [-w[0], -w[1]] : w;
+  const t = wrap(angle(sw) - angle(su));
+  return { degrees: Math.abs(t) * 180 / Math.PI, sign: t < 0 ? -1 : 1, flip: fb - fa };
 }
 
 /**
@@ -51,6 +67,9 @@ export function ruleTerms(rules: readonly SketchRule[], points: readonly P2[], b
     else if (r.kind === 'distance' && point(r.a) && point(r.b) && r.a !== r.b) {
       segments.push({ id: 'd' + k, startPointId: 'p' + r.a, endPointId: 'p' + r.b });
       constraints.push({ id, kind: 'length', segmentId: 'd' + k, lengthMM: r.value });
+    } else if (r.kind === 'angle' && line(r.a) && line(r.b)) {
+      const e = edgeAngle(points, r.a, r.b);
+      constraints.push({ id, kind: 'signed-angle', segmentA: 's' + r.a, segmentB: 's' + r.b, angleRad: wrap(e.sign * r.value * Math.PI / 180 + e.flip * Math.PI) });
     } else if ((r.kind === 'dx' || r.kind === 'dy') && point(r.a) && point(r.b) && r.a !== r.b) {
       // Measured along axis m; the helpers sit 10 mm past both points across it (axis o).
       const m = r.kind === 'dx' ? 0 : 1, o = 1 - m, a = points[r.a], b = points[r.b];

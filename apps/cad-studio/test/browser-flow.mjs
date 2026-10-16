@@ -403,6 +403,25 @@ try {
     await press('Escape');
   });
 
+  await check('an angle between two lines from the Dimension tool', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('l');
+    const [cx, cy] = await canvasCenter();
+    for (const [dx, dy] of [[-150, -80], [150, -80], [130, 80], [-160, 90], [-150, -80]]) await clickAt(cx + dx, cy + dy);
+    // A line opens its length; a second line opens the angle between them.
+    await press('d'); await clickAt(cx, cy - 80);
+    assert.equal(await page.locator('.dim-edit').getAttribute('aria-label'), 'Length of edge 1');
+    await clickAt(cx + 140, cy);
+    assert.equal(await page.locator('.dim-edit').getAttribute('aria-label'), 'Angle edge 1 – edge 2');
+    await page.locator('.dim-edit').fill('75'); await page.locator('.dim-edit').press('Enter');
+    assert.match(await page.locator('.sk-panel [role=list]').innerText(), /Angle\s*edge 1 ∠ edge 2 = 75°/);
+    assert.match(await status(), /4 DOF/);
+    const p = async (i, k) => Number(await page.inputValue(`[aria-label="Point ${i} ${k}"]`));
+    const u = [await p(1, 'X') - await p(2, 'X'), await p(1, 'Y') - await p(2, 'Y')], w = [await p(3, 'X') - await p(2, 'X'), await p(3, 'Y') - await p(2, 'Y')];
+    const deg = Math.acos((u[0] * w[0] + u[1] * w[1]) / Math.hypot(...u) / Math.hypot(...w)) * 180 / Math.PI;
+    assert.ok(Math.abs(deg - 75) < 0.01, String(deg));
+    await snap('angle'); await press('Escape');
+  });
+
   await check('revolve a circle sketch into a torus from the palette', async () => {
     await page.click('[aria-label="New part"]'); await press(' '); await page.locator('.palette input').fill('revolve'); await press('Enter');
     const [cx, cy] = await canvasCenter();
