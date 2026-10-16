@@ -1402,6 +1402,15 @@ try {
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2, null, { timeout: 15000 });
   });
 
+  await check('double-click a body picks all of it; F frames what is picked', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(300);
+    const [cx, cy] = await canvasCenter(); await page.mouse.dblclick(cx, cy);
+    await page.waitForFunction(() => window.__studioSelection?.selection.bodies.length === 1 && !window.__studioSelection.selection.faces.length, null, { timeout: 5000 });
+    await press('f'); await page.waitForTimeout(300);
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

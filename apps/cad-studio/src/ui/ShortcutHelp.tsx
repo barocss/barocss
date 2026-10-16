@@ -7,9 +7,9 @@ import { Icon, Kbd } from './atoms';
 const GROUPS: [string, string][] = [['create', 'Create'], ['modify', 'Modify'], ['pattern', 'Pattern'], ['combine', 'Combine'], ['inspect', 'Inspect']];
 const GENERAL: [string, string][] = [['Space', 'Find a command'], ['Enter', 'Apply'], ['Esc', 'Cancel, or clear the selection'], ['Del', 'Delete what is picked'],
   ['⌘Z / ⇧⌘Z', 'Undo / redo'], ['⌘D', 'Duplicate a body'], ['⌘C / ⌘V', 'Copy a body / paste a copy beside it'],
-  ['← → ↑ ↓', 'Nudge the picked body 1 mm in X / Y (Shift: 10 mm)'], ['PgUp / PgDn', 'Nudge it in Z'], ['⌘S', 'Save'], ['F', 'Fit the view'], ['?', 'This list']];
+  ['← → ↑ ↓', 'Nudge the picked body 1 mm in X / Y (Shift: 10 mm)'], ['PgUp / PgDn', 'Nudge it in Z'], ['⌘S', 'Save'], ['F', 'Fit the view (to what is picked)'], ['?', 'This list']];
 const MOUSE: [string, string][] = [['Click', 'Pick a face or an edge'], ['Shift-click', 'Add to the pick'], ['Drag', 'Window select (left to right: inside; right to left: touching)'],
-  ['Right-drag / Alt-drag', 'Orbit'], ['Middle-drag / Shift-right-drag', 'Pan'], ['Wheel', 'Zoom'], ['Right-click', 'What can be done here'], ['Double-click a name', 'Rename a body']];
+  ['Right-drag / Alt-drag', 'Orbit'], ['Middle-drag / Shift-right-drag', 'Pan'], ['Wheel', 'Zoom'], ['Right-click', 'What can be done here'], ['Double-click a body', 'Pick the whole body'], ['Double-click a name', 'Rename a body']];
 
 export function ShortcutHelp({ onClose }: { onClose(): void }) {
   useEffect(() => {

@@ -762,7 +762,11 @@ export function App() {
         if (t) { if (typing) { e.preventDefault(); (e.target as HTMLElement).blur(); } setSketch(s => s && switchTool(s, t)); }
         return;
       }
-      if (e.key.toLowerCase() === 'f' && !e.shiftKey) { viewport.current?.fit(); return; }
+      // F frames what is picked (its bodies), or everything when nothing is.
+      if (e.key.toLowerCase() === 'f' && !e.shiftKey) {
+        const picked = selectedBodies(selection).map(i => bodies[i]).filter(Boolean);
+        viewport.current?.fit(picked.length ? { min: [0, 1, 2].map(k => Math.min(...picked.map(b => b.mesh.bounds.min[k]))) as Vec3, max: [0, 1, 2].map(k => Math.max(...picked.map(b => b.mesh.bounds.max[k]))) as Vec3 } : undefined); return;
+      }
       const cmd = commands.find(c => c.shortcut && c.shortcut.toLowerCase() === (e.shiftKey ? 'shift ' : '') + e.key.toLowerCase());
       if (cmd && !active) { e.preventDefault(); start(cmd); }
     };
@@ -925,7 +929,8 @@ export function App() {
     <div className="studio">
       <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo ?? instGizmo} handles={sectionHandle ? [sectionHandle] : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
         direct={directShown} directSelection={directSel} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
-        placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot} bodyColors={bodyColors} hiddenBodies={hiddenBodies} hoverBody={previewBodies ? null : rowHover}
+        placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
+        onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }} bodyColors={bodyColors} hiddenBodies={hiddenBodies} hoverBody={previewBodies ? null : rowHover}
         onPick={onPick} onCursor={setCursor} onSketchShape={updateShape}
         onBoxSelect={(picked, additive) => { if (active) return; setSelection(prev => {
           const base = additive ? selectedBodies(prev) : [];

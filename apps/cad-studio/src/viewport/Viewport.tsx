@@ -52,7 +52,8 @@ export type Make = 'extrude' | 'revolve-y' | 'revolve-x' | 'pipe' | 'loft';
 export type { FeatureHandle, TransformGizmo } from './gizmo';
 
 export interface ViewportHandle {
-  fit(): void; setView(name: Parameters<OrbitCamera['setView']>[0]): void; toggleOrtho(): boolean; camera: OrbitCamera;
+  /** Frames everything, or the box given (the picked bodies). */
+  fit(box?: { min: Vec3; max: Vec3 }): void; setView(name: Parameters<OrbitCamera['setView']>[0]): void; toggleOrtho(): boolean; camera: OrbitCamera;
   /** A straight view onto the sketch plane, framing its rectangle (plane coordinates) in the area not covered by `insets` (CSS px). */
   frameSketch(min: [number, number], max: [number, number], plane: SketchPlane, insets?: { left: number; right: number }): void;
   setTheme(name: ThemeName): void; setAo(on: boolean): void;
@@ -88,6 +89,8 @@ interface Props {
   placing?: boolean;
   placeSkip?: ReadonlySet<string>;
   onSpot?(spot: Spot | null, done: boolean): void;
+  /** A double-click on a body (its face or edge): pick the whole body. */
+  onPickBody?(body: number): void;
   onPick(hit: { face: FaceRef | null; edge: EdgeRef | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: FaceRef }, additive: boolean): void;
   /** `fresh`: a new shape starts (the current one, if closed, is kept beside it). */
   onSketchShape(shape: SketchShape | null, fresh?: boolean): void;
@@ -230,7 +233,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
 
   useImperativeHandle(ref, () => ({
     camera: camera.current,
-    fit() { const b = renderer.current?.bounds(); if (b) camera.current.fit(b.min, b.max); request(); },
+    fit(box) { const b = box ?? renderer.current?.bounds(); if (b) camera.current.fit(b.min, b.max); request(); },
     setView(name) { camera.current.setView(name); const b = renderer.current?.bounds(); if (b) camera.current.fit(b.min, b.max); request(); },
     frameSketch(min, max, plane, insets = { left: 0, right: 0 }) {
       const w = Math.max(1, canvas.current!.clientWidth), h = Math.max(1, canvas.current!.clientHeight);
@@ -642,6 +645,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       onDragOver={e => { if (!e.dataTransfer.types.includes(DRAG_TYPE)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; const l = local(e); propsRef.current.onSpot?.(spotAt(l.x, l.y, l.w, l.h), false); }}
       onDrop={e => { if (!e.dataTransfer.types.includes(DRAG_TYPE)) return; e.preventDefault(); const l = local(e); propsRef.current.onSpot?.(spotAt(l.x, l.y, l.w, l.h), true); }}>
       <canvas ref={canvas} className="vp-canvas" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}
+        onDoubleClick={e => { const p = propsRef.current, r = renderer.current; if (!r || p.sketch || p.placing) return; const { x, y } = local(e), { face, edge } = pickAt(r, x, y), body = face?.body ?? edge?.body; if (body !== undefined) p.onPickBody?.(body); }}
         onWheel={onWheel} onContextMenu={e => e.preventDefault()} aria-label="3D viewport. Right-drag to orbit, middle-drag to pan, wheel to zoom." />
       {overlay()}
       {error && <div className="vp-error" role="alert">{error}</div>}
