@@ -301,6 +301,62 @@ try {
     await iso();
   });
 
+  await check('explicit constraints and dimensions: picked, refused when redundant or conflicting, typed in the viewport', async () => {
+    await page.click('[aria-label="New part"]'); await press('s'); await press('l');
+    const [cx, cy] = await canvasCenter();
+    for (const [dx, dy] of [[-150, -80], [150, -80], [130, 80], [-160, 90], [-150, -80]]) await clickAt(cx + dx, cy + dy);
+    assert.match(await status(), /5 DOF/);
+    // Outline vertices on screen, read from the overlay (a straight outline's ring is its points).
+    const ring = async () => { await page.waitForTimeout(200); return page.evaluate(() => {
+      const r = document.querySelector('.vp-overlay').getBoundingClientRect();
+      return document.querySelector('.vp-overlay polygon.sk-shape:not(.done)').getAttribute('points').trim().split(/\s+/).map(p => { const [x, y] = p.split(',').map(Number); return [x + r.left, y + r.top]; });
+    }); };
+    const pick = async (kind, i, add = false) => {
+      const r = await ring(), a = r[i], b = r[(i + 1) % r.length], [x, y] = kind === 'point' ? a : [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+      if (add) await page.keyboard.down('Shift'); await clickAt(x, y); if (add) await page.keyboard.up('Shift');
+    };
+    const constraints = () => page.locator('.sk-panel [role=list]').innerText();
+    const alert = () => page.locator('.sk-panel [role=alert]').innerText();
+    await press('s'); await pick('edge', 1); await pick('edge', 3, true);
+    assert.match(await page.locator('.cons-sel').innerText(), /edge 2, edge 4/);
+    await page.click('[aria-label="Parallel"]');
+    assert.match(await constraints(), /Parallel\s*edge 2 ∥ edge 4/); assert.match(await status(), /4 DOF/);
+    await pick('edge', 0); await pick('edge', 1, true); await page.click('[aria-label="Perpendicular"]');
+    assert.match(await status(), /3 DOF/);
+    // Edge 4 is parallel to edge 2, which is perpendicular to the horizontal edge 1: vertical is implied.
+    await pick('edge', 3); await page.click('[aria-label="Vertical"]');
+    assert.match(await alert(), /Vertical edge 4 is already implied by the other constraints — adding it would over-define the sketch/);
+    assert.doesNotMatch(await constraints(), /Vertical/);
+    // Dimension tool: an edge opens the inline editor; two points open their distance.
+    await press('d'); await pick('edge', 0);
+    await page.locator('.dim-edit').fill('60'); await page.locator('.dim-edit').press('Enter');
+    assert.equal(await page.inputValue('#sk-len0'), '60'); assert.match(await constraints(), /Length\s*edge 1 = 60/); assert.match(await status(), /2 DOF/);
+    await pick('point', 0); await pick('point', 2);
+    assert.equal(await page.locator('.dim-edit').getAttribute('aria-label'), 'Distance point 1 – point 3');
+    await page.locator('.dim-edit').fill('75'); await page.locator('.dim-edit').press('Enter');
+    assert.match(await constraints(), /Distance\s*point 1 – point 3 = 75/); assert.match(await status(), /1 DOF/);
+    await press('s'); await pick('edge', 2); await page.click('[aria-label="Horizontal"]');
+    assert.match(await status(), /Fully defined/);
+    // Removing the parallel frees edge 4; making it vertical is then no longer redundant.
+    await page.click('[aria-label="Remove Parallel edge 2 ∥ edge 4"]'); assert.match(await status(), /1 DOF/);
+    await pick('edge', 3); await page.click('[aria-label="Vertical"]'); assert.match(await status(), /Fully defined/);
+    await snap('constraints-fully-defined');
+    // Double-click a driving dimension to edit it; the distance holds, so the height follows.
+    const chip = await page.locator('.vp-overlay [data-dim="len0"] rect').boundingBox();
+    await page.mouse.dblclick(chip.x + chip.width / 2, chip.y + chip.height / 2);
+    await page.locator('.dim-edit').fill('50'); await page.locator('.dim-edit').press('Enter');
+    assert.equal(await page.inputValue('#sk-len0'), '50'); assert.equal(await page.inputValue('#sk-len2'), '50');
+    // A dimension that cannot hold is refused and leaves the outline as it was.
+    await press('d'); await pick('edge', 2);
+    await page.locator('.dim-edit').fill('40'); await page.locator('.dim-edit').press('Enter');
+    assert.match(await alert(), /Length of edge 3 = 40: These constraints conflict/); assert.equal(await page.inputValue('#sk-len2'), '50');
+    await press('Enter'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    const pts = (await doc()).nodes[0].points, xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+    assert.ok(Math.abs(Math.max(...xs) - Math.min(...xs) - 50) < 1e-6 && Math.abs(Math.max(...ys) - Math.min(...ys) - Math.sqrt(75 ** 2 - 50 ** 2)) < 1e-4, JSON.stringify(pts));
+    await iso();
+  });
+
   await check('revolve a circle sketch into a torus from the palette', async () => {
     await page.click('[aria-label="New part"]'); await press(' '); await page.locator('.palette input').fill('revolve'); await press('Enter');
     const [cx, cy] = await canvasCenter();
