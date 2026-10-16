@@ -2,25 +2,29 @@ import { planeLabel } from '../sketch/plane';
 import { isConvex } from '../sketch/loops';
 import { useMemo } from 'react';
 import type { SketchAnchor, SketchShape, SketchState } from '../viewport/Viewport';
-import { arcOf, arcPairs, canBeTangent, inferredHV, radiusToBulge, samePair, solveOutline, type ArcPair, type P2 } from '../sketch/profile';
+import { arcOf, arcPairs, canBeTangent, inferredHV, radiusToBulge, samePair, type ArcPair, type P2, type SolveResult } from '../sketch/profile';
+import { isSettled, redundancy, solveShape, type SketchPick } from '../sketch/rules';
+import { ConstraintTools } from './ConstraintTools';
 
 type Polygon = Extract<SketchShape, { kind: 'polygon' }>;
+const NONE: SketchPick[] = [];
 
 /**
  * Numbers drive the profile. Closed outlines are solved by the kernel's numerical sketch solver:
  * point 1 is anchored, drawn H/V edges stay H/V, typed lengths and radii become locked dimensions and
  * tangent joints stay tangent. The app settles every edit (see sketch/settle.ts) and reports `error`.
  */
-export function SketchPanel({ sketch, error, onShape, onPlace }: { sketch: SketchState; error: string | null; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void }) {
+export function SketchPanel({ sketch, error, onShape, onPlace, onUi }: { sketch: SketchState; error: string | null; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void;
+  /** Sets the picked outline entities or the dimension being edited in the viewport. */
+  onUi?(patch: Pick<SketchState, 'picked' | 'editDim'>): void }) {
   const s = sketch.shape;
   const num = (id: string, label: string, value: number, set: (v: number) => void, min?: number) => (
     <label className="field" key={id}><span>{label}</span>
       <span className="num"><input id={'sk-' + id} type="number" step="any" min={min} value={round(value)}
         onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v)) set(v); }} /><em>mm</em></span></label>);
-  const solved = useMemo(() => s?.kind === 'polygon' && s.closed && !s.pending
-    ? solveOutline(s.points as P2[], { lengths: s.lengths, radii: s.radii, tangents: s.tangents, equalRadii: s.equalRadii, concentric: s.concentric }, s.bulges) : null, [s]);
+  const solved = useMemo(() => isSettled(s) ? solveShape(s) : null, [s]);
   const status = statusOf(s, solved);
-  const constraints = s ? inferred(s) : [];
+  const constraints = s && !isSettled(s) ? inferred(s) : [];
 
   const lock = (poly: Polygon, key: 'lengths' | 'radii', i: number, value: number | null) => {
     const next = { ...(poly[key] ?? {}) };
@@ -136,6 +140,8 @@ export function SketchPanel({ sketch, error, onShape, onPlace }: { sketch: Sketc
                 title="Same centre" onClick={() => togglePair(s, 'concentric', pair)}>◎</button></div>;
           })}
         </div></>}
+      {isSettled(s) && <ConstraintTools shape={s} picked={sketch.picked ?? NONE} onShape={onShape}
+        onPicked={picked => onUi?.({ picked })} onEditDim={editDim => onUi?.({ editDim })} />}
       {constraints.length > 0 && <>
         <div className="card-title" style={{ marginTop: 10 }}>CONSTRAINTS · {constraints.length}</div>
         {constraints.map((c, i) => <div className="kv" key={i}>{c.label}<b>{c.detail}</b></div>)}
@@ -145,7 +151,7 @@ export function SketchPanel({ sketch, error, onShape, onPlace }: { sketch: Sketc
   );
 }
 
-function statusOf(s: SketchShape | null, solved: ReturnType<typeof solveOutline> | null): { text: string; warn: boolean } {
+function statusOf(s: SketchShape | null, solved: SolveResult | null): { text: string; warn: boolean } {
   if (!s) return { text: '', warn: false };
   if (s.kind === 'slot') return s.r > 0 ? { text: 'Slot · extrudes as a line + arc solid', warn: false } : { text: 'Click the second centre, then the width', warn: true };
   if (s.kind !== 'polygon') return { text: 'Fully defined · every value is dimensioned', warn: false };
@@ -155,8 +161,10 @@ function statusOf(s: SketchShape | null, solved: ReturnType<typeof solveOutline>
   if (!solved.ok) return { text: solved.reason, warn: true };
   const curved = (s.bulges ?? []).some(Boolean);
   const tail = curved ? ' · line + arc outline' : !isConvex(s.points) ? ' · concave, extrudes as a line + arc solid' : '';
+  const extra = redundancy(solved);
+  if (extra > 0) return { text: `Over-defined · ${extra} redundant constraint${extra > 1 ? 's' : ''} — remove one${tail}`, warn: true };
   return solved.dof === 0 ? { text: 'Fully defined' + tail, warn: false }
-    : { text: `Under-defined · ${solved.dof} DOF left — type edge lengths to lock them${tail}`, warn: true };
+    : { text: `Under-defined · ${solved.dof} DOF left — add dimensions or constraints${tail}`, warn: true };
 }
 
 function inferred(s: SketchShape) {

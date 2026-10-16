@@ -25,6 +25,8 @@ import { downloadBytes, meshToStl } from './ui/files';
 import { settleShape } from './sketch/settle';
 import { boxOnPlane, isDefaultPlane, offsetPlane, planeLabel, planeOfFace, standardPlane, tiltPlane, xyPlane, type SketchPlane } from './sketch/plane';
 import { profileOf, shapeNode } from './sketch/loops';
+import { commitDimension, isSettled } from './sketch/rules';
+import { sketchClick } from './sketch/select';
 
 const TOOLS: { tool: SketchTool; key: string; label: string; icon: string; hint: string }[] = [
   { tool: 'rectangle', key: 'R', label: 'Rectangle', icon: 'rectangle', hint: 'Click two corners' },
@@ -32,6 +34,8 @@ const TOOLS: { tool: SketchTool; key: string; label: string; icon: string; hint:
   { tool: 'polygon', key: 'L', label: 'Line', icon: 'polyline', hint: 'Click points, click the first point to close · A switches to arcs' },
   { tool: 'arc', key: 'A', label: 'Arc', icon: 'line_curve', hint: 'Click the arc end, move to bend it, click to place · L back to lines' },
   { tool: 'slot', key: 'O', label: 'Slot', icon: 'pill', hint: 'Click both centres, then the width' },
+  { tool: 'select', key: 'S', label: 'Select', icon: 'arrow_selector_tool', hint: 'Click points and edges (Shift adds), then constrain them in the panel' },
+  { tool: 'dimension', key: 'D', label: 'Dimension', icon: 'straighten', hint: 'Click an edge, an arc or two points, type the value, Enter · double-click to edit' },
 ];
 /** Floating panels over the viewport while sketching: toolbar on the left, sketch panel on the right (CSS px). */
 const SKETCH_INSETS = { left: 64, right: 272 };
@@ -49,6 +53,9 @@ function sketchRegion(bodies: BodyResult[], plane: SketchPlane): [[number, numbe
 }
 /** Line and arc tools share one open chain; switching between them keeps it. */
 const switchTool = (s: SketchState, tool: SketchTool): SketchState => {
+  // Select and Dimension work on the current outline: it stays.
+  if (tool === 'select' || tool === 'dimension') return { ...s, tool, picked: [], editDim: null, shape: s.shape?.kind === 'polygon' && s.shape.pending ? { ...s.shape, pending: false } : s.shape };
+  s = { ...s, picked: [], editDim: null };
   const chain = s.shape?.kind === 'polygon' && !s.shape.closed && (tool === 'polygon' || tool === 'arc') && (s.tool === 'polygon' || s.tool === 'arc');
   if (chain && s.shape?.kind === 'polygon') return { ...s, tool, shape: { ...s.shape, pending: false } };
   // A closed shape stays in the sketch beside the next one.
@@ -470,7 +477,7 @@ export function App() {
       const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); if (e.shiftKey) doRedo(); else doUndo(); return; }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') { e.preventDefault(); save(); return; }
-      if (e.key === 'Escape') { if (palette) setPalette(false); else if (active || sketch) cancel(); else if (measure) setMeasure(null); else setSelection(emptySel); return; }
+      if (e.key === 'Escape') { if (palette) setPalette(false); else if (sketch && !active && (sketch.picked?.length || sketch.editDim)) setSketch(s => s && { ...s, picked: [], editDim: null }); else if (active || sketch) cancel(); else if (measure) setMeasure(null); else setSelection(emptySel); return; }
       if (e.key === 'Enter' && !palette) { if (sketch) { e.preventDefault(); finishSketch(); } else if (active) { e.preventDefault(); apply(); } return; }
       if (typing || palette) return;
       if (e.key === ' ') { e.preventDefault(); setPalette(true); return; }
@@ -510,6 +517,14 @@ export function App() {
         }); }}
         measureLine={measured && measured.distance > 1e-9 ? { a: measured.a, b: measured.b, label: fmt(Math.round(measured.distance * 100) / 100) + ' mm' } : null}
         onDimClick={key => { const el = document.getElementById('sk-' + key) as HTMLInputElement | null; el?.focus(); el?.select(); }}
+        onSketchPick={(hit, additive) => setSketch(s => s && sketchClick(s, hit, additive))}
+        onDimEdit={editDim => setSketch(s => s && { ...s, editDim })}
+        onDimCommit={(key, value) => {
+          const shape = liveShape.current; setSketch(s => s && { ...s, editDim: null });
+          if (!isSettled(shape)) return;
+          const r = commitDimension(shape, key, value);
+          if (r.ok) updateShape(r.shape); else setSketchError(r.reason);
+        }}
         onContextMenu={(at, hit) => {
           if (active || sketch) return;
           const next: Selection = hit.edge ? { faces: [], edges: [hit.edge], bodies: [] } : hit.face ? { faces: [hit.face], edges: [], bodies: [] } : selection;
@@ -587,7 +602,7 @@ export function App() {
         {!bodies.length && !busy && <div className="empty">No bodies yet. Press <Kbd>S</Kbd> to sketch or <Kbd>B</Kbd> for a box.</div>}
       </aside>
 
-      {sketch && <SketchPanel sketch={sketch} error={sketchError} onShape={updateShape} onPlace={placeSketch} />}
+      {sketch && <SketchPanel sketch={sketch} error={sketchError} onShape={updateShape} onPlace={placeSketch} onUi={patch => setSketch(s => s && { ...s, ...patch })} />}
       {rendering && !sketch && <RenderPanel render={render} available={viewport.current?.backend === 'webgpu'}
         selectedKeys={[...selectedBodies(selection).map(i => bodies[i]?.key).filter((k): k is string => !!k), ...instanceSel.map(id => 'inst:' + id)]}
         onChange={commitRender} onExport={exportImage}
