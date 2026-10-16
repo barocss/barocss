@@ -77,16 +77,41 @@ const DEG = Math.PI / 180;
 export function rotationMatrix(rotation: readonly number[]): Mat3 {
   return matMul(axisAngle([0, 0, 1], rotation[2] * DEG), matMul(axisAngle([0, 1, 0], rotation[1] * DEG), axisAngle([1, 0, 0], rotation[0] * DEG)));
 }
+/**
+ * An instance's rotation as kernel turns, applied in order: X → Y → Z when the X and Y angles are quarter
+ * turns (the kernel turns about X and Y by those only), else the same rotation exactly as Z turns between
+ * quarter turns about X — R = Rz(a) · Rx(−90) · Rz(b) · Rx(90) · Rz(c), since Rx(−90) Rz(b) Rx(90) = Ry(b).
+ */
+export function rotationSteps(rotation: readonly number[]): { axis: 'x' | 'y' | 'z'; angleDegrees: number }[] {
+  const quarter = (v: number) => Math.abs(v / 90 - Math.round(v / 90)) < 1e-12;
+  if (quarter(rotation[0]) && quarter(rotation[1])) return (['x', 'y', 'z'] as const).flatMap((axis, k) => rotation[k] ? [{ axis, angleDegrees: rotation[k] }] : []);
+  const m = rotationMatrix(rotation);
+  // Z–Y–Z angles of R: b from R22, then a and c (b at 0 or 180: one Z turn).
+  const b = Math.acos(Math.max(-1, Math.min(1, m[8]))), sb = Math.sin(b);
+  let a: number, c: number;
+  if (sb > 1e-12) { a = Math.atan2(m[5], m[2]); c = Math.atan2(m[7], -m[6]); }
+  else if (m[8] > 0) { a = Math.atan2(m[3], m[0]); c = 0; }
+  else { a = Math.atan2(-m[3], -m[0]); c = 0; }
+  const deg = (r: number) => clean(r / DEG, 1e-9);
+  return [{ axis: 'z' as const, angleDegrees: deg(c) }, { axis: 'x' as const, angleDegrees: 90 }, { axis: 'z' as const, angleDegrees: deg(b) },
+    { axis: 'x' as const, angleDegrees: 270 }, { axis: 'z' as const, angleDegrees: deg(a) }].filter(s => s.angleDegrees !== 0);
+}
+
 /** Values a hair from a round number are that number (and −0 is 0), so solved placements read cleanly. */
 export const clean = (v: number, step = 1e-9) => { const r = Math.round(v); const x = Math.abs(v - r) < step ? r : v; return x === 0 ? 0 : x; };
+/**
+ * Angles within a micro-degree of a whole degree are that degree: a slanted face's normal is read back from
+ * its surface to about 1e-10, which would otherwise leave 44.99999999745° where the face is at 45°.
+ */
+const ANGLE_SNAP = 1e-6;
 /** The X→Y→Z angles (degrees) of a rotation; at ±90° about Y the X angle is 0. */
 export function eulerOf(m: Mat3): Vec3 {
   const sy = -m[6];
   if (Math.abs(sy) > 1 - 1e-12) {
     const y = sy > 0 ? 90 : -90;
-    return [0, y, clean(Math.atan2(-m[1], m[4]) / DEG)];
+    return [0, y, clean(Math.atan2(-m[1], m[4]) / DEG, ANGLE_SNAP)];
   }
-  return [clean(Math.atan2(m[7], m[8]) / DEG), clean(Math.atan2(sy, Math.hypot(m[7], m[8])) / DEG), clean(Math.atan2(m[3], m[0]) / DEG)];
+  return [clean(Math.atan2(m[7], m[8]) / DEG, ANGLE_SNAP), clean(Math.atan2(sy, Math.hypot(m[7], m[8])) / DEG, ANGLE_SNAP), clean(Math.atan2(m[3], m[0]) / DEG, ANGLE_SNAP)];
 }
 
 /** A face moved by a placement (R, t). */
