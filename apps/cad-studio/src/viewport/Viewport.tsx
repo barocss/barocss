@@ -16,6 +16,7 @@ import { drivingKeys, sketchMarks } from '../ui/SketchMarks';
 import { dragAbout, dragAlong, dragIn, dragPlane, dragScale, dragTurn, GIZMO_PX, hitTest, snapTo, type FeatureHandle, type GizmoHit, type Projector, type TransformGizmo } from './gizmo';
 import { gizmoMarks } from './GizmoMarks';
 import { ViewCube } from './ViewCube';
+import { modelSnaps, nearestSnap, shapeSnaps, type SnapPoint, type SnapShape } from '../sketch/osnap';
 
 /** `select` picks outline points and edges for constraints; `dimension` adds and edits dimensions. */
 export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'slot' | 'select' | 'dimension';
@@ -132,7 +133,18 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     hit?: GizmoHit; from?: [number, number]; last?: [number, number]; turned?: number; delta?: Vec3; degrees?: number; value?: number; start?: number; value2?: number; start2?: number; origin?: Vec3; factor?: number }>({ mode: null, x: 0, y: 0, moved: false });
   /** The gizmo handle under the pointer, drawn brighter. */
   const gizmoHot = useRef<GizmoHit | null>(null);
-  const sketchDraft = useRef<{ cursor: [number, number] | null; hover?: SketchPick | null }>({ cursor: null });
+  const sketchDraft = useRef<{ cursor: [number, number] | null; hover?: SketchPick | null; snap?: SnapPoint | null }>({ cursor: null });
+  /** The model's snap points in the sketch plane (kept while the bodies and the plane stay). */
+  const modelSnapCache = useRef<{ bodies: BodyResult[]; plane: string; points: SnapPoint[] } | null>(null);
+  /** The sketch point for the pointer: an object snap within 8 px (ends, middles, centres, the origin), else the 1 mm grid. */
+  const sketchSnap = (x: number, y: number, w: number, h: number, sk: SketchState, p: [number, number]): { at: [number, number]; snap: SnapPoint | null } => {
+    const key = JSON.stringify(sk.plane), bodies = propsRef.current.bodies;
+    if (!modelSnapCache.current || modelSnapCache.current.bodies !== bodies || modelSnapCache.current.plane !== key) modelSnapCache.current = { bodies, plane: key, points: modelSnaps(bodies.map(b => b.mesh), sk.plane) };
+    const live = liveShape.current as SnapShape | null;
+    const points: SnapPoint[] = [{ at: [0, 0], kind: 'origin' }, ...modelSnapCache.current.points, ...(sk.done ?? []).flatMap(d => shapeSnaps(d as SnapShape)), ...(live ? shapeSnaps(live, drafting.current) : [])];
+    const hit = nearestSnap(points, q => { const v = camera.current.project(toWorld(sk.plane, q), w, h); return [v[0], v[1]]; }, [x, y]);
+    return hit ? { at: [Math.round(hit.at[0] * 1e4) / 1e4, Math.round(hit.at[1] * 1e4) / 1e4], snap: hit } : { at: [snap(p[0]), snap(p[1])], snap: null };
+  };
   /** Plane coordinates of the sketch → canvas pixels. */
   const sketchProject = (plane: SketchPlane) => { const w = canvas.current!.clientWidth, h = canvas.current!.clientHeight; return (u: number, v: number) => camera.current.project(toWorld(plane, [u, v]), w, h); };
   const picking = (sk: SketchState | null) => sk?.tool === 'select' || sk?.tool === 'dimension';
@@ -369,9 +381,9 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       d.mode = 'box'; d.x = x; d.y = y; d.moved = true; request(); return;
     }
     if (sk) {
-      const p = sketchPoint(x, y, w, h, sk.plane);
-      sketchDraft.current.cursor = p ? [snap(p[0]), snap(p[1])] : null;
-      propsRef.current.onCursor(p ? toWorld(sk.plane, [snap(p[0]), snap(p[1])]) : null);
+      const p = sketchPoint(x, y, w, h, sk.plane), at = p && !picking(sk) ? sketchSnap(x, y, w, h, sk, p) : null;
+      sketchDraft.current.cursor = at ? at.at : p ? [snap(p[0]), snap(p[1])] : null; sketchDraft.current.snap = at?.snap ?? null;
+      propsRef.current.onCursor(sketchDraft.current.cursor ? toWorld(sk.plane, sketchDraft.current.cursor) : null);
       const s = liveShape.current; const c = sketchDraft.current.cursor;
       if (picking(sk)) sketchDraft.current.hover = isSettled(s) ? pickSketch(s, sketchProject(sk.plane), x, y, sk.done) : null;
       else if (s && c) {
@@ -417,7 +429,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     const sk = propsRef.current.sketch;
     if (sk) {
       const p = sketchPoint(x, y, w, h, sk.plane); if (!p) return;
-      const c: [number, number] = [snap(p[0]), snap(p[1])];
+      const c: [number, number] = picking(sk) ? [snap(p[0]), snap(p[1])] : sketchSnap(x, y, w, h, sk, p).at;
       const s = liveShape.current;
       if (picking(sk)) { propsRef.current.onSketchPick?.(isSettled(s) ? pickSketch(s, sketchProject(sk.plane), x, y, sk.done) : null, e.shiftKey); return; }
       if (sk.tool === 'rectangle') {
@@ -571,6 +583,14 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       }
       const cur = picking(sk) ? null : sketchDraft.current.cursor;
       if (cur) { const p = P(cur[0], cur[1]); items.push(<g key="cur"><line x1={p[0] - 8} y1={p[1]} x2={p[0] + 8} y2={p[1]} className="sk-cursor" /><line x1={p[0]} y1={p[1] - 8} x2={p[0]} y2={p[1] + 8} className="sk-cursor" /></g>); }
+      // The object snap the pointer is on: its mark (square end, triangle middle, circle centre, diamond quarter) and name.
+      const sn = picking(sk) ? null : sketchDraft.current.snap;
+      if (cur && sn) {
+        const p = P(cur[0], cur[1]), r = 6, mark = sn.kind === 'end' || sn.kind === 'origin' ? <rect x={p[0] - r} y={p[1] - r} width={2 * r} height={2 * r} />
+          : sn.kind === 'mid' ? <polygon points={`${p[0]},${p[1] - r - 1} ${p[0] + r + 1},${p[1] + r} ${p[0] - r - 1},${p[1] + r}`} />
+          : sn.kind === 'centre' ? <circle cx={p[0]} cy={p[1]} r={r} /> : <polygon points={`${p[0]},${p[1] - r - 1} ${p[0] + r + 1},${p[1]} ${p[0]},${p[1] + r + 1} ${p[0] - r - 1},${p[1]}`} />;
+        items.push(<g key="osnap" className="sk-osnap">{mark}<text x={p[0] + 11} y={p[1] - 9}>{({ end: 'End', mid: 'Middle', centre: 'Centre', quadrant: 'Quadrant', origin: 'Origin' } as const)[sn.kind]}</text></g>);
+      }
     }
     const ml = props.measureLine;
     if (ml) {
