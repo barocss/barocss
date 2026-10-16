@@ -13,6 +13,8 @@ import { Hud } from './ui/Hud';
 import { Palette } from './ui/Palette';
 import { ContextMenu } from './ui/ContextMenu';
 import { SketchPanel, isConvex } from './ui/SketchPanel';
+import { RenderPanel } from './ui/RenderPanel';
+import { defaultRender, readRender, type RenderSettings } from './engine/render';
 import { downloadBytes, meshToStl } from './ui/files';
 import { outlineSegments, slotSegments, type P2 } from './sketch/profile';
 import { settleShape } from './sketch/settle';
@@ -61,6 +63,8 @@ export function App() {
   const [active, setActive] = useState<Active | null>(null);
   const [previewBodies, setPreviewBodies] = useState<BodyResult[] | null>(null);
   const [sketch, setSketch] = useState<SketchState | null>(null);
+  /** The Render workspace: the part with its appearances, lights and environment. */
+  const [rendering, setRendering] = useState(false);
   const [sketchError, setSketchError] = useState<string | null>(null);
   // The last shape handed to the sketch, ahead of React's batched re-render (rapid pointer events).
   const liveShape = useRef<SketchShape | null>(null);
@@ -113,7 +117,10 @@ export function App() {
     };
   }, [bodies]);
 
-  const evaluated = useMemo(() => prefixDoc(doc, marker ?? doc.nodes.length), [doc, marker]);
+  // (Render settings do not change the model: only its nodes and parameters re-evaluate it.)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const evaluated = useMemo(() => prefixDoc(doc, marker ?? doc.nodes.length), [doc.nodes, doc.parameters, marker]);
+  const render = useMemo(() => doc.render ?? defaultRender(), [doc.render]);
 
   // Evaluate the accepted document whenever it or the rollback marker changes.
   useEffect(() => {
@@ -137,6 +144,16 @@ export function App() {
     if (!Object.keys(next.outputs).length) { setBodies([]); setSelection(emptySel); }
     if (dropped > 0) setToast({ title: `Removed ${dropped} later feature${dropped > 1 ? 's' : ''}`, hint: 'You added a feature while rolled back. Undo restores them.', detail: '' });
   }, [doc, marker]);
+  /** One undoable change of the render settings (the model and the rollback marker stay). */
+  const commitRender = useCallback((next: RenderSettings) => {
+    setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]);
+    setDoc({ ...doc, render: next }); setDirty(true);
+  }, [doc, marker]);
+  const exportImage = async () => {
+    const png = await viewport.current?.capture();
+    if (png) downloadBytes(new Uint8Array(await png.arrayBuffer()), `${fileName}.png`, 'image/png');
+    else setToast({ title: 'Could not export an image', hint: 'Rendering needs a browser with WebGPU.', detail: '' });
+  };
 
   const cancel = useCallback(() => { setActive(null); setPreviewBodies(null); setSketch(null); }, []);
 
@@ -164,7 +181,7 @@ export function App() {
   }, [active, commit]);
 
   const start = useCallback((cmd: Command) => {
-    setPalette(false);
+    setPalette(false); setRendering(false);
     const avail = cmd.available(ctx);
     if (!avail.ok) { setToast({ title: `${cmd.label} can’t run here`, hint: avail.reason, detail: '' }); return; }
     if (cmd.action === 'sketch') {
@@ -289,7 +306,7 @@ export function App() {
       }
       const parsed = JSON.parse(await file.text()) as StudioDoc;
       if (parsed.format !== 'barocss-cad-model' || !Array.isArray(parsed.nodes)) throw new Error('Not a BaroCSS model file.');
-      commit({ ...parsed, outputs: prefixDoc(parsed, parsed.nodes.length).outputs }); setFileName(file.name.replace(/\.(bcad|json)$/, '')); setDirty(false);
+      commit({ ...parsed, outputs: prefixDoc(parsed, parsed.nodes.length).outputs, ...(parsed.render ? { render: readRender(parsed.render) } : {}) }); setFileName(file.name.replace(/\.(bcad|json)$/, '')); setDirty(false);
       setTimeout(() => viewport.current?.fit(), 300);
     } catch (e) { setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); }
   };
@@ -342,7 +359,7 @@ export function App() {
 
   return (
     <div className="studio">
-      <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo}
+      <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo} render={rendering ? render : null}
         onPick={onPick} onCursor={setCursor} onSketchShape={updateShape}
         onBoxSelect={(picked, additive) => { if (active) return; setSelection(prev => {
           const base = additive ? selectedBodies(prev) : [];
@@ -365,8 +382,9 @@ export function App() {
           {dirty && <span className="dot" aria-label="Unsaved changes" />}</label>
         <div className="grow" />
         <div className="mode" role="group" aria-label="Mode">
-          <button className={!sketch ? 'on' : ''} onClick={() => setSketch(null)}>Model</button>
+          <button className={!sketch && !rendering ? 'on' : ''} onClick={() => { setSketch(null); setRendering(false); }}>Model</button>
           <button className={sketch ? 'on sketching' : ''} onClick={() => start(commands.find(c => c.id === 'sketch')!)}>{sketch ? `Sketch · Z ${sketch.planeZ}` : 'Sketch'}</button>
+          <button className={rendering ? 'on' : ''} onClick={() => { setSketch(null); setActive(null); setMeasure(null); setRendering(true); }}>Render</button>
         </div>
         <div className="grow" />
         {sketch && <button className="finish" onClick={finishSketch}><Icon name="check" />Finish sketch <Kbd>⏎</Kbd></button>}
@@ -380,7 +398,7 @@ export function App() {
         <input ref={fileInput} type="file" accept=".bcad,.json,.step,.stp" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
       </header>
 
-      <nav className="card toolbar" aria-label="Tools">
+      <nav className="card toolbar" aria-label="Tools" hidden={rendering}>
         {sketch ? (<>
           {TOOLS.map(t => (
             <button key={t.tool} className={'tool' + (sketch.tool === t.tool ? ' on' : '')} title={`${t.label} (${t.key})`} aria-label={t.label}
@@ -412,7 +430,12 @@ export function App() {
       </aside>
 
       {sketch && <SketchPanel sketch={sketch} error={sketchError} onShape={updateShape} />}
-      {!sketch && measure && <aside className="card props" aria-label="Measurement">
+      {rendering && !sketch && <RenderPanel render={render} available={viewport.current?.backend === 'webgpu'}
+        selectedKeys={selectedBodies(selection).map(i => bodies[i]?.key).filter((k): k is string => !!k)}
+        onChange={commitRender} onExport={exportImage}
+        onSaveCamera={() => { const c = viewport.current?.getCamera(); if (c) commitRender({ ...render, camera: c }); }}
+        onUseCamera={() => { if (render.camera) viewport.current?.setCamera(render.camera); }} />}
+      {!rendering && !sketch && measure && <aside className="card props" aria-label="Measurement">
         <div className="card-title">MEASURE <button className="tool tiny" aria-label="Done measuring" onClick={() => setMeasure(null)}><Icon name="close" small /></button></div>
         {measure.map((m, k) => { const b = bodies[m.body]; if (!b) return null; const it = measureItem(b.mesh, m); return <div key={k} className="measure-item">
           <div className="kv">{k ? 'To' : 'From'} <b>{it.label}</b></div>
@@ -429,7 +452,7 @@ export function App() {
         </>}
         <div className="empty">{measure.length < 2 ? `Click a face or an edge to measure ${measure.length ? 'to' : 'from'}.` : 'Click again to start over.'} <Kbd>Esc</Kbd> done</div>
       </aside>}
-      {!sketch && !measure && <aside className="card props" aria-label="Selection">
+      {!rendering && !sketch && !measure && <aside className="card props" aria-label="Selection">
         {sel1?.kind === 'face' && sel1.face ? (<>
           <div className="card-title">SELECTION · FACE</div>
           <div className="kv">Type <b>{sel1.face.kind === 'plane' ? 'Planar' : 'Curved'}</b></div>

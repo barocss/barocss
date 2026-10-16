@@ -49,10 +49,10 @@ export const defaultRender = (): RenderSettings => ({
   appearances: {},
   defaultAppearance: { color: '#bfc2c8', metallic: 0, roughness: 0.6, opacity: 1 },
   lights: [
-    { kind: 'directional', direction: [-0.45, 0.35, -1], color: '#ffffff', intensity: 1.6, castShadow: true },
-    { kind: 'directional', direction: [0.7, -0.5, -0.35], color: '#dfe8ff', intensity: 0.45, castShadow: false },
+    { kind: 'directional', direction: [-0.45, 0.35, -1], color: '#ffffff', intensity: 1.15, castShadow: true },
+    { kind: 'directional', direction: [0.7, -0.5, -0.35], color: '#dfe8ff', intensity: 0.4, castShadow: false },
   ],
-  environment: { top: '#3a3f47', bottom: '#15171a', ambient: 0.35, exposure: 1, toneMapping: 'aces', occlusion: true, ground: true, grid: false, edges: false },
+  environment: { top: '#3a3f47', bottom: '#15171a', ambient: 0.6, exposure: 1, toneMapping: 'aces', occlusion: true, ground: true, grid: false, edges: false },
   camera: null,
 });
 

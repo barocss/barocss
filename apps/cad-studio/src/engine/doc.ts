@@ -41,6 +41,8 @@ export type ModelNode = SketchNode
   /** Along `axis` (default z) through the body; `side` is the face it was picked on (default max). */
   | { kind: 'hole'; parent: BodyRef; center: [Dim, Dim]; radius: Dim; axis?: Axis; side?: 'min' | 'max'; depth?: Dim };
 
+import type { RenderSettings } from './render';
+
 export interface StudioDoc {
   format: 'barocss-cad-model';
   schema: 1;
@@ -48,6 +50,8 @@ export interface StudioDoc {
   parameters: Record<string, number>;
   nodes: ModelNode[];
   outputs: Record<string, BodyRef>;
+  /** How the part is rendered (the Render workspace); absent until first rendered. */
+  render?: RenderSettings;
 }
 
 export const emptyDoc = (): StudioDoc => ({ format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} });

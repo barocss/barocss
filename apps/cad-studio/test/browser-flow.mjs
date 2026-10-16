@@ -364,6 +364,31 @@ try {
     assert.equal(await page.locator('.measure-line').count(), 1);
   });
 
+  await check('render a part with an appearance, a light and a saved view', async () => {
+    await page.click('.mode button:text-is("Render")');
+    await page.waitForSelector('[aria-label="Render"]');
+    await page.locator('.outliner .ol').first().click();
+    await page.selectOption('[aria-label="Appearance preset"]', 'brass');
+    await page.click('.render-panel [role="tab"]:text-is("Lights")');
+    await page.click('.render-panel button:text-is("Add point")');
+    await page.click('.render-panel [role="tab"]:text-is("Scene")');
+    await page.click('.render-panel button:text-is("Save this view")');
+    const r = await page.evaluate(() => window.__studioDoc.render);
+    assert.equal(Object.values(r.appearances)[0].color, '#d6b25a');
+    assert.equal(r.lights.at(-1).kind, 'point');
+    assert.ok(r.camera && r.camera.distance > 0);
+    if (renderer === 'webgpu') {
+      const download = page.waitForEvent('download');
+      await page.click('[aria-label="Export image"]');
+      assert.match((await download).suggestedFilename(), /\.png$/);
+    }
+    // Undo takes the saved view back; Model returns to the modelling look.
+    await press('Meta+z');
+    await page.waitForFunction(() => !window.__studioDoc.render?.camera);
+    await page.click('.mode button:text-is("Model")');
+    await page.waitForSelector('[aria-label="Selection"]');
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

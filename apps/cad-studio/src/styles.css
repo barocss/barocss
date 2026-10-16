@@ -186,3 +186,16 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .node-editor .row-actions { display: flex; gap: 6px; }
 .node-editor .num input { padding-right: 28px; -moz-appearance: textfield; }
 .node-editor .num input::-webkit-inner-spin-button, .node-editor .num input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.render-panel .tabs { display: flex; gap: 2px; margin: 0 0 8px; border-bottom: 1px solid var(--line); }
+.render-panel .tabs button { flex: 1; height: 26px; border: 0; background: transparent; color: var(--muted); font: 500 11px var(--sans); cursor: pointer; border-bottom: 2px solid transparent; }
+.render-panel .tabs button.on { color: var(--text); border-bottom-color: var(--accent); }
+.render-section { display: flex; flex-direction: column; gap: 6px; }
+.render-section .light { border-top: 1px solid var(--line); padding-top: 6px; display: flex; flex-direction: column; gap: 4px; }
+.render-section .row-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.render-section input[type="color"] { width: 100%; height: 26px; padding: 0 2px; border: 1px solid #4a4d53; border-radius: 4px; background: var(--bg); }
+.field .slider { display: grid; grid-template-columns: minmax(0, 1fr) 36px; align-items: center; gap: 6px; }
+.field .slider input { height: 18px; padding: 0; accent-color: var(--accent); }
+.field .slider em { font: normal 400 11px var(--mono); color: var(--muted); text-align: right; }
+.field.check-row input { width: 16px; height: 16px; justify-self: start; accent-color: var(--accent); }
+.muted.small { font-size: 11px; }
+.toolbar[hidden] { display: none; }
