@@ -27,13 +27,14 @@ export type ProjectedCurve =
 export interface ProjectedPiece { readonly curve: ProjectedCurve; readonly visible: boolean }
 /**
  * One curve of the view: a B-rep edge (by its persistent name) or a face's silhouette (`<face>~sil<k>`).
- * `ends`: its 3D end points (none for a closed circle); `circle`: a circular edge's exact geometry.
+ * `ends`: its 3D end points (none for a closed circle); `circle`: a circular edge's exact geometry (`sweep`: its angle).
+ * `pieces` is empty when the whole curve lies on visible ink (a hole's rim seen edge-on along the outline).
  */
 export interface ProjectedEdge {
   readonly name: string;
   readonly kind: 'line' | 'circle' | 'curve' | 'silhouette';
   readonly ends: readonly [Point, Point] | null;
-  readonly circle: { readonly center: Point; readonly radius: number; readonly normal: Point; readonly full: boolean } | null;
+  readonly circle: { readonly center: Point; readonly radius: number; readonly normal: Point; readonly full: boolean; readonly sweep: number } | null;
   readonly pieces: readonly ProjectedPiece[];
 }
 /** 2D coordinates are `p·right`, `p·up`; `min`/`max` bound every piece. */
@@ -42,7 +43,8 @@ export interface BrepProjection {
   readonly edges: readonly ProjectedEdge[];
   readonly min: ProjectedXY; readonly max: ProjectedXY;
 }
-export interface HiddenLineOptions { readonly segmentsPerQuarter?: number }
+/** `prefixes`: put before the names of each B-rep's curves (parallel to the B-reps), to tell copies of one part apart. */
+export interface HiddenLineOptions { readonly segmentsPerQuarter?: number; readonly prefixes?: readonly string[] }
 
 type XY = [number, number];
 interface Candidate {
@@ -159,7 +161,7 @@ export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineV
           kind = 'silhouette';
         }
       }
-      const name = (edge.name ?? edge.id) + (kind === 'silhouette' ? '~sil' : ''), c = edge.curve, into = kind === 'silhouette' ? silhouettes : candidates;
+      const name = (options.prefixes?.[bi] ?? '') + (edge.name ?? edge.id) + (kind === 'silhouette' ? '~sil' : ''), c = edge.curve, into = kind === 'silhouette' ? silhouettes : candidates;
       const a = vertex.get(edge.vertices[0])!, b = vertex.get(edge.vertices[1])!;
       if (c.degree === 1 && c.controlPoints.length === 2) {
         const A = c.controlPoints[0] as Point, B = c.controlPoints[1] as Point;
@@ -191,7 +193,7 @@ export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineV
           let k = 0; while (k < ps.length - 2 && ps[k + 1] < s) k++;
           const d = ps[k + 1] - ps[k]; return lerp3(poly[k], poly[k + 1], d > 0 ? Math.min(1, Math.max(0, (s - ps[k]) / d)) : 0);
         };
-        into.push({ name, kind: kind === 'silhouette' ? 'silhouette' : 'circle', ends: full ? null : [a, b], circle: { center: circle.c, radius: circle.r, normal, full }, s0: 0, s1: total, eps: 1e-5 * size, at, probe,
+        into.push({ name, kind: kind === 'silhouette' ? 'silhouette' : 'circle', ends: full ? null : [a, b], circle: { center: circle.c, radius: circle.r, normal, full, sweep: total }, s0: 0, s1: total, eps: 1e-5 * size, at, probe,
           out: (s0, s1) => arcOut(C, U, V, theta(s0), theta(s1)),
           samples: () => steps(0, total, Math.max(Math.ceil(extent * total / h), Math.ceil(total / (Math.PI / 32)))) });
         continue;
@@ -255,7 +257,7 @@ export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineV
       const chains = chainSegments(segs, 1e-7 * size).map(ch => simplify(ch.map(snap), 1e-9 * size)).filter(ch => ch.length >= 2);
       chains.sort((p, q) => { const a = P(p[Math.floor(p.length / 2)]), b = P(q[Math.floor(q.length / 2)]); return a[0] - b[0] || a[1] - b[1]; });
       chains.forEach((ch, k) => {
-        const name = `${face.name ?? face.id}~sil${k}`;
+        const name = `${options.prefixes?.[bi] ?? ''}${face.name ?? face.id}~sil${k}`;
         // A silhouette lies on facets turning edge-on, which their neighbours fold over.
         const eps = 1e-5 * size, own: Own = cyl ? { face: faceIndex, eps: 4 * faceSag[faceIndex] + eps, rho: 0 } : { face: faceIndex, eps: 0, rho: 2.5 * faceSpan[faceIndex] };
         if (ch.length === 2) {
@@ -302,7 +304,7 @@ export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineV
       const sub_ = { ...c, s0, s1, samples: () => c.samples().filter(s => s > s0 && s < s1).concat([s0, s1]).sort((x, y) => x - y) };
       for (const [a, b, off] of intervals(sub_, s => !onInk(c, s), P, minRun)) if (off) pieces.push({ curve: c.out(a, b), visible: false });
     }
-    if (pieces.length) edges.set(c, pieces);
+    edges.set(c, pieces);
   }
 
   const out: ProjectedEdge[] = [];
