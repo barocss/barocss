@@ -645,6 +645,72 @@ try {
     const node = (await doc()).nodes[0];
     return { ok: /Width|Length|60/.test(editor), expected: 'the feature editor offers the sketch’s 60 and 25 (or the sketch can be reopened)', actual: { editor: editor.slice(0, 160), sketchNode: node } };
   });
+
+  // ===================================================================== 2D drawings (merged at 635591fd)
+  const sheetState = () => page.evaluate(() => window.__studioDrawing?.() ?? null);
+  const clickView = async (view, u, v) => { const p = await page.evaluate(([view, u, v]) => window.__studioDrawingAt(view, u, v), [view, u, v]); await page.mouse.move(p.x - 3, p.y); await page.mouse.move(p.x, p.y); await page.mouse.click(p.x, p.y); };
+  const toDrawing = async () => { await page.click('.mode button:text-is("Drawing")'); await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 }); };
+  const toModel = () => page.click('.mode button:text-is("Model")');
+  const hint = () => page.locator('.dw-hint').innerText().catch(() => '');
+  await probe('UD1', '[drawing] starter plate sheet: 1:1, hole hidden twice in front, dimensions 64 and Ø8 by clicks', async () => {
+    await page.goto(url); await page.evaluate(() => localStorage.clear()); await page.reload(); await idle();
+    await toDrawing(); const s0 = await sheetState();
+    await press('d'); await clickView('front', 0, 0); await clickView('front', 64, 0); await clickView('front', 32, -12);
+    await press('o'); await clickView('top', 36, 16); await clickView('top', 52, 40); await page.waitForTimeout(300);
+    const s1 = await sheetState();
+    return { ok: s0.scale === 1 && s0.hidden.front === 2 && JSON.stringify(s1.dimensions.map(d => d.text)) === '["64","Ø8"]', expected: { scale: 1, hiddenFront: 2, dims: ['64', 'Ø8'] }, actual: { scale: s0.scale, hidden: s0.hidden, dims: s1.dimensions } };
+  });
+  await probe('UD2', '[drawing] refusals: same point twice; Ø on a hole seen edge-on (front view); a dimension in the iso view', async () => {
+    await press('Escape'); await press('d'); await clickView('front', 0, 0); await clickView('front', 0, 0); await page.waitForTimeout(200); const same = await hint();
+    await press('Escape'); await press('o'); await clickView('front', 28, 4); await page.waitForTimeout(200); const edgeOn = await hint();
+    await press('Escape'); await press('d'); await clickView('iso', 0, 0); await page.waitForTimeout(200); const iso = await hint(); await press('Escape');
+    const n = (await sheetState()).dimensions.length;
+    return { ok: n === 2 && /point|same|differ/i.test(same) && /round|circle/i.test(edgeOn) && /front, top and right/.test(iso), expected: 'each refused with a reason in the hint; still 2 dimensions', actual: { same, edgeOn, iso, dims: n } };
+  });
+  await probe('UD3', '[drawing] ⌘Z removes the last dimension and stays in Drawing; Delete removes a selected one', async () => {
+    await press('Escape'); await page.evaluate(() => document.activeElement?.blur());
+    await press('Meta+z'); await page.waitForTimeout(500);
+    const afterUndo = { dims: (await sheetState())?.dimensions.length, inDrawing: !!(await page.locator('[aria-label="Drawing sheet"]').count()) };
+    await press('Meta+Shift+z'); await page.waitForTimeout(500);
+    await press('v'); await page.locator('.dw svg [data-dim]').first().click({ force: true }); await page.waitForTimeout(200); await press('Delete'); await page.waitForTimeout(400);
+    const afterDelete = (await sheetState()).dimensions.length;
+    return { ok: afterUndo.dims === 1 && afterUndo.inDrawing && afterDelete === 1, expected: { afterUndo: 1, afterRedoThenDelete: 1 }, actual: { afterUndo, afterDelete } };
+  });
+  await probe('UD4', '[drawing] A3 at 10:1 does not fit → warned; first angle puts the top view below the front', async () => {
+    await page.selectOption('[aria-label="Sheet size"]', 'A3'); await page.selectOption('[aria-label="Scale"]', '10'); await page.waitForTimeout(300);
+    const warn = await page.locator('.dw-panel').innerText();
+    await page.selectOption('[aria-label="Scale"]', 'auto'); await page.selectOption('[aria-label="Projection"]', 'first'); await page.waitForTimeout(300);
+    const pos = await page.evaluate(() => ({ front: window.__studioDrawingAt('front', 0, 0), top: window.__studioDrawingAt('top', 0, 0) }));
+    const st = await sheetState();
+    return { ok: /do not fit/.test(warn) && pos.top.y > pos.front.y && st.scale === 2, expected: { warning: 'views do not fit at 10:1', firstAngle: 'top below front', autoA3: '2:1' }, actual: { warned: /do not fit/.test(warn), frontY: pos.front.y, topY: pos.top.y, scale: st.scale } };
+  });
+  await probe('UD5', '[drawing] title, sheet and dimensions survive Save → Open and an autosave recovery', async () => {
+    await page.fill('[aria-label="Drawing title"]', 'QA bracket'); await press('Enter'); await page.waitForTimeout(300);
+    const before = (await doc()).drawing;
+    const [dl] = await Promise.all([page.waitForEvent('download'), press('Meta+s')]); const f = join(out, 'with-drawing.bcad'); await dl.saveAs(f);
+    await toModel(); await newPart(); await page.locator('input[aria-label="Model file"]').setInputFiles(f); await idle(); await page.waitForTimeout(500);
+    const opened = (await doc()).drawing;
+    await makeBox(5, 5, 5, 200, 0, 0); await page.waitForTimeout(1200); await page.reload();
+    await page.waitForSelector('[aria-label="Recover unsaved work"]', { timeout: 15000 }); await page.click('[aria-label="Recover unsaved work"] button:text-is("Restore")'); await idle();
+    const recovered = (await doc()).drawing;
+    const canon = x => JSON.stringify(x, Object.keys(x ?? {}).concat('id', 'view', 'kind', 'edge', 'near', 'place', 'a', 'b', 'orient', 'at').sort());
+    const same = x => canon(x) === canon(before);
+    return { ok: same(opened) && same(recovered) && before.title === 'QA bracket', expected: 'identical drawing settings after Open and after Restore', actual: { before, openedSame: same(opened), recoveredSame: same(recovered) } };
+  });
+  await probe('UD6', '[drawing] a placed part instance appears on the sheet', async () => {
+    await toModel(); await page.goto(url); await page.evaluate(() => localStorage.clear()); await page.reload(); await idle();
+    await toDrawing(); const before = await page.locator('[aria-label="Drawing sheet"]').innerHTML();
+    await toModel(); await insert(blockFile); await toDrawing(); await page.waitForTimeout(1000);
+    const after = await page.locator('[aria-label="Drawing sheet"]').innerHTML();
+    return { ok: after !== before, expected: 'the block drawn beside the plate', actual: { sheetChanged: after !== before, instances: (await doc()).instances.length } };
+  });
+  await probe('UD7', '[drawing] an empty part says there is nothing to draw', async () => {
+    await toModel(); await newPart(); await page.click('.mode button:text-is("Drawing")'); await page.waitForTimeout(1500);
+    const toast = (await page.locator('.toast[role=alert]').innerText().catch(() => '')).replace(/\s+/g, ' ');
+    const panel = (await page.locator('.dw').innerText().catch(() => '')).replace(/\s+/g, ' ');
+    await page.locator('[aria-label="Dismiss"]').click().catch(() => {}); await toModel();
+    return { ok: /no body/i.test(panel) && !/errors/i.test(toast), expected: '"There is no body to draw." and no toast about model errors', actual: { toast, panel: panel.slice(0, 120) } };
+  });
 } finally {
   writeFileSync(join(out, 'ui-probe.json'), JSON.stringify(rows, null, 2));
   await browser.close(); await server.close();

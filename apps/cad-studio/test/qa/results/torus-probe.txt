@@ -1,0 +1,6 @@
+{"case":"torus ∪ torus turned 45° about Z","result":{"title":"The bodies only touch along an edge or a point","detail":"B-rep: analytic Boolean: the result is not a manifold solid (edge 2 from -4.1421,10,24.6545 to -4.4848,10.8272,24.6645 has 4 uses; the inputs touch along an edg"}}
+{"case":"torus ∪ torus turned 30° about Z","result":{"title":"The bodies only touch along an edge or a point","detail":"B-rep: analytic Boolean: the result is not a manifold solid (edge 2 from -2.6795,10,24.856 to -2.8125,10.4965,24.8662 has 4 uses; the inputs touch along an edge"}}
+{"case":"torus ∪ torus turned 90° about Z","result":{"title":"The bodies only touch along an edge or a point","detail":"B-rep: analytic Boolean: the result is not a manifold solid (edge 2 from -10,10,22.9129 to -10.7469,10.7469,22.6343 has 4 uses; the inputs touch along an edge o"}}
+{"case":"torus ∪ torus turned 180° about Z","result":{"bodies":1,"volume":[29589.670054386308],"single":29608.813203268073}}
+{"case":"circular pattern ×8 of the torus about Z","result":{"title":"The bodies only touch along an edge or a point","detail":"B-rep: analytic Boolean: the result is not a manifold solid (edge 2 from 0.1005,10,24.9998 to 2.4805,11.1721,25.0167 has 3 uses; the inputs touch along an edge "}}
+{"case":"torus ∪ rod through its tube","result":{"bodies":1,"volume":[15297.288012305104]}}

@@ -5,9 +5,11 @@ Tester session on branch `claude/studio-tester-412a82`.
 - First pass: on `1ff129f2`.
 - Second pass: merged with the integration tip `2d9c79bc` (sketch constraints and assembly mates);
   every probe was re-run there.
+- Third pass: merged with `635591fd` (2D drawings, rectangles with constraints, horizontal and
+  vertical point distances); every probe was re-run there.
 
 Every finding below carries an area tag for routing: **[sketch-constraints]**,
-**[assembly-mates]**, **[drawing]** (none found) or **[core]** (everything else).
+**[assembly-mates]**, **[drawing]** or **[core]** (everything else).
 I ran the real app in headless Chrome with WebGPU (`--enable-unsafe-webgpu`; the viewport reported
 `data-renderer="webgpu"`) and checked every result against numbers computed by hand. I did not change
 any product code.
@@ -21,8 +23,10 @@ cd apps/cad-studio
 node test/qa/run-engine-probe.mjs                     # engine-probe.ts
 node test/qa/run-engine-probe.mjs regions-probe.ts    # overlapping shapes in one sketch
 node test/qa/run-engine-probe.mjs detail-probe.ts     # fillet/chamfer sizes, edge-touch union, hole/region classification
-node test/qa/run-engine-probe.mjs constraints-mates-probe.ts   # sketch constraints + mates (35 cases)
-# Real app (Vite on :52044 + Chromium, 60 cases, ~10 min). Optional 2nd arg: a case-id regex, e.g. 'U4|U69'.
+node test/qa/run-engine-probe.mjs constraints-mates-probe.ts   # sketch constraints + mates (42 cases)
+node test/qa/run-engine-probe.mjs drawing-probe.ts              # hidden-line views, layout, dimensions (19 cases)
+node test/qa/run-engine-probe.mjs torus-probe.ts                # overlapping tori (W5)
+# Real app (Vite on :52044 + Chromium, 67 cases, ~15 min). Optional 2nd arg: a case-id regex, e.g. 'U4|U69'.
 PW_DIR=/Users/user/.npm/_npx/e41f203b7505f1fb/node_modules/playwright \
 CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
 node test/qa/ui-probe.mjs /tmp/cad-studio-qa
@@ -31,13 +35,16 @@ node test/qa/ui-probe.mjs /tmp/cad-studio-qa
 The raw outputs of the final run are in `test/qa/results/`. Screenshots for the findings are in
 `test/qa/screenshots/`, named by case id; `results/ui-probe.json` names every case's screenshot.
 
-Final run on `2d9c79bc`:
+Final run on `635591fd`:
 
-- UI: **42/60** cases as expected.
+- UI: **47/67** cases as expected.
 - Engine: **116/126** as expected.
-- Constraints and mates engine probe: **32/35** as expected.
+- Constraints and mates probe: **38/42** as expected.
+- Drawing probe: **19/19** as expected.
 
-All 15 first-pass findings still reproduce on the new tip. The cases that were not
+Every earlier finding still reproduces on this tip.
+
+The only page error in the whole run is the C1 TypeError. The cases that were not
 as expected are the findings below. Where a mismatch came from my own expected value, I fixed the
 probe and did not report it.
 
@@ -51,8 +58,14 @@ number that is a little off where the shape itself is right.
 W1 and C1 are in the sketch *profile* builder (`src/sketch/loops.ts`), not in the constraint code, so
 they are tagged [core]. The sketch-constraints session touches neighbouring files.
 
-The new findings from the second pass (A1–A2, S1–S2, X1) are in the next section; they rank
-between W4 and R1 in severity.
+The later passes' findings are in their own sections below:
+- second pass: A1–A2, S1–S3, X1;
+- third pass: W5, DR1–DR2.
+
+By severity:
+- A1 and W5 rank with the W items;
+- S1, S3 and DR1 rank with the U items;
+- the rest are data or UX notes.
 
 ### W1 [core] — wrong geometry: overlapping shapes in one sketch become a cut or a bump, depending on where the second shape is
 
@@ -334,6 +347,19 @@ Code: `src/sketch/loops.ts` `shapeNode` / `profileOf`, and `src/app/editFields.t
 
 Screenshot: `screenshots/UC3-…jpg`.
 
+### S3 [sketch-constraints] — UX/regression: a rectangle loses its editable Width and Depth once Select or Dimension touches it
+
+Steps: draw a 40×20 rectangle with the Rectangle tool. Press `S` (Select) or `D` (Dimension), even
+without adding anything. Then finish and extrude.
+
+Actual:
+- The sketch is saved as a 4-point `polygon`, not a `rectangle`.
+- The feature editor then offers only Distance, Start Z and Draft.
+- An untouched rectangle offers Width, Depth, Corner X and Corner Y as well (engine K29).
+
+Code: `src/sketch/select.ts` `startPicking` / `rectangleOutline`, together with `shapeNode` in
+`src/sketch/loops.ts`. This compounds S2.
+
 ### X1 [assembly-mates] — information only: interference is not checked
 
 These are accepted without a warning (engine M05, M11). Most CAD tools allow this, so it is listed
@@ -384,6 +410,90 @@ Engine M01–M12 and UI UM1–UM5:
 - **Loops.** Two instances placed by each other are both refused with "It closes a loop" (M08).
 - **Stability.** A solved assembly stays put when solved again (M12).
 - **Flow test.** It covers a grounded part, distance edits, and following a moved fixed part.
+
+---
+
+## Third pass — 2D drawings, rectangle constraints, H/V distances (`635591fd`)
+
+### W5 [core] — wrong refusal: a union of tori that really overlap is refused as "only touch along an edge"
+
+A ring (circle r5 at (30,10), revolved about Y) joined to a copy of itself turned 30°, 45° or 90°
+about Z is refused. The two tubes cross each other with plenty of overlap, yet the refusal says
+**"The bodies only touch along an edge or a point"**. The kernel detail is *analytic Boolean: … edge
+has 4 uses*. A circular pattern ×8 of the ring is refused the same way (`torus-probe.ts`).
+
+This is a failure in the intersection curves of two tori, reported with W3's message, so the advice
+"overlap the bodies" is wrong here.
+
+Related data point (D1 family): joining a torus to a body it does not touch loses volume.
+- Two disjoint tori: 29589.67 mm³ against 2 × 14804.41.
+- Torus + rod: 15297.29 against 15307.06.
+
+That is the same −0.065 % as D1: once a Boolean puts the torus through B-spline faces, its mass is
+approximate.
+
+### DR1 [drawing] — merge gap: part instances are not drawn on the sheet at this tip
+
+Insert `block.bcad` beside the starter plate, then open Drawing. The sheet is byte-identical to
+before; the instance is missing (UD6).
+
+The drawings hand-over (`side-session-notes/…/studio-drawings.md`) lists `a20fedaae` (instances on
+the sheet, centre marks) and `f8123a6a0` on `claude/studio-drawings-cd772f`. **Neither is an
+ancestor of `635591fd`.** At the tip, `App.tsx` passes `doc={evaluated}` without instances, and
+`brepsFor` ignores them.
+
+### DR2 [drawing] — UX: an empty part shows a misleading toast
+
+New part, then Drawing. The panel correctly says "There is no body to draw.", but a toast also pops
+up: **"Could not draw the part · Fix the model’s errors first"**. There are no errors (UD7).
+
+Code: `src/ui/DrawingWorkspace.tsx` raises the error toast for every projection error, including the
+empty case.
+
+### Drawings that work
+
+Engine `drawing-probe.ts` 19/19, plus UI UD1–UD5.
+
+Projection, each checked against coordinates:
+- cylinder silhouettes at x = ±8 and a true R8 circle from the top;
+- open shell: inner walls hidden at x = 2 / 30 and the floor at z = 2;
+- a taller box behind a short one: no hidden lines drawn over visible ink;
+- R4 fillet arc in the side view;
+- torus extents ±35;
+- 30°-tilted extrude extents 21.32 × (−10…6.93);
+- a notch hole hidden only inside the plate;
+- loft circle R5.
+
+Layout and scale:
+- auto scale gives 10:1 for a 0.5 mm cube, 1:20 for 2000 × 1000, 1:100 for a 10 m bar, all fitting;
+- A3 at 10:1 warns "do not fit";
+- first angle puts the top view below the front;
+- A3 auto scale is 2:1.
+
+Dimensions:
+- clicked dimensions read 64 and Ø8;
+- they follow edits to 80 and Ø12, and a hole moved to (10,10);
+- a new Ø4 hole near the old spot does not steal the Ø dimension;
+- a removed hole reports "no longer in the part";
+- refusals have clear hints: "Pick a different point", "Click a circle or an arc", "Dimensions go on
+  the front, top and right views";
+- ⌘Z removes the last dimension and stays in Drawing; Delete removes a selected one.
+
+Export and persistence:
+- SVG and PDF (`%PDF-1.4`) carry the dimension texts;
+- title, sheet, projection and dimensions survive Save → Open and autosave recovery.
+
+Speed: 12 holed plates project in 0.34 s; a torus joined to a rod in about 1 s.
+
+### H/V distances and rectangle constraints that work
+
+Engine K24–K28, K30:
+- a horizontal distance of 55 from point 1 to point 3 widens a rectangle exactly;
+- refused as conflicts: a vertical distance between the ends of a horizontal edge, and a horizontal
+  distance along a vertical edge;
+- refused as implied: edge = 55 after dx = 55;
+- the H distance is listed in the constraint list and removable;
+- after Select, a rectangle with an inner circle keeps the hole.
 
 ---
 
@@ -467,4 +577,4 @@ to 1e-4 relative or better).
 - Inferred constraints beyond what U59 and the closed outline settle.
 - The WebGL2 fallback renderer.
 - Render workspace visuals.
-- 2D drawings ([drawing]): not merged into the tip yet.
+- 2D drawings' second round (instances on the sheet, centre marks): not merged into the tip; see DR1.

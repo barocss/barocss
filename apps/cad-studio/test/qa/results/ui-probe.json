@@ -1128,5 +1128,143 @@
       }
     },
     "screenshot": "test/qa/screenshots/UC3--sketch-constraints-after-finish-the-driving-dimen.jpg"
+  },
+  {
+    "id": "UD1",
+    "name": "[drawing] starter plate sheet: 1:1, hole hidden twice in front, dimensions 64 and Ø8 by clicks",
+    "ok": true,
+    "expected": {
+      "scale": 1,
+      "hiddenFront": 2,
+      "dims": [
+        "64",
+        "Ø8"
+      ]
+    },
+    "actual": {
+      "scale": 1,
+      "hidden": {
+        "front": 2,
+        "top": 0,
+        "right": 2,
+        "iso": 7
+      },
+      "dims": [
+        {
+          "id": "d1",
+          "text": "64",
+          "value": 64
+        },
+        {
+          "id": "d2",
+          "text": "Ø8",
+          "value": 8.000000000000002
+        }
+      ]
+    },
+    "screenshot": "test/qa/screenshots/UD1--drawing-starter-plate-sheet-1-1-hole-hidden-twice.jpg"
+  },
+  {
+    "id": "UD2",
+    "name": "[drawing] refusals: same point twice; Ø on a hole seen edge-on (front view); a dimension in the iso view",
+    "ok": true,
+    "expected": "each refused with a reason in the hint; still 2 dimensions",
+    "actual": {
+      "same": "Pick a different point.\nV D O R tools",
+      "edgeOn": "Click a circle or an arc.\nV D O R tools",
+      "iso": "Dimensions go on the front, top and right views.\nV D O R tools",
+      "dims": 2
+    },
+    "screenshot": "test/qa/screenshots/UD2--drawing-refusals-same-point-twice-on-a-hole-seen-.jpg"
+  },
+  {
+    "id": "UD3",
+    "name": "[drawing] ⌘Z removes the last dimension and stays in Drawing; Delete removes a selected one",
+    "ok": true,
+    "expected": {
+      "afterUndo": 1,
+      "afterRedoThenDelete": 1
+    },
+    "actual": {
+      "afterUndo": {
+        "dims": 1,
+        "inDrawing": true
+      },
+      "afterDelete": 1
+    },
+    "screenshot": "test/qa/screenshots/UD3--drawing-z-removes-the-last-dimension-and-stays-in.jpg"
+  },
+  {
+    "id": "UD4",
+    "name": "[drawing] A3 at 10:1 does not fit → warned; first angle puts the top view below the front",
+    "ok": true,
+    "expected": {
+      "warning": "views do not fit at 10:1",
+      "firstAngle": "top below front",
+      "autoA3": "2:1"
+    },
+    "actual": {
+      "warned": true,
+      "frontY": 288.1940060528983,
+      "topY": 542.1203703703704,
+      "scale": 2
+    },
+    "screenshot": "test/qa/screenshots/UD4--drawing-a3-at-10-1-does-not-fit-warned-first-angl.jpg"
+  },
+  {
+    "id": "UD5",
+    "name": "[drawing] title, sheet and dimensions survive Save → Open and an autosave recovery",
+    "ok": true,
+    "expected": "identical drawing settings after Open and after Restore",
+    "actual": {
+      "before": {
+        "sheet": "A3",
+        "projection": "first",
+        "hidden": true,
+        "dimensions": [
+          {
+            "id": "d2",
+            "view": "top",
+            "kind": "diameter",
+            "edge": "n1.top|n2.side0#2",
+            "near": [
+              32,
+              16,
+              8
+            ],
+            "place": [
+              52.00000217264673,
+              39.99999913995917
+            ]
+          }
+        ],
+        "title": "QA bracket"
+      },
+      "openedSame": true,
+      "recoveredSame": true
+    },
+    "screenshot": "test/qa/screenshots/UD5--drawing-title-sheet-and-dimensions-survive-save-o.jpg"
+  },
+  {
+    "id": "UD6",
+    "name": "[drawing] a placed part instance appears on the sheet",
+    "ok": false,
+    "expected": "the block drawn beside the plate",
+    "actual": {
+      "sheetChanged": false,
+      "instances": 1
+    },
+    "screenshot": "test/qa/screenshots/UD6--drawing-a-placed-part-instance-appears-on-the-she.jpg"
+  },
+  {
+    "id": "UD7",
+    "name": "[drawing] an empty part says there is nothing to draw",
+    "ok": false,
+    "expected": "\"There is no body to draw.\" and no toast about model errors",
+    "actual": {
+      "toast": "info Could not draw the part Fix the model’s errors first, then open the drawing again. Details close",
+      "panel": "arrow_selector_tool straighten radio_button_unchecked line_end_circle fit_screen There is no body to draw. SHEET Size A4"
+    },
+    "screenshot": "test/qa/screenshots/UD7--drawing-an-empty-part-says-there-is-nothing-to-dr.jpg"
   }
 ]

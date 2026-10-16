@@ -10,6 +10,10 @@ import { cylinderPart, emptyDoc, placedDoc, rectanglePart, starterDoc, withNode,
 import { faceTableOf } from '../../src/assembly/faces';
 import { BASE, solveAssembly, type FaceTable, type Mate } from '../../src/assembly/mates';
 import type { P2 } from '../../src/sketch/profile';
+import { startPicking } from '../../src/sketch/select';
+import { xyPlane } from '../../src/sketch/plane';
+import { editFields } from '../../src/app/editFields';
+import type { SketchState } from '../../src/viewport/Viewport';
 
 type Row = { id: string; area: string; name: string; ok: boolean; expected?: unknown; actual?: unknown; note?: string };
 const rows: Row[] = [];
@@ -88,6 +92,37 @@ const SC = '[sketch-constraints]';
   let b: ReturnType<typeof commitDimension> = { ok: true, shape: big, report: null as never };
   for (const k of ['dist0_5', 'dist1_8', 'dist2_9']) if (b.ok) b = commitDimension(b.shape, k, 60);
   push({ id: 'K23', area: SC, name: '14-gon + 3 point distances (past the 16-segment solver limit)', ok: !b.ok && /Too many|too large/.test(b.reason), expected: 'refused with the solver limit', actual: b.ok ? 'accepted' : b.reason });
+}
+
+// ---------------------------------------------- merged at 635591fd: H/V point distances, rectangles take constraints
+{
+  const rect = close([[0, 0], [40, 0], [40, 20], [0, 20]]);
+  const dx = commitDimension(rect, 'dx0_2', 55);
+  push({ id: 'K24', area: SC, name: 'horizontal distance point 1 – point 3 = 55 widens the rectangle', ok: dx.ok && Math.abs(len(dx.shape, 0) - 55) < 1e-9 && Math.abs(len(dx.shape, 1) - 20) < 1e-9, expected: { w: 55, h: 20 }, actual: dx.ok ? { w: len(dx.shape, 0), h: len(dx.shape, 1), dof: dof(dx.shape) } : dx.reason });
+  const dy0 = commitDimension(rect, 'dy0_1', 5);
+  push({ id: 'K25', area: SC, name: 'vertical distance 5 between the two ends of a horizontal edge (conflict)', ok: !dy0.ok, expected: 'refused: conflicts with the horizontal edge', actual: dy0.ok ? { accepted: true, points: dy0.shape.points } : dy0.reason });
+  if (dx.ok) {
+    const both = commitDimension(dx.shape, 'len0', 55);
+    push({ id: 'K26', area: SC, name: 'edge 1 = 55 after dx 1–3 = 55 (implied)', ok: !both.ok && /implied/.test(both.reason), expected: 'refused: implied', actual: both.ok ? 'accepted' : both.reason });
+    const lbl = constraintEntries(dx.shape).map(c => c.label + ' ' + c.detail);
+    push({ id: 'K27', area: SC, name: 'the H distance is listed and removable', ok: lbl.some(l => /^Horizontal distance point 1 – point 3 = 55/.test(l)), actual: lbl });
+  }
+  // Points lined up vertically (x equal): a horizontal distance pulls them apart.
+  const tri = close([[0, 0], [30, 0], [0, 25]]);
+  const apart = commitDimension(tri, 'dx0_2', 12);
+  push({ id: 'K28', area: SC, name: 'H distance 12 between two points on one vertical edge (conflicts with vertical)', ok: !apart.ok, expected: 'refused (the edge is vertical)', actual: apart.ok ? { points: apart.shape.points } : apart.reason });
+  // A rectangle drawn with the Rectangle tool, then Select: becomes an outline; finishing keeps width/depth editable?
+  const sk: SketchState = { plane: xyPlane(), tool: 'rectangle', shape: { kind: 'rectangle', a: [0, 0], b: [40, 20] } } as SketchState;
+  const picked = startPicking(sk, 'select');
+  const p = profileOf([picked.shape!]), node = 'error' in p ? null : p.node;
+  const fields = node ? editFields([node, { kind: 'extrude', sketch: 0, height: 5 }], 1).map(f => f.label) : [];
+  const plain = profileOf([sk.shape!]), plainFields = 'error' in plain ? [] : editFields([plain.node, { kind: 'extrude', sketch: 0, height: 5 }], 1).map(f => f.label);
+  push({ id: 'K29', area: SC, name: 'a rectangle opened with Select still offers Width / Depth in the feature editor after Finish', ok: fields.includes('Width'), expected: plainFields, actual: { profile: node?.profile, fields } });
+  // Select with no current shape brings back the last finished rectangle; the earlier circle stays a hole.
+  const two: SketchState = { plane: xyPlane(), tool: 'circle', shape: null, done: [{ kind: 'rectangle', a: [0, 0], b: [40, 20] }, { kind: 'circle', c: [20, 10], r: 4 }] } as SketchState;
+  const back = startPicking(two, 'select');
+  const prof = profileOf([...(back.done ?? []), ...(back.shape ? [back.shape] : [])]);
+  push({ id: 'K30', area: SC, name: 'Select after rectangle + inner circle: the profile still has the hole', ok: !('error' in prof) && (prof.node.holes?.length ?? 0) === 1, expected: 'rectangle with 1 hole', actual: { shape: back.shape?.kind, done: (back.done ?? []).map(d => d.kind), profile: 'error' in prof ? prof.error : { profile: prof.node.profile, holes: prof.node.holes?.length ?? 0 } } });
 }
 
 // ------------------------------------------------------------------------------------------------ mates
