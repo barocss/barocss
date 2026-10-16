@@ -48,9 +48,9 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
   const [titleDraft, setTitleDraft] = useState<string | null>(null);
   const svg = useRef<SVGSVGElement>(null);
 
-  // Project the part whenever its model changes (the drawing settings do not change the views).
+  // Project the part (and its shown instances) whenever they change; the drawing settings do not change the views.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const model = useMemo(() => doc, [doc.nodes, doc.parameters]);
+  const model = useMemo(() => doc, [doc.nodes, doc.parameters, JSON.stringify((doc.instances ?? []).map(i => [i.id, i.hidden, i.position, i.rotation, i.doc.nodes.length]))]);
   useEffect(() => {
     let live = true; setBusy(true);
     engine.drawing(model).then(r => {
@@ -277,6 +277,7 @@ export function DrawingWorkspace({ engine, doc, settings, fileName, onChange, on
         <label className="field"><span>Projection</span><select aria-label="Projection" value={settings.projection} onChange={e => onChange({ ...settings, projection: e.target.value as 'third' })}>
           <option value="third">Third angle</option><option value="first">First angle</option></select></label>
         <label className="field"><span>Hidden lines</span><input type="checkbox" className="check" aria-label="Hidden lines" checked={settings.hidden} onChange={e => onChange({ ...settings, hidden: e.target.checked })} /></label>
+        <label className="field"><span>Centre lines</span><input type="checkbox" className="check" aria-label="Centre lines" checked={settings.centers !== false} onChange={e => { const { centers: _, ...rest } = settings; onChange(e.target.checked ? rest : { ...rest, centers: false }); }} /></label>
         <label className="field"><span>Title</span><input aria-label="Drawing title" value={titleDraft ?? title} onChange={e => setTitleDraft(e.target.value)}
           onBlur={() => { if (titleDraft !== null) { const { title: _, ...rest } = settings; onChange(titleDraft.trim() && titleDraft.trim() !== fileName ? { ...rest, title: titleDraft.trim() } : rest); setTitleDraft(null); } }}
           onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} /></label>

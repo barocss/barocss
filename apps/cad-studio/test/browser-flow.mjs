@@ -569,6 +569,7 @@ try {
       assert.match(svgFile.suggestedFilename(), /\.svg$/);
       const svg = fs.readFileSync(await svgFile.path(), 'utf8'); fs.writeFileSync(join(out, 'drawing.svg'), svg);
       assert.match(svg, /width="297mm" height="210mm"/); assert.match(svg, /stroke-dasharray/); assert.match(svg, />Ø12<\/text>/); assert.match(svg, />64<\/text>/); assert.match(svg, />1:1<\/text>/);
+      assert.match(svg, /stroke-dasharray="8 1.5 1.5 1.5"/, 'centre lines on the hole');
       const [pdfFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export PDF"]')]);
       const pdf = fs.readFileSync(await pdfFile.path()); fs.writeFileSync(join(out, 'drawing.pdf'), pdf);
       assert.equal(pdf.subarray(0, 8).toString(), '%PDF-1.4');
@@ -760,6 +761,22 @@ try {
     assert.match(await page.locator('.ol.mate.sel').innerText(), /Distance 2/);
     await page.click('[aria-label="Mates"] button:text-is("Delete mate")');
     assert.deepEqual((await mates()).map(m => m.kind), ['coincident']);
+    // An angle between the two side faces turns the copy about Z only (it stays flush on top).
+    await page.click('[aria-label="Mates"] button:text-is("Add mate")');
+    await page.selectOption('[aria-label="Mate type"]', 'angle');
+    await page.fill('[aria-label="Mate angle"]', '30'); await press('Enter');
+    assert.ok(await pickFace(ids[0], 'n1.side0')); assert.ok(await pickFace(ids[1], 'n1.side0'));
+    await page.waitForFunction(() => window.__studioDoc.mates?.length === 2);
+    [br, copy] = await placed();
+    const turn = (a, b) => ((b.r[2] - a.r[2]) % 360 + 540) % 360 - 180;
+    // Facing each other at 0°, so 30° away from that is 150° between the two parts' turns.
+    assert.equal(Math.abs(turn(br, copy)), 150, `${br.r} ${copy.r}`);
+    assert.deepEqual([copy.r[0], copy.r[1], copy.p[2]], [0, 0, 11]);
+    // Turn the fixed bracket: the copy turns with it and keeps the angle.
+    await page.locator('.ol.instance').first().click();
+    await page.fill('[aria-label="Instance Z"] >> nth=1', '90'); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.instances[0].rotation[2] === 90);
+    await page.waitForFunction(t => { const [a, b] = window.__studioDoc.instances; return Math.abs(((b.rotation[2] - a.rotation[2]) % 360 + 540) % 360 - 180 - t) < 1e-9; }, turn(br, copy));
     await page.evaluate(() => document.activeElement?.blur());
   });
 

@@ -98,6 +98,13 @@ test('one body hides another behind it', () => {
   }
 });
 
+test('prefixes tell copies of one part apart', () => {
+  const beside = part([{ id: 'n0', kind: 'sketch', profile: 'circle', center: [20, 0], radius: 5 }, { id: 'n1', kind: 'extrude', sketch: 'n0', height: 10 }]);
+  const pr = projectBrepHiddenLines([...cylinder(), ...beside], FRONT, { prefixes: ['', 'inst1/'] });
+  const own = pr.edges.map(e => e.name).filter(n => !n.startsWith('inst1/')), copy = pr.edges.map(e => e.name).filter(n => n.startsWith('inst1/'));
+  assert.ok(own.length > 0); assert.deepEqual(copy.map(n => n.slice('inst1/'.length)).sort(), [...own].sort(), 'the same names under the prefix');
+});
+
 test('an up direction along the view direction is refused', () => {
   assert.throws(() => projectBrepHiddenLines(cylinder(), { toward: [0, 0, 1], up: [0, 0, 2] }), /parallel/);
 });

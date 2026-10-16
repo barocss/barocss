@@ -5,14 +5,16 @@ import { starterDoc, type StudioDoc } from '../src/engine/doc';
 import { projectViews } from '../src/drawing/project';
 import { layoutSheet, scaleLabel, toSheet } from '../src/drawing/views';
 import { orientFor, resolveDimension, snapPoints } from '../src/drawing/dimensions';
-import { buildSheet } from '../src/drawing/sheet';
+import { buildSheet, type Mark } from '../src/drawing/sheet';
+import { centreMarks } from '../src/drawing/centres';
+import type { PartInstance } from '../src/engine/doc';
 import { arcPath, sheetSvg } from '../src/drawing/svg';
 import { sheetPdf } from '../src/drawing/pdf';
 import { defaultDrawing, readDrawing, type DrawingDimension, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
 
 const viewsOf = (doc: StudioDoc): DrawingViews => {
   const b = brepsFor(doc); assert.ok('breps' in b, JSON.stringify(b));
-  const r = projectViews(b.breps); assert.ok(r.ok, JSON.stringify(!r.ok && r.error)); return r.views;
+  const r = projectViews(b.breps, b.prefixes); assert.ok(r.ok, JSON.stringify(!r.ok && r.error)); return r.views;
 };
 /** The starter plate (64 × 32 × 8, a Ø8 hole at 32, 16) with the hole's radius changed. */
 const plate = (radius = 4): StudioDoc => { const d = starterDoc(); return { ...d, nodes: d.nodes.map(n => n.kind === 'hole' ? { ...n, radius } : n) }; };
@@ -73,8 +75,8 @@ test('dimensions read the model in mm and follow the part when it changes', () =
   // A bigger hole: the same dimensions (persistent edge names) read the new size.
   assert.deepEqual(texts(viewsOf(plate(6.25))), ['64', '8', String(Math.round(Math.hypot(64, 8) * 100) / 100), 'Ø12.5', 'R6.25', '32']);
   // A circle that does not show round, or an edge no longer there, does not resolve.
-  const side = v.front.edges.find(e => e.circle);
-  assert.equal(side, undefined, 'the hole rims lie on the outline in the front view');
+  const side = v.front.edges.filter(e => e.circle);
+  assert.ok(side.length > 0 && side.every(e => e.pieces.length === 0), 'the hole rims lie on the outline in the front view (kept, not drawn)');
   const gone = resolveDimension(v, { ...dia, edge: 'n9.nothing' });
   assert.ok(!gone.ok && /no longer/.test(gone.reason));
 });
@@ -111,7 +113,7 @@ test('the SVG sheet: true size in mm, exact arcs, dashed hidden lines, the title
   assert.equal((svg.match(/data-dim="/g) ?? []).length, 2);
   // Hidden lines off: no dashes in the views.
   const plain = sheetSvg(sheetOf({ ...withDims(), hidden: false }), 'Bracket');
-  assert.doesNotMatch(plain, /stroke-dasharray/);
+  assert.doesNotMatch(plain, /stroke-dasharray="3 1.5"/);
   // A3 is the larger sheet.
   assert.match(sheetSvg(sheetOf({ ...defaultDrawing(), sheet: 'A3' }), 'x'), /width="420mm" height="297mm"/);
 });
@@ -146,4 +148,37 @@ test('drawing settings read back from a file keep what is valid', () => {
   assert.deepEqual({ ...r, dimensions: r.dimensions.map(d => d.id) }, { sheet: 'A3', scale: 0.5, projection: 'first', hidden: false, title: 'Plate', dimensions: ['d1'] });
   assert.equal(readDrawing({ sheet: 'B0', scale: -1 }).sheet, 'A4');
   assert.equal(readDrawing({ scale: -1 }).scale, undefined);
+});
+
+test('centre marks: a cross on the hole seen round, a centreline along it seen from the side, none on a fillet corner', () => {
+  const v = viewsOf(plate()), layout = layoutSheet(v, defaultDrawing());
+  const lines = (id: keyof DrawingViews) => centreMarks(layout.views[id], v[id]).filter((m): m is Extract<Mark, { kind: 'line' }> => m.kind === 'line');
+  const top = lines('top'), c = toSheet(layout.views.top, [32, 16]);
+  assert.equal(top.length, 2);
+  assert.ok(top.every(m => m.pen === 'center'));
+  const h = top.find(m => m.a[1] === m.b[1])!, w = top.find(m => m.a[0] === m.b[0])!;
+  assert.ok(near(h.a[1], c[1]) && near(Math.abs(h.b[0] - h.a[0]), 2 * (4 + 2.5)), 'across the circle and 2.5 mm past it (1:1)');
+  assert.ok(near(w.a[0], c[0]));
+  const front = lines('front'), x = toSheet(layout.views.front, [32, 0])[0];
+  assert.equal(front.length, 1); assert.ok(near(front[0].a[0], x) && near(front[0].b[0], x));
+  assert.ok(near(Math.abs(front[0].b[1] - front[0].a[1]), 8 + 5), 'the plate thickness and 2.5 mm past each face');
+  assert.equal(lines('right').length, 1);
+  // A filleted box: its quarter arcs are no whole circle.
+  const box = starterDoc(); const filleted: StudioDoc = { ...box, nodes: [...box.nodes.slice(0, 2), { kind: 'fillet', parent: { node: 1, side: 'solid' }, edges: ['n1.side0|n1.top'], radius: 3 }] };
+  const fv = viewsOf(filleted), fl = layoutSheet(fv, defaultDrawing());
+  assert.equal(centreMarks(fl.views.right, fv.right).length, 0);
+  // Off by setting.
+  assert.match(sheetSvg(sheetOf(defaultDrawing()), 'x'), /stroke-dasharray="8 1.5 1.5 1.5"/);
+  assert.doesNotMatch(sheetSvg(sheetOf({ ...defaultDrawing(), centers: false }), 'x'), /stroke-dasharray="8 1.5 1.5 1.5"/);
+});
+
+test('placed instances are drawn too, their edges named under the instance id', () => {
+  const part = plate(), inst: PartInstance = { id: 'inst1', name: 'copy', doc: plate(), position: [80, 0, 0], rotation: [0, 0, 0] };
+  const v = viewsOf({ ...part, instances: [inst] });
+  assert.ok(near(v.front.max[0], 144), 'the copy beside the part');
+  assert.ok(v.top.edges.some(e => e.name.startsWith('inst1/')), v.top.edges.map(e => e.name).join(' ')); assert.ok(v.top.edges.some(e => !e.name.includes('/')));
+  const hole = v.top.edges.find(e => e.name.startsWith('inst1/') && e.circle)!;
+  const d: DrawingDimension = { id: 'd1', view: 'top', kind: 'diameter', edge: hole.name, near: [...hole.circle!.center] as [number, number, number], place: [130, 40] };
+  const r = resolveDimension(v, d); assert.ok(r.ok && r.kind === 'diameter', JSON.stringify(r)); assert.equal(r.text, 'Ø8'); assert.ok(near(r.center[0], 112), String(r.center));
+  assert.equal(viewsOf({ ...part, instances: [{ ...inst, hidden: true }] }).front.max[0], 64, 'a hidden instance is left out');
 });

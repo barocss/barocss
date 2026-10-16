@@ -705,7 +705,7 @@ export function App() {
       </aside>}
       </div>
 
-      {drawing && <DrawingWorkspace engine={engine} doc={evaluated} settings={doc.drawing ?? defaultDrawing()} fileName={fileName} onChange={commitDrawing} onToast={setToast} />}
+      {drawing && <DrawingWorkspace engine={engine} doc={{ ...evaluated, instances: doc.instances }} settings={doc.drawing ?? defaultDrawing()} fileName={fileName} onChange={commitDrawing} onToast={setToast} />}
 
       {active && <Hud active={active} onChange={(key, value) => setActive(a => a && { ...a, values: { ...a.values, [key]: value }, preview: 'busy' })} onApply={apply} onCancel={cancel} />}
 
