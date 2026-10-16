@@ -276,3 +276,7 @@ export type { NativePointLightWebGPURequest, NativePointLightWebGPUOptions,
   NativePointLightWebGPUFrameOptions } from './native-point-light-webgpu-frame.js';
 
 export type {QualifiedFacePrimitiveViewportHandoffResult} from './qualified-face-scene-renderer.js';
+
+// The unified WebGPU viewer: one device and canvas context, persistent buffers, on-demand frames,
+// orbit camera, metal–roughness lighting, picking and device-loss recovery.
+export * from './viewer/index.js';

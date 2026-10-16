@@ -1,0 +1,67 @@
+// Lights and the frame block they are packed into with the camera (see Frame in shaders.ts).
+import type { Camera } from './camera.js';
+import { normalize, srgbToLinear, sub, type Mat4, type Vec3 } from './math.js';
+import { FRAME_BYTES, MAX_DIRECTIONAL, MAX_POINT, MAX_SPOT } from './shaders.js';
+
+/** sRGB colour, 0–1 per channel, or a CSS hex string. */
+export type Color = Vec3 | string;
+export interface DirectionalLight { kind: 'directional'; direction: Vec3; color?: Color; intensity?: number }
+export interface PointLight { kind: 'point'; position: Vec3; color?: Color; intensity?: number; /** Zero: no cut-off. */ range?: number }
+export interface SpotLight { kind: 'spot'; position: Vec3; direction: Vec3; color?: Color; intensity?: number; range?: number; /** Degrees from the axis. */ angle?: number; /** 0–1: share of the cone that fades. */ penumbra?: number }
+export type Light = DirectionalLight | PointLight | SpotLight;
+export interface Environment {
+  /** Hemisphere ambient: sky above the up axis, ground below. */
+  sky?: Color; ground?: Color; ambient?: number;
+  exposure?: number;
+  toneMapping?: 'none' | 'aces';
+}
+
+export function parseColor(c: Color | undefined, fallback: Vec3 = [1, 1, 1]): Vec3 {
+  if (c === undefined) return fallback;
+  if (typeof c !== 'string') return c;
+  const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(c.trim());
+  if (!m) throw new RangeError(`Not a hex colour: ${c}`);
+  const h = m[1].length === 3 ? m[1].split('').map(x => x + x).join('') : m[1];
+  return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16) / 255) as unknown as Vec3;
+}
+export const linear = (c: Vec3): Vec3 => [srgbToLinear(c[0]), srgbToLinear(c[1]), srgbToLinear(c[2])];
+
+/** The default rig: a key and a fill light from above and a soft hemisphere (Z up). */
+export const defaultLights = (): Light[] => [
+  { kind: 'directional', direction: [-0.4, 0.6, -1], intensity: 1.1 },
+  { kind: 'directional', direction: [0.6, -0.3, -0.4], intensity: 0.35 },
+];
+
+export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly Light[], env: Environment): Float32Array {
+  const f = new Float32Array(FRAME_BYTES / 4), u = new Uint32Array(f.buffer);
+  f.set(viewProjection, 0);
+  const forward = normalize(sub(camera.target, camera.position));
+  f.set([...camera.position, camera.projection === 'perspective' ? 1 : 0], 16);
+  f.set([...forward, 0], 20);
+  const amb = env.ambient ?? 0.3;
+  f.set([...linear(parseColor(env.sky, [0.85, 0.9, 1])), amb], 24);
+  f.set([...linear(parseColor(env.ground, [0.45, 0.42, 0.4])), amb], 28);
+  f.set([...normalize(camera.up), 0], 32);
+  const dirs = lights.filter((l): l is DirectionalLight => l.kind === 'directional').slice(0, MAX_DIRECTIONAL);
+  const points = lights.filter((l): l is PointLight => l.kind === 'point').slice(0, MAX_POINT);
+  const spots = lights.filter((l): l is SpotLight => l.kind === 'spot').slice(0, MAX_SPOT);
+  u.set([dirs.length, points.length, spots.length, 0], 36);
+  let o = 40;
+  dirs.forEach((l, i) => { f.set([...normalize(l.direction), 0, ...linear(parseColor(l.color)), l.intensity ?? 1], o + i * 8); });
+  o += MAX_DIRECTIONAL * 8;
+  points.forEach((l, i) => { f.set([...l.position, l.range ?? 0, ...linear(parseColor(l.color)), l.intensity ?? 1], o + i * 8); });
+  o += MAX_POINT * 8;
+  spots.forEach((l, i) => {
+    const outer = ((l.angle ?? 30) * Math.PI) / 180, inner = outer * (1 - Math.min(1, Math.max(0, l.penumbra ?? 0.2)));
+    f.set([...l.position, l.range ?? 0, ...normalize(l.direction), 0, ...linear(parseColor(l.color)), l.intensity ?? 1, Math.max(Math.cos(inner), Math.cos(outer) + 1e-4), Math.cos(outer), 0, 0], o + i * 16);
+  });
+  return f;
+}
+
+/** The output block (see Output in shaders.ts). */
+export function packOutput(env: Environment): ArrayBuffer {
+  const b = new ArrayBuffer(16);
+  new Float32Array(b, 0, 1)[0] = env.exposure ?? 1;
+  new Uint32Array(b, 4, 1)[0] = env.toneMapping === 'aces' ? 1 : 0;
+  return b;
+}
