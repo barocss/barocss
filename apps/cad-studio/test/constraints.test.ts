@@ -424,3 +424,22 @@ test('circles are placed from horizontal / vertical edges and from each other', 
   const labels = outlineFields([pr.node], 0, '').map(f => f.label);
   assert.ok(labels.includes('Distance edge 1 – circle 1') && labels.includes('Vertical distance circle 1 – circle 2'), labels.join(', '));
 });
+
+test('a dimension may not push an attached circle across the outline or off it; Finish refuses a crossing one', async () => {
+  const { profileOf } = await import('../src/sketch/loops');
+  const plate = { ...close([[0, 0], [60, 0], [60, 25], [0, 25]]), circles: [{ c: [30, 12] as P2, r: 4 }] };
+  const off = commitDimension(plate, 'cdx0_0', 70);
+  assert.ok(!off.ok && /off the outline/.test(off.reason), JSON.stringify(off));
+  // At x 58 a sample of the Ø8 circle lands exactly on the edge x 60: still an overlap.
+  const across = commitDimension(plate, 'cdx0_0', 58);
+  assert.ok(!across.ok && /across the edge/.test(across.reason), JSON.stringify(across));
+  const grown = commitDimension(plate, 'cdia0', 30);
+  assert.ok(!grown.ok && /across the edge/.test(grown.reason), JSON.stringify(grown));
+  assert.ok(commitDimension(plate, 'cdx0_0', 50).ok, 'still inside');
+  // A circle already across the edge (attached as drawn) is refused when the sketch is finished.
+  const r = profileOf([{ ...plate, circles: [{ c: [58, 12], r: 4 }] }]);
+  assert.ok('error' in r && /overlap/.test(r.error), JSON.stringify(r));
+  // Drawn shapes: a circle across the plate's edge, with a sample exactly on it.
+  const d = profileOf([{ kind: 'rectangle', a: [0, 0], b: [60, 25] }, { kind: 'circle', c: [58, 12], r: 4 }]);
+  assert.ok('error' in d, JSON.stringify(d));
+});

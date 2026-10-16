@@ -5,6 +5,7 @@
 import type { SketchShape } from '../viewport/Viewport';
 import { arcOf, inferredHV, samePair, solveOutline, type ArcPair, type OutlineConstraints, type P2, type SolveReport, type SolveResult } from './profile';
 import { edgeAngle, type SketchRule } from './terms';
+import { circleRelation } from './loops';
 
 export type Polygon = Extract<SketchShape, { kind: 'polygon' }>;
 /**
@@ -51,6 +52,13 @@ export function checkEdit(candidate: Polygon, prev: Polygon | null, what = 'That
   if (prev && redundancy(r) > redundancy(solveShape(prev)))
     return { ok: false, reason: `${what} is already implied by the other constraints — adding it would over-define the sketch` };
   const shape: Polygon = { ...candidate, points: r.points, bulges: r.bulges, ...(candidate.circles ? { circles: candidate.circles.map((c, j) => ({ ...c, c: r.circles[j] ?? c.c })) } : {}) };
+  // An attached circle is a hole (inside) or a boss (outside): an edit must not push it across the edge or off the outline.
+  if (prev) for (const [j, c] of (shape.circles ?? []).entries()) {
+    const before = prev.circles?.[j]; if (!before) continue;
+    const was = circleRelation(prev, before), now = circleRelation(shape, c);
+    if (now === 'crossing' && was !== 'crossing') return { ok: false, reason: `${what} would put circle ${j + 1} across the edge of the outline` };
+    if (was === 'inside' && now === 'outside') return { ok: false, reason: `${what} would move circle ${j + 1} off the outline` };
+  }
   solved.set(shape, r);
   return { ok: true, shape, report: r };
 }

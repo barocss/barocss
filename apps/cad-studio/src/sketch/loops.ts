@@ -78,6 +78,36 @@ export function ringsCross(a: P2[], b: P2[]): boolean {
   return false;
 }
 
+const segDist = (p: P2, a: P2, b: P2) => {
+  const dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy;
+  const t = l2 ? Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l2)) : 0;
+  return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy);
+};
+/** The distance from a point to a closed ring's boundary. */
+export const ringDistance = (p: P2, ring: P2[]) => ring.reduce((d, a, i) => Math.min(d, segDist(p, a, ring[(i + 1) % ring.length])), Infinity);
+
+/**
+ * Whether two closed rings overlap: their edges cross, or one has corners clearly inside and clearly
+ * outside the other (a corner landing exactly on the other's edge is not a proper crossing, so the
+ * crossing test alone misses it). Rings that only touch, or nest, do not overlap.
+ */
+export function ringsOverlap(a: P2[], b: P2[]): boolean {
+  if (ringsCross(a, b)) return true;
+  const mixed = (ring: P2[], of: P2[]) => {
+    let sides = 0;
+    for (const p of of) if (ringDistance(p, ring) > 1e-6) { sides |= inside(p, ring) ? 1 : 2; if (sides === 3) return true; }
+    return false;
+  };
+  return mixed(a, b) || mixed(b, a);
+}
+
+/** Where an attached circle lies against its outline: inside it, outside it, or across its edge. */
+export function circleRelation(s: Extract<SketchShape, { kind: 'polygon' }>, c: { c: [number, number]; r: number }): 'inside' | 'outside' | 'crossing' {
+  const ring = shapeOutline(s);
+  if (ringDistance(c.c, ring) < c.r - 1e-6) return 'crossing';
+  return inside(c.c, ring) ? 'inside' : 'outside';
+}
+
 /** A closed shape's outline, sampled (for drawing and for telling holes from regions). */
 export function shapeOutline(s: SketchShape): P2[] {
   if (s.kind === 'rectangle') return [s.a, [s.b[0], s.a[1]], s.b, [s.a[0], s.b[1]]];
@@ -119,7 +149,7 @@ export function profileOf(shapes: SketchShape[]): { node: SketchNode } | { error
   const rings = closed.map(x => shapeOutline(x.s));
   // Overlapping shapes would silently become a cut or a bump depending on where each starts: refuse them.
   for (let i = 0; i < rings.length; i++) for (let j = i + 1; j < rings.length; j++)
-    if (ringsCross(rings[i], rings[j])) return { error: `Shapes ${i + 1} and ${j + 1} overlap: draw them as one outline, or put one in its own sketch.` };
+    if (ringsOverlap(rings[i], rings[j])) return { error: `Shapes ${i + 1} and ${j + 1} overlap: draw them as one outline, or put one in its own sketch.` };
   const depth = rings.map((ring, i) => rings.filter((other, j) => j !== i && inside(ring[0], other)).length);
   if (depth.some(d => d > 1)) return { error: 'A shape inside a hole is not supported yet: draw it as its own sketch.' };
   const outers = closed.filter((_, i) => depth[i] === 0), holes = closed.filter((_, i) => depth[i] === 1);
