@@ -375,7 +375,7 @@ test('push comparison rejects missing, zero, non-ancestor, forced and wrong-chec
 test('full CI keeps type/lint/build phases and excludes every apps workspace from test execution', () => {
   const rootManifest = { scripts: { check: 'pnpm type-check && pnpm lint && pnpm build:library && pnpm test', test: 'pnpm run -r test' } };
   assert.deepEqual(fullCheckCommands(rootManifest), [
-    ['type-check'], ['lint'], ['build:library'], ['--recursive', '--filter', './apps/**', '--filter', './examples/cad-preview', '--if-present', 'run', 'build'],
+    ['type-check'], ['lint'], ['build:library'], ['--recursive', '--filter', './apps/**', '--if-present', 'run', 'build'],
   ]);
   assert.throws(() => fullCheckCommands({ scripts: { ...rootManifest.scripts, check: rootManifest.scripts.check + ' && extra-gate' } }));
   assert.throws(() => fullCheckCommands({ scripts: { ...rootManifest.scripts, test: 'pnpm run -r test && extra-gate' } }));
@@ -395,7 +395,7 @@ test('affected apps retain compile/lint/build coverage while test commands stay 
 });
 
 test('package and non-app example tests stay out of required CI and docs static checks remain', () => {
-  for (const directory of ['packages/feature', 'packages/barocss-cad', 'examples/cad-preview']) {
+  for (const directory of ['packages/feature', 'packages/barocss-cad']) {
     assert.deepEqual(packageCheckCommands({directory, scripts:checkScripts}).map(([name]) => name), ['type-check', 'lint']);
   }
   assert.deepEqual(docsValidationScripts, ['build', 'check:docs', 'check:api']);
@@ -403,21 +403,21 @@ test('package and non-app example tests stay out of required CI and docs static 
 });
 
 
-test('source-derived output directories cover cad-preview and both VitePress apps', () => {
-  assert.equal(buildOutputDirectory('examples/cad-preview', "build:{outDir:'editor-dist'}"), 'examples/cad-preview/editor-dist');
+test('source-derived output directories cover a Vite outDir and both VitePress apps', () => {
+  assert.equal(buildOutputDirectory('apps/cad-studio', "build:{outDir:'studio-dist'}"), 'apps/cad-studio/studio-dist');
   for (const directory of ['apps/library-docs', 'apps/barocss-docs']) assert.equal(buildOutputDirectory(directory), `${directory}/docs/.vitepress/dist`);
   assert.equal(buildOutputDirectory('apps/barocss-site', 'export default {}'), 'apps/barocss-site/dist');
-  for (const config of ["outDir: '../escape'", 'outDir: computed', "outDir:'a',outDir:'b'"]) assert.throws(() => buildOutputDirectory('examples/cad-preview', config));
+  for (const config of ["outDir: '../escape'", 'outDir: computed', "outDir:'a',outDir:'b'"]) assert.throws(() => buildOutputDirectory('apps/cad-studio', config));
   assert.throws(() => buildOutputDirectory('apps/unknown'));
   const packages = fixtures();
-  packages.push({ ...pkg('@barocss/cad-editor-example', 'examples/cad-preview'), outputDirectory: 'examples/cad-preview/editor-dist' });
-  const plan = createAffectedPlan(input({ packages, changes: [{ status: 'M', path: 'examples/cad-preview/src/entry.ts' }] }));
+  packages.push({ ...pkg('@barocss/cad-studio-app', 'apps/cad-studio'), outputDirectory: 'apps/cad-studio/studio-dist' });
+  const plan = createAffectedPlan(input({ packages, changes: [{ status: 'M', path: 'apps/cad-studio/src/entry.ts' }] }));
   assert.equal(plan.mode, 'packages');
   const manifest = artifact(plan);
-  assert(manifest.directories.includes('examples/cad-preview/editor-dist'));
+  assert(manifest.directories.includes('apps/cad-studio/studio-dist'));
   assert.equal(validateArtifactManifest(manifest, plan), true);
   const wrong = structuredClone(manifest);
-  wrong.directories = wrong.directories.map((p) => p.replace('editor-dist', 'dist'));
+  wrong.directories = wrong.directories.map((p) => p.replace('studio-dist', 'dist'));
   assert.throws(() => validateArtifactManifest(wrong, plan));
 });
 

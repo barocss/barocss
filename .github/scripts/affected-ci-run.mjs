@@ -70,7 +70,7 @@ export function fullCheckCommands(rootManifest, regression = false) {
     || rootManifest.scripts?.test !== 'pnpm run -r test') throw new Error('root check/test contract changed; update CI policy explicitly');
   return [
     ['type-check'], ['lint'], ['build:library'],
-    ['--recursive', '--filter', './apps/**', '--filter', './examples/cad-preview', '--if-present', 'run', 'build'],
+    ['--recursive', '--filter', './apps/**', '--if-present', 'run', 'build'],
     ...(regression ? [['--recursive', '--filter', '!./apps/**', 'run', 'test']] : []),
   ];
 }

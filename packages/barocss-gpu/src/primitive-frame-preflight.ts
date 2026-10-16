@@ -1,8 +1,8 @@
-import { GPUError } from './renderer.js';
-import { prepareCompletePrimitiveFrameData } from './primitive-scene-renderer.js';
+import { GPUError } from './gpu-error.js';
+import { prepareCompletePrimitiveFrameData } from './primitive-scene.js';
 import type {
   PrimitiveSceneEntryV2, PrimitiveSceneFrameV0,
-} from './primitive-scene-renderer.js';
+} from './primitive-scene.js';
 import type { MeshMaterialBinding } from './mesh-material.js';
 import type { MeshSceneBounds } from './mesh-scene-transform.js';
 import type { Vec3 } from './scene.js';

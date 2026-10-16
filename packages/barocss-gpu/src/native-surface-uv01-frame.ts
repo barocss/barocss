@@ -6,7 +6,7 @@ import { lowerNativeSurfaceUV01ProgramWGSL } from './native-surface-uv01-program
 import type { LoweredNativeSurfaceUV01ProgramWGSL } from './native-surface-uv01-program-wgsl.js';
 import { preparePrimitiveSceneFrame } from './primitive-frame-preflight.js';
 import type { PreparedPrimitiveSceneFrame } from './primitive-frame-preflight.js';
-import type { PrimitiveSceneRef } from './primitive-scene-renderer.js';
+import type { PrimitiveSceneRef } from './primitive-scene.js';
 import { validateMeshOptions } from './mesh-packet.js';
 import { prepareSceneTransform } from './mesh-scene-transform.js';
 import type { MeshSceneTransform } from './mesh-scene-transform.js';

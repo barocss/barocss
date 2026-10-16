@@ -577,7 +577,6 @@ producer's 1–4 object limit. Failure returns no partial projection.
 ```js
 import { loadBaroCadDocument, prepareBaroCadDocumentPrimitiveNativeRefsV2 }
   from '@barocss/cad-interop/document';
-import { mountPrimitiveSceneV2 } from '@barocss/gpu';
 
 const result = await loadBaroCadDocument(documentURL);
 const projected = prepareBaroCadDocumentPrimitiveNativeRefsV2(result, {
@@ -590,8 +589,8 @@ const entries = projected.map((entry, index) => {
   const { binding, ...primitive } = entry;
   return { ...primitive, color: colors[index], transform: poses[index] };
 });
-const display = mountPrimitiveSceneV2(canvas, { version: 2, entries }, gpuOptions);
-// Call display.dispose() when finished. The host keeps its canvas and CAD result.
+// Draw the entries with your renderer, or load the whole document into @barocss/viewer:
+// (await createViewer(canvas, options)).loadDocument(result, projectionOptions).
 ```
 
 Each binding retains `documentId`, document revision, body/asset IDs, asset
@@ -605,15 +604,12 @@ host must assert that its authored frame matches this right-handed Y-up GPU
 target, choose the scene's mm scale and supply colors/poses/camera. There is
 no automatic axis mapping, assembly placement, feature evaluation or exact
 pick identity. The neutral package imports no GPU module and creates no
-WebGL resource.
+GPU resource.
 
 `examples/document-gpu-v2-fixture.mjs` generates the actual 3,172-byte
 `document-gpu-v2.cad-document.json` with two source0 assets and six body
-references. `node examples/document-gpu-v2-verify.mjs` checks the compiled
-file, HTTP read, source/ID/revision retention and refusal. The
-`examples/document-gpu-v2.html` Vite example displays four selected bodies
-on one WebGL2 canvas, checks uploaded buffers/pixels, rejected updates and
-owned GPU disposal. Build CAD, GPU and interop before running these examples.
+references; `test/native-capacity.test.mjs` checks its projection.
+`@barocss/viewer`'s `loadDocument` draws such a document.
 
 ### Read authored CAD assemblies over HTTP
 
@@ -2025,14 +2021,9 @@ Each `{ packet, binding }` contains exact `aliasId`, original `modelId`,
 original `surfaceId`, source URL and derived `displaySurfaceId`. The input
 native Models, packets and IDs stay unchanged. Invalid packet/native bindings
 and wider sets reject before any GPU work. This neutral helper does not import
-`@barocss/gpu` or allocate WebGL objects.
-
-`examples/model-set-gpu.html` passes these copies to the existing own GPU
-`mountMeshScene` API. The example supplies the second asset's display
-translation explicitly. The translation is not a native CAD placement or an
-assembly relation. A GPU packet label is not a native identity; resolve it
-through the binding before any native query. Viewer native measurement and
-multi-model adoption remain separate work.
+`@barocss/gpu` or allocate GPU objects. A display translation the host adds is
+not a native CAD placement or an assembly relation. A GPU packet label is not a
+native identity; resolve it through the binding before any native query.
 
 ### Project mixed Surface and Curve sets
 
@@ -2084,7 +2075,6 @@ valid original-ID packet for GPU v2.
 ```js
 import { loadBaroCadModelSet, prepareBaroCadModelSetPrimitiveNativeRefsV2 }
   from '@barocss/cad-interop/model-set';
-import { mountPrimitiveSceneV2 } from '@barocss/gpu';
 
 const set = await loadBaroCadModelSet(manifest, { baseURL: location.href });
 const projected = prepareBaroCadModelSetPrimitiveNativeRefsV2(set);
@@ -2092,8 +2082,8 @@ const entries = projected.map((entry, index) => {
   const { binding, ...native } = entry;
   return { ...native, color: colors[index], transform: placements[index] };
 });
-const display = mountPrimitiveSceneV2(canvas, { version: 2, entries }, gpuOptions);
-// The host owns the canvas and calls display.dispose() when the display ends.
+// Draw the entries with your renderer, or load the set into @barocss/viewer:
+// (await createViewer(canvas, options)).loadModelSet(set).
 ```
 
 The neutral Loader package does not import GPU or choose colors, pose, camera
@@ -2101,18 +2091,9 @@ or scene units. The GPU host supplies an explicit mm-to-scene scale and optional
 per-entry display transform. The refs are caller-scoped display namespaces;
 they do not establish CAD assembly placement, document revision, topology or
 exact picking. A failed projection returns no partial array and does not
-mutate the prior set. A failed GPU update retains its prior accepted scene.
-The host owns the GPU handle and releases its resources through `dispose()`;
-neutral copies use ordinary CPU memory.
-
-`examples/model-set-gpu-v2.html` loads two source0 files with the same native
-Model name, wide Curve ID and Surface ID through local HTTP. It first checks
-GPU v1's duplicate-ID refusal, then displays both Curves and Surfaces with
-public GPU v2 on one WebGL2 canvas. It checks actual uploaded positions,
-visible colors, retained pixels after bad refs and GPU resource disposal.
-After building CAD, GPU and this package, run the example through this
-package's Vite browser server. `node examples/model-set-gpu-v2-verify.mjs`
-checks the neutral projection over local HTTP without creating GPU resources.
+mutate the prior set; neutral copies use ordinary CPU memory.
+`examples/model-set-gpu-v2-a.barocad` and `-b.barocad` are two source0 files
+with the same native Model name, wide Curve ID and Surface ID.
 
 ## CAD Surface operation consumer in Three.js
 

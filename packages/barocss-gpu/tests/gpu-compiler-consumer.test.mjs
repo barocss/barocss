@@ -28,15 +28,15 @@ test('packed own compiler/IR and writable execution buffers work without source 
     await writeFile(path.join(scratch, 'package.json'), JSON.stringify({ private: true, type: 'module' }));
     await writeFile(path.join(scratch, 'consumer.mjs'), `
 import assert from 'node:assert/strict';
-import { parseScene, compileScene, mountScene, mountMesh, validatePreviewPacket, prepareMesh, compileGpu } from '@barocss/gpu';
+import { parseScene, compileScene, createViewer, showScene, validatePreviewPacket, prepareMesh, compileGpu } from '@barocss/gpu';
 const source = '@scene consumer { version: 0; sphere #orb; } sphere { color: #ff0000; radius: 1; }';
 const scene = parseScene(source);
 const shader = compileScene(scene);
 assert.match(shader.vertex, /#version 300 es/);
 assert.match(shader.fragment, /#version 300 es/);
 const sdf = compileGpu({kind:'scene',source});assert(sdf.ok);assert.equal(sdf.ir.pipeline,'sdf');assert.deepEqual(sdf.execution.shaders,shader);assert.equal(sdf.ast.name.text,'consumer');
-assert.equal(typeof mountScene, 'function');
-assert.equal(typeof mountMesh, 'function');
+assert.equal(typeof createViewer, 'function');
+assert.equal(typeof showScene, 'function');
 const literal = ${JSON.stringify(literal)};
 assert.deepEqual(validatePreviewPacket(literal), literal);
 const options = { mmToSceneUnit: .25, translate: [-1.125,-1.5,-.5], color: [1,.2,.1], background: [.04,.08,.12] };
@@ -61,7 +61,7 @@ console.log('Packed ESM consumer passed');
     const run = await exec(process.execPath, ['consumer.mjs'], { cwd: scratch, timeout: 30_000 });
     assert.match(run.stdout, /Packed ESM consumer passed/);
     await writeFile(path.join(scratch, 'consumer.ts'), `
-import { parseScene, compileScene, mountScene, mountMesh, validatePreviewPacket, prepareMesh, compileGpu } from '@barocss/gpu';
+import { parseScene, compileScene, createViewer, showScene, validatePreviewPacket, prepareMesh, compileGpu } from '@barocss/gpu';
 const scene = parseScene('@scene types { version: 0; }');
 const compiled = compileGpu({kind:'scene',source:'@scene typed {version:0;}'});
 if(compiled.ok){const version:1=compiled.ir.schemaVersion;void version;if(compiled.execution.kind==='sdf'){const fragment:string=compiled.execution.shaders.fragment;void fragment;}}
@@ -69,33 +69,26 @@ if(compiled.ok){const version:1=compiled.ir.schemaVersion;void version;if(compil
 compileGpu({kind:'ir',ir:{}});
 const shader: { vertex: string; fragment: string } = compileScene(scene);
 declare const canvas: HTMLCanvasElement;
-const renderer = mountScene(canvas, '@scene types { version: 0; }');
-const result = renderer.update('@scene updated { version: 0; }');
-if (!result.ok) { const failure: Error = result.error; void failure; }
-const bytes: Uint8Array = renderer.readPixels();
-renderer.resize(320, 240);
-renderer.dispose();
+const viewer = await createViewer(canvas, { background: '#102030' });
+const view = showScene(viewer, '@scene types { version: 0; }');
+const result = view.update('@scene updated { version: 0; }');
+if (!result.ok) { const diagnostics: unknown[] = result.diagnostics; void diagnostics; }
+const shot: { width: number; height: number; data: Uint8Array } = await viewer.capture();
+const bytes: Uint8Array = shot.data;
+viewer.setSize(320, 240);
 // @ts-expect-error source is a string, not executable arbitrary input
 parseScene({ code: 'alert(1)' });
 // @ts-expect-error canvas is required
-mountScene('canvas', 'scene');
+createViewer('canvas');
 const packet = { version: 0 as const, surfaceId: 'patch', revision: 0, lengthUnit: 'mm' as const, coordinateSystem: 'right-handed-y-up' as const, winding: 'ccw' as const, positions: [-1,-1,0,-1,1,0,1,-1,0,1,1,0], normals: [0,0,1,0,0,1,0,0,1,0,0,1], indices: [0,2,1,2,3,1], parameters: [0,0,0,1,1,0,1,1], bounds: { min: [-1,-1,0] as [number,number,number], max: [1,1,0] as [number,number,number] } };
 const options = { mmToSceneUnit: 1, translate: [0,0,0] as [number,number,number], color: [1,0,0] as [number,number,number], background: [0,0,0] as [number,number,number] };
-const mesh = mountMesh(canvas, packet, options);
-const revision: number = mesh.revision;
-const accepted = mesh.packet;
-const updated = mesh.update(packet, options);
-if (!updated.ok) { const error: Error = updated.error; void error; }
-const cameraOptions = { ...options, camera: { eye: [4,3,6] as [number,number,number], target: [0,0,0] as [number,number,number], up: [0,1,0] as [number,number,number], fovYDegrees: 45, near: .01, far: 100 } };
-mesh.update(packet, cameraOptions);
-// @ts-expect-error camera optics must all be explicit
-mesh.update(packet, { ...options, camera: { eye: [0,0,6] } });
-mesh.resize(64,64);
-const pixels: Uint8Array = mesh.readPixels();
-mesh.dispose();
-// @ts-expect-error explicit scale and placement are required
-mountMesh(canvas, packet);
-void [shader, bytes, revision, accepted, pixels];
+const prepared = prepareMesh(packet, options);
+const mesh = viewer.add({ positions: prepared.positions, normals: prepared.normals, indices: prepared.indices }, { material: { color: options.color } });
+mesh.remove();
+// @ts-expect-error a geometry needs positions
+viewer.add({ normals: [0, 0, 1] });
+view.dispose(); viewer.dispose();
+void [shader, bytes];
 `);
     await writeFile(path.join(scratch, 'tsconfig.json'), JSON.stringify({ compilerOptions: {
       strict: true, noEmit: true, target: 'ES2022', module: 'NodeNext', moduleResolution: 'NodeNext',

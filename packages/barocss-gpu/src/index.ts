@@ -2,12 +2,11 @@ export { parseScene, SceneError } from './scene.js';
 export type { Scene, Scene1, SceneObject, SceneObject1, RotatedSceneObject, CylinderSceneObject, CapsuleSceneObject, RoundedBoxSceneObject, TorusSceneObject, AnyScene, SceneSourceOptions, RGB, Vec3 } from './scene.js';
 export { compileScene, GPU_LIMITS } from './compiler.js';
 export type { SceneShaders } from './compiler.js';
-export { mountScene, SceneRenderer, GPUError } from './renderer.js';
-export type { UpdateResult } from './renderer.js';
+export { GPUError } from './gpu-error.js';
+export type { UpdateResult } from './gpu-error.js';
 export { validatePreviewPacket, validateMeshOptions, prepareMesh } from './mesh-packet.js';
 export type { PreviewPacket, MeshOptions } from './mesh-packet.js';
 export type {MeshLighting} from './mesh-lighting.js';
-export { mountMesh, MeshRenderer } from './mesh-renderer.js';
 export type { MeshEdgeOverlay } from './edge-overlay.js';
 export { validateMeshCamera, prepareCamera } from './camera.js';
 export type { MeshCamera } from './camera.js';
@@ -20,16 +19,13 @@ export type {MeshFaceHighlight} from './face-highlight.js';
 
 export type {MeshObjectHighlight} from './object-highlight.js';
 
-export { mountMeshViewport, MeshViewport } from './mesh-viewport.js';
-export type { MeshViewportState, MeshViewportSelection } from './mesh-viewport.js';
 
 export {prepareKernelFacePreview,resolveKernelFaceReference} from './kernel-face-preview.js';
 export type {KernelFaceContext,KernelNormalSource,KernelFaceReference,KernelFaceBinding,KernelFacePreview,KernelFacePreviewOptions} from './kernel-face-preview.js';
 
-export {mountMeshScene,MeshSceneRenderer} from './mesh-scene-renderer.js';
-export type {MeshSceneEntry,MeshSceneOptions,MeshSceneTransform,MeshSceneBounds} from './mesh-scene-renderer.js';
-export {mountPrimitiveViewport,PrimitiveViewport,mountPrimitiveScene,PrimitiveSceneRenderer,mountPrimitiveSceneV1,PrimitiveSceneRendererV1,mountPrimitiveSceneV2,PrimitiveSceneRendererV2} from './primitive-scene-renderer.js';
-export type {PrimitiveSceneEntry,PrimitiveSceneOptions,PrimitiveSceneEntryV1,PrimitiveSceneInputV1,PrimitiveSceneRef,PrimitiveSceneMaterial,PrimitiveSceneFrameV0,PrimitiveSceneFrameV1,PrimitiveSceneEntryV2,PrimitiveSceneInputV2} from './primitive-scene-renderer.js';
+export type {MeshSceneOptions} from './primitive-scene.js';
+export type {MeshSceneTransform,MeshSceneBounds} from './mesh-scene-transform.js';
+export type {PrimitiveSceneEntry,PrimitiveSceneOptions,PrimitiveSceneEntryV1,PrimitiveSceneInputV1,PrimitiveSceneRef,PrimitiveSceneMaterial,PrimitiveSceneFrameV0,PrimitiveSceneFrameV1,PrimitiveSceneEntryV2,PrimitiveSceneInputV2} from './primitive-scene.js';
 export {compileMeshMaterial,validateMeshMaterialIR,validateMeshMaterialBinding,lowerMeshMaterial,MeshMaterialError} from './mesh-material.js';
 export type {MeshMaterialCode,MeshMaterialDiagnostic,MeshMaterialUniform,MeshMaterialExpression,MeshMaterialIR,MeshMaterialBinding,LoweredMeshMaterial} from './mesh-material.js';
 export {compileEngineUVMaterial,validateEngineUVMaterialIR,lowerEngineUVMaterial} from './mesh-material.js';
@@ -44,10 +40,7 @@ export type {CoplanarBooleanBufferOptions,PreparedCoplanarBooleanBuffers} from '
 export {prepareBooleanShellBuffers} from './boolean-shell-buffers.js';
 export type {PreparedBooleanShellBuffers} from './boolean-shell-buffers.js';
 
-export {mountBooleanShell,BooleanShellRenderer} from './boolean-shell-renderer.js';
-export type {BooleanShellOptions,BooleanShellResourceCounts} from './boolean-shell-renderer.js';
 
-export {mountBooleanShellScene,BooleanShellSceneRenderer} from './boolean-shell-scene-renderer.js';
 export type {BooleanShellSceneInputV0,BooleanShellSceneEntry,BooleanShellLeafRef,BooleanShellSceneOptions} from './boolean-shell-scene-input.js';
 
 export {prepareUniformCurvePreview,validateUniformCurvePreview,UniformCurvePreviewError} from './uniform-curve-preview.js';
@@ -57,11 +50,9 @@ export type {SelectedUniformCurvePreview,SelectedUniformCurvePreviewInput} from 
 
 export {prepareMixedDepthFrame,resolveMixedDepthFrame,MixedDepthError} from './mixed-depth-frame.js';
 export type {MixedDepthFrameV0,MixedDepthSurfaceV0,MixedDepthDiagnosticCode} from './mixed-depth-frame.js';
-export {mountMixedDepthScene,MixedDepthRenderer} from './mixed-depth-renderer.js';
 
 export {prepareQualifiedFaceScene,resolveQualifiedFaceScene,QualifiedFaceSceneError} from './qualified-face-scene.js';
 export type {QualifiedFaceSceneV0,QualifiedFaceAssetV0,QualifiedFaceSceneDiagnosticCode} from './qualified-face-scene.js';
-export {mountQualifiedFaceScene,QualifiedFaceSceneRenderer,handoffQualifiedFaceToPrimitiveViewport} from './qualified-face-scene-renderer.js';
 
 export {prepareAxisBoxBooleanBuffers,AxisBoxBooleanBufferError} from './axis-box-boolean-buffers.js';
 export type {AxisBoxBooleanBufferOptions,PreparedAxisBoxBooleanBuffers,AxisBoxBooleanPanelRange,AxisBoxBooleanBufferDiagnosticCode} from './axis-box-boolean-buffers.js';
@@ -126,7 +117,6 @@ export type {SourceSceneBoundsRequest,SourceSceneBoundsBox,SourceSceneObjectBoun
 export { evaluateAuthoredMaterial, AuthoredMaterialEvaluationError, AuthoredMaterialEvaluationDiagnosticCode } from './material-evaluation.js';
 export type { AuthoredMaterialRequest, AuthoredMaterialSample } from './material-evaluation.js';
 
-export { PrimitiveSceneRecoveryError } from './primitive-scene-renderer.js';
 
 export { prepareBoxGeometry } from './box-geometry.js';
 export type { BoxGeometrySourceV0, PreparedBoxGeometry } from './box-geometry.js';
@@ -140,7 +130,6 @@ export type { SphereGeometrySourceV0, PreparedSphereGeometry } from './sphere-ge
 export { preparePrimitiveSceneFrame } from './primitive-frame-preflight.js';
 export type { PrimitiveSceneFrameProfile, PrimitiveSceneCpuFrameV0, PreparedPrimitiveSceneFrameEntry, PreparedPrimitiveSceneFrame } from './primitive-frame-preflight.js';
 
-export { mountPrimitiveSceneFrame, mountPrimitiveViewportFrame } from './primitive-scene-renderer.js';
 
 export { prepareTorusGeometry } from './torus-geometry.js';
 export type { TorusGeometrySourceV0, PreparedTorusGeometry } from './torus-geometry.js';
@@ -166,8 +155,6 @@ export type {NativeSurfaceUV01GeometryRequest,PreparedNativeSurfaceUV01Geometry,
 export {prepareNativeSurfaceUV01MaterialBinding,NativeSurfaceUV01BindingError} from './native-surface-uv01-binding.js';
 export type {NativeSurfaceUV01BindingRequest,PreparedNativeSurfaceUV01Binding,NativeSurfaceUV01BindingCode} from './native-surface-uv01-binding.js';
 
-export {prepareNativeSurfaceUV01ShaderSource,NativeSurfaceUV01ShaderSourceError} from './native-surface-uv01-shader-source.js';
-export type {NativeSurfaceUV01ShaderSourceRequest,PreparedNativeSurfaceUV01ShaderSource,NativeSurfaceUV01ShaderSourceCode} from './native-surface-uv01-shader-source.js';
 
 export {compileParameterizedAffineSceneSource,SceneParameterSourceError} from './scene-parameter-source.js';
 export type {SceneParameterCode,SceneParameterDiagnostic,SceneParameterDeclaration,ParameterizedAffineSceneAst,SceneParameter,CompiledParameterizedAffineSceneSource} from './scene-parameter-source.js';
@@ -184,8 +171,6 @@ export type { NativeDirectionalLightV0, NativeDirectionalLightsV0, NativeDirecti
 export { compileFiniteRepeatAffineSceneSource } from './scene-finite-repeat-source.js';
 export type { SceneRepeatDeclaration, SceneGenerationRecord, FiniteRepeatAffineSceneAst, CompiledFiniteRepeatAffineSceneSource } from './scene-finite-repeat-source.js';
 
-export { prepareNativeDirectionalLightShaderSource, DirectionalLightShaderSourceError } from './native-directional-light-shader-source.js';
-export type { DirectionalLightShaderSourceCode, DirectionalLightShaderSlot, DirectionalLightShaderExecutionLight, DirectionalLightShaderExecution, DirectionalLightShaderABI, PreparedDirectionalLightShaderSource } from './native-directional-light-shader-source.js';
 
 export { compileConditionalAffineSceneSource } from './scene-conditional-source.js';
 export type { SceneConditionalDeclaration, SceneConditionalDecision, ConditionalAffineSceneAst, CompiledConditionalAffineSceneSource } from './scene-conditional-source.js';
@@ -232,13 +217,10 @@ export { prepareNativeSurfaceUV01Frame, NativeSurfaceUV01FrameError, NativeSurfa
 export type { NativeSurfaceUV01FrameRequest, NativeSurfaceUV01FrameEntry, NativeSurfaceUV01FrameOptions, NativeSurfaceUV01FrameDraw, NativeSurfaceUV01FrameResources, PreparedNativeSurfaceUV01Frame } from './native-surface-uv01-frame.js';
 
 // Explicit required-WebGPU viewport for source-derived native Surface UV01 requests.
-export { mountNativeSurfaceUV01WebGPUViewport, NativeSurfaceUV01WebGPUError, NativeSurfaceUV01WebGPUDiagnosticCode } from './native-surface-uv01-webgpu-viewport.js';
-export type { NativeSurfaceUV01WebGPUViewport, NativeSurfaceUV01WebGPUOptions, NativeSurfaceUV01WebGPUStatus, NativeSurfaceUV01WebGPULimits, NativeSurfaceUV01WebGPUPick } from './native-surface-uv01-webgpu-viewport.js';
 
 export { prepareNativeDirectionalLightProgramWGSL, NativeDirectionalLightProgramWGSLError } from './native-directional-light-program-wgsl.js';
 export type { NativeDirectionalLightProgramWGSLCode, NativeDirectionalLightProgramWGSLRequest, NativeDirectionalLightProgramWGSLSlot, NativeDirectionalLightProgramWGSLExecution, NativeDirectionalLightProgramWGSLABI, NativeDirectionalLightProgramWGSLProgram, NativeDirectionalLightProgramWGSLUniforms, PreparedNativeDirectionalLightProgramWGSL } from './native-directional-light-program-wgsl.js';
 
-export { mountNativeDirectionalLightWebGPUViewport } from './native-directional-light-webgpu-viewport.js';
 export { NativeDirectionalLightWebGPUError, NativeDirectionalLightWebGPUDiagnosticCode } from './native-directional-light-webgpu-frame.js';
 export type { NativeDirectionalLightWebGPURequest, NativeDirectionalLightWebGPUOptions,
   NativeDirectionalLightWebGPUViewport, NativeDirectionalLightWebGPUStatus, NativeDirectionalLightWebGPULimits,
@@ -253,14 +235,12 @@ export { prepareNativePointLightProgramWGSL, NativePointLightProgramWGSLError } 
 export type { NativePointLightProgramWGSLCode, NativePointLightProgramWGSLRequest, NativePointLightProgramWGSLSlot, NativePointLightProgramWGSLExecution, NativePointLightProgramWGSLABI, NativePointLightProgramWGSLProgram, NativePointLightProgramWGSLUniforms, PreparedNativePointLightProgramWGSL } from './native-point-light-program-wgsl.js';
 
 // Explicit required-WebGPU runtime for world-scene native point lights (#1584).
-export { mountNativePointLightWebGPUViewport } from './native-point-light-webgpu-viewport.js';
 export { NativePointLightWebGPUError, NativePointLightWebGPUDiagnosticCode } from './native-point-light-webgpu-frame.js';
 export type { NativePointLightWebGPURequest, NativePointLightWebGPUOptions,
   NativePointLightWebGPUViewport, NativePointLightWebGPUStatus, NativePointLightWebGPULimits,
   NativePointLightWebGPUResources, NativePointLightWebGPUPick,
   NativePointLightWebGPUFrameOptions } from './native-point-light-webgpu-frame.js';
 
-export type {QualifiedFacePrimitiveViewportHandoffResult} from './qualified-face-scene-renderer.js';
 
 // The unified WebGPU viewer: one device and canvas context, persistent buffers, on-demand frames,
 // orbit camera, metal–roughness lighting, picking and device-loss recovery.

@@ -1,4 +1,4 @@
-import {GPUError} from './renderer.js';
+import {GPUError} from './gpu-error.js';
 
 /** Host-tagged display data. Positions are scene units, not CAD mm or Physics metres. */
 export interface ParticleLayerV0 {

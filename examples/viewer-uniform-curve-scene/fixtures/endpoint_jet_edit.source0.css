@@ -1,1 +1,0 @@
-@model profile { version:0; length-unit:mm; @curve #endpoint_jet_edit { type:nurbs; degree:5; knots:[-3,-3,-3,-3,-3,-3,7,7,7,7,7,7]; control-points:[[0,0,0],[0.3,0,0],[0.6,0.1,0],[0.6,0.29999999999999993,-0.30000000000000004],[0.8,0.6,-0.4],[1,1,0]]; weights:[1,1,1,1,1,1]; } }

@@ -27,13 +27,14 @@ test('packed ESM and declarations work in an independent consumer without source
     await writeFile(path.join(scratch, 'package.json'), JSON.stringify({ private: true, type: 'module' }));
     await writeFile(path.join(scratch, 'consumer.mjs'), `
 import assert from 'node:assert/strict';
-import { parseScene, compileScene, mountScene } from '@barocss/gpu';
+import { parseScene, compileScene, createViewer, showScene } from '@barocss/gpu';
 const source = '@scene consumer { version: 0; sphere #orb; } sphere { color: #ff0000; radius: 1; }';
 const scene = parseScene(source);
 const shader = compileScene(scene);
 assert.match(shader.vertex, /#version 300 es/);
 assert.match(shader.fragment, /#version 300 es/);
-assert.equal(typeof mountScene, 'function');
+assert.equal(typeof createViewer, 'function');
+assert.equal(typeof showScene, 'function');
 assert.deepEqual(compileScene(parseScene(source)), shader);
 assert.throws(() => parseScene('@scene broken { version: 0; sphere #orb; } #orb { radius: -1; }'));
 console.log('Packed ESM consumer passed');
@@ -41,22 +42,22 @@ console.log('Packed ESM consumer passed');
     const run = await exec(process.execPath, ['consumer.mjs'], { cwd: scratch, timeout: 30_000 });
     assert.match(run.stdout, /Packed ESM consumer passed/);
     await writeFile(path.join(scratch, 'consumer.ts'), `
-import { parseScene, compileScene, mountScene } from '@barocss/gpu';
+import { parseScene, compileScene, createViewer, showScene } from '@barocss/gpu';
 const scene = parseScene('@scene types { version: 0; }');
 const shader: { vertex: string; fragment: string } = compileScene(scene);
 declare const canvas: HTMLCanvasElement;
-const renderer = mountScene(canvas, '@scene types { version: 0; }');
-const result = renderer.update('@scene updated { version: 0; }');
-const viewResult = renderer.setCamera({eye:[4,3,6],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:100});
-const viewEye: [number,number,number] | undefined = renderer.camera?.eye;void viewResult;void viewEye;
-if (!result.ok) { const failure: Error = result.error; void failure; }
-const bytes: Uint8Array = renderer.readPixels();
-renderer.resize(320, 240);
-renderer.dispose();
+const viewer = await createViewer(canvas, { background: '#102030' });
+const view = showScene(viewer, '@scene types { version: 0; }');
+const result = view.update('@scene updated { version: 0; }');
+if (!result.ok) { const diagnostics: unknown[] = result.diagnostics; void diagnostics; }
+const shot: { width: number; height: number; data: Uint8Array } = await viewer.capture();
+const bytes: Uint8Array = shot.data;
+viewer.setSize(320, 240);
 // @ts-expect-error source is a string, not executable arbitrary input
 parseScene({ code: 'alert(1)' });
 // @ts-expect-error canvas is required
-mountScene('canvas', 'scene');
+createViewer('canvas');
+view.dispose(); viewer.dispose();
 void [shader, bytes];
 `);
     await writeFile(path.join(scratch, 'tsconfig.json'), JSON.stringify({ compilerOptions: {

@@ -4,11 +4,11 @@ import { prepareNativePointLightProgramWGSL } from './native-point-light-program
 import type { PreparedNativePointLightProgramWGSL, NativePointLightProgramWGSLProgram,
   NativePointLightProgramWGSLABI } from './native-point-light-program-wgsl.js';
 import type { NativePointLightsV0 } from './native-point-lights.js';
-import type { PrimitiveSceneRef } from './primitive-scene-renderer.js';
+import type { PrimitiveSceneRef } from './primitive-scene.js';
 import { prepareCamera } from './camera.js';
 import type { MeshCamera } from './camera.js';
 import type { RGB, Vec3 } from './scene-types.js';
-import type { UpdateResult } from './renderer.js';
+import type { UpdateResult } from './gpu-error.js';
 
 export const NativePointLightWebGPUDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', PROFILE: 'PROFILE', FRAME: 'FRAME', PROGRAM: 'PROGRAM', REPRESENTATION: 'REPRESENTATION',

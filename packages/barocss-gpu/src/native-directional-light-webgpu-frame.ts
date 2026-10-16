@@ -4,11 +4,11 @@ import { prepareNativeDirectionalLightProgramWGSL } from './native-directional-l
 import type { PreparedNativeDirectionalLightProgramWGSL, NativeDirectionalLightProgramWGSLProgram,
   NativeDirectionalLightProgramWGSLABI } from './native-directional-light-program-wgsl.js';
 import type { NativeDirectionalLightsV0 } from './native-directional-lights.js';
-import type { PrimitiveSceneRef } from './primitive-scene-renderer.js';
+import type { PrimitiveSceneRef } from './primitive-scene.js';
 import { prepareCamera } from './camera.js';
 import type { MeshCamera } from './camera.js';
 import type { RGB, Vec3 } from './scene-types.js';
-import type { UpdateResult } from './renderer.js';
+import type { UpdateResult } from './gpu-error.js';
 
 export const NativeDirectionalLightWebGPUDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', PROFILE: 'PROFILE', FRAME: 'FRAME', PROGRAM: 'PROGRAM', REPRESENTATION: 'REPRESENTATION',

@@ -1,11 +1,17 @@
-import { mountMesh } from '/gpu.js';
+import { createViewer } from '/gpu.js';
 import { quarterCylinder, asymmetric, meshOptions } from '/mesh-fixtures.js';
 const canvas = document.querySelector('#mesh'), status = document.querySelector('#status');
-let renderer;
-try { renderer = mountMesh(canvas, quarterCylinder(), { ...meshOptions, mmToSceneUnit: 0.1, translate: [-0.5,-1.5,0] }); status.textContent = 'Mesh accepted.'; }
-catch (error) { status.textContent = error.message; }
-for (const [id, fixture, translate] of [['cylinder',quarterCylinder,[-0.5,-1.5,0]], ['patch',()=>structuredClone(asymmetric),meshOptions.translate]]) document.querySelector(`#${id}`).onclick = () => {
-  if (!renderer) return;
-  const result = renderer.update(fixture(), { ...meshOptions, mmToSceneUnit: id === 'cylinder' ? 0.1 : meshOptions.mmToSceneUnit, translate }); status.textContent = result.ok ? 'Mesh accepted.' : result.error.message;
-};
-window.addEventListener('pagehide', () => renderer?.dispose(), { once: true });
+const viewer = await createViewer(canvas, { background: meshOptions.background, camera: { up: [0, 1, 0], position: [0, 0, 6], target: [0, 0, 0] } });
+let mesh = null;
+// A host packet in millimetres, scaled and moved into the scene.
+function show(packet, mmToSceneUnit, translate) {
+  const positions = packet.positions.map((v, i) => v * mmToSceneUnit + translate[i % 3]);
+  mesh?.remove();
+  mesh = viewer.add({ positions, normals: packet.normals, indices: packet.indices }, { material: { color: meshOptions.color, doubleSided: true } });
+  status.textContent = 'Mesh accepted.';
+}
+show(quarterCylinder(), 0.1, [-0.5, -1.5, 0]);
+viewer.fit();
+document.querySelector('#cylinder').onclick = () => show(quarterCylinder(), 0.1, [-0.5, -1.5, 0]);
+document.querySelector('#patch').onclick = () => show(structuredClone(asymmetric), meshOptions.mmToSceneUnit, meshOptions.translate);
+window.addEventListener('pagehide', () => viewer.dispose(), { once: true });
