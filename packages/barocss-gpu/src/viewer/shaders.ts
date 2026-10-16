@@ -138,7 +138,16 @@ fn brdf(n: vec3f, v: vec3f, l: vec3f, base: vec3f, metallic: f32, a: f32) -> vec
   let a = rough * rough;
   let hemi = dot(n, frame.up.xyz) * 0.5 + 0.5;
   let ambient = mix(frame.ground.rgb * frame.ground.w, frame.sky.rgb * frame.sky.w, hemi);
-  var c = ambient * base * (1.0 - metallic * 0.5) + object.params.z * base;
+  // Ambient: diffuse from the hemisphere around the normal, and its reflection around the mirrored view
+  // direction (blurred toward the diffuse one with roughness), weighted by Fresnel. Metals get their
+  // colour from the reflection only.
+  let f0 = mix(vec3f(0.04), base, metallic);
+  let nov = max(dot(n, v), 0.0);
+  let mirrored = reflect(-v, n);
+  let skyward = smoothstep(-0.3, 0.3, dot(mirrored, frame.up.xyz));
+  let reflected = mix(mix(frame.ground.rgb * frame.ground.w, frame.sky.rgb * frame.sky.w, skyward), ambient, rough);
+  let fresnel = f0 + (max(vec3f(1.0 - rough), f0) - f0) * pow(1.0 - nov, 5.0);
+  var c = ambient * base * (1.0 - metallic) + reflected * fresnel + object.params.z * base;
   for (var i = 0u; i < frame.counts.x; i++) {
     let d = frame.dirs[i];
     var lit = 1.0;
