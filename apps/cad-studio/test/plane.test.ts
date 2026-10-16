@@ -26,7 +26,11 @@ test('sketch planes of faces: horizontal keeps part X/Y, vertical runs X along t
   const turned = planeOfFace([c, s, 0], [c * 20, s * 20, 2])!;
   assert.ok(near(turned.origin, [c * 20, s * 20, 0], 1e-3) && near(turned.xAxis, [-s, c, 0]));
   assert.equal(planeLabel(turned), '30° plane');
-  assert.equal(planeOfFace([0, 1, 1], [0, 0, 0]), null);
+  // A face sloping at 45°: X level along it, Y up the slope, through the point nearest the origin.
+  const slope = planeOfFace([0, -1, 1], [0, 0, 10])!, r = Math.SQRT1_2;
+  assert.ok(near(slope.normal, [0, -r, r]) && near(slope.xAxis, [1, 0, 0]) && near(slope.origin, [0, -5, 5], 1e-3));
+  assert.equal(planeLabel(slope), '45° tilted plane');
+  assert.equal(planeOfFace([0, 0, 0], [0, 0, 0]), null);
   // A ray straight at the end face meets it at its own coordinates.
   assert.ok(near(rayOnPlane(end, [100, 12, 5], [-1, 0, 0])!, [12, 5]));
   assert.equal(rayOnPlane(end, [100, 12, 5], [1, 0, 0]), null, 'behind the ray');

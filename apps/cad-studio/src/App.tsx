@@ -294,7 +294,7 @@ export function App() {
       // On a selected flat face (horizontal or vertical), joined to its body by default; else on XY.
       const f = selection.faces[0]; const face = f && bodies[f.body]?.mesh.faces[f.face];
       const plane = face ? (face.kind === 'plane' ? planeOfFace(face.normal, face.centroid) : null) : xyPlane();
-      if (!plane) { setToast({ title: 'Can’t sketch on this face', hint: 'Pick a flat face that is horizontal or vertical, or clear the selection to sketch on XY.', detail: '' }); return; }
+      if (!plane) { setToast({ title: 'Can’t sketch on this face', hint: 'Pick a flat face, or clear the selection to sketch on XY.', detail: '' }); return; }
       const base = face ? refOf(bodies[f.body]) : null;
       const make = cmd.id === 'revolve' ? 'revolve-y' as const : cmd.id === 'pipe' ? 'pipe' as const : cmd.id === 'loft' ? 'loft' as const : undefined;
       const anchor: SketchAnchor = face ? { kind: 'face', offset: 0, face: { plane, base } } : { kind: 'xy', offset: 0 };

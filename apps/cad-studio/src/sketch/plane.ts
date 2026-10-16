@@ -1,6 +1,5 @@
 // Sketch planes: where a sketch lies in the part (world, Z up, mm). A sketch's own coordinates (u, v) run
-// along xAxis and normal × xAxis from origin; its solids grow along the normal. The kernel takes planes
-// with one axis vertical: horizontal faces (any spin) and vertical faces (any heading).
+// along xAxis and normal × xAxis from origin; its solids grow along the normal. Any flat face takes one.
 import type { Vec3 } from '../engine/mesh';
 
 export interface SketchPlane { origin: Vec3; normal: Vec3; xAxis: Vec3 }
@@ -29,15 +28,15 @@ export const yAxisOf = (p: SketchPlane): Vec3 => clean(cross(p.normal, p.xAxis))
 
 /**
  * The sketch plane on a flat face: a horizontal face keeps the part's X and Y (so coordinates read as in
- * a top view), a vertical one runs X along the face and Y up. Null for faces the kernel cannot sketch on.
+ * a top view); any other runs X level along the face and Y up the slope, from the point of the plane
+ * nearest the part's origin (on a vertical face, at Z 0). Null for a zero normal.
  */
 export function planeOfFace(normal: Vec3, point: Vec3): SketchPlane | null {
   const l = Math.hypot(...normal); if (!(l > 0)) return null;
   const n = clean(normal.map(c => c / l) as Vec3);
   if (Math.abs(n[2]) === 1) return { origin: [0, 0, mm(point[2])], normal: [0, 0, n[2]], xAxis: [1, 0, 0] };
-  if (Math.abs(n[2]) > 1e-6) return null;
-  const h = Math.hypot(n[0], n[1]), m = clean([n[0] / h, n[1] / h, 0]), d = mm(dot(point, m));
-  return { origin: clean([m[0] * d, m[1] * d, 0]).map(mm) as Vec3, normal: m, xAxis: clean([-m[1], m[0], 0]) };
+  const h = Math.hypot(n[0], n[1]), x = clean([-n[1] / h, n[0] / h, 0]), d = mm(dot(point, n));
+  return { origin: clean([n[0] * d, n[1] * d, n[2] * d]).map(mm) as Vec3, normal: n, xAxis: x };
 }
 
 export const toWorld = (p: SketchPlane, [u, v]: readonly [number, number]): Vec3 => {
@@ -69,5 +68,6 @@ export function boxOnPlane(p: SketchPlane, min: Vec3, max: Vec3): [[number, numb
 export function planeLabel(p: SketchPlane): string {
   const n = p.normal;
   for (const [k, name] of [[2, 'Z'], [0, 'X'], [1, 'Y']] as const) if (Math.abs(n[k]) === 1) return `${name} ${mm(p.origin[k])}`;
-  return `${Math.round(Math.atan2(n[1], n[0]) * 180 / Math.PI)}° plane`;
+  if (n[2] === 0) return `${Math.round(Math.atan2(n[1], n[0]) * 180 / Math.PI)}° plane`;
+  return `${Math.round(Math.acos(Math.abs(n[2])) * 180 / Math.PI)}° tilted plane`;
 }
