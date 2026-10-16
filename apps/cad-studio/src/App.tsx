@@ -13,6 +13,7 @@ import { Icon, Kbd } from './ui/atoms';
 import { Hud } from './ui/Hud';
 import { Palette } from './ui/Palette';
 import { ContextMenu } from './ui/ContextMenu';
+import { ShortcutHelp } from './ui/ShortcutHelp';
 import { SketchPanel } from './ui/SketchPanel';
 import { RenderPanel } from './ui/RenderPanel';
 import { Timeline } from './ui/Timeline';
@@ -157,6 +158,9 @@ export function App() {
   const [editNode, setEditNode] = useState<number | null>(null);
   /** The body whose name is being typed in the browser (its key). */
   const [renaming, setRenaming] = useState<string | null>(null);
+  const [help, setHelp] = useState(false);
+  /** The body whose browser row the pointer is on (lit in the viewport). */
+  const [rowHover, setRowHover] = useState<number | null>(null);
   const [browserOpen, setBrowserOpen] = useState(() => { try { return localStorage.getItem('cad-studio.browser') !== 'closed'; } catch { return true; } });
   // Measuring: up to two picked faces or edges (null: not measuring).
   const [measure, setMeasure] = useState<MeasurePick[] | null>(null);
@@ -173,6 +177,8 @@ export function App() {
 
   // Dev/test hook: the flow test reads the accepted document.
   useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioDoc: StudioDoc }).__studioDoc = doc; }, [doc]);
+  // (Dev/test: what is picked, as the commands see it.)
+  useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioSelection: unknown }).__studioSelection = { selection, bodies: bodies.length, active: active?.cmd.id ?? null, sketch: !!sketch, measure: !!measure }; });
   // Dev/test hooks: select an edge or a face by its persistent name (canvas picks are not reproducible).
   useEffect(() => {
     if (!import.meta.env.DEV) return;
@@ -658,6 +664,7 @@ export function App() {
       const numberBox = e.target instanceof HTMLInputElement && e.target.type === 'number' && !e.target.classList.contains('dim-edit');
       if (palette || (typing && !(sketch && numberBox && !e.metaKey && !e.ctrlKey && !e.altKey && /^[a-z]$/i.test(e.key)))) return;
       if (e.key === ' ') { e.preventDefault(); setPalette(true); return; }
+      if (e.key === '?') { e.preventDefault(); setHelp(true); return; }
       if ((e.key === 'Delete' || e.key === 'Backspace') && !sketch && !active && !measure) { e.preventDefault(); deleteSelection(); return; }
       if (sketch) {
         const t = TOOLS.find(x => x.key.toLowerCase() === e.key.toLowerCase() || (x.tool === 'polygon' && e.key.toLowerCase() === 'p'))?.tool;
@@ -811,7 +818,7 @@ export function App() {
     <div className="studio">
       <Viewport ref={viewport} bodies={shownBodies} selection={shownSelection} ghost={ghost} sketch={sketch} gizmo={gizmo ?? instGizmo} handles={handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
         direct={directShown} directSelection={directSel} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
-        placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot} bodyColors={bodyColors} hiddenBodies={hiddenBodies}
+        placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot} bodyColors={bodyColors} hiddenBodies={hiddenBodies} hoverBody={previewBodies ? null : rowHover}
         onPick={onPick} onCursor={setCursor} onSketchShape={updateShape}
         onBoxSelect={(picked, additive) => { if (active) return; setSelection(prev => {
           const base = additive ? selectedBodies(prev) : [];
@@ -893,7 +900,7 @@ export function App() {
           const pick = (e: React.MouseEvent) => { setDirectSel([]); setInstanceSel([]); setSelection(prev => {
             const list = selectedBodies(prev); return e.shiftKey ? { faces: [], edges: [], bodies: list.includes(i) ? list.filter(x => x !== i) : [...list, i] } : { faces: [], edges: [], bodies: [i] };
           }); };
-          return <div key={b.key} className={'ol-row' + (sel ? ' sel' : '') + (look.hidden ? ' hidden-obj' : '')}>
+          return <div key={b.key} className={'ol-row' + (sel ? ' sel' : '') + (look.hidden ? ' hidden-obj' : '')} onMouseEnter={() => setRowHover(i)} onMouseLeave={() => setRowHover(h => h === i ? null : h)}>
             <button className="ol-eye" aria-label={look.hidden ? 'Show body' : 'Hide body'} data-tip={look.hidden ? 'Show' : 'Hide'}
               onClick={() => { commit(withLook(doc, b, { hidden: !look.hidden })); if (!look.hidden) setSelection(emptySel); }}><Icon name={look.hidden ? 'visibility_off' : 'visibility'} small /></button>
             <span className="ol-swatch" style={look.color ? { background: look.color } : undefined} />
@@ -1058,12 +1065,24 @@ export function App() {
         onPreview={setPreviewBodies} onCommit={(next, sel) => { chatSelection.current = sel ?? null; commit(next); }}
         onSelect={sel => setSelection(resolveNames(bodies, sel).selection)} onClose={() => setChat(false)} />}
       {palette && <Palette ctx={ctx} onRun={start} onClose={() => setPalette(false)} />}
+      {help && <ShortcutHelp onClose={() => setHelp(false)} />}
       {menu && <ContextMenu at={menu.at} title={menu.title} ctx={{ ...ctx, selection: menu.selection }} onClose={() => setMenu(null)}
         onRun={c => { setMenu(null); start(c); }}
         actions={[
           { label: 'Frame all', icon: 'fit_screen', shortcut: 'F', run: () => viewport.current?.fit() },
           { label: 'Isometric view', icon: 'view_in_ar', run: () => viewport.current?.setView('iso') },
           { label: 'Top view', icon: 'crop_square', run: () => viewport.current?.setView('top') },
+          ...(() => {
+            // On a body: hide it, show it alone, delete it; with something hidden: show everything again.
+            const picked = selectedBodies(menu.selection).filter(i => bodies[i]), anyHidden = bodies.some(b => lookOf(doc, b).hidden);
+            const hideAll = (keep: (i: number) => boolean) => commit(bodies.reduce((d, b, i) => withLook(d, b, { hidden: !keep(i) }), doc));
+            return [
+              ...(picked.length ? [{ label: picked.length > 1 ? 'Hide bodies' : 'Hide body', icon: 'visibility_off', run: () => { hideAll(i => !picked.includes(i) && !lookOf(doc, bodies[i]).hidden); setSelection(emptySel); } },
+                { label: 'Show only this', icon: 'filter_center_focus', run: () => hideAll(i => picked.includes(i)) },
+                { label: 'Delete', icon: 'delete', shortcut: 'Del', run: () => deleteSelection() }] : []),
+              ...(anyHidden ? [{ label: 'Show all bodies', icon: 'visibility', run: () => hideAll(() => true) }] : []),
+            ];
+          })(),
           { label: 'Clear selection', icon: 'deselect', shortcut: 'Esc', run: () => setSelection(emptySel) },
         ]} />}
 

@@ -70,6 +70,7 @@ interface Props {
   /** Bodies' own colours by index (StudioDoc.bodies). */
   bodyColors?: Map<number, [number, number, number]>;
   hiddenBodies?: Set<number>;
+  hoverBody?: number | null;
   sketch: SketchState | null;
   /** Move / turn handles on the selection (see viewport/gizmo.ts), and arrows that drag one feature dimension. */
   gizmo: TransformGizmo | null;
@@ -150,7 +151,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     selectedFaces: propsRef.current.selection.faces, selectedEdges: propsRef.current.selection.edges, selectedBodies: propsRef.current.selection.bodies,
     // (The WebGL2 renderer draws offsets only: a dragged body there shows its move, not its turn.)
     offsets: propsRef.current.transforms ? new Map([...propsRef.current.transforms].map(([k, m]) => [k, [m[12], m[13], m[14]] as Vec3])) : propsRef.current.offsets ?? new Map(),
-    transforms: propsRef.current.transforms ?? undefined, ghostBodies: propsRef.current.ghost, bodyColors: propsRef.current.bodyColors, hiddenBodies: propsRef.current.hiddenBodies,
+    transforms: propsRef.current.transforms ?? undefined, ghostBodies: propsRef.current.ghost, bodyColors: propsRef.current.bodyColors, hiddenBodies: propsRef.current.hiddenBodies, hoverBody: propsRef.current.hoverBody ?? undefined,
   });
 
   /** Turns the camera (eased, about a quarter second) to look at the target from direction `from`. */
@@ -201,7 +202,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     r.setState(viewState()); request();
   }, [props.bodies, backend]);
 
-  useEffect(() => { renderer.current?.setState(viewState()); request(); }, [props.selection, props.ghost, props.offsets, props.transforms, props.bodyColors, props.hiddenBodies]);
+  useEffect(() => { renderer.current?.setState(viewState()); request(); }, [props.selection, props.ghost, props.offsets, props.transforms, props.bodyColors, props.hiddenBodies, props.hoverBody]);
   useEffect(() => { request(); }, [props.sketch, props.gizmo, props.handles]);
   useEffect(() => { renderer.current?.setRender?.(props.render ?? null); request(); }, [props.render, backend]);
   useEffect(() => { renderer.current?.setDirect?.(props.direct ?? [], props.directSelection ?? []); request(); }, [props.direct, props.directSelection, backend]);

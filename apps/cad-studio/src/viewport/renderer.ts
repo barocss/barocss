@@ -20,6 +20,8 @@ export interface ViewState {
   bodyColors?: Map<number, [number, number, number]>;
   /** Bodies hidden in the browser: not drawn, not picked. */
   hiddenBodies?: Set<number>;
+  /** A body pointed at elsewhere (its row in the browser): lit a little, as a hover. */
+  hoverBody?: number;
 }
 export type ThemeName = 'dark' | 'light';
 /** What the viewport draws with: the WebGL2 Renderer here, or the WebGPU one (gpuRenderer.ts). */
@@ -347,7 +349,7 @@ export class Renderer implements ViewRenderer {
       const b = this.bodies[bi]; const ghost = view.ghostBodies.has(bi);
       gl.depthMask(!ghost);
       gl.uniform3fv(this.u(this.mesh, 'uOffset'), view.offsets.get(bi) ?? [0, 0, 0]);
-      gl.uniform1f(this.u(this.mesh, 'uBodySel'), view.selectedBodies.includes(bi) ? 1 : 0);
+      gl.uniform1f(this.u(this.mesh, 'uBodySel'), view.selectedBodies.includes(bi) ? 1 : view.hoverBody === bi ? 0.55 : 0);
       gl.uniform1f(this.u(this.mesh, 'uGhost'), ghost ? 1 : 0);
       gl.uniform3fv(this.u(this.mesh, 'uBase'), view.bodyColors?.get(bi) ?? t.base);
       gl.bindVertexArray(b.vao); gl.drawElements(gl.TRIANGLES, b.count, gl.UNSIGNED_INT, 0);

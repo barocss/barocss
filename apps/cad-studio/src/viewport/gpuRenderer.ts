@@ -19,6 +19,7 @@ const THEMES: Record<ThemeName, Theme> = {
   light: { bgTop: [0.965, 0.972, 0.980], bgBottom: [0.780, 0.812, 0.851], grid: [0.30, 0.34, 0.40], gridOpacity: 0.14, base: [0.70, 0.74, 0.80], edge: [0.11, 0.14, 0.19], ao: 0.8, shadow: 0.28 },
 };
 const ACCENT: Vec3 = [0.910, 0.761, 0.353];
+const HOVER: Vec3 = [0.62, 0.55, 0.36];
 const mix = (a: Vec3, b: Vec3, k: number): Vec3 => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
 
 interface Body { result: BodyResult; surface: Mesh; edges: Mesh | null; highlight: Mesh | null; geometries: Geometry[]; sig: string }
@@ -200,7 +201,7 @@ export class GpuRenderer implements ViewRenderer {
         : { color: '#ffffff', metallic: 0, roughness: 0.62, opacity: ghost ? 0.35 : 1, shader: null };
       const hidden = !!view.hiddenBodies?.has(bi);
       b.surface.pickable = !ghost && !hidden; b.surface.visible = !hidden;
-      b.surface.outline = view.selectedBodies.includes(bi) ? ACCENT : null;
+      b.surface.outline = view.selectedBodies.includes(bi) ? ACCENT : view.hoverBody === bi ? HOVER : null;
       const moved = view.transforms?.get(bi) ?? translation(offset);
       for (const mesh of [b.surface, b.edges, b.highlight]) if (mesh) mesh.transform = moved;
       if (b.edges) { b.edges.material = { opacity: ghost ? 0.35 : 0.9 }; b.edges.pickable = !ghost && !hidden; b.edges.visible = !hidden && (this.settings ? this.settings.environment.edges : true); }

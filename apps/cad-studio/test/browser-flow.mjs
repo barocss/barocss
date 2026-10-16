@@ -1161,7 +1161,8 @@ try {
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
     await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
-    await press('e'); await hudReady();
+    const seen = await page.evaluate(() => JSON.stringify(window.__studioSelection));
+    await press('e'); await hudReady().catch(e => { throw new Error(`${e.message.split('\n')[0]} — before E: ${seen}`); });
     await page.waitForFunction(() => /Extrude/.test(document.querySelector('.hud')?.textContent ?? '') && /picked face/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 5000 });
     await page.waitForSelector('[data-handle="h"]', { timeout: 5000 });
     await field('Distance').fill('5'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
@@ -1305,6 +1306,25 @@ try {
     // The front's top right corner: from front, right and top at once.
     await page.locator('.view-cube polygon[data-view="+-+"]').first().click(); await page.waitForTimeout(450);
     assert.equal(await labels(), 'FRONT RIGHT TOP');
+  });
+
+  await check('right-click a body: show only it, then show all; ? lists the keys', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    await press('y'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    await page.locator('.outliner .ol').first().click();
+    const box = await page.locator('canvas').boundingBox(); await page.mouse.click(box.x + 20, box.y + box.height - 60, { button: 'right' });
+    await page.locator('.ctx-item', { hasText: 'Show only this' }).click();
+    await page.waitForFunction(() => Object.values(window.__studioDoc.bodies ?? {}).filter(l => l.hidden).length === 1, null, { timeout: 5000 });
+    await page.mouse.click(box.x + 20, box.y + box.height - 60, { button: 'right' });
+    await page.locator('.ctx-item', { hasText: 'Show all bodies' }).click();
+    await page.waitForFunction(() => !Object.values(window.__studioDoc.bodies ?? {}).some(l => l.hidden), null, { timeout: 5000 });
+    assert.ok(!(await page.locator('.ctx-menu').count()) || !(await page.locator('.ctx-item', { hasText: 'Sphere' }).count()), 'no shapes in the menu');
+    await press('Escape'); await press('?');
+    await page.waitForSelector('.help', { timeout: 3000 });
+    assert.match(await page.locator('.help').innerText(), /Duplicate a body[\s\S]*Orbit/);
+    await press('Escape'); await page.waitForFunction(() => !document.querySelector('.help'));
   });
 
   await check('command palette and light theme', async () => {

@@ -298,3 +298,13 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .hud-step.done { color: var(--text-2); }
 .hud-step.done .ms { color: var(--ok); }
 .hud-step:not(.done) .ms { color: var(--accent); }
+
+/* The keyboard and mouse list (ui/ShortcutHelp.tsx). */
+.help-scrim { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.35); }
+.help { width: min(720px, calc(100vw - 32px)); max-height: calc(100vh - 80px); overflow: auto; padding: 14px 16px; }
+.help .card-title { display: flex; justify-content: space-between; align-items: center; }
+.help-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+.help h4 { margin: 12px 0 4px; font: 600 10px var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.help-row { display: flex; align-items: center; gap: 8px; height: 24px; }
+.help-row > span:first-of-type { flex: 1; }
+@media (max-width: 640px) { .help-cols { grid-template-columns: 1fr; } }

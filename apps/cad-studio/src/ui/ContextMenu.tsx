@@ -16,7 +16,8 @@ export function ContextMenu({ at, ctx, title, actions, onRun, onClose }: {
     ref.current?.querySelector<HTMLButtonElement>('button')?.focus();
     return () => { window.removeEventListener('mousedown', close); window.removeEventListener('keydown', key); };
   }, [onClose]);
-  const usable = commands.filter(c => c.id !== 'measure' && c.available(ctx).ok);
+  // (Shapes are made from the shapes bar, not on what was clicked.)
+  const usable = commands.filter(c => c.id !== 'measure' && !c.place && c.available(ctx).ok);
   const left = Math.min(at.x, window.innerWidth - 236), top = Math.min(at.y, window.innerHeight - 40 - (usable.length + actions.length) * 30);
   return (
     <div ref={ref} className="card ctx-menu" role="menu" aria-label={title} style={{ left, top: Math.max(40, top) }}>
