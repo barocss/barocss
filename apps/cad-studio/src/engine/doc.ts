@@ -3,7 +3,8 @@
 
 export type Axis = 'x' | 'y' | 'z';
 export type Dim = number | { parameter: string };
-export type Side = 'solid' | 'negative' | 'positive' | 'instance1' | 'instance2' | 'instance3';
+/** `part<k>`: solid k of an imported STEP file that holds several (see the import node's `solids`). */
+export type Side = 'solid' | 'negative' | 'positive' | 'instance1' | 'instance2' | 'instance3' | `part${number}`;
 export interface BodyRef { node: number; side: Side }
 
 /** Where a sketch lies (see sketch/plane.ts); none: the XY plane at Z 0. */
@@ -47,7 +48,8 @@ export type ModelNode = SketchNode
   /** A ruled loft through sketches at increasing heights (each section's edges to the next one's). */
   | { kind: 'loft'; sections: { sketch: number; z: Dim }[]; smooth?: boolean }
   /** A body read from a STEP file (the file's text is kept in the document). */
-  | { kind: 'import'; name: string; step: string }
+  /** `solids`: how many solids the file holds when more than one; each is then its own body (side `part<k>`). */
+  | { kind: 'import'; name: string; step: string; solids?: number }
   /** Hollowed to walls `thickness` thick, the named faces removed (none: a closed hollow). */
   | { kind: 'shell'; parent: BodyRef; thickness: Dim; open: string[] }
   /** Edges by their persistent B-rep names (they follow the features, so edits keep the selection). */
@@ -143,6 +145,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
   nodes.forEach((node, index) => {
     if (!isSolidNode(node) || consumed.has(String(index))) return;
     if (node.kind === 'split') (['negative', 'positive'] as const).forEach(side => { if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
+    else if (node.kind === 'import' && (node.solids ?? 1) > 1) Array.from({ length: node.solids! }, (_, k) => `part${k}` as const).forEach(side => { if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
     else refs.push({ node: index, side: 'solid' });
   });
   return refs;

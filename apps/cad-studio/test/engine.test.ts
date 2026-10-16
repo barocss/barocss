@@ -496,3 +496,23 @@ test('sketch framing fits the rectangle into the free band between the panels', 
     assert.ok(Math.abs(cx - (left + (W - right)) / 2) < 1, `centre ${cx}`);
   }
 });
+
+test('a STEP file with two solids opens as two bodies that take features on their own (D2)', () => {
+  let two = rectanglePart(10, 10, 5);
+  two = withNode(withNode(two, { kind: 'sketch', profile: 'rectangle', min: [20, 0], max: [26, 6] }), { kind: 'extrude', sketch: 2, height: 4 });
+  const text = stepFor(prefixDoc(two, two.nodes.length), 'two');
+  assert.ok('text' in text);
+  let doc = withNode(emptyDoc(), { kind: 'import', name: 'two', step: text.text, solids: 2 });
+  assert.deepEqual(leafBodies(doc.nodes), [{ node: 0, side: 'part0' }, { node: 0, side: 'part1' }]);
+  let r = evaluateDoc(doc, 1);
+  assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+  assert.deepEqual(r.bodies.map(b => [b.key, Math.round(b.volumeMM3 ?? 0)]), [['b0_part0', 500], ['b0_part1', 144]]);
+  doc = withNode(doc, { kind: 'translate', parent: { node: 0, side: 'part1' }, offset: [0, 0, 10] });
+  r = evaluateDoc(doc, 2);
+  assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+  assert.deepEqual(r.bodies.map(b => b.key), ['b0_part0', 'b1']);
+  assert.equal(r.bodies[1].mesh.bounds.min[2], 10);
+  // Without `solids` (files opened before): one body, as it was.
+  r = evaluateDoc(withNode(emptyDoc(), { kind: 'import', name: 'two', step: text.text }), 3);
+  assert.ok(r.ok); assert.deepEqual(r.bodies.map(b => b.key), ['b0']);
+});

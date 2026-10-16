@@ -92,3 +92,17 @@ test('STEP from other systems: analytic surfaces, closed circles, seams and pole
   // A profile off the plane through its axis is not turned yet.
   assert.throws(() => importStep(revolvedProfileStep().replace("CARTESIAN_POINT('',(6.,0.,3.))", "CARTESIAN_POINT('',(6.,1.5,3.))")), e => e instanceof BrepError && /off a plane through its axis/.test(e.message));
 });
+
+test('a STEP file with several solids: one body by default, each solid its own part with each', () => {
+  const two = evaluateCadPart(D([rect('a', 0, 0, 10, 10), { id: 'x', kind: 'extrude', sketch: 'a', height: 5 }, rect('b', 20, 0, 26, 6), { id: 'y', kind: 'extrude', sketch: 'b', height: 4 }]));
+  const text = exportStep(two.outputs.map(o => o.brep), { name: 'two' });
+  const whole = evaluateCadPart(D([{ id: 'i', kind: 'import', step: text }])).outputs;
+  assert.deepEqual(whole.map(o => o.id), ['i']);
+  const each = evaluateCadPart(D([{ id: 'i', kind: 'import', step: text, each: true }])).outputs;
+  assert.deepEqual(each.map(o => o.id), ['i/0', 'i/1']);
+  for (const o of each) assert.equal(checkBrep(o.brep).valid, true);
+  assert.deepEqual(each.map(o => +o.massProperties(1000).volumeMM3.toFixed(6)), [500, 144]);
+  // A part takes features on its own.
+  const moved = evaluateCadPart(D([{ id: 'i', kind: 'import', step: text, each: true }, { id: 't', kind: 'translate', target: 'i/1', offset: [0, 0, 10] }])).outputs;
+  assert.deepEqual(moved.map(o => o.id), ['i/0', 't']);
+});

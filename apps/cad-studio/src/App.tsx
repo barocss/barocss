@@ -501,10 +501,12 @@ export function App() {
     try {
       // A STEP file starts a new part from its solids.
       if (/\.(step|stp)$/i.test(file.name)) {
-        const name = file.name.replace(/\.(step|stp)$/i, ''), next = withNode(emptyDoc(), { kind: 'import', name, step: await file.text() });
-        // Read it before replacing the current part: a file the kernel cannot read keeps the part.
-        const read = await engine.part(next, revision.current++);
+        const name = file.name.replace(/\.(step|stp)$/i, ''), step = await file.text();
+        // Read it before replacing the current part: a file the kernel cannot read keeps the part. Read
+        // solid by solid, so that a file holding several opens as that many bodies.
+        const read = await engine.part(withNode(emptyDoc(), { kind: 'import', name, step, solids: 2 }), revision.current++);
         if (!read.ok) { setToast({ title: 'Could not open this file', hint: `The kernel can’t read it as STEP: ${read.error.detail}. Your part is unchanged.`, detail: read.error.detail }); return; }
+        const next = withNode(emptyDoc(), { kind: 'import', name, step, ...(read.bodies.length > 1 ? { solids: read.bodies.length } : {}) });
         replaceDoc(next); setFileName(name); setDirty(true); setTimeout(() => viewport.current?.fit(), 300);
         return;
       }
@@ -669,7 +671,7 @@ export function App() {
           const sel = selectedBodies(selection).includes(i);
           return <button key={b.key} className={'ol' + (sel ? ' sel' : '')} onClick={e => { setDirectSel([]); setSelection(prev => {
             const list = selectedBodies(prev); return e.shiftKey ? { faces: [], edges: [], bodies: list.includes(i) ? list.filter(x => x !== i) : [...list, i] } : { faces: [], edges: [], bodies: [i] };
-          }); }}><Icon name="deployed_code" small />{node ? featureLabel(node, ref.node, evaluated.nodes) : b.key}{ref.side !== 'solid' && <span className="muted"> · {ref.side}</span>}</button>;
+          }); }}><Icon name="deployed_code" small />{node ? featureLabel(node, ref.node, evaluated.nodes) : b.key}{ref.side !== 'solid' && <span className="muted"> · {ref.side.startsWith('part') ? `solid ${Number(ref.side.slice(4)) + 1}` : ref.side}</span>}</button>;
         })}
         {(doc.instances ?? []).map(inst => <button key={inst.id} className={'ol instance' + (instanceSel.includes(inst.id) ? ' sel' : '') + (inst.hidden ? ' hidden-obj' : '')}
           onClick={() => { setSelection(emptySel); setDirectSel([]); setInstanceSel([inst.id]); }}><Icon name={inst.hidden ? 'visibility_off' : 'widgets'} small />{inst.name}</button>)}

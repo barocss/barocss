@@ -94,8 +94,11 @@ export type CadPartFeature = Base & (
    * sections): one smooth side per edge through them all (C1), named `.side${i}`.
    */
   | { readonly kind: 'loft'; readonly sections: readonly CadPartLoftSection[]; readonly smooth?: boolean }
-  /** A body read from a STEP file (its text); its faces keep their names, prefixed `${id}.`. */
-  | { readonly kind: 'import'; readonly step: string }
+  /**
+   * A body read from a STEP file (its text); its faces keep their names, prefixed `${id}.`. `each`: every
+   * solid of the file is its own part (`id/k`, in file order) instead of one body holding them all.
+   */
+  | { readonly kind: 'import'; readonly step: string; readonly each?: boolean }
   /** Hollowed to walls `thickness` thick; `open` names the faces removed (the top of a box, a side). */
   | { readonly kind: 'shell'; readonly target: string; readonly thickness: CadPartDim; readonly open?: readonly string[] }
   | { readonly kind: 'chamfer'; readonly target: string; readonly edges: readonly string[]; readonly distance: CadPartDim }
@@ -507,7 +510,9 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         catch (cause) { if (cause instanceof BrepError) fail(/not supported/.test(cause.message) ? 'CAPABILITY' : 'INPUT', cause.message.replace(/^B-rep: STEP: /, '')); throw cause; }
         // Names in this part: the feature id before each face name (an edge's two names alike).
         const named = { ...brep!, faces: brep!.faces.map((x, i) => x.name ? x : { ...x, name: `face${i}` }) };
-        return one({ kind: 'brep', brep: transformBrep(named, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] }, n => n.split('|').map(p => `${at}.${p}`).join('|')) });
+        const prefixed = transformBrep(named, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] }, n => n.split('|').map(p => `${at}.${p}`).join('|'));
+        if (f.each !== undefined && typeof f.each !== 'boolean') fail('INPUT', 'each must be true or false');
+        return f.each ? many(brepBodies(prefixed).map(b => ({ kind: 'brep' as const, brep: b }))) : one({ kind: 'brep', brep: prefixed });
       };
     }
     case 'shell': {
@@ -784,6 +789,16 @@ function sectionRing(profile: readonly ProfileSegmentInput[]): LineArc[] {
   return loop.map((g, i): LineArc => g.kind === 'line' ? { kind: 'line', a: g.start, b: g.end, tag: `side${i}` } : { kind: 'arc', c: g.center, r: g.radiusMM, t0: g.startAngle, sweep: g.sweep, tag: `side${i}` });
 }
 const ringsOfRegions = (rs: readonly CurveRegion2[]) => rs.flatMap(r => [r.outer, ...r.holes]);
+/** Each body of a B-rep on its own: its shells, faces, loops, coedges, edges and vertices. */
+function brepBodies(b: Brep): Brep[] {
+  return b.bodies.map(body => {
+    const shells = new Set(body.shells), faces = b.faces.filter(x => shells.has(x.shell)), faceIds = new Set(faces.map(x => x.id));
+    const loops = b.loops.filter(l => faceIds.has(l.face)), loopIds = new Set(loops.map(l => l.id));
+    const coedges = b.coedges.filter(c => loopIds.has(c.loop)), edgeIds = new Set(coedges.map(c => c.edge));
+    const edges = b.edges.filter(e => edgeIds.has(e.id)), vertexIds = new Set(edges.flatMap(e => e.vertices));
+    return { ...b, bodies: [body], shells: b.shells.filter(x => shells.has(x.id)), faces, loops, coedges, edges, vertices: b.vertices.filter(v => vertexIds.has(v.id)) };
+  });
+}
 const renamed = (b: Brep, from: string, to: string) => transformBrep(b, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1], offset: [0, 0, 0] }, n => n.split(from).join(to));
 
 /**

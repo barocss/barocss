@@ -117,7 +117,7 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
     }
     case 'ref': {
       const sides = ['solid', 'negative', 'positive', 'instance1', 'instance2', 'instance3'];
-      if (!isObj(v) || !Number.isInteger(v.node) || !sides.includes(String(v.side))) return 'a body reference {node, side: "solid"} (split halves: "negative" / "positive")';
+      if (!isObj(v) || !Number.isInteger(v.node) || !(sides.includes(String(v.side)) || /^part\d+$/.test(String(v.side)))) return 'a body reference {node, side: "solid"} (split halves: "negative" / "positive"; solids of a STEP file: "part0", "part1", …)';
       const key = sideOf(v as unknown as BodyRef);
       return leaves.includes(key) ? null : `${key} is not a visible body${leaves.length ? ` (bodies now: ${leaves.join(', ')})` : ' (there are no bodies yet)'}`;
     }

@@ -733,6 +733,16 @@ try {
     await page.locator('input[aria-label="Model file"]').setInputFiles(file);
     await page.waitForFunction(() => /Import holed-box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 });
     assert.match(await outliner(), /1 body/); await iso();
+    // A file holding two solids opens as two bodies.
+    const { evaluateCadPart, exportStep } = await import('../../../packages/barocss-cad/dist/index.js');
+    const box = (id, x, w, h) => [{ id: id + 's', kind: 'sketch', profile: 'rectangle', min: [x, 0], max: [x + w, w] }, { id, kind: 'extrude', sketch: id + 's', height: h }];
+    const pair = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [...box('a', 0, 10, 5), ...box('b', 20, 6, 4)] });
+    const twoFile = join(out, 'two-boxes.step'); (await import('node:fs')).writeFileSync(twoFile, exportStep(pair.outputs.map(o => o.brep), { name: 'two-boxes' }));
+    await page.locator('input[aria-label="Model file"]').setInputFiles(twoFile);
+    await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 });
+    assert.match(await outliner(), /solid 1[\s\S]*solid 2/);
+    await page.locator('input[aria-label="Model file"]').setInputFiles(file);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 });
     // A .step file the kernel cannot read is refused with its reason, and the open part stays.
     const garbage = join(out, 'garbage.step'); (await import('node:fs')).writeFileSync(garbage, 'hello');
     const before = (await doc()).nodes.length;

@@ -30,7 +30,7 @@ export function evaluateDoc(doc: StudioDoc, revision: number, quality = 8): Eval
     const bodies: BodyResult[] = snapshot.outputs.map(o => {
       let volumeMM3: number | null = null, massG: number | null = null;
       try { const m = o.massProperties(ALUMINIUM); volumeMM3 = m.volumeMM3; massG = m.massKG * 1000; } catch { /* no positive volume */ }
-      return { key: bodyKeyOf(o.id), family: o.representation, mesh: bodyMesh(o.brep, revision, quality), volumeMM3, massG };
+      return { key: bodyKeyOf(o.id, doc.nodes), family: o.representation, mesh: bodyMesh(o.brep, revision, quality), volumeMM3, massG };
     });
     return { ok: true, revision, bodies, ms: performance.now() - t0 };
   } catch (cause) {
@@ -45,7 +45,7 @@ export function evaluatePart(doc: StudioDoc, revision: number, quality = 8): Eva
     const bodies: BodyResult[] = evaluateCadPart(toPartDocument(doc)).outputs.map(o => {
       let volumeMM3: number | null = null, massG: number | null = null;
       try { const m = o.massProperties(ALUMINIUM); volumeMM3 = m.volumeMM3; massG = m.massKG * 1000; } catch { /* no positive volume */ }
-      return { key: bodyKeyOf(o.id), family: o.representation, mesh: bodyMesh(o.brep, revision, quality), volumeMM3, massG };
+      return { key: bodyKeyOf(o.id, doc.nodes), family: o.representation, mesh: bodyMesh(o.brep, revision, quality), volumeMM3, massG };
     });
     return { ok: true, revision, bodies, ms: performance.now() - t0 };
   } catch (cause) {
@@ -65,7 +65,7 @@ export function stepFor(doc: StudioDoc, name: string): { text: string } | { erro
 
 export function stlFor(doc: StudioDoc, key: string): Uint8Array | null {
   try {
-    const output = snapshotOf(doc).outputs.find(o => bodyKeyOf(o.id) === key);
+    const output = snapshotOf(doc).outputs.find(o => bodyKeyOf(o.id, doc.nodes) === key);
     return output ? output.exportStl() : null;
   } catch { return null; }
 }
