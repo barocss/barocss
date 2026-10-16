@@ -21,7 +21,15 @@ const THEMES: Record<ThemeName, Theme> = {
 const ACCENT: Vec3 = [0.910, 0.761, 0.353];
 const mix = (a: Vec3, b: Vec3, k: number): Vec3 => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
 
-interface Body { result: BodyResult; surface: Mesh; edges: Mesh | null; highlight: Mesh | null; geometries: Geometry[] }
+interface Body { result: BodyResult; surface: Mesh; edges: Mesh | null; highlight: Mesh | null; geometries: Geometry[]; sig: string }
+
+/** A mesh's content in a few numbers (sizes, bounds and a sample of positions): equal for a re-evaluation that changed nothing. */
+function signature(r: BodyResult): string {
+  const m = r.mesh, p = m.positions, step = Math.max(1, Math.floor(p.length / 997));
+  let h = 2166136261;
+  for (let i = 0; i < p.length; i += step) { h ^= Math.round(p[i] * 1e4); h = Math.imul(h, 16777619); }
+  return [r.key, p.length, m.indices.length, m.edgeLines.length, ...m.bounds.min, ...m.bounds.max, h >>> 0].join(',');
+}
 
 
 export class GpuRenderer implements ViewRenderer {
@@ -85,8 +93,15 @@ export class GpuRenderer implements ViewRenderer {
   }
 
   setBodies(results: BodyResult[]): void {
+    // The same bodies again (a re-evaluation, a preview becoming the part): keep their GPU meshes, so
+    // nothing is rebuilt and the frame does not flash.
+    const sigs = results.map(signature);
+    if (sigs.length === this.bodies.length && sigs.every((s, i) => s === this.bodies[i].sig)) {
+      this.bodies.forEach((b, i) => { b.result = results[i]; });
+      return;
+    }
     for (const b of this.bodies) { b.surface.remove(); b.edges?.remove(); this.dropHighlight(b); b.geometries.forEach(g => g.dispose()); }
-    this.bodies = results.map(result => {
+    this.bodies = results.map((result, bi) => {
       const m = result.mesh, I = m.indices, faces = new Uint32Array(I.length / 3);
       for (let t = 0; t < faces.length; t++) faces[t] = m.faceOfVertex[I[3 * t]];
       const surfaceGeometry = this.viewer.createGeometry({ positions: m.positions, normals: m.normals, uvs: boxUVs(m.positions, m.normals, m.bounds), indices: I, faces });
@@ -100,7 +115,7 @@ export class GpuRenderer implements ViewRenderer {
         geometries.push(g);
         edges = this.viewer.add(g, { material: { color: this.theme.edge, unlit: true, lineWidth: 1.2 }, castShadow: false });
       }
-      const body: Body = { result, surface, edges, highlight: null, geometries };
+      const body: Body = { result, surface, edges, highlight: null, geometries, sig: sigs[bi] };
       this.paint(body, new Map());
       return body;
     });

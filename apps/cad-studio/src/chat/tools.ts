@@ -2,7 +2,7 @@
 // the HUD and built by the same `build`), raw feature nodes for what has no command (sketched profiles,
 // revolves, sweeps, lofts), the feature editor's fields, delete, measure, select and a part summary.
 // Each change is evaluated by the engine before it is kept; the result is what the model reads back.
-import { commandById, commands, refOf, shownFields, type Ctx, type Field, type Selection, type Values } from '../app/commands';
+import { commandById, commands, patchValues, refOf, shownFields, type Ctx, type Field, type Selection, type Values } from '../app/commands';
 import { editFields } from '../app/editFields';
 import { measureBetween, measureItem, type MeasurePick } from '../app/measure';
 import { featureLabel, prefixDoc, withNode, type ModelNode, type StudioDoc } from '../engine/doc';
@@ -31,7 +31,7 @@ export const COMMAND_DOCS: Record<string, { selection: string; values: Record<st
   chamfer: { selection: 'edges: [edges of one body]', values: { distance: 'chamfer distance' } },
   fillet: { selection: 'edges: [edges of one body]', values: { radius: 'fillet radius' } },
   shell: { selection: 'faces to open (all of one body), or bodies: [one body] for a closed hollow', values: { t: 'wall thickness' } },
-  move: { selection: 'bodies: [one body]', values: { x: 'ΔX', y: 'ΔY', z: 'ΔZ' } },
+  move: { selection: 'bodies: [one body]', values: { x: 'ΔX', y: 'ΔY', z: 'ΔZ', ax: 'to X (the box corner; the HUD keeps it with ΔX — give one of the two)', ay: 'to Y', az: 'to Z' } },
   rotate: { selection: 'bodies: [one body]', values: { axis: 'x | y | z', angle: 'degrees', px: 'pivot x mm (default: the body\'s centre)', py: 'pivot y mm', pz: 'pivot z mm' } },
   mirror: { selection: 'bodies: [one body]', values: { plane: 'yz | xz | xy (through the origin); keeps the original' } },
   'linear-pattern': { selection: 'bodies: [one body]', values: { axis: 'x | y | z', spacing: 'mm between copies', count: 'copies including the original' } },
@@ -280,8 +280,7 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       const given = isObj(args.values) ? args.values : {};
       const bad = Object.keys(given).filter(k => !fields.some(f => f.key === k));
       if (bad.length) return fail(state, `${cmd.label} has no value ${bad.map(k => `"${k}"`).join(', ')}; its values are ${fields.map(f => `${f.key} (${f.label})`).join(', ') || 'none'}.`);
-      const values: Values = { ...(cmd.defaults?.(ctx) ?? {}) };
-      for (const [k, v] of Object.entries(given)) values[k] = typeof v === 'number' ? v : String(v);
+      const values: Values = patchValues(cmd, ctx, cmd.defaults?.(ctx) ?? {}, Object.fromEntries(Object.entries(given).map(([k, v]) => [k, typeof v === 'number' ? v : String(v)])));
       const why = checkValues(fields, values);
       if (why) return fail(state, `${cmd.label}: ${why}`);
       const next = cmd.build(ctx, values);

@@ -27,12 +27,20 @@ export interface Command {
   action?: 'sketch' | 'measure';
   /** Arrows in the viewport that drag one of the values (see viewport/gizmo.ts FeatureHandle). */
   handles?(ctx: Ctx, values: Values): HandleSpec[];
+  /** Values that follow others (a move's Δ and the position it lands at): `changed` are the keys just set. */
+  derive?(ctx: Ctx, values: Values, changed: readonly string[]): Values;
+}
+
+/** The values after `patch`, with the ones that follow them recomputed. */
+export function patchValues(cmd: Command, ctx: Ctx, values: Values, patch: Values): Values {
+  const next = { ...values, ...patch };
+  return cmd.derive ? cmd.derive(ctx, next, Object.keys(patch)) : next;
 }
 /**
  * A value dragged in the viewport: an arrow at `at` along `dir`; the value becomes start + mm × `scale`
- * (default 1), in steps of `step` (default 1; Shift: a tenth), not below `min`.
+ * (default 1), in steps of `step` (default 1), held between `min` and `max`.
  */
-export interface HandleSpec { key: string; at: [number, number, number]; dir: [number, number, number]; scale?: number; step?: number; min?: number }
+export interface HandleSpec { key: string; at: [number, number, number]; dir: [number, number, number]; scale?: number; step?: number; min?: number; max?: number }
 
 export function refOf(body: BodyResult): BodyRef {
   const m = /^b(\d+)(?:_(.+))?$/.exec(body.key);
@@ -54,6 +62,10 @@ function oneBody(ctx: Ctx) {
   return list.length === 1 ? ctx.bodies[list[0]] : null;
 }
 
+/** A body's box corner (least X, Y, Z), to 0.001 mm. */
+export function cornerOf(b: BodyResult | null | undefined): [number, number, number] {
+  return b ? b.mesh.bounds.min.map(v => Math.round(v * 1000) / 1000) as [number, number, number] : [0, 0, 0];
+}
 /** A body's box centre, to 0.001 mm (the origin when there is none). */
 export function centreOf(b: BodyResult | null | undefined): [number, number, number] {
   if (!b) return [0, 0, 0];
@@ -71,21 +83,31 @@ const notYet = (what: string): Command['available'] => () => no(`${what} isn’t
 /** The selected edges, when they all belong to one body. */
 const unit3 = (v: readonly number[]): [number, number, number] => { const l = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; };
 /**
- * A fillet or chamfer's size, dragged into the corner of the first picked edge (against its faces'
- * normals), from where the rounded or cut face crosses the bisector: r / sin(φ/2) − r in for a fillet of
- * radius r, d · cos(φ/2) for a chamfer of distance d, φ the angle between the faces inside the body.
+ * A fillet or chamfer's size as an arrow out of the corner of the first picked edge, along the bisector
+ * away from the body: it sits the size out from the edge's middle and follows the pointer (out: larger).
+ * It stops at the largest size the two faces allow: the round (or the cut) meets each face r / tan(φ/2)
+ * (a chamfer: d) from the edge, φ the angle between the faces inside the body, and must stay on it.
  */
 function edgeHandle(ctx: Ctx, key: string, size: number, kind: 'fillet' | 'chamfer'): HandleSpec[] {
   const sel = edgesOfOneBody(ctx), e = sel?.edges[0]; if (!sel || !e) return [];
-  const n = e.faces.map(f => sel.body.mesh.faces[f]?.normal).filter((x): x is [number, number, number] => !!x);
+  const mesh = sel.body.mesh, n = e.faces.map(f => mesh.faces[f]?.normal).filter((x): x is [number, number, number] => !!x);
   if (n.length !== 2) return [];
-  const into = unit3([-(n[0][0] + n[1][0]), -(n[0][1] + n[1][1]), -(n[0][2] + n[1][2])]);
+  const out = unit3([n[0][0] + n[1][0], n[0][1] + n[1][1], n[0][2] + n[1][2]]);
   const half = (Math.PI - Math.acos(Math.max(-1, Math.min(1, n[0][0] * n[1][0] + n[0][1] * n[1][1] + n[0][2] * n[1][2])))) / 2;
-  const off = !(size > 0) ? 0 : kind === 'fillet' ? size / Math.sin(half) - size : size * Math.cos(half);
-  const mid = [0, 1, 2].map(k => (e.a[k] + e.b[k]) / 2 + into[k] * off) as [number, number, number];
-  // (Dragging it in moves the face in by that much per mm of size: scale back to the size.)
-  const perMm = kind === 'fillet' ? 1 / Math.sin(half) - 1 : Math.cos(half);
-  return [{ key, at: mid, dir: into, scale: perMm > 1e-3 ? 1 / perMm : 1, min: 0.1, step: 0.5 }];
+  const mid = [0, 1, 2].map(k => (e.a[k] + e.b[k]) / 2) as [number, number, number], along = unit3([e.b[0] - e.a[0], e.b[1] - e.a[1], e.b[2] - e.a[2]]);
+  // How far each face reaches away from the edge (across it, in the face).
+  const reach = e.faces.map((f, k) => {
+    const nn = n[k], t = unit3([along[1] * nn[2] - along[2] * nn[1], along[2] * nn[0] - along[0] * nn[2], along[0] * nn[1] - along[1] * nn[0]]);
+    let far = 0, near = 0;
+    for (let v = 0; v < mesh.faceOfVertex.length; v++) if (mesh.faceOfVertex[v] === f) {
+      const d = (mesh.positions[v * 3] - mid[0]) * t[0] + (mesh.positions[v * 3 + 1] - mid[1]) * t[1] + (mesh.positions[v * 3 + 2] - mid[2]) * t[2];
+      far = Math.max(far, d); near = Math.min(near, d);
+    }
+    return Math.max(far, -near);
+  });
+  const room = Math.min(...reach), max = kind === 'fillet' ? room * Math.tan(half) : room;
+  const at = [0, 1, 2].map(k => mid[k] + out[k] * Math.max(0, size)) as [number, number, number];
+  return [{ key, at, dir: out, min: 0.1, step: 0.5, ...(max > 0.1 ? { max: Math.floor(max / 0.5) * 0.5 } : {}) }];
 }
 
 function edgesOfOneBody(ctx: Ctx) {
@@ -218,9 +240,19 @@ export const commands: Command[] = [
   {
     id: 'move', label: 'Move', icon: 'open_with', shortcut: 'G', group: 'modify', keywords: 'translate position',
     available: ctx => oneBody(ctx) ? ok : no('Select one body to move.'),
-    fields: () => [{ key: 'x', label: 'ΔX', kind: 'mm' }, { key: 'y', label: 'ΔY', kind: 'mm' }, { key: 'z', label: 'ΔZ', kind: 'mm' }],
+    // By Δ, or to a position: where the body's box corner (its least X, Y, Z) lands; each pair follows the other.
+    fields: () => [{ key: 'x', label: 'ΔX', kind: 'mm' }, { key: 'y', label: 'ΔY', kind: 'mm' }, { key: 'z', label: 'ΔZ', kind: 'mm' },
+      { key: 'ax', label: 'To X', kind: 'mm' }, { key: 'ay', label: 'To Y', kind: 'mm' }, { key: 'az', label: 'To Z', kind: 'mm' }],
     // Nothing moved until a value is typed or the gizmo dragged.
-    defaults: () => ({ x: 0, y: 0, z: 0 }),
+    defaults: ctx => { const m = cornerOf(oneBody(ctx)); return { x: 0, y: 0, z: 0, ax: m[0], ay: m[1], az: m[2] }; },
+    derive: (ctx, v, changed) => {
+      const m = cornerOf(oneBody(ctx)), r = (n: number) => Math.round(n * 1000) / 1000, out = { ...v };
+      ['x', 'y', 'z'].forEach((k, i) => {
+        if (changed.includes('a' + k)) out[k] = r(Number(v['a' + k]) - m[i]);
+        else out['a' + k] = r(m[i] + Number(v[k]));
+      });
+      return out;
+    },
     build: (ctx, v) => withNode(ctx.doc, { kind: 'translate', parent: refOf(oneBody(ctx)!), offset: [Number(v.x), Number(v.y), Number(v.z)] }),
   },
   {

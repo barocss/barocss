@@ -5,7 +5,7 @@ import { emptyDoc, featureLabel, fmt, loftTop, prefixDoc, starterDoc, withNode, 
 import type { BodyResult } from './engine/evaluate';
 import type { FriendlyError } from './engine/errors';
 import type { Vec3 } from './engine/mesh';
-import { commands, refOf, selectedBodies, shownFields, type Command, type Ctx, type Selection, type Values } from './app/commands';
+import { commands, patchValues, refOf, selectedBodies, shownFields, type Command, type Ctx, type Selection, type Values } from './app/commands';
 import { measureBetween, measureItem, type MeasurePick } from './app/measure';
 import { editFields } from './app/editFields';
 import { Viewport, type FeatureHandle, type SketchAnchor, type SketchShape, type SketchState, type SketchTool, type TransformGizmo, type ViewportHandle } from './viewport/Viewport';
@@ -192,12 +192,19 @@ export function App() {
     engine.evaluate(evaluated, revision.current++).then(result => {
       if (!live || !result) return;
       setBusy(false); setLastMs(result.ms);
-      if (result.ok) { setBodies(result.bodies); setSelection(chatSelection.current ? resolveNames(result.bodies, chatSelection.current).selection : emptySel); chatSelection.current = null; }
+      if (result.ok) {
+        // (The same bodies again — a preview that became the part — keep what is selected on them.)
+        const prev = bodiesRef.current, same = prev.length === result.bodies.length && result.bodies.every((b, i) => b.key === prev[i].key && b.mesh.faces.length === prev[i].mesh.faces.length && b.mesh.edges.length === prev[i].mesh.edges.length);
+        setBodies(result.bodies);
+        if (chatSelection.current) setSelection(resolveNames(result.bodies, chatSelection.current).selection); else if (!same) setSelection(emptySel);
+        chatSelection.current = null;
+      }
       else setToast(result.error);
     });
     return () => { live = false; };
   }, [engine, evaluated]);
 
+  const bodiesRef = useRef(bodies); bodiesRef.current = bodies;
   const ctx: Ctx = { doc: evaluated, bodies, selection, pick: pick ?? undefined };
 
   const commit = useCallback((next: StudioDoc) => {
@@ -304,21 +311,45 @@ export function App() {
 
   const cancel = useCallback(() => { setActive(null); setPreviewBodies(null); setSketch(null); }, []);
 
-  // Live preview: re-evaluate the candidate whenever HUD values change.
+  // Live preview: re-evaluate the candidate whenever HUD values change. One evaluation at a time, the
+  // newest values next (a drag sends many): the preview keeps up as fast as the kernel does, with no
+  // wait before it starts; values typed into a box wait a moment so each keystroke is not evaluated.
+  const previewRun = useRef<{ busy: boolean; next: (() => Promise<void>) | null }>({ busy: false, next: null });
+  /**
+   * A dimension handle being dragged: its last value the kernel accepted, and once a value fails, the side
+   * it failed on. The value goes back to the last good one and the drag stops there (no flicking between
+   * a broken and a good preview).
+   */
+  const handleDrag = useRef<{ key: string; lastOk: number; wall: number; dragging: boolean } | null>(null);
+  const lastTyped = useRef(0);
   useEffect(() => {
     if (!active?.cmd.build) return;
     let live = true;
     const missing = shownFields(active.cmd.fields?.(active.ctx) ?? [], active.values).find(f => f.kind !== 'choice' && (active.values[f.key] === '' || !Number.isFinite(Number(active.values[f.key]))));
     if (missing) { setPreviewBodies(null); setActive(a => a && { ...a, preview: 'error', error: { title: 'Enter a value', hint: `${missing.label} is empty.`, detail: '' } }); return; }
-    const t = setTimeout(() => {
+    const values = active.values, cmd = active.cmd, ctx = active.ctx;
+    const job = async () => {
       let candidate: StudioDoc;
-      try { candidate = active.cmd.build!(active.ctx, active.values); } catch (e) { setActive(a => a && { ...a, preview: 'error', error: { title: 'Invalid input', hint: String(e), detail: '' } }); return; }
-      engine.evaluate(candidate, revision.current++).then(result => {
-        if (!live || !result) return;
-        if (result.ok) { previewFor.current = JSON.stringify(active.values); setPreviewBodies(result.bodies); setActive(a => a && { ...a, preview: 'ok', error: undefined }); }
-        else { setPreviewBodies(null); setActive(a => a && { ...a, preview: 'error', error: result.error }); }
-      });
-    }, 140);
+      try { candidate = cmd.build!(ctx, values); } catch (e) { setActive(a => a && { ...a, preview: 'error', error: { title: 'Invalid input', hint: String(e), detail: '' } }); return; }
+      const result = await engine.part(candidate, revision.current++);
+      // (A newer job is queued: its result supersedes this one, unless this command is gone.)
+      if (!live && !previewRun.current.next) return;
+      const hd = handleDrag.current, hv = hd ? Number(values[hd.key]) : NaN;
+      if (hd && Number.isFinite(hv)) {
+        if (result.ok) { if (hd.wall === 0 || Math.sign(hv - hd.lastOk) !== hd.wall) hd.lastOk = hv; }
+        else if (hv !== hd.lastOk) {
+          hd.wall = Math.sign(hv - hd.lastOk);
+          setActive(a => a && a.cmd === cmd ? { ...a, values: patchValues(a.cmd, a.ctx, a.values, { [hd.key]: hd.lastOk }), preview: 'busy' } : a);
+          return;
+        }
+      }
+      if (result.ok) { previewFor.current = JSON.stringify(values); setPreviewBodies(result.bodies); setActive(a => a && a.cmd === cmd ? { ...a, preview: JSON.stringify(a.values) === JSON.stringify(values) ? 'ok' : 'busy', error: undefined } : a); }
+      else if (live) { setPreviewBodies(null); setActive(a => a && { ...a, preview: 'error', error: result.error }); }
+    };
+    const run = previewRun.current;
+    const pump = async () => { while (run.next) { const j = run.next; run.next = null; run.busy = true; try { await j(); } finally { run.busy = false; } } };
+    const typed = Date.now() - lastTyped.current < 50;
+    const t = setTimeout(() => { run.next = job; if (!run.busy) void pump(); }, typed ? 140 : 0);
     return () => { live = false; clearTimeout(t); };
   }, [active?.values, active?.cmd, engine]);
 
@@ -329,8 +360,11 @@ export function App() {
     if (active.preview === 'busy') { applyWhenReady.current = active.cmd; return; }
     applyWhenReady.current = null;
     if (active.preview !== 'ok') return;
+    // The preview is what the part becomes: shown as the part at once (no step back to the old bodies
+    // while the committed document evaluates).
+    if (previewBodies) setBodies(previewBodies);
     commit(active.cmd.build(active.ctx, active.values)); setActive(null); setPreviewBodies(null); setSketch(null);
-  }, [active, commit]);
+  }, [active, commit, previewBodies]);
   // (Only for the command it was asked for: cancelled or replaced, it is forgotten.)
   useEffect(() => {
     if (applyWhenReady.current && applyWhenReady.current !== active?.cmd) applyWhenReady.current = null;
@@ -607,7 +641,7 @@ export function App() {
     const begin = () => dragFrom.current ?? (dragFrom.current = values);
     const show = (next: Values, matrix: Float64Array, done: boolean) => {
       setBodyDrag({ matrix, settling: done });
-      setActive(a => a && { ...a, values: { ...a.values, ...next }, preview: 'busy' });
+      setActive(a => a && { ...a, values: patchValues(a.cmd, a.ctx, a.values, next), preview: 'busy' });
       if (done) dragFrom.current = null;
     };
     if (active.cmd.id === 'move') {
@@ -628,16 +662,23 @@ export function App() {
   })() : null;
   // Let go: the dragged look stays until the preview of the final values is in, then the preview shows.
   useEffect(() => { if (bodyDrag?.settling && active && previewFor.current === JSON.stringify(active.values)) setBodyDrag(null); }, [previewBodies, bodyDrag, active]);
-  useEffect(() => { setBodyDrag(null); dragFrom.current = null; }, [active?.cmd.id]);
+  useEffect(() => { setBodyDrag(null); dragFrom.current = null; handleDrag.current = null; }, [active?.cmd.id]);
   // The active command's dimension handles: dragging one sets that value (the preview follows).
   const handles: FeatureHandle[] = active?.cmd.handles && !sketch ? active.cmd.handles(active.ctx, active.values).flatMap(h => {
     const field = (active.cmd.fields?.(active.ctx) ?? []).find(f => f.key === h.key), value = Number(active.values[h.key]);
     if (!field || !Number.isFinite(value)) return [];
     const step = h.step ?? 1;
     return [{ id: h.key, at: h.at, dir: h.dir, label: field.label, value,
-      toValue: (start: number, mm: number) => Math.max(h.min ?? -Infinity, Math.round((start + mm * (h.scale ?? 1)) / step) * step),
+      toValue: (start: number, mm: number) => Math.min(h.max ?? Infinity, Math.max(h.min ?? -Infinity, Math.round((start + mm * (h.scale ?? 1)) / step) * step)),
       format: (v: number) => `${fmt(v)} mm`,
-      onDrag: (v: number) => setActive(a => a && a.values[h.key] !== v ? { ...a, values: { ...a.values, [h.key]: v }, preview: 'busy' } : a) }];
+      onDrag: (v: number, done: boolean) => {
+        let hd = handleDrag.current;
+        if (!hd || hd.key !== h.key || !hd.dragging) hd = handleDrag.current = { key: h.key, lastOk: value, wall: 0, dragging: true };
+        // Past the side where a value failed: held at the last good one.
+        if (hd.wall && Math.sign(v - hd.lastOk) === hd.wall) v = hd.lastOk;
+        if (done) hd.dragging = false;
+        setActive(a => a && a.values[h.key] !== v ? { ...a, values: patchValues(a.cmd, a.ctx, a.values, { [h.key]: v }), preview: 'busy' } : a);
+      } }];
   }) : [];
   const dragTransforms = useMemo(() => cmdBody !== undefined && bodyDrag ? new Map([[cmdBody, bodyDrag.matrix]]) : null, [cmdBody, bodyDrag]);
 
@@ -847,7 +888,7 @@ export function App() {
 
       {drawing && <DrawingWorkspace engine={engine} doc={{ ...evaluated, instances: doc.instances }} settings={doc.drawing ?? defaultDrawing()} fileName={fileName} onChange={commitDrawing} onToast={setToast} />}
 
-      {active && <Hud active={active} onChange={(key, value) => setActive(a => a && { ...a, values: { ...a.values, [key]: value }, preview: 'busy' })} onApply={apply} onCancel={cancel} />}
+      {active && <Hud active={active} onChange={(key, value) => { lastTyped.current = Date.now(); handleDrag.current = null; setActive(a => a && { ...a, values: patchValues(a.cmd, a.ctx, a.values, { [key]: value }), preview: 'busy' }); }} onApply={apply} onCancel={cancel} />}
 
       {sketch && !active && <div className="card hint-bar">
         {(() => { const t = TOOLS.find(x => x.tool === sketch.tool)!; return <><span className="hint-title"><Icon name={t.icon} small />{t.label}</span><span>{t.hint}</span></>; })()}
