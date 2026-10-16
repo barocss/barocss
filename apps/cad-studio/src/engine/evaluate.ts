@@ -38,6 +38,23 @@ export function evaluateDoc(doc: StudioDoc, revision: number, quality = 8): Eval
   }
 }
 
+let lastPreview: CadPartSnapshot | null = null;
+/**
+ * A command's preview: through its own cache (the features it leaves alone are not built again while
+ * it is dragged) and without mass properties (worked out when the part is evaluated).
+ */
+export function evaluatePreview(doc: StudioDoc, revision: number, quality = 8): EvalResult {
+  const t0 = performance.now();
+  try {
+    const part = toPartDocument(doc), snapshot = lastPreview ? lastPreview.withDocument(part) : evaluateCadPart(part); lastPreview = snapshot;
+    const bodies: BodyResult[] = snapshot.outputs.map(o => ({ key: bodyKeyOf(o.id, doc.nodes), family: o.representation, mesh: bodyMesh(o.brep, revision, quality), volumeMM3: null, massG: null }));
+    return { ok: true, revision, bodies, ms: performance.now() - t0 };
+  } catch (cause) {
+    lastPreview = null;
+    return { ok: false, revision, error: friendly(cause instanceof Error ? cause.message : String(cause)), ms: performance.now() - t0 };
+  }
+}
+
 /** Another part's bodies on their own (instances: not through the main part's cache). */
 export function evaluatePart(doc: StudioDoc, revision: number, quality = 8): EvalResult {
   const t0 = performance.now();

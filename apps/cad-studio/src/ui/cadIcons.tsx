@@ -144,6 +144,8 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   'cad-rotate': <>{ac('M19.2 9.5A7.5 7.5 0 1 0 19.5 13')}<g>{head([18, 6.8], [19.6, 10.2], 3.8)}</g><circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none" /></>,
   // A small square grown into a large one along the diagonal.
   'cad-scale': <>{face('M3.5 11.5h9v9h-9z', TONE.right)}{line('M3.5 11.5h9v9h-9z')}{ghost('M3.5 3.5h17v17')}{arrow([9, 15], [19.5, 4.5])}</>,
+  // A block brought down onto another's top face.
+  'cad-align': <>{block(0, 0, 0, 1, 1, 0.38, { accent: i => i === 2 })}<g transform="translate(0 -6.2)">{block(0.22, 0.22, 0.38, 0.78, 0.78, 0.8)}</g>{arrow([12, 0.9], [12, 4.6])}</>,
   // A shape and its mirror image across a plane.
   'cad-mirror': <>{ac('M12 2.5v19')}{face('M9.5 6.5v11h-6z', TONE.right)}{line('M9.5 6.5v11h-6z')}{ghost('M14.5 6.5v11h6z')}</>,
   // Copies in a row along an arrow.

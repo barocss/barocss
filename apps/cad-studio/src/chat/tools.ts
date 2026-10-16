@@ -21,8 +21,9 @@ export type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 export interface ToolOutcome { state: ChatState; content: string; isError: boolean; changed: boolean; summary: string }
 
 /** Commands the chat can run (the ones that build; sketch-mode and measure UI actions are tools of their own). */
-// (Loft takes sketches picked in the studio; chat writes a loft node with add_features instead.)
-export const CHAT_COMMANDS = commands.filter(c => c.build && c.id !== 'loft').map(c => c.id);
+// (Loft takes sketches picked in the studio, Align a face clicked there; chat writes a loft node with
+// add_features, and moves with move or rotate, instead.)
+export const CHAT_COMMANDS = commands.filter(c => c.build && c.id !== 'loft' && c.id !== 'align').map(c => c.id);
 
 /** What each command needs selected and what its values mean. */
 export const COMMAND_DOCS: Record<string, { selection: string; values: Record<string, string> }> = {

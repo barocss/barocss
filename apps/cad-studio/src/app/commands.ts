@@ -2,6 +2,7 @@
 // which fields its HUD shows, and how it changes the document.
 import { profileCommands } from './profileCommands';
 import { primitives, puck } from './primitives';
+import { alignCommand } from './alignCommand';
 import { withNode, type Axis, type BodyRef, type ModelNode, type Side, type StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { DisplayEdge } from '../engine/mesh';
@@ -284,7 +285,7 @@ const allCommands: Command[] = [
     },
   },
   {
-    id: 'fillet', label: 'Fillet', icon: 'cad-fillet', hint: 'Round the picked edges (a picked face: all its edges)', shortcut: 'F', group: 'modify', keywords: 'round edge blend',
+    id: 'fillet', label: 'Fillet', icon: 'cad-fillet', hint: 'Round the picked edges (a picked face: all its edges)', shortcut: 'Shift F', group: 'modify', keywords: 'round edge blend',
     available: ctx => {
       const sel = edgesOfOneBody(ctx);
       if (!sel) return no('Select edges of one body to round (Shift-click for more), or a face for all its edges.');
@@ -356,6 +357,7 @@ const allCommands: Command[] = [
     defaults: ctx => { const c = centreOf(oneBody(ctx)); return { factor: 1, px: c[0], py: c[1], pz: c[2] }; },
     build: (ctx, v) => withNode(ctx.doc, { kind: 'scale', parent: refOf(oneBody(ctx)!), factor: Number(v.factor), pivot: [Number(v.px), Number(v.py), Number(v.pz)] }),
   },
+  alignCommand,
   {
     id: 'mirror', label: 'Mirror', icon: 'cad-mirror', hint: 'A mirrored copy across a coordinate plane', shortcut: 'M', group: 'pattern', keywords: 'symmetry reflect',
     available: ctx => oneBody(ctx) ? ok : no('Select one body to mirror.'),

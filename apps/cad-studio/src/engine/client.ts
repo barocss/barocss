@@ -25,6 +25,15 @@ export class EngineClient {
     });
   }
 
+  /** A command's preview (its own cache, no mass properties): never dropped as stale. */
+  preview(doc: StudioDoc, revision: number): Promise<EvalResult> {
+    const id = this.next++;
+    return new Promise(resolve => {
+      this.pending.set(id, data => resolve((data as { result: EvalResult }).result));
+      this.worker.postMessage({ type: 'preview', id, doc, revision });
+    });
+  }
+
   /** Another part on its own (an instance): never dropped as stale. */
   part(doc: StudioDoc, revision: number): Promise<EvalResult> {
     const id = this.next++;

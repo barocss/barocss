@@ -1236,6 +1236,48 @@ try {
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? '') && window.__studioDoc.nodes.length === 2, null, { timeout: 15000 });
   });
 
+  await check('a box under a fillet keeps up while its width is dragged, then the fillet follows', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /Extrude 16/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await press('Shift+F'); await hudReady(); await page.waitForTimeout(250); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'fillet', null, { timeout: 20000 }); await idle();
+    // Pick the box's side (the box feature), drag its width arrow.
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.side0')));
+    await page.waitForSelector('[data-handle="w"]', { timeout: 5000 });
+    const svg = await page.locator('.vp-overlay').boundingBox();
+    const [a, b] = await page.evaluate(() => { const l = document.querySelector('[data-handle="w"] line:nth-of-type(2)'); const g = n => Number(l.getAttribute(n)); return [[g('x1'), g('y1')], [g('x2'), g('y2')]]; });
+    await page.mouse.move(svg.x + a[0], svg.y + a[1]); await page.mouse.down();
+    const t0 = Date.now();
+    await page.mouse.move(svg.x + a[0] + (b[0] - a[0]) * 1.5, svg.y + a[1] + (b[1] - a[1]) * 1.5, { steps: 10 });
+    // While held: the preview is the box alone (fast), still shown as evaluating.
+    await page.waitForFunction(() => /evaluating/.test(document.querySelector('.hud .status')?.textContent ?? '') || /preview/.test(document.querySelector('.hud .status')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.mouse.up(); const held = Date.now() - t0;
+    await page.waitForFunction(() => /preview/.test(document.querySelector('.hud .status')?.textContent ?? ''), null, { timeout: 15000 });
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0].max[0] > 32 && window.__studioDoc.nodes.at(-1)?.kind === 'fillet', null, { timeout: 15000 });
+    assert.ok(held < 5000, `drag took ${held} ms`);
+  });
+
+  await check('Align: a box’s bottom put on another box’s top with a click', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    await page.evaluate(() => window.__studioSelectFace('nothing')); await press('Escape');
+    await press('y'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n3.bottom')));
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await press('a'); await hudReady();
+    assert.ok(await page.evaluate(() => window.__studioPickFace('n1.top')));
+    await page.waitForFunction(() => /face n1\.top/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 5000 });
+    await hudReady(); await page.waitForTimeout(250); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'translate', null, { timeout: 15000 });
+    const t = (await doc()).nodes.at(-1);
+    assert.equal(t.offset[2], 16, 'up onto the 16 mm box');
+    await snap('align');
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

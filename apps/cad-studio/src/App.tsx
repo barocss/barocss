@@ -332,28 +332,42 @@ export function App() {
    */
   const handleDrag = useRef<{ key: string; lastOk: number; wall: number; dragging: boolean } | null>(null);
   const lastTyped = useRef(0);
+  /**
+   * While a handle is dragged on a feature that later ones build on (a box under fillets), the preview
+   * is the part up to that feature — quick, so the body keeps up with the pointer — and the whole part
+   * follows when the drag pauses or ends (`fullTimer`).
+   */
+  const fullTimer = useRef(0);
   useEffect(() => {
     if (!active?.cmd.build) return;
     let live = true;
     const missing = shownFields(active.cmd.fields?.(active.ctx, active.values) ?? [], active.values).find(f => f.kind !== 'choice' && (active.values[f.key] === '' || !Number.isFinite(Number(active.values[f.key]))));
     if (missing) { setPreviewBodies(null); setActive(a => a && { ...a, preview: 'error', error: { title: 'Enter a value', hint: `${missing.label} is empty.`, detail: '' } }); return; }
     const values = active.values, cmd = active.cmd, ctx = active.ctx;
-    const job = async () => {
+    const job = async (full = false) => {
       let candidate: StudioDoc;
       try { candidate = cmd.build!(ctx, values); } catch (e) { setActive(a => a && { ...a, preview: 'error', error: { title: 'Invalid input', hint: String(e), detail: '' } }); return; }
-      const result = await engine.part(candidate, revision.current++);
+      let shown = candidate, rolled = false;
+      if (!full && handleDrag.current?.dragging && candidate.nodes.length === ctx.doc.nodes.length) {
+        let k = -1; candidate.nodes.forEach((n, i) => { if (JSON.stringify(n) !== JSON.stringify(ctx.doc.nodes[i])) k = i; });
+        if (k >= 0 && k < candidate.nodes.length - 1) { shown = prefixDoc(candidate, k + 1); rolled = true; }
+      }
+      window.clearTimeout(fullTimer.current);
+      const result = await engine.preview(shown, revision.current++);
+      if (rolled && live) fullTimer.current = window.setTimeout(() => { if (!live) return; run.next = () => job(true); if (!run.busy) void pump(); }, 220);
       // (A newer job is queued: its result supersedes this one, unless this command is gone.)
       if (!live && !previewRun.current.next) return;
       const hd = handleDrag.current, hv = hd ? Number(values[hd.key]) : NaN;
       if (hd && Number.isFinite(hv)) {
-        if (result.ok) { if (hd.wall === 0 || Math.sign(hv - hd.lastOk) !== hd.wall) hd.lastOk = hv; }
+        // (Only the whole part decides the wall: the part up to the feature may take what its later features refuse.)
+        if (result.ok) { if (!rolled && (hd.wall === 0 || Math.sign(hv - hd.lastOk) !== hd.wall)) hd.lastOk = hv; }
         else if (hv !== hd.lastOk) {
           hd.wall = Math.sign(hv - hd.lastOk);
           setActive(a => a && a.cmd === cmd ? { ...a, values: patchValues(a.cmd, a.ctx, a.values, { [hd.key]: hd.lastOk }), preview: 'busy' } : a);
           return;
         }
       }
-      if (result.ok) { previewFor.current = JSON.stringify(values); setPreviewBodies(result.bodies); setActive(a => a && a.cmd === cmd ? { ...a, preview: JSON.stringify(a.values) === JSON.stringify(values) ? 'ok' : 'busy', error: undefined } : a); }
+      if (result.ok) { previewFor.current = rolled ? '' : JSON.stringify(values); setPreviewBodies(result.bodies); setActive(a => a && a.cmd === cmd ? { ...a, preview: !rolled && JSON.stringify(a.values) === JSON.stringify(values) ? 'ok' : 'busy', error: undefined } : a); }
       else if (live) { setPreviewBodies(null); setActive(a => a && { ...a, preview: 'error', error: result.error }); }
     };
     const run = previewRun.current;
